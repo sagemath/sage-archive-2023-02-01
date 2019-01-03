@@ -2086,7 +2086,8 @@ class Graph(GenericGraph):
 
         # Easy cases: null graph, subgraphs of K_5 and K_3,3
         if self.order() <= 5 or (self.order() <= 6 and self.is_bipartite()):
-            return self.vertices()[:k]
+            it = self.vertex_iterator()
+            return [next(it) for _ in range(k)]
 
 
         if not self.is_connected():
@@ -2097,20 +2098,25 @@ class Graph(GenericGraph):
 
             P = [H for H in self.connected_components_subgraphs() if not H.is_planar()]
             if not P: # The graph is planar
-                return self.vertices()[:k]
+                it = self.vertex_iterator()
+                return [next(it) for _ in range(k)]
             elif len(P) > 1:
                 return []
             else:
                 # We proceed with the non planar component
-                H = Graph(P[0].edges(labels=0), immutable=False, loops=False, multiedges=False) if P[0].is_immutable() else P[0]
+                if P[0].is_immutable():
+                    H = Graph(P[0].edges(labels=0, sort=False), immutable=False, loops=False, multiedges=False)
+                else:
+                    H = P[0]
 
         elif self.is_planar():
             # A planar graph is apex.
-            return self.vertices()[:k]
+            it = self.vertex_iterator()
+            return [next(it) for _ in range(k)]
 
         else:
             # We make a basic copy of the graph since we will modify it
-            H = Graph(self.edges(labels=0), immutable=False, loops=False, multiedges=False)
+            H = Graph(self.edges(labels=0, sort=False), immutable=False, loops=False, multiedges=False)
 
 
         # General case: basic implementation

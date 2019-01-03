@@ -2024,7 +2024,7 @@ class Graph(GenericGraph):
         vertex is the unique apex vertex ::
 
             sage: G = graphs.Grid2dGraph(4,4)
-            sage: G.apex_vertices() == G.vertices()
+            sage: set(G.apex_vertices()) == set(G.vertices())
             True
             sage: G.add_edges([('universal',v) for v in G])
             sage: G.apex_vertices()

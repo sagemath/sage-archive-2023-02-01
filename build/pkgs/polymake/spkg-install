@@ -11,8 +11,10 @@ if [ `uname` = Darwin ]; then
     more_configure_options="$more_configure_options --without-fink"
 fi
 
+# We disable SoPlex to avoid linking errors (#24905).
 ./configure --without-java \
             --without-javaview \
+            --without-soplex \
             --prefix="$SAGE_LOCAL" \
             --exec-prefix="$SAGE_LOCAL" \
             --includedir="$SAGE_LOCAL"/include \

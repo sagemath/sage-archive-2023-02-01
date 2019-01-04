@@ -258,7 +258,6 @@ from sage.misc.prandom import sample
 from sage.graphs.digraph import DiGraph
 import itertools
 from .combinat import CombinatorialElement, catalan_number
-from sage.misc.misc import uniq
 from sage.misc.cachefunc import cached_method
 from .backtrack import GenericBacktracker
 from sage.combinat.combinatorial_map import combinatorial_map
@@ -4095,7 +4094,7 @@ class Permutation(CombinatorialElement):
             must_be_right = [f for f in self[u + 1:] if f < i]
             v = other.index(i)
             must_be_right += [f for f in other[v + 1:] if f < i]
-            must_be_right = uniq(sorted(must_be_right))
+            must_be_right = sorted(set(must_be_right))
             for j, q in enumerate(xs):
                 if q in must_be_right:
                     xs = xs[:j] + [i] + xs[j:]
@@ -5967,7 +5966,7 @@ class Permutations_setk(Permutations_set):
         if len(x) != self.k:
             return False
         s = list(self._set)
-        return all(i in s for i in x) and len(uniq(x)) == len(x)
+        return all(i in s for i in x) and len(set(x)) == len(x)
 
     def _repr_(self):
         """

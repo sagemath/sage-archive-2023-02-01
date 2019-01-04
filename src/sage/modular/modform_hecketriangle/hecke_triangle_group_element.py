@@ -2574,8 +2574,8 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             ....:     return True
 
             sage: z = PolynomialRing(G.base_ring(), 'z').gen()
-            sage: uniq([ is_rpf(1 - z^(-k), k=k) for k in range(-6, 6, 2)])    # long time
-            [True]
+            sage: [is_rpf(1 - z^(-k), k=k) for k in range(-6, 6, 2)]  # long time
+            [True, True, True, True, True, True]
             sage: [is_rpf(1/z, k=k) for k in range(-6, 6, 2)]
             [False, False, False, False, True, False]
 

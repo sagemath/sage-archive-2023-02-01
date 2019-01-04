@@ -4370,8 +4370,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             ([-6*a + 2, 6*a + 3, -1, 12*a + 5], [])
         """
         K_pari = self.pari_bnf(proof=proof)
-        from sage.misc.all import uniq
-        S_pari = [p.pari_prime() for p in uniq(S)]
+        S_pari = [p.pari_prime() for p in sorted(set(S))]
         result = K_pari.bnfsunit(S_pari)
         units = [self(x, check=False) for x in result[0]] + self.unit_group().gens_values()
         orders = result[4][1].sage()

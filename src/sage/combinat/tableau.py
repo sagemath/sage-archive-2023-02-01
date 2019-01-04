@@ -107,7 +107,7 @@ import sage.libs.symmetrica.all as symmetrica
 import sage.misc.prandom as random
 from sage.combinat import permutation
 from sage.groups.perm_gps.permgroup import PermutationGroup
-from sage.misc.all import uniq, prod
+from sage.misc.all import prod
 from sage.misc.misc import powerset
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
@@ -1998,7 +1998,7 @@ class Tableau(ClonableList):
             if new_s == []:
                 res.append(0)
                 continue
-            x = uniq([ (i-j)%(k+1) for i,j in new_s ])
+            x = set((i-j) % (k+1) for i, j in new_s)
             res.append(len(x))
 
         return res

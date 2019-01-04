@@ -23,7 +23,7 @@ from __future__ import absolute_import
 from cpython cimport *
 
 import sage.modules.free_module
-from sage.structure.element cimport coercion_model
+from sage.structure.coerce cimport coercion_model
 
 
 cdef class Matrix(Matrix0):

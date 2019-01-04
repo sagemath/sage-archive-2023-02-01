@@ -19,7 +19,8 @@ from cpython.int cimport *
 from cpython.number cimport *
 from cysignals.signals cimport sig_check
 
-from .element cimport parent, coercion_model, Element, ModuleElement
+from .coerce cimport coercion_model
+from .element cimport parent, Element, ModuleElement
 from .parent cimport Parent
 from .coerce_exceptions import CoercionException
 from sage.categories.action cimport InverseAction, PrecomposedAction

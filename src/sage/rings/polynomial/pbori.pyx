@@ -208,8 +208,8 @@ from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 
 from sage.rings.ideal import FieldIdeal
 
-from sage.structure.element cimport (Element, RingElement,
-                                     have_same_parent, coercion_model)
+from sage.structure.coerce cimport coercion_model
+from sage.structure.element cimport Element
 
 from sage.structure.parent cimport Parent
 from sage.structure.sequence import Sequence

@@ -85,8 +85,9 @@ from sage.structure.coerce cimport is_numpy_type
 
 from sage.libs.gmp.pylong cimport mpz_set_pylong
 
-from sage.structure.element cimport Element, RingElement, ModuleElement, coercion_model
-from sage.structure.element import bin_op, coerce_binop
+from sage.structure.coerce cimport coercion_model
+from sage.structure.element cimport Element
+from sage.structure.element import coerce_binop
 from sage.structure.parent cimport Parent
 from sage.categories.morphism cimport Morphism
 from sage.categories.map cimport Map
@@ -3672,7 +3673,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                 if mpz_cmp_si(mpq_denref((<Rational>y).value), 1) != 0:
                     raise ValueError("denominator must be 1")
                 return (<Rational>x)._lshift(y)
-        return bin_op(x, y, operator.lshift)
+        return coercion_model.bin_op(x, y, operator.lshift)
 
     cdef _rshift(self, long int exp):
         r"""
@@ -3720,7 +3721,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                 if mpz_cmp_si(mpq_denref((<Rational>y).value), 1) != 0:
                     raise ValueError("denominator must be 1")
                 return (<Rational>x)._rshift(y)
-        return bin_op(x, y, operator.rshift)
+        return coercion_model.bin_op(x, y, operator.rshift)
 
     def conjugate(self):
         """

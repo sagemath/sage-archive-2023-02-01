@@ -165,8 +165,6 @@ import sage.rings.rational
 from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
 
 from sage.cpython.string cimport str_to_bytes
-from sage.structure.element cimport ModuleElement, RingElement, Element, \
-  classify_elements, HAVE_SAME_PARENT, BOTH_ARE_ELEMENT, coercion_model
 from sage.symbolic.comparison import mixed_order
 from sage.symbolic.getitem cimport OperandsWrapper
 from sage.symbolic.series cimport SymbolicSeries

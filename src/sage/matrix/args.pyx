@@ -24,9 +24,9 @@ from cypari2.types cimport typ, t_MAT, t_VEC, t_COL, t_VECSMALL, t_LIST, t_STR, 
 
 from .matrix_space import MatrixSpace
 from sage.rings.all import ZZ, RDF, CDF
-from sage.structure.coerce cimport is_numpy_type, py_scalar_parent
-from sage.structure.element cimport (coercion_model,
-        Element, RingElement, coercion_model)
+from sage.structure.coerce cimport (coercion_model,
+        is_numpy_type, py_scalar_parent)
+from sage.structure.element cimport Element, RingElement
 from sage.arith.long cimport pyobject_to_long
 from sage.misc.misc_c import sized_iter
 from sage.categories import monoids

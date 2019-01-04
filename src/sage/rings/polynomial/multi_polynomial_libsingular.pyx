@@ -241,12 +241,8 @@ from sage.structure.parent_base cimport ParentWithBase
 from sage.structure.parent_gens cimport ParentWithGens
 from sage.structure.category_object cimport CategoryObject
 
-from sage.structure.element cimport EuclideanDomainElement
-from sage.structure.element cimport RingElement
-from sage.structure.element cimport ModuleElement
-from sage.structure.element cimport Element
-from sage.structure.element cimport CommutativeRingElement
-from sage.structure.element cimport coercion_model
+from sage.structure.coerce cimport coercion_model
+from sage.structure.element cimport Element, CommutativeRingElement
 
 from sage.structure.richcmp cimport rich_to_bool, richcmp
 from sage.structure.factorization import Factorization

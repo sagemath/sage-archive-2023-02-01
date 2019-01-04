@@ -470,14 +470,14 @@ class Polymake(ExtraTabCompletion, Expect):
         TESTS::
 
             sage: Q = polymake.cube(4)                          # optional - polymake
-            sage: polymake('"ok"')                              # optional - polymake
+            sage: polymake('ok')                              # optional - polymake
             ok
             sage: polymake._expect.sendline()                   # optional - polymake
             1
 
         Now the interface is badly out of sync::
 
-            sage: polymake('"foobar"')                          # optional - polymake
+            sage: polymake('foobar')                          # optional - polymake
             <repr(<sage.interfaces.polymake.PolymakeElement at ...>) failed:
             PolymakeError: Can't locate object method "description" via package "1"
             (perhaps you forgot to load "1"?)...>
@@ -492,7 +492,7 @@ class Polymake(ExtraTabCompletion, Expect):
             ...
             UserWarning: Polymake seems out of sync:
             The expected output did not appear before reaching the next prompt.
-            sage: polymake('"back to normal"')                  # optional - polymake
+            sage: polymake('back to normal')                  # optional - polymake
             back to normal
             sage: Q.typeof()                                    # optional - polymake
             ('Polymake::polytope::Polytope__Rational', 'ARRAY')
@@ -709,8 +709,17 @@ class Polymake(ExtraTabCompletion, Expect):
 
         """
         if isinstance(value, six.string_types):
-            value = value.strip().rstrip(';').strip()
-        cmd = '@%s%s(%s);'%(var,self._assign_symbol(), value)
+            if not value.isdigit():
+                # This is a hack to insert quotes from a Perl bug from
+                # Polymake3.2+ saying:
+                # "Bareword "F_VECTOR" not allowed while "strict
+                # subs" in use.
+                value = "'" + value.strip().rstrip(';').strip() + "'"
+            else:
+                value = value.strip().rstrip(';').strip()
+        cmd = '@{}{}({});'.format(var,self._assign_symbol(), value)
+        # print("cmd", cmd)
+        # print("var={}, value={}".format(var,value))
         self.eval(cmd)
 
     def get(self, cmd):

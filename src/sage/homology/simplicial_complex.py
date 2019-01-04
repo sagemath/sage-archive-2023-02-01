@@ -322,7 +322,7 @@ def rename_vertex(n, keep, left=True):
         sage: rename_vertex(3, [5, 6, 7], left=False)
         'R3'
     """
-    lookup = dict(zip(keep, range(len(keep))))
+    lookup = {i:v for v,i in enumerate(keep)}
     try:
         return lookup[n]
     except KeyError:
@@ -1006,7 +1006,6 @@ class SimplicialComplex(Parent, GenericCellComplex):
                 if maximal_faces:
                     vertex_set = reduce(union, maximal_faces)
         if C is not None:
-            self._vertex_set = copy(C.vertices())
             self._facets = list(C.facets())
             self._faces = copy(C._faces)
             self._gen_dict = copy(C._gen_dict)
@@ -1058,8 +1057,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         # Translate vertices to numbers, for use in sorting
         # facets. Having a consistent ordering for the vertices in
         # each facet is necessary for homology computations.
-        vertex_to_index = dict((vertex, i) for i, vertex
-                               in enumerate(vertices))
+        vertex_to_index = {v:i for i,v in enumerate(vertices)}
 
         for face in maximal_simplices:
             # check whether each given face is actually maximal
@@ -1074,8 +1072,6 @@ class SimplicialComplex(Parent, GenericCellComplex):
         if len(maximal_simplices) == 0:
             good_faces.append(Simplex(-1))
         # now record the attributes for self
-        # self._vertex_set: the tuple formed by the vertices
-        self._vertex_set = vertices
         # self._vertex_to_index: dictionary to convert vertices to integers
         self._vertex_to_index = vertex_to_index
         # self._facets: unsorted list of facets
@@ -1198,10 +1194,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: S = SimplicialComplex([[i] for i in range(16)] + [[0,1], [1,2]])
             sage: S
             Simplicial complex with 16 vertices and 15 facets
-            sage: S.vertices()
-            (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
+            sage: sorted(S.vertices())
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
         """
-        return self._vertex_set
+        return tuple(self._vertex_to_index.keys())
 
     def _an_element_(self):
         """
@@ -1735,10 +1731,12 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
             sage: S = SimplicialComplex([[0,1], [1,2], [0,2]]) # circle
             sage: K = SimplicialComplex([[0,1]])   # edge
-            sage: S.product(K).vertices()  # cylinder
-            ('L0R0', 'L0R1', 'L1R0', 'L1R1', 'L2R0', 'L2R1')
-            sage: S.product(K, rename_vertices=False).vertices()
-            ((0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1))
+            sage: Cyl = S.product(K)  # cylinder
+            sage: sorted(Cyl.vertices())
+            ['L0R0', 'L0R1', 'L1R0', 'L1R1', 'L2R0', 'L2R1']
+            sage: Cyl2 = S.product(K, rename_vertices=False)
+            sage: sorted(Cyl2.vertices())
+            [(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1)]
             sage: T = S.product(S)  # torus
             sage: T
             Simplicial complex with 9 vertices and 18 facets
@@ -1876,8 +1874,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
         only adds one. ::
 
             sage: T = simplicial_complexes.Torus()
-            sage: T.join(S0).vertices()      # 9 vertices
-            ('L0', 'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'R0', 'R1')
+            sage: sorted(T.join(S0).vertices())      # 9 vertices
+            ['L0', 'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'R0', 'R1']
             sage: T.suspension().vertices()  # 8 vertices
             (0, 1, 2, 3, 4, 5, 6, 7)
         """
@@ -2521,7 +2519,6 @@ class SimplicialComplex(Parent, GenericCellComplex):
             self._facets = Facets
 
             # Update the vertex set
-            self._vertex_set = tuple(reduce(union, [self._vertex_set, new_face]))
             self._vertex_to_index = vertex_to_index
 
             # Update self._faces.
@@ -2646,7 +2643,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         # Recreate the vertex set
         from sage.misc.misc import union
-        self._vertex_set = tuple(reduce(union, self._facets))
+        vertices = tuple(reduce(union, self._facets))
+        for v in self.vertices():
+            if v not in vertices:
+                del self._vertex_to_index[v]
 
         # Update self._faces.
         # Note: can't iterate over self._faces, because the dictionary
@@ -4052,16 +4052,16 @@ class SimplicialComplex(Parent, GenericCellComplex):
         # Check easy invariants agree
         if (sorted(x.dimension() for x in self._facets)
             != sorted(x.dimension() for x in other._facets)
-            or len(self._vertex_set) != len(other._vertex_set)):
+            or len(self.vertices()) != len(other.vertices())):
             return False
         g1 = Graph()
         g2 = Graph()
         g1.add_edges((v, f) for f in self._facets for v in f)
         g2.add_edges((v, f) for f in other._facets for v in f)
         g1.add_edges(("fake_vertex", v, "special_edge")
-                     for v in self._vertex_set)
+                     for v in self.vertices())
         g2.add_edges(("fake_vertex", v, "special_edge")
-                     for v in other._vertex_set)
+                     for v in other.vertices())
         if not certificate:
             return g1.is_isomorphic(g2, edge_labels=True)
         isisom, tr = g1.is_isomorphic(g2, edge_labels=True, certificate=True)
@@ -4239,7 +4239,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             False
         """
         return all(isinstance(v, integer_types + (Integer,))
-                   for v in self._vertex_set)
+                   for v in self.vertices())
 
     # @cached_method    when we switch to immutable SimplicialComplex
     def _translation_to_numeric(self):
@@ -4295,7 +4295,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: set(s._translation_from_numeric().values()) == set(['a', 'b', 123])
             True
         """
-        return dict(enumerate(self._vertex_set))
+        d = self._vertex_to_index
+        return {d[v]:v for v in d}
 
     def _chomp_repr_(self):
         r"""

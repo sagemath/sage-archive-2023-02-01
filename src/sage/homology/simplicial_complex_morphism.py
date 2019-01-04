@@ -68,8 +68,8 @@ EXAMPLES::
     sage: H = Hom(T,S)
     sage: T
     Simplicial complex with 8 vertices and 12 facets
-    sage: T.vertices()
-    ((0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1), (3, 0), (3, 1))
+    sage: sorted(T.vertices())
+    [(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1), (3, 0), (3, 1)]
     sage: f = {(0, 0): 0, (0, 1): 0, (1, 0): 1, (1, 1): 1, (2, 0): 2, (2, 1): 2, (3, 0): 3, (3, 1): 3}
     sage: x = H(f)
     sage: U = simplicial_complexes.Sphere(1)
@@ -160,7 +160,7 @@ class SimplicialComplexMorphism(Morphism):
         """
         if not isinstance(X,SimplicialComplex) or not isinstance(Y,SimplicialComplex):
             raise ValueError("X and Y must be SimplicialComplexes")
-        if not set(f.keys()) == set(X._vertex_set):
+        if not set(f.keys()) == set(X.vertices()):
             raise ValueError("f must be a dictionary from the vertex set of X to single values in the vertex set of Y")
         dim = X.dimension()
         Y_faces = Y.faces()
@@ -553,7 +553,7 @@ class SimplicialComplexMorphism(Morphism):
             return False
         else:
             f = dict()
-            for i in self.domain()._vertex_set:
+            for i in self.domain().vertices():
                 f[i] = i
             if self._vertex_dictionary != f:
                 return False
@@ -593,8 +593,8 @@ class SimplicialComplexMorphism(Morphism):
         X = self.domain().product(other.domain(),rename_vertices = rename_vertices)
         v = []
         f = dict()
-        eff1 = self.domain()._vertex_set
-        eff2 = other.domain()._vertex_set
+        eff1 = self.domain().vertices()
+        eff2 = other.domain().vertices()
         for i in eff1:
             for j in eff2:
                 if self(Simplex([i])) == other(Simplex([j])):

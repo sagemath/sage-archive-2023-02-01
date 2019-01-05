@@ -481,10 +481,6 @@ REFERENCES:
               *Catalan functions and k-schur positivity*
               :arxiv:`1804.03701`
 
-.. [BMPS2018b] Jonah Blasiak, Jennifer Morse, Anna Pun, and Daniel Summers.
-               *Skew-linked Catalan functions and k-schur positivity.*
-               Not to be confused with 'Catalan functions and k-schur positivity.'
-
 .. [BL2000] Anders Björner and Frank H. Lutz, "Simplicial manifolds,
             bistellar flips and a 16-vertex triangulation of the
             Poincaré homology 3-sphere", Experiment. Math. 9 (2000),
@@ -1367,10 +1363,6 @@ REFERENCES:
 .. [Ful1997] William Fulton,
              *Young Tableaux*.
              Cambridge University Press, 1997.
-
-.. [Fun2012] Alex Fun.
-             *Raising operators and the Littlewood-Richardson polynomials*
-             :arxiv:`1203.4729`
 
 .. [FY2004] Eva Maria Feichtner and Sergey Yuzvinsky. *Chow rings of
             toric varieties defined by atomic lattices*. Inventiones
@@ -2311,10 +2303,6 @@ REFERENCES:
 .. [LMR2010] \N. Linial, R. Meshulam and M. Rosenthal, "Sum complexes
              -- a new family of hypertrees", Discrete & Computational
              Geometry, 2010, Volume 44, Number 3, Pages 622-636
-
-.. [LN2014] Alain Lascoux and Hiroshi Naruse.
-            *Finite sum Cauchy identity for dual Grothendieck polynomials*
-            <https://www.projecteuclid.org/download/pdf_1/euclid.pja/1407415930>`_.
 
 .. [LNSSS2013] \C. Lenart, S. Naito, D. Sagaki, A. Schilling, M. Shimozono,
                *A uniform model for Kirillov-Reshetikhin crystals. Extended abstract.*

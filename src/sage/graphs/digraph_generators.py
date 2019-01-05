@@ -64,6 +64,7 @@ from __future__ import print_function, division
 from six.moves import range
 from sage.cpython.string import bytes_to_str
 
+import sys
 from sage.misc.randstate import current_randstate
 from sage.graphs.digraph import DiGraph
 
@@ -1101,18 +1102,19 @@ class DiGraphGenerators():
         INPUT:
 
 
-        -  ``n`` - number of vertices.
+        - ``n`` - number of vertices.
 
-        -  ``kernel`` - the attachment kernel
+        - ``kernel`` - the attachment kernel.
 
-        -  ``seed`` - for the random number generator
+        - ``seed`` - a ``random.Random`` seed or a Python ``int`` for the random
+          number generator (default: ``None``).
 
 
         EXAMPLES::
 
             sage: D = digraphs.RandomDirectedGN(25)
             sage: D.edges(labels=False)
-            [(1, 0), (2, 0), (3, 1), (4, 0), (5, 0), (6, 1), (7, 0), (8, 3), (9, 0), (10, 8), (11, 3), (12, 9), (13, 8), (14, 0), (15, 11), (16, 11), (17, 5), (18, 11), (19, 6), (20, 5), (21, 14), (22, 5), (23, 18), (24, 11)]
+            [(1, 0), (2, 1), (3, 0), (4, 2), (5, 0), (6, 2), (7, 3), (8, 2), (9, 3), (10, 4), (11, 5), (12, 9), (13, 2), (14, 2), (15, 5), (16, 2), (17, 15), (18, 1), (19, 5), (20, 2), (21, 5), (22, 1), (23, 5), (24, 14)]
             sage: D.show()  # long time
 
         REFERENCE:
@@ -1121,7 +1123,7 @@ class DiGraphGenerators():
           Random Networks, Phys. Rev. E vol. 63 (2001), p. 066123.
         """
         if seed is None:
-            seed = current_randstate().long_seed()
+            seed = int(current_randstate().long_seed() % sys.maxint)
         import networkx
         return DiGraph(networkx.gn_graph(n, kernel, seed=seed))
 
@@ -1139,9 +1141,10 @@ class DiGraphGenerators():
         INPUT:
 
 
-        -  ``n`` - number of vertices.
+        - ``n`` - number of vertices.
 
-        -  ``seed`` - for the random number generator
+        - ``seed`` - a ``random.Random`` seed or a Python ``int`` for the random
+          number generator (default: ``None``).
 
 
         EXAMPLES::
@@ -1159,7 +1162,7 @@ class DiGraphGenerators():
           Copying, Phys. Rev. E vol. 71 (2005), p. 036118.
         """
         if seed is None:
-            seed = current_randstate().long_seed()
+            seed = int(current_randstate().long_seed() % sys.maxint)
         import networkx
         return DiGraph(networkx.gnc_graph(n, seed=seed))
 
@@ -1350,11 +1353,12 @@ class DiGraphGenerators():
         INPUT:
 
 
-        -  ``n`` - number of vertices.
+        - ``n`` - number of vertices.
 
-        -  ``p`` - redirection probability
+        - ``p`` - redirection probability.
 
-        -  ``seed`` - for the random number generator.
+        - ``seed`` - a ``random.Random`` seed or a Python ``int`` for the random
+          number generator (default: ``None``).
 
 
         EXAMPLES::
@@ -1372,7 +1376,7 @@ class DiGraphGenerators():
           Random Networks, Phys. Rev. E vol. 63 (2001), p. 066123.
         """
         if seed is None:
-            seed = current_randstate().long_seed()
+            seed = int(current_randstate().long_seed() % sys.maxint)
         import networkx
         return DiGraph(networkx.gnr_graph(n, p, seed=seed))
 

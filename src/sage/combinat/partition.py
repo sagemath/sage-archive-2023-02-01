@@ -1284,9 +1284,11 @@ class Partition(CombinatorialElement):
         r"""
         Return the integer coordinates of points on the boundary of ``self``.
 
-        The boundary of a partition is the set `\{ \text{NE}(d) \mid \forall d\:\text{diagonal} \}`.  That is, for every diagonal line `y = x + b` where `b \in \mathbb{Z}`, we find the northeasternmost (NE) point on that diagonal which is also in the Ferrer's diagram (here, the Ferrer's diagram is interpreted as 1 x 1 cells in the Euclidean plane).
+        For the following description, picture the Ferrer's diagram of ``self`` using the French convention.  Recall that the French convention puts the longest row on the bottom and the shortest row on the top.  In addition, interpret the Ferrer's diagram as 1 x 1 cells in the Euclidean plane.  So if ``self`` was the partition [3, 1], the lower-left vertices of the 1 x 1 cells in the Ferrer's diagram would be (0, 0), (1, 0), (2, 0), and (0, 1).
 
-        The boundary will go from bottom-right to top-left in the French convention.
+        The boundary of a partition is the set `\{ \text{NE}(d) \mid \forall d\:\text{diagonal} \}`.  That is, for every diagonal line `y = x + b` where `b \in \mathbb{Z}`, we find the northeasternmost (NE) point on that diagonal which is also in the Ferrer's diagram.
+
+        The boundary will go from bottom-right to top-left.
 
         EXAMPLES:
 
@@ -1302,18 +1304,14 @@ class Partition(CombinatorialElement):
 
         TESTS::
 
-            p = Partition([1])
-            a(boundary(p), [(1,0), (1,1), (0,1)])
-
-            p = Partition([2, 1])
-            a(boundary(p), [(2,0), (2,1), (1,1), (1,2), (0,2)])
-
-            p = Partition([3, 1])
-            a(boundary(p), [(3,0), (3,1), (2,1), (1,1), (1,2), (0,2)])
-
-            p = Partition([2, 1, 1])
-            a(boundary(p), [(2,0), (2,1), (1,1), (1,2), (1,3), (0,3)])
-
+            sage: Partition([1]).boundary()
+            [(1, 0), (1, 1), (0, 1)]
+            sage: Partition([2, 1]).boundary()
+            [(2, 0), (2, 1), (1, 1), (1, 2), (0, 2)]
+            sage: Partition([3, 1]).boundary()
+            [(3, 0), (3, 1), (2, 1), (1, 1), (1, 2), (0, 2)]
+            sage: Partition([2, 1, 1]).boundary()
+            [(2, 0), (2, 1), (1, 1), (1, 2), (1, 3), (0, 3)]
 
         ..  SEEALSO::
 

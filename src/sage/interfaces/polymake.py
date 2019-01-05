@@ -477,7 +477,7 @@ class Polymake(ExtraTabCompletion, Expect):
 
         Now the interface is badly out of sync::
 
-            sage: polymake("'foobar'")                          # optional - polymake
+            sage: polymake('"foobar"')                          # optional - polymake
             <repr(<sage.interfaces.polymake.PolymakeElement at ...>) failed:
             PolymakeError: Can't locate object method "description" via package "1"
             (perhaps you forgot to load "1"?)...>
@@ -492,7 +492,7 @@ class Polymake(ExtraTabCompletion, Expect):
             ...
             UserWarning: Polymake seems out of sync:
             The expected output did not appear before reaching the next prompt.
-            sage: polymake("'back to normal'")                  # optional - polymake
+            sage: polymake('"back to normal"')                  # optional - polymake
             back to normal
             sage: Q.typeof()                                    # optional - polymake
             ('Polymake::polytope::Polytope__Rational', 'ARRAY')
@@ -615,7 +615,7 @@ class Polymake(ExtraTabCompletion, Expect):
             '@my_array'
             sage: print(polymake.eval('print join(", ", @my_array);'))  # optional - polymake
             foo, bar
-            sage: polymake._create("'foobar'", name="my_string")        # optional - polymake
+            sage: polymake._create('"foobar"', name="my_string")        # optional - polymake
             '$my_string[0]'
             sage: print(polymake.eval('print $my_string[0];'))          # optional - polymake
             foobar
@@ -1538,12 +1538,8 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
         ### return the members of a "big" object.
         P = self._check_valid()
         try:
-            # cmd = '$SAGETMP = typeof {+'+self._name+'};'  # This is the old command
             cmd = '$SAGETMP = ' + self._name + ' -> type;'
             P.eval(cmd)
-        except PolymakeError as msg:
-            print(msg)
-            return []
         except (TypeError, PolymakeError):  # this happens for a perl type that isn't a Polymake type
             return []
         cmd = 'print join(", ", sorted_uniq(sort { $a cmp $b } map { keys %{$_->properties} }$SAGETMP, @{$SAGETMP->super}));'
@@ -1881,7 +1877,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
             ('Polymake::polytope::Polytope__Rational', 'ARRAY')
             sage: p.VERTICES.typeof()                                   # optional - polymake
             ('Polymake::common::Matrix_A_Rational_I_NonSymmetric_Z', 'ARRAY')
-            sage: p.get_schedule("'F_VECTOR'").typeof()                   # optional - polymake
+            sage: p.get_schedule('"F_VECTOR"').typeof()                   # optional - polymake
             ('Polymake::Core::Scheduler::RuleChain', 'ARRAY')
 
         On "small" objects, it just returns empty strings::
@@ -2102,7 +2098,7 @@ class PolymakeFunctionElement(FunctionElement):
         bound to an element::
 
             sage: p = polymake.rand_sphere(3, 13, seed=12)      # optional - polymake
-            sage: p.get_schedule("'VERTICES'")                    # optional - polymake  # random
+            sage: p.get_schedule('"VERTICES"')                    # optional - polymake  # random
             sensitivity check for VertexPerm
             cdd.convex_hull.canon: POINTED, RAYS, LINEALITY_SPACE : INPUT_RAYS
             sage: p.minkowski_sum_fukuda(p).F_VECTOR            # optional - polymake

@@ -1274,8 +1274,6 @@ class Partition(CombinatorialElement):
             sage: Partition([2, 1, 1]).k_size(4)
             4
 
-        NOTE: This is the same as the `length <https://doc.sagemath.org/html/en/reference/combinat/sage/combinat/core.html#sage.combinat.core.Core.length>`_ method of the `Core <https://doc.sagemath.org/html/en/reference/combinat/sage/combinat/core.html#sage.combinat.core.Core>`_ object, with the exception that here we don't require ``self`` to be a `k+1`-core.
-
         ..  SEEALSO::
 
             :meth:`k_boundary`, :meth:`SkewPartition.size`

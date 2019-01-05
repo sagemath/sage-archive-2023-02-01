@@ -131,10 +131,10 @@ class Polymake(ExtraTabCompletion, Expect):
           The Parma Polyhedra Library (PPL): A C++ library for convex polyhedra
           and other numerical abstractions.
           http://www.cs.unipr.it/ppl/
-        1 16 47 16 1
+        1 16 40 16 1
         sage: set_verbose(0)
         sage: p.F_VECTOR                                    # optional - polymake
-        20 101 162 81
+        20 94 148 74
         sage: print(p.F_VECTOR._sage_doc_())                # optional - polymake # random
         property_types/Algebraic Types/Vector:
          A type for vectors with entries of type Element.
@@ -240,7 +240,7 @@ class Polymake(ExtraTabCompletion, Expect):
             sage: p = polymake.rand_sphere(4, 20, seed=5)    # optional - polymake
             sage: p.get_schedule                            # optional - polymake  # indirect doctest
             Member function 'get_schedule' of Polymake::polytope::Polytope__Rational object
-            sage: p.get_schedule('F_VECTOR')                # optional - polymake  # random
+            sage: p.get_schedule('"F_VECTOR"')                # optional - polymake  # random
             CONE_DIM : RAYS | INPUT_RAYS
             precondition : BOUNDED ( POINTED : )
             POINTED :
@@ -296,7 +296,7 @@ class Polymake(ExtraTabCompletion, Expect):
             1 3 7
             1 7 7
             sage: c.GROUP                                               # optional - polymake
-            full combinatorial group on facets...
+            full combinatorial group
 
         """
         if kwds:
@@ -470,18 +470,18 @@ class Polymake(ExtraTabCompletion, Expect):
         TESTS::
 
             sage: Q = polymake.cube(4)                          # optional - polymake
-            sage: polymake('ok')                              # optional - polymake
+            sage: polymake('"ok"')                              # optional - polymake
             ok
             sage: polymake._expect.sendline()                   # optional - polymake
             1
 
         Now the interface is badly out of sync::
 
-            sage: polymake('foobar')                          # optional - polymake
+            sage: polymake("'foobar'")                          # optional - polymake
             <repr(<sage.interfaces.polymake.PolymakeElement at ...>) failed:
             PolymakeError: Can't locate object method "description" via package "1"
             (perhaps you forgot to load "1"?)...>
-            sage: Q.typeof()                                    # optional - polymake
+            sage: Q.typeof()                                    # optional - polymake # random
             ('foobar...', 'Polymake::polytope::Polytope__Rational')
             sage: Q.typeof.clear_cache()                        # optional - polymake
 
@@ -492,7 +492,7 @@ class Polymake(ExtraTabCompletion, Expect):
             ...
             UserWarning: Polymake seems out of sync:
             The expected output did not appear before reaching the next prompt.
-            sage: polymake('back to normal')                  # optional - polymake
+            sage: polymake("'back to normal'")                  # optional - polymake
             back to normal
             sage: Q.typeof()                                    # optional - polymake
             ('Polymake::polytope::Polytope__Rational', 'ARRAY')
@@ -709,17 +709,8 @@ class Polymake(ExtraTabCompletion, Expect):
 
         """
         if isinstance(value, six.string_types):
-            if not value.isdigit():
-                # This is a hack to insert quotes from a Perl bug from
-                # Polymake3.2+ saying:
-                # "Bareword "F_VECTOR" not allowed while "strict
-                # subs" in use.
-                value = "'" + value.strip().rstrip(';').strip() + "'"
-            else:
-                value = value.strip().rstrip(';').strip()
-        cmd = '@{}{}({});'.format(var,self._assign_symbol(), value)
-        # print("cmd", cmd)
-        # print("var={}, value={}".format(var,value))
+            value = value.strip().rstrip(';').strip()
+        cmd = "@{}{}({});".format(var,self._assign_symbol(), value)
         self.eval(cmd)
 
     def get(self, cmd):
@@ -1292,7 +1283,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
     Now, one can work with that element in Python syntax, for example::
 
         sage: p.VERTICES[2][2]                                  # optional - polymake
-        -3319173990813887/4503599627370496
+        1450479926727001/2251799813685248
 
     """
     def _repr_(self):
@@ -1547,7 +1538,12 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
         ### return the members of a "big" object.
         P = self._check_valid()
         try:
-            P.eval('$SAGETMP = typeof {+'+self._name+'};')
+            # cmd = '$SAGETMP = typeof {+'+self._name+'};'  # This is the old command
+            cmd = '$SAGETMP = ' + self._name + ' -> type;'
+            P.eval(cmd)
+        except PolymakeError as msg:
+            print(msg)
+            return []
         except (TypeError, PolymakeError):  # this happens for a perl type that isn't a Polymake type
             return []
         cmd = 'print join(", ", sorted_uniq(sort { $a cmp $b } map { keys %{$_->properties} }$SAGETMP, @{$SAGETMP->super}));'
@@ -1735,9 +1731,9 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
         Whether a member function of the given name actually exists for that
         object will only be clear when calling it::
 
-            sage: c.get_member_function('foo')                          # optional - polymake
+            sage: c.get_member_function("foo")                          # optional - polymake
             Member function 'foo' of Polymake::polytope::Polytope__Rational object
-            sage: c.get_member_function('foo')()                        # optional - polymake
+            sage: c.get_member_function("foo")()                        # optional - polymake
             Traceback (most recent call last):
             ...
             TypeError: Can't locate object method "foo" via package "Polymake::polytope::Polytope__Rational" at input line 1.
@@ -1763,12 +1759,12 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
         Normally, a property would be accessed as follows::
 
             sage: p.F_VECTOR                                # optional - polymake
-            20 101 162 81
+            20 94 148 74
 
         However, explicit access is possible as well::
 
             sage: p.get_member('F_VECTOR')                  # optional - polymake
-            20 101 162 81
+            20 94 148 74
 
         In some cases, the explicit access works better::
 
@@ -1799,7 +1795,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
 
             sage: p = polymake.rand_sphere(3, 12, seed=15)  # optional - polymake
             sage: p.VERTICES[3]                             # optional - polymake
-            1 -6157731020575175/18014398509481984 4184896164481703/4503599627370496 -2527292586301447/18014398509481984
+            1 7977905618560809/18014398509481984 -1671539598851959/144115188075855872 8075083879632623/9007199254740992
             sage: p.list_properties()[2]                    # optional - polymake
             BOUNDED
 
@@ -1842,7 +1838,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
 
             sage: p = polymake.rand_sphere(3, 12, seed=15)  # optional - polymake
             sage: [ x for x in p.VERTICES[3] ]              # optional - polymake
-            [1, -6157731020575175/18014398509481984, 4184896164481703/4503599627370496, -2527292586301447/18014398509481984]
+            [1, 7977905618560809/18014398509481984, -1671539598851959/144115188075855872, 8075083879632623/9007199254740992]
         """
         for i in range(len(self)):
             yield self[i]
@@ -1885,7 +1881,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
             ('Polymake::polytope::Polytope__Rational', 'ARRAY')
             sage: p.VERTICES.typeof()                                   # optional - polymake
             ('Polymake::common::Matrix_A_Rational_I_NonSymmetric_Z', 'ARRAY')
-            sage: p.get_schedule("F_VECTOR").typeof()                   # optional - polymake
+            sage: p.get_schedule("'F_VECTOR'").typeof()                   # optional - polymake
             ('Polymake::Core::Scheduler::RuleChain', 'ARRAY')
 
         On "small" objects, it just returns empty strings::
@@ -2106,7 +2102,7 @@ class PolymakeFunctionElement(FunctionElement):
         bound to an element::
 
             sage: p = polymake.rand_sphere(3, 13, seed=12)      # optional - polymake
-            sage: p.get_schedule('VERTICES')                    # optional - polymake  # random
+            sage: p.get_schedule("'VERTICES'")                    # optional - polymake  # random
             sensitivity check for VertexPerm
             cdd.convex_hull.canon: POINTED, RAYS, LINEALITY_SPACE : INPUT_RAYS
             sage: p.minkowski_sum_fukuda(p).F_VECTOR            # optional - polymake

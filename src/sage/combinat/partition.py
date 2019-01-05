@@ -1611,7 +1611,7 @@ class Partition(CombinatorialElement):
         """
         return self == self.conjugate()
 
-    def next_within_bounds(self, min=[], max=None, type=None):
+    def next_within_bounds(self, min=[], max=None, partition_type=None):
         r"""
         Get the next partition lexicographically that contains ``min`` and is contained in ``max``.
 
@@ -1623,7 +1623,7 @@ class Partition(CombinatorialElement):
 
         - ``max`` -- (default ``None``) The 'maximum partition' that ``next_within_bounds(self)`` must be contained in.  If set to ``None``, then there is no restriction.
 
-        - ``type`` -- (default ``None``) The type of partitions allowed.  For example, 'strict' for strictly decreasing partitions, or ``None`` to allow any valid partition.
+        - ``partition_type`` -- (default ``None``) The type of partitions allowed.  For example, 'strict' for strictly decreasing partitions, or ``None`` to allow any valid partition.
 
         EXAMPLES::
 
@@ -1654,11 +1654,6 @@ class Partition(CombinatorialElement):
 
             :meth:`next`
         """
-        # validate inputs
-        if not isinstance(min, (list, Partition)):
-            raise ValueError('input parameter ``min`` must be a Partition or a list')
-        if not (isinstance(max, (list, Partition)) or max is None):
-            raise ValueError('input parameter ``max`` must be a Partition, a list, or ``None``')
         # make sure min <= self <= max
         if max is not None:
             assert _Partitions(max).contains(_Partitions(self))
@@ -1678,9 +1673,9 @@ class Partition(CombinatorialElement):
         # finally, run the algo to find next_p
         next_p = copy(p)
         def condition(a, b):
-            if type in ('strict', 'strictly decreasing'):
+            if partition_type in ('strict', 'strictly decreasing'):
                 return a < b - 1
-            elif type in (None, 'weak', 'weakly decreasing'):
+            elif partition_type in (None, 'weak', 'weakly decreasing'):
                 return a < b
             else:
                 raise ValueError('unrecognized partition type')
@@ -1699,30 +1694,6 @@ class Partition(CombinatorialElement):
                     next_p[r] = min[r]
                     continue
         return _Partitions(next_p)
-
-    def is_k_core(self, k):
-        r"""
-        Return ``True`` if the Partition ``self`` is a ``k``-core.
-
-        EXAMPLES:
-
-        In the partition (2, 1), a hook length of 2 does not occur, but a hook length of 3 does::
-
-            sage: Partition([2, 1]).is_k_core(2)
-            True
-            sage: Partition([2, 1]).is_k_core(3)
-            False
-
-        ..  SEEALSO::
-
-            :meth:`Core`
-        """
-        self = _Partitions(self)
-        for row_hook_lengths in self.hook_lengths():
-            for hook_length in row_hook_lengths:
-                if hook_length == k:
-                    return False
-        return True
 
     def to_k_core(self, k):
         r"""
@@ -1755,6 +1726,10 @@ class Partition(CombinatorialElement):
             [11, 8, 5, 2]
             sage: Partition([2, 2, 1]).to_k_core(3)
             [5, 3, 1]
+
+        ..  SEEALSO::
+
+            :meth:`to_core`
         """
         error = ValueError(
             'the minimal-row-shifting algorithm applied to the partition {} does not produce a {}-core'.format(self, k))
@@ -1783,7 +1758,7 @@ class Partition(CombinatorialElement):
             previous_part = part
             previous_core_len = len(core)
         core = _Partitions(core)
-        if not core.is_k_core(k):
+        if not core.is_core(k):
             raise error
         return core
 
@@ -4397,23 +4372,38 @@ class Partition(CombinatorialElement):
 
     def is_core(self, k):
         r"""
-        Tests whether the partition is a `k`-core or not. Visuallly, this can
-        be checked by trying to remove border strips of size `k` from ``self``.
-        If this is not possible, then ``self`` is a `k`-core.
+        Return ``True`` if the Partition ``self`` is a ``k``-core.
 
         A partition is said to be a *`k`-core* if it has no hooks of length
         `k`. Equivalently, a partition is said to be a `k`-core if it is its
         own `k`-core (where the latter is defined as in :meth:`core`).
 
-        EXAMPLES::
+        Visually, this can be checked by trying to remove border strips of size
+        `k` from ``self``.  If this is not possible, then ``self`` is a
+        `k`-core.
 
-            sage: p = Partition([12,8,5,5,2,2,1])
-            sage: p.is_core(4)
+        EXAMPLES:
+
+        In the partition (2, 1), a hook length of 2 does not occur, but a hook
+        length of 3 does::
+
+            sage: p = Partition([2, 1])
+            sage: p.is_core(2)
+            True
+            sage: p.is_core(3)
             False
-            sage: p.is_core(5)
+
+            sage: q = Partition([12, 8, 5, 5, 2, 2, 1])
+            sage: q.is_core(4)
+            False
+            sage: q.is_core(5)
             True
-            sage: p.is_core(0)
+            sage: q.is_core(0)
             True
+
+        ..  SEEALSO::
+
+            :meth:`Core`
         """
         return not k in self.hooks()
 

@@ -1259,9 +1259,13 @@ class Partition(CombinatorialElement):
 
     def k_size(self, k):
         r"""
-        Given a partition ``self`` and a ``k``, return the size of the `k`-boundary.
+        Given a partition ``self`` and a ``k``, return the size of the
+        `k`-boundary.
 
-        This is the same as the length method :meth:`sage.combinat.core.Core.length` of the :class:`sage.combinat.core.Core` object, with the exception that here we don't require ``self`` to be a `k+1`-core.
+        This is the same as the length method
+        :meth:`sage.combinat.core.Core.length` of the
+        :class:`sage.combinat.core.Core` object, with the exception that here we
+        don't require ``self`` to be a `k+1`-core.
 
         EXAMPLES::
 
@@ -1284,20 +1288,32 @@ class Partition(CombinatorialElement):
         r"""
         Return the integer coordinates of points on the boundary of ``self``.
 
-        For the following description, picture the Ferrer's diagram of ``self`` using the French convention.  Recall that the French convention puts the longest row on the bottom and the shortest row on the top.  In addition, interpret the Ferrer's diagram as 1 x 1 cells in the Euclidean plane.  So if ``self`` was the partition [3, 1], the lower-left vertices of the 1 x 1 cells in the Ferrer's diagram would be (0, 0), (1, 0), (2, 0), and (0, 1).
+        For the following description, picture the Ferrer's diagram of ``self``
+        using the French convention.  Recall that the French convention puts
+        the longest row on the bottom and the shortest row on the top.  In
+        addition, interpret the Ferrer's diagram as 1 x 1 cells in the Euclidean
+        plane.  So if ``self`` was the partition [3, 1], the lower-left vertices
+        of the 1 x 1 cells in the Ferrer's diagram would be (0, 0), (1, 0),
+        (2, 0), and (0, 1).
 
-        The boundary of a partition is the set `\{ \text{NE}(d) \mid \forall d\:\text{diagonal} \}`.  That is, for every diagonal line `y = x + b` where `b \in \mathbb{Z}`, we find the northeasternmost (NE) point on that diagonal which is also in the Ferrer's diagram.
+        The boundary of a partition is the set `\{ \text{NE}(d) \mid \forall
+        d\:\text{diagonal} \}`.  That is, for every diagonal line `y = x + b`
+        where `b \in \mathbb{Z}`, we find the northeasternmost (NE) point on
+        that diagonal which is also in the Ferrer's diagram.
 
         The boundary will go from bottom-right to top-left.
 
         EXAMPLES:
 
-        Consider the partition (1) depicted as a square on a cartesian plane with vertices (0, 0), (1, 0), (1, 1), and (0, 1).  Three of those vertices in the appropriate order form the boundary::
+        Consider the partition (1) depicted as a square on a cartesian plane
+        with vertices (0, 0), (1, 0), (1, 1), and (0, 1).  Three of those
+        vertices in the appropriate order form the boundary::
 
             sage: Partition([1]).boundary()
             [(1, 0), (1, 1), (0, 1)]
 
-        The partition (3, 1) can be visualized as three squares on a cartisian plane.  The coordinates of the appropriate vertices form the boundary::
+        The partition (3, 1) can be visualized as three squares on a cartisian
+        plane.  The coordinates of the appropriate vertices form the boundary::
 
             sage: Partition([3, 1]).boundary()
             [(3, 0), (3, 1), (2, 1), (1, 1), (1, 2), (0, 2)]
@@ -1315,7 +1331,8 @@ class Partition(CombinatorialElement):
 
         ..  SEEALSO::
 
-            :meth:`k_rim`.  You might have been looking for :meth:`k_boundary` instead.
+            :meth:`k_rim`.  You might have been looking for :meth:`k_boundary`
+            instead.
         """
         def horizontal_piece(xy, bdy):
             (start_x, start_y) = xy
@@ -1342,19 +1359,24 @@ class Partition(CombinatorialElement):
         r"""
         Return the ``k``-rim of ``self`` as a list of integer coordinates.
 
-        The `k`-rim of a partition is the "line between" (or "intersection of") the `k`-boundary and the `k`-interior.  (Section 2.3 of [HM2011]_)
+        The `k`-rim of a partition is the "line between" (or "intersection of")
+        the `k`-boundary and the `k`-interior.  (Section 2.3 of [HM2011]_)
 
-        It will be output as an ordered list of integer coordinates, where the origin is `(0, 0)`.  It will start at the top-left of the `k`-rim (using French convention) and end at the bottom-right.
+        It will be output as an ordered list of integer coordinates, where the
+        origin is `(0, 0)`.  It will start at the top-left of the `k`-rim (using
+        French convention) and end at the bottom-right.
 
         EXAMPLES:
 
-        Consider the partition (3, 1) split up into its 1-interior and 1-boundary:
+        Consider the partition (3, 1) split up into its 1-interior and
+        1-boundary:
 
         .. image:: ../../../media/k-rim.JPG
             :height: 180px
             :align: center
 
-        The line shown in bold is the 1-rim, and that information is equivalent to the integer coordinates of the points that occur along that line::
+        The line shown in bold is the 1-rim, and that information is equivalent
+        to the integer coordinates of the points that occur along that line::
 
             sage: Partition([3, 1]).k_rim(1)
             [(3, 0), (2, 0), (2, 1), (1, 1), (0, 1), (0, 2)]
@@ -1379,15 +1401,15 @@ class Partition(CombinatorialElement):
         interior_rim = self.k_interior(k).boundary()
         # get leftmost vertical line
         interior_top_left_y = interior_rim[-1][1]
-        v_piece = [(0, y) for y in range(interior_top_left_y + 1, len(self) + 1)]
+        v_piece = [(0, y) for y in range(interior_top_left_y+1, len(self)+1)]
         # get bottommost horizontal line
         interior_bottom_right_x = interior_rim[0][0]
         if self:
             ptn_bottom_right_x = self[0]
         else:
             ptn_bottom_right_x = 0
-        h_piece = [(x, 0)
-                   for x in range(ptn_bottom_right_x, interior_bottom_right_x, -1)]
+        h_piece = [(x, 0) for x in
+                   range(ptn_bottom_right_x, interior_bottom_right_x, -1)]
         # glue together with boundary
         rim = h_piece + interior_rim + v_piece
         return rim
@@ -1396,7 +1418,9 @@ class Partition(CombinatorialElement):
         r"""
         Return the ``k``-row-shape of the partition ``self``.
 
-        This is equivalent to taking the `k`-boundary of the partition and then returning the row-shape of that.  We do *not* discard rows of length 0.  (Section 2.2 of [LLMS2013]_)
+        This is equivalent to taking the `k`-boundary of the partition and then
+        returning the row-shape of that.  We do *not* discard rows of length 0.
+        (Section 2.2 of [LLMS2013]_)
 
         EXAMPLES::
 
@@ -1408,7 +1432,9 @@ class Partition(CombinatorialElement):
 
         ..  SEEALSO::
 
-            :meth:`k_column_lengths`, :meth:`k_boundary`, :meth:`SkewPartition.row_lengths`, :meth:`SkewPartition.column_lengths`
+            :meth:`k_column_lengths`, :meth:`k_boundary`,
+            :meth:`SkewPartition.row_lengths`,
+            :meth:`SkewPartition.column_lengths`
         """
         return self.k_boundary(k).row_lengths()
 
@@ -1428,19 +1454,23 @@ class Partition(CombinatorialElement):
 
         ..  SEEALSO::
 
-            :meth:`k_row_lengths`, :meth:`k_boundary`, :meth:`SkewPartition.row_lengths`, :meth:`SkewPartition.column_lengths`
+            :meth:`k_row_lengths`, :meth:`k_boundary`,
+            :meth:`SkewPartition.row_lengths`,
+            :meth:`SkewPartition.column_lengths`
         """
         return self.k_boundary(k).column_lengths()
 
     def has_rectangle(self, h, w):
         r"""
-        Return ``True`` if the Ferrer's diagram of ``self`` has ``h`` (*or more*) rows of length ``w`` (*exactly*).
+        Return ``True`` if the Ferrer's diagram of ``self`` has ``h``
+        (*or more*) rows of length ``w`` (*exactly*).
 
         INPUT:
 
         - ``self`` -- The Partition.
 
-        - ``h`` -- An integer `h \geq 1`.  The (*minimum*) height of the rectangle.
+        - ``h`` -- An integer `h \geq 1`.  The (*minimum*) height of the
+        rectangle.
 
         - ``w`` -- An integer `w \geq 1`.  The width of the rectangle.
 
@@ -1483,9 +1513,11 @@ class Partition(CombinatorialElement):
 
     def has_k_rectangle(self, k):
         r"""
-        Return ``True`` if the Ferrer's diagram of ``self`` contains `k-i+1` rows (*or more*) of length `i` (*exactly*) for any `i` in `[1, k]`.
+        Return ``True`` if the Ferrer's diagram of ``self`` contains `k-i+1`
+        rows (*or more*) of length `i` (*exactly*) for any `i` in `[1, k]`.
 
-        This is mainly a helper function for :meth:`is_k_reducible` and :meth:`is_k_irreducible`, the only difference between this function and :meth:`is_k_reducible` being that this function allows any partition as input while :meth:`is_k_reducible` requires the input to be `k`-bounded.
+        This is mainly a helper function for :meth:`is_k_reducible` and :meth:`is_k_irreducible`, the only difference between this function and :meth:`is_k_reducible` being that this function allows any partition as
+        input while :meth:`is_k_reducible` requires the input to be `k`-bounded.
 
         EXAMPLES:
 
@@ -1494,7 +1526,8 @@ class Partition(CombinatorialElement):
             sage: Partition([1, 1, 1]).has_k_rectangle(2)
             True
 
-        The partition [1, 1, 1] does *not* have 4 rows of length 1, 3 rows of length 2, 2 rows of length 3, nor 1 row of length 4::
+        The partition [1, 1, 1] does *not* have 4 rows of length 1, 3 rows of
+        length 2, 2 rows of length 3, nor 1 row of length 4::
 
             sage: Partition([1, 1, 1]).has_k_rectangle(4)
             False
@@ -1520,7 +1553,8 @@ class Partition(CombinatorialElement):
 
         .. SEEALSO::
 
-            :meth:`is_k_irreducible`, :meth:`is_k_reducible`, :meth:`has_rectangle`
+            :meth:`is_k_irreducible`, :meth:`is_k_reducible`,
+            :meth:`has_rectangle`
         """
         return any(self.has_rectangle(a, b) for (a, b) in
                    [(k-i+1, i) for i in range(1, k+1)])
@@ -1548,7 +1582,9 @@ class Partition(CombinatorialElement):
         r"""
         Return ``True`` if the partition ``self`` is ``k``-reducible.
 
-        A `k`-bounded partition is `k`-*reducible* if its Ferrer's diagram contains `k-i+1` rows (or more) of length `i` (exactly) for some `i \in [1, k]`.
+        A `k`-bounded partition is `k`-*reducible* if its Ferrer's diagram
+        contains `k-i+1` rows (or more) of length `i` (exactly) for some
+        `i \in [1, k]`.
 
         (Also, a `k`-bounded partition is `k`-reducible if and only if it is not `k`-irreducible.)
 
@@ -1559,7 +1595,8 @@ class Partition(CombinatorialElement):
             sage: Partition([1, 1, 1]).is_k_reducible(2)
             True
 
-        The partition [1, 1, 1] does *not* have 4 rows of length 1, 3 rows of length 2, 2 rows of length 3, nor 1 row of length 4::
+        The partition [1, 1, 1] does *not* have 4 rows of length 1, 3 rows of
+        length 2, 2 rows of length 3, nor 1 row of length 4::
 
             sage: Partition([1, 1, 1]).is_k_reducible(4)
             False
@@ -1576,9 +1613,12 @@ class Partition(CombinatorialElement):
         r"""
         Return ``True`` if the partition ``self`` is ``k``-irreducible.
 
-        A `k`-bounded partition is `k`-*irreducible* if its Ferrer's diagram does *not* contain `k-i+1` rows (or more) of length `i` (exactly) for every `i \in [1, k]`.
+        A `k`-bounded partition is `k`-*irreducible* if its Ferrer's diagram
+        does *not* contain `k-i+1` rows (or more) of length `i` (exactly) for
+        every `i \in [1, k]`.
 
-        (Also, a `k`-bounded partition is `k`-irreducible if and only if it is not `k`-reducible.)
+        (Also, a `k`-bounded partition is `k`-irreducible if and only if it is
+        not `k`-reducible.)
 
         EXAMPLES:
 
@@ -1587,7 +1627,8 @@ class Partition(CombinatorialElement):
             sage: Partition([1, 1, 1]).is_k_irreducible(2)
             False
 
-        The partition [1, 1, 1] does *not* have 4 rows of length 1, 3 rows of length 2, 2 rows of length 3, nor 1 row of length 4::
+        The partition [1, 1, 1] does *not* have 4 rows of length 1, 3 rows of
+        length 2, 2 rows of length 3, nor 1 row of length 4::
 
             sage: Partition([1, 1, 1]).is_k_irreducible(4)
             True
@@ -1613,17 +1654,23 @@ class Partition(CombinatorialElement):
 
     def next_within_bounds(self, min=[], max=None, partition_type=None):
         r"""
-        Get the next partition lexicographically that contains ``min`` and is contained in ``max``.
+        Get the next partition lexicographically that contains ``min`` and is
+        contained in ``max``.
 
         INPUTS:
 
         - ``self`` -- The Partition.
 
-        - ``min`` -- (default ``[]``, the empty partition) The 'minimum partition' that ``next_within_bounds(self)`` must contain.
+        - ``min`` -- (default ``[]``, the empty partition) The
+        'minimum partition' that ``next_within_bounds(self)`` must contain.
 
-        - ``max`` -- (default ``None``) The 'maximum partition' that ``next_within_bounds(self)`` must be contained in.  If set to ``None``, then there is no restriction.
+        - ``max`` -- (default ``None``) The 'maximum partition' that
+        ``next_within_bounds(self)`` must be contained in.  If set to ``None``,
+        then there is no restriction.
 
-        - ``partition_type`` -- (default ``None``) The type of partitions allowed.  For example, 'strict' for strictly decreasing partitions, or ``None`` to allow any valid partition.
+        - ``partition_type`` -- (default ``None``) The type of partitions
+        allowed.  For example, 'strict' for strictly decreasing partitions, or
+        ``None`` to allow any valid partition.
 
         EXAMPLES::
 

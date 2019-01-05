@@ -1740,20 +1740,19 @@ class Partition(CombinatorialElement):
             else:
                 core_ptn = _Partitions(core)
                 last_hook_lengths = core_ptn.hook_lengths()[0]
-                # this loop could be done away with to make the program more efficient.  You can actually calculate the correct shift amount by looking for k in new_hook_lengths and seeing how much you need to shift.
+                # once you shift a row, you must shift ALL rows below it just as much (hence the minimum shift)
+                # the shift is relative to the previous row of core
                 minimum_shift = part - previous_part
                 for shift in range(minimum_shift, k):
-                    # the 'shift' is the amount past core[0]
+                    # the 'shift' is the amount past core[0] (the 'newest' row)
                     new_hook_lengths = [l+1+shift for l in last_hook_lengths]
                     if k not in new_hook_lengths:
                         # add the appropriate part to core
                         new_part = core[0] + shift
-                        # we could improve performance by simply reversing core at the end instead of prepending to the list
                         core.insert(0, new_part)
                         break
                 if len(core) == previous_core_len:
                     # if none of the shifts were good
-                    # i think this situation actually can never happen, so if the error occurs, this is a big red flag
                     raise error
             previous_part = part
             previous_core_len = len(core)

@@ -47,6 +47,7 @@ from time import sleep
 from six.moves import range
 from six import reraise as raise_
 import warnings
+from warnings import warn
 
 _name_pattern = re.compile('SAGE[0-9]+')
 
@@ -62,6 +63,7 @@ _available_polymake_answers = {
     8: "fails to respond timely"
         }
 
+
 class PolymakeError(RuntimeError):
     """
     Raised if polymake yields an error message.
@@ -75,6 +77,7 @@ class PolymakeError(RuntimeError):
 
     """
     pass
+
 
 def polymake_console(command=''):
     """
@@ -104,6 +107,7 @@ def polymake_console(command=''):
     if not get_display_manager().is_in_terminal():
         raise RuntimeError('Can use the console only in the terminal. Try %%polymake magics instead.')
     os.system(command or os.getenv('SAGE_POLYMAKE_COMMAND') or 'polymake')
+
 
 class Polymake(ExtraTabCompletion, Expect):
     r"""
@@ -149,7 +153,7 @@ class Polymake(ExtraTabCompletion, Expect):
     .. automethod:: _eval_line
     """
     def __init__(self, script_subdirectory=None,
-                 logfile=None, server=None,server_tmpdir=None,
+                 logfile=None, server=None, server_tmpdir=None,
                  seed=None, command=None):
         """
         TESTS::
@@ -278,7 +282,7 @@ class Polymake(ExtraTabCompletion, Expect):
         self._check_valid_function_name(function)
         s = self._function_call_string(function,
                                        [s.name() for s in args],
-                                       ['%s=>%s'%(key,value.name()) for key, value in kwds.items()])
+                                       ['{}=>{}'.format(key, value.name()) for key, value in kwds.items()])
         return self(s)
 
     def _function_call_string(self, function, args, kwds):
@@ -301,9 +305,10 @@ class Polymake(ExtraTabCompletion, Expect):
         """
         if kwds:
             if args:
-                return "%s(%s, %s);"%(function, ",".join(list(args)), ",".join(list(kwds)))
-            return "%s(%s);"%(function, ",".join(list(kwds)))
-        return "%s(%s);"%(function, ",".join(list(args)))
+                call_str = "{}({}, {});".format(function, ",".join(list(args)), ",".join(list(kwds)))
+                return call_str
+            return "{}({});".format(function, ",".join(list(kwds)))
+        return "{}({});".format(function, ",".join(list(args)))
 
     def console(self):
         """
@@ -452,18 +457,18 @@ class Polymake(ExtraTabCompletion, Expect):
                 raise pexpect.ExceptionPexpect("THIS IS A BUG -- PLEASE REPORT. This should never happen.\n" + msg)
             sleep(0.1)
             i = self._expect.expect_list(self._prompt, timeout=1)
-            if i==0:
+            if i == 0:
                 break
-            elif i==7:  # EOF
+            elif i == 7:  # EOF
                 warnings.warn("Polymake {} during keyboard interrupt".format(_available_polymake_answers[i]), RuntimeWarning)
                 self._crash_msg()
                 self.quit()
-            elif i==8:  # Timeout
+            elif i == 8:  # Timeout
                 self.quit()
                 raise RuntimeError("{} interface is not responding. We closed it".format(self))
-            elif i!=3: # Anything but a "computation killed"
+            elif i != 3:  # Anything but a "computation killed"
                 warnings.warn("We ignore that {} {} during keyboard interrupt".format(self, _available_polymake_answers[i]), RuntimeWarning)
-        raise KeyboardInterrupt("Ctrl-c pressed while running %s"%self)
+        raise KeyboardInterrupt("Ctrl-c pressed while running {}".format(self))
 
     def _synchronize(self):
         """
@@ -502,9 +507,9 @@ class Polymake(ExtraTabCompletion, Expect):
             return
         rnd = randrange(2147483647)
         res = str(rnd+1)
-        cmd='print 1+{};'+self._expect.linesep
+        cmd = 'print 1+{};' + self._expect.linesep
         self._sendstr(cmd.format(rnd))
-        pat = self._expect.expect(self._prompt,timeout=0.5)
+        pat = self._expect.expect(self._prompt, timeout=0.5)
         # 0: normal prompt
         # 1: continuation prompt
         # 2: user input expected when requestion "help"
@@ -514,24 +519,24 @@ class Polymake(ExtraTabCompletion, Expect):
         # 6: anything but an error or warning, thus, an information
         # 7: unexpected end of the stream
         # 8: (expected) timeout
-        if pat == 8: # timeout
+        if pat == 8:  # timeout
             warnings.warn("{} unexpectedly {} during synchronisation.".format(self, _available_polymake_answers[pat]), RuntimeWarning)
             self.interrupt()
             # ... but we continue, as that probably means we currently are at the end of the buffer
-        elif pat == 7: # EOF
+        elif pat == 7:  # EOF
             self._crash_msg()
             self.quit()
         elif pat == 0:
             # We got the right prompt, but perhaps in a wrong position in the stream
             # The result of the addition should appear *before* our prompt
-            if not res in self._expect.before:
+            if res not in self._expect.before:
                 try:
                     warnings.warn("{} seems out of sync: The expected output did not appear before reaching the next prompt.".format(self))
                     while True:
                         i = self._expect.expect_list(self._prompt, timeout=0.1)
-                        if i==8: # This time, we do expect a timeout
+                        if i == 8:  # This time, we do expect a timeout
                             return
-                        elif i>0:
+                        elif i > 0:
                             raise RuntimeError("Polymake unexpectedly {}".format(_available_polymake_answers[i]))
                 except pexpect.TIMEOUT:
                     warnings.warn("A timeout has occured when synchronising {}.".format(self), RuntimeWarning)
@@ -560,7 +565,7 @@ class Polymake(ExtraTabCompletion, Expect):
             self.__seq += 1
         except AttributeError:
             self.__seq = 0
-        return r'SAGE%s'%self.__seq
+        return r'SAGE{}'.format(self.__seq)
 
     def clear(self, var):
         """
@@ -710,7 +715,7 @@ class Polymake(ExtraTabCompletion, Expect):
         """
         if isinstance(value, six.string_types):
             value = value.strip().rstrip(';').strip()
-        cmd = "@{}{}({});".format(var,self._assign_symbol(), value)
+        cmd = "@{}{}({});".format(var, self._assign_symbol(), value)
         self.eval(cmd)
 
     def get(self, cmd):
@@ -780,7 +785,7 @@ class Polymake(ExtraTabCompletion, Expect):
         H = self.eval('help("{}");\n'.format(topic))
         if pager:
             from IPython.core.page import page
-            page(H, start = 0)
+            page(H, start=0)
         else:
             return H
 
@@ -900,7 +905,7 @@ class Polymake(ExtraTabCompletion, Expect):
             E = self._expect
             try:
                 if len(line) >= 4096:
-                    raise RuntimeError("Sending more than 4096 characters with %s on a line may cause a hang and you're sending %s characters"%(self, len(line)))
+                    raise RuntimeError("Sending more than 4096 characters with {} on a line may cause a hang and you're sending {} characters".format(self, len(line)))
                 E.sendline(line)
                 if not wait_for_prompt:
                     return ''
@@ -924,15 +929,15 @@ class Polymake(ExtraTabCompletion, Expect):
                             self._synchronize()
                         except (TypeError, RuntimeError):
                             pass
-                        return self._eval_line(line,allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt, restart_if_needed=False, **kwds)
-                raise_(RuntimeError, "%s\nError evaluating %s in %s"%(msg, line, self), sys.exc_info()[2])
+                        return self._eval_line(line, allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt, restart_if_needed=False, **kwds)
+                raise_(RuntimeError, "{}\nError evaluating {} in {}".format(msg, line, self), sys.exc_info()[2])
 
             p_warnings = []
             p_errors = []
             have_warning = False
             have_error = False
             have_log = False
-            if len(line)>0:
+            if len(line) > 0:
                 first = True
                 while True:
                     try:
@@ -953,13 +958,13 @@ class Polymake(ExtraTabCompletion, Expect):
                         if self._quit_string() in line:
                             # we expect to get an EOF if we're quitting.
                             return ''
-                        elif restart_if_needed: # the subprocess might have crashed
+                        elif restart_if_needed:  # the subprocess might have crashed
                             try:
                                 self._synchronize()
-                                return self._eval_line(line,allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt, restart_if_needed=False, **kwds)
+                                return self._eval_line(line, allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt, restart_if_needed=False, **kwds)
                             except (TypeError, RuntimeError):
                                 pass
-                        raise RuntimeError("%s\n%s crashed executing %s"%(msg,self, line))
+                        raise RuntimeError("{}\n{} crashed executing {}".format(msg, self, line))
                     if self._terminal_echo:
                         out = E.before
                     else:
@@ -967,9 +972,9 @@ class Polymake(ExtraTabCompletion, Expect):
                     if self._terminal_echo and first:
                         i = out.find("\n")
                         j = out.rfind("\r")
-                        out = out[i+1:j].replace('\r\n','\n')
+                        out = out[i+1:j].replace('\r\n', '\n')
                     else:
-                        out = out.strip().replace('\r\n','\n')
+                        out = out.strip().replace('\r\n', '\n')
                     first = False
                     if have_error:
                         p_errors.append(out)
@@ -1005,17 +1010,17 @@ class Polymake(ExtraTabCompletion, Expect):
                                 if E.buffer or pat:
                                     raise RuntimeError("Couldn't return to prompt after command '{}'".format(line))
                         break
-                    elif pat == 1: # unexpected continuation prompt
+                    elif pat == 1:  # unexpected continuation prompt
                         # Return to normal prompt
                         i = pat
                         E.send(chr(3))
                         sleep(0.1)
                         i = E.expect_list(self._prompt)
-                        assert i==0, "Command '{}': Couldn't return to normal prompt after polymake {}. Instead, polymake {}".format(line,_available_polymake_answers[pat],_available_polymake_answers[i])
+                        assert i == 0, "Command '{}': Couldn't return to normal prompt after polymake {}. Instead, polymake {}".format(line, _available_polymake_answers[pat], _available_polymake_answers[i])
                         raise SyntaxError("Incomplete polymake command '{}'".format(line))
-                    elif pat == 2: # request for user interaction
+                    elif pat == 2:  # request for user interaction
                         # Return to normal prompt
-                        warnings.warn("{} expects user interaction. We abort and return the options that {} provides.".format(self,self))
+                        warnings.warn("{} expects user interaction. We abort and return the options that {} provides.".format(self, self))
                         i = pat
                         while i:
                             self._expect.send(chr(3))
@@ -1027,24 +1032,24 @@ class Polymake(ExtraTabCompletion, Expect):
                             break
                         else:
                             RuntimeError("Polymake unexpectedly {}".format(_available_polymake_answers[pat]))
-                    elif pat == 3: # killed by signal
+                    elif pat == 3:  # killed by signal
                         i = pat
                         while pat != 0:
                             E.send(chr(3))
                             sleep(0.1)
                             i = E.expect_list(self._prompt)
                         RuntimeError("Polymake unexpectedly {}".format(_available_polymake_answers[pat]))
-                    elif pat == 4: # polymake error
+                    elif pat == 4:  # polymake error
                         have_error = True
-                    elif pat == 5: # polymake warning
+                    elif pat == 5:  # polymake warning
                         have_warning = True
-                    elif pat == 6: # apparently polymake prints a comment
+                    elif pat == 6:  # apparently polymake prints a comment
                         have_log = True
-                    elif pat == 7: # we have reached the end of the buffer
+                    elif pat == 7:  # we have reached the end of the buffer
                         warnings.warn("Polymake unexpectedly {}".format(_available_polymake_answers[pat]), RuntimeWarning)
                         E.buffer = E.before + E.after + E.buffer
                         break
-                    else: # timeout or some other problem
+                    else:  # timeout or some other problem
                         # Polymake would still continue with the computation. Thus, we send an interrupt
                         E.send(chr(3))
                         sleep(0.1)
@@ -1058,7 +1063,7 @@ class Polymake(ExtraTabCompletion, Expect):
                 out = ''
         except KeyboardInterrupt:
             self._keyboard_interrupt()
-            raise KeyboardInterrupt("Ctrl-c pressed while running %s"%self)
+            raise KeyboardInterrupt("Ctrl-c pressed while running {}".format(self))
         for w in p_warnings:
             warnings.warn(w, RuntimeWarning)
         for e in p_errors:
@@ -1241,12 +1246,14 @@ class Polymake(ExtraTabCompletion, Expect):
             f = self.__new[name]
         except AttributeError:
             self.__new = {}
-            f = self.__new[name] = self._function_class()(self, "new %s"%name)
+            f = self.__new[name] = self._function_class()(self, "new {}".format(name))
         except KeyError:
-            f = self.__new[name] = self._function_class()(self, "new %s"%name)
+            f = self.__new[name] = self._function_class()(self, "new {}".format(name))
         return f(*args, **kwds)
 
+
 polymake = Polymake()
+
 
 def reduce_load_Polymake():
     """
@@ -1263,7 +1270,8 @@ def reduce_load_Polymake():
 ########################################
 ## Elements
 
-from warnings import warn
+
+
 
 class PolymakeElement(ExtraTabCompletion, ExpectElement):
     """
@@ -1389,9 +1397,9 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
         if not out:
             if "Polytope" == T1:
                 out = "{}[{}]".format(P.get("{}->type->full_name".format(name)) or "PolymakeElement", _name_pattern.search(name).group())
-            elif T1=='' and T2=='ARRAY':
+            elif T1 == '' and T2 == 'ARRAY':
                 out = P.eval('print join(", ", @{});'.format(name)).strip()
-            elif T1=='' and T2=='HASH':
+            elif T1 == '' and T2 == 'HASH':
                 out = P.get('%{}'.format(name)).strip()
             elif self._name[0] == '@':
                 out = P.eval('print join(", ", {});'.format(name)).strip()
@@ -1430,13 +1438,13 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
 
         """
         P = self._check_valid()
-        if P.eval("print %s %s %s;"%(self.name(), P._equality_symbol(), other.name())).strip() == P._true_symbol():
+        if P.eval("print {} {} {};".format(self.name(), P._equality_symbol(), other.name())).strip() == P._true_symbol():
             return 0
-        if P.eval("print %s %s %s;"%(self.name(), P._lessthan_symbol(), other.name())).strip() == P._true_symbol():
+        if P.eval("print {} {} {};".format(self.name(), P._lessthan_symbol(), other.name())).strip() == P._true_symbol():
             return -1
-        if P.eval("print %s %s %s;"%(self.name(), P._greaterthan_symbol(), other.name())).strip() == P._true_symbol():
+        if P.eval("print {} {} {};".format(self.name(), P._greaterthan_symbol(), other.name())).strip() == P._true_symbol():
             return 1
-        return -2 # that's supposed to be an error value.
+        return -2  # that's supposed to be an error value.
 
     def bool(self):
         """
@@ -1453,7 +1461,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
         """
         P = self._check_valid()
         t = P._true_symbol()
-        cmd = '%s %s %s;'%(self._name, P._equality_symbol(), t)
+        cmd = '{} {} {};'.format(self._name, P._equality_symbol(), t)
         return P.get(cmd) == t
 
     def known_properties(self):
@@ -1535,7 +1543,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
              'ZONOTOPE_INPUT_POINTS']
 
         """
-        ### return the members of a "big" object.
+        # return the members of a "big" object.
         P = self._check_valid()
         try:
             cmd = '$SAGETMP = ' + self._name + ' -> type;'
@@ -1779,7 +1787,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
 
         """
         P = self._check_valid()
-        return P('%s->%s'%(self.name(), attrname))
+        return P('{}->{}'.format(self.name(), attrname))
 
     def __getitem__(self, key):
         """
@@ -1811,9 +1819,9 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
         _, T = self.typeof()
         if self._name.startswith('@'):
             return P('${}[{}]'.format(self._name[1:], key))
-        if T=='ARRAY':
+        if T == 'ARRAY':
             return P('{}[{}]'.format(self._name, key))
-        if T=='HASH':
+        if T == 'HASH':
             try:
                 if key.parent() is self.parent():
                     key = key._name
@@ -1851,11 +1859,11 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
 
         """
         P = self._check_valid()
-        T1,T2 = self.typeof()
+        T1, T2 = self.typeof()
         name = self._name
-        if T2=='ARRAY':
+        if T2 == 'ARRAY':
             return int(P.eval('print scalar @{+%s};'%name))
-        if T2=='HASH':
+        if T2 == 'HASH':
             return int(P.eval('print scalar keys %{+%s};'%name))
         if T1:
             raise TypeError("Don't know how to compute the length of {} object".format(T1))
@@ -2037,6 +2045,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
             return doc
         return "Undocumented polymake type '{}'".format(self.full_typename())
 
+
 class PolymakeFunctionElement(FunctionElement):
     """
     A callable (function or member function) bound to a polymake element.
@@ -2075,6 +2084,7 @@ class PolymakeFunctionElement(FunctionElement):
         self._obj = obj
         self._name = name
         self._is_memberfunc = memberfunction
+
     def _repr_(self):
         """
         EXAMPLES::

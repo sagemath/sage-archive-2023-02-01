@@ -1434,7 +1434,15 @@ class Partition(CombinatorialElement):
 
     def has_rectangle(self, h, w):
         r"""
-        A partition ``self`` has an ``h`` x ``w`` rectangle if it's Ferrer's diagram has ``h`` (*or more*) rows of length ``w`` (*exactly*).
+        Return ``True`` if the Ferrer's diagram of ``self`` has ``h`` (*or more*) rows of length ``w`` (*exactly*).
+
+        INPUT:
+
+        - ``self`` -- The Partition.
+
+        - ``h`` -- An integer `h \geq 1`.  The (*minimum*) height of the rectangle.
+
+        - ``w`` -- An integer `w \geq 1`.  The width of the rectangle.
 
         EXAMPLES::
 
@@ -1470,15 +1478,12 @@ class Partition(CombinatorialElement):
         """
         assert h >= 1
         assert w >= 1
-        num_rows_of_len_w = 0
-        for part in self:
-            if part == w:
-                num_rows_of_len_w += 1
+        num_rows_of_len_w = self.to_exp(w)[w - 1]
         return num_rows_of_len_w >= h
 
     def has_k_rectangle(self, k):
         r"""
-        A partition ``self`` has a ``k``-rectangle if it's Ferrer's diagram contains `k-i+1` rows (*or more*) of length `i` (*exactly*) for any `i` in `[1, k]`.
+        Return ``True`` if the Ferrer's diagram of ``self`` contains `k-i+1` rows (*or more*) of length `i` (*exactly*) for any `i` in `[1, k]`.
 
         This is mainly a helper function for :meth:`is_k_reducible` and :meth:`is_k_irreducible`, the only difference between this function and :meth:`is_k_reducible` being that this function allows any partition as input while :meth:`is_k_reducible` requires the input to be `k`-bounded.
 
@@ -1486,12 +1491,12 @@ class Partition(CombinatorialElement):
 
         The partition [1, 1, 1] has at least 2 rows of length 1::
 
-            sage: Partition([1, 1, 1]).is_k_reducible(2)
+            sage: Partition([1, 1, 1]).has_k_rectangle(2)
             True
 
         The partition [1, 1, 1] does *not* have 4 rows of length 1, 3 rows of length 2, 2 rows of length 3, nor 1 row of length 4::
 
-            sage: Partition([1, 1, 1]).is_k_reducible(4)
+            sage: Partition([1, 1, 1]).has_k_rectangle(4)
             False
 
         TESTS::
@@ -1522,7 +1527,7 @@ class Partition(CombinatorialElement):
 
     def is_k_bounded(self, k):
         r"""
-        Returns ``True`` if and only if the partition ``self`` is bounded by ``k``.
+        Return ``True`` if the partition ``self`` is bounded by ``k``.
 
         EXAMPLES::
 
@@ -1533,17 +1538,17 @@ class Partition(CombinatorialElement):
             sage: Partition([4, 3, 1]).is_k_bounded(3)
             False
         """
+        assert k >= 0
         if self.is_empty():
-            least_upper_bound = 0
+            return True
         else:
-            least_upper_bound = max(self)
-        return least_upper_bound <= k
+            return self[0] <= k
 
     def is_k_reducible(self, k):
         r"""
-        Return whether the partition ``self`` is ``k``-reducible.
+        Return ``True`` if the partition ``self`` is ``k``-reducible.
 
-        A `k`-bounded partition is `k`-*reducible* if it's Ferrer's diagram contains `k-i+1` rows (or more) of length `i` (exactly) for some `i \in [1, k]`.
+        A `k`-bounded partition is `k`-*reducible* if its Ferrer's diagram contains `k-i+1` rows (or more) of length `i` (exactly) for some `i \in [1, k]`.
 
         (Also, a `k`-bounded partition is `k`-reducible if and only if it is not `k`-irreducible.)
 
@@ -1563,15 +1568,15 @@ class Partition(CombinatorialElement):
 
             :meth:`is_k_irreducible`, :meth:`has_k_rectangle`
         """
-        # We only talk about k-reducible / k-irreducible for k-bounded partitions.
-        assert self.is_k_bounded(k)
+        if not self.is_k_bounded(k):
+            raise ValueError('we only talk about k-reducible / k-irreducible for k-bounded partitions')
         return self.has_k_rectangle(k)
 
     def is_k_irreducible(self, k):
         r"""
-        Return whether the partition ``self`` is ``k``-irreducible.
+        Return ``True`` if the partition ``self`` is ``k``-irreducible.
 
-        A `k`-bounded partition is `k`-*irreducible* if it's Ferrer's diagram does *not* contain `k-i+1` rows (or more) of length `i` (exactly) for every `i \in [1, k]`.
+        A `k`-bounded partition is `k`-*irreducible* if its Ferrer's diagram does *not* contain `k-i+1` rows (or more) of length `i` (exactly) for every `i \in [1, k]`.
 
         (Also, a `k`-bounded partition is `k`-irreducible if and only if it is not `k`-reducible.)
 
@@ -1595,7 +1600,7 @@ class Partition(CombinatorialElement):
 
     def is_symmetric(self):
         r"""
-        Detect whether this partition ``self`` equals its own transpose.
+        Return ``True`` if the partition ``self`` equals its own transpose.
 
         EXAMPLES::
 
@@ -1697,7 +1702,7 @@ class Partition(CombinatorialElement):
 
     def is_k_core(self, k):
         r"""
-        Returns a boolean saying whether or not this Partition ``self`` is a ``k``-core.
+        Return ``True`` if the Partition ``self`` is a ``k``-core.
 
         EXAMPLES:
 

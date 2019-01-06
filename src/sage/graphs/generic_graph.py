@@ -18674,6 +18674,10 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES::
 
+            sage: G = graphs.RandomTree(80)
+            sage: G.plot(layout="tree", tree_orientation="right")
+            Graphics object consisting of 160 graphics primitives
+
             sage: T = graphs.RandomLobster(25, 0.3, 0.3)
             sage: T.show(layout='tree', tree_orientation='up')
 
@@ -18695,10 +18699,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = graphs.BalancedTree(2, 4)
             sage: G.plot(layout="tree", tree_root=0, tree_orientation="up")
             Graphics object consisting of 62 graphics primitives
-
-            sage: G = graphs.RandomTree(80)
-            sage: G.plot(layout="tree", tree_orientation="right")
-            Graphics object consisting of 160 graphics primitives
 
         Using the embedding when it exists::
 

@@ -1294,9 +1294,6 @@ class GraphPlot(SageObject):
 
         EXAMPLES::
 
-            sage: T = graphs.RandomLobster(25,0.3,0.3)
-            sage: T.show(layout='tree',tree_orientation='up') # indirect doctest
-
             sage: from sage.graphs.graph_plot import GraphPlot
             sage: G = graphs.HoffmanSingletonGraph()
             sage: T = Graph()

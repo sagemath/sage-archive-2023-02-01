@@ -1371,7 +1371,7 @@ class Partition(CombinatorialElement):
         Consider the partition (3, 1) split up into its 1-interior and
         1-boundary:
 
-        .. image:: ../../../media/k-rim.JPG
+        .. image:: ../../media/k-rim.JPG
             :height: 180px
             :align: center
 
@@ -1467,10 +1467,8 @@ class Partition(CombinatorialElement):
 
         INPUT:
 
-        - ``self`` -- The Partition.
-
-        - ``h`` -- An integer `h \geq 1`.  The (*minimum*) height of the
-        rectangle.
+        - ``h`` -- An integer `h \geq 1`.  The (*minimum*) height of the 
+          rectangle.
 
         - ``w`` -- An integer `w \geq 1`.  The width of the rectangle.
 
@@ -1516,7 +1514,9 @@ class Partition(CombinatorialElement):
         Return ``True`` if the Ferrer's diagram of ``self`` contains `k-i+1`
         rows (*or more*) of length `i` (*exactly*) for any `i` in `[1, k]`.
 
-        This is mainly a helper function for :meth:`is_k_reducible` and :meth:`is_k_irreducible`, the only difference between this function and :meth:`is_k_reducible` being that this function allows any partition as
+        This is mainly a helper function for :meth:`is_k_reducible` and 
+        :meth:`is_k_irreducible`, the only difference between this function and 
+        :meth:`is_k_reducible` being that this function allows any partition as
         input while :meth:`is_k_reducible` requires the input to be `k`-bounded.
 
         EXAMPLES:
@@ -1657,20 +1657,18 @@ class Partition(CombinatorialElement):
         Get the next partition lexicographically that contains ``min`` and is
         contained in ``max``.
 
-        INPUTS:
-
-        - ``self`` -- The Partition.
+        INPUT:
 
         - ``min`` -- (default ``[]``, the empty partition) The
-        'minimum partition' that ``next_within_bounds(self)`` must contain.
+          'minimum partition' that ``next_within_bounds(self)`` must contain.
 
         - ``max`` -- (default ``None``) The 'maximum partition' that
-        ``next_within_bounds(self)`` must be contained in.  If set to ``None``,
-        then there is no restriction.
+          ``next_within_bounds(self)`` must be contained in.  If set to ``None``,
+          then there is no restriction.
 
         - ``partition_type`` -- (default ``None``) The type of partitions
-        allowed.  For example, 'strict' for strictly decreasing partitions, or
-        ``None`` to allow any valid partition.
+          allowed.  For example, 'strict' for strictly decreasing partitions, or
+          ``None`` to allow any valid partition.
 
         EXAMPLES::
 
@@ -4383,7 +4381,7 @@ class Partition(CombinatorialElement):
 
         ..  SEEALSO::
 
-            :meth:`Core`
+            :meth:`core`, :class:`Core`
         """
         return not k in self.hooks()
 

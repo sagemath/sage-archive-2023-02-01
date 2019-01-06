@@ -224,7 +224,8 @@ def DegreeSequenceExpected(deg_sequence, seed=None):
 
         sage: G = graphs.DegreeSequenceExpected([1,2,3,2,3])
         sage: G.edges(labels=False)
-        [(0, 3), (1, 4), (2, 2), (2, 3), (2, 4), (4, 4)]
+        [(0, 3), (1, 3), (1, 4), (4, 4)]                    # 32-bit 
+        [(0, 3), (1, 4), (2, 2), (2, 3), (2, 4), (4, 4)]    # 64-bit
         sage: G.show()  # long time
 
     REFERENCE:

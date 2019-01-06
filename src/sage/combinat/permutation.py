@@ -8443,9 +8443,9 @@ class StandardPermutations_avoiding_generic(StandardPermutations_n_abstract):
             sage: [2,1,3] in Permutations(3, avoiding=[])
             True
         """
-        if not StandardPermutations_n_abstract.__contains__(self, x):
+        if not super(StandardPermutations_avoiding_generic, self).__contains__(x):
             return False
-        x = self.element_class(self, x)
+        x = self(x)
         return all(x.avoids(p) for p in self._a)
 
     def _repr_(self):

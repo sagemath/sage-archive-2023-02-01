@@ -5298,7 +5298,7 @@ class Permutations(UniqueRepresentation, Parent):
                 if k is None:
                     if 'avoiding' in kwargs:
                         a = kwargs['avoiding']
-                        if len(a) == 0:
+                        if not a:
                             return StandardPermutations_n(n)
                         if len(a) == 1 and a[0] != 1:
                             a = a[0]
@@ -8445,7 +8445,7 @@ class StandardPermutations_avoiding_generic(StandardPermutations_n_abstract):
         """
         if not super(StandardPermutations_avoiding_generic, self).__contains__(x):
             return False
-        x = self(x)
+        x = Permutations()(x)
         return all(x.avoids(p) for p in self._a)
 
     def _repr_(self):

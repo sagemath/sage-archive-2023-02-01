@@ -497,7 +497,7 @@ def relation_matrix_wtk_g0(syms, sign, field, sparse):
         rels.update(modI_relations(syms, sign))
 
     rels = sorted(rels)
-    # should be sorted(rels), but this breaks many doctests
+    # required for stability of doctests with python3
 
     if syms._apply_S_only_0pm1() and is_RationalField(field):
         from . import relation_matrix_pyx

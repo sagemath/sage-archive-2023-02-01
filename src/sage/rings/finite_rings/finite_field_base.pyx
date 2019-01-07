@@ -1606,7 +1606,7 @@ cdef class FiniteField(Field):
         """
         Return ``True`` if self is defined by a Conway polynomial.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: GF(5^3, 'a').is_conway()
             True

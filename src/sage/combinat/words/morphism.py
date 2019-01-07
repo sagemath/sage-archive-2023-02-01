@@ -1809,7 +1809,7 @@ class WordMorphism(SageObject):
 
         - ``word`` - the fixed point of ``self`` beginning with ``letter``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: W = FiniteWords('abc')
 

@@ -1278,7 +1278,7 @@ class Function_harmonic_number_generalized(BuiltinFunction):
 
     def _maxima_init_evaled_(self, n, z):
         """
-        EXAMPLES:
+        EXAMPLES::
 
             sage: maxima_calculus(harmonic_number(x,2))
             gen_harmonic_number(2,_SAGE_VAR_x)

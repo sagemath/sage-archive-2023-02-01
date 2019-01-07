@@ -13947,7 +13947,7 @@ cdef class Matrix(Matrix1):
         [Sto1998]_, where the former is more
         representative of the code here.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: A = matrix(QQ, [[-68,   69, -27, -11, -65,   9, -181, -32],
             ....:                 [-52,   52, -27,  -8, -52, -16, -133, -14],

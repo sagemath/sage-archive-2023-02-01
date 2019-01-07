@@ -1544,7 +1544,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
         """
         Serializes self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: P.<x,y,z> = PolynomialRing(QQ, order='degrevlex')
             sage: P == loads(dumps(P))
             True

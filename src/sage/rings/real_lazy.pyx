@@ -397,7 +397,8 @@ class ComplexLazyField_class(LazyField):
         This lazy field doesn't evaluate its elements until they are cast into
         a field of fixed precision.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = RLF(1/3); a
             0.3333333333333334?
             sage: Reals(200)(a)

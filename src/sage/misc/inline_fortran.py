@@ -22,7 +22,7 @@ def _import_module_from_path(name, path=None):
     Returns a fully executed module object without inserting that module into
     `sys.modules`.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.misc.inline_fortran import _import_module_from_path
         sage: modname = '___test__import_module_from_path'

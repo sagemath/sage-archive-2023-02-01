@@ -1338,7 +1338,7 @@ class ParallelogramPolyomino(ClonableList):
         See :meth:`_to_dyck_delest_viennot` for the exact references.
         See also :meth:`to_ordered_tree()`.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: pp = ParallelogramPolyomino([[0, 1], [1, 0]])
             sage: pp._to_ordered_tree_via_dyck()

@@ -442,7 +442,7 @@ cdef class Matrix(Matrix0):
         """
         Returns a string defining a Scilab representation of self.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: a = matrix([[1,2,3],[4,5,6],[7,8,9]]); a
             [1 2 3]
@@ -471,7 +471,7 @@ cdef class Matrix(Matrix0):
         """
         Creates a ScilabElement object based on self and returns it.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: a = matrix([[1,2,3],[4,5,6],[7,8,9]]); a
             [1 2 3]

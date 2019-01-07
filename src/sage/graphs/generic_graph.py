@@ -1205,7 +1205,7 @@ class GenericGraph(GenericGraph_pyx):
         A new graph instance that is as close as possible to the original
         graph. The output is always mutable.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: g = Graph({0: [1, 2, 3], 2: [4]}, immutable=True)
             sage: g.weighted(list(range(5)))

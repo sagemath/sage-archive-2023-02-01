@@ -5125,7 +5125,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
 
         EXAMPLES:
 
-            A Simple example::
+            A simple example::
 
                 sage: from sage.doctest.fixtures import reproducible_repr
                 sage: R.<x,y,z> = BooleanPolynomialRing()
@@ -7066,7 +7066,8 @@ cdef class GroebnerStrategy:
 cdef class BooleanMulAction(Action):
     cpdef _act_(self, g, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from brial import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)

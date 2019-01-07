@@ -524,7 +524,7 @@ class ForgetfulFunctor_generic(Functor):
         """
         Return whether ``self`` is not equal to ``other``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: F1 = ForgetfulFunctor(FiniteFields(),Fields())
             sage: F1 != F1

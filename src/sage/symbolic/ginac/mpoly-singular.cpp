@@ -58,7 +58,7 @@ void Log(const power_ocvector_map& m, const std::string& str)
         }
 }
 
-static CanonicalForm replace_with_symbol(const ex& e, ex_int_map& map, exvector& revmap)
+static CanonicalForm replace_with_symbol(const ex& e, ex_int_umap& map, exvector& revmap)
 {
         // Expression already replaced? Then return the assigned symbol
         auto it = map.find(e);
@@ -73,7 +73,7 @@ static CanonicalForm replace_with_symbol(const ex& e, ex_int_map& map, exvector&
         return Variable(index);
 }
 
-static CanonicalForm num2canonical(const numeric& n, ex_int_map& map, exvector& revmap)
+static CanonicalForm num2canonical(const numeric& n, ex_int_umap& map, exvector& revmap)
 {
         try {
                 return n.to_canonical();
@@ -186,7 +186,7 @@ static void transform_powers(power_ocvector_map& pomap)
 }
 
 // Convert to Singular polynomial over QQ, filling replacement dicts
-const CanonicalForm ex::to_canonical(ex_int_map& amap,
+const CanonicalForm ex::to_canonical(ex_int_umap& amap,
                 power_ocvector_map& pomap,
                 exvector& revmap) const
 {
@@ -523,7 +523,7 @@ factored_b:
 	}
 
 
-        ex_int_map map;
+        ex_int_umap map;
         exvector revmap;
         map.insert(std::make_pair(symbol_E, 1));
         revmap.emplace_back(exp(1));
@@ -601,7 +601,7 @@ bool factorpoly(const ex& the_ex, ex& res_prod)
                 throw(std::runtime_error("can't happen in factor"));
 
 
-        ex_int_map map;
+        ex_int_umap map;
         exvector revmap;
         map.insert(std::make_pair(symbol_E, 1));
         revmap.emplace_back(exp(1));
@@ -633,7 +633,7 @@ bool factorpoly(const ex& the_ex, ex& res_prod)
 
 ex poly_mul_expand(const ex& a, const ex& b)
 {
-        ex_int_map map;
+        ex_int_umap map;
         exvector revmap;
         power_ocvector_map pomap;
         a.collect_powers(pomap);
@@ -654,7 +654,7 @@ ex poly_mul_expand(const ex& a, const ex& b)
 
 ex resultantpoly(const ex & ee1, const ex & ee2, const ex & s)
 {
-        ex_int_map map;
+        ex_int_umap map;
         exvector revmap;
         map.insert(std::make_pair(symbol_E, 1));
         revmap.emplace_back(exp(1));

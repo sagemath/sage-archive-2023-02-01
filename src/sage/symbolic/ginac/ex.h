@@ -233,7 +233,7 @@ public:
 #ifdef PYNAC_HAVE_LIBGIAC
         const giac::polynome to_polynome(ex_int_map& map, exvector& revmap) const;
 #endif
-        const CanonicalForm to_canonical(ex_int_map& map,
+        const CanonicalForm to_canonical(ex_int_umap& map,
                         power_ocvector_map& pomap, exvector& revmap) const;
         void collect_powers(power_ocvector_map& pomap) const;
 	ex numer() const;
@@ -291,6 +291,10 @@ public:
 // member variables
 
 	mutable ptr<basic> bp;  ///< pointer to basic object managed by this
+};
+
+struct ex_hash {
+    long operator()(const ex& e) const { return e.gethash(); }
 };
 
 

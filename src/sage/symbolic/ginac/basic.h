@@ -26,6 +26,7 @@
 #include <vector>
 #include <set>
 #include <map>
+#include <unordered_map>
 // CINT needs <algorithm> to work properly with <vector>
 #include <algorithm>
 
@@ -61,6 +62,7 @@ namespace GiNaC {
 
 class ex;
 struct ex_is_less;
+struct ex_hash;
 class symbol;
 class numeric;
 class relational;
@@ -72,6 +74,8 @@ typedef std::vector<ex> exvector;
 typedef std::set<ex, ex_is_less> exset;
 typedef std::map<ex, ex, ex_is_less> exmap;
 using ex_int_map = std::map<GiNaC::ex, int, GiNaC::ex_is_less>;
+using ex_int_umap = std::unordered_map<ex, int, ex_hash>;
+
 // Define this to enable some statistical output for comparisons and hashing
 #undef GINAC_COMPARE_STATISTICS
 

@@ -194,12 +194,12 @@ cdef class ntl_ZZ_pEX(object):
 
         EXAMPLES::
 
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: f.get_modulus_context()
-        NTL modulus [1 1 1] (mod 7)
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: f.get_modulus_context()
+            NTL modulus [1 1 1] (mod 7)
         """
         return self.c
 
@@ -654,7 +654,8 @@ cdef class ntl_ZZ_pEX(object):
             sage: f.left_shift(5)
             [[] [] [] [] [] [3 2] [1 2] [1 2]]
 
-            A negative left shift is a right shift.
+        A negative left shift is a right shift::
+
             sage: f.left_shift(-2)
             [[1 2]]
         """
@@ -682,7 +683,8 @@ cdef class ntl_ZZ_pEX(object):
             sage: f.right_shift(5)
             []
 
-            A negative right shift is a left shift.
+        A negative right shift is a left shift::
+
             sage: f.right_shift(-5)
             [[] [] [] [] [] [3 2] [1 2] [1 2]]
         """
@@ -1073,7 +1075,8 @@ cdef class ntl_ZZ_pEX(object):
     #        sage: f.trace_list()
     #        [5, 0, 14, 0, 10]
     #
-    #        The input polynomial must be monic or a ValueError is raised:
+    #    The input polynomial must be monic or a ValueError is raised::
+    #
     #        sage: c=ntl.ZZ_pContext(ntl.ZZ(20))
     #        sage: f = c.ZZ_pX([1,2,0,3,0,2]
     #        sage: f.trace_list()

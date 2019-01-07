@@ -4971,7 +4971,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: XYZ = Poset({'x': ['y'], 'y': ['z']})
             sage: ABC.star_product(XYZ).list()
             [(0, 'a'), (0, 'b'), (1, 'y'), (1, 'z')]
-            sage: ABC.star_product(XYZ, labels='integers').list()
+            sage: sorted(ABC.star_product(XYZ, labels='integers'))
             [0, 1, 2, 3]
 
         TESTS::

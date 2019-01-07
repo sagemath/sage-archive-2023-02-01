@@ -5527,7 +5527,7 @@ class Graph(GenericGraph):
             sage: p=graphs.chang_graphs()
             sage: T8 = graphs.CompleteGraph(8).line_graph()
             sage: C = T8.seidel_switching([(0,1,None),(2,3,None),(4,5,None),(6,7,None)],inplace=False)
-            sage: T8.twograph()==C.twograph()
+            sage: T8.twograph() == C.twograph()
             True
             sage: T8.is_isomorphic(C)
             False
@@ -5548,7 +5548,7 @@ class Graph(GenericGraph):
               -- ditto, but much faster.
         """
         from sage.combinat.designs.twographs import TwoGraph
-        G = self.relabel(inplace=False)
+        G = self.relabel(range(self.order()), inplace=False)
         T = []
 
         # Triangles

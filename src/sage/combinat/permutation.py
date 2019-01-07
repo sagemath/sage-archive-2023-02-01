@@ -8358,7 +8358,10 @@ class StandardPermutations_all_avoiding(StandardPermutations_all):
             sage: [2,1,3] in Permutations(avoiding=[])
             True
         """
-        return x in StandardPermutations_avoiding_generic(len(x), self._a)
+        if not super(StandardPermutations_all_avoiding, self).__contains__(x):
+            return False
+        x = Permutations()(x)
+        return all(x.avoids(p) for p in self._a)
 
     def __iter__(self):
         """

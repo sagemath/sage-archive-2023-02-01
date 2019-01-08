@@ -288,8 +288,8 @@ class experimental(object):
 
         return wrapper
 
-from sage.structure.sage_object import SageObject
-class __experimental_self_test(SageObject):
+
+class __experimental_self_test(object):
     r"""
     This is a class only to demonstrate with a doc-test that the @experimental
     decorator only issues a warning message once (see :trac:`20601`).

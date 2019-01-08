@@ -1049,15 +1049,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         if maximality_check:  # Sorting is useful to filter maximal faces
             maximal_simplices.sort(key=lambda x: x.dimension(), reverse=True)
-        try:
-            # If vertices can be sorted, sort them.
-            vertices = tuple(sorted(vertices))
-        except TypeError:
-            pass
         # Translate vertices to numbers, for use in sorting
         # facets. Having a consistent ordering for the vertices in
         # each facet is necessary for homology computations.
-        vertex_to_index = {v:i for i,v in enumerate(vertices)}
+        vertex_to_index = {v:i for i,v in enumerate(sorted(vertices, key=str))}
 
         for face in maximal_simplices:
             # check whether each given face is actually maximal
@@ -1585,17 +1580,18 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: S1 = simplicial_complexes.Sphere(1)
             sage: S2 = simplicial_complexes.Sphere(2)
             sage: G = (S1.wedge(S1)).flip_graph()
-            sage: G.vertices(); G.edges(labels=False) # py2
-            [(0, 'L1'), (0, 'L2'), (0, 'R1'), (0, 'R2'), ('L1', 'L2'), ('R1', 'R2')]
-            [((0, 'L1'), (0, 'L2')),
+            sage: sorted(G.vertices(), key=str)
+            [('L1', 'L2'), ('R1', 'R2'), (0, 'L1'), (0, 'L2'), (0, 'R1'), (0, 'R2')]
+            sage: sorted(G.edges(labels=False), key=str)
+            [((0, 'L1'), ('L1', 'L2')),
+             ((0, 'L1'), (0, 'L2')),
              ((0, 'L1'), (0, 'R1')),
              ((0, 'L1'), (0, 'R2')),
-             ((0, 'L1'), ('L1', 'L2')),
+             ((0, 'L2'), ('L1', 'L2')),
              ((0, 'L2'), (0, 'R1')),
              ((0, 'L2'), (0, 'R2')),
-             ((0, 'L2'), ('L1', 'L2')),
-             ((0, 'R1'), (0, 'R2')),
              ((0, 'R1'), ('R1', 'R2')),
+             ((0, 'R1'), (0, 'R2')),
              ((0, 'R2'), ('R1', 'R2'))]
 
             sage: (S1.wedge(S2)).flip_graph() is None

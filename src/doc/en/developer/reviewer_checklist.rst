@@ -72,7 +72,8 @@ The following should generally be checked while reading and testing the code:
 
 - **Look at the manuals**: Does the reference manual look okay? The
   changes may have typos that allow the documentation to build without
-  apparent errors but that cause the output to be badly formatted.
+  apparent errors but that may cause badly formatted output or broken
+  hyperlinks.
 
 - **Run the tests**: Do all doctests pass without errors? Unrelated components
   of Sage may be affected by the change. Check all tests in the whole library,

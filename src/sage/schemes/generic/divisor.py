@@ -300,7 +300,7 @@ class Divisor_curve(Divisor_generic):
             v = [(1,v)]
 
         if parent is None:
-            if len(v):
+            if v:
                 t = v[0]
                 if isinstance(t, tuple) and len(t) == 2:
                     try:

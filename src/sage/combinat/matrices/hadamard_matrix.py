@@ -1249,8 +1249,8 @@ def szekeres_difference_set_pair(m, check=True):
     t = F.multiplicative_generator()**2
     G = F.cyclotomic_cosets(t, cosets=[F.one()])[0]
     sG = set(G)
-    A = list(filter(lambda a: a - F.one() in sG, G))
-    B = list(filter(lambda b: b + F.one() in sG, G))
+    A = [a for a in G if a - F.one() in sG]
+    B = [b for b in G if b + F.one() in sG]
     if check:
         from itertools import product, chain
         assert(len(A) == len(B) == m)

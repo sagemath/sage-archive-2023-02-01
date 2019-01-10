@@ -175,7 +175,7 @@ def DegreeSequenceConfigurationModel(deg_sequence, seed=None):
       networks, SIAM Review vol. 45, no. 2 (2003), pp. 167-256.
     """
     if seed is None:
-        seed = int(current_randstate().long_seed() % sys.maxint)
+        seed = int(current_randstate().long_seed() % sys.maxsize)
     import networkx
     return Graph(networkx.configuration_model([int(i) for i in deg_sequence], seed=seed), loops=True, multiedges=True, sparse=True)
 
@@ -235,6 +235,6 @@ def DegreeSequenceExpected(deg_sequence, seed=None):
       Ann. Combinatorics (6), 2002 pp. 125-145.
     """
     if seed is None:
-        seed = int(current_randstate().long_seed() % sys.maxint)
+        seed = int(current_randstate().long_seed() % sys.maxsize)
     import networkx
     return Graph(networkx.expected_degree_graph([int(i) for i in deg_sequence], seed=seed), loops=True)

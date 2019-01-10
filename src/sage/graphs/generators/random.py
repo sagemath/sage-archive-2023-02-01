@@ -109,7 +109,7 @@ def RandomGNP(n, p, seed=None, fast=True, algorithm='Sage'):
         raise ValueError("The probability p must be in [0..1].")
 
     if seed is None:
-        seed = int(current_randstate().long_seed() % sys.maxint)
+        seed = int(current_randstate().long_seed() % sys.maxsize)
     if p == 1:
         from sage.graphs.generators.basic import CompleteGraph
         return CompleteGraph(n)
@@ -181,7 +181,7 @@ def RandomBarabasiAlbert(n, m, seed=None):
 
     """
     if seed is None:
-        seed = int(current_randstate().long_seed() % sys.maxint)
+        seed = int(current_randstate().long_seed() % sys.maxsize)
     import networkx
     return Graph(networkx.barabasi_albert_graph(n,m,seed=seed))
 
@@ -666,7 +666,7 @@ def RandomGNM(n, m, dense=False, seed=None):
         sage: G.show()  # long time
     """
     if seed is None:
-        seed = int(current_randstate().long_seed() % sys.maxint)
+        seed = int(current_randstate().long_seed() % sys.maxsize)
     import networkx
     if dense:
         return Graph(networkx.dense_gnm_random_graph(n, m, seed=seed))
@@ -719,7 +719,7 @@ def RandomNewmanWattsStrogatz(n, k, p, seed=None):
       99, 2566-2572.
     """
     if seed is None:
-        seed = int(current_randstate().long_seed() % sys.maxint)
+        seed = int(current_randstate().long_seed() % sys.maxsize)
     import networkx
     return Graph(networkx.newman_watts_strogatz_graph(n, k, p, seed=seed))
 
@@ -777,7 +777,7 @@ def RandomHolmeKim(n, m, p, seed=None):
       with tunable clustering, Phys. Rev. E (2002). vol 65, no 2, 026107.
     """
     if seed is None:
-        seed = int(current_randstate().long_seed() % sys.maxint)
+        seed = int(current_randstate().long_seed() % sys.maxsize)
     import networkx
     return Graph(networkx.powerlaw_cluster_graph(n, m, p, seed=seed))
 
@@ -1269,7 +1269,7 @@ def RandomLobster(n, p, q, seed=None):
         sage: G.show()  # long time
     """
     if seed is None:
-        seed = int(current_randstate().long_seed() % sys.maxint)
+        seed = int(current_randstate().long_seed() % sys.maxsize)
     import networkx
     return Graph(networkx.random_lobster(n, p, q, seed=seed))
 
@@ -1379,7 +1379,7 @@ def RandomTreePowerlaw(n, gamma=3, tries=1000, seed=None):
         ....:     G.show()  # random output, long time
     """
     if seed is None:
-        seed = int(current_randstate().long_seed() % sys.maxint)
+        seed = int(current_randstate().long_seed() % sys.maxsize)
     import networkx
     try:
         return Graph(networkx.random_powerlaw_tree(n, gamma, seed=seed, tries=tries))
@@ -1430,7 +1430,7 @@ def RandomRegular(d, n, seed=None):
       regular graphs quickly. Prob. and Comp. 8 (1999), pp 377-396.
     """
     if seed is None:
-        seed = int(current_randstate().long_seed() % sys.maxint)
+        seed = int(current_randstate().long_seed() % sys.maxsize)
     import networkx
     try:
         N = networkx.random_regular_graph(d, n, seed=seed)
@@ -1468,7 +1468,7 @@ def RandomShell(constructor, seed=None):
         sage: G.show()  # long time
     """
     if seed is None:
-        seed = int(current_randstate().long_seed() % sys.maxint)
+        seed = int(current_randstate().long_seed() % sys.maxsize)
     import networkx
     return Graph(networkx.random_shell_graph(constructor, seed=seed))
 

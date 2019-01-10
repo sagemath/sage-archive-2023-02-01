@@ -1124,7 +1124,7 @@ class DiGraphGenerators():
           Random Networks, Phys. Rev. E vol. 63 (2001), p. 066123.
         """
         if seed is None:
-            seed = int(current_randstate().long_seed() % sys.maxint)
+            seed = int(current_randstate().long_seed() % sys.maxsize)
         import networkx
         return DiGraph(networkx.gn_graph(n, kernel, seed=seed))
 
@@ -1163,7 +1163,7 @@ class DiGraphGenerators():
           Copying, Phys. Rev. E vol. 71 (2005), p. 036118.
         """
         if seed is None:
-            seed = int(current_randstate().long_seed() % sys.maxint)
+            seed = int(current_randstate().long_seed() % sys.maxsize)
         import networkx
         return DiGraph(networkx.gnc_graph(n, seed=seed))
 
@@ -1377,7 +1377,7 @@ class DiGraphGenerators():
           Random Networks, Phys. Rev. E vol. 63 (2001), p. 066123.
         """
         if seed is None:
-            seed = int(current_randstate().long_seed() % sys.maxint)
+            seed = int(current_randstate().long_seed() % sys.maxsize)
         import networkx
         return DiGraph(networkx.gnr_graph(n, p, seed=seed))
 

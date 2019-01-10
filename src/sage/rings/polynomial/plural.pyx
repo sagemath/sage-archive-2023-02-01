@@ -2242,6 +2242,8 @@ cdef class NCPolynomial_plural(RingElement):
             sage: -(a*b)*(a*b)*b+(a*b)*(a*b*c)
             -2*a^2*b^3 + 2*a^2*b^2*c
         """
+        if self.is_zero():
+            return sum(0*i for i in im_gens)
         from sage.misc.misc_c import prod
         d = self.dict()
         return sum(prod(im_gens[i]**t[i] for i in range(len(t)))*codomain(d[t]) for t in d)

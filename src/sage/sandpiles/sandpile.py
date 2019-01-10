@@ -321,6 +321,8 @@ from copy import deepcopy
 from inspect import getdoc
 from textwrap import dedent
 
+from IPython.lib import pretty
+
 import os  # CHECK: possibly unnecessary after removing 4ti2-dependent methods
 from sage.calculus.functional import derivative
 from sage.combinat.integer_vector import integer_vectors_nk_fast_iter
@@ -4175,6 +4177,15 @@ class SandpileConfig(dict):
         else:
             T.show(**kwds)
 
+
+# Note: There ought to be a better way to do this: sage.repl.display is
+# intended to help extend pretty-printing capabilities but it still doesn't
+# provide an interface to do something as simple as this (in this case we are
+# informing IPython that SandpileConfig, being a dict subclass, should be
+# pretty-printed in the same way a dict)
+pretty.for_type(SandpileConfig, pretty.for_type(dict, None))
+
+
 ###############################################
 ########### SandpileDivisor Class #############
 ###############################################
@@ -4752,7 +4763,7 @@ class SandpileDivisor(dict):
             sage: S = Sandpile({'a':[1,'b'], 'b':[1,'a'], 1:['a']},'a')
             sage: D = SandpileDivisor(S, {'a':0, 'b':1, 1:2})
             sage: D
-            {'a': 0, 1: 2, 'b': 1}
+            {1: 2, 'a': 0, 'b': 1}
             sage: D.values()
             [2, 0, 1]
             sage: S.vertices()
@@ -6052,6 +6063,10 @@ class SandpileDivisor(dict):
                 a[i] = str(i) + ":" + str(T[i])
             T.relabel(a)
         T.show(**kwds)
+
+
+# See note about this after the definition of SandpileConfig
+pretty.for_type(SandpileDivisor, pretty.for_type(dict, None))
 
 #######################################
 ######### Some test graphs ############

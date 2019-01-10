@@ -3598,7 +3598,7 @@ EXAMPLES::
     sage: S = Sandpile({'a':['c','b'], 'b':['c','a'], 'c':['a']},'a')
     sage: c = SandpileConfig(S, {'b':1, 'c':2})
     sage: c
-    {'c': 2, 'b': 1}
+    {'b': 1, 'c': 2}
     sage: c.values()
     [1, 2]
     sage: S.nonsink_vertices()
@@ -4678,7 +4678,7 @@ EXAMPLES::
     sage: S = Sandpile({'a':['c','b'], 'b':['c','a'], 'c':['a']},'a')
     sage: D = SandpileDivisor(S, {'a':0, 'b':1, 'c':2})
     sage: D
-    {'a': 0, 'c': 2, 'b': 1}
+    {'a': 0, 'b': 1, 'c': 2}
     sage: D.values()
     [0, 1, 2]
     sage: S.vertices()

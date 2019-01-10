@@ -2893,7 +2893,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     prime_factors = prime_divisors
 
-
     cpdef list _pari_divisors_small(self):
         r"""
         Return the list of divisors of this number using PARI ``divisorsu``.
@@ -3176,7 +3175,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sig_free(ptr)
 
         return sorted
-
 
     def __pos__(self):
         """

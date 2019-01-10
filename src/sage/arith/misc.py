@@ -1394,14 +1394,13 @@ def random_prime(n, proof=None, lbound=2):
         if prime_test(p):
             return p
 
-
 def divisors(n):
     """
     Return the list of all divisors (up to units) of this element
-    of a unique factorization domain, sorted in increasing order.
+    of a unique factorization domain.
 
-    For an integer, this is the list of all positive integer divisors
-    of this integer, sorted in increasing order.
+    For an integer, the list of all positive integer divisors
+    of this integer, sorted in increasing order, is returned.
 
     INPUT:
 
@@ -2608,7 +2607,7 @@ def radical(n, *args, **kwds):
 def prime_divisors(n):
     """
     Return the list of prime divisors (up to units) of this element
-    of a unique factorization domain, sorted in increasing order.
+    of a unique factorization domain.
 
     INPUT:
 
@@ -2804,7 +2803,6 @@ def is_square(n, root=False):
             else:
                 return False, None
     return m()
-
 
 def is_squarefree(n):
     """
@@ -5643,17 +5641,22 @@ def fundamental_discriminant(D):
 
 def squarefree_divisors(x):
     """
-    Iterator over the squarefree divisors (up to units)
-    of this ring element, sorted in increasing order.
+    Return an iterator over the squarefree divisors (up to units)
+    of this ring element.
 
     Depends on the output of the prime_divisors function.
+
+    Squarefree divisors of an integer are not necessarily
+    yielded in increasing order.
 
     INPUT:
 
     - x -- an element of any ring for which the prime_divisors
       function works.
 
-    EXAMPLES::
+    EXAMPLES:
+
+    Integers with few prime divisors::
 
         sage: list(squarefree_divisors(7))
         [1, 7]
@@ -5661,6 +5664,11 @@ def squarefree_divisors(x):
         [1, 2, 3, 6]
         sage: list(squarefree_divisors(12))
         [1, 2, 3, 6]
+
+    Squarefree divisors are not yielded in increasing order::
+
+        sage: list(squarefree_divisors(30))
+        [1, 2, 3, 6, 5, 10, 15, 30]
 
     TESTS:
 

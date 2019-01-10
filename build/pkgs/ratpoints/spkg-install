@@ -41,6 +41,6 @@ fi
 # The following requires that the Makefile got patched;
 # otherwise one could pass 'INSTALL_DIR=...' on the 'make'
 # command line:
-export INSTALL_DIR="$SAGE_DESTDIR$SAGE_LOCAL"
+export INSTALL_DIR="$SAGE_DESTDIR_LOCAL"
 mkdir -p "$INSTALL_DIR"/{lib,include}
 sdh_make install-lib

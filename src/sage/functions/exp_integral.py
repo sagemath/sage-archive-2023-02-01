@@ -51,6 +51,7 @@ from __future__ import division, print_function
 from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.expression import Expression
 from sage.structure.all import parent
+from sage.misc.latex import latex
 from sage.libs.mpmath import utils as mpmath_utils
 mpmath_utils_call = mpmath_utils.call # eliminate some overhead in _evalf_
 
@@ -157,7 +158,6 @@ class Function_exp_integral_e(BuiltinFunction):
 
         """
         BuiltinFunction.__init__(self, "exp_integral_e", nargs=2,
-                                 latex_name=r'exp_integral_e',
                                  conversions=dict(maxima='expintegral_e',
                                                   sympy='expint'))
 
@@ -222,6 +222,17 @@ class Function_exp_integral_e(BuiltinFunction):
         """
         import mpmath
         return mpmath_utils.call(mpmath.expint, n, z, parent=parent)
+
+    def _print_latex_(self, n, z):
+        """
+        Custom ``_print_latex_`` method.
+
+        EXAMPLES::
+
+            sage: latex(exp_integral_e(1, -x - 1))
+            E_{1}\left(-x - 1\right)
+        """
+        return r"E_{{{}}}\left({}\right)".format(latex(n), latex(z))
 
     def _derivative_(self, n, z, diff_param=None):
         """
@@ -310,7 +321,6 @@ class Function_exp_integral_e1(BuiltinFunction):
 
         """
         BuiltinFunction.__init__(self, "exp_integral_e1", nargs=1,
-                                 latex_name=r'exp_integral_e1',
                                  conversions=dict(maxima='expintegral_e1',
                                                   sympy='E1'))
 
@@ -326,6 +336,18 @@ class Function_exp_integral_e1(BuiltinFunction):
         """
         import mpmath
         return mpmath_utils_call(mpmath.e1, z, parent=parent)
+
+
+    def _print_latex_(self, z):
+        """
+        Custom ``_print_latex_`` method.
+
+        EXAMPLES::
+
+            sage: latex(exp_integral_e1(2))
+            E_{1}\left(2\right)
+        """
+        return r"E_{{1}}\left({}\right)".format(latex(z))
 
     def _derivative_(self, z, diff_param=None):
         """
@@ -417,7 +439,6 @@ class Function_log_integral(BuiltinFunction):
 
         """
         BuiltinFunction.__init__(self, "log_integral", nargs=1,
-                                 latex_name=r'log_integral',
                                  conversions=dict(maxima='expintegral_li',
                                                   sympy='li',
                                                   fricas='li'))
@@ -454,6 +475,18 @@ class Function_log_integral(BuiltinFunction):
         """
         import mpmath
         return mpmath_utils_call(mpmath.li, z, parent=parent)
+
+
+    def _print_latex_(self, z):
+        """
+        Custom ``_print_latex_`` method.
+
+        EXAMPLES::
+
+            sage: latex(log_integral(x))
+            li\left(x\right)
+        """
+        return r"li\left({}\right)".format(latex(z))
 
     def _derivative_(self, z, diff_param=None):
         r"""
@@ -604,7 +637,6 @@ class Function_log_integral_offset(BuiltinFunction):
 
         """
         BuiltinFunction.__init__(self, "log_integral_offset", nargs=1,
-                                 latex_name=r'log_integral_offset',
                                  conversions=dict(sympy='Li'))
 
     def _eval_(self,z):
@@ -641,6 +673,18 @@ class Function_log_integral_offset(BuiltinFunction):
         """
         import mpmath
         return mpmath_utils_call(mpmath.li, z, offset=True, parent=parent)
+
+
+    def _print_latex_(self, z):
+        """
+        Custom ``_print_latex_`` method.
+
+        EXAMPLES::
+
+            sage: latex(log_integral_offset(x))
+            -li\left(2\right) + li\left(x\right)
+        """
+        return r"Li\left({}\right)".format(latex(z))
 
     def _derivative_(self, z, diff_param=None):
         r"""
@@ -774,7 +818,6 @@ class Function_sin_integral(BuiltinFunction):
 
         """
         BuiltinFunction.__init__(self, "sin_integral", nargs=1,
-                                 latex_name=r'\operatorname{Si}',
                                  conversions=dict(maxima='expintegral_si',
                                                   sympy='Si',
                                                   fricas='Si'))
@@ -827,6 +870,17 @@ class Function_sin_integral(BuiltinFunction):
         """
         import mpmath
         return mpmath_utils_call(mpmath.si, z, parent=parent)
+
+    def _print_latex_(self, z):
+        """
+        Custom ``_print_latex_`` method.
+
+        EXAMPLES::
+
+            sage: latex(sin_integral(x))
+            Si\left(x\right)
+        """
+        return r"Si\left({}\right)".format(latex(z))
 
     def _derivative_(self, z, diff_param=None):
         r"""
@@ -946,7 +1000,6 @@ class Function_cos_integral(BuiltinFunction):
 
         """
         BuiltinFunction.__init__(self, "cos_integral", nargs=1,
-                                 latex_name=r'\operatorname{Ci}',
                                  conversions=dict(maxima='expintegral_ci',
                                                   sympy='Ci',
                                                   fricas='Ci'))
@@ -965,6 +1018,17 @@ class Function_cos_integral(BuiltinFunction):
         """
         import mpmath
         return mpmath_utils_call(mpmath.ci, z, parent=parent)
+
+    def _print_latex_(self, z):
+        """
+        Custom ``_print_latex_`` method.
+
+        EXAMPLES::
+
+            sage: latex(cos_integral(1))
+            Ci\left(1\right)
+        """
+        return r"Ci\left({}\right)".format(latex(z))
 
     def _derivative_(self, z, diff_param=None):
         r"""
@@ -1079,7 +1143,6 @@ class Function_sinh_integral(BuiltinFunction):
 
         """
         BuiltinFunction.__init__(self, "sinh_integral", nargs=1,
-                                 latex_name=r'\operatorname{Shi}',
                                  conversions=dict(maxima='expintegral_shi',
                                                   sympy='Shi',
                                                   fricas='Shi'))
@@ -1116,6 +1179,17 @@ class Function_sinh_integral(BuiltinFunction):
         """
         import mpmath
         return mpmath_utils_call(mpmath.shi, z, parent=parent)
+
+    def _print_latex_(self, z):
+        """
+        Custom ``_print_latex_`` method.
+
+        EXAMPLES::
+
+            sage: latex(sinh_integral(x))
+            Shi\left(x\right)
+        """
+        return r"Shi\left({}\right)".format(latex(z))
 
     def _derivative_(self, z, diff_param=None):
         r"""
@@ -1227,7 +1301,6 @@ class Function_cosh_integral(BuiltinFunction):
 
         """
         BuiltinFunction.__init__(self, "cosh_integral", nargs=1,
-                                 latex_name=r'\operatorname{Chi}',
                                  conversions=dict(maxima='expintegral_chi',
                                                   sympy='Chi',
                                                   fricas='Chi'))
@@ -1244,6 +1317,17 @@ class Function_cosh_integral(BuiltinFunction):
         """
         import mpmath
         return mpmath_utils_call(mpmath.chi, z, parent=parent)
+
+    def _print_latex_(self, z):
+        """
+        Custom ``_print_latex_`` method.
+
+        EXAMPLES::
+
+            sage: latex(cosh_integral(x))
+            Chi\left(x\right)
+        """
+        return r"Chi\left({}\right)".format(latex(z))
 
     def _derivative_(self, z, diff_param=None):
         r"""
@@ -1360,6 +1444,17 @@ class Function_exp_integral(BuiltinFunction):
         """
         import mpmath
         return mpmath_utils_call(mpmath.ei, x, parent=parent)
+
+    def _print_latex_(self, x):
+        """
+        Custom ``_print_latex_`` method.
+
+        EXAMPLES::
+
+            sage: latex(Ei(10))
+            Ei\left(10\right)
+        """
+        return r"Ei\left({}\right)".format(latex(x))
 
     def _derivative_(self, x, diff_param=None):
         """

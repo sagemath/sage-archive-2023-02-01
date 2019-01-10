@@ -1231,7 +1231,8 @@ cdef class MatrixArgs:
                 if R is None:
                     self.entries = self.entries.Col().sage()
                 else:
-                    self.entries = map(lambda v: map(R, v), self.entries.mattranspose())
+                    self.entries = [[R(x) for x in v]
+                                    for v in self.entries.mattranspose()]
                 return MA_ENTRIES_SEQ_SEQ
             elif t in [t_VEC, t_COL, t_VECSMALL, t_LIST]:
                 self.entries = self.entries.sage()

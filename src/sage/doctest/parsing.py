@@ -1264,4 +1264,6 @@ class SageOutputChecker(doctest.OutputChecker):
                     else:
                         diff += "Tolerance exceeded in %s of %s:\n"%(len(fails), len(want_values))
                     diff += "\n".join(fails) + "\n"
+            elif "..." in want:
+                diff += "Note: combining tolerance (# tol) with ellipsis (...) is not supported\n"
         return diff

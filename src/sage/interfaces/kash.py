@@ -679,6 +679,34 @@ class Kash(Expect):
     def _false_symbol(self):
         return "FALSE"
 
+    def function_call(self, function, args=None, kwds=None):
+        """
+        EXAMPLES::
+
+            sage: kash.function_call('ComplexToPolar', [1+I], {'Results' : 1})
+            1.41421356237309504880168872421
+        """
+        args, kwds = self._convert_args_kwds(args, kwds)
+        self._check_valid_function_name(function)
+        s = self._function_call_string(function,
+                                       [s.name() for s in args],
+                                       ['%s:=%s'%(key,value.name()) for key, value in kwds.items()])
+        return self.new(s)
+
+    def _function_call_string(self, function, args, kwds):
+        """
+        Returns the string used to make function calls.
+
+        EXAMPLES::
+
+            sage: kash._function_call_string('Expand', ['x', 'y'], ['Prec:=10'])
+            'Expand(x,y,rec(Prec:=10))'
+        """
+        if not kwds:
+            return "%s(%s)"%(function, ",".join(args))
+        else:
+            return "%s(%s,rec(%s))"%(function, ",".join(args), ",".join(kwds))
+
     def console(self):
         kash_console()
 

@@ -7233,7 +7233,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         See :wikipedia:`Sperner_property_of_a_partially_ordered_set`
 
-        .. SEEALSO: :meth:`width`, :meth:`dilworth_decomposition`
+        .. SEEALSO:: :meth:`width`, :meth:`dilworth_decomposition`
 
         EXAMPLES::
 

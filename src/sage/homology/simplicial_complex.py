@@ -862,7 +862,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
     be a dictionary, used for sorting the vertices in each facet. The
     keys must be the vertices for the simplicial complex, and the
     values should be distinct sortable objects, for example
-    integers. This should not be need to be specified except in very
+    integers. This should not need to be specified except in very
     special circumstances; currently the only use in the Sage library
     is when defining the product of a simplicial complex with itself:
     in this case, the vertices in the product must be sorted

@@ -36,13 +36,11 @@ from subprocess import Popen, PIPE
 import six
 
 from sage.structure.sage_object import SageObject
-from sage.matrix.all import matrix
-from sage.rings.all import Integer, ZZ
+from sage.rings.all import ZZ
 
 from sage.interfaces.process import terminate
 
 from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
-from sage.geometry.polyhedron.constructor import Polyhedron
 
 
 #########################################################################

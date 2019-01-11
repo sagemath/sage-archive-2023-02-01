@@ -7250,10 +7250,15 @@ class FinitePoset(UniqueRepresentation, Parent):
             Traceback (most recent call last):
             ...
             ValueError: the poset is not ranked
+
+            sage: P = Poset()
+            sage: P.is_sperner()
+            True
         """
         if not self.is_ranked():
             raise ValueError("the poset is not ranked")
-
+        if not self.cardinality():
+            return True
         W = self.width()
         N = max(len(level) for level in self._hasse_diagram.level_sets())
         return W <= N

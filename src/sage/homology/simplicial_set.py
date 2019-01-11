@@ -4055,9 +4055,7 @@ def shrink_simplicial_complex(K):
         sage: Z.homology()
         {0: 0, 1: Z^6, 2: Z}
         sage: M = shrink_simplicial_complex(Z)
-        sage: M.f_vector() # py2
-        [1, 30, 25]
-        sage: M.f_vector() # py3 # random
+        sage: M.f_vector() # random
         [1, 32, 27]
         sage: M.homology()
         {0: 0, 1: Z^6, 2: Z}

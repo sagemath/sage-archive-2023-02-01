@@ -4040,6 +4040,10 @@ REFERENCES:
 
 **N**
 
+.. [NaiRow2011] Naidu and Rowell, A finiteness property for braided fusion
+                categories. Algebr. Represent. Theory 14 (2011), no. 5, 837–855.
+                :arXiv:`0903.4157`.
+
 .. [Nas1950] John Nash. *Equilibrium points in n-person games.*
              Proceedings of the National Academy of Sciences 36.1
              (1950): 48-49.
@@ -4529,6 +4533,10 @@ REFERENCES:
 .. [Rot2006] Ron Roth, Introduction to Coding Theory, Cambridge
              University Press, 2006
 
+.. [Row2006] Eric Rowell, From quantum groups to unitary modular tensor categories. 
+             In Representations of algebraic groups, quantum groups, and Lie algebras, 
+             Contemp. Math., 413, Amer. Math. Soc., Providence, RI, 2006. 
+             :arXiv:`math/0503226`.
 
 .. [RR1997] Arun Ram and Jeffrey Remmel. *Applications of the Frobenius
             formulas and the characters of the symmetric group and the

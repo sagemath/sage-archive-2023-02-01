@@ -11,16 +11,21 @@ Weyl Character Rings
 from __future__ import print_function
 
 import sage.combinat.root_system.branching_rules
+from operator import mul
 from sage.categories.all import Category, Algebras, AlgebrasWithBasis
 from sage.combinat.free_module import CombinatorialFreeModule
+from sage.combinat.q_analogues import q_int
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.root_system import RootSystem
+from sage.matrix.special import diagonal_matrix
+from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 from sage.misc.functional import is_even
 from sage.misc.misc import inject_variable
-from sage.rings.all import ZZ
+from sage.rings.all import ZZ, CC
+from sage.rings.number_field.number_field import CyclotomicField
 
 
 class WeylCharacterRing(CombinatorialFreeModule):
@@ -92,7 +97,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
     https://doc.sagemath.org/html/en/thematic_tutorials/lie.html
     """
     @staticmethod
-    def __classcall__(cls, ct, base_ring=ZZ, prefix=None, style="lattice", k=None):
+    def __classcall__(cls, ct, base_ring=ZZ, prefix=None, style="lattice", k=None, conjugate=False):
         """
         TESTS::
 
@@ -108,9 +113,9 @@ class WeylCharacterRing(CombinatorialFreeModule):
                 prefix = ct[0]+str(ct[1])
             else:
                 prefix = repr(ct)
-        return super(WeylCharacterRing, cls).__classcall__(cls, ct, base_ring=base_ring, prefix=prefix, style=style, k=k)
+        return super(WeylCharacterRing, cls).__classcall__(cls, ct, base_ring=base_ring, prefix=prefix, style=style, k=k, conjugate=conjugate)
 
-    def __init__(self, ct, base_ring=ZZ, prefix=None, style="lattice", k=None):
+    def __init__(self, ct, base_ring=ZZ, prefix=None, style="lattice", k=None, conjugate=False):
         """
         EXAMPLES::
 
@@ -146,7 +151,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             def next_level(wt):
                 return [wt + la for la in fw if self.level(wt + la) <= k]
             B = list(RecursivelyEnumeratedSet([self._space.zero()], next_level))
-            B = [self._space.from_vector_notation(wt, style=style) for wt in B]
+            B = [self._space.from_vector_notation(wt, style="coroots") for wt in B]
         else:
             B = self._space
 
@@ -161,6 +166,22 @@ class WeylCharacterRing(CombinatorialFreeModule):
         self.lift.register_as_coercion()
         # Register the partial inverse as a conversion
         self.register_conversion(self.retract)
+
+        # Record properties of the FusionRing
+        if k is not None:
+            #TODO: implement conjugate functionality
+            if ct[0] in ['A','D','E']:
+                self._m_g = 1
+                self._nf = 1
+            elif ct[0] in ['B', 'C', 'F']:
+                self._m_g = 2
+                self._nf = 2
+            else: 
+                self._m_g = 3
+                self._nf = 1
+            h_check = ct.dual_coxeter_number()
+            self._l = self._m_g * (self._k + h_check) 
+            self._conj = (-1)**conjugate 
 
     @cached_method
     def ambient(self):
@@ -195,7 +216,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             sage: A2.lift_on_basis(v)
             2*a2(1,1,1) + a2(1,2,0) + a2(1,0,2) + a2(2,1,0) + a2(2,0,1) + a2(0,1,2) + a2(0,2,1)
 
-        This is consistent with the analogous calculation with symmetric
+        This is consistent with the analoguous calculation with symmetric
         Schur functions::
 
             sage: s = SymmetricFunctions(QQ).s()
@@ -1221,13 +1242,12 @@ class WeylCharacterRing(CombinatorialFreeModule):
                        for k in d)
 
         def highest_weight(self):
-            r"""
-            Return the parametrizing dominant weight of an irreducible
-            character or simple element of a FusionRing.
+            """
+            This method is only available for basis elements. Returns the
+            parametrizing dominant weight of an irreducible character or
+            simple element of a FusionRing.
 
-            This method is only available for basis elements.
-
-            EXAMPLES::
+            Examples::
 
                 sage: G2 = WeylCharacterRing("G2", style="coroots")
                 sage: [x.highest_weight() for x in [G2(1,0),G2(0,1)]]
@@ -1598,6 +1618,76 @@ class WeylCharacterRing(CombinatorialFreeModule):
                 raise ValueError("{} is not irreducible".format(other))
             return self.coefficient(other.support()[0])
 
+        def is_simple_obj(self):
+            """
+            Determine whether element is a simple object of the FusionRing.
+            """
+            return self.parent()._k is not None and len(self.monomial_coefficients())==1
+
+        def twist(self):
+            r"""
+            Compute the object's twist. Returns a rational number `h_X` such that 
+            `e^{(i \pi h_X)}` is the twist of `X`. 
+
+            We compute the twists following p.7 of [Row2006]_, noting that the bilinear form
+            is normalized so that `\langle\alpha, \alpha\rangle = 2` for SHORT roots.
+            """
+            if not self.is_simple_obj():
+                raise ValueError("quantum twist is only available for simple objects of a FusionRing")
+            rho = sum(self.parent().positive_roots())/2
+            lam = self.highest_weight()
+            inner = lam.inner_product(lam+2*rho)
+            twist = self.parent()._conj*self.parent()._nf*inner/self.parent().fusion_l()
+            #Reduce to canonical form 
+            while twist > 2:
+                twist -= 2
+            while twist < 0:
+                twist += 2
+            return twist
+
+        def q_dimension(self):
+            r""""
+            INPUT:
+
+            - ``b`` -- a fusion ring basis element.
+
+            This returns the quantum dimension as an element of the cyclotomic
+            field of the `2l`-th roots of unity, where `l = m(k+h^\vee)`
+            with `m=1,2,3` depending on whether type is simply, doubly or
+            triply laced, `k` is the level and `h^\vee` is the dual Coxeter number.
+
+            EXAMPLE::
+
+                sage: B22=FusionRing("B2",2)
+                sage: [(b.q_dimension())^2 for b in B22.basis()]
+                [1, 5, 4, 1, 5, 4]
+            """
+            if not self.is_simple_obj():
+                raise ValueError("quantum twist is only available for simple objects of a FusionRing")
+            lam = self.highest_weight()
+            space = self.parent().space()
+            rho = space.rho()
+            l = self.parent().fusion_l()
+            num = reduce(mul, [q_int(self.parent()._nf*alpha.inner_product(lam+rho)) for alpha in space.positive_roots()], 1)
+            den = reduce(mul, [q_int(self.parent()._nf*alpha.inner_product(rho)) for alpha in space.positive_roots()], 1)
+            expr = num/den
+            pr = expr.parent().ring()
+            q = pr.gen()
+            expr = pr(expr)
+            expr = expr.substitute(q=q**2)/q**(expr.degree())
+            zet = self.parent().q_field.gen()
+            return expr.substitute(q=zet)
+
+        def fusion_matrix(self):
+            """
+            Return a matrix containing the object's fusion coefficients.
+            """
+            if not self.is_simple_obj():
+                raise ValueError("fusion matrix is only available for simple objects of a FusionRing")
+            ord_basis = self.parent().ordered_basis()
+            wts = [x.highest_weight() for x in ord_basis]
+            rows = [[wt in (self*obj).monomial_coefficients() for wt in wts] for obj in ord_basis]
+            return matrix(rows)
 
 def irreducible_character_freudenthal(hwv, debug=False):
     r"""
@@ -2254,7 +2344,7 @@ class FusionRing(WeylCharacterRing):
     - [Walton1990]_
     """
     @staticmethod
-    def __classcall__(cls, ct, k, base_ring=ZZ, prefix=None, style="coroots"):
+    def __classcall__(cls, ct, k, base_ring=ZZ, prefix=None, style="coroots", conjugate=False):
         """
         Normalize input to ensure a unique representation.
 
@@ -2279,7 +2369,22 @@ class FusionRing(WeylCharacterRing):
             sage: TestSuite(D41).run()
         """
         return super(FusionRing, cls).__classcall__(cls, ct, base_ring=base_ring,
-                                                    prefix=prefix, style=style, k=k)
+                                                    prefix=prefix, style=style, k=k, conjugate=conjugate)
+
+    @lazy_attribute
+    def q_field(self):
+        """
+        Return the generator of the cyclotomic field of 2l-th roots of unity, where
+        l is the fusion_l of the category (see above).
+
+        This field contains the twists, categorical dimensions, and the entries of the 
+        S-matrix.
+        """
+        self._K = CyclotomicField(2*self._l)
+        return self._K
+
+    def _element_constructor(self,weight):
+        return self._parent._element_constructor(self._parent,weight)
 
     def some_elements(self):
         """
@@ -2294,8 +2399,133 @@ class FusionRing(WeylCharacterRing):
         return [self.monomial(x) for x in self.fundamental_weights()
                 if self.level(x) <= self._k]
 
-    def fusion_labels(self, labels=None, key=str):
+    def fusion_k(self):
         r"""
+        Return the level of the FusionRing.
+
+        EXAMPLES::
+            sage: B22=FusionRing('B2',2)
+            sage: B22.fusion_k()
+            2
+        """
+        return self._k
+
+    def fusion_l(self):
+        r"""
+        Returns the product `m_g(k + h^\vee)`, where `m_g` denotes the
+        square of the ratio of the lengths of long to short roots of 
+        the underlying Lie algebra, `k` denotes the level of the FusionRing,
+        and `h^\vee` denotes the dual Coxeter number of the underlying Lie
+        algebra.
+
+        This value is used to define the associated root of unity q.
+
+        EXAMPLES::
+            sage: B22=FusionRing('B2',2)
+            sage: B22.fusion_l()
+            10
+            sage: D52=FusionRing('D5',2)
+            sage: D52.fusion_l()
+            10
+        """
+        return self._l
+
+    def twists_matrix(self):
+        r"""
+        Return a diagonal matrix describing the twist corresponding to
+        each simple object in the ``FusionRing``.
+
+        EXAMPLES::
+
+            sage: B22=FusionRing('B2',2)
+            sage: B22.twists_matrix()
+            [  0   0   0   0   0   0]
+            [  0   2   0   0   0   0]
+            [  0   0 4/5   0   0   0]
+            [  0   0   0 6/5   0   0]
+            [  0   0   0   0 1/2   0]
+            [  0   0   0   0   0 3/2]
+        """
+        return diagonal_matrix(obj.twist() for obj in self.ordered_basis())
+
+    def q_dims(self):
+        """
+        Return a list of quantum dimensions of the simple objects.
+        """
+        return [x.q_dimension() for x in self.ordered_basis()]
+
+    def ordered_basis(self):
+        """
+        Returns a basis of simple objects ordered according to 
+        [NaiRow2011]_. For type A level 1, the basis is ordered by the
+        fundamental weights.  The order is described in [Fuchs1994]_.
+
+        """
+        ct = self._cartan_type[0]
+        k = self._k
+        r = self.rank()
+        wts = self.fundamental_weights()
+        ord_basis = list()
+        #Order bases for dimension 2 algebras
+        if self.dimension() == 2:
+            ord_basis.append(self(wts[1]*0))
+            for wt in self.basis():
+                wt = wt.highest_weight()
+                if wt.inner_product(wt) > 0:
+                    ord_basis.append(self(wt))
+        if ct == 'A' and k == 1:
+            ord_basis = [self(wts[1]*0)]
+            ord_basis += [self(wts[i+1]) for i in range(r)]
+        if ct == 'A' and k == 2:
+            #TODO: generalize to higher rank
+            if r == 1:
+                ord_basis = [self(wts[1]*0), self(wts[1]), self(wts[1]*2)]
+        if ct == 'B' and k == 2:
+            ord_basis = [self(wts[1]*0), self(2*wts[1])]
+            ord_basis += [self(wts[i]) for i in range(1, r)]
+            ord_basis += [self(2*wts[r]), self(wts[r]), self(wts[1]+wts[r])]
+        if ct == 'D' and k == 1:
+            if r % 2 == 0:
+                ord_basis = sorted(self.basis().values())
+            else:
+                temp = sorted(self.basis().values(), reverse=1)
+                ord_basis = [temp.pop()]
+                ord_basis.extend(temp)
+        if ct == 'D' and k == 2:
+            ord_basis = [self(wts[1]*0), self(2*wts[1]), self(2*wts[r-1]), self(2*wts[r])]
+            ord_basis += [self(wts[i]) for i in range(1, r-1)]
+            ord_basis += [self(wts[r-1] + wts[r]), self(wts[r-1]), self(wts[r])]
+            ord_basis += [self(wts[1] + wts[r-1]), self(wts[1] + wts[r])]
+        if ct == 'E' and k == 1:
+            if r == 6:
+                ord_basis = [self(wts[1]*0), self(wts[1]), self(wts[6])]
+        if ct == 'E' and k == 2:
+            if r == 8:
+                ord_basis = [self(wts[1]*0), self(wts[8]), self(wts[1])]
+        if not ord_basis:
+            raise ValueError("ordered basis not yet available for this FusionRing")
+        return ord_basis
+
+    def s_matrix(self):
+        """
+        Return the S-matrix of the FusionRing.
+        """
+        dims = self.q_dims()
+        ord_basis = self.ordered_basis()
+        twists = [x.twist() for x in ord_basis]
+        fusion_mats = [x.fusion_matrix() for x in ord_basis]
+        rng = range(len(ord_basis))
+        #TODO: find smallest field containing entries of S
+        q = self.q_field
+        S = matrix(CC, len(ord_basis))
+        for i in rng:
+            for j in rng:
+                S[i,j] = sum(fusion_mats[i][k,j]*(-1)**twists[k]*dims[k] for k in rng)
+                S[i,j] /= (-1)**(twists[i]+twists[j])
+        return S
+
+    def fusion_labels(self, labels=None):
+        """
         Set the labels of the basis.
 
         INPUT:

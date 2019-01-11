@@ -125,7 +125,7 @@ import os
 import tokenize
 import re
 EMBEDDED_MODE = False
-from sage.env import SAGE_SRC
+from sage.env import SAGE_LIB
 
 def loadable_module_extension():
     r"""
@@ -249,7 +249,7 @@ def _extract_embedded_position(docstring):
         # 2) Module compiled by Sage's inline cython() compiler
         from sage.misc.misc import SPYX_TMP
         try_filenames = [
-            os.path.join(SAGE_SRC, raw_filename),
+            os.path.join(SAGE_LIB, raw_filename),
             os.path.join(SPYX_TMP, '_'.join(raw_filename.split('_')[:-1]),
                          raw_filename)
         ]
@@ -2452,7 +2452,7 @@ def __internal_tests():
 
     Test _extract_embedded_position:
 
-    We cannot test the filename since it depends on SAGE_SRC.
+    We cannot test the filename since it depends on ``SAGE_LIB``.
 
     Make sure things work with no trailing newline::
 

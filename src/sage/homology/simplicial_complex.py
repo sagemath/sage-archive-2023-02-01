@@ -1089,7 +1089,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                 any(face.is_face(other) for other in good_faces)):
                 continue
             # This sorting is crucial for homology computations:
-            face = Simplex(sorted(face.tuple(), key=lambda x: vertex_to_index[x]))
+            face = Simplex(sorted(face.tuple(), key=vertex_to_index.__getitem__))
             good_faces.append(face)
 
         # if no maximal faces, add the empty face as a facet
@@ -2524,9 +2524,9 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         # Update vertex_to_index by giving each new vertex a larger
         # entry than the existing ones.
-        try:
+        if vertex_to_index:
             idx = max(vertex_to_index.values()) + 1
-        except ValueError:
+        else:
             idx = 0
         new_vertices = []
         for v in face:
@@ -2535,7 +2535,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                 vertex_to_index[v] = idx
                 idx += 1
 
-        new_face = Simplex(sorted(face, key=lambda x: vertex_to_index[x]))
+        new_face = Simplex(sorted(face, key=vertex_to_index.__getitem__))
 
         face_is_maximal = True
         for other in self._facets:
@@ -2638,7 +2638,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
         if not self._is_mutable:
             raise ValueError("This simplicial complex is not mutable")
 
-        simplex = Simplex(sorted(face, key=lambda x: self._translation_to_numeric()[x]))
+        getindex = self._translation_to_numeric().__getitem__
+        simplex = Simplex(sorted(face, key=getindex))
         facets = self.facets()
         if all([not simplex.is_face(F) for F in facets]):
             # face is not in self
@@ -4024,7 +4025,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         if len(gens) == 0:
             return gap.TrivialGroup()
 
-        gens_dict = dict((g, i) for i, g in enumerate(gens))
+        gens_dict = {g: i for i, g in enumerate(gens)}
         FG = FreeGroup(len(gens), 'e')
         rels = []
         for f in self._n_cells_sorted(2):

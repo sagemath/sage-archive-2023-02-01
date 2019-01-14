@@ -1023,8 +1023,8 @@ def Gamma0_NFCusps(N):
 
     ::
 
-        sage: all([not L[i].is_Gamma0_equivalent(L[j], N) for i, j in \
-                                             mrange([len(L), len(L)]) if i<j])
+        sage: all(not L[i].is_Gamma0_equivalent(L[j], N)
+        ....:     for i, j in mrange([len(L), len(L)]) if i < j)
         True
 
     We test that we obtain the right number of orbits:
@@ -1163,7 +1163,7 @@ def NFCusps_ideal_reps_for_levelN(N, nlists=1):
         sage: NFCusps_ideal_reps_for_levelN(N)
         [(Fractional ideal (1), Fractional ideal (2, a + 1))]
         sage: L = NFCusps_ideal_reps_for_levelN(N, 3)
-        sage: all([len(L[i])==k.class_number() for i in range(len(L))])
+        sage: all(len(L[i]) == k.class_number() for i in range(len(L)))
         True
 
     ::
@@ -1244,7 +1244,7 @@ def units_mod_ideal(I):
         Unit group with structure C6 x Z of Number Field in a with defining polynomial x^4 - x^3 - 21*x^2 + 17*x + 133
         sage: I = k.ideal(3)
         sage: U = units_mod_ideal(I)
-        sage: all([U[j].is_unit() and not (U[j] in I) for j in range(len(U))])
+        sage: all(U[j].is_unit() and (U[j] not in I) for j in range(len(U)))
         True
     """
     k = I.number_field()

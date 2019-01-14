@@ -646,7 +646,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             sage: E = EllipticCurve(j=1728*b).change_ring(G)
             sage: EF = E.descend_to(F); EF
             [Elliptic Curve defined by y^2 = x^3 + (27*b-621)*x + (-1296*b+2484) over Number Field in b with defining polynomial x^2 - 23]
-            sage: all([Ei.change_ring(G).is_isomorphic(E) for Ei in EF])
+            sage: all(Ei.change_ring(G).is_isomorphic(E) for Ei in EF)
             True
 
         ::
@@ -657,7 +657,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             sage: EK = E.descend_to(K); EK
             [Elliptic Curve defined by y^2 = x^3 + b*x over Number Field in b with defining polynomial x^2 - 7,
             Elliptic Curve defined by y^2 = x^3 + 7*b*x over Number Field in b with defining polynomial x^2 - 7]
-            sage: all([Ei.change_ring(L).is_isomorphic(E) for Ei in EK])
+            sage: all(Ei.change_ring(L).is_isomorphic(E) for Ei in EK)
             True
 
         ::

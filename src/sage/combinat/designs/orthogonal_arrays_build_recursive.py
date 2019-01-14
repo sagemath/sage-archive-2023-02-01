@@ -387,7 +387,7 @@ def OA_and_oval(q):
     # (this is to make sure that the first set containing x in B is the one
     # which contains no other oval point)
 
-    B.sort(key=lambda b:int(any([xx in oval for xx in b])))
+    B.sort(key=lambda b:int(any(xx in oval for xx in b)))
     BB = []
     for b in B:
         if x in b:

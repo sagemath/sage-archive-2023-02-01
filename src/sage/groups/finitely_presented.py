@@ -1280,7 +1280,8 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         # check for automorphism validity in images of operation defining homomorphism,
         # and construct the defining homomorphism.
         if check:
-            if not all([a in libgap.List(libgap.AutomorphismGroup(GAP_H)) for a in GAP_aut_imgs]):
+            if not all(a in libgap.List(libgap.AutomorphismGroup(GAP_H))
+                       for a in GAP_aut_imgs):
                 raise ValueError("images of input homomorphism must be automorphisms")
             GAP_def_hom = libgap.GroupHomomorphismByImages(GAP_self, auto_grp, self_gens, GAP_aut_imgs)
         else:

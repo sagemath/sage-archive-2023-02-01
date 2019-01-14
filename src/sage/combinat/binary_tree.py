@@ -4506,7 +4506,7 @@ class FullBinaryTrees_size(BinaryTrees):
         TESTS::
 
             sage: B = BinaryTrees(19, full=True)
-            sage: all([B.random_element() in B for i in range(20)])
+            sage: all(B.random_element() in B for i in range(20))
             True
         """
         from sage.combinat.dyck_word import CompleteDyckWords_size

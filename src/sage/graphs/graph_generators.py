@@ -769,10 +769,10 @@ class GraphGenerators():
                 raise ValueError("Invalid degree sequence.")
             degree_sequence = sorted(degree_sequence)
             if augment == 'edges':
-                property = lambda x: all([degree_sequence[i] >= d for i,d in enumerate(sorted(x.degree()))])
+                property = lambda x: all(degree_sequence[i] >= d for i, d in enumerate(sorted(x.degree())))
                 extra_property = lambda x: degree_sequence == sorted(x.degree())
             else:
-                property = lambda x: all([degree_sequence[i] >= d for i,d in enumerate(sorted(x.degree() + [0]*(vertices-x.num_verts()) ))])
+                property = lambda x: all(degree_sequence[i] >= d for i, d in enumerate(sorted(x.degree() + [0] * (vertices-x.num_verts()) )))
                 extra_property = lambda x: x.num_verts() == vertices and degree_sequence == sorted(x.degree())
         elif size is not None:
             extra_property = lambda x: x.size() == size

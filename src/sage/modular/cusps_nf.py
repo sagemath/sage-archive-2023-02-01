@@ -1011,33 +1011,25 @@ def Gamma0_NFCusps(N):
 
     A list of inequivalent number field cusps.
 
-    EXAMPLES:
-
-    ::
+    EXAMPLES::
 
         sage: k.<a> = NumberField(x^2 + 5)
         sage: N = k.ideal(3)
         sage: L = Gamma0_NFCusps(N)
 
-    The cusps in the list are inequivalent:
+    The cusps in the list are inequivalent::
 
-    ::
+        sage: any(L[i].is_Gamma0_equivalent(L[j], N)
+        ....:     for i in range(len(L)) for j in range(len(L)) if i < j)
+        False
 
-        sage: all(not L[i].is_Gamma0_equivalent(L[j], N)
-        ....:     for i, j in mrange([len(L), len(L)]) if i < j)
-        True
-
-    We test that we obtain the right number of orbits:
-
-    ::
+    We test that we obtain the right number of orbits::
 
         sage: from sage.modular.cusps_nf import number_of_Gamma0_NFCusps
         sage: len(L) == number_of_Gamma0_NFCusps(N)
         True
 
-    Another example:
-
-    ::
+    Another example::
 
         sage: k.<a> = NumberField(x^4 - x^3 -21*x^2 + 17*x + 133)
         sage: N = k.ideal(5)

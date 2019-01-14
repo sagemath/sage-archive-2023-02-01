@@ -2197,7 +2197,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         Test that conversion agrees with `RR`::
 
             sage: Q = [a/b for a in [-99..99] for b in [1..99]]
-            sage: all(RDF(q) == RR(q) for q  in Q)
+            sage: all(RDF(q) == RR(q) for q in Q)
             True
 
         Test that the conversion has correct rounding on simple rationals::

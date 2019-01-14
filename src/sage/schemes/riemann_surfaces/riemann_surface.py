@@ -69,7 +69,6 @@ from scipy.spatial import Voronoi
 from sage.arith.misc import GCD, algdep
 from sage.arith.srange import srange
 from sage.ext.fast_callable import fast_callable
-from sage.functions.other import sqrt
 from sage.graphs.graph import Graph
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
@@ -653,7 +652,7 @@ class RiemannSurface(object):
                 lowerbound = self._a0[self._a0.degree()]*prod(abs((zk - z1) - rho) for zk in self._a0roots) / 2
             M = 2 * max(abs((upperbounds[k]/lowerbound))**(1/(k+1))
                         for k in range(self.degree-1))
-            return rho*( sqrt((rho*Y - epsilon)**2 + 4*epsilon*M) - (rho*Y + epsilon))/(2*M - 2*rho*Y)
+            return rho*(((rho*Y - epsilon)**2 + 4*epsilon*M).sqrt() - (rho*Y + epsilon))/(2*M - 2*rho*Y)
         else:
             # Instead, we just compute the minimum distance between branch
             # points and the point in question.

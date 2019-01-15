@@ -272,7 +272,7 @@ Methods
 -------
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2011 Nathann Cohen <nathann.cohen@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -280,7 +280,7 @@ Methods
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 
 from __future__ import absolute_import, print_function
 
@@ -428,7 +428,7 @@ def linear_ordering_to_path_decomposition(G, L):
         sage: h = linear_ordering_to_path_decomposition(g, L)
         sage: h.vertices()
         [{0, 2, 3, 4}, {0, 1, 2}]
-        
+
     The bags of the path decomposition of a cycle have three vertices each::
 
         sage: g = graphs.CycleGraph(6)
@@ -463,9 +463,9 @@ def linear_ordering_to_path_decomposition(G, L):
     if not is_valid_ordering(G, L):
         raise ValueError("the input linear vertex ordering L is not valid for G")
 
-    cdef set seen    = set()  # already treated vertices
+    cdef set seen = set()     # already treated vertices
     cdef set covered = set()  # vertices in the neighborhood of seen but not in seen
-    cdef list bags   = list() # The bags of the path decomposition
+    cdef list bags = list()   # The bags of the path decomposition
 
     # We build the bags of the path-decomposition, and avoid adding useless bags
     for u in L:
@@ -486,8 +486,6 @@ def linear_ordering_to_path_decomposition(G, L):
     H = Graph()
     H.add_path([Set(bag) for bag in bags])
     return H
-
-
 
 ##################################################################
 # Front end methods for path decomposition and vertex separation #
@@ -831,7 +829,6 @@ def vertex_separation(G, algorithm="BAB", cut_off=None, upper_bound=None, verbos
     else:
         raise ValueError('the parameter must be a Graph or a DiGraph')
 
-
     if CC:
         # The graph has several (strongly) connected components. We solve the
         # problem on each of them and order partial solutions in the same order
@@ -840,7 +837,7 @@ def vertex_separation(G, algorithm="BAB", cut_off=None, upper_bound=None, verbos
         vs, L = 0, []
         for V in CC:
 
-            if len(V)==1:
+            if len(V) == 1:
                 # We can directly add this vertex to the solution
                 L.extend(V)
 
@@ -848,14 +845,14 @@ def vertex_separation(G, algorithm="BAB", cut_off=None, upper_bound=None, verbos
                 # We build the (strongly) connected subgraph and do a recursive
                 # call to get its vertex separation and corresponding ordering
                 H = G.subgraph(V)
-                vsH,LH = vertex_separation(H, algorithm      = algorithm,
-                                           cut_off           = cut_off,
-                                           upper_bound       = upper_bound,
-                                           verbose           = verbose,
-                                           max_prefix_length = max_prefix_length,
-                                           max_prefix_number = max_prefix_number)
+                vsH,LH = vertex_separation(H, algorithm=algorithm,
+                                           cut_off=cut_off,
+                                           upper_bound=upper_bound,
+                                           verbose=verbose,
+                                           max_prefix_length=max_prefix_length,
+                                           max_prefix_number=max_prefix_number)
 
-                if vsH==-1:
+                if vsH == -1:
                     # We have not been able to find a solution. This case
                     # happens when a too low upper bound is given.
                     return -1, []
@@ -870,17 +867,16 @@ def vertex_separation(G, algorithm="BAB", cut_off=None, upper_bound=None, verbos
 
         return vs, L
 
-
     # We have a (strongly) connected graph and we call the desired algorithm
     if algorithm == "exponential":
-        return vertex_separation_exp(G, verbose = verbose)
+        return vertex_separation_exp(G, verbose=verbose)
 
     elif algorithm == "MILP":
-        return vertex_separation_MILP(G, verbosity = (1 if verbose else 0))
+        return vertex_separation_MILP(G, verbosity=(1 if verbose else 0))
 
     elif algorithm == "BAB":
         return vertex_separation_BAB(G, cut_off=cut_off, upper_bound=upper_bound, verbose=verbose,
-                                     max_prefix_length=max_prefix_length, max_prefix_number = max_prefix_number)
+                                     max_prefix_length=max_prefix_length, max_prefix_number=max_prefix_number)
 
     else:
         raise ValueError('algorithm "{}" has not been implemented yet, please contribute'.format(algorithm))
@@ -1008,7 +1004,6 @@ cdef inline int exists(FastDigraph g, uint8_t* neighborhoods, int current, int c
 
     cdef int i
     cdef int next_set
-
 
     for i in range(g.n):
         if (current >> i) & 1:
@@ -1236,7 +1231,7 @@ def width_of_path_decomposition(G, L):
 
         # We add the (out-)neighbors of u to the neighbors of S
         for v in neighbors(u):
-            if not v in S:
+            if v not in S:
                 neighbors_of_S_in_V_minus_S.add(v)
 
         # We update the cost of the vertex separation
@@ -1408,7 +1403,7 @@ def vertex_separation_MILP(G, integrality=False, solver=None, verbosity=0):
     seq = []
     for t in range(N):
         for v in V:
-            if taby[v,t] and not v in seq:
+            if taby[v,t] and v not in seq:
                 seq.append(v)
                 break
     vs = int(round(tabz['z']))
@@ -1420,11 +1415,11 @@ def vertex_separation_MILP(G, integrality=False, solver=None, verbosity=0):
 ##########################################
 
 def vertex_separation_BAB(G,
-                          cut_off               = None,
-                          upper_bound           = None,
-                          max_prefix_length     = 20,
-                          max_prefix_number     = 10**6,
-                          verbose               = False):
+                          cut_off=None,
+                          upper_bound=None,
+                          max_prefix_length=20,
+                          max_prefix_number=10**6,
+                          verbose=False):
     r"""
     Branch and Bound algorithm for the vertex separation.
 
@@ -1606,9 +1601,9 @@ def vertex_separation_BAB(G,
     cdef binary_matrix_t bm_pool
     binary_matrix_init(bm_pool, 3 * n + 2, n)
 
-    cdef int * prefix    = <int *>sig_malloc(n * sizeof(int))
+    cdef int * prefix = <int *>sig_malloc(n * sizeof(int))
     cdef int * positions = <int *>sig_malloc(n * sizeof(int))
-    if prefix==NULL or positions==NULL:
+    if not prefix or not positions:
         sig_free(prefix)
         sig_free(positions)
         binary_matrix_free(H)
@@ -1627,22 +1622,22 @@ def vertex_separation_BAB(G,
     try:
         # ==> Call the cython method
         sig_on()
-        width = vertex_separation_BAB_C(H                         = H,
-                                        n                         = n,
-                                        prefix                    = prefix,
-                                        positions                 = positions,
-                                        best_seq                  = best_seq,
-                                        level                     = 0,
-                                        b_prefix                  = bm_pool.rows[3 * n],
-                                        b_prefix_and_neighborhood = bm_pool.rows[3 * n + 1],
-                                        cut_off                   = cut_off,
-                                        upper_bound               = upper_bound,
-                                        current_cost              = 0,
-                                        bm_pool                   = bm_pool,
-                                        prefix_storage            = prefix_storage,
-                                        max_prefix_length         = max_prefix_length,
-                                        max_prefix_number         = max_prefix_number,
-                                        verbose                   = verbose)
+        width = vertex_separation_BAB_C(H=H,
+                                        n=n,
+                                        prefix=prefix,
+                                        positions=positions,
+                                        best_seq=best_seq,
+                                        level=0,
+                                        b_prefix=bm_pool.rows[3 * n],
+                                        b_prefix_and_neighborhood=bm_pool.rows[3 * n + 1],
+                                        cut_off=cut_off,
+                                        upper_bound=upper_bound,
+                                        current_cost=0,
+                                        bm_pool=bm_pool,
+                                        prefix_storage=prefix_storage,
+                                        max_prefix_length=max_prefix_length,
+                                        max_prefix_number=max_prefix_number,
+                                        verbose=verbose)
 
         sig_off()
 
@@ -1657,7 +1652,7 @@ def vertex_separation_BAB(G,
         binary_matrix_free(H)
         binary_matrix_free(bm_pool)
 
-    return (width if width<upper_bound else -1), order
+    return (width if width < upper_bound else -1), order
 
 cdef inline _my_invert_positions(int *prefix, int *positions, int pos_a, int pos_b):
     """
@@ -1670,21 +1665,21 @@ cdef inline _my_invert_positions(int *prefix, int *positions, int pos_a, int pos
 
 
 cdef int vertex_separation_BAB_C(binary_matrix_t H,
-                                 int             n,
-                                 int *           prefix,
-                                 int *           positions,
-                                 list            best_seq,
-                                 int             level,
-                                 bitset_t        b_prefix,
-                                 bitset_t        b_prefix_and_neighborhood,
-                                 int             cut_off,
-                                 int             upper_bound,
-                                 int             current_cost,
+                                 int n,
+                                 int *prefix,
+                                 int *positions,
+                                 list best_seq,
+                                 int level,
+                                 bitset_t b_prefix,
+                                 bitset_t b_prefix_and_neighborhood,
+                                 int cut_off,
+                                 int upper_bound,
+                                 int current_cost,
                                  binary_matrix_t bm_pool,
-                                 set             prefix_storage,
-                                 int             max_prefix_length,
-                                 int             max_prefix_number,
-                                 bint            verbose):
+                                 set prefix_storage,
+                                 int max_prefix_length,
+                                 int max_prefix_number,
+                                 bint verbose):
     r"""
     Branch and Bound algorithm for the process number and the vertex separation.
 
@@ -1749,7 +1744,6 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
 
         return current_cost
 
-
     cdef int delta_i, j, v, select_it
     cdef list delta = list()
     cdef int loc_level = level
@@ -1771,7 +1765,7 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
 
     select_it = 0
     i = loc_level
-    while i<n:
+    while i < n:
 
         j = prefix[i]
 
@@ -1813,7 +1807,6 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
 
         return current_cost
 
-
     # ==> Test if the prefix is in prefix_storage
     #
     # The set S of vertices of a prefix P is in prefix_storage if the branch
@@ -1821,11 +1814,10 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
     # case, there is no need to continue exploration for the current branch.
     cdef frozenset frozen_prefix
 
-    if loc_level<=max_prefix_length:
+    if loc_level <= max_prefix_length:
         frozen_prefix = frozenset(prefix[i] for i in range(loc_level))
         if frozen_prefix in prefix_storage:
             return upper_bound
-
 
     # ==> Sort and Prune
     #
@@ -1842,7 +1834,6 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
 
     delta.sort()
 
-
     # ==> Recursion
     for delta_i, i in delta:
 
@@ -1857,22 +1848,22 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
         _my_invert_positions(prefix, positions, positions[i], loc_level)
         bitset_add(loc_b_prefix, i)
 
-        cost_i = vertex_separation_BAB_C(H                         = H,
-                                         n                         = n,
-                                         prefix                    = prefix,
-                                         positions                 = positions,
-                                         best_seq                  = best_seq,
-                                         level                     = loc_level + 1,
-                                         b_prefix                  = loc_b_prefix,
-                                         b_prefix_and_neighborhood = b_tmp,
-                                         cut_off                   = cut_off,
-                                         upper_bound               = upper_bound,
-                                         current_cost              = delta_i,
-                                         bm_pool                   = bm_pool,
-                                         prefix_storage            = prefix_storage,
-                                         max_prefix_length         = max_prefix_length,
-                                         max_prefix_number         = max_prefix_number,
-                                         verbose                   = verbose)
+        cost_i = vertex_separation_BAB_C(H=H,
+                                         n=n,
+                                         prefix=prefix,
+                                         positions=positions,
+                                         best_seq=best_seq,
+                                         level=loc_level + 1,
+                                         b_prefix=loc_b_prefix,
+                                         b_prefix_and_neighborhood=b_tmp,
+                                         cut_off=cut_off,
+                                         upper_bound=upper_bound,
+                                         current_cost=delta_i,
+                                         bm_pool=bm_pool,
+                                         prefix_storage=prefix_storage,
+                                         max_prefix_length=max_prefix_length,
+                                         max_prefix_number=max_prefix_number,
+                                         verbose=verbose)
 
         bitset_discard(loc_b_prefix, i)
 

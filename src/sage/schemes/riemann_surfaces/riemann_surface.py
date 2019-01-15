@@ -650,7 +650,7 @@ class RiemannSurface(object):
                 lowerbound = self._CC(self._a0) / 2
             else:
                 lowerbound = self._a0[self._a0.degree()]*prod(abs((zk - z1) - rho) for zk in self._a0roots) / 2
-            M = 2 * max(abs((upperbounds[k]/lowerbound))**(1/(k+1))
+            M = 2 * max((upperbounds[k]/lowerbound).abs().nth_root(k+1)
                         for k in range(self.degree-1))
             return rho*(((rho*Y - epsilon)**2 + 4*epsilon*M).sqrt() - (rho*Y + epsilon))/(2*M - 2*rho*Y)
         else:

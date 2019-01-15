@@ -3212,7 +3212,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
         # by using internal interfaces of MPFR, which are documented
         # as subject-to-change.
 
-        sig_on()
         if mpfr_nan_p(self.value) or mpfr_inf_p(self.value):
             raise ValueError('Cannot convert NaN or infinity to Pari float')
 
@@ -3234,6 +3233,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         cdef mp_exp_t exponent
         cdef GEN pari_float
 
+        sig_on()
         if mpfr_zero_p(self.value):
             pari_float = real_0_bit(-rounded_prec)
         else:
@@ -3245,7 +3245,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             # Create a PARI REAL
             pari_float = cgetr(2 + rounded_prec / wordsize)
             pari_float[1] = evalexpo(exponent + rounded_prec - 1) + evalsigne(mpfr_sgn(self.value))
-            mpz_export(&pari_float[2], NULL, 1, wordsize/8, 0, 0, mantissa)
+            mpz_export(&pari_float[2], NULL, 1, wordsize // 8, 0, 0, mantissa)
             mpz_clear(mantissa)
 
         return new_gen(pari_float)

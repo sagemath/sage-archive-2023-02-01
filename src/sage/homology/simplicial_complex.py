@@ -1221,7 +1221,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: sorted(S.vertices())
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
         """
-        return tuple(self._vertex_to_index.keys())
+        return tuple(self._vertex_to_index)
 
     def _an_element_(self):
         """
@@ -1769,9 +1769,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
         for f in self._facets:
             for g in right._facets:
                 facets.extend(f.product(g, rename_vertices))
-        P = SimplicialComplex(facets, is_mutable=is_mutable)
         if self != right:
-            return P
+            return SimplicialComplex(facets, is_mutable=is_mutable)
         else:
             # Need to sort the vertices compatibly with the sorting in
             # self, so that the diagonal map is defined properly.
@@ -1784,7 +1783,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                         d['L' + str(v) + 'R' + str(w)] = V[v] * L + V[w]
                     else:
                         d[(v,w)] = V[v] * L + V[w]
-            return SimplicialComplex(P.facets(), is_mutable=is_mutable, sort_facets=d)
+            return SimplicialComplex(facets, is_mutable=is_mutable, sort_facets=d)
 
     def join(self, right, rename_vertices=True, is_mutable=True):
         """

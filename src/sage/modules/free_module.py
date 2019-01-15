@@ -1055,7 +1055,7 @@ done from the right side.""")
             doctest:warning
             ...
             DeprecationWarning: The default order on free modules has changed. The old ordering is in sage.modules.free_module.EchelonMatrixKey
-            See http://trac.sagemath.org/23878 for details.
+            See http://trac.sagemath.org/23978 for details.
             False
             sage: CC^3 <= QQ^3
             False

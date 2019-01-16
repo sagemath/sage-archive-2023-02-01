@@ -110,6 +110,15 @@ class AbstractSetPartition(ClonableArray):
             sage: D = P([[1], [2, 4], [3]])
             sage: A == D
             False
+
+        Note that this may give incorrect answers if the base set is not totally ordered::
+
+            sage: a,b = frozenset([0,1]), frozenset([2,3])
+            sage: p1 = SetPartition([[a], [b]])
+            sage: p2 = SetPartition([[b], [a]])
+            sage: p1 == p2
+            False
+
         """
         if not isinstance(y, AbstractSetPartition):
             return False
@@ -133,6 +142,14 @@ class AbstractSetPartition(ClonableArray):
             False
             sage: D = P([[1], [2, 4], [3]])
             sage: A != D
+            True
+
+        Note that this may give incorrect answers if the base set is not totally ordered::
+
+            sage: a,b = frozenset([0,1]), frozenset([2,3])
+            sage: p1 = SetPartition([[a], [b]])
+            sage: p2 = SetPartition([[b], [a]])
+            sage: p1 != p2
             True
         """
         return not (self == y)
@@ -696,19 +713,19 @@ class SetPartition(AbstractSetPartition):
             \draw[color=red] (4) to [out=115,in=65] (3);
             \end{tikzpicture}
 
-            sage: p = SetPartition([['a','c'],['b',1],[20]])
+            sage: p = SetPartition([['a','c'],['b','d'],['e']])
             sage: p.set_latex_options(plot='cyclic', color='blue', fill=True, tikz_scale=2)
             sage: latex(p)
             \begin{tikzpicture}[scale=2]
             \draw (0,0) circle [radius=1cm];
-            \node[label=90:1] (0) at (90:1cm) {};
-            \node[label=18:20] (1) at (18:1cm) {};
-            \node[label=-54:a] (2) at (-54:1cm) {};
-            \node[label=-126:b] (3) at (-126:1cm) {};
-            \node[label=-198:c] (4) at (-198:1cm) {};
-            \draw[-,thick,color=blue,fill=blue,fill opacity=0.1] (2.center) -- (4.center) -- cycle;
-            \draw[-,thick,color=blue,fill=blue,fill opacity=0.1] (0.center) -- (3.center) -- cycle;
-            \draw[-,thick,color=blue,fill=blue,fill opacity=0.1] (1.center) -- cycle;
+            \node[label=90:a] (0) at (90:1cm) {};
+            \node[label=18:b] (1) at (18:1cm) {};
+            \node[label=-54:c] (2) at (-54:1cm) {};
+            \node[label=-126:d] (3) at (-126:1cm) {};
+            \node[label=-198:e] (4) at (-198:1cm) {};
+            \draw[-,thick,color=blue,fill=blue,fill opacity=0.1] (0.center) -- (2.center) -- cycle;
+            \draw[-,thick,color=blue,fill=blue,fill opacity=0.1] (1.center) -- (3.center) -- cycle;
+            \draw[-,thick,color=blue,fill=blue,fill opacity=0.1] (4.center) -- cycle;
             \fill[color=black] (0) circle (1.5pt);
             \fill[color=black] (1) circle (1.5pt);
             \fill[color=black] (2) circle (1.5pt);

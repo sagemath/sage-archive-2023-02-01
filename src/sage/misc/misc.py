@@ -725,6 +725,35 @@ def uniq(x):
     return v
 
 
+def _stable_uniq(L):
+    """
+    Iterate over the elements of ``L``, yielding every element at most
+    once: keep only the first occurance of any item.
+
+    The items must be hashable.
+
+    INPUT:
+
+    - ``L`` -- iterable
+
+    EXAMPLES::
+
+        sage: from sage.misc.misc import _stable_uniq
+        sage: L = [1, 1, 8, -5, 3, -5, 'a', 'x', 'a']
+        sage: it = _stable_uniq(L)
+        sage: it
+        <generator object _stable_uniq at ...>
+        sage: list(it)
+        [1, 8, -5, 3, 'a', 'x']
+    """
+    seen = set()
+    for x in L:
+        if x in seen:
+            continue
+        yield x
+        seen.add(x)
+
+
 def coeff_repr(c, is_latex=False):
     if not is_latex:
         try:

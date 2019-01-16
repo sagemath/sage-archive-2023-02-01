@@ -46,19 +46,17 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.rings.infinity import infinity
 from sage.rings.integer import Integer
-from sage.combinat.misc import IterableFunctionCall
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.combinat_cython import (set_partition_iterator,
                                            set_partition_iterator_blocks)
-import sage.combinat.subset as subset
 from sage.combinat.partition import Partition, Partitions
-from sage.combinat.set_partition_ordered import OrderedSetPartitions
 from sage.combinat.combinat import bell_number, stirling_number2
 from sage.combinat.permutation import Permutation
 from sage.functions.other import factorial
 from sage.misc.prandom import random, randint
 from sage.probability.probability_distribution import GeneralDiscreteDistribution
 from sage.sets.disjoint_set import DisjointSet
+from sage.combinat.posets.hasse_diagram import HasseDiagram
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class AbstractSetPartition(ClonableArray):
@@ -368,7 +366,7 @@ class AbstractSetPartition(ClonableArray):
         EXAMPLES::
 
             sage: [x.standard_form() for x in SetPartitions(4, [2,2])]
-            [[[1, 2], [3, 4]], [[1, 3], [2, 4]], [[1, 4], [2, 3]]]
+            [[[1, 2], [3, 4]], [[1, 4], [2, 3]], [[1, 3], [2, 4]]]
 
         TESTS::
 
@@ -505,12 +503,12 @@ class SetPartition(AbstractSetPartition):
     `[2, 1, 1]`::
 
         sage: SetPartitions(4, [2,1,1]).list()
-        [{{1}, {2}, {3, 4}},
-         {{1}, {2, 4}, {3}},
-         {{1}, {2, 3}, {4}},
+        [{{1}, {2, 4}, {3}},
+         {{1}, {2}, {3, 4}},
          {{1, 4}, {2}, {3}},
          {{1, 3}, {2}, {4}},
-         {{1, 2}, {3}, {4}}]
+         {{1, 2}, {3}, {4}},
+         {{1}, {2, 3}, {4}}]
 
     Since :trac:`14140`, we can create a set partition directly by
     :class:`SetPartition`, which creates the base set by taking the
@@ -969,10 +967,10 @@ class SetPartition(AbstractSetPartition):
 
         """
         w = [0] * self.size()
-        # we can assume that the blocks are sorted by minimal element        
+        # we can assume that the blocks are sorted by minimal element
         for i, B in enumerate(self):
             for j in B:
-                w[j-1] = i       
+                w[j-1] = i
         return w
 
     def to_restricted_growth_word_intertwining(self):
@@ -1958,10 +1956,10 @@ class SetPartitions(UniqueRepresentation, Parent):
     EXAMPLES::
 
         sage: S = [1,2,3,4]
-        sage: SetPartitions(S,2)
+        sage: SetPartitions(S, 2)
         Set partitions of {1, 2, 3, 4} with 2 parts
         sage: SetPartitions([1,2,3,4], [3,1]).list()
-        [{{1}, {2, 3, 4}}, {{1, 3, 4}, {2}}, {{1, 2, 4}, {3}}, {{1, 2, 3}, {4}}]
+        [{{1}, {2, 3, 4}}, {{1, 2, 3}, {4}}, {{1, 2, 4}, {3}}, {{1, 3, 4}, {2}}]
         sage: SetPartitions(7, [3,3,1]).cardinality()
         70
 
@@ -2491,41 +2489,6 @@ class SetPartitions(UniqueRepresentation, Parent):
             P = sorted(P, key=lambda B: (-len(B), min(B)))
         return self.element_class(self, P)
 
-    def _iterator_part(self, part):
-        """
-        Return an iterator for the set partitions with block sizes
-        corresponding to the partition ``part``.
-
-        INPUT:
-
-        -  ``part`` -- a :class:`Partition` object
-
-        EXAMPLES::
-
-            sage: S = SetPartitions(3)
-            sage: it = S._iterator_part(Partition([1,1,1]))
-            sage: sorted(map(list, next(it)))
-            [[1], [2], [3]]
-            sage: S21 = SetPartitions(3,Partition([2,1]))
-            sage: len(list(S._iterator_part(Partition([2,1])))) == S21.cardinality()
-            True
-        """
-        nonzero = []
-        expo = [0] + part.to_exp()
-
-        for i in range(len(expo)):
-            if expo[i] != 0:
-                nonzero.append([i, expo[i]])
-
-        taillesblocs = [(x[0])*(x[1]) for x in nonzero]
-
-        blocs = OrderedSetPartitions(self._set, taillesblocs)
-
-        for b in blocs:
-            lb = [IterableFunctionCall(_listbloc, nonzero[i][0], nonzero[i][1], b[i]) for i in range(len(nonzero))]
-            for x in itertools.product(*lb):
-                yield _union(x)
-
     def is_less_than(self, s, t):
         r"""
         Check if `s < t` in the refinement ordering on set partitions.
@@ -2752,6 +2715,10 @@ class SetPartitions_set(SetPartitions):
             sage: S = SetPartitions(10)
             sage: S.random_element()
             {{1, 4, 9}, {2, 5, 7}, {3}, {6}, {8, 10}}
+
+            sage: S = SetPartitions(["a", "b", "c"])
+            sage: S.random_element()
+            {{'a'}, {'b', 'c'}}
         """
         base_set = list(self.base_set())
         N = len(base_set)
@@ -2769,7 +2736,7 @@ class SetPartitions_set(SetPartitions):
             else:
                 p[b] = [base_set[i]]
 
-        return SetPartition(p.values())
+        return self.element_class(self, p.values(), check=False)
 
     def cardinality(self):
         """
@@ -2799,6 +2766,9 @@ class SetPartitions_set(SetPartitions):
 
             sage: SetPartitions(3).list()
             [{{1, 2, 3}}, {{1, 2}, {3}}, {{1, 3}, {2}}, {{1}, {2, 3}}, {{1}, {2}, {3}}]
+
+            sage: SetPartitions(["a", "b"]).list()
+            [{{'a', 'b'}}, {{'a'}, {'b'}}]
         """
         for sp in set_partition_iterator(sorted(self._set)):
             yield self.element_class(self, sp, check=False)
@@ -2811,6 +2781,9 @@ class SetPartitions_set(SetPartitions):
 
             sage: SetPartitions(3).base_set()
             {1, 2, 3}
+
+            sage: SetPartitions(["a", "b", "c"]).base_set()
+            {'a', 'c', 'b'}
         """
         return Set(self._set)
 
@@ -2848,13 +2821,17 @@ class SetPartitions_setparts(SetPartitions_set):
 
     def __init__(self, s, parts):
         """
+        Initialize the data structure.
+
+        We can assume here that `parts` is a :cls:`Partition`.
+
         TESTS::
 
             sage: S = SetPartitions(4, [2,2])
             sage: TestSuite(S).run()
         """
         SetPartitions_set.__init__(self, s)
-        self.parts = parts
+        self._parts = parts
 
     def _repr_(self):
         """
@@ -2863,7 +2840,35 @@ class SetPartitions_setparts(SetPartitions_set):
             sage: SetPartitions(4, [2,2])
             Set partitions of {1, 2, 3, 4} with sizes in [2, 2]
         """
-        return "Set partitions of %s with sizes in %s"%(Set(self._set), self.parts)
+        return "Set partitions of %s with sizes in %s"%(Set(self._set), self._parts)
+
+    @property
+    def parts(self):
+        r"""
+        ``self.parts`` is deprecated; use :meth:`shape` instead.
+
+        TESTS::
+
+            sage: SetPartitions(5, [2,2,1]).parts
+            doctest:...: DeprecationWarning: The attribute parts for the partition of block sizes is deprecated, use the method shape instead.
+            See https://trac.sagemath.org/25865 for details.
+            [2, 2, 1]
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(25865, "The attribute parts for the partition of block sizes is deprecated,"
+                           " use the method shape instead.")
+        return self.shape()
+
+    def shape(self):
+        r"""
+        Return the partition of block sizes of the set partitions in ``self``.
+
+        EXAMPLES::
+
+            sage: SetPartitions(5, [2,2,1]).shape()
+            [2, 2, 1]
+        """
+        return self._parts
 
     def cardinality(self):
         r"""
@@ -2901,15 +2906,57 @@ class SetPartitions_setparts(SetPartitions_set):
 
         remaining_subset_size = Integer(len(self._set))
         cardinal = Integer(1)
-        for subset_size in self.parts:
+        for subset_size in self._parts:
             cardinal *= remaining_subset_size.binomial(subset_size)
             remaining_subset_size -= subset_size
 
         repetitions = (Integer(rep).factorial()
-                       for rep in self.parts.to_exp_dict().values()
+                       for rep in self._parts.to_exp_dict().values()
                        if rep != 1)
         cardinal /= prod(repetitions)
         return Integer(cardinal)
+
+    def _set_partition_poset(self):
+        r"""
+        Return the Hasse diagram of a poset whose linear extensions correspond
+        to the set partitions with specified block sizes.
+
+        TESTS::
+
+            sage: P = SetPartitions(["a", "b", "c", "d", "e"], [2,2,1])._set_partition_poset()
+            sage: P.cover_relations()
+            [(1, 2), (1, 3), (3, 4)]
+
+            sage: n = 9
+            sage: all(SetPartitions(n, mu).cardinality() ==
+            ....:     len(list(SetPartitions(n, mu)._set_partition_poset().linear_extensions()))
+            ....:     for mu in Partitions(n))
+            True
+
+        """
+        c = self._parts.to_exp_dict()
+        covers = dict()
+        i = 0
+        for s in sorted(c):
+            # s is the block size
+            # each block is one tree in the poset
+            for m in range(c[s]):
+                # m is the multiplicity of blocks with size s
+                #
+                # the first element in each non-final block has an
+                # additional cover
+                first = i
+                if s == 1:
+                    covers[i] = []
+                else:
+                    for j in range(s-1):
+                        covers[i] = [i+1]
+                        i += 1
+                i += 1
+                if m < c[s]-1:
+                    covers[first].append(i)
+        return HasseDiagram(covers)
+
 
     def __iter__(self):
         """
@@ -2919,10 +2966,34 @@ class SetPartitions_setparts(SetPartitions_set):
         EXAMPLES::
 
             sage: SetPartitions(3, [2,1]).list()
-            [{{1}, {2, 3}}, {{1, 3}, {2}}, {{1, 2}, {3}}]
+            [{{1}, {2, 3}}, {{1, 2}, {3}}, {{1, 3}, {2}}]
+
+            sage: SetPartitions(["a", "b", "c"], [2,1]).list()
+            [{{'a'}, {'b', 'c'}}, {{'a', 'c'}, {'b'}}, {{'a', 'b'}, {'c'}}]
+
+        TESTS::
+
+            sage: n = 8
+            sage: all(SetPartitions(n, mu).cardinality() == len(list(SetPartitions(n, mu))) for mu in Partitions(n))
+            True
+
         """
-        for sp in self._iterator_part(self.parts):
-            yield self.element_class(self, sp)
+        # Ruskey, Combinatorial Generation, sec. 5.10.1 and Knuth TAOCP 4A 7.2.1.5, Exercise 6
+        k = len(self._parts)
+        n = len(self._set)
+        s = list(self._set)
+        P = self._set_partition_poset()
+
+        sums = [0]
+        for b in sorted(self._parts):
+            sums.append(sums[-1] + b)
+
+        for ext in P.linear_extensions():
+            pi = [None]*n
+            for i in range(n):
+                pi[ext[i]] = s[i]
+            sp = [[pi[j] for j in range(sums[i], sums[i+1])] for i in range(k)]
+            yield self.element_class(self, sp, check=False)
 
     def __contains__(self, x):
         """
@@ -2940,7 +3011,7 @@ class SetPartitions_setparts(SetPartitions_set):
         """
         if not SetPartitions_set.__contains__(self, x):
             return False
-        return sorted(map(len, x)) == list(reversed(self.parts))
+        return sorted(map(len, x)) == list(reversed(self._parts))
 
 class SetPartitions_setn(SetPartitions_set):
     """
@@ -3036,6 +3107,9 @@ class SetPartitions_setn(SetPartitions_set):
              {{1}, {2, 3, 4}},
              {{1, 2}, {3, 4}},
              {{1, 2, 3}, {4}}]
+
+            sage: SetPartitions(["a", "b", "c"], 2).list()
+            [{{'a', 'c'}, {'b'}}, {{'a'}, {'b', 'c'}}, {{'a', 'b'}, {'c'}}]
         """
         for sp in set_partition_iterator_blocks(sorted(self._set), self._k):
             yield self.element_class(self, sp, check=False)
@@ -3069,6 +3143,10 @@ class SetPartitions_setn(SetPartitions_set):
             sage: S = SetPartitions(10, 4)
             sage: S.random_element()
             {{1, 2, 4, 6, 9, 10}, {3}, {5, 7}, {8}}
+
+            sage: SetPartitions(["a", "b", "c"], 2).random_element()
+            {{'a'}, {'b', 'c'}}
+
         """
         def re(N, k):
             if N == 0:
@@ -3086,69 +3164,8 @@ class SetPartitions_setn(SetPartitions_set):
         N = len(base_set)
         k = self._k
         p = re(N, k)
-        return SetPartition([[base_set[e] for e in b] for b in p])
+        return self.element_class(self, [[base_set[e] for e in b] for b in p], check=False)
 
-def _listbloc(n, nbrepets, listint=None):
-    r"""
-    Decompose a set of `n \times n` ``brepets`` integers (the list
-    ``listint``) in ``nbrepets`` parts.
-
-    It is used in the algorithm to generate all set partitions.
-
-    .. WARNING::
-
-        Internal function that is not to be called by the user.
-
-    EXAMPLES::
-
-        sage: list(sage.combinat.set_partition._listbloc(2,1))
-        [{{1, 2}}]
-        sage: l = [Set([Set([3, 4]), Set([1, 2])]), Set([Set([2, 4]), Set([1, 3])]), Set([Set([2, 3]), Set([1, 4])])]
-        sage: list(sage.combinat.set_partition._listbloc(2,2,[1,2,3,4])) == l
-        True
-    """
-    if isinstance(listint, (int, Integer)) or listint is None:
-        listint = Set(range(1,n+1))
-
-    if nbrepets == 1:
-        yield Set([listint])
-        return
-
-    l = sorted(listint)
-    smallest = Set(l[:1])
-    new_listint = Set(l[1:])
-
-    f = lambda u, v: u.union(_set_union([smallest,v]))
-
-    for ssens in subset.Subsets(new_listint, n-1):
-        for z in _listbloc(n, nbrepets-1, new_listint-ssens):
-            yield f(z,ssens)
-
-def _union(s):
-    """
-    TESTS::
-
-        sage: s = Set([ Set([1,2]), Set([3,4]) ])
-        sage: sage.combinat.set_partition._union(s)
-        {1, 2, 3, 4}
-    """
-    result = Set([])
-    for ss in s:
-        result = result.union(ss)
-    return result
-
-def _set_union(s):
-    """
-    TESTS::
-
-        sage: s = Set([ Set([1,2]), Set([3,4]) ])
-        sage: sage.combinat.set_partition._set_union(s)
-        {{1, 2, 3, 4}}
-    """
-    result = Set([])
-    for ss in s:
-        result = result.union(ss)
-    return Set([result])
 
 def cyclic_permutations_of_set_partition(set_part):
     """

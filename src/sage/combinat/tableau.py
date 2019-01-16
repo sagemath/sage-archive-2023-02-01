@@ -8136,11 +8136,13 @@ def unmatched_places(w, open, close):
     parentheses (respectively), return a pair ``(xs, ys)``
     that encodes the positions of the unmatched
     parentheses after the standard parenthesis matching
-    procedure is applied to ``w``. (More precisely, ``xs``
-    will be the list of all ``i`` such that ``w[i]`` is
-    an unmatched closing parenthesis, while ``ys`` will be
-    the list of all ``i`` such that ``w[i]`` is an
-    unmatched opening parenthesis.)
+    procedure is applied to ``w``.
+
+    More precisely, ``xs`` will be the list of all ``i``
+    such that ``w[i]`` is an unmatched closing parenthesis,
+    while ``ys`` will be the list of all ``i`` such that
+    ``w[i]`` is an unmatched opening parenthesis. Both
+    lists returned are in increasing order.
 
     EXAMPLES::
 

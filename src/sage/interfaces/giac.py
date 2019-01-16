@@ -617,10 +617,7 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
             '4\n3'
             sage: s='g(x):={\nx+1;\nx+2;\n}'
             sage: giac(s)
-            (x)->{
-            x+1;
-            x+2;
-            }
+            (x)->[x+1,x+2]
             sage: giac.g(5)
             7
         """

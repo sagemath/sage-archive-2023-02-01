@@ -8223,7 +8223,7 @@ def symmetric_group_action_on_values(word, perm):
             for i in places_l[:dif]:
                 w[i] = r
         else:
-            for i in places_r[nbr-dif:ma]:
+            for i in places_r[nbr-dif:]:
                 w[i] = l
     return w
 

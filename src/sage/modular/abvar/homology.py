@@ -31,7 +31,7 @@ EXAMPLES::
     doctest:warning
     ...
     DeprecationWarning: The default order on free modules has changed. The old ordering is in sage.modules.free_module.EchelonMatrixKey
-    See http://trac.sagemath.org/23878 for details.
+    See http://trac.sagemath.org/23978 for details.
     [
     Submodule of rank 2 of Integral Homology of Abelian variety J0(43) of dimension 3,
     Submodule of rank 4 of Integral Homology of Abelian variety J0(43) of dimension 3

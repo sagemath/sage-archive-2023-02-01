@@ -1605,7 +1605,7 @@ class IntegerPowerFunction(object):
         sage: square(I)
         -1
         sage: square(RIF(-1, 1)).str(style='brackets')
-        '[0.00000000000000000 .. 1.0000000000000000]'
+        '[0.0000000000000000 .. 1.0000000000000000]'
         sage: IntegerPowerFunction(-1)
         (^(-1))
         sage: IntegerPowerFunction(-1)(22/7)

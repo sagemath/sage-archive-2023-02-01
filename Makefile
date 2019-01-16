@@ -144,7 +144,7 @@ fast-rebuild-clean: misc-clean bdist-clean
 
 TESTALL = ./sage -t --all
 PTESTALL = ./sage -t -p --all
-PTEST_PYTHON3 = cat python3-known-passing.txt | xargs ./sage -t --long -p
+PTEST_PYTHON3 = cat src/ext/doctest/python3-known-passing.txt | xargs ./sage -t --long -p
 
 # Flags for ./sage -t --all.
 # By default, include all tests marked 'dochtml' -- see

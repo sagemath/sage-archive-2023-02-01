@@ -84,6 +84,43 @@ cdef Obj make_gap_list(sage_list) except NULL:
     return l.value
 
 
+cdef Obj make_gap_matrix(sage_list, gap_ring) except NULL:
+    """
+    Convert Sage lists into Gap matrices
+
+    INPUT:
+
+    - ``sage_list`` -- list of :class:`GapElement`.
+
+    - ``gap_ring`` -- the base ring
+
+    If ``gap_ring`` is ``None``, nothing is made to make sure
+    that all coefficients live in the same Gap ring. The resulting Gap list
+    may not be recognized as a matrix by Gap.
+
+    OUTPUT:
+
+    The list of the elements in ``sage_list`` as a Gap ``Obj``.
+    """
+    from sage.libs.gap.libgap import libgap
+    cdef GapElement l = libgap.eval('[]')
+    cdef GapElement elem
+    cdef GapElement one
+    if gap_ring is not None:
+        one = <GapElement>gap_ring.One()
+    else:
+        one = <GapElement>libgap(1)
+    for x in sage_list:
+        if not isinstance(x, GapElement):
+            elem = <GapElement>libgap(x)
+            elem = elem * one
+        else:
+            elem = <GapElement>x
+
+        AddList(l.value, elem.value)
+    return l.value
+
+
 cdef char *crepr(Obj obj):
     cdef Obj s, stream, output_text_string, view_obj
     cdef UInt res

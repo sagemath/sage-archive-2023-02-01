@@ -13,10 +13,10 @@ sys.path.append(os.path.join(SAGE_SRC, "sage_setup", "docbuild", "ext"))
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['inventory_builder', 'multidocs',
-              'sage_autodoc',  'sphinx.ext.graphviz',
-              'sphinx.ext.inheritance_diagram', 'sphinx.ext.todo',
-              'sphinx.ext.extlinks', 'matplotlib.sphinxext.plot_directive']
+extensions = ['inventory_builder', 'multidocs', 'sage_autodoc',
+              'sphinx.ext.graphviz', 'sphinx.ext.inheritance_diagram',
+              'sphinx.ext.todo', 'sphinx.ext.extlinks',
+              'matplotlib.sphinxext.plot_directive']
 
 # This code is executed before each ".. PLOT::" directive in the Sphinx
 # documentation. It defines a 'sphinx_plot' function that displays a Sage object

@@ -1449,9 +1449,19 @@ class ClassDocumenter(DocstringSignatureMixin, ModuleLevelDocumenter):
         return doc
 
     def add_content(self, more_content, no_docstring=False):
+        # type: (Any, bool) -> None
         if self.doc_as_attr:
-            classname = safe_getattr(self.object, '__name__', None)
+            # We cannot rely on __qualname__ yet for Python 2, because of a
+            # Cython bug: https://github.com/cython/cython/issues/2772. See
+            # trac #27002.
+            classname = None if PY2 else safe_getattr(self.object, '__qualname__', None)
+            if not classname:
+                classname = safe_getattr(self.object, '__name__', None)
             if classname:
+                module = safe_getattr(self.object, '__module__', None)
+                parentmodule = safe_getattr(self.parent, '__module__', None)
+                if module and module != parentmodule:
+                    classname = str(module) + u'.' + str(classname)
                 content = ViewList(
                     [_('alias of :class:`%s`') % classname], source='')
                 ModuleLevelDocumenter.add_content(self, content,

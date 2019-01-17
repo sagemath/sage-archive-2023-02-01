@@ -1651,15 +1651,13 @@ class GapElement(GapElement_generic):
             sage: 'Centralizer' in s5._tab_completion()
             True
         """
-        from sage.misc.misc import uniq
         P = self.parent()
         v = P.eval(r'\$SAGE.OperationsAdmittingFirstArgument(%s)'%self.name())
         v = v.replace('Tester(','').replace('Setter(','').replace(')','').replace('\n', '')
         v = v.split(',')
         v = [ oper.split('"')[1] for oper in v ]
         v = [ oper for oper in v if all(ch in string.ascii_letters for ch in oper) ]
-        v = uniq(v)
-        return v
+        return sorted(set(v))
 
 
 @instancedoc

@@ -545,9 +545,7 @@ class HasseDiagram(DiGraph):
             False
         """
         from itertools import combinations
-        from sage.misc.misc import uniq
-
-        elms_sorted = uniq(elms)
+        elms_sorted = sorted(set(elms))
         return not any(self.is_lequal(a, b) for a, b in
                        combinations(elms_sorted, 2))
 

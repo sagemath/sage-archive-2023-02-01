@@ -222,7 +222,7 @@ from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
 from sage.categories.tensor import tensor
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
-from sage.misc.all import prod, uniq
+from sage.misc.all import prod
 from copy import copy
 from functools import reduce
 
@@ -2365,7 +2365,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
 
         p = self.realization_of().p()
         res = 0
-        degrees = uniq([ sum(m) for m in g.support() ])
+        degrees = sorted(set(sum(m) for m in g.support()))
         for d in degrees:
             for mu in Partitions_n(d):
                 mu_k = mu.power(k)
@@ -2432,7 +2432,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         if not nu._list:
             s = self.realization_of().s()
             degrees = [ part.size() for part in p_x.support() ]
-            degrees = uniq(degrees)
+            degrees = sorted(set(degrees))
             if 0 in degrees:
                 ext = self([])
             else:

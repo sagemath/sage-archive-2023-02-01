@@ -716,13 +716,17 @@ def uniq(x):
     EXAMPLES::
 
         sage: v = uniq([1,1,8,-5,3,-5,'a','x','a'])
+        doctest:...: DeprecationWarning: the output of uniq(X) being sorted is deprecated; use sorted(set(X)) instead if you want sorted output
+        See https://trac.sagemath.org/27014 for details.
         sage: v            # potentially random ordering of output
         ['a', 'x', -5, 1, 3, 8]
         sage: set(v) == set(['a', 'x', -5, 1, 3, 8])
         True
     """
-    v = sorted(set(x))
-    return v
+    # After deprecation period, rename _stable_uniq -> uniq
+    from sage.misc.superseded import deprecation
+    deprecation(27014, "the output of uniq(X) being sorted is deprecated; use sorted(set(X)) instead if you want sorted output")
+    return sorted(set(x))
 
 
 def _stable_uniq(L):

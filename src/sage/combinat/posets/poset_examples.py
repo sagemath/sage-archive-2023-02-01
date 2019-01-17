@@ -1082,11 +1082,10 @@ class Posets(object):
             sage: P2 = posets.SymmetricGroupBruhatIntervalPoset([1,2,3,4], [4,2,3,1])
             sage: ranks1 = [P1.rank(v) for v in P1]
             sage: ranks2 = [P2.rank(v) for v in P2]
-            sage: [ranks1.count(i) for i in uniq(ranks1)]
+            sage: [ranks1.count(i) for i in sorted(set(ranks1))]
             [1, 3, 5, 4, 1]
-            sage: [ranks2.count(i) for i in uniq(ranks2)]
+            sage: [ranks2.count(i) for i in sorted(set(ranks2))]
             [1, 3, 5, 6, 4, 1]
-
         """
         start = Permutation(start)
         end = Permutation(end)

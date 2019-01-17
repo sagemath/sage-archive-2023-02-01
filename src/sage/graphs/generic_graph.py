@@ -21219,7 +21219,6 @@ class GenericGraph(GenericGraph_pyx):
             False
         """
         from sage.misc.flatten import flatten
-        from sage.misc.misc import uniq
         if sorted(flatten(partition, max_level=1)) != self.vertices():
             raise TypeError("Partition (%s) is not valid for this graph: vertices are incorrect."%partition)
         if any(len(cell)==0 for cell in partition):
@@ -21234,7 +21233,7 @@ class GenericGraph(GenericGraph_pyx):
                     cell_i = partition[i]
                     cell_j = partition[j]
                     degrees = [self.degree_to_cell(u, cell_j) for u in cell_i]
-                    if len(uniq(degrees)) > 1:
+                    if len(set(degrees)) > 1:
                         return False
                     if self._directed:
                         M[i, j] = degrees[0][0]
@@ -21245,7 +21244,7 @@ class GenericGraph(GenericGraph_pyx):
             for cell1 in partition:
                 for cell2 in partition:
                     degrees = [self.degree_to_cell(u, cell2) for u in cell1]
-                    if len(uniq(degrees)) > 1:
+                    if len(set(degrees)) > 1:
                         return False
             return True
 

@@ -1554,8 +1554,8 @@ cdef class Expression(CommutativeRingElement):
         In this example hashing is important otherwise the answer is
         wrong::
 
-            sage: uniq([x-x, -x+x])
-            [0]
+            sage: set([x-x, -x+x])
+            {0}
 
         Test if exceptions during hashing are handled properly::
 

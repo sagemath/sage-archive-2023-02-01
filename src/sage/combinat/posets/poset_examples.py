@@ -1979,6 +1979,7 @@ def _random_distributive_lattice(n):
             H = HasseDiagram(D)
     return D
 
+
 def _random_stone_lattice(n):
     """
     Return a random Stone lattice on `n` elements.
@@ -2008,7 +2009,7 @@ def _random_stone_lattice(n):
     from sage.misc.misc_c import prod
     from copy import copy
 
-    factors = sum([[f[0]]*f[1] for f in factor(n)], [])
+    factors = sum([[f[0]] * f[1] for f in factor(n)], [])
     sage.misc.prandom.shuffle(factors)
 
     part_lengths = list(Partitions(len(factors)).random_element())
@@ -2020,9 +2021,9 @@ def _random_stone_lattice(n):
 
     result = DiGraph(1)
     for p in parts:
-        g = _random_distributive_lattice(p-1)
+        g = _random_distributive_lattice(p - 1)
         g = copy(Poset(g).order_ideals_lattice(as_ideals=False)._hasse_diagram)
-        g.add_edge('bottom', 0)
+        g.add_edge(-1, 0)
         result = result.cartesian_product(g)
         result.relabel()
 

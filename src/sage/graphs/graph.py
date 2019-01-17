@@ -2785,7 +2785,7 @@ class Graph(GenericGraph):
         if k is not None and k >= g.order() - 1:
             if certificate:
                 from sage.sets.set import Set
-                return Graph({Set(g.vertices()):[]}, name="Tree decomposition")
+                return Graph({Set(g): []}, name="Tree decomposition")
             return True
 
         # TDLIB
@@ -2813,8 +2813,9 @@ class Graph(GenericGraph):
                     return all(cc.treewidth(k) for cc in g.connected_components_subgraphs())
             else:
                 T = [cc.treewidth(certificate=True) for cc in g.connected_components_subgraphs()]
-                tree = Graph([sum([t.vertices() for t in T],[]), sum([t.edges(labels=False) for t in T],[])],
-                                 format='vertices_and_edges', name="Tree decomposition")
+                tree = Graph([sum([list(t) for t in T], []),
+                              sum([t.edges(labels=False, sort=False) for t in T], [])],
+                             format='vertices_and_edges', name="Tree decomposition")
                 v = next(T[0].vertex_iterator())
                 for t in T[1:]:
                     tree.add_edge(next(t.vertex_iterator()),v)
@@ -2856,7 +2857,7 @@ class Graph(GenericGraph):
 
                 # Removing v may have disconnected cc. We iterate on its
                 # connected components
-                for cci in g.subgraph(ccv).connected_components():
+                for cci in g.subgraph(ccv).connected_components(sort=False):
 
                     # The recursive subcalls. We remove on-the-fly the vertices
                     # from the cut which play no role in separating the
@@ -2879,7 +2880,7 @@ class Graph(GenericGraph):
             return False
 
         # Main call to rec function, i.e. rec({v}, V-{v})
-        V = g.vertices()
+        V = list(g)
         v = frozenset([V.pop()])
         TD = rec(v, frozenset(V))
 
@@ -2902,7 +2903,7 @@ class Graph(GenericGraph):
         changed = True
         while changed:
             changed = False
-            for v in G.vertices():
+            for v in G.vertices(sort=False):
                 for u in G.neighbor_iterator(v):
                     if u.issuperset(v):
                         G.merge_vertices([u, v]) # the new vertex is named 'u'

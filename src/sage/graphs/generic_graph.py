@@ -6174,7 +6174,7 @@ class GenericGraph(GenericGraph_pyx):
             return_value.append(self.edge_boundary(reachable_from_s))
 
             if vertices:
-                return_value.append([reachable_from_s, list(set(self.vertices()).difference(reachable_from_s))])
+                return_value.append([reachable_from_s, list(set(self).difference(reachable_from_s))])
 
             return return_value
 
@@ -8741,7 +8741,7 @@ class GenericGraph(GenericGraph_pyx):
         # edge is strictly less than its capacity, or when there exists a back
         # arc with non-null flow
         residual = DiGraph()
-        residual.add_vertices(self.vertices())
+        residual.add_vertices(self)
 
         # Initializing the variables
         if directed:

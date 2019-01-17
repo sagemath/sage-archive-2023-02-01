@@ -2653,16 +2653,16 @@ cdef class Matrix_integer_dense(Matrix_dense):
         return (format, K)
 
     # TODO: implement using flint function
-    def _adjoint(self):
+    def _adjugate(self):
         """
-        Return the adjoint of this matrix.
+        Return the adjugate (classical adjoint) of this matrix.
 
-        Assumes self is a square matrix (checked in adjoint).
+        Assumes ``self`` is a square matrix (checked in adjugate).
 
         EXAMPLES::
 
             sage: m = matrix(ZZ,3,[1..9])
-            sage: m.adjoint()
+            sage: m.adjugate()
             [ -3   6  -3]
             [  6 -12   6]
             [ -3   6  -3]

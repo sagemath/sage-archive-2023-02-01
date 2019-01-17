@@ -1186,7 +1186,7 @@ class QuadraticForm(AlgebraicForm):
             (42849/256) * (2*x^2 + x*y + 3*y^2 + 4*z^2 + 5*z + 1)
         """
         A = self.matrix()
-        Aadj = A.adjoint()
+        Aadj = A.adjugate()
         if self._homogeneous:
             var = self._variables
         else:
@@ -2841,10 +2841,10 @@ class TernaryCubic(AlgebraicForm):
             sage: len(list(cubic.Theta_covariant()))
             6952
         """
-        U_conic = self.polar_conic().adjoint()
+        U_conic = self.polar_conic().adjugate()
         U_coeffs = ( U_conic[0,0], U_conic[1,1], U_conic[2,2],
                      U_conic[0,1], U_conic[0,2], U_conic[1,2] )
-        H_conic = TernaryCubic(3, 3, self.Hessian(), self.variables()).polar_conic().adjoint()
+        H_conic = TernaryCubic(3, 3, self.Hessian(), self.variables()).polar_conic().adjugate()
         H_coeffs = ( H_conic[0,0], H_conic[1,1], H_conic[2,2],
                      H_conic[0,1], H_conic[0,2], H_conic[1,2] )
         quadratic = TernaryQuadratic(3, 2, self._ring.zero(), self.variables())
@@ -3694,8 +3694,8 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
             sage: p2 += B0*x*y + B1*x*z + B2*x + B3*y*z + B4*y + B5*z
             sage: q = invariant_theory.quaternary_biquadratic(p1, p2, [x, y, z])
             sage: T = invariant_theory.quaternary_quadratic(q.T_covariant(), [x,y,z]).matrix()
-            sage: M = q[0].matrix().adjoint() + t*q[1].matrix().adjoint()
-            sage: M = M.adjoint().apply_map(             # long time (4s on my thinkpad W530)
+            sage: M = q[0].matrix().adjugate() + t*q[1].matrix().adjugate()
+            sage: M = M.adjugate().apply_map(             # long time (4s on my thinkpad W530)
             ....:         lambda m: m.coefficient(t))
             sage: M == q.Delta_invariant()*T             # long time
             True
@@ -3717,8 +3717,8 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
             sage: q = invariant_theory.quaternary_biquadratic(p1, p2, [x, y, z])
             sage: Tprime = invariant_theory.quaternary_quadratic(
             ....:     q.T_prime_covariant(), [x,y,z]).matrix()
-            sage: M = q[0].matrix().adjoint() + t*q[1].matrix().adjoint()
-            sage: M = M.adjoint().apply_map(                # long time (4s on my thinkpad W530)
+            sage: M = q[0].matrix().adjugate() + t*q[1].matrix().adjugate()
+            sage: M = M.adjugate().apply_map(                # long time (4s on my thinkpad W530)
             ....:         lambda m: m.coefficient(t^2))
             sage: M == q.Delta_prime_invariant() * Tprime   # long time
             True

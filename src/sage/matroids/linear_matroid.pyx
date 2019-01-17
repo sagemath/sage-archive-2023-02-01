@@ -5869,7 +5869,7 @@ cdef class RegularMatroid(LinearMatroid):
         """
         if self._r_projection is None:
             R = self._basic_representation()._matrix_()
-            self._r_projection = R.transpose() * (R * R.transpose()).adjoint() * R
+            self._r_projection = R.transpose() * (R * R.transpose()).adjugate() * R
         return self._r_projection
 
     cpdef _invariant(self):

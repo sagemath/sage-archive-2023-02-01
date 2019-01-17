@@ -716,7 +716,7 @@ def _jordan_2_adic(G):
                     eqn_mat = D[cnt:cnt+2, cnt:cnt+2].list()
                     eqn_mat = Matrix(R, 2, 2, [e // content for e in eqn_mat])
                     # calculate the inverse without using division
-                    inv = eqn_mat.adjoint() * eqn_mat.det().inverse_of_unit()
+                    inv = eqn_mat.adjugate() * eqn_mat.det().inverse_of_unit()
                     B1 = B[cnt:cnt+2, :]
                     B2 = D[cnt+2:, cnt:cnt+2] * inv
                     for i in range(B2.nrows()):

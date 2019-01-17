@@ -317,7 +317,7 @@ cdef bint bandwidth_C(int n, int k,
         # All choices for this position i have been tested. We must change our
         # (i-1)th choice:
         if current[i] == n:
-            if not i:
+            if i == 0:
                 return 0
             i -= 1
             left_to_order[i], left_to_order[current[i]] = left_to_order[current[i]], left_to_order[i]
@@ -421,7 +421,7 @@ cdef bint is_matching_feasible(int n, range_t * range_array, range_t * range_arr
     for v in range(n):
         sig_check()
         for j in range(range_array_tmp[v].m, range_array_tmp[v].M + 1):
-            if not index_array_tmp[j]:
+            if index_array_tmp[j] == 0:
                 index_array_tmp[j] = 1
                 break
         else:

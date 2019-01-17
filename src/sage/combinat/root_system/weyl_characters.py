@@ -1618,77 +1618,6 @@ class WeylCharacterRing(CombinatorialFreeModule):
                 raise ValueError("{} is not irreducible".format(other))
             return self.coefficient(other.support()[0])
 
-        def is_simple_obj(self):
-            """
-            Determine whether element is a simple object of the FusionRing.
-            """
-            return self.parent()._k is not None and len(self.monomial_coefficients())==1
-
-        def twist(self):
-            r"""
-            Compute the object's twist. Returns a rational number `h_X` such that 
-            `e^{(i \pi h_X)}` is the twist of `X`. 
-
-            We compute the twists following p.7 of [Row2006]_, noting that the bilinear form
-            is normalized so that `\langle\alpha, \alpha\rangle = 2` for SHORT roots.
-            """
-            if not self.is_simple_obj():
-                raise ValueError("quantum twist is only available for simple objects of a FusionRing")
-            rho = sum(self.parent().positive_roots())/2
-            lam = self.highest_weight()
-            inner = lam.inner_product(lam+2*rho)
-            twist = self.parent()._conj*self.parent()._nf*inner/self.parent().fusion_l()
-            #Reduce to canonical form 
-            while twist > 2:
-                twist -= 2
-            while twist < 0:
-                twist += 2
-            return twist
-
-        def q_dimension(self):
-            r""""
-            INPUT:
-
-            - ``b`` -- a fusion ring basis element.
-
-            This returns the quantum dimension as an element of the cyclotomic
-            field of the `2l`-th roots of unity, where `l = m(k+h^\vee)`
-            with `m=1,2,3` depending on whether type is simply, doubly or
-            triply laced, `k` is the level and `h^\vee` is the dual Coxeter number.
-
-            EXAMPLE::
-
-                sage: B22=FusionRing("B2",2)
-                sage: [(b.q_dimension())^2 for b in B22.basis()]
-                [1, 5, 4, 1, 5, 4]
-            """
-            if not self.is_simple_obj():
-                raise ValueError("quantum twist is only available for simple objects of a FusionRing")
-            lam = self.highest_weight()
-            space = self.parent().space()
-            rho = space.rho()
-            l = self.parent().fusion_l()
-            num = reduce(mul, [q_int(self.parent()._nf*alpha.inner_product(lam+rho)) for alpha in space.positive_roots()], 1)
-            den = reduce(mul, [q_int(self.parent()._nf*alpha.inner_product(rho)) for alpha in space.positive_roots()], 1)
-            expr = num/den
-            pr = expr.parent().ring()
-            q = pr.gen()
-            expr = pr(expr)
-            expr = expr.substitute(q=q**2)/q**(expr.degree())
-            zet = self.parent().q_field.gen()
-            return expr.substitute(q=zet)
-
-        def fusion_matrix(self):
-            """
-            Return a matrix containing the object's fusion coefficients.
-            """
-            if not self.is_simple_obj():
-                raise ValueError("fusion matrix is only available for simple objects of a FusionRing")
-            ord_basis = self.parent().ordered_basis()
-            wts = [x.highest_weight() for x in ord_basis]
-            rows = [[wt in (self*obj).monomial_coefficients() for wt in wts] for obj in ord_basis]
-            return matrix(rows)
-
 def irreducible_character_freudenthal(hwv, debug=False):
     r"""
     Return the dictionary of multiplicities for the irreducible
@@ -2577,3 +2506,74 @@ class FusionRing(WeylCharacterRing):
             d[t] = labels[j]
             inject_variable(labels[j], b)
         self._fusion_labels = d
+
+    class Element(WeylCharacterRing.Element):
+        """
+        A class for FusionRing elements
+        """
+        def is_simple_obj(self):
+            """
+            Determine whether element is a simple object of the FusionRing.
+            """
+            return self.parent()._k is not None and len(self.monomial_coefficients())==1
+
+        def twist(self):
+            r"""
+            Compute the object's twist. Returns a rational number `h_X` such that 
+            `e^{(i \pi h_X)}` is the twist of `X`. 
+
+            We compute the twists following p.7 of [Row2006]_, noting that the bilinear form
+            is normalized so that `\langle\alpha, \alpha\rangle = 2` for SHORT roots.
+            """
+            if not self.is_simple_obj():
+                raise ValueError("quantum twist is only available for simple objects of a FusionRing")
+            rho = sum(self.parent().positive_roots())/2
+            lam = self.highest_weight()
+            inner = lam.inner_product(lam+2*rho)
+            twist = self.parent()._conj*self.parent()._nf*inner/self.parent().fusion_l()
+            #Reduce to canonical form 
+            while twist > 2:
+                twist -= 2
+            while twist < 0:
+                twist += 2
+            return twist
+
+        def q_dimension(self):
+            r""""
+            This returns the quantum dimension as an element of the cyclotomic
+            field of the `2l`-th roots of unity, where `l = m(k+h^\vee)`
+            with `m=1,2,3` depending on whether type is simply, doubly or
+            triply laced, `k` is the level and `h^\vee` is the dual Coxeter number.
+
+            EXAMPLE::
+
+                sage: B22=FusionRing("B2",2)
+                sage: [(b.q_dimension())^2 for b in B22.basis()]
+                [1, 5, 4, 1, 5, 4]
+            """
+            if not self.is_simple_obj():
+                raise ValueError("quantum twist is only available for simple objects of a FusionRing")
+            lam = self.highest_weight()
+            space = self.parent().space()
+            rho = space.rho()
+            l = self.parent().fusion_l()
+            num = reduce(mul, [q_int(self.parent()._nf*alpha.inner_product(lam+rho)) for alpha in space.positive_roots()], 1)
+            den = reduce(mul, [q_int(self.parent()._nf*alpha.inner_product(rho)) for alpha in space.positive_roots()], 1)
+            expr = num/den
+            pr = expr.parent().ring()
+            q = pr.gen()
+            expr = pr(expr)
+            expr = expr.substitute(q=q**2)/q**(expr.degree())
+            zet = self.parent().q_field.gen()
+            return expr.substitute(q=zet)
+
+        def fusion_matrix(self):
+            """
+            Return a matrix containing the object's fusion coefficients.
+            """
+            if not self.is_simple_obj():
+                raise ValueError("fusion matrix is only available for simple objects of a FusionRing")
+            ord_basis = self.parent().ordered_basis()
+            wts = [x.highest_weight() for x in ord_basis]
+            rows = [[wt in (self*obj).monomial_coefficients() for wt in wts] for obj in ord_basis]
+            return matrix(rows)

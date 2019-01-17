@@ -1954,7 +1954,7 @@ def _least_semi_primitive(p):
     return next((a for a in range(2,p) if p.gcd(a)==1 and R(a).multiplicative_order()>=ord),0)
 
 def is_kernel_polynomial(E, m, f):
-    """test whether ``E`` has a cyclic isogeny of degree ``m`` with kernel
+    r"""test whether ``E`` has a cyclic isogeny of degree ``m`` with kernel
     polynomial ``f``.
 
     INPUT:

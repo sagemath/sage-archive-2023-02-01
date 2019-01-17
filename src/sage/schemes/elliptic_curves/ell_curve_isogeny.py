@@ -1003,7 +1003,7 @@ class EllipticCurveIsogeny(Morphism):
             if (degree is None):
                 raise ValueError("If specifying isogeny by domain and codomain, degree parameter must be set.")
 
-            # save the domain/codomain: really used now (trac #7096)
+            # save the codomain: really used now (trac #7096)
             old_codomain = codomain
 
             (pre_isom, post_isom, E, codomain, kernel) = compute_sequence_of_maps(E, codomain, degree)
@@ -1664,7 +1664,7 @@ class EllipticCurveIsogeny(Morphism):
         if ("velu" == self.__algorithm):
             ker_poly_list = self.__init_kernel_polynomial_velu()
         else:
-            raise RuntimeError("The kernel polynomial should already be defined!")
+            raise ValueError("The kernel polynomial should already be defined!")
 
         return ker_poly_list
 

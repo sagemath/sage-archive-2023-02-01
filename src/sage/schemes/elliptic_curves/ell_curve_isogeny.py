@@ -1003,7 +1003,7 @@ class EllipticCurveIsogeny(Morphism):
             if (degree is None):
                 raise ValueError("If specifying isogeny by domain and codomain, degree parameter must be set.")
 
-            # save the domain/codomain: really used now (trac #7096)
+            # save the codomain: really used now (trac #7096)
             old_codomain = codomain
 
             (pre_isom, post_isom, E, codomain, kernel) = compute_sequence_of_maps(E, codomain, degree)
@@ -1664,7 +1664,7 @@ class EllipticCurveIsogeny(Morphism):
         if ("velu" == self.__algorithm):
             ker_poly_list = self.__init_kernel_polynomial_velu()
         else:
-            raise RuntimeError("The kernel polynomial should already be defined!")
+            raise ValueError("The kernel polynomial should already be defined!")
 
         return ker_poly_list
 
@@ -2324,7 +2324,7 @@ class EllipticCurveIsogeny(Morphism):
         """
         #check if the polynomial really divides the two_torsion_polynomial
         if  self.__check and E.division_polynomial(2, x=self.__poly_ring.gen()) % psi_G  != 0 :
-            raise ValueError("The polynomial does not define a finite subgroup of the elliptic curve.")
+            raise ValueError("The polynomial {} does not define a finite subgroup of {}.".format(psi_G,E))
 
         n = psi_G.degree() # 1 or 3
         d = n+1            # 2 or 4
@@ -2434,7 +2434,7 @@ class EllipticCurveIsogeny(Morphism):
             sage: f = (E.isogenies_prime_degree()[0]).kernel_polynomial()
             sage: f.degree()
             81
-            sage: E.isogeny(kernel=f)  # long time (3.6s, 2014)
+            sage: E.isogeny(kernel=f, check=False)
             Isogeny of degree 163 from Elliptic Curve defined by y^2 + y = x^3 - 2174420*x + 1234136692 over Rational Field to Elliptic Curve defined by y^2 + y = x^3 - 57772164980*x - 5344733777551611 over Rational Field
         """
         n = psi.degree()
@@ -2442,9 +2442,9 @@ class EllipticCurveIsogeny(Morphism):
 
         # check if the polynomial really divides the torsion polynomial :
         if self.__check:
-            alpha = psi.parent().quotient(psi).gen()
-            if not E.division_polynomial(d, x=alpha).is_zero():
-                raise ValueError("The polynomial does not define a finite subgroup of the elliptic curve.")
+            from isogeny_small_degree import is_kernel_polynomial
+            if not is_kernel_polynomial(E, d, psi):
+                raise ValueError("The polynomial {} does not define a finite subgroup of {}.".format(psi,E))
 
         b2, b4, b6, _ = E.b_invariants()
 

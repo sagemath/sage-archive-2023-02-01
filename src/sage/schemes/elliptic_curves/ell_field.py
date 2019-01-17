@@ -791,10 +791,12 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         - ``E``         - an elliptic curve, the domain of the isogeny to
                           initialize.
 
-        - ``kernel``    - a kernel, either a point in ``E``, a list of points
-                          in ``E``, a univariate kernel polynomial or ``None``.
-                          If initiating from a domain/codomain, this must be
-                          set to None.  Validity of input is *not* fully checked.
+        - ``kernel`` - a kernel, either a point in ``E``, a list of
+                          points in ``E``, a univariate kernel
+                          polynomial or ``None``.  If initiating from
+                          a domain/codomain, this must be set to None.
+                          Validity of input is checked (unless
+                          check=False).
 
         - ``codomain``  - an elliptic curve (default:None).  If ``kernel`` is
                           None, then this must be the codomain of a separable
@@ -819,12 +821,10 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
                           number field, then the codomain is a global
                           minimum model where this exists.
 
-        - ``check`` (default: True) does some partial checks that the
-                          input is valid (e.g., that the kernel
-                          polynomial provided is valid); however,
-                          invalid input can in some cases still pass,
-                          since that the points define a group is not
-                          checked.
+        - ``check`` (default: True) checks that the input is valid,
+                          i.e., that the polynomial provided is a
+                          kernel polynomial, meaning that its roots
+                          are the x-coordinates of a finite subgroup.
 
         OUTPUT:
 

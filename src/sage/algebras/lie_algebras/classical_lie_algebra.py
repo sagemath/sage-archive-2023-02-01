@@ -21,6 +21,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from collections import OrderedDict
 
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
@@ -980,7 +981,8 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
         alpha = self._Q.simple_roots()
         p_roots = list(self._Q.positive_roots_by_height())
         n_roots = [-x for x in p_roots]
-        self._p_roots_index = {al: i for i,al in enumerate(p_roots)}
+        self._p_roots_index = OrderedDict((al, i)
+                                          for i, al in enumerate(p_roots))
         alphacheck = self._Q.simple_coroots()
         roots = frozenset(self._Q.roots())
         num_sroots = len(alpha)
@@ -1255,8 +1257,8 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
 
             sage: L = lie_algebras.sp(QQ, 4)
             sage: L._negative_half_index_set()
-            [-alpha[2], -alpha[1] - alpha[2],
-             -2*alpha[1] - alpha[2], -alpha[1]]
+            [-alpha[2], -alpha[1], -alpha[1] - alpha[2],
+             -2*alpha[1] - alpha[2]]
         """
         return [-x for x in self._p_roots_index]
 

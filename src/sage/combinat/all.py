@@ -77,10 +77,11 @@ from .partition_algebra import SetPartitionsAk, SetPartitionsPk, SetPartitionsTk
 from .diagram_algebras import PartitionAlgebra, BrauerAlgebra, TemperleyLiebAlgebra, PlanarAlgebra, PropagatingIdeal
 
 #Descent algebra
-from .descent_algebra import DescentAlgebra
+lazy_import('sage.combinat.descent_algebra', 'DescentAlgebra')
 
 #Vector Partitions
-from .vector_partition import VectorPartition, VectorPartitions
+lazy_import('sage.combinat.vector_partition',
+            ['VectorPartition', 'VectorPartitions'])
 
 #Similarity class types
 from .similarity_class_type import PrimarySimilarityClassType, PrimarySimilarityClassTypes, SimilarityClassType, SimilarityClassTypes
@@ -163,8 +164,6 @@ from .posets.all import *
 # Cluster Algebras and Quivers
 from .cluster_algebra_quiver.all import *
 
-#import lrcalc
-
 from . import ranker
 
 from .integer_vector import IntegerVectors
@@ -177,19 +176,21 @@ from .q_analogues import gaussian_binomial, q_binomial
 
 from .species.all import *
 
-from .kazhdan_lusztig import KazhdanLusztigPolynomial
+lazy_import('sage.combinat.kazhdan_lusztig', 'KazhdanLusztigPolynomial')
 
-from .degree_sequences import DegreeSequences
+lazy_import('sage.combinat.degree_sequences', 'DegreeSequences')
 
-from .cyclic_sieving_phenomenon import CyclicSievingPolynomial, CyclicSievingCheck
+lazy_import('sage.combinat.cyclic_sieving_phenomenon',
+            ['CyclicSievingPolynomial', 'CyclicSievingCheck'])
 
-from .sidon_sets import sidon_sets
+lazy_import('sage.combinat.sidon_sets', 'sidon_sets')
 
 # Puzzles
-from .knutson_tao_puzzles import KnutsonTaoPuzzleSolver
+lazy_import('sage.combinat.knutson_tao_puzzles', 'KnutsonTaoPuzzleSolver')
 
 # Gelfand-Tsetlin patterns
-from .gelfand_tsetlin_patterns import GelfandTsetlinPattern, GelfandTsetlinPatterns
+lazy_import('sage.combinat.gelfand_tsetlin_patterns',
+            ['GelfandTsetlinPattern', 'GelfandTsetlinPatterns'])
 
 # Finite State Machines (Automaton, Transducer)
 lazy_import('sage.combinat.finite_state_machine',
@@ -197,7 +198,8 @@ lazy_import('sage.combinat.finite_state_machine',
 lazy_import('sage.combinat.finite_state_machine_generators',
             ['automata', 'transducers'])
 # Binary Recurrence Sequences
-from .binary_recurrence_sequences import BinaryRecurrenceSequence
+lazy_import('sage.combinat.binary_recurrence_sequences',
+            'BinaryRecurrenceSequence')
 
 # Six Vertex Model
 lazy_import('sage.combinat.six_vertex_model', 'SixVertexModel')

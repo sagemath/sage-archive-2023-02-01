@@ -2033,9 +2033,14 @@ def is_kernel_polynomial(E, m, f):
         return False
     if m==1:
         return True
-    psi_m = E.division_polynomial(m)
-    if not f.divides(psi_m):
+
+    # Compute the quotient polynomial ring mod (f)
+    S = f.parent().quotient_ring(f)
+
+    # test if the m-division polynomial is a multiple of f by computing it in the quotient:
+    if E.division_polynomial(m, x=S.gen()) != 0:
         return False
+
     if m==2 or m==3:
         return True
 
@@ -2048,7 +2053,6 @@ def is_kernel_polynomial(E, m, f):
     from sage.rings.finite_rings.integer_mod_ring import Integers
     for a in Integers(m).unit_gens():
         mu = E.multiplication_by_m(a, x_only=True)
-        S = psi_m.parent().quotient_ring(f)
         if f( S(mu.numerator()) / S(mu.denominator()) ) != 0:
             return False
     return True

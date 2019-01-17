@@ -487,9 +487,9 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
             to_hw = elt.to_classical_highest_weight()
             rows = []
             letters = elt.parent().letters
-            for val in to_hw[0].classical_weight():
+            for i, mult in sorted(to_hw[0].classical_weight()):
                 # val in classical weight is a pair (i, mult)
-                rows.append([letters(val[0]+1)]*int(val[1]))
+                rows.append([letters(i+1)] * int(mult))
             hw_elt = self(rows=rows)
             f_str = reversed(to_hw[1])
             return hw_elt.f_string(f_str)

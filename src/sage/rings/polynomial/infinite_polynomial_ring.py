@@ -219,7 +219,7 @@ all constituents coerce.
     5/3*a_3*x_4 + 1/2*x_2 + 1
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2009 Simon King <simon.king@nuigalway.ie> and
 #                          Mike Hansen <mhansen@gmail.com>,
 #
@@ -232,8 +232,8 @@ all constituents coerce.
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from six.moves import range
 
 import six
@@ -241,7 +241,8 @@ from sage.rings.ring import CommutativeRing
 from sage.structure.all import SageObject, parent
 from sage.structure.factory import UniqueFactory
 from sage.misc.cachefunc import cached_method
-import operator, re
+import operator
+import re
 from functools import reduce
 
 ###############################################################
@@ -326,7 +327,7 @@ class InfinitePolynomialRingFactory(UniqueFactory):
 
     def create_object(self, version, key):
         """
-        Returns the infinite polynomial ring corresponding to the key ``key``.
+        Return the infinite polynomial ring corresponding to the key ``key``.
 
         TESTS::
 
@@ -755,7 +756,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
     @cached_method
     def _an_element_(self):
         """
-        Returns an element of this ring.
+        Return an element of this ring.
 
         EXAMPLES::
 
@@ -1161,7 +1162,9 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
 
     def ngens(self):
         """
-        Returns the number of generators for this ring.  Since there
+        Return the number of generators for this ring.
+
+        Since there
         are countably infinitely many variables in this polynomial
         ring, by 'generators' we mean the number of infinite families
         of variables. See :mod:`~sage.rings.polynomial.infinite_polynomial_ring`
@@ -1183,7 +1186,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
     @cached_method
     def gen(self, i=None):
         """
-        Returns the `i^{th}` 'generator' (see the description in :meth:`.ngens`)
+        Return the `i^{th}` 'generator' (see the description in :meth:`.ngens`)
         of this infinite polynomial ring.
 
         EXAMPLES::
@@ -1199,7 +1202,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             True
 
         """
-        if i > len(self._names):
+        if i is not None and i > len(self._names):
             raise ValueError
         j = i if i is not None else 0
         res = InfinitePolynomialGen(self, self._names[j])
@@ -1597,7 +1600,7 @@ class InfinitePolynomialRing_dense(InfinitePolynomialRing_sparse):
 
     def polynomial_ring(self):
         """
-        Returns the underlying *finite* polynomial ring.
+        Return the underlying *finite* polynomial ring.
 
         .. note::
 

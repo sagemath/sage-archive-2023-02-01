@@ -130,7 +130,7 @@ class PSModSymAction(Action):
 
         Action.__init__(self, actor, MSspace, False, operator.mul)
 
-    def _call_(self, sym, g):
+    def _act_(self, g, sym):
         r"""
         Return the result of sym * g
 

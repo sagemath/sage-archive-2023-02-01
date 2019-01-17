@@ -1274,7 +1274,7 @@ class SetPartition(AbstractSetPartition):
         # we refer to the cell in row i and column j with (i, j)
         n = self.size()
         degrees = []
-        P = map(sorted, self)
+        P = [sorted(e) for e in self]
         for j in range(n, 0, -1):
             # find the block number into which c was placed by first
             # removing j and then sorting the blocks
@@ -1859,12 +1859,12 @@ class SetPartition(AbstractSetPartition):
             Text '3' at the point (2.0,-0.1)
             Text '4' at the point (3.0,-0.1)
             Text '5' at the point (4.0,-0.1)
-            Arc with center (1.0,-1.0) radii (1.41421356237,1.41421356237)
-             angle 0.0 inside the sector (0.785398163397,2.35619449019)
-            Arc with center (2.5,-0.5) radii (0.707106781187,0.707106781187)
-             angle 0.0 inside the sector (0.785398163397,2.35619449019)
-            Arc with center (2.5,-1.5) radii (2.12132034356,2.12132034356)
-             angle 0.0 inside the sector (0.785398163397,2.35619449019)
+            Arc with center (1.0,-1.0) radii (1.41421356237...,1.41421356237...)
+             angle 0.0 inside the sector (0.785398163397...,2.35619449019...)
+            Arc with center (2.5,-0.5) radii (0.70710678118...,0.70710678118...)
+             angle 0.0 inside the sector (0.785398163397...,2.35619449019...)
+            Arc with center (2.5,-1.5) radii (2.1213203435...,2.1213203435...)
+             angle 0.0 inside the sector (0.785398163397...,2.35619449019...)
             sage: p = SetPartition([['a','c'],['b','d'],['e']])
             sage: print(p.plot().description())
             Point set defined by 1 point(s):  [(0.0, 0.0)]
@@ -1877,10 +1877,10 @@ class SetPartition(AbstractSetPartition):
             Text 'c' at the point (2.0,-0.1)
             Text 'd' at the point (3.0,-0.1)
             Text 'e' at the point (4.0,-0.1)
-            Arc with center (1.0,-1.0) radii (1.41421356237,1.41421356237)
-             angle 0.0 inside the sector (0.785398163397,2.35619449019)
-            Arc with center (2.0,-1.0) radii (1.41421356237,1.41421356237)
-             angle 0.0 inside the sector (0.785398163397,2.35619449019)
+            Arc with center (1.0,-1.0) radii (1.41421356237...,1.41421356237...)
+             angle 0.0 inside the sector (0.785398163397...,2.35619449019...)
+            Arc with center (2.0,-1.0) radii (1.41421356237...,1.41421356237...)
+             angle 0.0 inside the sector (0.785398163397...,2.35619449019...)
             sage: p = SetPartition([['a','c'],['b','d'],['e']])
             sage: print(p.plot(base_set_dict={'a':0,'b':1,'c':2,'d':-2.3,'e':5.4}).description())
             Point set defined by 1 point(s):    [(-2.3, 0.0)]
@@ -1893,10 +1893,10 @@ class SetPartition(AbstractSetPartition):
             Text 'c' at the point (2.0,-0.1)
             Text 'd' at the point (-2.3,-0.1)
             Text 'e' at the point (5.4,-0.1)
-            Arc with center (-0.65,-1.65) radii (2.33345237792,2.33345237792)
-             angle 0.0 inside the sector (0.785398163397,2.35619449019)
-            Arc with center (1.0,-1.0) radii (1.41421356237,1.41421356237)
-             angle 0.0 inside the sector (0.785398163397,2.35619449019)
+            Arc with center (-0.6...,-1.65) radii (2.3334523779...,2.3334523779...)
+             angle 0.0 inside the sector (0.785398163397...,2.35619449019...)
+            Arc with center (1.0,-1.0) radii (1.4142135623...,1.4142135623...)
+             angle 0.0 inside the sector (0.785398163397...,2.35619449019...)
         """
         from sage.plot.graphics import Graphics
         from sage.plot.point import point

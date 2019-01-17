@@ -2821,7 +2821,7 @@ should get a nice picture."""
             """
             String representation
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: from sage.misc.latex import latex_examples
                 sage: len(latex_examples.knot()._repr_()) > 300
@@ -2873,7 +2873,7 @@ should get a nice picture.
             """
             String representation
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: from sage.misc.latex import latex_examples
                 sage: len(latex_examples.diagram()._repr_()) > 300

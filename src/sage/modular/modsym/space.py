@@ -1126,7 +1126,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         If prec is not given it is set equal to the max of the
         ``hecke_bound`` function called on each space.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: A, B = ModularSymbols(48, 2).cuspidal_submodule().decomposition()
             sage: A.congruence_number(B)

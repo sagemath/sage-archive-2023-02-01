@@ -6095,7 +6095,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         For internal use only.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: R.<a> = PolynomialRing(ZZ)
             sage: (2*a^2 + a)._pari_with_name()
@@ -10912,7 +10912,8 @@ cdef class Polynomial_generic_dense(Polynomial):
         OUTPUT:
             element of base ring
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<t> = QQ[]
             sage: S.<x> = R[]
             sage: f = x*t + x + t

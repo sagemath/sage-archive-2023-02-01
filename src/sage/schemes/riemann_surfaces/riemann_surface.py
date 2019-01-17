@@ -1416,7 +1416,7 @@ class RiemannSurface(object):
         differentials `g/(df/dw) dz`, where `f(z,w)=0` is the equation
         specifying the Riemann surface.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
             sage: R.<z,w> = QQ[]

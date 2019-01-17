@@ -3096,7 +3096,7 @@ def _build_small_srg_database():
     parameters of the graph of words of `C`. Another relevant reference is
     Sect.9.8.3 of [BH12]_.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.graphs.strongly_regular_db import _build_small_srg_database
         sage: _build_small_srg_database()

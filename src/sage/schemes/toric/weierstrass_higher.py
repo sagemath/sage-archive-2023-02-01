@@ -83,7 +83,7 @@ def _check_polynomials_P3(quadratic1, quadratic2, variables):
     polynomial ring. A ``ValueError`` is raised if the polynomial is
     not homogeneous.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.schemes.toric.weierstrass_higher import _check_polynomials_P3
         sage: R.<w,x,y,z> = QQ[]

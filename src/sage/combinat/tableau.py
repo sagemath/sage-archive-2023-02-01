@@ -1908,7 +1908,7 @@ class Tableau(ClonableList):
 
         - ``secondtab`` -- a tableau of the same shape as ``self``
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: T = Tableau([[1, 2], [3]])
             sage: S = Tableau([[1, 3], [3]])

@@ -292,7 +292,7 @@ class ParentLibGAP(SageObject):
 
         A :class:`~sage.libs.gap.element.GapElement`
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: G = FreeGroup(2)
             sage: G._gap_gens()

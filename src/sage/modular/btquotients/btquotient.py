@@ -1428,7 +1428,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         """
         Ensure that a canonical BruhatTitsQuotient is created.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: BruhatTitsQuotient(3,17) is BruhatTitsQuotient(3,17,1)
             True
@@ -2427,7 +2427,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         - ``amount`` Integer (default: 1). The amount by which to
           increase the precision.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: X = BruhatTitsQuotient(3,101)
             sage: X.get_embedding_matrix()

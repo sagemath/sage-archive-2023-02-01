@@ -2004,7 +2004,7 @@ class Sandpile(DiGraph):
         r"""
         Find representatives for the elements of the Jacobian group.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: s = sandpiles.Complete(3)
             sage: s._set_jacobian_representatives()

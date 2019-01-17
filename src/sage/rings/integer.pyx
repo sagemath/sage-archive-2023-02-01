@@ -5943,7 +5943,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         for a large list of small integers the overhead of calling
         StringToInteger can be a killer.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: (117)._magma_init_(magma)           # optional - magma
             '117'
 
@@ -6740,7 +6741,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         Return the complex conjugate of this integer, which is the
         integer itself.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: n = 205
             sage: n.conjugate()
             205

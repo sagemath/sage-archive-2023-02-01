@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 r"""
 Interface to GAP
 
@@ -295,7 +295,7 @@ def _get_gap_memory_pool_size_MB():
 
     String.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.interfaces.gap import \
         ....:     _get_gap_memory_pool_size_MB

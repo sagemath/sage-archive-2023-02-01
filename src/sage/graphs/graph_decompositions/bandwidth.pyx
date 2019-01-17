@@ -101,7 +101,7 @@ Functions
 ---------
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 Nathann Cohen <nathann.cohen@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -109,7 +109,7 @@ Functions
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 
 from libc.stdint cimport uint16_t
 from cysignals.signals cimport sig_check
@@ -243,15 +243,15 @@ def bandwidth(G, k=None):
 
     cdef MemoryAllocator mem = MemoryAllocator()
 
-    cdef unsigned short ** d                = <unsigned short **> mem.allocarray(n,   sizeof(unsigned short *))
-    cdef unsigned short *  distances        = <unsigned short *>  mem.allocarray(n*n, sizeof(unsigned short  ))
-    cdef index_t *         current          = <index_t *>         mem.allocarray(n,   sizeof(index_t))
-    cdef index_t *         ordering         = <index_t *>         mem.allocarray(n,   sizeof(index_t))
-    cdef index_t *         left_to_order    = <index_t *>         mem.allocarray(n,   sizeof(index_t))
-    cdef index_t *         index_array_tmp  = <index_t *>         mem.allocarray(n,   sizeof(index_t))
-    cdef range_t *         range_arrays     = <range_t *>         mem.allocarray(n*n, sizeof(range_t))
-    cdef range_t **        ith_range_array  = <range_t **>        mem.allocarray(n,   sizeof(range_t *))
-    cdef range_t *         range_array_tmp  = <range_t *>         mem.allocarray(n,   sizeof(range_t))
+    cdef unsigned short ** d = <unsigned short **> mem.allocarray(n, sizeof(unsigned short *))
+    cdef unsigned short * distances = <unsigned short *> mem.allocarray(n*n, sizeof(unsigned short))
+    cdef index_t * current = <index_t *> mem.allocarray(n, sizeof(index_t))
+    cdef index_t * ordering = <index_t *> mem.allocarray(n, sizeof(index_t))
+    cdef index_t * left_to_order = <index_t *> mem.allocarray(n, sizeof(index_t))
+    cdef index_t * index_array_tmp  = <index_t *> mem.allocarray(n, sizeof(index_t))
+    cdef range_t * range_arrays = <range_t *> mem.allocarray(n*n, sizeof(range_t))
+    cdef range_t ** ith_range_array  = <range_t **> mem.allocarray(n, sizeof(range_t *))
+    cdef range_t * range_array_tmp  = <range_t *> mem.allocarray(n, sizeof(range_t))
 
     cdef int i, j, kk
     # compute the distance matrix
@@ -288,16 +288,16 @@ def bandwidth(G, k=None):
 
 cdef bint bandwidth_C(int n, int k,
                      unsigned short ** d,
-                     index_t *         current,         # choice of vertex for the current position
-                     index_t *         ordering,        # the actual ordering of vertices
-                     index_t *         left_to_order,   # begins with the assigned vertices, ends with the others
-                     index_t *         index_array_tmp, # tmp space
-                     range_t **        ith_range_array, # array of ranges, for every step of the algorithm
-                     range_t *         range_array_tmp):# tmp space
+                     index_t * current,           # choice of vertex for the current position
+                     index_t * ordering,          # the actual ordering of vertices
+                     index_t * left_to_order,     # begins with the assigned vertices, ends with the others
+                     index_t * index_array_tmp,   # tmp space
+                     range_t ** ith_range_array,  # array of ranges, for every step of the algorithm
+                     range_t * range_array_tmp):  # tmp space
 
     cdef int i, v
-    cdef int pi # the position for which a vertex is being chosen
-    cdef int vi # the vertex being tested at position pi
+    cdef int pi  # the position for which a vertex is being chosen
+    cdef int vi  # the vertex being tested at position pi
     cdef int radius
     current[0] = -1
 
@@ -351,15 +351,15 @@ cdef bint bandwidth_C(int n, int k,
         # \forall v, k*d[v][vi] >= |p_v-p_{vi}| (see module documentation)
         for v in range(n):
             radius = k * d[v][vi]
-            ith_range_array[i+1][v].m = max(<int> ith_range_array[i][v].m, pi - radius)
-            ith_range_array[i+1][v].M = min(<int> ith_range_array[i][v].M, pi + radius)
+            ith_range_array[i + 1][v].m = max(<int> ith_range_array[i][v].m, pi - radius)
+            ith_range_array[i + 1][v].M = min(<int> ith_range_array[i][v].M, pi + radius)
 
         # Check the feasibility of a matching with the updated intervals of
         # admissible positions (see module doc).
         #
         # If it is possible we explore deeper, otherwise we undo the changes as
         # pi is not a good position for vi after all.
-        if is_matching_feasible(n, ith_range_array[i+1], range_array_tmp, index_array_tmp):
+        if is_matching_feasible(n, ith_range_array[i + 1], range_array_tmp, index_array_tmp):
             i += 1
             current[i] = i - 1
         else:

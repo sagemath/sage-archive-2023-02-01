@@ -804,7 +804,7 @@ REFERENCES:
 .. [CL2013] Maria Chlouveraki and Sofia Lambropoulou. *The
             Yokonuma-Hecke algebras and the HOMFLYPT
             polynomial*. (2015) :arxiv:`1204.1871v4`.
-            
+
 .. [Cle1872] Alfred Clebsch, *Theorie der binären algebraischen Formen*,
              Teubner, 1872.
 
@@ -1738,10 +1738,10 @@ REFERENCES:
 .. [HRW2015] \J. Haglund, J. B. Remmel, A. T. Wilson. *The Delta Conjecture*.
              Preprint, :arxiv:`1509.07058`.
 
-.. [HS1968] Donald G. Higman and Charles C. Sims. 
-            *A simple group of order 44,352,000*. 
-            Mathematische Zeitschrift 105(2): 110-113, 1968. 
-            :doi:`10.1007/BF01110435`. 
+.. [HS1968] Donald G. Higman and Charles C. Sims.
+            *A simple group of order 44,352,000*.
+            Mathematische Zeitschrift 105(2): 110-113, 1968.
+            :doi:`10.1007/BF01110435`.
 
 .. [HS2018] \B. Hutz, M. Stoll. "Smallest representatives of
             `SL(2,\ZZ)`-orbits of binary forms and endomorphisms of P1",
@@ -3168,6 +3168,9 @@ REFERENCES:
              simply-laced crystals*, Transactions of the American
              Mathematical Society, Vol. 355, No. 12 (Dec., 2003),
              pp. 4807--4823
+
+.. [Stich2009] Stichtenoth, Henning. *Algebraic function fields and codes*.
+               Vol. 254. Springer Science & Business Media, 2009.
 
 .. [Sti2006] Douglas R. Stinson. *Cryptography: Theory and
              Practice*. 3rd edition, Chapman \& Hall/CRC, 2006.

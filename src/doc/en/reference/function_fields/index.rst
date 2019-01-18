@@ -6,6 +6,8 @@ algebraic function fields over arbitrary constant fields. Advanced
 computations, like computing the genus or a basis of the Riemann-Roch space of
 a divisor, are available for global function fields.
 
+A reference for the basic theory of algebraic function fields is [Stich2009]_.
+
 .. toctree::
    :maxdepth: 1
 

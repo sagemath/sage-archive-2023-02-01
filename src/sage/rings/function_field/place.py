@@ -1,7 +1,16 @@
 """
 Places of function fields
 
-Sage can find and compute with places on global function fields.
+Places are defined for arbitrary function fields, but presently Sage can find
+and compute with places only of rational function fields and global function
+fields.
+
+The places of a function field correspond, one-to-one, to valuation rings
+of the function field, each of which defines discrete valuation of the
+elements of the function field. "Finite" places are in one-to-one
+correspondence with the prime ideals of the finite maximal order while
+places "at infinity" are in one-to-one correspondence with the prime ideals
+of the infinite maximal order.
 
 EXAMPLES:
 

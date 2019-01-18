@@ -8868,16 +8868,6 @@ cdef class Matrix(Matrix1):
         \det(M_{j, i})`, where `M_{j,i}` is the matrix `M` with its `j`-th row
         and `i`-th column removed. It is known to satisfy `NM = MN = \det(M)I`.
 
-        An alias of this method is :meth:`adjoint_classical`.
-
-        ALGORITHM:
-
-        Use PARI whenever the method ``self._adjugate`` is included to do so in
-        an inheriting class. Otherwise, use a generic division-free algorithm
-        that computes the adjugate matrix from the characteristic polynomial.
-
-        The result is cached.
-
         EXAMPLES::
 
             sage: M = Matrix(ZZ,2,2,[5,2,3,4]) ; M
@@ -8901,6 +8891,26 @@ cdef class Matrix(Matrix1):
             sage: M * N
             [7363/1092         0]
             [        0 7363/1092]
+
+        An alias is :meth:`adjoint_classical`, which replaces the deprecated
+        :meth:`adjoint` method::
+
+            sage: M.adjoint()
+            ...: DeprecationWarning: adjoint is deprecated. Please use adjugate instead.
+            See http://trac.sagemath.org/10501 for details.
+            [ 41/10  -1/28]
+            [-33/13    5/3]
+            sage: M.adjoint_classical()
+            [ 41/10  -1/28]
+            [-33/13    5/3]
+
+        ALGORITHM:
+
+        Use PARI whenever the method ``self._adjugate`` is included to do so in
+        an inheriting class. Otherwise, use a generic division-free algorithm
+        that computes the adjugate matrix from the characteristic polynomial.
+
+        The result is cached.
         """
 
         if self._nrows != self._ncols:

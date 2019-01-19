@@ -1535,23 +1535,31 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver=Non
         {}
         sage: acyclic_edge_coloring(g, k=None, hex_colors=False)
         []
+
+    Empty graph  (:trac:`27079`)::
+
+        sage: from sage.graphs.graph_coloring import acyclic_edge_coloring
+        sage: acyclic_edge_coloring(Graph(), k=None, value_only=True)
+        0
     """
     g._scream_if_not_simple(allow_multiple_edges=True)
 
     from sage.rings.integer import Integer
     from sage.combinat.subset import Subsets
 
+    if not g.order() or not g.size():
+        if value_only:
+            if k is None:
+                return 0
+            elif k == 0:
+                return 2
+            else:
+                return k
+        else:
+            return {} if hex_colors else []
+
     if k is None:
         k = max(g.degree())
-
-        if not k:
-            # Case of a graph without edge
-            if value_only:
-                return 0
-            elif hex_colors:
-                return {}
-            else:
-                return []
 
         while True:
             try:

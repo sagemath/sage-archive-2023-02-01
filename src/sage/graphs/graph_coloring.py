@@ -1546,17 +1546,17 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver=Non
 
     from sage.rings.integer import Integer
     from sage.combinat.subset import Subsets
+    from sage.plot.colors import rainbow
 
     if not g.order() or not g.size():
+        if k == 0:
+            k = 2
         if value_only:
-            if k is None:
-                return 0
-            elif k == 0:
-                return 2
-            else:
-                return k
+            return 0 if k is None else k
         else:
-            return {} if hex_colors else []
+            if k is None:
+                return {} if hex_colors else []
+            return {c: [] for c in rainbow(k)} if hex_colors else [copy(g) for _ in range(k)]
 
     if k is None:
         k = max(g.degree())
@@ -1576,8 +1576,6 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver=Non
 
     elif not k:
         k = max(g.degree()) + 2
-
-    from sage.plot.colors import rainbow
 
     p = MixedIntegerLinearProgram(solver=solver)
 
@@ -1622,7 +1620,10 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver=Non
 
     except MIPSolverException:
         if k == max(g.degree()) + 2:
-            raise RuntimeError("It looks like you have found a counterexample to a very old conjecture. Please do not loose it ! Please publish it, and send a post to sage-devel to warn us. We implore you!")
+            raise RuntimeError("It looks like you have found a counterexample to "
+                               "a very old conjecture. Please do not loose it ! "
+                               "Please publish it, and send a post to sage-devel "
+                               "to warn us. We implore you!")
         else:
             raise ValueError("this graph can not be colored with the given number of colors")
 

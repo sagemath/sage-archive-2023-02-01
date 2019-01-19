@@ -1524,6 +1524,17 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver=Non
         sage: d = acyclic_edge_coloring(g, hex_colors=True)
         sage: sorted(d)
         ['#0066ff', '#00ff66', '#cbff00', '#cc00ff', '#ff0000']
+
+    The acyclic chromatic index of a graph without edge is 0 (:trac:`27079`)::
+
+        sage: from sage.graphs.graph_coloring import acyclic_edge_coloring
+        sage: g = Graph(3)
+        sage: acyclic_edge_coloring(g, k=None, value_only=True)
+        0
+        sage: acyclic_edge_coloring(g, k=None, hex_colors=True)
+        {}
+        sage: acyclic_edge_coloring(g, k=None, hex_colors=False)
+        []
     """
     g._scream_if_not_simple(allow_multiple_edges=True)
 
@@ -1532,6 +1543,15 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver=Non
 
     if k is None:
         k = max(g.degree())
+
+        if not k:
+            # Case of a graph without edge
+            if value_only:
+                return 0
+            elif hex_colors:
+                return {}
+            else:
+                return []
 
         while True:
             try:

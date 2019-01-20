@@ -2214,10 +2214,10 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: (J0(11) * J1(13))._ambient_hecke_matrix_on_modular_symbols(2)
             [-2  0  0  0  0  0]
             [ 0 -2  0  0  0  0]
-            [ 0  0 -2  0 -1  1]
-            [ 0  0  1 -1  0 -1]
-            [ 0  0  1  1 -2  0]
-            [ 0  0  0  1 -1 -1]
+            [ 0  0 -1 -1 -1  1]
+            [ 0  0  1 -2 -1  0]
+            [ 0  0  0  0 -2  1]
+            [ 0  0  0  0 -1 -1]
         """
         if not self.is_ambient():
             return self.ambient_variety()._ambient_hecke_matrix_on_modular_symbols(n)
@@ -2501,10 +2501,10 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: H.hecke_operator(2).matrix()
             [-2  0  0  0  0  0]
             [ 0 -2  0  0  0  0]
-            [ 0  0 -2  0 -1  1]
-            [ 0  0  1 -1  0 -1]
-            [ 0  0  1  1 -2  0]
-            [ 0  0  0  1 -1 -1]
+            [ 0  0 -1 -1 -1  1]
+            [ 0  0  1 -2 -1  0]
+            [ 0  0  0  0 -2  1]
+            [ 0  0  0  0 -1 -1]
         """
         return self.homology(ZZ)
 

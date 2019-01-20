@@ -657,7 +657,7 @@ def mult_schubert(w1, w2, rank=0):
 
 
 def lrskew(outer, inner, weight=None, maxrows=0):
-    """
+    r"""
     Iterate over the skew LR tableaux of shape ``outer / inner``.
 
     INPUT:

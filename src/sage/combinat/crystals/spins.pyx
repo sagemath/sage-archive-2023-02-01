@@ -48,12 +48,12 @@ from cysignals.memory cimport sig_malloc, sig_free
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.parent import Parent
+from sage.structure.parent cimport Parent
 from sage.structure.element cimport Element, parent
 from sage.categories.classical_crystals import ClassicalCrystals
-from sage.combinat.crystals.letters cimport Letter
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.tableau import Tableau
+from sage.rings.integer_ring import ZZ
 from sage.typeset.ascii_art import AsciiArt
 from sage.typeset.unicode_art import UnicodeArt
 
@@ -276,11 +276,7 @@ cdef class Spin(Element):
         sage: b == c
         False
     """
-    # A + is a 0/False and a - is a 1/True
-    # Multiplication is done by !=
-    cdef bint* value
-    cdef int n
-    cdef long _hash
+    # cdef bint* self._value  # A + is a 0/False and a - is a 1/True
 
     def __init__(self, parent, tuple val):
         """
@@ -293,10 +289,10 @@ cdef class Spin(Element):
             sage: TestSuite(c).run()
         """
         cdef int i
-        self.n = parent.cartan_type().rank()
-        self.value = <bint*>sig_malloc(self.n*sizeof(bint))
-        for i in range(self.n):
-            self.value[i] = (val[i] != 1)
+        self._n = parent.cartan_type().rank()
+        self._value = <bint*>sig_malloc(self._n*sizeof(bint))
+        for i in range(self._n):
+            self._value[i] = (val[i] != 1)
         Element.__init__(self, parent)
 
     cdef Spin _new_c(self, bint* value):
@@ -305,8 +301,8 @@ cdef class Spin(Element):
         """
         cdef Spin ret = type(self).__new__(type(self))
         ret._parent = self._parent
-        ret.n = self.n
-        ret.value = value
+        ret._n = self._n
+        ret._value = value
         ret._hash = 0
         return ret
 
@@ -320,7 +316,7 @@ cdef class Spin(Element):
             sage: c = C([1,1,1])
             sage: del c
         """
-        sig_free(self.value)
+        sig_free(self._value)
 
     def __hash__(self):
         """
@@ -334,7 +330,7 @@ cdef class Spin(Element):
         """
         cdef int i
         if self._hash == 0:
-            self._hash = hash(tuple([-1 if self.value[i] else 1 for i in range(self.n)]))
+            self._hash = hash(tuple([-1 if self._value[i] else 1 for i in range(self._n)]))
         return self._hash
 
     def __reduce__(self):
@@ -348,7 +344,7 @@ cdef class Spin(Element):
             sage: a.__reduce__()
             (The crystal of spins for type ['B', 3], ((1, -1, 1),))
         """
-        tup = tuple([-1 if self.value[i] else 1 for i in range(self.n)])
+        tup = tuple([-1 if self._value[i] else 1 for i in range(self._n)])
         return (self._parent, (tup,))
 
     cpdef _richcmp_(left, right, int op):
@@ -378,13 +374,13 @@ cdef class Spin(Element):
         self = left
         x = right
         if op == Py_EQ:
-            for i in range(self.n):
-                if self.value[i] != x.value[i]:
+            for i in range(self._n):
+                if self._value[i] != x._value[i]:
                     return False
             return True
         if op == Py_NE:
-            for i in range(self.n):
-                if self.value[i] != x.value[i]:
+            for i in range(self._n):
+                if self._value[i] != x._value[i]:
                     return True
             return False
         if op == Py_LT:
@@ -396,6 +392,23 @@ cdef class Spin(Element):
         if op == Py_GE:
             return self == x or x._parent._digraph_closure.has_edge(x, self)
         return False
+
+    @property
+    def value(self):
+        r"""
+        Return ``self`` as a tuple with `+1` and `-1`.
+
+        EXAMPLES::
+
+            sage: C = crystals.Spins(['B',3])
+            sage: C([1,1,1]).value
+            (1, 1, 1)
+            sage: C([1,1,-1]).value
+            (1, 1, -1)
+        """
+        cdef int i
+        one = ZZ.one()
+        return tuple([-one if self._value[i] else one for i in range(self._n)])
 
     def signature(self):
         """
@@ -411,8 +424,8 @@ cdef class Spin(Element):
         """
         cdef int i
         cdef str sword = ""
-        for i in range(self.n):
-            sword += "+" if self.value[i] != 1 else "-"
+        for i in range(self._n):
+            sword += "+" if self._value[i] != 1 else "-"
         return sword
 
     _repr_ = signature
@@ -512,7 +525,7 @@ cdef class Spin(Element):
         cdef int i
         mone = -WLR.base_ring().one()
         # The ambient space is indexed by 0,...,n-1
-        return WLR._from_dict({i: mone**int(self.value[i]) / 2 for i in range(self.n)},
+        return WLR._from_dict({i: mone**int(self._value[i]) / 2 for i in range(self._n)},
                               remove_zeros=False, coerce=False)
 
 cdef class Spin_crystal_type_B_element(Spin):
@@ -530,23 +543,23 @@ cdef class Spin_crystal_type_B_element(Spin):
             [[None, None, None], [None, None, +++], [None, ++-, None], [+-+, None, None],
              [None, None, +-+], [+--, None, -++], [None, -+-, None], [None, None, --+]]
         """
-        if i < 1 or i > self.n:
+        if i < 1 or i > self._n:
             raise ValueError("i is not in the index set")
         cdef int j
         cdef bint* ret
-        if i == self.n:
-            if self.value[i-1]:
-                ret = <bint*>sig_malloc(self.n*sizeof(bint))
-                for j in range(self.n):
-                    ret[j] = self.value[j]
+        if i == self._n:
+            if self._value[i-1]:
+                ret = <bint*>sig_malloc(self._n*sizeof(bint))
+                for j in range(self._n):
+                    ret[j] = self._value[j]
                 ret[i-1] = False
                 return self._new_c(ret)
             return None
 
-        if self.value[i-1] and not self.value[i]:
-            ret = <bint*>sig_malloc(self.n*sizeof(bint))
-            for j in range(self.n):
-                ret[j] = self.value[j]
+        if self._value[i-1] and not self._value[i]:
+            ret = <bint*>sig_malloc(self._n*sizeof(bint))
+            for j in range(self._n):
+                ret[j] = self._value[j]
             ret[i-1] = False
             ret[i] = True
             return self._new_c(ret)
@@ -563,23 +576,23 @@ cdef class Spin_crystal_type_B_element(Spin):
             [[None, None, ++-], [None, +-+, None], [-++, None, +--], [None, None, -+-],
              [-+-, None, None], [None, --+, None], [None, None, ---], [None, None, None]]
         """
-        if i < 1 or i > self.n:
+        if i < 1 or i > self._n:
             raise ValueError("i is not in the index set")
         cdef int j
         cdef bint* ret
-        if i == self.n:
-            if not self.value[i-1]:
-                ret = <bint*>sig_malloc(self.n*sizeof(bint))
-                for j in range(self.n):
-                    ret[j] = self.value[j]
+        if i == self._n:
+            if not self._value[i-1]:
+                ret = <bint*>sig_malloc(self._n*sizeof(bint))
+                for j in range(self._n):
+                    ret[j] = self._value[j]
                 ret[i-1] = True
                 return self._new_c(ret)
             return None
 
-        if self.value[i] and not self.value[i-1]:
-            ret = <bint*>sig_malloc(self.n*sizeof(bint))
-            for j in range(self.n):
-                ret[j] = self.value[j]
+        if self._value[i] and not self._value[i-1]:
+            ret = <bint*>sig_malloc(self._n*sizeof(bint))
+            for j in range(self._n):
+                ret[j] = self._value[j]
             ret[i-1] = True
             ret[i] = False
             return self._new_c(ret)
@@ -596,11 +609,11 @@ cdef class Spin_crystal_type_B_element(Spin):
             [[0, 0, 0], [0, 0, 1], [0, 1, 0], [1, 0, 0],
              [0, 0, 1], [1, 0, 1], [0, 1, 0], [0, 0, 1]]
         """
-        if i < 1 or i > self.n:
+        if i < 1 or i > self._n:
             raise ValueError("i is not in the index set")
-        if i == self.n:
-            return self.value[i-1]
-        return self.value[i-1] and not self.value[i]
+        if i == self._n:
+            return self._value[i-1]
+        return self._value[i-1] and not self._value[i]
 
     cpdef int phi(self, int i):
         r"""
@@ -613,11 +626,11 @@ cdef class Spin_crystal_type_B_element(Spin):
             [[0, 0, 1], [0, 1, 0], [1, 0, 1], [0, 0, 1],
              [1, 0, 0], [0, 1, 0], [0, 0, 1], [0, 0, 0]]
         """
-        if i < 1 or i > self.n:
+        if i < 1 or i > self._n:
             raise ValueError("i is not in the index set")
-        if i == self.n:
-            return not self.value[i-1]
-        return self.value[i] and not self.value[i-1]
+        if i == self._n:
+            return not self._value[i-1]
+        return self._value[i] and not self._value[i-1]
 
 cdef class Spin_crystal_type_D_element(Spin):
     r"""
@@ -641,24 +654,24 @@ cdef class Spin_crystal_type_D_element(Spin):
             [[None, None, None], [None, None, +++-], [None, ++-+, None], [+-++, None, None],
              [None, None, None], [+---, None, None], [None, -+--, None], [None, None, --+-]]
         """
-        if i < 1 or i > self.n:
+        if i < 1 or i > self._n:
             raise ValueError("i is not in the index set")
         cdef int j
         cdef bint* ret
-        if i == self.n:
-            if self.value[i-1] and self.value[i-2]:
-                ret = <bint*>sig_malloc(self.n*sizeof(bint))
-                for j in range(self.n):
-                    ret[j] = self.value[j]
+        if i == self._n:
+            if self._value[i-1] and self._value[i-2]:
+                ret = <bint*>sig_malloc(self._n*sizeof(bint))
+                for j in range(self._n):
+                    ret[j] = self._value[j]
                 ret[i-1] = False
                 ret[i-2] = False
                 return self._new_c(ret)
             return None
 
-        if self.value[i-1] and not self.value[i]:
-            ret = <bint*>sig_malloc(self.n*sizeof(bint))
-            for j in range(self.n):
-                ret[j] = self.value[j]
+        if self._value[i-1] and not self._value[i]:
+            ret = <bint*>sig_malloc(self._n*sizeof(bint))
+            for j in range(self._n):
+                ret[j] = self._value[j]
             ret[i-1] = False
             ret[i] = True
             return self._new_c(ret)
@@ -682,24 +695,24 @@ cdef class Spin_crystal_type_D_element(Spin):
             [[None, None, ++-+], [None, +-++, None], [-+++, None, None], [None, None, None],
              [-+--, None, None], [None, --+-, None], [None, None, ---+], [None, None, None]]
         """
-        if i < 1 or i > self.n:
+        if i < 1 or i > self._n:
             raise ValueError("i is not in the index set")
         cdef int j
         cdef bint* ret
-        if i == self.n:
-            if not self.value[i-1] and not self.value[i-2]:
-                ret = <bint*>sig_malloc(self.n*sizeof(bint))
-                for j in range(self.n):
-                    ret[j] = self.value[j]
+        if i == self._n:
+            if not self._value[i-1] and not self._value[i-2]:
+                ret = <bint*>sig_malloc(self._n*sizeof(bint))
+                for j in range(self._n):
+                    ret[j] = self._value[j]
                 ret[i-1] = True
                 ret[i-2] = True
                 return self._new_c(ret)
             return None
 
-        if self.value[i] and not self.value[i-1]:
-            ret = <bint*>sig_malloc(self.n*sizeof(bint))
-            for j in range(self.n):
-                ret[j] = self.value[j]
+        if self._value[i] and not self._value[i-1]:
+            ret = <bint*>sig_malloc(self._n*sizeof(bint))
+            for j in range(self._n):
+                ret[j] = self._value[j]
             ret[i-1] = True
             ret[i] = False
             return self._new_c(ret)
@@ -716,11 +729,11 @@ cdef class Spin_crystal_type_D_element(Spin):
             [[0, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0],
              [0, 0, 0, 1], [1, 0, 0, 1], [0, 1, 0, 0], [0, 0, 1, 0]]
         """
-        if i < 1 or i > self.n:
+        if i < 1 or i > self._n:
             raise ValueError("i is not in the index set")
-        if i == self.n:
-            return self.value[i-1] and self.value[i-2]
-        return self.value[i-1] and not self.value[i]
+        if i == self._n:
+            return self._value[i-1] and self._value[i-2]
+        return self._value[i-1] and not self._value[i]
 
     cpdef int phi(self, int i):
         r"""
@@ -733,9 +746,9 @@ cdef class Spin_crystal_type_D_element(Spin):
             [[0, 0, 0, 1], [0, 1, 0, 0], [1, 0, 1, 0], [0, 0, 1, 0],
              [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 0, 0]]
         """
-        if i < 1 or i > self.n:
+        if i < 1 or i > self._n:
             raise ValueError("i is not in the index set")
-        if i == self.n:
-            return not self.value[i-1] and not self.value[i-2]
-        return self.value[i] and not self.value[i-1]
+        if i == self._n:
+            return not self._value[i-1] and not self._value[i-2]
+        return self._value[i] and not self._value[i-1]
 

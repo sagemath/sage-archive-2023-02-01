@@ -502,11 +502,11 @@ cdef class Letter(Element):
         if op == Py_LT:
             return self._parent.lt_elements(self, x)
         if op == Py_GT:
-            return x.parent().lt_elements(x, self)
+            return x._parent.lt_elements(x, self)
         if op == Py_LE:
             return self.value == x.value or self._parent.lt_elements(self, x)
         if op == Py_GE:
-            return self.value == x.value or x.parent().lt_elements(x, self)
+            return self.value == x.value or x._parent.lt_elements(x, self)
         return False
 
 cdef class EmptyLetter(Element):
@@ -619,7 +619,7 @@ cdef class EmptyLetter(Element):
             sage: C('E').weight()
             (0, 0, 0)
         """
-        return self.parent().weight_lattice_realization().zero()
+        return self._parent.weight_lattice_realization().zero()
 
     cpdef e(self, int i):
         """
@@ -2932,7 +2932,7 @@ cdef class LetterWrapped(Element):
         cdef Element ret = self.value.e(i)
         if ret is None:
             return None
-        return type(self)(self.parent(), ret)
+        return type(self)(self._parent, ret)
 
     cpdef LetterWrapped f(self, int i):
         r"""
@@ -2948,7 +2948,7 @@ cdef class LetterWrapped(Element):
         cdef Element ret = self.value.f(i)
         if ret is None:
             return None
-        return type(self)(self.parent(), ret)
+        return type(self)(self._parent, ret)
 
     cpdef int epsilon(self, int i):
         r"""

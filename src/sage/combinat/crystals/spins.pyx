@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Spin Crystals
 
@@ -216,6 +217,14 @@ class GenericCrystalOfSpins(UniqueRepresentation, Parent):
 
     @lazy_attribute
     def _digraph_closure(self):
+        """
+        The transitive closure of the digraph associated to ``self``.
+
+        EXAMPLES::
+
+            sage: crystals.Spins(['B',4])._digraph_closure
+            Transitive closure of : Digraph on 16 vertices
+        """
         return self.digraph().transitive_closure()
 
     def lt_elements(self, x, y):
@@ -232,11 +241,11 @@ class GenericCrystalOfSpins(UniqueRepresentation, Parent):
             sage: C = crystals.Spins(['B',3])
             sage: x = C([1,1,1])
             sage: y = C([-1,-1,-1])
-            sage: C.lt_elements(x,y)
+            sage: C.lt_elements(x, y)
             True
-            sage: C.lt_elements(y,x)
+            sage: C.lt_elements(y, x)
             False
-            sage: C.lt_elements(x,x)
+            sage: C.lt_elements(x, x)
             False
         """
         if parent(x) is not self or parent(y) is not self:
@@ -251,14 +260,10 @@ cdef class Spin(Element):
 
         sage: C = crystals.Spins(['B',3])
         sage: c = C([1,1,1])
-        sage: TestSuite(c).run()
-
-        sage: C([1,1,1]).parent()
+        sage: c
+        +++
+        sage: c.parent()
         The crystal of spins for type ['B', 3]
-
-        sage: c = C([1,1,1])
-        sage: c._repr_()
-        '+++'
 
         sage: D = crystals.Spins(['B',4])
         sage: a = C([1,1,1])
@@ -280,6 +285,12 @@ cdef class Spin(Element):
     def __init__(self, parent, tuple val):
         """
         Initialize ``self``.
+
+        TESTS::
+
+            sage: C = crystals.Spins(['B',3])
+            sage: c = C([1,1,1])
+            sage: TestSuite(c).run()
         """
         cdef int i
         self.n = parent.cartan_type().rank()
@@ -300,9 +311,27 @@ cdef class Spin(Element):
         return ret
 
     def __dealloc__(self):
+        """
+        Deallocate ``self``.
+
+        TESTS::
+
+            sage: C = crystals.Spins(['B',3])
+            sage: c = C([1,1,1])
+            sage: del c
+        """
         sig_free(self.value)
 
     def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        TESTS::
+
+            sage: C = crystals.Spins(['B',3])
+            sage: len(set(C)) == len(set([hash(x) for x in C]))
+            True
+        """
         cdef int i
         if self._hash == 0:
             self._hash = hash(tuple([-1 if self.value[i] else 1 for i in range(self.n)]))
@@ -314,10 +343,10 @@ cdef class Spin(Element):
 
         EXAMPLES::
 
-            sage: C = crystals.Letters(['A',3])
-            sage: a = C(1)
+            sage: C = crystals.Spins(['B',3])
+            sage: a = C([1,-1,1])
             sage: a.__reduce__()
-            (The crystal of letters for type ['A', 3], (1,))
+            (The crystal of spins for type ['B', 3], ((1, -1, 1),))
         """
         tup = tuple([-1 if self.value[i] else 1 for i in range(self.n)])
         return (self._parent, (tup,))
@@ -325,6 +354,24 @@ cdef class Spin(Element):
     cpdef _richcmp_(left, right, int op):
         """
         Return ``True`` if ``left`` compares with ``right`` based on ``op``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Spins(['B',3])
+            sage: x = C([1,1,1])
+            sage: y = C([-1,-1,-1])
+            sage: x < y
+            True
+            sage: x >= y
+            False
+            sage: x < x
+            False
+            sage: x <= x
+            True
+            sage: x != y
+            True
+            sage: x == y
+            False
         """
         cdef Spin self, x
         cdef int i
@@ -385,10 +432,34 @@ cdef class Spin(Element):
         return '\n'.join(self.signature())
 
     def _ascii_art_(self):
-        return AsciiArt(self._repr_diagram())
+        """
+        Return an ascii art representation of ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Spins(['B',3])
+            sage: b = C([1,1,-1])
+            sage: ascii_art(b)
+            +
+            +
+            -
+        """
+        return AsciiArt(list(self.signature()))
 
     def _unicode_art_(self):
-        return UnicodeArt(self._repr_diagram())
+        """
+        Return a unicode art representation of ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Spins(['B',3])
+            sage: b = C([1,1,-1])
+            sage: unicode_art(b)
+            +
+            +
+            -
+        """
+        return UnicodeArt(list(self.signature()))
 
     def pp(self):
         """
@@ -425,6 +496,17 @@ cdef class Spin(Element):
         return Tableau([[i] for i in reversed(self.signature())])._latex_()
 
     def weight(self):
+        """
+        Return the weight of ``self``.
+
+        EXAMPLES::
+
+            sage: [v.weight() for v in crystals.Spins(['B',3])]
+            [(1/2, 1/2, 1/2), (1/2, 1/2, -1/2),
+             (1/2, -1/2, 1/2), (-1/2, 1/2, 1/2),
+             (1/2, -1/2, -1/2), (-1/2, 1/2, -1/2),
+             (-1/2, -1/2, 1/2), (-1/2, -1/2, -1/2)]
+        """
         WLR = self._parent.weight_lattice_realization()
         cdef int i
         mone = -WLR.base_ring().one()

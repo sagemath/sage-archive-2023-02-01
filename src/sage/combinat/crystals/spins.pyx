@@ -388,13 +388,13 @@ cdef class Spin(Element):
                     return True
             return False
         if op == Py_LT:
-            return self._parent.lt_elements(self, x)
+            return self._parent._digraph_closure.has_edge(self, x)
         if op == Py_GT:
-            return x._parent.lt_elements(x, self)
+            return x._parent._digraph_closure.has_edge(x, self)
         if op == Py_LE:
-            return self == x or self._parent.lt_elements(self, x)
+            return self == x or self._parent._digraph_closure.has_edge(self, x)
         if op == Py_GE:
-            return self == x or x._parent.lt_elements(x, self)
+            return self == x or x._parent._digraph_closure.has_edge(x, self)
         return False
 
     def signature(self):
@@ -409,9 +409,10 @@ cdef class Spin(Element):
             sage: C([1,1,-1]).signature()
             '++-'
         """
-        sword = ""
-        for x in range(self.n):
-            sword += "+" if self.value[x] != 1 else "-"
+        cdef int i
+        cdef str sword = ""
+        for i in range(self.n):
+            sword += "+" if self.value[i] != 1 else "-"
         return sword
 
     _repr_ = signature
@@ -518,7 +519,7 @@ cdef class Spin_crystal_type_B_element(Spin):
     r"""
     Type B spin representation crystal element
     """
-    cpdef Spin_crystal_type_B_element e(self, int i):
+    cpdef Spin e(self, int i):
         r"""
         Return the action of `e_i` on ``self``.
 
@@ -551,7 +552,7 @@ cdef class Spin_crystal_type_B_element(Spin):
             return self._new_c(ret)
         return None
 
-    cpdef Spin_crystal_type_B_element f(self, int i):
+    cpdef Spin f(self, int i):
         r"""
         Return the action of `f_i` on ``self``.
 
@@ -598,8 +599,8 @@ cdef class Spin_crystal_type_B_element(Spin):
         if i < 1 or i > self.n:
             raise ValueError("i is not in the index set")
         if i == self.n:
-            return int(self.value[i-1])
-        return int(self.value[i-1] and not self.value[i])
+            return self.value[i-1]
+        return self.value[i-1] and not self.value[i]
 
     cpdef int phi(self, int i):
         r"""
@@ -615,14 +616,14 @@ cdef class Spin_crystal_type_B_element(Spin):
         if i < 1 or i > self.n:
             raise ValueError("i is not in the index set")
         if i == self.n:
-            return int(not self.value[i-1])
-        return int(self.value[i] and not self.value[i-1])
+            return not self.value[i-1]
+        return self.value[i] and not self.value[i-1]
 
 cdef class Spin_crystal_type_D_element(Spin):
     r"""
     Type D spin representation crystal element
     """
-    cpdef Spin_crystal_type_D_element e(self, int i):
+    cpdef Spin e(self, int i):
         r"""
         Return the action of `e_i` on ``self``.
 
@@ -663,7 +664,7 @@ cdef class Spin_crystal_type_D_element(Spin):
             return self._new_c(ret)
         return None
 
-    cpdef Spin_crystal_type_D_element f(self, int i):
+    cpdef Spin f(self, int i):
         r"""
         Return the action of `f_i` on ``self``.
 
@@ -718,8 +719,8 @@ cdef class Spin_crystal_type_D_element(Spin):
         if i < 1 or i > self.n:
             raise ValueError("i is not in the index set")
         if i == self.n:
-            return int(self.value[i-1] and self.value[i-2])
-        return int(self.value[i-1] and not self.value[i])
+            return self.value[i-1] and self.value[i-2]
+        return self.value[i-1] and not self.value[i]
 
     cpdef int phi(self, int i):
         r"""
@@ -735,6 +736,6 @@ cdef class Spin_crystal_type_D_element(Spin):
         if i < 1 or i > self.n:
             raise ValueError("i is not in the index set")
         if i == self.n:
-            return int(not self.value[i-1] and not self.value[i-2])
-        return int(self.value[i] and not self.value[i-1])
+            return not self.value[i-1] and not self.value[i-2]
+        return self.value[i] and not self.value[i-1]
 

@@ -354,8 +354,6 @@ cdef class Letter(Element):
         sage: C(1) != C(-1)
         True
     """
-    cdef readonly int value
-
     def __init__(self, parent, int value):
         """
         EXAMPLES::
@@ -522,8 +520,6 @@ cdef class EmptyLetter(Element):
 
     Used in the rigged configuration bijections.
     """
-    cdef readonly str value
-
     def __init__(self, parent):
         """
         Initialize ``self``.
@@ -1304,8 +1300,6 @@ cdef class LetterTuple(Element):
     """
     Abstract class for type `E` letters.
     """
-    cdef readonly tuple value
-
     def __init__(self, parent, tuple value):
         """
         Initialize ``self``.
@@ -2785,8 +2779,6 @@ cdef class LetterWrapped(Element):
     Element which uses another crystal implementation and converts
     those elements to a tuple with `\pm i`.
     """
-    cdef readonly Element value
-
     def __init__(self, parent, Element value):
         """
         Initialize ``self``.

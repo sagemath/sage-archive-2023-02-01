@@ -10,7 +10,7 @@ fusion products. All of the above are achieved by counting LR
 appropriate shape and content by iterating through them.
 Additionally, ``lrcalc`` handles products of Schubert polynomials.
 
-The web page of ``lrcalc`` is `<http://math.rutgers.edu/~asbuch/lrcalc/>`_.
+The web page of ``lrcalc`` is `<http://sites.math.rutgers.edu/~asbuch/lrcalc/>`_.
 
 The following describes the Sage interface to this library.
 
@@ -93,7 +93,9 @@ this example `\mu=[3,2,1]` and `\nu=[2,1]`. Specifying a third entry
     sage: list(lrcalc.lrskew([3,2,1],[2,1],maxrows=2))
     [[[None, None, 1], [None, 1], [1]], [[None, None, 1], [None, 1], [2]], [[None, None, 1], [None, 2], [1]]]
 
-.. todo:: use this library in the :class:`SymmetricFunctions` code, to
+.. TODO::
+
+    use this library in the :class:`SymmetricFunctions` code, to
     make it easy to apply it to linear combinations of Schur functions.
 
 .. SEEALSO::
@@ -207,7 +209,7 @@ cdef vector* iterable_to_vector(it):
     cdef int n = len(itr)
     cdef int i
     v = v_new(n)
-    for i from 0 <= i < n:
+    for i in range(n):
         v.array[i] = int(itr[i])
     return v
 
@@ -225,7 +227,7 @@ cdef list vector_to_list(vector *v):
     cdef int i, n
     n = v_length(v)
     cdef list result = [None]*n
-    for i from 0 <= i < n:
+    for i in range(n):
         result[i] = Integer(v_elem(v, i))
     return result
 
@@ -668,7 +670,7 @@ def lrskew(outer, inner, weight=None, maxrows=0):
 
     - ``maxrows`` -- an integer (optional)
 
-    OUTPUT: an iterator of :class:`SkewTableau`x.
+    OUTPUT: an iterator of :class:`SkewTableau`
 
     Specifying ``maxrows`` restricts the alphabet to `\{1,2,\ldots,maxrows\}`.
 

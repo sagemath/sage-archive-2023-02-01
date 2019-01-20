@@ -101,15 +101,15 @@ this example `\mu=[3,2,1]` and `\nu=[2,1]`. Specifying a third entry
 .. SEEALSO::
 
     - :func:`lrcoef`
-    
+
     - :func:`mult`
-    
+
     - :func:`coprod`
-    
+
     - :func:`skew`
-    
+
     - :func:`lrskew`
-    
+
     - :func:`mult_schubert`
 
 .. rubric:: Underlying algorithmic in lrcalc
@@ -706,11 +706,18 @@ def lrskew(outer, inner, weight=None, maxrows=0):
     cdef vector* o = iterable_to_vector(outer)
     cdef vector* i = iterable_to_vector(inner + [0]*(len(outer) - len(inner)))
     cdef skewtab* st = st_new(o, i, NULL, int(maxrows))
-    r = skewtab_to_SkewTableau(st)
-    if weight is None or r.weight() == _Partitions(weight):
-        yield r
-    while st_next(st):
-        r = skewtab_to_SkewTableau(st)
-        if weight is None or r.weight() == _Partitions(weight):
+
+    if weight is None:
+        yield skewtab_to_SkewTableau(st)
+        while st_next(st):
             yield skewtab_to_SkewTableau(st)
+    else:
+        wt = _Partitions(weight)
+        r = skewtab_to_SkewTableau(st)
+        if r.weight() == wt:
+            yield r
+        while st_next(st):
+            r = skewtab_to_SkewTableau(st)
+            if r.weight() == wt:
+                yield r
     st_free(st)

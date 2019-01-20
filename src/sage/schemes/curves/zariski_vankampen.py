@@ -329,6 +329,8 @@ def braid_in_segment(f, x0, x1):
         sage: from sage.schemes.curves import zariski_vankampen as zvk
         sage: g = f.subs({x: x + 2*y})
         sage: disc = zvk.discrim(g)
+        sage: for a in disc: a.exactify()
+        sage: disc = sorted(disc)
         sage: segs = zvk.segments(disc)
         sage: segs[16]  # abs tol 1e-16
         (0.577350269189626*I, 0.500000000000000 + 0.288675134594813*I)

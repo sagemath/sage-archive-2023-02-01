@@ -72,9 +72,9 @@ class NumericalEigenforms(SageObject):
         sage: n = numerical_eigenforms(23)
         sage: n == loads(dumps(n))
         True
-        sage: n.ap(2)  # rel tol 2e-15
+        sage: n.ap(2)  # rel tol 2e-14
         [3.0, -1.6180339887498947, 0.6180339887498968]
-        sage: n.systems_of_eigenvalues(7)  # rel tol 2e-15
+        sage: n.systems_of_eigenvalues(7)  # rel tol 2e-14
         [
         [-1.6180339887498947, 2.2360679774997894, -3.2360679774997894],
         [0.6180339887498968, -2.236067977499788, 1.2360679774997936],
@@ -86,7 +86,7 @@ class NumericalEigenforms(SageObject):
         [1.6180339887..., 2.236067977..., 3.236067977...],
         [3.0, 4.0, 6.0]
         ]
-        sage: n.eigenvalues([2,3,5])  # rel tol 2e-15
+        sage: n.eigenvalues([2,3,5])  # rel tol 2e-14
         [[3.0, -1.6180339887498947, 0.6180339887498968],
          [4.0, 2.2360679774997894, -2.236067977499788],
          [6.0, -3.2360679774997894, 1.2360679774997936]]
@@ -309,14 +309,14 @@ class NumericalEigenforms(SageObject):
 
         while True:
             s = set(support(e, delta))
-            zp = [i for i in range(e.degree()) if not i in s]
-            if len(zp) == 0:
+            zp = [j for j in range(e.degree()) if j not in s]
+            if not zp:
                 break
             C = E.matrix_from_columns(zp)
             # best row
             i, f = best_row(C)
             x[i] += 1   # simplistic
-            e = x*E
+            e = x * E
 
         self.__easy_vector = x
         return x

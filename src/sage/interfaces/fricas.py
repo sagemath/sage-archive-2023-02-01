@@ -1350,8 +1350,16 @@ class FriCASElement(ExpectElement):
             sage: x = polygen(QQ, 'x')
             sage: fricas(x+3).sage()    # optional - fricas
             x + 3
+            sage: fricas(x+3).domainOf()    # optional - fricas
+            Polynomial(Integer())
+
             sage: fricas(matrix([[2,3],[4,x+5]])).diagonal().sage()    # optional - fricas
             (2, x + 5)
+
+            sage: f = fricas("(y^2+3)::UP(y, INT)").sage(); f   # optional - fricas
+            y^2 + 3
+            sage: f.parent()   # optional - fricas
+            Univariate Polynomial Ring in y over Integer Ring
 
         Rational functions::
 

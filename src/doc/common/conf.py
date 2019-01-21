@@ -23,29 +23,83 @@ extensions = ['inventory_builder', 'multidocs',
 # through mathplotlib, so that it will be displayed in the HTML doc
 plot_html_show_source_link = False
 plot_pre_code = """
-def sphinx_plot(plot):
+def sphinx_plot(graphics, **kwds):
     import matplotlib.image as mpimg
     from sage.misc.temporary_file import tmp_filename
     import matplotlib.pyplot as plt
     if os.environ.get('SAGE_SKIP_PLOT_DIRECTIVE', 'no') != 'yes':
-        import matplotlib as mpl
-        mpl.rcParams['image.interpolation'] = 'bilinear'
-        mpl.rcParams['image.resample'] = False
-        mpl.rcParams['figure.figsize'] = [8.0, 6.0]
-        mpl.rcParams['figure.dpi'] = 80
-        mpl.rcParams['savefig.dpi'] = 100
-        fn = tmp_filename(ext=".png")
-        plot.plot().save(fn)
-        img = mpimg.imread(fn)
-        plt.imshow(img)
+        ## Option handling is taken from Graphics.save
+        options = dict()
+        if isinstance(graphics, sage.plot.graphics.Graphics):
+            options.update(graphics.SHOW_OPTIONS)
+            options.update(graphics._extra_kwds)
+            options.update(kwds)
+        else:
+            graphics = graphics.plot(**kwds)
+        dpi = options.pop('dpi', None)
+        transparent = options.pop('transparent', None)
+        fig_tight = options.pop('fig_tight', None)
+        figsize = options.pop('figsize', None)
+        ## figsize handling is taken from Graphics.matplotlib()
+        if figsize is not None and not isinstance(figsize, (list, tuple)):
+            # in this case, figsize is a number and should be positive
+            try:
+                figsize = float(figsize) # to pass to mpl
+            except TypeError:
+                raise TypeError("figsize should be a positive number, not {0}".format(figsize))
+            if figsize > 0:
+                default_width, default_height=rcParams['figure.figsize']
+                figsize=(figsize, default_height*figsize/default_width)
+            else:
+                raise ValueError("figsize should be positive, not {0}".format(figsize))
+
+        if figsize is not None:
+            # then the figsize should be two positive numbers
+            if len(figsize) != 2:
+                raise ValueError("figsize should be a positive number "
+                                 "or a list of two positive numbers, not {0}".format(figsize))
+            figsize = (float(figsize[0]),float(figsize[1])) # floats for mpl
+            if not (figsize[0] > 0 and figsize[1] > 0):
+                raise ValueError("figsize should be positive numbers, "
+                                 "not {0} and {1}".format(figsize[0],figsize[1]))
+
+        plt.figure(figsize=figsize)
+        figure = plt.gcf()
+        if isinstance(graphics, sage.plot.graphics.GraphicsArray):
+            ## from GraphicsArray.save
+            rows = graphics.nrows()
+            cols = graphics.ncols()
+            for i, g in enumerate(graphics):
+                subplot = figure.add_subplot(rows, cols, i + 1)
+                g_options = copy(options)
+                g_options.update(g.SHOW_OPTIONS)
+                g_options.update(g._extra_kwds)
+                g_options.pop('dpi', None)
+                g_options.pop('transparent', None)
+                g_options.pop('fig_tight', None)
+                g.matplotlib(figure=figure, sub=subplot, **g_options)
+        elif isinstance(graphics, sage.plot.graphics.Graphics):
+            graphics.matplotlib(figure=figure, figsize=figsize, **options)
+        else:
+            # 3d graphics via png
+            import matplotlib as mpl
+            mpl.rcParams['image.interpolation'] = 'bilinear'
+            mpl.rcParams['image.resample'] = False
+            mpl.rcParams['figure.figsize'] = [8.0, 6.0]
+            mpl.rcParams['figure.dpi'] = 80
+            mpl.rcParams['savefig.dpi'] = 100
+            fn = tmp_filename(ext=".png")
+            graphics.save(fn)
+            img = mpimg.imread(fn)
+            plt.imshow(img)
         plt.margins(0)
-        plt.axis("off")
         plt.tight_layout(pad=0)
 
 from sage.all_cmdline import *
 """
 
 plot_html_show_formats = False
+plot_formats = ['svg', 'png']
 
 # We do *not* fully initialize intersphinx since we call it by hand
 # in find_sage_dangling_links.

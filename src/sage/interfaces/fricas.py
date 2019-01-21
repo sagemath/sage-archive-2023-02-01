@@ -1038,8 +1038,13 @@ class FriCASElement(ExpectElement):
             sage: m = fricas("dom(1/2)::Any")                                   # optional - fricas
             sage: fricas(0)._get_sage_type(m)                                   # optional - fricas
             Rational Field
+
+        TESTS::
+
+            sage: fricas("(y^2+3*x)::UP(y, UP(x, INT))").sage()
+            y^2 + 3*x
         """
-        from sage.rings.all import ZZ, QQbar, RDF
+        from sage.rings.all import ZZ, QQbar, RDF, PolynomialRing
         from sage.rings.fraction_field import FractionField
         from sage.rings.finite_rings.integer_mod_ring import Integers
         from sage.rings.finite_rings.finite_field_constructor import FiniteField
@@ -1054,7 +1059,7 @@ class FriCASElement(ExpectElement):
             return str
         if head == "Float":
             P = self._check_valid()
-            prec = max(P.new("length mantissa(%s)" %self._name).sage(), 53)
+            prec = max(P.new("length mantissa(%s)" % self._name).sage(), 53)
             return RealField(prec)
         if head == "DoubleFloat":
             return RDF
@@ -1082,7 +1087,11 @@ class FriCASElement(ExpectElement):
             # this is a workaround, since in sage we always have to specify the variables
             return SR
 
-        raise NotImplementedError("The translation of FriCAS type %s to sage is not yet implemented." %domain)
+        if head == "UnivariatePolynomial":
+            var = str(domain[1])
+            return PolynomialRing(self._get_sage_type(domain[2]), var)
+
+        raise NotImplementedError("The translation of FriCAS type %s to sage is not yet implemented." % domain)
 
     def _sage_expression(self, unparsed_InputForm):
         r"""
@@ -1499,7 +1508,8 @@ class FriCASElement(ExpectElement):
             base_ring = self._get_sage_type(domain[2])
             vars = str(domain[1])
             R = PolynomialRing(base_ring, vars)
-            return R([self.coefficient(i) for i in range(self.degree() + 1)])
+            return R([self.coefficient(i).sage()
+                      for i in range(self.degree() + 1)])
 
         # finally translate domains with InputForm
         try:

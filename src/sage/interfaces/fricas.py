@@ -2,6 +2,7 @@ r"""
 Interface to FriCAS
 
 .. TODO::
+
     - some conversions in ``sage.functions`` are still missing and
       all should be checked and tested
 
@@ -1346,6 +1347,12 @@ class FriCASElement(ExpectElement):
             sage: fricas("x^2/2").sage()                                        # optional - fricas
             1/2*x^2
 
+            sage: x = polygen(QQ, 'x')
+            sage: fricas(x+3).sage()
+            x + 3
+            sage: fricas(matrix([[2,3],[4,x+5]])).diagonal().sage()
+            (2, x + 5)
+
         Rational functions::
 
             sage: fricas("x^2 + 1/z").sage()                                    # optional - fricas
@@ -1458,28 +1465,33 @@ class FriCASElement(ExpectElement):
             return {field: self.elt(field).sage() for field in fields}
 
         if head == "List":
-            n = P.get_integer('#(%s)' %self._name)
-            return [P.new('elt(%s,%s)' %(self._name, k)).sage() for k in range(1, n+1)]
+            n = P.get_integer('#(%s)' % self._name)
+            return [self.elt(k).sage() for k in range(1, n + 1)]
 
-        if head == "Vector":
-            n = P.get_integer('#(%s)' %self._name)
-            return vector([P.new('elt(%s,%s)' %(self._name, k)).sage() for k in range(1, n+1)])
+        if head == "Vector" or head == "DirectProduct":
+            n = P.get_integer('#(%s)' % self._name)
+            return vector([self.elt(k).sage() for k in range(1, n + 1)])
 
         if head == "Matrix":
             base_ring = self._get_sage_type(domain[1])
-            rows = P.new('listOfLists(%s)' %self._name).sage()
+            rows = self.listOfLists().sage()
             return matrix(base_ring, rows)
 
         if head == "Fraction":
-            return P.new("numer(%s)" %self._name).sage()/P.new("denom(%s)" %self._name).sage()
+            return self.numer().sage() / self.denom().sage()
 
         if head == "Complex":
-            return (P.new("real(%s)" %self._name).sage() +
-                    P.new("imag(%s)" %self._name).sage()*I)
+            return self.real().sage() + self.imag().sage()*I
 
         if head == "Factored":
             l = P.new('[[f.factor, f.exponent] for f in factors(%s)]' %self._name).sage()
-            return Factorization([(p, e) for p,e in l])
+            return Factorization([(p, e) for p, e in l])
+
+        if head == "UnivariatePolynomial":
+            base_ring = self._get_sage_type(domain[2])
+            vars = str(domain[1])
+            R = PolynomialRing(base_ring, vars)
+            return R([self.coefficient(i) for i in range(self.degree() + 1)])
 
         # finally translate domains with InputForm
         try:

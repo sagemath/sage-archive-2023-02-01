@@ -1348,9 +1348,9 @@ class FriCASElement(ExpectElement):
             1/2*x^2
 
             sage: x = polygen(QQ, 'x')
-            sage: fricas(x+3).sage()
+            sage: fricas(x+3).sage()    # optional - fricas
             x + 3
-            sage: fricas(matrix([[2,3],[4,x+5]])).diagonal().sage()
+            sage: fricas(matrix([[2,3],[4,x+5]])).diagonal().sage()    # optional - fricas
             (2, x + 5)
 
         Rational functions::

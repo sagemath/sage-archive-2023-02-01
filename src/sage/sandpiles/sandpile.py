@@ -3470,8 +3470,9 @@ class SandpileConfig(dict):
 
     def values(self):
         r"""
-        The values of the configuration as a list.  The list is sorted in the
-        order of the vertices.
+        The values of the configuration as a list.
+
+        The list is sorted in the order of the vertices.
 
         OUTPUT:
 
@@ -3481,14 +3482,14 @@ class SandpileConfig(dict):
 
         EXAMPLES::
 
-            sage: S = Sandpile({'a':[1,'b'], 'b':[1,'a'], 1:['a']},'a')
-            sage: c = SandpileConfig(S, {'b':1, 1:2})
+            sage: S = Sandpile({'a':['c','b'], 'b':['c','a'], 'c':['a']},'a')
+            sage: c = SandpileConfig(S, {'b':1, 'c':2})
             sage: c
-            {1: 2, 'b': 1}
+            {'b': 1, 'c': 2}
             sage: c.values()
-            [2, 1]
+            [1, 2]
             sage: S.nonsink_vertices()
-            [1, 'b']
+            ['b', 'c']
         """
         return [self[v] for v in self._vertices]
 
@@ -4749,8 +4750,9 @@ class SandpileDivisor(dict):
 
     def values(self):
         r"""
-        The values of the divisor as a list.  The list is sorted in the order of
-        the vertices.
+        The values of the divisor as a list.
+
+        The list is sorted in the order of the vertices.
 
         OUTPUT:
 
@@ -4760,14 +4762,14 @@ class SandpileDivisor(dict):
 
         EXAMPLES::
 
-            sage: S = Sandpile({'a':[1,'b'], 'b':[1,'a'], 1:['a']},'a')
-            sage: D = SandpileDivisor(S, {'a':0, 'b':1, 1:2})
+            sage: S = Sandpile({'a':['c','b'], 'b':['c','a'], 'c':['a']},'a')
+            sage: D = SandpileDivisor(S, {'a':0, 'b':1, 'c':2})
             sage: D
-            {1: 2, 'a': 0, 'b': 1}
+            {'a': 0, 'b': 1, 'c': 2}
             sage: D.values()
-            [2, 0, 1]
+            [0, 1, 2]
             sage: S.vertices()
-            [1, 'a', 'b']
+            ['a', 'b', 'c']
         """
         return [self[v] for v in self._vertices]
 

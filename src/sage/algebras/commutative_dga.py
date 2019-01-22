@@ -2361,7 +2361,7 @@ class DifferentialGCAlgebra(GCAlgebra):
         from copy import copy
         def extend(phi, ndegrees, ndifs, nimags, nnames):
             """
-            Extend phi to a new algebra with new genererators, labeled by i,j
+            Extend phi to a new algebra with new genererators, labeled by nnames
             """
             B = phi.domain()
             names = [str(g) for g in B.gens()]

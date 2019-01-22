@@ -1243,7 +1243,7 @@ class ClusterSeed(SageObject):
 
     def free_vertices(self):
         r"""
-        Return the list of *exchangable vertices* of ``self``.
+        Return the list of *exchangeable vertices* of ``self``.
 
         EXAMPLES::
 

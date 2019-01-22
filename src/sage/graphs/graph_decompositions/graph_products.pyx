@@ -187,14 +187,15 @@ def is_cartesian_product(g, certificate=False, relabeling=False):
     Forgetting the graph's labels, then finding them back::
 
         sage: g.relabel()
-        sage: g.is_cartesian_product(g, relabeling = True)
-        (True, {0: (0, 0), 1: (0, 1), 2: (0, 2), 3: (0, 3),
-                4: (0, 4), 5: (5, 0), 6: (5, 1), 7: (5, 2),
-                8: (5, 3), 9: (5, 4), 10: (10, 0), 11: (10, 1),
-                12: (10, 2), 13: (10, 3), 14: (10, 4), 15: (15, 0),
-                16: (15, 1), 17: (15, 2), 18: (15, 3), 19: (15, 4),
-                20: (20, 0), 21: (20, 1), 22: (20, 2), 23: (20, 3),
-                24: (20, 4)})
+        sage: b,D = g.is_cartesian_product(g, relabeling=True)
+        sage: b
+        True
+        sage: D  # random isomorphism
+        {0: (20, 0), 1: (20, 1), 2: (20, 2), 3: (20, 3), 4: (20, 4),
+         5: (15, 0), 6: (15, 1), 7: (15, 2), 8: (15, 3), 9: (15, 4),
+         10: (10, 0), 11: (10, 1), 12: (10, 2), 13: (10, 3), 14: (10, 4),
+         15: (5, 0), 16: (5, 1), 17: (5, 2), 18: (5, 3), 19: (5, 4),
+         20: (0, 0), 21: (0, 1), 22: (0, 2), 23: (0, 3), 24: (0, 4)}
 
     And of course, we find the factors back when we build a graph from a
     product::

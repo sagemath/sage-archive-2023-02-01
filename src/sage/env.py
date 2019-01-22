@@ -164,7 +164,7 @@ _add_variable_or_fallback('CONWAY_POLYNOMIALS_DATA_DIR',  opj('$SAGE_SHARE','con
 _add_variable_or_fallback('GRAPHS_DATA_DIR',  opj('$SAGE_SHARE','graphs'))
 _add_variable_or_fallback('ELLCURVE_DATA_DIR',opj('$SAGE_SHARE','ellcurves'))
 _add_variable_or_fallback('POLYTOPE_DATA_DIR',opj('$SAGE_SHARE','reflexive_polytopes'))
-_add_variable_or_fallback('GAP_ROOT_DIR',     opj('$SAGE_LOCAL','gap','latest'))
+_add_variable_or_fallback('GAP_ROOT_DIR',     opj('$SAGE_SHARE','gap'))
 _add_variable_or_fallback('THEBE_DIR',        opj('$SAGE_SHARE','thebe'))
 _add_variable_or_fallback('COMBINATORIAL_DESIGN_DATA_DIR', opj('$SAGE_SHARE', 'combinatorial_designs'))
 _add_variable_or_fallback('CREMONA_MINI_DATA_DIR', opj('$SAGE_SHARE', 'cremona'))

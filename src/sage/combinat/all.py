@@ -152,6 +152,9 @@ from .dyck_word import DyckWords, DyckWord
 from .sloane_functions import sloane
 from .superpartition import SuperPartition, SuperPartitions
 
+lazy_import('sage.combinat.parallelogram_polyomino',
+            ['ParallelogramPolyomino', 'ParallelogramPolyominoes'])
+
 from .root_system.all import *
 from .sf.all import *
 from .ncsf_qsym.all import *
@@ -169,8 +172,6 @@ from . import ranker
 from .integer_vector import IntegerVectors
 from .integer_vector_weighted import WeightedIntegerVectors
 from .integer_vectors_mod_permgroup import IntegerVectorsModPermutationGroup
-
-from .finite_class import FiniteCombinatorialClass
 
 from .q_analogues import gaussian_binomial, q_binomial
 

@@ -13016,7 +13016,7 @@ cdef class Matrix(Matrix1):
             [2*a + 1       1]
 
         Conjugation does not make sense over rings not containing complex
-        numbers or finite fields which are not a qadratic extension::
+        numbers or finite fields which are not a quadratic extension::
 
             sage: N = matrix(GF(5), 2, [0,1,2,3])
             sage: N.conjugate_transpose()
@@ -13026,7 +13026,7 @@ cdef class Matrix(Matrix1):
 
         AUTHOR:
 
-            Rob Beezer (2010-12-13)
+        Rob Beezer (2010-12-13)
         """
         # limited testing on a 1000 x 1000 matrix over CC:
         #   transpose is fast, conjugate is slow

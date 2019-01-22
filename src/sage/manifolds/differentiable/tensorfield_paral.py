@@ -1646,7 +1646,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
     def display_comp(self, frame=None, chart=None, coordinate_labels=True,
                      only_nonzero=True, only_nonredundant=False):
         r"""
-        Display the tensor components with repect tp a given frame,
+        Display the tensor components with respect to a given frame,
         one per line.
 
         The output is either text-formatted (console mode) or LaTeX-formatted

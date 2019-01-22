@@ -1041,7 +1041,7 @@ class FriCASElement(ExpectElement):
 
         TESTS::
 
-            sage: fricas("(y^2+3*x)::UP(y, UP(x, INT))").sage()
+            sage: fricas("(y^2+3*x)::UP(y, UP(x, INT))").sage()  # optional - fricas
             y^2 + 3*x
         """
         from sage.rings.all import ZZ, QQbar, RDF, PolynomialRing

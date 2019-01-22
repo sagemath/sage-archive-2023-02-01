@@ -967,7 +967,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         OUTPUT:
 
-        - :class:`~ppl.C_Polyhedron`
+        - :class:`~ppl.polyhedron.C_Polyhedron`
 
         EXAMPLES::
 

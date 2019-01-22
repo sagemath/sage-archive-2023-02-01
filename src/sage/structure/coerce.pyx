@@ -80,9 +80,7 @@ from cpython.object cimport (PyObject, PyTypeObject,
         Py_EQ, Py_NE, Py_LT, Py_LE, Py_GT, Py_GE)
 from cpython.weakref cimport PyWeakref_GET_OBJECT, PyWeakref_NewRef
 from libc.string cimport strncmp
-
-IF HAVE_GMPY2:
-    import gmpy2
+import gmpy2
 
 cdef add, mul, truediv
 from operator import add, mul, truediv
@@ -180,16 +178,16 @@ cpdef py_scalar_parent(py_type):
             return sage.rings.complex_double.CDF
         else:
             return None
-    elif HAVE_GMPY2 and issubclass(py_type, gmpy2.mpz):
+    elif issubclass(py_type, gmpy2.mpz):
         import sage.rings.integer_ring
         return sage.rings.integer_ring.ZZ
-    elif HAVE_GMPY2 and issubclass(py_type, gmpy2.mpq):
+    elif issubclass(py_type, gmpy2.mpq):
         import sage.rings.rational_field
         return sage.rings.rational_field.QQ
-    elif HAVE_GMPY2 and issubclass(py_type, gmpy2.mpfr):
+    elif issubclass(py_type, gmpy2.mpfr):
         import sage.rings.real_double
         return sage.rings.real_double.RDF
-    elif HAVE_GMPY2 and issubclass(py_type, gmpy2.mpc):
+    elif issubclass(py_type, gmpy2.mpc):
         import sage.rings.complex_double
         return sage.rings.complex_double.CDF
     else:
@@ -299,16 +297,16 @@ cpdef py_scalar_to_element(x):
             return CDF(x)
         else:
             return x
-    elif HAVE_GMPY2 and type(x) is gmpy2.mpz:
+    elif type(x) is gmpy2.mpz:
             from sage.rings.integer import Integer
             return Integer(x)
-    elif HAVE_GMPY2 and type(x) is gmpy2.mpq:
+    elif type(x) is gmpy2.mpq:
         from sage.rings.rational import Rational
         return Rational(x)
-    elif HAVE_GMPY2 and type(x) is gmpy2.mpfr:
+    elif type(x) is gmpy2.mpfr:
         from sage.rings.real_double import RDF
         return RDF(x)
-    elif HAVE_GMPY2 and type(x) is gmpy2.mpc:
+    elif type(x) is gmpy2.mpc:
         from sage.rings.complex_double import CDF
         return CDF(x)
     else:

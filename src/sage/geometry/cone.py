@@ -453,7 +453,7 @@ def Cone(rays, lattice=None, check=True, normalize=True):
 
 def _Cone_from_PPL(cone, lattice, original_rays=None):
     r"""
-    Construct a cone from a :class:`~ppl.Polyhedron`.
+    Construct a cone from a :class:`~ppl.polyhedron.Polyhedron`.
 
     This is a private function and not intended to be exposed to the
     end user. It is used internally by :func:`Cone` and in
@@ -461,7 +461,7 @@ def _Cone_from_PPL(cone, lattice, original_rays=None):
 
     INPUT:
 
-    - ``cone`` -- a :class:`~ppl.Polyhedron` having the
+    - ``cone`` -- a :class:`~ppl.polyhedron.Polyhedron` having the
       origin as its single point.
 
     - ``lattice`` -- :class:`ToricLattice
@@ -1368,7 +1368,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
     In both cases, the following keyword parameter may be specified in addition:
 
     - ``PPL`` -- either ``None`` (default) or a
-      :class:`~ppl.C_Polyhedron` representing the cone. This
+      :class:`~ppl.polyhedron.C_Polyhedron` representing the cone. This
       serves only to cache the polyhedral data if you know it
       already. The polyhedron will be set immutable.
 
@@ -1451,7 +1451,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         OUTPUT:
 
-        A :class:`~ppl.C_Polyhedron` representing the cone.
+        A :class:`~ppl.polyhedron.C_Polyhedron` representing the cone.
 
         EXAMPLES::
 

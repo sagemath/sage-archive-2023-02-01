@@ -13,7 +13,7 @@ polytopes in 4 dimensions.
     :func:`~sage.geometry.polyhedron.constructor.Polyhedron` with
     ``base_ring=ZZ``.
 
-The class derives from the PPL :class:`ppl.C_Polyhedron`
+The class derives from the PPL :class:`ppl.polyhedron.C_Polyhedron`
 class, so you can work with the underlying generator and constraint
 objects. However, integral points are generally represented by
 `\ZZ`-vectors. In the following, we always use *generator* to refer
@@ -138,8 +138,7 @@ def LatticePolytope_PPL(*args):
         sage: LatticePolytope_PPL((0,0),(1/2,1))
         Traceback (most recent call last):
         ...
-        TypeError: rational is not an integer
-
+        TypeError: unable to convert rational 1/2 to an integer
 
         sage: from ppl import point, Generator_System, C_Polyhedron, Linear_Expression, Variable
         sage: p = point(Linear_Expression([2,3],0), 5);  p

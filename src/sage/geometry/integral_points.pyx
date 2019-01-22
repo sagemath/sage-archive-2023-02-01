@@ -367,7 +367,7 @@ cpdef rectangular_box_points(list box_min, list box_max,
 
     - ``polyhedron`` -- A
       :class:`~sage.geometry.polyhedron.base.Polyhedron_base`, a PPL
-      :class:`~ppl.C_Polyhedron`, or ``None`` (default).
+      :class:`~ppl.polyhedron.C_Polyhedron`, or ``None`` (default).
 
     - ``count_only`` -- Boolean (default: ``False``). Whether to
       return only the total number of vertices, and not their

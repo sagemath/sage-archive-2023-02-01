@@ -1639,15 +1639,20 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: list(P._backend.iterator_in_nbrs(0))
             [1, 4, 5]
 
+        TESTS::
+
+            sage: P = DiGraph(graphs.PetersenGraph().to_directed(), implementation="c_graph")
             sage: list(P._backend.iterator_in_nbrs(63))
             Traceback (most recent call last):
             ...
             LookupError: vertex (63) is not a vertex of the graph
         """
+
         cdef int u_int
-        if not self.has_vertex(v):
-            raise LookupError("vertex ({0}) is not a vertex of the graph".format(v))
         cdef int v_int = self.get_vertex(v)
+        if v_int == -1 or not bitset_in((<CGraph>self._cg).active_vertices, v_int):
+            raise LookupError("vertex ({0}) is not a vertex of the graph".format(v))
+
         # Sparse
         if self._cg_rev is not None:
             for u_int in self._cg_rev.out_neighbors(v_int):
@@ -1684,15 +1689,18 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: list(P._backend.iterator_out_nbrs(0))
             [1, 4, 5]
 
+        TESTS::
+
+            sage: P = DiGraph(graphs.PetersenGraph().to_directed(), implementation="c_graph")
             sage: list(P._backend.iterator_out_nbrs(-41))
             Traceback (most recent call last):
             ...
             LookupError: vertex (-41) is not a vertex of the graph
         """
         cdef int u_int
-        if not self.has_vertex(v):
-            raise LookupError("vertex ({0}) is not a vertex of the graph".format(v))
         cdef int v_int = self.get_vertex(v)
+        if v_int == -1 or not bitset_in((<CGraph>self._cg).active_vertices, v_int):
+            raise LookupError("vertex ({0}) is not a vertex of the graph".format(v))
 
         for u_int in self._cg.out_neighbors(v_int):
             yield self.vertex_label(u_int)

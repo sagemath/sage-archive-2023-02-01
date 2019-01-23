@@ -53,38 +53,39 @@ In fact it is an order in a number field::
     sage: all(len(a.minpoly().roots(K)) == a.minpoly().degree() for a in A)
     True
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2017 Alexandre Zotine, Nils Bruin
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from __future__ import division
+from six.moves import range
 
 from scipy.spatial import Voronoi
-from sage.misc.cachefunc import cached_method
-from sage.rings.integer_ring import ZZ
-from sage.rings.rational_field import QQ
-from sage.rings.complex_field import ComplexField, CDF
-from sage.rings.real_mpfr import RealField
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.groups.perm_gps.permgroup_named import SymmetricGroup
+from sage.arith.misc import GCD, algdep
 from sage.arith.srange import srange
 from sage.ext.fast_callable import fast_callable
 from sage.graphs.graph import Graph
+from sage.groups.matrix_gps.finitely_generated import MatrixGroup
+from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.matrix.constructor import Matrix, matrix
+from sage.matrix.special import block_matrix
+from sage.misc.cachefunc import cached_method
+from sage.misc.misc_c import prod
 from sage.modules.free_module import VectorSpace
 from sage.numerical.gauss_legendre import integrate_vector
-from sage.misc.misc_c import prod
-from sage.arith.misc import algdep
-from sage.groups.matrix_gps.finitely_generated import MatrixGroup
+from sage.rings.complex_field import ComplexField, CDF
+from sage.rings.integer_ring import ZZ
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.qqbar import number_field_elements_from_algebraics
-from sage.matrix.special import block_matrix
+from sage.rings.rational_field import QQ
+from sage.rings.real_mpfr import RealField
 import sage.libs.mpmath.all as mpall
-from sage.arith.misc import GCD
+
 
 def voronoi_ghost(cpoints, n=6, CC=CDF):
     r"""
@@ -592,7 +593,7 @@ class RiemannSurface(object):
         - ``epsilon`` -- a real number, which is the minimum distance between
           the w-values above ``z1``
 
-        - ``wvalues`` -- a list (default: None). If specified, saves
+        - ``wvalues`` -- a list (default: ``None``). If specified, saves
           recomputation.
 
         OUTPUT:
@@ -608,7 +609,7 @@ class RiemannSurface(object):
             sage: f = w^2 - z^4 + 1
             sage: S = RiemannSurface(f)
 
-        Pick a point which lies on the voronoi diagram, and compute an
+        Pick a point which lies on the Voronoi diagram, and compute an
         appropriate epsilon::
 
             sage: z1 = S._vertices[0]
@@ -618,7 +619,7 @@ class RiemannSurface(object):
             sage: S._compute_delta(z1, epsilon) # abs tol 1e-8
             0.152628501142363
 
-        If the Riemann surface doesn't have certified homotopy continuation,
+        If the Riemann surface does not have certified homotopy continuation,
         then the delta will just be the minimum distance away from a branch
         point::
 
@@ -635,23 +636,27 @@ class RiemannSurface(object):
                 wvalues = self.w_values(z1)
             # For computation of rho. Need the branch locus + roots of a0.
             badpoints = self.branch_locus + self._a0roots
-            rho = min(abs(z1 - z) for z in badpoints)/2
-            Y = max(abs(self._fastcall_dfdz(z1,wi)/self._fastcall_dfdw(z1,wi)) for wi in wvalues)
+            rho = min(abs(z1 - z) for z in badpoints) / 2
+            Y = max(abs(self._fastcall_dfdz(z1, wi)/self._fastcall_dfdw(z1, wi))
+                    for wi in wvalues)
 
             # compute M
-            upperbounds = [sum(ak[k]*(abs(z1) + rho)**k for k in range(ak.degree())) for ak in self._aks]
+            upperbounds = [sum(ak[k] * (abs(z1) + rho)**k
+                               for k in range(ak.degree()))
+                           for ak in self._aks]
             upperbounds.reverse()
             # If a0 is a constant polynomial, it is obviously bounded below.
             if self._a0roots == []:
-                lowerbound = self._CC(self._a0)/2
+                lowerbound = self._CC(self._a0) / 2
             else:
-                lowerbound = self._a0[self._a0.degree()]*prod(abs((zk - z1) - rho) for zk in self._a0roots)/2
-            M = 2*max(abs((upperbounds[k]/lowerbound))**(1/(k+1)) for k in range(self.degree-1))
-            return rho*( ((rho*Y - epsilon)**2 + 4*epsilon*M).sqrt() - (rho*Y + epsilon))/(2*M - 2*rho*Y)
+                lowerbound = self._a0[self._a0.degree()]*prod(abs((zk - z1) - rho) for zk in self._a0roots) / 2
+            M = 2 * max((upperbounds[k]/lowerbound).abs().nth_root(k+1)
+                        for k in range(self.degree-1))
+            return rho*(((rho*Y - epsilon)**2 + 4*epsilon*M).sqrt() - (rho*Y + epsilon))/(2*M - 2*rho*Y)
         else:
             # Instead, we just compute the minimum distance between branch
             # points and the point in question.
-            return min([abs(b-z1) for b in self.branch_locus])/2
+            return min(abs(b - z1) for b in self.branch_locus) / 2
 
     def homotopy_continuation(self, edge):
         r"""
@@ -1784,16 +1789,16 @@ class RiemannSurface(object):
         CCP = P.base_ring()
         g = self.genus
         Q = other.period_matrix()
-        Ptsubinv = numerical_inverse((P.transpose())[range(g)])
-        Ts = [ ]
+        Ptsubinv = numerical_inverse((P.transpose())[list(range(g))])
+        Ts = []
         for R in Rs:
-            QRtsub = ((Q * R).transpose())[range(g)]
+            QRtsub = ((Q * R).transpose())[list(range(g))]
             Tt = Ptsubinv * QRtsub
             T = Tt.transpose().change_ring(CCP)
             Ts.append(T)
         return Ts
 
-    def tangent_representation_algebraic(self, Rs, other = None, epscomp = None):
+    def tangent_representation_algebraic(self, Rs, other=None, epscomp=None):
         r"""
         Compute the algebraic tangent representations corresponding to the
         homology representations in ``Rs``.

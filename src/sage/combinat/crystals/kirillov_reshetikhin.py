@@ -333,7 +333,6 @@ def KirillovReshetikhinCrystal(cartan_type, r, s, model='KN'):
         from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
         return RiggedConfigurations(cartan_type, [[r,s]])
     if model == 'LSPaths':
-        from sage.combinat.crystals.kirillov_reshetikhin import KirillovReshetikhinCrystalFromLSPaths
         return KirillovReshetikhinCrystalFromLSPaths(cartan_type, r, s)
 
     raise ValueError("invalid model")

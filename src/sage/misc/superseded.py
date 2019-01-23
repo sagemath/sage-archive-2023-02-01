@@ -274,7 +274,6 @@ class experimental(object):
         from sage.misc.decorators import sage_wraps
         @sage_wraps(func)
         def wrapper(*args, **kwds):
-            from sage.misc.superseded import experimental_warning
             if not wrapper._already_issued:
                 experimental_warning(self.trac_number,
                             'This class/method/function is marked as '
@@ -287,6 +286,7 @@ class experimental(object):
         wrapper._already_issued = False
 
         return wrapper
+
 
 from sage.structure.sage_object import SageObject
 class __experimental_self_test(SageObject):

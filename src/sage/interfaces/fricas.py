@@ -1041,8 +1041,9 @@ class FriCASElement(ExpectElement):
 
         TESTS::
 
-            sage: fricas("(y^2+3*x)::UP(y, UP(x, INT))").sage()  # optional - fricas
-            y^2 + 3*x
+            sage: m = fricas("UP(y, UP(x, AN))::INFORM")                        # optional - fricas
+            sage: fricas(0)._get_sage_type(m)
+            Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Algebraic Field
         """
         from sage.rings.all import ZZ, QQbar, RDF, PolynomialRing
         from sage.rings.fraction_field import FractionField
@@ -1357,18 +1358,21 @@ class FriCASElement(ExpectElement):
             1/2*x^2
 
             sage: x = polygen(QQ, 'x')
-            sage: fricas(x+3).sage()    # optional - fricas
+            sage: fricas(x+3).sage()                                            # optional - fricas
             x + 3
-            sage: fricas(x+3).domainOf()    # optional - fricas
+            sage: fricas(x+3).domainOf()                                        # optional - fricas
             Polynomial(Integer())
 
-            sage: fricas(matrix([[2,3],[4,x+5]])).diagonal().sage()    # optional - fricas
+            sage: fricas(matrix([[2,3],[4,x+5]])).diagonal().sage()             # optional - fricas
             (2, x + 5)
 
-            sage: f = fricas("(y^2+3)::UP(y, INT)").sage(); f   # optional - fricas
+            sage: f = fricas("(y^2+3)::UP(y, INT)").sage(); f                   # optional - fricas
             y^2 + 3
-            sage: f.parent()   # optional - fricas
+            sage: f.parent()                                                    # optional - fricas
             Univariate Polynomial Ring in y over Integer Ring
+
+            sage: fricas("(y^2+sqrt 3)::UP(y, AN)").sage()                      # optional - fricas
+            y^2 + 1.732050807568878?
 
         Rational functions::
 

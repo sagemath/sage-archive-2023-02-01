@@ -3181,6 +3181,9 @@ REFERENCES:
              Mathematical Society, Vol. 355, No. 12 (Dec., 2003),
              pp. 4807--4823
 
+.. [Stich2009] Stichtenoth, Henning. *Algebraic function fields and codes*.
+               Vol. 254. Springer Science & Business Media, 2009.
+
 .. [Sti2006] Douglas R. Stinson. *Cryptography: Theory and
              Practice*. 3rd edition, Chapman \& Hall/CRC, 2006.
 

@@ -936,7 +936,9 @@ class FunctionField_polymod(FunctionField):
         False
         False
     """
-    def __init__(self, polynomial, names, element_class=FunctionFieldElement_polymod, category=FunctionFields()):
+    Element = FunctionFieldElement_polymod
+
+    def __init__(self, polynomial, names, category=None):
         """
         Create a function field defined as an extension of another function
         field by adjoining a root of a univariate polynomial.
@@ -984,14 +986,16 @@ class FunctionField_polymod(FunctionField):
         base_field = polynomial.base_ring()
         if not isinstance(base_field, FunctionField):
             raise TypeError("polynomial must be over a FunctionField")
-        self._element_class = element_class
+
         self._base_field = base_field
         self._polynomial = polynomial
 
-        FunctionField.__init__(self, base_field, names=names, category = category)
+        FunctionField.__init__(self, base_field, names=names,
+                               category=FunctionFields().or_subcategory(category))
 
         self._hash = hash(polynomial)
         self._ring = self._polynomial.parent()
+
         self._populate_coercion_lists_(coerce_list=[base_field, self._ring])
         self._gen = self(self._ring.gen())
 
@@ -1026,8 +1030,8 @@ class FunctionField_polymod(FunctionField):
             y
         """
         if isinstance(x, FunctionFieldElement):
-            return self._element_class(self, self._ring(x.element()))
-        return self._element_class(self, self._ring(x))
+            return self.element_class(self, self._ring(x.element()))
+        return self.element_class(self, self._ring(x))
 
     def gen(self, n=0):
         """
@@ -2464,6 +2468,8 @@ class FunctionField_global(FunctionField_polymod):
         sage: L
         Function field in y defined by y^3 + (4*x^3 + 1)/(x^3 + 3)
     """
+    Element = FunctionFieldElement_global
+
     def __init__(self, polynomial, names):
         """
         Initialize.
@@ -2474,8 +2480,11 @@ class FunctionField_global(FunctionField_polymod):
             sage: L.<y>=K.extension(Y^3-(x^3-1)/(x^3-2))
             sage: TestSuite(L).run()
         """
-        FunctionField_polymod.__init__(self, polynomial, names,
-                                       element_class=FunctionFieldElement_global)
+        from .place import FunctionFieldPlace_global
+
+        FunctionField_polymod.__init__(self, polynomial, names)
+
+        self._place_class = FunctionFieldPlace_global
 
     def maximal_order(self):
         """
@@ -2575,6 +2584,201 @@ class FunctionField_global(FunctionField_polymod):
         M, M2F, F2M = F.monic_integral_model('s')
 
         return M, F2self*M2F, F2M*self2F
+
+    def place_set(self):
+        """
+        Return the set of all places of the function field.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: L.place_set()
+            Set of places of Function field in y defined by y^2 + y + (x^2 + 1)/x
+        """
+        from .place import PlaceSet
+        return PlaceSet(self)
+
+    def residue_field(self, place, name=None):
+        """
+        Return the residue field associated with the place along with the maps
+        from and to the residue field.
+
+        INPUT:
+
+        - ``place`` -- place of the function field
+
+        - ``name`` -- string; name of the generator of the residue field
+
+        The domain of the map to the residue field is the discrete valuation
+        ring associated with the place.
+
+        The discrete valuation ring is defined as the ring of all elements of
+        the function field with nonnegative valuation at the place. The maximal
+        ideal is the set of elements of positive valuation.  The residue field
+        is then the quotient of the discrete valuation ring by its maximal
+        ideal.
+
+        If an element not in the valuation ring is applied to the map, an
+        exception ``TypeError`` is raised.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: p = L.places_finite()[0]
+            sage: R, fr_R, to_R = L.residue_field(p)
+            sage: R
+            Finite Field of size 2
+            sage: f = 1 + y
+            sage: f.valuation(p)
+            -1
+            sage: to_R(f)
+            Traceback (most recent call last):
+            ...
+            TypeError: ...
+            sage: (1+1/f).valuation(p)
+            0
+            sage: to_R(1 + 1/f)
+            1
+            sage: [fr_R(e) for e in R]
+            [0, 1]
+        """
+        return place.residue_field(name=name)
+
+    def places(self, degree=1):
+        """
+        Return a list of the places with ``degree``.
+
+        INPUT:
+
+        - ``degree`` -- positive integer (default: `1`)
+
+        EXAMPLES::
+
+            sage: F.<a> = GF(2)
+            sage: K.<x> = FunctionField(F)
+            sage: R.<t> = PolynomialRing(K)
+            sage: L.<y> = K.extension(t^4 + t - x^5)
+            sage: L.places(1)
+            [Place (1/x, 1/x^4*y^3), Place (x, y), Place (x, y + 1)]
+        """
+        return self.places_infinite(degree) + self.places_finite(degree)
+
+    def places_finite(self, degree=1):
+        """
+        Return a list of the finite places with ``degree``.
+
+        INPUT:
+
+        - ``degree`` -- positive integer (default: `1`)
+
+        EXAMPLES::
+
+            sage: F.<a> = GF(2)
+            sage: K.<x> = FunctionField(F)
+            sage: R.<t> = PolynomialRing(K)
+            sage: L.<y> = K.extension(t^4+t-x^5)
+            sage: L.places_finite(1)
+            [Place (x, y), Place (x, y + 1)]
+        """
+        return list(self._places_finite(degree))
+
+    def _places_finite(self, degree):
+        """
+        Return a generator of finite places with ``degree``.
+
+        INPUT:
+
+        - ``degree`` -- positive integer
+
+        EXAMPLES::
+
+            sage: F.<a> = GF(2)
+            sage: K.<x> = FunctionField(F)
+            sage: R.<t> = PolynomialRing(K)
+            sage: L.<y> = K.extension(t^4+t-x^5)
+            sage: L._places_finite(1)
+            <generator object ...>
+        """
+        O = self.maximal_order()
+        K = self.base_field()
+
+        from sage.rings.integer import Integer
+        degree = Integer(degree)
+
+        for d in degree.divisors():
+            for p in K.places_finite(degree=d):
+                for prime,_,_ in O.decomposition(p.prime_ideal()):
+                    place = prime.place()
+                    if place.degree() == degree:
+                        yield place
+
+    def places_infinite(self, degree=1):
+        """
+        Return a list of the infinite places with ``degree``.
+
+        INPUT:
+
+        - ``degree`` -- positive integer (default: `1`)
+
+        EXAMPLES::
+
+            sage: F.<a> = GF(2)
+            sage: K.<x> = FunctionField(F)
+            sage: R.<t> = PolynomialRing(K)
+            sage: L.<y> = K.extension(t^4+t-x^5)
+            sage: L.places_infinite(1)
+            [Place (1/x, 1/x^4*y^3)]
+        """
+        return list(self._places_infinite(degree))
+
+    def _places_infinite(self, degree):
+        """
+        Return a generator of *infinite* places with ``degree``.
+
+        INPUT:
+
+        - ``degree`` -- positive integer
+
+        EXAMPLES::
+
+            sage: F.<a> = GF(2)
+            sage: K.<x> = FunctionField(F)
+            sage: R.<t> = PolynomialRing(K)
+            sage: L.<y> = K.extension(t^4+t-x^5)
+            sage: L._places_infinite(1)
+            <generator object ...>
+        """
+        Oinf = self.maximal_order_infinite()
+        for prime,_,_ in Oinf.decomposition():
+            place = prime.place()
+            if place.degree() == degree:
+                yield place
+
+    def valuation_ring(self, place):
+        """
+        Return the valuation ring associated with the place.
+
+        INPUT:
+
+        - ``place`` -- place of the function field
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: p = L.places_finite()[0]
+            sage: L.valuation_ring(p)
+            Valuation ring at Place (x, x*y)
+
+            sage: K.<x> = FunctionField(GF(5)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 - (x^3 - 1)/(x^3 - 2))
+            sage: p = L.places_infinite()[0]
+            sage: L.valuation_ring(p)
+            Valuation ring at Place (1/x, ((2*x^3 + 1)/x^3)*y + 3)
+        """
+        return place.valuation_ring()
 
 class FunctionField_global_integral(FunctionField_global):
     """
@@ -2786,9 +2990,9 @@ class RationalFunctionField(FunctionField):
           To:   Rational function field in tbar over Rational Field
           Defn: t |--> tbar
     """
-    def __init__(self, constant_field, names,
-            element_class = FunctionFieldElement_rational,
-            category=FunctionFields()):
+    Element = FunctionFieldElement_rational
+
+    def __init__(self, constant_field, names, category=None):
         """
         Initialize.
 
@@ -2814,14 +3018,19 @@ class RationalFunctionField(FunctionField):
             names = (names, )
         if not constant_field.is_field():
             raise TypeError("constant_field must be a field")
-        self._element_class = element_class
+
         self._constant_field = constant_field
-        FunctionField.__init__(self, self, names=names, category = category)
+
+        FunctionField.__init__(self, self, names=names, category=FunctionFields().or_subcategory(category))
+
+        from .place import FunctionFieldPlace_rational
+        self._place_class = FunctionFieldPlace_rational
+
         R = constant_field[names[0]]
         self._hash = hash((constant_field, names))
         self._ring = R
-
         self._field = R.fraction_field()
+
         hom = Hom(self._field, self)
         from .maps import FractionFieldToFunctionField
         self.register_coercion(hom.__make_element_class__(FractionFieldToFunctionField)(hom.domain(), hom.codomain()))
@@ -2911,7 +3120,7 @@ class RationalFunctionField(FunctionField):
 
         """
         if isinstance(x, FunctionFieldElement):
-            return FunctionFieldElement_rational(self, self._field(x._x))
+            return self.element_class(self, self._field(x._x))
         try:
             x = self._field(x)
         except TypeError as Err:
@@ -2921,7 +3130,7 @@ class RationalFunctionField(FunctionField):
             except AttributeError:
                 pass
             raise Err
-        return FunctionFieldElement_rational(self, x)
+        return self.element_class(self, x)
 
     def _to_constant_base_field(self, f):
         r"""
@@ -3350,6 +3559,19 @@ class RationalFunctionField(FunctionField):
         """
         return self._field
 
+    def place_set(self):
+        """
+        Return the set of all places of the function field.
+
+        EXAMPLES::
+
+            sage: K.<t> = FunctionField(GF(7))
+            sage: K.place_set()
+            Set of places of Rational function field in t over Finite Field of size 7
+        """
+        from .place import PlaceSet
+        return PlaceSet(self)
+
     @cached_method
     def maximal_order(self):
         """
@@ -3499,4 +3721,112 @@ class RationalFunctionField_global(RationalFunctionField):
     """
     Rational function field over finite fields.
     """
-    pass
+    def places(self, degree=1):
+        """
+        Return all places of the degree.
+
+        INPUT:
+
+        - ``degree`` -- (default: 1) a positive integer
+
+        EXAMPLES::
+
+            sage: F.<x> = FunctionField(GF(5))
+            sage: F.places()
+            [Place (1/x),
+             Place (x),
+             Place (x + 1),
+             Place (x + 2),
+             Place (x + 3),
+             Place (x + 4)]
+        """
+        if degree == 1:
+            return [self.place_infinite()] + self.places_finite(degree)
+        else:
+            return self.places_finite(degree)
+
+    def places_finite(self, degree=1):
+        """
+        Return the finite places of the degree.
+
+        INPUT:
+
+        - ``degree`` -- (default: 1) a positive integer
+
+        EXAMPLES::
+
+            sage: F.<x> = FunctionField(GF(5))
+            sage: F.places_finite()
+            [Place (x), Place (x + 1), Place (x + 2), Place (x + 3), Place (x + 4)]
+        """
+        return list(self._places_finite(degree))
+
+    def _places_finite(self, degree=1):
+        """
+        Return a generator for all monic irreducible polynomials of the degree.
+
+        INPUT:
+
+        - ``degree`` -- (default: 1) a positive integer
+
+        EXAMPLES::
+
+            sage: F.<x> = FunctionField(GF(5))
+            sage: F._places_finite()
+            <generator object ...>
+        """
+        O = self.maximal_order()
+        R = O._ring
+        G = R.polynomials(of_degree=degree)
+        for g in G:
+            if not (g.is_monic() and g.is_irreducible()):
+                continue
+            yield O.ideal(g).place()
+
+    def place_infinite(self):
+        """
+        Return the unique place at infinity.
+
+        EXAMPLES::
+
+            sage: F.<x> = FunctionField(GF(5))
+            sage: F.place_infinite()
+            Place (1/x)
+        """
+        return self.maximal_order_infinite().prime_ideal().place()
+
+    def residue_field(self, place, name=None):
+        """
+        Return the residue field of the place along with the maps from
+        and to it.
+
+        INPUT:
+
+        - ``place`` -- place of the function field
+
+        - ``name`` -- string; name of the generator of the residue field
+
+        EXAMPLES::
+
+            sage: F.<x> = FunctionField(GF(5))
+            sage: p = F.places_finite(2)[0]
+            sage: R, fr_R, to_R = F.residue_field(p)
+            sage: R
+            Finite Field in z2 of size 5^2
+            sage: to_R(x) in R
+            True
+        """
+        return place.residue_field(name=name)
+
+    def valuation_ring(self, place):
+        """
+        Return the valuation ring at the place.
+
+        EXAMPLES::
+
+            sage: F.<x> = FunctionField(GF(2))
+            sage: p = F.place_infinite()
+            sage: F.valuation_ring(p)
+            Valuation ring at Place (1/x)
+        """
+        return place.valuation_ring()

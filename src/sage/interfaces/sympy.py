@@ -827,7 +827,6 @@ def check_expression(expr, var_symbols, only_from_sympy=False):
         assert not isinstance(e_sage, Basic)
     except (NameError, TypeError):
         is_different = True
-        pass
 
     # evaluate the expression in the context of SymPy:
     if var_symbols:

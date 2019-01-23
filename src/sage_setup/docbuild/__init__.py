@@ -804,7 +804,6 @@ class ReferenceSubBuilder(DocBuilder):
             return env
         except IOError as err:
             logger.debug("Failed to open Sphinx environment: %s", err)
-            pass
 
     def update_mtimes(self):
         """

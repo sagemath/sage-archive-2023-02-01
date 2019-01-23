@@ -12,7 +12,7 @@ from .extras import least_quadratic_nonresidue, extend_to_primitive, is_triangul
 from .special_values import gamma__exact, zeta__exact, QuadraticBernoulliNumber, \
       quadratic_L_function__exact, quadratic_L_function__numerical
 
-from .genera.genus import Genus, Genus_enumerate
+from .genera.genus import Genus, genera
 
 from .constructions import BezoutianQuadraticForm, HyperbolicPlane_quadratic_form
 

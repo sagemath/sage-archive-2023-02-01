@@ -30,7 +30,7 @@ from sage.rings.finite_rings.finite_field_constructor import FiniteField
 from copy import copy, deepcopy
 from sage.misc.misc import verbose
 
-def Genus_enumerate(sig_pair, determinant, max_scale=None, even=False):
+def genera(sig_pair, determinant, max_scale=None, even=False):
     r"""
     Return a list of all global genera with the given conditions.
 
@@ -53,7 +53,7 @@ def Genus_enumerate(sig_pair, determinant, max_scale=None, even=False):
 
     EXAMPLES::
 
-        sage: Genus_enumerate((4,0), 125, even=True)
+        sage: genera((4,0), 125, even=True)
         [Genus of
         None
         Signature:  (4, 0)
@@ -89,13 +89,13 @@ def Genus_enumerate(sig_pair, determinant, max_scale=None, even=False):
     local_symbols = []
     # every global genus has a 2-adic symbol
     if determinant % 2 != 0:
-        local_symbols.append(_LocalGenus_enumerate(2, rank, 0, 0, even=even))
+        local_symbols.append(_local_genera(2, rank, 0, 0, even=even))
     # collect the p-adic symbols
     for pn in determinant.factor():
         p = pn[0]
         det_val = pn[1]
         mscale_p = max_scale.valuation(p)
-        local_symbol_p = _LocalGenus_enumerate(p, rank, det_val, mscale_p, even)
+        local_symbol_p = _local_genera(p, rank, det_val, mscale_p, even)
         local_symbols.append(local_symbol_p)
     # take the cartesian product of the collection of all possible
     # local genus symbols one for each prime
@@ -113,11 +113,11 @@ def Genus_enumerate(sig_pair, determinant, max_scale=None, even=False):
     genera.sort(key=lambda x: [s.symbol_tuple_list() for s in x.local_symbols()])
     return(genera)
 
-def _LocalGenus_enumerate(p, rank, det_val, max_scale, even):
+def _local_genera(p, rank, det_val, max_scale, even):
     r"""
     Return all `p`-adic genera with the given conditions.
 
-    This is a helper function for :meth:`Genus_enumerate`.
+    This is a helper function for :meth:`genera`.
     No input checks are done.
 
     INPUT:
@@ -134,8 +134,8 @@ def _LocalGenus_enumerate(p, rank, det_val, max_scale, even):
 
     EXAMPLES::
 
-        sage: from sage.quadratic_forms.genera.genus import _LocalGenus_enumerate
-        sage: _LocalGenus_enumerate(2,3,1,2,False)
+        sage: from sage.quadratic_forms.genera.genus import _local_genera
+        sage: _local_genera(2,3,1,2,False)
         [Genus symbol at 2:    1^-2 [2^1]_1,
          Genus symbol at 2:    1^2 [2^1]_1,
          Genus symbol at 2:    1^2 [2^1]_7,
@@ -151,9 +151,9 @@ def _LocalGenus_enumerate(p, rank, det_val, max_scale, even):
 
     Setting a maximum scale::
 
-        sage: _LocalGenus_enumerate(5, 2, 2, 1, True)
+        sage: _local_genera(5, 2, 2, 1, True)
         [Genus symbol at 5:     5^-2, Genus symbol at 5:     5^2]
-        sage: _LocalGenus_enumerate(5, 2, 2, 2, True)
+        sage: _local_genera(5, 2, 2, 2, True)
         [Genus symbol at 5:     1^-1 25^-1,
          Genus symbol at 5:     1^1 25^-1,
          Genus symbol at 5:     1^-1 25^1,
@@ -217,7 +217,7 @@ def _blocks(b, even_only=False):
     r"""
     Return all viable `2`-adic jordan blocks with rank and scale given by ``b``
 
-    This is a helper function for :meth:`_LocalGenus_enumerate`.
+    This is a helper function for :meth:`_local_genera`.
     It is based on the existence conditions for a modular `2`-adic genus symbol.
 
     INPUT:

@@ -176,7 +176,7 @@ def load(filename, globals, attach=False):
         sage: fullpath = os.path.join(t_dir, fname)
         sage: with open(fullpath, 'w') as f:
         ....:     _ = f.write("print(37 * 3)")
-        sage: load_attach_path(t_dir)
+        sage: load_attach_path(t_dir, replace=True)
         sage: attach(fname)
         111
         sage: sage.repl.attach.reset(); reset_load_attach_path() # clean up

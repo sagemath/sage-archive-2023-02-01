@@ -47,8 +47,9 @@ from cysignals.signals cimport sig_check
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.coerce cimport py_scalar_parent
 from sage.structure.sequence import Sequence
+from sage.structure.coerce cimport coercion_model
 from sage.structure.element import is_Vector
-from sage.structure.element cimport have_same_parent, coercion_model
+from sage.structure.element cimport have_same_parent
 from sage.misc.misc import verbose, get_verbose
 from sage.rings.ring import is_Ring
 from sage.rings.number_field.number_field_base import is_NumberField

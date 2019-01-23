@@ -169,8 +169,9 @@ from cpython.int cimport *
 from cpython.object cimport *
 from libc.stdint cimport uint64_t
 cimport sage.structure.element
+from sage.structure.coerce cimport coercion_model
 from sage.structure.element cimport (Element, EuclideanDomainElement,
-        parent, coercion_model)
+        parent)
 from sage.structure.parent cimport Parent
 from cypari2.paridecl cimport *
 from sage.rings.rational cimport Rational
@@ -178,6 +179,7 @@ from sage.arith.rational_reconstruction cimport mpq_rational_reconstruction
 from sage.libs.gmp.pylong cimport *
 from sage.libs.ntl.convert cimport mpz_to_ZZ
 from sage.libs.gmp.mpq cimport mpq_neg
+from sage.libs.gmp.binop cimport mpq_add_z, mpq_mul_z, mpq_div_zz
 
 from cypari2.gen cimport objtogen, Gen as pari_gen
 from sage.libs.pari.convert_gmp cimport INT_to_mpz, new_gen_from_mpz_t
@@ -188,9 +190,10 @@ import sage.rings.infinity
 
 from sage.structure.coerce cimport is_numpy_type
 from sage.structure.element import coerce_binop
-from sage.misc.superseded import deprecation
 
-from sage.libs.gmp.binop cimport mpq_add_z, mpq_mul_z, mpq_div_zz
+from sage.structure.richcmp cimport rich_to_bool_sgn
+
+from . import integer_ring
 
 IF HAVE_GMPY2:
     cimport gmpy2
@@ -349,14 +352,7 @@ cdef _digits_internal(mpz_t v,l,int offset,int power_index,power_list,digits):
         mpz_clear(mpz_quot)
         mpz_clear(mpz_res)
 
-from sage.structure.sage_object cimport SageObject
-from sage.structure.richcmp cimport rich_to_bool_sgn
 
-from sage.structure.element cimport EuclideanDomainElement, ModuleElement, Element
-from sage.structure.element import  bin_op
-from sage.structure.coerce_exceptions import CoercionException
-
-from . import integer_ring
 cdef Parent the_integer_ring = integer_ring.ZZ
 
 # The documentation for the ispseudoprime() function in the PARI
@@ -826,7 +822,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         if isinstance(x, Integer) and isinstance(y, Integer):
             return (<Integer>x)._xor(y)
-        return bin_op(x, y, operator.xor)
+        return coercion_model.bin_op(x, y, operator.xor)
 
     def __richcmp__(left, right, int op):
         """
@@ -1238,6 +1234,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return self.str(16)
 
     def __hex__(self):
+        from sage.misc.superseded import deprecation
         deprecation(26756, 'use the method .hex instead')
         return self.hex()
 
@@ -1291,6 +1288,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return self.str(8)
 
     def __oct__(self):
+        from sage.misc.superseded import deprecation
         deprecation(26756, 'use the method .oct instead')
         return self.oct()
 
@@ -6384,7 +6382,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 except TypeError:
                     raise TypeError("unsupported operands for %s: %s, %s"%(("<<" if sign == 1 else ">>"), self, y))
                 except ValueError:
-                    return bin_op(self, y, operator.lshift if sign == 1 else operator.rshift)
+                    return coercion_model.bin_op(self, y, operator.lshift if sign == 1 else operator.rshift)
 
             # If y wasn't a Python int, it's now an Integer, so set n
             # accordingly.
@@ -6494,7 +6492,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         if isinstance(x, Integer) and isinstance(y, Integer):
             return (<Integer>x)._and(y)
-        return bin_op(x, y, operator.and_)
+        return coercion_model.bin_op(x, y, operator.and_)
 
     cdef _or(Integer self, Integer other):
         cdef Integer x = PY_NEW(Integer)
@@ -6513,7 +6511,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         if isinstance(x, Integer) and isinstance(y, Integer):
             return (<Integer>x)._or(y)
-        return bin_op(x, y, operator.or_)
+        return coercion_model.bin_op(x, y, operator.or_)
 
     def __invert__(self):
         """

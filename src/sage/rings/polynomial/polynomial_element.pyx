@@ -92,9 +92,10 @@ from sage.rings.real_double import is_RealDoubleField, RDF
 from sage.rings.complex_double import is_ComplexDoubleField, CDF
 from sage.rings.real_mpfi import is_RealIntervalField
 
+from sage.structure.coerce cimport coercion_model
 from sage.structure.element import coerce_binop
 from sage.structure.element cimport (parent, have_same_parent,
-        Element, RingElement, coercion_model)
+        Element, RingElement)
 
 from sage.rings.rational_field import QQ, is_RationalField
 from sage.rings.integer_ring import ZZ, is_IntegerRing

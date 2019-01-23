@@ -425,7 +425,7 @@ cpdef bint is_mpmath_type(t):
            strncmp((<PyTypeObject*>t).tp_name, "sage.libs.mpmath.", 17) == 0
 
 
-cdef class CoercionModel_cache_maps(CoercionModel):
+cdef class CoercionModel:
     """
     See also sage.categories.pushout
 
@@ -495,8 +495,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         """
         EXAMPLES::
 
-            sage: from sage.structure.coerce import CoercionModel_cache_maps
-            sage: cm = CoercionModel_cache_maps()
+            sage: from sage.structure.coerce import CoercionModel
+            sage: cm = CoercionModel()
             sage: K = NumberField(x^2-2, 'a')
             sage: A = cm.get_action(ZZ, K, operator.mul)
             sage: f, g = cm.coercion_maps(QQ, int)
@@ -504,7 +504,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         TESTS::
 
-            sage: cm = CoercionModel_cache_maps(4, .95)
+            sage: cm = CoercionModel(4, .95)
             doctest:...: DeprecationWarning: the 'lookup_dict_size' argument is deprecated
             See http://trac.sagemath.org/24135 for details.
             doctest:...: DeprecationWarning: the 'lookup_dict_threshold' argument is deprecated
@@ -1986,3 +1986,6 @@ Original elements %r (parent %s) and %r (parent %s) and maps
 %s %r""" % (x_elt, y_elt, parent(x_elt), parent(y_elt),
             x, parent(x), y, parent(y),
             type(x_map), x_map, type(y_map), y_map))
+
+
+coercion_model = CoercionModel()

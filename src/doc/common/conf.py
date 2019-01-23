@@ -672,14 +672,19 @@ def find_sage_dangling_links(app, env, node, contnode):
     basename = reftarget.split(".")[0]
     try:
         target_module = getattr(sys.modules['sage.all'], basename).__module__
+        debug_inf(app, "++ found %s using sage.all in %s" % (basename, target_module))
     except AttributeError:
-        debug_inf(app, "-- %s not found in sage.all"%(basename))
-        return None
+        try:
+            target_module = getattr(sys.modules[node['py:module']], basename).__module__
+            debug_inf(app, "++ found %s in this module" % (basename,))
+        except AttributeError:
+            debug_inf(app, "-- %s not found in sage.all or this module" % (basename))
+            return None
+        except KeyError:
+            target_module = None
     if target_module is None:
         target_module = ""
         debug_inf(app, "?? found in None !!!")
-
-    debug_inf(app, "++ found %s using sage.all in %s"%(basename, target_module))
 
     newtarget = target_module+'.'+reftarget
     node['reftarget'] = newtarget

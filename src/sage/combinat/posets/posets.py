@@ -78,6 +78,7 @@ List of Poset methods
     :meth:`~FinitePoset.is_eulerian` | Return ``True`` if the poset is Eulerian.
     :meth:`~FinitePoset.is_incomparable_chain_free` | Return ``True`` if the poset is (m+n)-free.
     :meth:`~FinitePoset.is_slender` | Return ``True`` if the poset is slender.
+    :meth:`~FinitePoset.is_sperner` | Return ``True`` if the poset is Sperner.
     :meth:`~FinitePoset.is_join_semilattice` | Return ``True`` is the poset has a join operation.
     :meth:`~FinitePoset.is_meet_semilattice` | Return ``True`` if the poset has a meet operation.
 
@@ -7210,6 +7211,48 @@ class FinitePoset(UniqueRepresentation, Parent):
         if certificate:
             return (True, None)
         return True
+
+    def is_sperner(self):
+        """
+        Return ``True`` if the poset is Sperner, and ``False`` otherwise.
+
+        The poset is expected to be ranked.
+
+        A poset is Sperner, if no antichain is larger than the largest
+        rank level (one of the sets of elements of the same rank) in
+        the poset.
+
+        See :wikipedia:`Sperner_property_of_a_partially_ordered_set`
+
+        .. SEEALSO:: :meth:`width`, :meth:`dilworth_decomposition`
+
+        EXAMPLES::
+
+            sage: posets.SetPartitions(3).is_sperner()
+            True
+
+            sage: P = Poset({0:[3,4,5],1:[5],2:[5]})
+            sage: P.is_sperner()
+            False
+
+        TESTS::
+
+            sage: posets.PentagonPoset().is_sperner()
+            Traceback (most recent call last):
+            ...
+            ValueError: the poset is not ranked
+
+            sage: P = Poset()
+            sage: P.is_sperner()
+            True
+        """
+        if not self.is_ranked():
+            raise ValueError("the poset is not ranked")
+        if not self.cardinality():
+            return True
+        W = self.width()
+        N = max(len(level) for level in self._hasse_diagram.level_sets())
+        return W <= N
 
     def is_eulerian(self, k=None, certificate=False):
         """

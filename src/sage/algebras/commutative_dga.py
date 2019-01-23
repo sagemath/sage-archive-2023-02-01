@@ -2206,6 +2206,15 @@ class DifferentialGCAlgebra(GCAlgebra):
             sage: acyclic = X.cdg_algebra({x: y})
             sage: acyclic.cohomology_generators(3)
             {}
+
+        Test that redundant generators are eliminated::
+
+            sage: A.<e1,e2,e3,e4> = GradedCommutativeAlgebra(QQ)
+            sage: d = A.differential({e1:e4*e3,e2:e4*e3})
+            sage: B = A.cdg_algebra(d)
+            sage: B.cohomology_generators(3)
+            {1: [e4, e3, -e1 + e2], 2: [e2*e4, e2*e3]}
+
         """
         if not (max_degree in ZZ and max_degree > 0):
             raise ValueError("the given maximal degree must be a positive integer")

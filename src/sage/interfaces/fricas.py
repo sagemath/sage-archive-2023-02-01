@@ -1042,7 +1042,7 @@ class FriCASElement(ExpectElement):
         TESTS::
 
             sage: m = fricas("UP(y, UP(x, AN))::INFORM")                        # optional - fricas
-            sage: fricas(0)._get_sage_type(m)
+            sage: fricas(0)._get_sage_type(m)                                   # optional - fricas
             Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Algebraic Field
         """
         from sage.rings.all import ZZ, QQbar, RDF, PolynomialRing

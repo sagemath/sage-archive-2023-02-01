@@ -77,15 +77,13 @@ def Genus_enumerate(sig_pair, determinant, max_scale=None, even=False):
     ZZ = IntegerRing()
     determinant = ZZ(determinant)
     sig_pair = (ZZ(sig_pair[0]), ZZ(sig_pair[1]))
-    if not all([s >= 0 for s in sig_pair]):
+    even = bool(even)
+    if not all(s >= 0 for s in sig_pair):
         raise ValueError("the signature vector must be a pair of non negative integers.")
-    if max_scale == None:
+    if max_scale is None:
         max_scale = determinant
     else:
         max_scale = ZZ(max_scale)
-    if type(even) != bool:
-        raise ValueError("not a boolean")
-
     rank = sig_pair[0] + sig_pair[1]
     genera = []
     local_symbols = []

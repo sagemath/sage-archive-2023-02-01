@@ -21,16 +21,13 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from functools import reduce
 
 from sage.algebras.group_algebra import GroupAlgebra_class
-from sage.categories.algebras import Algebras
 from sage.categories.groups import Groups
 from sage.combinat.composition import Composition
-from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.partition import Partitions, Partition
 from sage.combinat.sf.sf import SymmetricFunctions
-from sage.combinat.sf.sfa import SymmetricFunctionAlgebra_generic
-from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
 from sage.rings.all import RationalField, NonNegativeIntegerSemiring
@@ -165,8 +162,8 @@ class ShiftingOperatorActionAlgebra(GroupAlgebra_class):
 
         INPUT::
 
-        -``seq`` -- Any finite iterable of integers representing the powers of
-                   the generators.
+        - ``seq`` -- Any finite iterable of integers representing the powers of
+          the generators.
 
         EXAMPLES::
 
@@ -227,6 +224,18 @@ class ShiftingOperatorActionAlgebra(GroupAlgebra_class):
 
             For internal use only during the initialization!
 
+        TESTS::
+
+            sage: from sage.combinat.partition_shifting_algebras import ShiftingOperatorActionAlgebra
+            sage: A = ShiftingOperatorActionAlgebra(QQ, prefix='x')
+            sage: elm = A([3,1,2])
+            sage: sym = SymmetricFunctions(QQ)
+            sage: h = sym.h()
+            sage: h(elm) # indirect doctest
+            h[3, 2, 1]
+            sage: s = sym.s()
+            sage: s(elm) # indirect doctest
+            0
         """
         base = self.base_ring()
         sym = SymmetricFunctions(base)
@@ -403,7 +412,7 @@ class ShiftingOperatorActionAlgebra(GroupAlgebra_class):
         pow_dict = term.dict()
         if len(pow_dict) == 0:
             return '1'
-        parts = [self.prefix+repr(k)+'^'+repr(v) for (k,v) in pow_dict.iteritems()]
+        parts = [self.prefix+repr(k)+'^'+repr(v) for (k,v) in pow_dict.items()]
         return reduce(lambda a,b: a+'*'+b, parts)
 
 class ShiftingSequenceSpace():
@@ -815,7 +824,6 @@ class ShiftingOperatorAlgebra(ShiftingOperatorActionAlgebra):
                 True
             """
             A = self.parent().ambient()
-            parent = self.parent()
             if isinstance(operand, (list, tuple, Composition, Partition)):
                 self_terms = [(free_group_elm_to_partition(supp),coeff) for (supp,coeff) in self]
                 return [(self._call_basis_on_index(index,operand),coeff) for (index,coeff) in self_terms]

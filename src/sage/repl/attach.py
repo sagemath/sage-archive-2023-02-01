@@ -212,7 +212,7 @@ def load_attach_path(path=None, replace=False):
     if path is None:
         return search_paths
     else:
-        if isinstance(path, six.string_types):
+        if not isinstance(path, list):
             path = [path]
         if replace:
             search_paths = path

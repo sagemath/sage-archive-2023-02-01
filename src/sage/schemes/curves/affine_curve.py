@@ -26,21 +26,20 @@ AUTHORS:
 - Grayson Jorgenson (2016-8)
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import
 
 from sage.arith.misc import binomial
 from sage.categories.fields import Fields
 from sage.categories.finite_fields import FiniteFields
-from copy import copy
 from sage.categories.homset import Hom, End
 from sage.categories.number_fields import NumberFields
 from sage.interfaces.all import singular
@@ -59,11 +58,8 @@ from sage.schemes.affine.affine_space import (AffineSpace,
 from . import point
 
 from sage.schemes.affine.affine_subscheme import AlgebraicScheme_subscheme_affine
-
-from sage.schemes.affine.affine_space import AffineSpace, is_AffineSpace
-from sage.schemes.projective.projective_space import ProjectiveSpace
-
 from .curve import Curve_generic
+
 
 class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
 
@@ -1004,21 +1000,20 @@ class AffinePlaneCurve(AffineCurve):
         F = self.base_ring()
         f = self.defining_polynomial()
         pts = self.places_on_curve()
-        numpts = len(pts)
         R = f.parent()
-        x,y = R.gens()
-        R0 = PolynomialRing(F,3,names = [str(x),str(y),"t"])
+        x, y = R.gens()
+        R0 = PolynomialRing(F, 3, names=[str(x), str(y), "t"])
         vars0 = R0.gens()
         t = vars0[2]
         divf = []
         for pt0 in pts:
             if pt0[2] != F(0):
-                lcs = self.local_coordinates(pt0,5)
+                lcs = self.local_coordinates(pt0, 5)
                 yt = lcs[1]
                 xt = lcs[0]
-                ldg = degree_lowest_rational_function(r(xt,yt),t)
+                ldg = degree_lowest_rational_function(r(xt, yt), t)
                 if ldg[0] != 0:
-                    divf.append([ldg[0],pt0])
+                    divf.append([ldg[0], pt0])
         return divf
 
     def local_coordinates(self, pt, n):
@@ -1618,8 +1613,7 @@ class AffinePlaneCurve_prime_finite_field(AffinePlaneCurve_finite_field):
         R = f.parent()
         F = self.base_ring()
         p = F.characteristic()
-        Dstr = str(tuple(D))
-        G = singular(','.join([str(x) for x in D]), type='intvec')
+        G = singular(','.join(str(x) for x in D), type='intvec')
 
         singular.LIB('brnoeth.lib')
 

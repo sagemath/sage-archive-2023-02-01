@@ -5493,10 +5493,10 @@ cdef class Matrix(Matrix1):
         Next we compute the left eigenspaces over the finite field of order 11. ::
 
             sage: A = ModularSymbols(43, base_ring=GF(11), sign=1).T(2).matrix(); A
-            [ 3  9  0  0]
-            [ 0  9  0  1]
-            [ 0 10  9  2]
-            [ 0  9  0  2]
+            [ 3  0  9  0]
+            [ 0  9  0 10]
+            [ 0  0 10  1]
+            [ 0  0  1  1]
             sage: A.base_ring()
             Finite Field of size 11
             sage: A.charpoly()
@@ -5505,13 +5505,13 @@ cdef class Matrix(Matrix1):
             [
             (9, Vector space of degree 4 and dimension 1 over Finite Field of size 11
             User basis matrix:
-            [0 0 1 5]),
+            [0 1 5 6]),
             (3, Vector space of degree 4 and dimension 1 over Finite Field of size 11
             User basis matrix:
-            [1 6 0 6]),
+            [1 0 1 6]),
             (beta2, Vector space of degree 4 and dimension 1 over Univariate Quotient Polynomial Ring in beta2 over Finite Field of size 11 with modulus x^2 + 9
             User basis matrix:
-            [           0            1            0 5*beta2 + 10])
+            [        0         0         1 beta2 + 1])
             ]
 
         This method is only applicable to exact matrices.

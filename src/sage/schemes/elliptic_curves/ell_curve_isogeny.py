@@ -56,13 +56,13 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2009 Daniel Shumow <shumow@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from __future__ import print_function, absolute_import
 from six import itervalues
 from six.moves import range
 
@@ -2442,7 +2442,7 @@ class EllipticCurveIsogeny(Morphism):
 
         # check if the polynomial really divides the torsion polynomial :
         if self.__check:
-            from isogeny_small_degree import is_kernel_polynomial
+            from .isogeny_small_degree import is_kernel_polynomial
             if not is_kernel_polynomial(E, d, psi):
                 raise ValueError("The polynomial {} does not define a finite subgroup of {}.".format(psi,E))
 

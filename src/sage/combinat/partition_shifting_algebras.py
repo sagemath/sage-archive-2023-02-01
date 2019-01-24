@@ -150,6 +150,18 @@ class ShiftingOperatorActionAlgebra(GroupAlgebra_class):
         False
     """
     def __init__(self, base_ring, prefix='F'):
+        r"""
+        Initialize ``self``. 
+
+        EXAMPLES::
+
+            sage: from sage.combinat.partition_shifting_algebras import ShiftingOperatorActionAlgebra
+            sage: A = ShiftingOperatorActionAlgebra(QQ, prefix='x')
+            sage: A.category()
+            Category of group algebras over Rational Field
+            sage: TestSuite(A).run()
+        
+        """
         F = Groups.Commutative().free(NonNegativeIntegerSemiring(),prefix)
         self.prefix = prefix
         category = F.category().Algebras(base_ring)
@@ -437,6 +449,14 @@ class ShiftingSequenceSpace():
         False
     """
     def __init__(self, base=IntegerRing()):
+        r"""
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.partition_shifting_algebras import ShiftingSequenceSpace
+            sage: S = ShiftingSequenceSpace()
+        """
         self.base = base
 
     def __contains__(self, seq):
@@ -590,6 +610,14 @@ class ShiftingOperatorAlgebra(ShiftingOperatorActionAlgebra):
         :class:`RaisingOperatorAlgebra`
     """
     def __init__(self, base_ring=RationalField()['t'], prefix='S', basis_indices=ShiftingSequenceSpace()):
+        r"""
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: S = ShiftingOperatorAlgebra(QQ['t'])
+            sage: TestSuite(S).run()
+        """
         self._prefix = prefix
         self._base_ring = base_ring
         # a single basis index looks like (1, 0, -1, 2), for example
@@ -892,11 +920,32 @@ class RaisingOperatorAlgebra(ShiftingOperatorAlgebra):
     """
 
     def __init__(self, base_ring=RationalField()['t'], prefix='R'):
+        r"""
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: R = RaisingOperatorAlgebra(QQ['t'])
+            sage: TestSuite(R).run()
+        """
+
         ShiftingOperatorAlgebra.__init__(self,
                                          base_ring=base_ring,
                                          prefix=prefix,
                                          basis_indices=RaisingSequenceSpace())
 
+    def _repr_(self):
+        r"""
+        Return a string describing ``self``.
+
+        EXAMPLES::
+
+            sage: R = RaisingOperatorAlgebra()
+            sage: R
+            Raising Operator Algebra over Univariate Polynomial Ring in t over Rational Field
+        """
+        return "Raising Operator Algebra over {base_ring}".format(base_ring=self._base_ring)
+        
     def ij(self, i, j):
         r"""
         Return the raising operator `R_{ij}` as notated in [BMPS2018]_ Definition 2.1.

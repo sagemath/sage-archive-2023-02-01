@@ -1584,7 +1584,6 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
         except RuntimeError as msg:
             if verbose:
                 print('*** %s' % msg)
-            pass
     # end for
     g.save_workspace()
     g.quit()

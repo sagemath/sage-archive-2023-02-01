@@ -1512,7 +1512,6 @@ class Magma(ExtraTabCompletion, Expect):
                         N.append(x[:i])
                 except RuntimeError as msg:  # weird internal problems in Magma type system
                     print('Error -- %s' % msg)
-                    pass
             if verbose:
                 print("Done! (%s seconds)" % sage.misc.misc.cputime(tm))
             N = sorted(set(N))

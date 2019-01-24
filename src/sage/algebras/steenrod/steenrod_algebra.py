@@ -3382,6 +3382,39 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                 1 # Q_1 P(1) + P(1) # Q_1 + Q_1 # P(1) + Q_1 P(1) # 1
                 sage: a.coproduct(algorithm='adem')
                 1 # Q_1 P(1) + P(1) # Q_1 + Q_1 # P(1) + Q_1 P(1) # 1
+
+            Once you have an element of the tensor product, you may
+            want to extract the tensor factors of its summands. ::
+
+                sage: b = Sq(2).coproduct()
+                sage: b
+                1 # Sq(2) + Sq(1) # Sq(1) + Sq(2) # 1
+                sage: supp = sorted(b.support()); supp
+                [((), (2,)), ((1,), (1,)), ((2,), ())]
+                sage: Sq(*supp[0][0])
+                1
+                sage: Sq(*supp[0][1])
+                Sq(2)
+                sage: [(Sq(*x), Sq(*y)) for (x,y) in supp]
+                [(1, Sq(2)), (Sq(1), Sq(1)), (Sq(2), 1)]
+
+            The ``support`` of an element does not include the
+            coefficients, so at odd primes it may be better to use
+            ``monomial_coefficients``::
+
+                sage: A3 = SteenrodAlgebra(p=3)
+                sage: b = (A3.P(1)**2).coproduct()
+                sage: b
+                2*1 # P(2) + 2*P(1) # P(1) + 2*P(2) # 1
+                sage: sorted(b.support())
+                [(((), ()), ((), (2,))), (((), (1,)), ((), (1,))), (((), (2,)), ((), ()))]
+                sage: b.monomial_coefficients()
+                {(((), ()), ((), (2,))): 2,
+                 (((), (1,)), ((), (1,))): 2,
+                 (((), (2,)), ((), ())): 2}
+                sage: mc = b.monomial_coefficients()
+                sage: sorted([(A3.monomial(x), A3.monomial(y), mc[x,y]) for (x,y) in mc])
+                [(1, P(2), 2), (P(1), P(1), 2), (P(2), 1, 2)]
             """
             A = self.parent()
             return A.coproduct(self, algorithm=algorithm)

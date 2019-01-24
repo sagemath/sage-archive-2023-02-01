@@ -6621,7 +6621,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         return U
 
     def S_unit_solutions(self, S=[], prec=106, include_exponents=False, include_bound=False, proof=None):
-        """
+        r"""
         Return all solutions to the S-unit equation ``x + y = 1`` over K.
 
         INPUT:

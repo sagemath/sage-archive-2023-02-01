@@ -156,10 +156,10 @@ class CrystalOfOddNegativeRoots(UniqueRepresentation, Parent):
                 sage: latex(mg.f_string([0,-1,0]))
                 \{-e_{-2}+e_{1}, -e_{-1}+e_{1}\}
             """
-            return ('\{'
+            return (r'\{'
                     + ", ".join("-e_{{{}}}+e_{{{}}}".format(*i)
                                 for i in sorted(self.value))
-                    + '\}')
+                    + r'\}')
 
         def e(self, i):
             r"""
@@ -508,8 +508,8 @@ class CrystalOfKacModule(UniqueRepresentation, Parent):
         sage: K.lowest_weight_vectors()
         (({-e[-2]+e[1], -e[-2]+e[2], -e[-1]+e[1], -e[-1]+e[2]}, [[-1, -1]], [[2]]),
          ({-e[-1]+e[1], -e[-1]+e[2]}, [[-1, -1]], [[2]]),
-         ({-e[-2]+e[2], -e[-1]+e[1], -e[-1]+e[2]}, [[-1, -1]], [[2]]),
-         ({-e[-2]+e[2], -e[-1]+e[1], -e[-1]+e[2]}, [[-1, -1]], [[1]]))
+         ({-e[-2]+e[2], -e[-1]+e[1], -e[-1]+e[2]}, [[-1, -1]], [[1]]),
+         ({-e[-2]+e[2], -e[-1]+e[1], -e[-1]+e[2]}, [[-1, -1]], [[2]]))
 
     REFERENCES:
 
@@ -639,9 +639,9 @@ class CrystalOfKacModule(UniqueRepresentation, Parent):
                 }
             """
             from sage.misc.latex import latex
-            return " \otimes ".join([latex(self.value[0]),
-                                     latex_dual(self.value[1]),
-                                     latex(self.value[2])])
+            return r" \otimes ".join([latex(self.value[0]),
+                                      latex_dual(self.value[1]),
+                                      latex(self.value[2])])
 
         def e(self, i):
             r"""

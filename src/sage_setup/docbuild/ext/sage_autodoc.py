@@ -988,7 +988,12 @@ class Documenter(object):
             self.analyzer.find_attr_docs()
         except PycodeError as err:
             self.env.app.debug('[autodoc] module analyzer failed: %s', err)
-            # no source file -- e.g. for builtin and C modules
+            # A few things could have happened here:
+            # * there is no source file -- e.g. for builtin and C modules
+            # * the source file contains syntax that Sphinx can not parse,
+            #   e.g., "print(1, end=' ')"; see
+            #   https://github.com/sphinx-doc/sphinx/issues/1641,
+            #   fixed in Sphinx 1.7.
             self.analyzer = None
             # at least add the module.__file__ as a dependency
             if hasattr(self.module, '__file__') and self.module.__file__:
@@ -1444,9 +1449,19 @@ class ClassDocumenter(DocstringSignatureMixin, ModuleLevelDocumenter):
         return doc
 
     def add_content(self, more_content, no_docstring=False):
+        # type: (Any, bool) -> None
         if self.doc_as_attr:
-            classname = safe_getattr(self.object, '__name__', None)
+            # We cannot rely on __qualname__ yet for Python 2, because of a
+            # Cython bug: https://github.com/cython/cython/issues/2772. See
+            # trac #27002.
+            classname = None if PY2 else safe_getattr(self.object, '__qualname__', None)
+            if not classname:
+                classname = safe_getattr(self.object, '__name__', None)
             if classname:
+                module = safe_getattr(self.object, '__module__', None)
+                parentmodule = safe_getattr(self.parent, '__module__', None)
+                if module and module != parentmodule:
+                    classname = str(module) + u'.' + str(classname)
                 content = ViewList(
                     [_('alias of :class:`%s`') % classname], source='')
                 ModuleLevelDocumenter.add_content(self, content,

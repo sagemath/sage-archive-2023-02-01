@@ -229,7 +229,8 @@ class TestSuite(object):
             Failure in _test_pickling:
             Traceback (most recent call last):
               ...
-            PicklingError: Can't pickle <class '__main__.Blah'>: attribute lookup __main__.Blah failed
+            ...PicklingError: Can't pickle <class '__main__.Blah'>: attribute
+            lookup ...Blah... failed
             ------------------------------------------------------------
             The following tests failed: _test_b, _test_d, _test_pickling
 
@@ -252,7 +253,8 @@ class TestSuite(object):
             running ._test_pickling() . . . fail
             Traceback (most recent call last):
               ...
-            PicklingError: Can't pickle <class '__main__.Blah'>: attribute lookup __main__.Blah failed
+            ...PicklingError: Can't pickle <class '__main__.Blah'>: attribute
+            lookup ...Blah... failed
             ------------------------------------------------------------
             The following tests failed: _test_b, _test_d, _test_pickling
 
@@ -517,7 +519,7 @@ class InstanceTester(unittest.TestCase):
 
             sage: tester = InstanceTester(ZZ)
             sage: ZZ.some_elements()             # yikes, shamelessly trivial ...
-            <generator object _some_elements_from_iterator at 0x...>
+            <generator object ..._some_elements_from_iterator at 0x...>
             sage: list(tester.some_elements())
             [0, 1, -1, 2, -2, ..., 49, -49, 50]
 

@@ -242,7 +242,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
 
     def _compute_diamond_matrix(self, d):
         r"""
-        EXAMPLES:
+        EXAMPLES::
 
             sage: f = ModularSymbols(Gamma1(13),2,sign=1).cuspidal_subspace().decomposition()[0]
             sage: a = f.diamond_bracket_operator(2).matrix() # indirect doctest
@@ -843,7 +843,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         return self.free_module().nonembedded_free_module()
 
     def old_submodule(self, p=None):
-        """
+        r"""
         Return the old or p-old submodule of this space of modular
         symbols.
 

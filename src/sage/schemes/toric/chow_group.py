@@ -129,6 +129,7 @@ Chow cycles can be of mixed degrees::
 #*****************************************************************************
 
 from sage.misc.all import flatten
+from sage.misc.fast_methods import WithEqualityById
 from sage.modules.fg_pid.fgp_module import FGP_Module_class
 from sage.modules.fg_pid.fgp_element import FGP_Element
 from sage.modules.free_module import FreeModule
@@ -604,7 +605,7 @@ ChowGroup = ChowGroupFactory('ChowGroup')
 
 
 #*******************************************************************
-class ChowGroup_class(FGP_Module_class):
+class ChowGroup_class(FGP_Module_class, WithEqualityById):
     r"""
     The Chow group of a toric variety.
 
@@ -643,10 +644,11 @@ class ChowGroup_class(FGP_Module_class):
             ...
             TypeError: unsupported operand parent(s) for *: 'Rational Field'
             and 'Chow group of 2-d CPR-Fano toric variety covered by 3 affine patches'
-            sage: A_ZZ.get_action(ZZ)
+            sage: coercion_model.get_action(A_ZZ, ZZ)
             Right scalar multiplication by Integer Ring on Chow group of 2-d
             CPR-Fano toric variety covered by 3 affine patches
-            sage: A_ZZ.get_action(QQ)
+            sage: print(coercion_model.get_action(A_ZZ, QQ))
+            None
 
         You can't multiply integer classes with fractional
         numbers. For that you need to go to the rational Chow group::
@@ -656,10 +658,10 @@ class ChowGroup_class(FGP_Module_class):
             ( 0 | 0 | 6 )
             sage: 1/2 * A_QQ.an_element() * 1/3
             ( 0 | 0 | 1/6 )
-            sage: A_QQ.get_action(ZZ)
+            sage: coercion_model.get_action(A_QQ, ZZ)
             Right scalar multiplication by Integer Ring on QQ-Chow group of 2-d
             CPR-Fano toric variety covered by 3 affine patches
-            sage: A_QQ.get_action(QQ)
+            sage: coercion_model.get_action(A_QQ, QQ)
             Right scalar multiplication by Rational Field on QQ-Chow group of 2-d
             CPR-Fano toric variety covered by 3 affine patches
         """
@@ -823,30 +825,6 @@ class ChowGroup_class(FGP_Module_class):
             return "Chow group of " + str(self._variety)
         else:
             raise ValueError
-
-
-    def __eq__(self, other):
-        r"""
-        Comparison of two Chow groups.
-
-        INPUT:
-
-        - ``other`` -- anything.
-
-        OUTPUT:
-
-        ``True`` or ``False``.
-
-        EXAMPLES::
-
-            sage: P2 = toric_varieties.P2()
-            sage: P2.Chow_group() == P2.Chow_group()
-            True
-            sage: P2.Chow_group(ZZ) == P2.Chow_group(QQ)
-            False
-        """
-        return self is other  # ChowGroup_class is unique
-
 
     def _cone_to_V(self, cone):
         r"""

@@ -59,7 +59,7 @@ def matrix_integer_dense_rational_reconstruction(Matrix_integer_dense A, Integer
         A -- matrix
         N -- an integer
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: B = ((matrix(ZZ, 3,4, [1,2,3,-4,7,2,18,3,4,3,4,5])/3)%500).change_ring(ZZ)
         sage: sage.matrix.misc.matrix_integer_dense_rational_reconstruction(B, 500)
@@ -146,7 +146,7 @@ def matrix_integer_sparse_rational_reconstruction(Matrix_integer_sparse A, Integ
     rational reconstruction on all entries of the matrix, viewed as
     numbers mod N.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: A = matrix(ZZ, 3, 4, [(1/3)%500, 2, 3, (-4)%500, 7, 2, 2, 3, 4, 3, 4, (5/7)%500], sparse=True)
         sage: sage.matrix.misc.matrix_integer_sparse_rational_reconstruction(A, 500)
@@ -290,7 +290,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
         where H denotes the height.   If this fails, do step 4 with
         a few more primes.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: A = matrix(QQ, 3, 7, [1..21])
         sage: from sage.matrix.misc import matrix_rational_echelon_form_multimodular

@@ -411,7 +411,7 @@ class ProjectiveConic_field(ProjectivePlaneCurve):
            delegates the task to the Magma computer algebra
            system.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: Conic(RR, [1, 1, 1]).has_rational_point()
             False
@@ -722,8 +722,7 @@ class ProjectiveConic_field(ProjectivePlaneCurve):
             sage: c.diagonalization()[0].is_diagonal()
             True
         """
-        return all([self.coefficients()[i] == 0 for i in [1,2,4]])
-
+        return all(self.coefficients()[i] == 0 for i in [1, 2, 4])
 
     def is_smooth(self):
         r"""

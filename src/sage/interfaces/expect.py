@@ -139,7 +139,6 @@ class Expect(Interface):
 
         # Read environment variables
         env_name = 'SAGE_%s_{}'%self.name().upper()
-        import os
         if server is None:
             server = os.getenv(env_name.format('SERVER'))
         if server_tmpdir is None:
@@ -518,10 +517,10 @@ If this all works, you can then make calls like:
 
         try:
             self._expect.expect(self._prompt)
-        except (pexpect.TIMEOUT, pexpect.EOF):
+        except (pexpect.TIMEOUT, pexpect.EOF) as msg:
             self._expect = None
             self._session_number = BAD_SESSION
-            raise RuntimeError("unable to start %s" % self.name())
+            raise RuntimeError("unable to start %s: %s" % (self.name(), msg))
         self._expect.timeout = None
 
         with gc_disabled():
@@ -790,7 +789,7 @@ If this all works, you can then make calls like:
             tmp_to_use = self._remote_tmpfile()
         try:
             s = self._eval_line(self._read_in_file_command(tmp_to_use), allow_use_file=False, restart_if_needed=False)
-        except pexpect.EOF as msg:
+        except pexpect.EOF:
             if self._quit_string() in line:
                 # we expect to get an EOF if we're quitting.
                 return ''
@@ -814,9 +813,9 @@ If this all works, you can then make calls like:
                     return self._post_process_from_file(self._eval_line_using_file(line, restart_if_needed=False))
                 except TypeError:
                     pass
-                except RuntimeError as msg:
+                except RuntimeError:
                     raise RuntimeError('%s terminated unexpectedly while reading in a large line'%self)
-            if "Input/output error" in msg[0]: # This occurs on non-linux machines
+            if "Input/output error" in msg[0]:  # This occurs on non-linux machines
                 raise RuntimeError('%s terminated unexpectedly while reading in a large line'%self)
             raise RuntimeError('%s terminated unexpectedly while reading in a large line:\n%s'%(self,msg[0]))
         return self._post_process_from_file(s)
@@ -1122,10 +1121,15 @@ If this all works, you can then make calls like:
 
         EXAMPLES:
 
-        We test all of this using the R interface. First we put
+        We test all of this using the Singular interface. First we put
         10 + 15 in the input stream::
 
-            sage: r._sendstr('abc <- 10 +15;\n')
+            sage: singular._sendstr('def abc = 10 + 15;\n')
+
+        Then we tell singular to print 10, which is an arbitrary number
+        different from the expected result 35.
+
+            sage: singular._sendstr('10;\n')
 
         Here an exception is raised because 25 hasn't appeared yet in the
         output stream. The key thing is that this doesn't lock, but instead
@@ -1135,7 +1139,7 @@ If this all works, you can then make calls like:
 
             sage: t = walltime()
             sage: try:
-            ....:    r._expect_expr('25', timeout=0.5)
+            ....:    singular._expect_expr('25', timeout=0.5)
             ....: except Exception:
             ....:    print('Did not get expression')
             Did not get expression
@@ -1145,24 +1149,24 @@ If this all works, you can then make calls like:
             sage: w = walltime(t); w > 0.4 and w < 10
             True
 
-        We tell R to print abc, which equals 25.
+        We tell Singular to print abc, which equals 25.
 
         ::
 
-            sage: r._sendstr('abc;\n')
+            sage: singular._sendstr('abc;\n')
 
         Now 25 is in the output stream, so we can wait for it.
 
         ::
 
-            sage: r._expect_expr('25')
+            sage: singular._expect_expr('25')
 
-        This gives us everything before the 25.
+        This gives us everything before the 25, including the 10 we printed earlier.
 
         ::
 
-            sage: r._expect.before
-            '...abc;\r\n[1] '
+            sage: singular._expect.before.decode('ascii')
+            u'...10\r\n> '
 
         We test interrupting ``_expect_expr`` using the GP interface,
         see :trac:`6661`.  Unfortunately, this test doesn't work reliably using
@@ -1203,14 +1207,7 @@ If this all works, you can then make calls like:
 
         -  ``string`` -- a string
 
-        EXAMPLES: We illustrate this function using the R interface::
-
-            sage: r._synchronize()
-            sage: r._sendstr('a <- 10;\n')
-            sage: r.eval('a')
-            '[1] 10'
-
-        We illustrate using the singular interface::
+        EXAMPLES: We illustrate this function using the Singular interface::
 
             sage: singular._synchronize()
             sage: singular._sendstr('int i = 5;')
@@ -1260,7 +1257,7 @@ If this all works, you can then make calls like:
 
         EXAMPLES: We observe nothing, just as it should be::
 
-            sage: r._synchronize()
+            sage: singular._synchronize()
 
         TESTS:
 
@@ -1535,10 +1532,10 @@ class StdOutContext:
             self.interface._start()
         self._logfile_backup = self.interface._expect.logfile
 
-        if isinstance(sys.stdout, io.TextIOWrapper):
-            stdout = sys.stdout.buffer
+        if isinstance(self.stdout, io.TextIOWrapper):
+            stdout = self.stdout.buffer
         else:
-            stdout = sys.stdout
+            stdout = self.stdout
 
         if self.interface._expect.logfile:
             self.interface._expect.logfile = Multiplex(self.interface._expect.logfile, stdout)

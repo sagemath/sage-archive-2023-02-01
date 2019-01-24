@@ -756,8 +756,7 @@ class FractionWithFactoredDenominator(RingElement):
             sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = 5*x^3 + 1/x + 1/(x-1) + 1/(3*x^2 + 1)
             sage: f
-            (15*x^7 - 15*x^6 + 5*x^5 - 5*x^4 + 6*x^3 - 2*x^2 + x - 1)/(3*x^4 -
-            3*x^3 + x^2 - x)
+            (5*x^7 - 5*x^6 + 5/3*x^5 - 5/3*x^4 + 2*x^3 - 2/3*x^2 + 1/3*x - 1/3)/(x^4 - x^3 + 1/3*x^2 - 1/3*x)
             sage: decomp = FFPD(f).univariate_decomposition()
             sage: decomp
             (5*x^3, []) +
@@ -803,10 +802,7 @@ class FractionWithFactoredDenominator(RingElement):
             sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = 5*x^3 + 1/x + 1/(x-1) + 1/(3*x^2 + 1)
             sage: f
-            (15.0000000000000*x^7 - 15.0000000000000*x^6 + 5.00000000000000*x^5
-             - 5.00000000000000*x^4 + 6.00000000000000*x^3
-             - 2.00000000000000*x^2 + x - 1.00000000000000)/(3.00000000000000*x^4
-             - 3.00000000000000*x^3 + x^2 - x)
+            (5.00000000000000*x^7 - 5.00000000000000*x^6 + 1.66666666666667*x^5 - 1.66666666666667*x^4 + 2.00000000000000*x^3 - 0.666666666666667*x^2 + 0.333333333333333*x - 0.333333333333333)/(x^4 - x^3 + 0.333333333333333*x^2 - 0.333333333333333*x)
             sage: decomp = FFPD(f).univariate_decomposition()
             sage: decomp
             (5.00000000000000*x^3, []) +
@@ -1384,17 +1380,14 @@ class FractionWithFactoredDenominator(RingElement):
         decomp = FractionWithFactoredDenominatorSum()
         p = self.numerator()
         qs = [q for (q, e) in df]
+        # sort according to the term order of R
         X = sorted(R.gens())
-        var_sets_n = Set(X).subsets(n)
+        var_sets_n = sorted(sorted(s) for s in Set(X).subsets(n))
         Par = self.parent()
 
         # Compute Jacobian determinants for qs.
-        dets = []
-        for v in var_sets_n:
-            # Sort v according to the term order of R.
-            x = sorted(v)
-            jac = jacobian(qs, x)
-            dets.append(R(jac.determinant()))
+        dets = [R(jacobian(qs, x).determinant())
+                for x in var_sets_n]
 
         # Get a Nullstellensatz certificate for qs and dets.
         if self.dimension() == 1:
@@ -1431,11 +1424,9 @@ class FractionWithFactoredDenominator(RingElement):
                 break
         new_df = [list(t) for t in df]
         new_df[J][1] -= 1
-        for k in range(var_sets_n.cardinality()):
+        for k, x in enumerate(var_sets_n):
             if L[n + k] == 0:
                 continue
-            # Sort variables according to the term order of R.
-            x = sorted(var_sets_n[k])
             # Compute Jacobian in the Symbolic Ring.
             jac = jacobian([SR(p * L[n + k])] +
                            [SR(qs[j]) for j in range(n) if j != J],
@@ -1620,12 +1611,12 @@ class FractionWithFactoredDenominator(RingElement):
              432,
              3/5*sqrt(5)*sqrt(3)*sqrt(2)*sqrt(r)/sqrt(pi)
               + 463/6000*sqrt(5)*sqrt(3)*sqrt(2)/(sqrt(pi)*sqrt(r)))
-            sage: F.relative_error(asy[0], alpha, [1, 2, 4, 8, 16], asy[1])
-            [((4, 3), 2.083333333, [2.092576110], [-0.0044365330...]),
-             ((8, 6), 2.787374614, [2.790732875], [-0.0012048112...]),
-             ((16, 12), 3.826259447, [3.827462310], [-0.0003143703...]),
-             ((32, 24), 5.328112821, [5.328540787], [-0.0000803222...]),
-             ((64, 48), 7.475927885, [7.476079664], [-0.0000203023...])]
+            sage: F.relative_error(asy[0], alpha, [1, 2, 4, 8, 16], asy[1])  # abs tol 1e-10
+            [((4, 3), 2.083333333, [2.092576110], [-0.004436533009]),
+             ((8, 6), 2.787374614, [2.790732875], [-0.001204811281]),
+             ((16, 12), 3.826259447, [3.827462310], [-0.0003143703383]),
+             ((32, 24), 5.328112821, [5.328540787], [-0.00008032230388]),
+             ((64, 48), 7.475927885, [7.476079664], [-0.00002030232879])]
 
         A multiple point example::
 
@@ -2763,9 +2754,7 @@ class FractionWithFactoredDenominator(RingElement):
             sage: F = FFPD(G, Hfac)
             sage: alpha = [7/3, var('a')]
             sage: F.smooth_critical_ideal(alpha)
-            Ideal (y^2 + 14/(3*a)*y - 1, x + (-3/7*a)*y + 3/7*a - 1) of
-             Multivariate Polynomial Ring in x, y over Fraction Field of
-             Univariate Polynomial Ring in a over Rational Field
+            Ideal (y^2 + 14/3/a*y - 1, x + (-3/7*a)*y + 3/7*a - 1) of Multivariate Polynomial Ring in x, y over Fraction Field of Univariate Polynomial Ring in a over Rational Field
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
@@ -3154,8 +3143,6 @@ class FractionWithFactoredDenominatorRing(UniqueRepresentation, Ring):
         """
         return self.base().base_ring()
 
-    from sage.misc.decorators import rename_keyword
-    @rename_keyword(deprecation=10519, reduce_='reduce')
     def _element_constructor_(self, *args, **kwargs):
         r"""
         Returns an element of this ring.
@@ -3174,43 +3161,6 @@ class FractionWithFactoredDenominatorRing(UniqueRepresentation, Ring):
         """
         R = self.base()
         Q = R.fraction_field()
-
-        # process deprecated keyword arguments
-        hasn = 'numerator' in kwargs
-        hasdf = 'denominator_factored' in kwargs
-        if hasn:
-            from sage.misc.superseded import deprecation
-            deprecation(10519, "Keyword argument 'numerator' "
-                               "is deprecated. "
-                               "Ignoring non-keyword arguments (if any). "
-                               "Specify numerator and factored denominator "
-                               "as first and second argument, i.e., use "
-                               "something like FFPD(n, df).")
-        if hasdf:
-            from sage.misc.superseded import deprecation
-            deprecation(10519, "Keyword argument 'denominator_factored' "
-                               "is deprecated. "
-                               "Ignoring non-keyword arguments (if any). "
-                               "Specify numerator and factored denominator "
-                               "as first and second argument, i.e., use "
-                               "something like FFPD(n, df).")
-        if hasn or hasdf:
-            args = [kwargs.pop('numerator') if hasn else R(0),
-                    kwargs.pop('denominator_factored') if hasdf else []]
-
-        hasq = 'quotient' in kwargs
-        if hasq:
-            from sage.misc.superseded import deprecation
-            deprecation(10519, "Keyword argument 'quotient' "
-                               "is deprecated. "
-                               "Ignoring non-keyword arguments (if any). "
-                               "Specify numerator and factored denominator "
-                               "as first and second argument, i.e., use "
-                               "something like FFPD(q).")
-            args = [kwargs.pop('quotient')]
-
-        if (hasn or hasdf) and hasq:
-            raise ValueError('parameters ambiguous')
 
         # process keyword arguments
         reduce = kwargs.pop('reduce', None)

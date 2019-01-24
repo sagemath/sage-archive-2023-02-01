@@ -179,7 +179,7 @@ def get_js_index(app, curdoc):
                                app.config.html_search_options, scoring=None)
     indexfile = os.path.join(app.outdir, curdoc, 'searchindex.js')
     try:
-        f = open(indexfile, 'rb')
+        f = open(indexfile, 'r')
     except IOError:
         app.info("")
         app.warn("Unable to fetch %s " % indexfile)
@@ -236,7 +236,7 @@ def write_citations(app, citations):
     """
     from sage.misc.temporary_file import atomic_write
     outdir = citation_dir(app)
-    with atomic_write(os.path.join(outdir, CITE_FILENAME)) as f:
+    with atomic_write(os.path.join(outdir, CITE_FILENAME), binary=True) as f:
         cPickle.dump(citations, f)
     app.info("Saved pickle file: %s" % CITE_FILENAME)
 

@@ -358,7 +358,7 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
             sage: q1, q2 = K.gens()
             sage: KW = W.algebra(K)
             sage: x = KW.an_element(); x
-            2*12321 + 3*1231 + 123 + e
+            123 + 3*32 + 2*3 + e
 
             sage: T = KW.demazure_lusztig_operators(q1,q2)
             sage: T12 = T.Tw( (1,2) )
@@ -801,7 +801,7 @@ class CherednikOperatorsEigenvectors(UniqueRepresentation, SageObject):
         classical operators `T_1, \ldots, T_n` from `T` and `T_Y` coincide.
     """
     def __init__(self, T, T_Y = None, normalized = True):
-        """
+        r"""
         INPUT:
 
         - ``T`` -- a family `(T_i)_{i\in I}` implementing the action of
@@ -947,7 +947,7 @@ class CherednikOperatorsEigenvectors(UniqueRepresentation, SageObject):
 
     @abstract_method
     def affine_retract(self, mu):
-        """
+        r"""
         Retract `\mu` from a space admitting an action of the affine Weyl group.
 
         EXAMPLES::

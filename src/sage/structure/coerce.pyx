@@ -83,18 +83,12 @@ from libc.string cimport strncmp
 IF HAVE_GMPY2:
     import gmpy2
 
-cdef add, sub, mul, div, truediv, isub, imul
-import operator
-cdef dict operator_dict = operator.__dict__
-from operator import add, sub, mul, truediv, isub, imul
-try:
-    from operator import div
-except ImportError:
-    div = object()  # Unique object not equal to anything else
+cdef add, mul, truediv
+from operator import add, mul, truediv
 
 from .richcmp cimport rich_to_bool, revop
 from .sage_object cimport SageObject
-from .parent cimport Set_PythonType, Parent_richcmp_element_without_coercion
+from .parent cimport Parent_richcmp_element_without_coercion
 from .element cimport bin_op_exception, parent, Element
 from .coerce_actions import LeftModuleAction, RightModuleAction
 from .coerce_exceptions import CoercionException
@@ -102,6 +96,7 @@ from sage.rings.integer_fake cimport is_Integer
 from sage.categories.map cimport Map
 from sage.categories.morphism import IdentityMorphism
 from sage.categories.action cimport Action, InverseAction, PrecomposedAction
+from sage.sets.pythonclass cimport Set_PythonType
 
 import traceback
 
@@ -854,21 +849,6 @@ cdef class CoercionModel_cache_maps(CoercionModel):
            in sync with the :meth:`bin_op` and
            :meth:`canonical_coercion` which are kept separate for
            maximal efficiency.
-
-        TESTS:
-
-        In Python 2, ``operator.div`` still works::
-
-            sage: from six import PY2
-            sage: div = getattr(operator, "div" if PY2 else "truediv")
-            sage: cm.explain(ZZx, ZZ, div)
-            Action discovered.
-                Right inverse action by Rational Field on Univariate Polynomial Ring in x over Integer Ring
-                with precomposition on right by Natural morphism:
-                  From: Integer Ring
-                  To:   Rational Field
-            Result lives in Univariate Polynomial Ring in x over Rational Field
-            Univariate Polynomial Ring in x over Rational Field
         """
         all, res = self.analyse(xp, yp, op)
         indent = " "*4
@@ -907,8 +887,6 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: f(100)
             2
         """
-        if op is div:
-            op = truediv
         self._exceptions_cleared = False
         res = None
         if not isinstance(xp, type) and not isinstance(xp, Parent):
@@ -925,12 +903,11 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         if xp == yp:
             all.append("Equal but distinct parents.")
 
-        if (op is not sub) and (op is not isub):
-            action = self.get_action(xp, yp, op)
-            if action is not None:
-                all.append("Action discovered.")
-                all.append(action)
-                return all, action.codomain()
+        action = self.get_action(xp, yp, op)
+        if action is not None:
+            all.append("Action discovered.")
+            all.append(action)
+            return all, action.codomain()
 
         homs = self.discover_coercion(xp, yp)
         if homs is not None:
@@ -978,7 +955,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         elif type(yp) is type:
             all.append("Right operand is not Sage element, will try _sage_.")
 
-        if op is mul or op is imul:
+        if op is mul:
             all.append("Will try _r_action and _l_action")
 
         return all, None
@@ -1163,16 +1140,25 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             Pblahblah
         """
         self._exceptions_cleared = False
-        if (op is not sub) and (op is not isub):
-            # Actions take preference over common-parent coercions.
-            xp = parent(x)
-            yp = parent(y)
-            if xp is yp:
-                return op(x,y)
-            action = self.get_action(xp, yp, op, x, y)
-            if action is not None:
-                return (<Action>action)._call_(x, y)
 
+        # If parents are equal, we can just call op()
+        xp = parent(x)
+        yp = parent(y)
+        if xp is yp:
+            return op(x,y)
+
+        # Actions take preference over common-parent coercions
+        try:
+            action = self._action_maps.get(xp, yp, op)
+        except KeyError:
+            action = self.get_action(xp, yp, op, x, y)
+        if action is not None:
+            if (<Action>action)._is_left:
+                return (<Action>action)._act_(x, y)
+            else:
+                return (<Action>action)._act_(y, x)
+
+        # Now coerce to a common parent and do the operation there
         try:
             xy = self.canonical_coercion(x, y)
         except TypeError:
@@ -1180,7 +1166,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         else:
             return PyObject_CallObject(op, xy)
 
-        if op is mul or op is imul:
+        if op is mul:
             # elements may also act on non-elements
             # (e.g. sequences or parents)
             if not isinstance(y, Element) or not isinstance(x, Element):
@@ -1214,8 +1200,6 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         if not isinstance(y, Element):
             op_name = op.__name__
-            if op_name[0] == 'i':
-                op_name = op_name[1:]
             mul_method = getattr(y, '__r%s__'%op_name, None)
             if mul_method is not None:
                 res = mul_method(x)
@@ -1663,20 +1647,15 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         return None
 
-
-    cpdef get_action(self, R, S, op, r=None, s=None):
+    cpdef get_action(self, R, S, op=mul, r=None, s=None):
         """
         Get the action of R on S or S on R associated to the operation op.
-
-
 
         EXAMPLES::
 
             sage: cm = sage.structure.element.get_coercion_model()
             sage: ZZx = ZZ['x']
             sage: cm.get_action(ZZx, ZZ, operator.mul)
-            Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Integer Ring
-            sage: cm.get_action(ZZx, ZZ, operator.imul)
             Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Integer Ring
             sage: cm.get_action(ZZx, QQ, operator.mul)
             Right scalar multiplication by Rational Field on Univariate Polynomial Ring in x over Integer Ring
@@ -1695,18 +1674,6 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: x = QQx.gen()
             sage: A(x+10, 5)
             1/5*x + 2
-
-        TESTS:
-
-        In Python 2, ``operator.div`` still works::
-
-            sage: from six import PY2
-            sage: div = getattr(operator, "div" if PY2 else "truediv")
-            sage: cm.get_action(QQx, ZZ, div)
-            Right inverse action by Rational Field on Univariate Polynomial Ring in x over Rational Field
-            with precomposition on right by Natural morphism:
-              From: Integer Ring
-              To:   Rational Field
         """
         try:
             return self._action_maps.get(R, S, op)
@@ -1812,11 +1779,6 @@ cdef class CoercionModel_cache_maps(CoercionModel):
               From: Set of Python objects of class 'int'
               To:   Integer Ring
 
-        If op in an inplace operation, look for the non-inplace action::
-
-            sage: cm.discover_action(P, ZZ, operator.imul)
-            Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Integer Ring
-
         If op is division, look for action on right by inverse::
 
             sage: cm.discover_action(P, ZZ, operator.truediv)
@@ -1846,22 +1808,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             with precomposition on right by Natural morphism:
               From: Integer Ring
               To:   Rational Field
-
-        TESTS:
-
-        In Python 2, ``operator.div`` still works::
-
-            sage: from six import PY2
-            sage: div = getattr(operator, "div" if PY2 else "truediv")
-            sage: cm.discover_action(F, ZZ, div)
-            Right inverse action by Rational Field on Free Algebra on 1 generators (x,) over Rational Field
-            with precomposition on right by Natural morphism:
-              From: Integer Ring
-              To:   Rational Field
         """
-        if op is div:
-            op = truediv
-
         if isinstance(R, Parent):
             action = (<Parent>R).get_action(S, op, True, r, s)
             if action is not None:
@@ -1875,31 +1822,16 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         if type(R) is type:
             sageR = py_scalar_parent(R)
             if sageR is not None:
-                action = self.discover_action(sageR, S, op, s=s)
+                action = self.get_action(sageR, S, op, s=s)
                 if action is not None:
                     return PrecomposedAction(action, sageR._internal_coerce_map_from(R), None)
 
         if type(S) is type:
             sageS = py_scalar_parent(S)
             if sageS is not None:
-                action = self.discover_action(R, sageS, op, r=r)
+                action = self.get_action(R, sageS, op, r=r)
                 if action is not None:
                     return PrecomposedAction(action, None, sageS._internal_coerce_map_from(S))
-
-        if op.__name__[0] == 'i':
-            try:
-                no_inplace_op = operator_dict[op.__name__[1:]]
-                a = self.discover_action(R, S, no_inplace_op, r, s)
-                if a is not None:
-                    is_inverse = isinstance(a, InverseAction)
-                    if is_inverse: a = ~a
-                    if a is not None and isinstance(a, RightModuleAction):
-                        # We want a new instance so that we don't alter the (potentially cached) original
-                        a = RightModuleAction(S, R, s, r)
-                    if is_inverse: a = ~a
-                return a
-            except KeyError:
-                self._record_exception()
 
         if op is truediv:
             # Division on right is the same acting on right by inverse, if it is so defined.

@@ -278,7 +278,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
 
         In the above test suite, ``_test_elements`` is skipped because of the
         ``_test_pickling`` error of the elements (to be fixed in
-        :class:`sage.manifolds.differentialbe.tensorfield.TensorField`)
+        :class:`sage.manifolds.differentiable.tensorfield.TensorField`)
 
         """
         domain = vector_field_module._domain

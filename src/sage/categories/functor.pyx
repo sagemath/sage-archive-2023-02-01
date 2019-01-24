@@ -262,7 +262,7 @@ cdef class Functor(SageObject):
                             Ring endomorphism of Finite Field in a of size 5^2
                               Defn: a |--> 4*a + 1
             sage: fF((a^2+a)*t^2/(a*t - a^2))
-            3*a*t^2/((4*a + 1)*t + a + 1)
+            ((4*a + 2)*t^2)/(t + a + 4)
 
         """
         try:
@@ -524,7 +524,7 @@ class ForgetfulFunctor_generic(Functor):
         """
         Return whether ``self`` is not equal to ``other``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: F1 = ForgetfulFunctor(FiniteFields(),Fields())
             sage: F1 != F1

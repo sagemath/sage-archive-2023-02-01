@@ -51,7 +51,7 @@ EXAMPLES::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
 
@@ -60,6 +60,8 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.abstract_method import abstract_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
+from sage.categories.action import Action
+
 
 class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
     r"""
@@ -890,7 +892,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             power of the uniformizer `\pi`.
 
             For negative ``s``, it does the same but when not over a field, it
-            drops coefficients in the `\pi`-adic expension which have negative
+            drops coefficients in the `\pi`-adic expansion which have negative
             valuation.
 
             EXAMPLES::
@@ -1039,7 +1041,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             Return an estimate on the coefficient size of ``x``.
 
             The number returned is an estimate on the factor between the number of
-            Bits used by ``x`` and the minimal number of bits used by an element
+            bits used by ``x`` and the minimal number of bits used by an element
             congruent to ``x``.
 
             This is used by :meth:`simplify` to decide whether simplification of
@@ -1559,6 +1561,18 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                     return
                 raise
 
+            try:
+                r = self.residue_ring()
+            except Exception:
+                # If the residue ring can not be constructed for some reason
+                # then we do not check its relation to the residue field.
+                # _test_residue_ring() is responible for checking whether the
+                # residue ring should be constructible or not.
+                pass
+            else:
+                # the residue ring must coerce into the residue field
+                tester.assertTrue(self.residue_field().has_coerce_map_from(r))
+
             c = self.residue_field().characteristic()
             if c != 0:
                 tester.assertGreater(self(c), 0)
@@ -1635,7 +1649,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                         tester.assertGreaterEqual(self(x*y - 1), prec)
 
 
-from sage.categories.action import Action
 class ScaleAction(Action):
     r"""
     Action of integers, rationals and the infinity ring on valuations by
@@ -1647,20 +1660,15 @@ class ScaleAction(Action):
         sage: from operator import mul
         sage: v.parent().get_action(ZZ, mul, self_on_left=False)
         Left action by Integer Ring on Discrete pseudo-valuations on Rational Field
-
     """
-    def _call_(self, s, v):
+    def _act_(self, s, v):
         r"""
         Let ``s`` act on ``v``.
 
         EXAMPLES::
 
             sage: v = QQ.valuation(5)
-            sage: 3*v # indirect doctest
+            sage: 3 * v  # indirect doctest
             3 * 5-adic valuation
-            
         """
-        if not self.is_left():
-            # for a right action, the parameters are swapped
-            s,v = v,s
         return v.scale(s)

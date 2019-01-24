@@ -207,7 +207,7 @@ FRICAS_SINGLE_LINE_START = 3 # where the output starts when it fits next to the 
 FRICAS_MULTI_LINE_START = 2  # and when it doesn't
 FRICAS_LINE_LENGTH = 80      # length of a line, should match the line length in sage
 # the following messages have, unfortunately, no markup.
-FRICAS_WHAT_OPERATIONS_STRING = "Operations whose names satisfy the above pattern\(s\):"
+FRICAS_WHAT_OPERATIONS_STRING = r"Operations whose names satisfy the above pattern\(s\):"
 FRICAS_ERROR_IN_LIBRARY_CODE = ">> Error detected within library code:"
 
 # only the last command should be necessary to make the interface
@@ -229,8 +229,8 @@ FRICAS_HELPER_CODE = (
     'sageprint(x:InputForm):String == (atom? x => (float? x => return float(x)::String; integer? x => return integer(x)::String; string? x => return concat(["_"", string(x)::String, "_""])$String; symbol? x => return string(symbol(x))); S: List String := [sageprint y for y in destruct x]; R: String := new(1 + reduce(_+, [1 + #(s)$String for s in S], 0), space()$Character); copyInto!(R, "(", 1); i := 2; for s in S repeat (copyInto!(R, s, i); i := i + 1 + #(s)$String); copyInto!(R, ")", i-1); return R)',)
 
 FRICAS_LINENUMBER_OFF_CODE = ")lisp (setf |$IOindex| NIL)"
-FRICAS_FIRST_PROMPT = "\(1\) -> "
-FRICAS_LINENUMBER_OFF_PROMPT = "\(NIL\) -> "
+FRICAS_FIRST_PROMPT = r"\(1\) -> "
+FRICAS_LINENUMBER_OFF_PROMPT = r"\(NIL\) -> "
 
 class FriCAS(ExtraTabCompletion, Expect):
     """
@@ -348,7 +348,7 @@ class FriCAS(ExtraTabCompletion, Expect):
             True
         """
         output = self.eval(")what operations", reformat=False)
-        m = re.search(FRICAS_WHAT_OPERATIONS_STRING + "\n(.*)\n\|startKeyedMsg\|", output, flags = re.DOTALL)
+        m = re.search(FRICAS_WHAT_OPERATIONS_STRING + r"\n(.*)\n\|startKeyedMsg\|", output, flags = re.DOTALL)
         l = m.groups()[0].split()
         return l
 
@@ -515,7 +515,7 @@ class FriCAS(ExtraTabCompletion, Expect):
 
         """
         # otherwise there might be a message
-        m = re.search("\|startKeyedMsg\|\n(.*)\n\|endOfKeyedMsg\|", output, flags = re.DOTALL)
+        m = re.search(r"\|startKeyedMsg\|\n(.*)\n\|endOfKeyedMsg\|", output, flags = re.DOTALL)
         if m:
             replacements = [('|startKeyedMsg|\n', ''),
                             ('|endOfKeyedMsg|', '')]
@@ -572,7 +572,7 @@ class FriCAS(ExtraTabCompletion, Expect):
         """
         output = self.eval(str(var), reformat=False)
         # if there is AlgebraOutput we ask no more
-        m = re.search("\|startAlgebraOutput\|\n(.*)\n\|endOfAlgebraOutput\|", output, flags = re.DOTALL)
+        m = re.search(r"\|startAlgebraOutput\|\n(.*)\n\|endOfAlgebraOutput\|", output, flags = re.DOTALL)
         if m:
             lines = m.groups()[0].split("\n")
             if max(len(line) for line in lines) < FRICAS_LINE_LENGTH:
@@ -1028,12 +1028,12 @@ class FriCASElement(ExpectElement):
             sage: latex(fricas("integrate(sin(x+1/x),x)"))                      # optional - fricas
             \int ^{\displaystyle x} {{\sin \left( {{{{{ \%O} ^{2}}+1} \over  \%O}} \right)} \  {d \%O}}
         """
-        replacements = [('\sp ', '^'),
-                        ('\sp{', '^{'),
-                        ('\sb ', '_'),
-                        ('\sb{', '_{')]
+        replacements = [(r'\sp ', '^'),
+                        (r'\sp{', '^{'),
+                        (r'\sb ', '_'),
+                        (r'\sb{', '_{')]
         P = self._check_valid()
-        s = P.get_string("latex(%s)" %self._name)
+        s = P.get_string("latex(%s)" % self._name)
         for old, new in replacements:
             s = s.replace(old, new)
         return s
@@ -1057,6 +1057,7 @@ class FriCASElement(ExpectElement):
         from sage.rings.all import ZZ, QQbar, RDF
         from sage.rings.fraction_field import FractionField
         from sage.rings.finite_rings.integer_mod_ring import Integers
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField
         from sage.rings.real_mpfr import RealField
         from sage.symbolic.ring import SR
 
@@ -1082,6 +1083,9 @@ class FriCASElement(ExpectElement):
 
         if head == "IntegerMod":
             return Integers(domain[1].integer().sage())
+
+        if head == "PrimeField":
+            return FiniteField(domain[1].integer().sage())
 
         if head == "Fraction":
             return FractionField(self._get_sage_type(domain[1]))
@@ -1125,7 +1129,7 @@ class FriCASElement(ExpectElement):
             sage: FriCASElement._parse_and_eval("(asin c)")
             (arcsin(c), 7)
 
-            sage: N(FriCASElement._parse_and_eval("(pi)")[0])
+            sage: N(FriCASElement._parse_and_eval("(pi)")[0])                   # optional - fricas
             3.14159265358979
 
             sage: FriCASElement._parse_and_eval('(a "(b c)")')
@@ -1288,7 +1292,7 @@ class FriCASElement(ExpectElement):
             '(/ (fresnelS (* x (^ (/ 2 (pi)) (/ 1 2)))) (^ (/ 2 (pi)) (/ 1 2)))'
             sage: from sage.interfaces.fricas import FriCASElement
             sage: FriCASElement._sage_expression(s)                             # optional - fricas
-            1/2*sqrt(2)*sqrt(pi)*fresnelS(sqrt(2)*x/sqrt(pi))
+            1/2*sqrt(2)*sqrt(pi)*fresnel_sin(sqrt(2)*x/sqrt(pi))
 
         Check that :trac:`22525` is fixed::
 
@@ -1351,6 +1355,21 @@ class FriCASElement(ExpectElement):
             sage: dilog(1.0)
             1.64493406684823
 
+        Check that :trac:`25987` is fixed::
+
+            sage: integrate(lambert_w(x), x, algorithm="fricas")                # optional - fricas
+            (x*lambert_w(x)^2 - x*lambert_w(x) + x)/lambert_w(x)
+
+        Check that :trac:`25838` is fixed::
+
+            sage: F = function('f'); f = SR.var('f')
+            sage: FF = fricas(F(f)); FF                                         # optional - fricas
+            f(f)
+            sage: FF.D(f).sage()                                                # optional - fricas
+            diff(f(f), f)
+            sage: bool(FF.D(f).integrate(f).sage() == F(f))                     # optional - fricas
+            True
+
         Check that :trac:`25602` is fixed::
 
             sage: r = fricas.integrate(72000/(1+x^5),x).sage()                  # optional - fricas
@@ -1367,11 +1386,11 @@ class FriCASElement(ExpectElement):
             sage: var("k, m, n")                                                # optional - fricas
             (k, m, n)
             sage: fricas("sum(1/factorial(k), k=1..n)").sage()                  # optional - fricas
-            sum(1/factorial(_BZ), _BZ, 1, n)
+            sum(1/factorial(_...), _..., 1, n)
             sage: fricas("eval(sum(x/k, k=1..n), x=k)").sage()                  # optional - fricas
             k*harmonic_number(n)
             sage: fricas("product(1/factorial(k), k=1..n)").sage()              # optional - fricas
-            1/product(factorial(_CH), _CH, 1, n)
+            1/product(factorial(_...), _..., 1, n)
 
             sage: f = fricas.guess([sum(1/k, k,1,n) for n in range(10)])[0]; f  # optional - fricas
              n - 1
@@ -1394,7 +1413,7 @@ class FriCASElement(ExpectElement):
              5       4
 
             sage: f.sage()                                                      # optional - fricas
-            sum(factorial(_CK + 1), _CK, 0, n - 1)
+            sum(factorial(_... + 1), _..., 0, n - 1)
 
         """
         from sage.libs.pynac.pynac import register_symbol
@@ -1440,6 +1459,36 @@ class FriCASElement(ExpectElement):
             return symbolic_prod(x, v, a, b)
         register_symbol(_convert_sum, {'fricas':'sum'})
         register_symbol(_convert_prod, {'fricas':'product'})
+=======
+        Check that :trac:`26746` is fixed::
+
+            sage: _ = var('x, y, z')
+            sage: f = sin(x^2) + y^z
+            sage: f.integrate(x, algorithm='fricas')                            # optional - fricas
+            1/2*sqrt(2)*sqrt(pi)*(sqrt(2)*x*y^z/sqrt(pi) + fresnel_sin(sqrt(2)*x/sqrt(pi)))
+
+            sage: fricas(fresnel_sin(1))                                        # optional - fricas
+            fresnelS(1)
+            sage: fricas("fresnelS(1.0)")                                       # optional - fricas
+            0.4382591473_9035476607_676
+
+            sage: fricas(fresnel_cos(1))                                        # optional - fricas
+            fresnelC(1)
+            sage: fricas("fresnelC(1.0)")                                       # optional - fricas
+            0.7798934003_7682282947_42
+
+        """
+        from sage.calculus.calculus import symbolic_expression_from_string
+        from sage.calculus.functional import diff
+        from sage.libs.pynac.pynac import symbol_table, register_symbol
+        from sage.symbolic.all import I
+        from sage.functions.log import dilog, lambert_w
+        register_symbol(lambda f,x: diff(f, x), {'fricas':'D'})
+        register_symbol(lambda x,y: x + y*I, {'fricas':'complex'})
+        register_symbol(lambda x: dilog(1-x), {'fricas':'dilog'})
+        register_symbol(lambda z: lambert_w(z), {'fricas':'lambertW'})
+
+>>>>>>> 5389d8dc87d79db7b81af492edf53a32699e8323
 
         def explicitely_not_implemented(*args):
             raise NotImplementedError("The translation of the FriCAS Expression '%s' to sage is not yet implemented." %args)
@@ -1487,8 +1536,8 @@ class FriCASElement(ExpectElement):
         return ex.subs(rootOf_ev)
 
     def _sage_(self):
-        """
-        Convert self to a Sage object.
+        r"""
+        Convert ``self`` to a Sage object.
 
         EXAMPLES:
 
@@ -1524,6 +1573,11 @@ class FriCASElement(ExpectElement):
 
             sage: fricas("((42^17)^1783)::IntegerMod(5^(5^5))").sage() == Integers(5^(5^5))((42^17)^1783) # optional - fricas
             True
+
+        Matrices over a prime field::
+
+            sage: fricas("matrix [[1::PF 3, 2],[2, 0]]").sage().parent()        # optional - fricas
+            Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 3
 
         We can also convert FriCAS's polynomials to Sage polynomials::
 
@@ -1630,6 +1684,7 @@ class FriCASElement(ExpectElement):
         from sage.symbolic.ring import SR
         from sage.symbolic.all import I
         from sage.matrix.constructor import matrix
+        from sage.modules.free_module_element import vector
         from sage.structure.factorization import Factorization
         from sage.misc.sage_eval import sage_eval
 
@@ -1650,9 +1705,17 @@ class FriCASElement(ExpectElement):
         # now translate domains which cannot be coerced to InputForm,
         # or where we do not need it.
         head = str(domain.car())
+        if head == "Record":
+            fields = fricas("[string symbol(e.2) for e in rest destruct %s]"%domain._name).sage()
+            return {field: self.elt(field).sage() for field in fields}
+
         if head == "List":
             n = P.get_integer('#(%s)' %self._name)
             return [P.new('elt(%s,%s)' %(self._name, k)).sage() for k in range(1, n+1)]
+
+        if head == "Vector":
+            n = P.get_integer('#(%s)' %self._name)
+            return vector([P.new('elt(%s,%s)' %(self._name, k)).sage() for k in range(1, n+1)])
 
         if head == "Matrix":
             base_ring = self._get_sage_type(domain[1])
@@ -1700,7 +1763,7 @@ class FriCASElement(ExpectElement):
             s = unparsed_InputForm[:-len("::AlgebraicNumber()")]
             return sage_eval("QQbar(" + s + ")")
 
-        if head == "IntegerMod":
+        if head == "IntegerMod" or head == "PrimeField":
             # one might be tempted not to go via InputForm here, but
             # it turns out to be safer to do it.
             n = unparsed_InputForm[len("index("):]

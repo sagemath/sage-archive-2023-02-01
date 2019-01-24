@@ -329,9 +329,6 @@ class A000001(SloaneSequence):
         r"""
         Number of groups of order `n`.
 
-        Note: The package database_gap must be installed for
-        `n > 50`: run ``sage -i database_gap`` first.
-
         INPUT:
 
         -  ``n`` -- positive integer
@@ -354,7 +351,7 @@ class A000001(SloaneSequence):
             2
             sage: a.list(16)
             [1, 1, 1, 2, 1, 2, 1, 5, 2, 2, 1, 5, 1, 2, 1, 14]
-            sage: a(60)  # optional - database_gap
+            sage: a(60)
             13
 
         AUTHORS:
@@ -379,16 +376,17 @@ class A000001(SloaneSequence):
 
             sage: sloane.A000001._eval(4)
             2
-            sage: sloane.A000001._eval(51) # optional - database_gap
+            sage: sloane.A000001._eval(51)
             1
+            sage: sloane.A000001._eval(5000)
+            Traceback (most recent call last):
+            ...
+            ValueError: libGAP: Error, the library of groups of size 5000 is not available
         """
         if n <= 50:
             return self._small[n-1]
-        try:
-            return Integer(gap.gap.eval('NumberSmallGroups(%s)' % n))
-        except Exception:  # help, don't know what to do here? Jaap
-            print("Install database_gap first. See optional packages.")
-
+        from sage.libs.gap.libgap import libgap
+        return Integer(libgap.NumberSmallGroups(n))
 
 class A000027(SloaneSequence):
     def __init__(self):

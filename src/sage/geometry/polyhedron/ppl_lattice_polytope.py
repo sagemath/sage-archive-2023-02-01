@@ -56,35 +56,28 @@ AUTHORS:
     - Volker Braun: initial version, 2012
 """
 
-########################################################################
+#*****************************************************************************
 #       Copyright (C) 2012 Volker Braun <vbraun.name@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#                  http://www.gnu.org/licenses/
-########################################################################
-from __future__ import print_function
-from __future__ import absolute_import
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+#*****************************************************************************
+
+from __future__ import absolute_import, print_function
 
 import copy
 from sage.rings.integer import GCD_list
 from sage.rings.integer_ring import ZZ
-from sage.misc.all import union, cached_method, prod, uniq
-from sage.modules.all import (
-    vector, zero_vector )
-from sage.matrix.constructor import (
-    matrix, column_matrix, diagonal_matrix )
-from sage.libs.ppl import (
-     C_Polyhedron, Linear_Expression, Variable,
-    point, ray, line,
-    Generator, Generator_System, Generator_System_iterator )
+from sage.misc.all import cached_method
+from sage.modules.all import vector
+from sage.matrix.constructor import matrix
 from sage.libs.ppl import (
     C_Polyhedron, Linear_Expression, Variable,
-    point, ray, line, Generator, Generator_System,
-    Constraint_System,
-    Poly_Con_Relation )
-
-
+    point, line, Generator, Generator_System,
+    Generator_System_iterator, Poly_Con_Relation)
 
 
 ########################################################################
@@ -97,7 +90,7 @@ def _class_for_LatticePolytope(dim):
 
     INPUT:
 
-    - ``dim`` -- integer. The ambient space dimenson.
+    - ``dim`` -- integer. The ambient space dimension.
 
     OUTPUT:
 
@@ -589,7 +582,6 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             [A 2-dimensional lattice polytope in ZZ^4 with 3 vertices]
         """
         assert self.is_full_dimensional()
-        codim = self.space_dimension() - dim
         # "points" are the potential vertices of the fiber. They are
         # in the $codim$-skeleton of the polytope, which is contained
         # in the points that saturate at least $dim$ equations.
@@ -681,7 +673,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
                                               point_labels=tuple(range(len(points))))
         indexsets = set([ frozenset([points.index(p) for p in ps]) for ps in pointsets ])
         orbits = []
-        while len(indexsets)>0:
+        while indexsets:
             idx = indexsets.pop()
             orbits.append(frozenset([points[i] for i in idx]))
             for g in Aut:

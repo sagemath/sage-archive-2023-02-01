@@ -94,12 +94,12 @@ initial exchange matrix::
 
 and get all its g-vectors, F-polynomials, and cluster variables::
 
-    sage: A.g_vectors_so_far()
-    [(0, 1), (0, -1), (1, 0), (-1, 1), (-1, 0)]
-    sage: A.F_polynomials_so_far()
-    [1, u1 + 1, 1, u0 + 1, u0*u1 + u0 + 1]
-    sage: A.cluster_variables_so_far()
-    [x1, (x0 + 1)/x1, x0, (x1 + 1)/x0, (x0 + x1 + 1)/(x0*x1)]
+    sage: sorted(A.g_vectors_so_far())
+    [(-1, 0), (-1, 1), (0, -1), (0, 1), (1, 0)]
+    sage: sorted(A.F_polynomials_so_far(), key=str)
+    [1, 1, u0 + 1, u0*u1 + u0 + 1, u1 + 1]
+    sage: sorted(A.cluster_variables_so_far(), key=str)
+    [(x0 + 1)/x1, (x0 + x1 + 1)/(x0*x1), (x1 + 1)/x0, x0, x1]
 
 Simple operations among cluster variables behave as expected::
 
@@ -281,9 +281,12 @@ Given a cluster algebra ``A`` we may be looking for a specific cluster
 variable::
 
     sage: A = ClusterAlgebra(['E', 8, 1])
-    sage: A.find_g_vector((-1, 1, -1, 1, -1, 1, 0, 0, 1), depth=2)
-    sage: A.find_g_vector((-1, 1, -1, 1, -1, 1, 0, 0, 1))
+    sage: v = (-1, 1, -1, 1, -1, 1, 0, 0, 1)
+    sage: A.find_g_vector(v, depth=2)
+    sage: seq = A.find_g_vector(v); seq  # random
     [0, 1, 2, 4, 3]
+    sage: v in A.initial_seed().mutate(seq, inplace=False).g_vectors()
+    True
 
 This also performs mutations of F-polynomials::
 
@@ -295,9 +298,13 @@ which might not be a good idea in algebras that are too big. One workaround is
 to first disable F-polynomials and then recompute only the desired mutations::
 
     sage: A.reset_exploring_iterator(mutating_F=False)  # long time
-    sage: A.find_g_vector((-1, 1, -2, 2, -1, 1, -1, 1, 1))  # long time
+    sage: v = (-1, 1, -2, 2, -1, 1, -1, 1, 1)  # long time
+    sage: seq = A.find_g_vector(v); seq  # long time random
     [1, 0, 2, 6, 5, 4, 3, 8, 1]
-    sage: A.current_seed().mutate(_)    # long time
+    sage: S = A.initial_seed().mutate(seq, inplace=False)   # long time
+    sage: v in S.g_vectors()   # long time
+    True
+    sage: A.current_seed().mutate(seq)    # long time
     sage: A.F_polynomial((-1, 1, -2, 2, -1, 1, -1, 1, 1))   # long time
     u0*u1^2*u2^2*u3*u4*u5*u6*u8 +
     ...
@@ -342,9 +349,10 @@ mutating at the initial seed::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import absolute_import
+
 from six.moves import range, map
 
 from copy import copy
@@ -452,7 +460,7 @@ class ClusterAlgebraElement(ElementWrapper):
             sage: x.d_vector()
             (1, 1, 2, -2)
         """
-        monomials = self.lift()._dict().keys()
+        monomials = self.lift().dict().keys()
         minimal = map(min, zip(*monomials))
         return tuple(-vector(minimal))[:self.parent().rank()]
 
@@ -711,9 +719,11 @@ class ClusterAlgebraSeed(SageObject):
 
             sage: A = ClusterAlgebra(['A', 3])
             sage: S = A.initial_seed()
-            sage: hash(S)
-            6108559638409052534 # 64-bit
-            1755906422  # 32-bit
+            sage: T = S.mutate(1, inplace=False)
+            sage: hash(S) == hash(S)
+            True
+            sage: hash(S) == hash(T)
+            False
         """
         return hash(frozenset(self.g_vectors()))
 
@@ -1372,10 +1382,10 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A2.has_coerce_map_from(A1)
             False
             sage: f = A1.coerce_map_from(A2)
-            sage: A2.find_g_vector((-1, 1, -1))
+            sage: seq = A2.find_g_vector((-1, 1, -1)); seq  # random
             [0, 2, 1]
-            sage: S = A1.initial_seed(); S.mutate([0, 2, 1])
-            sage: S.cluster_variable(1) == f(A2.cluster_variable((-1, 1, -1)))
+            sage: S = A1.initial_seed(); S.mutate(seq)
+            sage: S.cluster_variable(seq[-1]) == f(A2.cluster_variable((-1, 1, -1)))
             True
             sage: B3 = B1.matrix_from_columns([1, 2, 3]); B3
             [ 1  0  0]
@@ -1396,12 +1406,10 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A1.has_coerce_map_from(A3)
             True
             sage: g = A1.coerce_map_from(A3)
-            sage: A3.find_g_vector((1, -2, 2))
-            [1, 2, 1, 0]
-            sage: [G.gen(0)(x + 1) - 1 for x in [1, 2, 1, 0]]
-            [2, 3, 2, 1]
-            sage: S = A1.initial_seed(); S.mutate([2, 3, 2, 1])
-            sage: S.cluster_variable(1) == g(A3.cluster_variable((1, -2, 2)))
+            sage: seq1 = A3.find_g_vector((1, -2, 2))
+            sage: seq2 = [G.gen(0)(x + 1) - 1 for x in seq1 ]
+            sage: S = A1.initial_seed(); S.mutate(seq2)
+            sage: S.cluster_variable(seq2[-1]) == g(A3.cluster_variable((1, -2, 2)))
             True
 
          Check that :trac:`23654` is fixed::
@@ -1515,13 +1523,13 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
             sage: A = ClusterAlgebra(['A', 2])
             sage: A.clear_computed_data()
-            sage: A.g_vectors_so_far()
+            sage: sorted(A.g_vectors_so_far())
             [(0, 1), (1, 0)]
             sage: A.current_seed().mutate([1, 0])
-            sage: A.g_vectors_so_far()
-            [(0, 1), (0, -1), (1, 0), (-1, 0)]
+            sage: sorted(A.g_vectors_so_far())
+            [(-1, 0), (0, -1), (0, 1), (1, 0)]
             sage: A.clear_computed_data()
-            sage: A.g_vectors_so_far()
+            sage: sorted(A.g_vectors_so_far())
             [(0, 1), (1, 0)]
         """
         I = identity_matrix(self._n)
@@ -1659,10 +1667,10 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A = ClusterAlgebra(['A', 2])
             sage: A.clear_computed_data()
             sage: A.current_seed().mutate(0)
-            sage: A.g_vectors_so_far()
-            [(0, 1), (1, 0), (-1, 1)]
+            sage: sorted(A.g_vectors_so_far())
+            [(-1, 1), (0, 1), (1, 0)]
         """
-        return self._path_dict.keys()
+        return list(self._path_dict)
 
     def cluster_variables_so_far(self):
         r"""
@@ -1673,10 +1681,10 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A = ClusterAlgebra(['A', 2])
             sage: A.clear_computed_data()
             sage: A.current_seed().mutate(0)
-            sage: A.cluster_variables_so_far()
-            [x1, x0, (x1 + 1)/x0]
+            sage: sorted(A.cluster_variables_so_far(), key=str)
+            [(x1 + 1)/x0, x0, x1]
         """
-        return list(map(self.cluster_variable, self.g_vectors_so_far()))
+        return [self.cluster_variable(v) for v in self.g_vectors_so_far()]
 
     def F_polynomials_so_far(self):
         r"""
@@ -1687,10 +1695,10 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A = ClusterAlgebra(['A', 2])
             sage: A.clear_computed_data()
             sage: A.current_seed().mutate(0)
-            sage: A.F_polynomials_so_far()
+            sage: sorted(A.F_polynomials_so_far(), key=str)
             [1, 1, u0 + 1]
         """
-        return self._F_poly_dict.values()
+        return list(self._F_poly_dict.values())
 
     @cached_method(key=lambda a, b: tuple(b))
     def cluster_variable(self, g_vector):
@@ -2012,15 +2020,15 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A.clear_computed_data()
             sage: seeds = A.seeds(allowed_directions=[3, 0, 1])
             sage: _ = list(seeds)
-            sage: A.g_vectors_so_far()
+            sage: sorted(A.g_vectors_so_far())
             [(-1, 0, 0, 0),
-             (1, 0, 0, 0),
-             (0, 0, 0, 1),
+             (-1, 1, 0, 0),
              (0, -1, 0, 0),
+             (0, 0, 0, -1),
+             (0, 0, 0, 1),
              (0, 0, 1, 0),
              (0, 1, 0, 0),
-             (-1, 1, 0, 0),
-             (0, 0, 0, -1)]
+             (1, 0, 0, 0)]
         """
         # should we begin from the current seed?
         if kwargs.get('from_current_seed', False):

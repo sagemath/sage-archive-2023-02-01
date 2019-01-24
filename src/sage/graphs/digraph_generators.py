@@ -62,7 +62,9 @@ Functions and methods
 ################################################################################
 from __future__ import print_function, division
 from six.moves import range
+from sage.cpython.string import bytes_to_str
 
+import sys
 from sage.misc.randstate import current_randstate
 from sage.graphs.digraph import DiGraph
 
@@ -394,7 +396,7 @@ class DiGraphGenerators():
 
         In this tournament there is an edge from `i` to `j` if `i<j`.
 
-        See :wikipedia:`Tournament_(graph_theory)`
+        See the :wikipedia:`Tournament_(graph_theory)` for more information.
 
         INPUT:
 
@@ -422,7 +424,7 @@ class DiGraphGenerators():
             sage: digraphs.TransitiveTournament(-1)
             Traceback (most recent call last):
             ...
-            ValueError: The number of vertices cannot be strictly negative!
+            ValueError: the number of vertices cannot be strictly negative
         """
         g = DiGraph(n)
         g.name("Transitive Tournament")
@@ -431,9 +433,7 @@ class DiGraphGenerators():
             for j in range(i+1, n):
                 g.add_edge(i, j)
 
-        if n:
-            from sage.graphs.graph_plot import _circle_embedding
-            _circle_embedding(g, list(range(n)))
+        g._circle_embedding(list(range(n)))
 
         return g
 
@@ -460,7 +460,7 @@ class DiGraphGenerators():
             sage: digraphs.RandomTournament(-1)
             Traceback (most recent call last):
             ...
-            ValueError: The number of vertices cannot be strictly negative!
+            ValueError: the number of vertices cannot be strictly negative
 
         .. SEEALSO::
 
@@ -481,9 +481,7 @@ class DiGraphGenerators():
                 else:
                     g.add_edge(j, i)
 
-        if n:
-            from sage.graphs.graph_plot import _circle_embedding
-            _circle_embedding(g, list(range(n)))
+        g._circle_embedding(list(range(n)))
 
         return g
 
@@ -557,7 +555,7 @@ class DiGraphGenerators():
         gen = sp.stdout
         while True:
             try:
-                s = next(gen)
+                s = bytes_to_str(next(gen))
             except StopIteration:
                 # Exhausted list of graphs from nauty geng
                 return
@@ -611,7 +609,7 @@ class DiGraphGenerators():
             sage: digraphs.Complete(-1)
             Traceback (most recent call last):
             ...
-            ValueError: The number of vertices cannot be strictly negative!
+            ValueError: the number of vertices cannot be strictly negative
         """
         G = DiGraph(n, name="Complete digraph"+(" with loops" if loops else ''), loops=loops)
 
@@ -620,9 +618,7 @@ class DiGraphGenerators():
 
         G.add_edges((u,v) for u in range(n) for v in range(n) if u!=v)
 
-        if n:
-            from sage.graphs.graph_plot import _circle_embedding
-            _circle_embedding(G, list(range(n)))
+        G._circle_embedding(list(range(n)))
 
         return G
 
@@ -681,7 +677,6 @@ class DiGraphGenerators():
             ...
             ValueError: The list must contain only relative integers.
         """
-        from sage.graphs.graph_plot import _circle_embedding
         from sage.rings.integer_ring import ZZ
 
         # Bad input and loops
@@ -692,9 +687,9 @@ class DiGraphGenerators():
             if (i%n) == 0:
                 loops = True
 
-        G=DiGraph(n, name="Circulant graph ("+str(integers)+")", loops=loops)
+        G = DiGraph(n, name="Circulant graph ("+str(integers)+")", loops=loops)
 
-        _circle_embedding(G, list(range(n)))
+        G._circle_embedding(list(range(n)))
         for v in range(n):
             G.add_edges([(v,(v+j)%n) for j in integers])
 
@@ -710,8 +705,7 @@ class DiGraphGenerators():
 
         In this digraph, there is an arc `w_1w_2` if `w_2` can be obtained from
         `w_1` by removing the leftmost letter and adding a new letter at its
-        right end.  For more information, see the
-        :wikipedia:`Wikipedia article on De Bruijn graph <De_Bruijn_graph>`.
+        right end.  For more information, see the :wikipedia:`De_Bruijn_graph`.
 
         INPUT:
 
@@ -910,9 +904,13 @@ class DiGraphGenerators():
             (True, {0: '010', 1: '011', 2: '000', 3: '001', 4: '110', 5: '111', 6: '100', 7: '101'})
 
             sage: II = digraphs.ImaseItoh(12, 2)
-            sage: II.is_isomorphic(digraphs.Kautz(2, 3), certificate = True)
-            (True, {0: '010', 1: '012', 2: '021', 3: '020', 4: '202', 5: '201', 6: '210', 7: '212', 8: '121', 9: '120', 10: '102', 11: '101'})
-
+            sage: b,D = II.is_isomorphic(digraphs.Kautz(2, 3), certificate=True)
+            sage: b
+            True
+            sage: D   # random isomorphism
+            {0: '202', 1: '201', 2: '210', 3: '212', 4: '121',
+             5: '120', 6: '102', 7: '101', 8: '010', 9: '012',
+             10: '021', 11: '020'}
 
         TESTS:
 
@@ -967,8 +965,7 @@ class DiGraphGenerators():
         digraph of Imase and Itoh [II83]_ of degree `d` and order
         `d^{D-1}(d+1)`.
 
-        See also the
-        :wikipedia:`Wikipedia article on Kautz Graphs <Kautz_graph>`.
+        See the :wikipedia:`Kautz_graph` for more information.
 
         INPUT:
 
@@ -989,20 +986,12 @@ class DiGraphGenerators():
         EXAMPLES::
 
             sage: K = digraphs.Kautz(2, 3)
-            sage: K.is_isomorphic(digraphs.ImaseItoh(12, 2), certificate = True)
-            (True,
-             {'010': 0,
-              '012': 1,
-              '020': 3,
-              '021': 2,
-              '101': 11,
-              '102': 10,
-              '120': 9,
-              '121': 8,
-              '201': 5,
-              '202': 4,
-              '210': 6,
-              '212': 7})
+            sage: b,D = K.is_isomorphic(digraphs.ImaseItoh(12, 2), certificate=True)
+            sage: b
+            True
+            sage: D  # random isomorphism
+            {'010': 8, '012': 9, '020': 11, '021': 10, '101': 7,  '102': 6,
+             '120': 5, '121': 4, '201': 1, '202': 0, '210': 2, '212': 3}
 
             sage: K = digraphs.Kautz([1,'a','B'], 2)
             sage: K.edges()
@@ -1113,18 +1102,20 @@ class DiGraphGenerators():
         INPUT:
 
 
-        -  ``n`` - number of vertices.
+        - ``n`` - number of vertices.
 
-        -  ``kernel`` - the attachment kernel
+        - ``kernel`` - the attachment kernel.
 
-        -  ``seed`` - for the random number generator
+        - ``seed`` - a ``random.Random`` seed or a Python ``int`` for the random
+          number generator (default: ``None``).
 
 
         EXAMPLES::
 
             sage: D = digraphs.RandomDirectedGN(25)
             sage: D.edges(labels=False)
-            [(1, 0), (2, 0), (3, 1), (4, 0), (5, 0), (6, 1), (7, 0), (8, 3), (9, 0), (10, 8), (11, 3), (12, 9), (13, 8), (14, 0), (15, 11), (16, 11), (17, 5), (18, 11), (19, 6), (20, 5), (21, 14), (22, 5), (23, 18), (24, 11)]
+            [(1, 0), (2, 0), (3, 2), (4, 2), (5, 4), (6, 3), (7, 0), (8, 4), (9, 4), (10, 3), (11, 4), (12, 4), (13, 3), (14, 4), (15, 4), (16, 0), (17, 2), (18, 4), (19, 6), (20, 14), (21, 4), (22, 0), (23, 22), (24, 14)]  # 32-bit
+            [(1, 0), (2, 1), (3, 0), (4, 2), (5, 0), (6, 2), (7, 3), (8, 2), (9, 3), (10, 4), (11, 5), (12, 9), (13, 2), (14, 2), (15, 5), (16, 2), (17, 15), (18, 1), (19, 5), (20, 2), (21, 5), (22, 1), (23, 5), (24, 14)]   # 64-bit
             sage: D.show()  # long time
 
         REFERENCE:
@@ -1133,7 +1124,7 @@ class DiGraphGenerators():
           Random Networks, Phys. Rev. E vol. 63 (2001), p. 066123.
         """
         if seed is None:
-            seed = current_randstate().long_seed()
+            seed = int(current_randstate().long_seed() % sys.maxsize)
         import networkx
         return DiGraph(networkx.gn_graph(n, kernel, seed=seed))
 
@@ -1151,16 +1142,19 @@ class DiGraphGenerators():
         INPUT:
 
 
-        -  ``n`` - number of vertices.
+        - ``n`` - number of vertices.
 
-        -  ``seed`` - for the random number generator
+        - ``seed`` - a ``random.Random`` seed or a Python ``int`` for the random
+          number generator (default: ``None``).
 
 
         EXAMPLES::
 
             sage: D = digraphs.RandomDirectedGNC(25)
-            sage: D.edges(labels=False)
-            [(1, 0), (2, 0), (2, 1), (3, 0), (4, 0), (4, 1), (5, 0), (5, 1), (5, 2), (6, 0), (6, 1), (7, 0), (7, 1), (7, 4), (8, 0), (9, 0), (9, 8), (10, 0), (10, 1), (10, 2), (10, 5), (11, 0), (11, 8), (11, 9), (12, 0), (12, 8), (12, 9), (13, 0), (13, 1), (14, 0), (14, 8), (14, 9), (14, 12), (15, 0), (15, 8), (15, 9), (15, 12), (16, 0), (16, 1), (16, 4), (16, 7), (17, 0), (17, 8), (17, 9), (17, 12), (18, 0), (18, 8), (19, 0), (19, 1), (19, 4), (19, 7), (20, 0), (20, 1), (20, 4), (20, 7), (20, 16), (21, 0), (21, 8), (22, 0), (22, 1), (22, 4), (22, 7), (22, 19), (23, 0), (23, 8), (23, 9), (23, 12), (23, 14), (24, 0), (24, 8), (24, 9), (24, 12), (24, 15)]
+            sage: D.is_directed_acyclic()
+            True
+            sage: D.topological_sort()
+            [24, 23, ..., 1, 0]
             sage: D.show()  # long time
 
         REFERENCE:
@@ -1169,7 +1163,7 @@ class DiGraphGenerators():
           Copying, Phys. Rev. E vol. 71 (2005), p. 036118.
         """
         if seed is None:
-            seed = current_randstate().long_seed()
+            seed = int(current_randstate().long_seed() % sys.maxsize)
         import networkx
         return DiGraph(networkx.gnc_graph(n, seed=seed))
 
@@ -1360,18 +1354,21 @@ class DiGraphGenerators():
         INPUT:
 
 
-        -  ``n`` - number of vertices.
+        - ``n`` - number of vertices.
 
-        -  ``p`` - redirection probability
+        - ``p`` - redirection probability.
 
-        -  ``seed`` - for the random number generator.
+        - ``seed`` - a ``random.Random`` seed or a Python ``int`` for the random
+          number generator (default: ``None``).
 
 
         EXAMPLES::
 
             sage: D = digraphs.RandomDirectedGNR(25, .2)
-            sage: D.edges(labels=False)
-            [(1, 0), (2, 0), (2, 1), (3, 0), (4, 0), (4, 1), (5, 0), (5, 1), (5, 2), (6, 0), (6, 1), (7, 0), (7, 1), (7, 4), (8, 0), (9, 0), (9, 8), (10, 0), (10, 1), (10, 2), (10, 5), (11, 0), (11, 8), (11, 9), (12, 0), (12, 8), (12, 9), (13, 0), (13, 1), (14, 0), (14, 8), (14, 9), (14, 12), (15, 0), (15, 8), (15, 9), (15, 12), (16, 0), (16, 1), (16, 4), (16, 7), (17, 0), (17, 8), (17, 9), (17, 12), (18, 0), (18, 8), (19, 0), (19, 1), (19, 4), (19, 7), (20, 0), (20, 1), (20, 4), (20, 7), (20, 16), (21, 0), (21, 8), (22, 0), (22, 1), (22, 4), (22, 7), (22, 19), (23, 0), (23, 8), (23, 9), (23, 12), (23, 14), (24, 0), (24, 8), (24, 9), (24, 12), (24, 15)]
+            sage: D.is_directed_acyclic()
+            True
+            sage: D.to_undirected().is_tree()
+            True
             sage: D.show()  # long time
 
         REFERENCE:
@@ -1380,9 +1377,9 @@ class DiGraphGenerators():
           Random Networks, Phys. Rev. E vol. 63 (2001), p. 066123.
         """
         if seed is None:
-            seed = current_randstate().long_seed()
+            seed = int(current_randstate().long_seed() % sys.maxsize)
         import networkx
-        return DiGraph(networkx.gnc_graph(n, seed=seed))
+        return DiGraph(networkx.gnr_graph(n, p, seed=seed))
 
     def RandomSemiComplete(self, n):
         r"""
@@ -1419,11 +1416,11 @@ class DiGraphGenerators():
             sage: digraphs.RandomSemiComplete(-1)
             Traceback (most recent call last):
             ...
-            ValueError: The number of vertices cannot be strictly negative!
+            ValueError: the number of vertices cannot be strictly negative
         """
         G = DiGraph(n, name="Random Semi-Complete digraph")
 
-        # For each pair u,v we choose a randon number ``coin`` in [1,3].
+        # For each pair u,v we choose a random number ``coin`` in [1,3].
         # We select edge `(u,v)` if `coin==1` or `coin==2`.
         # We select edge `(v,u)` if `coin==2` or `coin==3`.
         import itertools
@@ -1435,9 +1432,7 @@ class DiGraphGenerators():
             if coin>=2:
                 G.add_edge(v,u)
 
-        if n:
-            from sage.graphs.graph_plot import _circle_embedding
-            _circle_embedding(G, list(range(n)))
+        G._circle_embedding(list(range(n)))
 
         return G
 

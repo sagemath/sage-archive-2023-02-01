@@ -173,7 +173,7 @@ class CuspidalSubgroup_generic(FiniteSubgroup):
             if not is_Gamma0(A.group()):
                 raise NotImplementedError('computation of rational cusps only implemented in Gamma0 case.')
             if not N.is_squarefree():
-                data = [n for n in N.coprime_integers(N) if n != 1]
+                data = [n for n in N.coprime_integers(N) if n >= 2]
                 C = [c for c in C if is_rational_cusp_gamma0(c, N, data)]
 
         v = [Amb([infinity, alpha]).element() for alpha in C]

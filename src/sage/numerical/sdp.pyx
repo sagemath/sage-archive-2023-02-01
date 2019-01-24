@@ -625,7 +625,7 @@ cdef class SemidefiniteProgram(SageObject):
         # inv_variables associates a SDPVariable object to an id
         inv_variables = {}
         for (v, id) in self._variables.iteritems():
-            inv_variables[id]=v
+            inv_variables[id] = v
 
         # varid_name associates variables id to names
         varid_name = {}
@@ -728,7 +728,7 @@ cdef class SemidefiniteProgram(SageObject):
         values for the corresponding variables ::
 
             sage: x_sol = p.get_values(x)
-            sage: x_sol.keys()
+            sage: list(x_sol.keys())
             [3, 5]
 
         Obviously, it also works with variables of higher dimension::
@@ -759,8 +759,7 @@ cdef class SemidefiniteProgram(SageObject):
         else:
             return val
 
-
-    def set_objective(self,obj):
+    def set_objective(self, obj):
         r"""
         Sets the objective of the ``SemidefiniteProgram``.
 
@@ -906,8 +905,7 @@ cdef class SemidefiniteProgram(SageObject):
                 self.add_constraint(c.lhs()-c.rhs(), name=name)
 
         elif is_LinearFunction(linear_function) or is_LinearTensor(linear_function):
-            l = linear_function.dict().items()
-            l.sort()
+            l = sorted(linear_function.dict().items())
             self._backend.add_linear_constraint(l, name)
 
         else:
@@ -1000,7 +998,6 @@ cdef class SemidefiniteProgram(SageObject):
         TESTS::
 
             sage: p.dual_variable(7)
-            ...
             Traceback (most recent call last):
             ...
             IndexError: list index out of range
@@ -1049,7 +1046,6 @@ cdef class SemidefiniteProgram(SageObject):
         TESTS::
 
             sage: p.slack(7)
-            ...
             Traceback (most recent call last):
             ...
             IndexError: list index out of range
@@ -1131,8 +1127,8 @@ cdef class SemidefiniteProgram(SageObject):
         """
         d = {}
         for v in L:
-            for id,coeff  in v.iteritems():
-                d[id] = coeff + d.get(id,0)
+            for id, coeff  in v.iteritems():
+                d[id] = coeff + d.get(id, 0)
         return self.linear_functions_parent()(d)
 
     def get_backend(self):
@@ -1184,7 +1180,6 @@ class SDPSolverException(RuntimeError):
         sage: b = matrix([[1,9],[9,4]])
         sage: p.add_constraint( a*x[0] == b   )
         sage: p.solve()
-        ...
         Traceback (most recent call last):
         ...
         SDPSolverException: ...

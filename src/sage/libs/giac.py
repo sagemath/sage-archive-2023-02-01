@@ -315,9 +315,9 @@ def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False,
     blacklist = blackgiacconstants + [str(j) for j in libgiac.VARS()]
     problematicnames = list(set(P.gens_dict().keys()).intersection(blacklist))
 
-    if(len(problematicnames)>0):
+    if problematicnames:
         raise ValueError("Variables names %s conflict in giac. Change them or purge them from in giac with libgiac.purge(\'%s\')"
-                         %(problematicnames, problematicnames[0]))
+                         % (problematicnames, problematicnames[0]))
 
     if K.is_prime_field() and p == 0:
         F = libgiac(gens)

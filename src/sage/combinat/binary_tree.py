@@ -1314,11 +1314,11 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             [[[[]], [[]]], [[]], []]
         """
         close_root = False
-        if(root is None):
+        if root is None:
             from sage.combinat.ordered_tree import OrderedTree
             root = OrderedTree().clone()
             close_root = True
-        if(self):
+        if self:
             left, right = self[0], self[1]
             if bijection == "left":
                 root = left._to_ordered_tree(bijection=bijection, root=root)

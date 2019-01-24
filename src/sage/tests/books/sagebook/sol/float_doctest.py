@@ -135,7 +135,7 @@ Sage example in ./sol/float.tex, line 325::
   sage: sage.rings.real_mpfi.printing_style = 'brackets'
   sage: I = RIF(-1,1)
   sage: f(I)
-  [0.00000000000000000 .. 1.0000000000000000]
+  [0.0000000000000000 .. 1.0000000000000000]
   sage: g(I)
   [-1.0000000000000000 .. 1.0000000000000000]
 

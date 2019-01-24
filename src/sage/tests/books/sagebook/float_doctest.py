@@ -280,7 +280,7 @@ Sage example in ./float.tex, line 1628::
   sage: rpi = RIF(sqrt(2),pi); rpi
   [1.4142135623730949 .. 3.1415926535897936]
   sage: RIF(0,+infinity)
-  [0.00000000000000000 .. +infinity]
+  [0.0000000000000000 .. +infinity]
 
 Sage example in ./float.tex, line 1649::
 
@@ -337,7 +337,7 @@ Sage example in ./float.tex, line 1810::
   sage: E = RIF(-1,2); exp(E)
   [0.36787944117144227 .. 7.3890560989306505]
   sage: E = RIF(0,1); log(E)
-  [-infinity .. -0.00000000000000000]
+  [-infinity .. -0.0000000000000000]
 
 Sage example in ./float.tex, line 1838::
 
@@ -350,11 +350,11 @@ Sage example in ./float.tex, line 1913::
 
   sage: x = RIF(-1,1)
   sage: 1-x^2
-  [0.00000000000000000 .. 1.0000000000000000]
+  [0.0000000000000000 .. 1.0000000000000000]
   sage: 1-x*x
-  [0.00000000000000000 .. 2.0000000000000000]
+  [0.0000000000000000 .. 2.0000000000000000]
   sage: (1-x)*(1+x)
-  [0.00000000000000000 .. 4.0000000000000000]
+  [0.0000000000000000 .. 4.0000000000000000]
 
 Sage example in ./float.tex, line 1975::
 

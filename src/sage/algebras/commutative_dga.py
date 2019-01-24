@@ -2434,7 +2434,7 @@ class DifferentialGCAlgebra(GCAlgebra):
 
             QI =CS.quotient(phico.image())
             if QI.dimension()>0:
-                nnames = ['x{}_{}'.format(degree, i+nnamesy) for i in range(QI.dimension())]
+                nnames = ['x{}_{}'.format(degree, i) for i in range(QI.dimension())]
                 nbasis = []
                 bbasis = self.basis(degree)
                 for v in QI.basis():

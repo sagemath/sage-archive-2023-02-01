@@ -1415,11 +1415,29 @@ class FriCASElement(ExpectElement):
             sage: f.sage()                                                      # optional - fricas
             sum(factorial(_... + 1), _..., 0, n - 1)
 
+        Check that :trac:`26746` is fixed::
+
+            sage: _ = var('x, y, z')
+            sage: f = sin(x^2) + y^z
+            sage: f.integrate(x, algorithm='fricas')                            # optional - fricas
+            1/2*sqrt(2)*sqrt(pi)*(sqrt(2)*x*y^z/sqrt(pi) + fresnel_sin(sqrt(2)*x/sqrt(pi)))
+
+            sage: fricas(fresnel_sin(1))                                        # optional - fricas
+            fresnelS(1)
+            sage: fricas("fresnelS(1.0)")                                       # optional - fricas
+            0.4382591473_9035476607_676
+
+            sage: fricas(fresnel_cos(1))                                        # optional - fricas
+            fresnelC(1)
+            sage: fricas("fresnelC(1.0)")                                       # optional - fricas
+            0.7798934003_7682282947_42
+
         """
         from sage.libs.pynac.pynac import register_symbol
         from sage.symbolic.all import I
         from sage.symbolic.constants import e, pi
-        from sage.functions.log import dilog
+        from sage.calculus.functional import diff
+        from sage.functions.log import dilog, lambert_w
         from sage.functions.trig import sin, cos, tan, cot, sec, csc
         from sage.functions.hyperbolic import tanh, sinh, cosh, coth, sech, csch
         from sage.misc.functional import symbolic_sum, symbolic_prod
@@ -1443,8 +1461,10 @@ class FriCASElement(ExpectElement):
         register_symbol(lambda x,y: x * y, {'fricas':'*'})
         register_symbol(lambda x,y: x / y, {'fricas':'/'})
         register_symbol(lambda x,y: x ** y, {'fricas':'^'})
+        register_symbol(lambda f,x: diff(f, x), {'fricas':'D'})
         register_symbol(lambda x,y: x + y*I, {'fricas':'complex'})
         register_symbol(lambda x: dilog(1-x), {'fricas':'dilog'})
+        register_symbol(lambda z: lambert_w(z), {'fricas':'lambertW'})
         # the following is a hack to deal with
         # integrate(sin((x^2+1)/x),x)::INFORM giving
         # (integral (sin (/ (+ (^ x 2) 1) x)) (:: x Symbol))
@@ -1459,36 +1479,6 @@ class FriCASElement(ExpectElement):
             return symbolic_prod(x, v, a, b)
         register_symbol(_convert_sum, {'fricas':'sum'})
         register_symbol(_convert_prod, {'fricas':'product'})
-=======
-        Check that :trac:`26746` is fixed::
-
-            sage: _ = var('x, y, z')
-            sage: f = sin(x^2) + y^z
-            sage: f.integrate(x, algorithm='fricas')                            # optional - fricas
-            1/2*sqrt(2)*sqrt(pi)*(sqrt(2)*x*y^z/sqrt(pi) + fresnel_sin(sqrt(2)*x/sqrt(pi)))
-
-            sage: fricas(fresnel_sin(1))                                        # optional - fricas
-            fresnelS(1)
-            sage: fricas("fresnelS(1.0)")                                       # optional - fricas
-            0.4382591473_9035476607_676
-
-            sage: fricas(fresnel_cos(1))                                        # optional - fricas
-            fresnelC(1)
-            sage: fricas("fresnelC(1.0)")                                       # optional - fricas
-            0.7798934003_7682282947_42
-
-        """
-        from sage.calculus.calculus import symbolic_expression_from_string
-        from sage.calculus.functional import diff
-        from sage.libs.pynac.pynac import symbol_table, register_symbol
-        from sage.symbolic.all import I
-        from sage.functions.log import dilog, lambert_w
-        register_symbol(lambda f,x: diff(f, x), {'fricas':'D'})
-        register_symbol(lambda x,y: x + y*I, {'fricas':'complex'})
-        register_symbol(lambda x: dilog(1-x), {'fricas':'dilog'})
-        register_symbol(lambda z: lambert_w(z), {'fricas':'lambertW'})
-
->>>>>>> 5389d8dc87d79db7b81af492edf53a32699e8323
 
         def explicitely_not_implemented(*args):
             raise NotImplementedError("The translation of the FriCAS Expression '%s' to sage is not yet implemented." %args)

@@ -5,7 +5,7 @@ Based on the algorithms in John Stembridge's SF package for Maple
 which can be found at http://www.math.lsa.umich.edu/~jrs/maple.html
 .
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #                     2007 John Stembridge
 #
@@ -18,17 +18,14 @@ which can be found at http://www.math.lsa.umich.edu/~jrs/maple.html
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 
 from sage.combinat.partition import _Partitions
 from sage.combinat.partitions import ZS1_iterator
 from sage.rings.polynomial.polynomial_ring import polygen
 from sage.rings.integer_ring import ZZ
-
-
-import six
 
 
 def KostkaFoulkesPolynomial(mu, nu, t=None):

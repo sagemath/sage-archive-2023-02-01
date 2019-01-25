@@ -53,7 +53,7 @@ def genera(sig_pair, determinant, max_scale=None, even=False):
 
     EXAMPLES::
 
-        sage: genera((4,0), 125, even=True)
+        sage: QuadraticForm.genera((4,0), 125, even=True)
         [Genus of
         None
         Signature:  (4, 0)

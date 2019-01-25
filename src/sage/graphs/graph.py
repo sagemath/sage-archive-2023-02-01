@@ -6630,9 +6630,9 @@ class Graph(GenericGraph):
 
         Ear decomposition of a biconnected graph::
 
-            sage: g = graphs.CubeGraph(2)
+            sage: g = graphs.CycleGraph(4)
             sage: g.ear_decomposition()
-            [['00', '01', '11', '10', '00']]
+            [[0, 3, 2, 1, 0]]
 
         Ear decomposition of a connected but not biconnected graph::
 
@@ -6684,18 +6684,15 @@ class Graph(GenericGraph):
         # Dfs tree traversal.
         traversed = set()
 
-        # Dict to store parent vertex of all the visited vertices.
-        parent = {}
+        # Dictionary to store parent vertex of all the visited vertices.
+        # Initialized for the first vertex to be visited.
+        parent = {next(self.vertex_iterator()): None}
 
         # List to store visit_time of vertices in Dfs traversal.
         value = {}
 
         # List to store all the chains and cycles of the input graph G.
         chains = []
-
-        vertices = self.vertices()
-
-        parent[vertices[0]] = None
 
         # DFS() : Function that performs depth first search on input graph G and
         #         stores DFS tree in parent array format.
@@ -6734,7 +6731,7 @@ class Graph(GenericGraph):
             chains.append(chain)
 
         # Perform ear decomposition on each connected component of input graph.
-        for v in vertices:
+        for v in self:
             if v not in seen:
               # Start the depth first search from first vertex
                 DFS(v)

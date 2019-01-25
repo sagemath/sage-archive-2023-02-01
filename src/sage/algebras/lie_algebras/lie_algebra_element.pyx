@@ -1485,6 +1485,7 @@ cdef class LieObject(SageObject):
         """
         raise NotImplementedError
 
+
 cdef class LieGenerator(LieObject):
     """
     A wrapper around an object so it can ducktype with and do
@@ -1502,7 +1503,7 @@ cdef class LieGenerator(LieObject):
         """
         self._word = (name,)
         self._name = name
-        self._index = index
+        self._index_word = (index,)
 
     def __reduce__(self):
         """
@@ -1513,7 +1514,7 @@ cdef class LieGenerator(LieObject):
             sage: loads(dumps(x)) == x
             True
         """
-        return (LieGenerator, (self._name, self._index))
+        return (LieGenerator, (self._name, self._index_word[0]))
 
     def _repr_(self):
         """
@@ -1577,7 +1578,7 @@ cdef class LieGenerator(LieObject):
             # when the comparison ``self < rhs`` returns a
             # NotImplemented error.)
         if isinstance(rhs, LieGenerator):
-            return richcmp(self._index, <LieGenerator>(rhs)._index, op)
+            return richcmp(self._index_word[0], <LieGenerator>(rhs)._index_word[0], op)
         return op == Py_NE
 
     def _im_gens_(self, codomain, im_gens, names):
@@ -1635,6 +1636,7 @@ cdef class LieBracket(LieObject):
         self._left = l
         self._right = r
         self._word = ()
+        self._index_word = self._left._index_word + self._right._index_word
         self._hash = -1
 
     def __reduce__(self):
@@ -1947,7 +1949,7 @@ cdef class LyndonBracket(GradedLieBracket):
         """
         if not isinstance(rhs, LieObject):
             return op == Py_NE
-        return richcmp(self.to_word(), <LieObject>(rhs).to_word(), op)
+        return richcmp(self._index_word, <LieObject>(rhs)._index_word, op)
 
     def __hash__(self):
         """
@@ -1959,9 +1961,10 @@ cdef class LyndonBracket(GradedLieBracket):
             sage: x = LieGenerator('x', 0)
             sage: y = LieGenerator('y', 1)
             sage: b = LyndonBracket(x, y, 2)
-            sage: hash(b) == hash((x, y))
+            sage: hash(b) == hash((0, 1))
             True
         """
         if self._hash == -1:
-            self._hash = hash(self.to_word())
+            self._hash = hash(self._index_word)
         return self._hash
+

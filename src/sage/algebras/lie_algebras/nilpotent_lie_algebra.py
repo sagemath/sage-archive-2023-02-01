@@ -310,9 +310,9 @@ class FreeNilpotentLieAlgebra(NilpotentLieAlgebra_dense):
     can be created, see :trac:`27018`::
 
         sage: L = LieAlgebra(QQ, 11, step=3)
-        sage: TestSuite(L).run()
+        sage: L.dimension() == 11 + (11^2-11)/2 + (11^3-11)/3
+        True
     """
-
     @staticmethod
     def __classcall_private__(cls, R, r, s, names=None, naming=None, category=None, **kwds):
         """

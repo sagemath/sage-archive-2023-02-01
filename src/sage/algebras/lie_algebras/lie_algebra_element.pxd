@@ -45,11 +45,11 @@ cdef class UntwistedAffineLieAlgebraElement(Element):
 
 cdef class LieObject(SageObject):
     cdef tuple _word
+    cdef public tuple _index_word
     cpdef tuple to_word(self)
 
 cdef class LieGenerator(LieObject):
     cdef public str _name
-    cdef public int _index
 
 cdef class LieBracket(LieObject):
     cdef public LieObject _left

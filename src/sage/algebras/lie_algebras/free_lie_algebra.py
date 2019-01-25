@@ -632,6 +632,18 @@ class FreeLieAlgebra(Parent, UniqueRepresentation):
         (in degree `1`) or a
         :class:`~sage.algebras.lie_algebras.lie_algebra_element.LyndonBracket`
         (in degree `> 1`).
+
+        TESTS:
+
+        We check that :trac:`27069` is fixed::
+
+            sage: Lzxy = LieAlgebra(QQ, ['z','x','y']).Lyndon()
+            sage: z,x,y = Lzxy.gens(); z,x,y
+            (z, x, y)
+            sage: z.bracket(x)
+            [z, x]
+            sage: y.bracket(z)
+            -[z, y]
         """
         def __init__(self, lie):
             r"""
@@ -727,7 +739,7 @@ class FreeLieAlgebra(Parent, UniqueRepresentation):
                 sage: all(Lyn._is_basis_element(*x.list()[0][0]) for x in Lyn.graded_basis(4))
                 True
             """
-            w = tuple(l.to_word() + r.to_word())
+            w = tuple(l._index_word + r._index_word)
             if not is_lyndon(w):
                 return False
             b = self._standard_bracket(w)
@@ -739,18 +751,23 @@ class FreeLieAlgebra(Parent, UniqueRepresentation):
             Return the standard bracketing (a :class:`LieObject`)
             of a Lyndon word ``lw`` using the Lie bracket.
 
+            INPUT:
+
+            - ``lw`` -- tuple of positive integers that correspond to
+              the indices of the generators
+
             EXAMPLES::
 
                 sage: L = LieAlgebra(QQ, 'x', 3)
                 sage: Lyn = L.Lyndon()
-                sage: Lyn._standard_bracket(('x0', 'x0', 'x1'))
+                sage: Lyn._standard_bracket((0, 0, 1))
                 [x0, [x0, x1]]
-                sage: Lyn._standard_bracket(('x0', 'x1', 'x1'))
+                sage: Lyn._standard_bracket((0, 1, 1))
                 [[x0, x1], x1]
             """
             if len(lw) == 1:
-                i = self._indices.index(lw[0])
-                return LieGenerator(lw[0], i)
+                i = lw[0]
+                return LieGenerator(self._indices[i], i)
 
             for i in range(1, len(lw)):
                 if is_lyndon(lw[i:]):
@@ -813,7 +830,7 @@ class FreeLieAlgebra(Parent, UniqueRepresentation):
             n = len(self._indices)
             ret = []
             for lw in lyndon_word_iterator(n, k):
-                b = self._standard_bracket(tuple([names[i] for i in lw]))
+                b = self._standard_bracket(tuple(lw))
                 ret.append(self.element_class(self, {b: one}))
             return tuple(ret)
 

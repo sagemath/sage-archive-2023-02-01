@@ -215,7 +215,6 @@ import sage.rings.infinity as infinity
 from sage.rings.rational import Rational
 from sage.rings.integer import Integer
 import sage.rings.polynomial.polynomial_element as polynomial_element
-import sage.rings.complex_field
 import sage.groups.abelian_gps.abelian_group
 import sage.rings.complex_interval_field
 

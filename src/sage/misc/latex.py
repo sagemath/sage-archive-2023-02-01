@@ -2617,7 +2617,6 @@ def latex_variable_name(x, is_fname=False):
         sage: latex_variable_name('5')
         '5'
     """
-    import re
     # if x is an integer (it might be the case for padics), we return x
     if re.match(r'\d+$', x):
         return x

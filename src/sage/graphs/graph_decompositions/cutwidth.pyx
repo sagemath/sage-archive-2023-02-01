@@ -679,15 +679,14 @@ def cutwidth_MILP(G, lower_bound=0, solver=None, verbose=0):
     z = p.new_variable(integer=True, nonnegative=True)
 
     N = G.order()
-    V = list(G)
 
     # All vertices at different positions
-    for v in V:
+    for v in G:
         for k in range(N - 1):
             p.add_constraint(p.sum(x[v,i] for i in range(k)) <= k * x[v,k])
         p.add_constraint(x[v,N-1] == 1)
     for k in range(N):
-        p.add_constraint(p.sum(x[v,k] for v in V) == k + 1)
+        p.add_constraint(p.sum(x[v,k] for v in G) == k + 1)
 
     # Edge uv counts at position i if one of u or v is placed at a position in
     # [0,i] and the other is placed at a position in [i+1,n].
@@ -712,7 +711,7 @@ def cutwidth_MILP(G, lower_bound=0, solver=None, verbose=0):
     val_x = p.get_values(x)
     cdef int cw = int(p.get_values(z)['z'])
     cdef list seq = []
-    cdef set to_see = set(V)
+    cdef set to_see = set(G)
     for k in range(N):
         for u in to_see:
             if val_x[u,k]:

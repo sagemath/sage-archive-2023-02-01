@@ -169,7 +169,7 @@ def init_sage():
     from sage.cpython._py2_random import Random
     sage.misc.randstate.DEFAULT_PYTHON_RANDOM = Random
 
-    import sage.all_cmdline
+    import sage.repl.ipython_kernel.all_jupyter
     sage.interfaces.quit.invalidate_all()
 
     # Disable cysignals debug messages in doctests: this is needed to
@@ -2497,7 +2497,9 @@ class DocTestTask(object):
         if self.source.basename.startswith("sagenb."):
             import sage.all_notebook as sage_all
         else:
-            import sage.all_cmdline as sage_all
+            # Import Jupyter globals to doctest the Jupyter
+            # implementation of widgets and interacts
+            import sage.repl.ipython_kernel.all_jupyter as sage_all
         dict_all = sage_all.__dict__
         # Remove '__package__' item from the globals since it is not
         # always in the globals in an actual Sage session.

@@ -7342,23 +7342,31 @@ cdef class Matrix(Matrix1):
 
             sage: all(M.with_permuted_rows_and_columns(*i) == M for i in A)
             True
+
+        Check that :trac:`25426` is fixed::
+
+            sage: j = matrix([(3, 2, 1, 0, 0),
+            ....:             (2, 2, 0, 1, 0),
+            ....:             (1, 0, 3, 0, 2),
+            ....:             (0, 1, 0, 2, 1),
+            ....:             (0, 0, 2, 1, 2)])
+            sage: j.automorphisms_of_rows_and_columns()
+            [((), ()), ((1,3)(2,5), (1,3)(2,5))]
         """
         from sage.groups.perm_gps.permgroup_element import \
             PermutationGroupElement
         B = self.as_bipartite_graph()
         nrows = self.nrows()
         ncols = self.ncols()
-        parts = [list(range(1, nrows + 1)),
-                 list(range(nrows + 1, nrows + ncols + 1))]
-        A = B.automorphism_group(partition=parts, edge_labels=True)
+        A = B.automorphism_group(edge_labels=True)
+
+        # Convert to elements of Sym(self) from S_n
         permutations = []
         for p in A:
-            p = p.domain()
-            # Convert to elements of Sym(self) from S_n
-            if p[0] <= nrows:
+            if p(1) <= nrows:  # Check that rows are mapped to rows
                 permutations.append(
-                    (PermutationGroupElement(p[:nrows]),
-                     PermutationGroupElement([elt - nrows for elt in p[nrows:]])
+                    (PermutationGroupElement([p(1 + i) for i in range(nrows)]),
+                     PermutationGroupElement([p(1 + nrows + i) - nrows for i in range(ncols)])
                     ))
         return permutations
 

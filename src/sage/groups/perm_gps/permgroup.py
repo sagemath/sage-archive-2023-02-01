@@ -384,8 +384,6 @@ class PermutationGroup_generic(FiniteGroup):
         -  ``canonicalize`` - bool (default: ``True``); if ``True``,
            sort generators and remove duplicates
 
-        - ``domain`` - a (sorted) list of integers; (default: ``None``)
-
         OUTPUT:
 
         - A permutation group.

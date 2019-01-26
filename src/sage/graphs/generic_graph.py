@@ -16773,28 +16773,27 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``start`` -- vertex or list of vertices from which to start
-          the traversal.
+        - ``start`` -- vertex or list of vertices from which to start the
+          traversal
 
-        - ``ignore_direction`` -- (default ``False``) only applies to
+        - ``ignore_direction`` -- boolean (default ``False``); only applies to
           directed graphs. If ``True``, searches across edges in either
           direction.
 
-        - ``distance`` -- the maximum distance from the ``start`` nodes
-          to traverse. The ``start`` nodes are distance zero from
-          themselves.
+        - ``distance`` -- integer (default: ``None``); the maximum distance from
+          the ``start`` nodes to traverse. The ``start`` nodes are at distance
+          zero from themselves.
 
-        - ``neighbors`` -- a function giving the neighbors of a vertex.
-          The function should take a vertex and return a list of
-          vertices.  For a graph, ``neighbors`` is by default the
-          :meth:`.neighbors` function of the graph.  For a digraph,
-          the ``neighbors`` function defaults to the
+        - ``neighbors`` -- function (default: ``None``); a function that inputs
+          a vertex and return a list of vertices. For an undirected graph,
+          ``neighbors`` is by default the :meth:`.neighbors` function. For a
+          digraph, the ``neighbors`` function defaults to the
           :meth:`~DiGraph.neighbor_out_iterator` function of the graph.
 
-        - ``report_distance`` -- (default ``False``) If ``True``,
-          reports pairs (vertex, distance) where distance is the
-          distance from the ``start`` nodes. If ``False`` only the
-          vertices are reported.
+        - ``report_distance`` -- boolean (default ``False``); if ``True``,
+          reports pairs ``(vertex, distance)`` where ``distance`` is the
+          distance from the ``start`` nodes. If ``False`` only the vertices are
+          reported.
 
         .. SEEALSO::
 
@@ -16808,57 +16807,57 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES::
 
-            sage: G = Graph( { 0: [1], 1: [2], 2: [3], 3: [4], 4: [0]} )
+            sage: G = Graph({0: [1], 1: [2], 2: [3], 3: [4], 4: [0]})
             sage: list(G.breadth_first_search(0))
             [0, 1, 4, 2, 3]
 
         By default, the edge direction of a digraph is respected, but this
         can be overridden by the ``ignore_direction`` parameter::
 
-            sage: D = DiGraph( { 0: [1,2,3], 1: [4,5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
+            sage: D = DiGraph({0: [1, 2, 3], 1: [4, 5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
             sage: list(D.breadth_first_search(0))
             [0, 1, 2, 3, 4, 5, 6, 7]
             sage: list(D.breadth_first_search(0, ignore_direction=True))
             [0, 1, 2, 3, 7, 4, 5, 6]
 
-        You can specify a maximum distance in which to search. A
-        distance of zero returns the ``start`` vertices::
+        You can specify a maximum distance in which to search. A distance of
+        zero returns the ``start`` vertices::
 
-            sage: D = DiGraph( { 0: [1,2,3], 1: [4,5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
-            sage: list(D.breadth_first_search(0,distance=0))
+            sage: D = DiGraph({0: [1, 2, 3], 1: [4, 5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
+            sage: list(D.breadth_first_search(0, distance=0))
             [0]
-            sage: list(D.breadth_first_search(0,distance=1))
+            sage: list(D.breadth_first_search(0, distance=1))
             [0, 1, 2, 3]
 
         Multiple starting vertices can be specified in a list::
 
-            sage: D = DiGraph( { 0: [1,2,3], 1: [4,5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
+            sage: D = DiGraph({0: [1, 2, 3], 1: [4, 5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
             sage: list(D.breadth_first_search([0]))
             [0, 1, 2, 3, 4, 5, 6, 7]
-            sage: list(D.breadth_first_search([0,6]))
+            sage: list(D.breadth_first_search([0, 6]))
             [0, 6, 1, 2, 3, 7, 4, 5]
-            sage: list(D.breadth_first_search([0,6],distance=0))
+            sage: list(D.breadth_first_search([0, 6], distance=0))
             [0, 6]
-            sage: list(D.breadth_first_search([0,6],distance=1))
+            sage: list(D.breadth_first_search([0, 6], distance=1))
             [0, 6, 1, 2, 3, 7]
-            sage: list(D.breadth_first_search(6,ignore_direction=True,distance=2))
+            sage: list(D.breadth_first_search(6, ignore_direction=True, distance=2))
             [6, 3, 7, 0, 5]
 
-        More generally, you can specify a ``neighbors`` function. For
-        example, you can traverse the graph backwards by setting
-        ``neighbors`` to be the :meth:`.neighbors_in` function of the graph::
+        More generally, you can specify a ``neighbors`` function. For example,
+        you can traverse the graph backwards by setting ``neighbors`` to be the
+        :meth:`.neighbors_in` function of the graph::
 
-            sage: D = DiGraph( { 0: [1,2,3], 1: [4,5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
-            sage: list(D.breadth_first_search(5,neighbors=D.neighbors_in, distance=2))
+            sage: D = DiGraph({0: [1, 2, 3], 1: [4, 5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
+            sage: list(D.breadth_first_search(5, neighbors=D.neighbors_in, distance=2))
             [5, 1, 2, 0]
-            sage: list(D.breadth_first_search(5,neighbors=D.neighbors_out, distance=2))
+            sage: list(D.breadth_first_search(5, neighbors=D.neighbors_out, distance=2))
             [5, 7, 0]
-            sage: list(D.breadth_first_search(5,neighbors=D.neighbors, distance=2))
+            sage: list(D.breadth_first_search(5 ,neighbors=D.neighbors, distance=2))
             [5, 1, 2, 7, 0, 4, 6]
 
-        It is possible (:trac:`16470`) using the keyword
-        ``report_distance`` to get pairs (vertex, distance) encoding
-        the distance to the starting vertices::
+        It is possible (:trac:`16470`) using the keyword ``report_distance`` to
+        get pairs ``(vertex, distance)`` encoding the distance from the starting
+        vertices::
 
             sage: G = graphs.PetersenGraph()
             sage: list(G.breadth_first_search(0, report_distance=True))
@@ -16867,18 +16866,18 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(G.breadth_first_search(0, report_distance=False))
             [0, 1, 4, 5, 2, 6, 3, 9, 7, 8]
 
-            sage: D = DiGraph({0:[1, 3], 1:[0, 2], 2:[0, 3], 3:[4]})
+            sage: D = DiGraph({0: [1, 3], 1: [0, 2], 2: [0, 3], 3: [4]})
             sage: D.show()
             sage: list(D.breadth_first_search(4, neighbors=D.neighbor_in_iterator, report_distance=True))
             [(4, 0), (3, 1), (0, 2), (2, 2), (1, 3)]
 
             sage: C = graphs.CycleGraph(4)
-            sage: list(C.breadth_first_search([0,1], report_distance=True))
+            sage: list(C.breadth_first_search([0, 1], report_distance=True))
             [(0, 0), (1, 0), (3, 1), (2, 1)]
 
         TESTS::
 
-            sage: D = DiGraph({1:[0], 2:[0]})
+            sage: D = DiGraph({1: [0], 2: [0]})
             sage: list(D.breadth_first_search(0))
             [0]
             sage: list(D.breadth_first_search(0, ignore_direction=True))
@@ -16889,7 +16888,8 @@ class GenericGraph(GenericGraph_pyx):
             raise ValueError("distance must be a non-negative integer, not {0}".format(distance))
 
         # Preferably use the Cython implementation
-        if neighbors is None and not isinstance(start, list) and distance is None and hasattr(self._backend,"breadth_first_search") and not report_distance:
+        if (neighbors is None and not isinstance(start, list) and distance is None
+                and hasattr(self._backend, "breadth_first_search") and not report_distance):
             for v in self._backend.breadth_first_search(start, ignore_direction=ignore_direction):
                 yield v
         else:
@@ -16898,14 +16898,14 @@ class GenericGraph(GenericGraph_pyx):
                     neighbors = self.neighbor_iterator
                 else:
                     neighbors = self.neighbor_out_iterator
-            seen = set([])
+            seen = set()
             if isinstance(start, list):
                 queue = [(v, 0) for v in start]
             else:
                 queue = [(start, 0)]
 
             # Non-existing start vertex is detected later if distance > 0.
-            if distance == 0:
+            if not distance:
                 for v in queue:
                     if not v[0] in self:
                         raise LookupError("start vertex ({0}) is not a vertex of the graph".format(v[0]))
@@ -16936,20 +16936,19 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``start`` - vertex or list of vertices from which to start
-          the traversal
+        - ``start`` -- vertex or list of vertices from which to start the
+          traversal
 
-        - ``ignore_direction`` - (default False) only applies to
-          directed graphs. If True, searches across edges in either
+        - ``ignore_direction`` -- boolean (default ``False``); only applies to
+          directed graphs. If ``True``, searches across edges in either
           direction.
 
-        - ``distance`` - Deprecated. Broken, do not use.
+        - ``distance`` -- Deprecated. Broken, do not use.
 
-        - ``neighbors`` - a function giving the neighbors of a vertex.
-          The function should take a vertex and return a list of
-          vertices.  For a graph, ``neighbors`` is by default the
-          :meth:`.neighbors` function of the graph.  For a digraph,
-          the ``neighbors`` function defaults to the
+        - ``neighbors`` -- function (default: ``None``); a function that inputs
+          a vertex and return a list of vertices. For an undirected graph,
+          ``neighbors`` is by default the :meth:`.neighbors` function. For a
+          digraph, the ``neighbors`` function defaults to the
           :meth:`~DiGraph.neighbor_out_iterator` function of the graph.
 
         .. SEEALSO::
@@ -16964,15 +16963,15 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES::
 
-            sage: G = Graph( { 0: [1], 1: [2], 2: [3], 3: [4], 4: [0]} )
+            sage: G = Graph({0: [1], 1: [2], 2: [3], 3: [4], 4: [0]})
             sage: list(G.depth_first_search(0))
             [0, 4, 3, 2, 1]
 
-        By default, the edge direction of a digraph is respected, but this
-        can be overridden by the ``ignore_direction`` parameter::
+        By default, the edge direction of a digraph is respected, but this can
+        be overridden by the ``ignore_direction`` parameter::
 
 
-            sage: D = DiGraph( { 0: [1,2,3], 1: [4,5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
+            sage: D = DiGraph({0: [1, 2, 3], 1: [4, 5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
             sage: list(D.depth_first_search(0))
             [0, 3, 6, 7, 2, 5, 1, 4]
             sage: list(D.depth_first_search(0, ignore_direction=True))
@@ -16980,19 +16979,19 @@ class GenericGraph(GenericGraph_pyx):
 
         Multiple starting vertices can be specified in a list::
 
-            sage: D = DiGraph( { 0: [1,2,3], 1: [4,5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
+            sage: D = DiGraph({0: [1, 2, 3], 1: [4, 5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
             sage: list(D.depth_first_search([0]))
             [0, 3, 6, 7, 2, 5, 1, 4]
-            sage: list(D.depth_first_search([0,6]))
+            sage: list(D.depth_first_search([0, 6]))
             [0, 3, 6, 7, 2, 5, 1, 4]
 
-        More generally, you can specify a ``neighbors`` function.  For
-        example, you can traverse the graph backwards by setting
-        ``neighbors`` to be the :meth:`.neighbors_in` function of the graph::
+        More generally, you can specify a ``neighbors`` function.  For example,
+        you can traverse the graph backwards by setting ``neighbors`` to be the
+        :meth:`.neighbors_in` function of the graph::
 
             sage: D = digraphs.Path(10)
-            sage: D.add_path([22,23,24,5])
-            sage: D.add_path([5,33,34,35])
+            sage: D.add_path([22, 23, 24, 5])
+            sage: D.add_path([5, 33, 34, 35])
             sage: list(D.depth_first_search(5, neighbors=D.neighbors_in))
             [5, 4, 3, 2, 1, 0, 24, 23, 22]
             sage: list(D.breadth_first_search(5, neighbors=D.neighbors_in))
@@ -17004,7 +17003,7 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS::
 
-            sage: D = DiGraph({1:[0], 2:[0]})
+            sage: D = DiGraph({1: [0], 2: [0]})
             sage: list(D.depth_first_search(0))
             [0]
             sage: list(D.depth_first_search(0, ignore_direction=True))
@@ -17016,16 +17015,17 @@ class GenericGraph(GenericGraph_pyx):
             deprecation(19227, "Parameter 'distance' is broken. Do not use.")
 
         # Preferably use the Cython implementation
-        if neighbors is None and not isinstance(start,list) and  distance is None and hasattr(self._backend,"depth_first_search"):
-            for v in self._backend.depth_first_search(start, ignore_direction = ignore_direction):
+        if (neighbors is None and not isinstance(start, list) and  distance is None
+                and hasattr(self._backend, "depth_first_search")):
+            for v in self._backend.depth_first_search(start, ignore_direction=ignore_direction):
                 yield v
         else:
             if neighbors is None:
                 if not self._directed or ignore_direction:
-                    neighbors=self.neighbor_iterator
+                    neighbors = self.neighbor_iterator
                 else:
-                    neighbors=self.neighbor_out_iterator
-            seen = set([])
+                    neighbors = self.neighbor_out_iterator
+            seen = set()
             if isinstance(start, list):
                 # Reverse the list so that the initial vertices come out in the same order
                 queue = [(v, 0) for v in reversed(start)]
@@ -17037,10 +17037,10 @@ class GenericGraph(GenericGraph_pyx):
                 if v not in seen:
                     yield v
                     seen.add(v)
-                    if distance is None or d<distance:
+                    if distance is None or d < distance:
                         for w in neighbors(v):
                             if w not in seen:
-                                queue.append((w, d+1))
+                                queue.append((w, d + 1))
 
     def lex_BFS(self, reverse=False, tree=False, initial_vertex=None):
         r"""
@@ -17162,10 +17162,10 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``vertices`` -- an iterable with vertices for the clique to be added,
-          e.g. a list, set, graph, etc.
+        - ``vertices`` -- an iterable container of vertices for the clique to be
+          added, e.g. a list, set, graph, etc.
 
-        - ``loops`` -- (boolean, default: ``False``) whether to add edges from
+        - ``loops`` -- boolean (default: ``False``); whether to add edges from
           every given vertex to itself. This is allowed only if the (di)graph
           allows loops.
 
@@ -17193,7 +17193,7 @@ class GenericGraph(GenericGraph_pyx):
         at that vertex, even if ``loops=False``::
 
             sage: G = Graph(loops=True)
-            sage: G.add_clique([1,1])
+            sage: G.add_clique([1, 1])
             sage: G.edges()
             [(1, 1, None)]
 
@@ -17218,7 +17218,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.is_clique()
             True
             sage: G = Graph()
-            sage: G.add_clique({i:(i, i+1) for i in range(4)})
+            sage: G.add_clique({i: (i, i + 1) for i in range(4)})
             sage: G.is_clique()
             True
             sage: G.vertices()
@@ -17247,13 +17247,13 @@ class GenericGraph(GenericGraph_pyx):
         If the vertices are already present, only the edges are added.
 
         For digraphs, adds the directed cycle, whose orientation is determined
-        by the list. Adds edges (vertices[u], vertices[u+1]) and
-        (vertices[-1], vertices[0]).
+        by the list. Adds edges ``(vertices[u], vertices[u+1])`` and
+        ``(vertices[-1], vertices[0])``.
 
         INPUT:
 
-        - ``vertices`` -- a list of indices for the vertices of the cycle to be
-           added.
+        - ``vertices`` -- an ordered list of the vertices of the cycle to be
+          added
 
         EXAMPLES::
 
@@ -17261,7 +17261,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.add_vertices(range(10)); G
             Graph on 10 vertices
             sage: show(G)
-            sage: G.add_cycle(list(range(10,20)))
+            sage: G.add_cycle(list(range(10, 20)))
             sage: show(G)
             sage: G.add_cycle(list(range(10)))
             sage: show(G)
@@ -17304,12 +17304,12 @@ class GenericGraph(GenericGraph_pyx):
 
         If the vertices are already present, only the edges are added.
 
-        For digraphs, adds the directed path vertices[0], ..., vertices[-1].
+        For digraphs, adds the directed path ``vertices[0], ..., vertices[-1]``.
 
         INPUT:
 
-        - ``vertices`` - a list of indices for the vertices of the path to be
-           added.
+        - ``vertices`` -- an ordered list of the vertices of the path to be
+          added
 
         EXAMPLES::
 
@@ -17317,7 +17317,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.add_vertices(range(10)); G
             Graph on 10 vertices
             sage: show(G)
-            sage: G.add_path(list(range(10,20)))
+            sage: G.add_path(list(range(10, 20)))
             sage: show(G)
             sage: G.add_path(list(range(10)))
             sage: show(G)
@@ -17332,17 +17332,15 @@ class GenericGraph(GenericGraph_pyx):
         if not vertices:
             return
         self.add_vertices(vertices)
-        vert1 = vertices[0]
-        for v in vertices[1:]:
-            self.add_edge(vert1, v)
-            vert1 = v
+        self.add_edges(zip(vertices[:-1], vertices[1:]))
 
     def complement(self):
-        """Returns the complement of the (di)graph.
+        """
+        Return the complement of the (di)graph.
 
-        The complement of a graph has the same vertices, but exactly those
-        edges that are not in the original graph. This is not well defined
-        for graphs with multiple edges.
+        The complement of a graph has the same vertices, but exactly those edges
+        that are not in the original graph. This is not well defined for graphs
+        with multiple edges.
 
         EXAMPLES::
 
@@ -17362,7 +17360,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: graphs.CycleGraph(4).complement()
             complement(Cycle graph): Graph on 4 vertices
             sage: G = Graph(multiedges=True, sparse=True)
-            sage: G.add_edges([(0,1)]*3)
+            sage: G.add_edges([(0, 1)] * 3)
             sage: G.complement()
             Traceback (most recent call last):
             ...
@@ -17381,7 +17379,7 @@ class GenericGraph(GenericGraph_pyx):
 
         The name is not updated when there was none in the first place::
 
-            sage: g = Graph(graphs.PetersenGraph().edges()); g
+            sage: g = Graph(graphs.PetersenGraph().edges(sort=False)); g
             Graph on 10 vertices
             sage: g.complement()
             Graph on 10 vertices
@@ -17401,32 +17399,41 @@ class GenericGraph(GenericGraph_pyx):
 
     def to_simple(self, to_undirected=True, keep_label='any', immutable=None):
         """
-        Returns a simple version of itself.
+        Return a simple version of the ``self``.
 
         In particular, loops and multiple edges are removed, and the graph might
         optionally be converted to an undirected graph.
 
         INPUT:
 
-        - ``to_undirected`` - boolean - if ``True``, the graph is also converted
-          to an undirected graph.
+        - ``to_undirected`` -- boolean (default: ``True``); if ``True``, the
+          graph is also converted to an undirected graph
 
-        - ``keep_label`` (``'any','min','max'``): if there are multiple edges
-          with different labels, this variable defines which label should be
-          kept: any label (``'any'``), the smallest label (``'min'``), or the
-          largest (``'max'``).
+        - ``keep_label`` -- string (default: ``'any'``); if there are multiple
+          edges with different labels, this variable defines which label should
+          be kept:
 
-        - ``immutable`` (boolean) -- whether to create a mutable/immutable
-          copy. ``immutable=None`` (default) means that the graph and its copy
-          will behave the same way.
+          - ``'any'`` -- any label
+          - ``'min'`` -- the smallest label
+          - ``'max'`` -- the largest label
+
+        .. WARNING::
+
+            ``'min'`` and ``'max'`` only works if the labels can be compared. A
+            ``TypeError`` might be raised when working with non-comparable
+            objects in Python 3.
+ 
+        - ``immutable`` -- boolean (default: ``Non``); whether to create a
+          mutable/immutable copy. ``immutable=None`` (default) means that the
+          graph and its copy will behave the same way.
 
         EXAMPLES::
 
-            sage: G = DiGraph(loops=True,multiedges=True,sparse=True)
-            sage: G.add_edges( [ (0,0,None), (1,1,None), (2,2,None), (2,3,1), (2,3,2), (3,2,None) ] )
+            sage: G = DiGraph(loops=True, multiedges=True, sparse=True)
+            sage: G.add_edges([(0, 0, None), (1, 1, None), (2, 2, None), (2, 3, 1), (2, 3, 2), (3, 2, None)])
             sage: G.edges(labels=False)
             [(0, 0), (1, 1), (2, 2), (2, 3), (2, 3), (3, 2)]
-            sage: H=G.to_simple()
+            sage: H = G.to_simple()
             sage: H.edges(labels=False)
             [(2, 3)]
             sage: H.is_directed()
@@ -17442,9 +17449,9 @@ class GenericGraph(GenericGraph_pyx):
         """
         if to_undirected:
             from sage.graphs.graph import Graph
-            g=Graph(self)
+            g = Graph(self)
         else:
-            g=copy(self)
+            g = copy(self)
         g.allow_loops(False)
         g.allow_multiple_edges(False, keep_label=keep_label)
         if immutable is None:
@@ -17455,19 +17462,19 @@ class GenericGraph(GenericGraph_pyx):
 
     def disjoint_union(self, other, labels="pairs", immutable=None):
         """
-        Return the disjoint union of self and other.
+        Return the disjoint union of ``self`` and ``other``.
 
         INPUT:
 
-        - ``labels`` - (defaults to 'pairs') If set to 'pairs', each
-          element ``v`` in the first graph will be named ``(0,v)`` and
-          each element ``u`` in ``other`` will be named ``(1,u)`` in
-          the result. If set to 'integers', the elements of the result
-          will be relabeled with consecutive integers.
+        - ``labels`` -- string (default: ``'pairs'``); if set to ``'pairs'``,
+          each element ``v`` in the first graph will be named ``(0, v)`` and
+          each element ``u`` in ``other`` will be named ``(1, u)`` in the
+          result. If set to ``'integers'``, the elements of the result will be
+          relabeled with consecutive integers.
 
-        - ``immutable`` (boolean) -- whether to create a mutable/immutable
-          disjoint union. ``immutable=None`` (default) means that the graphs
-          and their disjoint union will behave the same way.
+        - ``immutable`` -- boolean (default: ``None``); whether to create a
+          mutable/immutable disjoint union. ``immutable=None`` (default) means
+          that the graphs and their disjoint union will behave the same way.
 
         .. SEEALSO::
 
@@ -17487,17 +17494,17 @@ class GenericGraph(GenericGraph_pyx):
             Cycle graph disjoint_union Cycle graph: Graph on 7 vertices
             sage: J.vertices()
             [0, 1, 2, 3, 4, 5, 6]
-            sage: (G+H).vertices()  # '+'-operator is a shortcut
+            sage: (G + H).vertices()  # '+'-operator is a shortcut
             [0, 1, 2, 3, 4, 5, 6]
 
         ::
 
-            sage: G=Graph({'a': ['b']})
+            sage: G = Graph({'a': ['b']})
             sage: G.name("Custom path")
             sage: G.name()
             'Custom path'
-            sage: H=graphs.CycleGraph(3)
-            sage: J=G.disjoint_union(H); J
+            sage: H = graphs.CycleGraph(3)
+            sage: J = G.disjoint_union(H); J
             Custom path disjoint_union Cycle graph: Graph on 5 vertices
             sage: J.vertices()
             [(0, 'a'), (0, 'b'), (1, 0), (1, 1), (1, 2)]
@@ -17507,24 +17514,22 @@ class GenericGraph(GenericGraph_pyx):
             raise TypeError('both arguments must be of the same class')
 
         if labels not in ['pairs', 'integers']:
-            raise ValueError("Parameter labels must be either 'pairs' or 'integers'.")
+            raise ValueError("parameter labels must be either 'pairs' or 'integers'")
         if labels == "integers":
-            r_self = {}; r_other = {}; i = 0
-            for v in self:
-                r_self[v] = i; i += 1
-            for v in other:
-                r_other[v] = i; i += 1
-            G = self.relabel(r_self, inplace=False).union(other.relabel(r_other, inplace=False), immutable=immutable)
+            r_self = {v: i for i, v in enumerate(self)}
+            n_self = self.order()
+            r_other = {v: i + n_self for i, v in enumerate(other)}
         else:
-            r_self = dict([[v,(0,v)] for v in self])
-            r_other = dict([[v,(1,v)] for v in other])
-            G = self.relabel(r_self, inplace=False).union(other.relabel(r_other, inplace=False), immutable=immutable)
+            r_self = {v: (0, v) for v in self}
+            r_other = {v: (1, v) for v in other}
+        G = self.relabel(r_self, inplace=False).union(other.relabel(r_other, inplace=False), immutable=immutable)
 
         a = self.name()
-        if a == '': a = self._repr_()
+        if not a:
+            a = self._repr_()
         b = other.name()
-        if b == '': b = other._repr_()
-
+        if not b:
+            b = other._repr_()
         G._name = '{} disjoint_union {}'.format(a, b)
         return G
 
@@ -17630,7 +17635,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def cartesian_product(self, other):
         r"""
-        Returns the Cartesian product of self and other.
+        Return the Cartesian product of ``self`` and ``other``.
 
         The Cartesian product of `G` and `H` is the graph `L` with vertex set
         `V(L)` equal to the Cartesian product of the vertices `V(G)` and `V(H)`,
@@ -17643,14 +17648,14 @@ class GenericGraph(GenericGraph_pyx):
               -- factorization of graphs according to the Cartesian product
 
             - :mod:`~sage.graphs.graph_decompositions.graph_products`
-              -- a module on graph products.
+              -- a module on graph products
 
         TESTS:
 
         Cartesian product of graphs::
 
-            sage: G = Graph([(0,1),(1,2)])
-            sage: H = Graph([('a','b')])
+            sage: G = Graph([(0, 1), (1, 2)])
+            sage: H = Graph([('a', 'b')])
             sage: C1 = G.cartesian_product(H)
             sage: C1.edges(labels=None)
             [((0, 'a'), (0, 'b')), ((0, 'a'), (1, 'a')), ((0, 'b'), (1, 'b')), ((1, 'a'), (1, 'b')), ((1, 'a'), (2, 'a')), ((1, 'b'), (2, 'b')), ((2, 'a'), (2, 'b'))]
@@ -17663,44 +17668,44 @@ class GenericGraph(GenericGraph_pyx):
             sage: A = graphs.CycleGraph(3)
             sage: B = graphs.CycleGraph(4)
             sage: T = A.cartesian_product(B)
-            sage: T.is_isomorphic( graphs.ToroidalGrid2dGraph(3,4) )
+            sage: T.is_isomorphic(graphs.ToroidalGrid2dGraph(3, 4))
             True
 
         Cartesian product of digraphs::
 
-            sage: P = DiGraph([(0,1)])
-            sage: B = digraphs.DeBruijn( ['a','b'], 2 )
+            sage: P = DiGraph([(0, 1)])
+            sage: B = digraphs.DeBruijn(['a', 'b'], 2)
             sage: Q = P.cartesian_product(B)
             sage: Q.edges(labels=None)
             [((0, 'aa'), (0, 'aa')), ((0, 'aa'), (0, 'ab')), ((0, 'aa'), (1, 'aa')), ((0, 'ab'), (0, 'ba')), ((0, 'ab'), (0, 'bb')), ((0, 'ab'), (1, 'ab')), ((0, 'ba'), (0, 'aa')), ((0, 'ba'), (0, 'ab')), ((0, 'ba'), (1, 'ba')), ((0, 'bb'), (0, 'ba')), ((0, 'bb'), (0, 'bb')), ((0, 'bb'), (1, 'bb')), ((1, 'aa'), (1, 'aa')), ((1, 'aa'), (1, 'ab')), ((1, 'ab'), (1, 'ba')), ((1, 'ab'), (1, 'bb')), ((1, 'ba'), (1, 'aa')), ((1, 'ba'), (1, 'ab')), ((1, 'bb'), (1, 'ba')), ((1, 'bb'), (1, 'bb'))]
             sage: Q.strongly_connected_components_digraph().num_verts()
             2
-            sage: V = Q.strongly_connected_component_containing_vertex( (0, 'aa') )
-            sage: B.is_isomorphic( Q.subgraph(V) )
+            sage: V = Q.strongly_connected_component_containing_vertex((0, 'aa'))
+            sage: B.is_isomorphic(Q.subgraph(V))
             True
         """
         self._scream_if_not_simple(allow_loops=True)
         if self._directed and other._directed:
             from sage.graphs.all import DiGraph
-            G = DiGraph( loops = (self.has_loops() or other.has_loops()) )
+            G = DiGraph(loops=(self.has_loops() or other.has_loops()))
         elif (not self._directed) and (not other._directed):
             from sage.graphs.all import Graph
-            G = Graph()
+            G = Graph(loops=(self.has_loops() or other.has_loops()))
         else:
             raise TypeError('the graphs should be both directed or both undirected')
 
-        G.add_vertices( [(u,v) for u in self for v in other] )
-        for u,w in self.edge_iterator(labels=None):
+        G.add_vertices((u, v) for u in self for v in other)
+        for u, w in self.edge_iterator(labels=None):
             for v in other:
-                G.add_edge((u,v), (w,v))
-        for v,x in other.edge_iterator(labels=None):
+                G.add_edge((u, v), (w, v))
+        for v, x in other.edge_iterator(labels=None):
             for u in self:
-                G.add_edge((u,v), (u,x))
+                G.add_edge((u, v), (u, x))
         return G
 
     def tensor_product(self, other):
         r"""
-        Returns the tensor product of self and other.
+        Return the tensor product of ``self`` and ``other``.
 
         The tensor product of `G` and `H` is the graph `L` with vertex set
         `V(L)` equal to the Cartesian product of the vertices `V(G)` and `V(H)`,
@@ -17737,42 +17742,42 @@ class GenericGraph(GenericGraph_pyx):
 
         Tensor product of graphs::
 
-            sage: G = Graph([(0,1), (1,2)])
-            sage: H = Graph([('a','b')])
+            sage: G = Graph([(0, 1), (1, 2)])
+            sage: H = Graph([('a', 'b')])
             sage: T = G.tensor_product(H)
             sage: T.edges(labels=None)
             [((0, 'a'), (1, 'b')), ((0, 'b'), (1, 'a')), ((1, 'a'), (2, 'b')), ((1, 'b'), (2, 'a'))]
-            sage: T.is_isomorphic( H.tensor_product(G) )
+            sage: T.is_isomorphic(H.tensor_product(G))
             True
 
         Tensor product of digraphs::
 
-            sage: I = DiGraph([(0,1), (1,2)])
-            sage: J = DiGraph([('a','b')])
+            sage: I = DiGraph([(0, 1), (1, 2)])
+            sage: J = DiGraph([('a', 'b')])
             sage: T = I.tensor_product(J)
             sage: T.edges(labels=None)
             [((0, 'a'), (1, 'b')), ((1, 'a'), (2, 'b'))]
-            sage: T.is_isomorphic( J.tensor_product(I) )
+            sage: T.is_isomorphic(J.tensor_product(I))
             True
 
         The tensor product of two DeBruijn digraphs of same diameter is a DeBruijn digraph::
 
             sage: B1 = digraphs.DeBruijn(2, 3)
             sage: B2 = digraphs.DeBruijn(3, 3)
-            sage: T = B1.tensor_product( B2 )
-            sage: T.is_isomorphic( digraphs.DeBruijn( 2*3, 3) )
+            sage: T = B1.tensor_product(B2)
+            sage: T.is_isomorphic(digraphs.DeBruijn(2 * 3, 3))
             True
         """
         self._scream_if_not_simple(allow_loops=True)
         if self._directed and other._directed:
             from sage.graphs.all import DiGraph
-            G = DiGraph( loops = (self.has_loops() or other.has_loops()) )
+            G = DiGraph(loops=(self.has_loops() or other.has_loops()))
         elif (not self._directed) and (not other._directed):
             from sage.graphs.all import Graph
-            G = Graph()
+            G = Graph(loops=(self.has_loops() or other.has_loops()))
         else:
             raise TypeError('the graphs should be both directed or both undirected')
-        G.add_vertices( [(u, v) for u in self for v in other] )
+        G.add_vertices((u, v) for u in self for v in other)
         for u, w in self.edge_iterator(labels=None):
             for v, x in other.edge_iterator(labels=None):
                 G.add_edge((u, v), (w, x))
@@ -17785,7 +17790,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def lexicographic_product(self, other):
         r"""
-        Returns the lexicographic product of self and other.
+        Return the lexicographic product of ``self`` and ``other``.
 
         The lexicographic product of `G` and `H` is the graph `L` with vertex
         set `V(L)=V(G)\times V(H)`, and `((u,v), (w,x))` is an edge iff :
@@ -17815,46 +17820,46 @@ class GenericGraph(GenericGraph_pyx):
 
         Lexicographic product of graphs::
 
-            sage: G = Graph([(0,1), (1,2)])
-            sage: H = Graph([('a','b')])
+            sage: G = Graph([(0, 1), (1, 2)])
+            sage: H = Graph([('a', 'b')])
             sage: T = G.lexicographic_product(H)
             sage: T.edges(labels=None)
             [((0, 'a'), (0, 'b')), ((0, 'a'), (1, 'a')), ((0, 'a'), (1, 'b')), ((0, 'b'), (1, 'a')), ((0, 'b'), (1, 'b')), ((1, 'a'), (1, 'b')), ((1, 'a'), (2, 'a')), ((1, 'a'), (2, 'b')), ((1, 'b'), (2, 'a')), ((1, 'b'), (2, 'b')), ((2, 'a'), (2, 'b'))]
-            sage: T.is_isomorphic( H.lexicographic_product(G) )
+            sage: T.is_isomorphic(H.lexicographic_product(G))
             False
 
         Lexicographic product of digraphs::
 
-            sage: I = DiGraph([(0,1), (1,2)])
-            sage: J = DiGraph([('a','b')])
+            sage: I = DiGraph([(0, 1), (1, 2)])
+            sage: J = DiGraph([('a', 'b')])
             sage: T = I.lexicographic_product(J)
             sage: T.edges(labels=None)
             [((0, 'a'), (0, 'b')), ((0, 'a'), (1, 'a')), ((0, 'a'), (1, 'b')), ((0, 'b'), (1, 'a')), ((0, 'b'), (1, 'b')), ((1, 'a'), (1, 'b')), ((1, 'a'), (2, 'a')), ((1, 'a'), (2, 'b')), ((1, 'b'), (2, 'a')), ((1, 'b'), (2, 'b')), ((2, 'a'), (2, 'b'))]
-            sage: T.is_isomorphic( J.lexicographic_product(I) )
+            sage: T.is_isomorphic(J.lexicographic_product(I))
             False
         """
         self._scream_if_not_simple(allow_loops=True)
         if self._directed and other._directed:
             from sage.graphs.all import DiGraph
-            G = DiGraph( loops = (self.has_loops() or other.has_loops()) )
+            G = DiGraph(loops=(self.has_loops() or other.has_loops()))
         elif (not self._directed) and (not other._directed):
             from sage.graphs.all import Graph
-            G = Graph()
+            G = Graph(loops=(self.has_loops() or other.has_loops()))
         else:
             raise TypeError('the graphs should be both directed or both undirected')
-        G.add_vertices( [(u,v) for u in self for v in other] )
-        for u,w in self.edge_iterator(labels=None):
+        G.add_vertices((u,v) for u in self for v in other)
+        for u, w in self.edge_iterator(labels=None):
             for v in other:
                 for x in other:
-                    G.add_edge((u,v), (w,x))
+                    G.add_edge((u, v), (w, x))
         for u in self:
-            for v,x in other.edge_iterator(labels=None):
-                G.add_edge((u,v), (u,x))
+            for v, x in other.edge_iterator(labels=None):
+                G.add_edge((u, v), (u, x))
         return G
 
     def strong_product(self, other):
         r"""
-        Returns the strong product of self and other.
+        Return the strong product of ``self`` and ``other``.
 
         The strong product of `G` and `H` is the graph `L` with vertex set
         `V(L)=V(G)\times V(H)`, and `((u,v), (w,x))` is an edge of `L` iff
@@ -17889,57 +17894,57 @@ class GenericGraph(GenericGraph_pyx):
 
         Strong product of graphs is commutative::
 
-            sage: G = Graph([(0,1), (1,2)])
-            sage: H = Graph([('a','b')])
+            sage: G = Graph([(0, 1), (1, 2)])
+            sage: H = Graph([('a', 'b')])
             sage: T = G.strong_product(H)
-            sage: T.is_isomorphic( H.strong_product(G) )
+            sage: T.is_isomorphic(H.strong_product(G))
             True
 
         Strong product of digraphs is commutative::
 
-            sage: I = DiGraph([(0,1), (1,2)])
-            sage: J = DiGraph([('a','b')])
+            sage: I = DiGraph([(0, 1), (1, 2)])
+            sage: J = DiGraph([('a', 'b')])
             sage: T = I.strong_product(J)
-            sage: T.is_isomorphic( J.strong_product(I) )
+            sage: T.is_isomorphic(J.strong_product(I))
             True
 
         Counting the edges (see :trac:`13699`)::
 
-            sage: g = graphs.RandomGNP(5,.5)
+            sage: g = graphs.RandomGNP(5, .5)
             sage: gn,gm = g.order(), g.size()
-            sage: h = graphs.RandomGNP(5,.5)
+            sage: h = graphs.RandomGNP(5, .5)
             sage: hn,hm = h.order(), h.size()
             sage: product_size = g.strong_product(h).size()
-            sage: expected = gm*hn + hm*gn + 2*gm*hm
+            sage: expected = gm * hn + hm * gn + 2 * gm * hm
             sage: if product_size != expected:
-            ....:     print("Something is really wrong here...", product_size, "!=", expected)
+            ....:     raise ValueError("something is really wrong here... {} != {}".format(product_size, expected))
         """
         self._scream_if_not_simple(allow_loops=True)
         if self._directed and other._directed:
             from sage.graphs.all import DiGraph
-            G = DiGraph( loops = (self.has_loops() or other.has_loops()) )
+            G = DiGraph(loops=(self.has_loops() or other.has_loops()))
         elif (not self._directed) and (not other._directed):
             from sage.graphs.all import Graph
-            G = Graph()
+            G = Graph(loops=(self.has_loops() or other.has_loops()))
         else:
             raise TypeError('the graphs should be both directed or both undirected')
 
-        G.add_vertices( [(u,v) for u in self for v in other] )
-        for u,w in self.edge_iterator(labels=None):
+        G.add_vertices((u,v) for u in self for v in other)
+        for u, w in self.edge_iterator(labels=None):
             for v in other:
-                G.add_edge((u,v), (w,v))
-            for v,x in other.edge_iterator(labels=None):
-                G.add_edge((u,v), (w,x))
+                G.add_edge((u, v), (w, v))
+            for v, x in other.edge_iterator(labels=None):
+                G.add_edge((u, v), (w, x))
                 if not self._directed:
-                    G.add_edge((w,v), (u,x))
-        for v,x in other.edge_iterator(labels=None):
+                    G.add_edge((w, v), (u, x))
+        for v, x in other.edge_iterator(labels=None):
             for u in self:
-                G.add_edge((u,v), (u,x))
+                G.add_edge((u, v), (u, x))
         return G
 
     def disjunctive_product(self, other):
         r"""
-        Returns the disjunctive product of self and other.
+        Return the disjunctive product of ``self`` and ``other``.
 
         The disjunctive product of `G` and `H` is the graph `L` with vertex set
         `V(L)=V(G)\times V(H)`, and `((u,v), (w,x))` is an edge iff either :
@@ -17967,43 +17972,43 @@ class GenericGraph(GenericGraph_pyx):
 
         Disjunctive product of graphs::
 
-            sage: G = Graph([(0,1), (1,2)])
-            sage: H = Graph([('a','b')])
+            sage: G = Graph([(0, 1), (1 ,2)])
+            sage: H = Graph([('a', 'b')])
             sage: T = G.disjunctive_product(H)
             sage: T.edges(labels=None)
             [((0, 'a'), (0, 'b')), ((0, 'a'), (1, 'a')), ((0, 'a'), (1, 'b')), ((0, 'a'), (2, 'b')), ((0, 'b'), (1, 'a')), ((0, 'b'), (1, 'b')), ((0, 'b'), (2, 'a')), ((1, 'a'), (1, 'b')), ((1, 'a'), (2, 'a')), ((1, 'a'), (2, 'b')), ((1, 'b'), (2, 'a')), ((1, 'b'), (2, 'b')), ((2, 'a'), (2, 'b'))]
-            sage: T.is_isomorphic( H.disjunctive_product(G) )
+            sage: T.is_isomorphic(H.disjunctive_product(G))
             True
 
         Disjunctive product of digraphs::
 
-            sage: I = DiGraph([(0,1), (1,2)])
-            sage: J = DiGraph([('a','b')])
+            sage: I = DiGraph([(0, 1), (1, 2)])
+            sage: J = DiGraph([('a', 'b')])
             sage: T = I.disjunctive_product(J)
             sage: T.edges(labels=None)
             [((0, 'a'), (0, 'b')), ((0, 'a'), (1, 'a')), ((0, 'a'), (1, 'b')), ((0, 'a'), (2, 'b')), ((0, 'b'), (1, 'a')), ((0, 'b'), (1, 'b')), ((1, 'a'), (0, 'b')), ((1, 'a'), (1, 'b')), ((1, 'a'), (2, 'a')), ((1, 'a'), (2, 'b')), ((1, 'b'), (2, 'a')), ((1, 'b'), (2, 'b')), ((2, 'a'), (0, 'b')), ((2, 'a'), (1, 'b')), ((2, 'a'), (2, 'b'))]
-            sage: T.is_isomorphic( J.disjunctive_product(I) )
+            sage: T.is_isomorphic(J.disjunctive_product(I))
             True
         """
         self._scream_if_not_simple(allow_loops=True)
         if self._directed and other._directed:
             from sage.graphs.all import DiGraph
-            G = DiGraph( loops = (self.has_loops() or other.has_loops()) )
+            G = DiGraph(loops=(self.has_loops() or other.has_loops()))
         elif (not self._directed) and (not other._directed):
             from sage.graphs.all import Graph
-            G = Graph()
+            G = Graph(loops=(self.has_loops() or other.has_loops()))
         else:
             raise TypeError('the graphs should be both directed or both undirected')
 
-        G.add_vertices( [(u,v) for u in self for v in other] )
-        for u,w in self.edge_iterator(labels=None):
+        G.add_vertices((u,v) for u in self for v in other)
+        for u, w in self.edge_iterator(labels=None):
             for v in other:
                 for x in other:
-                    G.add_edge((u,v), (w,x))
-        for v,x in other.edge_iterator(labels=None):
+                    G.add_edge((u, v), (w, x))
+        for v, x in other.edge_iterator(labels=None):
             for u in self:
                 for w in self:
-                    G.add_edge((u,v), (w,x))
+                    G.add_edge((u, v), (w, x))
         return G
 
     def transitive_closure(self, loops=True):

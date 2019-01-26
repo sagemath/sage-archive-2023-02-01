@@ -509,11 +509,6 @@ class DiGraphGenerators():
           input to Nauty's genbg. See its documentation for more information :
           `<http://cs.anu.edu.au/~bdm/nauty/>`_.
 
-
-        .. NOTE::
-
-            To use this method you must first install the Nauty spkg.
-
         EXAMPLES::
 
             sage: for g in digraphs.tournaments_nauty(4):

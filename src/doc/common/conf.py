@@ -99,7 +99,7 @@ from sage.all_cmdline import *
 """
 
 plot_html_show_formats = False
-plot_formats = ['svg', 'png']
+plot_formats = ['svg', 'pdf', 'png']
 
 # We do *not* fully initialize intersphinx since we call it by hand
 # in find_sage_dangling_links.

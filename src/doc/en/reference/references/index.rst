@@ -2505,6 +2505,9 @@ REFERENCES:
 .. [McM1992] John McMillan. *Games, strategies, and managers*. Oxford
              University Press.
 
+.. [McK1998] Brendan D. McKay, "Isomorph-Free Exhaustive generation".
+             Journal of Algorithms, 26(2): 306-324, February 1998.
+
 .. [MeNoTh11] Frederic Menous, Jean-Christophe Novelli, Jean-Yves Thibon,
               *Mould calculus, polyhedral cones, and characters of
               combinatorial Hopf algebras*,

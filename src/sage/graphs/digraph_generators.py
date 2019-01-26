@@ -28,16 +28,16 @@ build by typing ``digraphs.`` in Sage and then hitting tab.
     :meth:`~DiGraphGenerators.ImaseItoh`           | Returns the digraph of Imase and Itoh of order `n` and degree `d`.
     :meth:`~DiGraphGenerators.Kautz`               | Returns the Kautz digraph of degree `d` and diameter `D`.
     :meth:`~DiGraphGenerators.Paley`               | Return a Paley digraph on `q` vertices.
-    :meth:`~DiGraphGenerators.Path`                | Returns a directed path on `n` vertices.
+    :meth:`~DiGraphGenerators.Path`                | Return a directed path on `n` vertices.
     :meth:`~DiGraphGenerators.RandomDirectedGNC`   | Returns a random GNC (growing network with copying) digraph with `n` vertices.
     :meth:`~DiGraphGenerators.RandomDirectedGNM`   | Returns a random labelled digraph on `n` nodes and `m` arcs.
     :meth:`~DiGraphGenerators.RandomDirectedGNP`   | Returns a random digraph on `n` nodes.
     :meth:`~DiGraphGenerators.RandomDirectedGN`    | Returns a random GN (growing network) digraph with `n` vertices.
     :meth:`~DiGraphGenerators.RandomDirectedGNR`   | Returns a random GNR (growing network with redirection) digraph.
     :meth:`~DiGraphGenerators.RandomSemiComplete`  | Return a random semi-complete digraph of order `n`.
-    :meth:`~DiGraphGenerators.RandomTournament`    | Returns a random tournament on `n` vertices.
-    :meth:`~DiGraphGenerators.TransitiveTournament`| Returns a transitive tournament on `n` vertices.
-    :meth:`~DiGraphGenerators.tournaments_nauty`   | Returns all tournaments on `n` vertices using Nauty.
+    :meth:`~DiGraphGenerators.RandomTournament`    | Return a random tournament on `n` vertices.
+    :meth:`~DiGraphGenerators.TransitiveTournament`| Return a transitive tournament on `n` vertices.
+    :meth:`~DiGraphGenerators.tournaments_nauty`   | Iterator over all tournaments on `n` vertices using Nauty.
 
 
 AUTHORS:
@@ -310,13 +310,13 @@ class DiGraphGenerators():
             raise NotImplementedError("vertices must be 'strings' or 'vectors'.")
         return DiGraph(butterfly)
 
-    def Path(self,n):
+    def Path(self, n):
         r"""
-        Returns a directed path on `n` vertices.
+        Return a directed path on `n` vertices.
 
         INPUT:
 
-        - ``n`` (integer) -- number of vertices in the path.
+        - ``n`` -- integer; number of vertices in the path
 
         EXAMPLES::
 
@@ -328,13 +328,12 @@ class DiGraphGenerators():
             sage: g.automorphism_group().cardinality()
             1
         """
-        g = DiGraph(n)
-        g.name("Path")
+        g = DiGraph(n, name="Path")
 
         if n:
             g.add_path(list(range(n)))
 
-        g.set_pos({i:(i,0) for i in range(n)})
+        g.set_pos({i: (i,0) for i in range(n)})
         return g
 
     def Paley(self, q):
@@ -392,7 +391,7 @@ class DiGraphGenerators():
 
     def TransitiveTournament(self, n):
         r"""
-        Returns a transitive tournament on `n` vertices.
+        Return a transitive tournament on `n` vertices.
 
         In this tournament there is an edge from `i` to `j` if `i<j`.
 
@@ -400,7 +399,7 @@ class DiGraphGenerators():
 
         INPUT:
 
-        - ``n`` (integer) -- number of vertices in the tournament.
+        - ``n`` -- integer; number of vertices in the tournament
 
         EXAMPLES::
 
@@ -426,11 +425,10 @@ class DiGraphGenerators():
             ...
             ValueError: the number of vertices cannot be strictly negative
         """
-        g = DiGraph(n)
-        g.name("Transitive Tournament")
+        g = DiGraph(n, name="Transitive Tournament")
 
-        for i in range(n-1):
-            for j in range(i+1, n):
+        for i in range(n - 1):
+            for j in range(i + 1, n):
                 g.add_edge(i, j)
 
         g._circle_embedding(list(range(n)))
@@ -439,7 +437,7 @@ class DiGraphGenerators():
 
     def RandomTournament(self, n):
         r"""
-        Returns a random tournament on `n` vertices.
+        Return a random tournament on `n` vertices.
 
         For every pair of vertices, the tournament has an edge from
         `i` to `j` with probability `1/2`, otherwise it has an edge
@@ -447,7 +445,7 @@ class DiGraphGenerators():
 
         INPUT:
 
-        - ``n`` (integer) -- number of vertices.
+        - ``n`` -- integer; number of vertices
 
         EXAMPLES::
 
@@ -471,11 +469,10 @@ class DiGraphGenerators():
             - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.RandomSemiComplete`
         """
         from sage.misc.prandom import random
-        g = DiGraph(n)
-        g.name("Random Tournament")
+        g = DiGraph(n, name="Random Tournament")
 
-        for i in range(n-1):
-            for j in range(i+1, n):
+        for i in range(n - 1):
+            for j in range(i + 1, n):
                 if random() <= .5:
                     g.add_edge(i, j)
                 else:
@@ -486,27 +483,27 @@ class DiGraphGenerators():
         return g
 
     def tournaments_nauty(self, n,
-                          min_out_degree = None, max_out_degree = None,
-                          strongly_connected = False, debug=False, options=""):
+                          min_out_degree=None, max_out_degree=None,
+                          strongly_connected=False, debug=False, options=""):
         r"""
-        Returns all tournaments on `n` vertices using Nauty.
+        Iterator over all tournaments on `n` vertices using Nauty.
 
         INPUT:
 
-        - ``n`` (integer) -- number of vertices.
+        - ``n`` -- integer; number of vertices
 
-        - ``min_out_degree``, ``max_out_degree`` (integers) -- if set to
-          ``None`` (default), then the min/max out-degree is not constrained.
+        - ``min_out_degree``, ``max_out_degree`` -- integers; if set to
+          ``None`` (default), then the min/max out-degree is not constrained
 
-        - ``debug`` (boolean) -- if ``True`` the first line of genbg's output to
-          standard error is captured and the first call to the generator's
-          ``next()`` function will return this line as a string.  A line leading
-          with ">A" indicates a successful initiation of the program with some
-          information on the arguments, while a line beginning with ">E"
-          indicates an error with the input.
+        - ``debug`` -- boolean (default: ``False``); if ``True`` the first line
+          of genbg's output to standard error is captured and the first call to
+          the generator's ``next()`` function will return this line as a string.
+          A line leading with ">A" indicates a successful initiation of the
+          program with some information on the arguments, while a line beginning
+          with ">E" indicates an error with the input.
 
-        - ``options`` (string) -- anything else that should be forwarded as
-          input to Nauty's genbg. See its documentation for more information :
+        - ``options`` -- string; anything else that should be forwarded as input
+          to Nauty's genbg. See its documentation for more information :
           `<http://cs.anu.edu.au/~bdm/nauty/>`_.
 
 
@@ -535,15 +532,15 @@ class DiGraphGenerators():
         if min_out_degree is None:
             min_out_degree = 0
         if max_out_degree is None:
-            max_out_degree = n-1
+            max_out_degree = n - 1
 
-        nauty_input += " -d"+str(min_out_degree)
-        nauty_input += " -D"+str(max_out_degree)
+        nauty_input += " -d" + str(min_out_degree)
+        nauty_input += " -D" + str(max_out_degree)
 
         if strongly_connected:
             nauty_input += " -c"
 
-        nauty_input +=  " "+str(n) +" "
+        nauty_input +=  " " + str(n) + " "
 
         sp = subprocess.Popen("gentourng {0}".format(nauty_input), shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -565,13 +562,13 @@ class DiGraphGenerators():
             j = 1
             for b in s[:-1]:
                 if b == '0':
-                    G.add_edge(i,j)
+                    G.add_edge(i, j)
                 else:
-                    G.add_edge(j,i)
+                    G.add_edge(j, i)
 
-                if j == n-1:
+                if j == n - 1:
                     i += 1
-                    j = i+1
+                    j = i + 1
                 else:
                     j += 1
 

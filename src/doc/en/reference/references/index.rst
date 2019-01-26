@@ -1789,6 +1789,9 @@ REFERENCES:
 .. [IJ1960] Igusa, Jun-ichi. *Arithmetic variety of moduli for genus two*.
             Ann. of Math. (2) 72 1960 612--649.
 
+.. [II1983] \M. Imase and M. Itoh. "A design for directed graphs with minimum
+            diameter", *IEEE Trans. Comput.*, vol. C-32, pp. 782-784, 1983.
+
 .. [IK2010] Kenji Iohara and Yoshiyuki Koga.
             *Representation Theory of the Virasoro Algebra*.
             Springer, (2010).
@@ -1928,6 +1931,10 @@ REFERENCES:
 
 .. [Kat1991] Nicholas M. Katz, *Exponential sums and differential equations*,
              Princeton University Press, Princeton NJ, 1991.
+
+.. [Kau1968] \W. H. Kautz. "Bounds on directed (d, k) graphs". Theory of
+             cellular logic networks and machines, AFCRL-68-0668, SRI Project
+             7258, Final Rep., pp. 20-28, 1968.
 
 .. [Kaw2009] Kawahira, Tomoki. *An algorithm to draw external rays of the
              Mandelbrot set*, Nagoya University, 23 Apr. 2009.
@@ -2909,6 +2916,14 @@ REFERENCES:
               optimality constraints for the cone of positive
               polynomials. Mathematical Programming, Series B,
               129 (2011) 5-31.
+
+.. [RPK1980] \S. M. Reddy, D. K. Pradhan, and J. Kuhl. "Directed graphs with
+           minimal diameter and maximal connectivity", School Eng., Oakland
+           Univ., Rochester MI, Tech. Rep., July 1980.
+
+.. [RPK1983] \S. Reddy, P. Raghavan, and J. Kuhl. "A Class of Graphs for
+          Processor Interconnection". *IEEE International Conference on Parallel
+          Processing*, pages 154-157, Los Alamitos, Ca., USA, August 1983.
 
 .. [Rob1991] Tom Roby, "Applications and extensions of Fomin's
              generalization of the Robinson-Schensted correspondence

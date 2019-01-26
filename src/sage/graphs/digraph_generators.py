@@ -19,7 +19,7 @@ build by typing ``digraphs.`` in Sage and then hitting tab.
     :widths: 30, 70
     :delim: |
 
-    :meth:`~DiGraphGenerators.ButterflyGraph`      | Returns a n-dimensional butterfly graph.
+    :meth:`~DiGraphGenerators.ButterflyGraph`      | Return a `n`-dimensional butterfly graph.
     :meth:`~DiGraphGenerators.Circuit`             | Returns the circuit on `n` vertices.
     :meth:`~DiGraphGenerators.Circulant`           | Returns a circulant digraph on `n` vertices from a set of integers.
     :meth:`~DiGraphGenerators.Complete`            | Return a complete digraph on `n` vertices.
@@ -223,23 +223,24 @@ class DiGraphGenerators():
     """
 
     def ButterflyGraph(self, n, vertices='strings'):
-        """
-        Returns a n-dimensional butterfly graph. The vertices consist of
-        pairs (v,i), where v is an n-dimensional tuple (vector) with binary
-        entries (or a string representation of such) and i is an integer in
-        [0..n]. A directed edge goes from (v,i) to (w,i+1) if v and w are
-        identical except for possibly v[i] != w[i].
+        r"""
+        Return a `n`-dimensional butterfly graph.
 
-        A butterfly graph has `(2^n)(n+1)` vertices and
-        `n2^{n+1}` edges.
+        The vertices consist of pairs `(v, i)`, where `v` is an `n`-dimensional
+        tuple (vector) with binary entries (or a string representation of such)
+        and `i` is an integer in `[0..n]`. A directed edge goes from `(v, i)` to
+        `(w, i + 1)` if `v` and `w` are identical except for possibly when `v[i]
+        \neq w[i]`.
+
+        A butterfly graph has `(2^n)(n+1)` vertices and `n2^{n+1}` edges.
 
         INPUT:
 
+        - ``n`` -- integer;
 
-        -  ``vertices`` - 'strings' (default) or 'vectors',
-           specifying whether the vertices are zero-one strings or actually
-           tuples over GF(2).
-
+        - ``vertices`` -- string (default: ``'strings'``); specifies whether the
+          vertices are zero-one strings (default) or tuples over GF(2)
+          (``vertices='vectors'``)
 
         EXAMPLES::
 
@@ -277,38 +278,53 @@ class DiGraphGenerators():
             (((1, 1), 0), ((1, 1), 1)),
             (((1, 1), 1), ((1, 0), 2)),
             (((1, 1), 1), ((1, 1), 2))]
+
+        TESTS::
+
+            sage: digraphs.ButterflyGraph(0)
+            0-dimensional Butterfly: Digraph on 0 vertices
+            sage: digraphs.ButterflyGraph(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: the number of dimensions must be positive
         """
+        if n == 0:
+            return DiGraph(name="0-dimensional Butterfly")
+        if n < 0:
+            raise ValueError("the number of dimensions must be positive")
+
         # We could switch to Sage integers to handle arbitrary n.
-        if vertices=='strings':
-            if n>=31:
-                raise NotImplementedError("vertices='strings' is only valid for n<=30.")
+        if vertices == 'strings':
+            if n >= 31:
+                raise NotImplementedError("vertices='strings' is only valid for n <= 30")
             from sage.graphs.generic_graph_pyx import int_to_binary_string
             butterfly = {}
             for v in range(2 ** n):
+                bv = int_to_binary_string(v)
+                # pad and reverse the string
+                padded_bv = ('0' * (n - len(bv)) + bv)[::-1]
                 for i in range(n):
                     w = v
                     w ^= (1 << i)   # push 1 to the left by i and xor with w
-                    bv = int_to_binary_string(v)
                     bw = int_to_binary_string(w)
-                    # pad and reverse the strings
-                    padded_bv = ('0'*(n-len(bv))+bv)[::-1]
-                    padded_bw = ('0'*(n-len(bw))+bw)[::-1]
-                    butterfly[(padded_bv,i)]=[(padded_bv,i+1), (padded_bw,i+1)]
-        elif vertices=='vectors':
+                    padded_bw = ('0' * (n - len(bw)) + bw)[::-1]
+                    butterfly[(padded_bv, i)] = [(padded_bv, i + 1), (padded_bw, i + 1)]
+        elif vertices == 'vectors':
             from sage.modules.free_module import VectorSpace
             from sage.rings.finite_rings.finite_field_constructor import FiniteField
             from copy import copy
             butterfly = {}
-            for v in VectorSpace(FiniteField(2),n):
+            for v in VectorSpace(FiniteField(2), n):
+                # We must call tuple since vectors are mutable.  To obtain a
+                # vector from the tuple tv, just call vector(tv).
+                tv = tuple(v)
                 for i in range(n):
-                    w=copy(v)
-                    w[i] += 1 # Flip the ith bit
-                    # We must call tuple since vectors are mutable.  To obtain
-                    # a vector from the tuple t, just call vector(t).
-                    butterfly[(tuple(v),i)]=[(tuple(v),i+1), (tuple(w),i+1)]
+                    w = copy(v)
+                    w[i] += 1  # Flip the ith bit
+                    butterfly[(tv, i)] = [(tv, i + 1), (tuple(w), i + 1)]
         else:
-            raise NotImplementedError("vertices must be 'strings' or 'vectors'.")
-        return DiGraph(butterfly)
+            raise NotImplementedError("vertices must be 'strings' or 'vectors'")
+        return DiGraph(butterfly, name="{}-dimensional Butterfly".format(n))
 
     def Path(self,n):
         r"""

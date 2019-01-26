@@ -14404,31 +14404,27 @@ class GenericGraph(GenericGraph_pyx):
 
     def distance_graph(self, dist):
         r"""
-        Returns the graph on the same vertex set as
-        the original graph but vertices are adjacent
-        in the returned graph if and only if they are
-        at specified distances in the original graph.
+        Return the graph on the same vertex set as the original graph but
+        vertices are adjacent in the returned graph if and only if they are at
+        specified distances in the original graph.
 
         INPUT:
 
-        - ``dist`` is a nonnegative integer or
-          a list of nonnegative integers.
-          ``Infinity`` may be used here to describe
-          vertex pairs in separate components.
+        - ``dist`` -- a nonnegative integer or a list of nonnegative integers;
+          specified distance(s) for the connecting vertices.  ``Infinity`` may
+          be used here to describe vertex pairs in separate components.
 
         OUTPUT:
 
-        The returned value is an undirected graph.  The
-        vertex set is identical to the calling graph, but edges
-        of the returned graph join vertices whose distance in
-        the calling graph are present in the input ``dist``.
-        Loops will only be present if distance 0 is included.  If
-        the original graph has a position dictionary specifying
-        locations of vertices for plotting, then this information
-        is copied over to the distance graph.  In some instances
-        this layout may not be the best, and might even be confusing
-        when edges run on top of each other due to symmetries
-        chosen for the layout.
+        The returned value is an undirected graph.  The vertex set is identical
+        to the calling graph, but edges of the returned graph join vertices
+        whose distance in the calling graph are present in the input ``dist``.
+        Loops will only be present if distance 0 is included.  If the original
+        graph has a position dictionary specifying locations of vertices for
+        plotting, then this information is copied over to the distance graph.
+        In some instances this layout may not be the best, and might even be
+        confusing when edges run on top of each other due to symmetries chosen
+        for the layout.
 
         EXAMPLES::
 
@@ -14443,11 +14439,11 @@ class GenericGraph(GenericGraph_pyx):
             [0 1 0 1 0 0]
             [1 0 1 0 0 0]
 
-        To obtain the graph where vertices are adjacent if their
-        distance apart is ``d`` or less use a ``range()`` command
-        to create the input, using ``d+1`` as the input to ``range``.
-        Notice that this will include distance 0 and hence place a loop
-        at each vertex.  To avoid this, use ``range(1,d+1)``. ::
+        To obtain the graph where vertices are adjacent if their distance apart
+        is ``d`` or less use a ``range()`` command to create the input, using
+        ``d + 1`` as the input to ``range``.  Notice that this will include
+        distance 0 and hence place a loop at each vertex.  To avoid this, use
+        ``range(1, d + 1)``::
 
             sage: G = graphs.OddGraph(4)
             sage: d = G.diameter()
@@ -14459,8 +14455,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: H.is_isomorphic(graphs.CompleteGraph(n))
             True
 
-        A complete collection of distance graphs will have
-        adjacency matrices that sum to the matrix of all ones. ::
+        A complete collection of distance graphs will have adjacency matrices
+        that sum to the matrix of all ones::
 
             sage: P = graphs.PathGraph(20)
             sage: all_ones = sum([P.distance_graph(i).am() for i in range(20)])
@@ -14468,15 +14464,15 @@ class GenericGraph(GenericGraph_pyx):
             True
 
         Four-bit strings differing in one bit is the same as
-        four-bit strings differing in three bits.  ::
+        four-bit strings differing in three bits::
 
             sage: G = graphs.CubeGraph(4)
             sage: H = G.distance_graph(3)
             sage: G.is_isomorphic(H)
             True
 
-        The graph of eight-bit strings, adjacent if different
-        in an odd number of bits.  ::
+        The graph of eight-bit strings, adjacent if different in an odd number
+        of bits::
 
             sage: G = graphs.CubeGraph(8) # long time
             sage: H = G.distance_graph([1,3,5,7]) # long time
@@ -14485,8 +14481,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: degrees == H.degree_histogram() # long time
             True
 
-        An example of using ``Infinity`` as the distance in
-        a graph that is not connected. ::
+        An example of using ``Infinity`` as the distance in a graph that is not
+        connected::
 
             sage: G = graphs.CompleteGraph(3)
             sage: H = G.disjoint_union(graphs.CompleteGraph(2))
@@ -14500,7 +14496,7 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-        Empty input, or unachievable distances silently yield empty graphs. ::
+        Empty input, or unachievable distances silently yield empty graphs::
 
             sage: G = graphs.CompleteGraph(5)
             sage: G.distance_graph([]).num_edges()
@@ -14509,7 +14505,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.distance_graph(23).num_edges()
             0
 
-        It is an error to provide a distance that is not an integer type. ::
+        It is an error to provide a distance that is not an integer type::
 
             sage: G = graphs.CompleteGraph(5)
             sage: G.distance_graph('junk')
@@ -14517,13 +14513,13 @@ class GenericGraph(GenericGraph_pyx):
             ...
             TypeError: unable to convert 'junk' to an integer
 
-        It is an error to provide a negative distance. ::
+        It is an error to provide a negative distance::
 
             sage: G = graphs.CompleteGraph(5)
             sage: G.distance_graph(-3)
             Traceback (most recent call last):
             ...
-            ValueError: Distance graph for a negative distance (d=-3) is not defined
+            ValueError: distance graph for a negative distance (d=-3) is not defined
 
         AUTHOR:
 
@@ -14541,12 +14537,10 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 dint = ZZ(d)
                 if dint < 0:
-                    raise ValueError('Distance graph for a negative distance (d=%d) is not defined' % dint)
+                    raise ValueError('distance graph for a negative distance (d=%d) is not defined' % dint)
                 distances.append(dint)
         # Build a graph on the same vertex set, with loops for distance 0
-        vertices = {}
-        for v in self.vertex_iterator():
-            vertices[v] = {}
+        vertices = {v: {} for v in self}
         positions = copy(self.get_pos())
         if ZZ(0) in distances:
             looped = True
@@ -14562,16 +14556,18 @@ class GenericGraph(GenericGraph_pyx):
 
         # Create the appropriate edges
         d = self.distance_all_pairs()
-        for u in self.vertex_iterator():
-            for v in self.vertex_iterator():
+        for u in self:
+            for v in self:
                 if d[u].get(v, Infinity) in distances:
-                    D.add_edge(u,v)
+                    D.add_edge(u, v)
         return D
 
     def girth(self):
         """
-        Computes the girth of the graph. For directed graphs, computes the
-        girth of the undirected graph.
+        Return the girth of the graph.
+
+        For directed graphs, computes the girth of the undirected graph,
+        i.e. ``Graph(self)``.
 
         The girth is the length of the shortest cycle in the graph. Graphs
         without cycles have infinite girth.
@@ -14589,7 +14585,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: next(graphs.trees(9)).girth()
             +Infinity
 
-
         .. SEEALSO::
 
             * :meth:`~sage.graphs.graph.Graph.odd_girth` -- computes
@@ -14597,10 +14592,10 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-        Prior to :trac:`12243`, the girth computation assumed
-        vertices were integers (and failed).  The example below
-        tests the computation for graphs with vertices that are
-        not integers.  In this example the vertices are sets.  ::
+        Prior to :trac:`12243`, the girth computation assumed vertices were
+        integers (and failed). The example below tests the computation for
+        graphs with vertices that are not integers. In this example the vertices
+        are sets::
 
             sage: G = graphs.OddGraph(3)
             sage: type(G.vertices()[0])
@@ -14635,44 +14630,44 @@ class GenericGraph(GenericGraph_pyx):
            sage: g.girth()
            2
         """
-
         # Cases where girth <= 2
         if self.has_loops():
             return 1
         if self.is_directed():
-            if any(self.has_edge(v,u) for u,v in self.edges(labels = False)):
+            if any(self.has_edge(v, u) for u, v in self.edge_iterator(labels=False)):
                 return 2
         else:
             if self.has_multiple_edges():
                 return 2
 
         n = self.num_verts()
-        best = n+1
+        best = n + 1
         seen = {}
-        for w in self.vertex_iterator():
+        for w in self:
             seen[w] = None
             span = set([w])
             depth = 1
             thisList = set([w])
-            while 2*depth <= best and 3 < best:
+            while 2 * depth <= best and 3 < best:
                 nextList = set()
                 for v in thisList:
-                    for u in self.neighbors(v):
-                        if u in seen: continue
+                    for u in self.neighbor_iterator(v):
+                        if u in seen:
+                            continue
                         if not u in span:
                             span.add(u)
                             nextList.add(u)
                         else:
                             if u in thisList:
-                                best = depth*2-1
+                                best = depth * 2 - 1
                                 break
                             if u in nextList:
-                                best = depth*2
-                    if best == 2*depth-1:
+                                best = depth * 2
+                    if best == 2 * depth - 1:
                         break
                 thisList = nextList
                 depth += 1
-        if best == n+1:
+        if best == n + 1:
             from sage.rings.infinity import Infinity
             return Infinity
         return best

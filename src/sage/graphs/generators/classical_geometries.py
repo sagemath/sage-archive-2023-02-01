@@ -1212,7 +1212,7 @@ def HaemersGraph(q, hyperoval=None, hyperoval_matching=None, field=None, check_h
         I_ks[O.index(tuple(Pi))].append(i)
 
     # perform the adjustment of the edges, as described.
-    G.relabel()
+    G.relabel(range(G.order()))
     cliques = []
     for i,j in hyperoval_matching:
         Pij = set(I_ks[i]+I_ks[j])

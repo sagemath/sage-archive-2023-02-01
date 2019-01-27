@@ -20836,13 +20836,13 @@ class GenericGraph(GenericGraph_pyx):
 
     ### Automorphism and isomorphism
 
-    def relabel(self, perm=None, inplace=True, return_map=False, check_input = True, complete_partial_function = True, immutable = None):
+    def relabel(self, perm=None, inplace=True, return_map=False, check_input=True, complete_partial_function=True, immutable=None):
         r"""
         Relabels the vertices of ``self``
 
         INPUT:
 
-         - ``perm`` -- a function, dictionary, list, permutation, or
+         - ``perm`` -- a function, dictionary, iterable, permutation, or
            ``None`` (default: ``None``)
 
          - ``inplace`` -- a boolean (default: ``True``)
@@ -20865,9 +20865,11 @@ class GenericGraph(GenericGraph_pyx):
         relabeled to ``f(v)``.
 
         If ``perm`` is a dictionary ``d``, then each vertex ``v`` (which should
-        be a key of ``d``) is relabeled to ``d[v]``.  Similarly, if ``perm`` is
-        a list or tuple ``l`` of length ``n``, then the first vertex returned by
-        ``G.vertices()`` is relabeled to ``l[0]``, the second to ``l[1]``, ...
+        be a key of ``d``) is relabeled to ``d[v]``.
+
+        If ``perm`` is a list (or more generally, any iterable) of
+        length ``n``, then the first vertex returned by ``G.vertices()``
+        is relabeled to ``l[0]``, the second to ``l[1]``, ...
 
         If ``perm`` is a permutation, then each vertex ``v`` is
         relabeled to ``perm(v)``. Caveat: this assumes that the
@@ -20877,7 +20879,8 @@ class GenericGraph(GenericGraph_pyx):
 
         If ``perm`` is ``None``, the graph is relabeled to be on the
         vertices `\{0,1,...,n-1\}`. This is *not* any kind of canonical
-        labeling, but neither a random relabeling.
+        labeling, but it is consistent (relabeling twice will give the
+        same result).
 
         If ``inplace`` is ``True``, the graph is modified in place and
         ``None`` is returned. Otherwise a relabeled copy of the graph
@@ -20919,9 +20922,9 @@ class GenericGraph(GenericGraph_pyx):
             [0 0 1]
             [1 1 0]
 
-        Relabeling using a tuple::
+        Relabeling using an iterable::
 
-            sage: G.relabel((0,2,1), inplace=False).am()
+            sage: G.relabel(iter((0,2,1)), inplace=False).am()
             [0 0 1]
             [0 0 1]
             [1 1 0]
@@ -20972,7 +20975,21 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.edges()
             []
 
-        Relabeling to simpler labels::
+        Recovering the relabeling with ``return_map``::
+
+            sage: G = graphs.CubeGraph(3)
+            sage: G.relabel(range(8), return_map=True)
+            {'000': 0,
+             '001': 1,
+             '010': 2,
+             '011': 3,
+             '100': 4,
+             '101': 5,
+             '110': 6,
+             '111': 7}
+
+        When no permutation is given, the relabeling is done to integers
+        from 0 to N-1 but in an arbitrary order::
 
             sage: G = graphs.CubeGraph(3)
             sage: G.vertices()
@@ -20981,11 +20998,11 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.vertices()
             [0, 1, 2, 3, 4, 5, 6, 7]
 
-        Recovering the relabeling with ``return_map``::
+        In the above case, the mapping is arbitrary but consistent::
 
-            sage: G = graphs.CubeGraph(3)
-            sage: expecting = {'000': 0, '001': 1, '010': 2, '011': 3, '100': 4, '101': 5, '110': 6, '111': 7}
-            sage: G.relabel(return_map=True) == expecting
+            sage: map1 = G.relabel(inplace=False, return_map=True)
+            sage: map2 = G.relabel(inplace=False, return_map=True)
+            sage: map1 == map2
             True
 
         ::
@@ -21065,37 +21082,39 @@ class GenericGraph(GenericGraph_pyx):
         # If perm is not a dictionary, we build one !
 
         if perm is None:
-
-            # vertices() returns a sorted list:
-            # this guarantees consistent relabeling
-            perm = {v: i for i, v in enumerate(self.vertices())}
+            # enumerate(self) guarantees a consistent but otherwise
+            # arbitrary relabeling
+            perm = {v: i for i, v in enumerate(self)}
             complete_partial_function = False
             check_input = False
 
         elif isinstance(perm, dict):
-
             # If all vertices do not have a new label, the code will touch the
             # dictionary. Let us keep the one we received from the user clean !
-            perm = copy(perm)
-
-        elif isinstance(perm, (list, tuple)):
-            perm = dict(zip(self.vertices(),perm))
+            perm = dict(perm)
 
         elif isinstance(perm, PermutationGroupElement):
             n = self.order()
             ddict = {}
-            for i in range(1,n):
-                ddict[i] = perm(i)%n
+            for i in range(1, n):
+                ddict[i] = perm(i) % n
             if n > 0:
-                ddict[0] = perm(n)%n
+                ddict[0] = perm(n) % n
             perm = ddict
 
-        elif callable(perm):
-            perm = dict( [ i, perm(i) ] for i in self.vertices() )
-            complete_partial_function = False
-
         else:
-            raise TypeError("Type of perm is not supported for relabeling.")
+            # Check for generic iterable/callable
+            try:
+                it = iter(perm)
+            except TypeError:
+                if not callable(perm):
+                    raise
+                # callable
+                perm = {v: perm(v) for v in self}
+                complete_partial_function = False
+            else:
+                # iterable
+                perm = dict(zip(self.vertices(), it))
 
         # Whether to complete the relabeling function if some vertices do not
         # appear in the permutation.
@@ -21109,12 +21128,9 @@ class GenericGraph(GenericGraph_pyx):
             if len(set(perm.values())) < len(perm):
                 raise NotImplementedError("Non injective relabeling")
 
-            for v in perm:
-                if v in self:
-                    try:
-                        hash(perm[v])
-                    except TypeError:
-                        raise ValueError("perm dictionary must be of the format {a:a1, b:b1, ...} where a,b,... are vertices and a1,b1,... are hashable")
+            # Check hashability of values
+            for t in perm.values():
+                hash(t)
 
         self._backend.relabel(perm, self._directed)
 
@@ -21280,7 +21296,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: Pi
             [['000'], ['001', '010', '011', '100', '101', '110', '111']]
             sage: G.coarsest_equitable_refinement(Pi)
-            [['000'], ['011', '101', '110'], ['111'], ['001', '010', '100']]
+            [['000'], ['011', '101', '110'], ['111'], ['010', '001', '100']]
 
         Note that given an equitable partition, this function returns that
         partition::
@@ -21303,7 +21319,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: ss = (graphs.WheelGraph(5)).line_graph(labels=False)
             sage: ss.coarsest_equitable_refinement(prt)
-            [[(0, 1)], [(1, 2), (1, 4)], [(0, 3)], [(0, 2), (0, 4)], [(2, 3), (3, 4)]]
+            [[(0, 1)], [(1, 2), (1, 4)], [(0, 3)], [(0, 4), (0, 2)], [(2, 3), (3, 4)]]
 
         ALGORITHM: Brendan D. McKay's Master's Thesis, University of
         Melbourne, 1976.
@@ -21495,7 +21511,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.automorphism_group(partition=[[0,1,2],[3,4,5]],algorithm='sage')
             Traceback (most recent call last):
             ...
-            KeyError: 6
+            KeyError: ...
 
         Labeled automorphism group::
 
@@ -22744,22 +22760,22 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
         sage: G.add_edge(1,2,'string')
         sage: G.add_edge(2,123)
         sage: g = graph_isom_equivalent_non_edge_labeled_graph(G, partition=[[0,123],[1,2]]); g
-        [Graph on 6 vertices, [[0, 3], [1, 2], [4], [5]]]
+        [Graph on 6 vertices, [[1, 0], [2, 3], [4], [5]]]
 
         sage: g = graph_isom_equivalent_non_edge_labeled_graph(G); g
         [Graph on 6 vertices, [[0, 1, 2, 3], [4], [5]]]
         sage: g[0].edges()
-        [(0, 4, None), (1, 4, None), (1, 5, None), (2, 3, None), (2, 5, None)]
+        [(0, 3, None), (1, 4, None), (2, 4, None), (2, 5, None), (3, 5, None)]
 
         sage: g = graph_isom_equivalent_non_edge_labeled_graph(G,standard_label='string',return_edge_labels=True); g
         [Graph on 6 vertices, [[0, 1, 2, 3], [5], [4]], [[[None, 1]], [[0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [7, 1], [8, 1], [9, 1]], [['string', 1]]]]
         sage: g[0].edges()
-        [(0, 4, None), (1, 2, None), (1, 4, None), (2, 5, None), (3, 5, None)]
+        [(0, 5, None), (1, 4, None), (2, 3, None), (2, 4, None), (3, 5, None)]
 
         sage: graph_isom_equivalent_non_edge_labeled_graph(G,inplace=True)
         [[[0, 1, 2, 3], [4], [5]]]
         sage: G.edges()
-        [(0, 4, None), (1, 4, None), (1, 5, None), (2, 3, None), (2, 5, None)]
+        [(0, 3, None), (1, 4, None), (2, 4, None), (2, 5, None), (3, 5, None)]
 
     TESTS:
 

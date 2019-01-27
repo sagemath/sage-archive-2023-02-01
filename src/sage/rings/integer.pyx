@@ -144,11 +144,10 @@ cimport cython
 from libc.math cimport (ldexp, sqrt as sqrt_double, log as log_c,
         ceil as ceil_c, isnan)
 from libc.string cimport memcpy
-cdef extern from "<limits.h>":
-    const long LONG_MAX  # Work around https://github.com/cython/cython/pull/2016
+from libc.limits cimport LONG_MAX
 
 from cysignals.memory cimport check_allocarray, check_malloc, sig_free
-from cysignals.signals cimport sig_on, sig_off, sig_check
+from cysignals.signals cimport sig_on, sig_off, sig_check, sig_occurred
 
 import operator
 import sys
@@ -7305,38 +7304,40 @@ cdef PyObject* fast_tp_new(type t, args, kwds) except NULL:
 
     return new
 
-cdef void fast_tp_dealloc(PyObject* o):
 
+cdef void fast_tp_dealloc(PyObject* o):
     # If there is room in the pool for a used integer object,
     # then put it in rather than deallocating it.
-
     global integer_pool, integer_pool_count
 
     cdef mpz_ptr o_mpz = <mpz_ptr>((<Integer>o).value)
 
-    if integer_pool_count < integer_pool_size:
+    # If we are recovering from an interrupt, throw the mpz_t away
+    # without recycling or freeing it because it might be in an
+    # inconsistent state (see Trac #24986).
+    if sig_occurred() is NULL:
+        if integer_pool_count < integer_pool_size:
+            # Here we free any extra memory used by the mpz_t by
+            # setting it to a single limb.
+            if o_mpz._mp_alloc > 10:
+                _mpz_realloc(o_mpz, 1)
 
-        # Here we free any extra memory used by the mpz_t by
-        # setting it to a single limb.
-        if o_mpz._mp_alloc > 10:
-            _mpz_realloc(o_mpz, 1)
+            # It's cheap to zero out an integer, so do it here.
+            o_mpz._mp_size = 0
 
-        # It's cheap to zero out an integer, so do it here.
-        o_mpz._mp_size = 0
+            # And add it to the pool.
+            integer_pool[integer_pool_count] = o
+            integer_pool_count += 1
+            return
 
-        # And add it to the pool.
-        integer_pool[integer_pool_count] = o
-        integer_pool_count += 1
-        return
-
-    # Again, we move to the mpz_t and clear it. As in fast_tp_new,
-    # we free the memory directly.
-    sig_free(o_mpz._mp_d)
+        # No space in the pool, so just free the mpz_t.
+        sig_free(o_mpz._mp_d)
 
     # Free the object. This assumes that Py_TPFLAGS_HAVE_GC is not
     # set. If it was set another free function would need to be
     # called.
     PyObject_Free(o)
+
 
 from sage.misc.allocator cimport hook_tp_functions
 cdef hook_fast_tp_functions():

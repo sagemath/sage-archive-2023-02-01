@@ -7730,9 +7730,8 @@ class Graph(GenericGraph):
         # a sink (-1,v) and a source (1,v)
         # Any edge (u,v) in the digraph is then added as ((-1,u),(1,v))
 
-        from sage.graphs.graph import Graph
         g = Graph()
-        g.add_edges(((-1, u), (1, v)) for u,v in d.edge_iterator(labels=None))
+        g.add_edges(((-1, u), (1, v)) for u, v in d.edge_iterator(labels=None))
 
         # This new bipartite graph is now edge_colored
         from sage.graphs.graph_coloring import edge_coloring

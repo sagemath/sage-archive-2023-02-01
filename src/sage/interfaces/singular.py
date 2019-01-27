@@ -2610,7 +2610,6 @@ class SingularGBDefaultContext:
             7*b+210*c^3-79*c^2+3*c,
             7*a-420*c^3+158*c^2+8*c-7
         """
-        from sage.interfaces.singular import SingularError
         try:
             self.bck_degBound = int(self.singular.eval('degBound'))
         except SingularError:
@@ -2648,16 +2647,16 @@ class SingularGBDefaultContext:
             7*b+210*c^3-79*c^2+3*c,
             7*a-420*c^3+158*c^2+8*c-7
         """
-        from sage.interfaces.singular import SingularError
-        self.singular.option("set",self.o)
+        self.singular.option("set", self.o)
         try:
-            self.singular.eval('degBound=%d'%self.bck_degBound)
+            self.singular.eval('degBound=%d' % self.bck_degBound)
         except SingularError:
             pass
         try:
-            self.singular.eval('multBound=%d'%self.bck_multBound)
+            self.singular.eval('multBound=%d' % self.bck_multBound)
         except SingularError:
             pass
+
 
 def singular_gb_standard_options(func):
     r"""

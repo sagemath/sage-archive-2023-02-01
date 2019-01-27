@@ -380,10 +380,12 @@ def blocks_and_cut_vertices(G, algorithm="Tarjan_Boost", sort=False):
         ([[0, 1, 4, 2, 3], [0, 6, 9, 7, 8]], [0])
         sage: rings.blocks_and_cut_vertices()
         ([[0, 1, 4, 2, 3], [0, 6, 9, 7, 8]], [0])
-        sage: blocks_and_cut_vertices(rings, algorithm="Tarjan_Sage", sort=True)
+        sage: B, C = blocks_and_cut_vertices(rings, algorithm="Tarjan_Sage", sort=True)
+        sage: B, C
         ([[0, 1, 2, 3, 4], [0, 6, 7, 8, 9]], [0])
-        sage: blocks_and_cut_vertices(rings, algorithm="Tarjan_Sage", sort=False)
-        ([[0, 1, 2, 3, 4], [8, 9, 0, 6, 7]], [0])
+        sage: B2, C2 = blocks_and_cut_vertices(rings, algorithm="Tarjan_Sage", sort=False)
+        sage: Set(map(Set, B)) == Set(map(Set, B2)) and set(C) == set(C2)
+        True
 
     The Petersen graph is biconnected, hence has no cut vertices::
 
@@ -2256,19 +2258,19 @@ def spqr_tree(G, algorithm="Hopcroft_Tarjan", solver=None, verbose=0):
         sage: for u,v in G.edges(labels=False, sort=False):
         ....:     G.add_path([u, G.add_vertex(), G.add_vertex(), v])
         sage: T = G.spqr_tree(algorithm="Hopcroft_Tarjan")
-        sage: Counter(u[0] for u in T)
-        Counter({'P': 15, 'S': 15, 'R': 1})
+        sage: sorted(Counter(u[0] for u in T).items())
+        [('P', 15), ('R', 1), ('S', 15)]
         sage: T = G.spqr_tree(algorithm="cleave")
-        sage: Counter(u[0] for u in T)
-        Counter({'P': 15, 'S': 15, 'R': 1})
+        sage: sorted(Counter(u[0] for u in T).items())
+        [('P', 15), ('R', 1), ('S', 15)]
         sage: for u,v in G.edges(labels=False, sort=False):
         ....:     G.add_path([u, G.add_vertex(), G.add_vertex(), v])
         sage: T = G.spqr_tree(algorithm="Hopcroft_Tarjan")
-        sage: Counter(u[0] for u in T)
-        Counter({'S': 75, 'P': 60, 'R': 1})
-        sage: T = G.spqr_tree(algorithm="cleave") # long time
-        sage: Counter(u[0] for u in T)            # long time
-        Counter({'S': 75, 'P': 60, 'R': 1})
+        sage: sorted(Counter(u[0] for u in T).items())
+        [('P', 60), ('R', 1), ('S', 75)]
+        sage: T = G.spqr_tree(algorithm="cleave")       # long time
+        sage: sorted(Counter(u[0] for u in T).items())  # long time
+        [('P', 60), ('R', 1), ('S', 75)]
 
     TESTS::
 
@@ -2794,7 +2796,10 @@ cdef class TriconnectivitySPQR:
         ....: (6, 7), (8, 9), (8, 11), (8, 12), (9, 10), (9, 11), (9, 12),
         ....: (10, 11), (10, 12)])
         sage: tric = TriconnectivitySPQR(G)
-        sage: tric.print_triconnected_components()
+        sage: T = tric.get_spqr_tree()
+        sage: G.is_isomorphic(spqr_tree_to_graph(T))
+        True
+        sage: tric.print_triconnected_components()  # Not tested
         Polygon: [(6, 7, None), (5, 6, None), (7, 5, 'newVEdge0')]
         Bond: [(7, 5, 'newVEdge0'), (5, 7, 'newVEdge1'), (5, 7, None)]
         Polygon: [(5, 7, 'newVEdge1'), (4, 7, None), (5, 4, 'newVEdge2')]
@@ -2822,7 +2827,10 @@ cdef class TriconnectivitySPQR:
 
         sage: G = Graph([(1, 2), (1, 5), (1, 5), (2, 3), (2, 3), (3, 4), (4, 5)], multiedges=True)
         sage: tric = TriconnectivitySPQR(G)
-        sage: tric.print_triconnected_components()
+        sage: T = tric.get_spqr_tree()
+        sage: G.is_isomorphic(spqr_tree_to_graph(T))
+        True
+        sage: tric.print_triconnected_components()   # Not tested
         Bond:  [(1, 5, None), (1, 5, None), (1, 5, 'newVEdge0')]
         Bond:  [(2, 3, None), (2, 3, None), (2, 3, 'newVEdge1')]
         Polygon:  [(4, 5, None), (1, 5, 'newVEdge0'), (3, 4, None), (2, 3, 'newVEdge1'), (1, 2, None)]
@@ -2840,7 +2848,7 @@ cdef class TriconnectivitySPQR:
 
         sage: G = DiGraph([(1, 2), (2, 3), (3, 4), (4, 5), (1, 5), (5, 1)])
         sage: tric = TriconnectivitySPQR(G)
-        sage: tric.print_triconnected_components()
+        sage: tric.print_triconnected_components()   # Not tested
         Bond:  [(1, 5, None), (5, 1, None), (1, 5, 'newVEdge0')]
         Polygon:  [(4, 5, None), (1, 5, 'newVEdge0'), (3, 4, None), (2, 3, None), (1, 2, None)]
 
@@ -3998,12 +4006,16 @@ cdef class TriconnectivitySPQR:
         An example from [Hopcroft1973]_::
 
             sage: from sage.graphs.connectivity import TriconnectivitySPQR
+            sage: from sage.graphs.connectivity import spqr_tree_to_graph
             sage: G = Graph([(1, 2), (1, 4), (1, 8), (1, 12), (1, 13), (2, 3),
             ....: (2, 13), (3, 4), (3, 13), (4, 5), (4, 7), (5, 6), (5, 7), (5, 8),
             ....: (6, 7), (8, 9), (8, 11), (8, 12), (9, 10), (9, 11), (9, 12),
             ....: (10, 11), (10, 12)])
             sage: tric = TriconnectivitySPQR(G)
-            sage: tric.print_triconnected_components()
+            sage: T = tric.get_spqr_tree()
+            sage: G.is_isomorphic(spqr_tree_to_graph(T))
+            True
+            sage: tric.print_triconnected_components()   # Not tested
             Polygon: [(6, 7, None), (5, 6, None), (7, 5, 'newVEdge0')]
             Bond: [(7, 5, 'newVEdge0'), (5, 7, 'newVEdge1'), (5, 7, None)]
             Polygon: [(5, 7, 'newVEdge1'), (4, 7, None), (5, 4, 'newVEdge2')]

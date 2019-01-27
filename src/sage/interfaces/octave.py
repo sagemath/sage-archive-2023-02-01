@@ -182,10 +182,8 @@ class Octave(Expect):
             True
         """
         if command is None:
-            import os
             command = os.getenv('SAGE_OCTAVE_COMMAND') or 'octave-cli'
         if server is None:
-            import os
             server = os.getenv('SAGE_OCTAVE_SERVER') or None
         Expect.__init__(self,
                         name = 'octave',

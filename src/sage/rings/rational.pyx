@@ -2198,7 +2198,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         Test that conversion agrees with `RR`::
 
             sage: Q = [a/b for a in [-99..99] for b in [1..99]]
-            sage: all([RDF(q) == RR(q) for q  in Q])
+            sage: all(RDF(q) == RR(q) for q in Q)
             True
 
         Test that the conversion has correct rounding on simple rationals::
@@ -2211,14 +2211,14 @@ cdef class Rational(sage.structure.element.FieldElement):
         Test larger rationals::
 
             sage: Q = continued_fraction(pi).convergents()[:100]
-            sage: all([RDF(q) == RR(q) for q in Q])
+            sage: all(RDF(q) == RR(q) for q in Q)
             True
 
         At some point, the continued fraction and direct conversion
         to ``RDF`` should agree::
 
             sage: RDFpi = RDF(pi)
-            sage: all([RDF(q) == RDFpi for q in Q[20:]])
+            sage: all(RDF(q) == RDFpi for q in Q[20:])
             True
         """
         return mpq_get_d_nearest(self.value)

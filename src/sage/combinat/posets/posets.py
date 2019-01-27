@@ -3381,7 +3381,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         or the rank of the poset if ``element`` is ``None``.
 
         (The rank of a poset is the length of the longest chain of
-        elements of the poset.)
+        elements of the poset. This is sometimes called the length of a poset.)
 
         EXAMPLES::
 

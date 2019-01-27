@@ -65,8 +65,8 @@ def KirillovReshetikhinCrystal(cartan_type, r, s):
         sage: K1 is KirillovReshetikhinCrystal(['A',6,2], 2, 1)
         True
     """
-    from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
-    return RiggedConfigurations(cartan_type, [[r,s]])
+    return RiggedConfigurations(cartan_type, [[r, s]])
+
 
 # Note on implementation, this class is used for simply-laced types only
 class RiggedConfigurations(UniqueRepresentation, Parent):

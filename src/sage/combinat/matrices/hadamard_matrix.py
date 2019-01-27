@@ -983,8 +983,7 @@ def GS_skew_hadamard_smallcases(n, existence=False, check=True):
         92 x 92 dense matrix over Integer Ring...
         sage: GS_skew_hadamard_smallcases(100)
     """
-    from sage.combinat.matrices.hadamard_matrix import\
-         williamson_goethals_seidel_skew_hadamard_matrix as WGS
+    WGS = williamson_goethals_seidel_skew_hadamard_matrix
 
     def pmtoZ(s):
         return [1 if x == '+' else -1 for x in s]

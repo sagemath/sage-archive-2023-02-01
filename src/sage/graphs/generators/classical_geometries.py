@@ -371,12 +371,12 @@ def OrthogonalPolarGraph(m, q, sign="+"):
         ...
         ValueError: sign must be equal to either '' or '+' when m is odd
     """
-    from sage.graphs.generators.classical_geometries import _orthogonal_polar_graph
     G = _orthogonal_polar_graph(m, q, sign=sign)
-    if m % 2 != 0:
+    if m % 2:
         sign = ""
     G.name("Orthogonal Polar Graph O" + ("^" + sign if sign else "") + str((m, q)))
     return G
+
 
 def NonisotropicOrthogonalPolarGraph(m, q, sign="+", perp=None):
     r"""
@@ -484,13 +484,12 @@ def NonisotropicOrthogonalPolarGraph(m, q, sign="+", perp=None):
         ValueError: for m even q must be 2 or 3
 
     """
-    from sage.graphs.generators.classical_geometries import _orthogonal_polar_graph
-    p, k = is_prime_power(q,get_data=True)
-    if k==0:
+    p, k = is_prime_power(q, get_data=True)
+    if k == 0:
         raise ValueError('q must be a prime power')
     dec = ''
     if m % 2 == 0:
-        if q in [2,3]:
+        if q in [2, 3]:
             G = _orthogonal_polar_graph(m, q, sign=sign, point_type=[1])
         else:
             raise ValueError("for m even q must be 2 or 3")

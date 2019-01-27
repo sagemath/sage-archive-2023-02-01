@@ -317,10 +317,10 @@ see :trac:`11645`::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 from six.moves import range
 from six import integer_types, string_types
+from six import reraise as raise_
 
 import io
 import os
@@ -338,10 +338,8 @@ from sage.structure.element import RingElement
 import sage.rings.integer
 
 from sage.misc.misc import get_verbose
-from sage.misc.superseded import deprecation
 from sage.docs.instancedoc import instancedoc
 
-from six import reraise as raise_
 
 class SingularError(RuntimeError):
     """

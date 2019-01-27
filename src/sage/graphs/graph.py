@@ -8043,9 +8043,9 @@ class Graph(GenericGraph):
             [(0, 2, None), (1, 3, None)]
             [(0, 3, None), (1, 2, None)]
 
-            sage: G = Graph([(0, 1, 'a'), (0, 3, 'b'), (1, 2, 'c'), (2, 3, 'd')])
-            sage: list(G.perfect_matchings(labels=True))
-            [[(0, 1, 'a'), (2, 3, 'd')], [(0, 3, 'b'), (1, 2, 'c')]]
+            sage: G = Graph([[1,-1,'a'], [2,-2, 'b'], [1,-2,'x'], [2,-1,'y']])
+            sage: sorted(sorted(m) for m in G.perfect_matchings(labels=True))
+            [[(-2, 1, 'x'), (-1, 2, 'y')], [(-2, 2, 'b'), (-1, 1, 'a')]]
 
             sage: G = graphs.CompleteGraph(8)
             sage: mpc = G.matching_polynomial().coefficients(sparse=False)[0]

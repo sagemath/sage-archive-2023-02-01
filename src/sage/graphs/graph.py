@@ -2049,13 +2049,14 @@ class Graph(GenericGraph):
         Neighbors of an apex of degree 2 are apex::
 
             sage: G = graphs.Grid2dGraph(5,5)
-            sage: G.add_path([(1,1),'x',(3,3)])
+            sage: v = (666, 666)
+            sage: G.add_path([(1, 1), v, (3, 3)])
             sage: G.is_planar()
             False
-            sage: G.degree('x')
+            sage: G.degree(v)
             2
-            sage: G.apex_vertices()
-            ['x', (2, 2), (3, 3), (1, 1)]
+            sage: sorted(G.apex_vertices())
+            [(1, 1), (2, 2), (3, 3), (666, 666)]
 
 
         TESTS:
@@ -4153,10 +4154,14 @@ class Graph(GenericGraph):
         EXAMPLES::
 
             sage: G = Graph("Fooba")
-            sage: P = G.coloring(algorithm="MILP"); P
-            [[2, 1, 3], [0, 6, 5], [4]]
-            sage: P = G.coloring(algorithm="DLX"); P
-            [[1, 2, 3], [0, 5, 6], [4]]
+            sage: P = G.coloring(algorithm="MILP")
+            sage: Q = G.coloring(algorithm="DLX")
+            sage: def are_equal_colorings(A, B):
+            ....:     return Set(map(Set, A)) == Set(map(Set, B))
+            sage: are_equal_colorings(P, [[1, 2, 3], [0, 5, 6], [4]])
+            True
+            sage: are_equal_colorings(P, Q)
+            True
             sage: G.plot(partition=P)
             Graphics object consisting of 16 graphics primitives
             sage: G.coloring(hex_colors=True, algorithm="MILP")
@@ -4453,10 +4458,10 @@ class Graph(GenericGraph):
         and LP formulation::
 
             sage: g = Graph([(0,1,0), (1,2,999), (2,3,-5)])
-            sage: g.matching()
+            sage: sorted(g.matching())
             [(0, 1, 0), (2, 3, -5)]
-            sage: g.matching(algorithm="LP")
-            [(2, 3, -5), (0, 1, 0)]
+            sage: sorted(g.matching(algorithm="LP"))
+            [(0, 1, 0), (2, 3, -5)]
 
         When ``use_edge_labels`` is set to ``True``, with Edmonds' algorithm and
         LP formulation::

@@ -413,10 +413,14 @@ def linear_ordering_to_path_decomposition(G, L):
         sage: pw, L = vertex_separation(g, algorithm = "BAB"); pw
         1
         sage: h = linear_ordering_to_path_decomposition(g, L)
-        sage: h.vertices()
+        sage: h.vertices()  # py2
         [{0, 1}, {3, 4}, {2, 3}, {1, 2}]
-        sage: h.edges(labels=None)
+        sage: h.edges(labels=None)  # py2
         [({0, 1}, {1, 2}), ({2, 3}, {3, 4}), ({1, 2}, {2, 3})]
+        sage: h.vertices()  # py3
+        [{3, 4}, {2, 3}, {1, 2}, {0, 1}]
+        sage: h.edges(labels=None)  # py3
+        [({2, 3}, {3, 4}), ({1, 2}, {2, 3}), ({0, 1}, {1, 2})]
 
     Giving a non-optimal linear ordering::
 
@@ -435,10 +439,14 @@ def linear_ordering_to_path_decomposition(G, L):
         sage: pw, L = vertex_separation(g, algorithm = "BAB"); pw
         2
         sage: h = linear_ordering_to_path_decomposition(g, L)
-        sage: h.vertices()
+        sage: h.vertices()  # py2
         [{1, 2, 5}, {2, 3, 4}, {0, 1, 5}, {2, 4, 5}]
-        sage: h.edges(labels=None)
+        sage: h.edges(labels=None)  # py2
         [({1, 2, 5}, {2, 4, 5}), ({0, 1, 5}, {1, 2, 5}), ({2, 4, 5}, {2, 3, 4})]
+        sage: h.vertices()  # py3
+        [{2, 3, 4}, {2, 4, 5}, {1, 2, 5}, {0, 1, 5}]
+        sage: h.edges(labels=None)  # py3
+        [({2, 4, 5}, {2, 3, 4}), ({1, 2, 5}, {2, 4, 5}), ({0, 1, 5}, {1, 2, 5})]
 
 
     TESTS::
@@ -552,8 +560,10 @@ def pathwidth(self, k=None, certificate=False, algorithm="BAB", verbose=False,
         sage: g.pathwidth()
         2
         sage: pw, decomp = g.pathwidth(certificate=True)
-        sage: decomp.vertices()
+        sage: decomp.vertices()  # py2
         [{1, 2, 5}, {2, 3, 4}, {0, 1, 5}, {2, 4, 5}]
+        sage: decomp.vertices()  # py3
+        [{2, 3, 4}, {2, 4, 5}, {1, 2, 5}, {0, 1, 5}]
 
     The pathwidth of a Petersen graph is 5::
 
@@ -829,6 +839,9 @@ def vertex_separation(G, algorithm="BAB", cut_off=None, upper_bound=None, verbos
     else:
         raise ValueError('the parameter must be a Graph or a DiGraph')
 
+    if cut_off is None:
+        cut_off = 0
+
     if CC:
         # The graph has several (strongly) connected components. We solve the
         # problem on each of them and order partial solutions in the same order
@@ -932,8 +945,10 @@ def vertex_separation_exp(G, verbose=False):
 
         sage: from sage.graphs.graph_decompositions.vertex_separation import vertex_separation_exp
         sage: D=digraphs.DeBruijn(2,3)
-        sage: vertex_separation_exp(D)
+        sage: vertex_separation_exp(D)  # py2
         (2, ['010', '110', '111', '011', '001', '000', '100', '101'])
+        sage: vertex_separation_exp(D)  # py3
+        (2, ['000', '001', '100', '010', '101', '011', '110', '111'])
 
     Given a too large graph::
 

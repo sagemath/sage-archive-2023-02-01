@@ -2799,7 +2799,7 @@ cdef class TriconnectivitySPQR:
         sage: T = tric.get_spqr_tree()
         sage: G.is_isomorphic(spqr_tree_to_graph(T))
         True
-        sage: tric.print_triconnected_components()  # Not tested
+        sage: tric.print_triconnected_components()
         Polygon: [(6, 7, None), (5, 6, None), (7, 5, 'newVEdge0')]
         Bond: [(7, 5, 'newVEdge0'), (5, 7, 'newVEdge1'), (5, 7, None)]
         Polygon: [(5, 7, 'newVEdge1'), (4, 7, None), (5, 4, 'newVEdge2')]
@@ -2830,7 +2830,7 @@ cdef class TriconnectivitySPQR:
         sage: T = tric.get_spqr_tree()
         sage: G.is_isomorphic(spqr_tree_to_graph(T))
         True
-        sage: tric.print_triconnected_components()   # Not tested
+        sage: tric.print_triconnected_components()
         Bond:  [(1, 5, None), (1, 5, None), (1, 5, 'newVEdge0')]
         Bond:  [(2, 3, None), (2, 3, None), (2, 3, 'newVEdge1')]
         Polygon:  [(4, 5, None), (1, 5, 'newVEdge0'), (3, 4, None), (2, 3, 'newVEdge1'), (1, 2, None)]
@@ -2848,7 +2848,7 @@ cdef class TriconnectivitySPQR:
 
         sage: G = DiGraph([(1, 2), (2, 3), (3, 4), (4, 5), (1, 5), (5, 1)])
         sage: tric = TriconnectivitySPQR(G)
-        sage: tric.print_triconnected_components()   # Not tested
+        sage: tric.print_triconnected_components()
         Bond:  [(1, 5, None), (5, 1, None), (1, 5, 'newVEdge0')]
         Polygon:  [(4, 5, None), (1, 5, 'newVEdge0'), (3, 4, None), (2, 3, None), (1, 2, None)]
 
@@ -4015,7 +4015,7 @@ cdef class TriconnectivitySPQR:
             sage: T = tric.get_spqr_tree()
             sage: G.is_isomorphic(spqr_tree_to_graph(T))
             True
-            sage: tric.print_triconnected_components()   # Not tested
+            sage: tric.print_triconnected_components()
             Polygon: [(6, 7, None), (5, 6, None), (7, 5, 'newVEdge0')]
             Bond: [(7, 5, 'newVEdge0'), (5, 7, 'newVEdge1'), (5, 7, None)]
             Polygon: [(5, 7, 'newVEdge1'), (4, 7, None), (5, 4, 'newVEdge2')]

@@ -137,7 +137,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         sage: G = Graph({1:{2:28, 6:10}, 2:{3:16, 7:14}, 3:{4:12}, 4:{5:22, 7:18}, 5:{6:25, 7:24}})
         sage: G.weighted(True)
         sage: E = kruskal(G, check=True); E
-        [(1, 6, 10), (2, 3, 16), (2, 7, 14), (3, 4, 12), (4, 5, 22), (5, 6, 25)]
+        [(1, 6, 10), (3, 4, 12), (2, 7, 14), (2, 3, 16), (4, 5, 22), (5, 6, 25)]
 
     Variants of the previous example. ::
 
@@ -177,7 +177,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         ....: "BWI":{"MIA":946}})
         sage: G.weighted(True)
         sage: kruskal(G, check=True)
-        [('BOS', 'JFK', 187), ('BWI', 'JFK', 184), ('BWI', 'MIA', 946), ('BWI', 'ORD', 621), ('DFW', 'LAX', 1235), ('DFW', 'ORD', 802), ('JFK', 'PVD', 144), ('LAX', 'SFO', 337)]
+        [('JFK', 'PVD', 144), ('BWI', 'JFK', 184), ('BOS', 'JFK', 187), ('LAX', 'SFO', 337), ('BWI', 'ORD', 621), ('DFW', 'ORD', 802), ('BWI', 'MIA', 946), ('DFW', 'LAX', 1235)]
 
     An example from pages 568--569 in [CormenEtAl2001]_. ::
 
@@ -185,18 +185,21 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         ....: "c":{"d":7, "f":4, "i":2}, "d":{"e":9, "f":14},
         ....: "e":{"f":10}, "f":{"g":2}, "g":{"h":1, "i":6}, "h":{"i":7}})
         sage: G.weighted(True)
-        sage: kruskal(G, check=True)
-        [('a', 'b', 4), ('a', 'h', 8), ('c', 'd', 7), ('c', 'f', 4), ('c', 'i', 2), ('d', 'e', 9), ('f', 'g', 2), ('g', 'h', 1)]
+        sage: T = Graph(kruskal(G, check=True), format='list_of_edges')
+        sage: sum(T.edge_labels())
+        37
+        sage: T.is_tree()
+        True
 
     An example with custom edge labels::
 
         sage: G = Graph([[0,1,1],[1,2,1],[2,0,10]], weighted=True)
         sage: weight = lambda e:3-e[0]-e[1]
-        sage: kruskal(G, check=True)
+        sage: sorted(kruskal(G, check=True))
         [(0, 1, 1), (1, 2, 1)]
-        sage: kruskal(G, wfunction=weight, check=True)
+        sage: sorted(kruskal(G, wfunction=weight, check=True))
         [(0, 2, 10), (1, 2, 1)]
-        sage: kruskal(G, wfunction=weight, check=False)
+        sage: sorted(kruskal(G, wfunction=weight, check=False))
         [(0, 2, 10), (1, 2, 1)]
 
     TESTS:
@@ -264,7 +267,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         ...
         ValueError: The input G must be an undirected graph.
     """
-    return sorted(kruskal_iterator(G, wfunction=wfunction, check=check))
+    return list(kruskal_iterator(G, wfunction=wfunction, check=check))
 
 
 def kruskal_iterator(G, wfunction=None, bint check=False):
@@ -312,9 +315,9 @@ def kruskal_iterator(G, wfunction=None, bint check=False):
             from operator import itemgetter
             sortedE_iter = iter(sorted(g.edges(sort=False), key=itemgetter(2)))
         else:
-            sortedE_iter = iter(sorted(g.edges()))
+            sortedE_iter = g.edge_iterator()
     else:
-        sortedE_iter = iter(sorted(g.edges(), key=wfunction))
+        sortedE_iter = iter(sorted(g.edges(sort=False), key=wfunction))
 
     # Kruskal's algorithm
     cdef int m = g.order() - 1
@@ -430,7 +433,7 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
     If the input graph is a tree, then return its edges::
 
         sage: T = graphs.RandomTree(randint(1, 10))
-        sage: T.edges() == boruvka(T, check=True)
+        sage: T.edges() == sorted(boruvka(T, check=True))
         True
 
     Check if the weight of MST returned by Prim's and Boruvka's is the same::
@@ -468,7 +471,7 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
         # G is now assumed to be a nonempty connected graph
         if G.num_verts() == G.num_edges() + 1:
             # G is a tree
-            return G.edges()
+            return G.edges(sort=False)
 
     # Boruvka's algorithm
 

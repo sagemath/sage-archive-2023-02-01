@@ -1204,7 +1204,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
 
         INPUT:
 
-        - ``B`` -- a graded commative algebra
+        - ``B`` -- a graded commutative algebra
         - ``category`` -- a subcategory of graded algebras or ``None``
 
         EXAMPLES::

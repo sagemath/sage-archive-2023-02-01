@@ -129,7 +129,6 @@ import sage.rings.all as rings
 from sage.rings.real_mpfr import is_RealField
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from sage.groups.additive_abelian.additive_abelian_wrapper import AdditiveAbelianGroupWrapper
 import sage.groups.generic as generic
 from sage.libs.pari import pari
 from cypari2.pari_instance import prec_words_to_bits
@@ -1500,7 +1499,6 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         one = self.curve().base_field().one()
         t = one
         V = self
-        S = 2*V
         nbin = n.bits()
         i = n.nbits() - 2
         while i > -1:

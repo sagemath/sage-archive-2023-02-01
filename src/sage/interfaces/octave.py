@@ -87,16 +87,6 @@ For example,
     sage: octave("gammainc(1.5,1)")   # optional - octave
     0.77687
 
-The Octave interface reads in even very long input (using files) in
-a robust manner::
-
-    sage: t = '"%s"'%10^10000   # ten thousand character string.
-    sage: a = octave.eval(t + ';')    # optional - octave, < 1/100th of a second
-    sage: a = octave(t)               # optional - octave
-
-Note that actually reading ``a`` back out takes forever. This *must*
-be fixed as soon as possible, see :trac:`940`.
-
 Tutorial
 --------
 

@@ -1935,6 +1935,16 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: y.str(digits=1)
             '-4.'
 
+        Zero has the correct number of digits::
+
+            sage: zero = RR.zero()
+            sage: print(zero.str(digits=3))
+            0.00
+            sage: print(zero.str(digits=3, no_sci=False))
+            0.00e0
+            sage: print(zero.str(digits=3, skip_zeroes=True))
+            0.
+
         The output always contains a decimal point, except when using
         scientific notation with exactly one digit::
 
@@ -2023,6 +2033,10 @@ cdef class RealNumber(sage.structure.element.RingElement):
             if digits < 2:
                 digits = 2
 
+            # For backwards compatibility, add one extra digit for 0.0
+            if mpfr_zero_p(self.value):
+                digits += 1
+
         sig_on()
         cdef char *s
         cdef mp_exp_t exponent
@@ -2042,6 +2056,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         if skip_zeroes:
             t = _re_skip_zeroes.match(t).group(1)
+
+        # Treat 0.0 as having exponent 1, this gives better results
+        # (effectively treating it as 0. instead of .0)
+        if mpfr_zero_p(self.value):
+            exponent = 1
 
         if no_sci is None:
             use_sci = (<RealField_class>self._parent).sci_not or abs(exponent-1) >= 6
@@ -3212,7 +3231,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
         # by using internal interfaces of MPFR, which are documented
         # as subject-to-change.
 
-        sig_on()
         if mpfr_nan_p(self.value) or mpfr_inf_p(self.value):
             raise ValueError('Cannot convert NaN or infinity to Pari float')
 
@@ -3234,6 +3252,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         cdef mp_exp_t exponent
         cdef GEN pari_float
 
+        sig_on()
         if mpfr_zero_p(self.value):
             pari_float = real_0_bit(-rounded_prec)
         else:
@@ -3245,7 +3264,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             # Create a PARI REAL
             pari_float = cgetr(2 + rounded_prec / wordsize)
             pari_float[1] = evalexpo(exponent + rounded_prec - 1) + evalsigne(mpfr_sgn(self.value))
-            mpz_export(&pari_float[2], NULL, 1, wordsize/8, 0, 0, mantissa)
+            mpz_export(&pari_float[2], NULL, 1, wordsize // 8, 0, 0, mantissa)
             mpz_clear(mantissa)
 
         return new_gen(pari_float)

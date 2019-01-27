@@ -85,8 +85,9 @@ from sage.structure.coerce cimport is_numpy_type
 
 from sage.libs.gmp.pylong cimport mpz_set_pylong
 
-from sage.structure.element cimport Element, RingElement, ModuleElement, coercion_model
-from sage.structure.element import bin_op, coerce_binop
+from sage.structure.coerce cimport coercion_model
+from sage.structure.element cimport Element
+from sage.structure.element import coerce_binop
 from sage.structure.parent cimport Parent
 from sage.categories.morphism cimport Morphism
 from sage.categories.map cimport Map
@@ -545,11 +546,12 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: v[3/2]
             Traceback (most recent call last):
             ...
-            TypeError: rational is not an integer
+            TypeError: unable to convert rational 3/2 to an integer
         """
         if self.denominator() == 1:
             return int(self)
-        raise TypeError("rational is not an integer")
+
+        raise TypeError(f"unable to convert rational {self} to an integer")
 
     cdef __set_value(self, x, unsigned int base):
         cdef int n
@@ -993,7 +995,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: q.__mpz__()  # optional - gmpy2
             Traceback (most recent call last):
             ...
-            TypeError: rational is not an integer
+            TypeError: unable to convert rational 1/4 to an integer
 
         TESTS::
 
@@ -1003,7 +1005,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             NotImplementedError: gmpy2 is not installed
         """
         if self.denominator() != 1:
-            raise TypeError("rational is not an integer")
+            raise TypeError(f"unable to convert rational {self} to an integer")
         return self.numerator().__mpz__()
 
     def __mpq__(self):
@@ -3153,19 +3155,30 @@ cdef class Rational(sage.structure.element.FieldElement):
             3
             sage: (125/8).log(5/2,prec=53)
             3.00000000000000
+            
+        TESTS::
+        
+            sage: (25/2).log(5/2)
+            log(25/2)/log(5/2)
+            sage: (-1/2).log(3)
+            (I*pi + log(1/2))/log(3)
         """
-        if self.denom() == ZZ.one():
+        cdef int self_sgn
+        if self.denom().is_one():
             return ZZ(self.numer()).log(m, prec)
-        if mpz_sgn(mpq_numref(self.value)) < 0:
-            from sage.symbolic.all import SR
-            return SR(self).log()
         if m is not None and m <= 0:
             raise ValueError("log base must be positive")
+        self_sgn = mpz_sgn(mpq_numref(self.value))
+        if self_sgn < 0 and prec is None:
+            from sage.symbolic.all import SR
+            return SR(self).log(m)
         if prec:
-            from sage.rings.real_mpfr import RealField
-            if m is None:
-                return RealField(prec)(self).log()
-            return RealField(prec)(self).log(m)
+            if self_sgn >= 0:
+                from sage.rings.real_mpfr import RealField
+                return RealField(prec)(self).log(m)
+            else:
+                from sage.rings.complex_field import ComplexField
+                return ComplexField(prec)(self).log(m)
 
         from sage.functions.log import function_log
         if m is None:
@@ -3181,24 +3194,29 @@ cdef class Rational(sage.structure.element.FieldElement):
         bnp = bnum.perfect_power()
         adp = aden.perfect_power()
         bdp = bden.perfect_power()
-        if (anp[0] == bnp[0] and adp[0] == bdp[0]):
-            nu_ratio = Rational((anp[1], bnp[1]))
-            de_ratio = Rational((adp[1], bdp[1]))
-            if nu_ratio == de_ratio:
-                return nu_ratio
-            if nu_ratio == ZZ.one():
-                return de_ratio
-            if de_ratio == ZZ.one():
-                return nu_ratio
-        elif (anp[0] == bdp[0] and adp[0] == bnp[0]):
-            up_ratio = Rational((anp[1], bdp[1]))
-            lo_ratio = Rational((adp[1], bnp[1]))
-            if up_ratio == lo_ratio:
-                return -up_ratio
-            if up_ratio == ZZ.one():
-                return -lo_ratio
-            if lo_ratio == ZZ.one():
-                return -up_ratio
+
+        if anum.is_one():
+            a_exp=adp[1]
+            a_base=1/adp[0]
+        # we already know that aden!=0
+        else:
+            a_exp=anp[1].gcd(adp[1])
+            a_base=(anp[0]**(anp[1]//a_exp))/(adp[0]**(adp[1]//a_exp))
+
+        if bnum.is_one():
+            b_exp=bdp[1]
+            b_base=1/bdp[0]
+        elif bden.is_one():
+            b_exp=bnp[1]
+            b_base=bnp[0]
+        else:
+            b_exp=bnp[1].gcd(bdp[1])
+            b_base=(bnp[0]**(bnp[1]//b_exp))/(bdp[0]**(bdp[1]//b_exp))
+
+        if a_base == b_base:
+            return a_exp/b_exp
+        elif a_base*b_base == 1:
+            return -a_exp/b_exp
 
         return (function_log(self, dont_call_method_on_arg=True) /
                 function_log(m, dont_call_method_on_arg=True))
@@ -3671,7 +3689,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                 if mpz_cmp_si(mpq_denref((<Rational>y).value), 1) != 0:
                     raise ValueError("denominator must be 1")
                 return (<Rational>x)._lshift(y)
-        return bin_op(x, y, operator.lshift)
+        return coercion_model.bin_op(x, y, operator.lshift)
 
     cdef _rshift(self, long int exp):
         r"""
@@ -3719,7 +3737,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                 if mpz_cmp_si(mpq_denref((<Rational>y).value), 1) != 0:
                     raise ValueError("denominator must be 1")
                 return (<Rational>x)._rshift(y)
-        return bin_op(x, y, operator.rshift)
+        return coercion_model.bin_op(x, y, operator.rshift)
 
     def conjugate(self):
         """

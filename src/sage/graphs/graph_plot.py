@@ -252,7 +252,7 @@ class GraphPlot(SageObject):
             if k not in options:
                 options[k] = value
         self._plot_components = {}
-        self._nodelist = graph.vertices()
+        self._nodelist = list(graph)
         self._graph = graph
         self._options = options # contains both plot and show options
         self.set_pos()
@@ -1293,9 +1293,6 @@ class GraphPlot(SageObject):
           * ``orientation="top"`` -- children are placed above their parent
 
         EXAMPLES::
-
-            sage: T = graphs.RandomLobster(25,0.3,0.3)
-            sage: T.show(layout='tree',tree_orientation='up') # indirect doctest
 
             sage: from sage.graphs.graph_plot import GraphPlot
             sage: G = graphs.HoffmanSingletonGraph()

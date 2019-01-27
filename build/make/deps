@@ -138,6 +138,7 @@ sagelib: \
 		$(inst_ecm) \
 		$(inst_flint) \
 		$(inst_libgd) \
+		$(inst_gap) \
 		$(inst_givaro) \
 		$(inst_glpk) \
 		$(inst_gsl) \
@@ -147,7 +148,6 @@ sagelib: \
 		$(inst_lcalc) \
 		$(inst_lrcalc) \
 		$(inst_libbraiding) \
-		$(inst_libgap) \
 		$(inst_libhomfly) \
 		$(inst_libpng) \
 		$(inst_linbox) \

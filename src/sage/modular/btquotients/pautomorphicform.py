@@ -954,7 +954,7 @@ class BruhatTitsHarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         A harmonic cocycle in self.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: X = BruhatTitsQuotient(5,23)
             sage: H = X.harmonic_cocycles(2,prec=10)

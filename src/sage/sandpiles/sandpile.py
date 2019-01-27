@@ -321,6 +321,8 @@ from copy import deepcopy
 from inspect import getdoc
 from textwrap import dedent
 
+from IPython.lib import pretty
+
 import os  # CHECK: possibly unnecessary after removing 4ti2-dependent methods
 from sage.calculus.functional import derivative
 from sage.combinat.integer_vector import integer_vectors_nk_fast_iter
@@ -2004,7 +2006,7 @@ class Sandpile(DiGraph):
         r"""
         Find representatives for the elements of the Jacobian group.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: s = sandpiles.Complete(3)
             sage: s._set_jacobian_representatives()
@@ -3468,8 +3470,9 @@ class SandpileConfig(dict):
 
     def values(self):
         r"""
-        The values of the configuration as a list.  The list is sorted in the
-        order of the vertices.
+        The values of the configuration as a list.
+
+        The list is sorted in the order of the vertices.
 
         OUTPUT:
 
@@ -3479,14 +3482,14 @@ class SandpileConfig(dict):
 
         EXAMPLES::
 
-            sage: S = Sandpile({'a':[1,'b'], 'b':[1,'a'], 1:['a']},'a')
-            sage: c = SandpileConfig(S, {'b':1, 1:2})
+            sage: S = Sandpile({'a':['c','b'], 'b':['c','a'], 'c':['a']},'a')
+            sage: c = SandpileConfig(S, {'b':1, 'c':2})
             sage: c
-            {1: 2, 'b': 1}
+            {'b': 1, 'c': 2}
             sage: c.values()
-            [2, 1]
+            [1, 2]
             sage: S.nonsink_vertices()
-            [1, 'b']
+            ['b', 'c']
         """
         return [self[v] for v in self._vertices]
 
@@ -4175,6 +4178,15 @@ class SandpileConfig(dict):
         else:
             T.show(**kwds)
 
+
+# Note: There ought to be a better way to do this: sage.repl.display is
+# intended to help extend pretty-printing capabilities but it still doesn't
+# provide an interface to do something as simple as this (in this case we are
+# informing IPython that SandpileConfig, being a dict subclass, should be
+# pretty-printed in the same way a dict)
+pretty.for_type(SandpileConfig, pretty.for_type(dict, None))
+
+
 ###############################################
 ########### SandpileDivisor Class #############
 ###############################################
@@ -4738,8 +4750,9 @@ class SandpileDivisor(dict):
 
     def values(self):
         r"""
-        The values of the divisor as a list.  The list is sorted in the order of
-        the vertices.
+        The values of the divisor as a list.
+
+        The list is sorted in the order of the vertices.
 
         OUTPUT:
 
@@ -4749,14 +4762,14 @@ class SandpileDivisor(dict):
 
         EXAMPLES::
 
-            sage: S = Sandpile({'a':[1,'b'], 'b':[1,'a'], 1:['a']},'a')
-            sage: D = SandpileDivisor(S, {'a':0, 'b':1, 1:2})
+            sage: S = Sandpile({'a':['c','b'], 'b':['c','a'], 'c':['a']},'a')
+            sage: D = SandpileDivisor(S, {'a':0, 'b':1, 'c':2})
             sage: D
-            {'a': 0, 1: 2, 'b': 1}
+            {'a': 0, 'b': 1, 'c': 2}
             sage: D.values()
-            [2, 0, 1]
+            [0, 1, 2]
             sage: S.vertices()
-            [1, 'a', 'b']
+            ['a', 'b', 'c']
         """
         return [self[v] for v in self._vertices]
 
@@ -6052,6 +6065,10 @@ class SandpileDivisor(dict):
                 a[i] = str(i) + ":" + str(T[i])
             T.relabel(a)
         T.show(**kwds)
+
+
+# See note about this after the definition of SandpileConfig
+pretty.for_type(SandpileDivisor, pretty.for_type(dict, None))
 
 #######################################
 ######### Some test graphs ############

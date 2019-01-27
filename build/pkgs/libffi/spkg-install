@@ -1,0 +1,12 @@
+if [ "$SAGE_FAT_BINARY" = "yes" ]; then
+    LIBFFI_CONFIGURE="--enable-portable-binary $LIBFFI_CONFIGURE"
+fi
+
+if [ "$SAGE_DEBUG" = "yes" ]; then
+    LIBFFI_CONFIGURE="--enable-debug $LIBFFI_CONFIGURE"
+fi
+
+cd src
+sdh_configure $LIBFFI_CONFIGURE
+sdh_make
+sdh_make_install

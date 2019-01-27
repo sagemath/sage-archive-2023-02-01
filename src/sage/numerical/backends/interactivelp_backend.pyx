@@ -746,14 +746,14 @@ cdef class InteractiveLPBackend:
         """
         return self.lp.problem_type() == "max"
 
-    cpdef problem_name(self, char * name = NULL):
+    cpdef problem_name(self, name=None):
         """
         Return or define the problem's name
 
         INPUT:
 
-        - ``name`` (``char *``) -- the problem's name. When set to
-          ``NULL`` (default), the method returns the problem's name.
+        - ``name`` (``str``) -- the problem's name. When set to
+          ``None`` (default), the method returns the problem's name.
 
         EXAMPLES::
 
@@ -763,7 +763,7 @@ cdef class InteractiveLPBackend:
             sage: print(p.problem_name())
             There_once_was_a_french_fry
         """
-        if name == NULL:
+        if name is None:
             if self.prob_name is not None:
                 return self.prob_name
             else:

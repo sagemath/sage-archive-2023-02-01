@@ -196,6 +196,8 @@ esac
 # Check general programs
 ###############################################################################
 
+AC_PROG_SED
+
 AC_CHECK_PROG(found_ar, ar, yes, no)
 if test x$found_ar != xyes
 then

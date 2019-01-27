@@ -129,7 +129,6 @@ def KneserGraph(n,k):
 
     return g
 
-from sage.graphs.graph import Graph
 
 def FurerGadget(k, prefix=None):
     r"""
@@ -204,7 +203,6 @@ def FurerGadget(k, prefix=None):
          (('Prefix', (1, 2)), ('Prefix', (2, 'a')), None)]
     """
     from itertools import repeat as rep, chain, combinations
-    from sage.graphs.graph import DiGraph
     if k <= 0:
         raise ValueError("The order of the Furer gadget must be greater than zero")
     G = Graph()
@@ -229,6 +227,7 @@ def FurerGadget(k, prefix=None):
         powerset = [(prefix,s) for s in powerset]
     partition.append(powerset)
     return G, partition
+
 
 def CaiFurerImmermanGraph(G, twisted=False):
     r"""
@@ -318,7 +317,6 @@ def CaiFurerImmermanGraph(G, twisted=False):
     newG = Graph()
     total_partition = []
     edge_index = {}
-    ps_partition = []
     for v in G:
         Fk, p = FurerGadget(G.degree(v), v)
         total_partition += p
@@ -340,7 +338,7 @@ def CaiFurerImmermanGraph(G, twisted=False):
             isConnected = False
         newG.add_edge(edge_va, edge_ua)
         newG.add_edge(edge_vb, edge_ub)
-    if(twisted and G.is_connected()):
+    if twisted and G.is_connected():
         s = " twisted"
     else:
         s = ""
@@ -415,6 +413,7 @@ def EgawaGraph(p, s):
                 u = prefix + (el,) + suffix
                 g.add_edge(v,u)
     return g
+
 
 def HammingGraph(n, q, X=None):
     r"""
@@ -3177,15 +3176,16 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
         sage: ff = list(map(lambda y: (y[0]-1,y[1]-1),
         ....:          Permutation(map(lambda x: 1+r.index(x^-1), r)).cycle_tuples()[1:]))
         sage: L = sum(i*(r[a]-r[b]) for i,(a,b) in zip(range(1,len(ff)+1), ff)); L
-        [ 0 -1  1 -2 -3 -4  2  4  3]
-        [ 1  0 -1 -4 -2 -3  3  2  4]
-        [-1  1  0 -3 -4 -2  4  3  2]
-        [ 2  4  3  0 -1  1 -2 -3 -4]
-        [ 3  2  4  1  0 -1 -4 -2 -3]
-        [ 4  3  2 -1  1  0 -3 -4 -2]
-        [-2 -3 -4  2  4  3  0 -1  1]
-        [-4 -2 -3  3  2  4  1  0 -1]
-        [-3 -4 -2  4  3  2 -1  1  0]
+        [ 0  1 -1 -3 -2 -4  3  4  2]
+        [-1  0  1 -4 -3 -2  2  3  4]
+        [ 1 -1  0 -2 -4 -3  4  2  3]
+        [ 3  4  2  0  1 -1 -3 -2 -4]
+        [ 2  3  4 -1  0  1 -4 -3 -2]
+        [ 4  2  3  1 -1  0 -2 -4 -3]
+        [-3 -2 -4  3  4  2  0  1 -1]
+        [-4 -3 -2  2  3  4 -1  0  1]
+        [-2 -4 -3  4  2  3  1 -1  0]
+
         sage: G.relabel()
         sage: G3x3=graphs.MathonPseudocyclicStronglyRegularGraph(2,G=G,L=L)
         sage: G3x3.is_strongly_regular(parameters=True)

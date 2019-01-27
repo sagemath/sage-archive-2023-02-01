@@ -2024,7 +2024,7 @@ class Graph(GenericGraph):
         vertex is the unique apex vertex ::
 
             sage: G = graphs.Grid2dGraph(4,4)
-            sage: G.apex_vertices() == G.vertices()
+            sage: set(G.apex_vertices()) == set(G.vertices())
             True
             sage: G.add_edges([('universal',v) for v in G])
             sage: G.apex_vertices()
@@ -2086,7 +2086,8 @@ class Graph(GenericGraph):
 
         # Easy cases: null graph, subgraphs of K_5 and K_3,3
         if self.order() <= 5 or (self.order() <= 6 and self.is_bipartite()):
-            return self.vertices()[:k]
+            it = self.vertex_iterator()
+            return [next(it) for _ in range(k)]
 
 
         if not self.is_connected():
@@ -2097,20 +2098,25 @@ class Graph(GenericGraph):
 
             P = [H for H in self.connected_components_subgraphs() if not H.is_planar()]
             if not P: # The graph is planar
-                return self.vertices()[:k]
+                it = self.vertex_iterator()
+                return [next(it) for _ in range(k)]
             elif len(P) > 1:
                 return []
             else:
                 # We proceed with the non planar component
-                H = Graph(P[0].edges(labels=0), immutable=False, loops=False, multiedges=False) if P[0].is_immutable() else P[0]
+                if P[0].is_immutable():
+                    H = Graph(P[0].edges(labels=0, sort=False), immutable=False, loops=False, multiedges=False)
+                else:
+                    H = P[0]
 
         elif self.is_planar():
             # A planar graph is apex.
-            return self.vertices()[:k]
+            it = self.vertex_iterator()
+            return [next(it) for _ in range(k)]
 
         else:
             # We make a basic copy of the graph since we will modify it
-            H = Graph(self.edges(labels=0), immutable=False, loops=False, multiedges=False)
+            H = Graph(self.edges(labels=0, sort=False), immutable=False, loops=False, multiedges=False)
 
 
         # General case: basic implementation
@@ -2779,7 +2785,7 @@ class Graph(GenericGraph):
         if k is not None and k >= g.order() - 1:
             if certificate:
                 from sage.sets.set import Set
-                return Graph({Set(g.vertices()):[]}, name="Tree decomposition")
+                return Graph({Set(g): []}, name="Tree decomposition")
             return True
 
         # TDLIB
@@ -2807,8 +2813,9 @@ class Graph(GenericGraph):
                     return all(cc.treewidth(k) for cc in g.connected_components_subgraphs())
             else:
                 T = [cc.treewidth(certificate=True) for cc in g.connected_components_subgraphs()]
-                tree = Graph([sum([t.vertices() for t in T],[]), sum([t.edges(labels=False) for t in T],[])],
-                                 format='vertices_and_edges', name="Tree decomposition")
+                tree = Graph([sum([list(t) for t in T], []),
+                              sum([t.edges(labels=False, sort=False) for t in T], [])],
+                             format='vertices_and_edges', name="Tree decomposition")
                 v = next(T[0].vertex_iterator())
                 for t in T[1:]:
                     tree.add_edge(next(t.vertex_iterator()),v)
@@ -2850,7 +2857,7 @@ class Graph(GenericGraph):
 
                 # Removing v may have disconnected cc. We iterate on its
                 # connected components
-                for cci in g.subgraph(ccv).connected_components():
+                for cci in g.subgraph(ccv).connected_components(sort=False):
 
                     # The recursive subcalls. We remove on-the-fly the vertices
                     # from the cut which play no role in separating the
@@ -2873,7 +2880,7 @@ class Graph(GenericGraph):
             return False
 
         # Main call to rec function, i.e. rec({v}, V-{v})
-        V = g.vertices()
+        V = list(g)
         v = frozenset([V.pop()])
         TD = rec(v, frozenset(V))
 
@@ -2896,7 +2903,7 @@ class Graph(GenericGraph):
         changed = True
         while changed:
             changed = False
-            for v in G.vertices():
+            for v in G.vertices(sort=False):
                 for u in G.neighbor_iterator(v):
                     if u.issuperset(v):
                         G.merge_vertices([u, v]) # the new vertex is named 'u'
@@ -3685,7 +3692,7 @@ class Graph(GenericGraph):
         if not n:
             return DiGraph()
 
-        vertices = self.vertices()
+        vertices = list(self)
         vertices_id = {y: x for x,y in enumerate(vertices)}
 
         b = {}
@@ -7648,9 +7655,9 @@ class Graph(GenericGraph):
         if not self.is_connected():
             g = Graph()
             for cc in self.connected_components_subgraphs():
-                g = g.union(cc._gomory_hu_tree(frozenset(cc.vertices()), algorithm=algorithm))
+                g = g.union(cc._gomory_hu_tree(frozenset(cc.vertex_iterator()), algorithm=algorithm))
         else:
-            g = self._gomory_hu_tree(frozenset(self.vertices()), algorithm=algorithm)
+            g = self._gomory_hu_tree(frozenset(self.vertex_iterator()), algorithm=algorithm)
 
         if self.get_pos() is not None:
             g.set_pos(dict(self.get_pos()))

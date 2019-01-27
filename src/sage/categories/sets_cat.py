@@ -1102,12 +1102,10 @@ class Sets(Category_singleton):
                     rebuilt_element = self(an_element)
                 except NotImplementedError:
                     tester.info("\n  The set doesn't seems to implement __call__; skipping test of construction idempotency")
-                    pass
                 else:
                     tester.assertEqual(rebuilt_element, an_element, "element construction is not idempotent")
 
-
-        def _test_elements(self, tester = None, **options):
+        def _test_elements(self, tester=None, **options):
             """
             Run generic tests on element(s) of ``self``.
 

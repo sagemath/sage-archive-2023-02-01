@@ -2383,7 +2383,7 @@ def repr_lincomb(symbols, coeffs):
         sage: x = EllipticCurve('64a1').modular_symbol_space(sign=1).basis()[0]
         sage: from sage.misc.latex import repr_lincomb
         sage: latex(x.modular_symbol_rep())
-        \left\{\frac{-1}{3}, \frac{-1}{4}\right\} - \left\{\frac{1}{5}, \frac{1}{4}\right\}
+        \left\{\frac{-3}{11}, \frac{-1}{4}\right\} - \left\{\frac{3}{13}, \frac{1}{4}\right\}
 
     Verify that it works when the symbols are numbers::
 
@@ -2821,7 +2821,7 @@ should get a nice picture."""
             """
             String representation
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: from sage.misc.latex import latex_examples
                 sage: len(latex_examples.knot()._repr_()) > 300
@@ -2873,7 +2873,7 @@ should get a nice picture.
             """
             String representation
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: from sage.misc.latex import latex_examples
                 sage: len(latex_examples.diagram()._repr_()) > 300

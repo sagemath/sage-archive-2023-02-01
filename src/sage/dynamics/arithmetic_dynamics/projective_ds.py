@@ -5075,7 +5075,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         ALGORITHM:
 
-        Implementing invariant set algorithim from the paper [FMV2014]_.
+        Implementing invariant set algorithm from the paper [FMV2014]_.
         Given that the set of  `n` th preimages of fixed points is
         invariant under conjugation find all elements of PGL that
         take one set to another.
@@ -5222,7 +5222,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         ALGORITHM:
 
-        Implementing invariant set algorithim from the paper [FMV2014]_.
+        Implementing invariant set algorithm from the paper [FMV2014]_.
         Given that the set of `n` th preimages is invariant under
         conjugation this function finds whether two maps are conjugate.
 

@@ -2,7 +2,7 @@
 The symbolic ring
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
 #       Copyright (C) 2008 Burcin Erocal <burcin@erocal.org>
 #
@@ -10,8 +10,8 @@ The symbolic ring
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import
 
 from sage.ext.cplusplus cimport ccrepr
@@ -32,7 +32,8 @@ from sage.structure.coerce cimport is_numpy_type
 from sage.rings.all import RR, CC, ZZ
 
 import operator
-
+import parser
+    
 cdef class SymbolicRing(CommutativeRing):
     """
     Symbolic Ring, parent object for all symbolic expressions.
@@ -1073,7 +1074,20 @@ cdef class SymbolicRing(CommutativeRing):
         from .subring import SymbolicSubring
         return SymbolicSubring(*args, **kwds)
 
+    def _fricas_init_(self):
+        """
+        Return a FriCAS representation of ``self``.
+
+        EXAMPLES::
+
+            sage: fricas(SR)          # indirect doctest, optional - fricas
+            Expression(Integer)
+        """
+        return 'Expression Integer'
+
+
 SR = SymbolicRing()
+
 
 cdef unsigned sage_domain_to_ginac_domain(object domain) except? 3474701533:
     """
@@ -1318,6 +1332,7 @@ def is_SymbolicVariable(x):
     """
     return is_Expression(x) and is_a_symbol((<Expression>x)._gobj)
 
+
 def isidentifier(x):
     """
     Return whether ``x`` is a valid identifier.
@@ -1327,7 +1342,7 @@ def isidentifier(x):
 
     INPUT:
 
-    - ``x`` -- a string.
+    - ``x`` -- a string
 
     OUTPUT:
 
@@ -1350,10 +1365,15 @@ def isidentifier(x):
         True
         sage: isidentifier('lambda s:s+1')
         False
+        sage: isidentifier('None')
+        True
     """
-    import parser
+    try:
+        return x.isidentifier()  # py3
+    except AttributeError:
+        pass  # py2
     try:
         code = parser.expr(x).compile()
-    except (MemoryError, OverflowError, SyntaxError, SystemError, parser.ParserError), msg:
+    except (MemoryError, OverflowError, SyntaxError, SystemError, parser.ParserError):
         return False
     return len(code.co_names) == 1 and code.co_names[0] == x

@@ -191,7 +191,7 @@ def _strong_orientations_of_a_mixed_graph(Dg, V, E):
     - an iterator which will produce all strong orientations of the input
       partially directed graph.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.graphs.orientations import _strong_orientations_of_a_mixed_graph
         sage: g = graphs.CycleGraph(5)

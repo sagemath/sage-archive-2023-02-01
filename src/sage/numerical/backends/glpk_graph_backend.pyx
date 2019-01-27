@@ -1143,7 +1143,7 @@ cdef class GLPKGraphBackend(object):
             sage: v_dict = {}
             sage: for i, v in enumerate(vs):
             ....:     v_dict[v] = vertices[i]
-            sage: gbe.set_vertices_demand(v_dict.items())
+            sage: gbe.set_vertices_demand(list(v_dict.items()))
             sage: cost = ((8, 6, 10, 9), (9, 12, 13, 7), (14, 9, 16, 5))
 
             sage: for i in range(len(cost)):

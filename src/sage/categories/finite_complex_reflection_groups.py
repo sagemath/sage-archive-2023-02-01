@@ -191,7 +191,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
             - ``options`` -- any keyword arguments accepted by :meth:`_tester`
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: from sage.categories.complex_reflection_groups import ComplexReflectionGroups
                 sage: W = ComplexReflectionGroups().Finite().example(); W   # optional - gap3
@@ -246,7 +246,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
             - ``options`` -- any keyword arguments accepted by :meth:`_tester`
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: from sage.categories.complex_reflection_groups import ComplexReflectionGroups
                 sage: W = ComplexReflectionGroups().Finite().example(); W   # optional - gap3

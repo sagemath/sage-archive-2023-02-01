@@ -111,16 +111,17 @@ class HasseDiagram(DiGraph):
 
     def linear_extensions(self):
         r"""
-        Return all linear extensions
+        Return an iterator over all linear extensions.
 
         TESTS::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[1,2],1:[3],2:[3],3:[]})
-            sage: H.linear_extensions()
+            sage: list(H.linear_extensions())
             [[0, 1, 2, 3], [0, 2, 1, 3]]
         """
-        return self.topological_sort_generator()
+        from sage.combinat.combinat_cython import linear_extension_iterator
+        return linear_extension_iterator(self)
 
     def greedy_linear_extensions_iterator(self):
         r"""
@@ -544,9 +545,7 @@ class HasseDiagram(DiGraph):
             False
         """
         from itertools import combinations
-        from sage.misc.misc import uniq
-
-        elms_sorted = uniq(elms)
+        elms_sorted = sorted(set(elms))
         return not any(self.is_lequal(a, b) for a, b in
                        combinations(elms_sorted, 2))
 
@@ -734,14 +733,14 @@ class HasseDiagram(DiGraph):
             sage: f = H.rank_function()
             sage: s = dumps(H)
         """
-        if(self._rank is None):
+        if self._rank is None:
             return None
         return self._rank.__getitem__ # the rank function is just the getitem of the list
 
     @lazy_attribute
     def _rank(self):
         r"""
-        Builds the rank function of the poset, if it exists, i.e.
+        Build the rank function of the poset, if it exists, i.e.
         an array ``d`` where ``d[object] = self.rank_function()(object)``
 
         A *rank function* of a poset `P` is a function `r`
@@ -2880,7 +2879,7 @@ class HasseDiagram(DiGraph):
 
         So, we only check join irreducibles or meet irreducibles,
         whichever is a smaller set. To optimize more we stop computation
-        whenever it founds a pair that we know to generate one-element
+        whenever it finds a pair that we know to generate one-element
         congruence.
         """
         join_irreducibles = [v for v in self if self.in_degree(v) == 1]

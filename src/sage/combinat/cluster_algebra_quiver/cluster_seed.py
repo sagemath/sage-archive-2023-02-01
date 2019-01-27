@@ -1243,7 +1243,7 @@ class ClusterSeed(SageObject):
 
     def free_vertices(self):
         r"""
-        Return the list of *exchangable vertices* of ``self``.
+        Return the list of *exchangeable vertices* of ``self``.
 
         EXAMPLES::
 
@@ -1252,7 +1252,7 @@ class ClusterSeed(SageObject):
             sage: S.free_vertices()
             ['a', 'c', 'e']
 
-            sage: S=ClusterSeed(DiGraph([[5, 'b']]))
+            sage: S = ClusterSeed(DiGraph([[5, 'b']]))
             sage: S.free_vertices()
             [5, 'b']
         """

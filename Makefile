@@ -84,7 +84,6 @@ misc-clean:
 	rm -f aclocal.m4 config.log config.status confcache
 	rm -rf autom4te.cache
 	rm -f build/make/Makefile build/make/Makefile-auto
-	rm -f .BUILDSTART
 
 bdist-clean: clean
 	$(MAKE) misc-clean
@@ -145,6 +144,7 @@ fast-rebuild-clean: misc-clean bdist-clean
 
 TESTALL = ./sage -t --all
 PTESTALL = ./sage -t -p --all
+PTEST_PYTHON3 = cat src/ext/doctest/python3-known-passing.txt | xargs ./sage -t --long -p
 
 # Flags for ./sage -t --all.
 # By default, include all tests marked 'dochtml' -- see
@@ -190,6 +190,9 @@ ptestoptional: all
 ptestoptionallong: all
 	$(PTESTALL) --long --logfile=logs/ptestoptionallong.log
 
+ptest-python3: buildbot-python3
+	$(PTEST_PYTHON3) --logfile=logs/ptest_python3.log
+
 configure: configure.ac src/bin/sage-version.sh m4/*.m4 build/pkgs/*/spkg-configure.m4
 	./bootstrap -d
 
@@ -210,4 +213,4 @@ list:
 	misc-clean bdist-clean distclean bootstrap-clean maintainer-clean \
 	test check testoptional testall testlong testoptionallong testallong \
 	ptest ptestoptional ptestall ptestlong ptestoptionallong ptestallong \
-	buildbot-python3 list
+	buildbot-python3 ptest-python3 list

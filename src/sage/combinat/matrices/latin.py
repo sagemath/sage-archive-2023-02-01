@@ -141,7 +141,6 @@ from sage.interfaces.gap import gap
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.arith.all import is_prime
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
-from sage.misc.misc import uniq
 from sage.misc.flatten import flatten
 
 from .dlxcpp import DLXCPP
@@ -475,8 +474,7 @@ class LatinSquare:
             sage: L.is_empty_column(0)
             True
         """
-
-        return uniq(self.column(c)) == [-1]
+        return list(set(self.column(c))) == [-1]
 
     def is_empty_row(self, r):
         """
@@ -492,8 +490,7 @@ class LatinSquare:
             sage: L.is_empty_row(0)
             True
         """
-
-        return uniq(self.row(r)) == [-1]
+        return list(set(self.row(r))) == [-1]
 
     def nr_distinct_symbols(self):
         """
@@ -513,10 +510,8 @@ class LatinSquare:
             sage: L.nr_distinct_symbols()
             2
         """
-
-        symbols = uniq(flatten([list(x) for x in list(self.square)]))
+        symbols = set(flatten([list(x) for x in list(self.square)]))
         symbols = [x for x in symbols if x >= 0]
-
         return len(symbols)
 
     def apply_isotopism(self, row_perm, col_perm, sym_perm):
@@ -1193,7 +1188,7 @@ class LatinSquare:
                 # If this is an empty cell of self then we do nothing.
                 if self[r, c] < 0: continue
 
-                for e in uniq(list(valsrow) + list(valscol)):
+                for e in sorted(set(list(valsrow) + list(valscol))):
                     # These should be constants
                     c_OFFSET  = e + c*n
                     r_OFFSET  = e + r*n + n*n

@@ -300,7 +300,7 @@ cdef dict _coerce_op_symbols = dict(
         iadd='+', isub='-', imul='*', itruediv='/', ifloordiv='//', imod='%', ipow='^')
 
 from sage.structure.richcmp cimport rich_to_bool
-from sage.structure.coerce cimport py_scalar_to_element
+from sage.structure.coerce cimport py_scalar_to_element, coercion_model
 from sage.structure.parent cimport Parent
 from sage.cpython.type cimport can_assign_class
 from sage.cpython.getattr cimport getattr_from_other_class
@@ -4105,30 +4105,8 @@ def coerce(Parent p, x):
     except AttributeError:
         return p(x)
 
-# We define this base class here to avoid circular cimports.
-cdef class CoercionModel:
-    """
-    Most basic coercion scheme. If it doesn't already match, throw an error.
-    """
-    cpdef canonical_coercion(self, x, y):
-        if parent(x) is parent(y):
-            return x,y
-        raise TypeError("no common canonical parent for objects with parents: '%s' and '%s'"%(parent(x), parent(y)))
 
-    cpdef bin_op(self, x, y, op):
-        if parent(x) is parent(y):
-            return op(x,y)
-        raise bin_op_exception(op, x, y)
-
-    cpdef richcmp(self, x, y, int op):
-        x, y = self.canonical_coercion(x, y)
-        return PyObject_RichCompare(x, y, op)
-
-
-from . import coerce
-cdef CoercionModel coercion_model = coerce.CoercionModel_cache_maps()
-
-# Make this accessible as Python object
+# Make coercion_model accessible as Python object
 globals()["coercion_model"] = coercion_model
 
 
@@ -4141,7 +4119,7 @@ def get_coercion_model():
        sage: import sage.structure.element as e
        sage: cm = e.get_coercion_model()
        sage: cm
-       <sage.structure.coerce.CoercionModel_cache_maps object at ...>
+       <sage.structure.coerce.CoercionModel object at ...>
        sage: cm is coercion_model
        True
     """

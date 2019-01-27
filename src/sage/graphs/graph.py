@@ -6843,20 +6843,21 @@ class Graph(GenericGraph):
             [[0, 4], [1, 2, 3, 4]]
             sage: C.cliques_containing_vertex(cliques=E)
             {0: [[0, 4]], 1: [[1, 2, 3, 4]], 2: [[1, 2, 3, 4]], 3: [[1, 2, 3, 4]], 4: [[0, 4], [1, 2, 3, 4]]}
-            sage: F = graphs.Grid2dGraph(2,3)
-            sage: F.cliques_containing_vertex()
-            {(0, 0): [[(0, 1), (0, 0)], [(1, 0), (0, 0)]],
-             (0, 1): [[(0, 1), (0, 0)], [(0, 1), (0, 2)], [(0, 1), (1, 1)]],
-             (0, 2): [[(0, 1), (0, 2)], [(1, 2), (0, 2)]],
-             (1, 0): [[(1, 0), (0, 0)], [(1, 0), (1, 1)]],
-             (1, 1): [[(0, 1), (1, 1)], [(1, 2), (1, 1)], [(1, 0), (1, 1)]],
-             (1, 2): [[(1, 2), (1, 1)], [(1, 2), (0, 2)]]}
-            sage: F.cliques_containing_vertex(vertices=[(0, 1), (1, 2)])
-            {(0, 1): [[(0, 1), (0, 0)], [(0, 1), (0, 2)], [(0, 1), (1, 1)]], (1, 2): [[(1, 2), (1, 1)], [(1, 2), (0, 2)]]}
+
             sage: G = Graph({0:[1,2,3], 1:[2], 3:[0,1]})
             sage: G.show(figsize=[2,2])
             sage: G.cliques_containing_vertex()
             {0: [[0, 1, 2], [0, 1, 3]], 1: [[0, 1, 2], [0, 1, 3]], 2: [[0, 1, 2]], 3: [[0, 1, 3]]}
+
+        Since each clique of a 2 dimensional grid corresponds to an edge, the
+        number of cliques in which a vertex is involved equals its degree::
+
+            sage: F = graphs.Grid2dGraph(2,3)
+            sage: d = F.cliques_containing_vertex()
+            sage: all(F.degree(u) == len(cliques) for u,cliques in d.items())
+            True
+            sage: F.cliques_containing_vertex(vertices=[(0, 1)])
+            {(0, 1): [[(0, 1), (0, 0)], [(0, 1), (0, 2)], [(0, 1), (1, 1)]]}
 
         """
         import networkx
@@ -8029,20 +8030,22 @@ class Graph(GenericGraph):
         EXAMPLES::
 
             sage: G=graphs.GridGraph([2,3])
-            sage: list(G.perfect_matchings())
-            [[((0, 0), (0, 1)), ((0, 2), (1, 2)), ((1, 0), (1, 1))],
-             [((0, 1), (0, 2)), ((1, 1), (1, 2)), ((0, 0), (1, 0))],
-             [((0, 1), (1, 1)), ((0, 2), (1, 2)), ((0, 0), (1, 0))]]
+            sage: for m in G.perfect_matchings():
+            ....:     print(sorted(m))
+            [((0, 0), (0, 1)), ((0, 2), (1, 2)), ((1, 0), (1, 1))]
+            [((0, 0), (1, 0)), ((0, 1), (0, 2)), ((1, 1), (1, 2))]
+            [((0, 0), (1, 0)), ((0, 1), (1, 1)), ((0, 2), (1, 2))]
 
             sage: G = graphs.CompleteGraph(4)
-            sage: list(G.perfect_matchings(labels=True))
-            [[(0, 1, None), (2, 3, None)],
-             [(0, 2, None), (1, 3, None)],
-             [(0, 3, None), (1, 2, None)]]
+            sage: for m in G.perfect_matchings(labels=True):
+            ....:     print(sorted(m))
+            [(0, 1, None), (2, 3, None)]
+            [(0, 2, None), (1, 3, None)]
+            [(0, 3, None), (1, 2, None)]
 
-            sage: G = Graph([[1,-1,'a'], [2,-2, 'b'], [1,-2,'x'], [2,-1,'y']])
+            sage: G = Graph([(0, 1, 'a'), (0, 3, 'b'), (1, 2, 'c'), (2, 3, 'd')])
             sage: list(G.perfect_matchings(labels=True))
-            [[(-2, 1, 'x'), (-1, 2, 'y')], [(-2, 2, 'b'), (-1, 1, 'a')]]
+            [[(0, 1, 'a'), (2, 3, 'd')], [(0, 3, 'b'), (1, 2, 'c')]]
 
             sage: G = graphs.CompleteGraph(8)
             sage: mpc = G.matching_polynomial().coefficients(sparse=False)[0]

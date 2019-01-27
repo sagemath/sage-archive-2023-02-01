@@ -96,7 +96,7 @@ def load(filename, globals, attach=False):
     Loading an executable Sage script from the command prompt will run whatever
     code is inside an
 
-            if __name__ == "__main__":
+        if __name__ == "__main__":
 
     section, as the condition on ``__name__`` will hold true (code run from the
     command prompt is considered to be running in the ``__main__`` module.)

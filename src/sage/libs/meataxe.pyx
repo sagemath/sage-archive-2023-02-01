@@ -67,12 +67,12 @@ cdef Matrix_t *rawMatrix(int Field, list entries) except NULL:
 ## to make sure that MeatAxe is initialised.
 
 from cpython.bytes cimport PyBytes_AsString
-from sage.cpython.string cimport str_to_bytes
+from sage.cpython.string cimport str_to_bytes, char_to_str
 
 cdef void sage_meataxe_error_handler(const MtxErrorRecord_t *err):
     sig_block()
-    cdef bytes ErrText = err.Text
-    PyErr_SetObject(ErrMsg.get(ErrText.split(': ')[-1], RuntimeError), "{} in file {} (line {})".format(ErrText, err.FileInfo.BaseName, err.LineNo))
+    cdef str ErrText = char_to_str(err.Text)
+    PyErr_SetObject(ErrMsg.get(ErrText.split(': ')[-1], RuntimeError), "{} in file {} (line {})".format(ErrText, char_to_str(err.FileInfo.BaseName), err.LineNo))
     sig_unblock()
 
 cdef inline meataxe_init():

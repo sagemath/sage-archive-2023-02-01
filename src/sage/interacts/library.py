@@ -418,7 +418,7 @@ def trigonometric_properties_triangle(
     # are adjacent and the side c is opposite to the angle
     def angle(a, b, c):
         a,b,c = map(float,[a,b,c])
-        return acos((b**2 + c**2 - a**2)/(2*b*c))
+        return acos(0.5 * (b**2 + c**2 - a**2) / (b * c))
 
     # Returns the area of a triangle when an angle alpha
     # and adjacent sides a and b are known
@@ -454,14 +454,10 @@ def trigonometric_properties_triangle(
     labels = a_label + b_label + c_label
 
     show(unit_circle + triangle + triangle_points + labels, figsize=[5, 5], xmin=-1, xmax=1, ymin=-1, ymax=1)
-    angl_txt = r"$\angle A = {%s}^{\circ},$ $\angle B = {%s}^{\circ},$ $\angle C = {%s}^{\circ}$" % (
-            math.degrees(ak[0]),
-            math.degrees(ak[1]),
-            math.degrees(ak[2])
-        )
-    html(angl_txt)
-    html(r"$AB = %s,$  $BC = %s,$  $CA = %s$"%(al[2], al[0], al[1]))
-    html(r"Area of triangle $ABC = %s$"%A)
+    html(r"$\angle A = {%.3f}^{\circ},$ $\angle B = {%.3f}^{\circ},$ $\angle C = {%.3f}^{\circ}$"
+         % (math.degrees(ak[0]), math.degrees(ak[1]), math.degrees(ak[2])))
+    html(r"$AB = %.6f$, $BC = %.6f$, $CA = %.6f$" % (al[2], al[0], al[1]))
+    html(r"Area of triangle $ABC = %.6f$" % A)
 
 @library_interact
 def unit_circle(
@@ -1595,12 +1591,12 @@ def polar_prime_spiral(
             t = SR.var('t')
             a=1.0
             b=0.0
-            if n > (floor(sqrt(n)))**2 and n <= (floor(sqrt(n)))**2 + floor(sqrt(n)):
-                c = -((floor(sqrt(n)))**2 - n)
-                c2= -((floor(sqrt(n)))**2 + floor(sqrt(n)) - n)
+            S = int(sqrt(n))
+            if n <= S * (S + 1):
+                c = n - S**2
             else:
-                c = -((ceil(sqrt(n)))**2 - n)
-                c2= -((floor(sqrt(n)))**2 + floor(sqrt(n)) - n)
+                c = n - (S + 1)**2
+            c2 = n - S * (S + 1)
             html('Pink Curve:  $n^2 + %s$' % c)
             html('Green Curve: $n^2 + n + %s$' % c2)
             m = SR.var('m')

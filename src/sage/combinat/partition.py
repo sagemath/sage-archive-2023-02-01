@@ -6297,7 +6297,7 @@ class Partitions_all_bounded(Partitions):
             sage: [] in P
             True
         """
-        return len(x) == 0 or (x[0] <= self.k and Partitions.__contains__(self, x))
+        return not x or (x[0] <= self.k and x in _Partitions)
 
     def _repr_(self):
         """

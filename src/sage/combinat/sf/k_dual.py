@@ -593,13 +593,10 @@ class KBoundedQuotientBases(Category_realization_of_parent):
             """
             if isinstance(c, Partition):
                 assert len(rest) == 0
+            if rest or isinstance(c, (int, Integer)):
+                c = self._kbounded_partitions([c] + list(rest))
             else:
-                if len(rest) or isinstance(c, (int, Integer)):
-                    c = self._kbounded_partitions([c] + list(rest))
-                else:
-                    c = self._kbounded_partitions(list(c))
-            if c and c[0] > self.k:
-                raise ValueError("Partition is not %d-bounded" % self.k)
+                c = self._kbounded_partitions(list(c))
             return self.monomial(c)
 
         def _repr_term(self, c):

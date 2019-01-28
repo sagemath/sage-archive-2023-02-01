@@ -13,10 +13,10 @@ sys.path.append(os.path.join(SAGE_SRC, "sage_setup", "docbuild", "ext"))
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['inventory_builder', 'multidocs',
-              'sage_autodoc',  'sphinx.ext.graphviz',
-              'sphinx.ext.inheritance_diagram', 'sphinx.ext.todo',
-              'sphinx.ext.extlinks', 'matplotlib.sphinxext.plot_directive']
+extensions = ['inventory_builder', 'multidocs', 'sage_autodoc',
+              'sphinx.ext.graphviz', 'sphinx.ext.inheritance_diagram',
+              'sphinx.ext.todo', 'sphinx.ext.extlinks',
+              'matplotlib.sphinxext.plot_directive']
 
 # This code is executed before each ".. PLOT::" directive in the Sphinx
 # documentation. It defines a 'sphinx_plot' function that displays a Sage object
@@ -119,9 +119,11 @@ todo_include_todos = True
 
 
 # Cross-links to other project's online documentation.
+python_version = sys.version_info.major
 intersphinx_mapping = {
     'python': ('https://docs.python.org/',
-                os.path.join(SAGE_DOC_SRC, "common", "python.inv"))}
+                os.path.join(SAGE_DOC_SRC, "common",
+                             "python{}.inv".format(python_version)))}
 
 def set_intersphinx_mappings(app):
     """
@@ -404,7 +406,7 @@ latex_elements['preamble'] = r"""
 \fi
 
 \let\textLaTeX\LaTeX
-\renewcommand*{\LaTeX}{\hbox{\textLaTeX}}
+\AtBeginDocument{\renewcommand*{\LaTeX}{\hbox{\textLaTeX}}}
 """
 
 # Documents to append as an appendix to all manuals.
@@ -670,14 +672,19 @@ def find_sage_dangling_links(app, env, node, contnode):
     basename = reftarget.split(".")[0]
     try:
         target_module = getattr(sys.modules['sage.all'], basename).__module__
+        debug_inf(app, "++ found %s using sage.all in %s" % (basename, target_module))
     except AttributeError:
-        debug_inf(app, "-- %s not found in sage.all"%(basename))
-        return None
+        try:
+            target_module = getattr(sys.modules[node['py:module']], basename).__module__
+            debug_inf(app, "++ found %s in this module" % (basename,))
+        except AttributeError:
+            debug_inf(app, "-- %s not found in sage.all or this module" % (basename))
+            return None
+        except KeyError:
+            target_module = None
     if target_module is None:
         target_module = ""
         debug_inf(app, "?? found in None !!!")
-
-    debug_inf(app, "++ found %s using sage.all in %s"%(basename, target_module))
 
     newtarget = target_module+'.'+reftarget
     node['reftarget'] = newtarget

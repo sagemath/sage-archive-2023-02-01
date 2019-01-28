@@ -110,7 +110,7 @@ def _triangles(dg):
         [([(1, 0), (0, 2), (2, 1)], True)]
     """
     E = dg.edges(labels=False)
-    V = dg.vertices()
+    V = list(dg)
     trians = []
     flat_trians = []
     for e in E:
@@ -175,7 +175,7 @@ def _all_induced_cycles_iter( dg ):
                 if len(cycle) > 4:
                     sg = dg.subgraph(cycle)
                     is_oriented = True
-                    V = sg.vertices()
+                    V = list(sg)
                     while is_oriented and V:
                         v = V.pop()
                         if not sg.in_degree(v) == 1:
@@ -218,7 +218,7 @@ def _reset_dg(dg, vertices, dict_in_out, del_vertices):
         sage: from sage.combinat.cluster_algebra_quiver.mutation_type import _reset_dg
         sage: dg = ClusterQuiver(['A',[2,2],1]).digraph(); dg
         Digraph on 4 vertices
-        sage: vertices = dg.vertices()
+        sage: vertices = list(dg)
         sage: dict_in_out = {}
         sage: for v in vertices: dict_in_out[v] = (dg.in_degree(v), dg.out_degree(v), dg.degree(v))
         sage: _reset_dg(dg,vertices, dict_in_out, [1])
@@ -303,7 +303,8 @@ def _check_special_BC_cases(dg, n, check_letter_list, check_twist_list,
             # Now, tries to connect up the quiver components (keeping in mind ['D',3] - ['A',3] equivalence)
             if hope_letter == 'D' and mut_type._letter == 'A' and mut_type._rank == 3 and not mut_type._twist:
                 hope_letter = 'A'
-                if conn_vert_list: conn_verts = list( set(dg.vertices()).difference(conn_verts) )
+                if conn_vert_list:
+                    conn_verts = list(set(dg).difference(conn_verts))
             if mut_type._letter == hope_letter and not mut_type._twist and conn_vert.issubset(conn_verts):
                 if len(check_letter)>1:
                     check_twist = 1
@@ -333,7 +334,7 @@ def _connected_mutation_type(dg):
     # defining some shorthands
     n = dg.order()
     edges = dg.edges()
-    vertices = dg.vertices()
+    vertices = list(dg)
     # initializing lists of the edges with labels (2,-1) or (1,-2); (4,-1) or (1,-4); or (2,-2), respectively
     exc_labels = []
     exc_labels41 = []
@@ -832,7 +833,7 @@ def _connected_mutation_type_AAtildeD(dg, ret_conn_vert=False):
         'unknown'
     """
     # naming the vertices
-    vertices = dg.vertices()
+    vertices = list(dg)
     n = dg.order()
 
     # Test if ClusterQuiver(dg) is of type D_n Type 1, i.e. A_{n-2} plus two leaves
@@ -1284,9 +1285,8 @@ def load_data(n):
     data_dict = dict()
     for filename in [getfilename(DOT_SAGE),getfilename(SAGE_SHARE)]:
         if os.path.isfile(filename):
-            f = open(filename,'r')
-            data_new = cPickle.load(f)
-            f.close()
+            with open(filename, 'rb') as fobj:
+                data_new = cPickle.load(fobj)
             data_dict.update(data_new)
     return data_dict
 
@@ -1301,7 +1301,7 @@ def _mutation_type_from_data( n, dig6, compute_if_necessary=True ):
 
     EXAMPLES::
 
-        sage: from sage.combinat.cluster_algebra_quiver.mutation_class import _digraph_to_dig6, _dg_canonical_form
+        sage: from sage.combinat.cluster_algebra_quiver.mutation_class import _digraph_to_dig6
         sage: from sage.combinat.cluster_algebra_quiver.mutation_type import _mutation_type_from_data
         sage: from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
         sage: dg = ClusterQuiver(['F',4]).canonical_label().digraph()
@@ -1474,8 +1474,8 @@ def _random_tests(mt, k, mut_class=None, nr_mut=5):
                 # while making sure that we do not mutate back
                 mut_tmp = mut
                 while mut == mut_tmp:
-                    mut = random.randint(0,dg.order()-1)
-                dg_new = _digraph_mutate( dg, mut, dg.order(), 0 )
+                    mut = random.randint(0, dg.order() - 1)
+                dg_new = _digraph_mutate(dg, mut)
                 M = _edge_list_to_matrix(dg.edges(), list(range(dg.order())), [])
                 mt_new = _connected_mutation_type( dg_new )
                 if not mt == mt_new:

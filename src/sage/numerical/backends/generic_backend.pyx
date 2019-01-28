@@ -640,7 +640,6 @@ cdef class GenericBackend:
             sage: from sage.numerical.backends.generic_backend import GenericBackend
             sage: p = GenericBackend()
             sage: p._test_add_linear_constraints()
-            ...
             Traceback (most recent call last):
             ...
             NotImplementedError...
@@ -899,14 +898,14 @@ cdef class GenericBackend:
         """
         raise NotImplementedError()
 
-    cpdef problem_name(self, char * name = NULL):
+    cpdef problem_name(self, name=None):
         """
         Return or define the problem's name
 
         INPUT:
 
-        - ``name`` (``char *``) -- the problem's name. When set to
-          ``NULL`` (default), the method returns the problem's name.
+        - ``name`` (``str``) -- the problem's name. When set to
+          ``None`` (default), the method returns the problem's name.
 
         EXAMPLES::
 
@@ -919,7 +918,7 @@ cdef class GenericBackend:
 
         raise NotImplementedError()
 
-    cpdef write_lp(self, char * name):
+    cpdef write_lp(self, name):
         """
         Write the problem to a ``.lp`` file
 
@@ -939,7 +938,7 @@ cdef class GenericBackend:
         """
         raise NotImplementedError()
 
-    cpdef write_mps(self, char * name, int modern):
+    cpdef write_mps(self, name, int modern):
         """
         Write the problem to a ``.mps`` file
 

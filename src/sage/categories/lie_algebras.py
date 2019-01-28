@@ -607,6 +607,87 @@ class LieAlgebras(Category_over_base_ring):
                 True
             """
 
+        def bch(self, X, Y, prec=None):
+            r"""
+            Return the element `\log(\exp(X)\exp(Y))`.
+
+            The BCH formula is an expression for `\log(\exp(X)\exp(Y))`
+            as a sum of Lie brackets of ``X ` and ``Y`` with rational
+            coefficients. It is only defined if the base ring of
+            ``self`` has a coercion from the rationals.
+
+            INPUT:
+
+            - ``X`` -- an element of ``self``
+            - ``Y`` -- an element of ``self``
+            - ``prec`` -- an integer; the maximum length of Lie brackets to be
+              considered in the formula
+
+            EXAMPLES:
+
+            The BCH formula for the generators of a free nilpotent Lie
+            algebra of step 4::
+
+                sage: L = LieAlgebra(QQ, 2, step=4)
+                sage: L.inject_variables()
+                Defining X_1, X_2, X_12, X_112, X_122, X_1112, X_1122, X_1222
+                sage: L.bch(X_1, X_2)
+                X_1 + X_2 + 1/2*X_12 + 1/12*X_112 + 1/12*X_122 + 1/24*X_1122
+
+            An example of the BCH formula in a quotient::
+
+                sage: Q = L.quotient(X_112 + X_122)
+                sage: x, y = Q.basis().list()[:2]
+                sage: Q.bch(x, y)
+                X_1 + X_2 + 1/2*X_12 - 1/24*X_1112
+
+            The BCH formula for a non-nilpotent Lie algebra requires the
+            precision to be explicitly stated::
+
+                sage: L.<X,Y> = LieAlgebra(QQ)
+                sage: L.bch(X, Y)
+                Traceback (most recent call last):
+                ...
+                ValueError: the Lie algebra is not known to be nilpotent, so you must specify the precision
+                sage: L.bch(X, Y, 4)
+                X + 1/12*[X, [X, Y]] + 1/24*[X, [[X, Y], Y]] + 1/2*[X, Y] + 1/12*[[X, Y], Y] + Y
+
+            The BCH formula requires a coercion from the rationals::
+
+                sage: L.<X,Y,Z> = LieAlgebra(ZZ, 2, step=2)
+                sage: L.bch(X, Y)
+                Traceback (most recent call last):
+                ...
+                TypeError: the BCH formula is not well defined since Integer Ring has no coercion from Rational Field
+            """
+            if self not in LieAlgebras.Nilpotent and prec is None:
+                raise ValueError("the Lie algebra is not known to be nilpotent,"
+                                 " so you must specify the precision")
+            from sage.algebras.lie_algebras.bch import bch_iterator
+            if prec is None:
+                return self.sum(Z for Z in bch_iterator(X, Y))
+            bch = bch_iterator(X, Y)
+            return self.sum(next(bch) for k in range(prec))
+
+        baker_campbell_hausdorff = bch
+
+        @abstract_method(optional=True)
+        def lie_group(self, name='G', **kwds):
+            r"""
+            Return the simply connected Lie group related to ``self``.
+
+            INPUT:
+
+            - ``name`` -- string (default: ``'G'``);
+              the name (symbol) given to the Lie group
+
+            EXAMPLES::
+
+                sage: L = lie_algebras.Heisenberg(QQ, 1)
+                sage: G = L.lie_group('G'); G
+                Lie group G of Heisenberg algebra of rank 1 over Rational Field
+            """
+
         def _test_jacobi_identity(self, **options):
             """
             Test that the Jacobi identity is satisfied on (not
@@ -813,6 +894,42 @@ class LieAlgebras(Category_over_base_ring):
                 0
             """
             return self.parent().killing_form(self, x)
+
+        def exp(self, lie_group=None):
+            r"""
+            Return the exponential of ``self`` in ``lie_group``.
+
+            INPUT:
+
+            - ``lie_group`` -- (optional) the Lie group to map into;
+              If ``lie_group`` is not given, the Lie group associated to the
+              parent Lie algebra of ``self`` is used.
+
+            EXAMPLES::
+
+                sage: L.<X,Y,Z> = LieAlgebra(QQ, 2, step=2)
+                sage: g = (X + Y + Z).exp(); g
+                exp(X + Y + Z)
+                sage: h = X.exp(); h
+                exp(X)
+                sage: g.parent()
+                Lie group G of Free Nilpotent Lie algebra on 3 generators (X, Y, Z) over Rational Field
+                sage: g.parent() is h.parent()
+                True
+
+            The Lie group can be specified explicitly::
+
+                sage: H = L.lie_group('H')
+                sage: k = Z.exp(lie_group=H); k
+                exp(Z)
+                sage: k.parent()
+                Lie group H of Free Nilpotent Lie algebra on 3 generators (X, Y, Z) over Rational Field
+                sage: g.parent() == k.parent()
+                False
+            """
+            if lie_group is None:
+                lie_group = self.parent().lie_group()
+            return lie_group.exp(self)
 
 class LiftMorphism(Morphism):
     """

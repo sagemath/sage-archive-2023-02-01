@@ -8,16 +8,15 @@ AUTHORS:
 - Martin Albrecht & William Stein (2011-08): cfile & cargs
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import builtins
 from six import iteritems
@@ -445,7 +444,7 @@ def cython(filename, verbose=0, compile_message=False,
         sage: d = sage.misc.temporary_file.tmp_dir()
         sage: os.chdir(d)
         sage: with open("helper.pxd", 'w') as f:
-        ....:     f.write("cdef inline int the_answer(): return 42")
+        ....:     _ = f.write("cdef inline int the_answer(): return 42")
         sage: cython('''
         ....: from helper cimport the_answer
         ....: print(the_answer())
@@ -605,6 +604,8 @@ def cython(filename, verbose=0, compile_message=False,
                     extra_compile_args=extra_args,
                     language=language)
 
+    directives = dict(language_level=sys.version_info[0])
+
     try:
         # Change directories to target_dir so that Cython produces the correct
         # relative path; https://trac.sagemath.org/ticket/24097
@@ -613,6 +614,7 @@ def cython(filename, verbose=0, compile_message=False,
                 ext, = cythonize([ext],
                         aliases=cython_aliases(),
                         include_path=includes,
+                        compiler_directives=directives,
                         quiet=(verbose <= 0),
                         errors_to_stderr=False,
                         use_listing_file=True)
@@ -685,36 +687,6 @@ def cython(filename, verbose=0, compile_message=False,
                     os.curdir)
 
     return name, target_dir
-
-
-def subtract_from_line_numbers(s, n):
-    r"""
-    Given a string ``s`` and an integer ``n``, for any line of ``s`` which has
-    the form ``'text:NUM:text'`` subtract ``n`` from NUM and return
-    ``'text:(NUM-n):text'``. Return other lines of ``s`` without change.
-
-    EXAMPLES::
-
-        sage: from sage.misc.cython import subtract_from_line_numbers
-        sage: subtract_from_line_numbers('hello:1234:hello', 3)
-        doctest:...: DeprecationWarning: subtract_from_line_numbers is deprecated
-        See http://trac.sagemath.org/22805 for details.
-        'hello:1231:hello\n'
-        sage: subtract_from_line_numbers('text:123\nhello:1234:', 3)
-        'text:123\nhello:1231:\n'
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(22805, 'subtract_from_line_numbers is deprecated')
-
-    ans = []
-    for X in s.split('\n'):
-        i = X.find(':')
-        j = i+1 + X[i+1:].find(':')
-        try:
-            ans.append('%s:%s:%s\n'%(X[:i], int(X[i+1:j]) - n, X[j+1:]))
-        except ValueError:
-            ans.append(X)
-    return '\n'.join(ans)
 
 
 ################################################################

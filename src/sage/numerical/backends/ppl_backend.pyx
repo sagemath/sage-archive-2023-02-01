@@ -805,14 +805,14 @@ cdef class PPLBackend(GenericBackend):
         else:
             return 0
 
-    cpdef problem_name(self, char * name = NULL):
+    cpdef problem_name(self, name=None):
         """
         Return or define the problem's name
 
         INPUT:
 
-        - ``name`` (``char *``) -- the problem's name. When set to
-          ``NULL`` (default), the method returns the problem's name.
+        - ``name`` (``str``) -- the problem's name. When set to
+          ``None`` (default), the method returns the problem's name.
 
         EXAMPLES::
 
@@ -822,9 +822,9 @@ cdef class PPLBackend(GenericBackend):
             sage: print(p.problem_name())
             There once was a french fry
         """
-        if name == NULL:
+        if name is None:
             return self.name
-        self.name = str(<bytes>name)
+        self.name = name
 
     cpdef row(self, int i):
         """

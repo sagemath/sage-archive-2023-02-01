@@ -170,7 +170,7 @@ class FunctionFieldValuationFactory(UniqueFactory):
       isomorphisms to and from that function field
 
     EXAMPLES::
-    
+
         sage: K.<x> = FunctionField(QQ)
         sage: v = K.valuation(1); v # indirect doctest
         (x - 1)-adic valuation
@@ -202,7 +202,7 @@ class FunctionFieldValuationFactory(UniqueFactory):
 
         The normalization is, however, not smart enough, to unwrap
         substitutions that turn out to be trivial::
-        
+
             sage: w = GaussValuation(R, QQ.valuation(2))
             sage: w = K.valuation(w)
             sage: w is K.valuation((w, K.hom([~K.gen()]), K.hom([~K.gen()])))
@@ -695,7 +695,7 @@ class InducedRationalFunctionFieldValuation_base(FunctionFieldValuation_base):
             sage: from sage.rings.function_field.function_field_valuation import InducedRationalFunctionFieldValuation_base
             sage: isinstance(v, InducedRationalFunctionFieldValuation_base)
             True
-            
+
         """
         FunctionFieldValuation_base.__init__(self, parent)
 
@@ -714,7 +714,7 @@ class InducedRationalFunctionFieldValuation_base(FunctionFieldValuation_base):
             sage: K.<x> = FunctionField(QQ)
             sage: K.valuation(x).uniformizer()
             x
-            
+
         """
         return self.domain()(self._base_valuation.uniformizer())
 
@@ -840,7 +840,7 @@ class InducedRationalFunctionFieldValuation_base(FunctionFieldValuation_base):
             # comes from an extension of the field of constants
             # Condition "L.base() is L" is important so we do not call this
             # code for extensions from K(x) to K(x)(y)
-            
+
             # We extend the underlying valuation on the polynomial ring
             W = self._base_valuation.extensions(L._ring)
             return [L.valuation(w) for w in W]
@@ -857,7 +857,7 @@ class InducedRationalFunctionFieldValuation_base(FunctionFieldValuation_base):
             sage: v = K.valuation(x) # indirect doctest
             sage: v((x+1)/x^2)
             -2
-            
+
         """
         return self._base_valuation(f.numerator()) - self._base_valuation(f.denominator())
 
@@ -896,7 +896,7 @@ class InducedRationalFunctionFieldValuation_base(FunctionFieldValuation_base):
         Produce an element which differs from ``f`` by an element of
         valuation strictly greater than the valuation of ``f`` (or strictly
         greater than ``error`` if set.)
-        
+
         If ``force`` is not set, then expensive simplifications may be avoided.
 
         EXAMPLES::
@@ -959,7 +959,7 @@ class InducedRationalFunctionFieldValuation_base(FunctionFieldValuation_base):
         of coefficients is going to lead to a significant shrinking of the
         coefficients of ``f``.
 
-        EXAMPLES:: 
+        EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ)
             sage: v = K.valuation(0)
@@ -1012,13 +1012,13 @@ class FiniteRationalFunctionFieldValuation(InducedRationalFunctionFieldValuation
     def __init__(self, parent, base_valuation):
         r"""
         TESTS::
-    
+
             sage: K.<x> = FunctionField(QQ)
             sage: v = K.valuation(x + 1)
             sage: from sage.rings.function_field.function_field_valuation import FiniteRationalFunctionFieldValuation
             sage: isinstance(v, FiniteRationalFunctionFieldValuation)
             True
-    
+
         """
         InducedRationalFunctionFieldValuation_base.__init__(self, parent, base_valuation)
         ClassicalFunctionFieldValuation_base.__init__(self, parent)
@@ -1175,7 +1175,7 @@ class FunctionFieldMappedValuation_base(FunctionFieldValuation_base, MappedValua
     isomorphic function field.
 
     EXAMPLES::
-    
+
         sage: K.<x> = FunctionField(GF(2))
         sage: v = K.valuation(1/x); v
         Valuation at the infinite place
@@ -1184,13 +1184,13 @@ class FunctionFieldMappedValuation_base(FunctionFieldValuation_base, MappedValua
     def __init__(self, parent, base_valuation, to_base_valuation_domain, from_base_valuation_domain):
         r"""
         TESTS::
-    
+
             sage: K.<x> = FunctionField(GF(2))
             sage: v = K.valuation(1/x)
             sage: from sage.rings.function_field.function_field_valuation import FunctionFieldMappedValuation_base
             sage: isinstance(v, FunctionFieldMappedValuation_base)
             True
-    
+
         """
         FunctionFieldValuation_base.__init__(self, parent)
         MappedValuation_base.__init__(self, parent, base_valuation)
@@ -1296,7 +1296,7 @@ class FunctionFieldMappedValuationRelative_base(FunctionFieldMappedValuation_bas
     other function field is the identity on the constant field.
 
     EXAMPLES::
-    
+
         sage: K.<x> = FunctionField(GF(2))
         sage: v = K.valuation(1/x); v
         Valuation at the infinite place
@@ -1305,13 +1305,13 @@ class FunctionFieldMappedValuationRelative_base(FunctionFieldMappedValuation_bas
     def __init__(self, parent, base_valuation, to_base_valuation_domain, from_base_valuation_domain):
         r"""
         TESTS::
-    
+
             sage: K.<x> = FunctionField(GF(2))
             sage: v = K.valuation(1/x)
             sage: from sage.rings.function_field.function_field_valuation import FunctionFieldMappedValuationRelative_base
             sage: isinstance(v, FunctionFieldMappedValuationRelative_base)
             True
-    
+
         """
         FunctionFieldMappedValuation_base.__init__(self, parent, base_valuation, to_base_valuation_domain, from_base_valuation_domain)
         if self.domain().constant_base_field() is not base_valuation.domain().constant_base_field():

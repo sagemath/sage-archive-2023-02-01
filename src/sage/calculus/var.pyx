@@ -267,13 +267,17 @@ def function(s, **kwds):
         y x + y
         (x + y)*y
 
-        sage: def expand(self, *args, **kwds): print("{} {}".format(args, kwds)); return sum(args[0]^i for i in range(kwds['order']))
+        sage: from pprint import pformat
+        sage: def expand(self, *args, **kwds):
+        ....:     print("{} {}".format(args, pformat(kwds)))
+        ....:     return sum(args[0]^i for i in range(kwds['order']))
         sage: foo = function("foo", nargs=1, series_func=expand)
         sage: foo(y).series(y, 5)
-        (y,) {'var': y, 'options': 0, 'at': 0, 'order': 5}
+        (y,) {'at': 0, 'options': 0, 'order': 5, 'var': y}
         y^4 + y^3 + y^2 + y + 1
 
-        sage: def my_print(self, *args): return "my args are: " + ', '.join(map(repr, args))
+        sage: def my_print(self, *args):
+        ....:     return "my args are: " + ', '.join(map(repr, args))
         sage: foo = function('t', nargs=2, print_func=my_print)
         sage: foo(x,y^z)
         my args are: x, y^z
@@ -313,7 +317,7 @@ def function(s, **kwds):
         sage: 2*f
         Traceback (most recent call last):
         ...
-        TypeError: unsupported operand parent(s) for *: 'Integer Ring' and '<class 'sage.symbolic.function_factory.NewSymbolicFunction'>'
+        TypeError: unsupported operand parent(s) for *: 'Integer Ring' and '<class 'sage.symbolic.function_factory...NewSymbolicFunction'>'
 
     You now need to evaluate the function in order to do the arithmetic::
 

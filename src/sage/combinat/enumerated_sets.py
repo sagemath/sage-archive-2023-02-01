@@ -69,6 +69,11 @@ Partitions, tableaux, ...
 
 See: :ref:`sage.combinat.catalog_partitions`
 
+Polyominoes
+-----------
+
+See: :ref:`sage.combinat.parallelogram_polyomino`
+
 Integer matrices, ...
 ---------------------
 
@@ -134,7 +139,6 @@ Backtracking solvers and generic enumerated sets
 Low level enumerated sets
 -------------------------
 
-- :ref:`sage.combinat.multichoose_nk`
 - :ref:`sage.combinat.gray_codes`
 
 Misc enumerated sets

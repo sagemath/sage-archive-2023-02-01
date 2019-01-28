@@ -290,21 +290,17 @@ from cpython.ref cimport PyObject
 from sage.ext.stdsage cimport *
 
 import types
-cdef add, sub, mul, div, truediv, floordiv, mod, pow
-cdef iadd, isub, imul, idiv, itruediv, ifloordiv, imod, ipow
+cdef add, sub, mul, truediv, floordiv, mod, pow
+cdef iadd, isub, imul, itruediv, ifloordiv, imod, ipow
 from operator import (add, sub, mul, truediv, floordiv, mod, pow,
                       iadd, isub, imul, itruediv, ifloordiv, imod, ipow)
-try:
-    from operator import div, idiv
-except ImportError:
-    div = idiv = None
 
 cdef dict _coerce_op_symbols = dict(
-        add='+', sub='-', mul='*', div='/', truediv='/', floordiv='//', mod='%', pow='^',
-        iadd='+', isub='-', imul='*', idiv='/', itruediv='/', ifloordiv='//', imod='%', ipow='^')
+        add='+', sub='-', mul='*', truediv='/', floordiv='//', mod='%', pow='^',
+        iadd='+', isub='-', imul='*', itruediv='/', ifloordiv='//', imod='%', ipow='^')
 
 from sage.structure.richcmp cimport rich_to_bool
-from sage.structure.coerce cimport py_scalar_to_element
+from sage.structure.coerce cimport py_scalar_to_element, coercion_model
 from sage.structure.parent cimport Parent
 from sage.cpython.type cimport can_assign_class
 from sage.cpython.getattr cimport getattr_from_other_class
@@ -1589,7 +1585,7 @@ cdef class Element(SageObject):
     def __div__(left, right):
         """
         Top-level division operator for :class:`Element` invoking
-        the coercion model.
+        the coercion model. This is always true division.
 
         See :ref:`element_arithmetic`.
 
@@ -1650,10 +1646,10 @@ cdef class Element(SageObject):
         if HAVE_SAME_PARENT(cl):
             return (<Element>left)._div_(right)
         if BOTH_ARE_ELEMENT(cl):
-            return coercion_model.bin_op(left, right, div)
+            return coercion_model.bin_op(left, right, truediv)
 
         try:
-            return coercion_model.bin_op(left, right, div)
+            return coercion_model.bin_op(left, right, truediv)
         except TypeError:
             return NotImplemented
 
@@ -1983,6 +1979,23 @@ cdef class Element(SageObject):
             Traceback (most recent call last):
             ...
             TypeError: the 3-argument version of pow() is not supported
+
+        ::
+
+            sage: (2/3)^I
+            (2/3)^I
+            sage: (2/3)^sqrt(2)
+            (2/3)^sqrt(2)
+            sage: var('x,y,z,n')
+            (x, y, z, n)
+            sage: (2/3)^(x^n + y^n + z^n)
+            (2/3)^(x^n + y^n + z^n)
+            sage: (-7/11)^(tan(x)+exp(x))
+            (-7/11)^(e^x + tan(x))
+            sage: float(1.2)**(1/2)
+            1.0954451150103321
+            sage: complex(1,2)**(1/2)
+            (1.272019649514069+0.786151377757423...j)
 
         TESTS::
 
@@ -3757,7 +3770,7 @@ cdef class Matrix(ModuleElement):
         """
         if have_same_parent(left, right):
             return left * ~right
-        return coercion_model.bin_op(left, right, div)
+        return coercion_model.bin_op(left, right, truediv)
 
     cdef _vector_times_matrix_(matrix_right, Vector vector_left):
         raise TypeError
@@ -4092,30 +4105,8 @@ def coerce(Parent p, x):
     except AttributeError:
         return p(x)
 
-# We define this base class here to avoid circular cimports.
-cdef class CoercionModel:
-    """
-    Most basic coercion scheme. If it doesn't already match, throw an error.
-    """
-    cpdef canonical_coercion(self, x, y):
-        if parent(x) is parent(y):
-            return x,y
-        raise TypeError("no common canonical parent for objects with parents: '%s' and '%s'"%(parent(x), parent(y)))
 
-    cpdef bin_op(self, x, y, op):
-        if parent(x) is parent(y):
-            return op(x,y)
-        raise bin_op_exception(op, x, y)
-
-    cpdef richcmp(self, x, y, int op):
-        x, y = self.canonical_coercion(x, y)
-        return PyObject_RichCompare(x, y, op)
-
-
-from . import coerce
-cdef CoercionModel coercion_model = coerce.CoercionModel_cache_maps()
-
-# Make this accessible as Python object
+# Make coercion_model accessible as Python object
 globals()["coercion_model"] = coercion_model
 
 
@@ -4128,7 +4119,7 @@ def get_coercion_model():
        sage: import sage.structure.element as e
        sage: cm = e.get_coercion_model()
        sage: cm
-       <sage.structure.coerce.CoercionModel_cache_maps object at ...>
+       <sage.structure.coerce.CoercionModel object at ...>
        sage: cm is coercion_model
        True
     """
@@ -4303,7 +4294,9 @@ def generic_power(a, n, one=None):
         1
         sage: generic_power(Integer(0),Integer(23))
         0
-        sage: sum([generic_power(2,i) for i in range(17)]) #test all 4-bit combinations
+        sage: sum(generic_power(2,i) for i in range(17)) #test all 4-bit combinations
+        doctest:...: DeprecationWarning: import 'generic_power' from sage.arith.power instead
+        See http://trac.sagemath.org/24256 for details.
         131071
         sage: F = Zmod(5)
         sage: a = generic_power(F(2), 5); a

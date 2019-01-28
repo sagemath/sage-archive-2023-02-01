@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 Helper functions for reduction of binary forms.
 
 The algorithm for reducing is from Stoll and Cremona's "On the Reduction Theory of
@@ -16,15 +16,16 @@ AUTHORS:
 - Ben Hutz (2018-7) -- improvements to reduce and implement smallest coefficient model 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2018 Benjamin Hutz <bn4941#gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from __future__ import division
 
 from sage.arith.misc import gcd
 from sage.calculus.functions import jacobian
@@ -42,8 +43,9 @@ from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RealField
 from sage.symbolic.constants import e
 
+
 def covariant_z0(F, z0_cov=False, prec=53, emb=None, error_limit=0.000001):
-    """
+    r"""
     Return the covariant and Julia invariant from Cremona-Stoll [CS2003]_.
 
     In [CS2003]_ and [HS2018]_ the Julia invariant is denoted as `\Theta(F)`
@@ -444,7 +446,7 @@ def get_bound_poly(F, prec=53, norm_type='norm', emb=None):
 
 
 def smallest_poly(F, prec=53, norm_type='norm', emb=None):
-    """
+    r"""
     Determine the poly with smallest coefficients in `SL(2,\Z)` orbit of ``F``
 
     Smallest can be in the sense of `L_2` norm or height.
@@ -514,10 +516,10 @@ def smallest_poly(F, prec=53, norm_type='norm', emb=None):
             else:
                 pts.append(item)
             return pts
-        else: #binary insertion
+        else:  # binary insertion
             left = 1
             right = N
-            mid = ((left + right)/2)# these are ints so this is .floor()
+            mid = (left + right) // 2  # these are ints so this is .floor()
             if item[index] > pts[mid][index]: # item goes into first half
                 return insert_item(pts[:mid], item, index) + pts[mid:N]
             else: # item goes into second half

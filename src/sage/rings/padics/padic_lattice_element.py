@@ -909,7 +909,7 @@ class pAdicLatticeElement(pAdicGenericElement):
         its absolute precision.
         If a rational is returned, its denominator will be a power of `p`.
 
-        EXAMPLES:
+        EXAMPLES::
 
            sage: R = ZpLC(7)
            sage: a = R(8); a.lift()

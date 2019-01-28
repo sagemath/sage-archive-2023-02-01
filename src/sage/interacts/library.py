@@ -32,6 +32,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import absolute_import, division
+
 from sage.all import *
 x = SR.var('x')
 
@@ -416,12 +418,12 @@ def trigonometric_properties_triangle(
     # are adjacent and the side c is opposite to the angle
     def angle(a, b, c):
         a,b,c = map(float,[a,b,c])
-        return acos((b**2 + c**2 - a**2)/(2.0*b*c))
+        return acos((b**2 + c**2 - a**2)/(2*b*c))
 
     # Returns the area of a triangle when an angle alpha
     # and adjacent sides a and b are known
     def area(alpha, a, b):
-        return 1.0/2.0*a*b*sin(alpha)
+        return 0.5 * a * b * sin(alpha)
 
     xy = [0]*3
     html('<h2>Trigonometric Properties of a Triangle</h2>')
@@ -575,9 +577,9 @@ def special_points(
     # Return the intersection point of the bisector of the angle <(A[a],A[c],A[b]) and the unit circle. Angles given in radians.
     def half(A, a, b, c):
         if (A[a] < A[b] and (A[c] < A[a] or A[c] > A[b])) or (A[a] > A[b] and (A[c] > A[a] or A[c] < A[b])):
-            p = A[a] + (A[b] - A[a]) / 2.0
+            p = A[a] + 0.5 * (A[b] - A[a])
         else:
-            p = A[b] + (2*pi - (A[b]-A[a])) / 2.0
+            p = A[b] + 0.5 * (2*pi - (A[b]-A[a]))
         return (math.cos(p), math.sin(p))
 
     # Returns the distance between points (x1,y1) and (x2,y2)
@@ -613,9 +615,9 @@ def special_points(
 
     # Midpoints of edges (bc, ca, ab)
     a_middle = [
-        ((xy[1][0] + xy[2][0])/2.0, (xy[1][1] + xy[2][1])/2.0),
-        ((xy[2][0] + xy[0][0])/2.0, (xy[2][1] + xy[0][1])/2.0),
-        ((xy[0][0] + xy[1][0])/2.0, (xy[0][1] + xy[1][1])/2.0)
+        (0.5 * (xy[1][0] + xy[2][0]), 0.5 * (xy[1][1] + xy[2][1])),
+        (0.5 * (xy[2][0] + xy[0][0]), 0.5 * (xy[2][1] + xy[0][1])),
+        (0.5 * (xy[0][0] + xy[1][0]), 0.5 * (xy[0][1] + xy[1][1]))
     ]
 
     # Incircle
@@ -626,7 +628,7 @@ def special_points(
     )
 
     if show_incircle:
-        s = perimeter/2.0
+        s = 0.5 * perimeter
         incircle_r = math.sqrt((s - ad[0]) * (s - ad[1]) * (s - ad[2]) / s)
         incircle_graph = circle(incircle_center, incircle_r) + point(incircle_center)
     else:
@@ -919,7 +921,7 @@ def newton_method(
     f = symbolic_expression(f).function(x)
     a, b = interval
     h = 10**(-d)
-    c, midpoints = _newton_method(f, float(c), maxn, h/2.0)
+    c, midpoints = _newton_method(f, float(c), maxn, 0.5 * h)
     html(r"$\text{Precision } 2h = %s$"%latex(float(h)))
     html(r"${c = }%s$"%c)
     html(r"${f(c) = }%s"%latex(f(c)))

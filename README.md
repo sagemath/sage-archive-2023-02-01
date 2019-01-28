@@ -188,14 +188,13 @@ More Detailed Instructions to Build from Source
 
        make configure
        ./configure --with-python=3
-       make build
+       make
 
    This will build Sage based on Python 3 rather than based on Python 2,
    which is still the default at this point. The resulting Sage mostly
    works well, though some features (less of them at each release!) are
-   not yet ready for Python 3. Running `make build` rather than `make`
-   skips building the documentation, as this is one of the things that
-   is not yet ready for Python 3.
+   not yet ready for Python 3. The progress on this is tracked at
+   [Sage Trac ticket 15530: Metaticket: Add support for python 3.6+](https://trac.sagemath.org/ticket/15530).
 
 1. Wait about 20 minutes to 14 days, depending on your computer (it took
    about 2 weeks to build Sage on the T-Mobile G1 Android cell phone).
@@ -208,6 +207,8 @@ More Detailed Instructions to Build from Source
    but always feel free to email the section of `logs/ptestlong.log` that
    contains errors to the [sage-support mailing list](https://groups.google.com/group/sage-support).
    If there are numerous failures, there was a serious problem with your build.
+
+   Note: if you built for Python 3, you can instead run `make ptest-python3`.
 
 1. The HTML version of the [documentation](http://doc.sagemath.org/html/en/index.html)
    is built during the compilation process of Sage and resides in the directory

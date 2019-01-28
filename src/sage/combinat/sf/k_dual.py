@@ -80,11 +80,11 @@ class KBoundedQuotient(UniqueRepresentation, Parent):
             sage: F[1,2]
             Traceback (most recent call last):
             ...
-            ValueError: [1, 2] is not a valid partition
+            ValueError: [1, 2] is not an element of 3-Bounded Partitions
             sage: F[4,2]
             Traceback (most recent call last):
             ...
-            ValueError: Partition is not 3-bounded
+            ValueError: [4, 2] is not an element of 3-Bounded Partitions
             sage: km[2,1]*km[2,1]
             4*m3[2, 2, 1, 1] + 6*m3[2, 2, 2] + 2*m3[3, 2, 1] + 2*m3[3, 3]
             sage: HLPk = Q.kHallLittlewoodP()
@@ -595,9 +595,9 @@ class KBoundedQuotientBases(Category_realization_of_parent):
                 assert len(rest) == 0
             else:
                 if len(rest) or isinstance(c, (int, Integer)):
-                    c = self._kbounded_partitions.element_class(self._kbounded_partitions, [c] + list(rest))
+                    c = self._kbounded_partitions([c] + list(rest))
                 else:
-                    c = self._kbounded_partitions.element_class(self._kbounded_partitions, list(c))
+                    c = self._kbounded_partitions(list(c))
             if c and c[0] > self.k:
                 raise ValueError("Partition is not %d-bounded" % self.k)
             return self.monomial(c)

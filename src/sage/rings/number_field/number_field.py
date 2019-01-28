@@ -10250,19 +10250,19 @@ class NumberField_cyclotomic(NumberField_absolute):
 
         Matrices over cyclotomic fields are correctly dealt with it as well::
 
+            sage: b = libgap.eval('[[E(4), 1], [0, 1+E(8)-E(8)^3]]')
+            sage: matrix(F, b)
+            [             zeta8^2                    1]
+            [                   0 -zeta8^3 + zeta8 + 1]
+
+        It also works with the old pexpect interface to GAP::
+
             sage: b = gap(Matrix(F,[[z^2,1],[0,a+1]])); b
             [ [ E(4), 1 ], [ 0, 1+E(8)-E(8)^3 ] ]
             sage: b[1,2]
             1
             sage: F(b[1,2])
             1
-            sage: matrix(F, b)
-            [             zeta8^2                    1]
-            [                   0 -zeta8^3 + zeta8 + 1]
-
-        It also word with libGAP instead of GAP::
-
-            sage: b = libgap.eval('[[E(4), 1], [0, 1+E(8)-E(8)^3]]')
             sage: matrix(F, b)
             [             zeta8^2                    1]
             [                   0 -zeta8^3 + zeta8 + 1]

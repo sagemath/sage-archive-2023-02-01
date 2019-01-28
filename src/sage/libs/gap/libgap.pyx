@@ -1,8 +1,8 @@
 """
-libGAP shared library Interface to GAP
+Library Interface to GAP
 
-This module implements a fast C library interface to GAP. To use
-libGAP you simply call ``libgap`` (the parent of all
+This module implements a fast C library interface to GAP.
+To use it, you simply call ``libgap`` (the parent of all
 :class:`~sage.libs.gap.element.GapElement` instances) and use it to
 convert Sage objects into GAP objects.
 
@@ -157,12 +157,12 @@ using the recursive expansion of the
     [ 0  0  7  8]
 
 
-Using the libGAP C library from Cython
-======================================
+Using the GAP C library from Cython
+===================================
 
-.. TODO:: Update the following text
+.. TODO:: Expand the following text
 
-   We are using libgap API provided by the GAP project since
+   We are using the GAP API provided by the GAP project since
    GAP 4.10.
 
 AUTHORS:
@@ -475,7 +475,7 @@ class Gap(Parent):
             sage: libgap.get_global('FooBar')
             Traceback (most recent call last):
             ...
-            ValueError: libGAP: Error, VAL_GVAR: No value bound to FooBar
+            GAPError: Error, VAL_GVAR: No value bound to FooBar
         """
         is_bound = self.function_factory('IsBoundGlobal')
         bind_global = self.function_factory('BindGlobal')
@@ -500,7 +500,7 @@ class Gap(Parent):
             sage: libgap.get_global('FooBar')
             Traceback (most recent call last):
             ...
-            ValueError: libGAP: Error, VAL_GVAR: No value bound to FooBar
+            GAPError: Error, VAL_GVAR: No value bound to FooBar
         """
         is_readonlyglobal = self.function_factory('IsReadOnlyGlobal')
         make_readwrite = self.function_factory('MakeReadWriteGlobal')
@@ -532,7 +532,7 @@ class Gap(Parent):
             sage: libgap.get_global('FooBar')
             Traceback (most recent call last):
             ...
-            ValueError: libGAP: Error, VAL_GVAR: No value bound to FooBar
+            GAPError: Error, VAL_GVAR: No value bound to FooBar
         """
         value_global = self.function_factory('ValueGlobal')
         return value_global(variable)
@@ -759,7 +759,7 @@ class Gap(Parent):
     def count_GAP_objects(self):
         """
         Return the number of GAP objects that are being tracked by
-        libGAP
+        GAP.
 
         OUTPUT:
 

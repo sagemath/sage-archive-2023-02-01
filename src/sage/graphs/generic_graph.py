@@ -22811,20 +22811,25 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
         if inplace:
             g._backend = G._backend
     elif not inplace:
-        G = copy( g )
+        G = copy(g)
     else:
         G = g
 
     G_order = G.order()
-    V = list(range(G_order))
-    if G.vertices() != V:
-        relabel_dict = G.relabel(return_map=True)
+    # Do not relabel if the set of vertices is equal to the set
+    # range(n). This helps to ensure that *equal* graphs on range(n)
+    # yield *equal* (not just isomorphic) canonical labelings. This
+    # is just a convenience, there is no mathematical meaning.
+    if set(G) != set(range(G_order)):
+        relabel_dict = G.relabel(return_map=True, inplace=True)
     else:
-        relabel_dict = dict( (i,i) for i in range(G_order) )
+        # Do not relabel but ensure that labels are Python ints
+        relabel_dict = {i: int(i) for i in G}
+
     if partition is None:
-        partition = [V]
+        partition = [G.vertices()]
     else:
-        partition = [ [ relabel_dict[i] for i in part ] for part in partition ]
+        partition = [[relabel_dict[i] for i in part] for part in partition]
 
     if G._directed:
         edge_iter = G._backend.iterator_in_edges(G,True)

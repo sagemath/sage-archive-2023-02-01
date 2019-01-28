@@ -1223,6 +1223,23 @@ cdef class BooleanFunction(SageObject):
         V = VectorSpace(GF(2), nvars)
         return V.subspace(l)
 
+    def derivative(self, u):
+        """
+        Returns the derivative in direction of u
+
+        The derivative of `f` in direction of `u` is defined as
+        `x \mapsto f(x) + f(x + u)`.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.boolean_function import BooleanFunction
+            sage: f = BooleanFunction([0,1,0,1,0,1,0,1]).derivative(1)
+            sage: f.algebraic_normal_form()
+            1
+        """
+        return BooleanFunction([self(x) ^ self(x ^ u)
+                                for x in range(1 << self.nvariables())])
+
     def __setitem__(self, i, y):
         """
         Set a value of the function.

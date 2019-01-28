@@ -1227,18 +1227,41 @@ cdef class BooleanFunction(SageObject):
         """
         Returns the derivative in direction of u
 
+        INPUT:
+
+        - ``u`` -- either an integer or a tuple/list of `\GF{2}` elements
+          of length equal to the number of variables
+
+
         The derivative of `f` in direction of `u` is defined as
         `x \mapsto f(x) + f(x + u)`.
 
         EXAMPLES::
 
             sage: from sage.crypto.boolean_function import BooleanFunction
-            sage: f = BooleanFunction([0,1,0,1,0,1,0,1]).derivative(1)
-            sage: f.algebraic_normal_form()
+            sage: f = BooleanFunction([0,1,0,1,0,1,0,1])
+            sage: f.derivative(1).algebraic_normal_form()
+            1
+
+            sage: f.derivative([1,0,0]).algebraic_normal_form()
             1
         """
-        return BooleanFunction([self(x) ^ self(x ^ u)
-                                for x in range(1 << self.nvariables())])
+        from sage.structure.element import is_Vector
+        nvars = self._nvariables
+
+        if isinstance(u, (tuple, list)):
+            v = ZZ(u, base=2)
+        elif is_Vector(u):
+            if u.base_ring() != GF(2):
+                raise TypeError("base ring of input vector must be GF(2)")
+            elif u.parent().dimension() != nvars:
+                raise TypeError("input vector must be an element of a vector space with dimension %d" % (nvars,))
+            v = ZZ(u.list(), base=2)
+        else:
+            v = u
+
+        return BooleanFunction([self(x) ^ self(x ^ v)
+                                for x in range(1 << nvars)])
 
     def __setitem__(self, i, y):
         """

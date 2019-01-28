@@ -306,8 +306,8 @@ class FreeNilpotentLieAlgebra(NilpotentLieAlgebra_dense):
         sage: [L.dimension() for L in l]
         [3, 6, 14]
 
-    Verify that a free nilpotent Lie algebra of step > 2 with >10 generators
-    can be created, see :trac:`27018`::
+    Verify that a free nilpotent Lie algebra of step `>2` with `>10`
+    generators can be created, see :trac:`27018` (see also :trac:`27069`)::
 
         sage: L = LieAlgebra(QQ, 11, step=3)
         sage: L.dimension() == 11 + (11^2-11)/2 + (11^3-11)/3

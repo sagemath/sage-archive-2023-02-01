@@ -147,7 +147,7 @@ Sage example in ./linsolve.tex, line 1256::
   ....:     s = Sig[i,i]
   ....:     if s!=0.0:
   ....:         lamb[i]=U.column(i)*B/s
-  sage: x = V*lamb; x
+  sage: x = V*lamb; x  # random
   (0.2370370370370367, 0.4518518518518521, 0.3703703703703702)
 
 Sage example in ./linsolve.tex, line 1289::

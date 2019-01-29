@@ -772,7 +772,7 @@ class Posets(object):
         A lattice on `n` elements. When ``properties`` is ``None``,
         the probability `p` roughly measures number of covering
         relations of the lattice. To create interesting examples, make
-        the probability near one, something like `0.98..0.999`.
+        the probability a little below one, for example `0.9`.
 
         Currently parameter ``p`` has no effect only when ``properties``
         is not ``None``.

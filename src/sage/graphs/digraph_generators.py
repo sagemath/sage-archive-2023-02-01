@@ -669,11 +669,11 @@ class DiGraphGenerators():
             sage: digraphs.Circulant(13,[3,5,7,"hey"])
             Traceback (most recent call last):
             ...
-            ValueError: the list must contain only relative integers
+            ValueError: the list must contain only integers
             sage: digraphs.Circulant(3,[3,5,7,3.4])
             Traceback (most recent call last):
             ...
-            ValueError: the list must contain only relative integers
+            ValueError: the list must contain only integers
         """
         from sage.rings.integer_ring import ZZ
 
@@ -681,7 +681,7 @@ class DiGraphGenerators():
         loops = False
         for i in integers:
             if not i in ZZ:
-                raise ValueError("the list must contain only relative integers")
+                raise ValueError("the list must contain only integers")
             if not i % n:
                 loops = True
 

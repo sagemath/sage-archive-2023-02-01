@@ -710,16 +710,16 @@ class DiGraphGenerators():
         INPUT:
 
         - ``k`` -- two possibilities for this parameter :
-          - An integer equal to the cardinality of the alphabet to use, that is
-            the degree of the digraph to be produced.
-          - An iterable object to be used as the set of letters. The degree of
-            the resulting digraph is the cardinality of the set of letters.
+            - An integer equal to the cardinality of the alphabet to use, that
+              is, the degree of the digraph to be produced.
+            - An iterable object to be used as the set of letters. The degree
+              of the resulting digraph is the cardinality of the set of letters.
 
         - ``n`` -- integer; length of words in the De Bruijn digraph when
-          ``vertices == 'strings'``, and also to the diameter of the digraph.
+          ``vertices == 'strings'``, and also the diameter of the digraph.
 
         - ``vertices`` -- string (default: ``'strings'``); whether the vertices
-          are words build upon an alphabet (default) or integers
+          are words over an alphabet (default) or integers
           (``vertices='string'``)
 
         EXAMPLES:
@@ -810,19 +810,20 @@ class DiGraphGenerators():
         r"""
         Return the generalized de Bruijn digraph of order `n` and degree `d`.
 
-        The generalized de Bruijn digraph has been defined in [RPK1980]_
-        [RPK1983]_. It has vertex set `V=\{0, 1,..., n-1\}` and there is an arc
-        from vertex `u \in V` to all vertices `v \in V` such that `v \equiv (u*d
-        + a) \mod{n}` with `0 \leq a < d`.
+        The generalized de Bruijn digraph was defined in [RPK1980]_ [RPK1983]_.
+        It has vertex set `V=\{0, 1,..., n-1\}` and there is an arc from vertex
+        `u \in V` to all vertices `v \in V` such that `v \equiv (u*d + a)
+        \mod{n}` with `0 \leq a < d`.
 
-        When `n = d^{D}`, the generalized de Bruijn digraph is isomorphic to the
-        de Bruijn digraph of degree `d` and diameter `D`.
+        When `n = d^{D}`, the generalized de Bruijn digraph is isomorphic to
+        the de Bruijn digraph of degree `d` and diameter `D`.
 
         INPUT:
 
-        - ``n`` -- integer; number of vertices of the digraph
+        - ``n`` -- integer; number of vertices of the digraph (must be at least
+          one)
 
-        - ``d`` -- integer; degree of the digraph
+        - ``d`` -- integer; degree of the digraph (must be at least one)
 
         .. SEEALSO::
 
@@ -843,19 +844,19 @@ class DiGraphGenerators():
             sage: G = digraphs.GeneralizedDeBruijn(2, 0)
             Traceback (most recent call last):
             ...
-            ValueError: the generalized de Bruijn digraph is defined for degree at least one
+            ValueError: degree must be greater than or equal to one
 
         An exception is raised when the order of the graph is less than one::
 
             sage: G = digraphs.GeneralizedDeBruijn(0, 2)
             Traceback (most recent call last):
             ...
-            ValueError: the generalized de Bruijn digraph is defined for at least one vertex
+            ValueError: order must be greater than or equal to one
         """
         if n < 1:
-            raise ValueError("the generalized de Bruijn digraph is defined for at least one vertex")
+            raise ValueError("order must be greater than or equal to one")
         if d < 1:
-            raise ValueError("the generalized de Bruijn digraph is defined for degree at least one")
+            raise ValueError("degree must be greater than or equal to one")
 
         GB = DiGraph(n, loops=True, multiedges=True,
                      name="Generalized de Bruijn digraph (n={}, d={})".format(n, d))
@@ -867,23 +868,25 @@ class DiGraphGenerators():
 
     def ImaseItoh(self, n, d):
         r"""
-        Return the digraph of Imase and Itoh of order `n` and degree `d`.
+        Return the Imase-Itoh digraph of order `n` and degree `d`.
 
-        The digraph of Imase and Itoh has been defined in [II1983]_. It has
-        vertex set `V=\{0, 1,..., n-1\}` and there is an arc from vertex `u \in
-        V` to all vertices `v \in V` such that `v \equiv (-u*d-a-1) \mod{n}`
-        with `0 \leq a < d`.
+        The Imase-Itoh digraph was defined in [II1983]_. It has vertex set
+        `V=\{0, 1,..., n-1\}` and there is an arc from vertex `u \in V` to all
+        vertices `v \in V` such that `v \equiv (-u*d-a-1) \mod{n}` with `0 \leq
+        a < d`.
 
-        When `n = d^{D}`, the digraph of Imase and Itoh is isomorphic to the de
-        Bruijn digraph of degree `d` and diameter `D`. When `n = d^{D-1}(d+1)`,
-        the digraph of Imase and Itoh is isomorphic to the Kautz digraph
-        [Kau1968]_ of degree `d` and diameter `D`.
+        When `n = d^{D}`, the Imase-Itoh digraph is isomorphic to the de Bruijn
+        digraph of degree `d` and diameter `D`. When `n = d^{D-1}(d+1)`, the
+        Imase-Itoh digraph is isomorphic to the Kautz digraph [Kau1968]_ of
+        degree `d` and diameter `D`.
 
         INPUT:
 
-        - ``n`` -- integer; number of vertices of the digraph
+        - ``n`` -- integer; number of vertices of the digraph (must be greater
+          than or equal to two)
 
-        - ``d`` -- integer; degree of the digraph
+        - ``d`` -- integer; degree of the digraph (must be greater than or
+          equal to one)
 
         EXAMPLES::
 
@@ -907,19 +910,19 @@ class DiGraphGenerators():
             sage: G = digraphs.ImaseItoh(2, 0)
             Traceback (most recent call last):
             ...
-            ValueError: the digraph of Imase and Itoh is defined for degree at least one
+            ValueError: degree must be greater than or equal to one
 
         An exception is raised when the order of the graph is less than two::
 
             sage: G = digraphs.ImaseItoh(1, 2)
             Traceback (most recent call last):
             ...
-            ValueError: the digraph of Imase and Itoh is defined for at least two vertices
+            ValueError: order must be greater than or equal to two
         """
         if n < 2:
-            raise ValueError("the digraph of Imase and Itoh is defined for at least two vertices")
+            raise ValueError("order must be greater than or equal to two")
         if d < 1:
-            raise ValueError("the digraph of Imase and Itoh is defined for degree at least one")
+            raise ValueError("degree must be greater than or equal to one")
 
         II = DiGraph(n, loops=True, multiedges=True,
                      name="Imase and Itoh digraph (n={}, d={})".format(n, d))
@@ -934,33 +937,34 @@ class DiGraphGenerators():
         Return the Kautz digraph of degree `d` and diameter `D`.
 
         The Kautz digraph has been defined in [Kau1968]_. The Kautz digraph of
-        degree `d` and diameter `D` has `d^{D-1}(d+1)` vertices. This digraph is
-        build upon a set of vertices equal to the set of words of length `D`
-        from an alphabet of `d+1` letters such that consecutive letters are
-        differents. There is an arc from vertex `u` to vertex `v` if `v` can be
+        degree `d` and diameter `D` has `d^{D-1}(d+1)` vertices. This digraph
+        is built from a set of vertices equal to the set of words of length `D`
+        over an alphabet of `d+1` letters such that consecutive letters are
+        different. There is an arc from vertex `u` to vertex `v` if `v` can be
         obtained from `u` by removing the leftmost letter and adding a new
         letter, distinct from the rightmost letter of `u`, at the right end.
 
         The Kautz digraph of degree `d` and diameter `D` is isomorphic to the
-        digraph of Imase and Itoh [II1983]_ of degree `d` and order
-        `d^{D-1}(d+1)`.
+        Imase-Itoh digraph [II1983]_ of degree `d` and order `d^{D-1}(d+1)`.
 
         See the :wikipedia:`Kautz_graph` for more information.
 
         INPUT:
 
-        - ``k`` -- two possibilities for this parameter :
-          - An integer equal to the degree of the digraph to be produced, that
-            is the cardinality minus one of the alphabet to use.
-          - An iterable object to be used as the set of letters. The degree of
-            the resulting digraph is the cardinality of the set of letters minus
-            one.
+        - ``k`` -- two possibilities for this parameter. In either case the
+          degree must be at least one:
+
+            - An integer equal to the degree of the digraph to be produced,
+              that is, the cardinality of the alphabet to be used minus one.
+            - An iterable object to be used as the set of letters. The degree
+              of the resulting digraph is the cardinality of the set of letters
+              minus one.
 
         - ``D`` -- integer; diameter of the digraph, and length of a vertex
-          label when ``vertices == 'strings'``
+          label when ``vertices == 'strings'`` (must be at least one)
 
         - ``vertices`` -- string (default: ``'strings'``); whether the vertices
-          are words build upon an alphabet (default) or integers
+          are words over an alphabet (default) or integers
           (``vertices='strings'``)
 
 
@@ -990,19 +994,20 @@ class DiGraphGenerators():
             sage: G = digraphs.Kautz(0, 2)
             Traceback (most recent call last):
             ...
-            ValueError: Kautz digraphs are defined for degree at least one
+            ValueError: degree must be greater than or equal to one
 
             sage: G = digraphs.Kautz(['a'], 2)
             Traceback (most recent call last):
             ...
-            ValueError: Kautz digraphs are defined for degree at least one
+            ValueError: degree must be greater than or equal to one
 
-        An exception is raised when the diameter of the graph is less than one::
+        An exception is raised when the diameter of the graph is less than
+        one::
 
             sage: G = digraphs.Kautz(2, 0)
             Traceback (most recent call last):
             ...
-            ValueError: Kautz digraphs are defined for diameter at least one
+            ValueError: diameter must be greater than or equal to one
 
         :trac:`22355`::
 
@@ -1025,16 +1030,17 @@ class DiGraphGenerators():
             ValueError: unknown type for vertices
         """
         if D < 1:
-            raise ValueError("Kautz digraphs are defined for diameter at least one")
+            raise ValueError("diameter must be greater than or equal to one")
 
         from sage.combinat.words.words import Words
         from sage.rings.integer import Integer
 
         if vertices == 'strings':
 
-            my_alphabet = Words([str(i) for i in range(k + 1)] if isinstance(k, Integer) else k, 1)
+            my_alphabet = Words([str(i) for i in range(k + 1)] if isinstance(k,
+                                Integer) else k, 1)
             if my_alphabet.alphabet().cardinality() < 2:
-                raise ValueError("Kautz digraphs are defined for degree at least one")
+                raise ValueError("degree must be greater than or equal to one")
 
             # We start building the set of vertices
             V = [i for i in my_alphabet]
@@ -1050,12 +1056,13 @@ class DiGraphGenerators():
                 us = u.string_rep()
                 for a in my_alphabet:
                     if not u.has_suffix(a):
-                        G.add_edge(us, (u[1:] * a).string_rep(), a.string_rep())
+                        G.add_edge(us, (u[1:] * a).string_rep(),
+                                   a.string_rep())
 
         elif vertices == 'integers':
             d = k if isinstance(k, Integer) else (len(list(k)) - 1)
             if d < 1:
-                raise ValueError("Kautz digraphs are defined for degree at least one")
+                raise ValueError("degree must be greater than or equal to one")
             G = digraphs.ImaseItoh((d + 1) * (d ** (D - 1)), d)
 
         else:

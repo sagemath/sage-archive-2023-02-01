@@ -882,16 +882,16 @@ class PermutationGroup_generic(FiniteGroup):
         if isinstance(G, PermutationGroup_generic):
             if G.is_subgroup(self):
                 return True
-        if hasattr(G, "_permutation_group_"):
-            # see if this permutation group has been constructed by an as_permutation_group method (Trac #25706)
-            PG = G._permutation_group_()
-            # _permutation_group_element is a morphism
-            if hasattr(G, '_permutation_group_morphism'):
-                if PG is self:
-                    return G._permutation_group_morphism
-                if self.has_coerce_map_from(PG):
-                    return self.coerce_map_from(PG) * G._permutation_group_morphism
-
+        from sage.groups.libgap_wrapper import ParentLibGAP
+        if isinstance(G, ParentLibGAP):
+            from sage.categories.homset import Hom
+            try:
+                nat = Hom(G, self).natural_map()
+                from sage.groups.libgap_morphism import GroupMorphism_libgap
+                if isinstance(nat, GroupMorphism_libgap):
+                    return nat
+            except TypeError:
+                pass
         return super(PermutationGroup_generic, self)._coerce_map_from_(G)
 
     def list(self):

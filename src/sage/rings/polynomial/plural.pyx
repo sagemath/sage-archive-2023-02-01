@@ -1842,7 +1842,7 @@ cdef class NCPolynomial_plural(RingElement):
             Defining x, z, y
             sage: f = - 1*x^2*y - 25/27 * y^3 - z^2
             sage: latex(f) # indirect doctest
-            - x^{2} y - z^{2} - \frac{25}{27} y^{3}
+            -x^{2} y - z^{2} - \frac{25}{27} y^{3}
         """
         cdef ring *_ring = (<NCPolynomialRing_plural>self._parent)._ring
         gens = self.parent().latex_variable_names()

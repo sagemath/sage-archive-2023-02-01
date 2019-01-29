@@ -2289,7 +2289,6 @@ class SimplicialSet_arbitrary(Parent):
             if (not isinstance(subcomplex, SubSimplicialSet)
                 and subcomplex.ambient_space() == self):
                 raise ValueError('the "subcomplex" is not actually a subcomplex')
-            pass
         if self.is_finite():
             return QuotientOfSimplicialSet_finite(subcomplex.inclusion_map(),
                                                   vertex_name=vertex_name)

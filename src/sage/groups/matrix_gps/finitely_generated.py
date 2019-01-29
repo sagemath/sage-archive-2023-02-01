@@ -593,12 +593,12 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: Sp(6,3).as_permutation_group().cardinality()
             9170703360
 
-        Check that ``_permutation_group_morphism`` works (:trac:`25706`)::
+        Check that :trac:`25706` still works after :trac:`26903`::
 
             sage: MG = GU(3,2).as_matrix_group()
             sage: PG = MG.as_permutation_group()  # this constructs the morphism
             sage: mg = MG.an_element()
-            sage: MG._permutation_group_morphism(mg)
+            sage: PG(mg)
             (1,2,6,19,35,33)(3,9,26,14,31,23)(4,13,5)(7,22,17)(8,24,12)(10,16,32,27,20,28)(11,30,18)(15,25,36,34,29,21) 
         """
         # Note that the output of IsomorphismPermGroup() depends on
@@ -610,18 +610,9 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         iso=self._libgap_().IsomorphismPermGroup()
         if algorithm == "smaller":
             iso=iso.Image().SmallerDegreePermutationRepresentation()
-        PG = PermutationGroup(iso.Image().GeneratorsOfGroup().sage(), \
-                       canonicalize=False) # applying gap() - as PermutationGroup is not libGAP
+        return PermutationGroup(iso.Image().GeneratorsOfGroup().sage(), \
+                       canonicalize=False)
 
-        def permutation_group_map(element):
-            return PG(iso.ImageElm(element.gap()).sage()) 
-
-        from sage.categories.homset import Hom
-        self._permutation_group_morphism = Hom(self, PG)(permutation_group_map)
-
-        return PG
-
-    _permutation_group_ = as_permutation_group
 
     def module_composition_factors(self, algorithm=None):
         r"""

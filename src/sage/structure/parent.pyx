@@ -112,7 +112,8 @@ import operator
 from copy import copy
 
 from sage.cpython.type cimport can_assign_class
-from sage.structure.element cimport parent, coercion_model
+from .coerce cimport coercion_model
+from sage.structure.element cimport parent
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
 from .category_object import CategoryObject

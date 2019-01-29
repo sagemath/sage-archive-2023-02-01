@@ -1195,13 +1195,14 @@ class Posets(object):
         try:
             n = Integer(n)
         except TypeError:
-            raise TypeError("n must be an integer.")
+            raise TypeError("n must be an integer")
         if n < 2:
-            raise ValueError("n must be greater than 2.")
+            raise ValueError("n must be greater than 2")
         for c in colors:
-            if(c not in ('green', 'red', 'yellow', 'orange', 'silver', 'blue')):
+            if c not in ('green', 'red', 'yellow', 'orange', 'silver', 'blue'):
                 raise ValueError("Color input must be from the following: 'green', 'red', 'yellow', 'orange', 'silver', and 'blue'.")
-        elem=[(i,j,k) for i in range (n) for j in range (n-i) for k in range (n-i-j)]
+        elem = [(i, j, k) for i in range(n)
+                for j in range(n-i) for k in range(n-i-j)]
         rels = []
         elem_labels = {}
         if 'labels' in labels:
@@ -1212,23 +1213,23 @@ class Posets(object):
                     labelcount += 1
         for c in colors:
             for (i,j,k) in elem:
-                if(i+j+k < n-1):
-                    if(c=='green'):
+                if i+j+k < n-1:
+                    if c == 'green':
                         rels.append([(i,j,k),(i+1,j,k)])
-                    if(c=='red'):
+                    if c == 'red':
                         rels.append([(i,j,k),(i,j,k+1)])
-                    if(c=='yellow'):
+                    if c == 'yellow':
                         rels.append([(i,j,k),(i,j+1,k)])
-                if(j<n-1 and k>0):
-                    if(c=='orange'):
+                if j < n-1 and k > 0:
+                    if c == 'orange':
                         rels.append([(i,j,k),(i,j+1,k-1)])
-                if(i<n-1 and j>0):
-                    if(c=='silver'):
+                if i < n-1 and j > 0:
+                    if c == 'silver':
                         rels.append([(i,j,k),(i+1,j-1,k)])
-                if(i<n-1 and k>0):
-                    if(c=='blue'):
+                if i < n-1 and k > 0:
+                    if c == 'blue':
                         rels.append([(i,j,k),(i+1,j,k-1)])
-        return Poset([elem,rels], elem_labels)
+        return Poset([elem, rels], elem_labels)
 
     # shard intersection order
     import sage.combinat.shard_order

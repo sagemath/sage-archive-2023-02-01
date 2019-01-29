@@ -11,6 +11,12 @@ Arithmetic with rational functions::
     sage: f = t - 1
     sage: g = t^2 - 3
     sage: h = f^2/g^3
+    sage: h.valuation(t-1)
+    2
+    sage: h.valuation(t)
+    0
+    sage: h.valuation(t^2 - 3)
+    -3
 
 AUTHORS:
 
@@ -67,7 +73,7 @@ def make_FunctionFieldElement(parent, element_class, representing_element):
 
         sage: from sage.rings.function_field.element import make_FunctionFieldElement
         sage: K.<x> = FunctionField(QQ)
-        sage: make_FunctionFieldElement(K, K._element_class, (x+1)/x)
+        sage: make_FunctionFieldElement(K, K.element_class, (x+1)/x)
         (x + 1)/x
     """
     return element_class(parent, representing_element, reduce=False)
@@ -792,27 +798,43 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         """
         return self._x.denominator()
 
-    def valuation(self, v):
+    def valuation(self, place):
         """
-        Return the valuation of the element with respect to a prime element.
+        Return the valuation of the rational function at the place.
+
+        Rational function field places are associated with irreducible
+        polynomials.
 
         INPUT:
 
-        - ``v`` -- a prime element of the function field
+        - ``place`` -- a place or an irreducible polynomial
 
         EXAMPLES::
 
             sage: K.<t> = FunctionField(QQ)
-            sage: f = (t-1)^2 * (t+1) / (t^2 - 1/3)^3
-            sage: f.valuation(t-1)
+            sage: f = (t - 1)^2*(t + 1)/(t^2 - 1/3)^3
+            sage: f.valuation(t - 1)
             2
             sage: f.valuation(t)
             0
             sage: f.valuation(t^2 - 1/3)
             -3
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: p = K.places_finite()[0]
+            sage: (1/x^2).valuation(p)
+            -2
         """
-        R = self._parent._ring
-        return self._x.valuation(R(self._parent(v)._x))
+        from .place import FunctionFieldPlace
+
+        if not isinstance(place, FunctionFieldPlace):
+            # place is an irreducible polynomial
+            R = self._parent._ring
+            return self._x.valuation(R(self._parent(place)._x))
+
+        prime = place.prime_ideal()
+        ideal = prime.ring().ideal(self)
+        return prime.valuation(ideal)
 
     def is_square(self):
         """
@@ -907,4 +929,23 @@ cdef class FunctionFieldElement_global(FunctionFieldElement_polymod):
     """
     Elements of global function fields
     """
-    pass
+
+    def valuation(self, place):
+        """
+        Return the valuation of the element at the place.
+
+        INPUT:
+
+        - ``place`` -- a place of the function field
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: p = L.places_infinite()[0]
+            sage: y.valuation(p)
+            -1
+        """
+        prime = place.prime_ideal()
+        ideal = prime.ring().ideal(self)
+        return prime.valuation(ideal)

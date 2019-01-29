@@ -241,12 +241,8 @@ from sage.structure.parent_base cimport ParentWithBase
 from sage.structure.parent_gens cimport ParentWithGens
 from sage.structure.category_object cimport CategoryObject
 
-from sage.structure.element cimport EuclideanDomainElement
-from sage.structure.element cimport RingElement
-from sage.structure.element cimport ModuleElement
-from sage.structure.element cimport Element
-from sage.structure.element cimport CommutativeRingElement
-from sage.structure.element cimport coercion_model
+from sage.structure.coerce cimport coercion_model
+from sage.structure.element cimport Element, CommutativeRingElement
 
 from sage.structure.richcmp cimport rich_to_bool, richcmp
 from sage.structure.factorization import Factorization
@@ -2566,7 +2562,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: P.<x,y,z> = QQ[]
             sage: f = - 1*x^2*y - 25/27 * y^3 - z^2
             sage: latex(f)  # indirect doctest
-            - x^{2} y - \frac{25}{27} y^{3} - z^{2}
+            -x^{2} y - \frac{25}{27} y^{3} - z^{2}
         """
         cdef ring *_ring = self._parent_ring
         gens = self.parent().latex_variable_names()

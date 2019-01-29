@@ -6,15 +6,15 @@ elements. For general information about libGAP, you should read the
 :mod:`~sage.libs.gap.libgap` module documentation.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2012 Volker Braun <vbraun.name@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from __future__ import absolute_import, print_function
 
@@ -31,6 +31,7 @@ from sage.rings.all import ZZ, QQ, RDF
 
 from sage.groups.perm_gps.permgroup_element cimport PermutationGroupElement
 from sage.combinat.permutation import Permutation
+from sage.structure.coerce cimport coercion_model as cm
 
 decode_type_number = {
     0: 'T_INT (integer)',
@@ -1233,6 +1234,26 @@ cdef class GapElement(RingElement):
             'this is a string'
             sage: type(_)
             <... 'str'>
+
+            sage: x = libgap.eval('Indeterminate(Integers, "x")')
+
+            sage: p = x^2 - 2*x + 3
+            sage: p.sage()
+            x^2 - 2*x + 3
+            sage: p.sage().parent()
+            Univariate Polynomial Ring in x over Integer Ring
+
+            sage: p = x^-2 + 3*x
+            sage: p.sage()
+            x^-2 + 3*x
+            sage: p.sage().parent()
+            Univariate Laurent Polynomial Ring in x over Integer Ring
+
+            sage: p = (3 * x^2 + x) / (x^2 - 2)
+            sage: p.sage()
+            (3*x^2 + x)/(x^2 - 2)
+            sage: p.sage().parent()
+            Fraction Field of Univariate Polynomial Ring in x over Integer Ring
         """
         if self.value is NULL:
             return None
@@ -1241,14 +1262,38 @@ cdef class GapElement(RingElement):
         if self.IsInfinity():
             from sage.rings.infinity import Infinity
             return Infinity
+
         elif self.IsNegInfinity():
             from sage.rings.infinity import Infinity
             return -Infinity
 
+        elif self.IsUnivariateRationalFunction():
+            var = self.IndeterminateOfUnivariateRationalFunction().String()
+            var = var.sage()
+            num, den, val = self.CoefficientsOfUnivariateRationalFunction()
+            num = num.sage()
+            den = den.sage()
+            val = val.sage()
+            base_ring = cm.common_parent(*(num + den))
+
+            if self.IsUnivariatePolynomial():
+                from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+                R = PolynomialRing(base_ring, var)
+                return R(num)
+
+            elif self.IsLaurentPolynomial():
+                from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
+                R = LaurentPolynomialRing(base_ring, var)
+                x = R.gen()
+                return x**val * R(num)
+
+            else:
+                from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+                R = PolynomialRing(base_ring, var)
+                x = R.gen()
+                return x**val * R(num) / R(den)
+
         raise NotImplementedError('cannot construct equivalent Sage object')
-
-
-
 
 
 ############################################################################
@@ -1387,8 +1432,10 @@ cdef class GapElement_Integer(GapElement):
 
             sage: int(libgap(2)**128)
             340282366920938463463374607431768211456L
-            sage: type(_)
+            sage: type(_)  # py2
             <type 'long'>
+            sage: type(_)  # py3
+            <class 'int'>
         """
         return self.sage(ring=int)
 
@@ -1929,7 +1976,6 @@ cdef class GapElement_Ring(GapElement):
         """
         return ZZ
 
-
     def ring_rational(self):
         """
         Construct the Sage rationals.
@@ -1940,7 +1986,6 @@ cdef class GapElement_Ring(GapElement):
             Rational Field
         """
         return ZZ.fraction_field()
-
 
     def ring_integer_mod(self):
         """
@@ -1982,6 +2027,25 @@ cdef class GapElement_Ring(GapElement):
         from sage.rings.number_field.number_field import CyclotomicField
         return CyclotomicField(conductor.sage())
 
+    def ring_polynomial(self):
+        """
+        Construct a polynomial ring.
+
+        EXAMPLES::
+
+            sage: B = libgap(QQ['x'])
+            sage: B.ring_polynomial()
+            Univariate Polynomial Ring in x over Rational Field
+
+            sage: B = libgap(ZZ['x','y'])
+            sage: B.ring_polynomial()
+            Multivariate Polynomial Ring in x, y over Integer Ring
+        """
+        base_ring = self.CoefficientsRing().sage()
+        vars = [x.String().sage()
+                for x in self.IndeterminatesOfPolynomialRing()]
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        return PolynomialRing(base_ring, vars)
 
     def sage(self, **kwds):
         r"""
@@ -2012,6 +2076,9 @@ cdef class GapElement_Ring(GapElement):
 
             sage: libgap.CyclotomicField(6).sage()
             Cyclotomic Field of order 3 and degree 2
+
+            sage: libgap(QQ['x','y']).sage()
+            Multivariate Polynomial Ring in x, y over Rational Field
         """
         if self.IsField():
             if self.IsRationals():
@@ -2025,6 +2092,8 @@ cdef class GapElement_Ring(GapElement):
                 return self.ring_integer(**kwds)
             if self.IsFinite():
                 return self.ring_integer_mod(**kwds)
+            if self.IsPolynomialRing():
+                return self.ring_polynomial(**kwds)
         raise NotImplementedError('cannot convert GAP ring to Sage')
 
 

@@ -19,7 +19,7 @@ Complex Plots
 from __future__ import absolute_import
 
 # TODO: use NumPy buffers and complex fast_callable (when supported)
-from cysignals.signals cimport sig_on, sig_off
+from cysignals.signals cimport sig_on, sig_off, sig_check
 
 cimport numpy as cnumpy
 
@@ -381,12 +381,18 @@ def complex_plot(f, xrange, yrange, **options):
         pass
 
     cdef double x, y
-    ignore, ranges = setup_for_eval_on_grid([], [xrange, yrange], options['plot_points'])
-    xrange,yrange=[r[:2] for r in ranges]
-    sig_on()
-    z_values = [[  f(new_CDF_element(x, y)) for x in srange(*ranges[0], include_endpoint=True)]
-                                            for y in srange(*ranges[1], include_endpoint=True)]
-    sig_off()
+    _, ranges = setup_for_eval_on_grid([], [xrange, yrange], options['plot_points'])
+    xrange = ranges[0]
+    yrange = ranges[1]
+    cdef list z_values = []
+    cdef list row
+    for y in srange(*yrange, include_endpoint=True):
+        row = []
+        for x in srange(*xrange, include_endpoint=True):
+            sig_check()
+            row.append(f(new_CDF_element(x, y)))
+        z_values.append(row)
+
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options, ignore=['xmin', 'xmax']))
     g.add_primitive(ComplexPlot(complex_to_rgb(z_values), xrange, yrange, options))

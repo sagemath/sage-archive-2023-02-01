@@ -283,7 +283,7 @@ from __future__ import print_function, absolute_import
 
 from copy import copy
 import six
-from six.moves import range
+from six.moves import range, zip
 
 from sage.interfaces.all import gap
 from sage.libs.all import pari
@@ -5965,16 +5965,28 @@ class Partitions(UniqueRepresentation, Parent):
             True
             sage: Partition([3/1, 2]) in P
             True
+
+        Check that non-integers and non-lists are excluded::
+
+            sage: P = Partitions()
+            sage: [2,1.5] in P
+            False
+
+            sage: 0 in P
+            False
+
         """
         if isinstance(x, Partition):
             return True
         if isinstance(x, (list, tuple)):
-            z = Integer(0)
-            try:
-                return (all(e == Integer(e) >= z for e in x) and
-                        all(e >= x[i+1] for i, e in enumerate(x[:-1])))
-            except TypeError:
-                return False
+            if x:
+                try:
+                    return (all(Integer(a) >= b for a, b in zip(x, x[1:]))
+                            and Integer(x[-1]) >= 0)
+                except TypeError:
+                    return False
+            return True
+        return False
 
     def subset(self, *args, **kwargs):
         r"""

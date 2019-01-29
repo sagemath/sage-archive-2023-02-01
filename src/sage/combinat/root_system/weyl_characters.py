@@ -2308,8 +2308,17 @@ class FusionRing(WeylCharacterRing):
 
         This field contains the twists, categorical dimensions, and the entries of the 
         S-matrix.
+
+        EXAMPLES::
+
+            sage: B22=FusionRing("B2",2)
+            sage: B22.q_field
+            Cyclotomic Field of order 40 and degree 16
+            sage: A11=FusionRing('A1',1)
+            sage: A11.q_field
+            Cyclotomic Field of order 12 and degree 4
         """
-        self._K = CyclotomicField(2*self._l)
+        self._K = CyclotomicField(4*self._l)
         return self._K
 
     def _element_constructor(self,weight):
@@ -2333,6 +2342,7 @@ class FusionRing(WeylCharacterRing):
         Return the level of the FusionRing.
 
         EXAMPLES::
+
             sage: B22=FusionRing('B2',2)
             sage: B22.fusion_k()
             2
@@ -2350,6 +2360,7 @@ class FusionRing(WeylCharacterRing):
         This value is used to define the associated root of unity q.
 
         EXAMPLES::
+
             sage: B22=FusionRing('B2',2)
             sage: B22.fusion_l()
             10
@@ -2378,8 +2389,17 @@ class FusionRing(WeylCharacterRing):
         return diagonal_matrix(obj.twist() for obj in self.ordered_basis())
 
     def q_dims(self):
-        """
+        r"""
         Return a list of quantum dimensions of the simple objects.
+
+        EXAMPLES::
+
+            sage: F41=FusionRing('F4',1,conjugate=True)
+            sage: F41.q_dims()
+            [1, -zeta80^24 + zeta80^16 + 1]
+            sage: B22=FusionRing("B2",2)
+            sage: B22.q_dims()
+            [1, 1, 2, 2, -2*zeta40^12 + 2*zeta40^8 + 1, -2*zeta40^12 + 2*zeta40^8 + 1]
         """
         return [x.q_dimension() for x in self.ordered_basis()]
 
@@ -2435,22 +2455,54 @@ class FusionRing(WeylCharacterRing):
             raise ValueError("ordered basis not yet available for this FusionRing")
         return ord_basis
 
-    def s_matrix(self):
+    def s_ij(self, elt_i, elt_j, fusion_mat_i=[]):
         """
-        Return the S-matrix of the FusionRing.
+        Return the element of the S-matrix of this FusionRing corresponding to 
+        the given elements.
+
+        EXAMPLES:: 
+
+            #TODO: update docstring using next iteration of ordered basis method
         """
         dims = self.q_dims()
         ord_basis = self.ordered_basis()
         twists = [x.twist() for x in ord_basis]
+        rng = range(len(ord_basis))
+        j = ord_basis.index(elt_j)
+        fusion_matrix = fusion_mat_i if fusion_mat_i else elt_i.fusion_matrix()
+        q = self.q_field.gen()
+        l = self.fusion_l()
+        s_ij = sum(fusion_matrix[k,j]*q**(2*l*twists[k])*dims[k] for k in rng)
+        s_ij *= q**(-2*l*(elt_i.twist() + elt_j.twist()))
+        return s_ij
+
+    def s_matrix(self):
+        r"""
+        Return the S-matrix of this FusionRing.
+
+        EXAMPLES:: 
+
+            sage: D91=FusionRing('D9',1)
+            sage: D91.s_matrix()
+            [         1          1          1          1]
+            [         1          1         -1         -1]
+            [         1         -1 -zeta68^17  zeta68^17]
+            [         1         -1  zeta68^17 -zeta68^17]
+
+            sage: D41=FusionRing('D4',1)
+            sage: D41.s_matrix()
+            [ 1  1  1  1]
+            [ 1  1 -1 -1]
+            [ 1 -1  1 -1]
+            [ 1 -1 -1  1]
+        """
+        ord_basis = self.ordered_basis()
         fusion_mats = [x.fusion_matrix() for x in ord_basis]
         rng = range(len(ord_basis))
-        #TODO: find smallest field containing entries of S
-        q = self.q_field
-        S = matrix(CC, len(ord_basis))
+        S = matrix(self.q_field, len(ord_basis))
         for i in rng:
             for j in rng:
-                S[i,j] = sum(fusion_mats[i][k,j]*(-1)**twists[k]*dims[k] for k in rng)
-                S[i,j] /= (-1)**(twists[i]+twists[j])
+                S[i,j] = self.s_ij(ord_basis[i], ord_basis[j], fusion_mats[i]) 
         return S
 
     def fusion_labels(self, labels=None):
@@ -2514,6 +2566,17 @@ class FusionRing(WeylCharacterRing):
         def is_simple_obj(self):
             """
             Determine whether element is a simple object of the FusionRing.
+
+            EXAMPLES::
+
+                sage: B22=FusionRing("B2",2)
+                sage: elt=B22.some_elements()[0]
+                sage: elt.is_simple_obj()
+                True
+                sage: elt**2
+                B22(0,0) + B22(0,2) + B22(2,0)
+                sage: (elt**2).is_simple_obj()
+                False
             """
             return self.parent()._k is not None and len(self.monomial_coefficients())==1
 
@@ -2524,6 +2587,19 @@ class FusionRing(WeylCharacterRing):
 
             We compute the twists following p.7 of [Row2006]_, noting that the bilinear form
             is normalized so that `\langle\alpha, \alpha\rangle = 2` for SHORT roots.
+
+            EXAMPLES::
+
+                sage: G21=FusionRing('G2',1)
+                sage: G21.basis()
+                Finite family {(0, 0, 0): G21(0,0), (1, 0, -1): G21(1,0)}
+                sage: G21(1,0).twist()
+                4/5
+                sage: F41=FusionRing('F4',1,conjugate=True)
+                sage: F41.basis()
+                Finite family {(0, 0, 0, 0): F41(0,0,0,0), (1, 0, 0, 0): F41(0,0,0,1)}
+                sage: F41(0,0,0,1).twist()
+                4/5
             """
             if not self.is_simple_obj():
                 raise ValueError("quantum twist is only available for simple objects of a FusionRing")
@@ -2561,15 +2637,24 @@ class FusionRing(WeylCharacterRing):
             den = reduce(mul, [q_int(self.parent()._nf*alpha.inner_product(rho)) for alpha in space.positive_roots()], 1)
             expr = num/den
             pr = expr.parent().ring()
-            q = pr.gen()
+            q = pr.gen()**2
             expr = pr(expr)
             expr = expr.substitute(q=q**2)/q**(expr.degree())
             zet = self.parent().q_field.gen()
             return expr.substitute(q=zet)
 
         def fusion_matrix(self):
-            """
+            r"""
             Return a matrix containing the object's fusion coefficients.
+
+            EXAMPLES::
+
+            sage: G21=FusionRing('G2',1)
+            sage: G21.basis()
+            Finite family {(0, 0, 0): G21(0,0), (1, 0, -1): G21(1,0)}
+            sage: G21(1,0).fusion_matrix()
+            [0 1]
+            [1 1]
             """
             if not self.is_simple_obj():
                 raise ValueError("fusion matrix is only available for simple objects of a FusionRing")

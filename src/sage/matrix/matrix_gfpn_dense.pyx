@@ -538,7 +538,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
                 sig_check()
                 x += FfCurrentRowSizeIo
                 FfStepPtr(&p)
-            pickle_str = PyBytes_FromStringAndSize( d, pickle_size )
+            pickle_str = PyBytes_FromStringAndSize(d, pickle_size)
             sig_free(d)
             return mtx_unpickle, (self._parent, self.Data.Nor, self.Data.Noc,
                         pickle_str,
@@ -849,8 +849,8 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         d1 = <char*>(self.Data.Data)
         d2 = <char*>(N.Data.Data)
         cdef bytes s1, s2
-        s1 = PyBytes_FromStringAndSize( d1, self.Data.RowSize * self.Data.Nor )
-        s2 = PyBytes_FromStringAndSize( d2, N.Data.RowSize * N.Data.Nor )
+        s1 = PyBytes_FromStringAndSize(d1, self.Data.RowSize * self.Data.Nor)
+        s2 = PyBytes_FromStringAndSize(d2, N.Data.RowSize * N.Data.Nor)
         if s1 != s2:
             if s1 > s2:
                 return 1

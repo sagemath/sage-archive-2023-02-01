@@ -72,8 +72,10 @@ from sage.env import DOT_SAGE
 
 cdef void sage_meataxe_error_handler(const MtxErrorRecord_t *err):
     sig_block()
-    cdef str ErrText = char_to_str(err.Text)
-    PyErr_SetObject(ErrMsg.get(ErrText.split(': ')[-1], RuntimeError), "{} in file {} (line {})".format(ErrText, char_to_str(err.FileInfo.BaseName), err.LineNo))
+    ErrText  = char_to_str(err.Text)
+    BaseName = char_to_str(err.FileInfo.BaseName)
+    LineNo   = err.LineNo
+    PyErr_SetObject(ErrMsg.get(ErrText.split(': ')[-1], RuntimeError), f"{ErrText} in file {BaseName} (line {LineNo})")
     sig_unblock()
 
 cdef inline meataxe_init():
@@ -81,7 +83,8 @@ cdef inline meataxe_init():
     ## its multiplication tables.
     global MtxLibDir
     mtxdir = str_to_bytes(os.path.join(DOT_SAGE, 'meataxe'))
-    assert len(mtxdir)<1024, "The string os.path.join(DOT_SAGE, 'meataxe') needs to be of length < 1024 --- it is too long"
+    if len(mtxdir) >= 1024:
+        raise RuntimeError(f"the path for the meataxe library {mtxdir!r} is too long, it needs to be of length < 1024")
     MtxLibDir[:len(mtxdir)] = mtxdir
     MtxLibDir[len(mtxdir)] = c'\0'
     ## Error handling for MeatAxe, to prevent immediate exit of the program

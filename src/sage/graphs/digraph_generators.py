@@ -624,9 +624,9 @@ class DiGraphGenerators():
 
     def Circuit(self, n):
         r"""
-        Return the circuit on `n` vertices
+        Return the circuit on `n` vertices.
 
-        The circuit is an oriented ``CycleGraph``
+        The circuit is an oriented ``CycleGraph``.
 
         EXAMPLES:
 

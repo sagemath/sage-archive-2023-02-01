@@ -19917,7 +19917,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = graphs.Grid2dGraph(5, 5)
             sage: g._keys_for_vertices()
-            <function get_label at ...>
+            <function ...get_label at ...>
 
         TESTS:
 
@@ -19928,7 +19928,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.add_vertex("a")
             sage: s = g.graphviz_string()
         """
-        label = {v: 'node_{0}'.format(i) for i, v in enumerate(self.vertices())}
+        label = {v: 'node_{0}'.format(i) for i, v in enumerate(self)}
         def get_label(vertex):
             return label[vertex]
         return get_label
@@ -20253,17 +20253,37 @@ class GenericGraph(GenericGraph_pyx):
 
         The following digraph has tuples as vertices::
 
-            sage: print(digraphs.ButterflyGraph(1).graphviz_string())
+            sage: print(DiGraph(graphs.Grid2dGraph(2,2)).graphviz_string())  # py2
             digraph {
-              node_3  [label="('1', 1)"];
-              node_0  [label="('0', 0)"];
-              node_2  [label="('1', 0)"];
-              node_1  [label="('0', 1)"];
+              node_1  [label="(0, 1)"];
+              node_2  [label="(1, 0)"];
+              node_0  [label="(0, 0)"];
+              node_3  [label="(1, 1)"];
             <BLANKLINE>
-              node_0 -> node_3;
-              node_0 -> node_1;
+              node_1 -> node_0;
+              node_1 -> node_3;
+              node_2 -> node_0;
               node_2 -> node_3;
-              node_2 -> node_1;
+              node_0 -> node_1;
+              node_0 -> node_2;
+              node_3 -> node_1;
+              node_3 -> node_2;
+            }
+            sage: print(DiGraph(graphs.Grid2dGraph(2,2)).graphviz_string())  # py3
+            digraph {
+              node_0  [label="(0, 0)"];
+              node_1  [label="(0, 1)"];
+              node_2  [label="(1, 0)"];
+              node_3  [label="(1, 1)"];
+            <BLANKLINE>
+              node_0 -> node_1;
+              node_0 -> node_2;
+              node_1 -> node_0;
+              node_1 -> node_3;
+              node_2 -> node_0;
+              node_2 -> node_3;
+              node_3 -> node_1;
+              node_3 -> node_2;
             }
 
         The following digraph has vertices with newlines in their string

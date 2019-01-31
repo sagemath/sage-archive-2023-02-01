@@ -42,26 +42,15 @@ def get_remote_file(filename, verbose=True):
     from six.moves.urllib.request import Request, urlopen
     req = Request(filename, headers={"User-Agent":"sage-doctest"})
 
-    global cur
-    cur = 0
     if verbose:
-        sys.stdout.write("Loading: [")
-        sys.stdout.flush()
-        content = urlopen(req, timeout=1)
-        with open(temp_name, 'w') as f:
-            f.write(content.read())
-        print("]")
-    else:
-        content = urlopen(req, timeout=1)
-        with open(temp_name, 'w') as f:
-            f.write(content.read())
+        print("Loading started")
+
+    content = urlopen(req, timeout=1)
+    with open(temp_name, 'w') as f:
+        f.write(content.read())
+
+    if verbose:
+        print("Loading ended")
+
     return temp_name
 
-cur = 0
-def report_hook(block, size, total):
-     global cur
-     n = block*size*50/total
-     if n > cur:
-          cur = n
-          sys.stdout.write('.')
-          sys.stdout.flush()

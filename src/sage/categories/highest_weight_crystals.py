@@ -736,6 +736,67 @@ class HighestWeightCrystals(Category_singleton):
                         it.append( iter(self.crystals[-len(path)-1]) )
                 return tuple(ret)
 
+            def highest_weight_vectors_iterator(self):
+                r"""
+                Iterate over the highest weight vectors of ``self``.
+
+                This works by using a backtracing algorithm since if
+                `b_2 \otimes b_1` is highest weight then `b_1` is
+                highest weight.
+
+                EXAMPLES::
+
+                    sage: C = crystals.Tableaux(['D',4], shape=[2,2])
+                    sage: D = crystals.Tableaux(['D',4], shape=[1])
+                    sage: T = crystals.TensorProduct(D, C)
+                    sage: tuple(T.highest_weight_vectors_iterator())
+                    ([[[1]], [[1, 1], [2, 2]]],
+                     [[[3]], [[1, 1], [2, 2]]],
+                     [[[-2]], [[1, 1], [2, 2]]])
+                    sage: L = filter(lambda x: x.is_highest_weight(), T)
+                    sage: tuple(L) == tuple(T.highest_weight_vectors_iterator())
+                    True
+
+                TESTS:
+
+                We check this works with Kashiwara's convention for
+                tensor products::
+
+                    sage: C = crystals.Tableaux(['B',3], shape=[2,2])
+                    sage: D = crystals.Tableaux(['B',3], shape=[1])
+                    sage: T = crystals.TensorProduct(D, C)
+                    sage: T.options(convention='Kashiwara')
+                    sage: tuple(T.highest_weight_vectors_iterator())
+                    ([[[1, 1], [2, 2]], [[1]]],
+                     [[[1, 1], [2, 2]], [[3]]],
+                     [[[1, 1], [2, 2]], [[-2]]])
+                    sage: T.options._reset()
+                    sage: tuple(T.highest_weight_vectors_iterator())
+                    ([[[1]], [[1, 1], [2, 2]]],
+                     [[[3]], [[1, 1], [2, 2]]],
+                     [[[-2]], [[1, 1], [2, 2]]])
+                """
+                it = list(self.crystals[:-1]) + [self.crystals[-1].highest_weight_vectors()]
+                it = [[0, len(elts), list(elts), C.index_set()] for elts, C in zip(it, self.crystals)]
+                n = len(self.crystals)
+                path = [None]*n
+                pos = n-1
+                while pos < n:
+                    it_pos = it[pos]
+                    if it_pos[0] == it_pos[1]:
+                        pos += 1
+                        it_pos[0] = 0
+                    else:
+                        path[pos] = it_pos[2][it_pos[0]]
+                        it_pos[0] += 1
+            
+                        b = self.element_class(self, path[pos:])
+                        if all(b.e(i) is None for i in it_pos[3]):
+                            if pos:
+                                pos -= 1
+                            else:
+                                yield b
+            
 ###############################################################################
 ## Morphisms
 

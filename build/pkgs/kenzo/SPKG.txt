@@ -9,7 +9,7 @@ by constuctions like loop spaces, classifying spaces and so on.
 
 == License ==
 
-GPL?
+GPL
 
 == Upstream Contact ==
 

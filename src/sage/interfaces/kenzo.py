@@ -42,6 +42,8 @@ from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianG
 
 from sage.libs.ecl import EclObject, ecl_eval, EclListIterator
 
+from sage.env import SAGE_LOCAL
+
 
 ## Redirection of ECL and Maxima stdout to /dev/null
 ecl_eval(r"""(defparameter *dev-null* (make-two-way-stream
@@ -52,6 +54,8 @@ ecl_eval("(setf *standard-output* *dev-null*)")
 # Loading and initialization of Kenzo
 # Note that it should be installed in a directory where ecl's asdf can find
 ecl_eval("(require :asdf)")
+push_kenzo_string = '(push "{}/share/kenzo/" asdf:*central-registry*)'.format(SAGE_LOCAL)
+ecl_eval(push_kenzo_string)
 ecl_eval("(require :kenzo)")
 ecl_eval("(in-package :cat)")
 ecl_eval("(setf *HOMOLOGY-VERBOSE* nil)")

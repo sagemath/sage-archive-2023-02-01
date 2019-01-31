@@ -413,14 +413,10 @@ def linear_ordering_to_path_decomposition(G, L):
         sage: pw, L = vertex_separation(g, algorithm = "BAB"); pw
         1
         sage: h = linear_ordering_to_path_decomposition(g, L)
-        sage: h.vertices()  # py2
-        [{0, 1}, {3, 4}, {2, 3}, {1, 2}]
-        sage: h.edges(labels=None)  # py2
-        [({0, 1}, {1, 2}), ({2, 3}, {3, 4}), ({1, 2}, {2, 3})]
-        sage: h.vertices()  # py3
-        [{3, 4}, {2, 3}, {1, 2}, {0, 1}]
-        sage: h.edges(labels=None)  # py3
-        [({2, 3}, {3, 4}), ({1, 2}, {2, 3}), ({0, 1}, {1, 2})]
+        sage: sorted(h, key=str)
+        [{0, 1}, {1, 2}, {2, 3}, {3, 4}]
+        sage: sorted(h.edge_iterator(labels=None), key=str)
+        [({0, 1}, {1, 2}), ({1, 2}, {2, 3}), ({2, 3}, {3, 4})]
 
     Giving a non-optimal linear ordering::
 
@@ -439,14 +435,10 @@ def linear_ordering_to_path_decomposition(G, L):
         sage: pw, L = vertex_separation(g, algorithm = "BAB"); pw
         2
         sage: h = linear_ordering_to_path_decomposition(g, L)
-        sage: h.vertices()  # py2
-        [{1, 2, 5}, {2, 3, 4}, {0, 1, 5}, {2, 4, 5}]
-        sage: h.edges(labels=None)  # py2
-        [({1, 2, 5}, {2, 4, 5}), ({0, 1, 5}, {1, 2, 5}), ({2, 4, 5}, {2, 3, 4})]
-        sage: h.vertices()  # py3
-        [{2, 3, 4}, {2, 4, 5}, {1, 2, 5}, {0, 1, 5}]
-        sage: h.edges(labels=None)  # py3
-        [({2, 4, 5}, {2, 3, 4}), ({1, 2, 5}, {2, 4, 5}), ({0, 1, 5}, {1, 2, 5})]
+        sage: sorted(h, key=str)
+        [{0, 1, 5}, {1, 2, 5}, {2, 3, 4}, {2, 4, 5}]
+        sage: sorted(h.edge_iterator(labels=None), key=str)
+        [({0, 1, 5}, {1, 2, 5}), ({1, 2, 5}, {2, 4, 5}), ({2, 4, 5}, {2, 3, 4})]
 
 
     TESTS::
@@ -560,10 +552,8 @@ def pathwidth(self, k=None, certificate=False, algorithm="BAB", verbose=False,
         sage: g.pathwidth()
         2
         sage: pw, decomp = g.pathwidth(certificate=True)
-        sage: decomp.vertices()  # py2
-        [{1, 2, 5}, {2, 3, 4}, {0, 1, 5}, {2, 4, 5}]
-        sage: decomp.vertices()  # py3
-        [{2, 3, 4}, {2, 4, 5}, {1, 2, 5}, {0, 1, 5}]
+        sage: sorted(decomp, key=str)
+        [{0, 1, 5}, {1, 2, 5}, {2, 3, 4}, {2, 4, 5}]
 
     The pathwidth of a Petersen graph is 5::
 

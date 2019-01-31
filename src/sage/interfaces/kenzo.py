@@ -85,11 +85,11 @@ def Sphere(n):
 
     EXAMPLES::
 
-        sage: from sage.interfaces.kenzo import Sphere
-        sage: s2 = Sphere(2)
-        sage: s2
+        sage: from sage.interfaces.kenzo import Sphere # optional - kenzo
+        sage: s2 = Sphere(2)                           # optional - kenzo
+        sage: s2                                       # optional - kenzo
         [K1 Simplicial-Set]
-        sage: s2.homology(2)
+        sage: s2.homology(2)                           # optional - kenzo
         Z
     """
     kenzosphere = sphere(n)
@@ -112,9 +112,9 @@ def MooreSpace(n, m):
 
     EXAMPLES::
 
-        sage: from sage.interfaces.kenzo import MooreSpace
-        sage: m2 = MooreSpace(2,4)
-        sage: m2
+        sage: from sage.interfaces.kenzo import MooreSpace  # optional - kenzo
+        sage: m2 = MooreSpace(2,4)                          # optional - kenzo
+        sage: m2                                            # optional - kenzo
         [K10 Simplicial-Set]
     """
 
@@ -140,13 +140,13 @@ def EilenbergMacLaneSpace(G, n):
     EXAMPLES::
 
         sage: from sage.interfaces.kenzo import EilenbergMacLaneSpace
-        sage: e2 = EilenbergMacLaneSpace(ZZ, 3)
-        sage: e2.homology(2)
+        sage: e2 = EilenbergMacLaneSpace(ZZ, 3)                          # optional - kenzo
+        sage: e2.homology(2)                                             # optional - kenzo
         0
-        sage: e2.homology(3)
+        sage: e2.homology(3)                                             # optional - kenzo
         Z
-        sage: f2 = EilenbergMacLaneSpace(AdditiveAbelianGroup([2]), 3)
-        sage: f2.homology(3)
+        sage: f2 = EilenbergMacLaneSpace(AdditiveAbelianGroup([2]), 3)   # optional - kenzo
+        sage: f2.homology(3)                                             # optional - kenzo
         C2
 
     """
@@ -194,11 +194,11 @@ class KenzoChainComplex:
 
         EXAMPLES::
 
-                sage: from sage.interfaces.kenzo import Sphere
-                sage: s2 = Sphere(2)
-                sage: s2
+                sage: from sage.interfaces.kenzo import Sphere   # optional - kenzo
+                sage: s2 = Sphere(2)                             # optional - kenzo
+                sage: s2                                         # optional - kenzo
                 [K1 Simplicial-Set]
-                sage: s2.homology(2)
+                sage: s2.homology(2)                             # optional - kenzo
                 Z
         """
         echcm1 = echcm(self._kenzo)
@@ -226,13 +226,13 @@ class KenzoChainComplex:
 
         - A KenzoChainComplex
 
-        sage: from sage.interfaces.kenzo import Sphere
-        sage: s2 = Sphere(2)
-        sage: s3 = Sphere(3)
-        sage: p = s2.tensor_product(s3)
-        sage: type(p)
+        sage: from sage.interfaces.kenzo import Sphere    # optional - kenzo
+        sage: s2 = Sphere(2)                              # optional - kenzo
+        sage: s3 = Sphere(3)                              # optional - kenzo
+        sage: p = s2.tensor_product(s3)                   # optional - kenzo
+        sage: type(p)                                     # optional - kenzo
         <class 'sage.interfaces.kenzo.KenzoChainComplex'>
-        sage: p.homology(2)
+        sage: p.homology(2)                               # optional - kenzo
         Z
 
         """
@@ -260,10 +260,10 @@ class KenzoSimplicialSet(KenzoChainComplex):
 
         EXAMPLES::
 
-            sage: from sage.interfaces.kenzo import Sphere
-            sage: s2 = Sphere(2)
-            sage: l2 = s2.loop_space()
-            sage: type(l2)
+            sage: from sage.interfaces.kenzo import Sphere          # optional - kenzo
+            sage: s2 = Sphere(2)                                    # optional - kenzo
+            sage: l2 = s2.loop_space()                              # optional - kenzo
+            sage: type(l2)                                          # optional - kenzo
             <class 'sage.interfaces.kenzo.KenzoSimplicialGroup'>
 
         """
@@ -284,11 +284,11 @@ class KenzoSimplicialSet(KenzoChainComplex):
 
         EXAMPLES::
 
-            sage: from sage.interfaces.kenzo import Sphere
-            sage: s2 = Sphere(2)
-            sage: s3 = Sphere(3)
-            sage: p = s2.cartesian_product(s3)
-            sage: type(p)
+            sage: from sage.interfaces.kenzo import Sphere           # optional - kenzo
+            sage: s2 = Sphere(2)                                     # optional - kenzo
+            sage: s3 = Sphere(3)                                     # optional - kenzo
+            sage: p = s2.cartesian_product(s3)                       # optional - kenzo
+            sage: type(p)                                            # optional - kenzo
             <class 'sage.interfaces.kenzo.KenzoSimplicialSet'>
 
         """
@@ -305,10 +305,10 @@ class KenzoSimplicialSet(KenzoChainComplex):
 
         EXAMPLES::
 
-            sage: from sage.interfaces.kenzo import EilenbergMacLaneSpace
-            sage: e2 = EilenbergMacLaneSpace(ZZ, 3)
-            sage: s = e2.suspension()
-            sage: type(s)
+            sage: from sage.interfaces.kenzo import EilenbergMacLaneSpace    # optional - kenzo
+            sage: e2 = EilenbergMacLaneSpace(ZZ, 3)                          # optional - kenzo
+            sage: s = e2.suspension()                                        # optional - kenzo
+            sage: type(s)                                                    # optional - kenzo
             <class 'sage.interfaces.kenzo.KenzoSimplicialSet'>
 
         """
@@ -329,12 +329,12 @@ class KenzoSimplicialGroup(KenzoSimplicialSet):
         - A KenzoSimplicialGroup
 
         EXAMPLES::
-
-            sage: from sage.interfaces.kenzo import MooreSpace
-            sage: m2 = MooreSpace(2,4)
-            sage: l2 = m2.loop_space()
-            sage: c = l2.classifying_space()
-            sage: type(c)
+                                                                            # optional - kenzo
+            sage: from sage.interfaces.kenzo import MooreSpace              # optional - kenzo
+            sage: m2 = MooreSpace(2,4)                                      # optional - kenzo
+            sage: l2 = m2.loop_space()                                      # optional - kenzo
+            sage: c = l2.classifying_space()                                # optional - kenzo
+            sage: type(c)                                                   # optional - kenzo
             <class 'sage.interfaces.kenzo.KenzoSimplicialGroup'>
 
         """

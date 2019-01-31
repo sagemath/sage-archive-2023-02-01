@@ -9058,6 +9058,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: flow_graph.edges()
             [('000', '001', 1)]
         """
+
         from sage.graphs.digraph import DiGraph
         g = DiGraph()
 

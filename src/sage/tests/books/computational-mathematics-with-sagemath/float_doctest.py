@@ -205,8 +205,8 @@ Sage example in ./float.tex, line 1106::
   sage: y0 = RDF(10^13); delta0 = RDF(1); a = RDF(1-10^(-8)); n = 100000
   sage: ii = iter(y0,delta0,a,n)
   sage: s = exact(10^13,1,1-10^(-8),n)
-  sage: print("exact - classical summation: %.1f" % (s-ii))
-  exact - classical summation: -45.5
+  sage: print("exact - classical summation: %.1f" % (s-ii))  # abs tol 0.1
+  exact - classical summation: -45.6
 
 Sage example in ./float.tex, line 1128::
 
@@ -418,12 +418,12 @@ Sage example in ./float.tex, line 2064::
   ....:         d = MRF.det()
   ....:         z = d.contains_zero()
   ....:     return p,d
-  sage: tryDet(RealBallField,n)
+  sage: tryDet(RealBallField,n)  # long time
   (1653, [9.552323592707808e-485 +/- 1.65e-501])
 
 Sage example in ./float.tex, line 2095::
 
-  sage: tryDet(RealIntervalField,n)
+  sage: tryDet(RealIntervalField,n)  # long time
   (1653, 9.552323592707808?e-485)
 
 Sage example in ./float.tex, line 2135::

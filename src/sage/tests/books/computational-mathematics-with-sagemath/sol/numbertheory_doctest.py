@@ -67,13 +67,13 @@ Sage example in ./sol/numbertheory.tex, line 94::
   ....:       if n in l: break
   ....:       l.append(n)
   ....:    return l
-  sage: l = aliq(840)
-  sage: len(l), l[:5], l[-5:]
+  sage: l = aliq(840)  # long time
+  sage: len(l), l[:5], l[-5:]  # long time
   (748, [840, 2040, 4440, 9240, 25320], [2714, 1606, 1058, 601, 1])
 
 Sage example in ./sol/numbertheory.tex, line 106::
 
-  sage: p = points([(i, log(l[i])/log(10)) for i in range(len(l))])
+  sage: p = points([(i, log(l[i])/log(10)) for i in range(len(l))])  # long time
 
 Sage example in ./sol/numbertheory.tex, line 173::
 

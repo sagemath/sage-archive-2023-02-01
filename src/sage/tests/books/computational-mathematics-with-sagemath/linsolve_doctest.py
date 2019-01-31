@@ -132,7 +132,7 @@ Sage example in ./linsolve.tex, line 1188::
 Sage example in ./linsolve.tex, line 1202::
 
   sage: Z = A.transpose()*A
-  sage: Z.norm(Infinity)*(Z^-1).norm(Infinity) # abs tol 1e-11
+  sage: Z.norm(Infinity)*(Z^-1).norm(Infinity)  # abs tol 2e-11
   1992.3750000000168
 
 Sage example in ./linsolve.tex, line 1256::
@@ -177,9 +177,9 @@ Sage example in ./linsolve.tex, line 1374::
 
 Sage example in ./linsolve.tex, line 1381::
 
-  sage: Q
-  [ 0.7612151656410958  0.6484993998439783]
-  [-0.6484993998439782  0.7612151656410955]
+  sage: Q  # rel tol 1e-15
+  [ 0.7612151656410957   0.648499399843978]
+  [-0.6484993998439779  0.7612151656410955]
   sage: R
   [0.7648421872844885  0.644217687237691]
   [-0.644217687237691 0.7648421872844885]

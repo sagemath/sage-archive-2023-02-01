@@ -590,9 +590,9 @@ Sage example in ./combinat.tex, line 1895::
 Sage example in ./combinat.tex, line 1909::
 
   sage: cubes = [t**3 for t in range(-999,1000)]
-  sage: exists([(x,y) for x in cubes for y in cubes], lambda xy: sum(xy) == 218) # long
+  sage: exists([(x,y) for x in cubes for y in cubes], lambda xy: sum(xy) == 218)  # long time
   (True, (-125, 343))
-  sage: exists(((x,y) for x in cubes for y in cubes), lambda xy: sum(xy) == 218) # long
+  sage: exists(((x,y) for x in cubes for y in cubes), lambda xy: sum(xy) == 218)  # long time
   (True, (-125, 343))
 
 Sage example in ./combinat.tex, line 1927::
@@ -1043,7 +1043,7 @@ Sage example in ./combinat.tex, line 3202::
   sage: V = range(1,n+1)
   sage: F = Subsets(V, 2)
   sage: S = SymmetricGroup(V)
-  sage: CC = S.conjugacy_classes(); CC
+  sage: CC = S.conjugacy_classes(); CC  # long time
   [...
    Conjugacy class of cycle type [19, 1] in Symmetric group of order 20! as a permutation group,
    Conjugacy class of cycle type [20] in Symmetric group of order 20! as a permutation group]
@@ -1053,10 +1053,10 @@ Sage example in ./combinat.tex, line 3214::
   sage: p = SymmetricFunctions(QQ).powersum()
   sage: G = PermutationGroup([ on_pairs(sigma) for sigma in S.gens() ],
   ....:                      domain=F)
-  sage: Z = p.sum_of_terms([G(on_pairs(c.representative())).cycle_type(),
+  sage: Z = p.sum_of_terms([G(on_pairs(c.representative())).cycle_type(),  # long time
   ....:                     c.cardinality()]
   ....:                    for c in CC) / factorial(n)
-  sage: Z.expand(2, [q,t])(q=1,t=1)
+  sage: Z.expand(2, [q,t])(q=1,t=1)  # long time
   645490122795799841856164638490742749440
 
 """

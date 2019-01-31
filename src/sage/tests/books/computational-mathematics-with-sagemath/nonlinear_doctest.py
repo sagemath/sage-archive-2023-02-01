@@ -46,8 +46,8 @@ Sage example in ./nonlinear.tex, line 348::
   ....:     for c in cartesian_product([[-1, 1]] * (degree + 1)):
   ....:         v.extend(R(list(c)).roots(multiplicities=False))
   ....:     return v
-  sage: data = build_complex_roots(12)
-  sage: points(data, pointsize=1, aspect_ratio=1)
+  sage: data = build_complex_roots(12)  # long time
+  sage: points(data, pointsize=1, aspect_ratio=1)  # long time
   Graphics object consisting of 1 graphics primitive
 
 Sage example in ./nonlinear.tex, line 420::
@@ -143,7 +143,7 @@ Sage example in ./nonlinear.tex, line 659::
    -1/2*I*sqrt(3)*2^(1/3) - 1/2*2^(1/3),
    2^(1/3),
    3/2]
-  sage: [QQbar(p(alpha)).is_zero() for alpha in roots]
+  sage: [QQbar(p(alpha)).is_zero() for alpha in roots]  # long time
   [True, True, True, True]
 
 Sage example in ./nonlinear.tex, line 732::

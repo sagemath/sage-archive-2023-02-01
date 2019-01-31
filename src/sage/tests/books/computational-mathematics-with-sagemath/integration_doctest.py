@@ -90,14 +90,19 @@ Sage example in ./integration.tex, line 654::
   sage: g.nintegral(x, 0, 1)
   (0.430606103120690..., 4.78068810228705...e-15, 21, 0)
 
+Ensure consistent results on 32-bit and 64-bit systems by using the same
+precision::
+
+  sage: _ = gp.default('realprecision', 38)
+
 Sage example in ./integration.tex, line 703::
 
   sage: gp('intnum(x=17, 20, exp(-x^2)*log(x))')
-  2.565728500561051482917356396... E-127
+  2.5657285005610514829173563961304785900 E-127
 
 Sage example in ./integration.tex, line 717::
 
-  sage: gp('intnum(x=0, 1, sin(sin(x)))') # abs tol 2e-20
+  sage: gp('intnum(x=0, 1, sin(sin(x)))')
   0.43060610312069060491237735524846578643
   sage: old_prec = gp.set_precision(50)
   sage: gp('intnum(x=0, 1, sin(sin(x)))')
@@ -106,18 +111,18 @@ Sage example in ./integration.tex, line 717::
 Sage example in ./integration.tex, line 746::
 
   sage: p = gp.set_precision(old_prec) # we reset the default precision
-  sage: gp('intnum(x=0, 1, x^(-99/100))') # abs tol 2e-16
-  73.62914262423378365
+  sage: gp('intnum(x=0, 1, x^(-99/100))')  # rel tol 1e-9
+  73.629142577870966597465391764897770039
 
 Sage example in ./integration.tex, line 754::
 
-  sage: gp('intnum(x=[0, -99/100], 1, x^(-99/100))') # abs tol 2e-16
+  sage: gp('intnum(x=[0, -99/100], 1, x^(-99/100))')
   100.00000000000000000000000000000000000
 
 Sage example in ./integration.tex, line 766::
 
-  sage: gp('intnum(x=[0, -1/42], 1, x^(-99/100))') # abs tol 2e-16
-  74.47274932028288503
+  sage: gp('intnum(x=[0, -1/42], 1, x^(-99/100))')  # rel tol 1e-9
+  74.472749314025559405335761513474670714
 
 Sage example in ./integration.tex, line 785::
 
@@ -168,7 +173,7 @@ Sage example in ./integration.tex, line 892::
 
 Sage example in ./integration.tex, line 979::
 
-  sage: y = var('y'); integrate(exp(y*sin(x)), (x, 0, sqrt(y)))
+  sage: y = var('y'); integrate(exp(y*sin(x)), (x, 0, sqrt(y)))  # long time
   integrate(e^(y*sin(x)), x, 0, sqrt(y))
 
 Sage example in ./integration.tex, line 990::

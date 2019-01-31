@@ -70,8 +70,8 @@ Sage example in ./sol/polynomes.tex, line 296::
   sage: Poly.<x> = Integers(10^5)[]
   sage: P = x^1000 - 23*x^729 + 5*x^2 - 12*x - 7
   sage: Quo.<s> = Poly.quo(P)
-  sage: op = s^(10^10000)
-  sage: add(op[n]*(n+7) for n in range(1000))
+  sage: op = s^(10^10000)  # long time
+  sage: add(op[n]*(n+7) for n in range(1000))  # long time
   63477
 
 Sage example in ./sol/polynomes.tex, line 383::

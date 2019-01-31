@@ -23,7 +23,7 @@ Sage example in ./graphique.tex, line 156::
   ....:     return(taylor(sin(x), x, 0, n))
   sage: xmax = 15 ; n = 15
   sage: g = plot(sin(x), x, -xmax, xmax)
-  sage: for d in range(n):
+  sage: for d in range(n):  # long time
   ....:   g += plot(p(x, 2 * d + 1), x, -xmax, xmax,\
   ....:     color=(1.7*d/(2*n), 1.5*d/(2*n), 1-3*d/(4*n)))
   sage: g.show(ymin=-2, ymax=2)
@@ -109,7 +109,7 @@ Sage example in ./graphique.tex, line 1029::
   sage: x = var('x'); y = function('y')
   sage: DE = x*diff(y(x), x) == 2*y(x) + x^3
   sage: g = Graphics()             # creates an empty graph
-  sage: for i in srange(-2, 2, 0.2):
+  sage: for i in srange(-2, 2, 0.2):  # long time
   ....:     g += line(desolve_rk4(DE, y(x), ics=[1, i],\
   ....:                       step=0.05, end_points=[0,2]))
   ....:     g += line(desolve_rk4(DE, y(x), ics=[-1, i],\
@@ -239,7 +239,7 @@ Sage example in ./graphique.tex, line 1956::
 
   sage: x, y, z = var('x, y, z'); a = 1
   sage: h = lambda x, y, z:(a^2 + x^2 + y^2)^2 - 4*a^2*x^2-z^4
-  sage: implicit_plot3d(h, (x,-3,3), (y,-3,3), (z,-2,2),\
+  sage: implicit_plot3d(h, (x,-3,3), (y,-3,3), (z,-2,2),  # long time
   ....:                 plot_points=100)
   Graphics3d Object
 

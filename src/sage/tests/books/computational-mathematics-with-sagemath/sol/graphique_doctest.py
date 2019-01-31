@@ -80,7 +80,7 @@ Sage example in ./sol/graphique.tex, line 185::
   sage: def g(x,y): v = vector(dX_dt([x, y])); return v / v.norm()
   sage: x, y = var('x, y'); n = len(CI)
   sage: q = plot_vector_field(g(x, y), (x, -3, 3), (y, -y0, y0))
-  sage: for j in range(n):
+  sage: for j in range(n):  # long time
   ....:     X = integrate.odeint(dX_dt, CI[j], t)
   ....:     q += line(X, color=(1.7*j/(4*n),1.5*j/(4*n),1-3*j/(8*n)))
   sage: X = integrate.odeint(dX_dt, [0.01,0], t)

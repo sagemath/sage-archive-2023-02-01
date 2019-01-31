@@ -9041,7 +9041,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: flow_graph.edges()
             [('000', '001', 1)]
         """
-
+        from sage.misc.functional import round
         from sage.graphs.digraph import DiGraph
         g = DiGraph()
 
@@ -9080,7 +9080,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # returning a graph with the same embedding, the corresponding name, etc ...
         h = self.subgraph(edges=[], immutable=False)
-        h.delete_vertices([v for v in self if (v not in g) or not g.degree(v)])
+        h.delete_vertices(v for v in self if (v not in g) or not g.degree(v))
         h.add_edges(g.edge_iterator())
 
         return h

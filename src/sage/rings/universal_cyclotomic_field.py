@@ -1013,21 +1013,23 @@ class UniversalCyclotomicFieldElement(FieldElement):
         return [P.element_class(P, obj.GaloisCyc(i))
                 for i in n.coprime_integers(n)]
 
-    def abs(self):
+    def __abs__(self):
         """
         Return the absolute value of ``self`` as an algebraic real number.
 
         EXAMPLES::
 
             sage: f = 5/2*E(3)+E(5)/7
-            sage: f.abs()
+            sage: f.__abs__()
             2.597760303873084?
 
         TESTS::
 
-            sage: [E(n).abs() for n in range(1, 11)]
+            sage: [E(n).__abs__() for n in range(1, 11)]
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-            sage: UniversalCyclotomicField().zero().abs()
+            sage: [abs(E(n)) for n in range(1, 11)]
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            sage: UniversalCyclotomicField().zero().__abs__()
             0
         """
         square = self * self.conjugate()

@@ -472,7 +472,13 @@ class SBox(SageObject):
 
     def derivative(self, u):
         """
-        Returns the derivative in direction of u
+        Return the derivative in direction of ``u``
+
+        INPUT:
+
+        - ``u`` -- either an integer or a tuple/list of `\GF{2}` elements
+          of length equal to ``m``
+
 
         The derivative of `F` in direction of `u` is defined as
         `x \mapsto F(x) + F(x + u)`.
@@ -480,14 +486,38 @@ class SBox(SageObject):
         EXAMPLES::
 
             sage: from sage.crypto.sbox import SBox
-            sage: SBox(range(4)).derivative(1).derivative(2)
-            (0, 0, 0, 0)
-
+            sage: s = SBox(0,1,2,3)
+            sage: s.derivative(1)
+            (1, 1, 1, 1)
+            sage: u = [1,0]
+            sage: s.derivative(u)
+            (1, 1, 1, 1)
+            sage: v = vector(GF(2), [1,0])
+            sage: s.derivative(v)
+            (1, 1, 1, 1)
+            sage: s.derivative(4)
+            Traceback (most recent call last):
+            ...
+            IndexError: list index out of range
             sage: from sage.crypto.sboxes import PRESENT
             sage: PRESENT.derivative(1).max_degree() < PRESENT.max_degree()
             True
         """
-        return SBox([self(x) ^ self(x ^ u)
+        from sage.structure.element import is_Vector
+        nvars = self.m
+
+        if isinstance(u, (tuple, list)):
+            v = ZZ(u, base=2)
+        elif is_Vector(u):
+            if u.base_ring() != GF(2):
+                raise TypeError("base ring of input vector must be GF(2)")
+            elif u.parent().dimension() != nvars:
+                raise TypeError("input vector must be an element of a vector space with dimension %d" % (nvars,))
+            v = ZZ(u.list(), base=2)
+        else:
+            v = u
+
+        return SBox([self(x) ^ self(x ^ v)
                      for x in range(1 << self.input_size())])
 
     @cached_method

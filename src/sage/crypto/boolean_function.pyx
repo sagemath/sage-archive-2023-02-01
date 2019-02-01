@@ -1225,7 +1225,7 @@ cdef class BooleanFunction(SageObject):
 
     def derivative(self, u):
         """
-        Returns the derivative in direction of u
+        Return the derivative in direction of ``u``
 
         INPUT:
 
@@ -1242,9 +1242,16 @@ cdef class BooleanFunction(SageObject):
             sage: f = BooleanFunction([0,1,0,1,0,1,0,1])
             sage: f.derivative(1).algebraic_normal_form()
             1
-
-            sage: f.derivative([1,0,0]).algebraic_normal_form()
+            sage: u = [1,0,0]
+            sage: f.derivative(u).algebraic_normal_form()
             1
+            sage: v = vector(GF(2), u)
+            sage: f.derivative(u).algebraic_normal_form()
+            1
+            sage: f.derivative(8).algebraic_normal_form()
+            Traceback (most recent call last):
+            ...
+            IndexError: index out of bound
         """
         from sage.structure.element import is_Vector
         nvars = self._nvariables

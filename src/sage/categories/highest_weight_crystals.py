@@ -799,8 +799,7 @@ class HighestWeightCrystals(Category_singleton):
                                 pos -= 1
                                 b1 = None
                             else:
-                                b = self.element_class(self, path)
-                                yield b
+                                yield self.element_class(self, path)
 
 ###############################################################################
 ## Morphisms

@@ -2408,7 +2408,6 @@ class FusionRing(WeylCharacterRing):
         Returns a basis of simple objects ordered according to 
         [NaiRow2011]_. For type A level 1, the basis is ordered by the
         fundamental weights.  The order is described in [Fuchs1994]_.
-
         """
         ct = self._cartan_type[0]
         k = self._k
@@ -2569,13 +2568,14 @@ class FusionRing(WeylCharacterRing):
 
             EXAMPLES::
 
-                sage: B22=FusionRing("B2",2)
-                sage: elt=B22.some_elements()[0]
-                sage: elt.is_simple_obj()
+                sage: A22=FusionRing("A2",2)
+                sage: x = A22(1,0); x
+                A22(1,0)
+                sage: x.is_simple_obj()
                 True
-                sage: elt**2
-                B22(0,0) + B22(0,2) + B22(2,0)
-                sage: (elt**2).is_simple_obj()
+                sage: x^2
+                A22(0,1) + A22(2,0)
+                sage: (x^2).is_simple_obj()
                 False
             """
             return self.parent()._k is not None and len(self.monomial_coefficients())==1

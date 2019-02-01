@@ -53,6 +53,8 @@ ecl_eval("(setf *standard-output* *dev-null*)")
 
 # Loading and initialization of Kenzo
 # Note that it should be installed in a directory where ecl's asdf can find
+load_asdf_string = "(load \"{}/lib/ecl/asdf.fas\")".format(SAGE_LOCAL)
+ecl_eval(load_asdf_string)
 ecl_eval("(require :asdf)")
 push_kenzo_string = '(push "{}/share/kenzo/" asdf:*central-registry*)'.format(SAGE_LOCAL)
 ecl_eval(push_kenzo_string)

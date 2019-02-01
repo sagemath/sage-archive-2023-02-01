@@ -2301,10 +2301,19 @@ class FusionRing(WeylCharacterRing):
                                                     prefix=prefix, style=style, k=k, conjugate=conjugate)
 
     @lazy_attribute
+    def _q_field(self):
+        """
+        The cyclotomic field of 4l-th roots of unity, where
+        l is the fusion_l of the category (see above). Call this
+        lazy attribute via the method `self.q_field()`.
+        """
+        self._K = CyclotomicField(4*self._l)
+        return self._K
+
     def q_field(self):
         """
-        Return the generator of the cyclotomic field of 2l-th roots of unity, where
-        l is the fusion_l of the category (see above).
+        Return the cyclotomic field of 4l-th roots of unity, where
+        `l` is the ``fusion_l`` of the category (see above).
 
         This field contains the twists, categorical dimensions, and the entries of the 
         S-matrix.
@@ -2312,14 +2321,13 @@ class FusionRing(WeylCharacterRing):
         EXAMPLES::
 
             sage: B22=FusionRing("B2",2)
-            sage: B22.q_field
+            sage: B22.q_field()
             Cyclotomic Field of order 40 and degree 16
             sage: A11=FusionRing('A1',1)
-            sage: A11.q_field
+            sage: A11.q_field()
             Cyclotomic Field of order 12 and degree 4
         """
-        self._K = CyclotomicField(4*self._l)
-        return self._K
+        return self._q_field
 
     def _element_constructor(self,weight):
         return self._parent._element_constructor(self._parent,weight)
@@ -2454,14 +2462,9 @@ class FusionRing(WeylCharacterRing):
             raise ValueError("ordered basis not yet available for this FusionRing")
         return ord_basis
 
-    def s_ij(self, elt_i, elt_j, fusion_mat_i=[]):
+    def s_ij_legacy(self, elt_i, elt_j, fusion_mat_i=[]):
         """
-        Return the element of the S-matrix of this FusionRing corresponding to 
-        the given elements.
-
-        EXAMPLES:: 
-
-            #TODO: update docstring using next iteration of ordered basis method
+        Remove this soon
         """
         dims = self.q_dims()
         ord_basis = self.ordered_basis()
@@ -2469,11 +2472,30 @@ class FusionRing(WeylCharacterRing):
         rng = range(len(ord_basis))
         j = ord_basis.index(elt_j)
         fusion_matrix = fusion_mat_i if fusion_mat_i else elt_i.fusion_matrix()
-        q = self.q_field.gen()
+        q = self.q_field().gen()
         l = self.fusion_l()
         s_ij = sum(fusion_matrix[k,j]*q**(2*l*twists[k])*dims[k] for k in rng)
         s_ij *= q**(-2*l*(elt_i.twist() + elt_j.twist()))
         return s_ij
+
+    def s_ij(self, elt_i, elt_j):
+        """
+        Return the element of the S-matrix of this FusionRing corresponding to 
+        the given elements.
+
+        INPUT:
+
+        - ``elt_i``, ``elt_j`` -- elements of the fusion basis
+
+        EXAMPLES:: 
+
+            #TODO: update docstring using next iteration of ordered basis method
+        """
+        l = self.fusion_l()
+        K = self.q_field()
+        q = K.gen()
+        ijtwist = -2*l*(elt_i.twist() + elt_j.twist())
+        return sum(self(k).q_dimension()*q**(2*l*self(k).twist()+ijtwist) for k in (elt_i.dual()*elt_j).monomial_coefficients())
 
     def s_matrix(self):
         r"""
@@ -2498,7 +2520,7 @@ class FusionRing(WeylCharacterRing):
         ord_basis = self.ordered_basis()
         fusion_mats = [x.fusion_matrix() for x in ord_basis]
         rng = range(len(ord_basis))
-        S = matrix(self.q_field, len(ord_basis))
+        S = matrix(self.q_field(), len(ord_basis))
         for i in rng:
             for j in rng:
                 S[i,j] = self.s_ij(ord_basis[i], ord_basis[j], fusion_mats[i]) 
@@ -2562,7 +2584,7 @@ class FusionRing(WeylCharacterRing):
         """
         A class for FusionRing elements
         """
-        def is_simple_obj(self):
+        def is_simple_object(self):
             """
             Determine whether element is a simple object of the FusionRing.
 
@@ -2571,11 +2593,11 @@ class FusionRing(WeylCharacterRing):
                 sage: A22=FusionRing("A2",2)
                 sage: x = A22(1,0); x
                 A22(1,0)
-                sage: x.is_simple_obj()
+                sage: x.is_simple_object()
                 True
                 sage: x^2
                 A22(0,1) + A22(2,0)
-                sage: (x^2).is_simple_obj()
+                sage: (x^2).is_simple_object()
                 False
             """
             return self.parent()._k is not None and len(self.monomial_coefficients())==1
@@ -2601,7 +2623,7 @@ class FusionRing(WeylCharacterRing):
                 sage: F41(0,0,0,1).twist()
                 4/5
             """
-            if not self.is_simple_obj():
+            if not self.is_simple_object():
                 raise ValueError("quantum twist is only available for simple objects of a FusionRing")
             rho = sum(self.parent().positive_roots())/2
             lam = self.highest_weight()
@@ -2627,7 +2649,7 @@ class FusionRing(WeylCharacterRing):
                 sage: [(b.q_dimension())^2 for b in B22.basis()]
                 [1, 5, 4, 1, 5, 4]
             """
-            if not self.is_simple_obj():
+            if not self.is_simple_object():
                 raise ValueError("quantum twist is only available for simple objects of a FusionRing")
             lam = self.highest_weight()
             space = self.parent().space()
@@ -2640,7 +2662,7 @@ class FusionRing(WeylCharacterRing):
             q = pr.gen()**2
             expr = pr(expr)
             expr = expr.substitute(q=q**2)/q**(expr.degree())
-            zet = self.parent().q_field.gen()
+            zet = self.parent().q_field().gen()
             return expr.substitute(q=zet)
 
         def fusion_matrix(self):
@@ -2656,7 +2678,7 @@ class FusionRing(WeylCharacterRing):
             [0 1]
             [1 1]
             """
-            if not self.is_simple_obj():
+            if not self.is_simple_object():
                 raise ValueError("fusion matrix is only available for simple objects of a FusionRing")
             ord_basis = self.parent().ordered_basis()
             wts = [x.highest_weight() for x in ord_basis]

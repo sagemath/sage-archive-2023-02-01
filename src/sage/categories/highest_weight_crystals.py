@@ -776,27 +776,28 @@ class HighestWeightCrystals(Category_singleton):
                      [[[3]], [[1, 1], [2, 2]]],
                      [[[-2]], [[1, 1], [2, 2]]])
                 """
-                it = list(self.crystals[:-1]) + [self.crystals[-1].highest_weight_vectors()]
-                it = [[0, len(elts), list(elts), C.index_set()] for elts, C in zip(it, self.crystals)]
+                I = self.index_set()
+                T_data = list(self.crystals[:-1]) + [self.crystals[-1].highest_weight_vectors()]
+                T_data = [[0, len(elts), list(elts)] for elts, C in zip(T_data, self.crystals)]
                 n = len(self.crystals)
                 path = [None]*n
                 b1 = None
-                pos = n-1
-                while pos < n:
-                    it_pos = it[pos]
-                    if it_pos[0] == it_pos[1]:
-                        pos += 1
+                T_pos = n-1
+                while T_pos < n:
+                    C_data = T_data[T_pos]
+                    if C_data[0] == C_data[1]:
+                        T_pos += 1
                         b1 = None
-                        it_pos[0] = 0
+                        C_data[0] = 0
                     else:
                         if b1 is None:
-                            b1 = self.element_class(self, path[pos+1:])
-                        b2 = it_pos[2][it_pos[0]]
-                        it_pos[0] += 1
-                        if all(b2.e(i) is None or b2.epsilon(i) <= b1.phi(i) for i in it_pos[3]):
-                            path[pos] = b2
-                            if pos:
-                                pos -= 1
+                            b1 = self.element_class(self, path[T_pos+1:])
+                        b2 = C_data[2][C_data[0]]
+                        C_data[0] += 1
+                        if all(b2.e(i) is None or b2.epsilon(i) <= b1.phi(i) for i in I):
+                            path[T_pos] = b2
+                            if T_pos:
+                                T_pos -= 1
                                 b1 = None
                             else:
                                 yield self.element_class(self, path)

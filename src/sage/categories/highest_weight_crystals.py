@@ -780,23 +780,28 @@ class HighestWeightCrystals(Category_singleton):
                 it = [[0, len(elts), list(elts), C.index_set()] for elts, C in zip(it, self.crystals)]
                 n = len(self.crystals)
                 path = [None]*n
+                b1 = None
                 pos = n-1
                 while pos < n:
                     it_pos = it[pos]
                     if it_pos[0] == it_pos[1]:
                         pos += 1
+                        b1 = None
                         it_pos[0] = 0
                     else:
-                        path[pos] = it_pos[2][it_pos[0]]
+                        if b1 is None:
+                            b1 = self.element_class(self, path[pos+1:])
+                        b2 = it_pos[2][it_pos[0]]
                         it_pos[0] += 1
-            
-                        b = self.element_class(self, path[pos:])
-                        if all(b.e(i) is None for i in it_pos[3]):
+                        if all(b2.e(i) is None or b2.epsilon(i) <= b1.phi(i) for i in it_pos[3]):
+                            path[pos] = b2
                             if pos:
                                 pos -= 1
+                                b1 = None
                             else:
+                                b = self.element_class(self, path)
                                 yield b
-            
+
 ###############################################################################
 ## Morphisms
 
@@ -871,7 +876,7 @@ class HighestWeightCrystalMorphism(CrystalMorphismByGenerators):
             sage: psi(b)
             1
             sage: c = psi(b.f_string([1,1,1,2,2,1,2,2])); c
-            Y(1,0)^-4 Y(2,0)^4 Y(2,1)^-4 
+            Y(1,0)^-4 Y(2,0)^4 Y(2,1)^-4
             sage: c == C.highest_weight_vector().f_string([1,1,1,2,2,1,2,2])
             True
 
@@ -942,4 +947,3 @@ class HighestWeightCrystalHomset(CrystalHomset):
         CrystalHomset.__init__(self, X, Y, category)
 
     Element = HighestWeightCrystalMorphism
-

@@ -20,6 +20,28 @@ AUTHORS:
 from sage.structure.sage_object import SageObject
 
 
+def smallscale_present_linearlayer(nsboxes=16):
+    """
+    TODO: switch to sage.crypto.linearlayer as soon as it is included in sage
+    """
+    from sage.modules.free_module import VectorSpace
+    from sage.modules.free_module_element import vector
+    from sage.matrix.constructor import Matrix
+    from sage.rings.finite_rings.finite_field_constructor import GF
+
+    def present_llayer(n, x):
+        dim = 4*n
+        y = [0]*dim
+        for i in range(dim-1):
+            y[i] = x[(n * i) % (dim - 1)]
+        y[dim-1] = x[dim-1]
+        return vector(GF(2), y)
+
+    m = Matrix(GF(2), [present_llayer(nsboxes, ei)
+                       for ei in VectorSpace(GF(2), 4*nsboxes).basis()])
+    return m
+
+
 class PRESENT(SageObject):
     r"""
     This class implements PRESENT described in [BKLPPRSV2007]_.

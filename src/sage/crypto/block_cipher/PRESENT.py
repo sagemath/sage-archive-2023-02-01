@@ -53,28 +53,28 @@ class PRESENT(SageObject):
         sage: from.sage.crypto.block_cipher.PRESENT import PRESENT
         sage: present = PRESENT(keysize=80)
         sage: p1 = "0000000000000000"
-        sage: k1 = "0000000000000000"
+        sage: k1 = "00000000000000000000"
         sage: c1 = "5579C1387B228445"
         sage: present.encrypt(p1, k1) == c1
         True
         sage: present.decrypt(c1, k1) == p1
         True
         sage: p2 = "0000000000000000"
-        sage: k2 = "FFFFFFFFFFFFFFFF"
+        sage: k2 = "FFFFFFFFFFFFFFFFFFFF"
         sage: c2 = "E72C46C0F5945049"
         sage: present.encrypt(p2, k2) == c2
         True
         sage: present.decrypt(c2, k2) == p2
         True
         sage: p3 = "FFFFFFFFFFFFFFFF"
-        sage: k3 = "0000000000000000"
+        sage: k3 = "00000000000000000000"
         sage: c3 = "A112FFC72F68417B"
         sage: present.encrypt(p3, k3) == c3
         True
         sage: present.decrypt(c3, k3) == p3
         True
         sage: p4 = "FFFFFFFFFFFFFFFF"
-        sage: k4 = "FFFFFFFFFFFFFFFF"
+        sage: k4 = "FFFFFFFFFFFFFFFFFFFF"
         sage: c4 = "3333DCD3213210D2"
         sage: present.encrypt(p4, k4) == c4
         True

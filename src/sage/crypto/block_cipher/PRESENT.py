@@ -69,7 +69,13 @@ class PRESENT(SageObject):
         - ``keysize`` -- (default: ``80``) the size of the keys that will be
           used in bits. It must be either 80 or 128.
         """
-        self.keysize = 80
+        if keysize != 80 and keysize != 128:
+            raise ValueError("keysize must bei either 80 or 128 and not %s"
+                             % keysize)
+        self.keysize = keysize
+        self.blocksize = 64
+        from sage.crypto.sboxes import PRESENT as PRESENTSBOX
+        self.sbox = PRESENTSBOX
 
     def __call__(self, B, K, algorithm="encrypt"):
         r"""
@@ -89,7 +95,7 @@ class PRESENT(SageObject):
         r"""
         A string representation of this PRESENT.
         """
-        pass
+        return "PRESENT block cipher with %s-bit keys" % self.keysize
 
     def decrypt(self, C, K):
         r"""

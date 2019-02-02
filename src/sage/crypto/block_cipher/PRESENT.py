@@ -124,7 +124,7 @@ class PRESENT(SageObject):
         Return an plaintext corresponding to the ciphertext ``C``,
         using PRESENT decryption with key ``K``.
         """
-        pass
+        raise NotImplementedError("Decryption is not implemented yet!")
 
     def encrypt(self, P, K):
         r"""
@@ -142,4 +142,4 @@ class PRESENT(SageObject):
 
         - The ciphertext corresponding to ``P``, obtained using the key ``K``.
         """
-        pass
+        raise NotImplementedError("Encryption is not implemented yet!")

@@ -130,5 +130,16 @@ class PRESENT(SageObject):
         r"""
         Return an ciphertext corresponding to the plaintext ``P``,
         using PRESENT encryption with key ``K``.
+
+        INPUT:
+
+        - ``P`` -- The plaintext that will be encrypted.
+
+        - ``K`` -- a string of 16 or 32 hex digits; The key that will be used
+          to encrypt ``P``.
+
+        OUTPUT:
+
+        - The ciphertext corresponding to ``P``, obtained using the key ``K``.
         """
         pass

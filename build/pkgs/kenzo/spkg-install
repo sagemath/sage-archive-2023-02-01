@@ -1,18 +1,22 @@
 cd src
 
-# copy the unpacked directory to $SAGE_LOCAL/share/kenzo
-cp . $SAGE_LOCAL/share/kenzo -R
 
 
 # create a short lisp file with the instructions to load kenzo from ecl
 # This will compile the lisp files since it is the first time they are loaded
 
 echo "(require :asdf)" > compilekenzo
-echo "(push \"$SAGE_LOCAL/share/kenzo/\" asdf:*central-registry*)" >> compilekenzo
+echo "(push #P\"./\" asdf:*central-registry*)" >> compilekenzo
 echo "(require :kenzo)" >> compilekenzo
+echo "(asdf:make-build :kenzo :type :fasl :monolithic t :move-here #P\"./\")" >> compilekenzo
 echo "(quit)" >> compilekenzo
 
+
 ecl < compilekenzo
+
+echo "moving kenzo--all-systems.fasb to  $SAGE_LOCAL/lib/ecl/kenzo.fas"
+mv kenzo--all-systems.fasb $SAGE_LOCAL/lib/ecl/kenzo.fas
+
 
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing Kenzo."

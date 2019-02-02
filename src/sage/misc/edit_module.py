@@ -1,4 +1,4 @@
-"""
+ """
 Edit the source code of Sage interactively
 
 AUTHORS:
@@ -23,8 +23,7 @@ to the system. In those cases it suffices to give the editor name.
 In fact, if the environment variable :envvar:`EDITOR` is set to a known editor,
 then the system will use that if no template has been set explicitly.
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 Nils Bruin <nbruin@sfu.ca> and
 #                          William Stein <wstein@math.ucsd.edu>
 #
@@ -32,9 +31,8 @@ then the system will use that if no template has been set explicitly.
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import
 
 import sage.misc.sageinspect
@@ -58,6 +56,7 @@ template_defaults = {
       'ncl'      : Template('ncl -line ${line} ${file}'),
       'gedit'    : Template('gedit +${line} ${file} &'),
       'kate'     : Template('kate -u --line +${line} ${file} &')   }
+
 
 def file_and_line(obj):
    r"""
@@ -84,7 +83,7 @@ def file_and_line(obj):
    The following tests against a bug that was fixed in :trac:`11298`::
 
       sage: edit_module.file_and_line(x)
-      ('...sage/symbolic/expression.pyx', ...)
+      ('...sage/symbolic/expression...pyx', ...)
 
    """
    #d = inspect.getdoc(obj)
@@ -118,6 +117,7 @@ def file_and_line(obj):
 
    return filename, lineno+1
 
+
 def template_fields(template):
    r"""
    Given a String.Template object, returns the fields.
@@ -130,18 +130,18 @@ def template_fields(template):
 
       sage: from sage.misc.edit_module import template_fields
       sage: from string import Template
-      sage: t=Template("Template ${one} with ${two} and ${three}")
-      sage: template_fields(t)
-      ['three', 'two', 'one']
+      sage: t = Template("Template ${one} with ${two} and ${three}")
+      sage: sorted(template_fields(t))
+      ['one', 'three', 'two']
    """
-   dict={}
-   dummy=None
+   dict = {}
+   dummy = None
    while not(dummy):
       try:
-         dummy=template.substitute(dict)
+         dummy = template.substitute(dict)
       except KeyError as inst:
-         dict[inst.args[0]]=None
-   return dict.keys()
+         dict[inst.args[0]] = None
+   return list(dict)
 
 ## The routine set_edit_template should only do some consistency checks on template_string
 ## It should not do any magic. This routine should give the user full control over what is

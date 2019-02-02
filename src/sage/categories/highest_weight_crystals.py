@@ -712,29 +712,7 @@ class HighestWeightCrystals(Category_singleton):
                      [[[3]], [[1, 1], [2, 2]]],
                      [[[-2]], [[1, 1], [2, 2]]])
                 """
-                n = len(self.crystals)
-                it = [ iter(self.crystals[-1].highest_weight_vectors()) ]
-                path = []
-                ret = []
-                while it:
-                    try:
-                        x = next(it[-1])
-                    except StopIteration:
-                        it.pop()
-                        if path:
-                            path.pop(0)
-                        continue
-
-                    b = self.element_class(self, [x] + path)
-                    if not b.is_highest_weight():
-                        continue
-                    path.insert(0, x)
-                    if len(path) == n:
-                        ret.append(b)
-                        path.pop(0)
-                    else:
-                        it.append( iter(self.crystals[-len(path)-1]) )
-                return tuple(ret)
+                return tuple(self.highest_weight_vectors_iterator())
 
             def highest_weight_vectors_iterator(self):
                 r"""
@@ -781,24 +759,23 @@ class HighestWeightCrystals(Category_singleton):
                 T_data = [[0, len(elts), list(elts)] for elts, C in zip(T_data, self.crystals)]
                 n = len(self.crystals)
                 path = [None]*n
-                b1 = None
+                T_phi = [None]*(n-1) + [{i: 0 for i in I}]
                 T_pos = n-1
                 while T_pos < n:
                     C_data = T_data[T_pos]
                     if C_data[0] == C_data[1]:
                         T_pos += 1
-                        b1 = None
                         C_data[0] = 0
                     else:
-                        if b1 is None:
-                            b1 = self.element_class(self, path[T_pos+1:])
                         b2 = C_data[2][C_data[0]]
                         C_data[0] += 1
-                        if all(b2.e(i) is None or b2.epsilon(i) <= b1.phi(i) for i in I):
+                        b1_phi = T_phi[T_pos]
+                        if all(b2.e(i) is None or b2.epsilon(i) <= b1_phi[i] for i in I):
                             path[T_pos] = b2
                             if T_pos:
                                 T_pos -= 1
-                                b1 = None
+                                T_phi[T_pos] = {i: b2.phi(i) + max(0, b1_phi[i] - b2.epsilon(i))
+                                                for i in I}
                             else:
                                 yield self.element_class(self, path)
 

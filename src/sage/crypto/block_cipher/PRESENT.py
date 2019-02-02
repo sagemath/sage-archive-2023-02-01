@@ -18,6 +18,7 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from sage.structure.sage_object import SageObject
+from sage.rings.integer_ring import ZZ
 
 
 def smallscale_present_linearlayer(nsboxes=16):
@@ -119,6 +120,73 @@ class PRESENT(SageObject):
         """
         return "PRESENT block cipher with %s-bit keys" % self.keysize
 
+    def generateRoundKeys(self, K):
+        r"""
+        Return all round keys `K_1 \dots K_{32}` in a list.
+
+        INPUT:
+
+        - ``K`` --  a string of 16 or 32 hex digits; The rightmost hex digit
+          represents `k_3k_2k_1k_0`.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.PRESENT import PRESENT
+            sage: present = PRESENT(80)
+            sage: K = present.generateRoundKeys("00000000000000000000")
+            sage: ZZ(K[0], 2) == ZZ("0000000000000000", 16)
+            True
+            sage: ZZ(K[1], 2) == ZZ("c000000000000000", 16)
+            True
+            sage: ZZ(K[2], 2) == ZZ("5000180000000001", 16)
+            True
+            sage: ZZ(K[31], 2) == ZZ("6dab31744f41d700", 16)
+            True
+
+
+        Description of the key schedule for 64-bit keys from [BKLPPRSV2007]_:
+
+        At round `i` the 64-bit round key `K_i = \kappa_{63}\kappa_{62} \dots
+        \kappa_0` consists of the 64 leftmost bits fo the current contents of
+        register `K`. After extracting the round key `K_i`, the key register
+        `K = k_{79}k_{78} \dots k_0` is updated as follows.
+
+        .. MATH::
+           :nowrap:
+
+            \begin{aligned}
+             \ [k_{79}k_{78} \dots k_{1}k_{0}] &=
+             [k_{18}k_{17} \dots k_{20}k_{19}] \\
+             [k_{79}k_{78}k_{77}k_{76}] &= S[k_{79}k_{78}k_{77}k_{76}] \\
+             [k_{19}k_{18}k_{17}k_{16}k_{15}] &=
+             [k_{19}k_{18}k_{17}k_{16}k_{15}] \oplus round\_counter
+            \end{aligned}
+
+        Thus, the key register is rotated by 61 bit positions to the left, the
+        left-most four bits are passed through the PRESENT S-box, and the
+        round_counter value `i` is exclusive-ored with bits `k_{19}k_{18}k_{17}
+        k_{16}k_{15}` of `K` with the least significant bit of round_counter on
+        the right.
+
+        The key schedule for 128-bit keys is not implemented yet.
+        """
+        if len(K) == 20 and self.keysize == 80:
+            # convert K to list of key bits [k_0,...,k_79]
+            roundKeys = []
+            K = (ZZ(K, 16).bits() + [0] * (80 - ZZ(K, 16).nbits()))
+            for i in range(1, 33):
+                roundKeys.append(K[16:])
+                K = K[19:] + K[:19]
+                K[76:] = self.sbox((K[76:])[::-1])[::-1]
+                rc = (ZZ(i).bits() + [0] * (5 - ZZ(i).nbits()))
+                K[15:20] = [int(K[15+j]) ^ int(rc[j]) for j in range(5)]
+            return roundKeys
+        elif len(K) == 32 and self.keysize == 128:
+            raise NotImplementedError("The key schedule for 128-bit keys is"
+                                      " not implemented yet.")
+        else:
+            raise ValueError("Key must be %s-bits long" % self.keysize)
+
     def decrypt(self, C, K):
         r"""
         Return an plaintext corresponding to the ciphertext ``C``,
@@ -136,7 +204,7 @@ class PRESENT(SageObject):
         - ``P`` -- The plaintext that will be encrypted.
 
         - ``K`` -- a string of 16 or 32 hex digits; The key that will be used
-          to encrypt ``P``.
+          to encrypt ``P``. The rightmost hex digit represents `k_3k_2k_1k_0`.
 
         OUTPUT:
 

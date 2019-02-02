@@ -50,7 +50,7 @@ class PRESENT(SageObject):
 
     Check test vectors given in [BKLPPRSV2007]_.
 
-        sage: from.sage.crypto.block_cipher.PRESENT import PRESENT
+        sage: from sage.crypto.block_cipher.PRESENT import PRESENT
         sage: present = PRESENT(keysize=80)
         sage: p1 = "0000000000000000"
         sage: k1 = "00000000000000000000"

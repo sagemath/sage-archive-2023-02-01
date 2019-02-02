@@ -1015,25 +1015,37 @@ class UniversalCyclotomicFieldElement(FieldElement):
 
     def __abs__(self):
         """
-        Return the absolute value of ``self`` as an algebraic real number.
+        Return the absolute value (or complex modulus) of ``self``.
+
+        The absolute value is returned as an algebraic real number.
 
         EXAMPLES::
 
             sage: f = 5/2*E(3)+E(5)/7
-            sage: f.__abs__()
+            sage: f.abs()
             2.597760303873084?
+            sage: abs(f)
+            2.597760303873084?
+            sage: a = E(8)
+            sage: abs(a)
+            1
+            sage: v, w = vector([a]), vector([a, a])
+            sage: v.norm(), w.norm()
+            (1, 1.414213562373095?)
+            sage: v.norm().parent()
+            Algebraic Real Field
 
         TESTS::
 
-            sage: [E(n).__abs__() for n in range(1, 11)]
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
             sage: [abs(E(n)) for n in range(1, 11)]
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-            sage: UniversalCyclotomicField().zero().__abs__()
+            sage: UniversalCyclotomicField().zero().abs()
             0
         """
         square = self * self.conjugate()
         return AA(square).sqrt()
+
+    abs = __abs__
 
     def norm_of_galois_extension(self):
         r"""

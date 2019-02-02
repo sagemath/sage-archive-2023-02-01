@@ -25,11 +25,16 @@ class PRESENT(SageObject):
     This class implements PRESENT described in [BKLPPRSV2007]_.
     """
 
-    def __init__(self):
+    def __init__(self, keysize=80):
         r"""
-        This class implements PRESENT described in [BKLPPRSV2007]_.
+        Construct an instance of PRESENT.
+
+        INPUT:
+
+        - ``keysize`` -- (default: ``80``) the size of the keys that will be
+          used in bits. It must be either 80 or 128.
         """
-        pass
+        self.keysize = 80
 
     def __call__(self, B, K, algorithm="encrypt"):
         r"""

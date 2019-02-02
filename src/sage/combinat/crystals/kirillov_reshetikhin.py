@@ -2226,7 +2226,7 @@ class KR_type_Bn(KirillovReshetikhinGenericCrystal):
             sage: K.highest_weight_dict()
             {(3, 1, 1): [+++, [[1]]], (3, 3, 3): [+++, [[1], [2], [3]]]}
         """
-        return {tuple([2*i[1] for i in x.classical_weight()]): x
+        return {tuple(2*i[1] for i in sorted(x.classical_weight())): x
                 for x in self.module_generators}
 
     @cached_method
@@ -2248,7 +2248,7 @@ class KR_type_Bn(KirillovReshetikhinGenericCrystal):
              (3, 2, 2): [[1, 1, 1], [2, 2], [3, 3]],
              (3, 3, 3): [[1, 1, 1], [2, 2, 2], [3, 3, 3]]}
         """
-        return {tuple([i[1] for i in x.classical_weight()]): x
+        return {tuple(i[1] for i in sorted(x.classical_weight())): x
                 for x in self.ambient_crystal().module_generators}
 
     def similarity_factor(self):

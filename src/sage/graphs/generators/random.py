@@ -154,7 +154,7 @@ def RandomBarabasiAlbert(n, m, seed=None):
         sage: G.order(), G.size()
         (6, 8)
         sage: G.degree_sequence()
-        [4, 4, 3, 2, 2, 1]
+        [4, 3, 3, 2, 2, 2]
 
     We plot a random graph on 12 nodes with `m = 3`::
 

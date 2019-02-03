@@ -169,36 +169,36 @@ def FurerGadget(k, prefix=None):
     Furer gadget of order 3, without any prefix. ::
 
         sage: G, p = graphs.FurerGadget(3)
-        sage: G.vertices()
-        [(), (0, 1), (0, 2), (0, 'a'), (0, 'b'), (1, 2), (1, 'a'),
-         (1, 'b'), (2, 'a'), (2, 'b')]
-        sage: G.edges()
+        sage: sorted(G, key=str)
+        [(), (0, 'a'), (0, 'b'), (0, 1), (0, 2),
+         (1, 'a'), (1, 'b'), (1, 2), (2, 'a'), (2, 'b')]
+        sage: sorted(G.edge_iterator(), key=str)
         [((), (0, 'b'), None), ((), (1, 'b'), None),
-         ((), (2, 'b'), None), ((0, 1), (0, 'a'), None),
-         ((0, 1), (1, 'a'), None), ((0, 1), (2, 'b'), None),
-         ((0, 2), (0, 'a'), None), ((0, 2), (1, 'b'), None),
-         ((0, 2), (2, 'a'), None), ((0, 'b'), (1, 2), None),
+         ((), (2, 'b'), None), ((0, 'b'), (1, 2), None),
+         ((0, 1), (0, 'a'), None), ((0, 1), (1, 'a'), None),
+         ((0, 1), (2, 'b'), None), ((0, 2), (0, 'a'), None),
+         ((0, 2), (1, 'b'), None), ((0, 2), (2, 'a'), None),
          ((1, 2), (1, 'a'), None), ((1, 2), (2, 'a'), None)]
 
     Furer gadget of order 3, with a prefix. ::
 
         sage: G, p = graphs.FurerGadget(3, 'Prefix')
-        sage: G.vertices()
-        [('Prefix', ()), ('Prefix', (0, 1)), ('Prefix', (0, 2)),
-         ('Prefix', (0, 'a')), ('Prefix', (0, 'b')), ('Prefix', (1, 2)),
-         ('Prefix', (1, 'a')), ('Prefix', (1, 'b')), ('Prefix', (2, 'a')),
+        sage: sorted(G, key=str)
+        [('Prefix', ()), ('Prefix', (0, 'a')), ('Prefix', (0, 'b')),
+         ('Prefix', (0, 1)), ('Prefix', (0, 2)), ('Prefix', (1, 'a')),
+         ('Prefix', (1, 'b')), ('Prefix', (1, 2)), ('Prefix', (2, 'a')),
          ('Prefix', (2, 'b'))]
-        sage: G.edges()
+        sage: sorted(G.edge_iterator(), key=str)
         [(('Prefix', ()), ('Prefix', (0, 'b')), None),
          (('Prefix', ()), ('Prefix', (1, 'b')), None),
          (('Prefix', ()), ('Prefix', (2, 'b')), None),
+         (('Prefix', (0, 'b')), ('Prefix', (1, 2)), None),
          (('Prefix', (0, 1)), ('Prefix', (0, 'a')), None),
          (('Prefix', (0, 1)), ('Prefix', (1, 'a')), None),
          (('Prefix', (0, 1)), ('Prefix', (2, 'b')), None),
          (('Prefix', (0, 2)), ('Prefix', (0, 'a')), None),
          (('Prefix', (0, 2)), ('Prefix', (1, 'b')), None),
          (('Prefix', (0, 2)), ('Prefix', (2, 'a')), None),
-         (('Prefix', (0, 'b')), ('Prefix', (1, 2)), None),
          (('Prefix', (1, 2)), ('Prefix', (1, 'a')), None),
          (('Prefix', (1, 2)), ('Prefix', (2, 'a')), None)]
     """
@@ -279,20 +279,19 @@ def CaiFurerImmermanGraph(G, twisted=False):
 
         sage: G = graphs.CycleGraph(4)
         sage: CFI, p = graphs.CaiFurerImmermanGraph(G)
-        sage: CFI.vertices()
-        [(0, ()), (0, (0, 1)), (0, (0, 'a')), (0, (0, 'b')),
-        (0, (1, 'a')), (0, (1, 'b')), (1, ()), (1, (0, 1)),
-        (1, (0, 'a')), (1, (0, 'b')), (1, (1, 'a')), (1, (1, 'b')),
-        (2, ()), (2, (0, 1)), (2, (0, 'a')), (2, (0, 'b')),
-        (2, (1, 'a')), (2, (1, 'b')), (3, ()), (3, (0, 1)),
-        (3, (0, 'a')), (3, (0, 'b')), (3, (1, 'a')), (3, (1, 'b'))]
-        sage: CFI.edges()
+        sage: sorted(CFI, key=str)
+        [(0, ()), (0, (0, 'a')), (0, (0, 'b')), (0, (0, 1)), (0, (1, 'a')),
+         (0, (1, 'b')), (1, ()), (1, (0, 'a')), (1, (0, 'b')), (1, (0, 1)),
+         (1, (1, 'a')), (1, (1, 'b')), (2, ()), (2, (0, 'a')), (2, (0, 'b')),
+         (2, (0, 1)), (2, (1, 'a')), (2, (1, 'b')), (3, ()), (3, (0, 'a')),
+         (3, (0, 'b')), (3, (0, 1)), (3, (1, 'a')), (3, (1, 'b'))]
+        sage: sorted(CFI.edge_iterator(), key=str)
         [((0, ()), (0, (0, 'b')), None),
          ((0, ()), (0, (1, 'b')), None),
-         ((0, (0, 1)), (0, (0, 'a')), None),
-         ((0, (0, 1)), (0, (1, 'a')), None),
          ((0, (0, 'a')), (1, (0, 'a')), None),
          ((0, (0, 'b')), (1, (0, 'b')), None),
+         ((0, (0, 1)), (0, (0, 'a')), None),
+         ((0, (0, 1)), (0, (1, 'a')), None),
          ((0, (1, 'a')), (3, (0, 'a')), None),
          ((0, (1, 'b')), (3, (0, 'b')), None),
          ((1, ()), (1, (0, 'b')), None),
@@ -311,7 +310,6 @@ def CaiFurerImmermanGraph(G, twisted=False):
          ((3, ()), (3, (1, 'b')), None),
          ((3, (0, 1)), (3, (0, 'a')), None),
          ((3, (0, 1)), (3, (1, 'a')), None)]
-
     """
     isConnected = G.is_connected()
     newG = Graph()
@@ -1488,16 +1486,16 @@ def FuzzyBallGraph(partition, q):
 
     EXAMPLES::
 
-        sage: graphs.FuzzyBallGraph([3,1],2).adjacency_matrix()
-        [0 1 1 1 1 1 1 0]
-        [1 0 1 1 1 1 1 0]
-        [1 1 0 1 1 1 1 0]
-        [1 1 1 0 1 1 0 1]
-        [1 1 1 1 0 1 0 0]
-        [1 1 1 1 1 0 0 0]
-        [1 1 1 0 0 0 0 0]
-        [0 0 0 1 0 0 0 0]
-
+        sage: F = graphs.FuzzyBallGraph([3,1],2)
+        sage: F.adjacency_matrix(vertices=list(F))
+        [0 0 1 1 1 0 0 0]
+        [0 0 0 0 0 1 0 0]
+        [1 0 0 1 1 1 1 1]
+        [1 0 1 0 1 1 1 1]
+        [1 0 1 1 0 1 1 1]
+        [0 1 1 1 1 0 1 1]
+        [0 0 1 1 1 1 0 1]
+        [0 0 1 1 1 1 1 0]
 
     Pick positive integers `m` and `k` and a nonnegative integer `q`.
     All the FuzzyBallGraphs constructed from partitions of `m` with
@@ -1506,7 +1504,7 @@ def FuzzyBallGraph(partition, q):
 
         sage: m=4; q=2; k=2
         sage: g_list=[graphs.FuzzyBallGraph(p,q) for p in Partitions(m, length=k)]
-        sage: set([g.laplacian_matrix(normalized=True).charpoly() for g in g_list])  # long time (7s on sage.math, 2011)
+        sage: set([g.laplacian_matrix(normalized=True, vertices=list(g)).charpoly() for g in g_list])  # long time (7s on sage.math, 2011)
         {x^8 - 8*x^7 + 4079/150*x^6 - 68689/1350*x^5 + 610783/10800*x^4 - 120877/3240*x^3 + 1351/100*x^2 - 931/450*x}
     """
     from sage.graphs.generators.basic import CompleteGraph

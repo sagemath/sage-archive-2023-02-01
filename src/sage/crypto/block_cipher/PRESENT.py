@@ -102,7 +102,9 @@ class PRESENT(SageObject):
         self.blocksize = 64
         from sage.crypto.sboxes import PRESENT as PRESENTSBOX
         self.sbox = PRESENTSBOX
+        self.inverseSbox = self.sbox.inverse()
         self.permutationMatrix = smallscale_present_linearlayer()
+        self.inversePermutationMatrix = self.permutationMatrix.inverse()
 
     def __call__(self, B, K, algorithm="encrypt"):
         r"""
@@ -196,7 +198,15 @@ class PRESENT(SageObject):
         Return an plaintext corresponding to the ciphertext ``C``,
         using PRESENT decryption with key ``K``.
         """
-        raise NotImplementedError("Decryption is not implemented yet!")
+        state = (ZZ(C, 16).bits() + [0] * (64 - ZZ(C, 16).nbits()))
+        K = self.generateRoundKeys(K)
+        state = [int(state[j]) ^ int(K[31][j]) for j in range(64)]
+        for i in range(30, -1, -1):
+            state = self.inversePermutationMatrix * vector(GF(2), state)
+            state = list(chain.from_iterable([self.inverseSbox(
+                state[4*j:4*j+4][::-1])[::-1] for j in range(16)]))
+            state = [int(state[j]) ^ int(K[i][j]) for j in range(64)]
+        return ZZ(state, 2).hex().upper()
 
     def encrypt(self, P, K):
         r"""

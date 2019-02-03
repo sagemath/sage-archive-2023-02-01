@@ -116,9 +116,17 @@ class PRESENT(SageObject):
         r"""
         Compare ``self`` with ``other``.
 
-        PRESENT objects are the same if ???
+        PRESENT objects are the same if the keysize is the same.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.PRESENT import PRESENT
+            sage: PRESENT(80) == PRESENT(80)
+            True
+            sage: PRESENT(80) == PRESENT(128)
+            False
         """
-        pass
+        return self.keysize == other.keysize
 
     def __repr__(self):
         r"""

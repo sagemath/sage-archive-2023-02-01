@@ -1462,7 +1462,7 @@ class FriCASElement(ExpectElement):
         register_symbol(pi, {'fricas': 'pi'})  # fricas uses both pi and %pi
         register_symbol(lambda: infinity, {'fricas': 'infinity'})
         register_symbol(lambda: infinity, {'fricas': 'plusInfinity'})
-        register_symbol(lambda: -infinity, {'fricas' :'minusInfinity'})
+        register_symbol(lambda: -infinity, {'fricas': 'minusInfinity'})
         register_symbol(cos, {'fricas': 'cos'})
         register_symbol(sin, {'fricas': 'sin'})
         register_symbol(tan, {'fricas': 'tan'})
@@ -1484,7 +1484,6 @@ class FriCASElement(ExpectElement):
         register_symbol(lambda x, y: x + y*I, {'fricas': 'complex'})
         register_symbol(lambda x: dilog(1-x), {'fricas': 'dilog'})
         register_symbol(lambda z: lambert_w(z), {'fricas': 'lambertW'})
->>>>>>> 1df464ca01e2b6193398905b21319b5585d69711
         # the following is a hack to deal with
         # integrate(sin((x^2+1)/x),x)::INFORM giving
         # (integral (sin (/ (+ (^ x 2) 1) x)) (:: x Symbol))

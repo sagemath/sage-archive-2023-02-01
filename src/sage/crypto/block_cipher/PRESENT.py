@@ -108,9 +108,43 @@ class PRESENT(SageObject):
 
     def __call__(self, B, K, algorithm="encrypt"):
         r"""
-        This class implements PRESENT described in [BKLPPRSV2007]_.
+        Apply PRESENT encryption or decryption on ``B`` using the key ``K``.
+        The flag ``algorithm`` controls what action is to be performed on
+        ``B``.
+
+        INPUT:
+
+        - ``B`` -- The plaintext or the ciphertext
+
+        - ``K`` -- a string of 16 or 32 hex digits; The key that will be used.
+          The rightmost hex digit represents `k_3k_2k_1k_0`.
+
+        - ``algorithm`` -- (default: ``"encrypt"``) a string; a flag to signify
+          whether encryption or decryption is to be applied to ``B``. The
+          encryption flag is ``"encrypt"`` and the decryption flag is
+          ``"decrypt"``.
+
+        OUTPUT:
+
+        - The plaintext or ciphertext corresponding to ``B``, obtained using
+          the key ``K``.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.PRESENT import PRESENT
+            sage: present = PRESENT(keysize=80)
+            sage: P = "FFFFFFFFFFFFFFFF"
+            sage: K = "00000000000000000000"
+            sage: present(present(P, K, "encrypt"), K, "decrypt") == P
+            True
         """
-        pass
+        if algorithm == "encrypt":
+            return self.encrypt(B, K)
+        elif algorithm == "decrypt":
+            return self.decrypt(B, K)
+        else:
+            raise ValueError("Algorithm mus be \"encrypt\" or \"decrypt\" and"
+                             "not \"%s\"" % algorithm)
 
     def __eq__(self, other):
         r"""

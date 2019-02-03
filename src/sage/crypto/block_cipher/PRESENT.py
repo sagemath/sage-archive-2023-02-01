@@ -99,6 +99,7 @@ class PRESENT(SageObject):
         self.blocksize = 64
         from sage.crypto.sboxes import PRESENT as PRESENTSBOX
         self.sbox = PRESENTSBOX
+        self.permutationMatrix = smallscale_present_linearlayer()
 
     def __call__(self, B, K, algorithm="encrypt"):
         r"""
@@ -210,4 +211,15 @@ class PRESENT(SageObject):
 
         - The ciphertext corresponding to ``P``, obtained using the key ``K``.
         """
-        raise NotImplementedError("Encryption is not implemented yet!")
+        from sage.modules.free_module_element import vector
+        from sage.rings.finite_rings.finite_field_constructor import GF
+        from itertools import chain
+        state = (ZZ(P, 16).bits() + [0] * (64 - ZZ(P, 16).nbits()))
+        K = self.generateRoundKeys(K)
+        for i in range(0, 31):
+            state = [int(state[j]) ^ int(K[i][j]) for j in range(64)]
+            state = list(chain.from_iterable(
+                [self.sbox(state[4*j:4*j+4][::-1])[::-1] for j in range(16)]))
+            state = self.permutationMatrix * vector(GF(2), state)
+        state = [int(state[j]) ^ int(K[31][j]) for j in range(64)]
+        return ZZ(state, 2).hex().upper()

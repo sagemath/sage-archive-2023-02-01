@@ -810,7 +810,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         ....:  "nbformat_minor": 2
         ....: }
         ....: '''
-        sage: t = '.. escape-backslashes\n.. default-role:: math\n\n\n::\n\n    sage: 1+1\n    2\n\n\n'
+        sage: t = '.. escape-backslashes\n.. default-role:: math\n\n\n::\n\n    sage: 1+1\n    2\n\n\n\n\n'
         sage: input = tmp_filename(ext='.ipynb')
         sage: output = tmp_filename(ext='.rst')
         sage: with open(input, 'w') as F:

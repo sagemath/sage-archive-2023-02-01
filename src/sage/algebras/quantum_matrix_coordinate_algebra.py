@@ -974,19 +974,27 @@ def _generator_key(t):
     Helper function to make ``'c'`` less that all other indices for
     sorting the monomials in :class:`QuantumGL`.
 
+    INPUT:
+
+    a tuple (index, exponent)
+
+    OUTPUT:
+
+    a tuple made from the index only
+
     EXAMPLES::
 
         sage: from sage.algebras.quantum_matrix_coordinate_algebra import _generator_key as k
-        sage: k((1,2)) < k('c')
+        sage: k(((1,2),1)) < k(('c',1))
         False
-        sage: k((1,2)) < k((1,3))
+        sage: k(((1,2),1)) < k(((1,3),1))
         True
-        sage: k((1,2)) < k((3,1))
+        sage: k(((1,2),1)) < k(((3,1),1))
         True
-        sage: k('c') < k((1,1))
+        sage: k(('c',2)) < k(((1,1),1))
         True
     """
+    t = t[0]
     if isinstance(t, tuple):
         return t
     return ()
-

@@ -2923,6 +2923,9 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
         a1, a2, a3, a4, a6 = self.ainvs()
         return R([a6, a4, a2, 1]), R([a3, a1])
 
+    # This caching is important since PARI also caches certain
+    # things. This wouldn't work if we would call ellinit()
+    # every time.
     @cached_method
     def pari_curve(self):
         """
@@ -2990,8 +2993,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
     # EllipticCurve_generic, such as EllipticCurve_rational_field.
     def __pari__(self):
         """
-        Return the PARI curve corresponding to this elliptic curve
-        with the default precision of 64 bits.
+        Return the PARI curve corresponding to this elliptic curve.
 
         EXAMPLES::
 

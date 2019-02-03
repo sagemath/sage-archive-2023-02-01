@@ -803,7 +803,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
                     :meth:`algebraic_complement`, :meth:`coalgebraic_complement`
 
-                EXAMPLES:
+                EXAMPLES::
 
                     sage: WQSym = algebras.WQSym(ZZ)
                     sage: X = WQSym.X()

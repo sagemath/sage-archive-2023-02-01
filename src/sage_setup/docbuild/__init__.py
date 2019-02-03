@@ -804,7 +804,6 @@ class ReferenceSubBuilder(DocBuilder):
             return env
         except IOError as err:
             logger.debug("Failed to open Sphinx environment: %s", err)
-            pass
 
     def update_mtimes(self):
         """
@@ -1562,6 +1561,7 @@ def setup_parser():
 
     return parser
 
+
 def setup_logger(verbose=1, color=True):
     r"""
     Set up a Python Logger instance for the Sage documentation builder. The
@@ -1571,9 +1571,8 @@ def setup_logger(verbose=1, color=True):
 
         sage: from sage_setup.docbuild import setup_logger, logger
         sage: setup_logger()
-        sage: logger
-        <logging.Logger object at ...>
-
+        sage: type(logger)
+        <class 'logging.Logger'>
     """
     # Set up colors. Adapted from sphinx.cmdline.
     import sphinx.util.console as c

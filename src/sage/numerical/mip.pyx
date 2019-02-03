@@ -23,7 +23,7 @@ in the following form
 with given `A \in \mathbb{R}^{m,n}`, `b \in \mathbb{R}^m`,
 `c \in \mathbb{R}^n` and unknown `x \in \mathbb{R}^{n}`.
 If some or all variables in the vector `x` are restricted over
-the integers `\mathbb{Z}`, the problem is called mixed integer
+the integers `\ZZ`, the problem is called mixed integer
 linear program (:wikipedia:`MILP <Mixed_integer_linear_programming>`).
 A wide variety of problems in optimization
 can be formulated in this standard form. Then, solvers are
@@ -42,7 +42,7 @@ and this additional inequality:
 
  - `w_0 - w_1 - w_2 \geq 0`
 
-where all `w_i \in \mathbb{Z}^+`. You know that the trivial solution is `w_i=0`,
+where all `w_i \in \ZZ^+`. You know that the trivial solution is `w_i=0`,
 but what is the first non-trivial one with `w_3 \geq 1`?
 
 A mixed integer linear program can give you an answer:
@@ -198,7 +198,6 @@ also implements the :class:`MIPSolverException` exception, as well as the
     :meth:`~MixedIntegerLinearProgram.is_integer`                | Tests whether the variable is an integer
     :meth:`~MixedIntegerLinearProgram.is_real`                   | Tests whether the variable is real
     :meth:`~MixedIntegerLinearProgram.linear_constraints_parent` | Return the parent for all linear constraints
-    :meth:`~MixedIntegerLinearProgram.linear_function`           | Construct a new linear function (deprecated)
     :meth:`~MixedIntegerLinearProgram.linear_functions_parent`   | Return the parent for all linear functions
     :meth:`~MixedIntegerLinearProgram.new_variable`              | Returns an instance of ``MIPVariable`` associated
     :meth:`~MixedIntegerLinearProgram.number_of_constraints`     | Returns the number of constraints assigned so far
@@ -496,37 +495,6 @@ cdef class MixedIntegerLinearProgram(SageObject):
             LF = self.linear_functions_parent()
             self._linear_constraints_parent = LinearConstraintsParent(LF)
         return self._linear_constraints_parent
-
-    def __call__(self, x):
-        """
-        Construct a new linear function
-
-        .. warning::
-
-            This method is deprecated.  The variables appearing in
-            the linear function are not created in the backend.
-            Build linear functions from the components of
-            :class:`MIPVariable` objects instead; see
-            :meth:`new_variable`.
-
-        EXAMPLES::
-
-             sage: p = MixedIntegerLinearProgram(solver='GLPK')
-             sage: p.linear_function({1:3, 4:5})
-             doctest:...: DeprecationWarning:...linear_function...deprecated...
-             3*x_1 + 5*x_4
-
-        This is equivalent to::
-
-            sage: p({1:3, 4:5})
-            3*x_1 + 5*x_4
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(20602, 'MixedIntegerLinearProgram.linear_function, __call__, and gen are deprecated. If p is a MixedIntegerLinearProgram instance, please use p[i] to get component i of the default MIP variable; use p.sum to build linear functions.')
-        parent = self.linear_functions_parent()
-        return parent(x)
-
-    linear_function = __call__
 
     def _repr_(self):
         r"""
@@ -912,28 +880,6 @@ cdef class MixedIntegerLinearProgram(SageObject):
               b[2] = x_1 is a continuous variable (min=-oo, max=+oo)
         """
         return tuple(self.new_variable() for i in range(n))
-
-    def gen(self, i):
-        """
-        Return the linear variable `x_i`.
-        
-        .. warning::
-
-            This method is deprecated.  The variable is not created
-            in the backend if it does not exist, and most methods
-            do not accept this variable as valid input.
-
-        EXAMPLES::
-
-            sage: mip = MixedIntegerLinearProgram(solver='GLPK')
-            sage: mip.gen(0)
-            x_0
-            sage: [mip.gen(i) for i in range(10)]
-            [x_0, x_1, x_2, x_3, x_4, x_5, x_6, x_7, x_8, x_9]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(20602, 'MixedIntegerLinearProgram.linear_function, __call__, and gen are deprecated. If p is a MixedIntegerLinearProgram instance, please use p[i] to get component i of the default MIP variable; use p.sum to build linear functions.')
-        return self.linear_functions_parent().gen(i)
 
     cpdef int number_of_constraints(self):
       r"""

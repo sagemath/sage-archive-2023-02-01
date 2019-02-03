@@ -29,7 +29,7 @@ AUTHOR:
 #****************************************************************************
 
 from sage.structure.sage_object import SageObject
-from sage.structure.richcmp import richcmp
+from sage.structure.richcmp import richcmp, richcmp_method, op_EQ, op_NE
 from sage.rings.power_series_ring import PowerSeriesRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.arith.all import divisors, prime_divisors, is_square, euler_phi, gcd
@@ -457,7 +457,7 @@ class EtaGroupElement(MultiplicativeGroupElement):
 
     def _richcmp_(self, other, op):
         r"""
-        Compare self to other.
+        Compare ``self`` to ``other``.
 
         Eta products are compared according to their rdicts.
 
@@ -474,12 +474,16 @@ class EtaGroupElement(MultiplicativeGroupElement):
             sage: EtaProduct(6, {1:-24, 2:24, 3:24, 6:-24}) < EtaProduct(6, {1:-24, 2:24})
             False
         """
-        return richcmp((self.level(), self._rdict),
-                       (other.level(), other._rdict), op)
+        if op in [op_EQ, op_NE]:
+            test = (self.level() == other.level() and
+                    self._rdict == other._rdict)
+            return test == (op == op_EQ)
+        return richcmp((self.level(), sorted(self._rdict.items())),
+                       (other.level(), sorted(other._rdict.items())), op)
 
     def _short_repr(self):
         r"""
-        A short string representation of self, which doesn't specify the
+        A short string representation of ``self``, which does not specify the
         level.
 
         EXAMPLES::
@@ -490,11 +494,12 @@ class EtaGroupElement(MultiplicativeGroupElement):
         if self.degree() == 0:
             return "1"
         else:
-            return " ".join("(eta_%s)^%s" % (d,self.r(d)) for d in self._keys)
+            return " ".join("(eta_%s)^%s" % (d, exp)
+                            for d, exp in sorted(self._rdict.items()))
 
     def _repr_(self):
         r"""
-        Return the string representation of self.
+        Return the string representation of ``self``.
 
         EXAMPLES::
 
@@ -577,19 +582,15 @@ class EtaGroupElement(MultiplicativeGroupElement):
 
     def order_at_cusp(self, cusp):
         r"""
-        Return the order of vanishing of self at the given cusp.
+        Return the order of vanishing of ``self`` at the given cusp.
 
         INPUT:
 
-
-        -  ``cusp`` -  a CuspFamily object
-
+        -  ``cusp`` --  a CuspFamily object
 
         OUTPUT:
 
-
         - an integer
-
 
         EXAMPLES::
 
@@ -607,7 +608,7 @@ class EtaGroupElement(MultiplicativeGroupElement):
 
     def divisor(self):
         r"""
-        Return the divisor of self, as a formal sum of CuspFamily objects.
+        Return the divisor of ``self``, as a formal sum of CuspFamily objects.
 
         EXAMPLES::
 
@@ -618,7 +619,8 @@ class EtaGroupElement(MultiplicativeGroupElement):
             sage: e.divisor() # random
             -(c_{2}) - (Inf) - (c_{8,2}) - (c_{8,3}) - (c_{8,4}) - (c_{4,2}) - (c_{8,1}) - (c_{4,1}) + (c_{32,4}) + (c_{32,3}) + (c_{64,1}) + (0) + (c_{32,2}) + (c_{64,2}) + (c_{128}) + (c_{32,1})
         """
-        return FormalSum([ (self.order_at_cusp(c), c) for c in AllCusps(self.level())])
+        return FormalSum([(self.order_at_cusp(c), c)
+                          for c in AllCusps(self.level())])
 
     def degree(self):
         r"""
@@ -633,10 +635,6 @@ class EtaGroupElement(MultiplicativeGroupElement):
             230
         """
         return sum( [self.order_at_cusp(c) for c in AllCusps(self.level()) if self.order_at_cusp(c) > 0])
-
-#     def plot(self):
-#         r""" Returns an error as it's not clear what plotting an eta product means. """
-#         raise NotImplementedError
 
     def r(self, d):
         r"""
@@ -729,6 +727,8 @@ def AllCusps(N):
                 c.append(CuspFamily(N, d, label=str(i + 1)))
     return c
 
+
+@richcmp_method
 class CuspFamily(SageObject):
     r"""
     A family of elliptic curves parametrising a region of
@@ -762,6 +762,52 @@ class CuspFamily(SageObject):
         if num_cusps_of_width(N, width) == 1 and label is not None:
             raise ValueError("There is only one cusp of width %s on X_0(%s): no need to specify a label" % (width, N))
         self.label = label
+
+    @property
+    def __tuple(self):
+        """
+        The defining data of this ``CuspFamily`` as tuple, used for
+        comparisons.
+        """
+        return (self._N, self._width, self.label)
+
+    def __richcmp__(self, other, op):
+        """
+        EXAMPLES::
+
+            sage: a = CuspFamily(16, 4, "1"); a
+            (c_{4,1})
+            sage: b = CuspFamily(16, 4, "2"); b
+            (c_{4,2})
+            sage: c = CuspFamily(8, 8); c
+            (0)
+            sage: a == a
+            True
+            sage: a == b
+            False
+            sage: a != b
+            True
+            sage: a == c
+            False
+            sage: a < c
+            False
+            sage: a > c
+            True
+            sage: a != "foo"
+            True
+        """
+        if not isinstance(other, CuspFamily):
+            return NotImplemented
+        return richcmp(self.__tuple, other.__tuple, op)
+
+    def __hash__(self):
+        """
+        EXAMPLES::
+
+            sage: hash(CuspFamily(10, 1))  # random
+            -4769758480201659164
+        """
+        return hash(self.__tuple)
 
     def width(self):
         r"""

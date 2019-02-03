@@ -23,6 +23,8 @@ from __future__ import print_function
 from cysignals.memory cimport sig_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
 
+from sage.cpython.string cimport char_to_str, str_to_bytes
+from sage.cpython.string import FS_ENCODING
 from sage.ext.memory_allocator cimport MemoryAllocator
 from sage.numerical.mip import MIPSolverException
 from sage.libs.glpk.error import GLPKError
@@ -142,7 +144,7 @@ cdef class GLPKBackend(GenericBackend):
             glp_set_col_kind(self.lp, n_var, GLP_IV)
 
         if name is not None:
-            glp_set_col_name(self.lp, n_var, name)
+            glp_set_col_name(self.lp, n_var, str_to_bytes(name))
 
         if obj:
             self.objective_coefficient(n_var - 1, obj)
@@ -230,7 +232,8 @@ cdef class GLPKBackend(GenericBackend):
                 self.objective_coefficient(n_var - i - 1, obj)
 
             if names is not None:
-                glp_set_col_name(self.lp, n_var - i, names[number - i - 1])
+                glp_set_col_name(self.lp, n_var - i,
+                                 str_to_bytes(names[number - i - 1]))
 
         return n_var - 1
 
@@ -324,14 +327,14 @@ cdef class GLPKBackend(GenericBackend):
         else:
             glp_set_obj_coef(self.lp, variable + 1, coeff)
 
-    cpdef problem_name(self, char * name = NULL):
+    cpdef problem_name(self, name=None):
         """
         Return or define the problem's name
 
         INPUT:
 
-        - ``name`` (``char *``) -- the problem's name. When set to
-          ``NULL`` (default), the method returns the problem's name.
+        - ``name`` (``str``) -- the problem's name. When set to
+          ``None`` (default), the method returns the problem's name.
 
         EXAMPLES::
 
@@ -343,14 +346,15 @@ cdef class GLPKBackend(GenericBackend):
         """
         cdef char * n
 
-        if name == NULL:
+        if name is None:
             n =  <char *> glp_get_prob_name(self.lp)
             if n == NULL:
                 return ""
             else:
-                return n
+                return char_to_str(n)
 
         else:
+            name = str_to_bytes(name)
             if len(name) > 255:
                 raise ValueError("Problem name for GLPK must not be longer than 255 characters.")
             glp_set_prob_name(self.lp, name)
@@ -614,7 +618,7 @@ cdef class GLPKBackend(GenericBackend):
                 glp_set_row_bnds(self.lp, n, GLP_DB, lower_bound, upper_bound)
 
         if name is not None:
-            glp_set_row_name(self.lp, n, name)
+            glp_set_row_name(self.lp, n, str_to_bytes(name))
 
     cpdef add_linear_constraints(self, int number, lower_bound, upper_bound, names=None):
         """
@@ -661,7 +665,8 @@ cdef class GLPKBackend(GenericBackend):
                 else:
                     glp_set_row_bnds(self.lp, n-i, GLP_DB, lower_bound, upper_bound)
             if names is not None:
-                glp_set_row_name(self.lp, n-i, names[number-i-1])
+                glp_set_row_name(self.lp, n-i,
+                                 str_to_bytes(names[number-i-1]))
 
     cpdef row(self, int index):
         r"""
@@ -831,6 +836,8 @@ cdef class GLPKBackend(GenericBackend):
 
         glp_set_mat_col(self.lp, n, len(indices), col_i, col_values)
         glp_set_col_bnds(self.lp, n, GLP_LO, 0,0)
+        sig_free(col_i)
+        sig_free(col_values)
 
 
     cpdef int solve(self) except -1:
@@ -1294,7 +1301,7 @@ cdef class GLPKBackend(GenericBackend):
         s = <char*> glp_get_col_name(self.lp, index + 1)
 
         if s != NULL:
-            return s
+            return char_to_str(s)
         else:
             return ""
 
@@ -1320,7 +1327,7 @@ cdef class GLPKBackend(GenericBackend):
         s = <char*> glp_get_row_name(self.lp, index + 1)
 
         if s != NULL:
-            return s
+            return char_to_str(s)
         else:
             return ""
 
@@ -1592,7 +1599,7 @@ cdef class GLPKBackend(GenericBackend):
                     glp_set_col_bnds(self.lp, index + 1, GLP_DB, value, max)
                 sig_off()
 
-    cpdef write_lp(self, char * filename):
+    cpdef write_lp(self, filename):
         """
         Write the problem to a .lp file
 
@@ -1612,9 +1619,10 @@ cdef class GLPKBackend(GenericBackend):
             Writing problem data to ...
             9 lines were written
         """
+        filename = str_to_bytes(filename, FS_ENCODING, 'surrogateescape')
         glp_write_lp(self.lp, NULL, filename)
 
-    cpdef write_mps(self, char * filename, int modern):
+    cpdef write_mps(self, filename, int modern):
         """
         Write the problem to a .mps file
 
@@ -1634,7 +1642,8 @@ cdef class GLPKBackend(GenericBackend):
             Writing problem data to ...
             17 records were written
         """
-        glp_write_mps(self.lp, modern, NULL,  filename)
+        filename = str_to_bytes(filename, FS_ENCODING, 'surrogateescape')
+        glp_write_mps(self.lp, modern, NULL, filename)
 
     cpdef __copy__(self):
         """
@@ -2230,7 +2239,7 @@ cdef class GLPKBackend(GenericBackend):
         """
         return self.get_row_stat(index) == GLP_NU
 
-    cpdef int print_ranges(self, char * filename = NULL) except -1:
+    cpdef int print_ranges(self, filename=None) except -1:
         r"""
         Print results of a sensitivity analysis
 
@@ -2301,14 +2310,16 @@ cdef class GLPKBackend(GenericBackend):
 
         from sage.misc.all import SAGE_TMP
 
-        if filename == NULL:
-            fname = SAGE_TMP+"/ranges.tmp"
+        if filename is None:
+            fname = SAGE_TMP + "/ranges.tmp"
         else:
             fname = filename
 
-        res = glp_print_ranges(self.lp, 0, 0, 0, fname)
+        res = glp_print_ranges(self.lp, 0, 0, 0,
+                               str_to_bytes(fname, FS_ENCODING,
+                                            'surrogateescape'))
 
-        if filename == NULL:
+        if filename is None:
             if res == 0:
                 with open(fname) as f:
                     for line in f:

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
+#
+# All these methods are imported in EllipticCurve_rational_field,
+# so there is no reason to add this module to the documentation.
 """
-Miscellaneous `p`-adic functions
-
-`p`-adic functions from ell_rational_field.py, moved here to reduce
-crowding in that file.
+Miscellaneous `p`-adic methods
 """
 
 ######################################################################

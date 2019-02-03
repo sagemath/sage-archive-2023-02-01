@@ -7,22 +7,23 @@ AUTHORS:
 - Travis Scrimshaw (2013-05-04): Initial implementation
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013-2017 Travis Scrimshaw <tcscrims at gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from copy import copy
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 
 from sage.misc.misc import repr_lincomb
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.structure.element cimport have_same_parent, coercion_model, parent
+from sage.structure.element cimport have_same_parent, parent
+from sage.structure.coerce cimport coercion_model
 from sage.cpython.wrapperdescr cimport wrapperdescr_fastcall
 from sage.structure.element_wrapper cimport ElementWrapper
 from sage.structure.richcmp cimport richcmp, richcmp_not_equal
@@ -493,9 +494,9 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
             sage: x = L.an_element() + L.basis()[G.one()]
             sage: x
             2*() + (2,3) + (1,2) + (1,2,3) + (1,3,2) + (1,3)
-            sage: list(x)
-            [((2,3), 1), ((1,2), 1), ((1,3), 1),
-             ((1,2,3), 1), ((1,3,2), 1), ((), 2)]
+            sage: sorted(x)
+            [((), 2), ((2,3), 1), ((1,2), 1), ((1,2,3), 1),
+             ((1,3,2), 1), ((1,3), 1)]
         """
         cdef dict d = self.value.monomial_coefficients(copy=False)
         yield from d.iteritems()
@@ -1964,5 +1965,3 @@ cdef class LyndonBracket(GradedLieBracket):
         if self._hash == -1:
             self._hash = hash(self.to_word())
         return self._hash
-
-

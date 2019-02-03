@@ -222,7 +222,7 @@ from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
 from sage.categories.tensor import tensor
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
-from sage.misc.all import prod, uniq
+from sage.misc.all import prod
 from copy import copy
 from functools import reduce
 
@@ -2365,7 +2365,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
 
         p = self.realization_of().p()
         res = 0
-        degrees = uniq([ sum(m) for m in g.support() ])
+        degrees = sorted(set(sum(m) for m in g.support()))
         for d in degrees:
             for mu in Partitions_n(d):
                 mu_k = mu.power(k)
@@ -2432,7 +2432,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         if not nu._list:
             s = self.realization_of().s()
             degrees = [ part.size() for part in p_x.support() ]
-            degrees = uniq(degrees)
+            degrees = sorted(set(degrees))
             if 0 in degrees:
                 ext = self([])
             else:
@@ -3605,7 +3605,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         partition
         `(n - \left| \lambda \right|, \lambda_1, \lambda_2, \lambda_3, \ldots)`;
         see :meth:`~sage.combinat.partition.Partition.t_completion`).
-        Then, Theorem 1.2 of [BOR09]_ shows that for any partitions
+        Then, Theorem 1.2 of [BOR2009]_ shows that for any partitions
         `\alpha` and `\beta` and every integer
         `n \geq \left|\alpha\right| + \left|\beta\right| + \alpha_1 + \beta_1`,
         we can write the Kronecker product `s_{\alpha[n]} * s_{\beta[n]}`
@@ -3631,7 +3631,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         reduced Kronecker product of any two symmetric functions.
 
         The definition of the reduced Kronecker product goes back to
-        Murnaghan, and has recently been studied in [BOR09]_, [BdVO12]_
+        Murnaghan, and has recently been studied in [BOR2009]_, [BdVO2012]_
         and other places (our notation
         `\overline{g}^{\gamma}_{\alpha, \beta}` appears in these two
         sources).
@@ -3649,7 +3649,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         EXAMPLES:
 
-        The example from page 2 of [BOR09]_::
+        The example from page 2 of [BOR2009]_::
 
             sage: Sym = SymmetricFunctions(QQ)
             sage: s = Sym.schur()
@@ -3682,12 +3682,12 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         - First remove a removable cell from `\lambda`, then add an
           addable cell to the resulting Young diagram.
 
-        This is, in fact, Proposition 5.15 of [CO10]_ in an elementary
+        This is, in fact, Proposition 5.15 of [CO2010]_ in an elementary
         wording. We check this for partitions of size `\leq 4`::
 
             sage: def mults1(lam):
             ....:     # Reduced Kronecker multiplication by s[1], according
-            ....:     # to [CO10]_.
+            ....:     # to [CO2010]_.
             ....:     res = s.zero()
             ....:     for mu in lam.up_list():
             ....:         res += s(mu)

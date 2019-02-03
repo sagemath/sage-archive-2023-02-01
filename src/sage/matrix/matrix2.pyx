@@ -37,7 +37,7 @@ bug, see :trac:`17527`)::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import, division
 
@@ -47,8 +47,9 @@ from cysignals.signals cimport sig_check
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.coerce cimport py_scalar_parent
 from sage.structure.sequence import Sequence
+from sage.structure.coerce cimport coercion_model
 from sage.structure.element import is_Vector
-from sage.structure.element cimport have_same_parent, coercion_model
+from sage.structure.element cimport have_same_parent
 from sage.misc.misc import verbose, get_verbose
 from sage.rings.ring import is_Ring
 from sage.rings.number_field.number_field_base import is_NumberField
@@ -5493,10 +5494,10 @@ cdef class Matrix(Matrix1):
         Next we compute the left eigenspaces over the finite field of order 11. ::
 
             sage: A = ModularSymbols(43, base_ring=GF(11), sign=1).T(2).matrix(); A
-            [ 3  9  0  0]
-            [ 0  9  0  1]
-            [ 0 10  9  2]
-            [ 0  9  0  2]
+            [ 3  0  9  0]
+            [ 0  9  0 10]
+            [ 0  0 10  1]
+            [ 0  0  1  1]
             sage: A.base_ring()
             Finite Field of size 11
             sage: A.charpoly()
@@ -5505,13 +5506,13 @@ cdef class Matrix(Matrix1):
             [
             (9, Vector space of degree 4 and dimension 1 over Finite Field of size 11
             User basis matrix:
-            [0 0 1 5]),
+            [0 1 5 6]),
             (3, Vector space of degree 4 and dimension 1 over Finite Field of size 11
             User basis matrix:
-            [1 6 0 6]),
+            [1 0 1 6]),
             (beta2, Vector space of degree 4 and dimension 1 over Univariate Quotient Polynomial Ring in beta2 over Finite Field of size 11 with modulus x^2 + 9
             User basis matrix:
-            [           0            1            0 5*beta2 + 10])
+            [        0         0         1 beta2 + 1])
             ]
 
         This method is only applicable to exact matrices.
@@ -6517,7 +6518,7 @@ cdef class Matrix(Matrix1):
 
         TESTS:
 
-        Check that http://trac.sagemath.org/sage_trac/ticket/11558 is fixed::
+        Check that :trac:`11558` is fixed::
 
             sage: matrix(ZZ, [[1,2],[4,6]], sparse=False).echelon_form(transformation=True)
             (
@@ -7342,20 +7343,31 @@ cdef class Matrix(Matrix1):
 
             sage: all(M.with_permuted_rows_and_columns(*i) == M for i in A)
             True
+
+        Check that :trac:`25426` is fixed::
+
+            sage: j = matrix([(3, 2, 1, 0, 0),
+            ....:             (2, 2, 0, 1, 0),
+            ....:             (1, 0, 3, 0, 2),
+            ....:             (0, 1, 0, 2, 1),
+            ....:             (0, 0, 2, 1, 2)])
+            sage: j.automorphisms_of_rows_and_columns()
+            [((), ()), ((1,3)(2,5), (1,3)(2,5))]
         """
         from sage.groups.perm_gps.permgroup_element import \
             PermutationGroupElement
         B = self.as_bipartite_graph()
         nrows = self.nrows()
-        A = B.automorphism_group(edge_labels = True)
+        ncols = self.ncols()
+        A = B.automorphism_group(edge_labels=True)
+
+        # Convert to elements of Sym(self) from S_n
         permutations = []
         for p in A:
-            p = p.domain()
-            # Convert to elements of Sym(self) from S_n
-            if p[0] <= nrows:
+            if p(1) <= nrows:  # Check that rows are mapped to rows
                 permutations.append(
-                    (PermutationGroupElement(p[:nrows]),
-                     PermutationGroupElement([elt - nrows for elt in p[nrows:]])
+                    (PermutationGroupElement([p(1 + i) for i in range(nrows)]),
+                     PermutationGroupElement([p(1 + nrows + i) - nrows for i in range(ncols)])
                     ))
         return permutations
 
@@ -13013,7 +13025,7 @@ cdef class Matrix(Matrix1):
             [2*a + 1       1]
 
         Conjugation does not make sense over rings not containing complex
-        numbers or finite fields which are not a qadratic extension::
+        numbers or finite fields which are not a quadratic extension::
 
             sage: N = matrix(GF(5), 2, [0,1,2,3])
             sage: N.conjugate_transpose()
@@ -13023,7 +13035,7 @@ cdef class Matrix(Matrix1):
 
         AUTHOR:
 
-            Rob Beezer (2010-12-13)
+        Rob Beezer (2010-12-13)
         """
         # limited testing on a 1000 x 1000 matrix over CC:
         #   transpose is fast, conjugate is slow
@@ -13944,7 +13956,7 @@ cdef class Matrix(Matrix1):
         [Sto1998]_, where the former is more
         representative of the code here.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: A = matrix(QQ, [[-68,   69, -27, -11, -65,   9, -181, -32],
             ....:                 [-52,   52, -27,  -8, -52, -16, -133, -14],
@@ -15465,37 +15477,6 @@ cdef class Matrix(Matrix1):
         """
         return self.conjugate().transpose()
 
-    @property
-    def I(self):
-        r"""
-        Returns the inverse of the matrix, if it exists.
-
-        EXAMPLES::
-
-            sage: A = matrix(QQ, [[-5, -3, -1, -7],
-            ....:                 [ 1,  1,  1,  0],
-            ....:                 [-1, -2, -2,  0],
-            ....:                 [-2, -1,  0, -4]])
-            sage: A.I
-            doctest:...: DeprecationWarning: The I property on matrices has been deprecated. Please use the inverse() method instead.
-            See http://trac.sagemath.org/20904 for details.
-            [ 0  2  1  0]
-            [-4 -8 -2  7]
-            [ 4  7  1 -7]
-            [ 1  1  0 -2]
-
-            sage: B = matrix(QQ, [[-11, -5, 18,  -6],
-            ....:                 [  1,  2, -6,   8],
-            ....:                 [ -4, -2,  7,  -3],
-            ....:                 [  1, -2,  5, -11]])
-            sage: B.I
-            Traceback (most recent call last):
-            ...
-            ZeroDivisionError: input matrix must be nonsingular
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(20904, "The I property on matrices has been deprecated. Please use the inverse() method instead.")
-        return ~self
 
 def _smith_diag(d, transformation=True):
     r"""

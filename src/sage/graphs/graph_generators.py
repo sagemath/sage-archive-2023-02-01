@@ -317,6 +317,7 @@ __append_to_doc(
      "RandomGNM",
      "RandomGNP",
      "RandomHolmeKim",
+     "RandomChordalGraph",
      "RandomIntervalGraph",
      "RandomLobster",
      "RandomNewmanWattsStrogatz",
@@ -756,7 +757,8 @@ class GraphGenerators():
             return
 
         if property is None:
-            property = lambda x: True
+            def property(x):
+                return True
 
         from sage.graphs.all import Graph
         from copy import copy as copyfun
@@ -768,15 +770,25 @@ class GraphGenerators():
                 raise ValueError("Invalid degree sequence.")
             degree_sequence = sorted(degree_sequence)
             if augment == 'edges':
-                property = lambda x: all([degree_sequence[i] >= d for i,d in enumerate(sorted(x.degree()))])
-                extra_property = lambda x: degree_sequence == sorted(x.degree())
+                def property(x):
+                    D = sorted(x.degree())
+                    return all(degree_sequence[i] >= d for i, d in enumerate(D))
+                def extra_property(x):
+                    return degree_sequence == sorted(x.degree())
             else:
-                property = lambda x: all([degree_sequence[i] >= d for i,d in enumerate(sorted(x.degree() + [0]*(vertices-x.num_verts()) ))])
-                extra_property = lambda x: x.num_verts() == vertices and degree_sequence == sorted(x.degree())
+                def property(x):
+                    D = sorted(x.degree() + [0] * (vertices - x.num_verts()))
+                    return all(degree_sequence[i] >= d for i, d in enumerate(D))
+                def extra_property(x):
+                    if x.num_verts() != vertices:
+                        return False
+                    return degree_sequence == sorted(x.degree())
         elif size is not None:
-            extra_property = lambda x: x.size() == size
+            def extra_property(x):
+                return x.size() == size
         else:
-            extra_property = lambda x: True
+            def extra_property(x):
+                return True
 
         if augment == 'vertices':
             if vertices is None:
@@ -1084,7 +1096,7 @@ class GraphGenerators():
             sage: _ = code_input.write('>>planar_code<<')
             sage: for c in [4,2,3,4,0,1,4,3,0,1,2,4,0,1,3,2,0]:
             ....:     _ = code_input.write('{:c}'.format(c))
-            sage: code_input.seek(0)
+            sage: _ = code_input.seek(0)
             sage: gen = graphs._read_planar_code(code_input)
             sage: l = list(gen)
             sage: l
@@ -2129,6 +2141,7 @@ class GraphGenerators():
     RandomBicubicPlanar      = staticmethod(sage.graphs.generators.random.RandomBicubicPlanar)
     RandomBlockGraph         = staticmethod(sage.graphs.generators.random.RandomBlockGraph)
     RandomBoundedToleranceGraph = staticmethod(sage.graphs.generators.random.RandomBoundedToleranceGraph)
+    RandomChordalGraph       = staticmethod(sage.graphs.generators.random.RandomChordalGraph)
     RandomGNM                = staticmethod(sage.graphs.generators.random.RandomGNM)
     RandomGNP                = staticmethod(sage.graphs.generators.random.RandomGNP)
     RandomHolmeKim           = staticmethod(sage.graphs.generators.random.RandomHolmeKim)

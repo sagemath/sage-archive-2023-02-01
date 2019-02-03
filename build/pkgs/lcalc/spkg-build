@@ -20,14 +20,7 @@ fi
 
 # Export everything. Probably not necessary in most cases.
 export CFLAGS
-export CXXFLAGS
-
-success() {
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error building the Lcalc package: '$1'"
-        exit 1
-    fi
-}
+export CXXFLAGS="$CXXFLAGS -std=c++11"
 
 export DEFINES=""
 
@@ -35,6 +28,4 @@ cd src/src   # Now we are in src/src.
 
 # Build everything:
 echo "Now building lcalc, example programs and the shared library..."
-$MAKE
-success "$MAKE"
-
+sdh_make

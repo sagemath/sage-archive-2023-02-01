@@ -90,20 +90,21 @@ def KneserGraph(n,k):
 
     EXAMPLES::
 
-        sage: KG=graphs.KneserGraph(5,2)
-        sage: print(KG.vertices())
-        [{4, 5}, {1, 3}, {2, 5}, {2, 3}, {3, 4}, {3, 5}, {1, 4}, {1, 5}, {1, 2}, {2, 4}]
-        sage: P=graphs.PetersenGraph()
+        sage: KG = graphs.KneserGraph(5,2)
+        sage: sorted(KG.vertex_iterator(), key=str)
+        [{1, 2}, {1, 3}, {1, 4}, {1, 5}, {2, 3}, {2, 4}, {2, 5},
+         {3, 4}, {3, 5}, {4, 5}]
+        sage: P = graphs.PetersenGraph()
         sage: P.is_isomorphic(KG)
         True
 
     TESTS::
 
-        sage: KG=graphs.KneserGraph(0,0)
+        sage: KG = graphs.KneserGraph(0,0)
         Traceback (most recent call last):
         ...
         ValueError: Parameter n should be a strictly positive integer
-        sage: KG=graphs.KneserGraph(5,6)
+        sage: KG = graphs.KneserGraph(5,6)
         Traceback (most recent call last):
         ...
         ValueError: Parameter k should be a strictly positive integer inferior to n
@@ -128,7 +129,6 @@ def KneserGraph(n,k):
 
     return g
 
-from sage.graphs.graph import Graph
 
 def FurerGadget(k, prefix=None):
     r"""
@@ -203,7 +203,6 @@ def FurerGadget(k, prefix=None):
          (('Prefix', (1, 2)), ('Prefix', (2, 'a')), None)]
     """
     from itertools import repeat as rep, chain, combinations
-    from sage.graphs.graph import DiGraph
     if k <= 0:
         raise ValueError("The order of the Furer gadget must be greater than zero")
     G = Graph()
@@ -228,6 +227,7 @@ def FurerGadget(k, prefix=None):
         powerset = [(prefix,s) for s in powerset]
     partition.append(powerset)
     return G, partition
+
 
 def CaiFurerImmermanGraph(G, twisted=False):
     r"""
@@ -317,7 +317,6 @@ def CaiFurerImmermanGraph(G, twisted=False):
     newG = Graph()
     total_partition = []
     edge_index = {}
-    ps_partition = []
     for v in G:
         Fk, p = FurerGadget(G.degree(v), v)
         total_partition += p
@@ -339,7 +338,7 @@ def CaiFurerImmermanGraph(G, twisted=False):
             isConnected = False
         newG.add_edge(edge_va, edge_ua)
         newG.add_edge(edge_vb, edge_ub)
-    if(twisted and G.is_connected()):
+    if twisted and G.is_connected():
         s = " twisted"
     else:
         s = ""
@@ -414,6 +413,7 @@ def EgawaGraph(p, s):
                 u = prefix + (el,) + suffix
                 g.add_edge(v,u)
     return g
+
 
 def HammingGraph(n, q, X=None):
     r"""
@@ -1523,10 +1523,11 @@ def FuzzyBallGraph(partition, q):
 
 def FibonacciTree(n):
     r"""
-    Returns the graph of the Fibonacci Tree `F_{i}` of order `n`.
-    `F_{i}` is recursively defined as the a tree with a root vertex
-    and two attached child trees `F_{i-1}` and `F_{i-2}`, where
-    `F_{1}` is just one vertex and `F_{0}` is empty.
+    Return the graph of the Fibonacci Tree `F_{i}` of order `n`.
+
+    The Fibonacci tree `F_{i}` is recursively defined as the tree
+    with a root vertex and two attached child trees `F_{i-1}` and
+    `F_{i-2}`, where `F_{1}` is just one vertex and `F_{0}` is empty.
 
     INPUT:
 
@@ -1549,9 +1550,11 @@ def FibonacciTree(n):
 
     - Harald Schilly and Yann Laigle-Chapuy (2010-03-25)
     """
-    T = Graph(name="Fibonacci-Tree-%d"%n)
-    if n == 1: T.add_vertex(0)
-    if n < 2: return T
+    T = Graph(name="Fibonacci-Tree-%d" % n)
+    if n == 1:
+        T.add_vertex(0)
+    if n < 2:
+        return T
 
     from sage.combinat.combinat import fibonacci_sequence
     F = list(fibonacci_sequence(n + 2))
@@ -1578,7 +1581,8 @@ def FibonacciTree(n):
 
     return T
 
-def GeneralizedPetersenGraph(n,k):
+
+def GeneralizedPetersenGraph(n, k):
     r"""
     Returns a generalized Petersen graph with `2n` nodes. The variables
     `n`, `k` are integers such that `n>2` and `0<k\leq\lfloor(n-1)`/`2\rfloor`
@@ -2072,16 +2076,17 @@ def OddGraph(n):
 
     EXAMPLES::
 
-        sage: OG=graphs.OddGraph(3)
-        sage: print(OG.vertices())
-        [{4, 5}, {1, 3}, {2, 5}, {2, 3}, {3, 4}, {3, 5}, {1, 4}, {1, 5}, {1, 2}, {2, 4}]
-        sage: P=graphs.PetersenGraph()
+        sage: OG = graphs.OddGraph(3)
+        sage: sorted(OG.vertex_iterator(), key=str)
+        [{1, 2}, {1, 3}, {1, 4}, {1, 5}, {2, 3}, {2, 4}, {2, 5},
+         {3, 4}, {3, 5}, {4, 5}]
+        sage: P = graphs.PetersenGraph()
         sage: P.is_isomorphic(OG)
         True
 
     TESTS::
 
-        sage: KG=graphs.OddGraph(1)
+        sage: KG = graphs.OddGraph(1)
         Traceback (most recent call last):
         ...
         ValueError: Parameter n should be an integer strictly greater than 1
@@ -2231,12 +2236,12 @@ def SwitchedSquaredSkewHadamardMatrixGraph(n):
         sage: twograph_descendant(g.complement(),0).is_strongly_regular(parameters=True)
         (225, 112, 55, 56)
     """
-    from sage.graphs.generators.families import SquaredSkewHadamardMatrixGraph
     G = SquaredSkewHadamardMatrixGraph(n).complement()
-    G.add_vertex((4*n-1)**2)
+    G.add_vertex((4 * n - 1)**2)
     G.seidel_switching(list(range((4 * n - 1) * (2 * n - 1))))
     G.name("switch skewhad^2+*_" + str((n)))
     return G
+
 
 def HanoiTowerGraph(pegs, disks, labels=True, positions=True):
     r"""
@@ -3162,22 +3167,25 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
 
     Supplying ``G`` and ``L`` (constructed from the automorphism group of ``G``). ::
 
-        sage: G=graphs.PaleyGraph(9)
-        sage: a=G.automorphism_group()
-        sage: r=list(map(lambda z: matrix(libgap.PermutationMat(libgap(z),9).sage()),
-        ....:                   filter(lambda x: x.order()==9, a.normal_subgroups())[0]))
-        sage: ff=list(map(lambda y: (y[0]-1,y[1]-1),
+        sage: G = graphs.PaleyGraph(9)
+        sage: a = G.automorphism_group()
+        sage: it = (x for x in a.normal_subgroups() if x.order() == 9)
+        sage: subg = next(iter(it))
+        sage: r = [matrix(libgap.PermutationMat(libgap(z), 9).sage())
+        ....:      for z in subg]
+        sage: ff = list(map(lambda y: (y[0]-1,y[1]-1),
         ....:          Permutation(map(lambda x: 1+r.index(x^-1), r)).cycle_tuples()[1:]))
         sage: L = sum(i*(r[a]-r[b]) for i,(a,b) in zip(range(1,len(ff)+1), ff)); L
-        [ 0 -1  1 -2 -3 -4  2  4  3]
-        [ 1  0 -1 -4 -2 -3  3  2  4]
-        [-1  1  0 -3 -4 -2  4  3  2]
-        [ 2  4  3  0 -1  1 -2 -3 -4]
-        [ 3  2  4  1  0 -1 -4 -2 -3]
-        [ 4  3  2 -1  1  0 -3 -4 -2]
-        [-2 -3 -4  2  4  3  0 -1  1]
-        [-4 -2 -3  3  2  4  1  0 -1]
-        [-3 -4 -2  4  3  2 -1  1  0]
+        [ 0  1 -1 -3 -2 -4  3  4  2]
+        [-1  0  1 -4 -3 -2  2  3  4]
+        [ 1 -1  0 -2 -4 -3  4  2  3]
+        [ 3  4  2  0  1 -1 -3 -2 -4]
+        [ 2  3  4 -1  0  1 -4 -3 -2]
+        [ 4  2  3  1 -1  0 -2 -4 -3]
+        [-3 -2 -4  3  4  2  0  1 -1]
+        [-4 -3 -2  2  3  4 -1  0  1]
+        [-2 -4 -3  4  2  3  1 -1  0]
+
         sage: G.relabel()
         sage: G3x3=graphs.MathonPseudocyclicStronglyRegularGraph(2,G=G,L=L)
         sage: G3x3.is_strongly_regular(parameters=True)
@@ -3235,10 +3243,12 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
         a[i] = x
         a[-i-1] = y
     a.append(K(0))      # and append the 0 of K at the end
-    P = map(lambda b: matrix(ZZ,q,q,lambda i,j: 1 if a[j]==a[i]+b else 0), a)
+    P = [matrix(ZZ, q, q, lambda i, j: 1 if a[j] == a[i] + b else 0)
+         for b in a]
     g = K.primitive_element()
     F = sum(P[a.index(g**(2*i))] for i in range(1, 2*t))
-    E = matrix(ZZ,q,q, lambda i,j: 0 if (a[j]-a[0]).is_square() else 1)
+    E = matrix(ZZ, q, q, lambda i, j: 0 if (a[j] - a[0]).is_square() else 1)
+
     def B(m):
         I = identity_matrix(q)
         J = ones_matrix(q)

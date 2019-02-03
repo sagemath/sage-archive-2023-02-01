@@ -46,7 +46,7 @@ EXAMPLES::
     sage: MPC("infinity + NaN *I")
     +infinity + NaN*I
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 Philippe Theveny <thevenyp@loria.fr>
 #                     2008 Alex Ghitza
 #                     2010 Yann Laigle-Chapuy
@@ -55,20 +55,17 @@ EXAMPLES::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import, print_function
 
-
-import sage
 import re
 from . import real_mpfr
 import weakref
 from cpython.object cimport Py_NE
 
+import sage
 from sage.cpython.string cimport str_to_bytes
-
 from sage.libs.mpfr cimport *
 from sage.libs.mpc cimport *
 from sage.structure.parent cimport Parent
@@ -2627,4 +2624,3 @@ cdef class CCtoMPC(Map):
         y = (<MPComplexField_class>self.codomain())._new()
         mpc_set_fr_fr(y.value, (<ComplexNumber>z).__re, (<ComplexNumber>z).__im, rnd)
         return y
-

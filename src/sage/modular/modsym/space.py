@@ -201,12 +201,12 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 4 for Gamma_0(43) of weight 2 with sign 1 over Rational Field
             sage: E, v = M.compact_system_of_eigenvalues(prime_range(10))
             sage: E
-            [ 3 -2]
-            [-3  2]
-            [-1  2]
-            [ 1 -2]
+            [ 2/3 -4/3]
+            [-2/3  4/3]
+            [ 4/3  4/3]
+            [-4/3 -4/3]
             sage: v
-            (1, -1/2*alpha + 3/2)
+            (1, -3/4*alpha + 1/2)
             sage: E*v
             (alpha, -alpha, -alpha + 2, alpha - 2)
 
@@ -1126,7 +1126,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         If prec is not given it is set equal to the max of the
         ``hecke_bound`` function called on each space.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: A, B = ModularSymbols(48, 2).cuspidal_submodule().decomposition()
             sage: A.congruence_number(B)
@@ -1335,7 +1335,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             sage: f(0,0)
             q - 2*q^2 + q^4 - q^5 + 2*q^6 + O(q^8)
             sage: f(0,1)
-            q^2 - 2*q^3 - q^4 + 2*q^5 + 2*q^6 + O(q^8)
+            -q^2 + 2*q^3 + q^4 - 2*q^5 - 2*q^6 + O(q^8)
 
         ::
 
@@ -2260,7 +2260,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         is rational. In fact, for each elliptic curve quotient, the
         `\QQ`-rational subgroup of the image of the cuspidal subgroup
         in the quotient is a nontrivial subgroup of `E(\QQ)_{tor}`.
-        Thus not all torsion in the quotient is cuspidal!
+        Thus not all torsion in the quotient is cuspidal!::
 
             sage: M = ModularSymbols(66).cuspidal_subspace().new_subspace()
             sage: D = M.decomposition()

@@ -179,19 +179,6 @@ class DiscretePseudoValuation(Morphism):
             False
             sage: v != w
             True
-
-        Note that this does not affect comparison of valuations which do not
-        coerce into a common parent. This is by design in Sage, see
-        :meth:`sage.structure.element.Element.__richcmp__`. When the valuations
-        do not coerce into a common parent, a rather random comparison of
-        ``id`` happens::
-
-            sage: w = valuations.TrivialValuation(GF(2))
-            sage: w <= v # random output
-            True
-            sage: v <= w # random output
-            False
-
         """
         if op == op_LT:
             return self <= other and not (self >= other)
@@ -245,19 +232,6 @@ class DiscretePseudoValuation(Morphism):
             sage: w = QQ.valuation(2)
             sage: v <= w
             True
-
-        Note that this does not affect comparison of valuations which do not
-        coerce into a common parent. This is by design in Sage, see
-        :meth:`sage.structure.element.Element.__richcmp__`. When the valuations
-        do not coerce into a common parent, a rather random comparison of
-        ``id`` happens::
-
-            sage: w = valuations.TrivialValuation(GF(2))
-            sage: w <= v # random output
-            True
-            sage: v <= w # random output
-            False
-
         """
         return other >= self
 
@@ -275,19 +249,6 @@ class DiscretePseudoValuation(Morphism):
             sage: w = QQ.valuation(2)
             sage: v >= w
             False
-
-        Note that this does not affect comparison of valuations which do not
-        coerce into a common parent. This is by design in Sage, see
-        :meth:`sage.structure.element.Element.__richcmp__`. When the valuations
-        do not coerce into a common parent, a rather random comparison of
-        ``id`` happens::
-
-            sage: w = valuations.TrivialValuation(GF(2))
-            sage: w <= v # random output
-            True
-            sage: v <= w # random output
-            False
-
         """
         if self == other: return True
         from .scaled_valuation import ScaledValuation_generic
@@ -577,8 +538,8 @@ class DiscreteValuation(DiscretePseudoValuation):
             [[ Gauss valuation induced by 5-adic valuation, v(x + 2) = 1 ],
              [ Gauss valuation induced by 5-adic valuation, v(x + 3) = 1 ]]
             sage: v0.mac_lane_approximants(G, required_precision = 10)
-            [[ Gauss valuation induced by 5-adic valuation, v(x + 3626068) = 10 ],
-             [ Gauss valuation induced by 5-adic valuation, v(x + 6139557) = 10 ]]
+            [[ Gauss valuation induced by 5-adic valuation, v(x + 3116/237) = 10 ],
+             [ Gauss valuation induced by 5-adic valuation, v(x - 3116/237) = 10 ]]
 
         The same example over the 5-adic numbers. In the quadratic extension
         `\QQ[x]/(x^2+1)`, 5 factors `-(x - 2)(x + 2)`, this behaviour can be
@@ -615,10 +576,11 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: R.<x>=QQ[]
             sage: G = x^2 + 1
             sage: v.mac_lane_approximants(G)
-            [[ Gauss valuation induced by 5-adic valuation, v(x + 2) = 1 ], [ Gauss valuation induced by 5-adic valuation, v(x + 3) = 1 ]]
+            [[ Gauss valuation induced by 5-adic valuation, v(x + 2) = 1 ],
+             [ Gauss valuation induced by 5-adic valuation, v(x + 3) = 1 ]]
             sage: v.mac_lane_approximants(G, required_precision=5)
-            [[ Gauss valuation induced by 5-adic valuation, v(x + 1068) = 6 ],
-             [ Gauss valuation induced by 5-adic valuation, v(x + 2057) = 5 ]]
+            [[ Gauss valuation induced by 5-adic valuation, v(x + 79/3) = 5 ],
+             [ Gauss valuation induced by 5-adic valuation, v(x - 79/3) = 5 ]]
 
         Initial versions ran into problems with the trivial residue field
         extensions in this case::
@@ -654,9 +616,9 @@ class DiscreteValuation(DiscretePseudoValuation):
             1/3
             sage: G=Delta.change_ring(K) 
             sage: vK.mac_lane_approximants(G)
-            [[ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 2*x^2 + 1/2*theta^4 + 3*theta + 3) = 5/3 ],
-             [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 2*x^2 + 1/2*theta^4 + theta + 3) = 5/3 ],
-             [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 2*x^2 + 2*theta + 3) = 5/3 ]]
+            [[ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 1/2*theta^4 + 3*theta + 1) = 3/2 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 1/2*theta^4 + theta + 1) = 3/2 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 2*theta + 1) = 3/2 ]]
 
         An easy case that produced the wrong error at some point::
 
@@ -693,7 +655,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: R.<x> = QQ[]
             sage: f = x^36 + 60552000*x^33 + 268157412*x^30 + 173881701*x^27 + 266324841*x^24 + 83125683*x^21 + 111803814*x^18 + 31925826*x^15 + 205726716*x^12 +17990262*x^9 + 351459648*x^6 + 127014399*x^3 + 359254116
             sage: v.mac_lane_approximants(f)
-            [[ Gauss valuation induced by 3-adic valuation, v(x) = 1/3, v(x^3 + 6) = 3/2, v(x^12 + 24*x^9 + 216*x^6 + 864*x^3 + 2025) = 13/2, v(x^36 + 60552000*x^33 + 268157412*x^30 + 173881701*x^27 + 266324841*x^24 + 83125683*x^21 + 111803814*x^18 + 31925826*x^15 + 205726716*x^12 + 17990262*x^9 + 351459648*x^6 + 127014399*x^3 + 359254116) = +Infinity ]]
+            [[ Gauss valuation induced by 3-adic valuation, v(x) = 1/3, v(x^3 - 3) = 3/2, v(x^12 - 3*x^9 + 54*x^6 + 27/2*x^3 + 405/2) = 13/2, v(x^36 + 60552000*x^33 + 268157412*x^30 + 173881701*x^27 + 266324841*x^24 + 83125683*x^21 + 111803814*x^18 + 31925826*x^15 + 205726716*x^12 + 17990262*x^9 + 351459648*x^6 + 127014399*x^3 + 359254116) = +Infinity ]]
 
         """
         R = G.parent()
@@ -746,6 +708,20 @@ class DiscreteValuation(DiscretePseudoValuation):
                              coefficients=node.coefficients,
                              valuations=node.valuations,
                              check=False,
+                             # We do not want to see augmentations that are
+                             # already part of other branches of the tree of
+                             # valuations for obvious performance reasons and
+                             # also because the principal_part_bound would be
+                             # incorrect for these.
+                             allow_equivalent_key=node.valuation.is_gauss_valuation(),
+                             # The length of an edge in the Newton polygon in
+                             # one MacLane step bounds the length of the
+                             # principal part (i.e., the part with negative
+                             # slopes) of the Newton polygons in the next
+                             # MacLane step. Therefore, mac_lane_step does not
+                             # need to compute valuations for coefficients
+                             # beyond that bound as they do not contribute any
+                             # augmentations.
                              principal_part_bound=node.principal_part_bound)
             for w, bound, principal_part_bound, coefficients, valuations in augmentations:
                 ef = bound == w.E()*w.F()
@@ -965,14 +941,13 @@ class DiscreteValuation(DiscretePseudoValuation):
 
             sage: R.<x> = QQ[]
             sage: v = QQ.valuation(2)
-            sage: v.montes_factorization(x^2 + 1)
-            x^2 + 1
+            sage: v.montes_factorization(x^6 - 1)
+            (x - 1) * (x + 1) * (x^2 - x + 1) * (x^2 + x + 1)
 
-            sage: v.montes_factorization(x^2 - 1)
-            (x - 1) * (x + 1)
+            sage: v.montes_factorization(x^7 - 1) # not tested, does not terminate
 
-            sage: v.montes_factorization(x^2 - 1, required_precision=5)
-            (x + 1) * (x + 31)
+            sage: v.montes_factorization(x^7 - 1, required_precision=5)
+            (x - 1) * (x^3 - 5*x^2 - 6*x - 1) * (x^3 + 6*x^2 + 5*x - 1)
 
         TESTS:
 
@@ -997,7 +972,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: f = (x^3 + 5)*(x^5 + w) + 625
             sage: v = R.valuation()
             sage: v.montes_factorization(f, assume_squarefree=True, required_precision=0)
-            ((1 + O(w^60))*x + 4*w + O(w^60)) * ((1 + O(w^60))*x^2 + (w + O(w^60))*x + w^2 + O(w^60)) * ((1 + O(w^60))*x^5 + w + O(w^60))
+            ((1 + O(w^60))*x + 4*w + O(w^61)) * ((1 + O(w^60))*x^2 + (w + O(w^61))*x + w^2 + O(w^62)) * ((1 + O(w^60))*x^5 + w + O(w^61))
 
         REFERENCES:
 

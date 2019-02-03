@@ -120,7 +120,6 @@ Comprehensive Module list
     sage/combinat/enumeration_mod_permgroup
     sage/combinat/expnums
     sage/combinat/family
-    sage/combinat/finite_class
     sage/combinat/finite_state_machine
     sage/combinat/finite_state_machine_generators
     sage/combinat/fqsym
@@ -154,7 +153,7 @@ Comprehensive Module list
     sage/combinat/matrices/hadamard_matrix
     sage/combinat/matrices/latin
     sage/combinat/misc
-    sage/combinat/multichoose_nk
+    sage/combinat/multiset_partition_into_sets_ordered
     sage/combinat/ncsf_qsym/__init__
     sage/combinat/ncsf_qsym/all
     sage/combinat/ncsf_qsym/combinatorics
@@ -171,6 +170,7 @@ Comprehensive Module list
     sage/combinat/non_decreasing_parking_function
     sage/combinat/ordered_tree
     sage/combinat/output
+    sage/combinat/parallelogram_polyomino
     sage/combinat/parking_functions
     sage/combinat/plane_partition
     sage/combinat/partition

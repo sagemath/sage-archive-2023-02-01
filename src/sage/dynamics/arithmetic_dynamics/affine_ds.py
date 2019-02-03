@@ -259,14 +259,14 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
             polys = [morphism_or_polys]
 
         PR = get_coercion_model().common_parent(*polys)         
-        fraction_field = any([is_FractionField(poly.parent()) for poly in polys])
+        fraction_field = any(is_FractionField(poly.parent()) for poly in polys)
         if fraction_field:
             K = PR.base_ring().fraction_field()
             # Replace base ring with its fraction field
             PR = PR.ring().change_ring(K).fraction_field()
             polys = [PR(poly) for poly in polys]
         else:
-            quotient_ring = any([is_QuotientRing(poly.parent()) for poly in polys])
+            quotient_ring = any(is_QuotientRing(poly.parent()) for poly in polys)
             # If any of the list entries lies in a quotient ring, we try
             # to lift all entries to a common polynomial ring.
             if quotient_ring:
@@ -701,9 +701,10 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
             sage: A.<x,y> = AffineSpace(FractionField(R), 2)
             sage: f = DynamicalSystem_affine([(x-t*y^2)/x, t*x*y])
             sage: f.orbit(A(1, t), 3)
-            [(1, t), (-t^3 + 1, t^2), ((-t^5 - t^3 + 1)/(-t^3 + 1), -t^6 + t^3),
-            ((-t^16 + 3*t^13 - 3*t^10 + t^7 + t^5 + t^3 - 1)/(t^5 + t^3 - 1), -t^9 -
-            t^7 + t^4)]
+            [(1, t),
+             (-t^3 + 1, t^2),
+             ((t^5 + t^3 - 1)/(t^3 - 1), -t^6 + t^3),
+             ((-t^16 + 3*t^13 - 3*t^10 + t^7 + t^5 + t^3 - 1)/(t^5 + t^3 - 1), -t^9 - t^7 + t^4)]
         """
         Q = P
         if isinstance(n, list) or isinstance(n, tuple):

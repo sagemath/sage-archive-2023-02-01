@@ -30,6 +30,7 @@ AUTHOR:
 """
 from __future__ import absolute_import
 
+from cysignals.signals cimport sig_check
 from libc.string cimport memcpy
 
 from sage.structure.sage_object cimport SageObject
@@ -80,6 +81,7 @@ cdef walsh_hadamard(long *f, int ldn):
             t1 = r
             t2 = r+mh
             for 0 <= j < mh:
+                sig_check()
                 u = f[t1]
                 v = f[t2]
                 f[t1] = u + v
@@ -105,6 +107,7 @@ cdef long yellow_code(unsigned long a):
     cdef unsigned long m = (~0UL) >> s
     cdef unsigned long r = a
     while(s):
+        sig_check()
         r ^= ( (r&m) << s )
         s >>= 1
         m ^= (m<<s)
@@ -146,6 +149,7 @@ cdef reed_muller(mp_limb_t* f, int ldn):
             t1 = r
             t2 = r+mh
             for 0 <= j < mh:
+                sig_check()
                 f[t2] ^= f[t1]
                 t1 += 1
                 t2 += 1
@@ -772,6 +776,7 @@ cdef class BooleanFunction(SageObject):
         """
         cdef list T = [ self(2**i-1) for i in xrange(self._nvariables+1) ]
         for i in xrange(2**self._nvariables):
+            sig_check()
             if T[ hamming_weight_int(i) ] != bitset_in(self._truth_table, i):
                 return False
         return True
@@ -833,6 +838,7 @@ cdef class BooleanFunction(SageObject):
             c = self._nvariables
             W = self.walsh_hadamard_transform()
             for 0 < i < len(W):
+                sig_check()
                 if (W[i] != 0):
                     c = min( c , hamming_weight_int(i) )
             self._correlation_immunity = ZZ(c-1)
@@ -879,7 +885,8 @@ cdef class BooleanFunction(SageObject):
             temp = <long *>sig_malloc(sizeof(long)*n)
             W = self.walsh_hadamard_transform()
 
-            for 0<= i < n:
+            for 0 <= i < n:
+                sig_check()
                 temp[i] = W[i]*W[i]
 
             walsh_hadamard(temp, self._nvariables)
@@ -984,6 +991,7 @@ cdef class BooleanFunction(SageObject):
         for i in xrange(1, d + 1):
             C = Combinations(self._nvariables,i)
             for c in C:
+                sig_check()
                 r.append(prod([G[i] for i in c]))
 
         cdef BooleanFunction t
@@ -991,6 +999,7 @@ cdef class BooleanFunction(SageObject):
         for i,m in enumerate(r):
             t = BooleanFunction(m)
             for j,v in enumerate(s):
+                sig_check()
                 M[i,j] = bitset_in(t._truth_table,v)
 
         kg = M.kernel().gens()
@@ -1037,7 +1046,7 @@ cdef class BooleanFunction(SageObject):
                 A = fun.annihilator(i)
                 if A is not None:
                     if annihilator:
-                        return i,A
+                        return i, A
                     else:
                         return i
         raise ValueError("you just found a bug!")
@@ -1370,5 +1379,6 @@ def random_boolean_function(n):
     cdef bitset_t T
     T[0] = B._truth_table[0]
     for 0 <= i < T.limbs:
+        sig_check()
         T.bits[i] = r.randrange(0,Integer(1)<<(sizeof(unsigned long)*8))
     return B

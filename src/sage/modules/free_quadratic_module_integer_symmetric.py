@@ -1112,7 +1112,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             sage: conj = Aut.conjugacy_classes_representatives()
             sage: len(conj)
             14
-            sage: Aut.structure_description()   # optional - database_gap
+            sage: Aut.structure_description()
             'C2 x S5'
 
         The lattice can live in a larger ambient space::
@@ -1219,6 +1219,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             Genus of
             [0 1]
             [1 0]
+            Signature:  (1, 1)
             Genus symbol at 2:    1^2
         """
         from sage.quadratic_forms.genera.genus import Genus

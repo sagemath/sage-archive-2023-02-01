@@ -101,7 +101,7 @@ def CongruenceSubgroup_constructor(*args):
     if not hasattr(R, "cover_ring") or R.cover_ring() != ZZ:
         raise TypeError("Ring of definition must be Z / NZ for some N")
 
-    if not all([x.matrix().det() == 1 for x in G.gens()]):
+    if not all(x.matrix().det() == 1 for x in G.gens()):
         raise ValueError("Group must be contained in SL(2, Z / N)")
     GG = _minimize_level(G)
     if GG in ZZ:
@@ -253,6 +253,19 @@ class CongruenceSubgroupBase(ArithmeticSubgroup):
             True
         """
         return not (self == other)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: hash(CongruenceSubgroup(3,[ [1,1,0,1] ])) == hash(Gamma1(3))
+            True
+            sage: hash(CongruenceSubgroup(3,[ [1,1,0,1] ])) == hash(Gamma(3))
+            False
+        """
+        return hash((self.level(), self.index()))
 
 
 class CongruenceSubgroupFromGroup(CongruenceSubgroupBase):

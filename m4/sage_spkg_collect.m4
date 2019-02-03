@@ -53,16 +53,20 @@
 #        download additional source files.
 #
 AC_DEFUN_ONCE([SAGE_SPKG_COLLECT], [
+# Configure all spkgs with configure-time checks
+m4_include([m4/sage_spkg_configures.m4])
+
 # To deal with ABI incompatibilities when gcc is upgraded, every package
 # (except gcc) should depend on gcc if gcc is already installed.
 # See https://trac.sagemath.org/ticket/24703
 if test x$SAGE_INSTALL_GCC = xexists; then
-    GCC_DEP='$(SAGE_LOCAL)/bin/gcc'
+    SAGE_GCC_DEP='$(SAGE_LOCAL)/bin/gcc'
 else
-    GCC_DEP=''
+    SAGE_GCC_DEP=''
 fi
+AC_SUBST([SAGE_GCC_DEP])
 
-AC_MSG_CHECKING([package versions])
+AC_MSG_CHECKING([SPKGs to install])
 AC_MSG_RESULT([])
 
 # Usage: newest_version $pkg
@@ -143,13 +147,13 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
 
     SAGE_PACKAGE_VERSIONS+="vers_$PKG_NAME = $PKG_VERSION"$'\n'
 
-    # If $need_to_install_{PKG_NAME} is set to no, then set inst_<pkgname> to
+    # If $sage_spkg_install_{PKG_NAME} is set to no, then set inst_<pkgname> to
     # some dummy file to skip the installation. Note that an explicit
     # "./sage -i PKG_NAME" will still install the package.
     if test "$PKG_NAME" != "$PKG_VERSION"; then
-        need_to_install="need_to_install_${PKG_NAME}"
+        sage_spkg_install="sage_spkg_install_${PKG_NAME}"
 
-        if test "${!need_to_install}" != no ; then
+        if test "${!sage_spkg_install}" != no ; then
             SAGE_BUILT_PACKAGES+="    $PKG_NAME \\"$'\n'
             AC_MSG_RESULT([    $PKG_NAME-$PKG_VERSION])
         else
@@ -191,9 +195,6 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
             ;;
         esac
     fi
-
-    # Special case for GCC; see definition of GCC_DEP above
-    test "$PKG_NAME" = gcc || DEPS="$GCC_DEP $DEPS"
 
     SAGE_PACKAGE_DEPENDENCIES+="deps_$PKG_NAME = $DEPS"$'\n'
 

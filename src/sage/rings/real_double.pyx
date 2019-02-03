@@ -32,13 +32,13 @@ Test NumPy conversions::
     dtype('float64')
 """
 
-#*****************************************************************************
+# ****************************************************************************
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from __future__ import print_function, absolute_import
 
@@ -387,6 +387,17 @@ cdef class RealDoubleField_class(Field):
         """
         return "RealField(%s : Bits := true)" % self.prec()
 
+    def _fricas_init_(self):
+        r"""
+        Return the FriCAS representation of the real double field.
+
+        EXAMPLES::
+
+            sage: fricas(RDF)    # indirect doctest, optional - fricas
+            DoubleFloat
+        """
+        return "DoubleFloat"
+
     def _polymake_init_(self):
         r"""
         Return the polymake representation of the real double field.
@@ -665,7 +676,7 @@ cdef class RealDoubleField_class(Field):
         # collect real roots and conjugate pairs of non-real roots
         real_roots = [(r, e) for r, e in roots if r.imag().is_zero()]
         non_real_roots = {r: e for r, e in roots if not r.imag().is_zero()}
-        assert all([non_real_roots[r.conj()] == e for r, e in non_real_roots.items()]), "Bug in root finding code over RDF - roots must always come in conjugate pairs"
+        assert all(non_real_roots[r.conj()] == e for r, e in non_real_roots.items()), "Bug in root finding code over RDF - roots must always come in conjugate pairs"
         non_real_roots = [(r, e) for r, e in non_real_roots.items() if r.imag() > 0]
 
         # turn the roots into irreducible factors
@@ -2389,7 +2400,7 @@ cdef class RealDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: x = RDF(4e300); y = RDF(3e300);
+            sage: x = RDF(4e300); y = RDF(3e300)
             sage: x.hypot(y)
             5e+300
             sage: sqrt(x^2+y^2) # overflow

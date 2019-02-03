@@ -394,6 +394,7 @@ see :trac:`9538`::
     sage: sage.calculus.calculus.maxima('f1')
     f1
 """
+from six import iteritems
 
 import re
 from sage.arith.all import algdep
@@ -799,7 +800,9 @@ def nintegral(ex, x, a, b,
 
     return float(v[0]), float(v[1]), Integer(v[2]), Integer(v[3])
 
+
 nintegrate = nintegral
+
 
 def symbolic_product(expression, v, a, b, algorithm='maxima', hold=False):
     r"""
@@ -1418,11 +1421,12 @@ def laplace(ex, t, s, algorithm='maxima'):
 
       - ``'giac'`` - use Giac
     
-    NOTES:
+    .. NOTE::
     
-    - The ``'sympy'`` algorithm returns the tuple (`F`, `a`, ``cond``) where `F` is the Laplace 
-      transform of `f(t)`, `Re(s)>a` is the half-plane of convergence, and cond 
-      are auxiliary convergence conditions.
+        The ``'sympy'`` algorithm returns the tuple (`F`, `a`, ``cond``)
+        where `F` is the Laplace transform of `f(t)`,
+        `Re(s)>a` is the half-plane of convergence, and ``cond`` are
+        auxiliary convergence conditions.
 
     .. SEEALSO::
 
@@ -1587,7 +1591,7 @@ def laplace(ex, t, s, algorithm='maxima'):
         try:
             result = giac.laplace(ex, t, s)
         except TypeError:
-            raise ValueError("Giac cannot make sense of: %s" % ex_gi)
+            raise ValueError("Giac cannot make sense of: %s" % ex)
         if 'integrate' in format(result) or 'integration' in format(result):
             return dummy_laplace(ex, t, s)
         else:
@@ -1595,6 +1599,7 @@ def laplace(ex, t, s, algorithm='maxima'):
 
     else:
         raise ValueError("Unknown algorithm: %s" % algorithm)
+
 
 def inverse_laplace(ex, s, t, algorithm='maxima'):
     r"""
@@ -1831,15 +1836,17 @@ def at(ex, *args, **kwds):
     """
     if not isinstance(ex, (Expression, Function)):
         ex = SR(ex)
-    kwds={ (k[10:] if k[:10] == "_SAGE_VAR_" else k):v for k,v in six.iteritems(kwds)}
-    if len(args) == 1 and isinstance(args[0],list):
+    kwds = {(k[10:] if k[:10] == "_SAGE_VAR_" else k): v
+            for k, v in iteritems(kwds)}
+    if len(args) == 1 and isinstance(args[0], list):
         for c in args[0]:
-            kwds[str(c.lhs())]=c.rhs()
+            kwds[str(c.lhs())] = c.rhs()
     else:
-        if len(args) !=0:
+        if len(args):
             raise TypeError("at can take at most one argument, which must be a list")
 
     return ex.subs(**kwds)
+
 
 def dummy_diff(*args):
     """
@@ -1975,9 +1982,6 @@ symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma',\
             '%c' : '_C', '%k1' : '_K1', '%k2' : '_K2',
             'e':'_e', 'i':'_i', 'I':'_I'}
 
-import re
-
-import six
 
 
 maxima_tick = re.compile("'[a-z|A-Z|0-9|_]*")
@@ -2216,6 +2220,7 @@ def mapped_opts(v):
         return str(v).lower()
     return str(v)
 
+
 def maxima_options(**kwds):
     """
     Used internally to create a string of options to pass to Maxima.
@@ -2223,9 +2228,10 @@ def maxima_options(**kwds):
     EXAMPLES::
 
         sage: sage.calculus.calculus.maxima_options(an_option=True, another=False, foo='bar')
-        'an_option=true,foo=bar,another=false'
+        'an_option=true,another=false,foo=bar'
     """
-    return ','.join(['%s=%s'%(key,mapped_opts(val)) for key, val in six.iteritems(kwds)])
+    return ','.join('%s=%s' % (key, mapped_opts(val))
+                    for key, val in sorted(iteritems(kwds)))
 
 
 # Parser for symbolic ring elements

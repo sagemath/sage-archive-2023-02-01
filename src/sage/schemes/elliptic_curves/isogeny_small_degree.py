@@ -639,20 +639,19 @@ def isogenies_sporadic_Q(E, l=None, minimal_models=True):
         sage: isogenies_sporadic_Q(E,163)
         [Isogeny of degree 163 from Elliptic Curve defined by y^2 = x^3 - 34790720*x - 78984748304 over Rational Field to Elliptic Curve defined by y^2 = x^3 - 924354639680*x + 342062961763303088 over Rational Field]
     """
-    F = E.base_field()
     j = E.j_invariant()
     j = QQ(j)
-    if (j not in sporadic_j
-        or (l is not None and sporadic_j[j] != l)):
+    if (j not in sporadic_j or (l is not None and sporadic_j[j] != l)):
         return []
 
+    F = E.base_field()
     data = _sporadic_Q_data(j)
     Ew = E.short_weierstrass_model()
     E_to_Ew = E.isomorphism_to(Ew)
     c4, c6 = Ew.c_invariants()
-    (a4,a6), f = data
-    d = (c6*a4)/(18*c4*a6) # twisting factor
-    R = PolynomialRing(F,'X')
+    (a4, a6), f = data
+    d = (c6*a4)/(18*c4*a6)  # twisting factor
+    R = PolynomialRing(F, 'X')
     n = len(f)
     ker = R([d**(n-i-1) * f[i] for i in range(n)])
     from sage.rings.number_field.number_field_base import is_NumberField
@@ -708,7 +707,7 @@ def isogenies_2(E, minimal_models=True):
 
 
 def isogenies_3(E, minimal_models=True):
-    """
+    r"""
     Return a list of all 3-isogenies with domain ``E``.
 
     INPUT:
@@ -748,7 +747,7 @@ def isogenies_3(E, minimal_models=True):
     f3 = E.division_polynomial(3)
     x3 = sorted(f3.roots(multiplicities=False))
     x = f3.parent().gen()
-    ff = [x-x3i for x3i in x3]
+    ff = [x - x3i for x3i in x3]
     from sage.rings.number_field.number_field_base import is_NumberField
     model = "minimal" if minimal_models and is_NumberField(E.base_field()) else None
     isogs = [E.isogeny(f, model=model) for f in ff]
@@ -757,7 +756,8 @@ def isogenies_3(E, minimal_models=True):
 # 6 special cases: `l` = 5, 7, 13 and `j` = 0, 1728.
 
 def isogenies_5_0(E, minimal_models=True):
-    r"""Returns a list of all the 5-isogenies  with domain ``E`` when the
+    r"""
+    Return a list of all the 5-isogenies with domain ``E`` when the
     j-invariant is 0.
 
     INPUT:
@@ -1378,6 +1378,7 @@ def isogenies_13_1728(E, minimal_models=True):
 
 # List of primes l for which X_0(l) is (hyper)elliptic and X_0^+(l) has genus 0
 
+
 hyperelliptic_primes = [11, 17, 19, 23, 29, 31, 41, 47, 59, 71]
 
 @cached_function
@@ -1523,6 +1524,7 @@ def _hyperelliptic_isogeny_data(l):
         data['beta'] = Zu([0, 12150, -163215, 1115640, -5311143, 18820224, -50700172, 99823812, -102454041, -183909134, 1354660714, -4462311942, 10695310224, -20015395554, 28262441676, -23240987282, -17879387475, 124501604946, -315187724212, 564766450688, -765154573538, 705985549104, -115433273216, -1206098873334, 3175185881748, -5228317292044, 6292310032120, -5077451367560, 719644756530, 6451571564682, -14460150103020, 19999710623352, -19681838601268, 11819712227412, 2180981559572, -17790742756618, 29025463386612, -31179247603548, 23207078145510, -8345354986332, -7468523752270, 18486966963350, -21719818051100, 17831212433536, -10100011266030, 2336962513536, 2906983627184, -4989755986066, 4711466210012, -3361479243242, 1952316811463, -948555371584, 389878900245, -136099552242, 40341734984, -10121407164, 2136756509, -376218102, 54551634, -6399080, 591884, -41538, 2078, -66, 1])
         #beta factors as (u - 3) * (u - 2) * (u - 1) * u * (u + 1) * (u**2 - 5*u + 5) * (u**2 - 3*u + 1) * (u**2 - 2*u - 1) * (u**2 - u - 1) * (u**3 - 5*u**2 + 5*u - 3) * (u**3 - 4*u**2 - 1) * (u**3 - 2*u**2 - 1) * (u**4 - 6*u**3 + 7*u**2 + 6*u - 9) * (u**4 - 5*u**3 + 4*u**2 + u + 3) * (u**4 - 5*u**3 + 6*u**2 - 3*u + 5) * (u**4 - 4*u**3 + u**2 - 4*u + 1) * (u**4 - 4*u**3 + 2*u**2 - u + 1) * (u**4 - 2*u**3 - 3*u**2 - 2*u - 1) * (u**4 - 2*u**3 + u - 1) * (u**6 - 5*u**5 + 8*u**4 - 7*u**3 + 6*u**2 - 3*u + 1) * (u**8 - 6*u**7 + 9*u**6 - 2*u**5 + 2*u**3 - 9*u**2 + 2*u - 1)
         return data
+
 
 @cached_function
 def Psi2(l):
@@ -1734,7 +1736,7 @@ def isogenies_prime_degree_genus_plus_0(E, l=None, minimal_models=True):
 
 def isogenies_prime_degree_genus_plus_0_j0(E, l, minimal_models=True):
     """
-    Returns a list of hyperelliptic ``l`` -isogenies  with domain ``E`` when `j(E)=0`.
+    Returns a list of hyperelliptic ``l`` -isogenies with domain ``E`` when `j(E)=0`.
 
     INPUT:
 
@@ -1820,7 +1822,7 @@ def isogenies_prime_degree_genus_plus_0_j0(E, l, minimal_models=True):
 
 def isogenies_prime_degree_genus_plus_0_j1728(E, l, minimal_models=True):
     """
-    Returns a list of ``l`` -isogenies  with domain ``E`` when `j(E)=1728`.
+    Returns a list of ``l`` -isogenies with domain ``E`` when `j(E)=1728`.
 
     INPUT:
 
@@ -1917,7 +1919,7 @@ def _least_semi_primitive(p):
 
     INPUT:
 
-    - ``p`` -- an odd prime.
+    - ``p`` -- an odd prime power.
 
     OUTPUT:
 
@@ -1941,25 +1943,123 @@ def _least_semi_primitive(p):
         sage: _least_semi_primitive(997)
         7
     """
-    if not p.is_prime() or p<3:
-        raise ValueError("%s is not an odd prime"%p)
+    if p%2==0 or not p.is_prime_power():
+        raise ValueError("{} is not an odd prime power".format(p))
 
-    def is_semi_primitive(a,p):
-        from sage.rings.finite_rings.integer_mod_ring import Integers
-        d = Integers(p)(a).multiplicative_order()
-        if p%4==1:
-            return (d==p-1)
-        else:
-            return d >= (p-1)/2
+    from sage.arith.misc import euler_phi
+    from sage.rings.finite_rings.integer_mod_ring import Integers
+    phip = euler_phi(p)
+    ord = phip if p%4==1 else phip//2
+    R = Integers(p)
+    return next((a for a in range(2,p) if p.gcd(a)==1 and R(a).multiplicative_order()>=ord),0)
 
-    a = 2
-    while not is_semi_primitive(a,p):
-        a += 1
-    return a
+def is_kernel_polynomial(E, m, f):
+    r"""test whether ``E`` has a cyclic isogeny of degree ``m`` with kernel
+    polynomial ``f``.
+
+    INPUT:
+
+    - ``E`` -- an elliptic curve.
+
+    - ``m`` -- a positive integer.
+
+    - ``f`` -- a polynomial over the base field of ``E``.
+
+    OUTPUT:
+
+    (bool) ``True`` if ``E`` has a cyclic isogeny of degree ``m`` with
+    kernel polynomial ``f``, else ``False``.
+
+    ALGORITHM:
+
+    `f` must have degree `(m-1)/2` (if `m` is odd) or degree `m/2` (if
+    `m` is even), and have the property that for each root `x` of `f`,
+    `\mu(x)` is also a root where `\mu` is the multiplication-by-`m`
+    map on `E` and `m` runs over a set of generators of
+    `(\ZZ/m\ZZ)^*/\{1,-1\}`.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.elliptic_curves.isogeny_small_degree import is_kernel_polynomial
+        sage: E = EllipticCurve([0, -1, 1, -10, -20])
+        sage: x = polygen(QQ)
+        sage: is_kernel_polynomial(E,5,x^2 + x - 29/5)
+        True
+        sage: is_kernel_polynomial(E,5,(x - 16) * (x - 5))
+        True
+
+    An example from [KT2013]_, where the 13-division polynomial splits
+    into 14 factors each of degree 6, but only two of these is a
+    kernel polynomial for a 13-isogeny::
+
+        sage: F = GF(3)
+        sage: E = EllipticCurve(F,[0,0,0,-1,0])
+        sage: f13 = E.division_polynomial(13)
+        sage: factors = [f for f,e in f13.factor()]
+        sage: all([f.degree()==6 for f in factors])
+        True
+        sage: [is_kernel_polynomial(E,13,f) for f in factors]
+        [True,
+        True,
+        False,
+        False,
+        False,
+        False,
+        False,
+        False,
+        False,
+        False,
+        False,
+        False,
+        False,
+        False]
+
+    See :trac:`22232`::
+
+        sage: K =GF(47^2)
+        sage: E = EllipticCurve([0, K.gen()])
+        sage: psi7 = E.division_polynomial(7)
+        sage: f = psi7.factor()[4][0]
+        sage: f
+        x^3 + (7*z2 + 11)*x^2 + (25*z2 + 33)*x + 25*z2
+        sage: f.divides(psi7)
+        True
+        sage: is_kernel_polynomial(E,7, f)
+        False
+
+    """
+    m2 = m//2
+    if f.degree()!= m2:
+        return False
+    if m==1:
+        return True
+
+    # Compute the quotient polynomial ring mod (f)
+    S = f.parent().quotient_ring(f)
+
+    # test if the m-division polynomial is a multiple of f by computing it in the quotient:
+    if E.division_polynomial(m, x=S.gen()) != 0:
+        return False
+
+    if m==2 or m==3:
+        return True
+
+    # For each a in a set of generators of (Z/mZ)^* we check that the
+    # multiplcation-by-a map permutes the roots of f.  It would be
+    # enough to take a generating (Z/mZ)^*/{1,-1} but that is not
+    # implemented.  If m is prime (or more generally, has a primitive
+    # root) then only one a will be needed.
+
+    from sage.rings.finite_rings.integer_mod_ring import Integers
+    for a in Integers(m).unit_gens():
+        mu = E.multiplication_by_m(a, x_only=True)
+        if f( S(mu.numerator()) / S(mu.denominator()) ) != 0:
+            return False
+    return True
 
 def isogenies_prime_degree_general(E, l, minimal_models=True):
     """
-    Returns a list of ``l`` -isogenies  with domain ``E``.
+    Return all separable ``l``-isogenies with domain ``E``.
 
     INPUT:
 
@@ -1974,7 +2074,7 @@ def isogenies_prime_degree_general(E, l, minimal_models=True):
 
     OUTPUT:
 
-    (list) a list of all isogenies of degree l.
+    A list of all separable isogenies of degree `l` with domain ``E``.
 
     ALGORITHM:
 
@@ -2142,7 +2242,8 @@ def isogenies_prime_degree_general(E, l, minimal_models=True):
 
 
 def isogenies_prime_degree(E, l, minimal_models=True):
-    """Returns a list of ``l`` -isogenies  with domain ``E``.
+    """
+    Return all separable ``l``-isogenies with domain ``E``.
 
     INPUT:
 
@@ -2158,9 +2259,7 @@ def isogenies_prime_degree(E, l, minimal_models=True):
 
     OUTPUT:
 
-    (list) a list of all isogenies of degree `l`.  If the
-    characteristic is `l` then only separable isogenies are
-    constructed.
+    A list of all separable isogenies of degree `l` with domain ``E``.
 
     EXAMPLES::
 

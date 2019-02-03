@@ -146,12 +146,15 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
             sage: x.resultant(y)
             -y
         """
-        #TODO: this is *very* slow
-        #NOTE: the hash of a generator (e.g. z2, z3, ...) is always the
-        # characterisitc! In particular its hash value is not compatible with
+        # TODO: this is *very* slow
+        # NOTE: the hash of a generator (e.g. z2, z3, ...) is always the
+        # characteristic! In particular its hash value is not compatible with
         # sections.
-        F,x,_ = self.as_finite_field_element(minimal=True)
-        return hash(x) + 1500007*(F.degree()-1)
+        F, x, _ = self.as_finite_field_element(minimal=True)
+        if F.degree() == 1:
+            return hash(x)
+        else:
+            return hash((x, F.degree()))
 
     def _repr_(self):
         """

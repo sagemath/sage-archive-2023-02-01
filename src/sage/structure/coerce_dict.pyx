@@ -68,11 +68,10 @@ cimport cython
 from cpython.object cimport *
 from cpython.ref cimport Py_XINCREF, Py_XDECREF, Py_CLEAR
 from cpython.tuple cimport PyTuple_New
-from cpython.weakref cimport PyWeakref_GetObject
+from cpython.weakref cimport PyWeakref_GetObject, PyWeakref_GET_OBJECT
 from cysignals.memory cimport check_calloc, sig_free
 
 cdef extern from "Python.h":
-    PyObject* Py_None
     void PyTuple_SET_ITEM(object tuple, Py_ssize_t index, PyObject* item)
 
 cdef extern from "sage/cpython/pyx_visit.h":
@@ -80,6 +79,15 @@ cdef extern from "sage/cpython/pyx_visit.h":
 
 cdef type KeyedRef, ref
 from weakref import KeyedRef, ref
+
+cdef inline bint is_dead_keyedref(x):
+    """
+    Check whether ``x`` is a ``KeyedRef`` which is dead.
+    """
+    if type(x) is not KeyedRef:
+        return False
+    return PyWeakref_GET_OBJECT(x) is <PyObject*>None
+
 
 # Unique sentinel to indicate a deleted cell
 cdef object dummy = object()
@@ -397,9 +405,9 @@ cdef class MonoDict:
         ....:     prev = newA
         sage: len(M)
         1000
-        sage: del a
+        sage: del a  # py2 -- does not appear to be an issue on Python 3
         Exception RuntimeError: 'maximum recursion depth exceeded...' in <function remove at ...> ignored
-        sage: len(M)>0
+        sage: len(M) > 0  # py2
         True
 
     Check that also in the presence of circular references, :class:`MonoDict`
@@ -443,12 +451,19 @@ cdef class MonoDict:
         cdef mono_cell* table = self.table
         cdef mono_cell* first_deleted = NULL
 
-        # We seed our starting probe using the higher bits of the key
-        # as well. Our hash is a memory location, so the bottom bits are
-        # likely 0.
+        # Use the memory location of the key as starting point for our
+        # hash.
         cdef size_t h = <size_t>key
-        cdef size_t i = (h >> 8) + h
-        cdef size_t perturb = h >> 3
+
+        # The size of a Python object is at least 2 * sizeof(size_t).
+        # Therefore, we don't lose any information by dividing by that.
+        # Instead, the lower order bits become more interesting.
+        h //= 2 * sizeof(size_t)
+
+        # Bring some higher-order bits in with this permutation.
+        cdef size_t i = (h >> 8) ^ h
+
+        cdef size_t perturb = h
 
         # The probing algorithm is heavily inspired by Python dicts.
         # There is always at least one NULL entry in the store, and the
@@ -467,6 +482,7 @@ cdef class MonoDict:
         cdef mono_cell* cursor
         while True:
             cursor = &(table[i & mask])
+            perturb >>= 5
             if cursor.key_id is key:
                 return cursor
             elif cursor.key_id is NULL:
@@ -475,7 +491,6 @@ cdef class MonoDict:
                 if first_deleted is NULL:
                     first_deleted = cursor
             i = (5*i + 1) + perturb
-            perturb = perturb >> 5
 
     cdef int resize(self) except -1:
         """
@@ -634,14 +649,10 @@ cdef class MonoDict:
         cdef mono_cell* cursor = self.lookup(<PyObject*>k)
         if not valid(cursor.key_id):
             return False
-        r = <object>cursor.key_weakref
-        if isinstance(r, KeyedRef) and PyWeakref_GetObject(r) is Py_None:
-            return False
-        elif not self.weak_values:
+        if not self.weak_values:
             return True
-        else:
-            value = <object>cursor.value
-            return (not isinstance(value, KeyedRef)) or PyWeakref_GetObject(value) is not Py_None
+        value = <object>cursor.value
+        return not is_dead_keyedref(value)
 
     def __getitem__(self, k):
         """
@@ -675,12 +686,16 @@ cdef class MonoDict:
         cdef mono_cell* cursor = self.lookup(<PyObject*>k)
         if not valid(cursor.key_id):
             raise KeyError(k)
-        r = <object>cursor.key_weakref
-        if isinstance(r, KeyedRef) and PyWeakref_GetObject(r) is Py_None:
-            raise KeyError(k)
+        # We need to check that the value is a live reference.
+        # Items with dead references (in the key or value) are deleted
+        # from the MonoDict by the MonoDictEraser. However, if we are
+        # in the middle of a deallocation, we may see a dead reference
+        # for the value. This cannot happen for the key: we are passed a
+        # strong reference to the key as argument of this function, so
+        # we know that it's alive.
         value = <object>cursor.value
-        if self.weak_values and isinstance(value, KeyedRef):
-            value = <object>PyWeakref_GetObject(value)
+        if type(value) is KeyedRef:
+            value = <object>PyWeakref_GET_OBJECT(value)
             if value is None:
                 raise KeyError(k)
         return value
@@ -832,13 +847,13 @@ cdef class MonoDict:
             if valid(cursor.key_id):
                 key = <object>(cursor.key_weakref)
                 value = <object>(cursor.value)
-                if isinstance(key, KeyedRef):
-                    key = <object>PyWeakref_GetObject(key)
+                if type(key) is KeyedRef:
+                    key = <object>PyWeakref_GET_OBJECT(key)
                     if key is None:
                         print("found defunct key")
                         continue
-                if self.weak_values and isinstance(value, KeyedRef):
-                    value = <object>PyWeakref_GetObject(value)
+                if type(value) is KeyedRef:
+                    value = <object>PyWeakref_GET_OBJECT(value)
                     if value is None:
                         print("found defunct value")
                         continue
@@ -1172,15 +1187,21 @@ cdef class TripleDict:
         cdef triple_cell* table = self.table
         cdef triple_cell* first_deleted = NULL
 
+        # A random linear combination of the memory locations of the keys
         cdef size_t C2 = 0x7de83cbb
         cdef size_t C3 = 0x32354bf3
         cdef size_t h = (<size_t>key1) + C2*(<size_t>key2) + C3*(<size_t>key3)
-        cdef size_t i = (h >> 8) + h
-        cdef size_t perturb = h >> 3
+
+        # See MonoDict.lookup() for comments about the algorithm
+        h //= 2 * sizeof(size_t)
+
+        cdef size_t i = (h >> 8) ^ h
+        cdef size_t perturb = h
 
         cdef triple_cell* cursor
         while True:
             cursor = &(table[i & mask])
+            perturb >>= 5
             if cursor.key_id1 is key1:
                 if cursor.key_id2 is key2 and cursor.key_id3 is key3:
                     return cursor
@@ -1190,7 +1211,6 @@ cdef class TripleDict:
                 if first_deleted is NULL:
                     first_deleted = cursor
             i = (5*i + 1) + perturb
-            perturb = perturb >> 5
 
     cdef int resize(self) except -1:
         cdef triple_cell* old_table = self.table
@@ -1354,19 +1374,10 @@ cdef class TripleDict:
         cdef triple_cell* cursor = self.lookup(<PyObject*>k1, <PyObject*>k2, <PyObject*>k3)
         if not valid(cursor.key_id1):
             return False
-        r = <object>cursor.key_weakref1
-        if isinstance(r, KeyedRef) and PyWeakref_GetObject(r) is Py_None:
-            return False
-        r = <object>cursor.key_weakref2
-        if isinstance(r, KeyedRef) and PyWeakref_GetObject(r) is Py_None:
-            return False
-        r = <object>cursor.key_weakref3
-        if isinstance(r, KeyedRef) and PyWeakref_GetObject(r) is Py_None:
-            return False
         if not self.weak_values:
             return True
         value = <object>cursor.value
-        return (not isinstance(value, KeyedRef)) or PyWeakref_GetObject(value) is not Py_None
+        return not is_dead_keyedref(value)
 
     def __getitem__(self, k):
         """
@@ -1391,16 +1402,9 @@ cdef class TripleDict:
         cdef triple_cell* cursor = self.lookup(<PyObject*>k1, <PyObject*>k2, <PyObject*>k3)
         if not valid(cursor.key_id1):
             raise KeyError((k1, k2, k3))
-        r1 = <object>cursor.key_weakref1
-        r2 = <object>cursor.key_weakref2
-        r3 = <object>cursor.key_weakref3
-        if ((isinstance(r1, KeyedRef) and PyWeakref_GetObject(r1) is Py_None) or
-            (isinstance(r2, KeyedRef) and PyWeakref_GetObject(r2) is Py_None) or
-            (isinstance(r3, KeyedRef) and PyWeakref_GetObject(r3) is Py_None)):
-            raise KeyError((k1, k2, k3))
         value = <object>cursor.value
-        if self.weak_values and isinstance(value, KeyedRef):
-            value = <object>PyWeakref_GetObject(value)
+        if type(value) is KeyedRef:
+            value = <object>PyWeakref_GET_OBJECT(value)
             if value is None:
                 raise KeyError((k1, k2, k3))
         return value
@@ -1553,23 +1557,23 @@ cdef class TripleDict:
                 key2 = <object>(cursor.key_weakref2)
                 key3 = <object>(cursor.key_weakref3)
                 value = <object>(cursor.value)
-                if isinstance(key1, KeyedRef):
-                    key1 = <object>PyWeakref_GetObject(key1)
+                if type(key1) is KeyedRef:
+                    key1 = <object>PyWeakref_GET_OBJECT(key1)
                     if key1 is None:
                         print("found defunct key1")
                         continue
-                if isinstance(key2, KeyedRef):
-                    key2 = <object>PyWeakref_GetObject(key2)
+                if type(key2) is KeyedRef:
+                    key2 = <object>PyWeakref_GET_OBJECT(key2)
                     if key2 is None:
                         print("found defunct key2")
                         continue
-                if isinstance(key3, KeyedRef):
-                    key3 = <object>PyWeakref_GetObject(key3)
+                if type(key3) is KeyedRef:
+                    key3 = <object>PyWeakref_GET_OBJECT(key3)
                     if key3 is None:
                         print("found defunct key3")
                         continue
-                if self.weak_values and isinstance(value, KeyedRef):
-                    value = <object>PyWeakref_GetObject(value)
+                if type(value) is KeyedRef:
+                    value = <object>PyWeakref_GET_OBJECT(value)
                     if value is None:
                         print("found defunct value")
                         continue

@@ -44,7 +44,7 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.categories.morphism import Morphism
+from sage.categories.morphism import Morphism, SetMorphism
 from sage.categories.map import Map
 from sage.rings.morphism import RingHomomorphism
 
@@ -197,7 +197,7 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
         Derivation map:
           From: Function field in y defined by y^2 - x
           To:   Function field in y defined by y^2 - x
-          Defn: y |--> (-1/2/-x)*y
+          Defn: y |--> 1/2/x*y
     """
     def __init__(self, L, d):
         """
@@ -248,7 +248,7 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
             sage: d(x) # indirect doctest
             1
             sage: d(y)
-            (-1/2/-x)*y
+            1/2/x*y
             sage: d(y^2)
             1
         """
@@ -273,7 +273,7 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
             Derivation map:
               From: Function field in y defined by y^2 - x
               To:   Function field in y defined by y^2 - x
-              Defn: y |--> (-1/2/-x)*y
+              Defn: y |--> 1/2/x*y
 
             sage: R.<z> = L[]
             sage: M.<z> = L.extension(z^2 - y)
@@ -281,7 +281,7 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
             Derivation map:
               From: Function field in z defined by z^2 - y
               To:   Function field in z defined by z^2 - y
-              Defn: y |--> (-1/2/-x)*y
+              Defn: y |--> 1/2/x*y
                     z |--> 1/4/x*z
         """
         base = self._d._repr_defn()
@@ -637,7 +637,7 @@ class FunctionFieldMorphism(RingHomomorphism):
             sage: f._repr_defn()
             'y |--> 2*y'
         """
-        a = '%s |--> %s'%(self.domain().gen(), self._im_gen)
+        a = '%s |--> %s'%(self.domain().variable_name(), self._im_gen)
         if self._base_morphism is not None:
             a += '\n' + self._base_morphism._repr_defn()
         return a
@@ -924,3 +924,29 @@ class FractionFieldToFunctionField(FunctionFieldVectorSpaceIsomorphism):
         parent = Hom(self.codomain(), self.domain())
         return parent.__make_element_class__(FunctionFieldToFractionField)(parent)
 
+class FunctionFieldRingMorphism(SetMorphism):
+    """
+    Ring homomorphism.
+    """
+    def _repr_(self):
+        """
+        Return the string representaton of the map.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: p = L.places_finite()[0]
+            sage: R = p.valuation_ring()
+            sage: k, fr_k, to_k = R.residue_field()
+            sage: k
+            Finite Field of size 2
+            sage: fr_k
+            Ring morphism:
+              From: Finite Field of size 2
+              To:   Valuation ring at Place (x, x*y)
+        """
+        s = "Ring morphism:"
+        s += "\n  From: {}".format(self.domain())
+        s += "\n  To:   {}".format(self.codomain())
+        return s

@@ -101,9 +101,9 @@ So the solutions over `\GF{2}` are `\{e=0, d=1, c=1, b=1, a=0\}` and
 `\{e=0, d=0, c=1, b=1, a=1\}`.
 
 We can express the restriction to `\GF{2}` by considering the quotient
-ring. If `I` is an ideal in `\mathbb{F}[x_1, ..., x_n]` then the
-ideals in the quotient ring `\mathbb{F}[x_1, ..., x_n]/I` are in
-one-to-one correspondence with the ideals of `\mathbb{F}[x_0, ...,
+ring. If `I` is an ideal in `\Bold{F}[x_1, ..., x_n]` then the
+ideals in the quotient ring `\Bold{F}[x_1, ..., x_n]/I` are in
+one-to-one correspondence with the ideals of `\Bold{F}[x_0, ...,
 x_n]` containing `I` (that is, the ideals `J` satisfying `I \subset J
 \subset P`).
 
@@ -208,8 +208,8 @@ from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 
 from sage.rings.ideal import FieldIdeal
 
-from sage.structure.element cimport (Element, RingElement,
-                                     have_same_parent, coercion_model)
+from sage.structure.coerce cimport coercion_model
+from sage.structure.element cimport Element
 
 from sage.structure.parent cimport Parent
 from sage.structure.sequence import Sequence
@@ -5125,53 +5125,53 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
 
         EXAMPLES:
 
-            A Simple example::
+        A simple example::
 
-                sage: from sage.doctest.fixtures import reproducible_repr
-                sage: R.<x,y,z> = BooleanPolynomialRing()
-                sage: I = ideal( [ x*y*z + x*z + y + 1, x+y+z+1 ] )
-                sage: print(reproducible_repr(I.variety()))
-                [{x: 0, y: 1, z: 0}, {x: 1, y: 1, z: 1}]
+            sage: from sage.doctest.fixtures import reproducible_repr
+            sage: R.<x,y,z> = BooleanPolynomialRing()
+            sage: I = ideal( [ x*y*z + x*z + y + 1, x+y+z+1 ] )
+            sage: print(reproducible_repr(I.variety()))
+            [{x: 0, y: 1, z: 0}, {x: 1, y: 1, z: 1}]
 
         TESTS:
 
-            BooleanIdeal and regular (quotient) Ideal should coincide::
+        BooleanIdeal and regular (quotient) Ideal should coincide::
 
-                 sage: R = BooleanPolynomialRing(6, ['x%d'%(i+1) for i in range(6)], order='lex')
-                 sage: R.inject_variables()
-                 Defining...
-                 sage: polys = [
-                 ....:     x1*x2 + x1*x4 + x1*x5 + x1*x6 + x1 + x2 + x3*x4 + x3*x5 + x3 + x4*x5 + x4*x6 + x4 + x5 + x6,
-                 ....:     x1*x2 + x1*x3 + x1*x4 + x1*x6 + x2*x3 + x2*x6 + x2 + x3*x4 + x5*x6,
-                 ....:     x1*x3 + x1*x4 + x1*x6 + x1 + x2*x5 + x2*x6 + x3*x4 + x3 + x4*x6 + x4 + x5*x6 + x5 + x6,
-                 ....:     x1*x2 + x1*x3 + x1*x4 + x1*x5 + x2 + x3*x5 + x3*x6 + x3 + x5 + x6,
-                 ....:     x1*x2 + x1*x4 + x1*x5 + x1*x6 + x2*x3 + x2*x4 + x2*x5 + x3*x5 + x5*x6 + x5 + x6,
-                 ....:     x1*x2 + x1*x6 + x2*x4 + x2*x5 + x2*x6 + x3*x6 + x4*x6 + x5*x6 + x5]
-                 sage: I = R.ideal( polys )
-                 sage: print(reproducible_repr(I.variety()))
-                  [{x1: 0, x2: 0, x3: 0, x4: 0, x5: 0, x6: 0}, {x1: 1, x2: 1, x3: 1, x4: 0, x5: 0, x6: 1}]
+            sage: R = BooleanPolynomialRing(6, ['x%d'%(i+1) for i in range(6)], order='lex')
+            sage: R.inject_variables()
+            Defining...
+            sage: polys = [
+            ....:     x1*x2 + x1*x4 + x1*x5 + x1*x6 + x1 + x2 + x3*x4 + x3*x5 + x3 + x4*x5 + x4*x6 + x4 + x5 + x6,
+            ....:     x1*x2 + x1*x3 + x1*x4 + x1*x6 + x2*x3 + x2*x6 + x2 + x3*x4 + x5*x6,
+            ....:     x1*x3 + x1*x4 + x1*x6 + x1 + x2*x5 + x2*x6 + x3*x4 + x3 + x4*x6 + x4 + x5*x6 + x5 + x6,
+            ....:     x1*x2 + x1*x3 + x1*x4 + x1*x5 + x2 + x3*x5 + x3*x6 + x3 + x5 + x6,
+            ....:     x1*x2 + x1*x4 + x1*x5 + x1*x6 + x2*x3 + x2*x4 + x2*x5 + x3*x5 + x5*x6 + x5 + x6,
+            ....:     x1*x2 + x1*x6 + x2*x4 + x2*x5 + x2*x6 + x3*x6 + x4*x6 + x5*x6 + x5]
+            sage: I = R.ideal( polys )
+            sage: print(reproducible_repr(I.variety()))
+             [{x1: 0, x2: 0, x3: 0, x4: 0, x5: 0, x6: 0}, {x1: 1, x2: 1, x3: 1, x4: 0, x5: 0, x6: 1}]
 
-                 sage: R = PolynomialRing(GF(2), 6, ['x%d'%(i+1) for i in range(6)], order='lex')
-                 sage: I = R.ideal( polys )
-                 sage: v = (I + sage.rings.ideal.FieldIdeal(R)).variety()
-                 sage: print(reproducible_repr(v))
-                 [{x1: 0, x2: 0, x3: 0, x4: 0, x5: 0, x6: 0}, {x1: 1, x2: 1, x3: 1, x4: 0, x5: 0, x6: 1}]
+            sage: R = PolynomialRing(GF(2), 6, ['x%d'%(i+1) for i in range(6)], order='lex')
+            sage: I = R.ideal( polys )
+            sage: v = (I + sage.rings.ideal.FieldIdeal(R)).variety()
+            sage: print(reproducible_repr(v))
+            [{x1: 0, x2: 0, x3: 0, x4: 0, x5: 0, x6: 0}, {x1: 1, x2: 1, x3: 1, x4: 0, x5: 0, x6: 1}]
 
 
-            Check that :trac:`13976` is fixed::
+        Check that :trac:`13976` is fixed::
 
-                sage: R.<x,y,z> = BooleanPolynomialRing()
-                sage: I = ideal( [ x*y*z + x*z + y + 1, x+y+z+1 ] )
-                sage: sols = I.variety()
-                sage: sols[0][y]
-                1
+            sage: R.<x,y,z> = BooleanPolynomialRing()
+            sage: I = ideal( [ x*y*z + x*z + y + 1, x+y+z+1 ] )
+            sage: sols = I.variety()
+            sage: sols[0][y]
+            1
 
-            Make sure the result is a key converting dict, as discussed in
-            :trac:`9788` and consistent with
-            :meth:`sage.rings.polynomial.multi_polynomial_ideal.MPolynomialIdeal_singular_repr.variety`::
+        Make sure the result is a key converting dict, as discussed in
+        :trac:`9788` and consistent with
+        :meth:`sage.rings.polynomial.multi_polynomial_ideal.MPolynomialIdeal_singular_repr.variety`::
 
-                sage: sols[0]["y"]
-                1
+            sage: sols[0]["y"]
+            1
 
         """
         from sage.misc.converting_dict import KeyConvertingDict
@@ -6336,7 +6336,7 @@ cdef class ReductionStrategy:
 
         INPUT:
 
-        - ``p`` - a polynomial
+        - ``p`` -- a polynomial
 
         EXAMPLES::
 
@@ -6350,7 +6350,7 @@ cdef class ReductionStrategy:
             sage: red.head_normal_form(x + y*z)
             y + z + 1
 
-            sage; red.nf(x + y*z)
+            sage: red.nf(x + y*z)
             y + z + 1
         """
         return new_BP_from_PBPoly(self._parent, deref(self._strat).headNormalForm(p._pbpoly))
@@ -7063,10 +7063,11 @@ cdef class GroebnerStrategy:
             raise AttributeError(name)
 
 
-class BooleanMulAction(Action):
-    def _call_(self, left, right):
+cdef class BooleanMulAction(Action):
+    cpdef _act_(self, g, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from brial import BooleanMonomialMonoid
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: M = BooleanMonomialMonoid(P)
@@ -7084,10 +7085,8 @@ class BooleanMulAction(Action):
             sage: x*2
             0
         """
-        if self.is_left():
-            return right if left % 2 else GF(2)(0)
-        else:
-            return left if right % 2 else GF(2)(0)
+        return x if (g % 2) else GF(2)(0)
+
 
 cdef inline CCuddNavigator new_CN_from_PBNavigator(PBNavigator juice,
                                                    Py_ssize_t* pbind):
@@ -7404,7 +7403,7 @@ def ll_red_nf_redsb(p, BooleSet reductors):
         sage: from brial import ll_red_nf_redsb
         sage: B.<a,b,c,d> = BooleanPolynomialRing()
         sage: p = a*b + c + d + 1
-        sage: f,g  = a + c + 1, b + d + 1;
+        sage: f,g  = a + c + 1, b + d + 1
         sage: reductors = f.set().union( g.set() )
         sage: ll_red_nf_redsb(p, reductors)
         b*c + b*d + c + d + 1
@@ -7446,7 +7445,7 @@ def ll_red_nf_noredsb(BooleanPolynomial p, BooleSet reductors):
         sage: from brial import ll_red_nf_noredsb
         sage: B.<a,b,c,d> = BooleanPolynomialRing()
         sage: p = a*b + c + d + 1
-        sage: f,g  = a + c + 1, b + d + 1;
+        sage: f,g  = a + c + 1, b + d + 1
         sage: reductors = f.set().union( g.set() )
         sage: ll_red_nf_noredsb(p, reductors)
         b*c + b*d + c + d + 1
@@ -7479,7 +7478,7 @@ def ll_red_nf_noredsb_single_recursive_call(BooleanPolynomial p, BooleSet reduct
         sage: from brial import ll_red_nf_noredsb_single_recursive_call
         sage: B.<a,b,c,d> = BooleanPolynomialRing()
         sage: p = a*b + c + d + 1
-        sage: f,g  = a + c + 1, b + d + 1;
+        sage: f,g  = a + c + 1, b + d + 1
         sage: reductors = f.set().union( g.set() )
         sage: ll_red_nf_noredsb_single_recursive_call(p, reductors)
         b*c + b*d + c + d + 1

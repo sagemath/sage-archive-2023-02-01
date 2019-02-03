@@ -21,7 +21,7 @@ specified in the forward direction).
 #*****************************************************************************
 from __future__ import absolute_import, division, print_function
 
-import math
+import math, cmath
 
 cdef add, sub, mul, truediv, pow, neg, inv
 from operator import add, sub, mul, pow, neg, inv, truediv
@@ -397,7 +397,8 @@ class ComplexLazyField_class(LazyField):
         This lazy field doesn't evaluate its elements until they are cast into
         a field of fixed precision.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: a = RLF(1/3); a
             0.3333333333333334?
             sage: Reals(200)(a)
@@ -1442,7 +1443,6 @@ cdef class LazyConstant(LazyFieldElement):
 
     cdef readonly _name
     cdef readonly _extra_args
-    cdef readonly bint _is_special
 
     def __init__(self, LazyField parent, name, extra_args=None):
         """
@@ -1464,7 +1464,6 @@ cdef class LazyConstant(LazyFieldElement):
         LazyFieldElement.__init__(self, parent)
         self._name = name
         self._extra_args = extra_args
-        self._is_special = name in ['e', 'I']
 
     cpdef eval(self, R):
         """
@@ -1479,21 +1478,60 @@ cdef class LazyConstant(LazyFieldElement):
             sage: a = LazyConstant(CLF, 'I')
             sage: CC(a)
             1.00000000000000*I
+
+        TESTS:
+
+        Check that :trac:`26839` is fixed::
+
+            sage: RLF.pi().eval(float)
+            3.141592653589793
+            sage: type(RLF.pi().eval(float)) is float
+            True
+
+            sage: RLF.pi().eval(complex)
+            (3.141592653589793+0j)
+            sage: type(RLF.pi().eval(complex)) is complex
+            True
+
+            sage: RLF.pi().eval(RealBallField(128))
+            [3.1415926535897932384626433832795028842 +/- 1.06e-38]
+
+            sage: float(sin(RLF.pi()))
+            1.2246467991473532e-16
         """
-        if self._is_special:
-            if self._name == 'e':
-                return R(1).exp()
-            elif self._name == 'I':
+        # special handling of e and I
+        if self._name == 'I':
+            if R is float:
+                raise ValueError('I is not a real number')
+            elif R is complex:
+                return 1j
+            else:
                 I = R.gen()
-                if I*I < 0:
-                    return I
-                else:
-                    raise TypeError("The complex constant I is not in this real field.")
-        f = getattr(R, self._name)
-        if self._extra_args is None:
-            return f()
+                if I*I != -R.one():
+                    raise TypeError("The complex constant I is not in this complex field.")
+                return I
+
+        elif self._name == 'e':
+            if R is float:
+                return math.e
+            elif R is complex:
+                return complex(math.e)
+            else:
+                return R(1).exp()
+
+        elif R is float:
+            # generic float
+            return getattr(math, self._name)
+        elif R is complex:
+            # generic complex
+            return complex(getattr(cmath, self._name))
         else:
-            return f(*self._extra_args)
+            # generic Sage parent
+            f = getattr(R, self._name)
+            if self._extra_args is None:
+                return f()
+            else:
+                return f(*self._extra_args)
 
     def __call__(self, *args):
         """

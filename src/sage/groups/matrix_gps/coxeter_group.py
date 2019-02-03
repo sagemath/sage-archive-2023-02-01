@@ -22,28 +22,21 @@ from six.moves import range
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.coxeter_groups import CoxeterGroups
-
-from sage.combinat.root_system.cartan_type import CartanType, CartanType_abstract
 from sage.combinat.root_system.coxeter_matrix import CoxeterMatrix
 from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGroup_generic
 from sage.groups.matrix_gps.group_element import MatrixGroupElement_generic
-from sage.graphs.graph import Graph
-from sage.graphs.graph import DiGraph
 from sage.matrix.args import SparseEntry
-from sage.matrix.constructor import matrix
 from sage.matrix.matrix_space import MatrixSpace
 
 from sage.rings.all import ZZ
 from sage.rings.infinity import infinity
 from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
-from sage.rings.rational_field import QQ
 from sage.rings.number_field.number_field import QuadraticField, is_QuadraticField
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.superseded import deprecated_function_alias
-from sage.misc.cachefunc import cached_method
 
 from sage.sets.family import Family
+
 
 class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_generic):
     r"""
@@ -288,14 +281,14 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
                 if x == -1:
                     return 2
                 else:
-                    return E(2*x) + ~E(2*x)
+                    return E(2 * x) + ~E(2 * x)
         elif is_QuadraticField(base_ring):
 
             def val(x):
                 if x == -1:
                     return 2
                 else:
-                    return base_ring((E(2*x) + ~E(2*x)).to_cyclotomic_field())
+                    return base_ring((E(2 * x) + ~E(2 * x)).to_cyclotomic_field())
         else:
             from sage.functions.trig import cos
             from sage.symbolic.constants import pi
@@ -323,7 +316,8 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
             category = category.Commutative()
         if self._matrix.is_irreducible():
             category = category.Irreducible()
-        self._index_set_inverse = {i: ii for ii,i in enumerate(self._matrix.index_set())}
+        self._index_set_inverse = {i: ii
+                                   for ii, i in enumerate(self._matrix.index_set())}
         FinitelyGeneratedMatrixGroup_generic.__init__(self, ZZ(n), base_ring,
                                                       gens, category=category)
 
@@ -570,7 +564,7 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
             d[rt] = ref
         return Family(resu, lambda rt: d[rt])
 
-    def positive_roots(self, as_reflections=None):
+    def positive_roots(self):
         """
         Return the positive roots.
 
@@ -596,9 +590,6 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
              (1, -E(5)^2 - E(5)^3),
              (0, 1))
         """
-        if as_reflections is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(20027, "as_reflections is deprecated; instead, use reflections()")
         return tuple(self._positive_roots_reflections().keys())
 
     def reflections(self):
@@ -682,6 +673,8 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
 
         The base ring must be a field.
 
+        .. SEEALSO:: :meth:`fundamental_weight`
+
         EXAMPLES::
 
             sage: W = CoxeterGroup(['A',3], implementation='reflection')
@@ -697,6 +690,8 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
         r"""
         Return the fundamental weight with index ``i``.
 
+        .. SEEALSO:: :meth:`fundamental_weights`
+
         EXAMPLES::
 
             sage: W = CoxeterGroup(['A',3], implementation='reflection')
@@ -709,7 +704,7 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
         """
         A Coxeter group element.
         """
-        def first_descent(self, side = 'right', index_set=None, positive=False):
+        def first_descent(self, side='right', index_set=None, positive=False):
             """
             Return the first left (resp. right) descent of ``self``, as
             ane element of ``index_set``, or ``None`` if there is none.
@@ -858,7 +853,7 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
             else:
                 raise ValueError('side must be "left" or "right"')
             roots = self.parent().roots()
-            rt = self * roots[i]
+            rt = w * roots[i]
             return roots.index(rt)
 
 

@@ -37,7 +37,7 @@ REFERENCES:
 .. [HLNT09] \F. Hivert, J.-G. Luque, J.-C. Novelli, J.-Y. Thibon,
    *The (1-E)-transform in combinatorial Hopf algebras*.
    :arxiv:`math/0912.0184v2`
-   
+
 .. [LMvW13] Kurt Luoto, Stefan Mykytiuk and Stephanie van Willigenburg,
    *An introduction to quasisymmetric Schur functions -- Hopf algebras,
    quasisymmetric functions, and Young composition tableaux*,
@@ -93,10 +93,11 @@ from sage.combinat.partition import Partitions, _Partitions
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.combinat.ncsf_qsym.generic_basis_code import BasesOfQSymOrNCSF
-from sage.combinat.ncsf_qsym.combinatorics import (number_of_fCT, number_of_SSRCT, 
+from sage.combinat.ncsf_qsym.combinatorics import (number_of_fCT, number_of_SSRCT,
                    compositions_order, coeff_pi, coeff_lp, coeff_sp, coeff_ell)
 from sage.combinat.ncsf_qsym.ncsf import NonCommutativeSymmetricFunctions
 from sage.combinat.words.word import Word
+from sage.combinat.tableau import StandardTableaux
 from sage.misc.cachefunc import cached_method
 
 
@@ -592,6 +593,11 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         Sym_m_to_M.register_as_coercion()
         self.to_symmetric_function = Sym_m_to_M.section()
 
+        Sym_s_to_F = Sym.s().module_morphism(Fundamental._from_schur_on_basis,
+                                             unitriangular='upper',
+                                             codomain=Fundamental, category=category)
+        Sym_s_to_F.register_as_coercion()
+
     def _repr_(self):
         r"""
         EXAMPLES::
@@ -600,7 +606,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             sage: M._repr_()
             'Quasisymmetric functions over the Integer Ring in the Monomial basis'
         """
-        return "Quasisymmetric functions over the %s"%self.base_ring()
+        return "Quasisymmetric functions over the %s" % self.base_ring()
 
     def a_realization(self):
         r"""
@@ -1146,10 +1152,6 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                        for (I, coeff) in M(self)}
                 result_in_M_basis = M._from_dict(dct)
                 return parent(result_in_M_basis)
-
-            def adams_operation(self, *args, **opts):
-                from sage.misc.superseded import deprecation
-                deprecation(19255, "Do not use this method! Please use `frobenius` or `adams_operator` methods following what you expect.")
 
             def star_involution(self):
                 r"""
@@ -2185,6 +2187,34 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                                              prefix='F', bracket=False,
                                              category=QSym.Bases())
 
+
+        def _from_schur_on_basis(self, la):
+            r"""
+            Maps the Schur symmetric function indexed by ``la`` to the
+            Fundamental basis.
+
+            EXAMPLES::
+
+                sage: s = SymmetricFunctions(QQ).schur()
+                sage: F = QuasiSymmetricFunctions(QQ).Fundamental()
+                sage: F(s[2,2]-s[3,1])                                          # indirect doctest
+                F[1, 2, 1] - F[1, 3] - F[3, 1]
+
+                sage: F._from_schur_on_basis(Partition([]))
+                F[]
+
+                sage: F._from_schur_on_basis(Partition([2,2,2]))
+                F[1, 1, 2, 1, 1] + F[1, 2, 1, 2] + F[1, 2, 2, 1] + F[2, 1, 2, 1] + F[2, 2, 2]
+            """
+            C = self._indices
+            res = 0
+            n = la.size()
+            for T in StandardTableaux(la):
+                des = T.standard_descents()
+                comp = C.from_descents([d-1 for d in des], n)
+                res += self.monomial(comp)
+            return res
+
         def dual(self):
             r"""
             Return the dual basis to the Fundamental basis. This is the ribbon
@@ -2730,7 +2760,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                                                          for i in range(0,len(compo)+1))
 
         def product_on_basis(self, I, J):
-            """
+            r"""
             The product on Essential basis elements.
 
             The product of the basis elements indexed by two compositions
@@ -3363,7 +3393,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             self._M_inverse_transition_matrices = {}
 
         def _precompute_cache(self, n, to_self_cache, from_self_cache, transition_matrices, inverse_transition_matrices, from_self_gen_function):
-            """
+            r"""
             Compute the transition matrices between ``self`` and the
             monomial basis in the homogeneous components of degree `n`.
             The results are not returned, but rather stored in the caches.
@@ -4042,4 +4072,3 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             z = R(I.to_partition().centralizer_size())
             Monomial = self.realization_of().Monomial()
             return Monomial._from_dict({J: z / coeff_sp(I,J) for J in I.fatter()})
-

@@ -48,6 +48,7 @@ This is a catalog of crystals that are currently implemented in Sage:
 * :class:`KyotoPathModel <sage.combinat.crystals.kyoto_path_model.KyotoPathModel>`
 * :class:`Letters <sage.combinat.crystals.letters.CrystalOfLetters>`
 * :class:`LSPaths <sage.combinat.crystals.littelmann_path.CrystalOfLSPaths>`
+* :class:`Minimaj <from sage.combinat.multiset_partition_into_sets_ordered.MinimajCrystal>`
 * :class:`NakajimaMonomials <sage.combinat.crystals.monomial_crystals.CrystalOfNakajimaMonomials>`
 * :class:`OddNegativeRoots <sage.combinat.crystals.kac_modules.CrystalOfOddNegativeRoots>`
 * :class:`ProjectedLevelZeroLSPaths
@@ -101,6 +102,7 @@ from sage.combinat.crystals.kirillov_reshetikhin import KirillovReshetikhinCryst
 from sage.combinat.rigged_configurations.rc_crystal import CrystalOfRiggedConfigurations as RiggedConfigurations
 from sage.combinat.shifted_primed_tableau import ShiftedPrimedTableaux_shape as ShiftedPrimedTableaux
 from sage.combinat.partition_kleshchev import KleshchevPartitions
+from sage.combinat.multiset_partition_into_sets_ordered import MinimajCrystal as Minimaj
 
 from sage.combinat.crystals.induced_structure import InducedCrystal as Induced
 

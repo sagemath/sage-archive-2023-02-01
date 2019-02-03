@@ -3170,6 +3170,10 @@ REFERENCES:
                Cambridge University Press (1999).
                http://math.mit.edu/~rstan/ec/
 
+.. [Sei2002] \T. R. Seifullin, *Computation of determinants, adjoint
+             matrices, and characteristic polynomials without division*
+             :doi:`10.1023/A:1021878507303`
+
 .. [Stan2009] Richard Stanley,
               *Promotion and evacuation*,
               Electron. J. Combin. 16 (2009), no. 2, Special volume in honor of

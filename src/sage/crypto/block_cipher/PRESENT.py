@@ -260,7 +260,8 @@ class PRESENT(SageObject):
             state = list(chain.from_iterable([self.inverseSbox(
                 state[4*j:4*j+4][::-1])[::-1] for j in range(16)]))
             state = [int(state[j]) ^ int(K[i][j]) for j in range(64)]
-        return ZZ(state, 2).hex().upper()
+        P = ZZ(state, 2).hex().upper()
+        return (16 - len(P)) * "0" + P
 
     def encrypt(self, P, K):
         r"""
@@ -286,4 +287,5 @@ class PRESENT(SageObject):
                 [self.sbox(state[4*j:4*j+4][::-1])[::-1] for j in range(16)]))
             state = self.permutationMatrix * vector(GF(2), state)
         state = [int(state[j]) ^ int(K[31][j]) for j in range(64)]
-        return ZZ(state, 2).hex().upper()
+        C = ZZ(state, 2).hex().upper()
+        return (16 - len(C)) * "0" + C

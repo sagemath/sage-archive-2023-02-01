@@ -10,7 +10,7 @@ polymake has been described in [GJ1997]_, [GJ2006]_, [JMP2009]_, [GJRW2010]_,
 """
 
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2017 Simon King <simon.king@uni-jena.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -22,8 +22,8 @@ polymake has been described in [GJ1997]_, [GJ2006]_, [JMP2009]_, [GJRW2010]_,
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  hsttp://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import
 import six
 from six.moves import range
@@ -1850,12 +1850,12 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
 
         """
         P = self._check_valid()
-        T1,T2 = self.typeof()
+        T1, T2 = self.typeof()
         name = self._name
-        if T2=='ARRAY':
-            return int(P.eval('print scalar @{+%s};'%name))
-        if T2=='HASH':
-            return int(P.eval('print scalar keys %{+%s};'%name))
+        if T2 == 'ARRAY':
+            return int(P.eval('print scalar @{+%s};' % name))
+        if T2 == 'HASH':
+            return int(P.eval('print scalar keys %{+' + '%s};' % name))
         if T1:
             raise TypeError("Don't know how to compute the length of {} object".format(T1))
         return int(P.eval('print scalar {};'.format(name)))

@@ -197,6 +197,18 @@ class PRESENT(SageObject):
         r"""
         Return an plaintext corresponding to the ciphertext ``C``,
         using PRESENT decryption with key ``K``.
+
+        INPUT:
+
+        - ``C`` -- The ciphertext that will be encrypted.
+
+        - ``K`` -- a string of 16 or 32 hex digits; The key that will be used
+          to encrypt ``P``. The rightmost hex digit represents `k_3k_2k_1k_0`.
+
+        OUTPUT:
+
+        - The plaintext corresponding to ``C``, obtained using the key ``K``.
+
         """
         state = (ZZ(C, 16).bits() + [0] * (64 - ZZ(C, 16).nbits()))
         K = self.generateRoundKeys(K)

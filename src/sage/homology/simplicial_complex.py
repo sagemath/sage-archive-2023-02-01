@@ -83,10 +83,6 @@ EXAMPLES::
     sage: X = SimplicialComplex([[0,1], [1,2], [2,3], [3,0]])
     sage: X
     Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1), (0, 3), (1, 2), (2, 3)}
-    sage: X.stanley_reisner_ring()
-    Quotient of Multivariate Polynomial Ring in x0, x1, x2, x3 over Integer Ring by the ideal (x1*x3, x0*x2)
-    sage: X.is_pure()
-    True
 
 Sage can perform a number of operations on simplicial complexes, such
 as the join and the product, and it can also compute homology::
@@ -108,8 +104,11 @@ simplicial complex::
     [1, 4, 4]
     sage: X.face_poset()
     Finite poset containing 8 elements
-    sage: X.stanley_reisner_ring()
-    Quotient of Multivariate Polynomial Ring in x0, x1, x2, x3 over Integer Ring by the ideal (x1*x3, x0*x2)
+    sage: x0, x1, x2, x3 = X.stanley_reisner_ring().gens()
+    sage: x0*x2 == x1*x3 == 0
+    True
+    sage: X.is_pure()
+    True
 
 Mutability (see :trac:`12587`)::
 
@@ -3422,9 +3421,9 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         EXAMPLES::
 
-            sage: X = SimplicialComplex([[0,1], [1,2], [2,3], [0,3]])
+            sage: X = SimplicialComplex([[0,1,2], [0,2,3]])
             sage: X.stanley_reisner_ring()
-            Quotient of Multivariate Polynomial Ring in x0, x1, x2, x3 over Integer Ring by the ideal (x1*x3, x0*x2)
+            Quotient of Multivariate Polynomial Ring in x0, x1, x2, x3 over Integer Ring by the ideal (x1*x3)
             sage: Y = SimplicialComplex([[0,1,2,3,4]]); Y
             Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 1, 2, 3, 4)}
             sage: Y.add_face([0,1,2,3,4])

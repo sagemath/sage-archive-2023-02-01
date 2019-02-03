@@ -19,6 +19,9 @@ AUTHORS:
 # ****************************************************************************
 from sage.structure.sage_object import SageObject
 from sage.rings.integer_ring import ZZ
+from sage.modules.free_module_element import vector
+from sage.rings.finite_rings.finite_field_constructor import GF
+from itertools import chain
 
 
 def smallscale_present_linearlayer(nsboxes=16):
@@ -211,9 +214,6 @@ class PRESENT(SageObject):
 
         - The ciphertext corresponding to ``P``, obtained using the key ``K``.
         """
-        from sage.modules.free_module_element import vector
-        from sage.rings.finite_rings.finite_field_constructor import GF
-        from itertools import chain
         state = (ZZ(P, 16).bits() + [0] * (64 - ZZ(P, 16).nbits()))
         K = self.generateRoundKeys(K)
         for i in range(0, 31):

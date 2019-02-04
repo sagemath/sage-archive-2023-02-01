@@ -121,7 +121,7 @@ def binary_form_from_invariants(degree, invariants, as_form=True, *args, **kwarg
         sage: binary_form_from_invariants(2, [1], invariant_choice='unknown')
         Traceback (most recent call last):
         ...
-        ValueError: Unknown choice of invariants 'unknown' for a binary quadratic.
+        ValueError: Unknown choice of invariants unknown for a binary quadratic.
         sage: binary_form_from_invariants(3, [1,2])
         Traceback (most recent call last):
         ...
@@ -129,11 +129,11 @@ def binary_form_from_invariants(degree, invariants, as_form=True, *args, **kwarg
         sage: binary_form_from_invariants(3, [1], invariant_choice='unknown')
         Traceback (most recent call last):
         ...
-        ValueError: Unknown choice of invariants 'unknown' for a binary cubic.
+        ValueError: Unknown choice of invariants unknown for a binary cubic.
         sage: binary_form_from_invariants(5, [1,2,3], invariant_choice='unknown')
         Traceback (most recent call last):
         ...
-        ValueError: Unknown choice of invariants 'unknown' for a binary quintic.
+        ValueError: Unknown choice of invariants unknown for a binary quintic.
         sage: binary_form_from_invariants(42, invariants)
         Traceback (most recent call last):
         ...
@@ -158,7 +158,7 @@ def binary_form_from_invariants(degree, invariants, as_form=True, *args, **kwarg
                                                 **kwargs)
     else:
         raise NotImplementedError('No reconstruction for binary forms of '
-                                  '{} implemented.'.format(degree))
+                                  'degree {} implemented.'.format(degree))
     if as_form:
         from sage.rings.fraction_field import FractionField
         from sage.structure.sequence import Sequence
@@ -232,7 +232,7 @@ def binary_cubic_from_invariants(discriminant, invariant_choice='default'):
         ValueError: No unique reconstruction possible for binary cubics with a double root.
     """
     if invariant_choice not in ['default', 'discriminant']:
-        raise ValueError('Unknown choice of invariants {} for a binary cubic'
+        raise ValueError('Unknown choice of invariants {} for a binary cubic.'
                          .format(invariant_choice))
     if discriminant == 0:
         raise ValueError('No unique reconstruction possible for binary '
@@ -370,7 +370,7 @@ def binary_quintic_from_invariants(invariants, K=None, invariant_choice='clebsch
         ValueError: Unknown scaling option 'unknown'.
     """
     if invariant_choice not in ['default', 'clebsch']:
-        raise ValueError('Unknown choice of invariants {} for a binary quintic'
+        raise ValueError('Unknown choice of invariants {} for a binary quintic.'
                          .format(invariant_choice))
     if scaling not in ['none', 'normalized', 'coprime']:
         raise ValueError("Unknown scaling option '%s'." % scaling)

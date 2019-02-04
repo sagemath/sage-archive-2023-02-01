@@ -1728,7 +1728,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         The implementation is inspired from the iterative algorithms described
         in [VBB1992]_ and [BL1994]_ ; for obtaining the normal form, it relies
-        directly on Lemma 4.1 in [JNSV2016]_ .
+        directly on Lemmas 3.3 and 4.1 in [JNSV2016]_ .
 
         EXAMPLES::
 
@@ -1814,7 +1814,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             if normal_form:
                 # compute the list "- pivot degree"
                 # (since weak Popov, pivot degree is rdeg-shifts entrywise)
-                # Note: - deg(P[i,i]) = shifts[i] - rdeg[i]
+                # Note: -deg(P[i,i]) = shifts[i] - rdeg[i]
                 degree_shifts = [shifts[i] - rdeg[i] for i in range(m)]
                 # compute approximant basis with that list as shifts
                 P,rdeg = self._approximant_basis_iterative(order,
@@ -1858,7 +1858,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         INPUT:
 
-        - ``order`` -- a list of integers.
+        - ``order`` -- a list of positive integers.
 
         - ``shifts`` -- a list of integers.
 
@@ -1894,7 +1894,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             True
 
         Approximant bases for the zero matrix are all constant unimodular
-        matrix; in fact, this algorithm returns the identity::
+        matrices; in fact, this algorithm returns the identity::
 
             sage: pmat = Matrix(pR, 3, 2)
             sage: appbas,rdeg = pmat._approximant_basis_iterative([2,5], \
@@ -1905,12 +1905,21 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         # Define parameters and perform some sanity checks
         m = self.nrows()
         n = self.ncols()
-        polynomial_ring,(X,) = self.base_ring().objgens()
+        polynomial_ring = self.base_ring()
+        X = polynomial_ring.gen()
 
         # 'rest_order': the orders that remains to be dealt with
         # 'rest_index': indices of orders that remains to be dealt with
         rest_order = list(order)
         rest_index = range(n)
+
+        for j in range(n):
+            if rest_order[j] < 0:
+                raise ValueError("order should be a list of positive integers")
+            if rest_order[j]==0:
+                    residuals = residuals.delete_columns([j])
+                    rest_order.pop(j)
+                    rest_index.pop(j)
 
         # initialization of the residuals (= input self)
         # and of the approximant basis (= identity matrix)
@@ -1940,7 +1949,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             # 'self' columnwise, from left column to right column, set j=0
             # instead of the below), but it seems to often be (barely) slower
             j = min([ind for ind in range(len(rest_order))
-                if rest_order[ind] == max(rest_order)])
+                                 if rest_order[ind] == max(rest_order)])
             d = order[rest_index[j]] - rest_order[j]
 
             # coefficient = the coefficient of degree d of the column j of the

@@ -592,6 +592,10 @@ class Polyhedron_normaliz(Polyhedron_base):
         r"""
         Return the Ehrhart series of a compact polyhedron.
 
+        The Ehrhart series is the generating function where the coefficient of
+        ``t^k`` is number of integer lattice points inside the ``k``-th dilation of
+        the polytope.
+
         INPUT:
 
         - ``variable`` -- string (default: ``'t'``). 
@@ -604,22 +608,31 @@ class Polyhedron_normaliz(Polyhedron_base):
 
             sage: S = Polyhedron(vertices = [[0,1],[1,0]],backend='normaliz') # optional - pynormaliz
             sage: ES = S.ehrhart_series()  # optional - pynormaliz
-            sage: ES.numerator()
+            sage: ES.numerator() # optional - pynormaliz
             1
             sage: ES.denominator().factor()  # optional - pynormaliz
-            (t + 1) * (t - 1)^2
+            (t - 1)^2
 
             sage: C = Polyhedron(vertices = [[0,0,0],[0,0,1],[0,1,0],[0,1,1],[1,0,0],[1,0,1],[1,1,0],[1,1,1]],backend='normaliz') # optional - pynormaliz
             sage: ES = C.ehrhart_series()  # optional - pynormaliz
-            sage: ES.numerator()
+            sage: ES.numerator() # optional - pynormaliz
             t^2 + 4*t + 1
             sage: ES.denominator().factor()  # optional - pynormaliz
-            (t + 1)^2 * (t - 1)^4 * (t^2 + 1) * (t^2 + t + 1)
+            (t - 1)^4
+
+        The following example is from the Normaliz manual contained in the file
+        ``rational.in``::
+
+            sage: rat_poly = Polyhedron(vertices=[[1/2,1/2],[-1/3,-1/3],[1/4,-1/2]],backend='normaliz') # optional - pynormaliz
+            sage: ES = rat_poly.ehrhart_series()                                       # optional - pynormaliz
+            sage: ES.numerator()                                                       # optional - pynormaliz
+            2*t^6 + 3*t^5 + 4*t^4 + 3*t^3 + t^2 + t + 1
+            sage: ES.denominator().factor()                                            # optional - pynormaliz
+            (-1) * (t + 1)^2 * (t - 1)^3 * (t^2 + 1) * (t^2 + t + 1)
 
         The polyhedron should be compact::
 
-            sage: C = Polyhedron(backend='normaliz',rays=[[1,2],[2,1]])  #
-            optional - pynormaliz
+            sage: C = Polyhedron(backend='normaliz',rays=[[1,2],[2,1]])  # optional - pynormaliz
             sage: C.ehrhart_series()
             Traceback (most recent call last):
             ...
@@ -636,6 +649,11 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         cone = self._normaliz_cone
         e = PyNormaliz.NmzResult(cone, "EhrhartSeries")
+        # The output format of PyNormaliz is a list with 3 things:
+        # 1) the coefficients of the h^*-polynomial
+        # 2) a list of the exponents e such that (1-t^e) appears as a factor in
+        # the denominator
+        # 3) a shifting of the generating function.
 
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from sage.rings.fraction_field import FractionField
@@ -643,7 +661,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         t = poly_ring.gens()[0]
         es = sum([e[0][i]*t**i for i in range(len(e[0]))])
         for expo in range(len(e[1])):
-            es = es / (1 - t**(expo+1))**e[1][expo]
+            es = es / (1 - t**e[1][expo])
 
         # The shift:
         es = es * t**e[2]
@@ -676,15 +694,18 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: P.ehrhart_quasipolynomial('x')  # optional - pynormaliz
             (3/2*x^2 + 2*x + 1, 3/2*x^2 + 2*x + 1/2)
 
+        The quasi-polynomial evaluated at ``i`` counts the integral points 
+        in the ``i``-th dilate::
+
             sage: Q = Polyhedron(vertices = [[-1/3],[2/3]],backend='normaliz')  # optional - pynormaliz
             sage: p0,p1,p2 = Q.ehrhart_quasipolynomial()  # optional - pynormaliz
-            sage: r0 = [p0(i) for i in range(15)]  # optional - pynormaliz
-            sage: r1 = [p1(i) for i in range(15)]  # optional - pynormaliz
-            sage: r2 = [p2(i) for i in range(15)]  # optional - pynormaliz
-            sage: result = [None]*15  # optional - pynormaliz
-            sage: result[::3] = r0[::3]  # optional - pynormaliz
-            sage: result[1::3] = r1[1::3]  # optional - pynormaliz
-            sage: result[2::3] = r2[2::3]  # optional - pynormaliz
+            sage: r0 = [p0(i) for i in range(15)]         # optional - pynormaliz
+            sage: r1 = [p1(i) for i in range(15)]         # optional - pynormaliz
+            sage: r2 = [p2(i) for i in range(15)]         # optional - pynormaliz
+            sage: result = [None]*15                      # optional - pynormaliz
+            sage: result[::3] = r0[::3]                   # optional - pynormaliz
+            sage: result[1::3] = r1[1::3]                 # optional - pynormaliz
+            sage: result[2::3] = r2[2::3]                 # optional - pynormaliz
             sage: result == [(i*Q).integral_points_count() for i in range(15)]  # optional - pynormaliz
             True
 
@@ -727,14 +748,13 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         return tuple(polynomials)
 
-    def hilbert_series(self,grading=None,variable='t'):
+    def hilbert_series(self,grading,variable='t'):
         r"""
-        Return the Hilbert series of the polyhedron.
+        Return the Hilbert series of the polyhedron with respect to ``grading``.
 
         INPUT:
 
-        - ``grading`` -- vector (default: ``None``). When set to ``None`` it
-          uses the grading `[1,\dots,1]`.
+        - ``grading`` -- vector. The grading to use to form the Hilbert series
 
         - ``variable`` -- string (default: ``'t'``). 
 
@@ -744,34 +764,49 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         EXAMPLES::
 
-            sage: C = Polyhedron(backend='normaliz',rays=[[0,0,1],[0,1,1],[1,0,1],[1,1,1]])
-            sage: HS = C.hilbert_series()
-            sage: HS.numerator()
-            t^4 - t^3 + 2*t^2 - t + 1
-            sage: HS.denominator().factor()
-            (t + 1) * (t - 1)^8 * (t^2 + t + 1)^6
+            sage: C = Polyhedron(backend='normaliz',rays=[[0,0,1],[0,1,1],[1,0,1],[1,1,1]]) # optional - pynormaliz
+            sage: HS = C.hilbert_series([1,1,1]) # optional - pynormaliz
+            sage: HS.numerator() # optional - pynormaliz
+            t^2 + 1
+            sage: HS.denominator().factor() # optional - pynormaliz
+            (-1) * (t + 1) * (t - 1)^3 * (t^2 + t + 1)
+            sage: C.hilbert_series([0,0,1]) # optional - pynormaliz
+            (t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
 
-            sage: C = Polyhedron(backend='normaliz',rays=[[1,2],[2,1]])
-            sage: HS = C.hilbert_series()
-            sage: HS.numerator()
-            t^2 - t + 1
-            sage: HS.denominator().factor()
-            (t + 1)^3 * (t - 1)^4
+        Here is an example ``2cone.in`` from the Normaliz manual::
 
-            sage: HS = C.hilbert_series(grading=[1,2])
-            sage: HS.numerator()
-            t^18 - t^17 + t^15 + t^10 - t^9 + t^8 + t^3 - t + 1
-            sage: HS.denominator().factor()
-            (-1) * (t + 1)^20 * (t - 1)^21
+            sage: C = Polyhedron(backend='normaliz',rays=[[1,3],[2,1]]) # optional - pynormaliz
+            sage: HS = C.hilbert_series([1,1]) # optional - pynormaliz
+            sage: HS.numerator() # optional - pynormaliz
+            t^5 + t^4 + t^3 + t^2 + 1
+            sage: HS.denominator().factor() # optional - pynormaliz
+            (t + 1) * (t - 1)^2 * (t^2 + 1) * (t^2 + t + 1)
+
+            sage: HS = C.hilbert_series([1,2]) # optional - pynormaliz
+            sage: HS.numerator() # optional - pynormaliz
+            t^8 + t^6 + t^5 + t^3 + 1
+            sage: HS.denominator().factor() # optional - pynormaliz
+            (t + 1) * (t - 1)^2 * (t^2 + 1) * (t^6 + t^5 + t^4 + t^3 + t^2 + t + 1)
+
+        Here is the magic square example form the Normaliz manual::
+
+            sage: eq = [[0,1,1,1,-1,-1,-1, 0, 0, 0],
+            ....:       [0,1,1,1, 0, 0, 0,-1,-1,-1],
+            ....:       [0,0,1,1,-1, 0, 0,-1, 0, 0],
+            ....:       [0,1,0,1, 0,-1, 0, 0,-1, 0],
+            ....:       [0,1,1,0, 0, 0,-1, 0, 0,-1],
+            ....:       [0,0,1,1, 0,-1, 0, 0, 0,-1],
+            ....:       [0,1,1,0, 0,-1, 0,-1, 0, 0]]
+            sage: magic_square = Polyhedron(eqns=eq,backend='normaliz') & Polyhedron(rays=identity_matrix(9).rows()) # optional - pynormaliz
+            sage: grading = [1,1,1,0,0,0,0,0,0]
+            sage: magic_square.hilbert_series(grading) # optional - pynormaliz
+            (t^2 + 2*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
         
         .. SEEALSO: :meth:`~sage.geometry.polyhedron.backend_normaliz.ehrhart_series`
         """
         import PyNormaliz
         if self.is_empty():
             return 0
-        
-        if not grading:
-            grading = [1] * self.ambient_dim()
 
         data = self._get_nmzcone_data()
         data['grading'] = grading
@@ -784,7 +819,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         t = poly_ring.gens()[0]
         hs = sum([h[0][i]*t**i for i in range(len(h[0]))])
         for expo in range(len(h[1])):
-            hs = hs / (1 - t**(expo+1))**h[1][expo]
+            hs = hs / (1 - t**h[1][expo])
 
         # The shift:
         hs = hs * t**h[2]

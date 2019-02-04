@@ -47,7 +47,8 @@ cdef class GapElement(RingElement):
     cpdef is_bool(self)
     cpdef _add_(self, other)
     cpdef _mul_(self, other)
-    cpdef _mod_(self, right)
+    cpdef _mod_(self, other)
+    cpdef _pow_(self, other)
 
     cpdef GapElement deepcopy(self, bint mut)
 

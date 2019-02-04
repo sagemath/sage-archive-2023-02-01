@@ -308,15 +308,15 @@ see :trac:`11645`::
     ''
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 David Joyner and William Stein
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import range
 from six import integer_types, string_types
@@ -2261,7 +2261,6 @@ def generate_docstring_dictionary():
     nodes.clear()
     node_names.clear()
 
-    import os
     singular_docdir = os.environ['SINGULARPATH']+"/../info/"
 
     new_node = re.compile(r"File: singular\.hlp,  Node: ([^,]*),.*")

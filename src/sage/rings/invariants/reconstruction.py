@@ -23,7 +23,7 @@ AUTHORS:
 
 
 
-def binary_form_from_invariants(degree, invariants, invariant_choice='default', as_form=True, *args, **kwargs):
+def binary_form_from_invariants(degree, invariants, as_form=True, *args, **kwargs):
     """
     Reconstruct a binary form from the values of its invariants.
 
@@ -140,32 +140,25 @@ def binary_form_from_invariants(degree, invariants, invariant_choice='default', 
         NotImplementedError: No reconstruction for binary forms of degree 42 implemented.
     """
     if degree == 2:
-        if invariant_choice in ['default', 'discriminant'] and len(invariants) == 1:
-            coeffs = binary_quadratic_from_invariants(invariants)
-        elif len(invariants) != 1:
-            raise ValueError('Incorrect number of invariants provided. Only \
-                one invariant should be provided.')
+        if len(invariants) == 1:
+            coeffs = binary_quadratic_from_invariants(invariants, *args,
+                                                      **kwargs)
         else:
-            raise ValueError("Unknown choice of invariants '%s' for a \
-                                binary quadratic." % invariant_choice)
+            raise ValueError('Incorrect number of invariants provided. Only '
+                             'one invariant should be provided.')
     elif degree == 3:
-        if invariant_choice in ['default', 'discriminant'] and len(invariants) == 1:
-            coeffs = binary_cubic_from_invariants(invariants)
-        elif len(invariants) != 1:
-            raise ValueError('Incorrect number of invariants provided. Only \
-                one invariant should be provided.')
+        if len(invariants) == 1:
+            coeffs = binary_cubic_from_invariants(invariants, *args,
+                                                  **kwargs)
         else:
-            raise ValueError("Unknown choice of invariants '%s' for a \
-                                binary cubic." % invariant_choice)
+            raise ValueError('Incorrect number of invariants provided. Only '
+                             'one invariant should be provided.')
     elif degree == 5:
-        if invariant_choice in ['default', 'clebsch']:
-            coeffs = binary_quintic_from_invariants(invariants, *args, **kwargs)
-        else:
-            raise ValueError("Unknown choice of invariants '%s' for a \
-                                binary quintic." % invariant_choice)
+        coeffs = binary_quintic_from_invariants(invariants, *args,
+                                                **kwargs)
     else:
-        raise NotImplementedError('No reconstruction for binary forms of \
-                                    degree %s implemented.' % degree)
+        raise NotImplementedError('No reconstruction for binary forms of '
+                                  '{} implemented.'.format(degree))
     if as_form:
         from sage.rings.fraction_field import FractionField
         from sage.structure.sequence import Sequence
@@ -179,7 +172,7 @@ def binary_form_from_invariants(degree, invariants, invariant_choice='default', 
 
 ######################################################################
 
-def binary_quadratic_from_invariants(discriminant):
+def binary_quadratic_from_invariants(discriminant, invariant_choice='default'):
     """
     Reconstruct a binary quadratic from the value of its discriminant.
 
@@ -201,13 +194,16 @@ def binary_quadratic_from_invariants(discriminant):
         sage: binary_quadratic_from_invariants(0)
         (1, 0, 0)
     """
+    if invariant_choice not in ['default', 'discriminant']:
+        raise ValueError('Unknown choice of invariants {} for a binary '
+                         'quadratic.'.format(invariant_choice))
     if discriminant == 0:
         return (1, 0, 0)
     else:
         return (0, 1, 0)
 
 
-def binary_cubic_from_invariants(discriminant):
+def binary_cubic_from_invariants(discriminant, invariant_choice='default'):
     """
     Reconstruct a binary cubic from the value of its discriminant.
 
@@ -235,15 +231,18 @@ def binary_cubic_from_invariants(discriminant):
         ...
         ValueError: No unique reconstruction possible for binary cubics with a double root.
     """
+    if invariant_choice not in ['default', 'discriminant']:
+        raise ValueError('Unknown choice of invariants {} for a binary cubic'
+                         .format(invariant_choice))
     if discriminant == 0:
-        raise ValueError('No unique reconstruction possible for binary \
-                                    cubics with a double root.')
+        raise ValueError('No unique reconstruction possible for binary '
+                         'cubics with a double root.')
     else:
         return (0, 1, -1, 0)
 
 
-def binary_quintic_from_invariants(invariants, K=None, scaling='none'):
-    """
+def binary_quintic_from_invariants(invariants, K=None, invariant_choice='clebsch', scaling='none'):
+    r"""
     Reconstruct a binary quintic from the values of its Clebsch invariants.
 
     INPUT:
@@ -370,6 +369,9 @@ def binary_quintic_from_invariants(invariants, K=None, scaling='none'):
         ...
         ValueError: Unknown scaling option 'unknown'.
     """
+    if invariant_choice not in ['default', 'clebsch']:
+        raise ValueError('Unknown choice of invariants {} for a binary quintic'
+                         .format(invariant_choice))
     if scaling not in ['none', 'normalized', 'coprime']:
         raise ValueError("Unknown scaling option '%s'." % scaling)
     if scaling == 'coprime':
@@ -382,8 +384,8 @@ def binary_quintic_from_invariants(invariants, K=None, scaling='none'):
         from sage.rings.fraction_field import FractionField
         K = FractionField(A.parent())
     if K.characteristic() in [2, 3, 5]:
-        raise NotImplementedError('No reconstruction of binary quintics \
-            implemented for fields of characteristic 2, 3 or 5.')
+        raise NotImplementedError('No reconstruction of binary quintics '
+                          'implemented for fields of characteristic 2, 3 or 5.')
     M = 2*A*B - 3*C
     N = K(2)**-1 * (A*C-B**2)
     R2 = -K(2)**-1 * (A*N**2-2*B*M*N+C*M**2)
@@ -400,17 +402,17 @@ def binary_quintic_from_invariants(invariants, K=None, scaling='none'):
             R = R2**5
     elif len(invariants) == 4:
         if invariants[3]**2 != R2:
-            raise ValueError('Provided invariants do not satisfy the syzygy \
-                                for Clebsch invariants of a binary quintic.')
+            raise ValueError('Provided invariants do not satisfy the syzygy '
+                             'for Clebsch invariants of a binary quintic.')
         R = invariants[3]
     else:
-        raise ValueError('Incorrect number of invariants provided. This \
-                            method requires 3 or 4 invariants.')
+        raise ValueError('Incorrect number of invariants provided. This '
+                         'method requires 3 or 4 invariants.')
     if M == 0:
         if N == 0:
             if A == 0:
-                raise ValueError('No unique reconstruction possible for \
-                                    quintics with a treefold linear factor.')
+                raise ValueError('No unique reconstruction possible for '
+                                 'quintics with a treefold linear factor.')
             else:
                 if B == 0:
                     return (1,0,0,0,0,1)

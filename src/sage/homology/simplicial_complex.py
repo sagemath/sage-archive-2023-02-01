@@ -4086,11 +4086,18 @@ class SimplicialComplex(Parent, GenericCellComplex):
             return False
         g1 = Graph()
         g2 = Graph()
-        g1.add_edges((v, f) for f in self._facets for v in f)
-        g2.add_edges((v, f) for f in other._facets for v in f)
-        g1.add_edges(("fake_vertex", v, "special_edge")
+        # With Python 3, "is_isomorphic" for graphs works best if the
+        # vertices and edges are sortable. So we translate them all to
+        # ints and then if a certificate is needed, we translate
+        # back at the end.
+        self_to_int = {v: i for i, v in enumerate(list(self.vertices()) + list(self._facets))}
+        other_to_int = {v: i for i, v in enumerate(list(other.vertices()) + list(other._facets))}
+        g1.add_edges((self_to_int[v], self_to_int[f], "generic edge") for f in self._facets for v in f)
+        g2.add_edges((other_to_int[v], other_to_int[f], "generic edge") for f in other._facets for v in f)
+        fake = -1
+        g1.add_edges((fake, self_to_int[v], "special_edge")
                      for v in self.vertices())
-        g2.add_edges(("fake_vertex", v, "special_edge")
+        g2.add_edges((fake, other_to_int[v], "special_edge")
                      for v in other.vertices())
         if not certificate:
             return g1.is_isomorphic(g2, edge_labels=True)
@@ -4098,10 +4105,12 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         if isisom:
             for f in self.facets():
-                tr.pop(f)
-            tr.pop("fake_vertex")
+                tr.pop(self_to_int[f])
+            tr.pop(fake)
 
-        return isisom, tr
+        int_to_self = {self_to_int[x]: x for x in self_to_int}
+        int_to_other = {other_to_int[x]: x for x in other_to_int}
+        return isisom, {int_to_self[i]: int_to_other[tr[i]] for i in tr}
 
     def automorphism_group(self):
         r"""

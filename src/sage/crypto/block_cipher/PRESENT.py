@@ -56,30 +56,30 @@ class PRESENT(SageObject):
 
         sage: from sage.crypto.block_cipher.PRESENT import PRESENT
         sage: present = PRESENT(keysize=80)
-        sage: p1 = "0000000000000000"
-        sage: k1 = "00000000000000000000"
-        sage: c1 = "5579C1387B228445"
+        sage: p1 = 0x0
+        sage: k1 = 0x0
+        sage: c1 = 0x5579C1387B228445
         sage: present.encrypt(p1, k1) == c1
         True
         sage: present.decrypt(c1, k1) == p1
         True
-        sage: p2 = "0000000000000000"
-        sage: k2 = "FFFFFFFFFFFFFFFFFFFF"
-        sage: c2 = "E72C46C0F5945049"
+        sage: p2 = 0x0
+        sage: k2 = 0xFFFFFFFFFFFFFFFFFFFF
+        sage: c2 = 0xE72C46C0F5945049
         sage: present.encrypt(p2, k2) == c2
         True
         sage: present.decrypt(c2, k2) == p2
         True
-        sage: p3 = "FFFFFFFFFFFFFFFF"
-        sage: k3 = "00000000000000000000"
-        sage: c3 = "A112FFC72F68417B"
+        sage: p3 = 0xFFFFFFFFFFFFFFFF
+        sage: k3 = 0x0
+        sage: c3 = 0xA112FFC72F68417B
         sage: present.encrypt(p3, k3) == c3
         True
         sage: present.decrypt(c3, k3) == p3
         True
-        sage: p4 = "FFFFFFFFFFFFFFFF"
-        sage: k4 = "FFFFFFFFFFFFFFFFFFFF"
-        sage: c4 = "3333DCD3213210D2"
+        sage: p4 = 0xFFFFFFFFFFFFFFFF
+        sage: k4 = 0xFFFFFFFFFFFFFFFFFFFF
+        sage: c4 = 0x3333DCD3213210D2
         sage: present.encrypt(p4, k4) == c4
         True
         sage: present.decrypt(c4, k4) == p4
@@ -116,8 +116,7 @@ class PRESENT(SageObject):
 
         - ``B`` -- The plaintext or the ciphertext
 
-        - ``K`` -- a string of 16 or 32 hex digits; The key that will be used.
-          The rightmost hex digit represents `k_3k_2k_1k_0`.
+        - ``K`` -- integer; the key in integer representation
 
         - ``algorithm`` -- (default: ``"encrypt"``) a string; a flag to signify
           whether encryption or decryption is to be applied to ``B``. The
@@ -133,8 +132,8 @@ class PRESENT(SageObject):
 
             sage: from sage.crypto.block_cipher.PRESENT import PRESENT
             sage: present = PRESENT(keysize=80)
-            sage: P = "FFFFFFFFFFFFFFFF"
-            sage: K = "00000000000000000000"
+            sage: P = 0xFFFFFFFFFFFFFFFF
+            sage: K = 0x0
             sage: present(present(P, K, "encrypt"), K, "decrypt") == P
             True
         """
@@ -174,21 +173,30 @@ class PRESENT(SageObject):
 
         INPUT:
 
-        - ``K`` --  a string of 16 or 32 hex digits; The rightmost hex digit
-          represents `k_3k_2k_1k_0`.
+        - ``K`` -- integer; the key in integer representation
 
         EXAMPLES::
 
             sage: from sage.crypto.block_cipher.PRESENT import PRESENT
             sage: present = PRESENT(80)
-            sage: K = present.generateRoundKeys("00000000000000000000")
-            sage: ZZ(K[0], 2) == ZZ("0000000000000000", 16)
+            sage: K = present.generateRoundKeys(0x0)
+            sage: ZZ(list(K[0]), 2) == 0x0
             True
-            sage: ZZ(K[1], 2) == ZZ("c000000000000000", 16)
+            sage: ZZ(list(K[1]), 2) == 0xc000000000000000
             True
-            sage: ZZ(K[2], 2) == ZZ("5000180000000001", 16)
+            sage: ZZ(list(K[2]), 2) == 0x5000180000000001
             True
-            sage: ZZ(K[31], 2) == ZZ("6dab31744f41d700", 16)
+            sage: ZZ(list(K[3]), 2) == 0x60000a0003000001
+            True
+            sage: ZZ(list(K[8]), 2) == 0xd000d4001400064c
+            True
+            sage: ZZ(list(K[14]), 2) == 0x71926802f600357f
+            True
+            sage: ZZ(list(K[29]), 2) == 0xd075c3c1d6336acd
+            True
+            sage: ZZ(list(K[30]), 2) == 0x8ba27a0eb8783ac9
+            True
+            sage: ZZ(list(K[31]), 2) == 0x6dab31744f41d700
             True
 
 
@@ -244,8 +252,7 @@ class PRESENT(SageObject):
 
         - ``C`` -- The ciphertext that will be encrypted.
 
-        - ``K`` -- a string of 16 or 32 hex digits; The key that will be used
-          to encrypt ``P``. The rightmost hex digit represents `k_3k_2k_1k_0`.
+        - ``K`` -- integer; the key in integer representation
 
         OUTPUT:
 
@@ -272,8 +279,7 @@ class PRESENT(SageObject):
 
         - ``P`` -- The plaintext that will be encrypted.
 
-        - ``K`` -- a string of 16 or 32 hex digits; The key that will be used
-          to encrypt ``P``. The rightmost hex digit represents `k_3k_2k_1k_0`.
+        - ``K`` -- integer; the key in integer representation
 
         OUTPUT:
 

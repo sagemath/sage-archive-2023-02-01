@@ -226,22 +226,20 @@ class PRESENT(SageObject):
 
         The key schedule for 128-bit keys is not implemented yet.
         """
-        if len(K) == 20 and self.keysize == 80:
-            # convert K to list of key bits [k_0,...,k_79]
+        if self.keysize == 80:
             roundKeys = []
-            K = (ZZ(K, 16).bits() + [0] * (80 - ZZ(K, 16).nbits()))
-            for i in range(1, 33):
+            K = vector(GF(2), 80, ZZ(K, 16).digits(2, padto=80))
+            for i in range(1, 32):
                 roundKeys.append(K[16:])
-                K = K[19:] + K[:19]
+                K[0:] = list(K[19:]) + list(K[:19])
                 K[76:] = self.sbox((K[76:])[::-1])[::-1]
-                rc = (ZZ(i).bits() + [0] * (5 - ZZ(i).nbits()))
-                K[15:20] = [int(K[15+j]) ^ int(rc[j]) for j in range(5)]
+                rc = ZZ(i).digits(2, padto=5)
+                K[15:20] = [k + c for k, c in zip(K[15:20], rc)]
+            roundKeys.append(K[16:])
             return roundKeys
-        elif len(K) == 32 and self.keysize == 128:
+        elif self.keysize == 128:
             raise NotImplementedError("The key schedule for 128-bit keys is"
                                       " not implemented yet.")
-        else:
-            raise ValueError("Key must be %s-bits long" % self.keysize)
 
     def decrypt(self, C, K):
         r"""
@@ -259,16 +257,16 @@ class PRESENT(SageObject):
         - The plaintext corresponding to ``C``, obtained using the key ``K``.
 
         """
-        state = (ZZ(C, 16).bits() + [0] * (64 - ZZ(C, 16).nbits()))
-        K = self.generateRoundKeys(K)
-        state = [int(state[j]) ^ int(K[31][j]) for j in range(64)]
-        for i in range(30, -1, -1):
-            state = self.inversePermutationMatrix * vector(GF(2), state)
-            state = list(chain.from_iterable([self.inverseSbox(
-                state[4*j:4*j+4][::-1])[::-1] for j in range(16)]))
-            state = [int(state[j]) ^ int(K[i][j]) for j in range(64)]
-        P = ZZ(state, 2).hex().upper()
-        return (16 - len(P)) * "0" + P
+        state = vector(GF(2), 64, ZZ(C, 16).digits(2, padto=64))
+        roundKeys = self.generateRoundKeys(K)
+        state[0:] = [s + k for s, k in zip(state, roundKeys[-1])]
+        for K in roundKeys[:-1][::-1]:
+            state[0:] = self.inversePermutationMatrix * state
+            for nibble in [slice(4*j, 4*j+4) for j in range(16)]:
+                state[nibble] = self.inverseSbox(state[nibble][::-1])[::-1]
+            state[0:] = [s + k for s, k in zip(state, K)]
+        P = ZZ(list(state), 2)
+        return P
 
     def encrypt(self, P, K):
         r"""
@@ -285,13 +283,13 @@ class PRESENT(SageObject):
 
         - The ciphertext corresponding to ``P``, obtained using the key ``K``.
         """
-        state = (ZZ(P, 16).bits() + [0] * (64 - ZZ(P, 16).nbits()))
-        K = self.generateRoundKeys(K)
-        for i in range(0, 31):
-            state = [int(state[j]) ^ int(K[i][j]) for j in range(64)]
-            state = list(chain.from_iterable(
-                [self.sbox(state[4*j:4*j+4][::-1])[::-1] for j in range(16)]))
-            state = self.permutationMatrix * vector(GF(2), state)
-        state = [int(state[j]) ^ int(K[31][j]) for j in range(64)]
-        C = ZZ(state, 2).hex().upper()
-        return (16 - len(C)) * "0" + C
+        state = vector(GF(2), 64, ZZ(P, 16).digits(2, padto=64))
+        roundKeys = self.generateRoundKeys(K)
+        for K in roundKeys[:-1]:
+            state[0:] = [s + k for s, k in zip(state, K)]
+            for nibble in [slice(4*j, 4*j+4) for j in range(16)]:
+                state[nibble] = self.sbox(state[nibble][::-1])[::-1]
+            state[0:] = self.permutationMatrix * state
+        state[0:] = [s + k for s, k in zip(state, roundKeys[-1])]
+        C = ZZ(list(state), 2)
+        return C

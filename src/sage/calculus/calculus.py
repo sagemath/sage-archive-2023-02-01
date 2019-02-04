@@ -1266,6 +1266,11 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         ValueError: dir must be one of None, 'plus', '+', 'above', 'right',
         'minus', '-', 'below', 'left'
 
+        sage: x.limit(x=3, algorithm='nugget')
+        Traceback (most recent call last):
+        ...
+        ValueError: Unknown algorithm: nugget
+
     We check that :trac:`3718` is fixed, so that
     Maxima gives correct limits for the floor function::
 
@@ -1322,12 +1327,22 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         sage: (1/(x-3)).limit(x=3, dir='below')
         -Infinity
 
-    Check that :trac:`` is fixed::
+    From :trac:`14677`::
 
-        sage: x.limit(x=3, algorithm='nugget')
-        Traceback (most recent call last):
-        ...
-        ValueError: Unknown algorithm: 'nugget'
+        sage: f = (x^x-sin(x)^sin(x))/(x^3*log(x))
+        sage: limit(f, x=0, algorithm='fricas')                                 # optional - fricas
+        und
+
+        sage: limit(f, x=0, dir='right', algorithm='fricas')                    # optional - fricas
+        1/6
+
+    From :trac:`26497`::
+
+        sage: mu, y, sigma = var("mu, y, sigma")
+        sage: f = 1/2*sqrt(2)*e^(-1/2*(mu - log(y))^2/sigma^2)/(sqrt(pi)*sigma*y)
+        sage: limit(f, y=0, algorithm='fricas')                                 # optional - fricas
+        0
+
     """
     if not isinstance(ex, Expression):
         ex = SR(ex)
@@ -1342,23 +1357,25 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
     if taylor and algorithm == 'maxima':
         algorithm = 'maxima_taylor'
 
-    if dir not in [None, 'plus', '+', 'right', 'minus', '-', 'left',
-            'above', 'below']:
-        raise ValueError("dir must be one of None, 'plus', '+', 'above', 'right', 'minus', '-', 'below', 'left'")
+    dir_plus = ['plus', '+', 'above', 'right']
+    dir_minus = ['minus', '-', 'below', 'left']
+    dir_both = [None] + dir_plus + dir_minus
+    if dir not in dir_both:
+        raise ValueError("dir must be one of " + ", ".join(map(repr, dir_both)))
 
     if algorithm == 'maxima':
         if dir is None:
             l = maxima.sr_limit(ex, v, a)
-        elif dir in ['plus', '+', 'right', 'above']:
+        elif dir in dir_plus:
             l = maxima.sr_limit(ex, v, a, 'plus')
-        elif dir in ['minus', '-', 'left', 'below']:
+        elif dir in dir_minus:
             l = maxima.sr_limit(ex, v, a, 'minus')
     elif algorithm == 'maxima_taylor':
         if dir is None:
             l = maxima.sr_tlimit(ex, v, a)
-        elif dir in ['plus', '+', 'right', 'above']:
+        elif dir in dir_plus:
             l = maxima.sr_tlimit(ex, v, a, 'plus')
-        elif dir in ['minus', '-', 'left', 'below']:
+        elif dir in dir_minus:
             l = maxima.sr_tlimit(ex, v, a, 'minus')
     elif algorithm == 'sympy':
         if dir is None:
@@ -1372,9 +1389,11 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         f = ex._fricas_()
         if dir is None:
             l = fricas.limit(f, eq).sage()
-        elif dir in ['plus', '+', 'right', 'above']:
+            if isinstance(l, dict):
+                l = maxima("und")
+        elif dir in dir_plus:
             l = fricas.limit(f, eq, '"right"').sage()
-        elif dir in ['minus', '-', 'left', 'below']:
+        elif dir in dir_minus:
             l = fricas.limit(f, eq, '"left"').sage()
     else:
         raise ValueError("Unknown algorithm: %s" % algorithm)

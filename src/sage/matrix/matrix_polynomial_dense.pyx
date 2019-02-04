@@ -1559,13 +1559,15 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: appbas.is_minimal_approximant_basis(pmat, [8,8], shifts)
             Traceback (most recent call last):
             ...
-            ValueError: order length should be the column dimension
+            ValueError: order length should be the column dimension of \
+                        the input matrix
 
             sage: appbas.is_minimal_approximant_basis(pmat, \
                     order, shifts, row_wise=False)
             Traceback (most recent call last):
             ...
-            ValueError: shifts length should be the column dimension
+            ValueError: shifts length should be the column dimension of \
+                        the input matrix
 
             sage: Matrix(pR, [x^8]).is_minimal_approximant_basis(pmat, 8)
             Traceback (most recent call last):
@@ -1584,19 +1586,22 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         if shifts == None:
             shifts = [0]*m if row_wise else [0]*n
         elif row_wise and len(shifts) != m:
-            raise ValueError('shifts length should be the row dimension')
+            raise ValueError('shifts length should be the row dimension of' \
+                                                      + ' the input matrix')
         elif (not row_wise) and len(shifts) != n:
-            raise ValueError('shifts length should be the column dimension')
+            raise ValueError('shifts length should be the column dimension' \
+                                                   + ' of the input matrix')
 
         # set default order / check order dimension
-        try: # try to copy order, works if order is a list
-            list_order = list(order)
-            if row_wise and len(order) != n:
-                raise ValueError("order length should be the column dimension")
-            elif (not row_wise) and len(order) != m:
-                raise ValueError("order length should be the row dimension")
-        except TypeError as e: # order is a positive integer
-            list_order = [order]*n if row_wise else [order]*m
+        if not isinstance(order,list):
+            order = [order]*n if row_wise else [order]*m
+
+        if row_wise and len(order) != n:
+            raise ValueError("order length should be the column dimension" \
+                                                  + " of the input matrix")
+        elif (not row_wise) and len(order) != m:
+            raise ValueError("order length should be the row dimension of" \
+                                                     + " the input matrix")
 
         # raise an error if self does not have the right dimension
         if row_wise and self.ncols() != m:
@@ -1610,10 +1615,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         if not self.is_square():
             return False
         # check nonsingular and shifts-(ordered weak) Popov form
-        if normal_form and not self.is_popov(shifts, row_wise, False, False):
-            return False
-        if not self.is_weak_popov(shifts, row_wise, True, False):
-            return False
+        if normal_form:
+            return self.is_popov(shifts, row_wise, False, False)
+        else:
+            return self.is_weak_popov(shifts, row_wise, True, False)
 
         # check that self is a basis of the set of approximants
         if row_wise:
@@ -1623,16 +1628,16 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             residual = self * pmat
             for i in range(m):
                 for j in range(n):
-                    if residual[i,j].truncate(list_order[j]) != 0:
+                    if residual[i,j].truncate(order[j]) != 0:
                         return False
-                    residual[i,j] = residual[i,j].shift(-list_order[j])
+                    residual[i,j] = residual[i,j].shift(-order[j])
             cert_mat = residual(0)
 
             # check that self generates the set of approximants
             # 1/ determinant of self should be a monomial c*x^d,
             # with d the sum of pivot degrees
             d = sum([self[i,i].degree() for i in range(m)])
-            polynomial_ring,(X,) = self.base_ring().objgens()
+            X = self.base_ring().gen()
             if self.determinant() != (self(1).determinant() * X**d):
                 return False
             # 2/ the m x (m+n) constant matrix [self(0) | cert_mat] should have
@@ -1648,16 +1653,16 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             residual = pmat * self
             for i in range(m):
                 for j in range(n):
-                    if residual[i,j].truncate(list_order[i]) != 0:
+                    if residual[i,j].truncate(order[i]) != 0:
                         return False
-                    residual[i,j] = residual[i,j].shift(-list_order[i])
+                    residual[i,j] = residual[i,j].shift(-order[i])
             cert_mat = residual(0)
 
             # check that self generates the set of approximants
             # 1/ determinant of self should be a monomial c*x^d,
             # with d the sum of pivot degrees
             d = sum([self[i,i].degree() for i in range(n)])
-            polynomial_ring,(X,) = self.base_ring().objgens()
+            X = self.base_ring().gen()
             if self.determinant() != (self(1).determinant() * X**d):
                 return False
             # 2/ the (m+n) x n constant matrix [self(0).T | cert_mat.T].T
@@ -1794,31 +1799,31 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             raise ValueError('shifts length should be the column dimension')
 
         # set default order / check order dimension
-        try: # try to copy order, works if order is a list
-            list_order = list(order)
-            if row_wise and len(order) != n:
-                raise ValueError("order length should be the column dimension")
-            elif (not row_wise) and len(order) != m:
-                raise ValueError("order length should be the row dimension")
-        except TypeError as e: # order is a positive integer
-            list_order = [order]*n if row_wise else [order]*m
+        if not isinstance(order,list):
+            order = [order]*n if row_wise else [order]*m
+        
+        if row_wise and len(order) != n:
+            raise ValueError("order length should be the column dimension")
+        elif (not row_wise) and len(order) != m:
+            raise ValueError("order length should be the row dimension")
 
         # compute approximant basis
         # if required, normalize it into shifted Popov form
         if row_wise:
-            P,rdeg = self._approximant_basis_iterative(list_order, shifts)
+            P,rdeg = self._approximant_basis_iterative(order, shifts)
             if normal_form:
                 # compute the list "- pivot degree"
                 # (since weak Popov, pivot degree is rdeg-shifts entrywise)
+                # Note: - deg(P[i,i]) = shifts[i] - rdeg[i]
                 degree_shifts = [shifts[i] - rdeg[i] for i in range(m)]
                 # compute approximant basis with that list as shifts
-                P,rdeg = self._approximant_basis_iterative(list_order,
+                P,rdeg = self._approximant_basis_iterative(order,
                         degree_shifts)
                 # left-multiply by inverse of leading matrix
                 lmat = P.leading_matrix(shifts=degree_shifts)
                 P = lmat.inverse() * P
         else:
-            P,rdeg = self.transpose()._approximant_basis_iterative(list_order,
+            P,rdeg = self.transpose()._approximant_basis_iterative(order,
                     shifts)
             if normal_form:
                 # compute the list "- pivot degree"
@@ -1826,7 +1831,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                 degree_shifts = [shifts[i] - rdeg[i] for i in range(n)]
                 # compute approximant basis with that list as shifts
                 P,rdeg = self.transpose()._approximant_basis_iterative( \
-                                                list_order, degree_shifts)
+                                                order, degree_shifts)
                 P = P.transpose()
                 # right-multiply by inverse of leading matrix
                 lmat = P.leading_matrix(shifts=degree_shifts,row_wise=False)

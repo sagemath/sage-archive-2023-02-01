@@ -1868,7 +1868,7 @@ REFERENCES:
 .. [JNSV2016] Claude-Pierre Jeannerod, Vincent Neiger, Eric Schost, and Gilles
              Villard. Fast Computation of Minimal Interpolation Bases in Popov
              Form for Arbitrary Shifts. In Proceedings ISSAC 2016 (pages
-             295-302). https://doi.org/10.1145/2930889.2930928 
+             295-302). https://doi.org/10.1145/2930889.2930928
 
 .. [Joh1990] \D.L. Johnson. *Presentations of Groups*. Cambridge
              University Press. (1990).

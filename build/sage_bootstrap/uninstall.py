@@ -230,8 +230,7 @@ def modern_uninstall(spkg_name, sage_local, files, verbose=False):
 def remove_stamp_files(stamp_files, verbose=False):
     # Finally, if all went well, delete all the stamp files.
     for stamp_file in stamp_files:
-        if verbose:
-            print('rm "{}"'.format(stamp_file))
+        print("Removing stamp file '{0}'".format(stamp_file))
         os.remove(stamp_file)
 
 

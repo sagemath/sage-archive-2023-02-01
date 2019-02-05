@@ -202,6 +202,12 @@ from sage.interfaces.expect import Expect, ExpectElement, FunctionElement, Expec
 from sage.misc.misc import SAGE_TMP_INTERFACE
 from sage.env import DOT_SAGE, LOCAL_IDENTIFIER
 from sage.docs.instancedoc import instancedoc
+from sage.misc.lazy_import import lazy_import
+
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+lazy_import('sage.libs.pynac.pynac', ['symbol_table'])
+lazy_import('sage.calculus.var', ['var', 'function'])
 import re
 import os
 
@@ -1015,7 +1021,6 @@ class FriCASElement(ExpectElement):
             sage: ZZ(fricas('1'))                                               # optional - fricas
             1
         """
-        from sage.rings.all import ZZ
         return ZZ(self.sage())
 
     def _rational_(self):
@@ -1025,7 +1030,6 @@ class FriCASElement(ExpectElement):
             sage: QQ(fricas('-1/2'))                                            # optional - fricas
             -1/2
         """
-        from sage.rings.all import QQ
         return QQ(self.sage())
 
     def gen(self, n):
@@ -1079,7 +1083,7 @@ class FriCASElement(ExpectElement):
             sage: fricas(0)._get_sage_type(m)                                   # optional - fricas
             Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Algebraic Field
         """
-        from sage.rings.all import ZZ, QQbar, RDF, PolynomialRing
+        from sage.rings.all import QQbar, RDF, PolynomialRing
         from sage.rings.fraction_field import FractionField
         from sage.rings.finite_rings.integer_mod_ring import Integers
         from sage.rings.finite_rings.finite_field_constructor import FiniteField
@@ -1237,11 +1241,6 @@ class FriCASElement(ExpectElement):
             ('NaN', 7)
 
         """
-        # this costs a lot, but we cannot import globally because of
-        # an import loop
-        from sage.rings.all import ZZ
-        from sage.libs.pynac.pynac import symbol_table
-        from sage.calculus.var import var, function
         a = start
         b = len(s)
         while a < b and s[a] not in FriCASElement._WHITESPACE and s[a] != FriCASElement._RIGHTBRACKET:
@@ -1733,7 +1732,7 @@ class FriCASElement(ExpectElement):
             <BLANKLINE>
                Cannot convert the value from type Any to InputForm .
         """
-        from sage.rings.all import ZZ, PolynomialRing, RDF
+        from sage.rings.all import PolynomialRing, RDF
         from sage.rings.real_mpfr import RealField
         from sage.symbolic.ring import SR
         from sage.symbolic.all import I

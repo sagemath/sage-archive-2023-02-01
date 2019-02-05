@@ -1,5 +1,5 @@
 r"""
-Group homomorphisms for groups with a libGAP backend
+Group homomorphisms for groups with a GAP backend
 
 EXAMPLES::
 
@@ -38,7 +38,7 @@ from sage.misc.latex import latex
 
 class GroupMorphism_libgap(Morphism):
     r"""
-    This wraps libGAP group homomorphisms.
+    This wraps GAP group homomorphisms.
 
     Checking if the input defines a group homomorphism can be expensive
     if the group is large.
@@ -57,7 +57,7 @@ class GroupMorphism_libgap(Morphism):
         sage: A.hom([g^2 for g in A.gens()])
         Group endomorphism of Abelian group with gap, generator orders (2, 4)
 
-    Homomorphisms can be defined between different kinds of libGAP groups::
+    Homomorphisms can be defined between different kinds of GAP groups::
 
         sage: G = MatrixGroup([Matrix(ZZ, 2, [0,1,1,0])])
         sage: f = A.hom([G.0, G(1)])
@@ -76,7 +76,7 @@ class GroupMorphism_libgap(Morphism):
           From: Free Group on generators {a, b}
           To:   Finitely presented group < a, b | a, b^3 >
 
-    Homomorphisms can be defined between libGAP groups and permutation groups::
+    Homomorphisms can be defined between GAP groups and permutation groups::
 
         sage: S = Sp(4,3)
         sage: P = PSp(4,3)
@@ -543,7 +543,7 @@ class GroupMorphism_libgap(Morphism):
         phi = self.gap()
         from sage.groups.perm_gps.permgroup import PermutationGroup_generic
         if not isinstance(S, (ParentLibGAP, PermutationGroup_generic)):
-            raise TypeError("%s must be a libGAP or permutation group of %s"%(S, self))
+            raise TypeError("%s must be a GAP or permutation group of %s"%(S, self))
         if not self.codomain().gap().IsSubgroup(S.gap()).sage():
             raise ValueError("%s must be a subgroup of %s"%(S, self))
         preimage = phi.PreImage(S.gap())

@@ -14,10 +14,10 @@ number fields, such as calculations with matrices of cyclotomics.
 
     There used to be a native Sage version of the universal cyclotomic field
     written by Christian Stump (see :trac:`8327`). It was slower on most
-    operations and it was decided to use a version based on libGAP instead (see
+    operations and it was decided to use a version based on GAP instead (see
     :trac:`18152`). One main difference in the design choices is that GAP stores
     dense vectors whereas the native ones used Python dictionaries (storing only
-    nonzero coefficients). Most operations are faster with libGAP except some
+    nonzero coefficients). Most operations are faster with GAP except some
     operation on very sparse elements. All details can be found in
     :trac:`18152`.
 
@@ -783,7 +783,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             sage: UniversalCyclotomicField().zero().multiplicative_order()
             Traceback (most recent call last):
             ...
-            ValueError: libGAP: Error, argument must be nonzero
+            GAPError: Error, argument must be nonzero
         """
         return self._obj.Order().sage()
 

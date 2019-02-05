@@ -74,7 +74,7 @@ def ClassFunction(group, values):
 ### GAP Interface-based Class Function
 ###
 ### This is old code that should be deleted once we have transitioned
-### everything to libGAP.
+### everything to using the library interface to GAP.
 ###
 #####################################################################
 
@@ -802,7 +802,7 @@ class ClassFunction_gap(SageObject):
 
 #####################################################################
 ###
-### libGAP-based Class function
+### Class function using the GAP library
 ###
 #####################################################################
 

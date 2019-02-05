@@ -761,7 +761,7 @@ def UnitaryDualPolarGraph(m, q):
         sage: graphs.UnitaryDualPolarGraph(6,6)
         Traceback (most recent call last):
         ...
-        ValueError: libGAP: Error, <subfield> must be a prime or a finite field
+        GAPError: Error, <subfield> must be a prime or a finite field
     """
     from sage.libs.gap.libgap import libgap
     G = _polar_graph(m, q**2, libgap.GeneralUnitaryGroup(m, q),
@@ -802,7 +802,7 @@ def SymplecticDualPolarGraph(m, q):
         sage: graphs.SymplecticDualPolarGraph(6,6)
         Traceback (most recent call last):
         ...
-        ValueError: libGAP: Error, <subfield> must be a prime or a finite field
+        GAPError: Error, <subfield> must be a prime or a finite field
 
     REFERENCE:
 

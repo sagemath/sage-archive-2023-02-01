@@ -1263,7 +1263,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             sage: D.semidirect_product(C, bad_hom)
             Traceback (most recent call last):
             ...
-            ValueError: libGAP: Error, <gens> and <imgs> must be lists of same length
+            GAPError: Error, <gens> and <imgs> must be lists of same length
         """
         from sage.groups.free_group import FreeGroup, _lexi_gen
 

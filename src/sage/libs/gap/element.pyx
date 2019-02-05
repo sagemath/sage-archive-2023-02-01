@@ -1032,16 +1032,33 @@ cdef class GapElement(RingElement):
             GAP_Leave()
             sig_off()
 
-    def __pow__(GapElement self, right, dummy):
+    cpdef _pow_(self, other):
         r"""
         Exponentiation of two GapElement objects.
 
         EXAMPLES::
 
-            sage: g1 = libgap(5)
-            sage: g2 = libgap(2)
-            sage: g1 ^ g2
+            sage: r = libgap(5) ^ 2; r
             25
+            sage: parent(r)
+            C library interface to GAP
+            sage: r = 5 ^ libgap(2); r
+            25
+            sage: parent(r)
+            C library interface to GAP
+            sage: g, = libgap.CyclicGroup(5).GeneratorsOfGroup()
+            sage: g ^ 5
+            <identity> of ...
+
+        TESTS:
+
+        Check that this can be interrupted gracefully::
+
+            sage: a, b = libgap.GL(1000, 3).GeneratorsOfGroup(); g = a * b
+            sage: alarm(0.5); g ^ (2 ^ 10000)
+            Traceback (most recent call last):
+            ...
+            AlarmInterrupt
 
             sage: libgap.CyclicGroup(2) ^ 2
             Traceback (most recent call last):
@@ -1055,18 +1072,23 @@ cdef class GapElement(RingElement):
             GAPError: Error, no method found! Error, no 1st choice
             method found for `InverseMutable' on 1 arguments
         """
-        if not isinstance(right, GapElement):
-            libgap = self.parent()
-            right = libgap(right)
-        cdef Obj result
-        sig_on()
         try:
-            GAP_Enter()
-            result = POW(self.value, (<GapElement>right).value)
-            return make_any_gap_element(self.parent(), result)
+            sig_GAP_Enter()
+            sig_on()
+            result = POW(self.value, (<GapElement>other).value)
+            sig_off()
         finally:
             GAP_Leave()
-            sig_off()
+        return make_any_gap_element(self._parent, result)
+
+    cpdef _pow_int(self, other):
+        """
+        TESTS::
+
+            sage: libgap(5)._pow_int(int(2))
+            25
+        """
+        return self._pow_(self._parent(other))
 
     def is_function(self):
         """

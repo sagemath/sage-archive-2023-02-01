@@ -5137,21 +5137,27 @@ class Polyhedron_base(Element):
             raise TypeError("The induced lattice measure can only be computed with the engine set to `auto`, `latte`, or `normaliz`")
         if engine == 'auto' and measure == 'induced_rational':
             # Enforce a default choice, change if a better engine is found.
-            if is_package_installed('latte_int'):
+            from sage.features.latte import Latte
+            try:
+                Latte().require()
                 engine = 'latte'
-            elif is_package_installed('normaliz'):
-                engine = 'normaliz'
-            else:
-                raise TypeError("The induced rational measure can only be computed with the optional packages `latte_int`, or `pynormaliz`")
+            except FeatureNotPresentError:
+                if is_package_installed('pynormaliz'):
+                    engine = 'normaliz'
+                else:
+                    raise TypeError("The induced rational measure can only be computed with the optional packages `latte_int`, or `pynormaliz`")
 
         if engine == 'auto' and measure == 'induced_lattice':
             # Enforce a default choice, change if a better engine is found.
+            from sage.features.latte import Latte
             if is_package_installed('pynormaliz'):
                 engine = 'normaliz'
-            elif is_package_installed('latte_int'):
-                engine = 'latte'
             else:
-                raise TypeError("The induced rational measure can only be computed with the optional packages `latte_int`, or `pynormaliz`")
+                try:
+                    Latte().require()
+                    engine = 'latte'
+                except FeatureNotPresentError:
+                    raise TypeError("The induced rational measure can only be computed with the optional packages `latte_int`, or `pynormaliz`")
 
         if measure == 'ambient':
             if self.dim() < self.ambient_dim():

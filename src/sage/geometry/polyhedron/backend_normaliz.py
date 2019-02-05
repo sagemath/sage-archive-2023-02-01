@@ -165,7 +165,11 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz   # optional - pynormaliz
             sage: Polyhedron_normaliz._init_from_Hrepresentation(p, [], [])  # indirect doctest  # optional - pynormaliz
         """
-        import PyNormaliz
+        try:
+            import PyNormaliz
+        except ImportError:
+            raise ImportError("This backend requires PyNormaliz. To install PyNormaliz, type 'sage -i pynormaliz' in the terminal.")
+
         if normaliz_cone and PyNormaliz.NmzResult(normaliz_cone, "AffineDim") < 0:
             # Empty polyhedron. Special case because Normaliz defines the
             # recession cone of an empty polyhedron given by an
@@ -189,7 +193,11 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: p.inequalities_list()                                                       # optional - pynormaliz
             [[0, -1, 2], [0, 2, -1]]
         """
-        import PyNormaliz
+        try:
+            import PyNormaliz
+        except ImportError:
+            raise ImportError("This backend requires PyNormaliz. To install PyNormaliz, type 'sage -i pynormaliz' in the terminal.")
+
         if verbose:
             print("# Calling PyNormaliz.NmzCone(**{})".format(data))
             import six
@@ -328,7 +336,10 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: p.Vrepresentation()                               # optional - pynormaliz
             (A vertex at (0, 1/2), A vertex at (2, 0), A vertex at (4, 5/6))
         """
-        import PyNormaliz
+        try:
+            import PyNormaliz
+        except ImportError:
+            raise ImportError("This backend requires PyNormaliz. To install PyNormaliz, type 'sage -i pynormaliz' in the terminal.")
         self._Vrepresentation = []
         parent = self.parent()
         base_ring = self.base_ring()
@@ -360,7 +371,10 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: p.Vrepresentation()                                 # optional - pynormaliz
             (A vertex at (0, 1/2), A vertex at (2, 0), A vertex at (4, 5/6))
         """
-        import PyNormaliz
+        try:
+            import PyNormaliz
+        except ImportError:
+            raise ImportError("This backend requires PyNormaliz. To install PyNormaliz, type 'sage -i pynormaliz' in the terminal.")
         self._Hrepresentation = []
         cone = self._normaliz_cone
         parent = self.parent()
@@ -390,6 +404,10 @@ class Polyhedron_normaliz(Polyhedron_base):
             The empty polyhedron in ZZ^0
             sage: Polyhedron(backend='normaliz')._init_empty_polyhedron()  # optional - pynormaliz
         """
+        try:
+            import PyNormaliz
+        except ImportError:
+            raise ImportError("This backend requires PyNormaliz. To install PyNormaliz, type 'sage -i pynormaliz' in the terminal.")
         super(Polyhedron_normaliz, self)._init_empty_polyhedron()
         # Can't seem to set up an empty _normaliz_cone.
         # For example, PyNormaliz.NmzCone(vertices=[]) gives
@@ -590,7 +608,7 @@ class Polyhedron_normaliz(Polyhedron_base):
 
     def ehrhart_series(self,variable='t'):
         r"""
-        Return the Ehrhart series of a compact polyhedron.
+        Return the Ehrhart series of a compact rational polyhedron.
 
         The Ehrhart series is the generating function where the coefficient of
         ``t^k`` is number of integer lattice points inside the ``k``-th dilation of
@@ -670,7 +688,8 @@ class Polyhedron_normaliz(Polyhedron_base):
 
     def ehrhart_quasipolynomial(self,variable='t'):
         r"""
-        Return the Ehrhart quasi-polynomial of a compact polyhedron.
+        Return the Ehrhart quasi-polynomial of a compact rational polyhedron
+        using Normaliz.
 
         INPUT:
 

@@ -197,19 +197,18 @@ FriCAS does some limits right::
 ###########################################################################
 from __future__ import print_function
 
+import re
+import os
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.interfaces.expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from sage.misc.misc import SAGE_TMP_INTERFACE
 from sage.env import DOT_SAGE, LOCAL_IDENTIFIER
 from sage.docs.instancedoc import instancedoc
-from sage.misc.lazy_import import lazy_import
-
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
+from sage.misc.lazy_import import lazy_import
 lazy_import('sage.libs.pynac.pynac', ['symbol_table'])
 lazy_import('sage.calculus.var', ['var', 'function'])
-import re
-import os
 
 
 FRICAS_SINGLE_LINE_START = 3  # where output starts when it fits next to the line number
@@ -1189,6 +1188,12 @@ class FriCASElement(ExpectElement):
         whitespace separated list, treating its first element as
         function and the rest as arguments.
 
+        INPUT:
+
+        - ``s`` -- string
+        - ``start`` -- integer; specifies the position of the left
+          bracket
+
         TESTS::
 
             sage: from sage.interfaces.fricas import FriCASElement
@@ -1226,19 +1231,29 @@ class FriCASElement(ExpectElement):
         Symbols and numbers must not contain ``FriCASElement._WHITESPACE`` and
         ``FriCASElement._RIGHTBRACKET``.
 
-        We expect that ``s[start]`` is the first letter of the symbol.
+        INPUT:
+
+        - ``s`` -- string
+        - ``start`` -- integer; specifies where the symbol begins
+        - ``make_fun`` -- (default: ``False``) a Boolean; specifying
+          whether the atom should be interpreted as a function call
 
         TESTS::
 
             sage: from sage.interfaces.fricas import FriCASElement
             sage: FriCASElement._parse_other("abc")
             (abc, 2)
-            sage: FriCASElement._parse_other("0123 xyz")
-            (123, 3)
+            sage: FriCASElement._parse_other("123 xyz")
+            (123, 2)
             sage: FriCASElement._parse_other("abc -1.23", 4)
             (-1.23, 8)
-            sage: FriCASElement._parse_other("(abc NaN)", 5) # not tested
-            ('NaN', 7)
+
+        This function uses the symbol table to translate symbols
+        which are not function calls.  At least ``%pi`` is an
+        example showing that this may be necessary::
+
+            sage: FriCASElement._parse_other("%pi")
+            (pi, 2)
 
         """
         a = start
@@ -1254,8 +1269,8 @@ class FriCASElement(ExpectElement):
                 e = function(e)
         else:
             try:
-                e = ZZ(int(e))
-            except ValueError:
+                e = ZZ(e)
+            except TypeError:
                 try:
                     e = float(e)
                 except ValueError:
@@ -1270,6 +1285,12 @@ class FriCASElement(ExpectElement):
         r"""
         Parse the initial part of a string, assuming that it represents a
         string.
+
+        INPUT:
+
+        - ``s`` -- string
+        - ``start`` -- integer; specifies the position of the left
+          quote
 
         TESTS::
 
@@ -1658,6 +1679,9 @@ class FriCASElement(ExpectElement):
 
         Expressions::
 
+            sage: fricas(pi).sage()                                             # optional - fricas
+            pi
+
             sage: fricas("sin(x+y)/exp(z)*log(1+%e)").sage()                    # optional - fricas
             e^(-z)*log(e + 1)*sin(x + y)
 
@@ -1848,7 +1872,7 @@ class FriCASElement(ExpectElement):
             if str(domain[1].car()) == "Expression":
                 return FriCASElement._sage_expression(P.get_InputForm(self._name))
 
-        if head == "Expression":
+        if head == "Expression" or head == "Pi":
             # we treat Expression Integer and Expression Complex
             # Integer just the same
             return FriCASElement._sage_expression(P.get_InputForm(self._name))

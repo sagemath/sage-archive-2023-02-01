@@ -229,7 +229,21 @@ FRICAS_INIT_CODE = (
     "               (princ #\\Newline))))")
 # code (one-liners!) executed after having set up the prompt
 FRICAS_HELPER_CODE = (
-    'sageprint(x:InputForm):String == (atom? x => (float? x => return float(x)::String; integer? x => return integer(x)::String; string? x => return concat(["_"", string(x)::String, "_""])$String; symbol? x => return string(symbol(x))); S: List String := [sageprint y for y in destruct x]; R: String := new(1 + reduce(_+, [1 + #(s)$String for s in S], 0), space()$Character); copyInto!(R, "(", 1); i := 2; for s in S repeat (copyInto!(R, s, i); i := i + 1 + #(s)$String); copyInto!(R, ")", i-1); return R)',)
+    'sageprint(x:InputForm):String == ' +
+    '(atom? x => (' +
+    'float? x => return float(x)::String;' +
+    'integer? x => return integer(x)::String;' +
+    'string? x => return concat(["_"", string(x)::String, "_""])$String;' +
+    'symbol? x => return string(symbol(x)));' +
+    'S: List String := [sageprint y for y in destruct x];' +
+    'R: String := new(1 + reduce(_+, [1 + #(s)$String for s in S], 0),' +
+    'space()$Character);' +
+    'copyInto!(R, "(", 1);' +
+    'i := 2;' +
+    'for s in S repeat'
+    '(copyInto!(R, s, i); i := i + 1 + #(s)$String);' +
+    'copyInto!(R, ")", i-1);' +
+    'return R)',)
 
 FRICAS_LINENUMBER_OFF_CODE = ")lisp (setf |$IOindex| NIL)"
 FRICAS_FIRST_PROMPT = r"\(1\) -> "
@@ -1112,7 +1126,7 @@ class FriCASElement(ExpectElement):
             var = str(domain[1])
             return PolynomialRing(self._get_sage_type(domain[2]), var)
 
-        raise NotImplementedError("The translation of FriCAS type %s to sage is not yet implemented." % domain)
+        raise NotImplementedError("the translation of FriCAS type %s to sage is not yet implemented" % domain)
 
     _WHITESPACE = " "
     _LEFTBRACKET = "("
@@ -1127,13 +1141,13 @@ class FriCASElement(ExpectElement):
 
         INPUT:
 
-        - s, a string
-        - start, an integer, specifies where to start parsing
+        - ``s`` -- string
+        - ``start`` -- integer; specifies where to start parsing
 
         OUTPUT:
 
-        - a pair (L, end), where L is the parsed list and end is the
-          position of the last parsed letter.
+        - a pair ``(L, end)``, where ``L`` is the parsed list and
+          ``end`` is the position of the last parsed letter.
 
         TESTS::
 
@@ -1151,6 +1165,7 @@ class FriCASElement(ExpectElement):
             Traceback (most recent call last):
             ...
             TypeError: cannot coerce arguments: no canonical coercion from <type 'str'> to Symbolic Ring
+
         """
         a = start
         while s[a] in FriCASElement._WHITESPACE:
@@ -1166,6 +1181,10 @@ class FriCASElement(ExpectElement):
     @staticmethod
     def _parse_list(s, start=0):
         """
+        Parse the initial part of a string, assuming that it is a
+        whitespace separated list, treating its first element as
+        function and the rest as arguments.
+
         TESTS::
 
             sage: from sage.interfaces.fricas import FriCASElement
@@ -1196,10 +1215,14 @@ class FriCASElement(ExpectElement):
 
     @staticmethod
     def _parse_other(s, start=0, make_fun=False):
-        """Symbols and numbers must not contain
-        `FriCASElement._WHITESPACE` and `FriCASElement._RIGHTBRACKET`.
+        """
+        Parse the initial part of a string, assuming that it is an
+        atom, but not a string.
 
-        We expect that `s[start]` is the first letter of the symbol.
+        Symbols and numbers must not contain ``FriCASElement._WHITESPACE`` and
+        ``FriCASElement._RIGHTBRACKET``.
+
+        We expect that ``s[start]`` is the first letter of the symbol.
 
         TESTS::
 
@@ -1246,6 +1269,8 @@ class FriCASElement(ExpectElement):
     @staticmethod
     def _parse_string(s, start=0):
         r"""
+        Parse the initial part of a string, assuming that it represents a
+        string.
 
         TESTS::
 
@@ -1267,6 +1292,7 @@ class FriCASElement(ExpectElement):
 
             sage: FriCASElement._parse_string('"(b c)"')
             ('(b c)', 6)
+
         """
         a = start
         assert s[a] == FriCASElement._STRINGMARKER
@@ -1499,7 +1525,7 @@ class FriCASElement(ExpectElement):
         register_symbol(_convert_prod, {'fricas': 'product'})
 
         def explicitely_not_implemented(*args):
-            raise NotImplementedError("The translation of the FriCAS Expression '%s' to sage is not yet implemented." % args)
+            raise NotImplementedError("the translation of the FriCAS Expression '%s' to sage is not yet implemented" % args)
 
         register_symbol(lambda *args: explicitely_not_implemented("rootOfADE"), {'fricas': 'rootOfADE'})
         register_symbol(lambda *args: explicitely_not_implemented("rootOfRec"), {'fricas': 'rootOfRec'})
@@ -1678,7 +1704,7 @@ class FriCASElement(ExpectElement):
             sage: s.sage()                                                      # optional - fricas
             Traceback (most recent call last):
             ...
-            NotImplementedError: The translation of the FriCAS Expression 'rootOfADE' to sage is not yet implemented.
+            NotImplementedError: the translation of the FriCAS Expression 'rootOfADE' to sage is not yet implemented
 
             sage: s = fricas("series(sqrt(1+x), x=0)"); s                       # optional - fricas
                   1     1  2    1  3    5   4    7   5    21   6    33   7    429   8
@@ -1692,7 +1718,7 @@ class FriCASElement(ExpectElement):
             sage: s.sage()                                                      # optional - fricas
             Traceback (most recent call last):
             ...
-            NotImplementedError: The translation of the FriCAS object
+            NotImplementedError: the translation of the FriCAS object
             <BLANKLINE>
                   1     1  2    1  3    5   4    7   5    21   6    33   7    429   8
               1 + - x - - x  + -- x  - --- x  + --- x  - ---- x  + ---- x  - ----- x
@@ -1771,7 +1797,7 @@ class FriCASElement(ExpectElement):
         try:
             unparsed_InputForm = P.get_unparsed_InputForm(self._name)
         except RuntimeError as error:
-            raise NotImplementedError("The translation of the FriCAS object\n\n%s\n\nto sage is not yet implemented:\n%s" % (self, error))
+            raise NotImplementedError("the translation of the FriCAS object\n\n%s\n\nto sage is not yet implemented:\n%s" % (self, error))
         if head == "Boolean":
             return unparsed_InputForm == "true"
 
@@ -1834,7 +1860,7 @@ class FriCASElement(ExpectElement):
             R = PolynomialRing(base_ring, vars)
             return R(unparsed_InputForm)
 
-        raise NotImplementedError("The translation of the FriCAS object %s to sage is not yet implemented." % (unparsed_InputForm))
+        raise NotImplementedError("the translation of the FriCAS object %s to sage is not yet implemented" % (unparsed_InputForm))
 
 
 @instancedoc

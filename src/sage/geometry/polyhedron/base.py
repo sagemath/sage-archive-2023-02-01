@@ -4431,7 +4431,7 @@ class Polyhedron_base(Element):
         pairs = []
         for i, j in combinations(range(n), 2):
             common_ineq = vertex_ineq_incidence[i] & vertex_ineq_incidence[j]
-            if not common_ineq: # or len(common_ineq) < d-2:
+            if not common_ineq:  # or len(common_ineq) < d-2:
                 continue
 
             if len(set.intersection(*[ineq_vertex_incidence[k] for k in common_ineq])) == 2:
@@ -4983,9 +4983,9 @@ class Polyhedron_base(Element):
           * ``ambient`` (default): Lebesgue measure of ambient space (volume)
           * ``induced``: Lebesgue measure of the affine hull (relative volume)
           * ``induced_rational``: Scaling of the Lebesgue measure for rational
-                                  polytopes, such that the unit hypercube has volume 1
+            polytopes, such that the unit hypercube has volume 1
           * ``induced_lattice``: Scaling of the Lebesgue measure, such that the
-                                 volume of the hypercube is factorial(n).
+            volume of the hypercube is factorial(n).
 
         - ``engine`` -- string. The backend to use. Allowed values are:
 
@@ -5142,6 +5142,7 @@ class Polyhedron_base(Element):
                 Latte().require()
                 engine = 'latte'
             except FeatureNotPresentError:
+                from sage.misc.package import is_package_installed
                 if is_package_installed('pynormaliz'):
                     engine = 'normaliz'
                 else:
@@ -5149,11 +5150,12 @@ class Polyhedron_base(Element):
 
         if engine == 'auto' and measure == 'induced_lattice':
             # Enforce a default choice, change if a better engine is found.
-            from sage.features.latte import Latte
+            from sage.misc.package import is_package_installed
             if is_package_installed('pynormaliz'):
                 engine = 'normaliz'
             else:
                 try:
+                    from sage.features.latte import Latte
                     Latte().require()
                     engine = 'latte'
                 except FeatureNotPresentError:
@@ -5197,7 +5199,7 @@ class Polyhedron_base(Element):
                 return infinity
             if engine == 'latte':
                 return self._volume_latte(**kwds)
-            else: # engine is 'normaliz'
+            else:  # engine is 'normaliz'
                 return self._volume_normaliz(measure='induced_lattice') / ZZ(self.dim()).factorial()
         elif measure == 'induced_lattice':
             # if the polyhedron is unbounded, return infinity
@@ -5206,7 +5208,7 @@ class Polyhedron_base(Element):
                 return infinity
             if engine == 'latte':
                 return self._volume_latte(**kwds) * ZZ(self.dim()).factorial()
-            else: # engine is 'normaliz'
+            else:  # engine is 'normaliz'
                 return self._volume_normaliz(measure='induced_lattice')
         else:
             raise TypeError("The measure should be `ambient`, `induced`, `induced_rational`, or `induced_lattice`.")

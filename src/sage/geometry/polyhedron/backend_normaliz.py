@@ -789,6 +789,10 @@ class Polyhedron_normaliz(Polyhedron_base):
             t^2 + 1
             sage: HS.denominator().factor() # optional - pynormaliz
             (-1) * (t + 1) * (t - 1)^3 * (t^2 + t + 1)
+
+        By changing the grading, you can get the Ehrhart series of the square
+        lifted at height 1::
+
             sage: C.hilbert_series([0,0,1]) # optional - pynormaliz
             (t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
 

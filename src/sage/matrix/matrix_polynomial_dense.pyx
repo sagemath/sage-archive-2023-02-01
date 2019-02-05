@@ -1559,15 +1559,15 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: appbas.is_minimal_approximant_basis(pmat, [8,8], shifts)
             Traceback (most recent call last):
             ...
-            ValueError: order length should be the column dimension of \
-                        the input matrix
+            ValueError: order length should be the column dimension 
+                        of the input matrix
 
             sage: appbas.is_minimal_approximant_basis(pmat, \
                     order, shifts, row_wise=False)
             Traceback (most recent call last):
             ...
-            ValueError: shifts length should be the column dimension of \
-                        the input matrix
+            ValueError: shifts length should be the column dimension 
+                        of the input matrix
 
             sage: Matrix(pR, [x^8]).is_minimal_approximant_basis(pmat, 8)
             Traceback (most recent call last):
@@ -1616,9 +1616,11 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             return False
         # check nonsingular and shifts-(ordered weak) Popov form
         if normal_form:
-            return self.is_popov(shifts, row_wise, False, False)
+            if not self.is_popov(shifts, row_wise, False, False):
+                return False
         else:
-            return self.is_weak_popov(shifts, row_wise, True, False)
+            if not self.is_weak_popov(shifts, row_wise, True, False):
+                return False
 
         # check that self is a basis of the set of approximants
         if row_wise:
@@ -1739,10 +1741,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                                   [        2*x^2 + 2*x + 3, 6*x^2 + 6*x + 3], \
                                   [4*x^3         +   x + 1, 4*x^2 + 2*x + 3] ])
             sage: P = F.approximant_basis(order, shifts)
-            sage: P
-            [                x^4                   0                   0]
-            [4*x^4 + 5*x^3 + 5*x                   x         4*x^2 + 2*x]
-            [  2*x^3 + 6*x^2 + 5                   1       x^2 + 4*x + 2]
             sage: P.is_minimal_approximant_basis(F, order, shifts)
             True
 
@@ -1786,6 +1784,13 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             Traceback (most recent call last):
             ...
             ValueError: shifts length should be the row dimension
+
+        An error is raised if order does not contain only positive integers::
+
+            sage: P = F.approximant_basis([1,0], shifts)
+            Traceback (most recent call last):
+            ...
+            ValueError: order should be positive integers
         """
         m = self.nrows()
         n = self.ncols()
@@ -1801,11 +1806,15 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         # set default order / check order dimension
         if not isinstance(order,list):
             order = [order]*n if row_wise else [order]*m
-        
+
         if row_wise and len(order) != n:
             raise ValueError("order length should be the column dimension")
         elif (not row_wise) and len(order) != m:
             raise ValueError("order length should be the row dimension")
+
+        for o in order:
+            if o < 1:
+                raise ValueError("order should be positive integers")
 
         # compute approximant basis
         # if required, normalize it into shifted Popov form
@@ -1912,14 +1921,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         # 'rest_index': indices of orders that remains to be dealt with
         rest_order = list(order)
         rest_index = range(n)
-
-        for j in range(n):
-            if rest_order[j] < 0:
-                raise ValueError("order should be a list of positive integers")
-            if rest_order[j]==0:
-                    residuals = residuals.delete_columns([j])
-                    rest_order.pop(j)
-                    rest_index.pop(j)
 
         # initialization of the residuals (= input self)
         # and of the approximant basis (= identity matrix)

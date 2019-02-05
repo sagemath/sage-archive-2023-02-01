@@ -4075,10 +4075,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         We check that :trac:`20751` is fixed::
 
-            sage: C1 = SimplicialComplex([[1,2,3], [1,2,4], [1,3,4]])
-            sage: C2 = SimplicialComplex([['j','k','l'], ['j','l','m'], ['j','k','m']])
+            sage: C1 = SimplicialComplex([[1,2,3], [2,4], [3,5], [5,6]])
+            sage: C2 = SimplicialComplex([['a','b','c'], ['b','d'], ['c','e'], ['e','f']])
             sage: C1.is_isomorphic(C2, certificate=True)
-            (True, {1: 'j', 2: 'k', 3: 'l', 4: 'm'})
+            (True, {1: 'a', 2: 'b', 3: 'c', 4: 'd', 5: 'e', 6: 'f'})
         """
         # Check easy invariants agree
         if (sorted(x.dimension() for x in self._facets)

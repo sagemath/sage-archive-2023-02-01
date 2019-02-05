@@ -680,7 +680,7 @@ def HallJankoGraph(from_string=True):
     TESTS::
 
         sage: gg = graphs.HallJankoGraph(from_string=False) # long time
-        sage: g == gg # long time
+        sage: g == gg  # long time
         True
     """
 
@@ -755,7 +755,7 @@ def HallJankoGraph(from_string=True):
         gap.eval("G := Group([g1,g2]);")
         edges = gap('Orbit(G,[1,5],OnSets)').sage()
         g = Graph([(int(u), int(v)) for u,v in edges])
-        g.relabel()
+        g.relabel(range(100))
 
     g._circle_embedding(list(range(100)))
     g.name("Hall-Janko graph")
@@ -3063,11 +3063,9 @@ def HigmanSimsGraph(relabel=True):
     # Rename to integer vertex labels, creating dictionary
     # Or not, and create identity mapping
     if relabel:
-        vmap = HS.relabel(return_map=True)
+        vmap = HS.relabel(range(100), return_map=True)
     else:
-        vmap={}
-        for v in vlist:
-            vmap[v] = v
+        vmap = {v: v for v in vlist}
     # Layout vertices in a circle
     # In the order given in vlist
     # Using labels from vmap
@@ -3115,21 +3113,21 @@ def HoffmanSingletonGraph():
 
         sage: HS.layout()[1]
         (-0.844..., 0.535...)
-        sage: graphs.HoffmanSingletonGraph().layout()[1]
+        sage: HS = graphs.HoffmanSingletonGraph()
+        sage: HS.layout()[1]
         (-0.904..., 0.425...)
-
     """
-    H = Graph({ \
-    'q00':['q01'], 'q01':['q02'], 'q02':['q03'], 'q03':['q04'], 'q04':['q00'], \
-    'q10':['q11'], 'q11':['q12'], 'q12':['q13'], 'q13':['q14'], 'q14':['q10'], \
-    'q20':['q21'], 'q21':['q22'], 'q22':['q23'], 'q23':['q24'], 'q24':['q20'], \
-    'q30':['q31'], 'q31':['q32'], 'q32':['q33'], 'q33':['q34'], 'q34':['q30'], \
-    'q40':['q41'], 'q41':['q42'], 'q42':['q43'], 'q43':['q44'], 'q44':['q40'], \
-    'p00':['p02'], 'p02':['p04'], 'p04':['p01'], 'p01':['p03'], 'p03':['p00'], \
-    'p10':['p12'], 'p12':['p14'], 'p14':['p11'], 'p11':['p13'], 'p13':['p10'], \
-    'p20':['p22'], 'p22':['p24'], 'p24':['p21'], 'p21':['p23'], 'p23':['p20'], \
-    'p30':['p32'], 'p32':['p34'], 'p34':['p31'], 'p31':['p33'], 'p33':['p30'], \
-    'p40':['p42'], 'p42':['p44'], 'p44':['p41'], 'p41':['p43'], 'p43':['p40']})
+    H = Graph({
+        'q00':['q01'], 'q01':['q02'], 'q02':['q03'], 'q03':['q04'], 'q04':['q00'],
+        'q10':['q11'], 'q11':['q12'], 'q12':['q13'], 'q13':['q14'], 'q14':['q10'],
+        'q20':['q21'], 'q21':['q22'], 'q22':['q23'], 'q23':['q24'], 'q24':['q20'],
+        'q30':['q31'], 'q31':['q32'], 'q32':['q33'], 'q33':['q34'], 'q34':['q30'],
+        'q40':['q41'], 'q41':['q42'], 'q42':['q43'], 'q43':['q44'], 'q44':['q40'],
+        'p00':['p02'], 'p02':['p04'], 'p04':['p01'], 'p01':['p03'], 'p03':['p00'],
+        'p10':['p12'], 'p12':['p14'], 'p14':['p11'], 'p11':['p13'], 'p13':['p10'],
+        'p20':['p22'], 'p22':['p24'], 'p24':['p21'], 'p21':['p23'], 'p23':['p20'],
+        'p30':['p32'], 'p32':['p34'], 'p34':['p31'], 'p31':['p33'], 'p33':['p30'],
+        'p40':['p42'], 'p42':['p44'], 'p44':['p41'], 'p41':['p43'], 'p43':['p40']})
     for j in range(5):
         for i in range(5):
             for k in range(5):
@@ -3158,7 +3156,7 @@ def HoffmanSingletonGraph():
         if len(v):
             s = int(v[0])
         l+=1
-    map = H.relabel(return_map=True)
+    map = H.relabel(range(50), return_map=True)
     pos_dict = {}
     for i in range(50):
         x = float(cos((pi/2) + ((2*pi)/50)*i))
@@ -4855,7 +4853,7 @@ def JankoKharaghaniTonchevGraph():
     for i,b in ((1,B1),(163,B163)):
         for j in map(lambda x: x[0], st.OrbitsDomain(b)):
             Gamma.add_edges(map(tuple,G.Orbit(libgap.Set([i,j]), libgap.OnSets)))
-    Gamma.relabel()
+    Gamma.relabel(range(Gamma.order()))
     return Gamma
 
 def IoninKharaghani765Graph():

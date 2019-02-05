@@ -694,7 +694,7 @@ class TypeSpace(SageObject):
         # funny business
 
         if (self.conductor() % 2 == 0):
-            if all([x.valuation(p) > 0 for x in g]):
+            if all(x.valuation(p) > 0 for x in g):
                 eps = self.form().character()(crt(1, p, f, self.tame_level()))
                 return ~eps * self.rho([x // p for x in g])
             else:

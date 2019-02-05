@@ -200,7 +200,6 @@ class LatinSquare:
             sage: back_circulant(2) == loads(dumps(back_circulant(2)))
             True
         """
-
         return dumps(self.square)
 
     def __str__(self):
@@ -1249,8 +1248,6 @@ class LatinSquare:
 
         assert self.nrows() == self.ncols()
 
-        n = self.nrows()
-
         dlx_rows, cmap = self.disjoint_mate_dlxcpp_rows_and_map(allow_subtrade)
 
         nr_found = 0
@@ -1622,6 +1619,7 @@ def beta1(rce, T1, T2):
         if T2[x, c] == e: return (x, c, e)
 
     raise PairNotBitrade
+
 
 def beta2(rce, T1, T2):
     """
@@ -2195,7 +2193,6 @@ def LatinSquare_generator(L_start, check_assertions = False):
     from copy import copy
     L = copy(L_start)
 
-    L_rce = L
     L_cer = LatinSquare(n, n)
     L_erc = LatinSquare(n, n)
 
@@ -2829,8 +2826,6 @@ def dlxcpp_find_completions(P, nr_to_find = None):
     """
     assert P.nrows() == P.ncols()
 
-    n = P.nrows()
-
     dlx_rows, cmap = dlxcpp_rows_and_map(P)
 
     SOLUTIONS = {}
@@ -2838,7 +2833,8 @@ def dlxcpp_find_completions(P, nr_to_find = None):
         x.sort()
         SOLUTIONS[tuple(x)] = True
 
-        if nr_to_find is not None and len(SOLUTIONS) >= nr_to_find: break
+        if nr_to_find is not None and len(SOLUTIONS) >= nr_to_find:
+            break
 
     comps = []
 

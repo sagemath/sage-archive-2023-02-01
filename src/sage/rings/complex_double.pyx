@@ -1586,39 +1586,22 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         return self.real().is_NaN() or self.imag().is_NaN()
 
-    def _pow_(self, ComplexDoubleElement a):
+    cpdef _pow_(self, other):
         """
-        The function returns the complex number `z` raised to the
-        complex power `a`, `z^a`.
+        The complex number ``self`` raised to the power ``other``.
 
-        INPUT:
-
-        -  ``a`` - a :class:`ComplexDoubleElement`
-
-        OUTPUT: :class:`ComplexDoubleElement`
+        This is computed using complex logarithms and exponentials
+        as `z ^ a = \exp(a \log(z))`, unless ``self`` is real and
+        ``other`` is an exact integer: in that case, only real
+        arithmetic is used.
 
         EXAMPLES::
 
-            sage: a = CDF(1,1); b = CDF(2,3)
-            sage: a._pow_(b)   # rel tol 5e-16
+            sage: a = CDF(1,1)
+            sage: b = CDF(2,3)
+            sage: c = a ^ b; c  # rel tol 5e-16
             -0.163450932107355 + 0.09600498360894891*I
-        """
-        return self._new_c(gsl_complex_pow(self._complex, a._complex))
-
-    def __pow__(z, a, dummy):
-        r"""
-        The function returns the complex number `z` raised to the
-        complex power `a`, `z^a`.
-
-        This is computed as `\exp(\log(z)*a)` using complex
-        logarithms and complex exponentials.
-
-        EXAMPLES::
-
-            sage: a = CDF(1,1); b = CDF(2,3)
-            sage: c = a^b; c  # rel tol 5e-16, indirect doctest
-            -0.163450932107355 + 0.09600498360894891*I
-            sage: c^(1/b) # rel tol 2e-16
+            sage: c ^ (1/b)     # rel tol 2e-16
             1.0 + 1.0*I
 
         We compute the cube root of `-1` then cube it and observe a
@@ -1631,27 +1614,67 @@ cdef class ComplexDoubleElement(FieldElement):
 
         We raise to symbolic powers::
 
-            sage: x, n = var('x, n')
+            sage: var('x, n')
+            (x, n)
             sage: CDF(1.2)^x
             1.2^x
             sage: CDF(1.2)^(x^n + n^x)
             1.2^(n^x + x^n)
-        """
-        try:
-            return z._pow_(a)
-        except AttributeError:
-            # z is not a complex number
-            return CDF(z)._pow_(a)
-        except TypeError:
-            # a is not a complex number
-            try:
-                return z._pow_(CDF(a))
-            except TypeError:
-                try:
-                    return a.parent()(z)**a
-                except AttributeError:
-                    raise TypeError
 
+        A real number powered to an exact integer always yields a real
+        number::
+
+            sage: CDF(-0.26319743704743886) ^ 1
+            -0.26319743704743886
+            sage: CDF(-0.26319743704743886) ^ 0
+            1.0
+            sage: CDF(-0.26319743704743886) ^ -1
+            -3.7994290948196405
+            sage: CDF(-0.26319743704743886) ^ 2
+            0.06927289086834054
+            sage: CDF(-0.26319743704743886) ^ -2
+            14.435661446561994
+            sage: CDF(-1) ^ (2^100)
+            1.0
+
+        Note the difference with ::
+
+            sage: CDF(-0.26319743704743886) ^ RDF(2)
+            0.06927289086834053 - 1.6966964813919428e-17*I
+
+        TESTS::
+
+            sage: (-2) ^ CDF(-0.5)
+            4.329780281177467e-17 - 0.7071067811865476*I
+        """
+        z = <ComplexDoubleElement>other
+        return self._new_c(gsl_complex_pow(self._complex, z._complex))
+
+    cdef _pow_long(self, long other):
+        if other == 1:
+            return self
+        elif other == 0:
+            res = gsl_complex_rect(1, 0)
+        elif other == -1:
+            res = gsl_complex_inverse(self._complex)
+        elif not self._complex.imag:
+            # If self is real, the result should be real too
+            real = self._complex.real ** <double>other
+            res = gsl_complex_rect(real, 0)
+        else:
+            # General case
+            res = gsl_complex_pow_real(self._complex, other)
+        return self._new_c(res)
+
+    cpdef _pow_int(self, other):
+        if not self._complex.imag:
+            # If self is real, the result should be real too
+            real = self._complex.real ** <double>other
+            res = gsl_complex_rect(real, 0)
+        else:
+            # General case
+            res = gsl_complex_pow_real(self._complex, other)
+        return self._new_c(res)
 
     def exp(self):
         r"""

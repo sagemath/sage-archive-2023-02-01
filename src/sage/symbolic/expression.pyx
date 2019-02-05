@@ -6831,7 +6831,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f = pi^3*x - y^2*e - I; f
             pi^3*x - y^2*e - I
             sage: f.polynomial(CDF)  # abs tol 1e-15
-            (-2.718281828459045)*y^2 + 31.006276680299827*x - 1.0*I
+            (-2.718281828459045)*y^2 + 31.006276680299816*x - 1.0*I
             sage: f.polynomial(CC)
             (-2.71828182845905)*y^2 + 31.0062766802998*x - 1.00000000000000*I
             sage: f.polynomial(ComplexField(70))

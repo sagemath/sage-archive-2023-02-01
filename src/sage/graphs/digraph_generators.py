@@ -62,12 +62,14 @@ Functions and methods
 ################################################################################
 from __future__ import print_function, division
 from six.moves import range
+from six import PY2
 from sage.cpython.string import bytes_to_str
 
 import sys
 from sage.misc.randstate import current_randstate
 from sage.graphs.digraph import DiGraph
-
+from sage.graphs.graph import Graph
+import subprocess
 
 class DiGraphGenerators():
     r"""
@@ -536,8 +538,6 @@ class DiGraphGenerators():
             sage: [len(list(tournaments(x, strongly_connected = True))) for x in range(1,9)]
             [1, 0, 1, 1, 6, 35, 353, 6008]
         """
-        import subprocess
-
         nauty_input = options
 
         if min_out_degree is None:
@@ -585,6 +585,78 @@ class DiGraphGenerators():
 
             yield G
 
+    def nauty_directg(self, graphs, options="", debug=False):
+        r"""
+        Returns a list which creates digraphs from nauty's directg program.
+
+        INPUT:
+
+        - ``graphs`` (iterable) -- A :class:`Graph` or an iterable containing
+          :class:`Graph`.
+        - ``options`` (str) -- a string passed to directg as if it was run at
+          a system command line. Available options from directg --help::
+
+            -e# | -e#:#  specify a value or range of the total number of arcs
+            -o     orient each edge in only one direction, never both
+            -f#  Use only the subgroup that fixes the first # vertices setwise
+            -V  only output graphs with nontrivial groups (including exchange of
+                  isolated vertices).  The -f option is respected.
+            -s#/#  Make only a fraction of the orientations: The first integer is
+                    the part number (first is 0) and the second is the number of
+                    parts. Splitting is done per input graph independently.
+
+        EXAMPLES::
+
+            sage: gen = graphs.nauty_geng("-c 3")
+            sage: dgs = list(digraphs.nauty_directg(gen))
+            sage: len(dgs)
+            13
+            sage: dgs[0]
+            Digraph on 3 vertices
+            sage: dgs[0]._bit_vector()
+            '001001000'
+            sage: len(list(digraphs.nauty_directg(graphs.PetersenGraph(), options="-o")))
+            324
+
+        TESTS::
+
+            sage: g = digraphs.nauty_directg(graphs.PetersenGraph(), options="-o -G")
+            sage: next(g)
+            Traceback (most recent call last):
+            ...
+            ValueError: directg output options [-u|-T|-G] are not allowed
+        """
+        if '-u' in options or '-T' in options or '-G' in options:
+            raise ValueError("directg output options [-u|-T|-G] are not allowed")
+
+        if '-q' not in options:
+            options += ' -q'
+
+        if PY2:
+            enc_kwargs = {}
+        else:
+            enc_kwargs = {'encoding': 'latin-1'}
+
+        if isinstance(graphs, Graph):
+            graphs = [graphs]
+
+        # Build directg input (graphs6 format)
+        input = ''.join(g.graph6_string()+'\n' for g in graphs)
+        sub = subprocess.Popen('directg {0}'.format(options),
+                               shell=True,
+                               stdout=subprocess.PIPE,
+                               stdin=subprocess.PIPE,
+                               stderr=subprocess.STDOUT,
+                               **enc_kwargs)
+        out = sub.communicate(input=input)[0]
+
+        for l in out.split('\n'):
+            # directg return graphs in the digraph6 format.
+            # digraph6 is very similar with the dig6 format used in sage :
+            # digraph6_string = '&' +  dig6_string
+            # digraph6 specifications: http://users.cecs.anu.edu.au/~bdm/data/formats.txt
+            if l != '' and l[0] == '&':
+                yield DiGraph(l[1:])
 
     def Complete(self, n, loops=False):
         r"""

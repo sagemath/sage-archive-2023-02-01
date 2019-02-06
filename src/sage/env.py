@@ -29,10 +29,10 @@ variables::
 from __future__ import absolute_import
 
 import sage
-import sys
 import glob
 import os
 import socket
+import sys
 from . import version
 
 
@@ -188,18 +188,61 @@ var('SAGE_BANNER', '')
 var('SAGE_IMPORTALL', 'yes')
 
 
-# locate singular shared object
-if UNAME[:6] == "CYGWIN":
-    SINGULAR_SO = ([None] + glob.glob(os.path.join(
-        SAGE_LOCAL, "bin", "cygSingular-*.dll")))[-1]
-else:
-    if UNAME == "Darwin":
-        extension = "dylib"
-    else:
-        extension = "so"
-    # library name changed from libsingular to libSingular btw 3.x and 4.x
-    SINGULAR_SO = SAGE_LOCAL+"/lib/libSingular."+extension
+def _get_shared_lib_filename(libname):
+    """
+    Return the full path to a shared library file installed in the standard
+    location for the system within the ``$SAGE_LOCAL`` prefix.
 
+    This supports most *NIX variants (in which ``lib<libname>.so`` is found
+    under ``$SAGE_LOCAL/lib``), macOS (same, but with the ``.dylib``
+    extension), and Cygwin (under ``$SAGE_LOCAL/bin/cyg<libname>.dll``,
+    or ``$SAGE_LOCAL/bin/cyg<libname>-*.dll`` for versioned DLLs).
+
+    Returns ``None`` if the file does not exist.
+
+    EXAMPLES::
+
+        sage: import sys
+        sage: from fnmatch import fnmatch
+        sage: from sage.env import _get_shared_lib_filename
+        sage: lib_filename = _get_shared_lib_filename("Singular")
+        sage: if sys.platform == 'cygwin':
+        ....:     pattern = "*/bin/cygSingular-*.dll"
+        ....: elif sys.platform == 'darwin':
+        ....:     pattern = "*/lib/libSingular.dylib"
+        ....: else:
+        ....:     pattern = "*/lib/libSingular.so"
+        sage: fnmatch(lib_filename, pattern)
+        True
+        sage: _get_shared_lib_filename("an_absurd_lib") is None
+        True
+    """
+
+    if sys.platform == 'cygwin':
+        # Return None if not found.
+        possibilities = [None]
+        basename = 'cyg' + libname
+        for pat in [basename + '.dll', basename + '-*.dll']:
+            possibilities.extend(glob.glob(os.path.join(
+                SAGE_LOCAL, 'bin', pat)))
+
+        return possibilities[-1]
+
+    if sys.platform == 'darwin':
+        ext = 'dylib'
+    else:
+        ext = 'so'
+
+    basename = 'lib{}.{}'.format(libname, ext)
+    filename = os.path.join(SAGE_LOCAL, 'lib', basename)
+    if os.path.exists(filename):
+        return filename
+
+    return None
+
+
+# locate singular shared object
+SINGULAR_SO = _get_shared_lib_filename('Singular')
 var('SINGULAR_SO', SINGULAR_SO)
 
 # post process

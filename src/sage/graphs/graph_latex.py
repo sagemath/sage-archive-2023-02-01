@@ -1583,7 +1583,7 @@ class GraphLatex(SageObject):
             xmax = max(i[0] for i in pos.values())
             ymax = max(i[1] for i in pos.values())
         else:
-            xmax, ymax = 0, 0
+            xmin, xmax, ymin, ymax = 0, 0, 0, 0
 
         # Linear scaling factors that will be used to scale the image to fit
         # into the bordered region.  Purely horizontal, or purely vertical,

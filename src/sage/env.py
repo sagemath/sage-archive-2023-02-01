@@ -214,13 +214,14 @@ def _get_shared_lib_filename(libname, *additional_libnames):
         sage: import sys
         sage: from fnmatch import fnmatch
         sage: from sage.env import _get_shared_lib_filename
-        sage: lib_filename = _get_shared_lib_filename("Singular")
+        sage: lib_filename = _get_shared_lib_filename("Singular",
+        ....:                                         "singular-Singular")
         sage: if sys.platform == 'cygwin':
-        ....:     pattern = "*/bin/cygSingular-*.dll"
+        ....:     pattern = "*/cygSingular-*.dll"
         ....: elif sys.platform == 'darwin':
-        ....:     pattern = "*/lib/libSingular.dylib"
+        ....:     pattern = "*/libSingular.dylib"
         ....: else:
-        ....:     pattern = "*/lib/libSingular.so"
+        ....:     pattern = "*/lib*Singular.so"
         sage: fnmatch(lib_filename, pattern)
         True
         sage: _get_shared_lib_filename("an_absurd_lib") is None
@@ -230,7 +231,7 @@ def _get_shared_lib_filename(libname, *additional_libnames):
     for libname in (libname,) + additional_libnames:
         if sys.platform == 'cygwin':
             bindir = sysconfig.get_config_var('BINDIR')
-            pats = ['cyg{}.dll'.format(libdir), 'cyg{}-*.dll'.format(libdir)]
+            pats = ['cyg{}.dll'.format(libname), 'cyg{}-*.dll'.format(libname)]
             filenames = [glob.glob(os.path.join(bindir, pat)) for pat in pats]
             # Note: This is not very robust, since if there are multi DLL
             # versions for the same library this just selects one more or less

@@ -693,9 +693,10 @@ class DocTestController(SageObject):
         """
         opj = os.path.join
         from sage.env import SAGE_SRC, SAGE_DOC_SRC, SAGE_ROOT, SAGE_ROOT_GIT
-        # SAGE_ROOT_GIT can be None on linux distributions
+        # SAGE_ROOT_GIT can be None on distributions which typically
+        # only have the SAGE_LOCAL install tree but not SAGE_ROOT
         if SAGE_ROOT_GIT is not None:
-            have_git = os.path.exists(SAGE_ROOT_GIT)
+            have_git = os.path.isdir(SAGE_ROOT_GIT)
         else:
             have_git = False
 
@@ -1203,7 +1204,8 @@ class DocTestController(SageObject):
             self.test_safe_directory()
             self.create_run_id()
             from sage.env import SAGE_ROOT_GIT
-            # SAGE_ROOT_GIT can be None on linux distributions
+            # SAGE_ROOT_GIT can be None on distributions which typically
+            # only have the SAGE_LOCAL install tree but not SAGE_ROOT
             if (SAGE_ROOT_GIT is not None) and os.path.isdir(SAGE_ROOT_GIT):
                 import subprocess
                 try:

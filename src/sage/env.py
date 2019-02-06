@@ -33,6 +33,7 @@ import glob
 import os
 import socket
 import sys
+import sysconfig
 from . import version
 
 
@@ -188,15 +189,23 @@ var('SAGE_BANNER', '')
 var('SAGE_IMPORTALL', 'yes')
 
 
-def _get_shared_lib_filename(libname):
+def _get_shared_lib_filename(libname, *additional_libnames):
     """
     Return the full path to a shared library file installed in the standard
-    location for the system within the ``$SAGE_LOCAL`` prefix.
+    location for the system within the ``LIBDIR`` prefix (or
+    ``$SAGE_LOCAL/lib`` in the case of manual build of Sage).
+
+    This can also be passed more than one library name (e.g. for cases where
+    some library may have multiple names depending on the platform) in which
+    case the first one found is returned.
 
     This supports most *NIX variants (in which ``lib<libname>.so`` is found
     under ``$SAGE_LOCAL/lib``), macOS (same, but with the ``.dylib``
     extension), and Cygwin (under ``$SAGE_LOCAL/bin/cyg<libname>.dll``,
     or ``$SAGE_LOCAL/bin/cyg<libname>-*.dll`` for versioned DLLs).
+
+    For distributions like Debian that use a multiarch layout, we also try the
+    multiarch lib paths (i.e. ``/usr/lib/<arch>/``).
 
     Returns ``None`` if the file does not exist.
 
@@ -218,31 +227,41 @@ def _get_shared_lib_filename(libname):
         True
     """
 
-    if sys.platform == 'cygwin':
-        # Return None if not found.
-        possibilities = [None]
-        basename = 'cyg' + libname
-        for pat in [basename + '.dll', basename + '-*.dll']:
-            possibilities.extend(glob.glob(os.path.join(
-                SAGE_LOCAL, 'bin', pat)))
+    for libname in (libname,) + additional_libnames:
+        if sys.platform == 'cygwin':
+            bindir = sysconfig.get_config_var('BINDIR')
+            pats = ['cyg{}.dll'.format(libdir), 'cyg{}-*.dll'.format(libdir)]
+            filenames = [glob.glob(os.path.join(bindir, pat)) for pat in pats]
+            # Note: This is not very robust, since if there are multi DLL
+            # versions for the same library this just selects one more or less
+            # at arbitrary.  However, practically speaking, on Cygwin, there
+            # will only ever be one version
+            if filenames:
+                return filenames[-1]
+        else:
+            if sys.platform == 'darwin':
+                ext = 'dylib'
+            else:
+                ext = 'so'
 
-        return possibilities[-1]
+            libdirs = [sysconfig.get_config_var('LIBDIR')]
+            multilib = sysconfig.get_config_var('MULTILIB')
+            if multilib:
+                libdirs.insert(0, os.path.join(libdirs[0], multilib))
 
-    if sys.platform == 'darwin':
-        ext = 'dylib'
-    else:
-        ext = 'so'
+            for libdir in libdirs:
+                basename = 'lib{}.{}'.format(libname, ext)
+                filename = os.path.join(libdir, basename)
+                if os.path.exists(filename):
+                    return filename
 
-    basename = 'lib{}.{}'.format(libname, ext)
-    filename = os.path.join(SAGE_LOCAL, 'lib', basename)
-    if os.path.exists(filename):
-        return filename
-
+    # Just return None if no files were found
     return None
 
 
 # locate singular shared object
-SINGULAR_SO = _get_shared_lib_filename('Singular')
+# On Debian it's libsingular-Singular so try that as well
+SINGULAR_SO = _get_shared_lib_filename('Singular', 'singular-Singular')
 var('SINGULAR_SO', SINGULAR_SO)
 
 # post process

@@ -2236,12 +2236,12 @@ def SwitchedSquaredSkewHadamardMatrixGraph(n):
         sage: twograph_descendant(g.complement(),0).is_strongly_regular(parameters=True)
         (225, 112, 55, 56)
     """
-    from sage.graphs.generators.families import SquaredSkewHadamardMatrixGraph
     G = SquaredSkewHadamardMatrixGraph(n).complement()
-    G.add_vertex((4*n-1)**2)
+    G.add_vertex((4 * n - 1)**2)
     G.seidel_switching(list(range((4 * n - 1) * (2 * n - 1))))
     G.name("switch skewhad^2+*_" + str((n)))
     return G
+
 
 def HanoiTowerGraph(pegs, disks, labels=True, positions=True):
     r"""

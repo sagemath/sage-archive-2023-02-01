@@ -1518,7 +1518,7 @@ def vertex_separation_BAB(G,
         sage: from sage.graphs.graph_decompositions import vertex_separation as VS
         sage: G = graphs.MycielskiGraph(5)
         sage: vs, seq = VS.vertex_separation_BAB(G, cut_off=11); vs
-        11
+        10
         sage: vs, seq = VS.vertex_separation_BAB(G, cut_off=10); vs
         10
         sage: vs, seq = VS.vertex_separation_BAB(G, cut_off=9); vs

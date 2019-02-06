@@ -1184,7 +1184,6 @@ def RandomChordalGraph(n, algorithm="growing", k=None, l=None, f=None, s=None):
         return Graph(n, name="Random Chordal Graph")
 
     # 1. Generate a random tree of order n
-    from sage.graphs.generators.random import RandomTree
     T = RandomTree(n)
 
     # 2. Generate n non-empty subtrees of T: {T1,...,Tn}
@@ -1340,6 +1339,7 @@ def RandomTree(n):
     g.add_edge(last_edge)
 
     return g
+
 
 def RandomTreePowerlaw(n, gamma=3, tries=1000, seed=None):
     """

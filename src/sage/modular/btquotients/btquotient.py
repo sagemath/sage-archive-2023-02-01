@@ -2390,7 +2390,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
                     verbose('Calling magma: pMatrixRing, args = %s' % [OrdMax, l])
                     M, f, rho = self._magma.function_call('pMatrixRing', args=[OrdMax, l], params={'Precision': 20}, nvals=3)
                     v = [f.Image(OBasis[i]) for i in [1, 2, 3, 4]]
-                    if all([Qp(l, 5)(v[kk][2, 1].sage()).valuation() >= 1 for kk in range(4)]) and not all([Qp(l, 5)(v[kk][2, 1].sage()).valuation() >= 2 for kk in range(4)]):
+                    if all(Qp(l, 5)(v[kk][2, 1].sage()).valuation() >= 1 for kk in range(4)) and not all(Qp(l, 5)(v[kk][2, 1].sage()).valuation() >= 2 for kk in range(4)):
                         found = True
                         success = True
                     else:
@@ -3035,7 +3035,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             for tt in T0:
                 r = vinv * tt
                 r_in_order = BB * Matrix(QQ, 4, 1, r.coefficient_tuple())
-                if all([a.is_S_integral(Sset) for a in r_in_order.list()]):
+                if all(a.is_S_integral(Sset) for a in r_in_order.list()):
                     new = False
                     break
             if new:

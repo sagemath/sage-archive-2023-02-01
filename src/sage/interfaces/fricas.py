@@ -1582,7 +1582,7 @@ class FriCASElement(ExpectElement):
             R = PolynomialRing(base_ring, vars)
             return R(unparsed_InputForm)
 
-        raise NotImplementedError("The translation of the FriCAS object %s to sage is not yet implemented." %(unparsed_InputForm))
+        raise NotImplementedError("The translation of the FriCAS object %s to sage is not yet implemented." % (unparsed_InputForm))
 
 
 @instancedoc

@@ -57,7 +57,7 @@ def binary_polynomial_from_invariants(degree, invariants, as_form=True, *args, *
         sage: from sage.rings.invariants.reconstruction import binary_polynomial_from_invariants
         sage: discriminant = 1
         sage: binary_polynomial_from_invariants(2, [discriminant])
-        x*z
+        x^2 - 1/4*z^2
         sage: binary_polynomial_from_invariants(3, [discriminant])
         x^2*z - x*z^2
 
@@ -87,7 +87,8 @@ def binary_polynomial_from_invariants(degree, invariants, as_form=True, *args, *
     The invariants can also be computed using the invariants of a given binary
     quintic. The resulting form has the same invariants up to scaling, is
     `GL(2,\QQ)`-equivalent to the provided form and hence has the same
-    canonical form::
+    canonical form (see
+    :meth:`~sage.rings.invariants.invariant_theory.BinaryQuintic.canonical_form`)::
 
         sage: R.<x0, x1> = QQ[]
         sage: p = 3*x1^5 + 6*x1^4*x0 + 3*x1^3*x0^2 + 4*x1^2*x0^3 - 5*x1*x0^4 + 4*x0^5
@@ -142,14 +143,14 @@ def binary_polynomial_from_invariants(degree, invariants, as_form=True, *args, *
     """
     if degree == 2:
         if len(invariants) == 1:
-            coeffs = binary_quadratic_coefficients_from_invariants(invariants, *args,
+            coeffs = binary_quadratic_coefficients_from_invariants(invariants[0], *args,
                                                       **kwargs)
         else:
             raise ValueError('Incorrect number of invariants provided. Only '
                              'one invariant should be provided.')
     elif degree == 3:
         if len(invariants) == 1:
-            coeffs = binary_cubic_coefficients_from_invariants(invariants, *args,
+            coeffs = binary_cubic_coefficients_from_invariants(invariants[0], *args,
                                                   **kwargs)
         else:
             raise ValueError('Incorrect number of invariants provided. Only '
@@ -190,8 +191,8 @@ def binary_quadratic_coefficients_from_invariants(discriminant, invariant_choice
     EXAMPLES::
 
         sage: from sage.rings.invariants.reconstruction import binary_quadratic_coefficients_from_invariants
-        sage: binary_quadratic_coefficients_from_invariants(1)
-        (0, 1, 0)
+        sage: binary_quadratic_coefficients_from_invariants(24)
+        (1, 0, -6)
         sage: binary_quadratic_coefficients_from_invariants(0)
         (1, 0, 0)
     """
@@ -201,7 +202,10 @@ def binary_quadratic_coefficients_from_invariants(discriminant, invariant_choice
     if discriminant == 0:
         return (1, 0, 0)
     else:
-        return (0, 1, 0)
+        try:
+            return (1, 0, -discriminant/4)
+        except ZeroDivisionError:
+            return (0, 1, 0)
 
 
 def binary_cubic_coefficients_from_invariants(discriminant, invariant_choice='default'):
@@ -221,8 +225,12 @@ def binary_cubic_coefficients_from_invariants(discriminant, invariant_choice='de
     EXAMPLES::
 
         sage: from sage.rings.invariants.reconstruction import binary_cubic_coefficients_from_invariants
-        sage: binary_cubic_coefficients_from_invariants(1)
+        sage: coeffs = binary_cubic_coefficients_from_invariants(1)
+        sage: coeffs
         (0, 1, -1, 0)
+        sage: R.<x> = QQ[]
+        sage: R(coeffs).discriminant()
+        1
 
     The two non-equivalent cubics `x^3` and `x^2*z` with discriminant 0 can't
     be distinguished based on their discriminant, hence an error is raised::
@@ -268,7 +276,7 @@ def binary_quintic_coefficients_from_invariants(invariants, K=None, invariant_ch
 
     First we check the general case, where the invariant `M` is non-zero::
 
-        sage: from sage.rings.invariants.reconstruction import binary_quintic_coefficients_from_invariants
+        sage: from sage.rings.invariants.reconstruction import binary_polynomial_from_invariants # indirect doctest
         sage: R.<x0, x1> = QQ[]
         sage: p = 3*x1^5 + 6*x1^4*x0 + 3*x1^3*x0^2 + 4*x1^2*x0^3 - 5*x1*x0^4 + 4*x0^5
         sage: quintic = invariant_theory.binary_quintic(p, x0, x1)
@@ -292,9 +300,10 @@ def binary_quintic_coefficients_from_invariants(invariants, K=None, invariant_ch
         sage: invs[2] == newquintic.C_invariant()*scale^3
         True
 
-    The form obtained is equal to the one obtained when setting the
-    coordinates equal to the covariants `\alpha` and `\beta` up to a power of
-    their determinant::
+    If we compare the form obtained by this reconstruction to the one found by
+    letting the covariants `\alpha` and `\beta` be the coordinates of the form,
+    we find the forms are the same up to a power of the determinant of `\alpha`
+    and `\beta`::
 
         sage: alpha = quintic.alpha_covariant()
         sage: beta = quintic.beta_covariant()
@@ -317,6 +326,7 @@ def binary_quintic_coefficients_from_invariants(invariants, K=None, invariant_ch
         sage: [A,B,C] = [3,1,2]
         sage: M = 2*A*B - 3*C; M
         0
+        sage: from sage.rings.invariants.reconstruction import binary_quintic_coefficients_from_invariants
         sage: reconstructed = binary_quintic_coefficients_from_invariants([A,B,C])
         sage: reconstructed
         (-66741943359375/2097152,

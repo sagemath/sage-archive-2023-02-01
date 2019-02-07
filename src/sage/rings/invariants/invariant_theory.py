@@ -1130,6 +1130,38 @@ class QuadraticForm(AlgebraicForm):
         else:
             return (-1)**(self._n//2) * A.det()
 
+    @cached_method
+    def invariants(self, type='discriminant'):
+        """
+        Return a tuple of invariants of a binary quadratic.
+
+        INPUT:
+
+        - ``type`` --  The type of invariants to return. The default choice
+          is to return the discriminant.
+
+        OUTPUT:
+
+        The invariants of the binary quadratic.
+
+        EXAMPLES::
+
+            sage: R.<x0, x1> = QQ[]
+            sage: p = 2*x1^2 + 5*x0*x1 + 3*x0^2
+            sage: quadratic = invariant_theory.binary_quadratic(p, x0, x1)
+            sage: quadratic.invariants()
+            (1,)
+            sage: quadratic.invariants('unknown')
+            Traceback (most recent call last):
+            ...
+            ValueError: Unknown type of invariants unknown for a binary quadratic.
+
+        """
+        if type == 'discriminant':
+            return (self.discriminant(),)
+        else:
+            raise ValueError('Unknown type of invariants {} for a binary'
+                             ' quadratic.'.format(type))
 
     @cached_method
     def dual(self):
@@ -2206,6 +2238,44 @@ class BinaryQuintic(AlgebraicForm):
             return R
 
     @cached_method
+    def invariants(self, type='clebsch'):
+        """
+        Return a tuple of invariants of a binary quintic.
+
+        INPUT:
+
+        - ``type`` --  The type of invariants to return. The default choice
+          is to return the Clebsch invariants.
+
+        OUTPUT:
+
+        The invariants of the binary quintic.
+
+        EXAMPLES::
+
+            sage: R.<x0, x1> = QQ[]
+            sage: p = 2*x1^5 + 4*x1^4*x0 + 5*x1^3*x0^2 + 7*x1^2*x0^3 - 11*x1*x0^4 + x0^5
+            sage: quintic = invariant_theory.binary_quintic(p, x0, x1)
+            sage: quintic.invariants()
+            (-276032/625,
+             4983526016/390625,
+             -247056495846408/244140625,
+             -148978972828696847376/30517578125)
+            sage: quintic.invariants('unknown')
+            Traceback (most recent call last):
+            ...
+            ValueError: Unknown type of invariants unknown for a binary quintic.
+
+        """
+        if type == 'clebsch':
+            return self.clebsch_invariants(as_tuple=True)
+        elif type == 'arithmetic':
+            return self.arithmetic_invariants(as_tuple=True)
+        else:
+            raise ValueError('Unknown type of invariants {} for a binary'
+                             ' quintic.'.format(type))
+
+    @cached_method
     def clebsch_invariants(self, as_tuple=False):
         """
         Return the invariants of a binary quintic as described by Clebsch.
@@ -2323,10 +2393,9 @@ class BinaryQuintic(AlgebraicForm):
 
         INPUT:
 
-        - ``reduce_gcd`` -- A boolean that determines how the canonical form
-          is computed. By default, the coefficients of the form are normalized,
-          else the invariants are scaled such that their weighted gcd is equal
-          to 1 and the coefficients of the resulting form are scaled as well.
+        - ``reduce_gcd`` -- If set to ``True``, then a variant of this canonical
+          form is computed where the coefficients are coprime integers. The
+          obtained form is then unique up to multiplication by a unit.
           See also :meth:`~sage.rings.invariants.reconstruction.binary_quintic_from_invariants`'.
 
         OUTPUT:
@@ -4207,10 +4276,13 @@ can then be queried for invariant and covariants. For example,
             Binary quintic with coefficients (67618020872076774263589747/4398046511104,
             -985685435453014202093145/1099511627776, 957906156902832072005/34359738368,
             0, -8142067989552245/134217728, 4747561509943/6291456)
-
             sage: invariant_theory.binary_form_from_invariants(3, [1])
             Warning: Construction of binary forms of degree 3 is not implemented; a polynomial was returned.
             x^2*z - x*z^2
+            sage: discriminant = 17
+            sage: invariant_theory.binary_form_from_invariants(2, (discriminant,)).discriminant() == discriminant
+            True
+
         """
 
         polynomial = binary_polynomial_from_invariants(degree, invariants, *args, **kwds)

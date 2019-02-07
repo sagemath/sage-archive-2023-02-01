@@ -34,7 +34,7 @@ from sage.structure.sage_object import SageObject
 from sage.structure.element import is_Vector
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.modules.free_module_element import vector
-
+from sage.quadratic_forms.genera.genus import genera
 from sage.quadratic_forms.quadratic_form__evaluate import QFEvaluateVector, QFEvaluateMatrix
 
 
@@ -1582,6 +1582,7 @@ class QuadraticForm(SageObject):
             raise TypeError("not defined for rings of characteristic 2")
         return (self(v+w) - self(v) - self(w))/2
 
+    genera = staticmethod(genera)
 
 ## =====================================================================================================
 

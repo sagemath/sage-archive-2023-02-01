@@ -522,6 +522,9 @@ class Partition(CombinatorialElement):
         """
         Initialize ``self``.
 
+        We assume that ``mu`` is a weakly decreasing list of
+        non-negative elements in ``ZZ``.
+
         EXAMPLES::
 
             sage: p = Partition([3,1])
@@ -535,20 +538,15 @@ class Partition(CombinatorialElement):
             Traceback (most recent call last):
             ...
             ValueError: [3, 1, 7] is not an element of Partitions
+
         """
         if isinstance(mu, Partition):
             # Since we are (suppose to be) immutable, we can share the underlying data
             CombinatorialElement.__init__(self, parent, mu._list)
-
         else:
-            try:
-                zero = mu.index(0)
-            except ValueError:
-                CombinatorialElement.__init__(self, parent, mu)
-            except AttributeError:
-                raise TypeError("%s is not a valid partition"%repr(mu))
-            else:
-                CombinatorialElement.__init__(self, parent, mu[:zero])
+            while mu and not mu[-1]:
+                mu = mu[:-1]
+            CombinatorialElement.__init__(self, parent, mu)
 
     @cached_method
     def __hash__(self):
@@ -5932,8 +5930,12 @@ class Partitions(UniqueRepresentation, Parent):
             lst = lst[0]
             if lst.parent() is self:
                 return lst
+        try:
+            lst = map(ZZ, lst)
+        except TypeError:
+            raise ValueError('%s is not an element of %s'%(lst, self))
+
         if lst in self:
-            # Trailing zeros are removed in the element constructor
             return self.element_class(self, lst)
 
         raise ValueError('%s is not an element of %s'%(lst, self))
@@ -5979,13 +5981,8 @@ class Partitions(UniqueRepresentation, Parent):
         if isinstance(x, Partition):
             return True
         if isinstance(x, (list, tuple)):
-            if x:
-                try:
-                    return (all(Integer(a) >= b for a, b in zip(x, x[1:]))
-                            and Integer(x[-1]) >= 0)
-                except TypeError:
-                    return False
-            return True
+            return not x or (all((a in ZZ) and (a >= b) for a, b in zip(x, x[1:]))
+                             and (x[-1] in ZZ) and (x[-1] >= 0))
         return False
 
     def subset(self, *args, **kwargs):

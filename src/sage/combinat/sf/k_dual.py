@@ -573,7 +573,7 @@ class KBoundedQuotientBases(Category_realization_of_parent):
             """
             return self.realization_of()._sym
 
-        def __getitem__(self, c, *rest):
+        def __getitem__(self, c):
             r"""
             Implements shorthand for accessing basis elements.
 
@@ -591,12 +591,10 @@ class KBoundedQuotientBases(Category_realization_of_parent):
                 sage: F[[]]
                 F3[]
             """
-            if isinstance(c, Partition):
-                assert len(rest) == 0
-            if rest or isinstance(c, (int, Integer)):
-                c = self._kbounded_partitions([c] + list(rest))
+            if isinstance(c, (int, Integer)):
+                c = self._kbounded_partitions([c])
             else:
-                c = self._kbounded_partitions(list(c))
+                c = self._kbounded_partitions(c)
             return self.monomial(c)
 
         def _repr_term(self, c):

@@ -1515,6 +1515,19 @@ class GraphLatex(SageObject):
             \begin{tikzpicture}
             ...
             \end{tikzpicture}
+
+        With the empty graph, an empty tikzfigure is output. ::
+
+            sage: from sage.graphs.graph_latex import check_tkz_graph
+            sage: check_tkz_graph()  # random - depends on TeX installation
+            sage: g = Graph()
+            sage: opts = g.latex_options()
+            sage: print(opts.tkz_picture())
+            \begin{tikzpicture}
+            %
+            %
+            %
+            \end{tikzpicture}
         """
         # This routine does not handle multiple edges
         # It will properly handle digraphs where a pair of vertices has an edge

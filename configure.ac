@@ -216,6 +216,15 @@ then
     AC_MSG_ERROR([Exiting, as the macro processor 'm4' can not be found.])
 fi
 
+m4_ifndef([PKG_PROG_PKG_CONFIG],
+    [m4_fatal([Could not locate the pkg-config autoconf macros.
+    These are usually located in /usr/share/aclocal/pkg.m4. If your
+    macros are in a different location, try setting the environment
+    variable ACLOCAL="aclocal -I/other/macro/dir" before running
+    ./bootstrap])])
+
+PKG_PROG_PKG_CONFIG
+
 AC_CHECK_PROG(found_ranlib, ranlib, yes, no)
 if test x$found_ranlib != xyes
 then

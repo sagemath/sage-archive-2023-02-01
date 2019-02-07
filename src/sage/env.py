@@ -269,6 +269,10 @@ def _get_shared_lib_filename(libname, *additional_libnames):
 SINGULAR_SO = _get_shared_lib_filename('Singular', 'singular-Singular')
 var('SINGULAR_SO', SINGULAR_SO)
 
+# locate libgap shared object
+GAP_SO= _get_shared_lib_filename('gap','')
+var('GAP_SO', GAP_SO)
+
 # post process
 if ' ' in DOT_SAGE:
     if UNAME[:6] == 'CYGWIN':

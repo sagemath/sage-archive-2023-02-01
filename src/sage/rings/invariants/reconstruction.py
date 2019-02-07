@@ -23,7 +23,7 @@ AUTHORS:
 
 
 
-def binary_form_from_invariants(degree, invariants, as_form=True, *args, **kwargs):
+def binary_polynomial_from_invariants(degree, invariants, as_form=True, *args, **kwargs):
     """
     Reconstruct a binary form from the values of its invariants.
 
@@ -50,14 +50,15 @@ def binary_form_from_invariants(degree, invariants, as_form=True, *args, **kwarg
 
     In the case of binary quadratics and cubics, the form is reconstructed
     based on the value of the discriminant. See also
-    :meth:`binary_quadratic_from_invariants` and
-    :meth:`binary_cubic_from_invariants`. These methods will always return the
+    :meth:`binary_quadratic_coefficients_from_invariants` and
+    :meth:`binary_cubic_coefficients_from_invariants`. These methods will always return the
     same result if the discriminant is non-zero::
 
+        sage: from sage.rings.invariants.reconstruction import binary_polynomial_from_invariants
         sage: discriminant = 1
-        sage: binary_form_from_invariants(2, [discriminant])
+        sage: binary_polynomial_from_invariants(2, [discriminant])
         x*z
-        sage: binary_form_from_invariants(3, [discriminant])
+        sage: binary_polynomial_from_invariants(3, [discriminant])
         x^2*z - x*z^2
 
     For binary quintics, the three Clebsch invariants of the form should be
@@ -65,21 +66,21 @@ def binary_form_from_invariants(degree, invariants, as_form=True, *args, **kwarg
     see :meth:`~sage.rings.invariants.invariant_theory.BinaryQuintic.clebsch_invariants`::
 
         sage: invariants = [1, 0, 0]
-        sage: binary_form_from_invariants(5, invariants)
+        sage: binary_polynomial_from_invariants(5, invariants)
         x^5 + z^5
 
     An optional ``scaling`` argument may be provided in order to scale the
-    resulting quintic. For more details, see :meth:`binary_quintic_from_invariants`::
+    resulting quintic. For more details, see :meth:`binary_quintic_coefficients_from_invariants`::
 
         sage: invariants = [3, 4, 7]
-        sage: binary_form_from_invariants(5, invariants)
+        sage: binary_polynomial_from_invariants(5, invariants)
         -37725479487783/1048576*x^5 + 565882192316745/8388608*x^4*z
         + 1033866765362693115/67108864*x^2*z^3 + 12849486940936328715/268435456*x*z^4
         - 23129076493685391687/2147483648*z^5
-        sage: binary_form_from_invariants(5, invariants, scaling='normalized')
+        sage: binary_polynomial_from_invariants(5, invariants, scaling='normalized')
         -24389/650717652052224*x^5 - 4205/8033551259904*x^4*z
         - 1015/153055008*x^2*z^3 + 145/944784*x*z^4 + 1/3888*z^5
-        sage: scaled_form = binary_form_from_invariants(5, invariants, scaling='coprime')
+        sage: scaled_form = binary_polynomial_from_invariants(5, invariants, scaling='coprime')
         sage: scaled_form
         -2048*x^5 + 3840*x^4*z + 876960*x^2*z^3 + 2724840*x*z^4 - 613089*z^5
 
@@ -92,7 +93,7 @@ def binary_form_from_invariants(degree, invariants, as_form=True, *args, **kwarg
         sage: p = 3*x1^5 + 6*x1^4*x0 + 3*x1^3*x0^2 + 4*x1^2*x0^3 - 5*x1*x0^4 + 4*x0^5
         sage: quintic = invariant_theory.binary_quintic(p, x0, x1)
         sage: invariants = quintic.clebsch_invariants(as_tuple=True)
-        sage: reconstructed = binary_form_from_invariants(5, invariants)
+        sage: reconstructed = binary_polynomial_from_invariants(5, invariants)
         sage: newquintic = invariant_theory.binary_quintic(reconstructed)
         sage: newquintic
         Binary quintic with coefficients (1504506503644608395841632538558481466127/14901161193847656250000,
@@ -107,54 +108,54 @@ def binary_form_from_invariants(degree, invariants, as_form=True, *args, **kwarg
     For binary forms of other degrees, no reconstruction has been
     implemented yet. For forms of degree 6, see :trac:`26462`::
 
-        sage: binary_form_from_invariants(6, invariants)
+        sage: binary_polynomial_from_invariants(6, invariants)
         Traceback (most recent call last):
         ...
         NotImplementedError: No reconstruction for binary forms of degree 6 implemented.
 
     TESTS::
 
-        sage: binary_form_from_invariants(2, [1,2])
+        sage: binary_polynomial_from_invariants(2, [1,2])
         Traceback (most recent call last):
         ...
         ValueError: Incorrect number of invariants provided. Only one invariant should be provided.
-        sage: binary_form_from_invariants(2, [1], invariant_choice='unknown')
+        sage: binary_polynomial_from_invariants(2, [1], invariant_choice='unknown')
         Traceback (most recent call last):
         ...
         ValueError: Unknown choice of invariants unknown for a binary quadratic.
-        sage: binary_form_from_invariants(3, [1,2])
+        sage: binary_polynomial_from_invariants(3, [1,2])
         Traceback (most recent call last):
         ...
         ValueError: Incorrect number of invariants provided. Only one invariant should be provided.
-        sage: binary_form_from_invariants(3, [1], invariant_choice='unknown')
+        sage: binary_polynomial_from_invariants(3, [1], invariant_choice='unknown')
         Traceback (most recent call last):
         ...
         ValueError: Unknown choice of invariants unknown for a binary cubic.
-        sage: binary_form_from_invariants(5, [1,2,3], invariant_choice='unknown')
+        sage: binary_polynomial_from_invariants(5, [1,2,3], invariant_choice='unknown')
         Traceback (most recent call last):
         ...
         ValueError: Unknown choice of invariants unknown for a binary quintic.
-        sage: binary_form_from_invariants(42, invariants)
+        sage: binary_polynomial_from_invariants(42, invariants)
         Traceback (most recent call last):
         ...
         NotImplementedError: No reconstruction for binary forms of degree 42 implemented.
     """
     if degree == 2:
         if len(invariants) == 1:
-            coeffs = binary_quadratic_from_invariants(invariants, *args,
+            coeffs = binary_quadratic_coefficients_from_invariants(invariants, *args,
                                                       **kwargs)
         else:
             raise ValueError('Incorrect number of invariants provided. Only '
                              'one invariant should be provided.')
     elif degree == 3:
         if len(invariants) == 1:
-            coeffs = binary_cubic_from_invariants(invariants, *args,
+            coeffs = binary_cubic_coefficients_from_invariants(invariants, *args,
                                                   **kwargs)
         else:
             raise ValueError('Incorrect number of invariants provided. Only '
                              'one invariant should be provided.')
     elif degree == 5:
-        coeffs = binary_quintic_from_invariants(invariants, *args,
+        coeffs = binary_quintic_coefficients_from_invariants(invariants, *args,
                                                 **kwargs)
     else:
         raise NotImplementedError('No reconstruction for binary forms of '
@@ -172,7 +173,7 @@ def binary_form_from_invariants(degree, invariants, as_form=True, *args, **kwarg
 
 ######################################################################
 
-def binary_quadratic_from_invariants(discriminant, invariant_choice='default'):
+def binary_quadratic_coefficients_from_invariants(discriminant, invariant_choice='default'):
     """
     Reconstruct a binary quadratic from the value of its discriminant.
 
@@ -188,10 +189,10 @@ def binary_quadratic_from_invariants(discriminant, invariant_choice='default'):
 
     EXAMPLES::
 
-        sage: from sage.rings.invariants.reconstruction import binary_quadratic_from_invariants
-        sage: binary_quadratic_from_invariants(1)
+        sage: from sage.rings.invariants.reconstruction import binary_quadratic_coefficients_from_invariants
+        sage: binary_quadratic_coefficients_from_invariants(1)
         (0, 1, 0)
-        sage: binary_quadratic_from_invariants(0)
+        sage: binary_quadratic_coefficients_from_invariants(0)
         (1, 0, 0)
     """
     if invariant_choice not in ['default', 'discriminant']:
@@ -203,7 +204,7 @@ def binary_quadratic_from_invariants(discriminant, invariant_choice='default'):
         return (0, 1, 0)
 
 
-def binary_cubic_from_invariants(discriminant, invariant_choice='default'):
+def binary_cubic_coefficients_from_invariants(discriminant, invariant_choice='default'):
     """
     Reconstruct a binary cubic from the value of its discriminant.
 
@@ -219,14 +220,14 @@ def binary_cubic_from_invariants(discriminant, invariant_choice='default'):
 
     EXAMPLES::
 
-        sage: from sage.rings.invariants.reconstruction import binary_cubic_from_invariants
-        sage: binary_cubic_from_invariants(1)
+        sage: from sage.rings.invariants.reconstruction import binary_cubic_coefficients_from_invariants
+        sage: binary_cubic_coefficients_from_invariants(1)
         (0, 1, -1, 0)
 
     The two non-equivalent cubics `x^3` and `x^2*z` with discriminant 0 can't
     be distinguished based on their discriminant, hence an error is raised::
 
-        sage: binary_cubic_from_invariants(0)
+        sage: binary_cubic_coefficients_from_invariants(0)
         Traceback (most recent call last):
         ...
         ValueError: No unique reconstruction possible for binary cubics with a double root.
@@ -241,7 +242,7 @@ def binary_cubic_from_invariants(discriminant, invariant_choice='default'):
         return (0, 1, -1, 0)
 
 
-def binary_quintic_from_invariants(invariants, K=None, invariant_choice='clebsch', scaling='none'):
+def binary_quintic_coefficients_from_invariants(invariants, K=None, invariant_choice='clebsch', scaling='none'):
     r"""
     Reconstruct a binary quintic from the values of its Clebsch invariants.
 
@@ -267,12 +268,12 @@ def binary_quintic_from_invariants(invariants, K=None, invariant_choice='clebsch
 
     First we check the general case, where the invariant `M` is non-zero::
 
-        sage: from sage.rings.invariants.reconstruction import binary_quintic_from_invariants
+        sage: from sage.rings.invariants.reconstruction import binary_quintic_coefficients_from_invariants
         sage: R.<x0, x1> = QQ[]
         sage: p = 3*x1^5 + 6*x1^4*x0 + 3*x1^3*x0^2 + 4*x1^2*x0^3 - 5*x1*x0^4 + 4*x0^5
         sage: quintic = invariant_theory.binary_quintic(p, x0, x1)
         sage: invs = quintic.clebsch_invariants(as_tuple=True)
-        sage: reconstructed = binary_form_from_invariants(5, invs)
+        sage: reconstructed = binary_polynomial_from_invariants(5, invs)
         sage: reconstructed
         9592267437341790539005557/244140625000000*x^5
         + 2149296928207625556323004064707/610351562500000000*x^4*z
@@ -316,7 +317,7 @@ def binary_quintic_from_invariants(invariants, K=None, invariant_choice='clebsch
         sage: [A,B,C] = [3,1,2]
         sage: M = 2*A*B - 3*C; M
         0
-        sage: reconstructed = binary_quintic_from_invariants([A,B,C])
+        sage: reconstructed = binary_quintic_coefficients_from_invariants([A,B,C])
         sage: reconstructed
         (-66741943359375/2097152,
          -125141143798828125/134217728,
@@ -334,37 +335,37 @@ def binary_quintic_from_invariants(invariants, K=None, invariant_choice='clebsch
 
         sage: quintic = invariant_theory.binary_quintic(x0^5 - x1^5, x0, x1)
         sage: invs = quintic.clebsch_invariants(as_tuple=True)
-        sage: binary_quintic_from_invariants(invs)
+        sage: binary_quintic_coefficients_from_invariants(invs)
         (1, 0, 0, 0, 0, 1)
         sage: quintic = invariant_theory.binary_quintic(x0*x1*(x0^3-x1^3), x0, x1)
         sage: invs = quintic.clebsch_invariants(as_tuple=True)
-        sage: binary_quintic_from_invariants(invs)
+        sage: binary_quintic_coefficients_from_invariants(invs)
         (0, 1, 0, 0, 1, 0)
         sage: quintic = invariant_theory.binary_quintic(x0^5 + 10*x0^3*x1^2 - 15*x0*x1^4, x0, x1)
         sage: invs = quintic.clebsch_invariants(as_tuple=True)
-        sage: binary_quintic_from_invariants(invs)
+        sage: binary_quintic_coefficients_from_invariants(invs)
         (1, 0, 10, 0, -15, 0)
         sage: quintic = invariant_theory.binary_quintic(x0^2*(x0^3 + x1^3), x0, x1)
         sage: invs = quintic.clebsch_invariants(as_tuple=True)
-        sage: binary_quintic_from_invariants(invs)
+        sage: binary_quintic_coefficients_from_invariants(invs)
         (1, 0, 0, 1, 0, 0)
         sage: quintic = invariant_theory.binary_quintic(x0*(x0^4 + x1^4), x0, x1)
         sage: invs = quintic.clebsch_invariants(as_tuple=True)
-        sage: binary_quintic_from_invariants(invs)
+        sage: binary_quintic_coefficients_from_invariants(invs)
         (1, 0, 0, 0, 1, 0)
 
     For fields of characteristic 2, 3 or 5, there is no reconstruction
     implemented. This is part of :trac:`26786`.::
 
-        sage: binary_quintic_from_invariants([3,1,2], K=GF(5))
+        sage: binary_quintic_coefficients_from_invariants([3,1,2], K=GF(5))
         Traceback (most recent call last):
         ...
         NotImplementedError: No reconstruction of binary quintics implemented for fields of characteristic 2, 3 or 5.
 
     TESTS::
 
-        sage: from sage.rings.invariants.reconstruction import binary_quintic_from_invariants
-        sage: binary_quintic_from_invariants([1,2,3], scaling='unknown')
+        sage: from sage.rings.invariants.reconstruction import binary_quintic_coefficients_from_invariants
+        sage: binary_quintic_coefficients_from_invariants([1,2,3], scaling='unknown')
         Traceback (most recent call last):
         ...
         ValueError: Unknown scaling option 'unknown'.

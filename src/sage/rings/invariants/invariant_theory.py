@@ -114,6 +114,7 @@ from sage.matrix.constructor import matrix
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp_method, richcmp
 from sage.misc.cachefunc import cached_method
+from sage.rings.invariants.reconstruction import binary_polynomial_from_invariants
 
 
 ######################################################################
@@ -2342,22 +2343,14 @@ class BinaryQuintic(AlgebraicForm):
             sage: f.canonical_form() == gf.canonical_form()
             True
             sage: h = f.canonical_form(reduce_gcd=True)
-            sage: h
-            -213283188977836948916637112*x^5
-            + 321985270425555686062507878508*x^4*z
-            - 200784910088189544791250665877691*x^3*z^2
-            + 99010920119365544008752617152096288*x^2*z^3
-            - 7397995330446821406603692136406937696*x*z^4
-            - 523963051960072769018084726765089970426*z^5
-            sage: gcd(invariant_theory.binary_quintic(h).coeffs())
+            sage: gcd(h.coeffs())
             1
         """
-        from sage.rings.invariants.reconstruction import binary_form_from_invariants
         clebsch = self.clebsch_invariants(as_tuple=True)
         if reduce_gcd:
-            return binary_form_from_invariants(5, clebsch, scaling='coprime')
+            return invariant_theory.binary_form_from_invariants(5, clebsch, scaling='coprime')
         else:
-            return binary_form_from_invariants(5, clebsch, scaling='normalized')
+            return invariant_theory.binary_form_from_invariants(5, clebsch, scaling='normalized')
 
 
 ######################################################################
@@ -4189,6 +4182,48 @@ can then be queried for invariant and covariants. For example,
             <class 'sage.rings.invariants.invariant_theory.BinaryQuintic'>
         """
         return BinaryQuintic(2, 5, quintic, *args, **kwds)
+
+    def binary_form_from_invariants(self, degree, invariants, *args, **kwds):
+        """
+        Construct binary form from invariant values.
+
+        Constructs a binary form based on the given variants. For a more
+        detailed description, see :mod:`~sage.rings.invariant_theory.reconstruction`
+
+        INPUT:
+
+        - ``degree`` -- The degree of the binary form.
+
+        - ``invariants`` -- A list or tuple of values of the invariants of the
+          binary form.
+
+        REFERENCES:
+
+        - :wikipedia:`Invariant_of_a_binary_form`
+
+        EXAMPLES::
+
+            invariant_theory.binary_form_from_invariants(5, [1,3,2])
+            Binary quintic with coefficients (67618020872076774263589747/4398046511104,
+            -985685435453014202093145/1099511627776, 957906156902832072005/34359738368,
+            0, -8142067989552245/134217728, 4747561509943/6291456)
+
+            sage: invariant_theory.binary_form_from_invariants(3, [1])
+            Warning: Construction of binary forms of degree 3 is not implemented; a polynomial was returned.
+            x^2*z - x*z^2
+        """
+
+        polynomial = binary_polynomial_from_invariants(degree, invariants, *args, **kwds)
+        ic = ['constant form', 'monic', 'quadratic', 'cubic', 'quartic', 'quintic',
+              'sextic', 'septimic', 'octavic', 'nonic', 'decimic',
+              'undecimic', 'duodecimic']
+        try:
+            construct_method = 'self.binary_' + ic[degree] + '(polynomial)'
+            return eval(construct_method)
+        except (IndexError, AttributeError) as e:
+            print('Warning: Construction of binary forms of degree {} is not'
+                 ' implemented; a polynomial was returned.'.format(degree))
+            return polynomial
 
     def ternary_quadratic(self, quadratic, *args, **kwds):
         """

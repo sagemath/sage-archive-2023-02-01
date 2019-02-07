@@ -48,6 +48,7 @@ AUTHORS:
 - Volker Braun (2013-1) port to new Parent, libGAP.
 
 - Sebastian Oehms (2018-07): Added _permutation_group_element_ (Trac #25706)
+- Sebastian Oehms (2019-01): Revision of :trac:`25706` (:trac:`26903`and :trac:`27143`).
 """
 
 ##############################################################################
@@ -62,7 +63,7 @@ AUTHORS:
 ##############################################################################
 from __future__ import print_function
 
-from sage.rings.all import ZZ, Integer
+from sage.rings.all import ZZ
 from sage.rings.all import QQbar
 from sage.interfaces.gap import gap
 from sage.structure.element import is_Matrix
@@ -631,10 +632,8 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         if not self.is_finite():
             raise NotImplementedError("Group must be finite.")
         if seed is not None:
-            if not isinstance(seed, (int, Integer)):
-                raise ValueError( 'seed must be an integer' )
             from sage.libs.gap.libgap import libgap
-            libgap.set_seed(seed)
+            libgap.set_seed(ZZ(seed))
         iso=self._libgap_().IsomorphismPermGroup()
         if algorithm == "smaller":
             iso=iso.Image().SmallerDegreePermutationRepresentation()

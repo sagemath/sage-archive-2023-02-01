@@ -283,7 +283,7 @@ from __future__ import print_function, absolute_import
 
 from copy import copy
 import six
-from six.moves import range
+from six.moves import range, zip
 
 from sage.interfaces.all import gap
 from sage.libs.all import pari
@@ -312,11 +312,10 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
 
-from .combinat import CombinatorialClass, CombinatorialElement
+from .combinat import CombinatorialElement
 from . import tableau
 from . import permutation
 from . import composition
-from sage.combinat.composition import Composition
 from sage.combinat.partitions import number_of_partitions as bober_number_of_partitions
 from sage.combinat.partitions import ZS1_iterator, ZS1_iterator_nk
 from sage.combinat.integer_vector import IntegerVectors
@@ -325,8 +324,6 @@ from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.graphs.dot2tex_utils import have_dot2tex
-
-
 
 class Partition(CombinatorialElement):
     r"""
@@ -542,24 +539,16 @@ class Partition(CombinatorialElement):
         if isinstance(mu, Partition):
             # Since we are (suppose to be) immutable, we can share the underlying data
             CombinatorialElement.__init__(self, parent, mu._list)
-            return
-
-        elif not mu:
-            CombinatorialElement.__init__(self, parent, mu)
-
-        elif (all(mu[i] in NN and mu[i] >= mu[i+1] for i in range(len(mu)-1))
-                and mu[-1] in NN):
-            if mu[-1] == 0: # From the above checks, the last value must be == 0 or > 0
-                # strip all trailing zeros
-                temp = len(mu) - 1
-                while temp > 0 and mu[temp-1] == 0:
-                    temp -= 1
-                CombinatorialElement.__init__(self, parent, mu[:temp])
-            else:
-                CombinatorialElement.__init__(self, parent, mu)
 
         else:
-            raise ValueError("%s is not a valid partition"%repr(mu))
+            try:
+                zero = mu.index(0)
+            except ValueError:
+                CombinatorialElement.__init__(self, parent, mu)
+            except AttributeError:
+                raise TypeError("%s is not a valid partition"%repr(mu))
+            else:
+                CombinatorialElement.__init__(self, parent, mu[:zero])
 
     @cached_method
     def __hash__(self):
@@ -1467,7 +1456,7 @@ class Partition(CombinatorialElement):
 
         INPUT:
 
-        - ``h`` -- An integer `h \geq 1`.  The (*minimum*) height of the 
+        - ``h`` -- An integer `h \geq 1`.  The (*minimum*) height of the
           rectangle.
 
         - ``w`` -- An integer `w \geq 1`.  The width of the rectangle.
@@ -1514,8 +1503,8 @@ class Partition(CombinatorialElement):
         Return ``True`` if the Ferrer's diagram of ``self`` contains `k-i+1`
         rows (*or more*) of length `i` (*exactly*) for any `i` in `[1, k]`.
 
-        This is mainly a helper function for :meth:`is_k_reducible` and 
-        :meth:`is_k_irreducible`, the only difference between this function and 
+        This is mainly a helper function for :meth:`is_k_reducible` and
+        :meth:`is_k_irreducible`, the only difference between this function and
         :meth:`is_k_reducible` being that this function allows any partition as
         input while :meth:`is_k_reducible` requires the input to be `k`-bounded.
 
@@ -5976,12 +5965,28 @@ class Partitions(UniqueRepresentation, Parent):
             True
             sage: Partition([3/1, 2]) in P
             True
+
+        Check that non-integers and non-lists are excluded::
+
+            sage: P = Partitions()
+            sage: [2,1.5] in P
+            False
+
+            sage: 0 in P
+            False
+
         """
         if isinstance(x, Partition):
             return True
         if isinstance(x, (list, tuple)):
-            return len(x) == 0 or (x[-1] in NN and
-                                   all(x[i] in NN and x[i] >= x[i+1] for i in range(len(x)-1)))
+            if x:
+                try:
+                    return (all(Integer(a) >= b for a, b in zip(x, x[1:]))
+                            and Integer(x[-1]) >= 0)
+                except TypeError:
+                    return False
+            return True
+        return False
 
     def subset(self, *args, **kwargs):
         r"""
@@ -6304,7 +6309,7 @@ class Partitions_all_bounded(Partitions):
             sage: [] in P
             True
         """
-        return len(x) == 0 or (x[0] <= self.k and Partitions.__contains__(self, x))
+        return not x or (x[0] <= self.k and x in _Partitions)
 
     def _repr_(self):
         """

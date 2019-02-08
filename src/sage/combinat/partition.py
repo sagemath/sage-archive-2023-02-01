@@ -5933,9 +5933,10 @@ class Partitions(UniqueRepresentation, Parent):
         try:
             lst = map(ZZ, lst)
         except TypeError:
-            raise ValueError('%s is not an element of %s'%(lst, self))
+            raise ValueError('%s is not an element of %s'%(repr(lst), self))
 
         if lst in self:
+            # trailing zeros are removed in Partition.__init__
             return self.element_class(self, lst)
 
         raise ValueError('%s is not an element of %s'%(lst, self))

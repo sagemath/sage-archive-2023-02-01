@@ -589,6 +589,7 @@ class DiGraphGenerators():
     def nauty_directg(self, graphs, options="", debug=False):
         r"""
         Return an iterator yielding digraphs using nauty's ``directg`` program.
+
         Description from directg --help:
         Read undirected graphs and orient their edges in all possible ways.
         Edges can be oriented in either or both directions (3 possibilities).
@@ -644,8 +645,14 @@ class DiGraphGenerators():
             &BP_
             <BLANKLINE>
             Digraph on 3 vertices
+
+        .. SEEALSO::
+
+            - :meth:`~sage.graphs.graph.Graph.orientations`
         """
-        if not graphs:
+        if isinstance(graphs, Graph):
+            graphs = [graphs]
+        elif not graphs:
             return
 
         if '-u' in options or '-T' in options or '-G' in options:
@@ -658,9 +665,6 @@ class DiGraphGenerators():
             enc_kwargs = {}
         else:
             enc_kwargs = {'encoding': 'latin-1'}
-
-        if isinstance(graphs, Graph):
-            graphs = [graphs]
 
         # Build directg input (graphs6 format)
         input = ''.join(g.graph6_string()+'\n' for g in graphs)

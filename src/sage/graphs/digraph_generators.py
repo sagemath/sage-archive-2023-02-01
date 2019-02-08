@@ -587,12 +587,18 @@ class DiGraphGenerators():
 
     def nauty_directg(self, graphs, options="", debug=False):
         r"""
-        Returns a list which creates digraphs from nauty's directg program.
+        Return an iterator yielding digraphs using nauty's ``directg`` program.
+        Description from directg --help:
+        Read undirected graphs and orient their edges in all possible ways.
+        Edges can be oriented in either or both directions (3 possibilities).
+        Isomorphic directed graphs derived from the same input are suppressed.
+        If the input graphs are non-isomorphic then the output graphs are also.
 
         INPUT:
 
-        - ``graphs`` (iterable) -- A :class:`Graph` or an iterable containing
-          :class:`Graph`.
+        - ``graphs`` -- a :class:`Graph` or an iterable containing :class:`Graph`
+          the graph6 string of these graphs is used as an input for ``directg``.
+
         - ``options`` (str) -- a string passed to directg as if it was run at
           a system command line. Available options from directg --help::
 
@@ -604,6 +610,9 @@ class DiGraphGenerators():
             -s#/#  Make only a fraction of the orientations: The first integer is
                     the part number (first is 0) and the second is the number of
                     parts. Splitting is done per input graph independently.
+
+        - ``debug`` (boolean) -- default: ``False`` - if ``True``
+          directg standard error and standard output are displayed.
 
         EXAMPLES::
 
@@ -625,7 +634,19 @@ class DiGraphGenerators():
             Traceback (most recent call last):
             ...
             ValueError: directg output options [-u|-T|-G] are not allowed
+            sage: next(digraphs.nauty_directg(graphs.nauty_geng("-c 3"),
+            ....:     options="-o", debug=True))
+            &BH?
+            &BGO
+            &B?o
+            &BX?
+            &BP_
+            <BLANKLINE>
+            Digraph on 3 vertices
         """
+        if not graphs:
+            return
+
         if '-u' in options or '-T' in options or '-G' in options:
             raise ValueError("directg output options [-u|-T|-G] are not allowed")
 
@@ -648,15 +669,22 @@ class DiGraphGenerators():
                                stdin=subprocess.PIPE,
                                stderr=subprocess.STDOUT,
                                **enc_kwargs)
-        out = sub.communicate(input=input)[0]
+        out, err = sub.communicate(input=input)
+
+        if debug:
+            if err:
+                print(err)
+
+            if out:
+                print(out)
 
         for l in out.split('\n'):
             # directg return graphs in the digraph6 format.
             # digraph6 is very similar with the dig6 format used in sage :
             # digraph6_string = '&' +  dig6_string
             # digraph6 specifications: http://users.cecs.anu.edu.au/~bdm/data/formats.txt
-            if l != '' and l[0] == '&':
-                yield DiGraph(l[1:])
+            if l and l[0] == '&':
+                yield DiGraph(l[1:], format='dig6')
 
     def Complete(self, n, loops=False):
         r"""

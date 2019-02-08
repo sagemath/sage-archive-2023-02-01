@@ -76,6 +76,7 @@ Sage example in ./sol/polynomes.tex, line 296::
 
 Sage example in ./sol/polynomes.tex, line 383::
 
+  sage: from sage.matrix.berlekamp_massey import berlekamp_massey
   sage: berlekamp_massey([1, 1, 2, 3, 8, 11, 34, 39, 148, 127])
   x^3 - 5*x + 2
 

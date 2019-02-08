@@ -1032,7 +1032,7 @@ class JankoGroup(PermutationGroup_unique):
         TESTS::
 
             sage: G.category() # optional - gap_packages internet
-            Category of finite permutation groups
+            Category of finite enumerated permutation groups
             sage: TestSuite(G).run(skip=["_test_enumerated_set_contains", "_test_enumerated_set_iter_list"]) # optional - gap_packages internet
         """
         from sage.interfaces.gap import gap
@@ -1065,7 +1065,7 @@ class SuzukiSporadicGroup(PermutationGroup_unique):
         TESTS::
 
             sage: G.category() # optional - gap_packages internet
-            Category of finite permutation groups
+            Category of finite enumerated permutation groups
             sage: TestSuite(G).run(skip=["_test_enumerated_set_contains", "_test_enumerated_set_iter_list"]) # optional - gap_packages internet
         """
         gap.load_package("atlasrep")

@@ -1141,28 +1141,32 @@ class RiemannSurface(object):
             sage: R.<z,w> = QQ[]
             sage: g = w^2 - z^4 + 1
             sage: S = RiemannSurface(g)
-            sage: S.homology_basis()
-            [[(1,
-               [(3, 1),
-                (5, 0),
-                (9, 0),
-                (10, 0),
-                (2, 0),
-                (4, 0),
-                (7, 1),
-                (10, 1),
-                (3, 1)])],
-             [(1,
-               [(8, 0),
-                (6, 0),
-                (7, 0),
-                (10, 0),
-                (2, 0),
-                (4, 0),
-                (7, 1),
-                (10, 1),
-                (9, 1),
-                (8, 0)])]]
+            sage: S.homology_basis() #random
+            [[(1, [(3, 1), (5, 0), (9, 0), (10, 0), (2, 0), (4, 0),
+                (7, 1), (10, 1), (3, 1)])],
+             [(1, [(8, 0), (6, 0), (7, 0), (10, 0), (2, 0), (4, 0),
+                (7, 1), (10, 1), (9, 1), (8, 0)])]]
+                
+        In order to check that the answer returned above is reasonable, we
+        test some basic properties. We express the faces of the downstairs graph
+        as ZZ-linear combinations of the edges and check that the projection
+        of the homology basis upstairs projects down to independent linear
+        combinations of an even number of faces::
+        
+            sage: dg = S.downstairs_graph()
+            sage: edges = dg.edges()
+            sage: E = ZZ^len(edges)
+            sage: edge_to_E = { e[:2]: E.gen(i) for i,e in enumerate(edges)}
+            sage: edge_to_E.update({ (e[1],e[0]): -E.gen(i) for i,e in enumerate(edges)})
+            sage: face_span = E.submodule([sum(edge_to_E[e] for e in f) for f in dg.faces()])
+            sage: def path_to_E(path):
+            ....:     k,P = path
+            ....:     return k*sum(edge_to_E[(P[i][0],P[i+1][0])] for i in range(len(P)-1))
+            sage: hom_basis = [sum(path_to_E(p) for p in loop) for loop in S.homology_basis()]
+            sage: face_span.submodule(hom_basis).rank()
+            2
+            sage: [sum(face_span.coordinate_vector(b))%2 for b in hom_basis]
+            [0, 0]
         """
         if self.genus == 0:
             return []
@@ -1493,8 +1497,12 @@ class RiemannSurface(object):
             sage: R.<x,y> = QQ[]
             sage: S = RiemannSurface(x^3 + y^3 + 1)
             sage: B = S.cohomology_basis()
-            sage: S.matrix_of_integral_values(B) #abs tol 1e-12
-            [   0.883319375142725 - 1.52995403705719*I 1.76663875028545 + 5.55111512312578e-17*I]
+            sage: m = S.matrix_of_integral_values(B)
+            sage: parent(m)
+            Full MatrixSpace of 1 by 2 dense matrices over Complex Field with 53 bits of precision
+            sage: (m[0,0]/m[0,1]).algdep(3).degree() #curve is CM, so the period is quadratic
+            2
+
         """
         cycles = self.homology_basis()
         def normalize_pairs(L):
@@ -1698,11 +1706,14 @@ class RiemannSurface(object):
             sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
             sage: R.<x,y> = QQ[]
             sage: S = RiemannSurface(x^3 + y^3 + 1)
-            sage: S.endomorphism_basis()
+            sage: B = S.endomorphism_basis(); B #random
             [
             [1 0]  [ 0 -1]
             [0 1], [ 1  1]
             ]
+            sage: sorted([b.minpoly().disc() for b in B])
+            [-3, 1]
+
         """
         M = self.riemann_matrix()
         return integer_matrix_relations(M,M,b,r)

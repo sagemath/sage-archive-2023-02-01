@@ -613,10 +613,10 @@ def call_intersphinx(app, env, node, contnode):
         sage: thematic_index = os.path.join(SAGE_DOC, "html", "en", "thematic_tutorials", "index.html")  # optional - dochtml
         sage: for line in open(thematic_index).readlines():  # optional - dochtml
         ....:     if "padics" in line:
-        ....:         sys.stdout.write(line)
+        ....:         _ = sys.stdout.write(line)
         <li><a class="reference external" href="../reference/padics/sage/rings/padics/tutorial.html#sage-rings-padics-tutorial" title="(in Sage Reference Manual: p-Adics v...)"><span>Introduction to the -adics</span></a></li>
     """
-    debug_inf(app, "???? Trying intersphinx for %s"%node['reftarget'])
+    debug_inf(app, "???? Trying intersphinx for %s" % node['reftarget'])
     builder = app.builder
     res =  sphinx.ext.intersphinx.missing_reference(
         app, env, node, contnode)
@@ -628,9 +628,9 @@ def call_intersphinx(app, env, node, contnode):
             here = os.path.dirname(os.path.join(builder.outdir,
                                                 node['refdoc']))
             res['refuri'] = os.path.relpath(res['refuri'], here)
-            debug_inf(app, "++++ Found at %s"%res['refuri'])
+            debug_inf(app, "++++ Found at %s" % res['refuri'])
     else:
-        debug_inf(app, "---- Intersphinx: %s not Found"%node['reftarget'])
+        debug_inf(app, "---- Intersphinx: %s not Found" % node['reftarget'])
     return res
 
 def find_sage_dangling_links(app, env, node, contnode):
@@ -644,7 +644,7 @@ def find_sage_dangling_links(app, env, node, contnode):
     try:
         doc = node['refdoc']
     except KeyError:
-        debug_inf(app, "-- no refdoc in node %s"%node)
+        debug_inf(app, "-- no refdoc in node %s" % node)
         return None
 
     debug_inf(app, "Searching %s from %s"%(reftarget, doc))

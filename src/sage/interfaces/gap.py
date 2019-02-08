@@ -226,8 +226,8 @@ def set_gap_memory_pool_size(size_in_bytes):
     """
     Set the desired gap memory pool size.
 
-    Subsequently started GAP/libGAP instances will use this as
-    default. Currently running instances are unchanged.
+    Subsequently started GAP instances will use this as default.
+    Already running instances are unchanged.
 
     GAP will only reserve ``size_in_bytes`` address space. Unless you
     actually start a big GAP computation, the memory will not be

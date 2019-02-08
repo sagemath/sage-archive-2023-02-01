@@ -1477,8 +1477,10 @@ def is_twograph_descendant_of_srg(int v, int k0, int l, int mu):
         sage: from sage.graphs.strongly_regular_db import is_twograph_descendant_of_srg
         sage: t = is_twograph_descendant_of_srg(27, 10, 1, 5); t
         (<cyfunction is_twograph_descendant_of_srg.<locals>.la at...
-        sage: g = t[0](*t[1:]); g
+        sage: g = t[0](*t[1:]); g  # py2
         descendant of complement(Johnson graph with parameters 8,2) at {5, 7}: Graph on 27 vertices
+        sage: g = t[0](*t[1:]); g  # py3
+        descendant of complement(Johnson graph with parameters 8,2) at {0, 1}: Graph on 27 vertices
         sage: g.is_strongly_regular(parameters=True)
         (27, 10, 1, 5)
         sage: t = is_twograph_descendant_of_srg(5,5,5,5); t
@@ -2231,19 +2233,19 @@ def SRG_196_91_42_42():
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
     from sage.graphs.generators.intersection import IntersectionGraph
     k = 7
-    G = IntegerModRing(91)
-    A = map(G,{0, 10, 27, 28, 31, 43, 50})
-    B = map(G,{0, 11, 20, 25, 49, 55, 57})
-    H = map(G,[13*i for i in range(k)])
-    U = list(map(frozenset, [[x + z for x in A] for z in G]))
-    V = list(map(frozenset, [[x + z for x in B] for z in G]))
-    W = list(map(frozenset, [[x + z for x in H] for z in G]))
+    R = IntegerModRing(91)
+    A = list(map(R, [0, 10, 27, 28, 31, 43, 50]))
+    B = list(map(R, [0, 11, 20, 25, 49, 55, 57]))
+    H = list(map(R, [13 * i for i in range(k)]))
+    U = list(map(frozenset, [[x + z for x in A] for z in R]))
+    V = list(map(frozenset, [[x + z for x in B] for z in R]))
+    W = list(map(frozenset, [[x + z for x in H] for z in R]))
     G = IntersectionGraph(U + V + W)
 
     G.seidel_switching(U)
 
-    G.add_edges((-1,x) for x in U)
-    G.relabel()
+    G.add_edges((-1, x) for x in U)
+    G.relabel(perm={u: i for i, u in enumerate(G)})
     G.name('RSHCD+')
     return G
 

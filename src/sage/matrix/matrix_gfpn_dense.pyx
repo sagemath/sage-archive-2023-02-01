@@ -29,7 +29,7 @@ AUTHORS:
 from __future__ import print_function, absolute_import, division
 
 from cysignals.memory cimport check_realloc, check_malloc, sig_free
-from cpython.bytes cimport PyBytes_AsString, PyBytes_FromStringAndSize
+from cpython.bytes cimport PyBytes_FromStringAndSize
 from cysignals.signals cimport sig_on, sig_off, sig_check
 cimport cython
 
@@ -849,8 +849,8 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         d1 = <char*>(self.Data.Data)
         d2 = <char*>(N.Data.Data)
         cdef bytes s1, s2
-        s1 = PyBytes_FromStringAndSize(d1,self.Data.RowSize * self.Data.Nor)
-        s2 = PyBytes_FromStringAndSize(d2,N.Data.RowSize * N.Data.Nor)
+        s1 = PyBytes_FromStringAndSize(d1, self.Data.RowSize * self.Data.Nor)
+        s2 = PyBytes_FromStringAndSize(d2, N.Data.RowSize * N.Data.Nor)
         if s1 != s2:
             if s1 > s2:
                 return 1
@@ -1932,7 +1932,7 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
         pickled_rowsize = lenData//nr
         if lenData != pickled_rowsize*nr:
             raise ValueError(f"Expected a pickle with {FfCurrentRowSizeIo}*{nr} bytes, got {lenData} instead")
-        x = PyBytes_AsString(Data)
+        x = Data
         if pickled_rowsize == FfCurrentRowSizeIo:
             pt = OUT.Data.Data
             for i in range(nr):

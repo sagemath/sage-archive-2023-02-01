@@ -1008,7 +1008,7 @@ class FriCASElement(ExpectElement):
             {{\log \left( {{e+1}} \right)} \  {\sin \left( {{y+x}} \right)}} \over {{e} ^{z}}
 
             sage: latex(fricas("matrix([[1,2],[3,4]])"))                        # optional - fricas
-            \left[ \begin{array}{cc} 1 & 2 \\ 3 & 4 \end{array}  \right]
+            \left[ \begin{array}{cc} 1 & 2 \\ 3 & 4\end{array}  \right]
 
             sage: latex(fricas("integrate(sin(x+1/x),x)"))                      # optional - fricas
             \int ^{\displaystyle x} {{\sin \left( {{{{{ \%O} ^{2}}+1} \over  \%O}} \right)} \  {d \%O}}
@@ -1018,7 +1018,7 @@ class FriCASElement(ExpectElement):
                         (r'\sb ', '_'),
                         (r'\sb{', '_{')]
         P = self._check_valid()
-        s = P.get_string("first tex(%s)" % self._name)
+        s = P.get_string("latex(%s)" % self._name)
         for old, new in replacements:
             s = s.replace(old, new)
         return s

@@ -9041,7 +9041,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: flow_graph.edges()
             [('000', '001', 1)]
         """
-
+        from sage.misc.functional import round
         from sage.graphs.digraph import DiGraph
         g = DiGraph()
 
@@ -9080,7 +9080,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # returning a graph with the same embedding, the corresponding name, etc ...
         h = self.subgraph(edges=[], immutable=False)
-        h.delete_vertices([v for v in self if (v not in g) or not g.degree(v)])
+        h.delete_vertices(v for v in self if (v not in g) or not g.degree(v))
         h.add_edges(g.edge_iterator())
 
         return h
@@ -9749,8 +9749,8 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = graphs.CubeGraph(4)
             sage: l = ['0111', '0000', '0001', '0011', '0010', '0101', '0100', '1111', '1101', '1011', '1001']
-            sage: G.vertex_boundary(['0000', '1111'], l)
-            ['0111', '0001', '0010', '0100', '1101', '1011']
+            sage: sorted(G.vertex_boundary(['0000', '1111'], l))
+            ['0001', '0010', '0100', '0111', '1011', '1101']
 
         ::
 
@@ -9945,18 +9945,18 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES::
 
-            sage: G = graphs.CubeGraph(3)
-            sage: for i in G.neighbor_iterator('010'):
-            ....:  print(i)
-            011
-            000
-            110
+            sage: G = graphs.PetersenGraph()
+            sage: for i in G.neighbor_iterator(0):
+            ....:     print(i)
+            1
+            4
+            5
             sage: D = G.to_directed()
-            sage: for i in D.neighbor_iterator('010'):
-            ....:  print(i)
-            011
-            000
-            110
+            sage: for i in D.neighbor_iterator(0):
+            ....:     print(i)
+            1
+            4
+            5
 
         ::
 
@@ -11481,11 +11481,17 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: D = digraphs.DeBruijn(4, 2)
             sage: D.delete_vertex('20')
-            sage: print(D.degree())
+            sage: print(D.degree())                       # py2
             [6, 7, 7, 7, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8, 8]
-            sage: print(D.degree(vertices=list(D)))
+            sage: print(D.degree(vertices=list(D)))       # py2
             [6, 7, 7, 7, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8, 8]
-            sage: print(D.degree(vertices=D.vertices()))
+            sage: print(D.degree(vertices=D.vertices()))  # py2
+            [7, 7, 6, 7, 8, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8]
+            sage: print(D.degree())                       # py3
+            [7, 7, 6, 7, 8, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8]
+            sage: print(D.degree(vertices=list(D)))       # py3
+            [7, 7, 6, 7, 8, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8]
+            sage: print(D.degree(vertices=D.vertices()))  # py3
             [7, 7, 6, 7, 8, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8]
         """
         if labels:
@@ -11585,50 +11591,84 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: G = graphs.Grid2dGraph(3, 4)
-            sage: for i in G.degree_iterator():
-            ....:  print(i)
+            sage: for i in G.degree_iterator():  # py2
+            ....:     print(i)                   # py2
             3
             4
             2
             ...
             2
             4
-            sage: for i in G.degree_iterator(labels=True):
-            ....:  print(i)
+            sage: for i in G.degree_iterator():  # py3
+            ....:     print(i)                   # py3
+            2
+            3
+            3
+            ...
+            3
+            2
+            sage: for i in G.degree_iterator(labels=True):  # py2
+            ....:  print(i)                                 # py2
             ((0, 1), 3)
             ((1, 2), 4)
             ((0, 0), 2)
             ...
             ((0, 3), 2)
             ((1, 1), 4)
+            sage: for i in G.degree_iterator(labels=True):  # py3
+            ....:  print(i)                                 # py3
+            ((0, 0), 2)
+            ((0, 1), 3)
+            ((0, 2), 3)
+            ...
+            ((2, 2), 3)
+            ((2, 3), 2)
 
         ::
 
             sage: D = graphs.Grid2dGraph(2,4).to_directed()
-            sage: for i in D.degree_iterator():
-            ....:  print(i)
+            sage: for i in D.degree_iterator():              # py2
+            ....:     print(i)                               # py2
             6
             6
             ...
             4
             6
-            sage: for i in D.degree_iterator(labels=True):
-            ....:  print(i)
+            sage: for i in D.degree_iterator():              # py3
+            ....:     print(i)                               # py3
+            4
+            6
+            ...
+            6
+            4
+            sage: for i in D.degree_iterator(labels=True):  # py2
+            ....:     print(i)                              # py2
             ((0, 1), 6)
             ((1, 2), 6)
             ...
             ((1, 0), 4)
             ((0, 2), 6)
+            sage: for i in D.degree_iterator(labels=True):  # py3
+            ....:     print(i)                              # py3
+            ((0, 0), 4)
+            ((0, 1), 6)
+            ...
+            ((1, 2), 6)
+            ((1, 3), 4)
 
         When ``vertices=None`` yields values in the order of ``list(D)``::
 
             sage: V = list(D)
             sage: D = digraphs.DeBruijn(4, 2)
             sage: D.delete_vertex('20')
-            sage: print(list(D.degree_iterator()))
+            sage: print(list(D.degree_iterator()))  # py2
             [6, 7, 7, 7, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8, 8]
-            sage: print([D.degree(v) for v in D])
+            sage: print([D.degree(v) for v in D])   # py2
             [6, 7, 7, 7, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8, 8]
+            sage: print(list(D.degree_iterator()))  # py3
+            [7, 7, 6, 7, 8, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8]
+            sage: print([D.degree(v) for v in D])   # py3
+            [7, 7, 6, 7, 8, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8]
         """
         if vertices is None:
             vertices = self
@@ -19917,7 +19957,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = graphs.Grid2dGraph(5, 5)
             sage: g._keys_for_vertices()
-            <function get_label at ...>
+            <function ...get_label at ...>
 
         TESTS:
 
@@ -19928,7 +19968,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.add_vertex("a")
             sage: s = g.graphviz_string()
         """
-        label = {v: 'node_{0}'.format(i) for i, v in enumerate(self.vertices())}
+        label = {v: 'node_{0}'.format(i) for i, v in enumerate(self)}
         def get_label(vertex):
             return label[vertex]
         return get_label
@@ -20253,17 +20293,37 @@ class GenericGraph(GenericGraph_pyx):
 
         The following digraph has tuples as vertices::
 
-            sage: print(digraphs.ButterflyGraph(1).graphviz_string())
+            sage: print(DiGraph(graphs.Grid2dGraph(2,2)).graphviz_string())  # py2
             digraph {
-              node_3  [label="('1', 1)"];
-              node_0  [label="('0', 0)"];
-              node_2  [label="('1', 0)"];
-              node_1  [label="('0', 1)"];
+              node_0  [label="(0, 1)"];
+              node_1  [label="(1, 0)"];
+              node_2  [label="(0, 0)"];
+              node_3  [label="(1, 1)"];
             <BLANKLINE>
+              node_0 -> node_2;
               node_0 -> node_3;
-              node_0 -> node_1;
-              node_2 -> node_3;
+              node_1 -> node_2;
+              node_1 -> node_3;
+              node_2 -> node_0;
               node_2 -> node_1;
+              node_3 -> node_0;
+              node_3 -> node_1;
+            }
+            sage: print(DiGraph(graphs.Grid2dGraph(2,2)).graphviz_string())  # py3
+            digraph {
+              node_0  [label="(0, 0)"];
+              node_1  [label="(0, 1)"];
+              node_2  [label="(1, 0)"];
+              node_3  [label="(1, 1)"];
+            <BLANKLINE>
+              node_0 -> node_1;
+              node_0 -> node_2;
+              node_1 -> node_0;
+              node_1 -> node_3;
+              node_2 -> node_0;
+              node_2 -> node_3;
+              node_3 -> node_1;
+              node_3 -> node_2;
             }
 
         The following digraph has vertices with newlines in their string
@@ -22827,20 +22887,25 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
         if inplace:
             g._backend = G._backend
     elif not inplace:
-        G = copy( g )
+        G = copy(g)
     else:
         G = g
 
     G_order = G.order()
-    V = list(range(G_order))
-    if G.vertices() != V:
-        relabel_dict = G.relabel(return_map=True)
+    # Do not relabel if the set of vertices is equal to the set
+    # range(n). This helps to ensure that *equal* graphs on range(n)
+    # yield *equal* (not just isomorphic) canonical labelings. This
+    # is just a convenience, there is no mathematical meaning.
+    if set(G) != set(range(G_order)):
+        relabel_dict = G.relabel(return_map=True, inplace=True)
     else:
-        relabel_dict = dict( (i,i) for i in range(G_order) )
+        # Do not relabel but ensure that labels are Python ints
+        relabel_dict = {i: int(i) for i in G}
+
     if partition is None:
-        partition = [V]
+        partition = [G.vertices()]
     else:
-        partition = [ [ relabel_dict[i] for i in part ] for part in partition ]
+        partition = [[relabel_dict[i] for i in part] for part in partition]
 
     if G._directed:
         edge_iter = G._backend.iterator_in_edges(G,True)

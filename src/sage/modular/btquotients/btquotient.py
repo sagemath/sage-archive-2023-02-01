@@ -1036,7 +1036,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         if not normalized:
             v1, v2 = self.vertex(v1), self.vertex(v2)
         gamma = v2
-        vv = self.vertex(gamma.adjoint() * v1)
+        vv = self.vertex(gamma.adjugate() * v1)
         chain, v0 = self.find_path(vv)
         return [self.vertex(gamma * x) for x in chain + [v0]]
 
@@ -2954,7 +2954,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
                 x = self.embed_quaternion(beta1)
                 nn = x.determinant().valuation()
                 T = [beta1,
-                     [DoubleCosetReduction(self, x.adjoint() * e.rep,
+                     [DoubleCosetReduction(self, x.adjugate() * e.rep,
                                            extrapow=nn) for e in E]]
                 success = True
             except (PrecisionError, NotImplementedError):
@@ -3046,7 +3046,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
                         x = self.embed_quaternion(v1, prec=max(self._prec, 40),
                                                   exact=False) * alphamat
                         nn = x.determinant().valuation()
-                        dcr = [DoubleCosetReduction(self, x.adjoint() * e.rep,
+                        dcr = [DoubleCosetReduction(self, x.adjugate() * e.rep,
                                                     extrapow=nn) for e in E]
                         T.append([v1, dcr])
                         success = True
@@ -3226,7 +3226,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             X = self._Xv
         if m + 1 > self._prec:
             self.get_embedding_matrix(prec=m + 1)
-        v1adj = v1.adjoint()
+        v1adj = v1.adjugate()
         R = self._Mat_44
         vecM = [v2 * X[ii] * v1adj for ii in range(4)]
         M = self._Iotainv * R([[vecM[ii][jj, kk] for ii in range(4)]

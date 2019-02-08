@@ -22,15 +22,15 @@ TESTS::
 """
 from __future__ import absolute_import
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.categories.all        import ModularAbelianVarieties
 from sage.structure.sequence    import Sequence, Sequence_generic
@@ -3094,8 +3094,6 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         if field_of_definition is None:
             field_of_definition = QQbar
-        else:
-            field_of_definition = field_of_definition
 
         return FiniteSubgroup_lattice(
             self, X, field_of_definition=field_of_definition, check=check)

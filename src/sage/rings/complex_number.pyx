@@ -2654,9 +2654,9 @@ cdef class CCtoCDF(Map):
             sage: f(exp(pi*CC.0/4))
             0.7071067811865476 + 0.7071067811865475*I
         """
-        cdef ComplexDoubleElement z = <ComplexDoubleElement>ComplexDoubleElement.__new__(ComplexDoubleElement)
-        z._complex.dat[0] = mpfr_get_d((<ComplexNumber>x).__re, MPFR_RNDN)
-        z._complex.dat[1] = mpfr_get_d((<ComplexNumber>x).__im, MPFR_RNDN)
+        z = <ComplexDoubleElement>ComplexDoubleElement.__new__(ComplexDoubleElement)
+        z._complex.real = mpfr_get_d((<ComplexNumber>x).__re, MPFR_RNDN)
+        z._complex.imag = mpfr_get_d((<ComplexNumber>x).__im, MPFR_RNDN)
         return z
 
 

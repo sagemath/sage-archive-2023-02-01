@@ -1482,8 +1482,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         furthermore be in ``shifts``-Popov form. An error is raised if the
         input dimensions are not sound. If a single integer is provided for
         ``order``, then it is interpreted as a list of repeated integers with
-        this value. (See :meth:`approximant_basis` for definitions and more
-        details.)
+        this value. (See :meth:`minimal_approximant_basis` for definitions and 
+        more details.)
 
         INPUT:
 
@@ -1577,7 +1577,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         .. SEEALSO::
 
-            :meth:`approximant_basis` .
+            :meth:`minimal_approximant_basis` .
         """
         m = pmat.nrows()
         n = pmat.ncols()
@@ -1676,7 +1676,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         return True
 
 
-    def approximant_basis(self,
+    def minimal_approximant_basis(self,
             order,
             shifts=None,
             row_wise=True,
@@ -1740,7 +1740,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: F = Matrix(pR, [[5*x^3 + 4*x^2 + 4*x + 6, 5*x^2 + 4*x + 1], \
                                   [        2*x^2 + 2*x + 3, 6*x^2 + 6*x + 3], \
                                   [4*x^3         +   x + 1, 4*x^2 + 2*x + 3] ])
-            sage: P = F.approximant_basis(order, shifts)
+            sage: P = F.minimal_approximant_basis(order, shifts)
             sage: P.is_minimal_approximant_basis(F, order, shifts)
             True
 
@@ -1750,7 +1750,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: P.is_minimal_approximant_basis(F, order, shifts, \
                                                     normal_form=True)
             False
-            sage: P = F.approximant_basis(order, shifts, normal_form=True)
+            sage: P = F.minimal_approximant_basis(order, shifts, normal_form=True)
             sage: P.is_minimal_approximant_basis(F, order, shifts, \
                                                     normal_form=True)
             True
@@ -1759,38 +1759,38 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         by default. Besides, if the orders are all the same, one can rather
         give a single integer::
 
-            sage: F.approximant_basis(3) == \
-                    F.approximant_basis([3,3], shifts=None)
+            sage: F.minimal_approximant_basis(3) == \
+                    F.minimal_approximant_basis([3,3], shifts=None)
             True
 
         One can work column-wise by specifying ``row_wise=False``::
 
-            sage: P = F.approximant_basis([5,2,2], [0,1], row_wise=False)
+            sage: P = F.minimal_approximant_basis([5,2,2], [0,1], row_wise=False)
             sage: P.is_minimal_approximant_basis(F, [5,2,2], \
                                 shifts=[0,1], row_wise=False)
             True
-            sage: F.approximant_basis(3, row_wise=True) == \
-                F.transpose().approximant_basis(3, row_wise=False).transpose()
+            sage: F.minimal_approximant_basis(3, row_wise=True) == \
+                F.transpose().minimal_approximant_basis(3, row_wise=False).transpose()
             True
 
         Errors are raised if the input dimensions are not sound::
 
-            sage: P = F.approximant_basis([4], shifts)
+            sage: P = F.minimal_approximant_basis([4], shifts)
             Traceback (most recent call last):
             ...
             ValueError: order length should be the column dimension
 
-            sage: P = F.approximant_basis(order, [0,0,0,0])
+            sage: P = F.minimal_approximant_basis(order, [0,0,0,0])
             Traceback (most recent call last):
             ...
             ValueError: shifts length should be the row dimension
 
         An error is raised if order does not contain only positive integers::
 
-            sage: P = F.approximant_basis([1,0], shifts)
+            sage: P = F.minimal_approximant_basis([1,0], shifts)
             Traceback (most recent call last):
             ...
-            ValueError: order should be positive integers
+            ValueError: order should consist of positive integers
         """
         m = self.nrows()
         n = self.ncols()
@@ -1814,7 +1814,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         for o in order:
             if o < 1:
-                raise ValueError("order should be positive integers")
+                raise ValueError("order should consist of positive integers")
 
         # compute approximant basis
         # if required, normalize it into shifted Popov form
@@ -1853,8 +1853,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
     def _approximant_basis_iterative(self, order, shifts):
         r"""
         Return a ``shifts``-ordered weak Popov approximant basis for this
-        polynomial matrix at order ``order`` (see :meth:`approximant_basis` for
-        definitions).
+        polynomial matrix at order ``order`` 
+        (see :meth:`minimal_approximant_basis` for definitions).
 
         The output basis is considered row-wise, that is, its rows are
         left-approximants for the columns of ``self``. It is guaranteed that

@@ -524,7 +524,7 @@ cdef class ntl_GF2X(object):
 
         TESTS::
 
-            sage: hex(e)
+            sage: hex(e)    # py2
             doctest:warning...:
             DeprecationWarning: use the method .hex instead
             See http://trac.sagemath.org/24514 for details.

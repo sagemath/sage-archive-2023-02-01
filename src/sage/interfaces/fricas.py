@@ -2,6 +2,7 @@ r"""
 Interface to FriCAS
 
 .. TODO::
+
     - some conversions in ``sage.functions`` are still missing and
       all should be checked and tested
 
@@ -1007,7 +1008,7 @@ class FriCASElement(ExpectElement):
             {{\log \left( {{e+1}} \right)} \  {\sin \left( {{y+x}} \right)}} \over {{e} ^{z}}
 
             sage: latex(fricas("matrix([[1,2],[3,4]])"))                        # optional - fricas
-            \left[ \begin{array}{cc} 1 & 2 \\ 3 & 4 \end{array}  \right]
+            \left[ \begin{array}{cc} 1 & 2 \\ 3 & 4\end{array}  \right]
 
             sage: latex(fricas("integrate(sin(x+1/x),x)"))                      # optional - fricas
             \int ^{\displaystyle x} {{\sin \left( {{{{{ \%O} ^{2}}+1} \over  \%O}} \right)} \  {d \%O}}
@@ -1017,7 +1018,7 @@ class FriCASElement(ExpectElement):
                         (r'\sb ', '_'),
                         (r'\sb{', '_{')]
         P = self._check_valid()
-        s = P.get_string("first tex(%s)" % self._name)
+        s = P.get_string("latex(%s)" % self._name)
         for old, new in replacements:
             s = s.replace(old, new)
         return s
@@ -1037,8 +1038,14 @@ class FriCASElement(ExpectElement):
             sage: m = fricas("dom(1/2)::Any")                                   # optional - fricas
             sage: fricas(0)._get_sage_type(m)                                   # optional - fricas
             Rational Field
+
+        TESTS::
+
+            sage: m = fricas("UP(y, UP(x, AN))::INFORM")                        # optional - fricas
+            sage: fricas(0)._get_sage_type(m)                                   # optional - fricas
+            Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Algebraic Field
         """
-        from sage.rings.all import ZZ, QQbar, RDF
+        from sage.rings.all import ZZ, QQbar, RDF, PolynomialRing
         from sage.rings.fraction_field import FractionField
         from sage.rings.finite_rings.integer_mod_ring import Integers
         from sage.rings.finite_rings.finite_field_constructor import FiniteField
@@ -1053,7 +1060,7 @@ class FriCASElement(ExpectElement):
             return str
         if head == "Float":
             P = self._check_valid()
-            prec = max(P.new("length mantissa(%s)" %self._name).sage(), 53)
+            prec = max(P.new("length mantissa(%s)" % self._name).sage(), 53)
             return RealField(prec)
         if head == "DoubleFloat":
             return RDF
@@ -1081,7 +1088,11 @@ class FriCASElement(ExpectElement):
             # this is a workaround, since in sage we always have to specify the variables
             return SR
 
-        raise NotImplementedError("The translation of FriCAS type %s to sage is not yet implemented." %domain)
+        if head == "UnivariatePolynomial":
+            var = str(domain[1])
+            return PolynomialRing(self._get_sage_type(domain[2]), var)
+
+        raise NotImplementedError("The translation of FriCAS type %s to sage is not yet implemented." % domain)
 
     def _sage_expression(self, unparsed_InputForm):
         r"""
@@ -1110,7 +1121,7 @@ class FriCASElement(ExpectElement):
             sage: s = fricas.get_unparsed_InputForm(f._name); s                 # optional - fricas
             'fresnelS(x*(2/pi())^(1/2))/((2/pi())^(1/2))'
             sage: f._sage_expression(s)                                         # optional - fricas
-            1/2*sqrt(2)*sqrt(pi)*fresnelS(sqrt(2)*x/sqrt(pi))
+            1/2*sqrt(2)*sqrt(pi)*fresnel_sin(sqrt(2)*x/sqrt(pi))
 
         Check that :trac:`22525` is fixed::
 
@@ -1198,6 +1209,24 @@ class FriCASElement(ExpectElement):
             a
             sage: n(r.subs(a=1, x=5)-r.subs(a=1, x=3))                          # optional - fricas tol 0.1
             193.020947266268 - 8.73114913702011e-11*I
+
+        Check that :trac:`26746` is fixed::
+
+            sage: _ = var('x, y, z')
+            sage: f = sin(x^2) + y^z
+            sage: f.integrate(x, algorithm='fricas')                            # optional - fricas
+            1/2*sqrt(2)*sqrt(pi)*(sqrt(2)*x*y^z/sqrt(pi) + fresnel_sin(sqrt(2)*x/sqrt(pi)))
+
+            sage: fricas(fresnel_sin(1))                                        # optional - fricas
+            fresnelS(1)
+            sage: fricas("fresnelS(1.0)")                                       # optional - fricas
+            0.4382591473_9035476607_676
+
+            sage: fricas(fresnel_cos(1))                                        # optional - fricas
+            fresnelC(1)
+            sage: fricas("fresnelC(1.0)")                                       # optional - fricas
+            0.7798934003_7682282947_42
+
         """
         from sage.calculus.calculus import symbolic_expression_from_string
         from sage.calculus.functional import diff
@@ -1328,6 +1357,23 @@ class FriCASElement(ExpectElement):
             sage: fricas("x^2/2").sage()                                        # optional - fricas
             1/2*x^2
 
+            sage: x = polygen(QQ, 'x')
+            sage: fricas(x+3).sage()                                            # optional - fricas
+            x + 3
+            sage: fricas(x+3).domainOf()                                        # optional - fricas
+            Polynomial(Integer())
+
+            sage: fricas(matrix([[2,3],[4,x+5]])).diagonal().sage()             # optional - fricas
+            (2, x + 5)
+
+            sage: f = fricas("(y^2+3)::UP(y, INT)").sage(); f                   # optional - fricas
+            y^2 + 3
+            sage: f.parent()                                                    # optional - fricas
+            Univariate Polynomial Ring in y over Integer Ring
+
+            sage: fricas("(y^2+sqrt 3)::UP(y, AN)").sage()                      # optional - fricas
+            y^2 + 1.732050807568878?
+
         Rational functions::
 
             sage: fricas("x^2 + 1/z").sage()                                    # optional - fricas
@@ -1440,28 +1486,34 @@ class FriCASElement(ExpectElement):
             return {field: self.elt(field).sage() for field in fields}
 
         if head == "List":
-            n = P.get_integer('#(%s)' %self._name)
-            return [P.new('elt(%s,%s)' %(self._name, k)).sage() for k in range(1, n+1)]
+            n = P.get_integer('#(%s)' % self._name)
+            return [self.elt(k).sage() for k in range(1, n + 1)]
 
-        if head == "Vector":
-            n = P.get_integer('#(%s)' %self._name)
-            return vector([P.new('elt(%s,%s)' %(self._name, k)).sage() for k in range(1, n+1)])
+        if head == "Vector" or head == "DirectProduct":
+            n = P.get_integer('#(%s)' % self._name)
+            return vector([self.elt(k).sage() for k in range(1, n + 1)])
 
         if head == "Matrix":
             base_ring = self._get_sage_type(domain[1])
-            rows = P.new('listOfLists(%s)' %self._name).sage()
+            rows = self.listOfLists().sage()
             return matrix(base_ring, rows)
 
         if head == "Fraction":
-            return P.new("numer(%s)" %self._name).sage()/P.new("denom(%s)" %self._name).sage()
+            return self.numer().sage() / self.denom().sage()
 
         if head == "Complex":
-            return (P.new("real(%s)" %self._name).sage() +
-                    P.new("imag(%s)" %self._name).sage()*I)
+            return self.real().sage() + self.imag().sage()*I
 
         if head == "Factored":
             l = P.new('[[f.factor, f.exponent] for f in factors(%s)]' %self._name).sage()
-            return Factorization([(p, e) for p,e in l])
+            return Factorization([(p, e) for p, e in l])
+
+        if head == "UnivariatePolynomial":
+            base_ring = self._get_sage_type(domain[2])
+            vars = str(domain[1])
+            R = PolynomialRing(base_ring, vars)
+            return R([self.coefficient(i).sage()
+                      for i in range(self.degree() + 1)])
 
         # finally translate domains with InputForm
         try:
@@ -1530,7 +1582,7 @@ class FriCASElement(ExpectElement):
             R = PolynomialRing(base_ring, vars)
             return R(unparsed_InputForm)
 
-        raise NotImplementedError("The translation of the FriCAS object %s to sage is not yet implemented." %(unparsed_InputForm))
+        raise NotImplementedError("The translation of the FriCAS object %s to sage is not yet implemented." % (unparsed_InputForm))
 
 
 @instancedoc

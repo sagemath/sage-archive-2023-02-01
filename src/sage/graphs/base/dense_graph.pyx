@@ -230,7 +230,7 @@ cdef class DenseGraph(CGraph):
             sage: D.add_vertex(40)
             Traceback (most recent call last):
             ...
-            RuntimeError: Requested vertex is past twice the allocated range: use realloc.
+            RuntimeError: requested vertex is past twice the allocated range: use realloc
             sage: D.realloc(50)
             sage: D.add_vertex(40)
             40
@@ -325,7 +325,7 @@ cdef class DenseGraph(CGraph):
             sage: G.add_arc(4, 7)
             Traceback (most recent call last):
             ...
-            LookupError: Vertex (7) is not a vertex of the graph.
+            LookupError: vertex (7) is not a vertex of the graph
             sage: G.has_arc(1, 0)
             False
             sage: G.has_arc(0, 1)
@@ -691,7 +691,8 @@ cdef class DenseGraphBackend(CGraphBackend):
     objects::
 
         sage: G.add_vertex((0, 1, 2))
-        sage: G.vertices()
+        sage: sorted(list(G),
+        ....:        key=lambda x: (isinstance(x, tuple), x))
         [0,
         ...
          29,

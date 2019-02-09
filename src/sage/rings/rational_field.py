@@ -149,10 +149,8 @@ class RationalField(Singleton, number_field_base.NumberField):
 
             sage: RationalField() in Fields() # indirect doctest
             True
-
         """
         try:
-            from sage.rings.rational_field import QQ
             return QQ
         except BaseException:
             from sage.rings.number_field.number_field_base import NumberField

@@ -396,9 +396,12 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             -1562365407                    # 32-bit
             1251212645657227809            # 64-bit
 
-        ::
+        TESTS::
 
             sage: P.<x,y> = ProjectiveSpace(Zmod(10), 1)
+            sage: Q.<x,y> = ProjectiveSpace(Zmod(10), 1)
+            sage: hash(P([2, 5])) == hash(Q([2, 5]))
+            True
             sage: hash(P([2, 5])) == hash(P([2,5]))
             True
             sage: hash(P([3, 7])) == hash(P([2,5]))

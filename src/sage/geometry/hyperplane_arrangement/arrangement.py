@@ -334,14 +334,11 @@ from sage.structure.richcmp import richcmp
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import QQ, ZZ
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc import uniq
 from sage.matrix.constructor import matrix, vector
 from sage.modules.free_module import VectorSpace
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from sage.geometry.hyperplane_arrangement.hyperplane import AmbientVectorSpace, Hyperplane
-
-from copy import copy
 
 
 class HyperplaneArrangementElement(Element):
@@ -2422,7 +2419,6 @@ class HyperplaneArrangementElement(Element):
             sage: factor(det(v))
             (h2 - 1) * (h2 + 1) * (h1 - 1) * (h1 + 1)
         """
-        from sage.rings.all import PolynomialRing
         from sage.matrix.constructor import identity_matrix
         from sage.misc.all import prod
         k = len(self)
@@ -2521,11 +2517,26 @@ class HyperplaneArrangementElement(Element):
             3
             sage: B.minimal_generated_number()
             4
+
+        TESTS:
+
+        Check that :trac:`26705` is fixed::
+
+            sage: w = WeylGroup(['A',4]).from_reduced_word([3,4,2,1])
+            sage: I = w.inversion_arrangement()
+            sage: I
+            Arrangement <a4 | a1 | a1 + a2 | a1 + a2 + a3 + a4>
+            sage: I.minimal_generated_number()
+            0
+            sage: I.is_formal()
+            True
         """
         V = VectorSpace(self.base_ring(), self.dimension())
         W = VectorSpace(self.base_ring(), self.n_hyperplanes())
         r = self.rank()
         M = self.matroid()
+        if len(M.groundset()) == r:  # there are no circuits
+            return ZZ.zero()
         norms = M.representation().columns()
         circuits = M.circuits()
         for i in range(2, self.n_hyperplanes()):
@@ -3018,7 +3029,7 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
                 hyperplanes = [AA(_) for _ in arg]
         hyperplanes = [h.primitive(signed) for h in hyperplanes]
         n = len(hyperplanes)
-        hyperplanes = tuple(uniq(hyperplanes))
+        hyperplanes = set(hyperplanes)
         if warn_duplicates and n != len(hyperplanes):
             from warnings import warn
             warn('Input contained {0} hyperplanes, but only {1} are distinct.'.format(n, len(hyperplanes)))
@@ -3026,13 +3037,12 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
         if check:
             if signed and not not_char2:
                 raise ValueError('cannot be signed in characteristic 2')
-            hyperplane_set = set(hyperplanes)
             for h in hyperplanes:
                 if h.A() == 0:
                     raise ValueError('linear expression must be non-constant to define a hyperplane')
-                if not_char2 and -h in hyperplane_set:
+                if not_char2 and -h in hyperplanes:
                     raise ValueError('arrangement cannot simultaneously have h and -h as hyperplane')
-        return self.element_class(self, hyperplanes)
+        return self.element_class(self, tuple(sorted(hyperplanes)))
 
     @cached_method
     def ngens(self):

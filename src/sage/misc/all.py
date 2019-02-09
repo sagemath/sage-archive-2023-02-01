@@ -63,7 +63,7 @@ from .classgraph import class_graph
 
 from .reset import reset, restore
 
-from .getusage import top, get_memory_usage
+from .getusage import get_memory_usage
 
 from .mathml import mathml
 

@@ -47,7 +47,7 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ##############################################################################
 from __future__ import print_function, division, absolute_import
 from six import integer_types, iteritems
@@ -1532,7 +1532,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 S = set([self.analytic_rank('pari'),
                     self.analytic_rank('rubinstein'), self.analytic_rank('sympow')])
             if len(S) != 1:
-                raise RuntimeError("Bug in analytic_rank; algorithms don't agree! (E=%s)"%self)
+                raise RuntimeError("Bug in analytic_rank; algorithms don't agree! (E=%s)" % self)
             return list(S)[0]
         else:
             raise ValueError("algorithm %s not defined"%algorithm)
@@ -2087,7 +2087,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             if self.root_number() == 1:
                 L, err = self.lseries().at1(prec)
                 if abs(L) > err + R(0.0001):  # definitely doesn't vanish
-                    misc.verbose("rank 0 because L(E,1)=%s"%L)
+                    misc.verbose("rank 0 because L(E,1)=%s" % L)
                     rank = Integer(0)
                     self.__rank = (rank, proof)
                     return rank
@@ -2977,13 +2977,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         Tests if curve is p-minimal at a given prime p.
 
-        INPUT: p - a prime
+        INPUT: p -- a prime
 
-        OUTPUT: True - if curve is p-minimal
+        OUTPUT:
 
+        - ``True`` -- if curve is p-minimal
 
-        -  ``False`` - if curve isn't p-minimal
-
+        -  ``False`` -- if curve is not p-minimal
 
         EXAMPLES::
 
@@ -4059,11 +4059,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             [(0 : 1 : 0), (147 : 12960 : 1), (2307 : 97200 : 1), (-933 : 29160 : 1), (1011 : 0 : 1), (-933 : -29160 : 1), (2307 : -97200 : 1), (147 : -12960 : 1), (282 : 0 : 1), (8787 : 816480 : 1), (-285 : 27216 : 1), (1227 : 22680 : 1), (-1293 : 0 : 1), (1227 : -22680 : 1), (-285 : -27216 : 1), (8787 : -816480 : 1)]
         """
         try:
-            return self.__torsion_subgroup
+            G = self.__torsion_subgroup
         except AttributeError:
-            self.__torsion_subgroup = ell_torsion.EllipticCurveTorsionSubgroup(self)
-            self.__torsion_order = self.__torsion_subgroup.order()
-            return self.__torsion_subgroup
+            G = ell_torsion.EllipticCurveTorsionSubgroup(self)
+            self.__torsion_subgroup = G
+
+        self.__torsion_order = G.order()
+        return self.__torsion_subgroup
 
     def torsion_points(self):
         """
@@ -4522,7 +4524,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         This curve had numerous `2`-isogenies::
 
-            sage: e=EllipticCurve([1,0,0,-39,90])
+            sage: e = EllipticCurve([1,0,0,-39,90])
             sage: isocls = e.isogeny_class(); isocls.matrix()
             [1 2 4 4 8 8]
             [2 1 2 2 4 4]
@@ -4983,7 +4985,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E = EllipticCurve('195a')
             sage: G = E.isogeny_graph()
             sage: for v in G: print("{} {}".format(v, G.get_vertex(v)))
-            ...
             1 Elliptic Curve defined by y^2 + x*y  = x^3 - 110*x + 435 over Rational Field
             2 Elliptic Curve defined by y^2 + x*y  = x^3 - 115*x + 392 over Rational Field
             3 Elliptic Curve defined by y^2 + x*y  = x^3 + 210*x + 2277 over Rational Field
@@ -5816,7 +5817,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         if not self.is_integral():
             raise ValueError("integral_points() can only be called on an integral model")
 
-        if mw_base=='auto':
+        if mw_base == 'auto':
             try:
                 mw_base = self.gens()
             except RuntimeError:
@@ -6136,8 +6137,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         A curve of rank 3 with no torsion points::
 
             sage: E = EllipticCurve([0,0,1,-7,6])
-            sage: P1=E.point((2,0)); P2=E.point((-1,3)); P3=E.point((4,6))
-            sage: a=E.S_integral_points(S=[2,3], mw_base=[P1,P2,P3], verbose=True);a
+            sage: P1 = E.point((2,0))
+            sage: P2 = E.point((-1,3))
+            sage: P3 = E.point((4,6))
+            sage: a = E.S_integral_points(S=[2,3], mw_base=[P1,P2,P3], verbose=True);a
             max_S: 3 len_S: 3 len_tors: 1
             lambda 0.485997517468...
             k1,k2,k3,k4 7.65200453902598e234 1.31952866480763 3.54035317966420e9 2.42767548272846e17
@@ -6249,7 +6252,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         except AttributeError:#catches: <tuple>.sort(), <!ZZ>.is_prime()
             raise AttributeError('S must be a list of primes')
 
-        if mw_base=='auto':
+        if mw_base == 'auto':
             if verbose:
                 print("Starting computation of MW basis")
             try:

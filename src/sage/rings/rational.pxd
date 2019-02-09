@@ -10,6 +10,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     cpdef _add_(self, other)
     cpdef _mul_(self, other)
+    cpdef _pow_(self, other)
     cdef __set_value(self, x, unsigned int base)
     cdef void set_from_mpq(Rational self, mpq_t value)
     cdef _lshift(self, long int exp)

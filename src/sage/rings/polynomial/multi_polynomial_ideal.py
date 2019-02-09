@@ -521,7 +521,6 @@ class MPolynomialIdeal_singular_base_repr:
         from sage.rings.polynomial.multi_polynomial_ideal_libsingular import std_libsingular, slimgb_libsingular
         from sage.libs.singular.function import singular_function
         from sage.libs.singular.option import opt
-        from sage.misc.stopgap import stopgap
 
         import sage.libs.singular.function_factory
         groebner = sage.libs.singular.function_factory.ff.groebner
@@ -531,8 +530,6 @@ class MPolynomialIdeal_singular_base_repr:
         for name, value in iteritems(kwds):
             if value is not None:
                 opt[name] = value
-
-        T = self.ring().term_order()
 
         if algorithm == "std":
             S = std_libsingular(self)
@@ -1970,8 +1967,7 @@ class MPolynomialIdeal_singular_repr(
         else:
             raise TypeError("Cannot convert basis with given algorithm")
 
-    @libsingular_gb_standard_options
-    def elimination_ideal(self, variables):
+    def elimination_ideal(self, variables, algorithm=None, *args, **kwds):
         r"""
         Return the elimination ideal of this ideal with respect to the
         variables given in ``variables``.
@@ -1980,28 +1976,76 @@ class MPolynomialIdeal_singular_repr(
 
         - ``variables`` -- a list or tuple of variables in ``self.ring()``
 
+        - ``algorithm`` - determines the algorithm to use, see below
+           for available algorithms.
+
+        ALGORITHMS:
+
+        - ``'libsingular:eliminate'`` -- libSingular's ``eliminate`` command
+          (default)
+
+        - ``'giac:eliminate'`` -- Giac's ``eliminate`` command (if available)
+
+        If only a system is given - e.g. 'giac' - the default algorithm is
+        chosen for that system.
+
         EXAMPLES::
 
             sage: R.<x,y,t,s,z> = PolynomialRing(QQ,5)
             sage: I = R * [x-t,y-t^2,z-t^3,s-x+y^3]
-            sage: I.elimination_ideal([t,s])
+            sage: J = I.elimination_ideal([t,s]); J
             Ideal (y^2 - x*z, x*y - z, x^2 - y) of Multivariate
             Polynomial Ring in x, y, t, s, z over Rational Field
 
+        You can use Giac to compute the elimination ideal::
+
+            sage: I.elimination_ideal([t, s], algorithm="giac") == J  # optional - giacpy_sage
+            ...
+            Running a probabilistic check for the reconstructed Groebner basis...
+            True
+
+        The list of available Giac options is provided at
+        :func:`sage.libs.giac.groebner_basis`.
+
         ALGORITHM:
 
-        Uses Singular.
+        Uses Singular, or Giac (if available).
 
         .. NOTE::
 
             Requires computation of a Groebner basis, which can be a very
             expensive operation.
         """
+        if not isinstance(variables, (list, tuple)):
+            variables = (variables,)
+
+        if (algorithm is None or algorithm.lower() == 'libsingular'
+                or algorithm == 'libsingular:eliminate'):
+            return self._elimination_ideal_libsingular(variables)
+
+        elif algorithm.lower() == 'giac' or algorithm == 'giac:eliminate':
+            from sage.libs.giac import groebner_basis as groebner_basis_libgiac
+            return groebner_basis_libgiac(
+                    self, elim_variables=variables, *args, **kwds).ideal()
+
+        else:
+            raise NameError("Algorithm '%s' unknown." % algorithm)
+
+    @libsingular_gb_standard_options
+    def _elimination_ideal_libsingular(self, variables):
+        r"""
+        Compute the elimination ideal using libsingular.
+
+        EXAMPLES::
+
+            sage: R.<x,y,t,s,z> = PolynomialRing(QQ,5)
+            sage: I = R * [x-t,y-t^2,z-t^3,s-x+y^3]
+            sage: I.elimination_ideal([t,s], "libsingular")  # indirect doctest
+            Ideal (y^2 - x*z, x*y - z, x^2 - y) of Multivariate
+            Polynomial Ring in x, y, t, s, z over Rational Field
+        """
         import sage.libs.singular.function_factory
         eliminate = sage.libs.singular.function_factory.ff.eliminate
-
-        if not isinstance(variables, (list,tuple)):
-            variables = (variables,)
 
         R = self.ring()
         Is = MPolynomialIdeal(R,self.groebner_basis())
@@ -2363,7 +2407,7 @@ class MPolynomialIdeal_singular_repr(
         try:
           TI = self.triangular_decomposition('singular:triangLfak')
           T = [list(each.gens()) for each in TI]
-        except TypeError as msg: # conversion to Singular not supported
+        except TypeError: # conversion to Singular not supported
           if self.ring().term_order().is_global():
             verbose("Warning: falling back to very slow toy implementation.", level=0)
             T = toy_variety.triangular_factorization(self.groebner_basis())
@@ -2641,7 +2685,6 @@ class MPolynomialIdeal_singular_repr(
 
             gb = self.groebner_basis()
             t = ZZ['t'].gen()
-            n = self.ring().ngens()
             gb = MPolynomialIdeal(self.ring(), gb)
             if grading is not None:
                 if not isinstance(grading, (list, tuple)) or any(a not in ZZ for a in grading):
@@ -3604,7 +3647,9 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I.groebner_basis('libsingular:slimgb')
             [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
 
-        Giac only supports the degree reverse lexicographical ordering::
+        Although Giac does support lexicographical ordering, we use degree
+        reverse lexicographical ordering here, in order to test against
+        :trac:`21884`::
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: J = I.change_ring(P.change_ring(order='degrevlex'))
@@ -3810,10 +3855,10 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         if not algorithm:
             try:
                 gb = self._groebner_basis_libsingular("groebner", deg_bound=deg_bound, mult_bound=mult_bound, *args, **kwds)
-            except (TypeError, NameError) as msg: # conversion to Singular not supported
+            except (TypeError, NameError): # conversion to Singular not supported
                 try:
                     gb = self._groebner_basis_singular("groebner", deg_bound=deg_bound, mult_bound=mult_bound, *args, **kwds)
-                except (TypeError, NameError, NotImplementedError) as msg: # conversion to Singular not supported
+                except (TypeError, NameError, NotImplementedError): # conversion to Singular not supported
                     if self.ring().term_order().is_global() and is_IntegerModRing(self.ring().base_ring()) and not self.ring().base_ring().is_field():
                         verbose("Warning: falling back to very slow toy implementation.", level=0)
 
@@ -4307,7 +4352,6 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         - Martin Albrecht (2008-09)
         """
-        from sage.rings.rational_field import QQ
         from sage.rings.real_mpfr import RR
         from sage.plot.all import implicit_plot
 
@@ -4656,6 +4700,6 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         result_ring = PolynomialRing(k, nvars*r, new_var_names)
 
         map_ideal = (0,) + result_ring.gens()
-        result = [f(*map_ideal) for f in result]
+        result = [h(*map_ideal) for h in result]
 
         return result_ring.ideal(result)

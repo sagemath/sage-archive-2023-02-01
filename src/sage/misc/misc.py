@@ -715,14 +715,44 @@ def uniq(x):
 
     EXAMPLES::
 
-        sage: v = uniq([1,1,8,-5,3,-5,'a','x','a'])
-        sage: v            # potentially random ordering of output
-        ['a', 'x', -5, 1, 3, 8]
-        sage: set(v) == set(['a', 'x', -5, 1, 3, 8])
-        True
+        sage: uniq([1, 1, 8, -5, 3, -5, -13, 13, -13])
+        doctest:...: DeprecationWarning: the output of uniq(X) being sorted is deprecated; use sorted(set(X)) instead if you want sorted output
+        See https://trac.sagemath.org/27014 for details.
+        [-13, -5, 1, 3, 8, 13]
     """
-    v = sorted(set(x))
-    return v
+    # After deprecation period, rename _stable_uniq -> uniq
+    from sage.misc.superseded import deprecation
+    deprecation(27014, "the output of uniq(X) being sorted is deprecated; use sorted(set(X)) instead if you want sorted output")
+    return sorted(set(x))
+
+
+def _stable_uniq(L):
+    """
+    Iterate over the elements of ``L``, yielding every element at most
+    once: keep only the first occurance of any item.
+
+    The items must be hashable.
+
+    INPUT:
+
+    - ``L`` -- iterable
+
+    EXAMPLES::
+
+        sage: from sage.misc.misc import _stable_uniq
+        sage: L = [1, 1, 8, -5, 3, -5, 'a', 'x', 'a']
+        sage: it = _stable_uniq(L)
+        sage: it
+        <generator object _stable_uniq at ...>
+        sage: list(it)
+        [1, 8, -5, 3, 'a', 'x']
+    """
+    seen = set()
+    for x in L:
+        if x in seen:
+            continue
+        yield x
+        seen.add(x)
 
 
 def coeff_repr(c, is_latex=False):

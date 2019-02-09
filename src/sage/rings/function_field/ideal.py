@@ -78,21 +78,21 @@ AUTHORS:
 
 """
 from __future__ import absolute_import
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
 #       Copyright (C) 2011 Maarten Derickx <m.derickx.student@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
-import operator
 import itertools
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import lazy_import
+from sage.misc.lazy_attribute import lazy_attribute
 
 from sage.structure.parent import Parent
 from sage.structure.element import Element
@@ -108,6 +108,8 @@ from sage.rings.infinity import infinity
 from sage.rings.ideal import Ideal_generic
 
 lazy_import('sage.matrix.constructor', 'matrix')
+lazy_import('sage.rings.function_field.divisor', 'FunctionFieldDivisor')
+
 
 class FunctionFieldIdeal(Element):
     """
@@ -159,11 +161,13 @@ class FunctionFieldIdeal(Element):
 
     def gens_reduced(self):
         r"""
-        Return reduced generators. This just returns the generators for now.
+        Return reduced generators.
 
-        This method is provided so that ideals in funtion fields have the method
-        :meth:`gens_reduced()`, just like ideals of number fields. Sage linear algebra
-        machinery sometimes requires this.
+        This just returns the generators for now.
+
+        This method is provided so that ideals in function fields have
+        the method :meth:`gens_reduced()`, just like ideals of number
+        fields. Sage linear algebra machinery sometimes requires this.
 
         EXAMPLES::
 
@@ -172,7 +176,6 @@ class FunctionFieldIdeal(Element):
             sage: I = O.ideal(x,x^2,x^2+x)
             sage: I.gens_reduced()
             (x,)
-
         """
         return self.gens()
 
@@ -204,6 +207,7 @@ class FunctionFieldIdeal(Element):
             Order in Function field in y defined by y^2 - x^3 - 1
         """
         return self.ring()
+
 
 class FunctionFieldIdeal_rational(FunctionFieldIdeal):
     """
@@ -260,7 +264,7 @@ class FunctionFieldIdeal_rational(FunctionFieldIdeal):
             sage: I = O.ideal(x,1/(x+1)); I
             Ideal (1/(x + 1)) of Maximal order of Rational function field in x over Rational Field
         """
-        return "Ideal (%s) of %s"%(self._gen, self._ring)
+        return "Ideal (%s) of %s" % (self._gen, self._ring)
 
     def __contains__(self, element):
         """
@@ -475,6 +479,53 @@ class FunctionFieldIdeal_rational(FunctionFieldIdeal):
         """
         return (self._gen,)
 
+    def valuation(self, ideal):
+        """
+        Return the valuation of the ideal at this prime ideal.
+
+        INPUT:
+
+        - ``ideal`` -- fractional ideal
+
+        EXAMPLES::
+
+            sage: F.<x> = FunctionField(QQ)
+            sage: O = F.maximal_order()
+            sage: I = O.ideal(x^2*(x^2+x+1)^3)
+            sage: [f.valuation(I) for f,_ in I.factor()]
+            [2, 3]
+        """
+        if not self.is_prime():
+            raise TypeError("not a prime ideal")
+
+        O = self.ring()
+        d = ideal.denominator()
+        return self._valuation(d*ideal) - self._valuation(O.ideal(d))
+
+    def _valuation(self, ideal):
+        """
+        Return the valuation of the integral ideal at this prime ideal.
+
+        INPUT:
+
+        - ``ideal`` -- ideal
+
+        EXAMPLES::
+
+            sage: F.<x> = FunctionField(QQ)
+            sage: O = F.maximal_order()
+            sage: p = O.ideal(x)
+            sage: p.valuation(O.ideal(x+1))  # indirect doctest
+            0
+            sage: p.valuation(O.ideal(x^2))  # indirect doctest
+            2
+            sage: p.valuation(O.ideal(1/x^3))  # indirect doctest
+            -3
+            sage: p.valuation(O.ideal(0))  # indirect doctest
+            +Infinity
+        """
+        return ideal.gen().valuation(self.gen())
+
     def factor(self):
         """
         Return the factorization of this ideal.
@@ -513,6 +564,29 @@ class FunctionFieldIdeal_rational(FunctionFieldIdeal):
         for f,m in self._gen.factor():
              factors.append( (self.ring().ideal(f), m) )
         return factors
+
+    def place(self):
+        """
+        Return the place associated with the prime ideal.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(4))
+            sage: O = K.maximal_order()
+            sage: I = O.ideal(x^2+x+1)
+            sage: I.place()
+            Traceback (most recent call last):
+            ...
+            TypeError: not a prime ideal
+            sage: I = O.ideal(x^3+x+1)
+            sage: I.place()
+            Place (x^3 + x + 1)
+        """
+        if not self.is_prime():
+            raise TypeError("not a prime ideal")
+
+        place_set = self.ring().fraction_field().place_set()
+        return place_set.element_class(place_set, self)
 
 class FunctionFieldIdeal_module(FunctionFieldIdeal, Ideal_generic):
     """
@@ -663,7 +737,7 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal, Ideal_generic):
             sage: O.ideal(x^2 + 1)
             Ideal (x^2 + 1, (x^2 + 1)*y) of Order in Function field in y defined by y^2 - x^3 - 1
         """
-        return "Ideal (%s) of %s"%(', '.join([repr(g) for g in self.gens()]), self.ring())
+        return "Ideal (%s) of %s" % (', '.join([repr(g) for g in self.gens()]), self.ring())
 
     def gens(self):
         """
@@ -818,6 +892,7 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal, Ideal_generic):
             inv = inv.intersection(R.ideal(~g))
         return inv
 
+
 class FunctionFieldIdeal_global(FunctionFieldIdeal):
     """
     Fractional ideals of canonical function fields
@@ -866,10 +941,10 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
         self._prime_below = None
         self._beta = None
 
-        # beta in matrix form for fast multiplicaton
+        # beta in matrix form for fast multiplication
         self._beta_matrix = None
 
-        # (p, q) with irreducibl polynomial p and q an element of O in vector
+        # (p, q) with irreducible polynomial p and q an element of O in vector
         # form, together generating the prime ideal. This data is obtained by
         # Kummer's theorem when this prime ideal is constructed. This is used
         # for fast multiplication with other ideal.
@@ -1065,7 +1140,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
             return "Zero ideal of %s" % (self._ring,)
 
         s = ', '.join([repr(g) for g in self.gens_two()])
-        return "Ideal (%s) of %s"%(s, self._ring)
+        return "Ideal (%s) of %s" % (s, self._ring)
 
     def _add_(self, other):
         """
@@ -1275,8 +1350,8 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
     @cached_method
     def gens_over_base(self):
         """
-        Return the generators of this ideal as a module over the
-        maximal order of the base rational function field.
+        Return the generators of this ideal as a module over the maximal order
+        of the base rational function field.
 
         EXAMPLES::
 
@@ -1293,11 +1368,28 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
             sage: I.gens_over_base()
             (x^3 + 1, y + x)
         """
+        gens, d  = self._gens_over_base
+        return tuple([~d * b for b in gens])
+
+    @lazy_attribute
+    def _gens_over_base(self):
+        """
+        Return the generators of the integral ideal, which is the denominator
+        times the fractional ideal, together with the denominator.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x^3*y - x)
+            sage: O = L.maximal_order()
+            sage: I = O.ideal(1/y)
+            sage: I._gens_over_base
+            ([x, y], x)
+        """
         gens = []
         for row in self._hnf:
             gens.append(sum([c1*c2 for c1,c2 in zip(row, self._ring.basis())]))
-        denom_inv = ~self._denominator
-        return tuple([denom_inv * b for b in gens])
+        return gens, self._denominator
 
     def gens(self):
         """
@@ -1387,7 +1479,9 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
 
         hnf = self._hnf
 
-        norm = reduce(operator.mul, hnf.diagonal())
+        norm = 1
+        for e in hnf.diagonal():
+            norm *= e
 
         if norm.is_constant(): # unit ideal
             return (F(1),)
@@ -1644,7 +1738,10 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
             sage: i2.norm() == y.norm()
             True
         """
-        return reduce(operator.mul, self.basis_matrix().diagonal())
+        n = 1
+        for e in self.basis_matrix().diagonal():
+            n *= e
+        return n
 
     @cached_method
     def is_prime(self):
@@ -1779,11 +1876,39 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
         """
         return self._prime_below
 
+    def place(self):
+        """
+        Return the place corresponding to the prime ideal.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<t> = PolynomialRing(K)
+            sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)
+            sage: O = F.maximal_order()
+            sage: I = O.ideal(y)
+            sage: [f.place() for f,_ in I.factor()]
+            [Place (x, (1/(x^3 + x^2 + x))*y^2),
+             Place (x^2 + x + 1, (1/(x^3 + x^2 + x))*y^2)]
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: O = L.maximal_order()
+            sage: I = O.ideal(y)
+            sage: [f.place() for f,_ in I.factor()]
+            [Place (x, x*y), Place (x + 1, x*y)]
+        """
+        if not self.is_prime():
+            raise TypeError("not a prime ideal")
+
+        place_set = self.ring().fraction_field().place_set()
+        return place_set.element_class(place_set, self)
+
 class FunctionFieldIdealInfinite(FunctionFieldIdeal):
     """
     Base class of ideals of maximal infinite orders
     """
     pass
+
 
 class FunctionFieldIdealInfinite_rational(FunctionFieldIdealInfinite):
     """
@@ -1860,7 +1985,7 @@ class FunctionFieldIdealInfinite_rational(FunctionFieldIdealInfinite):
             Ideal (1/x) of Maximal infinite order of Rational function field
             in x over Finite Field of size 2
         """
-        return "Ideal (%s) of %s"%(self._gen, self._ring)
+        return "Ideal (%s) of %s" % (self._gen, self._ring)
 
     def _add_(self, other):
         """
@@ -2015,6 +2140,25 @@ class FunctionFieldIdealInfinite_rational(FunctionFieldIdealInfinite):
             factors = [(self.ring().ideal(g), m)]
         return Factorization(factors, cr=True)
 
+    def place(self):
+        """
+        Return the place corresponding to the prime ideal.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: Oinf = K.maximal_order_infinite()
+            sage: I = Oinf.ideal((x+1)/(x^3+1))
+            sage: p = I.factor()[0][0]
+            sage: p.place()
+            Place (1/x)
+        """
+        if not self.is_prime():
+            raise TypeError("not a prime ideal")
+
+        place_set = self.ring().fraction_field().place_set()
+        return place_set.element_class(place_set, self)
+
     def valuation(self, ideal):
         """
         Return the valuation of ``ideal`` at this prime ideal.
@@ -2041,6 +2185,7 @@ class FunctionFieldIdealInfinite_rational(FunctionFieldIdealInfinite):
             return infinity
         else:
             return f.denominator().degree() - f.numerator().degree()
+
 
 class FunctionFieldIdealInfinite_module(FunctionFieldIdealInfinite, Ideal_generic):
     """
@@ -2203,7 +2348,7 @@ class FunctionFieldIdealInfinite_module(FunctionFieldIdealInfinite, Ideal_generi
             sage: P*[a^2,a*b+c,c^3] # indirect doctest
             Ideal (a^2, a*b + c, c^3) of Multivariate Polynomial Ring in a, b, c over Rational Field
         """
-        return "Ideal %s of %s"%(self._repr_short(), self.ring())
+        return "Ideal %s of %s" % (self._repr_short(), self.ring())
 
     def module(self):
         """
@@ -2233,6 +2378,7 @@ class FunctionFieldIdealInfinite_module(FunctionFieldIdealInfinite, Ideal_generi
             True
         """
         return self._module
+
 
 class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
     """
@@ -2698,6 +2844,45 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
 
         return factors
 
+    def place(self):
+        """
+        Return the place corresponding to the prime ideal.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(3^2)); R.<t> = PolynomialRing(K)
+            sage: F.<y> = K.extension(t^3 + t^2 - x^4)
+            sage: Oinf = F.maximal_order_infinite()
+            sage: I = Oinf.ideal(1/x)
+            sage: I.factor()
+            (Ideal (1/x,1/x^3*y^2) of Maximal infinite order of Function field
+            in y defined by y^3 + y^2 + 2*x^4)^3
+            sage: J = I.factor()[0][0]
+            sage: J.is_prime()
+            True
+            sage: J.place()
+            Place (1/x, 1/x^3*y^2)
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: Oinf = L.maximal_order_infinite()
+            sage: I = Oinf.ideal(1/x)
+            sage: I.factor()
+            (Ideal (1/x,1/x*y) of Maximal infinite order of Function field in y
+            defined by y^2 + y + (x^2 + 1)/x)^2
+            sage: J = I.factor()[0][0]
+            sage: J.is_prime()
+            True
+            sage: J.place()
+            Place (1/x, 1/x*y)
+        """
+        if not self.is_prime():
+            raise ValueError("not a prime ideal")
+
+        place_set = self.ring().fraction_field().place_set()
+
+        return place_set.element_class(place_set, self)
+
     def valuation(self, ideal):
         """
         Return the valuation of ``ideal`` with respect to this prime ideal.
@@ -2719,6 +2904,7 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
             raise TypeError("not a prime ideal")
 
         return self._ideal.valuation(self.ring()._to_iF(ideal))
+
 
 class IdealMonoid(UniqueRepresentation, Parent):
     r"""
@@ -2764,7 +2950,7 @@ class IdealMonoid(UniqueRepresentation, Parent):
             sage: M = O.ideal_monoid(); M._repr_()
             'Monoid of ideals of Maximal order of Rational function field in x over Finite Field of size 2'
         """
-        return "Monoid of ideals of %s"%self.__R
+        return "Monoid of ideals of %s" % self.__R
 
     def ring(self):
         """

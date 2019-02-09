@@ -916,7 +916,6 @@ def solve(f, *args, **kwds):
         sage: solve(sinh(x) - 2*cosh(x),x,algorithm='sympy')
         ConditionSet(x, Eq((-exp(2*x) - 3)*exp(-x)/2, 0), Reals)
         sage: solve(2*sin(x) - 2*sin(2*x), x,algorithm='sympy')
-        ...
         [ImageSet(Lambda(_n, 2*_n*pi), Integers),
          ImageSet(Lambda(_n, 2*_n*pi + pi), Integers),
          ImageSet(Lambda(_n, 2*_n*pi + 5*pi/3), Integers),

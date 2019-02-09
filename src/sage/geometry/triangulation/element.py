@@ -29,14 +29,16 @@ Here is a simple example of how to triangulate a point configuration::
 See :mod:`sage.geometry.triangulation.point_configuration` for more details.
 """
 
-
-########################################################################
+#*****************************************************************************
 #       Copyright (C) 2010 Volker Braun <vbraun.name@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-########################################################################
+#*****************************************************************************
+
 from six import iteritems
 
 from sage.structure.richcmp import richcmp
@@ -766,7 +768,6 @@ class Triangulation(Element):
             raise NotImplementedError('Only base rings ZZ and QQ are supported')
         from sage.libs.ppl import Variable, Constraint, Constraint_System, Linear_Expression, C_Polyhedron
         from sage.matrix.constructor import matrix
-        from sage.misc.misc import uniq
         from sage.arith.all import lcm
         pc = self.point_configuration()
         cs = Constraint_System()

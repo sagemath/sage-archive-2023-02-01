@@ -693,8 +693,9 @@ class DocTestController(SageObject):
         """
         opj = os.path.join
         from sage.env import SAGE_SRC, SAGE_DOC_SRC, SAGE_ROOT
-        DOT_GIT= opj(SAGE_ROOT, '.git')
+        DOT_GIT = opj(SAGE_ROOT, '.git')
         have_git = os.path.exists(DOT_GIT)
+
         def all_files():
             self.files.append(opj(SAGE_SRC, 'sage'))
             # Don't run these tests when not in the git repository; they are
@@ -704,6 +705,7 @@ class DocTestController(SageObject):
                 self.files.append(opj(SAGE_SRC, 'sage_setup'))
             self.files.append(SAGE_DOC_SRC)
             self.options.sagenb = True
+
         if self.options.all or (self.options.new and not have_git):
             self.log("Doctesting entire Sage library.")
             all_files()
@@ -724,7 +726,9 @@ class DocTestController(SageObject):
                 status, filename = data[0], data[-1]
                 if (set(status).issubset("MARCU")
                     and filename.startswith("src/sage")
-                    and (filename.endswith(".py") or filename.endswith(".pyx"))):
+                    and (filename.endswith(".py") or
+                         filename.endswith(".pyx") or
+                         filename.endswith(".rst"))):
                     self.files.append(os.path.relpath(opj(SAGE_ROOT,filename)))
         if self.options.sagenb:
             if six.PY3:
@@ -931,7 +935,7 @@ class DocTestController(SageObject):
                     self.cleanup(False)
         else:
             self.log("No files to doctest")
-            self.reporter = DictAsObject(dict(error_status=0))
+            self.reporter = DictAsObject(dict(error_status=0, stats={}))
 
     def cleanup(self, final=True):
         """
@@ -1196,7 +1200,7 @@ class DocTestController(SageObject):
             self.test_safe_directory()
             self.create_run_id()
             from sage.env import SAGE_ROOT
-            DOT_GIT= os.path.join(SAGE_ROOT, '.git')
+            DOT_GIT = os.path.join(SAGE_ROOT, '.git')
             if os.path.isdir(DOT_GIT):
                 import subprocess
                 try:
@@ -1225,6 +1229,7 @@ class DocTestController(SageObject):
                          + ','.join(available_software.seen()))
             self.cleanup()
             return self.reporter.error_status
+
 
 def run_doctests(module, options=None):
     """

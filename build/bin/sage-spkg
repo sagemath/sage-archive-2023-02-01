@@ -170,8 +170,8 @@ if [ -z "$SAGE_BUILD_DIR" ]; then
 fi
 
 
-# Remove '.' from PYTHONPATH, which may also come from SAGE_PATH, to avoid
-# trouble with setuptools / easy_install (cf. #10192, #10176):
+# Remove '.' from PYTHONPATH, to avoid trouble with setuptools / easy_install
+# (cf. #10192, #10176):
 if [ -n "$PYTHONPATH" ]; then
     # We also collapse multiple slashs into a single one (first substitution),
     # remove leading './'s and trailing '/.'s (second and third), and
@@ -892,13 +892,14 @@ if [ -d "$SAGE_DESTDIR" ]; then
 
     # Copy files into $SAGE_LOCAL
     $SAGE_SUDO cp -Rp "$PREFIX/." "$SAGE_LOCAL"
-    rm -rf "$SAGE_DESTDIR"
     if [ $? -ne 0 ]; then
         error_msg "Error copying files for $PKG_NAME."
         exit 1
     fi
+
     # Remove the $SAGE_DESTDIR entirely once all files have been moved to their
     # final location.
+    rm -rf "$SAGE_DESTDIR"
 fi
 
 

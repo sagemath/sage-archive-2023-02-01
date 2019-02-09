@@ -6290,7 +6290,6 @@ class FiniteWord_class(Word_class):
         EXAMPLES::
 
             sage: for x in Word([1,1,3,1,2,3,1])._rsk_iter(): x
-            ...
             (1, 1)
             (2, 1)
             (3, 3)
@@ -6449,9 +6448,11 @@ class FiniteWord_class(Word_class):
 
     def delta(self):
         r"""
-        Return the image of ``self`` under the delta morphism. This is the
-        word composed of the length of consecutive runs of the same letter
-        in a given word.
+        Return the image of ``self`` under the delta morphism.
+
+        The delta morphism, also known as the run-length encoding,
+        is the word composed of the length of consecutive runs of
+        the same letter in a given word.
 
         EXAMPLES::
 

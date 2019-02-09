@@ -3922,7 +3922,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         Needed for plot3d function of polytopes.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: p = lattice_polytope.cross_polytope(2).polar()
             sage: p.traverse_boundary()

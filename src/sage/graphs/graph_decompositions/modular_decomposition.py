@@ -43,19 +43,6 @@ class NodeType(Enum):
     NORMAL = 3
     FOREST = -1
 
-    def __str__(self):
-        r"""
-        String representation of this node type.
-
-        EXAMPLES::
-
-            sage: from sage.graphs.graph_decompositions.modular_decomposition \
-                       import NodeType
-            sage: str(NodeType.PARALLEL)
-            'PARALLEL'
-        """
-        return self.name
-
     def __repr__(self):
         r"""
         String representation of this node type.
@@ -240,7 +227,7 @@ class Node:
         return self.node_split == NodeSplit.RIGHT_SPLIT or \
                self.node_split == NodeSplit.BOTH_SPLIT
 
-    def __str__(self):
+    def __repr__(self):
         r"""
         Return a string representation of the node.
 
@@ -267,22 +254,6 @@ class Node:
 
         s += str(self.children)
         return s
-
-    def __repr__(self):
-        r"""
-        Return a string representation of the node.
-
-        EXAMPLES::
-
-            sage: from sage.graphs.graph_decompositions.modular_decomposition \
-                       import Node, NodeType, create_normal_node
-            sage: n = Node(NodeType.PRIME)
-            sage: n.children.append(create_normal_node(1))
-            sage: n.children.append(create_normal_node(2))
-            sage: repr(n)
-            'PRIME [NORMAL [1], NORMAL [2]]'
-        """
-        return self.__str__()
 
     def __eq__(self, other):
         r"""

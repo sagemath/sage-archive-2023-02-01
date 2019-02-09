@@ -7072,7 +7072,7 @@ class Graph(GenericGraph):
             return list(six.itervalues(core))
 
     @doc_index("Leftovers")
-    def modular_decomposition(self, algorithm='tedder'):
+    def modular_decomposition(self, algorithm='habib'):
         r"""
         Return the modular decomposition of the current graph.
 
@@ -7455,7 +7455,7 @@ class Graph(GenericGraph):
         return self.planar_dual().is_circumscribable(solver=solver, verbose=verbose)
 
     @doc_index("Graph properties")
-    def is_prime(self, algorithm='tedder'):
+    def is_prime(self, algorithm='habib'):
         r"""
         Test whether the current graph is prime.
 

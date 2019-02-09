@@ -100,6 +100,7 @@ from sage.rings.morphism import RingHomomorphism_im_gens
 from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.quotient_ring import QuotientRing_nc
 from sage.rings.quotient_ring_element import QuotientRingElement
+from sage.misc.cachefunc import cached_function
 
 
 class Differential(with_metaclass(
@@ -2376,14 +2377,14 @@ class DifferentialGCAlgebra(GCAlgebra):
             names = [str(g) for g in B.gens()]
             degrees = [g.degree() for g in B.gens()]
             A = GradedCommutativeAlgebra(B.base_ring(), names = names+nnames, degrees = degrees+ndegrees)
-            h = B.hom(A.gens()[:B.ngens()])
+            h = B.hom(A.gens()[:B.ngens()], check=False)
             d = B.differential()
             diff = {h(g):h(d(g)) for g in B.gens()}
             cndifs = copy(ndifs)
             for g in A.gens()[B.ngens():]:
                 diff[g] = h(cndifs.pop(0))
             NB = A.cdg_algebra(diff)
-            Nphi = NB.hom([phi(g) for g in B.gens()]+nimags)
+            Nphi = NB.hom([phi(g) for g in B.gens()]+nimags, check=False)
             return Nphi
         degnzero = 1
         while self.cohomology(degnzero).dimension() == 0:
@@ -2417,7 +2418,8 @@ class DifferentialGCAlgebra(GCAlgebra):
                 elif iteration == max_iterations-1:
                     raise ValueError("could not cover all relations in max iterations in degree {}".format(degree))
                 ndifs = [CB.lift(g) for g in K.basis()]
-                ndifs = [sum(B.basis(degree)[i]*g[i] for i in range(len(B.basis(degree)))) for g in ndifs]
+                basisdegree=B.basis(degree)
+                ndifs = [sum(basisdegree[i]*g[i] for i in range(len(basisdegree))) for g in ndifs]
                 MS = self.differential().differential_matrix(degree-1)
                 nimags = []
                 for g in ndifs:
@@ -3387,6 +3389,7 @@ class CohomologyClass(SageObject):
         """
         return self._x
 
+@cached_function
 def exterior_algebra_basis(n, degrees):
     """
     Basis of an exterior algebra in degree ``n``, where the
@@ -3410,26 +3413,32 @@ def exterior_algebra_basis(n, degrees):
         sage: exterior_algebra_basis(10, (1,5,1,1))
         []
     """
-    zeroes = [0]*len(degrees)
-    if not degrees:
-        if n == 0:
-            return [zeroes]
-        else:
-            return []
-    if len(degrees) == 1:
-        if n == degrees[0]:
+    if n == 0:
+        return [[0 for j in degrees]]
+    if len(degrees)==1:
+        if degrees[0] == n:
             return [[1]]
-        elif n == 0:
-            return [zeroes]
         else:
             return []
-    result = [[0] + v for
-              v in exterior_algebra_basis(n, degrees[1:])]
-    if n == 0 and zeroes not in result:
-        result += [zeroes]
-    d = degrees[0]
-    return result + [[1] + v for
-                     v in exterior_algebra_basis(n-d, degrees[1:])]
+    if len(degrees)==0:
+        return []
+    if min(degrees)>n:
+        return []
+    if sum(degrees)<n:
+        return []
+    if sum(degrees) == n:
+        return [[1 for j in degrees]]
+    i = len(degrees)//2
+    res = []
+    for j in range(n+1):
+        v1 = exterior_algebra_basis(j, degrees[:i])
+        v2 = exterior_algebra_basis(n-j, degrees[i:])
+        res += [l1+l2 for l1 in v1 for l2 in v2]
+    res.sort()
+    return res
+
+
+
 
 def total_degree(deg):
     """

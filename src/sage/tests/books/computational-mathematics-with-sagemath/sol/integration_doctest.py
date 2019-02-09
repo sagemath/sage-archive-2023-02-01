@@ -50,7 +50,7 @@ Sage example in ./sol/integration.tex, line 74::
   sage: [N(QuadNC(lambda x: x * log(1+x), 0, 1, n) - 1/4) # abs tol 3e-16
   ....:  for n in [2, 8, 16]]
   [0.0965735902799726, 1.17408932933522e-7, 2.13449050101566e-13]
-  sage: [N(QuadNC(lambda x: sqrt(1-x^2), 0, 1, n) - pi/4)
+  sage: [N(QuadNC(lambda x: sqrt(1-x^2), 0, 1, n) - pi/4)    # abs tol 1e-13
   ....:  for n in [2, 8, 16]]
   [-0.285398163397448, -0.00524656673640445, -0.00125482109302663]
 

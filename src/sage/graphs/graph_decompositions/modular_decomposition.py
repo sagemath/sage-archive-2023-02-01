@@ -421,30 +421,6 @@ def modular_decomposition(graph):
         sage: g = Graph(d2)
         sage: test_modular_decomposition(modular_decomposition(g), g)
         True
-
-    Tetrahedral Graph is Series::
-
-        sage: print_md_tree(modular_decomposition(graphs.TetrahedralGraph()))
-        SERIES
-              3
-              2
-              1
-              0
-
-    Modular Decomposition tree containing both parallel and series modules::
-
-        sage: d = {2:[4,3,5], 1:[4,3,5], 5:[3,2,1,4], 3:[1,2,5], 4:[1,2,5]}
-        sage: g = Graph(d)
-        sage: print_md_tree(modular_decomposition(g))
-        SERIES
-              5
-              PARALLEL
-                3
-                4
-              PARALLEL
-                1
-                2
-
     """
     if graph.is_directed():
         raise ValueError("Graph must be undirected")
@@ -2747,7 +2723,8 @@ def habib_maurer_algorithm(graph, g_classes=None):
     Ensure that a random graph and an isomorphic graph have identical modular
     decompositions. ::
 
-        sage: from sage.graphs.graph_decompositions.modular_decomposition import permute_decomposition
+        sage: from sage.graphs.graph_decompositions.modular_decomposition \
+                    import permute_decomposition
         sage: permute_decomposition(2, habib_maurer_algorithm, 20, 0.5)
     """
     if graph.is_directed():
@@ -3358,7 +3335,7 @@ def test_gamma_modules(trials, vertices, prob, verbose=False):
         g_classes = gamma_classes(g)
         for module in g_classes.keys():
             m_list = list(module)
-            for v in g.vertices():
+            for v in g:
                 if v not in module:
                     assert(either_connected_or_not_connected(v, m_list, g))
         if verbose:

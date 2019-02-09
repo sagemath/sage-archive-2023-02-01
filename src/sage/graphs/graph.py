@@ -7086,8 +7086,8 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``algorithm`` -- string (default: ``'tedder'``); specifies the algorithm to
-          use among:
+        - ``algorithm`` -- string (default: ``'tedder'``); specifies the
+          algorithm to use among:
 
           - ``'tedder'`` -- Use the linear algorithm of [TCHP2008]_.
 
@@ -7466,9 +7466,9 @@ class Graph(GenericGraph):
 
           - ``'tedder'`` -- Use the linear algorithm of [TCHP2008]_.
 
-          - ``'habib'`` -- Use the $O(n^3)$ algorithm of [HM1979]_.  This
-            is probably slower, but is much simpler and so possibly less
-            error prone.
+          - ``'habib'`` -- Use the $O(n^3)$ algorithm of [HM1979]_. This is
+            probably slower, but is much simpler and so possibly less error
+            prone.
 
         A graph is prime if all its modules are trivial (i.e. empty, all of the
         graph or singletons) -- see :meth:`modular_decomposition`.

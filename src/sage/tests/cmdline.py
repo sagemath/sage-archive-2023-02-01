@@ -55,7 +55,7 @@ AUTHORS:
 - Jeroen Demeyer (2010-11-20): initial version (:trac:`10300`)
 
 """
-from subprocess import *
+from subprocess import Popen, PIPE
 import os
 import select
 

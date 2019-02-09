@@ -162,7 +162,7 @@ var('SAGE_ROOT')           # no fallback for SAGE_ROOT
 var('SAGE_SRC',            join(SAGE_ROOT, 'src'), SAGE_LIB)
 var('SAGE_DOC_SRC',        join(SAGE_SRC, 'doc'))
 var('SAGE_PKGS',           join(SAGE_ROOT, 'build', 'pkgs'))
-var('SAGE_ROOT_GIT'        join(SAGE_ROOT, '.git'))
+var('SAGE_ROOT_GIT',       join(SAGE_ROOT, '.git'))
 
 var('DOT_SAGE',            join(os.environ.get('HOME'), '.sage'))
 var('SAGE_STARTUP_FILE',   join(DOT_SAGE, 'init.sage'))

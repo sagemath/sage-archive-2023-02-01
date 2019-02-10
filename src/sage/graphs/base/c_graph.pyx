@@ -1638,9 +1638,21 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: P = DiGraph(graphs.PetersenGraph().to_directed(), implementation="c_graph")
             sage: list(P._backend.iterator_in_nbrs(0))
             [1, 4, 5]
+
+        TESTS::
+
+            sage: P = DiGraph(graphs.PetersenGraph().to_directed(), implementation="c_graph")
+            sage: list(P._backend.iterator_in_nbrs(63))
+            Traceback (most recent call last):
+            ...
+            LookupError: vertex (63) is not a vertex of the graph
         """
+
         cdef int u_int
         cdef int v_int = self.get_vertex(v)
+        if v_int == -1 or not bitset_in((<CGraph>self._cg).active_vertices, v_int):
+            raise LookupError("vertex ({0}) is not a vertex of the graph".format(v))
+
         # Sparse
         if self._cg_rev is not None:
             for u_int in self._cg_rev.out_neighbors(v_int):
@@ -1676,9 +1688,19 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: P = DiGraph(graphs.PetersenGraph().to_directed(), implementation="c_graph")
             sage: list(P._backend.iterator_out_nbrs(0))
             [1, 4, 5]
+
+        TESTS::
+
+            sage: P = DiGraph(graphs.PetersenGraph().to_directed(), implementation="c_graph")
+            sage: list(P._backend.iterator_out_nbrs(-41))
+            Traceback (most recent call last):
+            ...
+            LookupError: vertex (-41) is not a vertex of the graph
         """
-        cdef u_int
+        cdef int u_int
         cdef int v_int = self.get_vertex(v)
+        if v_int == -1 or not bitset_in((<CGraph>self._cg).active_vertices, v_int):
+            raise LookupError("vertex ({0}) is not a vertex of the graph".format(v))
 
         for u_int in self._cg.out_neighbors(v_int):
             yield self.vertex_label(u_int)
@@ -2292,7 +2314,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
             sage: g = graphs.PetersenGraph()
             sage: paths = g._backend.shortest_path_all_vertices(0)
-            sage: all([ len(paths[v]) == 0 or len(paths[v])-1 == g.distance(0,v) for v in g])
+            sage: all((len(paths[v]) == 0 or len(paths[v])-1 == g.distance(0,v)) for v in g)
             True
             sage: g._backend.shortest_path_all_vertices(0, distance_flag=True)
             {0: 0, 1: 1, 2: 2, 3: 2, 4: 1, 5: 1, 6: 2, 7: 2, 8: 2, 9: 2}
@@ -2628,7 +2650,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         component::
 
             sage: g = digraphs.ButterflyGraph(3)
-            sage: all([[v] == g.strongly_connected_component_containing_vertex(v) for v in g])
+            sage: all([v] == g.strongly_connected_component_containing_vertex(v) for v in g)
             True
         """
         cdef set ans = set(self.depth_first_search(v))

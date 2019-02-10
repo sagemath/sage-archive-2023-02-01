@@ -226,7 +226,6 @@ from __future__ import print_function
 import os
 
 from sage.interfaces.expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_disabled
-from sage.interfaces.tab_completion import ExtraTabCompletion
 
 import pexpect
 
@@ -617,10 +616,7 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
             '4\n3'
             sage: s='g(x):={\nx+1;\nx+2;\n}'
             sage: giac(s)
-            (x)->{
-            x+1;
-            x+2;
-            }
+            (x)->[x+1,x+2]
             sage: giac.g(5)
             7
         """

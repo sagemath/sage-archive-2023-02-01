@@ -1384,7 +1384,7 @@ cdef class SparseGraphBackend(CGraphBackend):
     objects::
 
         sage: G.add_vertex((0,1,2))
-        sage: sorted(G.vertices(),
+        sage: sorted(list(G),
         ....:        key=lambda x: (isinstance(x, tuple), x))
         [0,
         ...

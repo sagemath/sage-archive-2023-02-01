@@ -4,7 +4,7 @@ if [ "$UNAME" = "Darwin" ]; then
     export LDFLAGS="$LDFLAGS -Wl,-headerpad_max_install_names"
 fi
 
-export CXXFLAGS="$CXXFLAGS -std=c++11"
+export CXXFLAGS
 mkdir -p "$SAGE_DESTDIR_LOCAL"/{bin,include,lib}
 sdh_make_install INSTALL_DIR="$SAGE_DESTDIR_LOCAL"
 

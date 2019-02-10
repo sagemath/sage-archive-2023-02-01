@@ -2049,13 +2049,14 @@ class Graph(GenericGraph):
         Neighbors of an apex of degree 2 are apex::
 
             sage: G = graphs.Grid2dGraph(5,5)
-            sage: G.add_path([(1,1),'x',(3,3)])
+            sage: v = (666, 666)
+            sage: G.add_path([(1, 1), v, (3, 3)])
             sage: G.is_planar()
             False
-            sage: G.degree('x')
+            sage: G.degree(v)
             2
-            sage: G.apex_vertices()
-            ['x', (2, 2), (3, 3), (1, 1)]
+            sage: sorted(G.apex_vertices())
+            [(1, 1), (2, 2), (3, 3), (666, 666)]
 
 
         TESTS:
@@ -4153,10 +4154,14 @@ class Graph(GenericGraph):
         EXAMPLES::
 
             sage: G = Graph("Fooba")
-            sage: P = G.coloring(algorithm="MILP"); P
-            [[2, 1, 3], [0, 6, 5], [4]]
-            sage: P = G.coloring(algorithm="DLX"); P
-            [[1, 2, 3], [0, 5, 6], [4]]
+            sage: P = G.coloring(algorithm="MILP")
+            sage: Q = G.coloring(algorithm="DLX")
+            sage: def are_equal_colorings(A, B):
+            ....:     return Set(map(Set, A)) == Set(map(Set, B))
+            sage: are_equal_colorings(P, [[1, 2, 3], [0, 5, 6], [4]])
+            True
+            sage: are_equal_colorings(P, Q)
+            True
             sage: G.plot(partition=P)
             Graphics object consisting of 16 graphics primitives
             sage: G.coloring(hex_colors=True, algorithm="MILP")
@@ -4453,10 +4458,10 @@ class Graph(GenericGraph):
         and LP formulation::
 
             sage: g = Graph([(0,1,0), (1,2,999), (2,3,-5)])
-            sage: g.matching()
+            sage: sorted(g.matching())
             [(0, 1, 0), (2, 3, -5)]
-            sage: g.matching(algorithm="LP")
-            [(2, 3, -5), (0, 1, 0)]
+            sage: sorted(g.matching(algorithm="LP"))
+            [(0, 1, 0), (2, 3, -5)]
 
         When ``use_edge_labels`` is set to ``True``, with Edmonds' algorithm and
         LP formulation::
@@ -5527,7 +5532,7 @@ class Graph(GenericGraph):
             sage: p=graphs.chang_graphs()
             sage: T8 = graphs.CompleteGraph(8).line_graph()
             sage: C = T8.seidel_switching([(0,1,None),(2,3,None),(4,5,None),(6,7,None)],inplace=False)
-            sage: T8.twograph()==C.twograph()
+            sage: T8.twograph() == C.twograph()
             True
             sage: T8.is_isomorphic(C)
             False
@@ -5548,7 +5553,7 @@ class Graph(GenericGraph):
               -- ditto, but much faster.
         """
         from sage.combinat.designs.twographs import TwoGraph
-        G = self.relabel(inplace=False)
+        G = self.relabel(range(self.order()), inplace=False)
         T = []
 
         # Triangles
@@ -6630,9 +6635,9 @@ class Graph(GenericGraph):
 
         Ear decomposition of a biconnected graph::
 
-            sage: g = graphs.CubeGraph(2)
+            sage: g = graphs.CycleGraph(4)
             sage: g.ear_decomposition()
-            [['00', '01', '11', '10', '00']]
+            [[0, 3, 2, 1, 0]]
 
         Ear decomposition of a connected but not biconnected graph::
 
@@ -6684,18 +6689,15 @@ class Graph(GenericGraph):
         # Dfs tree traversal.
         traversed = set()
 
-        # Dict to store parent vertex of all the visited vertices.
-        parent = {}
+        # Dictionary to store parent vertex of all the visited vertices.
+        # Initialized for the first vertex to be visited.
+        parent = {next(self.vertex_iterator()): None}
 
         # List to store visit_time of vertices in Dfs traversal.
         value = {}
 
         # List to store all the chains and cycles of the input graph G.
         chains = []
-
-        vertices = self.vertices()
-
-        parent[vertices[0]] = None
 
         # DFS() : Function that performs depth first search on input graph G and
         #         stores DFS tree in parent array format.
@@ -6734,7 +6736,7 @@ class Graph(GenericGraph):
             chains.append(chain)
 
         # Perform ear decomposition on each connected component of input graph.
-        for v in vertices:
+        for v in self:
             if v not in seen:
               # Start the depth first search from first vertex
                 DFS(v)
@@ -6843,20 +6845,21 @@ class Graph(GenericGraph):
             [[0, 4], [1, 2, 3, 4]]
             sage: C.cliques_containing_vertex(cliques=E)
             {0: [[0, 4]], 1: [[1, 2, 3, 4]], 2: [[1, 2, 3, 4]], 3: [[1, 2, 3, 4]], 4: [[0, 4], [1, 2, 3, 4]]}
-            sage: F = graphs.Grid2dGraph(2,3)
-            sage: F.cliques_containing_vertex()
-            {(0, 0): [[(0, 1), (0, 0)], [(1, 0), (0, 0)]],
-             (0, 1): [[(0, 1), (0, 0)], [(0, 1), (0, 2)], [(0, 1), (1, 1)]],
-             (0, 2): [[(0, 1), (0, 2)], [(1, 2), (0, 2)]],
-             (1, 0): [[(1, 0), (0, 0)], [(1, 0), (1, 1)]],
-             (1, 1): [[(0, 1), (1, 1)], [(1, 2), (1, 1)], [(1, 0), (1, 1)]],
-             (1, 2): [[(1, 2), (1, 1)], [(1, 2), (0, 2)]]}
-            sage: F.cliques_containing_vertex(vertices=[(0, 1), (1, 2)])
-            {(0, 1): [[(0, 1), (0, 0)], [(0, 1), (0, 2)], [(0, 1), (1, 1)]], (1, 2): [[(1, 2), (1, 1)], [(1, 2), (0, 2)]]}
+
             sage: G = Graph({0:[1,2,3], 1:[2], 3:[0,1]})
             sage: G.show(figsize=[2,2])
             sage: G.cliques_containing_vertex()
             {0: [[0, 1, 2], [0, 1, 3]], 1: [[0, 1, 2], [0, 1, 3]], 2: [[0, 1, 2]], 3: [[0, 1, 3]]}
+
+        Since each clique of a 2 dimensional grid corresponds to an edge, the
+        number of cliques in which a vertex is involved equals its degree::
+
+            sage: F = graphs.Grid2dGraph(2,3)
+            sage: d = F.cliques_containing_vertex()
+            sage: all(F.degree(u) == len(cliques) for u,cliques in d.items())
+            True
+            sage: F.cliques_containing_vertex(vertices=[(0, 1)])
+            {(0, 1): [[(0, 1), (0, 0)], [(0, 1), (0, 2)], [(0, 1), (1, 1)]]}
 
         """
         import networkx
@@ -7728,9 +7731,8 @@ class Graph(GenericGraph):
         # a sink (-1,v) and a source (1,v)
         # Any edge (u,v) in the digraph is then added as ((-1,u),(1,v))
 
-        from sage.graphs.graph import Graph
         g = Graph()
-        g.add_edges(((-1, u), (1, v)) for u,v in d.edge_iterator(labels=None))
+        g.add_edges(((-1, u), (1, v)) for u, v in d.edge_iterator(labels=None))
 
         # This new bipartite graph is now edge_colored
         from sage.graphs.graph_coloring import edge_coloring
@@ -8029,19 +8031,21 @@ class Graph(GenericGraph):
         EXAMPLES::
 
             sage: G=graphs.GridGraph([2,3])
-            sage: list(G.perfect_matchings())
-            [[((0, 0), (0, 1)), ((0, 2), (1, 2)), ((1, 0), (1, 1))],
-             [((0, 1), (0, 2)), ((1, 1), (1, 2)), ((0, 0), (1, 0))],
-             [((0, 1), (1, 1)), ((0, 2), (1, 2)), ((0, 0), (1, 0))]]
+            sage: for m in G.perfect_matchings():
+            ....:     print(sorted(m))
+            [((0, 0), (0, 1)), ((0, 2), (1, 2)), ((1, 0), (1, 1))]
+            [((0, 0), (1, 0)), ((0, 1), (0, 2)), ((1, 1), (1, 2))]
+            [((0, 0), (1, 0)), ((0, 1), (1, 1)), ((0, 2), (1, 2))]
 
             sage: G = graphs.CompleteGraph(4)
-            sage: list(G.perfect_matchings(labels=True))
-            [[(0, 1, None), (2, 3, None)],
-             [(0, 2, None), (1, 3, None)],
-             [(0, 3, None), (1, 2, None)]]
+            sage: for m in G.perfect_matchings(labels=True):
+            ....:     print(sorted(m))
+            [(0, 1, None), (2, 3, None)]
+            [(0, 2, None), (1, 3, None)]
+            [(0, 3, None), (1, 2, None)]
 
             sage: G = Graph([[1,-1,'a'], [2,-2, 'b'], [1,-2,'x'], [2,-1,'y']])
-            sage: list(G.perfect_matchings(labels=True))
+            sage: sorted(sorted(m) for m in G.perfect_matchings(labels=True))
             [[(-2, 1, 'x'), (-1, 2, 'y')], [(-2, 2, 'b'), (-1, 1, 'a')]]
 
             sage: G = graphs.CompleteGraph(8)

@@ -9041,7 +9041,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: flow_graph.edges()
             [('000', '001', 1)]
         """
-
+        from sage.misc.functional import round
         from sage.graphs.digraph import DiGraph
         g = DiGraph()
 
@@ -9080,7 +9080,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # returning a graph with the same embedding, the corresponding name, etc ...
         h = self.subgraph(edges=[], immutable=False)
-        h.delete_vertices([v for v in self if (v not in g) or not g.degree(v)])
+        h.delete_vertices(v for v in self if (v not in g) or not g.degree(v))
         h.add_edges(g.edge_iterator())
 
         return h
@@ -9749,8 +9749,8 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = graphs.CubeGraph(4)
             sage: l = ['0111', '0000', '0001', '0011', '0010', '0101', '0100', '1111', '1101', '1011', '1001']
-            sage: G.vertex_boundary(['0000', '1111'], l)
-            ['0111', '0001', '0010', '0100', '1101', '1011']
+            sage: sorted(G.vertex_boundary(['0000', '1111'], l))
+            ['0001', '0010', '0100', '0111', '1011', '1101']
 
         ::
 
@@ -9945,18 +9945,18 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES::
 
-            sage: G = graphs.CubeGraph(3)
-            sage: for i in G.neighbor_iterator('010'):
-            ....:  print(i)
-            011
-            000
-            110
+            sage: G = graphs.PetersenGraph()
+            sage: for i in G.neighbor_iterator(0):
+            ....:     print(i)
+            1
+            4
+            5
             sage: D = G.to_directed()
-            sage: for i in D.neighbor_iterator('010'):
-            ....:  print(i)
-            011
-            000
-            110
+            sage: for i in D.neighbor_iterator(0):
+            ....:     print(i)
+            1
+            4
+            5
 
         ::
 
@@ -11481,11 +11481,17 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: D = digraphs.DeBruijn(4, 2)
             sage: D.delete_vertex('20')
-            sage: print(D.degree())
+            sage: print(D.degree())                       # py2
             [6, 7, 7, 7, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8, 8]
-            sage: print(D.degree(vertices=list(D)))
+            sage: print(D.degree(vertices=list(D)))       # py2
             [6, 7, 7, 7, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8, 8]
-            sage: print(D.degree(vertices=D.vertices()))
+            sage: print(D.degree(vertices=D.vertices()))  # py2
+            [7, 7, 6, 7, 8, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8]
+            sage: print(D.degree())                       # py3
+            [7, 7, 6, 7, 8, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8]
+            sage: print(D.degree(vertices=list(D)))       # py3
+            [7, 7, 6, 7, 8, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8]
+            sage: print(D.degree(vertices=D.vertices()))  # py3
             [7, 7, 6, 7, 8, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8]
         """
         if labels:
@@ -11585,50 +11591,84 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: G = graphs.Grid2dGraph(3, 4)
-            sage: for i in G.degree_iterator():
-            ....:  print(i)
+            sage: for i in G.degree_iterator():  # py2
+            ....:     print(i)                   # py2
             3
             4
             2
             ...
             2
             4
-            sage: for i in G.degree_iterator(labels=True):
-            ....:  print(i)
+            sage: for i in G.degree_iterator():  # py3
+            ....:     print(i)                   # py3
+            2
+            3
+            3
+            ...
+            3
+            2
+            sage: for i in G.degree_iterator(labels=True):  # py2
+            ....:  print(i)                                 # py2
             ((0, 1), 3)
             ((1, 2), 4)
             ((0, 0), 2)
             ...
             ((0, 3), 2)
             ((1, 1), 4)
+            sage: for i in G.degree_iterator(labels=True):  # py3
+            ....:  print(i)                                 # py3
+            ((0, 0), 2)
+            ((0, 1), 3)
+            ((0, 2), 3)
+            ...
+            ((2, 2), 3)
+            ((2, 3), 2)
 
         ::
 
             sage: D = graphs.Grid2dGraph(2,4).to_directed()
-            sage: for i in D.degree_iterator():
-            ....:  print(i)
+            sage: for i in D.degree_iterator():              # py2
+            ....:     print(i)                               # py2
             6
             6
             ...
             4
             6
-            sage: for i in D.degree_iterator(labels=True):
-            ....:  print(i)
+            sage: for i in D.degree_iterator():              # py3
+            ....:     print(i)                               # py3
+            4
+            6
+            ...
+            6
+            4
+            sage: for i in D.degree_iterator(labels=True):  # py2
+            ....:     print(i)                              # py2
             ((0, 1), 6)
             ((1, 2), 6)
             ...
             ((1, 0), 4)
             ((0, 2), 6)
+            sage: for i in D.degree_iterator(labels=True):  # py3
+            ....:     print(i)                              # py3
+            ((0, 0), 4)
+            ((0, 1), 6)
+            ...
+            ((1, 2), 6)
+            ((1, 3), 4)
 
         When ``vertices=None`` yields values in the order of ``list(D)``::
 
             sage: V = list(D)
             sage: D = digraphs.DeBruijn(4, 2)
             sage: D.delete_vertex('20')
-            sage: print(list(D.degree_iterator()))
+            sage: print(list(D.degree_iterator()))  # py2
             [6, 7, 7, 7, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8, 8]
-            sage: print([D.degree(v) for v in D])
+            sage: print([D.degree(v) for v in D])   # py2
             [6, 7, 7, 7, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8, 8]
+            sage: print(list(D.degree_iterator()))  # py3
+            [7, 7, 6, 7, 8, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8]
+            sage: print([D.degree(v) for v in D])   # py3
+            [7, 7, 6, 7, 8, 8, 7, 8, 8, 7, 8, 8, 8, 7, 8]
         """
         if vertices is None:
             vertices = self
@@ -14013,7 +14053,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.eccentricity(7)
             2
             sage: G.eccentricity([7,8,9])
-            [3, 4, 2]
+            [2, 3, 4]
             sage: G.eccentricity([7,8,9], with_labels=True) == {8: 3, 9: 4, 7: 2}
             True
             sage: G = Graph( { 0 : [], 1 : [], 2 : [1] } )
@@ -14106,24 +14146,28 @@ class GenericGraph(GenericGraph_pyx):
                 if by_weight:
                     raise ValueError("algorithm 'BFS' does not work with weights")
                 from sage.graphs.distances_all_pairs import eccentricity
-
+                algo = 'standard' if self.is_directed() else 'bounds'
                 if with_labels:
-                    return dict(zip(self.vertices(), eccentricity(self)))
+                    vertex_list = list(self)
+                    return dict(zip(vertex_list, eccentricity(self, algorithm=algo, vertex_list=vertex_list)))
                 else:
-                    return eccentricity(self, algorithm='standard' if self.is_directed() else 'bounds')
+                    return eccentricity(self, algorithm=algo)
+
             if algorithm in ['Floyd-Warshall-Python', 'Floyd-Warshall-Cython', 'Johnson_Boost']:
                 dist_dict = self.shortest_path_all_pairs(by_weight, algorithm,
                                                          weight_function,
                                                          check_weight)[0]
                 algorithm = 'From_Dictionary'
+
             v = self.vertices()
+
         elif algorithm in ['Floyd-Warshall-Python', 'Floyd-Warshall-Cython', 'Johnson_Boost']:
             raise ValueError("algorithm '" + algorithm + "' works only if all" +
                              " eccentricities are needed")
 
         if not isinstance(v, list):
             v = [v]
-        e = {}
+        ecc = {}
 
         from sage.rings.infinity import Infinity
 
@@ -14139,18 +14183,18 @@ class GenericGraph(GenericGraph_pyx):
                                                     check_weight=check_weight)
 
             if len(length) != self.num_verts():
-                e[u] = Infinity
+                ecc[u] = Infinity
             else:
-                e[u] = max(length.values())
+                ecc[u] = max(length.values())
 
         if with_labels:
-            return e
+            return ecc
         else:
-            if len(e) == 1:
+            if len(ecc) == 1:
                 # return single value
-                v, = e.values()
+                v, = ecc.values()
                 return v
-            return list(itervalues(e))
+            return [ecc[u] for u in v]
 
     def radius(self, by_weight=False, algorithm=None, weight_function=None,
                check_weight=True):
@@ -14404,31 +14448,27 @@ class GenericGraph(GenericGraph_pyx):
 
     def distance_graph(self, dist):
         r"""
-        Returns the graph on the same vertex set as
-        the original graph but vertices are adjacent
-        in the returned graph if and only if they are
-        at specified distances in the original graph.
+        Return the graph on the same vertex set as the original graph but
+        vertices are adjacent in the returned graph if and only if they are at
+        specified distances in the original graph.
 
         INPUT:
 
-        - ``dist`` is a nonnegative integer or
-          a list of nonnegative integers.
-          ``Infinity`` may be used here to describe
-          vertex pairs in separate components.
+        - ``dist`` -- a nonnegative integer or a list of nonnegative integers;
+          specified distance(s) for the connecting vertices.  ``Infinity`` may
+          be used here to describe vertex pairs in separate components.
 
         OUTPUT:
 
-        The returned value is an undirected graph.  The
-        vertex set is identical to the calling graph, but edges
-        of the returned graph join vertices whose distance in
-        the calling graph are present in the input ``dist``.
-        Loops will only be present if distance 0 is included.  If
-        the original graph has a position dictionary specifying
-        locations of vertices for plotting, then this information
-        is copied over to the distance graph.  In some instances
-        this layout may not be the best, and might even be confusing
-        when edges run on top of each other due to symmetries
-        chosen for the layout.
+        The returned value is an undirected graph.  The vertex set is identical
+        to the calling graph, but edges of the returned graph join vertices
+        whose distance in the calling graph are present in the input ``dist``.
+        Loops will only be present if distance 0 is included.  If the original
+        graph has a position dictionary specifying locations of vertices for
+        plotting, then this information is copied over to the distance graph.
+        In some instances this layout may not be the best, and might even be
+        confusing when edges run on top of each other due to symmetries chosen
+        for the layout.
 
         EXAMPLES::
 
@@ -14443,11 +14483,11 @@ class GenericGraph(GenericGraph_pyx):
             [0 1 0 1 0 0]
             [1 0 1 0 0 0]
 
-        To obtain the graph where vertices are adjacent if their
-        distance apart is ``d`` or less use a ``range()`` command
-        to create the input, using ``d+1`` as the input to ``range``.
-        Notice that this will include distance 0 and hence place a loop
-        at each vertex.  To avoid this, use ``range(1,d+1)``. ::
+        To obtain the graph where vertices are adjacent if their distance apart
+        is ``d`` or less use a ``range()`` command to create the input, using
+        ``d + 1`` as the input to ``range``.  Notice that this will include
+        distance 0 and hence place a loop at each vertex.  To avoid this, use
+        ``range(1, d + 1)``::
 
             sage: G = graphs.OddGraph(4)
             sage: d = G.diameter()
@@ -14459,8 +14499,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: H.is_isomorphic(graphs.CompleteGraph(n))
             True
 
-        A complete collection of distance graphs will have
-        adjacency matrices that sum to the matrix of all ones. ::
+        A complete collection of distance graphs will have adjacency matrices
+        that sum to the matrix of all ones::
 
             sage: P = graphs.PathGraph(20)
             sage: all_ones = sum([P.distance_graph(i).am() for i in range(20)])
@@ -14468,15 +14508,15 @@ class GenericGraph(GenericGraph_pyx):
             True
 
         Four-bit strings differing in one bit is the same as
-        four-bit strings differing in three bits.  ::
+        four-bit strings differing in three bits::
 
             sage: G = graphs.CubeGraph(4)
             sage: H = G.distance_graph(3)
             sage: G.is_isomorphic(H)
             True
 
-        The graph of eight-bit strings, adjacent if different
-        in an odd number of bits.  ::
+        The graph of eight-bit strings, adjacent if different in an odd number
+        of bits::
 
             sage: G = graphs.CubeGraph(8) # long time
             sage: H = G.distance_graph([1,3,5,7]) # long time
@@ -14485,8 +14525,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: degrees == H.degree_histogram() # long time
             True
 
-        An example of using ``Infinity`` as the distance in
-        a graph that is not connected. ::
+        An example of using ``Infinity`` as the distance in a graph that is not
+        connected::
 
             sage: G = graphs.CompleteGraph(3)
             sage: H = G.disjoint_union(graphs.CompleteGraph(2))
@@ -14500,7 +14540,7 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-        Empty input, or unachievable distances silently yield empty graphs. ::
+        Empty input, or unachievable distances silently yield empty graphs::
 
             sage: G = graphs.CompleteGraph(5)
             sage: G.distance_graph([]).num_edges()
@@ -14509,7 +14549,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.distance_graph(23).num_edges()
             0
 
-        It is an error to provide a distance that is not an integer type. ::
+        It is an error to provide a distance that is not an integer type::
 
             sage: G = graphs.CompleteGraph(5)
             sage: G.distance_graph('junk')
@@ -14517,13 +14557,13 @@ class GenericGraph(GenericGraph_pyx):
             ...
             TypeError: unable to convert 'junk' to an integer
 
-        It is an error to provide a negative distance. ::
+        It is an error to provide a negative distance::
 
             sage: G = graphs.CompleteGraph(5)
             sage: G.distance_graph(-3)
             Traceback (most recent call last):
             ...
-            ValueError: Distance graph for a negative distance (d=-3) is not defined
+            ValueError: distance graph for a negative distance (d=-3) is not defined
 
         AUTHOR:
 
@@ -14541,12 +14581,10 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 dint = ZZ(d)
                 if dint < 0:
-                    raise ValueError('Distance graph for a negative distance (d=%d) is not defined' % dint)
+                    raise ValueError('distance graph for a negative distance (d=%d) is not defined' % dint)
                 distances.append(dint)
         # Build a graph on the same vertex set, with loops for distance 0
-        vertices = {}
-        for v in self.vertex_iterator():
-            vertices[v] = {}
+        vertices = {v: {} for v in self}
         positions = copy(self.get_pos())
         if ZZ(0) in distances:
             looped = True
@@ -14562,16 +14600,18 @@ class GenericGraph(GenericGraph_pyx):
 
         # Create the appropriate edges
         d = self.distance_all_pairs()
-        for u in self.vertex_iterator():
-            for v in self.vertex_iterator():
+        for u in self:
+            for v in self:
                 if d[u].get(v, Infinity) in distances:
-                    D.add_edge(u,v)
+                    D.add_edge(u, v)
         return D
 
     def girth(self):
         """
-        Computes the girth of the graph. For directed graphs, computes the
-        girth of the undirected graph.
+        Return the girth of the graph.
+
+        For directed graphs, computes the girth of the undirected graph,
+        i.e. ``Graph(self)``.
 
         The girth is the length of the shortest cycle in the graph. Graphs
         without cycles have infinite girth.
@@ -14589,7 +14629,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: next(graphs.trees(9)).girth()
             +Infinity
 
-
         .. SEEALSO::
 
             * :meth:`~sage.graphs.graph.Graph.odd_girth` -- computes
@@ -14597,10 +14636,10 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-        Prior to :trac:`12243`, the girth computation assumed
-        vertices were integers (and failed).  The example below
-        tests the computation for graphs with vertices that are
-        not integers.  In this example the vertices are sets.  ::
+        Prior to :trac:`12243`, the girth computation assumed vertices were
+        integers (and failed). The example below tests the computation for
+        graphs with vertices that are not integers. In this example the vertices
+        are sets::
 
             sage: G = graphs.OddGraph(3)
             sage: type(G.vertices()[0])
@@ -14635,44 +14674,44 @@ class GenericGraph(GenericGraph_pyx):
            sage: g.girth()
            2
         """
-
         # Cases where girth <= 2
         if self.has_loops():
             return 1
         if self.is_directed():
-            if any(self.has_edge(v,u) for u,v in self.edges(labels = False)):
+            if any(self.has_edge(v, u) for u, v in self.edge_iterator(labels=False)):
                 return 2
         else:
             if self.has_multiple_edges():
                 return 2
 
         n = self.num_verts()
-        best = n+1
+        best = n + 1
         seen = {}
-        for w in self.vertex_iterator():
+        for w in self:
             seen[w] = None
             span = set([w])
             depth = 1
             thisList = set([w])
-            while 2*depth <= best and 3 < best:
+            while 2 * depth <= best and 3 < best:
                 nextList = set()
                 for v in thisList:
-                    for u in self.neighbors(v):
-                        if u in seen: continue
+                    for u in self.neighbor_iterator(v):
+                        if u in seen:
+                            continue
                         if not u in span:
                             span.add(u)
                             nextList.add(u)
                         else:
                             if u in thisList:
-                                best = depth*2-1
+                                best = depth * 2 - 1
                                 break
                             if u in nextList:
-                                best = depth*2
-                    if best == 2*depth-1:
+                                best = depth * 2
+                    if best == 2 * depth - 1:
                         break
                 thisList = nextList
                 depth += 1
-        if best == n+1:
+        if best == n + 1:
             from sage.rings.infinity import Infinity
             return Infinity
         return best
@@ -14743,39 +14782,41 @@ class GenericGraph(GenericGraph_pyx):
                                endpoints=False, seed=None, exact=False,
                                algorithm=None):
         r"""
-        Returns the betweenness centrality (fraction of number of
-        shortest paths that go through each vertex) as a dictionary
-        keyed by vertices. The betweenness is normalized by default to
-        be in range (0,1).
+        Return the betweenness centrality.
 
-        Measures of the centrality of a vertex within a graph determine
-        the relative importance of that vertex to its graph. Vertices
-        that occur on more shortest paths between other vertices have
-        higher betweenness than vertices that occur on less.
+        The betweenness centrality of a vertex is the fraction of number of
+        shortest paths that go through each vertex. The betweenness is
+        normalized by default to be in range (0,1).
+
+        Measures of the centrality of a vertex within a graph determine the
+        relative importance of that vertex to its graph. Vertices that occur on
+        more shortest paths between other vertices have higher betweenness than
+        vertices that occur on less.
 
         INPUT:
 
-        -  ``normalized`` - boolean (default True) - if set to False,
-           result is not normalized.
+        - ``normalized`` -- boolean (default: ``True``); if set to ``False``,
+          result is not normalized.
 
-        - ``k`` - integer or None (default None) - if set to an integer, use
-          ``k`` node samples to estimate betweenness. Higher values give better
+        - ``k`` -- integer (default: ``None``); if set to an integer, use ``k``
+          node samples to estimate betweenness. Higher values give better
           approximations. Not available when ``algorithm="Sage"``.
 
-        - ``weight`` - None or string. If set to a string, use that attribute of
-          the nodes as weight. ``weight = True`` is equivalent to ``weight =
-          "weight"``. Not available when ``algorithm="Sage"``.
+        - ``weight`` -- string (default: ``None``); if set to a string, use that
+          attribute of the nodes as weight. ``weight = True`` is equivalent to
+          ``weight = "weight"``. Not available when ``algorithm="Sage"``.
 
-        - ``endpoints`` - Boolean. If set to True it includes the endpoints in
-          the shortest paths count. Not available when ``algorithm="Sage"``.
+        - ``endpoints`` -- boolean (default: ``False``); if set to ``True`` it
+          includes the endpoints in the shortest paths count. Not available when
+          ``algorithm="Sage"``.
 
-        - ``exact`` (boolean, default: ``False``) -- whether to compute over
+        - ``exact`` -- boolean (default: ``False``); whether to compute over
           rationals or on ``double`` C variables. Not available when
           ``algorithm="NetworkX"``.
 
-        - ``algorithm`` (default: ``None``) -- can be either ``"Sage"`` (see
-          :mod:`~sage.graphs.centrality`), ``"NetworkX"`` or ``"None"``. In the
-          latter case, Sage's algorithm will be used whenever possible.
+        - ``algorithm`` -- string (default: ``None``); can be either ``"Sage"``
+          (see :mod:`~sage.graphs.centrality`), ``"NetworkX"`` or ``"None"``. In
+          the latter case, Sage's algorithm will be used whenever possible.
 
         .. SEEALSO::
 
@@ -14830,7 +14871,7 @@ class GenericGraph(GenericGraph_pyx):
 
         if algorithm == "Sage":
             from .centrality import centrality_betweenness
-            return centrality_betweenness(self, normalize = normalized,exact=exact)
+            return centrality_betweenness(self, normalize=normalized, exact=exact)
         elif algorithm == "NetworkX":
             import networkx
             return networkx.betweenness_centrality(self.networkx_graph(copy=False),
@@ -14846,41 +14887,40 @@ class GenericGraph(GenericGraph_pyx):
     def centrality_closeness(self, vert=None, by_weight=False, algorithm=None,
                              weight_function=None, check_weight=True):
         r"""
-        Returns the closeness centrality of all vertices in variable ``vert``.
+        Return the closeness centrality of all vertices in ``vert``.
 
         In a (strongly) connected graph, the closeness centrality of a vertex
-        `v` is equal
-        to the inverse of the average distance between `v` and other vertices.
-        If the graph is disconnected, the closeness centrality of `v` is
-        multiplied by the fraction of reachable vertices in the graph:
-        this way, central vertices should also reach several other vertices
-        in the graph [OLJ14]_. In formulas,
+        `v` is equal to the inverse of the average distance between `v` and
+        other vertices.  If the graph is disconnected, the closeness centrality
+        of `v` is multiplied by the fraction of reachable vertices in the graph:
+        this way, central vertices should also reach several other vertices in
+        the graph [OLJ14]_. In formulas,
 
         .. MATH::
 
             c(v)=\frac{r(v)-1}{\sum_{w \in R(v)} d(v,w)}\frac{r(v)-1}{n-1}
 
-        where `R(v)` is the set of vertices reachable from `v`, and
-        `r(v)` is the cardinality of `R(v)`.
+        where `R(v)` is the set of vertices reachable from `v`, and `r(v)` is
+        the cardinality of `R(v)`.
 
-        'Closeness
-        centrality may be defined as the total graph-theoretic distance of
-        a given vertex from all other vertices... Closeness is an inverse
-        measure of centrality in that a larger value indicates a less
-        central actor while a smaller value indicates a more central
-        actor,' [Borgatti95]_.
+        'Closeness centrality may be defined as the total graph-theoretic
+        distance of a given vertex from all other vertices... Closeness is an
+        inverse measure of centrality in that a larger value indicates a less
+        central actor while a smaller value indicates a more central actor,'
+        [Borgatti95]_.
 
         For more information, see the :wikipedia:`Centrality`.
 
         INPUT:
 
-        - ``vert`` - the vertex or the list of vertices we want to analyze. If
+        - ``vert`` -- the vertex or the list of vertices we want to analyze. If
           ``None`` (default), all vertices are considered.
 
-        - ``by_weight`` (boolean) - if ``True``, the edges in the graph are
-          weighted; if ``False``, all edges have weight 1.
+        - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
+          in the graph are weighted, and otherwise all edges have weight 1
 
-        - ``algorithm`` (string) - one of the following algorithms:
+        - ``algorithm`` -- string (default: ``None``); one of the following
+          algorithms:
 
           - ``'BFS'``: performs a BFS from each vertex that has to be analyzed.
             Does not work with edge weights.
@@ -14891,30 +14931,30 @@ class GenericGraph(GenericGraph_pyx):
           - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in Boost
             (works only with positive weights).
 
-          - ``'Floyd-Warshall-Cython'`` - the Cython implementation of
-            the Floyd-Warshall algorithm. Works only if ``by_weight==False`` and
-            all centralities are needed.
+          - ``'Floyd-Warshall-Cython'``: the Cython implementation of the
+            Floyd-Warshall algorithm. Works only if ``by_weight==False`` and all
+            centralities are needed.
 
-          - ``'Floyd-Warshall-Python'`` - the Python implementation of
-            the Floyd-Warshall algorithm. Works only if all centralities are
-            needed, but it can deal with weighted graphs, even
-            with negative weights (but no negative cycle is allowed).
+          - ``'Floyd-Warshall-Python'``: the Python implementation of the
+            Floyd-Warshall algorithm. Works only if all centralities are needed,
+            but it can deal with weighted graphs, even with negative weights
+            (but no negative cycle is allowed).
 
-          - ``'Johnson_Boost'``: the Johnson algorithm, implemented in
-            Boost (works also with negative weights, if there is no negative
-            cycle).
+          - ``'Johnson_Boost'``: the Johnson algorithm, implemented in Boost
+            (works also with negative weights, if there is no negative cycle).
 
           - ``None`` (default): Sage chooses the best algorithm: ``'BFS'`` if
             ``by_weight`` is ``False``, ``'Dijkstra_Boost'`` if all weights are
             positive, ``'Johnson_Boost'`` otherwise.
 
-        - ``weight_function`` (function) - a function that takes as input an
-          edge ``(u, v, l)`` and outputs its weight. If not ``None``,
-          ``by_weight`` is automatically set to ``True``. If ``None`` and
-          ``by_weight`` is ``True``, we use the edge label ``l`` as a weight.
+        - ``weight_function`` -- function (default: ``None``); a function that
+          takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+          ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
+          weight.
 
-        - ``check_weight`` (boolean) - if ``True``, we check that the
-          weight_function outputs a number for each edge.
+        - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
+          that the ``weight_function`` outputs a number for each edge.
 
         OUTPUT:
 
@@ -15006,8 +15046,8 @@ class GenericGraph(GenericGraph_pyx):
             ....:     c6 = g.centrality_closeness(algorithm='Johnson_Boost')
             ....:     assert(len(c1)==len(c2)==len(c3)==len(c4)==len(c5)==len(c6))
             ....:     c = [c1,c2,c3,c4,c5,c6]
-            ....:     for (ci,cj) in itertools.combinations(c, 2):
-            ....:         assert(sum([abs(ci[v] - cj[v]) for v in g.vertices() if g.degree(v) != 0]) < 1e-12)
+            ....:     for ci, cj in itertools.combinations(c, 2):
+            ....:         assert(sum(abs(ci[v] - cj[v]) for v in g if g.degree(v)) < 1e-12)
 
         Directed graphs::
 
@@ -15025,8 +15065,8 @@ class GenericGraph(GenericGraph_pyx):
             ....:     c6 = g.centrality_closeness(algorithm='Johnson_Boost')
             ....:     assert(len(c1)==len(c2)==len(c3)==len(c4)==len(c5)==len(c6))
             ....:     c = [c1,c2,c3,c4,c5,c6]
-            ....:     for (ci,cj) in itertools.combinations(c, 2):
-            ....:         assert(sum([abs(ci[v] - cj[v]) for v in g.vertices() if g.out_degree(v) != 0]) < 1e-12)
+            ....:     for ci, cj in itertools.combinations(c, 2):
+            ....:         assert(sum(abs(ci[v] - cj[v]) for v in g if g.out_degree(v)) < 1e-12)
 
         Weighted graphs::
 
@@ -15044,16 +15084,16 @@ class GenericGraph(GenericGraph_pyx):
             ....:     c4 = g.centrality_closeness(by_weight=True, algorithm='Johnson_Boost')
             ....:     assert(len(c1)==len(c2)==len(c3)==len(c4))
             ....:     c = [c1,c2,c3,c4]
-            ....:     for (ci,cj) in itertools.combinations(c, 2):
-            ....:         assert(sum([abs(ci[v] - cj[v]) for v in g.vertices() if g.degree(v) != 0]) < 1e-12)
+            ....:     for ci, cj in itertools.combinations(c, 2):
+            ....:         assert(sum(abs(ci[v] - cj[v]) for v in g if g.degree(v)) < 1e-12)
         """
         if weight_function is not None:
             by_weight=True
         elif by_weight:
-            weight_function = lambda e:e[2]
+            weight_function = lambda e: e[2]
 
         onlyone = False
-        if vert in self.vertices():
+        if vert in self:
             v_iter = iter([vert])
             onlyone = True
         elif vert is None:
@@ -15063,18 +15103,18 @@ class GenericGraph(GenericGraph_pyx):
 
         if algorithm is None:
             if not by_weight:
-                algorithm='BFS'
+                algorithm = 'BFS'
             else:
                 for e in self.edge_iterator():
                     try:
                         if float(weight_function(e)) < 0:
-                            algorithm='Johnson_Boost'
+                            algorithm = 'Johnson_Boost'
                             break
                     except (ValueError, TypeError):
-                        raise ValueError("The weight function cannot find the" +
-                                         " weight of " + str(e) + ".")
+                        raise ValueError("the weight function cannot find the" +
+                                         " weight of " + str(e))
             if algorithm is None:
-                algorithm='Dijkstra_Boost'
+                algorithm = 'Dijkstra_Boost'
 
         if algorithm == 'NetworkX':
             if by_weight and check_weight:
@@ -15082,26 +15122,26 @@ class GenericGraph(GenericGraph_pyx):
             import networkx
             if by_weight:
                 if self.is_directed():
-                    G = networkx.DiGraph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
+                    G = networkx.DiGraph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
                 else:
-                    G = networkx.Graph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
+                    G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
             else:
                 G = self.networkx_graph(copy=False)
-            G.add_nodes_from(self.vertices())
+            G.add_nodes_from(self)
 
             degree = self.out_degree if self.is_directed() else self.degree
             if vert is None:
-                closeness = networkx.closeness_centrality(G, vert, reverse=True, distance = 'weight' if by_weight else None)
-                return {v:c for v,c in iteritems(closeness) if degree(v) != 0}
+                closeness = networkx.closeness_centrality(G, vert, reverse=True, distance='weight' if by_weight else None)
+                return {v: c for v, c in iteritems(closeness) if degree(v)}
             closeness = {}
             for x in v_iter:
-                if degree(x) != 0:
+                if degree(x):
                     closeness[x] = networkx.closeness_centrality(G, x, reverse=True, distance='weight' if by_weight else None)
             if onlyone:
                 return closeness.get(vert, None)
             else:
                 return closeness
-        elif algorithm=="Johnson_Boost":
+        elif algorithm == "Johnson_Boost":
             from sage.graphs.base.boost_graph import johnson_closeness_centrality
             self.weighted(by_weight)
             closeness = johnson_closeness_centrality(self, weight_function)
@@ -19917,7 +19957,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = graphs.Grid2dGraph(5, 5)
             sage: g._keys_for_vertices()
-            <function get_label at ...>
+            <function ...get_label at ...>
 
         TESTS:
 
@@ -19928,7 +19968,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.add_vertex("a")
             sage: s = g.graphviz_string()
         """
-        label = {v: 'node_{0}'.format(i) for i, v in enumerate(self.vertices())}
+        label = {v: 'node_{0}'.format(i) for i, v in enumerate(self)}
         def get_label(vertex):
             return label[vertex]
         return get_label
@@ -20253,17 +20293,37 @@ class GenericGraph(GenericGraph_pyx):
 
         The following digraph has tuples as vertices::
 
-            sage: print(digraphs.ButterflyGraph(1).graphviz_string())
+            sage: print(DiGraph(graphs.Grid2dGraph(2,2)).graphviz_string())  # py2
             digraph {
-              node_3  [label="('1', 1)"];
-              node_0  [label="('0', 0)"];
-              node_2  [label="('1', 0)"];
-              node_1  [label="('0', 1)"];
+              node_0  [label="(0, 1)"];
+              node_1  [label="(1, 0)"];
+              node_2  [label="(0, 0)"];
+              node_3  [label="(1, 1)"];
             <BLANKLINE>
+              node_0 -> node_2;
               node_0 -> node_3;
-              node_0 -> node_1;
-              node_2 -> node_3;
+              node_1 -> node_2;
+              node_1 -> node_3;
+              node_2 -> node_0;
               node_2 -> node_1;
+              node_3 -> node_0;
+              node_3 -> node_1;
+            }
+            sage: print(DiGraph(graphs.Grid2dGraph(2,2)).graphviz_string())  # py3
+            digraph {
+              node_0  [label="(0, 0)"];
+              node_1  [label="(0, 1)"];
+              node_2  [label="(1, 0)"];
+              node_3  [label="(1, 1)"];
+            <BLANKLINE>
+              node_0 -> node_1;
+              node_0 -> node_2;
+              node_1 -> node_0;
+              node_1 -> node_3;
+              node_2 -> node_0;
+              node_2 -> node_3;
+              node_3 -> node_1;
+              node_3 -> node_2;
             }
 
         The following digraph has vertices with newlines in their string
@@ -20836,13 +20896,13 @@ class GenericGraph(GenericGraph_pyx):
 
     ### Automorphism and isomorphism
 
-    def relabel(self, perm=None, inplace=True, return_map=False, check_input = True, complete_partial_function = True, immutable = None):
+    def relabel(self, perm=None, inplace=True, return_map=False, check_input=True, complete_partial_function=True, immutable=None):
         r"""
         Relabels the vertices of ``self``
 
         INPUT:
 
-         - ``perm`` -- a function, dictionary, list, permutation, or
+         - ``perm`` -- a function, dictionary, iterable, permutation, or
            ``None`` (default: ``None``)
 
          - ``inplace`` -- a boolean (default: ``True``)
@@ -20865,9 +20925,11 @@ class GenericGraph(GenericGraph_pyx):
         relabeled to ``f(v)``.
 
         If ``perm`` is a dictionary ``d``, then each vertex ``v`` (which should
-        be a key of ``d``) is relabeled to ``d[v]``.  Similarly, if ``perm`` is
-        a list or tuple ``l`` of length ``n``, then the first vertex returned by
-        ``G.vertices()`` is relabeled to ``l[0]``, the second to ``l[1]``, ...
+        be a key of ``d``) is relabeled to ``d[v]``.
+
+        If ``perm`` is a list (or more generally, any iterable) of
+        length ``n``, then the first vertex returned by ``G.vertices()``
+        is relabeled to ``l[0]``, the second to ``l[1]``, ...
 
         If ``perm`` is a permutation, then each vertex ``v`` is
         relabeled to ``perm(v)``. Caveat: this assumes that the
@@ -20877,7 +20939,8 @@ class GenericGraph(GenericGraph_pyx):
 
         If ``perm`` is ``None``, the graph is relabeled to be on the
         vertices `\{0,1,...,n-1\}`. This is *not* any kind of canonical
-        labeling, but neither a random relabeling.
+        labeling, but it is consistent (relabeling twice will give the
+        same result).
 
         If ``inplace`` is ``True``, the graph is modified in place and
         ``None`` is returned. Otherwise a relabeled copy of the graph
@@ -20919,9 +20982,9 @@ class GenericGraph(GenericGraph_pyx):
             [0 0 1]
             [1 1 0]
 
-        Relabeling using a tuple::
+        Relabeling using an iterable::
 
-            sage: G.relabel((0,2,1), inplace=False).am()
+            sage: G.relabel(iter((0,2,1)), inplace=False).am()
             [0 0 1]
             [0 0 1]
             [1 1 0]
@@ -20972,7 +21035,21 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.edges()
             []
 
-        Relabeling to simpler labels::
+        Recovering the relabeling with ``return_map``::
+
+            sage: G = graphs.CubeGraph(3)
+            sage: G.relabel(range(8), return_map=True)
+            {'000': 0,
+             '001': 1,
+             '010': 2,
+             '011': 3,
+             '100': 4,
+             '101': 5,
+             '110': 6,
+             '111': 7}
+
+        When no permutation is given, the relabeling is done to integers
+        from 0 to N-1 but in an arbitrary order::
 
             sage: G = graphs.CubeGraph(3)
             sage: G.vertices()
@@ -20981,11 +21058,11 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.vertices()
             [0, 1, 2, 3, 4, 5, 6, 7]
 
-        Recovering the relabeling with ``return_map``::
+        In the above case, the mapping is arbitrary but consistent::
 
-            sage: G = graphs.CubeGraph(3)
-            sage: expecting = {'000': 0, '001': 1, '010': 2, '011': 3, '100': 4, '101': 5, '110': 6, '111': 7}
-            sage: G.relabel(return_map=True) == expecting
+            sage: map1 = G.relabel(inplace=False, return_map=True)
+            sage: map2 = G.relabel(inplace=False, return_map=True)
+            sage: map1 == map2
             True
 
         ::
@@ -21065,37 +21142,39 @@ class GenericGraph(GenericGraph_pyx):
         # If perm is not a dictionary, we build one !
 
         if perm is None:
-
-            # vertices() returns a sorted list:
-            # this guarantees consistent relabeling
-            perm = {v: i for i, v in enumerate(self.vertices())}
+            # enumerate(self) guarantees a consistent but otherwise
+            # arbitrary relabeling
+            perm = {v: i for i, v in enumerate(self)}
             complete_partial_function = False
             check_input = False
 
         elif isinstance(perm, dict):
-
             # If all vertices do not have a new label, the code will touch the
             # dictionary. Let us keep the one we received from the user clean !
-            perm = copy(perm)
-
-        elif isinstance(perm, (list, tuple)):
-            perm = dict(zip(self.vertices(),perm))
+            perm = dict(perm)
 
         elif isinstance(perm, PermutationGroupElement):
             n = self.order()
             ddict = {}
-            for i in range(1,n):
-                ddict[i] = perm(i)%n
+            for i in range(1, n):
+                ddict[i] = perm(i) % n
             if n > 0:
-                ddict[0] = perm(n)%n
+                ddict[0] = perm(n) % n
             perm = ddict
 
-        elif callable(perm):
-            perm = dict( [ i, perm(i) ] for i in self.vertices() )
-            complete_partial_function = False
-
         else:
-            raise TypeError("Type of perm is not supported for relabeling.")
+            # Check for generic iterable/callable
+            try:
+                it = iter(perm)
+            except TypeError:
+                if not callable(perm):
+                    raise
+                # callable
+                perm = {v: perm(v) for v in self}
+                complete_partial_function = False
+            else:
+                # iterable
+                perm = dict(zip(self.vertices(), it))
 
         # Whether to complete the relabeling function if some vertices do not
         # appear in the permutation.
@@ -21109,12 +21188,9 @@ class GenericGraph(GenericGraph_pyx):
             if len(set(perm.values())) < len(perm):
                 raise NotImplementedError("Non injective relabeling")
 
-            for v in perm:
-                if v in self:
-                    try:
-                        hash(perm[v])
-                    except TypeError:
-                        raise ValueError("perm dictionary must be of the format {a:a1, b:b1, ...} where a,b,... are vertices and a1,b1,... are hashable")
+            # Check hashability of values
+            for t in perm.values():
+                hash(t)
 
         self._backend.relabel(perm, self._directed)
 
@@ -21280,7 +21356,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: Pi
             [['000'], ['001', '010', '011', '100', '101', '110', '111']]
             sage: G.coarsest_equitable_refinement(Pi)
-            [['000'], ['011', '101', '110'], ['111'], ['001', '010', '100']]
+            [['000'], ['011', '101', '110'], ['111'], ['010', '001', '100']]
 
         Note that given an equitable partition, this function returns that
         partition::
@@ -21303,7 +21379,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: ss = (graphs.WheelGraph(5)).line_graph(labels=False)
             sage: ss.coarsest_equitable_refinement(prt)
-            [[(0, 1)], [(1, 2), (1, 4)], [(0, 3)], [(0, 2), (0, 4)], [(2, 3), (3, 4)]]
+            [[(0, 1)], [(1, 2), (1, 4)], [(0, 3)], [(0, 4), (0, 2)], [(2, 3), (3, 4)]]
 
         ALGORITHM: Brendan D. McKay's Master's Thesis, University of
         Melbourne, 1976.
@@ -21495,7 +21571,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.automorphism_group(partition=[[0,1,2],[3,4,5]],algorithm='sage')
             Traceback (most recent call last):
             ...
-            KeyError: 6
+            KeyError: ...
 
         Labeled automorphism group::
 
@@ -22744,22 +22820,22 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
         sage: G.add_edge(1,2,'string')
         sage: G.add_edge(2,123)
         sage: g = graph_isom_equivalent_non_edge_labeled_graph(G, partition=[[0,123],[1,2]]); g
-        [Graph on 6 vertices, [[0, 3], [1, 2], [4], [5]]]
+        [Graph on 6 vertices, [[1, 0], [2, 3], [4], [5]]]
 
         sage: g = graph_isom_equivalent_non_edge_labeled_graph(G); g
         [Graph on 6 vertices, [[0, 1, 2, 3], [4], [5]]]
         sage: g[0].edges()
-        [(0, 4, None), (1, 4, None), (1, 5, None), (2, 3, None), (2, 5, None)]
+        [(0, 3, None), (1, 4, None), (2, 4, None), (2, 5, None), (3, 5, None)]
 
         sage: g = graph_isom_equivalent_non_edge_labeled_graph(G,standard_label='string',return_edge_labels=True); g
         [Graph on 6 vertices, [[0, 1, 2, 3], [5], [4]], [[[None, 1]], [[0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [7, 1], [8, 1], [9, 1]], [['string', 1]]]]
         sage: g[0].edges()
-        [(0, 4, None), (1, 2, None), (1, 4, None), (2, 5, None), (3, 5, None)]
+        [(0, 5, None), (1, 4, None), (2, 3, None), (2, 4, None), (3, 5, None)]
 
         sage: graph_isom_equivalent_non_edge_labeled_graph(G,inplace=True)
         [[[0, 1, 2, 3], [4], [5]]]
         sage: G.edges()
-        [(0, 4, None), (1, 4, None), (1, 5, None), (2, 3, None), (2, 5, None)]
+        [(0, 3, None), (1, 4, None), (2, 4, None), (2, 5, None), (3, 5, None)]
 
     TESTS:
 
@@ -22811,20 +22887,25 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
         if inplace:
             g._backend = G._backend
     elif not inplace:
-        G = copy( g )
+        G = copy(g)
     else:
         G = g
 
     G_order = G.order()
-    V = list(range(G_order))
-    if G.vertices() != V:
-        relabel_dict = G.relabel(return_map=True)
+    # Do not relabel if the set of vertices is equal to the set
+    # range(n). This helps to ensure that *equal* graphs on range(n)
+    # yield *equal* (not just isomorphic) canonical labelings. This
+    # is just a convenience, there is no mathematical meaning.
+    if set(G) != set(range(G_order)):
+        relabel_dict = G.relabel(return_map=True, inplace=True)
     else:
-        relabel_dict = dict( (i,i) for i in range(G_order) )
+        # Do not relabel but ensure that labels are Python ints
+        relabel_dict = {i: int(i) for i in G}
+
     if partition is None:
-        partition = [V]
+        partition = [G.vertices()]
     else:
-        partition = [ [ relabel_dict[i] for i in part ] for part in partition ]
+        partition = [[relabel_dict[i] for i in part] for part in partition]
 
     if G._directed:
         edge_iter = G._backend.iterator_in_edges(G,True)

@@ -740,15 +740,15 @@ def samples(m, n, lwe, seed=None, balanced=False, **kwds):
     if isinstance(lwe, type):
         lwe = lwe(n, m=m, **kwds)
     else:
-        lwe = lwe
         if lwe.n != n:
-            raise ValueError("Passed LWE instance has n=%d, but n=%d was passed to this function."%(lwe.n, n))
+            raise ValueError("Passed LWE instance has n=%d, but n=%d was passed to this function." % (lwe.n, n))
 
     if balanced is False:
         f = lambda a_c: a_c
     else:
         f = balance_sample
     return [f(lwe()) for _ in range(m)]
+
 
 def balance_sample(s, q=None):
     r"""

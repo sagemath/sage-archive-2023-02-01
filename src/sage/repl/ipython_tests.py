@@ -43,6 +43,23 @@ Next, test the pinfo magic for Cython code::
     File:           .../sage/tests/stl_vector.pyx
     Type:           type
 
+Next, test the ``pinfo`` magic for ``R`` interface code, see :trac:`26906`::
+
+    sage: from sage.repl.interpreter import get_test_shell
+    sage: shell = get_test_shell()
+    sage: shell.run_cell(u'%pinfo r.lm')
+    Signature:       r.lm(self, *args, **kwds)
+    Call signature:  r.lm(*args, **kwds)
+    Type:            RFunction
+    String form:     lm
+    File:            .../sage/interfaces/r.py
+    Docstring:
+    title
+    *****
+    <BLANKLINE>
+    Fitting Linear Models
+    ...
+
 Next, test the pinfo2 magic for Python code. This is what IPython
 calls when you ask for the double-questionmark help, like `foo??` ::
 
@@ -100,6 +117,20 @@ Next, test the pinfo2 magic for Cython code::
     ...
     File:   .../sage/tests/stl_vector.pyx
     Type:   type
+
+Next, test the ``pinfo2`` magic for ``R`` interface code, see :trac:`26906`::
+
+    sage: from sage.repl.interpreter import get_test_shell
+    sage: shell = get_test_shell()
+    sage: shell.run_cell(u'%pinfo2 r.lm')
+    Signature:       r.lm(self, *args, **kwds)
+    Call signature:  r.lm(*args, **kwds)
+    Type:            RFunction
+    String form:     lm
+    File:            .../sage/interfaces/r.py
+    Source:
+    function (formula, data, subset, weights, na.action, method = "qr",
+    ...
 
 Test that there are no warnings being ignored internally::
 

@@ -311,7 +311,6 @@ AC_PROG_CXX()
 AC_PROG_FC()
 
 AC_SUBST(CC)
-AC_SUBST(CXX)
 AC_SUBST(FC)
 
 # On darwin, also set the objective C/C++ compilers

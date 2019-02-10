@@ -21325,25 +21325,23 @@ class GenericGraph(GenericGraph_pyx):
             return True
 
     def coarsest_equitable_refinement(self, partition, sparse=True):
-        """
-        Returns the coarsest partition which is finer than the input
+        r"""
+        Return the coarsest partition which is finer than the input
         partition, and equitable with respect to self.
 
-        A partition is equitable with respect to a graph if for every pair
-        of cells C1, C2 of the partition, the number of edges from a vertex
-        of C1 to C2 is the same, over all vertices in C1.
+        A partition is equitable with respect to a graph if for every pair of
+        cells `C_1`, `C_2` of the partition, the number of edges from a vertex
+        of `C_1` to `C_2` is the same, over all vertices in `C_1`.
 
-        A partition P1 is finer than P2 (P2 is coarser than P1) if every
-        cell of P1 is a subset of a cell of P2.
+        A partition `P_1` is finer than `P_2` (`P_2` is coarser than `P_1`) if
+        every cell of `P_1` is a subset of a cell of `P_2`.
 
         INPUT:
 
+        -  ``partition`` -- a list of lists
 
-        -  ``partition`` - a list of lists
-
-        -  ``sparse`` - (default False) whether to use sparse
-           or dense representation- for small graphs, use dense for speed
-
+        - ``sparse`` -- boolean (default: ``False``); whether to use sparse or
+           dense representation - for small graphs, use dense for speed
 
         EXAMPLES::
 
@@ -21355,8 +21353,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: Pi = [verts[:1], verts[1:]]
             sage: Pi
             [['000'], ['001', '010', '011', '100', '101', '110', '111']]
-            sage: G.coarsest_equitable_refinement(Pi)
-            [['000'], ['011', '101', '110'], ['111'], ['010', '001', '100']]
+            sage: [sorted(cell) for cell in G.coarsest_equitable_refinement(Pi)]
+            [['000'], ['011', '101', '110'], ['111'], ['001', '010', '100']]
 
         Note that given an equitable partition, this function returns that
         partition::
@@ -21373,7 +21371,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: ss.coarsest_equitable_refinement(prt)
             Traceback (most recent call last):
             ...
-            TypeError: Partition ([[(0, 1)], [(0, 2), (0, 3), (0, 4), (1, 2), (1, 4)], [(2, 3), (3, 4)]]) is not valid for this graph: vertices are incorrect.
+            TypeError: partition ([[(0, 1)], [(0, 2), (0, 3), (0, 4), (1, 2), (1, 4)], [(2, 3), (3, 4)]]) is not valid for this graph: vertices are incorrect
 
         ::
 
@@ -21385,29 +21383,31 @@ class GenericGraph(GenericGraph_pyx):
         Melbourne, 1976.
         """
         from sage.misc.flatten import flatten
-        if sorted(flatten(partition, max_level=1)) != self.vertices():
-            raise TypeError("Partition (%s) is not valid for this graph: vertices are incorrect."%partition)
-        if any(len(cell)==0 for cell in partition):
-            raise TypeError("Partition (%s) is not valid for this graph: there is a cell of length 0."%partition)
+        if set(flatten(partition, max_level=1)) != set(self):
+            raise TypeError("partition (%s) is not valid for this graph: vertices are incorrect"%partition)
+        if any(len(cell) == 0 for cell in partition):
+            raise TypeError("partition (%s) is not valid for this graph: there is a cell of length 0"%partition)
         if self.has_multiple_edges():
-            raise TypeError("Refinement function does not support multiple edges.")
+            raise TypeError("refinement function does not support multiple edges")
         G = copy(self)
-        perm_to = G.relabel(return_map=True)
+        perm_from = list(G)
+        perm_to = {v: i for i, v in enumerate(perm_from)}
+        G.relabel(perm=perm_to)
         partition = [[perm_to[b] for b in cell] for cell in partition]
-        perm_from = {}
-        for v in self:
-            perm_from[perm_to[v]] = v
-        n = G.num_verts()
+        n = G.order()
         if sparse:
             from sage.graphs.base.sparse_graph import SparseGraph
             CG = SparseGraph(n)
         else:
             from sage.graphs.base.dense_graph import DenseGraph
             CG = DenseGraph(n)
-        for i in range(n):
-            for j in range(n):
-                if G.has_edge(i,j):
-                    CG.add_arc(i,j)
+        if G.is_directed():
+            for i, j in G.edge_iterator(labels=False):
+                CG.add_arc(i, j)
+        else:
+            for i, j in G.edge_iterator(labels=False):
+                CG.add_arc(i, j)
+                CG.add_arc(j, i)
 
         from sage.groups.perm_gps.partn_ref.refinement_graphs import coarsest_equitable_refinement
         result = coarsest_equitable_refinement(CG, partition, G._directed)

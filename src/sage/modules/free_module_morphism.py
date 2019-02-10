@@ -41,12 +41,12 @@ from __future__ import absolute_import
 # returns a vector that the defining matrix can hit from the left, or
 # be coercible into vector space of appropriate dimension.
 
-import sage.misc.misc as misc
 import sage.modules.free_module as free_module
 from . import matrix_morphism
 from sage.structure.sequence import Sequence
 
 from . import free_module_homspace
+
 
 def is_FreeModuleMorphism(x):
     """

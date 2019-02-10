@@ -19,7 +19,7 @@ from __future__ import absolute_import
 from .args cimport MatrixArgs
 
 
-class MatrixFactory(object):
+def matrix(*args, **kwds):
     """
     Create a matrix.
 
@@ -503,8 +503,8 @@ class MatrixFactory(object):
         [7 8 9]
         Full MatrixSpace of 3 by 3 dense matrices over Integer Ring
         sage: n = matrix(QQ, 2, 2, [1, 1/2, 1/3, 1/4]).numpy(); n
-        array([[ 1.        ,  0.5       ],
-               [ 0.33333333,  0.25      ]])
+        array([[1.        , 0.5       ],
+               [0.33333333, 0.25      ]])
         sage: matrix(QQ, n)
         [  1 1/2]
         [1/3 1/4]
@@ -622,10 +622,9 @@ class MatrixFactory(object):
     - Jeroen Demeyer (2018-02-20): completely rewritten using
       :class:`MatrixArgs`, see :trac:`24742`
     """
-    def __call__(self, *args, **kwds):
-        return MatrixArgs(*args, **kwds).matrix()
+    return MatrixArgs(*args, **kwds).matrix()
 
 
-Matrix = matrix = MatrixFactory()
+Matrix = matrix
 
 from .special import *

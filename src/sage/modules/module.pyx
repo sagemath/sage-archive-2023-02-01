@@ -11,6 +11,7 @@ EXAMPLES:
 
 A minimal example of a module::
 
+    sage: from sage.structure.richcmp import richcmp
     sage: class MyElement(sage.structure.element.ModuleElement):
     ....:     def __init__(self, parent, x):
     ....:         self.x = x
@@ -19,8 +20,8 @@ A minimal example of a module::
     ....:         return self.parent()(c*self.x)
     ....:     def _add_(self, other):
     ....:         return self.parent()(self.x + other.x)
-    ....:     def __cmp__(self, other):
-    ....:         return cmp(self.x, other.x)
+    ....:     def _richcmp_(self, other, op):
+    ....:         return richcmp(self.x, other.x, op)
     ....:     def __hash__(self):
     ....:         return hash(self.x)
     ....:     def _repr_(self):
@@ -31,9 +32,11 @@ A minimal example of a module::
     ....:     def _element_constructor_(self, x):
     ....:         if isinstance(x, MyElement): x = x.x
     ....:         return self.element_class(self, self.base_ring()(x))
-    ....:     def __cmp__(self, other):
-    ....:         if not isinstance(other, MyModule): return cmp(type(other),MyModule)
-    ....:         return cmp(self.base_ring(),other.base_ring())
+    ....:     def __eq__(self, other):
+    ....:         if not isinstance(other, MyModule): return False
+    ....:         return self.base_ring() == other.base_ring()
+    ....:     def __hash__(self):
+    ....:         return hash(self.base_ring())
 
     sage: M = MyModule(QQ)
     sage: M(1)

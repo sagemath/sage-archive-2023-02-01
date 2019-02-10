@@ -1,8 +1,8 @@
 """
-Mix-in Class for libGAP-based Groups
+Mix-in Class for GAP-based Groups
 
 This class adds access to GAP functionality to groups such that parent
-and element have a ``gap()`` method that returns a libGAP object for
+and element have a ``gap()`` method that returns a GAP object for
 the parent/element.
 
 If your group implementation uses libgap, then you should add
@@ -398,13 +398,13 @@ class GroupMixinLibGAP(object):
             [ 2 -1  0]
             [ 1  1  1]
             sage: MatrixGroup(SymmetricGroup(5)).character_table()
-            [ 1  1  1  1  1  1  1]
             [ 1 -1 -1  1 -1  1  1]
             [ 4  0  1 -1 -2  1  0]
-            [ 4  0 -1 -1  2  1  0]
-            [ 5 -1  1  0  1 -1  1]
             [ 5  1 -1  0 -1 -1  1]
             [ 6  0  0  1  0  0 -2]
+            [ 5 -1  1  0  1 -1  1]
+            [ 4  0 -1 -1  2  1  0]
+            [ 1  1  1  1  1  1  1]
         """
         #code from function in permgroup.py, but modified for
         #how gap handles these groups.

@@ -102,7 +102,8 @@ class GroupOfIsometries(FinitelyGeneratedMatrixGroup_gap):
             sage: from sage.groups.matrix_gps.isometries import GroupOfIsometries
             sage: bil = Matrix(ZZ,2,[3,2,2,3])
             sage: gens = [-Matrix(ZZ,2,[0,1,1,0])]
-            sage: O = GroupOfIsometries(2,ZZ,gens,bil)
+            sage: cat = Groups().Finite()
+            sage: O = GroupOfIsometries(2, ZZ, gens, bil, category=cat)
             sage: TestSuite(O).run()
         """
         from copy import copy
@@ -160,6 +161,28 @@ class GroupOfIsometries(FinitelyGeneratedMatrixGroup_gap):
         else:
             return 'Group of isometries with %s generators %s'%(n, format_list(self.gens()))
 
+    def __reduce__(self):
+        r"""
+        Implements pickling.
+
+        EXAMPLES::
+
+            sage: from sage.groups.matrix_gps.isometries import GroupOfIsometries
+            sage: bil = Matrix(ZZ,2,[3,2,2,3])
+            sage: gens = [-Matrix(ZZ,2,[0,1,1,0])]
+            sage: cat = Groups().Finite()
+            sage: O = GroupOfIsometries(2, ZZ, gens, bil, category=cat)
+            sage: loads(dumps(O)) == O
+            True
+        """
+        args = (self.degree(), self.base_ring(),
+                tuple(g.matrix() for g in self.gens()), self._invariant_bilinear_form,
+                self.category(),
+                False,
+                self._invariant_submodule,
+                self._invariant_quotient_module)
+        return (GroupOfIsometries, args)
+
     def invariant_bilinear_form(self):
         r"""
         Return the symmetric bilinear form preserved by the orthogonal group.
@@ -214,7 +237,7 @@ class GroupOfIsometries(FinitelyGeneratedMatrixGroup_gap):
             if is_FGP_Module(S):
                 if S.is_submodule(T):
                     V = S.V()
-                    if all([V==V*f.matrix() for f in self.gens()]):
+                    if all(V == V * f.matrix() for f in self.gens()):
                         return GroupActionOnQuotientModule(self, S)
         return None
 
@@ -241,6 +264,7 @@ class GroupOfIsometries(FinitelyGeneratedMatrixGroup_gap):
         if x * F * x.transpose() != F:
             raise TypeError('matrix must be orthogonal '
                 'with respect to the invariant form')
+
 
 class GroupActionOnSubmodule(Action):
     r"""
@@ -289,18 +313,17 @@ class GroupActionOnSubmodule(Action):
         import operator
         Action.__init__(self, MatrixGroup, submodule, is_left, operator.mul)
 
-    def _call_(self, a, g):
+    def _act_(self, g, a):
         r"""
         This defines the group action.
 
         INPUT:
 
-        - ``a`` -- an element of the invariant submodule
         - ``g`` -- an element of the acting group
 
-        OUTPUT:
+        - ``a`` -- an element of the invariant submodule
 
-        - an element of the invariant submodule
+        OUTPUT: an element of the invariant submodule
 
         EXAMPLES::
 
@@ -324,9 +347,11 @@ class GroupActionOnSubmodule(Action):
             [0 1]
         """
         if self.is_left():
-            return a.parent()(g.matrix()*a)
+            b = g.matrix() * a
         else:
-            return a.parent()(a*g.matrix())
+            b = a * g.matrix()
+        return a.parent()(b)
+
 
 class GroupActionOnQuotientModule(Action):
     r"""
@@ -372,14 +397,15 @@ class GroupActionOnQuotientModule(Action):
         import operator
         Action.__init__(self, MatrixGroup, quotient_module, is_left, operator.mul)
 
-    def _call_(self, a, g):
+    def _act_(self, g, a):
         r"""
         This defines the group action.
 
         INPUT:
 
-        - ``a`` -- an element of the invariant submodule
         - ``g`` -- an element of the acting group
+
+        - ``a`` -- an element of the invariant submodule
 
         OUTPUT:
 
@@ -404,6 +430,7 @@ class GroupActionOnQuotientModule(Action):
             Finitely generated module V/W over Integer Ring with invariants (6)
         """
         if self.is_left():
-            return a.parent()(g.matrix()*a.lift())
+            b = g.matrix() * a.lift()
         else:
-            return a.parent()(a.lift()*g.matrix())
+            b = a.lift() * g.matrix()
+        return a.parent()(b)

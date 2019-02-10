@@ -109,10 +109,8 @@ class LatticeEuclideanGroupElement(SageObject):
                 return LatticePolytope_PPL(C_Polyhedron(self._b.degree(),
                                                         'empty'))
             return LatticePolytope_PPL(*[self(v) for v in x.vertices()])
-            pass
-        v = self._A*x+self._b
+        v = self._A * x + self._b
         v.set_immutable()
-
         return v
 
     def _repr_(self):

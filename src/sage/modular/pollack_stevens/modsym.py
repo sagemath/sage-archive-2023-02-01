@@ -47,14 +47,13 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.padics.factory import Qp
 from sage.rings.polynomial.all import PolynomialRing
 from sage.rings.padics.padic_generic import pAdicGeneric
-from sage.arith.all import next_prime, binomial, gcd, kronecker
+from sage.arith.all import next_prime, gcd, kronecker
 from sage.misc.misc import verbose
 from sage.rings.padics.precision_error import PrecisionError
 
 from sage.categories.action import Action
 from .manin_map import ManinMap
 from .sigma0 import Sigma0
-from sage.misc.misc import walltime
 from .fund_domain import M2Z
 
 minusproj = [1, 0, 0, -1]
@@ -131,7 +130,7 @@ class PSModSymAction(Action):
 
         Action.__init__(self, actor, MSspace, False, operator.mul)
 
-    def _call_(self, sym, g):
+    def _act_(self, g, sym):
         r"""
         Return the result of sym * g
 
@@ -219,10 +218,10 @@ class PSModularSymbolElement(ModuleElement):
             sage: phi = E.pollack_stevens_modular_symbol()
             sage: phi.values()
             [-1/5, 1, 0]
-            sage: phi.dict().keys()
+            sage: sorted(phi.dict())
             [
-            [-1 -1]  [1 0]  [ 0 -1]
-            [ 3  2], [0 1], [ 1  3]
+            [-1 -1]  [ 0 -1]  [1 0]
+            [ 3  2], [ 1  3], [0 1]
             ]
             sage: sorted(phi.values()) == sorted(phi.dict().values())
             True
@@ -296,7 +295,7 @@ class PSModularSymbolElement(ModuleElement):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
-            sage: phi = E.pollack_stevens_modular_symbol();
+            sage: phi = E.pollack_stevens_modular_symbol()
             sage: phi.values()
             [-1/5, 1, 0]
             sage: 2*phi
@@ -487,7 +486,7 @@ class PSModularSymbolElement(ModuleElement):
             sage: phi.hecke(101) == phi * E.ap(101)
             True
 
-            sage: all([phi.hecke(p, algorithm='naive') == phi * E.ap(p) for p in [2,3,5,101]]) # long time
+            sage: all(phi.hecke(p, algorithm='naive') == phi * E.ap(p) for p in [2,3,5,101]) # long time
             True
         """
         return self.__class__(self._map.hecke(ell, algorithm),
@@ -601,7 +600,7 @@ class PSModularSymbolElement(ModuleElement):
             False
         """
         try:
-            aq = self.Tq_eigenvalue(q, p, M)
+            self.Tq_eigenvalue(q, p, M)
             return True
         except ValueError:
             return False

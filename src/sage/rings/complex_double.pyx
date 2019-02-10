@@ -56,15 +56,15 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #       Copyright (C) 2013 Jeroen Demeyer <jdemeyer@cage.ugent.be>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from __future__ import absolute_import, print_function
 
@@ -103,7 +103,7 @@ cdef CC = ComplexField()
 from .real_mpfr import RealField
 cdef RR = RealField()
 
-from .real_double cimport RealDoubleElement, double_repr, double_str
+from .real_double cimport RealDoubleElement, double_repr
 from .real_double import RDF
 from sage.rings.integer_ring import ZZ
 
@@ -446,6 +446,17 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             Complex Field with 53 bits of precision
         """
         return "ComplexField(%s : Bits := true)" % self.prec()
+
+    def _fricas_init_(self):
+        r"""
+        Return a string representation of ``self`` in the FriCAS language.
+
+        EXAMPLES::
+
+            sage: fricas(CDF)                     # indirect doctest, optional - fricas
+            Complex(DoubleFloat)
+        """
+        return "Complex DoubleFloat"
 
     def prec(self):
         """
@@ -920,7 +931,7 @@ cdef class ComplexDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: long(CDF(1,1))
+            sage: long(CDF(1,1))  # py2
             Traceback (most recent call last):
             ...
             TypeError: can't convert complex to long; use long(abs(z))
@@ -1002,54 +1013,6 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         return CC(self)._maxima_init_(I)
 
-    def __str__(self):
-        """
-        Return the informal string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: print(CDF(0, 2/3))
-            0.666666666667*I
-            sage: a = CDF(2,-3)
-            sage: print(a)  # indirect doctest
-            2.0 - 3.0*I
-            sage: print(a^2)
-            -5.0 - 12.0*I
-            sage: print(1/CDF(0,0))
-            NaN + NaN*I
-            sage: print(CDF(oo,1))
-            +infinity + 1.0*I
-            sage: print(CDF(1,oo))
-            1.0 + +infinity*I
-            sage: print(CDF(1,-oo))
-            1.0 - +infinity*I
-            sage: print(CC(CDF(1,-oo)))
-            1.00000000000000 - +infinity*I
-            sage: print(CDF(oo,oo))
-            +infinity + +infinity*I
-            sage: print(CC(CDF(oo,oo)))
-            +infinity + +infinity*I
-            sage: print(CDF(0))
-            0.0
-        """
-        cdef double x = self._complex.dat[0]
-        cdef double y = self._complex.dat[1]
-        if x == 0:
-            if y == 0:
-                return "0.0"
-            s = ''
-        else:
-            s = double_str(x)
-            if y == 0:
-                return s
-            elif y < 0:
-                s += " - "
-                y = -y
-            else:
-                s += " + "
-
-        return s + double_str(y) + "*I"
-
     def _repr_(self):
         """
         Return the string representation of ``self``.
@@ -1109,7 +1072,7 @@ cdef class ComplexDoubleElement(FieldElement):
             '1.0 + 2.0i'
             sage: z = CDF(1,2)^100
             sage: z._latex_()
-            '-6.44316469099 \\times 10^{34} - 6.11324130776 \\times 10^{34}i'
+            '-6.443164690985956 \\times 10^{34} - 6.113241307762409 \\times 10^{34}i'
         """
         import re
         s = str(self).replace('*I', 'i')
@@ -2240,7 +2203,7 @@ cdef class ComplexDoubleElement(FieldElement):
         this is a multi-valued function, and the algorithm used
         affects the value returned, as follows:
 
-        - ``'pari'``: Call the agm function from the pari library.
+        - ``'pari'``: Call the :pari:`agm` function from the pari library.
 
         - ``'optimal'``: Use the AGM sequence such that at each stage
           `(a,b)` is replaced by `(a_1,b_1)=((a+b)/2,\pm\sqrt{ab})`
@@ -2252,6 +2215,8 @@ cdef class ComplexDoubleElement(FieldElement):
           `(a,b)` is replaced by `(a_1,b_1)=((a+b)/2,\pm\sqrt{ab})`
           where the sign is chosen so that `\Re(b_1/a_1) \geq 0` (the
           so-called principal branch of the square root).
+
+        See :wikipedia:`Arithmetic-geometric mean`
 
         EXAMPLES::
 
@@ -2472,7 +2437,7 @@ cdef class FloatToCDF(Morphism):
         """
         from sage.categories.homset import Hom
         if isinstance(R, type):
-            from sage.structure.parent import Set_PythonType
+            from sage.sets.pythonclass import Set_PythonType
             R = Set_PythonType(R)
         Morphism.__init__(self, Hom(R, CDF))
 
@@ -2522,7 +2487,7 @@ cdef class ComplexToCDF(Morphism):
     def __init__(self, R):
         from sage.categories.homset import Hom
         if isinstance(R, type):
-            from sage.structure.parent import Set_PythonType
+            from sage.sets.pythonclass import Set_PythonType
             R = Set_PythonType(R)
         Morphism.__init__(self, Hom(R, CDF))
 

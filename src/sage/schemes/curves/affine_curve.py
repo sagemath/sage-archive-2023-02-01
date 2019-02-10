@@ -1,5 +1,5 @@
 """
-Affine curves.
+Affine curves
 
 EXAMPLES:
 
@@ -24,22 +24,22 @@ AUTHORS:
 - David Kohel (2006-01)
 
 - Grayson Jorgenson (2016-8)
+
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import
 
 from sage.arith.misc import binomial
 from sage.categories.fields import Fields
 from sage.categories.finite_fields import FiniteFields
-from copy import copy
 from sage.categories.homset import Hom, End
 from sage.categories.number_fields import NumberFields
 from sage.interfaces.all import singular
@@ -58,11 +58,8 @@ from sage.schemes.affine.affine_space import (AffineSpace,
 from . import point
 
 from sage.schemes.affine.affine_subscheme import AlgebraicScheme_subscheme_affine
-
-from sage.schemes.affine.affine_space import AffineSpace, is_AffineSpace
-from sage.schemes.projective.projective_space import ProjectiveSpace
-
 from .curve import Curve_generic
+
 
 class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
 
@@ -290,9 +287,9 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             if AS.dimension_relative() != len(indices):
                 raise TypeError("(=%s) must have dimension (=%s)"%(AS, len(indices)))
             if AS.base_ring() != AA.base_ring():
-                raise TypeError("(=%s) must be defined over the same base field as this curve"%AS)
+                raise TypeError("(=%s) must be defined over the same base field as this curve" % AS)
         indices = list(indices)
-        if all([f in AA.gens() for f in indices]):
+        if all(f in AA.gens() for f in indices):
             indices = [AA.gens().index(f) for f in indices]
             indices.sort()
         else:
@@ -457,7 +454,7 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             Scheme morphism:
             From: Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by s2 - 1,
             2*x^3 + (-a)*s1^2
-            To:   Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by s0 - 1, 
+            To:   Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by s0 - 1,
             2*z^3 + (-a)*s1^2
             Defn: Defined on coordinates by sending (x, s1, s2) to
                   (x*s2, 1/s2, s1/s2)
@@ -1003,21 +1000,20 @@ class AffinePlaneCurve(AffineCurve):
         F = self.base_ring()
         f = self.defining_polynomial()
         pts = self.places_on_curve()
-        numpts = len(pts)
         R = f.parent()
-        x,y = R.gens()
-        R0 = PolynomialRing(F,3,names = [str(x),str(y),"t"])
+        x, y = R.gens()
+        R0 = PolynomialRing(F, 3, names=[str(x), str(y), "t"])
         vars0 = R0.gens()
         t = vars0[2]
         divf = []
         for pt0 in pts:
             if pt0[2] != F(0):
-                lcs = self.local_coordinates(pt0,5)
+                lcs = self.local_coordinates(pt0, 5)
                 yt = lcs[1]
                 xt = lcs[0]
-                ldg = degree_lowest_rational_function(r(xt,yt),t)
+                ldg = degree_lowest_rational_function(r(xt, yt), t)
                 if ldg[0] != 0:
-                    divf.append([ldg[0],pt0])
+                    divf.append([ldg[0], pt0])
         return divf
 
     def local_coordinates(self, pt, n):
@@ -1099,7 +1095,7 @@ class AffinePlaneCurve(AffineCurve):
         return v
 
     def plot(self, *args, **kwds):
-        """
+        r"""
         Plot the real points on this affine plane curve.
 
         INPUT:
@@ -1582,8 +1578,8 @@ class AffinePlaneCurve_prime_finite_field(AffinePlaneCurve_finite_field):
     # CHECK WHAT ASSUMPTIONS ARE MADE REGARDING AFFINE VS. PROJECTIVE MODELS!!!
     # THIS IS VERY DIRTY STILL -- NO DATASTRUCTURES FOR DIVISORS.
 
-    def riemann_roch_basis(self,D):
-        """
+    def riemann_roch_basis(self, D):
+        r"""
         Interfaces with Singular's BrillNoether command.
 
         INPUT:
@@ -1617,8 +1613,7 @@ class AffinePlaneCurve_prime_finite_field(AffinePlaneCurve_finite_field):
         R = f.parent()
         F = self.base_ring()
         p = F.characteristic()
-        Dstr = str(tuple(D))
-        G = singular(','.join([str(x) for x in D]), type='intvec')
+        G = singular(','.join(str(x) for x in D), type='intvec')
 
         singular.LIB('brnoeth.lib')
 

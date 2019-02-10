@@ -115,19 +115,17 @@ defined Cython code, and with rather tricky argument lines::
 from __future__ import print_function, absolute_import
 
 import six
-from six import iteritems, string_types, class_types, text_type
+from six import iteritems, string_types, class_types
 from six.moves import range
-from sage.misc.six import u
 
 import ast
 import inspect
 import functools
 import os
 import tokenize
-import types
 import re
 EMBEDDED_MODE = False
-from sage.env import SAGE_SRC
+from sage.env import SAGE_LIB
 
 def loadable_module_extension():
     r"""
@@ -177,7 +175,6 @@ def isclassinstance(obj):
             obj.__class__.__module__ not in builtin_mods)
 
 
-import re
 # Parse strings of form "File: sage/rings/rational.pyx (starting at line 1080)"
 # "\ " protects a space in re.VERBOSE mode.
 __embedded_position_re = re.compile(r'''
@@ -218,7 +215,7 @@ def _extract_embedded_position(docstring):
 
     Ensure that the embedded filename of the compiled function is correct.  In
     particular it should be relative to ``SPYX_TMP`` in order for certain
-    docmentation functions to work properly.  See :trac:`24097`::
+    documentation functions to work properly.  See :trac:`24097`::
 
         sage: from sage.env import DOT_SAGE
         sage: from sage.misc.sage_ostools import restore_cwd
@@ -252,7 +249,7 @@ def _extract_embedded_position(docstring):
         # 2) Module compiled by Sage's inline cython() compiler
         from sage.misc.misc import SPYX_TMP
         try_filenames = [
-            os.path.join(SAGE_SRC, raw_filename),
+            os.path.join(SAGE_LIB, raw_filename),
             os.path.join(SPYX_TMP, '_'.join(raw_filename.split('_')[:-1]),
                          raw_filename)
         ]
@@ -506,7 +503,7 @@ class SageArgSpecVisitor(ast.NodeVisitor):
             return node.value
 
         def visit_arg(self, node):
-            """
+            r"""
             Visit a Python AST :class:`ast.arg` node.
 
             This node type is only on Python 3, where function arguments are
@@ -517,11 +514,11 @@ class SageArgSpecVisitor(ast.NodeVisitor):
 
             INPUT:
 
-            - ``node`` - the node instance to visit
+            - ``node`` -- the node instance to visit
 
             OUTPUT:
 
-            - the argument name
+            the argument name
 
             EXAMPLES::
 
@@ -532,7 +529,6 @@ class SageArgSpecVisitor(ast.NodeVisitor):
                 sage: [visitor.visit_arg(n) for n in args]  # py3
                 ['a', 'b', 'c', 'd']
             """
-
             return node.arg
 
     def visit_Num(self, node):
@@ -1511,9 +1507,11 @@ def sage_getargspec(obj):
         sage: sage.misc.sageinspect.sage_getargspec(foo)
         ArgSpec(args=['x', 'a', 'b'], varargs=None, keywords=None, defaults=('\')"', {False: 'bar'}))
 
-    The following produced a syntax error before the patch at :trac:`11913`::
+    The following produced a syntax error before the patch at :trac:`11913`,
+    see also :trac:`26906`::
 
         sage: sage.misc.sageinspect.sage_getargspec(r.lm)
+        ArgSpec(args=['self'], varargs='args', keywords='kwds', defaults=None)
 
     The following was fixed in :trac:`16309`::
 
@@ -1602,8 +1600,9 @@ def sage_getargspec(obj):
                 return _sage_getargspec_from_ast(proxy)
             except SyntaxError:
                 # To fix trac #10860. See #11913 for more information.
-                return None
-        elif isinstance(obj,functools.partial):
+                # See also #26906.
+                pass
+        if isinstance(obj, functools.partial):
             base_spec = sage_getargspec(obj.func)
             return base_spec
         return sage_getargspec(obj.__class__.__call__)
@@ -2120,8 +2119,8 @@ def sage_getsourcelines(obj):
         sage: from sage.misc.sageinspect import sage_getsourcelines
         sage: sage_getsourcelines(matrix)[1]
         22
-        sage: sage_getsourcelines(matrix)[0][0][6:]
-        'MatrixFactory(object):\n'
+        sage: sage_getsourcelines(matrix)[0][0]
+        'def matrix(*args, **kwds):\n'
 
     Some classes customize this using a ``_sage_src_lines_`` method,
     which gives the source lines of a class instance, but not the class
@@ -2131,7 +2130,7 @@ def sage_getsourcelines(obj):
         sage: sage_getsourcelines(cachedfib)[0][0]
         'def fibonacci(n, algorithm="pari"):\n'
         sage: sage_getsourcelines(type(cachedfib))[0][0]
-         'cdef class CachedFunction(object):\n'
+        'cdef class CachedFunction(object):\n'
 
     TESTS::
 
@@ -2155,7 +2154,7 @@ def sage_getsourcelines(obj):
         sage: P.<x,y> = QQ[]
         sage: I = P*[x,y]
         sage: sage_getsourcelines(P)
-        (['cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):\n',
+        (['cdef class MPolynomialRing_libsingular(MPolynomialRing_base):\n',
           '\n',
           '    def __cinit__(self):\n',
         ...)
@@ -2178,20 +2177,17 @@ def sage_getsourcelines(obj):
         sage: from sage.misc.sageinspect import sage_getsource
         sage: P = TestNestedParent()
         sage: E = P.element_class
-        sage: E.__bases__  # py2
-        (<class sage.misc.nested_class_test.TestNestedParent.Element at ...>,
-         <class 'sage.categories.sets_cat.Sets.element_class'>)
-        sage: E.__bases__  # py3
+        sage: E.__bases__
         (<class 'sage.misc.nested_class_test.TestNestedParent.Element'>,
          <class 'sage.categories.sets_cat.Sets.element_class'>)
         sage: print(sage_getsource(E))
-            class Element:
+            class Element(object):
                 "This is a dummy element class"
                 pass
         sage: print(sage_getsource(P))
         class TestNestedParent(UniqueRepresentation, Parent):
             ...
-            class Element:
+            class Element(object):
                 "This is a dummy element class"
                 pass
 
@@ -2456,7 +2452,7 @@ def __internal_tests():
 
     Test _extract_embedded_position:
 
-    We cannot test the filename since it depends on SAGE_SRC.
+    We cannot test the filename since it depends on ``SAGE_LIB``.
 
     Make sure things work with no trailing newline::
 

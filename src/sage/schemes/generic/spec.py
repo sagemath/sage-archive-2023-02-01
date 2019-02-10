@@ -96,7 +96,7 @@ class SpecFunctor(Functor, UniqueRepresentation):
             Spec functor from Category of commutative rings to
              Category of schemes over Rational Field
         """
-        from sage.categories.all import CommutativeAlgebras, CommutativeRings, Schemes
+        from sage.categories.all import CommutativeRings, Schemes
 
         if base_ring is None:
             domain = CommutativeRings()
@@ -192,5 +192,5 @@ SpecZ = Spec(ZZ)
 from sage.misc.superseded import deprecated_function_alias
 is_Spec = deprecated_function_alias(16158, is_AffineScheme)
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.schemes.generic.spec', 'Spec', AffineScheme)

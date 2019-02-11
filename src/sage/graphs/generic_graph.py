@@ -21600,10 +21600,11 @@ class GenericGraph(GenericGraph_pyx):
 
         Empty group, correct domain::
 
-            sage: Graph({'a':['a'], 'b':[]}).automorphism_group()
+            sage: ag = Graph({'a':['a'], 'b':[]}).automorphism_group()
+            sage: ag
             Permutation Group with generators [()]
-            sage: sorted(Graph({'a':['a'], 'b':[]}).automorphism_group().domain())
-            ['a', 'b']
+            sage: ag.domain() == {'a', 'b'}
+            True
 
         We can check that the subgroups are labelled correctly
         (:trac:`15656`)::

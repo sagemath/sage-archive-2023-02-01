@@ -97,13 +97,13 @@ class PRESENT(SageObject):
         if keysize != 80 and keysize != 128:
             raise ValueError("keysize must bei either 80 or 128 and not %s"
                              % keysize)
-        self.keysize = keysize
-        self.blocksize = 64
+        self._keysize = keysize
+        self._blocksize = 64
         from sage.crypto.sboxes import PRESENT as PRESENTSBOX
-        self.sbox = PRESENTSBOX
-        self.inverseSbox = self.sbox.inverse()
-        self.permutationMatrix = smallscale_present_linearlayer()
-        self.inversePermutationMatrix = self.permutationMatrix.inverse()
+        self._sbox = PRESENTSBOX
+        self._inverseSbox = self._sbox.inverse()
+        self._permutationMatrix = smallscale_present_linearlayer()
+        self._inversePermutationMatrix = self._permutationMatrix.inverse()
 
     def __call__(self, B, K, algorithm="encrypt"):
         r"""
@@ -158,13 +158,13 @@ class PRESENT(SageObject):
             sage: PRESENT(80) == PRESENT(128)
             False
         """
-        return self.keysize == other.keysize
+        return self._keysize == other._keysize
 
     def __repr__(self):
         r"""
         A string representation of this PRESENT.
         """
-        return "PRESENT block cipher with %s-bit keys" % self.keysize
+        return "PRESENT block cipher with %s-bit keys" % self._keysize
 
     def generateRoundKeys(self, K):
         r"""
@@ -225,18 +225,18 @@ class PRESENT(SageObject):
 
         The key schedule for 128-bit keys is not implemented yet.
         """
-        if self.keysize == 80:
+        if self._keysize == 80:
             roundKeys = []
             K = vector(GF(2), 80, ZZ(K, 16).digits(2, padto=80))
             for i in range(1, 32):
                 roundKeys.append(K[16:])
                 K[0:] = list(K[19:]) + list(K[:19])
-                K[76:] = self.sbox((K[76:])[::-1])[::-1]
+                K[76:] = self._sbox((K[76:])[::-1])[::-1]
                 rc = ZZ(i).digits(2, padto=5)
                 K[15:20] = [k + c for k, c in zip(K[15:20], rc)]
             roundKeys.append(K[16:])
             return roundKeys
-        elif self.keysize == 128:
+        elif self._keysize == 128:
             raise NotImplementedError("The key schedule for 128-bit keys is"
                                       " not implemented yet.")
 
@@ -260,9 +260,9 @@ class PRESENT(SageObject):
         roundKeys = self.generateRoundKeys(K)
         state[0:] = [s + k for s, k in zip(state, roundKeys[-1])]
         for K in roundKeys[:-1][::-1]:
-            state[0:] = self.inversePermutationMatrix * state
+            state[0:] = self._inversePermutationMatrix * state
             for nibble in [slice(4*j, 4*j+4) for j in range(16)]:
-                state[nibble] = self.inverseSbox(state[nibble][::-1])[::-1]
+                state[nibble] = self._inverseSbox(state[nibble][::-1])[::-1]
             state[0:] = [s + k for s, k in zip(state, K)]
         P = ZZ(list(state), 2)
         return P
@@ -287,8 +287,8 @@ class PRESENT(SageObject):
         for K in roundKeys[:-1]:
             state[0:] = [s + k for s, k in zip(state, K)]
             for nibble in [slice(4*j, 4*j+4) for j in range(16)]:
-                state[nibble] = self.sbox(state[nibble][::-1])[::-1]
-            state[0:] = self.permutationMatrix * state
+                state[nibble] = self._sbox(state[nibble][::-1])[::-1]
+            state[0:] = self._permutationMatrix * state
         state[0:] = [s + k for s, k in zip(state, roundKeys[-1])]
         C = ZZ(list(state), 2)
         return C

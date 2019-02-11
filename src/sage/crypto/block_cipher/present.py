@@ -95,7 +95,7 @@ class PRESENT(SageObject):
           used in bits. It must be either 80 or 128.
         """
         if keysize != 80 and keysize != 128:
-            raise ValueError("keysize must bei either 80 or 128 and not %s"
+            raise ValueError("keysize must be either 80 or 128 and not %s"
                              % keysize)
         self._keysize = keysize
         self._blocksize = 64
@@ -141,7 +141,7 @@ class PRESENT(SageObject):
         elif algorithm == "decrypt":
             return self.decrypt(B, K)
         else:
-            raise ValueError("Algorithm mus be \"encrypt\" or \"decrypt\" and"
+            raise ValueError("Algorithm must be \"encrypt\" or \"decrypt\" and"
                              "not \"%s\"" % algorithm)
 
     def __eq__(self, other):
@@ -237,8 +237,8 @@ class PRESENT(SageObject):
             roundKeys.append(K[16:])
             return roundKeys
         elif self._keysize == 128:
-            raise NotImplementedError("The key schedule for 128-bit keys is"
-                                      " not implemented yet.")
+            raise NotImplementedError("key schedule for 128-bit keys is"
+                                      " not implemented yet")
 
     def decrypt(self, C, K):
         r"""

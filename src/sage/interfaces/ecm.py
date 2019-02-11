@@ -404,15 +404,15 @@ class ECM(SageObject):
             if m is not None:
                 factor = m.group('factor')
                 primality = m.group('primality')
-                assert primality in ['prime', 'composite']
-                result += [(ZZ(factor), primality == 'prime')]
+                assert primality in ['prime', 'composite', 'probable prime']
+                result += [(ZZ(factor), primality != 'composite')]
                 continue  # cofactor on the next line
             m = self._found_cofactor_re.match(line)
             if m is not None:
                 cofactor = m.group('cofactor')
                 primality = m.group('primality')
-                assert primality in ['Prime', 'Composite']
-                result += [(ZZ(cofactor), primality == 'Prime')]
+                assert primality in ['Prime', 'Composite', 'Probable prime']
+                result += [(ZZ(cofactor), primality != 'Composite')]
                 # assert len(result) == 2
                 return result
         raise ValueError('failed to parse ECM output')
@@ -476,8 +476,9 @@ class ECM(SageObject):
         try:
             factors = self._parse_output(n, out)
             return [factors[0][0], factors[1][0]]
-        except ValueError:
-            # output does not end in factorization
+        except (ValueError, IndexError):
+            # output does not end in factorization (ValueError)
+            # or factors has only one element above (IndexError)
             return [ZZ(1), n]
 
     def _find_factor(self, n, factor_digits, B1, **kwds):
@@ -656,7 +657,7 @@ class ECM(SageObject):
             # Step 3: Call find_factor until a factorization is found
             n_factorization = [n]
             while len(n_factorization) == 1:
-                n_factorization = self.find_factor(n)
+                n_factorization = self.find_factor(n,B1=B1)
             factors.extend(n_factorization)
 
         return sorted(probable_prime_factors)

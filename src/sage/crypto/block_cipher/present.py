@@ -232,8 +232,8 @@ class PRESENT(SageObject):
                 roundKeys.append(K[16:])
                 K[0:] = list(K[19:]) + list(K[:19])
                 K[76:] = self._sbox((K[76:])[::-1])[::-1]
-                rc = ZZ(i).digits(2, padto=5)
-                K[15:20] = [k + c for k, c in zip(K[15:20], rc)]
+                rc = vector(GF(2), ZZ(i).digits(2, padto=5))
+                K[15:20] = K[15:20] + rc
             roundKeys.append(K[16:])
             return roundKeys
         elif self._keysize == 128:
@@ -257,13 +257,13 @@ class PRESENT(SageObject):
 
         """
         state = vector(GF(2), 64, ZZ(C, 16).digits(2, padto=64))
-        state[0:] = [s + k for s, k in zip(state, roundKeys[-1])]
         roundKeys = self.generate_round_keys(K)
+        state = state + roundKeys[-1]
         for K in roundKeys[:-1][::-1]:
             state[0:] = self._inversePermutationMatrix * state
             for nibble in [slice(4*j, 4*j+4) for j in range(16)]:
                 state[nibble] = self._inverseSbox(state[nibble][::-1])[::-1]
-            state[0:] = [s + k for s, k in zip(state, K)]
+            state = state + K
         P = ZZ(list(state), 2)
         return P
 
@@ -285,10 +285,10 @@ class PRESENT(SageObject):
         state = vector(GF(2), 64, ZZ(P, 16).digits(2, padto=64))
         roundKeys = self.generate_round_keys(K)
         for K in roundKeys[:-1]:
-            state[0:] = [s + k for s, k in zip(state, K)]
+            state = state + K
             for nibble in [slice(4*j, 4*j+4) for j in range(16)]:
                 state[nibble] = self._sbox(state[nibble][::-1])[::-1]
             state[0:] = self._permutationMatrix * state
-        state[0:] = [s + k for s, k in zip(state, roundKeys[-1])]
+        state = state + roundKeys[-1]
         C = ZZ(list(state), 2)
         return C

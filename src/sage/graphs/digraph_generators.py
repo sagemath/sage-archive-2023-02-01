@@ -27,7 +27,7 @@ build by typing ``digraphs.`` in Sage and then hitting tab.
     :meth:`~DiGraphGenerators.GeneralizedDeBruijn` | Return the generalized de Bruijn digraph of order `n` and degree `d`.
     :meth:`~DiGraphGenerators.ImaseItoh`           | Return the digraph of Imase and Itoh of order `n` and degree `d`.
     :meth:`~DiGraphGenerators.Kautz`               | Return the Kautz digraph of degree `d` and diameter `D`.
-    :meth:`~DiGraphGenerators.nauty_directg`       | Returns a digraph generator using Nauty's directg command.
+    :meth:`~DiGraphGenerators.nauty_directg`       | Return an iterator yielding digraphs using nauty's ``directg`` program.
     :meth:`~DiGraphGenerators.Paley`               | Return a Paley digraph on `q` vertices.
     :meth:`~DiGraphGenerators.Path`                | Return a directed path on `n` vertices.
     :meth:`~DiGraphGenerators.RandomDirectedGNC`   | Returns a random GNC (growing network with copying) digraph with `n` vertices.
@@ -650,13 +650,13 @@ class DiGraphGenerators():
 
             - :meth:`~sage.graphs.graph.Graph.orientations`
         """
+        if '-u' in options or '-T' in options or '-G' in options:
+            raise ValueError("directg output options [-u|-T|-G] are not allowed")
+
         if isinstance(graphs, Graph):
             graphs = [graphs]
         elif not graphs:
             return
-
-        if '-u' in options or '-T' in options or '-G' in options:
-            raise ValueError("directg output options [-u|-T|-G] are not allowed")
 
         if '-q' not in options:
             options += ' -q'
@@ -687,7 +687,8 @@ class DiGraphGenerators():
             # directg return graphs in the digraph6 format.
             # digraph6 is very similar with the dig6 format used in sage :
             # digraph6_string = '&' +  dig6_string
-            # digraph6 specifications: http://users.cecs.anu.edu.au/~bdm/data/formats.txt
+            # digraph6 specifications:
+            # http://users.cecs.anu.edu.au/~bdm/data/formats.txt
             if l and l[0] == '&':
                 yield DiGraph(l[1:], format='dig6')
 

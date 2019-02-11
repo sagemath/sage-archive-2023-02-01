@@ -166,7 +166,7 @@ class PRESENT(SageObject):
         """
         return "PRESENT block cipher with %s-bit keys" % self._keysize
 
-    def generateRoundKeys(self, K):
+    def generate_round_keys(self, K):
         r"""
         Return all round keys `K_1 \dots K_{32}` in a list.
 
@@ -178,7 +178,7 @@ class PRESENT(SageObject):
 
             sage: from sage.crypto.block_cipher.present import PRESENT
             sage: present = PRESENT(80)
-            sage: K = present.generateRoundKeys(0x0)
+            sage: K = present.generate_round_keys(0x0)
             sage: ZZ(list(K[0]), 2) == 0x0
             True
             sage: ZZ(list(K[1]), 2) == 0xc000000000000000
@@ -257,8 +257,8 @@ class PRESENT(SageObject):
 
         """
         state = vector(GF(2), 64, ZZ(C, 16).digits(2, padto=64))
-        roundKeys = self.generateRoundKeys(K)
         state[0:] = [s + k for s, k in zip(state, roundKeys[-1])]
+        roundKeys = self.generate_round_keys(K)
         for K in roundKeys[:-1][::-1]:
             state[0:] = self._inversePermutationMatrix * state
             for nibble in [slice(4*j, 4*j+4) for j in range(16)]:
@@ -283,7 +283,7 @@ class PRESENT(SageObject):
         - The ciphertext corresponding to ``P``, obtained using the key ``K``.
         """
         state = vector(GF(2), 64, ZZ(P, 16).digits(2, padto=64))
-        roundKeys = self.generateRoundKeys(K)
+        roundKeys = self.generate_round_keys(K)
         for K in roundKeys[:-1]:
             state[0:] = [s + k for s, k in zip(state, K)]
             for nibble in [slice(4*j, 4*j+4) for j in range(16)]:

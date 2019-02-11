@@ -74,10 +74,9 @@ def sage_makedirs(dir):
         sage: sage_makedirs(DOT_SAGE) # no output
 
     The following fails because we are trying to create a directory in
-    place of an ordinary file (the main Sage executable)::
+    place of an ordinary file (the python executable)::
 
-        sage: sage_executable = os.path.join(SAGE_ROOT, 'sage')
-        sage: sage_makedirs(sage_executable)
+        sage: sage_makedirs(sys.executable)
         Traceback (most recent call last):
         ...
         OSError: ...

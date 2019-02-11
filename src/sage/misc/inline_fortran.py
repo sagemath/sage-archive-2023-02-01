@@ -141,12 +141,12 @@ class InlineFortran:
 
         TESTS::
 
-            sage: os.chdir(SAGE_ROOT)
+            sage: os.chdir(DOT_SAGE)
             sage: fortran.eval("SYNTAX ERROR !@#$")
             Traceback (most recent call last):
             ...
             RuntimeError: failed to compile Fortran code:...
-            sage: os.getcwd() == SAGE_ROOT
+            sage: os.getcwd() == os.path.normpath(DOT_SAGE)
             True
         """
         if globals is None:

@@ -28,7 +28,6 @@ build by typing ``digraphs.`` in Sage and then hitting tab.
     :meth:`~DiGraphGenerators.ImaseItoh`           | Return the digraph of Imase and Itoh of order `n` and degree `d`.
     :meth:`~DiGraphGenerators.Kautz`               | Return the Kautz digraph of degree `d` and diameter `D`.
     :meth:`~DiGraphGenerators.Paley`               | Return a Paley digraph on `q` vertices.
-<<<<<<< HEAD
     :meth:`~DiGraphGenerators.Path`                | Return a directed path on `n` vertices.
     :meth:`~DiGraphGenerators.RandomDirectedGNC`   | Return a random growing network with copying (GNC) digraph with `n` vertices.
     :meth:`~DiGraphGenerators.RandomDirectedGNM`   | Return a random labelled digraph on `n` nodes and `m` arcs.

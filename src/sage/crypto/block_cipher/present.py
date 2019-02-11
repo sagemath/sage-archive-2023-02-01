@@ -197,13 +197,28 @@ class PRESENT(SageObject):
             True
             sage: ZZ(list(K[31]), 2) == 0x6dab31744f41d700
             True
+            sage: present = PRESENT(128)
+            sage: k = 0x00112233445566778899aabbccddeeff
+            sage: K = present.generate_round_keys(k)
+            sage: ZZ(list(K[0]), 2) == 0x0011223344556677
+            True
+            sage: ZZ(list(K[31]), 2) == 0x091989a5ae8eab21
+            True
 
 
-        Description of the key schedule for 64-bit keys from [BKLPPRSV2007]_:
+        Description of the key schedule for 64-bit and 128-bit keys from
+        [BKLPPRSV2007]_:
 
         At round `i` the 64-bit round key `K_i = \kappa_{63}\kappa_{62} \dots
         \kappa_0` consists of the 64 leftmost bits fo the current contents of
-        register `K`. After extracting the round key `K_i`, the key register
+        register `K`. Thus at round `i` we have that:
+
+        .. MATH::
+
+            K_i = \kappa_{63}\kappa_{62}\dots \kappa_0 = k_{79}k_{78}\dots
+                  k_{16}
+
+        After extracting the round key `K_i`, the key register
         `K = k_{79}k_{78} \dots k_0` is updated as follows.
 
         .. MATH::
@@ -223,7 +238,39 @@ class PRESENT(SageObject):
         k_{16}k_{15}` of `K` with the least significant bit of round_counter on
         the right.
 
-        The key schedule for 128-bit keys is not implemented yet.
+        The key schedule for 128-bit keys works as follows.
+
+        At round `i` the 64-bit round key `K_i = \kappa_{63}\kappa_{62} \dots
+        \kappa_0` consists of the 64 leftmost bits fo the current contents of
+        register `K`. Thus at round `i` we have that:
+
+        .. MATH::
+
+            K_i = \kappa_{63}\kappa_{62}\dots \kappa_0 = k_{127}k_{126}\dots
+                  k_{64}
+
+        After extracting the round key `K_i`, the key register
+        `K = k_{127}k_{126} \dots k_0` is updated as follows:
+
+        .. MATH::
+           :nowrap:
+
+            \begin{aligned}
+             \ [k_{127}k_{126} \dots k_{1}k_{0}] &=
+             [k_{66}k_{65} \dots k_{68}k_{67}] \\
+             [k_{127}k_{126}k_{125}k_{124}] &=
+             S[k_{127}k_{126}k_{125}k_{124}]\\
+             [k_{123}k_{122}k_{121}k_{120}] &=
+             S[k_{123}k_{122}k_{121}k_{120}]\\
+             [k_{66}k_{65}k_{64}k_{63}k_{62}] &=
+             [k_{66}k_{65}k_{64}k_{63}k_{62}] \oplus round\_counter
+            \end{aligned}
+
+        Thus, the key register is rotated by 61 bit positions to the left, the
+        left-most eight bits are passed through two PRESENT S-boxes, and the
+        round_counter value `i` is exclusive-ored with bits `k_{66}k_{65}k_{64}
+        k_{63}k_{62}` of `K` with the least significant bit of round_counter on
+        the right.
         """
         if self._keysize == 80:
             roundKeys = []
@@ -237,8 +284,17 @@ class PRESENT(SageObject):
             roundKeys.append(K[16:])
             return roundKeys
         elif self._keysize == 128:
-            raise NotImplementedError("key schedule for 128-bit keys is"
-                                      " not implemented yet")
+            roundKeys = []
+            K = vector(GF(2), 128, ZZ(K, 16).digits(2, padto=128))
+            for i in range(1, 32):
+                roundKeys.append(K[64:])
+                K[0:] = list(K[67:]) + list(K[:67])
+                K[124:] = self._sbox((K[124:])[::-1])[::-1]
+                K[120:124] = self._sbox((K[120:124])[::-1])[::-1]
+                rc = vector(GF(2), ZZ(i).digits(2, padto=5))
+                K[62:67] = K[62:67] + rc
+            roundKeys.append(K[64:])
+            return roundKeys
 
     def decrypt(self, C, K):
         r"""

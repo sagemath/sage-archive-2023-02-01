@@ -53,7 +53,7 @@ class PRESENT(SageObject):
 
     Check test vectors given in [BKLPPRSV2007]_.
 
-        sage: from sage.crypto.block_cipher.PRESENT import PRESENT
+        sage: from sage.crypto.block_cipher.present import PRESENT
         sage: present = PRESENT(keysize=80)
         sage: p1 = 0x0
         sage: k1 = 0x0
@@ -129,7 +129,7 @@ class PRESENT(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.block_cipher.PRESENT import PRESENT
+            sage: from sage.crypto.block_cipher.present import PRESENT
             sage: present = PRESENT(keysize=80)
             sage: P = 0xFFFFFFFFFFFFFFFF
             sage: K = 0x0
@@ -152,7 +152,7 @@ class PRESENT(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.block_cipher.PRESENT import PRESENT
+            sage: from sage.crypto.block_cipher.present import PRESENT
             sage: PRESENT(80) == PRESENT(80)
             True
             sage: PRESENT(80) == PRESENT(128)
@@ -176,7 +176,7 @@ class PRESENT(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.block_cipher.PRESENT import PRESENT
+            sage: from sage.crypto.block_cipher.present import PRESENT
             sage: present = PRESENT(80)
             sage: K = present.generateRoundKeys(0x0)
             sage: ZZ(list(K[0]), 2) == 0x0

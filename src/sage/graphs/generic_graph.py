@@ -21577,12 +21577,12 @@ class GenericGraph(GenericGraph_pyx):
 
         Labeled automorphism group::
 
-            sage: A = digraphs.DeBruijn(3,2).automorphism_group(algorithm='sage')
+            sage: d = digraphs.DeBruijn(3,2)
+            sage: A = d.automorphism_group(algorithm='sage')
             sage: A_target = PermutationGroup(["('02','10','21')('00','11','22')('01','12','20')",
             ....:                              "('02','01')('10','20')('21','12')('22','11')"])
             sage: A.is_isomorphic(A_target)
             True
-            sage: d = digraphs.DeBruijn(3,2)
             sage: d.allow_multiple_edges(True)
             sage: d.add_edge(('00', '00', '0'))
             sage: A = d.automorphism_group(algorithm='sage')

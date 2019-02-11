@@ -21097,8 +21097,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = Graph({1:[2,3]})
             sage: rel = {1:'a', 2:'b'}
             sage: g.relabel(rel)
-            sage: g.vertices()
-            [3, 'a', 'b']
+            sage: set(g) == {3, 'a', 'b'}
+            True
             sage: rel
             {1: 'a', 2: 'b'}
 

@@ -183,18 +183,23 @@ class PRESENT(SageObject):
 
         - A ``L``-bit vector representation of ``I``
 
+        - A flag describing the type of ``I``. Either "int" or "bin" or "hex"
+
         EXAMPLES::
 
         sage: from sage.crypto.block_cipher.present import PRESENT
         sage: present = PRESENT()
         sage: present._to_state("0x1F", 8)
-        (1, 1, 1, 1, 1, 0, 0, 0)
+        ((1, 1, 1, 1, 1, 0, 0, 0), 'int')
         sage: present._to_state(["0x1","0xF"], 8)
-        (1, 0, 0, 0, 1, 1, 1, 1)
+        ((1, 0, 0, 0, 1, 1, 1, 1), 'hex')
         sage: present._to_state(0x1F, 8)
-        (1, 1, 1, 1, 1, 0, 0, 0)
+        ((1, 1, 1, 1, 1, 0, 0, 0), 'int')
+        sage: v = vector(GF(2), 4, [1,0,1,0])
+        sage: present._to_state(v, 4)
+        ((1, 0, 1, 0), 'bin')
         sage: present._to_state(0x1F, 9)
-        (1, 1, 1, 1, 1, 0, 0, 0, 0)
+        ((1, 1, 1, 1, 1, 0, 0, 0, 0), 'int')
         sage: present._to_state(["1","0xF"], 9)
         Traceback (most recent call last):
         ...
@@ -202,17 +207,19 @@ class PRESENT(SageObject):
         """
         try:
             state = vector(GF(2), L, ZZ(I).digits(2, padto=L))
-            return state
+            return state, "int"
         except TypeError:
             pass
         if len(I) == L:
             state = vector(GF(2), L, ZZ(list(I), 2).digits(2, padto=L))
+            flag = "bin"
         elif 4*len(I) == L:
             state = vector(GF(2), L, ZZ(list(I), 16).digits(2, padto=L))
+            flag = "hex"
         else:
             raise ValueError("%s can not be converted to bit vector of "
                              "length %s" % (I, L))
-        return state
+        return state, flag
 
     def generate_round_keys(self, K):
         r"""

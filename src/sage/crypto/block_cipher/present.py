@@ -427,6 +427,10 @@ class PRESENT_KS(SageObject):
         - ``rounds`` -- integer; the number of rounds ``self`` can create keys
           for.
         """
+        if keysize != 80 and keysize != 128:
+            raise ValueError("keysize must bei either 80 or 128 and not %s"
+                             % keysize)
+        self.keysize = keysize
         self._keysize = keysize
         self._rounds = rounds
         self._sbox = PRESENTSBOX

@@ -113,19 +113,19 @@ class PRESENT(SageObject):
 
         INPUT:
 
-        - ``B`` -- The plaintext or the ciphertext
+        - ``B`` -- integer or list-like; the plaintext or ciphertext
 
-        - ``K`` -- integer; the key in integer representation
+        - ``K`` -- integer or list-like; the key
 
         - ``algorithm`` -- (default: ``"encrypt"``) a string; a flag to signify
           whether encryption or decryption is to be applied to ``B``. The
           encryption flag is ``"encrypt"`` and the decryption flag is
-          ``"decrypt"``.
+          ``"decrypt"``
 
         OUTPUT:
 
         - The plaintext or ciphertext corresponding to ``B``, obtained using
-          the key ``K``.
+          the key ``K``
 
         EXAMPLES::
 
@@ -227,7 +227,7 @@ class PRESENT(SageObject):
 
         INPUT:
 
-        - ``K`` -- integer; the key in integer representation
+        - ``K`` -- integer or list-like; the key
 
         EXAMPLES::
 
@@ -358,14 +358,13 @@ class PRESENT(SageObject):
 
         INPUT:
 
-        - ``C`` -- The ciphertext that will be encrypted.
+        - ``C`` -- integer or list-like; the plaintext that will be decrypted.
 
-        - ``K`` -- integer; the key in integer representation
+        - ``K`` -- integer or list-like; the key
 
         OUTPUT:
 
         - The plaintext corresponding to ``C``, obtained using the key ``K``.
-
         """
         state, inputType = self._to_state(C, 64)
         roundKeys = self.generate_round_keys(K)
@@ -390,9 +389,9 @@ class PRESENT(SageObject):
 
         INPUT:
 
-        - ``P`` -- The plaintext that will be encrypted.
+        - ``P`` -- integer or list-like; the plaintext that will be encrypted.
 
-        - ``K`` -- integer; the key in integer representation
+        - ``K`` -- integer or list-like; the key
 
         OUTPUT:
 

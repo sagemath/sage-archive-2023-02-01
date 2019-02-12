@@ -329,7 +329,7 @@ class PRESENT(SageObject):
         """
         if self._keysize == 80:
             roundKeys = []
-            K = self._to_state(K, 80)
+            K, _ = self._to_state(K, 80)
             for i in range(1, 32):
                 roundKeys.append(K[16:])
                 K[0:] = list(K[19:]) + list(K[:19])
@@ -340,7 +340,7 @@ class PRESENT(SageObject):
             return roundKeys
         elif self._keysize == 128:
             roundKeys = []
-            K = self._to_state(K, 128)
+            K, _ = self._to_state(K, 128)
             for i in range(1, 32):
                 roundKeys.append(K[64:])
                 K[0:] = list(K[67:]) + list(K[:67])
@@ -367,7 +367,7 @@ class PRESENT(SageObject):
         - The plaintext corresponding to ``C``, obtained using the key ``K``.
 
         """
-        state = self._to_state(C, 64)
+        state, inputType = self._to_state(C, 64)
         roundKeys = self.generate_round_keys(K)
         state = state + roundKeys[-1]
         for K in roundKeys[:-1][::-1]:
@@ -375,7 +375,12 @@ class PRESENT(SageObject):
             for nibble in [slice(4*j, 4*j+4) for j in range(16)]:
                 state[nibble] = self._inverseSbox(state[nibble][::-1])[::-1]
             state = state + K
-        P = ZZ(list(state), 2)
+        if inputType == "bin":
+            P = list(state)
+        elif inputType == "hex":
+            P = ZZ(list(state), 2).digits(16, padto=16)
+        elif inputType == "int":
+            P = ZZ(list(state), 2)
         return P
 
     def encrypt(self, P, K):
@@ -393,7 +398,7 @@ class PRESENT(SageObject):
 
         - The ciphertext corresponding to ``P``, obtained using the key ``K``.
         """
-        state = self._to_state(P, 64)
+        state, inputType = self._to_state(P, 64)
         roundKeys = self.generate_round_keys(K)
         for K in roundKeys[:-1]:
             state = state + K
@@ -401,5 +406,10 @@ class PRESENT(SageObject):
                 state[nibble] = self._sbox(state[nibble][::-1])[::-1]
             state[0:] = self._permutationMatrix * state
         state = state + roundKeys[-1]
-        C = ZZ(list(state), 2)
+        if inputType == "bin":
+            C = list(state)
+        elif inputType == "hex":
+            C = ZZ(list(state), 2).digits(16, padto=16)
+        elif inputType == "int":
+            C = ZZ(list(state), 2)
         return C

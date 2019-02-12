@@ -46,6 +46,7 @@ from __future__ import absolute_import
 
 from sage.categories.morphism import Morphism, SetMorphism
 from sage.categories.map import Map
+from sage.categories.homset import Hom
 from sage.rings.morphism import RingHomomorphism
 
 class FunctionFieldDerivation(Map):
@@ -89,7 +90,6 @@ class FunctionFieldDerivation(Map):
         if not is_FunctionField(K):
             raise ValueError("K must be a function field")
         self.__field = K
-        from sage.categories.homset import Hom
         from sage.categories.sets_cat import Sets
         Map.__init__(self, Hom(K,K,Sets()))
 
@@ -430,7 +430,6 @@ class MapVectorSpaceToFunctionField(FunctionFieldVectorSpaceIsomorphism):
         self._V = V
         self._K = K
         self._R = K.polynomial_ring()
-        from sage.categories.homset import Hom
         FunctionFieldVectorSpaceIsomorphism.__init__(self, Hom(V, K))
 
     def _call_(self, v):
@@ -543,7 +542,6 @@ class MapFunctionFieldToVectorSpace(FunctionFieldVectorSpaceIsomorphism):
         self._K = K
         self._zero = K.base_ring()(0)
         self._n = K.degree()
-        from sage.categories.homset import Hom
         FunctionFieldVectorSpaceIsomorphism.__init__(self, Hom(K, V))
 
     def _call_(self, x):
@@ -861,7 +859,6 @@ class FunctionFieldToFractionField(FunctionFieldVectorSpaceIsomorphism):
 
 
         """
-        from sage.categories.all import Hom
         parent = Hom(self.codomain(), self.domain())
         return parent.__make_element_class__(FractionFieldToFunctionField)(parent.domain(), parent.codomain())
 
@@ -920,7 +917,6 @@ class FractionFieldToFunctionField(FunctionFieldVectorSpaceIsomorphism):
                 To:   Fraction Field of Univariate Polynomial Ring in x over Rational Field
 
         """
-        from sage.categories.all import Hom
         parent = Hom(self.codomain(), self.domain())
         return parent.__make_element_class__(FunctionFieldToFractionField)(parent)
 
@@ -950,3 +946,56 @@ class FunctionFieldRingMorphism(SetMorphism):
         s += "\n  From: {}".format(self.domain())
         s += "\n  To:   {}".format(self.codomain())
         return s
+
+class FunctionFieldLinearMap(SetMorphism):
+    """
+    Linear map to function fields.
+    """
+    def _repr_(self):
+        """
+        Return the string representaton of the map.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(5)); R.<t> = PolynomialRing(K)
+            sage: F.<y> = K.extension(t^2-x^3-1)
+            sage: O = F.maximal_order()
+            sage: I = O.ideal(x-2)
+            sage: D = I.divisor()
+            sage: V, from_V, to_V = D.function_space()
+            sage: from_V
+            Linear map:
+              From: Vector space of dimension 2 over Finite Field of size 5
+              To:   Function field in y defined by y^2 + 4*x^3 + 4
+        """
+        s = "Linear map:"
+        s += "\n  From: {}".format(self.domain())
+        s += "\n  To:   {}".format(self.codomain())
+        return s
+
+class FunctionFieldLinearMapSection(SetMorphism):
+    """
+    Section of linear map from function fields.
+    """
+    def _repr_(self):
+        """
+        Return the string representaton of the map.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(5)); R.<t> = PolynomialRing(K)
+            sage: F.<y> = K.extension(t^2-x^3-1)
+            sage: O = F.maximal_order()
+            sage: I = O.ideal(x-2)
+            sage: D = I.divisor()
+            sage: V, from_V, to_V = D.function_space()
+            sage: to_V
+            Section of linear map:
+              From: Function field in y defined by y^2 + 4*x^3 + 4
+              To:   Vector space of dimension 2 over Finite Field of size 5
+        """
+        s = "Section of linear map:"
+        s += "\n  From: {}".format(self.domain())
+        s += "\n  To:   {}".format(self.codomain())
+        return s
+

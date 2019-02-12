@@ -416,6 +416,17 @@ class PRESENT_KS(SageObject):
     """
 
     def __init__(self, keysize=80, rounds=31):
+        r"""
+        Construct an instance of PRESENT_KS.
+
+        INPUT:
+
+         - ``keysize`` -- integer; the size of the keys that will be
+           used in bits. It must be either 80 or 128 (default: ``80``).
+
+        - ``rounds`` -- integer; the number of rounds ``self`` can create keys
+          for.
+        """
         self._keysize = keysize
         self._rounds = rounds
         self._sbox = PRESENTSBOX

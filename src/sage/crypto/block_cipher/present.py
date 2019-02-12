@@ -229,136 +229,6 @@ class PRESENT(SageObject):
                              "length %s" % (I, L))
         return state, flag
 
-    def generate_round_keys(self, K):
-        r"""
-        Return all round keys `K_1 \dots K_{32}` in a list.
-
-        INPUT:
-
-        - ``K`` -- integer or list-like; the key
-
-        EXAMPLES::
-
-            sage: from sage.crypto.block_cipher.present import PRESENT
-            sage: present = PRESENT(80)
-            sage: K = present.generate_round_keys(0x0)
-            sage: ZZ(list(K[0]), 2) == 0x0
-            True
-            sage: ZZ(list(K[1]), 2) == 0xc000000000000000
-            True
-            sage: ZZ(list(K[2]), 2) == 0x5000180000000001
-            True
-            sage: ZZ(list(K[3]), 2) == 0x60000a0003000001
-            True
-            sage: ZZ(list(K[8]), 2) == 0xd000d4001400064c
-            True
-            sage: ZZ(list(K[14]), 2) == 0x71926802f600357f
-            True
-            sage: ZZ(list(K[29]), 2) == 0xd075c3c1d6336acd
-            True
-            sage: ZZ(list(K[30]), 2) == 0x8ba27a0eb8783ac9
-            True
-            sage: ZZ(list(K[31]), 2) == 0x6dab31744f41d700
-            True
-            sage: present = PRESENT(128)
-            sage: k = 0x00112233445566778899aabbccddeeff
-            sage: K = present.generate_round_keys(k)
-            sage: ZZ(list(K[0]), 2) == 0x0011223344556677
-            True
-            sage: ZZ(list(K[31]), 2) == 0x091989a5ae8eab21
-            True
-
-
-        Description of the key schedule for 64-bit and 128-bit keys from
-        [BKLPPRSV2007]_:
-
-        At round `i` the 64-bit round key `K_i = \kappa_{63}\kappa_{62} \dots
-        \kappa_0` consists of the 64 leftmost bits fo the current contents of
-        register `K`. Thus at round `i` we have that:
-
-        .. MATH::
-
-            K_i = \kappa_{63}\kappa_{62}\dots \kappa_0 = k_{79}k_{78}\dots
-                  k_{16}
-
-        After extracting the round key `K_i`, the key register
-        `K = k_{79}k_{78} \dots k_0` is updated as follows.
-
-        .. MATH::
-           :nowrap:
-
-            \begin{aligned}
-             \ [k_{79}k_{78} \dots k_{1}k_{0}] &=
-             [k_{18}k_{17} \dots k_{20}k_{19}] \\
-             [k_{79}k_{78}k_{77}k_{76}] &= S[k_{79}k_{78}k_{77}k_{76}] \\
-             [k_{19}k_{18}k_{17}k_{16}k_{15}] &=
-             [k_{19}k_{18}k_{17}k_{16}k_{15}] \oplus round\_counter
-            \end{aligned}
-
-        Thus, the key register is rotated by 61 bit positions to the left, the
-        left-most four bits are passed through the PRESENT S-box, and the
-        round_counter value `i` is exclusive-ored with bits `k_{19}k_{18}k_{17}
-        k_{16}k_{15}` of `K` with the least significant bit of round_counter on
-        the right.
-
-        The key schedule for 128-bit keys works as follows.
-
-        At round `i` the 64-bit round key `K_i = \kappa_{63}\kappa_{62} \dots
-        \kappa_0` consists of the 64 leftmost bits fo the current contents of
-        register `K`. Thus at round `i` we have that:
-
-        .. MATH::
-
-            K_i = \kappa_{63}\kappa_{62}\dots \kappa_0 = k_{127}k_{126}\dots
-                  k_{64}
-
-        After extracting the round key `K_i`, the key register
-        `K = k_{127}k_{126} \dots k_0` is updated as follows:
-
-        .. MATH::
-           :nowrap:
-
-            \begin{aligned}
-             \ [k_{127}k_{126} \dots k_{1}k_{0}] &=
-             [k_{66}k_{65} \dots k_{68}k_{67}] \\
-             [k_{127}k_{126}k_{125}k_{124}] &=
-             S[k_{127}k_{126}k_{125}k_{124}]\\
-             [k_{123}k_{122}k_{121}k_{120}] &=
-             S[k_{123}k_{122}k_{121}k_{120}]\\
-             [k_{66}k_{65}k_{64}k_{63}k_{62}] &=
-             [k_{66}k_{65}k_{64}k_{63}k_{62}] \oplus round\_counter
-            \end{aligned}
-
-        Thus, the key register is rotated by 61 bit positions to the left, the
-        left-most eight bits are passed through two PRESENT S-boxes, and the
-        round_counter value `i` is exclusive-ored with bits `k_{66}k_{65}k_{64}
-        k_{63}k_{62}` of `K` with the least significant bit of round_counter on
-        the right.
-        """
-        if self._keysize == 80:
-            roundKeys = []
-            K, _ = self._to_state(K, 80)
-            for i in range(1, 32):
-                roundKeys.append(K[16:])
-                K[0:] = list(K[19:]) + list(K[:19])
-                K[76:] = self._sbox(K[76:][::-1])[::-1]
-                rc = vector(GF(2), ZZ(i).digits(2, padto=5))
-                K[15:20] = K[15:20] + rc
-            roundKeys.append(K[16:])
-            return roundKeys
-        elif self._keysize == 128:
-            roundKeys = []
-            K, _ = self._to_state(K, 128)
-            for i in range(1, 32):
-                roundKeys.append(K[64:])
-                K[0:] = list(K[67:]) + list(K[:67])
-                K[124:] = self._sbox(K[124:][::-1])[::-1]
-                K[120:124] = self._sbox(K[120:124][::-1])[::-1]
-                rc = vector(GF(2), ZZ(i).digits(2, padto=5))
-                K[62:67] = K[62:67] + rc
-            roundKeys.append(K[64:])
-            return roundKeys
-
     def decrypt(self, C, K):
         r"""
         Return an plaintext corresponding to the ciphertext ``C``,
@@ -420,3 +290,38 @@ class PRESENT(SageObject):
         elif inputType == "int":
             C = ZZ(list(state), 2)
         return C
+
+
+class PRESENT_KS(SageObject):
+    r"""
+    """
+    def __init__(self, keysize=80, rounds=31):
+        self._keysize = keysize
+        self._rounds = rounds
+        self._sbox = PRESENTSBOX
+
+    def __call__(self, K):
+        if self._keysize == 80:
+            roundKeys = []
+            for i in range(1, self._rounds+1):
+                roundKeys.append(K[16:])
+                K[0:] = list(K[19:]) + list(K[:19])
+                K[76:] = self._sbox(K[76:][::-1])[::-1]
+                rc = vector(GF(2), ZZ(i).digits(2, padto=5))
+                K[15:20] = K[15:20] + rc
+            roundKeys.append(K[16:])
+            return roundKeys
+        elif self._keysize == 128:
+            roundKeys = []
+            for i in range(1, self._rounds+1):
+                roundKeys.append(K[64:])
+                K[0:] = list(K[67:]) + list(K[:67])
+                K[124:] = self._sbox(K[124:][::-1])[::-1]
+                K[120:124] = self._sbox(K[120:124][::-1])[::-1]
+                rc = vector(GF(2), ZZ(i).digits(2, padto=5))
+                K[62:67] = K[62:67] + rc
+            roundKeys.append(K[64:])
+            return roundKeys
+
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__

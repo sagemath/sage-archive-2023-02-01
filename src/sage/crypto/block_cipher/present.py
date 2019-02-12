@@ -49,6 +49,28 @@ def smallscale_present_linearlayer(nsboxes=16):
 class PRESENT(SageObject):
     r"""
     This class implements PRESENT described in [BKLPPRSV2007]_.
+
+    EXAMPLES::
+
+        sage: from sage.crypto.block_cipher.present import PRESENT
+        sage: present = PRESENT()
+        sage: P = 0xFFFFFFFFFFFFFFFF
+        sage: K = 0x0
+        sage: present(present(P, K, "encrypt"), K, "decrypt") == P
+        True
+        sage: P = ZZ(0).digits(2,padto=64)
+        sage: K = ZZ(0).digits(2,padto=80)
+        sage: present(present(P, K, "encrypt"), K, "decrypt") == P
+        True
+        sage: P = ZZ(0).digits(16,padto=16)
+        sage: K = ZZ(0).digits(16,padto=20)
+        sage: present(present(P, K, "encrypt"), K, "decrypt") == P
+        True
+        sage: present = PRESENT(128)
+        sage: P = 0x0123456789abcdef
+        sage: K = 0x00112233445566778899aabbccddeeff
+        sage: present(present(P, K, "encrypt"), K, "decrypt") == P
+        True
     """
 
     def __init__(self, keySchedule=80):
@@ -98,28 +120,6 @@ class PRESENT(SageObject):
 
         - The plaintext or ciphertext corresponding to ``B``, obtained using
           the key ``K``
-
-        EXAMPLES::
-
-            sage: from sage.crypto.block_cipher.present import PRESENT
-            sage: present = PRESENT(keySchedule=80)
-            sage: P = 0xFFFFFFFFFFFFFFFF
-            sage: K = 0x0
-            sage: present(present(P, K, "encrypt"), K, "decrypt") == P
-            True
-            sage: P = ZZ(0).digits(2,padto=64)
-            sage: K = ZZ(0).digits(2,padto=80)
-            sage: present(present(P, K, "encrypt"), K, "decrypt") == P
-            True
-            sage: P = ZZ(0).digits(16,padto=16)
-            sage: K = ZZ(0).digits(16,padto=20)
-            sage: present(present(P, K, "encrypt"), K, "decrypt") == P
-            True
-            sage: present = PRESENT(keySchedule=128)
-            sage: P = 0x0123456789abcdef
-            sage: K = 0x00112233445566778899aabbccddeeff
-            sage: present(present(P, K, "encrypt"), K, "decrypt") == P
-            True
         """
         if algorithm == "encrypt":
             return self.encrypt(B, K)

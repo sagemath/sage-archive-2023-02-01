@@ -326,7 +326,7 @@ class PRESENT(SageObject):
             for i in range(1, 32):
                 roundKeys.append(K[16:])
                 K[0:] = list(K[19:]) + list(K[:19])
-                K[76:] = self._sbox((K[76:])[::-1])[::-1]
+                K[76:] = self._sbox(K[76:][::-1])[::-1]
                 rc = vector(GF(2), ZZ(i).digits(2, padto=5))
                 K[15:20] = K[15:20] + rc
             roundKeys.append(K[16:])
@@ -337,8 +337,8 @@ class PRESENT(SageObject):
             for i in range(1, 32):
                 roundKeys.append(K[64:])
                 K[0:] = list(K[67:]) + list(K[:67])
-                K[124:] = self._sbox((K[124:])[::-1])[::-1]
-                K[120:124] = self._sbox((K[120:124])[::-1])[::-1]
+                K[124:] = self._sbox(K[124:][::-1])[::-1]
+                K[120:124] = self._sbox(K[120:124][::-1])[::-1]
                 rc = vector(GF(2), ZZ(i).digits(2, padto=5))
                 K[62:67] = K[62:67] + rc
             roundKeys.append(K[64:])

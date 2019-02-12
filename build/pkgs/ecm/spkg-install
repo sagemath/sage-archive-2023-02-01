@@ -210,7 +210,7 @@ else
 fi
 echo "  --prefix=\"$SAGE_LOCAL\""
 echo "  --libdir=\"$SAGE_LOCAL/lib\""
-if [ -n "$SAGE_GMP_CONFIGURE" ]; then
+if [ -n "$SAGE_CONFIGURE_GMP" ]; then
     echo "  --with-gmp=\"$SAGE_LOCAL\""
 fi
 

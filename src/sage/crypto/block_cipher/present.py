@@ -308,13 +308,116 @@ class PRESENT(SageObject):
 
 class PRESENT_KS(SageObject):
     r"""
+    This class implements the PRESENT key schedules for both 80-bit and 128-bit
+    keys as described in [BKLPPRSV2007]_.
+
+    EXAMPLES::
+
+        sage: from sage.crypto.block_cipher.present import PRESENT_KS
+        sage: ks = PRESENT_KS()
+        sage: K = ks(0x0)
+        sage: ZZ(list(K[0]), 2) == 0x0
+        True
+        sage: ZZ(list(K[31]), 2) == 0x6dab31744f41d700
+        True
+        sage: ks = PRESENT_KS(128)
+        sage: K = ks(0x00112233445566778899aabbccddeeff)
+        sage: ZZ(list(K[0]), 2) == 0x0011223344556677
+        True
+        sage: ZZ(list(K[31]), 2) == 0x091989a5ae8eab21
+        True
+
+    Description of the key schedule for 64-bit and 128-bit keys from
+    [BKLPPRSV2007]_:
+
+    The key schedule for 64-bit keys works as follows:
+
+    At round `i` the 64-bit round key `K_i = \kappa_{63}\kappa_{62} \dots
+    \kappa_0` consists of the 64 leftmost bits fo the current contents of
+    register `K`. Thus at round `i` we have that:
+
+    .. MATH::
+
+        K_i = \kappa_{63}\kappa_{62}\dots \kappa_0 = k_{79}k_{78}\dots k_{16}
+
+    After extracting the round key `K_i`, the key register `K = k_{79}k_{78}
+    \dots k_0` is updated as follows.
+
+    .. MATH::
+        :nowrap:
+
+        \begin{aligned}
+        \ [k_{79}k_{78}\dots k_{1}k_{0}] &= [k_{18}k_{17}\dots k_{20}k_{19}] \\
+        [k_{79}k_{78}k_{77}k_{76}] &= S[k_{79}k_{78}k_{77}k_{76}] \\
+        [k_{19}k_{18}k_{17}k_{16}k_{15}] &= [k_{19}k_{18}k_{17}k_{16}k_{15}]
+                                            \oplus round\_counter
+        \end{aligned}
+
+    Thus, the key register is rotated by 61 bit positions to the left, the
+    left-most four bits are passed through the PRESENT S-box, and the
+    round_counter value `i` is exclusive-ored with bits `k_{19}k_{18}k_{17}
+    k_{16}k_{15}` of `K` with the least significant bit of round_counter on
+    the right.
+
+    The key schedule for 128-bit keys works as follows:
+
+    At round `i` the 64-bit round key `K_i = \kappa_{63}\kappa_{62} \dots
+    \kappa_0` consists of the 64 leftmost bits fo the current contents of
+    register `K`. Thus at round `i` we have that:
+
+    .. MATH::
+
+        K_i = \kappa_{63}\kappa_{62}\dots \kappa_0 = k_{127}k_{126}\dots k_{64}
+
+    After extracting the round key `K_i`, the key register `K = k_{127}k_{126}
+    \dots k_0` is updated as follows:
+
+    .. MATH::
+        :nowrap:
+
+        \begin{aligned}
+        \ [k_{127}k_{126}\dots k_{1}k_{0}] &= [k_{66}k_{65}\dots k_{68}k_{67}]
+        \\
+        [k_{127}k_{126}k_{125}k_{124}] &= S[k_{127}k_{126}k_{125}k_{124}]\\
+        [k_{123}k_{122}k_{121}k_{120}] &= S[k_{123}k_{122}k_{121}k_{120}]\\
+        [k_{66}k_{65}k_{64}k_{63}k_{62}] &= [k_{66}k_{65}k_{64}k_{63}k_{62}]
+                                            \oplus round\_counter
+        \end{aligned}
+
+    Thus, the key register is rotated by 61 bit positions to the left, the
+    left-most eight bits are passed through two PRESENT S-boxes, and the
+    round_counter value `i` is exclusive-ored with bits `k_{66}k_{65}k_{64}
+    k_{63}k_{62}` of `K` with the least significant bit of round_counter on
+    the right.
     """
+
     def __init__(self, keysize=80, rounds=31):
         self._keysize = keysize
         self._rounds = rounds
         self._sbox = PRESENTSBOX
 
     def __call__(self, K):
+        r"""
+        Return all round keys in a list.
+
+        INPUT:
+
+        - ``K`` -- integer or list-like; the key
+        """
+        try:
+            K = vector(GF(2), self._keysize,
+                       ZZ(K).digits(2, padto=self._keysize))
+        except TypeError:
+            pass
+        if len(K) == self._keysize:
+            K = vector(GF(2), self._keysize,
+                       ZZ(list(K), 2).digits(2, padto=self._keysize))
+        elif 4*len(K) == self._keysize:
+            K = vector(GF(2), self._keysize,
+                       ZZ(list(K), 16).digits(2, padto=self._keysize))
+        else:
+            raise ValueError("%s can not be converted to bit vector of "
+                             "length %s" % (K, self._keysize))
         if self._keysize == 80:
             roundKeys = []
             for i in range(1, self._rounds+1):

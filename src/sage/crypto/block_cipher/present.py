@@ -442,6 +442,10 @@ class PRESENT_KS(SageObject):
         INPUT:
 
         - ``K`` -- integer or list-like; the key
+
+        OUTPUT:
+
+        - A list containing ``self._rounds + 1`` round keys.
         """
         try:
             K = vector(GF(2), self._keysize,

@@ -251,7 +251,8 @@ class PRESENT(SageObject):
         - The plaintext corresponding to ``C``, obtained using the key ``K``.
         """
         state, inputType = self._to_state(C, 64)
-        roundKeys = self.generate_round_keys(K)
+        K, _ = self._to_state(K, self._keySchedule._keysize)
+        roundKeys = self._keySchedule(K)
         state = state + roundKeys[-1]
         for K in roundKeys[:-1][::-1]:
             state[0:] = self._inversePermutationMatrix * state
@@ -282,7 +283,8 @@ class PRESENT(SageObject):
         - The ciphertext corresponding to ``P``, obtained using the key ``K``.
         """
         state, inputType = self._to_state(P, 64)
-        roundKeys = self.generate_round_keys(K)
+        K, _ = self._to_state(K, self._keySchedule._keysize)
+        roundKeys = self._keySchedule(K)
         for K in roundKeys[:-1]:
             state = state + K
             for nibble in [slice(4*j, 4*j+4) for j in range(16)]:

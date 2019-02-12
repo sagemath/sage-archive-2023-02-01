@@ -21,6 +21,7 @@ from sage.structure.sage_object import SageObject
 from sage.rings.integer_ring import ZZ
 from sage.modules.free_module_element import vector
 from sage.rings.finite_rings.finite_field_constructor import GF
+from sage.crypto.sboxes import PRESENT as PRESENTSBOX
 
 
 def smallscale_present_linearlayer(nsboxes=16):
@@ -99,7 +100,6 @@ class PRESENT(SageObject):
                              % keysize)
         self._keysize = keysize
         self._blocksize = 64
-        from sage.crypto.sboxes import PRESENT as PRESENTSBOX
         self._sbox = PRESENTSBOX
         self._inverseSbox = self._sbox.inverse()
         self._permutationMatrix = smallscale_present_linearlayer()

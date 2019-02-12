@@ -135,6 +135,14 @@ class PRESENT(SageObject):
             sage: K = 0x0
             sage: present(present(P, K, "encrypt"), K, "decrypt") == P
             True
+            sage: P = ZZ(0).digits(2,padto=64)
+            sage: K = ZZ(0).digits(2,padto=80)
+            sage: present(present(P, K, "encrypt"), K, "decrypt") == P
+            True
+            sage: P = ZZ(0).digits(16,padto=16)
+            sage: K = ZZ(0).digits(16,padto=20)
+            sage: present(present(P, K, "encrypt"), K, "decrypt") == P
+            True
         """
         if algorithm == "encrypt":
             return self.encrypt(B, K)

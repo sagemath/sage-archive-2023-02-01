@@ -16,7 +16,7 @@ echo "Configuring FLINT."
 ./configure \
     --disable-static \
     --prefix="$SAGE_LOCAL" \
-    --with-gmp="$SAGE_LOCAL" \
+    $SAGE_CONFIGURE_GMP \
     --with-mpfr="$SAGE_LOCAL" \
     --with-ntl="$SAGE_LOCAL" \
     $FLINT_CONFIGURE || sdh_die "Error: Failed to configure FLINT."

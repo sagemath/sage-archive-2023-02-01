@@ -484,6 +484,19 @@ class PRESENT_KS(SageObject):
             return roundKeys
 
     def __eq__(self, other):
+        r"""
+        Compare ``self`` with ``other``.
+
+        PRESENT_KS objects are the same if all attributes are the same.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.present import PRESENT_KS
+            sage: PRESENT_KS(80) == PRESENT_KS(80)
+            True
+            sage: PRESENT_KS(80) == PRESENT_KS(128)
+            False
+        """
         return self.__dict__ == other.__dict__
 
     def __repr__(self):

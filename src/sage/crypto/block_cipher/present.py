@@ -166,6 +166,54 @@ class PRESENT(SageObject):
         """
         return "PRESENT block cipher with %s-bit keys" % self._keysize
 
+    def _to_state(self, I, L):
+        r"""
+        Convert ``I`` to a bit vector of length ``L``.
+
+        If ``I`` is list-like its elements will be treated as binary if
+        ``len(I) == L`` or as hexadecimal if ``4*len(I) == L``.
+
+        INPUT:
+
+        - ``I`` -- integer or list-like
+
+        - ``L`` -- integer; the desired length of the ouput
+
+        OUTPUT:
+
+        - A ``L``-bit vector representation of ``I``
+
+        EXAMPLES::
+
+        sage: from sage.crypto.block_cipher.present import PRESENT
+        sage: present = PRESENT()
+        sage: present._to_state("0x1F", 8)
+        (1, 1, 1, 1, 1, 0, 0, 0)
+        sage: present._to_state(["0x1","0xF"], 8)
+        (1, 0, 0, 0, 1, 1, 1, 1)
+        sage: present._to_state(0x1F, 8)
+        (1, 1, 1, 1, 1, 0, 0, 0)
+        sage: present._to_state(0x1F, 9)
+        (1, 1, 1, 1, 1, 0, 0, 0, 0)
+        sage: present._to_state(["1","0xF"], 9)
+        Traceback (most recent call last):
+        ...
+        ValueError: ['1', '0xF'] can not be converted to bit vector of length 9
+        """
+        try:
+            state = vector(GF(2), L, ZZ(I).digits(2, padto=L))
+            return state
+        except TypeError:
+            pass
+        if len(I) == L:
+            state = vector(GF(2), L, ZZ(list(I), 2).digits(2, padto=L))
+        elif 4*len(I) == L:
+            state = vector(GF(2), L, ZZ(list(I), 16).digits(2, padto=L))
+        else:
+            raise ValueError("%s can not be converted to bit vector of "
+                             "length %s" % (I, L))
+        return state
+
     def generate_round_keys(self, K):
         r"""
         Return all round keys `K_1 \dots K_{32}` in a list.
@@ -274,7 +322,7 @@ class PRESENT(SageObject):
         """
         if self._keysize == 80:
             roundKeys = []
-            K = vector(GF(2), 80, ZZ(K, 16).digits(2, padto=80))
+            K = self._to_state(K, 80)
             for i in range(1, 32):
                 roundKeys.append(K[16:])
                 K[0:] = list(K[19:]) + list(K[:19])
@@ -285,7 +333,7 @@ class PRESENT(SageObject):
             return roundKeys
         elif self._keysize == 128:
             roundKeys = []
-            K = vector(GF(2), 128, ZZ(K, 16).digits(2, padto=128))
+            K = self._to_state(K, 128)
             for i in range(1, 32):
                 roundKeys.append(K[64:])
                 K[0:] = list(K[67:]) + list(K[:67])
@@ -312,7 +360,7 @@ class PRESENT(SageObject):
         - The plaintext corresponding to ``C``, obtained using the key ``K``.
 
         """
-        state = vector(GF(2), 64, ZZ(C, 16).digits(2, padto=64))
+        state = self._to_state(C, 64)
         roundKeys = self.generate_round_keys(K)
         state = state + roundKeys[-1]
         for K in roundKeys[:-1][::-1]:
@@ -338,7 +386,7 @@ class PRESENT(SageObject):
 
         - The ciphertext corresponding to ``P``, obtained using the key ``K``.
         """
-        state = vector(GF(2), 64, ZZ(P, 16).digits(2, padto=64))
+        state = self._to_state(P, 64)
         roundKeys = self.generate_round_keys(K)
         for K in roundKeys[:-1]:
             state = state + K

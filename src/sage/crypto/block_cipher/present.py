@@ -162,7 +162,7 @@ class PRESENT(SageObject):
         r"""
         Compare ``self`` with ``other``.
 
-        PRESENT objects are the same if the keysize is the same.
+        PRESENT objects are the same if the keySchedule is the same.
 
         EXAMPLES::
 
@@ -172,7 +172,7 @@ class PRESENT(SageObject):
             sage: PRESENT(80) == PRESENT(128)
             False
         """
-        return self._keysize == other._keysize
+        return self._keySchedule == other._keySchedule
 
     def __repr__(self):
         r"""

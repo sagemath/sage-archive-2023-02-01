@@ -55,7 +55,7 @@ class PRESENT(SageObject):
     Check test vectors given in [BKLPPRSV2007]_.
 
         sage: from sage.crypto.block_cipher.present import PRESENT
-        sage: present = PRESENT(keysize=80)
+        sage: present = PRESENT(keySchedule=80)
         sage: p1 = 0x0
         sage: k1 = 0x0
         sage: c1 = 0x5579C1387B228445
@@ -86,19 +86,20 @@ class PRESENT(SageObject):
         True
     """
 
-    def __init__(self, keysize=80):
+    def __init__(self, keySchedule=80):
         r"""
         Construct an instance of PRESENT.
 
         INPUT:
 
-        - ``keysize`` -- (default: ``80``) the size of the keys that will be
-          used in bits. It must be either 80 or 128.
+        - ``keySchedule`` --
         """
-        if keysize != 80 and keysize != 128:
-            raise ValueError("keysize must be either 80 or 128 and not %s"
-                             % keysize)
-        self._keysize = keysize
+        if keySchedule == 80:
+            self._keySchedule = PRESENT_KS()
+        elif keySchedule == 128:
+            self._keySchedule = PRESENT_KS(128)
+        else:
+            self._keySchedule = keySchedule
         self._blocksize = 64
         self._sbox = PRESENTSBOX
         self._inverseSbox = self._sbox.inverse()
@@ -130,7 +131,7 @@ class PRESENT(SageObject):
         EXAMPLES::
 
             sage: from sage.crypto.block_cipher.present import PRESENT
-            sage: present = PRESENT(keysize=80)
+            sage: present = PRESENT(keySchedule=80)
             sage: P = 0xFFFFFFFFFFFFFFFF
             sage: K = 0x0
             sage: present(present(P, K, "encrypt"), K, "decrypt") == P

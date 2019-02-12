@@ -335,7 +335,7 @@ source tree goes something like this:
 
 1. `make python2`
 1. run `./bootstrap` if `configure` does not exist
-1. run `./configure` if `build/make/Makefile` doe not exist
+1. run `./configure` if `build/make/Makefile` does not exist
 1. `cd` into `build/make` and run the `install` script--this is little more
    than a front-end to running `make -f build/make/Makefile python2`, which
    sets some necessary environment variables and logs some information

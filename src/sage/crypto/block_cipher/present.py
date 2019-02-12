@@ -92,7 +92,13 @@ class PRESENT(SageObject):
 
         INPUT:
 
-        - ``keySchedule`` --
+        - ``keySchedule`` -- the key schedule that will be used for encryption
+            and decryption. Use ``80`` or ``128`` to use the original key
+            schedules from [BKLPPRSV2007]_
+
+        .. SEEALSO::
+
+            :class: `PRESENT_KS`
         """
         if keySchedule == 80:
             self._keySchedule = PRESENT_KS()

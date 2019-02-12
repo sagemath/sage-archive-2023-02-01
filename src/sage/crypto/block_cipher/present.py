@@ -183,8 +183,16 @@ class PRESENT(SageObject):
     def __repr__(self):
         r"""
         A string representation of this PRESENT.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.present import PRESENT
+            sage: PRESENT()
+            PRESENT block cipher with the following key schedule:
+            Original PRESENT key schedule with 80-bit keys and 31 rounds:
         """
-        return "PRESENT block cipher with %s-bit keys" % self._keysize
+        return ("PRESENT block cipher with the following key schedule:\n%s"
+                % self._keySchedule.__repr__())
 
     def _to_state(self, I, L):
         r"""
@@ -442,3 +450,16 @@ class PRESENT_KS(SageObject):
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
+
+    def __repr__(self):
+        r"""
+        A string representation of this PRESENT_KS.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.present import PRESENT_KS
+            sage: PRESENT_KS()
+            Original PRESENT key schedule with 80-bit keys and 31 rounds:
+        """
+        return ("Original PRESENT key schedule with %s-bit keys and %s rounds:"
+                % (self._keysize, self._rounds))

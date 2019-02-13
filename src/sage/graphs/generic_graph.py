@@ -17055,7 +17055,7 @@ class GenericGraph(GenericGraph_pyx):
             deprecation(19227, "Parameter 'distance' is broken. Do not use.")
 
         # Preferably use the Cython implementation
-        if (neighbors is None and not isinstance(start, list) and  distance is None
+        if (neighbors is None and not isinstance(start, list) and distance is None
                 and hasattr(self._backend, "depth_first_search")):
             for v in self._backend.depth_first_search(start, ignore_direction=ignore_direction):
                 yield v
@@ -17462,7 +17462,7 @@ class GenericGraph(GenericGraph_pyx):
             ``'min'`` and ``'max'`` only works if the labels can be compared. A
             ``TypeError`` might be raised when working with non-comparable
             objects in Python 3.
- 
+
         - ``immutable`` -- boolean (default: ``Non``); whether to create a
           mutable/immutable copy. ``immutable=None`` (default) means that the
           graph and its copy will behave the same way.
@@ -17887,7 +17887,7 @@ class GenericGraph(GenericGraph_pyx):
             G = Graph(loops=(self.has_loops() or other.has_loops()))
         else:
             raise TypeError('the graphs should be both directed or both undirected')
-        G.add_vertices((u,v) for u in self for v in other)
+        G.add_vertices((u, v) for u in self for v in other)
         for u, w in self.edge_iterator(labels=None):
             for v in other:
                 for x in other:
@@ -17956,8 +17956,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: hn,hm = h.order(), h.size()
             sage: product_size = g.strong_product(h).size()
             sage: expected = gm * hn + hm * gn + 2 * gm * hm
-            sage: if product_size != expected:
-            ....:     raise ValueError("something is really wrong here... {} != {}".format(product_size, expected))
+            sage: product_size == expected
+            True
         """
         self._scream_if_not_simple(allow_loops=True)
         if self._directed and other._directed:
@@ -17969,7 +17969,7 @@ class GenericGraph(GenericGraph_pyx):
         else:
             raise TypeError('the graphs should be both directed or both undirected')
 
-        G.add_vertices((u,v) for u in self for v in other)
+        G.add_vertices((u, v) for u in self for v in other)
         for u, w in self.edge_iterator(labels=None):
             for v in other:
                 G.add_edge((u, v), (w, v))
@@ -18040,7 +18040,7 @@ class GenericGraph(GenericGraph_pyx):
         else:
             raise TypeError('the graphs should be both directed or both undirected')
 
-        G.add_vertices((u,v) for u in self for v in other)
+        G.add_vertices((u, v) for u in self for v in other)
         for u, w in self.edge_iterator(labels=None):
             for v in other:
                 for x in other:

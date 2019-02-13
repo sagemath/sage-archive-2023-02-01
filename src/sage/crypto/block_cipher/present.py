@@ -138,9 +138,9 @@ class PRESENT(SageObject):
         EXAMPLES::
 
             sage: from sage.crypto.block_cipher.present import PRESENT
-            sage: PRESENT(80) == PRESENT(80)
+            sage: PRESENT(80) == PRESENT(80) # indirect doctest
             True
-            sage: PRESENT(80) == PRESENT(128)
+            sage: PRESENT(80) == PRESENT(128) # indirect doctest
             False
         """
         return self._keySchedule == other._keySchedule
@@ -152,7 +152,7 @@ class PRESENT(SageObject):
         EXAMPLES::
 
             sage: from sage.crypto.block_cipher.present import PRESENT
-            sage: PRESENT()
+            sage: PRESENT() # indirect doctest
             PRESENT block cipher with the following key schedule:
             Original PRESENT key schedule with 80-bit keys and 31 rounds:
         """
@@ -492,9 +492,9 @@ class PRESENT_KS(SageObject):
         EXAMPLES::
 
             sage: from sage.crypto.block_cipher.present import PRESENT_KS
-            sage: PRESENT_KS(80) == PRESENT_KS(80)
+            sage: PRESENT_KS(80) == PRESENT_KS(80) # indirect doctest
             True
-            sage: PRESENT_KS(80) == PRESENT_KS(128)
+            sage: PRESENT_KS(80) == PRESENT_KS(128) # indirect doctest
             False
         """
         return self.__dict__ == other.__dict__
@@ -506,7 +506,7 @@ class PRESENT_KS(SageObject):
         EXAMPLES::
 
             sage: from sage.crypto.block_cipher.present import PRESENT_KS
-            sage: PRESENT_KS()
+            sage: PRESENT_KS() # indirect doctest
             Original PRESENT key schedule with 80-bit keys and 31 rounds:
         """
         return ("Original PRESENT key schedule with %s-bit keys and %s rounds:"

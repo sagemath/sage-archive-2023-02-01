@@ -1939,25 +1939,29 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES::
 
-            sage: G = graphs.CubeGraph(3)
+            sage: G = graphs.PetersenGraph()
             sage: G.incidence_matrix()
-            [0 1 0 0 0 1 0 1 0 0 0 0]
-            [0 0 0 1 0 1 1 0 0 0 0 0]
-            [1 1 1 0 0 0 0 0 0 0 0 0]
-            [1 0 0 1 1 0 0 0 0 0 0 0]
-            [0 0 0 0 0 0 0 1 0 0 1 1]
-            [0 0 0 0 0 0 1 0 0 1 0 1]
-            [0 0 1 0 0 0 0 0 1 0 1 0]
-            [0 0 0 0 1 0 0 0 1 1 0 0]
+            [1 1 1 0 0 0 0 0 0 0 0 0 0 0 0]
+            [1 0 0 1 1 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 1 0 1 1 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 1 0 1 1 0 0 0 0 0 0]
+            [0 1 0 0 0 0 0 1 0 1 0 0 0 0 0]
+            [0 0 1 0 0 0 0 0 0 0 1 1 0 0 0]
+            [0 0 0 0 1 0 0 0 0 0 0 0 1 1 0]
+            [0 0 0 0 0 0 1 0 0 0 1 0 0 0 1]
+            [0 0 0 0 0 0 0 0 1 0 0 1 1 0 0]
+            [0 0 0 0 0 0 0 0 0 1 0 0 0 1 1]
             sage: G.incidence_matrix(oriented=True)
-            [ 0 -1  0  0  0 -1  0 -1  0  0  0  0]
-            [ 0  0  0 -1  0  1 -1  0  0  0  0  0]
-            [-1  1 -1  0  0  0  0  0  0  0  0  0]
-            [ 1  0  0  1 -1  0  0  0  0  0  0  0]
-            [ 0  0  0  0  0  0  0  1  0  0 -1 -1]
-            [ 0  0  0  0  0  0  1  0  0 -1  0  1]
-            [ 0  0  1  0  0  0  0  0 -1  0  1  0]
-            [ 0  0  0  0  1  0  0  0  1  1  0  0]
+            [-1 -1 -1  0  0  0  0  0  0  0  0  0  0  0  0]
+            [ 1  0  0 -1 -1  0  0  0  0  0  0  0  0  0  0]
+            [ 0  0  0  1  0 -1 -1  0  0  0  0  0  0  0  0]
+            [ 0  0  0  0  0  1  0 -1 -1  0  0  0  0  0  0]
+            [ 0  1  0  0  0  0  0  1  0 -1  0  0  0  0  0]
+            [ 0  0  1  0  0  0  0  0  0  0 -1 -1  0  0  0]
+            [ 0  0  0  0  1  0  0  0  0  0  0  0 -1 -1  0]
+            [ 0  0  0  0  0  0  1  0  0  0  1  0  0  0 -1]
+            [ 0  0  0  0  0  0  0  0  1  0  0  1  1  0  0]
+            [ 0  0  0  0  0  0  0  0  0  1  0  0  0  1  1]
 
             sage: G = digraphs.Circulant(4, [1, 3])
             sage: G.incidence_matrix()
@@ -3880,8 +3884,13 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS::
 
-            sage: Graph({'H': ['G','L','L','D'], 'L': ['G','D']}).eulerian_circuit(labels=False)
-            [('H', 'D'), ('D', 'L'), ('L', 'G'), ('G', 'H'), ('H', 'L'), ('L', 'H')]
+            sage: G = Graph([['D', 'G', 'H', 'L'],
+            ....:            [('D', 'H'), ('D', 'L'), ('G', 'H'), ('G', 'L'), ('H', 'L'), ('H', 'L')]],
+            ....:           multiedges=True)
+            sage: G.eulerian_circuit(labels=False)  # py2
+            [('H', 'L'), ('L', 'G'), ('G', 'H'), ('H', 'L'), ('L', 'D'), ('D', 'H')]
+            sage: G.eulerian_circuit(labels=False)  # py3
+            [('D', 'L'), ('L', 'H'), ('H', 'L'), ('L', 'G'), ('G', 'H'), ('H', 'D')]
             sage: Graph({0: [0, 1, 1, 1, 1]}).eulerian_circuit(labels=False)
             [(0, 1), (1, 0), (0, 1), (1, 0), (0, 0)]
         """
@@ -4047,8 +4056,8 @@ class GenericGraph(GenericGraph_pyx):
 
         Boruvka's algorithm::
 
-            sage: g.min_spanning_tree(algorithm='Boruvka')
-            [(0, 1, None), (1, 2, None), (2, 3, None), (0, 4, None), (0, 5, None), (1, 6, None), (2, 7, None), (3, 8, None), (4, 9, None)]
+            sage: sorted(g.min_spanning_tree(algorithm='Boruvka'))
+            [(0, 1, None), (0, 4, None), (0, 5, None), (1, 2, None),  (1, 6, None), (2, 3, None), (2, 7, None),  (3, 8, None), (4, 9, None)]
 
         Prim's algorithm::
 

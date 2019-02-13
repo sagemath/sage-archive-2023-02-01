@@ -415,7 +415,7 @@ class PRESENT_KS(SageObject):
     the right.
     """
 
-    def __init__(self, keysize=80, rounds=31):
+    def __init__(self, keysize=80, rounds=31, master_key=None):
         r"""
         Construct an instance of PRESENT_KS.
 
@@ -426,6 +426,8 @@ class PRESENT_KS(SageObject):
 
         - ``rounds`` -- integer; the number of rounds ``self`` can create keys
           for.
+
+        - ``master_key`` -- integer of list-like; the key that will be used
         """
         if keysize != 80 and keysize != 128:
             raise ValueError("keysize must bei either 80 or 128 and not %s"
@@ -434,6 +436,7 @@ class PRESENT_KS(SageObject):
         self._keysize = keysize
         self._rounds = rounds
         self._sbox = PRESENTSBOX
+        self._master_key = master_key
 
     def __call__(self, K):
         r"""

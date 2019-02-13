@@ -159,61 +159,6 @@ class PRESENT(SageObject):
         return ("PRESENT block cipher with the following key schedule:\n%s"
                 % self._keySchedule.__repr__())
 
-    def _to_state(self, I, L):
-        r"""
-        Convert ``I`` to a bit vector of length ``L``.
-
-        If ``I`` is list-like its elements will be treated as binary if
-        ``len(I) == L`` or as hexadecimal if ``4*len(I) == L``.
-
-        INPUT:
-
-        - ``I`` -- integer or list-like
-
-        - ``L`` -- integer; the desired length of the ouput
-
-        OUTPUT:
-
-        - A ``L``-bit vector representation of ``I``
-
-        - A flag describing the type of ``I``. Either "int" or "bin" or "hex"
-
-        EXAMPLES::
-
-        sage: from sage.crypto.block_cipher.present import PRESENT
-        sage: present = PRESENT()
-        sage: present._to_state("0x1F", 8)
-        ((1, 1, 1, 1, 1, 0, 0, 0), 'int')
-        sage: present._to_state(["0x1","0xF"], 8)
-        ((1, 0, 0, 0, 1, 1, 1, 1), 'hex')
-        sage: present._to_state(0x1F, 8)
-        ((1, 1, 1, 1, 1, 0, 0, 0), 'int')
-        sage: v = vector(GF(2), 4, [1,0,1,0])
-        sage: present._to_state(v, 4)
-        ((1, 0, 1, 0), 'bin')
-        sage: present._to_state(0x1F, 9)
-        ((1, 1, 1, 1, 1, 0, 0, 0, 0), 'int')
-        sage: present._to_state(["1","0xF"], 9)
-        Traceback (most recent call last):
-        ...
-        ValueError: ['1', '0xF'] can not be converted to bit vector of length 9
-        """
-        try:
-            state = vector(GF(2), L, ZZ(I).digits(2, padto=L))
-            return state, "int"
-        except TypeError:
-            pass
-        if len(I) == L:
-            state = vector(GF(2), L, ZZ(list(I), 2).digits(2, padto=L))
-            flag = "bin"
-        elif 4*len(I) == L:
-            state = vector(GF(2), L, ZZ(list(I), 16).digits(2, padto=L))
-            flag = "hex"
-        else:
-            raise ValueError("%s can not be converted to bit vector of "
-                             "length %s" % (I, L))
-        return state, flag
-
     def decrypt(self, C, K):
         r"""
         Return an plaintext corresponding to the ciphertext ``C``,
@@ -254,8 +199,8 @@ class PRESENT(SageObject):
             sage: present.decrypt(c4, k4) == p4
             True
         """
-        state, inputType = self._to_state(C, 64)
-        K, _ = self._to_state(K, self._keySchedule._keysize)
+        state, inputType = convert_to_vector(C, 64)
+        K, _ = convert_to_vector(K, self._keySchedule._keysize)
         roundKeys = self._keySchedule(K)
         state = state + roundKeys[-1]
         for K in roundKeys[:-1][::-1]:
@@ -312,8 +257,8 @@ class PRESENT(SageObject):
             sage: present.encrypt(p4, k4) == c4
             True
         """
-        state, inputType = self._to_state(P, 64)
-        K, _ = self._to_state(K, self._keySchedule._keysize)
+        state, inputType = convert_to_vector(P, 64)
+        K, _ = convert_to_vector(K, self._keySchedule._keysize)
         roundKeys = self._keySchedule(K)
         for K in roundKeys[:-1]:
             state = state + K
@@ -450,20 +395,7 @@ class PRESENT_KS(SageObject):
 
         - A list containing ``self._rounds + 1`` round keys.
         """
-        try:
-            K = vector(GF(2), self._keysize,
-                       ZZ(K).digits(2, padto=self._keysize))
-        except TypeError:
-            pass
-        if len(K) == self._keysize:
-            K = vector(GF(2), self._keysize,
-                       ZZ(list(K), 2).digits(2, padto=self._keysize))
-        elif 4*len(K) == self._keysize:
-            K = vector(GF(2), self._keysize,
-                       ZZ(list(K), 16).digits(2, padto=self._keysize))
-        else:
-            raise ValueError("%s can not be converted to bit vector of "
-                             "length %s" % (K, self._keysize))
+        K, _ = convert_to_vector(K, self._keysize)
         if self._keysize == 80:
             roundKeys = []
             for i in range(1, self._rounds+1):
@@ -565,3 +497,58 @@ class PRESENT_KS(SageObject):
         if self._master_key is None:
             raise ValueError("Key not set during initialisation")
         return iter(self(self._master_key))
+
+
+def convert_to_vector(I, L):
+    r"""
+    Convert ``I`` to a bit vector of length ``L``.
+
+    If ``I`` is list-like its elements will be treated as binary if
+    ``len(I) == L`` or as hexadecimal if ``4*len(I) == L``.
+
+    INPUT:
+
+    - ``I`` -- integer or list-like
+
+    - ``L`` -- integer; the desired length of the ouput
+
+    OUTPUT:
+
+    - A ``L``-bit vector representation of ``I``
+
+    - A flag describing the type of ``I``. Either "int" or "bin" or "hex"
+
+    EXAMPLES::
+
+    sage: from sage.crypto.block_cipher.present import convert_to_vector
+    sage: convert_to_vector("0x1F", 8)
+    ((1, 1, 1, 1, 1, 0, 0, 0), 'int')
+    sage: convert_to_vector(["0x1","0xF"], 8)
+    ((1, 0, 0, 0, 1, 1, 1, 1), 'hex')
+    sage: convert_to_vector(0x1F, 8)
+    ((1, 1, 1, 1, 1, 0, 0, 0), 'int')
+    sage: v = vector(GF(2), 4, [1,0,1,0])
+    sage: convert_to_vector(v, 4)
+    ((1, 0, 1, 0), 'bin')
+    sage: convert_to_vector(0x1F, 9)
+    ((1, 1, 1, 1, 1, 0, 0, 0, 0), 'int')
+    sage: convert_to_vector(["1","0xF"], 9)
+    Traceback (most recent call last):
+    ...
+    ValueError: ['1', '0xF'] can not be converted to bit vector of length 9
+    """
+    try:
+        state = vector(GF(2), L, ZZ(I).digits(2, padto=L))
+        return state, "int"
+    except TypeError:
+        pass
+    if len(I) == L:
+        state = vector(GF(2), L, ZZ(list(I), 2).digits(2, padto=L))
+        flag = "bin"
+    elif 4*len(I) == L:
+        state = vector(GF(2), L, ZZ(list(I), 16).digits(2, padto=L))
+        flag = "hex"
+    else:
+        raise ValueError("%s can not be converted to bit vector of "
+                         "length %s" % (I, L))
+    return state, flag

@@ -514,3 +514,54 @@ class PRESENT_KS(SageObject):
         """
         return ("Original PRESENT key schedule with %s-bit keys and %s rounds:"
                 % (self._keysize, self._rounds))
+
+    def __getitem__(self, r):
+        r"""
+        Computes the sub key for round ``r`` derived from initial master key.
+
+        The key schedule object has to have been initialised with the
+        `master_key` argument.
+
+        INPUT:
+
+        - ``r`` integer; the round for which the sub key is computed
+
+        EXAMPLES:
+
+        Check against test vectors.::
+
+            sage: from sage.crypto.block_cipher.present import PRESENT_KS
+            sage: ks = PRESENT_KS(master_key=0x0)
+            sage: ks[0] # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: round number must be between 1 and 31
+            sage: ks[1] ==  0x0 # indirect doctest
+            True
+            sage: ZZ(list(ks[32]),2) ==  0x6dab31744f41d700 # indirect doctest
+            True
+        """
+        if self._master_key is None:
+            raise ValueError("Key not set during initialisation")
+        if (r < 1) or (r > self._rounds+1):
+            raise ValueError("round number must be between 1 and %s"
+                             % self._rounds)
+        return self(self._master_key)[r-1]
+
+    def __iter__(self):
+        """
+        iterate over the ``self._rounds + 1`` PRESENT round keys, derived from
+        `master_key`
+
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.present import PRESENT_KS
+            sage: K = [k for k in PRESENT_KS(master_key=0x0)]
+            sage: ZZ(list(K[0]),2) == 0x0 # indirect doctest
+            True
+            sage: ZZ(list(K[31]),2) == 0x6dab31744f41d700 # indirect doctest
+            True
+        """
+        if self._master_key is None:
+            raise ValueError("Key not set during initialisation")
+        return iter(self(self._master_key))

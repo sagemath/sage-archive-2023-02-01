@@ -18628,16 +18628,15 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: H = digraphs.ButterflyGraph(1)
-            sage: H.layout_extend_randomly({('0', 0): (0, 0), ('1', 1): (1, 1)})  # py2
+            sage: pos = {('0', 0): (0, 0), ('1', 1): (1, 1)}
+            sage: H.layout_extend_randomly(pos)  # random
             {('0', 0): (0, 0),
              ('0', 1): [0.0446..., 0.332...],
              ('1', 0): [0.1114..., 0.514...],
              ('1', 1): (1, 1)}
-            sage: H.layout_extend_randomly({('0', 0): (0, 0), ('1', 1): (1, 1)})  # py3
-            {('0', 0): (0, 0),
-             ('0', 1): [0.1114..., 0.514...],
-             ('1', 0): [0.0446..., 0.332...],
-             ('1', 1): (1, 1)}
+            sage: xmin, xmax, ymin, ymax = H._layout_bounding_box(pos)
+            sage: (xmin, ymin) == (0, 0) and (xmax, ymax) == (1, 1)
+            True
         """
         assert dim == 2 # 3d not yet implemented
         from sage.misc.randstate import current_randstate

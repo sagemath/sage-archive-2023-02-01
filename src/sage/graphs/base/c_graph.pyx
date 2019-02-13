@@ -1295,7 +1295,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: G.add_edge(1,1,'b')
             sage: G.add_edge(1,1)
             sage: G.add_edge(1,1)
-            sage: G.edges()
+            sage: G.edges_incident()
             [(1, 1, None), (1, 1, None), (1, 1, 'b'), (1, 1, 'b'), (1, 2, 'a'), (1, 2, 'a'), (1, 2, 'a')]
             sage: G.degree(1)
             11
@@ -2461,8 +2461,10 @@ cdef class CGraphBackend(GenericGraphBackend):
             ....: "Nurnberg": ["Wurzburg","Stuttgart","Munchen"],
             ....: "Stuttgart": ["Nurnberg"],
             ....: "Erfurt": ["Wurzburg"]}, implementation="c_graph")
-            sage: list(G.depth_first_search("Frankfurt"))
-            ['Frankfurt', 'Wurzburg', 'Nurnberg', 'Munchen', 'Kassel', 'Augsburg', 'Karlsruhe', 'Mannheim', 'Stuttgart', 'Erfurt']
+            sage: list(G.depth_first_search("Stuttgart"))  # py2
+            ['Stuttgart', 'Nurnberg', 'Wurzburg', 'Frankfurt', 'Kassel', 'Munchen', 'Augsburg', 'Karlsruhe', 'Mannheim', 'Erfurt']
+            sage: list(G.depth_first_search("Stuttgart"))  # py3
+            ['Stuttgart', 'Nurnberg', ...]
         """
         return Search_iterator(self,
                                v,
@@ -2532,20 +2534,11 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: list(G.breadth_first_search(0))
             [0, 1, 4, 5, 2, 6, 3, 9, 7, 8]
 
-        Visiting German cities using breadth-first search::
+        Visiting European countries using breadth-first search::
 
-            sage: G = Graph({"Mannheim": ["Frankfurt","Karlsruhe"],
-            ....: "Frankfurt": ["Mannheim","Wurzburg","Kassel"],
-            ....: "Kassel": ["Frankfurt","Munchen"],
-            ....: "Munchen": ["Kassel","Nurnberg","Augsburg"],
-            ....: "Augsburg": ["Munchen","Karlsruhe"],
-            ....: "Karlsruhe": ["Mannheim","Augsburg"],
-            ....: "Wurzburg": ["Frankfurt","Erfurt","Nurnberg"],
-            ....: "Nurnberg": ["Wurzburg","Stuttgart","Munchen"],
-            ....: "Stuttgart": ["Nurnberg"],
-            ....: "Erfurt": ["Wurzburg"]}, implementation="c_graph")
-            sage: list(G.breadth_first_search("Frankfurt"))
-            ['Frankfurt', 'Mannheim', 'Kassel', 'Wurzburg', 'Karlsruhe', 'Munchen', 'Erfurt', 'Nurnberg', 'Augsburg', 'Stuttgart']
+            sage: G = graphs.EuropeMap(continental=True)
+            sage: list(G.breadth_first_search("Portugal"))
+            ['Portugal', 'Spain', ..., 'Greece']
         """
         return Search_iterator(self,
                                v,

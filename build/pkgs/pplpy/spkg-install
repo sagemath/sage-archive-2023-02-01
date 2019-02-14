@@ -2,8 +2,9 @@ cd src && sdh_pip_install .
 
 if [[ "$SAGE_SPKG_INSTALL_DOCS" != no ]] ; then
     # Compile pplpy's documentation
-    sage-python23 setup.py build_ext --inplace
-    PYTHONPATH=$PYTHONPATH:$(pwd)
+    SITE_PKGS="$(sage-python23 -c "import site; \
+    print(site.getsitepackages()[0])")"
+    PYTHONPATH=$PYTHONPATH:$SAGE_DESTDIR$SITE_PKGS
     cd docs
     $MAKE html
 

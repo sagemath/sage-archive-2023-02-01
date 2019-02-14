@@ -296,15 +296,15 @@ class PRESENT_KS(SageObject):
         sage: from sage.crypto.block_cipher.present import PRESENT_KS
         sage: ks = PRESENT_KS()
         sage: K = ks(0x0)
-        sage: ZZ(list(K[0]), 2) == 0x0
+        sage: K[0] == 0x0
         True
-        sage: ZZ(list(K[31]), 2) == 0x6dab31744f41d700
+        sage: K[31] == 0x6dab31744f41d700
         True
         sage: ks = PRESENT_KS(128)
         sage: K = ks(0x00112233445566778899aabbccddeeff)
-        sage: ZZ(list(K[0]), 2) == 0x0011223344556677
+        sage: K[0] == 0x0011223344556677
         True
-        sage: ZZ(list(K[31]), 2) == 0x091989a5ae8eab21
+        sage: K[31] == 0x091989a5ae8eab21
         True
 
     Description of the key schedule for 64-bit and 128-bit keys from
@@ -406,25 +406,25 @@ class PRESENT_KS(SageObject):
 
         - A list containing ``rounds + 1`` round keys.
         """
-        K, _ = convert_to_vector(K, self._keysize)
+        K, inputType = convert_to_vector(K, self._keysize)
         roundKeys = []
         if self._keysize == 80:
             for i in range(1, self._rounds+1):
-                roundKeys.append(K[16:])
+                roundKeys.append(convert_vector_to_type(K[16:], inputType))
                 K[0:] = list(K[19:]) + list(K[:19])
                 K[76:] = self._sbox(K[76:][::-1])[::-1]
                 rc = vector(GF(2), ZZ(i).digits(2, padto=5))
                 K[15:20] = K[15:20] + rc
-            roundKeys.append(K[16:])
+            roundKeys.append(convert_vector_to_type(K[16:], inputType))
         elif self._keysize == 128:
             for i in range(1, self._rounds+1):
-                roundKeys.append(K[64:])
+                roundKeys.append(convert_vector_to_type(K[64:], inputType))
                 K[0:] = list(K[67:]) + list(K[:67])
                 K[124:] = self._sbox(K[124:][::-1])[::-1]
                 K[120:124] = self._sbox(K[120:124][::-1])[::-1]
                 rc = vector(GF(2), ZZ(i).digits(2, padto=5))
                 K[62:67] = K[62:67] + rc
-            roundKeys.append(K[64:])
+            roundKeys.append(convert_vector_to_type(K[64:], inputType))
         return roundKeys
 
     def __eq__(self, other):
@@ -485,7 +485,7 @@ class PRESENT_KS(SageObject):
             ValueError: round number must be between 1 and 31
             sage: ks[1] ==  0x0 # indirect doctest
             True
-            sage: ZZ(list(ks[32]),2) ==  0x6dab31744f41d700 # indirect doctest
+            sage: ks[32] ==  0x6dab31744f41d700 # indirect doctest
             True
         """
         if self._master_key is None:
@@ -504,9 +504,9 @@ class PRESENT_KS(SageObject):
 
             sage: from sage.crypto.block_cipher.present import PRESENT_KS
             sage: K = [k for k in PRESENT_KS(master_key=0x0)]
-            sage: ZZ(list(K[0]),2) == 0x0 # indirect doctest
+            sage: K[0] == 0x0 # indirect doctest
             True
-            sage: ZZ(list(K[31]),2) == 0x6dab31744f41d700 # indirect doctest
+            sage: K[31] == 0x6dab31744f41d700 # indirect doctest
             True
         """
         if self._master_key is None:

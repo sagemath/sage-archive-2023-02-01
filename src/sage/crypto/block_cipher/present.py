@@ -83,6 +83,20 @@ class PRESENT(SageObject):
             and decryption. Use ``80`` or ``128`` to use the original key
             schedules from [BKLPPRSV2007]_
 
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.present import PRESENT
+            sage: from sage.crypto.block_cipher.present import PRESENT_KS
+            sage: PRESENT() # indirect doctest
+            PRESENT block cipher with the following key schedule:
+            Original PRESENT key schedule with 80-bit keys and 31 rounds
+            sage: PRESENT(128) # indirect doctest
+            PRESENT block cipher with the following key schedule:
+            Original PRESENT key schedule with 128-bit keys and 31 rounds
+            sage: PRESENT(PRESENT_KS(80, 15)) # indirect doctest
+            PRESENT block cipher with the following key schedule:
+            Original PRESENT key schedule with 80-bit keys and 15 rounds
+
         .. SEEALSO::
 
             :class: `PRESENT_KS`
@@ -142,8 +156,15 @@ class PRESENT(SageObject):
             True
             sage: PRESENT(80) == PRESENT(128) # indirect doctest
             False
+            sage: PRESENT(80) == 80 # indirect doctest
+            False
         """
-        return self._keySchedule == other._keySchedule
+        # TODO auch sbox etc vergleichen
+        try:
+            return self._keySchedule == other._keySchedule
+        except AttributeError:
+            # if other has not attribute _keySchedule
+            return False
 
     def __repr__(self):
         r"""
@@ -429,8 +450,14 @@ class PRESENT_KS(SageObject):
             True
             sage: PRESENT_KS(80) == PRESENT_KS(128) # indirect doctest
             False
+            sage: PRESENT_KS(80) == 80 # indirect doctest
+            False
         """
-        return self.__dict__ == other.__dict__
+        try:
+            return self.__dict__ == other.__dict__
+        except AttributeError:
+            # if other has no attribute __dict__
+            return False
 
     def __repr__(self):
         r"""

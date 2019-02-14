@@ -4037,6 +4037,8 @@ cdef class MPolynomial_libsingular(MPolynomial):
 
         if right.is_zero():
             raise ZeroDivisionError
+        elif right.is_one():
+            return self
 
         if self._parent._base.is_finite() and self._parent._base.characteristic() > 1<<29:
             raise NotImplementedError("Division of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.")

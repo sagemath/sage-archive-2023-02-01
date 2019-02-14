@@ -229,12 +229,7 @@ class PRESENT(SageObject):
             for nibble in [slice(4*j, 4*j+4) for j in range(16)]:
                 state[nibble] = self._inverseSbox(state[nibble][::-1])[::-1]
             state = state + K
-        if inputType == "bin":
-            P = list(state)
-        elif inputType == "hex":
-            P = ZZ(list(state), 2).digits(16, padto=16)
-        elif inputType == "int":
-            P = ZZ(list(state), 2)
+        P = convert_vector_to_type(state, inputType)
         return P
 
     def encrypt(self, P, K):
@@ -287,12 +282,7 @@ class PRESENT(SageObject):
                 state[nibble] = self._sbox(state[nibble][::-1])[::-1]
             state[0:] = self._permutationMatrix * state
         state = state + roundKeys[-1]
-        if inputType == "bin":
-            C = list(state)
-        elif inputType == "hex":
-            C = ZZ(list(state), 2).digits(16, padto=16)
-        elif inputType == "int":
-            C = ZZ(list(state), 2)
+        C = convert_vector_to_type(state, inputType)
         return C
 
 
@@ -580,3 +570,58 @@ def convert_to_vector(I, L):
         raise ValueError("%s can not be converted to bit vector of "
                          "length %s" % (I, L))
     return state, (type(I), rep)
+
+
+def convert_vector_to_type(V, T):
+    r"""
+    Convert the bit vector ``B`` to something of type ``T``.
+
+    If ``I`` is list-like its elements will be treated as binary if
+    ``len(I) == L`` or as hexadecimal if ``4*len(I) == L``.
+
+    INPUT:
+
+    - ``V`` -- bit vector
+
+    - ``T`` -- tuple; A tuple containing the type of ``I`` and if necessary
+      its representation e.g. "bin" or "hex"
+
+
+    OUTPUT:
+
+    - A representation of V of type ``T``
+
+
+    EXAMPLES::
+
+    sage: from sage.crypto.block_cipher.present import convert_vector_to_type
+    sage: v = vector(GF(2), [0,1,0,0])
+    sage: t = (type(0xF), None)
+    sage: convert_vector_to_type(v, t) == 0x2
+    True
+    sage: t = (type(v), None)
+    sage: convert_vector_to_type(v, t) == v
+    True
+    sage: t = (type([]), "bin")
+    sage: convert_vector_to_type(v, t) == list(v)
+    True
+    sage: t = (type([]), "oct")
+    sage: convert_vector_to_type(v, t)
+    Traceback (most recent call last):
+    ...
+    ValueError: can not convert `V` to <type 'list'>
+    """
+    # TODO there must be a better way than to compare str(T) to the types
+    if str(T[0]) == "<type 'sage.modules.vector_mod2_dense.Vector_mod2_dense'>":
+        return V
+    elif str(T[0]) == "<type 'sage.rings.integer.Integer'>":
+        return ZZ(list(V), 2)
+    elif str(T[0]) == "<type 'list'>":
+        if T[1] == "bin":
+            return list(V)
+        elif T[1] == "hex":
+            return ZZ(list(V), 2).digits(16, padto=len(V)/4)
+        else:
+            raise ValueError("can not convert `V` to %s" % T[0])
+    else:
+        raise ValueError("can not convert `V` to %s" % T[0])

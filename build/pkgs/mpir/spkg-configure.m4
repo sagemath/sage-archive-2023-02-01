@@ -25,33 +25,24 @@ dnl Implement cases for what to do on different options here
             dnl mpq_cmp_z appeared in GMP 6.1.0 and is used by pynac
             AC_SEARCH_LIBS([__gmpq_cmp_z], [gmp], [break],
                 [sage_spkg_install_mpir=yes])
-            AC_MSG_RESULT([using GMP-compatible library from the system])
-            SAGE_MP_LIBRARY=system
+            SAGE_MP_LIBRARY=mpir
             ;;
         mpir)
             sage_spkg_install_mpir=yes
             SAGE_MP_LIBRARY=mpir
-            AC_MSG_RESULT([using mpir SPKG (via --with-mp=mpir)])
             ;;
         gmp)
             sage_spkg_install_gmp=yes
             SAGE_MP_LIBRARY=gmp
-            AC_MSG_RESULT([using gmp SPKG (via --with-mp=gmp)])
             ;;
     esac
 
-    if test $SAGE_MP_LIBRARY = system; then
+    if test x$sage_spkg_install_mpir = xyes -o x$sage_spkg_install_gmp = xyes; then
         AC_SUBST(SAGE_GMP_PREFIX, ['$SAGE_LOCAL'])
-        if test "$sage_spkg_install_mpir" = yes; then
-            SAGE_MP_LIBRARY=mpir
-        else
-            # We just set this as a dummy placeholder for this variable
-            # indicating that we used the system gmp (whether it's MPIR
-            # or whatever)
-            SAGE_MP_LIBRARY=gmp
-        fi
+        AC_MSG_RESULT([using $SAGE_MP_LIBRARY SPKG (via --with-mp=$SAGE_MP_LIBRARY)])
     else
         AC_SUBST(SAGE_GMP_PREFIX, [''])
+        AC_MSG_RESULT([using GMP-compatible library from the system])
     fi
 
     AC_SUBST([SAGE_MP_LIBRARY], [$SAGE_MP_LIBRARY])

@@ -393,7 +393,7 @@ class PRESENT_KS(SageObject):
 
         OUTPUT:
 
-        - A list containing ``self._rounds + 1`` round keys.
+        - A list containing ``rounds + 1`` round keys.
         """
         K, _ = convert_to_vector(K, self._keysize)
         if self._keysize == 80:

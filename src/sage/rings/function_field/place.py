@@ -212,9 +212,7 @@ class FunctionFieldPlace(Element):
             sage: sum(K.places_finite())
             Place (x) + Place (x + 1)
 
-        .. NOTE:
-
-        This does not work though::
+        Note that this does not work, as wanted::
 
             sage: 0 + K.place_infinite()
             Traceback (most recent call last):
@@ -224,8 +222,8 @@ class FunctionFieldPlace(Element):
         The reason is that the ``0`` is a Sage integer, for which
         the coercion system applies.
         """
-        from .divisor import prime_divisor
         if other == 0:
+            from .divisor import prime_divisor
             return prime_divisor(self.function_field(), self)
         raise NotImplementedError
 

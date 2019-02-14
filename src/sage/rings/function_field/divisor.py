@@ -88,26 +88,6 @@ def divisor(field, data):
     divisor_group = field.divisor_group()
     return divisor_group.element_class(divisor_group, data)
 
-def zero_divisor(field):
-    """
-    Construct a zero divisor.
-
-    INPUT:
-
-    - ``field`` -- function field
-
-    EXAMPLES::
-
-        sage: K.<x> = FunctionField(GF(2)); R.<t> = K[]
-        sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
-        sage: from sage.rings.function_field.divisor import zero_divisor
-        sage: z = zero_divisor(F)
-        sage: z == z + z
-        True
-    """
-    divisor_group = field.divisor_group()
-    return divisor_group.element_class(divisor_group, {})
-
 def prime_divisor(field, place, m=1):
     """
     Construct a prime divisor from the place.
@@ -195,7 +175,7 @@ class FunctionFieldDivisor(ModuleElement):
         else:
             cr = ''
 
-        places = sorted(self._data.keys())
+        places = sorted(self._data)
 
         if len(places) == 0:
             return '0'
@@ -247,7 +227,7 @@ class FunctionFieldDivisor(ModuleElement):
         """
         s = sorted(self._data)
         o = sorted(other._data)
-        while len(s) > 0 and len(o) > 0:
+        while s and o:
             skey = s[-1]
             okey = o[-1]
             if skey == okey:
@@ -393,7 +373,7 @@ class FunctionFieldDivisor(ModuleElement):
              Place (x, y),
              Place (x^3 + x + 1, y + 1)]
         """
-        return sorted(self._data.keys())
+        return sorted(self._data)
 
     def multiplicity(self, place):
         """
@@ -665,7 +645,7 @@ class FunctionFieldDivisor(ModuleElement):
 
             sage: K.<x> = FunctionField(GF(5)); _.<t> = PolynomialRing(K)
             sage: F.<y> = K.extension(t^2 - x^3 - 1)
-            sage: D = F.divisor_group()(0)
+            sage: D = F.divisor_group().zero()
             sage: echelon_basis, coordinates = D._echelon_basis([x/y, (x + 1)/y])
             sage: echelon_basis
             [(x/(x^3 + 1))*y, (1/(x^3 + 1))*y]
@@ -712,7 +692,7 @@ class FunctionFieldDivisor(ModuleElement):
         nbasis = []
         npivots = []
         while pivot_rows:
-            pivots = list(pivot_rows.keys())
+            pivots = list(pivot_rows)
 
             head = pivots[0]
             for p in pivots[1:]:
@@ -813,8 +793,8 @@ class DivisorGroup(UniqueRepresentation, Parent):
             0
         """
         if x == 0:
-            return zero_divisor(self._field)
-        return self.element_class(self, x)
+            return self.element_class(self, {})
+        raise NotImplementedError
 
     def _coerce_map_from_(self, S):
         """
@@ -873,7 +853,7 @@ class DivisorGroup(UniqueRepresentation, Parent):
         while len(places) <= N: # collect at least N places
             places += self._field.places(d)
             d += 1
-        e = zero_divisor(self._field)
+        e = self.element_class(self, {})
         for i in range(random.randint(0,N)):
             e += random.choice(places)
         return e

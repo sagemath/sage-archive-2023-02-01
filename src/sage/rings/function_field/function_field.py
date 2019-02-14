@@ -2613,33 +2613,6 @@ class FunctionField_global(FunctionField_polymod):
         from .divisor import DivisorGroup
         return DivisorGroup(self)
 
-    def valuation_ring(self, place):
-        """
-        Return the valuation ring associated with the place.
-
-        INPUT:
-
-        - ``place`` -- place of the function field
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: p = L.places_finite()[0]
-            sage: L.valuation_ring(p)
-            Valuation ring at Place (x, x*y)
-
-            sage: K.<x> = FunctionField(GF(5)); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^3 - (x^3 - 1)/(x^3 - 2))
-            sage: p = L.places_finite()[0]
-            sage: L.valuation_ring(p)
-            Valuation ring at Place (x, (x^3 + 3)*y + 4)
-            sage: q = L.places_infinite()[0]
-            sage: L.valuation_ring(q)
-            Valuation ring at Place (1/x, ((2*x^3 + 1)/x^3)*y + 3)
-        """
-        return place.valuation_ring()
-
     def residue_field(self, place, name=None):
         """
         Return the residue field associated with the place along with the maps
@@ -2850,11 +2823,9 @@ class FunctionField_global(FunctionField_polymod):
             sage: (y+x).divisor()
             0
         """
-        from .divisor import zero_divisor
-
         # A basis of the full constant field is obtained from
         # computing a Riemann-Roch basis of zero divisor.
-        basis = zero_divisor(self).basis_function_space()
+        basis = self.divisor_group().zero().basis_function_space()
 
         dim = len(basis)
 
@@ -3760,7 +3731,7 @@ class RationalFunctionField(FunctionField):
             sage: K.different()
             0
         """
-        return self.divisor_group()(0)
+        return self.divisor_group().zero()
 
     def genus(self):
         """
@@ -3963,16 +3934,3 @@ class RationalFunctionField_global(RationalFunctionField):
             True
         """
         return place.residue_field(name=name)
-
-    def valuation_ring(self, place):
-        """
-        Return the valuation ring at the place.
-
-        EXAMPLES::
-
-            sage: F.<x> = FunctionField(GF(2))
-            sage: p = F.place_infinite()
-            sage: F.valuation_ring(p)
-            Valuation ring at Place (1/x)
-        """
-        return place.valuation_ring()

@@ -158,12 +158,15 @@ class PRESENT(SageObject):
             False
             sage: PRESENT(80) == 80 # indirect doctest
             False
+            sage: present = PRESENT()
+            sage: present._inverseSbox = present._sbox
+            sage: present == PRESENT() # indirect doctest
+            False
         """
-        # TODO auch sbox etc vergleichen
         try:
-            return self._keySchedule == other._keySchedule
+            return self.__dict__ == other.__dict__
         except AttributeError:
-            # if other has not attribute _keySchedule
+            # if other has not attribute __dict__
             return False
 
     def __repr__(self):

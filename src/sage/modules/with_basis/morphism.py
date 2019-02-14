@@ -111,7 +111,6 @@ from sage.categories.modules import Modules
 from sage.misc.misc import attrcall
 # The identity function would deserve a more canonical location
 from sage.misc.c3_controlled import identity
-from sage.misc.superseded import deprecated_function_alias
 from sage.categories.commutative_additive_semigroups import CommutativeAdditiveSemigroups
 from sage.categories.homset import Hom
 from sage.categories.modules_with_basis import ModulesWithBasis
@@ -1066,7 +1065,6 @@ class TriangularModuleMorphism(ModuleMorphism):
                     c = c / s[j]  # the base ring is a field
                 remainder -= s._lmul_(c)
         return result
-    co_reduced = deprecated_function_alias(8678, coreduced)
 
     def cokernel_basis_indices(self):
         r"""
@@ -1153,8 +1151,6 @@ class TriangularModuleMorphism(ModuleMorphism):
         category = ModulesWithBasis(codomain.base_ring()).or_subcategory(category)
         return codomain.module_morphism(function=self.coreduced,
                                         codomain=codomain, category=category)
-
-    co_kernel_projection = deprecated_function_alias(8678, cokernel_projection)
 
 class TriangularModuleMorphismByLinearity(ModuleMorphismByLinearity, TriangularModuleMorphism):
     r"""

@@ -541,22 +541,24 @@ def convert_to_vector(I, L):
 
     - A ``L``-bit vector representation of ``I``
 
-    - A flag describing the type of ``I``. Either "int" or "bin" or "hex"
+    - A tuple containing the type of ``I`` and if necessary its representation
+      e.g. "bin" or "hex"
 
     EXAMPLES::
 
     sage: from sage.crypto.block_cipher.present import convert_to_vector
     sage: convert_to_vector("0x1F", 8)
-    ((1, 1, 1, 1, 1, 0, 0, 0), 'int')
+    ((1, 1, 1, 1, 1, 0, 0, 0), (<type 'str'>, None))
     sage: convert_to_vector(["0x1","0xF"], 8)
-    ((1, 0, 0, 0, 1, 1, 1, 1), 'hex')
+    ((1, 0, 0, 0, 1, 1, 1, 1), (<type 'list'>, 'hex'))
     sage: convert_to_vector(0x1F, 8)
-    ((1, 1, 1, 1, 1, 0, 0, 0), 'int')
+    ((1, 1, 1, 1, 1, 0, 0, 0), (<type 'sage.rings.integer.Integer'>, None))
     sage: v = vector(GF(2), 4, [1,0,1,0])
     sage: convert_to_vector(v, 4)
-    ((1, 0, 1, 0), 'bin')
+    ((1, 0, 1, 0),
+     (<type 'sage.modules.vector_mod2_dense.Vector_mod2_dense'>, 'bin'))
     sage: convert_to_vector(0x1F, 9)
-    ((1, 1, 1, 1, 1, 0, 0, 0, 0), 'int')
+    ((1, 1, 1, 1, 1, 0, 0, 0, 0), (<type 'sage.rings.integer.Integer'>, None))
     sage: convert_to_vector(["1","0xF"], 9)
     Traceback (most recent call last):
     ...
@@ -564,16 +566,17 @@ def convert_to_vector(I, L):
     """
     try:
         state = vector(GF(2), L, ZZ(I).digits(2, padto=L))
-        return state, "int"
+        return state, (type(I), None)
     except TypeError:
+        # ignore the error and try list-like types
         pass
     if len(I) == L:
         state = vector(GF(2), L, ZZ(list(I), 2).digits(2, padto=L))
-        flag = "bin"
+        rep = "bin"
     elif 4*len(I) == L:
         state = vector(GF(2), L, ZZ(list(I), 16).digits(2, padto=L))
-        flag = "hex"
+        rep = "hex"
     else:
         raise ValueError("%s can not be converted to bit vector of "
                          "length %s" % (I, L))
-    return state, flag
+    return state, (type(I), rep)

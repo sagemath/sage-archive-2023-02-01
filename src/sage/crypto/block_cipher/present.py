@@ -154,7 +154,7 @@ class PRESENT(SageObject):
             sage: from sage.crypto.block_cipher.present import PRESENT
             sage: PRESENT() # indirect doctest
             PRESENT block cipher with the following key schedule:
-            Original PRESENT key schedule with 80-bit keys and 31 rounds:
+            Original PRESENT key schedule with 80-bit keys and 31 rounds
         """
         return ("PRESENT block cipher with the following key schedule:\n%s"
                 % self._keySchedule.__repr__())
@@ -442,9 +442,9 @@ class PRESENT_KS(SageObject):
 
             sage: from sage.crypto.block_cipher.present import PRESENT_KS
             sage: PRESENT_KS() # indirect doctest
-            Original PRESENT key schedule with 80-bit keys and 31 rounds:
+            Original PRESENT key schedule with 80-bit keys and 31 rounds
         """
-        return ("Original PRESENT key schedule with %s-bit keys and %s rounds:"
+        return ("Original PRESENT key schedule with %s-bit keys and %s rounds"
                 % (self._keysize, self._rounds))
 
     def __getitem__(self, r):

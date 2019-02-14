@@ -12,12 +12,12 @@ from six.moves import range
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom
-from sage.categories.category_singleton import Category_singleton
 from sage.categories.sets_cat import Sets
 from sage.categories.sets_cat import EmptySetError
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.misc.lazy_import import lazy_import
 lazy_import("sage.rings.integer", "Integer")
+
 
 class EnumeratedSets(CategoryWithAxiom):
     """

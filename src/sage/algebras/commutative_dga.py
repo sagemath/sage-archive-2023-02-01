@@ -368,13 +368,19 @@ class Differential(with_metaclass(
             Vector space of degree 2 and dimension 1 over Rational Field
             Basis matrix:
             [0 1]
+            sage: d.coboundaries(1)
+            Vector space of degree 2 and dimension 0 over Rational Field
+            Basis matrix:
+            []
+
         """
         A = self.domain()
         F = A.base_ring()
         if n == 0:
             return VectorSpace(F, 0)
         if n == 1:
-            return VectorSpace(F, 0)
+            V0 = VectorSpace(F, len(A.basis(1)))
+            return V0.subspace([])
         M = self.differential_matrix(n-1)
         V0 = VectorSpace(F, M.nrows())
         V1 = VectorSpace(F, M.ncols())
@@ -2513,7 +2519,47 @@ class DifferentialGCAlgebra(GCAlgebra):
                 rels.append(l)
         return A.quotient(A.ideal(rels)).cdg_algebra({})
 
+    def is_formal(self, k, max_iterations=3):
+        r"""
+        Check if the CDGA is formal up to degree ``k``
 
+        INPUT:
+
+        - ``k`` -- integer; the degree up to which the formality is checked
+
+        - ``max_iterations`` -- integer (default : `3`); the maximum number of iterations used to compute the minimal model.
+
+        The algebra is said to be k-formal if its minimal model satisfies that each closed monomial of degree up to ``k``, which is
+        a multiple of a non-closed generator, is also exact.
+
+        EXAMPLES::
+
+            sage: A.<e1,e2,e3,e4,e5,e6> = GradedCommutativeAlgebra(QQ)
+            sage: B = A.cdg_algebra({e5:e1*e3+e2*e4,e6:-e1*e4-e2*e3})
+            sage: B.is_formal(2)
+            False
+
+            sage: A.<e1,e2,e3,e4,e5,e6,e7> = GradedCommutativeAlgebra(QQ)
+            sage: B = A.cdg_algebra({e1:e1*e7,e2:e2*e7,e3:2*e3*e7,e4:2*e4*e7,e5:-3*e5*e7,e6:-3*e6*e7})
+            sage: B.is_formal(2)
+            True
+
+        """
+        phi = self.minimal_model(k+1, max_iterations)
+        M = phi.domain()
+        diff = M.differential()
+        nonclosedgens = set([i for i in range(M.ngens()) if not M.gen(i).differential().is_zero()])
+        for degree in range(1, k+1):
+            basis = M.basis(degree)
+            Ndegree = [g.basis_coefficients() for g in basis if any(g.dict().keys()[0][j]!= 0 for j in nonclosedgens)]
+            cocycles = M.cocycles(degree)
+            coboundaries = M.coboundaries(degree)
+            V = cocycles.ambient_vector_space()
+            S = V.subspace(Ndegree)
+            I = S.intersection(cocycles)
+            if not I.is_subspace(coboundaries):
+                return False
+        return True
 
 
     class Element(GCAlgebra.Element):

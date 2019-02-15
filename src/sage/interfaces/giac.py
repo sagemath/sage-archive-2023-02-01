@@ -302,7 +302,7 @@ class Giac(Expect):
     TESTS::
 
         sage: giac('euler_gamma').sage()
-        EulerGamma
+        euler_gamma
     """
     def __init__(self, maxread=None, script_subdirectory=None, server=None, server_tmpdir=None, logfile=None):
         """

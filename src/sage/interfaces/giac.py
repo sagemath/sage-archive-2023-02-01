@@ -293,15 +293,16 @@ class Giac(Expect):
       a^2+2*a*b+4*a+b^2+4*b+4
       a^2 + 2*a*b + b^2 + 4*a + 4*b + 4
 
-    Variable names in python and giac are independant.
+    Variable names in python and giac are independant::
 
-    ::
+        sage: a=sqrt(2);giac('Digits:=30;a:=5');a,giac('a'),giac(a),giac(a).evalf()
+        30
+        (sqrt(2), 5, sqrt(2), 1.41421356237309504880168872421)
 
-      sage: a=sqrt(2);giac('Digits:=30;a:=5');a,giac('a'),giac(a),giac(a).evalf()
-      30
-      (sqrt(2), 5, sqrt(2), 1.41421356237309504880168872421)
+    TESTS::
 
-
+        sage: giac('euler_gamma').sage()
+        EulerGamma
     """
     def __init__(self, maxread=None, script_subdirectory=None, server=None, server_tmpdir=None, logfile=None):
         """
@@ -1075,7 +1076,7 @@ class GiacElement(ExpectElement):
             sage: L = giac('solve((2/3)^x-2, x)'); L
             list[ln(2)/(ln(2)-ln(3))]
             sage: L.sage()
-            [-ln(2)/(ln(3) - ln(2))]
+            [-log(2)/(log(3) - log(2))]
         """
         from sage.libs.pynac.pynac import symbol_table
         from sage.calculus.calculus import symbolic_expression_from_string

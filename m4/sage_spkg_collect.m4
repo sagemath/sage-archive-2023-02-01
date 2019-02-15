@@ -128,7 +128,7 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
     # Check consistency of 'DIR/type' file
     case "$SPKG_TYPE" in
     base) ;;
-    standard) 
+    standard)
         SAGE_STANDARD_PACKAGES+="    $SPKG_NAME \\"$'\n'
         in_sdist=yes
         ;;
@@ -157,8 +157,8 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
             SAGE_BUILT_PACKAGES+="    $SPKG_NAME \\"$'\n'
             AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION])
         else
-            SAGE_DUMMY_PACKAGES+="    $SPKG_NAME \\"$'\n'
-            AC_MSG_RESULT([    $SPKG_NAME-$SPKG_VERSION not installed (configure check)])
+            SAGE_DUMMY_PACKAGES+="    $PKG_NAME \\"$'\n'
+            AC_MSG_RESULT([    $SPKG_NAME-$PKG_VERSION will not be installed (configure check)])
         fi
     fi
 

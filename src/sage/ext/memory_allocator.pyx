@@ -1,9 +1,5 @@
 from cysignals.memory cimport *
 
-cdef extern from *:
-    int unlikely(int) nogil  # Defined by Cython
-
-
 cdef class MemoryAllocator:
     r"""
     An object for memory allocation, whose resources are freed upon
@@ -15,10 +11,16 @@ cdef class MemoryAllocator:
         ....: '''
         ....: from sage.ext.memory_allocator cimport MemoryAllocator
         ....: cdef MemoryAllocator mem = MemoryAllocator()
+        ....: cdef void * ptr
         ....: for n in range(100):
-        ....:     mem.malloc(n)
+        ....:     ptr = mem.malloc(n)
+        ....:     mem.realloc(ptr, 2*n)
         ....:     mem.calloc(n, n)
-        ....:     mem.allocarray(n, n)
+        ....:     ptr = mem.allocarray(n, n)
+        ....:     mem.reallocarray(ptr, n + 1, n)
+        ....:     mem.aligned_malloc(32, (n//32 + 1)*32)
+        ....:     mem.aligned_calloc(16, n, 16)
+        ....:     mem.aligned_allocarray(8, n, 8)
         ....: ''')
     """
     def __cinit__(self):
@@ -58,43 +60,170 @@ cdef class MemoryAllocator:
             self.pointers = <void **>check_reallocarray(self.pointers, new_size, sizeof(void*))
         self.size = new_size
 
-    cdef inline int enlarge_if_needed(self) except -1:
-        r"""
-        Enlarge the list of pointers if needed such that there is at
-        least one free entry.
-        """
-        if unlikely(self.n >= self.size):
-            return self.resize(self.size * 2)
-
     cdef void * malloc(self, size_t size) except? NULL:
         r"""
         Returns a new pointer and stores it to be automatically freed later.
         """
-        self.enlarge_if_needed()
-        cdef void * val = check_malloc(size)
-        self.pointers[self.n] = val
-        self.n += 1
+        return self.aligned_malloc(1, size)
+
+    cdef void * realloc(self, void * ptr, size_t size) except? NULL:
+        r"""
+        Re-allocates `ptr` and automatically frees it later.
+
+        TESTS::
+
+            sage: cython('''
+            ....: from sage.ext.memory_allocator cimport MemoryAllocator
+            ....: cdef MemoryAllocator mem = MemoryAllocator()
+            ....: cdef MemoryAllocator mem2 = MemoryAllocator()
+            ....: cdef void * ptr = mem.malloc(20)
+            ....: cdef void * ptr2 = mem2.malloc(20)
+            ....: try:
+            ....:     mem.realloc(ptr2, 21)
+            ....: except:
+            ....:     print('mem knows not this memory')
+            ....: ''')
+            mem knows not this memory
+        """
+        if unlikely(ptr is NULL):
+            return self.malloc(size)
+        cdef void * val
+        cdef size_t i = self.find_pointer(ptr) - 1
+        # find_pointer returns one too much to have a unique except value
+        val = check_realloc(ptr, size)
+        self.pointers[i] = val
         return val
 
     cdef void * calloc(self, size_t nmemb, size_t size) except? NULL:
         r"""
         Returns a new pointer and stores it to be automatically freed later.
         """
-        self.enlarge_if_needed()
-        cdef void * val = check_calloc(nmemb, size)
-        self.pointers[self.n] = val
-        self.n += 1
-        return val
+        return self.aligned_calloc(1, nmemb, size)
 
     cdef void * allocarray(self, size_t nmemb, size_t size) except? NULL:
         r"""
         Returns a new pointer and stores it to be automatically freed later.
         """
+        return self.aligned_allocarray(1, nmemb, size)
+
+    cdef void * reallocarray(self, void * ptr, size_t nmemb,
+                             size_t size) except? NULL:
+        r"""
+        Re-allocates `ptr` and automatically frees it later.
+        """
+        if unlikely(ptr is NULL):
+            return self.allocarray(nmemb, size)
+        cdef void * val
+        cdef size_t i = self.find_pointer(ptr) - 1
+        # find_pointer returns one too much to have a unique except value
+        val = check_reallocarray(ptr, nmemb, size)
+        self.pointers[i] = val
+        return val
+
+    cdef inline void * aligned_malloc(self, size_t alignment,
+                                      size_t size) except? NULL:
+        r"""
+        Returns new aligned pointer. Stores it to be automatically freed later.
+
+        Alignment must be a power of two.
+
+        .. NOTE::
+
+            If you want to allocate multiple (small) aligned arrays with the
+            same alignment and really want to be memory efficient, you can
+            allocate one large aligned array instead.
+
+        TESTS::
+
+            sage: cython('''
+            ....: from sage.ext.memory_allocator cimport MemoryAllocator
+            ....: cdef MemoryAllocator mem = MemoryAllocator()
+            ....: cdef void * ptr
+            ....: for i in range(12):
+            ....:     ptr = mem.aligned_malloc(2**i, 4048)
+            ....:     if <size_t> ptr != (<size_t> ptr) & ~(2**i-1):
+            ....:         print('alignment not working')
+            ....: ''')
+        """
         self.enlarge_if_needed()
-        cdef void * val = check_allocarray(nmemb, size)
+        if unlikely(size == 0):
+            return NULL
+        cdef void * val = check_malloc(size + alignment - 1)
+        cdef void * ptr = <void *> ((<size_t> val + alignment-1) & ~(alignment-1))
+        # setting ptr to be aligned according to the users wishes
         self.pointers[self.n] = val
         self.n += 1
-        return val
+        return ptr
+
+    cdef inline void * aligned_calloc(self, size_t alignment, size_t nmemb,
+                                      size_t size) except? NULL:
+        r"""
+        Returns new aligned pointer. Stores it to be automatically freed later.
+
+        Alignment must be a power of two.
+
+        .. NOTE::
+
+            If you want to allocate multiple (small) aligned arrays with the
+            same alignment and really want to be memory efficient, you can
+            allocate one large aligned array instead.
+
+        TESTS::
+
+            sage: cython('''
+            ....: from sage.ext.memory_allocator cimport MemoryAllocator
+            ....: cdef MemoryAllocator mem = MemoryAllocator()
+            ....: cdef void * ptr
+            ....: for i in range(12):
+            ....:     ptr = mem.aligned_calloc(2**i, i, 2**i)
+            ....:     if <size_t> ptr != (<size_t> ptr) & ~(2**i-1):
+            ....:         print('alignment not working')
+            ....: ''')
+        """
+        self.enlarge_if_needed()
+        if unlikely(size == 0 or nmemb == 0):
+            return NULL
+        cdef void * val = check_calloc(nmemb + (alignment+size-2)//size, size)
+        cdef void * ptr = <void *> ((<size_t> val + alignment-1) & ~(alignment-1))
+        # setting ptr to be aligned according to the users wishes
+        self.pointers[self.n] = val
+        self.n += 1
+        return ptr
+
+    cdef inline void * aligned_allocarray(self, size_t alignment, size_t nmemb,
+                                          size_t size) except? NULL:
+        r"""
+        Returns new aligned pointer. Stores it to be automatically freed later.
+
+        Alignment must be a power of two.
+
+        .. NOTE::
+
+            If you want to allocate multiple (small) aligned arrays with the
+            same alignment and really want to be memory efficient, you can
+            allocate one large aligned array instead.
+
+        TESTS::
+
+            sage: cython('''
+            ....: from sage.ext.memory_allocator cimport MemoryAllocator
+            ....: cdef MemoryAllocator mem = MemoryAllocator()
+            ....: cdef void * ptr
+            ....: for i in range(12):
+            ....:     ptr = mem.aligned_allocarray(2**i, i, 2**i)
+            ....:     if <size_t> ptr != (<size_t> ptr) & ~(2**i-1):
+            ....:         print('alignment not working')
+            ....: ''')
+        """
+        self.enlarge_if_needed()
+        if unlikely(size == 0 or nmemb == 0):
+            return NULL
+        cdef void * val = check_allocarray(nmemb + (alignment+size-2)//size, size)
+        cdef void * ptr = <void *> ((<size_t> val + alignment-1) & ~(alignment-1))
+        # setting ptr to be aligned according to the users wishes
+        self.pointers[self.n] = val
+        self.n += 1
+        return ptr
 
     def __dealloc__(self):
         r"""

@@ -422,6 +422,45 @@ class Polyhedron_base(Element):
         new_parent = self.parent().base_extend(base_ring, backend)
         return new_parent(self)
 
+    def change_ring(self, base_ring, backend=None):
+        """
+        Return the polyhedron obtained by coercing the entries of the vertices/lines/rays
+        of this polyhedron into the given ring.
+
+        This method can also be used to change the backend.
+
+        INPUT:
+
+        - ``base_ring`` -- the new base ring.
+
+        - ``backend`` -- the new backend, see
+            :func:`~sage.geometry.polyhedron.constructor.Polyhedron`.
+            If ``None`` (the default), use the same defaulting behavior
+            as described there; it is not attempted to keep the same
+            backend.
+
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[(1,0), (0,1)], rays=[(1,1)], base_ring=QQ);  P
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices and 1 ray
+            sage: P.change_ring(ZZ)
+            A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices and 1 ray
+            sage: P.change_ring(QQ) == P
+            True
+        """
+        from sage.categories.all import Rings
+
+        if base_ring not in Rings:
+            raise ValueError("Invalid base ring")
+
+        new_vertices = [[base_ring(x) for x in vertex] for vertex in self.vertices_list()]
+        new_rays = [[base_ring(x) for x in ray] for ray in self.rays_list()]
+        new_lines = [[base_ring(x) for x in line] for line in self.lines_list()]
+
+        new_parent = self.parent().change_ring(base_ring, backend)
+        return new_parent([new_vertices, new_rays, new_lines], None)
+
     def _richcmp_(self, other, op):
         """
         Compare ``self`` and ``other``.

@@ -262,7 +262,9 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         Check that category for zero ring::
 
             sage: PolynomialRing(Zmod(1), 'x').category()
-            Category of finite rings
+            Category of finite commutative algebras over
+            (finite commutative rings and subquotients of monoids and
+            quotients of semigroups and finite enumerated sets)
 
         Check `is_finite` inherited from category (:trac:`24432`)::
 

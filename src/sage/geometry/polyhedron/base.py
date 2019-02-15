@@ -424,8 +424,8 @@ class Polyhedron_base(Element):
 
     def change_ring(self, base_ring, backend=None):
         """
-        Return the polyhedron obtained by coercing the entries of the vertices/lines/rays
-        of this polyhedron into the given ring.
+        Return the polyhedron obtained by coercing the entries of the
+        vertices/lines/rays of this polyhedron into the given ring.
 
         This method can also be used to change the backend.
 
@@ -439,14 +439,13 @@ class Polyhedron_base(Element):
             as described there; it is not attempted to keep the same
             backend.
 
-
         EXAMPLES::
 
-            sage: P = Polyhedron(vertices=[(1,0), (0,1)], rays=[(1,1)], base_ring=QQ);  P
+            sage: P = Polyhedron(vertices=[(1,0), (0,1)], rays=[(1,1)], base_ring=QQ); P
             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices and 1 ray
             sage: P.change_ring(ZZ)
             A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices and 1 ray
-            sage: P.change_ring(QQ) == P
+            sage: P.change_ring(ZZ) == P
             True
         """
         from sage.categories.all import Rings

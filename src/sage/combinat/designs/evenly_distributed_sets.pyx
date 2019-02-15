@@ -1,4 +1,4 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
 r"""
 Evenly distributed sets in finite fields
 
@@ -15,14 +15,14 @@ might want to update this database with more values.
 Classes and methods
 -------------------
 """
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 cimport cython
 
 from libc.limits cimport UINT_MAX
 from libc.string cimport memset, memcpy
 
-include "cysignals/memory.pxi"
+from cysignals.memory cimport check_malloc, check_calloc, sig_free
 
 from sage.rings.integer cimport Integer,smallInteger
 
@@ -311,7 +311,7 @@ cdef class EvenlyDistributedSetsBacktracker:
         xe = self.K.multiplicative_generator() ** (self.e)
         df = [[xe**j*b for b in B] for j in range((self.q-1)/(2*self.e))]
         if check:
-            from difference_family import is_difference_family
+            from .difference_family import is_difference_family
             if not is_difference_family(self.K, df, self.q, self.k, 1):
                 raise RuntimeError("a wrong evenly distributed set was "
                         "produced by the Sage library for the parameters:\n"
@@ -413,14 +413,13 @@ cdef class EvenlyDistributedSetsBacktracker:
 
         - ``False`` if ``self.B`` is not minimal
 
-        - the list of evenly distributed sets isomorphs to ``self.B`` given as a
-          list of tuples if ``self.up_to_isom=0`` or list containing only
-          ``self.B`` as a tuple if ``self.up_to_isom=1``.
+        - the list of evenly distributed sets isomorphic to ``self.B``
+          given as a list of tuples if ``self.up_to_isom=0`` or list
+          containing only ``self.B`` as a tuple if ``self.up_to_isom=1``.
 
         TESTS::
 
-            sage: from sage.combinat.designs.evenly_distributed_sets import \
-            ....:     EvenlyDistributedSetsBacktracker
+            sage: from sage.combinat.designs.evenly_distributed_sets import EvenlyDistributedSetsBacktracker
             sage: E = EvenlyDistributedSetsBacktracker(Zmod(13), 4, up_to_isomorphism=True)
             sage: E.cardinality()   # indirect doctest
             1

@@ -54,7 +54,7 @@ from sage.misc.prandom import randint
 import sage.schemes.elliptic_curves.constructor as elliptic
 from .sql_db import SQLDatabase, verify_column
 from sage.misc.package import is_package_installed
-from sage.env import SAGE_SHARE
+from sage.env import CREMONA_MINI_DATA_DIR, CREMONA_LARGE_DATA_DIR
 from sage.misc.all import walltime
 
 import re
@@ -421,19 +421,31 @@ def parse_lmfdb_label(label):
         num = "1"
     return int(conductor), iso, int(num)
 
+
+_class_curve_re = re.compile(r'(?P<class>[a-z]+)(?P<curve>\d+)')
+
 def split_code(key):
     """
-    Splits class+curve id string into its two parts.
+    Splits class + curve id string into its two parts.
 
     EXAMPLES::
 
         sage: import sage.databases.cremona as cremona
         sage: cremona.split_code('ba2')
         ('ba', '2')
+        sage: cremona.split_code('42')
+        Traceback (most recent call last):
+        ...
+        ValueError: invalid curve ID: '42'
     """
-    cu = re.split("[a-z]*",key)[1]
-    cl =  re.split("[0-9]*",key)[0]
-    return (cl,cu)
+
+    m = _class_curve_re.match(key)
+
+    if not m:
+        raise ValueError("invalid curve ID: '{0}'".format(key))
+
+    return (m.group('class'), m.group('curve'))
+
 
 def class_to_int(k):
     """
@@ -452,11 +464,12 @@ def class_to_int(k):
     """
     kk = [string.ascii_lowercase.index(ch) for ch in list(k)]
     kk.reverse()
-    return sum([kk[i]*26**i for i in range(len(kk))])
+    return sum([kk[i] * 26 ** i for i in range(len(kk))])
 
-def cmp_code(key1,key2):
+
+def sort_key(key1):
     """
-    Comparison function for curve id strings.
+    Comparison key for curve id strings.
 
     .. note::
 
@@ -464,20 +477,14 @@ def cmp_code(key1,key2):
 
     EXAMPLES::
 
-        sage: import sage.databases.cremona as cremona
-        sage: cremona.cmp_code('ba1','z1')
-        1
-
-    By contrast::
-
-        sage: cmp('ba1','z1')
-        -1
+        sage: from sage.databases.cremona import sort_key
+        sage: l = ['ba1', 'z1']
+        sage: sorted(l, key=sort_key)
+        ['z1', 'ba1']
     """
-    cl1,cu1 = split_code(key1)
-    cl2,cu2 = split_code(key2)
-    d = class_to_int(cl1)-class_to_int(cl2)
-    if d!=0:  return d
-    return cmp(cu1,cu2)
+    cl1, cu1 = split_code(key1)
+    return (class_to_int(cl1), cu1)
+
 
 def cremona_to_lmfdb(cremona_label, CDB=None):
     """
@@ -508,9 +515,9 @@ def cremona_to_lmfdb(cremona_label, CDB=None):
     TESTS::
 
         sage: for label in ['5077a1','66a3','102b','420c2']:
-        ...       assert(lmfdb_to_cremona(cremona_to_lmfdb(label)) == label)
+        ....:     assert(lmfdb_to_cremona(cremona_to_lmfdb(label)) == label)
         sage: for label in ['438.c2','306.b','462.f3']:
-        ...       assert(cremona_to_lmfdb(lmfdb_to_cremona(label)) == label)
+        ....:     assert(cremona_to_lmfdb(lmfdb_to_cremona(label)) == label)
     """
     from sage.libs.pari.all import pari
     m = cremona_label_regex.match(cremona_label)
@@ -612,7 +619,7 @@ class MiniCremonaDatabase(SQLDatabase):
         """
         self.name = name
         name = name.replace(' ','_')
-        db_path = os.path.join(SAGE_SHARE, 'cremona', name+'.db')
+        db_path = os.path.join(CREMONA_MINI_DATA_DIR, name+'.db')
         if build:
             if name is None:
                 raise RuntimeError('The database must have a name.')
@@ -758,7 +765,7 @@ class MiniCremonaDatabase(SQLDatabase):
         Note the 'h3', which is the unique case in the tables where
         the optimal curve doesn't have label ending in 1::
 
-            sage: list(sorted(CremonaDatabase().curves(990).keys()))
+            sage: sorted(CremonaDatabase().curves(990))
             ['a1', 'b1', 'c1', 'd1', 'e1', 'f1', 'g1', 'h3', 'i1', 'j1', 'k1', 'l1']
 
         TESTS::
@@ -1016,11 +1023,10 @@ class MiniCremonaDatabase(SQLDatabase):
              [[[0, 0, 1, -4, -18], 1, 1]],
              [[[0, 1, 1, -10, 18], 1, 1]]]
         """
-        conductor=int(conductor)
+        conductor = int(conductor)
         classes = []
         A = self.allcurves(conductor)
-        K = A.keys()
-        K.sort(cmp_code)
+        K = sorted(A, key=sort_key)
         for k in K:
             v = A[k]
             # test if not first curve in class
@@ -1424,7 +1430,7 @@ class LargeCremonaDatabase(MiniCremonaDatabase):
         """
         self.name = name
         name = name.replace(' ','_')
-        db_path = os.path.join(SAGE_SHARE, 'cremona', name+'.db')
+        db_path = os.path.join(CREMONA_LARGE_DATA_DIR, name+'.db')
         if build:
             if name is None:
                 raise RuntimeError('The database must have a name.')

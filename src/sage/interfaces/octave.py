@@ -87,16 +87,6 @@ For example,
     sage: octave("gammainc(1.5,1)")   # optional - octave
     0.77687
 
-The Octave interface reads in even very long input (using files) in
-a robust manner::
-
-    sage: t = '"%s"'%10^10000   # ten thousand character string.
-    sage: a = octave.eval(t + ';')    # optional - octave, < 1/100th of a second
-    sage: a = octave(t)               # optional - octave
-
-Note that actually reading ``a`` back out takes forever. This *must*
-be fixed as soon as possible, see :trac:`940`.
-
 Tutorial
 --------
 
@@ -136,7 +126,7 @@ EXAMPLES::
     75
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -148,13 +138,15 @@ EXAMPLES::
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from __future__ import print_function, absolute_import
 
 import os
 from .expect import Expect, ExpectElement
+import pexpect
+from sage.misc.misc import verbose
+from sage.docs.instancedoc import instancedoc
 
 
 class Octave(Expect):
@@ -171,20 +163,36 @@ class Octave(Expect):
         'c =\n\n 1\n 7.21645e-16\n -7.21645e-16\n\n'
         sage: octave.eval("c")                                 # optional - octave; random output
         'c =\n\n 1\n 7.21645e-16\n -7.21645e-16\n\n'
+
+    TESTS:
+
+    We check that the interface can handle large inputs (see :trac:`940`)::
+
+        sage: t = '"{}"'.format(10^10000)
+        sage: a = octave(t)                     # optional - octave
+        sage: str(a) == ' {}'.format(10^10000)  # optional - octave
+        True
     """
 
-    def __init__(self, maxread=None, script_subdirectory=None, logfile=None, server=None, server_tmpdir=None,
-                 seed=None):
+    def __init__(self, maxread=None, script_subdirectory=None, logfile=None,
+            server=None, server_tmpdir=None, seed=None, command=None):
         """
         EXAMPLES::
 
             sage: octave == loads(dumps(octave))
             True
         """
+        if command is None:
+            command = os.getenv('SAGE_OCTAVE_COMMAND') or 'octave-cli'
+        if server is None:
+            server = os.getenv('SAGE_OCTAVE_SERVER') or None
         Expect.__init__(self,
                         name = 'octave',
-                        prompt = '>',
-                        command = "sage-native-execute octave --no-line-editing --silent",
+                        # We want the prompt sequence to be unique to avoid confusion with syntax error messages containing >>>
+                        prompt = r'octave\:\d+> ',
+                        # We don't want any pagination of output
+                        command = command + " --no-line-editing --silent --eval 'PS2(PS1());more off' --persist",
+                        maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,
@@ -196,7 +204,7 @@ class Octave(Expect):
 
     def set_seed(self, seed=None):
         """
-        Sets the seed for the random number generator
+        Set the seed for the random number generator
         for this octave interpreter.
 
         EXAMPLES::
@@ -230,7 +238,7 @@ class Octave(Expect):
             sage: octave._read_in_file_command(filename)
             'source("...");'
         """
-        return 'source("%s");'%filename
+        return 'source("%s");' % filename
 
     def _quit_string(self):
         """
@@ -243,7 +251,7 @@ class Octave(Expect):
 
     def _install_hints(self):
         """
-        Returns hints on how to install Octave.
+        Return hints on how to install Octave.
 
         EXAMPLES::
 
@@ -255,22 +263,69 @@ class Octave(Expect):
         from Sage.   You can read all about Octave at
                 http://www.gnu.org/software/octave/
 
-        LINUX / WINDOWS (colinux):
-           Do apt-get install octave as root on your machine
-           (or, in Windows, in the colinux console).
+        LINUX:
+           Do apt-get install octave as root on your machine (Ubuntu/Debian).
+           Other Linux systems have octave too.
 
         OS X:
-           * This website has links to binaries for OS X PowerPC
-             and OS X Intel builds of the latest version of Octave:
-                     http://hpc.sourceforge.net/
-             Once you get the tarball from there, go to the / directory
-             and type
-                     tar zxvf octave-intel-bin.tar.gz
-             to extract it to usr/local/...   Make sure /usr/local/bin
-             is in your PATH.  Then type "octave" and verify that
-             octave starts up.
+           * This website has details on OS X builds of Octave:
+                    http://wiki.octave.org/Octave_for_MacOS_X
            * Darwin ports and fink have Octave as well.
         """
+
+    def _eval_line(self, line, reformat=True, allow_use_file=False,
+                   wait_for_prompt=True, restart_if_needed=False):
+        """
+        EXAMPLES::
+
+            sage: print(octave._eval_line('2+2'))  #optional - octave
+              ans =  4
+        """
+        from pexpect.exceptions import EOF
+        if not wait_for_prompt:
+            return Expect._eval_line(self, line)
+        if line == '':
+            return ''
+        if self._expect is None:
+            self._start()
+        if allow_use_file and len(line)>3000:
+            return self._eval_line_using_file(line)
+        try:
+            E = self._expect
+            # debug
+            # self._synchronize(cmd='1+%s\n')
+            verbose("in = '%s'"%line,level=3)
+            E.sendline(line)
+            E.expect(self._prompt)
+            out = E.before
+            # debug
+            verbose("out = '%s'"%out,level=3)
+        except EOF:
+            if self._quit_string() in line:
+                return ''
+        except KeyboardInterrupt:
+            self._keyboard_interrupt()
+        try:
+            if reformat:
+                if 'syntax error' in out:
+                    raise SyntaxError(out)
+            out = "\n".join(out.splitlines()[1:])
+            return out
+        except NameError:
+            return ''
+
+    def _keyboard_interrupt(self):
+        print("CntrlC: Interrupting %s..."%self)
+        if self._restart_on_ctrlc:
+            try:
+                self._expect.close(force=1)
+            except pexpect.ExceptionPexpect as msg:
+                raise RuntimeError( "THIS IS A BUG -- PLEASE REPORT. This should never happen.\n" + msg)
+            self._start()
+            raise KeyboardInterrupt("Restarting %s (WARNING: all variables defined in previous session are now invalid)"%self)
+        else:
+            self._expect.send('\003') # control-c
+            raise KeyboardInterrupt("Ctrl-c pressed while running %s"%self)
 
     def quit(self, verbose=False):
         """
@@ -291,7 +346,7 @@ class Octave(Expect):
 
     def _start(self):
         """
-        Starts the Octave process.
+        Start the Octave process.
 
         EXAMPLES::
 
@@ -347,9 +402,9 @@ class Octave(Expect):
             sage: octave.get('x') # optional - octave
             ' 2'
         """
-        cmd = '%s=%s;'%(var,value)
+        cmd = '%s=%s;' % (var, value)
         out = self.eval(cmd)
-        if out.find("error") != -1:
+        if out.find("error") != -1 or out.find("Error") != -1:
             raise TypeError("Error executing code in Octave\nCODE:\n\t%s\nOctave ERROR:\n\t%s"%(cmd, out))
 
     def get(self, var):
@@ -377,7 +432,7 @@ class Octave(Expect):
             sage: octave.get('x')      # optional - octave
             "error: 'x' undefined near line ... column 1"
         """
-        self.eval('clear %s'%var)
+        self.eval('clear %s' % var)
 
     def console(self):
         """
@@ -403,17 +458,21 @@ class Octave(Expect):
         octave_console()
 
     def version(self):
-        """
+        r"""
         Return the version of Octave.
 
         OUTPUT: string
 
         EXAMPLES::
 
-            sage: octave.version()   # optional - octave; random output depending on version
-            '2.1.73'
+            sage: v = octave.version()   # optional - octave
+            sage: v                      # optional - octave; random
+            '2.13.7'
+
+            sage: import re
+            sage: assert re.match(r"\d+\.\d+\.\d+", v)  is not None # optional - octave
         """
-        return octave_version()
+        return str(self("version")).strip()
 
     def solve_linear_system(self, A, b):
         r"""
@@ -458,7 +517,6 @@ class Octave(Expect):
         sol  = soln[3:]
         return eval(sol)
 
-
     def sage2octave_matrix_string(self, A):
         """
         Return an octave matrix from a Sage matrix.
@@ -482,7 +540,7 @@ class Octave(Expect):
 
     def de_system_plot(self, f, ics, trange):
         r"""
-        Plots (using octave's interface to gnuplot) the solution to a
+        Plot (using octave's interface to gnuplot) the solution to a
         `2\times 2` system of differential equations.
 
         INPUT:
@@ -508,7 +566,7 @@ class Octave(Expect):
         same graph (the `t`-axis is the horizontal axis) of the
         system of ODEs
 
-        .. math::
+        .. MATH::
 
                        x' = x+y, x(0) = 1;\qquad y' = x-y, y(0) = -1,                     \quad\text{for}\quad 0 < t < 2.
         """
@@ -551,6 +609,8 @@ def to_complex(octave_string, R):
     real, imag = octave_string.strip('() ').split(',')
     return R(float(real), float(imag))
 
+
+@instancedoc
 class OctaveElement(ExpectElement):
     def _get_sage_ring(self):
         r"""
@@ -575,7 +635,7 @@ class OctaveElement(ExpectElement):
         else:
             raise TypeError("no Sage ring associated to this element.")
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         Test whether this element is nonzero.
 
@@ -598,6 +658,8 @@ class OctaveElement(ExpectElement):
             True
         """
         return str(self) != ' [](0x0)' and any(x != '0' for x in str(self).split())
+
+    __nonzero__ = __bool__
 
     def _matrix_(self, R=None):
         r"""
@@ -623,8 +685,11 @@ class OctaveElement(ExpectElement):
             sage: matrix(ZZ, A)                 # optional - octave
             [1 2]
             [3 4]
+            sage: A = octave('[1,2;3,4.5]')     # optional - octave
+            sage: matrix(RR, A)                 # optional - octave
+            [1.00000000000000 2.00000000000000]
+            [3.00000000000000 4.50000000000000]
         """
-        oc = self.parent()
         if not self.ismatrix():
             raise TypeError('not an octave matrix')
         if R is None:
@@ -657,7 +722,7 @@ class OctaveElement(ExpectElement):
             sage: vector(A)                     # optional - octave
             (1.0, 1.0*I)
         """
-        oc = self.parent()
+        from sage.modules.free_module import FreeModule
         if not self.isvector():
             raise TypeError('not an octave vector')
         if R is None:
@@ -670,7 +735,6 @@ class OctaveElement(ExpectElement):
         if self.iscomplex():
             w = [to_complex(x, R) for x in w]
 
-        from sage.modules.free_module import FreeModule
         return FreeModule(R, nrows)(w)
 
     def _scalar_(self):
@@ -778,16 +842,4 @@ def octave_console():
     from sage.repl.rich_output.display_manager import get_display_manager
     if not get_display_manager().is_in_terminal():
         raise RuntimeError('Can use the console only in the terminal. Try %%octave magics instead.')
-    os.system('octave')
-
-
-def octave_version():
-    """
-    Return the version of Octave installed.
-
-    EXAMPLES::
-
-        sage: octave_version()    # optional - octave; and output is random
-        '2.9.12'
-    """
-    return str(octave('version')).strip()
+    os.system('octave-cli')

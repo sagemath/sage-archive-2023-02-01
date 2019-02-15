@@ -123,7 +123,7 @@ AUTHORS:
   :meth:`~sage.logic.boolformula.BooleanFormula.implies()`
 
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, division
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein.gmail.com>
 #       Copyright (C) 2006 Chris Gorecki <chris.k.gorecki@gmail.com>
@@ -139,7 +139,6 @@ from . import booleval
 from . import logictable
 from . import logicparser
 # import boolopt
-from types import TupleType, ListType
 from sage.misc.flatten import flatten
 
 latex_operators = [('&', '\\wedge '),
@@ -504,7 +503,7 @@ class BooleanFormula(object):
 
     def __eq__(self, other):
         r"""
-        Overload the ``==`` operator to deterine logical equivalence.
+        Overload the ``==`` operator to determine logical equivalence.
 
         INPUT:
 
@@ -968,7 +967,7 @@ class BooleanFormula(object):
                 s += '0 '
             else:
                 varname = ''
-                while i < self.__expression[i] not in '|) ':
+                if self.__expression[i] not in '|) ':
                     varname += self.__expression[i]
                     i += 1
                 s += vars_num[varname] + ' '
@@ -990,7 +989,8 @@ class BooleanFormula(object):
 #        OUTPUT:
 #            A simplified expression.
 #
-#        EXAMPLES:
+#        EXAMPLES::
+
 #            sage: import sage.logic.propcalc as propcalc
 #            sage: f = propcalc.formula("a&((b|c)^a->c)<->b")
 #            sage: f.truthtable()
@@ -1016,7 +1016,7 @@ class BooleanFormula(object):
 #            True   True   False  True
 #            True   True   True   True
 #
-#        .. NOTES::
+#        .. NOTE::
 #
 #            If the instance of boolean formula has not been converted to
 #            cnf form by a call to convert_cnf() or convert_cnf_recur()
@@ -1030,16 +1030,16 @@ class BooleanFormula(object):
 #        wtd = boolopt.WFFtoDNF()
 #        dnf = wtd(wff)
 #        dnf = wtd.clean(dnf)
-#        if(dnf == [] or dnf == [[]]):
+#        if dnf == [] or dnf == [[]]:
 #            exp = self.__vars_order[0] + '&~' + self.__vars_order[0] + ' '
 #        opt = boolopt.optimize(dnf)
-#        if(exp == '' and (opt == [] or opt == [[]])):
+#        if exp == '' and (opt == [] or opt == [[]]):
 #            exp = self.__vars_order[0] + '|~' + self.__vars_order[0] + ' '
-#        if(exp == ''):
+#        if exp == '':
 #            for con in opt:
 #                s = '('
 #                for prop in con:
-#                    if(prop[0] == 'notprop'):
+#                    if prop[0] == 'notprop':
 #                       s += '~'
 #                    s += prop[1] + '&'
 #                exp += s[:-1] + ')|'
@@ -1080,11 +1080,11 @@ class BooleanFormula(object):
             :func:`~sage.logic.logicparser.apply_func()` in
             :mod:`~sage.logic.logicparser`.
         """
-        if not isinstance(tree[1], TupleType) and not (tree[1] is None):
+        if not isinstance(tree[1], tuple) and not (tree[1] is None):
             lval = ('prop', tree[1])
         else:
             lval = tree[1]
-        if not isinstance(tree[2], TupleType) and not(tree[2] is None):
+        if not isinstance(tree[2], tuple) and not(tree[2] is None):
             rval = ('prop', tree[2])
         else:
             rval = tree[2]
@@ -1183,11 +1183,8 @@ class BooleanFormula(object):
         """
         bits = []
         while x > 0:
-            if x % 2 == 0:
-                b = False
-            else:
-                b = True
-            x = int(x / 2)
+            b = bool(x % 2)
+            x = x // 2
             bits.append(b)
         if c > len(bits) - 1:
             return False
@@ -1271,7 +1268,7 @@ class BooleanFormula(object):
             as an argument to :func:`~sage.logic.logicparser.apply_func()`
             in :mod:`~sage.logic.logicparser`.
         """
-        if tree[0] == '~' and isinstance(tree[1], ListType):
+        if tree[0] == '~' and isinstance(tree[1], list):
             op = tree[1][0]
             if op != '~':
                 if op == '&':
@@ -1316,11 +1313,11 @@ class BooleanFormula(object):
             as an argument to :func:`~sage.logic.logicparser.apply_func()`
             in :mod:`~sage.logic.logicparser`.
         """
-        if tree[0] == '|' and isinstance(tree[2], ListType) and tree[2][0] == '&':
+        if tree[0] == '|' and isinstance(tree[2], list) and tree[2][0] == '&':
             new_tree = ['&', ['|', tree[1], tree[2][1]],
                         ['|', tree[1], tree[2][2]]]
             return logicparser.apply_func(new_tree, self.dist_ors)
-        if tree[0] == '|' and isinstance(tree[1], ListType) and tree[1][0] == '&':
+        if tree[0] == '|' and isinstance(tree[1], list) and tree[1][0] == '&':
             new_tree = ['&', ['|', tree[1][1], tree[2]],
                         ['|', tree[1][2], tree[2]]]
             return logicparser.apply_func(new_tree, self.dist_ors)

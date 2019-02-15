@@ -1,9 +1,11 @@
------------------
+=================
 Infinity Crystals
------------------
+=================
 
-Infinity crystals are the crystal analogue of Verma modules with highest weight
-`0` associated to a symmetrizable Kac-Moody algebra.  As such, they are
+Infinity crystals, denoted `\mathcal{B}(\infty)` and depend only on the
+Cartan type, are the crystal analogue of Verma modules with highest
+weight `0` associated to a symmetrizable Kac-Moody algebra (equivalently,
+the lower half of the corresponding quantum group).  As such, they are
 infinite-dimensional and any irreducible highest weight crystal may be obtained
 from an infinity crystal via some cutting procedure.  On the other hand, the
 crystal `B(\infty)` is the direct limit of all irreducible highest weight
@@ -228,7 +230,7 @@ where `(a_{ij})` is a Cartan matrix.  Then
     `C = (c_{ij})_{i\neq j}` satisfying the condition `c_{ij}+c_{ji}=1`.
     This choice has been made in Sage such that `c_{ij} = 1` if
     `i < j` and `c_{ij} = 0` if `i>j`, but other choices may be used if
-    deliberately stated at the intialization of the crystal::
+    deliberately stated at the initialization of the crystal::
 
         sage: c = Matrix([[0,0,1],[1,0,0],[0,1,0]])
         sage: La = RootSystem(['C',3]).weight_lattice().fundamental_weights()
@@ -298,8 +300,8 @@ See [SalisburyScrimshaw2015]_ for more information::
     sage: RiggedConfigurations.options(display="horizontal")
     sage: RC = crystals.infinity.RiggedConfigurations(['C',3,1])
     sage: nu = RC.highest_weight_vector().f_string([0,1,2,3,2,1,0]); nu
-    -2[ ]-1   2[ ][ ]1   0[ ][ ]0   0[ ]0
-    -2[ ]-1
+    -2[ ]-1   2[ ]1   0[ ]0   0[ ]0
+    -2[ ]-1   2[ ]1   0[ ]0
     sage: nu.weight()
     -2*Lambda[0] + 2*Lambda[1] - 2*delta
     sage: RiggedConfigurations.options._reset()

@@ -180,14 +180,20 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
+from six import iteritems, integer_types
 
 from sage.structure.sage_object import SageObject
 from sage.structure.element import Element
 from sage.structure.sequence import Sequence
+from sage.structure.richcmp import richcmp_method, richcmp, richcmp_not_equal
 from sage.rings.integer import Integer
 from sage.misc.all import prod
 from sage.misc.cachefunc import cached_method
 
+
+
+@richcmp_method
 class Factorization(SageObject):
     """
     A formal factorization of an object.
@@ -208,7 +214,7 @@ class Factorization(SageObject):
         sage: F = Factorization([(x,1/3)])
         Traceback (most recent call last):
         ...
-        TypeError: exponents of factors must be integers
+        TypeError: no conversion of this rational to integer
     """
     def __init__(self, x, unit=None, cr=False, sort=True, simplify=True):
         """
@@ -236,6 +242,7 @@ class Factorization(SageObject):
         - a Factorization object
 
         EXAMPLES:
+
         We create a factorization with all the default options::
 
             sage: Factorization([(2,3), (5, 1)])
@@ -252,7 +259,7 @@ class Factorization(SageObject):
             sage: Factorization([(2,3), (5, 'x')])
             Traceback (most recent call last):
             ...
-            TypeError: exponents of factors must be integers
+            TypeError: unable to convert 'x' to an integer
 
         We create a factorization that puts newlines after each multiply sign
         when printing.  This is mainly useful when the primes are large::
@@ -289,26 +296,16 @@ class Factorization(SageObject):
             (Ambient free module of rank 2 over the principal ideal domain Integer Ring)^5 *
             (Ambient free module of rank 3 over the principal ideal domain Integer Ring)^2
         """
-        if not isinstance(x, list):
-            raise TypeError("x must be a list")
-        for i in xrange(len(x)):
-            t=x[i]
-            if not (isinstance(t, tuple) and len(t) == 2):
-                raise TypeError("x must be a list of pairs (p, e) with e an integer")
-            if not isinstance(t[1],(int, long, Integer)):
-                try:
-                    x[i]= (t[0], Integer(t[1]))
-                except TypeError:
-                    raise TypeError("exponents of factors must be integers")
+        x = [(p, Integer(e)) for (p, e) in x]
 
         try:
             self.__universe = Sequence(t[0] for t in x).universe()
         except TypeError:
             self.__universe = None
 
-        self.__x = [ (t[0],int(t[1])) for t in x]
+        self.__x = [(t[0], int(t[1])) for t in x]
         if unit is None:
-            if len(x) > 0:
+            if x:
                 try:
                     unit = self.__universe(1)
                 except (AttributeError, TypeError):
@@ -385,10 +382,16 @@ class Factorization(SageObject):
         """
         return len(self.__x)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
-        Compare self and other.  This compares the underlying
-        lists of self and other, ignoring the unit!
+        Compare ``self`` and ``other``.
+
+        This first compares the values.
+
+        If values are equal, this compares the units.
+
+        If units are equal, this compares the underlying lists of
+        ``self`` and ``other``.
 
         EXAMPLES:
 
@@ -418,13 +421,19 @@ class Factorization(SageObject):
             True
         """
         if not isinstance(other, Factorization):
-            return cmp(type(self), type(other))
-        try:
-            return cmp(self.value(), other.value())
-        except Exception:
-            c = cmp(self.__unit, other.__unit)
-            if c: return c
-            return list.__cmp__(self, other)
+            return NotImplemented
+
+        lx = self.value()
+        rx = other.value()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        lx = self.__unit
+        rx = other.__unit
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        return richcmp(self.__x, other.__x, op)
 
     def __copy__(self):
         r"""
@@ -637,27 +646,32 @@ class Factorization(SageObject):
         if repeat:
             self.simplify()
 
-    def sort(self, _cmp=None):
+    def sort(self, key=None):
         r"""
         Sort the factors in this factorization.
 
         INPUT:
 
-        - ``_cmp`` - (default: None) comparison function
+        - ``key`` - (default: ``None``) comparison key
 
         OUTPUT:
 
-        - changes this factorization to be sorted
+        - changes this factorization to be sorted (inplace)
 
-        If _cmp is None, we determine the comparison function as
-        follows: If the prime in the first factor has a dimension
+        If ``key`` is ``None``, we determine the comparison key as
+        follows:
+
+        If the prime in the first factor has a dimension
         method, then we sort based first on *dimension* then on
-        the exponent.  If there is no dimension method, we next
+        the exponent.
+
+        If there is no dimension method, we next
         attempt to sort based on a degree method, in which case, we
         sort based first on *degree*, then exponent to break ties
         when two factors have the same degree, and if those match
-        break ties based on the actual prime itself.  If there is no
-        degree method, we sort based on dimension.
+        break ties based on the actual prime itself.
+
+        Otherwise, we sort according to the prime itself.
 
         EXAMPLES:
 
@@ -667,52 +681,44 @@ class Factorization(SageObject):
             sage: F = factor(x^3 + 1); F
             (x + 1) * (x^2 - x + 1)
 
-        Then we sort it but using the negated version of the standard
-        Python cmp function::
+        We sort it by decreasing degree::
 
-            sage: F.sort(_cmp = lambda x,y: -cmp(x,y))
+            sage: F.sort(key=lambda x:(-x[0].degree(), x))
             sage: F
             (x^2 - x + 1) * (x + 1)
         """
         if len(self) == 0:
             return
-        if _cmp is None:
+
+        if key is not None:
+            self.__x.sort(key=key)
+            return
+
+        a = self.__x[0][0]
+        sort_key = None
+        if hasattr(a, 'dimension'):
             try:
-                a = self.__x[0][0].dimension()
-                def _cmp(f,g):
-                    """
-                    This is used internally for comparing.  (indirect doctest)
+                a.dimension()
 
-                    EXAMPLES::
+                def sort_key(f):
+                    return (f[0].dimension(), f[1], f[0])
+            except (AttributeError, NotImplementedError, TypeError):
+                pass
+        elif hasattr(a, 'degree'):
+            try:
+                a.degree()
 
-                        sage: factor(6)
-                        2 * 3
-                    """
-                    try:
-                        return cmp((f[0].dimension(), f[1]), (g[0].dimension(),g[1]))
-                    except (AttributeError, NotImplementedError):
-                        return cmp((f[0],f[1]), (g[0], g[1]))
-            except (AttributeError, NotImplementedError):
-                try:
-                    a = self.__x[0][0].degree()
-                    def _cmp(f,g):
-                        """
-                        This is used internally for comparing.  (indirect doctest)
+                def sort_key(f):
+                    return (f[0].degree(), f[1], f[0])
+            except (AttributeError, NotImplementedError, TypeError):
+                pass
 
-                        EXAMPLES::
+        if sort_key is None:
 
-                            sage: factor(6)
-                            2 * 3
-                        """
-                        try:
-                            return cmp((f[0].degree(),f[1],f[0]), (g[0].degree(),g[1],g[0]))
-                        except (AttributeError, NotImplementedError):
-                            return cmp(f[0], g[0])
-                except (AttributeError, NotImplementedError, TypeError):  # TypeError in case degree must take an argument, e.g., for symbolic expressions it has to.
-                    self.__x.sort()
-                    return
+            def sort_key(f):
+                return f[0]
 
-        self.__x.sort(_cmp)
+        self.__x.sort(key=sort_key)
 
     def unit(self):
         r"""
@@ -818,7 +824,7 @@ class Factorization(SageObject):
             mul += '\n'
         x = self.__x[0][0]
         try:
-            atomic = (isinstance(x, (int, long)) or
+            atomic = (isinstance(x, integer_types) or
                       self.universe()._repr_option('element_is_atomic'))
         except AttributeError:
             atomic = False
@@ -865,7 +871,7 @@ class Factorization(SageObject):
         if len(self) == 0:
             return self.__unit._latex_()
         try:
-            atomic = (isinstance(self.__x[0][0], (int, long)) or
+            atomic = (isinstance(self.__x[0][0], integer_types) or
                       self.universe()._repr_option('element_is_atomic'))
         except AttributeError:
             atomic = False
@@ -889,7 +895,7 @@ class Factorization(SageObject):
         return s
 
     @cached_method
-    def _pari_(self):
+    def __pari__(self):
         """
         Return the PARI factorization matrix corresponding to ``self``.
 
@@ -1052,8 +1058,8 @@ class Factorization(SageObject):
             sage: F = Fc * Fg; F.universe()
             Univariate Polynomial Ring in x over Integer Ring
             sage: [type(a[0]) for a in F]
-            [<type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>,
-             <type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>]
+            [<... 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>,
+             <... 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>]
         """
         if not isinstance(other, Factorization):
             return self * Factorization([(other, 1)])
@@ -1076,9 +1082,9 @@ class Factorization(SageObject):
             d1 = dict(self)
             d2 = dict(other)
             s = {}
-            for a in set(d1.keys()).union(set(d2.keys())):
+            for a in set(d1).union(set(d2)):
                 s[a] = d1.get(a,0) + d2.get(a,0)
-            return Factorization(list(s.iteritems()), unit=self.unit()*other.unit())
+            return Factorization(list(iteritems(s)), unit=self.unit()*other.unit())
         else:
             return Factorization(list(self) + list(other), unit=self.unit()*other.unit())
 
@@ -1119,8 +1125,11 @@ class Factorization(SageObject):
             return Factorization([])
         if self.is_commutative():
             return Factorization([(p, n*e) for p, e in self], unit=self.unit()**n, cr=self.__cr, sort=False, simplify=False)
-        from sage.groups.generic import power
-        return power(self, n, Factorization([]))
+        if n < 0:
+            self = ~self
+            n = -n
+        from sage.arith.power import generic_power
+        return generic_power(self, n)
 
     def __invert__(self):
         r"""
@@ -1185,7 +1194,7 @@ class Factorization(SageObject):
             sage: F.value()
             x^3*y^2*x
         """
-        return prod([p**e for p,e in self.__x], self.__unit)
+        return prod([p**e for p, e in self.__x], self.__unit)
 
     # Two aliases for ``value(self)``.
     expand = value
@@ -1227,9 +1236,9 @@ class Factorization(SageObject):
             d1 = dict(self)
             d2 = dict(other)
             s = {}
-            for a in set(d1.keys()).intersection(set(d2.keys())):
+            for a in set(d1).intersection(set(d2)):
                 s[a] = min(d1[a],d2[a])
-            return Factorization(list(s.iteritems()))
+            return Factorization(list(iteritems(s)))
         else:
             raise NotImplementedError("gcd is not implemented for non-commutative factorizations")
 
@@ -1269,9 +1278,9 @@ class Factorization(SageObject):
             d1 = dict(self)
             d2 = dict(other)
             s = {}
-            for a in set(d1.keys()).union(set(d2.keys())):
+            for a in set(d1).union(set(d2)):
                 s[a] = max(d1.get(a,0),d2.get(a,0))
-            return Factorization(list(s.iteritems()))
+            return Factorization(list(iteritems(s)))
         else:
             raise NotImplementedError("lcm is not implemented for non-commutative factorizations")
 
@@ -1290,9 +1299,8 @@ class Factorization(SageObject):
             -1 * 2^-3 * 5
             sage: F.is_integral()
             False
-
         """
-        return all([e >=0 for p,e in self.__x])
+        return all(e >= 0 for p, e in self.__x)
 
     def radical(self):
         """
@@ -1314,7 +1322,7 @@ class Factorization(SageObject):
             ...
             ValueError: All exponents in the factorization must be positive.
         """
-        if not all([e > 0 for p,e in self.__x]):
+        if not all(e > 0 for p, e in self.__x):
             raise ValueError("All exponents in the factorization must be positive.")
         return Factorization([(p,1) for p,e in self.__x], unit=self.unit().parent()(1), cr=self.__cr, sort=False, simplify=False)
 
@@ -1339,7 +1347,6 @@ class Factorization(SageObject):
             ...
             ValueError: All exponents in the factorization must be positive.
         """
-        if not all([e > 0 for p,e in self.__x]):
+        if not all(e > 0 for p, e in self.__x):
             raise ValueError("All exponents in the factorization must be positive.")
-        return prod([p for p,e in self.__x])
-
+        return prod([p for p, e in self.__x])

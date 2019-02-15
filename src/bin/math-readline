@@ -5,13 +5,10 @@
 # See
 #    http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/363500
 
-import sys, signal, subprocess
-import readline
+import sys
+import signal
+import subprocess
 from six.moves import input
-
-# Workaround for trac #20173:
-import os
-os.system("stty -echo")
 
 def child_exited(*args):
     global child

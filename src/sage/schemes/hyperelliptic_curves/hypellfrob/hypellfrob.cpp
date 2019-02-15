@@ -77,7 +77,7 @@ There are three possible underlying implementations:
    * zn_poly_interval_products.
 This function is a wrapper which takes ZZ_p input, calls one of the three
 above implementations depending on the size of the current ZZ_p modulus, and
-produces ouptut in ZZ_p format.
+produces output in ZZ_p format.
 
 If the force_ntl flag is set, it will never use the zn_poly version.
 
@@ -457,7 +457,7 @@ int matrix(mat_ZZ& output, const ZZ& p, int N, const ZZX& Q, int force_ntl)
    }
 
    // For 0 <= j < N, compute Btemp[j] =
-   //           (-1)^j \sum_{k=j}^{N-1} 4^{-k} {2k \choose k} {k \choose j}
+   //           (-1)^j \sum_{k=j}^{N-1} 4^{-k} {2k choose k} {k choose j}
    ZZ_p fourth = to_ZZ_p(1) / 4;
    ZZ_p fourth_pow = to_ZZ_p(1);
    vector<ZZ_p> Btemp(N);
@@ -472,7 +472,7 @@ int matrix(mat_ZZ& output, const ZZ& p, int N, const ZZX& Q, int force_ntl)
    }
 
    // Compute the coefficients   B_{j, r} = p C_{j, r} (-1)^j
-   //             \sum_{k=j}^{N-1} 4^{-k} {2k \choose k} {k \choose j},
+   //             \sum_{k=j}^{N-1} 4^{-k} {2k choose k} {k choose j},
    // where C_{j, r} is the coefficient of x^r in Q(x)^j.
    vector<vector<ZZ_p> > B(N);
    ZZ_pX Qpow = to_ZZ_pX(p);

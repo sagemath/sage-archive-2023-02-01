@@ -183,8 +183,9 @@ def get_basis_name(basis, p, generic=None):
 ######################################################
 # profile functions
 
+
 def is_valid_profile(profile, truncation_type, p=2, generic=None):
-    """
+    r"""
     True if ``profile``, together with ``truncation_type``, is a valid
     profile at the prime `p`.
 
@@ -294,8 +295,9 @@ def is_valid_profile(profile, truncation_type, p=2, generic=None):
                         return False
     return True
 
+
 def normalize_profile(profile, precision=None, truncation_type='auto', p=2, generic=None):
-    """
+    r"""
     Given a profile function and related data, return it in a standard form,
     suitable for hashing and caching as data defining a sub-Hopf
     algebra of the Steenrod algebra.
@@ -316,7 +318,7 @@ def normalize_profile(profile, precision=None, truncation_type='auto', p=2, gene
     pair of such when `p` is odd or `generic` is ``True``.  ``precision``
     should be a positive integer.  ``truncation_type`` should be 0 or `\infty`.
     Furthermore, this must be a valid profile, as determined by the
-    funtion :func:`is_valid_profile`.  See also the documentation for
+    function :func:`is_valid_profile`.  See also the documentation for
     the module :mod:`sage.algebras.steenrod.steenrod_algebra` for information
     about profile functions.
 

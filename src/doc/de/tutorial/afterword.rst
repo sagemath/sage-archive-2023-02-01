@@ -39,7 +39,7 @@ kompilierten Sprache implementiert. Python hat folgende Vorteile:
    werden.
 
 -  **Fehlerbehandlung:** Python besitzt ein ausgeklügeltes und wohl
-   durchdachtes System für die Behandlung von Ausnahmebedingunen,
+   durchdachtes System für die Behandlung von Ausnahmebedingungen,
    mit dem Programme sinnvoll weiterarbeiten können, sogar wenn bei
    ihrem Aufruf Fehler auftreten.
 
@@ -121,7 +121,7 @@ sein, also verhält sich Sage an manchen Stellen anders als Python.
        Rational Field
        sage: 2//3
        0
-       sage: int(2)/int(3)    # optional - python2
+       sage: int(2)/int(3)    # py2
        0
 
 -  **Große ganze Zahlen:** Python besitzt von Hause aus Unterstützung
@@ -160,7 +160,7 @@ zur Sage-Dokumention oder zum Berichten von Fehlern reichen.
 Schauen Sie sich die Sage-Webseite an um Informationen für Entwickler
 zu erhalten; neben anderen Dingen können Sie eine lange Liste nach
 Priorität und Kategorie geordneter, zu Sage gehörender Projekte finden.
-Auch der `Sage Developer's Guide <http://www.sagemath.org/doc/developer/>`_
+Auch der `Sage Developer's Guide <http://doc.sagemath.org/html/en/developer/>`_
 beinhaltet hilfreiche Informationen, und Sie können der ``sage-devel``
 Google-Group beitreten.
 

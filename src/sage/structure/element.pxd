@@ -1,6 +1,5 @@
 from .sage_object cimport SageObject
 from .parent cimport Parent
-from cpython.number cimport PyNumber_Check
 from sage.misc.inherit_comparison cimport InheritComparisonMetaclass
 
 
@@ -19,14 +18,11 @@ cpdef inline parent(x):
 
     - If ``x`` is a Sage :class:`Element`, return ``x.parent()``.
 
-    - If ``x`` has a ``parent`` method and ``x`` does not have an
-      ``__int__`` or ``__float__`` method, return ``x.parent()``.
-
     - Otherwise, return ``type(x)``.
 
     .. SEEALSO::
 
-        `Parents, Conversion and Coercion <http://www.sagemath.org/doc/tutorial/tour_coercion.html>`_
+        `Parents, Conversion and Coercion <http://doc.sagemath.org/html/en/tutorial/tour_coercion.html>`_
         Section in the Sage Tutorial
 
     EXAMPLES::
@@ -55,22 +51,14 @@ cpdef inline parent(x):
 
         sage: d = int(42)  # Python int
         sage: parent(d)
-        <type 'int'>
-        sage: L = range(10)
+        <... 'int'>
+        sage: L = list(range(10))
         sage: parent(L)
-        <type 'list'>
+        <... 'list'>
     """
     if isinstance(x, Element):
         return (<Element>x)._parent
-    # Fast check for "number" types, including int and float
-    if PyNumber_Check(x):
-        return type(x)
-    try:
-        p = x.parent
-    except AttributeError:
-        return type(x)
-    else:
-        return p()
+    return type(x)
 
 
 cdef inline int classify_elements(left, right):
@@ -146,30 +134,18 @@ cpdef inline bint have_same_parent(left, right):
         sage: a = RLF(2)
         sage: b = exp(a)
         sage: type(a)
-        <type 'sage.rings.real_lazy.LazyWrapper'>
+        <... 'sage.rings.real_lazy.LazyWrapper'>
         sage: type(b)
-        <type 'sage.rings.real_lazy.LazyNamedUnop'>
+        <... 'sage.rings.real_lazy.LazyNamedUnop'>
         sage: have_same_parent(a, b)
         True
     """
     return HAVE_SAME_PARENT(classify_elements(left, right))
 
 
-cdef inline parent_c(x):
-    """
-    Deprecated alias for :func:`parent`.
-    """
-    return parent(x)
+cdef unary_op_exception(op, x)
+cdef bin_op_exception(op, x, y)
 
-
-cdef inline bint have_same_parent_c(left, right):
-    """
-    Deprecated alias for :func:`have_same_parent`.
-    """
-    return have_same_parent(left, right)
-
-
-cdef str arith_error_message(x, y, op)
 
 cdef class Element(SageObject):
     cdef Parent _parent
@@ -177,8 +153,26 @@ cdef class Element(SageObject):
     cpdef int _cmp_(left, right) except -2
     cpdef base_extend(self, R)
 
+    cdef getattr_from_category(self, name)
+
     cpdef _act_on_(self, x, bint self_on_left)
     cpdef _acted_upon_(self, x, bint self_on_left)
+
+    cdef _add_(self, other)
+    cdef _sub_(self, other)
+    cdef _neg_(self)
+    cdef _add_long(self, long n)
+
+    cdef _mul_(self, other)
+    cdef _mul_long(self, long n)
+    cdef _div_(self, other)
+    cdef _floordiv_(self, other)
+    cdef _mod_(self, other)
+
+    cdef _pow_(self, other)
+    cdef _pow_int(self, n)
+    cdef _pow_long(self, long n)
+
 
 cdef class ElementWithCachedMethod(Element):
     cdef public dict __cached_methods
@@ -188,31 +182,28 @@ cdef class ModuleElement(Element)       # forward declaration
 cdef class RingElement(ModuleElement)   # forward declaration
 
 cdef class ModuleElement(Element):
-    cpdef _add_(self, right)
-    cpdef _sub_(self, right)
+    cpdef _add_(self, other)
+    cpdef _sub_(self, other)
     cpdef _neg_(self)
-    # self._rmul_(x) is x * self
-    cpdef _lmul_(self, RingElement right)
-    # self._lmul_(x) is self * x, to abide with Python conventions.
-    cpdef _rmul_(self, RingElement left)
 
-    cdef _mul_long(self, long n)
+    # self._rmul_(x) is x * self
+    cpdef _lmul_(self, Element right)
+    # self._lmul_(x) is self * x
+    cpdef _rmul_(self, Element left)
 
 cdef class MonoidElement(Element):
-    cpdef _mul_(self, right)
+    cpdef _pow_int(self, n)
 
 cdef class MultiplicativeGroupElement(MonoidElement):
-    cpdef _div_(self, right)
+    cpdef _div_(self, other)
 
 cdef class AdditiveGroupElement(ModuleElement):
     pass
 
 cdef class RingElement(ModuleElement):
-    cpdef _mul_(self, right)
-    cpdef _div_(self, right)
-    cpdef _floordiv_(self, right)
-
-    cdef _add_long(self, long n)
+    cpdef _mul_(self, other)
+    cpdef _div_(self, other)
+    cpdef _pow_int(self, n)
 
 cdef class CommutativeRingElement(RingElement):
     pass
@@ -227,18 +218,16 @@ cdef class PrincipalIdealDomainElement(DedekindDomainElement):
     pass
 
 cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
-    pass
+    cpdef _floordiv_(self, other)
+    cpdef _mod_(self, other)
 
 cdef class FieldElement(CommutativeRingElement):
-    pass
+    cpdef _floordiv_(self, other)
 
 cdef class AlgebraElement(RingElement):
     pass
 
 cdef class CommutativeAlgebraElement(CommutativeRingElement):
-    pass
-
-cdef class CommutativeAlgebra(AlgebraElement):
     pass
 
 cdef class InfinityElement(RingElement):
@@ -271,13 +260,3 @@ cdef class Matrix(ModuleElement):
 
     cdef bint is_sparse_c(self)
     cdef bint is_dense_c(self)
-
-
-cdef class CoercionModel:
-    cpdef canonical_coercion(self, x, y)
-    cpdef bin_op(self, x, y, op)
-    cpdef richcmp(self, x, y, int op)
-
-cdef CoercionModel coercion_model
-
-cdef generic_power_c(a, nn, one)

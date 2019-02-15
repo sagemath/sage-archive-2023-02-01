@@ -113,7 +113,7 @@ se comporta diferentemente do Python em diversas situações.
        Rational Field
        sage: 2//3
        0
-       sage: int(2)/int(3)   # optional - python2
+       sage: int(2)/int(3)   # py2
        0
 
 -  **Inteiros longos:** O Python possui suporte nativo para inteiros
@@ -149,7 +149,7 @@ Explore a página na web do Sage para informações para desenvolvedores;
 entre outras coisas, você pode encontrar uma lista longa de projetos
 relacionados ao Sage ordenados por prioridade e categoria. O `Guia
 para desenvolvedores do Sage
-<http://www.sagemath.org/doc/developer/>`_ (em inglês) também possui
+<http://doc.sagemath.org/html/en/developer/>`_ (em inglês) também possui
 informações úteis, e você pode também visitar o grupo de discussões
 ``sage-devel`` no Google Groups.
 

@@ -36,7 +36,7 @@ Linear Optimization (LP) and Mixed Integer Linear Optimization (MIP) Solver back
 Sage also supports, via optional packages, CBC (COIN-OR), CPLEX (ILOG), and Gurobi. In order to find out
 how to use them in Sage, please refer to the `Thematic Tutorial on Linear
 Programming
-<http://www.sagemath.org/doc/thematic_tutorials/linear_programming.html>`_.
+<http://doc.sagemath.org/html/en/thematic_tutorials/linear_programming.html>`_.
 
 The following backend is used for debugging and testing purposes.
 
@@ -51,6 +51,7 @@ Semidefinite Optimization (SDP) Solver backends
 .. toctree::
    :maxdepth: 1
 
+   sage/numerical/backends/generic_sdp_backend
    sage/numerical/backends/cvxopt_sdp_backend
 
 For more details on CVXOPT, see `CVXOPT documentation <http://cvxopt.org/documentation/index.html>`_.

@@ -20,8 +20,9 @@ AUTHORS:
 from sage.knots.link import Link
 from sage.rings.finite_rings.integer_mod import Mod
 
+
 class Knot(Link):
-    """
+    r"""
     A knot.
 
     A knot is defined as embedding of the circle `\mathbb{S}^1` in the
@@ -71,7 +72,6 @@ class Knot(Link):
 
     .. TODO::
 
-        - Implement the connect sum of two knots.
         - Make a class Knots for the monoid of all knots and have this be an
           element in that monoid.
     """
@@ -225,4 +225,72 @@ class Knot(Link):
             return 0
 
         return 1
+
+    def connected_sum(self, other):
+        r"""
+        Return the oriented connected sum of ``self`` and ``other``.
+
+        .. NOTE::
+
+            We give the knots an orientation based upon the braid
+            representation.
+
+        INPUT:
+
+        - ``other`` -- a knot
+
+        OUTPUT:
+
+        A knot equivalent to the connected sum of ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(2)
+            sage: trefoil = Knot(B([1,1,1]))
+            sage: K = trefoil.connected_sum(trefoil); K
+            Knot represented by 6 crossings
+            sage: K.braid()
+            s0^3*s1^-1*s0^3*s1
+
+        .. PLOT::
+            :width: 300 px
+
+            B = BraidGroup(2)
+            trefoil = Knot(B([1,1,1]))
+            K = trefoil.connected_sum(trefoil)
+            sphinx_plot(K.plot())
+
+        ::
+
+            sage: rev_trefoil = Knot(B([-1,-1,-1]))
+            sage: K = trefoil.connected_sum(rev_trefoil); K
+            Knot represented by 6 crossings
+            sage: K.braid()
+            s0^3*s1^-1*s0^-3*s1
+
+        .. PLOT::
+            :width: 300 px
+
+            B = BraidGroup(2)
+            t = Knot(B([1,1,1]))
+            tr = Knot(B([-1,-1,-1]))
+            K = t.connected_sum(tr)
+            sphinx_plot(K.plot())
+
+        REFERENCES:
+
+        - :wikipedia:`Connected_sum`
+        """
+        from copy import deepcopy
+        from sage.functions.generalized import sign
+        ogc1 = deepcopy(self.oriented_gauss_code())
+        ogc2 = deepcopy(other.oriented_gauss_code())
+        # how much we have to "displace" the numbering of the crossings of other
+        m1 = max([abs(i) for i in ogc1[0][0]])
+        m2 = min([abs(i) for i in ogc2[0][0]])
+        n = m1 - m2 + 1
+        # construct the oriented gauss code of the result
+        ogc2[0][0] = [a+int(sign(a))*n for a in ogc2[0][0]]
+        nogc = [[ogc1[0][0]+ogc2[0][0]],ogc1[1]+ogc2[1]]
+        return Knot(nogc)
 

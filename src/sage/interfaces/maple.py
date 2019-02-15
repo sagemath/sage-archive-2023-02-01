@@ -101,7 +101,7 @@ integers. So for example,
 ::
 
     sage: maple('(x^28-1)').factor( )           # optional - maple
-    (x-1)*(x^6+x^5+x^4+x^3+x^2+x+1)*(x+1)*(1-x+x^2-x^3+x^4-x^5+x^6)*(x^2+1)*(x^12-x^10+x^8-x^6+x^4-x^2+1)
+    (x-1)*(x^6+x^5+x^4+x^3+x^2+x+1)*(x+1)*(x^6-x^5+x^4-x^3+x^2-x+1)*(x^2+1)*(x^12-x^10+x^8-x^6+x^4-x^2+1)
 
 Another important feature of maple is its online help. We can
 access this through sage as well. After reading the description of
@@ -232,10 +232,9 @@ loaded.
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #############################################################################
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 import os
 
@@ -246,8 +245,9 @@ import pexpect
 from sage.env import DOT_SAGE
 from sage.misc.pager import pager
 from sage.interfaces.tab_completion import ExtraTabCompletion
+from sage.docs.instancedoc import instancedoc
 
-COMMANDS_CACHE = '%s/maple_commandlist_cache.sobj'%DOT_SAGE
+COMMANDS_CACHE = '%s/maple_commandlist_cache.sobj' % DOT_SAGE
 
 
 class Maple(ExtraTabCompletion, Expect):
@@ -359,7 +359,7 @@ class Maple(ExtraTabCompletion, Expect):
 
             sage: filename = tmp_filename()  # optional - maple
             sage: f = open(filename, 'w')  # optional - maple
-            sage: f.write('xx := 22;\n')  # optional - maple
+            sage: _ = f.write('xx := 22;\n')  # optional - maple
             sage: f.close()               # optional - maple
             sage: maple.read(filename)    # optional - maple
             sage: maple.get('xx').strip() # optional - maple
@@ -441,7 +441,7 @@ connection to a server running Maple; for hints, type
         return self._expect
 
     def console(self):
-        """
+        r"""
         Spawn a new Maple command-line session.
 
         EXAMPLES::
@@ -757,9 +757,9 @@ connection to a server running Maple; for hints, type
         except Exception:
             pager()('No source code could be found.')
 
-    def _help(self, str):
+    def _help(self, string):
         r"""
-        Return the Maple help on ``str``.
+        Return the Maple help on ``string``.
 
         EXAMPLES::
 
@@ -767,26 +767,26 @@ connection to a server running Maple; for hints, type
             sage: txt.find('gcd - greatest common divisor') > 0 # optional - maple
             True
         """
-        return os.popen('echo "?%s" | maple -q'%str).read()
+        return os.popen('echo "?%s" | maple -q' % string).read()
 
-    def help(self, str):
+    def help(self, string):
         """
-        Display Maple help about ``str``.
+        Display Maple help about ``string``.
 
-        This is the same as typing "?str" in the Maple console.
+        This is the same as typing "?string" in the Maple console.
 
         INPUT:
 
-        -  ``str`` - a string to search for in the maple help
+        -  ``string`` - a string to search for in the maple help
            system
 
         EXAMPLES::
 
-            sage: maple.help('digamma') #not tested
+            sage: maple.help('Psi')  # not tested
             Psi - the Digamma and Polygamma functions
             ...
         """
-        pager()(self._help(str))
+        pager()(self._help(string))
 
     def with_package(self, package):
         """
@@ -838,15 +838,17 @@ connection to a server running Maple; for hints, type
         """
         self.set(var, "'{}'".format(var))
 
+
+@instancedoc
 class MapleFunction(ExpectFunction):
-    def _sage_doc_(self):
+    def _instancedoc(self):
         """
         Returns the Maple help for this function. This gets called when
         doing "?" on self.
 
         EXAMPLES::
 
-            sage: txt = maple.gcd._sage_doc_()  # optional - maple
+            sage: txt = maple.gcd.__doc__  # optional - maple
             sage: txt.find('gcd - greatest common divisor') > 0 # optional - maple
             True
         """
@@ -873,8 +875,9 @@ class MapleFunction(ExpectFunction):
         return M._source(self._name)
 
 
+@instancedoc
 class MapleFunctionElement(FunctionElement):
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         Returns the Maple help for this function.
 
@@ -883,7 +886,7 @@ class MapleFunctionElement(FunctionElement):
         EXAMPLES::
 
             sage: two = maple(2)  # optional - maple
-            sage: txt = two.gcd._sage_doc_() # optional - maple
+            sage: txt = two.gcd.__doc__  # optional - maple
             sage: txt.find('gcd - greatest common divisor') > 0 # optional - maple
             True
         """
@@ -907,6 +910,7 @@ class MapleFunctionElement(FunctionElement):
         return self._obj.parent()._source(self._name)
 
     
+@instancedoc
 class MapleElement(ExtraTabCompletion, ExpectElement):
     
     def __float__(self):
@@ -918,7 +922,7 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
             sage: float(maple(1/2))  # optional - maple
             0.5
             sage: type(_)            # optional - maple
-            <type 'float'>
+            <... 'float'>
         """
         return float(maple.eval('evalf(%s)' % self.name()))
 
@@ -946,7 +950,7 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
         """
         return int(maple.eval('StringTools:-Hash(convert(%s, string))'%self.name())[1:-1],16)
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         Compare equality between self and other, using maple.
 
@@ -1072,27 +1076,6 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
         """
         return self.parent()._tab_completion()
 
-    def __repr__(self):
-        """
-        Return a string representation of self.
-
-        These examples are optional, and require Maple to be installed. You
-        don't need to install any Sage packages for this.
-
-        EXAMPLES::
-
-            sage: x = var('x')                  # optional - maple
-            sage: maple(x)                      # optional - maple
-            x
-            sage: maple(5)                      # optional - maple
-            5
-            sage: M = matrix(QQ,2,range(4))     # optional - maple
-            sage: maple(M)                      # optional - maple
-            Matrix(2, 2, [[0,1],[2,3]])
-        """
-        self._check_valid()
-        return self.parent().get(self._name)
-
     def _latex_(self):
         r"""
         You can output Maple expressions in latex.
@@ -1120,7 +1103,7 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
         This currently does not implement a parser for the Maple output language,
         therefore only very simple expressions will convert successfully.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: m = maple('x^2 + 5*y')                            # optional - maple
             sage: m.sage()                                          # optional - maple
@@ -1134,10 +1117,28 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
             sage: m.sage()                                          # optional - maple
             (cos(1/x) - 1)^2*sin(sqrt(-x^2 + 1))
 
+        Some matrices can be converted back::
+
+            sage: m = matrix(2, 2, [1, 2, x, 3])    # optional - maple
+            sage: mm = maple(m)                     # optional - maple
+            sage: mm.sage() == m                    # optional - maple
+            True
         """
+        from sage.matrix.constructor import matrix
+        from sage.rings.integer_ring import ZZ
+
         result = repr(self)
         # The next few lines are a very crude excuse for a maple "parser".
         result = result.replace("Pi", "pi")
+
+        if result[:6] == "Matrix":
+            content = result[7:-1]
+            m, n = content.split(',')[:2]
+            m = ZZ(m.strip())
+            n = ZZ(n.strip())
+            coeffs = [self[i + 1, j + 1].sage()
+                      for i in range(m) for j in range(n)]
+            return matrix(m, n, coeffs)
 
         try:
             from sage.symbolic.all import SR
@@ -1162,7 +1163,7 @@ def reduce_load_Maple():
 
 
 def maple_console():
-    """
+    r"""
     Spawn a new Maple command-line session.
 
     EXAMPLES::

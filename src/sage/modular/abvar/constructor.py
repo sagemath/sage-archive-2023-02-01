@@ -5,13 +5,13 @@ AUTHORS:
 
 - William Stein (2007-03)
 """
-from __future__ import absolute_import
-
 ###########################################################################
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>               #
 #  Distributed under the terms of the GNU General Public License (GPL)    #
 #                  http://www.gnu.org/licenses/                           #
 ###########################################################################
+from __future__ import absolute_import
+from six import integer_types
 
 import weakref
 
@@ -36,7 +36,7 @@ def _get(key):
     -  ``key`` - hashable
 
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: sage.modular.abvar.constructor._saved('a', J0(37))
         Abelian variety J0(37) of dimension 2
@@ -172,7 +172,7 @@ def AbelianVariety(X):
         ...
         TypeError: X must be an integer, string, newform, modsym space, congruence subgroup or tuple of congruence subgroups
     """
-    if isinstance(X, (int, long, Integer)):
+    if isinstance(X, integer_types + (Integer,)):
         X = Gamma0(X)
     if is_CongruenceSubgroup(X):
         X = X.modular_symbols().cuspidal_submodule()
@@ -186,7 +186,7 @@ def AbelianVariety(X):
     if is_ModularSymbolsSpace(X):
         return abvar.ModularAbelianVariety_modsym(X)
 
-    if isinstance(X, (tuple,list)) and all([is_CongruenceSubgroup(G) for G in X]):
+    if isinstance(X, (tuple,list)) and all(is_CongruenceSubgroup(G) for G in X):
         return abvar.ModularAbelianVariety(X)
 
     raise TypeError("X must be an integer, string, newform, modsym space, congruence subgroup or tuple of congruence subgroups")

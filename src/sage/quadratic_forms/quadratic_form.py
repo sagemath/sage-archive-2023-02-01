@@ -16,13 +16,14 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from warnings import warn
 from copy import deepcopy
 
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix_space import MatrixSpace
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 from sage.rings.integer_ring import IntegerRing, ZZ
 from sage.rings.ring import Ring
 from sage.misc.functional import denominator, is_even, is_field
@@ -33,7 +34,7 @@ from sage.structure.sage_object import SageObject
 from sage.structure.element import is_Vector
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.modules.free_module_element import vector
-
+from sage.quadratic_forms.genera.genus import genera
 from sage.quadratic_forms.quadratic_form__evaluate import QFEvaluateVector, QFEvaluateMatrix
 
 
@@ -89,7 +90,8 @@ class QuadraticForm(SageObject):
        - `R` -- ring for which the quadratic form is defined
        - `n` -- an integer >= 0
        - ``entries`` -- a list of `n(n+1)/2` coefficients of the quadratic form
-         in `R` (given lexographically, or equivalently, by rows of the matrix)
+         in `R` (given lexicographically, or equivalently, by rows of the
+         matrix)
 
     #. ``QuadraticForm(R, n)``, where
 
@@ -371,7 +373,7 @@ class QuadraticForm(SageObject):
 
     ## Routines for solving equations of the form Q(x) = c.
     from sage.quadratic_forms.qfsolve import solve
-        
+
 
     def __init__(self, R, n=None, entries=None, unsafe_initialization=False, number_of_automorphisms=None, determinant=None):
         """
@@ -435,20 +437,27 @@ class QuadraticForm(SageObject):
         if n < 0:
             raise ValueError("the size must be a non-negative integer, not {}".format(n))
 
-        ## TODO: Verify that R is a ring...
+        # TODO: Verify that R is a ring...
 
-        ## Store the relevant variables
-        N = n*(n+1) // 2
+        # Store the relevant variables
+        N = n * (n + 1) // 2
         self.__n = n
         self.__base_ring = R
-        self.__coeffs = [self.__base_ring(0) for i in range(N)]
+        self.__coeffs = [self.__base_ring.zero() for i in range(N)]
 
-        ## Check if entries is a list for the current size, and if so, write the upper-triangular matrix
-        if isinstance(entries, list) and (len(entries) == N):
-            for i in range(N):
-                self.__coeffs[i] = self.__base_ring(entries[i])
-        elif (entries is not None):
-            raise TypeError("Oops! The entries " + str(entries) + "must be a list of size n(n+1)/2.")
+        # Check if entries is a list, tuple or iterator for the
+        # current size, and if so, write the upper-triangular matrix
+        if entries is not None:
+            try:
+                entries = list(entries)
+            except TypeError:
+                raise TypeError('entries must be an iterable')
+
+            if len(entries) == N:
+                for i in range(N):
+                    self.__coeffs[i] = self.__base_ring(entries[i])
+            else:
+                raise TypeError("Oops! The entries " + str(entries) + " must be a list of size n(n+1)/2.")
 
         ## -----------------------------------------------------------
 
@@ -499,18 +508,18 @@ class QuadraticForm(SageObject):
         return deepcopy(self._external_initialization_list)
 
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Return a PARI-formatted Hessian matrix for Q.
 
         EXAMPLES::
 
             sage: Q = QuadraticForm(ZZ, 2, [1,0,5])
-            sage: Q._pari_()
+            sage: Q.__pari__()
             [2, 0; 0, 10]
 
         """
-        return self.matrix()._pari_()
+        return self.matrix().__pari__()
 
     def _pari_init_(self):
         """
@@ -648,11 +657,6 @@ class QuadraticForm(SageObject):
         except Exception:
             raise RuntimeError("Oops!  This coefficient can't be coerced to an element of the base ring for the quadratic form.")
 
-
-######################################
-# TO DO:    def __cmp__(self, other):
-######################################
-
     def __hash__(self):
         r"""
         TESTS::
@@ -697,9 +701,10 @@ class QuadraticForm(SageObject):
 
     def __add__(self, right):
           """
-          Returns the direct sum of two quadratic forms.
+          Return the direct sum of two quadratic forms.
 
           EXAMPLES::
+
               sage: Q = QuadraticForm(ZZ, 2, [1,4,10])
               sage: Q
               Quadratic form in 2 variables over Integer Ring with coefficients:
@@ -712,7 +717,6 @@ class QuadraticForm(SageObject):
               [ * 10 0 0 ]
               [ * * 1 4 ]
               [ * * * -10 ]
-
           """
           if not isinstance(right, QuadraticForm):
               raise TypeError("Oops!  Can't add these objects since they're not both quadratic forms. =(")
@@ -803,7 +807,7 @@ class QuadraticForm(SageObject):
         matrix is given then the output will be the quadratic form Q'
         which in matrix notation is given by:
 
-        .. math::
+        .. MATH::
                 Q' = v^t * Q * v.
 
 
@@ -837,7 +841,7 @@ class QuadraticForm(SageObject):
             sage: Q([1,0])
             1
             sage: type(Q([1,0]))
-            <type 'sage.rings.rational.Rational'>
+            <... 'sage.rings.rational.Rational'>
             sage: Q = QuadraticForm(QQ, 2, range(1,4))
             sage: Q(matrix(2, [1,0]))
             Quadratic form in 1 variables over Rational Field with coefficients:
@@ -887,7 +891,7 @@ class QuadraticForm(SageObject):
         if is_Matrix(v):
             ## Check that v has the correct number of rows
             if v.nrows() != n:
-                raise TypeError("Oops!  The matrix must have " + str(n) + " rows. =(")
+                raise TypeError("the matrix must have {} rows".format(n))
 
             ## Create the new quadratic form
             m = v.ncols()
@@ -897,14 +901,14 @@ class QuadraticForm(SageObject):
         elif (is_Vector(v) or isinstance(v, (list, tuple))):
             ## Check the vector/tuple/list has the correct length
             if not (len(v) == n):
-                raise TypeError("Oops!  Your vector needs to have length " + str(n) + " .")
+                raise TypeError("your vector needs to have length {}".format(n))
 
             ## TO DO:  Check that the elements can be coerced into the base ring of Q -- on first elt.
             if len(v) > 0:
                 try:
-                    x = self.base_ring()(v[0])
+                    self.base_ring()(v[0])
                 except Exception:
-                    raise TypeError("Oops!  Your vector is not coercible to the base ring of the quadratic form... =(")
+                    raise TypeError("your vector is not coercible to the base ring of the quadratic form")
 
             ## Attempt to evaluate Q[v]
             return QFEvaluateVector(self, v)
@@ -962,11 +966,11 @@ class QuadraticForm(SageObject):
                     return False
 
         ## Test that all entries coerce to R
-        if not ((A.base_ring() == R) or (ring_coerce_test == True)):
+        if not ((A.base_ring() == R) or ring_coerce_test):
             try:
                 for i in range(n):
                     for j in range(i, n):
-                        x = R(A[i,j])
+                        R(A[i,j])
             except Exception:
                 return False
 
@@ -1031,7 +1035,7 @@ class QuadraticForm(SageObject):
         Returns a (symmetric) Gram matrix A for the quadratic form Q,
         meaning that
 
-        .. math::
+        .. MATH::
 
             Q(x) = x^t * A * x,
 
@@ -1057,7 +1061,7 @@ class QuadraticForm(SageObject):
         Returns a (symmetric) Gram matrix A for the quadratic form Q,
         meaning that
 
-        .. math::
+        .. MATH::
 
             Q(x) = x^t * A * x,
 
@@ -1150,11 +1154,11 @@ class QuadraticForm(SageObject):
 
     def polynomial(self,names='x'):
         r"""
-        Returns the polynomial in 'n' variables of the quadratic form in the ring 'R[names].'
+        Return the polynomial in 'n' variables of the quadratic form in the ring 'R[names].'
 
         INPUT:
 
-            -'self' - a quadratic form over a commatitive ring.
+            -'self' - a quadratic form over a commutative ring.
             -'names' - the name of the variables. Digits will be appended to the name for each different canonical
             variable e.g x1, x2, x3 etc.
 
@@ -1166,7 +1170,7 @@ class QuadraticForm(SageObject):
 
             sage: Q = DiagonalQuadraticForm(QQ,[1, 3, 5, 7])
             sage: P = Q.polynomial(); P
-            2*x0^2 + 6*x1^2 + 10*x2^2 + 14*x3^2
+            x0^2 + 3*x1^2 + 5*x2^2 + 7*x3^2
 
         ::
 
@@ -1174,23 +1178,25 @@ class QuadraticForm(SageObject):
             sage: Z = F.ring_of_integers()
             sage: Q = QuadraticForm(Z,3,[2*a, 3*a, 0 , 1 - a, 0, 2*a + 4])
             sage: P = Q.polynomial(names='y'); P
-            4*a*y0^2 + 6*a*y0*y1 + (-2*a + 2)*y1^2 + (4*a + 8)*y2^2
+            2*a*y0^2 + 3*a*y0*y1 + (-a + 1)*y1^2 + (2*a + 4)*y2^2
             sage: Q = QuadraticForm(F,4,[a, 3*a, 0, 1 - a, a - 3, 0, 2*a + 4, 4 + a, 0, 1])
             sage: Q.polynomial(names='z')
-            (2*a)*z0^2 + (6*a)*z0*z1 + (2*a - 6)*z1^2 + (2*a + 8)*z2^2 + (-2*a + 2)*z0*z3 + (4*a + 8)*z1*z3 + 2*z3^2
+            (a)*z0^2 + (3*a)*z0*z1 + (a - 3)*z1^2 + (a + 4)*z2^2 + (-a + 1)*z0*z3 + (2*a + 4)*z1*z3 + z3^2
             sage: B.<i,j,k> = QuaternionAlgebra(F,-1,-1)
             sage: Q = QuadraticForm(B, 3, [2*a, 3*a, i, 1 - a, 0, 2*a + 4])
             sage: Q.polynomial()
             Traceback (most recent call last):
             ...
             ValueError: Can only create polynomial rings over commutative rings.
-
         """
-        M = self.matrix()
-        n = self.dim()
         B = self.base_ring()
+        n = self.dim()
+        M = matrix(B, n)
+        for i in range(n):
+            for j in range(i, n):
+                M[i,j] = self[i,j]
         try:
-            R = PolynomialRing(self.base_ring(),names,n)
+            R = PolynomialRing(self.base_ring(), names, n)
         except Exception:
             raise ValueError('Can only create polynomial rings over commutative rings.')
         V = vector(R.gens())
@@ -1261,7 +1267,7 @@ class QuadraticForm(SageObject):
             [ *  1 ]
 
         """
-        return QuadraticForm(self.Hessian_matrix().adjoint()).primitive()
+        return QuadraticForm(self.Hessian_matrix().adjoint_classical()).primitive()
 
     def dim(self):
         """
@@ -1576,6 +1582,7 @@ class QuadraticForm(SageObject):
             raise TypeError("not defined for rings of characteristic 2")
         return (self(v+w) - self(v) - self(w))/2
 
+    genera = staticmethod(genera)
 
 ## =====================================================================================================
 

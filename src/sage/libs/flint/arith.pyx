@@ -12,17 +12,21 @@ FLINT Arithmetic Functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
 from .fmpz cimport *
 from .fmpq cimport *
 
+
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 
+
 def bell_number(unsigned long n):
     """
-    Returns the `n` th Bell number.
+    Return the `n`-th Bell number.
+
+    See :wikipedia:`Bell_number`.
 
     EXAMPLES::
 
@@ -56,6 +60,8 @@ def bernoulli_number(unsigned long n):
     """
     Return the `n`-th Bernoulli number.
 
+    See :wikipedia:`Bernoulli_number`.
+
     EXAMPLES::
 
         sage: from sage.libs.flint.arith import bernoulli_number
@@ -85,6 +91,8 @@ def euler_number(unsigned long n):
     """
     Return the Euler number of index `n`.
 
+    See :wikipedia:`Euler_number`.
+
     EXAMPLES::
 
         sage: from sage.libs.flint.arith import euler_number
@@ -109,7 +117,9 @@ def euler_number(unsigned long n):
 
 def number_of_partitions(unsigned long n):
     """
-    Returns the number of partitions of the integer ``n``.
+    Return the number of partitions of the integer `n`.
+
+    See :wikipedia:`Partition_(number_theory)`.
 
     EXAMPLES::
 
@@ -173,9 +183,12 @@ def number_of_partitions(unsigned long n):
     fmpz_clear(ans_fmpz)
     return ans
 
+
 def dedekind_sum(p, q):
     """
     Return the Dedekind sum `s(p, q)` where `p` and `q` are arbitrary integers.
+
+    See :wikipedia:`Dedekind_sum`.
 
     EXAMPLES::
 
@@ -207,3 +220,31 @@ def dedekind_sum(p, q):
 
     return s
 
+
+def harmonic_number(unsigned long n):
+    """
+    Return the harmonic number `H_n`.
+
+    See :wikipedia:`Harmonic_number`.
+
+    EXAMPLES::
+
+        sage: from sage.libs.flint.arith import harmonic_number
+        sage: n = 500 + randint(0,500)
+        sage: bool( sum(1/k for k in range(1,n+1)) == harmonic_number(n) )
+        True
+    """
+    s = Rational(0)
+    cdef fmpq_t s_fmpq
+
+    fmpq_init(s_fmpq)
+
+    sig_on()
+    arith_harmonic_number(s_fmpq, n)
+
+    fmpq_get_mpq((<Rational>s).value, s_fmpq)
+    sig_off()
+
+    fmpq_clear(s_fmpq)
+
+    return s

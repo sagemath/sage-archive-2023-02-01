@@ -71,15 +71,22 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+
 include 'sage/data_structures/bitset.pxi'
-from matroid cimport Matroid
-from basis_exchange_matroid cimport BasisExchangeMatroid
-from itertools import permutations
+
+from sage.structure.richcmp cimport rich_to_bool
+from .matroid cimport Matroid
+from .basis_exchange_matroid cimport BasisExchangeMatroid
+from .set_system cimport SetSystem
+from cpython.object cimport Py_EQ, Py_NE
+
 from sage.arith.all import binomial
-from set_system cimport SetSystem
-from itertools import combinations
+
+from itertools import permutations, combinations
 
 # class of general matroids, represented by their list of bases
+
 
 cdef class BasisMatroid(BasisExchangeMatroid):
     """
@@ -328,7 +335,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
     # dual and minors
 
     cpdef dual(self):
-        """
+        r"""
         Return the dual of the matroid.
 
         Let `M` be a matroid with ground set `E`. If `B` is the set of bases
@@ -348,7 +355,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
         ALGORITHM:
 
         A BasisMatroid on `n` elements and of rank `r` is stored as a
-        bitvector of length `n \choose r`. The `i`-th bit in this vector
+        bitvector of length `\binom{n}{r}`. The `i`-th bit in this vector
         indicates that the `i`-th `r`-set in the lexicographic enumeration of
         `r`-subsets of the groundset is a basis. Reversing this bitvector
         yields a bitvector that indicates whether the complement of an
@@ -716,7 +723,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
 
     cpdef _bases_invariant2(self):
         """
-        Return an isomophism invariant of the matroid.
+        Return an isomorphism invariant of the matroid.
 
         Compared to BasisMatroid._bases_invariant() this invariant
         distinguishes more frequently between nonisomorphic matroids but
@@ -792,7 +799,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
             sage: PM = M._bases_partition3()
             sage: PN = N._bases_partition3()
             sage: morphism = {}
-            sage: for i in xrange(len(M)): morphism[min(PM[i])]=min(PN[i])
+            sage: for i in range(len(M)): morphism[min(PM[i])] = min(PN[i])
             sage: M._is_isomorphism(N, morphism)
             True
         """
@@ -909,8 +916,12 @@ cdef class BasisMatroid(BasisExchangeMatroid):
                 bitset_add(b2, morph[j])
                 j = bitset_next(self._b, j + 1)
             if bitset_in((<BasisMatroid>other)._bb, set_to_index(b2)):
+                bitset_free(b2)
+                bitset_free(bb_comp)
                 return False
             i = bitset_next(bb_comp, i + 1)
+        bitset_free(b2)
+        bitset_free(bb_comp)
         return True
 
     cpdef _is_isomorphism(self, other, morphism):
@@ -1039,7 +1050,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
         OUTPUT:
 
         Boolean,
-        and, if certificate = True, a dictionary giving the isomophism or None
+        and, if certificate = True, a dictionary giving the isomorphism or None
 
         .. NOTE::
 
@@ -1147,19 +1158,14 @@ cdef class BasisMatroid(BasisExchangeMatroid):
             sage: M == N
             False
         """
-        if op in [0, 1, 4, 5]:  # <, <=, >, >=
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
-        if not isinstance(left, BasisMatroid) or not isinstance(right, BasisMatroid):
+        if type(left) is not type(right):
             return NotImplemented
-        if op == 2:  # ==
-            res = True
-        if op == 3:  # !=
-            res = False
-        # res gets inverted if matroids are deemed different.
         if left.equals(right):
-            return res
+            return rich_to_bool(op, 0)
         else:
-            return not res
+            return rich_to_bool(op, 1)
 
     def __copy__(self):
         """

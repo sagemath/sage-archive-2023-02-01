@@ -439,7 +439,7 @@ class FormsRing_abstract(Parent):
             CuspForms(n=3, k=12, ep=1) over Integer Ring
         """
 
-        if analytic_type == None:
+        if analytic_type is None:
             analytic_type = self._analytic_type
         else:
             analytic_type = self._analytic_type.extend_by(analytic_type)
@@ -486,14 +486,14 @@ class FormsRing_abstract(Parent):
             ZeroForms(n=3, k=6, ep=-1) over Integer Ring
         """
 
-        if analytic_type == None:
+        if analytic_type is None:
             analytic_type = self._analytic_type
         else:
             analytic_type = self._analytic_type.reduce_to(analytic_type)
 
-        if (degree == None and not self.is_homogeneous()):
+        if (degree is None and not self.is_homogeneous()):
             return FormsRing(analytic_type, group=self.group(), base_ring=self.base_ring(), red_hom=self.has_reduce_hom())
-        elif (degree == None):
+        elif (degree is None):
             return FormsSpace(analytic_type, group=self.group(), base_ring=self.base_ring(), k=self.weight(), ep=self.ep())
         else:
             (weight, ep) = degree
@@ -779,22 +779,23 @@ class FormsRing_abstract(Parent):
 
             sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
             sage: ModularFormsRing().diff_alg()
-            Noncommutative Multivariate Polynomial Ring in X, Y, Z, dX, dY, dZ over Rational Field, nc-relations: {dZ*Z: Z*dZ + 1, dY*Y: Y*dY + 1, dX*X: X*dX + 1}
+            Noncommutative Multivariate Polynomial Ring in X, Y, Z, dX, dY, dZ over Rational Field, nc-relations: {dX*X: X*dX + 1, dY*Y: Y*dY + 1, dZ*Z: Z*dZ + 1}
 
             sage: from sage.modular.modform_hecketriangle.space import CuspForms
             sage: CuspForms(k=12, base_ring=AA).diff_alg()
-            Noncommutative Multivariate Polynomial Ring in X, Y, Z, dX, dY, dZ over Rational Field, nc-relations: {dZ*Z: Z*dZ + 1, dY*Y: Y*dY + 1, dX*X: X*dX + 1}
+            Noncommutative Multivariate Polynomial Ring in X, Y, Z, dX, dY, dZ over Rational Field, nc-relations: {dX*X: X*dX + 1, dY*Y: Y*dY + 1, dZ*Z: Z*dZ + 1}
         """
-
-        # We only use two operators for now which do not involve 'd', so for performance
-        # reason and due to restrictions for possible rings that can be used with algebra
-        # relations we choose FractionField(base_ring) instead of self.coeff_ring().
-        # For our purposes it is currently enough to define the operators over ZZ resp. QQ.
-        free_alg         = FreeAlgebra(FractionField(ZZ),6,'X,Y,Z,dX,dY,dZ')
-        (X,Y,Z,dX,dY,dZ) = free_alg.gens()
-        diff_alg         = free_alg.g_algebra({dX*X:1+X*dX,dY*Y:1+Y*dY,dZ*Z:1+Z*dZ})
-
-        return diff_alg
+        # We only use two operators for now which do not involve 'd',
+        # so for performance reason and due to restrictions for
+        # possible rings that can be used with algebra relations we
+        # choose FractionField(base_ring) instead of
+        # self.coeff_ring().  For our purposes it is currently enough
+        # to define the operators over ZZ resp. QQ.
+        free_alg = FreeAlgebra(QQ, 6, 'X,Y,Z,dX,dY,dZ')
+        X, Y, Z, dX, dY, dZ = free_alg.gens()
+        return free_alg.g_algebra({dX * X: 1 + X * dX,
+                                   dY * Y: 1 + Y * dY,
+                                   dZ * Z: 1 + Z * dZ})
 
     @cached_method
     def _derivative_op(self):
@@ -893,7 +894,7 @@ class FormsRing_abstract(Parent):
             True
         """
 
-        return self._weight != None
+        return self._weight is not None
 
     def is_modular(self):
         r"""

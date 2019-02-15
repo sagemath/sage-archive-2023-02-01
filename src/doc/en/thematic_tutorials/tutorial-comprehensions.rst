@@ -118,9 +118,11 @@ idioms give the same results; however, the second idiom is much more
 memory efficient (for large examples) as it does not expand any list
 in memory::
 
-    sage: sum( [ binomial(8, i) for i in range(9) ] )
+    sage: sum([binomial(8, i) for i in range(9)])
     256
-    sage: sum( binomial(8, i) for i in xrange(9) )
+    sage: sum(binomial(8, i) for i in xrange(9))  # py2
+    256
+    sage: sum(binomial(8, i) for i in range(9))  # py3
     256
 
 .. TOPIC:: Exercises
@@ -224,17 +226,25 @@ Here is the analogue of list slicing::
     [[1, 3, 2], [2, 1, 3], [2, 3, 1]]
 
     sage: import itertools
-    sage: list(itertools.islice(Permutations(3), 1, 4))
+    sage: list(itertools.islice(Permutations(3), 1r, 4r))
     [[1, 3, 2], [2, 1, 3], [2, 3, 1]]
 
-The functions :func:`map` and :func:`filter` also have an analogue::
+Note that all calls to ``islice`` must have arguments of type ``int`` and
+not Sage integers.
 
-    sage: list(itertools.imap(lambda z: z.cycle_type(), Permutations(3)))
+The behaviour of the functions :func:`map` and :func:`filter` has
+changed between Python 2 and Python 3. In Python 3, they return an
+iterator. If you want to use this new behaviour in Python 2, and keep
+your code compatible with Python3, you can use the compatibility
+library ``six`` as follows::
+
+    sage: from six.moves import map
+    sage: list(map(lambda z: z.cycle_type(), Permutations(3)))
     [[1, 1, 1], [2, 1], [2, 1], [3], [3], [2, 1]]
 
-    sage: list(itertools.ifilter(lambda z: z.has_pattern([1,2]), Permutations(3)))
+    sage: from six.moves import filter
+    sage: list(filter(lambda z: z.has_pattern([1,2]), Permutations(3)))
     [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2]]
-
 
 .. TOPIC:: Exercises
 

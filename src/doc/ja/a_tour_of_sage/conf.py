@@ -12,7 +12,8 @@
 # serve to show the default.
 
 import sys, os
-sys.path.append(os.environ['SAGE_DOC_SRC'])
+from sage.env import SAGE_DOC_SRC
+sys.path.append(SAGE_DOC_SRC)
 from common.conf import *
 
 # General information about the project.
@@ -43,5 +44,3 @@ latex_docclass = {'manual': 'jsbook'}
 # the definition of \\at in the standard preamble of the sphinx doc
 # conflicts with that in babel/french[b]
 latex_elements['preamble'] += '\\let\\at\\undefined'
-
-html_use_smartypants = False

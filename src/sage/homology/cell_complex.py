@@ -33,14 +33,25 @@ by developers producing new classes, not casual users.
     :meth:`~GenericCellComplex.homology` method for cell complexes --
     just make sure it gets documented.
 """
-from __future__ import absolute_import
 
+########################################################################
+#       Copyright (C) 2009 John H. Palmieri <palmieri@math.washington.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#
+#                  http://www.gnu.org/licenses/
+########################################################################
+from __future__ import absolute_import
+from six.moves import range
 
 from sage.structure.sage_object import SageObject
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
 from sage.misc.abstract_method import abstract_method
+from sage.homology.chains import Chains, Cochains
+
 
 class GenericCellComplex(SageObject):
     r"""
@@ -112,7 +123,7 @@ class GenericCellComplex(SageObject):
         the keys are integers, representing dimension, and the value
         associated to an integer `d` is the set of `d`-cells.  If the
         optional argument ``subcomplex`` is present, then return only
-        the faces which are *not* in the subcomplex.
+        the cells which are *not* in the subcomplex.
 
         :param subcomplex: a subcomplex of this cell complex.  Return
            the cells which are not in this subcomplex.
@@ -159,13 +170,16 @@ class GenericCellComplex(SageObject):
         try:
             return max([x.dimension() for x in self._facets])
         except AttributeError:
+            if len(self.cells()) == 0:
+                # The empty cell complex has dimension -1.
+                return -1
             return max(self.cells())
 
     def n_cells(self, n, subcomplex=None):
         """
         List of cells of dimension ``n`` of this cell complex.
         If the optional argument ``subcomplex`` is present, then
-        return the ``n``-dimensional faces which are *not* in the
+        return the ``n``-dimensional cells which are *not* in the
         subcomplex.
 
         :param n: the dimension
@@ -173,6 +187,11 @@ class GenericCellComplex(SageObject):
         :param subcomplex: a subcomplex of this cell complex. Return
            the cells which are not in this subcomplex.
         :type subcomplex: optional, default ``None``
+
+        .. NOTE::
+
+            The resulting list need not be sorted. If you want a sorted
+            list of `n`-cells, use :meth:`_n_cells_sorted`.
 
         EXAMPLES::
 
@@ -186,6 +205,40 @@ class GenericCellComplex(SageObject):
         else:
             # don't barf if someone asks for n_cells in a dimension where there are none
             return []
+
+    def _n_cells_sorted(self, n, subcomplex=None):
+        """
+        Sorted list of cells of dimension ``n`` of this cell complex.
+        If the optional argument ``subcomplex`` is present, then
+        return the ``n``-dimensional cells which are *not* in the
+        subcomplex.
+
+        :param n: the dimension
+        :type n: non-negative integer
+        :param subcomplex: a subcomplex of this cell complex. Return
+           the cells which are not in this subcomplex.
+        :type subcomplex: optional, default ``None``
+
+        EXAMPLES::
+
+            sage: S = Set(range(1,5))
+            sage: Z = SimplicialComplex(S.subsets())
+            sage: Z
+            Simplicial complex with vertex set (1, 2, 3, 4) and facets {(1, 2, 3, 4)}
+            sage: Z._n_cells_sorted(2)
+            [(1, 2, 3), (1, 2, 4), (1, 3, 4), (2, 3, 4)]
+            sage: K = SimplicialComplex([[1,2,3], [2,3,4]])
+            sage: Z._n_cells_sorted(2, subcomplex=K)
+            [(1, 2, 4), (1, 3, 4)]
+            sage: S = SimplicialComplex([[complex(i), complex(1)]])
+            sage: S._n_cells_sorted(0)
+            [((1+0j),), (1j,)]
+        """
+        n_cells = self.n_cells(n, subcomplex)
+        try:
+            return sorted(n_cells)
+        except TypeError:
+            return sorted(n_cells, key=str)
 
     def f_vector(self):
         """
@@ -507,7 +560,7 @@ class GenericCellComplex(SageObject):
         from sage.homology.homology_group import HomologyGroup
 
         if dim is not None:
-            if isinstance(dim, (list, tuple)):
+            if isinstance(dim, (list, tuple, range)):
                 low = min(dim) - 1
                 high = max(dim) + 2
             else:
@@ -537,11 +590,11 @@ class GenericCellComplex(SageObject):
             if H:
                 answer = {}
                 if not dims:
-                    dims =range(self.dimension() + 1)
+                    dims = range(self.dimension() + 1)
                 for d in dims:
                     answer[d] = H.get(d, HomologyGroup(0, base_ring))
                 if dim is not None:
-                    if not isinstance(dim, (list, tuple)):
+                    if not isinstance(dim, (list, tuple, range)):
                         answer = answer.get(dim, HomologyGroup(0, base_ring))
                 return answer
 
@@ -560,9 +613,9 @@ class GenericCellComplex(SageObject):
         answer = C.homology(base_ring=base_ring, generators=generators,
                             verbose=verbose, algorithm=algorithm)
         if dim is None:
-            dim = range(self.dimension()+1)
+            dim = range(self.dimension() + 1)
         zero = HomologyGroup(0, base_ring)
-        if isinstance(dim, (list, tuple)):
+        if isinstance(dim, (list, tuple, range)):
             return dict([d, answer.get(d, zero)] for d in dim)
         return answer.get(dim, zero)
 
@@ -744,7 +797,11 @@ class GenericCellComplex(SageObject):
             sage: list(simplicial_complexes.Sphere(2).n_chains(1, QQ, cochains=True).basis())
             [\chi_(0, 1), \chi_(0, 2), \chi_(0, 3), \chi_(1, 2), \chi_(1, 3), \chi_(2, 3)]
         """
-        return Chains(tuple(self.n_cells(n)), base_ring, cochains)
+        n_cells = tuple(self._n_cells_sorted(n))
+        if cochains:
+            return Cochains(self, n, n_cells, base_ring)
+        else:
+            return Chains(self, n, n_cells, base_ring)
 
     def algebraic_topological_model(self, base_ring=QQ):
         r"""
@@ -752,7 +809,7 @@ class GenericCellComplex(SageObject):
         coefficients in ``base_ring``.
 
         The term "algebraic topological model" is defined by Pilarczyk
-        and Réal [PR]_.
+        and Réal [PR2015]_.
 
         This is not implemented for generic cell complexes. For any
         classes deriving from this one, when this method is
@@ -966,8 +1023,8 @@ class GenericCellComplex(SageObject):
         :meth:`~sage.homology.cubical_complex.Cube.alexander_whitney`. Then
         the method for simplicial complexes just calls the method for
         individual simplices, and similarly for cubical complexes. For
-        `\Delta`-complexes, the method is instead defined at the level
-        of the cell complex.
+        `\Delta`-complexes and simplicial sets, the method is instead
+        defined at the level of the cell complex.
 
         EXAMPLES::
 
@@ -998,8 +1055,8 @@ class GenericCellComplex(SageObject):
 
             sage: P = SimplicialComplex([[0, 1], [1,2], [2,3]]).face_poset(); P
             Finite poset containing 7 elements
-            sage: P.list()
-            [(3,), (2,), (2, 3), (1,), (1, 2), (0,), (0, 1)]
+            sage: sorted(P.list())
+            [(0,), (0, 1), (1,), (1, 2), (2,), (2, 3), (3,)]
 
             sage: S2 = cubical_complexes.Sphere(2)
             sage: S2.face_poset()
@@ -1037,6 +1094,37 @@ class GenericCellComplex(SageObject):
             NotImplementedError
         """
         raise NotImplementedError
+
+    def is_connected(self):
+        """
+        True if this cell complex is connected.
+
+        EXAMPLES::
+
+            sage: V = SimplicialComplex([[0,1,2],[3]])
+            sage: V
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(3,), (0, 1, 2)}
+            sage: V.is_connected()
+            False
+            sage: X = SimplicialComplex([[0,1,2]])
+            sage: X.is_connected()
+            True
+            sage: U = simplicial_complexes.ChessboardComplex(3,3)
+            sage: U.is_connected()
+            True
+            sage: W = simplicial_complexes.Sphere(3)
+            sage: W.is_connected()
+            True
+            sage: S = SimplicialComplex([[0,1],[2,3]])
+            sage: S.is_connected()
+            False
+
+            sage: cubical_complexes.Sphere(0).is_connected()
+            False
+            sage: cubical_complexes.Sphere(2).is_connected()
+            True
+        """
+        return self.graph().is_connected()
 
     @abstract_method
     def n_skeleton(self, n):
@@ -1114,132 +1202,4 @@ class GenericCellComplex(SageObject):
             cells_string = " and 1 %s" % cell_name
         return Name + " complex " + vertex_string + cells_string
 
-
-class Chains(CombinatorialFreeModule):
-    r"""
-    Class for the free module of chains and/or cochains in a given
-    degree.
-
-    INPUT:
-
-    - ``n_cells`` -- tuple of `n`-cells, which thus forms a basis for
-      this module
-    - ``base_ring`` -- optional (default `\ZZ`)
-    - ``cochains`` -- boolean (optional, default ``False``); if
-      ``True``, return cochains instead
-
-    One difference between chains and cochains is notation. In a
-    simplicial complex, for example, a simplex ``(0,1,2)`` is written
-    as "(0,1,2)" in the group of chains but as "\chi_(0,1,2)" in the
-    group of cochains.
-
-    Also, since the free modules of chains and cochains are dual,
-    there is a pairing `\langle c, z \rangle`, sending a cochain `c`
-    and a chain `z` to a scalar.
-
-    EXAMPLES::
-
-        sage: S2 = simplicial_complexes.Sphere(2)
-        sage: C_2 = S2.n_chains(1)
-        sage: C_2_co = S2.n_chains(1, cochains=True)
-        sage: x = C_2.basis()[Simplex((0,2))]
-        sage: y = C_2.basis()[Simplex((1,3))]
-        sage: z = x+2*y
-        sage: a = C_2_co.basis()[Simplex((1,3))]
-        sage: b = C_2_co.basis()[Simplex((0,3))]
-        sage: c = 3*a-2*b
-        sage: z
-        (0, 2) + 2*(1, 3)
-        sage: c
-        -2*\chi_(0, 3) + 3*\chi_(1, 3)
-        sage: c.eval(z)
-        6
-    """
-    def __init__(self, n_cells, base_ring=None, cochains=False):
-        """
-        EXAMPLES::
-
-            sage: T = cubical_complexes.Torus()
-            sage: T.n_chains(2, QQ)
-            Free module generated by {[1,1] x [0,1] x [1,1] x [0,1],
-             [0,0] x [0,1] x [0,1] x [1,1], [0,0] x [0,1] x [1,1] x [0,1],
-             [0,0] x [0,1] x [0,0] x [0,1], [0,1] x [1,1] x [0,1] x [0,0],
-             [0,1] x [0,0] x [0,0] x [0,1], [1,1] x [0,1] x [0,1] x [0,0],
-             [0,1] x [1,1] x [0,0] x [0,1], [0,0] x [0,1] x [0,1] x [0,0],
-             [0,1] x [0,0] x [0,1] x [0,0], [0,1] x [0,0] x [1,1] x [0,1],
-             [0,1] x [1,1] x [1,1] x [0,1], [0,1] x [0,0] x [0,1] x [1,1],
-             [1,1] x [0,1] x [0,0] x [0,1], [1,1] x [0,1] x [0,1] x [1,1],
-             [0,1] x [1,1] x [0,1] x [1,1]} over Rational Field
-            sage: T.n_chains(2).dimension()
-            16
-
-        TESTS::
-
-            sage: T.n_chains(2).base_ring()
-            Integer Ring
-            sage: T.n_chains(8).dimension()
-            0
-            sage: T.n_chains(-3).dimension()
-            0
-        """
-        if base_ring is None:
-            base_ring=ZZ
-        self._cochains = cochains
-        if cochains:
-            CombinatorialFreeModule.__init__(self, base_ring, n_cells,
-                                             prefix='\\chi', bracket=['_', ''])
-        else:
-            CombinatorialFreeModule.__init__(self, base_ring, n_cells,
-                                             prefix='', bracket=False)
-
-    class Element(CombinatorialFreeModuleElement):
-
-        def eval(self, other):
-            """
-            Evaluate this cochain on the chain ``other``.
-
-            INPUT:
-
-            - ``other`` -- a chain for the same cell complex in the
-              same dimension with the same base ring
-
-            OUTPUT: scalar
-
-            EXAMPLES::
-
-                sage: S2 = simplicial_complexes.Sphere(2)
-                sage: C_2 = S2.n_chains(1)
-                sage: C_2_co = S2.n_chains(1, cochains=True)
-                sage: x = C_2.basis()[Simplex((0,2))]
-                sage: y = C_2.basis()[Simplex((1,3))]
-                sage: z = x+2*y
-                sage: a = C_2_co.basis()[Simplex((1,3))]
-                sage: b = C_2_co.basis()[Simplex((0,3))]
-                sage: c = 3*a-2*b
-                sage: z
-                (0, 2) + 2*(1, 3)
-                sage: c
-                -2*\chi_(0, 3) + 3*\chi_(1, 3)
-                sage: c.eval(z)
-                6
-
-            TESTS::
-
-                sage: z.eval(c) # z is not a cochain
-                Traceback (most recent call last):
-                ...
-                ValueError: this element is not a cochain
-                sage: c.eval(c) # can't evaluate a cochain on a cochain
-                Traceback (most recent call last):
-                ...
-                ValueError: the elements are not compatible
-            """
-            if not self.parent()._cochains:
-                raise ValueError('this element is not a cochain')
-            if not (other.parent().indices() == self.parent().indices()
-                    and other.base_ring() == self.base_ring()
-                    and not other.parent()._cochains):
-                raise ValueError('the elements are not compatible')
-            result = sum(coeff * other.coefficient(cell) for cell, coeff in self)
-            return result
 

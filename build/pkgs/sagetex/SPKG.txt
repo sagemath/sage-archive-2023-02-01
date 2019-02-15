@@ -24,10 +24,12 @@ Francisco, California, 94105, USA.
 == SPKG Maintainers ==
 
 Dan Drake (dr.dan.drake at gmail)
+and
+SageMath developers (sage-devel@googlegroups.com)
 
 == Upstream Contact ==
 
-Author: Dan Drake. Web: [[https://github.com/dandrake/sagetex]]
+Author: Dan Drake. Web: [[https://github.com/sagemath/sagetex]]
 
 == Dependencies ==
 
@@ -40,7 +42,7 @@ it cannot find "latex" in your path.
 To use SageTeX, both Sage and LaTeX need to know about it. SageTeX comes
 standard with Sage, so you only need to make sure LaTeX can find what it
 needs. Full details are in the Sage installation guide at
-http://sagemath.org/doc/installation/ and
+http://doc.sagemath.org/html/en/installation/ and
 http://doc.sagemath.org/html/en/tutorial/sagetex.html .
 
 The directory `$SAGE_ROOT/local/share/doc/sagetex` contains

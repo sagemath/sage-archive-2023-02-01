@@ -20,7 +20,7 @@ the :meth:`descendant <TwoGraph.descendant>` of `T` w.r.t. `v`.
 in the same number alpha of triples of `T`.
 
 This module implements a direct construction of a two-graph from a list of
-triples, constrution of descendant graphs, regularity checking, and other
+triples, construction of descendant graphs, regularity checking, and other
 things such as constructing the complement two-graph, cf. [BH12]_.
 
 AUTHORS:
@@ -93,12 +93,11 @@ class TwoGraph(IncidenceStructure):
                                     incidence_matrix=incidence_matrix,
                                     name=name, check=False, copy=copy)
         if check:  # it is a very slow, O(|points|^4), test...
-           from sage.combinat.designs.twographs import is_twograph
            assert is_twograph(self), "the structure is not a 2-graph!"
 
     def is_regular_twograph(self, alpha=False):
         r"""
-        Tests if the :class:`TwoGraph` is regular, i.e. is a 2-design.
+        Test if the :class:`TwoGraph` is regular, i.e. is a 2-design.
 
         Namely, each pair of elements of :meth:`ground_set` is contained in
         exactly ``alpha`` triples.
@@ -141,19 +140,19 @@ class TwoGraph(IncidenceStructure):
 
         EXAMPLES::
 
-            sage: p=graphs.PetersenGraph().twograph().descendant(0)
+            sage: p = graphs.PetersenGraph().twograph().descendant(0)
             sage: p.is_strongly_regular(parameters=True)
             (9, 4, 1, 2)
         """
         from sage.graphs.graph import Graph
-        return Graph(map(lambda y: filter(lambda z: z != v, y),
-                            filter(lambda x: v in x, self.blocks())))
+        return Graph([[z for z in x if z != v]
+                      for x in self.blocks() if v in x])
 
     def complement(self):
         """
         The two-graph which is the complement of ``self``
 
-        That is, the two-graph constisting exactly of triples not in ``self``.
+        That is, the two-graph consisting exactly of triples not in ``self``.
         Note that this is different from :meth:`complement
         <sage.combinat.designs.incidence_structures.IncidenceStructure.complement>`
         of the :class:`parent class
@@ -161,7 +160,7 @@ class TwoGraph(IncidenceStructure):
 
         EXAMPLES::
 
-            sage: p=graphs.CompleteGraph(8).line_graph().twograph()
+            sage: p = graphs.CompleteGraph(8).line_graph().twograph()
             sage: pc = p.complement(); pc
             Incidence structure with 28 points and 1260 blocks
 

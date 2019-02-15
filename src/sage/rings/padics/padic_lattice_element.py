@@ -791,8 +791,8 @@ class pAdicLatticeElement(pAdicGenericElement):
         with the same parent.
 
         When ``infer_precision`` is set to ``False``, the precision on the
-        newly created variable is independant as if the variable were created
-        by hand by setting independantly the value of the absolute precision.
+        newly created variable is independent as if the variable were created
+        by hand by setting independently the value of the absolute precision.
         In particular, if ``self`` used to share diffused digits of precision 
         with other variables, they are not preserved.
 

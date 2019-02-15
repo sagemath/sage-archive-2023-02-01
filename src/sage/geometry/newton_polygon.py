@@ -138,7 +138,7 @@ class NewtonPolygon_element(Element):
             sage: NP2.last_slope()
             +Infinity
 
-        We check that the last slope of a sum (resp. a produit) is the
+        We check that the last slope of a sum (resp. a product) is the
         minimum of the last slopes of the summands (resp. the factors)::
 
             sage: (NP1 + NP2).last_slope()

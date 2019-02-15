@@ -4184,8 +4184,9 @@ def SousselierGraph():
     Return the Sousselier Graph.
 
     The Sousselier graph is a hypohamiltonian graph on 16 vertices and 27
-    edges. For more information, see the corresponding `Wikipedia page (in
-    French) <http://fr.wikipedia.org/wiki/Graphe_de_Sousselier>`_.
+    edges. For more information, see :wikipedia:`Sousselier_graph` or
+    the corresponding French
+    `Wikipedia page <https://fr.wikipedia.org/wiki/Graphe_de_Sousselier>`_.
 
     EXAMPLES::
 
@@ -4569,15 +4570,15 @@ def WatkinsSnarkGraph():
     g._circle_embedding(list(range(5)), shift=.25, radius=1.1)
     return g
 
+
 def WienerArayaGraph():
     r"""
     Return the Wiener-Araya Graph.
 
     The Wiener-Araya Graph is a planar hypohamiltonian graph on 42 vertices and
     67 edges. For more information, see the `Wolfram Page on the Wiener-Araya
-    Graph <http://mathworld.wolfram.com/Wiener-ArayaGraph.html>`_ or its
-    `(french) Wikipedia page
-    <http://fr.wikipedia.org/wiki/Graphe_de_Wiener-Araya>`_.
+    Graph <http://mathworld.wolfram.com/Wiener-ArayaGraph.html>`_ or
+    :wikipedia:`Wiener-Araya_graph`.
 
     EXAMPLES::
 
@@ -4628,6 +4629,7 @@ def WienerArayaGraph():
     g.get_pos().pop(0)
     g.relabel()
     return g
+
 
 def _EllipticLinesProjectivePlaneScheme(k):
     r"""

@@ -30,7 +30,6 @@ AUTHORS:
 import numpy
 from operator import itemgetter
 
-from cpython cimport PyObject
 from libc.limits cimport LONG_MAX
 
 from cysignals.memory cimport check_calloc, sig_free
@@ -89,7 +88,7 @@ cdef void add_gen(void *user_param, unsigned int n, const unsigned int *aut):
     for i in range(n):
         done[i] = False
 
-    gens, int_to_vertex = <object> <PyObject *> user_param
+    gens, int_to_vertex = <object>user_param
 
     while True:
         while cur < n and done[cur]:
@@ -540,11 +539,11 @@ cdef automorphism_group_gens_from_edge_list(int Vnr, Vout, Vin, int Lnr=1, label
 
     if directed:
         d = bliss_digraph_from_labelled_edges(Vnr, Lnr, Vout, Vin, labels, partition)
-        d.find_automorphisms(s, add_gen, <PyObject *> data)
+        d.find_automorphisms(s, add_gen, <void*>data)
         del d
     else:
         g = bliss_graph_from_labelled_edges(Vnr, Lnr, Vout, Vin, labels, partition)
-        g.find_automorphisms(s, add_gen, <PyObject *> data)
+        g.find_automorphisms(s, add_gen, <void*>data)
         del g
 
     return [[cyc for cyc in gen if cyc[0] is not None] for gen in gens]

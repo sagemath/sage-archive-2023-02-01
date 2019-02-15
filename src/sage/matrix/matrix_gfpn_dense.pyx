@@ -29,7 +29,7 @@ AUTHORS:
 from __future__ import print_function, absolute_import, division
 
 from cysignals.memory cimport check_realloc, check_malloc, sig_free
-from cpython.bytes cimport PyBytes_FromStringAndSize
+from cpython.bytes cimport PyBytes_AsString, PyBytes_FromStringAndSize
 from cysignals.signals cimport sig_on, sig_off, sig_check
 cimport cython
 
@@ -825,8 +825,6 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         cdef Matrix_gfpn_dense N = right
         if self is None or N is None:
             return -1
-        cdef char* d1
-        cdef char* d2
         if self.Data == NULL:
             if N.Data == NULL:
                 return 0
@@ -846,11 +844,14 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             if self.Data.Nor > N.Data.Nor:
                 return 1
             return -1
-        d1 = <char*>(self.Data.Data)
-        d2 = <char*>(N.Data.Data)
+
+        cdef char* d1 = <char*>self.Data.Data
+        cdef char* d2 = <char*>N.Data.Data
+        cdef Py_ssize_t total_size = self.Data.RowSize
+        total_size *= self.Data.Nor
         cdef bytes s1, s2
-        s1 = PyBytes_FromStringAndSize(d1, self.Data.RowSize * self.Data.Nor)
-        s2 = PyBytes_FromStringAndSize(d2, N.Data.RowSize * N.Data.Nor)
+        s1 = PyBytes_FromStringAndSize(d1, total_size)
+        s2 = PyBytes_FromStringAndSize(d2, total_size)
         if s1 != s2:
             if s1 > s2:
                 return 1
@@ -1932,7 +1933,7 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
         pickled_rowsize = lenData//nr
         if lenData != pickled_rowsize*nr:
             raise ValueError(f"Expected a pickle with {FfCurrentRowSizeIo}*{nr} bytes, got {lenData} instead")
-        x = Data
+        x = PyBytes_AsString(Data)
         if pickled_rowsize == FfCurrentRowSizeIo:
             pt = OUT.Data.Data
             for i in range(nr):

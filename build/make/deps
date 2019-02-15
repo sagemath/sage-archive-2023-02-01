@@ -127,7 +127,7 @@ base: $(inst_patch) $(inst_pkgconf)
 # dependencies for Cython files (e.g. PARI, NTL, MP_LIBRARY).
 sagelib: \
 		$(inst_arb) \
-		$(BLAS) \
+		$(inst_$(BLAS)) \
 		$(inst_brial) \
 		$(inst_cliquer) \
 		$(inst_cypari) \
@@ -156,7 +156,7 @@ sagelib: \
 		$(inst_mpc) \
 		$(inst_mpfi) \
 		$(inst_mpfr) \
-		$(MP_LIBRARY) \
+		$(inst_$(MP_LIBRARY)) \
 		$(inst_ntl) \
 		$(inst_numpy) \
 		$(inst_pari) \
@@ -166,8 +166,7 @@ sagelib: \
 		$(inst_ppl) \
 		$(inst_pycygwin) \
 		$(inst_pynac) \
-		$(inst_python2) \
-		$(inst_python3) \
+		$(inst_$(PYTHON)) \
 		$(inst_ratpoints) \
 		$(inst_readline) \
 		$(inst_rw) \

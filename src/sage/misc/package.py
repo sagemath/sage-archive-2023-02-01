@@ -43,7 +43,7 @@ Functions
 #*****************************************************************************
 from __future__ import print_function
 
-from sage.env import SAGE_ROOT, SAGE_PKGS
+from sage.env import SAGE_PKGS
 
 import json
 import os

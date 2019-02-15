@@ -29,15 +29,15 @@ from sage.rings.complex_double cimport ComplexDoubleElement
 from sage.arith.srange import srange
 
 from libc.math cimport hypot, atan2, atan, log, sqrt
-
-cdef double PI = 4 * atan(1)
+from sage.arith.constants cimport M_PI as PI
 
 
 cdef inline ComplexDoubleElement new_CDF_element(double x, double y):
-    cdef ComplexDoubleElement z = ComplexDoubleElement.__new__(ComplexDoubleElement)
-    z._complex.dat[0] = x
-    z._complex.dat[1] = y
+    z = <ComplexDoubleElement>ComplexDoubleElement.__new__(ComplexDoubleElement)
+    z._complex.real = x
+    z._complex.imag = y
     return z
+
 
 cdef inline double mag_to_lightness(double r):
     """
@@ -114,7 +114,7 @@ def complex_to_rgb(z_values):
                 z = <ComplexDoubleElement>zz
             else:
                 z = CDF(zz)
-            x, y = z._complex.dat[0], z._complex.dat[1]
+            x, y = z._complex.dat
             mag = hypot(x, y)
             arg = atan2(y, x) # math module arctan has range from -pi to pi, so cut along negative x-axis
 

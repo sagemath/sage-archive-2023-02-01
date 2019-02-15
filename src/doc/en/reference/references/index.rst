@@ -477,6 +477,11 @@ REFERENCES:
              J. Reine Angew. Math., **655** (2011), 61-87.
              :mathscinet:`MR2806105`
 
+.. [BL1994] Bernhard Beckermann, George Labahn. "A Uniform Approach for the
+            Fast Computation of Matrix-Type Padé Approximants". SIAM J. Matrix
+            Anal. Appl. 15 (1994) 804-823.
+            http://dx.doi.org/10.1137/S0895479892230031
+
 .. [BMPS2018] Jonah Blasiak, Jennifer Morse, Anna Pun, and Daniel Summers.
               *Catalan functions and k-schur positivity*
               :arxiv:`1804.03701`
@@ -1500,6 +1505,10 @@ REFERENCES:
              *KLEIN: A new family of lightweight block ciphers*; in
              RFIDSec, (2011), p. 1-18.
 
+.. [GN2018] Pascal Giorgi and Vincent Neiger. Certification of Minimal
+            Approximant Bases. In ISSAC 2018, pages 167-174.
+            https://doi.org/10.1145/3208976.3208991
+
 .. [Go1967] Solomon Golomb, Shift register sequences, Aegean Park
             Press, Laguna Hills, Ca, 1967
 
@@ -1858,6 +1867,11 @@ REFERENCES:
              Power Series and Algebraic Combinatorics (FPSAC 2009), Discrete
              Math. Theor. Comput. Sci. Proc., AK, Assoc. Discrete
              Math. Theor. Comput. Sci., Nancy, 2009, pp. 491–502
+
+.. [JNSV2016] Claude-Pierre Jeannerod, Vincent Neiger, Eric Schost, and Gilles
+             Villard. Fast Computation of Minimal Interpolation Bases in Popov
+             Form for Arbitrary Shifts. In Proceedings ISSAC 2016 (pages
+             295-302). https://doi.org/10.1145/2930889.2930928
 
 .. [Joh1990] \D.L. Johnson. *Presentations of Groups*. Cambridge
              University Press. (1990).

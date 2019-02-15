@@ -871,6 +871,19 @@ class PermutationGroup_generic(FiniteGroup):
             ....:             if f is not None and g is not None:
             ....:                 h = G3.coerce_map_from(G1)
             ....:                 assert h(elt) == g(f(elt))
+
+        Check that :trac:`26903` is fixed::
+
+            sage: G = SO(4,3,-1)
+            sage: P = G.as_permutation_group(algorithm='smaller', seed=5)
+            sage: P1 = G.as_permutation_group()
+            sage: P == P1
+            False
+            sage: g1, g2, g3 = G.gens()
+            sage: P(g1*g2)
+            (1,9,7,6)(2,10)(3,11)(4,5,8,12)
+            sage: P1(g1*g2)
+            (1,4,13,11)(2,5,14,18)(3,15,8,16)(6,7)(9,20,19,12)(10,17)
         """
         if isinstance(G, PermutationGroup_subgroup):
             if G._ambient_group is self:

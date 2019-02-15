@@ -32,6 +32,13 @@ is a collection `K` of subsets of `V` satisfying the condition that if
 `S` is one of the subsets in `K`, then so is every subset of `S`.  The
 subsets `S` are called the 'simplices' of `K`.
 
+.. NOTE::
+
+   In Sage, the elements of the vertex set are determined
+   automatically: `V` is defined to be the union of the sets in
+   `K`. So in Sage's implementation of simplicial complexes, every
+   vertex is included in some face.
+
 A simplicial complex `K` can be viewed as a purely combinatorial
 object, as described above, but it also gives rise to a topological
 space `|K|` (its *geometric realization*) as follows: first, the
@@ -55,16 +62,9 @@ the differential is the alternating sum with `i^{th}` summand `(-1)^i`
 multiplied by the `(n-1)`-simplex obtained by omitting vertex `v_i`.
 
 In the implementation here, the vertex set must be finite. To define a
-simplicial complex, specify its vertex set: this should be a list,
-tuple, or set, or it can be a non-negative integer `n`, in which case
-the vertex set is `(0, ..., n)`.  Also specify the facets: the maximal
-faces.
-
-.. NOTE::
-
-   The elements of the vertex set are not automatically contained in
-   the simplicial complex: each one is only included if and only if it
-   is a vertex of at least one of the specified facets.
+simplicial complex, specify its *facets*: the maximal subsets (with
+respect to inclusion) of the vertex set belonging to `K`. Each facet
+can be specifed as a list, a tuple, or a set.
 
 .. NOTE::
 
@@ -840,7 +840,9 @@ class SimplicialComplex(Parent, GenericCellComplex):
     ``maximal_faces`` should be a list or tuple or set (indeed,
     anything which may be converted to a set) whose elements are lists
     (or tuples, etc.) of vertices.  Maximal faces are also known as
-    'facets'.
+    'facets'. ``maximal_faces`` can also be a list containing a single
+    non-negative integer `n`, in which case this constructs the
+    simplicial complex with a single `n`-simplex as the only facet.
 
     Alternatively, the maximal faces can be defined from a monotone boolean
     function on the subsets of a set `X`. While defining ``maximal_faces=None``,

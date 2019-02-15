@@ -5,7 +5,7 @@ Dependency usage tracking for citations
 from __future__ import absolute_import
 
 from sage.misc.all import tmp_filename
-from sage.env import SAGE_ROOT
+from sage.env import SAGE_LOCAL
 
 systems = {}
 systems['PARI'] = ['cypari2', 'sage.interfaces.gp']
@@ -112,7 +112,7 @@ def get_systems(cmd):
     stats = pstats.Stats(filename)
 
     #Strings is a list of method names and modules which get run
-    strings = [a[0].replace(SAGE_ROOT, "") + " " + a[2]
+    strings = [a[0].replace(SAGE_LOCAL, "") + " " + a[2]
                for a in stats.stats]
 
     #Remove trivial functions

@@ -76,7 +76,8 @@ see the documentation for :class:`Parent`.
 from __future__ import print_function, absolute_import
 
 from cpython.object cimport (PyObject, PyTypeObject,
-        PyObject_CallObject, PyObject_RichCompare, Py_TYPE)
+        PyObject_CallObject, PyObject_RichCompare, Py_TYPE,
+        Py_EQ, Py_NE, Py_LT, Py_LE, Py_GT, Py_GE)
 from cpython.weakref cimport PyWeakref_GET_OBJECT, PyWeakref_NewRef
 from libc.string cimport strncmp
 
@@ -1893,14 +1894,17 @@ cdef class CoercionModel:
             sage: richcmp(int(1), float(2), op_GE)
             False
 
-        If there is no coercion, only comparisons for equality make
-        sense::
+        If there is no coercion, we only support ``==`` and ``!=``::
 
             sage: x = QQ.one(); y = GF(2).one()
             sage: richcmp(x, y, op_EQ)
             False
             sage: richcmp(x, y, op_NE)
             True
+            sage: richcmp(x, y, op_GT)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for >: 'Rational Field' and 'Finite Field of size 2'
 
         We support non-Sage types with the usual Python convention::
 
@@ -1950,13 +1954,23 @@ cdef class CoercionModel:
             if res is not NotImplemented:
                 return res
 
-        # Final attempt: compare by id()
-        if (<unsigned long><PyObject*>x) >= (<unsigned long><PyObject*>y):
-            # It cannot happen that x is y, since they don't
-            # have the same parent.
-            return rich_to_bool(op, 1)
+        # At this point, we have 2 objects which cannot be coerced to
+        # a common parent. So we assume that they are not equal.
+        if op == Py_EQ:
+            return False
+        if op == Py_NE:
+            return True
+
+        # It does not make sense to compare x and y with an inequality,
+        # so we raise an exception.
+        if op == Py_LT:
+            raise bin_op_exception('<', x, y)
+        elif op == Py_LE:
+            raise bin_op_exception('<=', x, y)
+        elif op == Py_GT:
+            raise bin_op_exception('>', x, y)
         else:
-            return rich_to_bool(op, -1)
+            raise bin_op_exception('>=', x, y)
 
     def _coercion_error(self, x, x_map, x_elt, y, y_map, y_elt):
         """

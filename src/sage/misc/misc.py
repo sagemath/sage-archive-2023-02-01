@@ -883,7 +883,7 @@ def repr_lincomb(terms, is_latex=False, scalar_mult="*", strip_one=False,
             try:
                 if c < 0:
                     negative = True
-            except NotImplementedError:
+            except (NotImplementedError, TypeError):
                 # comparisons may not be implemented for some coefficients
                 pass
             if negative:
@@ -1669,7 +1669,7 @@ class AttrCallObject(object):
         unique representation of parents taking ``attrcall`` objects
         as input; see :trac:`8911`.
         """
-        return hash((self.args, tuple(self.kwds.items())))
+        return hash((self.args, tuple(sorted(self.kwds.items()))))
 
 
 def attrcall(name, *args, **kwds):

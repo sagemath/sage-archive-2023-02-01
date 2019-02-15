@@ -1018,10 +1018,15 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='',
     The following produces an error because the string 'fetch(' is a
     malformed regular expression::
 
-        sage: print(search_src(" fetch(", "def", interact=False))
+        sage: print(search_src(" fetch(", "def", interact=False)) # py2
         Traceback (most recent call last):
         ...
         error: unbalanced parenthesis
+
+        sage: print(search_src(" fetch(", "def", interact=False)) # py3
+        Traceback (most recent call last):
+        ...
+        sre_constants.error: missing ), unterminated subpattern at position 6
 
     To fix this, *escape* the parenthesis with a backslash::
 

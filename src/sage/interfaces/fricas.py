@@ -1493,6 +1493,10 @@ class FriCASElement(ExpectElement):
             sage: fricas("fresnelC(1.0)")                                       # optional - fricas
             0.7798934003_7682282947_42
 
+        Check that :trac:`17908` is fixed::
+
+            sage: fricas(abs(x)).sage().subs(x=-1783)
+            1783
         """
         from sage.libs.pynac.pynac import register_symbol
         from sage.symbolic.all import I
@@ -1501,6 +1505,7 @@ class FriCASElement(ExpectElement):
         from sage.functions.log import dilog, lambert_w
         from sage.functions.trig import sin, cos, tan, cot, sec, csc
         from sage.functions.hyperbolic import tanh, sinh, cosh, coth, sech, csch
+        from sage.functions.other import abs
         from sage.misc.functional import symbolic_sum, symbolic_prod
         from sage.rings.infinity import infinity
         register_symbol(I, {'fricas': '%i'})
@@ -1530,6 +1535,7 @@ class FriCASElement(ExpectElement):
         register_symbol(lambda x, y: x + y*I, {'fricas': 'complex'})
         register_symbol(lambda x: dilog(1-x), {'fricas': 'dilog'})
         register_symbol(lambda z: lambert_w(z), {'fricas': 'lambertW'})
+        register_symbol(abs, {'fricas': 'abs'})
         # the following is a hack to deal with
         # integrate(sin((x^2+1)/x),x)::INFORM giving
         # (integral (sin (/ (+ (^ x 2) 1) x)) (:: x Symbol))

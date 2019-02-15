@@ -1495,7 +1495,7 @@ class FriCASElement(ExpectElement):
 
         Check that :trac:`17908` is fixed::
 
-            sage: fricas(abs(x)).sage().subs(x=-1783)
+            sage: fricas(abs(x)).sage().subs(x=-1783)                           # optional - fricas
             1783
         """
         from sage.libs.pynac.pynac import register_symbol

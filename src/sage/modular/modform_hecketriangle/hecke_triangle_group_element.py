@@ -2870,7 +2870,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         INPUT:
 
-        - ``K`` -- A field to which we want the (correct) embeddding.
+        - ``K`` -- A field to which we want the (correct) embedding.
                    If ``K=None`` (default) then ``AlgebraicField()`` is
                    used for elliptic elements and ``AlgebraicRealField()``
                    otherwise.

@@ -2555,6 +2555,8 @@ class DifferentialGCAlgebra(GCAlgebra):
             True
 
         """
+        if all(g.differential().is_zero() for g in self.gens()):  # Return True if self is trivially isomorphic to its cohomology
+            return True
         phi = self.minimal_model(k+1, max_iterations)
         M = phi.domain()
         diff = M.differential()

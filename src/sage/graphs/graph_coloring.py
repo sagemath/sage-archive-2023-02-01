@@ -274,9 +274,7 @@ def first_coloring(G, n=0, hex_colors=False):
 
         sage: from sage.graphs.graph_coloring import first_coloring
         sage: G = Graph({0: [1, 2, 3], 1: [2]})
-        sage: first_coloring(G, 3)  # py2
-        [[1, 3], [0], [2]]
-        sage: first_coloring(G, 3)  # py3
+        sage: sorted(first_coloring(G, 3))
         [[0], [1, 3], [2]]
     """
     G._scream_if_not_simple(allow_multiple_edges=True)

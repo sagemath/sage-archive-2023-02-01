@@ -1911,6 +1911,7 @@ class DifferentialGCAlgebra(GCAlgebra):
                            R=A.cover_ring(),
                            I=A.defining_ideal())
         self._differential = Differential(self, differential._dic_)
+        self._minimalmodels = {}
 
     def graded_commutative_algebra(self):
         """
@@ -2348,7 +2349,7 @@ class DifferentialGCAlgebra(GCAlgebra):
 
             The method is not granted to finish (it can't, since the minimal model could be infinitely generated).
             The parameter ``max_iterations`` controls how many iterations of the method are attempted at each degree.
-            In case they are not enough, and exception is raised. If you think that the result will be finitely generated,
+            In case they are not enough, an exception is raised. If you think that the result will be finitely generated,
             you can try to run it again with a higher value for ``max_iterations``.
 
         ..SEEALSO::
@@ -2374,6 +2375,8 @@ class DifferentialGCAlgebra(GCAlgebra):
 
 
         """
+        if max_degree in self._minimalmodels.keys():
+            return self._minimalmodels[max_degree]
         from copy import copy
         def extend(phi, ndegrees, ndifs, nimags, nnames):
             """
@@ -2392,17 +2395,23 @@ class DifferentialGCAlgebra(GCAlgebra):
             NB = A.cdg_algebra(diff)
             Nphi = NB.hom([phi(g) for g in B.gens()]+nimags, check=False)
             return Nphi
-        degnzero = 1
-        while self.cohomology(degnzero).dimension() == 0:
-            degnzero += 1
-            if degnzero > max_degree:
-                raise ValueError("cohomology is trivial up to max_degree")
-        gens = [g.representative() for g in self.cohomology(degnzero).basis().keys()]
-        names = ['x{}_{}'.format(degnzero, i) for i in range(len(gens))]
-        A = GradedCommutativeAlgebra(self.base_ring(), names, degrees=[degnzero for i in names])
-        B = A.cdg_algebra(A.differential({}))
-        ##### Solve case that fails with one generator return B,gens
-        phi = B.hom(gens)
+        if not self._minimalmodels:
+            degnzero = 1
+            while self.cohomology(degnzero).dimension() == 0:
+                degnzero += 1
+                if degnzero > max_degree:
+                    raise ValueError("Cohomology is trivial up to max_degree")
+            gens = [g.representative() for g in self.cohomology(degnzero).basis().keys()]
+            names = ['x{}_{}'.format(degnzero, i) for i in range(len(gens))]
+            A = GradedCommutativeAlgebra(self.base_ring(), names, degrees=[degnzero for i in names])
+            B = A.cdg_algebra(A.differential({}))
+            ##### Solve case that fails with one generator return B,gens
+            phi = B.hom(gens)
+            self._minimalmodels[degnzero] = phi
+        else:
+            degnzero = max(self._minimalmodels.keys())
+            phi = self._minimalmodels[degnzero]
+            B = phi.domain()
         for degree in range(degnzero+1, max_degree+1):
             nnamesy = 0
             scohom = self.cohomology_raw(degree)
@@ -2422,7 +2431,7 @@ class DifferentialGCAlgebra(GCAlgebra):
                 if K.dimension()==0:
                     break
                 elif iteration == max_iterations-1:
-                    raise ValueError("could not cover all relations in max iterations in degree {}".format(degree))
+                    raise ValueError("Could not cover all relations in max iterations in degree {}".format(degree))
                 ndifs = [CB.lift(g) for g in K.basis()]
                 basisdegree=B.basis(degree)
                 ndifs = [sum(basisdegree[i]*g[i] for i in range(len(basisdegree))) for g in ndifs]
@@ -2453,6 +2462,7 @@ class DifferentialGCAlgebra(GCAlgebra):
                 ndegrees = [degree for i in nbasis]
                 phi = extend(phi, ndegrees, [B.zero() for g in nimags], nimags, nnames)
                 B = phi.domain()
+            self._minimalmodels[degree] = phi
 
         return phi
 

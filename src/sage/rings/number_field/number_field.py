@@ -148,6 +148,7 @@ from sage.misc.superseded import deprecated_function_alias
 
 _NumberFields = NumberFields()
 
+
 def is_NumberFieldHomsetCodomain(codomain):
     """
     Returns whether ``codomain`` is a valid codomain for a number

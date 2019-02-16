@@ -2181,9 +2181,9 @@ class MPolynomialIdeal_singular_repr(
             + 1) of Multivariate Polynomial Ring in x, y over Finite
             Field in w of size 3^3
 
-            sage: V = I.variety(); V
-            [{y: w^2 + 2, x: 2*w}, {y: w^2 + w, x: 2*w + 1}, {y: w^2 + 2*w, x: 2*w + 2}]
-
+            sage: V = I.variety();
+            sage: sorted(V, key=str)
+            [{y: w^2 + 2*w, x: 2*w + 2}, {y: w^2 + 2, x: 2*w}, {y: w^2 + w, x: 2*w + 1}]
             sage: [f.subs(v) for f in I.gens() for v in V] # check that all polynomials vanish
             [0, 0, 0, 0, 0, 0]
             sage: [I.subs(v).is_zero() for v in V] # same test, but nicer syntax
@@ -2211,27 +2211,27 @@ class MPolynomialIdeal_singular_repr(
 
         There are two real intersections::
 
-            sage: I.variety(ring=RR)
+            sage: sorted(I.variety(ring=RR), key=str)
             [{y: 0.361103080528647, x: 2.76929235423863},
              {y: 1.00000000000000, x: 1.00000000000000}]
             sage: I.variety(ring=AA)
-            [{x: 2.769292354238632?, y: 0.3611030805286474?},
-             {x: 1, y: 1}]
+            [{x: 1, y: 1},
+             {x: 2.769292354238632?, y: 0.3611030805286474?}]
 
         and a total of four intersections::
 
-            sage: I.variety(ring=CC)
-            [{y: 0.31944845973567... - 1.6331702409152...*I,
-              x: 0.11535382288068... + 0.58974280502220...*I},
-             {y: 0.31944845973567... + 1.6331702409152...*I,
+            sage: sorted(I.variety(ring=CC), key=str)
+            [{y: 0.31944845973567... + 1.6331702409152...*I,
               x: 0.11535382288068... - 0.58974280502220...*I},
+             {y: 0.31944845973567... - 1.6331702409152...*I,
+              x: 0.11535382288068... + 0.58974280502220...*I},
              {y: 0.36110308052864..., x: 2.7692923542386...},
              {y: 1.00000000000000, x: 1.00000000000000}]
-            sage: I.variety(ring=QQbar)
-            [{y: 0.3194484597356763? - 1.633170240915238?*I,
-              x: 0.11535382288068429? + 0.5897428050222055?*I},
-             {y: 0.3194484597356763? + 1.633170240915238?*I,
+            sage: sorted(I.variety(ring=QQbar), key=str)
+            [{y: 0.3194484597356763? + 1.633170240915238?*I,
               x: 0.11535382288068429? - 0.5897428050222055?*I},
+             {y: 0.3194484597356763? - 1.633170240915238?*I,
+              x: 0.11535382288068429? + 0.5897428050222055?*I},
              {y: 0.3611030805286474?, x: 2.769292354238632?},
              {y: 1, x: 1}]
 
@@ -2240,13 +2240,13 @@ class MPolynomialIdeal_singular_repr(
 
             sage: R.<x,y> = CC[]
             sage: I = ideal([x^2+y^2-1,x*y-1])
-            sage: I.variety()
+            sage: sorted(I.variety(), key=str)
             verbose 0 (...: multi_polynomial_ideal.py, variety) Warning: computations in the complex field are inexact; variety may be computed partially or incorrectly.
             verbose 0 (...: multi_polynomial_ideal.py, variety) Warning: falling back to very slow toy implementation.
-            [{y: -0.86602540378443... - 0.500000000000000*I},
-             {y: -0.86602540378443... + 0.500000000000000*I},
-             {y: 0.86602540378443... - 0.500000000000000*I},
-             {y: 0.86602540378443... + 0.500000000000000*I}]
+            [{y: -0.86602540378443... + 0.500000000000000*I},
+             {y: -0.86602540378443... - 0.500000000000000*I},
+             {y: 0.86602540378443... + 0.500000000000000*I},
+             {y: 0.86602540378443... - 0.500000000000000*I}]
 
         This is due to precision error,
         which causes the computation of an intermediate Groebner basis to fail.
@@ -2287,8 +2287,8 @@ class MPolynomialIdeal_singular_repr(
         Testing the robustness of the Singular interface::
 
             sage: T = I.triangular_decomposition('singular:triangLfak')
-            sage: I.variety()
-            [{y: w^2 + 2, x: 2*w}, {y: w^2 + w, x: 2*w + 1}, {y: w^2 + 2*w, x: 2*w + 2}]
+            sage: sorted(I.variety(), key=str)
+            [{y: w^2 + 2*w, x: 2*w + 2}, {y: w^2 + 2, x: 2*w}, {y: w^2 + w, x: 2*w + 1}]
 
         Testing that a bug is indeed fixed ::
 
@@ -2418,11 +2418,9 @@ class MPolynomialIdeal_singular_repr(
         V = []
         for t in T:
             Vbar = _variety([P(f) for f in t], [])
-            #Vbar = _variety(list(t.gens()),[])
 
             for v in Vbar:
                 V.append(KeyConvertingDict(P, v))
-        V.sort()
         return V
 
     @require_field

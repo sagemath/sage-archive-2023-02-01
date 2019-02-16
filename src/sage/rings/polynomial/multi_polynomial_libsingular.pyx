@@ -3424,7 +3424,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             try_symbolic = 1
 
         if not try_symbolic and fixed is not None:
-            for m,v in fixed.iteritems():
+            for m,v in fixed.items():
                 if isinstance(m, (int, Integer)):
                     mi = m+1
                 elif isinstance(m,MPolynomial_libsingular) and m.parent() is parent:
@@ -3530,7 +3530,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
         cdef list g = list(parent.gens())
 
         if fixed is not None:
-            for m,v in fixed.iteritems():
+            for m,v in fixed.items():
                 if isinstance(m, (int, Integer)):
                     mi = m+1
                 elif isinstance(m, MPolynomial_libsingular) and m.parent() is parent:

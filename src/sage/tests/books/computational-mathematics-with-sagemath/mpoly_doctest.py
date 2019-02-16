@@ -120,20 +120,21 @@ Sage example in ./mpoly.tex, line 596::
 
 Sage example in ./mpoly.tex, line 603::
 
-  sage: V[-3:]
-  [{z: 0.9324722294043558? - 0.3612416661871530?*I,
-   y: -1.700434271459229? + 1.052864325754712?*I,
-   x: 1.337215067329615? - 2.685489874065187?*I},
-  {z: 0.9324722294043558? + 0.3612416661871530?*I,
+  sage: sorted(V, key=str)[-3:]
+  [{z: 0.9324722294043558? + 0.3612416661871530?*I,
    y: -1.700434271459229? - 1.052864325754712?*I,
    x: 1.337215067329615? + 2.685489874065187?*I},
-  {z: 1, y: 2, x: 3}]
+  {z: 0.9324722294043558? - 0.3612416661871530?*I,
+   y: -1.700434271459229? + 1.052864325754712?*I,
+   x: 1.337215067329615? - 2.685489874065187?*I},
+   {z: 1, y: 2, x: 3}]
 
 Sage example in ./mpoly.tex, line 619::
 
   sage: (xx, yy, zz) = QQbar['x,y,z'].gens()
-  sage: [ pt[xx].degree() for pt in V ]
-  [16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 1]
+  sage: sorted([pt[xx].degree() for pt in V])
+  [1, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16,
+  16, 16]
 
 Sage example in ./mpoly.tex, line 640::
 
@@ -149,8 +150,8 @@ Sage example in ./mpoly.tex, line 662::
 
 Sage example in ./mpoly.tex, line 690::
 
-  sage: set(pt[zz].minpoly() for pt in V[:-1])
-  {x^16 + x^15 + x^14 + x^13 + x^12 + x^11 + x^10 + x^9 + x^8 + x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + x + 1}
+  sage: set(pt[zz].minpoly() for pt in sorted(V, key=str)[:-1])
+    {x^16 + x^15 + x^14 + x^13 + x^12 + x^11 + x^10 + x^9 + x^8 + x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + x + 1}
 
 Sage example in ./mpoly.tex, line 706::
 
@@ -158,9 +159,11 @@ Sage example in ./mpoly.tex, line 706::
   ....:     rho = z.abs(); rho.simplify()
   ....:     theta = 2 * pi * z.rational_argument()
   ....:     return (SR(rho) * exp(I*theta))
-  sage: [tuple(polar_form(pt[i]) for i in [xx,yy,zz]) for pt in V[-3:]]
-  [(3*e^(-6/17*I*pi), 2*e^(14/17*I*pi), e^(-2/17*I*pi)),
-  (3*e^(6/17*I*pi), 2*e^(-14/17*I*pi), e^(2/17*I*pi)), (3, 2, 1)]
+  sage: sorted([tuple(polar_form(pt[i]) for i in [xx,yy,zz])
+  ....:  for pt in sorted(V, key=str)[-3:]])
+  [(3*e^(6/17*I*pi), 2*e^(-14/17*I*pi), e^(2/17*I*pi)),
+   (3*e^(-6/17*I*pi), 2*e^(14/17*I*pi), e^(-2/17*I*pi)),
+   (3, 2, 1)]
 
 Sage example in ./mpoly.tex, line 733::
 
@@ -374,7 +377,7 @@ Sage example in ./mpoly.tex, line 1840::
 
   sage: D = ideal((x+2*y-1)*(x+2*y+1)); J = C + D
   sage: J.variety()
-  [{y: -4/5, x: 3/5}, {y: 0, x: -1}, {y: 0, x: 1}, {y: 4/5, x: -3/5}]
+  [{y: 0, x: 1}, {y: 0, x: -1}, {y: 4/5, x: -3/5}, {y: -4/5, x: 3/5}]
   sage: [T.gens() for T in J.triangular_decomposition()]
   [[y, x^2 - 1], [25*y^2 - 16, 4*x + 3*y]]
 

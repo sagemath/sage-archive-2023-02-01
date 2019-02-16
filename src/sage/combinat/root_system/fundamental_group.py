@@ -216,15 +216,6 @@ class FundamentalGroupElement(MultiplicativeGroupElement):
         """
         if x not in parent.special_nodes():
             raise ValueError("%s is not a special node" % x)
-
-        try:
-            if x.parent() == parent:
-                self._value = x._value
-                MultiplicativeGroupElement.__init__(self, parent)
-                return
-        except AttributeError:
-            pass
-
         self._value = x
         MultiplicativeGroupElement.__init__(self, parent)
 

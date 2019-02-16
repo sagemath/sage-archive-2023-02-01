@@ -610,7 +610,6 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
             True
         """
         p = self._p
-        # M_orig = M
 
         def lift(a):
             try:
@@ -621,9 +620,9 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         if M.base_ring() is not ZZ:
             M = M.apply_map(lift, R=ZZ)
 
-        v = min([M[i, j].valuation(p) for i in range(2) for j in range(2)])
+        v = min(M[i, j].valuation(p) for i in range(2) for j in range(2))
 
-        if v != 0:
+        if v:
             M = p ** (-v) * M
         m00 = M[0, 0].valuation(p)
         m01 = M[0, 1].valuation(p)
@@ -631,11 +630,10 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
             M = copy(M)
             M.swap_columns(0, 1)
             m00 = m01
-        m10 = M[1, 0].valuation(p)
         tmp = M.determinant().valuation(p) - m00
         bigpower = p ** tmp
         r = M[0, 0]
-        if r != 0:
+        if r:
             r /= p ** m00
         # r = ZZ(r) % bigpower
         g, s, _ = xgcd(r, bigpower)

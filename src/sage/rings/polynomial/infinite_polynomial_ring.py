@@ -1064,16 +1064,19 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
     # -- some stuff that is useful for quotient rings etc.
     def is_noetherian(self):
         """
+        Return ``False``, since polynomial rings in infinitely many
+        variables are never Noetherian rings.
+
         Since Infinite Polynomial Rings must have at least one
         generator, they have infinitely many variables and are thus
         not noetherian, as a ring.
 
-        NOTE:
+        .. NOTE::
 
-        Infinite Polynomial Rings over a field `F` are noetherian as
-        `F(G)` modules, where `G` is the symmetric group of the
-        natural numbers. But this is not what the method
-        ``is_noetherian()`` is answering.
+            Infinite Polynomial Rings over a field `F` are noetherian as
+            `F(G)` modules, where `G` is the symmetric group of the
+            natural numbers. But this is not what the method
+            ``is_noetherian()`` is answering.
 
         TESTS::
 
@@ -1083,21 +1086,24 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             sage: R.is_noetherian()
             False
 
+            sage: R.<x> = InfinitePolynomialRing(QQ)
+            sage: R.is_noetherian()
+            False
         """
         return False
 
     def is_field(self, *args, **kwds):
         """
-        Return ``False``: Since Infinite Polynomial Rings must have at
-        least one generator, they have infinitely many variables and thus
-        never are fields.
+        Return ``False`` since Infinite Polynomial Rings are never fields.
+
+        Since Infinite Polynomial Rings must have at least one generator,
+        they have infinitely many variables and thus never are fields.
 
         EXAMPLES::
 
             sage: R.<x, y> = InfinitePolynomialRing(QQ)
             sage: R.is_field()
             False
-
 
         TESTS::
 
@@ -1112,8 +1118,6 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             sage: W = PowerSeriesRing(InfinitePolynomialRing(QQ,'a'),'x')
             sage: W.is_field()
             False
-
-
         """
         return False
  
@@ -1295,23 +1299,6 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             True
         """
         return self._base.is_integral_domain(*args, **kwds)
-
-    def is_noetherian(self, *args, **kwds):
-        """
-        Return ``False``, since polynomial rings in infinitely many
-        variables are never Noetherian rings.
-
-        Note, however, that they are noetherian modules over the group
-        ring of the symmetric group of the natural numbers
-
-        EXAMPLES::
-
-            sage: R.<x> = InfinitePolynomialRing(QQ)
-            sage: R.is_noetherian()
-            False
-
-        """
-        return False
 
     def krull_dimension(self, *args, **kwds):
         """

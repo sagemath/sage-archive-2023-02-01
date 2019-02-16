@@ -1188,8 +1188,10 @@ def hyperbolicity(G,
         (1, [(0, 0), (0, 9), (1, 0), (1, 9)], 4)
         sage: hyperbolicity(G, algorithm='CCL', additive_gap=2)
         (1, [(0, 0), (0, 9), (1, 0), (1, 9)], 3)
-        sage: hyperbolicity(G, algorithm='dom')
+        sage: hyperbolicity(G, algorithm='dom')  # py2
         (1, [(0, 1), (0, 8), (1, 0), (1, 9)], 5)
+        sage: hyperbolicity(G, algorithm='dom')  # py3
+        (1, [(0, 1), (0, 9), (1, 0), (1, 8)], 5)
 
     Asking for an approximation in a cycle graph::
 

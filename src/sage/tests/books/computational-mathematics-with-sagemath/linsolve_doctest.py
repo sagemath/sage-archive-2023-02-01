@@ -385,8 +385,8 @@ Sage example in ./linsolve.tex, line 2828::
   sage: from numpy.linalg import *
   sage: from numpy import array
   sage: from numpy.random import rand
-  sage: def power(A,x):             # power iteration
-  ....:     for i in range(0,1000):
+  sage: def power(A,x,N):             # power iteration
+  ....:     for i in range(N):
   ....:         y = A*x
   ....:         z = y/norm(y)
   ....:         lam = sum(x*y)
@@ -412,12 +412,10 @@ Sage example in ./linsolve.tex, line 2828::
   sage: x = array([rand() for i in range(0,n)])
   sage: # compute the dominant eigenvalue
   sage: # and the associated eigenvector
-  sage: y = power(At, x)    # rel tol 1e-10
+  sage: y = power(At, x, 5)  # rel tol 1e-10
   0 s=17.0241218112 lambda=235.567796432
   1 s=0.39337173784 lambda=0.908668201953
   2 s=0.230865716856 lambda=0.967356896036
   3 s=0.134156683993 lambda=0.986660315554
   4 s=0.0789423487458 lambda=0.995424635219
-  ...
-
 """

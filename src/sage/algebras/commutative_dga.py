@@ -2554,6 +2554,14 @@ class DifferentialGCAlgebra(GCAlgebra):
             sage: B.is_formal(2)
             True
 
+            sage: A.<e3,e5> = GradedCommutativeAlgebra(QQ,degrees=[3,5])
+            sage: I = A.ideal([e3*e5])
+            sage: B = A.quotient(I)
+            sage: C = B.cdg_algebra({})
+            sage: C.is_formal(100)
+            True
+
+
         """
         if all(g.differential().is_zero() for g in self.gens()):  # Return True if self is trivially isomorphic to its cohomology
             return True

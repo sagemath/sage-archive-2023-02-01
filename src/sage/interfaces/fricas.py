@@ -1497,6 +1497,12 @@ class FriCASElement(ExpectElement):
 
             sage: fricas(abs(x)).sage().subs(x=-1783)                           # optional - fricas
             1783
+
+        Check that :trac:`27310` is fixed::
+
+            sage: fricas.set("F", "operator 'f")                                # optional - fricas
+            sage: fricas("eval(D(F(x,y), [x, y], [2, 1]), x=x+y)").sage()       # optional - fricas
+            D[0, 0, 1](f)(x + y, y)
         """
         from sage.libs.pynac.pynac import register_symbol
         from sage.symbolic.all import I
@@ -1540,6 +1546,14 @@ class FriCASElement(ExpectElement):
         # integrate(sin((x^2+1)/x),x)::INFORM giving
         # (integral (sin (/ (+ (^ x 2) 1) x)) (:: x Symbol))
         register_symbol(lambda x, y: x, {'fricas': '::'})
+
+        def _convert_eval(f, a, b):
+            # it might be that FriCAS also returns a two-argument
+            # eval, where the second argument is a list of equations,
+            # in which case this function needs to be adapted
+            return f.subs({a: b})
+
+        register_symbol(_convert_eval, {'fricas': 'eval'})
 
         def _convert_sum(x, y):
             v, seg = y.operands()

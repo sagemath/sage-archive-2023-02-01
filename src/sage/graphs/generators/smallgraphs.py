@@ -20,6 +20,9 @@ from six.moves import range
 
 # import from Sage library
 from sage.graphs.graph import Graph
+from sage.rings.rational_field import QQ
+from sage.functions.other import sqrt
+
 from math import sin, cos, pi
 
 #######################################################################
@@ -431,7 +434,6 @@ def Cell600(embedding=1):
         sage: g.is_vertex_transitive()  # long time
         True
     """
-    from sage.rings.rational_field import QQ
     from sage.rings.polynomial.polynomial_ring import polygen
     from sage.rings.number_field.number_field import NumberField
     from sage.modules.free_module import VectorSpace
@@ -507,7 +509,6 @@ def Cell120():
         sage: g.is_vertex_transitive()  # long time
         True
     """
-    from sage.rings.rational_field import QQ
     from sage.rings.polynomial.polynomial_ring import polygen
     from sage.rings.number_field.number_field import NumberField
     from sage.modules.free_module import VectorSpace
@@ -2701,45 +2702,41 @@ def GolombGraph():
     r"""
     Return the Golomb graph.
 
-    See :wikipedia:`Golomb_graph` for more information.
+    See the :wikipedia:`Golomb_graph` for more information.
 
     EXAMPLES:
 
-    The Golomb graph is a planar and Hamiltonian graph with 10 vertices 
-    and 18 edges. It has chromatic number 4, diameter 3, radius 2 and 
-    girth 3. It can be drawn in the plane as a unit distance graph. ::
+    The Golomb graph is a planar and Hamiltonian graph with 10 vertices
+    and 18 edges. It has chromatic number 4, diameter 3, radius 2 and
+    girth 3. It can be drawn in the plane as a unit distance graph::
+
         sage: G = graphs.GolombGraph(); G
         Golomb graph: Graph on 10 vertices
         sage: pos = G.get_pos()
         sage: dist2 = lambda u,v:(u[0]-v[0])**2 + (u[1]-v[1])**2
         sage: all(dist2(pos[u], pos[v]) == 1 for u, v in G.edge_iterator(labels=None))
         True
-
     """
-    from sage.functions.other import sqrt
-    from sage.rings.integer import Integer
-    def ratlit(numerator, denominator):
-        return Integer(numerator)/Integer(denominator)    
     edge_dict = {
-        0: [1,2,3],
-        1: [2,5],
+        0: [1, 2, 3],
+        1: [2, 5],
         2: [7],
-        3: [4,8,9],
-        4: [5,9],
-        5: [6,9],
-        6: [7,9],
-        7: [8,9],
+        3: [4, 8, 9],
+        4: [5, 9],
+        5: [6, 9],
+        6: [7, 9],
+        7: [8, 9],
         8: [9]}
     pos_dict = {
-        0: [ratlit(1,6), ratlit(1,6)*sqrt(11)],
-        1: [ratlit(1,12)*sqrt(33) - ratlit(1,12), -sqrt(ratlit(1,72)*sqrt(33) + ratlit(7,72))],
-        2: [-ratlit(1,12)*sqrt(33) - ratlit(1,12), -sqrt(-ratlit(1,72)*sqrt(33) + ratlit(7,72))],
+        0: [QQ('1/6'), QQ('1/6') * sqrt(11)],
+        1: [QQ('1/12') * sqrt(33) - QQ('1/12'), - sqrt(QQ('1/72') * sqrt(33) + QQ('7/72'))],
+        2: [- QQ('1/12') * sqrt(33) - QQ('1/12'), - sqrt(- QQ('1/72') * sqrt(33) + QQ('7/72'))],
         3: [1, 0],
-        4: [ratlit(1,2), -ratlit(1,2)*sqrt(3)],
-        5: [-ratlit(1,2), -ratlit(1,2)*sqrt(3)],
+        4: [QQ('1/2'), - QQ('1/2') * sqrt(3)],
+        5: [- QQ('1/2'), - QQ('1/2') * sqrt(3)],
         6: [-1, 0],
-        7: [-ratlit(1,2), ratlit(1,2)*sqrt(3)],
-        8: [ratlit(1,2), ratlit(1,2)*sqrt(3)],
+        7: [- QQ('1/2'), QQ('1/2') * sqrt(3)],
+        8: [QQ('1/2'), QQ('1/2') * sqrt(3)],
         9: [0, 0]}
     return Graph(edge_dict, pos=pos_dict, name="Golomb graph")
 
@@ -3764,12 +3761,11 @@ def MoserSpindle():
     r"""
     Return the Moser spindle.
 
-    For more information, see this `MathWorld article on the Moser spindle
-    <http://mathworld.wolfram.com/MoserSpindle.html>`_.
+    For more information, see the :wikipedia:`Moser_spindle`.
 
     EXAMPLES:
 
-    The Moser spindle is a planar graph having 7 vertices and 11 edges. ::
+    The Moser spindle is a planar graph having 7 vertices and 11 edges::
 
         sage: G = graphs.MoserSpindle(); G
         Moser spindle: Graph on 7 vertices
@@ -3780,7 +3776,7 @@ def MoserSpindle():
         sage: G.size()
         11
 
-    It is a Hamiltonian graph with radius 2, diameter 2, and girth 3. ::
+    It is a Hamiltonian graph with radius 2, diameter 2, and girth 3::
 
         sage: G.is_hamiltonian()
         True
@@ -3791,12 +3787,13 @@ def MoserSpindle():
         sage: G.girth()
         3
 
-    The Moser spindle can be drawn in the plane as a unit distance graph, 
-    has chromatic number 4, and its automorphism group is isomorphic to 
-    the dihedral group `D_4`. ::
+    The Moser spindle can be drawn in the plane as a unit distance graph,
+    has chromatic number 4, and its automorphism group is isomorphic to
+    the dihedral group `D_4`::
 
         sage: pos = G.get_pos()
-        sage: all(sum((ui-vi)**2 for ui, vi in zip(pos[u], pos[v])) == 1 for u, v in G.edge_iterator(labels=None))
+        sage: all(sum((ui-vi)**2 for ui, vi in zip(pos[u], pos[v])) == 1
+        ....:         for u, v in G.edge_iterator(labels=None))
         True
         sage: G.chromatic_number()
         4
@@ -3804,10 +3801,6 @@ def MoserSpindle():
         sage: ag.is_isomorphic(DihedralGroup(4))
         True
     """
-    from sage.functions.other import sqrt
-    from sage.rings.integer import Integer
-    def ratlit(numerator, denominator):
-        return Integer(numerator)/Integer(denominator)  
     edge_dict = {
         0: [1, 4, 6], 
         1: [2, 5], 
@@ -3815,17 +3808,17 @@ def MoserSpindle():
         3: [4, 5, 6], 
         4: [6]}
     pos_dict = {
-        0: [ ratlit(1,2), 0],
-        1: [-ratlit(1,2), 0],
-        2: [-ratlit(1,12)*sqrt(33) - ratlit(1,4),
-             ratlit(1,2)*sqrt( ratlit(1,6)*sqrt(33) + ratlit(17,6))],
-        3: [0, ratlit(1,2)*sqrt(11)],
-        4: [ ratlit(1,12)*sqrt(33) + ratlit(1,4),
-             ratlit(1,2)*sqrt( ratlit(1,6)*sqrt(33) + ratlit(17,6))],
-        5: [ ratlit(1,12)*sqrt(33) - ratlit(1,4),
-             ratlit(1,2)*sqrt(-ratlit(1,6)*sqrt(33) + ratlit(17,6))],
-        6: [-ratlit(1,12)*sqrt(33) + ratlit(1,4),
-             ratlit(1,2)*sqrt(-ratlit(1,6)*sqrt(33) + ratlit(17,6))]}
+        0: [QQ('1/2'), 0],
+        1: [- QQ('1/2'), 0],
+        2: [- QQ('1/12') * sqrt(33) - QQ('1/4'),
+            QQ('1/2') * sqrt( QQ('1/6') * sqrt(33) + QQ('17/6'))],
+        3: [0, QQ('1/2') * sqrt(11)],
+        4: [QQ('1/12') * sqrt(33) + QQ('1/4'),
+            QQ('1/2') * sqrt( QQ('1/6') * sqrt(33) + QQ('17/6'))],
+        5: [QQ('1/12') * sqrt(33) - QQ('1/4'),
+            QQ('1/2') * sqrt(- QQ('1/6') * sqrt(33) + QQ('17/6'))],
+        6: [- QQ('1/12') * sqrt(33) + QQ('1/4'),
+            QQ('1/2') * sqrt(- QQ('1/6') * sqrt(33) + QQ('17/6'))]}
     return Graph(edge_dict, pos=pos_dict, name="Moser spindle")
 
 

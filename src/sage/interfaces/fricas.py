@@ -1569,31 +1569,31 @@ class FriCASElement(ExpectElement):
         ex, _ = FriCASElement._parse_and_eval(fricas_InputForm)
         # postprocessing of rootOf
         from sage.rings.all import QQbar, PolynomialRing
-        i = 0
         while rootOf:
-            (var, poly) = rootOf.items()[i]
-            pvars = poly.variables()
-            rvars = [v for v in pvars if v not in rootOf_ev]  # remaining variables
-            uvars = [v for v in rvars if v in rootOf]  # variables to evaluate
-            if len(uvars) == 1:
-                assert uvars[0] == var
-                # substitute known roots
-                poly = poly.subs(rootOf_ev)
-                evars = [v for v in rvars if v not in rootOf]  # extraneous variables
-                assert set(evars) == set(poly.variables()).difference([var])
-                if evars:
-                    # we just need any root per FriCAS specification
-                    rootOf_ev[var] = poly.roots(var, multiplicities=False)[0]
-                else:
-                    R = PolynomialRing(QQbar, "x")
-                    # PolynomialRing does not accept variable names with leading underscores
-                    poly = R(poly.subs({var: R.gen()}))
-                    # we just need any root per FriCAS specification
-                    rootOf_ev[var] = poly.roots(multiplicities=False)[0].radical_expression()
-                del rootOf[var]
-                i = 0
+            for var, poly in rootOf.items():
+                pvars = poly.variables()
+                rvars = [v for v in pvars if v not in rootOf_ev]  # remaining variables
+                uvars = [v for v in rvars if v in rootOf]  # variables to evaluate
+                if len(uvars) == 1:
+                    assert uvars[0] == var, "the only variable in uvars should be %s but is %s" % (var, uvars[0])
+                    break
             else:
-                i += 1
+                assert False, "circular dependency in rootOf expression"
+            # substitute known roots
+            poly = poly.subs(rootOf_ev)
+            evars = [v for v in rvars if v not in rootOf]  # extraneous variables
+            assert set(evars) == set(poly.variables()).difference([var])
+            del rootOf[var]
+            if evars:
+                # we just need any root per FriCAS specification
+                rootOf_ev[var] = poly.roots(var, multiplicities=False)[0]
+            else:
+                R = PolynomialRing(QQbar, "x")
+                # PolynomialRing does not accept variable names with leading underscores
+                poly = R(poly.subs({var: R.gen()}))
+                # we just need any root per FriCAS specification
+                rootOf_ev[var] = poly.roots(multiplicities=False)[0].radical_expression()
+
         return ex.subs(rootOf_ev)
 
     def _sage_(self):
@@ -1818,7 +1818,7 @@ class FriCASElement(ExpectElement):
             vars = str(domain[1])
             R = PolynomialRing(base_ring, vars)
             return R([self.coefficient(i).sage()
-                      for i in range(self.degree() + 1)])
+                      for i in range(ZZ(self.degree()) + 1)])
 
         # finally translate domains with InputForm
         try:

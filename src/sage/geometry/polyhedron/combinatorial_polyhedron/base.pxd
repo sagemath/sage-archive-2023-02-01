@@ -4,13 +4,13 @@ from sage.ext.memory_allocator cimport MemoryAllocator
 from sage.structure.sage_object cimport SageObject
 
 cdef int char_from_tuple(tuple tup, uint64_t *output,
-                         size_t face_length) except 0
+                         size_t face_length) except -1
 
 cdef int char_from_incidence(tuple incidences, uint64_t *output,
-                             size_t face_length) except 0
+                             size_t face_length) except -1
 
 cdef size_t vertex_repr_from_bitrep(uint64_t *face, size_t *output,
-                                    size_t face_length) except? 0
+                                    size_t face_length) except -1
 
 
 cdef ListOfFaces get_facets_from_incidence_matrix(tuple matrix)
@@ -28,6 +28,7 @@ cdef class ListOfFaces:
     cdef uint64_t **data
     cdef MemoryAllocator _mem
     cdef size_t nr_faces, face_length, nr_vertices
+    # face_length is the length of the face in terms of uint64_t
 
 cdef int calculate_dimension(ListOfFaces faces) except -2
 
@@ -59,13 +60,11 @@ cdef class FaceIterator:
 
 @cython.final
 cdef class ListOfAllFaces:
-    # cdef tuple lists_facet_repr #might need this for flag-vector
     cdef MemoryAllocator _mem
     cdef tuple lists_vertex_repr
     cdef size_t nr_facets
     cdef size_t nr_vertices
     cdef size_t face_length_vertex
-    # cdef size_t face_length_facet #might need this for flag-vector
     cdef int dimension
     cdef size_t *face_counter
     cdef size_t *f_vector
@@ -82,12 +81,12 @@ cdef class ListOfAllFaces:
     cdef int incidence_is_initialized
     cdef uint64_t ***data_vertex
 
-    cdef int add_face(self, int face_dim, uint64_t *face) except 0
-    cdef int sort(self) except 0
-    cdef int _sort_one_list(self, uint64_t **faces, size_t nr_faces) except 0
+    cdef int add_face(self, int face_dim, uint64_t *face) except -1
+    cdef int sort(self) except -1
+    cdef int _sort_one_list(self, uint64_t **faces, size_t nr_faces) except -1
     cdef int _sort_one_list_loop(
             self, uint64_t **inp, uint64_t **output1,
-            uint64_t **output2, size_t nr_faces) except 0
+            uint64_t **output2, size_t nr_faces) except -1
     cdef inline size_t find_face(self, int dimension, uint64_t *face) except -1
     cdef inline int is_smaller(self, uint64_t *one, uint64_t *two)
     cdef inline int is_equal(self, int dimension, size_t index,
@@ -132,8 +131,8 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef size_t _nr_facets
     cdef tuple _MemoryAllocators
 
-    cdef int _calculate_f_vector(self) except 0
-    cdef int _calculate_edges(self) except 0
-    cdef int _calculate_ridges(self) except 0
-    cdef int _calculate_face_lattice_incidences(self) except 0
-    cdef int _record_all_faces_helper(self) except 0
+    cdef int _calculate_f_vector(self) except -1
+    cdef int _calculate_edges(self) except -1
+    cdef int _calculate_ridges(self) except -1
+    cdef int _calculate_face_lattice_incidences(self) except -1
+    cdef int _record_all_faces_helper(self) except -1

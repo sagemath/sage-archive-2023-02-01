@@ -90,14 +90,15 @@ from sage.arith.long cimport integer_check_long, integer_check_long_py, ERR_OVER
 import sage.rings.rational as rational
 from sage.libs.pari.all import pari, PariError
 import sage.rings.integer_ring as integer_ring
+import sage.rings.rational_field
 
 import sage.interfaces.all
 
 import sage.rings.integer
-import sage.rings.integer_ring
 cimport sage.rings.integer
 from sage.rings.integer cimport Integer
 
+from sage.structure.coerce cimport py_scalar_to_element
 import sage.structure.element
 cimport sage.structure.element
 coerce_binop = sage.structure.element.coerce_binop
@@ -344,6 +345,15 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             sage: TestSuite(Zmod(6)).run()
             sage: TestSuite(Zmod(2^10 * 3^5)).run()
             sage: TestSuite(Zmod(2^30 * 3^50 * 5^20)).run()
+
+            sage: GF(29)(SR(1/3))
+            10
+            sage: Integers(30)(QQ['x'](1/7))
+            13
+            sage: Integers(30)(SR(1/4))
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: inverse of Mod(4, 30) does not exist
         """
         self._parent = parent
         self.__modulus = parent._pyx_order
@@ -363,7 +373,19 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             self.set_from_long(longval)
             return
         else:
-            z = sage.rings.integer_ring.Z(value)
+            try:
+                z = integer_ring.Z(value)
+            except (TypeError, ValueError):
+                from sage.symbolic.expression import Expression
+                if isinstance(value, Expression):
+                    value = value.pyobject()
+                else:
+                    value = py_scalar_to_element(value)
+                if isinstance(value, Element) and value.parent().is_exact():
+                    value = sage.rings.rational_field.QQ(value)
+                    z = value % self.__modulus.sageInteger
+                else:
+                    raise
         self.set_from_mpz(z.value)
 
     cdef IntegerMod_abstract _new_c_fast(self, unsigned long value):

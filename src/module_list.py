@@ -293,6 +293,9 @@ ext_modules = [
                          'sage/geometry/triangulation/triangulations.h'],
               language="c++"),
 
+    Extension('sage.geometry.polyhedron.combinatorial_polyhedron.base',
+              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/base.pyx',]),
+
     ################################
     ##
     ## sage.graphs

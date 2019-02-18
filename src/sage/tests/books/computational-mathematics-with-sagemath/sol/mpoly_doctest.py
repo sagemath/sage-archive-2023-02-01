@@ -67,11 +67,15 @@ Sage example in ./sol/mpoly.tex, line 166::
   Number Field in a with defining polynomial x^4 - 4*x^2 + 1
   sage: R.<x,y> = QQ[]
   sage: J1 = (x^2 + y^2 - 1, 16*x^2*y^2 - 1)*R
-  sage: J1.variety(L)
-  [{y: 1/2*a^3 - 2*a, x: -1/2*a}, {y: 1/2*a^3 - 2*a, x: 1/2*a},
-   {y: -1/2*a, x: 1/2*a^3 - 2*a}, {y: -1/2*a, x: -1/2*a^3 + 2*a},
-   {y: 1/2*a, x: 1/2*a^3 - 2*a}, {y: 1/2*a, x: -1/2*a^3 + 2*a},
-   {y: -1/2*a^3 + 2*a, x: -1/2*a}, {y: -1/2*a^3 + 2*a, x: 1/2*a}]
+  sage: sorted(J1.variety(L), key=str)
+  [{y: -1/2*a, x: -1/2*a^3 + 2*a},
+   {y: -1/2*a, x: 1/2*a^3 - 2*a},
+   {y: -1/2*a^3 + 2*a, x: -1/2*a},
+   {y: -1/2*a^3 + 2*a, x: 1/2*a},
+   {y: 1/2*a, x: -1/2*a^3 + 2*a},
+   {y: 1/2*a, x: 1/2*a^3 - 2*a},
+   {y: 1/2*a^3 - 2*a, x: -1/2*a},
+   {y: 1/2*a^3 - 2*a, x: 1/2*a}]
 
 Sage example in ./sol/mpoly.tex, line 191::
 

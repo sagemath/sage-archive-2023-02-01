@@ -1005,18 +1005,18 @@ class ClusterQuiver(SageObject):
                 mutation_type.append( mut_type_part )
 
             # the empty quiver case
-            if len( mutation_type ) == 0:
-                Warning('Quiver has no vertices')
+            if len(mutation_type) == 0:
                 mutation_type = None
             # the connected quiver case
-            elif len( mutation_type ) == 1:
+            elif len(mutation_type) == 1:
                 mutation_type = mutation_type[0]
             # the reducible quiver case
-            elif len( mutation_type ) > 1:
-                if any( isinstance(mut_type_part, str) for mut_type_part in mutation_type ):
+            elif len(mutation_type) > 1:
+                if any(isinstance(mut_type_part, str)
+                       for mut_type_part in mutation_type):
                     pass
                 else:
-                    mutation_type = QuiverMutationType( mutation_type )
+                    mutation_type = QuiverMutationType(mutation_type)
             self._mutation_type = mutation_type
         return self._mutation_type
 

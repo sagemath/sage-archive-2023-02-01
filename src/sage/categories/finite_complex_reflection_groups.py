@@ -872,7 +872,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 chains = NC.chains()
                 NCm = set()
                 iter = chains.breadth_first_search_iterator()
-                chain = next(iter)
+                next(iter)
                 chain = next(iter)
                 while len(chain) <= m:
                     chain.append(c)

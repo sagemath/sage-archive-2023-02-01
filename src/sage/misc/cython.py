@@ -143,7 +143,6 @@ def cython(filename, verbose=0, compile_message=False,
     first moving to a tempdir to avoid clutter.  Before :trac:`22113`,
     the create_local_c_file argument was not tested for C++ code::
 
-        sage: import sage.misc.cython
         sage: d = sage.misc.temporary_file.tmp_dir()
         sage: os.chdir(d)
         sage: with open("test.pyx", 'w') as f:
@@ -154,7 +153,6 @@ def cython(filename, verbose=0, compile_message=False,
 
     Accessing a ``.pxd`` file from the current directory works::
 
-        sage: import sage.misc.cython
         sage: d = sage.misc.temporary_file.tmp_dir()
         sage: os.chdir(d)
         sage: with open("helper.pxd", 'w') as f:

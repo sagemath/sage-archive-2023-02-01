@@ -2308,7 +2308,7 @@ class WordMorphism(SageObject):
         if self.is_empty():
             return [self]
 
-        #Construire la liste c des morphismes conjugues
+        # Build the list c of conjugate morphisms
         c = []
         m = self
         c.append(m)
@@ -2324,7 +2324,7 @@ class WordMorphism(SageObject):
                 break
             c.insert(0, m)
 
-        #Construire la liste d des morphismes distincts
+        # Build the list d of distinct morphisms
         d = []
         for m in c:
             if m not in d:

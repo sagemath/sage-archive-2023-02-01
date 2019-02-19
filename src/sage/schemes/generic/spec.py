@@ -16,7 +16,7 @@ AUTHORS:
 
 from sage.categories.functor import Functor
 from sage.rings.integer_ring import ZZ
-from sage.schemes.generic.scheme import AffineScheme, is_AffineScheme
+from sage.schemes.generic.scheme import AffineScheme
 from sage.structure.unique_representation import UniqueRepresentation
 
 
@@ -81,6 +81,7 @@ def Spec(R, S=None):
         Spectrum of Rational Field
     """
     return SpecFunctor(S)(R)
+
 
 class SpecFunctor(Functor, UniqueRepresentation):
     """

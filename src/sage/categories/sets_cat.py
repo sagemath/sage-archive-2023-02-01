@@ -1,15 +1,15 @@
 r"""
 Sets
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
 #                2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
 #                2008-2014 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import range
 
@@ -22,7 +22,6 @@ from sage.misc.lazy_format import LazyFormat
 from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
 # Do not use sage.categories.all here to avoid initialization loop
-from sage.categories.morphism import SetMorphism
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
 from sage.categories.subquotients import SubquotientsCategory
 from sage.categories.quotients    import QuotientsCategory
@@ -34,6 +33,7 @@ from sage.categories.realizations import RealizationsCategory, Category_realizat
 from sage.categories.with_realizations import WithRealizationsCategory
 from sage.categories.category_with_axiom import CategoryWithAxiom
 lazy_import('sage.sets.cartesian_product', 'CartesianProduct')
+
 
 def print_compare(x, y):
     """
@@ -57,9 +57,10 @@ def print_compare(x, y):
 
     """
     if x == y:
-        return LazyFormat("%s == %s")%(x, y)
+        return LazyFormat("%s == %s") % (x, y)
     else:
-        return LazyFormat("%s != %s")%(x, y)
+        return LazyFormat("%s != %s") % (x, y)
+
 
 class EmptySetError(ValueError):
     """
@@ -78,6 +79,7 @@ class EmptySetError(ValueError):
         EmptySetError: no elements
     """
     pass
+
 
 class Sets(Category_singleton):
     r"""
@@ -248,7 +250,7 @@ class Sets(Category_singleton):
 
     def example(self, choice = None):
         """
-        Returns examples of objects of ``Sets()``, as per
+        Return examples of objects of ``Sets()``, as per
         :meth:`Category.example()
         <sage.categories.category.Category.example>`.
 
@@ -1229,11 +1231,10 @@ class Sets(Category_singleton):
             """
             tester = self._tester(**options)
             S = list(tester.some_elements()) + [None, 0]
-            n = tester._max_runs
             from sage.misc.misc import some_tuples
-            for x,y in some_tuples(S, 2, tester._max_runs):
+            for x, y in some_tuples(S, 2, tester._max_runs):
                 tester.assertEqual(x==y, y==x,
-                    LazyFormat("non symmetric equality: %s but %s")%(
+                    LazyFormat("non symmetric equality: %s but %s") % (
                         print_compare(x, y), print_compare(y, x)))
 
         def _test_elements_eq_transitive(self, **options):
@@ -1453,6 +1454,7 @@ class Sets(Category_singleton):
             return None
 
         CartesianProduct = CartesianProduct
+
         def cartesian_product(*parents, **kwargs):
             """
             Return the Cartesian product of the parents.

@@ -2269,8 +2269,8 @@ class MPolynomialIdeal_singular_repr(
 
             sage: K.<x,y> = QQ[]
             sage: I = ideal([x^2+2*y-5,x+y+3])
-            sage: v = I.variety(AA)[0]; v
-            {x: 4.464101615137755?, y: -7.464101615137755?}
+            sage: v = I.variety(AA)[0]; v[x], v[y]
+            (4.464101615137755?, -7.464101615137755?)
             sage: list(v)[0].parent()
             Multivariate Polynomial Ring in x, y over Algebraic Real Field
             sage: v[x]

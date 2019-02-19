@@ -39,8 +39,20 @@ dnl Implement cases for what to do on different options here
 
     if test x$sage_spkg_install_mpir = xyes -o x$sage_spkg_install_gmp = xyes; then
         AC_SUBST(SAGE_GMP_PREFIX, ['$SAGE_LOCAL'])
+        AC_SUBST(SAGE_GMP_INCLUDE, ['$SAGE_LOCAL/include'])
         AC_MSG_RESULT([using $SAGE_MP_LIBRARY SPKG (via --with-mp=$SAGE_MP_LIBRARY)])
     else
+        dnl If found, we want to get the absolute path to where we
+        dnl found it for use with some packages (e.g. iml) that need
+        dnl this information at configure time
+        AX_ABSOLUTE_HEADER([gmp.h])
+        if test x$gl_cv_absolute_gmp_h = x; then
+            AC_MSG_ERROR(m4_normalize([
+                failed to find absolute path to gmp.h despite it being reported
+                found
+            ]))
+        fi
+        AC_SUBST(SAGE_GMP_INCLUDE, [`AS_DIRNAME($gl_cv_absolute_gmp_h)`])
         AC_SUBST(SAGE_GMP_PREFIX, [''])
         AC_MSG_RESULT([using GMP-compatible library from the system])
     fi

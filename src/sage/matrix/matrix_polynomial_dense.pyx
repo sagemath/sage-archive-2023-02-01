@@ -1933,7 +1933,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         # --> initially, 'rdeg' is the shift-row degree of the identity matrix
         rdeg = list(shifts)
 
-        while len(rest_order)>0:
+        while rest_order:
             # invariant:
             #   * appbas is a shifts-ordered weak Popov approximant basis for
             #   (self,doneorder)
@@ -1949,15 +1949,18 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             # Note: one may also consider the first one in order (--> process
             # 'self' columnwise, from left column to right column, set j=0
             # instead of the below), but it seems to often be (barely) slower
-            j = min(ind for ind in range(len(rest_order))
-                    if rest_order[ind] == max(rest_order))
+            max_rest_order = max(rest_order)
+            for ind, value in enumerate(rest_order):
+                if value == max_rest_order:
+                    j = ind
+                    break
             d = order[rest_index[j]] - rest_order[j]
 
             # coefficient = the coefficient of degree d of the column j of the
             # residual matrix
             # --> this is very likely nonzero and we want to make it zero, so
             # that this column becomes zero mod X^{d+1}
-            coefficient = [residuals[i,j][d] for i in range(m)]
+            coefficient = [residuals[i, j][d] for i in range(m)]
 
             # Lambda: collect rows [i] with nonzero coefficient[i]
             # pi: index of the first row with smallest shift, among those in
@@ -1969,14 +1972,14 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                     Lambda.append(i)
                     if pi < 0 or rdeg[i] < rdeg[pi]:
                         pi = i
-            if Lambda != [] : # otherwise, nothing to do
-                #update all rows in Lambda--{pi}
+            if Lambda: # otherwise, nothing to do
+                # update all rows in Lambda--{pi}
                 Lambda.remove(pi)
                 for row in Lambda:
                     scalar = -coefficient[row]/coefficient[pi]
                     appbas.add_multiple_of_row(row, pi, scalar)
                     residuals.add_multiple_of_row(row, pi, scalar)
-                #update row pi
+                # update row pi
                 rdeg[pi] += 1
                 appbas.rescale_row(pi, X)
                 residuals.rescale_row(pi, X)
@@ -1985,10 +1988,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             # this column, i.e. if rest_order[j] was 1:
             # in this case remove the column j of
             # residual,rest_order,rest_index
-            if rest_order[j]==1:
+            if rest_order[j] == 1:
                 residuals = residuals.delete_columns([j])
                 rest_order.pop(j)
                 rest_index.pop(j)
             else:
                 rest_order[j] -= 1
-        return appbas,rdeg
+        return appbas, rdeg

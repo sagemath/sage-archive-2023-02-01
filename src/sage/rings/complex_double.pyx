@@ -1639,6 +1639,8 @@ cdef class ComplexDoubleElement(FieldElement):
 
         Note the difference with ::
 
+            sage: CDF(-0.26319743704743886) ^ QQ(2)
+            0.06927289086834053 - 1.6966964813919428e-17*I
             sage: CDF(-0.26319743704743886) ^ RDF(2)
             0.06927289086834053 - 1.6966964813919428e-17*I
 

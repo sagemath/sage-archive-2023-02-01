@@ -19,7 +19,6 @@ from sage.misc.abstract_method import abstract_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.lazy_import import lazy_import, LazyImport
 from sage.misc.lazy_format import LazyFormat
-from sage.misc.superseded import deprecated_function_alias
 from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
 # Do not use sage.categories.all here to avoid initialization loop
@@ -937,8 +936,6 @@ class Sets(Category_singleton):
                 True
             """
             return self._with_axiom('Facade')
-
-        Facades = deprecated_function_alias(17073, Facade)
 
     class ParentMethods:
         # TODO: simplify the _element_constructor_ definition logic
@@ -2406,8 +2403,6 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 """
                 return self.parent().cartesian_projection(i)(self)
 
-            summand_projection = deprecated_function_alias(10963, cartesian_projection)
-
             def cartesian_factors(self):
                 """
                 Return the Cartesian factors of ``self``.
@@ -2432,8 +2427,6 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 return tuple(self.cartesian_projection(i)
                              for i in self.parent()._sets_keys())
                 #return Family(self._sets.keys(), self.projection)
-
-            summand_split = deprecated_function_alias(10963, cartesian_factors)
 
     class Algebras(AlgebrasCategory):
 

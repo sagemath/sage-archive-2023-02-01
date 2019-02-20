@@ -2214,9 +2214,13 @@ class MPolynomialIdeal_singular_repr(
             sage: sorted(I.variety(ring=RR), key=str)
             [{y: 0.361103080528647, x: 2.76929235423863},
              {y: 1.00000000000000, x: 1.00000000000000}]
-            sage: I.variety(ring=AA)
+            sage: I.variety(ring=AA) # py2
             [{x: 1, y: 1},
              {x: 2.769292354238632?, y: 0.3611030805286474?}]
+            sage: I.variety(ring=AA) # py3
+            [{y: 1, x: 1},
+             {y: 0.3611030805286474?, x: 2.769292354238632?}]
+
 
         and a total of four intersections::
 
@@ -4542,8 +4546,10 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             Multivariate Polynomial Ring in x0, x1, y0, y1 over Finite Field of size
             2
             sage: J += sage.rings.ideal.FieldIdeal(J.ring()) # ensure radical ideal
-            sage: J.variety()
+            sage: J.variety() # py2
             [{y1: 1, x1: 1, x0: 1, y0: 0}]
+            sage: J.variety() # py3
+            [{y1: 1, y0: 0, x1: 1, x0: 1}]
 
             sage: J.weil_restriction() # returns J
             Ideal (x0*y0 + x1*y1 + 1, x1*y0 + x0*y1 + x1*y1, x1 + 1, x0 + x1, x0^2 +
@@ -4555,8 +4561,10 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I = sage.rings.ideal.Katsura(P)
             sage: I.dimension()
             0
-            sage: I.variety()
+            sage: I.variety() # py2
             [{y: 0, z: 0, x: 1}]
+            sage: I.variety() # py3
+             [{z: 0, y: 0, x: 1}]
 
             sage: J = I.weil_restriction(); J
             Ideal (x0 - y0 - z0 - 1, x1 - y1 - z1, x2 - y2 - z2, x3 - y3 - z3, x4 -

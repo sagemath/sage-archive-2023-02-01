@@ -36,7 +36,7 @@ the imaginary part is positive definite::
 
     sage: all(abs(a) < 1e-20 for a in (M-M.T).list())
     True
-    sage: iM=Matrix(RDF,3,3,[a.imag_part() for a in M.list()])
+    sage: iM = Matrix(RDF,3,3,[a.imag_part() for a in M.list()])
     sage: iM.is_positive_definite()
     True
 
@@ -133,7 +133,8 @@ def voronoi_ghost(cpoints, n=6, CC=CDF):
     extra_points = [average+radius*z**i for i in range(n)]
     return [(c.real_part(),c.imag_part()) for c in cpoints+extra_points]
 
-def bisect(L,t):
+
+def bisect(L, t):
     r"""
     Find position in a sorted list using bisection.
 
@@ -1791,7 +1792,7 @@ class RiemannSurface(object):
             sage: P = S.period_matrix()
             sage: Rs = S.endomorphism_basis()
             sage: Ts = S.tangent_representation_numerical(Rs)
-            sage: all([ ((T*P - P*R).norm() < 2^(-80)) for [ T, R ] in zip(Ts, Rs) ])
+            sage: all(((T*P - P*R).norm() < 2^(-80)) for [T, R] in zip(Ts, Rs))
             True
         """
         if not other:
@@ -1965,8 +1966,8 @@ class RiemannSurface(object):
             sage: Q = Y.period_matrix()
             sage: Rs = X.symplectic_isomorphisms(Y)
             sage: Ts = X.tangent_representation_numerical(Rs, other = Y)
-            sage: test1 = all([ ((T*P - Q*R).norm() < 2^(-80)) for [ T, R ] in zip(Ts, Rs) ])
-            sage: test2 = all([ det(R) == 1 for R in Rs ])
+            sage: test1 = all(((T*P - Q*R).norm() < 2^(-80)) for [T, R] in zip(Ts, Rs))
+            sage: test2 = all(det(R) == 1 for R in Rs)
             sage: test1 and test2
             True
         """

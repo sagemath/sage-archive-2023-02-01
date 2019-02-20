@@ -6652,6 +6652,11 @@ class Polyhedron_base(Element):
 
             sage: S = polytopes.simplex(); S
             A 3-dimensional polyhedron in ZZ^4 defined as the convex hull of 4 vertices
+            sage: S.vertices()
+            (A vertex at (0, 0, 0, 1),
+             A vertex at (0, 0, 1, 0),
+             A vertex at (0, 1, 0, 0),
+             A vertex at (1, 0, 0, 0))
             sage: A = S.affine_hull(); A
             A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 4 vertices
             sage: A.vertices()

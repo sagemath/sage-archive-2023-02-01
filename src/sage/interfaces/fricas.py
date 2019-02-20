@@ -338,8 +338,8 @@ class FriCAS(ExtraTabCompletion, Expect):
         """
         return r"""
 In order to use the FriCAS interface you need to have FriCAS installed.
-You can either run 'sage -i fricas' in to install FriCAS as an optional
-package within SageMath, or install FriCAS separately from
+You can either run 'sage -i fricas' to install FriCAS as an optional
+package within SageMath, or install FriCAS separately, see
 http://fricas.sourceforge.net.
 """
 

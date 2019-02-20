@@ -328,7 +328,9 @@ cdef class Matrix_gap(Matrix_dense):
 
     def transpose(self):
         r"""
-        TESTS::
+        Return the transpose of this matrix.
+        
+        EXAMPLES::
 
             sage: M = MatrixSpace(QQ, 2, implementation='gap')
             sage: M([4,2,23,52]).transpose()

@@ -5144,7 +5144,8 @@ class Polyhedron_base(Element):
             raise NotImplementedError("The polytope must be full-dimensional.")
         else:
             from sage.interfaces.latte import integrate
-            return integrate(self.cdd_Hrepresentation(), polynomial, cdd=True)
+            return integrate(self.cdd_Hrepresentation(), polynomial,
+                             cdd=True, **kwds)
 
     def contains(self, point):
         """

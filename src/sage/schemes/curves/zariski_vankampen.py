@@ -328,14 +328,11 @@ def braid_in_segment(f, x0, x1):
         sage: f = y*(y + z)*x*(x - 1)*(x - y)*(x + z*y - 1)*(x + z*y + wp)
         sage: from sage.schemes.curves import zariski_vankampen as zvk
         sage: g = f.subs({x: x + 2*y})
-        sage: disc = zvk.discrim(g)
-        sage: for a in disc: a.exactify()
-        sage: disc = sorted(disc)
-        sage: segs = zvk.segments(disc)
-        sage: segs[16]  # abs tol 1e-16
-        (0.577350269189626*I, 0.500000000000000 + 0.288675134594813*I)
-        sage: zvk.braid_in_segment(g, *segs[16])  # optional - sirocco
-        s0*s1*s3*s5*s1^-1*s0^-1*s3^-1
+        sage: p1 = QQbar(sqrt(-1/3))
+        sage: p2 = QQbar(1/2+sqrt(-1/3)/2)
+        sage: zvk.braid_in_segment(g,CC(p1),CC(p2))
+        s3*s5*s3^-1
+
     """
     CC = ComplexField(64)
     (x, y) = f.variables()

@@ -327,6 +327,22 @@ class FriCAS(ExtraTabCompletion, Expect):
         for line in FRICAS_HELPER_CODE:
             self.eval(line, reformat=False)
 
+    def _install_hints(self):
+        """
+        Hints for installing Giac on your computer.
+
+        EXAMPLES::
+
+            sage: print(fricas._install_hints())
+            In order...
+        """
+        return r"""
+In order to use the FriCAS interface you need to have FriCAS installed.
+You can either run 'sage -i fricas' in to install FriCAS as an optional
+package within SageMath, or install FriCAS separately from
+http://fricas.sourceforge.net.
+"""
+
     def _quit_string(self):
         """
         Returns the string used to quit FriCAS.

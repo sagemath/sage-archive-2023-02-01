@@ -332,7 +332,6 @@ def braid_in_segment(f, x0, x1):
         sage: p2 = QQbar(1/2+sqrt(-1/3)/2)
         sage: zvk.braid_in_segment(g,CC(p1),CC(p2))
         s3*s5*s3^-1
-
     """
     CC = ComplexField(64)
     (x, y) = f.variables()

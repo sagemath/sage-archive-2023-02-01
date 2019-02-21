@@ -125,7 +125,7 @@ cdef extern from "linbox/solutions/methods.h" namespace "LinBox":
         pass
     cdef struct WiedemannTraits:
         pass
-    cdef struct BlasEliminationTraits:
+    cdef struct DenseEliminationTraits:
         pass
     cdef struct SparseEliminationTraits:
         pass
@@ -135,7 +135,7 @@ cdef extern from "linbox/solutions/methods.h" namespace "LinBox":
         ctypedef BlackboxSpecifier Blackbox
         ctypedef EliminationSpecifier Elimination
         ctypedef WiedemannTraits Wiedemann
-        ctypedef BlasEliminationTraits BlasElimination
+        ctypedef DenseEliminationTraits DenseElimination
         ctypedef SparseEliminationTraits SparseElimination
 
 cdef extern from "linbox/solutions/charpoly.h" namespace "LinBox":
@@ -185,7 +185,7 @@ cdef extern from "linbox/solutions/solve.h" namespace "LinBox":
                                 Integer &,
                                 SparseMatrix_integer &,
                                 DenseVector_integer &,
-                                Method.BlasElimination) except +
+                                Method.DenseElimination) except +
 
     DenseVector_integer& solve (DenseVector_integer &,
                                 Integer &,

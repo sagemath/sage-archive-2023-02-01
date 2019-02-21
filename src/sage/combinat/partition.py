@@ -285,7 +285,6 @@ from copy import copy
 import six
 from six.moves import range
 
-from sage.interfaces.all import gap
 from sage.libs.all import pari
 from sage.libs.flint.arith import number_of_partitions as flint_number_of_partitions
 
@@ -325,7 +324,7 @@ from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.graphs.dot2tex_utils import have_dot2tex
-
+from sage.functions.other import binomial
 
 
 class Partition(CombinatorialElement):
@@ -1467,7 +1466,7 @@ class Partition(CombinatorialElement):
 
         INPUT:
 
-        - ``h`` -- An integer `h \geq 1`.  The (*minimum*) height of the 
+        - ``h`` -- An integer `h \geq 1`.  The (*minimum*) height of the
           rectangle.
 
         - ``w`` -- An integer `w \geq 1`.  The width of the rectangle.
@@ -1514,8 +1513,8 @@ class Partition(CombinatorialElement):
         Return ``True`` if the Ferrer's diagram of ``self`` contains `k-i+1`
         rows (*or more*) of length `i` (*exactly*) for any `i` in `[1, k]`.
 
-        This is mainly a helper function for :meth:`is_k_reducible` and 
-        :meth:`is_k_irreducible`, the only difference between this function and 
+        This is mainly a helper function for :meth:`is_k_reducible` and
+        :meth:`is_k_irreducible`, the only difference between this function and
         :meth:`is_k_reducible` being that this function allows any partition as
         input while :meth:`is_k_reducible` requires the input to be `k`-bounded.
 
@@ -6489,7 +6488,8 @@ class Partitions_n(Partitions):
             return bober_number_of_partitions(self.n)
 
         elif algorithm == 'gap':
-            return ZZ(gap.eval("NrPartitions(%s)" % (ZZ(self.n))))
+            from sage.libs.gap.libgap import libgap
+            return ZZ(libgap.NrPartitions(ZZ(self.n)))
 
         elif algorithm == 'pari':
             return ZZ(pari(ZZ(self.n)).numbpart())
@@ -7017,9 +7017,9 @@ class Partitions_parts_in(Partitions):
         """
         # GAP complains if you give it an empty list
         if self.parts:
-            return ZZ(gap.eval("NrRestrictedPartitions(%s,%s)" % (ZZ(self.n), self.parts)))
-        else:
-            return Integer(self.n == 0)
+            from sage.libs.gap.libgap import libgap
+            return ZZ(libgap.NrRestrictedPartitions(ZZ(self.n), self.parts))
+        return Integer(self.n == 0)
 
     def first(self):
         """
@@ -7483,6 +7483,33 @@ class PartitionsInBox(Partitions):
                 l = new_list
 
             return [self.element_class(self, [x for x in p if x!=0]) for p in l]
+
+    def cardinality(self):
+        """
+        Return the cardinality of ``self``.
+
+        EXAMPLES::
+
+            sage: PartitionsInBox(2, 3).cardinality()
+            10
+
+        TESTS:
+
+        Check the corner case::
+
+            sage: PartitionsInBox(0, 0).cardinality()
+            1
+
+            sage: PartitionsInBox(0, 1).cardinality()
+            1
+
+            sage: all(PartitionsInBox(a, b).cardinality() ==
+            ....:     len(PartitionsInBox(a, b).list())
+            ....:     for a in range(6) for b in range(6))
+            True
+
+        """
+        return binomial(self.h + self.w, self.w)
 
 class Partitions_constraints(IntegerListsLex):
     """
@@ -8142,12 +8169,13 @@ class OrderedPartitions(Partitions):
             sage: OrderedPartitions(3,2).list()
             [[2, 1], [1, 2]]
         """
+        from sage.interfaces.all import gap
         n = self.n
         k = self.k
-        if self.k is None:
-            ans=gap.eval("OrderedPartitions(%s)"%(ZZ(n)))
+        if k is None:
+            ans=gap.eval("OrderedPartitions(%s)" % (ZZ(n)))
         else:
-            ans=gap.eval("OrderedPartitions(%s,%s)"%(ZZ(n),ZZ(k)))
+            ans=gap.eval("OrderedPartitions(%s,%s)" % (ZZ(n), ZZ(k)))
         result = eval(ans.replace('\n',''))
         result.reverse()
         return result
@@ -8167,12 +8195,13 @@ class OrderedPartitions(Partitions):
             sage: OrderedPartitions(15).cardinality()
             16384
         """
+        from sage.libs.gap.libgap import libgap
         n = self.n
         k = self.k
         if k is None:
-            ans=gap.eval("NrOrderedPartitions(%s)"%(n))
+            ans = libgap.NrOrderedPartitions(n)
         else:
-            ans=gap.eval("NrOrderedPartitions(%s,%s)"%(n,k))
+            ans = libgap.NrOrderedPartitions(n, k)
         return ZZ(ans)
 
 ##########################
@@ -8229,6 +8258,25 @@ class PartitionsGreatestLE(UniqueRepresentation, IntegerListsLex):
             Partitions of 10 having parts less than or equal to 2
         """
         return "Partitions of %s having parts less than or equal to %s"%(self.n, self.k)
+
+    def cardinality(self):
+        """
+        Return the cardinality of ``self``.
+
+        EXAMPLES::
+
+            sage: PartitionsGreatestLE(9, 5).cardinality()
+            23
+
+        TESTS::
+
+            sage: all(PartitionsGreatestLE(n, a).cardinality() ==
+            ....:     len(PartitionsGreatestLE(n, a).list())
+            ....:     for n in range(20) for a in range(6))
+            True
+
+        """
+        return sum(number_of_partitions_length(self.n, i) for i in range(self.k+1))
 
     Element = Partition
     options = Partitions.options
@@ -8289,6 +8337,25 @@ class PartitionsGreatestEQ(UniqueRepresentation, IntegerListsLex):
             Partitions of 10 having greatest part equal to 2
         """
         return "Partitions of %s having greatest part equal to %s"%(self.n, self.k)
+
+    def cardinality(self):
+        """
+        Return the cardinality of ``self``.
+
+        EXAMPLES::
+
+            sage: PartitionsGreatestEQ(10, 2).cardinality()
+            5
+
+        TESTS::
+
+            sage: all(PartitionsGreatestEQ(n, a).cardinality() ==
+            ....:     len(PartitionsGreatestEQ(n, a).list())
+            ....:     for n in range(20) for a in range(6))
+            True
+
+        """
+        return number_of_partitions_length(self.n, self.k)
 
     Element = Partition
     options = Partitions.options
@@ -8745,8 +8812,8 @@ def number_of_partitions_length(n, k, algorithm='hybrid'):
             return number_of_partitions(n - k)
 
         # Fall back to GAP
-
-    return ZZ(gap.eval( "NrPartitions({},{})".format(ZZ(n), ZZ(k)) ))
+    from sage.libs.gap.libgap import libgap
+    return ZZ(libgap.NrPartitions(ZZ(n), ZZ(k)))
 
 
 ##########

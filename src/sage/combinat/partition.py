@@ -8215,9 +8215,9 @@ class PartitionsGreatestLE(UniqueRepresentation, IntegerListsLex):
 
     EXAMPLES::
 
-        sage: PartitionsGreatestLE(10,2)
+        sage: PartitionsGreatestLE(10, 2)
         Partitions of 10 having parts less than or equal to 2
-        sage: PartitionsGreatestLE(10,2).list()
+        sage: PartitionsGreatestLE(10, 2).list()
         [[2, 2, 2, 2, 2],
          [2, 2, 2, 2, 1, 1],
          [2, 2, 2, 1, 1, 1, 1],
@@ -8225,11 +8225,11 @@ class PartitionsGreatestLE(UniqueRepresentation, IntegerListsLex):
          [2, 1, 1, 1, 1, 1, 1, 1, 1],
          [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
 
-        sage: [4,3,2,1] in PartitionsGreatestLE(10,2)
+        sage: [4,3,2,1] in PartitionsGreatestLE(10, 2)
         False
-        sage: [2,2,2,2,2] in PartitionsGreatestLE(10,2)
+        sage: [2,2,2,2,2] in PartitionsGreatestLE(10, 2)
         True
-        sage: PartitionsGreatestLE(10,2).first().parent()
+        sage: PartitionsGreatestLE(10, 2).first().parent()
         Partitions...
     """
 
@@ -8239,12 +8239,12 @@ class PartitionsGreatestLE(UniqueRepresentation, IntegerListsLex):
 
         TESTS::
 
-            sage: p = PartitionsGreatestLE(10,2)
+            sage: p = PartitionsGreatestLE(10, 2)
             sage: p.n, p.k
             (10, 2)
             sage: TestSuite(p).run()
         """
-        IntegerListsLex.__init__(self, n, max_slope = 0, min_part=1, max_part = k)
+        IntegerListsLex.__init__(self, n, max_slope=0, min_part=1, max_part=k)
         self.n = n
         self.k = k
 
@@ -8292,24 +8292,34 @@ class PartitionsGreatestEQ(UniqueRepresentation, IntegerListsLex):
 
     EXAMPLES::
 
-        sage: PartitionsGreatestEQ(10,2)
+        sage: PartitionsGreatestEQ(10, 2)
         Partitions of 10 having greatest part equal to 2
-        sage: PartitionsGreatestEQ(10,2).list()
+        sage: PartitionsGreatestEQ(10, 2).list()
         [[2, 2, 2, 2, 2],
          [2, 2, 2, 2, 1, 1],
          [2, 2, 2, 1, 1, 1, 1],
          [2, 2, 1, 1, 1, 1, 1, 1],
          [2, 1, 1, 1, 1, 1, 1, 1, 1]]
 
-        sage: [4,3,2,1] in PartitionsGreatestEQ(10,2)
+        sage: [4,3,2,1] in PartitionsGreatestEQ(10, 2)
         False
-        sage: [2,2,2,2,2] in PartitionsGreatestEQ(10,2)
+        sage: [2,2,2,2,2] in PartitionsGreatestEQ(10, 2)
         True
-        sage: [1]*10 in PartitionsGreatestEQ(10,2)
+
+    The empty partition has no maximal part, but it is contained in
+    the set of partitions with any specified maximal part::
+
+        sage: PartitionsGreatestEQ(0, 2).list()
+        [[]]
+
+    TESTS::
+
+        sage: [1]*10 in PartitionsGreatestEQ(10, 2)
         False
 
-        sage: PartitionsGreatestEQ(10,2).first().parent()
+        sage: PartitionsGreatestEQ(10, 2).first().parent()
         Partitions...
+
     """
 
     def __init__(self, n, k):
@@ -8318,12 +8328,12 @@ class PartitionsGreatestEQ(UniqueRepresentation, IntegerListsLex):
 
         TESTS::
 
-            sage: p = PartitionsGreatestEQ(10,2)
+            sage: p = PartitionsGreatestEQ(10, 2)
             sage: p.n, p.k
             (10, 2)
             sage: TestSuite(p).run()
         """
-        IntegerListsLex.__init__(self, n, max_slope = 0, max_part=k, floor = [k])
+        IntegerListsLex.__init__(self, n, max_slope=0, max_part=k, floor=[k])
         self.n = n
         self.k = k
 
@@ -8333,7 +8343,7 @@ class PartitionsGreatestEQ(UniqueRepresentation, IntegerListsLex):
 
         TESTS::
 
-            sage: PartitionsGreatestEQ(10,2) # indirect doctest
+            sage: PartitionsGreatestEQ(10, 2) # indirect doctest
             Partitions of 10 having greatest part equal to 2
         """
         return "Partitions of %s having greatest part equal to %s"%(self.n, self.k)
@@ -8355,6 +8365,8 @@ class PartitionsGreatestEQ(UniqueRepresentation, IntegerListsLex):
             True
 
         """
+        if not self.n:
+            return 1
         return number_of_partitions_length(self.n, self.k)
 
     Element = Partition

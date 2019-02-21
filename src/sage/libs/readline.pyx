@@ -8,10 +8,9 @@ into it so we can make it redraw the input area.
 EXAMPLES::
 
     sage: from sage.libs.readline import *
-    sage: from sage.cpython.string import bytes_to_str
     sage: replace_line('foobar', 0)
     sage: set_point(3)
-    sage: print('current line: ' + repr(bytes_to_str(copy_text(0, get_end()))))
+    sage: print('current line: ' + repr(copy_text(0, get_end())))
     current line: 'foobar'
     sage: print('cursor position: {}'.format(get_point()))
     cursor position: 3
@@ -22,7 +21,7 @@ line is removed::
     sage: with interleaved_output():
     ....:     print('output')
     ....:     print('current line: ' +
-    ....:            repr(bytes_to_str(copy_text(0, get_end()))))
+    ....:            repr(copy_text(0, get_end())))
     ....:     print('cursor position: {}'.format(get_point()))
     output
     current line: ''
@@ -31,7 +30,7 @@ line is removed::
 After the interleaved output, the line and cursor is restored to the
 old value::
 
-    sage: print('current line: ' + repr(bytes_to_str(copy_text(0, get_end()))))
+    sage: print('current line: ' + repr(copy_text(0, get_end())))
     current line: 'foobar'
     sage: print('cursor position: {}'.format(get_point()))
     cursor position: 3
@@ -51,7 +50,7 @@ Finally, clear the current line for the remaining doctests::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from sage.cpython.string cimport str_to_bytes
+from sage.cpython.string cimport str_to_bytes, bytes_to_str
 
 
 cdef extern from 'readline/readline.h':
@@ -205,12 +204,11 @@ def copy_text(pos_start, pos_end):
     EXAMPLES::
 
         sage: from sage.libs.readline import copy_text, replace_line
-        sage: from sage.cpython.string import bytes_to_str
         sage: replace_line('foobar', 0)
-        sage: bytes_to_str(copy_text(1, 5))
+        sage: copy_text(1, 5)
         'ooba'
     """
-    return rl_copy_text(pos_start, pos_end)
+    return bytes_to_str(rl_copy_text(pos_start, pos_end))
 
 def replace_line(text, clear_undo):
     """
@@ -228,9 +226,8 @@ def replace_line(text, clear_undo):
     EXAMPLES::
 
         sage: from sage.libs.readline import copy_text, replace_line
-        sage: from sage.cpython.string import bytes_to_str
         sage: replace_line('foobar', 0)
-        sage: bytes_to_str(copy_text(1, 5))
+        sage: copy_text(1, 5)
         'ooba'
     """
     rl_replace_line(str_to_bytes(text), clear_undo)

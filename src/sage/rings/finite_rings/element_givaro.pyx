@@ -582,21 +582,10 @@ cdef class Cache_givaro(SageObject):
             sage: 2^7 + 2^4 + 2^2 + 2 + 1
             151
         """
-        cdef GivaroGfq *k = self.objectptr
-        cdef int ret = k.zero
-        cdef int a = k.indeterminate()
-        cdef int at = k.one
-        cdef int ch = k.characteristic()
-        cdef int t, i
-
-        if n<0 or n>k.cardinality():
+        if n<0 or n>self.order():
             raise TypeError("n must be between 0 and self.order()")
 
-        for i from 0 <= i < k.exponent():
-            t = k.initi(t, n % ch)
-            ret = k.axpy(ret, t, at, ret)
-            at = k.mul(at,at,a)
-            n //= ch
+        cdef int ret = self.int_to_log(n)
         return make_FiniteField_givaroElement(self, ret)
 
     def _element_repr(self, FiniteField_givaroElement e):

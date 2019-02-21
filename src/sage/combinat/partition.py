@@ -8257,7 +8257,7 @@ class PartitionsGreatestLE(UniqueRepresentation, IntegerListsLex):
             sage: PartitionsGreatestLE(10, 2) # indirect doctest
             Partitions of 10 having parts less than or equal to 2
         """
-        return "Partitions of %s having parts less than or equal to %s"%(self.n, self.k)
+        return "Partitions of %s having parts less than or equal to %s" % (self.n, self.k)
 
     def cardinality(self):
         """
@@ -8288,7 +8288,7 @@ class PartitionsGreatestLE(UniqueRepresentation, IntegerListsLex):
 class PartitionsGreatestEQ(UniqueRepresentation, IntegerListsLex):
     """
     The class of all (unordered) "restricted" partitions of the integer `n`
-    having its greatest part equal to the integer `k`.
+    having all its greatest parts equal to the integer `k`.
 
     EXAMPLES::
 
@@ -8346,7 +8346,7 @@ class PartitionsGreatestEQ(UniqueRepresentation, IntegerListsLex):
             sage: PartitionsGreatestEQ(10, 2) # indirect doctest
             Partitions of 10 having greatest part equal to 2
         """
-        return "Partitions of %s having greatest part equal to %s"%(self.n, self.k)
+        return "Partitions of %s having greatest part equal to %s" % (self.n, self.k)
 
     def cardinality(self):
         """

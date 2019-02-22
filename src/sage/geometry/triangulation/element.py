@@ -72,8 +72,8 @@ def triangulation_render_2d(triangulation, **kwds):
         sage: triang.plot(axes=False, aspect_ratio=1)   # indirect doctest
         Graphics object consisting of 12 graphics primitives
     """
-    from sage.plot.all import point2d, line2d, arrow, polygon2d
-    points = [ point.reduced_affine() for point in triangulation.point_configuration() ]
+    from sage.plot.all import point2d, line2d, polygon2d
+    points = [point.reduced_affine() for point in triangulation.point_configuration()]
     coord = [ [p[0], p[1]] for p in points ]
     plot_points = sum([ point2d(p,
                                 zorder=2, pointsize=10, **kwds)
@@ -136,7 +136,7 @@ def triangulation_render_3d(triangulation, **kwds):
         sage: triang.plot(axes=False)     # indirect doctest
         Graphics3d Object
     """
-    from sage.plot.plot3d.all import point3d, line3d, arrow3d, polygon3d
+    from sage.plot.plot3d.all import point3d, line3d, polygon3d
     points = [ point.reduced_affine() for point in triangulation.point_configuration() ]
     coord = [ [p[0], p[1], p[2] ] for p in points ]
     plot_points = sum([ point3d(p, size=15,
@@ -766,7 +766,7 @@ class Triangulation(Element):
         """
         if not self.point_configuration().base_ring().is_subring(QQ):
             raise NotImplementedError('Only base rings ZZ and QQ are supported')
-        from sage.libs.ppl import Variable, Constraint, Constraint_System, Linear_Expression, C_Polyhedron
+        from sage.libs.ppl import Constraint_System, Linear_Expression, C_Polyhedron
         from sage.matrix.constructor import matrix
         from sage.arith.all import lcm
         pc = self.point_configuration()
@@ -776,7 +776,7 @@ class Triangulation(Element):
             p = set(s0).difference(facet).pop()
             q = set(s1).difference(facet).pop()
             origin = pc.point(p).reduced_affine_vector()
-            base_indices = [ i for i in s0 if i!=p ]
+            base_indices = [i for i in s0 if i != p]
             base = matrix([ pc.point(i).reduced_affine_vector()-origin for i in base_indices ])
             sol = base.solve_left( pc.point(q).reduced_affine_vector()-origin )
             relation = [0]*pc.n_points()

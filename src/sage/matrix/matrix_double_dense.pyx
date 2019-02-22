@@ -36,14 +36,14 @@ TESTS::
     sage: TestSuite(a).run()
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2004,2005,2006 Joshua Kantor <kantor.jm@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import
 
 import math
@@ -608,7 +608,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: B.condition()
             doctest:warning
             ...
-            ComplexWarning: Casting complex values to real discards the imaginary part
+            ...ComplexWarning: Casting complex values to real discards the imaginary part
             203.851798...
             sage: B.condition(p='frob')
             203.851798...

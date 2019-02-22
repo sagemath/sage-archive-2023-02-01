@@ -10,9 +10,9 @@ EXAMPLES::
     sage: from sage.libs.readline import *
     sage: replace_line('foobar', 0)
     sage: set_point(3)
-    sage: print('current line: ' + repr(copy_text(0, get_end())))
+    sage: print('current line:', repr(copy_text(0, get_end())))
     current line: 'foobar'
-    sage: print('cursor position: {}'.format(get_point()))
+    sage: print('cursor position:', get_point())
     cursor position: 3
 
 When printing with :class:`interleaved_output` the prompt and current
@@ -20,9 +20,9 @@ line is removed::
 
     sage: with interleaved_output():
     ....:     print('output')
-    ....:     print('current line: ' +
+    ....:     print('current line: ',
     ....:            repr(copy_text(0, get_end())))
-    ....:     print('cursor position: {}'.format(get_point()))
+    ....:     print('cursor position:', get_point())
     output
     current line: ''
     cursor position: 0
@@ -30,9 +30,9 @@ line is removed::
 After the interleaved output, the line and cursor is restored to the
 old value::
 
-    sage: print('current line: ' + repr(copy_text(0, get_end())))
+    sage: print('current line:', repr(copy_text(0, get_end())))
     current line: 'foobar'
-    sage: print('cursor position: {}'.format(get_point()))
+    sage: print('cursor position:', get_point())
     cursor position: 3
 
 Finally, clear the current line for the remaining doctests::

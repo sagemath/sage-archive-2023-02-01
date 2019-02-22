@@ -233,7 +233,10 @@ def _get_shared_lib_filename(libname, *additional_libnames):
         if sys.platform == 'cygwin':
             bindir = sysconfig.get_config_var('BINDIR')
             pats = ['cyg{}.dll'.format(libname), 'cyg{}-*.dll'.format(libname)]
-            filenames = [glob.glob(os.path.join(bindir, pat)) for pat in pats]
+            filenames = []
+            for pat in pats:
+                filenames += glob.glob(os.path.join(bindir, pat))
+
             # Note: This is not very robust, since if there are multi DLL
             # versions for the same library this just selects one more or less
             # at arbitrary.  However, practically speaking, on Cygwin, there

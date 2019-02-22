@@ -121,16 +121,12 @@ class FinitePosets(CategoryWithAxiom):
             # Two quick checks before full isomorphic test.
             if sorted(self._hasse_diagram.in_degree()) != sorted(self._hasse_diagram.out_degree()):
                 return False
-            levels_orig=[len(x) for x in self._hasse_diagram.level_sets()]
-            dual_poset_hasse=self._hasse_diagram.reverse()
-            levels_dual=[len(x) for x in dual_poset_hasse.level_sets()]
+            levels_orig = [len(x) for x in self._hasse_diagram.level_sets()]
+            dual_poset_hasse = self._hasse_diagram.reverse()
+            levels_dual = [len(x) for x in dual_poset_hasse.level_sets()]
             if levels_orig != levels_dual:
                 return False
             return self._hasse_diagram.is_isomorphic(dual_poset_hasse)
-
-        from sage.misc.superseded import deprecated_function_alias
-        is_selfdual = deprecated_function_alias(24048, is_self_dual)
-
 
         ##########################################################################
         # Properties of morphisms

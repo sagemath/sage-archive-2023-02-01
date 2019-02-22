@@ -85,15 +85,15 @@ We do some arithmetic in a tower of relative number fields::
    explicitly coerce all elements into a common field, then do
    arithmetic with them there (which is quite fast).
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2004, 2005, 2006, 2007 William Stein <wstein@gmail.com>
 #                     2014 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from __future__ import absolute_import, print_function
 from six.moves import range
@@ -5665,7 +5665,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             return self._integral_basis_dict[v]
         except (AttributeError, KeyError):
             f = self.pari_polynomial("y")
-            if len(v) > 0:
+            if v:
                 B = f.nfbasis(fa=v)
             elif self._assume_disc_small:
                 B = f.nfbasis(1)
@@ -5677,7 +5677,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
                 # instead of D^(1/2).
                 trialdivlimit2 = pari(10**12)
                 trialdivlimit3 = pari(10**18)
-                if all([ p < trialdivlimit2 or (e == 1 and p < trialdivlimit3) or p.isprime() for p,e in zip(m[0],m[1]) ]):
+                if all(p < trialdivlimit2 or (e == 1 and p < trialdivlimit3) or p.isprime() for p, e in zip(m[0], m[1])):
                     B = f.nfbasis(fa = m)
                 else:
                     raise RuntimeError("Unable to factor discriminant with trial division")
@@ -6595,7 +6595,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
                     S = tuple(self.ideal(P) for P in S)
                 except (NameError, TypeError, ValueError):
                     raise ValueError("Cannot make a set of primes from %s"%(S,))
-                if not all([P.is_prime() for P in S]):
+                if not all(P.is_prime() for P in S):
                     raise ValueError("Not all elements of %s are prime ideals"%(S,))
 
         try:
@@ -6943,7 +6943,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: K.<a> = NumberField(x^2-10)
             sage: Ilist = [K.primes_above(p)[0] for p in prime_range(10)]
             sage: b = K.solve_CRT([1,2,3,4],Ilist,True)
-            sage: all([b-i-1 in Ilist[i] for i in range(4)])
+            sage: all(b-i-1 in Ilist[i] for i in range(4))
             True
             sage: Ilist = [K.ideal(a), K.ideal(2)]
             sage: K.solve_CRT([0,1],Ilist,True)
@@ -6971,7 +6971,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         else:  # n>2;, use induction / recursion
             x = self.solve_CRT([reslist[0],self.solve_CRT(reslist[1:],Ilist[1:])],
                                [Ilist[0],prod(Ilist[1:])], check=check)
-        if check and not all([x-xi in Ii for xi,Ii in zip(reslist, Ilist)]):
+        if check and not all(x - xi in Ii for xi, Ii in zip(reslist, Ilist)):
             raise RuntimeError("Error in number field solve_CRT()")
         return self(x)
 

@@ -2571,7 +2571,7 @@ class DifferentialGCAlgebra(GCAlgebra):
         nonclosedgens = set([i for i in range(M.ngens()) if not M.gen(i).differential().is_zero()])
         for degree in range(1, k+1):
             basis = M.basis(degree)
-            Ndegree = [g.basis_coefficients() for g in basis if any(g.dict().keys()[0][j]!= 0 for j in nonclosedgens)]
+            Ndegree = [g.basis_coefficients() for g in basis if any(list(g.dict().keys())[0][j]!= 0 for j in nonclosedgens)]
             cocycles = M.cocycles(degree)
             coboundaries = M.coboundaries(degree)
             V = cocycles.ambient_vector_space()

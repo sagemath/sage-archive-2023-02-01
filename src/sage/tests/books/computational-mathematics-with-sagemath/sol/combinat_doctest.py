@@ -94,8 +94,8 @@ Sage example in ./sol/combinat.tex, line 229::
 
 Sage example in ./sol/combinat.tex, line 242::
 
-  sage: FullHands.first()
-  ([2, 3], {'Hearts', 'Spades', 'Diamonds'}, {'Hearts', 'Diamonds'})
+  sage: [sorted(v) for v in FullHands.first()]
+  [[2, 3], ['Diamonds', 'Hearts', 'Spades'], ['Diamonds', 'Hearts']]
 
 Sage example in ./sol/combinat.tex, line 252::
 
@@ -106,7 +106,7 @@ Sage example in ./sol/combinat.tex, line 312::
 
   sage: C = Compositions(5,length=3)
   sage: C.cardinality
-  <bound method IntegerListsLex...._cardinality_from_iterator ...>
+  <bound method ..._cardinality_from_iterator ...>
 
 Sage example in ./sol/combinat.tex, line 322::
 

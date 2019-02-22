@@ -15,9 +15,9 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
 
     -  ``xrange`` -- a 2-tuple (x_min, x_max) or a 3-tuple (x, x_min, x_max)
 
-    -  ``yrange`` -- a 2-tuple (y_min, y_may) or a 3-tuple (y, y_min, y_may)
+    -  ``yrange`` -- a 2-tuple (y_min, y_max) or a 3-tuple (y, y_min, y_max)
 
-    -  ``zrange`` -- a 2-tuple (z_min, z_maz) or a 3-tuple (z, z_min, z_maz)
+    -  ``zrange`` -- a 2-tuple (z_min, z_max) or a 3-tuple (z, z_min, z_max)
 
     -  ``plot_points`` -- (default: "automatic", which is 40) the number of
        function evaluations in each direction. (The number of cubes in the

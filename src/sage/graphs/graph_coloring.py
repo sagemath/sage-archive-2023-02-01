@@ -158,9 +158,9 @@ def all_graph_colorings(G, n, count_only=False, hex_colors=False, vertex_color_d
         {0: 0, 1: 1, 2: 0}
         {0: 1, 1: 0, 2: 1}
         sage: for c in all_graph_colorings(G, 2, hex_colors=True):
-        ....:     print(c)
-        {'#00ffff': [1], '#ff0000': [0, 2]}
-        {'#ff0000': [1], '#00ffff': [0, 2]}
+        ....:     print(sorted(c.items()))
+        [('#00ffff', [1]), ('#ff0000', [0, 2])]
+        [('#00ffff', [0, 2]), ('#ff0000', [1])]
         sage: for c in all_graph_colorings(G, 2, hex_colors=True, vertex_color_dict=True):
         ....:     print(c)
         {0: '#ff0000', 1: '#00ffff', 2: '#ff0000'}
@@ -270,8 +270,8 @@ def first_coloring(G, n=0, hex_colors=False):
 
         sage: from sage.graphs.graph_coloring import first_coloring
         sage: G = Graph({0: [1, 2, 3], 1: [2]})
-        sage: first_coloring(G, 3)
-        [[1, 3], [0], [2]]
+        sage: sorted(first_coloring(G, 3))
+        [[0], [1, 3], [2]]
     """
     G._scream_if_not_simple(allow_multiple_edges=True)
     o = G.order()

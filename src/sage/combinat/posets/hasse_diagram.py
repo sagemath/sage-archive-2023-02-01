@@ -230,7 +230,8 @@ class HasseDiagram(DiGraph):
                     else:
                         S = [x for x in self.neighbors_out(linext[k - 1])
                              if x not in linext and
-                             all(low in linext for low in self.neighbors_in(x))]
+                             all(low in linext
+                                 for low in self.neighbors_in(x))]
                         k -= 1
 
                 for e in S:
@@ -529,11 +530,9 @@ class HasseDiagram(DiGraph):
         """
         if self.cardinality() == 0:
             return True
-        return (self.num_edges() + 1 == self.num_verts() and
-                # Hasse Diagram is a tree
+        return (self.num_edges() + 1 == self.num_verts() and  # tree
                 all(d <= 1 for d in self.out_degree()) and
-                # max outdegree is <= 1
-                all(d <= 1 for d in self.in_degree()))  # max  indegree is <= 1
+                all(d <= 1 for d in self.in_degree()))
 
     def is_antichain_of_poset(self, elms):
         """

@@ -276,7 +276,7 @@ from __future__ import division, print_function, absolute_import
 from six.moves import range, builtins
 from six import iteritems
 
-import copy
+from copy import copy, deepcopy
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
@@ -682,7 +682,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
     elif data is None: # type 0
         D = DiGraph()
     elif isinstance(data, DiGraph): # type 4
-        D = copy.deepcopy(data)
+        D = deepcopy(data)
     elif isinstance(data, dict): # type 3: dictionary of upper covers
         D = DiGraph(data, format="dict_of_lists")
     elif isinstance(data, (list, tuple)): # types 1, 2, 3 (list/tuple)
@@ -5358,11 +5358,9 @@ class FinitePoset(UniqueRepresentation, Parent):
             ...
             TypeError: the poset is missing either top or bottom
         """
-        from copy import copy
-
         if self.is_bounded():
             g = copy(self._hasse_diagram)
-            g.delete_vertices([0, g.order()-1])
+            g.delete_vertices([0, g.order() - 1])
             g.relabel(self._vertex_to_element)
             return Poset(g, facade=self._is_facade)
         raise TypeError('the poset is missing either top or bottom')

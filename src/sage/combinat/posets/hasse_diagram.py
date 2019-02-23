@@ -944,11 +944,14 @@ class HasseDiagram(DiGraph):
         except KeyError:
             if i == j:
                 self._moebius_function_values[(i, j)] = 1
-            elif not(i <= j):
+            elif i > j:
                 self._moebius_function_values[(i, j)] = 0
             else:
                 ci = self.interval(i, j)
-                self._moebius_function_values[(i, j)] = -sum(self.moebius_function(i, k) for k in ci[:-1])
+                if not ci:
+                    self._moebius_function_values[(i, j)] = 0
+                else:
+                    self._moebius_function_values[(i, j)] = -sum(self.moebius_function(i, k) for k in ci[:-1])
         return self._moebius_function_values[(i, j)]
 
     def moebius_function_matrix(self):

@@ -1,7 +1,7 @@
 """
 Submodules of Hecke modules
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -15,8 +15,8 @@ Submodules of Hecke modules
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import
 
 import sage.arith.all as arith
@@ -969,9 +969,11 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         return self.ambient_hecke_module().submodule(V, Vdual, check=check)
 
     def hecke_bound(self):
-        """
-        Compute the Hecke bound for self; that is, a number n such that the
-        T_m for m = n generate the Hecke algebra.
+        r"""
+        Compute the Hecke bound for ``self``.
+
+        This is a number `n` such that the `T_m` for `m \leq n`
+        generate the Hecke algebra.
 
         EXAMPLES::
 

@@ -927,7 +927,7 @@ class OEISSequence(SageObject):
         ::
 
             sage: av = oeis('A087778') ; av             # optional -- internet
-            A087778: Decimal expansion of Avogadro's constant.
+            A087778: Decimal expansion of Avogadro's constant...
 
             sage: av.natural_object()                   # optional -- internet
             6.022141000000000?e23
@@ -1810,7 +1810,13 @@ class FancyTuple(tuple):
             4: 4
         """
         length = len(str(len(self) - 1))
-        return '\n'.join((('{0:>%d}' % length).format(str(i)) + ': ' + str(self[i]) for i in range(len(self))))
+        result = '\n'.join('{0:>{1}}: {2}'.format(i, length, item) for i, item in enumerate(self))
+        import sys
+        if sys.version_info[0] < 3 and isinstance(result, unicode):
+            # Py3 compatibility: allow _repr_ to return unicode
+            return result.encode('utf-8')
+        else:
+            return result
 
     def __getslice__(self, i, j):
         r"""

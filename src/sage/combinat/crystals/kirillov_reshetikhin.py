@@ -556,8 +556,8 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
             sage: K.classically_highest_weight_vectors()
             ([], [[1], [2]], [[1, 1], [2, 2]])
         """
-        return tuple([self.retract(mg)
-                      for mg in self.classical_decomposition().module_generators])
+        return tuple(self.retract(mg)
+                     for mg in self.classical_decomposition().module_generators)
 
     def kirillov_reshetikhin_tableaux(self):
         """
@@ -1146,8 +1146,8 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
              [[(1, -3), (-1, 3)]],
              [[(-1,), (-1, 3)]])
         """
-        return tuple([x for x in self.classical_decomposition()
-                      if all(x.epsilon(i) == 0 for i in [2,3,4,5])])
+        return tuple(x for x in self.classical_decomposition()
+                     if all(x.epsilon(i) == 0 for i in [2, 3, 4, 5]))
 
     @cached_method
     def highest_weight_dict(self):
@@ -1199,16 +1199,16 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
         EXAMPLES::
 
             sage: K = crystals.KirillovReshetikhin(['E',6,1],2,1)
-            sage: [[x[0], K.automorphism_on_affine_weight(x[0])]
-            ....:  for x in K.highest_weight_dict().values()]
-            [[(-1, 0, 0, 1, 0, 0, -1), (-1, -1, 0, 0, 0, 1, 0)],
+            sage: sorted([x[0], K.automorphism_on_affine_weight(x[0])]
+            ....:  for x in K.highest_weight_dict().values())
+            [[(-2, 0, 1, 0, 0, 0, 0), (0, -2, 0, 1, 0, 0, 0)],
+             [(-1, 0, 0, 1, 0, 0, -1), (-1, -1, 0, 0, 0, 1, 0)],
              [(0, 0, 0, 0, 0, 0, 0), (0, 0, 0, 0, 0, 0, 0)],
              [(0, 0, 0, 0, 0, 0, 0), (0, 0, 0, 0, 0, 0, 0)],
-             [(-2, 0, 1, 0, 0, 0, 0), (0, -2, 0, 1, 0, 0, 0)],
              [(0, 0, 0, 0, 0, 1, -2), (-2, 0, 1, 0, 0, 0, 0)]]
         """
         f = self.dynkin_diagram_automorphism
-        return tuple( [weight[f(f(i))] for i in self.index_set()] )
+        return tuple(weight[f(f(i))] for i in self.index_set())
 
     @cached_method
     def promotion_on_highest_weight_vectors(self):

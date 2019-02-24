@@ -590,7 +590,7 @@ def padic_height(self, p, prec=20, sigma=None, check_hypotheses=True):
     -  ``p`` - prime = 5 for which the curve has
        semi-stable reduction
 
-    -  ``prec`` - integer = 1, desired precision of result
+    -  ``prec`` - integer >= 1 (default 20), desired precision of result
 
     -  ``sigma`` - precomputed value of sigma. If not
        supplied, this function will call padic_sigma to compute it.
@@ -799,7 +799,7 @@ def padic_height_via_multiply(self, p, prec=20, E2=None, check_hypotheses=True):
     -  ``p`` - prime = 5 for which the curve has good
        ordinary reduction
 
-    -  ``prec`` - integer = 2, desired precision of result
+    -  ``prec`` - integer >= 2 (default 20), desired precision of result
 
     -  ``E2`` - precomputed value of E2. If not supplied,
        this function will call padic_E2 to compute it. The value supplied
@@ -951,7 +951,7 @@ def padic_sigma(self, p, N=20, E2=None, check=False, check_hypotheses=True):
     -  ``p`` - prime = 5 for which the curve has good
        ordinary reduction
 
-    -  ``N`` - integer = 1, indicates precision of result;
+    -  ``N`` - integer >= 1 (default 20), indicates precision of result;
        see OUTPUT section for description
 
     -  ``E2`` - precomputed value of E2. If not supplied,
@@ -1161,14 +1161,14 @@ def padic_sigma(self, p, N=20, E2=None, check=False, check_hypotheses=True):
 
 def padic_sigma_truncated(self, p, N=20, lamb=0, E2=None, check_hypotheses=True):
     r"""
-    Computes the p-adic sigma function with respect to the standard
+    Compute the p-adic sigma function with respect to the standard
     invariant differential `dx/(2y + a_1 x + a_3)`, as
     defined by Mazur and Tate, as a power series in the usual
     uniformiser `t` at the origin.
 
     The equation of the curve must be minimal at `p`.
 
-    This function differs from padic_sigma() in the precision profile
+    This function differs from :func:`padic_sigma` in the precision profile
     of the returned power series; see OUTPUT below.
 
     INPUT:
@@ -1177,10 +1177,10 @@ def padic_sigma_truncated(self, p, N=20, lamb=0, E2=None, check_hypotheses=True)
     -  ``p`` - prime = 5 for which the curve has good
        ordinary reduction
 
-    -  ``N`` - integer = 2, indicates precision of result;
+    -  ``N`` - integer >= 2 (default 20), indicates precision of result;
        see OUTPUT section for description
 
-    -  ``lamb`` - integer = 0, see OUTPUT section for
+    -  ``lamb`` - integer >= 0, see OUTPUT section for
        description
 
     -  ``E2`` - precomputed value of E2. If not supplied,
@@ -1210,7 +1210,7 @@ def padic_sigma_truncated(self, p, N=20, lamb=0, E2=None, check_hypotheses=True)
     AUTHOR:
 
     - David Harvey (2008-01): wrote based on previous
-      padic_sigma function
+      :func:`padic_sigma function`
 
     EXAMPLES::
 

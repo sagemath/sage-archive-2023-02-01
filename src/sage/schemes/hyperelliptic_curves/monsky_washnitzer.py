@@ -1388,8 +1388,7 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
 
     - ``p`` -- prime = 5 for which E has good reduction
 
-    - ``M`` -- integer = 2; `p` -adic precision of
-       the coefficient ring
+    - ``M`` -- integer >= 2; `p` -adic precision of the coefficient ring
 
     - ``trace`` -- (optional) the trace of the matrix, if
        known in advance. This is easy to compute because it is just the

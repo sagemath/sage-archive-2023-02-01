@@ -25,14 +25,11 @@ def half_integral_weight_modform_basis(chi, k, prec):
 
     INPUT:
 
+    - ``chi`` -- a Dirichlet character with modulus divisible by 16
 
-    -  ``chi`` - a Dirichlet character with modulus
-       divisible by 16
+    - ``k`` -- an odd integer > 1
 
-    -  ``k`` - an odd integer = 1
-
-    -  ``prec`` - a positive integer
-
+    - ``prec`` -- a positive integer
 
     OUTPUT: a list of power series
 

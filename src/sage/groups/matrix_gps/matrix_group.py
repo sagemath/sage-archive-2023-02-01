@@ -223,9 +223,9 @@ class MatrixGroup_base(Group):
                 raise ValueError("Generator %s is not in the group"%(g))
 
         from sage.groups.matrix_gps.finitely_generated import MatrixGroup
-        SubGroup =  MatrixGroup(generators, check=check)
-        SubGroup._ambient = self
-        return SubGroup
+        subgroup =  MatrixGroup(generators, check=check)
+        subgroup._ambient = self
+        return subgroup
 
     def ambient(self):
         """
@@ -280,10 +280,7 @@ class MatrixGroup_base(Group):
             [         0 -zeta3 - 1]
             )
         """
-        ambient_group = None
-        if hasattr(self, '_ambient'):
-            if not isinstance(self._ambient, ParentLibGAP): # in order not to affect existing code and docs
-                ambient_group = self._ambient
+        ambient_group = self._ambient
 
         if ambient_group == None:
             if self.ngens() > 5:
@@ -717,7 +714,7 @@ class MatrixGroup_gap(GroupMixinLibGAP, MatrixGroup_generic, ParentLibGAP):
             sage: SL2Z = SL(2,ZZ)
             sage: S, T = SL2Z.gens()
             sage: G = SL2Z.subgroup([T^2]); G   # indirect doctest
-            Matrix group over Integer Ring with 1 generators (
+            Subgroup of Special Linear Group of degree 2 over Integer Ring with 1 generators (
             [1 2]
             [0 1]
             )

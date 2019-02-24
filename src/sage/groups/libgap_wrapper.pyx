@@ -234,7 +234,7 @@ class ParentLibGAP(SageObject):
             sage: diagonals = itertools.product((1,-1), repeat=3)
             sage: subgroup_gens = [diagonal_matrix(L) for L in diagonals]
             sage: G.subgroup(subgroup_gens)
-            Matrix group over Rational Field with 8 generators
+            Subgroup of Matrix group over Rational Field with 48 generators with 8 generators
 
         """
         generators = [ g if isinstance(g, GapElement) else self(g).gap()

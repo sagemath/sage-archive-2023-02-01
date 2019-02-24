@@ -211,7 +211,7 @@ A similar syntax for matrix groups also works::
 
     sage: G = SL(2, GF(5) )
     sage: G.center()
-    Matrix group over Finite Field of size 5 with 1 generators (
+    Subgroup of Special Linear Group of degree 2 over Finite Field of size 5 with 1 generators (
     [4 0]
     [0 4]
     )

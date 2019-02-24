@@ -191,6 +191,8 @@ class KenzoChainComplex(SageObject):
             sage: s2 = KenzoChainComplex(ks)                           # optional -kenzo
             sage: s2                                                   # optional -kenzo
             [K1 Simplicial-Set]
+            sage: TestSuite(s2).run(skip='_test_pickling')             # optional -kenzo
+
         """
         self._kenzo = kenzoobject
 

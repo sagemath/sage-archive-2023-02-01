@@ -4105,8 +4105,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
             ...
             ZeroDivisionError: Matrix is singular
         """
-        A,d = self._invert_flint()
-        return A/d
+        A, d = self._invert_flint()
+        return A / d
 
     def _invert_unit(self):
         r"""
@@ -4145,7 +4145,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             ...
             ArithmeticError: non-invertible matrix
         """
-        A,d = self._invert_flint()
+        A, d = self._invert_flint()
         if not d.is_one():
             raise ArithmeticError("non-invertible matrix")
         return A
@@ -4249,7 +4249,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             True
 
         """
-        t = verbose('starting %s solve_right...'%algorithm)
+        t = verbose('starting %s solve_right...' % algorithm)
 
         # It would probably be much better to rewrite linbox so it
         # throws an error instead of ** going into an infinite loop **

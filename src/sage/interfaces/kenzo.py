@@ -75,30 +75,34 @@ suspension = EclObject("suspension")
 
 def Sphere(n):
     r"""
-    Construct the n dimensional sphere, which is a simplicial set.
+    Return the ``n`` dimensional sphere as a Kenzo simplicial set.
 
     INPUT:
 
-    - ``n`` - The dimension of the sphere
+    - ``n`` -- The dimension of the sphere
 
-    EXAMPLES::
+    OUTPUT:
+
+    - A KenzoSimplicialSetEXAMPLES::
 
         sage: from sage.interfaces.kenzo import Sphere # optional - kenzo
         sage: s2 = Sphere(2)                           # optional - kenzo
         sage: s2                                       # optional - kenzo
         [K1 Simplicial-Set]
-        sage: s2.homology(2)                           # optional - kenzo
-        Z
+        sage: [s2.homology(i) for i in range(8)]       # optional - kenzo
+        [Z, 0, Z, 0, 0, 0, 0, 0]
     """
     kenzosphere = sphere(n)
     return KenzoSimplicialSet(kenzosphere)
 
 
-def MooreSpace(n, m):
+def MooreSpace(m, n):
     r"""
-    Construct the Moore space ``M(m, n)``. That is, the space
-    that has n'th homology group isomorphic to the cyclic group of order ``m``,
-    and the rest of the homology groups are trivial. It is a simplicial set.
+    Return the Moore space ``M(m, n)`` as a Kenzo simplicial set.
+
+    The Moore space ``M(m, n)`` is the space whose n'th homology group
+    is isomorphic to the cyclic group of order ``m``, and the rest of the
+    homology groups are trivial.
 
     INPUT:
 
@@ -113,29 +117,30 @@ def MooreSpace(n, m):
 
     EXAMPLES::
 
-        sage: from sage.interfaces.kenzo import MooreSpace  # optional - kenzo
-        sage: m2 = MooreSpace(2,4)                          # optional - kenzo
-        sage: m2                                            # optional - kenzo
+        sage: from sage.interfaces.kenzo import MooreSpace   # optional - kenzo
+        sage: m24 = MooreSpace(2,4)                          # optional - kenzo
+        sage: m24                                            # optional - kenzo
         [K10 Simplicial-Set]
-        sage: m2.homology(4)                                # optional - kenzo
-        C2
+        sage: [m24.homology(i) for i in range(8)]            # optional - kenzo
+        [Z, 0, 0, 0, C2, 0, 0, 0]
     """
 
-    kenzomoore = moore(n, m)
+    kenzomoore = moore(m, n)
     return KenzoSimplicialSet(kenzomoore)
 
 
 def EilenbergMacLaneSpace(G, n):
-    r"""Construct the Eilenberg-MacLane space ``k(G, n)``. That is, the space
-    that has n'th homotopy group isomorphic to ``G``, and the rest of the
-    homotopy groups are trivial. It is a simplicial group.
+    r"""Return the Eilenberg-MacLane space ``k(G, n)`` as a Kenzo simplicial group
+
+    The Eilenberg-MacLane space ``k(G, n)`` is the space whose has n'th homotopy
+    group isomorphic to ``G``, and the rest of the homotopy groups are trivial.
 
     INPUT:
 
-    - ``G```- A group. Currently only ``ZZ`` and the group of two elements are
+    - ``G`` -- A group. Currently only ``ZZ`` and the group of two elements are
     supported.
 
-    - ``n```- The dimension in which the homotopy is not trivial
+    - ``n`` -- The dimension in which the homotopy is not trivial
 
 
     OUTPUT:
@@ -145,15 +150,12 @@ def EilenbergMacLaneSpace(G, n):
     EXAMPLES::
 
         sage: from sage.interfaces.kenzo import EilenbergMacLaneSpace
-        sage: e2 = EilenbergMacLaneSpace(ZZ, 3)                          # optional - kenzo
-        sage: e2.homology(2)                                             # optional - kenzo
-        0
-        sage: e2.homology(3)                                             # optional - kenzo
-        Z
-        sage: f2 = EilenbergMacLaneSpace(AdditiveAbelianGroup([2]), 3)   # optional - kenzo
-        sage: f2.homology(3)                                             # optional - kenzo
-        C2
-
+        sage: e3 = EilenbergMacLaneSpace(ZZ, 3)                          # optional - kenzo
+        sage: [e3.homology(i) for i in range(8)]                         # optional - kenzo
+        [Z, 0, 0, Z, 0, C2, 0, C3]
+        sage: f3 = EilenbergMacLaneSpace(AdditiveAbelianGroup([2]), 3)   # optional - kenzo
+        sage: [f3.homology(i) for i in range(8)]                         # optional - kenzo
+        [Z, 0, 0, C2, 0, C2, C2, C2]
     """
     if G == ZZ:
         kenzospace = k_z(n)
@@ -168,20 +170,31 @@ def EilenbergMacLaneSpace(G, n):
 class KenzoChainComplex(SageObject):
     r"""
     Wraper to kenzo chain complexes
+
+    INPUT:
+
+        - ``kenzoobject``- a wrapper around a kenzo chain complex
+        (which is an ecl object).
     """
 
     def __init__(self, kenzoobject):
         r"""
         Construct the chain complex.
 
-        INPUT:
+        TESTS::
 
-        - ``kenzoobject``- a wrapper around a kenzo chain complex
-        (which is an ecl object).
+            sage: from sage.interfaces.kenzo import KenzoChainComplex  # optional -kenzo
+            sage: from sage.interfaces.kenzo import sphere             # optional -kenzo
+            sage: ks = sphere(2)                                       # optional -kenzo
+            sage: ks                                                   # optional -kenzo
+            <ECL: [K1 Simplicial-Set]>
+            sage: s2 = KenzoChainComplex(ks)                           # optional -kenzo
+            sage: s2                                                   # optional -kenzo
+            [K1 Simplicial-Set]
         """
         self._kenzo = kenzoobject
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         Represent the object. It just uses the ecl representation, removing the
         ecl decoration
@@ -190,9 +203,8 @@ class KenzoChainComplex(SageObject):
 
             sage: from sage.interfaces.kenzo import MooreSpace    # optional - kenzo
             sage: m2 = MooreSpace(2,4)                            # optional - kenzo
-            sage: m2.__repr__()                                   # optional - kenzo
+            sage: m2._repr_()                                     # optional - kenzo
             '[K10 Simplicial-Set]'
-
         """
         kenzo_string = self._kenzo.__repr__()
         return kenzo_string[6:-1]
@@ -203,7 +215,7 @@ class KenzoChainComplex(SageObject):
 
         INPUT:
 
-        - ``n`` - The dimension in which compute the homology
+        - ``n`` -- The dimension in which compute the homology
 
         EXAMPLES::
 
@@ -231,7 +243,7 @@ class KenzoChainComplex(SageObject):
 
         INPUT:
 
-        - ``other`` -  The Kenzo object with which to compute the tensor product
+        - ``other`` --  The Kenzo object with which to compute the tensor product
 
         OUTPUT:
 
@@ -243,9 +255,8 @@ class KenzoChainComplex(SageObject):
         sage: p = s2.tensor_product(s3)                   # optional - kenzo
         sage: type(p)                                     # optional - kenzo
         <class 'sage.interfaces.kenzo.KenzoChainComplex'>
-        sage: p.homology(2)                               # optional - kenzo
-        Z
-
+        sage: [p.homology(i) for i in range(8)]           # optional - kenzo
+        [Z, 0, Z, Z, 0, Z, 0, 0]
         """
         return KenzoChainComplex(tnsr_prdc(self._kenzo, other._kenzo))
 
@@ -261,12 +272,12 @@ class KenzoSimplicialSet(KenzoChainComplex):
 
         INPUT:
 
-        - ``n`` - (default: 1) the number of times to iterate the loop space
+        - ``n`` -- (default: 1) the number of times to iterate the loop space
         construction
 
         OUTPUT:
 
-        - `A KenzoSimplicialGroup
+        - A KenzoSimplicialGroup
 
         EXAMPLES::
 
@@ -275,6 +286,9 @@ class KenzoSimplicialSet(KenzoChainComplex):
             sage: l2 = s2.loop_space()                        # optional - kenzo
             sage: type(l2)                                    # optional - kenzo
             <class 'sage.interfaces.kenzo.KenzoSimplicialGroup'>
+            sage: l2 = s2.loop_space()                        # optional - kenzo
+            sage: [l2.homology(i) for i in range(8)]          # optional - kenzo
+            [Z, Z, Z, Z, Z, Z, Z, Z]
         """
         return KenzoSimplicialGroup(loop_space(self._kenzo, n))
 
@@ -284,7 +298,7 @@ class KenzoSimplicialSet(KenzoChainComplex):
 
         INPUT:
 
-        - ``other`` - The Kenzo simplicial set with which the product is made
+        - ``other`` -- The Kenzo simplicial set with which the product is made
 
         OUTPUT:
 
@@ -298,7 +312,8 @@ class KenzoSimplicialSet(KenzoChainComplex):
             sage: p = s2.cartesian_product(s3)                # optional - kenzo
             sage: type(p)                                     # optional - kenzo
             <class 'sage.interfaces.kenzo.KenzoSimplicialSet'>
-
+            sage: [p.homology(i) for i in range(6)]           # optional - kenzo
+            [Z, 0, Z, Z, 0, Z]
         """
         prod_kenzo = crts_prdc(self._kenzo, other._kenzo)
         return KenzoSimplicialSet(prod_kenzo)
@@ -314,11 +329,12 @@ class KenzoSimplicialSet(KenzoChainComplex):
         EXAMPLES::
 
             sage: from sage.interfaces.kenzo import EilenbergMacLaneSpace    # optional - kenzo
-            sage: e2 = EilenbergMacLaneSpace(ZZ, 3)                          # optional - kenzo
-            sage: s = e2.suspension()                                        # optional - kenzo
+            sage: e3 = EilenbergMacLaneSpace(ZZ, 3)                          # optional - kenzo
+            sage: s = e3.suspension()                                        # optional - kenzo
             sage: type(s)                                                    # optional - kenzo
             <class 'sage.interfaces.kenzo.KenzoSimplicialSet'>
-
+            sage: [s.homology(i) for i in range(6)]                          # optional - kenzo
+            [Z, 0, 0, 0, Z, 0]
         """
         return KenzoSimplicialSet(suspension(self._kenzo))
 
@@ -344,6 +360,7 @@ class KenzoSimplicialGroup(KenzoSimplicialSet):
             sage: c = l2.classifying_space()                        # optional - kenzo
             sage: type(c)                                           # optional - kenzo
             <class 'sage.interfaces.kenzo.KenzoSimplicialGroup'>
-
+            sage:[c.homology(i) for i in range(8)]                  # optional - kenzo
+            [Z, 0, 0, 0, C2, 0, 0, 0]
         """
         return KenzoSimplicialGroup(classifying_space(self._kenzo))

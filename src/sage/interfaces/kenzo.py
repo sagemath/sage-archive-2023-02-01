@@ -360,7 +360,7 @@ class KenzoSimplicialGroup(KenzoSimplicialSet):
             sage: c = l2.classifying_space()                        # optional - kenzo
             sage: type(c)                                           # optional - kenzo
             <class 'sage.interfaces.kenzo.KenzoSimplicialGroup'>
-            sage:[c.homology(i) for i in range(8)]                  # optional - kenzo
+            sage: [c.homology(i) for i in range(8)]                  # optional - kenzo
             [Z, 0, 0, 0, C2, 0, 0, 0]
         """
         return KenzoSimplicialGroup(classifying_space(self._kenzo))

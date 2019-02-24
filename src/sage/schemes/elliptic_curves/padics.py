@@ -18,7 +18,7 @@ Miscellaneous `p`-adic methods
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ######################################################################
 from __future__ import absolute_import
 
@@ -217,23 +217,20 @@ def padic_lseries(self, p, normalize = None, implementation = 'eclib', precision
 
 def padic_regulator(self, p, prec=20, height=None, check_hypotheses=True):
     r"""
-    Computes the cyclotomic `p`-adic regulator of this curve.
-
+    Compute the cyclotomic `p`-adic regulator of this curve.
 
     INPUT:
 
+    - ``p`` -- prime >= 5
 
-    -  ``p`` - prime = 5
+    - ``prec`` -- answer will be returned modulo
+      `p^{\mathrm{prec}}`
 
-    -  ``prec`` - answer will be returned modulo
-       `p^{\mathrm{prec}}`
+    - ``height`` -- precomputed height function. If not
+      supplied, this function will call padic_height to compute it.
 
-    -  ``height`` - precomputed height function. If not
-       supplied, this function will call padic_height to compute it.
-
-    -  ``check_hypotheses`` - boolean, whether to check
-       that this is a curve for which the p-adic height makes sense
-
+    - ``check_hypotheses`` -- boolean, whether to check
+      that this is a curve for which the p-adic height makes sense
 
     OUTPUT: The p-adic cyclotomic regulator of this curve, to the
     requested precision.
@@ -339,7 +336,7 @@ def padic_height_pairing_matrix(self, p, prec=20, height=None, check_hypotheses=
     INPUT:
 
 
-    -  ``p`` - prime = 5
+    -  ``p`` - prime >= 5
 
     -  ``prec`` - answer will be returned modulo
        `p^{\mathrm{prec}}`
@@ -587,7 +584,7 @@ def padic_height(self, p, prec=20, sigma=None, check_hypotheses=True):
 
     INPUT:
 
-    -  ``p`` - prime = 5 for which the curve has
+    -  ``p`` - prime >= 5 for which the curve has
        semi-stable reduction
 
     -  ``prec`` - integer >= 1 (default 20), desired precision of result
@@ -796,7 +793,7 @@ def padic_height_via_multiply(self, p, prec=20, E2=None, check_hypotheses=True):
     INPUT:
 
 
-    -  ``p`` - prime = 5 for which the curve has good
+    -  ``p`` - prime >= 5 for which the curve has good
        ordinary reduction
 
     -  ``prec`` - integer >= 2 (default 20), desired precision of result
@@ -948,7 +945,7 @@ def padic_sigma(self, p, N=20, E2=None, check=False, check_hypotheses=True):
     INPUT:
 
 
-    -  ``p`` - prime = 5 for which the curve has good
+    -  ``p`` - prime >= 5 for which the curve has good
        ordinary reduction
 
     -  ``N`` - integer >= 1 (default 20), indicates precision of result;
@@ -1157,8 +1154,6 @@ def padic_sigma(self, p, N=20, E2=None, check=False, check_hypotheses=True):
     return sigma
 
 
-
-
 def padic_sigma_truncated(self, p, N=20, lamb=0, E2=None, check_hypotheses=True):
     r"""
     Compute the p-adic sigma function with respect to the standard
@@ -1173,8 +1168,7 @@ def padic_sigma_truncated(self, p, N=20, lamb=0, E2=None, check_hypotheses=True)
 
     INPUT:
 
-
-    -  ``p`` - prime = 5 for which the curve has good
+    -  ``p`` - prime >= 5 for which the curve has good
        ordinary reduction
 
     -  ``N`` - integer >= 2 (default 20), indicates precision of result;

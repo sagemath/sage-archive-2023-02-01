@@ -9535,11 +9535,11 @@ class A000587(ExponentialNumbers):
 
         INPUT:
 
-        -  ``n`` - integer => 0
+        - ``n`` -- integer >= 0
 
         OUTPUT:
 
-        -  ``integer`` - `C_n`
+        - ``integer`` -- `C_n`
 
         EXAMPLES::
 

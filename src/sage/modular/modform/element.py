@@ -100,7 +100,7 @@ def delta_lseries(prec=53, max_imaginary_part=0,
         0.0374412812685155
     """
     if algorithm is None:
-        algorithm = "gp"
+        algorithm = 'pari'
 
     if algorithm == 'gp':
         from sage.lfunctions.all import Dokchitser

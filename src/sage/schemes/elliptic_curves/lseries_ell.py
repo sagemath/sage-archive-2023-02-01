@@ -160,7 +160,7 @@ class Lseries_ell(SageObject):
             0.381575408260711
         """
         if algorithm is None:
-            algorithm = "gp"
+            algorithm = 'pari'
         
         if algorithm == 'magma':
             from sage.interfaces.all import magma

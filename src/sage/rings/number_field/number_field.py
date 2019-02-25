@@ -5972,7 +5972,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             1.00199015670185
         """
         if algorithm is None:
-            algorithm = 'gp'
+            algorithm = 'pari'
         
         if algorithm == 'gp':
             from sage.lfunctions.all import Dokchitser

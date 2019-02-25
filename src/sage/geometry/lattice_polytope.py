@@ -735,7 +735,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         constants = []
         for c in self._PPL().minimized_constraints():
             if c.is_inequality():
-                n = N.element_class(N, list(Integer(mpz) for mpz in c.coefficients()))
+                n = N.element_class(N, [Integer(mpz) for mpz in c.coefficients()])
                 n.set_immutable()
                 normals.append(n)
                 constants.append(Integer(c.inhomogeneous_term()))
@@ -822,7 +822,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         need_strict = region.endswith("interior")
         N = self.dual_lattice()
         for c in self._PPL().minimized_constraints():
-            pr = N(list(Integer(mpz) for mpz in c.coefficients())) * point + Integer(c.inhomogeneous_term())
+            pr = N([Integer(mpz) for mpz in c.coefficients()]) * point + Integer(c.inhomogeneous_term())
             if c.is_equality():
                 if pr != 0:
                     return False

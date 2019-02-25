@@ -235,8 +235,6 @@ cdef class PPLBackend(GenericBackend):
             0
 
         """
-        cdef Rational rhs
-
         if lower == upper:
             if lower is not None:
                 rhs = Rational(lower * denom)

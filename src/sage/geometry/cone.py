@@ -204,8 +204,8 @@ from sage.geometry.point_collection import PointCollection
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.geometry.polyhedron.base import is_Polyhedron
 from sage.geometry.hasse_diagram import lattice_from_incidences
-from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice, \
-    is_ToricLatticeQuotient
+from sage.geometry.toric_lattice import (ToricLattice, is_ToricLattice,
+                                         is_ToricLatticeQuotient)
 from sage.geometry.toric_plotter import ToricPlotter, label_list
 from sage.graphs.digraph import DiGraph
 from sage.matrix.all import column_matrix, matrix, MatrixSpace
@@ -214,9 +214,9 @@ from sage.modules.all import span, vector, VectorSpace
 from sage.rings.all import QQ, RR, ZZ
 from sage.structure.all import SageObject, parent
 from sage.structure.richcmp import richcmp_method, richcmp
-from ppl import C_Polyhedron, Generator_System, Constraint_System, \
-    Linear_Expression, ray as PPL_ray, point as PPL_point, \
-    Poly_Con_Relation
+from ppl import (C_Polyhedron, Generator_System, Constraint_System,
+                 Linear_Expression, ray as PPL_ray, point as PPL_point,
+                 Poly_Con_Relation)
 from sage.geometry.integral_points import parallelotope_points
 
 

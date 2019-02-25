@@ -24,8 +24,7 @@ translates into::
     sage: from sage.libs.ppl import Variable, Constraint_System, C_Polyhedron
     doctest:warning
     ...
-    DeprecationWarning: 
-    The Sage wrappers around ppl are now superseded by the standalone pplpy.
+    DeprecationWarning: The Sage wrappers around ppl are now superseded by the standalone pplpy.
     Please use import 'ppl' instead of 'sage.libs.ppl'.
     See http://trac.sagemath.org/23024 for details.
     sage: x = Variable(0)
@@ -167,8 +166,9 @@ from sage.rings.rational cimport Rational
 from libcpp cimport bool as cppbool
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 
-deprecation(23024, """\nThe Sage wrappers around ppl are now superseded by the standalone pplpy.
-                    Please use import 'ppl' instead of 'sage.libs.ppl'.""")
+deprecation(23024, "The Sage wrappers around ppl are now superseded " +
+            "by the standalone pplpy. Please use import 'ppl' instead" +
+            " of 'sage.libs.ppl'.")
 
 ####################################################
 # Potentially expensive operations:
@@ -2999,9 +2999,8 @@ cdef class Polyhedron(_mutable_or_immutable):
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print(err)  # long time
-            /... DeprecationWarning: 
-            The Sage wrappers around ppl are now superseded by the standalone pplpy.
-                                Please use import 'ppl' instead of 'sage.libs.ppl'.
+            /... DeprecationWarning: The Sage wrappers around ppl are now superseded by the standalone pplpy.
+            Please use import 'ppl' instead of 'sage.libs.ppl'.
             See http://trac.sagemath.org/23024 for details.
             ...
             space_dim 2
@@ -3957,9 +3956,8 @@ cdef class Variables_Set(object):
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print(err)  # long time
-            /... DeprecationWarning: 
-            The Sage wrappers around ppl are now superseded by the standalone pplpy.
-                                Please use import 'ppl' instead of 'sage.libs.ppl'.
+            /... DeprecationWarning: The Sage wrappers around ppl are now superseded by the standalone pplpy.
+            Please use import 'ppl' instead of 'sage.libs.ppl'.
             See http://trac.sagemath.org/23024 for details.
             ...
             <BLANKLINE>
@@ -4246,9 +4244,8 @@ cdef class Linear_Expression(object):
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print(err)  # long time
-            /... DeprecationWarning: 
-            The Sage wrappers around ppl are now superseded by the standalone pplpy.
-                                Please use import 'ppl' instead of 'sage.libs.ppl'.
+            /... DeprecationWarning: The Sage wrappers around ppl are now superseded by the standalone pplpy.
+            Please use import 'ppl' instead of 'sage.libs.ppl'.
             See http://trac.sagemath.org/23024 for details.
             ...
             size 3 1 3 2
@@ -5145,9 +5142,8 @@ cdef class Generator(object):
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print(err)  # long time
-            /... DeprecationWarning: 
-            The Sage wrappers around ppl are now superseded by the standalone pplpy.
-                                Please use import 'ppl' instead of 'sage.libs.ppl'.
+            /... DeprecationWarning: The Sage wrappers around ppl are now superseded by the standalone pplpy.
+            Please use import 'ppl' instead of 'sage.libs.ppl'.
             See http://trac.sagemath.org/23024 for details.
             ...
             size 3 1 3 2 P (C)
@@ -5451,9 +5447,8 @@ cdef class Generator_System(_mutable_or_immutable):
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print(err)  # long time
-            /... DeprecationWarning: 
-            The Sage wrappers around ppl are now superseded by the standalone pplpy.
-                                Please use import 'ppl' instead of 'sage.libs.ppl'.
+            /... DeprecationWarning: The Sage wrappers around ppl are now superseded by the standalone pplpy.
+            Please use import 'ppl' instead of 'sage.libs.ppl'.
             See http://trac.sagemath.org/23024 for details.
             ...
             topology NECESSARILY_CLOSED
@@ -6144,9 +6139,8 @@ cdef class Constraint(object):
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print(err)  # long time
-            /... DeprecationWarning: 
-            The Sage wrappers around ppl are now superseded by the standalone pplpy.
-                                Please use import 'ppl' instead of 'sage.libs.ppl'.
+            /... DeprecationWarning: The Sage wrappers around ppl are now superseded by the standalone pplpy.
+            Please use import 'ppl' instead of 'sage.libs.ppl'.
             See http://trac.sagemath.org/23024 for details.
             ...
             size 4 1 3 2 -1 > (NNC)
@@ -6495,10 +6489,8 @@ cdef class Constraint_System(object):
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print(err)  # long time
-            /... DeprecationWarning: 
-            The Sage wrappers around ppl are now superseded by the standalone pplpy.
-                                Please use import 'ppl' instead of 'sage.libs.ppl'.
-            See http://trac.sagemath.org/23024 for details.
+            /... DeprecationWarning: The Sage wrappers around ppl are now superseded by the standalone pplpy.
+            Please use import 'ppl' instead of 'sage.libs.ppl'.
             ...
             topology NOT_NECESSARILY_CLOSED
             1 x 2 SPARSE (sorted)
@@ -6851,9 +6843,8 @@ cdef class Poly_Gen_Relation(object):
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print(err)  # long time
-            /... DeprecationWarning: 
-            The Sage wrappers around ppl are now superseded by the standalone pplpy.
-                                Please use import 'ppl' instead of 'sage.libs.ppl'.
+            /... DeprecationWarning: The Sage wrappers around ppl are now superseded by the standalone pplpy.
+            Please use import 'ppl' instead of 'sage.libs.ppl'.
             See http://trac.sagemath.org/23024 for details.
             ...
             NOTHING
@@ -7106,9 +7097,8 @@ cdef class Poly_Con_Relation(object):
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print(err)  # long time
-            /... DeprecationWarning: 
-            The Sage wrappers around ppl are now superseded by the standalone pplpy.
-                                Please use import 'ppl' instead of 'sage.libs.ppl'.
+            /... DeprecationWarning: The Sage wrappers around ppl are now superseded by the standalone pplpy.
+            Please use import 'ppl' instead of 'sage.libs.ppl'.
             See http://trac.sagemath.org/23024 for details.
             ...
             NOTHING

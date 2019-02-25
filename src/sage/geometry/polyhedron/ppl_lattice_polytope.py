@@ -308,7 +308,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             raise ValueError('empty polytope is not allowed')
         for i in range(0, self.space_dimension()):
             x = Variable(i)
-            coords = [ Integer(v.coefficient(x)) for v in self.generators() ]
+            coords = [Integer(v.coefficient(x)) for v in self.generators()]
             max_coord = max(coords)
             min_coord = min(coords)
             box_max.append(max_coord)

@@ -1156,7 +1156,7 @@ cdef class InequalityCollection:
         cdef list A
         cdef int index
         for index,c in enumerate(polyhedron.minimized_constraints()):
-            A = perm_action(permutation, list(Integer(mpz) for mpz in c.coefficients()))
+            A = perm_action(permutation, [Integer(mpz) for mpz in c.coefficients()])
             b = Integer(c.inhomogeneous_term())
             try:
                 H = Inequality_int(A, b, max_abs_coordinates, index)

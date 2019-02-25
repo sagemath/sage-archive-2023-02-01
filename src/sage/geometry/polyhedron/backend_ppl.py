@@ -161,7 +161,7 @@ class Polyhedron_ppl(Polyhedron_base):
         gs = self._ppl_polyhedron.minimized_generators()
         parent = self.parent()
         for g in gs:
-            coefficients = list(Integer(mpz) for mpz in g.coefficients())
+            coefficients = [Integer(mpz) for mpz in g.coefficients()]
             if g.is_point():
                 d = Integer(g.divisor())
                 if d.is_one():

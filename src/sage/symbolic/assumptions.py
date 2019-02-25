@@ -424,6 +424,15 @@ def assume(*args):
     If you make inconsistent assumptions (for example, that ``x`` is
     both even and odd), then a ``ValueError`` is raised.
 
+    .. WARNING::
+
+        Don't use python's chained comparison notation in assumptions.
+        Python literally translates the expression ``0 < x < 1`` to
+        ``(0 < x) and (x < 1)``, but the value of ``bool(0 < x)`` is
+        ``False`` when ``x`` is a symbolic variable. Therefore, by the
+        definition of Python's logical "and" operator, the entire expression
+        is equal to ``0 < x``.
+
     EXAMPLES:
 
     Assumptions are typically used to ensure certain relations are
@@ -487,6 +496,15 @@ def assume(*args):
         sage: forget()
         sage: sin(n*pi).simplify()
         sin(pi*n)
+
+    Instead of using chained comparison notation, each relationship
+    should be passed as a separate assumption::
+
+        sage: x = SR.var('x')
+        sage: assume(0 < x, x < 1) # instead of assume(0 < x < 1)
+        sage: assumptions()
+        [0 < x, x < 1]
+        sage: forget()
 
     If you make inconsistent or meaningless assumptions,
     Sage will let you know::
@@ -587,6 +605,18 @@ def assume(*args):
         sage: assume(x, y, 'integer', x > 0)
         sage: assumptions()
         [x is integer, y is integer, x > 0]
+        sage: forget()
+
+    Test that our WARNING block is accurate::
+
+        sage: x = SR.var('x')
+        sage: bool(0 < x)
+        False
+        sage: 0 < x < 1
+        0 < x
+        sage: assume(0 < x < 1)
+        sage: assumptions()
+        [0 < x]
         sage: forget()
 
     """

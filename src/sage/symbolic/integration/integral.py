@@ -514,7 +514,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         sage: _ = var('x, y, z')  # optional - internet
         sage: f = sin(x^2) + y^z   # optional - internet
         sage: f.integrate(x, algorithm="mathematica_free")   # optional - internet
-        x*y^z + sqrt(1/2)*sqrt(pi)*fresnels(sqrt(2)*x/sqrt(pi))
+        x*y^z + sqrt(1/2)*sqrt(pi)*fresnel_sin(sqrt(2)*x/sqrt(pi))
 
     We can also use Sympy::
 

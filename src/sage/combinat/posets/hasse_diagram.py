@@ -545,9 +545,7 @@ class HasseDiagram(DiGraph):
             False
         """
         from itertools import combinations
-        from sage.misc.misc import uniq
-
-        elms_sorted = uniq(elms)
+        elms_sorted = sorted(set(elms))
         return not any(self.is_lequal(a, b) for a, b in
                        combinations(elms_sorted, 2))
 
@@ -735,14 +733,14 @@ class HasseDiagram(DiGraph):
             sage: f = H.rank_function()
             sage: s = dumps(H)
         """
-        if(self._rank is None):
+        if self._rank is None:
             return None
         return self._rank.__getitem__ # the rank function is just the getitem of the list
 
     @lazy_attribute
     def _rank(self):
         r"""
-        Builds the rank function of the poset, if it exists, i.e.
+        Build the rank function of the poset, if it exists, i.e.
         an array ``d`` where ``d[object] = self.rank_function()(object)``
 
         A *rank function* of a poset `P` is a function `r`

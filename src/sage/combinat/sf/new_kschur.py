@@ -1,7 +1,7 @@
 """
 `k`-Schur Functions
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2011 Jason Bandlow <jbandlow@gmail.com>,
 #                     2012 Anne Schilling <anne@math.ucdavis.edu>
 #
@@ -14,8 +14,8 @@
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from sage.rings.all import Integer
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
@@ -24,7 +24,6 @@ from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
 from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
 from sage.categories.graded_coalgebras import GradedCoalgebras
 from sage.categories.graded_coalgebras_with_basis import GradedCoalgebrasWithBasis
-from sage.categories.magmas import Magmas
 from sage.categories.tensor import tensor
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.sf.sf import SymmetricFunctions

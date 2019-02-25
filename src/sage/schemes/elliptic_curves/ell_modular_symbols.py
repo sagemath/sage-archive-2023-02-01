@@ -399,7 +399,7 @@ class ModularSymbolSage(ModularSymbol):
             sage: M(1/3)
             1
             sage: M._scaling
-            -1
+            1
 
             sage: M = EllipticCurve('121d1').modular_symbol(implementation="sage")
             sage: M(0)
@@ -468,7 +468,7 @@ class ModularSymbolSage(ModularSymbol):
             1/25
             sage: m = EllipticCurve('37a1').modular_symbol(implementation="sage")
             sage: m._scaling
-            1
+            -1
             sage: m = EllipticCurve('37a1').modular_symbol()
             sage: m._scaling
             1
@@ -477,10 +477,10 @@ class ModularSymbolSage(ModularSymbol):
             1
             sage: m = EllipticCurve('389a1').modular_symbol(implementation="sage")
             sage: m._scaling
-            2
+            1
             sage: m = EllipticCurve('196a1').modular_symbol(implementation="sage")
             sage: m._scaling
-            1/2
+            1
 
         Some harder cases fail::
 
@@ -625,15 +625,15 @@ class ModularSymbolSage(ModularSymbol):
             sage: E = EllipticCurve('11a1')
             sage: m = sage.schemes.elliptic_curves.ell_modular_symbols.ModularSymbolSage(E,+1,normalize='period')
             sage: m._e
-            (1/5, 1)
+            (1/5, 1/2)
             sage: E = EllipticCurve('11a2')
             sage: m = sage.schemes.elliptic_curves.ell_modular_symbols.ModularSymbolSage(E,+1,normalize='period')
             sage: m._e
-            (1, 5)
+            (1, 5/2)
             sage: E = EllipticCurve('121b2')
             sage: m = sage.schemes.elliptic_curves.ell_modular_symbols.ModularSymbolSage(E,+1,normalize='period')
             sage: m._e
-            (0, 11/2, 0, 11/2, 11/2, 0, 0, -3, 2, 1/2, -1, 3/2)
+            (0, 0, 0, 11/2, 11/2, 11/2, 11/2, -3, 3/2, 1/2, -1, 2)
 
         TESTS::
 

@@ -3026,8 +3026,9 @@ class SuzukiGroup(PermutationGroup_unique):
         """
         return "The Suzuki group over %s" % self.base_ring()
 
+
 class ComplexReflectionGroup(PermutationGroup_unique):
-    """
+    r"""
     A finite complex reflection group as a permutation group.
 
     We can realize `G(m,1,n)` as `m` copies of the symmetric group

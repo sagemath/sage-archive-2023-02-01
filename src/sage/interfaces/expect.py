@@ -139,7 +139,6 @@ class Expect(Interface):
 
         # Read environment variables
         env_name = 'SAGE_%s_{}'%self.name().upper()
-        import os
         if server is None:
             server = os.getenv(env_name.format('SERVER'))
         if server_tmpdir is None:

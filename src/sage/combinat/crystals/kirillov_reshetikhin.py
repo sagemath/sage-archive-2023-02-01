@@ -333,7 +333,6 @@ def KirillovReshetikhinCrystal(cartan_type, r, s, model='KN'):
         from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
         return RiggedConfigurations(cartan_type, [[r,s]])
     if model == 'LSPaths':
-        from sage.combinat.crystals.kirillov_reshetikhin import KirillovReshetikhinCrystalFromLSPaths
         return KirillovReshetikhinCrystalFromLSPaths(cartan_type, r, s)
 
     raise ValueError("invalid model")
@@ -2226,7 +2225,7 @@ class KR_type_Bn(KirillovReshetikhinGenericCrystal):
             sage: K.highest_weight_dict()
             {(3, 1, 1): [+++, [[1]]], (3, 3, 3): [+++, [[1], [2], [3]]]}
         """
-        return {tuple([2*i[1] for i in x.classical_weight()]): x
+        return {tuple(2*i[1] for i in sorted(x.classical_weight())): x
                 for x in self.module_generators}
 
     @cached_method
@@ -2248,7 +2247,7 @@ class KR_type_Bn(KirillovReshetikhinGenericCrystal):
              (3, 2, 2): [[1, 1, 1], [2, 2], [3, 3]],
              (3, 3, 3): [[1, 1, 1], [2, 2, 2], [3, 3, 3]]}
         """
-        return {tuple([i[1] for i in x.classical_weight()]): x
+        return {tuple(i[1] for i in sorted(x.classical_weight())): x
                 for x in self.ambient_crystal().module_generators}
 
     def similarity_factor(self):
@@ -3443,7 +3442,7 @@ class CrystalOfTableaux_E7(CrystalOfTableaux):
     <sage.combinat.crystals.kirillov_reshetikhin.KR_type_E7>` `B^{7,s}`.
     """
     def module_generator(self, shape):
-        """
+        r"""
         Return the module generator of ``self`` with shape ``shape``.
 
         .. NOTE::
@@ -3496,7 +3495,7 @@ class KR_type_E7(KirillovReshetikhinGenericCrystal):
 
     @cached_method
     def A7_decomposition(self):
-        """
+        r"""
         Return the decomposition of ``self`` into `A_7` highest
         weight crystals.
 

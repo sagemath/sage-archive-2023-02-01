@@ -76,7 +76,8 @@ see the documentation for :class:`Parent`.
 from __future__ import print_function, absolute_import
 
 from cpython.object cimport (PyObject, PyTypeObject,
-        PyObject_CallObject, PyObject_RichCompare, Py_TYPE)
+        PyObject_CallObject, PyObject_RichCompare, Py_TYPE,
+        Py_EQ, Py_NE, Py_LT, Py_LE, Py_GT, Py_GE)
 from cpython.weakref cimport PyWeakref_GET_OBJECT, PyWeakref_NewRef
 from libc.string cimport strncmp
 
@@ -425,7 +426,7 @@ cpdef bint is_mpmath_type(t):
            strncmp((<PyTypeObject*>t).tp_name, "sage.libs.mpmath.", 17) == 0
 
 
-cdef class CoercionModel_cache_maps(CoercionModel):
+cdef class CoercionModel:
     """
     See also sage.categories.pushout
 
@@ -495,8 +496,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         """
         EXAMPLES::
 
-            sage: from sage.structure.coerce import CoercionModel_cache_maps
-            sage: cm = CoercionModel_cache_maps()
+            sage: from sage.structure.coerce import CoercionModel
+            sage: cm = CoercionModel()
             sage: K = NumberField(x^2-2, 'a')
             sage: A = cm.get_action(ZZ, K, operator.mul)
             sage: f, g = cm.coercion_maps(QQ, int)
@@ -504,7 +505,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         TESTS::
 
-            sage: cm = CoercionModel_cache_maps(4, .95)
+            sage: cm = CoercionModel(4, .95)
             doctest:...: DeprecationWarning: the 'lookup_dict_size' argument is deprecated
             See http://trac.sagemath.org/24135 for details.
             doctest:...: DeprecationWarning: the 'lookup_dict_threshold' argument is deprecated
@@ -1893,14 +1894,17 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: richcmp(int(1), float(2), op_GE)
             False
 
-        If there is no coercion, only comparisons for equality make
-        sense::
+        If there is no coercion, we only support ``==`` and ``!=``::
 
             sage: x = QQ.one(); y = GF(2).one()
             sage: richcmp(x, y, op_EQ)
             False
             sage: richcmp(x, y, op_NE)
             True
+            sage: richcmp(x, y, op_GT)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for >: 'Rational Field' and 'Finite Field of size 2'
 
         We support non-Sage types with the usual Python convention::
 
@@ -1950,13 +1954,23 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             if res is not NotImplemented:
                 return res
 
-        # Final attempt: compare by id()
-        if (<unsigned long><PyObject*>x) >= (<unsigned long><PyObject*>y):
-            # It cannot happen that x is y, since they don't
-            # have the same parent.
-            return rich_to_bool(op, 1)
+        # At this point, we have 2 objects which cannot be coerced to
+        # a common parent. So we assume that they are not equal.
+        if op == Py_EQ:
+            return False
+        if op == Py_NE:
+            return True
+
+        # It does not make sense to compare x and y with an inequality,
+        # so we raise an exception.
+        if op == Py_LT:
+            raise bin_op_exception('<', x, y)
+        elif op == Py_LE:
+            raise bin_op_exception('<=', x, y)
+        elif op == Py_GT:
+            raise bin_op_exception('>', x, y)
         else:
-            return rich_to_bool(op, -1)
+            raise bin_op_exception('>=', x, y)
 
     def _coercion_error(self, x, x_map, x_elt, y, y_map, y_elt):
         """
@@ -1986,3 +2000,6 @@ Original elements %r (parent %s) and %r (parent %s) and maps
 %s %r""" % (x_elt, y_elt, parent(x_elt), parent(y_elt),
             x, parent(x), y, parent(y),
             type(x_map), x_map, type(y_map), y_map))
+
+
+coercion_model = CoercionModel()

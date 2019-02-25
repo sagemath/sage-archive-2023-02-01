@@ -78,6 +78,7 @@ List of Poset methods
     :meth:`~FinitePoset.is_eulerian` | Return ``True`` if the poset is Eulerian.
     :meth:`~FinitePoset.is_incomparable_chain_free` | Return ``True`` if the poset is (m+n)-free.
     :meth:`~FinitePoset.is_slender` | Return ``True`` if the poset is slender.
+    :meth:`~FinitePoset.is_sperner` | Return ``True`` if the poset is Sperner.
     :meth:`~FinitePoset.is_join_semilattice` | Return ``True`` is the poset has a join operation.
     :meth:`~FinitePoset.is_meet_semilattice` | Return ``True`` if the poset has a meet operation.
 
@@ -272,7 +273,7 @@ Classes and functions
 # python3
 from __future__ import division, print_function, absolute_import
 
-from six.moves import range
+from six.moves import range, builtins
 from six import iteritems
 
 import copy
@@ -1464,14 +1465,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.sorted([], allow_incomparable=False, remove_duplicates=False)
             []
         """
-        from sage.misc.misc import uniq
-
         v = [self._element_to_vertex(x) for x in l]
-
         if remove_duplicates:
-            o = uniq(v)
-        else:
-            o = sorted(v)
+            v = set(v)
+        o = sorted(v)
 
         if not allow_incomparable:
             H = self._hasse_diagram
@@ -3384,7 +3381,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         or the rank of the poset if ``element`` is ``None``.
 
         (The rank of a poset is the length of the longest chain of
-        elements of the poset.)
+        elements of the poset. This is sometimes called the length of a poset.)
 
         EXAMPLES::
 
@@ -4056,11 +4053,12 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: C2 = Poset({0:[1]})
             sage: C3 = Poset({'a':['b'], 'b':['c']})
-            sage: for x in C3.isomorphic_subposets(C2):
-            ....:     print(x.cover_relations())
-            [['b', 'c']]
-            [['a', 'c']]
+            sage: L = sorted(x.cover_relations() for x in C3.isomorphic_subposets(C2))
+            sage: for x in L: print(x)
             [['a', 'b']]
+            [['a', 'c']]
+            [['b', 'c']]
+
             sage: D = Poset({1:[2,3], 2:[4], 3:[4]})
             sage: N5 = posets.PentagonPoset()
             sage: len(N5.isomorphic_subposets(D))
@@ -4071,19 +4069,15 @@ class FinitePoset(UniqueRepresentation, Parent):
             If this function takes too much time, try using
             :meth:`isomorphic_subposets_iterator`.
         """
-        from sage.misc.misc import uniq
-
         if not hasattr(other, 'hasse_diagram'):
             raise TypeError("'other' is not a finite poset")
         L = self._hasse_diagram.transitive_closure().subgraph_search_iterator(other._hasse_diagram.transitive_closure(), induced=True)
         # Since subgraph_search_iterator returns labelled copies, we
         # remove duplicates.
-        return [self.subposet([self._list[i] for i in x]) for x in uniq([frozenset(y) for y in L])]
+        return [self.subposet([self._list[i] for i in x]) for x in sorted(set(frozenset(y) for y in L))]
 
-    from six.moves import builtins
     # Caveat: list is overridden by the method list above!!!
-
-    def antichains(self, element_constructor = builtins.list):
+    def antichains(self, element_constructor=builtins.list):
         """
         Return the antichains of the poset.
 
@@ -4978,7 +4972,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: XYZ = Poset({'x': ['y'], 'y': ['z']})
             sage: ABC.star_product(XYZ).list()
             [(0, 'a'), (0, 'b'), (1, 'y'), (1, 'z')]
-            sage: ABC.star_product(XYZ, labels='integers').list()
+            sage: sorted(ABC.star_product(XYZ, labels='integers'))
             [0, 1, 2, 3]
 
         TESTS::
@@ -5709,10 +5703,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             ...
             TypeError: 'sage.rings.integer.Integer' object is not iterable
         """
-        from sage.misc.misc import uniq
-
         H = self._hasse_diagram
-        elms = uniq([self._element_to_vertex(e) for e in elements])
+        elms = sorted(set(self._element_to_vertex(e) for e in elements))
 
         if not elms:
             return Poset()
@@ -6268,8 +6260,8 @@ class FinitePoset(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: P=Poset({'a':['b', 'c'], 'b':['d','e']})
-            sage: P.maximal_antichains()
-            [['a'], ['c', 'b'], ['c', 'e', 'd']]
+            sage: [sorted(anti) for anti in P.maximal_antichains()]
+            [['a'], ['b', 'c'], ['c', 'd', 'e']]
 
             sage: posets.PentagonPoset().maximal_antichains()
             [[0], [1, 2], [1, 3], [4]]
@@ -7219,6 +7211,48 @@ class FinitePoset(UniqueRepresentation, Parent):
         if certificate:
             return (True, None)
         return True
+
+    def is_sperner(self):
+        """
+        Return ``True`` if the poset is Sperner, and ``False`` otherwise.
+
+        The poset is expected to be ranked.
+
+        A poset is Sperner, if no antichain is larger than the largest
+        rank level (one of the sets of elements of the same rank) in
+        the poset.
+
+        See :wikipedia:`Sperner_property_of_a_partially_ordered_set`
+
+        .. SEEALSO:: :meth:`width`, :meth:`dilworth_decomposition`
+
+        EXAMPLES::
+
+            sage: posets.SetPartitions(3).is_sperner()
+            True
+
+            sage: P = Poset({0:[3,4,5],1:[5],2:[5]})
+            sage: P.is_sperner()
+            False
+
+        TESTS::
+
+            sage: posets.PentagonPoset().is_sperner()
+            Traceback (most recent call last):
+            ...
+            ValueError: the poset is not ranked
+
+            sage: P = Poset()
+            sage: P.is_sperner()
+            True
+        """
+        if not self.is_ranked():
+            raise ValueError("the poset is not ranked")
+        if not self.cardinality():
+            return True
+        W = self.width()
+        N = max(len(level) for level in self._hasse_diagram.level_sets())
+        return W <= N
 
     def is_eulerian(self, k=None, certificate=False):
         """

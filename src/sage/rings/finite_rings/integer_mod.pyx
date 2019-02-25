@@ -813,7 +813,8 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         """
         Returns the minimal polynomial of this element.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: GF(241, 'a')(1).minpoly()
             x + 240
         """
@@ -823,7 +824,8 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         """
         Returns the minimal polynomial of this element.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: GF(241, 'a')(1).minimal_polynomial(var = 'z')
             z + 240
         """
@@ -2161,7 +2163,8 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
     def __pow__(IntegerMod_gmp self, exp, m): # NOTE: m ignored, always use modulus of parent ring
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = Integers(10^10)
             sage: R(2)^1000
             5668069376
@@ -2630,7 +2633,8 @@ cdef class IntegerMod_int(IntegerMod_abstract):
 
     def __pow__(IntegerMod_int self, exp, m): # NOTE: m ignored, always use modulus of parent ring
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = Integers(10)
             sage: R(2)^10
             4
@@ -3421,7 +3425,8 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
 
     def __pow__(IntegerMod_int64 self, exp, m): # NOTE: m ignored, always use modulus of parent ring
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = Integers(10)
             sage: R(2)^10
             4

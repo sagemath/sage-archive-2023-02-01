@@ -215,7 +215,6 @@ import sage.rings.infinity as infinity
 from sage.rings.rational import Rational
 from sage.rings.integer import Integer
 import sage.rings.polynomial.polynomial_element as polynomial_element
-import sage.rings.complex_field
 import sage.groups.abelian_gps.abelian_group
 import sage.rings.complex_interval_field
 
@@ -4370,8 +4369,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             ([-6*a + 2, 6*a + 3, -1, 12*a + 5], [])
         """
         K_pari = self.pari_bnf(proof=proof)
-        from sage.misc.all import uniq
-        S_pari = [p.pari_prime() for p in uniq(S)]
+        S_pari = [p.pari_prime() for p in sorted(set(S))]
         result = K_pari.bnfsunit(S_pari)
         units = [self(x, check=False) for x in result[0]] + self.unit_group().gens_values()
         orders = result[4][1].sage()
@@ -6622,7 +6620,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         return U
 
     def S_unit_solutions(self, S=[], prec=106, include_exponents=False, include_bound=False, proof=None):
-        """
+        r"""
         Return all solutions to the S-unit equation ``x + y = 1`` over K.
 
         INPUT:
@@ -6631,38 +6629,38 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         - ``prec`` -- precision used for computations in real, complex, and p-adic fields (default: 106)
         - ``include_exponents`` -- whether to include the exponent vectors in the returned value (default: True).
         - ``include_bound`` -- whether to return the final computed bound (default: False)
-        - ``verbose`` -- whether to print information during the sieving step (default: False)
+        - ``proof`` -- if False, assume the GRH in computing the class group. Default is True.
 
         OUTPUT:
 
         A list of tuples ``[( A_1, B_1, x_1, y_1), (A_2, B_2, x_2, y_2), ... ( A_n, B_n, x_n, y_n)]`` such that:
 
-    1. The first two entries are tuples ``A_i = (a_0, a_1, ... , a_t)`` and ``B_i = (b_0, b_1, ... , b_t)`` of exponents.  These will be ommitted if ``include_exponents`` is ``False``.
-    2. The last two entries are ``S``-units ``x_i`` and ``y_i`` in ``K`` with ``x_i + y_i = 1``.
-    3. If the default generators for the ``S``-units of ``K`` are ``(rho_0, rho_1, ... , rho_t)``, then these satisfy ``x_i = \prod(rho_i)^(a_i)`` and ``y_i = \prod(rho_i)^(b_i)``.
+        1. The first two entries are tuples ``A_i = (a_0, a_1, ... , a_t)`` and ``B_i = (b_0, b_1, ... , b_t)`` of exponents.  These will be ommitted if ``include_exponents`` is ``False``.
+        2. The last two entries are ``S``-units ``x_i`` and ``y_i`` in ``K`` with ``x_i + y_i = 1``.
+        3. If the default generators for the ``S``-units of ``K`` are ``(rho_0, rho_1, ... , rho_t)``, then these satisfy ``x_i = \prod(rho_i)^(a_i)`` and ``y_i = \prod(rho_i)^(b_i)``.
 
-    If ``include_bound``, will return a pair ``(sols, bound)`` where ``sols`` is as above and ``bound`` is the bound used for the entries in the exponent vectors.
+        If ``include_bound``, will return a pair ``(sols, bound)`` where ``sols`` is as above and ``bound`` is the bound used for the entries in the exponent vectors.
 
-    EXAMPLES::
+        EXAMPLES::
 
-        sage: K.<xi> = NumberField(x^2+x+1)
-        sage: S = K.primes_above(3)
-        sage: K.S_unit_solutions(S) # random, due to ordering
-        [(xi + 2, -xi - 1), (1/3*xi + 2/3, -1/3*xi + 1/3), (-xi, xi + 1), (-xi + 1, xi)]
+            sage: K.<xi> = NumberField(x^2+x+1)
+            sage: S = K.primes_above(3)
+            sage: K.S_unit_solutions(S) # random, due to ordering
+            [(xi + 2, -xi - 1), (1/3*xi + 2/3, -1/3*xi + 1/3), (-xi, xi + 1), (-xi + 1, xi)]
 
-    You can get the exponent vectors::
+        You can get the exponent vectors::
 
-        sage: K.S_unit_solutions(S, include_exponents=True) # random, due to ordering
-        [((2, 1), (4, 0), xi + 2, -xi - 1),
-         ((5, -1), (4, -1), 1/3*xi + 2/3, -1/3*xi + 1/3),
-         ((5, 0), (1, 0), -xi, xi + 1),
-         ((1, 1), (2, 0), -xi + 1, xi)]
+            sage: K.S_unit_solutions(S, include_exponents=True) # random, due to ordering
+            [((2, 1), (4, 0), xi + 2, -xi - 1),
+             ((5, -1), (4, -1), 1/3*xi + 2/3, -1/3*xi + 1/3),
+             ((5, 0), (1, 0), -xi, xi + 1),
+             ((1, 1), (2, 0), -xi + 1, xi)]
 
-    And the computed bound::
+        And the computed bound::
 
-        sage: solutions, bound = K.S_unit_solutions(S, prec=100, include_bound=True)
-        sage: bound
-        2
+            sage: solutions, bound = K.S_unit_solutions(S, prec=100, include_bound=True)
+            sage: bound
+            2
         """
         from .S_unit_solver import solve_S_unit_equation
         return solve_S_unit_equation(self, S, prec, include_exponents, include_bound, proof)
@@ -10251,19 +10249,19 @@ class NumberField_cyclotomic(NumberField_absolute):
 
         Matrices over cyclotomic fields are correctly dealt with it as well::
 
+            sage: b = libgap.eval('[[E(4), 1], [0, 1+E(8)-E(8)^3]]')
+            sage: matrix(F, b)
+            [             zeta8^2                    1]
+            [                   0 -zeta8^3 + zeta8 + 1]
+
+        It also works with the old pexpect interface to GAP::
+
             sage: b = gap(Matrix(F,[[z^2,1],[0,a+1]])); b
             [ [ E(4), 1 ], [ 0, 1+E(8)-E(8)^3 ] ]
             sage: b[1,2]
             1
             sage: F(b[1,2])
             1
-            sage: matrix(F, b)
-            [             zeta8^2                    1]
-            [                   0 -zeta8^3 + zeta8 + 1]
-
-        It also word with libGAP instead of GAP::
-
-            sage: b = libgap.eval('[[E(4), 1], [0, 1+E(8)-E(8)^3]]')
             sage: matrix(F, b)
             [             zeta8^2                    1]
             [                   0 -zeta8^3 + zeta8 + 1]

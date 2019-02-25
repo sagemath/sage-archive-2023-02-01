@@ -772,7 +772,7 @@ class Posets(object):
         A lattice on `n` elements. When ``properties`` is ``None``,
         the probability `p` roughly measures number of covering
         relations of the lattice. To create interesting examples, make
-        the probability near one, something like `0.98..0.999`.
+        the probability a little below one, for example `0.9`.
 
         Currently parameter ``p`` has no effect only when ``properties``
         is not ``None``.
@@ -1082,11 +1082,10 @@ class Posets(object):
             sage: P2 = posets.SymmetricGroupBruhatIntervalPoset([1,2,3,4], [4,2,3,1])
             sage: ranks1 = [P1.rank(v) for v in P1]
             sage: ranks2 = [P2.rank(v) for v in P2]
-            sage: [ranks1.count(i) for i in uniq(ranks1)]
+            sage: [ranks1.count(i) for i in sorted(set(ranks1))]
             [1, 3, 5, 4, 1]
-            sage: [ranks2.count(i) for i in uniq(ranks2)]
+            sage: [ranks2.count(i) for i in sorted(set(ranks2))]
             [1, 3, 5, 6, 4, 1]
-
         """
         start = Permutation(start)
         end = Permutation(end)
@@ -1196,13 +1195,14 @@ class Posets(object):
         try:
             n = Integer(n)
         except TypeError:
-            raise TypeError("n must be an integer.")
+            raise TypeError("n must be an integer")
         if n < 2:
-            raise ValueError("n must be greater than 2.")
+            raise ValueError("n must be greater than 2")
         for c in colors:
-            if(c not in ('green', 'red', 'yellow', 'orange', 'silver', 'blue')):
+            if c not in ('green', 'red', 'yellow', 'orange', 'silver', 'blue'):
                 raise ValueError("Color input must be from the following: 'green', 'red', 'yellow', 'orange', 'silver', and 'blue'.")
-        elem=[(i,j,k) for i in range (n) for j in range (n-i) for k in range (n-i-j)]
+        elem = [(i, j, k) for i in range(n)
+                for j in range(n-i) for k in range(n-i-j)]
         rels = []
         elem_labels = {}
         if 'labels' in labels:
@@ -1213,23 +1213,23 @@ class Posets(object):
                     labelcount += 1
         for c in colors:
             for (i,j,k) in elem:
-                if(i+j+k < n-1):
-                    if(c=='green'):
+                if i+j+k < n-1:
+                    if c == 'green':
                         rels.append([(i,j,k),(i+1,j,k)])
-                    if(c=='red'):
+                    if c == 'red':
                         rels.append([(i,j,k),(i,j,k+1)])
-                    if(c=='yellow'):
+                    if c == 'yellow':
                         rels.append([(i,j,k),(i,j+1,k)])
-                if(j<n-1 and k>0):
-                    if(c=='orange'):
+                if j < n-1 and k > 0:
+                    if c == 'orange':
                         rels.append([(i,j,k),(i,j+1,k-1)])
-                if(i<n-1 and j>0):
-                    if(c=='silver'):
+                if i < n-1 and j > 0:
+                    if c == 'silver':
                         rels.append([(i,j,k),(i+1,j-1,k)])
-                if(i<n-1 and k>0):
-                    if(c=='blue'):
+                if i < n-1 and k > 0:
+                    if c == 'blue':
                         rels.append([(i,j,k),(i+1,j,k-1)])
-        return Poset([elem,rels], elem_labels)
+        return Poset([elem, rels], elem_labels)
 
     # shard intersection order
     import sage.combinat.shard_order
@@ -1786,34 +1786,21 @@ def _random_lattice(n, p):
 
     for i in range(1, n):
 
-        # First add some random element as a lower cover.
-        # Alone it can't change a semilattice to non-semilattice,
-        # so we don't check it.
-        new = i-1-floor(i*sqrt(random()))
-        lc_list = [new]
-        maxs.discard(new)
-        max_meets = {m:meets[m][new] for m in maxs}
-
-        while random() < p and 0 not in lc_list:
-            # An ad hoc solution. srqt(random()) instead of randint(0, i)
-            # make number of coatoms closer to number of atoms.
-            new = i-1-floor(i*sqrt(random()))
-
-            # Check that lc_list + new is an antichain.
-            if any(meets[new][lc] in [new, lc] for lc in lc_list):
-                continue
-
-            # Check that new has a unique meet with any maximal element.
-            for m in maxs:
-                meet_m = meets[m][new]
-                if meets[meet_m][max_meets[m]] not in [meet_m, max_meets[m]]:
-                    break
-
-            else:  # So, we found a new lower cover for i.
+        # Look for an admissible lower cover for the next element i
+        while True:
+            # Generate a random antichain
+            lc_list = [i-1-floor(i*sqrt(random()))]
+            while random() < p and 0 not in lc_list:
+                new = i-1-floor(i*sqrt(random()))
+                if any(meets[new][lc] in [new, lc] for lc in lc_list):
+                    continue
                 lc_list.append(new)
-                for m in maxs:
-                    max_meets[m] = max(max_meets[m], meets[m][new])
-                maxs.discard(new)
+            # Check whether it is admissible as a new lower cover
+            if all(any(all(meets[m][meets[a][a1]] == meets[m][a1] for a1 in lc_list if a1 != a) for a in lc_list) for m in maxs):
+                break
+
+        # We've found a suitable lower cover for i
+        maxs.difference_update(lc_list)
 
         # Now compute new row and column to meet matrix.
         meets[i][i] = i
@@ -1979,6 +1966,7 @@ def _random_distributive_lattice(n):
             H = HasseDiagram(D)
     return D
 
+
 def _random_stone_lattice(n):
     """
     Return a random Stone lattice on `n` elements.
@@ -2008,7 +1996,7 @@ def _random_stone_lattice(n):
     from sage.misc.misc_c import prod
     from copy import copy
 
-    factors = sum([[f[0]]*f[1] for f in factor(n)], [])
+    factors = sum([[f[0]] * f[1] for f in factor(n)], [])
     sage.misc.prandom.shuffle(factors)
 
     part_lengths = list(Partitions(len(factors)).random_element())
@@ -2020,9 +2008,9 @@ def _random_stone_lattice(n):
 
     result = DiGraph(1)
     for p in parts:
-        g = _random_distributive_lattice(p-1)
+        g = _random_distributive_lattice(p - 1)
         g = copy(Poset(g).order_ideals_lattice(as_ideals=False)._hasse_diagram)
-        g.add_edge('bottom', 0)
+        g.add_edge(-1, 0)
         result = result.cartesian_product(g)
         result.relabel()
 

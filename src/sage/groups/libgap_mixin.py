@@ -1,8 +1,8 @@
 """
-Mix-in Class for libGAP-based Groups
+Mix-in Class for GAP-based Groups
 
 This class adds access to GAP functionality to groups such that parent
-and element have a ``gap()`` method that returns a libGAP object for
+and element have a ``gap()`` method that returns a GAP object for
 the parent/element.
 
 If your group implementation uses libgap, then you should add

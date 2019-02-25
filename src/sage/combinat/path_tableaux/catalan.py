@@ -81,35 +81,37 @@ class CatalanTableau(ClonableArray,PathTableau):
     """
     An instance is the sequence of nonnegative
     integers given by the heights of a Dyck word.
+
+
+
+    INPUT:
+
+        - a sequence of nonnegative integers
+        - a two row standard skew tableau
+        - a Dyck word
+        - a noncrossing perfect matching
+
+    EXAMPLES::
+
+        sage: CatalanTableau([0,1,2,1,0])
+        [0, 1, 2, 1, 0]
+
+        sage: w = DyckWord([1,1,0,0])
+        sage: CatalanTableau(w)
+        [0, 1, 2, 1, 0]
+
+        sage: p = PerfectMatching([(1,2),(3,4)])
+        sage: CatalanTableau(p)
+        [0, 1, 0, 1, 0]
+
+        sage: t = Tableau([[1,2],[3,4]])
+        sage: CatalanTableau(t)
+        [0, 1, 2, 1, 0]
     """
 
     @staticmethod
     def __classcall_private__(cls, ot):
         """This is the preprocessing for creating paths.
-
-        INPUT:
-
-            - a sequence of nonnegative integers
-            - a two row standard skew tableau
-            - a Dyck word
-            - a noncrossing perfect matching
-
-        EXAMPLES::
-
-            sage: CatalanTableau([0,1,2,1,0])
-            [0, 1, 2, 1, 0]
-
-            sage: w = DyckWord([1,1,0,0])
-            sage: CatalanTableau(w)
-            [0, 1, 2, 1, 0]
-
-            sage: p = PerfectMatching([(1,2),(3,4)])
-            sage: CatalanTableau(p)
-            [0, 1, 0, 1, 0]
-
-            sage: t = Tableau([[1,2],[3,4]])
-            sage: CatalanTableau(t)
-            [0, 1, 2, 1, 0]
 
         """
         w = None
@@ -261,6 +263,8 @@ class CatalanTableau(ClonableArray,PathTableau):
             sage: CatalanTableau([0,1,2,1,2,1,0,1,0]).to_perfect_matching()
             [(0, 5), (1, 2), (3, 4), (6, 7)]
         """
+        if self.is_skew():
+            raise ValueError( "%s does not start at 0" % (str(self)) )
         w = self.to_word()
         y = DyckWord(w)
         pairs = set()

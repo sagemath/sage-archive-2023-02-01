@@ -4435,12 +4435,14 @@ class GenericGraph(GenericGraph_pyx):
         A cycle basis in Petersen's Graph ::
 
             sage: g = graphs.PetersenGraph()
-            sage: g.cycle_basis()
+            sage: g.cycle_basis()  # py2
             [[1, 2, 7, 5, 0], [8, 3, 2, 7, 5], [4, 3, 2, 7, 5, 0], [4, 9, 7, 5, 0], [8, 6, 9, 7, 5], [1, 6, 9, 7, 5, 0]]
+            sage: g.cycle_basis()  # py3
+            [[1, 6, 8, 5, 0], [4, 9, 6, 8, 5, 0], [7, 9, 6, 8, 5], [4, 3, 8, 5, 0], [1, 2, 3, 8, 5, 0], [7, 2, 3, 8, 5]]
 
         One can also get the result as a list of lists of edges::
 
-            sage: g.cycle_basis(output='edge')
+            sage: g.cycle_basis(output='edge')  # py2
             [[(1, 2, None), (2, 7, None), (7, 5, None), (5, 0, None),
             (0, 1, None)], [(8, 3, None), (3, 2, None), (2, 7, None),
             (7, 5, None), (5, 8, None)], [(4, 3, None), (3, 2, None),
@@ -4449,6 +4451,15 @@ class GenericGraph(GenericGraph_pyx):
             (0, 4, None)], [(8, 6, None), (6, 9, None), (9, 7, None),
             (7, 5, None), (5, 8, None)], [(1, 6, None), (6, 9, None),
             (9, 7, None), (7, 5, None), (5, 0, None), (0, 1, None)]]
+            sage: g.cycle_basis(output='edge')  # py3
+            [[(1, 6, None), (6, 8, None), (8, 5, None), (5, 0, None),
+            (0, 1, None)], [(4, 9, None), (9, 6, None), (6, 8, None),
+            (8, 5, None), (5, 0, None), (0, 4, None)], [(7, 9, None),
+            (9, 6, None), (6, 8, None), (8, 5, None), (5, 7, None)],
+            [(4, 3, None), (3, 8, None), (8, 5, None), (5, 0, None),
+            (0, 4, None)], [(1, 2, None), (2, 3, None), (3, 8, None),
+            (8, 5, None), (5, 0, None), (0, 1, None)], [(7, 2, None),
+            (2, 3, None), (3, 8, None), (8, 5, None), (5, 7, None)]]
 
         Checking the given cycles are algebraically free::
 
@@ -4461,7 +4472,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: m = g.size()
             sage: edge_space = VectorSpace(FiniteField(2), m)
             sage: edge_vector = dict(zip(g.edges(labels=False, sort=False), edge_space.basis()))
-            sage: for (u, v), vec in edge_vector.items():
+            sage: for (u, v), vec in list(edge_vector.items()):
             ....:    edge_vector[(v, u)] = vec
 
         Defining a lambda function associating a vector to the vertices of a
@@ -4487,14 +4498,20 @@ class GenericGraph(GenericGraph_pyx):
         Disconnected graph::
 
             sage: G.add_cycle(["Hey", "Wuuhuu", "Really ?"])
-            sage: G.cycle_basis()
-            [['Really ?', 'Hey', 'Wuuhuu'], [0, 2], [2, 1, 0]]
-            sage: G.cycle_basis(output='edge')
-            [[('Really ?', 'Hey', None),
-              ('Hey', 'Wuuhuu', None),
+            sage: [sorted(c) for c in G.cycle_basis()]
+            [['Hey', 'Really ?', 'Wuuhuu'], [0, 2], [0, 1, 2]]
+            sage: [sorted(c) for c in G.cycle_basis(output='edge')]  # py2
+            [[('Hey', 'Wuuhuu', None),
+              ('Really ?', 'Hey', None),
               ('Wuuhuu', 'Really ?', None)],
              [(0, 2, 'a'), (2, 0, 'b')],
-             [(2, 1, 'd'), (1, 0, 'c'), (0, 2, 'b')]]
+             [(0, 2, 'b'), (1, 0, 'c'), (2, 1, 'd')]]
+            sage: [sorted(c) for c in G.cycle_basis(output='edge')]  # py3
+            [[('Hey', 'Really ?', None),
+              ('Really ?', 'Wuuhuu', None),
+              ('Wuuhuu', 'Hey', None)],
+             [(0, 2, 'a'), (2, 0, 'b')],
+             [(0, 2, 'b'), (1, 0, 'c'), (2, 1, 'd')]]
 
         Graph that allows multiple edges but does not contain any::
 

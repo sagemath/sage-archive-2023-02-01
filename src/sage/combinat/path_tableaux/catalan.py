@@ -35,7 +35,7 @@ from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.dyck_word import DyckWord
 from sage.combinat.perfect_matching import PerfectMatching
 from sage.combinat.skew_tableau import SkewTableau
-from sage.combinat.tableau import Tableau
+from sage.combinat.tableau import Tableau, StandardTableau
 from sage.rings.integer import Integer
 
 ###############################################################################
@@ -280,14 +280,21 @@ class CatalanTableau(ClonableArray,PathTableau):
 
         EXAMPLES::
 
-           sage: T = CatalanTableau([0,1,2,3,2,3])
-           sage: T.to_tableau()
-           [[1, 2, 3, 5], [4]]
+            sage: T = CatalanTableau([0,1,2,3,2,3])
+            sage: T.to_tableau()
+            [[1, 2, 3, 5], [4]]
+
+            sage: U = CatalanTableau([2,3,2,3])
+            sage: U.to_tableau()
+            [[None, None, 1, 3], [2]]
         """
         w = self.to_word()
         top = [ i+1 for i, a in enumerate(w) if a == 1 ]
         bot = [ i+1 for i, a in enumerate(w) if a == 0 ]
-        return SkewTableau([[None]*self[0]+top,bot])
+        if self.is_skew():
+            return SkewTableau([[None]*self[0]+top,bot])
+        else:
+            return StandardTableau([[None]*self[0]+top,bot])
 
 class CatalanTableaux(PathTableaux):
 

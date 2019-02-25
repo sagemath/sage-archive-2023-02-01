@@ -206,21 +206,18 @@ class MatrixGroup_base(Group):
             [         4          3          2]
             )
 
-        TESTS:
+        TESTS::
 
             sage: TestSuite(G).run()
             sage: TestSuite(S).run()
         """
         # this method enlarges the method with same name of ParentLibGAP to cases where the ambient group is not inheritet from ParentLibGAP.
         if isinstance(self, ParentLibGAP):
-            try:
-                return ParentLibGAP.subgroup(self, generators)
-            except:
-                pass
+            return ParentLibGAP.subgroup(self, generators)
 
         for g in generators:
             if g not in self:
-                raise ValueError("Generator %s is not in the group"%(g))
+                raise ValueError("generator %s is not in the group"%(g))
 
         from sage.groups.matrix_gps.finitely_generated import MatrixGroup
         subgroup =  MatrixGroup(generators, check=check)

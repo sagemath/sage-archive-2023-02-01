@@ -15,20 +15,16 @@ but wrappers around ECL objects.
 
 
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2019 Miguel Marco <mmarco@unizar.es>
+#                      and Ana Romero <ana.romero@unirioja.es>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 """
 
 
@@ -45,6 +41,8 @@ from sage.libs.ecl import EclObject, ecl_eval, EclListIterator
 
 
 # Redirection of ECL and Maxima stdout to /dev/null
+# This is also done in the Maxima library, but we
+# also do it here for redundancy.
 ecl_eval(r"""(defparameter *dev-null* (make-two-way-stream
               (make-concatenated-stream) (make-broadcast-stream)))""")
 ecl_eval("(setf original-standard-output *standard-output*)")
@@ -79,7 +77,7 @@ def Sphere(n):
 
     INPUT:
 
-    - ``n`` -- The dimension of the sphere
+    - ``n`` -- the dimension of the sphere
 
     OUTPUT:
 
@@ -137,10 +135,10 @@ def EilenbergMacLaneSpace(G, n):
 
     INPUT:
 
-    - ``G`` -- A group. Currently only ``ZZ`` and the group of two elements are
+    - ``G`` -- group. Currently only ``ZZ`` and the group of two elements are
     supported.
 
-    - ``n`` -- The dimension in which the homotopy is not trivial
+    - ``n`` -- the dimension in which the homotopy is not trivial
 
 
     OUTPUT:
@@ -157,7 +155,7 @@ def EilenbergMacLaneSpace(G, n):
         sage: [f3.homology(i) for i in range(8)]                         # optional - kenzo
         [Z, 0, 0, C2, 0, C2, C2, C2]
     """
-    if G == ZZ:
+    if G is ZZ:
         kenzospace = k_z(n)
         return KenzoSimplicialGroup(kenzospace)
     elif G == AdditiveAbelianGroup([2]):
@@ -166,35 +164,34 @@ def EilenbergMacLaneSpace(G, n):
     else:
         raise NotImplementedError("Eilenberg-MacLane spaces are only supported over ZZ and ZZ_2")
 
-
-class KenzoChainComplex(SageObject):
+class KenzoObject(SageObject):
     r"""
-    Wraper to kenzo chain complexes
+    Wrapper to kenzo objects
 
     INPUT:
 
-        - ``kenzoobject``- a wrapper around a kenzo chain complex
+        - ``kenzo_object`` -- a wrapper around a kenzo object
         (which is an ecl object).
     """
 
-    def __init__(self, kenzoobject):
+    def __init__(self, kenzo_object):
         r"""
         Construct the chain complex.
 
         TESTS::
 
-            sage: from sage.interfaces.kenzo import KenzoChainComplex  # optional -kenzo
-            sage: from sage.interfaces.kenzo import sphere             # optional -kenzo
-            sage: ks = sphere(2)                                       # optional -kenzo
-            sage: ks                                                   # optional -kenzo
+            sage: from sage.interfaces.kenzo import KenzoObject  # optional -kenzo
+            sage: from sage.interfaces.kenzo import sphere       # optional -kenzo
+            sage: ks = sphere(2)                                 # optional -kenzo
+            sage: ks                                             # optional -kenzo
             <ECL: [K1 Simplicial-Set]>
-            sage: s2 = KenzoChainComplex(ks)                           # optional -kenzo
-            sage: s2                                                   # optional -kenzo
+            sage: s2 = KenzoObject(ks)                           # optional -kenzo
+            sage: s2                                             # optional -kenzo
             [K1 Simplicial-Set]
-            sage: TestSuite(s2).run(skip='_test_pickling')             # optional -kenzo
+            sage: TestSuite(s2).run(skip='_test_pickling')       # optional -kenzo
 
         """
-        self._kenzo = kenzoobject
+        self._kenzo = kenzo_object
 
     def _repr_(self):
         r"""
@@ -208,16 +205,25 @@ class KenzoChainComplex(SageObject):
             sage: m2._repr_()                                     # optional - kenzo
             '[K10 Simplicial-Set]'
         """
-        kenzo_string = self._kenzo.__repr__()
+        kenzo_string = repr(self._kenzo)
         return kenzo_string[6:-1]
 
+
+class KenzoChainComplex(KenzoObject):
+    r"""
+    Wrapper to kenzo chain complexes
+    """
     def homology(self, n):
         r"""
         Return the ``n``'th homology group of the kenzo chain complex
 
         INPUT:
 
-        - ``n`` -- The dimension in which compute the homology
+        - ``n`` -- the dimension in which compute the homology
+
+        OUTOUT:
+
+        - An homology group.
 
         EXAMPLES::
 
@@ -300,7 +306,7 @@ class KenzoSimplicialSet(KenzoChainComplex):
 
         INPUT:
 
-        - ``other`` -- The Kenzo simplicial set with which the product is made
+        - ``other`` -- the Kenzo simplicial set with which the product is made
 
         OUTPUT:
 

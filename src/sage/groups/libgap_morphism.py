@@ -142,7 +142,10 @@ class GroupMorphism_libgap(Morphism):
         sage: a = G.gens()[0]^2
         sage: phi = G.hom([a])
         sage: phi.kernel()
-        Matrix group over Finite Field of size 7 with 1 generators (
+        Subgroup of Matrix group over Finite Field of size 7 with 1 generators (
+        [3 0]
+        [0 1]
+        ) with 1 generators (
         [6 0]
         [0 1]
         )
@@ -172,7 +175,10 @@ class GroupMorphism_libgap(Morphism):
     The following tests against :trac:`10659`::
 
         sage: phi(H)   # indirect doctest
-        Matrix group over Finite Field of size 7 with 1 generators (
+        Subgroup of Matrix group over Finite Field of size 7 with 1 generators (
+        [3 0]
+        [0 1]
+        ) with 1 generators (
         [4 0]
         [0 1]
         )
@@ -352,7 +358,7 @@ class GroupMorphism_libgap(Morphism):
             sage: P = PSp(6,3)
             sage: pr = Hom(S, P).natural_map()
             sage: pr.kernel()
-            Matrix group over Finite Field of size 3 with 1 generators (
+            Subgroup of Symplectic Group of degree 6 over Finite Field of size 3 with 1 generators (
             [2 0 0 0 0 0]
             [0 2 0 0 0 0]
             [0 0 2 0 0 0]
@@ -461,7 +467,7 @@ class GroupMorphism_libgap(Morphism):
         [1 0 0 0 0 0], [-1  0  0  0  0  0]
         ]
         sage: f(O)  # long time
-        Matrix group over Rational Field with 6 generators
+        Subgroup of Weyl Group of type ['D', 6] (as a matrix group acting on the ambient space) with 6 generators
         sage: f(O).gens()   # long time
         (
         [1 0 0 0 0 0]  [1 0 0 0 0 0]  [1 0 0 0 0 0]  [ 0  0  0  0 -1  0]
@@ -533,7 +539,7 @@ class GroupMorphism_libgap(Morphism):
             sage: pr = Hom(S, P).natural_map()
             sage: PS = P.subgroup([P.gen(0)])
             sage: pr.preimage(PS)
-            Matrix group over Finite Field of size 3 with 2 generators (
+            Subgroup of Symplectic Group of degree 4 over Finite Field of size 3 with 2 generators (
             [2 0 0 0]  [1 0 0 0]
             [0 2 0 0]  [0 2 0 0]
             [0 0 2 0]  [0 0 2 0]

@@ -114,7 +114,7 @@ def delta_lseries(prec=53, max_imaginary_part=0,
         L.rename('L-series associated to the modular form Delta')
         return L
     elif algorithm == 'pari':
-        from sage.lfunctions.lfunctions_pari import LFunction, lfun_delta
+        from sage.lfunctions.pari import LFunction, lfun_delta
         return LFunction(lfun_delta(), prec=prec)
 
     raise ValueError('algorithm must be "gp" or "pari"')

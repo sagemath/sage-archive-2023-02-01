@@ -167,7 +167,7 @@ class Lseries_ell(SageObject):
             return magma(self.__E).LSeries(Precision=prec)
 
         if algorithm == 'pari':
-            from sage.lfunctions.lfunctions_pari import LFunction, lfun_elliptic_curve
+            from sage.lfunctions.pari import LFunction, lfun_elliptic_curve
             L = LFunction(lfun_elliptic_curve(self.__E), prec=prec)
             L.rename('Pari L-function associated to %s' % self.__E)
             return L

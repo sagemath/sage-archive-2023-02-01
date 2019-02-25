@@ -5995,7 +5995,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             return Z
 
         if algorithm == 'pari':
-            from sage.lfunctions.lfunctions_pari import lfun_number_field, LFunction
+            from sage.lfunctions.pari import lfun_number_field, LFunction
             Z = LFunction(lfun_number_field(self), prec=prec)
             Z.rename('Pari Zeta function associated to %s' % self)
             return Z

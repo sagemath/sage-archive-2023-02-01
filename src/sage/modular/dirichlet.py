@@ -756,7 +756,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             algorithm = 'pari'
 
         if algorithm == 'pari':
-            from sage.lfunctions.lfunctions_pari import lfun_character, LFunction
+            from sage.lfunctions.pari import lfun_character, LFunction
             Z = LFunction(lfun_character(self), prec=prec)
             Z.rename('Pari L-function associated to %s' % self)
             return Z

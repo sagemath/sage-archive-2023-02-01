@@ -62,7 +62,7 @@ class lfun_generic(SageObject):
 
     We compute with the Riemann Zeta function::
 
-        sage: from sage.lfunctions.lfunctions_pari import lfun_generic, LFunction
+        sage: from sage.lfunctions.pari import lfun_generic, LFunction
         sage: lf = lfun_generic(conductor=1, gammaV=[0], weight=1, eps=1, poles=[1], residues=[1])
         sage: lf.init_coeffs([1]*2000)
 
@@ -95,7 +95,7 @@ class lfun_generic(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.lfunctions.lfunctions_pari import lfun_generic, LFunction
+            sage: from sage.lfunctions.pari import lfun_generic, LFunction
             sage: lf = lfun_generic(conductor=1, gammaV=[0], weight=1, eps=1, poles=[1], residues=[1])
         """
         self.__init = False
@@ -133,7 +133,7 @@ class lfun_generic(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.lfunctions.lfunctions_pari import lfun_generic, LFunction
+            sage: from sage.lfunctions.pari import lfun_generic, LFunction
             sage: lf = lfun_generic(conductor=1, gammaV=[0,1], weight=12, eps=1)
             sage: pari_coeffs = pari('k->vector(k,n,(5*sigma(n,3)+7*sigma(n,5))*n/12 - 35*sum(k=1,n-1,(6*k-4*(n-k))*sigma(k,3)*sigma(n-k,5)))')
             sage: lf.init_coeffs(pari_coeffs)
@@ -197,7 +197,7 @@ class lfun_generic(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.lfunctions.lfunctions_pari import lfun_generic, LFunction
+            sage: from sage.lfunctions.pari import lfun_generic, LFunction
             sage: lf = lfun_generic(conductor=1, gammaV=[0], weight=1, eps=1, poles=[1], residues=[1])
             sage: lf.lfun()
             Traceback (most recent call last):
@@ -227,7 +227,7 @@ def lfun_character(chi):
 
     EXAMPLES::
 
-        sage: from sage.lfunctions.lfunctions_pari import lfun_character, LFunction
+        sage: from sage.lfunctions.pari import lfun_character, LFunction
         sage: chi = DirichletGroup(6).gen().primitive_character()
         sage: L = LFunction(lfun_character(chi))
         sage: L(3)
@@ -280,7 +280,7 @@ def lfun_elliptic_curve(E):
 
     EXAMPLES::
 
-        sage: from sage.lfunctions.lfunctions_pari import lfun_elliptic_curve, LFunction
+        sage: from sage.lfunctions.pari import lfun_elliptic_curve, LFunction
         sage: E = EllipticCurve('11a1')
         sage: L = LFunction(lfun_elliptic_curve(E))
         sage: L(3)
@@ -309,7 +309,7 @@ def lfun_number_field(K):
 
     EXAMPLES::
 
-        sage: from sage.lfunctions.lfunctions_pari import lfun_number_field, LFunction
+        sage: from sage.lfunctions.pari import lfun_number_field, LFunction
 
         sage: L = LFunction(lfun_number_field(QQ))
         sage: L(3)
@@ -337,7 +337,7 @@ def lfun_eta_quotient(scalings, exponents):
 
     EXAMPLES::
 
-        sage: from sage.lfunctions.lfunctions_pari import lfun_eta_quotient, LFunction
+        sage: from sage.lfunctions.pari import lfun_eta_quotient, LFunction
         sage: L = LFunction(lfun_eta_quotient([1], [24]))
         sage: L(1)
         0.0374412812685155
@@ -364,7 +364,7 @@ def lfun_delta():
 
     EXAMPLES::
 
-        sage: from sage.lfunctions.lfunctions_pari import lfun_delta, LFunction
+        sage: from sage.lfunctions.pari import lfun_delta, LFunction
         sage: L = LFunction(lfun_delta())
         sage: L(1)
         0.0374412812685155
@@ -378,7 +378,7 @@ def lfun_quadratic_form(qf):
 
     EXAMPLES::
 
-        sage: from sage.lfunctions.lfunctions_pari import lfun_quadratic_form, LFunction
+        sage: from sage.lfunctions.pari import lfun_quadratic_form, LFunction
         sage: Q = QuadraticForm(ZZ,2,[2,3,4])
         sage: L = LFunction(lfun_quadratic_form(Q))
         sage: L(3)
@@ -447,7 +447,7 @@ class LFunction(SageObject):
 
     The coefficients are given by Ramanujan's tau function::
 
-        sage: from sage.lfunctions.lfunctions_pari import lfun_generic, LFunction
+        sage: from sage.lfunctions.pari import lfun_generic, LFunction
         sage: lf = lfun_generic(conductor=1, gammaV=[0,1], weight=12, eps=1)
         sage: tau = pari('k->vector(k,n,(5*sigma(n,3)+7*sigma(n,5))*n/12 - 35*sum(k=1,n-1,(6*k-4*(n-k))*sigma(k,3)*sigma(n-k,5)))')
         sage: lf.init_coeffs(tau)
@@ -471,7 +471,7 @@ class LFunction(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.lfunctions.lfunctions_pari import lfun_generic, LFunction
+            sage: from sage.lfunctions.pari import lfun_generic, LFunction
             sage: lf = lfun_generic(conductor=1, gammaV=[0], weight=1, eps=1, poles=[1], residues=[-1], init=pari('k->vector(k,n,1)'))
             sage: L = LFunction(lf)
             sage: L.num_coeffs()
@@ -496,7 +496,7 @@ class LFunction(SageObject):
         """
         EXAMPLES::
 
-            sage: from sage.lfunctions.lfunctions_pari import lfun_number_field, LFunction
+            sage: from sage.lfunctions.pari import lfun_number_field, LFunction
             sage: L = LFunction(lfun_number_field(QQ)); L
             L-series of conductor 1 and weight 1
         """
@@ -509,7 +509,7 @@ class LFunction(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.lfunctions.lfunctions_pari import *
+            sage: from sage.lfunctions.pari import *
             sage: L = LFunction(lfun_number_field(QQ)); L.conductor()
             1
             sage: E = EllipticCurve('11a')
@@ -535,7 +535,7 @@ class LFunction(SageObject):
             sage: L.num_coeffs()
             591
 
-            sage: from sage.lfunctions.lfunctions_pari import lfun_generic, LFunction
+            sage: from sage.lfunctions.pari import lfun_generic, LFunction
             sage: lf = lfun_generic(conductor=1, gammaV=[0], weight=1, eps=1, poles=[1], residues=[-1], init=pari('k->vector(k,n,1)'))
             sage: L = LFunction(lf)
             sage: L.num_coeffs()
@@ -551,7 +551,7 @@ class LFunction(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.lfunctions.lfunctions_pari import lfun_number_field, LFunction
+            sage: from sage.lfunctions.pari import lfun_number_field, LFunction
             sage: L = LFunction(lfun_number_field(QQ))
             sage: L.Lambda(2)
             0.523598775598299
@@ -570,7 +570,7 @@ class LFunction(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.lfunctions.lfunctions_pari import lfun_number_field, LFunction
+            sage: from sage.lfunctions.pari import lfun_number_field, LFunction
             sage: L = LFunction(lfun_number_field(QQ))
             sage: L.hardy(2)
             -0.962008487244041
@@ -598,7 +598,7 @@ class LFunction(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.lfunctions.lfunctions_pari import lfun_number_field, LFunction
+            sage: from sage.lfunctions.pari import lfun_number_field, LFunction
             sage: L = LFunction(lfun_number_field(QQ))
             sage: L.derivative(2)
             -0.937548254315844
@@ -626,7 +626,7 @@ class LFunction(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.lfunctions.lfunctions_pari import lfun_number_field, LFunction
+            sage: from sage.lfunctions.pari import lfun_number_field, LFunction
             sage: lf = lfun_number_field(QQ)
             sage: L = LFunction(lf)
             sage: L.taylor_series(2, 3)
@@ -663,7 +663,7 @@ class LFunction(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.lfunctions.lfunctions_pari import lfun_number_field, LFunction
+            sage: from sage.lfunctions.pari import lfun_number_field, LFunction
             sage: lf = lfun_number_field(QQ)
             sage: L = LFunction(lf)
             sage: L.zeros(20)
@@ -678,7 +678,7 @@ class LFunction(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.lfunctions.lfunctions_pari import lfun_number_field, LFunction
+            sage: from sage.lfunctions.pari import lfun_number_field, LFunction
             sage: lf = lfun_number_field(QQ)
             sage: L = LFunction(lf)
             sage: L(4)
@@ -753,7 +753,7 @@ class LFunction(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.lfunctions.lfunctions_pari import lfun_generic, LFunction
+            sage: from sage.lfunctions.pari import lfun_generic, LFunction
             sage: lf = lfun_generic(conductor=1, gammaV=[0], weight=1, eps=1, poles=[1], residues=[1], init=pari('k->vector(k,n,1)'))
             sage: L = LFunction(lf)
             sage: L.check_functional_equation()

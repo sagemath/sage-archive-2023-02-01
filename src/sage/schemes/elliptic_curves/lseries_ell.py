@@ -169,7 +169,7 @@ class Lseries_ell(SageObject):
         if algorithm == 'pari':
             from sage.lfunctions.pari import LFunction, lfun_elliptic_curve
             L = LFunction(lfun_elliptic_curve(self.__E), prec=prec)
-            L.rename('Pari L-function associated to %s' % self.__E)
+            L.rename('PARI L-function associated to %s' % self.__E)
             return L
 
         if algorithm == 'gp':

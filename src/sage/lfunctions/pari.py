@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-L-functions from Pari
+L-functions from PARI
 
-This is a wrapper around the general Pari L-functions setup.
+This is a wrapper around the general PARI L-functions functionality.
 
 AUTHORS:
 
@@ -18,22 +18,21 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import, print_function
 
-from sage.libs.pari import pari
+from __future__ import absolute_import, division, print_function
+
+from operator import index as PyNumber_Index
 from cypari2.gen import Gen
+from sage.libs.pari import pari
 from sage.structure.sage_object import SageObject
-from sage.rings.complex_field import ComplexField
-from sage.rings.rational_field import QQ
-from sage.rings.integer_ring import ZZ
-from sage.rings.power_series_ring import PowerSeriesRing
-from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
+from sage.rings.all import (ZZ, RealField, ComplexField,
+        PowerSeriesRing, IntegerModRing)
 from sage.rings.complex_field import is_ComplexField
 
 
-class lfun_generic(SageObject):
+class lfun_generic(object):
     r"""
-    Create a Pari `L`-function (:pari:`lfun` instance) with
+    Create a PARI `L`-function (:pari:`lfun` instance) with
 
     ``lfun_generic(conductor, gammaV, weight, eps, poles, residues, init)``
 
@@ -56,7 +55,7 @@ class lfun_generic(SageObject):
     - ``residues`` -- vector of residues of `L^*(s)` in those poles or
       set residues='automatic' (default value)
 
-    - ``init`` -- optional (list of coefficients)
+    - ``init`` -- list of coefficients
 
     RIEMANN ZETA FUNCTION:
 
@@ -66,7 +65,7 @@ class lfun_generic(SageObject):
         sage: lf = lfun_generic(conductor=1, gammaV=[0], weight=1, eps=1, poles=[1], residues=[1])
         sage: lf.init_coeffs([1]*2000)
 
-    Now we can wrap this Pari L-function into one Sage L-function::
+    Now we can wrap this PARI L-function into one Sage L-function::
 
         sage: L = LFunction(lf); L
         L-series of conductor 1 and weight 1
@@ -84,8 +83,8 @@ class lfun_generic(SageObject):
         sage: L.taylor_series(2, k=5)
         1.64493406684823 - 0.937548254315844*z + 0.994640117149451*z^2 - 1.00002430047384*z^3 + 1.00006193307...*z^4 + O(z^5)
     """
-    def __init__(self, conductor, gammaV, weight,
-                 eps, poles=[], residues='automatic', init=None):
+    def __init__(self, conductor, gammaV, weight, eps, poles=[],
+                 residues='automatic', prec=None, *args, **kwds):
         """
         Initialisation of a :pari:`lfun` from motivic data.
 
@@ -98,8 +97,8 @@ class lfun_generic(SageObject):
             sage: from sage.lfunctions.pari import lfun_generic, LFunction
             sage: lf = lfun_generic(conductor=1, gammaV=[0], weight=1, eps=1, poles=[1], residues=[1])
         """
-        self.__init = False
         # status flag: before of after entering the coefficients
+        self.__init = False
 
         self.conductor = conductor
         self.gammaV = gammaV
@@ -107,13 +106,12 @@ class lfun_generic(SageObject):
         self.eps = eps
         self.poles = poles
         self.residues = residues
+        self.prec = prec
 
-        if init is not None:
-            self.init_coeffs(init)
+        if args or kwds:
+            self.init_coeffs(*args, **kwds)
 
-    def init_coeffs(self, v, cutoff=1,
-                    w=0,
-                    max_imaginary_part=0):
+    def init_coeffs(self, v, cutoff=None, w=1, *args, **kwds):
         """
         Set the coefficients `a_n` of the `L`-series.
 
@@ -122,14 +120,11 @@ class lfun_generic(SageObject):
 
         INPUT:
 
-        -  ``v`` -- list of complex numbers or pari function
+        -  ``v`` -- list of complex numbers or unary function
 
-        -  ``cutoff`` -- real number = 1 (default: 1)
+        -  ``cutoff`` -- unused
 
-        -  ``w`` -- list of complex numbers or string (pari function of k)
-
-        -  ``max_imaginary_part`` -- (default: 0): redefine if
-           you want to compute L(s) for s having large imaginary part,
+        -  ``w`` --  list of complex numbers or unary function
 
         EXAMPLES::
 
@@ -165,47 +160,56 @@ class lfun_generic(SageObject):
 
             sage: L2 = lfun_generic(conductor=1, gammaV=[0,1], weight=12, eps=1)
             sage: L2.init_coeffs(list(delta_qexp(1000))[1:], w=[1..1000])
+
+        Additional arguments are ignored for compatibility with the old
+        Dokchitser script::
+
+            sage: L2.init_coeffs(list(delta_qexp(1000))[1:], foo="bar")
+            doctest:...: DeprecationWarning: additional arguments for initializing an lfun_generic are ignored
+            See https://trac.sagemath.org/26098 for details.
         """
-        if not isinstance(v, (list, tuple)):
-            try:
-                is_closure = (v.type() == 't_CLOSURE')
-            except AttributeError:
-                is_closure = False
-            if not is_closure:
-                raise TypeError("input must be a list, tuple or pari function")
+        if args or kwds:
+            from sage.misc.superseded import deprecation
+            deprecation(26098, "additional arguments for initializing an lfun_generic are ignored")
+
+        v = pari(v)
+        if v.type() not in ('t_CLOSURE', 't_VEC'):
+            raise TypeError("v (coefficients) must be a list or a function")
 
         # w = 0 means a*_n = a_n
         # w = 1 means a*_n = complex conjugate of a_n
         # otherwise w must be a list of coefficients
-        if w not in [0, 1]:
-            assert isinstance(w, (list, tuple))
+        w = pari(w)
+        if w.type() not in ('t_INT', 't_CLOSURE', 't_VEC'):
+            raise TypeError("w (dual coefficients) must be a list or a function or the special value 0 or 1")
 
         if not self.poles:
             self._L = pari.lfuncreate([v, w, self.gammaV, self.weight,
                                        self.conductor, self.eps])
         else:
-            # poles = list(zip(oples, residues))  # TODO
+            # TODO
+            # poles = list(zip(poles, residues))
             self._L = pari.lfuncreate([v, w, self.gammaV, self.weight,
                                        self.conductor, self.eps,
                                        self.poles[0]])
 
         self.__init = True
 
-    def lfun(self):
+    def __pari__(self):
         """
-        Return the Pari L-function object.
+        Return the PARI L-function object.
 
         EXAMPLES::
 
             sage: from sage.lfunctions.pari import lfun_generic, LFunction
             sage: lf = lfun_generic(conductor=1, gammaV=[0], weight=1, eps=1, poles=[1], residues=[1])
-            sage: lf.lfun()
+            sage: lf.__pari__()
             Traceback (most recent call last):
             ...
             ValueError: call init_coeffs on the L-function first
 
             sage: lf.init_coeffs([1]*2000)
-            sage: X = lf.lfun()
+            sage: X = lf.__pari__()
             sage: X.type()
             't_VEC'
         """
@@ -247,7 +251,7 @@ def lfun_character(chi):
     conductor = chi.conductor()
     G = pari.znstar(conductor, 1)
 
-    pari_orders = [ZZ(o) for o in G[2][1]]
+    pari_orders = [pari(o) for o in G[2][1]]
     pari_gens = IntegerModRing(conductor).unit_gens(algorithm="pari")
     # should coincide with G[2][2]
 
@@ -391,7 +395,7 @@ def lfun_quadratic_form(qf):
 
 class LFunction(SageObject):
     r"""
-    Build the L-function from a Pari L-function.
+    Build the L-function from a PARI L-function.
 
     RANK 1 ELLIPTIC CURVE:
 
@@ -399,7 +403,7 @@ class LFunction(SageObject):
 
         sage: E = EllipticCurve('37a')
         sage: L = E.lseries().dokchitser(algorithm="pari"); L
-        Pari L-function associated to Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+        PARI L-function associated to Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
         sage: L(1)
         0.000000000000000
         sage: L.derivative(1)
@@ -410,8 +414,8 @@ class LFunction(SageObject):
         50
         sage: L.taylor_series(1,4)
         0.000000000000000 + 0.305999773834052*z + 0.186547797268162*z^2 - 0.136791463097188*z^3 + O(z^4)
-        sage: L.check_functional_equation() < -60
-        True
+        sage: L.check_functional_equation()
+        1.08420217248550e-19
 
     RANK 2 ELLIPTIC CURVE:
 
@@ -434,7 +438,7 @@ class LFunction(SageObject):
         sage: x = var('x')
         sage: K = NumberField(x**4 - x**2 - 1,'a')
         sage: L = K.zeta_function(algorithm="pari")
-        sage: L.conductor()
+        sage: L.conductor
         400
         sage: L.num_coeffs()
         348
@@ -460,28 +464,30 @@ class LFunction(SageObject):
         sage: L.taylor_series(1,3)
         0.0374412812685155 + 0.0709221123619322*z + 0.0380744761270520*z^2 + O(z^3)
     """
-    def __init__(self, lfun, prec=53):
+    def __init__(self, lfun, prec=None):
         """
-        Initialization of the L-function from a Pari L-function.
+        Initialization of the L-function from a PARI L-function.
 
         INPUT:
 
-        - lfun -- a Pari :pari:`lfun` object or an instance of :class:`lfun_generic`
+        - lfun -- a PARI :pari:`lfun` object or an instance of :class:`lfun_generic`
         - prec -- integer (default: 53) number of *bits* of precision
 
         EXAMPLES::
 
             sage: from sage.lfunctions.pari import lfun_generic, LFunction
-            sage: lf = lfun_generic(conductor=1, gammaV=[0], weight=1, eps=1, poles=[1], residues=[-1], init=pari('k->vector(k,n,1)'))
+            sage: lf = lfun_generic(conductor=1, gammaV=[0], weight=1, eps=1, poles=[1], residues=[-1], v=pari('k->vector(k,n,1)'))
             sage: L = LFunction(lf)
             sage: L.num_coeffs()
             4
         """
         if isinstance(lfun, lfun_generic):
             # preparation using motivic data
-            self._L = lfun.lfun()
+            self._L = lfun.__pari__()
+            if prec is None:
+                prec = lfun.prec
         elif isinstance(lfun, Gen):
-            # already some Pari lfun
+            # already some PARI lfun
             self._L = lfun
         else:
             # create a PARI lfunction from other input data
@@ -489,8 +495,17 @@ class LFunction(SageObject):
 
         self._conductor = ZZ(self._L[4])  # needs check
         self._weight = ZZ(self._L[3])  # needs check
-        self.prec = prec
-        self.__CC = ComplexField(self.prec)
+        if prec is None:
+            self.prec = 53
+        else:
+            self.prec = PyNumber_Index(prec)
+        self._RR = RealField(self.prec)
+        self._CC = ComplexField(self.prec)
+        # Complex field used for inputs, which ensures exact 1-to-1
+        # conversion to/from PARI. Since PARI objects have a precision
+        # in machine words (not bits), this is typically higher. For
+        # example, the default of 53 bits of precision would become 64.
+        self._CCin = ComplexField(pari.bitprecision(self._RR(1)))
 
     def _repr_(self):
         """
@@ -503,6 +518,7 @@ class LFunction(SageObject):
         return "L-series of conductor %s and weight %s" % (self._conductor,
                                                            self._weight)
 
+    @property
     def conductor(self):
         """
         Return the conductor.
@@ -510,10 +526,10 @@ class LFunction(SageObject):
         EXAMPLES::
 
             sage: from sage.lfunctions.pari import *
-            sage: L = LFunction(lfun_number_field(QQ)); L.conductor()
+            sage: L = LFunction(lfun_number_field(QQ)); L.conductor
             1
             sage: E = EllipticCurve('11a')
-            sage: L = LFunction(lfun_number_field(E)); L.conductor()
+            sage: L = LFunction(lfun_number_field(E)); L.conductor
             11
         """
         return self._conductor
@@ -536,13 +552,13 @@ class LFunction(SageObject):
             591
 
             sage: from sage.lfunctions.pari import lfun_generic, LFunction
-            sage: lf = lfun_generic(conductor=1, gammaV=[0], weight=1, eps=1, poles=[1], residues=[-1], init=pari('k->vector(k,n,1)'))
+            sage: lf = lfun_generic(conductor=1, gammaV=[0], weight=1, eps=1, poles=[1], residues=[-1], v=pari('k->vector(k,n,1)'))
             sage: L = LFunction(lf)
             sage: L.num_coeffs()
             4
         """
         # lfuncost takes a domain
-        domain = [QQ(1) / 2, 1, 1]
+        domain = [pari(1) / 2, 1, 1]
         return ZZ(pari.lfuncost(self._L, domain)[0])
 
     def Lambda(self, s):
@@ -558,15 +574,15 @@ class LFunction(SageObject):
             sage: L.Lambda(1-2)
             0.523598775598299
         """
-        s = self.__CC(s)
-        R = self.__CC
+        s = self._CCin(s)
+        R = self._CC
         return R(pari.lfunlambda(self._L, s, precision=self.prec))
 
     def hardy(self, t):
         """
         Evaluate the associated Hardy function at t.
 
-        This only works for real t for the moment.
+        This only works for real t.
 
         EXAMPLES::
 
@@ -582,8 +598,8 @@ class LFunction(SageObject):
             ...
             PariError: incorrect type in lfunhardy (t_COMPLEX)
         """
-        t = self.__CC(t)
-        R = self.__CC
+        t = self._CCin(t)
+        R = self._RR
         return R(pari.lfunhardy(self._L, t, precision=self.prec))
 
     def derivative(self, s, D=1):
@@ -603,8 +619,8 @@ class LFunction(SageObject):
             sage: L.derivative(2)
             -0.937548254315844
         """
-        s = self.__CC(s)
-        R = self.__CC
+        s = self._CCin(s)
+        R = self._CC
         return R(pari.lfun(self._L, s, D, precision=self.prec))
 
     def taylor_series(self, s, k=6, var='z'):
@@ -649,12 +665,9 @@ class LFunction(SageObject):
             sage: L = EllipticCurve("24a1").modular_form().lseries()
             sage: L.taylor_series(-1, 3)
             0.000000000000000 - 0.702565506265199*z + 0.638929001045535*z^2 + O(z^3)
-
         """
-        A = PowerSeriesRing(QQ, var)
-        z = A.gen()
-        pt = s + z.O(k)
-        B = PowerSeriesRing(self.__CC, var)
+        pt = pari.Ser([s, 1], d=k)  # s + x + O(x^k)
+        B = PowerSeriesRing(self._CC, var)
         return B(pari.lfun(self._L, pt, precision=self.prec))
 
     def zeros(self, maxi):
@@ -669,7 +682,7 @@ class LFunction(SageObject):
             sage: L.zeros(20)
             [14.1347251417347]
         """
-        R = self.__CC
+        R = self._CC
         return [R(z) for z in pari.lfunzeros(self._L, maxi)]
 
     def _clear_value_cache(self):
@@ -710,7 +723,7 @@ class LFunction(SageObject):
             sage: L(1+I)
             -1.3085436607849493358323930438 + 0.81298000036784359634835412129*I
         """
-        s = self.__CC(s)
+        s = self._CC(s)
         try:
             return self.__values[s]
         except AttributeError:
@@ -718,7 +731,7 @@ class LFunction(SageObject):
         except KeyError:
             pass
         try:
-            value = self.__CC(pari.lfun(self._L, s, precision=self.prec))
+            value = self._CC(pari.lfun(self._L, s, precision=self.prec))
         except NameError:
             raise ArithmeticError('pole here')
         else:
@@ -754,10 +767,10 @@ class LFunction(SageObject):
         EXAMPLES::
 
             sage: from sage.lfunctions.pari import lfun_generic, LFunction
-            sage: lf = lfun_generic(conductor=1, gammaV=[0], weight=1, eps=1, poles=[1], residues=[1], init=pari('k->vector(k,n,1)'))
+            sage: lf = lfun_generic(conductor=1, gammaV=[0], weight=1, eps=1, poles=[1], residues=[1], v=pari('k->vector(k,n,1)'))
             sage: L = LFunction(lf)
             sage: L.check_functional_equation()
-            -61
+            4.33680868994202e-19
 
         If we choose the sign in functional equation for the
         `\zeta` function incorrectly, the functional equation
@@ -767,6 +780,6 @@ class LFunction(SageObject):
             sage: lf.init_coeffs([1]*2000)
             sage: L = LFunction(lf)
             sage: L.check_functional_equation()
-            4
+            16.0000000000000
         """
-        return pari.lfuncheckfeq(self._L)
+        return self._RR(2) ** pari.lfuncheckfeq(self._L)

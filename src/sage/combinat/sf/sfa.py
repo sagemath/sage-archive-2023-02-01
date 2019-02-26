@@ -1566,7 +1566,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
     _print_style = 'lex'
 
     # Todo: share this with ncsf and over algebras with basis indexed by word-like elements
-    def __getitem__(self, c, *rest):
+    def __getitem__(self, c):
         r"""
         This method implements the abuses of notations ``p[2,1]``,
         ``p[[2,1]]``, ``p[Partition([2,1])]``.
@@ -1591,14 +1591,11 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             s[2, 1]
         """
         C = self.basis().keys()
-        if isinstance(c, C.element_class):
-            if rest:
-                raise ValueError("invalid number of arguments")
-        else:
-            if rest or isinstance(c, (int, Integer)):
-                c = C([c] + list(rest))
+        if not isinstance(c, C.element_class):
+            if isinstance(c, (int, Integer)):
+                c = C([c])
             else:
-                c = C(list(c))
+                c = C(c)
         return self.monomial(c)
 
     def _change_by_proportionality(self, x, function):

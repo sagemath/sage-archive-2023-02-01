@@ -6953,32 +6953,48 @@ class Polyhedron_base(Element):
                     raise ValueError('The base ring needs to be extended; try with "extend=True"')
                 M = matrix(AA, M)
                 A = M.gram_schmidt(orthonormal=orthonormal)[0]
+            if as_polyhedron:
+                result['polyhedron'] = Polyhedron(
+                    [A*vector(A.base_ring(), v) for v in Q.vertices()],
+                    base_ring=A.base_ring())
             if as_affine_map:
-                return linear_transformation(A, side='right'), -A*vector(A.base_ring(), self.vertices()[0])
-            return Polyhedron([A*vector(A.base_ring(), v) for v in Q.vertices()], base_ring=A.base_ring())
+                result['linear_transformation'] = linear_transformation(A, side='right')
+                result['shift'] = -A*vector(A.base_ring(), self.vertices()[0])
 
-        # translate one vertex to the origin
-        v0 = self.vertices()[0].vector()
-        gens = []
-        for v in self.vertices()[1:]:
-            gens.append(v.vector() - v0)
-        for r in self.rays():
-            gens.append(r.vector())
-        for l in self.lines():
-            gens.append(l.vector())
+        else:
+            # translate one vertex to the origin
+            v0 = self.vertices()[0].vector()
+            gens = []
+            for v in self.vertices()[1:]:
+                gens.append(v.vector() - v0)
+            for r in self.rays():
+                gens.append(r.vector())
+            for l in self.lines():
+                gens.append(l.vector())
 
-        # Pick subset of coordinates to coordinatize the affine span
-        pivots = matrix(gens).pivots()
+            # Pick subset of coordinates to coordinatize the affine span
+            pivots = matrix(gens).pivots()
 
-        def pivot(indexed):
-            return [indexed[i] for i in pivots]
+            def pivot(indexed):
+                return [indexed[i] for i in pivots]
 
-        vertices = [pivot(_) for _ in self.vertices()]
-        rays = [pivot(_) for _ in self.rays()]
-        lines = [pivot(_) for _ in self.lines()]
-        if as_affine_map:
-            raise NotImplementedError('"as_affine_map=True" only works with "orthogonal=True" and "orthonormal=True"')
-        return Polyhedron(vertices=vertices, rays=rays, lines=lines, base_ring=self.base_ring())
+            vertices = [pivot(_) for _ in self.vertices()]
+            rays = [pivot(_) for _ in self.rays()]
+            lines = [pivot(_) for _ in self.lines()]
+            if as_affine_map:
+                raise NotImplementedError('"as_affine_map=True" only works with "orthogonal=True" and "orthonormal=True"')
+
+            result['polyhedron'] = Polyhedron(
+                vertices=vertices, rays=rays, lines=lines,
+                base_ring=self.base_ring())
+
+        # assemble result
+        if return_all_data or (as_polyhedron and as_affine_map):
+            return result
+        elif as_affine_map:
+            return result['linear_transformation'], result['shift']
+        else:
+            return result['polyhedron']
 
     def _polymake_init_(self):
         """

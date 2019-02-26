@@ -74,12 +74,13 @@ def sage_makedirs(dir):
         sage: sage_makedirs(DOT_SAGE) # no output
 
     The following fails because we are trying to create a directory in
-    place of an ordinary file (the python executable)::
+    place of an ordinary file::
 
-        sage: sage_makedirs(sys.executable)
+        sage: filename = tmp_filename()
+        sage: sage_makedirs(filename)
         Traceback (most recent call last):
         ...
-        OSError: ...
+        OSError: [Errno ...] File exists: ...
     """
     try:
         os.makedirs(dir)

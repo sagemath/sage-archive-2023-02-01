@@ -6603,9 +6603,9 @@ class Polyhedron_base(Element):
           set, then either a polyhedron or the affine transformation
           is returned. The affine transformation
           sends the embedded polytope to a fulldimensional one.
-          It is given as a pair ``(A, b)``, where A is a linear transformation
-          and ``b`` is a vector, and the affine transformation sends ``v`` to
-          ``A(v)+b``.
+          It is given as a pair `(A, b)`, where A is a linear transformation
+          and `b` is a vector, and the affine transformation sends `v` to
+          `A(v)+b`.
 
           If both ``as_polyhedron`` and ``as_affine_map`` are set, then
           both are returned, encapsulated in a dictionary.
@@ -6624,7 +6624,7 @@ class Polyhedron_base(Element):
 
         - ``return_all_data`` (boolean, default ``False``)
 
-          If set, then ``as_polyhedron`` and ``as_affine_map` will set
+          If set, then ``as_polyhedron`` and ``as_affine_map`` will set
           (possibly overridden) and additional (internal) data concerning
           the transformation is returned. Everything is encapsulated
           in a dictionary in this case.

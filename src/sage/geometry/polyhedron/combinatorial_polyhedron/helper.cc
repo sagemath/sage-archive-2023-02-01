@@ -70,8 +70,7 @@ size_t get_next_level(\
     // newfaces2 will point at those of exactly one dimension less
     // which are not contained in any of the faces in `forbidden`
     // returns the number of those faces
-    const size_t constlenfaces = lenfaces;
-    int ommitfacearray[constlenfaces - 1] = { };
+    int *ommitfacearray = (int *) calloc(lenfaces, sizeof(int));
     // this array has an entry for each entry in nextfaces
     // iff ommitfacearray[i], then we want to ommit the corresponding face
     // newfaces2 will then just contain pointers to all other faces
@@ -126,6 +125,7 @@ size_t get_next_level(\
         nextfaces2[newfacescounter] = nextfaces[j];
         newfacescounter++;
     }
+    free(ommitfacearray);
     return newfacescounter;
 }
 

@@ -8228,7 +8228,7 @@ class Polyhedron_base(Element):
         else:
             raise TypeError("the measure should be `ambient`, `induced`, `induced_rational`, or `induced_lattice`")
 
-    def integrate(self, polynomial, **kwds):
+    def integrate(self, polynomial, measure='ambient', **kwds):
         r"""
         Return the integral of a polynomial over a polytope.
 
@@ -8308,12 +8308,67 @@ class Polyhedron_base(Element):
         """
         if self.base_ring() == RDF:
             raise TypeError("LattE integrale cannot be applied over inexact rings")
-        elif not self.is_full_dimensional():
-            raise NotImplementedError("the polytope must be full-dimensional")
-        else:
+
+        if polynomial == 0 or polynomial == '[]':
+            return self.base_ring().zero()
+
+        if not self.is_compact():
+            raise NotImplementedError(
+                'integration over non-compact polyhedra not allowed')
+
+        if measure == 'ambient':
+            if not self.is_full_dimensional():
+                return self.base_ring().zero()
+
             from sage.interfaces.latte import integrate
             return integrate(self.cdd_Hrepresentation(), polynomial,
                              cdd=True, **kwds)
+
+        elif measure == 'induced' or measure == 'induced_nonnormalized':
+            # if polyhedron is actually full-dimensional,
+            # return with ambient measure
+            if self.is_full_dimensional():
+                return self.integrate(polynomial, measure='ambient', **kwds)
+
+            if isinstance(polynomial, six.string_types):
+                raise NotImplementedError(
+                    'LattE description strings for polynomials not allowed '
+                    'when using measure="induced"')
+
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
+            # use an orthogonal transformation
+            affine_hull = self.affine_hull(orthogonal=True, return_all_data=True)
+            polyhedron = affine_hull['polyhedron']
+            L = affine_hull['linear_transformation']
+            v0 = affine_hull['polyhedron_base']
+            vi = [v.vector()
+                  for v in affine_hull['polyhedron_base_vertices']]
+
+            # columns of W are equal to the vertices of affine_hull['polyhedron']
+            # in an order compatible with the vectors vi
+            W = matrix([list(L(v)) for v in vi]).transpose()
+
+            # transform the polynomial
+            t = vector(PolynomialRing(polynomial.base_ring(), 't', len(vi)).gens())
+            beta = W.inverse() * t
+            hom_images = v0 + sum(b * v  for b, v in zip(beta, vi))
+            hom = polynomial.parent().hom(list(hom_images))
+            polynomial_in_affine_hull = hom(polynomial)
+
+            from sage.interfaces.latte import integrate
+            I = integrate(polyhedron.cdd_Hrepresentation(),
+                          polynomial_in_affine_hull,
+                          cdd=True, **kwds)
+            if measure == 'induced_nonnormalized':
+                return I
+            else:
+                A = L.matrix()
+                Adet = (A.transpose() * A).det()
+                return I / sqrt(Adet)
+
+        else:
+            raise ValueError('unknown measure "{}"'.format(measure))
 
     def contains(self, point):
         """

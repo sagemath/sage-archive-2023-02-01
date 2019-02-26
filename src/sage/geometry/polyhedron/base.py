@@ -6571,7 +6571,9 @@ class Polyhedron_base(Element):
         else:
             return self.face_lattice().is_isomorphic(other.face_lattice())
 
-    def affine_hull(self, as_affine_map=False, orthogonal=False, orthonormal=False, extend=False):
+    def affine_hull(self, as_polyhedron=None, as_affine_map=False,
+                    orthogonal=False, orthonormal=False, extend=False,
+                    return_all_data=False):
         """
         Return the affine hull.
 
@@ -6586,30 +6588,60 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``as_affine_map`` (boolean, default = False) -- If ``False``, return
-          a polyhedron. If ``True``, return the affine transformation,
-          that sends the embedded polytope to a fulldimensional one.
+        - ``as_polyhedron`` (boolean or the default ``None``) and
+          ``as_affine_map`` (boolean, default ``False``) -- control the output
+
+          The default ``as_polyhedron=None`` translates to
+          ``as_polyhedron=not as_affine_map``,
+          therefore to ``as_polyhedron=True`` if nothing is specified.
+
+          If exactly one of either ``as_polyhedron`` or ``as_affine_map`` is
+          set, then either a polyhedron or the affine transformation
+          is returned. The affine transformation
+          sends the embedded polytope to a fulldimensional one.
           It is given as a pair ``(A, b)``, where A is a linear transformation
           and ``b`` is a vector, and the affine transformation sends ``v`` to
           ``A(v)+b``.
 
-        - ``orthogonal`` (boolean, default = False) -- if ``True``,
+          If both ``as_polyhedron`` and ``as_affine_map`` are set, then
+          both are returned, encapsulated in a dictionary.
+
+        - ``orthogonal`` (boolean, default ``False``) -- if ``True``,
           provide an orthogonal transformation.
 
-        - ``orthonormal`` (boolean, default = False) -- if ``True``,
+        - ``orthonormal`` (boolean, default ``False``) -- if ``True``,
           provide an orthonormal transformation. If the base ring does not
           provide the neccessary square roots, the extend parameter
           needs to be set to ``True``.
 
-        - ``extend`` (boolean, default = False) -- if ``True``,
+        - ``extend`` (boolean, default ``False``) -- if ``True``,
           allow base ring to be extended if neccessary. This becomes
           relevant when requiering an orthonormal transformation.
+
+        - ``return_all_data`` (boolean, default ``False``)
+
+          If set, then ``as_polyhedron`` and ``as_affine_map` will set
+          (possibly overridden) and additional (internal) data concerning
+          the transformation is returned. Everything is encapsulated
+          in a dictionary in this case.
 
         OUTPUT:
 
         A full-dimensional polyhedron or a linear transformation,
-        depending on the parameter ``as_affine_map``.
+        depending on the parameters ``as_polyhedron`` and ``as_affine_map``,
+        or a dictionary containing all data (parameter ``return_all_data``).
 
+        In case the output is a dictionary, the following entries might
+        be included:
+
+        - ``polyhedron`` -- the affine hull of the original polyhedron
+
+        - ``linear_transformation`` and ``shift`` -- the affine map
+
+        - ``polyhedron_base`` and ``polyhedron_base_vertices`` -- the points
+          and vertices used in the transformation. The original polyhedron
+          equals the polyhedron created by the ``polyhedron_base_vertices``
+          and then shifted by ``polyhedron_base``.
 
         .. TODO:
 
@@ -6841,24 +6873,71 @@ class Polyhedron_base(Element):
 
             sage: Polyhedron([(2,3,4)]).affine_hull()
             A 0-dimensional polyhedron in ZZ^0 defined as the convex hull of 1 vertex
+
+        Return polyhedron and affine map::
+
+            sage: S = polytopes.simplex(2)
+            sage: S.affine_hull(orthogonal=True,
+            ....:               as_polyhedron=True, as_affine_map=True)
+            {'linear_transformation': Vector space morphism represented by the matrix:
+             [   0    1]
+             [   1 -1/2]
+             [  -1 -1/2]
+             Domain: Vector space of dimension 3 over Rational Field
+             Codomain: Vector space of dimension 2 over Rational Field,
+             'polyhedron': A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
+             'shift': (1, 1/2)}
+
+        Return additional data::
+
+            sage: S.affine_hull(orthogonal=True, return_all_data=True)
+            {'linear_transformation': Vector space morphism represented by the matrix:
+             [   0    1]
+             [   1 -1/2]
+             [  -1 -1/2]
+             Domain: Vector space of dimension 3 over Rational Field
+             Codomain: Vector space of dimension 2 over Rational Field,
+             'polyhedron': A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
+             'polyhedron_base': (0, 0, 1),
+             'polyhedron_base_vertices': [A vertex at (0, 1, -1),
+              A vertex at (1, 0, -1)],
+             'shift': (1, 1/2)}
         """
+        if as_polyhedron is None:
+            as_polyhedron = not as_affine_map
+        if not as_affine_map and not as_polyhedron:
+            raise ValueError('combining "as_affine_map=False" and '
+                             '"as_polyhedron=False" not allowed')
+        if return_all_data:
+            as_polyhedron = True
+            as_affine_map = True
+
+        result = {}
+
         # handle trivial full-dimensional case
         if self.ambient_dim() == self.dim():
-            if as_affine_map:
-                return linear_transformation(matrix(self.base_ring(), self.dim(), self.dim(), self.base_ring().one())), self.ambient_space().zero()
-            return self
+            result['polyhedron'] = self
+            if as_affine_map or return_all_data:
+                result['linear_transformation'] = linear_transformation(matrix(self.base_ring(), self.dim(), self.dim(), self.base_ring().one()))
+                result['shift'] = self.ambient_space().zero()
 
-        if orthogonal or orthonormal:
+        elif orthogonal or orthonormal:
             # see TODO
             if not self.is_compact():
                 raise NotImplementedError('"orthogonal=True" and "orthonormal=True" work only for compact polyhedra')
             # translate 0th vertex to the origin
-            Q = self.translation(-vector(self.vertices()[0]))
-            v = next((_ for _ in Q.vertices() if _.vector() == Q.ambient_space().zero()), None)
+            v0 = vector(self.vertices()[0])
+            Q = self.translation(-v0)
+            q0 = next((_ for _ in Q.vertices() if _.vector() == Q.ambient_space().zero()), None)
             # finding the zero in Q; checking that Q actually has a vertex zero
-            assert v.vector() == Q.ambient_space().zero()
+            assert q0.vector() == Q.ambient_space().zero()
+            q0_neighbors = list(itertools.islice(q0.neighbors(), self.dim()))
             # choose as an affine basis the neighbors of the origin vertex in Q
-            M = matrix(self.base_ring(), self.dim(), self.ambient_dim(), [list(w) for w in itertools.islice(v.neighbors(), self.dim())])
+            M = matrix(self.base_ring(), self.dim(), self.ambient_dim(),
+                       [list(w) for w in q0_neighbors])
+            if return_all_data:
+                result['polyhedron_base'] = v0
+                result['polyhedron_base_vertices'] = q0_neighbors
             # Switch base_ring to AA if neccessary,
             # since gram_schmidt needs to be able to take square roots.
             # Pick orthonormal basis and transform all vertices accordingly

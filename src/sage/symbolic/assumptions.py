@@ -546,15 +546,20 @@ def assume(*args):
         True
         sage: forget()
 
+    Ensure that an ``AttributeError`` is raised if we are given junk::
+
+        sage: assume(3)
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'sage.rings.integer.Integer' object has no
+        attribute 'assume'
+
     """
     for x in preprocess_assumptions(args):
         if isinstance(x, (tuple, list)):
             assume(*x)
         else:
-            try:
-                x.assume()
-            except KeyError:
-                raise TypeError("assume not defined for objects of type '%s'"%type(x))
+            x.assume()
 
 
 def forget(*args):

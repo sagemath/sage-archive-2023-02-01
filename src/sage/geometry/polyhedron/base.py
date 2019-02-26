@@ -8245,7 +8245,7 @@ class Polyhedron_base(Element):
           * ``induced``: Lebesgue measure of the affine hull
           * ``induced_nonnormalized``: Lebesgue measure of the affine hull
             without the normalization by `\sqrt{\det(A^\top A)}` (with
-            `A` being the affine transformation map).
+            `A` being the affine transformation map; see :meth:`affine_hull`).
 
         - ``**kwds`` -- additional keyword arguments that are passed to the engine.
 

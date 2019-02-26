@@ -399,7 +399,30 @@ def assume(*args):
 
     INPUT:
 
-    -  ``*args`` -- assumptions
+    - ``*args`` -- a variable-length sequence of assumptions, each
+      consisting of:
+
+      - any number of symbolic inequalities, like ``0 < x, x < 1``
+
+      - a subsequence of variable names, followed by some property that
+        should be assumed for those variables; for example, ``x, y, z,
+        'integer'`` would assume that each of ``x``, ``y``, and ``z``
+        are integer variables, and ``x, 'odd'`` would assume that ``x``
+        is odd (as opposed to even).
+
+      The two types can be combined, but a symbolic inequality cannot
+      appear in the middle of a list of variables.
+
+    OUTPUT:
+
+    If everything goes as planned, there is no output.
+
+    If you assume something that isn't one of the two forms above, then
+    an ``AttributeError`` is raised as we try to call its ``assume``
+    method.
+
+    If you make inconsistent assumptions (for example, that ``x`` is
+    both even and odd), then a ``ValueError`` is raised.
 
     EXAMPLES:
 
@@ -553,6 +576,18 @@ def assume(*args):
         ...
         AttributeError: 'sage.rings.integer.Integer' object has no
         attribute 'assume'
+
+    Ensure that we can combine the two types of assumptions, as documented::
+
+        sage: x,y = SR.var('x,y')
+        sage: assume(x > 0, x, y, 'integer')
+        sage: assumptions()
+        [x > 0, x is integer, y is integer]
+        sage: forget()
+        sage: assume(x, y, 'integer', x > 0)
+        sage: assumptions()
+        [x is integer, y is integer, x > 0]
+        sage: forget()
 
     """
     for x in preprocess_assumptions(args):

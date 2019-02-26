@@ -81,7 +81,9 @@ def Sphere(n):
 
     OUTPUT:
 
-    - A KenzoSimplicialSetEXAMPLES::
+    - A :class:`KenzoSimplicialSet`
+
+    EXAMPLES::
 
         sage: from sage.interfaces.kenzo import Sphere # optional - kenzo
         sage: s2 = Sphere(2)                           # optional - kenzo
@@ -135,15 +137,15 @@ def EilenbergMacLaneSpace(G, n):
 
     INPUT:
 
-    - ``G`` -- group. Currently only ``ZZ`` and the group of two elements are
-    supported.
+    - ``G`` -- group. Currently only ``ZZ`` and the additive group of two
+      elements are supported.
 
     - ``n`` -- the dimension in which the homotopy is not trivial
 
 
     OUTPUT:
 
-    - A KenzoSimplicialGroup
+    - A :class:`KenzoSimplicialGroup`
 
     EXAMPLES::
 
@@ -158,7 +160,7 @@ def EilenbergMacLaneSpace(G, n):
     if G is ZZ:
         kenzospace = k_z(n)
         return KenzoSimplicialGroup(kenzospace)
-    elif G == AdditiveAbelianGroup([2]):
+    elif G in CommutativeAdditiveGroups() and G.cardinality() == 2:
         kenzospace = k_z2(n)
         return KenzoSimplicialGroup(kenzospace)
     else:
@@ -171,7 +173,7 @@ class KenzoObject(SageObject):
     INPUT:
 
         - ``kenzo_object`` -- a wrapper around a kenzo object
-        (which is an ecl object).
+          (which is an ecl object).
     """
 
     def __init__(self, kenzo_object):
@@ -255,7 +257,7 @@ class KenzoChainComplex(KenzoObject):
 
         OUTPUT:
 
-        - A KenzoChainComplex
+        - A :class:`KenzoChainComplex`
 
         sage: from sage.interfaces.kenzo import Sphere    # optional - kenzo
         sage: s2 = Sphere(2)                              # optional - kenzo
@@ -281,11 +283,11 @@ class KenzoSimplicialSet(KenzoChainComplex):
         INPUT:
 
         - ``n`` -- (default: 1) the number of times to iterate the loop space
-        construction
+          construction
 
         OUTPUT:
 
-        - A KenzoSimplicialGroup
+        - A :class:`KenzoSimplicialGroup`
 
         EXAMPLES::
 
@@ -310,7 +312,7 @@ class KenzoSimplicialSet(KenzoChainComplex):
 
         OUTPUT:
 
-        - A KenzoSimplicialSet
+        - A :class:`KenzoSimplicialSet`
 
         EXAMPLES::
 
@@ -332,7 +334,7 @@ class KenzoSimplicialSet(KenzoChainComplex):
 
         OUTPUT:
 
-        - A KenzoSimplicialSet
+        - A :class:`KenzoSimplicialSet`
 
         EXAMPLES::
 
@@ -358,17 +360,17 @@ class KenzoSimplicialGroup(KenzoSimplicialSet):
 
         OUTPUT:
 
-        - A KenzoSimplicialGroup
+        - A :class:`KenzoSimplicialGroup`
 
         EXAMPLES::
-                                                                    # optional - kenzo
+
             sage: from sage.interfaces.kenzo import MooreSpace      # optional - kenzo
             sage: m2 = MooreSpace(2,4)                              # optional - kenzo
             sage: l2 = m2.loop_space()                              # optional - kenzo
             sage: c = l2.classifying_space()                        # optional - kenzo
             sage: type(c)                                           # optional - kenzo
             <class 'sage.interfaces.kenzo.KenzoSimplicialGroup'>
-            sage: [c.homology(i) for i in range(8)]                  # optional - kenzo
+            sage: [c.homology(i) for i in range(8)]                 # optional - kenzo
             [Z, 0, 0, 0, C2, 0, 0, 0]
         """
         return KenzoSimplicialGroup(classifying_space(self._kenzo))

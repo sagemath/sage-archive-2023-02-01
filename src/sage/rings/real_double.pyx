@@ -522,12 +522,16 @@ cdef class RealDoubleField_class(Field):
         """
         Return the hash value of ``self``.
 
+        This class is intended for use as a singleton so any instance
+        of it should be equivalent from a hashing perspective.
+
         TESTS::
 
-            sage: hash(RDF) % 2^32 == hash(str(RDF)) % 2^32
+            sage: from sage.rings.real_double import RealDoubleField_class
+            sage: hash(RDF) == hash(RealDoubleField_class())
             True
         """
-        return 1157042230 #return hash(str(self))
+        return 1157042230
 
     def pi(self):
         r"""

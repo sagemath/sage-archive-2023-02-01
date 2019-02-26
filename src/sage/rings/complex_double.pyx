@@ -125,6 +125,7 @@ def is_ComplexDoubleField(x):
     """
     return isinstance(x, ComplexDoubleField_class)
 
+
 cdef class ComplexDoubleField_class(sage.rings.ring.Field):
     """
     An approximation to the field of complex numbers using double
@@ -202,13 +203,16 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         """
         Return the hash for ``self``.
 
+        This class is intended for use as a singleton so any instance
+        of it should be equivalent from a hashing perspective.
+
         TESTS::
 
-            sage: hash(CDF) % 2^32 == hash(str(CDF)) % 2^32
+            sage: from sage.rings.complex_double import ComplexDoubleField_class
+            sage: hash(CDF) == hash(ComplexDoubleField_class())
             True
         """
         return 561162115
-        #return hash(self.str())
 
     def characteristic(self):
         """

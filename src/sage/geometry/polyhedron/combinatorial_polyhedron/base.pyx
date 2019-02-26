@@ -910,9 +910,9 @@ cdef class FaceIterator(SageObject):
     Construct faces by the dual or not::
 
         sage: it = C.face_iter(dual=False)
-        sage: it.next()
+        sage: next(it)
         2
-        sage: it.next()
+        sage: next(it)
         2
         sage: it.ignore_subfaces()
         sage: it.ignore_supfaces()
@@ -920,9 +920,9 @@ cdef class FaceIterator(SageObject):
         ..
         ValueError: only possible when in dual mode
         sage: it = C.face_iter(dual=True)
-        sage: it.next()
+        sage: next(it)
         0
-        sage: it.next()
+        sage: next(it)
         0
         sage: it.ignore_supfaces()
         sage: it.ignore_subfaces()
@@ -2139,11 +2139,38 @@ cdef class ListOfAllFaces(SageObject):
             sage: all(facet_repr_via_all_faces_from_iterator(it, C, False) ==
             ....:     it.facet_repr(False) for _ in it)
             True
+
+            sage: P = Polyhedron(vertices=[[0,1]])
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.face_lattice_facet_repr(0)
+            (An equation (0, 1) x - 1 == 0, An equation (1, 0) x + 0 == 0)
+            sage: C.face_lattice_facet_repr(1)
+            (An equation (0, 1) x - 1 == 0, An equation (1, 0) x + 0 == 0)
+            sage: C.face_lattice_vertex_repr(0)
+            ()
+            sage: C.face_lattice_vertex_repr(1)
+            (A vertex at (0, 1),)
+
+            sage: P = Polyhedron()
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.face_lattice_facet_repr(0)
+            (An equation -1 == 0,)
+
+            sage: P = Polyhedron(lines=[[0,1]])
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.face_lattice_facet_repr(0)
+            (An equation (1, 0) x + 0 == 0,)
+            sage: C.face_lattice_facet_repr(1)
+            (An equation (1, 0) x + 0 == 0,)
         """
         cdef size_t length
         if not self.dual:
             length = self.coatom_repr(dimension, index)
-            if names and self._H:
+            if unlikely((self.coatoms.nr_faces == 0 or self.dimension == 0)
+                        and names and self._H is not None):
+                # in this case the facet does not correspond to a Hrep
+                return self._equalities + self._H
+            elif names and self._H:
                 return tuple(self._H[self.coatom_repr_face[i]]
                              for i in range(length)) + self._equalities
             else:
@@ -2180,6 +2207,8 @@ cdef class ListOfAllFaces(SageObject):
             raise ValueError("no face of dimension %s"%dimension)
         if unlikely(index >= self.f_vector[dimension + 1]):
             raise IndexError("no %s-th face of dimension %s"%(index, dimension))
+        if unlikely(self.coatoms.nr_faces == 0):
+            return 0
         cdef size_t nr_coatoms = self.f_vector[self.dimension]
         cdef uint64_t **coatoms = self.faces[self.dimension]
         cdef size_t face_length = self.face_length

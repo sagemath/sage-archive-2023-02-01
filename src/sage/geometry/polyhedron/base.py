@@ -5048,9 +5048,13 @@ class Polyhedron_base(Element):
                 from sage.rings.infinity import infinity
                 return infinity
             # use an orthogonal transformation, which preserves volume up to a factor provided by the transformation matrix
-            A, b = self.affine_hull(orthogonal=True, as_affine_map=True)
-            Adet = (A.matrix().transpose() * A.matrix()).det()
-            return self.affine_hull(orthogonal=True).volume(measure='ambient', engine=engine, **kwds) / sqrt(Adet)
+            affine_hull = self.affine_hull(
+                orthogonal=True, as_polyhedron=True, as_affine_map=True)
+            polyhedron = affine_hull['polyhedron']
+            A = affine_hull['linear_transformation'].matrix()
+            b = affine_hull['shift']
+            Adet = (A.transpose() * A).det()
+            return polyhedron.volume(measure='ambient', engine=engine, **kwds) / sqrt(Adet)
         elif measure == 'induced_rational':
             if self.dim() < self.ambient_dim() and engine != 'latte':
                 raise TypeError("The induced rational measure can only be computed with the engine set to `auto` or `latte`")

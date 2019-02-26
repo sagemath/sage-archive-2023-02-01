@@ -414,6 +414,8 @@ def assume(*args):
 
     This will be assumed in the current Sage session until forgotten::
 
+        sage: bool(sqrt(x^2) == x)
+        True
         sage: forget()
         sage: bool(sqrt(x^2) == x)
         False
@@ -452,9 +454,12 @@ def assume(*args):
         sage: d = P*(1+r2)^n
         sage: solve(c==d,r2)
         [r2 == e^r - 1]
+        sage: forget()
 
     Simplifying certain well-known identities works as well::
 
+        sage: n = SR.var('n')
+        sage: assume(n, 'integer')
         sage: sin(n*pi)
         0
         sage: forget()
@@ -524,23 +529,24 @@ def assume(*args):
 
     Check that positive integers can be created (:trac:`20132`)
 
-        sage: forget()
         sage: x = SR.var('x', domain='positive')
         sage: assume(x, 'integer')
         sage: x.is_positive() and x.is_integer()
         True
-
         sage: forget()
+
         sage: x = SR.var('x', domain='integer')
         sage: assume(x > 0)
         sage: x.is_positive() and x.is_integer()
         True
-
         sage: forget()
+
         sage: assume(x, "integer")
         sage: assume(x > 0)
         sage: x.is_positive() and x.is_integer()
         True
+        sage: forget()
+
     """
     for x in preprocess_assumptions(args):
         if isinstance(x, (tuple, list)):

@@ -8270,9 +8270,28 @@ class Polyhedron_base(Element):
             sage: x, y = polygens(QQ, 'x, y')
             sage: P = Polyhedron(vertices=[[0,0],[1,1]])
             sage: P.integrate(x*y)    # optional - latte_int
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: the polytope must be full-dimensional
+            0
+            sage: P.integrate(x*y, measure='induced')    # optional - latte_int  # not tested (see :trac:`27364`)
+
+        Another non full-dimensional polytope integration::
+
+            sage: R.<x, y, z> = QQ[]
+            sage: P = polytopes.simplex(2)
+            sage: V = P.volume(measure='induced'); V
+            1/2*sqrt(3)
+            sage: P.integrate(R(1), measure='induced')
+            1/2*sqrt(3)
+            sage: bool(_ == V)
+            True
+
+        Computing the mass center::
+
+            sage: P.integrate(x, measure='induced') / V
+            1/3
+            sage: P.integrate(y, measure='induced') / V
+            1/3
+            sage: P.integrate(z, measure='induced') / V
+            1/3
 
         TESTS:
 
@@ -8305,6 +8324,15 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             TypeError: LattE integrale cannot be applied over inexact rings
+
+        Integration of zero-polynomial::
+
+            sage: R.<x, y, z> = QQ[]
+            sage: P = polytopes.simplex(2)
+            sage: P.integrate(R(0))
+            0
+            sage: P.integrate('[]')  # with LattE description string
+            0
         """
         if self.base_ring() == RDF:
             raise TypeError("LattE integrale cannot be applied over inexact rings")

@@ -225,21 +225,20 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.interfaces.all import singular as singular_default
 from sage.interfaces.singular import SingularElement
 
-order_dict= {"lp": pblp,
-             "dlex": pbdlex,
-             "dp_asc": pbdp_asc,
-             "dp": pbdp,
-             "block_dlex": pbblock_dlex,
-             "block_dp_asc": pbblock_dp_asc,
-             "block_dp": pbblock_dp,
-             }
+order_dict = {"lp": pblp,
+              "dlex": pbdlex,
+              "dp_asc": pbdp_asc,
+              "dp": pbdp,
+              "block_dlex": pbblock_dlex,
+              "block_dp_asc": pbblock_dp_asc,
+              "block_dp": pbblock_dp}
 
 
-inv_order_dict= {pblp: "lex",
-                 pbdlex: "deglex",
-                 pbdp_asc: "degneglex",
-                 pbdp: "degrevlex",
-                 }
+inv_order_dict = {pblp: "lex",
+                  pbdlex: "deglex",
+                  pbdp_asc: "degneglex",
+                  pbdp: "degrevlex"}
+
 
 order_mapping = {'lp': pblp,
                  'lex': pblp,
@@ -249,8 +248,7 @@ order_mapping = {'lp': pblp,
                  'dp_asc': pbdp_asc,
                  'degneglex': pbdp_asc,
                  'dp': pbdp,
-                 'degrevlex': pbdp,
-                 }
+                 'degrevlex': pbdp}
 
 
 lp = int(pblp)
@@ -261,6 +259,7 @@ block_dlex = int(pbblock_dlex)
 block_dp_asc = int(pbblock_dp_asc)
 
 rings = sage.misc.weak_dict.WeakValueDictionary()
+
 
 cdef class BooleanPolynomialRing(MPolynomialRing_base):
     """
@@ -349,7 +348,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
 
         .. NOTE::
 
-          See class documentation for parameters.
+            See class documentation for parameters.
         """
         cdef Py_ssize_t i, j, bstart, bsize
 
@@ -357,7 +356,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
             raise TypeError("You must specify the names of the variables.")
 
         if n is None:
-            if isinstance(names, tuple) or isinstance(names, list):
+            if isinstance(names, (tuple, list)):
                 n = len(names)
 
         try:
@@ -378,10 +377,6 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
             raise ValueError("Only order keys " +
                              ', '.join(order_mapping.keys()) +
                              " are supported.")
-
-        if pb_order_code in (pbdp, pbblock_dp):
-            from sage.misc.superseded import deprecation
-            deprecation(13849, "using 'degrevlex' in Boolean polynomial rings is deprecated. If needed, reverse the order of variables manually and use 'degneglex'")
 
         if order.is_block_order():
             if pb_order_code is pblp:
@@ -489,7 +484,6 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
         -  ``i`` - an integer or a boolean monomial in one
            variable
 
-
         EXAMPLES::
 
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
@@ -595,7 +589,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
         # it to be fast.
         if self._repr is None:
             gens = ", ".join(self._names)
-            self._repr = "Boolean PolynomialRing in %s"%(gens)
+            self._repr = "Boolean PolynomialRing in %s" % (gens)
         return self._repr
 
     # Coercion
@@ -668,9 +662,10 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
         """
         if self._base.has_coerce_map_from(S):
             return True
-        if isinstance(S,(MPolynomialRing_base,PolynomialRing_general,BooleanMonomialMonoid)):
+        if isinstance(S, (MPolynomialRing_base, PolynomialRing_general,
+                          BooleanMonomialMonoid)):
             try:
-                get_var_mapping(self,S)
+                get_var_mapping(self, S)
             except NameError:
                 return False
             return self._base.has_coerce_map_from(S.base())
@@ -805,8 +800,8 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
         if isinstance(other, BooleSet):
             other = new_BP_from_PBSet(other.ring(), (<BooleSet>other)._pbset)
 
-        if isinstance(other, int) or isinstance(other, Integer):
-            if (other %2) == 1:
+        if isinstance(other, (int, Integer)):
+            if other % 2:
                 return self._one_element
             else:
                 return self._zero_element
@@ -846,8 +841,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
                             new_monom *= var_mapping[i]
                         p += new_monom
                     return p
-        elif (isinstance(other, MPolynomial) or \
-                isinstance(other, Polynomial)) and \
+        elif isinstance(other, (MPolynomial, Polynomial)) and \
                 self.base_ring().has_coerce_map_from(other.base_ring()) and \
                 (other.parent().ngens() <= self._pbring.nVariables()):
                     try:
@@ -961,13 +955,12 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
                     new_monom *= var_mapping[i]
                 p += new_monom
             return p
-        elif (isinstance(other, MPolynomial) or \
-                isinstance(other, Polynomial)) and \
+        elif (isinstance(other, (MPolynomial, Polynomial))) and \
                 self.base_ring().has_coerce_map_from(other.base_ring()):
             try:
                 var_mapping = get_var_mapping(self, other)
             except NameError as msg:
-                raise TypeError("cannot convert polynomial %s to %s: %s"%(other, self, msg))
+                raise TypeError("cannot convert polynomial %s to %s: %s" % (other, self, msg))
             p = self._zero_element
             exponents = other.exponents()
             coefs = other.coefficients()
@@ -1007,8 +1000,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
             except Exception:
                 raise TypeError("cannot convert %s to BooleanPolynomial" % (type(other)))
 
-        i = i % 2
-        if i == 1:
+        if i % 2:
             return self._one_element
         else:
             return self._zero_element
@@ -1442,8 +1434,8 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
         #R = magma(self.cover_ring())
         #v = [z.name() for z in R.gens()]  # important to use this because it caches the generators
         #w = [f._repr_with_changed_varnames(v) for f in self.defining_ideal().gens()]
-        #return "quo<%s | %s>"%(R.name(), ",".join(w))
-        s = 'BooleanPolynomialRing(%s,%s)'%(self.ngens(), self.term_order().magma_str())
+        #return "quo<%s | %s>" % (R.name(), ",".join(w))
+        s = 'BooleanPolynomialRing(%s,%s)' % (self.ngens(), self.term_order().magma_str())
         return magma._with_names(s, self.variable_names())
 
     def interpolation_polynomial(self, zeros, ones):
@@ -1885,7 +1877,7 @@ class BooleanMonomialMonoid(UniqueRepresentation, Monoid_class):
 
         .. NOTE::
 
-          See class documentation for parameters.
+            See class documentation for parameters.
         """
         cdef BooleanMonomial m
         self._ring = polring
@@ -1938,7 +1930,7 @@ class BooleanMonomialMonoid(UniqueRepresentation, Monoid_class):
 
     def gen(self, Py_ssize_t i=0):
         """
-        Return the i-th generator of self.
+        Return the i-th generator of ``self``.
 
         INPUT:
 
@@ -4599,7 +4591,7 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         if isinstance(s, BooleSet):
             return new_BS_from_PBSet(pb_zeros(self._pbpoly, (<BooleSet>s)._pbset), self._parent)
-        elif isinstance(s, list) or isinstance(s, tuple) or isinstance(s, set):
+        elif isinstance(s, (list, tuple, set)):
             from sage.misc.misc_c import prod
             B = self.parent()
             n = B.ngens()
@@ -6555,14 +6547,14 @@ cdef class FGLMStrategy:
         elif isinstance(from_ring.ring, BooleanPolynomialRing):
             _from_ring = <BooleanPolynomialRing>from_ring.ring
         else:
-            raise TypeError("from_ring has wrong type %s"%(type(from_ring),))
+            raise TypeError("from_ring has wrong type %s" % (type(from_ring),))
 
         if isinstance(to_ring, BooleanPolynomialRing):
             _to_ring = <BooleanPolynomialRing>to_ring
         elif isinstance(to_ring.ring, BooleanPolynomialRing):
             _to_ring = <BooleanPolynomialRing>to_ring.ring
         else:
-            raise TypeError("to_ring has wrong type %s"%(type(to_ring),))
+            raise TypeError("to_ring has wrong type %s" % (type(to_ring),))
         cdef PBFGLMStrategy* strat = new PBFGLMStrategy(_from_ring._pbring, _to_ring._pbring, vec._vec)
         self._strat = unique_ptr[PBFGLMStrategy](strat)
         self._parent = to_ring

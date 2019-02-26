@@ -61,7 +61,7 @@ LOCAL_IDENTIFIER = '%s.%s' % (HOSTNAME, os.getpid())
 #################################################################
 
 
-def sage_makedirs(dir):
+def sage_makedirs(dirname):
     """
     Python version of ``mkdir -p``: try to create a directory, and also
     create all intermediate directories as necessary.  Succeed silently
@@ -83,9 +83,9 @@ def sage_makedirs(dir):
         OSError: [Errno ...] File exists: ...
     """
     try:
-        os.makedirs(dir)
+        os.makedirs(dirname)
     except OSError:
-        if not os.path.isdir(dir):
+        if not os.path.isdir(dirname):
             raise
 
 

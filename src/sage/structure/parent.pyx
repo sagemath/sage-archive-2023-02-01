@@ -1131,7 +1131,10 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: V.coerce(0)
             (0, 0, 0, 0, 0, 0, 0)
         """
-        mor = self._internal_coerce_map_from(parent(x))
+        cdef R = parent(x)
+        if R is self:
+            return x
+        mor = self._internal_coerce_map_from(R)
         if mor is None:
             if is_Integer(x) and not x:
                 try:

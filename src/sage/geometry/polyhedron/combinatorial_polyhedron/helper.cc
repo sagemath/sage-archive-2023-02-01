@@ -14,6 +14,7 @@
 
 #include <cstdint>
 #include <cstdio>
+using namespace std;
 
 
 // no intrinsics for now,
@@ -60,26 +61,26 @@ inline size_t CountFaceBits(uint64_t* A, size_t face_length) {
 }
 
 size_t get_next_level(\
-        uint64_t **faces, size_t lenfaces, uint64_t **nextfaces, \
+        uint64_t **faces, const size_t nr_faces, uint64_t **nextfaces, \
         uint64_t **nextfaces2, uint64_t **forbidden, \
         size_t nr_forbidden, size_t face_length){
-    // intersects the first ``lenfaces - 1`` faces of ``faces``
-    // with ``faces[lenfaces-1]``
+    // intersects the first ``nr_faces - 1`` faces of ``faces``
+    // with ``faces[nr_faces-1]``
     // determines which ones are exactly of one dimension less
     // by considering containment
     // newfaces2 will point at those of exactly one dimension less
     // which are not contained in any of the faces in ``forbidden``
     // returns the number of those faces
-    int *ommitfacearray = (int *) calloc(lenfaces, sizeof(int));
+    int *ommitfacearray = new int[nr_faces -1]();
     // this array has an entry for each entry in nextfaces
     // iff ommitfacearray[i], then we want to ommit the corresponding face
     // newfaces2 will then just contain pointers to all other faces
-    for (size_t j = 0; j < lenfaces - 1; j++){
-        intersection(faces[j], faces[lenfaces - 1], nextfaces[j], face_length);
+    for (size_t j = 0; j < nr_faces - 1; j++){
+        intersection(faces[j], faces[nr_faces - 1], nextfaces[j], face_length);
     }
     // we have create all possible intersection with the i_th-face,
     // but some of them might not be of exactly one dimension less
-    for (size_t j = 0; j < lenfaces-1; j++){
+    for (size_t j = 0; j < nr_faces-1; j++){
         for(size_t k = 0; k < j; k++){
             // testing if nextfaces[j] is contained in different nextface
             if(is_subset(nextfaces[j], nextfaces[k],face_length)){
@@ -92,7 +93,7 @@ size_t get_next_level(\
             continue;
         }
 
-        for(size_t k = j+1; k < lenfaces-1; k++){
+        for(size_t k = j+1; k < nr_faces-1; k++){
             // testing if nextfaces[j] is contained in a different nextface
             if(is_subset(nextfaces[j],nextfaces[k], face_length)){
             ommitfacearray[j] = 1;
@@ -117,7 +118,7 @@ size_t get_next_level(\
     }
 
     size_t newfacescounter = 0;  // length of newfaces2
-    for (size_t j = 0; j < lenfaces -1; j++){
+    for (size_t j = 0; j < nr_faces -1; j++){
         // let ``newfaces2`` point to the newfaces we want to consider
         if (ommitfacearray[j]) {
             continue;
@@ -125,7 +126,7 @@ size_t get_next_level(\
         nextfaces2[newfacescounter] = nextfaces[j];
         newfacescounter++;
     }
-    free(ommitfacearray);
+    delete[] ommitfacearray;
     return newfacescounter;
 }
 

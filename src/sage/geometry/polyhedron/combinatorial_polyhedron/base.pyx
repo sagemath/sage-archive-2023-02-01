@@ -52,7 +52,7 @@ cdef extern from "helper.cc":
     # ``face_length`` is the length of A, B and C in terms of uint64_t
 
     cdef size_t get_next_level(\
-        uint64_t **faces, size_t lenfaces, uint64_t **nextfaces,
+        uint64_t **faces, const size_t nr_faces, uint64_t **nextfaces,
         uint64_t **nextfaces2, uint64_t **forbidden,
         size_t nr_forbidden, size_t face_length)
     # intersects the first ``lenfaces - 1`` faces of ``faces``
@@ -770,6 +770,8 @@ cpdef int calculate_dimension(ListOfFaces faces) except -2:
         ....:     facets = get_facets_from_incidence_matrix(P.incidence_matrix())
         ....:     vertices = get_vertices_from_incidence_matrix(P.incidence_matrix())
         ....:     d1 = P.dimension()
+        ....:     if d1 == 0:
+        ....:         continue
         ....:     d2 = calculate_dimension(facets)
         ....:     d3 = calculate_dimension(vertices)
         ....:     if not d1 == d2 == d3:

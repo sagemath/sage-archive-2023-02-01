@@ -5931,7 +5931,7 @@ class Partitions(UniqueRepresentation, Parent):
             if lst.parent() is self:
                 return lst
         try:
-            lst = map(ZZ, lst)
+            lst = list(map(ZZ, lst))
         except TypeError:
             raise ValueError('%s is not an element of %s'%(repr(lst), self))
 

@@ -130,9 +130,10 @@ def MooreSpace(m, n):
 
 
 def EilenbergMacLaneSpace(G, n):
-    r"""Return the Eilenberg-MacLane space ``k(G, n)`` as a Kenzo simplicial group
+    r"""
+    Return the Eilenberg-MacLane space ``K(G, n)`` as a Kenzo simplicial group
 
-    The Eilenberg-MacLane space ``k(G, n)`` is the space whose has n'th homotopy
+    The Eilenberg-MacLane space ``K(G, n)`` is the space whose has n'th homotopy
     group isomorphic to ``G``, and the rest of the homotopy groups are trivial.
 
     INPUT:

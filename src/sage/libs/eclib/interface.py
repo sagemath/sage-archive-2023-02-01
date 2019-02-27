@@ -24,20 +24,20 @@ def get_precision():
 
     See also :meth:`set_precision`.
 
-    .. warning::
+    .. note::
 
-       The internal precision is binary.  This function multiplies the
-       binary precision by 0.3 (`=\log_2(10)` approximately) and
-       truncates.
+       The precision used in eclib is binary (bit precision).  Until
+       v20190226, it used bit precision internally but decimal
+       precision in the user interface.
 
     OUTPUT:
 
-    (int) The current decimal precision.
+    (int) The current binary precision.
 
     EXAMPLES::
 
         sage: mwrank_get_precision()
-        50
+        150
     """
     # don't want to load mwrank every time Sage starts up, so we do
     # the import here.
@@ -46,15 +46,15 @@ def get_precision():
 
 def set_precision(n):
     r"""
-    Set the global NTL real number precision.  This has a massive
+    Set the global NTL real number bit precision.  This has a massive
     effect on the speed of mwrank calculations.  The default (used if
-    this function is not called) is ``n=50``, but it might have to be
+    this function is not called) is ``n=150``, but it might have to be
     increased if a computation fails.  See also :meth:`get_precision`.
 
     INPUT:
 
     - ``n`` (long) -- real precision used for floating point
-      computations in the library, in decimal digits.
+      computations in the library, in bits.
 
     .. warning::
 
@@ -63,7 +63,7 @@ def set_precision(n):
 
     EXAMPLES::
 
-        sage: mwrank_set_precision(20)
+        sage: mwrank_set_precision(50)
     """
     # don't want to load mwrank every time Sage starts up, so we do
     # the import here.
@@ -599,7 +599,7 @@ class mwrank_EllipticCurve(SageObject):
 
             sage: E = mwrank_EllipticCurve([0, 0, 1, -1, 0])
             sage: E.regulator()
-            0.05111140823996884
+            0.051111408239969
         """
         self.saturate()
         if not self.certain():
@@ -1081,7 +1081,7 @@ class mwrank_MordellWeil(SageObject):
 
             sage: E = mwrank_EllipticCurve([0,0,1,-7,6])
             sage: E.regulator()
-            0.417143558758384
+            0.41714355875838
         """
         return self.__mw.regulator()
 
@@ -1169,7 +1169,7 @@ class mwrank_MordellWeil(SageObject):
 
         - ``unsatlist`` (list of ints) -- list of primes at which
           saturation could not be proved or achieved.  Increasing the
-          decimal precision should correct this, since it happens when
+          precision should correct this, since it happens when
           a linear combination of the points appears to be a multiple
           of `p` but cannot be divided by `p`.  (Note that ``eclib``
           uses floating point methods based on elliptic logarithms to
@@ -1368,17 +1368,6 @@ class mwrank_MordellWeil(SageObject):
             raise ValueError("The height limit must be < 21.4.")
 
         moduli_option = 0  # Use Stoll's sieving program... see strategies in ratpoints-1.4.c
-
-        ##            moduli_option -- int (default: 0); if > 0; a flag used to determine
-        ##                    the moduli that are used in sieving
-        ##                       1 -- first 10 odd primes; the first one you
-        ##                            would think of.
-        ##                       2 -- three composites; $2^6\cdot 3^4$, ... TODO
-        ##                             (from German mathematician J. Gebel;
-        ##                               personal conversation about SIMATH)
-        ##                       3 -- nine prime powers; $2^5, \ldots$;
-        ##                            like 1 but includes powers of small primes
-        ##                    TODO: Extract the meaning from mwprocs.cc; line 776 etc.
 
         verbose = bool(verbose)
         self.__mw.search(height_limit, moduli_option, verbose)

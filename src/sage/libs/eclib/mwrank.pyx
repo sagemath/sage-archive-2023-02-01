@@ -78,8 +78,8 @@ cdef object string_sigoff(char* s):
     sig_free(s)
     return t
 
-# set the default
-mwrank_set_precision(50)
+# set the default bit precision
+mwrank_set_precision(150)
 
 def get_precision():
     """
@@ -87,13 +87,13 @@ def get_precision():
 
     OUTPUT:
 
-    (int) The current precision in decimal digits.
+    (int) The current precision in bits.
 
     EXAMPLES::
 
         sage: from sage.libs.eclib.mwrank import get_precision
         sage: get_precision()
-        50
+        150
     """
     return mwrank_get_precision()
 
@@ -322,10 +322,12 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
         + B`, where `h(P)` is the naive height and `\hat{h}(P)` the
         canonical height.
 
-        .. TODO::
+        .. note::
 
-            Since eclib can compute this to arbitrary precision it would
-            make sense to return a Sage real.
+            Since eclib can compute this to arbitrary precision, we
+            could return a Sage real, but this is only a bound and in
+            the contexts in which it is used extra precision is
+            irrelevant.
 
         EXAMPLES::
 
@@ -349,17 +351,19 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
         + B`, where `h(P)` is the naive height and `\hat{h}(P)` the
         canonical height.
 
-        .. TODO::
+        .. note::
 
-            Since eclib can compute this to arbitrary precision it would
-            make sense to return a Sage real.
+            Since eclib can compute this to arbitrary precision, we
+            could return a Sage real, but this is only a bound and in
+            the contexts in which it is used extra precision is
+            irrelevant.
 
         EXAMPLES::
 
             sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: E = _Curvedata(1,2,3,4,5)
             sage: E.cps_bound()
-            0.11912451909250982
+            0.11912451909250964
 
         Note that this is a better bound than Silverman's in this case::
 
@@ -386,17 +390,19 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
         canonical height.  This is the minimum of the Silverman and
         Cremona_Prickett-Siksek height bounds.
 
-        .. TODO::
+        .. note::
 
-            Since eclib can compute this to arbitrary precision it would
-            make sense to return a Sage real.
+            Since eclib can compute this to arbitrary precision, we
+            could return a Sage real, but this is only a bound and in
+            the contexts in which it is used extra precision is
+            irrelevant.
 
         EXAMPLES::
 
             sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: E = _Curvedata(1,2,3,4,5)
             sage: E.height_constant()
-            0.11912451909250982
+            0.11912451909250964
         """
         return Curvedata_height_constant(self.x)
 
@@ -1336,7 +1342,7 @@ cdef class _two_descent:
             sage: D2.getbasis()
             '[[1:-1:1], [-2:3:1], [-14:25:8]]'
             sage: D2.regulator()
-            0.417143558758384
+            0.41714355875838
         """
         sig_on()
         return float(string_sigoff(two_descent_regulator(self.x)))

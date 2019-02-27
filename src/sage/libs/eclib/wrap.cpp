@@ -4,25 +4,17 @@ using namespace std;
 
 /**************** Miscellaneous functions ****************/
 
+/* NB In eclib versions before v20190226, precision was decimal
+   precision by default, while now it is bit precision. */
+
 long mwrank_get_precision()
 {
-  return decimal_precision();
+  return bit_precision();
 }
 
 void mwrank_set_precision(long n)
 {
   set_precision(n);
-  /*
-  Conversion from base 10 to base 2 and back is done within eclib by
-  the functions n --> int(3.33*n) and n --> int(0.3*n) which
-  introduces rounding errors.  Without the following loop, doing
-  set_precision(get_precision()) reduces the decimal precision by at
-  least 1 (exactly 1 for n<803), which has disastrous effects if done
-  repeatedly.
-  */
-  long m=n;
-  while (decimal_precision()<m)
-    {n++; set_precision(n);}
 }
 
 void mwrank_initprimes(char* pfilename, int verb)

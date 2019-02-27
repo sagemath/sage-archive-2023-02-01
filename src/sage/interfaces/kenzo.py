@@ -131,7 +131,7 @@ def MooreSpace(m, n):
 
 def EilenbergMacLaneSpace(G, n):
     r"""
-    Return the Eilenberg-MacLane space ``K(G, n)`` as a Kenzo simplicial group
+    Return the Eilenberg-MacLane space ``K(G, n)`` as a Kenzo simplicial group.
 
     The Eilenberg-MacLane space ``K(G, n)`` is the space whose has n'th homotopy
     group isomorphic to ``G``, and the rest of the homotopy groups are trivial.
@@ -199,7 +199,7 @@ class KenzoObject(SageObject):
     def _repr_(self):
         r"""
         Represent the object. It just uses the ecl representation, removing the
-        ecl decoration
+        ecl decoration.
 
         EXAMPLES::
 
@@ -214,7 +214,7 @@ class KenzoObject(SageObject):
 
 class KenzoChainComplex(KenzoObject):
     r"""
-    Wrapper to kenzo chain complexes
+    Wrapper to kenzo chain complexes.
     """
     def homology(self, n):
         r"""

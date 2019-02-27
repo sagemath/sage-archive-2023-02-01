@@ -106,9 +106,9 @@ def MooreSpace(m, n):
 
     INPUT:
 
-    - ``m```- A positive integer. The order of the nontrivial homology group.
+    - ``m`` - A positive integer. The order of the nontrivial homology group.
 
-    - ``n```- The dimension in which the homology is not trivial
+    - ``n`` - The dimension in which the homology is not trivial
 
 
     OUTPUT:
@@ -172,8 +172,8 @@ class KenzoObject(SageObject):
 
     INPUT:
 
-        - ``kenzo_object`` -- a wrapper around a kenzo object
-          (which is an ecl object).
+    - ``kenzo_object`` -- a wrapper around a kenzo object
+      (which is an ecl object).
     """
 
     def __init__(self, kenzo_object):

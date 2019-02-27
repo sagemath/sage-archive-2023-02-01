@@ -447,8 +447,7 @@ def assume(*args):
 
     An integer constraint::
 
-        sage: var('n, P, r, r2')
-        (n, P, r, r2)
+        sage: n,P,r,r2 = SR.var('n, P, r, r2')
         sage: assume(n, 'integer')
         sage: c = P*e^(r*n)
         sage: d = P*(1+r2)^n

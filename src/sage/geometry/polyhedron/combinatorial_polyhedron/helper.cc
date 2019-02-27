@@ -26,7 +26,7 @@ inline int is_subset(uint64_t *A, uint64_t *B, size_t face_length){
     // returns 1 if A is a subset of B, otherwise returns 0
     // this is done by checking if there is an element in A,
     // which is not in B
-    // `face_length` is the length of A and B in terms of uint64_t
+    // ``face_length`` is the length of A and B in terms of uint64_t
     for (size_t i = 0; i < face_length; i++){
         if (A[i] & ~B[i]){
             return 0;
@@ -39,7 +39,7 @@ inline void intersection(uint64_t *A, uint64_t *B, uint64_t *C, \
                          size_t face_length){
     // C = A & B
     // will set C to be the intersection of A and B
-    // `face_length` is the length of A, B and C in terms of uint64_t
+    // ``face_length`` is the length of A, B and C in terms of uint64_t
     for (size_t i = 0; i < face_length; i++){
         C[i] = A[i] & B[i];
     }
@@ -47,7 +47,7 @@ inline void intersection(uint64_t *A, uint64_t *B, uint64_t *C, \
 
 inline size_t CountFaceBits(uint64_t* A, size_t face_length) {
     // counts the number of vertices in a face by counting bits set to one
-    // `face_length` is the length of A in terms of uint64_t
+    // ``face_length`` is the length of A in terms of uint64_t
     unsigned int count = 0;
     for (size_t i=0; i<face_length; i++){
         uint64_t a = A[i];
@@ -63,12 +63,12 @@ size_t get_next_level(\
         uint64_t **faces, size_t lenfaces, uint64_t **nextfaces, \
         uint64_t **nextfaces2, uint64_t **forbidden, \
         size_t nr_forbidden, size_t face_length){
-    // intersects the first `lenfaces - 1` faces of `faces`
-    // with faces[lenfaces-1]`
+    // intersects the first ``lenfaces - 1`` faces of ``faces``
+    // with ``faces[lenfaces-1]``
     // determines which ones are exactly of one dimension less
     // by considering containment
     // newfaces2 will point at those of exactly one dimension less
-    // which are not contained in any of the faces in `forbidden`
+    // which are not contained in any of the faces in ``forbidden``
     // returns the number of those faces
     int *ommitfacearray = (int *) calloc(lenfaces, sizeof(int));
     // this array has an entry for each entry in nextfaces
@@ -118,7 +118,7 @@ size_t get_next_level(\
 
     size_t newfacescounter = 0;  // length of newfaces2
     for (size_t j = 0; j < lenfaces -1; j++){
-        // let `newfaces2` point to the newfaces we want to consider
+        // let ``newfaces2`` point to the newfaces we want to consider
         if (ommitfacearray[j]) {
             continue;
         }

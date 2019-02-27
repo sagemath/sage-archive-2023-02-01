@@ -222,40 +222,40 @@ class GroupMixinLibGAP(object):
 
             sage: G = SU(3,GF(2))
             sage: G.center()
-            Subgroup of Special Unitary Group of degree 3 over Finite Field in a of size 2^2 with 1 generators (
+            Subgroup with 1 generators (
             [a 0 0]
             [0 a 0]
             [0 0 a]
-            )
+            ) of Special Unitary Group of degree 3 over Finite Field in a of size 2^2
             sage: GL(2,GF(3)).center()
-            Subgroup of General Linear Group of degree 2 over Finite Field of size 3 with 1 generators (
+            Subgroup with 1 generators (
             [2 0]
             [0 2]
-            )
+            ) of General Linear Group of degree 2 over Finite Field of size 3
             sage: GL(3,GF(3)).center()
-            Subgroup of General Linear Group of degree 3 over Finite Field of size 3 with 1 generators (
+            Subgroup with 1 generators (
             [2 0 0]
             [0 2 0]
             [0 0 2]
-            )
+            ) of General Linear Group of degree 3 over Finite Field of size 3
             sage: GU(3,GF(2)).center()
-            Subgroup of General Unitary Group of degree 3 over Finite Field in a of size 2^2 with 1 generators (
+            Subgroup with 1 generators (
             [a + 1     0     0]
             [    0 a + 1     0]
             [    0     0 a + 1]
-            )
+            ) of General Unitary Group of degree 3 over Finite Field in a of size 2^2
 
             sage: A = Matrix(FiniteField(5), [[2,0,0], [0,3,0], [0,0,1]])
             sage: B = Matrix(FiniteField(5), [[1,0,0], [0,1,0], [0,1,1]])
             sage: MatrixGroup([A,B]).center()
-            Subgroup of Matrix group over Finite Field of size 5 with 2 generators (
-            [2 0 0]  [1 0 0]
-            [0 3 0]  [0 1 0]
-            [0 0 1], [0 1 1]
-            ) with 1 generators (
+            Subgroup with 1 generators (
             [1 0 0]
             [0 1 0]
             [0 0 1]
+            ) of Matrix group over Finite Field of size 5 with 2 generators (
+            [2 0 0]  [1 0 0]
+            [0 3 0]  [0 1 0]
+            [0 0 1], [0 1 1]
             )
         """
         G = self.gap()
@@ -277,27 +277,27 @@ class GroupMixinLibGAP(object):
             sage: len(G)  # isomorphic to S_3
             6
             sage: G.intersection(GL(3,ZZ))
-            Subgroup of Matrix group over Rational Field with 2 generators (
-            [  0 1/2   0]  [  0 1/2   0]
-            [  2   0   0]  [ -2  -1   2]
-            [  0   0   1], [  0   0   1]
-            ) with 1 generators (
+            Subgroup with 1 generators (
             [ 1  0  0]
             [-2 -1  2]
             [ 0  0  1]
+            ) of Matrix group over Rational Field with 2 generators (
+            [  0 1/2   0]  [  0 1/2   0]
+            [  2   0   0]  [ -2  -1   2]
+            [  0   0   1], [  0   0   1]
             )
             sage: GL(3,ZZ).intersection(G)
-            Subgroup of General Linear Group of degree 3 over Integer Ring with 1 generators (
+            Subgroup with 1 generators (
             [ 1  0  0]
             [-2 -1  2]
             [ 0  0  1]
-            )
+            ) of General Linear Group of degree 3 over Integer Ring
             sage: G.intersection(SL(3,ZZ))
-            Subgroup of Matrix group over Rational Field with 2 generators (
+            Subgroup with 0 generators () of Matrix group over Rational Field with 2 generators (
             [  0 1/2   0]  [  0 1/2   0]
             [  2   0   0]  [ -2  -1   2]
             [  0   0   1], [  0   0   1]
-            ) with 0 generators ()
+            )
         """
         G = self.gap()
         H = other.gap()

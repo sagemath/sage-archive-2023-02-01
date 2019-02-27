@@ -189,22 +189,22 @@ class MatrixGroup_base(Group):
             sage: e3 = UCF.gen(3); e5 =UCF.gen(5)
             sage: m = matrix(UCF, 3,3, [[e3, 1, 0], [0, e5, 7],[4, 3, 2]])
             sage: S = G.subgroup([m]); S
-            Subgroup of General Linear Group of degree 3 over Universal Cyclotomic Field with 1 generators (
+            Subgroup with 1 generators (
             [E(3)    1    0]
             [   0 E(5)    7]
             [   4    3    2]
-            )
+            ) of General Linear Group of degree 3 over Universal Cyclotomic Field
 
             sage: CF3 = CyclotomicField(3)
             sage: G  = GL(3, CF3)
             sage: e3 = CF3.gen()
             sage: m = matrix(CF3, 3,3, [[e3, 1, 0], [0, ~e3, 7],[4, 3, 2]])
             sage: S = G.subgroup([m]); S
-            Subgroup of General Linear Group of degree 3 over Cyclotomic Field of order 3 and degree 2 with 1 generators (
+            Subgroup with 1 generators (
             [     zeta3          1          0]
             [         0 -zeta3 - 1          7]
             [         4          3          2]
-            )
+            ) of General Linear Group of degree 3 over Cyclotomic Field of order 3 and degree 2
 
         TESTS::
 
@@ -272,10 +272,10 @@ class MatrixGroup_base(Group):
             sage: e3 = CF3.gen()
             sage: m = matrix(CF3, 2,2, [[e3, 1], [0, ~e3]])
             sage: S = G.subgroup([m]); S
-            Subgroup of General Linear Group of degree 2 over Cyclotomic Field of order 3 and degree 2 with 1 generators (
+            Subgroup with 1 generators (
             [     zeta3          1]
             [         0 -zeta3 - 1]
-            )
+            ) of General Linear Group of degree 2 over Cyclotomic Field of order 3 and degree 2
         """
         ambient_group = self._ambient
 
@@ -289,12 +289,12 @@ class MatrixGroup_base(Group):
                     self.base_ring(), self.ngens(), format_list(self.gens()))
         else:
             if self.ngens() > 5:
-                return 'Subgroup of {0} with {1} generators'.format(
-                    ambient_group, self.ngens())
+                return 'Subgroup with {0} generators of {1}'.format(
+                    self.ngens(), ambient_group)
             else:
                 from sage.repl.display.util import format_list
-                return 'Subgroup of {0} with {1} generators {2}'.format(
-                    ambient_group, self.ngens(), format_list(self.gens()))
+                return 'Subgroup with {0} generators {1} of {2}'.format(
+                    self.ngens(), format_list(self.gens()), ambient_group)
 
     def _repr_option(self, key):
         """
@@ -711,10 +711,10 @@ class MatrixGroup_gap(GroupMixinLibGAP, MatrixGroup_generic, ParentLibGAP):
             sage: SL2Z = SL(2,ZZ)
             sage: S, T = SL2Z.gens()
             sage: G = SL2Z.subgroup([T^2]); G   # indirect doctest
-            Subgroup of Special Linear Group of degree 2 over Integer Ring with 1 generators (
+            Subgroup with 1 generators (
             [1 2]
             [0 1]
-            )
+            ) of Special Linear Group of degree 2 over Integer Ring
             sage: G.ambient() is SL2Z
             True
         """

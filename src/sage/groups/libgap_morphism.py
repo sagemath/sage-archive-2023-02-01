@@ -465,7 +465,7 @@ class GroupMorphism_libgap(Morphism):
         [1 0 0 0 0 0], [-1  0  0  0  0  0]
         ]
         sage: f(O)  # long time
-        Subgroup of Weyl Group of type ['D', 6] (as a matrix group acting on the ambient space) with 6 generators
+        Subgroup with 6 generators of Weyl Group of type ['D', 6] (as a matrix group acting on the ambient space)
         sage: f(O).gens()   # long time
         (
         [1 0 0 0 0 0]  [1 0 0 0 0 0]  [1 0 0 0 0 0]  [ 0  0  0  0 -1  0]

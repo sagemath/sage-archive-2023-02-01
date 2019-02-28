@@ -887,6 +887,11 @@ class CrystalOfTableaux(CrystalOfWords):
                 shape = shapes
             from sage.combinat.crystals.bkk_crystals import CrystalOfBKKTableaux
             return CrystalOfBKKTableaux(cartan_type, shape=shape)
+        if cartan_type.letter == 'Q':
+            if any(shape[i] == shape[i+1] for i in range(len(shape)-1)):
+                raise ValueError("not a strict partition")
+            shape = Partition(shape)
+            return CrystalOfQueerTableaux(cartan_type, shape=shape)
         n = cartan_type.rank()
         # standardize shape/shapes input into a tuple of tuples
         assert operator.xor(shape is not None, shapes is not None)
@@ -1016,3 +1021,63 @@ class CrystalOfTableaux(CrystalOfWords):
 
     class Element(CrystalOfTableauxElement):
         pass
+
+class CrystalOfQueerTableaux(CrystalOfWords):
+    def __init__(self, cartan_type, shape):
+        """
+        Construct the crystal of all tableaux of the given shapes.
+
+        INPUT:
+
+        - ``cartan_type`` -- (data coercible into) a Cartan type
+        - ``shapes``      -- a list (or iterable) of shapes
+        - ``shape``       -- a shape
+
+        Shapes themselves are lists (or iterable) of integers.
+
+        EXAMPLES::
+
+            sage: T = crystals.Tableaux(['A',3], shape = [2,2])
+            sage: TestSuite(T).run()
+        """
+        from sage.categories.supercrystals import SuperCrystals
+        from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+        Parent.__init__(self, category=(SuperCrystals(), FiniteEnumeratedSets()))
+        self.shape = shape
+        self._cartan_type = cartan_type
+        self.letters = CrystalOfLetters(cartan_type)
+        n = cartan_type.rank() + 1
+        data = sum(([self.letters(n-i)]*shape[i] for i in range(len(shape))), [])
+        mg = self.element_class(self, list=data)
+        self.module_generators = (mg,)
+
+    @cached_method
+    def index_set(self):
+        return tuple(range(1,self._cartan_type.rank()+1)) + (-1,)
+
+    class Element(TensorProductOfQueerSuperCrystalsElement):
+        def _repr_(self):
+            return repr([list(reversed(row)) for row in self.rows()])
+
+        def _ascii_art_(self):
+            from sage.typeset.ascii_art import AsciiArt
+            ret = [" "*(3*i) + "".join("%3s" % str(x) for x in reversed(row))
+                   for i, row in enumerate(self.rows())]
+            return AsciiArt(ret)
+
+        def _latex_(self):
+            from sage.combinat.output import tex_from_array
+            return tex_from_array([[None]*i + list(reversed(row))
+                                  for i, row in enumerate(self.rows())])
+
+        def rows(self):
+            """
+            Return the list of rows of ``self``.
+            """
+            ret = []
+            pos = 0
+            for l in self.parent().shape:
+                ret.append(self[pos:pos+l])
+                pos += l
+            return ret
+

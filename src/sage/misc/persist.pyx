@@ -79,7 +79,8 @@ def load(*filename, compress=True, verbose=True):
         sage: u = 'http://www.sagemath.org/files/test.sobj'
         sage: s = load(u)                                                  # optional - internet
         Attempting to load remote file: http://www.sagemath.org/files/test.sobj
-        Loading: [.]
+        Loading started
+        Loading ended
         sage: s                                                            # optional - internet
         'hello SageMath'
 

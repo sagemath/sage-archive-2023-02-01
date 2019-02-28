@@ -43,7 +43,7 @@ install_compiled_pkg()
     local pkg="$1"
     # Install the bin/ dir (where compiled modules should end up)
     # under <prefix>/lib/gap; we then symlink to it later
-    sdh_install bin/ "$SAGE_LOCAL/lib/gap/pkg/$pkg"
+    sdh_install bin "$SAGE_LOCAL/lib/gap/pkg/$pkg"
 
     # Clean up any build artificts before installing the rest of the package
     # Also remove configure/Makefiles

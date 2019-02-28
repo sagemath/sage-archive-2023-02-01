@@ -1274,46 +1274,17 @@ class DiGraph(GenericGraph):
         EXAMPLES::
 
             sage: D = graphs.Grid2dGraph(2,4).to_directed()
-            sage: for i in D.in_degree_iterator():  # py2
-            ....:     print(i)                      # py2
-            3
-            3
-            2
-            2
-            3
-            2
-            2
-            3
-            sage: for i in D.in_degree_iterator():  # py3
-            ....:     print(i)                      # py3
-            2
-            3
-            3
-            2
-            2
-            3
-            3
-            2
-            sage: for i in D.in_degree_iterator(labels=True):  # py2
-            ....:    print(i)                                  # py2
-            ((0, 1), 3)
-            ((1, 2), 3)
-            ((0, 0), 2)
-            ((0, 3), 2)
-            ((1, 1), 3)
-            ((1, 3), 2)
-            ((1, 0), 2)
-            ((0, 2), 3)
-            sage: for i in D.in_degree_iterator(labels=True):  # py3
-            ....:    print(i)                                  # py3
-            ((0, 0), 2)
-            ((0, 1), 3)
-            ((0, 2), 3)
-            ((0, 3), 2)
-            ((1, 0), 2)
-            ((1, 1), 3)
-            ((1, 2), 3)
-            ((1, 3), 2)
+            sage: sorted(D.in_degree_iterator())
+            [2, 2, 2, 2, 3, 3, 3, 3]
+            sage: sorted(D.in_degree_iterator(labels=True))
+            [((0, 0), 2),
+             ((0, 1), 3),
+             ((0, 2), 3),
+             ((0, 3), 2),
+             ((1, 0), 2),
+             ((1, 1), 3),
+             ((1, 2), 3),
+             ((1, 3), 2)]
         """
         if vertices is None:
             vertices = self.vertex_iterator()
@@ -1374,46 +1345,17 @@ class DiGraph(GenericGraph):
         EXAMPLES::
 
             sage: D = graphs.Grid2dGraph(2,4).to_directed()
-            sage: for i in D.out_degree_iterator():  # py2
-            ....:     print(i)                       # py2
-            3
-            3
-            2
-            2
-            3
-            2
-            2
-            3
-            sage: for i in D.out_degree_iterator():  # py3
-            ....:     print(i)                       # py3
-            2
-            3
-            3
-            2
-            2
-            3
-            3
-            2
-            sage: for i in D.out_degree_iterator(labels=True):  # py2
-            ....:     print(i)                                  # py2
-            ((0, 1), 3)
-            ((1, 2), 3)
-            ((0, 0), 2)
-            ((0, 3), 2)
-            ((1, 1), 3)
-            ((1, 3), 2)
-            ((1, 0), 2)
-            ((0, 2), 3)
-            sage: for i in D.out_degree_iterator(labels=True):  # py3
-            ....:     print(i)                                  # py3
-            ((0, 0), 2)
-            ((0, 1), 3)
-            ((0, 2), 3)
-            ((0, 3), 2)
-            ((1, 0), 2)
-            ((1, 1), 3)
-            ((1, 2), 3)
-            ((1, 3), 2)
+            sage: sorted(D.out_degree_iterator())
+            [2, 2, 2, 2, 3, 3, 3, 3]
+            sage: sorted(D.out_degree_iterator(labels=True))
+            [((0, 0), 2),
+             ((0, 1), 3),
+             ((0, 2), 3),
+             ((0, 3), 2),
+             ((1, 0), 2),
+             ((1, 1), 3),
+             ((1, 2), 3),
+             ((1, 3), 2)]
         """
         if vertices is None:
             vertices = self.vertex_iterator()
@@ -2164,19 +2106,19 @@ class DiGraph(GenericGraph):
 
         EXAMPLES::
 
-            sage: g = DiGraph({'a': ['a', 'b'], 'b': ['c'], 'c': ['d'], 'd': ['c']}, loops=True)
+            sage: g = DiGraph([['a','b','c'], [('a','a'), ('a','b'), ('b','c'), ('c','d'), ('d','c')]],
+            ....:             loops=True)
             sage: pi = g._all_paths_iterator('a')
-            sage: for _ in range(5):   # py2
-            ....:     print(next(pi))  # py2
+            sage: for _ in range(5):
+            ....:     print(next(pi))
             ['a', 'a']
             ['a', 'b']
             ['a', 'a', 'a']
             ['a', 'a', 'b']
             ['a', 'b', 'c']
-            sage: from collections import Counter
             sage: pi = g._all_paths_iterator('a')
-            sage: sorted(Counter(len(next(pi)) - 1 for _ in range(5)).items())
-            [(1, 2), (2, 3)]
+            sage: [len(next(pi)) - 1 for _ in range(5)]
+            [1, 1, 2, 2, 2]
 
         ::
 
@@ -2204,27 +2146,27 @@ class DiGraph(GenericGraph):
         It is possible to specify the allowed ending vertices::
 
             sage: pi = g._all_paths_iterator('a', ending_vertices=['c'])
-            sage: for _ in range(5):   # py2
-            ....:     print(next(pi))  # py2
+            sage: for _ in range(5):
+            ....:     print(next(pi))
             ['a', 'b', 'c']
             ['a', 'a', 'b', 'c']
             ['a', 'a', 'a', 'b', 'c']
             ['a', 'b', 'c', 'd', 'c']
             ['a', 'a', 'a', 'a', 'b', 'c']
             sage: pi = g._all_paths_iterator('a', ending_vertices=['c'])
-            sage: sorted(Counter(len(next(pi)) - 1 for _ in range(5)).items())
-            [(2, 1), (3, 1), (4, 2), (5, 1)]
+            sage: [len(next(pi)) - 1 for _ in range(5)]
+            [2, 3, 4, 4, 5]
             sage: pi = g._all_paths_iterator('a', ending_vertices=['a', 'b'])
-            sage: for _ in range(5):   # py2
-            ....:     print(next(pi))  # py2
+            sage: for _ in range(5):
+            ....:     print(next(pi))
             ['a', 'a']
             ['a', 'b']
             ['a', 'a', 'a']
             ['a', 'a', 'b']
             ['a', 'a', 'a', 'a']
             sage: pi = g._all_paths_iterator('a', ending_vertices=['a', 'b'])
-            sage: sorted(Counter(len(next(pi)) - 1 for _ in range(5)).items())
-            [(1, 2), (2, 2), (3, 1)]
+            sage: [len(next(pi)) - 1 for _ in range(5)]
+            [1, 1, 2, 2, 3]
 
         One can bound the length of the paths::
 
@@ -2235,13 +2177,13 @@ class DiGraph(GenericGraph):
         Or include the trivial empty path::
 
             sage: pi = g._all_paths_iterator('a', max_length=3, trivial=True)
-            sage: list(pi)  # py2
+            sage: list(pi)
             [['a'], ['a', 'a'], ['a', 'b'], ['a', 'a', 'a'], ['a', 'a', 'b'],
              ['a', 'b', 'c'], ['a', 'a', 'a', 'a'], ['a', 'a', 'a', 'b'],
              ['a', 'a', 'b', 'c'], ['a', 'b', 'c', 'd']]
             sage: pi = g._all_paths_iterator('a', max_length=3, trivial=True)
-            sage: sorted(Counter(len(p) - 1 for p in pi).items())
-            [(0, 1), (1, 2), (2, 3), (3, 4)]
+            sage: [len(p) - 1 for p in pi]
+            [0, 1, 1, 2, 2, 2, 3, 3, 3, 3]
         """
         if ending_vertices is None:
             ending_vertices = self
@@ -2329,10 +2271,11 @@ class DiGraph(GenericGraph):
 
         EXAMPLES::
 
-            sage: g = DiGraph({'a': ['a', 'b'], 'b': ['c'], 'c': ['d'], 'd': ['c']}, loops=True)
+            sage: g = DiGraph([['a','b','c'], [('a','a'), ('a','b'), ('b','c'), ('c','d'), ('d','c')]],
+            ....:             loops=True)
             sage: pi = g.all_paths_iterator()
-            sage: for _ in range(7):   # py2
-            ....:     print(next(pi))  # py2
+            sage: for _ in range(7):
+            ....:     print(next(pi))
             ['a', 'a']
             ['a', 'b']
             ['b', 'c']
@@ -2340,24 +2283,23 @@ class DiGraph(GenericGraph):
             ['d', 'c']
             ['a', 'a', 'a']
             ['a', 'a', 'b']
-            sage: from collections import Counter
             sage: pi = g.all_paths_iterator()
-            sage: sorted(Counter(len(next(pi)) - 1 for _ in range(7)).items())
-            [(1, 5), (2, 2)]
+            sage: [len(next(pi)) - 1 for _ in range(7)]
+            [1, 1, 1, 1, 1, 2, 2]
 
         It is possible to precise the allowed starting and/or ending vertices::
 
             sage: pi = g.all_paths_iterator(starting_vertices=['a'])
-            sage: for _ in range(5):   # py2
-            ....:     print(next(pi))  # py2
+            sage: for _ in range(5):
+            ....:     print(next(pi))
             ['a', 'a']
             ['a', 'b']
             ['a', 'a', 'a']
             ['a', 'a', 'b']
             ['a', 'b', 'c']
             sage: pi = g.all_paths_iterator(starting_vertices=['a'])
-            sage: sorted(Counter(len(next(pi)) - 1 for _ in range(5)).items())
-            [(1, 2), (2, 3)]
+            sage: [len(next(pi)) - 1 for _ in range(5)]
+            [1, 1, 2, 2, 2]
             sage: pi = g.all_paths_iterator(starting_vertices=['a'], ending_vertices=['b'])
             sage: for _ in range(5):
             ....:     print(next(pi))
@@ -2379,7 +2321,7 @@ class DiGraph(GenericGraph):
         Or simply bound the length of the enumerated paths::
 
             sage: pi = g.all_paths_iterator(starting_vertices=['a'], ending_vertices=['b', 'c'], max_length=6)
-            sage: list(pi)  # py2
+            sage: list(pi)
             [['a', 'b'], ['a', 'a', 'b'], ['a', 'b', 'c'],
              ['a', 'a', 'a', 'b'], ['a', 'a', 'b', 'c'],
              ['a', 'a', 'a', 'a', 'b'], ['a', 'a', 'a', 'b', 'c'],
@@ -2390,8 +2332,8 @@ class DiGraph(GenericGraph):
              ['a', 'a', 'a', 'b', 'c', 'd', 'c'],
              ['a', 'b', 'c', 'd', 'c', 'd', 'c']]
             sage: pi = g.all_paths_iterator(starting_vertices=['a'], ending_vertices=['b', 'c'], max_length=6)
-            sage: sorted(Counter(len(p) - 1 for p in pi).items())
-            [(1, 1), (2, 2), (3, 2), (4, 3), (5, 3), (6, 4)]
+            sage: [len(p) - 1 for p in pi]
+            [1, 2, 2, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 6]
 
         By default, empty paths are not enumerated, but it may be parametrized::
 

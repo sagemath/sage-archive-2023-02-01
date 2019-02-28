@@ -13,7 +13,7 @@ polytopes in 4 dimensions.
     :func:`~sage.geometry.polyhedron.constructor.Polyhedron` with
     ``base_ring=ZZ``.
 
-The class derives from the PPL :class:`sage.libs.ppl.C_Polyhedron`
+The class derives from the PPL :class:`ppl.polyhedron.C_Polyhedron`
 class, so you can work with the underlying generator and constraint
 objects. However, integral points are generally represented by
 `\ZZ`-vectors. In the following, we always use *generator* to refer
@@ -69,15 +69,15 @@ AUTHORS:
 from __future__ import absolute_import, print_function
 
 import copy
-from sage.rings.integer import GCD_list
+from sage.rings.integer import GCD_list, Integer
 from sage.rings.integer_ring import ZZ
 from sage.misc.all import cached_method
 from sage.modules.all import vector
 from sage.matrix.constructor import matrix
-from sage.libs.ppl import (
+from ppl import (
     C_Polyhedron, Linear_Expression, Variable,
-    point, line, Generator, Generator_System,
-    Generator_System_iterator, Poly_Con_Relation)
+    point, ray, line, Generator, Generator_System,
+    Constraint_System, Poly_Con_Relation )
 
 
 ########################################################################
@@ -121,7 +121,7 @@ def LatticePolytope_PPL(*args):
         sage: LatticePolytope_PPL((0,0),(1,0),(0,1))
         A 2-dimensional lattice polytope in ZZ^2 with 3 vertices
 
-        sage: from sage.libs.ppl import point, Generator_System, C_Polyhedron, Linear_Expression, Variable
+        sage: from ppl import point, Generator_System, C_Polyhedron, Linear_Expression, Variable
         sage: p = point(Linear_Expression([2,3],0));  p
         point(2/1, 3/1)
         sage: LatticePolytope_PPL(p)
@@ -138,9 +138,9 @@ def LatticePolytope_PPL(*args):
         sage: LatticePolytope_PPL((0,0),(1/2,1))
         Traceback (most recent call last):
         ...
-        TypeError: no conversion of this rational to integer
+        TypeError: unable to convert rational 1/2 to an integer
 
-        sage: from sage.libs.ppl import point, Generator_System, C_Polyhedron, Linear_Expression, Variable
+        sage: from ppl import point, Generator_System, C_Polyhedron, Linear_Expression, Variable
         sage: p = point(Linear_Expression([2,3],0), 5);  p
         point(2/5, 3/5)
         sage: LatticePolytope_PPL(p)
@@ -159,7 +159,7 @@ def LatticePolytope_PPL(*args):
     if len(args)==1 and isinstance(args[0], C_Polyhedron):
         polyhedron = args[0]
         polytope_class = _class_for_LatticePolytope(polyhedron.space_dimension())
-        if not all(p.is_point() and p.divisor().is_one() for p in polyhedron.generators()):
+        if not all(p.is_point() and p.divisor() == 1 for p in polyhedron.generators()):
             raise TypeError('polyhedron has non-integral generators')
         return polytope_class(polyhedron)
     if len(args)==1 \
@@ -171,13 +171,13 @@ def LatticePolytope_PPL(*args):
     gs = Generator_System()
     for v in vertices:
         if isinstance(v, Generator):
-            if (not v.is_point()) or (not v.divisor().is_one()):
+            if (not v.is_point()) or v.divisor() != 1:
                 raise TypeError('generator is not a lattice polytope generator')
             gs.insert(v)
         else:
             gs.insert(point(Linear_Expression(v, 0)))
     if not gs.empty():
-        dim = next(Generator_System_iterator(gs)).space_dimension()
+        dim = next(iter(gs)).space_dimension()
         polytope_class = _class_for_LatticePolytope(dim)
     return polytope_class(gs)
 
@@ -197,7 +197,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
         A 2-dimensional lattice polytope in ZZ^2 with 3 vertices
     """
 
-    def _repr_(self):
+    def __repr__(self):
         """
         Return the string representation
 
@@ -211,7 +211,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             sage: P = LatticePolytope_PPL((0,0),(1,0),(0,1))
             sage: P
             A 2-dimensional lattice polytope in ZZ^2 with 3 vertices
-            sage: P._repr_()
+            sage: P.__repr__()
             'A 2-dimensional lattice polytope in ZZ^2 with 3 vertices'
 
             sage: LatticePolytope_PPL()
@@ -308,7 +308,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             raise ValueError('empty polytope is not allowed')
         for i in range(0, self.space_dimension()):
             x = Variable(i)
-            coords = [ v.coefficient(x) for v in self.generators() ]
+            coords = [Integer(v.coefficient(x)) for v in self.generators()]
             max_coord = max(coords)
             min_coord = min(coords)
             box_max.append(max_coord)
@@ -524,7 +524,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             sage: p.vertices_saturating(ieq)
             ((0, 0), (0, 1))
         """
-        from sage.libs.ppl import C_Polyhedron, Poly_Con_Relation
+        from ppl import C_Polyhedron, Poly_Con_Relation
         result = []
         for i,v in enumerate(self.minimized_generators()):
             v = C_Polyhedron(v)
@@ -1001,8 +1001,8 @@ class LatticePolytope_PPL_class(C_Polyhedron):
         # good coordinates for the vertices
         v_list = []
         for v in self.minimized_generators():
-            assert v.divisor().is_one()
-            v_coords = (1,) + v.coefficients()
+            assert v.divisor() == 1
+            v_coords = (1,) + tuple(Integer(mpz) for mpz in v.coefficients())
             v_list.append(vector(v_coords))
 
         # Finally, construct the graph
@@ -1259,6 +1259,4 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             return points
         else:
             raise ValueError('output='+str(output)+' is not valid.')
-
-
 

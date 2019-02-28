@@ -204,8 +204,8 @@ from sage.geometry.point_collection import PointCollection
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.geometry.polyhedron.base import is_Polyhedron
 from sage.geometry.hasse_diagram import lattice_from_incidences
-from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice, \
-    is_ToricLatticeQuotient
+from sage.geometry.toric_lattice import (ToricLattice, is_ToricLattice,
+                                         is_ToricLatticeQuotient)
 from sage.geometry.toric_plotter import ToricPlotter, label_list
 from sage.graphs.digraph import DiGraph
 from sage.matrix.all import column_matrix, matrix, MatrixSpace
@@ -214,9 +214,9 @@ from sage.modules.all import span, vector, VectorSpace
 from sage.rings.all import QQ, RR, ZZ
 from sage.structure.all import SageObject, parent
 from sage.structure.richcmp import richcmp_method, richcmp
-from sage.libs.ppl import C_Polyhedron, Generator_System, Constraint_System, \
-    Linear_Expression, ray as PPL_ray, point as PPL_point, \
-    Poly_Con_Relation
+from ppl import (C_Polyhedron, Generator_System, Constraint_System,
+                 Linear_Expression, ray as PPL_ray, point as PPL_point,
+                 Poly_Con_Relation)
 from sage.geometry.integral_points import parallelotope_points
 
 
@@ -453,7 +453,7 @@ def Cone(rays, lattice=None, check=True, normalize=True):
 
 def _Cone_from_PPL(cone, lattice, original_rays=None):
     r"""
-    Construct a cone from a :class:`~sage.libs.ppl.Polyhedron`.
+    Construct a cone from a :class:`~ppl.polyhedron.Polyhedron`.
 
     This is a private function and not intended to be exposed to the
     end user. It is used internally by :func:`Cone` and in
@@ -461,7 +461,7 @@ def _Cone_from_PPL(cone, lattice, original_rays=None):
 
     INPUT:
 
-    - ``cone`` -- a :class:`~sage.libs.ppl.Polyhedron` having the
+    - ``cone`` -- a :class:`~ppl.polyhedron.Polyhedron` having the
       origin as its single point.
 
     - ``lattice`` -- :class:`ToricLattice
@@ -1368,7 +1368,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
     In both cases, the following keyword parameter may be specified in addition:
 
     - ``PPL`` -- either ``None`` (default) or a
-      :class:`~sage.libs.ppl.C_Polyhedron` representing the cone. This
+      :class:`~ppl.polyhedron.C_Polyhedron` representing the cone. This
       serves only to cache the polyhedral data if you know it
       already. The polyhedron will be set immutable.
 
@@ -1430,7 +1430,6 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                       ambient.lattice())
         if not PPL is None:
             self._PPL_C_Polyhedron = PPL
-            self._PPL_C_Polyhedron.set_immutable()
 
     def _sage_input_(self, sib, coerced):
         """
@@ -1452,7 +1451,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         OUTPUT:
 
-        A :class:`~sage.libs.ppl.C_Polyhedron` representing the cone.
+        A :class:`~ppl.polyhedron.C_Polyhedron` representing the cone.
 
         EXAMPLES::
 
@@ -1482,7 +1481,6 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             for r in self.rays():
                 gs.insert( PPL_ray(Linear_Expression(r,0)) )
             self._PPL_C_Polyhedron = C_Polyhedron(gs)
-            self._PPL_C_Polyhedron.set_immutable()
         return self._PPL_C_Polyhedron
 
     def __contains__(self, point):

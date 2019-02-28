@@ -76,12 +76,13 @@ def load(*filename, compress=True, verbose=True):
 
     EXAMPLES::
 
-        sage: u = 'http://sage.math.washington.edu/home/was/db/test.sobj'
+        sage: u = 'http://www.sagemath.org/files/test.sobj'
         sage: s = load(u)                                                  # optional - internet
-        Attempting to load remote file: http://sage.math.washington.edu/home/was/db/test.sobj
-        Loading: [.]
+        Attempting to load remote file: http://www.sagemath.org/files/test.sobj
+        Loading started
+        Loading ended
         sage: s                                                            # optional - internet
-        'hello SAGE'
+        'hello SageMath'
 
     We test loading a file or multiple files or even mixing loading files and objects::
 

@@ -17,6 +17,7 @@ A reference for the basic theory of algebraic function fields is [Stich2009]_.
    sage/rings/function_field/ideal
    sage/rings/function_field/place
    sage/rings/function_field/divisor
+   sage/rings/function_field/differential
    sage/rings/function_field/valuation_ring
    sage/rings/function_field/maps
    sage/rings/function_field/constructor

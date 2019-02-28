@@ -25,6 +25,13 @@ the space as a vector space over the constant field::
     sage: (3*p + 2*q).basis_function_space()
     [1/x*y^2 + x^2, 1, 1/x]
 
+We verify the Riemann-Roch theorem::
+
+    sage: D = 3*p - q
+    sage: index_of_speciality = len(D.basis_differential_space())
+    sage: D.dimension() == D.degree() - L.genus() + 1 + index_of_speciality
+    True
+
 AUTHORS:
 
 - Kwankyu Lee (2017-04-30): initial version
@@ -522,6 +529,113 @@ class FunctionFieldDivisor(ModuleElement):
         basis, coordinates_func = self._echelon_basis(self._basis())
 
         return basis, coordinates_func
+
+    def basis_differential_space(self):
+        """
+        Return a basis of the space of differentials `\Omega(D)`
+        for the divisor `D`.
+
+        EXAMPLES:
+
+        We check the Riemann-Roch theorem::
+
+            sage: K.<x>=FunctionField(GF(4)); _.<Y>=K[]
+            sage: L.<y>=K.extension(Y^3+x+x^3*Y)
+            sage: d = 3*L.places()[0]
+            sage: l = len(d.basis_function_space())
+            sage: i = len(d.basis_differential_space())
+            sage: l == d.degree() + 1 - L.genus() + i
+            True
+        """
+        F = self.parent()._field
+        W = F.space_of_differentials()
+
+        fbasis, _ = self._differential_space()
+        return [W.element_class(W, f) for f in fbasis]
+
+    @cached_method
+    def differential_space(self):
+        """
+        Return the vector space of the differential space `\Omega(D)` of the divisor `D`.
+
+        OUTPUT:
+
+        - a vector space isomorphic to `\Omega(D)`
+
+        - an isomorphism from the vector space to the differential space
+
+        - the inverse of the isomorphism
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(5)); R.<t> = K[]
+            sage: F.<y> = K.extension(t^2 - x^3 - 1)
+            sage: O = F.maximal_order()
+            sage: I = O.ideal(x - 2)
+            sage: P1 = I.divisor().support()[0]
+            sage: Pinf = F.places_infinite()[0]
+            sage: D = -3*Pinf + P1
+            sage: V, from_V, to_V = D.differential_space()
+            sage: all(to_V(from_V(e)) == e for e in V)
+            True
+        """
+        F = self.parent()._field
+        W = F.space_of_differentials()
+        k = F.constant_base_field()
+
+        fbasis, coordinates = self._differential_space()
+
+        n = len(fbasis)
+        V = k ** n
+
+        def from_V(v):
+            f = sum(v[i] * fbasis[i] for i in range(n))
+            return W.element_class(W, f)
+
+        def to_V(w):
+            return vector(coordinates(w._f))
+
+        from sage.rings.function_field.maps import (
+            FunctionFieldLinearMap, FunctionFieldLinearMapSection)
+
+        mor_from_V = FunctionFieldLinearMap(Hom(V,W), from_V)
+        mor_to_V = FunctionFieldLinearMapSection(Hom(W,V), to_V)
+
+        return V, mor_from_V, mor_to_V
+
+    def _differential_space(self):
+        """
+        Return an (echelon) basis and coordinates function for the differential
+        space of the divisor.
+
+        The return values are cached so that :meth:`basis_differential_space` and
+        :meth:`differential_space` methods give consistent outputs.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(5)); R.<t> = PolynomialRing(K)
+            sage: F.<y> = K.extension(t^2-x^3-1)
+            sage: O = F.maximal_order()
+            sage: I = O.ideal(x-2)
+            sage: D = -I.divisor()
+            sage: basis, coordinates = D._differential_space()
+            sage: basis
+            [(x/(x^4 + 3*x^3 + x + 3))*y, (1/(x^4 + 3*x^3 + x + 3))*y]
+            sage: D.basis_differential_space()
+            [((x/(x^4 + 3*x^3 + x + 3))*y) d(x), ((1/(x^4 + 3*x^3 + x + 3))*y) d(x)]
+            sage: coordinates(basis[0])
+            [1, 0]
+            sage: coordinates(basis[1])
+            [0, 1]
+            sage: coordinates(basis[0]+basis[1])
+            [1, 1]
+        """
+        F = self.parent()._field
+        x = F.base_field().gen()
+        d = (-2) * F(x).divisor_of_poles() + F.different() - self
+
+        fbasis, coordinates = self._echelon_basis(d._basis())
+        return fbasis, coordinates
 
     def _basis(self):
         """

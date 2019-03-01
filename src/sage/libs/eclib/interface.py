@@ -203,7 +203,7 @@ class mwrank_EllipticCurve(SageObject):
 
             sage: E = mwrank_EllipticCurve([0, 0, 1, -1, 0])
             sage: E.set_verbose(1)
-            sage: E.saturate() # tol 1e-14
+            sage: E.saturate() # tol 1e-10
             Basic pair: I=48, J=-432
             disc=255744
             2-adic index bound = 2
@@ -599,7 +599,7 @@ class mwrank_EllipticCurve(SageObject):
 
             sage: E = mwrank_EllipticCurve([0, 0, 1, -1, 0])
             sage: E.regulator()
-            0.051111408239969
+            0.05111140823996883
         """
         self.saturate()
         if not self.certain():
@@ -1007,7 +1007,7 @@ class mwrank_MordellWeil(SageObject):
             sage: EQ.points()
             [[1547, -2967, 343], [2707496766203306, 864581029138191, 2969715140223272], [-13422227300, -49322830557, 12167000000]]
             sage: EQ.regulator()
-            375.42919921875
+            375.42920288254516
             sage: EQ.saturate(2)  # points were not 2-saturated
             saturating basis...Saturation index bound = 93
             WARNING: saturation at primes p > 2 will not be done;
@@ -1018,7 +1018,7 @@ class mwrank_MordellWeil(SageObject):
             sage: EQ.points()
             [[-2, 3, 1], [2707496766203306, 864581029138191, 2969715140223272], [-13422227300, -49322830557, 12167000000]]
             sage: EQ.regulator()
-            93.8572998046875
+            93.85730072063629
             sage: EQ.saturate(3)  # points were not 3-saturated
             saturating basis...Saturation index bound = 46
             WARNING: saturation at primes p > 3 will not be done;
@@ -1029,7 +1029,7 @@ class mwrank_MordellWeil(SageObject):
             sage: EQ.points()
             [[-2, 3, 1], [-14, 25, 8], [-13422227300, -49322830557, 12167000000]]
             sage: EQ.regulator()
-            10.4285888671875
+            10.428588968959588
             sage: EQ.saturate(5)  # points were not 5-saturated
             saturating basis...Saturation index bound = 15
             WARNING: saturation at primes p > 5 will not be done;
@@ -1040,7 +1040,7 @@ class mwrank_MordellWeil(SageObject):
             sage: EQ.points()
             [[-2, 3, 1], [-14, 25, 8], [1, -1, 1]]
             sage: EQ.regulator()
-            0.4171435534954071
+            0.4171435587583835
             sage: EQ.saturate()   # points are now saturated
             saturating basis...Saturation index bound = 3
             Checking saturation at [ 2 3 ]
@@ -1081,7 +1081,7 @@ class mwrank_MordellWeil(SageObject):
 
             sage: E = mwrank_EllipticCurve([0,0,1,-7,6])
             sage: E.regulator()
-            0.41714355875838
+            0.4171435587583847
         """
         return self.__mw.regulator()
 
@@ -1128,7 +1128,7 @@ class mwrank_MordellWeil(SageObject):
             sage: EQ.rank()
             3
             sage: EQ.regulator()
-            0.4171435534954071
+            0.4171435587583847
 
         We do in fact now have a full Mordell-Weil basis.
 
@@ -1211,7 +1211,7 @@ class mwrank_MordellWeil(SageObject):
             sage: EQ
             Subgroup of Mordell-Weil group: [[1547:-2967:343], [2707496766203306:864581029138191:2969715140223272], [-13422227300:-49322830557:12167000000]]
             sage: EQ.regulator()
-            375.42919921875
+            375.42920288254516
 
         Now we saturate at `p=2`, and gain index 2::
 
@@ -1225,7 +1225,7 @@ class mwrank_MordellWeil(SageObject):
             sage: EQ
             Subgroup of Mordell-Weil group: [[-2:3:1], [2707496766203306:864581029138191:2969715140223272], [-13422227300:-49322830557:12167000000]]
             sage: EQ.regulator()
-            93.8572998046875
+            93.85730072063629
 
         Now we saturate at `p=3`, and gain index 3::
 
@@ -1239,7 +1239,7 @@ class mwrank_MordellWeil(SageObject):
             sage: EQ
             Subgroup of Mordell-Weil group: [[-2:3:1], [-14:25:8], [-13422227300:-49322830557:12167000000]]
             sage: EQ.regulator()
-            10.4285888671875
+            10.428588968959588
 
         Now we saturate at `p=5`, and gain index 5::
 
@@ -1253,7 +1253,7 @@ class mwrank_MordellWeil(SageObject):
             sage: EQ
             Subgroup of Mordell-Weil group: [[-2:3:1], [-14:25:8], [1:-1:1]]
             sage: EQ.regulator()
-            0.4171435534954071
+            0.4171435587583835
 
         Finally we finish the saturation.  The output here shows that
         the points are now provably saturated at all primes::
@@ -1280,7 +1280,7 @@ class mwrank_MordellWeil(SageObject):
             sage: EQ
             Subgroup of Mordell-Weil group: [[-2:3:1], [-14:25:8], [1:-1:1]]
             sage: EQ.regulator()
-            0.4171435534954071
+            0.41714355875838294
 
         But we would still need to use the :meth:`saturate()` function to
         verify that full saturation has been done::

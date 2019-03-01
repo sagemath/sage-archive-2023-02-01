@@ -54,7 +54,7 @@ cdef extern from "wrap.cpp":
                    bigint* x, bigint* y,
                    bigint* z, int sat)
     char* mw_getbasis(mw* m)
-    char* mw_regulator(mw* m)
+    double mw_regulator(mw* m)
     int mw_rank(mw* m)
     int mw_saturate(mw* m, bigint* index, char** unsat,
                     long sat_bd, int odd_primes_only)
@@ -64,7 +64,7 @@ cdef extern from "wrap.cpp":
     int two_descent_ok(two_descent* t)
     long two_descent_get_certain(two_descent* t)
     char* two_descent_get_basis(two_descent* t)
-    char* two_descent_regulator(two_descent* t)
+    double two_descent_regulator(two_descent* t)
     long two_descent_get_rank(two_descent* t)
     long two_descent_get_rank_bound(two_descent* t)
     long two_descent_get_selmer_rank(two_descent* t)
@@ -83,7 +83,7 @@ mwrank_set_precision(150)
 
 def get_precision():
     """
-    Returns the working floating point precision of mwrank.
+    Returns the working floating point bit precision of mwrank.
 
     OUTPUT:
 
@@ -103,17 +103,28 @@ def set_precision(n):
 
     INPUT:
 
-    - ``n`` (int) -- a positive integer: the number of decimal digits.
+    - ``n`` (int) -- a positive integer: the number of bits of precision.
 
     OUTPUT:
 
     None.
 
+        .. note::
+
+    The minimal value to which the precision may be set is 53.  Lower
+    values will be increased to 53.
+
     EXAMPLES::
 
-        sage: from sage.libs.eclib.mwrank import set_precision
+        sage: from sage.libs.eclib.mwrank import set_precision, get_precision
+        sage: old_prec = get_precision(); old_prec
+        150
         sage: set_precision(50)
-
+        sage: get_precision()
+        53
+        sage: set_precision(old_prec)
+        sage: get_precision()
+        150
     """
     mwrank_set_precision(n)
 
@@ -148,9 +159,6 @@ def initprimes(filename, verb=False):
         raise IOError('No such file or directory: %s' % filename)
     filename = str_to_bytes(filename, FS_ENCODING, 'surrogateescape')
     mwrank_initprimes(filename, verb)
-    if verb:
-        sys.stdout.flush()
-        sys.stderr.flush()
 
 ############# bigint ###########################################
 #
@@ -363,7 +371,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
             sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: E = _Curvedata(1,2,3,4,5)
             sage: E.cps_bound()
-            0.11912451909250964
+            0.11912451909250982...
 
         Note that this is a better bound than Silverman's in this case::
 
@@ -402,7 +410,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
             sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: E = _Curvedata(1,2,3,4,5)
             sage: E.height_constant()
-            0.11912451909250964
+            0.119124519092509...
         """
         return Curvedata_height_constant(self.x)
 
@@ -480,9 +488,6 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
         """
         sig_on()
         s = string_sigoff(Curvedata_isogeny_class(self.x, verbose))
-        if verbose:
-            sys.stdout.flush()
-            sys.stderr.flush()
         return eval(s)
 
 
@@ -767,7 +772,7 @@ cdef class _mw:
 
         OUTPUT:
 
-        (float) The current regulator.
+        (double) The current regulator.
 
         .. TODO::
 
@@ -786,11 +791,12 @@ cdef class _mw:
             sage: EQ.rank()
             2
             sage: EQ.regulator()
-            0.15246017277240753
+            0.15246017794314376
         """
-        cdef float f
+        cdef double f
         sig_on()
-        f = float(string_sigoff(mw_regulator(self.x)))
+        f = mw_regulator(self.x)
+        sig_off()
         return f
 
     def rank(self):
@@ -945,9 +951,6 @@ cdef class _mw:
 
         sig_on()
         mw_search(self.x, h_lim, moduli_option, verb)
-        if verb:
-            sys.stdout.flush()
-            sys.stderr.flush()
         sig_off()
 
 
@@ -1049,9 +1052,6 @@ cdef class _two_descent:
         """
         sig_on()
         self.x = new two_descent(curve.x, verb, sel, firstlim, secondlim, n_aux, second_descent)
-        if verb:
-            sys.stdout.flush()
-            sys.stderr.flush()
         sig_off()
 
     def getrank(self):
@@ -1303,7 +1303,7 @@ cdef class _two_descent:
 
         OUTPUT:
 
-        (float) The regulator (of the subgroup found by 2-descent).
+        (double) The regulator (of the subgroup found by 2-descent).
 
         EXAMPLES::
 
@@ -1342,7 +1342,10 @@ cdef class _two_descent:
             sage: D2.getbasis()
             '[[1:-1:1], [-2:3:1], [-14:25:8]]'
             sage: D2.regulator()
-            0.41714355875838
+            0.417143558758384
         """
+        cdef double reg
         sig_on()
-        return float(string_sigoff(two_descent_regulator(self.x)))
+        reg = two_descent_regulator(self.x)
+        sig_off()
+        return reg

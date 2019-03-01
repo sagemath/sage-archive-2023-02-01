@@ -14,7 +14,7 @@ long mwrank_get_precision()
 
 void mwrank_set_precision(long n)
 {
-  set_precision(n);
+  set_bit_precision(n);
 }
 
 void mwrank_initprimes(char* pfilename, int verb)
@@ -132,6 +132,7 @@ int mw_process(struct Curvedata* curve, struct mw* m,
   if (!P.isvalid())
     return 1;
   m->process(P, sat);
+  cout<<flush;
   return 0;
 }
 
@@ -166,12 +167,9 @@ char* mw_getbasis(struct mw* m)
   return point_vector_to_str(m->getbasis());
 }
 
-char* mw_regulator(struct mw* m)
+double mw_regulator(struct mw* m)
 {
-  bigfloat reg = m->regulator();
-  ostringstream instore;
-  instore << reg;
-  return stringstream_to_char(instore);
+  return to_double(m->regulator());
 }
 
 int mw_rank(struct mw* m)
@@ -201,11 +199,9 @@ bigfloat str_to_bigfloat(char* s) {
 
 void mw_search(struct mw* m, char* h_lim, int moduli_option, int verb)
 {
-
   m->search(str_to_bigfloat(h_lim), moduli_option, verb);
+  cout<<flush;
 }
-
-
 
 
 //////// two_descent //////////
@@ -245,10 +241,7 @@ void two_descent_saturate(struct two_descent* t, long sat_bd)
   t->saturate(sat_bd);
 }
 
-char* two_descent_regulator(struct two_descent* t)
+double two_descent_regulator(struct two_descent* t)
 {
-  bigfloat reg = t->regulator();
-  ostringstream instore;
-  instore << reg;
-  return stringstream_to_char(instore);
+  return to_double(t->regulator());
 }

@@ -1,4 +1,9 @@
 from __future__ import absolute_import
+from six.moves import copyreg
+
+
+class alpha(object):
+    pass
 
 
 class bar:
@@ -16,15 +21,16 @@ def metaclass(name, bases):
 
     EXAMPLES::
 
-        sage: from sage.misc.test_class_pickling import metaclass, bar
-        sage: c = metaclass("foo2", (object, bar,))
+        sage: from sage.misc.test_class_pickling import metaclass, alpha, bar
+        sage: c = metaclass("foo2", (alpha, bar,))
         constructing class
         sage: c
         <class 'sage.misc.test_class_pickling.foo2'>
         sage: type(c)
         <class 'sage.misc.test_class_pickling.Metaclass'>
         sage: c.__bases__
-        (<... 'object'>, <class sage.misc.test_class_pickling.bar at ...>)
+        (<class ...sage.misc.test_class_pickling.alpha...>,
+         <class ...sage.misc.test_class_pickling.bar...>)
 
     """
     print("constructing class")
@@ -45,8 +51,8 @@ class Metaclass(type):
 
     EXAMPLES::
 
-        sage: from sage.misc.test_class_pickling import metaclass, bar
-        sage: c = metaclass("foo", (object, bar,))
+        sage: from sage.misc.test_class_pickling import metaclass, alpha, bar
+        sage: c = metaclass("foo", (alpha, bar,))
         constructing class
         sage: from six.moves import cPickle
         sage: s = cPickle.dumps(c)
@@ -68,16 +74,18 @@ class Metaclass(type):
 
         EXAMPLES::
 
-            sage: from sage.misc.test_class_pickling import metaclass, bar
-            sage: c = metaclass("foo3", (object, bar,))
+            sage: from sage.misc.test_class_pickling import metaclass, alpha, bar
+            sage: c = metaclass("foo3", (alpha, bar,))
             constructing class
             sage: c.__class__.__reduce__(c)
             reducing a class
-            (<function metaclass at ...>, ('foo3', (<... 'object'>, <class sage.misc.test_class_pickling.bar at ...>)))
+            (<function metaclass at ...>,
+             ('foo3',
+              (<class ...sage.misc.test_class_pickling.alpha...>,
+               <class ...sage.misc.test_class_pickling.bar...>)))
         """
         print("reducing a class")
         return (metaclass, self.reduce_args)
 
 
-from six.moves import copyreg
 copyreg.pickle(Metaclass, Metaclass.__reduce__)

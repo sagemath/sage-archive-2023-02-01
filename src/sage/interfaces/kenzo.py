@@ -150,7 +150,7 @@ def EilenbergMacLaneSpace(G, n):
 
     EXAMPLES::
 
-        sage: from sage.interfaces.kenzo import EilenbergMacLaneSpace
+        sage: from sage.interfaces.kenzo import EilenbergMacLaneSpace    # optional - kenzo
         sage: e3 = EilenbergMacLaneSpace(ZZ, 3)                          # optional - kenzo
         sage: [e3.homology(i) for i in range(8)]                         # optional - kenzo
         [Z, 0, 0, Z, 0, C2, 0, C3]

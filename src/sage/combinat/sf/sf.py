@@ -135,7 +135,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: p['something']
         Traceback (most recent call last):
         ...
-        ValueError: 'something' is not an element of Partitions
+        ValueError: all parts of 'something' should be nonnegative integers
         sage: p.basis()['something']
         p'something'
 

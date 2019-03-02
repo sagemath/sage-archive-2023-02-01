@@ -956,7 +956,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
             variable_names_t = self.variable_names()
 
             if variable_names_s.issubset(variable_names_t):
-                return eval(str(element),self.gens_dict())
+                return eval(str(element),self.gens_dict(copy=False))
 
             elif element.parent().ngens() <= self.ngens():
                 Q = element.parent()
@@ -3465,7 +3465,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
         cdef dict gd
 
         if not try_symbolic:
-            gd = parent.gens_dict()
+            gd = parent.gens_dict(copy=False)
             for m,v in kw.iteritems():
                 m = gd[m]
                 for i from 0 < i <= _ring.N:
@@ -3545,7 +3545,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
 
                 g[mi-1] = v
 
-        gd = parent.gens_dict()
+        gd = parent.gens_dict(copy=False)
         for m,v in kw.iteritems():
             m = gd[m]
             for i from 0 < i <= _ring.N:

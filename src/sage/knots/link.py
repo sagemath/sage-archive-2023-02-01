@@ -36,7 +36,7 @@ AUTHORS:
 - Amit Jamadagni
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2014  Miguel Angel Marco Buzunariz
 #                           Amit Jamadagni
 #
@@ -44,8 +44,8 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import division
 
 import six
@@ -1722,12 +1722,13 @@ class Link(object):
         """
         Return the signature of ``self``.
 
-        This is defined using a Seifert matrix `V` as the signature of
-        the symmetric matrix
+        This is defined as the signature of the symmetric matrix
 
         .. MATH::
 
-             V + V^{t}.
+             V + V^{t},
+
+        where `V` is the :meth:`Seifert matrix <seifert_matrix>`.
 
         .. SEEALSO:: :meth:`omega_signature`, :meth:`seifert_matrix`
 
@@ -1747,7 +1748,7 @@ class Link(object):
         """
         V = self.seifert_matrix()
         m = V + V.transpose()
-        return sum([j.real().sign() for j in m.eigenvalues()], ZZ.zero())
+        return ZZ.sum(j.real().sign() for j in m.eigenvalues())
 
     def omega_signature(self, omega):
         r"""
@@ -1758,13 +1759,13 @@ class Link(object):
         - `\omega` -- a complex number of modulus 1. This is assumed to be
           coercible to ``QQbar``.
 
-        This is defined using a Seifert matrix `V` as the signature of
-        the Hermitian matrix
+        This is defined as the signature of the Hermitian matrix
 
         .. MATH::
 
-             (1-\omega) V + (1 - \omega^{-1}) V^{t},
+             (1 - \omega) V + (1 - \omega^{-1}) V^{t},
 
+        where `V` is the :meth:`Seifert matrix <seifert_matrix>`,
         as explained on page 122 of [Livi1993]_.
 
         According to [Conway2018]_, this is also known as the
@@ -1794,7 +1795,7 @@ class Link(object):
         omega = QQbar(omega)
         V = self.seifert_matrix()
         m = (1 - omega) * V + (1 - omega.conjugate()) * V.transpose()
-        return sum([j.real().sign() for j in m.eigenvalues()], ZZ.zero())
+        return ZZ.sum(j.real().sign() for j in m.eigenvalues())
 
     def alexander_polynomial(self, var='t'):
         """

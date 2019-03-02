@@ -356,7 +356,9 @@ class Polyhedron_base(Element):
         consistent state any more and neither the polyhedron nor its
         H/V-representation objects may be used any more.
 
-        .. SEEALSO:: :meth:`~sage.geometry.polyhedron.parent.Polyhedra_base.recycle`
+        .. SEEALSO::
+
+            :meth:`~sage.geometry.polyhedron.parent.Polyhedra_base.recycle`
 
         EXAMPLES::
 
@@ -2302,7 +2304,7 @@ class Polyhedron_base(Element):
 
         .. SEEALSO::
 
-        :meth:`representative_point`.
+            :meth:`representative_point`.
 
         OUTPUT:
 
@@ -2333,7 +2335,7 @@ class Polyhedron_base(Element):
 
         .. SEEALSO::
 
-        :meth:`center`.
+            :meth:`center`.
 
         OUTPUT:
 
@@ -4677,8 +4679,7 @@ class Polyhedron_base(Element):
 
         .. SEEALSO::
 
-        :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.schlegel_projection`
-        for a more interesting projection.
+            :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.schlegel_projection` for a more interesting projection.
 
         OUTPUT:
 
@@ -5157,7 +5158,7 @@ class Polyhedron_base(Element):
 
         .. SEEALSO::
 
-        :meth:`interior_contains`, :meth:`relative_interior_contains`.
+            :meth:`interior_contains`, :meth:`relative_interior_contains`.
 
         INPUT:
 
@@ -5237,8 +5238,7 @@ class Polyhedron_base(Element):
 
         .. SEEALSO::
 
-        :meth:`contains`,
-        :meth:`relative_interior_contains`.
+            :meth:`contains`, :meth:`relative_interior_contains`.
 
         INPUT:
 
@@ -5294,8 +5294,8 @@ class Polyhedron_base(Element):
         contains the given ``point``.
 
         .. SEEALSO::
-        
-        :meth:`contains`, :meth:`interior_contains`.
+
+            :meth:`contains`, :meth:`interior_contains`.
 
         INPUT:
 

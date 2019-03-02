@@ -39,7 +39,7 @@ from sage.categories.realizations import Realizations, Category_realization_of_p
 from sage.misc.cachefunc import cached_method
 from sage.misc.constant_function import ConstantFunction
 from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
-from sage.rings.all import Integer
+from sage.rings.all import Integer, ZZ
 from sage.cpython.getattr import raw_getattr
 
 
@@ -591,7 +591,7 @@ class KBoundedQuotientBases(Category_realization_of_parent):
                 sage: F[[]]
                 F3[]
             """
-            if isinstance(c, (int, Integer)):
+            if c in ZZ:
                 c = self._kbounded_partitions([c])
             else:
                 c = self._kbounded_partitions(c)

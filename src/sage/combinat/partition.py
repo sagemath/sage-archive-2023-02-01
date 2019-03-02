@@ -541,11 +541,14 @@ class Partition(CombinatorialElement):
 
         """
         if isinstance(mu, Partition):
-            # Since we are (suppose to be) immutable, we can share the underlying data
+            # since we are (suppose to be) immutable, we can share the underlying data
             CombinatorialElement.__init__(self, parent, mu._list)
         else:
-            while mu and not mu[-1]:
+            if mu and not mu[-1]:
+                # direct callers might assume that mu is not modified
                 mu = mu[:-1]
+                while mu and not mu[-1]:
+                    mu.pop()
             CombinatorialElement.__init__(self, parent, mu)
 
     @cached_method
@@ -5923,23 +5926,31 @@ class Partitions(UniqueRepresentation, Parent):
             ([4, 4, 2, 2, 1])
             sage: P(elt)
             [4, 4, 2, 2, 1]
+
+        TESTS::
+
+            sage: Partition([3/2])
+            Traceback (most recent call last):
+            ...
+            ValueError: all parts of [3/2] should be nonnegative integers
+
         """
         if isinstance(lst, PartitionTuple):
             if lst.level() != 1:
-                raise ValueError('%s is not an element of %s'%(lst, self))
+                raise ValueError('%s is not an element of %s' % (lst, self))
             lst = lst[0]
             if lst.parent() is self:
                 return lst
         try:
             lst = list(map(ZZ, lst))
         except TypeError:
-            raise ValueError('%s is not an element of %s'%(repr(lst), self))
+            raise ValueError('all parts of %s should be nonnegative integers' % repr(lst))
 
         if lst in self:
             # trailing zeros are removed in Partition.__init__
             return self.element_class(self, lst)
 
-        raise ValueError('%s is not an element of %s'%(lst, self))
+        raise ValueError('%s is not an element of %s' % (lst, self))
 
     def __contains__(self, x):
         """

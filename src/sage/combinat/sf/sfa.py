@@ -1589,10 +1589,18 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             s[2, 1]
             sage: s[Partition([2,1])]
             s[2, 1]
+
+        TESTS:
+
+        Check that a single number which is in ``ZZ`` can be used::
+
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: s[QQbar(2)]
+            s[2]
         """
         C = self.basis().keys()
         if not isinstance(c, C.element_class):
-            if isinstance(c, (int, Integer)):
+            if c in ZZ:
                 c = C([c])
             else:
                 c = C(c)

@@ -2300,7 +2300,9 @@ class Polyhedron_base(Element):
         """
         Return the average of the vertices.
 
-        See also :meth:`representative_point`.
+        .. SEEALSO::
+
+        :meth:`representative_point`.
 
         OUTPUT:
 
@@ -2329,7 +2331,9 @@ class Polyhedron_base(Element):
         """
         Return a "generic" point.
 
-        See also :meth:`center`.
+        .. SEEALSO::
+
+        :meth:`center`.
 
         OUTPUT:
 
@@ -2665,7 +2669,7 @@ class Polyhedron_base(Element):
 
         .. SEEALSO::
 
-            :meth:`~sage.geometry.polyhedron.base.face_fan`.
+            :meth:`face_fan`.
 
         EXAMPLES::
 
@@ -2720,7 +2724,7 @@ class Polyhedron_base(Element):
 
         .. SEEALSO::
 
-            :meth:`~sage.geometry.polyhedron.base.normal_fan`.
+            :meth:`normal_fan`.
 
         EXAMPLES::
 
@@ -4671,7 +4675,8 @@ class Polyhedron_base(Element):
         """
         Return a projection object.
 
-        See also
+        .. SEEALSO::
+
         :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.schlegel_projection`
         for a more interesting projection.
 
@@ -5150,8 +5155,9 @@ class Polyhedron_base(Element):
         """
         Test whether the polyhedron contains the given ``point``.
 
-        See also :meth:`interior_contains` and
-        :meth:`relative_interior_contains`.
+        .. SEEALSO::
+
+        :meth:`interior_contains`, :meth:`relative_interior_contains`.
 
         INPUT:
 
@@ -5229,7 +5235,9 @@ class Polyhedron_base(Element):
         Test whether the interior of the polyhedron contains the
         given ``point``.
 
-        See also :meth:`contains` and
+        .. SEEALSO::
+
+        :meth:`contains`,
         :meth:`relative_interior_contains`.
 
         INPUT:
@@ -5285,7 +5293,9 @@ class Polyhedron_base(Element):
         Test whether the relative interior of the polyhedron
         contains the given ``point``.
 
-        See also :meth:`contains` and :meth:`interior_contains`.
+        .. SEEALSO::
+        
+        :meth:`contains`, :meth:`interior_contains`.
 
         INPUT:
 

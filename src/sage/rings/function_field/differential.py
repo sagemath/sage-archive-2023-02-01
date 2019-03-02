@@ -46,6 +46,8 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import absolute_import
 
+from sage.misc.latex import latex
+
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import ModuleElement
@@ -62,29 +64,36 @@ class FunctionFieldDifferential(ModuleElement):
 class FunctionFieldDifferential_global(FunctionFieldDifferential):
     """
     Differentials on global function fields.
+
+    INPUT:
+
+    - ``f`` -- element of the function field
+
+    - ``t`` -- element of the function field; if `t` is not specified, `t`
+      is the generator of the base rational function field
+
+    EXAMPLES::
+
+        sage: F.<x>=FunctionField(GF(7))
+        sage: f = x/(x^2 + x + 1)
+        sage: f.differential()
+        ((6*x^2 + 1)/(x^4 + 2*x^3 + 3*x^2 + 2*x + 1)) d(x)
+
+        sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+        sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
+        sage: y.differential()
+        (x*y^2 + 1/x*y) d(x)
     """
     def __init__(self, parent, f, t=None):
         """
         Initialize the differential `fdt`.
 
-        INPUT:
-
-        - ``f`` -- element of the function field
-
-        - ``t`` -- element of the function field; if `t` is not specified, `t`
-          is the generator of the base rational function field
-
-        EXAMPLES::
+        TESTS::
 
             sage: F.<x>=FunctionField(GF(7))
-            sage: f = x / (x^2 + x + 1)
-            sage: f.differential()
-            ((6*x^2 + 1)/(x^4 + 2*x^3 + 3*x^2 + 2*x + 1)) d(x)
-
-            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
-            sage: y.differential()
-            (x*y^2 + 1/x*y) d(x)
+            sage: f = x/(x^2 + x + 1)
+            sage: w = f.differential()
+            sage: TestSuite(w).run()
         """
         ModuleElement.__init__(self, parent)
 
@@ -114,6 +123,24 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
         r =  'd({})'.format(F.base_field().gen())
         if self._f != 1:
             r = '({})'.format(self._f) + ' ' + r
+        return r
+
+    def _latex_(self):
+        r"""
+        Return a latex representation of the differential.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(4)); _.<Y>=K[]
+            sage: L.<y> = K.extension(Y^3+x+x^3*Y)
+            sage: w = y.differential()
+            sage: latex(w)
+            \left( x y^{2} + \frac{1}{x} y \right)\, dx
+        """
+        F = self.parent().function_field()
+        r =  'd{}'.format(F.base_field().gen())
+        if self._f != 1:
+            r = '\\left(' + latex(self._f) + '\\right)\\,' + r
         return r
 
     def _richcmp_(self, other, op):

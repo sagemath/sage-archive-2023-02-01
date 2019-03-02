@@ -553,7 +553,6 @@ class FunctionFieldDivisor(ModuleElement):
         fbasis, _ = self._differential_space()
         return [W.element_class(W, f) for f in fbasis]
 
-    @cached_method
     def differential_space(self):
         """
         Return the vector space of the differential space `\Omega(D)` of the divisor `D`.
@@ -603,6 +602,7 @@ class FunctionFieldDivisor(ModuleElement):
 
         return V, mor_from_V, mor_to_V
 
+    @cached_method
     def _differential_space(self):
         """
         Return an (echelon) basis and coordinates function for the differential
@@ -908,7 +908,7 @@ class DivisorGroup(UniqueRepresentation, Parent):
         """
         if x == 0:
             return self.element_class(self, {})
-        raise NotImplementedError
+        raise ValueError
 
     def _coerce_map_from_(self, S):
         """

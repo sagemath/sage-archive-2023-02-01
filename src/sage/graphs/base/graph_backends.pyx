@@ -703,7 +703,9 @@ cdef class GenericGraphBackend(SageObject):
         No problems with loops and multiple edges, with Labels::
 
             sage: g = Graph(multiedges=True, loops=True)
-            sage: g.add_edges(2 * graphs.PetersenGraph().edges(sort=False))
+            sage: E = graphs.PetersenGraph().edges(sort=False)
+            sage: g.add_edges(E)
+            sage: g.add_edges(E)
             sage: g.add_edge(0, 0)
             sage: g.add_edge(1, 1, "a label")
             sage: g.add_edges([(0, 1, "labellll"), (0, 1, "labellll"), (0, 1, "LABELLLL")])

@@ -2114,9 +2114,9 @@ def cleave(G, cut_vertices=None, virtual_edges=True, solver=None, verbose=0):
     # is needed.
     cocycles = Graph([cut_vertices, []], multiedges=True)
     if K.size():
-        cocycles.add_edges(K.edges(sort=False) * (len(cut_sides) + 1))
+        cocycles.add_edges(list(K.edge_iterator()) * (len(cut_sides) + 1))
     if virtual_edges and virtual_cut_graph:
-        cocycles.add_edges(virtual_cut_graph.edges(sort=False) * len(cut_sides))
+        cocycles.add_edges(list(virtual_cut_graph.edge_iterator()) * len(cut_sides))
 
     return cut_sides, cocycles, virtual_cut_graph
 
@@ -2255,7 +2255,7 @@ def spqr_tree(G, algorithm="Hopcroft_Tarjan", solver=None, verbose=0):
         sage: T = G.spqr_tree(algorithm="cleave")
         sage: Counter(u[0] for u in T)
         Counter({'R': 1})
-        sage: for u,v in G.edges(labels=False, sort=False):
+        sage: for u,v in list(G.edge_iterator(labels=False)):
         ....:     G.add_path([u, G.add_vertex(), G.add_vertex(), v])
         sage: T = G.spqr_tree(algorithm="Hopcroft_Tarjan")
         sage: sorted(Counter(u[0] for u in T).items())
@@ -2263,7 +2263,7 @@ def spqr_tree(G, algorithm="Hopcroft_Tarjan", solver=None, verbose=0):
         sage: T = G.spqr_tree(algorithm="cleave")
         sage: sorted(Counter(u[0] for u in T).items())
         [('P', 15), ('R', 1), ('S', 15)]
-        sage: for u,v in G.edges(labels=False, sort=False):
+        sage: for u,v in list(G.edge_iterator(labels=False)):
         ....:     G.add_path([u, G.add_vertex(), G.add_vertex(), v])
         sage: T = G.spqr_tree(algorithm="Hopcroft_Tarjan")
         sage: sorted(Counter(u[0] for u in T).items())

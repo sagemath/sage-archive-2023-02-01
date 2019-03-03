@@ -460,6 +460,42 @@ def experimental_packages():
     return (sorted(pkg['name'] for pkg in pkgs if pkg['installed']),
             sorted(pkg['name'] for pkg in pkgs if not pkg['installed']))
 
+def package_manifest(package):
+    """
+    Return the manifest for ``package``.
+
+    INPUT:
+
+    - ``package`` -- package name
+
+    The manifest is written in the file
+    ``SAGE_SPKG_INST/package-VERSION``. It is a JSON file containing a
+    dictionary with the package name, version, installation date, list
+    of installed files, etc.
+
+    EXAMPLES::
+
+        sage: from sage.misc.package import package_manifest
+        sage: sagetex_manifest = package_manifest('sagetex')
+        sage: sagetex_manifest['package_name'] == 'sagetex'
+        True
+        sage: 'files' in sagetex_manifest
+        True
+
+    Test a nonexistent package::
+
+        sage: package_manifest('dummy-package')
+        Traceback (most recent call last):
+        ...
+        KeyError: 'dummy-package'
+    """
+    version = installed_packages()[package]
+    stamp_file = os.path.join(os.environ['SAGE_SPKG_INST'],
+                              '{}-{}'.format(package, version))
+    with open(stamp_file) as f:
+        spkg_meta = json.load(f)
+    return spkg_meta
+
 
 class PackageNotFoundError(RuntimeError):
     """

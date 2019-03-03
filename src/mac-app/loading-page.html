@@ -85,9 +85,11 @@ var randomcontentdisplay={
         var randomcontentsearch=new RegExp(this.masterclass, "i") //check for CSS class="randomcontent groupX" (x=integer)
 		for (var i=0; i<alldivs.length; i++){
 			if (randomcontentsearch.test(alldivs[i].className)){
-				if (typeof this.divholders[RegExp.$1]=="undefined") //if array to hold this group of divs doesn't exist yet
-					this.divholders[RegExp.$1]=new Array() //create array first
-					this.divholders[RegExp.$1].push(alldivs[i]) //add this div to the array
+				if (typeof this.divholders[RegExp.$1]=="undefined") //if array to hold this group of divs does not exist yet
+					        {
+                                                this.divholders[RegExp.$1]=new Array() //create array first
+					        this.divholders[RegExp.$1].push(alldivs[i]) //add this div to the array
+                                                }
                     alldivs[i].style.display="none" //hide everything in case it's the second time this is called
 			}
 		}
@@ -126,7 +128,7 @@ var randomcontentdisplay={
 
   <h3>If you think you have waited long enough...</h2>
 
-  <p>Try <code>View Log</code> under the <code>Server</code> menu (or at the root of the menubar item's menu) which may give you some clues as to why it has not started.  It should show the URL (including token) for accessing the Jupyter interface in case it doesn't open automatically.</p>
+  <p>Try <code>View Log</code> under the <code>Server</code> menu (or at the root of the menubar item's menu) which may give you some clues as to why it has not started.  It should show the URL (including token) for accessing the Jupyter interface in case it does not open automatically.</p>
 
   <p>If the problem persists <a href="mailto:sage-support@googlegroups.com">email for support</a>,  ask a question on the <a href="http://ask.sagemath.org/questions/">question and answer site</a>
   or try one of the other many <a href="http://sagemath.org/help.html">avenues of support</a>.</p>
@@ -191,7 +193,7 @@ var randomcontentdisplay={
   <p class="randomcontent">Sage can be integrated with LaTeX
     using <a href="http://doc.sagemath.org/html/en/tutorial/sagetex.html">SageTeX</a>.</p>
 
-  <p class="randomcontent">If you find that LaTeX doesn't work, try
+  <p class="randomcontent">If you find that LaTeX does not work, try
     adding <code>os.environ["PATH"]+=":/usr/texbin:/usr/local/bin"</code> to <code>$HOME/.sage/init.sage</code></p>
 
   <p class="randomcontent">You can use Sage
@@ -224,7 +226,7 @@ var randomcontentdisplay={
   <!--}}}-->
   <!--{{{ Math/programming quotes -->
 
-  <p class="randomcontent">A mathematician is a blind man in a dark room looking for a black cat which isn't there.
+  <p class="randomcontent">A mathematician is a blind man in a dark room looking for a black cat which is not there.
     <br>--Charles R. Darwin</p>
 
   <p class="randomcontent">Mathematics is the art of reducing any problem to linear algebra.
@@ -248,7 +250,7 @@ var randomcontentdisplay={
 
   <p class="randomcontent">∀∀∃∃</p>
 
-  <p class="randomcontent">In mathematics you don't understand things.  You just get used to them.
+  <p class="randomcontent">In mathematics you do not understand things.  You just get used to them.
     <br>--John von Neumann</p>
 
   <p class="randomcontent">A mathematician is a machine for turning coffee into theorems.

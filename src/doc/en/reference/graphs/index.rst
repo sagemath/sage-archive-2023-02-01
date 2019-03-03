@@ -14,7 +14,7 @@ Graph objects and methods
    sage/graphs/graph
    sage/graphs/digraph
    sage/graphs/bipartite_graph
-
+  sage/graphs/views.py
 
 Constructors and databases
 --------------------------

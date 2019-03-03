@@ -184,8 +184,8 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
         sage: from numpy import int8, float64
         sage: algdep(float64(1.888888888888888), int8(1))
         9*x - 17
-        sage: from gmpy2 import mpz, mpfr               # optional - gmpy2
-        sage: algdep(mpfr(1.888888888888888), mpz(1))   # optional - gmpy2
+        sage: from gmpy2 import mpz, mpfr
+        sage: algdep(mpfr(1.888888888888888), mpz(1))
         9*x - 17
     """
     if proof and not height_bound:
@@ -341,8 +341,8 @@ def bernoulli(n, algorithm='default', num_threads=1):
         sage: from numpy import int8
         sage: bernoulli(int8(12))
         -691/2730
-        sage: from gmpy2 import mpz     # optional - gmpy2
-        sage: bernoulli(mpz(12))        # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: bernoulli(mpz(12))
         -691/2730
 
 
@@ -426,8 +426,8 @@ def factorial(n, algorithm='gmp'):
         sage: from numpy import int8
         sage: factorial(int8(4))
         24
-        sage: from gmpy2 import mpz     # optional - gmpy2
-        sage: factorial(mpz(4))         # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: factorial(mpz(4))
         24
 
 
@@ -600,8 +600,8 @@ def is_prime_power(n, get_data=False):
         Traceback (most recent call last):
         ...
         TypeError: unable to convert 'foo' to an integer
-        sage: from gmpy2 import mpz     # optional - gmpy2
-        sage: is_prime_power(mpz(389))  # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: is_prime_power(mpz(389))
         True
         sage: from numpy import int16
         sage: is_prime_power(int16(389))
@@ -657,8 +657,8 @@ def is_pseudoprime_power(n, get_data=False):
         sage: from numpy import int16
         sage: is_pseudoprime_power(int16(1024))
         True
-        sage: from gmpy2 import mpz             # optional - gmpy2
-        sage: is_pseudoprime_power(mpz(1024))   # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: is_pseudoprime_power(mpz(1024))
         True
     """
     return ZZ(n).is_prime_power(proof=False, get_data=get_data)
@@ -725,8 +725,8 @@ def valuation(m, *args, **kwds):
         sage: from numpy import int16
         sage: valuation(int16(512), int16(2))
         9
-        sage: from gmpy2 import mpz         # optional - gmpy2
-        sage: valuation(mpz(512), mpz(2))   # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: valuation(mpz(512), mpz(2))
         9
     """
     try:
@@ -826,8 +826,8 @@ def prime_powers(start, stop=None):
         sage: from numpy import int8
         sage: prime_powers(int8(20))
         [2, 3, 4, 5, 7, 8, 9, 11, 13, 16, 17, 19]
-        sage: from gmpy2 import mpz     # optional - gmpy2
-        sage: prime_powers(mpz(20))     # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: prime_powers(mpz(20))
         [2, 3, 4, 5, 7, 8, 9, 11, 13, 16, 17, 19]
     """
     start = ZZ(start)
@@ -917,8 +917,8 @@ def eratosthenes(n):
         sage: from numpy import int8
         sage: eratosthenes(int8(3))
         [2, 3]
-        sage: from gmpy2 import mpz     # optional - gmpy2
-        sage: eratosthenes(mpz(3))      # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: eratosthenes(mpz(3))
         [2, 3]
     """
     n = int(n)
@@ -1013,8 +1013,8 @@ def primes(start, stop=None, proof=None):
         sage: from numpy import int8
         sage: list(primes(int8(13)))
         [2, 3, 5, 7, 11]
-        sage: from gmpy2 import mpz     # optional - gmpy2
-        sage: list(primes(mpz(13)))     # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: list(primes(mpz(13)))
         [2, 3, 5, 7, 11]
     """
     from sage.rings.infinity import infinity
@@ -1085,8 +1085,8 @@ def next_prime_power(n):
         sage: from numpy import int8
         sage: next_prime_power(int8(10))
         11
-        sage: from gmpy2 import mpz     # optional - gmpy2
-        sage: next_prime_power(mpz(10)) # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: next_prime_power(mpz(10))
         11
     """
     return ZZ(n).next_prime_power()
@@ -1117,8 +1117,8 @@ def next_probable_prime(n):
         sage: from numpy import int8
         sage: next_probable_prime(int8(19))
         23
-        sage: from gmpy2 import mpz         # optional - gmpy2
-        sage: next_probable_prime(mpz(19))  # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: next_probable_prime(mpz(19))
         23
     """
     return ZZ(n).next_probable_prime()
@@ -1166,8 +1166,8 @@ def next_prime(n, proof=None):
         sage: from numpy import int8
         sage: next_prime(int8(3))
         5
-        sage: from gmpy2 import mpz         # optional - gmpy2
-        sage: next_probable_prime(mpz(3))   # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: next_probable_prime(mpz(3))
         5
     """
     return ZZ(n).next_prime(proof)
@@ -1209,8 +1209,8 @@ def previous_prime(n):
         sage: from numpy import int8
         sage: previous_prime(int8(7))
         5
-        sage: from gmpy2 import mpz     # optional - gmpy2
-        sage: previous_prime(mpz(7))    # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: previous_prime(mpz(7))
         5
     """
     n = ZZ(n)-1
@@ -1288,8 +1288,8 @@ def previous_prime_power(n):
         sage: from numpy import int8
         sage: previous_prime_power(int8(10))
         9
-        sage: from gmpy2 import mpz         # optional - gmpy2
-        sage: previous_prime_power(mpz(10)) # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: previous_prime_power(mpz(10))
         9
     """
     return ZZ(n).previous_prime_power()
@@ -1449,8 +1449,8 @@ def divisors(n):
         sage: import numpy
         sage: divisors(numpy.int8(100))
         [1, 2, 4, 5, 10, 20, 25, 50, 100]
-        sage: import gmpy2              # optional - gmpy2
-        sage: divisors(gmpy2.mpz(100))  # optional - gmpy2
+        sage: import gmpy2
+        sage: divisors(gmpy2.mpz(100))
         [1, 2, 4, 5, 10, 20, 25, 50, 100]
         sage: divisors([])
         Traceback (most recent call last):
@@ -1539,8 +1539,8 @@ class Sigma:
         sage: from numpy import int8
         sage: sigma(int8(100),int8(4))
         106811523
-        sage: from gmpy2 import mpz     # optional - gmpy2
-        sage: sigma(mpz(100),mpz(4))    # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: sigma(mpz(100),mpz(4))
         106811523
     """
     def __repr__(self):
@@ -1723,10 +1723,10 @@ def gcd(a, b=None, **kwargs):
         sage: from numpy import int8
         sage: GCD(int8(97),int8(100))
         1
-        sage: from gmpy2 import mpq, mpz    # optional - gmpy2
-        sage: GCD(mpq(2/3), mpq(4/5))       # optional - gmpy2
+        sage: from gmpy2 import mpq, mpz
+        sage: GCD(mpq(2/3), mpq(4/5))
         2/15
-        sage: GCD((mpz(2), mpz(4)))         # optional - gmpy2
+        sage: GCD((mpz(2), mpz(4)))
         2
     """
     # Most common use case first:
@@ -1821,8 +1821,8 @@ def xlcm(m, n):
         sage: from numpy import int16
         sage: xlcm(int16(120), int16(36))
         (360, 40, 9)
-        sage: from gmpy2 import mpz     # optional - gmpy2
-        sage: xlcm(mpz(120), mpz(36))   # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: xlcm(mpz(120), mpz(36))
         (360, 40, 9)
     """
     m = py_scalar_to_element(m)
@@ -1912,10 +1912,10 @@ def xgcd(a, b):
         (4, 1, 0)
         sage: xgcd(int8(4),int8(8))
         (4, 1, 0)
-        sage: from gmpy2 import mpz # optional - gmpy2
-        sage: xgcd(mpz(4), mpz(8))  # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: xgcd(mpz(4), mpz(8))
         (4, 1, 0)
-        sage: xgcd(4, mpz(8))       # optional - gmpy2
+        sage: xgcd(4, mpz(8))
         (4, 1, 0)
 
     TESTS:
@@ -2045,8 +2045,8 @@ def inverse_mod(a, m):
         sage: from numpy import int8
         sage: inverse_mod(int8(5),int8(14))
         3
-        sage: from gmpy2 import mpz         # optional - gmpy2
-        sage: inverse_mod(mpz(5),mpz(14))   # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: inverse_mod(mpz(5),mpz(14))
         3
     """
     try:
@@ -2141,8 +2141,8 @@ def power_mod(a,n,m):
         sage: from numpy import int32
         sage: power_mod(int32(2),int32(390),int32(391))
         285
-        sage: from gmpy2 import mpz                 # optional - gmpy2
-        sage: power_mod(mpz(2),mpz(390),mpz(391))   # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: power_mod(mpz(2),mpz(390),mpz(391))
         mpz(285)
     """
     if m==0:
@@ -2260,8 +2260,8 @@ def rational_reconstruction(a, m, algorithm='fast'):
         sage: from numpy import int32
         sage: rational_reconstruction(int32(3), int32(292393))
         3
-        sage: from gmpy2 import mpz                         # optional - gmpy2
-        sage: rational_reconstruction(mpz(3), mpz(292393))  # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: rational_reconstruction(mpz(3), mpz(292393))
         3
     """
     if algorithm == 'fast':
@@ -2299,8 +2299,8 @@ def mqrr_rational_reconstruction(u, m, T):
         sage: from numpy import int16
         sage: mqrr_rational_reconstruction(int16(21),int16(3100),int16(13))
         (21, 1)
-        sage: from gmpy2 import mpz                                     # optional - gmpy2
-        sage: mqrr_rational_reconstruction(mpz(21),mpz(3100),mpz(13))   # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: mqrr_rational_reconstruction(mpz(21),mpz(3100),mpz(13))
         (21, 1)
     """
     u = py_scalar_to_element(u)
@@ -2367,8 +2367,8 @@ def trial_division(n, bound=None):
         sage: from numpy import int8
         sage: trial_division(int8(91))
         7
-        sage: from gmpy2 import mpz     # optional - gmpy2
-        sage: trial_division(mpz(91))   # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: trial_division(mpz(91))
         7
     """
     if bound is None:
@@ -2526,8 +2526,8 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
         sage: import numpy
         sage: factor(numpy.int8(30))
         2 * 3 * 5
-        sage: import gmpy2          # optional - gmpy2
-        sage: factor(gmpy2.mpz(30)) # optional - gmpy2
+        sage: import gmpy2
+        sage: factor(gmpy2.mpz(30))
         2 * 3 * 5
 
     TESTS::
@@ -2588,8 +2588,8 @@ def radical(n, *args, **kwds):
         sage: from numpy import int8
         sage: radical(int8(50))
         10
-        sage: from gmpy2 import mpz # optional - gmpy2
-        sage: radical(mpz(50))      # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: radical(mpz(50))
         10
     """
     try:
@@ -2646,8 +2646,8 @@ def prime_divisors(n):
         sage: from numpy import int8
         sage: prime_divisors(int8(-100))
         [2, 5]
-        sage: from gmpy2 import mpz     # optional - gmpy2
-        sage: prime_divisors(mpz(-100)) # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: prime_divisors(mpz(-100))
         [2, 5]
     """
     try:
@@ -2677,8 +2677,8 @@ def odd_part(n):
         sage: from numpy import int8
         sage: odd_part(int8(5))
         5
-        sage: from gmpy2 import mpz     # optional - gmpy2
-        sage: odd_part(mpz(5)) # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: odd_part(mpz(5))
         5
     """
     if not isinstance(n, Integer):
@@ -2719,8 +2719,8 @@ def prime_to_m_part(n,m):
         sage: from numpy import int16
         sage: prime_to_m_part(int16(240), int16(2))
         15
-        sage: from gmpy2 import mpz                 # optional - gmpy2
-        sage: prime_to_m_part(mpz(240), mpz(2))     # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: prime_to_m_part(mpz(240), mpz(2))
         15
     """
     return ZZ(n).prime_to_m_part(m)
@@ -2775,8 +2775,8 @@ def is_square(n, root=False):
         sage: from numpy import int8
         sage: is_square(int8(4))
         True
-        sage: from gmpy2 import mpz # optional - gmpy2
-        sage: is_square(mpz(4))     # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: is_square(mpz(4))
         True
 
     Tests with Polynomial::
@@ -2847,10 +2847,10 @@ def is_squarefree(n):
         False
         sage: is_squarefree(int8(101))
         True
-        sage: from gmpy2 import mpz     # optional - gmpy2
-        sage: is_squarefree(mpz(100))   # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: is_squarefree(mpz(100))
         False
-        sage: is_squarefree(mpz(101))   # optional - gmpy2
+        sage: is_squarefree(mpz(101))
         True
     """
     e = py_scalar_to_element(n)
@@ -2934,8 +2934,8 @@ class Euler_Phi:
         sage: from numpy import int8
         sage: euler_phi(int8(37))
         36
-        sage: from gmpy2 import mpz     # optional - gmpy2
-        sage: euler_phi(mpz(37))        # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: euler_phi(mpz(37))
         36
 
     AUTHORS:
@@ -3116,10 +3116,10 @@ def crt(a,b,m=None,n=None):
         sage: import numpy
         sage: crt(numpy.int8(2), numpy.int8(3), numpy.int8(7), numpy.int8(11))
         58
-        sage: from gmpy2 import mpz                     # optional - gmpy2
-        sage: crt(mpz(2), mpz(3), mpz(7), mpz(11))      # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: crt(mpz(2), mpz(3), mpz(7), mpz(11))
         58
-        sage: crt(mpz(2), 3, mpz(7), numpy.int8(11))    # optional - gmpy2
+        sage: crt(mpz(2), 3, mpz(7), numpy.int8(11))
         58
     """
     if isinstance(a, list):
@@ -3212,8 +3212,8 @@ def CRT_list(v, moduli):
         sage: from numpy import int8
         sage: CRT_list([int8(2),int8(3),int8(2)], [int8(3),int8(5),int8(7)])
         23
-        sage: from gmpy2 import mpz                                     # optional - gmpy2
-        sage: CRT_list([mpz(2),mpz(3),mpz(2)], [mpz(3),mpz(5),mpz(7)])  # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: CRT_list([mpz(2),mpz(3),mpz(2)], [mpz(3),mpz(5),mpz(7)])
         23
     """
     if not isinstance(v,list) or not isinstance(moduli,list):
@@ -3506,8 +3506,8 @@ def binomial(x, m, **kwds):
         sage: import numpy
         sage: binomial(numpy.int32(20), numpy.int32(10))
         184756
-        sage: import gmpy2                              # optional - gmpy2
-        sage: binomial(gmpy2.mpz(20), gmpy2.mpz(10))    # optional - gmpy2
+        sage: import gmpy2
+        sage: binomial(gmpy2.mpz(20), gmpy2.mpz(10))
         mpz(184756)
     """
     try:
@@ -3594,8 +3594,8 @@ def multinomial(*ks):
         sage: from numpy import int8
         sage: multinomial(int8(3), int8(2))
         10
-        sage: from gmpy2 import mpz         # optional - gmpy2
-        sage: multinomial(mpz(3), mpz(2))   # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: multinomial(mpz(3), mpz(2))
         mpz(10)
 
     AUTHORS:
@@ -3643,8 +3643,8 @@ def binomial_coefficients(n):
         sage: from numpy import int8
         sage: sorted(binomial_coefficients(int8(3)).items())
         [((0, 3), 1), ((1, 2), 3), ((2, 1), 3), ((3, 0), 1)]
-        sage: from gmpy2 import mpz                         # optional - gmpy2
-        sage: sorted(binomial_coefficients(mpz(3)).items()) # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: sorted(binomial_coefficients(mpz(3)).items())
         [((0, 3), 1), ((1, 2), 3), ((2, 1), 3), ((3, 0), 1)]
 
     AUTHORS:
@@ -3719,8 +3719,8 @@ def multinomial_coefficients(m, n):
         sage: from numpy import int8
         sage: sorted(multinomial_coefficients(int8(2), int8(5)).items())
         [((0, 5), 1), ((1, 4), 5), ((2, 3), 10), ((3, 2), 10), ((4, 1), 5), ((5, 0), 1)]
-        sage: from gmpy2 import mpz                                     # optional - gmpy2
-        sage: sorted(multinomial_coefficients(mpz(2), mpz(5)).items())  # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: sorted(multinomial_coefficients(mpz(2), mpz(5)).items())
         [((0, 5), 1), ((1, 4), 5), ((2, 3), 10), ((3, 2), 10), ((4, 1), 5), ((5, 0), 1)]
     """
     if not m:
@@ -3808,8 +3808,8 @@ def kronecker_symbol(x,y):
         sage: from numpy import int8
         sage: kronecker_symbol(int8(13),int8(21))
         -1
-        sage: from gmpy2 import mpz                 # optional - gmpy2
-        sage: kronecker_symbol(mpz(13),mpz(21))     # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: kronecker_symbol(mpz(13),mpz(21))
         -1
     """
     x = QQ(x).numerator() * QQ(x).denominator()
@@ -3859,8 +3859,8 @@ def legendre_symbol(x,p):
         sage: from numpy import int8
         sage: legendre_symbol(int8(2),int8(3))
         -1
-        sage: from gmpy2 import mpz             # optional - gmpy2
-        sage: legendre_symbol(mpz(2),mpz(3))    # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: legendre_symbol(mpz(2),mpz(3))
         -1
     """
     x = QQ(x).numerator() * QQ(x).denominator()
@@ -3914,8 +3914,8 @@ def jacobi_symbol(a,b):
         sage: from numpy import int16
         sage: jacobi_symbol(int16(10),int16(777))
         -1
-        sage: from gmpy2 import mpz             # optional - gmpy2
-        sage: jacobi_symbol(mpz(10),mpz(777))   # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: jacobi_symbol(mpz(10),mpz(777))
         -1
     """
 
@@ -4020,8 +4020,8 @@ def primitive_root(n, check=True):
         sage: from numpy import int8
         sage: primitive_root(int8(-46))
         5
-        sage: from gmpy2 import mpz     # optional - gmpy2
-        sage: primitive_root(mpz(-46))  # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: primitive_root(mpz(-46))
         5
     """
     if not check:
@@ -4076,8 +4076,8 @@ def nth_prime(n):
         sage: from numpy import int8
         sage: nth_prime(int8(10))
         29
-        sage: from gmpy2 import mpz     # optional - gmpy2
-        sage: nth_prime(mpz(10))        # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: nth_prime(mpz(10))
         29
     """
     if n <= 0:
@@ -4110,8 +4110,8 @@ def quadratic_residues(n):
         sage: from numpy import int8
         sage: quadratic_residues(int8(11))
         [0, 1, 3, 4, 5, 9]
-        sage: from gmpy2 import mpz         # optional - gmpy2
-        sage: quadratic_residues(mpz(11))   # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: quadratic_residues(mpz(11))
         [0, 1, 3, 4, 5, 9]
     """
     n = abs(int(n))
@@ -4173,8 +4173,8 @@ class Moebius:
         sage: from numpy import int8
         sage: moebius(int8(-5))
         -1
-        sage: from gmpy2 import mpz # optional - gmpy2
-        sage: moebius(mpz(-5))      # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: moebius(mpz(-5))
         -1
     """
     def __call__(self, n):
@@ -4359,8 +4359,8 @@ def continuant(v, n=None):
         sage: from numpy import int8
         sage: continuant([int8(1),int8(2),int8(3)])
         10
-        sage: from gmpy2 import mpz                 # optional - gmpy2
-        sage: continuant([mpz(1),mpz(2),mpz(3)])    # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: continuant([mpz(1),mpz(2),mpz(3)])
         mpz(10)
 
     AUTHORS:
@@ -4403,8 +4403,8 @@ def number_of_divisors(n):
         sage: from numpy import int8
         sage: number_of_divisors(int8(100))
         9
-        sage: from gmpy2 import mpz         # optional - gmpy2
-        sage: number_of_divisors(mpz(100))  # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: number_of_divisors(mpz(100))
         9
     """
     m = ZZ(n)
@@ -4467,8 +4467,8 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
         sage: from numpy import int8
         sage: hilbert_symbol(int8(2),int8(3),int8(5),algorithm='all')
         1
-        sage: from gmpy2 import mpz                                 # optional - gmpy2
-        sage: hilbert_symbol(mpz(2),mpz(3),mpz(5),algorithm='all')  # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: hilbert_symbol(mpz(2),mpz(3),mpz(5),algorithm='all')
         1
 
     AUTHORS:
@@ -4558,8 +4558,8 @@ def hilbert_conductor(a, b):
         sage: from numpy import int8
         sage: hilbert_conductor(int8(-3), int8(-17))
         17
-        sage: from gmpy2 import mpz                 # optional - gmpy2
-        sage: hilbert_conductor(mpz(-3), mpz(-17))  # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: hilbert_conductor(mpz(-3), mpz(-17))
         17
 
     AUTHOR:
@@ -4622,8 +4622,8 @@ def hilbert_conductor_inverse(d):
         sage: from numpy import int8
         sage: hilbert_conductor_inverse(int8(30))
         (-3, -10)
-        sage: from gmpy2 import mpz                 # optional - gmpy2
-        sage: hilbert_conductor_inverse(mpz(30))    # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: hilbert_conductor_inverse(mpz(30))
         (-3, -10)
     """
     Z = ZZ
@@ -4755,8 +4755,8 @@ def falling_factorial(x, a):
         sage: from numpy import int8
         sage: falling_factorial(int8(10), int8(3))
         720
-        sage: from gmpy2 import mpz                 # optional - gmpy2
-        sage: falling_factorial(mpz(10), mpz(3))    # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: falling_factorial(mpz(10), mpz(3))
         720
 
     AUTHORS:
@@ -4860,8 +4860,8 @@ def rising_factorial(x, a):
         sage: from numpy import int8
         sage: rising_factorial(int8(10), int8(3))
         1320
-        sage: from gmpy2 import mpz             # optional - gmpy2
-        sage: rising_factorial(mpz(10), mpz(3)) # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: rising_factorial(mpz(10), mpz(3))
         1320
 
     AUTHORS:
@@ -4897,8 +4897,8 @@ def integer_ceil(x):
         sage: from numpy import float32
         sage: integer_ceil(float32(5.4))
         6
-        sage: from gmpy2 import mpfr    # optional - gmpy2
-        sage: integer_ceil(mpfr(5.4))   # optional - gmpy2
+        sage: from gmpy2 import mpfr
+        sage: integer_ceil(mpfr(5.4))
         6
     """
     try:
@@ -4943,8 +4943,8 @@ def integer_floor(x):
         sage: from numpy import float32
         sage: integer_floor(float32(5.4))
         5
-        sage: from gmpy2 import mpfr    # optional - gmpy2
-        sage: integer_floor(mpfr(5.4))  # optional - gmpy2
+        sage: from gmpy2 import mpfr
+        sage: integer_floor(mpfr(5.4))
         5
     """
     try:
@@ -5006,8 +5006,8 @@ def two_squares(n):
         sage: from numpy import int16
         sage: two_squares(int16(389))
         (10, 17)
-        sage: from gmpy2 import mpz # optional - gmpy2
-        sage: two_squares(mpz(389)) # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: two_squares(mpz(389))
         (10, 17)
 
     ALGORITHM:
@@ -5130,8 +5130,8 @@ def three_squares(n):
         sage: from numpy import int16
         sage: three_squares(int16(389))
         (1, 8, 18)
-        sage: from gmpy2 import mpz     # optional - gmpy2
-        sage: three_squares(mpz(389))   # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: three_squares(mpz(389))
         (1, 8, 18)
 
     ALGORITHM:
@@ -5261,8 +5261,8 @@ def four_squares(n):
         sage: from numpy import int16
         sage: four_squares(int16(389))
         (0, 1, 8, 18)
-        sage: from gmpy2 import mpz     # optional - gmpy2
-        sage: four_squares(mpz(389))    # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: four_squares(mpz(389))
         (0, 1, 8, 18)
     """
     n = ZZ(n)
@@ -5355,8 +5355,8 @@ def sum_of_k_squares(k,n):
         sage: from numpy import int16
         sage: sum_of_k_squares(int16(2), int16(9634))
         (15, 97)
-        sage: from gmpy2 import mpz                 # optional - gmpy2
-        sage: sum_of_k_squares(mpz(2), mpz(9634))   # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: sum_of_k_squares(mpz(2), mpz(9634))
         (15, 97)
     """
     n = ZZ(n)
@@ -5426,8 +5426,8 @@ def subfactorial(n):
         sage: from numpy import int8
         sage: subfactorial(int8(8))
         14833
-        sage: from gmpy2 import mpz # optional - gmpy2
-        sage: subfactorial(mpz(8))  # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: subfactorial(mpz(8))
         14833
 
     AUTHORS:
@@ -5471,10 +5471,10 @@ def is_power_of_two(n):
         True
         sage: is_power_of_two(int8(24))
         False
-        sage: from gmpy2 import mpz     # optional - gmpy2
-        sage: is_power_of_two(mpz(16))  # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: is_power_of_two(mpz(16))
         True
-        sage: is_power_of_two(mpz(24))  # optional - gmpy2
+        sage: is_power_of_two(mpz(24))
         False
     """
     return ZZ(n).popcount() == 1
@@ -5502,8 +5502,8 @@ def differences(lis, n=1):
         sage: from numpy import int8
         sage: differences([int8(1),int8(4),int8(6),int8(19)])
         [3, 2, 13]
-        sage: from gmpy2 import mpz                         # optional - gmpy2
-        sage: differences([mpz(1),mpz(4),mpz(6),mpz(19)])   # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: differences([mpz(1),mpz(4),mpz(6),mpz(19)])
         [mpz(3), mpz(2), mpz(13)]
 
     AUTHORS:
@@ -5629,8 +5629,8 @@ def fundamental_discriminant(D):
         sage: from numpy import int8
         sage: fundamental_discriminant(int8(102))
         408
-        sage: from gmpy2 import mpz                 # optional - gmpy2
-        sage: fundamental_discriminant(mpz(102))    # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: fundamental_discriminant(mpz(102))
         408
     """
     D = ZZ(D)
@@ -5686,8 +5686,8 @@ def squarefree_divisors(x):
         sage: from numpy import int8
         sage: list(squarefree_divisors(int8(12)))
         [1, 2, 3, 6]
-        sage: from gmpy2 import mpz                 # optional - gmpy2
-        sage: list(squarefree_divisors(mpz(12)))    # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: list(squarefree_divisors(mpz(12)))
         [1, 2, 3, 6]
     """
     for a in powerset(prime_divisors(x)):
@@ -5784,8 +5784,8 @@ def dedekind_sum(p, q, algorithm='default'):
         sage: from numpy import int8
         sage: dedekind_sum(int8(5), int8(7), algorithm='default')
         -1/14
-        sage: from gmpy2 import mpz                             # optional - gmpy2
-        sage: dedekind_sum(mpz(5), mpz(7), algorithm='default') # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: dedekind_sum(mpz(5), mpz(7), algorithm='default')
         -1/14
 
     REFERENCES:

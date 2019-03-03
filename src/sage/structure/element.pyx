@@ -3508,6 +3508,15 @@ cdef class Matrix(ModuleElement):
             ...
             TypeError: unsupported operand parent(s) for *: 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field' and 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Rational Field'
 
+        We test that the bug reported in :trac:`27352` has been fixed::
+
+            sage: A = matrix(QQ, [[1, 2], [-1, 0], [1, 1]])
+            sage: B = matrix(QQ, [[0, 4], [1, -1], [1, 2]])
+            sage: A*B
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for *: 'Full MatrixSpace of 3 by 2 dense matrices over Rational Field' and 'Full MatrixSpace of 3 by 2 dense matrices over Rational Field'
+
         Here we test (matrix * vector) multiplication::
 
             sage: parent(matrix(ZZ,2,2,[1,2,3,4])*vector(ZZ,[1,2]))
@@ -3676,7 +3685,14 @@ cdef class Matrix(ModuleElement):
         """
         cdef int cl = classify_elements(left, right)
         if HAVE_SAME_PARENT(cl):
-            return (<Matrix>left)._matrix_times_matrix_(<Matrix>right)
+            # If they are matrices with the same parent, they had
+            # better be square for the product to be defined.
+            if (<Matrix>left)._nrows == (<Matrix>left)._ncols:
+                return (<Matrix>left)._matrix_times_matrix_(<Matrix>right)
+            else:
+                parent = (<Matrix>left)._parent
+                raise TypeError("unsupported operand parent(s) for *: '{}' and '{}'".format(parent, parent))
+
         if BOTH_ARE_ELEMENT(cl):
             return coercion_model.bin_op(left, right, mul)
 

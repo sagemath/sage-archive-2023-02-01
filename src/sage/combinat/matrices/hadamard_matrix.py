@@ -719,20 +719,19 @@ def RSHCD_324(e):
         sage: for e in [1,-1]:  # long time
         ....:     M = RSHCD_324(e)
         ....:     print("{} {} {}".format(M==M.T,is_hadamard_matrix(M),all([M[i,i]==1 for i in range(324)])))
-        ....:     print(set(map(sum,M)))
+        ....:     print(list(set(sum(x) for x in M)))
         True True True
-        set([18])
+        [18]
         True True True
-        set([-18])
+        [-18]
 
     REFERENCE:
 
     .. [CP16] \N. Cohen, D. Pasechnik,
-       Implementing Brouwer's database of strongly regular graphs,
+       *Implementing Brouwer's database of strongly regular graphs*,
        Designs, Codes, and Cryptography, 2016
        :doi:`10.1007/s10623-016-0264-x`
     """
-
     from sage.graphs.generators.smallgraphs import JankoKharaghaniTonchevGraph as JKTG
     M = JKTG().adjacency_matrix()
     M = J(324) - 2*M

@@ -69,6 +69,7 @@ class EdgeView(SageObject):
 
     EXAMPLES::
 
+        sage: from sage.graphs.views import EdgeView
         sage: G = Graph([(0, 1, 'C'), (0, 2, 'A'), (1, 2, 'B')])
         sage: E = EdgeView(G); E
         [(0, 1, 'C'), (0, 2, 'A'), (1, 2, 'B')]
@@ -94,7 +95,7 @@ class EdgeView(SageObject):
         [(0, 1), (0, 2), (1, 2)]
         sage: for e in E:
         ....:     for ee in E:
-        ....:         print(e, ee)
+        ....:         print((e, ee))
         ((0, 1), (0, 1))
         ((0, 1), (0, 2))
         ((0, 1), (1, 2))
@@ -206,6 +207,7 @@ class EdgeView(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.graphs.views import EdgeView
             sage: G = Graph([(0, 1, 'C'), (0, 2, 'A'), (1, 2, 'B')])
             sage: E = EdgeView(G); E
             [(0, 1, 'C'), (0, 2, 'A'), (1, 2, 'B')]
@@ -244,6 +246,7 @@ class EdgeView(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.graphs.views import EdgeView
             sage: G = graphs.HouseGraph()
             sage: E = EdgeView(G)
             sage: len(E)
@@ -266,6 +269,7 @@ class EdgeView(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.graphs.views import EdgeView
             sage: G = graphs.HouseGraph()
             sage: E = EdgeView(G, labels=False)
             sage: repr(E)
@@ -281,11 +285,12 @@ class EdgeView(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.graphs.views import EdgeView
             sage: G = graphs.HouseGraph()
             sage: E = EdgeView(G, labels=False)
             sage: list(E)
             [(0, 1), (0, 2), (1, 3), (2, 3), (2, 4), (3, 4)]
-            sage: sum(1 for e in E for ee in E) = len(E) * len(E)
+            sage: sum(1 for e in E for ee in E) == len(E) * len(E)
             True
         """
         if self.directed:
@@ -317,6 +322,7 @@ class EdgeView(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.graphs.views import EdgeView
             sage: G = graphs.HouseGraph()
             sage: EG = EdgeView(G)
             sage: H = Graph(list(G.edge_iterator()))
@@ -360,6 +366,7 @@ class EdgeView(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.graphs.views import EdgeView
             sage: G = Graph([(0, 1)])
             sage: E = EdgeView(G, labels=False)
             sage: print(E)

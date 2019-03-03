@@ -20,6 +20,8 @@ AUTHORS:
 from sage.knots.link import Link
 
 from sage.structure.parent import Parent
+from sage.structure.element import Element
+from sage.categories.sets_cat import Sets
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.all import Monoids
 
@@ -81,11 +83,11 @@ class Knot(Link, Element):
 
             sage: B = BraidGroup(8)
             sage: K = Knot(B([-1, -1, -1, 2, 1, -2, 3, -2, 3]))
-            sage: TestSuite(K).run()
+            sage: TestSuite(K).run(skip='_test_category')
             sage: K = Knot(B([1, -2, 1, -2]))
-            sage: TestSuite(K).run()
+            sage: TestSuite(K).run(skip='_test_category')
             sage: K = Knot([[1, 1, 2, 2]])
-            sage: TestSuite(K).run()
+            sage: TestSuite(K).run(skip='_test_category')
 
         The following is not a knot: it has two components. ::
 
@@ -275,21 +277,36 @@ class Knot(Link, Element):
             K = t.connected_sum(tr)
             sphinx_plot(K.plot())
 
+        TESTS::
+
+            sage: B = BraidGroup(2)
+            sage: trivial = Knots().one()
+            sage: trivial * trivial
+            Knot represented by 0 crossings
+            sage: trefoil = Knot(B([1,1,1]))
+            sage: trefoil * trivial
+            Knot represented by 3 crossings
+            sage: trefoil * trefoil
+            Knot represented by 6 crossings
+
         REFERENCES:
 
         - :wikipedia:`Connected_sum`
         """
-        from copy import deepcopy
         from sage.functions.generalized import sign
-        ogc1 = deepcopy(self.oriented_gauss_code())
-        ogc2 = deepcopy(other.oriented_gauss_code())
+        ogc1 = self.oriented_gauss_code()
+        ogc2 = other.oriented_gauss_code()
+        if not ogc1[0]:
+            return other
+        if not ogc2[0]:
+            return self
         # how much we have to "displace" the numbering of the crossings of other
-        m1 = max([abs(i) for i in ogc1[0][0]])
-        m2 = min([abs(i) for i in ogc2[0][0]])
+        m1 = max(abs(i) for i in ogc1[0][0])
+        m2 = min(abs(i) for i in ogc2[0][0])
         n = m1 - m2 + 1
         # construct the oriented gauss code of the result
-        ogc2[0][0] = [a+int(sign(a))*n for a in ogc2[0][0]]
-        nogc = [[ogc1[0][0]+ogc2[0][0]],ogc1[1]+ogc2[1]]
+        ogc2_0_0 = [a + int(sign(a)) * n for a in ogc2[0][0]]
+        nogc = [[ogc1[0][0] + ogc2_0_0], ogc1[1] + ogc2[1]]
         return Knot(nogc)
 
     _mul_ = connected_sum
@@ -299,15 +316,16 @@ class Knots(UniqueRepresentation, Parent):
     """
     The set for all knots, as a monoid for the connected sum.
     """
-    def __init_(self):
+    def __init__(self):
         """
         TESTS::
 
             sage: S = Knots()
             sage: S.cardinality()
             +Infinity
+            sage: TestSuite(S).run(skip='_test_elements')
         """
-        Parent.__init__(self, category=Monoids().Infinite())
+        Parent.__init__(self, category=(Monoids(), Sets().Infinite()))
 
     def _repr_(self):
         r"""
@@ -327,8 +345,19 @@ class Knots(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: Knots().one()
-            
+            Knot represented by 0 crossings
         """
         return Knot([])
-    
+
+    def an_element(self):
+        """
+        Return the trefoil knot.
+
+        EXAMPLES::
+
+            sage: Knots().an_element()
+            Knot represented by 3 crossings
+        """
+        return Knot([[1, 5, 2, 4], [5, 3, 6, 2], [3, 1, 4, 6]])
+
     Element = Knot

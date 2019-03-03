@@ -347,9 +347,6 @@ def mutually_orthogonal_latin_squares(k, n, partitions=False, check=True):
     if k is None:
         raise ValueError('please use largest_available_k')
 
-    if existence:
-        raise ValueError('please use is_available or exists')
-
     if n == 1:
         matrices = [Matrix([[0]])] * k
 

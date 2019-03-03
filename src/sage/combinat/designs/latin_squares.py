@@ -126,6 +126,7 @@ from __future__ import print_function, absolute_import
 from six import iteritems
 from six.moves import zip
 
+from sage.rings.integer import Integer
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
 from sage.env import COMBINATORIAL_DESIGN_DATA_DIR
@@ -320,10 +321,17 @@ def mutually_orthogonal_latin_squares(k, n, partitions=False, check=True):
         sage: designs.mutually_orthogonal_latin_squares(3, 1)
         [[0], [0], [0]]
 
+    Wrong input for `k`::
+
         sage: designs.mutually_orthogonal_latin_squares(None, 1)
         Traceback (most recent call last):
         ...
-        ValueError: please use largest_available_k
+        TypeError: please use "largest_available_k"
+
+        sage: designs.mutually_orthogonal_latin_squares(-1, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: k must be positive
 
         sage: designs.mutually_orthogonal_latin_squares(2,10)
         [
@@ -343,9 +351,14 @@ def mutually_orthogonal_latin_squares(k, n, partitions=False, check=True):
     from sage.matrix.constructor import Matrix
     from .database import MOLS_constructions
 
-    # Is k is None we find the largest available
     if k is None:
-        raise ValueError('please use largest_available_k')
+        raise TypeError('please use "largest_available_k"')
+    try:
+        Integer(k)
+    except TypeError:
+        raise
+    if k < 0:
+        raise ValueError('k must be positive')
 
     if n == 1:
         matrices = [Matrix([[0]])] * k
@@ -516,7 +529,6 @@ def MOLS_table(start,stop=None,compare=False,width=None):
 
     # choose an appropriate width (needs to be >= 3 because "+oo" should fit)
     if width is None:
-        from sage.rings.integer import Integer
         width = max(3, Integer(stop-1).ndigits(10))
 
     print(" " * (width + 2) + " ".join("{i:>{width}}".format(i=i,width=width)

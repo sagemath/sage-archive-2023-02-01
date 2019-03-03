@@ -205,8 +205,7 @@ def are_mutually_orthogonal_latin_squares(l, verbose=False):
     return is_orthogonal_array(list(zip(*[[x for R in M for x in R] for M in l])),k,n, verbose=verbose, terminology="MOLS")
 
 
-def mutually_orthogonal_latin_squares(k, n, partitions=False, check=True,
-                                      existence=False):
+def mutually_orthogonal_latin_squares(k, n, partitions=False, check=True):
     r"""
     Return `k` Mutually Orthogonal `n\times n` Latin Squares (MOLS).
 

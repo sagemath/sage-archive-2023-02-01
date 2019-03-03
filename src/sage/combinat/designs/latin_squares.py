@@ -326,7 +326,7 @@ def mutually_orthogonal_latin_squares(k, n, partitions=False, check=True):
         sage: designs.mutually_orthogonal_latin_squares(None, 1)
         Traceback (most recent call last):
         ...
-        TypeError: please use "largest_available_k"
+        TypeError: k must be a positive integer
 
         sage: designs.mutually_orthogonal_latin_squares(-1, 1)
         Traceback (most recent call last):
@@ -352,7 +352,7 @@ def mutually_orthogonal_latin_squares(k, n, partitions=False, check=True):
     from .database import MOLS_constructions
 
     if k is None:
-        raise TypeError('please use "largest_available_k"')
+        raise TypeError('k must be a positive integer')
     try:
         Integer(k)
     except TypeError:

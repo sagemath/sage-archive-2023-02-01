@@ -7,21 +7,24 @@ AUTHORS:
 - Amit Jamadagni
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2014   Travis Scrimshaw <tscrim at ucdavis.edu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.knots.link import Link
-from sage.rings.finite_rings.integer_mod import Mod
 
+from sage.structure.parent import Parent
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.categories.all import Monoids
 
-class Knot(Link):
+    
+class Knot(Link, Element):
     r"""
     A knot.
 
@@ -69,11 +72,6 @@ class Knot(Link):
     REFERENCES:
 
     - :wikipedia:`Knot_(mathematics)`
-
-    .. TODO::
-
-        - Make a class Knots for the monoid of all knots and have this be an
-          element in that monoid.
     """
     def __init__(self, data, check=True):
         """
@@ -100,6 +98,7 @@ class Knot(Link):
             Knot represented by 2 crossings
         """
         Link.__init__(self, data)
+        Element.__init__(self, Knots())
         if check:
             if self.number_of_components() != 1:
                 raise ValueError("the input has more than 1 connected component")
@@ -177,7 +176,7 @@ class Knot(Link):
             assert label[2 * crossing + next_label % 2] != 1, "invalid knot"
 
             label[2 * crossing + next_label % 2] = next_label
-            next_label = next_label + 1
+            next_label += 1
             if type1 == 0:
                 if b[crossing] < 0:
                     type1 = 1
@@ -187,14 +186,14 @@ class Knot(Link):
                 type1 = -1 * type1
                 if ((abs(b[crossing]) == string and b[crossing] * type1 > 0)
                     or (abs(b[crossing]) != string and b[crossing] * type1 < 0)):
-                    if next_label % 2 == 1:
+                    if next_label % 2:
                         label[2 * crossing] = label[2 * crossing] * -1
             if abs(b[crossing]) == string:
-                string = string + 1
+                string += 1
             else:
-                string = string - 1
-            crossing = crossing + 1
-        code = [0 for i in range(N)]
+                string -= 1
+            crossing += 1
+        code = [0 for _ in range(N)]
         for i in range(N):
             for j in range(N):
                 if label[2 * j + 1] == 2 * i + 1:
@@ -220,10 +219,9 @@ class Knot(Link):
             sage: K.arf_invariant()
             1
         """
-        a = self.alexander_polynomial()
-        if Mod(a(-1), 8) == 1 or Mod(a(-1), 8) == 7:
+        a = self.alexander_polynomial()(-1)
+        if (a % 8) == 1 or (a % 8) == 7:
             return 0
-
         return 1
 
     def connected_sum(self, other):
@@ -294,3 +292,43 @@ class Knot(Link):
         nogc = [[ogc1[0][0]+ogc2[0][0]],ogc1[1]+ogc2[1]]
         return Knot(nogc)
 
+    _mul_ = connected_sum
+
+
+class Knots(UniqueRepresentation, Parent):
+    """
+    The set for all knots, as a monoid for the connected sum.
+    """
+    def __init_(self):
+        """
+        TESTS::
+
+            sage: S = Knots()
+            sage: S.cardinality()
+            +Infinity
+        """
+        Parent.__init__(self, category=Monoids().Infinite())
+
+    def _repr_(self):
+        r"""
+        TESTS::
+
+            sage: Knots()
+            Knots
+        """
+        return "Knots"
+
+    def one(self):
+        """
+        Return the unit of the monoid.
+
+        This is the trivial knot.
+
+        EXAMPLES::
+
+            sage: Knots().one()
+            
+        """
+        return Knot([])
+    
+    Element = Knot

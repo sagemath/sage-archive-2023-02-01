@@ -9845,13 +9845,23 @@ class GenericGraph(GenericGraph_pyx):
             sage: T.set_vertex(4, graphs.DodecahedralGraph())
             Traceback (most recent call last):
             ...
+<<<<<<< HEAD
             ValueError: vertex (4) not in the graph.
+=======
+            ValueError: vertex (1) not in the graph.
+            Please use add_vertex() method to add the vertex to the graph before setting it to the object.
+>>>>>>> 8ac6371ab8f56fa7db62576b7fdfd6552e094e14
         """
         if hasattr(self, '_assoc') is False:
             self._assoc = {}
 
+<<<<<<< HEAD
         if not self.has_vertex(vertex):
             raise ValueError('vertex (%s) not in the graph.'%str(vertex))
+=======
+        if not self._backend.has_vertex(vertex):
+            raise ValueError('vertex (%s) not in the graph.\nPlease use add_vertex() method to add the vertex to the graph before setting it to the object.'%str(vertex))
+>>>>>>> 8ac6371ab8f56fa7db62576b7fdfd6552e094e14
             
         self._assoc[vertex] = object
 

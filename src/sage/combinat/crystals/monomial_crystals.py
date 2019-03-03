@@ -1164,16 +1164,16 @@ class CrystalOfNakajimaMonomials(InfinityCrystalOfNakajimaMonomials):
         sage: c = matrix([[0,1,0],[0,0,1],[1,0,0]])
         sage: La = RootSystem(['A',2,1]).weight_lattice(extended=True).fundamental_weights()
         sage: M = crystals.NakajimaMonomials(2*La[1], c=c)
-        sage: sorted(M.subcrystal(max_depth=3))
-        [Y(1,0)^2,
-         Y(0,1) Y(1,0) Y(1,1)^-1 Y(2,0),
-         Y(0,1)^2 Y(1,1)^-2 Y(2,0)^2,
-         Y(0,0) Y(0,1) Y(1,0) Y(2,1)^-1,
-         Y(0,2)^-1 Y(1,0) Y(2,0) Y(2,2),
-         Y(0,1) Y(0,2)^-1 Y(1,1)^-1 Y(2,0)^2 Y(2,2),
+        sage: sorted(M.subcrystal(max_depth=3), key=str)
+        [Y(0,0) Y(0,1) Y(1,0) Y(2,1)^-1,
          Y(0,0) Y(0,1)^2 Y(1,1)^-1 Y(2,0) Y(2,1)^-1,
          Y(0,0) Y(0,2)^-1 Y(1,0) Y(1,1) Y(2,1)^-1 Y(2,2),
-         Y(1,0) Y(1,3) Y(2,0) Y(2,3)^-1]
+         Y(0,1) Y(0,2)^-1 Y(1,1)^-1 Y(2,0)^2 Y(2,2),
+         Y(0,1) Y(1,0) Y(1,1)^-1 Y(2,0),
+         Y(0,1)^2 Y(1,1)^-2 Y(2,0)^2,
+         Y(0,2)^-1 Y(1,0) Y(2,0) Y(2,2),
+         Y(1,0) Y(1,3) Y(2,0) Y(2,3)^-1,
+         Y(1,0)^2]
     """
     @staticmethod
     def __classcall_private__(cls, cartan_type, La=None, c=None):

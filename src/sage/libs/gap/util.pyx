@@ -17,7 +17,7 @@ from __future__ import print_function, absolute_import
 import os
 import signal
 import warnings
-
+from posix.dlfcn cimport dlopen, dlclose, RTLD_NOW, RTLD_GLOBAL
 from libc.string cimport strcpy, strlen
 
 from cpython.exc cimport PyErr_Fetch, PyErr_Restore
@@ -255,6 +255,18 @@ cdef initialize():
     """
     global _gap_is_initialized, environ
     if _gap_is_initialized: return
+    # Hack to ensure that all symbols provided by libgap are loaded into the
+    # global symbol table
+    # Note: we could use RTLD_NOLOAD and avoid the subsequent dlclose() but
+    # this isn't portable
+    cdef void* handle
+    libgapname = str_to_bytes(sage.env.GAP_SO)
+    handle = dlopen(libgapname, RTLD_NOW | RTLD_GLOBAL)
+    if handle is NULL:
+        raise RuntimeError(
+                "Could not dlopen() libgap even though it should already "
+                "be loaded!")
+    dlclose(handle)
 
     # Define argv and environ variables, which we will pass in to
     # initialize GAP. Note that we must pass define the memory pool

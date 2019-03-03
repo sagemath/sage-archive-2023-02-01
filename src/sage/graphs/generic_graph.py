@@ -9843,8 +9843,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: T.get_vertex(1)
             Flower Snark: Graph on 20 vertices
             sage: T.set_vertex(4, graphs.DodecahedralGraph())
-            ---------------------------------------------------------------------------
-            ValueError                                Traceback (most recent call last)
+            Traceback (most recent call last):
             ...
             ValueError: vertex (4) not in the graph.
         """

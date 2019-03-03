@@ -9842,10 +9842,18 @@ class GenericGraph(GenericGraph_pyx):
             sage: T.set_vertex(1, graphs.FlowerSnark())
             sage: T.get_vertex(1)
             Flower Snark: Graph on 20 vertices
+            sage: T.set_vertex(4, graphs.DodecahedralGraph())
+            ---------------------------------------------------------------------------
+            ValueError                                Traceback (most recent call last)
+            ...
+            ValueError: vertex (4) not in the graph.
         """
         if hasattr(self, '_assoc') is False:
             self._assoc = {}
 
+        if not self.has_vertex(vertex):
+            raise ValueError('vertex (%s) not in the graph.'%str(vertex))
+            
         self._assoc[vertex] = object
 
     def get_vertex(self, vertex):

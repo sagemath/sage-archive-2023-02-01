@@ -143,12 +143,15 @@ def pip_installed_packages():
         sage: d['beautifulsoup']   # optional - beautifulsoup
         u'...'
     """
-    proc = subprocess.Popen([sys.executable, "-m", "pip", "list", "--no-index",
-                             "--format", "json"], stdout=subprocess.PIPE)
-    stdout = proc.communicate()[0].decode()
-    return {package['name'].lower():package['version']
-            for package in json.loads(stdout)}
-
+    with open(os.devnull, 'w')  as devnull:
+        proc = subprocess.Popen(
+            [sys.executable, "-m", "pip", "list", "--no-index", "--format", "json"],
+            stdout=subprocess.PIPE,
+            stderr=devnull,
+        )
+        stdout = proc.communicate()[0].decode()
+        return {package['name'].lower():package['version']
+                for package in json.loads(stdout)}
 
 def list_packages(*pkg_types, **opts):
     r"""

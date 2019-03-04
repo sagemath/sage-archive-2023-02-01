@@ -1919,7 +1919,7 @@ def _least_semi_primitive(p):
 
     INPUT:
 
-    - ``p`` -- an odd prime.
+    - ``p`` -- an odd prime power.
 
     OUTPUT:
 
@@ -1943,22 +1943,119 @@ def _least_semi_primitive(p):
         sage: _least_semi_primitive(997)
         7
     """
-    if not p.is_prime() or p<3:
-        raise ValueError("%s is not an odd prime"%p)
+    if p%2==0 or not p.is_prime_power():
+        raise ValueError("{} is not an odd prime power".format(p))
 
-    def is_semi_primitive(a,p):
-        from sage.rings.finite_rings.integer_mod_ring import Integers
-        d = Integers(p)(a).multiplicative_order()
-        if p%4==1:
-            return (d==p-1)
-        else:
-            return d >= (p-1)/2
+    from sage.arith.misc import euler_phi
+    from sage.rings.finite_rings.integer_mod_ring import Integers
+    phip = euler_phi(p)
+    ord = phip if p%4==1 else phip//2
+    R = Integers(p)
+    return next((a for a in range(2,p) if p.gcd(a)==1 and R(a).multiplicative_order()>=ord),0)
 
-    a = 2
-    while not is_semi_primitive(a,p):
-        a += 1
-    return a
+def is_kernel_polynomial(E, m, f):
+    r"""test whether ``E`` has a cyclic isogeny of degree ``m`` with kernel
+    polynomial ``f``.
 
+    INPUT:
+
+    - ``E`` -- an elliptic curve.
+
+    - ``m`` -- a positive integer.
+
+    - ``f`` -- a polynomial over the base field of ``E``.
+
+    OUTPUT:
+
+    (bool) ``True`` if ``E`` has a cyclic isogeny of degree ``m`` with
+    kernel polynomial ``f``, else ``False``.
+
+    ALGORITHM:
+
+    `f` must have degree `(m-1)/2` (if `m` is odd) or degree `m/2` (if
+    `m` is even), and have the property that for each root `x` of `f`,
+    `\mu(x)` is also a root where `\mu` is the multiplication-by-`m`
+    map on `E` and `m` runs over a set of generators of
+    `(\ZZ/m\ZZ)^*/\{1,-1\}`.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.elliptic_curves.isogeny_small_degree import is_kernel_polynomial
+        sage: E = EllipticCurve([0, -1, 1, -10, -20])
+        sage: x = polygen(QQ)
+        sage: is_kernel_polynomial(E,5,x^2 + x - 29/5)
+        True
+        sage: is_kernel_polynomial(E,5,(x - 16) * (x - 5))
+        True
+
+    An example from [KT2013]_, where the 13-division polynomial splits
+    into 14 factors each of degree 6, but only two of these is a
+    kernel polynomial for a 13-isogeny::
+
+        sage: F = GF(3)
+        sage: E = EllipticCurve(F,[0,0,0,-1,0])
+        sage: f13 = E.division_polynomial(13)
+        sage: factors = [f for f,e in f13.factor()]
+        sage: all([f.degree()==6 for f in factors])
+        True
+        sage: [is_kernel_polynomial(E,13,f) for f in factors]
+        [True,
+        True,
+        False,
+        False,
+        False,
+        False,
+        False,
+        False,
+        False,
+        False,
+        False,
+        False,
+        False,
+        False]
+
+    See :trac:`22232`::
+
+        sage: K =GF(47^2)
+        sage: E = EllipticCurve([0, K.gen()])
+        sage: psi7 = E.division_polynomial(7)
+        sage: f = psi7.factor()[4][0]
+        sage: f
+        x^3 + (7*z2 + 11)*x^2 + (25*z2 + 33)*x + 25*z2
+        sage: f.divides(psi7)
+        True
+        sage: is_kernel_polynomial(E,7, f)
+        False
+
+    """
+    m2 = m//2
+    if f.degree()!= m2:
+        return False
+    if m==1:
+        return True
+
+    # Compute the quotient polynomial ring mod (f)
+    S = f.parent().quotient_ring(f)
+
+    # test if the m-division polynomial is a multiple of f by computing it in the quotient:
+    if E.division_polynomial(m, x=S.gen()) != 0:
+        return False
+
+    if m==2 or m==3:
+        return True
+
+    # For each a in a set of generators of (Z/mZ)^* we check that the
+    # multiplcation-by-a map permutes the roots of f.  It would be
+    # enough to take a generating (Z/mZ)^*/{1,-1} but that is not
+    # implemented.  If m is prime (or more generally, has a primitive
+    # root) then only one a will be needed.
+
+    from sage.rings.finite_rings.integer_mod_ring import Integers
+    for a in Integers(m).unit_gens():
+        mu = E.multiplication_by_m(a, x_only=True)
+        if f( S(mu.numerator()) / S(mu.denominator()) ) != 0:
+            return False
+    return True
 
 def isogenies_prime_degree_general(E, l, minimal_models=True):
     """

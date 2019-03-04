@@ -264,7 +264,7 @@ class RingDerivationModule(Module, UniqueRepresentation):
 
         if twist is not None:
             if not (isinstance(twist, Map) and twist.category_for().is_subcategory(Rings())):
-                raise TypeError("the twisting homorphism must be an homomorphism of rings")
+                raise TypeError("the twisting homomorphism must be an homomorphism of rings")
             if twist.domain() is not domain:
                 map = twist.domain().coerce_map_from(domain)
                 if map is None:
@@ -552,7 +552,7 @@ class RingDerivationModule(Module, UniqueRepresentation):
 
     def twisting_morphism(self):
         r"""
-        Return the twisting homorphism of the derivations in this module.
+        Return the twisting homomorphism of the derivations in this module.
 
         EXAMPLES::
 

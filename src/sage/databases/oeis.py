@@ -20,7 +20,7 @@ AUTHORS:
 EXAMPLES::
 
         sage: oeis
-        The On-Line Encyclopedia of Integer Sequences (http://oeis.org/)
+        The On-Line Encyclopedia of Integer Sequences (https://oeis.org/)
 
 What about a sequence starting with `3, 7, 15, 1` ?
 
@@ -147,13 +147,14 @@ Classes and methods
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
 from six.moves.urllib.request import urlopen
 from six.moves.urllib.parse import urlencode
 
 from sage.structure.sage_object import SageObject
+from sage.cpython.string import bytes_to_str
 from sage.rings.integer import Integer
 from sage.misc.misc import verbose
 from sage.misc.cachefunc import cached_method
@@ -164,7 +165,7 @@ from sage.misc.html import HtmlFragment
 from collections import defaultdict
 import re
 
-oeis_url = 'http://oeis.org/'
+oeis_url = 'https://oeis.org/'
 
 
 def _fetch(url):
@@ -190,7 +191,7 @@ def _fetch(url):
         f = urlopen(url)
         result = f.read()
         f.close()
-        return result
+        return bytes_to_str(result)
     except IOError as msg:
         raise IOError("%s\nError fetching %s." % (msg, url))
 
@@ -274,7 +275,7 @@ class OEIS:
     EXAMPLES::
 
         sage: oeis
-        The On-Line Encyclopedia of Integer Sequences (http://oeis.org/)
+        The On-Line Encyclopedia of Integer Sequences (https://oeis.org/)
 
     A particular sequence can be called by its A-number or number::
 
@@ -326,7 +327,7 @@ class OEIS:
         consecutive 0's."
 
         sage: fibo.links()[0]                           # optional -- internet
-        'http://oeis.org/A000045/b000045.txt'
+        'https://oeis.org/A000045/b000045.txt'
 
     The database can be searched by description::
 
@@ -388,7 +389,7 @@ class OEIS:
         TESTS::
 
             sage: oeis
-            The On-Line Encyclopedia of Integer Sequences (http://oeis.org/)
+            The On-Line Encyclopedia of Integer Sequences (https://oeis.org/)
         """
         return "The On-Line Encyclopedia of Integer Sequences (%s)" % oeis_url
 
@@ -891,7 +892,7 @@ class OEISSequence(SageObject):
         .. TODO::
 
             - ask OEIS to add a keyword telling whether the sequence comes from
-              a power series, e.g. for http://oeis.org/A000182
+              a power series, e.g. for https://oeis.org/A000182
             - discover other possible conversions.
 
         EXAMPLES::
@@ -926,7 +927,7 @@ class OEISSequence(SageObject):
         ::
 
             sage: av = oeis('A087778') ; av             # optional -- internet
-            A087778: Decimal expansion of Avogadro's constant.
+            A087778: Decimal expansion of Avogadro's ...
 
             sage: av.natural_object()                   # optional -- internet
             6.022141000000000?e23
@@ -1421,7 +1422,7 @@ class OEISSequence(SageObject):
             A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
 
             sage: f.links(format='url')                             # optional -- internet
-            0: http://oeis.org/A000045/b000045.txt
+            0: https://oeis.org/A000045/b000045.txt
             1: ...
             2: ...
 
@@ -1437,7 +1438,7 @@ class OEISSequence(SageObject):
             'Do not confuse with the sequence <a href="/A000042">A000042</a> or the sequence <a href="/A000024">A000024</a>'
 
             sage: s.links(format='url')[3]
-            'http://oeis.org/A000024'
+            'https://oeis.org/A000024'
 
             sage: HTML = s.links(format="html");  HTML
             0: Wikipedia, <a href="https://en.wikipedia.org/wiki/42_(number)">42 (number)</a>
@@ -1632,13 +1633,13 @@ class OEISSequence(SageObject):
             A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
 
             sage: f.url()                               # optional -- internet
-            'http://oeis.org/A000045'
+            'https://oeis.org/A000045'
 
         TESTS::
 
             sage: s = oeis._imaginary_sequence()
             sage: s.url()
-            'http://oeis.org/A999999'
+            'https://oeis.org/A999999'
         """
         return oeis_url + self.id()
 
@@ -1679,7 +1680,7 @@ class OEISSequence(SageObject):
             (2, 8, 248, 11328, 849312, 94857600, 14819214720, 3091936512000, 831657655349760, 280473756197529600, 115967597965430077440, 57712257892456911912960, 34039765801079493369569280)
             <BLANKLINE>
             LINKS
-            0: http://oeis.org/A012345/b012345.txt
+            0: https://oeis.org/A012345/b012345.txt
             <BLANKLINE>
             FORMULAS
             ...
@@ -1687,7 +1688,7 @@ class OEISSequence(SageObject):
             (0, 1)
             <BLANKLINE>
             URL
-            http://oeis.org/A012345
+            https://oeis.org/A012345
             <BLANKLINE>
             AUTHOR
             Patrick Demichel (patrick.demichel(AT)hp.com)
@@ -1846,9 +1847,15 @@ class FancyTuple(tuple):
             True
             sage: ft[-1] == 'ç'
             True
+
+        Check that :trac:`26997` is fixed::
+
+            sage: FancyTuple([[1,2,3],(4,5,6)])
+            0: [1, 2, 3]
+            1: (4, 5, 6)
         """
         res = tuple.__getitem__(self, x)
-        if isinstance(res, tuple):
+        if isinstance(x, slice):
             res = FancyTuple(res)
         return res
 

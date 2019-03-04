@@ -1152,7 +1152,7 @@ class BinaryQF(SageObject):
         Return if ``self`` is reduced.
 
         Let `f = a x^2 + b xy + c y^2` be a binary quadratic form of
-        discrimininant `D`.
+        discriminant `D`.
 
         - If `f` is positive definite (`D < 0` and `a > 0`), then `f`
           is reduced if and only if `|b|\leq a \leq c`, and `b\geq 0`

@@ -454,8 +454,6 @@ class UnionOfIntervals:
             False
             sage: -infinity in A
             False
-            sage: 'a' in A
-            False
         """
         return x in self._endpoints or bisect.bisect_left(self._endpoints, x) % 2 == 1
 

@@ -24,13 +24,13 @@ REFERENCES:
 .. SEEALSO:: For mutation types of cluster seeds, see :meth:`sage.combinat.cluster_algebra_quiver.quiver_mutation_type.QuiverMutationType`. Cluster seeds are closely related to :meth:`sage.combinat.cluster_algebra_quiver.quiver.ClusterQuiver`.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2011 Gregg Musiker <musiker@math.mit.edu>
 #                          Christian Stump <christian.stump@univie.ac.at>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 
 from six.moves import range
@@ -56,7 +56,6 @@ from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
 from sage.rings.integer import Integer
 from copy import deepcopy
 
-from sage.misc.decorators import rename_keyword
 from sage.combinat.cluster_algebra_quiver.interact import cluster_interact
 
 
@@ -1244,7 +1243,7 @@ class ClusterSeed(SageObject):
 
     def free_vertices(self):
         r"""
-        Return the list of *exchangable vertices* of ``self``.
+        Return the list of *exchangeable vertices* of ``self``.
 
         EXAMPLES::
 
@@ -1253,7 +1252,7 @@ class ClusterSeed(SageObject):
             sage: S.free_vertices()
             ['a', 'c', 'e']
 
-            sage: S=ClusterSeed(DiGraph([[5, 'b']]))
+            sage: S = ClusterSeed(DiGraph([[5, 'b']]))
             sage: S.free_vertices()
             [5, 'b']
         """
@@ -4170,7 +4169,6 @@ class ClusterSeed(SageObject):
             self._mutation_type = self._quiver.mutation_type()
         return self._mutation_type
 
-    @rename_keyword(deprecation=19572, method='algorithm')
     def greedy(self, a1, a2, algorithm='by_recursion'):
         r"""
         Returns the greedy element `x[a_1,a_2]` assuming that self is rank two.

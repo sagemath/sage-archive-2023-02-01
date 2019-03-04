@@ -179,19 +179,6 @@ class DiscretePseudoValuation(Morphism):
             False
             sage: v != w
             True
-
-        Note that this does not affect comparison of valuations which do not
-        coerce into a common parent. This is by design in Sage, see
-        :meth:`sage.structure.element.Element.__richcmp__`. When the valuations
-        do not coerce into a common parent, a rather random comparison of
-        ``id`` happens::
-
-            sage: w = valuations.TrivialValuation(GF(2))
-            sage: w <= v # random output
-            True
-            sage: v <= w # random output
-            False
-
         """
         if op == op_LT:
             return self <= other and not (self >= other)
@@ -245,19 +232,6 @@ class DiscretePseudoValuation(Morphism):
             sage: w = QQ.valuation(2)
             sage: v <= w
             True
-
-        Note that this does not affect comparison of valuations which do not
-        coerce into a common parent. This is by design in Sage, see
-        :meth:`sage.structure.element.Element.__richcmp__`. When the valuations
-        do not coerce into a common parent, a rather random comparison of
-        ``id`` happens::
-
-            sage: w = valuations.TrivialValuation(GF(2))
-            sage: w <= v # random output
-            True
-            sage: v <= w # random output
-            False
-
         """
         return other >= self
 
@@ -275,19 +249,6 @@ class DiscretePseudoValuation(Morphism):
             sage: w = QQ.valuation(2)
             sage: v >= w
             False
-
-        Note that this does not affect comparison of valuations which do not
-        coerce into a common parent. This is by design in Sage, see
-        :meth:`sage.structure.element.Element.__richcmp__`. When the valuations
-        do not coerce into a common parent, a rather random comparison of
-        ``id`` happens::
-
-            sage: w = valuations.TrivialValuation(GF(2))
-            sage: w <= v # random output
-            True
-            sage: v <= w # random output
-            False
-
         """
         if self == other: return True
         from .scaled_valuation import ScaledValuation_generic
@@ -747,6 +708,20 @@ class DiscreteValuation(DiscretePseudoValuation):
                              coefficients=node.coefficients,
                              valuations=node.valuations,
                              check=False,
+                             # We do not want to see augmentations that are
+                             # already part of other branches of the tree of
+                             # valuations for obvious performance reasons and
+                             # also because the principal_part_bound would be
+                             # incorrect for these.
+                             allow_equivalent_key=node.valuation.is_gauss_valuation(),
+                             # The length of an edge in the Newton polygon in
+                             # one MacLane step bounds the length of the
+                             # principal part (i.e., the part with negative
+                             # slopes) of the Newton polygons in the next
+                             # MacLane step. Therefore, mac_lane_step does not
+                             # need to compute valuations for coefficients
+                             # beyond that bound as they do not contribute any
+                             # augmentations.
                              principal_part_bound=node.principal_part_bound)
             for w, bound, principal_part_bound, coefficients, valuations in augmentations:
                 ef = bound == w.E()*w.F()

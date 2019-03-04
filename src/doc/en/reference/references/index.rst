@@ -61,6 +61,10 @@ REFERENCES:
                 and T. Yalcin, *Block ciphers - focus on the linear layer
                 (feat. PRIDE)*; in CRYPTO, (2014), pp. 57-76.
 
+.. [ABBS2013] \J.-C Aval, A. Boussicault, M. Bouvel, M. Silimbani,
+              *Combinatorics of non-ambiguous trees*,
+              :arxiv:`1305.3716`
+
 .. [AGHJLPR2017] Benjamin Assarf, Ewgenij Gawrilow, Katrin Herr, Michael Joswig,
                  Benjamin Lorenz, Andreas Paffenholz, and Thomas Rehn,
                  Computing convex hulls and counting integer points with
@@ -473,6 +477,15 @@ REFERENCES:
              J. Reine Angew. Math., **655** (2011), 61-87.
              :mathscinet:`MR2806105`
 
+.. [BL1994] Bernhard Beckermann, George Labahn. "A Uniform Approach for the
+            Fast Computation of Matrix-Type Padé Approximants". SIAM J. Matrix
+            Anal. Appl. 15 (1994) 804-823.
+            http://dx.doi.org/10.1137/S0895479892230031
+
+.. [BMPS2018] Jonah Blasiak, Jennifer Morse, Anna Pun, and Daniel Summers.
+              *Catalan functions and k-schur positivity*
+              :arxiv:`1804.03701`
+
 .. [BL2000] Anders Björner and Frank H. Lutz, "Simplicial manifolds,
             bistellar flips and a 16-vertex triangulation of the
             Poincaré homology 3-sphere", Experiment. Math. 9 (2000),
@@ -593,6 +606,12 @@ REFERENCES:
 
 .. [Br2016] *Bresenham's Line Algorithm*, Python, 26 December 2016.
             http://www.roguebasin.com/index.php?title=Bresenham%27s_Line_Algorithm
+
+.. [BRS2015] \A. Boussicault, S. Rinaldi et S. Socci.
+             *The number of directed k-convex polyominoes*
+             27th Annual International Conference on Formal Power Series and
+             Algebraic Combinatorics (FPSAC 2015), 2015.
+             :arxiv:`1501.00872`
 
 .. [Bru1994] Richard A. Brualdi, Hyung Chan Jung, William T.Trotter Jr
              *On the poset of all posets on* `n` *elements*
@@ -794,7 +813,7 @@ REFERENCES:
 .. [CL2013] Maria Chlouveraki and Sofia Lambropoulou. *The
             Yokonuma-Hecke algebras and the HOMFLYPT
             polynomial*. (2015) :arxiv:`1204.1871v4`.
-            
+
 .. [Cle1872] Alfred Clebsch, *Theorie der binären algebraischen Formen*,
              Teubner, 1872.
 
@@ -1006,8 +1025,15 @@ REFERENCES:
               orderings II. The parabolic analogue of Kazhdan-Lusztig
               polynomials, J. Alg. 111 (1987) 483-506.
 
+.. [DerZak1980] Nachum Dershowitz and Schmuel Zaks,
+                *Enumerations of ordered trees*,
+                Discrete Mathematics (1980), 31: 9-28.
+
 .. [Dev2005] Devaney, Robert L. *An Introduction to Chaotic Dynamical Systems.*
              Boulder: Westview, 2005, 331.
+
+.. [DeVi1984] \M.-P. Delest, and G. Viennot, *Algebraic Languages and
+              Polyominoes Enumeration.* Theoret. Comput. Sci. 34, 169-206, 1984.
 
 .. [DFMS1996] Philipppe Di Francesco, Pierre Mathieu, and David Sénéchal.
               *Conformal Field Theory*. Graduate Texts in Contemporary
@@ -1332,16 +1358,16 @@ REFERENCES:
             Finite Mutation Type Via Unfoldings*, Int Math Res Notices (2012)
             2012 (8): 1768-1804.
 
+.. [Fuchs1994] \J. Fuchs. *Fusion Rules for Conformal Field Theory*.
+               Fortsch. Phys. **42** (1994), no. 1, pp. 1-48.
+               :doi:`10.1002/prop.2190420102`, :arXiv:`hep-th/9306162`.
+
 .. [Fu1993] Wiliam Fulton, *Introduction to Toric Varieties*,
             Princeton University Press, 1993.
 
 .. [Ful1997] William Fulton,
              *Young Tableaux*.
              Cambridge University Press, 1997.
-
-.. [Fuchs1994] \J. Fuchs. *Fusion Rules for Conformal Field Theory*.
-               Fortsch. Phys. **42** (1994), no. 1, pp. 1-48.
-               :doi:`10.1002/prop.2190420102`, :arXiv:`hep-th/9306162`.
 
 .. [FY2004] Eva Maria Feichtner and Sergey Yuzvinsky. *Chow rings of
             toric varieties defined by atomic lattices*. Inventiones
@@ -1478,6 +1504,10 @@ REFERENCES:
 .. [GNL2011] \Z. Gong, S. Nikova, and Y. W. Law,
              *KLEIN: A new family of lightweight block ciphers*; in
              RFIDSec, (2011), p. 1-18.
+
+.. [GN2018] Pascal Giorgi and Vincent Neiger. Certification of Minimal
+            Approximant Bases. In ISSAC 2018, pages 167-174.
+            https://doi.org/10.1145/3208976.3208991
 
 .. [Go1967] Solomon Golomb, Shift register sequences, Aegean Park
             Press, Laguna Hills, Ca, 1967
@@ -1652,6 +1682,10 @@ REFERENCES:
              hypersurfaces. *Adv. Theor. Math. Phys.*,
              6(3):457-506, 2002. :arxiv:`math/0010082v2` [math.AG].
 
+.. [HM2011] Florent Hivert and Olivier Mallet. `Combinatorics of k-shapes
+            and Genocchi numbers <https://www.lri.fr/~hivert/PAPER/kshapes.pdf>`_,
+            in FPSAC 2011, Reykjav´k, Iceland DMTCS proc. AO, 2011, 493-504.
+
 .. [Hoc] Winfried Hochstaettler, "About the Tic-Tac-Toe Matroid",
          preprint.
 
@@ -1721,10 +1755,10 @@ REFERENCES:
 .. [HRW2015] \J. Haglund, J. B. Remmel, A. T. Wilson. *The Delta Conjecture*.
              Preprint, :arxiv:`1509.07058`.
 
-.. [HS1968] Donald G. Higman and Charles C. Sims. 
-            *A simple group of order 44,352,000*. 
-            Mathematische Zeitschrift 105(2): 110-113, 1968. 
-            :doi:`10.1007/BF01110435`. 
+.. [HS1968] Donald G. Higman and Charles C. Sims.
+            *A simple group of order 44,352,000*.
+            Mathematische Zeitschrift 105(2): 110-113, 1968.
+            :doi:`10.1007/BF01110435`.
 
 .. [HS2018] \B. Hutz, M. Stoll. "Smallest representatives of
             `SL(2,\ZZ)`-orbits of binary forms and endomorphisms of P1",
@@ -1763,6 +1797,9 @@ REFERENCES:
 
 .. [IJ1960] Igusa, Jun-ichi. *Arithmetic variety of moduli for genus two*.
             Ann. of Math. (2) 72 1960 612--649.
+
+.. [II1983] \M. Imase and M. Itoh. "A design for directed graphs with minimum
+            diameter", *IEEE Trans. Comput.*, vol. C-32, pp. 782-784, 1983.
 
 .. [IK2010] Kenji Iohara and Yoshiyuki Koga.
             *Representation Theory of the Virasoro Algebra*.
@@ -1830,6 +1867,11 @@ REFERENCES:
              Power Series and Algebraic Combinatorics (FPSAC 2009), Discrete
              Math. Theor. Comput. Sci. Proc., AK, Assoc. Discrete
              Math. Theor. Comput. Sci., Nancy, 2009, pp. 491–502
+
+.. [JNSV2016] Claude-Pierre Jeannerod, Vincent Neiger, Eric Schost, and Gilles
+             Villard. Fast Computation of Minimal Interpolation Bases in Popov
+             Form for Arbitrary Shifts. In Proceedings ISSAC 2016 (pages
+             295-302). https://doi.org/10.1145/2930889.2930928
 
 .. [Joh1990] \D.L. Johnson. *Presentations of Groups*. Cambridge
              University Press. (1990).
@@ -1903,6 +1945,10 @@ REFERENCES:
 
 .. [Kat1991] Nicholas M. Katz, *Exponential sums and differential equations*,
              Princeton University Press, Princeton NJ, 1991.
+
+.. [Kau1968] \W. H. Kautz. "Bounds on directed (d, k) graphs". Theory of
+             cellular logic networks and machines, AFCRL-68-0668, SRI Project
+             7258, Final Rep., pp. 20-28, 1968.
 
 .. [Kaw2009] Kawahira, Tomoki. *An algorithm to draw external rays of the
              Mandelbrot set*, Nagoya University, 23 Apr. 2009.
@@ -2241,6 +2287,10 @@ REFERENCES:
               Affine insertion and Pieri rules for the affine Grassmannian,
               Memoirs of the AMS, 208 (2010), no. 977, :arxiv:`math.CO/0609110`
 
+.. [LLMS2013] Thomas Lam, Luc Lapointe, Jennifer Morse, and Mark Shimozono (2013).
+              *The poset of k-shapes and branching rules for k-Schur functions*
+              <http://breakfreerun.org/index.php/ebooks/the-poset-of-k-shapes-and-branching-rules-for-k-schur-functions>`_. Memoirs of the American Mathematical Society, 223(1050), 1-113. DOI: 10.1090/S0065-9266-2012-00655-1
+
 .. [LLMSSZ2013] Thomas Lam, Luc Lapointe, Jennifer Morse, Anne
                 Schilling, Mark Shimozono and Mike Zabrocki.
                 *k-Schur functions and affine Schubert calculus*.
@@ -2561,6 +2611,11 @@ REFERENCES:
              Volume 34, Issue 3, May 1983, Pages 340--359.
              http://www.sciencedirect.com/science/article/pii/0097316583900687
 
+.. [MR2016] \B. Malmskog, C. Rasmussen, "Picard curves over \mathbb{Q}
+            with good reduction away from 3". LMS Journal of Computation and
+            Mathematics 19 (2016), no. 2, 382-408.
+            :doi:`10.1112/S1461157016000413`.
+
 .. [MS2003] \T. Mulders, A. Storjohann, "On lattice reduction for
             polynomial matrices", J. Symbolic Comput. 35 (2003),
             no. 4, 377--401
@@ -2876,6 +2931,14 @@ REFERENCES:
               polynomials. Mathematical Programming, Series B,
               129 (2011) 5-31.
 
+.. [RPK1980] \S. M. Reddy, D. K. Pradhan, and J. Kuhl. "Directed graphs with
+           minimal diameter and maximal connectivity", School Eng., Oakland
+           Univ., Rochester MI, Tech. Rep., July 1980.
+
+.. [RPK1983] \S. Reddy, P. Raghavan, and J. Kuhl. "A Class of Graphs for
+          Processor Interconnection". *IEEE International Conference on Parallel
+          Processing*, pages 154-157, Los Alamitos, Ca., USA, August 1983.
+
 .. [Rob1991] Tom Roby, "Applications and extensions of Fomin's
              generalization of the Robinson-Schensted correspondence
              to differential posets".  Ph.D. Thesis, M.I.T.,
@@ -2994,6 +3057,10 @@ REFERENCES:
             Reduction*. Advances in Cryptology - EUROCRYPT '95. LNCS
             Volume 921, 1995, pp 1-12.
 
+.. [SHET2018] \O. Seker, P. Heggernes, T. Ekim, and Z. Caner Taskin.
+              *Generation of random chordal graphs using subtrees of a tree*,
+              :arxiv:`1810.13326v1`.
+
 .. [Shi2002] \M. Shimozono
              *Affine type A crystal structure on tensor products of rectangles,
              Demazure characters, and nilpotent varieties*,
@@ -3041,6 +3108,13 @@ REFERENCES:
 
 .. [Sor1984] \A. Sorkin, *LUCIFER: a cryptographic algorithm*;
              in Cryptologia, 8(1), pp. 22–35, 1984.
+
+.. [Sma1995] \N.P. Smart, "The Solution of Triangularly Connected
+             Decomposable Form Equations". Math. Comp. 64 (1995), 819-840.
+             :doi:`10.1090/S0025-5718-1995-1277771-4`.
+
+.. [Sma1998] \N.P. Smart, *The algorithmic resolution of Diophantine equations*,
+             Number 41 in Student Texts. London Mathematical Society, 1998.
 
 .. [Spa1966] Edwin H. Spanier, *Algebraic Topology*,
              Springer-Verlag New York, 1966.
@@ -3125,6 +3199,10 @@ REFERENCES:
                Cambridge University Press (1999).
                http://math.mit.edu/~rstan/ec/
 
+.. [Sei2002] \T. R. Seifullin, *Computation of determinants, adjoint
+             matrices, and characteristic polynomials without division*
+             :doi:`10.1023/A:1021878507303`
+
 .. [Stan2009] Richard Stanley,
               *Promotion and evacuation*,
               Electron. J. Combin. 16 (2009), no. 2, Special volume in honor of
@@ -3135,6 +3213,9 @@ REFERENCES:
              simply-laced crystals*, Transactions of the American
              Mathematical Society, Vol. 355, No. 12 (Dec., 2003),
              pp. 4807--4823
+
+.. [Stich2009] Stichtenoth, Henning. *Algebraic function fields and codes*.
+               Vol. 254. Springer Science & Business Media, 2009.
 
 .. [Sti2006] Douglas R. Stinson. *Cryptography: Theory and
              Practice*. 3rd edition, Chapman \& Hall/CRC, 2006.

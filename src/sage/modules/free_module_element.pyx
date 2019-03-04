@@ -4882,7 +4882,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: w[39893] = sqrt(2)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert sqrt(2) to an integer
+            TypeError: self must be a numeric expression
 
         ::
 

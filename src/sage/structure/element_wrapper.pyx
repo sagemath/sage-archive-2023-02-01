@@ -19,11 +19,14 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE
+from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, PyObject_RichCompare
 
+from sage.structure.coerce cimport coercion_model
+from sage.structure.element cimport Element
 from sage.structure.parent cimport Parent
-from sage.structure.element cimport Element, coercion_model
+from sage.structure.unique_representation import UniqueRepresentation
 from copy import copy
+
 
 cdef class ElementWrapper(Element):
     r"""
@@ -364,8 +367,6 @@ cdef class ElementWrapper(Element):
             False
             sage: l11 < 1                # class differ
             False
-            sage: 1 < l11                # random, since it depends on what the Integer 1 decides to do, which may just involve memory locations
-            False
         """
         return (self.__class__ is other.__class__
                 and self._parent is other.parent()
@@ -404,8 +405,7 @@ cdef class ElementWrapper(Element):
         res.value = copy(self.value)
         return res
 
-from sage.structure.parent import Parent
-from sage.structure.unique_representation import UniqueRepresentation
+
 class DummyParent(UniqueRepresentation, Parent):
     """
     A class for creating dummy parents for testing ElementWrapper
@@ -521,15 +521,11 @@ cdef class ElementWrapperCheckWrappedClass(ElementWrapper):
         """
         return hash(self.value)
 
-    def __richcmp__(left, right, int op):
+    def __richcmp__(self, right, int op):
         """
-        Return ``True`` if ``left`` compares with ``right`` based on ``op``.
+        Return ``True`` if ``self`` compares with ``right`` based on ``op``.
 
-        .. SEEALSO::
-
-            :meth:`ElementWrapper.__richcmp__`
-
-        TESTS::
+        EXAMPLES::
 
             sage: A = cartesian_product([ZZ, ZZ])
             sage: elt = A((1,1))
@@ -537,25 +533,33 @@ cdef class ElementWrapperCheckWrappedClass(ElementWrapper):
             True
             sage: elt == (1, 1)
             True
-            sage: A((1, 2)) == elt
-            False
+            sage: A((1, 2)) > elt
+            True
+            sage: elts = [A((x,y)) for y in range(3) for x in range(2)]
+            sage: elts
+            [(0, 0), (1, 0), (0, 1), (1, 1), (0, 2), (1, 2)]
+            sage: sorted(elts)
+            [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2)]
+
+        ::
+
+            sage: A = cartesian_product([ZZ, ZZ])
+            sage: B = cartesian_product([GF(3), GF(5)])
+            sage: A((3,5)) == B((0,0))
+            True
         """
-        cdef ElementWrapperCheckWrappedClass self
-        self = left
+        if type(self) is type(right):
+            # Both are instances of ElementWrapperCheckWrappedClass:
+            # compare using wrapped element if the parents are the same
+            other = <ElementWrapperCheckWrappedClass>right
+            if self._parent is other._parent:
+                return PyObject_RichCompare(self.value, other.value, op)
+        elif not isinstance(right, Element):
+            # Right is not an Element: compare using wrapped element
+            return PyObject_RichCompare(self.value, right, op)
+        elif self._parent is (<Element>right)._parent:
+            # Different types but same parent? This should not happen
+            raise TypeError(f"cannot compare {type(self).__name__} with {type(right).__name__} if parents are equal")
 
-        if self.__class__ != right.__class__:
-            if isinstance(right, self.wrapped_class):
-                if op == Py_EQ or op == Py_LE or op == Py_GE:
-                    return self.value == right
-                if op == Py_NE:
-                    return self.value != right
-                return False
-            return op == Py_NE
-        if self._parent != (<ElementWrapper>right)._parent:
-            return op == Py_NE
-        if op == Py_EQ or op == Py_LE or op == Py_GE:
-            return self.value == (<ElementWrapper>right).value
-        if op == Py_NE:
-            return self.value != (<ElementWrapper>right).value
-        return False
-
+        # Different parents => use coercion model
+        return coercion_model.richcmp(self, right, op)

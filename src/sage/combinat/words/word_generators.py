@@ -1593,7 +1593,7 @@ class WordGenerator(object):
 
         EXAMPLES:
 
-        Let's define three morphisms and compute the first nested succesive
+        Let's define three morphisms and compute the first nested successive
         prefixes of the `s`-adic word::
 
             sage: m1 = WordMorphism('e->gh,f->hg')
@@ -1703,7 +1703,7 @@ class WordGenerator(object):
 
         EXAMPLES:
 
-        Let's define three morphisms and compute the first nested succesive
+        Let us define three morphisms and compute the first nested successive
         prefixes of the `s`-adic word::
 
             sage: m1 = WordMorphism('e->gh,f->hg')

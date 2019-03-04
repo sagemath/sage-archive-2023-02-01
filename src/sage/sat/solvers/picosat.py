@@ -83,7 +83,8 @@ class PicoSAT(SatSolver):
             sage: solver.var()                             # optional - pycosat
             5
         """
-        return self._nvars + 1
+        self._nvars += 1
+        return self._nvars
 
     def nvars(self):
         r"""

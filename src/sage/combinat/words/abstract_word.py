@@ -40,7 +40,7 @@ from sage.combinat.words.word_options import word_options
 from itertools import islice, groupby
 from sage.rings.all import Integers, ZZ, Infinity
 from sage.structure.richcmp import (richcmp_method, rich_to_bool,
-                                    richcmp, op_LT, op_GT)
+                                    richcmp_item)
 
 
 @richcmp_method
@@ -75,7 +75,6 @@ class Word_class(SageObject):
             sage: Word(lambda x:x%3)._repr_()
             'word: 0120120120120120120120120120120120120120...'
         """
-        global word_options
         if word_options['old_repr']:
             return "Word over %s" % (str(self.parent().alphabet())[17:])
         return word_options['identifier'] + self.string_rep()
@@ -122,7 +121,6 @@ class Word_class(SageObject):
             sage: print(w)
             0123401234012340123401234012340123401234...
         """
-        global word_options
         l = word_options['truncate_length']
         letters = list(islice(self, int(l + 1)))
         if len(letters) == l + 1:
@@ -374,10 +372,9 @@ class Word_class(SageObject):
                 else:
                     key_cs = cmp_key(cs)
                     key_co = cmp_key(co)
-                    if key_cs < key_co:
-                        return rich_to_bool(op, -1)
-                    elif key_cs > key_co:
-                        return rich_to_bool(op, 1)
+                    res = richcmp_item(key_cs, key_co, op)
+                    if res is not NotImplemented:
+                        return res
 
     def _longest_common_prefix_iterator(self, other):
         r"""
@@ -705,7 +702,7 @@ class Word_class(SageObject):
             sage: t[:10].lex_less(t)
             True
         """
-        return richcmp(self, other, op_LT)
+        return self < other
 
     def lex_greater(self, other):
         r"""
@@ -735,7 +732,7 @@ class Word_class(SageObject):
             sage: t.lex_greater(t[:10])
             True
         """
-        return richcmp(self, other, op_GT)
+        return self > other
 
     def apply_morphism(self, morphism):
         r"""
@@ -1321,7 +1318,7 @@ class Word_class(SageObject):
 
     def _finite_differences_iterator(self, mod=None):
         r"""
-        Iterator over the diffences of consecutive letters of self.
+        Iterator over the differences of consecutive letters of ``self``.
 
         INPUT:
 
@@ -1396,8 +1393,8 @@ class Word_class(SageObject):
 
     def finite_differences(self, mod=None):
         r"""
-        Returns the word obtained by the diffences of consecutive letters
-        of self.
+        Return the word obtained by the differences of consecutive letters
+        of ``self``.
 
         INPUT:
 

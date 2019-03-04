@@ -2,7 +2,6 @@ from __future__ import absolute_import
 
 from sage.misc.lazy_import import lazy_import
 
-lazy_import('sage.functions.piecewise_old', 'Piecewise')   # deprecated
 lazy_import('sage.functions.piecewise', 'piecewise')
 lazy_import('sage.functions.error', ['erf', 'erfc', 'erfi', 'erfinv',
     'fresnel_sin', 'fresnel_cos'])
@@ -19,7 +18,6 @@ from .hyperbolic import ( tanh, sinh, cosh, coth, sech, csch,
                          arcsinh, arccosh, arctanh, arccoth, arcsech, arccsch )
 
 reciprocal_trig_functions = {'sec': cos, 'csc': sin, 'cot': tan, 'sech': cosh, 'csch': sinh, 'coth': tanh}
-
 
 
 from .other import ( ceil, floor, abs_symbolic, sqrt,

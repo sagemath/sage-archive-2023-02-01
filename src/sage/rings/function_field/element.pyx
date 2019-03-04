@@ -11,6 +11,21 @@ Arithmetic with rational functions::
     sage: f = t - 1
     sage: g = t^2 - 3
     sage: h = f^2/g^3
+    sage: h.valuation(t-1)
+    2
+    sage: h.valuation(t)
+    0
+    sage: h.valuation(t^2 - 3)
+    -3
+
+The divisor of an element of a global function field::
+
+    sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+    sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+    sage: y.divisor()
+    - Place (1/x, 1/x*y)
+     - Place (x, x*y)
+     + 2*Place (x + 1, x*y)
 
 AUTHORS:
 
@@ -25,7 +40,7 @@ AUTHORS:
 - Kwankyu Lee (2017-04-30): added elements for global function fields
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
 #       Copyright (C) 2010 Robert Bradshaw <robertwb@math.washington.edu>
 #       Copyright (C) 2011 Julian Rueth <julian.rueth@gmail.com>
@@ -34,8 +49,8 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import
 
 from sage.structure.element cimport FieldElement, RingElement, ModuleElement, Element
@@ -67,7 +82,7 @@ def make_FunctionFieldElement(parent, element_class, representing_element):
 
         sage: from sage.rings.function_field.element import make_FunctionFieldElement
         sage: K.<x> = FunctionField(QQ)
-        sage: make_FunctionFieldElement(K, K._element_class, (x+1)/x)
+        sage: make_FunctionFieldElement(K, K.element_class, (x+1)/x)
         (x + 1)/x
     """
     return element_class(parent, representing_element, reduce=False)
@@ -399,7 +414,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
-            sage: len({hash(y^i+x^j) for i in [-2..2] for j in [-2..2]}) == 25
+            sage: len({hash(y^i+x^j) for i in [-2..2] for j in [-2..2]}) >= 24
             True
         """
         return hash(self._x)
@@ -655,8 +670,8 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         15 distinct hashes::
 
             sage: K.<t> = FunctionField(QQ)
-            sage: len({hash(t^i+t^j) for i in [-2..2] for j in [i..2]})
-            10
+            sage: len({hash(t^i+t^j) for i in [-2..2] for j in [i..2]}) >= 10
+            True
         """
         return hash(self._x)
 
@@ -792,27 +807,43 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         """
         return self._x.denominator()
 
-    def valuation(self, v):
+    def valuation(self, place):
         """
-        Return the valuation of the element with respect to a prime element.
+        Return the valuation of the rational function at the place.
+
+        Rational function field places are associated with irreducible
+        polynomials.
 
         INPUT:
 
-        - ``v`` -- a prime element of the function field
+        - ``place`` -- a place or an irreducible polynomial
 
         EXAMPLES::
 
             sage: K.<t> = FunctionField(QQ)
-            sage: f = (t-1)^2 * (t+1) / (t^2 - 1/3)^3
-            sage: f.valuation(t-1)
+            sage: f = (t - 1)^2*(t + 1)/(t^2 - 1/3)^3
+            sage: f.valuation(t - 1)
             2
             sage: f.valuation(t)
             0
             sage: f.valuation(t^2 - 1/3)
             -3
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: p = K.places_finite()[0]
+            sage: (1/x^2).valuation(p)
+            -2
         """
-        R = self._parent._ring
-        return self._x.valuation(R(self._parent(v)._x))
+        from .place import FunctionFieldPlace
+
+        if not isinstance(place, FunctionFieldPlace):
+            # place is an irreducible polynomial
+            R = self._parent._ring
+            return self._x.valuation(R(self._parent(place)._x))
+
+        prime = place.prime_ideal()
+        ideal = prime.ring().ideal(self)
+        return prime.valuation(ideal)
 
     def is_square(self):
         """
@@ -903,8 +934,148 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         assert self._x.denominator() == 1
         return self.parent()(self._x.numerator().inverse_mod(f.numerator()))
 
+    @cached_method
+    def divisor(self):
+        """
+        Return the divisor of the element.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: f = 1/(x^3 + x^2 + x)
+            sage: f.divisor()
+            3*Place (1/x)
+             - Place (x)
+             - Place (x^2 + x + 1)
+        """
+        if self.is_zero():
+            raise ValueError("divisor not defined for zero")
+
+        F = self.parent()
+        I = F.maximal_order().ideal(self)
+        J = F.maximal_order_infinite().ideal(self)
+        return I.divisor() + J.divisor()
+
+    def divisor_of_zeros(self):
+        """
+        Return the divisor of zeros for the element.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: f = 1/(x^3 + x^2 + x)
+            sage: f.divisor_of_zeros()
+            3*Place (1/x)
+        """
+        if self.is_zero():
+            raise ValueError("divisor of zeros not defined for zero")
+
+        F = self.parent()
+        I = F.maximal_order().ideal(self)
+        J = F.maximal_order_infinite().ideal(self)
+        return I.divisor_of_zeros() + J.divisor_of_zeros()
+
+    def divisor_of_poles(self):
+        """
+        Return the divisor of poles for the element.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: f = 1/(x^3 + x^2 + x)
+            sage: f.divisor_of_poles()
+            Place (x)
+             + Place (x^2 + x + 1)
+        """
+        if self.is_zero():
+            raise ValueError("divisor of poles not defined for zero")
+
+        F = self.parent()
+        I = F.maximal_order().ideal(self)
+        J = F.maximal_order_infinite().ideal(self)
+        return I.divisor_of_poles() + J.divisor_of_poles()
+
 cdef class FunctionFieldElement_global(FunctionFieldElement_polymod):
     """
     Elements of global function fields
     """
-    pass
+
+    def valuation(self, place):
+        """
+        Return the valuation of the element at the place.
+
+        INPUT:
+
+        - ``place`` -- a place of the function field
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: p = L.places_infinite()[0]
+            sage: y.valuation(p)
+            -1
+        """
+        prime = place.prime_ideal()
+        ideal = prime.ring().ideal(self)
+        return prime.valuation(ideal)
+
+    @cached_method
+    def divisor(self):
+        """
+        Return the divisor for the element.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: y.divisor()
+            - Place (1/x, 1/x*y)
+             - Place (x, x*y)
+             + 2*Place (x + 1, x*y)
+        """
+        if self.is_zero():
+            raise ValueError("not defined for zero")
+
+        F = self.parent()
+        I = F.maximal_order().ideal(self)
+        J = F.maximal_order_infinite().ideal(self)
+        return I.divisor() + J.divisor()
+
+    def divisor_of_zeros(self):
+        """
+        Return divisor of zeros for the element.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: (x/y).divisor_of_zeros()
+            3*Place (x, x*y)
+        """
+        if self.is_zero():
+            raise ValueError("divisor of zeros not defined for zero")
+
+        F = self.parent()
+        I = F.maximal_order().ideal(self)
+        J = F.maximal_order_infinite().ideal(self)
+        return I.divisor_of_zeros() + J.divisor_of_zeros()
+
+    def divisor_of_poles(self):
+        """
+        Return the divisor of poles for the element.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: (x/y).divisor_of_poles()
+            Place (1/x, 1/x*y) + 2*Place (x + 1, x*y)
+        """
+        if self.is_zero():
+            raise ValueError("divisor of poles not defined for zero")
+
+        F = self.parent()
+        I = F.maximal_order().ideal(self)
+        J = F.maximal_order_infinite().ideal(self)
+        return I.divisor_of_poles() + J.divisor_of_poles()

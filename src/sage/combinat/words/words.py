@@ -150,14 +150,20 @@ class AbstractLanguage(Parent):
 
         self._alphabet = alphabet
 
-        if (alphabet.cardinality() == Infinity or
-            (alphabet.cardinality() < 36 and
-             all(alphabet.unrank(i) > alphabet.unrank(j)
-                 for i in range(min(36, alphabet.cardinality()))
-                 for j in range(i)))):
+        # Default sorting key: use rank()
+        self.sortkey_letters = self._sortkey_letters
+
+        # Check if we should use the trivial sorting key
+        N = alphabet.cardinality()
+        if N == Infinity:
             self.sortkey_letters = self._sortkey_trivial
-        else:
-            self.sortkey_letters = self._sortkey_letters
+        elif N < 36:
+            try:
+                if all(alphabet.unrank(i) > alphabet.unrank(j)
+                       for i in range(N) for j in range(i)):
+                    self.sortkey_letters = self._sortkey_trivial
+            except TypeError:
+                pass
 
         if category is None:
             category = Sets()
@@ -587,7 +593,7 @@ class FiniteWords(AbstractLanguage):
            when reloading. Also, most iterators do not support copying and
            should not support pickling by extension.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: W = FiniteWords()
 

@@ -1295,7 +1295,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: G.add_edge(1,1,'b')
             sage: G.add_edge(1,1)
             sage: G.add_edge(1,1)
-            sage: G.edges()
+            sage: G.edges_incident()
             [(1, 1, None), (1, 1, None), (1, 1, 'b'), (1, 1, 'b'), (1, 2, 'a'), (1, 2, 'a'), (1, 2, 'a')]
             sage: G.degree(1)
             11
@@ -1638,9 +1638,21 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: P = DiGraph(graphs.PetersenGraph().to_directed(), implementation="c_graph")
             sage: list(P._backend.iterator_in_nbrs(0))
             [1, 4, 5]
+
+        TESTS::
+
+            sage: P = DiGraph(graphs.PetersenGraph().to_directed(), implementation="c_graph")
+            sage: list(P._backend.iterator_in_nbrs(63))
+            Traceback (most recent call last):
+            ...
+            LookupError: vertex (63) is not a vertex of the graph
         """
+
         cdef int u_int
         cdef int v_int = self.get_vertex(v)
+        if v_int == -1 or not bitset_in((<CGraph>self._cg).active_vertices, v_int):
+            raise LookupError("vertex ({0}) is not a vertex of the graph".format(v))
+
         # Sparse
         if self._cg_rev is not None:
             for u_int in self._cg_rev.out_neighbors(v_int):
@@ -1676,9 +1688,19 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: P = DiGraph(graphs.PetersenGraph().to_directed(), implementation="c_graph")
             sage: list(P._backend.iterator_out_nbrs(0))
             [1, 4, 5]
+
+        TESTS::
+
+            sage: P = DiGraph(graphs.PetersenGraph().to_directed(), implementation="c_graph")
+            sage: list(P._backend.iterator_out_nbrs(-41))
+            Traceback (most recent call last):
+            ...
+            LookupError: vertex (-41) is not a vertex of the graph
         """
-        cdef u_int
+        cdef int u_int
         cdef int v_int = self.get_vertex(v)
+        if v_int == -1 or not bitset_in((<CGraph>self._cg).active_vertices, v_int):
+            raise LookupError("vertex ({0}) is not a vertex of the graph".format(v))
 
         for u_int in self._cg.out_neighbors(v_int):
             yield self.vertex_label(u_int)
@@ -2083,7 +2105,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             return Infinity
         return []
 
-    def bidirectional_dijkstra(self, x, y, weight_function=None, 
+    def bidirectional_dijkstra(self, x, y, weight_function=None,
                                distance_flag=False):
         r"""
         Return the shortest path or distance from ``x`` to ``y`` using a
@@ -2253,7 +2275,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
             return shortest_path
 
-    def shortest_path_all_vertices(self, v, cutoff=None, 
+    def shortest_path_all_vertices(self, v, cutoff=None,
                                    distance_flag=False):
         r"""
         Return for each vertex ``u`` a shortest ``v-u`` path or distance from
@@ -2292,7 +2314,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
             sage: g = graphs.PetersenGraph()
             sage: paths = g._backend.shortest_path_all_vertices(0)
-            sage: all([ len(paths[v]) == 0 or len(paths[v])-1 == g.distance(0,v) for v in g])
+            sage: all((len(paths[v]) == 0 or len(paths[v])-1 == g.distance(0,v)) for v in g)
             True
             sage: g._backend.shortest_path_all_vertices(0, distance_flag=True)
             {0: 0, 1: 1, 2: 2, 3: 2, 4: 1, 5: 1, 6: 2, 7: 2, 8: 2, 9: 2}
@@ -2333,7 +2355,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         current_layer = [(u_int, v_int)
                          for u_int in self._cg.out_neighbors(v_int)]
         next_layer = []
-        
+
         distances[v] = 0 if distance_flag else [v]
 
         while current_layer:
@@ -2439,8 +2461,10 @@ cdef class CGraphBackend(GenericGraphBackend):
             ....: "Nurnberg": ["Wurzburg","Stuttgart","Munchen"],
             ....: "Stuttgart": ["Nurnberg"],
             ....: "Erfurt": ["Wurzburg"]}, implementation="c_graph")
-            sage: list(G.depth_first_search("Frankfurt"))
-            ['Frankfurt', 'Wurzburg', 'Nurnberg', 'Munchen', 'Kassel', 'Augsburg', 'Karlsruhe', 'Mannheim', 'Stuttgart', 'Erfurt']
+            sage: list(G.depth_first_search("Stuttgart"))  # py2
+            ['Stuttgart', 'Nurnberg', 'Wurzburg', 'Frankfurt', 'Kassel', 'Munchen', 'Augsburg', 'Karlsruhe', 'Mannheim', 'Erfurt']
+            sage: list(G.depth_first_search("Stuttgart"))  # py3
+            ['Stuttgart', 'Nurnberg', ...]
         """
         return Search_iterator(self,
                                v,
@@ -2510,20 +2534,11 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: list(G.breadth_first_search(0))
             [0, 1, 4, 5, 2, 6, 3, 9, 7, 8]
 
-        Visiting German cities using breadth-first search::
+        Visiting European countries using breadth-first search::
 
-            sage: G = Graph({"Mannheim": ["Frankfurt","Karlsruhe"],
-            ....: "Frankfurt": ["Mannheim","Wurzburg","Kassel"],
-            ....: "Kassel": ["Frankfurt","Munchen"],
-            ....: "Munchen": ["Kassel","Nurnberg","Augsburg"],
-            ....: "Augsburg": ["Munchen","Karlsruhe"],
-            ....: "Karlsruhe": ["Mannheim","Augsburg"],
-            ....: "Wurzburg": ["Frankfurt","Erfurt","Nurnberg"],
-            ....: "Nurnberg": ["Wurzburg","Stuttgart","Munchen"],
-            ....: "Stuttgart": ["Nurnberg"],
-            ....: "Erfurt": ["Wurzburg"]}, implementation="c_graph")
-            sage: list(G.breadth_first_search("Frankfurt"))
-            ['Frankfurt', 'Mannheim', 'Kassel', 'Wurzburg', 'Karlsruhe', 'Munchen', 'Erfurt', 'Nurnberg', 'Augsburg', 'Stuttgart']
+            sage: G = graphs.EuropeMap(continental=True)
+            sage: list(G.breadth_first_search("Portugal"))
+            ['Portugal', 'Spain', ..., 'Greece']
         """
         return Search_iterator(self,
                                v,
@@ -2628,7 +2643,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         component::
 
             sage: g = digraphs.ButterflyGraph(3)
-            sage: all([[v] == g.strongly_connected_component_containing_vertex(v) for v in g])
+            sage: all([v] == g.strongly_connected_component_containing_vertex(v) for v in g)
             True
         """
         cdef set ans = set(self.depth_first_search(v))
@@ -2959,6 +2974,12 @@ cdef class Search_iterator:
             else:
                 self.in_neighbors = self.graph._cg_rev.out_neighbors
 
+    def __dealloc__(self):
+        r"""
+        Freeing the memory
+        """
+        bitset_free(self.seen)
+
     def __iter__(self):
         r"""
         Return an iterator object over a traversal of a graph.
@@ -3000,7 +3021,6 @@ cdef class Search_iterator:
 
                 break
         else:
-            bitset_free(self.seen)
             raise StopIteration
 
         return value

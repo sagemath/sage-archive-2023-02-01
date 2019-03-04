@@ -393,9 +393,6 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
             sage: E.silverman_bound()
             6.52226179519101...
         """
-        cdef double x
-        # We declare x so there are *no* Python library
-        # calls within the sig_on()/sig_off().
         sig_on()
         x = Curvedata_cps_bound(self.x)
         sig_off()
@@ -808,7 +805,6 @@ cdef class _mw:
             sage: EQ.regulator()
             0.15246017794314376
         """
-        cdef double f
         sig_on()
         f = mw_regulator(self.x)
         sig_off()
@@ -1359,7 +1355,6 @@ cdef class _two_descent:
             sage: D2.regulator()
             0.417143558758384
         """
-        cdef double reg
         sig_on()
         reg = two_descent_regulator(self.x)
         sig_off()

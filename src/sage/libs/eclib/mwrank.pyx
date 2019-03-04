@@ -78,41 +78,54 @@ cdef object string_sigoff(char* s):
     sig_free(s)
     return t
 
+
 # set the default bit precision
 mwrank_set_precision(150)
 
 def get_precision():
     """
-    Returns the working floating point bit precision of mwrank.
+    Returns the working floating point bit precision of mwrank, which is
+    equal to the global NTL real number precision.
 
     OUTPUT:
 
     (int) The current precision in bits.
 
+    See also :meth:`set_precision`.
+
     EXAMPLES::
 
-        sage: from sage.libs.eclib.mwrank import get_precision
-        sage: get_precision()
+        sage: mwrank_get_precision()
         150
     """
     return mwrank_get_precision()
 
+
 def set_precision(n):
     """
-    Sets the working floating point precision of mwrank.
+    Sets the working floating point bit precision of mwrank, which is
+    equal to the global NTL real number precision.
+
+    NTL real number bit precision.  This has a massive effect on the
+    speed of mwrank calculations.  The default (used if this function is
+    not called) is ``n=150``, but it might have to be increased if a
+    computation fails.
 
     INPUT:
 
-    - ``n`` (int) -- a positive integer: the number of bits of precision.
+    - ``n`` -- a positive integer: the number of bits of precision.
 
-    OUTPUT:
+    .. warning::
 
-    None.
+       This change is global and affects *all* future calls of eclib
+       functions by Sage.
 
-        .. note::
+    .. note::
 
-    The minimal value to which the precision may be set is 53.  Lower
-    values will be increased to 53.
+        The minimal value to which the precision may be set is 53.
+        Lower values will be increased to 53.
+
+    See also :meth:`get_precision`.
 
     EXAMPLES::
 
@@ -127,6 +140,7 @@ def set_precision(n):
         150
     """
     mwrank_set_precision(n)
+
 
 def initprimes(filename, verb=False):
     """

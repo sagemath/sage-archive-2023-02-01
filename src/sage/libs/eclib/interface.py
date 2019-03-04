@@ -18,57 +18,6 @@ and call methods that are implemented using this module.
 from sage.structure.sage_object import SageObject
 from sage.rings.integer_ring import IntegerRing
 
-def get_precision():
-    r"""
-    Return the global NTL real number precision.
-
-    See also :meth:`set_precision`.
-
-    .. note::
-
-       The precision used in eclib is binary (bit precision).  Until
-       v20190226, it used bit precision internally but decimal
-       precision in the user interface.
-
-    OUTPUT:
-
-    (int) The current binary precision.
-
-    EXAMPLES::
-
-        sage: mwrank_get_precision()
-        150
-    """
-    # don't want to load mwrank every time Sage starts up, so we do
-    # the import here.
-    from sage.libs.eclib.mwrank import get_precision
-    return get_precision()
-
-def set_precision(n):
-    r"""
-    Set the global NTL real number bit precision.  This has a massive
-    effect on the speed of mwrank calculations.  The default (used if
-    this function is not called) is ``n=150``, but it might have to be
-    increased if a computation fails.  See also :meth:`get_precision`.
-
-    INPUT:
-
-    - ``n`` (long) -- real precision used for floating point
-      computations in the library, in bits.
-
-    .. warning::
-
-       This change is global and affects *all* future calls of eclib
-       functions by Sage.
-
-    EXAMPLES::
-
-        sage: mwrank_set_precision(50)
-    """
-    # don't want to load mwrank every time Sage starts up, so we do
-    # the import here.
-    from sage.libs.eclib.mwrank import set_precision
-    set_precision(n)
 
 class mwrank_EllipticCurve(SageObject):
     r"""
@@ -598,7 +547,7 @@ class mwrank_EllipticCurve(SageObject):
 
             sage: E = mwrank_EllipticCurve([0, 0, 1, -1, 0])
             sage: E.regulator()
-            0.05111140823996883
+            0.05111140823996884
         """
         self.saturate()
         if not self.certain():
@@ -1006,7 +955,7 @@ class mwrank_MordellWeil(SageObject):
             sage: EQ.points()
             [[1547, -2967, 343], [2707496766203306, 864581029138191, 2969715140223272], [-13422227300, -49322830557, 12167000000]]
             sage: EQ.regulator()
-            375.42920288254516
+            375.42920288254555
             sage: EQ.saturate(2)  # points were not 2-saturated
             saturating basis...Saturation index bound = 93
             WARNING: saturation at primes p > 2 will not be done;
@@ -1017,7 +966,7 @@ class mwrank_MordellWeil(SageObject):
             sage: EQ.points()
             [[-2, 3, 1], [2707496766203306, 864581029138191, 2969715140223272], [-13422227300, -49322830557, 12167000000]]
             sage: EQ.regulator()
-            93.85730072063629
+            93.85730072063639
             sage: EQ.saturate(3)  # points were not 3-saturated
             saturating basis...Saturation index bound = 46
             WARNING: saturation at primes p > 3 will not be done;
@@ -1028,7 +977,7 @@ class mwrank_MordellWeil(SageObject):
             sage: EQ.points()
             [[-2, 3, 1], [-14, 25, 8], [-13422227300, -49322830557, 12167000000]]
             sage: EQ.regulator()
-            10.428588968959588
+            10.4285889689596
             sage: EQ.saturate(5)  # points were not 5-saturated
             saturating basis...Saturation index bound = 15
             WARNING: saturation at primes p > 5 will not be done;
@@ -1039,7 +988,7 @@ class mwrank_MordellWeil(SageObject):
             sage: EQ.points()
             [[-2, 3, 1], [-14, 25, 8], [1, -1, 1]]
             sage: EQ.regulator()
-            0.4171435587583835
+            0.417143558758384
             sage: EQ.saturate()   # points are now saturated
             saturating basis...Saturation index bound = 3
             Checking saturation at [ 2 3 ]
@@ -1080,7 +1029,7 @@ class mwrank_MordellWeil(SageObject):
 
             sage: E = mwrank_EllipticCurve([0,0,1,-7,6])
             sage: E.regulator()
-            0.4171435587583847
+            0.417143558758384
         """
         return self.__mw.regulator()
 
@@ -1127,7 +1076,7 @@ class mwrank_MordellWeil(SageObject):
             sage: EQ.rank()
             3
             sage: EQ.regulator()
-            0.4171435587583847
+            0.417143558758384
 
         We do in fact now have a full Mordell-Weil basis.
 
@@ -1210,7 +1159,7 @@ class mwrank_MordellWeil(SageObject):
             sage: EQ
             Subgroup of Mordell-Weil group: [[1547:-2967:343], [2707496766203306:864581029138191:2969715140223272], [-13422227300:-49322830557:12167000000]]
             sage: EQ.regulator()
-            375.42920288254516
+            375.42920288254555
 
         Now we saturate at `p=2`, and gain index 2::
 
@@ -1224,7 +1173,7 @@ class mwrank_MordellWeil(SageObject):
             sage: EQ
             Subgroup of Mordell-Weil group: [[-2:3:1], [2707496766203306:864581029138191:2969715140223272], [-13422227300:-49322830557:12167000000]]
             sage: EQ.regulator()
-            93.85730072063629
+            93.85730072063639
 
         Now we saturate at `p=3`, and gain index 3::
 
@@ -1238,7 +1187,7 @@ class mwrank_MordellWeil(SageObject):
             sage: EQ
             Subgroup of Mordell-Weil group: [[-2:3:1], [-14:25:8], [-13422227300:-49322830557:12167000000]]
             sage: EQ.regulator()
-            10.428588968959588
+            10.4285889689596
 
         Now we saturate at `p=5`, and gain index 5::
 
@@ -1252,7 +1201,7 @@ class mwrank_MordellWeil(SageObject):
             sage: EQ
             Subgroup of Mordell-Weil group: [[-2:3:1], [-14:25:8], [1:-1:1]]
             sage: EQ.regulator()
-            0.4171435587583835
+            0.417143558758384
 
         Finally we finish the saturation.  The output here shows that
         the points are now provably saturated at all primes::
@@ -1279,7 +1228,7 @@ class mwrank_MordellWeil(SageObject):
             sage: EQ
             Subgroup of Mordell-Weil group: [[-2:3:1], [-14:25:8], [1:-1:1]]
             sage: EQ.regulator()
-            0.41714355875838294
+            0.417143558758384
 
         But we would still need to use the :meth:`saturate()` function to
         verify that full saturation has been done::

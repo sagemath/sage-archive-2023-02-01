@@ -2829,6 +2829,9 @@ cdef class MPolynomial_libsingular(MPolynomial):
             y^2 + y + 1
             sage: f.coefficient(x)
             y^2 + y + 1
+            sage: P.<x,y> = QQ[]
+            sage: x.coefficient(x.exponents()[0])
+            1
 
 
         Be aware that this may not be what you think! The physical

@@ -73,7 +73,6 @@ from sage.lfunctions.zero_sums import LFunctionZeroSum_EllipticCurve
 
 import sage.modular.modform.constructor
 import sage.modular.modform.element
-import sage.libs.eclib.all as mwrank
 import sage.databases.cremona
 
 import sage.arith.all as arith
@@ -791,8 +790,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             return self.__mwrank_curve
         except AttributeError:
             pass
-        self.__mwrank_curve = mwrank.mwrank_EllipticCurve(
-            list(self.ainvs()), verbose=verbose)
+        from sage.libs.eclib.all import mwrank_EllipticCurve
+        self.__mwrank_curve = mwrank_EllipticCurve(self.ainvs(), verbose=verbose)
         return self.__mwrank_curve
 
     def two_descent(self, verbose=True,
@@ -2599,7 +2598,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             v.append((x*d, y*d, d))
 
         c = Emin.mwrank_curve()
-        mw = mwrank.mwrank_MordellWeil(c, verbose)
+        from sage.libs.eclib.all import mwrank_MordellWeil
+        mw = mwrank_MordellWeil(c, verbose)
         mw.process(v)
         repeat_until_saturated = False
         if max_prime == 0:

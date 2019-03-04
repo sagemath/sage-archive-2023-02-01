@@ -13,10 +13,24 @@ and call methods that are implemented using this module.
 
    This interface is a direct library-level interface to ``eclib``,
    including the 2-descent program ``mwrank``.
+
+TESTS:
+
+Check that ``eclib`` is imported as needed::
+
+    sage: [k for k in sys.modules if k.startswith("sage.libs.eclib")]
+    []
+    sage: EllipticCurve('11a1').mwrank_curve()
+    y^2+ y = x^3 - x^2 - 10*x - 20
+    sage: [k for k in sys.modules if k.startswith("sage.libs.eclib")]
+    ['...']
 """
 
 from sage.structure.sage_object import SageObject
+from sage.rings.all import Integer
 from sage.rings.integer_ring import IntegerRing
+
+from .mwrank import _Curvedata, _two_descent, _mw
 
 
 class mwrank_EllipticCurve(SageObject):
@@ -89,9 +103,6 @@ class mwrank_EllipticCurve(SageObject):
             sage: e.ainvs()
             [0, 1, 1, -2, 0]
         """
-        # import here to save time during startup (mwrank takes a while to init)
-
-        from sage.libs.eclib.mwrank import _Curvedata
 
         ainvs = list(ainvs)
         if len(ainvs) > 5:
@@ -359,7 +370,6 @@ class mwrank_EllipticCurve(SageObject):
             sage: E.two_descent(verbose=False)
             True
         """
-        from sage.libs.eclib.mwrank import _two_descent # import here to save time
         first_limit = int(first_limit)
         second_limit = int(second_limit)
         n_aux = int(n_aux)
@@ -603,7 +613,6 @@ class mwrank_EllipticCurve(SageObject):
             [[0, -1, 1]]
         """
         self.saturate()
-        from sage.rings.all import Integer
         L = eval(self.__two_descent_data().getbasis().replace(":",","))
         return [[Integer(x), Integer(y), Integer(z)] for (x,y,z) in L]
 
@@ -858,7 +867,6 @@ class mwrank_MordellWeil(SageObject):
             verb = 1
         else:
             verb = 0
-        from sage.libs.eclib.mwrank import _mw # import here to save time
         self.__mw = _mw(curve._curve_data(), verb, pp, maxr)
 
     def __reduce__(self):
@@ -1345,5 +1353,4 @@ class mwrank_MordellWeil(SageObject):
 
         """
         L = eval(self.__mw.getbasis().replace(":",","))
-        from sage.rings.all import Integer
         return [[Integer(x), Integer(y), Integer(z)] for (x,y,z) in L]

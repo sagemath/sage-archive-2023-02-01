@@ -1,12 +1,13 @@
 r"""
 View classes
 
-This module implements views for vertices (:class:`VertexView`) and edges
-(:class:`EdgeView`) of (di)graphs. A view is a read-only iterable container
-enabling operations like ``for e in E`` and ``e in E``. It is updated as the
-graph is updated. Hence, the graph should not be updated while iterating through
-a view. Views can be iterated multiple times.
+This module implements views for (di)graphs. A view is a read-only iterable
+container enabling operations like ``for e in E`` and ``e in E``. It is updated
+as the graph is updated. Hence, the graph should not be updated while iterating
+through a view. Views can be iterated multiple times.
 
+Classes
+-------
 """
 # ****************************************************************************
 #       Copyright (C) 2019 David Coudert <david.coudert@inria.fr>
@@ -198,6 +199,30 @@ class EdgeView(SageObject):
         Traceback (most recent call last):
         ...
         RuntimeError: dictionary changed size during iteration
+
+    Two :class:`EdgeView` are considered equal if they report either both
+    directed, or both undirected edges, they have the same settings for
+    ``ignore_direction``, they have the same settings for ``labels``, and they
+    report the same edges in the same order::
+
+        sage: G = graphs.HouseGraph()
+        sage: EG = EdgeView(G)
+        sage: H = Graph(list(G.edge_iterator()))
+        sage: EH = EdgeView(H)
+        sage: EG == EH
+        True
+        sage: G.add_edge(0, 10)
+        sage: EG = EdgeView(G)
+        sage: EG == EH
+        False
+        sage: H.add_edge(0, 10)
+        sage: EH = EdgeView(H)
+        sage: EG == EH
+        True
+        sage: H = G.strong_orientation()
+        sage: EH = EdgeView(H)
+        sage: EG == EH
+        False
     """
 
     def __init__(self, G, vertices=None, labels=True, ignore_direction=False,
@@ -401,26 +426,3 @@ class EdgeView(SageObject):
             return (self.graph._backend.has_edge(u, v, label)
                         or self.graph._backend.has_edge(v, u, label))
         return self.graph._backend.has_edge(u, v, label)
-
-
-class VertexView(SageObject):
-    r"""
-    VertexView class.
-
-    This class implements a read-only iterable container of vertices enabling
-    operations like ``for v in V`` and ``v in V``. It is updated as the graph is
-    updated. Hence, the graph should not be updated while iterating through a
-    :class:`VertexView`. A :class:`VertexView` can be iterated multiple times.
-
-    INPUT:
-
-    - ``G`` -- a (di)graph
-
-    """
-
-    def __init__(self, G):
-        """
-        Construction of this :class:`VertexView`.
-        """
-        raise NotImplementedError()
-

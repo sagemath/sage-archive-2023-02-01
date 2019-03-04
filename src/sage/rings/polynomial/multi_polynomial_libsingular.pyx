@@ -2874,6 +2874,13 @@ cdef class MPolynomial_libsingular(MPolynomial):
                     exps[i] = -1
                 else:
                     exps[i] = int(degrees[i])
+        elif isinstance(degrees, ETuple):
+            degrees_list = list(degrees)
+            for i from 0<=i<gens:
+                if degrees_list is None:
+                    exps[i] = -1
+                else:
+                    exps[i] = int(degrees_list[i])
         elif isinstance(degrees, dict):
             # Extract the ordered list of degree specifications from the dictionary
             poly_vars = self.parent().gens()

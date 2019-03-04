@@ -144,13 +144,12 @@ class mwrank_EllipticCurve(SageObject):
 
         from sage.libs.eclib.mwrank import _Curvedata
 
-        # if not isinstance(ainvs, list) and len(ainvs) <= 5:
-        if not isinstance(ainvs, (list,tuple)) or not len(ainvs) <= 5:
-            raise TypeError("ainvs must be a list or tuple of length at most 5.")
+        ainvs = list(ainvs)
+        if len(ainvs) > 5:
+            raise TypeError("ainvs must have length at most 5")
 
-        # Pad ainvs on the beginning by 0's, so e.g.
-        # [a4,a5] works.
-        ainvs = [0]*(5-len(ainvs)) + ainvs
+        # Pad ainvs on the beginning by 0's, so e.g. [a4, a6] works
+        ainvs = [0] * (5 - len(ainvs)) + ainvs
 
         # Convert each entry to an int
         try:

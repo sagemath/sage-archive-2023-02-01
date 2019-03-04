@@ -120,10 +120,16 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
             (-1/x^2) d(x)
         """
         F = self.parent().function_field()
+
+        if self._f.is_zero(): # zero differential
+            return '0'
+
         r =  'd({})'.format(F.base_field().gen())
-        if self._f != 1:
-            r = '({})'.format(self._f) + ' ' + r
-        return r
+
+        if self._f.is_one():
+            return r
+
+        return '({})'.format(self._f) + ' ' + r
 
     def _latex_(self):
         r"""
@@ -138,10 +144,16 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
             \left( x y^{2} + \frac{1}{x} y \right)\, dx
         """
         F = self.parent().function_field()
+
+        if self._f.is_zero(): # zero differential
+            return '0'
+
         r =  'd{}'.format(F.base_field().gen())
-        if self._f != 1:
-            r = '\\left(' + latex(self._f) + '\\right)\\,' + r
-        return r
+
+        if self._f.is_one():
+            return r
+
+        return '\\left(' + latex(self._f) + '\\right)\\,' + r
 
     def _richcmp_(self, other, op):
         """
@@ -342,11 +354,13 @@ class DifferentialsSpace(UniqueRepresentation, Parent):
             (x*y^2 + 1/x*y) d(x)
             sage: S(y) in S
             True
+            sage: S(1)
+            0
         """
         if f in self.base():
             return self.element_class(self, 1, f)
 
-        raise NotImplementedError
+        raise ValueError
 
     def function_field(self):
         """

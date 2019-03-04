@@ -67,7 +67,7 @@ EXAMPLES::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # *****************************************************************************
 from __future__ import print_function
 
@@ -113,21 +113,21 @@ def it(M, B1, nB1, lps):
     EXAMPLES::
 
         sage: from sage.matroids import matroids_plot_helpers as mph
-        sage: M=Matroid(ring=GF(2), matrix=[[1, 0, 0, 0, 1, 1, 1,0],
+        sage: M = Matroid(ring=GF(2), matrix=[[1, 0, 0, 0, 1, 1, 1,0],
         ....: [0, 1, 0, 1, 0, 1, 1,0],[0, 0, 1, 1, 1, 0, 1,0]])
-        sage: N=M.simplify()
-        sage: B1=list(N.basis())
-        sage: nB1=list(set(M.simplify().groundset())-set(B1))
-        sage: pts,trilines,nontripts,curvedlines=mph.it(M,
+        sage: N = M.simplify()
+        sage: B1 = list(N.basis())
+        sage: nB1 = list(set(M.simplify().groundset())-set(B1))
+        sage: pts,trilines,nontripts,curvedlines = mph.it(M,
         ....: B1,nB1,M.loops())
-        sage: print(pts)
-        {1: (1.0, 0.0), 2: (1.5, 1.0), 3: (0.5, 1.0), 4: (0, 0), 5: (1, 2),
-        6: (2, 0)}
-        sage: print(trilines)
+        sage: pts
+        {1: (1.0, 0.0), 2: (1.5, 1.0), 3: (0.5, 1.0),
+         4: (0, 0), 5: (1, 2), 6: (2, 0)}
+        sage: trilines
         [[3, 4, 5], [2, 5, 6], [1, 4, 6]]
-        sage: print(nontripts)
+        sage: nontripts
         [0]
-        sage: print(curvedlines)
+        sage: curvedlines
         [[0, 1, 5], [0, 2, 4], [0, 3, 6], [1, 2, 3], [1, 4, 6], [2, 5, 6],
          [3, 4, 5]]
 
@@ -198,8 +198,8 @@ def trigrid(tripts):
     EXAMPLES::
 
         sage: from sage.matroids import matroids_plot_helpers
-        sage: points=matroids_plot_helpers.trigrid([[2,1],[4,5],[5,2]])
-        sage: print(points)
+        sage: points = matroids_plot_helpers.trigrid([[2,1],[4,5],[5,2]])
+        sage: points
         [[3.6666666666666665, 2.6666666666666665],
          [3.222222222222222, 2.888888888888889],
          [4.222222222222222, 3.222222222222222],

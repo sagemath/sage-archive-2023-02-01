@@ -244,26 +244,25 @@ class EdgeView(SageObject):
             ...
             ValueError: sort keyword is False, yet a key function is given
         """
-        self.graph = G
-        self.directed = G._directed
+        self._graph = G
 
         if vertices is None:
-            self.vertices = G
-            self.vertex_set = G
+            self._vertices = G
+            self._vertex_set = G
         elif vertices in G:
-            self.vertices = [vertices]
-            self.vertex_set = self.vertices
+            self._vertices = [vertices]
+            self._vertex_set = self._vertices
         else:
-            self.vertices = list(vertices)
-            self.vertex_set = frozenset(self.vertices)
+            self._vertices = list(vertices)
+            self._vertex_set = frozenset(self._vertices)
 
         # None and 0 are interpreted as False, 1 as True
-        self.labels = True if labels else False
-        self.ignore_direction = True if ignore_direction else False
-        self.sort_edges = True if sort else False
+        self._labels = True if labels else False
+        self._ignore_direction = True if ignore_direction else False
+        self._sort_edges = True if sort else False
         if not sort and key:
             raise ValueError('sort keyword is False, yet a key function is given')
-        self.sort_edges_key = key
+        self._sort_edges_key = key
 
     def __len__(self):
         """
@@ -283,8 +282,8 @@ class EdgeView(SageObject):
             sage: len(E)
             2
         """
-        if self.vertices is self.graph:
-            return self.graph.size()
+        if self._vertices is self._graph:
+            return self._graph.size()
         else:
             return sum(1 for _ in self)
 
@@ -318,17 +317,17 @@ class EdgeView(SageObject):
             sage: sum(1 for e in E for ee in E) == len(E) * len(E)
             True
         """
-        if self.directed:
-            if self.ignore_direction:
-                edges = chain(self.graph._backend.iterator_out_edges(self.vertices, self.labels),
-                              self.graph._backend.iterator_in_edges(self.vertices, self.labels))
+        if self._graph._directed:
+            if self._ignore_direction:
+                edges = chain(self._graph._backend.iterator_out_edges(self._vertices, self._labels),
+                              self._graph._backend.iterator_in_edges(self._vertices, self._labels))
             else:
-                edges = self.graph._backend.iterator_out_edges(self.vertices, self.labels)
+                edges = self._graph._backend.iterator_out_edges(self._vertices, self._labels)
         else:
-            edges = self.graph._backend.iterator_edges(self.vertices, self.labels)
+            edges = self._graph._backend.iterator_edges(self._vertices, self._labels)
 
-        if self.sort_edges:
-            edges = sorted(list(edges), key=self.sort_edges_key)
+        if self._sort_edges:
+            edges = sorted(edges, key=self._sort_edges_key)
         for e in edges:
             yield e
 
@@ -372,9 +371,9 @@ class EdgeView(SageObject):
         if self is other:
             return True
         # Check parameters
-        if (self.directed != other.directed or
-            self.ignore_direction != other.ignore_direction or
-            self.labels != other.labels):
+        if (self._graph._directed != other._graph._directed or
+            self._ignore_direction != other._ignore_direction or
+            self._labels != other._labels):
             return False
         # Check that the same edges are reported in the same order
         return all(es == eo for es, eo in zip(self, other))
@@ -408,7 +407,7 @@ class EdgeView(SageObject):
             sage: (0, 1, None) in E
             True
         """
-        if self.labels:
+        if self._labels:
             try:
                 u, v, label = e
             except Exception:
@@ -419,10 +418,10 @@ class EdgeView(SageObject):
             except Exception:
                 return False
             label = None
-        if (self.vertex_set is not self.graph
-                and u not in self.vertex_set and v not in self.vertex_set):
+        if (self._vertex_set is not self._graph
+                and u not in self._vertex_set and v not in self._vertex_set):
             return False
-        if self.directed and self.ignore_direction:
-            return (self.graph._backend.has_edge(u, v, label)
-                        or self.graph._backend.has_edge(v, u, label))
-        return self.graph._backend.has_edge(u, v, label)
+        if self._graph._directed and self._ignore_direction:
+            return (self._graph._backend.has_edge(u, v, label)
+                        or self._graph._backend.has_edge(v, u, label))
+        return self._graph._backend.has_edge(u, v, label)

@@ -65,9 +65,10 @@ from sage.misc.flatten import flatten
 from sage.misc.cachefunc import cached_method
 from copy import deepcopy, copy
 from itertools import combinations
+from sage.structure.sage_object import SageObject
 
 
-class Link(object):
+class Link(SageObject):
     r"""
     A link.
 
@@ -511,7 +512,7 @@ class Link(object):
                 rels.append(ela * elb / elc / elb)
             return F.quotient(rels)
 
-    def __repr__(self):
+    def _repr_(self):
         """
         Return a string representation.
 

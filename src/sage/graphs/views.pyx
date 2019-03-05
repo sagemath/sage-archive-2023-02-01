@@ -26,11 +26,7 @@ Classes
 
 from __future__ import print_function, absolute_import
 
-from sage.structure.sage_object import SageObject
-from itertools import chain
-
-
-class EdgesView(SageObject):
+class EdgesView():
     r"""
     EdgesView class.
 
@@ -265,7 +261,7 @@ class EdgesView(SageObject):
         self._labels = True if labels else False
         self._ignore_direction = True if ignore_direction else False
         self._sort_edges = True if sort else False
-        if not sort and key:
+        if not sort and key is not None:
             raise ValueError('sort keyword is False, yet a key function is given')
         self._sort_edges_key = key
 
@@ -292,7 +288,7 @@ class EdgesView(SageObject):
         else:
             return sum(1 for _ in self)
 
-    def _repr_(self):
+    def __repr__(self):
         """
         Return a string representation of ``self``.
 
@@ -322,19 +318,17 @@ class EdgesView(SageObject):
             sage: sum(1 for e in E for ee in E) == len(E) * len(E)
             True
         """
-        if self._graph._directed:
-            if self._ignore_direction:
-                edges = chain(self._graph._backend.iterator_out_edges(self._vertices, self._labels),
-                              self._graph._backend.iterator_in_edges(self._vertices, self._labels))
-            else:
-                edges = self._graph._backend.iterator_out_edges(self._vertices, self._labels)
-        else:
-            edges = self._graph._backend.iterator_edges(self._vertices, self._labels)
-
         if self._sort_edges:
-            edges = sorted(edges, key=self._sort_edges_key)
-        for e in edges:
-            yield e
+            self._sort_edges = False
+            yield from sorted(self, key=self._sort_edges_key)
+            self._sort_edges = True
+        else:
+            if self._graph._directed:
+                yield from self._graph._backend.iterator_out_edges(self._vertices, self._labels)
+                if self._ignore_direction:
+                    yield from self._graph._backend.iterator_in_edges(self._vertices, self._labels)
+            else:
+                yield from self._graph._backend.iterator_edges(self._vertices, self._labels)
 
     def __eq__(self, other):
         """

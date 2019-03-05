@@ -26,6 +26,8 @@ Classes
 
 from __future__ import print_function, absolute_import
 
+from sage.misc.superseded import deprecation
+
 class EdgesView():
     r"""
     EdgesView class.
@@ -51,8 +53,18 @@ class EdgesView():
     - ``ignore_direction`` -- boolean (default: ``False``); only applies to
       directed graphs. If ``True``, searches across edges in either direction.
 
-    - ``sort`` -- boolean (default: ``True``); if ``True``, edges are sorted
-      according to the default ordering
+    - ``sort`` -- boolean (default: ``None``); whether to sort edges
+
+      - if ``None``, sort edges according to the default ordering and give a
+        deprecation warning as sorting will be set to ``False`` by default in
+        the future
+
+      - if ``True``, edges are sorted according the ordering specified with
+        parameter ``key``
+
+      - if ``False``, edges are not sorted. This is the fastest and less memory
+        consuming method for iterating over edges. This will become the default
+        behavior in the future.
 
     - ``key`` -- a function (default: ``None``); a function that takes an edge
       (a pair or a triple, according to the ``labels`` keyword) as its one
@@ -110,7 +122,7 @@ class EdgesView():
 
     We can check if a view is empty::
 
-        sage: E = EdgesView(graphs.CycleGraph(3))
+        sage: E = EdgesView(graphs.CycleGraph(3), sort=False)
         sage: if E:
         ....:     print('not empty')
         not empty
@@ -258,7 +270,7 @@ class EdgesView():
         sage: type(E) is list
         True
 
-    We can ask for the `i`-th edge, or a subset of the edges as a list::
+    We can ask for the `i`-th edge, or a slice of the edges as a list::
 
         sage: E = EdgesView(graphs.HouseGraph(), labels=False, sort=True)
         sage: E[0]
@@ -269,10 +281,12 @@ class EdgesView():
         (3, 4)
         sage: E[1:-1]
         [(0, 2), (1, 3), (2, 3), (2, 4)]
+        sage: E[::-1]
+        [(3, 4), (2, 4), (2, 3), (1, 3), (0, 2), (0, 1)]
     """
 
     def __init__(self, G, vertices=None, labels=True, ignore_direction=False,
-                     sort=True, key=None):
+                     sort=None, key=None):
         """
         Construction of this :class:`EdgesView`.
 
@@ -288,7 +302,7 @@ class EdgesView():
             sage: EdgesView(Graph(), sort=False, key=lambda x:0)
             Traceback (most recent call last):
             ...
-            ValueError: sort keyword is False, yet a key function is given
+            ValueError: sort keyword is not True, yet a key function is given
         """
         self._graph = G
 
@@ -303,11 +317,13 @@ class EdgesView():
             self._vertex_set = frozenset(self._vertices)
 
         # None and 0 are interpreted as False, 1 as True
-        self._labels = True if labels else False
-        self._ignore_direction = True if ignore_direction else False
-        self._sort_edges = True if sort else False
+        self._labels = labels
+        self._ignore_direction = ignore_direction
+        if sort is None:
+            deprecation(27408, "parameter 'sort' will be set to False by default in the future")
+        self._sort_edges = sort
         if not sort and key is not None:
-            raise ValueError('sort keyword is False, yet a key function is given')
+            raise ValueError('sort keyword is not True, yet a key function is given')
         self._sort_edges_key = key
 
     def __len__(self):
@@ -366,9 +382,20 @@ class EdgesView():
             sage: sum(1 for e in E for ee in E) == G.size() * G.size()
             True
         """
-        if self._sort_edges:
+        if self._sort_edges is True:
             self._sort_edges = False
-            yield from sorted(self, key=self._sort_edges_key)
+            # use try / except to restore _sort_edges
+            try:
+                yield from sorted(self, key=self._sort_edges_key)
+            except Exception as msg:
+                raise TypeError("the edges cannot be sorted due to " + msg)
+            self._sort_edges = True
+        elif self._sort_edges is None:
+            self._sort_edges = False
+            try:
+                yield from sorted(self)
+            except Exception as msg:
+                raise TypeError("the edges cannot be sorted due to " + msg)
             self._sort_edges = True
         else:
             if self._graph._directed:
@@ -482,7 +509,7 @@ class EdgesView():
 
         INPUT:
 
-        - ``i`` -- nonnegative integer
+        - ``i`` -- integer or slice
 
         EXAMPLES::
 

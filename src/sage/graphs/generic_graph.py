@@ -4279,7 +4279,7 @@ class GenericGraph(GenericGraph_pyx):
                 v = next(self.vertex_iterator())
             else:
                 v = starting_vertex
-            sorted_edges = list(self.edges(key=wfunction_float))
+            sorted_edges = sorted(self.edges(sort=False), key=wfunction_float)
             tree = set([v])
             edges = []
             for _ in range(self.order() - 1):
@@ -11070,7 +11070,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: P.edges(sort=False, key=lambda x: x)
             Traceback (most recent call last):
             ...
-            ValueError: sort keyword is False, yet a key function is given
+            ValueError: sort keyword is not True, yet a key function is given
 
             sage: G = Graph()
             sage: G.add_edge(0, 1, [7])

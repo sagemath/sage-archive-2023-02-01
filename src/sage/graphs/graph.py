@@ -7809,14 +7809,14 @@ class Graph(GenericGraph):
 
             sage: G = Graph([(0,2,'a'),(0,2,'b'),(0,1,'c'),(1,2,'d')], multiedges=True)
             sage: G.kirchhoff_symanzik_polynomial()
-            t0*t1 + t1*t2 + t0*t3 + t1*t3 + t2*t3
+            t0*t1 + t0*t2 + t1*t2 + t1*t3 + t2*t3
 
         For the complete graph with 4 vertices::
 
             sage: G = graphs.CompleteGraph(4)
             sage: G.kirchhoff_symanzik_polynomial()
-            t0*t1*t2 + t0*t1*t3 + t0*t2*t3 + t0*t1*t4 + t0*t2*t4 + t1*t2*t4
-            + t1*t3*t4 + t2*t3*t4 + t0*t2*t5 + t1*t2*t5 + t0*t3*t5 + t1*t3*t5
+            t0*t1*t3 + t0*t2*t3 + t1*t2*t3 + t0*t1*t4 + t0*t2*t4 + t1*t2*t4
+            + t1*t3*t4 + t2*t3*t4 + t0*t1*t5 + t0*t2*t5 + t1*t2*t5 + t0*t3*t5
             + t2*t3*t5 + t0*t4*t5 + t1*t4*t5 + t3*t4*t5
 
         REFERENCES:
@@ -7833,8 +7833,8 @@ class Graph(GenericGraph):
         from sage.rings.integer_ring import ZZ
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
-        # The order of the vertices in each tuple matters, so we freeze edges
-        edges = frozenset(self.edges(sort=False))
+        # The order of the vertices in each tuple matters, so use a list
+        edges = list(self.edges(sort=False))
         cycles = self.cycle_basis(output='edge')
 
         edge2int = {e: j for j, e in enumerate(edges)}

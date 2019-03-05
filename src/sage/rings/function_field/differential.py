@@ -52,6 +52,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import ModuleElement
 from sage.structure.richcmp import richcmp
+from sage.sets.family import Family
 
 from sage.categories.modules import Modules
 
@@ -293,6 +294,24 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
         x = F.base_field().gen()
         return self._f.divisor() + (-2) * F(x).divisor_of_poles() + F.different()
 
+    def monomial_coefficients(self, copy=True):
+        """
+        Return a dictionary whose keys are indices of basis
+        elements in the support of ``self`` and whose values
+        are the corresponding coefficients.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(5)); _.<Y>=K[]
+            sage: L.<y> = K.extension(Y^3+x+x^3*Y)
+            sage: d = y.differential()
+            sage: d
+            ((4*x/(x^7 + 3))*y^2 + ((4*x^7 + 1)/(x^8 + 3*x))*y + x^4/(x^7 + 3)) d(x)
+            sage: d.monomial_coefficients()
+            {0: (4*x/(x^7 + 3))*y^2 + ((4*x^7 + 1)/(x^8 + 3*x))*y + x^4/(x^7 + 3)}
+        """
+        return {0: self._f}
+
 class DifferentialsSpace(UniqueRepresentation, Parent):
     """
     Space of differentials of a function field.
@@ -321,7 +340,7 @@ class DifferentialsSpace(UniqueRepresentation, Parent):
             sage: W = L.space_of_differentials()
             sage: TestSuite(W).run()
         """
-        Parent.__init__(self, base=field, category=Modules(field).or_subcategory(category))
+        Parent.__init__(self, base=field, category=Modules(field).FiniteDimensional().WithBasis().or_subcategory(category))
 
     def _repr_(self):
         """
@@ -358,7 +377,7 @@ class DifferentialsSpace(UniqueRepresentation, Parent):
             0
         """
         if f in self.base():
-            return self.element_class(self, 1, f)
+            return self.element_class(self, self.base().one(), f)
 
         raise ValueError
 
@@ -389,4 +408,20 @@ class DifferentialsSpace(UniqueRepresentation, Parent):
             sage: S.an_element()  # random
             (x*y^2 + 1/x*y) d(x)
         """
-        return self.element_class(self, 1, self.base().an_element())
+        F = self.base()
+        return self.element_class(self, F.one(), F.an_element())
+
+    def basis(self):
+        """
+        Return a basis.
+
+        EXAMPLES::
+
+            sage: K.<x>=FunctionField(GF(4)); _.<Y>=K[]
+            sage: L.<y>=K.extension(Y^3+x+x^3*Y)
+            sage: S = L.space_of_differentials()
+            sage: S.basis()
+            Family (d(x),)
+        """
+        return Family([self.element_class(self, self.base().one())])
+

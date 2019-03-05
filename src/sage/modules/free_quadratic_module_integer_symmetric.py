@@ -631,11 +631,9 @@ def IntegralLatticeGluing(Lattices, glue, return_embeddings=False):
     for i in range(N):
         ALi = Lattices[i].discriminant_group()
         for g in glue:
-            try:
-                ALi(g[i])
-            except:
-                raise ValueError("the gluing vectors must be in the"
-                                 "corresponding discriminant groups")
+            # Check that the gluing vectors are in the
+            # corresponding discriminant groups
+            ALi(g[i])
     generators = [sum(phi[i](g[i].lift()*g[i].order())/g[i].order()
                       for i in range(N))
                   for g in glue]

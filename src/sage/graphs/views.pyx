@@ -27,6 +27,8 @@ Classes
 from __future__ import print_function, absolute_import
 
 from sage.misc.superseded import deprecation
+from itertools import islice
+from sys import maxsize as sys_maxsize
 
 class EdgesView():
     r"""
@@ -542,13 +544,20 @@ class EdgesView():
             ...
             IndexError: index out of range
         """
-        if isinstance(i, slice) or i < 0:
-            return list(self).__getitem__(i)
-        cdef Py_ssize_t j
-        for j, e in enumerate(self):
-            if i == j:
-                return e
-        raise IndexError('index out of range')
+        cdef Py_ssize_t start, stop, step
+        if isinstance(i, slice):
+            start, stop, step = i.start or 0, i.stop or sys_maxsize, i.step or 1
+            if start >= 0 and stop >= 0 and step >= 0:
+                return list(islice(self, i.start, i.stop, i.end))
+            else:
+                return list(self)[i]
+        elif i < 0:
+            return list(self)[i]
+        else:
+            try:
+                return next(islice(self, <int> i, <int>i + 1, 1))
+            except StopIteration:
+                raise IndexError('index out of range')
 
     def __add__(self, other):
         """

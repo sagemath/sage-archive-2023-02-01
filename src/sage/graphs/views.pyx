@@ -30,16 +30,16 @@ from sage.structure.sage_object import SageObject
 from itertools import chain
 
 
-class EdgeView(SageObject):
+class EdgesView(SageObject):
     r"""
-    EdgeView class.
+    EdgesView class.
 
     This class implements a read-only iterable container of edges enabling
-    operations like ``for e in E`` and ``e in E``. An :class:`EdgeView` can be
+    operations like ``for e in E`` and ``e in E``. An :class:`EdgesView` can be
     iterated multiple times, and checking membership is done in constant
     time. It avoids the construction of edge lists and so consumes little
     memory. It is updated as the graph is updated. Hence, the graph should not
-    be updated while iterating through an :class:`EdgeView`.
+    be updated while iterating through an :class:`EdgesView`.
 
     INPUT:
 
@@ -75,15 +75,15 @@ class EdgeView(SageObject):
 
     EXAMPLES::
 
-        sage: from sage.graphs.views import EdgeView
+        sage: from sage.graphs.views import EdgesView
         sage: G = Graph([(0, 1, 'C'), (0, 2, 'A'), (1, 2, 'B')])
-        sage: E = EdgeView(G); E
+        sage: E = EdgesView(G); E
         [(0, 1, 'C'), (0, 2, 'A'), (1, 2, 'B')]
         sage: (1, 2) in E
         False
         sage: (1, 2, 'B') in E
         True
-        sage: E = EdgeView(G, labels=False); E
+        sage: E = EdgesView(G, labels=False); E
         [(0, 1), (0, 2), (1, 2)]
         sage: (1, 2) in E
         True
@@ -92,7 +92,7 @@ class EdgeView(SageObject):
         sage: [e for e in E]
         [(0, 1), (0, 2), (1, 2)]
 
-    An :class:`EdgeView` can be iterated multiple times::
+    An :class:`EdgesView` can be iterated multiple times::
 
         sage: G = graphs.CycleGraph(3)
         sage: print(E)
@@ -114,11 +114,11 @@ class EdgeView(SageObject):
 
     We can check if a view is empty::
 
-        sage: E = EdgeView(graphs.CycleGraph(3))
+        sage: E = EdgesView(graphs.CycleGraph(3))
         sage: if E:
         ....:     print('not empty')
         not empty
-        sage: E = EdgeView(Graph())
+        sage: E = EdgesView(Graph())
         sage: if not E:
         ....:     print('empty')
         empty
@@ -127,55 +127,55 @@ class EdgeView(SageObject):
     fashion::
 
         sage: G = Graph([(0, 1, 'C'), (0, 2, 'A'), (1, 2, 'B')])
-        sage: E = EdgeView(G, sort=True); E
+        sage: E = EdgesView(G, sort=True); E
         [(0, 1, 'C'), (0, 2, 'A'), (1, 2, 'B')]
 
     This can be overridden by specifying a key function. This first example just
     ignores the labels in the third component of the triple::
 
         sage: G = Graph([(0, 1, 'C'), (0, 2, 'A'), (1, 2, 'B')])
-        sage: E = EdgeView(G, sort=True, key=lambda x: (x[1], -x[0])); E
+        sage: E = EdgesView(G, sort=True, key=lambda x: (x[1], -x[0])); E
         [(0, 1, 'C'), (1, 2, 'B'), (0, 2, 'A')]
 
     We can also sort according to the labels::
 
         sage: G = Graph([(0, 1, 'C'), (0, 2, 'A'), (1, 2, 'B')])
-        sage: E = EdgeView(G, sort=True, key=lambda x: x[2]); E
+        sage: E = EdgesView(G, sort=True, key=lambda x: x[2]); E
         [(0, 2, 'A'), (1, 2, 'B'), (0, 1, 'C')]
 
     With a directed graph::
 
         sage: G = digraphs.DeBruijn(2, 2)
-        sage: E = EdgeView(G, labels=False, sort=True); E
+        sage: E = EdgesView(G, labels=False, sort=True); E
         [('00', '00'), ('00', '01'), ('01', '10'), ('01', '11'),
          ('10', '00'), ('10', '01'), ('11', '10'), ('11', '11')]
-        sage: E = EdgeView(G, labels=False, sort=True, key=lambda e:(e[1], e[0])); E
+        sage: E = EdgesView(G, labels=False, sort=True, key=lambda e:(e[1], e[0])); E
         [('00', '00'), ('10', '00'), ('00', '01'), ('10', '01'),
          ('01', '10'), ('11', '10'), ('01', '11'), ('11', '11')]
 
     We can consider only edges incident to a specified set of vertices::
 
         sage: G = graphs.CycleGraph(5)
-        sage: E = EdgeView(G, vertices=[0, 1], labels=False, sort=True); E
+        sage: E = EdgesView(G, vertices=[0, 1], labels=False, sort=True); E
         [(0, 1), (0, 4), (1, 2)]
-        sage: E = EdgeView(G, vertices=0, labels=False, sort=True); E
+        sage: E = EdgesView(G, vertices=0, labels=False, sort=True); E
         [(0, 1), (0, 4)]
-        sage: E = EdgeView(G, vertices=None, labels=False, sort=True); E
+        sage: E = EdgesView(G, vertices=None, labels=False, sort=True); E
         [(0, 1), (0, 4), (1, 2), (2, 3), (3, 4)]
 
         sage: G = digraphs.Circuit(5)
-        sage: E = EdgeView(G, vertices=[0, 1], labels=False, sort=True); E
+        sage: E = EdgesView(G, vertices=[0, 1], labels=False, sort=True); E
         [(0, 1), (1, 2)]
 
     We can ignore the direction of the edges of a directed graph, in which case
     we search accross edges in either direction::
 
         sage: G = digraphs.Circuit(5)
-        sage: E = EdgeView(G, vertices=[0, 1], labels=False, sort=True, ignore_direction=False); E
+        sage: E = EdgesView(G, vertices=[0, 1], labels=False, sort=True, ignore_direction=False); E
         [(0, 1), (1, 2)]
         sage: (1, 0) in E
         False
-        sage: E = EdgeView(G, vertices=[0, 1], labels=False, sort=True, ignore_direction=True); E
+        sage: E = EdgesView(G, vertices=[0, 1], labels=False, sort=True, ignore_direction=True); E
         [(0, 1), (0, 1), (1, 2), (4, 0)]
         sage: (1, 0) in E
         True
@@ -185,7 +185,7 @@ class EdgeView(SageObject):
     A view is updated as the graph is updated::
 
         sage: G = Graph()
-        sage: E = EdgeView(G, vertices=[0, 3], labels=False); E
+        sage: E = EdgesView(G, vertices=[0, 3], labels=False); E
         []
         sage: G.add_edges([(0, 1), (1, 2)])
         sage: E
@@ -197,7 +197,7 @@ class EdgeView(SageObject):
     Hence, the graph should not be updated while iterating through a view::
 
         sage: G = Graph([('a', 'b'), ('b', 'c')])
-        sage: E = EdgeView(G, labels=False, sort=False); E
+        sage: E = EdgesView(G, labels=False, sort=False); E
         [('a', 'b'), ('b', 'c')]
         sage: for u, v in E:
         ....:     G.add_edge(u + u, v + v)
@@ -205,27 +205,27 @@ class EdgeView(SageObject):
         ...
         RuntimeError: dictionary changed size during iteration
 
-    Two :class:`EdgeView` are considered equal if they report either both
+    Two :class:`EdgesView` are considered equal if they report either both
     directed, or both undirected edges, they have the same settings for
     ``ignore_direction``, they have the same settings for ``labels``, and they
     report the same edges in the same order::
 
         sage: G = graphs.HouseGraph()
-        sage: EG = EdgeView(G)
+        sage: EG = EdgesView(G)
         sage: H = Graph(list(G.edge_iterator()))
-        sage: EH = EdgeView(H)
+        sage: EH = EdgesView(H)
         sage: EG == EH
         True
         sage: G.add_edge(0, 10)
-        sage: EG = EdgeView(G)
+        sage: EG = EdgesView(G)
         sage: EG == EH
         False
         sage: H.add_edge(0, 10)
-        sage: EH = EdgeView(H)
+        sage: EH = EdgesView(H)
         sage: EG == EH
         True
         sage: H = G.strong_orientation()
-        sage: EH = EdgeView(H)
+        sage: EH = EdgesView(H)
         sage: EG == EH
         False
     """
@@ -233,18 +233,18 @@ class EdgeView(SageObject):
     def __init__(self, G, vertices=None, labels=True, ignore_direction=False,
                      sort=True, key=None):
         """
-        Construction of this :class:`EdgeView`.
+        Construction of this :class:`EdgesView`.
 
         EXAMPLES::
 
-            sage: from sage.graphs.views import EdgeView
+            sage: from sage.graphs.views import EdgesView
             sage: G = Graph([(0, 1, 'C'), (0, 2, 'A'), (1, 2, 'B')])
-            sage: E = EdgeView(G); E
+            sage: E = EdgesView(G); E
             [(0, 1, 'C'), (0, 2, 'A'), (1, 2, 'B')]
 
         TESTS::
 
-            sage: EdgeView(Graph(), sort=False, key=lambda x:0)
+            sage: EdgesView(Graph(), sort=False, key=lambda x:0)
             Traceback (most recent call last):
             ...
             ValueError: sort keyword is False, yet a key function is given
@@ -275,14 +275,14 @@ class EdgeView(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.graphs.views import EdgeView
+            sage: from sage.graphs.views import EdgesView
             sage: G = graphs.HouseGraph()
-            sage: E = EdgeView(G)
+            sage: E = EdgesView(G)
             sage: len(E)
             6
             sage: len(E) == G.size()
             True
-            sage: E = EdgeView(G, vertices=0, labels=False); E
+            sage: E = EdgesView(G, vertices=0, labels=False); E
             [(0, 1), (0, 2)]
             sage: len(E)
             2
@@ -298,9 +298,9 @@ class EdgeView(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.graphs.views import EdgeView
+            sage: from sage.graphs.views import EdgesView
             sage: G = graphs.HouseGraph()
-            sage: E = EdgeView(G, labels=False)
+            sage: E = EdgesView(G, labels=False)
             sage: repr(E)
             '[(0, 1), (0, 2), (1, 3), (2, 3), (2, 4), (3, 4)]'
             sage: E
@@ -314,9 +314,9 @@ class EdgeView(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.graphs.views import EdgeView
+            sage: from sage.graphs.views import EdgesView
             sage: G = graphs.HouseGraph()
-            sage: E = EdgeView(G, labels=False)
+            sage: E = EdgesView(G, labels=False)
             sage: list(E)
             [(0, 1), (0, 2), (1, 3), (2, 3), (2, 4), (3, 4)]
             sage: sum(1 for e in E for ee in E) == len(E) * len(E)
@@ -343,7 +343,7 @@ class EdgeView(SageObject):
         Do not call this method directly. That is, for ``E1.__eq__(E2)`` write
         ``E1 == E2``.
 
-        Two :class:`EdgeView` are considered equal if the following hold:
+        Two :class:`EdgesView` are considered equal if the following hold:
         - they report either both directed, or both undirected edges;
         - they have the same settings for ``ignore_direction``;
         - they have the same settings for ``labels``;
@@ -351,27 +351,27 @@ class EdgeView(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.graphs.views import EdgeView
+            sage: from sage.graphs.views import EdgesView
             sage: G = graphs.HouseGraph()
-            sage: EG = EdgeView(G)
+            sage: EG = EdgesView(G)
             sage: H = Graph(list(G.edge_iterator()))
-            sage: EH = EdgeView(H)
+            sage: EH = EdgesView(H)
             sage: EG == EH
             True
             sage: G.add_edge(0, 10)
-            sage: EG = EdgeView(G)
+            sage: EG = EdgesView(G)
             sage: EG == EH
             False
             sage: H.add_edge(0, 10)
-            sage: EH = EdgeView(H)
+            sage: EH = EdgesView(H)
             sage: EG == EH
             True
             sage: H = G.strong_orientation()
-            sage: EH = EdgeView(H)
+            sage: EH = EdgesView(H)
             sage: EG == EH
             False
         """
-        if not isinstance(other, EdgeView):
+        if not isinstance(other, EdgesView):
             return False
         if self is other:
             return True
@@ -395,16 +395,16 @@ class EdgeView(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.graphs.views import EdgeView
+            sage: from sage.graphs.views import EdgesView
             sage: G = Graph([(0, 1)])
-            sage: E = EdgeView(G, labels=False)
+            sage: E = EdgesView(G, labels=False)
             sage: print(E)
             [(0, 1)]
             sage: (0, 1) in E
             True
             sage: (0, 1, None) in E
             False
-            sage: E = EdgeView(G, labels=True)
+            sage: E = EdgesView(G, labels=True)
             sage: print(E)
             [(0, 1, None)]
             sage: (0, 1) in E

@@ -166,7 +166,7 @@ from sage.misc.superseded import deprecation
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.dot2tex_utils import have_dot2tex
-from sage.graphs.views import EdgeView
+from sage.graphs.views import EdgesView
 
 
 class DiGraph(GenericGraph):
@@ -663,7 +663,7 @@ class DiGraph(GenericGraph):
             isinstance(data[0], list) and    # a list of two lists, the second of
             ((isinstance(data[1], list) and  # which contains iterables (the edges)
               (not data[1] or callable(getattr(data[1][0], "__iter__", None)))) or
-             (isinstance(data[1], EdgeView)))):
+             (isinstance(data[1], EdgesView)))):
             format = "vertices_and_edges"
 
         if format is None and isinstance(data, dict):
@@ -699,8 +699,8 @@ class DiGraph(GenericGraph):
             format = 'int'
             data = 0
 
-        # Input is a list of edges or an EdgeView
-        if format is None and isinstance(data, (list, EdgeView)):
+        # Input is a list of edges or an EdgesView
+        if format is None and isinstance(data, (list, EdgesView)):
             format = "list_of_edges"
             if weighted is None:
                     weighted = False

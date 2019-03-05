@@ -300,7 +300,7 @@ def make_regular_matroid_from_matroid(matroid):
         for f in C.difference([e]):
             A[dB[f], dNB[e]] = 1
     # Change some entries from -1 to 1
-    entries = list(BipartiteGraph(A.transpose()).edge_iterator(labels=False))
+    entries = list(BipartiteGraph(A.transpose()).edges(labels=False, sort=False))
     while entries:
         L = [G.shortest_path(u, v) for u, v in entries]
         mindex, minval = min(enumerate(L), key=lambda x: len(x[1]))

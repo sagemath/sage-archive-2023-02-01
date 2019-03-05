@@ -416,7 +416,7 @@ from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.digraph import DiGraph
 from sage.graphs.independent_sets import IndependentSets
 from sage.misc.rest_index_of_methods import doc_index, gen_thematic_rest_table_index
-from sage.graphs.views import EdgeView
+from sage.graphs.views import EdgesView
 
 
 class Graph(GenericGraph):
@@ -1063,7 +1063,7 @@ class Graph(GenericGraph):
             isinstance(data[0], list) and    # a list of two lists, the second of
             ((isinstance(data[1], list) and  # which contains iterables (the edges)
               (not data[1] or callable(getattr(data[1][0], "__iter__", None)))) or
-             (isinstance(data[1], EdgeView)))):
+             (isinstance(data[1], EdgesView)))):
             format = "vertices_and_edges"
 
         if format is None and isinstance(data, dict):
@@ -1071,7 +1071,7 @@ class Graph(GenericGraph):
                 format = 'dict_of_dicts'
             else:
                 val = next(iter(data.values()))
-                if isinstance(val, (list, EdgeView)):
+                if isinstance(val, (list, EdgesView)):
                     format = 'dict_of_lists'
                 elif isinstance(val, dict):
                     format = 'dict_of_dicts'
@@ -1099,8 +1099,8 @@ class Graph(GenericGraph):
             format = 'int'
             data = 0
 
-        # Input is a list of edges or an EdgeView
-        if format is None and isinstance(data, (list, EdgeView)):
+        # Input is a list of edges or an EdgesView
+        if format is None and isinstance(data, (list, EdgesView)):
             format = "list_of_edges"
             if weighted is None:
                 weighted = False
@@ -7833,7 +7833,7 @@ class Graph(GenericGraph):
         from sage.rings.integer_ring import ZZ
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
-        edges = list(self.edge_iterator())
+        edges = list(self.edges(sort=False))
         cycles = self.cycle_basis(output='edge')
 
         edge2int = {e: j for j, e in enumerate(edges)}
@@ -7992,7 +7992,7 @@ class Graph(GenericGraph):
         from sage.matrix.constructor import matrix
 
         H = self.subgraph(vertices=self.cores(k=2)[1])
-        E = list(H.edge_iterator())
+        E = list(H.edges(sort=False))
         m = len(E)
         # compute (Hashimoto) edge matrix T
         T = matrix(ZZ, 2 * m, 2 * m, 0)

@@ -179,7 +179,7 @@ cdef class PPLBackend(GenericBackend):
             mip_obj = mip_obj + Linear_Expression(coeff * Variable(i))
         self.mip.set_objective_function(mip_obj)
         self.obj_denominator = denom
-        
+
         # Constraints
         for i in range(len(self.Matrix)):
             l = Linear_Expression(0)
@@ -599,7 +599,7 @@ cdef class PPLBackend(GenericBackend):
         self.row_upper_bound.append(upper_bound)
         self.row_name_var.append(name)
 
-    cpdef add_col(self, list indices, list coeffs):
+    cpdef add_col(self, indices, coeffs):
         """
         Add a column.
 

@@ -540,7 +540,7 @@ cdef class GenericBackend:
             p.add_linear_constraint_vector(2, coeffs, lower, upper, 'foo')
         # FIXME: Tests here. Careful what we expect regarding ranged constraints with some solvers.
 
-    cpdef add_col(self, list indices, list coeffs):
+    cpdef add_col(self, indices, coeffs):
         """
         Add a column.
 

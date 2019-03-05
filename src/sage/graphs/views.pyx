@@ -6,6 +6,11 @@ container enabling operations like ``for e in E`` and ``e in E``. It is updated
 as the graph is updated. Hence, the graph should not be updated while iterating
 through a view. Views can be iterated multiple times.
 
+.. TODO::
+
+    - View of neighborhood to get open/close neighborhood of a vertex/set of
+      vertices, and also the vertex boundary
+
 Classes
 -------
 """

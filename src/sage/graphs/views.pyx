@@ -208,7 +208,7 @@ class EdgesView():
 
         sage: G = graphs.HouseGraph()
         sage: EG = EdgesView(G)
-        sage: H = Graph(list(G.edge_iterator()))
+        sage: H = Graph(EG)
         sage: EH = EdgesView(H)
         sage: EG == EH
         True
@@ -224,6 +224,47 @@ class EdgesView():
         sage: EH = EdgesView(H)
         sage: EG == EH
         False
+
+    The sum of two :class:`EdgesView` is a list containing the edges in both
+    :class:`EdgesView`::
+
+        sage: E1 = EdgesView(Graph([(0, 1)]), labels=False)
+        sage: E2 = EdgesView(Graph([(2, 3)]), labels=False)
+        sage: E1 + E2
+        [(0, 1), (2, 3)]
+        sage: E2 + E1
+        [(2, 3), (0, 1)]
+
+    Recall that a :class:`EdgesView` is read-only and that this method
+    returns a list::
+
+        sage: E1 += E2
+        sage: type(E1) is list
+        True
+
+    It is also possible to get the sum a :class:`EdgesView` with itself `n`
+    times::
+
+        sage: E = EdgesView(Graph([(0, 1), (2, 3)]), labels=False)
+        sage: E * 3
+        [(0, 1), (2, 3), (0, 1), (2, 3), (0, 1), (2, 3)]
+        sage: 3 * E
+        [(0, 1), (2, 3), (0, 1), (2, 3), (0, 1), (2, 3)]
+
+    Recall that a :class:`EdgesView` is read-only and that this method
+    returns a list::
+
+        sage: E *= 2
+        sage: type(E) is list
+        True
+
+    We can ask for the `i`-th edge::
+
+        sage: E = EdgesView(graphs.HouseGraph(), labels=False)
+        sage: E[0]
+        (0, 1)
+        sage: E[2]
+        (1, 3)
     """
 
     def __init__(self, G, vertices=None, labels=True, ignore_direction=False,
@@ -424,3 +465,143 @@ class EdgesView():
             return (self._graph._backend.has_edge(u, v, label)
                         or self._graph._backend.has_edge(v, u, label))
         return self._graph._backend.has_edge(u, v, label)
+
+    def __getitem__(self, i):
+        r"""
+        Return the `i`-th edge in ``self``.
+
+        This method takes time `O(i)`. When several calls to this method are
+        done, prefer making ``list`` from ``self`` before querying items.
+
+        INPUT:
+
+        - ``i`` -- nonnegative integer
+
+        EXAMPLES::
+
+            sage: from sage.graphs.views import EdgesView
+            sage: E = EdgesView(graphs.HouseGraph(), labels=False)
+            sage: E[0]
+            (0, 1)
+            sage: E[2]
+            (1, 3)
+
+        TESTS::
+
+            sage: from sage.graphs.views import EdgesView
+            sage: E = EdgesView(graphs.HouseGraph(), labels=False)
+            sage: E[-1]
+            Traceback (most recent call last):
+            ...
+            IndexError: index out of range
+            sage: E[10]
+            Traceback (most recent call last):
+            ...
+            IndexError: index out of range
+        """
+        if i < 0:
+            raise IndexError('index out of range')
+        cdef Py_ssize_t j
+        for j, e in enumerate(self):
+            if i == j:
+                return e
+        raise IndexError('index out of range')
+
+    def __add__(self, other):
+        """
+        Return a list containing the edges of ``self`` and ``other``.
+
+        The returned list contains the edges of ``self`` with prescribed order
+        followed by the edges of ``other`` in prescribed order.
+
+        INPUT:
+
+        - ``other`` -- :class:`EdgesView`
+
+        EXAMPLES::
+
+            sage: from sage.graphs.views import EdgesView
+            sage: E1 = EdgesView(Graph([(0, 1)]), labels=False)
+            sage: E2 = EdgesView(Graph([(2, 3)]), labels=False)
+            sage: E1 + E2
+            [(0, 1), (2, 3)]
+            sage: E2 + E1
+            [(2, 3), (0, 1)]
+
+        Recall that a :class:`EdgesView` is read-only and that this method
+        returns a list::
+
+            sage: E1 += E2
+            sage: type(E1) is list
+            True
+
+        TESTS::
+
+            sage: from sage.graphs.views import EdgesView
+            sage: E = EdgesView(graphs.HouseGraph())
+            sage: E + 'foo'
+            Traceback (most recent call last):
+            ...
+            TypeError: other is not a EdgesView
+        """
+        if not isinstance(other, EdgesView):
+            raise TypeError('other is not a EdgesView')
+        cdef list L = list(self)
+        L.extend(other)
+        return L
+
+    def __mul__(self, n):
+        r"""
+        Return the sum of ``self`` with itself ``n`` times.
+
+        INPUT:
+
+        - ``n`` -- integer
+
+        EXAMPLES::
+
+            sage: from sage.graphs.views import EdgesView
+            sage: E = EdgesView(Graph([(0, 1), (2, 3)]), labels=False)
+            sage: E * 3
+            [(0, 1), (2, 3), (0, 1), (2, 3), (0, 1), (2, 3)]
+
+        Recall that a :class:`EdgesView` is read-only and that this method
+        returns a list::
+
+            sage: E *= 2
+            sage: type(E) is list
+            True
+
+        TESTS::
+
+            sage: from sage.graphs.views import EdgesView
+            sage: E = EdgesView(Graph([(0, 1)]))
+            sage: E * (-1)
+            Traceback (most recent call last):
+            ...
+            TypeError: multiplication of a EdgesView and a nonpositive integer is not defined
+            sage: E * 1.5
+            Traceback (most recent call last):
+            ...
+            TypeError: can't multiply sequence by non-int of type 'sage.rings.real_mpfr.RealLiteral'
+        """
+        if n < 1:
+            raise TypeError('multiplication of a EdgesView and a nonpositive integer is not defined')
+        return list(self) * n
+
+    def __rmul__(self, n):
+        r"""
+        Return the sum of ``self`` with itself ``n`` times.
+
+        INPUT:
+
+        - ``n`` -- integer
+
+        EXAMPLES::
+
+            sage: from sage.graphs.views import EdgesView
+            sage: E = EdgesView(Graph([(0, 1), (2, 3)]), labels=False)
+            sage: 3 * E
+            [(0, 1), (2, 3), (0, 1), (2, 3), (0, 1), (2, 3)]
+        """
+        return self.__mul__(n)

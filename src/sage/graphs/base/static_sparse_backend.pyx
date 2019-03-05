@@ -393,7 +393,7 @@ cdef class StaticSparseBackend(CGraphBackend):
 
             sage: g = DiGraph(digraphs.DeBruijn(4, 3), data_structure="static_sparse")
             sage: gi = DiGraph(g, data_structure="static_sparse")
-            sage: list(gi.edges())[0]
+            sage: gi.edges()[0]
             ('000', '000', '0')
             sage: sorted(gi.edges_incident('111'))
             [('111', '110', '0'),

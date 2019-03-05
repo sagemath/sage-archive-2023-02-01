@@ -2513,7 +2513,7 @@ def canaug_traverse_edge(g, aut_gens, property, dig=False, loops=False, implemen
             for ii in range(n):
                 relabel_inverse[canonical_relabeling[ii]] = ii
             z_can = z.relabel(canonical_relabeling, inplace=False)
-            cut_edge_can = list(z_can.edges(labels=False, sort=True))[-1]
+            cut_edge_can = z_can.edges(labels=False, sort=True)[-1]
             cut_edge = [relabel_inverse[cut_edge_can[0]], relabel_inverse[cut_edge_can[1]]]
             if dig:
                 cut_edge = tuple(cut_edge)

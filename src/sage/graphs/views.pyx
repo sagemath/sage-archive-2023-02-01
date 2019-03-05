@@ -73,13 +73,13 @@ class EdgesView():
 
         sage: from sage.graphs.views import EdgesView
         sage: G = Graph([(0, 1, 'C'), (0, 2, 'A'), (1, 2, 'B')])
-        sage: E = EdgesView(G); E
+        sage: E = EdgesView(G, sort=True); E
         [(0, 1, 'C'), (0, 2, 'A'), (1, 2, 'B')]
         sage: (1, 2) in E
         False
         sage: (1, 2, 'B') in E
         True
-        sage: E = EdgesView(G, labels=False); E
+        sage: E = EdgesView(G, labels=False, sort=True); E
         [(0, 1), (0, 2), (1, 2)]
         sage: (1, 2) in E
         True
@@ -181,7 +181,7 @@ class EdgesView():
     A view is updated as the graph is updated::
 
         sage: G = Graph()
-        sage: E = EdgesView(G, vertices=[0, 3], labels=False); E
+        sage: E = EdgesView(G, vertices=[0, 3], labels=False, sort=True); E
         []
         sage: G.add_edges([(0, 1), (1, 2)])
         sage: E
@@ -245,7 +245,7 @@ class EdgesView():
     It is also possible to get the sum a :class:`EdgesView` with itself `n`
     times::
 
-        sage: E = EdgesView(Graph([(0, 1), (2, 3)]), labels=False)
+        sage: E = EdgesView(Graph([(0, 1), (2, 3)]), labels=False, sort=True)
         sage: E * 3
         [(0, 1), (2, 3), (0, 1), (2, 3), (0, 1), (2, 3)]
         sage: 3 * E
@@ -258,13 +258,17 @@ class EdgesView():
         sage: type(E) is list
         True
 
-    We can ask for the `i`-th edge::
+    We can ask for the `i`-th edge, or a subset of the edges as a list::
 
-        sage: E = EdgesView(graphs.HouseGraph(), labels=False)
+        sage: E = EdgesView(graphs.HouseGraph(), labels=False, sort=True)
         sage: E[0]
         (0, 1)
         sage: E[2]
         (1, 3)
+        sage: E[-1]
+        (3, 4)
+        sage: E[1:-1]
+        [(0, 2), (1, 3), (2, 3), (2, 4)]
     """
 
     def __init__(self, G, vertices=None, labels=True, ignore_direction=False,
@@ -276,7 +280,7 @@ class EdgesView():
 
             sage: from sage.graphs.views import EdgesView
             sage: G = Graph([(0, 1, 'C'), (0, 2, 'A'), (1, 2, 'B')])
-            sage: E = EdgesView(G); E
+            sage: E = EdgesView(G, sort=True); E
             [(0, 1, 'C'), (0, 2, 'A'), (1, 2, 'B')]
 
         TESTS::
@@ -319,7 +323,7 @@ class EdgesView():
             6
             sage: len(E) == G.size()
             True
-            sage: E = EdgesView(G, vertices=0, labels=False); E
+            sage: E = EdgesView(G, vertices=0, labels=False, sort=True); E
             [(0, 1), (0, 2)]
             sage: len(E)
             2
@@ -353,10 +357,13 @@ class EdgesView():
 
             sage: from sage.graphs.views import EdgesView
             sage: G = graphs.HouseGraph()
-            sage: E = EdgesView(G, labels=False)
+            sage: E = EdgesView(G, labels=False, sort=True)
             sage: list(E)
             [(0, 1), (0, 2), (1, 3), (2, 3), (2, 4), (3, 4)]
             sage: sum(1 for e in E for ee in E) == len(E) * len(E)
+            True
+            sage: E = EdgesView(G, labels=False)
+            sage: sum(1 for e in E for ee in E) == G.size() * G.size()
             True
         """
         if self._sort_edges:
@@ -389,7 +396,7 @@ class EdgesView():
             sage: from sage.graphs.views import EdgesView
             sage: G = graphs.HouseGraph()
             sage: EG = EdgesView(G)
-            sage: H = Graph(list(G.edge_iterator()))
+            sage: H = Graph(EG)
             sage: EH = EdgesView(H)
             sage: EG == EH
             True
@@ -485,22 +492,22 @@ class EdgesView():
             (0, 1)
             sage: E[2]
             (1, 3)
+            sage: E[1:-1]
+            [(0, 2), (1, 3), (2, 3), (2, 4)]
+            sage: E[-1]
+            (3, 4)
 
         TESTS::
 
             sage: from sage.graphs.views import EdgesView
             sage: E = EdgesView(graphs.HouseGraph(), labels=False)
-            sage: E[-1]
-            Traceback (most recent call last):
-            ...
-            IndexError: index out of range
             sage: E[10]
             Traceback (most recent call last):
             ...
             IndexError: index out of range
         """
-        if i < 0:
-            raise IndexError('index out of range')
+        if isinstance(i, slice) or i < 0:
+            return list(self).__getitem__(i)
         cdef Py_ssize_t j
         for j, e in enumerate(self):
             if i == j:
@@ -561,7 +568,7 @@ class EdgesView():
         EXAMPLES::
 
             sage: from sage.graphs.views import EdgesView
-            sage: E = EdgesView(Graph([(0, 1), (2, 3)]), labels=False)
+            sage: E = EdgesView(Graph([(0, 1), (2, 3)]), labels=False, sort=True)
             sage: E * 3
             [(0, 1), (2, 3), (0, 1), (2, 3), (0, 1), (2, 3)]
 
@@ -600,7 +607,7 @@ class EdgesView():
         EXAMPLES::
 
             sage: from sage.graphs.views import EdgesView
-            sage: E = EdgesView(Graph([(0, 1), (2, 3)]), labels=False)
+            sage: E = EdgesView(Graph([(0, 1), (2, 3)]), labels=False, sort=True)
             sage: 3 * E
             [(0, 1), (2, 3), (0, 1), (2, 3), (0, 1), (2, 3)]
         """

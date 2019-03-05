@@ -7581,9 +7581,9 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 if self.allows_multiple_edges() and len(self.edge_label(uu, vv)) > 1:
                     if maximize:
-                        edges = list(self.edges(key=weight))[-2:]
+                        edges = self.edges(key=weight)[-2:]
                     else:
-                        edges = list(self.edges(key=weight))[:2]
+                        edges = self.edges(key=weight)[:2]
                     answer = self.subgraph(edges=edges, immutable=self.is_immutable())
                     answer.set_pos(self.get_pos())
                     answer.name("TSP from "+self.name())

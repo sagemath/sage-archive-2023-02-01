@@ -2114,9 +2114,9 @@ def cleave(G, cut_vertices=None, virtual_edges=True, solver=None, verbose=0):
     # is needed.
     cocycles = Graph([cut_vertices, []], multiedges=True)
     if K.size():
-        cocycles.add_edges(list(K.edges(sort=False)) * (len(cut_sides) + 1))
+        cocycles.add_edges(K.edges(sort=False) * (len(cut_sides) + 1))
     if virtual_edges and virtual_cut_graph:
-        cocycles.add_edges(list(virtual_cut_graph.edges(sort=False)) * len(cut_sides))
+        cocycles.add_edges(virtual_cut_graph.edges(sort=False) * len(cut_sides))
 
     return cut_sides, cocycles, virtual_cut_graph
 

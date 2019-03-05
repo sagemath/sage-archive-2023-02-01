@@ -126,7 +126,7 @@ class EdgesView():
         sage: if E:
         ....:     print('not empty')
         not empty
-        sage: E = EdgesView(Graph())
+        sage: E = EdgesView(Graph(), sort=False)
         sage: if not E:
         ....:     print('empty')
         empty
@@ -219,29 +219,29 @@ class EdgesView():
     report the same edges in the same order::
 
         sage: G = graphs.HouseGraph()
-        sage: EG = EdgesView(G)
+        sage: EG = EdgesView(G, sort=False)
         sage: H = Graph(EG)
-        sage: EH = EdgesView(H)
+        sage: EH = EdgesView(H, sort=False)
         sage: EG == EH
         True
         sage: G.add_edge(0, 10)
-        sage: EG = EdgesView(G)
+        sage: EG = EdgesView(G, sort=False)
         sage: EG == EH
         False
         sage: H.add_edge(0, 10)
-        sage: EH = EdgesView(H)
+        sage: EH = EdgesView(H, sort=False)
         sage: EG == EH
         True
         sage: H = G.strong_orientation()
-        sage: EH = EdgesView(H)
+        sage: EH = EdgesView(H, sort=False)
         sage: EG == EH
         False
 
     The sum of two :class:`EdgesView` is a list containing the edges in both
     :class:`EdgesView`::
 
-        sage: E1 = EdgesView(Graph([(0, 1)]), labels=False)
-        sage: E2 = EdgesView(Graph([(2, 3)]), labels=False)
+        sage: E1 = EdgesView(Graph([(0, 1)]), labels=False, sort=False)
+        sage: E2 = EdgesView(Graph([(2, 3)]), labels=False, sort=False)
         sage: E1 + E2
         [(0, 1), (2, 3)]
         sage: E2 + E1
@@ -283,6 +283,15 @@ class EdgesView():
         [(0, 2), (1, 3), (2, 3), (2, 4)]
         sage: E[::-1]
         [(3, 4), (2, 4), (2, 3), (1, 3), (0, 2), (0, 1)]
+
+    TESTS:
+
+    Deprecation warning for ``sort=None`` (:trac:`27408`)::
+
+        sage: G = graphs.HouseGraph()
+        sage: EG = EdgesView(G, sort=None)
+        doctest:...: DeprecationWarning: parameter 'sort' will be set to False by default in the future
+        See https://trac.sagemath.org/27408 for details.
     """
 
     def __init__(self, G, vertices=None, labels=True, ignore_direction=False,

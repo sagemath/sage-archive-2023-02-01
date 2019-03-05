@@ -405,6 +405,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 import six
 from six.moves import range
+import itertools
 
 from copy import copy
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -1200,9 +1201,8 @@ class Graph(GenericGraph):
             if weighted is None: weighted = False
             self.allow_loops(loops, check=False)
             self.allow_multiple_edges(True if multiedges else False, check=False)
-            from itertools import combinations
             self.add_vertices(verts)
-            self.add_edges(e for e in combinations(verts,2) if f(*e))
+            self.add_edges(e for e in itertools.combinations(verts,2) if f(*e))
             if loops:
                 self.add_edges((v,v) for v in verts if f(v,v))
 
@@ -2816,8 +2816,8 @@ class Graph(GenericGraph):
                     return all(cc.treewidth(k) for cc in g.connected_components_subgraphs())
             else:
                 T = [cc.treewidth(certificate=True) for cc in g.connected_components_subgraphs()]
-                tree = Graph([sum([list(t) for t in T], []),
-                              sum([t.edges(labels=False, sort=False) for t in T], [])],
+                tree = Graph([list(itertools.chain(*T)),
+                              list(itertools.chain(*[t.edges(labels=False, sort=False) for t in T]))],
                              format='vertices_and_edges', name="Tree decomposition")
                 v = next(T[0].vertex_iterator())
                 for t in T[1:]:
@@ -3854,11 +3854,10 @@ class Graph(GenericGraph):
             yield D
             return
 
-        from itertools import product
         E = [[(u,v,label), (v,u,label)] if u != v else [(u,v,label)]
              for u,v,label in self.edge_iterator()]
         verts = self.vertices()
-        for edges in product(*E):
+        for edges in itertools.product(*E):
             D = DiGraph(data=[verts, edges],
                         format='vertices_and_edges',
                         name=name,
@@ -5508,10 +5507,9 @@ class Graph(GenericGraph):
             sage: G == H
             True
         """
-        from itertools import product
         G = self if inplace else copy(self)
         boundary = self.edge_boundary(s)
-        G.add_edges(product(s, set(self).difference(s)))
+        G.add_edges(itertools.product(s, set(self).difference(s)))
         G.delete_edges(boundary)
         if not inplace:
             return G

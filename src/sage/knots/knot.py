@@ -17,15 +17,18 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+from six import add_metaclass
+
 from sage.knots.link import Link
 
 from sage.structure.parent import Parent
 from sage.structure.element import Element
-from sage.categories.sets_cat import Sets
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.categories.all import Monoids
+from sage.misc.fast_methods import Singleton
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
+from sage.categories.monoids import Monoids
 
-    
+# We need Link to be first in the MRO in order to use its equality, hash, etc.
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class Knot(Link, Element):
     r"""
     A knot.
@@ -75,6 +78,21 @@ class Knot(Link, Element):
 
     - :wikipedia:`Knot_(mathematics)`
     """
+    @staticmethod
+    def __classcall_private__(self, data, check=True):
+        """
+        Make sure this is an instance of the element class
+        of :class:`Knots`.
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(8)
+            sage: K = Knot(B([-1, -1, -1, 2, 1, -2, 3, -2, 3]))
+            sage: type(K)
+            <class 'sage.knots.knot.Knots_with_category.element_class'>
+        """
+        return Knots().element_class(data, check=check)
+
     def __init__(self, data, check=True):
         """
         Initialize ``self``.
@@ -82,12 +100,10 @@ class Knot(Link, Element):
         TESTS::
 
             sage: B = BraidGroup(8)
-            sage: K = Knot(B([-1, -1, -1, 2, 1, -2, 3, -2, 3]))
-            sage: TestSuite(K).run(skip='_test_category')
             sage: K = Knot(B([1, -2, 1, -2]))
-            sage: TestSuite(K).run(skip='_test_category')
+            sage: TestSuite(K).run()
             sage: K = Knot([[1, 1, 2, 2]])
-            sage: TestSuite(K).run(skip='_test_category')
+            sage: TestSuite(K).run()
 
         The following is not a knot: it has two components. ::
 
@@ -99,13 +115,13 @@ class Knot(Link, Element):
             sage: Knot([[[1, 2], [-2, -1]], [1, -1]], check=False)
             Knot represented by 2 crossings
         """
-        Link.__init__(self, data)
         Element.__init__(self, Knots())
+        Link.__init__(self, data)
         if check:
             if self.number_of_components() != 1:
                 raise ValueError("the input has more than 1 connected component")
 
-    def __repr__(self):
+    def _repr_(self):
         """
         Return a string representation.
 
@@ -307,12 +323,12 @@ class Knot(Link, Element):
         # construct the oriented gauss code of the result
         ogc2_0_0 = [a + int(sign(a)) * n for a in ogc2[0][0]]
         nogc = [[ogc1[0][0] + ogc2_0_0], ogc1[1] + ogc2[1]]
-        return Knot(nogc)
+        return type(self)(nogc)
 
     _mul_ = connected_sum
 
 
-class Knots(UniqueRepresentation, Parent):
+class Knots(Singleton, Parent):
     """
     The set for all knots, as a monoid for the connected sum.
     """
@@ -323,9 +339,9 @@ class Knots(UniqueRepresentation, Parent):
             sage: S = Knots()
             sage: S.cardinality()
             +Infinity
-            sage: TestSuite(S).run(skip='_test_elements')
+            sage: TestSuite(S).run()
         """
-        Parent.__init__(self, category=(Monoids(), Sets().Infinite()))
+        Parent.__init__(self, category=Monoids().Infinite())
 
     def _repr_(self):
         r"""
@@ -347,7 +363,7 @@ class Knots(UniqueRepresentation, Parent):
             sage: Knots().one()
             Knot represented by 0 crossings
         """
-        return Knot([])
+        return self.element_class([])
 
     def an_element(self):
         """
@@ -358,6 +374,7 @@ class Knots(UniqueRepresentation, Parent):
             sage: Knots().an_element()
             Knot represented by 3 crossings
         """
-        return Knot([[1, 5, 2, 4], [5, 3, 6, 2], [3, 1, 4, 6]])
+        return self.element_class([[1, 5, 2, 4], [5, 3, 6, 2], [3, 1, 4, 6]])
 
     Element = Knot
+

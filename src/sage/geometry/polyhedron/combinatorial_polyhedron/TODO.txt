@@ -1,0 +1,28 @@
+
+    I sometimes wonder if it wouldn't be easier to abstract some things in C++ or Python classes, for example using something like std::vector<uint64_t> or array.array instead of uint64_t*.
+
+
+Renamings:
+
+CountFaceBits                           ->  count_atoms
+facet_repr_from_bitrep                  ->  bit_repr_to_coatom_repr
+char_from_tuple                         ->  vertex_list_to_bit_repr
+char_from_incidence                     ->  incidences_to_bit_repr
+forbidden                               ->  visited_all
+nr_forbidden                            ->  nr_visited_all
+get_facets_from_incidence_matrix        ->  incidence_matrix_to_bit_repr_of_facets
+get_vertices_from_incidence_matrix      ->  incidence_matrix_to_bit_repr_of_vertices
+get_facets_bitrep_from_facets_tuple     ->  facets_tuple_to_bit_repr_of_facets
+get_vertices_bitrep_from_facets_tuple   ->  facets_tuple_to_bit_repr_of_vertices
+vertex_repr_from_bitrep                 ->  bit_repr_to_vertex_list
+FaceIterator.record_dimension           ->  FaceIterator.request_dimension
+FaceIterator.yet_to_yield               ->  FaceIterator.yet_to_visit
+FaceIterator.atom_repr_face             ->  FaceIterator.atom_repr
+FaceIterator.coatom_repr_face           ->  FaceIterator.coatom_repr
+FaceIterator.atom_repr                  ->  FaceIterator.set_atom_repr
+FaceIterator.coatom_repr                ->  FaceIterator.set_coatom_repr
+ListOfAllFaces.atom_repr_face           ->  ListOfAllFaces.atom_repr
+ListOfAllFaces.coatom_repr_face         ->  ListOfAllFaces.coatom_repr
+ListOfAllFaces.atom_repr                ->  ListOfAllFaces.set_atom_repr
+ListOfAllFaces.coatom_repr              ->  ListOfAllFaces.set_coatom_repr
+ListOfAllFaces.incidence_is_initialized ->  ListOfAllFaces.is_incidence_initialized

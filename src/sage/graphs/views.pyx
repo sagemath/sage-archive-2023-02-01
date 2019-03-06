@@ -354,8 +354,15 @@ class EdgesView():
             [(0, 1), (0, 2)]
             sage: len(E)
             2
+            sage: G = digraphs.Circuit(4)
+            sage: len(EdgesView(G, ignore_direction=False, sort=False))
+            4
+            sage: len(EdgesView(G, ignore_direction=True, sort=False))
+            8
         """
         if self._vertices is self._graph:
+            if self._graph._directed and self._ignore_direction:
+                return 2 * self._graph.size()
             return self._graph.size()
         else:
             return sum(1 for _ in self)

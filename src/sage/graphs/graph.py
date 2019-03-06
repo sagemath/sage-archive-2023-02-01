@@ -4981,7 +4981,7 @@ class Graph(GenericGraph):
 
         # Boolean variable in two dimension whose first element is a vertex and
         # whose second element is one of the sets given as arguments.
-        # When true, indicated that the vertex is the representant of the
+        # When true, indicated that the vertex is the representative of the
         # corresponding set
         classss = p.new_variable(binary=True)
 
@@ -4991,7 +4991,7 @@ class Graph(GenericGraph):
             for v in f:
                 lists[v].append(i)
 
-            # a classss has exactly one representant
+            # a classss has exactly one representative
             p.add_constraint(p.sum(classss[v,i] for v in f), max=1, min=1)
 
         # A vertex represents at most one classss (vertex_taken is binary), and
@@ -4999,7 +4999,7 @@ class Graph(GenericGraph):
         for v in self:
             p.add_constraint(p.sum(classss[v,i] for i in lists[v]) - vertex_taken[v], max=0)
 
-        # Two adjacent vertices can not both be representants of a set
+        # Two adjacent vertices can not both be representatives of a set
 
         for u,v in self.edge_iterator(labels=None):
             p.add_constraint(vertex_taken[u] + vertex_taken[v], max=1)
@@ -5114,7 +5114,7 @@ class Graph(GenericGraph):
 
         # rs = Representative set of a vertex
         # for h in H, v in G is such that rs[h,v] == 1 if and only if v
-        # is a representant of h in self
+        # is a representative of h in self
         rs = p.new_variable(binary=True)
 
         for v in self:
@@ -5695,7 +5695,7 @@ class Graph(GenericGraph):
         p.set_objective(None)
 
         #######################
-        # Vertex representant #
+        # Vertex representative #
         #######################
         #
         # v_repr[h,g] = 1 if vertex h from H is represented by vertex
@@ -5703,7 +5703,7 @@ class Graph(GenericGraph):
 
         v_repr = p.new_variable(binary=True)
 
-        # Exactly one representant per vertex of H
+        # Exactly one representative per vertex of H
         for h in H:
             p.add_constraint(p.sum(v_repr[h,g] for g in G), min=1, max=1)
 
@@ -5728,7 +5728,7 @@ class Graph(GenericGraph):
         ###################################
         #
         # For any edge (h1,h2) in H, we have a corresponding path in G
-        # between the representants of h1 and h2. Which means there is
+        # between the representatives of h1 and h2. Which means there is
         # a flow of intensity 1 from one to the other.
         # We are then writing a flow problem for each edge of H.
         #
@@ -5753,7 +5753,7 @@ class Graph(GenericGraph):
             for v in G:
 
                 # The flow balance depends on whether the vertex v is a
-                # representant of h1 or h2 in G, or a representant of none
+                # representative of h1 or h2 in G, or a representative of none
                 p.add_constraint(flow_balance((h1,h2),v) == v_repr[h1,v] - v_repr[h2,v])
 
         #############################

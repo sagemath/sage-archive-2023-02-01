@@ -324,6 +324,18 @@ def sage_include_directories(use_sources=False):
         '.../python.../site-packages/sage/ext',
         '.../include/python...',
         '.../python.../numpy/core/include']
+
+    To check that C/C++ files are correctly found, we verify that we can
+    always find the include file ``sage/cpython/cython_metaclass.h``,
+    with both values for ``use_sources``::
+
+        sage: file = os.path.join("sage", "cpython", "cython_metaclass.h")
+        sage: dirs = sage.env.sage_include_directories(use_sources=True)
+        sage: any(os.path.isfile(os.path.join(d, file)) for d in dirs)
+        True
+        sage: dirs = sage.env.sage_include_directories(use_sources=False)
+        sage: any(os.path.isfile(os.path.join(d, file)) for d in dirs)
+        True
     """
     import numpy
     import distutils.sysconfig
@@ -331,6 +343,7 @@ def sage_include_directories(use_sources=False):
     TOP = SAGE_SRC if use_sources else SAGE_LIB
 
     return [SAGE_INC,
+            TOP,
             os.path.join(TOP, 'sage', 'ext'),
             distutils.sysconfig.get_python_inc(),
             numpy.get_include()]

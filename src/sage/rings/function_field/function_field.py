@@ -877,6 +877,41 @@ class FunctionField(Field):
         from sage.rings.function_field.function_field_valuation import FunctionFieldValuation
         return FunctionFieldValuation(self, prime)
 
+    def space_of_differentials(self):
+        """
+        Return the space of differentials attached to the function field.
+
+        EXAMPLES::
+
+            sage: K.<t> = FunctionField(QQ)
+            sage: K.space_of_differentials()
+            Space of differentials of Rational function field in t over Rational Field
+
+            sage: K.<x> = FunctionField(GF(5)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 - (x^3 - 1)/(x^3 - 2))
+            sage: L.space_of_differentials()
+            Space of differentials of Function field in y defined by y^3 + (4*x^3 + 1)/(x^3 + 3)
+        """
+        from .differential import DifferentialsSpace
+        return DifferentialsSpace(self)
+
+    def divisor_group(self):
+        """
+        Return the group of divisors attached to the function field.
+
+        EXAMPLES::
+
+            sage: K.<t> = FunctionField(QQ)
+            sage: K.divisor_group()
+            Divisor group of Rational function field in t over Rational Field
+
+            sage: K.<x> = FunctionField(GF(5)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 - (x^3 - 1)/(x^3 - 2))
+            sage: L.divisor_group()
+            Divisor group of Function field in y defined by y^3 + (4*x^3 + 1)/(x^3 + 3)
+        """
+        from .divisor import DivisorGroup
+        return DivisorGroup(self)
 
 class FunctionField_polymod(FunctionField):
     """
@@ -2513,8 +2548,8 @@ class FunctionField_global(FunctionField_polymod):
 
     EXAMPLES::
 
-        sage: K.<x>=FunctionField(GF(5)); _.<Y>=K[]
-        sage: L.<y>=K.extension(Y^3-(x^3-1)/(x^3-2))
+        sage: K.<x> = FunctionField(GF(5)); _.<Y> = K[]
+        sage: L.<y> = K.extension(Y^3 - (x^3 - 1)/(x^3 - 2))
         sage: L
         Function field in y defined by y^3 + (4*x^3 + 1)/(x^3 + 3)
     """
@@ -2648,20 +2683,6 @@ class FunctionField_global(FunctionField_polymod):
         """
         from .place import PlaceSet
         return PlaceSet(self)
-
-    def divisor_group(self):
-        """
-        Return the group of divisors attached to the function field.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(5)); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^3 - (x^3 - 1)/(x^3 - 2))
-            sage: L.divisor_group()
-            Divisor group of Function field in y defined by y^3 + (4*x^3 + 1)/(x^3 + 3)
-        """
-        from .divisor import DivisorGroup
-        return DivisorGroup(self)
 
     def residue_field(self, place, name=None):
         """
@@ -3871,19 +3892,6 @@ class RationalFunctionField(FunctionField):
         if not self.constant_base_field().is_perfect():
             raise NotImplementedError("not implemented for non-perfect base fields")
         return FunctionFieldDerivation_rational(self, self.one())
-
-    def divisor_group(self):
-        """
-        Return the group of divisors of the rational function field.
-
-        EXAMPLES::
-
-            sage: K.<t> = FunctionField(QQ)
-            sage: K.divisor_group()
-            Divisor group of Rational function field in t over Rational Field
-        """
-        from .divisor import DivisorGroup
-        return DivisorGroup(self)
 
 class RationalFunctionField_global(RationalFunctionField):
     """

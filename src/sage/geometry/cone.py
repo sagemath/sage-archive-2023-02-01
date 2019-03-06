@@ -1370,7 +1370,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
     - ``PPL`` -- either ``None`` (default) or a
       :class:`~ppl.polyhedron.C_Polyhedron` representing the cone. This
       serves only to cache the polyhedral data if you know it
-      already. The polyhedron will be set immutable.
+      already. The constructor does not make a copy so the ``PPL`` object
+      should not be modified afterwards.
 
     OUTPUT:
 

@@ -301,6 +301,7 @@ from sage.combinat.combinatorial_map import combinatorial_map
 from sage.misc.superseded import deprecated_function_alias
 from sage.combinat.subset import Subsets
 
+
 def Poset(data=None, element_labels=None, cover_relations=False, linear_extension=False, category=None, facade=None, key=None):
     r"""
     Construct a finite poset from various forms of input data.
@@ -2319,7 +2320,7 @@ class FinitePoset(UniqueRepresentation, Parent):
                 chain_pairs = [tuple(chain_pair) for chain_pair in m]
             except TypeError:
                 raise TypeError("%s is not a tuple of tuples." % str(tuple(m)))
-            if not all(len(chain_pair) is 2 for chain_pair in chain_pairs):
+            if not all(len(chain_pair) == 2 for chain_pair in chain_pairs):
                 raise ValueError("%r is not a tuple of length-2 tuples." % str(tuple(m)))
             chain_pairs = sorted(chain_pairs, key=min)
         else:
@@ -3786,7 +3787,9 @@ class FinitePoset(UniqueRepresentation, Parent):
           values are ``'singular'``, ``'sage'``, ``'gap'``,
           ``'pari'``, ``'maple'``, ``'magma'``, ``'fricas'``
 
-        Beware that speed depends very much on the choice of algorithm.
+        Beware that speed depends very much on the choice of
+        algorithm. Sage is rather slow, Singular is faster and Pari is
+        fast at least for small sizes.
 
         OUTPUT:
 
@@ -8052,6 +8055,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         return (set(self).issubset(set(other)) and
                 other.subposet(self).hasse_diagram() == self.hasse_diagram())
 
+
 FinitePoset._dual_class = FinitePoset
 
 # ------- Posets -------
@@ -8162,6 +8166,7 @@ class FinitePosets_n(UniqueRepresentation, Parent):
             return Integer(known_values[self._n])
         else:
             return super(FinitePosets_n, self).cardinality()
+
 
 # For backward compatibility of pickles of the former Posets()
 Posets_all = Posets

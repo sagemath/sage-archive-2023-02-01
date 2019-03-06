@@ -1021,8 +1021,9 @@ cdef class FaceIterator(SageObject):
 
                 # Let ``maybe_newfaces2`` be the inclusion maximal faces of
                 # ``maybe_newfaces``.
-                # If an element in ``maybe_newfaces`` is inclusion maximal,
-                # it is a facet of ``one_face`` or contained any of the ``visited_all``.
+                # If an element in ``maybe_newfaces`` is inclusion maximal
+                # and not contained in any of the ``visited_all``,
+                # it is a facet of ``one_face``.
                 # Any facet in ``maybe_newfaces`` of ``one_face``
                 # is inlcusion maximal.
                 maybe_newfaces2 = []

@@ -987,49 +987,68 @@ cdef class FaceIterator(SageObject):
     The algorithm to visit all proper faces exactly once is roughly
     equivalent to::
 
-        faces = [set(facet) for facet in self.facets()]
-        ComputeNextStep(facets, [])
+        faces = [set(facet) for facet in P.facets()]
+        face_iterator(faces, [])
 
-        # this algorithm assumes at each step to receive all facets of
-        # some face except those contained in a face of visited_all
+        def face_iterator(faces, visited_all):
+            # Visit all faces of a Polyhedron `P`, except those contained in
+            # any of the visited all.
 
-        def ComputeNextStep(faces, visited_all):
+            # Assumes ``faces`` to be excactly those facets of `P`
+            # that are not contained in any of the ``visited_all``.
 
-            for face in faces:
-                pass #do something here with that face
+            # Assumes ``visited_all`` to be some list of faces of
+            # a Polyhedron `P_2`, which contains `P` as one of its faces.
 
-            while len(faces) > 1:
+            while len(facets) > 0:
                 one_face = faces.pop()
                 maybe_newfaces = [one_face.intersection(face) for face in faces]
-                # maybe_newfaces contains all intersection with one_face
 
-                newfaces2 = []
-                for face1 in newfaces:
-                    # face1 is a facet of one_face iff
-                    # it is not contained in another facet
-                    if all(not face1 < face2 for face2 in newfaces):
-                        newfaces2.append(face1)
-                # newfaces2 contains all facets of one_face not contained
-                # in any one of visited_all and maybe some that are
-                # contained in one of visited_all
+                # ``maybe_newfaces`` contains all facets of ``one_face``,
+                # which we have not visited before.
+                # Proof: Let `F` be a facet of ``one_face``.
+                # We have a chain:
+                # `P` ⊃ ``one_face`` ⊃ `F`.
+                # By diamond property there exists ``second_face`` with:
+                # `P` ⊃ ``second_face`` ⊃ `F`.
 
+                # Either ``second_face`` is not an element of ``faces``:
+                #     Hence ``second_face`` is contained in one of ``visited_all``.
+                #     In particular, `F` is contained in ``visited_all``.
+                # Or ``second_face`` is an element of ``faces``:
+                #     Then, intersecting ``one_face`` with ``second_face`` gives
+                #     ``F``. ∎
+
+                # Let ``maybe_newfaces2`` be the elements in ``maybe_newfaces``
+                # that are facets of ``one_face``.
+                # Those are exactly the inclusion maximal elements of
+                # ``maybe_newfaces``.
+                maybe_newfaces2 = []
+                for face1 in maybe_newfaces:
+                    # ``face1`` is a facet of ``one_face``,
+                    # iff it is not contained in another facet.
+                    if all(not face1 < face2 for face2 in maybe_newfaces):
+                        maybe_newfaces2.append(face1)
+
+                # ``maybe_newfaces2`` contains only facets of ``one_face``.
+                # It also contains all the facets not contained in any of ``visited_all``.
+                # Let ``newfaces`` be the list of all facets of ``one_face``
+                # not contained in any of ``visited_all``.
                 newfaces = []
-                for face1 in newfaces2:
+                for face1 in maybe_newfaces2:
                     if all(not face1 < face2 for face2 in visited_all):
                         newfaces.append(face1)
-                # newfaces contains exactly all facets of one_face but
-                # those contained in one face of visited_all
 
-                # visit all faces in one_face that are not contained in
-                # one of visited_all
-                ComputeNextStep(newfaces, visited_all)
+                # By induction we can apply the algorithm, to visit all
+                # faces of ``one_face`` not contained in ``visited_all``:
+                face_iterator(newfaces, visited_all)
 
-                # we have visited all faces in one_face, so we should not
-                # visit one ever again
-
+                # Finally visit ``one_face`` and add it to ``visited_all``:
+                visit(one_face)
                 visited_all.append(one_face)
 
-                return
+                # Note: At this point, we have visited exactly those faces,
+                # contained in any of the ``visited_all``.
     """
     def __init__(self, CombinatorialPolyhedron C, bint dual):
         r"""

@@ -1019,10 +1019,12 @@ cdef class FaceIterator(SageObject):
                 #     Then, intersecting ``one_face`` with ``second_face`` gives
                 #     ``F``. ∎
 
-                # Let ``maybe_newfaces2`` be the elements in ``maybe_newfaces``
-                # that are facets of ``one_face``.
-                # Those are exactly the inclusion maximal elements of
+                # Let ``maybe_newfaces2`` be the inclusion maximal faces of
                 # ``maybe_newfaces``.
+                # If an element in ``maybe_newfaces`` is inclusion maximal,
+                # it is a facet of ``one_face`` or contained any of the ``visited_all``.
+                # Any facet in ``maybe_newfaces`` of ``one_face``
+                # is inlcusion maximal.
                 maybe_newfaces2 = []
                 for face1 in maybe_newfaces:
                     # ``face1`` is a facet of ``one_face``,
@@ -1030,7 +1032,8 @@ cdef class FaceIterator(SageObject):
                     if all(not face1 < face2 for face2 in maybe_newfaces):
                         maybe_newfaces2.append(face1)
 
-                # ``maybe_newfaces2`` contains only facets of ``one_face``.
+                # ``maybe_newfaces2`` contains only facets of ``one_face``
+                # and some faces contained in any of ``visited_all``.
                 # It also contains all the facets not contained in any of ``visited_all``.
                 # Let ``newfaces`` be the list of all facets of ``one_face``
                 # not contained in any of ``visited_all``.

@@ -60,11 +60,11 @@ class PRESENT(SageObject):
         True
         sage: P = ZZ(0).digits(2,padto=64)
         sage: K = ZZ(0).digits(2,padto=80)
-        sage: present(present(P, K, "encrypt"), K, "decrypt") == P
+        sage: list(present(present(P, K, "encrypt"), K, "decrypt")) == P
         True
-        sage: P = ZZ(0).digits(16,padto=16)
-        sage: K = ZZ(0).digits(16,padto=20)
-        sage: present(present(P, K, "encrypt"), K, "decrypt") == P
+        sage: P = ZZ(0).digits(2,padto=64)
+        sage: K = 0x0
+        sage: list(present(present(P, K, "encrypt"), K, "decrypt")) == P
         True
         sage: present = PRESENT(128)
         sage: P = 0x0123456789abcdef
@@ -232,8 +232,7 @@ class PRESENT(SageObject):
             for nibble in [slice(4*j, 4*j+4) for j in range(16)]:
                 state[nibble] = self._inverseSbox(state[nibble][::-1])[::-1]
             state = state + K
-        P = convert_vector_to_type(state, inputType)
-        return P
+        return state if inputType == 'vector' else ZZ(list(state), 2)
 
     def encrypt(self, P, K):
         r"""
@@ -285,8 +284,7 @@ class PRESENT(SageObject):
                 state[nibble] = self._sbox(state[nibble][::-1])[::-1]
             state[0:] = self._permutationMatrix * state
         state = state + roundKeys[-1]
-        C = convert_vector_to_type(state, inputType)
-        return C
+        return state if inputType == 'vector' else ZZ(list(state), 2)
 
 
 class PRESENT_KS(SageObject):
@@ -413,22 +411,23 @@ class PRESENT_KS(SageObject):
         roundKeys = []
         if self._keysize == 80:
             for i in range(1, self._rounds+1):
-                roundKeys.append(convert_vector_to_type(K[16:], inputType))
+                roundKeys.append(K[16:])
                 K[0:] = list(K[19:]) + list(K[:19])
                 K[76:] = self._sbox(K[76:][::-1])[::-1]
                 rc = vector(GF(2), ZZ(i).digits(2, padto=5))
                 K[15:20] = K[15:20] + rc
-            roundKeys.append(convert_vector_to_type(K[16:], inputType))
+            roundKeys.append(K[16:])
         elif self._keysize == 128:
             for i in range(1, self._rounds+1):
-                roundKeys.append(convert_vector_to_type(K[64:], inputType))
+                roundKeys.append(K[64:])
                 K[0:] = list(K[67:]) + list(K[:67])
                 K[124:] = self._sbox(K[124:][::-1])[::-1]
                 K[120:124] = self._sbox(K[120:124][::-1])[::-1]
                 rc = vector(GF(2), ZZ(i).digits(2, padto=5))
                 K[62:67] = K[62:67] + rc
-            roundKeys.append(convert_vector_to_type(K[64:], inputType))
-        return roundKeys
+            roundKeys.append(K[64:])
+        return roundKeys if inputType == "vector" else [ZZ(list(k), 2) for k in
+                                                        roundKeys]
 
     def __eq__(self, other):
         r"""
@@ -514,9 +513,6 @@ def convert_to_vector(I, L):
     r"""
     Convert ``I`` to a bit vector of length ``L``.
 
-    If ``I`` is list-like its elements will be treated as binary if
-    ``len(I) == L`` or as hexadecimal if ``4*len(I) == L``.
-
     INPUT:
 
     - ``I`` -- integer or list-like
@@ -527,97 +523,20 @@ def convert_to_vector(I, L):
 
     - A ``L``-bit vector representation of ``I``
 
-    - A tuple containing the type of ``I`` and if necessary its representation
-      e.g. "bin" or "hex"
-
     EXAMPLES::
 
     sage: from sage.crypto.block_cipher.present import convert_to_vector
-    sage: convert_to_vector("0x1F", 8)
-    ((1, 1, 1, 1, 1, 0, 0, 0), (<type 'str'>, None))
-    sage: convert_to_vector(["0x1","0xF"], 8)
-    ((1, 0, 0, 0, 1, 1, 1, 1), (<type 'list'>, 'hex'))
     sage: convert_to_vector(0x1F, 8)
-    ((1, 1, 1, 1, 1, 0, 0, 0), (<type 'sage.rings.integer.Integer'>, None))
+    ((1, 1, 1, 1, 1, 0, 0, 0), 'integer')
     sage: v = vector(GF(2), 4, [1,0,1,0])
     sage: convert_to_vector(v, 4)
-    ((1, 0, 1, 0),
-     (<type 'sage.modules.vector_mod2_dense.Vector_mod2_dense'>, 'bin'))
-    sage: convert_to_vector(0x1F, 9)
-    ((1, 1, 1, 1, 1, 0, 0, 0, 0), (<type 'sage.rings.integer.Integer'>, None))
-    sage: convert_to_vector(["1","0xF"], 9)
-    Traceback (most recent call last):
-    ...
-    ValueError: ['1', '0xF'] can not be converted to bit vector of length 9
+    ((1, 0, 1, 0), 'vector')
     """
     try:
         state = vector(GF(2), L, ZZ(I).digits(2, padto=L))
-        return state, (type(I), None)
+        return state, 'integer'
     except TypeError:
         # ignore the error and try list-like types
         pass
-    if len(I) == L:
-        state = vector(GF(2), L, ZZ(list(I), 2).digits(2, padto=L))
-        rep = "bin"
-    elif 4*len(I) == L:
-        state = vector(GF(2), L, ZZ(list(I), 16).digits(2, padto=L))
-        rep = "hex"
-    else:
-        raise ValueError("%s can not be converted to bit vector of "
-                         "length %s" % (I, L))
-    return state, (type(I), rep)
-
-
-def convert_vector_to_type(V, T):
-    r"""
-    Convert the bit vector ``B`` to something of type ``T``.
-
-    If ``I`` is list-like its elements will be treated as binary if
-    ``len(I) == L`` or as hexadecimal if ``4*len(I) == L``.
-
-    INPUT:
-
-    - ``V`` -- bit vector
-
-    - ``T`` -- tuple; A tuple containing the type of ``I`` and if necessary
-      its representation e.g. "bin" or "hex"
-
-
-    OUTPUT:
-
-    - A representation of V of type ``T``
-
-
-    EXAMPLES::
-
-    sage: from sage.crypto.block_cipher.present import convert_vector_to_type
-    sage: v = vector(GF(2), [0,1,0,0])
-    sage: t = (type(0xF), None)
-    sage: convert_vector_to_type(v, t) == 0x2
-    True
-    sage: t = (type(v), None)
-    sage: convert_vector_to_type(v, t) == v
-    True
-    sage: t = (type([]), "bin")
-    sage: convert_vector_to_type(v, t) == list(v)
-    True
-    sage: t = (type([]), "oct")
-    sage: convert_vector_to_type(v, t)
-    Traceback (most recent call last):
-    ...
-    ValueError: can not convert `V` to <type 'list'>
-    """
-    # TODO there must be a better way than to compare str(T) to the types
-    if str(T[0]) == "<type 'sage.modules.vector_mod2_dense.Vector_mod2_dense'>":
-        return V
-    elif str(T[0]) == "<type 'sage.rings.integer.Integer'>":
-        return ZZ(list(V), 2)
-    elif str(T[0]) == "<type 'list'>":
-        if T[1] == "bin":
-            return list(V)
-        elif T[1] == "hex":
-            return ZZ(list(V), 2).digits(16, padto=len(V)/4)
-        else:
-            raise ValueError("can not convert `V` to %s" % T[0])
-    else:
-        raise ValueError("can not convert `V` to %s" % T[0])
+    state = vector(GF(2), L, ZZ(list(I), 2).digits(2, padto=L))
+    return state, 'vector'

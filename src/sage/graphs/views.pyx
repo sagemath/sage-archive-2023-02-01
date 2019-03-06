@@ -548,7 +548,7 @@ class EdgesView():
         if isinstance(i, slice):
             start, stop, step = i.start or 0, i.stop or sys_maxsize, i.step or 1
             if start >= 0 and stop >= 0 and step >= 0:
-                return list(islice(self, i.start, i.stop, i.end))
+                return list(islice(self, i.start, i.stop, i.step))
             else:
                 return list(self)[i]
         elif i < 0:

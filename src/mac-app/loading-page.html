@@ -86,10 +86,8 @@ var randomcontentdisplay={
 		for (var i=0; i<alldivs.length; i++){
 			if (randomcontentsearch.test(alldivs[i].className)){
 				if (typeof this.divholders[RegExp.$1]=="undefined") //if array to hold this group of divs does not exist yet
-					        {
-                                                this.divholders[RegExp.$1]=new Array() //create array first
-					        this.divholders[RegExp.$1].push(alldivs[i]) //add this div to the array
-                                                }
+		                        this.divholders[RegExp.$1]=new Array() //create array first
+				this.divholders[RegExp.$1].push(alldivs[i]) //add this div to the array
                     alldivs[i].style.display="none" //hide everything in case it's the second time this is called
 			}
 		}

@@ -482,21 +482,14 @@ class PRESENT_KS(SageObject):
 
             sage: from sage.crypto.block_cipher.present import PRESENT_KS
             sage: ks = PRESENT_KS(master_key=0x0)
-            sage: ks[0] # indirect doctest
-            Traceback (most recent call last):
-            ...
-            ValueError: round number must be between 1 and 31
-            sage: ks[1] ==  0x0 # indirect doctest
+            sage: ks[0] ==  0x0 # indirect doctest
             True
-            sage: ks[32] ==  0x6dab31744f41d700 # indirect doctest
+            sage: ks[31] ==  0x6dab31744f41d700 # indirect doctest
             True
         """
         if self._master_key is None:
             raise ValueError("Key not set during initialisation")
-        if (r < 1) or (r > self._rounds+1):
-            raise ValueError("round number must be between 1 and %s"
-                             % self._rounds)
-        return self(self._master_key)[r-1]
+        return self(self._master_key)[r]
 
     def __iter__(self):
         """

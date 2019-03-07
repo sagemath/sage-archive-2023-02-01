@@ -8379,8 +8379,6 @@ class Polyhedron_base(Element):
                     'LattE description strings for polynomials not allowed '
                     'when using measure="induced"')
 
-            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-
             # use an orthogonal transformation
             affine_hull = self.affine_hull(orthogonal=True, return_all_data=True)
             polyhedron = affine_hull['polyhedron']

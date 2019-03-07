@@ -76,7 +76,7 @@ class PRESENT(SageObject):
         True
     """
 
-    def __init__(self, keySchedule=80, rounds=None):
+    def __init__(self, keySchedule=80, rounds=None, lastLinearLayer=False):
         r"""
         Construct an instance of PRESENT.
 
@@ -89,21 +89,28 @@ class PRESENT(SageObject):
         - ``rounds``  -- integer; the number of rounds. If ``None`` the number
             of rounds of the keyschedule is used.
 
+        - ``lastLinearLayer`` -- (default: ``False``) flag to control wether
+            the linear layer in the last round should take place or not.
+
         EXAMPLES::
 
             sage: from sage.crypto.block_cipher.present import PRESENT
             sage: from sage.crypto.block_cipher.present import PRESENT_KS
             sage: PRESENT() # indirect doctest
-            PRESENT block cipher with 31 rounds and the following key schedule:
+            PRESENT block cipher with 31 rounds, deactivated linear layer in
+            last round and the following key schedule:
             Original PRESENT key schedule with 80-bit keys and 31 rounds
             sage: PRESENT(128) # indirect doctest
-            PRESENT block cipher with 31 rounds and the following key schedule:
+            PRESENT block cipher with 31 rounds, deactivated linear layer in
+            last round and the following key schedule:
             Original PRESENT key schedule with 128-bit keys and 31 rounds
             sage: PRESENT(PRESENT_KS(80, 15)) # indirect doctest
-            PRESENT block cipher with 15 rounds and the following key schedule:
+            PRESENT block cipher with 15 rounds, deactivated linear layer in
+            last round and the following key schedule:
             Original PRESENT key schedule with 80-bit keys and 15 rounds
             sage: PRESENT(80, 15) # indirect doctest
-            PRESENT block cipher with 15 rounds and the following key schedule:
+            PRESENT block cipher with 15 rounds, deactivated linear layer in
+            last round and the following key schedule:
             Original PRESENT key schedule with 80-bit keys and 31 rounds
             sage: PRESENT(80, 32) # indirect doctest
             Traceback (most recent call last):
@@ -133,6 +140,7 @@ class PRESENT(SageObject):
         self._inverseSbox = self._sbox.inverse()
         self._permutationMatrix = smallscale_present_linearlayer()
         self._inversePermutationMatrix = self._permutationMatrix.inverse()
+        self._lastLinearLayer = lastLinearLayer
 
     def __call__(self, B, K, algorithm="encrypt"):
         r"""
@@ -198,11 +206,17 @@ class PRESENT(SageObject):
 
             sage: from sage.crypto.block_cipher.present import PRESENT
             sage: PRESENT() # indirect doctest
-            PRESENT block cipher with 31 rounds and the following key schedule:
+            PRESENT block cipher with 31 rounds, deactivated linear layer in
+            last round and the following key schedule:
             Original PRESENT key schedule with 80-bit keys and 31 rounds
         """
-        return ("PRESENT block cipher with %s rounds and the following key "
-                "schedule:\n%s" % (self._rounds, self._keySchedule.__repr__()))
+        if self._lastLinearLayer:
+            statusLLL = "activated"
+        else:
+            statusLLL = "deactivated"
+        return ("PRESENT block cipher with %s rounds, %s linear layer in last "
+                "round and the following key schedule:\n%s"
+                % (self._rounds, statusLLL, self._keySchedule.__repr__()))
 
     def decrypt(self, C, K):
         r"""
@@ -222,7 +236,7 @@ class PRESENT(SageObject):
         EXAMPLES::
 
             sage: from sage.crypto.block_cipher.present import PRESENT
-            sage: present = PRESENT()
+            sage: present = PRESENT(lastLinearLayer=True)
             sage: p1 = 0x0
             sage: k1 = 0x0
             sage: c1 = 0x5579C1387B228445
@@ -248,8 +262,9 @@ class PRESENT(SageObject):
         K, _ = convert_to_vector(K, self._keySchedule._keysize)
         roundKeys = self._keySchedule(K)
         state = state + roundKeys[self._rounds]
-        for K in roundKeys[:self._rounds][::-1]:
-            state[0:] = self._inversePermutationMatrix * state
+        for i, K in enumerate(roundKeys[:self._rounds][::-1]):
+            if self._lastLinearLayer or i != 0:
+                state[0:] = self._inversePermutationMatrix * state
             for nibble in [slice(4*j, 4*j+4) for j in range(16)]:
                 state[nibble] = self._inverseSbox(state[nibble][::-1])[::-1]
             state = state + K
@@ -273,8 +288,7 @@ class PRESENT(SageObject):
         EXAMPLES::
 
             sage: from sage.crypto.block_cipher.present import PRESENT
-            sage: present = PRESENT()
-            sage: present = PRESENT(keySchedule=80)
+            sage: present = PRESENT(lastLinearLayer=True)
             sage: p1 = 0x0
             sage: k1 = 0x0
             sage: c1 = 0x5579C1387B228445
@@ -299,11 +313,12 @@ class PRESENT(SageObject):
         state, inputType = convert_to_vector(P, 64)
         K, _ = convert_to_vector(K, self._keySchedule._keysize)
         roundKeys = self._keySchedule(K)
-        for K in roundKeys[:self._rounds]:
+        for i, K in enumerate(roundKeys[:self._rounds]):
             state = state + K
             for nibble in [slice(4*j, 4*j+4) for j in range(16)]:
                 state[nibble] = self._sbox(state[nibble][::-1])[::-1]
-            state[0:] = self._permutationMatrix * state
+            if self._lastLinearLayer or i != self._rounds - 1:
+                state[0:] = self._permutationMatrix * state
         state = state + roundKeys[self._rounds]
         return state if inputType == 'vector' else ZZ(list(state), 2)
 

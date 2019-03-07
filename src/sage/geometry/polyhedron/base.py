@@ -8405,6 +8405,42 @@ class Polyhedron_base(Element):
         else:
             raise ValueError('unknown measure "{}"'.format(measure))
 
+    def _integrate_latte_(self, polynomial, **kwds):
+        r"""
+        Return the integral of a polynomial over this polytope by calling LattE.
+
+        INPUT:
+
+        - ``polynomial`` -- a multivariate polynomial or
+          a valid LattE description string for polynomials
+
+        - ``**kwds`` -- additional keyword arguments that are passed
+          to the engine
+
+        OUTPUT:
+
+        The integral of the polynomial over the polytope.
+
+        .. NOTE::
+
+            The polytope triangulation algorithm is used. This function depends
+            on LattE (i.e., the ``latte_int`` optional package).
+
+        TESTS::
+
+            sage: P = polytopes.cube()
+            sage: x, y, z = polygens(QQ, 'x, y, z')
+            sage: P._integrate_latte_(x^2 + y^2*z^2)    # optional - latte_int
+            32/9
+        """
+        from sage.interfaces.latte import integrate
+
+        if self.base_ring() == RDF:
+            raise TypeError("LattE integrale cannot be applied over inexact rings.")
+        return integrate(self.cdd_Hrepresentation(),
+                         polynomial,
+                         cdd=True, **kwds)
+
     def contains(self, point):
         """
         Test whether the polyhedron contains the given ``point``.

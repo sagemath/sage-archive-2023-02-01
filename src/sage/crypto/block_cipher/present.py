@@ -58,6 +58,9 @@ class PRESENT(SageObject):
         sage: K = 0x0
         sage: present(present(P, K, "encrypt"), K, "decrypt") == P
         True
+        sage: present = PRESENT(rounds=15)
+        sage: present(present(P, K, "encrypt"), K, "decrypt") == P
+        True
         sage: P = ZZ(0).digits(2,padto=64)
         sage: K = ZZ(0).digits(2,padto=80)
         sage: list(present(present(P, K, "encrypt"), K, "decrypt")) == P
@@ -73,7 +76,7 @@ class PRESENT(SageObject):
         True
     """
 
-    def __init__(self, keySchedule=80):
+    def __init__(self, keySchedule=80, rounds=None):
         r"""
         Construct an instance of PRESENT.
 
@@ -83,19 +86,30 @@ class PRESENT(SageObject):
             and decryption. Use ``80`` or ``128`` to use the original key
             schedules from [BKLPPRSV2007]_
 
+        - ``rounds``  -- integer; the number of rounds. If ``None`` the number
+            of rounds of the keyschedule is used.
+
         EXAMPLES::
 
             sage: from sage.crypto.block_cipher.present import PRESENT
             sage: from sage.crypto.block_cipher.present import PRESENT_KS
             sage: PRESENT() # indirect doctest
-            PRESENT block cipher with the following key schedule:
+            PRESENT block cipher with 31 rounds and the following key schedule:
             Original PRESENT key schedule with 80-bit keys and 31 rounds
             sage: PRESENT(128) # indirect doctest
-            PRESENT block cipher with the following key schedule:
+            PRESENT block cipher with 31 rounds and the following key schedule:
             Original PRESENT key schedule with 128-bit keys and 31 rounds
             sage: PRESENT(PRESENT_KS(80, 15)) # indirect doctest
-            PRESENT block cipher with the following key schedule:
+            PRESENT block cipher with 15 rounds and the following key schedule:
             Original PRESENT key schedule with 80-bit keys and 15 rounds
+            sage: PRESENT(80, 15) # indirect doctest
+            PRESENT block cipher with 15 rounds and the following key schedule:
+            Original PRESENT key schedule with 80-bit keys and 31 rounds
+            sage: PRESENT(80, 32) # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: number of rounds must be less or equal to the number
+            of rounds of the key schedule
 
         .. SEEALSO::
 
@@ -107,6 +121,13 @@ class PRESENT(SageObject):
             self._keySchedule = PRESENT_KS(128)
         else:
             self._keySchedule = keySchedule
+        if rounds is None:
+            self._rounds = self._keySchedule._rounds
+        elif rounds <= self._keySchedule._rounds:
+            self._rounds = rounds
+        else:
+            raise ValueError("number of rounds must be less or equal to the "
+                             "number of rounds of the key schedule")
         self._blocksize = 64
         self._sbox = PRESENTSBOX
         self._inverseSbox = self._sbox.inverse()
@@ -141,7 +162,7 @@ class PRESENT(SageObject):
             return self.decrypt(B, K)
         else:
             raise ValueError("Algorithm must be \"encrypt\" or \"decrypt\" and"
-                             "not \"%s\"" % algorithm)
+                             " not \"%s\"" % algorithm)
 
     def __eq__(self, other):
         r"""
@@ -177,11 +198,11 @@ class PRESENT(SageObject):
 
             sage: from sage.crypto.block_cipher.present import PRESENT
             sage: PRESENT() # indirect doctest
-            PRESENT block cipher with the following key schedule:
+            PRESENT block cipher with 31 rounds and the following key schedule:
             Original PRESENT key schedule with 80-bit keys and 31 rounds
         """
-        return ("PRESENT block cipher with the following key schedule:\n%s"
-                % self._keySchedule.__repr__())
+        return ("PRESENT block cipher with %s rounds and the following key "
+                "schedule:\n%s" % (self._rounds, self._keySchedule.__repr__()))
 
     def decrypt(self, C, K):
         r"""
@@ -226,8 +247,8 @@ class PRESENT(SageObject):
         state, inputType = convert_to_vector(C, 64)
         K, _ = convert_to_vector(K, self._keySchedule._keysize)
         roundKeys = self._keySchedule(K)
-        state = state + roundKeys[-1]
-        for K in roundKeys[:-1][::-1]:
+        state = state + roundKeys[self._rounds]
+        for K in roundKeys[:self._rounds][::-1]:
             state[0:] = self._inversePermutationMatrix * state
             for nibble in [slice(4*j, 4*j+4) for j in range(16)]:
                 state[nibble] = self._inverseSbox(state[nibble][::-1])[::-1]
@@ -278,12 +299,12 @@ class PRESENT(SageObject):
         state, inputType = convert_to_vector(P, 64)
         K, _ = convert_to_vector(K, self._keySchedule._keysize)
         roundKeys = self._keySchedule(K)
-        for K in roundKeys[:-1]:
+        for K in roundKeys[:self._rounds]:
             state = state + K
             for nibble in [slice(4*j, 4*j+4) for j in range(16)]:
                 state[nibble] = self._sbox(state[nibble][::-1])[::-1]
             state[0:] = self._permutationMatrix * state
-        state = state + roundKeys[-1]
+        state = state + roundKeys[self._rounds]
         return state if inputType == 'vector' else ZZ(list(state), 2)
 
 

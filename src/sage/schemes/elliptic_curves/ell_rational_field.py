@@ -5355,10 +5355,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: e.ordinary_primes(1)
             []
         """
-        v = self.aplist(max(B, 3) )
-        P = rings.prime_range(max(B,3) +1)
-        return [P[i] for i in [0,1] if P[i] <= B and v[i]%P[i]!=0] +\
-               [P[i] for i in range(2,len(v)) if v[i] != 0]
+        v = self.aplist(max(B, 3))
+        P = rings.prime_range(max(B, 3) + 1)
+        result = [P[i] for i in [0, 1] if P[i] <= B and v[i] % P[i]]
+        result += [P[i] for i in range(2, len(v)) if v[i] != 0]
+        return result
 
     def eval_modular_form(self, points, prec):
         r"""
@@ -5366,24 +5367,25 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         INPUT:
 
+        -  ``points`` -- a list of points in the half-plane of convergence
 
-        -  ``points`` - a list of points in the half-plane of
-           convergence
+        -  ``prec`` -- precision (a nonegative integer)
 
-        -  ``prec`` - precision
+        The precision ``prec`` is the number of terms used in the summation.
 
+        OUTPUT: A list of values for s in points
 
-        OUTPUT: A list of values L(E,s) for s in points
+        .. NOTE::
 
-        .. note::
-
-           Better examples are welcome.
+            Better examples are really needed.
 
         EXAMPLES::
 
             sage: E = EllipticCurve('37a1')
-            sage: E.eval_modular_form([1.5+I,2.0+I,2.5+I],0.000001)
+            sage: E.eval_modular_form([1.5+I,2.0+I,2.5+I], 0)
             [0, 0, 0]
+            sage: E.eval_modular_form(1.5+I, 0)
+            [0]
         """
         if not isinstance(points, list):
             try:
@@ -5396,14 +5398,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         ans = []
         for z in points:
             s = pari(0)
-            r0 = (c*z).exp()
+            r0 = (c * z).exp()
             r = r0
-            for n in range(1, prec):
-                s += an[n-1]*r
+            for n in range(1, prec + 1):
+                s += an[n - 1] * r
                 r *= r0
             ans.append(s.sage())
         return ans
-
 
     ########################################################################
     # The Tate-Shafarevich group

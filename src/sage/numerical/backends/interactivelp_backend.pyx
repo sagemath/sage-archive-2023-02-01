@@ -8,7 +8,7 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010 Nathann Cohen <nathann.cohen@gmail.com>
 #       Copyright (C) 2016 Matthias Koeppe <mkoeppe@math.ucdavis.edu>
 #
@@ -16,14 +16,15 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 
 from sage.numerical.mip import MIPSolverException
 from sage.numerical.interactive_simplex_method import InteractiveLPProblem, default_variable_name
 from sage.modules.all import vector
 from copy import copy
+
 
 cdef class InteractiveLPBackend:
     """
@@ -593,7 +594,7 @@ cdef class InteractiveLPBackend:
             sage: p.nrows()
             0
             sage: p.add_linear_constraints(5, 0, None)
-            sage: p.add_col(range(5), range(5))
+            sage: p.add_col(list(range(5)), list(range(5)))
             sage: p.nrows()
             5
         """
@@ -614,7 +615,7 @@ cdef class InteractiveLPBackend:
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
             sage: p.add_linear_constraints(5, 0, None)
-            sage: p.add_col(range(5), range(5))
+            sage: p.add_col(list(range(5)), list(range(5)))
             sage: p.solve()
             0
             sage: p.objective_coefficient(0,1)

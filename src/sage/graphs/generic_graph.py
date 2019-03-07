@@ -4435,12 +4435,14 @@ class GenericGraph(GenericGraph_pyx):
         A cycle basis in Petersen's Graph ::
 
             sage: g = graphs.PetersenGraph()
-            sage: g.cycle_basis()
+            sage: g.cycle_basis()  # py2
             [[1, 2, 7, 5, 0], [8, 3, 2, 7, 5], [4, 3, 2, 7, 5, 0], [4, 9, 7, 5, 0], [8, 6, 9, 7, 5], [1, 6, 9, 7, 5, 0]]
+            sage: g.cycle_basis()  # py3
+            [[1, 6, 8, 5, 0], [4, 9, 6, 8, 5, 0], [7, 9, 6, 8, 5], [4, 3, 8, 5, 0], [1, 2, 3, 8, 5, 0], [7, 2, 3, 8, 5]]
 
         One can also get the result as a list of lists of edges::
 
-            sage: g.cycle_basis(output='edge')
+            sage: g.cycle_basis(output='edge')  # py2
             [[(1, 2, None), (2, 7, None), (7, 5, None), (5, 0, None),
             (0, 1, None)], [(8, 3, None), (3, 2, None), (2, 7, None),
             (7, 5, None), (5, 8, None)], [(4, 3, None), (3, 2, None),
@@ -4449,6 +4451,15 @@ class GenericGraph(GenericGraph_pyx):
             (0, 4, None)], [(8, 6, None), (6, 9, None), (9, 7, None),
             (7, 5, None), (5, 8, None)], [(1, 6, None), (6, 9, None),
             (9, 7, None), (7, 5, None), (5, 0, None), (0, 1, None)]]
+            sage: g.cycle_basis(output='edge')  # py3
+            [[(1, 6, None), (6, 8, None), (8, 5, None), (5, 0, None),
+            (0, 1, None)], [(4, 9, None), (9, 6, None), (6, 8, None),
+            (8, 5, None), (5, 0, None), (0, 4, None)], [(7, 9, None),
+            (9, 6, None), (6, 8, None), (8, 5, None), (5, 7, None)],
+            [(4, 3, None), (3, 8, None), (8, 5, None), (5, 0, None),
+            (0, 4, None)], [(1, 2, None), (2, 3, None), (3, 8, None),
+            (8, 5, None), (5, 0, None), (0, 1, None)], [(7, 2, None),
+            (2, 3, None), (3, 8, None), (8, 5, None), (5, 7, None)]]
 
         Checking the given cycles are algebraically free::
 
@@ -4461,7 +4472,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: m = g.size()
             sage: edge_space = VectorSpace(FiniteField(2), m)
             sage: edge_vector = dict(zip(g.edges(labels=False, sort=False), edge_space.basis()))
-            sage: for (u, v), vec in edge_vector.items():
+            sage: for (u, v), vec in list(edge_vector.items()):
             ....:    edge_vector[(v, u)] = vec
 
         Defining a lambda function associating a vector to the vertices of a
@@ -4487,14 +4498,20 @@ class GenericGraph(GenericGraph_pyx):
         Disconnected graph::
 
             sage: G.add_cycle(["Hey", "Wuuhuu", "Really ?"])
-            sage: G.cycle_basis()
-            [['Really ?', 'Hey', 'Wuuhuu'], [0, 2], [2, 1, 0]]
-            sage: G.cycle_basis(output='edge')
-            [[('Really ?', 'Hey', None),
-              ('Hey', 'Wuuhuu', None),
+            sage: [sorted(c) for c in G.cycle_basis()]
+            [['Hey', 'Really ?', 'Wuuhuu'], [0, 2], [0, 1, 2]]
+            sage: [sorted(c) for c in G.cycle_basis(output='edge')]  # py2
+            [[('Hey', 'Wuuhuu', None),
+              ('Really ?', 'Hey', None),
               ('Wuuhuu', 'Really ?', None)],
              [(0, 2, 'a'), (2, 0, 'b')],
-             [(2, 1, 'd'), (1, 0, 'c'), (0, 2, 'b')]]
+             [(0, 2, 'b'), (1, 0, 'c'), (2, 1, 'd')]]
+            sage: [sorted(c) for c in G.cycle_basis(output='edge')]  # py3
+            [[('Hey', 'Really ?', None),
+              ('Really ?', 'Wuuhuu', None),
+              ('Wuuhuu', 'Hey', None)],
+             [(0, 2, 'a'), (2, 0, 'b')],
+             [(0, 2, 'b'), (1, 0, 'c'), (2, 1, 'd')]]
 
         Graph that allows multiple edges but does not contain any::
 
@@ -17422,7 +17439,7 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-        We check that :trac:`15699` is fixed::
+        We check that :trac:`15669` is fixed::
 
             sage: G = graphs.PathGraph(5).copy(immutable=True)
             sage: G.complement()
@@ -21576,8 +21593,10 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = graphs.PetersenGraph()
             sage: G.automorphism_group(return_group=False, orbits=True,algorithm='sage')
             [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]]
-            sage: G.automorphism_group(partition=[[0],list(range(1,10))], return_group=False, orbits=True,algorithm='sage')
-            [[0], [2, 3, 6, 7, 8, 9], [1, 4, 5]]
+            sage: orb = G.automorphism_group(partition=[[0],list(range(1,10))],
+            ....:                            return_group=False, orbits=True,algorithm='sage')
+            sage: sorted([sorted(o) for o in orb], key=len)
+            [[0], [1, 4, 5], [2, 3, 6, 7, 8, 9]]
             sage: C = graphs.CubeGraph(3)
             sage: orb = C.automorphism_group(orbits=True, return_group=False,algorithm='sage')
             sage: [sorted(o) for o in orb]
@@ -21605,28 +21624,34 @@ class GenericGraph(GenericGraph_pyx):
 
         Labeled automorphism group::
 
-            sage: digraphs.DeBruijn(3,2).automorphism_group(algorithm='sage')
-            Permutation Group with generators [('02','10','21')('00','11','22')('01','12','20'), ('02','01')('10','20')('21','12')('22','11')]
             sage: d = digraphs.DeBruijn(3,2)
+            sage: A = d.automorphism_group(algorithm='sage')
+            sage: A_target = PermutationGroup(["('02','10','21')('00','11','22')('01','12','20')",
+            ....:                              "('02','01')('10','20')('21','12')('22','11')"])
+            sage: A.is_isomorphic(A_target)
+            True
             sage: d.allow_multiple_edges(True)
-            sage: d.add_edge(d.edges()[0])
-            sage: d.automorphism_group(algorithm='sage')
-            Permutation Group with generators [('02','01')('10','20')('21','12')('22','11')]
+            sage: d.add_edge(('00', '00', '0'))
+            sage: A = d.automorphism_group(algorithm='sage')
+            sage: A_target = PermutationGroup(["('01','02')('10','20')('11','22')('12','21')"])
+            sage: A.is_isomorphic(A_target)
+            True
 
         The labeling is correct::
 
             sage: g = graphs.PetersenGraph()
             sage: ag = g.automorphism_group()
-            sage: for u,v in g.edges(labels = False):
-            ....:     if len(ag.orbit((u,v),action="OnPairs")) != 30:
-            ....:         print("ARggggggggggggg !!!")
+            sage: all(len(ag.orbit(e, action="OnPairs")) == 30
+            ....:       for e in g.edge_iterator(labels=False))
+            True
 
         Empty group, correct domain::
 
-            sage: Graph({'a':['a'], 'b':[]}).automorphism_group()
+            sage: ag = Graph({'a':['a'], 'b':[]}).automorphism_group()
+            sage: ag
             Permutation Group with generators [()]
-            sage: Graph({'a':['a'], 'b':[]}).automorphism_group().domain()
-            {'a', 'b'}
+            sage: sorted(ag.domain())
+            ['a', 'b']
 
         We can check that the subgroups are labelled correctly
         (:trac:`15656`)::
@@ -21686,9 +21711,7 @@ class GenericGraph(GenericGraph_pyx):
         if edge_labels or self.has_multiple_edges():
             G, partition, relabeling = graph_isom_equivalent_non_edge_labeled_graph(self, partition, return_relabeling=True, ignore_edge_labels=(not edge_labels))
             G_vertices = sum(partition, [])
-            G_to = {}
-            for i,u in enumerate(G_vertices):
-                G_to[u] = i
+            G_to = {u: i for i,u in enumerate(G_vertices)}
             from sage.graphs.all import Graph, DiGraph
             DoDG = DiGraph if self._directed else Graph
             H = DoDG(len(G_vertices), implementation='c_graph', loops=G.allows_loops())
@@ -21702,9 +21725,7 @@ class GenericGraph(GenericGraph_pyx):
                 a,b,c = A
             else:
                 a,b = A
-            b_new = {}
-            for v in G_to:
-                b_new[v] = b[G_to[v]]
+            b_new = {v: b[G_to[v]] for v in G_to}
             b = b_new
             # b is a translation of the labellings
             acting_vertices = {}
@@ -21720,8 +21741,8 @@ class GenericGraph(GenericGraph_pyx):
             real_aut_gp = []
             n = self.order()
             for gen in a:
-                gen_restr = [0]*n
-                for v in self.vertex_iterator():
+                gen_restr = [0] * n
+                for v in self:
                     gen_restr[acting_vertices[v]] = gen[acting_vertices[v]]
                 if gen_restr not in real_aut_gp:
                     real_aut_gp.append(gen_restr)
@@ -21732,9 +21753,7 @@ class GenericGraph(GenericGraph_pyx):
             b = translation_d
         else:
             G_vertices = sum(partition, [])
-            G_to = {}
-            for i,u in enumerate(G_vertices):
-                G_to[u] = i
+            G_to = {u: i for i,u in enumerate(G_vertices)}
             from sage.graphs.all import Graph, DiGraph
             DoDG = DiGraph if self._directed else Graph
             H = DoDG(len(G_vertices), implementation='c_graph', loops=self.allows_loops())
@@ -21750,9 +21769,7 @@ class GenericGraph(GenericGraph_pyx):
                     a,b,c = A
                 else:
                     a,b = A
-                b_new = {}
-                for v in G_to:
-                    b_new[v] = b[G_to[v]]
+                b_new = {v: b[G_to[v]] for v in G_to}
                 b = b_new
             else:
                 a = search_tree(GC, partition, dict_rep=False, lab=False, dig=dig, verbosity=verbosity, order=order)
@@ -21765,21 +21782,19 @@ class GenericGraph(GenericGraph_pyx):
                 # We translate the integer permutations into a collection of
                 # cycles.
                 from sage.combinat.permutation import Permutation
-                gens = [Permutation([x+1 for x in aa]).to_cycles() for aa in a]
+                gens = [Permutation(x+1 for x in aa).to_cycles() for aa in a]
 
                 # We relabel the cycles using the vertices' names instead of integers
                 n = self.order()
-                int_to_vertex = {((i+1) if i != n else 1):v for v,i in iteritems(b)}
-                gens = [ [ tuple([int_to_vertex[i] for i in cycle]) for cycle in gen] for gen in gens]
-                output.append(PermutationGroup(gens = gens, domain = int_to_vertex.values()))
+                int_to_vertex = {((i + 1) if i != n else 1): v for v, i in iteritems(b)}
+                gens = [[tuple(int_to_vertex[i] for i in cycle) for cycle in gen] for gen in gens]
+                output.append(PermutationGroup(gens=gens, domain=int_to_vertex.values()))
             else:
                 output.append(PermutationGroup([[]], domain=list(self)))
         if order:
             output.append(c)
         if orbits:
-            G_from = {}
-            for v in G_to:
-                G_from[G_to[v]] = v
+            G_from = {G_to[v]: v for v in G_to}
             from sage.groups.perm_gps.partn_ref.refinement_graphs import get_orbits
             output.append([[G_from[v] for v in W] for W in get_orbits(a, self.num_verts())])
 

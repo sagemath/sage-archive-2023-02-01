@@ -72,8 +72,7 @@ from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.richcmp cimport rich_to_bool
 from sage.arith.constants cimport *
 
-IF HAVE_GMPY2:
-    cimport gmpy2
+cimport gmpy2
 
 
 def is_RealDoubleField(x):
@@ -522,12 +521,16 @@ cdef class RealDoubleField_class(Field):
         """
         Return the hash value of ``self``.
 
+        This class is intended for use as a singleton so any instance
+        of it should be equivalent from a hashing perspective.
+
         TESTS::
 
-            sage: hash(RDF) % 2^32 == hash(str(RDF)) % 2^32
+            sage: from sage.rings.real_double import RealDoubleField_class
+            sage: hash(RDF) == hash(RealDoubleField_class())
             True
         """
-        return 1157042230 #return hash(str(self))
+        return 1157042230
 
     def pi(self):
         r"""
@@ -712,12 +715,12 @@ cdef class RealDoubleElement(FieldElement):
 
         TESTS::
 
-            sage: from gmpy2 import *  # optional - gmpy2
-            sage: RDF(mpz(42))         # optional - gmpy2
+            sage: from gmpy2 import *
+            sage: RDF(mpz(42))
             42.0
-            sage: RDF(mpq(3/4))        # optional - gmpy2
+            sage: RDF(mpq(3/4))
             0.75
-            sage: RDF(mpq('4.1'))      # optional - gmpy2
+            sage: RDF(mpq('4.1'))
             4.1
         """
         self._value = float(x)
@@ -941,10 +944,10 @@ cdef class RealDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: RDF(42.2).__mpfr__()    # optional - gmpy2
+            sage: RDF(42.2).__mpfr__()
             mpfr('42.200000000000003')
-            sage: from gmpy2 import mpfr  # optional - gmpy2
-            sage: mpfr(RDF(5.1))          # optional - gmpy2
+            sage: from gmpy2 import mpfr
+            sage: mpfr(RDF(5.1))
             mpfr('5.0999999999999996')
 
         TESTS::
@@ -954,10 +957,7 @@ cdef class RealDoubleElement(FieldElement):
             ...
             NotImplementedError: gmpy2 is not installed
         """
-        IF HAVE_GMPY2:
-            return gmpy2.mpfr(self._value)
-        ELSE:
-            raise NotImplementedError("gmpy2 is not installed")
+        return gmpy2.mpfr(self._value)
 
     def _interface_init_(self, I=None):
         """

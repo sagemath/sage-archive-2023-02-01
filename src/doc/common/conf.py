@@ -177,7 +177,8 @@ python_version = sys.version_info.major
 intersphinx_mapping = {
     'python': ('https://docs.python.org/',
                 os.path.join(SAGE_DOC_SRC, "common",
-                             "python{}.inv".format(python_version)))}
+                             "python{}.inv".format(python_version))),
+    'pplpy': (os.path.join(SAGE_SHARE, "doc", "pplpy"), None)}
 
 def set_intersphinx_mappings(app):
     """

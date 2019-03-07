@@ -8228,9 +8228,9 @@ class Polyhedron_base(Element):
         else:
             raise TypeError("the measure should be `ambient`, `induced`, `induced_rational`, or `induced_lattice`")
 
-    def integrate(self, polynomial, measure='ambient', **kwds):
+    def integrate(self, function, measure='ambient', **kwds):
         r"""
-        Return the integral of a polynomial over a polytope.
+        Return the integral of ``function`` over this polytope.
 
         INPUT:
 
@@ -8352,10 +8352,7 @@ class Polyhedron_base(Element):
             sage: P.integrate(x^2)
             0
         """
-        if self.base_ring() == RDF:
-            raise TypeError("LattE integrale cannot be applied over inexact rings")
-
-        if polynomial == 0 or polynomial == '[]':
+        if function == 0 or function == '[]':
             return self.base_ring().zero()
 
         if not self.is_compact():
@@ -8366,15 +8363,15 @@ class Polyhedron_base(Element):
             if not self.is_full_dimensional():
                 return self.base_ring().zero()
 
-            return self._integrate_latte_(polynomial, **kwds)
+            return self._integrate_latte_(function, **kwds)
 
         elif measure == 'induced' or measure == 'induced_nonnormalized':
             # if polyhedron is actually full-dimensional,
             # return with ambient measure
             if self.is_full_dimensional():
-                return self.integrate(polynomial, measure='ambient', **kwds)
+                return self.integrate(function, measure='ambient', **kwds)
 
-            if isinstance(polynomial, six.string_types):
+            if isinstance(function, six.string_types):
                 raise NotImplementedError(
                     'LattE description strings for polynomials not allowed '
                     'when using measure="induced"')
@@ -8386,10 +8383,10 @@ class Polyhedron_base(Element):
             polyhedron = affine_hull['polyhedron']
             coordinate_images = affine_hull['coordinate_images']
 
-            hom = polynomial.parent().hom(coordinate_images)
-            polynomial_in_affine_hull = hom(polynomial)
+            hom = function.parent().hom(coordinate_images)
+            function_in_affine_hull = hom(function)
 
-            I = polyhedron.integrate(polynomial_in_affine_hull,
+            I = polyhedron.integrate(function_in_affine_hull,
                                      measure='ambient', **kwds)
             if measure == 'induced_nonnormalized':
                 return I

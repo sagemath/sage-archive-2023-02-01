@@ -5361,38 +5361,37 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         result += [P[i] for i in range(2, len(v)) if v[i] != 0]
         return result
 
-    def eval_modular_form(self, points, prec):
+    def eval_modular_form(self, points, order):
         r"""
         Evaluate the modular form of this elliptic curve at points in `\CC`.
 
         INPUT:
 
-        -  ``points`` -- a list of points in the half-plane of convergence
+        -  ``points`` -- a list of points in the upper half-plane
 
-        -  ``prec`` -- precision (a nonegative integer)
+        -  ``order`` -- a nonnegative integer
 
-        The precision ``prec`` is the number of terms used in the summation.
+        The ``order`` parameter is the number of terms used in the summation.
 
-        OUTPUT: A list of values for s in points
-
-        .. NOTE::
-
-            Better examples are really needed.
+        OUTPUT: A list of values for `s` in ``points``
 
         EXAMPLES::
 
             sage: E = EllipticCurve('37a1')
-            sage: E.eval_modular_form([1.5+I,2.0+I,2.5+I], 0)
-            [0, 0, 0]
-            sage: E.eval_modular_form(1.5+I, 0)
-            [0]
+            sage: E.eval_modular_form([1.5+I,2.0+I,2.5+I],100)
+            [-0.0018743978548152085771342944989052703431,
+             0.0018604485340371083710285594393397945456,
+            -0.0018743978548152085771342944989052703431]
+
+            sage: E.eval_modular_form(2.1+I, 100)
+            [0.00150864362757267079 + 0.00109100341113449845*I]
         """
         if not isinstance(points, list):
             try:
                 points = list(points)
             except TypeError:
-                return self.eval_modular_form([points], prec)
-        an = self.pari_mincurve().ellan(prec)
+                return self.eval_modular_form([points], order)
+        an = self.pari_mincurve().ellan(order)
         s = 0
         c = pari('2 * Pi * I')
         ans = []
@@ -5400,7 +5399,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             s = pari(0)
             r0 = (c * z).exp()
             r = r0
-            for n in range(1, prec + 1):
+            for n in range(1, order + 1):
                 s += an[n - 1] * r
                 r *= r0
             ans.append(s.sage())

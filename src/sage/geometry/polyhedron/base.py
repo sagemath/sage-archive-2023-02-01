@@ -6961,19 +6961,12 @@ class Polyhedron_base(Element):
             # see TODO
             if not self.is_compact():
                 raise NotImplementedError('"orthogonal=True" and "orthonormal=True" work only for compact polyhedra')
-            # translate 0th vertex to the origin
-            v0 = vector(self.vertices()[0])
-            Q = self.translation(-v0)
-            q0 = next((_ for _ in Q.vertices() if _.vector() == Q.ambient_space().zero()), None)
-            # finding the zero in Q; checking that Q actually has a vertex zero
-            assert q0.vector() == Q.ambient_space().zero()
-            q0_neighbors = list(itertools.islice(q0.neighbors(), self.dim()))
-            # choose as an affine basis the neighbors of the origin vertex in Q
-            M = matrix(self.base_ring(), self.dim(), self.ambient_dim(),
-                       [list(w) for w in q0_neighbors])
+            parametric_form = self.parametric_form()
             if return_all_data:
-                result['polyhedron_base'] = v0
-                result['polyhedron_base_vertices'] = q0_neighbors
+                result['parametric_form'] = parametric_form
+            v0, vi = parametric_form
+            # choose as an affine basis the neighbors of the origin vertex
+            M = matrix(self.base_ring(), self.dim(), self.ambient_dim(), vi)
             # Switch base_ring to AA if neccessary,
             # since gram_schmidt needs to be able to take square roots.
             # Pick orthonormal basis and transform all vertices accordingly

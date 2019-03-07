@@ -8363,9 +8363,7 @@ class Polyhedron_base(Element):
             if not self.is_full_dimensional():
                 return self.base_ring().zero()
 
-            from sage.interfaces.latte import integrate
-            return integrate(self.cdd_Hrepresentation(), polynomial,
-                             cdd=True, **kwds)
+            return self._integrate_latte_(polynomial, **kwds)
 
         elif measure == 'induced' or measure == 'induced_nonnormalized':
             # if polyhedron is actually full-dimensional,
@@ -8388,13 +8386,8 @@ class Polyhedron_base(Element):
             hom = polynomial.parent().hom(coordinate_images)
             polynomial_in_affine_hull = hom(polynomial)
 
-            if polynomial_in_affine_hull == 0:
-                return self.base_ring().zero()
-
-            from sage.interfaces.latte import integrate
-            I = integrate(polyhedron.cdd_Hrepresentation(),
-                          polynomial_in_affine_hull,
-                          cdd=True, **kwds)
+            I = polyhedron.integrate(polynomial_in_affine_hull,
+                                     measure='ambient', **kwds)
             if measure == 'induced_nonnormalized':
                 return I
             else:

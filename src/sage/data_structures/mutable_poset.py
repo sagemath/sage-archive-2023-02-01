@@ -3228,13 +3228,13 @@ class MutablePoset(SageObject):
             ....:     Q.merge(k)
             ....:     print('merging %s: %s' % (k, Q))
             merging (1, 1): poset((1, 1, 'a'), (1, 2, 'e'), (1, 3, 'b'),
-            (2, 1, 'c'), (2, 2, 'f'), (4, 4, 'd'))
+                                  (2, 1, 'c'), (2, 2, 'f'), (4, 4, 'd'))
             merging (1, 2): poset((1, 2, 'ae'), (1, 3, 'b'), (2, 1, 'c'),
-            (2, 2, 'f'), (4, 4, 'd'))
+                                  (2, 2, 'f'), (4, 4, 'd'))
             merging (1, 3): poset((1, 3, 'abe'), (2, 1, 'c'), (2, 2, 'f'),
-            (4, 4, 'd'))
+                                  (4, 4, 'd'))
             merging (2, 1): poset((1, 2, 'e'), (1, 3, 'b'), (2, 1, 'ac'),
-            (2, 2, 'f'), (4, 4, 'd'))
+                                  (2, 2, 'f'), (4, 4, 'd'))
             merging (2, 2): poset((1, 3, 'b'), (2, 2, 'acef'), (4, 4, 'd'))
             merging (4, 4): poset((4, 4, 'abcdef'))
 

@@ -5051,8 +5051,7 @@ class Polyhedron_base(Element):
             affine_hull = self.affine_hull(
                 orthogonal=True, as_polyhedron=True, as_affine_map=True)
             polyhedron = affine_hull['polyhedron']
-            A = affine_hull['linear_transformation'].matrix()
-            b = affine_hull['shift']
+            A = affine_hull['affine_map'][0].matrix()
             Adet = (A.transpose() * A).det()
             return polyhedron.volume(measure='ambient', engine=engine, **kwds) / sqrt(Adet)
         elif measure == 'induced_rational':

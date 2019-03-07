@@ -6954,8 +6954,8 @@ class Polyhedron_base(Element):
         if self.ambient_dim() == self.dim():
             result['polyhedron'] = self
             if as_affine_map or return_all_data:
-                result['linear_transformation'] = linear_transformation(matrix(self.base_ring(), self.dim(), self.dim(), self.base_ring().one()))
-                result['shift'] = self.ambient_space().zero()
+                result['affine_map'] = (linear_transformation(matrix(self.base_ring(), self.dim(), self.dim(), self.base_ring().one())),
+                                        self.ambient_space().zero())
 
         elif orthogonal or orthonormal:
             # see TODO
@@ -6980,11 +6980,12 @@ class Polyhedron_base(Element):
                 A = M.gram_schmidt(orthonormal=orthonormal)[0]
             if as_polyhedron:
                 result['polyhedron'] = Polyhedron(
-                    [A*vector(A.base_ring(), v) for v in Q.vertices()],
+                    [A*vector(A.base_ring(), v)
+                     for v in self.translation(-v0).vertices()],
                     base_ring=A.base_ring())
             if as_affine_map:
-                result['linear_transformation'] = linear_transformation(A, side='right')
-                result['shift'] = -A*vector(A.base_ring(), self.vertices()[0])
+                L = linear_transformation(A, side='right')
+                result['affine_map'] = (L, -A*vector(A.base_ring(), self.vertices()[0]))
 
         else:
             # translate one vertex to the origin
@@ -7017,7 +7018,7 @@ class Polyhedron_base(Element):
         if return_all_data or (as_polyhedron and as_affine_map):
             return result
         elif as_affine_map:
-            return result['linear_transformation'], result['shift']
+            return result['affine_map']
         else:
             return result['polyhedron']
 

@@ -459,8 +459,8 @@ def to_latte_polynomial(polynomial):
         exponents_list = [[exponent_vector_i] for exponent_vector_i in polynomial.exponents()]
 
     # assuming that the order in coefficients() and exponents() methods match
-    monomials_list = zip(coefficients_list, exponents_list)
-    monomials_list = [list(monomial_i) for monomial_i in monomials_list]
-    monomials_list = str(monomials_list)
+    monomials_list = [list(monomial_i)
+                      for monomial_i
+                      in zip(coefficients_list, exponents_list)]
 
-    return monomials_list
+    return str(monomials_list)

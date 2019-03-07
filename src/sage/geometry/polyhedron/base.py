@@ -6985,6 +6985,17 @@ class Polyhedron_base(Element):
             if as_affine_map:
                 L = linear_transformation(A, side='right')
                 result['affine_map'] = (L, -A*vector(A.base_ring(), self.vertices()[0]))
+            if return_all_data:
+                from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+                # columns of W are equal to the vertices of affine_hull['polyhedron']
+                # in an order compatible with the vectors vi
+                W = matrix([list(L(v)) for v in vi]).transpose()
+
+                # transform the coordinates
+                t = vector(PolynomialRing(self.base_ring(), 't', len(vi)).gens())
+                beta = W.inverse() * t
+                coordinate_images = v0 + sum(b * v  for b, v in zip(beta, vi))
+                result['coordinate_images'] = tuple(coordinate_images)
 
         else:
             # translate one vertex to the origin

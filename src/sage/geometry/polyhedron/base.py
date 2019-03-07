@@ -6575,6 +6575,38 @@ class Polyhedron_base(Element):
         else:
             return self.face_lattice().is_isomorphic(other.face_lattice())
 
+    def parametric_form(self):
+        r"""
+        Return a parametric form of this polyhedron.
+
+        This method is, for example, called when creating the
+        :meth:`affine_hull`.
+
+        OUTPUT:
+
+        A pair `(v_0, V)` where `v_0` is a vector and `V` a tuple of vectors.
+        The original polyhedron equals the polyhedron created by the
+        vertices `V` and then shifted by `v_0`, i.e.,
+        the original polyhedron equals
+        `v_0 + \sum_{v \in V} t_v v` with `t_v \in [0,1]`.
+
+        EXAMPLES::
+
+            sage: polytopes.simplex(2).parametric_form()
+            ((0, 0, 1), ((0, 1, -1), (1, 0, -1)))
+        """
+        if not self.is_compact():
+            raise NotImplementedError('method works only for compact polyhedra')
+        # translate 0th vertex to the origin
+        v0 = vector(self.vertices()[0])
+        Q = self.translation(-v0)
+        q0 = next((_ for _ in Q.vertices() if _.vector() == Q.ambient_space().zero()), None)
+        # finding the zero in Q; checking that Q actually has a vertex zero
+        assert q0.vector() == Q.ambient_space().zero()
+        q0_neighbors = tuple(vector(n) for n in
+                             itertools.islice(q0.neighbors(), self.dim()))
+        return v0, q0_neighbors
+
     def affine_hull(self, as_polyhedron=None, as_affine_map=False,
                     orthogonal=False, orthonormal=False, extend=False,
                     return_all_data=False):

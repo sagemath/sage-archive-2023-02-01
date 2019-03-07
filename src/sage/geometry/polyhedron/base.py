@@ -8285,20 +8285,18 @@ class Polyhedron_base(Element):
 
             sage: R.<x, y, z> = QQ[]
             sage: P = polytopes.simplex(2)
-            sage: V = P.volume(measure='induced'); V
+            sage: V = AA(P.volume(measure='induced')); V.radical_expression()
             1/2*sqrt(3)
-            sage: P.integrate(R(1), measure='induced')
-            1/2*sqrt(3)
-            sage: bool(_ == V)
+            sage: P.integrate(R(1), measure='induced') == V
             True
 
         Computing the mass center::
 
-            sage: P.integrate(x, measure='induced') / V
+            sage: (P.integrate(x, measure='induced') / V).radical_expression()
             1/3
-            sage: P.integrate(y, measure='induced') / V
+            sage: (P.integrate(y, measure='induced') / V).radical_expression()
             1/3
-            sage: P.integrate(z, measure='induced') / V
+            sage: (P.integrate(z, measure='induced') / V).radical_expression()
             1/3
 
         TESTS:
@@ -8393,6 +8391,10 @@ class Polyhedron_base(Element):
             else:
                 A = affine_hull['affine_map'][0].matrix()
                 Adet = (A.transpose() * A).det()
+                try:
+                    Adet = AA.coerce(Adet)
+                except TypeError:
+                    pass
                 return I / sqrt(Adet)
 
         else:

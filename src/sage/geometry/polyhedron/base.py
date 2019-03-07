@@ -8341,6 +8341,13 @@ class Polyhedron_base(Element):
             0
             sage: P.integrate('[]')  # with LattE description string
             0
+
+        ::
+
+            sage: R.<x, y, z> = QQ[]
+            sage: P = Polyhedron(vertices=[(0, 0, 1), (0, 1, 0)])
+            sage: P.integrate(x^2)
+            0
         """
         if self.base_ring() == RDF:
             raise TypeError("LattE integrale cannot be applied over inexact rings")

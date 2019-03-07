@@ -6671,12 +6671,24 @@ class Polyhedron_base(Element):
 
         - ``polyhedron`` -- the affine hull of the original polyhedron
 
-        - ``linear_transformation`` and ``shift`` -- the affine map
+        - ``affine_map`` -- the affine map as a pair whose first component
+          is a linear transformation and its second component a shift;
+          see above.
 
-        - ``polyhedron_base`` and ``polyhedron_base_vertices`` -- the points
-          and vertices used in the transformation. The original polyhedron
-          equals the polyhedron created by the ``polyhedron_base_vertices``
-          and then shifted by ``polyhedron_base``.
+        - ``parametric_form`` -- the points and vertices (as a pair)
+          used in the transformation. This is the output of
+          :meth:`parametric_form` which is called when determining the
+          affine hull.
+
+        - ``coordinate_images`` -- a tuple of the images of the variables
+          in the standard coordinate system of the ambient space. These
+          images are degree one polynomials and are used for mapping a
+          function in the ambient space to a function in the affine hull
+          such that the values of this function are preserved.
+
+        Note that all entries of this dictionary are compatible (in the
+        sense that the order of points/columns/etc are compatible)
+        with each other.
 
         .. TODO:
 
@@ -6914,29 +6926,26 @@ class Polyhedron_base(Element):
             sage: S = polytopes.simplex(2)
             sage: S.affine_hull(orthogonal=True,
             ....:               as_polyhedron=True, as_affine_map=True)
-            {'linear_transformation': Vector space morphism represented by the matrix:
-             [   0    1]
-             [   1 -1/2]
-             [  -1 -1/2]
-             Domain: Vector space of dimension 3 over Rational Field
-             Codomain: Vector space of dimension 2 over Rational Field,
-             'polyhedron': A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-             'shift': (1, 1/2)}
+            {'affine_map': (Vector space morphism represented by the matrix:
+              [   0    1]
+              [   1 -1/2]
+              [  -1 -1/2]
+              Domain: Vector space of dimension 3 over Rational Field
+              Codomain: Vector space of dimension 2 over Rational Field, (1, 1/2)),
+             'polyhedron': A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices}
 
         Return additional data::
 
             sage: S.affine_hull(orthogonal=True, return_all_data=True)
-            {'linear_transformation': Vector space morphism represented by the matrix:
-             [   0    1]
-             [   1 -1/2]
-             [  -1 -1/2]
-             Domain: Vector space of dimension 3 over Rational Field
-             Codomain: Vector space of dimension 2 over Rational Field,
-             'polyhedron': A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-             'polyhedron_base': (0, 0, 1),
-             'polyhedron_base_vertices': [A vertex at (0, 1, -1),
-              A vertex at (1, 0, -1)],
-             'shift': (1, 1/2)}
+            {'affine_map': (Vector space morphism represented by the matrix:
+              [   0    1]
+              [   1 -1/2]
+              [  -1 -1/2]
+              Domain: Vector space of dimension 3 over Rational Field
+              Codomain: Vector space of dimension 2 over Rational Field, (1, 1/2)),
+             'coordinate_images': (2/3*t1, 1/2*t0 - 1/3*t1, -1/2*t0 - 1/3*t1 + 1),
+             'parametric_form': ((0, 0, 1), ((0, 1, -1), (1, 0, -1))),
+             'polyhedron': A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices}
         """
         if as_polyhedron is None:
             as_polyhedron = not as_affine_map

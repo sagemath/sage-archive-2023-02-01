@@ -470,7 +470,7 @@ REFERENCES:
             M. Robshaw, Y. Seurin, C. Vikkelsoe. *PRESENT: An Ultra-Lightweight
             Block Cipher*; in Proceedings of CHES 2007; LNCS 7427; pp. 450-466;
             Springer Verlag 2007; available at
-            http://www.crypto.rub.de/imperia/md/content/texte/publications/conferences/present_ches2007.pdf
+            https://link.springer.com/content/pdf/10.1007%2F978-3-540-74735-2_31.pdf
 
 .. [BKW2011] \J. Brundan, A. Kleshchev, and W. Wang,
              *Graded Specht modules*,

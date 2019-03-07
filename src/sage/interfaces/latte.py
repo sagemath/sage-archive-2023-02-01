@@ -432,12 +432,21 @@ def to_latte_polynomial(polynomial):
         sage: to_latte_polynomial(f)
         '[[3, [2, 4, 6]], [7, [0, 3, 5]]]'
 
+        sage: to_latte_polynomial(x.parent().zero())
+        '[]'
+
     Testing a univariate polynomial::
 
         sage: x = polygen(QQ, 'x')
         sage: to_latte_polynomial((x-1)^2)
         '[[1, [0]], [-2, [1]], [1, [2]]]'
+
+        sage: to_latte_polynomial(x.parent().zero())
+        '[]'
     """
+    if polynomial == 0:
+        return str([])
+
     from sage.rings.polynomial.polydict import ETuple
 
     coefficients_list = polynomial.coefficients()

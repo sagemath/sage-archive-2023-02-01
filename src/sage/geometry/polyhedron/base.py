@@ -8376,21 +8376,13 @@ class Polyhedron_base(Element):
             # use an orthogonal transformation
             affine_hull = self.affine_hull(orthogonal=True, return_all_data=True)
             polyhedron = affine_hull['polyhedron']
-            L = affine_hull['linear_transformation']
-            v0 = affine_hull['polyhedron_base']
-            vi = [v.vector()
-                  for v in affine_hull['polyhedron_base_vertices']]
+            coordinate_images = affine_hull['coordinate_images']
 
-            # columns of W are equal to the vertices of affine_hull['polyhedron']
-            # in an order compatible with the vectors vi
-            W = matrix([list(L(v)) for v in vi]).transpose()
-
-            # transform the polynomial
-            t = vector(PolynomialRing(polynomial.base_ring(), 't', len(vi)).gens())
-            beta = W.inverse() * t
-            hom_images = v0 + sum(b * v  for b, v in zip(beta, vi))
-            hom = polynomial.parent().hom(list(hom_images))
+            hom = polynomial.parent().hom(coordinate_images)
             polynomial_in_affine_hull = hom(polynomial)
+
+            if polynomial_in_affine_hull == 0:
+                return self.base_ring().zero()
 
             from sage.interfaces.latte import integrate
             I = integrate(polyhedron.cdd_Hrepresentation(),
@@ -8399,7 +8391,7 @@ class Polyhedron_base(Element):
             if measure == 'induced_nonnormalized':
                 return I
             else:
-                A = L.matrix()
+                A = affine_hull['affine_map'][0].matrix()
                 Adet = (A.transpose() * A).det()
                 return I / sqrt(Adet)
 

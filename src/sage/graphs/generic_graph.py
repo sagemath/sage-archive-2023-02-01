@@ -12375,7 +12375,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: C.edges()
             [(0, 1, None), (0, 3, None), (1, 2, None), (2, 3, None)]
 
-            sage: for (u,v) in G.edges(labels=False): G.set_edge_label(u, v, u)
+            sage: for (u,v) in G.edges(labels=False): 
+            ....:     G.set_edge_label(u, v, u)
 
             sage: C = G.subgraph_search(graphs.CycleGraph(4))
             sage: C.edges()
@@ -12476,9 +12477,9 @@ class GenericGraph(GenericGraph_pyx):
 
         If the graph has vertex labels or edge labels, the label is just ignored::
 
-            sage: g.set_vertex(0, 'foo')
-            sage: g.subgraph_search_count(graphs.CycleGraph(3))
-            0
+        sage: g.set_vertex(0, 'foo')
+        sage: g.subgraph_search_count(graphs.PathGraph(5))
+        240
 
         TESTS:
 

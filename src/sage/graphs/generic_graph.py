@@ -22778,10 +22778,11 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = graphs.CycleGraph(4)
             sage: G.katz_matrix(1/20)
-            [1/198  5/99  5/99 1/198]
-            [ 5/99 1/198 1/198  5/99]
-            [ 5/99 1/198 1/198  5/99]
-            [1/198  5/99  5/99 1/198]
+            [1/198  5/99 1/198  5/99]
+            [ 5/99 1/198  5/99 1/198]
+            [1/198  5/99 1/198  5/99]
+            [ 5/99 1/198  5/99 1/198]
+
 
         We find the Katz matrix of an undirected 4-cycle with all entries other than
         those which correspond to non-edges zeroed out.  ::
@@ -22874,7 +22875,7 @@ class GenericGraph(GenericGraph_pyx):
         We compute katz_centrality for the undirected 4-cycle again (note that by symmetry, all 4 vertices have the same centrality)::
             sage: G = graphs.CycleGraph(4)
             sage: G.katz_centrality(1/20)
-            [1/9 1/9 1/9 1/9]
+            {0: 1/9, 1: 1/9, 2: 1/9, 3: 1/9}
 
         We compute the Katz centrality of the graph ::
         G = DiGraph({1: [10], 2:[10,11], 3:[10,11], 4:[], 5:[11, 4], 6:[11], 7:[10,11], 8:[10,11], 9:[10], 10:[11, 5, 8], 11:[6]}),
@@ -22884,8 +22885,17 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = DiGraph({1: [10], 2:[10,11], 3:[10,11], 4:[], 5:[11, 4], 6:[11], 7:[10,11], 8:[10,11], 9:[10], 10:[11, 5, 8], 11:[6]})
             sage: G.katz_centrality(.85)
-            [0.000000000000000 0.000000000000000 0.000000000000000  16.7319819819820
-            18.6846846846847  173.212076941807 0.000000000000000  18.6846846846847    0.000000000000000  20.9819819819820  202.778914049184]
+            {1: 0.000000000000000,
+             2: 0.000000000000000,
+             3: 0.000000000000000,
+             4: 16.7319819819820,
+             5: 18.6846846846847,
+             6: 173.212076941807,
+             7: 0.000000000000000,
+             8: 18.6846846846847,
+             9: 0.000000000000000,
+             10: 20.9819819819820,
+             11: 202.778914049184}
 
 
         .. SEEALSO:
@@ -22896,25 +22906,32 @@ class GenericGraph(GenericGraph_pyx):
         TESTS::
 
             sage: graphs.PathGraph(3).katz_centrality(1/20)
-            [11/199 21/199 11/199]
+            {0: 11/199, 1: 21/199, 2: 11/199}
             sage: graphs.PathGraph(4).katz_centrality(1/20)
-            [21/379 41/379 41/379 21/379]
+            {0: 21/379, 1: 41/379, 2: 41/379, 3: 21/379}
+            sage: graphs.PathGraph(3).katz_centrality(1/20,2)
+            11/199
+            sage: graphs.PathGraph(4).katz_centrality(1/20,3)
+            21/379
 
 
         """
-        M = self.katz_matrix(alpha, nonedgesonly=False)
         n = self.num_verts()
+        if n == 0 :
+            raise ValueError('Graph is Empty.')        
+        M = self.katz_matrix(alpha, nonedgesonly=False)
+        
         if u and u not in self.vertices():
             raise ValueError("vertex ({0}) is not a vertex of the graph".format(repr(u)))
         katz_values = (M*matrix(QQ, n, 1, lambda i, j: 1)).transpose()
-        K = {}
+        Kdict = {}
         vert = self.vertices()
         for i in range(n):
-            K[vert[i]] = katz_values[i]
+            Kdict[vert[i]] = katz_values[0][i]
         if u is None:
-            return K
+            return Kdict
         else :
-            return K[u]
+            return Kdict[u]
 
 def tachyon_vertex_plot(g, bgcolor=(1,1,1),
                         vertex_colors=None,

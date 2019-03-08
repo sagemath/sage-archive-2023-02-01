@@ -715,7 +715,7 @@ __EOF__
 }
 
 
-WRAPPED_SCRIPTS="build install check postinst legacy-uninstall prerm postrm"
+WRAPPED_SCRIPTS="build install check preinst postinst legacy-uninstall prerm postrm"
 INSTALLED_SCRIPTS="prerm postrm"
 
 
@@ -850,6 +850,15 @@ if [ "$KEEP_EXISTING" != "yes" ]; then
     sage-spkg-uninstall "$PKG_BASE"
 fi
 
+# Run the pre-install script, if any
+if [ -f spkg-preinst ]; then
+    echo "Running pre-install script for $PKG_NAME."
+    time $SAGE_SUDO ./spkg-preinst
+    if [ $? -ne 0 ]; then
+        error_msg "Error running the preinst script for $PKG_NAME."
+        exit 1
+    fi
+fi
 
 if [ -f spkg-build ]; then
     # Package has both spkg-build and spkg-install; execute the latter with SAGE_SUDO

@@ -384,8 +384,6 @@ class PermutationGroup_generic(FiniteGroup):
         -  ``canonicalize`` - bool (default: ``True``); if ``True``,
            sort generators and remove duplicates
 
-        - ``domain`` - a (sorted) list of integers; (default: ``None``)
-
         OUTPUT:
 
         - A permutation group.
@@ -873,6 +871,19 @@ class PermutationGroup_generic(FiniteGroup):
             ....:             if f is not None and g is not None:
             ....:                 h = G3.coerce_map_from(G1)
             ....:                 assert h(elt) == g(f(elt))
+
+        Check that :trac:`26903` is fixed::
+
+            sage: G = SO(4,3,-1)
+            sage: P = G.as_permutation_group(algorithm='smaller', seed=5)
+            sage: P1 = G.as_permutation_group()
+            sage: P == P1
+            False
+            sage: g1, g2, g3 = G.gens()
+            sage: P(g1*g2)
+            (1,9,7,6)(2,10)(3,11)(4,5,8,12)
+            sage: P1(g1*g2)
+            (1,4,13,11)(2,5,14,18)(3,15,8,16)(6,7)(9,20,19,12)(10,17)
         """
         if isinstance(G, PermutationGroup_subgroup):
             if G._ambient_group is self:
@@ -882,16 +893,16 @@ class PermutationGroup_generic(FiniteGroup):
         if isinstance(G, PermutationGroup_generic):
             if G.is_subgroup(self):
                 return True
-        if hasattr(G, "_permutation_group_"):
-            # see if this permutation group has been constructed by an as_permutation_group method (Trac #25706)
-            PG = G._permutation_group_()
-            # _permutation_group_element is a morphism
-            if hasattr(G, '_permutation_group_morphism'):
-                if PG is self:
-                    return G._permutation_group_morphism
-                if self.has_coerce_map_from(PG):
-                    return self.coerce_map_from(PG) * G._permutation_group_morphism
-
+        from sage.groups.libgap_wrapper import ParentLibGAP
+        if isinstance(G, ParentLibGAP):
+            from sage.categories.homset import Hom
+            try:
+                nat = Hom(G, self).natural_map()
+                from sage.groups.libgap_morphism import GroupMorphism_libgap
+                if isinstance(nat, GroupMorphism_libgap):
+                    return nat
+            except TypeError:
+                pass
         return super(PermutationGroup_generic, self)._coerce_map_from_(G)
 
     def list(self):

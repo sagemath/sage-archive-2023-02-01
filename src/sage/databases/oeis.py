@@ -927,7 +927,7 @@ class OEISSequence(SageObject):
         ::
 
             sage: av = oeis('A087778') ; av             # optional -- internet
-            A087778: Decimal expansion of Avogadro's constant.
+            A087778: Decimal expansion of Avogadro's ...
 
             sage: av.natural_object()                   # optional -- internet
             6.022141000000000?e23
@@ -1847,9 +1847,15 @@ class FancyTuple(tuple):
             True
             sage: ft[-1] == 'ç'
             True
+
+        Check that :trac:`26997` is fixed::
+
+            sage: FancyTuple([[1,2,3],(4,5,6)])
+            0: [1, 2, 3]
+            1: (4, 5, 6)
         """
         res = tuple.__getitem__(self, x)
-        if isinstance(res, tuple):
+        if isinstance(x, slice):
             res = FancyTuple(res)
         return res
 

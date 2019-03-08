@@ -323,7 +323,6 @@ Comprehensive Module list
     sage/combinat/species/__init__
     sage/combinat/species/all
     sage/combinat/species/characteristic_species
-    sage/combinat/species/combinatorial_logarithm
     sage/combinat/species/composition_species
     sage/combinat/species/cycle_species
     sage/combinat/species/empty_species

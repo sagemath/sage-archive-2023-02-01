@@ -381,7 +381,7 @@ class A000001(SloaneSequence):
             sage: sloane.A000001._eval(5000)
             Traceback (most recent call last):
             ...
-            ValueError: libGAP: Error, the library of groups of size 5000 is not available
+            GAPError: Error, the library of groups of size 5000 is not available
         """
         if n <= 50:
             return self._small[n-1]

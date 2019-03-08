@@ -5144,7 +5144,8 @@ class Polyhedron_base(Element):
             raise NotImplementedError("The polytope must be full-dimensional.")
         else:
             from sage.interfaces.latte import integrate
-            return integrate(self.cdd_Hrepresentation(), polynomial, cdd=True)
+            return integrate(self.cdd_Hrepresentation(), polynomial,
+                             cdd=True, **kwds)
 
     def contains(self, point):
         """
@@ -6588,7 +6589,7 @@ class Polyhedron_base(Element):
         - ``as_affine_map`` (boolean, default = False) -- If ``False``, return
           a polyhedron. If ``True``, return the affine transformation,
           that sends the embedded polytope to a fulldimensional one.
-          It is given as a pair ``(A,b)``, where A is a linear transformation
+          It is given as a pair ``(A, b)``, where A is a linear transformation
           and ``b`` is a vector, and the affine transformation sends ``v`` to
           ``A(v)+b``.
 
@@ -6651,6 +6652,11 @@ class Polyhedron_base(Element):
 
             sage: S = polytopes.simplex(); S
             A 3-dimensional polyhedron in ZZ^4 defined as the convex hull of 4 vertices
+            sage: S.vertices()
+            (A vertex at (0, 0, 0, 1),
+             A vertex at (0, 0, 1, 0),
+             A vertex at (0, 1, 0, 0),
+             A vertex at (1, 0, 0, 0))
             sage: A = S.affine_hull(); A
             A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 4 vertices
             sage: A.vertices()
@@ -6752,7 +6758,7 @@ class Polyhedron_base(Element):
             sage: Pentagon = polytopes.dodecahedron().faces(2)[0].as_polyhedron()
             sage: Pnormal = Pentagon.affine_hull(orthonormal=True, extend=True)
             sage: Pgonal = Pentagon.affine_hull(orthogonal=True)
-            sage: A,b = Pentagon.affine_hull(orthogonal = True, as_affine_map=True)
+            sage: A, b = Pentagon.affine_hull(orthogonal=True, as_affine_map=True)
             sage: Adet = (A.matrix().transpose()*A.matrix()).det()
             sage: Pnormal.volume()
             1.53406271079097?
@@ -6766,7 +6772,7 @@ class Polyhedron_base(Element):
         An other example with ``as_affine_map=True``::
 
             sage: P = polytopes.permutahedron(4)
-            sage: A,b = P.affine_hull(orthonormal=True, as_affine_map=True, extend=True)
+            sage: A, b = P.affine_hull(orthonormal=True, as_affine_map=True, extend=True)
             sage: Q = P.affine_hull(orthonormal=True, extend=True)
             sage: Q.center()
             (0.7071067811865475?, 1.224744871391589?, 1.732050807568878?)

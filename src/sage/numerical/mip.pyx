@@ -224,14 +224,14 @@ AUTHORS:
 - Risan (2012/02): added extension for exact computation
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2012 Nathann Cohen <nathann.cohen@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 
 from copy import copy
@@ -240,6 +240,7 @@ from sage.structure.element cimport Element
 from sage.structure.element import is_Matrix
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecation
+
 
 cdef class MixedIntegerLinearProgram(SageObject):
     r"""
@@ -1420,7 +1421,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         values for the corresponding variables ::
 
             sage: x_sol = p.get_values(x)
-            sage: x_sol.keys()
+            sage: sorted(x_sol.keys())
             [3, 5]
 
         Obviously, it also works with variables of higher dimension::

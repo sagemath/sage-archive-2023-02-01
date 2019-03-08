@@ -1,18 +1,18 @@
 r"""
 Symmetric Group Algebra
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import
 import itertools
 import six
 from six.moves import range
 
-from sage.misc.cachefunc import cached_method, cached_function
+from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.superseded import deprecated_function_alias
 from sage.combinat.combinatorial_algebra import CombinatorialAlgebra
@@ -23,7 +23,6 @@ from sage.combinat.partition import _Partitions, Partitions_n
 from sage.combinat.tableau import Tableau, StandardTableaux_size, StandardTableaux_shape, StandardTableaux
 from sage.algebras.group_algebra import GroupAlgebra_class
 from sage.categories.weyl_groups import WeylGroups
-from sage.categories.algebras import Algebras
 from sage.rings.all import QQ, PolynomialRing
 from sage.arith.all import factorial
 from sage.matrix.all import matrix
@@ -32,6 +31,8 @@ from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 
 # TODO: Remove this function and replace it with the class
 # TODO: Create parents for other bases (such as the seminormal basis)
+
+
 def SymmetricGroupAlgebra(R, W, category=None):
     r"""
     Return the symmetric group algebra of order ``W`` over the ring ``R``.
@@ -102,7 +103,7 @@ def SymmetricGroupAlgebra(R, W, category=None):
         sage: SGA.group()
         Weyl Group of type ['A', 3] (as a matrix group acting on the ambient space)
         sage: SGA.an_element()
-        2*s1*s2*s3*s2*s1 + 3*s1*s2*s3*s1 + s1*s2*s3 + 1
+        s1*s2*s3 + 3*s3*s2 + 2*s3 + 1
 
     The preferred way to construct the symmetric group algebra is to
     go through the usual ``algebra`` method::
@@ -222,6 +223,7 @@ def SymmetricGroupAlgebra(R, W, category=None):
     if category is None:
         category = W.category()
     return SymmetricGroupAlgebra_n(R, W, category.Algebras(R))
+
 
 class SymmetricGroupAlgebra_n(GroupAlgebra_class):
 
@@ -1444,6 +1446,7 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
         n = self.n
         if n < k:
             return self.zero()
+
         def complement(xs):
             res = list(range(1, n + 1))
             for x in xs:
@@ -1452,7 +1455,7 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
         P = Permutations(n)
         I = self._indices
         return self.sum_of_monomials([I(P(complement(q) + list(q)))
-                                      for q in itertools.permutations(range(1, n+1), n-k)])
+                                      for q in itertools.permutations(range(1, n+1), int(n - k))])
 
     def binary_unshuffle_sum(self, k):
         r"""
@@ -1536,6 +1539,7 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
         n = self.n
         if n < k:
             return self.zero()
+
         def complement(xs):
             res = list(range(1, n + 1))
             for x in xs:
@@ -1543,7 +1547,7 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
             return res
         P = Permutations(n)
         return self.sum_of_monomials([self._indices(P(list(q) + complement(q)))
-                                      for q in itertools.combinations(range(1, n+1), k)])
+                                      for q in itertools.combinations(range(1, n+1), int(k))])
 
     def jucys_murphy(self, k):
         r"""
@@ -1602,8 +1606,6 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
             p[k-1] = i
             res += self.monomial(self._indices(p))
         return res
-
-
 
     def seminormal_basis(self, mult='l2r'):
         r"""
@@ -1753,13 +1755,6 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
              1/4*(2,3) - 1/4*(1,2,3) + 1/4*(1,3,2) - 1/4*(1,3),
              1/3*() - 1/6*(2,3) + 1/3*(1,2) - 1/6*(1,2,3) - 1/6*(1,3,2) - 1/6*(1,3),
              1/6*() - 1/6*(2,3) - 1/6*(1,2) + 1/6*(1,2,3) + 1/6*(1,3,2) - 1/6*(1,3)]
-
-        REFERENCES:
-
-        .. [Ram1997] Arun Ram. *Seminormal representations of Weyl groups
-           and Iwahori-Hecke algebras*. Proc. London Math. Soc. (3)
-           **75** (1997). 99-133. :arxiv:`math/9511223v1`.
-           http://www.ms.unimelb.edu.au/~ram/Publications/1997PLMSv75p99.pdf
         """
         basis = []
         for part in Partitions_n(self.n):
@@ -1768,7 +1763,6 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
                 for t2 in stp:
                     basis.append(self.epsilon_ik(t1, t2, mult=mult))
         return basis
-
 
     def dft(self, form="seminormal", mult='l2r'):
         """
@@ -2146,6 +2140,7 @@ def kappa(alpha):
         n = sum(alpha)
     return factorial(n) / StandardTableaux(alpha).cardinality()
 
+
 def a(tableau, star=0, base_ring=QQ):
     r"""
     The row projection operator corresponding to the Young tableau
@@ -2155,14 +2150,7 @@ def a(tableau, star=0, base_ring=QQ):
     This is the sum (in the group algebra of the relevant symmetric
     group over `\QQ`) of all the permutations which preserve
     the rows of ``tableau``. It is called `a_{\text{tableau}}` in
-    [EtRT]_, Section 4.2.
-
-    REFERENCES:
-
-    .. [EtRT] Pavel Etingof, Oleg Golberg, Sebastian Hensel, Tiankai
-       Liu, Alex Schwendner, Dmitry Vaintrob, Elena Yudovina,
-       "Introduction to representation theory",
-       :arXiv:`0901.0827v5`.
+    [EGHLSVY]_, Section 4.2.
 
     INPUT:
 
@@ -2219,6 +2207,7 @@ def a(tableau, star=0, base_ring=QQ):
     rd = dict((P(h), one) for h in rs)
     return sgalg._from_dict(rd)
 
+
 def b(tableau, star=0, base_ring=QQ):
     r"""
     The column projection operator corresponding to the Young tableau
@@ -2229,7 +2218,7 @@ def b(tableau, star=0, base_ring=QQ):
     symmetric group over `\QQ`) of all the permutations which
     preserve the column of ``tableau`` (where the signs are the usual
     signs of the permutations). It is called `b_{\text{tableau}}` in
-    [EtRT]_, Section 4.2.
+    [EGHLSVY]_, Section 4.2.
 
     INPUT:
 
@@ -2481,12 +2470,13 @@ def e_ik(itab, ktab, star=0):
     e_ik_cache[(it,kt)] = res
     return res
 
+
 def seminormal_test(n):
     """
     Run a variety of tests to verify that the construction of the
     seminormal basis works as desired. The numbers appearing are
     results in James and Kerber's 'Representation Theory of the
-    Symmetric Group' [JamesKerber]_.
+    Symmetric Group' [JK1981]_.
 
     EXAMPLES::
 
@@ -2560,7 +2550,7 @@ def HeckeAlgebraSymmetricGroupT(R, n, q=None):
     for all `i` (the "quadratic relations", also known in the form
     `(T_i + 1) (T_i - q) = 0`). (This is only one of several existing
     definitions in literature, not all of which are fully equivalent.
-    We are following the conventions of [GS93]_.) For any permutation
+    We are following the conventions of [Go1993]_.) For any permutation
     `w \in S_n`, we can define an element `T_w` of this Hecke algebra by
     setting `T_w = T_{i_1} T_{i_2} \cdots T_{i_k}`, where
     `w = s_{i_1} s_{i_2} \cdots s_{i_k}` is a reduced word for `w`
@@ -2583,12 +2573,6 @@ def HeckeAlgebraSymmetricGroupT(R, n, q=None):
         :meth:`~sage.combinat.permutation.Permutations.options`).
         It is always as defined above. It does not match the default
         option (``mult=l2r``) of the symmetric group algebra!
-
-    REFERENCES:
-
-    .. [GS93] David M. Goldschmidt.
-       *Group characters, symmetric functions, and the Hecke algebras*.
-       AMS 1993.
 
     EXAMPLES::
 
@@ -2614,6 +2598,7 @@ def HeckeAlgebraSymmetricGroupT(R, n, q=None):
     """
 
     return HeckeAlgebraSymmetricGroup_t(R, n, q)
+
 
 class HeckeAlgebraSymmetricGroup_generic(CombinatorialAlgebra):
     def __init__(self, R, n, q=None):
@@ -2660,7 +2645,6 @@ class HeckeAlgebraSymmetricGroup_generic(CombinatorialAlgebra):
         """
         return self._q
 
-
     def _coerce_start(self, x):
         """
         EXAMPLES::
@@ -2678,6 +2662,7 @@ class HeckeAlgebraSymmetricGroup_generic(CombinatorialAlgebra):
             return self.monomial(self._indices(list(x) +
                                                list(range(len(x)+1, self.n+1))))
         raise TypeError
+
 
 class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
 
@@ -2730,7 +2715,6 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
             z_elt = {perm_i:q, perm:q-1}
             return self._from_dict(z_elt)
 
-
     def t_action(self, a, i):
         r"""
         Return the product `T_i \cdot a`.
@@ -2746,7 +2730,6 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
         """
         t_i = lambda x: self.t_action_on_basis(x, i)
         return self._apply_module_endomorphism(a, t_i)
-
 
     def _multiply_basis(self, perm1, perm2):
         """

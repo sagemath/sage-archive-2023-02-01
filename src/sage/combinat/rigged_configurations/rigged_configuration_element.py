@@ -546,7 +546,6 @@ class RiggedConfigurationElement(ClonableArray):
         if M[a,a] != 2:
             k = None
             set_vac_num = True
-            rigged_index = None
             if new_rigging[-1] != -M[a,a] // 2:
                 return None
             new_list.pop()
@@ -597,7 +596,7 @@ class RiggedConfigurationElement(ClonableArray):
             else:
                 # Update the vacancy numbers and the rigging
                 for i in range(len(new_vac_nums)):
-                    if new_list[i] < k:
+                    if k is not None and new_list[i] < k:
                         break
 
                     new_vac_nums[i] += M[a,b]
@@ -651,7 +650,7 @@ class RiggedConfigurationElement(ClonableArray):
         # Update the vacancy numbers and the rigging
         value = self.parent()._cartan_matrix[b,a]
         for i in range(len(new_vac_nums)):
-            if new_list[i] < k:
+            if k is not None and new_list[i] < k:
                 break
 
             new_vac_nums[i] += value
@@ -2388,15 +2387,15 @@ class KRRCTypeA2DualElement(KRRCNonSimplyLacedElement):
             ....:     for mg in RC.module_generators)
             True
         """
-        #return self.to_virtual_configuration().cocharge() / self.parent()._folded_ct.gamma[0]
-        vct = self.parent()._folded_ct
+        # return self.to_virtual_configuration().cocharge() / self.parent()._folded_ct.gamma[0]
         cc = ZZ.zero()
         rigging_sum = ZZ.zero()
-        #sigma = vct.folding_orbit()
-        #gammatilde = list(vct.scaling_factors())
-        #gammatilde[-1] = 2
+        # vct = self.parent()._folded_ct
+        # sigma = vct.folding_orbit()
+        # gammatilde = list(vct.scaling_factors())
+        # gammatilde[-1] = 2
         for a, p in enumerate(self):
-            t_check = 1 # == len(sigma[a+1]) * gammatilde[a+1] / gammatilde[0]
+            t_check = 1  # == len(sigma[a+1]) * gammatilde[a+1] / gammatilde[0]
             for pos, i in enumerate(p._list):
                 # Add the rigging
                 rigging_sum += t_check * p.rigging[pos]

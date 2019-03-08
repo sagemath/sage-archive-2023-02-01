@@ -246,7 +246,7 @@ class Groups(CategoryWithAxiom):
                 sage: G = DiCyclicGroup(3)
                 sage: T = G.cayley_table()
                 sage: T.column_keys()
-                ((), (5,6,7), ..., (1,3,2,4)(5,7))
+                ((), (5,6,7), ..., (1,4,2,3)(5,7))
                 sage: T
                 *  a b c d e f g h i j k l
                  +------------------------
@@ -265,21 +265,21 @@ class Groups(CategoryWithAxiom):
 
             ::
 
-                sage: M=SL(2,2)
+                sage: M = SL(2, 2)
                 sage: M.cayley_table()
                 *  a b c d e f
                  +------------
-                a| a b c d e f
-                b| b a d c f e
-                c| c f e b a d
-                d| d e f a b c
-                e| e d a f c b
-                f| f c b e d a
+                a| c e a f b d
+                b| d f b e a c
+                c| a b c d e f
+                d| b a d c f e
+                e| f d e b c a
+                f| e c f a d b
                 <BLANKLINE>
 
             ::
 
-                sage: A=AbelianGroup([2,3])
+                sage: A = AbelianGroup([2, 3])
                 sage: A.cayley_table()
                 *  a b c d e f
                  +------------
@@ -317,18 +317,18 @@ class Groups(CategoryWithAxiom):
             ::
 
                 sage: G=QuaternionGroup()
-                sage: names=['1', 'I', 'J', '-1', '-K', 'K', '-I', '-J']
+                sage: names=['1', 'I', '-1', '-I', 'J', '-K', '-J', 'K']
                 sage: G.cayley_table(names=names)
-                 *   1  I  J -1 -K  K -I -J
+                 *   1  I -1 -I  J -K -J  K
                   +------------------------
-                 1|  1  I  J -1 -K  K -I -J
-                 I|  I  1 -1  J  K -K -J -I
-                 J|  J -1  I  1 -I -J  K -K
-                -1| -1  J  1  I -J -I -K  K
-                -K| -K  K -J -I  I  1  J -1
-                 K|  K -K -I -J  1  I -1  J
-                -I| -I -J -K  K -1  J  I  1
-                -J| -J -I  K -K  J -1  1  I
+                 1|  1  I -1 -I  J -K -J  K
+                 I|  I -1 -I  1  K  J -K -J
+                -1| -1 -I  1  I -J  K  J -K
+                -I| -I  1  I -1 -K -J  K  J
+                 J|  J -K -J  K -1 -I  1  I
+                -K| -K -J  K  J  I -1 -I  1
+                -J| -J  K  J -K  1  I -1 -I
+                 K|  K  J -K -J -I  1  I -1
 
             ::
 
@@ -382,9 +382,9 @@ class Groups(CategoryWithAxiom):
             ::
 
                 sage: from sage.matrix.operation_table import OperationTable
-                sage: G=DiCyclicGroup(3)
+                sage: G = DiCyclicGroup(3)
                 sage: commutator = lambda x, y: x*y*x^-1*y^-1
-                sage: T=OperationTable(G, commutator)
+                sage: T = OperationTable(G, commutator)
                 sage: T
                 .  a b c d e f g h i j k l
                  +------------------------
@@ -400,11 +400,12 @@ class Groups(CategoryWithAxiom):
                 j| a b c a b c a c b a c b
                 k| a b c a b c b a c b a c
                 l| a b c a b c c b a c b a
+
                 sage: trans = T.translation()
-                sage: comm = [trans['a'], trans['b'],trans['c']]
+                sage: comm = [trans['a'], trans['b'], trans['c']]
                 sage: comm
                 [(), (5,6,7), (5,7,6)]
-                sage: P=G.cayley_table(elements=comm)
+                sage: P = G.cayley_table(elements=comm)
                 sage: P
                 *  a b c
                  +------

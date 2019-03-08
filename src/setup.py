@@ -284,6 +284,7 @@ class sage_build_cython(Command):
             cdivision=True,
             embedsignature=True,
             fast_getattr=True,
+            language_level="2",
             preliminary_late_includes_cy28=True,
             profile=self.profile,
         )
@@ -947,6 +948,9 @@ code = setup(name = 'sage',
       author_email= 'http://groups.google.com/group/sage-support',
       url         = 'http://www.sagemath.org',
       packages    = python_packages,
+      package_data = {
+          'sage.libs.gap': ['sage.gaprc'],
+      },
       cmdclass = dict(build=sage_build,
                       build_cython=sage_build_cython,
                       build_ext=sage_build_ext,

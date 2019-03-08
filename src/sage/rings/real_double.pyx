@@ -32,13 +32,13 @@ Test NumPy conversions::
     dtype('float64')
 """
 
-#*****************************************************************************
+# ****************************************************************************
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from __future__ import print_function, absolute_import
 
@@ -386,6 +386,17 @@ cdef class RealDoubleField_class(Field):
             Real Field with 53 bits of precision
         """
         return "RealField(%s : Bits := true)" % self.prec()
+
+    def _fricas_init_(self):
+        r"""
+        Return the FriCAS representation of the real double field.
+
+        EXAMPLES::
+
+            sage: fricas(RDF)    # indirect doctest, optional - fricas
+            DoubleFloat
+        """
+        return "DoubleFloat"
 
     def _polymake_init_(self):
         r"""

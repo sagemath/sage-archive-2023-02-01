@@ -384,7 +384,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
         ALGORITHM:
 
         Gaussian elimination with division limited to constant
-        entries. Based on SINGULAR's rowred commamnd.
+        entries. Based on SINGULAR's rowred command.
         """
         from sage.matrix.constructor import matrix
 

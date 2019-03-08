@@ -63,7 +63,6 @@ from sage.matrix.matrix0 import Matrix
 from sage.matrix.constructor import matrix
 from sage.misc.latex import latex
 from sage.rings.all import GF, prime_range
-from sage.misc.decorators import rename_keyword
 from sage.homology.homology_group import HomologyGroup
 from functools import reduce
 
@@ -94,7 +93,6 @@ def _latex_module(R, m):
     return str(latex(FreeModule(R, m)))
 
 
-@rename_keyword(deprecation=15151, check_products='check', check_diffs='check')
 def ChainComplex(data=None, base_ring=None, grading_group=None,
                  degree_of_differential=1, degree=1,
                  check=True):
@@ -1159,7 +1157,6 @@ class ChainComplex_class(Parent):
         else:
             return HomologyGroup(0, base_ring)
 
-    @rename_keyword(deprecation=15151, dim='deg')
     def homology(self, deg=None, base_ring=None, generators=False,
                  verbose=False, algorithm='pari'):
         r"""

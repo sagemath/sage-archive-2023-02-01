@@ -317,6 +317,7 @@ __append_to_doc(
      "RandomGNM",
      "RandomGNP",
      "RandomHolmeKim",
+     "RandomChordalGraph",
      "RandomIntervalGraph",
      "RandomLobster",
      "RandomNewmanWattsStrogatz",
@@ -1084,7 +1085,7 @@ class GraphGenerators():
             sage: _ = code_input.write('>>planar_code<<')
             sage: for c in [4,2,3,4,0,1,4,3,0,1,2,4,0,1,3,2,0]:
             ....:     _ = code_input.write('{:c}'.format(c))
-            sage: code_input.seek(0)
+            sage: _ = code_input.seek(0)
             sage: gen = graphs._read_planar_code(code_input)
             sage: l = list(gen)
             sage: l
@@ -2129,6 +2130,7 @@ class GraphGenerators():
     RandomBicubicPlanar      = staticmethod(sage.graphs.generators.random.RandomBicubicPlanar)
     RandomBlockGraph         = staticmethod(sage.graphs.generators.random.RandomBlockGraph)
     RandomBoundedToleranceGraph = staticmethod(sage.graphs.generators.random.RandomBoundedToleranceGraph)
+    RandomChordalGraph       = staticmethod(sage.graphs.generators.random.RandomChordalGraph)
     RandomGNM                = staticmethod(sage.graphs.generators.random.RandomGNM)
     RandomGNP                = staticmethod(sage.graphs.generators.random.RandomGNP)
     RandomHolmeKim           = staticmethod(sage.graphs.generators.random.RandomHolmeKim)

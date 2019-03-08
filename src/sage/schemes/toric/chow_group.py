@@ -644,10 +644,11 @@ class ChowGroup_class(FGP_Module_class, WithEqualityById):
             ...
             TypeError: unsupported operand parent(s) for *: 'Rational Field'
             and 'Chow group of 2-d CPR-Fano toric variety covered by 3 affine patches'
-            sage: A_ZZ.get_action(ZZ)
+            sage: coercion_model.get_action(A_ZZ, ZZ)
             Right scalar multiplication by Integer Ring on Chow group of 2-d
             CPR-Fano toric variety covered by 3 affine patches
-            sage: A_ZZ.get_action(QQ)
+            sage: print(coercion_model.get_action(A_ZZ, QQ))
+            None
 
         You can't multiply integer classes with fractional
         numbers. For that you need to go to the rational Chow group::
@@ -657,10 +658,10 @@ class ChowGroup_class(FGP_Module_class, WithEqualityById):
             ( 0 | 0 | 6 )
             sage: 1/2 * A_QQ.an_element() * 1/3
             ( 0 | 0 | 1/6 )
-            sage: A_QQ.get_action(ZZ)
+            sage: coercion_model.get_action(A_QQ, ZZ)
             Right scalar multiplication by Integer Ring on QQ-Chow group of 2-d
             CPR-Fano toric variety covered by 3 affine patches
-            sage: A_QQ.get_action(QQ)
+            sage: coercion_model.get_action(A_QQ, QQ)
             Right scalar multiplication by Rational Field on QQ-Chow group of 2-d
             CPR-Fano toric variety covered by 3 affine patches
         """

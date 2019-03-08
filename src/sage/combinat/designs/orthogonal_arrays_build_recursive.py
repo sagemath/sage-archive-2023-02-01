@@ -540,7 +540,7 @@ def construction_q_x(k,q,x,check=True,explain_construction=False):
     PBD = [[relabel[xx] for xx in B if not xx in points_to_delete] for B in TD]
 
     # Taking the unique block of size x+2
-    assert map(len,PBD).count(x+2)==1
+    assert list(map(len,PBD)).count(x+2)==1
     for B in PBD:
         if len(B) == x+2:
             break

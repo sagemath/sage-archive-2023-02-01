@@ -14,9 +14,10 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
+from __future__ import print_function, absolute_import, division
 import six
 from six.moves import range
+
 # import from Sage library
 from sage.graphs.graph import Graph
 from math import sin, cos, pi
@@ -613,9 +614,9 @@ def SuzukiGraph():
 
     EXAMPLES::
 
-        sage: g = graphs.SuzukiGraph(); g            # optional database_gap internet # not tested
+        sage: g = graphs.SuzukiGraph(); g            # optional internet # not tested
         Suzuki graph: Graph on 1782 vertices
-        sage: g.is_strongly_regular(parameters=True) # optional database_gap internet # not tested
+        sage: g.is_strongly_regular(parameters=True) # optional internet # not tested
         (1782, 416, 100, 96)
     """
     from sage.groups.perm_gps.permgroup_named import SuzukiSporadicGroup
@@ -1241,31 +1242,34 @@ def BlanusaSecondSnarkGraph():
         sage: g.automorphism_group().cardinality()
         4
     """
-    g = Graph({0:[(0,0),(1,4),1],1:[(0,3),(1,1)],(0,2):[(0,5)],
-               (0,6):[(0,4)],(0,7):[(0,1)],(1,7):[(1,2)],
-               (1,0):[(1,6)],(1,3):[(1,5)]},
+    c0 = (-1, 0)
+    c1 = (-1, 1)
+    g = Graph({c0: [(0, 0), (1, 4), c1], c1: [(0, 3), (1, 1)],
+               (0, 2): [(0, 5)], (0, 6): [(0, 4)],
+               (0, 7): [(0, 1)], (1, 7): [(1, 2)],
+               (1, 0): [(1, 6)], (1, 3): [(1, 5)]},
               name="Blanusa Second Snark Graph")
 
-    g.add_cycle([(0,i) for i in range(5)])
-    g.add_cycle([(1,i) for i in range(5)])
-    g.add_cycle([(0,5),(0,6),(0,7),(1,5),(1,6),(1,7)])
+    g.add_cycle([(0, i) for i in range(5)])
+    g.add_cycle([(1, i) for i in range(5)])
+    g.add_cycle([(0, 5), (0, 6), (0, 7), (1, 5), (1, 6), (1, 7)])
 
-    g._circle_embedding([(0, (2*i)%5) for i in range(5)],
-                            center = (-1.5, 0),
-                            shift = .5)
-    g._circle_embedding([(1, (2*i)%5) for i in range(5)],
-                            center = (1.5, 0))
+    g._circle_embedding([(0, (2 * i) % 5) for i in range(5)],
+                            center=(-1.5, 0),
+                            shift=.5)
+    g._circle_embedding([(1, (2 * i) % 5) for i in range(5)],
+                            center=(1.5, 0))
 
-    g._circle_embedding([(0, i) for i in range(5, 8)] + [0]*4,
-                            center = (-1.2, 0),
-                            shift = 2.5,
-                            radius = 2.2)
-    g._circle_embedding([(1, i) for i in range(5,8)] + [0]*4,
-                            center = (1.2, 0),
-                            shift = -1,
-                            radius = 2.2)
+    g._circle_embedding([(0, i) for i in range(5, 8)] + [c0] * 4,
+                            center=(-1.2, 0),
+                            shift=2.5,
+                            radius=2.2)
+    g._circle_embedding([(1, i) for i in range(5, 8)] + [c0] * 4,
+                            center=(1.2, 0),
+                            shift=-1,
+                            radius=2.2)
 
-    g._circle_embedding([0, 1], shift=.5)
+    g._circle_embedding([c0, c1], shift=.5)
     g.relabel()
     return g
 
@@ -2130,31 +2134,34 @@ def HortonGraph():
     # Each group of the 6 groups of vertices is based on the same 3-regular
     # graph.
     from sage.graphs.generators.families import LCFGraph
-    lcf = LCFGraph(16,[5,-5],8)
-    lcf.delete_edge(15,0)
-    lcf.delete_edge(7,8)
+    lcf = LCFGraph(16, [5, -5], 8)
+    lcf.delete_edge(15, 0)
+    lcf.delete_edge(7, 8)
 
     for i in range(6):
-        for u,v in lcf.edges(labels=False):
-            g.add_edge((i,u),(i,v))
+        for u,v in lcf.edge_iterator(labels=False):
+            g.add_edge((i, u), (i, v))
 
     # Modifying the groups and linking them together
+    c0 = (-1, 0)
+    c1 = (-1, 1)
+    c2 = (-1, 2)
     for i in range(3):
-        g.add_edge((2*i,0),(2*i+1,7))
-        g.add_edge((2*i+1,8),(2*i,7))
-        g.add_edge((2*i,15),(2*i+1,0))
-        g.add_edge((2*i,8),1)
-        g.add_edge((2*i+1,14),2)
-        g.add_edge((2*i+1,10),0)
+        g.add_edge((2 * i, 0), (2 * i + 1, 7))
+        g.add_edge((2 * i + 1, 8), (2 * i, 7))
+        g.add_edge((2 * i, 15), (2 * i + 1, 0))
+        g.add_edge((2 * i, 8), c1)
+        g.add_edge((2 * i + 1, 14), c2)
+        g.add_edge((2 * i + 1, 10), c0)
 
     # Embedding
     for i in range(6):
-        g._circle_embedding([(i,j) for j in range(16)], center=(cos(2*i*pi/6), sin(2*i*pi/6)), radius=.3)
+        g._circle_embedding([(i, j) for j in range(16)], center=(cos(2 * i * pi / 6), sin(2 * i * pi / 6)), radius=.3)
 
     for i in range(3):
-        g.delete_vertex((2*i+1,15))
+        g.delete_vertex((2 * i + 1, 15))
 
-    g._circle_embedding([0, 1, 2], radius=.2, shift=-0.75)
+    g._circle_embedding([c0, c1, c2], radius=.2, shift=-0.75)
 
     g.relabel()
 
@@ -2194,35 +2201,24 @@ def EllinghamHorton54Graph():
 
         sage: g.show() # long time
     """
-    from sage.graphs.generators.basic import CycleGraph
-    up = CycleGraph(16)
-    low = 2*CycleGraph(6)
+    edge_dict = {
+        0: [1, 11, 15], 1: [2, 47], 2: [3, 13], 3: [4, 8], 4: [5, 15],
+        5: [6, 10], 6: [7, 30], 7: [8, 12], 8: [9], 9: [10, 29], 10: [11],
+        11: [12], 12: [13], 13: [14], 14: [48, 15], 16: [17, 21, 28],
+        17: [24, 29], 18: [19, 23, 30], 19: [20, 31], 20: [32, 21], 21: [33],
+        22: [23, 27, 28], 23: [29], 24: [25, 30], 25: [26, 31], 26: [32, 27],
+        27: [33], 28: [31], 32: [52], 33: [53], 34: [35, 39, 46], 35: [42, 47],
+        36: [48, 37, 41], 37: [49, 38], 38: [50, 39], 39: [51],
+        40: [41, 45, 46], 41: [47], 42: [48, 43], 43: [49, 44], 44: [50, 45],
+        45: [51], 46: [49], 50: [52], 51: [53], 52: [53]}
 
-    for v in range(6):
-        low.add_edge(v, v + 12)
-        low.add_edge(v + 6, v + 12)
-    low.add_edge(12, 15)
-    low.delete_edge(1, 2)
-    low.delete_edge(8, 7)
-    low.add_edge(1, 8)
-    low.add_edge(7, 2)
-
+    g = Graph(data=edge_dict, format="dict_of_lists",
+                  name="Ellingham-Horton 54-graph")
 
     # The set of vertices on top is 0..15
     # Bottom left is 16..33
-    # Bottom right is 34..52
-    # The two other vertices are 53, 54
-    g = up + 2*low
-    g.name("Ellingham-Horton 54-graph")
-    g.set_pos({})
-
-    g.add_edges([(15, 4), (3, 8), (7, 12), (11, 0), (2, 13), (5, 10)])
-    g.add_edges([(30, 6), (29, 9), (48, 14), (47, 1)])
-    g.add_edge(32, 52)
-    g.add_edge(50, 52)
-    g.add_edge(33, 53)
-    g.add_edge(51, 53)
-    g.add_edge(52, 53)
+    # Bottom right is 34..51
+    # The two other vertices are 52, 53
 
     # Top
     g._circle_embedding(list(range(16)), center=(0, .5), shift=.5, radius=.5)
@@ -2244,7 +2240,6 @@ def EllinghamHorton54Graph():
     d[28] = (-.8, -.9)
     d[46] = (2.2, -.9)
     d[49] = (.8, -.9)
-
 
     return g
 
@@ -3281,7 +3276,7 @@ def KrackhardtKiteGraph():
     other nodes in the graph (i.e.: Closeness Centrality).  Please execute the
     example for visualization.
 
-    EXAMPLES: 
+    EXAMPLES:
 
     Construct and show a Krackhardt kite graph ::
 
@@ -4151,7 +4146,7 @@ def SimsGewirtzGraph():
 
     This graph is obtained from the Higman Sims graph by considering the graph
     induced by the vertices at distance two from the vertices of an (any)
-    edge. It is the only strongly regular graph with parameters `v = 56`, 
+    edge. It is the only strongly regular graph with parameters `v = 56`,
     `k = 10`, `\lambda = 0`, `\mu = 2`
 
     For more information on the Sylvester graph, see
@@ -4245,23 +4240,24 @@ def SzekeresSnarkGraph():
     """
     g = Graph(name="Szekeres Snark Graph")
 
+    c = [(-1, i) for i in range(5)]
     for i in range(5):
-        g.add_cycle([(i,j) for j in range(9)])
-        g.delete_edge((i,0),(i,8))
-        g.add_edge((i,1),i)
-        g.add_edge((i,4),i)
-        g.add_edge((i,7),i)
-        g.add_edge((i,0),(i,5))
-        g.add_edge((i,8),(i,3))
+        g.add_cycle([(i, j) for j in range(9)])
+        g.delete_edge((i, 0), (i, 8))
+        g.add_edge((i, 1), c[i])
+        g.add_edge((i, 4), c[i])
+        g.add_edge((i, 7), c[i])
+        g.add_edge((i, 0), (i, 5))
+        g.add_edge((i, 8), (i, 3))
 
-        g.add_edge((i,0),((i+1)%5,8))
-        g.add_edge((i,6),((i+2)%5,2))
+        g.add_edge((i, 0), ((i + 1) % 5, 8))
+        g.add_edge((i, 6), ((i + 2) % 5, 2))
         g._circle_embedding([(i, j) for j in range(9)],
                           radius=.3,
-                          center=(cos(2*(i+.25)*pi/5), sin(2*(i+.25)*pi/5)),
-                          shift=5.45+1.8*i)
+                          center=(cos(2 * (i + .25) * pi / 5), sin( 2 * (i +.25) * pi / 5)),
+                          shift=5.45 + 1.8 * i)
 
-    g._circle_embedding(list(range(5)), radius=1, shift=.25)
+    g._circle_embedding(c, radius=1, shift=.25)
 
     g.relabel()
     return g
@@ -4675,7 +4671,7 @@ def _EllipticLinesProjectivePlaneScheme(k):
     orbitals = gp.Orbits(list(product(gp.Orbit(1), gp.Orbit(1))),
                          libgap.OnTuples)
     mats = map(lambda o: [(int(x[0]) - 1, int(x[1]) - 1) for x in o], orbitals)
-    return [matrix(q * (q - 1) / 2, lambda i, j: 1 if (i, j) in x else 0)
+    return [matrix((q * (q - 1)) // 2, lambda i, j: 1 if (i, j) in x else 0)
             for x in mats]
 
 

@@ -3,15 +3,15 @@
 Miscellaneous arithmetic functions
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from __future__ import absolute_import, print_function
 from six.moves import range
@@ -37,11 +37,6 @@ from sage.rings.complex_number import ComplexNumber
 
 import sage.rings.fast_arith as fast_arith
 prime_range = fast_arith.prime_range
-
-from sage.misc.lazy_import import lazy_import
-lazy_import('sage.arith.all', 'lcm', deprecation=22630)
-lazy_import('sage.arith.all', 'lcm', '__LCM_sequence', deprecation=22630)
-lazy_import('sage.arith.all', 'lcm', 'LCM', deprecation=22630)
 
 
 ##################################################################
@@ -1917,6 +1912,16 @@ def xgcd(a, b):
         (4, 1, 0)
         sage: xgcd(4, mpz(8))       # optional - gmpy2
         (4, 1, 0)
+
+    TESTS:
+
+    We check that :trac:`3330` has been fixed::
+
+        sage: R.<a,b> = NumberField(x^2-3,'g').extension(x^2-7,'h')[]
+        sage: h = R.base_ring().gen()
+        sage: S.<y> = R.fraction_field()[]
+        sage: xgcd(y^2, a*h*y+b)
+        (1, 7*a^2/b^2, (((-h)*a)/b^2)*y + 1/b)
     """
     try:
         return a.xgcd(b)

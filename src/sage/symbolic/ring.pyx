@@ -2,7 +2,7 @@
 The symbolic ring
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
 #       Copyright (C) 2008 Burcin Erocal <burcin@erocal.org>
 #
@@ -10,8 +10,8 @@ The symbolic ring
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import
 
 from sage.ext.cplusplus cimport ccrepr
@@ -305,7 +305,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: r^(1/2)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert R Interpreter to a symbolic expression
+            TypeError: unsupported operand type(s) for ** or pow(): 'R' and 'sage.rings.rational.Rational'
 
         Check that :trac:`22068` is fixed::
 
@@ -1073,7 +1073,20 @@ cdef class SymbolicRing(CommutativeRing):
         from .subring import SymbolicSubring
         return SymbolicSubring(*args, **kwds)
 
+    def _fricas_init_(self):
+        """
+        Return a FriCAS representation of ``self``.
+
+        EXAMPLES::
+
+            sage: fricas(SR)          # indirect doctest, optional - fricas
+            Expression(Integer)
+        """
+        return 'Expression Integer'
+
+
 SR = SymbolicRing()
+
 
 cdef unsigned sage_domain_to_ginac_domain(object domain) except? 3474701533:
     """
@@ -1136,7 +1149,7 @@ cdef class NumpyToSRMorphism(Morphism):
         sage: cos(numpy.int('2'))
         cos(2)
         sage: numpy.cos(numpy.int('2'))
-        -0.41614683654714241
+        -0.4161468365471424
     """
     cdef _intermediate_ring
 

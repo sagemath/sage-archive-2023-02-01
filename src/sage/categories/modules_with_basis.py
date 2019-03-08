@@ -1200,9 +1200,16 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
                 sage: DihedralGroup(6).algebra(QQ).random_element()
                 -1/95*() - 1/2*(1,4)(2,5)(3,6)
+
+            Note, this result can depend on the PRNG state in libgap in a way
+            that depends on which packages are loaded, so we must re-seed GAP
+            to ensure a consistent result for this example::
+
+                sage: libgap.set_seed(0)
+                0
                 sage: SU(2, 13).algebra(QQ).random_element(1)
-                1/2*[       3        0]
-                [11*a + 1        9]
+                1/2*[       1  9*a + 2]
+                [2*a + 12        2]
                 sage: CombinatorialFreeModule(ZZ, Partitions(4)).random_element() # random
                 2*B[[2, 1, 1]] + B[[2, 2]]
             """

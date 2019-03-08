@@ -1112,7 +1112,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             sage: conj = Aut.conjugacy_classes_representatives()
             sage: len(conj)
             14
-            sage: Aut.structure_description()   # optional - database_gap
+            sage: Aut.structure_description()
             'C2 x S5'
 
         The lattice can live in a larger ambient space::

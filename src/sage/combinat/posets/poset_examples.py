@@ -30,6 +30,7 @@ The infinite set of all posets can be used to find minimal examples::
     :meth:`~posets.BooleanLattice` | Return the Boolean lattice on `2^n` elements.
     :meth:`~posets.ChainPoset` | Return a chain on `n` elements.
     :meth:`~posets.Crown` | Return the crown poset on `2n` elements.
+    :meth:`~posets.DexterSemilattice` | Return the Dexter semilattice.
     :meth:`~posets.DiamondPoset` | Return the lattice of rank two on `n` elements.
     :meth:`~posets.DivisorLattice` | Return the divisor lattice of an integer.
     :meth:`~posets.IntegerCompositions` | Return the poset of integer compositions of `n`.
@@ -638,11 +639,11 @@ class Posets(object):
             sage: P = posets.ProductOfChains([2, 2]); P
             Finite lattice containing 4 elements
             sage: P.linear_extension()
-            [(0, 0), (1, 0), (0, 1), (1, 1)]
+            [(0, 0), (0, 1), (1, 0), (1, 1)]
             sage: P.upper_covers((0,0))
-            [(1, 0), (0, 1)]
+            [(0, 1), (1, 0)]
             sage: P.lower_covers((1,1))
-            [(1, 0), (0, 1)]
+            [(0, 1), (1, 0)]
 
         TESTS::
 
@@ -1237,6 +1238,7 @@ class Posets(object):
     # Tamari lattices
     import sage.combinat.tamari_lattices
     TamariLattice = staticmethod(sage.combinat.tamari_lattices.TamariLattice)
+    DexterSemilattice = staticmethod(sage.combinat.tamari_lattices.DexterSemilattice)
 
     @staticmethod
     def CoxeterGroupAbsoluteOrderPoset(W, use_reduced_words=True):
@@ -1395,9 +1397,9 @@ class Posets(object):
 
             sage: P = posets.YoungDiagramPoset(Partition([2,2])); P
             Finite meet-semilattice containing 4 elements
-            sage: P.cover_relations()
-            [[(0, 0), (0, 1)], [(0, 0), (1, 0)], [(0, 1), (1, 1)], [(1, 0),
-            (1, 1)]]
+
+            sage: sorted(P.cover_relations())
+            [[(0, 0), (0, 1)], [(0, 0), (1, 0)], [(0, 1), (1, 1)], [(1, 0), (1, 1)]]
         """
         def cell_leq(a, b):
             """

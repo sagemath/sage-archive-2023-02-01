@@ -606,6 +606,9 @@ cdef class Matrix_double_dense(Matrix_dense):
             [ 3.0 + 9.0*I 4.0 + 16.0*I 5.0 + 25.0*I]
             [6.0 + 36.0*I 7.0 + 49.0*I 8.0 + 64.0*I]
             sage: B.condition()
+            doctest:warning
+            ...
+            ComplexWarning: Casting complex values to real discards the imaginary part
             203.851798...
             sage: B.condition(p='frob')
             203.851798...
@@ -654,9 +657,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             True
             sage: B = A.change_ring(CDF)
             sage: B.condition()
-            Traceback (most recent call last):
-            ...
-            LinAlgError: Singular matrix
+            +Infinity
 
         Improper values of ``p`` are caught.  ::
 
@@ -2519,7 +2520,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: P.is_unitary(algorithm='orthonormal')
             Traceback (most recent call last):
             ...
-            ValueError: failed to create intent(cache|hide)|optional array-- must have defined dimensions but got (0,)
+            error: ((lwork==-1)||(lwork >= MAX(1,2*n))) failed for 3rd keyword lwork: zgees:lwork=0
 
         TESTS::
 
@@ -3635,8 +3636,8 @@ cdef class Matrix_double_dense(Matrix_dense):
             [0.0 1.0 2.0]
             [3.0 4.0 5.0]
             sage: m.numpy()
-            array([[ 0.,  1.,  2.],
-                   [ 3.,  4.,  5.]])
+            array([[0., 1., 2.],
+                   [3., 4., 5.]])
 
         Alternatively, numpy automatically calls this function (via
         the magic :meth:`__array__` method) to convert Sage matrices
@@ -3647,16 +3648,16 @@ cdef class Matrix_double_dense(Matrix_dense):
             [0.0 1.0 2.0]
             [3.0 4.0 5.0]
             sage: numpy.array(m)
-            array([[ 0.,  1.,  2.],
-                   [ 3.,  4.,  5.]])
+            array([[0., 1., 2.],
+                   [3., 4., 5.]])
             sage: numpy.array(m).dtype
             dtype('float64')
             sage: m = matrix(CDF, 2, range(6)); m
             [0.0 1.0 2.0]
             [3.0 4.0 5.0]
             sage: numpy.array(m)
-            array([[ 0.+0.j,  1.+0.j,  2.+0.j],
-                   [ 3.+0.j,  4.+0.j,  5.+0.j]])
+            array([[0.+0.j, 1.+0.j, 2.+0.j],
+                   [3.+0.j, 4.+0.j, 5.+0.j]])
             sage: numpy.array(m).dtype
             dtype('complex128')
 

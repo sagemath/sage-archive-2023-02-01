@@ -204,7 +204,7 @@ sdh_install() {
     fi
 
     while [ $# -gt 1 ]; do
-        if [ ! -e "$1" ]; then
+        if [ ! \( -e "$1" -o -L "$1" \) ]; then
             sdh_die "Error: source file/directory $1 does not exist"
         fi
         src+=("$1")

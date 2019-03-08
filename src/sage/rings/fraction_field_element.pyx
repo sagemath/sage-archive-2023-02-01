@@ -381,6 +381,14 @@ cdef class FractionFieldElement(FieldElement):
             True
             sage: len(set([s,t]))
             1
+
+        Check that :trac:`25199` is fixed::
+
+            sage: R.<x,y,z>=QQbar[]
+            sage: hash(R.0)==hash(FractionField(R).0)
+            True
+            sage: ((x+1)/(x^2+1)).subs({x:1})
+            1
         """
         if self.__denominator.is_one():
             # Handle this case even over rings that don't support reduction, to

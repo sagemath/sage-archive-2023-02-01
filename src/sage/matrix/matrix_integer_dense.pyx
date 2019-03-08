@@ -75,6 +75,7 @@ from sage.modules.vector_integer_dense cimport Vector_integer_dense
 from sage.misc.misc import verbose, get_verbose, cputime
 
 from sage.arith.all import previous_prime
+from sage.arith.long cimport integer_check_long_py
 from sage.arith.power cimport generic_power
 from sage.structure.element cimport Element
 from sage.structure.proof.proof import get_flag as get_proof_flag
@@ -915,11 +916,13 @@ cdef class Matrix_integer_dense(Matrix_dense):
             raise ArithmeticError("self must be a square matrix")
 
         cdef unsigned long e
+        cdef long e_sgn
+        cdef int err
 
-        if isinstance(n, int):
-            if n < 0:
+        if integer_check_long_py(n, &e_sgn, &err) and not err:
+            if e_sgn < 0:
                 return (~self) ** (-n)
-            e = n
+            e = <unsigned long>e_sgn
         else:
             if not isinstance(n, Integer):
                 try:
@@ -2073,14 +2076,13 @@ cdef class Matrix_integer_dense(Matrix_dense):
         span the saturation of the row span of self. This is not unique.
 
         The saturation of a `\ZZ` module `M`
-        embedded in `\ZZ^n` is the a module `S` that
+        embedded in `\ZZ^n` is a module `S` that
         contains `M` with finite index such that
         `\ZZ^n/S` is torsion free. This function takes the
         row span `M` of self, and finds another matrix of full rank
         with row span the saturation of `M`.
 
         INPUT:
-
 
         -  ``p`` - (default: 0); if nonzero given, saturate
            only at the prime `p`, i.e., return a matrix whose row span
@@ -4111,28 +4113,44 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
     def _invert_unit(self):
         r"""
+        Deprecated method
+
+        TESTS::
+
+            sage: m = matrix(ZZ, [1])._invert_unit()
+            doctest:warning
+            ...
+            DeprecationWarning: _invert_unit() is deprecated, use inverse_of_unit() instead
+            See https://trac.sagemath.org/25084 for details.
+            sage: m
+            [1]
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(25084, "_invert_unit() is deprecated, use inverse_of_unit() instead")
+        return self.inverse_of_unit()
+
+    def inverse_of_unit(self):
+        r"""
         If self is a matrix with determinant `1` or `-1` return the inverse of
         ``self`` as a matrix over `ZZ`.
 
         EXAMPLES::
 
-            sage: a = matrix(2, [1,2,1,1])
-            sage: a^(-1)
-            [-1  2]
+            sage: m = matrix(ZZ, 2, [2,1,1,1]).inverse_of_unit()
+            sage: m
             [ 1 -1]
-            sage: m = a._invert_unit(); m
             [-1  2]
-            [ 1 -1]
-            sage: m.parent()
+            sage: parent(m)
             Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
-            sage: matrix(2, [2,1,0,1])._invert_unit()
+
+            sage: matrix(2, [2,1,0,1]).inverse_of_unit()
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: matrix is not invertible over Integer Ring
+            ArithmeticError: non-invertible matrix
         """
         A,d = self._invert_flint()
-        if d != ZZ.one():
-            raise ZeroDivisionError("matrix is not invertible over {}".format(self.base_ring()))
+        if not d.is_one():
+            raise ArithmeticError("non-invertible matrix")
         return A
 
     def _solve_right_nonsingular_square(self, B, check_rank=True, algorithm = 'iml'):

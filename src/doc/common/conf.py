@@ -119,9 +119,11 @@ todo_include_todos = True
 
 
 # Cross-links to other project's online documentation.
+python_version = sys.version_info.major
 intersphinx_mapping = {
     'python': ('https://docs.python.org/',
-                os.path.join(SAGE_DOC_SRC, "common", "python.inv"))}
+                os.path.join(SAGE_DOC_SRC, "common",
+                             "python{}.inv".format(python_version)))}
 
 def set_intersphinx_mappings(app):
     """
@@ -404,7 +406,7 @@ latex_elements['preamble'] = r"""
 \fi
 
 \let\textLaTeX\LaTeX
-\renewcommand*{\LaTeX}{\hbox{\textLaTeX}}
+\AtBeginDocument{\renewcommand*{\LaTeX}{\hbox{\textLaTeX}}}
 """
 
 # Documents to append as an appendix to all manuals.

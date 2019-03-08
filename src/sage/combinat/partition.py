@@ -54,7 +54,7 @@ AUTHORS:
 - Travis Scrimshaw (2012-05-11): Fixed bug in inner where if the length was
   longer than the length of the inner partition, it would include 0's.
 
-- Andrew Mathas (2012-06-01): Removed depreciated functions and added
+- Andrew Mathas (2012-06-01): Removed deprecated functions and added
   compatibility with the PartitionTuple classes.  See :trac:`13072`
 
 - Travis Scrimshaw (2012-10-12): Added options. Made
@@ -1745,25 +1745,8 @@ class Partition(CombinatorialElement):
         `t`-*completion of* `\lambda` is defined as the partition
         `(t - \left\lvert \lambda \right\rvert, \lambda_1, \lambda_2,
         \lambda_3, \ldots)` of `t`. This partition is denoted by `\lambda[t]`
-        in [BOR09]_, by `\lambda_{[t]}` in [BdVO12]_, and by `\lambda(t)`
-        in [CO10]_.
-
-        REFERENCES:
-
-        .. [BOR09] Emmanuel Briand, Rosa Orellana, Mercedes Rosas.
-           *The stability of the Kronecker products of Schur
-           functions*.
-           :arxiv:`0907.4652v2`.
-
-        .. [CO10] Jonathan Comes, Viktor Ostrik.
-           *On blocks of Deligne's category*
-           `\underline{\mathrm{Rep}}(S_t)`.
-           :arxiv:`0910.5695v2`,
-           http://pages.uoregon.edu/jcomes/blocks.pdf
-
-        .. [BdVO12] Christopher Bowman, Maud De Visscher, Rosa Orellana.
-           *The partition algebra and the Kronecker coefficients*.
-           :arXiv:`1210.5579v6`.
+        in [BOR2009]_, by `\lambda_{[t]}` in [BdVO2012]_, and by `\lambda(t)`
+        in [CO2010]_.
 
         EXAMPLES::
 
@@ -3822,14 +3805,7 @@ class Partition(CombinatorialElement):
         labelled `i`, and `C_i` be the set of columns ending in a cell
         labelled `i`. Then the `j`-th component of the quotient of
         `\lambda` is the partition defined by intersecting `R_j` with
-        `C_{j+1}`. (See Theorem 2.7.37 in [JamesKerber]_.)
-
-        REFERENCES:
-
-        .. [JamesKerber] Gordon James, Adalbert Kerber,
-           *The Representation Theory of the Symmetric Group*,
-           Encyclopedia of Mathematics and its Applications, vol. 16,
-           Addison-Wesley 1981.
+        `C_{j+1}`. (See Theorem 2.7.37 in [JK1981]_.)
 
         EXAMPLES::
 
@@ -7819,179 +7795,6 @@ class PartitionsGreatestEQ(UniqueRepresentation, IntegerListsLex):
 # Restricted Partitions #
 #########################
 
-def RestrictedPartitions(n, S, k=None):
-    r"""
-    This function has been deprecated and will be removed in a
-    future version of Sage; use :class:`Partitions` with the ``parts_in``
-    keyword. Note, however, that the current implementation of
-    :class:`Partitions` does not allow the ``parts_in`` keyword to be combined
-    with keywords such as ``max_length``; see :trac:`13072` and :trac:`12278`
-    for more details. This class should not be removed until this problem
-    has been fixed.
-
-    Original docstring follows.
-
-    A restricted partition is, like an ordinary partition, an unordered
-    sum `n = p_1+p_2+\ldots+p_k` of positive integers and is
-    represented by the list `p = [p_1,p_2,\ldots,p_k]`, in
-    nonincreasing order. The difference is that here the `p_i`
-    must be elements from the set `S`, while for ordinary
-    partitions they may be elements from `[1..n]`.
-
-    Returns the list of all restricted partitions of the positive
-    integer n into sums with `k` summands with the summands of the
-    partition coming from the set `S`. If `k` is not given all restricted
-    partitions for all `k` are returned.
-
-    Wraps GAP's ``RestrictedPartitions``.
-
-    .. NOTE::
-
-        This is more generic than, and should not be confused with
-        :class:`~sage.combinat.partition.RestrictedPartitions_generic`
-        and subclasses.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.partition import RestrictedPartitions
-        sage: RestrictedPartitions(5,[3,2,1])
-        doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
-        See http://trac.sagemath.org/13072 for details.
-        doctest:...: DeprecationWarning: RestrictedPartitions_nsk is deprecated; use Partitions with the parts_in keyword instead.
-        See http://trac.sagemath.org/13072 for details.
-        Partitions of 5 restricted to the values [1, 2, 3]
-        sage: RestrictedPartitions(5,[3,2,1]).list()
-        [[3, 2], [3, 1, 1], [2, 2, 1], [2, 1, 1, 1], [1, 1, 1, 1, 1]]
-        sage: RestrictedPartitions(5,[3,2,1],4)
-        Partitions of 5 restricted to the values [1, 2, 3] of length 4
-        sage: RestrictedPartitions(5,[3,2,1],4).list()
-        [[2, 1, 1, 1]]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(13072, 'RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.')
-    return RestrictedPartitions_nsk(n, S, k)
-
-class RestrictedPartitions_nsk(CombinatorialClass):
-    r"""
-    We are deprecating :meth:`RestrictedPartitions`, so this class should
-    be deprecated too. See :trac:`13072`.
-    """
-    def __init__(self, n, S, k=None):
-        """
-        Initialize ``self``.
-
-        TESTS::
-
-            sage: from sage.combinat.partition import RestrictedPartitions
-            sage: r = RestrictedPartitions(5,[3,2,1])
-            doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
-            See http://trac.sagemath.org/13072 for details.
-            sage: r == loads(dumps(r))
-            True
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(13072, 'RestrictedPartitions_nsk is deprecated; use Partitions with the parts_in keyword instead.')
-        self.n = n
-        self.S = S
-        self.S.sort()
-        self.k = k
-
-    Element = Partition
-    options = Partitions.options
-
-    def __contains__(self, x):
-        """
-        Check to see if ``x`` is in ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.partition import RestrictedPartitions
-            sage: [4,1] in RestrictedPartitions(5,[3,2,1])
-            doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
-            See http://trac.sagemath.org/13072 for details.
-            False
-            sage: [3,2] in RestrictedPartitions(5,[3,2,1])
-            True
-            sage: [3,2] in RestrictedPartitions(5,[3,2,1],4)
-            False
-            sage: [2,1,1,1] in RestrictedPartitions(5,[3,2,1],4)
-            True
-        """
-        return x in Partitions_n(self.n) and all(i in self.S for i in x) \
-               and (self.k is None or len(x) == self.k)
-
-    def _repr_(self):
-        """
-        Return a string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.partition import RestrictedPartitions
-            sage: RestrictedPartitions(5,[3,2,1]).__repr__()
-            doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
-            See http://trac.sagemath.org/13072 for details.
-            'Partitions of 5 restricted to the values [1, 2, 3]'
-        """
-        string = "Partitions of %s restricted to the values %s"%(self.n, self.S)
-        if self.k is not None:
-            string += " of length %s" % self.k
-        return string
-
-    def list(self):
-        r"""
-        Returns the list of all restricted partitions of the positive
-        integer `n` into sums with `k` summands with the summands of the
-        partition coming from the set `S`. If `k` is not given all
-        restricted partitions for all `k` are returned.
-
-        Wraps GAP's RestrictedPartitions.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.partition import RestrictedPartitions
-            sage: RestrictedPartitions(8,[1,3,5,7]).list()
-            doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
-            See http://trac.sagemath.org/13072 for details.
-            [[7, 1], [5, 3], [5, 1, 1, 1], [3, 3, 1, 1], [3, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1]]
-            sage: RestrictedPartitions(8,[1,3,5,7],2).list()
-            [[7, 1], [5, 3]]
-        """
-        n = self.n
-        k = self.k
-        S = self.S
-        if k is None:
-            ans=gap.eval("RestrictedPartitions(%s,%s)"%(n,S))
-        else:
-            ans=gap.eval("RestrictedPartitions(%s,%s,%s)"%(n,S,k))
-        result = eval(ans)
-        result.reverse()
-        return [Partition(p) for p in result]
-
-    def cardinality(self):
-        """
-        Returns the size of ``self``.
-
-        Wraps GAP's NrRestrictedPartitions.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.partition import RestrictedPartitions
-            sage: RestrictedPartitions(8,[1,3,5,7]).cardinality()
-            doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
-            See http://trac.sagemath.org/13072 for details.
-            6
-            sage: RestrictedPartitions(8,[1,3,5,7],2).cardinality()
-            2
-        """
-        n = self.n
-        k = self.k
-        S = self.S
-        if k is None:
-            ans=gap.eval("NrRestrictedPartitions(%s,%s)"%(ZZ(n),S))
-        else:
-            ans=gap.eval("NrRestrictedPartitions(%s,%s,%s)"%(ZZ(n),S,ZZ(k)))
-        return ZZ(ans)
-
 class RestrictedPartitions_generic(Partitions):
     r"""
     Base class for `\ell`-restricted partitions.
@@ -8386,6 +8189,7 @@ def number_of_partitions(n, algorithm='default'):
         return bober_number_of_partitions(n)
 
     raise ValueError("unknown algorithm '%s'"%algorithm)
+
 
 def number_of_partitions_length(n, k, algorithm='hybrid'):
     r"""

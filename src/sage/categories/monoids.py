@@ -118,22 +118,6 @@ class Monoids(CategoryWithAxiom):
 
     class ParentMethods:
 
-        def one_element(self):
-            r"""
-            Backward compatibility alias for :meth:`one`.
-
-            TESTS::
-
-                sage: S = Monoids().example()
-                sage: S.one_element()
-                doctest:...: DeprecationWarning: .one_element() is deprecated. Please use .one() instead.
-                See http://trac.sagemath.org/17694 for details.
-                ''
-            """
-            from sage.misc.superseded import deprecation
-            deprecation(17694, ".one_element() is deprecated. Please use .one() instead.")
-            return self.one()
-
         def semigroup_generators(self):
             """
             Return the generators of ``self`` as a semigroup.

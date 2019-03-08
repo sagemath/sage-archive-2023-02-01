@@ -237,7 +237,7 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
 
         # initialize exponential coordinates of the first kind
         basis_strs = [str(X) for X in L.basis()]
-        split = zip(*[s.split('_') for s in basis_strs])
+        split = list(zip(*[s.split('_') for s in basis_strs]))
         if len(split) == 2 and all(sk == split[0][0] for sk in split[0]):
             self._var_indexing = split[1]
         else:
@@ -898,8 +898,8 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
             """
             G = self.parent()
             a, b = G._group_law_vars
-            self_c = zip(a, self.coordinates(chart=G._Exp1))
-            other_c = zip(b, other.coordinates(chart=G._Exp1))
+            self_c = list(zip(a, self.coordinates(chart=G._Exp1)))
+            other_c = list(zip(b, other.coordinates(chart=G._Exp1)))
             sd = dict(self_c + other_c)
             return G.point([gk.expand() for gk in G._group_law.subs(sd)],
                            chart=G._Exp1)
@@ -939,4 +939,3 @@ class NilpotentLieGroup(Group, DifferentiableManifold):
                 if not s:
                     s = "0"
             return "exp(%s)" % s
-

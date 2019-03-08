@@ -120,7 +120,6 @@ Comprehensive Module list
     sage/combinat/enumeration_mod_permgroup
     sage/combinat/expnums
     sage/combinat/family
-    sage/combinat/finite_class
     sage/combinat/finite_state_machine
     sage/combinat/finite_state_machine_generators
     sage/combinat/fqsym
@@ -171,6 +170,7 @@ Comprehensive Module list
     sage/combinat/non_decreasing_parking_function
     sage/combinat/ordered_tree
     sage/combinat/output
+    sage/combinat/parallelogram_polyomino
     sage/combinat/parking_functions
     sage/combinat/plane_partition
     sage/combinat/partition

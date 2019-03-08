@@ -135,12 +135,12 @@ class pAdicExtensionGeneric(pAdicGeneric):
             sage: R1
             7-adic Unramified Extension Ring in a defined by x^3 + 6*x^2 + 4
             sage: R1._latex_()
-            '\\ZZ_{7^{3}}'
+            '\\Bold{Z}_{7^{3}}'
             sage: R2.<t> = R.ext(x^2+7)
             sage: R2 #indirect doctest
             7-adic Eisenstein Extension Ring in t defined by x^2 + 7
             sage: R2._latex_()
-            '\\ZZ_{7}[t]'
+            '\\Bold{Z}_{7}[t]'
 
             sage: K = Qp(7,10)
             sage: K
@@ -149,12 +149,12 @@ class pAdicExtensionGeneric(pAdicGeneric):
             sage: K1
             7-adic Unramified Extension Field in a defined by x^3 + 6*x^2 + 4
             sage: K1._latex_()
-            '\\QQ_{7^{3}}'
+            '\\Bold{Q}_{7^{3}}'
             sage: K2.<t> = K.ext(x^2+7)
             sage: K2 #indirect doctest
             7-adic Eisenstein Extension Field in t defined by x^2 + 7
             sage: K2._latex_()
-            '\\QQ_{7}[t]'
+            '\\Bold{Q}_{7}[t]'
         """
         type = self._extension_type()
         base = self.base_ring()
@@ -163,9 +163,9 @@ class pAdicExtensionGeneric(pAdicGeneric):
             if self.absolute_e() == 1:
                 # unramified extension
                 if self.is_field():
-                    letter = "\\QQ"
+                    letter = "\\Bold{Q}"
                 else:
-                    letter = "\\ZZ"
+                    letter = "\\Bold{Z}"
                 f = self.absolute_f()
                 if f == 1:
                     subscript = str(p)
@@ -210,7 +210,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
         """
         cat = None
         if self._implementation == 'NTL' and R == QQ:
-            # Want to use DefaultConvertMap
+            # Want to use DefaultConvertMap_unique
             return None
         if isinstance(R, pAdicExtensionGeneric) and R.prime() == self.prime() and R.defining_polynomial(exact=True) == self.defining_polynomial(exact=True):
             if R.is_field() and not self.is_field():

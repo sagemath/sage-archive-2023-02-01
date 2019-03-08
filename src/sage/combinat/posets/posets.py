@@ -259,7 +259,7 @@ Classes and functions
 ---------------------
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 Peter Jipsen <jipsen@chapman.edu>
 #       Copyright (C) 2008 Franco Saliola <saliola@gmail.com>
 #
@@ -267,8 +267,8 @@ Classes and functions
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 # python3
 from __future__ import division, print_function, absolute_import
 
@@ -1577,10 +1577,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             5
             sage: L.list()
             [[1, 2, 3, 4, 6, 12],
-             [1, 2, 3, 6, 4, 12],
              [1, 2, 4, 3, 6, 12],
              [1, 3, 2, 4, 6, 12],
-             [1, 3, 2, 6, 4, 12]]
+             [1, 3, 2, 6, 4, 12],
+             [1, 2, 3, 6, 4, 12]]
 
         Each element is aware that it is a linear extension of `P`::
 
@@ -1601,10 +1601,10 @@ class FinitePoset(UniqueRepresentation, Parent):
 
                 sage: L = list(P.linear_extensions(facade=True)); L
                 [[1, 2, 3, 4, 6, 12],
-                 [1, 2, 3, 6, 4, 12],
                  [1, 2, 4, 3, 6, 12],
                  [1, 3, 2, 4, 6, 12],
-                 [1, 3, 2, 6, 4, 12]]
+                 [1, 3, 2, 6, 4, 12],
+                 [1, 2, 3, 6, 4, 12]]
                 sage: type(L[0])
                 <... 'list'>
 
@@ -1614,8 +1614,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: D = Poset({ 0:[1,2], 1:[3], 2:[3,4] })
             sage: list(D.linear_extensions())
-            [[0, 1, 2, 3, 4], [0, 1, 2, 4, 3], [0, 2, 1, 3, 4], [0, 2, 1, 4, 3], [0, 2, 4, 1, 3]]
-
+            [[0, 1, 2, 3, 4], [0, 2, 1, 3, 4], [0, 2, 1, 4, 3], [0, 2, 4, 1, 3], [0, 1, 2, 4, 3]]
         """
         from .linear_extensions import LinearExtensionsOfPoset
         return LinearExtensionsOfPoset(self, facade = facade)
@@ -1646,10 +1645,10 @@ class FinitePoset(UniqueRepresentation, Parent):
              [1, 3, 2, 6, 4, 12]]
             sage: list(P.linear_extensions())
             [[1, 2, 3, 4, 6, 12],
-             [1, 2, 3, 6, 4, 12],
              [1, 2, 4, 3, 6, 12],
              [1, 3, 2, 4, 6, 12],
-             [1, 3, 2, 6, 4, 12]]
+             [1, 3, 2, 6, 4, 12],
+             [1, 2, 3, 6, 4, 12]]
 
         .. NOTE::
 
@@ -3078,11 +3077,15 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Poset().dimension(certificate=True)
             (0, [])
 
+        Chain and certificate, :trac:`26861`::
+
+            sage: Poset({'a': ['b']}).dimension(certificate=True)[1]
+            [['a', 'b']]
         """
         if self.cardinality() == 0:
             return (0, []) if certificate else 0
         if self.is_chain():
-            return (1, self.list()) if certificate else 1
+            return (1, [self.list()]) if certificate else 1
 
         # current bound on the chromatic number of the hypergraph
         k = 2
@@ -6224,7 +6227,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: G = N.linear_extensions_graph(); G
             Graph on 5 vertices
             sage: G.neighbors(N.linear_extension([1,2,3,4]))
-            [[2, 1, 3, 4], [1, 2, 4, 3], [1, 3, 2, 4]]
+            [[2, 1, 3, 4], [1, 3, 2, 4], [1, 2, 4, 3]]
 
             sage: chevron = Poset({1: [2, 6], 2: [3], 4: [3, 5], 6: [5]})
             sage: G = chevron.linear_extensions_graph(); G
@@ -6244,7 +6247,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         from sage.graphs.graph import Graph
         # Direct implementation, no optimizations
-        L = self.linear_extensions()
+        L = list(self.linear_extensions())
         G = Graph()
         G.add_vertices(L)
         for i in range(len(L)):
@@ -6266,7 +6269,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P=Poset({'a':['b', 'c'], 'b':['d','e']})
             sage: P.maximal_antichains()
-            [['a'], ['b', 'c'], ['c', 'd', 'e']]
+            [['a'], ['c', 'b'], ['c', 'e', 'd']]
 
             sage: posets.PentagonPoset().maximal_antichains()
             [[0], [1, 2], [1, 3], [4]]
@@ -6511,7 +6514,8 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         R = PolynomialRing(QQ, 'q')
         q = R.gen()
-        g = R.sum(q**len(ch) for ch in self._hasse_diagram.chains())
+
+        g = self.chain_polynomial()
         n = g.degree()
         f = R(g[max(n, 1)])
         while n > 1:
@@ -6559,14 +6563,25 @@ class FinitePoset(UniqueRepresentation, Parent):
             1
         """
         q = polygen(ZZ, 'q')
+        one = q.parent().one()
         hasse = self._hasse_diagram
         if len(hasse) == 1:
-            return q.parent().one()
+            return one
         maxi = hasse.top()
         mini = hasse.bottom()
-        if (mini is None) or (maxi is None):
+        if mini is None or maxi is None:
             raise ValueError("the poset is not bounded")
-        return sum(q**(len(ch)+1) for ch in hasse.chains(exclude=[mini, maxi]))
+
+        hasse_size = hasse.cardinality()
+        chain_polys = [0] * hasse_size
+        # chain_polys[i] will be the generating function for the
+        # chains with topmost vertex i (in the labelling of the
+        # Hasse diagram).
+        for i in range(1, hasse_size - 1):
+            chain_polys[i] = q + sum(q * chain_polys[j]
+                                     for j in hasse.principal_order_ideal(i)
+                                     if j)
+        return q + q * sum(chain_polys)
 
     def h_polynomial(self):
         r"""
@@ -6834,6 +6849,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             in [St1986]_. The latter is identical with the order
             polynomial in SageMath (:meth:`order_polynomial`).
 
+        .. SEEALSO:: :meth:`f_polynomial`, :meth:`order_polynomial`
+
         EXAMPLES::
 
             sage: P = posets.ChainPoset(3)
@@ -6866,12 +6883,12 @@ class FinitePoset(UniqueRepresentation, Parent):
         q = polygen(ZZ, 'q')
         one = q.parent().one()
         hasse_size = hasse.cardinality()
-        chain_polys = [0]*hasse_size
+        chain_polys = [0] * hasse_size
         # chain_polys[i] will be the generating function for the
         # chains with topmost vertex i (in the labelling of the
         # Hasse diagram).
         for i in range(hasse_size):
-            chain_polys[i] = q + sum(q*chain_polys[j]
+            chain_polys[i] = q + sum(q * chain_polys[j]
                                      for j in hasse.principal_order_ideal(i))
         return one + sum(chain_polys)
 
@@ -7688,7 +7705,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = posets.AntichainPoset(3)
             sage: Pc = P.cuts()
             sage: [list(c) for c in Pc]
-            [[0], [0, 1, 2], [], [1], [2]]
+            [[0], [], [0, 1, 2], [2], [1]]
             sage: Pc[0]
             frozenset({0})
 

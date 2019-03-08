@@ -1920,7 +1920,7 @@ class FormsRingElement(six.with_metaclass(
            #. Substitute ``x=f_rho(tau), y=f_i(tau), z=E2(tau)``
               and the numerical value of ``d`` for ``d``
               in ``self.rat()``. If ``n=infinity`` then
-              subsitute ``x=E4(tau)`` instead.
+              substitute ``x=E4(tau)`` instead.
 
         EXAMPLES::
 

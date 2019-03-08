@@ -189,8 +189,9 @@ cdef class NumberField(Field):
 
     def minkowski_bound(self):
         r"""
-        Return the Minkowski bound associated to this number field,
-        which is a bound B so that every integral ideal is equivalent
+        Return the Minkowski bound associated to this number field.
+
+        This is a bound B so that every integral ideal is equivalent
         modulo principal fractional ideals to an integral ideal of
         norm at most B.
 
@@ -264,6 +265,7 @@ cdef class NumberField(Field):
     def bach_bound(self):
         r"""
         Return the Bach bound associated to this number field.
+
         Assuming the General Riemann Hypothesis, this is a bound B so
         that every integral ideal is equivalent modulo principal
         fractional ideals to an integral ideal of norm at most B.
@@ -393,4 +395,3 @@ cdef class NumberField(Field):
             return self._gen_approx[i]
         else:
             raise ValueError("No embedding set. You need to specify a a real embedding.")
-

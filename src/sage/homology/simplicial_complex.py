@@ -152,6 +152,7 @@ We can also make mutable copies of an immutable simplicial complex
 from __future__ import print_function, absolute_import
 from six.moves import range
 from six import integer_types
+from operator import index as PyNumber_Index
 
 # possible future directions for SimplicialComplex:
 #
@@ -182,7 +183,7 @@ from functools import reduce, total_ordering
 from itertools import combinations
 lazy_import('sage.categories.simplicial_complexes', 'SimplicialComplexes')
 from sage.misc.cachefunc import cached_method
-from sage.misc.decorators import rename_keyword
+
 
 def lattice_paths(t1, t2, length=None):
     r"""
@@ -828,7 +829,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
     :param maximality_check: see below
     :type maximality_check: boolean; optional, default ``True``
     :param sort_facets: see below
-    :type sort_facets: boolean; optional, default ``True``
+    :type sort_facets: boolean or sorting key; optional, default ``True``
     :param name_check: see below
     :type name_check: boolean; optional, default ``False``
     :param is_mutable: Set to ``False`` to make this immutable
@@ -857,8 +858,9 @@ class SimplicialComplex(Parent, GenericCellComplex):
     this class may fail if faces which are claimed to be maximal are
     in fact not.
 
-    If ``sort_facets`` is ``True``, sort the vertices in each facet.  If
-    the vertices in different facets are not ordered compatibly (e.g.,
+    If ``sort_facets`` is ``True``, sort the vertices.  You can also
+    specify a sorting key as ``sort_facets``, which is then used to sort.
+    If the vertices in different facets are not ordered compatibly (e.g.,
     if you have facets ``(1, 3, 5)`` and ``(5, 3, 8)``), then homology
     calculations may have unpredictable results.
 
@@ -907,6 +909,11 @@ class SimplicialComplex(Parent, GenericCellComplex):
         sage: f = lambda S: not any(len(set(S).intersection(x))>2 for x in l)
         sage: SimplicialComplex(from_characteristic_function=(f, l.ground_set()))
         Simplicial complex with 21 vertices and 168 facets
+
+    The vertices can be sorted with a custom key::
+
+        sage: SimplicialComplex([10], sort_facets=str)
+        Simplicial complex with 11 vertices and facets {(0, 1, 10, 2, 3, 4, 5, 6, 7, 8, 9)}
 
     TESTS:
 
@@ -974,6 +981,13 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
             sage: TestSuite(S).run()
             sage: TestSuite(S3).run()
+
+        ::
+
+            sage: SimplicialComplex([2], sort_facets="bogus")
+            Traceback (most recent call last):
+            ...
+            TypeError: sort_facets should be a boolean or callable, not 'bogus'
         """
         if (maximal_faces is not None and
             from_characteristic_function is not None):
@@ -1014,21 +1028,32 @@ class SimplicialComplex(Parent, GenericCellComplex):
             self._sorted = False
             return
 
-        if isinstance(vertex_set, (int, Integer)):
-            vertices = tuple(range(vertex_set + 1))
-        elif sort_facets:
-            try:
-                vertices = tuple(sorted(vertex_set))
-            except TypeError:
-                vertices = tuple(sorted(vertex_set, key=str))
+        try:
+            # Check whether vertex_set is an integer
+            n = PyNumber_Index(vertex_set)
+        except TypeError:
+            pass
         else:
-            vertices = tuple(vertex_set)
+            vertex_set = range(n + 1)
+
+        if sort_facets is True:
+            vertex_set = sorted(vertex_set)
+        elif callable(sort_facets):
+            vertex_set = sorted(vertex_set, key=sort_facets)
+        elif not sort_facets:
+            # Ensure that sort_facets is either a callable or boolean
+            sort_facets = False
+        else:
+            raise TypeError("sort_facets should be a boolean or callable, not {!r}"
+                            .format(sort_facets))
+        vertices = tuple(vertex_set)
+
         gen_dict = {}
         for v in vertices:
             if name_check:
                 try:
                     if int(v) < 0:
-                        raise ValueError("the vertex %s does not have an appropriate name"%v)
+                        raise ValueError("the vertex %s does not have an appropriate name" % v)
                 except ValueError:  # v is not an integer
                     try:
                         normalize_names(1, v)
@@ -1036,7 +1061,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                         raise ValueError("the vertex %s does not have an appropriate name"%v)
             # build dictionary of generator names
             try:
-                gen_dict[v] = 'x%s'%int(v)
+                gen_dict[v] = 'x%s' % int(v)
             except Exception:
                 gen_dict[v] = v
         # build set of facets
@@ -1050,11 +1075,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
             if (maximality_check and
                 any(face.is_face(other) for other in good_faces)):
                 continue
-            if sort_facets:
-                try:
-                    face = Simplex(sorted(face.tuple()))
-                except TypeError:
-                    face = Simplex(sorted(face.tuple(), key=str))
+            if sort_facets is True:
+                face = Simplex(sorted(face.tuple()))
+            elif sort_facets is not False:
+                face = Simplex(sorted(face.tuple(), key=sort_facets))
             good_faces.append(face)
 
         # if no maximal faces, add the empty face as a facet
@@ -1065,8 +1089,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
         self._vertex_set = vertices
         # self._facets: unsorted list of facets
         self._facets = good_faces
-        # self._sorted: True if the vertex set should be sorted. This
-        # gets used by the add_face method.
+        # self._sorted: True if the vertex set should be sorted or
+        # sorting key. This gets used by the add_face method.
         self._sorted = sort_facets
         # self._faces: dictionary of dictionaries of faces.  The main
         # dictionary is keyed by subcomplexes, and each value is a
@@ -1980,7 +2004,6 @@ class SimplicialComplex(Parent, GenericCellComplex):
             facets = self._facets + right._facets
         return SimplicialComplex(facets, is_mutable=is_mutable)
 
-    @rename_keyword(deprecation=20723, check_diffs='check')
     def chain_complex(self, subcomplex=None, augmented=False,
                       verbose=False, check=False, dimensions=None,
                       base_ring=ZZ, cochain=False):
@@ -2478,10 +2501,12 @@ class SimplicialComplex(Parent, GenericCellComplex):
         if not self._is_mutable:
             raise ValueError("This simplicial complex is not mutable")
 
-        if self._sorted:
+        if self._sorted is True:
             new_face = Simplex(sorted(face))
-        else:
+        elif self._sorted is False:
             new_face = Simplex(face)
+        else:
+            new_face = Simplex(sorted(face, key=self._sorted))
 
         face_is_maximal = True
         for other in self._facets:
@@ -2843,7 +2868,6 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
             sage: S = SimplicialComplex([[1,2,3],[1,4,5]])
             sage: S.is_cohen_macaulay(ncpus=3)
-            ...
             False
 
         The choice of base ring can matter.  The real projective plane `\RR P^2`
@@ -3935,7 +3959,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             Finitely presented group < e |  >
             sage: v1 = list(K.vertices())[-1]
             sage: K.fundamental_group(base_point=v1)
-            Finitely presented group < e1 | e1^2 >
+            Finitely presented group < e0 | e0^2 >
 
         Some other examples::
 
@@ -3944,7 +3968,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: simplicial_complexes.Torus().fundamental_group()
             Finitely presented group < e1, e4 | e4^-1*e1^-1*e4*e1 >
             sage: simplicial_complexes.MooreSpace(5).fundamental_group()
-            Finitely presented group < e0 | e0^5 >
+            Finitely presented group < e3 | e3^5 >
         """
         if not self.is_connected():
             if base_point is None:
@@ -3976,7 +4000,6 @@ class SimplicialComplex(Parent, GenericCellComplex):
         else:
             return FG.quotient(rels)
 
-    @rename_keyword(deprecation=21111, certify='certificate')
     def is_isomorphic(self, other, certificate=False):
         r"""
         Check whether two simplicial complexes are isomorphic.
@@ -4007,15 +4030,6 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: C2 = SimplicialComplex([['j','k','l'], ['j','l','m'], ['j','k','m']])
             sage: C1.is_isomorphic(C2, certificate=True)
             (True, {1: 'j', 2: 'k', 3: 'l', 4: 'm'})
-
-        TESTS::
-
-            sage: Z1 = SimplicialComplex([[0,1],[1,2],[2,3,4],[4,5]])
-            sage: Z2 = SimplicialComplex([['a','b'],['b','c'],['c','d','e'],['e','f']])
-            sage: Z1.is_isomorphic(Z2, certify=True)
-            doctest...: DeprecationWarning: use the option 'certificate' instead of 'certify'
-            See http://trac.sagemath.org/21111 for details.
-            (True, {0: 'a', 1: 'b', 2: 'c', 3: 'd', 4: 'e', 5: 'f'})
         """
         # Check easy invariants agree
         if (sorted(x.dimension() for x in self._facets)
@@ -4199,7 +4213,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         EXAMPLES::
 
-            sage: s = SimplicialComplex()
+            sage: s = SimplicialComplex(sort_facets=str)
             sage: s._is_numeric()
             True
             sage: s.add_face(['a', 'b', 123])
@@ -4224,7 +4238,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         EXAMPLES::
 
-            sage: s = SimplicialComplex()
+            sage: s = SimplicialComplex(sort_facets=str)
             sage: s._translation_to_numeric()
             {}
             sage: s.add_face(['a', 'b', 123])
@@ -4252,7 +4266,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         EXAMPLES::
 
-            sage: s = SimplicialComplex()
+            sage: s = SimplicialComplex(sort_facets=str)
             sage: s._translation_from_numeric()
             {}
             sage: s.add_face(['a', 'b', 123])

@@ -201,15 +201,18 @@ class IncidenceStructure(object):
             self._blocks = sorted(M.nonzero_positions_in_column(i) for i in range(M.ncols()))
 
         else:
-            if isinstance(points, (int,Integer)):
+            if isinstance(points, (int, Integer)):
                 self._points = list(range(points))
                 self._point_to_index = None
             else:
-                self._points = sorted(points)
-                if self._points == list(range(len(points))) and all(isinstance(x,(int,Integer)) for x in self._points):
+                # if points are tuple, sort None before int types and str after int types
+                sortkey = lambda e: [(0 if x is None else 2 if isinstance(x, str) else 1, x) for x in e]\
+                    if isinstance(e, tuple) else e
+                self._points = sorted(points, key=sortkey)
+                if self._points == list(range(len(points))) and all(isinstance(x, (int, Integer)) for x in self._points):
                     self._point_to_index = None
                 else:
-                    self._point_to_index = {e:i for i,e in enumerate(self._points)}
+                    self._point_to_index = {e: i for i, e in enumerate(self._points)}
 
             if check:
                 for block in blocks:
@@ -2134,14 +2137,15 @@ class IncidenceStructure(object):
         from sage.graphs.graph import Graph
 
         g = Graph()
-        for s in map(Set,self.blocks()):
+        for s in map(Set, self.blocks()):
             for x in s:
-                g.add_edge(s,x)
+                g.add_edge((0, s), (1, x))
 
         _ = g.plot(iterations = 50000,save_pos=True)
 
         # The values are rounded as TikZ does not like accuracy.
-        return {k:(round(x,3),round(y,3)) for k,(x,y) in g.get_pos().items()}
+        return {k[1]: (round(x, 3), round(y, 3))
+                for k, (x, y) in g.get_pos().items()}
 
     def _latex_(self):
         r"""

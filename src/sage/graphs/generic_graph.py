@@ -12477,9 +12477,9 @@ class GenericGraph(GenericGraph_pyx):
 
         If the graph has vertex labels or edge labels, the label is just ignored::
 
-        sage: g.set_vertex(0, 'foo')
-        sage: g.subgraph_search_count(graphs.PathGraph(5))
-        240
+            sage: g.set_vertex(0, 'foo')
+            sage: g.subgraph_search_count(graphs.PathGraph(5))
+            240
 
         TESTS:
 

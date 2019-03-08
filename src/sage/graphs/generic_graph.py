@@ -22787,10 +22787,10 @@ class GenericGraph(GenericGraph_pyx):
         those which correspond to non-edges zeroed out.  ::
 
             sage: G.katz_matrix(1/20, True)
-            [    0     0     0 1/198]
             [    0     0 1/198     0]
-            [    0 1/198     0     0]
+            [    0     0     0 1/198]
             [1/198     0     0     0]
+            [    0     1/198 0     0]
 
 
         This will give an error if alpha < = 0 or alpha > = 1/spectral_radius = 1/max(A.eigenvalues()).
@@ -22904,7 +22904,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         M = self.katz_matrix(alpha, nonedgesonly=False)
         n = self.num_verts()
-        if u not in self.vertices():
+        if u and u not in self.vertices():
             raise ValueError("vertex ({0}) is not a vertex of the graph".format(repr(u)))
         katz_values = (M*matrix(QQ, n, 1, lambda i, j: 1)).transpose()
         K = {}

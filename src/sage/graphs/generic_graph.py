@@ -432,6 +432,8 @@ from sage.misc.lazy_import import LazyImport
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.rings.rational import Rational
+from sage.matrix.constructor import matrix
+from sage.rings.rational_field import QQ
 
 to_hex = LazyImport('matplotlib.colors', 'to_hex')
 
@@ -22755,6 +22757,164 @@ class GenericGraph(GenericGraph_pyx):
     from sage.graphs.connectivity import vertex_connectivity
     from sage.graphs.base.static_dense_graph import connected_subgraph_iterator
 
+    def katz_matrix(self, alpha, nonedgesonly=False):
+        r"""
+        Return the Katz matrix of G with parameter alpha.
+
+        INPUT:
+
+        - ``alpha``-- a nonnegative real number, must be less than the reciprocal
+          of the spectral radius of the graph. (the maximum absolute eigenvalue
+          of the adjacency matrix )
+
+        - ``nonedgesonly`` -- Boolean (default: ``True``); if true, Value for each
+          edge present in the graph is set to zero.  
+
+        OUTPUT: the Katz matrix of the graph with parameter alpha
+
+        EXAMPLES:
+
+        We find the Katz matrix of an undirected 4-cycle.  ::
+
+            sage: G = graphs.CycleGraph(4)
+            sage: G.katz_matrix(1/20)
+            [1/198  5/99  5/99 1/198]
+            [ 5/99 1/198 1/198  5/99]
+            [ 5/99 1/198 1/198  5/99]
+            [1/198  5/99  5/99 1/198]
+
+        We find the Katz matrix of an undirected 4-cycle with all entries other than
+        those which correspond to non-edges zeroed out.  ::
+
+            sage: G.katz_matrix(1/20, True)
+            [    0     0     0 1/198]
+            [    0     0 1/198     0]
+            [    0 1/198     0     0]
+            [1/198     0     0     0]
+
+
+        This will give an error if alpha < = 0 or alpha > = 1/spectral_radius = 1/max(A.eigenvalues()).
+
+
+        We find the Katz matrix in a fan on 6 vertices. ::
+
+            sage: H = Graph([(0,1),(0,2),(0,3),(0,4),(0,5),(0,6),(1,2),(2,3),(3,4),(4,5)])
+            sage: H.katz_matrix(1/10)
+            [   169/2256    545/4512      25/188    605/4512      25/188    545/4512    485/4512]
+            [   545/4512 7081/297792  4355/37224    229/9024   595/37224 4073/297792    109/9024]
+            [     25/188  4355/37224    172/4653      45/376    125/4653   595/37224       5/376]
+            [   605/4512    229/9024      45/376    337/9024      45/376    229/9024    121/9024]
+            [     25/188   595/37224    125/4653      45/376    172/4653  4355/37224       5/376]
+            [   545/4512 4073/297792   595/37224    229/9024  4355/37224 7081/297792    109/9024]
+            [   485/4512    109/9024       5/376    121/9024       5/376    109/9024     97/9024]
+
+
+
+        .. SEEALSO:
+
+            * :meth:`~katz_centrality`
+            * :wikipedia:`Katz_centrality`
+
+        TESTS::
+
+            sage: (graphs.CompleteGraph(4)).katz_matrix(1/4)
+            [3/5 4/5 4/5 4/5]
+            [4/5 3/5 4/5 4/5]
+            [4/5 4/5 3/5 4/5]
+            [4/5 4/5 4/5 3/5]
+            sage: (graphs.CompleteGraph(4)).katz_matrix(1/4, nonedgesonly=True)
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 0 0 0]
+            sage: (graphs.PathGraph(4)).katz_matrix(1/4, nonedgesonly=False)
+            [15/209 60/209 16/209  4/209]
+            [60/209 31/209 64/209 16/209]
+            [16/209 64/209 31/209 60/209]
+            [ 4/209 16/209 60/209 15/209]
+            sage: (graphs.PathGraph(4)).katz_matrix(1/4, nonedgesonly=True)
+            [     0      0 16/209  4/209]
+            [     0      0      0 16/209]
+            [16/209      0      0      0]
+            [ 4/209 16/209      0      0]
+        """
+        if alpha <=  0:
+            raise ValueError('the parameter alpha must be strictly positive')
+        A = self.adjacency_matrix()
+        spectral_radius = max([abs(eigen) for eigen in A.eigenvalues()])
+        if spectral_radius == 0:
+            raise ValueError('the spectral radius of the graph must not be zero') 
+        if alpha >= 1/spectral_radius:
+            raise ValueError('the parameter alpha must be less than the reciprocal of the spectral radius of the graph')
+        
+        n = self.num_verts()
+        In = matrix.identity(n)
+        K =  (In - alpha * A.transpose()).inverse()-In
+        if nonedgesonly:
+            onesmat = matrix(QQ, n, n, lambda i, j: 1)
+            Missing = onesmat - A- In
+            return K.elementwise_product(Missing)
+        else:
+            return K
+
+
+    def katz_centrality(self, alpha , u=None):
+        r"""
+        Return a list containing the Katz centrality of each vertex of the graph G with parameter alpha
+        INPUT:
+
+        -``alpha``-- a nonnegative real number, must be less than the reciprocal of the spectral radius of the graph
+        (the maximum absolute eigenvalue of the adjacency matrix )
+
+
+        OUTPUT: a list containing the Katz centrality of each vertex
+
+        EXAMPLES:
+
+        We compute katz_centrality for the undirected 4-cycle again (note that by symmetry, all 4 vertices have the same centrality)::
+            sage: G = graphs.CycleGraph(4)
+            sage: G.katz_centrality(1/20)
+            [1/9 1/9 1/9 1/9]
+
+        We compute the Katz centrality of the graph ::
+        G = DiGraph({1: [10], 2:[10,11], 3:[10,11], 4:[], 5:[11, 4], 6:[11], 7:[10,11], 8:[10,11], 9:[10], 10:[11, 5, 8], 11:[6]}),
+        taken from https://www.sci.unich.it/~francesc/teaching/network/katz.html
+        (This does not return exactly the same values. The author of the linked webpage defines the Katz matrix as (alpha*A).inverse() rather than
+        (I-alpha*A).inverse()-I. With this change made, and values rounded off to the nearest integer, our code returns the same values as theirs.)::
+
+            sage: G = DiGraph({1: [10], 2:[10,11], 3:[10,11], 4:[], 5:[11, 4], 6:[11], 7:[10,11], 8:[10,11], 9:[10], 10:[11, 5, 8], 11:[6]})
+            sage: G.katz_centrality(.85)
+            [0.000000000000000 0.000000000000000 0.000000000000000  16.7319819819820
+            18.6846846846847  173.212076941807 0.000000000000000  18.6846846846847    0.000000000000000  20.9819819819820  202.778914049184]
+
+
+        .. SEEALSO:
+
+            * :meth:`~katz_matrix`
+            * :wikipedia:`Katz_centrality`
+
+        TESTS::
+
+            sage: graphs.PathGraph(3).katz_centrality(1/20)
+            [11/199 21/199 11/199]
+            sage: graphs.PathGraph(4).katz_centrality(1/20)
+            [21/379 41/379 41/379 21/379]
+
+
+        """
+        M = self.katz_matrix(alpha, nonedgesonly=False)
+        n = self.num_verts()
+        if u not in self.vertices():
+            raise ValueError("vertex ({0}) is not a vertex of the graph".format(repr(u)))
+        katz_values = (M*matrix(QQ, n, 1, lambda i, j: 1)).transpose()
+        K = {}
+        vert = self.vertices()
+        for i in range(n):
+            K[vert[i]] = katz_values[i]
+        if u is None:
+            return K
+        else :
+            return K[u]
 
 def tachyon_vertex_plot(g, bgcolor=(1,1,1),
                         vertex_colors=None,

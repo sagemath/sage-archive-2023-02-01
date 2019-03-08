@@ -3790,6 +3790,20 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         Uses Singular, Magma (if available), Macaulay2 (if available),
         Giac (if available), or a toy implementation.
+
+        TESTS:
+
+        Check :trac:`27445`::
+
+            sage: P = PolynomialRing(QQ, 't', 0)
+            sage: P.ideal([P(2)]).groebner_basis()
+            [1]
+            sage: P.ideal([]).groebner_basis()
+            []
+            sage: P.ideal([0]).groebner_basis()
+            []
+            sage: P.ideal([3,4,0,5]).groebner_basis()
+            [1]
         """
         from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
         from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
@@ -3826,7 +3840,13 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                         R = self.ring()
                         gb = [r for r in (R(f) for f in gb) if r]
                     else:
-                        if self.ring().term_order().is_global():
+                        R = self.ring()
+                        if R.ngens() == 0 and R.base_ring().is_field():
+                            if any(g != 0 for g in self.gens()):
+                                gb = [R(1)]
+                            else:
+                                gb = []
+                        elif self.ring().term_order().is_global():
                             verbose("Warning: falling back to very slow toy implementation.", level=0)
                             gb = toy_buchberger.buchberger_improved(self, *args, **kwds)
                         else:

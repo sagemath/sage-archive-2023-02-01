@@ -7001,9 +7001,10 @@ class Polyhedron_base(Element):
                 W = matrix([list(L(v)) for v in vi]).transpose()
 
                 # transform the coordinates
-                t = vector(PolynomialRing(self.base_ring(), 't', len(vi)).gens())
+                T = PolynomialRing(self.base_ring(), 't', len(vi))
+                t = vector(T.gens())
                 beta = W.inverse() * t
-                coordinate_images = v0 + sum(b * v  for b, v in zip(beta, vi))
+                coordinate_images = v0.change_ring(T) + sum(b * v  for b, v in zip(beta, vi))
                 result['coordinate_images'] = tuple(coordinate_images)
 
         else:

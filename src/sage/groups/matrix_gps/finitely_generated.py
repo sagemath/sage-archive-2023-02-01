@@ -21,10 +21,10 @@ subgroups of matrix groups::
     sage: SL2Z = SL(2,ZZ)
     sage: S, T = SL2Z.gens()
     sage: SL2Z.subgroup([T^2])
-    Matrix group over Integer Ring with 1 generators (
+    Subgroup with 1 generators (
     [1 2]
     [0 1]
-    )
+    ) of Special Linear Group of degree 2 over Integer Ring
 
 AUTHORS:
 

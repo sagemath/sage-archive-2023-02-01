@@ -821,7 +821,7 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
         return (from_par is ZZ or from_par is QQ
                 or from_par is AA)
 
-    def completion(self, p, prec, extras=None):
+    def completion(self, p, prec, extras={}):
         r"""
         Return the completion of self at the place `p`. Only implemented for `p
         = \infty` at present.
@@ -846,8 +846,6 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
             ...
             NotImplementedError
         """
-        if extras is None:
-            extras = {}
         if p == infinity.Infinity:
             from sage.rings.real_field import create_RealField
             return create_RealField(prec, **extras)
@@ -1224,7 +1222,7 @@ class AlgebraicField(Singleton, AlgebraicField_common):
         return (from_par is ZZ or from_par is QQ
                 or from_par is AA or from_par is QQbar)
 
-    def completion(self, p, prec, extras=None):
+    def completion(self, p, prec, extras={}):
         r"""
         Return the completion of self at the place `p`. Only implemented for `p
         = \infty` at present.
@@ -1233,8 +1231,8 @@ class AlgebraicField(Singleton, AlgebraicField_common):
 
         - ``p`` -- either a prime (not implemented at present) or Infinity
         - ``prec`` -- precision of approximate field to return
-        - ``extras`` -- a dict of extra keyword arguments for the ``RealField``
-          constructor
+        - ``extras`` -- (optional) a dict of extra keyword arguments
+          for the ``RealField`` constructor
 
         EXAMPLES::
 
@@ -1249,8 +1247,6 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             ...
             NotImplementedError
         """
-        if extras is None:
-            extras = {}
         if p == infinity.Infinity:
             from sage.rings.real_field import create_RealField
             return create_RealField(prec, **extras).complex_field()
@@ -6539,7 +6535,7 @@ class ANRoot(ANDescr):
         if len(our_root) == 1:
             return our_root[0]
 
-        if len(our_root) == 0:
+        if not our_root:
             raise ValueError("Complex root interval does not include any roots")
 
         # We have more than one root that overlap the current interval.

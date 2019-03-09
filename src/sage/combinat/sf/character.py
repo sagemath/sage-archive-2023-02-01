@@ -164,7 +164,7 @@ class induced_trivial_character_basis(generic_character):
     is equal to ``h([n-sum(la)]+la)``.
 
     It has the property that the (outer) structure
-    constants are the analogue of the stable kronecker
+    constants are the analogue of the stable Kronecker
     coefficients on the complete basis.
 
     This basis is introduced in [OZ2015]_.
@@ -394,7 +394,7 @@ class irreducible_character_basis(generic_character):
     is equal to ``s([n-sum(la)]+la)``.
 
     It should also have the property that the (outer) structure
-    constants are the analogue of the stable kronecker
+    constants are the analogue of the stable Kronecker
     coefficients on the Schur basis.
 
     This basis is introduced in [OZ2015]_.

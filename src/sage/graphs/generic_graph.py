@@ -147,7 +147,8 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.clustering_coeff` | Return the clustering coefficient for each vertex in nbunch
     :meth:`~GenericGraph.cluster_transitivity` | Return the transitivity (fraction of transitive triangles) of the graph.
     :meth:`~GenericGraph.szeged_index` | Return the Szeged index of the graph.
-
+    :meth:`~GenericGraph.katz_centrality` | Return the katz centrality of the specified vertex of the graph.
+    :meth:`~GenericGraph.katz_matrix` | Return the katz matrix of the graph.
 
 **Automorphism group:**
 
@@ -22759,10 +22760,10 @@ class GenericGraph(GenericGraph_pyx):
 
     def katz_matrix(self, alpha, nonedgesonly=False, vertices=None):
         r"""
-        Return the Katz matrix of the graph G with the parameter alpha.
+        Return the katz matrix of the graph.
         
         Adding the values in the Katz matrix of all columns in a particular row
-        will give the katz centrality measure of the vertex represented by that 
+        gives the katz centrality measure of the vertex represented by that 
         particular row.  Katz centrality measures influence by taking into account 
         the total number of walks between a pair of nodes.
 
@@ -22882,9 +22883,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def katz_centrality(self, alpha , u=None):
         r"""
-        Return the Katz centrality of the vertex u of the graph G with the parameter alpha.
-        If u is None(by default) it return a list of Katz centrality measure for
-        each vertex of the graph G.
+        Return the katz centrality of the vertex u of the graph.
 
         Katz centrality of a node is a measure of centrality in a graph network. Katz centrality 
         computes the relative influence of a node within a network by measuring the number of 

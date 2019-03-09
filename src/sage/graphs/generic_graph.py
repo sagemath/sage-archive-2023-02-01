@@ -22857,7 +22857,7 @@ class GenericGraph(GenericGraph_pyx):
         n = self.order()
         
         if vertices is None:
-            vertices = list(self)
+            vertices = self.vertices()
         elif (len(vertices) != n or
               set(vertices) != set(self.vertex_iterator())):
             raise ValueError("``vertices`` must be a permutation of the vertices")

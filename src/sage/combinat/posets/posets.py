@@ -3830,11 +3830,11 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             :meth:`coxeter_transformation`, :meth:`coxeter_matrix`
         """
-        from sage.interfaces.singular import singular
         c0 = self.coxeter_transformation()
         x = polygen(QQ, 'x')   # not possible to use ZZ for the moment
 
         if algorithm == 'singular':  # quite faster than sage
+            from sage.interfaces.singular import singular
             singular.LIB('jacobson.lib')
             sing_m = singular(x - c0)
             L = sing_m.smith().sage().diagonal()
@@ -3874,14 +3874,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         if algorithm == 'fricas':
             from sage.interfaces.fricas import fricas
-            n = self.cardinality()
-            # fricas.eval("Z ==> Integer")
-            # fricas.eval("Q ==> Fraction Z")
-            # fricas.eval("P ==> UnivariatePolynomial('x, Q)")
-            # fricas.eval("x:P := x")  # declaration de x
-            # fricas_m = fricas(x - c0)
-            fricas_m = fricas([x] * n).diagonalMatrix() - fricas(c0)
-            return list(fricas_m.smith().diagonal().sage())
+            fm = fricas(x-c0)
+            return list(fricas(fm.name()+"::Matrix(UP(x, FRAC INT))").smith().diagonal().sage())
 
     def is_meet_semilattice(self, certificate=False):
         r"""

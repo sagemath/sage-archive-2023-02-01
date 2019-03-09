@@ -22757,10 +22757,17 @@ class GenericGraph(GenericGraph_pyx):
     from sage.graphs.connectivity import vertex_connectivity
     from sage.graphs.base.static_dense_graph import connected_subgraph_iterator
 
-    def katz_matrix(self, alpha, nonedgesonly=False):
+    def katz_matrix(self, alpha, nonedgesonly=False, vertices=None):
         r"""
-        Return the Katz matrix of G with parameter alpha.
+        Return the Katz matrix of the graph G with the parameter alpha.
+        
+        Adding the values in the Katz matrix of all columns in a particular row
+        will give the katz centrality measure of the vertex represented by that 
+        particular row.  Katz centrality measures influence by taking into account 
+        the total number of walks between a pair of nodes.
 
+        See the :wikipedia:`Katz_centrality` for more information.
+        
         INPUT:
 
         - ``alpha``-- a nonnegative real number, must be less than the reciprocal
@@ -22769,6 +22776,10 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``nonedgesonly`` -- Boolean (default: ``True``); if true, Value for each
           edge present in the graph is set to zero.  
+
+        - ``vertices`` -- list (default: ``None``); the ordering of the vertices
+          defining how they should appear in the matrix. By default, the
+          ordering given by :meth:`GenericGraph.vertices` is used.
 
         OUTPUT: the Katz matrix of the graph with parameter alpha
 
@@ -22841,14 +22852,24 @@ class GenericGraph(GenericGraph_pyx):
         """
         if alpha <=  0:
             raise ValueError('the parameter alpha must be strictly positive')
-        A = self.adjacency_matrix()
+        
+        n = self.order()
+        
+        if vertices is None:
+            vertices = list(self)
+        elif (len(vertices) != n or
+              set(vertices) != set(self.vertex_iterator())):
+            raise ValueError("``vertices`` must be a permutation of the vertices")
+        
+        A = self.adjacency_matrix(vertices=vertices)
+        
         spectral_radius = max([abs(eigen) for eigen in A.eigenvalues()])
+        
         if spectral_radius == 0:
             raise ValueError('the spectral radius of the graph must not be zero') 
         if alpha >= 1/spectral_radius:
             raise ValueError('the parameter alpha must be less than the reciprocal of the spectral radius of the graph')
         
-        n = self.num_verts()
         In = matrix.identity(n)
         K =  (In - alpha * A.transpose()).inverse()-In
         if nonedgesonly:
@@ -22861,12 +22882,25 @@ class GenericGraph(GenericGraph_pyx):
 
     def katz_centrality(self, alpha , u=None):
         r"""
-        Return a list containing the Katz centrality of each vertex of the graph G with parameter alpha
+        Return the Katz centrality of the vertex u of the graph G with the parameter alpha.
+        If u is None(by default) it return a list of Katz centrality measure for
+        each vertex of the graph G.
+
+        Katz centrality of a node is a measure of centrality in a graph network. Katz centrality 
+        computes the relative influence of a node within a network by measuring the number of 
+        the immediate neighbors (first degree nodes) and also all other nodes in the network
+        that connect to the node under consideration through these immediate neighbors.
+        Connections made with distant neighbors are, however, penalized by an attenuation factor
+        α {\displaystyle \alpha } \alpha .
+
+        See the :wikipedia:`Katz_centrality` for more information.
+
         INPUT:
 
         -``alpha``-- a nonnegative real number, must be less than the reciprocal of the spectral radius of the graph
         (the maximum absolute eigenvalue of the adjacency matrix )
 
+        -``u`` -- the vertex whose Katz centrality needs to be measured (default: ``None)
 
         OUTPUT: a list containing the Katz centrality of each vertex
 
@@ -22916,18 +22950,24 @@ class GenericGraph(GenericGraph_pyx):
 
 
         """
-        n = self.num_verts()
+        n = self.order()
         if n == 0 :
-            raise ValueError('Graph is Empty.')        
-        M = self.katz_matrix(alpha, nonedgesonly=False)
+            raise ValueError('Graph is Empty.')  
+        verts = list(self)          
+        M = self.katz_matrix(alpha, nonedgesonly=False, vertices=verts)
         
-        if u and u not in self.vertices():
+        if u and u not in self:
             raise ValueError("vertex ({0}) is not a vertex of the graph".format(repr(u)))
+        
         katz_values = (M*matrix(QQ, n, 1, lambda i, j: 1)).transpose()
+
+        if u :
+            idx = verts.index(u)
+            return katz_values[0][idx]
+
         Kdict = {}
-        vert = self.vertices()
-        for i in range(n):
-            Kdict[vert[i]] = katz_values[0][i]
+        Kdict = {u: katz_values[0][i] for i, u in enumerate(verts)}
+
         if u is None:
             return Kdict
         else :

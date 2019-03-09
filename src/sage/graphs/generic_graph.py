@@ -22932,10 +22932,6 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
     """
     from sage.graphs.all import Graph, DiGraph
     from itertools import chain
-    try:
-        from itertools import filterfalse
-    except:  # Python 2
-        from itertools import ifilterfalse as filterfalse
 
     g_has_multiple_edges = g.has_multiple_edges()
 
@@ -23003,8 +22999,8 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
 
     # We build the list of distinct edge labels
     edge_labels = []
-    for label in filterfalse(edge_labels.__contains__, G.edge_labels()):
-        if label != standard_label:
+    for _,_,label in G.edge_iterator():
+        if label != standard_label and label not in edge_labels:
             edge_labels.append(label)
 
     edge_labels = sorted(edge_labels, key=str)

@@ -597,6 +597,16 @@ class DiGraph(GenericGraph):
             Traceback (most recent call last):
             ...
             ValueError: a *directed* igraph graph was expected. To build an undirected graph, call the Graph constructor
+
+        Vertex labels are retained in the graph (:trac:`14708`)::
+
+            sage: g = Graph()
+            sage: g.add_vertex(0)
+            sage: g.set_vertex(0, 'foo')
+            sage: g.get_vertices()
+            {0: 'foo'}
+            sage: DiGraph(g).get_vertices()
+            {0: 'foo'}
         """
         msg = ''
         GenericGraph.__init__(self)
@@ -752,6 +762,7 @@ class DiGraph(GenericGraph):
             if data.get_pos() is not None:
                 pos = data.get_pos()
             self.add_vertices(data.vertex_iterator())
+            self.set_vertices(data.get_vertices())
             self.add_edges(data.edge_iterator())
             self.name(data.name())
         elif format == 'rule':
@@ -1045,6 +1056,15 @@ class DiGraph(GenericGraph):
             sage: G.edges(labels=False)
             [(0, 1), (0, 2)]
 
+        Vertex labels will be retained:
+
+            sage: D.set_vertex(0, 'foo')
+            sage: G = D.to_undirected()
+            sage: D.get_vertices()
+            {0: 'foo', 1: None, 2: None}
+            sage: G.get_vertices()
+            {0: 'foo', 1: None, 2: None}
+
         TESTS:
 
         Immutable graphs yield immutable graphs (:trac:`17005`)::
@@ -1077,6 +1097,7 @@ class DiGraph(GenericGraph):
                                     else "sparse")) # we need a mutable copy first
 
         G.add_vertices(self.vertex_iterator())
+        G.set_vertices(self.get_vertices())
         G.add_edges(self.edge_iterator())
         if hasattr(self, '_embedding'):
             G._embedding = copy(self._embedding)

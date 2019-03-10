@@ -991,6 +991,16 @@ class Graph(GenericGraph):
             Traceback (most recent call last):
             ...
             ValueError: each column of a non-oriented incidence matrix must sum to 2, but column 0 does not
+
+        Vertex labels are retained in the graph (:trac:`14708`)::
+
+            sage: g = Graph()
+            sage: g.add_vertex(0)
+            sage: g.set_vertex(0, 'foo')
+            sage: g.get_vertices()
+            {0: 'foo'}
+            sage: Graph(g).get_vertices()
+            {0: 'foo'}
         """
         GenericGraph.__init__(self)
 
@@ -1155,6 +1165,7 @@ class Graph(GenericGraph):
                 pos = data.get_pos()
             self.name(data.name())
             self.add_vertices(data.vertex_iterator())
+            self.set_vertices(data.get_vertices())
             self.add_edges(data.edge_iterator(), loops=loops)
         elif format == 'NX':
             if convert_empty_dict_labels_to_None is not False:
@@ -5320,6 +5331,16 @@ class Graph(GenericGraph):
             sage: G2.add_vertex(5)
             sage: gp2 = G2.graphplot()
             sage: gp1 = G1.graphplot()
+
+        Vertex labels will be retained:
+
+            sage: G = Graph({0: [1, 2], 1: [0]})
+            sage: G.set_vertex(0, 'foo')
+            sage: D = G.to_directed()
+            sage: G.get_vertices()
+            {0: 'foo', 1: None, 2: None}
+            sage: D.get_vertices()
+            {0: 'foo', 1: None, 2: None}
         """
         if sparse is not None:
             if data_structure is not None:
@@ -5346,6 +5367,7 @@ class Graph(GenericGraph):
                                       else "sparse")) # we need a mutable copy
 
         D.add_vertices(self.vertex_iterator())
+        D.set_vertices(self.get_vertices())
         for u,v,l in self.edge_iterator():
             D.add_edge(u,v,l)
             D.add_edge(v,u,l)

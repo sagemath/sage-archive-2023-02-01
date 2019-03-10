@@ -147,7 +147,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.clustering_coeff` | Return the clustering coefficient for each vertex in nbunch
     :meth:`~GenericGraph.cluster_transitivity` | Return the transitivity (fraction of transitive triangles) of the graph.
     :meth:`~GenericGraph.szeged_index` | Return the Szeged index of the graph.
-    :meth:`~GenericGraph.katz_centrality` | Return the katz centrality of the specified vertex of the graph.
+    :meth:`~GenericGraph.katz_centrality` | Return the katz centrality of the vertex u of the graph.
     :meth:`~GenericGraph.katz_matrix` | Return the katz matrix of the graph.
 
 **Automorphism group:**
@@ -22761,22 +22761,22 @@ class GenericGraph(GenericGraph_pyx):
     def katz_matrix(self, alpha, nonedgesonly=False, vertices=None):
         r"""
         Return the katz matrix of the graph.
-        
+
         Adding the values in the Katz matrix of all columns in a particular row
-        gives the katz centrality measure of the vertex represented by that 
-        particular row.  Katz centrality measures influence by taking into account 
+        gives the katz centrality measure of the vertex represented by that
+        particular row.  Katz centrality measures influence by taking into account
         the total number of walks between a pair of nodes.
 
         See the :wikipedia:`Katz_centrality` for more information.
-        
+
         INPUT:
 
-        - ``alpha``-- a nonnegative real number, must be less than the reciprocal
+        - ``alpha`` -- a nonnegative real number, must be less than the reciprocal
           of the spectral radius of the graph. (the maximum absolute eigenvalue
           of the adjacency matrix )
 
-        - ``nonedgesonly`` -- Boolean (default: ``True``); if true, Value for each
-          edge present in the graph is set to zero.  
+        - ``nonedgesonly`` -- Boolean (default: ``True``); if True, value for each
+          edge present in the graph is set to zero.
 
         - ``vertices`` -- list (default: ``None``); the ordering of the vertices
           defining how they should appear in the matrix. By default, the
@@ -22806,7 +22806,7 @@ class GenericGraph(GenericGraph_pyx):
             [    0     1/198 0     0]
 
 
-        This will give an error if alpha < = 0 or alpha > = 1/spectral_radius = 1/max(A.eigenvalues()).
+        This will give an error if alpha<=0 or alpha>=1/spectral_radius = 1/max(A.eigenvalues()).
 
 
         We find the Katz matrix in a fan on 6 vertices. ::
@@ -22823,7 +22823,7 @@ class GenericGraph(GenericGraph_pyx):
 
 
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             * :meth:`~katz_centrality`
             * :wikipedia:`Katz_centrality`
@@ -22885,36 +22885,31 @@ class GenericGraph(GenericGraph_pyx):
         r"""
         Return the katz centrality of the vertex u of the graph.
 
-        Katz centrality of a node is a measure of centrality in a graph network. Katz centrality 
-        computes the relative influence of a node within a network by measuring the number of 
+        Katz centrality of a node is a measure of centrality in a graph network. Katz centrality
+        computes the relative influence of a node within a network by measuring the number of
         the immediate neighbors (first degree nodes) and also all other nodes in the network
         that connect to the node under consideration through these immediate neighbors.
         Connections made with distant neighbors are, however, penalized by an attenuation factor
-        α {\displaystyle \alpha } \alpha .
+        α.
 
         See the :wikipedia:`Katz_centrality` for more information.
 
         INPUT:
 
-        -``alpha``-- a nonnegative real number, must be less than the reciprocal of the spectral radius of the graph
-        (the maximum absolute eigenvalue of the adjacency matrix )
+        - ``alpha`` -- a nonnegative real number, must be less than the reciprocal of the spectral radius of the graph (the maximum absolute eigenvalue of the adjacency matrix).
 
-        -``u`` -- the vertex whose Katz centrality needs to be measured (default: ``None)
+        - ``u`` -- the vertex whose Katz centrality needs to be measured (default: ``None``)
 
-        OUTPUT: a list containing the Katz centrality of each vertex
+        OUTPUT: a list containing the Katz centrality of each vertex if u=None otherwise Katz centrality of the
+        vertex u.
 
         EXAMPLES:
 
-        We compute katz_centrality for the undirected 4-cycle again (note that by symmetry, all 4 vertices have the same centrality)::
+        We compute katz_centrality for the undirected 4-cycle again (note that by symmetry, all 4 vertices have the same centrality) ::
+            
             sage: G = graphs.CycleGraph(4)
             sage: G.katz_centrality(1/20)
             {0: 1/9, 1: 1/9, 2: 1/9, 3: 1/9}
-
-        We compute the Katz centrality of the graph ::
-        G = DiGraph({1: [10], 2:[10,11], 3:[10,11], 4:[], 5:[11, 4], 6:[11], 7:[10,11], 8:[10,11], 9:[10], 10:[11, 5, 8], 11:[6]}),
-        taken from https://www.sci.unich.it/~francesc/teaching/network/katz.html
-        (This does not return exactly the same values. The author of the linked webpage defines the Katz matrix as (alpha*A).inverse() rather than
-        (I-alpha*A).inverse()-I. With this change made, and values rounded off to the nearest integer, our code returns the same values as theirs.)::
 
             sage: G = DiGraph({1: [10], 2:[10,11], 3:[10,11], 4:[], 5:[11, 4], 6:[11], 7:[10,11], 8:[10,11], 9:[10], 10:[11, 5, 8], 11:[6]})
             sage: G.katz_centrality(.85)
@@ -22931,7 +22926,7 @@ class GenericGraph(GenericGraph_pyx):
              11: 202.778914049184}
 
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             * :meth:`~katz_matrix`
             * :wikipedia:`Katz_centrality`

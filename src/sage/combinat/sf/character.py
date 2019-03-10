@@ -243,8 +243,8 @@ class induced_trivial_character_basis(generic_character):
 
         .. MATH::
 
-            \sum_{j=0}^r (-1)^{r-j}k^j\binom{r,j} \left(
-            \frac{1}{k} \sum_{d|k} \mu(d/k) p_d \right)_k.
+            \sum_{j=0}^r (-1)^{r-j}k^j\binom{r,j}
+            \left( \frac{1}{k} \sum_{d|k} \mu(d/k) p_d \right)_k.
 
         INPUT:
 
@@ -272,7 +272,7 @@ class induced_trivial_character_basis(generic_character):
         r"""
         An expression involving moebius inversion in the powersum generators.
 
-        For a partition `\gamma = (1^{m_1}, 2^{m_2}, \ldots r^{m_r})`,
+        For a partition `\gamma = (1^{m_1}, 2^{m_2}, \ldots, r^{m_r})`,
         this expression is
 
         .. MATH::
@@ -317,7 +317,7 @@ class induced_trivial_character_basis(generic_character):
 
         .. MATH::
 
-            \sum_{\gamma} \left< h_\lambda, p_\gamma \right>
+            \sum_{\gamma} \left\langle h_\lambda, p_\gamma \right\rangle
             \frac{{\overline {\mathbf p}}_\gamma}{z_\gamma},
 
         where `{\overline {\mathbf p}}_\gamma` is the
@@ -501,7 +501,7 @@ class irreducible_character_basis(generic_character):
         r"""
         An expression involving moebius inversion in the powersum generators.
 
-        For a partition `\gamma = (1^{m_1}, 2^{m_2}, \ldots r^{m_r})`,
+        For a partition `\gamma = (1^{m_1}, 2^{m_2}, \ldots, r^{m_r})`,
         this expression is
 
         .. MATH::

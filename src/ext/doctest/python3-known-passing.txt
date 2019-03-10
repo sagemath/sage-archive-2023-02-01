@@ -15,6 +15,7 @@ src/sage/finance/
 src/sage/games/
 src/sage/game_theory/
 src/sage/groups/lie_gps/
+src/sage/groups/matrix_gps/
 src/sage/interacts/
 src/sage/knots/
 src/sage/libs/gsl/

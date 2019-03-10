@@ -206,6 +206,7 @@ def QuaternionMatrixGroupGF3():
     jay = MS([2,1,1,1])
     return MatrixGroup([aye, jay])
 
+
 def MatrixGroup(*gens, **kwds):
     r"""
     Return the matrix group with given generators.
@@ -604,8 +605,8 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
 
         The above example in GL(12,Z), reduced modulo 7::
 
-            sage: MS = MatrixSpace( GF(7), 12, 12)
-            sage: G = MatrixGroup(map(MS, GG.GeneratorsOfGroup()))
+            sage: MS = MatrixSpace(GF(7), 12, 12)
+            sage: G = MatrixGroup([MS(g) for g in GG.GeneratorsOfGroup()])
             sage: G.cardinality()
             21499084800
             sage: P = G.as_permutation_group()

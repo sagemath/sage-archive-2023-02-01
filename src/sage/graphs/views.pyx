@@ -663,4 +663,4 @@ class EdgesView():
             sage: 3 * E
             [(0, 1), (2, 3), (0, 1), (2, 3), (0, 1), (2, 3)]
         """
-        return self.__mul__(n)
+        return self * n

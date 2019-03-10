@@ -4034,31 +4034,27 @@ class SimplicialComplex(Parent, GenericCellComplex):
         spanning_tree = G2.min_spanning_tree()
         gens = [(int_to_v[e[0]], int_to_v[e[1]]) for e in G2.edges()
                 if e not in spanning_tree]
-        spanning_tree = [(int_to_v[e[0]], int_to_v[e[1]])
-                         for e in spanning_tree]
-
         if len(gens) == 0:
             return gap.TrivialGroup()
 
-        gens_dict = {g: i for i, g in enumerate(gens)}
+        # Edges in the graph may be sorted differently than in the
+        # simplicial complex, so convert the edges to frozensets so we
+        # don't have to worry about it. Convert spanning_tree to a set
+        # to make lookup faster.
+        spanning_tree = set(frozenset((int_to_v[e[0]], int_to_v[e[1]]))
+                             for e in spanning_tree)
+        gens_dict = {frozenset(g): i for i, g in enumerate(gens)}
         FG = FreeGroup(len(gens), 'e')
         rels = []
         for f in self._n_cells_sorted(2):
             bdry = [tuple(e) for e in f.faces()]
             z = dict()
             for i in range(3):
-                # Edges in the graph may be sorted differently than in
-                # the simplicial complex, so try both the edge and its
-                # reverse.
-                x = bdry[i]
-                y = tuple(reversed(x))
-                if (x in spanning_tree or y in spanning_tree):
+                x = frozenset(bdry[i])
+                if (x in spanning_tree):
                     z[i] = FG.one()
                 else:
-                    try:
-                        z[i] = FG.gen(gens_dict[x])
-                    except KeyError:
-                        z[i] = FG.gen(gens_dict[y])
+                    z[i] = FG.gen(gens_dict[x])
             rels.append(z[0]*z[1].inverse()*z[2])
         if simplify:
             return FG.quotient(rels).simplified()

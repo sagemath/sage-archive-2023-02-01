@@ -22855,7 +22855,8 @@ class GenericGraph(GenericGraph_pyx):
             raise ValueError('the parameter alpha must be strictly positive')
         
         n = self.order()
-        
+        if n == 0 :
+            raise ValueError('Graph is Empty.') 
         if vertices is None:
             vertices = self.vertices()
         elif (len(vertices) != n or

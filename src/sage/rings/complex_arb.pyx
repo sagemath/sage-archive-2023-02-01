@@ -3121,6 +3121,132 @@ cdef class ComplexBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
+    def sec(self):
+        """
+        Return the secant of this ball.
+
+        EXAMPLES::
+
+            sage: CBF(1, 1).sec()
+            [0.498337030555187 +/- ...e-16] + [0.591083841721045 +/- ...e-16]*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_sec(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def csc(self):
+        """
+        Return the cosecant of this ball.
+
+        EXAMPLES::
+
+            sage: CBF(1, 1).csc()
+            [0.621518017170428 +/- ...e-16] + [-0.303931001628426 +/- ...e-16]*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_csc(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def sinh(self):
+        """
+        Return the hyperbolic sine of this ball.
+
+        EXAMPLES::
+
+            sage: CBF(1, 1).sinh()
+            [0.634963914784736 +/- ...e-16] + [1.298457581415977 +/- ...e-16]*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_sinh(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def cosh(self):
+        """
+        Return the hyperbolic cosine of this ball.
+
+        EXAMPLES::
+
+            sage: CBF(1, 1).cosh()
+            [0.833730025131149 +/- ...e-16] + [0.988897705762865 +/- ...e-16]*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_cosh(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def tanh(self):
+        """
+        Return the hyperbolic tangent of this ball.
+
+        EXAMPLES::
+
+            sage: CBF(1, 1).tanh()
+            [1.083923327338694 +/- ...e-16] + [0.2717525853195117 +/- ...e-17]*I
+            sage: CBF(0, pi/2).tanh()
+            nan*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_tanh(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def coth(self):
+        """
+        Return the hyperbolic cotangent of this ball.
+
+        EXAMPLES::
+
+            sage: CBF(1, 1).coth()
+            [0.868014142895925 +/- ...e-16] + [-0.2176215618544027 +/- ...e-17]*I
+            sage: CBF(0, pi).coth()
+            nan*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_coth(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def sech(self):
+        """
+        Return the hyperbolic secant of this ball.
+
+        EXAMPLES::
+
+            sage: CBF(pi/2, 1/10).sech()
+            [0.397174529918189 +/- ...e-16] + [-0.0365488656274242 +/- ...e-17]*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_sech(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def csch(self):
+        """
+        Return the hyperbolic cosecant of this ball.
+
+        EXAMPLES::
+
+            sage: CBF(1, 1).csch()
+            [0.303931001628426 +/- ...e-16] + [-0.621518017170428 +/- ...e-16]*I
+            sage: CBF(i*pi).csch()
+            nan*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_csch(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
     def arcsin(self, analytic=False):
         """
         Return the arcsine of this ball.

@@ -1808,15 +1808,14 @@ class FancyTuple(tuple):
             2: two
             3: three
             4: 4
+
+            sage: t = FancyTuple(['Français', 'Español', '中文']) ; t
+            0: Français
+            1: Español
+            2: 中文
         """
         length = len(str(len(self) - 1))
-        result = '\n'.join('{0:>{1}}: {2}'.format(i, length, item) for i, item in enumerate(self))
-        import sys
-        if sys.version_info[0] < 3 and isinstance(result, unicode):
-            # Py3 compatibility: allow _repr_ to return unicode
-            return result.encode('utf-8')
-        else:
-            return result
+        return '\n'.join('{0:>{1}}: {2}'.format(i, length, item) for i, item in enumerate(self))
 
     def __getslice__(self, i, j):
         r"""

@@ -1082,7 +1082,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                 raise ValueError("the set of keys of sort_facets must equal the set of vertices")
             vertex_to_index = sort_facets
         else:
-            vertex_to_index = {v:i for i,v in enumerate(vertices)}
+            vertex_to_index = {v: i for i, v in enumerate(vertices)}
 
         for face in maximal_simplices:
             # check whether each given face is actually maximal
@@ -4005,8 +4005,13 @@ class SimplicialComplex(Parent, GenericCellComplex):
             Finitely presented group < e0, e1 | >
             sage: simplicial_complexes.Torus().fundamental_group()
             Finitely presented group < e1, e4 | e4^-1*e1^-1*e4*e1 >
-            sage: simplicial_complexes.MooreSpace(5).fundamental_group()
-            Finitely presented group < e3 | e3^5 >
+
+            sage: G = simplicial_complexes.MooreSpace(5).fundamental_group()
+            sage: G.ngens()
+            1
+            sage: x = G.gen(0)
+            sage: [(x**n).is_one() for n in range(1,6)]
+            [False, False, False, False, True]
         """
         if not self.is_connected():
             if base_point is None:
@@ -4016,11 +4021,21 @@ class SimplicialComplex(Parent, GenericCellComplex):
         from sage.groups.free_group import FreeGroup
         from sage.interfaces.gap import gap
         G = self.graph()
-        spanning_tree = G.min_spanning_tree()
-        gens = [e for e in G.edges() if e not in spanning_tree]
-
-        spanning_tree = [e[:2] for e in spanning_tree]
-        gens = [e[:2] for e in gens]
+        # If the vertices and edges of G are not sortable, e.g., a mix
+        # of str and int, Sage+Python 3 may raise a TypeError when
+        # trying to find the spanning tree. So create a graph
+        # isomorphic to G but with sortable vertices. Use a copy of G,
+        # because self.graph() is cached, and relabeling its vertices
+        # would relabel the cached version.
+        int_to_v = dict(enumerate(G.vertex_iterator()))
+        v_to_int = {v: i for i, v in int_to_v.items()}
+        G2 = G.copy(immutable=False)
+        G2.relabel(v_to_int)
+        spanning_tree = G2.min_spanning_tree()
+        gens = [(int_to_v[e[0]], int_to_v[e[1]]) for e in G2.edges()
+                if e not in spanning_tree]
+        spanning_tree = [(int_to_v[e[0]], int_to_v[e[1]])
+                         for e in spanning_tree]
 
         if len(gens) == 0:
             return gap.TrivialGroup()
@@ -4110,8 +4125,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
                 tr.pop(self_to_int[f])
             tr.pop(fake)
 
-        int_to_self = {self_to_int[x]: x for x in self_to_int}
-        int_to_other = {other_to_int[x]: x for x in other_to_int}
+        int_to_self = {idx: x for x, idx in self_to_int.items()}
+        int_to_other = {idx: x for x, idx in other_to_int.items()}
         return isisom, {int_to_self[i]: int_to_other[tr[i]] for i in tr}
 
     def automorphism_group(self):
@@ -4337,7 +4352,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             True
         """
         d = self._vertex_to_index
-        return {d[v]:v for v in d}
+        return {idx: v for v, idx in d.items()}
 
     def _chomp_repr_(self):
         r"""

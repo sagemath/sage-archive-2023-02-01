@@ -1047,7 +1047,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: SymmetricFunctions(QQ).induced_trivial_character()
-            Symmetric Functions over Rational Field in the induced trivial character basis
+            Symmetric Functions over Rational Field in the induced trivial symmetric group character basis
             sage: ht = SymmetricFunctions(QQ).ht()
             sage: h = SymmetricFunctions(QQ).h()
             sage: h(ht([3,2]).character_to_frobenius_image(9))

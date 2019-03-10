@@ -150,7 +150,7 @@ class generic_character(SFA_generic):
         if k == 1:
             return self._p([1])
         if k > 0:
-            return ~k * self._p.sum(moebius(k/d)*self._p([d])
+            return ~k * self._p.linear_combination((self._p([d]),moebius(k/d))
                                     for d in divisors(k))
 
 
@@ -209,7 +209,7 @@ class induced_trivial_character_basis(generic_character):
         r"""
         Initialize the basis and register coercions.
 
-        The coercions are set up between the ``other_basis``
+        The coercions are set up between the ``other_basis``.
 
         INPUT:
 

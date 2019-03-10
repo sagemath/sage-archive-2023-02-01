@@ -80,6 +80,8 @@ AUTHORS:
 
 - David Coudert (2018-10-07): cleaning
 
+- Amanda Francis, Caitlin Lienkaemper, Kate Collins, Rajat Mittal (2019-03-10): methods for computing effective resistance
+
 Graph Format
 ------------
 
@@ -8191,13 +8193,13 @@ class Graph(GenericGraph):
         This is the resistance between two equivalent points of a simple connected graph
         replacing each edge by a 1 ohm resistance.
 
-        See the :wikipedia:`Resistance_Distance` for more information.
+        See the :wikipedia:`Resistance_distance` for more information.
 
         INPUT:
 
-        - ``i``, ``j`` -- vertices 
+        - ``i``, ``j`` -- vertices of the graph
 
-        OUTPUT: rational
+        OUTPUT: rational number denoting resistance between nodes i and j
 
         EXAMPLES:
 
@@ -8223,13 +8225,13 @@ class Graph(GenericGraph):
 
         .. SEEALSO::
 
-            * :meth:`~sage.graphs.graph.effective_resistance_matrix` --
-              a similar method giving a matrix full of all effective resistances
+            * :meth:`effective_resistance_matrix` --
+              a similar method giving a matrix full of all effective resistances between all nodes
 
-            * :meth:`~sage.graphs.graph.least_effective_resistance` --
+            * :meth:`least_effective_resistance` --
               gives node pairs with least effective resistances
 
-            * See :wikipedia:`Resistance_Distance` for more details.
+            * See :wikipedia:`Resistance_distance` for more details.
 
         TESTS::
 
@@ -8277,7 +8279,7 @@ class Graph(GenericGraph):
     @doc_index("Leftovers")
     def effective_resistance_matrix(self, vertices=None, nonedgesonly=True):
         r"""
-        Return a matrix whose (`i`,`j`) entry gives the effective resistance
+        Return a matrix whose (`i` , `j`) entry gives the effective resistance
         between vertices `i` and `j`.
 
         The effective resistance is the resistance between two equivalent points of a simple connected graph
@@ -8286,7 +8288,7 @@ class Graph(GenericGraph):
         INPUT:
 
         - ``nonedgesonly`` -- boolean (default: ``True``) if ``True`` assign zero
-          resistance to pairs of adjacent vertices
+          resistance to pairs of adjacent vertices.
 
         - ``vertices`` -- list (default: ``None``); the ordering of the vertices
           defining how they should appear in the matrix. By default, the
@@ -8334,11 +8336,11 @@ class Graph(GenericGraph):
 
         .. SEEALSO::
 
-            * :meth:`~sage.graphs.graph.least_effective_resistance` --
+            * :meth:`least_effective_resistance` --
               gives node pairs with least effective resistances
 
-            * :meth:`~sage.graphs.graph.effective_resistance` --
-              compuetes effective resistance for a single node pair
+            * :meth:`effective_resistance` --
+              computes effective resistance for a single node pair
 
             * See :wikipedia:`Resistance_Distance` for more details.
 
@@ -8407,7 +8409,7 @@ class Graph(GenericGraph):
     @doc_index("Leftovers")
     def least_effective_resistance(self, nonedgesonly=True):
         r"""
-        Return a list of pairs of edges with the least effective resistance.
+        Return a list of pairs of nodes with the least effective resistance.
 
         The effective resistance is the resistance between two equivalent points of a simple connected graph
         replacing each edge by a 1 ohm resistance.
@@ -8443,13 +8445,13 @@ class Graph(GenericGraph):
 
         .. SEEALSO::
 
-            * :meth:`~sage.graphs.graph.effective_resistance_matrix` --
+            * :meth:`effective_resistance_matrix` --
               a similar method giving a matrix full of all effective resistances
 
-            * :meth:`~sage.graphs.graph.effective_resistance` --
+            * :meth:`effective_resistance` --
               compuetes effective resistance for a single node pair
 
-            * See :wikipedia:`Resistance_Distance` for more details.
+            * See :wikipedia:`Resistance_distance` for more details.
 
 
         TESTS::

@@ -120,7 +120,7 @@ class generic_character(SFA_generic):
 
     def _b_power_k(self, k):
         r"""
-        An expression involving moebius inversion in the powersum generators.
+        An expression involving Moebius inversion in the powersum generators.
 
         For a positive value of ``k``, this expression is
 
@@ -150,7 +150,7 @@ class generic_character(SFA_generic):
         if k == 1:
             return self._p([1])
         if k > 0:
-            return ~k * self._p.linear_combination((self._p([d]),moebius(k/d))
+            return ~k * self._p.linear_combination((self._p([d]),moebius(k//d))
                                     for d in divisors(k))
 
 
@@ -237,7 +237,7 @@ class induced_trivial_character_basis(generic_character):
 
     def _b_bar_power_k_r(self, k, r):
         r"""
-        An expression involving moebius inversion in the powersum generators.
+        An expression involving Moebius inversion in the powersum generators.
 
         For a positive value of ``k``, this expression is
 
@@ -270,7 +270,7 @@ class induced_trivial_character_basis(generic_character):
 
     def _b_bar_power_gamma(self, gamma):
         r"""
-        An expression involving moebius inversion in the powersum generators.
+        An expression involving Moebius inversion in the powersum generators.
 
         For a partition `\gamma = (1^{m_1}, 2^{m_2}, \ldots, r^{m_r})`,
         this expression is
@@ -284,7 +284,7 @@ class induced_trivial_character_basis(generic_character):
         .. MATH::
 
             {\mathbf p}_{k^r} = \sum_{j=0}^r (-1)^{r-j}k^j\binom{r,j}
-            \left( \frac{1}{k} \sum_{d|k} \mu(d/k) p_d \right)_k~.
+            \left( \frac{1}{k} \sum_{d|k} \mu(d/k) p_d \right)_k.
 
         INPUT:
 
@@ -464,7 +464,7 @@ class irreducible_character_basis(generic_character):
 
     def _b_power_k_r(self, k, r):
         r"""
-        An expression involving moebius inversion in the powersum generators.
+        An expression involving Moebius inversion in the powersum generators.
 
         For a positive value of ``k``, this expression is
 
@@ -499,7 +499,7 @@ class irreducible_character_basis(generic_character):
 
     def _b_power_gamma(self, gamma):
         r"""
-        An expression involving moebius inversion in the powersum generators.
+        An expression involving Moebius inversion in the powersum generators.
 
         For a partition `\gamma = (1^{m_1}, 2^{m_2}, \ldots, r^{m_r})`,
         this expression is
@@ -513,7 +513,7 @@ class irreducible_character_basis(generic_character):
         .. MATH::
 
             {\mathbf p}_{k^r} = \sum_{j=0}^r (-1)^{r-j}k^j\binom{r,j}
-            \left( \frac{1}{k} \sum_{d|k} \mu(d/k) p_d \right)_k~.
+            \left( \frac{1}{k} \sum_{d|k} \mu(d/k) p_d \right)_k.
 
         INPUT:
 

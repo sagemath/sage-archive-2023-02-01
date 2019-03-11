@@ -25,12 +25,23 @@ EXAMPLES::
     ...
     ValueError: invalid morphism
 
+For global function fields, which have positive characteristics, the higher
+derivation is available::
+
+    sage: K.<x> = FunctionField(GF(2)); _.<Y>=K[]
+    sage: L.<y> = K.extension(Y^3+x+x^3*Y)
+    sage: h = L.higher_derivation()
+    sage: h(y^2, 2)
+    ((x^7 + 1)/x^2)*y^2 + x^3*y
+
 AUTHORS:
 
 - William Stein (2010): initial version
 
 - Julian Rüth (2011-09-14, 2014-06-23, 2017-08-21): refactored class hierarchy; added
   derivation classes; morphisms to/from fraction fields
+
+- Kwankyu Lee (2017-04-30): added higher derivations and completions
 
 """
 from __future__ import absolute_import
@@ -47,7 +58,14 @@ from sage.categories.morphism import Morphism, SetMorphism
 from sage.categories.map import Map
 from sage.categories.homset import Hom
 
+from sage.rings.infinity import infinity
 from sage.rings.morphism import RingHomomorphism
+
+from sage.modules.free_module_element import vector
+
+from sage.functions.other import binomial
+
+from sage.matrix.constructor import matrix
 
 class FunctionFieldDerivation(Map):
     r"""
@@ -423,6 +441,451 @@ class FunctionFieldDerivation_inseparable(FunctionFieldDerivation):
         """
         ret = ["%s |--> %s"%(k.variable_name(), self(k.gen())) for k in self.domain()._intermediate_fields(self.domain().rational_function_field())]
         return "\n".join(ret)
+
+class FunctionFieldHigherDerivation(Map):
+    """
+    Base class of higher derivations on function fields.
+
+    INPUT:
+
+    - ``field`` -- function field on which the derivation operates
+
+    EXAMPLES::
+
+        sage: F.<x> = FunctionField(GF(2))
+        sage: F.higher_derivation()
+        Higher derivation map:
+          From: Rational function field in x over Finite Field of size 2
+          To:   Rational function field in x over Finite Field of size 2
+    """
+    def __init__(self, field):
+        """
+        Initialize.
+        """
+        Map.__init__(self, field, field)
+
+        self._field = field
+
+    def _repr_type(self):
+        """
+        Return a string containing the type of the map.
+
+        EXAMPLES::
+
+            sage: F.<x> = FunctionField(GF(2))
+            sage: h = F.higher_derivation()
+            sage: h  # indirect doctest
+            Higher derivation map:
+              From: Rational function field in x over Finite Field of size 2
+              To:   Rational function field in x over Finite Field of size 2
+        """
+        return 'Higher derivation'
+
+class FunctionFieldHigherDerivation_rational(FunctionFieldHigherDerivation):
+    """
+    Higher derivations of rational function fields.
+
+    INPUT:
+
+    - ``field`` -- function field on which the derivation operates
+
+    EXAMPLES::
+
+        sage: F.<x> = FunctionField(GF(2))
+        sage: h = F.higher_derivation()
+        sage: h
+        Higher derivation map:
+          From: Rational function field in x over Finite Field of size 2
+          To:   Rational function field in x over Finite Field of size 2
+        sage: h(x^2,2)
+        1
+    """
+    def __init__(self, field):
+        """
+        Initialize.
+        """
+        FunctionFieldHigherDerivation.__init__(self, field)
+
+        self._p = field.characteristic()
+        self._separating_element = field.gen()
+
+        # elements of prime finite fields do not have pth_root method
+        if field.constant_base_field().is_prime_field():
+            self._pth_root_in_finite_field = lambda e: e
+        else:
+            self._pth_root_in_finite_field = lambda e: e.pth_root()
+
+    def _call_with_args(self, f, args=(), kwds={}):
+        """
+        Call the derivation with args and kwds.
+
+        EXAMPLES::
+
+            sage: F.<x> = FunctionField(GF(2))
+            sage: h = F.higher_derivation()
+            sage: h(x^2,2)  # indirect doctest
+            1
+        """
+        return self._derive(f, *args, **kwds)
+
+    def _derive(self, f, i, separating_element=None):
+        """
+        Return i-th derivative of f with respect to the separating element.
+
+        This implements Hess' Algorithm 26 in [Hes2002b]_.
+
+        EXAMPLES::
+
+            sage: F.<x> = FunctionField(GF(2))
+            sage: h = F.higher_derivation()
+            sage: h._derive(x^3,0)
+            x^3
+            sage: h._derive(x^3,1)
+            x^2
+            sage: h._derive(x^3,2)
+            x
+            sage: h._derive(x^3,3)
+            1
+            sage: h._derive(x^3,4)
+            0
+        """
+        F = self._field
+        p = self._p
+
+        if separating_element is None:
+            x = self._separating_element
+            derivative = lambda f: f.derivative()
+        else:
+            x = separating_element
+            derivative = lambda f: f.derivative() / x.derivative()
+
+        prime_power_representation = self._prime_power_representation
+
+        def derive(f, i):
+            # Step 1: zero-th derivative
+            if i == 0:
+                return f
+            # Step 2:
+            s = i % p
+            r = i // p
+            # Step 3:
+            e = f
+            while s > 0:
+                e = derivative(e) / F(s)
+                s -= 1
+            # Step 4:
+            if r == 0:
+                return e
+            else:
+                # Step 5:
+                lambdas = prime_power_representation(e, x)
+                # Step 6 and 7:
+                der = 0
+                for i in range(p):
+                    mu = derive(lambdas[i], r)
+                    der += mu**p * x**i
+                return der
+
+        return derive(f, i)
+
+    def _prime_power_representation(self, f, separating_element=None):
+        """
+        Return `p`-th power representation of the element `f`.
+
+        Here `p` is the characteristic of the function field.
+
+        This implements Hess' Algorithm 25.
+
+        EXAMPLES::
+
+            sage: F.<x> = FunctionField(GF(2))
+            sage: h = F.higher_derivation()
+            sage: h._prime_power_representation(x^2 + x + 1)
+            [x + 1, 1]
+            sage: x^2 + x + 1 == _[0]^2 + _[1]^2 * x
+            True
+        """
+        F = self._field
+        p = self._p
+
+        pth_root = self._pth_root
+
+        if separating_element is None:
+            x = self._separating_element
+            derivative = lambda f: f.derivative()
+        else:
+            x = separating_element
+            derivative = lambda f: f.derivative() / x.derivative()
+
+        # Step 1:
+        a = [f]
+        aprev = f
+        j = 1
+        while j < p:
+            aprev = derivative(aprev) / F(j)
+            a.append(aprev)
+            j += 1
+        # Step 2:
+        b = a
+        j = p - 2
+        while j >= 0:
+            b[j] -= sum(binomial(i,j) * b[i] * x**(i-j) for i in range(j+1,p))
+            j -= 1
+        # Step 3
+        return [pth_root(c) for c in b]
+
+    def _pth_root(self, c):
+        """
+        Return the `p`-th root of the rational function `c`.
+
+        INPUT:
+
+        - ``c`` -- rational function
+
+        EXAMPLES::
+
+            sage: F.<x> = FunctionField(GF(2))
+            sage: h = F.higher_derivation()
+            sage: h._pth_root((x^2+1)^2)
+            x^2 + 1
+        """
+        from .element import FunctionFieldElement_rational
+        K = self._field
+        p = self._p
+        pth_root = self._pth_root_in_finite_field
+
+        R = K._field.ring()
+
+        poly = c.numerator()
+        num = R([pth_root(poly[i]) for i in range(0,poly.degree()+1,p)])
+        poly = c.denominator()
+        den = R([pth_root(poly[i]) for i in range(0,poly.degree()+1,p)])
+        return FunctionFieldElement_rational(K, num / den)
+
+class FunctionFieldHigherDerivation_global(FunctionFieldHigherDerivation):
+    """
+    Higher derivations of global function fields.
+
+    INPUT:
+
+    - ``field`` -- function field on which the derivation operates
+
+    EXAMPLES::
+
+        sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+        sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
+        sage: h = L.higher_derivation()
+        sage: h
+        Higher derivation map:
+          From: Function field in y defined by y^3 + x^3*y + x
+          To:   Function field in y defined by y^3 + x^3*y + x
+        sage: h(y^2, 2)
+        ((x^7 + 1)/x^2)*y^2 + x^3*y
+    """
+    def __init__(self, field):
+        """
+        Initialize.
+        """
+        FunctionFieldHigherDerivation.__init__(self, field)
+
+        self._p = field.characteristic()
+        self._separating_element = field(field.base_field().gen())
+
+        p = field.characteristic()
+        y = field.gen()
+
+        # matrix for pth power map; used in _prime_power_representation method
+        self.__pth_root_matrix = matrix([(y**(i*p)).list()
+                                         for i in range(field.degree())]).transpose()
+
+        # elements of prime finite fields do not have pth_root method
+        if field.constant_base_field().is_prime_field():
+            self.__pth_root_in_finite_field = lambda e: e
+        else:
+            self.__pth_root_in_finite_field = lambda e: e.pth_root()
+
+        # cache computed higher derivatives to speed up later computations
+        self._cache = {}
+
+    def _call_with_args(self, f, args, kwds):
+        """
+        Call the derivation with ``args`` and ``kwds``.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
+            sage: h = L.higher_derivation()
+            sage: h(y^2,2)  # indirect doctest
+            ((x^7 + 1)/x^2)*y^2 + x^3*y
+        """
+        return self._derive(f, *args, **kwds)
+
+    def _derive(self, f, i, separating_element=None):
+        """
+        Return ``i``-th derivative of ``f` with respect to the separating
+        element.
+
+        This implements Hess' Algorithm 26 in [Hes2002b]_.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
+            sage: h = L.higher_derivation()
+            sage: y^3
+            x^3*y + x
+            sage: h._derive(y^3,0)
+            x^3*y + x
+            sage: h._derive(y^3,1)
+            x^4*y^2 + 1
+            sage: h._derive(y^3,2)
+            x^10*y^2 + (x^8 + x)*y
+            sage: h._derive(y^3,3)
+            (x^9 + x^2)*y^2 + x^7*y
+            sage: h._derive(y^3,4)
+            (x^22 + x)*y^2 + ((x^21 + x^14 + x^7 + 1)/x)*y
+        """
+        F = self._field
+        p = self._p
+        frob = F.frobenius_endomorphism() # p-th power map
+        pth_root = self._pth_root
+
+        if separating_element is None:
+            x = self._separating_element
+            derivative = lambda f: f.derivative()
+        else:
+            x = separating_element
+            xderinv = ~(x.derivative())
+            derivative = lambda f: xderinv * f.derivative()
+
+        try:
+            cache = self._cache[separating_element]
+        except KeyError:
+            cache = self._cache[separating_element] = {}
+
+        def derive(f, i):
+            # Step 1: zero-th derivative
+            if i == 0:
+                return f
+
+            # Step 1.5: use cached result if available
+            try:
+                return cache[f,i]
+            except KeyError:
+                pass
+
+            # Step 2:
+            s = i % p
+            r = i // p
+            # Step 3:
+            e = f
+            while s > 0:
+                e = derivative(e) / F(s)
+                s -= 1
+            # Step 4:
+            if r == 0:
+                der = e
+            else:
+                # Step 5: inlined self._prime_power_representation
+                a = [e]
+                aprev = e
+                j = 1
+                while j < p:
+                    aprev = derivative(aprev) / F(j)
+                    a.append(aprev)
+                    j += 1
+                b = a
+                j = p - 2
+                while j >= 0:
+                    b[j] -= sum(binomial(k,j) * b[k] * x**(k-j) for k in range(j+1,p))
+                    j -= 1
+                lambdas = [pth_root(c) for c in b]
+
+                # Step 6 and 7:
+                der = 0
+                xpow = 1
+                for k in range(p):
+                    mu = derive(lambdas[k], r)
+                    der += frob(mu) * xpow
+                    xpow *= x
+
+            cache[f,i] = der
+            return der
+
+        return derive(f, i)
+
+    def _prime_power_representation(self, f, separating_element=None):
+        """
+        Return `p`th power representation of the element `f`.
+
+        Here `p` is the characteristic of the function field.
+
+        This implements Hess' Algorithm 25 in [Hes2002b]_.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
+            sage: h = L.higher_derivation()
+            sage: b = h._prime_power_representation(y)
+            sage: y == b[0]^2 + b[1]^2 * x
+            True
+        """
+        F = self._field
+        p = self._p
+
+        pth_root = self._pth_root
+
+        if separating_element is None:
+            x = self._separating_element
+            derivative = lambda f: f.derivative()
+        else:
+            x = separating_element
+            xderinv = ~(x.derivative())
+            derivative = lambda f: xderinv * f.derivative()
+
+        # Step 1:
+        a = [f]
+        aprev = f
+        j = 1
+        while j < p:
+            aprev = derivative(aprev) / F(j)
+            a.append(aprev)
+            j += 1
+        # Step 2:
+        b = a
+        j = p - 2
+        while j >= 0:
+            b[j] -= sum(binomial(i,j) * b[i] * x**(i-j) for i in range(j+1,p))
+            j -= 1
+        # Step 3
+        return [pth_root(c) for c in b]
+
+    def _pth_root(self, c):
+        """
+        Return the `p`th root of function field element ``c``.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
+            sage: h = L.higher_derivation()
+            sage: h._pth_root((x^2 + y^2)^2)
+            y^2 + x^2
+        """
+        K = self._field.base_field() # rational function field
+        p = self._p
+        pth_root = self.__pth_root_in_finite_field
+
+        coeffs = []
+        for d in self.__pth_root_matrix.solve_right(vector(c.list())):
+            poly = d.numerator()
+            num = K([pth_root(poly[i]) for i in range(0,poly.degree()+1,p)])
+            poly = d.denominator()
+            den = K([pth_root(poly[i]) for i in range(0,poly.degree()+1,p)])
+            coeffs.append( num/den )
+        return self._field(coeffs)
 
 class FunctionFieldVectorSpaceIsomorphism(Morphism):
     r"""
@@ -1052,6 +1515,194 @@ class FractionFieldToFunctionField(FunctionFieldVectorSpaceIsomorphism):
         """
         parent = Hom(self.codomain(), self.domain())
         return parent.__make_element_class__(FunctionFieldToFractionField)(parent)
+
+class FunctionFieldCompletion(Map):
+    """
+    Base class of completions on function fields.
+    """
+    def _repr_type(self):
+        """
+        Return a string containing the type of the map.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: p = L.places_finite()[0]
+            sage: m = L.completion(p)
+            sage: m  # indirect doctest
+            Completion map:
+              From: Function field in y defined by y^2 + y + (x^2 + 1)/x
+              To:   Laurent Series Ring in s over Finite Field of size 2
+        """
+        return 'Completion'
+
+class FunctionFieldCompletion_global(FunctionFieldCompletion):
+    """
+    Completions on global functionf fields.
+
+    INPUT:
+
+    - ``field`` -- function field
+
+    - ``place`` -- place of the function field
+
+    - ``name`` -- string for the name of the series variable
+
+    - ``prec`` -- positive integer; default precision
+
+    - ``gen_name`` -- string; name of the generator of the residue
+      field; used only when place is non-rational
+
+    EXAMPLES::
+
+        sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+        sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+        sage: p = L.places_finite()[0]
+        sage: m = L.completion(p)
+        sage: m
+        Completion map:
+          From: Function field in y defined by y^2 + y + (x^2 + 1)/x
+          To:   Laurent Series Ring in s over Finite Field of size 2
+        sage: m(x)
+        s^2 + s^3 + s^4 + s^5 + s^7 + s^8 + s^9 + s^10 + s^12 + s^13
+        + s^15 + s^16 + s^17 + s^19 + O(s^22)
+        sage: m(y)
+        s^-1 + 1 + s^3 + s^5 + s^7 + s^9 + s^13 + s^15 + s^17 + O(s^19)
+        sage: m(x*y) == m(x) * m(y)
+        True
+        sage: m(x+y) == m(x) + m(y)
+        True
+
+    The variable name of the series can be supplied. If the place is not
+    rational such that the residue field is a proper extension of the constant
+    field, you can also specify the generator name of the extension::
+
+        sage: p2 = L.places_finite(2)[0]
+        sage: p2
+        Place (x^2 + x + 1, x*y + 1)
+        sage: m2 = L.completion(p2, 't', gen_name='b')
+        sage: m2(x)
+        (b + 1) + t + t^2 + t^4 + t^8 + t^16 + O(t^20)
+        sage: m2(y)
+        b + b*t + b*t^3 + b*t^4 + (b + 1)*t^5 + (b + 1)*t^7 + b*t^9 + b*t^11
+        + b*t^12 + b*t^13 + b*t^15 + b*t^16 + (b + 1)*t^17 + (b + 1)*t^19 + O(t^20)
+    """
+    def __init__(self, field, place, name=None, prec=None, gen_name=None):
+        """
+        Initialize.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: p = L.places_finite()[0]
+            sage: m = L.completion(p)
+            sage: m
+            Completion map:
+              From: Function field in y defined by y^2 + y + (x^2 + 1)/x
+              To:   Laurent Series Ring in s over Finite Field of size 2
+        """
+        if name is None:
+            name = 's' # default
+
+        if gen_name is None:
+            gen_name = 'a' # default
+
+        k, from_k, to_k = place.residue_field(name=gen_name)
+
+        self._place = place
+        self._gen_name = gen_name
+
+        if prec < infinity:
+            # if prec is None, the Laurent series ring provides default precision
+            from sage.rings.laurent_series_ring import LaurentSeriesRing
+            codomain = LaurentSeriesRing(k, name=name, default_prec=prec)
+            self._precision = codomain.default_prec()
+        else: # prec == infinity
+            raise NotImplementedError('not yet supported')
+
+        FunctionFieldCompletion.__init__(self, field, codomain)
+
+    def _call_(self, f):
+        """
+        Call the completion for f
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: p = L.places_finite()[0]
+            sage: m = L.completion(p)
+            sage: m(y)
+            s^-1 + 1 + s^3 + s^5 + s^7 + s^9 + s^13 + s^15 + s^17 + O(s^19)
+        """
+        return self._expand(f, prec=None)
+
+    def _call_with_args(self, f, args, kwds):
+        """
+        Call the completion with ``args`` and ``kwds``.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: p = L.places_finite()[0]
+            sage: m = L.completion(p)
+            sage: m(x+y, 10)  # indirect doctest
+            s^-1 + 1 + s^2 + s^4 + s^8 + O(s^9)
+        """
+        return self._expand(f, *args, **kwds)
+
+    def _expand(self, f, prec=None):
+        """
+        Return the laurent series expansion of f with precision ``prec``.
+
+        INPUT:
+
+        - ``f`` -- element of the function field
+
+        - ``prec`` -- positive integer; relative precision of the series
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: p = L.places_finite()[0]
+            sage: m = L.completion(p)
+            sage: m(x, 10)
+            s^2 + s^3 + s^4 + s^5 + s^7 + s^8 + s^9 + s^10 + O(s^12)
+        """
+        if prec is None:
+            prec = self._precision
+
+        place = self._place
+        F = place.function_field()
+        der = F.higher_derivation()
+
+        k,from_k,to_k = place.residue_field(name=self._gen_name)
+        sep = place.local_uniformizer()
+
+        val = f.valuation(place)
+        e = f * sep **(-val)
+
+        coeffs = [to_k(der._derive(e, i, sep)) for i in range(prec)]
+        return self.codomain()(coeffs, val).add_bigoh(prec + val)
+
+    def default_precision(self):
+        """
+        Return the default precision.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: p = L.places_finite()[0]
+            sage: m = L.completion(p)
+            sage: m.default_precision()
+            20
+        """
+        return self._precision
 
 class FunctionFieldRingMorphism(SetMorphism):
     """

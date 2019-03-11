@@ -31,6 +31,15 @@ We can compute a canonical divisor::
     sage: k.degree() == 2 * L.genus() - 2
     True
 
+Exact differentials vanish and logarithmic differentials are stable under
+Cartier operation::
+
+    sage: df.cartier()
+    0
+    sage: w = 1/f * df
+    sage: w.cartier() == w
+    True
+
 AUTHORS:
 
 - Kwankyu Lee (2017-04-30): initial version
@@ -293,6 +302,87 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
         F = self.parent().function_field()
         x = F.base_field().gen()
         return self._f.divisor() + (-2) * F(x).divisor_of_poles() + F.different()
+
+    def residue(self, place):
+        """
+        Return the residue of the differential at the place.
+
+        INPUT:
+
+        - ``place`` -- place of the function field
+
+        OUTPUT:
+
+        - an element of the residue field of the place
+
+        EXAMPLES:
+
+        We verify the residue theorem in a rational function field::
+
+            sage: F.<x> = FunctionField(GF(4))
+            sage: f = 0
+            sage: while f == 0:
+            ....:     f = F.random_element()
+            sage: w = 1/f * f.differential()
+            sage: d = f.divisor()
+            sage: s = d.support()
+            sage: sum([w.residue(p).trace() for p in s])
+            0
+
+        and also in an extension field::
+
+            sage: K.<x> = FunctionField(GF(7)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
+            sage: f = 0
+            sage: while f == 0:
+            ....:     f = L.random_element()
+            sage: w = 1/f * f.differential()
+            sage: d = f.divisor()
+            sage: s = d.support()
+            sage: sum([w.residue(p).trace() for p in s])
+            0
+        """
+        R,fr_R,to_R = place._residue_field()
+
+        # Step 1: compute f such that fds equals this differential.
+        s = place.local_uniformizer()
+        dxds = ~(s.derivative())
+        g = self._f * dxds
+
+        # Step 2: compute c that is the coefficient of s^-1 in
+        # the power series expansion of f
+        r = g.valuation(place)
+        if r >= 0:
+            return R(0)
+        else:
+            g_shifted = g * s**(-r)
+            c = g_shifted.higher_derivative(-r-1, s)
+            return to_R(c)
+
+    def cartier(self):
+        """
+        Return the image of the differential under Cartier operation.
+
+        EXAMPLES::
+
+            sage: K.<x>=FunctionField(GF(4)); _.<Y>=K[]
+            sage: L.<y>=K.extension(Y^3+x+x^3*Y)
+            sage: f = x/y
+            sage: w = 1/f * f.differential()
+            sage: w.cartier() == w
+            True
+
+            sage: F.<x> = FunctionField(GF(4))
+            sage: f = x/(x^2+x+1)
+            sage: w = 1/f * f.differential()
+            sage: w.cartier() == w
+            True
+        """
+        W = self.parent()
+        F = W.function_field()
+        der = F.higher_derivation()
+        power_repr = der._prime_power_representation(self._f)
+        return W.element_class(W, power_repr[-1])
 
     def monomial_coefficients(self, copy=True):
         """

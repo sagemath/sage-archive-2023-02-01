@@ -600,7 +600,7 @@ class DiGraph(GenericGraph):
 
         Vertex labels are retained in the graph (:trac:`14708`)::
 
-            sage: g = Graph()
+            sage: g = DiGraph()
             sage: g.add_vertex(0)
             sage: g.set_vertex(0, 'foo')
             sage: g.get_vertices()
@@ -1056,7 +1056,14 @@ class DiGraph(GenericGraph):
             sage: G.edges(labels=False)
             [(0, 1), (0, 2)]
 
-        Vertex labels will be retained:
+        TESTS:
+
+        Immutable graphs yield immutable graphs (:trac:`17005`)::
+
+            sage: DiGraph([[1, 2]], immutable=True).to_undirected()._backend
+            <sage.graphs.base.static_sparse_backend.StaticSparseBackend object at ...>
+
+        Vertex labels will be retained (:trac:`14708`)::
 
             sage: D.set_vertex(0, 'foo')
             sage: G = D.to_undirected()
@@ -1065,12 +1072,6 @@ class DiGraph(GenericGraph):
             sage: G.get_vertices()
             {0: 'foo', 1: None, 2: None}
 
-        TESTS:
-
-        Immutable graphs yield immutable graphs (:trac:`17005`)::
-
-            sage: DiGraph([[1, 2]], immutable=True).to_undirected()._backend
-            <sage.graphs.base.static_sparse_backend.StaticSparseBackend object at ...>
         """
         if sparse is not None:
             if data_structure is not None:

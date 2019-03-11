@@ -5332,7 +5332,7 @@ class Graph(GenericGraph):
             sage: gp2 = G2.graphplot()
             sage: gp1 = G1.graphplot()
 
-        Vertex labels will be retained:
+        Vertex labels will be retained (:trac:`14708`)::
 
             sage: G = Graph({0: [1, 2], 1: [0]})
             sage: G.set_vertex(0, 'foo')

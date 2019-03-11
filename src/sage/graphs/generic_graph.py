@@ -22764,23 +22764,23 @@ class GenericGraph(GenericGraph_pyx):
 
         Adding the values in the Katz matrix of all columns in a particular row
         gives the katz centrality measure of the vertex represented by that
-        particular row.  Katz centrality measures influence by taking into account
-        the total number of walks between a pair of nodes.
+        particular row.  Katz centrality measures influence by taking into 
+        account the total number of walks between a pair of nodes.
 
         See the :wikipedia:`Katz_centrality` for more information.
 
         INPUT:
 
-        - ``alpha`` -- a nonnegative real number, must be less than the reciprocal
-          of the spectral radius of the graph. (the maximum absolute eigenvalue
-          of the adjacency matrix )
+        - ``alpha`` -- a nonnegative real number, must be less than the 
+          reciprocal of the spectral radius of the graph. (the maximum 
+          absolute eigenvalue of the adjacency matrix )
 
-        - ``nonedgesonly`` -- Boolean (default: ``True``); if True, value for each
-          edge present in the graph is set to zero.
+        - ``nonedgesonly`` -- boolean (default: ``True``); if ``True``, value 
+          for each edge present in the graph is set to zero.
 
-        - ``vertices`` -- list (default: ``None``); the ordering of the vertices
-          defining how they should appear in the matrix. By default, the
-          ordering given by :meth:`GenericGraph.vertices` is used.
+        - ``vertices`` -- list (default: ``None``); the ordering of the 
+          vertices defining how they should appear in the matrix. By default, 
+          the ordering given by :meth:`GenericGraph.vertices` is used.
 
         OUTPUT: the Katz matrix of the graph with parameter alpha
 
@@ -22796,8 +22796,8 @@ class GenericGraph(GenericGraph_pyx):
             [ 5/99 1/198  5/99 1/198]
 
 
-        We find the Katz matrix of an undirected 4-cycle with all entries other than
-        those which correspond to non-edges zeroed out.  ::
+        We find the Katz matrix of an undirected 4-cycle with all entries 
+        other than those which correspond to non-edges zeroed out.  ::
 
             sage: G.katz_matrix(1/20, True)
             [    0     0 1/198     0]
@@ -22806,7 +22806,8 @@ class GenericGraph(GenericGraph_pyx):
             [    0     1/198 0     0]
 
 
-        This will give an error if alpha<=0 or alpha>=1/spectral_radius = 1/max(A.eigenvalues()).
+        This will give an error if alpha<=0 or alpha>=1/spectral_radius = 1/max
+        (A.eigenvalues()).
 
 
         We find the Katz matrix in a fan on 6 vertices. ::
@@ -22860,7 +22861,7 @@ class GenericGraph(GenericGraph_pyx):
         if vertices is None:
             vertices = self.vertices()
         elif (len(vertices) != n or
-              set(vertices) != set(self.vertex_iterator())):
+              set(vertices) != set(self)):
             raise ValueError("``vertices`` must be a permutation of the vertices")
         
         A = self.adjacency_matrix(vertices=vertices)
@@ -22873,10 +22874,10 @@ class GenericGraph(GenericGraph_pyx):
             raise ValueError('the parameter alpha must be less than the reciprocal of the spectral radius of the graph')
         
         In = matrix.identity(n)
-        K =  (In - alpha * A.transpose()).inverse()-In
+        K =  (In - alpha * A.transpose()).inverse() - In
         if nonedgesonly:
             onesmat = matrix(QQ, n, n, lambda i, j: 1)
-            Missing = onesmat - A- In
+            Missing = onesmat - A - In
             return K.elementwise_product(Missing)
         else:
             return K
@@ -22886,27 +22887,29 @@ class GenericGraph(GenericGraph_pyx):
         r"""
         Return the katz centrality of the vertex u of the graph.
 
-        Katz centrality of a node is a measure of centrality in a graph network. Katz centrality
-        computes the relative influence of a node within a network by measuring the number of
-        the immediate neighbors (first degree nodes) and also all other nodes in the network
-        that connect to the node under consideration through these immediate neighbors.
-        Connections made with distant neighbors are, however, penalized by an attenuation factor
-        α.
+        Katz centrality of a node is a measure of centrality in a graph 
+        network. Katz centrality computes the relative influence of a node 
+        within a network. Connections made with distant neighbors are, however 
+        penalized by an attenuation factor α.
 
         See the :wikipedia:`Katz_centrality` for more information.
 
         INPUT:
 
-        - ``alpha`` -- a nonnegative real number, must be less than the reciprocal of the spectral radius of the graph (the maximum absolute eigenvalue of the adjacency matrix).
+        - ``alpha`` -- a nonnegative real number, must be less than the 
+          reciprocal of the spectral radius of the graph (the maximum absolute 
+          eigenvalue of the adjacency matrix).
 
-        - ``u`` -- the vertex whose Katz centrality needs to be measured (default: ``None``)
+        - ``u`` -- the vertex whose Katz centrality needs to be measured 
+          (default: ``None``)
 
-        OUTPUT: a list containing the Katz centrality of each vertex if u=None otherwise Katz centrality of the
-        vertex u.
+        OUTPUT: a list containing the Katz centrality of each vertex if u=None 
+        otherwise Katz centrality of the vertex u.
 
         EXAMPLES:
 
-        We compute katz_centrality for the undirected 4-cycle again (note that by symmetry, all 4 vertices have the same centrality) ::
+        We compute katz_centrality for the undirected 4-cycle again (note that 
+        by symmetry, all 4 vertices have the same centrality) ::
             
             sage: G = graphs.CycleGraph(4)
             sage: G.katz_centrality(1/20)

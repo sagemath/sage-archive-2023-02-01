@@ -8282,17 +8282,18 @@ class Graph(GenericGraph):
         Return a matrix whose (`i` , `j`) entry gives the effective resistance
         between vertices `i` and `j`.
 
-        The effective resistance is the resistance between two equivalent points of a simple connected graph
+        The effective resistance is the resistance between two equivalent 
+        points of a simple connected graph
         replacing each edge by a 1 ohm resistance.
 
         INPUT:
 
-        - ``nonedgesonly`` -- boolean (default: ``True``) if ``True`` assign zero
-          resistance to pairs of adjacent vertices.
+        - ``nonedgesonly`` -- boolean (default: ``True``) if ``True`` assign 
+          zero resistance to pairs of adjacent vertices.
 
-        - ``vertices`` -- list (default: ``None``); the ordering of the vertices
-          defining how they should appear in the matrix. By default, the
-          ordering given by :meth:`GenericGraph.vertices` is used.
+        - ``vertices`` -- list (default: ``None``); the ordering of the 
+          vertices defining how they should appear in the matrix. By default, 
+          the ordering given by :meth:`GenericGraph.vertices` is used.
 
         OUTPUT: matrix
 
@@ -8357,9 +8358,11 @@ class Graph(GenericGraph):
             sage: G.effective_resistance_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: This method is not known to work on graphs with multiedges. Perhaps
-            this method can be updated to handle them, but in the meantime if you want to use
-            it please disallow multiedges using allow_multiple_edges().
+            ValueError: This method is not known to work on graphs with 
+            multiedges. Perhaps this method can be updated to handle them, but 
+            in the meantime if you want to use it please disallow multiedges 
+            using allow_multiple_edges().
+            
             sage: graphs.CompleteGraph(4).effective_resistance_matrix(nonedgesonly=False)
             [  0 1/2 1/2 1/2]
             [1/2   0 1/2 1/2]
@@ -8401,7 +8404,7 @@ class Graph(GenericGraph):
         S = d*onesvec.transpose() + onesvec*d.transpose() - 2* M
         onesmat = matrix(QQ, n, n, lambda i, j: 1)
         if nonedgesonly:
-            B = onesmat - self.adjacency_matrix(vertices=vertices)- matrix.identity(n)
+            B = onesmat - self.adjacency_matrix(vertices=vertices) - matrix.identity(n)
             S = S.elementwise_product(B)
 
         return S
@@ -8411,8 +8414,9 @@ class Graph(GenericGraph):
         r"""
         Return a list of pairs of nodes with the least effective resistance.
 
-        The effective resistance is the resistance between two equivalent points of a simple connected graph
-        replacing each edge by a 1 ohm resistance.
+        The effective resistance is the resistance between two equivalent 
+        points of a simple connected graph replacing each edge by a 1 ohm 
+        resistance.
 
         INPUT:
 
@@ -8423,15 +8427,15 @@ class Graph(GenericGraph):
 
         EXAMPLES:
 
-        Pairs of non-adjacent nodes with least effective resitance in a straight
-        linear 2-tree on 6 vertices::
+        Pairs of non-adjacent nodes with least effective resitance in a 
+        straight linear 2-tree on 6 vertices::
 
             sage: G = Graph([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
             sage: G.least_effective_resistance()
             [(1, 4)]
 
-        Pairs of (adjacent or non-adjacent) nodes with least effective resitance
-        in a straight linear 2-tree on 6 vertices ::
+        Pairs of (adjacent or non-adjacent) nodes with least effective 
+        resitance in a straight linear 2-tree on 6 vertices ::
 
             sage: G.least_effective_resistance(nonedgesonly = False)
             [(2, 3)]
@@ -8446,7 +8450,8 @@ class Graph(GenericGraph):
         .. SEEALSO::
 
             * :meth:`effective_resistance_matrix` --
-              a similar method giving a matrix full of all effective resistances
+              a similar method giving a matrix full of all effective 
+              resistances
 
             * :meth:`effective_resistance` --
               compuetes effective resistance for a single node pair

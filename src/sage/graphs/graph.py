@@ -8191,8 +8191,10 @@ class Graph(GenericGraph):
         r"""
         Return the effective resistance between nodes `i` and `j`.
 
-        This is the resistance between two equivalent points of a simple connected graph
-        replacing each edge by a 1 ohm resistance.
+        The resistance distance between vertices `i` and `j` of a simple
+        connected graph `G` is defined as the effective resistance between the
+        two vertices on an electrical network constructed from `G` replacing
+        each edge of the graph by a unit (1 ohm) resistor.
 
         See the :wikipedia:`Resistance_distance` for more information.
 
@@ -8227,7 +8229,8 @@ class Graph(GenericGraph):
         .. SEEALSO::
 
             * :meth:`effective_resistance_matrix` --
-              a similar method giving a matrix full of all effective resistances between all nodes
+              a similar method giving a matrix full of all effective
+              resistances between all nodes
 
             * :meth:`least_effective_resistance` --
               gives node pairs with least effective resistances
@@ -8263,7 +8266,7 @@ class Graph(GenericGraph):
 
         self._scream_if_not_simple()
         if not self.is_connected():
-            raise ValueError('the Graph is not a connected graph.')
+            raise ValueError('the Graph is not a connected graph')
 
         vert = list(self)
         i1 = vert.index(i)
@@ -8283,9 +8286,10 @@ class Graph(GenericGraph):
         Return a matrix whose (`i` , `j`) entry gives the effective resistance
         between vertices `i` and `j`.
 
-        The effective resistance is the resistance between two equivalent 
-        points of a simple connected graph
-        replacing each edge by a 1 ohm resistance.
+        The resistance distance between vertices `i` and `j` of a simple
+        connected graph `G` is defined as the effective resistance between the
+        two vertices on an electrical network constructed from `G` replacing
+        each edge of the graph by a unit (1 ohm) resistor.
 
         INPUT:
 
@@ -8396,13 +8400,13 @@ class Graph(GenericGraph):
             vertices = self.vertices()
         self._scream_if_not_simple()
         if not self.is_connected():
-            raise ValueError('the Graph is not a connected graph.')
+            raise ValueError('the Graph is not a connected graph')
 
         L = self.laplacian_matrix(vertices=vertices)
         M = L.pseudoinverse()
         d = matrix(M.diagonal()).transpose()
         onesvec = matrix(QQ, n, 1, lambda i, j: 1)
-        S = d*onesvec.transpose() + onesvec*d.transpose() - 2* M
+        S = d * onesvec.transpose() + onesvec * d.transpose() - 2 * M
         onesmat = matrix(QQ, n, n, lambda i, j: 1)
         if nonedgesonly:
             B = onesmat - self.adjacency_matrix(vertices=vertices) - matrix.identity(n)
@@ -8415,9 +8419,10 @@ class Graph(GenericGraph):
         r"""
         Return a list of pairs of nodes with the least effective resistance.
 
-        The effective resistance is the resistance between two equivalent 
-        points of a simple connected graph replacing each edge by a 1 ohm 
-        resistance.
+        The resistance distance between vertices `i` and `j` of a simple
+        connected graph `G` is defined as the effective resistance between the
+        two vertices on an electrical network constructed from `G` replacing
+        each edge of the graph by a unit (1 ohm) resistor.
 
         INPUT:
 
@@ -8474,10 +8479,10 @@ class Graph(GenericGraph):
         """
         n = self.order()
         if n == 0:
-            raise ValueError('unable to compute least resistance for an empty Graph object')
+            raise ValueError('unable to compute least resistance on empty Graph')
         self._scream_if_not_simple()
         if not self.is_connected():
-            raise ValueError('the Graph is not a connected graph.')
+            raise ValueError('the Graph is not a connected graph')
         if nonedgesonly and self.is_clique():
             return []
         verts = list(self)
@@ -8486,7 +8491,7 @@ class Graph(GenericGraph):
         if nonedgesonly:
             edges = self.complement().edges(labels=False)
         else:
-            edges = [(verts[i],verts[j]) for i in range(n) for j in range(i+1,n)]
+            edges = [(verts[i], verts[j]) for i in range(n) for j in range(i + 1, n)]
             
         rmin = min(S[(verttoidx[e[0]], verttoidx[e[1]])] for e in edges)
         return [e for e in edges if S[(verttoidx[e[0]], verttoidx[e[1]])] == rmin]

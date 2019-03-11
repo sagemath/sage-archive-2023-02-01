@@ -190,12 +190,18 @@ def gen_html_code(G,
 
         sage: filename = gen_html_code(graphs.CompleteBipartiteGraph(4, 5))
 
-    :trac:`27460`::
+    In the generated html code, the source (resp. target) of a link is the index
+    of the node in the list defining the names of the nodes. We check that the
+    order is correct (:trac:`27460`)::
 
         sage: filename = gen_html_code(DiGraph({1: [10]}))
         sage: with open(filename, 'r') as f:
-        ....:     f.read()
-        ..."nodes": [{"name": "10", ...}, {"name": "1", ...}], "links": [{"source": 1, "target": 0, ...}]...
+        ....:     data = f.read()
+        sage: nodes = data.partition('"nodes":')[2]; nodes
+        ...[{..."name": "10"...}, {..."name": "1"...}]...
+        sage: links = data.partition('"links":')[2]
+        sage: '"source": 1' in links and '"target": 0' in links
+        True
     """
     directed = G.is_directed()
     multiple_edges = G.has_multiple_edges()

@@ -2831,7 +2831,8 @@ cdef class MPolynomial_libsingular(MPolynomial):
             y^2 + y + 1
             sage: x.coefficient(x.exponents()[0])
             1
-
+            sage: f.coefficient(x.exponents()[0]) == f.coefficient({x:1,y:0})
+            True
 
         Be aware that this may not be what you think! The physical
         appearance of the variable x is deceiving -- particularly if
@@ -2878,7 +2879,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
                     exps[i] = int(degrees[i])
         elif isinstance(degrees, ETuple):
             for i in range(gens):
-                    exps[i] = int((<ETuple>degrees).get_exp(i))
+                exps[i] = int((<ETuple>degrees).get_exp(i))
         elif isinstance(degrees, dict):
             # Extract the ordered list of degree specifications from the dictionary
             poly_vars = self.parent().gens()

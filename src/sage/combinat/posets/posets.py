@@ -301,6 +301,7 @@ from sage.combinat.combinatorial_map import combinatorial_map
 from sage.misc.superseded import deprecated_function_alias
 from sage.combinat.subset import Subsets
 
+
 def Poset(data=None, element_labels=None, cover_relations=False, linear_extension=False, category=None, facade=None, key=None):
     r"""
     Construct a finite poset from various forms of input data.
@@ -2319,7 +2320,7 @@ class FinitePoset(UniqueRepresentation, Parent):
                 chain_pairs = [tuple(chain_pair) for chain_pair in m]
             except TypeError:
                 raise TypeError("%s is not a tuple of tuples." % str(tuple(m)))
-            if not all(len(chain_pair) is 2 for chain_pair in chain_pairs):
+            if not all(len(chain_pair) == 2 for chain_pair in chain_pairs):
                 raise ValueError("%r is not a tuple of length-2 tuples." % str(tuple(m)))
             chain_pairs = sorted(chain_pairs, key=min)
         else:
@@ -3782,9 +3783,13 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``algorithm`` -- either ``'singular'`` (default) or ``'sage'``
+        - ``algorithm`` -- optional (default ``'singular'``), possible
+          values are ``'singular'``, ``'sage'``, ``'gap'``,
+          ``'pari'``, ``'maple'``, ``'magma'``, ``'fricas'``
 
-        Beware that using ``'sage'`` is much slower.
+        Beware that speed depends very much on the choice of
+        algorithm. Sage is rather slow, Singular is faster and Pari is
+        fast at least for small sizes.
 
         OUTPUT:
 
@@ -3805,28 +3810,72 @@ class FinitePoset(UniqueRepresentation, Parent):
            sage: prod(P.coxeter_smith_form()) == P.coxeter_polynomial()
            True
 
+        TESTS::
+
+           sage: P = posets.PentagonPoset()
+           sage: P.coxeter_smith_form(algorithm='sage')
+           [1, 1, 1, 1, x^5 + x^4 + x + 1]
+           sage: P.coxeter_smith_form(algorithm='gap')
+           [1, 1, 1, 1, x^5 + x^4 + x + 1]
+           sage: P.coxeter_smith_form(algorithm='pari')
+           [1, 1, 1, 1, x^5 + x^4 + x + 1]
+           sage: P.coxeter_smith_form(algorithm='fricas')  # optional - fricas
+           [1, 1, 1, 1, x^5 + x^4 + x + 1]
+           sage: P.coxeter_smith_form(algorithm='maple')  # optional - maple
+           [1, 1, 1, 1, x^5 + x^4 + x + 1]
+           sage: P.coxeter_smith_form(algorithm='magma')  # optional - magma
+           [1, 1, 1, 1, x^5 + x^4 + x + 1]
+
         .. SEEALSO::
 
             :meth:`coxeter_transformation`, :meth:`coxeter_matrix`
         """
-        from sage.interfaces.singular import singular
         c0 = self.coxeter_transformation()
         x = polygen(QQ, 'x')   # not possible to use ZZ for the moment
 
-        if algorithm == 'sage':  # *very slow*
-            return (x - c0).smith_form()[0].diagonal()
-
-        if algorithm == 'singular':  # quite faster
+        if algorithm == 'singular':  # quite faster than sage
+            from sage.interfaces.singular import singular
             singular.LIB('jacobson.lib')
             sing_m = singular(x - c0)
             L = sing_m.smith().sage().diagonal()
             return sorted([u / u.lc() for u in L],
                           key=lambda p: p.degree())
 
-        if algorithm == 'magma':  # faster, not working for the moment
+        if algorithm == 'sage':  # *very slow*
+            return (x - c0).smith_form(transformation=False).diagonal()
+
+        if algorithm == 'magma':  # also quite fast
             from sage.interfaces.magma import magma
             elem = magma('ElementaryDivisors')
             return elem.evaluate(x - c0).sage()
+
+        if algorithm == 'gap':
+            from sage.libs.gap.libgap import libgap
+            gap_m = libgap(x - c0)
+            elem = gap_m.ElementaryDivisorsMat()
+            return elem.sage()
+
+        if algorithm == 'pari':   # maybe fast, at least for small size
+            from sage.libs.pari import pari
+            pari_m = pari(x - c0)
+            elem = pari_m.matsnf(2)
+            A = x.parent()
+            return sorted((A(f) for f in elem),
+                          key=lambda p: p.degree())
+
+        if algorithm == 'maple':
+            from sage.interfaces.maple import maple
+            maple_m = maple(x - c0)
+            maple.load("MatrixPolynomialAlgebra")
+            maple.load("ArrayTools")
+            elem = maple.SmithForm(maple_m).Diagonal()
+            A = x.parent()
+            return [A(f.sage()) for f in elem]
+
+        if algorithm == 'fricas':
+            from sage.interfaces.fricas import fricas
+            fm = fricas(x-c0)
+            return list(fricas(fm.name()+"::Matrix(UP(x, FRAC INT))").smith().diagonal().sage())
 
     def is_meet_semilattice(self, certificate=False):
         r"""
@@ -8002,6 +8051,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         return (set(self).issubset(set(other)) and
                 other.subposet(self).hasse_diagram() == self.hasse_diagram())
 
+
 FinitePoset._dual_class = FinitePoset
 
 # ------- Posets -------
@@ -8112,6 +8162,7 @@ class FinitePosets_n(UniqueRepresentation, Parent):
             return Integer(known_values[self._n])
         else:
             return super(FinitePosets_n, self).cardinality()
+
 
 # For backward compatibility of pickles of the former Posets()
 Posets_all = Posets

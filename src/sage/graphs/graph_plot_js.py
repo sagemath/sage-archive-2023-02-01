@@ -189,6 +189,13 @@ def gen_html_code(G,
     :trac:`17370`::
 
         sage: filename = gen_html_code(graphs.CompleteBipartiteGraph(4, 5))
+
+    :trac:`27460`::
+
+        sage: filename = gen_html_code(DiGraph({1: [10]}))
+        sage: with open(filename, 'r') as f:
+        ....:     f.read()
+        ..."nodes": [{"name": "10", ...}, {"name": "1", ...}], "links": [{"source": 1, "target": 0, ...}]...
     """
     directed = G.is_directed()
     multiple_edges = G.has_multiple_edges()

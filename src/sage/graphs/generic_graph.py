@@ -22857,7 +22857,7 @@ class GenericGraph(GenericGraph_pyx):
         
         n = self.order()
         if n == 0 :
-            raise ValueError('Graph is Empty.') 
+            raise ValueError('graph is empty.') 
         if vertices is None:
             vertices = self.vertices()
         elif (len(vertices) != n or

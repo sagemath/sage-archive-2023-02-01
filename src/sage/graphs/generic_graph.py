@@ -22959,17 +22959,9 @@ class GenericGraph(GenericGraph_pyx):
         
         katz_values = (M*matrix(QQ, n, 1, lambda i, j: 1)).transpose()
 
-        if u :
-            idx = verts.index(u)
-            return katz_values[0][idx]
-
-        Kdict = {}
-        Kdict = {u: katz_values[0][i] for i, u in enumerate(verts)}
-
-        if u is None:
-            return Kdict
-        else :
-            return Kdict[u]
+        if u:
+            return katz_values[0][verts.index(u)]
+        return {u: katz_values[0][i] for i, u in enumerate(verts)}
 
 def tachyon_vertex_plot(g, bgcolor=(1,1,1),
                         vertex_colors=None,

@@ -3140,11 +3140,7 @@ def crt(a,b,m=None,n=None):
         raise ValueError("No solution to crt problem since gcd(%s,%s) does not divide %s-%s" % (m, n, a, b))
     from sage.arith.functions import lcm
 
-    try:
-        x = a + q*alpha*m
-    except TypeError:
-        # Maybe a coercion problem with m type (operand `*`)
-        x = a + q*alpha*py_scalar_to_element(m)
+    x = a + q*alpha*py_scalar_to_element(m)
     return x % lcm(m, n)
 
 

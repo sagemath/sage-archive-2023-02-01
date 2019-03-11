@@ -206,9 +206,8 @@ def gen_html_code(G,
             color[v_to_id[v]] = i
 
     # Vertex list
-    nodes = []
-    for v in G.vertices():
-        nodes.append({"name": str(v), "group": str(color[v_to_id[v]])})
+    # Data for vertex v must be at position v_to_id[v] in list nodes
+    nodes = [{"name": str(v), "group": str(color[v_to_id[v]])} for v in G]
 
     # Edge colors.
     edge_color_default = "#aaa"
@@ -258,6 +257,7 @@ def gen_html_code(G,
                 curve = (1 if seen[u, v] % 2 else -1) * (seen[u, v] // 2) * 15
 
         # Adding the edge to the list
+        # The source (resp. target) is the index of u (resp. v) in list nodes
         edges.append({"source": v_to_id[u],
                       "target": v_to_id[v],
                       "strength": 0,

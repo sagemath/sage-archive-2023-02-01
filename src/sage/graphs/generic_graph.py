@@ -23071,7 +23071,7 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
 
             # Flatten edge_partition to [list of edges, list of edges, ...]
             # The groups are ordered by increasing multiplicity
-            edge_partition = [tmp[m] for m in sorted(tmp.keys())]
+            edge_partition = [tmp[mu] for mu in sorted(tmp.keys())]
 
             # Now the edges are partitionned according to the multiplicity they
             # represent, and edge labels are forgotten.

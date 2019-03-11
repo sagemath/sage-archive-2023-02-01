@@ -80,7 +80,8 @@ AUTHORS:
 
 - David Coudert (2018-10-07): cleaning
 
-- Amanda Francis, Caitlin Lienkaemper, Kate Collins, Rajat Mittal (2019-03-10): methods for computing effective resistance
+- Amanda Francis, Caitlin Lienkaemper, Kate Collins, Rajat Mittal (2019-03-10):
+  methods for computing effective resistance
 
 Graph Format
 ------------
@@ -8199,7 +8200,7 @@ class Graph(GenericGraph):
 
         - ``i``, ``j`` -- vertices of the graph
 
-        OUTPUT: rational number denoting resistance between nodes i and j
+        OUTPUT: rational number denoting resistance between nodes `i` and `j`
 
         EXAMPLES:
 
@@ -8236,7 +8237,7 @@ class Graph(GenericGraph):
         TESTS::
 
             sage: G = graphs.CompleteGraph(4)
-            sage: all(G.effective_resistance(u, v) == 1/2 for u,v in G.edge_iterator(labels=0))
+            sage: all(G.effective_resistance(u, v) == 1/2 for u,v in G.edge_iterator(labels=False))
             True
             sage: Graph(1).effective_resistance(0,0)
             0
@@ -8252,7 +8253,7 @@ class Graph(GenericGraph):
             True
         """
         from sage.matrix.constructor import matrix
-        if not i in self:
+        if i not in self:
             raise ValueError("vertex ({0}) is not a vertex of the graph".format(repr(i)))
         elif not j in self:
             raise ValueError("vertex ({0}) is not a vertex of the graph".format(repr(j)))    
@@ -8262,19 +8263,19 @@ class Graph(GenericGraph):
 
         self._scream_if_not_simple()
         if not self.is_connected():
-            raise ValueError('The Graph is not a connected graph.')
+            raise ValueError('the Graph is not a connected graph.')
 
-        vert = self.vertices()
+        vert = list(self)
         i1 = vert.index(i)
         i2 = vert.index(j)
         n = self.order()
-        L = self.laplacian_matrix()
+        L = self.laplacian_matrix(vertices=vert)
         M = L.pseudoinverse()
         Id = matrix.identity(n)
-        sigma = matrix(Id[i1]-Id[i2])
-        diff = sigma* M * sigma.transpose()
+        sigma = matrix(Id[i1] - Id[i2])
+        diff = sigma * M * sigma.transpose()
 
-        return diff[0,0]
+        return diff[0, 0]
 
     @doc_index("Leftovers")
     def effective_resistance_matrix(self, vertices=None, nonedgesonly=True):
@@ -8373,7 +8374,7 @@ class Graph(GenericGraph):
             sage: Graph().effective_resistance_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: Unable to compute effective resistance for an empty Graph object
+            ValueError: unable to compute effective resistance for an empty Graph object
             sage: G = Graph([(0,1),(1,2),(2,3),(3,0),(0,2)])
             sage: G.effective_resistance_matrix()
             [0 0 0 0]
@@ -8390,12 +8391,12 @@ class Graph(GenericGraph):
 
         n = self.order()
         if n == 0:
-            raise ValueError('Unable to compute effective resistance for an empty Graph object')
+            raise ValueError('unable to compute effective resistance for an empty Graph object')
         if vertices is None:
             vertices = self.vertices()
         self._scream_if_not_simple()
         if not self.is_connected():
-            raise ValueError('The Graph is not a connected graph.')
+            raise ValueError('the Graph is not a connected graph.')
 
         L = self.laplacian_matrix(vertices=vertices)
         M = L.pseudoinverse()
@@ -8473,18 +8474,18 @@ class Graph(GenericGraph):
         """
         n = self.order()
         if n == 0:
-            raise ValueError('Unable to compute least resistance for an empty Graph object')
+            raise ValueError('unable to compute least resistance for an empty Graph object')
         self._scream_if_not_simple()
         if not self.is_connected():
-            raise ValueError('The Graph is not a connected graph.')
+            raise ValueError('the Graph is not a connected graph.')
         if nonedgesonly and self.is_clique():
             return []
-        verts = self.vertices()
+        verts = list(self)
         verttoidx = {}
         verttoidx = {u: i for i, u in enumerate(verts)}
-        S = self.effective_resistance_matrix(nonedgesonly=nonedgesonly)
+        S = self.effective_resistance_matrix(vertices=verts, nonedgesonly=nonedgesonly)
         if nonedgesonly:
-            edges = self.complement().edges(labels=0)
+            edges = self.complement().edges(labels=False)
         else:
             edges = [(verts[i],verts[j]) for i in range(n) for j in range(i+1,n)]
             

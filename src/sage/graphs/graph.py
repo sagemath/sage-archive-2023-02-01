@@ -8481,7 +8481,6 @@ class Graph(GenericGraph):
         if nonedgesonly and self.is_clique():
             return []
         verts = list(self)
-        verttoidx = {}
         verttoidx = {u: i for i, u in enumerate(verts)}
         S = self.effective_resistance_matrix(vertices=verts, nonedgesonly=nonedgesonly)
         if nonedgesonly:

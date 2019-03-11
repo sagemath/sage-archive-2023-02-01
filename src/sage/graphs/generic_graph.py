@@ -22950,7 +22950,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         n = self.order()
         if n == 0 :
-            raise ValueError('Graph is Empty.')  
+            raise ValueError('graph is empty.')  
         verts = list(self)          
         M = self.katz_matrix(alpha, nonedgesonly=False, vertices=verts)
         

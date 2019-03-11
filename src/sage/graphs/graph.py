@@ -8488,8 +8488,8 @@ class Graph(GenericGraph):
         else:
             edges = [(verts[i],verts[j]) for i in range(n) for j in range(i+1,n)]
             
-        rmin = min(S[(verttoidx[e[0]],verttoidx[e[1]])] for e in edges)
-        return [e for e in edges if S[(verttoidx[e[0]],verttoidx[e[1]])] == rmin]
+        rmin = min(S[(verttoidx[e[0]], verttoidx[e[1]])] for e in edges)
+        return [e for e in edges if S[(verttoidx[e[0]], verttoidx[e[1]])] == rmin]
         
     # Aliases to functions defined in other modules
     from sage.graphs.weakly_chordal import is_long_hole_free, is_long_antihole_free, is_weakly_chordal

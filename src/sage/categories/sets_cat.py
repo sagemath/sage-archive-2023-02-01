@@ -2640,7 +2640,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                     Defining e as shorthand for Symmetric Functions over Integer Ring in the elementary basis
                     Defining f as shorthand for Symmetric Functions over Integer Ring in the forgotten basis
                     Defining h as shorthand for Symmetric Functions over Integer Ring in the homogeneous basis
-                    Defining ht as shorthand for Symmetric Functions over Integer Ring in the induced trivial character basis
+                    Defining ht as shorthand for Symmetric Functions over Integer Ring in the induced trivial symmetric group character basis
                     Defining m as shorthand for Symmetric Functions over Integer Ring in the monomial basis
                     Defining o as shorthand for Symmetric Functions over Integer Ring in the orthogonal basis
                     Defining p as shorthand for Symmetric Functions over Integer Ring in the powersum basis

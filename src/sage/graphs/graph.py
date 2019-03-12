@@ -8258,9 +8258,9 @@ class Graph(GenericGraph):
         from sage.matrix.constructor import matrix
         if i not in self:
             raise ValueError("vertex ({0}) is not a vertex of the graph".format(repr(i)))
-        elif not j in self:
+        elif j not in self:
             raise ValueError("vertex ({0}) is not a vertex of the graph".format(repr(j)))    
-        
+
         if i == j :
             return 0
 
@@ -8293,11 +8293,11 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``nonedgesonly`` -- boolean (default: ``True``) if ``True`` assign 
+        - ``nonedgesonly`` -- boolean (default: ``True``); if ``True`` assign
           zero resistance to pairs of adjacent vertices.
 
-        - ``vertices`` -- list (default: ``None``); the ordering of the 
-          vertices defining how they should appear in the matrix. By default, 
+        - ``vertices`` -- list (default: ``None``); the ordering of the
+          vertices defining how they should appear in the matrix. By default,
           the ordering given by :meth:`GenericGraph.vertices` is used.
 
         OUTPUT: matrix
@@ -8363,9 +8363,9 @@ class Graph(GenericGraph):
             sage: G.effective_resistance_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: This method is not known to work on graphs with 
-            multiedges. Perhaps this method can be updated to handle them, but 
-            in the meantime if you want to use it please disallow multiedges 
+            ValueError: This method is not known to work on graphs with
+            multiedges. Perhaps this method can be updated to handle them, but
+            in the meantime if you want to use it please disallow multiedges
             using allow_multiple_edges().
             
             sage: graphs.CompleteGraph(4).effective_resistance_matrix(nonedgesonly=False)
@@ -8394,7 +8394,7 @@ class Graph(GenericGraph):
         from sage.rings.rational_field import QQ
 
         n = self.order()
-        if n == 0:
+        if not n:
             raise ValueError('unable to compute effective resistance for an empty Graph object')
         if vertices is None:
             vertices = self.vertices()
@@ -8433,14 +8433,14 @@ class Graph(GenericGraph):
 
         EXAMPLES:
 
-        Pairs of non-adjacent nodes with least effective resitance in a 
+        Pairs of non-adjacent nodes with least effective resitance in a
         straight linear 2-tree on 6 vertices::
 
             sage: G = Graph([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
             sage: G.least_effective_resistance()
             [(1, 4)]
 
-        Pairs of (adjacent or non-adjacent) nodes with least effective 
+        Pairs of (adjacent or non-adjacent) nodes with least effective
         resitance in a straight linear 2-tree on 6 vertices ::
 
             sage: G.least_effective_resistance(nonedgesonly = False)
@@ -8456,7 +8456,7 @@ class Graph(GenericGraph):
         .. SEEALSO::
 
             * :meth:`effective_resistance_matrix` --
-              a similar method giving a matrix full of all effective 
+              a similar method giving a matrix full of all effective
               resistances
 
             * :meth:`effective_resistance` --
@@ -8478,7 +8478,7 @@ class Graph(GenericGraph):
             [(1, 3)]
         """
         n = self.order()
-        if n == 0:
+        if not n:
             raise ValueError('unable to compute least resistance on empty Graph')
         self._scream_if_not_simple()
         if not self.is_connected():

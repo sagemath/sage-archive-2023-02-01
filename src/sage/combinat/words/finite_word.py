@@ -201,6 +201,19 @@ Left-special and bispecial factors::
     1
     sage: f.bispecial_factors()
     [word: , word: 0, word: 010, word: 010010, word: 01001010010]
+
+REFERENCES:
+
+.. [BMBL] A. Blondin-Massé, S. Brlek, S. Labbé, *Palindromic lacunas
+   of the Thue-Morse word*, Proc. GASCOM 2008 (June 16-20 2008,
+   Bibbiena, Arezzo-Italia), 53--67.
+
+.. [BMBFLR] A. Blondin-Massé, S. Brlek, A. Frosini, S. Labbé,
+   S. Rinaldi, *Reconstructing words from a fixed palindromic length
+   sequence*, Proc. TCS 2008, 5th IFIP International Conference on
+   Theoretical Computer Science (September 8-10 2008, Milano,
+   Italia).
+
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Arnaud Bergeron <abergeron@gmail.com>,
@@ -1107,7 +1120,8 @@ class FiniteWord_class(Word_class):
         Return a table of the maximum skip you can do in order not to miss
         a possible occurrence of ``self`` in a word.
 
-        This is a part of the Boyer-Moore algorithm to find factors. See [1].
+        This is a part of the Boyer-Moore algorithm to find factors.
+        See [BoMoo]_.
 
         EXAMPLES::
 
@@ -1118,8 +1132,8 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        -   [1] R.S. Boyer, J.S. Moore, A fast string searching algorithm,
-            Communications of the ACM 20 (1977) 762--772.
+        .. [BoMoo] \R. S. Boyer, J. S. Moore, A fast string searching algorithm,
+           Communications of the ACM 20 (1977) 762--772.
         """
         l = self.length()
         p = self.reversal().prefix_function_table()
@@ -1451,7 +1465,7 @@ class FiniteWord_class(Word_class):
         increases: `H_{top}(u)=\lim_{n\to\infty}\frac{\log_d(p_u(n))}{n}`
         where `d` denotes the cardinality of the alphabet and `p_u(n)` is
         the complexity function, i.e. the number of factors of length `n`
-        in the sequence `u` [1].
+        in the sequence `u` [Fogg]_.
 
         INPUT:
 
@@ -1504,9 +1518,9 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-           [1] N. Pytheas Fogg, Substitutions in Dynamics, Arithmetics,
-           and Combinatorics, Lecture Notes in Mathematics 1794, Springer
-           Verlag. V. Berthe, S. Ferenczi, C. Mauduit and A. Siegel, Eds.
+        .. [Fogg] \N. Pytheas Fogg, *Substitutions in Dynamics, Arithmetics,
+           and Combinatorics*, Lecture Notes in Mathematics 1794, Springer
+           Verlag. V. Berthé, S. Ferenczi, C. Mauduit and A. Siegel, Eds.
            (2002).
         """
         d = self.parent().alphabet().cardinality()
@@ -1630,10 +1644,11 @@ class FiniteWord_class(Word_class):
         .. NOTE::
 
             In the case of infinite recurrent non-periodic words, this
-            definition corresponds to the following one that can be found in
-            [1] and [2]  where a simple path is a path that begins with a
-            special factor, ends with a special factor and contains no
-            other vertices that are special:
+            definition corresponds to the following one that can be
+            found in [Bucci]_ and [BKS2008]_ where a simple path is a
+            path that begins with a special factor, ends with a
+            special factor and contains no other vertices that are
+            special:
 
             The reduced Rauzy graph of factors of length `n` is obtained
             from `G_n` by replacing each simple path `P=v_1 v_2 ...
@@ -1696,13 +1711,13 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        - [1] M. Bucci et al.  A. De Luca, A. Glen, L. Q. Zamboni, A
-          connection between palindromic and factor complexity using
-          return words," Advances in Applied Mathematics 42 (2009) 60-74.
+        .. [Bucci] \M. Bucci et al.  A. De Luca, A. Glen, L. Q. Zamboni, A
+           connection between palindromic and factor complexity using
+           return words," Advances in Applied Mathematics 42 (2009) 60-74.
 
-        - [2] L'ubomira Balkova, Edita Pelantova, and Wolfgang Steiner.
-          Sequences with constant number of return words. Monatsh. Math,
-          155 (2008) 251-263.
+        .. [BKS2008] Lubomira Balkova, Edita Pelantova, and Wolfgang Steiner.
+           *Sequences with constant number of return words*. Monatsh. Math,
+           155 (2008) 251-263.
         """
         from sage.graphs.digraph import DiGraph
         from copy import copy
@@ -2428,8 +2443,8 @@ class FiniteWord_class(Word_class):
 
         Let `f : \Sigma \rightarrow \Sigma` be an involution that extends
         to a morphism on `\Sigma^*`. We say that `w\in\Sigma^*` is a
-        *`f`-palindrome* if `w=f(\tilde{w})` [1]. Also called
-        *`f`-pseudo-palindrome* [2].
+        *`f`-palindrome* if `w=f(\tilde{w})` [Labbe2008]_. Also called
+        *`f`-pseudo-palindrome* [AnneZZ]_.
 
         INPUT:
 
@@ -2525,13 +2540,13 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        -   [1] S. Labbé, Propriétés combinatoires des `f`-palindromes,
-            Mémoire de maîtrise en Mathématiques, Montréal, UQAM, 2008,
-            109 pages.
-        -   [2] V. Anne, L.Q. Zamboni, I. Zorca, Palindromes and Pseudo-
-            Palindromes in Episturmian and Pseudo-Palindromic Infinite Words,
-            in : S. Brlek, C. Reutenauer (Eds.), Words 2005, Publications du
-            LaCIM, Vol. 36 (2005) 91--100.
+        .. [Labbe2008] S. Labbé, Propriétés combinatoires des `f`-palindromes,
+           Mémoire de maîtrise en Mathématiques, Montréal, UQAM, 2008,
+           109 pages.
+        .. [AnneZZ] V. Anne, L.Q. Zamboni, I. Zorca, Palindromes and Pseudo-
+           Palindromes in Episturmian and Pseudo-Palindromic Infinite Words,
+           in : S. Brlek, C. Reutenauer (Eds.), Words 2005, Publications du
+           LaCIM, Vol. 36 (2005) 91--100.
         """
         l = self.length()
         if f is None:
@@ -2651,13 +2666,13 @@ class FiniteWord_class(Word_class):
     def palindromic_lacunas_study(self, f=None):
         r"""
         Return interesting statistics about longest (``f``-)palindromic suffixes
-        and lacunas of ``self`` (see [1] and [2]).
+        and lacunas of ``self`` (see [BMBL]_ and [BMBFLR]_).
 
         Note that a word `w` has at most `|w| + 1` different palindromic factors
-        (see [3]). For `f`-palindromes (or pseudopalidromes or theta-palindromes),
+        (see [DJP2001]_). For `f`-palindromes (or pseudopalidromes or theta-palindromes),
         the maximum number of `f`-palindromic factors is `|w|+1-g_f(w)`, where
         `g_f(w)` is the number of pairs `\{a, f(a)\}` such that `a` is a letter,
-        `a` is not equal to `f(a)`, and `a` or `f(a)` occurs in `w`, see [4].
+        `a` is not equal to `f(a)`, and `a` or `f(a)` occurs in `w`, see [Star2011]_.
 
         INPUT:
 
@@ -2699,18 +2714,11 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        -   [1] A. Blondin-Massé, S. Brlek, S. Labbé, Palindromic lacunas
-            of the Thue-Morse word, Proc. GASCOM 2008 (June 16-20 2008,
-            Bibbiena, Arezzo-Italia), 53--67.
-        -   [2] A. Blondin-Massé, S. Brlek, A. Frosini, S. Labbé, S. Rinaldi,
-            Reconstructing words from a fixed palindromic length sequence,
-            Proc. TCS 2008, 5th IFIP International Conference on Theoretical
-            Computer Science (September 8-10 2008, Milano, Italia), accepted.
-        -   [3] X. Droubay, J. Justin, G. Pirillo, Episturmian words and
-            some constructions of de Luca and Rauzy, Theoret. Comput. Sci.
-            255 (2001) 539--553.
-        -   [4] Š. Starosta, On Theta-palindromic Richness, Theoret. Comp.
-            Sci. 412 (2011) 1111--1121
+        .. [DJP2001] \X. Droubay, J. Justin, G. Pirillo, *Episturmian words and
+           some constructions of de Luca and Rauzy*, Theoret. Comput. Sci.
+           255 (2001) 539--553.
+        .. [Star2011] Š. Starosta, *On Theta-palindromic Richness*,
+           Theoret. Comp. Sci. 412 (2011) 1111--1121
         """
         #Initialize the results of computations
         palindromes = set()
@@ -2741,7 +2749,7 @@ class FiniteWord_class(Word_class):
         Return the list of the length of the longest palindromic
         suffix (lps) for each non-empty prefix of ``self``.
 
-        It corresponds to the function `G_w` defined in [1].
+        It corresponds to the function `G_w` defined in [BMBFLR]_.
 
         INPUT:
 
@@ -2778,11 +2786,6 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        -   [1] A. Blondin-Massé, S. Brlek, A. Frosini, S. Labbé,
-            S. Rinaldi, Reconstructing words from a fixed palindromic length
-            sequence, Proc. TCS 2008, 5th IFIP International Conference on
-            Theoretical Computer Science (September 8-10 2008, Milano,
-            Italia), accepted.
         """
         return self.palindromic_lacunas_study(f=f)[0]
 
@@ -2791,7 +2794,7 @@ class FiniteWord_class(Word_class):
         Return the list of all the lacunas of ``self``.
 
         A *lacuna* is a position in a word where the longest (`f`-)palindromic
-        suffix is not unioccurrent (see [1]).
+        suffix is not unioccurrent (see [BMBL]_).
 
         INPUT:
 
@@ -2814,12 +2817,6 @@ class FiniteWord_class(Word_class):
             sage: f = WordMorphism({0:[1],1:[0]})
             sage: words.ThueMorseWord()[:50].lacunas(f)
             [0, 2, 4, 12, 16, 17, 18, 19, 48, 49]
-
-        REFERENCES:
-
-        -   [1] A. Blondin-Massé, S. Brlek, S. Labbé, Palindromic lacunas
-            of the Thue-Morse word, Proc. GASCOM 2008 (June 16-20 2008,
-            Bibbiena, Arezzo-Italia), 53--67.
         """
         return self.palindromic_lacunas_study(f=f)[1]
 
@@ -2829,7 +2826,7 @@ class FiniteWord_class(Word_class):
         (``f``)-palindromic suffixes (lps) for each non-empty prefix of ``self.`` No
         unioccurrent lps are indicated by ``None``.
 
-        It corresponds to the function `H_w` defined in [1] and [2].
+        It corresponds to the function `H_w` defined in [BMBL]_ and [BMBFLR]_.
 
         INPUT:
 
@@ -2858,16 +2855,6 @@ class FiniteWord_class(Word_class):
             sage: f = WordMorphism({1:[0],0:[1]})
             sage: t[:15].lengths_unioccurrent_lps(f)
             [None, 2, None, 2, None, 4, 6, 8, 4, 6, 4, 6, None, 4, 6]
-
-        REFERENCES:
-
-        -   [1] A. Blondin-Massé, S. Brlek, S. Labbé, Palindromic lacunas of
-            the Thue-Morse word, Proc. GASCOM 2008 (June 16-20 2008, Bibbiena,
-            Arezzo-Italia), 53--67.
-        -   [2] A. Blondin-Massé, S. Brlek, A. Frosini, S. Labbé, S. Rinaldi,
-            Reconstructing words from a fixed palindromic length sequence,
-            Proc. TCS 2008, 5th IFIP International Conference on Theoretical
-            Computer Science (September 8-10 2008, Milano, Italia), accepted.
         """
         l = self.lengths_lps(f=f)
         for i in self.lacunas(f=f):
@@ -3302,8 +3289,9 @@ class FiniteWord_class(Word_class):
         r"""
         Return ``True`` if ``self`` has defect `0`, and ``False`` otherwise.
 
-        A word is *full* (or *rich*) if its defect is zero (see [1]).
-        If ``f`` is given, then the ``f``-palindromic defect is used (see [2]).
+        A word is *full* (or *rich*) if its defect is zero (see [BHNR04]_).
+
+        If ``f`` is given, then the ``f``-palindromic defect is used (see [PeSta2011]_).
 
         INPUT:
 
@@ -3360,17 +3348,18 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        -   [1] S. Brlek, S. Hamel, M. Nivat, C. Reutenauer, On the Palindromic
-            Complexity of Infinite Words, in J. Berstel, J. Karhumaki,
-            D. Perrin, Eds, Combinatorics on Words with Applications,
-            International Journal of Foundation of Computer Science, Vol. 15,
-            No. 2 (2004) 293--306.
+        .. [BHNR04] S. Brlek, S. Hamel, M. Nivat, C. Reutenauer, *On
+           the Palindromic Complexity of Infinite Words*, in
+           J. Berstel, J. Karhumaki, D. Perrin, Eds, Combinatorics on
+           Words with Applications, International Journal of
+           Foundation of Computer Science, Vol. 15, No. 2 (2004)
+           293--306.
 
-        -   [2] E. Pelantová, Š. Starosta, Infinite words rich and almost rich
-            in generalized palindromes, in: G. Mauri, A. Leporati (Eds.),
-            Developments in Language Theory, volume 6795 of Lecture Notes
-            in Computer Science, Springer-Verlag, Berlin, Heidelberg, 2011,
-            pp. 406--416
+        .. [PeSta2011] E. Pelantová, Š. Starosta, Infinite words rich
+           and almost rich in generalized palindromes, in: G. Mauri,
+           A. Leporati (Eds.), Developments in Language Theory,
+           volume 6795 of Lecture Notes in Computer Science,
+           Springer-Verlag, Berlin, Heidelberg, 2011, pp. 406--416
         """
         return self.defect(f=f) == 0
 
@@ -3381,7 +3370,7 @@ class FiniteWord_class(Word_class):
         Return the shortest palindrome having ``self`` as a prefix
         (or as a suffix if ``side`` is ``'left'``).
 
-        See [1].
+        See [Luca2006]_.
 
         INPUT:
 
@@ -3431,8 +3420,8 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        -   [1] A. de Luca, A. De Luca, Pseudopalindrome closure operators
-            in free monoids, Theoret. Comput. Sci. 362 (2006) 282--300.
+        ..[Luca2006] \A. de Luca, *Pseudopalindrome closure operators
+          in free monoids*, Theoret. Comput. Sci. 362 (2006) 282--300.
         """
         if f is None:
             if side == 'right':
@@ -3464,7 +3453,8 @@ class FiniteWord_class(Word_class):
         ``False`` otherwise.
 
         A word is *symmetric* (resp. `f`-*symmetric*) if it is the
-        product of two palindromes (resp. `f`-palindromes). See [1] and [2].
+        product of two palindromes (resp. `f`-palindromes).
+        See [BHNR04]_ and [Luca2006]_.
 
         INPUT:
 
@@ -3484,19 +3474,8 @@ class FiniteWord_class(Word_class):
             sage: f = WordMorphism('a->b,b->a')
             sage: Word('aabbbaababba').is_symmetric(f)
             True
-
-        REFERENCES:
-
-        -   [1] S. Brlek, S. Hamel, M. Nivat, C. Reutenauer, On the Palindromic
-            Complexity of Infinite Words, in J. Berstel, J. Karhumaki,
-            D. Perrin, Eds, Combinatorics on Words with Applications,
-            International Journal of Foundation of Computer Science, Vol. 15,
-            No. 2 (2004) 293--306.
-        -   [2] A. de Luca, A. De Luca, Pseudopalindrome closure operators
-            in free monoids, Theoret. Comput. Sci. 362 (2006) 282--300.
         """
-
-        square = self*self
+        square = self * self
         return square.lps_lengths(f)[-1] >= self.length()
 
     def length_border(self):
@@ -3548,7 +3527,7 @@ class FiniteWord_class(Word_class):
         Let `A` be an alphabet. An integer `p\geq 1` is a *period* of a
         word `w=a_1a_2\cdots a_n` where `a_i\in A` if `a_i=a_{i+p}` for
         `i=1,\ldots,n-p`. The smallest period of `w` is called *the*
-        period of `w`. See Chapter 1 of [1].
+        period of `w`. See Chapter 1 of [Loth02]_.
 
         EXAMPLES::
 
@@ -3571,9 +3550,9 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        -   [1] M. Lothaire, Algebraic Combinatorics On Words, vol. 90 of
-            Encyclopedia of Mathematics and its Applications, Cambridge
-            University Press, U.K., 2002.
+        .. [Loth02] M. Lothaire, *Algebraic Combinatorics On Words*, vol. 90 of
+           Encyclopedia of Mathematics and its Applications, Cambridge
+           University Press, U.K., 2002.
         """
         if self.is_empty():
             return 1
@@ -3584,7 +3563,7 @@ class FiniteWord_class(Word_class):
         Return the order of ``self``.
 
         Let `p(w)` be the period of a word `w`. The positive rational number
-        `|w|/p(w)` is the *order* of `w`. See Chapter 8 of [1].
+        `|w|/p(w)` is the *order* of `w`. See Chapter 8 of [Loth02]_.
 
         OUTPUT:
 
@@ -3602,12 +3581,6 @@ class FiniteWord_class(Word_class):
             2
             sage: Word().order()
             0
-
-        REFERENCES:
-
-        -   [1] M. Lothaire, Algebraic Combinatorics On Words, vol. 90 of
-            Encyclopedia of Mathematics and its Applications, Cambridge
-            University Press, U.K., 2002.
         """
         from sage.rings.rational import Rational
         return Rational((self.length(),self.minimal_period()))
@@ -3617,7 +3590,7 @@ class FiniteWord_class(Word_class):
         Return the critical exponent of ``self``.
 
         The *critical exponent* of a word is the supremum of the order of
-        all its (finite) factors. See [1].
+        all its (finite) factors. See [Dejean]_.
 
         .. NOTE::
 
@@ -3935,7 +3908,7 @@ class FiniteWord_class(Word_class):
         Return ``True`` if ``self`` is a subword of ``other``, and ``False`` otherwise.
 
         A finite word `u` is a *subword* of a finite word `v` if `u` is a
-        subsequence of `v`. See Chapter 6 on Subwords in [1].
+        subsequence of `v`. See Chapter 6 on Subwords in [Loth97]_.
 
         Some references define subword as a consecutive subsequence. Use
         :meth:`is_factor` if this is what you need.
@@ -3968,9 +3941,8 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        - [1] M. Lothaire, Combinatorics on Words, Cambridge University
+        .. [Loth97] \M. Lothaire, Combinatorics on Words, Cambridge University
           Press, (1997).
-
         """
         its = iter(self)
         try:
@@ -3998,7 +3970,7 @@ class FiniteWord_class(Word_class):
         lexicographically smaller than each of its proper conjugates for the
         given order on its alphabet.
 
-        See for instance [1].
+        See for instance [Loth83]_.
 
         EXAMPLES::
 
@@ -4031,10 +4003,9 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        -   [1] M. Lothaire, Combinatorics On Words, vol. 17 of Encyclopedia
-            of Mathematics and its Applications, Addison-Wesley, Reading,
-            Massachusetts, 1983.
-
+        .. [Loth83] \M. Lothaire, Combinatorics On Words, vol. 17 of Encyclopedia
+           of Mathematics and its Applications, Addison-Wesley, Reading,
+           Massachusetts, 1983.
         """
         if self.is_empty():
             return False
@@ -4065,7 +4036,7 @@ class FiniteWord_class(Word_class):
         The *Lyndon factorization* of a finite word `w` is the unique
         factorization of `w` as a non-increasing product of Lyndon words,
         i.e., `w = l_1\cdots l_n` where each `l_i` is a Lyndon word and
-        `l_1\geq \cdots \geq l_n`. See for instance [1].
+        `l_1\geq \cdots \geq l_n`. See for instance [Duval83]_.
 
         OUTPUT:
 
@@ -4104,12 +4075,11 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        -   [1] J.-P. Duval, Factorizing words over an ordered alphabet,
-            J. Algorithms 4 (1983) 363--381.
+        .. [Duval83] J.-P. Duval, Factorizing words over an ordered alphabet,
+           J. Algorithms 4 (1983) 363--381.
 
-        -   [2] G. Melancon, Factorizing infinite words using Maple,
-            MapleTech journal, vol. 4, no. 1, 1997, pp. 34-42.
-
+        .. [Mela97] G. Melançon, *Factorizing infinite words using Maple*,
+           MapleTech journal, vol. 4, no. 1, 1997, pp. 34-42.
         """
         key = self.parent().sortkey_letters
         # We compute the indexes of the factorization.
@@ -4637,7 +4607,7 @@ class FiniteWord_class(Word_class):
 
         This corresponds to the notion of `binomial coefficient` of two
         finite words whose properties are presented in the chapter of
-        Lothaire's book written by Sakarovitch and Simon [1].
+        Lothaire's book written by Sakarovitch and Simon [Loth97]_.
 
         INPUT:
 
@@ -4657,7 +4627,7 @@ class FiniteWord_class(Word_class):
 
         .. NOTE::
 
-            This code, based on [2], actually compute the number of
+            This code, based on [MSSY]_, actually compute the number of
             occurrences of all prefixes of ``self`` as subwords in all
             prefixes of ``other``.  In particular, its complexity is
             bounded by ``len(self) * len(other)``.
@@ -4686,15 +4656,13 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        - [1] M. Lothaire, Combinatorics on Words, Cambridge University
-          Press, (1997).
-        - [2] Mateescu, A., Salomaa, A., Salomaa, K. and Yu, S., A
-          sharpening of the Parikh mapping. Theoret. Informatics Appl. 35
-          (2001) 551-564.
+        .. [MSSY] Mateescu, A., Salomaa, A., Salomaa, K. and Yu, S., *A
+           sharpening of the Parikh mapping*. Theoret. Informatics Appl. 35
+           (2001) 551-564.
         """
         # record the position of letters in self
         pos = defaultdict(list)
-        for i,a in enumerate(self):
+        for i, a in enumerate(self):
             pos[a].append(i)
         for a in pos:
             pos[a].reverse()
@@ -4733,7 +4701,8 @@ class FiniteWord_class(Word_class):
         Return the set of return words of ``fact`` in ``self``.
 
         This is the set of all factors starting by the given factor and ending
-        just before the next occurrence of this factor. See [1] and [2].
+        just before the next occurrence of this factor.
+        See [Durand98]_ and [HoZa99]_.
 
         INPUT:
 
@@ -4760,10 +4729,11 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        -   [1] F. Durand, A characterization of substitutive sequences using
-            return words, Discrete Math. 179 (1998) 89-101.
-        -   [2] C. Holton, L.Q. Zamboni, Descendants of primitive substitutions,
-            Theory Comput. Syst. 32 (1999) 133-157.
+        .. [Durand98] \F. Durand, *A characterization of substitutive
+           sequences using return words*, Discrete Math. 179 (1998)
+           89-101.
+        .. [HoZa99] \C. Holton, L. Q. Zamboni, *Descendants of primitive
+           substitutions*, Theory Comput. Syst. 32 (1999) 133-157.
         """
         return set(self.return_words_iterator(fact))
 
@@ -4772,7 +4742,8 @@ class FiniteWord_class(Word_class):
         Return the set of complete return words of ``fact`` in ``self``.
 
         This is the set of all factors starting by the given factor and ending
-        just after the next occurrence of this factor. See for instance [1].
+        just after the next occurrence of this factor.
+        See for instance [JuVu00]_.
 
         INPUT:
 
@@ -4794,8 +4765,8 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        -   [1] J. Justin, L. Vuillon, Return words in Sturmian and
-            episturmian words, Theor. Inform. Appl. 34 (2000) 343--356.
+        .. [JuVu00] \J. Justin, L. Vuillon, *Return words in Sturmian and
+           episturmian words*, Theor. Inform. Appl. 34 (2000) 343--356.
         """
         return set(self.complete_return_words_iterator(fact))
 
@@ -4803,17 +4774,12 @@ class FiniteWord_class(Word_class):
         r"""
         Return the word generated by mapping a letter to each occurrence of
         the return words for the given factor dropping any dangling prefix and
-        suffix. See for instance [1].
+        suffix. See for instance [Durand98]_.
 
         EXAMPLES::
 
             sage: Word('12131221312313122').return_words_derivate(Word('1'))
             word: 123242
-
-        REFERENCES:
-
-        -   [1] F. Durand, A characterization of substitutive sequences using
-            return words, Discrete Math. 179 (1998) 89--101.
         """
         tab = {}
         ret = [tab.setdefault(w, len(tab)) + 1 for w in self._return_words_list(fact)]

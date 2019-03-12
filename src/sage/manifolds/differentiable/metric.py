@@ -2351,9 +2351,9 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
             if order != 1:
                 raise NotImplementedError("only first order inverse is implemented")
-            decompo = self.series(expansion_symbol, order)
-            g0 = decompo[0][0]
-            g1 = decompo[1][0]
+            decompo = self.series_expansion(expansion_symbol, order)
+            g0 = decompo[0]
+            g1 = decompo[1]
 
             g0m = self._new_instance()   # needed because only metrics have
             g0m.set_comp()[:] = g0[:]    # an "inverse" method.

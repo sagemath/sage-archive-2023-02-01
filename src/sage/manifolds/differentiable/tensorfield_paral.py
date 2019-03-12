@@ -2039,7 +2039,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
                 comp_resu._comp[ind] = val_resu
         return resu
 
-    def series(self, symbol, order):
+    def series_expansion(self, symbol, order):
         """
         Expand the tensor field in power series with respect to a small
         parameter.
@@ -2066,7 +2066,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         OUTPUT:
 
-        - list of size ``order+1`` containing the pairs `(T_i, i)`
+        - list of the tensor fields `T_i` (size ``order+1``)
 
         EXAMPLES::
 
@@ -2080,26 +2080,26 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: h1[0, 1], h1[1, 2], h1[2, 3] = 1, 1, 1
             sage: h2[0, 2], h2[1, 3] = 1, 1
             sage: g.set(g + e*h1 + e^2*h2)
-            sage: g_ser = g.series(e, 2); g_ser
-            [(Field of symmetric bilinear forms on the 4-dimensional Lorentzian manifold M, 0),
-             (Field of symmetric bilinear forms on the 4-dimensional Lorentzian manifold M, 1),
-             (Field of symmetric bilinear forms on the 4-dimensional Lorentzian manifold M, 2)]
-            sage: g_ser[0][0][:]
+            sage: g_ser = g.series_expansion(e, 2); g_ser
+            [Field of symmetric bilinear forms on the 4-dimensional Lorentzian manifold M,
+             Field of symmetric bilinear forms on the 4-dimensional Lorentzian manifold M,
+             Field of symmetric bilinear forms on the 4-dimensional Lorentzian manifold M]
+            sage: g_ser[0][:]
             [-1  0  0  0]
             [ 0  1  0  0]
             [ 0  0  1  0]
             [ 0  0  0  1]
-            sage: g_ser[1][0][:]
+            sage: g_ser[1][:]
             [0 1 0 0]
             [1 0 1 0]
             [0 1 0 1]
             [0 0 1 0]
-            sage: g_ser[2][0][:]
+            sage: g_ser[2][:]
             [0 0 1 0]
             [0 0 0 1]
             [1 0 0 0]
             [0 1 0 0]
-            sage: all([g_ser[1][0] == h1, g_ser[2][0] == h2])
+            sage: all([g_ser[1] == h1, g_ser[2] == h2])
             True
 
         """
@@ -2125,7 +2125,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
                                   if decompo[inds][l][1] == k]
                     res_comp[k][inds] = res_comp_k[0] if len(res_comp_k) >= 1 else 0
                 res[k].add_comp(frame)[:] = res_comp[k][:]
-        return list(zip(res, list(range(orderp1))))
+        return res
 
     def truncate(self, symbol, order):
         r"""
@@ -2181,8 +2181,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             [ 0  0  e  1]
 
         """
-        s = self.series(symbol, order)
-        return sum(symbol**i*s[i][0] for i in range(order+1))
+        ser = self.series_expansion(symbol, order)
+        return sum(symbol**i*s for (i, s) in enumerate(ser))
 
     def set_calc_order(self, symbol, order, truncate=False):
         """

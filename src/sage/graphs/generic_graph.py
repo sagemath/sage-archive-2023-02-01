@@ -22914,6 +22914,10 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.katz_centrality(1/20)
             {0: 1/9, 1: 1/9, 2: 1/9, 3: 1/9}
 
+        Note that in the below example the nodes having indegree `0` also have
+        the Katz centrality value as `0`, as these nodes are not influenced by
+        other nodes. ::
+
             sage: G = DiGraph({1: [10], 2:[10,11], 3:[10,11], 4:[], 5:[11, 4], 6:[11], 7:[10,11], 8:[10,11], 9:[10], 10:[11, 5, 8], 11:[6]})
             sage: G.katz_centrality(.85)
             {1: 0.000000000000000,
@@ -22947,17 +22951,21 @@ class GenericGraph(GenericGraph_pyx):
 
         """
         n = self.order()
-        if n == 0 :
-            raise ValueError('graph is empty')
-        verts = list(self)
-        M = self.katz_matrix(alpha, nonedgesonly=False, vertices=verts)
 
         if u and u not in self:
             raise ValueError("vertex ({0}) is not a vertex of the graph".format(repr(u)))
 
-        if u:
-            return sum(M[verts.index(u)])
+        if n == 0 :
+            raise ValueError('graph is empty')
 
+        if u:
+            connected = self.connected_components()
+            verts = [l for l in connected if u in l]
+            M = self.katz_matrix(alpha, nonedgesonly=False, vertices=verts[0])
+            return sum(M[verts[0].index(u)])
+
+        verts = list(self)
+        M = self.katz_matrix(alpha, nonedgesonly=False, vertices=verts)
         return {u: sum(M[i]) for i, u in enumerate(verts)}
 
 def tachyon_vertex_plot(g, bgcolor=(1,1,1),

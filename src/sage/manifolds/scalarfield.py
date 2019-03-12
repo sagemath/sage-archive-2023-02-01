@@ -16,6 +16,8 @@ AUTHORS:
 - Eric Gourgoulhon, Michal Bejger (2013-2015): initial version
 - Travis Scrimshaw (2016): review tweaks
 - Marco Mancini (2017): SymPy as an optional symbolic engine, alternative to SR
+- Florentin Jaffredo (2018) : series expansion with respect to a given
+  parameter
 
 REFERENCES:
 
@@ -3215,3 +3217,40 @@ class ScalarField(CommutativeAlgebraElement):
         for chart, func in self._express.items():
             resu._express[chart] = func.arctanh()
         return resu
+
+    def set_calc_order(self, symbol, order, truncate=False):
+        r"""
+        Trigger a series expansion with respect to a given parameter in
+        computations involving the scalar field.
+
+        This property is propagated by usual operations. The internal
+        representation must be ``SR`` for this to take effect.
+
+        INPUT:
+
+        - ``symbol`` -- symbolic variable with respect to which the coordinate
+          expressions of ``self`` are expanded
+        - ``order`` -- order of the big oh in the expansion with respect to
+          ``symbol``; to keep only the first order, use ``2``
+        - ``truncate`` -- (default: ``False``) determines whether the
+          coordinate expressions of ``self`` are replaced by their expansions
+          to the given order
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='Lorentzian')
+            sage: C.<t,x> = M.chart()
+            sage: tau = var('tau')
+            sage: s = M.scalar_field(exp(-tau*t))
+            sage: s.expr()
+            e^(-t*tau)
+            sage: s.set_calc_order(tau, 3, truncate=True)
+            sage: s.expr()
+            1/2*t^2*tau^2 - t*tau + 1
+        """
+        for expr in self._express.values():
+            expr._expansion_symbol = symbol
+            expr._order = order
+            if truncate:
+                expr.simplify()
+        self._del_derived()

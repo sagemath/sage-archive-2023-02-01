@@ -6606,6 +6606,7 @@ class Polyhedron_base(Element):
                              itertools.islice(q0.neighbors(), self.dim()))
         return v0, q0_neighbors
 
+    @cached_method
     def affine_hull(self, as_polyhedron=None, as_affine_map=False,
                     orthogonal=False, orthonormal=False, extend=False,
                     return_all_data=False):

@@ -22765,7 +22765,7 @@ class GenericGraph(GenericGraph_pyx):
         Katz centrality of a node is a measure of centrality in a graph
         network. Katz centrality computes the relative influence of a node
         within a network. Connections made with distant neighbors are, however
-        penalized by an attenuation factor \alpha.
+        penalized by an attenuation factor `\alpha`.
 
         Adding the values in the Katz matrix of all columns in a particular row
         gives the Katz centrality measure of the vertex represented by that
@@ -22777,8 +22777,8 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         - ``alpha`` -- a nonnegative real number, must be less than the
-          reciprocal of the spectral radius of the graph. (the maximum
-          absolute eigenvalue of the adjacency matrix )
+          reciprocal of the spectral radius of the graph (the maximum
+          absolute eigenvalue of the adjacency matrix)
 
         - ``nonedgesonly`` -- boolean (default: ``True``); if ``True``, value
           for each edge present in the graph is set to zero.
@@ -22889,7 +22889,7 @@ class GenericGraph(GenericGraph_pyx):
         Katz centrality of a node is a measure of centrality in a graph
         network. Katz centrality computes the relative influence of a node
         within a network. Connections made with distant neighbors are, however
-        penalized by an attenuation factor \alpha.
+        penalized by an attenuation factor `\alpha`.
 
         See the :wikipedia:`Katz_centrality` for more information.
 
@@ -22955,11 +22955,10 @@ class GenericGraph(GenericGraph_pyx):
         if u and u not in self:
             raise ValueError("vertex ({0}) is not a vertex of the graph".format(repr(u)))
 
-        katz_values = (M*matrix(QQ, n, 1, lambda i, j: 1)).transpose()
-
         if u:
-            return katz_values[0][verts.index(u)]
-        return {u: katz_values[0][i] for i, u in enumerate(verts)}
+            return sum(M[verts.index(u)])
+
+        return {u: sum(M[i]) for i, u in enumerate(verts)}
 
 def tachyon_vertex_plot(g, bgcolor=(1,1,1),
                         vertex_colors=None,

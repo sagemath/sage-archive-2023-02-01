@@ -32,17 +32,15 @@ EXAMPLES::
     sage: fundamental_group(f) # optional - sirocco
     Finitely presented group < x0 |  >
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 Miguel Marco <mmarco@unizar.es>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import division, absolute_import
 
 from sage.groups.braid import BraidGroup
@@ -130,7 +128,7 @@ def braid_from_piecewise(strands):
             P = G(Permutation([]))
             while cruces:
                 # we select the crosses in the same t
-                crucesl = [c for c in cruces if c[0]==cruces[0][0]]
+                crucesl = [c for c in cruces if c[0] == cruces[0][0]]
                 crossesl = [(P(c[2]+1) - P(c[1]+1),c[1],c[2],c[3]) for c in crucesl]
                 cruces = cruces[len(crucesl):]
                 while crossesl:
@@ -142,6 +140,7 @@ def braid_from_piecewise(strands):
 
     B = BraidGroup(len(L))
     return B(braid)
+
 
 def discrim(f):
     r"""
@@ -171,8 +170,9 @@ def discrim(f):
     """
     x, y = f.variables()
     F = f.base_ring()
-    disc = F[x](f.discriminant(y).resultant(f, y)).roots(QQbar, multiplicities=False)
+    disc = F[x](f.discriminant(y).resultant(f, y)).radical().roots(QQbar, multiplicities=False)
     return disc
+
 
 def segments(points):
     """
@@ -226,6 +226,7 @@ def segments(points):
             p2 = CC(list(V.vertices[rv[1]]))
             res.append((p1, p2))
     return res
+
 
 def followstrand(f, x0, x1, y0a, prec=53):
     r"""
@@ -315,6 +316,23 @@ def braid_in_segment(f, x0, x1):
         sage: x1 = CC(1, 0.5)
         sage: braid_in_segment(f, x0, x1) # optional - sirocco
         s1
+
+    TESTS:
+
+    Check that :trac:`26503` is fixed::
+
+        sage: wp = QQ['t']([1, 1, 1]).roots(QQbar)[0][0]
+        sage: Kw.<wp> = NumberField(wp.minpoly(), embedding=wp)
+        sage: R.<x, y> = Kw[]
+        sage: z = -wp - 1
+        sage: f = y*(y + z)*x*(x - 1)*(x - y)*(x + z*y - 1)*(x + z*y + wp)
+        sage: from sage.schemes.curves import zariski_vankampen as zvk
+        sage: g = f.subs({x: x + 2*y})
+        sage: p1 = QQbar(sqrt(-1/3))
+        sage: p2 = QQbar(1/2+sqrt(-1/3)/2)
+        sage: B = zvk.braid_in_segment(g,CC(p1),CC(p2))
+        sage: B.left_normal_form()
+        (1, s5)
     """
     CC = ComplexField(64)
     (x, y) = f.variables()
@@ -335,7 +353,7 @@ def braid_in_segment(f, x0, x1):
         if y0 in used:
             raise ValueError("different roots are too close")
         used.append(y0)
-        initialstrands.append([(0, CC(y0)), (1, y0ap)])
+        initialstrands.append([(0, y0), (1, y0ap)])
     initialbraid = braid_from_piecewise(initialstrands)
     F1 = QQbar[y](f(X1,y))
     y1s = F1.roots(multiplicities=False)
@@ -348,9 +366,10 @@ def braid_in_segment(f, x0, x1):
         if y1 in used:
             raise ValueError("different roots are too close")
         used.append(y1)
-        finalstrands.append([(0, y1ap), (1, CC(y1))])
+        finalstrands.append([(0, y1ap), (1, y1)])
     finallbraid = braid_from_piecewise(finalstrands)
     return initialbraid * centralbraid * finallbraid
+
 
 def fundamental_group(f, simplified=True, projective=False):
     r"""
@@ -415,7 +434,7 @@ def fundamental_group(f, simplified=True, projective=False):
     """
     (x, y) = f.variables()
     F = f.base_ring()
-    g = f.factor().radical().prod()
+    g = f.radical()
     d = g.degree(y)
     while not g.coefficient(y**d) in F or (projective and g.total_degree() > d):
         g = g.subs({x: x + y})
@@ -445,4 +464,3 @@ def fundamental_group(f, simplified=True, projective=False):
         return G.simplified()
     else:
         return G
-

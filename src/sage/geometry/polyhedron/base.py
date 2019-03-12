@@ -6574,38 +6574,6 @@ class Polyhedron_base(Element):
         else:
             return self.face_lattice().is_isomorphic(other.face_lattice())
 
-    def parametric_form(self):
-        r"""
-        Return a parametric form of this polyhedron.
-
-        This method is, for example, called when creating the
-        :meth:`affine_hull`.
-
-        OUTPUT:
-
-        A pair `(v_0, V)` where `v_0` is a vector and `V` a tuple of vectors.
-        The original polyhedron equals the polyhedron created by the
-        vertices `V` and then shifted by `v_0`, i.e.,
-        the original polyhedron equals
-        `v_0 + \sum_{v \in V} t_v v` with `t_v \in [0,1]`.
-
-        EXAMPLES::
-
-            sage: polytopes.simplex(2).parametric_form()
-            ((0, 0, 1), ((0, 1, -1), (1, 0, -1)))
-        """
-        if not self.is_compact():
-            raise NotImplementedError('method works only for compact polyhedra')
-        # translate 0th vertex to the origin
-        v0 = vector(self.vertices()[0])
-        Q = self.translation(-v0)
-        q0 = next((_ for _ in Q.vertices() if _.vector() == Q.ambient_space().zero()), None)
-        # finding the zero in Q; checking that Q actually has a vertex zero
-        assert q0.vector() == Q.ambient_space().zero()
-        q0_neighbors = tuple(vector(n) for n in
-                             itertools.islice(q0.neighbors(), self.dim()))
-        return v0, q0_neighbors
-
     @cached_method
     def affine_hull(self, as_polyhedron=None, as_affine_map=False,
                     orthogonal=False, orthonormal=False, extend=False,
@@ -6676,10 +6644,10 @@ class Polyhedron_base(Element):
           is a linear transformation and its second component a shift;
           see above.
 
-        - ``parametric_form`` -- the points and vertices (as a pair)
-          used in the transformation. This is the output of
-          :meth:`parametric_form` which is called when determining the
-          affine hull.
+        - ``parametric_form`` -- a pair `(v_0, V)` where `v_0` is a vector
+          and `V` a tuple of vectors. `v_0` is used as a base point
+          in the transformation and the vectors `V` are its neighbors
+          (in the already shifted polyhedron).
 
         - ``coordinate_images`` -- a tuple of the images of the variables
           in the standard coordinate system of the ambient space. These
@@ -6947,6 +6915,25 @@ class Polyhedron_base(Element):
              'coordinate_images': (2/3*t1, 1/2*t0 - 1/3*t1, -1/2*t0 - 1/3*t1 + 1),
              'parametric_form': ((0, 0, 1), ((0, 1, -1), (1, 0, -1))),
              'polyhedron': A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices}
+
+        ::
+
+            sage: P0 = Polyhedron(
+            ....:     ieqs=[(0, -1, 0, 1, 1, 1), (0, 1, 1, 0, -1, -1), (0, -1, 1, 1, 0, 0),
+            ....:           (0, 1, 0, 0, 0, 0), (0, 0, 1, 1, -1, -1), (0, 0, 0, 0, 0, 1),
+            ....:           (0, 0, 0, 0, 1, 0), (0, 0, 0, 1, 0, -1), (0, 0, 1, 0, 0, 0)])
+            sage: P = P0.intersection(Polyhedron(eqns=[(-1, 1, 1, 1, 1, 1)]))
+            sage: P.dim()
+            4
+            sage: P.affine_hull(orthogonal=True, as_affine_map=True)[0]
+            Vector space morphism represented by the matrix:
+            [ -1/3  -1/3  -1/6  1/12]
+            [  1/2     0   1/6  1/12]
+            [ -1/3   2/3     0     0]
+            [  1/2     0  -1/6 -1/12]
+            [ -1/3  -1/3   1/6 -1/12]
+            Domain: Vector space of dimension 5 over Rational Field
+            Codomain: Vector space of dimension 4 over Rational Field
         """
         if as_polyhedron is None:
             as_polyhedron = not as_affine_map
@@ -6970,23 +6957,28 @@ class Polyhedron_base(Element):
             # see TODO
             if not self.is_compact():
                 raise NotImplementedError('"orthogonal=True" and "orthonormal=True" work only for compact polyhedra')
-            parametric_form = self.parametric_form()
+            # translate 0th vertex to the origin
+            v0 = vector(self.vertices()[0])
+            Q = self.translation(-v0)
+            q0 = next((_ for _ in Q.vertices() if _.vector() == Q.ambient_space().zero()), None)
+            # finding the zero in Q; checking that Q actually has a vertex zero
+            assert q0.vector() == Q.ambient_space().zero()
+            vi = tuple(n.vector() for n in q0.neighbors())
             if return_all_data:
-                result['parametric_form'] = parametric_form
-            v0, vi = parametric_form
+                result['parametric_form'] = (v0, vi)
             # choose as an affine basis the neighbors of the origin vertex
-            M = matrix(self.base_ring(), self.dim(), self.ambient_dim(), vi)
+            M = matrix(self.base_ring(), len(vi), self.ambient_dim(), vi)
             # Switch base_ring to AA if neccessary,
             # since gram_schmidt needs to be able to take square roots.
             # Pick orthonormal basis and transform all vertices accordingly
             # if the orthonormal transform makes it neccessary, change base ring.
             try:
-                A = M.gram_schmidt(orthonormal=orthonormal)[0]
+                A, G = M.gram_schmidt(orthonormal=orthonormal)
             except TypeError:
                 if not extend:
                     raise ValueError('The base ring needs to be extended; try with "extend=True"')
                 M = matrix(AA, M)
-                A = M.gram_schmidt(orthonormal=orthonormal)[0]
+                A, G = M.gram_schmidt(orthonormal=orthonormal)
             if as_polyhedron:
                 result['polyhedron'] = Polyhedron(
                     [A*vector(A.base_ring(), v)
@@ -6999,13 +6991,17 @@ class Polyhedron_base(Element):
                 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
                 # columns of W are equal to the vertices of affine_hull['polyhedron']
                 # in an order compatible with the vectors vi
-                W = matrix([list(L(v)) for v in vi]).transpose()
+                def index_neq0(C):
+                    return next(i for i, c in enumerate(C) if c != 0)
+                independent_vi = tuple(vi[index_neq0(tuple(c))]
+                                       for c in G.columns())
+                W = matrix([list(L(v)) for v in independent_vi]).transpose()
 
                 # transform the coordinates
-                T = PolynomialRing(self.base_ring(), 't', len(vi))
+                T = PolynomialRing(self.base_ring(), 't', len(independent_vi))
                 t = vector(T.gens())
                 beta = W.inverse() * t
-                coordinate_images = v0.change_ring(T) + sum(b * v  for b, v in zip(beta, vi))
+                coordinate_images = v0.change_ring(T) + sum(b * v  for b, v in zip(beta, independent_vi))
                 result['coordinate_images'] = tuple(coordinate_images)
 
         else:

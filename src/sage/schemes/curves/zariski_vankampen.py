@@ -103,7 +103,8 @@ def braid_from_piecewise(strands):
 
     braid = []
     G = SymmetricGroup(len(totalpoints))
-    def sgn(x, y): # Opposite sign of cmp
+
+    def sgn(x, y):
         if x < y:
             return 1
         if x > y:
@@ -129,14 +130,16 @@ def braid_from_piecewise(strands):
             while cruces:
                 # we select the crosses in the same t
                 crucesl = [c for c in cruces if c[0] == cruces[0][0]]
-                crossesl = [(P(c[2]+1) - P(c[1]+1),c[1],c[2],c[3]) for c in crucesl]
+                crossesl = [(P(c[2]+1) - P(c[1]+1),c[1],c[2],c[3])
+                            for c in crucesl]
                 cruces = cruces[len(crucesl):]
                 while crossesl:
                     crossesl.sort()
                     c = crossesl.pop(0)
                     braid.append(c[3]*min(map(P, [c[1] + 1, c[2] + 1])))
                     P = G(Permutation([(c[1] + 1, c[2] + 1)]))*P
-                    crossesl = [(P(c[2]+1) - P(c[1]+1),c[1],c[2],c[3]) for c in crossesl]
+                    crossesl = [(P(cr[2]+1) - P(cr[1]+1), cr[1], cr[2], cr[3])
+                                for cr in crossesl]
 
     B = BraidGroup(len(L))
     return B(braid)
@@ -330,8 +333,8 @@ def braid_in_segment(f, x0, x1):
         sage: g = f.subs({x: x + 2*y})
         sage: p1 = QQbar(sqrt(-1/3))
         sage: p2 = QQbar(1/2+sqrt(-1/3)/2)
-        sage: B = zvk.braid_in_segment(g,CC(p1),CC(p2))
-        sage: B.left_normal_form()
+        sage: B = zvk.braid_in_segment(g,CC(p1),CC(p2)) # optional - sirocco
+        sage: B.left_normal_form()  # optional - sirocco
         (1, s5)
     """
     CC = ComplexField(64)

@@ -23,12 +23,13 @@ AUTHORS:
 
 """
 #*****************************************************************************
-#       Copyright (C) 2017 Marco Mancini <marco.mancini@obspm.fr>
+#  Copyright (C) 2017 Marco Mancini <marco.mancini@obspm.fr>
+#  Copyright (C) 2018 Florentin Jaffredo <florentin.jaffredo@polytechnique.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.structure.element import AlgebraElement
 from sage.structure.parent import Parent
@@ -85,12 +86,18 @@ class ChartFunction(AlgebraElement):
       - ``'sympy'``: SymPy
       - ``None``: the chart current calculus method is assumed
 
-    - ``expansion_symbol`` -- string (optional); the symbol used to expand
-      the coordinate expression around the zero value of this symbol
+    - ``expansion_symbol`` -- (default: ``None``) symbolic variable (the "small
+      parameter") with respect to which the coordinate expression is expanded
+      in power series (around the zero value of this variable)
 
-    - ``order`` -- integer (default: ``0``); the order of the big oh in
-      the expansion; if ``0``, then this is unused; to keep only the
-      first order, set to ``2``
+    - ``order`` -- integer (default: ``None``); the order of the expansion
+      if ``expansion_symbol`` is not ``None``; the *order* is defined as the
+      degree of the polynomial representing the truncated power series in ``expansion_symbol``.
+
+      .. WARNING::
+
+         The value of ``order`` is `n-1`, where `n` is the order of the
+         big O in the power series expansion
 
     EXAMPLES:
 
@@ -168,6 +175,18 @@ class ChartFunction(AlgebraElement):
         sage: f == h
         True
 
+    Expansion to a given order with respect to a small parameter::
+
+        sage: t = var('t')  # the small parameter
+        sage: f = X.function(cos(t)*x*y, expansion_symbol=t, order=2)
+
+    The expansion is triggered by the call to :meth:`simplify`::
+
+        sage: f
+        x*y*cos(t)
+        sage: f.simplify()
+        -1/2*t^2*x*y + x*y
+
     .. RUBRIC:: Differences between ``ChartFunction`` and callable
       symbolic expressions
 
@@ -182,9 +201,10 @@ class ChartFunction(AlgebraElement):
         sage: f0(x,y)
         x^2 + 3*y + 1
 
-    To get an output similar to that of ``f0`` for the chart function
-    ``f``, we must use the method :meth:`display`::
+    To get an output similar to that of ``f0`` for a chart function, we must
+    use the method :meth:`display`::
 
+        sage: f = X.function(x^2+3*y+1)
         sage: f
         x^2 + 3*y + 1
         sage: f.display()
@@ -293,7 +313,7 @@ class ChartFunction(AlgebraElement):
     """
 
     def __init__(self, parent, expression=None, calc_method=None,
-                 expansion_symbol=None, order=0):
+                 expansion_symbol=None, order=None):
         r"""
         Initialize ``self``.
 
@@ -347,7 +367,8 @@ class ChartFunction(AlgebraElement):
         """
         Simplify the expression `expr` using `self._calc_method.simplify`.
 
-        If needed, truncate the expression to the predefinite order.
+        If needed, truncate the expression to the predefined order in the
+        power series with respect to a small parameter.
 
         INPUT:
 
@@ -369,7 +390,7 @@ class ChartFunction(AlgebraElement):
         res = self._calc_method.simplify(expr)
         if (self._expansion_symbol is not None and
             self._calc_method._current == 'SR'):
-            res = res.series(self._expansion_symbol, self._order).truncate()
+            res = res.series(self._expansion_symbol, self._order+1).truncate()
         return res
 
     def chart(self):
@@ -2246,6 +2267,11 @@ class ChartFunction(AlgebraElement):
         :func:`~sage.manifolds.utilities.simplify_chain_generic` for the
         generic case.
 
+        If ``self`` has been defined with the small parameter
+        ``expansion_symbol`` and some truncation order, the coordinate
+        expression of ``self`` will be expanded in power series of that
+        parameter and truncated to the the given order.
+
         OUTPUT:
 
         - ``self`` with its coordinate expression simplified
@@ -2329,13 +2355,30 @@ class ChartFunction(AlgebraElement):
             sage: f.simplify()
             -x + 1
 
+        Power series expansion with respect to a small parameter `t` (at
+        the moment, this is implemented only for the ``SR`` calculus backend,
+        hence the first line below)::
+
+            sage: X.set_calculus_method('SR')
+            sage: t = var('t')
+            sage: f = X.function(exp(t*x), expansion_symbol=t, order=3)
+
+        At this stage, `f` is not expanded in power series::
+
+            sage: f
+            e^(t*x)
+
+        Invoking ``simplify()`` triggers the expansion to the given order::
+
+            sage: f.simplify()
+            1/6*t^3*x^3 + 1/2*t^2*x^2 + t*x + 1
+            sage: f.display()
+            (x, y) |--> 1/6*t^3*x^3 + 1/2*t^2*x^2 + t*x + 1
+
         """
         curr = self._calc_method._current
         self._express[curr] = self._simplify(self.expr(curr))
         self._del_derived()
-        if curr =='SR' and self._expansion_symbol is not None:
-            self._express[curr] = self._express[curr].series(self._expansion_symbol,
-                                                             self._order).truncate()
         return self
 
     def factor(self):

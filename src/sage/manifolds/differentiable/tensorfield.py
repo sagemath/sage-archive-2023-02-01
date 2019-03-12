@@ -46,7 +46,7 @@ REFERENCES:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #******************************************************************************
 from __future__ import print_function
 from six import itervalues
@@ -3979,21 +3979,34 @@ class TensorField(ModuleElement):
 
     def set_calc_order(self, symbol, order, truncate=False):
         r"""
-        Trigger a series expansion with respect to a given parameter in
+        Trigger a series expansion with respect to a small parameter in
         computations involving the tensor field.
 
         This property is propagated by usual operations. The internal
         representation must be ``SR`` for this to take effect.
 
+        If the small parameter is `\epsilon` and `T` is ``self``, the
+        power series expansion to order `n` is
+
+        .. MATH::
+
+            T = T_0 + \epsilon T_1 + \epsilon^2 T_2 + \cdots + \epsilon^n T_n
+                + O(\epsilon^{n+1})
+
+        where `T_0`, `T_1`, ..., `T_n` are `n+1` tensor fields of the same
+        tensor type as ``self`` and do not depend upon `\epsilon`.
+
         INPUT:
 
-        - ``symbol`` -- symbolic variable with respect to which the components
-          are expanded
-        - ``order`` -- order of the big oh in the expansion with respect to
-          ``symbol``; to keep only the first order, use ``2``
+        - ``symbol`` -- symbolic variable (the "small parameter" `\epsilon`)
+          with respect to which the components of ``self`` are expanded in
+          power series
+        - ``order`` -- integer; the order `n` of the expansion, defined as the
+          degree of the polynomial representing the truncated power series in
+          ``symbol``
         - ``truncate`` -- (default: ``False``) determines whether the
-          components of the tensor field are replaced by their expansions to
-          the given order
+          components of ``self`` are replaced by their expansions to the
+          given order
 
         EXAMPLES:
 
@@ -4020,7 +4033,7 @@ class TensorField(ModuleElement):
         If we set the calculus order on one of the vector fields, any operation
         involving both of them is performed to that order::
 
-            sage: a.set_calc_order(h, 3)
+            sage: a.set_calc_order(h, 2)
             sage: s = a + b
             sage: s[eU,:]
             [h*x + 2, 1/2*h^2*y^2 + h*y - y + 1]
@@ -4040,7 +4053,7 @@ class TensorField(ModuleElement):
         To have ``set_calc_order`` act on them, set the optional argument
         ``truncate`` to ``True``::
 
-            sage: a.set_calc_order(h, 3, truncate=True)
+            sage: a.set_calc_order(h, 2, truncate=True)
             sage: a[eU,:]
             [-1/2*h^2*x^2 + 1, -y]
             sage: a[eV,:]

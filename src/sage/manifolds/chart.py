@@ -32,7 +32,7 @@ REFERENCES:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
@@ -919,7 +919,8 @@ class Chart(UniqueRepresentation, SageObject):
 
         return ChartFunctionRing(self)
 
-    def function(self, expression, calc_method=None):
+    def function(self, expression, calc_method=None, expansion_symbol=None,
+                 order=None):
         r"""
         Define a coordinate function to the base field.
 
@@ -936,9 +937,6 @@ class Chart(UniqueRepresentation, SageObject):
         where `V` is the chart codomain and `(x^1, \ldots, x^n)` are the
         chart coordinates.
 
-        See :class:`~sage.manifolds.chart_func.ChartFunction`
-        for a complete documentation.
-
         INPUT:
 
         - ``expression`` -- a symbolic expression involving the chart
@@ -951,6 +949,20 @@ class Chart(UniqueRepresentation, SageObject):
           - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
           - ``'sympy'``: SymPy
           - ``None``: the chart current calculus method is assumed
+
+        - ``expansion_symbol`` -- (default: ``None``) symbolic variable (the
+          "small parameter") with respect to which the coordinate expression is
+          expanded in power series (around the zero value of this variable)
+
+        - ``order`` -- integer (default: ``None``); the order of the expansion
+          if ``expansion_symbol`` is not ``None``; the *order* is defined as
+          the degree of the polynomial representing the truncated power series
+          in ``expansion_symbol``.
+
+          .. WARNING::
+
+             The value of ``order`` is `n-1`, where `n` is the order of the
+             big O in the power series expansion
 
         OUTPUT:
 
@@ -986,9 +998,13 @@ class Chart(UniqueRepresentation, SageObject):
             sage: f._express
             {'SR': sin(x*y)}
 
+        See :class:`~sage.manifolds.chart_func.ChartFunction` for more examples.
+
         """
         parent = self.function_ring()
-        return parent.element_class(parent, expression, calc_method=calc_method)
+        return parent.element_class(parent, expression, calc_method=calc_method,
+                                    expansion_symbol=expansion_symbol,
+                                    order=order)
 
     def zero_function(self):
         r"""

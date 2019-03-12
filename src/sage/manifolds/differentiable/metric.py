@@ -20,14 +20,15 @@ REFERENCES:
 
 """
 #******************************************************************************
-#       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
-#       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
-#       Copyright (C) 2016 Pablo Angulo <pang@cancamusa.net>
+#  Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
+#  Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
+#  Copyright (C) 2016 Pablo Angulo <pang@cancamusa.net>
+#  Copyright (C) 2018 Florentin Jaffredo <florentin.jaffredo@polytechnique.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #******************************************************************************
 from six.moves import range
 
@@ -650,14 +651,25 @@ class PseudoRiemannianMetric(TensorField):
 
         INPUT:
 
-        - ``expansion_symbol`` -- ignored
-        - ``order`` -- ignored
+        - ``expansion_symbol`` -- (default: ``None``) symbolic variable; if
+          specified, the inverse will be expanded in power series with respect
+          to this variable (around its zero value)
+        - ``order`` -- integer (default: 1); the order of the expansion
+          if ``expansion_symbol`` is not ``None``; the *order* is defined as
+          the degree of the polynomial representing the truncated power series
+          in ``expansion_symbol``; currently only first order inverse is
+          supported
+
+        If ``expansion_symbol`` is set, then the zeroth order metric must be
+        invertible. Moreover, subsequent calls to this method will return
+        a cached value, even when called with the default value (to enable
+        computation of derived quantities). To reset, use :meth:`_del_derived`.
 
         OUTPUT:
 
         - instance of
           :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
-          with tensor_type = (2,0) representing the inverse metric
+          with ``tensor_type`` = (2,0) representing the inverse metric
 
         EXAMPLES:
 
@@ -693,10 +705,12 @@ class PseudoRiemannianMetric(TensorField):
             True
 
         """
-        # Is the inverse metric up to date ?
+        # Is the inverse metric up to date?
         for dom, rst in self._restrictions.items():
-            self._inverse._restrictions[dom] = rst.inverse() # forces the
-                                                    # update of the restriction
+            self._inverse._restrictions[dom] = rst.inverse(
+                                             expansion_symbol=expansion_symbol,
+                                             order=order) # forces the update
+                                                          # of the restriction
         return self._inverse
 
     def connection(self, name=None, latex_name=None, init_coef=True):
@@ -2226,27 +2240,31 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             rst = self.restrict(dom)
             rst.set(symbiform_rst)
 
-    def inverse(self, expansion_symbol=None, order=2):
+    def inverse(self, expansion_symbol=None, order=1):
         r"""
         Return the inverse metric.
 
         INPUT:
 
-        - ``expansion_symbol`` -- (optional) if specified, the inverse will
-          be expanded with respect to this symbol
-        - ``order`` -- (default: ``2``) order of the big oh in the expansion;
-          currently only first order inverse is supported
+        - ``expansion_symbol`` -- (default: ``None``) symbolic variable; if
+          specified, the inverse will be expanded in power series with respect
+          to this variable (around its zero value)
+        - ``order`` -- integer (default: 1); the order of the expansion
+          if ``expansion_symbol`` is not ``None``; the *order* is defined as
+          the degree of the polynomial representing the truncated power series
+          in ``expansion_symbol``; currently only first order inverse is
+          supported
 
-        If ``expansion_symbol``, then the zeroth order metric must be
+        If ``expansion_symbol`` is set, then the zeroth order metric must be
         invertible. Moreover, subsequent calls to this method will return
         a cached value, even when called with the default value (to enable
-        computation of derived quantities). To reset, call :meth:`_del_derived`.
+        computation of derived quantities). To reset, use :meth:`_del_derived`.
 
         OUTPUT:
 
         - instance of
           :class:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal`
-          with tensor_type = (2,0) representing the inverse metric
+          with ``tensor_type`` = (2,0) representing the inverse metric
 
         EXAMPLES:
 
@@ -2291,34 +2309,37 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             sage: M = Manifold(4, 'M', structure='Lorentzian')
             sage: C.<t,x,y,z> = M.chart()
             sage: e = var('e')
-            sage: g = M.metric('g')
+            sage: g = M.metric()
             sage: h = M.tensor_field(0, 2, sym=(0,1))
-            sage: g[0, 0], g[1, 1], g[2, 2], g[3, 3] = 1, -1, -1, -1
+            sage: g[0, 0], g[1, 1], g[2, 2], g[3, 3] = -1, 1, 1, 1
             sage: h[0, 1], h[1, 2], h[2, 3] = 1, 1, 1
-            sage: g.set_comp()[:] = (g+e*h)[:]
-            sage: g[:]
-            [ 1  e  0  0]
-            [ e -1  e  0]
-            [ 0  e -1  e]
-            [ 0  0  e -1]
+            sage: g.set(g + e*h)
 
-        ``g`` is now a tridiagonal metric approximation of the Minkowski
-        metric. The inverse, truncated to first order in ``e`` is::
+        If ``e`` is a small parameter, ``g`` is a tridiagonal approximation of
+        the Minkowski metric::
+
+            sage: g[:]
+            [-1  e  0  0]
+            [ e  1  e  0]
+            [ 0  e  1  e]
+            [ 0  0  e  1]
+
+        The inverse, truncated to first order in ``e``, is::
 
             sage: g.inverse(expansion_symbol=e)[:]
-            [ 1  e  0  0]
-            [ e -1 -e  0]
-            [ 0 -e -1 -e]
-            [ 0  0 -e -1]
+            [-1  e  0  0]
+            [ e  1 -e  0]
+            [ 0 -e  1 -e]
+            [ 0  0 -e  1]
 
         If ``inverse()`` is called subsequently, the result will be the same.
-        This allows whole computations to be made in the first order::
+        This allows for all computations to be made to first order::
 
             sage: g.inverse()[:]
-            [ 1  e  0  0]
-            [ e -1 -e  0]
-            [ 0 -e -1 -e]
-            [ 0  0 -e -1]
+            [-1  e  0  0]
+            [ e  1 -e  0]
+            [ 0 -e  1 -e]
+            [ 0  0 -e  1]
 
         """
         if expansion_symbol is not None:
@@ -2328,9 +2349,9 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
                 and self._inverse._components.values()[0][0,0]._order == order):
                 return self._inverse
 
-            if order != 2:
+            if order != 1:
                 raise NotImplementedError("only first order inverse is implemented")
-            decompo = self.series(expansion_symbol, 2)
+            decompo = self.series(expansion_symbol, order)
             g0 = decompo[0][0]
             g1 = decompo[1][0]
 
@@ -2339,8 +2360,8 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
             contraction = g1.contract(0, g0m.inverse(), 0)
             contraction = contraction.contract(1, g0m.inverse(), 1)
-            self._inverse = g0m.inverse() - contraction * expansion_symbol
-            self._inverse.set_calc_order(expansion_symbol, 2)
+            self._inverse = g0m.inverse() - expansion_symbol * contraction
+            self._inverse.set_calc_order(expansion_symbol, order)
             return self._inverse
 
         from sage.matrix.constructor import matrix

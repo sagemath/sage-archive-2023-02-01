@@ -3220,33 +3220,54 @@ class ScalarField(CommutativeAlgebraElement):
 
     def set_calc_order(self, symbol, order, truncate=False):
         r"""
-        Trigger a series expansion with respect to a given parameter in
+        Trigger a power series expansion with respect to a small parameter in
         computations involving the scalar field.
 
         This property is propagated by usual operations. The internal
         representation must be ``SR`` for this to take effect.
 
+        If the small parameter is `\epsilon` and `f` is ``self``, the
+        power series expansion to order `n` is
+
+        .. MATH::
+
+            f = f_0 + \epsilon f_1 + \epsilon^2 f_2 + \cdots + \epsilon^n f_n
+                + O(\epsilon^{n+1})
+
+        where `f_0`, `f_1`, ..., `f_n` are `n+1` scalar fields that do not
+        depend upon `\epsilon`.
+
         INPUT:
 
-        - ``symbol`` -- symbolic variable with respect to which the coordinate
-          expressions of ``self`` are expanded
-        - ``order`` -- order of the big oh in the expansion with respect to
-          ``symbol``; to keep only the first order, use ``2``
+        - ``symbol`` -- symbolic variable (the "small parameter" `\epsilon`)
+          with respect to which the coordinate expressions of ``self`` in
+          various charts are expanded in power series (around the zero value of
+          this variable)
+        - ``order`` -- integer; the order `n` of the expansion, defined as the
+          degree of the polynomial representing the truncated power series in
+          ``symbol``
+
+          .. WARNING::
+
+             The order of the big O in the power series expansion is `n+1`,
+             where `n` is ``order``.
+
         - ``truncate`` -- (default: ``False``) determines whether the
           coordinate expressions of ``self`` are replaced by their expansions
           to the given order
 
         EXAMPLES::
 
-            sage: M = Manifold(2, 'M', structure='Lorentzian')
-            sage: C.<t,x> = M.chart()
-            sage: tau = var('tau')
-            sage: s = M.scalar_field(exp(-tau*t))
-            sage: s.expr()
-            e^(-t*tau)
-            sage: s.set_calc_order(tau, 3, truncate=True)
-            sage: s.expr()
-            1/2*t^2*tau^2 - t*tau + 1
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: t = var('t')  # the small parameter
+            sage: f = M.scalar_field(exp(-t*x))
+            sage: f.expr()
+            e^(-t*x)
+            sage: f.set_calc_order(t, 2, truncate=True)
+            sage: f.expr()
+            1/2*t^2*x^2 - t*x + 1
+
         """
         for expr in self._express.values():
             expr._expansion_symbol = symbol

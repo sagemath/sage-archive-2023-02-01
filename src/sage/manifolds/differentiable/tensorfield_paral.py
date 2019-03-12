@@ -276,14 +276,15 @@ as follows::
 """
 
 #******************************************************************************
-#       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
-#       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
-#       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
+#  Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
+#  Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
+#  Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
+#  Copyright (C) 2018 Florentin Jaffredo <florentin.jaffredo@polytechnique.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #******************************************************************************
 
 from sage.tensor.modules.free_module_tensor import FreeModuleTensor
@@ -2038,62 +2039,74 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
                 comp_resu._comp[ind] = val_resu
         return resu
 
-    def series(self, symbol, order=20):
+    def series(self, symbol, order):
         """
-        Expand the tensor field in series with respect to parameter ``symbol``
-        at order ``order``.
+        Expand the tensor field in power series with respect to a small
+        parameter.
 
-        The result is returned as a list of pair ``(tensor, order)``. The
-        internal representation must be ``SR``. This function works by
-        applying the ``SR`` method :meth:`~sage.symbolic.expression.series`
-        on each component.
+        If the small parameter is `\epsilon` and `T` is ``self``, the
+        power series expansion to order `n` is
+
+        .. MATH::
+
+            T = T_0 + \epsilon T_1 + \epsilon^2 T_2 + \cdots + \epsilon^n T_n
+                + O(\epsilon^{n+1})
+
+        where `T_0`, `T_1`, ..., `T_n` are `n+1` tensor fields of the same
+        tensor type as ``self`` and do not depend upon `\epsilon`.
 
         INPUT:
 
-        - ``symbol`` -- symbol used to expand the components around zero
-        - ``order`` -- (default: 20) order of the big oh in the development;
-          to keep only the first order, set to ``2``
+        - ``symbol`` -- symbolic variable (the "small parameter" `\epsilon`)
+          with respect to which the components of ``self`` are expanded in
+          power series
+        - ``order`` -- integer; the order `n` of the expansion, defined as the
+          degree of the polynomial representing the truncated power series in
+          ``symbol``
 
         OUTPUT:
 
-        - list of pairs ``(tensor, order)``
+        - list of size ``order+1`` containing the pairs `(T_i, i)`
 
         EXAMPLES::
 
             sage: M = Manifold(4, 'M', structure='Lorentzian')
             sage: C.<t,x,y,z> = M.chart()
             sage: e = var('e')
-            sage: g = M.metric('g')
+            sage: g = M.metric()
             sage: h1 = M.tensor_field(0,2,sym=(0,1))
             sage: h2 = M.tensor_field(0,2,sym=(0,1))
-            sage: g[0, 0], g[1, 1], g[2, 2], g[3, 3] = 1, -1, -1, -1
+            sage: g[0, 0], g[1, 1], g[2, 2], g[3, 3] = -1, 1, 1, 1
             sage: h1[0, 1], h1[1, 2], h1[2, 3] = 1, 1, 1
             sage: h2[0, 2], h2[1, 3] = 1, 1
-            sage: g.set(g+e*h1+e**2*h2)
-            sage: g.series(e, 3)
+            sage: g.set(g + e*h1 + e^2*h2)
+            sage: g_ser = g.series(e, 2); g_ser
             [(Field of symmetric bilinear forms on the 4-dimensional Lorentzian manifold M, 0),
              (Field of symmetric bilinear forms on the 4-dimensional Lorentzian manifold M, 1),
              (Field of symmetric bilinear forms on the 4-dimensional Lorentzian manifold M, 2)]
-            sage: g.series(e, 3)[0][0][:]
-            [ 1  0  0  0]
-            [ 0 -1  0  0]
-            [ 0  0 -1  0]
-            [ 0  0  0 -1]
-            sage: g.series(e, 3)[1][0][:]
+            sage: g_ser[0][0][:]
+            [-1  0  0  0]
+            [ 0  1  0  0]
+            [ 0  0  1  0]
+            [ 0  0  0  1]
+            sage: g_ser[1][0][:]
             [0 1 0 0]
             [1 0 1 0]
             [0 1 0 1]
             [0 0 1 0]
-            sage: g.series(e, 3)[2][0][:]
+            sage: g_ser[2][0][:]
             [0 0 1 0]
             [0 0 0 1]
             [1 0 0 0]
             [0 1 0 0]
+            sage: all([g_ser[1][0] == h1, g_ser[2][0] == h2])
+            True
 
         """
         from sage.tensor.modules.comp import Components
-        res = [0] * order
-        for k in range(order):
+        orderp1 = order + 1
+        res = [0] * orderp1
+        for k in range(orderp1):
             res[k] = self.domain().tensor_field(*self.tensor_type(),
                                                 dest_map=self._fmodule._dest_map,
                                                 sym=self._sym,
@@ -2101,101 +2114,131 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         for frame in self._components:
             decompo = {}
             comp = self.comp(frame)
-            res_comp = [0] * order
+            res_comp = [0] * orderp1
             for inds in comp.index_generator():
-                decompo[inds] = comp[inds].expr().series(symbol, order).truncate().coefficients(symbol)
-            for k in range(order):
+                decompo[inds] = comp[inds].expr().series(symbol,
+                                                         orderp1).truncate().coefficients(symbol)
+            for k in range(orderp1):
                 res_comp[k] = Components(SR, frame, self.tensor_rank())
                 for inds in comp.index_generator():
                     res_comp_k = [decompo[inds][l][0] for l in range(len(decompo[inds]))
                                   if decompo[inds][l][1] == k]
                     res_comp[k][inds] = res_comp_k[0] if len(res_comp_k) >= 1 else 0
                 res[k].add_comp(frame)[:] = res_comp[k][:]
-        return list(zip(res, list(range(order))))
+        return list(zip(res, list(range(orderp1))))
 
     def truncate(self, symbol, order):
         r"""
-        Return the tensor truncated at a given order in ``symbol``.
+        Return the tensor field truncated at a given order in the power series
+        expansion with respect to some small parameter.
+
+        If the small parameter is `\epsilon` and `T` is ``self``, the
+        power series expansion to order `n` is
+
+        .. MATH::
+
+            T = T_0 + \epsilon T_1 + \epsilon^2 T_2 + \cdots + \epsilon^n T_n
+                + O(\epsilon^{n+1})
+
+        where `T_0`, `T_1`, ..., `T_n` are `n+1` tensor fields of the same
+        tensor type as ``self`` and do not depend upon `\epsilon`.
 
         INPUT:
 
-        - ``symbol`` -- symbol used to develop the components around zero
-        - ``order`` -- order of the big oh in the development; to keep only
-          the first order, set to ``2``
+        - ``symbol`` -- symbolic variable (the "small parameter" `\epsilon`)
+          with respect to which the components of ``self`` are expanded in
+          power series
+        - ``order`` -- integer; the order `n` of the expansion, defined as the
+          degree of the polynomial representing the truncated power series in
+          ``symbol``
 
         OUTPUT:
 
-        - tensorfield approximating ``self``
+        - the tensor field
+          `T_0 + \epsilon T_1 + \epsilon^2 T_2 + \cdots + \epsilon^n T_n`
 
         EXAMPLES::
 
             sage: M = Manifold(4, 'M', structure='Lorentzian')
             sage: C.<t,x,y,z> = M.chart()
             sage: e = var('e')
-            sage: g = M.metric('g')
+            sage: g = M.metric()
             sage: h1 = M.tensor_field(0,2,sym=(0,1))
             sage: h2 = M.tensor_field(0,2,sym=(0,1))
-            sage: g[0, 0], g[1, 1], g[2, 2], g[3, 3] = 1, -1, -1, -1
+            sage: g[0, 0], g[1, 1], g[2, 2], g[3, 3] = -1, 1, 1, 1
             sage: h1[0, 1], h1[1, 2], h1[2, 3] = 1, 1, 1
             sage: h2[0, 2], h2[1, 3] = 1, 1
-            sage: g.set(g+e*h1+e**2*h2)
+            sage: g.set(g + e*h1 + e^2*h2)
             sage: g[:]
-            [  1   e e^2   0]
-            [  e  -1   e e^2]
-            [e^2   e  -1   e]
-            [  0 e^2   e  -1]
-            sage: g.truncate(e, 2)[:]
-            [ 1  e  0  0]
-            [ e -1  e  0]
-            [ 0  e -1  e]
-            [ 0  0  e -1]
+            [ -1   e e^2   0]
+            [  e   1   e e^2]
+            [e^2   e   1   e]
+            [  0 e^2   e   1]
+            sage: g.truncate(e, 1)[:]
+            [-1  e  0  0]
+            [ e  1  e  0]
+            [ 0  e  1  e]
+            [ 0  0  e  1]
 
         """
         s = self.series(symbol, order)
-        return sum(symbol**i*s[i][0] for i in range(order))
+        return sum(symbol**i*s[i][0] for i in range(order+1))
 
     def set_calc_order(self, symbol, order, truncate=False):
         """
-        Trigger a series expansion with respect to a given parameter in
+        Trigger a power series expansion with respect to a small parameter in
         computations involving the tensor field.
 
         This property is propagated by usual operations. The internal
         representation must be ``SR`` for this to take effect.
 
+        If the small parameter is `\epsilon` and `T` is ``self``, the
+        power series expansion to order `n` is
+
+        .. MATH::
+
+            T = T_0 + \epsilon T_1 + \epsilon^2 T_2 + \cdots + \epsilon^n T_n
+                + O(\epsilon^{n+1})
+
+        where `T_0`, `T_1`, ..., `T_n` are `n+1` tensor fields of the same
+        tensor type as ``self`` and do not depend upon `\epsilon`.
+
         INPUT:
 
-        - ``symbol`` -- symbolic variable with respect to which the components
-          are expanded
-        - ``order`` -- order of the big oh in the expansion with respect to
-          ``symbol``; to keep only the first order, use ``2``
+        - ``symbol`` -- symbolic variable (the "small parameter" `\epsilon`)
+          with respect to which the components of ``self`` are expanded in
+          power series
+        - ``order`` -- integer; the order `n` of the expansion, defined as the
+          degree of the polynomial representing the truncated power series in
+          ``symbol``
         - ``truncate`` -- (default: ``False``) determines whether the
-          components of the tensor field are replaced by their expansions to
-          the given order
+          components of ``self`` are replaced by their expansions to the
+          given order
 
         EXAMPLES::
 
             sage: M = Manifold(4, 'M', structure='Lorentzian')
             sage: C.<t,x,y,z> = M.chart()
             sage: e = var('e')
-            sage: g = M.metric('g')
+            sage: g = M.metric()
             sage: h1 = M.tensor_field(0, 2, sym=(0,1))
             sage: h2 = M.tensor_field(0, 2, sym=(0,1))
-            sage: g[0, 0], g[1, 1], g[2, 2], g[3, 3] = 1, -1, -1, -1
+            sage: g[0, 0], g[1, 1], g[2, 2], g[3, 3] = -1, 1, 1, 1
             sage: h1[0, 1], h1[1, 2], h1[2, 3] = 1, 1, 1
             sage: h2[0, 2], h2[1, 3] = 1, 1
-            sage: g.set(g+e*h1+e^2*h2)
-            sage: g.set_calc_order(e, 2)
+            sage: g.set(g + e*h1 + e^2*h2)
+            sage: g.set_calc_order(e, 1)
             sage: g[:]
-            [  1   e e^2   0]
-            [  e  -1   e e^2]
-            [e^2   e  -1   e]
-            [  0 e^2   e  -1]
-            sage: g.set_calc_order(e, 2, truncate=True)
+            [ -1   e e^2   0]
+            [  e   1   e e^2]
+            [e^2   e   1   e]
+            [  0 e^2   e   1]
+            sage: g.set_calc_order(e, 1, truncate=True)
             sage: g[:]
-            [ 1  e  0  0]
-            [ e -1  e  0]
-            [ 0  e -1  e]
-            [ 0  0  e -1]
+            [-1  e  0  0]
+            [ e  1  e  0]
+            [ 0  e  1  e]
+            [ 0  0  e  1]
 
         """
         for frame in self._components:
@@ -2205,4 +2248,3 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
                 if truncate:
                     self._components[frame][ind].simplify()
         self._del_derived()
-

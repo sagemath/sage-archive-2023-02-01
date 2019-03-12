@@ -8430,11 +8430,22 @@ class Polyhedron_base(Element):
             sage: x, y, z = polygens(QQ, 'x, y, z')
             sage: P._integrate_latte_(x^2 + y^2*z^2)    # optional - latte_int
             32/9
+
+        ::
+
+            sage: R = PolynomialRing(QQ, '', 0)
+            sage: Polyhedron(vertices=[()]).integrate(R(42))
+            42
         """
         from sage.interfaces.latte import integrate
 
         if self.base_ring() == RDF:
             raise TypeError("LattE integrale cannot be applied over inexact rings.")
+        if self.dimension() == 0:
+            vertices = self.vertices()
+            assert len(self.vertices()) == 1
+            vertex = tuple(vertices[0])
+            return polynomial(vertex)
         return integrate(self.cdd_Hrepresentation(),
                          polynomial,
                          cdd=True, **kwds)

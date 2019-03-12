@@ -22951,12 +22951,11 @@ class GenericGraph(GenericGraph_pyx):
 
         """
         n = self.order()
+        if n == 0 :
+            raise ValueError('graph is empty')
 
         if u and u not in self:
             raise ValueError("vertex ({0}) is not a vertex of the graph".format(repr(u)))
-
-        if n == 0 :
-            raise ValueError('graph is empty')
 
         if u:
             connected = self.connected_components()

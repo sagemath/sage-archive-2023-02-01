@@ -5378,12 +5378,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         EXAMPLES::
 
             sage: E = EllipticCurve('37a1')
-            sage: E.eval_modular_form([1.5+I,2.0+I,2.5+I],100)
+            sage: E.eval_modular_form([1.5+I,2.0+I,2.5+I],100) # abs tol 1e-20
             [-0.0018743978548152085771342944989052703431,
              0.0018604485340371083710285594393397945456,
             -0.0018743978548152085771342944989052703431]
 
-            sage: E.eval_modular_form(2.1+I, 100)
+            sage: E.eval_modular_form(2.1+I, 100) # abs tol 1e-20
             [0.00150864362757267079 + 0.00109100341113449845*I]
         """
         if not isinstance(points, list):

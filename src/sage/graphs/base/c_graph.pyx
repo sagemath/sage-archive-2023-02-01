@@ -41,14 +41,15 @@ method :meth:`realloc <sage.graphs.base.c_graph.CGraph.realloc>`.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+# distutils: language=c++
 from __future__ import print_function, absolute_import, division
 
 include "sage/data_structures/bitset.pxi"
 
 from sage.rings.integer cimport Integer
 from sage.arith.long cimport pyobject_to_long
-
+from libcpp.queue cimport priority_queue
+from libcpp.pair cimport pair
 
 cdef class CGraph:
     """
@@ -2169,8 +2170,8 @@ cdef class CGraphBackend(GenericGraphBackend):
         # Use Python to maintain a heap...
         # Rewrite this in Cython as soon as possible !
         # *************************************************
-        from heapq import heappush, heappop
-
+        #from heapq import heappush, heappop
+        cdef priority_queue[pair[pair[int, int], pair[int, int]]] pq
         # As for shortest_path, the roles of x and y are symmetric, hence we
         # define dictionaries like pred_current and pred_other, which
         # represent alternatively pred_x or pred_y according to the side
@@ -2199,7 +2200,9 @@ cdef class CGraphBackend(GenericGraphBackend):
         # as 4-tuples: (distance, side, predecessor ,name).
         # 1 indicates x's side, -1 indicates y's, the distance being
         # defined relatively.
-        cdef list queue = [(0, 1, x_int, x_int), (0, -1, y_int, y_int)]
+        #cdef list queue = [(0, 1, x_int, x_int), (0, -1, y_int, y_int)]
+        pq.push(((0, 1), (x_int, x_int)))
+        pq.push(((0, -1), (y_int, y_int)))
         cdef list neighbors
 
         cdef list shortest_path = []
@@ -2213,8 +2216,10 @@ cdef class CGraphBackend(GenericGraphBackend):
             weight_function = lambda e:e[2]
 
         # As long as the current side (x or y) is not totally explored ...
-        while queue:
-            (distance, side, pred, v) = heappop(queue)
+        while not pq.empty():
+            (distance, side), (pred, v) = pq.top()
+            distance = -distance
+            pq.pop()
             if meeting_vertex != -1 and distance > shortest_path_length:
                 break
 
@@ -2253,7 +2258,7 @@ cdef class CGraphBackend(GenericGraphBackend):
                             edge_label = min(edge_label)
                         if edge_label < 0:
                             raise ValueError("the graph contains an edge with negative weight")
-                        heappush(queue, (distance + edge_label, side, v, w))
+                        pq.push(((-(distance + edge_label), side), (v, w)))
 
         # No meeting point has been found
         if meeting_vertex == -1:

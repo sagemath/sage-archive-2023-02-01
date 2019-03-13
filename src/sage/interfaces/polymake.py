@@ -1735,8 +1735,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
             sage: c.get_member_function("foo")()                        # optional - polymake
             Traceback (most recent call last):
             ...
-            TypeError: Can't locate object method "foo" via package "Polymake::polytope::Polytope__Rational" at input line 1.
-
+            TypeError: Can't locate object method "foo" via package "Polymake::polytope::Polytope__Rational"
         """
         P = self._check_valid()
         return P._function_element_class()(self, '{}->{}'.format(self._name, attrname), memberfunction=True)

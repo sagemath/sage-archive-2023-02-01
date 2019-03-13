@@ -22948,14 +22948,8 @@ class GenericGraph(GenericGraph_pyx):
             11/199
             sage: graphs.PathGraph(4).katz_centrality(1/20,3)
             21/379
-            sage: (graphs.PathGraph(3) + graphs.PathGraph(4)).katz_centrality(0.20)
-            {0: 0.304347826086957,
-             1: 0.521739130434783,
-             2: 0.304347826086957,
-             3: 0.315789473684211,
-             4: 0.578947368421053,
-             5: 0.578947368421053,
-             6: 0.315789473684211}
+            sage: (graphs.PathGraph(3) + graphs.PathGraph(4)).katz_centrality(1/20)
+            {0: 11/199, 1: 21/199, 2: 11/199, 3: 21/379, 4: 41/379, 5: 41/379, 6: 21/379}
 
         """
         n = self.order()

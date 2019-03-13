@@ -3060,10 +3060,10 @@ class FunctionField_global(FunctionField_polymod):
 
         W = self(self.base_field().gen()).differential().divisor()
         basis = W._basis()
-        d = len(basis)
 
-        if d == 0:
-            return [],[]
+        if not basis:
+            return [], []
+        d = len(basis)
 
         der = self.higher_derivation()
         M = matrix([basis])
@@ -3088,7 +3088,7 @@ class FunctionField_global(FunctionField_polymod):
     @cached_method
     def completion(self, place, name=None, prec=None, gen_name=None):
         """
-        Return the completion of the function field at the place
+        Return the completion of the function field at the place.
 
         INPUT:
 

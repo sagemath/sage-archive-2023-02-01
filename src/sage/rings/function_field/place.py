@@ -658,23 +658,25 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
         g = F.genus()
         i = 1
         if self.is_infinite_place():
-            while len(gaps) < g:
+            while g:
                 J = J * prime_inv
                 B = matrix([to(b) for b in J.gens_over_base()])
                 dim = dim_RR(C * B.inverse())
                 if dim == prev:
                     gaps.append(i)
+                    g -= 1
                 else:
                     prev = dim
                 i += 1
         else: # self is a finite place
             Binv = B.inverse()
-            while len(gaps) < g:
+            while g:
                 I = I * prime_inv
                 C = matrix([to(v) for v in I.gens_over_base()])
                 dim = dim_RR(C * Binv)
                 if dim == prev:
                     gaps.append(i)
+                    g -= 1
                 else:
                     prev = dim
                 i += 1

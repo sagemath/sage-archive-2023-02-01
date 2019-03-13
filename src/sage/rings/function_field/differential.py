@@ -31,7 +31,7 @@ We can compute a canonical divisor::
     sage: k.degree() == 2 * L.genus() - 2
     True
 
-Exact differentials vanish and logarithmic differentials are stable under
+Exact differentials vanish and logarithmic differentials are stable under the
 Cartier operation::
 
     sage: df.cartier()
@@ -353,7 +353,7 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
         # the power series expansion of f
         r = g.valuation(place)
         if r >= 0:
-            return R(0)
+            return R.zero()
         else:
             g_shifted = g * s**(-r)
             c = g_shifted.higher_derivative(-r-1, s)
@@ -361,7 +361,18 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
 
     def cartier(self):
         """
-        Return the image of the differential under Cartier operation.
+        Return the image of the differential by the Cartier operator.
+
+        The Cartier operator operates on differentials. Let `x` be a separating
+        element of the function field.  If a differential `\omega` is written
+        `\omega=(f_0^p+f_1^px+\dots+f_{p-1}^px^{p-1})dx` (prime-power
+        representation), then the Cartier operator maps `\omega` to
+        `f_{p-1}dx`. It is known that this definition does not depend on the
+        choice of `x`.
+
+        The Cartier operator has interesting properties. Notably, the set of
+        exact differentials is precisely the kernel of the Cartier operator and
+        logarithmic differentials are stable under the Cartier operation.
 
         EXAMPLES::
 

@@ -57,6 +57,7 @@ from __future__ import absolute_import
 from sage.categories.morphism import Morphism, SetMorphism
 from sage.categories.map import Map
 from sage.categories.homset import Hom
+from sage.categories.sets_cat import Sets
 
 from sage.rings.infinity import infinity
 from sage.rings.morphism import RingHomomorphism
@@ -109,7 +110,6 @@ class FunctionFieldDerivation(Map):
         if not is_FunctionField(K):
             raise ValueError("K must be a function field")
         self.__field = K
-        from sage.categories.sets_cat import Sets
         Map.__init__(self, Hom(K,K,Sets()))
 
     def _repr_type(self):
@@ -462,7 +462,7 @@ class FunctionFieldHigherDerivation(Map):
         """
         Initialize.
         """
-        Map.__init__(self, field, field)
+        Map.__init__(self, Hom(field, field, Sets()))
 
         self._field = field
 
@@ -480,6 +480,12 @@ class FunctionFieldHigherDerivation(Map):
               To:   Rational function field in x over Finite Field of size 2
         """
         return 'Higher derivation'
+
+    def __eq__(self, other):
+        if isinstance(other, FunctionFieldHigherDerivation):
+            return self._field == other._field
+        return False
+
 
 class FunctionFieldHigherDerivation_rational(FunctionFieldHigherDerivation):
     """
@@ -500,20 +506,29 @@ class FunctionFieldHigherDerivation_rational(FunctionFieldHigherDerivation):
         sage: h(x^2,2)
         1
     """
+    __pth_root_in_prime_field = lambda e: e
+    __pth_root_in_finite_field = lambda e: e.pth_root()
+
     def __init__(self, field):
         """
         Initialize.
+
+        TESTS::
+
+            sage: F.<x> = FunctionField(GF(2))
+            sage: h = F.higher_derivation()
+            sage: TestSuite(h).run(skip=['_test_category', '_test_pickling'])
         """
         FunctionFieldHigherDerivation.__init__(self, field)
 
         self._p = field.characteristic()
         self._separating_element = field.gen()
 
-        # elements of prime finite fields do not have pth_root method
+        # elements of a prime finite field do not have pth_root method
         if field.constant_base_field().is_prime_field():
-            self._pth_root_in_finite_field = lambda e: e
+            self.__pth_root = FunctionFieldHigherDerivation_rational.__pth_root_in_prime_field
         else:
-            self._pth_root_in_finite_field = lambda e: e.pth_root()
+            self.__pth_root = FunctionFieldHigherDerivation_rational.__pth_root_in_finite_field
 
     def _call_with_args(self, f, args=(), kwds={}):
         """
@@ -530,7 +545,7 @@ class FunctionFieldHigherDerivation_rational(FunctionFieldHigherDerivation):
 
     def _derive(self, f, i, separating_element=None):
         """
-        Return i-th derivative of f with respect to the separating element.
+        Return the `i`-th derivative of `f` with respect to the separating element.
 
         This implements Hess' Algorithm 26 in [Hes2002b]_.
 
@@ -557,7 +572,8 @@ class FunctionFieldHigherDerivation_rational(FunctionFieldHigherDerivation):
             derivative = lambda f: f.derivative()
         else:
             x = separating_element
-            derivative = lambda f: f.derivative() / x.derivative()
+            xderinv = ~(x.derivative())
+            derivative = lambda f: xderinv * f.derivative()
 
         prime_power_representation = self._prime_power_representation
 
@@ -608,8 +624,6 @@ class FunctionFieldHigherDerivation_rational(FunctionFieldHigherDerivation):
         F = self._field
         p = self._p
 
-        pth_root = self._pth_root
-
         if separating_element is None:
             x = self._separating_element
             derivative = lambda f: f.derivative()
@@ -632,7 +646,7 @@ class FunctionFieldHigherDerivation_rational(FunctionFieldHigherDerivation):
             b[j] -= sum(binomial(i,j) * b[i] * x**(i-j) for i in range(j+1,p))
             j -= 1
         # Step 3
-        return [pth_root(c) for c in b]
+        return [self._pth_root(c) for c in b]
 
     def _pth_root(self, c):
         """
@@ -649,18 +663,17 @@ class FunctionFieldHigherDerivation_rational(FunctionFieldHigherDerivation):
             sage: h._pth_root((x^2+1)^2)
             x^2 + 1
         """
-        from .element import FunctionFieldElement_rational
         K = self._field
         p = self._p
-        pth_root = self._pth_root_in_finite_field
 
         R = K._field.ring()
 
         poly = c.numerator()
-        num = R([pth_root(poly[i]) for i in range(0,poly.degree()+1,p)])
+        num = R([self.__pth_root(poly[i]) for i in range(0,poly.degree()+1,p)])
         poly = c.denominator()
-        den = R([pth_root(poly[i]) for i in range(0,poly.degree()+1,p)])
-        return FunctionFieldElement_rational(K, num / den)
+        den = R([self.__pth_root(poly[i]) for i in range(0,poly.degree()+1,p)])
+        return K.element_class(K, num/den)
+
 
 class FunctionFieldHigherDerivation_global(FunctionFieldHigherDerivation):
     """
@@ -682,9 +695,19 @@ class FunctionFieldHigherDerivation_global(FunctionFieldHigherDerivation):
         sage: h(y^2, 2)
         ((x^7 + 1)/x^2)*y^2 + x^3*y
     """
+    __pth_root_in_prime_field = lambda e: e
+    __pth_root_in_finite_field = lambda e: e.pth_root()
+
     def __init__(self, field):
         """
         Initialize.
+
+        TESTS::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
+            sage: h = L.higher_derivation()
+            sage: TestSuite(h).run(skip=['_test_category', '_test_pickling'])
         """
         FunctionFieldHigherDerivation.__init__(self, field)
 
@@ -698,11 +721,11 @@ class FunctionFieldHigherDerivation_global(FunctionFieldHigherDerivation):
         self.__pth_root_matrix = matrix([(y**(i*p)).list()
                                          for i in range(field.degree())]).transpose()
 
-        # elements of prime finite fields do not have pth_root method
+        # elements of a prime finite field do not have pth_root method
         if field.constant_base_field().is_prime_field():
-            self.__pth_root_in_finite_field = lambda e: e
+            self.__pth_root = FunctionFieldHigherDerivation_global.__pth_root_in_prime_field
         else:
-            self.__pth_root_in_finite_field = lambda e: e.pth_root()
+            self.__pth_root = FunctionFieldHigherDerivation_global.__pth_root_in_finite_field
 
         # cache computed higher derivatives to speed up later computations
         self._cache = {}
@@ -749,7 +772,6 @@ class FunctionFieldHigherDerivation_global(FunctionFieldHigherDerivation):
         F = self._field
         p = self._p
         frob = F.frobenius_endomorphism() # p-th power map
-        pth_root = self._pth_root
 
         if separating_element is None:
             x = self._separating_element
@@ -800,7 +822,7 @@ class FunctionFieldHigherDerivation_global(FunctionFieldHigherDerivation):
                 while j >= 0:
                     b[j] -= sum(binomial(k,j) * b[k] * x**(k-j) for k in range(j+1,p))
                     j -= 1
-                lambdas = [pth_root(c) for c in b]
+                lambdas = [self._pth_root(c) for c in b]
 
                 # Step 6 and 7:
                 der = 0
@@ -835,8 +857,6 @@ class FunctionFieldHigherDerivation_global(FunctionFieldHigherDerivation):
         F = self._field
         p = self._p
 
-        pth_root = self._pth_root
-
         if separating_element is None:
             x = self._separating_element
             derivative = lambda f: f.derivative()
@@ -860,7 +880,7 @@ class FunctionFieldHigherDerivation_global(FunctionFieldHigherDerivation):
             b[j] -= sum(binomial(i,j) * b[i] * x**(i-j) for i in range(j+1,p))
             j -= 1
         # Step 3
-        return [pth_root(c) for c in b]
+        return [self._pth_root(c) for c in b]
 
     def _pth_root(self, c):
         """
@@ -876,14 +896,13 @@ class FunctionFieldHigherDerivation_global(FunctionFieldHigherDerivation):
         """
         K = self._field.base_field() # rational function field
         p = self._p
-        pth_root = self.__pth_root_in_finite_field
 
         coeffs = []
         for d in self.__pth_root_matrix.solve_right(vector(c.list())):
             poly = d.numerator()
-            num = K([pth_root(poly[i]) for i in range(0,poly.degree()+1,p)])
+            num = K([self.__pth_root(poly[i]) for i in range(0,poly.degree()+1,p)])
             poly = d.denominator()
-            den = K([pth_root(poly[i]) for i in range(0,poly.degree()+1,p)])
+            den = K([self.__pth_root(poly[i]) for i in range(0,poly.degree()+1,p)])
             coeffs.append( num/den )
         return self._field(coeffs)
 
@@ -1620,7 +1639,7 @@ class FunctionFieldCompletion_global(FunctionFieldCompletion):
             codomain = LaurentSeriesRing(k, name=name, default_prec=prec)
             self._precision = codomain.default_prec()
         else: # prec == infinity
-            raise NotImplementedError('not yet supported')
+            raise NotImplementedError('infinite precision not yet supported')
 
         FunctionFieldCompletion.__init__(self, field, codomain)
 

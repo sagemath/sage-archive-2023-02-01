@@ -2205,14 +2205,16 @@ class GenericGraph(GenericGraph_pyx):
         M = matrix(self.num_verts(), D, sparse=sparse)
         return M
 
-    def kirchhoff_matrix(self, weighted=None, indegree=True, normalized=False, **kwds):
+    def kirchhoff_matrix(self, weighted=None, indegree=True, normalized=False, signless=False, **kwds):
         r"""
         Return the Kirchhoff matrix (a.k.a. the Laplacian) of the graph.
 
-        The Kirchhoff matrix is defined to be `D - M`, where `D` is the diagonal
-        degree matrix (each diagonal entry is the degree of the corresponding
-        vertex), and `M` is the adjacency matrix.  If ``normalized`` is
-        ``True``, then the returned matrix is `D^{-1/2}(D-M)D^{-1/2}`.
+        The Kirchhoff matrix is defined to be `D + M` if signless and `D - M`
+        otherwise, where `D` is the diagonal degree matrix (each diagonal entry
+        is the degree of the corresponding vertex), and `M` is the adjacency
+        matrix.  If ``normalized`` is ``True``, then the returned matrix is
+        `D^{-1/2}(D+M)D^{-1/2}` if signless and `D^{-1/2}(D-M)D^{-1/2}`
+        otherwise.
 
         (In the special case of DiGraphs, `D` is defined as the diagonal
         in-degree matrix or diagonal out-degree matrix according to the value of
@@ -2238,20 +2240,26 @@ class GenericGraph(GenericGraph_pyx):
             the corresponding vertex
 
           - Else, each diagonal entry of `D` is equal to the out-degree of the
-            corresponding vertex.
+            corresponding vertex
 
           By default, ``indegree`` is set to ``True``
 
         - ``normalized`` -- boolean (default: ``False``);
 
-          - If ``True``, the returned matrix is `D^{-1/2}(D-M)D^{-1/2}`, a
-            normalized version of the Laplacian matrix.
-            More accurately, the normalizing matrix used is equal to `D^{-1/2}`
-            only for non-isolated vertices.  If vertex `i` is isolated, then
-            diagonal entry `i` in the matrix is 1, rather than a division by
-            zero.
+          - If ``True``, the returned matrix is `D^{-1/2}(D+M)D^{-1/2}` for
+            signless and `D^{-1/2}(D-M)D^{-1/2}` otherwise, a normalized
+            version of the Laplacian matrix. More accurately, the normalizing
+            matrix used is equal to `D^{-1/2}` only for non-isolated vertices.
+            If vertex `i` is isolated, then diagonal entry `i` in the matrix is 
+            1, rather than a division by zero
 
-          - Else, the matrix `D-M` is returned
+          - Else, the matrix `D+M` for signless and `D-M` otherwise is returned
+
+        - ``signless`` -- boolean (default: ``False``);
+
+          - If ``True``, `D+M` is used in calculation of Kirchhoff matrix
+
+          - Else, `D-M` is used in calculation of Kirchhoff matrix
 
         Note that any additional keywords will be passed on to either the
         ``adjacency_matrix`` or ``weighted_adjacency_matrix`` method.
@@ -2280,11 +2288,21 @@ class GenericGraph(GenericGraph_pyx):
             [-1/6*sqrt(3)*sqrt(2)                    1                 -1/2                    0]
             [-1/6*sqrt(3)*sqrt(2)                 -1/2                    1                    0]
             [        -1/3*sqrt(3)                    0                    0                    1]
+            sage: M = G.kirchhoff_matrix(weighted=True, signless=True); M
+            [8 1 3 4]
+            [1 3 2 0]
+            [3 2 5 0]
+            [4 0 0 4]
 
-            sage: Graph({0: [], 1: [2]}).laplacian_matrix(normalized=True)
+            sage: G = Graph({0: [], 1: [2]})
+            sage: G.laplacian_matrix(normalized=True)
             [ 0  0  0]
             [ 0  1 -1]
             [ 0 -1  1]
+            sage: G.laplacian_matrix(normalized=True,signless=True)
+            [0 0 0]
+            [0 1 1]
+            [0 1 1]
 
         A weighted directed graph with loops, changing the variable ``indegree`` ::
 
@@ -2355,10 +2373,15 @@ class GenericGraph(GenericGraph_pyx):
         if normalized:
             Dsqrt = diagonal_matrix([1 / sqrt(D[i,i]) if D[i,i] else 1 \
                                      for i in range(D.nrows())])
-            return Dsqrt * (D - M) * Dsqrt
+            if signless:
+                return Dsqrt * (D + M) * Dsqrt
+            else:
+                return Dsqrt * (D - M) * Dsqrt
         else:
-            return D - M
-
+            if signless:
+                return D + M
+            else:
+                return D - M
     laplacian_matrix = kirchhoff_matrix
 
     ### Attributes

@@ -189,7 +189,7 @@ class FunctionFieldDerivation_rational(FunctionFieldDerivation):
 
             sage: K.<x> = FunctionField(QQ)
             sage: d = K.derivation()
-            sage: d(x) # indirect doctest
+            sage: d(x)  # indirect doctest
             1
             sage: d(x^3)
             3*x^2
@@ -212,7 +212,7 @@ class FunctionFieldDerivation_rational(FunctionFieldDerivation):
         TESTS::
 
             sage: K.<x> = FunctionField(QQ)
-            sage: K.derivation()
+            sage: K.derivation()  # indirect doctest
             Derivation map:
               From: Rational function field in x over Rational Field
               To:   Rational function field in x over Rational Field
@@ -462,6 +462,12 @@ class FunctionFieldHigherDerivation(Map):
     def __init__(self, field):
         """
         Initialize.
+
+        TESTS::
+
+            sage: F.<x> = FunctionField(GF(4))
+            sage: h = F.higher_derivation()
+            sage: TestSuite(h).run(skip='_test_category')
         """
         Map.__init__(self, Hom(field, field, Sets()))
 
@@ -483,15 +489,49 @@ class FunctionFieldHigherDerivation(Map):
         return 'Higher derivation'
 
     def __eq__(self, other):
+        """
+        Test if ``self`` equals ``other``.
+
+        TESTS::
+
+            sage: F.<x> = FunctionField(GF(2))
+            sage: h = F.higher_derivation()
+            sage: loads(dumps(h)) == h
+            True
+        """
         if isinstance(other, FunctionFieldHigherDerivation):
             return self._field == other._field
         return False
 
 
 def _pth_root_in_prime_field(e):
+    """
+    Return the p-th root of element ``e`` in a prime finite field.
+
+    TESTS::
+
+        sage: from sage.rings.function_field.maps import _pth_root_in_prime_field
+        sage: p = 5
+        sage: F.<a> = GF(p)
+        sage: e = F.random_element()
+        sage: _pth_root_in_prime_field(e)^p == e
+        True
+    """
     return e
 
 def _pth_root_in_finite_field(e):
+    """
+    Return the p-th root of element ``e`` in a finite field.
+
+    TESTS::
+
+        sage: from sage.rings.function_field.maps import _pth_root_in_finite_field
+        sage: p = 3
+        sage: F.<a> = GF(p^2)
+        sage: e = F.random_element()
+        sage: _pth_root_in_finite_field(e)^p == e
+        True
+    """
     return e.pth_root()
 
 class FunctionFieldHigherDerivation_rational(FunctionFieldHigherDerivation):
@@ -1695,8 +1735,9 @@ class FunctionFieldCompletion_global(FunctionFieldCompletion):
             sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
             sage: p = L.places_finite()[0]
             sage: m = L.completion(p)
-            sage: m(x, 10)
-            s^2 + s^3 + s^4 + s^5 + s^7 + s^8 + s^9 + s^10 + O(s^12)
+            sage: m(x, prec=20)  # indirect doctest
+            s^2 + s^3 + s^4 + s^5 + s^7 + s^8 + s^9 + s^10 + s^12 + s^13 + s^15
+            + s^16 + s^17 + s^19 + O(s^22)
         """
         if prec is None:
             prec = self._precision

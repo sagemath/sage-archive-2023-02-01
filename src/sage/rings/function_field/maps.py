@@ -561,7 +561,7 @@ class FunctionFieldHigherDerivation_rational(FunctionFieldHigherDerivation):
 
             sage: F.<x> = FunctionField(GF(2))
             sage: h = F.higher_derivation()
-            sage: TestSuite(h).run(skip=['_test_category'])
+            sage: TestSuite(h).run(skip='_test_category')
         """
         FunctionFieldHigherDerivation.__init__(self, field)
 

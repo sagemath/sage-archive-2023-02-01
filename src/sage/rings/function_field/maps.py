@@ -68,6 +68,7 @@ from sage.functions.other import binomial
 
 from sage.matrix.constructor import matrix
 
+
 class FunctionFieldDerivation(Map):
     r"""
     Base class for derivations on function fields.
@@ -487,6 +488,12 @@ class FunctionFieldHigherDerivation(Map):
         return False
 
 
+def _pth_root_in_prime_field(e):
+    return e
+
+def _pth_root_in_finite_field(e):
+    return e.pth_root()
+
 class FunctionFieldHigherDerivation_rational(FunctionFieldHigherDerivation):
     """
     Higher derivations of rational function fields.
@@ -506,9 +513,6 @@ class FunctionFieldHigherDerivation_rational(FunctionFieldHigherDerivation):
         sage: h(x^2,2)
         1
     """
-    __pth_root_in_prime_field = lambda e: e
-    __pth_root_in_finite_field = lambda e: e.pth_root()
-
     def __init__(self, field):
         """
         Initialize.
@@ -517,7 +521,7 @@ class FunctionFieldHigherDerivation_rational(FunctionFieldHigherDerivation):
 
             sage: F.<x> = FunctionField(GF(2))
             sage: h = F.higher_derivation()
-            sage: TestSuite(h).run(skip=['_test_category', '_test_pickling'])
+            sage: TestSuite(h).run(skip=['_test_category'])
         """
         FunctionFieldHigherDerivation.__init__(self, field)
 
@@ -526,9 +530,11 @@ class FunctionFieldHigherDerivation_rational(FunctionFieldHigherDerivation):
 
         # elements of a prime finite field do not have pth_root method
         if field.constant_base_field().is_prime_field():
-            self.__pth_root = FunctionFieldHigherDerivation_rational.__pth_root_in_prime_field
+            global _pth_root_in_prime_field
+            self.__pth_root = _pth_root_in_prime_field
         else:
-            self.__pth_root = FunctionFieldHigherDerivation_rational.__pth_root_in_finite_field
+            global _pth_root_in_finite_field
+            self.__pth_root = _pth_root_in_finite_field
 
     def _call_with_args(self, f, args=(), kwds={}):
         """
@@ -695,8 +701,6 @@ class FunctionFieldHigherDerivation_global(FunctionFieldHigherDerivation):
         sage: h(y^2, 2)
         ((x^7 + 1)/x^2)*y^2 + x^3*y
     """
-    __pth_root_in_prime_field = lambda e: e
-    __pth_root_in_finite_field = lambda e: e.pth_root()
 
     def __init__(self, field):
         """
@@ -707,7 +711,7 @@ class FunctionFieldHigherDerivation_global(FunctionFieldHigherDerivation):
             sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
             sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
             sage: h = L.higher_derivation()
-            sage: TestSuite(h).run(skip=['_test_category', '_test_pickling'])
+            sage: TestSuite(h).run(skip=['_test_category'])
         """
         FunctionFieldHigherDerivation.__init__(self, field)
 
@@ -723,9 +727,11 @@ class FunctionFieldHigherDerivation_global(FunctionFieldHigherDerivation):
 
         # elements of a prime finite field do not have pth_root method
         if field.constant_base_field().is_prime_field():
-            self.__pth_root = FunctionFieldHigherDerivation_global.__pth_root_in_prime_field
+            global _pth_root_in_prime_field
+            self.__pth_root = _pth_root_in_prime_field
         else:
-            self.__pth_root = FunctionFieldHigherDerivation_global.__pth_root_in_finite_field
+            global _pth_root_in_finite_field
+            self.__pth_root = _pth_root_in_finite_field
 
         # cache computed higher derivatives to speed up later computations
         self._cache = {}

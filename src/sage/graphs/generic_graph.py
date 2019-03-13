@@ -22948,6 +22948,14 @@ class GenericGraph(GenericGraph_pyx):
             11/199
             sage: graphs.PathGraph(4).katz_centrality(1/20,3)
             21/379
+            sage: (graphs.PathGraph(3) + graphs.PathGraph(4)).katz_centrality(0.20)
+            {0: 0.304347826086957,
+             1: 0.521739130434783,
+             2: 0.304347826086957,
+             3: 0.315789473684211,
+             4: 0.578947368421053,
+             5: 0.578947368421053,
+             6: 0.315789473684211}
 
         """
         n = self.order()
@@ -22971,11 +22979,10 @@ class GenericGraph(GenericGraph_pyx):
             M = self.katz_matrix(alpha, nonedgesonly=False, vertices=verts)
             return {u: sum(M[i]) for i, u in enumerate(verts)}
         else:
-            li = self.connected_components_subgraphs()
             K = {}
-            for g in li:
-                verts = list(gi)
-                M = self.katz_matrix(alpha, nonedgesonly=False, vertices=verts)
+            for g in self.connected_components_subgraphs():
+                verts = list(g)
+                M = g.katz_matrix(alpha, nonedgesonly=False, vertices=verts)
                 K.update({u: sum(M[i]) for i, u in enumerate(verts)})
             return K
 

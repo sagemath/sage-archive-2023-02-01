@@ -3201,7 +3201,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         It is known that every poset has a greedy linear extension --
         an extension `[e_1, e_2, \ldots, e_n]` where every `e_{i+1}` is
         an upper cover of `e_i` if that is possible -- with the smallest
-        possible number of jumps; see [Mac1987]_.
+        possible number of jumps; see [Sys1987]_.
 
         Hence it suffices to test only those. We do that by backtracking.
 

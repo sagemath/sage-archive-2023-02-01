@@ -2563,8 +2563,8 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: u.dot_product(w)
             0
 
-        The cross product is defined for degree seven vectors as well.
-        [Crossproduct]_
+        The cross product is defined for degree seven vectors as well: 
+        see :wikipedia:`Cross_product`.
         The 3-D cross product is achieved using the quaternions,
         whereas the 7-D cross product is achieved using the octonions. ::
 

@@ -22951,21 +22951,33 @@ class GenericGraph(GenericGraph_pyx):
 
         """
         n = self.order()
-        if n == 0 :
+        if n == 0:
             raise ValueError('graph is empty')
 
         if u and u not in self:
             raise ValueError("vertex ({0}) is not a vertex of the graph".format(repr(u)))
 
         if u:
-            connected = self.connected_components()
-            verts = [l for l in connected if u in l]
-            M = self.katz_matrix(alpha, nonedgesonly=False, vertices=verts[0])
-            return sum(M[verts[0].index(u)])
+            if self.is_connected():
+                G = self
+            else:
+                G = self.subgraph(self.connected_component_containing_vertex(u, sort=False))
+            verts = list(G)
+            M = G.katz_matrix(alpha, nonedgesonly=False, vertices=verts)
+            return sum(M[verts.index(u)])
 
-        verts = list(self)
-        M = self.katz_matrix(alpha, nonedgesonly=False, vertices=verts)
-        return {u: sum(M[i]) for i, u in enumerate(verts)}
+        if self.is_connected():
+            verts = list(self)
+            M = self.katz_matrix(alpha, nonedgesonly=False, vertices=verts)
+            return {u: sum(M[i]) for i, u in enumerate(verts)}
+        else:
+            li = self.connected_components_subgraphs()
+            K = {}
+            for g in li:
+                verts = list(gi)
+                M = self.katz_matrix(alpha, nonedgesonly=False, vertices=verts)
+                K.update({u: sum(M[i]) for i, u in enumerate(verts)})
+            return K
 
 def tachyon_vertex_plot(g, bgcolor=(1,1,1),
                         vertex_colors=None,

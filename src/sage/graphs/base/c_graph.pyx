@@ -2153,6 +2153,14 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: G = Graph([(0,1,9),(0,2,8),(1,2,7)])
             sage: G.shortest_path_length(0,1,by_weight=True)
             9
+
+        Bugfix from :trac:`27464` ::
+
+            sage: G = DiGraph({0:[1,2], 1:[4], 2:[3,4], 4:[5],5:[6]},multiedges=True)
+            sage: for (u,v) in G.edges(labels=None):
+            ....:    G.set_edge_label(u,v,1)
+            sage: G.distance(0,5,by_weight=true)
+            3
         """
         if x == y:
             return 0
@@ -2241,6 +2249,8 @@ cdef class CGraphBackend(GenericGraphBackend):
                         v_obj = self.vertex_label(v)
                         w_obj = self.vertex_label(w)
                         edge_label = weight_function((v_obj, w_obj, self.get_edge_label(v_obj, w_obj))) if side == 1 else weight_function((w_obj, v_obj, self.get_edge_label(w_obj, v_obj)))
+                        if type(edge_label) == list:
+                            edge_label = min(edge_label)
                         if edge_label < 0:
                             raise ValueError("the graph contains an edge with negative weight")
                         heappush(queue, (distance + edge_label, side, v, w))

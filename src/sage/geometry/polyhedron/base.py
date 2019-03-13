@@ -5064,7 +5064,7 @@ class Polyhedron_base(Element):
             0
             sage: P.volume(measure='induced')  # optional - pynormaliz
             3/2*sqrt(3)
-            sage: P.volume(measure='induced',engine='normaliz')  # optional - pynormalize
+            sage: P.volume(measure='induced',engine='normaliz')  # optional - pynormaliz
             2.598076211353316
             sage: P.volume(measure='induced_rational')  # optional - latte_int
             3/2

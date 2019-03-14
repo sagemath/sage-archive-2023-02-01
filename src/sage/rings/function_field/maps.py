@@ -473,6 +473,12 @@ class FunctionFieldHigherDerivation(Map):
 
         self._field = field
 
+        # elements of a prime finite field do not have pth_root method
+        if field.constant_base_field().is_prime_field():
+            self._pth_root_func = _pth_root_in_prime_field
+        else:
+            self._pth_root_func = _pth_root_in_finite_field
+
     def _repr_type(self):
         """
         Return a string containing the type of the map.
@@ -567,14 +573,6 @@ class FunctionFieldHigherDerivation_rational(FunctionFieldHigherDerivation):
 
         self._p = field.characteristic()
         self._separating_element = field.gen()
-
-        # elements of a prime finite field do not have pth_root method
-        if field.constant_base_field().is_prime_field():
-            global _pth_root_in_prime_field
-            self.__pth_root = _pth_root_in_prime_field
-        else:
-            global _pth_root_in_finite_field
-            self.__pth_root = _pth_root_in_finite_field
 
     def _call_with_args(self, f, args=(), kwds={}):
         """
@@ -716,9 +714,9 @@ class FunctionFieldHigherDerivation_rational(FunctionFieldHigherDerivation):
         R = K._field.ring()
 
         poly = c.numerator()
-        num = R([self.__pth_root(poly[i]) for i in range(0,poly.degree()+1,p)])
+        num = R([self._pth_root_func(poly[i]) for i in range(0,poly.degree()+1,p)])
         poly = c.denominator()
-        den = R([self.__pth_root(poly[i]) for i in range(0,poly.degree()+1,p)])
+        den = R([self._pth_root_func(poly[i]) for i in range(0,poly.degree()+1,p)])
         return K.element_class(K, num/den)
 
 
@@ -765,14 +763,6 @@ class FunctionFieldHigherDerivation_global(FunctionFieldHigherDerivation):
         # matrix for pth power map; used in _prime_power_representation method
         self.__pth_root_matrix = matrix([(y**(i*p)).list()
                                          for i in range(field.degree())]).transpose()
-
-        # elements of a prime finite field do not have pth_root method
-        if field.constant_base_field().is_prime_field():
-            global _pth_root_in_prime_field
-            self.__pth_root = _pth_root_in_prime_field
-        else:
-            global _pth_root_in_finite_field
-            self.__pth_root = _pth_root_in_finite_field
 
         # cache computed higher derivatives to speed up later computations
         self._cache = {}
@@ -947,9 +937,9 @@ class FunctionFieldHigherDerivation_global(FunctionFieldHigherDerivation):
         coeffs = []
         for d in self.__pth_root_matrix.solve_right(vector(c.list())):
             poly = d.numerator()
-            num = K([self.__pth_root(poly[i]) for i in range(0,poly.degree()+1,p)])
+            num = K([self._pth_root_func(poly[i]) for i in range(0,poly.degree()+1,p)])
             poly = d.denominator()
-            den = K([self.__pth_root(poly[i]) for i in range(0,poly.degree()+1,p)])
+            den = K([self._pth_root_func(poly[i]) for i in range(0,poly.degree()+1,p)])
             coeffs.append( num/den )
         return self._field(coeffs)
 

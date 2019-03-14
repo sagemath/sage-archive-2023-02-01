@@ -2247,9 +2247,12 @@ cdef class CGraphBackend(GenericGraphBackend):
                     if w not in dist_current:
                         v_obj = self.vertex_label(v)
                         w_obj = self.vertex_label(w)
-                        edge_label = weight_function((v_obj, w_obj, self.get_edge_label(v_obj, w_obj))) if side == 1 else weight_function((w_obj, v_obj, self.get_edge_label(w_obj, v_obj)))
-                        if type(edge_label) == list:
-                            edge_label = min(edge_label)
+                        if side == -1:
+                            v_obj, w_obj = w_obj, v_obj
+                        if self._multiple_edges:
+                            edge_label = min(weight_function((v_obj, w_obj, l)) for l in self.get_edge_label(v_obj, w_obj))
+                        else:
+                            edge_label = weight_function((v_obj, w_obj, self.get_edge_label(v_obj, w_obj)))
                         if edge_label < 0:
                             raise ValueError("the graph contains an edge with negative weight")
                         pq.push(((-(distance + edge_label), side), (v, w)))

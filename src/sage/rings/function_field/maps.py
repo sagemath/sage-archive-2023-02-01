@@ -675,7 +675,8 @@ class FunctionFieldHigherDerivation_rational(FunctionFieldHigherDerivation):
             derivative = lambda f: f.derivative()
         else:
             x = separating_element
-            derivative = lambda f: f.derivative() / x.derivative()
+            xderinv = ~(x.derivative())
+            derivative = lambda f: xderinv * f.derivative()
 
         # Step 1:
         a = [f]

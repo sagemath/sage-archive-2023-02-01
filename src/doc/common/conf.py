@@ -92,6 +92,7 @@ def sphinx_plot(graphics, **kwds):
             graphics.save(fn)
             img = mpimg.imread(fn)
             plt.imshow(img)
+            plt.axis("off")
         plt.margins(0)
         plt.tight_layout(pad=0)
 

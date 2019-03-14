@@ -1671,13 +1671,13 @@ class FunctionFieldCompletion_global(FunctionFieldCompletion):
         self._place = place
         self._gen_name = gen_name
 
-        if prec < infinity:
+        if prec == infinity:
+            raise NotImplementedError('infinite precision not yet supported')
+        else: # prec < infinity:
             # if prec is None, the Laurent series ring provides default precision
             from sage.rings.laurent_series_ring import LaurentSeriesRing
             codomain = LaurentSeriesRing(k, name=name, default_prec=prec)
             self._precision = codomain.default_prec()
-        else: # prec == infinity
-            raise NotImplementedError('infinite precision not yet supported')
 
         FunctionFieldCompletion.__init__(self, field, codomain)
 

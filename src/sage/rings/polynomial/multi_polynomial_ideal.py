@@ -2498,6 +2498,16 @@ class MPolynomialIdeal_singular_repr(
             sage: hs = Minors.hilbert_series()
             sage: list(P(hs.numerator()) / P(hs.denominator())) == [hp(t = k) for k in range(50)]
             True
+
+        TESTS:
+
+        Check that :trac:`27483` is fixed::
+
+            sage: P.<x,y,z> = PolynomialRing(QQ)
+            sage: I = Ideal([x^3, x*y^2, y^4, x^2*y*z, y^3*z, x^2*z^2, x*y*z^2, x*z^3])
+            sage: I.hilbert_polynomial(algorithm='singular')
+            3
+
         """
         if not self.is_homogeneous():
             raise TypeError("ideal must be homogeneous")
@@ -2514,7 +2524,7 @@ class MPolynomialIdeal_singular_repr(
                 return t.parent().zero()
             denom = ZZ(s-1).factorial()
             out = sum(c / denom * prod(s - 1 - n - nu + t for nu in range(s-1))
-                      for n,c in enumerate(second_hilbert))
+                      for n,c in enumerate(second_hilbert)) + t.parent().zero()
             assert out.leading_coefficient() >= 0
             return out
         elif algorithm == 'singular':

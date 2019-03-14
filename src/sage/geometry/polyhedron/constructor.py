@@ -99,9 +99,8 @@ but only one generating line::
     (An inequality (1, 0) x + 1 >= 0, An inequality (-1, 0) x + 1 >= 0)
     sage: strip.lines()
     (A line in the direction (0, 1),)
-    sage: strip.faces(1)
-    (A 1-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 1 line,
-     A 1-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 1 line)
+    sage: [f.ambient_V_indices() for f in strip.faces(1)]
+    [(0, 1), (0, 2)]
     sage: for face in strip.faces(1):
     ....:      print(face.ambient_V_indices())
     (0, 1)

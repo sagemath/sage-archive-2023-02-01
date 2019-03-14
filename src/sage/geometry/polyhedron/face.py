@@ -9,28 +9,28 @@ the faces in a particular dimension, use the
     sage: P = polytopes.cross_polytope(3)
     sage: P.faces(3)
     (A 3-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 6 vertices,)
-    sage: P.faces(2)
-    (A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 3 vertices,
-     A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 3 vertices,
-     A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 3 vertices,
-     A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 3 vertices,
-     A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 3 vertices,
-     A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 3 vertices,
-     A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 3 vertices,
-     A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 3 vertices)
-    sage: P.faces(1)
-    (A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices,
-     A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices,
-     A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices,
-     A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices,
-     A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices,
-     A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices,
-     A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices,
-     A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices,
-     A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices,
-     A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices,
-     A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices,
-     A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices)
+    sage: [f.ambient_V_indices() for f in P.faces(2)]
+    [(0, 1, 2),
+     (0, 1, 3),
+     (0, 2, 4),
+     (0, 3, 4),
+     (3, 4, 5),
+     (2, 4, 5),
+     (1, 3, 5),
+     (1, 2, 5)]
+    sage: [f.ambient_V_indices() for f in P.faces(1)]
+    [(0, 1),
+     (0, 2),
+     (1, 2),
+     (0, 3),
+     (1, 3),
+     (0, 4),
+     (2, 4),
+     (3, 4),
+     (2, 5),
+     (3, 5),
+     (4, 5),
+     (1, 5)]
 
 or :meth:`~sage.geometry.polyhedron.base.face_lattice` to get the
 whole face lattice as a poset::

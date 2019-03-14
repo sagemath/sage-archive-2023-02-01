@@ -512,7 +512,7 @@ class FunctionFieldHigherDerivation(Map):
 
 def _pth_root_in_prime_field(e):
     """
-    Return the p-th root of element ``e`` in a prime finite field.
+    Return the `p`-th root of element ``e`` in a prime finite field.
 
     TESTS::
 
@@ -527,7 +527,7 @@ def _pth_root_in_prime_field(e):
 
 def _pth_root_in_finite_field(e):
     """
-    Return the p-th root of element ``e`` in a finite field.
+    Return the `p`-th root of element ``e`` in a finite field.
 
     TESTS::
 
@@ -589,7 +589,8 @@ class FunctionFieldHigherDerivation_rational(FunctionFieldHigherDerivation):
 
     def _derive(self, f, i, separating_element=None):
         """
-        Return the `i`-th derivative of `f` with respect to the separating element.
+        Return the `i`-th derivative of ``f`` with respect to the
+        separating element.
 
         This implements Hess' Algorithm 26 in [Hes2002b]_.
 
@@ -650,7 +651,7 @@ class FunctionFieldHigherDerivation_rational(FunctionFieldHigherDerivation):
 
     def _prime_power_representation(self, f, separating_element=None):
         """
-        Return `p`-th power representation of the element `f`.
+        Return `p`-th power representation of the element ``f``.
 
         Here `p` is the characteristic of the function field.
 
@@ -688,14 +689,14 @@ class FunctionFieldHigherDerivation_rational(FunctionFieldHigherDerivation):
         b = a
         j = p - 2
         while j >= 0:
-            b[j] -= sum(binomial(i,j) * b[i] * x**(i-j) for i in range(j+1,p))
+            b[j] -= sum(binomial(i,j) * b[i] * x**(i-j) for i in range(j+1, p))
             j -= 1
         # Step 3
         return [self._pth_root(c) for c in b]
 
     def _pth_root(self, c):
         """
-        Return the `p`-th root of the rational function `c`.
+        Return the `p`-th root of the rational function ``c``.
 
         INPUT:
 
@@ -714,9 +715,9 @@ class FunctionFieldHigherDerivation_rational(FunctionFieldHigherDerivation):
         R = K._field.ring()
 
         poly = c.numerator()
-        num = R([self._pth_root_func(poly[i]) for i in range(0,poly.degree()+1,p)])
+        num = R([self._pth_root_func(poly[i]) for i in range(0, poly.degree()+1, p)])
         poly = c.denominator()
-        den = R([self._pth_root_func(poly[i]) for i in range(0,poly.degree()+1,p)])
+        den = R([self._pth_root_func(poly[i]) for i in range(0, poly.degree()+1, p)])
         return K.element_class(K, num/den)
 
 
@@ -857,7 +858,7 @@ class FunctionFieldHigherDerivation_global(FunctionFieldHigherDerivation):
                 b = a
                 j = p - 2
                 while j >= 0:
-                    b[j] -= sum(binomial(k,j) * b[k] * x**(k-j) for k in range(j+1,p))
+                    b[j] -= sum(binomial(k,j) * b[k] * x**(k-j) for k in range(j+1, p))
                     j -= 1
                 lambdas = [self._pth_root(c) for c in b]
 
@@ -876,7 +877,7 @@ class FunctionFieldHigherDerivation_global(FunctionFieldHigherDerivation):
 
     def _prime_power_representation(self, f, separating_element=None):
         """
-        Return `p`th power representation of the element `f`.
+        Return `p`-th power representation of the element ``f``.
 
         Here `p` is the characteristic of the function field.
 
@@ -921,7 +922,7 @@ class FunctionFieldHigherDerivation_global(FunctionFieldHigherDerivation):
 
     def _pth_root(self, c):
         """
-        Return the `p`th root of function field element ``c``.
+        Return the `p`-th root of function field element ``c``.
 
         EXAMPLES::
 
@@ -937,10 +938,10 @@ class FunctionFieldHigherDerivation_global(FunctionFieldHigherDerivation):
         coeffs = []
         for d in self.__pth_root_matrix.solve_right(vector(c.list())):
             poly = d.numerator()
-            num = K([self._pth_root_func(poly[i]) for i in range(0,poly.degree()+1,p)])
+            num = K([self._pth_root_func(poly[i]) for i in range(0, poly.degree()+1, p)])
             poly = d.denominator()
-            den = K([self._pth_root_func(poly[i]) for i in range(0,poly.degree()+1,p)])
-            coeffs.append( num/den )
+            den = K([self._pth_root_func(poly[i]) for i in range(0, poly.degree()+1, p)])
+            coeffs.append(num / den)
         return self._field(coeffs)
 
 class FunctionFieldVectorSpaceIsomorphism(Morphism):

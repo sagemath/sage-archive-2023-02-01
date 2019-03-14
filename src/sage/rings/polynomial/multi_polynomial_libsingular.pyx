@@ -219,7 +219,7 @@ from sage.libs.singular.ring cimport singular_ring_new, singular_ring_reference,
 from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict, MPolynomialRing_polydict_domain
 from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
-from sage.rings.polynomial.polydict import ETuple
+from sage.rings.polynomial.polydict cimport ETuple
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 
 # base ring imports
@@ -2830,6 +2830,14 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: f.coefficient(x)
             y^2 + y + 1
 
+        Note that exponents have all variables specified::
+
+            sage: x.coefficient(x.exponents()[0])
+            1
+            sage: f.coefficient([1,0])
+            1
+            sage: f.coefficient({x:1,y:0})
+            1
 
         Be aware that this may not be what you think! The physical
         appearance of the variable x is deceiving -- particularly if
@@ -2874,6 +2882,9 @@ cdef class MPolynomial_libsingular(MPolynomial):
                     exps[i] = -1
                 else:
                     exps[i] = int(degrees[i])
+        elif isinstance(degrees, ETuple):
+            for i in range(gens):
+                exps[i] = int((<ETuple>degrees).get_exp(i))
         elif isinstance(degrees, dict):
             # Extract the ordered list of degree specifications from the dictionary
             poly_vars = self.parent().gens()

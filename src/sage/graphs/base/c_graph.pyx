@@ -2166,11 +2166,6 @@ cdef class CGraphBackend(GenericGraphBackend):
         if x == y:
             return 0
 
-        # ****************** WARNING **********************
-        # Use Python to maintain a heap...
-        # Rewrite this in Cython as soon as possible !
-        # *************************************************
-        #from heapq import heappush, heappop
         cdef priority_queue[pair[pair[int, int], pair[int, int]]] pq
         # As for shortest_path, the roles of x and y are symmetric, hence we
         # define dictionaries like pred_current and pred_other, which
@@ -2197,10 +2192,9 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef dict dist_other
 
         # Lists of vertices who are left to be explored. They are represented
-        # as 4-tuples: (distance, side, predecessor ,name).
+        # as pairs of pair and pair: ((distance, side), (predecessor, name)).
         # 1 indicates x's side, -1 indicates y's, the distance being
         # defined relatively.
-        #cdef list queue = [(0, 1, x_int, x_int), (0, -1, y_int, y_int)]
         pq.push(((0, 1), (x_int, x_int)))
         pq.push(((0, -1), (y_int, y_int)))
         cdef list neighbors

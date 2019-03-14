@@ -1639,7 +1639,7 @@ cdef class ComplexDoubleElement(FieldElement):
 
         TESTS::
 
-            sage: (-2) ^ CDF(-0.5)
+            sage: (-2) ^ CDF(-0.5)  # abs tol 1e-16
             4.329780281177467e-17 - 0.7071067811865476*I
         """
         z = <ComplexDoubleElement>other

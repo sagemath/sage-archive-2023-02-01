@@ -51,18 +51,6 @@ cdef extern from "fflas-ffpack/paladin/blockcuts.inl" namespace "FFLAS::ParSeqHe
     cdef cppclass Sequential:
         Sequential()
 
-cdef extern from "fflas-ffpack/fflas/fflas_helpers.h" namespace "FFLAS::MMHelperAlgo":
-    ctypedef struct Auto:
-        pass
-    ctypedef struct Classic:
-        pass
-    ctypedef struct Winograd:
-        pass
-    ctypedef struct WinogradPar:
-        pass
-    ctypedef struct Bini:
-        pass
-
 cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFLAS":
     ctypedef enum FFLAS_TRANSPOSE:
         FflasNoTrans

@@ -8,12 +8,33 @@ schedule as described in [BKLPPRSV2007]_. PRESENT is an example of an
 SP-network and consists of 31 rounds. The block length is 64 bits and two key
 lengths of 80 and 128 bits are supported.
 
+Note that since this is Sage the implementation is neither meant to be
+particular secure nor super fast but to be easy to use for research purposes.
 
-EXAMPLES::
+
+EXAMPLES:
+
+Encrypt a message::
 
     sage: from sage.crypto.block_cipher.present import PRESENT
+    sage: present = PRESENT()
+    sage: present.encrypt(P=0, K=0).hex()
+    '2844b365c06992a3'
 
-TODO:<Lots and lots of examples>
+And decrypt it again::
+
+    sage: present.decrypt(C=0x2844b365c06992a3, K=0)
+    0
+
+Have a look at the used round keys::
+
+    sage: from sage.crypto.block_cipher.present import PRESENT_KS
+    sage: ks = PRESENT_KS()
+    sage: [k.hex() for k in ks(0)]
+    ['0',
+     'c000000000000000',
+      ...
+     '6dab31744f41d700']
 
 AUTHORS:
 
@@ -86,6 +107,11 @@ class PRESENT(SageObject):
         sage: K = 0x00112233445566778899aabbccddeeff
         sage: present(present(P, K, 'encrypt'), K, 'decrypt') == P
         True
+
+    .. SEEALSO::
+
+        :class:`PRESENT_KS`
+        :mod:`sage.crypto.sboxes`
     """
 
     def __init__(self, keySchedule=80, rounds=None, lastLinearLayer=False):
@@ -157,7 +183,7 @@ class PRESENT(SageObject):
         self._inversePermutationMatrix = self._permutationMatrix.inverse()
         self._lastLinearLayer = lastLinearLayer
 
-    def __call__(self, B, K, algorithm="encrypt"):
+    def __call__(self, B, K, algorithm='encrypt'):
         r"""
         Apply PRESENT encryption or decryption on ``B`` using the key ``K``.
         The flag ``algorithm`` controls what action is to be performed on
@@ -165,23 +191,24 @@ class PRESENT(SageObject):
 
         INPUT:
 
-        - ``B`` -- integer or list-like; the plaintext or ciphertext
+        - ``B`` -- integer or bit list-like; the plaintext or ciphertext
 
-        - ``K`` -- integer or list-like; the key
+        - ``K`` -- integer or bit list-like; the key
 
-        - ``algorithm`` -- string (default: ``"encrypt"``); a flag to signify
+        - ``algorithm`` -- string (default: ``'encrypt'``); a flag to signify
           whether encryption or decryption is to be applied to ``B``. The
-          encryption flag is ``"encrypt"`` and the decryption flag is
-          ``"decrypt"``
+          encryption flag is ``'encrypt'`` and the decryption flag is
+          ``'decrypt'``
 
         OUTPUT:
 
         - The plaintext or ciphertext corresponding to ``B``, obtained using
-          the key ``K``.
+          the key ``K``. If ``B`` is an integer the output will be too. If
+          ``B`` is list-like the output will be a bit vector.
         """
-        if algorithm == "encrypt":
+        if algorithm == 'encrypt':
             return self.encrypt(B, K)
-        elif algorithm == "decrypt":
+        elif algorithm == 'decrypt':
             return self.decrypt(B, K)
         else:
             raise ValueError('Algorithm must be \'encrypt\' or \'decrypt\' and'
@@ -226,84 +253,12 @@ class PRESENT(SageObject):
             Original PRESENT key schedule with 80-bit keys and 31 rounds
         """
         if self._lastLinearLayer:
-            statusLLL = "activated"
+            statusLLL = 'activated'
         else:
-            statusLLL = "deactivated"
-        return ("PRESENT block cipher with %s rounds, %s linear layer in last "
-                "round and the following key schedule:\n%s"
+            statusLLL = 'deactivated'
+        return ('PRESENT block cipher with %s rounds, %s linear layer in last '
+                'round and the following key schedule:\n%s'
                 % (self._rounds, statusLLL, self._keySchedule.__repr__()))
-
-    def decrypt(self, C, K):
-        r"""
-        Return the plaintext corresponding to the ciphertext ``C``,
-        using PRESENT decryption with key ``K``.
-
-        INPUT:
-
-        - ``C`` -- integer or list-like; the ciphertext that will be decrypted
-
-        - ``K`` -- integer or list-like; the key
-
-        OUTPUT:
-
-        - The plaintext corresponding to ``C``, obtained using the key ``K``.
-
-        EXAMPLES::
-
-            sage: from sage.crypto.block_cipher.present import PRESENT
-            sage: present = PRESENT(lastLinearLayer=True)
-            sage: p1 = 0x0
-            sage: k1 = 0x0
-            sage: c1 = 0x5579C1387B228445
-            sage: present.decrypt(c1, k1) == p1
-            True
-            sage: p2 = 0x0
-            sage: k2 = 0xFFFFFFFFFFFFFFFFFFFF
-            sage: c2 = 0xE72C46C0F5945049
-            sage: present.decrypt(c2, k2) == p2
-            True
-            sage: p3 = 0xFFFFFFFFFFFFFFFF
-            sage: k3 = 0x0
-            sage: c3 = 0xA112FFC72F68417B
-            sage: present.decrypt(c3, k3) == p3
-            True
-            sage: p4 = 0xFFFFFFFFFFFFFFFF
-            sage: k4 = 0xFFFFFFFFFFFFFFFFFFFF
-            sage: c4 = 0x3333DCD3213210D2
-            sage: present.decrypt(c4, k4) == p4
-            True
-
-        ALGORITHM:
-
-        Description of the decryption function based on [BKLPPRSV2007]_:
-
-        A top-level algorithmic description of PRESENT decryption::
-
-            generateRoundKeys()
-            addRoundkey(STATE, K_{32})
-            for i = 31 to 1 do
-                pLayer(STATE)
-                sBoxLayer(STATE)
-                addRoundkey(STATE, K_i)
-            end for
-
-        Each of the 31 rounds consists of an XOR operation to introduce a round
-        key `K_i` for `1 \leq i \leq 32`, where `K_{32}` is used for
-        post-whitening, a linear bitwise permutation and a non-linear
-        substitution layer. The non-linear layer uses a single 4-bit S-box
-        which is applied 16 times in parallel in each round.
-        """
-        state, inputType = convert_to_vector(C, 64)
-        K, _ = convert_to_vector(K, self._keySchedule._keysize)
-        roundKeys = self._keySchedule(K)
-        state = state + roundKeys[self._rounds]
-        for r, K in enumerate(roundKeys[:self._rounds][::-1]):
-            if self._lastLinearLayer or r != 0:
-                state[0:] = self._inversePermutationMatrix * state
-            for nibble in [slice(4*j, 4*j+4) for j in range(16)]:
-                state[nibble] = self._inverseSbox(state[nibble][::-1])[::-1]
-            state = state + K
-        return state if inputType == 'vector' else ZZ(list(state), 2)
 
     def encrypt(self, P, K):
         r"""
@@ -312,13 +267,16 @@ class PRESENT(SageObject):
 
         INPUT:
 
-        - ``P`` -- integer or list-like; the plaintext that will be encrypted.
+        - ``P`` -- integer or bit list-like; the plaintext that will be
+          encrypted.
 
-        - ``K`` -- integer or list-like; the key
+        - ``K`` -- integer or bit list-like; the key
 
         OUTPUT:
 
-        - The ciphertext corresponding to ``P``, obtained using the key ``K``.
+        - The ciphertext corresponding to ``P``, obtained using the key
+          ``K``. If ``P`` is an integer the output will be too. If ``P`` is
+          list-like the output will be a bit vector.
 
         EXAMPLES::
 
@@ -347,9 +305,9 @@ class PRESENT(SageObject):
 
         ALGORITHM:
 
-        Description of the decryption function based on [BKLPPRSV2007]_:
+        Description of the encryption function based on [BKLPPRSV2007]_:
 
-        A top-level algorithmic description of PRESENT decryption::
+        A top-level algorithmic description of PRESENT encryption::
 
             generateRoundKeys()
             for i = 1 to 31 do
@@ -363,7 +321,54 @@ class PRESENT(SageObject):
         key `K_i` for `1 \leq i \leq 32`, where `K_{32}` is used for
         post-whitening, a linear bitwise permutation and a non-linear
         substitution layer. The non-linear layer uses a single 4-bit S-box
-        which is applied 16 times in parallel in each round.
+        which is applied 16 times in parallel in each round. Each stage is now
+        specified in turn.
+
+        **addRoundkey:**
+        Given round key `K_i = \kappa^i_{63} \dots \kappa^i_0` for `1 \leq i
+        \leq 32` and current STATE `b_{63} \dots b_0`, addRoundkey consists of
+        the operation for `0 \leq j \leq 63`, `b_j = b_j \oplus \kappa^i_j`.
+
+        **sBoxLayer:**
+        The S-box used in PRESENT is a 4-bit to 4-bit S-box. The action of this
+        box in hexadecimal notation is given by the following table.
+
+        +------+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
+        | x    | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | A | B | C | D | E | F |
+        +------+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
+        | S[x] | C | 5 | 6 | B | 9 | 0 | A | D | 3 | E | F | 8 | 4 | 7 | 1 | 2 |
+        +------+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
+
+        For sBoxLayer the current STATE `b_{63} \dots b_0` is considered as
+        sixteen 4-bit words `w_{15} \dots w_0` where `w_i =
+        b_{4i+3}|b_{4i+2}|b_{4i+1}|b_{4i}` for `0 \leq i \leq 15` and the
+        output nibble S[`w_i`] provides the updated state values in the obvious
+        way.
+
+        **pLayer:**
+        The bit permutation used in PRESENT is given by the following
+        table. Bit `i` of STATE is moved to bit position `P(i)`.
+
+        +------+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+        | i    |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | 15 |
+        +------+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+        | P(i) |  0 | 16 | 32 | 48 |  1 | 17 | 33 | 49 |  2 | 18 | 34 | 50 |  3 | 19 | 35 | 51 |
+        +------+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+        +------+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+        | i    | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 |
+        +------+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+        | P(i) |  4 | 20 | 36 | 52 |  5 | 21 | 37 | 53 |  6 | 22 | 38 | 54 |  7 | 23 | 39 | 55 |
+        +------+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+        +------+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+        | i    | 32 | 33 | 34 | 35 | 36 | 37 | 38 | 39 | 40 | 41 | 42 | 43 | 44 | 45 | 46 | 47 |
+        +------+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+        | P(i) |  8 | 24 | 40 | 56 |  9 | 25 | 41 | 57 | 10 | 26 | 42 | 58 | 11 | 27 | 43 | 59 |
+        +------+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+        +------+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+        | i    | 48 | 49 | 50 | 51 | 52 | 53 | 54 | 55 | 56 | 57 | 58 | 59 | 60 | 61 | 62 | 63 |
+        +------+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+        | P(i) | 12 | 28 | 44 | 60 | 13 | 29 | 45 | 61 | 14 | 30 | 46 | 62 | 15 | 31 | 47 | 63 |
+        +------+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
         """
         state, inputType = convert_to_vector(P, 64)
         K, _ = convert_to_vector(K, self._keySchedule._keysize)
@@ -377,29 +382,86 @@ class PRESENT(SageObject):
         state = state + roundKeys[self._rounds]
         return state if inputType == 'vector' else ZZ(list(state), 2)
 
+    def decrypt(self, C, K):
+        r"""
+        Return the plaintext corresponding to the ciphertext ``C``,
+        using PRESENT decryption with key ``K``.
+
+        INPUT:
+
+        - ``C`` -- integer or bit list-like; the ciphertext that will be
+          decrypted
+
+        - ``K`` -- integer or bit list-like; the key
+
+        OUTPUT:
+
+        - The plaintext corresponding to ``C``, obtained using the key
+          ``K``. If ``C`` is an integer the output will be too. If ``C`` is
+          list-like the output will be a bit vector.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.present import PRESENT
+            sage: present = PRESENT(lastLinearLayer=True)
+            sage: p1 = 0x0
+            sage: k1 = 0x0
+            sage: c1 = 0x5579C1387B228445
+            sage: present.decrypt(c1, k1) == p1
+            True
+            sage: p2 = 0x0
+            sage: k2 = 0xFFFFFFFFFFFFFFFFFFFF
+            sage: c2 = 0xE72C46C0F5945049
+            sage: present.decrypt(c2, k2) == p2
+            True
+            sage: p3 = 0xFFFFFFFFFFFFFFFF
+            sage: k3 = 0x0
+            sage: c3 = 0xA112FFC72F68417B
+            sage: present.decrypt(c3, k3) == p3
+            True
+            sage: p4 = 0xFFFFFFFFFFFFFFFF
+            sage: k4 = 0xFFFFFFFFFFFFFFFFFFFF
+            sage: c4 = 0x3333DCD3213210D2
+            sage: present.decrypt(c4, k4) == p4
+            True
+       """
+        state, inputType = convert_to_vector(C, 64)
+        K, _ = convert_to_vector(K, self._keySchedule._keysize)
+        roundKeys = self._keySchedule(K)
+        state = state + roundKeys[self._rounds]
+        for r, K in enumerate(roundKeys[:self._rounds][::-1]):
+            if self._lastLinearLayer or r != 0:
+                state[0:] = self._inversePermutationMatrix * state
+            for nibble in [slice(4*j, 4*j+4) for j in range(16)]:
+                state[nibble] = self._inverseSbox(state[nibble][::-1])[::-1]
+            state = state + K
+        return state if inputType == 'vector' else ZZ(list(state), 2)
+
 
 class PRESENT_KS(SageObject):
     r"""
     This class implements the PRESENT key schedules for both 80-bit and 128-bit
     keys as described in [BKLPPRSV2007]_.
 
-    EXAMPLES::
+    EXAMPLES:
+
+    Initialise the key schedule with a `master\_key` to use it as an iterable::
 
         sage: from sage.crypto.block_cipher.present import PRESENT_KS
-        sage: ks = PRESENT_KS()
-        sage: K = ks(0x0)
-        sage: K[0] == 0x0
+        sage: ks = PRESENT_KS(master_key=0)
+        sage: ks[0] == 0x0
         True
-        sage: K[31] == 0x6dab31744f41d700
+        sage: ks[31] == 0x6dab31744f41d700
         True
-        sage: ks = PRESENT_KS(128)
+
+    Or omit the `master\_key` and pass a key when calling the key schedule::
+
+        sage: ks = PRESENT_KS(keysize=128)
         sage: K = ks(0x00112233445566778899aabbccddeeff)
         sage: K[0] == 0x0011223344556677
         True
         sage: K[31] == 0x091989a5ae8eab21
         True
-
-
 
     ALGORITHM:
 
@@ -409,12 +471,12 @@ class PRESENT_KS(SageObject):
     The key schedule for 64-bit keys works as follows:
 
     At round `i` the 64-bit round key `K_i = \kappa_{63}\kappa_{62} \dots
-    \kappa_0` consists of the 64 leftmost bits fo the current contents of
+    \kappa_0` consists of the 64 leftmost bits of the current contents of
     register `K`. Thus at round `i` we have that:
 
     .. MATH::
 
-        K_i = \kappa_{63}\kappa_{62}\dots \kappa_0 = k_{79}k_{78}\dots k_{16}
+        K_i = \kappa_{63}\kappa_{62}\dots \kappa_0 = k_{79}k_{78}\dots k_{16}.
 
     After extracting the round key `K_i`, the key register `K = k_{79}k_{78}
     \dots k_0` is updated as follows:
@@ -465,6 +527,11 @@ class PRESENT_KS(SageObject):
     round_counter value `i` is exclusive-ored with bits `k_{66}k_{65}k_{64}
     k_{63}k_{62}` of `K` with the least significant bit of round_counter on
     the right.
+
+    .. SEEALSO::
+
+        :class:`PRESENT`
+        :mod:`sage.crypto.sboxes`
     """
 
     def __init__(self, keysize=80, rounds=31, master_key=None):
@@ -479,7 +546,7 @@ class PRESENT_KS(SageObject):
         - ``rounds`` -- integer (default: ``31``); the number of rounds
           ``self`` can create keys for
 
-        - ``master_key`` -- integer of list-like; the key that will be used
+        - ``master_key`` -- integer of bit list-like; the key that will be used
 
         .. NOTE::
 
@@ -488,7 +555,7 @@ class PRESENT_KS(SageObject):
             omit ``master_key`` and pass a key when you call the object.
         """
         if keysize != 80 and keysize != 128:
-            raise ValueError("keysize must bei either 80 or 128 and not %s"
+            raise ValueError('keysize must bei either 80 or 128 and not %s'
                              % keysize)
         self._keysize = keysize
         self._rounds = rounds
@@ -501,14 +568,15 @@ class PRESENT_KS(SageObject):
 
         INPUT:
 
-        - ``K`` -- integer or list-like; the key
+        - ``K`` -- integer or bit list-like; the key
 
         OUTPUT:
 
         - A list containing ``rounds + 1`` round keys. Since addRoundkey takes
           place in every round and after the last round there must be
-          ``rounds + 1`` round keys.
-
+          ``rounds + 1`` round keys.  If ``K`` is an integer the elements of
+          the output list will be too. If ``K`` is list-like the element of the
+          output list will be  bit vectors.
 
         .. NOTE::
 
@@ -535,7 +603,7 @@ class PRESENT_KS(SageObject):
                 rc = vector(GF(2), ZZ(i).digits(2, padto=5))
                 K[62:67] = K[62:67] + rc
             roundKeys.append(K[64:])
-        return roundKeys if inputType == "vector" else [ZZ(list(k), 2) for k in
+        return roundKeys if inputType == 'vector' else [ZZ(list(k), 2) for k in
                                                         roundKeys]
 
     def __eq__(self, other):
@@ -570,7 +638,7 @@ class PRESENT_KS(SageObject):
             sage: PRESENT_KS() # indirect doctest
             Original PRESENT key schedule with 80-bit keys and 31 rounds
         """
-        return ("Original PRESENT key schedule with %s-bit keys and %s rounds"
+        return ('Original PRESENT key schedule with %s-bit keys and %s rounds'
                 % (self._keysize, self._rounds))
 
     def __getitem__(self, r):
@@ -594,7 +662,7 @@ class PRESENT_KS(SageObject):
             True
         """
         if self._master_key is None:
-            raise ValueError("Key not set during initialisation")
+            raise ValueError('Key not set during initialisation')
         return self(self._master_key)[r]
 
     def __iter__(self):
@@ -612,7 +680,7 @@ class PRESENT_KS(SageObject):
             True
         """
         if self._master_key is None:
-            raise ValueError("Key not set during initialisation")
+            raise ValueError('Key not set during initialisation')
         return iter(self(self._master_key))
 
 
@@ -622,8 +690,7 @@ def convert_to_vector(I, L):
 
     INPUT:
 
-    - ``I`` -- integer or list-like. If list-like each element represents one
-      bit.
+    - ``I`` -- integer or bit list-like
 
     - ``L`` -- integer; the desired bit length of the ouput
 

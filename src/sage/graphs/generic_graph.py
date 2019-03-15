@@ -1404,31 +1404,29 @@ class GenericGraph(GenericGraph_pyx):
             sage: type(N)
             <class 'networkx.classes.graph.Graph'>
         """
-        try:
-            return self._backend._nxg
-        except Exception:
-            import networkx
-            if self._directed and self.allows_multiple_edges():
-                class_type = networkx.MultiDiGraph
-            elif self._directed:
-                class_type = networkx.DiGraph
-            elif self.allows_multiple_edges():
-                class_type = networkx.MultiGraph
+
+        import networkx
+        if self._directed and self.allows_multiple_edges():
+            class_type = networkx.MultiDiGraph
+        elif self._directed:
+            class_type = networkx.DiGraph
+        elif self.allows_multiple_edges():
+            class_type = networkx.MultiGraph
+        else:
+            class_type = networkx.Graph
+        N = class_type(selfloops=self.allows_loops(), multiedges=self.allows_multiple_edges(),
+                       name=self.name())
+        N.add_nodes_from(self.vertices())
+        from networkx import NetworkXError
+        for u, v, l in self.edge_iterator():
+            if l is None:
+                N.add_edge(u, v)
             else:
-                class_type = networkx.Graph
-            N = class_type(selfloops=self.allows_loops(), multiedges=self.allows_multiple_edges(),
-                           name=self.name())
-            N.add_nodes_from(self.vertices())
-            from networkx import NetworkXError
-            for u, v, l in self.edge_iterator():
-                if l is None:
-                    N.add_edge(u, v)
-                else:
-                    try:
-                        N.add_edge(u, v, l)
-                    except (TypeError, ValueError, NetworkXError):
-                        N.add_edge(u, v, weight=l)
-            return N
+                try:
+                    N.add_edge(u, v, l)
+                except (TypeError, ValueError, NetworkXError):
+                    N.add_edge(u, v, weight=l)
+        return N
 
     def igraph_graph(self, vertex_list=None, vertex_attrs={}, edge_attrs={}):
         r"""

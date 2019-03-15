@@ -1393,15 +1393,9 @@ class GenericGraph(GenericGraph_pyx):
                    functions + ".")
             raise ValueError(msg)
 
-    def networkx_graph(self, copy=False):
+    def networkx_graph(self):
         """
         Return a new ``NetworkX`` graph from the Sage graph.
-
-        INPUT:
-
-        - ``copy`` -- boolean (default: ``False``); if ``False``, and the
-          underlying implementation is a ``NetworkX`` graph, then the actual
-          object itself is returned
 
         EXAMPLES::
 
@@ -1411,10 +1405,7 @@ class GenericGraph(GenericGraph_pyx):
             <class 'networkx.classes.graph.Graph'>
         """
         try:
-            if copy:
-                return self._backend._nxg.copy()
-            else:
-                return self._backend._nxg
+            return self._backend._nxg
         except Exception:
             import networkx
             if self._directed and self.allows_multiple_edges():
@@ -4548,7 +4539,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # second case: there are no multiple edges
         import networkx
-        cycle_basis_v = networkx.cycle_basis(self.networkx_graph(copy=False))
+        cycle_basis_v = networkx.cycle_basis(self.networkx_graph())
         if output == 'vertex':
             return cycle_basis_v
 
@@ -13625,7 +13616,7 @@ class GenericGraph(GenericGraph_pyx):
             if self.is_directed():
                 raise ValueError("the 'networkx' implementation does not support directed graphs")
             import networkx
-            return networkx.triangles(self.networkx_graph(copy=False), nbunch)
+            return networkx.triangles(self.networkx_graph(), nbunch)
 
         elif implementation == 'sparse_copy':
             from sage.graphs.base.static_sparse_graph import triangles_count
@@ -13707,7 +13698,7 @@ class GenericGraph(GenericGraph_pyx):
             return clustering_coeff(self)[0]
         elif implementation == 'networkx':
             import networkx
-            return networkx.average_clustering(self.networkx_graph(copy=False))
+            return networkx.average_clustering(self.networkx_graph())
         else:
             from sage.stats.basic_stats import mean
             return mean(self.clustering_coeff(implementation=implementation).values())
@@ -13844,7 +13835,7 @@ class GenericGraph(GenericGraph_pyx):
             return clustering_coeff(self, nodes)[1]
         elif implementation == 'networkx':
             import networkx
-            return networkx.clustering(self.networkx_graph(copy=False), nodes, weight=weight)
+            return networkx.clustering(self.networkx_graph(), nodes, weight=weight)
         elif implementation == 'sparse_copy':
             from sage.graphs.base.static_sparse_graph import triangles_count
             return {v: coeff_from_triangle_count(v, count)
@@ -13870,7 +13861,7 @@ class GenericGraph(GenericGraph_pyx):
             0.25
         """
         import networkx
-        return networkx.transitivity(self.networkx_graph(copy=False))
+        return networkx.transitivity(self.networkx_graph())
 
     ### Distance
 
@@ -14901,7 +14892,7 @@ class GenericGraph(GenericGraph_pyx):
             return centrality_betweenness(self, normalize=normalized, exact=exact)
         elif algorithm == "NetworkX":
             import networkx
-            return networkx.betweenness_centrality(self.networkx_graph(copy=False),
+            return networkx.betweenness_centrality(self.networkx_graph(),
                                                    k=k,
                                                    normalized=normalized,
                                                    weight=weight,
@@ -15153,7 +15144,7 @@ class GenericGraph(GenericGraph_pyx):
                 else:
                     G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
             else:
-                G = self.networkx_graph(copy=False)
+                G = self.networkx_graph()
             G.add_nodes_from(self)
 
             degree = self.out_degree if self.is_directed() else self.degree

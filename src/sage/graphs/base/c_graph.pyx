@@ -2259,7 +2259,7 @@ cdef class CGraphBackend(GenericGraphBackend):
                         if edge_label < 0:
                             raise ValueError("the graph contains an edge with negative weight")
                         # priority_queue is by default max_heap
-                        # negative value of distance is stored in
+                        # negative value of distance + edge_label is stored in
                         # priority_queue to get minimum ditsance
                         pq.push(((-(distance + edge_label), side), (v, w)))
 

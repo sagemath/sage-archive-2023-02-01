@@ -1393,7 +1393,7 @@ class GenericGraph(GenericGraph_pyx):
                    functions + ".")
             raise ValueError(msg)
 
-    def networkx_graph(self, copy=True):
+    def networkx_graph(self, copy=False):
         """
         Return a new ``NetworkX`` graph from the Sage graph.
 

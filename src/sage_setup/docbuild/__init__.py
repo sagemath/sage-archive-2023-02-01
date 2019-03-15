@@ -41,9 +41,15 @@ in a subprocess call to sphinx, see :func:`builder_helper`.
 from __future__ import absolute_import, print_function
 from six.moves import range
 
-import optparse, os, shutil, subprocess, sys, re
-import logging, warnings
+import logging
+import optparse
+import os
+import re
+import shutil
+import subprocess
+import sys
 import time
+import warnings
 
 logger = logging.getLogger(__name__)
 

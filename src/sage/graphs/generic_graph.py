@@ -16841,7 +16841,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def breadth_first_search(self, start, ignore_direction=False,
                              distance=None, neighbors=None,
-                             report_distance=False):
+                             report_distance=False,edges=False):
         """
         Return an iterator over the vertices in a breadth-first ordering.
 
@@ -16956,6 +16956,9 @@ class GenericGraph(GenericGraph_pyx):
             [0]
             sage: list(D.breadth_first_search(0, ignore_direction=True))
             [0, 1, 2]
+            sage: G = Graph({1:[2,3],2:[4,5],3:[5]})
+            sage: list(G.breadth_first_search(1, edges=True))
+            [(1, 2), (1, 3), (2, 4), (2, 5)]
         """
         from sage.rings.semirings.non_negative_integer_semiring import NN
         if (distance is not None and distance not in NN):
@@ -16963,7 +16966,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # Preferably use the Cython implementation
         if (neighbors is None and not isinstance(start, list) and distance is None
-                and hasattr(self._backend, "breadth_first_search") and not report_distance):
+                and hasattr(self._backend, "breadth_first_search") and not report_distance and not edges):
             for v in self._backend.breadth_first_search(start, ignore_direction=ignore_direction):
                 yield v
         else:
@@ -16985,11 +16988,14 @@ class GenericGraph(GenericGraph_pyx):
                         raise LookupError("start vertex ({0}) is not a vertex of the graph".format(v[0]))
 
             for v, d in queue:
-                if report_distance:
-                    yield v, d
-                else:
-                    yield v
+                if not edges:
+                    if report_distance:
+                        yield v, d
+                    else:
+                        yield v
                 seen.add(v)
+
+            edges_list = []
 
             while queue:
                 v, d = queue.pop(0)
@@ -16998,10 +17004,16 @@ class GenericGraph(GenericGraph_pyx):
                         if w not in seen:
                             seen.add(w)
                             queue.append((w, d + 1))
-                            if report_distance:
-                                yield w, d + 1
+                            if edges:
+                                edges_list.append((v,w))
+                            elif report_distance:
+                                yield w, d+1
                             else:
                                 yield w
+            
+            if edges:
+                while edges_list:
+                    yield edges_list.pop(0)
 
     def depth_first_search(self, start, ignore_direction=False,
                            distance=None, neighbors=None):

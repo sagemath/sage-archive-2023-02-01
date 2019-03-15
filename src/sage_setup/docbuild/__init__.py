@@ -41,6 +41,7 @@ in a subprocess call to sphinx, see :func:`builder_helper`.
 from __future__ import absolute_import, print_function
 from six.moves import range
 
+import errno
 import logging
 import optparse
 import os
@@ -311,13 +312,23 @@ else:
         from multiprocessing import Process
         workers = [None] * NUM_THREADS
         queue = list(args)
+
+        # Maps worker process PIDs to the name of the document it's working
+        # on (the argument it was passed).  This is primarily used just for
+        # debugging/information purposes.
         jobs = {}
 
         try:
             while True:
+                # Check the status of each worker
                 for idx, w in enumerate(workers):
+                    # If a worker process exited, check its exit code; if it
+                    # exited non-zero and ABORT_ON_ERROR is True (the default)
+                    # raise a RuntimeError to stop the docbuild process (we
+                    # still give other workers a chance to finish cleanly in
+                    # the finally: block below).
                     if w and w.exitcode is not None:
-                        if w.exitcode != 0:
+                        if w.exitcode != 0 and ABORT_ON_ERROR:
                             raise RuntimeError(
                                 "worker for {} died with non-zero exit code "
                                 "{}".format(jobs[w.pid], w.exitcode))
@@ -325,24 +336,38 @@ else:
                         jobs.pop(w.pid)
                         w = None
 
-                    if w is None:
-                        if queue:
-                            job = queue.pop(0)
-                            w = Process(target=target, args=(job,))
-                            w.start()
-                            jobs[w.pid] = job
+                    # Worker w is dead/not started, so start a new worker
+                    # in its place with the next document from the queue
+                    if w is None and queue:
+                        job = queue.pop(0)
+                        w = Process(target=target, args=(job,))
+                        w.start()
+                        jobs[w.pid] = job
 
                     workers[idx] = w
 
-                if not any(filter(None, workers)):
+                if all(w is None for w in workers):
+                    # If all workers are dead and there are no more items to
+                    # process in the queue then we are done
                     break
 
-                time.sleep(5)
+                # Wait for a worker to finish (either successfully or with
+                # error). We ignore the return value for now and check all
+                # workers at the beginning of the loop.
+                try:
+                    os.wait()
+                except OSError as exc:
+                    # Ignore ECHILD meaning no more child processes; i.e. all
+                    # workers are already complete.
+                    if exc.errno != errno.ECHILD:
+                        raise
         finally:
-            for w in workers:
-                if w is not None:
-                    w.terminate()
-                    w.join()
+            remaining_workers = [w for w in workers if w is not None]
+            for w in remaining_workers:
+                # Give any remaining workers a chance to shut down gracefully
+                w.terminate()
+            for w in remaining_workers:
+                w.join()
 
 
 ##########################################

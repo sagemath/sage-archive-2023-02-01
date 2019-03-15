@@ -13,6 +13,56 @@ ctypedef Poly1Dom[Modular_float, Dense] PolynomialRing_Modular_float
 ctypedef givvector[Modular_double.Element] ModDoubleDensePolynomial
 ctypedef givvector[Modular_float.Element] ModFloatDensePolynomial
 
+cdef extern from "fflas-ffpack/paladin/blockcuts.inl" namespace "FFLAS::CuttingStrategy":
+    ctypedef struct Single:
+        pass
+    ctypedef struct Row:
+        pass
+    ctypedef struct Column:
+        pass
+    ctypedef struct Block:
+        pass
+    ctypedef struct Recursive:
+        pass
+
+cdef extern from "fflas-ffpack/paladin/blockcuts.inl" namespace "FFLAS::StrategyParameter":
+    ctypedef struct Fixed:
+        pass
+    ctypedef struct Threads:
+        pass
+    ctypedef struct Grain:
+        pass
+    ctypedef struct TwoD:
+        pass
+    ctypedef struct TwoDAdaptive:
+        pass
+    ctypedef struct ThreeD:
+        pass
+    ctypedef struct ThreeDInPlace:
+        pass
+    ctypedef struct ThreeDAdaptive:
+        pass
+
+cdef extern from "fflas-ffpack/paladin/blockcuts.inl" namespace "FFLAS::ParSeqHelper":
+    cdef cppclass Parallel[C,P]:
+        Parallel(size_t n)
+        size_t& set_numthreads(size_t n)
+
+    cdef cppclass Sequential:
+        Sequential()
+
+cdef extern from "fflas-ffpack/fflas/fflas_helpers.h" namespace "FFLAS::MMHelperAlgo":
+    ctypedef struct Auto:
+        pass
+    ctypedef struct Classic:
+        pass
+    ctypedef struct Winograd:
+        pass
+    ctypedef struct WinogradPar:
+        pass
+    ctypedef struct Bini:
+        pass
+
 cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFLAS":
     ctypedef enum FFLAS_TRANSPOSE:
         FflasNoTrans
@@ -37,6 +87,14 @@ cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFLAS":
              Modular_double.Element beta, Modular_double.Element* C,
              size_t C_stride)
 
+     Modular_double.Element* fgemm (Modular_double F,
+             FFLAS_TRANSPOSE transA, FFLAS_TRANSPOSE transB,
+             size_t nrowsA, size_t ncolsB, size_t ncolsA,
+             Modular_double.Element alpha, Modular_double.Element* A,
+             size_t A_stride, Modular_double.Element* B, int B_stride,
+             Modular_double.Element beta, Modular_double.Element* C,
+                                    size_t C_stride, ParSeqHelper[C,P]& H)
+
 
     # float
     void fgemv (Modular_float F, FFLAS_TRANSPOSE transA,
@@ -53,6 +111,16 @@ cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFLAS":
              size_t A_stride, Modular_float.Element* B, int B_stride,
              Modular_float.Element beta, Modular_float.Element* C,
              size_t C_stride)
+
+    Modular_float.Element* fgemm (Modular_float F,
+             FFLAS_TRANSPOSE transA, FFLAS_TRANSPOSE transB,
+             size_t nrowsA, size_t ncolsB, size_t ncolsA,
+             Modular_float.Element alpha, Modular_float.Element* A,
+             size_t A_stride, Modular_float.Element* B, int B_stride,
+             Modular_float.Element beta, Modular_float.Element* C,
+                                  size_t C_stride, ParSeqHelper[C,P]& H)
+
+
 
 cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFPACK":
     # double

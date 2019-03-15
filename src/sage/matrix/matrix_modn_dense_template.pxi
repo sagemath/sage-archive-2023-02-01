@@ -95,7 +95,8 @@ from cysignals.signals cimport sig_check, sig_on, sig_off
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.linbox.fflas cimport FFLAS_TRANSPOSE, FflasNoTrans, FflasTrans, \
-    FflasRight, vector, list as std_list
+    FflasRight, vector, list as std_list, \
+    Row, Recursive, Threads, ParSeqHelper
 
 cimport sage.rings.fast_arith
 cdef sage.rings.fast_arith.arith_int ArithIntObj

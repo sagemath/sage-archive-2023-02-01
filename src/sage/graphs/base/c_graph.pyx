@@ -2214,7 +2214,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             (distance, side), (pred, v) = pq.top()
             # priority_queue by default is max heap
             # negative value of distance is stored in priority_queue to get
-            # minimum ditsance
+            # minimum distance
             distance = -distance
             pq.pop()
             if meeting_vertex != -1 and distance > shortest_path_length:
@@ -2260,7 +2260,7 @@ cdef class CGraphBackend(GenericGraphBackend):
                             raise ValueError("the graph contains an edge with negative weight")
                         # priority_queue is by default max_heap
                         # negative value of distance + edge_label is stored in
-                        # priority_queue to get minimum ditsance
+                        # priority_queue to get minimum distance
                         pq.push(((-(distance + edge_label), side), (v, w)))
 
         # No meeting point has been found

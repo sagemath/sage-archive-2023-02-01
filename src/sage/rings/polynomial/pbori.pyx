@@ -25,7 +25,7 @@ decision diagrams (ZDDs), which is capable of handling these
 polynomials more efficiently with respect to memory consumption and
 also computational speed. Furthermore, we concentrate on high-level
 algorithmic aspects, taking into account the new data structures as
-well as structural properties of Boolean polynomials." - [BD07]_
+well as structural properties of Boolean polynomials." - [BD2007]_
 
 For details on the internal representation of polynomials see
 
@@ -173,13 +173,6 @@ accepting convenient Sage data types which are slower than their
 native PolyBoRi counterparts. For instance, sets of points can be
 represented as tuples of tuples (Sage) or as ``BooleSet`` (PolyBoRi)
 and naturally the second option is faster.
-
-REFERENCES:
-
-.. [BD07] Michael Brickenstein, Alexander Dreyer\; *PolyBoRi: A
-  Groebner basis framework for Boolean polynomials*; pre-print
-  available at
-  http://www.itwm.fraunhofer.de/fileadmin/ITWM-Media/Zentral/Pdf/Berichte_ITWM/2007/bericht122.pdf
 """
 from __future__ import print_function, absolute_import
 

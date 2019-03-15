@@ -87,13 +87,13 @@ cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFLAS":
              Modular_double.Element beta, Modular_double.Element* C,
              size_t C_stride)
 
-     Modular_double.Element* fgemm (Modular_double F,
+    Modular_double.Element* fgemm[C,P] (Modular_double F,
              FFLAS_TRANSPOSE transA, FFLAS_TRANSPOSE transB,
              size_t nrowsA, size_t ncolsB, size_t ncolsA,
              Modular_double.Element alpha, Modular_double.Element* A,
              size_t A_stride, Modular_double.Element* B, int B_stride,
              Modular_double.Element beta, Modular_double.Element* C,
-                                    size_t C_stride, ParSeqHelper[C,P]& H)
+             size_t C_stride, Parallel[C,P]& H)
 
 
     # float
@@ -112,13 +112,13 @@ cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFLAS":
              Modular_float.Element beta, Modular_float.Element* C,
              size_t C_stride)
 
-    Modular_float.Element* fgemm (Modular_float F,
+    Modular_float.Element* fgemm[C,P] (Modular_float F,
              FFLAS_TRANSPOSE transA, FFLAS_TRANSPOSE transB,
              size_t nrowsA, size_t ncolsB, size_t ncolsA,
              Modular_float.Element alpha, Modular_float.Element* A,
              size_t A_stride, Modular_float.Element* B, int B_stride,
              Modular_float.Element beta, Modular_float.Element* C,
-                                  size_t C_stride, ParSeqHelper[C,P]& H)
+             size_t C_stride, Parallel[C,P]& H)
 
 
 

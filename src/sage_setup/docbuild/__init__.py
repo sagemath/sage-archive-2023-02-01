@@ -318,23 +318,63 @@ else:
         # debugging/information purposes.
         jobs = {}
 
+        def bring_out_yer_dead(w, exitcode):
+            """
+            Handle a dead / completed worker.  Raises RuntimeError if it
+            returned with a non-zero exit code.
+            """
+
+            if w is None or exitcode is None:
+                # I'm not dead yet! (or I haven't even been born yet)
+                return w
+
+            # Hack: If we wait()ed on this worker manually we have to tell it
+            # it's dead:
+            if w._popen.returncode is None:
+                w._popen.returncode = exitcode
+
+            if exitcode != 0 and ABORT_ON_ERROR:
+                raise RuntimeError(
+                    "worker for {} died with non-zero exit code "
+                    "{}".format(jobs[w.pid], w.exitcode))
+
+            jobs.pop(w.pid)
+            # Helps multiprocessing with some internal bookkeeping
+            w.join()
+
+            return None
+
+        def wait_for_one():
+            """Wait for a single process and return its pid and exit code."""
+            try:
+                pid, sts = os.wait()
+            except OSError as exc:
+                # No more processes to wait on if ECHILD
+                if exc.errno != errno.ECHILD:
+                    raise
+                else:
+                    return None, None
+
+            if os.WIFSIGNALED(sts):
+                exitcode = -os.WTERMSIG(sts)
+            else:
+                exitcode = os.WEXITSTATUS(sts)
+
+            return pid, exitcode
+
+        waited_pid = None
+        waited_exitcode = None
         try:
             while True:
                 # Check the status of each worker
                 for idx, w in enumerate(workers):
-                    # If a worker process exited, check its exit code; if it
-                    # exited non-zero and ABORT_ON_ERROR is True (the default)
-                    # raise a RuntimeError to stop the docbuild process (we
-                    # still give other workers a chance to finish cleanly in
-                    # the finally: block below).
-                    if w and w.exitcode is not None:
-                        if w.exitcode != 0 and ABORT_ON_ERROR:
-                            raise RuntimeError(
-                                "worker for {} died with non-zero exit code "
-                                "{}".format(jobs[w.pid], w.exitcode))
+                    if w is not None:
+                        if w.pid == waited_pid:
+                            exitcode = waited_exitcode
+                        else:
+                            exitcode = w.exitcode
 
-                        jobs.pop(w.pid)
-                        w = None
+                        w = bring_out_yer_dead(w, exitcode)
 
                     # Worker w is dead/not started, so start a new worker
                     # in its place with the next document from the queue
@@ -351,21 +391,21 @@ else:
                     # process in the queue then we are done
                     break
 
-                # Wait for a worker to finish (either successfully or with
-                # error). We ignore the return value for now and check all
-                # workers at the beginning of the loop.
-                try:
-                    os.wait()
-                except OSError as exc:
-                    # Ignore ECHILD meaning no more child processes; i.e. all
-                    # workers are already complete.
-                    if exc.errno != errno.ECHILD:
-                        raise
+                # We'll check each worker process against the returned
+                # pid back at the top of the `while True` loop.  We also
+                # check any other processes that may have exited in the
+                # meantime
+                waited_pid, waited_exitcode = wait_for_one()
         finally:
             remaining_workers = [w for w in workers if w is not None]
             for w in remaining_workers:
                 # Give any remaining workers a chance to shut down gracefully
-                w.terminate()
+                try:
+                    w.terminate()
+                except OSError as exc:
+                    if exc.errno != errno.ESRCH:
+                        # Otherwise it was already dead so this was expected
+                        raise
             for w in remaining_workers:
                 w.join()
 

@@ -2212,7 +2212,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         # As long as the current side (x or y) is not totally explored ...
         while not pq.empty():
             (distance, side), (pred, v) = pq.top()
-            #priority_queue() by default is max heap
+            #priority_queue by default is max heap
             #negative value of distance is stored in priority_queue to get minimum ditsance
             distance = -distance
             pq.pop()

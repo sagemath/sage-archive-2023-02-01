@@ -4750,8 +4750,7 @@ class Graph(GenericGraph):
 
         from sage.numerical.mip import MixedIntegerLinearProgram
 
-        #
-        # Initialize LP for maximum weigth matching
+        # Initialize LP for maximum weight matching
         M = MixedIntegerLinearProgram(solver=solver, constraint_generation=True)
 
         # One variable per edge

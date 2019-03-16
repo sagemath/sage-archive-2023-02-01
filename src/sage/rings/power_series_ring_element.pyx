@@ -146,6 +146,7 @@ def is_PowerSeries(x):
     """
     return isinstance(x, PowerSeries)
 
+
 cdef class PowerSeries(AlgebraElement):
     """
     A power series. Base class of univariate and
@@ -1710,6 +1711,74 @@ cdef class PowerSeries(AlgebraElement):
             R = R.change_ring(self.base_ring().fraction_field())
         return R(result_bg, prec=prec)
 
+    def tan(self, prec=infinity):
+        r"""
+        Apply tan to the formal power series.
+
+        INPUT:
+
+        - ``prec`` -- Integer or ``infinity``. The degree to truncate
+          the result to.
+
+        OUTPUT:
+
+        A new power series.
+
+        EXAMPLES:
+
+        For one variable::
+
+            sage: t = PowerSeriesRing(QQ, 't').gen()
+            sage: f = (t + t**2).O(4)
+            sage: tan(f)
+            t + t^2 + 1/3*t^3 + O(t^4)
+
+        For several variables::
+
+            sage: T.<a,b> = PowerSeriesRing(ZZ,2)
+            sage: f = a + b + a*b + T.O(3)
+            sage: tan(f)
+            a + b + a*b + O(a, b)^3
+            sage: f.tan()
+            a + b + a*b + O(a, b)^3
+            sage: f.tan(prec=2)
+            a + b + O(a, b)^2
+
+        If the power series has a non-zero constant coefficient `c`,
+        one raises an error::
+
+            sage: g = 2+f
+            sage: tan(g)
+            Traceback (most recent call last):
+            ...
+            ValueError: Can only apply tan to formal power series with zero constant term.
+
+        If no precision is specified, the default precision is used::
+
+            sage: T.default_prec()
+            12
+            sage: tan(a)
+            a + 1/3*a^3 + 2/15*a^5 + 17/315*a^7 + 62/2835*a^9 + 1382/155925*a^11 + O(a, b)^12
+            sage: a.tan(prec=5)
+            a + 1/3*a^3 + O(a, b)^5
+            sage: tan(a + T.O(5))
+            a + 1/3*a^3 + O(a, b)^5
+
+        TESTS::
+
+            sage: tan(a^2 + T.O(5))
+            a^2 + O(a, b)^5
+        """
+        R = self.parent()
+
+        c = self[0]
+        if not c.is_zero():
+            raise ValueError('Can only apply tan to formal power '
+                             'series with zero constant term.')
+        val = self.valuation()
+        assert(val >= 1)
+        return self.sin(prec) / self.cos(prec)
+
     def O(self, prec):
         r"""
         Return this series plus `O(x^\text{prec})`. Does not change
@@ -1733,7 +1802,6 @@ cdef class PowerSeries(AlgebraElement):
             return self
         coeffs = self[:prec]
         return self._parent(coeffs, prec)
-
 
     def solve_linear_de(self, prec = infinity, b = None, f0 = None):
         r"""

@@ -2738,7 +2738,9 @@ class Link(SageObject):
 
         REFERENCES:
 
-        .. :wikipedia:`Fox_n-coloring`
+        - :wikipedia:`Fox_n-coloring`
+
+        - Chapter 3 of [Livi1993]_
 
         .. SEEALSO:: :meth:`colorings`
         """
@@ -2775,7 +2777,9 @@ class Link(SageObject):
 
         REFERENCES:
 
-        .. :wikipedia:`Fox_n-coloring`
+        - :wikipedia:`Fox_n-coloring`
+
+        - Chapter 3 of [Livi1993]_
 
         .. SEEALSO:: :meth:`is_colorable`
         """
@@ -2966,7 +2970,7 @@ class Link(SageObject):
             sage: L.plot(solver='Gurobi')  # optional - Gurobi
             Graphics object consisting of ... graphics primitives
         """
-        if type(color) is str:
+        if type(color) is not dict:
             coloring = {int(i): color for i in set(flatten(self.pd_code()))}
         else:
             from sage.plot.colors import rainbow
@@ -2994,9 +2998,9 @@ class Link(SageObject):
                     P.xdata = [p + xtra for p in P.xdata]
             return P1 + P2
 
-        if not 'axes' in kwargs:
+        if 'axes' not in kwargs:
             kwargs['axes'] = False
-        if not 'aspect_ratio' in kwargs:
+        if 'aspect_ratio' not in kwargs:
             kwargs['aspect_ratio'] = 1
 
         from sage.plot.line import line
@@ -3231,7 +3235,7 @@ class Link(SageObject):
                         elif b[1] > a[1]:
                             e = [b[0], b[1] - 1]
                         elif b[1] < a[1]:
-                            e = [b[0] , b[1] + 1]
+                            e = [b[0], b[1] + 1]
                         l += line((p, e), **kwargs)
                         p = e
                     if im[c+1][1] == 1 and c < len(im) - 2:

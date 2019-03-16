@@ -2762,12 +2762,12 @@ class Link(SageObject):
 
             sage: K = Link([[[1, -2, 3, -1, 2, -3]], [1, 1, 1]])
             sage: K.colorings(3)
-            [{(1, 2): 2, (3, 4): 1, (5, 6): 0},
-            {(1, 2): 0, (3, 4): 1, (5, 6): 2},
-            {(1, 2): 0, (3, 4): 2, (5, 6): 1},
-            {(1, 2): 2, (3, 4): 0, (5, 6): 1},
-            {(1, 2): 1, (3, 4): 0, (5, 6): 2},
-            {(1, 2): 1, (3, 4): 2, (5, 6): 0}]
+            [{(1, 2): 0, (3, 4): 1, (5, 6): 2},
+             {(1, 2): 0, (3, 4): 2, (5, 6): 1},
+             {(1, 2): 1, (3, 4): 0, (5, 6): 2},
+             {(1, 2): 1, (3, 4): 2, (5, 6): 0},
+             {(1, 2): 2, (3, 4): 0, (5, 6): 1},
+             {(1, 2): 2, (3, 4): 1, (5, 6): 0}]
             sage: K.pd_code()
             [[4, 1, 5, 2], [2, 5, 3, 6], [6, 3, 1, 4]]
             sage: K.arcs('pd')
@@ -2788,7 +2788,8 @@ class Link(SageObject):
             if len(colors) == n:
                 colors = {b: a for a, b in enumerate(colors)}
                 res.add(tuple(colors[c] for c in coloring))
-        return [{tuple(arc): col for arc, col in zip(arcs, c)} for c in res]
+        return [{tuple(arc): col for arc, col in zip(arcs, c)}
+                for c in sorted(res)]
 
     def plot(self, gap=0.1, component_gap=0.5, solver=None,
              color='blue', **kwargs):
@@ -2934,14 +2935,14 @@ class Link(SageObject):
             L = Link([[[-1,2,-3,1,-2,3], [4,-5,6,-4,5,-6]], [1,1,1,1,1,1]])
             sphinx_plot(L.plot())
 
-        If a coloring is passed, the different arcs are plotted with the corresponding
-        colors::
+        If a coloring is passed, the different arcs are plotted with
+        the corresponding colors::
 
             sage: B = BraidGroup(4)
             sage: b = B([1,2,3,1,2,-1,-3,2,3])
             sage: L = Link(b)
             sage: L.plot(color=L.colorings(3)[0])
-            Launched png viewer for Graphics object consisting of 41 graphics primitives
+            Graphics object consisting of ... graphics primitives
 
         .. PLOT::
             :width: 300 px
@@ -2966,7 +2967,7 @@ class Link(SageObject):
             Graphics object consisting of ... graphics primitives
         """
         if type(color) is str:
-            coloring = {int(i):color for i in set(flatten(self.pd_code()))}
+            coloring = {int(i): color for i in set(flatten(self.pd_code()))}
         else:
             from sage.plot.colors import rainbow
             ncolors = len(set(color.values()))
@@ -2974,7 +2975,7 @@ class Link(SageObject):
             if len(color) != len(arcs):
                 raise ValueError("Number of entries in the color vector must match the number of arcs")
             rainb = rainbow(ncolors)
-            coloring = {int(i):rainb[color[tuple(j)]] for j in arcs for i in j}
+            coloring = {int(i): rainb[color[tuple(j)]] for j in arcs for i in j}
         comp = self._isolated_components()
         # Handle isolated components individually
         if len(comp) > 1:

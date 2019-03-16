@@ -27,8 +27,8 @@ REFERENCES:
 .. SEEALSO::
 
     There are also tables of link and knot invariants at
-    http://www.indiana.edu/~knotinfo/
-    and http://www.indiana.edu/~linkinfo/.
+    https://www.indiana.edu/~knotinfo/
+    and https://www.indiana.edu/~linkinfo/.
 
 AUTHORS:
 
@@ -2740,7 +2740,7 @@ class Link(SageObject):
 
         .. :wikipedia:`Fox_n-coloring`
 
-        .. SEEALSO: :meth:`colorings`
+        .. SEEALSO:: :meth:`colorings`
         """
         return self._coloring_matrix(n).nullity() > 1
 
@@ -2777,7 +2777,7 @@ class Link(SageObject):
 
         .. :wikipedia:`Fox_n-coloring`
 
-        .. SEEALSO: :meth:`is_colorable`
+        .. SEEALSO:: :meth:`is_colorable`
         """
         M = self._coloring_matrix(n)
         K = M.right_kernel()
@@ -2806,8 +2806,8 @@ class Link(SageObject):
         - ``solver`` -- the linear solver to use, see
           :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
 
-        - ``color`` -- (default: blue') a color or a coloring (as returned
-          by :method:`self.colorings()`.
+        - ``color`` -- (default: 'blue') a color or a coloring (as returned
+          by :method:`colorings`.
 
         The usual keywords for plots can be used here too.
 
@@ -2936,16 +2936,16 @@ class Link(SageObject):
 
         If a coloring is passed, the different arcs are plotted with the corresponding
         colors::
-        
+
             sage: B = BraidGroup(4)
             sage: b = B([1,2,3,1,2,-1,-3,2,3])
             sage: L = Link(b)
             sage: L.plot(color=L.colorings(3)[0])
             Launched png viewer for Graphics object consisting of 41 graphics primitives
-            
+
         .. PLOT::
             :width: 300 px
-            
+
             B = BraidGroup(4)
             b = B([1, 2, 3, 1, 2, -1, -3, 2, 3])
             L = Link(b)

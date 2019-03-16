@@ -2808,7 +2808,7 @@ class Link(SageObject):
           :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
 
         - ``color`` -- (default: 'blue') a color or a coloring (as returned
-          by :method:`colorings`.
+          by :meth:`colorings`.
 
         The usual keywords for plots can be used here too.
 

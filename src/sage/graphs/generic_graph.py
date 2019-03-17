@@ -1393,7 +1393,7 @@ class GenericGraph(GenericGraph_pyx):
                    functions + ".")
             raise ValueError(msg)
 
-    def networkx_graph(self):
+    def networkx_graph(self, copy=True):
         """
         Return a new ``NetworkX`` graph from the Sage graph.
 
@@ -1404,7 +1404,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: type(N)
             <class 'networkx.classes.graph.Graph'>
         """
-
+        if copy is not True:
+            deprecation(27491, "parameter copy is removed")
         import networkx
         if self._directed and self.allows_multiple_edges():
             class_type = networkx.MultiDiGraph
@@ -1416,7 +1417,7 @@ class GenericGraph(GenericGraph_pyx):
             class_type = networkx.Graph
         N = class_type(selfloops=self.allows_loops(), multiedges=self.allows_multiple_edges(),
                        name=self.name())
-        N.add_nodes_from(self.vertices())
+        N.add_nodes_from(self)
         from networkx import NetworkXError
         for u, v, l in self.edge_iterator():
             if l is None:

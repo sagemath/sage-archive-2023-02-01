@@ -1162,6 +1162,7 @@ class Graph(GenericGraph):
             else:
                 r = lambda x: x
             if weighted is None:
+                import networkx
                 if isinstance(data, networkx.Graph):
                     weighted = False
                     if multiedges is None:

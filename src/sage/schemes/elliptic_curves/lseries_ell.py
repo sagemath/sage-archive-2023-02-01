@@ -12,15 +12,15 @@ AUTHORS:
 - William Stein et al. (2005 and later)
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein
 #       Copyright (C) 2013 Jeroen Demeyer
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from six.moves import range
 
 from sage.structure.sage_object import SageObject
@@ -81,7 +81,7 @@ class Lseries_ell(SageObject):
             sage: L = E.lseries()
             sage: L.taylor_series(series_prec=3)
             -1.27685190980159e-23 + (7.23588070754027e-24)*z + 0.759316500288427*z^2 + O(z^3)  # 32-bit
-            -2.72911738151096e-23 + (1.54658247036311e-23)*z + 0.759316500288427*z^2 + O(z^3)  # 64-bit
+            1.34667664606157e-19 + (-7.63157535163667e-20)*z + 0.759316500288427*z^2 + O(z^3)  # 64-bit
         """
         D = self.dokchitser(prec)
         return D.taylor_series(a, series_prec, var)

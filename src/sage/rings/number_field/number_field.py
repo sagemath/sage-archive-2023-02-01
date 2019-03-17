@@ -5952,7 +5952,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
             sage: K.<a> = NumberField(ZZ['x'].0^2+ZZ['x'].0-1)
             sage: Z = K.zeta_function(); Z
-            Dokchitser Zeta function associated to Number Field in a with defining polynomial x^2 + x - 1
+            PARI zeta function associated to Number Field in a with defining polynomial x^2 + x - 1
             sage: Z(-1)
             0.0333333333333333
             sage: L.<a, b, c> = NumberField([x^2 - 5, x^2 + 3, x^2 + 1])

@@ -98,7 +98,7 @@ class Dokchitser(SageObject):
 
         sage: E = EllipticCurve('37a')
         sage: L = E.lseries().dokchitser(); L
-        Dokchitser L-function associated to Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+        PARI L-function associated to Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
         sage: L(1)
         0.000000000000000
         sage: L.derivative(1)
@@ -241,7 +241,6 @@ class Dokchitser(SageObject):
             sage: L.gp()
             PARI/GP interpreter
         """
-
         if self.__gp is None:
             self._instantiate_gp()
         elif self.__initialized:
@@ -599,7 +598,7 @@ class Dokchitser(SageObject):
             sage: E = EllipticCurve('389a')
             sage: L = E.lseries().dokchitser(200)
             sage: L.taylor_series(1,3)
-            -9.094...e-82 + (5.1538...e-82)*z + 0.75931650028842677023019260789472201907809751649492435158581*z^2 + O(z^3)
+            2.69...e-63 + (-1.52...e-63)*z + 0.75931650028842677023019260789472201907809751649492435158581*z^2 + O(z^3)
 
         Check that :trac:`25402` is fixed::
 

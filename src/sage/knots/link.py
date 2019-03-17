@@ -2664,12 +2664,15 @@ class Link(SageObject):
 
         INPUT:
 
-        - n -- the number of colors to consider
+        - ``n`` -- the number of colors to consider
+
+        If ``n`` is not a prime number, it is replaced by the smallest
+        prime number that is larger than ``n``.
 
         OUTPUT:
 
         a matrix over the smallest prime field with cardinality
-        bigger or equal than n.
+        larger than or equal to ``n``.
 
         EXAMPLES::
 
@@ -2711,16 +2714,19 @@ class Link(SageObject):
 
     def is_colorable(self, n):
         r"""
-        Return whether the link is n-colorable.
+        Return whether the link is ``n``-colorable.
 
-        A link is n-colorable if its arcs can be painted with n colours,
-        labeled from 0 to n-1, in such a way that at any crossing, the average
-        of the indices of the undercrossings equals the index of the
-        overcrossing.
+        A link is ``n``-colorable if its arcs can be painted with
+        ``n`` colours, labeled from ``0`` to ``n - 1``, in such a way
+        that at any crossing, the average of the indices of the
+        undercrossings equals twice the index of the overcrossing.
 
         INPUT:
 
-        - n -- the number of colors to consider
+        - ``n`` -- the number of colors to consider
+
+        If ``n`` is not a prime number, it is replaced by the smallest
+        prime number that is larger than ``n``.
 
         EXAMPLES:
 
@@ -2748,11 +2754,14 @@ class Link(SageObject):
 
     def colorings(self, n):
         r"""
-        Return the n-colorings of ``self``.
+        Return the ``n``-colorings of ``self``.
 
         INPUT:
 
-        - n -- the number of colors to consider
+        - ``n`` -- the number of colors to consider
+
+        If ``n`` is not a prime number, it is replaced by the smallest
+        prime number that is larger than ``n``.
 
         OUTPUT:
 

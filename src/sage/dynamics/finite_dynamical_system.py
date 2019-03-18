@@ -2,38 +2,10 @@ r"""
 Discrete dynamical systems
 ==========================
 
-A *discrete dynamical system* (short: *DDS*) is a pair `(X, \phi)`
-of a set `X` and a map `\phi : X \to X`.
+A *discrete dynamical system* (henceforth *DDS*) is a pair
+`(X, \phi)` of a set `X` and a map `\phi : X \to X`.
 (This is one of several things known as a "discrete dynamical
 system" in mathematics.)
-Thus, a DDS is the same as an endomorphism of a set.
-The DDS is said to be *finite* if `X` is finite.
-The DDS is said to be *invertible* if the map `\phi` is
-invertible.
-The set `X` is called the *ground set* of the DDS;
-the map `\phi` is called the *evolution* of the DDS;
-the inverse map `\phi^{-1}` (when it exists) is called the
-*inverse evolution* of the DDS.
-
-Given a DDS `(X, \phi)`, we can study
-
-* its orbits (i.e., the lists
-  `(s, \phi(s), \phi^2(s), \phi^3(s), \ldots)` for `s \in X`),
-
-* its invariants (i.e., maps `f : X \to Y` satisfying
-  `f \circ \phi = f`),
-
-* its cycles (i.e., lists `(u_1, u_2, \ldots, u_k)` of elements
-  of `X` such that `\phi(u_i) = u_{i+1}` for each `i \leq k`,
-  where we set `u_{k+1} = u_1`),
-
-* its homomesies (i.e., maps `h : X \to A` to a
-  `\QQ`-vector space `A` such that the average of the values
-  of `h` on each cycle is the same),
-
-and various other features.
-(Some of these require `X` to be finite or at least to have finite
-orbits.)
 
 This file implements the following classes for discrete
 dynamical systems:
@@ -43,6 +15,7 @@ dynamical systems:
   Inherit from this class if the ground set of your DDS is
   infinite or large enough that you want to avoid it getting
   stored as a list.
+  See the doc of this class for further details.
 
 - :class:`FiniteDynamicalSystem`: finite discrete dynamical
   system.
@@ -131,7 +104,88 @@ class DiscreteDynamicalSystem(SageObject):
     This set `X` is called the *ground set* of the DDS, while
     the map `\phi` is called the *evolution* of the DDS.
 
-    See the module-level doc for details.
+    A *discrete dynamical system* (short: *DDS*) is a pair
+    `(X, \phi)` of a set `X` and a map `\phi : X \to X`.
+    (This is one of several things known as a "discrete
+    dynamical system" in mathematics.)
+    Thus, a DDS is the same as an endomorphism of a set.
+    The DDS is said to be *finite* if `X` is finite.
+    The DDS is said to be *invertible* if the map `\phi` is
+    invertible.
+    The set `X` is called the *ground set* of the DDS;
+    the map `\phi` is called the *evolution* of the DDS;
+    the inverse map `\phi^{-1}` (when it exists) is called the
+    *inverse evolution* of the DDS.
+
+    Given a DDS `(X, \phi)`, we can study
+
+    * its orbits (i.e., the lists
+      `(s, \phi(s), \phi^2(s), \phi^3(s), \ldots)` for `s \in X`),
+
+    * its invariants (i.e., maps `f : X \to Y` satisfying
+      `f \circ \phi = f`),
+
+    * its cycles (i.e., lists `(u_1, u_2, \ldots, u_k)` of elements
+      of `X` such that `\phi(u_i) = u_{i+1}` for each `i \leq k`,
+      where we set `u_{k+1} = u_1`),
+
+    * its homomesies (i.e., maps `h : X \to A` to a
+      `\QQ`-vector space `A` such that the average of the values
+      of `h` on each cycle is the same),
+
+    and various other features.
+    (Some of these require `X` to be finite or at least to have
+    finite orbits.)
+
+    INPUT:
+
+    - ``X`` (set, list, tuple, or another iterable, or
+      ``None``) -- the ground set for the DDS; this can be
+      ``None`` in case of a
+      :class:`DiscreteDynamicalSystem` or a
+      :class:`InvertibleDiscreteDynamicalSystem`
+      (in which case Sage does not know the ground set,
+      but can still apply evolution to any elements that
+      are provided to it).
+      Make sure to set the ``create_tuple`` argument to
+      ``True`` if the ``X`` you provide is an iterator or
+      a list, as otherwise your ``X`` would be exposed
+      (and thus subject to mutation or exhaustion).
+
+    - ``phi`` (function, or callable that acts like a
+      function) -- the evolution of the DDS.
+
+    - ``cache_orbits`` (boolean) -- (default: ``False``)
+      whether or not the orbits should be cached once they
+      are computed.
+      This currently does nothing, as we are not caching
+      orbits yet.
+
+    - ``create_tuple`` (boolean) -- (default: ``False``)
+      whether or not the input ``X`` should be translated
+      into a tuple. Set this to ``True`` to prevent
+      mutation if ``X`` is a list, and to prevent
+      exhaustion if ``X`` is an iterator.
+
+    EXAMPLES::
+
+        sage: from sage.dynamics.finite_dynamical_system import DiscreteDynamicalSystem
+        sage: D = DiscreteDynamicalSystem(NN, lambda x : x + 2)
+        sage: D.ground_set()
+        Non negative integer semiring
+        sage: D.evolution()(5)
+        7
+
+    The necessity of ``create_tuple=True``::
+
+        sage: X = [0, 1, 2, 3, 4]
+        sage: D_wrong = DiscreteDynamicalSystem(X, lambda x : (x**3) % 5)
+        sage: D_right = DiscreteDynamicalSystem(X, lambda x : (x**3) % 5, create_tuple=True)
+        sage: X[4] = 666 # evil
+        sage: D_wrong.ground_set()
+        [0, 1, 2, 3, 666]
+        sage: D_right.ground_set()
+        (0, 1, 2, 3, 4)
     """
     @staticmethod
     def __classcall_private__(cls, X, phi, cache_orbits=False, create_tuple=False, inverse=None):
@@ -154,55 +208,7 @@ class DiscreteDynamicalSystem(SageObject):
 
     def __init__(self, X, phi, cache_orbits=False, create_tuple=False):
         r"""
-        INPUT:
-
-        - ``X`` (set, list, tuple, or another iterable, or
-          ``None``) -- the ground set for the DDS; this can be
-          ``None`` in case of a
-          :class:`DiscreteDynamicalSystem` or a
-          :class:`InvertibleDiscreteDynamicalSystem`
-          (in which case Sage does not know the ground set,
-          but can still apply evolution to any elements that
-          are provided to it).
-          Make sure to set the ``create_tuple`` argument to
-          ``True`` if the ``X`` you provide is an iterator or
-          a list, as otherwise your ``X`` would be exposed
-          (and thus subject to mutation or exhaustion).
-
-        - ``phi`` (function, or callable that acts like a
-          function) -- the evolution of the DDS.
-
-        - ``cache_orbits`` (boolean) -- (default: ``False``)
-          whether or not the orbits should be cached once they
-          are computed.
-          This currently does nothing, as we are not caching
-          orbits yet.
-
-        - ``create_tuple`` (boolean) -- (default: ``False``)
-          whether or not the input ``X`` should be translated
-          into a tuple. Set this to ``True`` to prevent
-          mutation if ``X`` is a list, and to prevent
-          exhaustion if ``X`` is an iterator.
-
-        EXAMPLES::
-
-            sage: from sage.dynamics.finite_dynamical_system import DiscreteDynamicalSystem
-            sage: D = DiscreteDynamicalSystem(NN, lambda x : x + 2)
-            sage: D.ground_set()
-            Non negative integer semiring
-            sage: D.evolution()(5)
-            7
-
-        The necessity of ``create_tuple=True``::
-
-            sage: X = [0, 1, 2, 3, 4]
-            sage: D_wrong = DiscreteDynamicalSystem(X, lambda x : (x**3) % 5)
-            sage: D_right = DiscreteDynamicalSystem(X, lambda x : (x**3) % 5, create_tuple=True)
-            sage: X[4] = 666 # evil
-            sage: D_wrong.ground_set()
-            [0, 1, 2, 3, 666]
-            sage: D_right.ground_set()
-            (0, 1, 2, 3, 4)
+        Initialize ``self``.
         """
         if create_tuple:
             X = tuple(X)
@@ -487,65 +493,67 @@ class InvertibleDiscreteDynamicalSystem(DiscreteDynamicalSystem):
     In that case, `\phi^{-1}` is called the *inverse evolution*
     of the DDS.
 
-    See the module-level doc for details.
+    See :class:`DiscreteDynamicalSystem` for details.
+
+    INPUT:
+
+    - ``X`` (set, list, tuple, or another iterable, or
+      ``None``) -- the ground set for the DDS; this can be
+      ``None`` in case of a
+      :class:`DiscreteDynamicalSystem` or a
+      :class:`InvertibleDiscreteDynamicalSystem`.
+      Make sure to set the ``create_tuple`` argument to
+      ``True`` if you provide an iterator or a list for
+      ``X``, as otherwise the input would be exposed.
+
+    - ``phi`` (function, or callable that acts like a
+      function) -- the evolution of the DDS.
+
+    - ``inverse`` (function, or callable that acts like a
+      function) -- the inverse evolution
+      of the DDS. (A default implementation is implemented
+      when this argument is not provided; but it assumes
+      the orbits to be finite.)
+
+    - ``cache_orbits`` (boolean) -- (default: ``False``)
+      whether or not the orbits should be cached once they
+      are computed.
+
+    - ``create_tuple`` (boolean) -- (default: ``False``)
+      whether or not the input ``X`` should be translated
+      into a tuple (set this to ``True`` to prevent
+      mutation if ``X`` is a list, and to prevent
+      exhaustion if ``X`` is an iterator).
+
+    EXAMPLES::
+
+        sage: from sage.dynamics.finite_dynamical_system import DiscreteDynamicalSystem
+        sage: D = InvertibleDiscreteDynamicalSystem(NN, lambda x : (x + 2 if x % 4 < 2 else x - 2))
+        sage: D.ground_set()
+        Non negative integer semiring
+        sage: D.evolution()(5)
+        7
+        sage: D.evolution()(6)
+        4
+        sage: D.evolution()(4)
+        6
+        sage: D.inverse_evolution()(4)
+        6
+
+    The necessity of ``create_tuple=True``::
+
+        sage: X = [0, 1, 2, 3, 4]
+        sage: D_wrong = InvertibleDiscreteDynamicalSystem(X, lambda x : (x**3) % 5)
+        sage: D_right = InvertibleDiscreteDynamicalSystem(X, lambda x : (x**3) % 5, create_tuple=True)
+        sage: X[4] = 666 # evil
+        sage: D_wrong.ground_set()
+        [0, 1, 2, 3, 666]
+        sage: D_right.ground_set()
+        (0, 1, 2, 3, 4)
     """
     def __init__(self, X, phi, inverse=None, cache_orbits=False, create_tuple=False):
         r"""
-        INPUT:
-
-        - ``X`` (set, list, tuple, or another iterable, or
-          ``None``) -- the ground set for the DDS; this can be
-          ``None`` in case of a
-          :class:`DiscreteDynamicalSystem` or a
-          :class:`InvertibleDiscreteDynamicalSystem`.
-          Make sure to set the ``create_tuple`` argument to
-          ``True`` if you provide an iterator or a list for
-          ``X``, as otherwise the input would be exposed.
-
-        - ``phi`` (function, or callable that acts like a
-          function) -- the evolution of the DDS.
-
-        - ``inverse`` (function, or callable that acts like a
-          function) -- the inverse evolution
-          of the DDS. (A default implementation is implemented
-          when this argument is not provided; but it assumes
-          the orbits to be finite.)
-
-        - ``cache_orbits`` (boolean) -- (default: ``False``)
-          whether or not the orbits should be cached once they
-          are computed.
-
-        - ``create_tuple`` (boolean) -- (default: ``False``)
-          whether or not the input ``X`` should be translated
-          into a tuple (set this to ``True`` to prevent
-          mutation if ``X`` is a list, and to prevent
-          exhaustion if ``X`` is an iterator).
-
-        EXAMPLES::
-
-            sage: from sage.dynamics.finite_dynamical_system import DiscreteDynamicalSystem
-            sage: D = InvertibleDiscreteDynamicalSystem(NN, lambda x : (x + 2 if x % 4 < 2 else x - 2))
-            sage: D.ground_set()
-            Non negative integer semiring
-            sage: D.evolution()(5)
-            7
-            sage: D.evolution()(6)
-            4
-            sage: D.evolution()(4)
-            6
-            sage: D.inverse_evolution()(4)
-            6
-
-        The necessity of ``create_tuple=True``::
-
-            sage: X = [0, 1, 2, 3, 4]
-            sage: D_wrong = InvertibleDiscreteDynamicalSystem(X, lambda x : (x**3) % 5)
-            sage: D_right = InvertibleDiscreteDynamicalSystem(X, lambda x : (x**3) % 5, create_tuple=True)
-            sage: X[4] = 666 # evil
-            sage: D_wrong.ground_set()
-            [0, 1, 2, 3, 666]
-            sage: D_right.ground_set()
-            (0, 1, 2, 3, 4)
+        Initialize ``self``.
         """
         if create_tuple:
             X = tuple(X)
@@ -619,14 +627,16 @@ class InvertibleDiscreteDynamicalSystem(DiscreteDynamicalSystem):
             sage: D.verify_inverse_evolution(3)
             False
         """
+        ev = self.evolution()
+        iev = self.inverse_evolution()
         if x is None:
             els = self.ground_set()
         else:
             els = [x]
         for y in els:
-            if self.evolution()(self.inverse_evolution()(y)) != y:
+            if ev(iev(y)) != y:
                 return False
-            if self.inverse_evolution()(self.evolution()(y)) != y:
+            if iev(ev(y)) != y:
                 return False
         return True
 

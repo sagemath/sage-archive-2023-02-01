@@ -885,6 +885,11 @@ class Graph(GenericGraph):
         Graph on 3 vertices
         sage: G.edges()
         [(1, 2, None)]
+
+    Check that :trac:`27505` is fixed::
+
+        sage: Graph(Graph().networkx_graph(), weighted=None, format='NX')
+        Graph on 0 vertices
     """
     _directed = False
 

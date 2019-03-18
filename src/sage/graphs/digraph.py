@@ -490,6 +490,11 @@ class DiGraph(GenericGraph):
         Digraph on 3 vertices
         sage: G.edges()
         [(1, 2, None)]
+
+    Check that :trac:`27505` is fixed::
+
+        sage: DiGraph(DiGraph().networkx_graph(), weighted=None, format='NX')
+        Digraph on 0 vertices
     """
     _directed = True
 
@@ -786,6 +791,7 @@ class DiGraph(GenericGraph):
                 convert_empty_dict_labels_to_None = (format == 'NX')
 
             if weighted is None:
+                import networkx
                 if isinstance(data, networkx.DiGraph):
                     weighted = False
                     if multiedges is None:

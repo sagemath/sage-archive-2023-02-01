@@ -2792,13 +2792,15 @@ class Link(SageObject):
 
         .. SEEALSO:: :meth:`is_colorable`
         """
+        from sage.arith.misc import next_prime
+        p = next_prime(n-1)
         M = self._coloring_matrix(n)
         K = M.right_kernel()
         res = set([])
         arcs = self.arcs('pd')
         for coloring in K:
             colors = sorted(set(coloring))
-            if len(colors) == n:
+            if len(colors) == p:
                 colors = {b: a for a, b in enumerate(colors)}
                 res.add(tuple(colors[c] for c in coloring))
         return [{tuple(arc): col for arc, col in zip(arcs, c)}

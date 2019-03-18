@@ -1580,7 +1580,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: cos(g)
             Traceback (most recent call last):
             ...
-            ValueError: Can only apply cos to formal power series with zero constant term.
+            ValueError: can only apply cos to formal power series with zero constant term
 
         If no precision is specified, the default precision is used::
 
@@ -1602,8 +1602,8 @@ cdef class PowerSeries(AlgebraElement):
 
         c = self[0]
         if not c.is_zero():
-            raise ValueError('Can only apply cos to formal power '
-                             'series with zero constant term.')
+            raise ValueError('can only apply cos to formal power '
+                             'series with zero constant term')
         x = self
         val = x.valuation()
         assert(val >= 1)
@@ -1665,7 +1665,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: sin(g)
             Traceback (most recent call last):
             ...
-            ValueError: Can only apply sin to formal power series with zero constant term.
+            ValueError: can only apply sin to formal power series with zero constant term
 
         If no precision is specified, the default precision is used::
 
@@ -1687,8 +1687,8 @@ cdef class PowerSeries(AlgebraElement):
 
         c = self[0]
         if not c.is_zero():
-            raise ValueError('Can only apply sin to formal power '
-                             'series with zero constant term.')
+            raise ValueError('can only apply sin to formal power '
+                             'series with zero constant term')
         val = self.valuation()
         assert(val >= 1)
 
@@ -1751,7 +1751,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: tan(g)
             Traceback (most recent call last):
             ...
-            ValueError: Can only apply tan to formal power series with zero constant term.
+            ValueError: can only apply tan to formal power series with zero constant term
 
         If no precision is specified, the default precision is used::
 
@@ -1769,23 +1769,19 @@ cdef class PowerSeries(AlgebraElement):
             sage: tan(a^2 + T.O(5))
             a^2 + O(a, b)^5
         """
-        R = self.parent()
-
-        c = self[0]
-        if not c.is_zero():
-            raise ValueError('Can only apply tan to formal power '
-                             'series with zero constant term.')
-        val = self.valuation()
-        assert(val >= 1)
+        if not self[0].is_zero():
+            raise ValueError('can only apply tan to formal power '
+                             'series with zero constant term')
+        assert(self.valuation() >= 1)
         return self.sin(prec) / self.cos(prec)
 
     def O(self, prec):
         r"""
         Return this series plus `O(x^\text{prec})`. Does not change
-        self.
-        
+        ``self``.
+
         EXAMPLES::
-        
+
             sage: R.<x> = PowerSeriesRing(ZZ)
             sage: p = 1 + x^2 + x^10; p
             1 + x^2 + x^10

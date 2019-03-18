@@ -1393,9 +1393,14 @@ class GenericGraph(GenericGraph_pyx):
                    functions + ".")
             raise ValueError(msg)
 
-    def networkx_graph(self, copy=True):
+    def networkx_graph(self, copy=True, weight_function=None):
         """
         Return a new ``NetworkX`` graph from the Sage graph.
+
+        INPUT:
+        
+        - ``weight_function`` -- function (default: ``None``); a function that
+          takes as input an edge ``(u, v, l)`` and outputs its weight.
 
         EXAMPLES::
 
@@ -1406,6 +1411,8 @@ class GenericGraph(GenericGraph_pyx):
         """
         if copy is not True:
             deprecation(27491, "parameter copy is removed")
+        if weight_function is not None:
+            self._check_weight_function(weight_function)
         import networkx
         if self._directed and self.allows_multiple_edges():
             class_type = networkx.MultiDiGraph
@@ -1420,7 +1427,9 @@ class GenericGraph(GenericGraph_pyx):
         N.add_nodes_from(self)
         from networkx import NetworkXError
         for u, v, l in self.edge_iterator():
-            if l is None:
+            if weight_function is not None:
+                N.add_edge(u, v, weight=weight_function((u, v, l)))
+            elif l is None:
                 N.add_edge(u, v)
             else:
                 try:

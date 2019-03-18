@@ -87,7 +87,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.random_subgraph` | Return a random subgraph containing each vertex with probability ``p``.
     :meth:`~GenericGraph.add_clique` | Add a clique to the graph with the given vertices.
     :meth:`~GenericGraph.add_cycle` | Add a cycle to the graph with the given vertices.
-    :meth:`~GenericGraph.add_path` | Add a cycle to the graph with the given vertices.
+    :meth:`~GenericGraph.add_path` | Add a path to the graph with the given vertices.
     :meth:`~GenericGraph.complement` | Return the complement of the (di)graph.
     :meth:`~GenericGraph.line_graph` | Return the line graph of the (di)graph.
     :meth:`~GenericGraph.to_simple` | Return a simple version of itself (i.e., undirected and loops and multiple edges are removed).
@@ -7832,7 +7832,8 @@ class GenericGraph(GenericGraph_pyx):
 
         ALGORITHM:
 
-        See :meth:`~Graph.traveling_salesman_problem` for 'tsp' algorithm and
+        See :meth:`~GenericGraph.traveling_salesman_problem` for 'tsp'
+        algorithm and
         :meth:`~sage.graphs.generic_graph_pyx.find_hamiltonian` from
         :mod:`sage.graphs.generic_graph_pyx` for 'backtrack' algorithm.
 
@@ -7940,7 +7941,7 @@ class GenericGraph(GenericGraph_pyx):
             return fh(self)
 
         else:
-            raise ValueError("algorithm (%s) should be 'tsp' or 'backtrack'."%(algorithm))
+            raise ValueError("algorithm (%s) should be 'tsp' or 'backtrack'." % (algorithm))
 
     def feedback_vertex_set(self, value_only=False, solver=None, verbose=0, constraint_generation=True):
         r"""
@@ -21859,7 +21860,7 @@ class GenericGraph(GenericGraph_pyx):
 
         ALGORITHM:
 
-        See :meth:`~Graph.traveling_salesman_problem`.
+        See :meth:`~GenericGraph.traveling_salesman_problem`.
 
         INPUT:
 

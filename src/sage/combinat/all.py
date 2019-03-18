@@ -223,3 +223,5 @@ lazy_import('sage.combinat.growth', ['GrowthDiagram',
                                      'GrowthDiagramRSK', 'GrowthDiagramBurge',
                                      'GrowthDiagramBinWord', 'GrowthDiagramDomino',
                                      'GrowthDiagramYoungFibonacci', 'GrowthDiagramSylvester'])
+
+

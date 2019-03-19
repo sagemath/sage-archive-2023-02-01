@@ -8189,12 +8189,17 @@ class Graph(GenericGraph):
     @doc_index("Leftovers")
     def common_neighbors_matrix(self, vertices=None, nonedgesonly=True):
         r"""
-        Return a matrix whose (`i` , `j`) entry gives the number of common
+        Return a matrix of numbers of common neighbors between each pairs.
+
+        The (`i` , `j`) entry of the matrix gives the number of common
         neighbors between vertices `i` and `j`.
+
+        This method is only valid for simple (no loops, no multiple edges)
+        graphs.
 
         INPUT:
 
-        - ``nonedgesonly``-- Boolean (default: `True`); if ``true``, assigns
+        - ``nonedgesonly``-- boolean (default: ``True``); if ``True``, assigns
           `0` value to adjacent vertices.
 
         - ``vertices`` -- list (default: ``None``); the ordering of the
@@ -8244,11 +8249,11 @@ class Graph(GenericGraph):
 
         It is an error to input anything other than a simple graph::
 
-            sage: G = Graph([(0,0)],loops=True) # add edges
+            sage: G = Graph([(0,0)],loops=True)
             sage: G.common_neighbors_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: Unable to compute simple graph common neighbors for graphs with loops
+            ValueError: This method is not known to work on graphs with loops. Perhaps this method can be updated to handle them, but in the meantime if you want to use it please disallow loops using allow_loops().
 
         .. SEEALSO::
 
@@ -8257,8 +8262,8 @@ class Graph(GenericGraph):
 
         TESTS::
 
-            sage: G = graphs.CompleteGraph(4) # Check Complete Graph
-            sage: M = G.common_neighbors_matrix() # Check Complete Graph
+            sage: G = graphs.CompleteGraph(4)
+            sage: M = G.common_neighbors_matrix()
             sage: M.is_zero()
             True
             sage: Graph(1).common_neighbors_matrix()
@@ -8272,21 +8277,16 @@ class Graph(GenericGraph):
             [0 0 0 0]
             [0 2 0 0]
         """
-        if self.has_loops():
-            raise ValueError('Unable to compute simple graph common neighbors for graphs with loops')
-        if self.is_directed():
-            raise ValueError('Unable to compute simple graph common neighbors for directed graphs')
+        self._scream_if_not_simple()
         if vertices is None:
-            vertices = list(self)
+            vertices = self.vertices()
         A = self.adjacency_matrix(vertices=vertices)
         M = A**2
-        for v in range(0, self.order()):
-            for w in range(0, self.order()):
-                if v == w:
-                    M[v, w] = 0
-                if nonedgesonly == True:
-                    if A[v, w] > 0:
-                        M[v, w] = 0
+        for v in range(self.order()):
+            M[v, v] = 0
+            for w in range(v + 1, self.order()):
+                if nonedgesonly and A[v, w]:
+                    M[v, w] = M[w, v] = 0
         return M
 
     @doc_index("Leftovers")
@@ -8294,16 +8294,20 @@ class Graph(GenericGraph):
         r"""
         Return vertex pairs with maximal number of common neighbors
 
+        This method is only valid for simple (no loops, no multiple edges)
+        graphs with order `\geq 2`   
+
+
         INPUT:
 
-        - ``nonedgesonly`` -- Boolean (default: `True`); if ``True``,
-          assigns `0` value to adjacent vertices.
+        - ``nonedgesonly``-- boolean (default: ``True``); if ``True``, assigns
+          `0` value to adjacent vertices.
 
         OUTPUT: list of tuples of edge pairs
 
         EXAMPLES:
 
-        The maximum common neighbor (non-adajacent) pairs for a straight 
+        The maximum common neighbor (non-adjacent) pairs for a straight
         linear 2-tree ::
 
             sage: G1 = Graph([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
@@ -8315,7 +8319,8 @@ class Graph(GenericGraph):
             sage: G1.most_common_neighbors(nonedgesonly = False)
             [(0, 3), (1, 2), (1, 4), (2, 3), (2, 5), (3, 4)]
 
-        The common neighbors matrix  for a fan on 6 vertices counting only non-adjacent vertex pairs ::
+        The common neighbors matrix  for a fan on 6 vertices counting only
+        non-adjacent vertex pairs ::
 
             sage: H = Graph([(0,1),(0,2),(0,3),(0,4),(0,5),(0,6),(1,2),(2,3),(3,4),(4,5)])
             sage: H.most_common_neighbors()
@@ -8328,33 +8333,34 @@ class Graph(GenericGraph):
 
         TESTS::
 
-            sage: G=graphs.CompleteGraph(4)#Check Complete Graph
+            sage: G=graphs.CompleteGraph(4)
             sage: G.most_common_neighbors()
-            []       
+            []
             sage: G.most_common_neighbors(nonedgesonly=False)
             [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
             sage: Graph(1).most_common_neighbors()
             Traceback (most recent call last):
             ...
-            ValueError: Unable to find node pairs with common neighbors for graphs with less than 2 nodes
+            ValueError: this method is defined for graphs with at least 2 vertices
             sage: Graph().most_common_neighbors()
             Traceback (most recent call last):
             ...
-            ValueError: Unable to find node pairs with common neighbors for graphs with less than 2 nodes
+            ValueError: this method is defined for graphs with at least 2 vertices
             sage: G = Graph([(0,1),(1,2),(2,3),(3,0),(0,2)])
             sage: G.most_common_neighbors()
             [(1, 3)]
             sage: G.most_common_neighbors(nonedgesonly=False)
             [(0, 2), (1, 3)]
         """
+        self._scream_if_not_simple()
         verts = list(self)
         M = self.common_neighbors_matrix(vertices=verts, nonedgesonly=nonedgesonly)
         if self.num_verts() < 2:
-            raise ValueError('Unable to find node pairs with common neighbors for graphs with less than 2 nodes')
+            raise ValueError('this method is defined for graphs with at least 2 vertices')
         output = []
         maximum = max(max(M))
-        if max(max(M)) > 0:
-            for v in range(0, self.num_verts()):
+        if maximum > 0:
+            for v in range(self.num_verts()):
                 for w in range(v, self.num_verts()):
                      if M[v, w] == maximum:
                             output.append((verts[v], verts[w]))

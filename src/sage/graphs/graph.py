@@ -80,6 +80,9 @@ AUTHORS:
 
 - David Coudert (2018-10-07): cleaning
 
+- Amanda Francis, Caitlin Lienkaemper, Kate Collins, Rajat Mittal (2019-03-19):
+  most_common_neighbors and common_neighbors_matrix added.
+
 Graph Format
 ------------
 
@@ -8182,6 +8185,180 @@ class Graph(GenericGraph):
                 return False
         else:
             raise ValueError('algorithm must be set to "Edmonds", "LP_matching" or "LP"')
+
+    @doc_index("Leftovers")
+    def common_neighbors_matrix(self, vertices=None, nonedgesonly=True):
+        r"""
+        Return a matrix whose (`i` , `j`) entry gives the number of common
+        neighbors between vertices `i` and `j`.
+
+        INPUT:
+
+        - ``nonedgesonly``-- Boolean (default: `True`); if ``true``, assigns
+          `0` value to adjacent vertices.
+
+        - ``vertices`` -- list (default: ``None``); the ordering of the
+          vertices defining how they should appear in the matrix. By default,
+          the ordering given by :meth:`GenericGraph.vertices` is used.
+
+        OUTPUT: matrix
+
+        EXAMPLES:
+
+        The common neighbors matrix  for a straight linear 2-tree counting
+        only non-adjacent vertex pairs ::
+
+            sage: G1 = Graph()
+            sage: G1.add_edges([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
+            sage: G1.common_neighbors_matrix(nonedgesonly = True)
+            [0 0 0 2 1 0]
+            [0 0 0 0 2 1]
+            [0 0 0 0 0 2]
+            [2 0 0 0 0 0]
+            [1 2 0 0 0 0]
+            [0 1 2 0 0 0]
+
+        We now show the common neighbors matrix which includes adjacent
+        vertices ::
+
+            sage: G1.common_neighbors_matrix(nonedgesonly = False)
+            [0 1 1 2 1 0]
+            [1 0 2 1 2 1]
+            [1 2 0 2 1 2]
+            [2 1 2 0 2 1]
+            [1 2 1 2 0 1]
+            [0 1 2 1 1 0]
+
+        The common neighbors matrix  for a fan on 6 vertices counting only
+        non-adjacent vertex pairs ::
+
+            sage: H = Graph([(0,1),(0,2),(0,3),(0,4),(0,5),(0,6),(1,2),(2,3),(3,4),(4,5)])
+            sage: H.common_neighbors_matrix()
+            [0 0 0 0 0 0 0]
+            [0 0 0 2 1 1 1]
+            [0 0 0 0 2 1 1]
+            [0 2 0 0 0 2 1]
+            [0 1 2 0 0 0 1]
+            [0 1 1 2 0 0 1]
+            [0 1 1 1 1 1 0]
+
+        It is an error to input anything other than a simple graph::
+
+            sage: G = Graph([(0,0)],loops=True) # add edges
+            sage: G.common_neighbors_matrix()
+            Traceback (most recent call last):
+            ...
+            ValueError: Unable to compute simple graph common neighbors for graphs with loops
+
+        .. SEEALSO::
+
+            * :meth:`most_common_neighbors` --
+              returns node pairs with most shared neighbors
+
+        TESTS::
+
+            sage: G = graphs.CompleteGraph(4) # Check Complete Graph
+            sage: M = G.common_neighbors_matrix() # Check Complete Graph
+            sage: M.is_zero()
+            True
+            sage: Graph(1).common_neighbors_matrix()
+            [0]
+            sage: Graph().common_neighbors_matrix()
+            []
+            sage: G = Graph([(0,1),(1,2),(2,3),(3,0),(0,2)])
+            sage: G.common_neighbors_matrix()
+            [0 0 0 0]
+            [0 0 0 2]
+            [0 0 0 0]
+            [0 2 0 0]
+        """
+        if self.has_loops():
+            raise ValueError('Unable to compute simple graph common neighbors for graphs with loops')
+        if self.is_directed():
+            raise ValueError('Unable to compute simple graph common neighbors for directed graphs')
+        if vertices is None:
+            vertices = list(self)
+        A = self.adjacency_matrix(vertices=vertices)
+        M = A**2
+        for v in range(0, self.order()):
+            for w in range(0, self.order()):
+                if v == w:
+                    M[v, w] = 0
+                if nonedgesonly == True:
+                    if A[v, w] > 0:
+                        M[v, w] = 0
+        return M
+
+    @doc_index("Leftovers")
+    def most_common_neighbors(self, nonedgesonly=True):
+        r"""
+        Return vertex pairs with maximal number of common neighbors
+
+        INPUT:
+
+        - ``nonedgesonly`` -- Boolean (default: `True`); if ``True``,
+          assigns `0` value to adjacent vertices.
+
+        OUTPUT: list of tuples of edge pairs
+
+        EXAMPLES:
+
+        The maximum common neighbor (non-adajacent) pairs for a straight 
+        linear 2-tree ::
+
+            sage: G1 = Graph([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
+            sage: G1.most_common_neighbors()
+            [(0, 3), (1, 4), (2, 5)]
+
+        If we include non-adjacent pairs ::
+
+            sage: G1.most_common_neighbors(nonedgesonly = False)
+            [(0, 3), (1, 2), (1, 4), (2, 3), (2, 5), (3, 4)]
+
+        The common neighbors matrix  for a fan on 6 vertices counting only non-adjacent vertex pairs ::
+
+            sage: H = Graph([(0,1),(0,2),(0,3),(0,4),(0,5),(0,6),(1,2),(2,3),(3,4),(4,5)])
+            sage: H.most_common_neighbors()
+            [(1, 3), (2, 4), (3, 5)]
+
+        .. SEEALSO::
+
+            * :meth:`common_neighbors_matrix` --
+              a similar method giving a matrix of number of common neighbors
+
+        TESTS::
+
+            sage: G=graphs.CompleteGraph(4)#Check Complete Graph
+            sage: G.most_common_neighbors()
+            []       
+            sage: G.most_common_neighbors(nonedgesonly=False)
+            [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]       
+            sage: Graph(1).most_common_neighbors()
+            Traceback (most recent call last):
+            ...
+            ValueError: Unable to find node pairs with common neighbors for graphs with less than 2 nodes
+            sage: Graph().most_common_neighbors()
+            Traceback (most recent call last):
+            ...
+            ValueError: Unable to find node pairs with common neighbors for graphs with less than 2 nodes
+            sage: G = Graph([(0,1),(1,2),(2,3),(3,0),(0,2)])
+            sage: G.most_common_neighbors()
+            [(1, 3)]
+            sage: G.most_common_neighbors(nonedgesonly=False)
+            [(0, 2), (1, 3)]
+        """
+        verts = list(self)
+        M = self.common_neighbors_matrix(vertices=verts, nonedgesonly=nonedgesonly)
+        if self.num_verts() < 2:
+            raise ValueError('Unable to find node pairs with common neighbors for graphs with less than 2 nodes')
+        output = []
+        maximum = max(max(M))
+        if max(max(M)) > 0:
+            for v in range(0, self.num_verts()):
+                for w in range(v, self.num_verts()):
+                     if M[v, w] == maximum:
+                            output.append((verts[v], verts[w]))
+        return output
 
     # Aliases to functions defined in other modules
     from sage.graphs.weakly_chordal import is_long_hole_free, is_long_antihole_free, is_weakly_chordal

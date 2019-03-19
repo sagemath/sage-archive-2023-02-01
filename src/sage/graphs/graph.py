@@ -8358,12 +8358,12 @@ class Graph(GenericGraph):
         if self.num_verts() < 2:
             raise ValueError('this method is defined for graphs with at least 2 vertices')
         output = []
-        maximum = max(max(M))
-        if maximum > 0:
+        if M.coefficients():
+            maximum = max(M.coefficients())
             for v in range(self.num_verts()):
                 for w in range(v, self.num_verts()):
-                     if M[v, w] == maximum:
-                            output.append((verts[v], verts[w]))
+                    if M[v, w] == maximum:
+                        output.append((verts[v], verts[w]))
         return output
 
     # Aliases to functions defined in other modules

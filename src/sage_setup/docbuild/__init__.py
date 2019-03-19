@@ -41,7 +41,6 @@ in a subprocess call to sphinx, see :func:`builder_helper`.
 from __future__ import absolute_import, print_function
 from six.moves import range
 
-import errno
 import logging
 import optparse
 import os
@@ -308,106 +307,7 @@ else:
     # actually succeptible to this bug.  As a workaround, here's a naïve but
     # good-enough "pool" replacement that does not use threads
     # https://trac.sagemath.org/ticket/27214#comment:25 for further discussion.
-    def build_many(target, args):
-        from multiprocessing import Process
-        workers = [None] * NUM_THREADS
-        queue = list(args)
-
-        # Maps worker process PIDs to the name of the document it's working
-        # on (the argument it was passed).  This is primarily used just for
-        # debugging/information purposes.
-        jobs = {}
-
-        def bring_out_yer_dead(w, exitcode):
-            """
-            Handle a dead / completed worker.  Raises RuntimeError if it
-            returned with a non-zero exit code.
-            """
-
-            if w is None or exitcode is None:
-                # I'm not dead yet! (or I haven't even been born yet)
-                return w
-
-            # Hack: If we wait()ed on this worker manually we have to tell it
-            # it's dead:
-            if w._popen.returncode is None:
-                w._popen.returncode = exitcode
-
-            if exitcode != 0 and ABORT_ON_ERROR:
-                raise RuntimeError(
-                    "worker for {} died with non-zero exit code "
-                    "{}".format(jobs[w.pid], w.exitcode))
-
-            jobs.pop(w.pid)
-            # Helps multiprocessing with some internal bookkeeping
-            w.join()
-
-            return None
-
-        def wait_for_one():
-            """Wait for a single process and return its pid and exit code."""
-            try:
-                pid, sts = os.wait()
-            except OSError as exc:
-                # No more processes to wait on if ECHILD
-                if exc.errno != errno.ECHILD:
-                    raise
-                else:
-                    return None, None
-
-            if os.WIFSIGNALED(sts):
-                exitcode = -os.WTERMSIG(sts)
-            else:
-                exitcode = os.WEXITSTATUS(sts)
-
-            return pid, exitcode
-
-        waited_pid = None
-        waited_exitcode = None
-        try:
-            while True:
-                # Check the status of each worker
-                for idx, w in enumerate(workers):
-                    if w is not None:
-                        if w.pid == waited_pid:
-                            exitcode = waited_exitcode
-                        else:
-                            exitcode = w.exitcode
-
-                        w = bring_out_yer_dead(w, exitcode)
-
-                    # Worker w is dead/not started, so start a new worker
-                    # in its place with the next document from the queue
-                    if w is None and queue:
-                        job = queue.pop(0)
-                        w = Process(target=target, args=(job,))
-                        w.start()
-                        jobs[w.pid] = job
-
-                    workers[idx] = w
-
-                if all(w is None for w in workers):
-                    # If all workers are dead and there are no more items to
-                    # process in the queue then we are done
-                    break
-
-                # We'll check each worker process against the returned
-                # pid back at the top of the `while True` loop.  We also
-                # check any other processes that may have exited in the
-                # meantime
-                waited_pid, waited_exitcode = wait_for_one()
-        finally:
-            remaining_workers = [w for w in workers if w is not None]
-            for w in remaining_workers:
-                # Give any remaining workers a chance to shut down gracefully
-                try:
-                    w.terminate()
-                except OSError as exc:
-                    if exc.errno != errno.ESRCH:
-                        # Otherwise it was already dead so this was expected
-                        raise
-            for w in remaining_workers:
-                w.join()
+    from .utils import _build_many as build_many
 
 
 ##########################################

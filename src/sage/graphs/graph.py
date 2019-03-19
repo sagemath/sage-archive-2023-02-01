@@ -8332,7 +8332,7 @@ class Graph(GenericGraph):
             sage: G.most_common_neighbors()
             []       
             sage: G.most_common_neighbors(nonedgesonly=False)
-            [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]       
+            [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
             sage: Graph(1).most_common_neighbors()
             Traceback (most recent call last):
             ...

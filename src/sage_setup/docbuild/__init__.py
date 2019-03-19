@@ -41,8 +41,15 @@ in a subprocess call to sphinx, see :func:`builder_helper`.
 from __future__ import absolute_import, print_function
 from six.moves import range
 
-import optparse, os, shutil, subprocess, sys, re
-import logging, warnings
+import logging
+import optparse
+import os
+import re
+import shutil
+import subprocess
+import sys
+import time
+import warnings
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +60,7 @@ import sphinx.ext.intersphinx
 import sage.all
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import sage_makedirs
-from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC
+from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, CYGWIN_VERSION
 
 from .build_options import (LANGUAGES, SPHINXOPTS, PAPER, OMIT,
      PAPEROPTS, ALLSPHINXOPTS, NUM_THREADS, WEBSITESPHINXOPTS,
@@ -264,29 +271,44 @@ class DocBuilder(object):
     # import the customized builder for object.inv files
     inventory = builder_helper('inventory')
 
-def build_many(target, args):
-    # Pool() uses an actual fork() to run each new instance. This is important
-    # for performance reasons, i.e., don't use a forkserver when it becomes
-    # available with Python 3: Here, sage is already initialized which is quite
-    # costly, with a forkserver we would have to reinitialize it for every
-    # document we build. At the same time, don't serialize this by taking the
-    # pool (and thus the call to fork()) out completely: The call to Sphinx
-    # leaks memory, so we need to build each document in its own process to
-    # control the RAM usage.
-    from multiprocessing import Pool
-    pool = Pool(NUM_THREADS, maxtasksperchild=1)
-    # map_async handles KeyboardInterrupt correctly. Plain map and
-    # apply_async does not, so don't use it.
-    x = pool.map_async(target, args, 1)
-    try:
-        ret = x.get(99999)
-        pool.close()
-        pool.join()
-    except Exception:
-        pool.terminate()
-        if ABORT_ON_ERROR:
-            raise
-    return ret
+
+if not (CYGWIN_VERSION and CYGWIN_VERSION[0] < 3):
+    def build_many(target, args):
+        # Pool() uses an actual fork() to run each new instance. This is
+        # important for performance reasons, i.e., don't use a forkserver when
+        # it becomes available with Python 3: Here, sage is already initialized
+        # which is quite costly, with a forkserver we would have to
+        # reinitialize it for every document we build. At the same time, don't
+        # serialize this by taking the pool (and thus the call to fork()) out
+        # completely: The call to Sphinx leaks memory, so we need to build each
+        # document in its own process to control the RAM usage.
+        from multiprocessing import Pool
+        pool = Pool(NUM_THREADS, maxtasksperchild=1)
+        # map_async handles KeyboardInterrupt correctly. Plain map and
+        # apply_async does not, so don't use it.
+        x = pool.map_async(target, args, 1)
+        try:
+            ret = x.get(99999)
+            pool.close()
+            pool.join()
+        except Exception:
+            pool.terminate()
+            if ABORT_ON_ERROR:
+                raise
+        return ret
+else:
+    # Cygwin 64-bit < 3.0.0 has a bug with exception handling when exceptions
+    # occur in pthreads, so it's dangerous to use multiprocessing.Pool, as
+    # signals can't be properly handled in worker processes, and they can crash
+    # causing the docbuild to hang.  But where are these pthreads, you ask?
+    # Well, multiprocessing.Pool runs a thread from which it starts new worker
+    # processes when old workers complete/die, so the worker processes behave
+    # as though they were started from a pthread, even after fork(), and are
+    # actually succeptible to this bug.  As a workaround, here's a naïve but
+    # good-enough "pool" replacement that does not use threads
+    # https://trac.sagemath.org/ticket/27214#comment:25 for further discussion.
+    from .utils import _build_many as build_many
+
 
 ##########################################
 #      Parallel Building Ref Manual      #
@@ -318,7 +340,6 @@ class AllBuilder(object):
         This is the function which goes through all of the documents
         and does the actual building.
         """
-        import time
         start = time.time()
         docs = self.get_all_documents()
         refs = [x for x in docs if x.endswith('reference')]
@@ -811,7 +832,6 @@ class ReferenceSubBuilder(DocBuilder):
         """
         env = self.get_sphinx_environment()
         if env is not None:
-            import time
             for doc in env.all_docs:
                 env.all_docs[doc] = time.time()
             logger.info("Updated %d reST file mtimes", len(env.all_docs))

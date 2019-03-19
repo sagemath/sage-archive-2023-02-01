@@ -785,19 +785,20 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             VarStr = 'y'
         else:
             VarStr = 'x'
-        VarNames = '('+','.join((VarStr+str(i+1) for i in range(n)))+')'
-        singular.ring(FieldStr, VarNames, 'dp') # this does have a side-effect
-        if hasattr(F,'polynomial') and F.gen()!=1: # we have to define minpoly
+        VarNames = '(' + ','.join((VarStr+str(i) for i in range(1, n+1)))+')'
+        R = singular.ring(FieldStr, VarNames, 'dp') # this does have a side-effect
+        if hasattr(F, 'polynomial') and F.gen() != 1:
+            # we have to define minpoly
             singular.eval('minpoly = '+str(F.polynomial()).replace('x',str(F.gen())))
         A = [singular.matrix(n,n,str((x.matrix()).list())) for x in gens]
         Lgens = ','.join((x.name() for x in A))
-        PR = PolynomialRing(F,n,[VarStr+str(i) for i in range(1,n+1)])
+        PR = PolynomialRing(F, n, [VarStr+str(i) for i in range(1,n+1)])
 
-        if q == 0 or (q > 0 and self.cardinality()%q != 0):
+        if q == 0 or (q > 0 and self.cardinality() % q):
             from sage.all import Matrix
             try:
-                elements = [ g.matrix() for g in self.list() ]
-            except (TypeError,ValueError):
+                elements = [g.matrix() for g in self.list()]
+            except (TypeError, ValueError):
                 elements
             if elements is not None:
                 ReyName = 't'+singular._next_var_name()

@@ -58,6 +58,7 @@ fi
     --with-local-prefix="$SAGE_LOCAL" \
     --with-gmp="$SAGE_LOCAL" --with-mpfr="$SAGE_LOCAL" --with-mpc="$SAGE_LOCAL" \
     --with-system-zlib \
+    --without-isl \
     --disable-multilib \
     --disable-nls \
     --disable-libitm \

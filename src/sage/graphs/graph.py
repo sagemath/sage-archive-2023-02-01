@@ -8191,7 +8191,7 @@ class Graph(GenericGraph):
         r"""
         Return a matrix of numbers of common neighbors between each pairs.
 
-        The (`i` , `j`) entry of the matrix gives the number of common
+        The `(i , j)` entry of the matrix gives the number of common
         neighbors between vertices `i` and `j`.
 
         This method is only valid for simple (no loops, no multiple edges)
@@ -8253,7 +8253,10 @@ class Graph(GenericGraph):
             sage: G.common_neighbors_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: This method is not known to work on graphs with loops. Perhaps this method can be updated to handle them, but in the meantime if you want to use it please disallow loops using allow_loops().
+            ValueError: This method is not known to work on graphs with loops. 
+            Perhaps this method can be updated to handle them, but in the 
+            meantime if you want to use it please disallow loops using 
+            allow_loops().
 
         .. SEEALSO::
 
@@ -8361,7 +8364,7 @@ class Graph(GenericGraph):
         if M.coefficients():
             maximum = max(M.coefficients())
             for v in range(self.num_verts()):
-                for w in range(v, self.num_verts()):
+                for w in range(v + 1, self.num_verts()):
                     if M[v, w] == maximum:
                         output.append((verts[v], verts[w]))
         return output

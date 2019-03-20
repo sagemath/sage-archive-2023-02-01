@@ -114,7 +114,7 @@ Make sure we don't have a new field for every new literal::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from __future__ import absolute_import, print_function
@@ -5610,7 +5610,7 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
 
     - ``base`` -- an integer between 2 and 62
 
-    - ``pad`` -- an integer = 0.
+    - ``pad`` -- an integer >= 0.
 
     - ``rnd`` -- rounding mode:
 
@@ -5721,7 +5721,7 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
         else:
             bits = int(math.log(base,2)*1.00001*sigfigs)+1
 
-        R = RealField(prec=max(bits+pad, min_prec), rnd=rnd)
+        R = RealField(prec=max(bits + pad, min_prec), rnd=rnd)
 
     return RealLiteral(R, s, base)
 

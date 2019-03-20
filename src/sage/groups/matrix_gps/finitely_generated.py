@@ -21,10 +21,10 @@ subgroups of matrix groups::
     sage: SL2Z = SL(2,ZZ)
     sage: S, T = SL2Z.gens()
     sage: SL2Z.subgroup([T^2])
-    Matrix group over Integer Ring with 1 generators (
+    Subgroup with 1 generators (
     [1 2]
     [0 1]
-    )
+    ) of Special Linear Group of degree 2 over Integer Ring
 
 AUTHORS:
 
@@ -205,6 +205,7 @@ def QuaternionMatrixGroupGF3():
     aye = MS([1,1,1,2])
     jay = MS([2,1,1,1])
     return MatrixGroup([aye, jay])
+
 
 def MatrixGroup(*gens, **kwds):
     r"""
@@ -604,8 +605,8 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
 
         The above example in GL(12,Z), reduced modulo 7::
 
-            sage: MS = MatrixSpace( GF(7), 12, 12)
-            sage: G = MatrixGroup(map(MS, GG.GeneratorsOfGroup()))
+            sage: MS = MatrixSpace(GF(7), 12, 12)
+            sage: G = MatrixGroup([MS(g) for g in GG.GeneratorsOfGroup()])
             sage: G.cardinality()
             21499084800
             sage: P = G.as_permutation_group()

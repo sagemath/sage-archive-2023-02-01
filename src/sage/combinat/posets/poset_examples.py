@@ -1464,29 +1464,17 @@ class Posets(object):
              [[2], [2, 1]],
              [[2, 1], [2, 2]]]
         """
-        from sage.misc.flatten import flatten
-        from sage.combinat.partition import Partition
+        ideal = {}
+        level = [lam]
+        while level:
+            new_level = set()
+            for mu in level:
+                down = mu.down_list()
+                ideal[mu] = down
+                new_level.update(down)
+            level = new_level
 
-        def lower_covers(l):
-            """
-            Nested function returning those partitions obtained
-            from the partition `l` by removing
-            a single cell.
-            """
-            return [l.remove_cell(c[0], c[1]) for c in l.removable_cells()]
-
-        def contained_partitions(l):
-            """
-            Nested function returning those partitions contained in
-            the partition `l`
-            """
-            if l == Partition([]):
-                return l
-            return flatten([l, [contained_partitions(m)
-                                for m in lower_covers(l)]])
-
-        ideal = list(set(contained_partitions(lam)))
-        H = DiGraph(dict([[p, lower_covers(p)] for p in ideal]))
+        H = DiGraph(ideal)
         return LatticePoset(H.reverse())
 
     @staticmethod

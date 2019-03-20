@@ -430,7 +430,7 @@ Sage example in ./nonlinear.tex, line 1742::
 Sage example in ./nonlinear.tex, line 1851::
 
   sage: for ring in [ZZ, QQ, QQbar, RDF, RIF, RR, AA, CDF, CIF, CC]:
-  ....:     print("{0:50} {1}".format(ring, ring.is_exact()))
+  ....:     print("{0:50} {1}".format(str(ring), ring.is_exact()))
   Integer Ring                                       True
   Rational Field                                     True
   Algebraic Field                                    True

@@ -509,9 +509,11 @@ def sieve(X, bound):
                 continue
 
             try:
-                rat_points.add(X(list(A[1]))) # checks if this point lies on X or not
-            except:
+                pt = X(list(A[1]))
+            except TypeError:
                 pass
+            else:
+                rat_points.add(pt)
 
         return [list(_) for _ in rat_points]
 

@@ -1565,11 +1565,9 @@ class Magma(ExtraTabCompletion, Expect):
 
         INPUT:
 
+        -  ``type`` -- string (e.g. 'Groebner')
 
-        -  ``type`` - string (e.g. 'Groebner')
-
-        -  ``level`` - integer = 0
-
+        -  ``level`` -- integer >= 0
 
         EXAMPLES::
 

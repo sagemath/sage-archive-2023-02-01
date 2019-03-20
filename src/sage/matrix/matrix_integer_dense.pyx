@@ -479,7 +479,9 @@ cdef class Matrix_integer_dense(Matrix_dense):
         Return space separated string of the entries in this matrix, in the
         given base. This is optimized for speed.
 
-        INPUT: base -an integer = 36; (default: 10)
+        INPUT:
+
+        - base -- an integer <= 36; (default: 10)
 
         EXAMPLES::
 

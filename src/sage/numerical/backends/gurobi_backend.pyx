@@ -198,7 +198,7 @@ cdef class GurobiBackend(GenericBackend):
 
         return self.ncols()-1
 
-    cpdef add_col(self, list indices, list coeffs):
+    cpdef add_col(self, indices, coeffs):
         """
         Add a column.
 

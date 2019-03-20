@@ -2040,7 +2040,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         return resu
 
     def series_expansion(self, symbol, order):
-        """
+        r"""
         Expand the tensor field in power series with respect to a small
         parameter.
 
@@ -2185,7 +2185,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         return sum(symbol**i*s for (i, s) in enumerate(ser))
 
     def set_calc_order(self, symbol, order, truncate=False):
-        """
+        r"""
         Trigger a power series expansion with respect to a small parameter in
         computations involving the tensor field.
 

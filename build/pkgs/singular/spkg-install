@@ -78,7 +78,7 @@ config()
     sdh_configure --exec-prefix="$SAGE_LOCAL" \
                   --bindir="$SAGE_LOCAL/bin" \
                   $SAGE_CONFIGURE_GMP \
-                  --with-ntl="$SAGE_LOCAL" \
+                  $SAGE_CONFIGURE_NTL \
                   --with-flint="$SAGE_LOCAL" \
                   --enable-gfanlib \
                   --enable-Singular \

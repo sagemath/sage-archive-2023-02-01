@@ -67,3 +67,13 @@ if [ -n "$SAGE_MPC_PREFIX" ]; then
     # their ./configure scripts. Thus we deal with this just as with GMP above. 
     export SAGE_CONFIGURE_MPC="--with-mpc=$SAGE_MPC_PREFIX"
 fi
+
+# This is usually blank if the system NTL is used, or $SAGE_LOCAL otherwise
+export SAGE_NTL_PREFIX="@SAGE_NTL_PREFIX@"
+if [ -n "$SAGE_NTL_PREFIX" ]; then
+    # Many packages that depend on NTL accept a --with-ntl=<prefix> flag to
+    # their ./configure scripts.  When using the system's NTL this is not
+    # generally necessary, but when using the NTL package installed in
+    # SAGE_LOCAL it is useful to pass it.
+    export SAGE_CONFIGURE_NTL="--with-ntl=$SAGE_NTL_PREFIX"
+fi

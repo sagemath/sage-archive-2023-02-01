@@ -2426,17 +2426,17 @@ class ClusterSeed(SageObject):
         if inplace:
             seed = self
         else:
-            seed = ClusterSeed(self)# change to deepcopy?
+            seed = ClusterSeed(self)  # change to deepcopy?
 
         # If we get a string, execute as a function
-        if isinstance(sequence, str) and len(sequence) > 1 and sequence[0] is not '_':
-            if sequence is 'green':
+        if isinstance(sequence, str) and len(sequence) > 1 and sequence[0] != '_':
+            if sequence == 'green':
                 sequence = self.first_green_vertex()
-            elif sequence is 'red':
+            elif sequence == 'red':
                 sequence = self.first_red_vertex()
-            elif sequence is 'urban' or sequence is 'urban_renewal':
+            elif sequence == 'urban' or sequence == 'urban_renewal':
                 sequence = self.first_urban_renewal()
-            elif sequence is 'all_urbans' or sequence is 'all_urban_renewals':
+            elif sequence == 'all_urbans' or sequence == 'all_urban_renewals':
                 sequence = self.urban_renewals()
             elif hasattr(self, sequence):
                 sequence = getattr(self, sequence)()
@@ -4595,7 +4595,6 @@ class ClusterSeed(SageObject):
             psetvect.append(p)
 
         for a in vd:
-            negative = False
             if any(am < 0 for am in a[0]):
                 compatibleList.append([])
                 continue

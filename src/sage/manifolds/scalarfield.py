@@ -3232,9 +3232,9 @@ class ScalarField(CommutativeAlgebraElement):
         .. MATH::
 
             f = f_0 + \epsilon f_1 + \epsilon^2 f_2 + \cdots + \epsilon^n f_n
-                + O(\epsilon^{n+1})
+                + O(\epsilon^{n+1}),
 
-        where `f_0`, `f_1`, ..., `f_n` are `n+1` scalar fields that do not
+        where `f_0, f_1, \ldots, f_n` are `n+1` scalar fields that do not
         depend upon `\epsilon`.
 
         INPUT:
@@ -3249,7 +3249,7 @@ class ScalarField(CommutativeAlgebraElement):
 
           .. WARNING::
 
-             The order of the big O in the power series expansion is `n+1`,
+             The order of the big `O` in the power series expansion is `n+1`,
              where `n` is ``order``.
 
         - ``truncate`` -- (default: ``False``) determines whether the

@@ -2050,9 +2050,9 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         .. MATH::
 
             T = T_0 + \epsilon T_1 + \epsilon^2 T_2 + \cdots + \epsilon^n T_n
-                + O(\epsilon^{n+1})
+                + O(\epsilon^{n+1}),
 
-        where `T_0`, `T_1`, ..., `T_n` are `n+1` tensor fields of the same
+        where `T_0, T_1, \ldots, T_n` are `n+1` tensor fields of the same
         tensor type as ``self`` and do not depend upon `\epsilon`.
 
         INPUT:
@@ -2138,9 +2138,9 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         .. MATH::
 
             T = T_0 + \epsilon T_1 + \epsilon^2 T_2 + \cdots + \epsilon^n T_n
-                + O(\epsilon^{n+1})
+                + O(\epsilon^{n+1}),
 
-        where `T_0`, `T_1`, ..., `T_n` are `n+1` tensor fields of the same
+        where `T_0, T_1, \ldots, T_n` are `n+1` tensor fields of the same
         tensor type as ``self`` and do not depend upon `\epsilon`.
 
         INPUT:
@@ -2198,9 +2198,9 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         .. MATH::
 
             T = T_0 + \epsilon T_1 + \epsilon^2 T_2 + \cdots + \epsilon^n T_n
-                + O(\epsilon^{n+1})
+                + O(\epsilon^{n+1}),
 
-        where `T_0`, `T_1`, ..., `T_n` are `n+1` tensor fields of the same
+        where `T_0, T_1, \ldots, T_n` are `n+1` tensor fields of the same
         tensor type as ``self`` and do not depend upon `\epsilon`.
 
         INPUT:

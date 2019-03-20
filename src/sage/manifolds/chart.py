@@ -962,7 +962,7 @@ class Chart(UniqueRepresentation, SageObject):
           .. WARNING::
 
              The value of ``order`` is `n-1`, where `n` is the order of the
-             big O in the power series expansion
+             big `O` in the power series expansion
 
         OUTPUT:
 

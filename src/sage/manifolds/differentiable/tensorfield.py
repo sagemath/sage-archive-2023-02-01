@@ -91,7 +91,7 @@ class TensorField(ModuleElement):
 
         t(p):\ \underbrace{T_q^*M\times\cdots\times T_q^*M}_{k\ \; \mbox{times}}
         \times \underbrace{T_q M\times\cdots\times T_q M}_{l\ \; \mbox{times}}
-        \longrightarrow K
+        \longrightarrow K,
 
     where `T_q^* M` is the dual vector space to `T_q M` and `K` is the
     topological field over which the manifold `M` is defined. The integer `k+l`
@@ -3539,7 +3539,7 @@ class TensorField(ModuleElement):
 
             (\mathrm{div}\, t)^{a_1\ldots a_{k-1}} =
             \nabla_i t^{a_1\ldots a_{k-1} i} =
-            (\nabla t)^{a_1\ldots a_{k-1} i}_{\phantom{a_1\ldots a_{k-1} i}\, i}
+            (\nabla t)^{a_1\ldots a_{k-1} i}_{\phantom{a_1\ldots a_{k-1} i}\, i},
 
         where `\nabla` is the Levi-Civita connection of `g` (cf.
         :class:`~sage.manifolds.differentiable.levi_civita_connection.LeviCivitaConnection`).
@@ -3554,7 +3554,7 @@ class TensorField(ModuleElement):
             \ldots b_{l-1}} = \nabla_i (g^{ij} t^{a_1\ldots a_k}_{\phantom{a_1
             \ldots a_k}\, b_1\ldots b_{l-1} j})
             = (\nabla t^\sharp)^{a_1\ldots a_k i}_{\phantom{a_1\ldots a_k i}\,
-            b_1\ldots b_{l-1} i}
+            b_1\ldots b_{l-1} i},
 
         where `t^\sharp` is the tensor field deduced from `t` by raising the
         last index with the metric `g` (see :meth:`up`).
@@ -3686,7 +3686,7 @@ class TensorField(ModuleElement):
 
             (\Delta t)^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\,{b_1\ldots b_k}}
             = \nabla_i \nabla^i
-            t^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\,{b_1\ldots b_k}}
+            t^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\,{b_1\ldots b_k}},
 
         where `\nabla` is the Levi-Civita connection of `g` (cf.
         :class:`~sage.manifolds.differentiable.levi_civita_connection.LeviCivitaConnection`)
@@ -3782,7 +3782,7 @@ class TensorField(ModuleElement):
 
             (\Box t)^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\,{b_1\ldots b_k}}
             = \nabla_i \nabla^i
-            t^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\,{b_1\ldots b_k}}
+            t^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\,{b_1\ldots b_k}},
 
         where `\nabla` is the Levi-Civita connection of `g` (cf.
         :class:`~sage.manifolds.differentiable.levi_civita_connection.LeviCivitaConnection`)
@@ -3991,9 +3991,9 @@ class TensorField(ModuleElement):
         .. MATH::
 
             T = T_0 + \epsilon T_1 + \epsilon^2 T_2 + \cdots + \epsilon^n T_n
-                + O(\epsilon^{n+1})
+                + O(\epsilon^{n+1}),
 
-        where `T_0`, `T_1`, ..., `T_n` are `n+1` tensor fields of the same
+        where `T_0, T_1, \ldots, T_n` are `n+1` tensor fields of the same
         tensor type as ``self`` and do not depend upon `\epsilon`.
 
         INPUT:

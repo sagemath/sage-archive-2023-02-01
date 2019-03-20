@@ -2248,7 +2248,7 @@ class MPolynomialIdeal_singular_repr(
             sage: R.<x, y, z> = QQbar[]
             sage: I = R.ideal(x^5*z^3, x*y*z, y*z^4)
             sage: J = R.ideal(z)
-            sage: I.saturation(J)
+            sage: I.saturation(other = J)
             (Ideal (y, x^5) of Multivariate Polynomial Ring in x, y, z over Algebraic Field, 4)
         """
         from sage.libs.singular.function_factory import ff

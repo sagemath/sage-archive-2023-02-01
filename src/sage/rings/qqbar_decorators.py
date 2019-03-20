@@ -21,9 +21,7 @@ def handle_AA_and_QQbar(func):
     The argument list is scanned for ideals and/or polynomials over algebraic
     fields (``QQbar`` or ``AA``).  If any exist, they are converted to a common
     number field before calling the function, and the results are converted back.
-    Lists, sets, and tuples are converted recursively.
-
-    Keyword arguments are currently not converted.
+    Lists, dictionaries (values only), sets, and tuples are converted recursively.
 
     This decorator can not used with methods that depend on factoring, since
     factorization might require larger number fields than those required to
@@ -97,6 +95,8 @@ def handle_AA_and_QQbar(func):
                 return item.map_coefficients(elem_dict.__getitem__, new_base_ring=numfield)
             elif isinstance(item, list):
                 return map(forward_map, item)
+            elif isinstance(item, dict):
+                return {k: forward_map(v) for k,v in item.items()}
             elif isinstance(item, tuple):
                 return tuple(map(forward_map, item))
             elif isinstance(item, set):
@@ -120,7 +120,8 @@ def handle_AA_and_QQbar(func):
             else:
                 return item
 
-        args = map(forward_map, args)
+        args = forward_map(args)
+        kwds = forward_map(kwds)
 
         return reverse_map(func(*args, **kwds))
 

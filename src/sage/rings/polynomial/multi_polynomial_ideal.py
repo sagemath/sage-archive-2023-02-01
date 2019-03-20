@@ -2746,7 +2746,6 @@ class MPolynomialIdeal_singular_repr(
             raise ValueError("'algorithm' must be one of 'sage' or 'singular'")
 
     @require_field
-    @handle_AA_and_QQbar
     def _normal_basis_libsingular(self):
         r"""
         Returns the normal basis for a given groebner basis. It will use

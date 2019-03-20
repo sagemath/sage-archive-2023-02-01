@@ -3,7 +3,7 @@
 # distutils: library_dirs = FFLASFFPACK_LIBDIR
 # distutils: language = c++ 
 
-from .givaro cimport Modular_double, Modular_float, Dense, Sparse
+from .givaro cimport Modular_double, Modular_float, Dense, Sparse, Integer
 from .givaro cimport givvector, Poly1Dom
 from libcpp.vector cimport vector
 
@@ -14,33 +14,34 @@ ctypedef givvector[Modular_double.Element] ModDoubleDensePolynomial
 ctypedef givvector[Modular_float.Element] ModFloatDensePolynomial
 
 cdef extern from "fflas-ffpack/paladin/blockcuts.inl" namespace "FFLAS::CuttingStrategy":
-    ctypedef struct Single:
+    cdef struct Single:
         pass
-    ctypedef struct Row:
+    cdef struct Row:
         pass
-    ctypedef struct Column:
+    cdef struct Column:
         pass
-    ctypedef struct Block:
+    cdef cppclass Block:
         pass
-    ctypedef struct Recursive:
+    cdef struct Recursive:
         pass
 
+
 cdef extern from "fflas-ffpack/paladin/blockcuts.inl" namespace "FFLAS::StrategyParameter":
-    ctypedef struct Fixed:
+    cdef struct Fixed:
         pass
-    ctypedef struct Threads:
+    cdef cppclass Threads:
         pass
-    ctypedef struct Grain:
+    cdef struct Grain:
         pass
-    ctypedef struct TwoD:
+    cdef struct TwoD:
         pass
-    ctypedef struct TwoDAdaptive:
+    cdef struct TwoDAdaptive:
         pass
-    ctypedef struct ThreeD:
+    cdef struct ThreeD:
         pass
-    ctypedef struct ThreeDInPlace:
+    cdef struct ThreeDInPlace:
         pass
-    ctypedef struct ThreeDAdaptive:
+    cdef struct ThreeDAdaptive:
         pass
 
 cdef extern from "fflas-ffpack/paladin/blockcuts.inl" namespace "FFLAS::ParSeqHelper":
@@ -52,21 +53,38 @@ cdef extern from "fflas-ffpack/paladin/blockcuts.inl" namespace "FFLAS::ParSeqHe
         Sequential()
 
 cdef extern from "fflas-ffpack/fflas/fflas_helpers.h" namespace "FFLAS::MMHelperAlgo":
-    ctypedef struct Auto:
+    cdef struct Auto:
         pass
-    ctypedef struct Classic:
+    cdef cppclass Classic:
         pass
-    ctypedef struct Winograd:
+    cdef struct Winograd:
         pass
-    ctypedef struct WinogradPar:
+    cdef struct WinogradPar:
         pass
-    ctypedef struct Bini:
+    cdef struct Bini:
         pass
+
+cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFLAS::FieldCategories":        
+    cdef cppclass GenericTag:
+        pass
+    cdef struct ModularTag:
+        pass
+    cdef struct UnparametricTag:
+        pass        
+
+######################
+cdef extern from "fflas-ffpack/fflas/fflas_helpers.h" namespace "FFLAS":
+    cdef cppclass MMHelper[Field, AlgoTrait, ModeCategories, ParSeqTrait]:
+        MMHelper()
+        
+######################
+
 
 cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFLAS":
     ctypedef enum FFLAS_TRANSPOSE:
         FflasNoTrans
         FflasTrans
+
 
     ctypedef enum FFLAS_SIDE:
         FflasRight
@@ -87,14 +105,15 @@ cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFLAS":
              Modular_double.Element beta, Modular_double.Element* C,
              size_t C_stride)
 
-    Modular_double.Element* fgemm[C,P] (Modular_double F,
+######################
+    Modular_double.Element* fgemm(Modular_double F,
              FFLAS_TRANSPOSE transA, FFLAS_TRANSPOSE transB,
              size_t nrowsA, size_t ncolsB, size_t ncolsA,
              Modular_double.Element alpha, Modular_double.Element* A,
              size_t A_stride, Modular_double.Element* B, int B_stride,
              Modular_double.Element beta, Modular_double.Element* C,
-             size_t C_stride, Parallel[C,P]& H)
-
+             size_t C_stride, Parallel[Block,Threads]& H)
+######################
 
     # float
     void fgemv (Modular_float F, FFLAS_TRANSPOSE transA,
@@ -112,16 +131,15 @@ cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFLAS":
              Modular_float.Element beta, Modular_float.Element* C,
              size_t C_stride)
 
-    Modular_float.Element* fgemm[C,P] (Modular_float F,
+######################
+    Modular_float.Element* fgemm(Modular_float F,
              FFLAS_TRANSPOSE transA, FFLAS_TRANSPOSE transB,
              size_t nrowsA, size_t ncolsB, size_t ncolsA,
              Modular_float.Element alpha, Modular_float.Element* A,
              size_t A_stride, Modular_float.Element* B, int B_stride,
              Modular_float.Element beta, Modular_float.Element* C,
-             size_t C_stride, Parallel[C,P]& H)
-
-
-
+             size_t C_stride, Parallel[Block,Threads]& H)
+######################
 cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFPACK":
     # double
     bint IsSingular (Modular_double F,

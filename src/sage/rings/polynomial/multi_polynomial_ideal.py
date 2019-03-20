@@ -1302,7 +1302,6 @@ class MPolynomialIdeal_singular_repr(
         G = Sequence([P(str(f)) for f in G.iterGB()])
         return G
 
-    @handle_AA_and_QQbar
     @singular_gb_standard_options
     def _groebner_basis_singular(self, algorithm="groebner", *args, **kwds):
         """
@@ -1370,7 +1369,6 @@ class MPolynomialIdeal_singular_repr(
         return S
 
     @cached_method
-    @handle_AA_and_QQbar
     def _groebner_basis_singular_raw(self, algorithm="groebner", singular=singular_default, *args, **kwds):
         r"""
         Return a Groebner basis in Singular format.
@@ -3542,6 +3540,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                                         symmetry=symmetry, verbose=verbose)
 
     @cached_method(do_pickle=True)
+    @handle_AA_and_QQbar
     def groebner_basis(self, algorithm='', deg_bound=None, mult_bound=None, prot=False, *args, **kwds):
         r"""
         Return the reduced Groebner basis of this ideal.

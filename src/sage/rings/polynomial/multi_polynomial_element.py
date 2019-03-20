@@ -1814,6 +1814,17 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             [y^7, x^7*y^2 + x^8 + x^5*y^3 + x^6*y + x^3*y^4 + x^4*y^2 + x*y^5 + x^2*y^3 + y^4]
             sage: sum( map( mul , zip( M, I.gens() ) ) ) == f
             True
+
+        TESTS:
+
+        Check that this method works over QQbar (:trac:`25351`)::
+
+            sage: A.<x,y> = QQbar[]
+            sage: I = A.ideal([x^2 + y^2 - 1, x^2 - y^2])
+            sage: f = 2*x^2 - 1
+            sage: M = f.lift(I)
+            sage: sum( map( mul , zip( M, I.gens() ) ) ) == f
+            True
         """
         fs = self._singular_()
         Is = I._singular_()
@@ -1850,6 +1861,15 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             TypeError: no conversion of this ring to a Singular ring defined
 
         ALGORITHM: Use Singular.
+
+        TESTS:
+
+        Check that this method works over QQbar (:trac:`25351`)::
+
+            sage: R.<x,y> = QQbar[]
+            sage: f = y*x^2 + x + 1
+            sage: f.quo_rem(x)
+            (x*y + 1, 1)
         """
         R = self.parent()
         try:
@@ -1909,6 +1929,15 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: (x^2 + 1).resultant(x^2 - y)
             y^2 + 2*y + 1
 
+        Check that this method works over QQbar (:trac:`25351`)::
+
+            sage: P.<x,y> = QQbar[]
+            sage: a = x + y
+            sage: b = x^3 - y^3
+            sage: a.resultant(b)
+            (-2)*y^3
+            sage: a.resultant(b, y)
+            2*x^3
         """
         R = self.parent()
         if variable is None:

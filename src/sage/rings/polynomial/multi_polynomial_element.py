@@ -1923,7 +1923,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         else:
             return r
 
-    @handle_AA_and_QQbar
     def reduce(self, I):
         """
         Reduce this polynomial by the polynomials in `I`.

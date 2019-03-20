@@ -15508,7 +15508,7 @@ class GenericGraph(GenericGraph_pyx):
                     if report_edges:
                         multiple_all_paths.append(ep)
                     else:
-                        multiple_all_paths.append(p)          
+                        multiple_all_paths.append(p)
             return multiple_all_paths
 
         if report_edges:

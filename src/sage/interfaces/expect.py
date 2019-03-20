@@ -942,9 +942,9 @@ If this all works, you can then make calls like:
                         except (TypeError, RuntimeError):
                             pass
                         return self._eval_line(line,allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt, restart_if_needed=False)
-                raise_(RuntimeError, "%s\nError evaluating %s in %s"%(msg, line, self), sys.exc_info()[2])
+                raise_(RuntimeError, RuntimeError("%s\nError evaluating %s in %s" % (msg, line, self)), sys.exc_info()[2])
 
-            if len(line)>0:
+            if len(line):
                 try:
                     if isinstance(wait_for_prompt, string_types):
                         E.expect(str_to_bytes(wait_for_prompt))

@@ -15307,14 +15307,15 @@ class GenericGraph(GenericGraph_pyx):
           - If ``True``, a path will be reported as many times as the edges
             multiplicities along that path (when ``report_edges = False`` or
             ``labels = False``), or with all possible combinations of edge
-            labels (when ``report_edges = True`` and ``labels = True`)
+            labels (when ``report_edges = True`` and ``labels = True``)
 
         - ``report_edges`` -- boolean (default: ``False``); whether to report
           paths as list of vertices (default) or list of edges
 
         - ``labels`` -- boolean (default: ``False``); if ``False``, each edge
           is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
-          along with its edge labels are used to represent the path.
+          along with its edge labels are used to represent the path. If labels
+          is ``True`` then report_edges is automatically set to ``True``.
 
         EXAMPLES::
         
@@ -15518,7 +15519,7 @@ class GenericGraph(GenericGraph_pyx):
         if report_edges:
             return [list(zip(p[:-1], p[1:])) for p in all_paths]
        
-        return all_paths 
+        return all_paths
 
     def triangles_count(self, algorithm=None):
         r"""

@@ -98,6 +98,8 @@ from sage.libs.linbox.fflas cimport FFLAS_TRANSPOSE, FflasNoTrans, FflasTrans, \
     FflasRight, vector, list as std_list, \
     Block, Threads, Parallel, Recursive, Row
 
+from cython cimport parallel
+
 cimport sage.rings.fast_arith
 cdef sage.rings.fast_arith.arith_int ArithIntObj
 ArithIntObj  = sage.rings.fast_arith.arith_int()
@@ -272,7 +274,7 @@ cdef inline celement linbox_det(celement modulus, celement* entries, Py_ssize_t 
     del F
     return d
 
-cdef inline celement linbox_matrix_matrix_multiply(celement modulus, celement* ans, celement* A, celement* B, Py_ssize_t m, Py_ssize_t n, Py_ssize_t k):
+cdef inline celement linbox_matrix_matrix_multiply(celement modulus, celement* ans, celement* A, celement* B, Py_ssize_t m, Py_ssize_t n, Py_ssize_t k) :
     """
     C = A*B
     """
@@ -281,13 +283,16 @@ cdef inline celement linbox_matrix_matrix_multiply(celement modulus, celement* a
     F[0].init(one, <int>1)
     F[0].init(zero, <int>0)
     cdef Parallel[Block,Threads] *MMH = new Parallel[Block,Threads](4)
+
     if m*n*k > 100000: sig_on()
-    fgemm(F[0], FflasNoTrans, FflasNoTrans, m, n, k,
-              one, <ModField.Element*>A, k, <ModField.Element*>B, n, zero,
-              <ModField.Element*>ans, n
-              ,MMH[0]
-              )
+    with nogil, parallel.parallel(num_threads=4):
+        fgemm(F[0], FflasNoTrans, FflasNoTrans, m, n, k,
+                  one, <ModField.Element*>A, k, <ModField.Element*>B, n, zero,
+                  <ModField.Element*>ans, n
+                  ,MMH[0]
+                  )
     if m*n*k > 100000: sig_off()
+
     del F
 
 cdef inline int linbox_matrix_vector_multiply(celement modulus, celement* C, celement* A, celement* b, Py_ssize_t m, Py_ssize_t n, FFLAS_TRANSPOSE trans):

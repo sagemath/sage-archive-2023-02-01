@@ -13,6 +13,8 @@ ctypedef Poly1Dom[Modular_float, Dense] PolynomialRing_Modular_float
 ctypedef givvector[Modular_double.Element] ModDoubleDensePolynomial
 ctypedef givvector[Modular_float.Element] ModFloatDensePolynomial
 
+from cython cimport parallel
+
 cdef extern from "fflas-ffpack/paladin/blockcuts.inl" namespace "FFLAS::CuttingStrategy":
     cdef struct Single:
         pass
@@ -80,7 +82,7 @@ cdef extern from "fflas-ffpack/fflas/fflas_helpers.h" namespace "FFLAS":
 ######################
 
 
-cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFLAS":
+cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFLAS" nogil:
     ctypedef enum FFLAS_TRANSPOSE:
         FflasNoTrans
         FflasTrans
@@ -112,7 +114,7 @@ cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFLAS":
              Modular_double.Element alpha, Modular_double.Element* A,
              size_t A_stride, Modular_double.Element* B, int B_stride,
              Modular_double.Element beta, Modular_double.Element* C,
-             size_t C_stride, Parallel[Block,Threads]& H)
+             size_t C_stride, Parallel[Block,Threads]& H) 
 ######################
 
     # float
@@ -138,9 +140,10 @@ cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFLAS":
              Modular_float.Element alpha, Modular_float.Element* A,
              size_t A_stride, Modular_float.Element* B, int B_stride,
              Modular_float.Element beta, Modular_float.Element* C,
-             size_t C_stride, Parallel[Block,Threads]& H)
+             size_t C_stride, Parallel[Block,Threads]& H) 
 ######################
-cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFPACK":
+
+cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFPACK" nogil:
     # double
     bint IsSingular (Modular_double F,
                      size_t nrows, size_t ncols, Modular_double.Element* A,

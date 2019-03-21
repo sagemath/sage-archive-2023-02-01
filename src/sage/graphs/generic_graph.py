@@ -1396,15 +1396,14 @@ class GenericGraph(GenericGraph_pyx):
                    functions + ".")
             raise ValueError(msg)
 
-    def networkx_graph(self, copy=True):
+    def networkx_graph(self, copy=True, weight_function=None):
         """
         Return a new ``NetworkX`` graph from the Sage graph.
 
         INPUT:
-
-        - ``copy`` -- boolean (default: ``False``); if ``False``, and the
-          underlying implementation is a ``NetworkX`` graph, then the actual
-          object itself is returned
+        
+        - ``weight_function`` -- function (default: ``None``); a function that
+          takes as input an edge ``(u, v, l)`` and outputs its weight.
 
         EXAMPLES::
 
@@ -1413,34 +1412,34 @@ class GenericGraph(GenericGraph_pyx):
             sage: type(N)
             <class 'networkx.classes.graph.Graph'>
         """
-        try:
-            if copy:
-                return self._backend._nxg.copy()
+        if copy is not True:
+            deprecation(27491, "parameter copy is removed")
+        if weight_function is not None:
+            self._check_weight_function(weight_function)
+        import networkx
+        if self._directed and self.allows_multiple_edges():
+            class_type = networkx.MultiDiGraph
+        elif self._directed:
+            class_type = networkx.DiGraph
+        elif self.allows_multiple_edges():
+            class_type = networkx.MultiGraph
+        else:
+            class_type = networkx.Graph
+        N = class_type(selfloops=self.allows_loops(), multiedges=self.allows_multiple_edges(),
+                       name=self.name())
+        N.add_nodes_from(self)
+        from networkx import NetworkXError
+        for u, v, l in self.edge_iterator():
+            if weight_function is not None:
+                N.add_edge(u, v, weight=weight_function((u, v, l)))
+            elif l is None:
+                N.add_edge(u, v)
             else:
-                return self._backend._nxg
-        except Exception:
-            import networkx
-            if self._directed and self.allows_multiple_edges():
-                class_type = networkx.MultiDiGraph
-            elif self._directed:
-                class_type = networkx.DiGraph
-            elif self.allows_multiple_edges():
-                class_type = networkx.MultiGraph
-            else:
-                class_type = networkx.Graph
-            N = class_type(selfloops=self.allows_loops(), multiedges=self.allows_multiple_edges(),
-                           name=self.name())
-            N.add_nodes_from(self.vertices())
-            from networkx import NetworkXError
-            for u, v, l in self.edge_iterator():
-                if l is None:
-                    N.add_edge(u, v)
-                else:
-                    try:
-                        N.add_edge(u, v, l)
-                    except (TypeError, ValueError, NetworkXError):
-                        N.add_edge(u, v, weight=l)
-            return N
+                try:
+                    N.add_edge(u, v, l)
+                except (TypeError, ValueError, NetworkXError):
+                    N.add_edge(u, v, weight=l)
+        return N
 
     def igraph_graph(self, vertex_list=None, vertex_attrs={}, edge_attrs={}):
         r"""
@@ -4574,7 +4573,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # second case: there are no multiple edges
         import networkx
-        cycle_basis_v = networkx.cycle_basis(self.networkx_graph(copy=False))
+        cycle_basis_v = networkx.cycle_basis(self.networkx_graph())
         if output == 'vertex':
             return cycle_basis_v
 
@@ -13701,7 +13700,7 @@ class GenericGraph(GenericGraph_pyx):
             if self.is_directed():
                 raise ValueError("the 'networkx' implementation does not support directed graphs")
             import networkx
-            return networkx.triangles(self.networkx_graph(copy=False), nbunch)
+            return networkx.triangles(self.networkx_graph(), nbunch)
 
         elif implementation == 'sparse_copy':
             from sage.graphs.base.static_sparse_graph import triangles_count
@@ -13783,7 +13782,7 @@ class GenericGraph(GenericGraph_pyx):
             return clustering_coeff(self)[0]
         elif implementation == 'networkx':
             import networkx
-            return networkx.average_clustering(self.networkx_graph(copy=False))
+            return networkx.average_clustering(self.networkx_graph())
         else:
             from sage.stats.basic_stats import mean
             return mean(self.clustering_coeff(implementation=implementation).values())
@@ -13920,7 +13919,7 @@ class GenericGraph(GenericGraph_pyx):
             return clustering_coeff(self, nodes)[1]
         elif implementation == 'networkx':
             import networkx
-            return networkx.clustering(self.networkx_graph(copy=False), nodes, weight=weight)
+            return networkx.clustering(self.networkx_graph(), nodes, weight=weight)
         elif implementation == 'sparse_copy':
             from sage.graphs.base.static_sparse_graph import triangles_count
             return {v: coeff_from_triangle_count(v, count)
@@ -13946,7 +13945,7 @@ class GenericGraph(GenericGraph_pyx):
             0.25
         """
         import networkx
-        return networkx.transitivity(self.networkx_graph(copy=False))
+        return networkx.transitivity(self.networkx_graph())
 
     ### Distance
 
@@ -14977,7 +14976,7 @@ class GenericGraph(GenericGraph_pyx):
             return centrality_betweenness(self, normalize=normalized, exact=exact)
         elif algorithm == "NetworkX":
             import networkx
-            return networkx.betweenness_centrality(self.networkx_graph(copy=False),
+            return networkx.betweenness_centrality(self.networkx_graph(),
                                                    k=k,
                                                    normalized=normalized,
                                                    weight=weight,
@@ -15229,7 +15228,7 @@ class GenericGraph(GenericGraph_pyx):
                 else:
                     G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
             else:
-                G = self.networkx_graph(copy=False)
+                G = self.networkx_graph()
             G.add_nodes_from(self)
 
             degree = self.out_degree if self.is_directed() else self.degree

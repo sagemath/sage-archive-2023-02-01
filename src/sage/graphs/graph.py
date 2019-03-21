@@ -5910,7 +5910,7 @@ class Graph(GenericGraph):
             return list(IndependentSets(self, maximal=True, complement=True))
         elif algorithm == "NetworkX":
             import networkx
-            return list(networkx.find_cliques(self.networkx_graph(copy=False)))
+            return list(networkx.find_cliques(self.networkx_graph()))
         else:
             raise ValueError("Algorithm must be equal to 'native' or to 'NetworkX'.")
 
@@ -6090,7 +6090,7 @@ class Graph(GenericGraph):
             return clique_number(self)
         elif algorithm == "networkx":
             import networkx
-            return networkx.graph_clique_number(self.networkx_graph(copy=False), cliques)
+            return networkx.graph_clique_number(self.networkx_graph(), cliques)
         elif algorithm == "MILP":
             return len(self.complement().independent_set(algorithm=algorithm, solver=solver, verbosity=verbose))
         elif algorithm == "mcqd":
@@ -6144,7 +6144,7 @@ class Graph(GenericGraph):
             {0: 2, 1: 2, 2: 1, 3: 1}
         """
         import networkx
-        return networkx.number_of_cliques(self.networkx_graph(copy=False), vertices, cliques)
+        return networkx.number_of_cliques(self.networkx_graph(), vertices, cliques)
 
     @doc_index("Clique-related methods")
     def cliques_get_max_clique_graph(self):
@@ -6174,7 +6174,7 @@ class Graph(GenericGraph):
             sage: (G.cliques_get_max_clique_graph()).show(figsize=[2,2])
         """
         import networkx
-        return Graph(networkx.make_max_clique_graph(self.networkx_graph(copy=False), create_using=networkx.MultiGraph()))
+        return Graph(networkx.make_max_clique_graph(self.networkx_graph(), create_using=networkx.MultiGraph()))
 
     @doc_index("Clique-related methods")
     def cliques_get_clique_bipartite(self, **kwds):
@@ -6202,7 +6202,7 @@ class Graph(GenericGraph):
         """
         from .bipartite_graph import BipartiteGraph
         import networkx
-        return BipartiteGraph(networkx.make_clique_bipartite(self.networkx_graph(copy=False), **kwds))
+        return BipartiteGraph(networkx.make_clique_bipartite(self.networkx_graph(), **kwds))
 
     @doc_index("Algorithmically hard stuff")
     def independent_set(self, algorithm="Cliquer", value_only=False, reduction_rules=True, solver=None, verbosity=0):
@@ -6815,7 +6815,7 @@ class Graph(GenericGraph):
             return value
         elif algorithm == "networkx":
             import networkx
-            return networkx.node_clique_number(self.networkx_graph(copy=False), vertices, cliques)
+            return networkx.node_clique_number(self.networkx_graph(), vertices, cliques)
         else:
             raise NotImplementedError("Only 'networkx' and 'cliquer' are supported.")
 
@@ -6866,7 +6866,7 @@ class Graph(GenericGraph):
 
         """
         import networkx
-        return networkx.cliques_containing_node(self.networkx_graph(copy=False), vertices, cliques)
+        return networkx.cliques_containing_node(self.networkx_graph(), vertices, cliques)
 
     @doc_index("Clique-related methods")
     def clique_complex(self):

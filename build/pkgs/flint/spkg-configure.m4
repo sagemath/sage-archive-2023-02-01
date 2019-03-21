@@ -19,8 +19,15 @@ dnl Just part the options here
                AC_CHECK_HEADER(flint/flint.h, [], [sage_spkg_install_flint=yes])
           dnl fmpz_mat_is_hadamard appears in Flint 2.5.0
                AC_SEARCH_LIBS([fmpz_mat_is_hadamard], [flint], [], [sage_spkg_install_flint=yes])
-	  dnl check that NTL is linked in
+          dnl check that NTL is linked in
                AC_SEARCH_LIBS([fmpz_poly_get_ZZX], [flint], [break], [sage_spkg_install_flint=yes])
+          dnl 
+               AC_MSG_CHECKING([that GC is not enabled in Flint... ])
+               AC_RUN_IFELSE([
+                  AC_LANG_PROGRAM([[#include <flint/flint.h>]], [[return HAVE_GC;]])],
+                  [AC_MSG_RESULT([GC not enabled. Good.])],
+		  [AC_MSG_RESULT([GC enabled. Incompatible with Sage.])
+		   sage_spkg_install_flint=yes])
 
             if test x$sage_spkg_install_flint = xyes; then
                AC_SUBST(SAGE_FLINT_PREFIX, ['$SAGE_LOCAL'])

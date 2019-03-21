@@ -1176,8 +1176,8 @@ class Gap(Gap_generic):
         """
         if seed is None:
             seed = self.rand_seed()
-        self.eval("Reset(GlobalMersenneTwister,%d)" % seed)
-        self.eval("Reset(GlobalRandomSource,%d)" % seed)
+        self.eval("Reset(GlobalMersenneTwister,%d);;" % seed)
+        self.eval("Reset(GlobalRandomSource,%d);;" % seed)
         self._seed = seed
         return seed
 

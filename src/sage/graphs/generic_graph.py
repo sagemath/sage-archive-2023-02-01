@@ -17005,15 +17005,13 @@ class GenericGraph(GenericGraph_pyx):
                             seen.add(w)
                             queue.append((w, d + 1))
                             if edges:
-                                edges_list.append((v,w))
+                                yield (v,w)
                             elif report_distance:
                                 yield w, d+1
                             else:
                                 yield w
             
-            if edges:
-                while edges_list:
-                    yield edges_list.pop(0)
+            
 
     def depth_first_search(self, start, ignore_direction=False,
                            distance=None, neighbors=None):

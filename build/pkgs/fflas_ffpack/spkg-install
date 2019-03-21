@@ -31,7 +31,7 @@ fi
 # http://trac.sagemath.org/ticket/17635#comment:67
 sdh_configure --with-default="$SAGE_LOCAL" --with-blas-libs="$LINBOX_BLAS" \
               "$LINBOX_BLAS_CFLAGS" --disable-static \
-              --enable-precompilation --disable-openmp $FFLAS_FFPACK_CONFIGURE
+              --enable-precompilation $FFLAS_FFPACK_CONFIGURE
 sdh_make
 
 $MAKE autotune

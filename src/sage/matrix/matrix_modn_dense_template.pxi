@@ -96,9 +96,12 @@ from cysignals.signals cimport sig_check, sig_on, sig_off
 from sage.libs.gmp.mpz cimport *
 from sage.libs.linbox.fflas cimport FFLAS_TRANSPOSE, FflasNoTrans, FflasTrans, \
     FflasRight, vector, list as std_list, \
-    Block, Threads, Parallel, Recursive, Row, Sequential
+    pfgemm
+#Block, Threads, Parallel, Recursive, Row, Sequential,
 
 from cython cimport parallel
+
+cimport openmp
 
 cimport sage.rings.fast_arith
 cdef sage.rings.fast_arith.arith_int ArithIntObj
@@ -282,15 +285,13 @@ cdef inline celement linbox_matrix_matrix_multiply(celement modulus, celement* a
     cdef ModField.Element one, mone, zero
     F[0].init(one, <int>1)
     F[0].init(zero, <int>0)
-    cdef Parallel[Block,Threads] *MMH = new Parallel[Block,Threads](4)
+#    cdef Parallel[Block,Threads] *MMH = new Parallel[Block,Threads]()
 
     if m*n*k > 100000: sig_on()
-    with nogil, parallel.parallel(num_threads=4):
-        fgemm(F[0], FflasNoTrans, FflasNoTrans, m, n, k,
-                  one, <ModField.Element*>A, k, <ModField.Element*>B, n, zero,
-                  <ModField.Element*>ans, n
-                  ,MMH[0]
-                  )
+    #    with nogil, parallel.parallel(num_threads=2):
+    pfgemm(F[0], FflasNoTrans, FflasNoTrans, m, n, k,
+           one, <ModField.Element*>A, k, <ModField.Element*>B, n, zero,
+           <ModField.Element*>ans, n)
     if m*n*k > 100000: sig_off()
 
     del F

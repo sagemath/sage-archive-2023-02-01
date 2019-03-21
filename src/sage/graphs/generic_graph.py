@@ -15454,7 +15454,7 @@ class GenericGraph(GenericGraph_pyx):
         else:
             iterator = self.neighbor_iterator
 
-        if label:
+        if labels:
             report_edges = True
             my_dict = {}
             for e in self.edge_iterator():

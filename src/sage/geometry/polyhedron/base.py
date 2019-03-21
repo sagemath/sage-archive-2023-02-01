@@ -2767,17 +2767,37 @@ class Polyhedron_base(Element):
 
         return FaceFan(self)
 
+    def _triangulate_normaliz(self):
+        r"""
+        Gives a triangulation of the polyhedron using normaliz
+
+        OUTPUT:
+
+        A tuple of pairs ``(simplex,simplex_volume)`` used in the
+        triangulation.
+
+        .. NOTE::
+
+            This function depends on Normaliz (i.e. the ``pynormaliz`` optional
+            package). See the Normaliz documentation for further details.
+
+        EXAMPLES::
+
+
+        """
+        raise NotImplementedError("The backend should be 'normaliz'")
+
     def triangulate(self, engine='auto', connected=True, fine=False, regular=None, star=None):
         r"""
         Returns a triangulation of the polytope.
 
         INPUT:
 
-        - ``engine`` -- either 'auto' (default), 'internal', or
-          'TOPCOM'.  The latter two instruct this package to always
-          use its own triangulation algorithms or TOPCOM's algorithms,
-          respectively. By default ('auto'), TOPCOM is used if it is
-          available and internal routines otherwise.
+        - ``engine`` -- either 'auto' (default), 'internal',
+          'TOPCOM', or 'normaliz'.  The 'internal' and 'TOPCOM' instruct
+          this package to always use its own triangulation algorithms
+          or TOPCOM's algorithms, respectively. By default ('auto'),
+          TOPCOM is used if it is available and internal routines otherwise.
 
         The remaining keyword parameters are passed through to the
         :class:`~sage.geometry.triangulation.point_configuration.PointConfiguration`
@@ -2833,14 +2853,59 @@ class Polyhedron_base(Element):
              A vertex at (-1, 1, -1), A vertex at (1, 1, 1)]
             sage: Polyhedron(simplex_vertices)
             A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 4 vertices
+
+        It is possible to use ``'normaliz'`` as an engine. For this, the
+        polyhedron should have the backend set to normaliz::
+
+            sage: P = Polyhedron(vertices=[[0,0,1],[1,0,1],[0,1,1],[1,1,1]])
+            sage: P.triangulate(engine='normaliz')
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: The backend should be 'normaliz'
+
+            sage: P = Polyhedron(vertices=[[0,0,1],[1,0,1],[0,1,1],[1,1,1]],backend='normaliz')  # optional - pynormaliz
+            sage: P.triangulate(engine='normaliz')  # optional - pynormaliz
+            (<0,1,2>, <1,2,3>)
+
+        The normaliz engine can triangulate pointed cones::
+
+            sage: C1 = Polyhedron(rays=[[0,0,1],[1,0,1],[0,1,1],[1,1,1]],backend='normaliz')  # optional - pynormaliz
+            sage: C1.triangulate(engine='normaliz')  # optional - pynormaliz
+            (<0,1,2>, <1,2,3>)
+            sage: C2 = Polyhedron(rays=[[1,0,1],[0,0,1],[0,1,1],[1,1,10/9]],backend='normaliz')  # optional - pynormaliz
+            sage: C2.triangulate(engine='normaliz')  # optional - pynormaliz
+            (<0,1,2>, <1,2,3>)
         """
-        if not self.is_compact():
-            raise NotImplementedError('I can only triangulate compact polytopes.')
+        if self.lines():
+            raise NotImplementedError('Triangulation of polyhedra with lines is not supported.')
+        if len(self.vertices_list()) >= 2 and self.rays_list():
+            raise NotImplementedError('Triangulation of non-compact not pointed polyhedra is not supported.')
+        if not self.is_compact() and engine != 'normaliz':
+            raise NotImplementedError("Triangulation of pointed cones requires 'normaliz'")
         from sage.geometry.triangulation.point_configuration import PointConfiguration
-        pc = PointConfiguration((v.vector() for v in self.vertex_generator()),
-                                connected=connected, fine=fine, regular=regular, star=star)
-        pc.set_engine(engine)
-        return pc.triangulate()
+        if self.is_compact():
+            pc = PointConfiguration((v.vector() for v in self.vertex_generator()),
+                                    connected=connected, fine=fine, regular=regular, star=star)
+            # If the engine is not normaliz, we pass directly to the
+            # PointConfiguration module.
+            if engine != 'normaliz':
+                pc.set_engine(engine)
+                return pc.triangulate()
+            else:
+                return pc(self._triangulate_normaliz())
+        else:  # From above, we have a pointed cone and the engine is normaliz
+            try:
+                pc = PointConfiguration((v.vector() for v in self.ray_generator()),
+                                        connected=connected, fine=fine, regular=regular, star=star)
+                return pc(self._triangulate_normaliz())
+            except AssertionError:
+                # PointConfiguration is not adapted to inhomogeneous cones
+                # This is a hack. TODO: Implement the necessary things in
+                # PointConfiguration to accep such cases.
+                c = self.representative_point()
+                normed_v = ((1/(r.vector()*c))*r.vector() for r in self.ray_generator())
+                pc = PointConfiguration(normed_v, connected=connected, fine=fine, regular=regular, star=star)
+                return pc(self._triangulate_normaliz())
 
     @coerce_binop
     def minkowski_sum(self, other):
@@ -4372,7 +4437,7 @@ class Polyhedron_base(Element):
         pairs = []
         for i, j in combinations(range(n), 2):
             common_ineq = vertex_ineq_incidence[i] & vertex_ineq_incidence[j]
-            if not common_ineq: # or len(common_ineq) < d-2:
+            if not common_ineq:  # or len(common_ineq) < d-2:
                 continue
 
             if len(set.intersection(*[ineq_vertex_incidence[k] for k in common_ineq])) == 2:
@@ -4854,7 +4919,7 @@ class Polyhedron_base(Element):
         .. NOTE::
 
             This function depends on LattE (i.e., the ``latte_int`` optional
-            package). See the LattE documentation for furthe details.
+            package). See the LattE documentation for further details.
 
         EXAMPLES::
 
@@ -4890,6 +4955,28 @@ class Polyhedron_base(Element):
         else:
             return integrate(self.cdd_Hrepresentation(), algorithm=algorithm, cdd=True, verbose=verbose, **kwargs)
 
+    def _volume_normaliz(self, measure='induced'):
+        r"""
+        Computes the volume of a polytope using normaliz.
+
+        INPUT:
+
+        - ``measure`` -- (default: 'induced') the measure to take. 'induced'
+          correspond to ``EuclideanVolume`` in normaliz and 'induced_lattice'
+          correspond to ``Volume`` in normaliz.
+
+        OUTPUT:
+
+        A float value (when ``measure`` is 'induced') or a rational number
+        (when ``measure`` is 'induced_lattice').
+
+        .. NOTE::
+
+            This function depends on Normaliz (i.e., the ``pynormaliz`` optional
+            package). See the Normaliz documentation for further details.
+        """
+        raise NotImplementedError("The backend should be normaliz.")
+
     @cached_method
     def volume(self, measure='ambient', engine='auto', **kwds):
         """
@@ -4901,7 +4988,10 @@ class Polyhedron_base(Element):
 
           * ``ambient`` (default): Lebesgue measure of ambient space (volume)
           * ``induced``: Lebesgue measure of the affine hull (relative volume)
-          * ``induced_rational``: Scaling of the Lebesgue measure for rational polytopes
+          * ``induced_rational``: Scaling of the Lebesgue measure for rational
+            polytopes, such that the unit hypercube has volume 1
+          * ``induced_lattice``: Scaling of the Lebesgue measure, such that the
+            volume of the hypercube is factorial(n).
 
         - ``engine`` -- string. The backend to use. Allowed values are:
 
@@ -4910,6 +5000,7 @@ class Polyhedron_base(Element):
           * ``'TOPCOM'``: see :meth:`triangulate`.
           * ``'lrs'``: use David Avis's lrs program (optional).
           * ``'latte'``: use LattE integrale program (optional).
+          * ``'normaliz'``: use Normaliz program (optional).
 
         - ``**kwds`` -- keyword arguments that are passed to the
           triangulation engine.
@@ -4974,6 +5065,26 @@ class Polyhedron_base(Element):
             sage: edge.volume(measure='induced')
             1
 
+            sage: P = Polyhedron(backend='normaliz',vertices=[[1,0,0],[0,0,1],[-1,1,1],[-1,2,0]]) # optional - pynormaliz
+            sage: P.volume()  # optional - pynormaliz
+            0
+            sage: P.volume(measure='induced')  # optional - pynormaliz
+            3/2*sqrt(3)
+            sage: P.volume(measure='induced',engine='normaliz')  # optional - pynormaliz
+            2.598076211353316
+            sage: P.volume(measure='induced_rational')  # optional - latte_int
+            3/2
+            sage: P.volume(measure='induced_rational',engine='normaliz')  # optional - pynormaliz
+            3/2
+            sage: P.volume(measure='induced_lattice')  # optional - pynormaliz
+            3
+
+        The same polytope without normaliz backend::
+
+            sage: P = Polyhedron(vertices=[[1,0,0],[0,0,1],[-1,1,1],[-1,2,0]])
+            sage: P.volume(measure='induced_lattice',engine='latte')  # optional - latte_int
+            3
+
             sage: Dexact = polytopes.dodecahedron()
             sage: v = Dexact.faces(2)[0].as_polyhedron().volume(measure='induced', engine='internal'); v
             -80*(55*sqrt(5) - 123)/sqrt(-6368*sqrt(5) + 14240)
@@ -5026,22 +5137,50 @@ class Polyhedron_base(Element):
             sage: P.volume(measure='induced_rational')
             +Infinity
         """
-        if measure == 'induced_rational' and engine not in ['auto', 'latte']:
-            raise TypeError("The induced rational measure can only be computed with the engine set to `auto` or `latte`")
+        if measure == 'induced_rational' and engine not in ['auto', 'latte', 'normaliz']:
+            raise TypeError("The induced rational measure can only be computed with the engine set to `auto`, `latte`, or `normaliz`")
+        if measure == 'induced_lattice' and engine not in ['auto', 'latte', 'normaliz']:
+            raise TypeError("The induced lattice measure can only be computed with the engine set to `auto`, `latte`, or `normaliz`")
         if engine == 'auto' and measure == 'induced_rational':
-            engine = 'latte'
+            # Enforce a default choice, change if a better engine is found.
+            from sage.features.latte import Latte
+            try:
+                Latte().require()
+                engine = 'latte'
+            except FeatureNotPresentError:
+                from sage.misc.package import is_package_installed
+                if is_package_installed('pynormaliz'):
+                    engine = 'normaliz'
+                else:
+                    raise TypeError("The induced rational measure can only be computed with the optional packages `latte_int`, or `pynormaliz`")
+
+        if engine == 'auto' and measure == 'induced_lattice':
+            # Enforce a default choice, change if a better engine is found.
+            from sage.misc.package import is_package_installed
+            if is_package_installed('pynormaliz'):
+                engine = 'normaliz'
+            else:
+                try:
+                    from sage.features.latte import Latte
+                    Latte().require()
+                    engine = 'latte'
+                except FeatureNotPresentError:
+                    raise TypeError("The induced rational measure can only be computed with the optional packages `latte_int`, or `pynormaliz`")
 
         if measure == 'ambient':
             if self.dim() < self.ambient_dim():
                 return self.base_ring().zero()
-            if engine == 'lrs':
-                return self._volume_lrs(**kwds)
-            elif engine == 'latte':
-                return self._volume_latte(**kwds)
             # if the polyhedron is unbounded, return infinity
             if not self.is_compact():
                 from sage.rings.infinity import infinity
                 return infinity
+            if engine == 'lrs':
+                return self._volume_lrs(**kwds)
+            elif engine == 'latte':
+                return self._volume_latte(**kwds)
+            elif engine == 'normaliz':
+                return self._volume_normaliz(measure='euclidean')
+
             triangulation = self.triangulate(engine=engine, **kwds)
             pc = triangulation.point_configuration()
             return sum([pc.volume(simplex) for simplex in triangulation]) / ZZ(self.dim()).factorial()
@@ -5053,18 +5192,32 @@ class Polyhedron_base(Element):
             if not self.is_compact():
                 from sage.rings.infinity import infinity
                 return infinity
+            if engine == 'normaliz':
+                return self._volume_normaliz(measure='euclidean')
             # use an orthogonal transformation, which preserves volume up to a factor provided by the transformation matrix
             A, b = self.affine_hull(orthogonal=True, as_affine_map=True)
             Adet = (A.matrix().transpose() * A.matrix()).det()
             return self.affine_hull(orthogonal=True).volume(measure='ambient', engine=engine, **kwds) / sqrt(Adet)
         elif measure == 'induced_rational':
-            if self.dim() < self.ambient_dim() and engine != 'latte':
-                raise TypeError("The induced rational measure can only be computed with the engine set to `auto` or `latte`")
             # if the polyhedron is unbounded, return infinity
             if not self.is_compact():
                 from sage.rings.infinity import infinity
                 return infinity
-            return self._volume_latte(**kwds)
+            if engine == 'latte':
+                return self._volume_latte(**kwds)
+            else:  # engine is 'normaliz'
+                return self._volume_normaliz(measure='induced_lattice') / ZZ(self.dim()).factorial()
+        elif measure == 'induced_lattice':
+            # if the polyhedron is unbounded, return infinity
+            if not self.is_compact():
+                from sage.rings.infinity import infinity
+                return infinity
+            if engine == 'latte':
+                return self._volume_latte(**kwds) * ZZ(self.dim()).factorial()
+            else:  # engine is 'normaliz'
+                return self._volume_normaliz(measure='induced_lattice')
+        else:
+            raise TypeError("The measure should be `ambient`, `induced`, `induced_rational`, or `induced_lattice`.")
 
     def integrate(self, polynomial, **kwds):
         r"""

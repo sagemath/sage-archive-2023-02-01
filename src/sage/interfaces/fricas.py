@@ -1330,7 +1330,7 @@ class FriCASElement(ExpectElement):
 
     @staticmethod
     def _sage_expression(fricas_InputForm):
-        """
+        r"""
         Convert an expression to an element of the Symbolic Ring.
 
         INPUT:

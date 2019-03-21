@@ -224,7 +224,7 @@ class Function_exp_integral_e(BuiltinFunction):
         return mpmath_utils.call(mpmath.expint, n, z, parent=parent)
 
     def _print_latex_(self, n, z):
-        """
+        r"""
         Custom ``_print_latex_`` method.
 
         EXAMPLES::
@@ -339,7 +339,7 @@ class Function_exp_integral_e1(BuiltinFunction):
 
 
     def _print_latex_(self, z):
-        """
+        r"""
         Custom ``_print_latex_`` method.
 
         EXAMPLES::
@@ -1337,7 +1337,7 @@ class Function_exp_integral(BuiltinFunction):
 
         sage: Ei(RealField(300)(1.1))
         2.16737827956340282358378734233807621497112737591639704719499002090327541763352339357795426
-        
+
     ALGORITHM: Uses mpmath.
 
     TESTS:

@@ -16841,7 +16841,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def breadth_first_search(self, start, ignore_direction=False,
                              distance=None, neighbors=None,
-                             report_distance=False,edges=False):
+                             report_distance=False, edges=False):
         """
         Return an iterator over the vertices in a breadth-first ordering.
 
@@ -16868,6 +16868,12 @@ class GenericGraph(GenericGraph_pyx):
           reports pairs ``(vertex, distance)`` where ``distance`` is the
           distance from the ``start`` nodes. If ``False`` only the vertices are
           reported.
+        
+        - ``edges`` -- boolean (default ``False``); if ``True``,
+          returns edges ``(start, end)`` in the breadth_first_search tree instead of vertices, where
+          the direction of edge is from ``start`` node to ``end`` node.
+          If ``False`` only the vertices are reported.
+          Note: ``edges`` and  ``report_distance`` cannot be ``True`` simultaneously.
 
         .. SEEALSO::
 
@@ -16949,6 +16955,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(C.breadth_first_search([0, 1], report_distance=True))
             [(0, 0), (1, 0), (3, 1), (2, 1)]
 
+        You can get edges in the breadth_first_search tree instead of the vertices using the
+        ``edges`` parameter::
+
+            sage: D = DiGraph({1:[2,3],2:[4],3:[4],4:[1],5:[2,6]})
+            sage: list(D.breadth_first_search(1, edges=True))
+            [(1, 2), (1, 3), (2, 4)]
+
         TESTS::
 
             sage: D = DiGraph({1: [0], 2: [0]})
@@ -16959,10 +16972,16 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = Graph({1:[2,3],2:[4,5],3:[5]})
             sage: list(G.breadth_first_search(1, edges=True))
             [(1, 2), (1, 3), (2, 4), (2, 5)]
+            sage: D = DiGraph({1:[2,3],2:[4],3:[4],4:[1,5],5:[2,6]})
+            sage: list(D.breadth_first_search(1, edges=True))
+            [(1, 2), (1, 3), (2, 4), (4, 5), (5, 6)]
         """
         from sage.rings.semirings.non_negative_integer_semiring import NN
         if (distance is not None and distance not in NN):
             raise ValueError("distance must be a non-negative integer, not {0}".format(distance))
+
+        if (report_distance and edges):
+            raise Exception("The parameters edges and report_distance cannot be True simultaneously.")
 
         # Preferably use the Cython implementation
         if (neighbors is None and not isinstance(start, list) and distance is None
@@ -16995,8 +17014,6 @@ class GenericGraph(GenericGraph_pyx):
                         yield v
                 seen.add(v)
 
-            edges_list = []
-
             while queue:
                 v, d = queue.pop(0)
                 if distance is None or d < distance:
@@ -17005,7 +17022,7 @@ class GenericGraph(GenericGraph_pyx):
                             seen.add(w)
                             queue.append((w, d + 1))
                             if edges:
-                                yield (v,w)
+                                yield v, w
                             elif report_distance:
                                 yield w, d+1
                             else:

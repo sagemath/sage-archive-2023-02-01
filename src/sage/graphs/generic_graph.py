@@ -15282,7 +15282,7 @@ class GenericGraph(GenericGraph_pyx):
 
     ### Paths
 
-    def all_paths(self, start, end, use_multiedges=False, report_edges=False, label=False):
+    def all_paths(self, start, end, use_multiedges=False, report_edges=False, labels=False):
         """
         Return the list of all paths between a pair of vertices.
 
@@ -15299,18 +15299,22 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``end`` -- a vertex of a graph, where to end
 
-        - ``use_multiedges`` -- boolean (default: ``False``); if ``True``, then
-          multiple edges present between the nodes are taken into account for
-          finding all paths else these multiedges if present are ignored
+        - ``use_multiedges`` -- boolean (default: ``False``); this parameter is
+          used only if the graph has multiple edges.
 
-        - ``report_edges`` -- boolean (default: ``False``);  if ``True``, then
-          edges are used instead of vertices in representing the path else by
-          default vertices are used to represent the path
+          - If ``False``, the graph is considered as simple.
 
-        - ``label`` -- boolean (default: ``False``);  if ``True``,
-          ``report_edges`` is automatically set to ``True`` and labels are
-          reported along with the edges. Also multiedges are also automatically
-          taken into account when label is ``True``.
+          - If ``True``, a path will be reported as many times as the edges
+            multiplicities along that path (when ``report_edges = False`` or
+            ``labels = False``), or with all possible combinations of edge
+            labels (when ``report_edges = True`` and ``labels = True`)
+
+        - ``report_edges`` -- boolean (default: ``False``); whether to report
+          paths as list of vertices (default) or list of edges
+
+        - ``labels`` -- boolean (default: ``False``); if ``False``, each edge
+          is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
+          along with its edge labels are used to represent the path.
 
         EXAMPLES::
         
@@ -15377,7 +15381,7 @@ class GenericGraph(GenericGraph_pyx):
             [[0, 1, 2, 3], [0, 1, 2, 3], [0, 1, 3], [0, 2, 3], [0, 2, 3]]
             sage: G.all_paths(0, 3, report_edges=True)
             [[(0, 1), (1, 2), (2, 3)], [(0, 1), (1, 3)], [(0, 2), (2, 3)]]
-            sage: G.all_paths(0, 3, use_multiedges=True, label=True)
+            sage: G.all_paths(0, 3, use_multiedges=True, labels=True)
             [((0, 1, None), (1, 2, None), (2, 3, None)),
              ((0, 1, None), (1, 2, None), (2, 3, None)),
              ((0, 1, None), (1, 3, None)),
@@ -15452,16 +15456,16 @@ class GenericGraph(GenericGraph_pyx):
 
         if label:
             report_edges = True
-        
-        if label:
             my_dict = {}
             for e in self.edge_iterator():
                 if (e[0], e[1]) in my_dict.keys():
                     my_dict[(e[0], e[1])].append(e)
                 else:
                     my_dict[(e[0], e[1])] = [e]
-                if not self.is_directed():   
-                    my_dict[(e[1], e[0])] = my_dict[(e[0], e[1])]
+            if not self.is_directed():
+                for u, v in my_dict.keys():
+                    my_dict[v, u] = my_dict[u, v]
+
 
         elif use_multiedges and self.has_multiple_edges():
             from collections import Counter
@@ -15492,7 +15496,7 @@ class GenericGraph(GenericGraph_pyx):
                 if not act_path:                 # there is no other vertex ...
                     done = True                  # ... so we are done
         
-        if label:
+        if labels:
             path_with_labels = []
             for p in all_paths:
                 path_with_labels.extend(cartesian_product([my_dict[e] for e in zip(p[:-1], p[1:])]))

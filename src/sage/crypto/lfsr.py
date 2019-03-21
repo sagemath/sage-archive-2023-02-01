@@ -216,7 +216,6 @@ def lfsr_autocorrelation(L, p, k):
         4/15
         sage: lfsr_autocorrelation(s,int(15),7)
         4/15
-
     """
     if not isinstance(L, list):
         raise TypeError("L (=%s) must be a list" % L)
@@ -225,8 +224,7 @@ def lfsr_autocorrelation(L, p, k):
     k = int(k)
     L0 = L[:_p]     # slices makes a copy
     L0 = L0 + L0[:k]
-    L1 = [int(L0[i]) * int(L0[i + k])/p for i in range(_p)]
-    return sum(L1)
+    return sum([int(L0[i]) * int(L0[i + k])/p for i in range(_p)])
 
 
 def lfsr_connection_polynomial(s):
@@ -264,17 +262,17 @@ def lfsr_connection_polynomial(s):
     FF = s[0].base_ring()
     R = PolynomialRing(FF, "x")
     x = R.gen()
-    C = R(1)
-    B = R(1)
+    C = R.one()
+    B = R.one()
     m = 1
-    b = FF(1)
+    b = FF.one()
     L = 0
     N = 0
 
     while N < len(s):
         if L > 0:
             r = min(L+1, C.degree()+1)
-            d = s[N] + sum([(C.list())[i]*s[N-i] for i in range(1,r)])
+            d = s[N] + sum([(C.list())[i]*s[N-i] for i in range(1, r)])
         if L == 0:
             d = s[N]
         if d == 0:

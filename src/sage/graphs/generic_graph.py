@@ -15302,7 +15302,9 @@ class GenericGraph(GenericGraph_pyx):
         - ``use_multiedges`` -- boolean (default: ``False``); this parameter is
           used only if the graph has multiple edges.
 
-          - If ``False``, the graph is considered as simple.
+          - If ``False``, the graph is considered as simple and an edge label
+            is arbitrarily selected for each edge as in 
+            :meth:`~GenericGraph.to_simple`
 
           - If ``True``, a path will be reported as many times as the edges
             multiplicities along that path (when ``report_edges = False`` or
@@ -15378,7 +15380,7 @@ class GenericGraph(GenericGraph_pyx):
              [(0, 1), (1, 3)],
              [(0, 2), (2, 3)],
              [(0, 2), (2, 3)]]
-            sage: G.all_paths(0, 3, use_multiedges=True) 
+            sage: G.all_paths(0, 3, use_multiedges=True)
             [[0, 1, 2, 3], [0, 1, 2, 3], [0, 1, 3], [0, 2, 3], [0, 2, 3]]
             sage: G.all_paths(0, 3, report_edges=True)
             [[(0, 1), (1, 2), (2, 3)], [(0, 1), (1, 3)], [(0, 2), (2, 3)]]
@@ -15388,7 +15390,11 @@ class GenericGraph(GenericGraph_pyx):
              ((0, 1, None), (1, 3, None)),
              ((0, 2, None), (2, 3, None)),
              ((0, 2, None), (2, 3, None))]
-
+            sage: G.all_paths(0, 3, use_multiedges=False, report_edges=True, labels=True)
+            [((0, 1, None), (1, 2, None), (2, 3, None)),
+             ((0, 1, None), (1, 3, None)),
+             ((0, 2, None), (2, 3, None))]
+    
         TESTS:
 
         Starting and ending at the same vertex (see :trac:`13006`)::
@@ -15458,16 +15464,19 @@ class GenericGraph(GenericGraph_pyx):
         if labels:
             report_edges = True
             my_dict = {}
-            for e in self.edge_iterator():
-                if (e[0], e[1]) in my_dict.keys():
-                    my_dict[(e[0], e[1])].append(e)
-                else:
-                    my_dict[(e[0], e[1])] = [e]
+            if use_multiedges:
+                for e in self.edge_iterator():
+                    if (e[0], e[1]) in my_dict.keys():
+                        my_dict[(e[0], e[1])].append(e)
+                    else:
+                        my_dict[(e[0], e[1])] = [e]
+            else:
+                for e in self.edge_iterator():
+                    if (e[0], e[1]) not in my_dict.keys():
+                        my_dict[(e[0], e[1])] = [e]
             if not self.is_directed():
                 for u, v in my_dict.keys():
                     my_dict[v, u] = my_dict[u, v]
-
-
         elif use_multiedges and self.has_multiple_edges():
             from collections import Counter
             edge_multiplicity = Counter(self.edge_iterator(labels=False))

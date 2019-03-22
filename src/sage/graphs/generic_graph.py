@@ -16869,11 +16869,12 @@ class GenericGraph(GenericGraph_pyx):
           distance from the ``start`` nodes. If ``False`` only the vertices are
           reported.
         
-        - ``edges`` -- boolean (default ``False``); if ``True``,
-          returns edges ``(start, end)`` in the breadth_first_search tree instead of vertices, where
-          the direction of edge is from ``start`` node to ``end`` node.
-          If ``False`` only the vertices are reported.
-          Note: ``edges`` and  ``report_distance`` cannot be ``True`` simultaneously.
+        - ``edges`` -- boolean (default ``False``); whether to return the edges
+          of the BFS tree in the order of visit or the vertices (default).
+          Edges are directed in root to leaf orientation of the tree.
+
+          Note that parameters ``edges`` and  ``report_distance`` cannot be ``True`` 
+          simultaneously.
 
         .. SEEALSO::
 
@@ -16955,7 +16956,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(C.breadth_first_search([0, 1], report_distance=True))
             [(0, 0), (1, 0), (3, 1), (2, 1)]
 
-        You can get edges in the breadth_first_search tree instead of the vertices using the
+        You can get edges of the BFS tree instead of the vertices using the
         ``edges`` parameter::
 
             sage: D = DiGraph({1:[2,3],2:[4],3:[4],4:[1],5:[2,6]})
@@ -16981,7 +16982,7 @@ class GenericGraph(GenericGraph_pyx):
             raise ValueError("distance must be a non-negative integer, not {0}".format(distance))
 
         if (report_distance and edges):
-            raise Exception("The parameters edges and report_distance cannot be True simultaneously.")
+            raise Exception("parameters edges and report_distance cannot be True simultaneously")
 
         # Preferably use the Cython implementation
         if (neighbors is None and not isinstance(start, list) and distance is None

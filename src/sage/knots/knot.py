@@ -20,6 +20,7 @@ AUTHORS:
 from six import add_metaclass
 
 from sage.knots.link import Link
+from sage.knots.knot_table import small_knots_table
 
 from sage.structure.parent import Parent
 from sage.structure.element import Element
@@ -376,5 +377,66 @@ class Knots(Singleton, Parent):
         """
         return self.element_class([[1, 5, 2, 4], [5, 3, 6, 2], [3, 1, 4, 6]])
 
-    Element = Knot
+    def from_table(self, n, k):
+        """
+        Return a knot from its index in the Rolfsen table.
 
+        INPUT:
+
+        a pair of integers `(n, k)` where `n` is the crossing number
+
+        OUTPUT:
+
+        the knot `K_{n,k}` in the Rolfsen table
+
+        EXAMPLES::
+
+            sage: K1 = Knots().from_table(6,3); K1
+            Knot represented by 6 crossings
+            sage: K1.alexander_polynomial()
+            t^-2 - 3*t^-1 + 5 - 3*t + t^2
+
+            sage: K2 = Knots().from_table(8,4); K2
+            Knot represented by 9 crossings
+            sage: K2.determinant()
+            19
+            sage: K2.signature()
+            2
+
+            sage: K3 = Knots().from_table(10,56); K3
+            Knot represented by 11 crossings
+            sage: K3.jones_polynomial()
+            t^10 - 3*t^9 + 6*t^8 - 9*t^7 + 10*t^6 - 11*t^5 + 10*t^4 - 7*t^3
+            + 5*t^2 - 2*t + 1
+
+            sage: K4 = Knots().from_table(10,100)
+            sage: K4.genus()
+            4
+
+        TESTS::
+
+            sage: Knots().from_table(6,6)
+            Traceback (most recent call last):
+            ...
+            ValueError: not found in the knot table
+
+            sage: Knots().from_table(12,6)
+            Traceback (most recent call last):
+            ...
+            ValueError: more than 10 crossings, not in the knot table
+
+        REFERENCES:
+
+        - KnotAtlas, http://katlas.math.toronto.edu/wiki/The_Rolfsen_Knot_Table
+        """
+        if n > 10:
+            raise ValueError('more than 10 crossings, not in the knot table')
+        from sage.groups.braid import BraidGroup
+        if (n, k) in small_knots_table:
+            m, word = small_knots_table[(n, k)]
+            G = BraidGroup(m)
+            return Knot(G(word))
+        else:
+            raise ValueError('not found in the knot table')
+
+    Element = Knot

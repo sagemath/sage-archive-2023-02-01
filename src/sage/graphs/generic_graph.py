@@ -1411,6 +1411,18 @@ class GenericGraph(GenericGraph_pyx):
             sage: N = G.networkx_graph()
             sage: type(N)
             <class 'networkx.classes.graph.Graph'>
+
+            sage: def weight_fn(e):
+            ....:     return e[2]
+            sage: G1 = Graph([(1,2,1), (1,3,4), (2,3,3), (3,4,4)])
+            sage: H = G1.networkx_graph(weight_function=weight_fn)
+            sage: H.edges(data=True)
+            EdgeDataView([(1, 2, {'weight': 1}), (1, 3, {'weight': 4}), (2, 3, {'weight': 3}), (3, 4, {'weight': 4})])
+            sage: G2 = DiGraph([(1,2,1), (1,3,4), (2,3,3), (3,4,4), (3,4,5)], multiedges=True)
+            sage: H = G2.networkx_graph(weight_function=weight_fn)
+            sage: H.edges(data=True)
+            OutMultiEdgeDataView([(1, 2, {'weight': 1}), (1, 3, {'weight': 4}), (2, 3, {'weight': 3}), (3, 4, {'weight': 5}), (3, 4, {'weight': 4})])
+
         """
         if copy is not True:
             deprecation(27491, "parameter copy is removed")

@@ -58,15 +58,15 @@ character-by-character::
     sage: detach(src)
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 Volker Braun <vbraun.name@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 
 import os
@@ -532,8 +532,8 @@ def modified_file_iterator():
         [('/.../tmp_....py', time.struct_time(...))]
     """
     global attached
-    modified = dict()
-    for filename in attached.keys():
+    modified = {}
+    for filename in list(attached):
         old_tm = attached[filename]
         if not os.path.exists(filename):
             print('### detaching file {0} because it does not exist (deleted?) ###'.format(filename))
@@ -547,7 +547,7 @@ def modified_file_iterator():
         return
     time.sleep(0.1)  # sleep 100ms to give the editor time to finish saving
 
-    for filename in modified.keys():
+    for filename in list(modified):
         old_tm = modified[filename]
         new_tm = os.path.getmtime(filename)
         if new_tm == old_tm:

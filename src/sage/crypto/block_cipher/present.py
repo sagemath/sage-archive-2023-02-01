@@ -114,7 +114,7 @@ class PRESENT(SageObject):
         :mod:`sage.crypto.sboxes`
     """
 
-    def __init__(self, keySchedule=80, rounds=None, lastLinearLayer=False):
+    def __init__(self, keySchedule=80, rounds=None, doLastLinearLayer=False):
         r"""
         Construct an instance of PRESENT.
 
@@ -127,11 +127,12 @@ class PRESENT(SageObject):
         - ``rounds``  -- integer (default: ``Nonne``); the number of rounds.
             If ``None`` the number of rounds of the keyschedule is used.
 
-        - ``lastLinearLayer`` -- boolean (default: ``False``); flag to control
-            wether the linear layer in the last round should take place or
-            not. Since the last linear layer does not add any security, it
+        - ``doLastLinearLayer`` -- boolean (default: ``False``); flag to
+            control wether the linear layer in the last round should take place
+            or not. Since the last linear layer does not add any security, it
             usually does not take place in real world implementations for
             performance reasons.
+
 
         EXAMPLES::
 
@@ -181,7 +182,7 @@ class PRESENT(SageObject):
         self._inverseSbox = self._sbox.inverse()
         self._permutationMatrix = smallscale_present_linearlayer()
         self._inversePermutationMatrix = self._permutationMatrix.inverse()
-        self._lastLinearLayer = lastLinearLayer
+        self._doLastLinearLayer = doLastLinearLayer
 
     def __call__(self, B, K, algorithm='encrypt'):
         r"""
@@ -252,13 +253,10 @@ class PRESENT(SageObject):
             last round and the following key schedule:
             Original PRESENT key schedule with 80-bit keys and 31 rounds
         """
-        if self._lastLinearLayer:
-            statusLLL = 'activated'
-        else:
-            statusLLL = 'deactivated'
         return ('PRESENT block cipher with %s rounds, %s linear layer in last '
                 'round and the following key schedule:\n%s'
-                % (self._rounds, statusLLL, self._keySchedule.__repr__()))
+                % (self._rounds, 'activated' if self._doLastLinearLayer else
+                   'deactivated', self._keySchedule.__repr__()))
 
     def encrypt(self, P, K):
         r"""
@@ -281,7 +279,7 @@ class PRESENT(SageObject):
         EXAMPLES::
 
             sage: from sage.crypto.block_cipher.present import PRESENT
-            sage: present = PRESENT(lastLinearLayer=True)
+            sage: present = PRESENT(doLastLinearLayer=True)
             sage: p1 = 0x0
             sage: k1 = 0x0
             sage: c1 = 0x5579C1387B228445
@@ -377,7 +375,7 @@ class PRESENT(SageObject):
             state = state + K
             for nibble in [slice(4*j, 4*j+4) for j in range(16)]:
                 state[nibble] = self._sbox(state[nibble][::-1])[::-1]
-            if self._lastLinearLayer or r != self._rounds - 1:
+            if self._doLastLinearLayer or r != self._rounds - 1:
                 state[0:] = self._permutationMatrix * state
         state = state + roundKeys[self._rounds]
         return state if inputType == 'vector' else ZZ(list(state), 2)
@@ -403,7 +401,7 @@ class PRESENT(SageObject):
         EXAMPLES::
 
             sage: from sage.crypto.block_cipher.present import PRESENT
-            sage: present = PRESENT(lastLinearLayer=True)
+            sage: present = PRESENT(doLastLinearLayer=True)
             sage: p1 = 0x0
             sage: k1 = 0x0
             sage: c1 = 0x5579C1387B228445
@@ -430,7 +428,7 @@ class PRESENT(SageObject):
         roundKeys = self._keySchedule(K)
         state = state + roundKeys[self._rounds]
         for r, K in enumerate(roundKeys[:self._rounds][::-1]):
-            if self._lastLinearLayer or r != 0:
+            if self._doLastLinearLayer or r != 0:
                 state[0:] = self._inversePermutationMatrix * state
             for nibble in [slice(4*j, 4*j+4) for j in range(16)]:
                 state[nibble] = self._inverseSbox(state[nibble][::-1])[::-1]

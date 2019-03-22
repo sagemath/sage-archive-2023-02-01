@@ -15291,7 +15291,7 @@ class GenericGraph(GenericGraph_pyx):
 
         If ``self`` has multiple edges, a path will be returned as many
         times as the product of the multiplicity of the edges along that path
-        depending on the value of the flag use_multiedges.
+        depending on the value of the flag ``use_multiedges``.
 
         INPUT:
 
@@ -15304,7 +15304,7 @@ class GenericGraph(GenericGraph_pyx):
 
           - If ``False``, the graph is considered as simple and an edge label
             is arbitrarily selected for each edge as in
-            :meth:`~GenericGraph.to_simple` if report_edges is ``True``
+            :meth:`~GenericGraph.to_simple` if ``report_edges`` is ``True``
 
           - If ``True``, a path will be reported as many times as the edges
             multiplicities along that path (when ``report_edges = False`` or

@@ -4002,6 +4002,110 @@ class Polyhedron_base(Element):
                           rays=self.rays(),
                           lines=self.lines())
 
+    def lawrence_extension(self, v):
+        """
+        Return the Lawrence extension of ``self`` on the vertex ``v``.
+
+        The Lawrence extension of `P` on the vertex `v` is the convex hull of
+        `(v,1),(-v,1)` and `(u,0)` for all vertices `u` in `P` other than `v`.
+
+        INPUT:
+            - ``v`` -- a vertex of ``self``.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube(); P.lawrence_extension([-1,-1,-1])
+            A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 9 vertices
+
+        REFERENCES:
+
+            For more information, see Section 6.6 of [Zie2007]_.
+        """
+
+        if not self.is_full_dimensional():
+            raise NotImplementedError("`self` must be full dimensional")
+        if not self.is_compact():
+            raise NotImplementedError("`self` must be a polytope")
+
+        v = list(v)
+        V = self.vertices_list()
+        if v not in V:
+            raise ValueError("{} is not a vertex of `self`".format(v))
+
+        def minus(w):
+            return [-x for x in w]
+
+        lambda_V = [u + [0] for u in V if u != v] + [v+[1]] + [minus(v)+[1]]
+
+        return Polyhedron(lambda_V, base_ring=self.base_ring())
+
+    def lawrence_polytope(self):
+        r"""
+        Return the Lawrence polytope of ``self``.
+
+        If `P` is a `d`-polytope in `\RR^d` with `n` vertices, then the
+        Lawrence polytope of `P` is the polytope whose vertices are the
+        columns of the following `(d+n)`-by-`2n` matrix.
+
+        .. MATH::
+
+            \begin{pmatrix}
+             V      &   -V    \\
+             I_n    &   I_n
+            \end{pmatrix},
+
+        where `V` is the `d`-by-`n` vertex matrix of `P`.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube(); P.lawrence_polytope()
+            A 10-dimensional polyhedron in ZZ^11 defined as the convex hull of 16 vertices
+
+        REFERENCES:
+
+            For more information, see Section 6.6 of [Zie2007]_.
+        """
+
+        if not self.is_full_dimensional():
+            raise NotImplementedError("`self` must be full dimensional")
+        if not self.is_compact():
+            raise NotImplementedError("`self` must be a polytope")
+
+        from sage.matrix.constructor import block_matrix
+        n = self.n_vertices()
+        V = self.vertices_matrix()
+        d = self.dim()
+        I_n = matrix.identity(n)
+        lambda_V = block_matrix([[V,-V],[I_n, I_n]])
+        return Polyhedron(lambda_V.transpose(), base_ring=self.base_ring())
+
+
+    def is_lawrence_polytope(self):
+        """
+        Return ``true`` if ``self`` is a Lawrence polytope.
+
+        A polytope is called a Lawrence polytope if it has a centrally
+        symmetric Gale diagram.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube(); Q = P.lawrence_polytope(); Q.is_lawrence_polytope()
+            True
+            sage: P = polytopes.simplex(3); P.is_lawrence_polytope()
+            True
+
+        """
+
+        if not self.is_compact():
+            raise NotImplementedError("`self` must be a polytope")
+
+        G = self.gale_transform()
+        for point in G:
+            if not (-point in G):
+                return False
+        return True
+
+
     def barycentric_subdivision(self, subdivision_frac=None):
         r"""
         Return the barycentric subdivision of a compact polyhedron.

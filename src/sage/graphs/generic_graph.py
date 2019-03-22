@@ -15303,8 +15303,8 @@ class GenericGraph(GenericGraph_pyx):
           used only if the graph has multiple edges.
 
           - If ``False``, the graph is considered as simple and an edge label
-            is arbitrarily selected for each edge as in 
-            :meth:`~GenericGraph.to_simple`
+            is arbitrarily selected for each edge as in
+            :meth:`~GenericGraph.to_simple` if report_edges is ``True``
 
           - If ``True``, a path will be reported as many times as the edges
             multiplicities along that path (when ``report_edges = False`` or
@@ -15312,12 +15312,12 @@ class GenericGraph(GenericGraph_pyx):
             labels (when ``report_edges = True`` and ``labels = True``)
 
         - ``report_edges`` -- boolean (default: ``False``); whether to report
-          paths as list of vertices (default) or list of edges
+          paths as list of vertices (default) or list of edges, if ``False``
+          then ``labels`` parameter is ignored
 
         - ``labels`` -- boolean (default: ``False``); if ``False``, each edge
           is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
-          along with its edge labels are used to represent the path. If labels
-          is ``True`` then report_edges is automatically set to ``True``.
+          along with its edge labels are used to represent the path.
 
         EXAMPLES::
         
@@ -15372,28 +15372,24 @@ class GenericGraph(GenericGraph_pyx):
             sage: dg.all_paths(3, 1, use_multiedges=True)
             [[3, 0, 1], [3, 0, 1], [3, 0, 1], [3, 0, 1]]
 
-            sage: G = DiGraph(multiedges=True)
-            sage: G.add_edges([(0,1), (0,2), (0,2), (1,2), (1,2), (1,3), (3,5), (3,5), (2,4), (2,3), (3,4), (4,5)])
-            sage: G.all_paths(0, 3, report_edges=True, use_multiedges=True)
-            [[(0, 1), (1, 2), (2, 3)],
-             [(0, 1), (1, 2), (2, 3)],
-             [(0, 1), (1, 3)],
-             [(0, 2), (2, 3)],
-             [(0, 2), (2, 3)]]
-            sage: G.all_paths(0, 3, use_multiedges=True)
-            [[0, 1, 2, 3], [0, 1, 2, 3], [0, 1, 3], [0, 2, 3], [0, 2, 3]]
-            sage: G.all_paths(0, 3, report_edges=True)
-            [[(0, 1), (1, 2), (2, 3)], [(0, 1), (1, 3)], [(0, 2), (2, 3)]]
-            sage: G.all_paths(0, 3, use_multiedges=True, labels=True)
-            [((0, 1, None), (1, 2, None), (2, 3, None)),
-             ((0, 1, None), (1, 2, None), (2, 3, None)),
-             ((0, 1, None), (1, 3, None)),
-             ((0, 2, None), (2, 3, None)),
-             ((0, 2, None), (2, 3, None))]
-            sage: G.all_paths(0, 3, use_multiedges=False, report_edges=True, labels=True)
-            [((0, 1, None), (1, 2, None), (2, 3, None)),
-             ((0, 1, None), (1, 3, None)),
-             ((0, 2, None), (2, 3, None))]
+            sage: g = Graph([(0, 1, 'a'), (0, 1, 'b'), (1, 2,'c'), (1, 2,'d')], multiedges=True)
+            sage: g.all_paths(0, 2, use_multiedges=False)
+            [[0, 1, 2]]
+            sage: g.all_paths(0, 2, use_multiedges=True)
+            [[0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]
+            sage: g.all_paths(0, 2, use_multiedges=True, report_edges=True)
+            [[(0, 1), (1, 2)], [(0, 1), (1, 2)], [(0, 1), (1, 2)], [(0, 1), (1, 2)]]
+            sage: g.all_paths(0, 2, use_multiedges=True, report_edges=True, labels=True)
+            [((0, 1, 'b'), (1, 2, 'd')),
+             ((0, 1, 'b'), (1, 2, 'c')),
+             ((0, 1, 'a'), (1, 2, 'd')),
+             ((0, 1, 'a'), (1, 2, 'c'))]
+            sage: g.all_paths(0, 2, use_multiedges=False, report_edges=True, labels=True)
+            [((0, 1, 'b'), (1, 2, 'd'))]
+            sage: g.all_paths(0, 2, use_multiedges=False, report_edges=False, labels=True)
+            [[0, 1, 2]]
+            sage: g.all_paths(0, 2, use_multiedges=True, report_edges=False, labels=True)
+            [[0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]
     
         TESTS:
 
@@ -15461,8 +15457,7 @@ class GenericGraph(GenericGraph_pyx):
         else:
             iterator = self.neighbor_iterator
 
-        if labels:
-            report_edges = True
+        if report_edges and labels:
             my_dict = {}
             if use_multiedges:
                 for e in self.edge_iterator():
@@ -15506,17 +15501,16 @@ class GenericGraph(GenericGraph_pyx):
                 if not act_path:                 # there is no other vertex ...
                     done = True                  # ... so we are done
         
-        if labels:
+        if report_edges and labels:
             path_with_labels = []
             for p in all_paths:
                 path_with_labels.extend(cartesian_product([my_dict[e] for e in zip(p[:-1], p[1:])]))
             return path_with_labels
-
-        if use_multiedges and self.has_multiple_edges():
+        elif use_multiedges and self.has_multiple_edges():
             multiple_all_paths = []
             for p in all_paths:
                 m = prod(edge_multiplicity[e] for e in zip(p[:-1], p[1:]))
-                if report_edges: 
+                if report_edges:
                     ep = list(zip(p[:-1], p[1:]))
                 for _ in range(m):
                     if report_edges:
@@ -15524,10 +15518,8 @@ class GenericGraph(GenericGraph_pyx):
                     else:
                         multiple_all_paths.append(p)
             return multiple_all_paths
-
-        if report_edges:
+        elif report_edges:
             return [list(zip(p[:-1], p[1:])) for p in all_paths]
-       
         return all_paths
 
     def triangles_count(self, algorithm=None):

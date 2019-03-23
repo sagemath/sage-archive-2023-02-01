@@ -124,18 +124,17 @@ class PRESENT(SageObject):
         INPUT:
 
         - ``keySchedule`` -- (default: ``80``); the key schedule that will be
-            used for encryption and decryption. Use ``80`` or ``128`` as a
-            shortcut for the original key schedules from [BKLPPRSV2007]_.
+          used for encryption and decryption. Use ``80`` or ``128`` as a
+          shortcut for the original key schedules from [BKLPPRSV2007]_.
 
-        - ``rounds``  -- integer (default: ``Nonne``); the number of rounds.
-            If ``None`` the number of rounds of the keyschedule is used.
+        - ``rounds``  -- integer (default: ``Nonne``); the number of rounds. If
+          ``None`` the number of rounds of the keyschedule is used.
 
         - ``doLastLinearLayer`` -- boolean (default: ``False``); flag to
-            control wether the linear layer in the last round should take place
-            or not. Since the last linear layer does not add any security, it
-            usually does not take place in real world implementations for
-            performance reasons.
-
+          control wether the linear layer in the last round should take place
+          or not. Since the last linear layer does not add any security, it
+          usually does not take place in real world implementations for
+          performance reasons.
 
         EXAMPLES::
 
@@ -544,8 +543,8 @@ class PRESENT_KS(SageObject):
 
         INPUT:
 
-         - ``keysize`` -- integer (default: ``80``); the size of the keys that
-           will be used in bits. It must be either 80 or 128.
+        - ``keysize`` -- integer (default: ``80``); the size of the keys that
+          will be used in bits. It must be either 80 or 128.
 
         - ``rounds`` -- integer (default: ``31``); the number of rounds
           ``self`` can create keys for

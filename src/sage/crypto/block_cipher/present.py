@@ -165,7 +165,7 @@ class PRESENT(SageObject):
 
         .. SEEALSO::
 
-            :class: `PRESENT_KS`
+            :class:`PRESENT_KS`
         """
         if keySchedule == 80:
             self._keySchedule = PRESENT_KS()

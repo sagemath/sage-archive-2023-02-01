@@ -112,6 +112,9 @@ class PRESENT(SageObject):
 
         :class:`PRESENT_KS`
         :mod:`sage.crypto.sboxes`
+
+    .. automethod:: __init__
+    .. automethod:: __call__
     """
 
     def __init__(self, keySchedule=80, rounds=None, doLastLinearLayer=False):
@@ -530,6 +533,9 @@ class PRESENT_KS(SageObject):
 
         :class:`PRESENT`
         :mod:`sage.crypto.sboxes`
+
+    .. automethod:: __init__
+    .. automethod:: __call__
     """
 
     def __init__(self, keysize=80, rounds=31, master_key=None):

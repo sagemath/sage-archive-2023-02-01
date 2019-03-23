@@ -168,7 +168,6 @@ from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.dot2tex_utils import have_dot2tex
 from sage.misc.misc_c import prod
 from sage.categories.cartesian_product import cartesian_product
-from sage.misc.misc_c import prod
 
 class DiGraph(GenericGraph):
     r"""
@@ -2285,7 +2284,7 @@ class DiGraph(GenericGraph):
                                     else:
                                         yield newpath
                             elif report_edges:
-                                yield list(zip(newpath[:-1], newpath[1:]))            
+                                yield list(zip(newpath[:-1], newpath[1:]))
                             else:
                                 yield newpath
                 else:
@@ -2491,7 +2490,7 @@ class DiGraph(GenericGraph):
                                                             simple=simple, max_length=max_length,
                                                             trivial=trivial, use_multiedges=use_multiedges,
                                                             report_edges=report_edges, labels=labels, data=dat)
-                                                            for v in starting_vertices}                                                            
+                                                            for v in starting_vertices}
         paths = []
         for vi in vertex_iterators.values():
             try:

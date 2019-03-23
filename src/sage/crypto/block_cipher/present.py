@@ -157,24 +157,28 @@ class PRESENT(SageObject):
           usually does not take place in real world implementations for
           performance reasons.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        By default a 80-bit version with 31 rounds is created::
 
             sage: from sage.crypto.block_cipher.present import PRESENT
-            sage: from sage.crypto.block_cipher.present import PRESENT_KS
             sage: PRESENT() # indirect doctest
             PRESENT block cipher with 31 rounds, deactivated linear layer in
             last round and the following key schedule:
             Original PRESENT key schedule with 80-bit keys and 31 rounds
+
+        The 128-bit version is also implemented::
+
             sage: PRESENT(128) # indirect doctest
             PRESENT block cipher with 31 rounds, deactivated linear layer in
             last round and the following key schedule:
             Original PRESENT key schedule with 128-bit keys and 31 rounds
-            sage: PRESENT(PRESENT_KS(80, 15)) # indirect doctest
-            PRESENT block cipher with 15 rounds, deactivated linear layer in
-            last round and the following key schedule:
-            Original PRESENT key schedule with 80-bit keys and 15 rounds
-            sage: PRESENT(80, 15) # indirect doctest
-            PRESENT block cipher with 15 rounds, deactivated linear layer in
+
+        Reducing the number of rounds is simple. But increasing it is not
+        possible::
+
+            sage: PRESENT(keySchedule=80, rounds=23) # indirect doctest
+            PRESENT block cipher with 23 rounds, deactivated linear layer in
             last round and the following key schedule:
             Original PRESENT key schedule with 80-bit keys and 31 rounds
             sage: PRESENT(80, 32) # indirect doctest
@@ -182,6 +186,24 @@ class PRESENT(SageObject):
             ...
             ValueError: number of rounds must be less or equal to the number
             of rounds of the key schedule
+
+
+        By default the linear layer operation in the last round is omitted but
+        of course you can enable it::
+
+            sage: PRESENT(doLastLinearLayer=True) # indirect doctest
+            PRESENT block cipher with 31 rounds, activated linear layer in
+            last round and the following key schedule:
+            Original PRESENT key schedule with 80-bit keys and 31 rounds
+
+        You can use arbitrary key schedules. Since it is the only one
+        implemented here the original key schedule is used for demonstration::
+
+            sage: from sage.crypto.block_cipher.present import PRESENT_KS
+            sage: PRESENT(keySchedule=PRESENT_KS(80, 15)) # indirect doctest
+            PRESENT block cipher with 15 rounds, deactivated linear layer in
+            last round and the following key schedule:
+            Original PRESENT key schedule with 80-bit keys and 15 rounds
 
         .. SEEALSO::
 
@@ -299,7 +321,9 @@ class PRESENT(SageObject):
           ``K``. If ``P`` is an integer the output will be too. If ``P`` is
           list-like the output will be a bit vector.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        The test vectors from [BKLPPRSV2007]_ are checked here::
 
             sage: from sage.crypto.block_cipher.present import PRESENT
             sage: present = PRESENT(doLastLinearLayer=True)
@@ -421,7 +445,9 @@ class PRESENT(SageObject):
           ``K``. If ``C`` is an integer the output will be too. If ``C`` is
           list-like the output will be a bit vector.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        The test vectors from [BKLPPRSV2007]_ are checked here::
 
             sage: from sage.crypto.block_cipher.present import PRESENT
             sage: present = PRESENT(doLastLinearLayer=True)

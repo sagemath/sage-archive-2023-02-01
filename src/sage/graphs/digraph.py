@@ -150,7 +150,7 @@ Methods
 #                     2016      Dima Pasechnik <dimpase@gmail.com>
 #                     2018      Meghana M Reddy <mreddymeghana@gmail.com>
 #                               Julian Rüth <julian.rueth@fsfe.org>
-#
+#                     2019      Rajat Mittal <rajat.mttl@gmail.com>
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
@@ -166,7 +166,9 @@ from sage.misc.superseded import deprecation
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.dot2tex_utils import have_dot2tex
-
+from sage.misc.misc_c import prod
+from sage.categories.cartesian_product import cartesian_product
+from sage.misc.misc_c import prod
 
 class DiGraph(GenericGraph):
     r"""
@@ -2076,7 +2078,9 @@ class DiGraph(GenericGraph):
     ### Paths and cycles iterators
 
     def _all_paths_iterator(self, vertex, ending_vertices=None,
-                            simple=False, max_length=None, trivial=False):
+                            simple=False, max_length=None, trivial=False,
+                            use_multiedges=False, report_edges=False,
+                            labels=False, **data):
         r"""
         Return an iterator over the paths of ``self`` starting with the
         given vertex.
@@ -2099,6 +2103,30 @@ class DiGraph(GenericGraph):
 
         - ``trivial`` - boolean (default: ``False``); if set to ``True``, then
           the empty paths are also enumerated.
+
+        - ``use_multiedges`` -- boolean (default: ``False``); this parameter is
+          used only if the graph has multiple edges.
+
+          - If ``False``, the graph is considered as simple and an edge label
+            is arbitrarily selected for each edge as in
+            :meth:`~GenericGraph.to_simple` if ``report_edges`` is ``True``
+
+          - If ``True``, a path will be reported as many times as the edges
+            multiplicities along that path (when ``report_edges = False`` or
+            ``labels = False``), or with all possible combinations of edge
+            labels (when ``report_edges = True`` and ``labels = True``)
+
+        - ``report_edges`` -- boolean (default: ``False``); whether to report
+          paths as list of vertices (default) or list of edges, if ``False``
+          then ``labels`` parameter is ignored
+
+        - ``labels`` -- boolean (default: ``False``); if ``False``, each edge
+          is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
+          along with its edge labels are used to represent the path.  
+
+        - ``data`` -- dictionary (default: ``empty``); optional parameter to
+          pass information about edge multiplicities of the graph, if ``empty``
+          edge multiplicity values are computed inside the method.
 
         OUTPUT:
 
@@ -2194,11 +2222,32 @@ class DiGraph(GenericGraph):
         if max_length < 1:
             return
 
+        if not data:
+            if report_edges and labels:
+                my_dict = {}
+                if use_multiedges:
+                    for e in self.edge_iterator():
+                        if (e[0], e[1]) in my_dict.keys():
+                            my_dict[(e[0], e[1])].append(e)
+                        else:
+                            my_dict[(e[0], e[1])] = [e]
+                else:
+                    for e in self.edge_iterator():
+                        if (e[0], e[1]) not in my_dict.keys():
+                            my_dict[(e[0], e[1])] = [e]
+            elif use_multiedges and self.has_multiple_edges():
+                from collections import Counter
+                edge_multiplicity = Counter(self.edge_iterator(labels=False))
+        else:
+            if report_edges and labels:
+                my_dict = data['data']
+            elif use_multiedges and self.has_multiple_edges():
+                edge_multiplicity = data['data']
         # Start with the empty path; we will try all extensions of it
         queue = []
         path = [vertex]
 
-        if trivial and vertex in ending_vertices:
+        if trivial and not report_edges and vertex in ending_vertices:
             yield path
         while True:
             # Build next generation of paths, one arc longer; max_length refers
@@ -2220,8 +2269,25 @@ class DiGraph(GenericGraph):
                             queue.append(path + [neighbor])
                         elif ( neighbor == path[0] and
                                neighbor in ending_vertices ):
-                            yield path + [neighbor]
-
+                            newpath = path + [neighbor]
+                            if report_edges and labels:
+                                edge_paths=[]
+                                edge_paths.extend(cartesian_product([my_dict[e] for e in zip(newpath[:-1], newpath[1:])]))
+                                for p in edge_paths:
+                                    yield list(p)
+                            elif use_multiedges and self.has_multiple_edges():
+                                m = prod(edge_multiplicity[e] for e in zip(newpath[:-1], newpath[1:]))
+                                if report_edges:
+                                    ep = list(zip(newpath[:-1], newpath[1:]))
+                                for _ in range(m):
+                                    if report_edges:
+                                        yield ep
+                                    else:
+                                        yield newpath
+                            elif report_edges:
+                                yield list(zip(newpath[:-1], newpath[1:]))            
+                            else:
+                                yield newpath
                 else:
                     # Non-simple paths requested: we add all of them
                     for neighbor in self.neighbor_out_iterator(path[-1]):
@@ -2232,11 +2298,29 @@ class DiGraph(GenericGraph):
             path = queue.pop(0)     # get the next path
 
             if path[-1] in ending_vertices:
-                yield path      # yield good path
+                if report_edges and labels:
+                    edge_paths=[]
+                    edge_paths.extend(cartesian_product([my_dict[e] for e in zip(path[:-1], path[1:])]))
+                    for p in edge_paths:
+                        yield list(p)
+                elif use_multiedges and self.has_multiple_edges():
+                    m = prod(edge_multiplicity[e] for e in zip(path[:-1], path[1:]))
+                    if report_edges:
+                        ep = list(zip(path[:-1], path[1:]))
+                    for _ in range(m):
+                        if report_edges:
+                            yield ep
+                        else:
+                            yield path
+                elif report_edges:
+                    yield list(zip(path[:-1], path[1:]))
+                else:
+                    yield path      # yield good path
 
 
     def all_paths_iterator(self, starting_vertices=None, ending_vertices=None,
-                           simple=False, max_length=None, trivial=False):
+                           simple=False, max_length=None, trivial=False,
+                           use_multiedges=False, report_edges=False, labels=False):
         r"""
         Return an iterator over the paths of ``self``.
 
@@ -2262,6 +2346,26 @@ class DiGraph(GenericGraph):
 
         - ``trivial`` - boolean (default: ``False``); if set to ``True``, then
           the empty paths are also enumerated.
+
+        - ``use_multiedges`` -- boolean (default: ``False``); this parameter is
+          used only if the graph has multiple edges.
+
+          - If ``False``, the graph is considered as simple and an edge label
+            is arbitrarily selected for each edge as in
+            :meth:`~GenericGraph.to_simple` if ``report_edges`` is ``True``
+
+          - If ``True``, a path will be reported as many times as the edges
+            multiplicities along that path (when ``report_edges = False`` or
+            ``labels = False``), or with all possible combinations of edge
+            labels (when ``report_edges = True`` and ``labels = True``)
+
+        - ``report_edges`` -- boolean (default: ``False``); whether to report
+          paths as list of vertices (default) or list of edges, if ``False``
+          then ``labels`` parameter is ignored
+
+        - ``labels`` -- boolean (default: ``False``); if ``False``, each edge
+          is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
+          along with its edge labels are used to represent the path.
 
         OUTPUT:
 
@@ -2360,12 +2464,34 @@ class DiGraph(GenericGraph):
         """
         if starting_vertices is None:
             starting_vertices = self
+
+        if report_edges and labels:
+            my_dict = {}
+            if use_multiedges:
+                for e in self.edge_iterator():
+                    if (e[0], e[1]) in my_dict.keys():
+                        my_dict[(e[0], e[1])].append(e)
+                    else:
+                        my_dict[(e[0], e[1])] = [e]
+            else:
+                for e in self.edge_iterator():
+                    if (e[0], e[1]) not in my_dict.keys():
+                        my_dict[(e[0], e[1])] = [e]
+            dat = my_dict
+        elif use_multiedges and self.has_multiple_edges():
+            from collections import Counter
+            edge_multiplicity = Counter(self.edge_iterator(labels=False))
+            dat = dict(edge_multiplicity)
+        else:
+            dat = {}    
         # We create one paths iterator per vertex
         # This is necessary if we want to iterate over paths
         # with increasing length
         vertex_iterators = {v: self._all_paths_iterator(v, ending_vertices=ending_vertices,
                                                             simple=simple, max_length=max_length,
-                                                            trivial=trivial) for v in starting_vertices}
+                                                            trivial=trivial, use_multiedges=use_multiedges,
+                                                            report_edges=report_edges, labels=labels, data=dat)
+                                                            for v in starting_vertices}                                                            
         paths = []
         for vi in vertex_iterators.values():
             try:
@@ -2383,13 +2509,17 @@ class DiGraph(GenericGraph):
             yield shortest_path
             # We update the path iterator to its next available path if it exists
             try:
-                path = next(vertex_iterators[shortest_path[0]])
+                if report_edges:
+                    path = next(vertex_iterators[shortest_path[0][0]])
+                else:
+                    path = next(vertex_iterators[shortest_path[0]])
                 heappush(paths, (len(path), path))
             except(StopIteration):
                 pass
 
     def all_simple_paths(self, starting_vertices=None, ending_vertices=None,
-                         max_length=None, trivial=False):
+                         max_length=None, trivial=False, use_multiedges=False,
+                         report_edges=False, labels=False):
         r"""
         Return a list of all the simple paths of ``self`` starting with one of
         the given vertices.
@@ -2414,6 +2544,26 @@ class DiGraph(GenericGraph):
         - ``trivial`` - boolean (default: ``False``); if set to ``True``, then
           the empty paths are also enumerated.
 
+        - ``use_multiedges`` -- boolean (default: ``False``); this parameter is
+          used only if the graph has multiple edges.
+
+          - If ``False``, the graph is considered as simple and an edge label
+            is arbitrarily selected for each edge as in
+            :meth:`~GenericGraph.to_simple` if ``report_edges`` is ``True``
+
+          - If ``True``, a path will be reported as many times as the edges
+            multiplicities along that path (when ``report_edges = False`` or
+            ``labels = False``), or with all possible combinations of edge
+            labels (when ``report_edges = True`` and ``labels = True``)
+
+        - ``report_edges`` -- boolean (default: ``False``); whether to report
+          paths as list of vertices (default) or list of edges, if ``False``
+          then ``labels`` parameter is ignored
+
+        - ``labels`` -- boolean (default: ``False``); if ``False``, each edge
+          is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
+          along with its edge labels are used to represent the path.
+
         OUTPUT:
 
             list
@@ -2431,9 +2581,31 @@ class DiGraph(GenericGraph):
              ['a', 'b', 'c'], ['b', 'c', 'd'], ['c', 'd', 'c'],
              ['d', 'c', 'd'], ['a', 'b', 'c', 'd']]
 
+            sage: g = DiGraph([(0, 1, 'a'), (0, 1, 'b'), (1, 2,'c'), (1, 2,'d')], multiedges=True)
+            sage: g.all_simple_paths(starting_vertices=[0], ending_vertices=[2], use_multiedges=False)
+            [[0, 1, 2]]
+            sage: g.all_simple_paths(starting_vertices=[0], ending_vertices=[2], use_multiedges=True)
+            [[0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]
+            sage: g.all_simple_paths(starting_vertices=[0], ending_vertices=[2], use_multiedges=True, report_edges=True)
+            [[(0, 1), (1, 2)], [(0, 1), (1, 2)], [(0, 1), (1, 2)], [(0, 1), (1, 2)]]
+            sage: g.all_simple_paths(starting_vertices=[0], ending_vertices=[2], use_multiedges=True, report_edges=True, labels=True)
+            [[(0, 1, 'b'), (1, 2, 'd')],
+             [(0, 1, 'b'), (1, 2, 'c')],
+             [(0, 1, 'a'), (1, 2, 'd')],
+             [(0, 1, 'a'), (1, 2, 'c')]]
+            sage: g.all_simple_paths(starting_vertices=[0, 1], ending_vertices=[2], use_multiedges=False, report_edges=True, labels=True)
+            [[(1, 2, 'd')], [(0, 1, 'b'), (1, 2, 'd')]]
+            sage: g.all_simple_paths(starting_vertices=[0, 1], ending_vertices=[2], use_multiedges=False, report_edges=False, labels=True)
+            [[1, 2], [0, 1, 2]]
+            sage: g.all_simple_paths(use_multiedges=True, report_edges=False, labels=True)
+            [[0, 1], [0, 1], [1, 2], [1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]
+            sage: g.all_simple_paths(starting_vertices=[0, 1], ending_vertices=[2], use_multiedges=False, report_edges=True, labels=True, trivial=True)
+            [[(1, 2, 'd')], [(0, 1, 'b'), (1, 2, 'd')]]
+
         One may compute all paths having specific starting and/or ending
         vertices::
 
+            sage: g = DiGraph({'a': ['a', 'b'], 'b': ['c'], 'c': ['d'], 'd': ['c']}, loops=True)
             sage: g.all_simple_paths(starting_vertices=['a'])
             [['a', 'a'], ['a', 'b'], ['a', 'b', 'c'], ['a', 'b', 'c', 'd']]
             sage: g.all_simple_paths(starting_vertices=['a'], ending_vertices=['c'])
@@ -2456,11 +2628,14 @@ class DiGraph(GenericGraph):
              ['a', 'b', 'c', 'd']]
             sage: g.all_simple_paths(starting_vertices=['a'], trivial=False)
             [['a', 'a'], ['a', 'b'], ['a', 'b', 'c'], ['a', 'b', 'c', 'd']]
+
+
         """
         return list(self.all_paths_iterator(starting_vertices=starting_vertices,
                                                 ending_vertices=ending_vertices,
                                                 simple=True, max_length=max_length,
-                                                trivial=trivial))
+                                                trivial=trivial, use_multiedges=use_multiedges,
+                                                report_edges=report_edges, labels=labels))
 
     def _all_cycles_iterator_vertex(self, vertex, starting_vertices=None, simple=False,
                                     rooted=False, max_length=None, trivial=False,

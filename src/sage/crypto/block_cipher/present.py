@@ -83,7 +83,10 @@ class PRESENT(SageObject):
     r"""
     This class implements PRESENT described in [BKLPPRSV2007]_.
 
-    EXAMPLES::
+    EXAMPLES:
+
+    You can invoke PRESENT encryption/decryption either by calling PRESENT with
+    an appropriate flag ...::
 
         sage: from sage.crypto.block_cipher.present import PRESENT
         sage: present = PRESENT()
@@ -91,9 +94,23 @@ class PRESENT(SageObject):
         sage: K = 0x0
         sage: present(present(P, K, 'encrypt'), K, 'decrypt') == P
         True
+
+    ... or by calling encryption/decryption methods directly::
+
+        sage: C = present.encrypt(P, K)
+        sage: P == present.decrypt(C, K)
+        True
+
+    The number of rounds can be reduced easily::
+
         sage: present = PRESENT(rounds=15)
         sage: present(present(P, K, 'encrypt'), K, 'decrypt') == P
         True
+
+    You can use integers or a list-like bit representation for the inputs. If
+    the input is an integer the output will be too. If it is list-like the
+    output will be a bit vector::
+
         sage: P = ZZ(0).digits(2,padto=64)
         sage: K = ZZ(0).digits(2,padto=80)
         sage: list(present(present(P, K, 'encrypt'), K, 'decrypt')) == P
@@ -102,6 +119,10 @@ class PRESENT(SageObject):
         sage: K = 0x0
         sage: list(present(present(P, K, 'encrypt'), K, 'decrypt')) == P
         True
+
+    The 80-bit version of PRESENT is used by default but the 128-bit version is
+    also implemented::
+
         sage: present = PRESENT(128)
         sage: P = 0x0123456789abcdef
         sage: K = 0x00112233445566778899aabbccddeeff

@@ -408,6 +408,7 @@ Methods
 #                     2017-2018 Moritz Firsching <moritz@math.fu-berlin.de>
 #                     2018      Erik M. Bray <erik.bray@lri.fr>
 #                               Meghana M Reddy <mreddymeghana@gmail.com>
+#                     2019      Rajat Mittal <rajat.mttl@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -435,6 +436,8 @@ from sage.rings.integer import Integer
 from sage.rings.rational import Rational
 from sage.matrix.constructor import matrix
 from sage.rings.rational_field import QQ
+from sage.categories.cartesian_product import cartesian_product
+from sage.misc.misc_c import prod
 
 to_hex = LazyImport('matplotlib.colors', 'to_hex')
 
@@ -15290,12 +15293,16 @@ class GenericGraph(GenericGraph_pyx):
 
     ### Paths
 
-    def all_paths(self, start, end):
+    def all_paths(self, start, end, use_multiedges=False, report_edges=False, labels=False):
         """
         Return the list of all paths between a pair of vertices.
 
         If ``start`` is the same vertex as ``end``, then ``[[start]]`` is
         returned -- a list containing the 1-vertex, 0-edge path "``start``".
+
+        If ``self`` has multiple edges, a path will be returned as many
+        times as the product of the multiplicity of the edges along that path
+        depending on the value of the flag ``use_multiedges``.
 
         INPUT:
 
@@ -15303,8 +15310,28 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``end`` -- a vertex of a graph, where to end
 
-        EXAMPLES::
+        - ``use_multiedges`` -- boolean (default: ``False``); this parameter is
+          used only if the graph has multiple edges.
 
+          - If ``False``, the graph is considered as simple and an edge label
+            is arbitrarily selected for each edge as in
+            :meth:`~GenericGraph.to_simple` if ``report_edges`` is ``True``
+
+          - If ``True``, a path will be reported as many times as the edges
+            multiplicities along that path (when ``report_edges = False`` or
+            ``labels = False``), or with all possible combinations of edge
+            labels (when ``report_edges = True`` and ``labels = True``)
+
+        - ``report_edges`` -- boolean (default: ``False``); whether to report
+          paths as list of vertices (default) or list of edges, if ``False``
+          then ``labels`` parameter is ignored
+
+        - ``labels`` -- boolean (default: ``False``); if ``False``, each edge
+          is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
+          along with its edge labels are used to represent the path.
+
+        EXAMPLES::
+        
             sage: eg1 = Graph({0:[1,2], 1:[4], 2:[3,4], 4:[5], 5:[6]})
             sage: eg1.all_paths(0,6)
             [[0, 1, 4, 5, 6], [0, 2, 4, 5, 6]]
@@ -15348,11 +15375,38 @@ class GenericGraph(GenericGraph_pyx):
             sage: sorted(ug.all_paths(0,3))
             [[0, 1, 3], [0, 2, 3], [0, 3]]
 
+            sage: g = Graph([(0, 1), (0, 1), (1, 2), (1, 2)], multiedges=True)
+            sage: g.all_paths(0, 2, use_multiedges=True)
+            [[0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]
+
+            sage: dg = DiGraph({0:[1, 2, 1], 3:[0, 0]}, multiedges=True)
+            sage: dg.all_paths(3, 1, use_multiedges=True)
+            [[3, 0, 1], [3, 0, 1], [3, 0, 1], [3, 0, 1]]
+
+            sage: g = Graph([(0, 1, 'a'), (0, 1, 'b'), (1, 2,'c'), (1, 2,'d')], multiedges=True)
+            sage: g.all_paths(0, 2, use_multiedges=False)
+            [[0, 1, 2]]
+            sage: g.all_paths(0, 2, use_multiedges=True)
+            [[0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]
+            sage: g.all_paths(0, 2, use_multiedges=True, report_edges=True)
+            [[(0, 1), (1, 2)], [(0, 1), (1, 2)], [(0, 1), (1, 2)], [(0, 1), (1, 2)]]
+            sage: g.all_paths(0, 2, use_multiedges=True, report_edges=True, labels=True)
+            [((0, 1, 'b'), (1, 2, 'd')),
+             ((0, 1, 'b'), (1, 2, 'c')),
+             ((0, 1, 'a'), (1, 2, 'd')),
+             ((0, 1, 'a'), (1, 2, 'c'))]
+            sage: g.all_paths(0, 2, use_multiedges=False, report_edges=True, labels=True)
+            [((0, 1, 'b'), (1, 2, 'd'))]
+            sage: g.all_paths(0, 2, use_multiedges=False, report_edges=False, labels=True)
+            [[0, 1, 2]]
+            sage: g.all_paths(0, 2, use_multiedges=True, report_edges=False, labels=True)
+            [[0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]
+    
         TESTS:
 
         Starting and ending at the same vertex (see :trac:`13006`)::
 
-            sage: graphs.CompleteGraph(4).all_paths(2,2)
+            sage: graphs.CompleteGraph(4).all_paths(2, 2)
             [[2]]
 
         Non-existing vertex as end vertex (see :trac:`24495`)::
@@ -15362,6 +15416,47 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             LookupError: end vertex (junk) is not a vertex of the graph
+
+        Distingusing between multiedged paths (see :trac:`27501`)::
+
+            sage: g = Graph(multiedges=True)
+            sage: g.add_edge(0, 3, 1)
+            sage: g.add_edge(0, 2, 3)
+            sage: g.add_edge(0, 1, 3)
+            sage: g.add_edge(2, 3, 5)
+            sage: g.add_edge(2, 3, 15)
+            sage: g.add_edge(2, 4, 12)
+            sage: g.add_edge(3, 5, 7)
+            sage: g.all_paths(0, 5, use_multiedges=True)
+            [[0, 2, 3, 5], [0, 2, 3, 5], [0, 3, 5]]
+
+            sage: g = Graph(multiedges=True)
+            sage: g.add_edge(0, 1, 1)
+            sage: g.add_edge(0, 2, 3)
+            sage: g.add_edge(1, 4, 3)
+            sage: g.add_edge(2, 3, 5)
+            sage: g.add_edge(2, 4, 15)
+            sage: g.add_edge(2, 4, 12)
+            sage: g.add_edge(4, 5, 7)
+            sage: g.add_edge(4, 5, 8)
+            sage: g.add_edge(5, 6, 2)
+            sage: g.all_paths(0, 6, use_multiedges=True)
+            [[0, 1, 4, 5, 6],
+             [0, 1, 4, 5, 6],
+             [0, 2, 4, 5, 6],
+             [0, 2, 4, 5, 6],
+             [0, 2, 4, 5, 6],
+             [0, 2, 4, 5, 6]]
+
+        Added reporting of edges (see :trac:`27501`)::
+
+            sage: G = DiGraph(multiedges=True)
+            sage: G.add_edges([(0,2), (0,3), (0,4), (1,2), (1,2), (1,5), (3,5), (3,5)])
+            sage: G.all_paths(0, 5, report_edges=True)
+            [[(0, 3), (3, 5)]]
+            sage: G.all_paths(0, 5, report_edges=True, use_multiedges=True)
+            [[(0, 3), (3, 5)], [(0, 3), (3, 5)]]
+            
         """
         if start not in self:
             raise LookupError("start vertex ({0}) is not a vertex of the graph".format(start))
@@ -15372,6 +15467,25 @@ class GenericGraph(GenericGraph_pyx):
             iterator = self.neighbor_out_iterator
         else:
             iterator = self.neighbor_iterator
+
+        if report_edges and labels:
+            my_dict = {}
+            if use_multiedges:
+                for e in self.edge_iterator():
+                    if (e[0], e[1]) in my_dict.keys():
+                        my_dict[(e[0], e[1])].append(e)
+                    else:
+                        my_dict[(e[0], e[1])] = [e]
+            else:
+                for e in self.edge_iterator():
+                    if (e[0], e[1]) not in my_dict.keys():
+                        my_dict[(e[0], e[1])] = [e]
+            if not self.is_directed():
+                for u, v in my_dict.keys():
+                    my_dict[v, u] = my_dict[u, v]
+        elif use_multiedges and self.has_multiple_edges():
+            from collections import Counter
+            edge_multiplicity = Counter(self.edge_iterator(labels=False))
 
         if start == end:
             return [[start]]
@@ -15397,8 +15511,27 @@ class GenericGraph(GenericGraph_pyx):
                     act_path_iter.pop()
                 if not act_path:                 # there is no other vertex ...
                     done = True                  # ... so we are done
+        
+        if report_edges and labels:
+            path_with_labels = []
+            for p in all_paths:
+                path_with_labels.extend(cartesian_product([my_dict[e] for e in zip(p[:-1], p[1:])]))
+            return path_with_labels
+        elif use_multiedges and self.has_multiple_edges():
+            multiple_all_paths = []
+            for p in all_paths:
+                m = prod(edge_multiplicity[e] for e in zip(p[:-1], p[1:]))
+                if report_edges:
+                    ep = list(zip(p[:-1], p[1:]))
+                for _ in range(m):
+                    if report_edges:
+                        multiple_all_paths.append(ep)
+                    else:
+                        multiple_all_paths.append(p)
+            return multiple_all_paths
+        elif report_edges:
+            return [list(zip(p[:-1], p[1:])) for p in all_paths]
         return all_paths
-
 
     def triangles_count(self, algorithm=None):
         r"""

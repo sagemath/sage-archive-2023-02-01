@@ -4,6 +4,9 @@ import sage.version
 from sage.misc.sagedoc import extlinks
 import dateutil.parser
 from six import iteritems
+from docutils import nodes
+from docutils.transforms import Transform
+from sphinx.ext.doctest import blankline_re
 from sphinx import highlighting
 from IPython.lib.lexers import IPythonConsoleLexer, IPyLexer
 
@@ -836,6 +839,25 @@ def skip_TESTS_block(app, what, name, obj, options, docstringlines):
     while len(docstringlines) > len(lines):
         del docstringlines[len(lines)]
 
+class SagemathTransform(Transform):
+    """
+    Transform for code-blocks.
+
+    This allows Sphinx to treat code-blocks with prompt "sage:" as
+    associated with the pycon lexer, and in particular, to change
+    "<BLANKLINE>" to a blank line.
+    """
+    default_priority = 500
+
+    def apply(self):
+        for node in self.document.traverse(nodes.literal_block):
+            if node.get('language') is None and node.astext().startswith('sage:'):
+                node['language'] = 'ipycon'
+                source = node.rawsource
+                source = blankline_re.sub('', source)
+                node.rawsource = source
+                node[:] = [nodes.Text(source)]
+
 from sage.misc.sageinspect import sage_getargspec
 autodoc_builtin_argspec = sage_getargspec
 
@@ -848,6 +870,7 @@ def setup(app):
     if os.environ.get('SAGE_SKIP_TESTS_BLOCKS', False):
         app.connect('autodoc-process-docstring', skip_TESTS_block)
     app.connect('autodoc-skip-member', skip_member)
+    app.add_transform(SagemathTransform)
 
     # When building the standard docs, app.srcdir is set to SAGE_DOC_SRC +
     # 'LANGUAGE/DOCNAME', but when doing introspection, app.srcdir is

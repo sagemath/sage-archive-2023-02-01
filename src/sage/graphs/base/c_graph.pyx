@@ -48,7 +48,8 @@ include "sage/data_structures/bitset.pxi"
 
 from sage.rings.integer cimport Integer
 from sage.arith.long cimport pyobject_to_long
-
+from libcpp.queue cimport priority_queue
+from libcpp.pair cimport pair
 
 cdef class CGraph:
     """
@@ -2153,16 +2154,19 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: G = Graph([(0,1,9),(0,2,8),(1,2,7)])
             sage: G.shortest_path_length(0,1,by_weight=True)
             9
+
+        Bugfix from :trac:`27464` ::
+
+            sage: G = DiGraph({0:[1,2], 1:[4], 2:[3,4], 4:[5],5:[6]},multiedges=True)
+            sage: for (u,v) in G.edges(labels=None):
+            ....:    G.set_edge_label(u,v,1)
+            sage: G.distance(0,5,by_weight=true)
+            3
         """
         if x == y:
             return 0
 
-        # ****************** WARNING **********************
-        # Use Python to maintain a heap...
-        # Rewrite this in Cython as soon as possible !
-        # *************************************************
-        from heapq import heappush, heappop
-
+        cdef priority_queue[pair[pair[int, int], pair[int, int]]] pq
         # As for shortest_path, the roles of x and y are symmetric, hence we
         # define dictionaries like pred_current and pred_other, which
         # represent alternatively pred_x or pred_y according to the side
@@ -2188,10 +2192,11 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef dict dist_other
 
         # Lists of vertices who are left to be explored. They are represented
-        # as 4-tuples: (distance, side, predecessor ,name).
+        # as pairs of pair and pair: ((distance, side), (predecessor, name)).
         # 1 indicates x's side, -1 indicates y's, the distance being
         # defined relatively.
-        cdef list queue = [(0, 1, x_int, x_int), (0, -1, y_int, y_int)]
+        pq.push(((0, 1), (x_int, x_int)))
+        pq.push(((0, -1), (y_int, y_int)))
         cdef list neighbors
 
         cdef list shortest_path = []
@@ -2205,8 +2210,13 @@ cdef class CGraphBackend(GenericGraphBackend):
             weight_function = lambda e:e[2]
 
         # As long as the current side (x or y) is not totally explored ...
-        while queue:
-            (distance, side, pred, v) = heappop(queue)
+        while not pq.empty():
+            (distance, side), (pred, v) = pq.top()
+            # priority_queue by default is max heap
+            # negative value of distance is stored in priority_queue to get
+            # minimum distance
+            distance = -distance
+            pq.pop()
             if meeting_vertex != -1 and distance > shortest_path_length:
                 break
 
@@ -2240,10 +2250,18 @@ cdef class CGraphBackend(GenericGraphBackend):
                     if w not in dist_current:
                         v_obj = self.vertex_label(v)
                         w_obj = self.vertex_label(w)
-                        edge_label = weight_function((v_obj, w_obj, self.get_edge_label(v_obj, w_obj))) if side == 1 else weight_function((w_obj, v_obj, self.get_edge_label(w_obj, v_obj)))
+                        if side == -1:
+                            v_obj, w_obj = w_obj, v_obj
+                        if self._multiple_edges:
+                            edge_label = min(weight_function((v_obj, w_obj, l)) for l in self.get_edge_label(v_obj, w_obj))
+                        else:
+                            edge_label = weight_function((v_obj, w_obj, self.get_edge_label(v_obj, w_obj)))
                         if edge_label < 0:
                             raise ValueError("the graph contains an edge with negative weight")
-                        heappush(queue, (distance + edge_label, side, v, w))
+                        # priority_queue is by default max_heap
+                        # negative value of distance + edge_label is stored in
+                        # priority_queue to get minimum distance
+                        pq.push(((-(distance + edge_label), side), (v, w)))
 
         # No meeting point has been found
         if meeting_vertex == -1:

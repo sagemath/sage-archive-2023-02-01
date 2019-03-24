@@ -2967,7 +2967,7 @@ class DiGraph(GenericGraph):
 
         elif implementation == "NetworkX":
             import networkx
-            S = networkx.topological_sort(self.networkx_graph(copy=False))
+            S = networkx.topological_sort(self.networkx_graph())
             if S is None:
                 raise TypeError('digraph is not acyclic; there is no topological sort')
             else:

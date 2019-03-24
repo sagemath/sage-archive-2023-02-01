@@ -446,7 +446,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: PowerSeries.list(1+x^2)
             Traceback (most recent call last):
             ...
-            NotImplementedError        
+            NotImplementedError
         """
         raise NotImplementedError
 
@@ -466,7 +466,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: PowerSeries.polynomial(1+x^2)
             Traceback (most recent call last):
             ...
-            NotImplementedError        
+            NotImplementedError
         """
         raise NotImplementedError
 

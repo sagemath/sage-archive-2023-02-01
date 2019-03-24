@@ -4,6 +4,8 @@ import sage.version
 from sage.misc.sagedoc import extlinks
 import dateutil.parser
 from six import iteritems
+from sphinx import highlighting
+from IPython.lib.lexers import IPythonConsoleLexer, IPyLexer
 
 # If your extensions are in another directory, add it here.
 sys.path.append(os.path.join(SAGE_SRC, "sage_setup", "docbuild", "ext"))
@@ -13,9 +15,14 @@ sys.path.append(os.path.join(SAGE_SRC, "sage_setup", "docbuild", "ext"))
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['inventory_builder', 'multidocs', 'sage_autodoc',
-              'sphinx.ext.graphviz', 'sphinx.ext.inheritance_diagram',
-              'sphinx.ext.todo', 'sphinx.ext.extlinks',
+extensions = ['inventory_builder',
+              'multidocs',
+              'sage_autodoc',
+              'sphinx.ext.graphviz',
+              'sphinx.ext.inheritance_diagram',
+              'sphinx.ext.todo',
+              'sphinx.ext.extlinks',
+              'IPython.sphinxext.ipython_directive',
               'matplotlib.sphinxext.plot_directive']
 
 # This code is executed before each ".. PLOT::" directive in the Sphinx
@@ -158,6 +165,19 @@ default_role = 'math'
 # The name of the Pygments (syntax highlighting) style to use.  NOTE:
 # This overrides a HTML theme's corresponding setting (see below).
 pygments_style = 'sphinx'
+
+# Default lexer to use when highlighting code blocks. Use the IPython
+# console lexers appropriate to the version of Python. 'ipycon' is the
+# IPython console, which is what we want for most code blocks:
+# anything with "sage:" prompts. For other IPython, like blocks which
+# might appear in a notebook cell, use 'ipython'.
+if sys.version_info[0] == 2:
+    highlighting.lexers['ipycon'] = IPythonConsoleLexer(python3=False, in1_regex=r'sage: ')
+    highlighting.lexers['ipython'] = IPyLexer(python3=False)
+else:
+    highlighting.lexers['ipycon'] = IPythonConsoleLexer(python3=True, in1_regex=r'sage: ')
+    highlighting.lexers['ipython'] = IPyLexer(python3=True)
+highlight_language = 'ipycon'
 
 # GraphViz includes dot, neato, twopi, circo, fdp.
 graphviz_dot = 'dot'

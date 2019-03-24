@@ -10683,7 +10683,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             6
             sage: k.zeta(84)
             Traceback (most recent call last):
-            ..
+            ...
             ValueError: 84 does not divide order of generator (42)
 
         ::

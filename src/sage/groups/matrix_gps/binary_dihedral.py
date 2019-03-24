@@ -6,23 +6,23 @@ AUTHORS:
 - Travis Scrimshaw (2016-02): initial version
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2016 Travis Scrimshaw <tscrimsh at umn.edu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGroup_gap
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.misc.latex import latex
 from sage.rings.number_field.number_field import CyclotomicField
 from sage.matrix.matrix_space import MatrixSpace
 from sage.categories.groups import Groups
 from sage.rings.all import ZZ
+
 
 class BinaryDihedralGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gap):
     r"""
@@ -133,4 +133,3 @@ class BinaryDihedralGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gap
         return ZZ(4 * self._n)
 
     cardinality = order
-

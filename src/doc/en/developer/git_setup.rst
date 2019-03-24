@@ -73,13 +73,17 @@ The commit message of any change contains your name and email address
 to acknowledge your contribution and to have a point of contact if
 there are questions in the future; Filling it in is required if you
 want to share your changes. The simplest way to do this is from the
-command line::
+command line:
+
+.. CODE-BLOCK:: shell-session
 
     [user@localhost ~] git config --global user.name "Your Name"
     [user@localhost ~] git config --global user.email you@yourdomain.example.com
 
 This will write the settings into your :ref:`git configuration file
-<section-git-configuration>` with your name and email::
+<section-git-configuration>` with your name and email:
+
+.. CODE-BLOCK:: text
 
     [user]
         name = Your Name

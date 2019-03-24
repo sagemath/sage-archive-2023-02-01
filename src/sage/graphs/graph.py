@@ -8499,7 +8499,6 @@ class Graph(GenericGraph):
         rmin = min(S[(verttoidx[e[0]], verttoidx[e[1]])] for e in edges)
         return [e for e in edges if S[(verttoidx[e[0]], verttoidx[e[1]])] == rmin]
         
-
     @doc_index("Leftovers")
     def common_neighbors_matrix(self, vertices=None, nonedgesonly=True):
         r"""
@@ -8601,19 +8600,19 @@ class Graph(GenericGraph):
         M = A**2
         for v in range(self.order()):
             M[v, v] = 0
-            for w in range(v + 1, self.order()):
-                if nonedgesonly and A[v, w]:
-                    M[v, w] = M[w, v] = 0
+            if nonedgesonly:
+                for w in range(v + 1, self.order()):
+                    if A[v, w]:
+                        M[v, w] = M[w, v] = 0
         return M
 
     @doc_index("Leftovers")
     def most_common_neighbors(self, nonedgesonly=True):
         r"""
-        Return vertex pairs with maximal number of common neighbors
+        Return vertex pairs with maximal number of common neighbors.
 
         This method is only valid for simple (no loops, no multiple edges)
         graphs with order `\geq 2`   
-
 
         INPUT:
 
@@ -8670,13 +8669,14 @@ class Graph(GenericGraph):
             [(0, 2), (1, 3)]
         """
         self._scream_if_not_simple()
-        verts = list(self)
-        M = self.common_neighbors_matrix(vertices=verts, nonedgesonly=nonedgesonly)
         if self.num_verts() < 2:
             raise ValueError('this method is defined for graphs with at least 2 vertices')
+        verts = list(self)
+        M = self.common_neighbors_matrix(vertices=verts, nonedgesonly=nonedgesonly)
         output = []
-        if M.coefficients():
-            maximum = max(M.coefficients())
+        coefficients = M.coefficients()
+        if coefficients:
+            maximum = max(coefficients)
             for v in range(self.num_verts()):
                 for w in range(v + 1, self.num_verts()):
                     if M[v, w] == maximum:

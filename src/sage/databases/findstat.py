@@ -1052,7 +1052,7 @@ class FindStatStatistic(SageObject):
         stat_str = "\n".join(["\n".join(keys) + "\n====> " + values for (keys, values) in stat])
         verbose("Sending the following data to FindStat\r\n %s" % stat_str, caller_name='FindStat')
 
-        values = urlencode({"freedata": stat_str, "depth": str(self._depth), "caller": "Sage"})
+        values = urlencode({"freedata": stat_str, "depth": str(self._depth), "caller": "Sage"}).encode("utf-8")
         verbose("Fetching URL %s with encoded data %s" % (url, values), caller_name='FindStat')
 
         request = Request(url, data=values)

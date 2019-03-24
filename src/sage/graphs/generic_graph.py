@@ -1396,9 +1396,14 @@ class GenericGraph(GenericGraph_pyx):
                    functions + ".")
             raise ValueError(msg)
 
-    def networkx_graph(self, copy=True):
+    def networkx_graph(self, copy=True, weight_function=None):
         """
         Return a new ``NetworkX`` graph from the Sage graph.
+
+        INPUT:
+        
+        - ``weight_function`` -- function (default: ``None``); a function that
+          takes as input an edge ``(u, v, l)`` and outputs its weight.
 
         EXAMPLES::
 
@@ -1406,9 +1411,23 @@ class GenericGraph(GenericGraph_pyx):
             sage: N = G.networkx_graph()
             sage: type(N)
             <class 'networkx.classes.graph.Graph'>
+
+            sage: def weight_fn(e):
+            ....:     return e[2]
+            sage: G1 = Graph([(1,2,1), (1,3,4), (2,3,3), (3,4,4)])
+            sage: H = G1.networkx_graph(weight_function=weight_fn)
+            sage: H.edges(data=True)
+            EdgeDataView([(1, 2, {'weight': 1}), (1, 3, {'weight': 4}), (2, 3, {'weight': 3}), (3, 4, {'weight': 4})])
+            sage: G2 = DiGraph([(1,2,1), (1,3,4), (2,3,3), (3,4,4), (3,4,5)], multiedges=True)
+            sage: H = G2.networkx_graph(weight_function=weight_fn)
+            sage: H.edges(data=True)
+            OutMultiEdgeDataView([(1, 2, {'weight': 1}), (1, 3, {'weight': 4}), (2, 3, {'weight': 3}), (3, 4, {'weight': 5}), (3, 4, {'weight': 4})])
+
         """
         if copy is not True:
             deprecation(27491, "parameter copy is removed")
+        if weight_function is not None:
+            self._check_weight_function(weight_function)
         import networkx
         if self._directed and self.allows_multiple_edges():
             class_type = networkx.MultiDiGraph
@@ -1423,7 +1442,9 @@ class GenericGraph(GenericGraph_pyx):
         N.add_nodes_from(self)
         from networkx import NetworkXError
         for u, v, l in self.edge_iterator():
-            if l is None:
+            if weight_function is not None:
+                N.add_edge(u, v, weight=weight_function((u, v, l)))
+            elif l is None:
                 N.add_edge(u, v)
             else:
                 try:

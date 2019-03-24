@@ -75,9 +75,9 @@ data sent.  We can now retrieve the description from the database::
 
 and check the references::
 
-    sage: s.references()                                                        # optional -- internet, random
+    sage: s.references()                                                        # optional -- internet
     0: [1]  de Médicis, A., Viennot, X. G. Moments des $q$-polynômes de Laguerre et la bijection de Foata-Zeilberger [[MathSciNet:1288802]]
-    1: [2]  Simion, R., Stanton, D. Octabasic Laguerre polynomials and permutation statistics [[MathSciNet:1418763]]
+    1: [2]  Simion, R., Stanton, D. Octabasic Laguerre polynomials and permutation statistics [[MathSciNet:1418763]]...
 
 If you prefer, you can look at this information also in your browser::
 
@@ -833,6 +833,8 @@ class FindStatStatistic(SageObject):
             sage: findstat([(pi, pi(1)) for pi in Permutations(4)], depth=0)    # optional -- internet
             0: (St000054: ...
 
+            sage: findstat(914)                                                 # optional -- internet
+            St000914: The sum of the values of the Möbius function of a poset.
         """
         if self._query == "ID":
             if self._modified:
@@ -967,9 +969,9 @@ class FindStatStatistic(SageObject):
             else:
                 raise
 
-        self._description           = self._raw[FINDSTAT_STATISTIC_DESCRIPTION]
-        self._name                  = self._raw[FINDSTAT_STATISTIC_NAME]
-        self._references            = self._raw[FINDSTAT_STATISTIC_REFERENCES]
+        self._description           = self._raw[FINDSTAT_STATISTIC_DESCRIPTION].encode("utf-8")
+        self._name                  = self._raw[FINDSTAT_STATISTIC_NAME].encode("utf-8")
+        self._references            = self._raw[FINDSTAT_STATISTIC_REFERENCES].encode("utf-8")
         self._collection            = FindStatCollection(self._raw[FINDSTAT_STATISTIC_COLLECTION])
         self._code                  = self._raw[FINDSTAT_STATISTIC_CODE]
         self._sage_code             = self._raw[FINDSTAT_STATISTIC_SAGE_CODE]
@@ -1571,8 +1573,8 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: findstat(1).name()                                            # optional -- internet, random
-            u'The number of ways to write a permutation as a minimal length product of simple transpositions.'
+            sage: findstat(1).name()                                            # optional -- internet
+            'The number of ways to write a permutation as a minimal length product of simple transpositions.'
         """
         # this needs to be decided how to do properly
         if hasattr(self,"_name"):

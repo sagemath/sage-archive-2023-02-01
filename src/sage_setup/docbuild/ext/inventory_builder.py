@@ -12,6 +12,7 @@ from os import path
 
 from six import iteritems, text_type
 
+import shutil
 
 try:
     from hashlib import md5
@@ -106,6 +107,18 @@ class InventoryBuilder(StandaloneHTMLBuilder):
         deactivated.
         """
         raise RuntimeError("This function shouldn't be called in \"%s\" builder"%(self.name))
+
+    def cleanup(self):
+        """
+        Remove the '_static' directory.
+
+        This directory is unnecessary for the inventory build, but it
+        may be created by the graphviz extension. Its presence will
+        break the docbuild later on, so remove it.
+        """
+        if path.isdir(path.join(self.outdir, '_static')):
+            shutil.rmtree(path.join(self.outdir, '_static'))
+
 
     copy_image_files = removed_method_error
     copy_download_files = removed_method_error

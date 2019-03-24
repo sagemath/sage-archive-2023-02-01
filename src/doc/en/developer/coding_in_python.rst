@@ -41,7 +41,7 @@ included. This section describes these special methods.
 All objects in Sage should derive from the Cython extension class
 ``SageObject``::
 
-    from sage.ext.sage_object import SageObject
+    from sage.structure.sage_object import SageObject
 
     class MyClass(SageObject,...):
         ...

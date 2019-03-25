@@ -105,7 +105,7 @@ cdef class ObjWrapper(object):
             sage: hash(x)
             0
         """
-        return <int>(self.value)
+        return <Py_hash_t>(self.value)
 
 
 cdef ObjWrapper wrap_obj(Obj obj):

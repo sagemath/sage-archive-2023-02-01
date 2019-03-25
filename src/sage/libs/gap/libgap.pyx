@@ -232,15 +232,6 @@ from sage.misc.superseded import deprecated_function_alias, deprecation
 ### Debugging ##############################################################
 ############################################################################
 
-
-cdef void report(Obj bag):
-    print(TNAM_OBJ(bag),  <int>SIZE_OBJ(bag))
-
-
-cdef void print_gasman_objects():
-    CallbackForAllBags(report)
-
-
 from sage.misc.lazy_import import is_during_startup
 if is_during_startup():
     import sys, traceback

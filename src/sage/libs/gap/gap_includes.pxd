@@ -79,9 +79,10 @@ cdef extern from "gap/libgap-api.h" nogil:
     """
     #define sig_GAP_Enter()  {int t = GAP_Enter(); if (!t) sig_error();}
     """
-    ctypedef void (*CallbackFunc)()
-    void GAP_Initialize(int argc, char ** argv, char ** env,
-        CallbackFunc, CallbackFunc)
+    ctypedef void (*GAP_CallbackFunc)()
+    void GAP_Initialize(int argc, char ** argv,
+            GAP_CallbackFunc markBagsCallback, GAP_CallbackFunc errorCallback,
+            int handleSignals)
     Obj GAP_EvalString(const char *) except *
     Obj GAP_EvalStringNoExcept "GAP_EvalString"(const char *)
     Obj GAP_ValueGlobalVariable(const char *)

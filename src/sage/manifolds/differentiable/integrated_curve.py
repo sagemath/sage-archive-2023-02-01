@@ -1339,8 +1339,8 @@ class IntegratedCurve(DifferentiableCurve):
                              "of the chart domain; a curve with a " +
                              "smaller maximal value of the curve " +
                              "parameter, or a smaller initial tangent "+
-                             "vector might be considered. You can also try"+
-                             "'solve_across_charts' in order to not be"+
+                             "vector, might be considered. You can also try "+
+                             "'solve_across_charts' in order not to be "+
                              "confined to a single chart")
         else:
             self._solutions[solution_key] = coords_sol

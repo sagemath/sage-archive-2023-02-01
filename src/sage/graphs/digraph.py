@@ -2079,7 +2079,7 @@ class DiGraph(GenericGraph):
     def _all_paths_iterator(self, vertex, ending_vertices=None,
                             simple=False, max_length=None, trivial=False,
                             use_multiedges=False, report_edges=False,
-                            labels=False, **data):
+                            labels=False, data=None):
         r"""
         Return an iterator over the paths of ``self`` starting with the
         given vertex.
@@ -2123,8 +2123,8 @@ class DiGraph(GenericGraph):
           is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
           along with its edge labels are used to represent the path.  
 
-        - ``data`` -- dictionary (default: ``empty``); optional parameter to
-          pass information about edge multiplicities of the graph, if ``empty``
+        - ``data`` -- dictionary (default: ``None``); optional parameter to
+          pass information about edge multiplicities of the graph, if ``None``
           edge multiplicity values are computed inside the method.
 
         OUTPUT:
@@ -2226,22 +2226,22 @@ class DiGraph(GenericGraph):
                 my_dict = {}
                 if use_multiedges:
                     for e in self.edge_iterator():
-                        if (e[0], e[1]) in my_dict.keys():
+                        if (e[0], e[1]) in my_dict:
                             my_dict[(e[0], e[1])].append(e)
                         else:
                             my_dict[(e[0], e[1])] = [e]
                 else:
                     for e in self.edge_iterator():
-                        if (e[0], e[1]) not in my_dict.keys():
+                        if (e[0], e[1]) not in my_dict:
                             my_dict[(e[0], e[1])] = [e]
             elif use_multiedges and self.has_multiple_edges():
                 from collections import Counter
                 edge_multiplicity = Counter(self.edge_iterator(labels=False))
         else:
             if report_edges and labels:
-                my_dict = data['data']
+                my_dict = data
             elif use_multiedges and self.has_multiple_edges():
-                edge_multiplicity = data['data']
+                edge_multiplicity = data
         # Start with the empty path; we will try all extensions of it
         queue = []
         path = [vertex]
@@ -2270,19 +2270,14 @@ class DiGraph(GenericGraph):
                                neighbor in ending_vertices ):
                             newpath = path + [neighbor]
                             if report_edges and labels:
-                                edge_paths=[]
-                                edge_paths.extend(cartesian_product([my_dict[e] for e in zip(newpath[:-1], newpath[1:])]))
-                                for p in edge_paths:
+                                for p in cartesian_product([my_dict[e] for e in zip(newpath[:-1], newpath[1:])]):
                                     yield list(p)
                             elif use_multiedges and self.has_multiple_edges():
                                 m = prod(edge_multiplicity[e] for e in zip(newpath[:-1], newpath[1:]))
                                 if report_edges:
-                                    ep = list(zip(newpath[:-1], newpath[1:]))
+                                    newpath = list(zip(newpath[:-1], newpath[1:]))
                                 for _ in range(m):
-                                    if report_edges:
-                                        yield ep
-                                    else:
-                                        yield newpath
+                                    yield newpath
                             elif report_edges:
                                 yield list(zip(newpath[:-1], newpath[1:]))
                             else:
@@ -2298,24 +2293,20 @@ class DiGraph(GenericGraph):
 
             if path[-1] in ending_vertices:
                 if report_edges and labels:
-                    edge_paths=[]
-                    edge_paths.extend(cartesian_product([my_dict[e] for e in zip(path[:-1], path[1:])]))
-                    for p in edge_paths:
+                    for p in cartesian_product([my_dict[e] for e in zip(path[:-1], path[1:])]):
                         yield list(p)
                 elif use_multiedges and self.has_multiple_edges():
                     m = prod(edge_multiplicity[e] for e in zip(path[:-1], path[1:]))
                     if report_edges:
-                        ep = list(zip(path[:-1], path[1:]))
+                        newpath = list(zip(path[:-1], path[1:]))
+                    else:
+                        newpath = path
                     for _ in range(m):
-                        if report_edges:
-                            yield ep
-                        else:
-                            yield path
+                        yield newpath
                 elif report_edges:
                     yield list(zip(path[:-1], path[1:]))
                 else:
                     yield path      # yield good path
-
 
     def all_paths_iterator(self, starting_vertices=None, ending_vertices=None,
                            simple=False, max_length=None, trivial=False,
@@ -2463,33 +2454,30 @@ class DiGraph(GenericGraph):
         """
         if starting_vertices is None:
             starting_vertices = self
-
+        data = {}
         if report_edges and labels:
-            my_dict = {}
             if use_multiedges:
                 for e in self.edge_iterator():
-                    if (e[0], e[1]) in my_dict.keys():
-                        my_dict[(e[0], e[1])].append(e)
+                    if (e[0], e[1]) in data:
+                        data[(e[0], e[1])].append(e)
                     else:
-                        my_dict[(e[0], e[1])] = [e]
+                        data[(e[0], e[1])] = [e]
             else:
                 for e in self.edge_iterator():
-                    if (e[0], e[1]) not in my_dict.keys():
-                        my_dict[(e[0], e[1])] = [e]
-            dat = my_dict
+                    if (e[0], e[1]) not in data:
+                        data[(e[0], e[1])] = [e]
         elif use_multiedges and self.has_multiple_edges():
             from collections import Counter
             edge_multiplicity = Counter(self.edge_iterator(labels=False))
-            dat = dict(edge_multiplicity)
-        else:
-            dat = {}    
+            data = edge_multiplicity
+   
         # We create one paths iterator per vertex
         # This is necessary if we want to iterate over paths
         # with increasing length
         vertex_iterators = {v: self._all_paths_iterator(v, ending_vertices=ending_vertices,
                                                             simple=simple, max_length=max_length,
                                                             trivial=trivial, use_multiedges=use_multiedges,
-                                                            report_edges=report_edges, labels=labels, data=dat)
+                                                            report_edges=report_edges, labels=labels, data=data)
                                                             for v in starting_vertices}
         paths = []
         for vi in vertex_iterators.values():
@@ -2627,8 +2615,6 @@ class DiGraph(GenericGraph):
              ['a', 'b', 'c', 'd']]
             sage: g.all_simple_paths(starting_vertices=['a'], trivial=False)
             [['a', 'a'], ['a', 'b'], ['a', 'b', 'c'], ['a', 'b', 'c', 'd']]
-
-
         """
         return list(self.all_paths_iterator(starting_vertices=starting_vertices,
                                                 ending_vertices=ending_vertices,

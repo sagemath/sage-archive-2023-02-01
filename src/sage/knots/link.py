@@ -1767,9 +1767,9 @@ class Link(SageObject):
              (1 - \omega) V + (1 - \omega^{-1}) V^{t},
 
         where `V` is the :meth:`Seifert matrix <seifert_matrix>`,
-        as explained on page 122 of [Livi1993]_.
+        as explained on page 122 of [Liv1993]_.
 
-        According to [Conway2018]_, this is also known as the
+        According to [Con2018]_, this is also known as the
         Levine-Tristram signature, the equivariant signature or the
         Tristram-Levine signature.
 
@@ -1782,15 +1782,6 @@ class Link(SageObject):
             sage: omega = QQbar.zeta(3)
             sage: K.omega_signature(omega)
             -2
-
-        REFERENCES:
-
-        .. [Livi1993] Charles Livingston, *Knot Theory*, Carus Mathematical
-           Monographs, number 24.
-
-        .. [Conway2018] Anthony Conway, *Notes On The Levine-Tristram
-           Signature Function*, July 2018
-           http://www.unige.ch/math/folks/conway/Notes/LevineTristramSurvey.pdf
         """
         from sage.rings.qqbar import QQbar
         omega = QQbar(omega)

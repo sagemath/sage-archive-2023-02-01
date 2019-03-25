@@ -13,10 +13,7 @@ EXAMPLES::
 
 REFERENCES:
 
-.. [PS] Overconvergent modular symbols and p-adic L-functions
-   Robert Pollack, Glenn Stevens
-   Annales Scientifiques de l'Ecole Normale Superieure, serie 4, 44 fascicule 1 (2011), 1--42.
-
+- [PS2011]_
 """
 
 #*****************************************************************************
@@ -110,7 +107,7 @@ def get_dist_classes(p, prec_cap, base, symk, implementation):
 
 cdef class Dist(ModuleElement):
     r"""
-        The main `p`-adic distribution class, implemented as per the paper [PS]__.
+        The main `p`-adic distribution class, implemented as per the paper [PS2011]__.
     """
     def moment(self, n):
         r"""
@@ -1148,7 +1145,7 @@ cdef class Dist_vector(Dist):
         r"""
         Solve the difference equation. `self = v | \Delta`, where `\Delta = [1, 1; 0, 1] - 1`.
 
-        See Theorem 4.5 and Lemma 4.4 of [PS]_.
+        See Theorem 4.5 and Lemma 4.4 of [PS2011]_.
 
         OUTPUT:
 

@@ -16,9 +16,9 @@
 +		typename Field::ConstElement_ptr A, const size_t lda,
 +		typename Field::ConstElement_ptr B, const size_t ldb,
 +		const typename Field::Element beta,
-+		typename Field::Element_ptr C, const size_t ldc){
++		typename Field::Element_ptr C, const size_t ldc, size_t numthreads){
 +		PAR_BLOCK{
-+			ParSeqHelper::Parallel<CuttingStrategy::Block,StrategyParameter::Threads> par;
++			ParSeqHelper::Parallel<CuttingStrategy::Block,StrategyParameter::Threads> par(numthreads);
 +			fgemm(F,ta,tb,m,n,k,alpha,A,lda,B,ldb,beta,C,ldc,par);
 +		}
 +		return C;

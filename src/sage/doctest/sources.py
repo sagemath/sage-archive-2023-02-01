@@ -49,7 +49,7 @@ skip = re.compile(r".*%skip.*")
 # ReST file parsing
 link_all = re.compile(r"^\s*\.\.\s+linkall\s*$")
 double_colon = re.compile(r"^(\s*).*::\s*$")
-code_block = re.compile(r"^(\s*).*\.\.\s*code-block\s*::.*$")
+code_block = re.compile(r"^(\s*)[.][.]\s*code-block\s*::.*$")
 
 whitespace = re.compile(r"\s*")
 bitness_marker = re.compile('#.*(32|64)-bit')
@@ -775,7 +775,6 @@ class FileDocTestSource(DocTestSource):
             There are 3 unexpected tests being run in sage/doctest/parsing.py
             There are 1 unexpected tests being run in sage/doctest/reporting.py
             There are 3 tests in sage/rings/invariants/invariant_theory.py that are not being run
-            There are 2 tests in doc/en/developer/coding_in_python.rst that are not being run
             sage: os.chdir(cwd)
         """
         expected = []
@@ -797,8 +796,10 @@ class FileDocTestSource(DocTestSource):
                         in_block = False
                         skipping = False
                 if not in_block:
-                    m = double_colon.match(line)
-                    if m and not line.strip().startswith(".."):
+                    m1 = double_colon.match(line)
+                    m2 = code_block.match(line.lower())
+                    starting = (m1 and not line.strip().startswith(".. ")) or m2
+                    if starting:
                         if ".. skip" in last_line:
                             skipping = True
                         in_block = True

@@ -396,7 +396,7 @@ information. You can use the existing functions of Sage as templates.
   For example known situations for which the code breaks, or anything
   that the user should be aware of.
 
-   .. CODE-BLOCK:: rest
+  .. CODE-BLOCK:: rest
 
       .. WARNING::
 
@@ -412,7 +412,7 @@ information. You can use the existing functions of Sage as templates.
   It can contain disabled doctests to demonstrate the desired
   feature. Here's an example of a TODO block:
 
-   .. CODE-BLOCK:: rest
+  .. CODE-BLOCK:: rest
 
       .. TODO::
 
@@ -427,7 +427,7 @@ information. You can use the existing functions of Sage as templates.
   Generate with Sage code an object ``g`` with a ``.plot`` method, then call
   ``sphinx_plot(g)``:
 
-   .. CODE-BLOCK:: rest
+  .. CODE-BLOCK:: rest
 
       .. PLOT::
 
@@ -448,7 +448,7 @@ information. You can use the existing functions of Sage as templates.
   master bibliography file, if not already present, and add a reference block
   to your docstring as follows:
 
-   .. CODE-BLOCK:: rest
+  .. CODE-BLOCK:: rest
 
       REFERENCES:
 

@@ -169,17 +169,12 @@ default_role = 'math'
 # This overrides a HTML theme's corresponding setting (see below).
 pygments_style = 'sphinx'
 
-# Default lexer to use when highlighting code blocks. Use the IPython
-# console lexers appropriate to the version of Python. 'ipycon' is the
-# IPython console, which is what we want for most code blocks:
-# anything with "sage:" prompts. For other IPython, like blocks which
-# might appear in a notebook cell, use 'ipython'.
-if sys.version_info[0] == 2:
-    highlighting.lexers['ipycon'] = IPythonConsoleLexer(python3=False, in1_regex=r'sage: ')
-    highlighting.lexers['ipython'] = IPyLexer(python3=False)
-else:
-    highlighting.lexers['ipycon'] = IPythonConsoleLexer(python3=True, in1_regex=r'sage: ')
-    highlighting.lexers['ipython'] = IPyLexer(python3=True)
+# Default lexer to use when highlighting code blocks, using the IPython
+# console lexers. 'ipycon' is the IPython console, which is what we want
+# for most code blocks: anything with "sage:" prompts. For other IPython,
+# like blocks which might appear in a notebook cell, use 'ipython'.
+highlighting.lexers['ipycon'] = IPythonConsoleLexer(in1_regex=r'sage: ', in2_regex=r'[.][.][.][.]: ')
+highlighting.lexers['ipython'] = IPyLexer()
 highlight_language = 'ipycon'
 
 # GraphViz includes dot, neato, twopi, circo, fdp.

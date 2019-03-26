@@ -2612,11 +2612,11 @@ class IntegratedCurve(DifferentiableCurve):
                     transf = {}
                     required_coords = set()
                     for pc in ambient_coords:
-                        j = chart[:].index(pc)
+                        jpc = chart[:].index(pc)
                         AUX = mapping._coord_expression[chart_pair]
                         # 'AUX' used only for the lines of source code
                         # to be shorter
-                        transf[pc] = AUX.expr()[j]
+                        transf[pc] = AUX.expr()[jpc]
                         AUX2 = transf[pc].variables() # idem
                         required_coords=required_coords.union(AUX2)
                     break

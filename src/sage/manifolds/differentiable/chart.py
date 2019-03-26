@@ -659,7 +659,7 @@ class DiffChart(Chart):
         # raise an error in case left is not a string
 
         if right is not None:
-            list_strings_velocities = [string_vel + right for string_vel
+            list_strings_velocities = [str_vel + right for str_vel
                                        in list_strings_velocities] # will
             # raise an error in case right is not a string
 

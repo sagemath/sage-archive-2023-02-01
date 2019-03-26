@@ -2134,6 +2134,39 @@ class DiGraph(GenericGraph):
         EXAMPLES::
 
             sage: g = DiGraph({'a': ['a', 'b'], 'b': ['c'], 'c': ['d'], 'd': ['c']}, loops=True)
+            sage: pi = g._all_paths_iterator('a', ending_vertices=['d'], report_edges=True, simple=True)
+            sage: list(pi)
+            [[('a', 'b'), ('b', 'c'), ('c', 'd')]]
+
+            sage: g = DiGraph([(0, 1, 'a'), (0, 1, 'b'), (1, 2,'c'), (1, 2,'d')], multiedges=True)
+            sage: pi =  g._all_paths_iterator(0, use_multiedges=True)
+            sage: for _ in range(6):
+            ....:     print(next(pi))
+            [0, 1]
+            [0, 1]
+            [0, 1, 2]
+            [0, 1, 2]
+            [0, 1, 2]
+            [0, 1, 2]
+            sage: pi =  g._all_paths_iterator(0, use_multiedges=True, report_edges=True, labels=True)
+            sage: for _ in range(6):
+            ....:     print(next(pi))
+            [(0, 1, 'b')]
+            [(0, 1, 'a')]
+            [(0, 1, 'b'), (1, 2, 'd')]
+            [(0, 1, 'b'), (1, 2, 'c')]
+            [(0, 1, 'a'), (1, 2, 'd')]
+            [(0, 1, 'a'), (1, 2, 'c')]
+            sage: list(g._all_paths_iterator(1, ending_vertices=[2], use_multiedges=False, report_edges=True, labels=True, simple=True))
+            [[(1, 2, 'd')]]
+            sage: list(g._all_paths_iterator(0, ending_vertices=[2], use_multiedges=False, report_edges=False, labels=True))
+            [[0, 1, 2]]
+            sage: sage: list(g._all_paths_iterator(0, use_multiedges=True, report_edges=False, labels=True, max_length=1))
+            [[0, 1], [0, 1]]
+            sage: sage: list(g._all_paths_iterator(0, use_multiedges=True, report_edges=True, labels=True, max_length=1))
+            [[(0, 1, 'b')], [(0, 1, 'a')]]
+
+            sage: g = DiGraph({'a': ['a', 'b'], 'b': ['c'], 'c': ['d'], 'd': ['c']}, loops=True)
             sage: pi = g._all_paths_iterator('a')
             sage: for _ in range(5):   # py2
             ....:     print(next(pi))  # py2
@@ -2366,6 +2399,39 @@ class DiGraph(GenericGraph):
             Alexandre Blondin Masse
 
         EXAMPLES::
+
+            sage: g = DiGraph({'a': ['a', 'b'], 'b': ['c'], 'c': ['d'], 'd': ['c']}, loops=True)
+            sage: pi = g.all_paths_iterator(starting_vertices=['a'], ending_vertices=['d'], report_edges=True, simple=True)
+            sage: list(pi)
+            [[('a', 'b'), ('b', 'c'), ('c', 'd')]]
+
+            sage: g = DiGraph([(0, 1, 'a'), (0, 1, 'b'), (1, 2,'c'), (1, 2,'d')], multiedges=True)
+            sage: pi =  g.all_paths_iterator(starting_vertices=[0], use_multiedges=True)
+            sage: for _ in range(6):
+            ....:     print(next(pi))
+            [0, 1]
+            [0, 1]
+            [0, 1, 2]
+            [0, 1, 2]
+            [0, 1, 2]
+            [0, 1, 2]
+            sage: pi =  g.all_paths_iterator(starting_vertices=[0], use_multiedges=True, report_edges=True, labels=True)
+            sage: for _ in range(6):
+            ....:     print(next(pi))
+            [(0, 1, 'b')]
+            [(0, 1, 'a')]
+            [(0, 1, 'b'), (1, 2, 'd')]
+            [(0, 1, 'b'), (1, 2, 'c')]
+            [(0, 1, 'a'), (1, 2, 'd')]
+            [(0, 1, 'a'), (1, 2, 'c')]
+            sage: list(g.all_paths_iterator(starting_vertices=[0, 1], ending_vertices=[2], use_multiedges=False, report_edges=True, labels=True, simple=True))
+            [[(1, 2, 'd')], [(0, 1, 'b'), (1, 2, 'd')]]
+            sage: list(g.all_paths_iterator(starting_vertices=[0, 1], ending_vertices=[2], use_multiedges=False, report_edges=False, labels=True))
+            [[1, 2], [0, 1, 2]]
+            sage: list(g.all_paths_iterator(use_multiedges=True, report_edges=False, labels=True, max_length=1))
+            [[0, 1], [0, 1], [1, 2], [1, 2]]
+            sage: list(g.all_paths_iterator(use_multiedges=True, report_edges=True, labels=True, max_length=1))
+            [[(0, 1, 'b')], [(0, 1, 'a')], [(1, 2, 'd')], [(1, 2, 'c')]]
 
             sage: g = DiGraph({'a': ['a', 'b'], 'b': ['c'], 'c': ['d'], 'd': ['c']}, loops=True)
             sage: pi = g.all_paths_iterator()

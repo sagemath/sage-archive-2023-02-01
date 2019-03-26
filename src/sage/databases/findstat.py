@@ -973,7 +973,6 @@ class FindStatStatistic(SageObject):
         self._references  = self._raw[FINDSTAT_STATISTIC_REFERENCES]
         import sys
         if sys.version_info[0] < 3:
-            self._description = self._description.encode("utf-8")
             self._name        = self._name.encode("utf-8")
             self._references  = self._references.encode("utf-8")
 

@@ -2161,9 +2161,9 @@ class DiGraph(GenericGraph):
             [[(1, 2, 'd')]]
             sage: list(g._all_paths_iterator(0, ending_vertices=[2], use_multiedges=False, report_edges=False, labels=True))
             [[0, 1, 2]]
-            sage: sage: list(g._all_paths_iterator(0, use_multiedges=True, report_edges=False, labels=True, max_length=1))
+            sage: list(g._all_paths_iterator(0, use_multiedges=True, report_edges=False, labels=True, max_length=1))
             [[0, 1], [0, 1]]
-            sage: sage: list(g._all_paths_iterator(0, use_multiedges=True, report_edges=True, labels=True, max_length=1))
+            sage: list(g._all_paths_iterator(0, use_multiedges=True, report_edges=True, labels=True, max_length=1))
             [[(0, 1, 'b')], [(0, 1, 'a')]]
 
             sage: g = DiGraph({'a': ['a', 'b'], 'b': ['c'], 'c': ['d'], 'd': ['c']}, loops=True)

@@ -1422,13 +1422,18 @@ class Graph(GenericGraph):
 
 
     @doc_index("Connectivity, orientations, trees")
-    def spanning_trees(self):
+    def spanning_trees(self, labels=False):
         """
         Returns a list of all spanning trees.
 
         If the graph is disconnected, returns the empty list.
 
         Uses the Read-Tarjan backtracking algorithm [RT75]_.
+
+        INPUT:
+
+        - ``labels`` -- boolean (default: ``False``); whether to return edges
+          labels in the spanning trees or not
 
         EXAMPLES::
 
@@ -1467,7 +1472,7 @@ class Graph(GenericGraph):
         :trac:`27557` is fixed::
 
             sage: g = Graph([(1,2,2),(1,2,1),(1,2,4),(1,4,5)],multiedges=True)
-            sage: l = g.spanning_trees()
+            sage: l = g.spanning_trees(labels=True)
             sage: l[0].edges()
             [(1, 2, 4), (1, 4, 5)]
             sage: l[1].edges()
@@ -1482,7 +1487,7 @@ class Graph(GenericGraph):
           Networks, Volume 5 (1975), numer 3, pages 237-252.
         """
 
-        def _recursive_spanning_trees(G, forest):
+        def _recursive_spanning_trees(G, forest, labels):
             """
             Returns all the spanning trees of G containing forest
             """
@@ -1493,13 +1498,13 @@ class Graph(GenericGraph):
                 return [forest.copy()]
             else:
                 # Pick an edge e from G-forest
-                for e in G.edge_iterator(labels=True):
+                for e in G.edge_iterator(labels=labels):
                     if not forest.has_edge(e):
                         break
 
                 # 1) Recursive call with e removed from G
                 G.delete_edge(e)
-                trees = _recursive_spanning_trees(G, forest)
+                trees = _recursive_spanning_trees(G, forest, labels)
                 G.add_edge(e)
 
                 # 2) Recursive call with e include in forest
@@ -1516,7 +1521,7 @@ class Graph(GenericGraph):
                 # Actual call
                 forest.add_edge(e)
                 G.delete_edges(B)
-                trees.extend(_recursive_spanning_trees(G, forest))
+                trees.extend(_recursive_spanning_trees(G, forest, labels))
                 G.add_edges(B)
                 forest.delete_edge(e)
 
@@ -1526,7 +1531,7 @@ class Graph(GenericGraph):
             forest = Graph()
             forest.add_vertices(self.vertex_iterator())
             forest.add_edges(self.bridges())
-            return _recursive_spanning_trees(Graph(self, immutable=False, loops=False), forest)
+            return _recursive_spanning_trees(Graph(self, immutable=False, loops=False), forest, labels=labels)
         else:
             return []
 

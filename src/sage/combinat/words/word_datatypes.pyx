@@ -227,7 +227,8 @@ cdef class WordDatatype_list(WordDatatype):
 
         EXAMPLES::
 
-            sage: w = Word(range(100))
+            sage: L = list(range(100))
+            sage: w = Word(L)
             sage: w[4]
             4
             sage: w[-1]
@@ -407,8 +408,8 @@ cdef class WordDatatype_str(WordDatatype):
             False
 
         """
-        # we need to override the non standard comportement of
-        # the comportment of the __contains__ of python str
+        # we need to override the non standard behaviour of
+        # the __contains__ of python str
         if not isinstance(a, str):
             return False
         if len(a) != 1:

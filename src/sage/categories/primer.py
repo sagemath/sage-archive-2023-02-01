@@ -540,7 +540,7 @@ categories and parallel to that we had seen for the elements. This is
 best viewed graphically::
 
     sage: g = class_graph(m.__class__)
-    sage: g.relabel(lambda x: x.replace("_","\_"))
+    sage: g.relabel(lambda x: x.replace("_",r"\_"))
     sage: g.set_latex_options(format="dot2tex")
     sage: view(g)                 # not tested
 

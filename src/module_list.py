@@ -1,5 +1,4 @@
 import os
-from glob import glob
 from distutils.extension import Extension
 from sage.env import SAGE_LOCAL
 
@@ -1169,6 +1168,12 @@ ext_modules = [
 
     Extension('sage.rings.power_series_ring_element',
               sources = ['sage/rings/power_series_ring_element.pyx']),
+
+    Extension('sage.rings.tate_algebra_element',
+              sources = ['sage/rings/tate_algebra_element.pyx']),
+
+    Extension('sage.rings.tate_algebra_ideal',
+              sources = ['sage/rings/tate_algebra_ideal.pyx']),
 
     Extension('sage.rings.rational',
               sources = ['sage/rings/rational.pyx'],

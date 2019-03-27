@@ -26,7 +26,6 @@ AUTHORS:
 from __future__ import print_function
 from __future__ import absolute_import
 
-from sage.misc.prandom import sample
 from sage.misc.misc import some_tuples
 from copy import copy
 
@@ -1129,7 +1128,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         The operator ``==`` is not transitive for `p`-adic numbers. We disable
         the check of the category framework by overriding this method.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: R = Zp(3)
             sage: R(3) == R(0,1)
@@ -1398,6 +1397,188 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         zeta, order = self.primitive_root_of_unity(n, order=True)
         return [ zeta**i for i in range(order) ]
 
+    def _roots_univariate_polynomial(self, P, ring, multiplicities, algorithm, secure=False):
+        r"""
+        Return the roots of ``P`` in the ring ``ring``.
+
+        INPUT:
+
+        - ``P`` - a polynomial defined over this ring
+
+        - ``ring`` -- a ring into which this ring coerces
+
+        - ``multiplicities`` -- a boolean (default: ``True``); 
+          whether we have to return the multiplicities of each
+          root or not
+
+        - ``algorithm`` -- ``"pari"``, ``"sage"`` or ``None`` (default: 
+          ``None``); Sage provides an implementation for any extension of 
+          `Q_p` whereas only roots of polynomials over `\QQ_p` is implemented 
+          in Pari; the default is ``"pari"`` if ``ring`` is `\ZZ_p` or `\QQ_p`, 
+          ``"sage"`` otherwise.
+
+        - ``secure`` -- a boolean (default: ``False``)
+
+        NOTE:
+
+        When ``secure`` is ``True``, this method raises an error when 
+        the precision on the input polynomial is not enough to determine 
+        the number of roots in the ground field. This happens when two 
+        roots cannot be separated.
+        A typical example is the polynomial
+
+        .. MATH::
+
+             (1 + O(p^10))*X^2 + O(p^10)*X + O(p^10)
+
+        Indeed its discriminant might be any `p`-adic integer divisible 
+        by `p^{10}` (resp. `p^{11}` when `p=2`) and so can be as well 
+        zero, a square and a non-square.
+        In the first case, the polynomial has one double root; in the
+        second case, it has two roots; in the third case, it has no
+        root in `\QQ_p`.
+
+        When ``secure`` is ``False``, this method assumes that two 
+        inseparable roots actually collapse. In the above example,
+        it then answers that the given polynomial has a double root
+        `O(p^5)`.
+
+        This keyword is ignored when using the ``pari`` algorithm.
+
+        EXAMPLES::
+
+            sage: A = Zp(3, prec=10, print_mode='terse')
+            sage: S.<x> = A[]
+            sage: P = x^2 - 7
+            sage: P.roots()
+            [(30793 + O(3^10), 1), (28256 + O(3^10), 1)]
+            sage: P.roots(multiplicities=False)
+            [30793 + O(3^10), 28256 + O(3^10)]
+
+        We compare with the result given by the method
+        :meth:`sage.rings.padics.padic_generic_element.square_root`::
+
+            sage: A(7).square_root(all=True)
+            [30793 + O(3^10), 28256 + O(3^10)]
+
+        Here is another example::
+
+            sage: P = x * (x-1) * (x-2) * (x-3) * (x-4)
+            sage: P.roots(multiplicities=False)
+            [39370 + O(3^10),
+             19684 + O(3^10), 
+             2 + O(3^10),
+             3 + O(3^10),
+             O(3^10)]
+
+        The result is not quite what we excepted. 
+        In fact, the roots are correct but the precision is not::
+
+            sage: [ root.add_bigoh(9) for root in P.roots(multiplicities=False) ]
+            [4 + O(3^9),
+             1 + O(3^9),
+             2 + O(3^9),
+             3 + O(3^9),
+             O(3^9)]
+
+        This is due to the fact that we are using ``"pari"`` which does not
+        track precision (it can only compute `p`-adic roots of exact polynomials).
+        If we are switching to ``"sage"`` then the precision on the result 
+        becomes correct (but the computation is much slower)::
+
+            sage: P.roots(multiplicities=False, algorithm="sage")
+            [0,
+             3 + O(3^11),
+             1 + O(3^9),
+             4 + O(3^9),
+             2 + O(3^9)]
+
+        We check that the keyword ``secure`` works as explained above::
+
+            sage: P = x^2 + O(3^10)*x + O(3^10)
+            sage: P.roots(algorithm="sage")
+            [(O(3^5), 2)]
+            sage: P.roots(algorithm="sage", secure=True)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: not enough precision to determine the number of roots
+
+        An example over an extension::
+
+            sage: B.<b> = Zq(3^3, prec=10, print_mode='terse')
+            sage: P = B.modulus()
+
+        We check that `P` has no root in `A`::
+
+            sage: P.roots()
+            []
+
+        but that it has roots in `B`::
+
+            sage: P.roots(B)
+            [(35149 + 57730*b + 41124*b^2 + O(3^10), 1),
+             (23900 + 1318*b + 17925*b^2 + O(3^10), 1),
+             (b + O(3^10), 1)]
+
+        We check further that the other roots are the conjugates
+        of ``b`` under Frobenius::
+
+            sage: b.frobenius()
+            23900 + 1318*b + 17925*b^2 + O(3^10)
+            sage: b.frobenius().frobenius()
+            35149 + 57730*b + 41124*b^2 + O(3^10)
+
+        Root finding works over ramified extensions also::
+
+            sage: E = x^3 - 3*x + 3*b
+            sage: C.<pi> = B.extension(E)
+            sage: E.roots(C)
+            [(pi + O(pi^30), 1)]
+
+            sage: S.<x> = C[]
+            sage: P = prod(x - (pi+i) for i in range(5))
+            sage: P.roots()
+            [(pi + O(pi^29), 1),
+             (3 + pi + O(pi^29), 1),
+             (1 + pi + O(pi^27), 1),
+             (4 + pi + O(pi^27), 1),
+             (2 + pi + O(pi^30), 1)]
+
+        TESTS::
+
+            sage: S(0).roots()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: factorization of 0 is not defined
+
+        """
+        if P.is_zero():
+            raise ArithmeticError("factorization of 0 is not defined")
+        if ring is None:
+             ring = self
+        if algorithm is None:
+            try:
+                return self._roots_univariate_polynomial(P, ring, multiplicities, "pari", secure)
+            except (NotImplementedError, PrecisionError):
+                return self._roots_univariate_polynomial(P, ring, multiplicities, "sage", secure)                
+        elif algorithm == "pari":
+            P = P.change_ring(ring)
+            try:
+                # note that P.factor() calls pari
+                return P._roots_from_factorization(P.factor(), multiplicities)
+            except (AttributeError, TypeError):
+                raise NotImplementedError("root finding for this polynomial is not implemented in pari")
+        elif algorithm == "sage":
+            if ring.is_field():
+                roots = P.change_ring(ring)._roots(secure, -Infinity, None)
+            else:
+                K = ring.fraction_field()
+                roots = P.change_ring(K)._roots(secure, 0, None)
+            if multiplicities:
+                return [ (ring(root), m) for (root, m) in roots ]
+            else:
+                return [ ring(root) for (root, m) in roots ]
+
 
 class ResidueReductionMap(Morphism):
     """
@@ -1628,7 +1809,6 @@ class ResidueLiftingMap(Morphism):
             1 + 2 + 2^2 + O(2^5)
         """
         R = self.codomain()
-        e = R.absolute_e()
         kwds = dict(kwds) # we're changing it
         if args:
             args = (min(args[0], self._n),) + args[1:]

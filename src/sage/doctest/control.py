@@ -110,6 +110,7 @@ class DocTestDefaults(SageObject):
         self.failed = False
         self.new = False
         self.show_skipped = False
+        self.target_walltime = None
 
         # sage-runtests contains more optional tags. Technically, adding
         # auto_optional_tags here is redundant, since that is added
@@ -691,9 +692,14 @@ class DocTestController(SageObject):
             'sagenb'
         """
         opj = os.path.join
-        from sage.env import SAGE_SRC, SAGE_DOC_SRC, SAGE_ROOT
-        DOT_GIT= opj(SAGE_ROOT, '.git')
-        have_git = os.path.exists(DOT_GIT)
+        from sage.env import SAGE_SRC, SAGE_DOC_SRC, SAGE_ROOT, SAGE_ROOT_GIT
+        # SAGE_ROOT_GIT can be None on distributions which typically
+        # only have the SAGE_LOCAL install tree but not SAGE_ROOT
+        if SAGE_ROOT_GIT is not None:
+            have_git = os.path.isdir(SAGE_ROOT_GIT)
+        else:
+            have_git = False
+
         def all_files():
             self.files.append(opj(SAGE_SRC, 'sage'))
             # Don't run these tests when not in the git repository; they are
@@ -703,6 +709,7 @@ class DocTestController(SageObject):
                 self.files.append(opj(SAGE_SRC, 'sage_setup'))
             self.files.append(SAGE_DOC_SRC)
             self.options.sagenb = True
+
         if self.options.all or (self.options.new and not have_git):
             self.log("Doctesting entire Sage library.")
             all_files()
@@ -711,7 +718,7 @@ class DocTestController(SageObject):
             self.log("Doctesting files changed since last git commit")
             import subprocess
             change = subprocess.check_output(["git",
-                                              "--git-dir=" + DOT_GIT,
+                                              "--git-dir=" + SAGE_ROOT_GIT,
                                               "--work-tree=" + SAGE_ROOT,
                                               "status",
                                               "--porcelain"])
@@ -723,7 +730,9 @@ class DocTestController(SageObject):
                 status, filename = data[0], data[-1]
                 if (set(status).issubset("MARCU")
                     and filename.startswith("src/sage")
-                    and (filename.endswith(".py") or filename.endswith(".pyx"))):
+                    and (filename.endswith(".py") or
+                         filename.endswith(".pyx") or
+                         filename.endswith(".rst"))):
                     self.files.append(os.path.relpath(opj(SAGE_ROOT,filename)))
         if self.options.sagenb:
             if six.PY3:
@@ -930,7 +939,7 @@ class DocTestController(SageObject):
                     self.cleanup(False)
         else:
             self.log("No files to doctest")
-            self.reporter = DictAsObject(dict(error_status=0))
+            self.reporter = DictAsObject(dict(error_status=0, stats={}))
 
     def cleanup(self, final=True):
         """
@@ -1057,7 +1066,7 @@ class DocTestController(SageObject):
             sage: DD = DocTestDefaults(valgrind=True, optional="all", timeout=172800)
             sage: DC = DocTestController(DD, ["hello_world.py"])
             sage: DC.run_val_gdb(testing=True)
-            exec valgrind --tool=memcheck --leak-resolution=high --leak-check=full --num-callers=25 --suppressions="$SAGE_LOCAL/lib/valgrind/sage.supp"  --log-file=".../valgrind/sage-memcheck.%p" python "$SAGE_LOCAL/bin/sage-runtests" --serial --timeout=172800 --optional=all hello_world.py
+            exec valgrind --tool=memcheck --leak-resolution=high --leak-check=full --num-callers=25 --suppressions="$SAGE_EXTCODE/valgrind/pyalloc.supp" --suppressions="$SAGE_EXTCODE/valgrind/sage.supp" --suppressions="$SAGE_EXTCODE/valgrind/sage-additional.supp"  --log-file=".../valgrind/sage-memcheck.%p" python "$SAGE_LOCAL/bin/sage-runtests" --serial --timeout=172800 --optional=all hello_world.py
         """
         try:
             sage_cmd = self._assemble_cmd()
@@ -1087,7 +1096,9 @@ class DocTestController(SageObject):
                 flags = os.getenv("SAGE_MEMCHECK_FLAGS")
                 if flags is None:
                     flags = "--leak-resolution=high --leak-check=full --num-callers=25 "
-                    flags += '''--suppressions="%s" '''%(os.path.join("$SAGE_LOCAL","lib","valgrind","sage.supp"))
+                    flags += '''--suppressions="%s" '''%(os.path.join("$SAGE_EXTCODE","valgrind","pyalloc.supp"))
+                    flags += '''--suppressions="%s" '''%(os.path.join("$SAGE_EXTCODE","valgrind","sage.supp"))
+                    flags += '''--suppressions="%s" '''%(os.path.join("$SAGE_EXTCODE","valgrind","sage-additional.supp"))
             elif opt.massif:
                 toolname = "massif"
                 flags = os.getenv("SAGE_MASSIF_FLAGS", "--depth=6 ")
@@ -1194,13 +1205,14 @@ class DocTestController(SageObject):
         else:
             self.test_safe_directory()
             self.create_run_id()
-            from sage.env import SAGE_ROOT
-            DOT_GIT= os.path.join(SAGE_ROOT, '.git')
-            if os.path.isdir(DOT_GIT):
+            from sage.env import SAGE_ROOT_GIT
+            # SAGE_ROOT_GIT can be None on distributions which typically
+            # only have the SAGE_LOCAL install tree but not SAGE_ROOT
+            if (SAGE_ROOT_GIT is not None) and os.path.isdir(SAGE_ROOT_GIT):
                 import subprocess
                 try:
                     branch = subprocess.check_output(["git",
-                                                      "--git-dir=" + DOT_GIT,
+                                                      "--git-dir=" + SAGE_ROOT_GIT,
                                                       "rev-parse",
                                                       "--abbrev-ref",
                                                       "HEAD"])
@@ -1224,6 +1236,7 @@ class DocTestController(SageObject):
                          + ','.join(available_software.seen()))
             self.cleanup()
             return self.reporter.error_status
+
 
 def run_doctests(module, options=None):
     """

@@ -132,7 +132,6 @@ This base class provides a lot more methods than a general parent::
      '_zero_ideal',
      'algebraic_closure',
      'base_extend',
-     'cardinality',
      'class_group',
      'coerce_map_from_c',
      'content',
@@ -152,7 +151,6 @@ This base class provides a lot more methods than a general parent::
      'integral_closure',
      'is_commutative',
      'is_field',
-     'is_finite',
      'is_integral_domain',
      'is_integrally_closed',
      'is_noetherian',
@@ -452,9 +450,9 @@ And indeed, ``MS2`` has *more* methods than ``MS1``::
 
     sage: import inspect
     sage: len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
-    82
+    81
     sage: len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
-    121
+    119
 
 This is because the class of ``MS2`` also inherits from the parent
 class for algebras::

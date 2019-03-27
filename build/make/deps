@@ -1,4 +1,5 @@
-## -*- Makefile -*- ###########################################################
+# -*- Makefile -*- ###########################################################
+# vim: noexpandtab filetype=make
 # This file ($SAGE_ROOT/build/make/deps) will be copied into
 # $SAGE_ROOT/build/make/Makefile by config.status
 ###############################################################################
@@ -44,11 +45,8 @@ all-build: toolchain-deps
 
 
 # The 2 preliminary build phases: base and toolchain.
-# During the toolchain build, we export SAGE_BUILD_TOOLCHAIN=yes
-# such that packages can do different things when they are built
-# as prerequisite of GCC.
 base-toolchain: _clean-broken-gcc base
-	env SAGE_BUILD_TOOLCHAIN=yes $(MAKE) toolchain
+	$(MAKE) toolchain
 
 # All targets except for the base packages
 all-sage: \
@@ -74,11 +72,16 @@ toolchain: $(foreach pkgname,$(TOOLCHAIN),$(inst_$(pkgname)))
 # unconditionally. We still use the dependency checking from $(MAKE),
 # so this will not trigger useless rebuilds.
 # See #14168 and #14232.
+#
+# Note: This list consists of only the *runtime* dependencies of the toolchain.
+TOOLCHAIN_DEPS = zlib $(MP_LIBRARY) mpfr mpc
+TOOLCHAIN_DEP_INSTS = \
+	$(foreach pkgname,$(TOOLCHAIN_DEPS),$(inst_$(pkgname)))
+
 toolchain-deps:
-	$(MAKE) $(inst_zlib)
-	$(MAKE) $(MP_LIBRARY)
-	$(MAKE) $(inst_mpfr)
-	$(MAKE) $(inst_mpc)
+	for target in $(TOOLCHAIN_DEP_INSTS); do \
+	    $(MAKE) $$target; \
+	done
 
 all-toolchain: base-toolchain
 	$(MAKE) toolchain-deps
@@ -121,9 +124,8 @@ base: $(inst_patch) $(inst_pkgconf)
 # dependencies for Cython files (e.g. PARI, NTL, MP_LIBRARY).
 sagelib: \
 		$(inst_arb) \
-		$(BLAS) \
+		$(inst_$(BLAS)) \
 		$(inst_brial) \
-		$(inst_cephes) \
 		$(inst_cliquer) \
 		$(inst_cypari) \
 		$(inst_cysignals) \
@@ -133,8 +135,10 @@ sagelib: \
 		$(inst_ecm) \
 		$(inst_flint) \
 		$(inst_libgd) \
+		$(inst_gap) \
 		$(inst_givaro) \
 		$(inst_glpk) \
+		$(inst_gmpy2) \
 		$(inst_gsl) \
 		$(inst_iml) \
 		$(inst_jinja2) \
@@ -142,7 +146,6 @@ sagelib: \
 		$(inst_lcalc) \
 		$(inst_lrcalc) \
 		$(inst_libbraiding) \
-		$(inst_libgap) \
 		$(inst_libhomfly) \
 		$(inst_libpng) \
 		$(inst_linbox) \
@@ -151,7 +154,7 @@ sagelib: \
 		$(inst_mpc) \
 		$(inst_mpfi) \
 		$(inst_mpfr) \
-		$(MP_LIBRARY) \
+		$(inst_$(MP_LIBRARY)) \
 		$(inst_ntl) \
 		$(inst_numpy) \
 		$(inst_pari) \
@@ -159,10 +162,10 @@ sagelib: \
 		$(inst_pkgconfig) \
 		$(inst_planarity) \
 		$(inst_ppl) \
+		$(inst_pplpy) \
 		$(inst_pycygwin) \
 		$(inst_pynac) \
-		$(inst_python2) \
-		$(inst_python3) \
+		$(inst_$(PYTHON)) \
 		$(inst_ratpoints) \
 		$(inst_readline) \
 		$(inst_rw) \

@@ -80,7 +80,7 @@ The following example shows all these steps::
     Optimal solution found.
     sage: print('Objective Value: {}'.format(round(opt,3)))
     Objective Value: 1.0
-    sage: [round(x,3) for x in p.get_values(x).values()]
+    sage: [round(x, 3) for x in sorted(p.get_values(x).values())]
     [0.0, 1.0]
     sage: p.show()
     Maximization:
@@ -625,7 +625,7 @@ cdef class SemidefiniteProgram(SageObject):
         # inv_variables associates a SDPVariable object to an id
         inv_variables = {}
         for (v, id) in self._variables.iteritems():
-            inv_variables[id]=v
+            inv_variables[id] = v
 
         # varid_name associates variables id to names
         varid_name = {}
@@ -728,7 +728,7 @@ cdef class SemidefiniteProgram(SageObject):
         values for the corresponding variables ::
 
             sage: x_sol = p.get_values(x)
-            sage: x_sol.keys()
+            sage: sorted(x_sol)
             [3, 5]
 
         Obviously, it also works with variables of higher dimension::
@@ -759,8 +759,7 @@ cdef class SemidefiniteProgram(SageObject):
         else:
             return val
 
-
-    def set_objective(self,obj):
+    def set_objective(self, obj):
         r"""
         Sets the objective of the ``SemidefiniteProgram``.
 
@@ -906,8 +905,7 @@ cdef class SemidefiniteProgram(SageObject):
                 self.add_constraint(c.lhs()-c.rhs(), name=name)
 
         elif is_LinearFunction(linear_function) or is_LinearTensor(linear_function):
-            l = linear_function.dict().items()
-            l.sort()
+            l = sorted(linear_function.dict().items())
             self._backend.add_linear_constraint(l, name)
 
         else:
@@ -1000,7 +998,6 @@ cdef class SemidefiniteProgram(SageObject):
         TESTS::
 
             sage: p.dual_variable(7)
-            ...
             Traceback (most recent call last):
             ...
             IndexError: list index out of range
@@ -1041,7 +1038,7 @@ cdef class SemidefiniteProgram(SageObject):
             [0.0 0.0]
             sage: B1.is_positive_definite()
             True
-            sage: x = p.get_values(x).values()
+            sage: x = sorted(p.get_values(x).values())
             sage: x[0]*b1 + x[1]*b2 - b3 + B1       # tol 1e-09
             [0.0 0.0]
             [0.0 0.0]
@@ -1049,7 +1046,6 @@ cdef class SemidefiniteProgram(SageObject):
         TESTS::
 
             sage: p.slack(7)
-            ...
             Traceback (most recent call last):
             ...
             IndexError: list index out of range
@@ -1131,8 +1127,8 @@ cdef class SemidefiniteProgram(SageObject):
         """
         d = {}
         for v in L:
-            for id,coeff  in v.iteritems():
-                d[id] = coeff + d.get(id,0)
+            for id, coeff  in v.iteritems():
+                d[id] = coeff + d.get(id, 0)
         return self.linear_functions_parent()(d)
 
     def get_backend(self):
@@ -1184,7 +1180,6 @@ class SDPSolverException(RuntimeError):
         sage: b = matrix([[1,9],[9,4]])
         sage: p.add_constraint( a*x[0] == b   )
         sage: p.solve()
-        ...
         Traceback (most recent call last):
         ...
         SDPSolverException: ...
@@ -1292,7 +1287,7 @@ cdef class SDPVariable(Element):
             sage: p = SemidefiniteProgram()
             sage: v = p.new_variable()
             sage: p.set_objective(v[0] + v[1])
-            sage: list(v.keys())
+            sage: sorted(v.keys())
             [0, 1]
         """
         return self._dict.keys()
@@ -1306,7 +1301,7 @@ cdef class SDPVariable(Element):
             sage: p = SemidefiniteProgram()
             sage: v = p.new_variable()
             sage: p.set_objective(v[0] + v[1])
-            sage: list(v.items())
+            sage: sorted(v.items())
             [(0, x_0), (1, x_1)]
         """
         return self._dict.items()
@@ -1320,7 +1315,7 @@ cdef class SDPVariable(Element):
             sage: p = SemidefiniteProgram()
             sage: v = p.new_variable()
             sage: p.set_objective(v[0] + v[1])
-            sage: list(v.values())
+            sage: sorted(v.values(), key=str)
             [x_0, x_1]
         """
         return self._dict.values()

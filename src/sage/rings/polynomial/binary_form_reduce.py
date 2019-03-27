@@ -16,15 +16,16 @@ AUTHORS:
 - Ben Hutz (2018-7) -- improvements to reduce and implement smallest coefficient model 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2018 Benjamin Hutz <bn4941#gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from __future__ import division
 
 from sage.arith.misc import gcd
 from sage.calculus.functions import jacobian
@@ -131,7 +132,7 @@ def covariant_z0(F, z0_cov=False, prec=53, emb=None, error_limit=0.000001):
     """
     R = F.parent()
     d = ZZ(F.degree())
-    if R.ngens() != 2 or any([sum(t) != d for t in F.exponents()]):
+    if R.ngens() != 2 or any(sum(t) != d for t in F.exponents()):
         raise TypeError('must be a binary form')
     if d < 3:
         raise ValueError('must be at least degree 3')
@@ -327,7 +328,7 @@ def epsinv(F, target, prec=53, target_tol=0.001, z=None, emb=None):
     if z is None:
         z, th = covariant_z0(F, prec=prec, emb=emb)
     else: #need to do our own input checking
-        if R.ngens() != 2 or any([sum(t) != d for t in F.exponents()]):
+        if R.ngens() != 2 or any(sum(t) != d for t in F.exponents()):
             raise TypeError('must be a binary form')
         if d < 3:
             raise ValueError('must be at least degree 3')
@@ -515,10 +516,10 @@ def smallest_poly(F, prec=53, norm_type='norm', emb=None):
             else:
                 pts.append(item)
             return pts
-        else: #binary insertion
+        else:  # binary insertion
             left = 1
             right = N
-            mid = ((left + right)/2)# these are ints so this is .floor()
+            mid = (left + right) // 2  # these are ints so this is .floor()
             if item[index] > pts[mid][index]: # item goes into first half
                 return insert_item(pts[:mid], item, index) + pts[mid:N]
             else: # item goes into second half

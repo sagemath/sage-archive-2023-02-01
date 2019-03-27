@@ -44,6 +44,8 @@ Abelian Groups
    sage/groups/abelian_gps/abelian_group_morphism
    sage/groups/additive_abelian/additive_abelian_group
    sage/groups/additive_abelian/additive_abelian_wrapper
+   sage/groups/misc_gps/argument_groups
+   sage/groups/misc_gps/imaginary_groups
 
 Permutation Groups
 ------------------

@@ -57,6 +57,8 @@ def repr_short_to_parent(s):
         Symbolic Ring
         sage: repr_short_to_parent('NN')
         Non negative integer semiring
+        sage: repr_short_to_parent('U')
+        Group of Roots of Unity
 
     TESTS::
 
@@ -64,14 +66,30 @@ def repr_short_to_parent(s):
         Traceback (most recent call last):
         ...
         ValueError: Cannot create a parent out of 'abcdef'.
-        > *previous* NameError: name 'abcdef' is not defined
+        > *previous* ValueError: unknown specification abcdef
+        > *and* NameError: name 'abcdef' is not defined
     """
+    from sage.groups.misc_gps.argument_groups import ArgumentGroup
     from sage.misc.sage_eval import sage_eval
-    try:
-        P = sage_eval(s)
-    except Exception as e:
+
+    def extract(s):
+        try:
+            return ArgumentGroup(specification=s)
+        except Exception as e:
+            e_ag = e
+            e_ag.__traceback__ = None
+
+        try:
+            return sage_eval(s)
+        except Exception as e:
+            e_se = e
+            e_se.__traceback__ = None
+
         raise combine_exceptions(
-            ValueError("Cannot create a parent out of '%s'." % (s,)), e)
+            ValueError("Cannot create a parent out of '%s'." % (s,)),
+            e_ag, e_se)
+
+    P = extract(s)
 
     from sage.misc.lazy_import import LazyImport
     if type(P) is LazyImport:
@@ -105,6 +123,10 @@ def parent_to_repr_short(P):
         'QQ'
         sage: parent_to_repr_short(SR)
         'SR'
+        sage: parent_to_repr_short(RR)
+        'RR'
+        sage: parent_to_repr_short(CC)
+        'CC'
         sage: parent_to_repr_short(ZZ['x'])
         'ZZ[x]'
         sage: parent_to_repr_short(QQ['d, k'])
@@ -118,6 +140,7 @@ def parent_to_repr_short(P):
         sage: parent_to_repr_short(Zmod(3)['g'])
         'Univariate Polynomial Ring in g over Ring of integers modulo 3'
     """
+    from sage.rings.all import RR, CC, RIF, CIF, RBF, CBF
     from sage.rings.integer_ring import ZZ
     from sage.rings.rational_field import QQ
     from sage.symbolic.ring import SR
@@ -125,12 +148,18 @@ def parent_to_repr_short(P):
     from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
     from sage.rings.power_series_ring import is_PowerSeriesRing
     def abbreviate(P):
-        if P is ZZ:
-            return 'ZZ'
-        elif P is QQ:
-            return 'QQ'
-        elif P is SR:
-            return 'SR'
+        try:
+            return P._repr_short_()
+        except AttributeError:
+            pass
+        abbreviations = {ZZ: 'ZZ', QQ: 'QQ', SR: 'SR',
+                         RR: 'RR', CC: 'CC',
+                         RIF: 'RIF', CIF: 'CIF',
+                         RBF: 'RBF', CBF: 'CBF'}
+        try:
+            return abbreviations[P]
+        except KeyError:
+            pass
         raise ValueError('Cannot abbreviate %s.' % (P,))
 
     poly = is_PolynomialRing(P) or is_MPolynomialRing(P)
@@ -304,12 +333,17 @@ def repr_op(left, op, right=None, latex=False):
 
         sage: print(repr_op(r'\frac{1}{2}', '^', 'c', latex=True))
         \left(\frac{1}{2}\right)^c
+
+    ::
+
+        sage: repr_op('Arg', '_', 'Symbolic Ring')
+        'Arg_(Symbolic Ring)'
     """
     left = str(left)
     right = str(right) if right is not None else ''
 
     def add_parentheses(s, op):
-        if op == '^':
+        if op in ('^', '_'):
             signals = ('^', '/', '*', '-', '+', ' ')
         else:
             return s
@@ -685,6 +719,51 @@ def log_string(element, base=None):
     """
     basestr = ', base=' + str(base) if base else ''
     return 'log(%s%s)' % (element, basestr)
+
+
+def strip_symbolic(expression):
+    r"""
+    Return, if possible, the underlying (numeric) object of
+    the symbolic expression.
+
+    If ``expression`` is not symbolic, then ``expression`` is returned.
+
+    INPUT:
+
+    - ``expression`` -- an object
+
+    OUTPUT:
+
+    An object.
+
+    EXAMPLES::
+
+        sage: from sage.rings.asymptotic.misc import strip_symbolic
+        sage: strip_symbolic(SR(2)); _.parent()
+        2
+        Integer Ring
+        sage: strip_symbolic(SR(2/3)); _.parent()
+        2/3
+        Rational Field
+        sage: strip_symbolic(SR('x')); _.parent()
+        x
+        Symbolic Ring
+        sage: strip_symbolic(pi); _.parent()
+        pi
+        Symbolic Ring
+    """
+    from sage.structure.element import parent, Element
+    from sage.symbolic.ring import SymbolicRing
+
+    P = parent(expression)
+    if isinstance(P, SymbolicRing):
+        try:
+            stripped = expression.pyobject()
+            if isinstance(stripped, Element):
+                return stripped
+        except TypeError:
+            pass
+    return expression
 
 
 class NotImplementedOZero(NotImplementedError):

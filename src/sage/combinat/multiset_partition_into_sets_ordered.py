@@ -80,7 +80,7 @@ from sage.structure.element_wrapper import ElementWrapper
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.misc_c import prod, running_total
 from sage.misc.latex import latex
-from sage.sets.set import Set, Set_object
+from sage.sets.set import Set_object
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.functions.other import binomial
@@ -630,27 +630,27 @@ class OrderedMultisetPartitionIntoSets(ClonableArray):
 
         EXAMPLES::
 
-            sage: sorted(OrderedMultisetPartitionIntoSets([[1,2],[3,4]]).split_blocks())
+            sage: sorted(OrderedMultisetPartitionIntoSets([[1,2],[3,4]]).split_blocks(), key=str)
             [([], [{1,2}, {3,4}]),
-             ([{2}, {4}], [{1}, {3}]),
-             ([{2}, {3,4}], [{1}]),
-             ([{3,4}], [{1,2}]),
-             ([{1}], [{2}, {3,4}]),
-             ([{1,2}, {4}], [{3}]),
              ([{1,2}, {3,4}], []),
-             ([{4}], [{1,2}, {3}]),
-             ([{1}, {4}], [{2}, {3}]),
-             ([{1}, {3}], [{2}, {4}]),
-             ([{2}], [{1}, {3,4}]),
-             ([{2}, {3}], [{1}, {4}]),
-             ([{1,2}], [{3,4}]),
              ([{1,2}, {3}], [{4}]),
+             ([{1,2}, {4}], [{3}]),
+             ([{1,2}], [{3,4}]),
+             ([{1}, {3,4}], [{2}]),
+             ([{1}, {3}], [{2}, {4}]),
+             ([{1}, {4}], [{2}, {3}]),
+             ([{1}], [{2}, {3,4}]),
+             ([{2}, {3,4}], [{1}]),
+             ([{2}, {3}], [{1}, {4}]),
+             ([{2}, {4}], [{1}, {3}]),
+             ([{2}], [{1}, {3,4}]),
+             ([{3,4}], [{1,2}]),
              ([{3}], [{1,2}, {4}]),
-             ([{1}, {3,4}], [{2}])]
-            sage: OrderedMultisetPartitionIntoSets([[1,2]]).split_blocks(3)
-            {([], [], [{1,2}]): 1, ([], [{1}], [{2}]): 1, ([], [{2}], [{1}]): 1,
-             ([], [{1,2}], []): 1, ([{2}], [], [{1}]): 1, ([{1}], [], [{2}]): 1,
-             ([{1}], [{2}], []): 1, ([{2}], [{1}], []): 1, ([{1,2}], [], []): 1}
+             ([{4}], [{1,2}, {3}])]
+            sage: sorted(OrderedMultisetPartitionIntoSets([[1,2]]).split_blocks(3), key=str)
+            [([], [], [{1,2}]), ([], [{1,2}], []), ([], [{1}], [{2}]),
+             ([], [{2}], [{1}]), ([{1,2}], [], []), ([{1}], [], [{2}]),
+             ([{1}], [{2}], []), ([{2}], [], [{1}]), ([{2}], [{1}], [])]
             sage: OrderedMultisetPartitionIntoSets([[4],[4]]).split_blocks()
             {([], [{4}, {4}]): 1, ([{4}], [{4}]): 2, ([{4}, {4}], []): 1}
 
@@ -697,8 +697,8 @@ class OrderedMultisetPartitionIntoSets(ClonableArray):
             sage: C = OrderedMultisetPartitionIntoSets([[3,2]]).finer()
             sage: len(C)
             3
-            sage: sorted(C)
-            [[{3}, {2}], [{2}, {3}], [{2,3}]]
+            sage: sorted(C, key=str)
+            [[{2,3}], [{2}, {3}], [{3}, {2}]]
             sage: OrderedMultisetPartitionIntoSets([]).finer()
             {[]}
             sage: O = OrderedMultisetPartitionsIntoSets([1, 1, 'a', 'b'])
@@ -2334,12 +2334,12 @@ class OrderedMultisetPartitionsIntoSets_X(OrderedMultisetPartitionsIntoSets):
         TESTS::
 
             sage: O = OrderedMultisetPartitionsIntoSets(['a', 'b', 'a'])
-            sage: sorted(O)
-            [[{'a'}, {'a'}, {'b'}],
-             [{'a'}, {'b'}, {'a'}],
+            sage: sorted(O, key=str)
+            [[{'a','b'}, {'a'}],
              [{'a'}, {'a','b'}],
-             [{'b'}, {'a'}, {'a'}],
-             [{'a','b'}, {'a'}]]
+             [{'a'}, {'a'}, {'b'}],
+             [{'a'}, {'b'}, {'a'}],
+             [{'b'}, {'a'}, {'a'}]]
 
             sage: O = OrderedMultisetPartitionsIntoSets([1, 1, 2])
             sage: list(O)
@@ -2484,12 +2484,11 @@ class OrderedMultisetPartitionsIntoSets_alph_d(OrderedMultisetPartitionsIntoSets
 
             sage: O = OrderedMultisetPartitionsIntoSets(['a', 'b'], 3)
             sage: it = O.__iter__()
-            sage: [next(it) for _ in range(O.cardinality())]
+            sage: sorted([next(it) for _ in range(O.cardinality())], key=str)
             [[{'a','b'}, {'a'}], [{'a','b'}, {'b'}], [{'a'}, {'a','b'}],
-             [{'b'}, {'a','b'}], [{'a'}, {'a'}, {'a'}], [{'a'}, {'a'}, {'b'}],
-             [{'a'}, {'b'}, {'a'}], [{'a'}, {'b'}, {'b'}],
-             [{'b'}, {'a'}, {'a'}], [{'b'}, {'a'}, {'b'}],
-             [{'b'}, {'b'}, {'a'}], [{'b'}, {'b'}, {'b'}]]
+             [{'a'}, {'a'}, {'a'}], [{'a'}, {'a'}, {'b'}], [{'a'}, {'b'}, {'a'}],
+             [{'a'}, {'b'}, {'b'}], [{'b'}, {'a','b'}], [{'b'}, {'a'}, {'a'}],
+             [{'b'}, {'a'}, {'b'}], [{'b'}, {'b'}, {'a'}], [{'b'}, {'b'}, {'b'}]]
         """
         for co in _iterator_order(self._alphabet, self._order):
             yield self.element_class(self, co)
@@ -2586,7 +2585,7 @@ def _get_multiset(co):
         sage: _get_multiset(L)
         (1, 1, 1, 1, 3, 6, 6, 7)
     """
-    return tuple(sorted(_concatenate(co)))
+    return tuple(sorted(_concatenate(co), key=str))
 
 def _get_weight(lst):
     """
@@ -2701,11 +2700,11 @@ def _base_iterator(constraints):
         sage: OMP = OrderedMultisetPartitionIntoSets
         sage: constraints = {"weight": {1:3, 2:3, 4:1}, "length": 5}
         sage: it = _base_iterator(constraints)
-        sage: [OMP(next(it)) for _ in range(4)] # note the partitions of length 6 and 7
-        [[{1}, {1}, {1}, {2}, {2}, {2,4}],
-         [{1}, {1}, {1}, {2}, {2}, {2}, {4}],
-         [{1}, {1}, {1,2}, {2}, {2,4}],
-         [{1}, {1}, {1,2}, {2}, {2}, {4}]]
+        sage: sorted(OMP(next(it)) for _ in range(4)) # note the partitions of length 6 and 7
+        [[{1}, {1}, {1}, {2}, {2}, {2}, {4}],
+         [{1}, {1}, {1}, {2}, {2}, {2,4}],
+         [{1}, {1}, {1,2}, {2}, {2}, {4}],
+         [{1}, {1}, {1,2}, {2}, {2,4}]]
 
     If key ``size`` is present, pass to ``_iterator_size``, which then
     takes into account whether or not keys ``length`` and ``alphabet``
@@ -2770,6 +2769,7 @@ def _base_iterator(constraints):
     # else
     return None
 
+
 def _iterator_weight(weight):
     """
     An iterator for the ordered multiset partitions into sets with weight given by
@@ -2808,33 +2808,28 @@ def _iterator_weight(weight):
          (frozenset({1}), frozenset({3}), frozenset({1})),
          (frozenset({1, 3}), frozenset({1})),
          (frozenset({3}), frozenset({1}), frozenset({1}))]
+        sage: list(_iterator_weight([]))
+        [()]
     """
+    # "weight" should be a dict mapping keys to weights
     if isinstance(weight, (list, tuple)):
-        weight = {k+1: val for k,val in enumerate(weight) if val > 0}
-    if isinstance(weight, dict):
-        multiset = tuple([k for k in sorted(weight) for _ in range(weight[k])])
+        weight = {k+1: val for k, val in enumerate(weight) if val}
 
-    if not multiset:
-        yield ()
-    else:
-        # We build ordered multiset partitions into sets of `X` by permutation + deconcatenation
-        # We first standardize the multiset to combat unreliable sorting behavior.
-        em = enumerate(set(multiset))
-        key_to_indx = {}
-        indx_to_key = {}
-        for (i,key) in em:
-            key_to_indx[key] = i
-            indx_to_key[i] = key
-        std_multiset = []
-        for a in multiset:
-            std_multiset.append(key_to_indx[a])
-        std_multiset = sorted(std_multiset)
+    # We first map the arbitrary keys to integers to combat unreliable
+    # sorting behavior.
+    keys = tuple(set(weight))
+    multiset = []
+    for i, key in enumerate(keys):
+        multiset += [i] * weight[key]
 
-        for alpha in Permutations_mset(std_multiset):
-            co = _break_at_descents(alpha, weak=True)
-            for A in OrderedMultisetPartitionIntoSets(co).finer(strong=True):
-                B = tuple([frozenset([indx_to_key[i] for i in block]) for block in A])
-                yield B
+    # We build ordered multiset partitions into sets of `X` by
+    # permutation + deconcatenation
+    for alpha in Permutations_mset(multiset):
+        co = _break_at_descents(alpha, weak=True)
+        for A in OrderedMultisetPartitionIntoSets(co).finer(strong=True):
+            B = tuple([frozenset([keys[i] for i in block]) for block in A])
+            yield B
+
 
 def _iterator_size(size, length=None, alphabet=None):
     r"""

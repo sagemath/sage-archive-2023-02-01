@@ -670,7 +670,7 @@ class BipartiteGraph(Graph):
             sage: B.delete_vertex(0)
             Traceback (most recent call last):
             ...
-            RuntimeError: Vertex (0) not in the graph.
+            ValueError: vertex (0) not in the graph
 
         ::
 
@@ -732,7 +732,7 @@ class BipartiteGraph(Graph):
             sage: B.delete_vertices([0])
             Traceback (most recent call last):
             ...
-            RuntimeError: Vertex (0) not in the graph.
+            ValueError: vertex (0) not in the graph
         """
         # remove vertices from the graph
         Graph.delete_vertices(self, vertices)

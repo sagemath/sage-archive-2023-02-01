@@ -145,7 +145,7 @@ cdef class IndependentSets:
             sage: def check_matching(G):
             ....:     number_of_matchings = sum(map(abs, matching_polynomial(G).coefficients(sparse=False)))
             ....:     if number_of_matchings != IndependentSets(G.line_graph()).cardinality():
-            ....:         print("Ooooch !")
+            ....:         raise ValueError("something goes wrong")
             sage: for i in range(30):
             ....:     check_matching(graphs.RandomGNP(11, .3))
 
@@ -161,8 +161,7 @@ cdef class IndependentSets:
             ....:     for n in range(2, alpha + 1):
             ....:         IS2.extend(map(Set, list(G.subgraph_search_iterator(Graph(n), induced=True))))
             ....:     if len(IS) != len(set(IS2)):
-            ....:        print("Oops")
-            ....:        print(len(IS), len(set(IS2)))
+            ....:        raise ValueError("something goes wrong")
             sage: for i in range(5):
             ....:     check_with_subgraph_search(graphs.RandomGNP(11, .3))
 
@@ -177,10 +176,11 @@ cdef class IndependentSets:
         cdef int i
 
         # Map from Vertex to Integer, and from Integer to Vertex
-        self.vertices = G.vertices()
+        self.vertices = list(G)
+        self.vertex_to_int = {v: i for i, v in enumerate(self.vertices)}
         self.n = G.order()
         self.maximal = maximal
-        self.vertex_to_int = dense_graph_init(self.g, G, translation=True)
+        dense_graph_init(self.g, G, translation=self.vertex_to_int)
 
         # If we must consider the graph's complement instead
         if complement:
@@ -192,7 +192,7 @@ cdef class IndependentSets:
 
     def __iter__(self):
         r"""
-        Returns an iterator over the independent sets of self.
+        Return an iterator over the independent sets of ``self``.
 
         TESTS::
 
@@ -226,82 +226,84 @@ cdef class IndependentSets:
         cdef list ans
         cdef int j
 
-        # At every moment of the algorithm current_set represents an independent
-        # set, except for the ith bit. All bits >i are zero.
+        try:
+            # At every moment of the algorithm current_set represents an independent
+            # set, except for the ith bit. All bits >i are zero.
 
-        while True:
+            while True:
 
-            # If i is in current_set
-            if bitset_in(current_set, i):
+                # If i is in current_set
+                if bitset_in(current_set, i):
 
-                # We have found an independent set !
-                if bitset_are_disjoint(self.g.rows[i], current_set):
+                    # We have found an independent set !
+                    if bitset_are_disjoint(self.g.rows[i], current_set):
 
-                    # Saving that set
-                    bitset_copy(tmp, current_set)
+                        # Saving that set
+                        bitset_copy(tmp, current_set)
 
-                    # Preparing for the next set, except if we set the last bit.
-                    if i < self.n - 1:
+                        # Preparing for the next set, except if we set the last bit.
+                        if i < self.n - 1:
 
-                        # Adding (i+1)th bit
-                        bitset_add(current_set, i + 1)
-                        i += 1
+                            # Adding (i+1)th bit
+                            bitset_add(current_set, i + 1)
+                            i += 1
+                        else:
+                            bitset_discard(current_set, i)
+
+                        # Returning the result if necessary ...
+                        if self.maximal and not ismaximal(self.g, self.n, tmp):
+                            continue
+
+                        count += 1
+
+                        if not self.count_only:
+                            yield [self.vertices[j] for j in range(i + 1) if bitset_in(tmp,j)]
+                            continue
+
                     else:
+                        # Removing the ith bit
                         bitset_discard(current_set, i)
 
-                    # Returning the result if necessary ...
-                    if self.maximal and not ismaximal(self.g, self.n, tmp):
-                        continue
+                        # Preparing for the next set !
+                        if i < self.n - 1:
+                            bitset_add(current_set, i + 1)
+                            i += 1
 
-                    count += 1
-
-                    if not self.count_only:
-                        yield [self.vertices[j] for j in range(i + 1) if bitset_in(tmp,j)]
-                        continue
-
+                # Not already included in the set
                 else:
-                    # Removing the ith bit
-                    bitset_discard(current_set, i)
+                    if not i:
+                        break
 
-                    # Preparing for the next set !
-                    if i < self.n - 1:
-                        bitset_add(current_set, i + 1)
-                        i += 1
+                    # Going backward, we explored all we could there !
+                    if bitset_in(current_set, i - 1):
+                        bitset_discard(current_set, i - 1)
+                        bitset_add(current_set, i)
+                    else:
+                        i -= 1
 
-            # Not already included in the set
-            else:
-                if i == 0:
-                    break
+            if not self.maximal:
+                count += 1
+                if not self.count_only:
+                    yield []
 
-                # Going backward, we explored all we could there !
-                if bitset_in(current_set,i-1):
-                    bitset_discard(current_set, i-1)
-                    bitset_add(current_set,i)
-                else:
-                    i -= 1
+            if self.count_only:
+                yield count
 
-        if not self.maximal:
-            count += 1
-            if not self.count_only:
-                yield []
-
-        if self.count_only:
-            yield count
-
-        bitset_free(current_set)
-        bitset_free(tmp)
+        finally:
+            bitset_free(current_set)
+            bitset_free(tmp)
 
     def __dealloc__(self):
         r"""
         Frees everything we ever allocated
         """
-        if self.g.rows != NULL:
+        if self.g.rows:
             binary_matrix_free(self.g)
 
     @cached_method
     def cardinality(self):
         r"""
-        Computes and returns the number of independent sets
+        Compute and return the number of independent sets.
 
         TESTS::
 
@@ -330,7 +332,7 @@ cdef class IndependentSets:
 
     def __contains__(self, S):
         r"""
-        Checks whether the set is an independent set (possibly maximal)
+        Check whether the set is an independent set (possibly maximal)
 
         INPUT:
 
@@ -348,41 +350,54 @@ cdef class IndependentSets:
 
         And only them are::
 
-            sage: IS2 = [x for x in subsets(G.vertices()) if x in IS]
+            sage: IS2 = [x for x in subsets(G) if x in IS]
             sage: sorted(IS) == sorted(IS2)
             True
 
         Same with maximal independent sets::
 
             sage: IS = IndependentSets(graphs.PetersenGraph(), maximal=True)
-            sage: S = Subsets(G.vertices())
+            sage: S = Subsets(G)
             sage: all(s in IS for s in IS)
             True
-            sage: IS2 = [x for x in subsets(G.vertices()) if x in IS]
+            sage: IS2 = [x for x in subsets(G) if x in IS]
             sage: sorted(IS) == sorted(IS2)
             True
-        """
-        # Set of vertices as a bitset
-        cdef bitset_t s
 
-        bitset_init(s, self.n)
-        bitset_set_first_n(s, 0)
+        Check that the empty graph is dealt with correctly::
+
+            sage: IS = IndependentSets(Graph())
+            sage: [] in IS
+            True
+        """
+        if not self.n:
+            return S == []
 
         cdef int i
-        for I in S:
-            try:
-                i = self.vertex_to_int[I]
-            except KeyError:
-                raise ValueError(str(I) + " is not a vertex of the graph")
+        # Set of vertices as a bitset
+        cdef bitset_t s
+        bitset_init(s, self.n)
 
-            # Adding the new vertex to s
-            bitset_add(s, i)
+        try:
+            bitset_set_first_n(s, 0)
 
-            # Checking that the set s is independent
-            if not bitset_are_disjoint(self.g.rows[i], s):
+            for I in S:
+                try:
+                    i = self.vertex_to_int[I]
+                except KeyError:
+                    raise ValueError(str(I) + " is not a vertex of the graph")
+
+                # Adding the new vertex to s
+                bitset_add(s, i)
+
+                # Checking that the set s is independent
+                if not bitset_are_disjoint(self.g.rows[i], s):
+                    return False
+
+            if self.maximal and not ismaximal(self.g, self.n, s):
                 return False
 
-        if self.maximal and not ismaximal(self.g, self.n, s):
-            return False
+            return True
 
-        return True
+        finally:
+            bitset_free(s)

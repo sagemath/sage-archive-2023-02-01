@@ -16,7 +16,7 @@ from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.lazy_import import LazyImport
 from sage.misc.constant_function import ConstantFunction
-from sage.misc.misc import attrcall, uniq
+from sage.misc.misc import attrcall
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -1871,6 +1871,10 @@ class CoxeterGroups(Category_singleton):
                 sage: w = W.from_reduced_word([0,2])
                 sage: print([v.reduced_word() for v in w.bruhat_lower_covers()])
                 [[2], [0]]
+                sage: W = WeylGroup("A3",prefix="s",implementation="permutation")
+                sage: [s1,s2,s3]=W.simple_reflections()
+                sage: (s1*s2*s3*s1).bruhat_lower_covers()
+                [s2*s1*s3, s1*s2*s1, s1*s2*s3]
 
             We now show how to construct the Bruhat poset::
 
@@ -1885,10 +1889,10 @@ class CoxeterGroups(Category_singleton):
 
             The algorithm is taken from Stembridge's 'coxeter/weyl' package for Maple.
             """
-            desc = self.first_descent()
+            desc = self.first_descent(side='right')
             if desc is not None:
-                ww = self.apply_simple_reflection(desc)
-                return [u.apply_simple_reflection(desc) for u in ww.bruhat_lower_covers() if not u.has_descent(desc)] + [ww]
+                ww = self.apply_simple_reflection(desc, side ='right')
+                return [u.apply_simple_reflection(desc, side='right') for u in ww.bruhat_lower_covers() if not u.has_descent(desc,side='right')] + [ww]
             else:
                 return []
 
@@ -1922,14 +1926,15 @@ class CoxeterGroups(Category_singleton):
                 sage: set(S) == set(C)
                 True
             """
-            Covers = []
+            Covers = set()
             for i in self.parent().index_set():
-                if i in self.descents():
-                    Covers += [ x.apply_simple_reflection(i) for x in self.apply_simple_reflection(i).bruhat_upper_covers()
-                                if i not in x.descents() ]
+                if i in self.descents(side='right'):
+                    Covers.update(x.apply_simple_reflection(i, side='right')
+                                  for x in self.apply_simple_reflection(i,side='right').bruhat_upper_covers()
+                                  if i not in x.descents(side='right'))
                 else:
-                    Covers += [ self.apply_simple_reflection(i) ]
-            return uniq(Covers)
+                    Covers.add(self.apply_simple_reflection(i,side='right'))
+            return sorted(Covers)
 
         @cached_in_parent_method
         def bruhat_lower_covers_reflections(self):
@@ -1990,17 +1995,16 @@ class CoxeterGroups(Category_singleton):
                 sage: w = W.from_reduced_word([3,1,2,1])
                 sage: w.bruhat_upper_covers_reflections()
                 [(s1*s2*s3*s2*s1, s3), (s2*s3*s1*s2*s1, s2*s3*s2), (s3*s4*s1*s2*s1, s4), (s4*s3*s1*s2*s1, s1*s2*s3*s4*s3*s2*s1)]
-
             """
-
-            Covers = []
+            Covers = set()
             for i in self.parent().index_set():
                 wi = self.apply_simple_reflection(i)
                 if i in self.descents():
-                    Covers += [(u.apply_simple_reflection(i), r.apply_conjugation_by_simple_reflection(i)) for u, r in wi.bruhat_upper_covers_reflections() if i not in u.descents()]
+                    Covers.update((u.apply_simple_reflection(i), r.apply_conjugation_by_simple_reflection(i))
+                                  for u, r in wi.bruhat_upper_covers_reflections() if i not in u.descents())
                 else:
-                    Covers += [(wi, self.parent().simple_reflection(i))]
-            return uniq(Covers)
+                    Covers.add((wi, self.parent().simple_reflection(i)))
+            return sorted(Covers)
 
         def cover_reflections(self, side='right'):
             r"""
@@ -2288,6 +2292,13 @@ class CoxeterGroups(Category_singleton):
                 sage: c = W.from_reduced_word([1,2,3])
                 sage: len([w for w in W if w.is_coxeter_sortable(c)]) # number of c-sortable elements in A_3 (Catalan number)
                 14
+
+            TESTS::
+
+                sage: W = SymmetricGroup(3)
+                sage: c = Permutation((1,2,3))
+                sage: sorted(w for w in W if w.is_coxeter_sortable(c))
+                [(), (2,3), (1,2), (1,3,2), (1,3)]
             """
             if hasattr(c, "reduced_word"):
                 c = c.reduced_word()

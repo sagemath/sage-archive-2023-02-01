@@ -15,8 +15,6 @@ from six.moves import range
 from sage.modules.free_module_element import vector
 from sage.rings.real_double import RDF
 
-from sage.misc.decorators import rename_keyword
-
 
 def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=False):
     r"""
@@ -282,13 +280,14 @@ def find_local_minimum(f, a, b, tol=1.48e-08, maxfun=500):
         return f.find_local_minimum(a=a, b=b, tol=tol, maxfun=maxfun)
     except AttributeError:
         pass
-    a = float(a); b = float(b)
+    a = float(a)
+    b = float(b)
     import scipy.optimize
     xmin, fval, iter, funcalls = scipy.optimize.fminbound(f, a, b, full_output=1, xtol=tol, maxfun=maxfun)
     return fval, xmin
 
-@rename_keyword(deprecation=23062, disp='verbose')
-def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
+
+def minimize(func, x0, gradient=None, hessian=None, algorithm="default",
              verbose=False, **args):
     r"""
     This function is an interface to a variety of algorithms for computing

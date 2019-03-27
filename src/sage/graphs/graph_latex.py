@@ -1333,14 +1333,14 @@ class GraphLatex(SageObject):
             sage: print(g.latex_options().dot2tex_picture())  # optional - dot2tex graphviz
             \begin{tikzpicture}[>=latex,line join=bevel,]
             %%
-              \node (node_3) at (...bp,...bp) [draw,draw=none] {$\left(1, 1\right)$};
+              \node (node_3) at (...bp,...bp) [draw,draw=none] {$\left(0, 1\right)$};
               \node (node_2) at (...bp,...bp) [draw,draw=none] {$\left(1, 0\right)$};
-              \node (node_1) at (...bp,...bp) [draw,draw=none] {$\left(0, 1\right)$};
-              \node (node_0) at (...bp,...bp) [draw,draw=none] {$\left(0, 0\right)$};
-              \draw [black,->] (node_0) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_3);
-              \draw [black,->] (node_2) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_1);
-              \draw [black,->] (node_0) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_1);
+              \node (node_1) at (...bp,...bp) [draw,draw=none] {$\left(0, 0\right)$};
+              \node (node_0) at (...bp,...bp) [draw,draw=none] {$\left(1, 1\right)$};
+              \draw [black,->] (node_1) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_3);
               \draw [black,->] (node_2) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_3);
+              \draw [black,->] (node_2) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_0);
+              \draw [black,->] (node_1) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_0);
             %
             \end{tikzpicture}
 
@@ -1515,6 +1515,19 @@ class GraphLatex(SageObject):
             \begin{tikzpicture}
             ...
             \end{tikzpicture}
+
+        With the empty graph, an empty tikzfigure is output. ::
+
+            sage: from sage.graphs.graph_latex import check_tkz_graph
+            sage: check_tkz_graph()  # random - depends on TeX installation
+            sage: g = Graph()
+            sage: opts = g.latex_options()
+            sage: print(opts.tkz_picture())
+            \begin{tikzpicture}
+            %
+            %
+            %
+            \end{tikzpicture}
         """
         # This routine does not handle multiple edges
         # It will properly handle digraphs where a pair of vertices has an edge
@@ -1583,7 +1596,7 @@ class GraphLatex(SageObject):
             xmax = max(i[0] for i in pos.values())
             ymax = max(i[1] for i in pos.values())
         else:
-            xmax, ymax = 0, 0
+            xmin, xmax, ymin, ymax = 0, 0, 0, 0
 
         # Linear scaling factors that will be used to scale the image to fit
         # into the bordered region.  Purely horizontal, or purely vertical,
@@ -1897,7 +1910,7 @@ class GraphLatex(SageObject):
             # colors, shapes, sizes, labels/placement for 'Custom' style
             if customized:
                 s += ['style={']  # begin style list
-                s += ['minimum size=', str(round(scale * v_size[u], 4)),
+                s += ['minimum size=', str(round(float(scale * v_size[u]), 4)),
                       units, ',']
                 s += ['draw=', vertex_color_names[u], ',']
                 s += ['fill=', vertex_fill_color_names[u], ',']
@@ -1913,8 +1926,8 @@ class GraphLatex(SageObject):
                         s += ['LabelOut=false,']
                     else:
                         s += ['LabelOut=true,']
-                        s += ['Ldist=', str(round(scale * vl_placement[u][0], 4)), units, ',']
-                        s += ['Lpos=',str(round(vl_placement[u][1], 4)), ',']  # degrees, no units
+                        s += ['Ldist=', str(round(float(scale * vl_placement[u][0]), 4)), units, ',']
+                        s += ['Lpos=',str(round(float(vl_placement[u][1]), 4)), ',']  # degrees, no units
                 else:
                     s += ['NoLabel,']
             # vertex label information is available to all pre-built styles
@@ -1926,8 +1939,8 @@ class GraphLatex(SageObject):
                     lab = r'\hbox{%s}' % u
                 s += ['L=', lab, ',']
             scaled_pos = translate(pos[u])
-            s += ['x=', str(round(scale * scaled_pos[0], 4)), units, ',']
-            s += ['y=', str(round(scale * scaled_pos[1], 4)), units]
+            s += ['x=', str(round(float(scale * scaled_pos[0]), 4)), units, ',']
+            s += ['y=', str(round(float(scale * scaled_pos[1]), 4)), units]
             s += [']']
             s += ['{', prefix, str(index_of_vertex[u]), '}\n']
         s += ['%\n']
@@ -1940,14 +1953,14 @@ class GraphLatex(SageObject):
                 u = e[0]
                 s += ['\\Loop[']
                 if customized:
-                    s += ['dist=', str(round(scale * lp_placement[u][0], 4)), units, ',']
+                    s += ['dist=', str(round(float(scale * lp_placement[u][0]), 4)), units, ',']
                     s += ['dir=', lp_placement[u][1], ',']
             else:
                 s += ['\\Edge[']
             # colors, shapes, sizes, labels/placement for 'Custom' style
             if customized:
                 if not loop:  # lw not available for loops!
-                    s += ['lw=', str(round(scale * e_thick[edge], 4)), units, ',']
+                    s += ['lw=', str(round(float(scale * e_thick[edge]), 4)), units, ',']
                 s += ['style={']  # begin style list
                 if is_directed and not loop:
                     s += ['post, bend right', ',']
@@ -1962,7 +1975,7 @@ class GraphLatex(SageObject):
                     if isinstance(el_placement[edge], str):
                         s += [el_placement[edge], ',']
                     else:
-                        s += ['pos=', str(round(el_placement[edge], 4)), ',']  # no units needed
+                        s += ['pos=', str(round(float(el_placement[edge]), 4)), ',']  # no units needed
                     s += ['text=', edge_label_color_names[edge], ',']
                     s += ['},']
                     el = self._graph.edge_label(edge[0],edge[1])

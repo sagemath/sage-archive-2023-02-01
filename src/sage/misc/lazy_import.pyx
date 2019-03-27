@@ -42,15 +42,15 @@ AUTHOR:
  - Robert Bradshaw
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2009 Robert Bradshaw <robertwb@math.washington.edu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 # Keep OLD division semantics for Python 2 compatibility, such that
 # lazy imports support old and true division.
@@ -101,7 +101,7 @@ cpdef finish_startup():
 
 cpdef bint is_during_startup():
     """
-    Return whether Sage is currently starting up
+    Return whether Sage is currently starting up.
 
     OUTPUT:
 
@@ -283,7 +283,7 @@ cdef class LazyImport(object):
 
     def _sage_src_(self):
         """
-        Returns the source of the wrapped object for introspection.
+        Return the source of the wrapped object for introspection.
 
         EXAMPLES::
 
@@ -296,7 +296,7 @@ cdef class LazyImport(object):
 
     def _sage_argspec_(self):
         """
-        Returns the argspec of the wrapped object for introspection.
+        Return the argspec of the wrapped object for introspection.
 
         EXAMPLES::
 
@@ -885,11 +885,14 @@ cdef class LazyImport(object):
             sage: type(foo)
             <type 'sage.misc.lazy_import.LazyImport'>
             sage: oct(foo)  # py2
+            doctest:warning...:
+            DeprecationWarning: use the method .oct instead
+            See https://trac.sagemath.org/26756 for details.
             '12'
             sage: oct(foo)  # py3
             '0o12'
         """
-        return oct(self.get_object())
+        return self.get_object().__oct__()
 
     def __hex__(self):
         """
@@ -900,11 +903,14 @@ cdef class LazyImport(object):
             sage: type(foo)
             <type 'sage.misc.lazy_import.LazyImport'>
             sage: hex(foo)  # py2
+            doctest:warning...:
+            DeprecationWarning: use the method .hex instead
+            See https://trac.sagemath.org/26756 for details.
             'a'
             sage: hex(foo)  # py3
             '0xa'
         """
-        return hex(self.get_object())
+        return self.get_object().__hex__()
 
     def __index__(self):
         """
@@ -975,7 +981,7 @@ cdef class LazyImport(object):
 
 
 def lazy_import(module, names, as_=None, *,
-    at_startup=False, namespace=None, overwrite=None, deprecation=None):
+    at_startup=False, namespace=None, deprecation=None):
     """
     Create a lazy import object and inject it into the caller's global
     namespace. For the purposes of introspection and calling, this is
@@ -1067,9 +1073,6 @@ def lazy_import(module, names, as_=None, *,
         See http://trac.sagemath.org/14275 for details.
         5-adic Field with capped relative precision 20
     """
-    if overwrite is not None:
-        from sage.misc.superseded import deprecation
-        deprecation(22755, "lazy_import(overwrite=False) is no longer supported")
     if as_ is None:
         as_ = names
     if isinstance(names, basestring):

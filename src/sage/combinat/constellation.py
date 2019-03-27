@@ -18,7 +18,7 @@ EXAMPLES::
     g2 (1,3,2)
     sage: C = Constellations(3,4); C
     Connected constellations of length 3 and degree 4 on {1, 2, 3, 4}
-    sage: C.cardinality()
+    sage: C.cardinality()  # long time
     426
 
     sage: C = Constellations(3, 4, domain=('a', 'b', 'c', 'd'))
@@ -37,7 +37,7 @@ EXAMPLES::
     sage: TestSuite(C).run()
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015-2016 Vincent Delecroix <20100.delecroix@gmail.com>
 #                               Frederic Chapoton <fchapoton2@gmail.com>
 #
@@ -45,8 +45,8 @@ EXAMPLES::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from six.moves import range
 from six import integer_types
@@ -1241,13 +1241,13 @@ class Constellations_p(UniqueRepresentation, Parent):
         sage: C.first()
         Constellation of length 3 and degree 4
         g0 (1)(2,3,4)
-        g1 (1,3,4)(2)
-        g2 (1,3)(2,4)
+        g1 (1,2,3)(4)
+        g2 (1,2)(3,4)
         sage: C.last()
         Constellation of length 3 and degree 4
-        g0 (1,3,2)(4)
+        g0 (1,4,3)(2)
         g1 (1,4,2)(3)
-        g2 (1,3)(2,4)
+        g2 (1,2)(3,4)
 
     Note that the cardinality can also be computed using characters of the
     symmetric group (Frobenius formula)::
@@ -1381,40 +1381,32 @@ class Constellations_p(UniqueRepresentation, Parent):
             sage: for c in C: print(c)
             Constellation of length 3 and degree 4
             g0 (1)(2,3,4)
-            g1 (1,3,4)(2)
-            g2 (1,3)(2,4)
+            g1 (1,2,3)(4)
+            g2 (1,2)(3,4)
             Constellation of length 3 and degree 4
             g0 (1)(2,3,4)
             g1 (1,4,2)(3)
             g2 (1,4)(2,3)
             ...
             Constellation of length 3 and degree 4
-            g0 (1,3,2)(4)
-            g1 (1,3,4)(2)
+            g0 (1,4,3)(2)
+            g1 (1,2,3)(4)
             g2 (1,4)(2,3)
             Constellation of length 3 and degree 4
-            g0 (1,3,2)(4)
+            g0 (1,4,3)(2)
             g1 (1,4,2)(3)
-            g2 (1,3)(2,4)
+            g2 (1,2)(3,4)
 
             sage: C = Constellations([(3,1),(3,1),(2,2)], domain='abcd')
-            sage: for c in C: print(c)
+            sage: for c in sorted(C): print(c)
             Constellation of length 3 and degree 4
-            g0 ('a')('b','d','c')
-            g1 ('a','b','d')('c')
+            g0 ('a')('b','c','d')
+            g1 ('a','b','c')('d')
             g2 ('a','b')('c','d')
-            Constellation of length 3 and degree 4
-            g0 ('a')('b','d','c')
-            g1 ('a','d','c')('b')
-            g2 ('a','d')('b','c')
             ...
             Constellation of length 3 and degree 4
-            g0 ('a','b','c')('d')
-            g1 ('a','b','d')('c')
-            g2 ('a','d')('b','c')
-            Constellation of length 3 and degree 4
-            g0 ('a','b','c')('d')
-            g1 ('a','d','c')('b')
+            g0 ('a','d','c')('b')
+            g1 ('a','d','b')('c')
             g2 ('a','b')('c','d')
         """
         from sage.misc.mrange import cartesian_product_iterator
@@ -1450,8 +1442,8 @@ def perm_sym_domain(g):
         {1, 2, 3, 4}
         sage: perm_sym_domain(((1,2),(0,4)))
         {0, 1, 2, 4}
-        sage: perm_sym_domain('(1,2,0,5)')
-        [1, 0, 2, 5]
+        sage: sorted(perm_sym_domain('(1,2,0,5)'))
+        [0, 1, 2, 5]
     """
     if isinstance(g, (tuple, list)):
         if isinstance(g[0], tuple):

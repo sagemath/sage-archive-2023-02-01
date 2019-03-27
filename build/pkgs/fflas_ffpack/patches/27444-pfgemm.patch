@@ -27,3 +27,50 @@
  	template<class Field>
          typename Field::Element*
          pfgemm_1D_rec( const Field& F,
+--- a/fflas-ffpack/paladin/pfgemv.inl
++++ b/fflas-ffpack/paladin/pfgemv.inl
+@@ -107,7 +107,8 @@ namespace FFLAS
+ 					);
+ 		return Y;
+ 	}
+-	
++
++/*
+ 	template<class Field, class Cut, class Param>
+ 	typename Field::Element_ptr
+ 	pfgemv(const Field& F,
+@@ -119,11 +120,33 @@ namespace FFLAS
+ 		   const typename Field::ConstElement_ptr X, const size_t incX,
+ 		   const typename Field::Element beta,
+ 		   typename Field::Element_ptr Y, const size_t incY, 
+-		   ParSeqHelper::Parallel<Cut,Param> par ){
++		   ParSeqHelper::Parallel<CuttingStrategy::Row, Cut> & H){
+ 		
+ 		MMHelper<Field, MMHelperAlgo::Auto, typename FFLAS::ModeTraits<Field>::value, ParSeqHelper::Parallel<Cut,Param> > H (F,m,n,1,par);
+ 		return pfgemv(F, ta, m, n, alpha, A, lda, X, incX, beta, Y, incY, H);
+ 	}
++*/
++
++	template<class Field>
++	typename Field::Element_ptr
++	pfgemv(const Field& F,
++		   const FFLAS_TRANSPOSE ta,
++		   const size_t m,
++		   const size_t n,
++		   const typename Field::Element alpha,
++		   const typename Field::ConstElement_ptr A, const size_t lda,
++		   const typename Field::ConstElement_ptr X, const size_t incX,
++		   const typename Field::Element beta,
++		   typename Field::Element_ptr Y, const size_t incY,
++		   size_t numthreads){
++
++		PAR_BLOCK{
++			ParSeqHelper::Parallel<CuttingStrategy::Row,StrategyParameter::Threads> par(numthreads);
++			MMHelper<Field, MMHelperAlgo::Auto, typename FFLAS::ModeTraits<Field>::value, ParSeqHelper::Parallel<CuttingStrategy::Row,StrategyParameter::Threads>> H (F,m,n,1,par);
++			pfgemv(F, ta, m, n, alpha, A, lda, X, incX, beta, Y, incY, H);
++		}
++		return Y;
++	}
+ 	
+ } // FFLAS
+ 

@@ -47,7 +47,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 from __future__ import print_function
-from six import itervalues
+from six import itervalues, string_types
 
 from sage.rings.integer import Integer
 from sage.structure.element import ModuleElement
@@ -674,6 +674,64 @@ class TensorField(ModuleElement):
             del val[0]._lie_der_along_self[id(self)]
         # Then clears the dictionary of Lie derivatives
         self._lie_derivatives.clear()
+
+    def _init_components(self, *comp, **kwargs):
+        r"""
+        Initialize the tensor field components in some given vector frames.
+
+        INPUT:
+
+        - ``comp`` -- either the components of the tensor field with respect
+          to the vector frame specified by the argument ``frame`` or a
+          dictionary of components, the keys of which are vector frames or
+          pairs ``(f,c)`` where ``f`` is a vector frame and ``c`` a chart
+        - ``frame`` -- (default: ``None``; unused if ``comp`` is a dictionary)
+          vector frame in which the components are given; if ``None``, the
+          default vector frame on the domain of ``self`` is assumed
+        - ``chart`` -- (default: ``None``; unused if ``comp`` is a dictionary)
+          coordinate chart in which the components are expressed; if ``None``,
+          the default chart on the domain of ``frame`` is assumed
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: t = M.tensor_field(1, 1, name='t')
+            sage: t._init_components([[1+x, x*y], [-2, y^2]])
+            sage: t.display()
+            t = (x + 1) d/dx*dx + x*y d/dx*dy - 2 d/dy*dx + y^2 d/dy*dy
+            sage: Y.<u,v> = M.chart()
+            sage: t._init_components([[2*u, 3*v], [u+v, -u]], frame=Y.frame(),
+            ....:                    chart=Y)
+            sage: t.display(Y.frame(), Y)
+            t = 2*u d/du*du + 3*v d/du*dv + (u + v) d/dv*du - u d/dv*dv
+            sage: t._init_components({X.frame(): [[2*x, 1-y],[0, x]]})
+            sage: t.display()
+            t = 2*x d/dx*dx + (-y + 1) d/dx*dy + x d/dy*dy
+            sage: t._init_components({(Y.frame(), Y): [[2*u, 0],[v^3, u+v]]})
+            sage: t.display(Y.frame(), Y)
+            t = 2*u d/du*du + v^3 d/dv*du + (u + v) d/dv*dv
+
+        """
+        comp0 = comp[0]
+        if isinstance(comp0, dict):
+            for frame, components in comp0.items():
+                chart = None
+                if isinstance(frame, tuple):
+                    # frame is actually a pair (frame, chart):
+                    frame, chart = frame
+                self.add_comp(frame)[:, chart] = components
+        elif isinstance(comp0, string_types):
+            # For compatibility with previous use of vector_field():
+            self.set_name(comp0)
+        else:
+            if hasattr(comp0, '__getitem__'):
+                # comp0 is a list/vector of components
+                # otherwise comp is the tuple of components in a specific frame
+                comp = comp0
+            frame = kwargs.get('frame')
+            chart = kwargs.get('chart')
+            self.add_comp(frame)[:, chart] = comp
 
     #### Simple accessors ####
 

@@ -1384,7 +1384,7 @@ class DifferentiableManifold(TopologicalManifold):
         """
         return self.vector_field_module(dest_map=dest_map).general_linear_group()
 
-    def vector_field(self, name=None, latex_name=None, dest_map=None):
+    def vector_field(self, *comp, **kwargs):
         r"""
         Define a vector field on ``self``.
 
@@ -1417,6 +1417,17 @@ class DifferentiableManifold(TopologicalManifold):
 
         INPUT:
 
+        - ``comp`` -- (optional) either the components of the vector field
+          with respect to the vector frame specified by the argument ``frame``
+          or a dictionary of components, the keys of which are vector frames or
+          pairs ``(f,c)`` where ``f`` is a vector frame and ``c`` a chart
+        - ``frame`` -- (default: ``None``; unused if ``comp`` is not given or
+          is a dictionary) vector frame in which the components are given; if
+          ``None``, the default vector frame of ``self`` is assumed
+        - ``chart`` -- (default: ``None``; unused if ``comp`` is not given or
+          is a dictionary) coordinate chart in which the components are
+          expressed; if ``None``, the default chart on the domain of ``frame``
+          is assumed
         - ``name`` -- (default: ``None``) name given to the vector field
         - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
           vector field; if none is provided, the LaTeX symbol is set to
@@ -1463,8 +1474,17 @@ class DifferentiableManifold(TopologicalManifold):
             :class:`~sage.manifolds.differentiable.vectorfield.VectorField`.
 
         """
+        name = kwargs.pop('name', None)
+        latex_name = kwargs.pop('latex_name', None)
+        dest_map = kwargs.pop('dest_map', None)
         vmodule = self.vector_field_module(dest_map)  # the parent
-        return vmodule.element_class(vmodule, name=name, latex_name=latex_name)
+        resu = vmodule.element_class(vmodule, name=name, latex_name=latex_name)
+        if comp:
+            # Some components are to be initialized
+            resu._init_components(*comp, **kwargs)
+        return resu
+
+
 
     def tensor_field(self, k, l, name=None, latex_name=None, sym=None,
                      antisym=None, dest_map=None):

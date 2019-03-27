@@ -476,8 +476,8 @@ class VectorField(MultivectorField):
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: v = M.vector_field(name='v')
-            sage: v[:] = -y, x ; v.display()
+            sage: v = M.vector_field(-y, x, name='v')
+            sage: v.display()
             v = -y d/dx + x d/dy
             sage: v.plot()
             Graphics object consisting of 80 graphics primitives
@@ -486,7 +486,7 @@ class VectorField(MultivectorField):
 
             M = Manifold(2, 'M')
             X = M.chart('x y'); x, y = X[:]
-            v = M.vector_field(name='v'); v[:] = -y, x
+            v = M.vector_field(-y, x, name='v')
             g = v.plot()
             sphinx_plot(g)
 
@@ -500,7 +500,7 @@ class VectorField(MultivectorField):
 
             M = Manifold(2, 'M')
             X = M.chart('x y'); x, y = X[:]
-            v = M.vector_field(name='v'); v[:] = -y, x
+            v = M.vector_field(-y, x, name='v')
             g = v.plot(scale=0.5, color='green', linestyle='--', width=1, arrowsize=6)
             sphinx_plot(g)
 
@@ -513,7 +513,7 @@ class VectorField(MultivectorField):
 
             M = Manifold(2, 'M')
             X = M.chart('x y'); x, y = X[:]
-            v = M.vector_field(name='v'); v[:] = -y, x
+            v = M.vector_field(-y, x, name='v')
             g = v.plot(max_range=4, number_values=5, scale=0.5)
             sphinx_plot(g)
 
@@ -528,7 +528,7 @@ class VectorField(MultivectorField):
 
             M = Manifold(2, 'M')
             X = M.chart('x y'); x, y = X[:]
-            v = M.vector_field(name='v'); v[:] = -y, x
+            v = M.vector_field(-y, x, name='v')
             g = v.plot(scale=0.5,  number_values=10, linestyle='--', width=1, arrowsize=6)
             sphinx_plot(g)
 
@@ -545,7 +545,7 @@ class VectorField(MultivectorField):
 
             M = Manifold(2, 'M')
             X = M.chart('x y'); x, y = X[:]
-            v = M.vector_field(name='v'); v[:] = -y, x
+            v = M.vector_field(-y, x, name='v')
             g = v.plot(fixed_coords={x: -2})
             sphinx_plot(g)
 
@@ -558,7 +558,7 @@ class VectorField(MultivectorField):
 
             M = Manifold(2, 'M')
             X = M.chart('x y'); x, y = X[:]
-            v = M.vector_field(name='v'); v[:] = -y, x
+            v = M.vector_field(-y, x, name='v')
             g = v.plot(fixed_coords={y: 1})
             sphinx_plot(g)
 
@@ -566,8 +566,8 @@ class VectorField(MultivectorField):
 
             sage: M = Manifold(4, 'M')
             sage: X.<t,x,y,z> = M.chart()
-            sage: v = M.vector_field(name='v')
-            sage: v[:] = (t/8)^2, -t*y/4, t*x/4, t*z/4 ; v.display()
+            sage: v = M.vector_field((t/8)^2, -t*y/4, t*x/4, t*z/4, name='v')
+            sage: v.display()
             v = 1/64*t^2 d/dt - 1/4*t*y d/dx + 1/4*t*x d/dy + 1/4*t*z d/dz
 
         We cannot make a 4D plot directly::
@@ -588,8 +588,7 @@ class VectorField(MultivectorField):
 
             M = Manifold(4, 'M')
             X = M.chart('t x y z') ; t,x,y,z = X[:]
-            v = M.vector_field(name='v')
-            v[:] = (t/8)**2, -t*y/4, t*x/4, t*z/4
+            v = M.vector_field((t/8)^2, -t*y/4, t*x/4, t*z/4, name='v')
             sphinx_plot(v.plot(ambient_coords=(x, y, z), fixed_coords={t: 1},
                                number_values=4))
 
@@ -604,8 +603,7 @@ class VectorField(MultivectorField):
 
             M = Manifold(4, 'M')
             X = M.chart('t x y z'); t,x,y,z = X[:]
-            v = M.vector_field(name='v')
-            v[:] = (t/8)**2, -t*y/4, t*x/4, t*z/4
+            v = M.vector_field((t/8)^2, -t*y/4, t*x/4, t*z/4, name='v')
             sphinx_plot(v.plot(ambient_coords=(x, y, t), fixed_coords={z: 0},
                                ranges={x: (-2,2), y: (-2,2), t: (-1, 4)},
                                number_values=4))
@@ -619,8 +617,7 @@ class VectorField(MultivectorField):
 
             M = Manifold(4, 'M')
             X = M.chart('t x y z'); t,x,y,z = X[:]
-            v = M.vector_field(name='v')
-            v[:] = (t/8)**2, -t*y/4, t*x/4, t*z/4
+            v = M.vector_field((t/8)^2, -t*y/4, t*x/4, t*z/4, name='v')
             g = v.plot(ambient_coords=(x, y), fixed_coords={t: 1, z: 0})
             sphinx_plot(g)
 
@@ -633,8 +630,7 @@ class VectorField(MultivectorField):
 
             M = Manifold(4, 'M')
             X = M.chart('t x y z'); t,x,y,z = X[:]
-            v = M.vector_field(name='v')
-            v[:] = v[:] = (t/8)**2, -t*y/4, t*x/4, t*z/4
+            v = M.vector_field((t/8)^2, -t*y/4, t*x/4, t*z/4, name='v')
             g = v.plot(ambient_coords=(x, t), fixed_coords={y: 1, z: 0})
             sphinx_plot(g)
 

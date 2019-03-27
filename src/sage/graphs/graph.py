@@ -1464,6 +1464,17 @@ class Graph(GenericGraph):
              Graph on 6 vertices,
              Graph on 6 vertices]
 
+        :trac:`27557` is fixed::
+
+            sage: g = Graph([(1,2,2),(1,2,1),(1,2,4),(1,4,5)],multiedges=True)
+            sage: l = g.spanning_trees()
+            sage: l[0].edges()
+            [(1, 2, 4), (1, 4, 5)]
+            sage: l[1].edges()
+            [(1, 2, 1), (1, 4, 5)]
+            sage: l[2].edges()
+            [(1, 2, 2), (1, 4, 5)]
+
         REFERENCES:
 
         .. [RT75] Read, R. C. and Tarjan, R. E.
@@ -1482,7 +1493,7 @@ class Graph(GenericGraph):
                 return [forest.copy()]
             else:
                 # Pick an edge e from G-forest
-                for e in G.edge_iterator(labels=False):
+                for e in G.edge_iterator(labels=True):
                     if not forest.has_edge(e):
                         break
 

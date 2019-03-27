@@ -1469,7 +1469,7 @@ class Graph(GenericGraph):
              Graph on 6 vertices,
              Graph on 6 vertices]
 
-        :trac:`27557` is fixed::
+        Edges of the spanning trees can be labeled or unlabeled (:trac:27557)::
 
             sage: g = Graph([(1,2,2),(1,2,1),(1,2,4),(1,4,5)],multiedges=True)
             sage: l = g.spanning_trees(labels=True)
@@ -1531,7 +1531,7 @@ class Graph(GenericGraph):
             forest = Graph()
             forest.add_vertices(self.vertex_iterator())
             forest.add_edges(self.bridges())
-            return _recursive_spanning_trees(Graph(self, immutable=False, loops=False), forest, labels=labels)
+            return _recursive_spanning_trees(Graph(self, immutable=False, loops=False), forest, labels)
         else:
             return []
 

@@ -822,6 +822,7 @@ def random_vector(ring, degree=None, *args, **kwds):
     entries = [ring.random_element(*args, **kwds) for _ in range(degree)]
     return vector(ring, degree, entries, sparse)
 
+
 cdef class FreeModuleElement(Vector):   # abstract base class
     """
     An element of a generic free module.
@@ -2562,8 +2563,8 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: u.dot_product(w)
             0
 
-        The cross product is defined for degree seven vectors as well.
-        [Crossproduct]_
+        The cross product is defined for degree seven vectors as well: 
+        see :wikipedia:`Cross_product`.
         The 3-D cross product is achieved using the quaternions,
         whereas the 7-D cross product is achieved using the octonions. ::
 
@@ -4562,7 +4563,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                 e = entries_dict
                 entries_dict = {}
                 try:
-                    for k, x in e.iteritems():
+                    for k, x in (<dict> e).iteritems():
                         x = coefficient_ring(x)
                         if x:
                             entries_dict[k] = x
@@ -4752,8 +4753,8 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         EXAMPLES::
 
             sage: v = vector([1,2/3,pi], sparse=True)
-            sage: v.items()
-            <dictionary-itemiterator object at ...>
+            sage: next(v.items())
+            (0, 1)
             sage: list(v.items())
             [(0, 1), (1, 2/3), (2, pi)]
 
@@ -4764,7 +4765,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: list(v.iteritems())
             [(0, 1), (1, 2/3), (2, pi)]
         """
-        return self._entries.iteritems()
+        return iter(self._entries.iteritems())
 
     iteritems = items
 
@@ -4881,7 +4882,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: w[39893] = sqrt(2)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert sqrt(2) to an integer
+            TypeError: self must be a numeric expression
 
         ::
 

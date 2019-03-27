@@ -2936,7 +2936,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         # capped-relative elements and keep track of the unit part and the
         # valuation separately.
 
-        # the value of x^N+N*x^(N-1)+...+x*N!+N!
+        # the value of x^N + N*x^(N-1) + ... + (N-1)!*x + N!
         series_unit,series_val = R.one(), 0
 
         # we compute the value of N! as we go through the loop

@@ -8,24 +8,22 @@ including minimum spanning trees.
 
 .. SEEALSO::
 
-   * :meth:`GenericGraph.min_spanning_tree
-     <sage.graphs.generic_graph.GenericGraph.min_spanning_tree>`.
+    - :meth:`GenericGraph.min_spanning_tree
+      <sage.graphs.generic_graph.GenericGraph.min_spanning_tree>`.
 
-**Todo**
+.. TODO::
 
-* Rewrite :func:`kruskal` to use priority queues. Once Cython has support
-  for generators and the ``yield`` statement, rewrite :func:`kruskal` to use
-  ``yield``.
-* Parallel version of Boruvka's algorithm.
-* Randomized spanning tree construction.
+    - Rewrite :func:`kruskal` to use priority queues.
+    - Parallel version of Boruvka's algorithm.
+    - Randomized spanning tree construction.
 
 REFERENCES:
 
-.. [Aldous90] \D. Aldous, 'The random walk construction of
-  uniform spanning trees', SIAM J Discrete Math 3 (1990),
+.. [Aldous90] \D. Aldous, *The random walk construction of
+  uniform spanning trees*, SIAM J Discrete Math 3 (1990),
   450-465.
 
-.. [Broder89] \A. Broder, 'Generating random spanning trees',
+.. [Broder89] \A. Broder, *Generating random spanning trees*,
   Proceedings of the 30th IEEE Symposium on Foundations of
   Computer Science, 1989, pp. 442-447. :doi:`10.1109/SFCS.1989.63516`,
   <http://www.cs.cmu.edu/~15859n/RelatedWork/Broder-GenRanSpanningTrees.pdf>_
@@ -50,7 +48,7 @@ Methods
 -------
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (c) 2007 Jason Grout <jason-sage@creativetrax.com>
 #       Copyright (c) 2009 Mike Hansen <mhansen@gmail.com>
 #       Copyright (c) 2010 Gregory McWhirter <gmcwhirt@uci.edu>
@@ -60,13 +58,14 @@ Methods
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import
 
 cimport cython
 
 from sage.sets.disjoint_set cimport DisjointSet_of_hashables
+
 
 cpdef kruskal(G, wfunction=None, bint check=False):
     r"""
@@ -128,6 +127,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
     .. SEEALSO::
 
         - :meth:`sage.graphs.generic_graph.GenericGraph.min_spanning_tree`
+        - :func:`kruskal_iterator`
 
     EXAMPLES:
 
@@ -137,7 +137,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         sage: G = Graph({1:{2:28, 6:10}, 2:{3:16, 7:14}, 3:{4:12}, 4:{5:22, 7:18}, 5:{6:25, 7:24}})
         sage: G.weighted(True)
         sage: E = kruskal(G, check=True); E
-        [(1, 6, 10), (2, 3, 16), (2, 7, 14), (3, 4, 12), (4, 5, 22), (5, 6, 25)]
+        [(1, 6, 10), (3, 4, 12), (2, 7, 14), (2, 3, 16), (4, 5, 22), (5, 6, 25)]
 
     Variants of the previous example. ::
 
@@ -158,18 +158,11 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         Looped multi-graph on 7 vertices
         sage: def sanitize(G):
         ....:     G.allow_loops(False)
-        ....:     E = {}
-        ....:     for u, v, _ in G.multiple_edges():
-        ....:         E.setdefault(u, v)
-        ....:     for u in E:
-        ....:         W = sorted(G.edge_label(u, E[u]))
-        ....:         for w in W[1:]:
-        ....:             G.delete_edge(u, E[u], w)
-        ....:     G.allow_multiple_edges(False)
+        ....:     G.allow_multiple_edges(False, keep_label='min')
         sage: sanitize(H)
         sage: H
         Graph on 7 vertices
-        sage: kruskal(G, check=True) == kruskal(H, check=True)
+        sage: sum(e[2] for e in kruskal(G, check=True)) == sum(e[2] for e in kruskal(H, check=True))
         True
 
     An example from pages 599--601 in [GoodrichTamassia2001]_. ::
@@ -184,7 +177,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         ....: "BWI":{"MIA":946}})
         sage: G.weighted(True)
         sage: kruskal(G, check=True)
-        [('BOS', 'JFK', 187), ('BWI', 'JFK', 184), ('BWI', 'MIA', 946), ('BWI', 'ORD', 621), ('DFW', 'LAX', 1235), ('DFW', 'ORD', 802), ('JFK', 'PVD', 144), ('LAX', 'SFO', 337)]
+        [('JFK', 'PVD', 144), ('BWI', 'JFK', 184), ('BOS', 'JFK', 187), ('LAX', 'SFO', 337), ('BWI', 'ORD', 621), ('DFW', 'ORD', 802), ('BWI', 'MIA', 946), ('DFW', 'LAX', 1235)]
 
     An example from pages 568--569 in [CormenEtAl2001]_. ::
 
@@ -192,18 +185,21 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         ....: "c":{"d":7, "f":4, "i":2}, "d":{"e":9, "f":14},
         ....: "e":{"f":10}, "f":{"g":2}, "g":{"h":1, "i":6}, "h":{"i":7}})
         sage: G.weighted(True)
-        sage: kruskal(G, check=True)
-        [('a', 'b', 4), ('a', 'h', 8), ('c', 'd', 7), ('c', 'f', 4), ('c', 'i', 2), ('d', 'e', 9), ('f', 'g', 2), ('g', 'h', 1)]
+        sage: T = Graph(kruskal(G, check=True), format='list_of_edges')
+        sage: sum(T.edge_labels())
+        37
+        sage: T.is_tree()
+        True
 
     An example with custom edge labels::
 
         sage: G = Graph([[0,1,1],[1,2,1],[2,0,10]], weighted=True)
         sage: weight = lambda e:3-e[0]-e[1]
-        sage: kruskal(G, check=True)
+        sage: sorted(kruskal(G, check=True))
         [(0, 1, 1), (1, 2, 1)]
-        sage: kruskal(G, wfunction=weight, check=True)
+        sage: sorted(kruskal(G, wfunction=weight, check=True))
         [(0, 2, 10), (1, 2, 1)]
-        sage: kruskal(G, wfunction=weight, check=False)
+        sage: sorted(kruskal(G, wfunction=weight, check=False))
         [(0, 2, 10), (1, 2, 1)]
 
     TESTS:
@@ -254,10 +250,10 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         sage: kruskal(G, check=True)  # long time
         []
 
-    If the input graph is a tree, then return its edges. ::
+    If the input graph is a tree, then return its edges::
 
         sage: T = graphs.RandomTree(randint(1, 50))  # long time
-        sage: T.edges() == kruskal(T, check=True)  # long time
+        sage: sorted(T.edge_iterator()) == kruskal(T, check=True)  # long time
         True
 
     If the input is not a Graph::
@@ -271,6 +267,27 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         ...
         ValueError: The input G must be an undirected graph.
     """
+    return list(kruskal_iterator(G, wfunction=wfunction, check=check))
+
+
+def kruskal_iterator(G, wfunction=None, bint check=False):
+    """
+    Return an iterator implementation of Kruskal algorithm.
+
+    OUTPUT:
+
+    The edges of a minimum spanning tree of ``G``, one by one.
+
+    .. SEEALSO:: :func:`kruskal`
+
+    EXAMPLES::
+
+        sage: from sage.graphs.spanning_tree import kruskal_iterator
+        sage: G = Graph({1:{2:28, 6:10}, 2:{3:16, 7:14}, 3:{4:12}, 4:{5:22, 7:18}, 5:{6:25, 7:24}})
+        sage: G.weighted(True)
+        sage: next(kruskal_iterator(G, check=True))
+        (1, 6, 10)
+    """
     from sage.graphs.graph import Graph
     if not isinstance(G, Graph):
         raise ValueError("The input G must be an undirected graph.")
@@ -278,13 +295,14 @@ cpdef kruskal(G, wfunction=None, bint check=False):
     # sanity checks
     if check:
         if not G.order():
-            return []
+            return
         if not G.is_connected():
-            return []
+            return
         # G is now assumed to be a nonempty connected graph
         if G.num_verts() == G.num_edges() + 1:
             # G is a tree
-            return G.edges()
+            yield from G.edge_iterator()
+            return
         g = G.to_simple(to_undirected=False, keep_label='min')
     else:
         g = G
@@ -297,13 +315,11 @@ cpdef kruskal(G, wfunction=None, bint check=False):
             from operator import itemgetter
             sortedE_iter = iter(sorted(g.edges(sort=False), key=itemgetter(2)))
         else:
-            sortedE_iter = iter(sorted(g.edges()))
+            sortedE_iter = g.edge_iterator()
     else:
-        sortedE_iter = iter(sorted(g.edges(), key=wfunction))
-
+        sortedE_iter = iter(sorted(g.edges(sort=False), key=wfunction))
 
     # Kruskal's algorithm
-    cdef list T = []
     cdef int m = g.order() - 1
     cdef int i = 0  # count the number of edges added so far
     cdef DisjointSet_of_hashables union_find = DisjointSet_of_hashables(g.vertex_iterator())
@@ -314,16 +330,9 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         v = union_find.find(e[1])
         if u != v:
             i += 1
-            # NOTE: Once Cython supports generator and the yield statement,
-            # we should replace the following line with a yield statement.
-            # That way, we could access the edge of a minimum spanning tree
-            # immediately after it is found, instead of waiting for all the
-            # edges to be found and return the edges as a list.
-            T.append(e)
+            yield e
             # union the components by making one the parent of the other
             union_find.union(u, v)
-    return sorted(T)
-
 
 
 cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
@@ -400,8 +409,8 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
         [(1, 6, 10), (2, 7, 14), (3, 4, 12), (4, 5, 22), (5, 6, 25), (2, 3, 16)]
         sage: boruvka(G, by_weight=True)
         [(1, 6, 10), (2, 7, 14), (3, 4, 12), (4, 5, 22), (5, 6, 25), (2, 3, 16)]
-        sage: boruvka(G, by_weight=False)
-        [(1, 2, 28), (2, 3, 16), (3, 4, 12), (4, 5, 22), (1, 6, 10), (2, 7, 14)]
+        sage: sorted(boruvka(G, by_weight=False))
+        [(1, 2, 28), (1, 6, 10), (2, 3, 16), (2, 7, 14), (3, 4, 12), (4, 5, 22)]
 
     An example with custom edge labels::
 
@@ -424,7 +433,7 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
     If the input graph is a tree, then return its edges::
 
         sage: T = graphs.RandomTree(randint(1, 10))
-        sage: T.edges() == boruvka(T, check=True)
+        sage: T.edges() == sorted(boruvka(T, check=True))
         True
 
     Check if the weight of MST returned by Prim's and Boruvka's is the same::
@@ -462,7 +471,7 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
         # G is now assumed to be a nonempty connected graph
         if G.num_verts() == G.num_edges() + 1:
             # G is a tree
-            return G.edges()
+            return G.edges(sort=False)
 
     # Boruvka's algorithm
 

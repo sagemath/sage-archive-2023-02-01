@@ -254,6 +254,7 @@ class Gp(ExtraTabCompletion, Expect):
         self._eval_line('default(help, "gphelp -detex");')
         # logfile disabled since Expect already logs
         self._eval_line('default(log,0);')
+        self._eval_line("default(nbthreads,1);")
         # set random seed
         self.set_seed(self._seed)
 

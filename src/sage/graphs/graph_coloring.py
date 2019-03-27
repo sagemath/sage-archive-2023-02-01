@@ -127,15 +127,15 @@ def all_graph_colorings(G, n, count_only=False, hex_colors=False, vertex_color_d
     EXAMPLES::
 
         sage: from sage.graphs.graph_coloring import all_graph_colorings
-        sage: G = Graph({0:[1,2,3],1:[2]})
+        sage: G = Graph({0: [1, 2, 3], 1: [2]})
         sage: n = 0
-        sage: for C in all_graph_colorings(G,3,hex_colors=True):
+        sage: for C in all_graph_colorings(G, 3, hex_colors=True):
         ....:     parts = [C[k] for k in C]
         ....:     for P in parts:
         ....:         l = len(P)
         ....:         for i in range(l):
-        ....:             for j in range(i+1,l):
-        ....:                 if G.has_edge(P[i],P[j]):
+        ....:             for j in range(i + 1, l):
+        ....:                 if G.has_edge(P[i], P[j]):
         ....:                     raise RuntimeError("Coloring Failed.")
         ....:     n+=1
         sage: print("G has %s 3-colorings." % n)
@@ -144,26 +144,33 @@ def all_graph_colorings(G, n, count_only=False, hex_colors=False, vertex_color_d
 
     TESTS::
 
-        sage: G = Graph({0:[1,2,3],1:[2]})
-        sage: for C in all_graph_colorings(G,0): print(C)
-        sage: for C in all_graph_colorings(G,-1): print(C)
+        sage: G = Graph({0: [1, 2, 3], 1: [2]})
+        sage: for C in all_graph_colorings(G, 0):
+        ....:     print(C)
+        sage: for C in all_graph_colorings(G, -1):
+        ....:     print(C)
         Traceback (most recent call last):
         ...
         ValueError: n must be non-negative
-        sage: G = Graph({0:[1],1:[2]})
-        sage: for c in all_graph_colorings(G,2, vertex_color_dict = True): print(c)
+        sage: G = Graph({0: [1], 1: [2]})
+        sage: for c in all_graph_colorings(G, 2, vertex_color_dict=True):
+        ....:     print(c)
         {0: 0, 1: 1, 2: 0}
         {0: 1, 1: 0, 2: 1}
-        sage: for c in all_graph_colorings(G,2,hex_colors = True): print(c)
-        {'#00ffff': [1], '#ff0000': [0, 2]}
-        {'#ff0000': [1], '#00ffff': [0, 2]}
-        sage: for c in all_graph_colorings(G,2,hex_colors=True,vertex_color_dict = True): print(c)
+        sage: for c in all_graph_colorings(G, 2, hex_colors=True):
+        ....:     print(sorted(c.items()))
+        [('#00ffff', [1]), ('#ff0000', [0, 2])]
+        [('#00ffff', [0, 2]), ('#ff0000', [1])]
+        sage: for c in all_graph_colorings(G, 2, hex_colors=True, vertex_color_dict=True):
+        ....:     print(c)
         {0: '#ff0000', 1: '#00ffff', 2: '#ff0000'}
         {0: '#00ffff', 1: '#ff0000', 2: '#00ffff'}
-        sage: for c in all_graph_colorings(G, 2, vertex_color_dict = True): print(c)
+        sage: for c in all_graph_colorings(G, 2, vertex_color_dict=True):
+        ....:     print(c)
         {0: 0, 1: 1, 2: 0}
         {0: 1, 1: 0, 2: 1}
-        sage: for c in all_graph_colorings(G, 2, count_only=True, vertex_color_dict = True): print(c)
+        sage: for c in all_graph_colorings(G, 2, count_only=True, vertex_color_dict=True):
+        ....:     print(c)
         1
         1
     """
@@ -263,8 +270,8 @@ def first_coloring(G, n=0, hex_colors=False):
 
         sage: from sage.graphs.graph_coloring import first_coloring
         sage: G = Graph({0: [1, 2, 3], 1: [2]})
-        sage: first_coloring(G, 3)
-        [[1, 3], [0], [2]]
+        sage: sorted(first_coloring(G, 3))
+        [[0], [1, 3], [2]]
     """
     G._scream_if_not_simple(allow_multiple_edges=True)
     o = G.order()
@@ -288,8 +295,8 @@ def number_of_n_colorings(G, n):
     EXAMPLES::
 
         sage: from sage.graphs.graph_coloring import number_of_n_colorings
-        sage: G = Graph({0:[1,2,3],1:[2]})
-        sage: number_of_n_colorings(G,3)
+        sage: G = Graph({0: [1, 2, 3], 1: [2]})
+        sage: number_of_n_colorings(G, 3)
         12
     """
     # Take care of the stupid stuff
@@ -316,7 +323,7 @@ def numbers_of_colorings(G):
     EXAMPLES::
 
         sage: from sage.graphs.graph_coloring import numbers_of_colorings
-        sage: G = Graph({0:[1,2,3],1:[2]})
+        sage: G = Graph({0: [1, 2, 3], 1: [2]})
         sage: numbers_of_colorings(G)
         [0, 0, 0, 12, 72]
     """
@@ -333,7 +340,7 @@ def chromatic_number(G):
     EXAMPLES::
 
         sage: from sage.graphs.graph_coloring import chromatic_number
-        sage: G = Graph({0:[1,2,3],1:[2]})
+        sage: G = Graph({0: [1, 2, 3], 1: [2]})
         sage: chromatic_number(G)
         3
 
@@ -489,7 +496,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver=None, 
             if value_only:
                 return True
             elif hex_colors:
-                return dict([(color, []) for color in rainbow(k)])
+                return {color: [] for color in rainbow(k)}
             else:
                 return [[] for i in range(k)]
         # Is the graph connected?
@@ -765,11 +772,11 @@ def b_coloring(g, k, value_only=True, solver=None, verbose=0):
     b-chromatic number of `G` (denoted `\chi_b(G)`): the maximum `k` such that
     `G` admits a b-coloring with `k` colors.
 
-    An useful upper bound for calculating the b-chromatic number is the
-    following. If G admits a b-coloring with k colors, then there are `k`
+    A useful upper bound for calculating the b-chromatic number is the
+    following. If `G` admits a b-coloring with `k` colors, then there are `k`
     vertices of degree at least `k - 1` (the b-vertices of each color
-    class). So, if we set `m(G) = max` \{`k | `there are k vertices of degree at
-    least `k - 1`\}, we have that `\chi_b(G) \leq m(G)`.
+    class). So, if we set `m(G) = \max \{k | \text{there are } k \text{ vertices
+    of degree at least } k - 1 \}`, we have that `\chi_b(G) \leq m(G)`.
 
 
     .. NOTE::
@@ -1079,7 +1086,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=No
             if value_only:
                 chi = max(chi, h.order() if h.order() % 2 else (h.order() - 1))
                 continue
-            vertices = h.vertices()
+            vertices = list(h)
             r = round_robin(h.order())
             # create missing color classes, if any
             for i in range(len(classes), max(r.edge_labels()) + 1):
@@ -1159,8 +1166,8 @@ def round_robin(n):
 
     OUTPUT:
 
-    - A ``CompleteGraph`` with labelled edges such that the label of each edge
-      is its color.
+    - A :meth:`~sage.graphs.graph_generators.GraphGenerators.CompleteGraph` with
+      labelled edges such that the label of each edge is its color.
 
     EXAMPLES::
 
@@ -1178,17 +1185,17 @@ def round_robin(n):
     number of colors::
 
         sage: g = round_robin(9)
-        sage: sum([Set([e[2] for e in g.edges_incident(v)]).cardinality() for v in g]) == 2*g.size()
+        sage: sum(Set(e[2] for e in g.edges_incident(v)).cardinality() for v in g) == 2 * g.size()
         True
-        sage: Set([e[2] for e in g.edge_iterator()]).cardinality()
+        sage: Set(e[2] for e in g.edge_iterator()).cardinality()
         9
 
     ::
 
         sage: g = round_robin(10)
-        sage: sum([Set([e[2] for e in g.edges_incident(v)]).cardinality() for v in g]) == 2*g.size()
+        sage: sum(Set(e[2] for e in g.edges_incident(v)).cardinality() for v in g) == 2 * g.size()
         True
-        sage: Set([e[2] for e in g.edge_iterator()]).cardinality()
+        sage: Set(e[2] for e in g.edge_iterator()).cardinality()
         9
     """
     if n <= 1:
@@ -1215,23 +1222,23 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
     the edges of `G` can be partitioned into linear forests (i.e. into forests
     of paths).
 
-    Obviously, `la(G)\geq \lceil \frac{\Delta(G)}{2} \rceil`.
+    Obviously, `la(G)\geq \left\lceil \frac{\Delta(G)}{2} \right\rceil`.
 
-    It is conjectured in [Aki1980]_ that `la(G)\leq \lceil \frac{\Delta(G)+1}{2}
-    \rceil`.
+    It is conjectured in [Aki1980]_ that `la(G)\leq \left\lceil
+    \frac{\Delta(G)+1}{2} \right\rceil`.
 
     INPUT:
 
-    - ``plus_one`` -- integer (default: ``None``); whether to use `\lceil
-      \frac{\Delta(G)}{2} \rceil` or `\lceil \frac{\Delta(G)+1}{2} \rceil`
-      colors.
+    - ``plus_one`` -- integer (default: ``None``); whether to use `\left\lceil
+      \frac{\Delta(G)}{2} \right\rceil` or `\left\lceil \frac{\Delta(G)+1}{2}
+      \right\rceil` colors.
 
-      - If ``0``, computes a decomposition of `G` into `\lceil
-        \frac{\Delta(G)}{2} \rceil` forests of paths
+      - If ``0``, computes a decomposition of `G` into `\left\lceil
+        \frac{\Delta(G)}{2} \right\rceil` forests of paths
 
-      - If ``1``, computes a decomposition of `G` into `\lceil
-        \frac{\Delta(G)+1}{2} \rceil` colors, which is the conjectured general
-        bound.
+      - If ``1``, computes a decomposition of `G` into `\left\lceil
+        \frac{\Delta(G)+1}{2} \right\rceil` colors, which is the conjectured
+        general bound.
 
       - If ``plus_one = None`` (default), computes a decomposition using the
         least possible number of colors.
@@ -1276,7 +1283,7 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
     horizontal lines and the set of vertical lines are an admissible partition::
 
         sage: from sage.graphs.graph_coloring import linear_arboricity
-        sage: g = graphs.GridGraph([4,4])
+        sage: g = graphs.Grid2dGraph(4, 4)
         sage: g1,g2 = linear_arboricity(g)
 
     Each graph is of course a forest::
@@ -1291,7 +1298,7 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
 
     Which constitutes a partition of the whole edge set::
 
-        sage: all([g1.has_edge(e) or g2.has_edge(e) for e in g.edges(labels = None)])
+        sage: all((g1.has_edge(e) or g2.has_edge(e)) for e in g.edge_iterator(labels=None))
         True
 
     TESTS:
@@ -1299,15 +1306,15 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
     Asking for the value of the linear arboricity only (:trac:`24991`)::
 
         sage: from sage.graphs.graph_coloring import linear_arboricity
-        sage: sorted([linear_arboricity(G, value_only=True) for G in graphs(4)])
+        sage: sorted(linear_arboricity(G, value_only=True) for G in graphs(4))
         [0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2]
 
     Test parameter ``hex_color`` (:trac:`26228`)::
 
         sage: from sage.graphs.graph_coloring import linear_arboricity
-        sage: g = graphs.GridGraph([4,4])
+        sage: g = graphs.Grid2dGraph(4, 4)
         sage: d = linear_arboricity(g, hex_colors=True)
-        sage: sorted(col for col,E in d.items())
+        sage: sorted(d)
         ['#00ffff', '#ff0000']
     """
     g._scream_if_not_simple()
@@ -1346,7 +1353,7 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
     # relaxed value
     r = p.new_variable(nonnegative=True)
 
-    MAD = 1-1/(Integer(g.order())*2)
+    MAD = 1 - 1 / (Integer(g.order()) * 2)
 
     # Partition of the edges
     for u,v in g.edge_iterator(labels=None):
@@ -1515,13 +1522,41 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver=Non
         sage: from sage.graphs.graph_coloring import acyclic_edge_coloring
         sage: g = graphs.CompleteGraph(4)
         sage: d = acyclic_edge_coloring(g, hex_colors=True)
-        sage: sorted(col for col,E in d.items())
+        sage: sorted(d)
         ['#0066ff', '#00ff66', '#cbff00', '#cc00ff', '#ff0000']
+
+    The acyclic chromatic index of a graph without edge is 0 (:trac:`27079`)::
+
+        sage: from sage.graphs.graph_coloring import acyclic_edge_coloring
+        sage: g = Graph(3)
+        sage: acyclic_edge_coloring(g, k=None, value_only=True)
+        0
+        sage: acyclic_edge_coloring(g, k=None, hex_colors=True)
+        {}
+        sage: acyclic_edge_coloring(g, k=None, hex_colors=False)
+        []
+
+    Empty graph  (:trac:`27079`)::
+
+        sage: from sage.graphs.graph_coloring import acyclic_edge_coloring
+        sage: acyclic_edge_coloring(Graph(), k=None, value_only=True)
+        0
     """
     g._scream_if_not_simple(allow_multiple_edges=True)
 
     from sage.rings.integer import Integer
     from sage.combinat.subset import Subsets
+    from sage.plot.colors import rainbow
+
+    if not g.order() or not g.size():
+        if k == 0:
+            k = 2
+        if value_only:
+            return 0 if k is None else k
+        else:
+            if k is None:
+                return {} if hex_colors else []
+            return {c: [] for c in rainbow(k)} if hex_colors else [copy(g) for _ in range(k)]
 
     if k is None:
         k = max(g.degree())
@@ -1541,8 +1576,6 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver=Non
 
     elif not k:
         k = max(g.degree()) + 2
-
-    from sage.plot.colors import rainbow
 
     p = MixedIntegerLinearProgram(solver=solver)
 
@@ -1587,7 +1620,10 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver=Non
 
     except MIPSolverException:
         if k == max(g.degree()) + 2:
-            raise RuntimeError("It looks like you have found a counterexample to a very old conjecture. Please do not loose it ! Please publish it, and send a post to sage-devel to warn us. We implore you!")
+            raise RuntimeError("It looks like you have found a counterexample to "
+                               "a very old conjecture. Please do not loose it ! "
+                               "Please publish it, and send a post to sage-devel "
+                               "to warn us. We implore you!")
         else:
             raise ValueError("this graph can not be colored with the given number of colors")
 
@@ -1610,7 +1646,7 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver=Non
                 add((u,v), i)
 
     if hex_colors:
-        return dict(zip(rainbow(len(answer)),answer))
+        return dict(zip(rainbow(len(answer)), answer))
     else:
         return answer
 

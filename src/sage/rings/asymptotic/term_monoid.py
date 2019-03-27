@@ -3506,34 +3506,6 @@ class ExactTerm(TermWithCoefficient):
             2^n
             sage: _.parent()
             Exact Term Monoid QQ^n * n^QQ with coefficients in Symbolic Ring
-
-        Above, we get ``QQ^n * n^SR``. The reason is the following:
-        Since $n = 1_{SR} \cdot (1_{\QQ})^n \cdot n^{1_{\QQ}}$, we have
-
-        .. MATH::
-
-            2^n = (2_{\QQ})^{1_{SR} \cdot (1_{\QQ})^n \cdot n^{1_{\QQ}}}
-            = \left( (2_{\QQ})^n \cdot n^{0_{\QQ}} \right)^{1_{SR}}
-            = \left((2_{\QQ})^{1_{SR}}\right)^n \cdot n^{0_{\QQ} 1_{SR}}
-            = (2_{\QQ})^n \cdot n^{0_{SR}}
-
-        where ::
-
-            sage: (QQ(2)^SR(1)).parent(), (QQ(0)*SR(1)).parent()
-            (Rational Field, Symbolic Ring)
-
-        was used.
-
-        TESTS::
-
-            sage: SCR = SR.subring(no_variables=True)
-            sage: T = TermMonoid('exact', GrowthGroup('QQ^x * x^ZZ'), SCR)
-            sage: x = T('x')
-            sage: x.rpow(SCR(5))
-            5^x
-            sage: _.parent()
-            Exact Term Monoid (Symbolic Constants Subring)^x * x^ZZ * S^x
-            with coefficients in Symbolic Constants Subring
         """
         P = self.parent()
 

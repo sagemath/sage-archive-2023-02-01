@@ -581,14 +581,14 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
         sage: from sage.graphs.centrality import centrality_closeness_top_k
         sage: g = graphs.PathGraph(10)
         sage: centrality_closeness_top_k(g, 4, 1)
-        Final performance ratio: 0.711111111111
+        Final performance ratio: 0.711111111111...
         [(0.36, 5),
          (0.36, 4),
          (0.3333333333333333, 6),
          (0.3333333333333333, 3)]
         sage: g = digraphs.Path(10)
         sage: centrality_closeness_top_k(g, 5, 1)
-        Final performance ratio: 0.422222222222
+        Final performance ratio: 0.422222222222...
         [(0.2, 0),
          (0.19753086419753085, 1),
          (0.19444444444444442, 2),
@@ -907,10 +907,7 @@ def centrality_closeness_random_k(G, int k=1):
     cdef double farness
     cdef int i, j
     cdef dict closeness_centrality_array = {}
-    # Currently, the boost graph interface uses the ordering of the vertices
-    # given by G.vertices() while with short_digraph we can specify the ordering
-    # (see #26447). This will change in the future
-    cdef list int_to_vertex = G.vertices() if G.weighted() else list(G)
+    cdef list int_to_vertex = list(G)
     cdef dict vertex_to_int = {v: i for i, v in enumerate(int_to_vertex)}
 
     # Initialize

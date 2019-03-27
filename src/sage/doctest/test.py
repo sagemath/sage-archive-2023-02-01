@@ -99,7 +99,16 @@ Check handling of tolerances::
     Got:
         Hello 1.0
     Tolerance exceeded:
-        0.999999 vs 1.0, tolerance 1e-06 > 1e-06
+        0.999999 vs 1.0, tolerance 2e-6 > 1e-6
+    **********************************************************************
+    File "tolerance.rst", line ..., in sage.doctest.tests.tolerance
+    Failed example:
+        print("Hello 1.0")  # rel tol 1e-6
+    Expected:
+        Hello ...
+    Got:
+        Hello 1.0
+    Note: combining tolerance (# tol) with ellipsis (...) is not supported
     **********************************************************************
     ...
     1
@@ -500,7 +509,8 @@ Test ``atexit`` support in the doctesting framework::
     ....:     pass
 
 Test the ``--memlimit`` option and ``# optional - memlimit``
-(but only on Linux)::
+(but only on Linux). If this test fails, the memory needed to
+run it may have increased. Try increasing the limit. ::
 
     sage: from platform import system
     sage: ok = True

@@ -3270,18 +3270,18 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         EXAMPLES::
 
-            sage: A.<S> = AsymptoticRing("S^ZZ", SR, default_prec=3)
-            sage: (3 + 1/S + O(1/S^2)).limit()
+            sage: A.<s> = AsymptoticRing("s^ZZ", SR, default_prec=3)
+            sage: (3 + 1/s + O(1/s^2)).limit()
             3
-            sage: ((1+1/S)^S).limit()
+            sage: ((1+1/s)^s).limit()
             e
-            sage: (1/S).limit()
+            sage: (1/s).limit()
             0
-            sage: (S + 3 + 1/S + O(1/S^2)).limit()
+            sage: (s + 3 + 1/s + O(1/s^2)).limit()
             Traceback (most recent call last):
             ...
-            ValueError: Cannot determine limit of S + 3 + S^(-1) + O(S^(-2))
-            sage: (O(S^0)).limit()
+            ValueError: Cannot determine limit of s + 3 + s^(-1) + O(s^(-2))
+            sage: (O(s^0)).limit()
             Traceback (most recent call last):
             ...
             ValueError: Cannot determine limit of O(1)

@@ -2325,7 +2325,9 @@ class DiGraph(GenericGraph):
             path = queue.pop(0)     # get the next path
 
             if path[-1] in ending_vertices:
-                if report_edges and labels:
+                if not report_edges and not use_multiedges:
+                    yield path     # yield good path
+                elif report_edges and labels:
                     for p in cartesian_product([my_dict[e] for e in zip(path[:-1], path[1:])]):
                         yield list(p)
                 elif use_multiedges and self.has_multiple_edges():
@@ -2338,8 +2340,6 @@ class DiGraph(GenericGraph):
                         yield newpath
                 elif report_edges:
                     yield list(zip(path[:-1], path[1:]))
-                else:
-                    yield path      # yield good path
 
     def all_paths_iterator(self, starting_vertices=None, ending_vertices=None,
                            simple=False, max_length=None, trivial=False,

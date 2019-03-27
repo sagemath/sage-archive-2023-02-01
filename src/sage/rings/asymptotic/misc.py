@@ -140,7 +140,6 @@ def parent_to_repr_short(P):
         sage: parent_to_repr_short(Zmod(3)['g'])
         'Univariate Polynomial Ring in g over Ring of integers modulo 3'
     """
-    from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
     from sage.rings.all import RR, CC, RIF, CIF, RBF, CBF
     from sage.rings.integer_ring import ZZ
     from sage.rings.rational_field import QQ

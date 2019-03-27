@@ -6,14 +6,7 @@ AUTHORS:
 - William Stein (input from David Joyner, David Kohel, and Joe Wetherell)
 
 - Sebastian Pancratz (2010-01-06): Rewrite of addition, multiplication and
-  derivative to use Henrici's algorithms [Ho72]
-
-REFERENCES:
-
-.. [Ho72] \E. Horowitz, "Algorithms for Rational Function Arithmetic
-   Operations", Annual ACM Symposium on Theory of Computing, Proceedings of
-   the Fourth Annual ACM Symposium on Theory of Computing, pp. 108--118, 1972
-
+  derivative to use Henrici's algorithms [Hor1972]_
 """
 
 #*****************************************************************************

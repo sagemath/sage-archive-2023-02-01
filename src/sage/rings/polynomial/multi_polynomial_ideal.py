@@ -742,7 +742,7 @@ class MPolynomialIdeal_singular_repr(
 
         .. NOTE::
 
-            See [BW93]_ for an introduction to primary decomposition.
+            See [BW1993]_ for an introduction to primary decomposition.
 
         TESTS:
 
@@ -4273,16 +4273,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             It is unknown whether semi-regular sequences
             exist. However, it is expected that random systems are
             semi-regular sequences. For more details about
-            semi-regular sequences see [BFS04]_.
-
-        REFERENCES:
-
-        .. [BFS04] Magali Bardet, Jean-Charles Faugère, and Bruno
-           Salvy, On the complexity of Groebner basis computation of
-           semi-regular overdetermined algebraic equations.
-           Proc. International Conference on Polynomial System Solving
-           (ICPSS), pp. 71-75, 2004.
-
+            semi-regular sequences see [BFS2004]_.
         """
         degs = [f.degree() for f in self.gens() if f!=0] # we ignore zeroes
         m, n = self.ngens(), len(set(sum([f.variables() for f in self.gens()],())))

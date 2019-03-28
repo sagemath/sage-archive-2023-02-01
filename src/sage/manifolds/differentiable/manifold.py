@@ -1420,7 +1420,8 @@ class DifferentiableManifold(TopologicalManifold):
         - ``comp`` -- (optional) either the components of the vector field
           with respect to the vector frame specified by the argument ``frame``
           or a dictionary of components, the keys of which are vector frames or
-          pairs ``(f,c)`` where ``f`` is a vector frame and ``c`` a chart
+          pairs ``(f, c)`` where ``f`` is a vector frame and ``c`` the chart
+          in which the components are expressed
         - ``frame`` -- (default: ``None``; unused if ``comp`` is not given or
           is a dictionary) vector frame in which the components are given; if
           ``None``, the default vector frame of ``self`` is assumed
@@ -1454,9 +1455,11 @@ class DifferentiableManifold(TopologicalManifold):
             sage: M = Manifold(3, 'M')
             sage: U = M.open_subset('U')
             sage: c_xyz.<x,y,z> = U.chart()
-            sage: v = U.vector_field('v'); v
+            sage: v = U.vector_field(y, -x*z, 1+y, name='v'); v
             Vector field v on the Open subset U of the 3-dimensional
              differentiable manifold M
+            sage: v.display()
+            v = y d/dx - x*z d/dy + (y + 1) d/dz
 
         The vector fields on `U` form the set `\mathfrak{X}(U)`, which is a
         module over the algebra `C^k(U)` of differentiable scalar fields
@@ -1829,8 +1832,7 @@ class DifferentiableManifold(TopologicalManifold):
         return vmodule.alternating_contravariant_tensor(degree,
                                        name=name, latex_name=latex_name)
 
-    def diff_form(self, degree, name=None, latex_name=None,
-                  dest_map=None):
+    def diff_form(self, *args, **kwargs):
         r"""
         Define a differential form on ``self``.
 
@@ -1874,6 +1876,18 @@ class DifferentiableManifold(TopologicalManifold):
 
         - ``degree`` -- the degree `p` of the differential form (i.e.
           its tensor rank)
+        - ``comp`` -- (optional) either the components of the differential
+          form with respect to the vector frame specified by the argument
+          ``frame`` or a dictionary of components, the keys of which are vector
+          frames or pairs ``(f, c)`` where ``f`` is a vector frame and ``c``
+          the chart in which the components are expressed
+        - ``frame`` -- (default: ``None``; unused if ``comp`` is not given or
+          is a dictionary) vector frame in which the components are given; if
+          ``None``, the default vector frame of ``self`` is assumed
+        - ``chart`` -- (default: ``None``; unused if ``comp`` is not given or
+          is a dictionary) coordinate chart in which the components are
+          expressed; if ``None``, the default chart on the domain of ``frame``
+          is assumed
         - ``name`` -- (default: ``None``) name given to the differential
           form
         - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote
@@ -1894,27 +1908,39 @@ class DifferentiableManifold(TopologicalManifold):
 
         EXAMPLES:
 
-        A 2-form on a open subset of a 4-dimensional differentiable
-        manifold::
+        A 2-form on a 3-dimensional differentiable manifold::
 
-            sage: M = Manifold(4, 'M')
-            sage: A = M.open_subset('A', latex_name=r'\mathcal{A}'); A
-            Open subset A of the 4-dimensional differentiable manifold M
-            sage: c_xyzt.<x,y,z,t> = A.chart()
-            sage: f = A.diff_form(2, 'F'); f
-            2-form F on the Open subset A of the 4-dimensional
-             differentiable manifold M
+            sage: M = Manifold(3, 'M')
+            sage: X.<x,y,z> = M.chart()
+            sage: f = M.diff_form(2, name='F'); f
+            2-form F on the 3-dimensional differentiable manifold M
+            sage: f[0,1], f[1,2] = x+y, x*z
+            sage: f.display()
+            F = (x + y) dx/\dy + x*z dy/\dz
 
         See the documentation of class
         :class:`~sage.manifolds.differentiable.diff_form.DiffForm` for
         more examples.
 
         """
+        degree = args[0]
+        name = kwargs.pop('name', None)
+        latex_name = kwargs.pop('latex_name', None)
+        dest_map = kwargs.pop('dest_map', None)
         vmodule = self.vector_field_module(dest_map)
-        return vmodule.alternating_form(degree, name=name,
+        resu = vmodule.alternating_form(degree, name=name,
                                         latex_name=latex_name)
+        if len(args)>1:
+            # Some components are to be initialized
+            resu._init_components(args[1], **kwargs)
+        return resu
 
-    def one_form(self, name=None, latex_name=None, dest_map=None):
+
+
+        vmodule = self.vector_field_module(dest_map)
+        return
+
+    def one_form(self, *comp, **kwargs):
         r"""
         Define a 1-form on the manifold.
 
@@ -1950,6 +1976,18 @@ class DifferentiableManifold(TopologicalManifold):
 
         INPUT:
 
+        - ``comp`` -- (optional) either the components of 1-form with respect
+          to the vector frame specified by the argument ``frame`` or a
+          dictionary of components, the keys of which are vector frames or
+          pairs ``(f, c)`` where ``f`` is a vector frame and ``c`` the chart
+          in which the components are expressed
+        - ``frame`` -- (default: ``None``; unused if ``comp`` is not given or
+          is a dictionary) vector frame in which the components are given; if
+          ``None``, the default vector frame of ``self`` is assumed
+        - ``chart`` -- (default: ``None``; unused if ``comp`` is not given or
+          is a dictionary) coordinate chart in which the components are
+          expressed; if ``None``, the default chart on the domain of ``frame``
+          is assumed
         - ``name`` -- (default: ``None``) name given to the 1-form
         - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote
           the 1-form; if none is provided, the LaTeX symbol is set to
@@ -1969,17 +2007,18 @@ class DifferentiableManifold(TopologicalManifold):
 
         EXAMPLES:
 
-        A 1-form on a 3-dimensional open subset::
+        A 1-form on a 2-dimensional manifold::
 
-            sage: M = Manifold(3, 'M')
-            sage: A = M.open_subset('A', latex_name=r'\mathcal{A}')
-            sage: X.<x,y,z> = A.chart()
-            sage: om = A.one_form('omega', r'\omega') ; om
-            1-form omega on the Open subset A of the 3-dimensional
-             differentiable manifold M
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: om = M.one_form(-y, 2+x, name='omega', latex_name=r'\omega')
+            sage: om
+            1-form omega on the 2-dimensional differentiable manifold M
+            sage: om.display()
+            omega = -y dx + (x + 2) dy
             sage: om.parent()
-            Free module Omega^1(A) of 1-forms on the Open subset A of
-             the 3-dimensional differentiable manifold M
+            Free module Omega^1(M) of 1-forms on the 2-dimensional
+             differentiable manifold M
 
         .. SEEALSO::
 
@@ -1987,8 +2026,15 @@ class DifferentiableManifold(TopologicalManifold):
             :class:`~sage.manifolds.differentiable.diff_form.DiffForm`.
 
         """
+        name = kwargs.pop('name', None)
+        latex_name = kwargs.pop('latex_name', None)
+        dest_map = kwargs.pop('dest_map', None)
         vmodule = self.vector_field_module(dest_map)
-        return vmodule.linear_form(name=name, latex_name=latex_name)
+        resu = vmodule.linear_form(name=name, latex_name=latex_name)
+        if comp:
+            # Some components are to be initialized
+            resu._init_components(*comp, **kwargs)
+        return resu
 
     def automorphism_field(self, name=None, latex_name=None,
                           dest_map=None):

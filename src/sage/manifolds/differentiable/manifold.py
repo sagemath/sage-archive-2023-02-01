@@ -1487,10 +1487,7 @@ class DifferentiableManifold(TopologicalManifold):
             resu._init_components(*comp, **kwargs)
         return resu
 
-
-
-    def tensor_field(self, k, l, name=None, latex_name=None, sym=None,
-                     antisym=None, dest_map=None):
+    def tensor_field(self, *args, **kwargs):
         r"""
         Define a tensor field on ``self``.
 
@@ -1527,6 +1524,18 @@ class DifferentiableManifold(TopologicalManifold):
 
         - ``k`` -- the contravariant rank `k`, the tensor type being `(k,l)`
         - ``l`` -- the covariant rank `l`, the tensor type being `(k,l)`
+        - ``comp`` -- (optional) either the components of the tensor field
+          with respect to the vector frame specified by the argument
+          ``frame`` or a dictionary of components, the keys of which are vector
+          frames or pairs ``(f, c)`` where ``f`` is a vector frame and ``c``
+          the chart in which the components are expressed
+        - ``frame`` -- (default: ``None``; unused if ``comp`` is not given or
+          is a dictionary) vector frame in which the components are given; if
+          ``None``, the default vector frame of ``self`` is assumed
+        - ``chart`` -- (default: ``None``; unused if ``comp`` is not given or
+          is a dictionary) coordinate chart in which the components are
+          expressed; if ``None``, the default chart on the domain of ``frame``
+          is assumed
         - ``name`` -- (default: ``None``) name given to the tensor field
         - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
           tensor field; if ``None``, the LaTeX symbol is set to ``name``
@@ -1557,35 +1566,49 @@ class DifferentiableManifold(TopologicalManifold):
 
         EXAMPLES:
 
-        A tensor field of type `(2,0)` on an open subset of a 3-dimensional
-        differentiable manifold::
+        A tensor field of type `(2,0)` on a 2-dimensional differentiable
+        manifold::
 
-            sage: M = Manifold(3, 'M')
-            sage: U = M.open_subset('U')
-            sage: c_xyz.<x,y,z> = U.chart()
-            sage: t = U.tensor_field(2, 0, 'T'); t
-            Tensor field T of type (2,0) on the Open subset U of the
-             3-dimensional differentiable manifold M
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: t = M.tensor_field(2, 0, [[1+x, -y], [0, x*y]], name='T'); t
+            Tensor field T of type (2,0) on the 2-dimensional differentiable
+             manifold M
+            sage: t.display()
+            T = (x + 1) d/dx*d/dx - y d/dx*d/dy + x*y d/dy*d/dy
 
-        The type `(2,0)` tensor fields on `U` form the set
-        `\mathcal{T}^{(2,0)}(U)`, which is a module over the algebra `C^k(U)`
-        of differentiable scalar fields on `U`::
+        The type `(2,0)` tensor fields on `M` form the set
+        `\mathcal{T}^{(2,0)}(M)`, which is a module over the algebra `C^k(M)`
+        of differentiable scalar fields on `M`::
 
             sage: t.parent()
-            Free module T^(2,0)(U) of type-(2,0) tensors fields on the Open
-             subset U of the 3-dimensional differentiable manifold M
-            sage: t in U.tensor_field_module((2,0))
+            Free module T^(2,0)(M) of type-(2,0) tensors fields on the
+             2-dimensional differentiable manifold M
+            sage: t in M.tensor_field_module((2,0))
             True
 
         .. SEEALSO::
 
             For more examples, see
-            :class:`~sage.manifolds.differentiable.tensorfield.TensorField`.
+            :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
+            and
+            :class:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal`
 
         """
+        k = args[0]
+        l = args[1]
+        name = kwargs.pop('name', None)
+        latex_name = kwargs.pop('latex_name', None)
+        sym = kwargs.pop('sym', None)
+        antisym = kwargs.pop('antisym', None)
+        dest_map = kwargs.pop('dest_map', None)
         vmodule = self.vector_field_module(dest_map)
-        return vmodule.tensor((k,l), name=name, latex_name=latex_name,
+        resu = vmodule.tensor((k, l), name=name, latex_name=latex_name,
                               sym=sym, antisym=antisym)
+        if len(args)>2:
+            # Some components are to be initialized
+            resu._init_components(args[2], **kwargs)
+        return resu
 
     def sym_bilin_form_field(self, name=None, latex_name=None, dest_map=None):
         r"""
@@ -1934,11 +1957,6 @@ class DifferentiableManifold(TopologicalManifold):
             # Some components are to be initialized
             resu._init_components(args[1], **kwargs)
         return resu
-
-
-
-        vmodule = self.vector_field_module(dest_map)
-        return
 
     def one_form(self, *comp, **kwargs):
         r"""

@@ -49,6 +49,7 @@ from sage.tensor.modules.free_module_alt_form import FreeModuleAltForm
 from sage.manifolds.differentiable.tensorfield import TensorField
 from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
 
+
 class DiffForm(TensorField):
     r"""
     Differential form with values on a generic (i.e. a priori not
@@ -309,10 +310,10 @@ class DiffForm(TensorField):
             Fix ``_test_pickling`` (in the superclass :class:`TensorField`).
 
         """
-        TensorField.__init__(self, vector_field_module, (0,degree), name=name,
+        TensorField.__init__(self, vector_field_module, (0, degree), name=name,
                              latex_name=latex_name, antisym=range(degree),
                              parent=vector_field_module.dual_exterior_power(degree))
-        self._init_derived() # initialization of derived quantities
+        self._init_derived()  # initialization of derived quantities
 
     def _repr_(self):
         r"""
@@ -440,10 +441,10 @@ class DiffForm(TensorField):
         """
         from sage.tensor.modules.format_utilities import (format_unop_txt,
                                                           format_unop_latex)
-        vmodule = self._vmodule # shortcut
+        vmodule = self._vmodule  # shortcut
         rname = format_unop_txt('d', self._name)
         rlname = format_unop_latex(r'\mathrm{d}', self._latex_name)
-        resu = vmodule.alternating_form(self._tensor_rank+1, name=rname,
+        resu = vmodule.alternating_form(self._tensor_rank + 1, name=rname,
                                         latex_name=rlname)
         for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = rst.exterior_derivative()
@@ -796,14 +797,15 @@ class DiffForm(TensorField):
                     self_r._restrictions[dom].interior_product(
                                                     qvect_r._restrictions[dom])
         if resu_degree == 0:
-            if not resu._express: # only the restrictions to subdomains have
-                                  # been initialized
+            if not resu._express:  # only the restrictions to subdomains have
+                                   # been initialized
                 for chart in dom_resu.top_charts():
                     resu._express[chart] = \
                             resu.restrict(chart.domain()).coord_function(chart)
         return resu
 
 # *****************************************************************************
+
 
 class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
     r"""

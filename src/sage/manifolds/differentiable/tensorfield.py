@@ -36,7 +36,7 @@ REFERENCES:
 
 """
 
-#******************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
@@ -44,8 +44,8 @@ REFERENCES:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 from __future__ import print_function
 from six import itervalues, string_types
 
@@ -200,13 +200,11 @@ class TensorField(ModuleElement):
 
     Let us consider two vector fields, `a` and `b`, on `S^2`::
 
-        sage: a = M.vector_field(name='a')
-        sage: a[eU,:] = [-y,x]
+        sage: a = M.vector_field({eU: [-y, x]}, name='a')
         sage: a.add_comp_by_continuation(eV, W, chart=c_uv)
         sage: a.display(eV)
         a = -v d/du + u d/dv
-        sage: b = M.vector_field(name='b')
-        sage: b[eU,:] = [y,-1]
+        sage: b = M.vector_field({eU: [y, -1]}, name='b')
         sage: b.add_comp_by_continuation(eV, W, chart=c_uv)
         sage: b.display(eV)
         b = ((2*u + 1)*v^3 + (2*u^3 - u^2)*v)/(u^2 + v^2) d/du
@@ -279,8 +277,7 @@ class TensorField(ModuleElement):
 
     We define the tensor `t` as above::
 
-        sage: t = M.tensor_field(0,2, name='t')
-        sage: t[eU,:] = [[1,0], [-2,3]]
+        sage: t = M.tensor_field(0, 2, {eU:  [[1,0], [-2,3]]}, name='t')
         sage: t.display(eU)
         t = dx*dx - 2 dy*dx + 3 dy*dy
         sage: t.add_comp_by_continuation(eV, W, chart=c_uv)  # long time
@@ -305,13 +302,11 @@ class TensorField(ModuleElement):
 
     Let us consider two vector fields, `a` and `b`, on `S^2`::
 
-        sage: a = M.vector_field(name='a')
-        sage: a[eU,:] = [-y,x]
+        sage: a = M.vector_field({eU: [-y, x]}, name='a')
         sage: a.add_comp_by_continuation(eV, W, chart=c_uv)
         sage: a.display(eV)
         a = -v d/du + u d/dv
-        sage: b = M.vector_field(name='b')
-        sage: b[eU,:] = [y,-1]
+        sage: b = M.vector_field({eU: [y, -1]}, name='b')
         sage: b.add_comp_by_continuation(eV, W, chart=c_uv)
         sage: b.display(eV)
         b = v*(2*u**3 - u**2 + 2*u*v**2 + v**2)/(u**2 + v**2) d/du
@@ -361,7 +356,6 @@ class TensorField(ModuleElement):
         sage: s = f*t.restrict(U)
         sage: s.restrict(U) == f.restrict(U) * t.restrict(U)
         True
-
 
     """
     def __init__(self, vector_field_module, tensor_type, name=None,
@@ -722,7 +716,7 @@ class TensorField(ModuleElement):
                     frame, chart = frame
                 self.add_comp(frame)[:, chart] = components
         elif isinstance(comp0, string_types):
-            # For compatibility with previous use of vector_field():
+            # For compatibility with previous use of tensor_field():
             self.set_name(comp0)
         else:
             if hasattr(comp0, '__getitem__'):
@@ -962,8 +956,7 @@ class TensorField(ModuleElement):
             sage: stereoN_W = W.atlas()[0]  # restriction of stereographic coord. from North pole to W
             sage: stereoS_W = W.atlas()[1]  # restriction of stereographic coord. from South pole to W
             sage: eN_W = stereoN_W.frame() ; eS_W = stereoS_W.frame()
-            sage: v = M.vector_field('v')
-            sage: v.set_comp(eN)[1] = 1  # given the default settings, this can be abriged to v[1] = 1
+            sage: v = M.vector_field({eN: [1, 0]}, name='v')
             sage: v.display()
             v = d/dx
             sage: vU = v.restrict(U) ; vU
@@ -1226,8 +1219,7 @@ class TensorField(ModuleElement):
             sage: inv = transf.inverse()
             sage: W = U.intersection(V) # The complement of the two poles
             sage: eU = c_xy.frame() ; eV = c_uv.frame()
-            sage: a = M.vector_field('a')
-            sage: a[eU,:] = [x, 2+y]
+            sage: a = M.vector_field({eU: [x, 2+y]}, name='a')
 
         At this stage, the vector field has been defined only on the open
         subset ``U`` (through its components in the frame ``eU``)::
@@ -1317,7 +1309,7 @@ class TensorField(ModuleElement):
         To define a vector field ``v`` along ``S`` taking its values in ``M``,
         we first set the components on ``U``::
 
-            sage: v = M.vector_field('v').along(phi)
+            sage: v = M.vector_field(name='v').along(phi)
             sage: vU = v.restrict(U)
             sage: vU[:] = [x,y,x**2+y**2]
 
@@ -1350,6 +1342,7 @@ class TensorField(ModuleElement):
             S --> R
             on U: (x, y) |--> x^2 + y^2
             on V: (xp, yp) |--> 1/(xp^2 + yp^2)
+
         """
         dom = frame._domain
         if not dom.is_subset(self._domain):
@@ -2777,11 +2770,9 @@ class TensorField(ModuleElement):
             sage: inv = transf.inverse()
             sage: W = U.intersection(V)
             sage: eU = c_xy.frame() ; eV = c_uv.frame()
-            sage: a = M.tensor_field(1,1, name='a')
-            sage: a[eU,:] = [[1,x], [0,2]]
+            sage: a = M.tensor_field(1, 1, {eU: [[1, x], [0, 2]]}, name='a')
             sage: a.add_comp_by_continuation(eV, W, chart=c_uv)
-            sage: b = M.tensor_field(2,0, name='b')
-            sage: b[eU,:] = [[y,-1], [x+y,2]]
+            sage: b = M.tensor_field(2, 0, {eU: [[y, -1], [x+y, 2]]}, name='b')
             sage: b.add_comp_by_continuation(eV, W, chart=c_uv)
             sage: s = a.contract(b) ; s   # contraction on last index of a and first one of b
             Tensor field of type (2,0) on the 2-dimensional differentiable
@@ -2790,16 +2781,16 @@ class TensorField(ModuleElement):
         Check 1: components with respect to the manifold's default
         frame (``eU``)::
 
-            sage: [[bool(s[i,j] == sum(a[i,k]*b[k,j] for k in M.irange()))
-            ....:   for j in M.irange()] for i in M.irange()]
-            [[True, True], [True, True]]
+            sage: all([bool(s[i,j] == sum(a[i,k]*b[k,j] for k in M.irange()))
+            ....:      for j in M.irange()] for i in M.irange())
+            True
 
         Check 2: components with respect to the frame ``eV``::
 
-            sage: [[bool(s[eV,i,j] == sum(a[eV,i,k]*b[eV,k,j]
-            ....:                         for k in M.irange()))
-            ....:   for j in M.irange()] for i in M.irange()]
-            [[True, True], [True, True]]
+            sage: all([bool(s[eV,i,j] == sum(a[eV,i,k]*b[eV,k,j]
+            ....:                            for k in M.irange()))
+            ....:      for j in M.irange()] for i in M.irange())
+            True
 
         Instead of the explicit call to the method :meth:`contract`, one
         may use the index notation with Einstein convention (summation over
@@ -2862,7 +2853,10 @@ class TensorField(ModuleElement):
             sage: s = c.contract(2,3, b, 0,1) ; s  # long time
             Tensor field of type (2,0) on the 2-dimensional differentiable
              manifold M
-            sage: s == c['^.._kl']*b['^kl']  # the same double contraction in index notation; long time
+
+        The same double contraction using index notation::
+
+            sage: s == c['^.._kl']*b['^kl']  # long time
             True
 
         The symmetries are either conserved or destroyed by the contraction::
@@ -2878,11 +2872,9 @@ class TensorField(ModuleElement):
 
         Case of a scalar field result::
 
-            sage: a = M.one_form('a')
-            sage: a[eU,:] = [y, 1+x]
+            sage: a = M.one_form({eU: [y, 1+x]}, name='a')
             sage: a.add_comp_by_continuation(eV, W, chart=c_uv)
-            sage: b = M.vector_field('b')
-            sage: b[eU,:] = [x, y^2]
+            sage: b = M.vector_field({eU: [x, y^2]}, name='b')
             sage: b.add_comp_by_continuation(eV, W, chart=c_uv)
             sage: a.display(eU)
             a = y dx + (x + 1) dy
@@ -2901,8 +2893,7 @@ class TensorField(ModuleElement):
 
         Case of a vanishing scalar field result::
 
-            sage: b = M.vector_field('b')
-            sage: b[eU,:] = [1+x, -y]
+            sage: b = M.vector_field({eU: [1+x, -y]}, name='b')
             sage: b.add_comp_by_continuation(eV, W, chart=c_uv)
             sage: s = a.contract(b) ; s
             Scalar field zero on the 2-dimensional differentiable manifold M
@@ -3015,8 +3006,7 @@ class TensorField(ModuleElement):
             sage: inv = transf.inverse()
             sage: W = U.intersection(V)
             sage: eU = c_xy.frame() ; eV = c_uv.frame()
-            sage: a = M.tensor_field(0,2, name='a')
-            sage: a[eU,:] = [[1,x], [2,y]]
+            sage: a = M.tensor_field(0,2, {eU: [[1,x], [2,y]]}, name='a')
             sage: a.add_comp_by_continuation(eV, W, chart=c_uv)
             sage: a[eV,:]
             [ 1/4*u + 3/4 -1/4*u + 3/4]
@@ -3077,8 +3067,7 @@ class TensorField(ModuleElement):
             sage: inv = transf.inverse()
             sage: W = U.intersection(V)
             sage: eU = c_xy.frame() ; eV = c_uv.frame()
-            sage: a = M.tensor_field(0,2, name='a')
-            sage: a[eU,:] = [[1,x], [2,y]]
+            sage: a = M.tensor_field(0,2, {eU: [[1,x], [2,y]]}, name='a')
             sage: a.add_comp_by_continuation(eV, W, chart=c_uv)
             sage: a[eV,:]
             [ 1/4*u + 3/4 -1/4*u + 3/4]
@@ -3139,11 +3128,9 @@ class TensorField(ModuleElement):
             ....:                    restrictions2= u+v>0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
-            sage: t = M.tensor_field(1,1, name='t')
-            sage: t[e_xy,:] = [[x, 1], [y, 0]]
+            sage: t = M.tensor_field(1, 1, {e_xy: [[x, 1], [y, 0]]}, name='t')
             sage: t.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
-            sage: w = M.vector_field(name='w')
-            sage: w[e_xy,:] = [-y, x]
+            sage: w = M.vector_field({e_xy: [-y, x]}, name='w')
             sage: w.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
             sage: lt = t.lie_derivative(w); lt
             Tensor field of type (1,1) on the 2-dimensional differentiable
@@ -3165,8 +3152,7 @@ class TensorField(ModuleElement):
 
         Lie derivative of a vector field::
 
-            sage: a = M.vector_field(name='a')
-            sage: a[e_xy,:] = [1-x, x-y]
+            sage: a = M.vector_field({e_xy: [1-x, x-y]}, name='a')
             sage: a.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
             sage: a.lie_der(w)
             Vector field on the 2-dimensional differentiable manifold M
@@ -3254,8 +3240,7 @@ class TensorField(ModuleElement):
             sage: inv = transf.inverse()
             sage: W = U.intersection(V)
             sage: eU = c_xy.frame() ; eV = c_uv.frame()
-            sage: a = M.tensor_field(1,1, name='a')
-            sage: a[eU,:] = [[1+y,x], [0,x+y]]
+            sage: a = M.tensor_field(1, 1, {eU: [[1+y,x], [0,x+y]]}, name='a')
             sage: a.add_comp_by_continuation(eV, W, chart=c_uv)
             sage: a.display(eU)
             a = (y + 1) d/dx*dx + x d/dx*dy + (x + y) d/dy*dy
@@ -3327,8 +3312,7 @@ class TensorField(ModuleElement):
             sage: c_xy.<x,y> = M.chart()
             sage: g = M.metric('g')
             sage: g[1,1], g[1,2], g[2,2] = 1+x, x*y, 1-y
-            sage: w = M.one_form()
-            sage: w[:] = [-1, 2]
+            sage: w = M.one_form(-1, 2)
             sage: v = w.up(g) ; v
             Vector field on the 2-dimensional differentiable manifold M
             sage: v.display()
@@ -3359,8 +3343,7 @@ class TensorField(ModuleElement):
 
         Raising the indices of a tensor field of type (0,2)::
 
-            sage: t = M.tensor_field(0, 2)
-            sage: t[:] = [[1,2], [3,4]]
+            sage: t = M.tensor_field(0, 2, [[1,2], [3,4]])
             sage: tu0 = t.up(g, 0) ; tu0  # raising the first index
             Tensor field of type (1,1) on the 2-dimensional differentiable
              manifold M
@@ -3476,8 +3459,7 @@ class TensorField(ModuleElement):
             sage: c_xy.<x,y> = M.chart()
             sage: g = M.metric('g')
             sage: g[1,1], g[1,2], g[2,2] = 1+x, x*y, 1-y
-            sage: v = M.vector_field()
-            sage: v[:] = [-1,2]
+            sage: v = M.vector_field(-1, 2)
             sage: w = v.down(g) ; w
             1-form on the 2-dimensional differentiable manifold M
             sage: w.display()
@@ -3497,8 +3479,7 @@ class TensorField(ModuleElement):
 
         Lowering the indices of a tensor field of type (2,0)::
 
-            sage: t = M.tensor_field(2, 0)
-            sage: t[:] = [[1,2], [3,4]]
+            sage: t = M.tensor_field(2, 0, [[1,2], [3,4]])
             sage: td0 = t.down(g, 0) ; td0  # lowering the first index
             Tensor field of type (1,1) on the 2-dimensional differentiable
              manifold M

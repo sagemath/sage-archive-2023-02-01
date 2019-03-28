@@ -3799,14 +3799,35 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: P.ideal([P(2)]).groebner_basis()
             [1]
             sage: P.ideal([]).groebner_basis()
-            []
+            [0]
             sage: P.ideal([0]).groebner_basis()
-            []
-            sage: P.ideal([3,4,0,5]).groebner_basis()
+            [0]
+            sage: P.ideal([3, 4, 0, 5]).groebner_basis()
+            [1]
+
+            sage: P = PolynomialRing(ZZ, 't', 0)
+            sage: P.ideal([P(2)]).groebner_basis()
+            [2]
+            sage: P.ideal([]).groebner_basis()
+            [0]
+            sage: P.ideal([0]).groebner_basis()
+            [0]
+            sage: P.ideal([2, 4, 6]).groebner_basis()
+            [2]
+
+            sage: P = PolynomialRing(Zmod(8), 't', 0)
+            sage: P.ideal([P(2)]).groebner_basis()
+            [2]
+            sage: P.ideal([]).groebner_basis()
+            [0]
+            sage: P.ideal([0]).groebner_basis()
+            [0]
+            sage: P.ideal([P(3)]).groebner_basis()
             [1]
         """
         from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
         from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
         if algorithm.lower() == "magma":
             algorithm = "magma:GroebnerBasis"
@@ -3828,29 +3849,39 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                 try:
                     gb = self._groebner_basis_singular("groebner", deg_bound=deg_bound, mult_bound=mult_bound, *args, **kwds)
                 except (TypeError, NameError, NotImplementedError) as msg: # conversion to Singular not supported
-                    if self.ring().term_order().is_global() and is_IntegerModRing(self.ring().base_ring()) and not self.ring().base_ring().is_field():
+                    R = self.ring()
+                    B = R.base_ring()
+                    if R.ngens() == 0:
+                        if R.base_ring().is_field():
+                            if any(g != 0 for g in self.gens()):
+                                gb = [R.one()]
+                            else:
+                                gb = [R.zero()]
+                        else:
+                            # To deal with this degenerated case,
+                            # we take a detour to a polynomial ring
+                            # with one variable and then go back.
+                            Rt = PolynomialRing(B, 't', 1)
+                            It = Rt.ideal([Rt(g) for g in self.gens()])
+                            gb = [R(g) for g in It.groebner_basis(
+                                algorithm=algorithm,
+                                deg_bound=deg_bound, mult_bound=mult_bound,
+                                prot=prot, *args, **kwds)]
+                    elif (R.term_order().is_global()
+                          and is_IntegerModRing(B)
+                          and not B.is_field()):
                         verbose("Warning: falling back to very slow toy implementation.", level=0)
 
-                        ch = self.ring().base_ring().characteristic()
-                        R = self.ring().change_ring(ZZ)
-                        I = R.ideal([R(f) for f in self.gens()] + [R(ch)])
-
-                        gb = toy_d_basis.d_basis(I, *args, **kwds)
-
-                        R = self.ring()
-                        gb = [r for r in (R(f) for f in gb) if r]
+                        ch = B.characteristic()
+                        R_ZZ = R.change_ring(ZZ)
+                        I = R_ZZ.ideal([R_ZZ(f) for f in self.gens()] + [R_ZZ(ch)])
+                        gb_ZZ = toy_d_basis.d_basis(I, *args, **kwds)
+                        gb = [r for r in (R(f) for f in gb_ZZ) if r]
+                    elif R.term_order().is_global():
+                        verbose("Warning: falling back to very slow toy implementation.", level=0)
+                        gb = toy_buchberger.buchberger_improved(self, *args, **kwds)
                     else:
-                        R = self.ring()
-                        if R.ngens() == 0 and R.base_ring().is_field():
-                            if any(g != 0 for g in self.gens()):
-                                gb = [R(1)]
-                            else:
-                                gb = []
-                        elif self.ring().term_order().is_global():
-                            verbose("Warning: falling back to very slow toy implementation.", level=0)
-                            gb = toy_buchberger.buchberger_improved(self, *args, **kwds)
-                        else:
-                            raise TypeError("Local/unknown orderings not supported by 'toy_buchberger' implementation.")
+                        raise TypeError("Local/unknown orderings not supported by 'toy_buchberger' implementation.")
 
         elif algorithm.startswith('singular:'):
             gb = self._groebner_basis_singular(algorithm[9:], deg_bound=deg_bound, mult_bound=mult_bound, prot=prot, *args, **kwds)

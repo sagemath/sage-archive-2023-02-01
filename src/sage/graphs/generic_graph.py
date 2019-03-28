@@ -16873,8 +16873,8 @@ class GenericGraph(GenericGraph_pyx):
           of the BFS tree in the order of visit or the vertices (default).
           Edges are directed in root to leaf orientation of the tree.
 
-          Note that parameters ``edges`` and  ``report_distance`` cannot be ``True`` 
-          simultaneously.
+          Note that parameters ``edges`` and ``report_distance`` cannot be
+          ``True`` simultaneously.
 
         .. SEEALSO::
 

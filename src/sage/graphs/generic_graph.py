@@ -4443,7 +4443,7 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``output`` -- string (default: ``'vertex'``); whether every cycle is
           given as a list of vertices (``output == 'vertex'``) or a list of
-          edges (``output == 'edges'``)
+          edges (``output == 'edge'``)
 
         OUTPUT:
 
@@ -4568,9 +4568,12 @@ class GenericGraph(GenericGraph_pyx):
                            [])
 
             T = self.min_spanning_tree()
-            return [self.subgraph(edges=T + [e]).is_forest(certificate=True,
+            H = self.copy()
+            H.delete_edges(T)
+            from sage.graphs.graph import Graph
+            return [Graph(T + [e], multiedges=True).is_forest(certificate=True,
                                                            output=output)[1]
-                    for e in self.edge_iterator() if not e in T]
+                    for e in H.edge_iterator()]
 
         # second case: there are no multiple edges
         import networkx

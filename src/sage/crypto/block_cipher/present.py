@@ -57,7 +57,7 @@ from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.crypto.sboxes import PRESENT as PRESENTSBOX
 
 
-def smallscale_present_linearlayer(nsboxes=16):
+def _smallscale_present_linearlayer(nsboxes=16):
     """
     TODO: switch to sage.crypto.linearlayer
     (https://trac.sagemath.org/ticket/25735) as soon as it is included in sage
@@ -226,7 +226,7 @@ class PRESENT(SageObject):
         self._blocksize = 64
         self._sbox = PRESENTSBOX
         self._inverseSbox = self._sbox.inverse()
-        self._permutationMatrix = smallscale_present_linearlayer()
+        self._permutationMatrix = _smallscale_present_linearlayer()
         self._inversePermutationMatrix = self._permutationMatrix.inverse()
         self._doLastLinearLayer = doLastLinearLayer
 
@@ -415,8 +415,8 @@ class PRESENT(SageObject):
         | P(i) | 12 | 28 | 44 | 60 | 13 | 29 | 45 | 61 | 14 | 30 | 46 | 62 | 15 | 31 | 47 | 63 |
         +------+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
         """
-        state, inputType = convert_to_vector(P, 64)
-        K, _ = convert_to_vector(K, self._keySchedule._keysize)
+        state, inputType = _convert_to_vector(P, 64)
+        K, _ = _convert_to_vector(K, self._keySchedule._keysize)
         roundKeys = self._keySchedule(K)
         for r, K in enumerate(roundKeys[:self._rounds]):
             state = state + K
@@ -472,8 +472,8 @@ class PRESENT(SageObject):
             sage: present.decrypt(c4, k4) == p4
             True
        """
-        state, inputType = convert_to_vector(C, 64)
-        K, _ = convert_to_vector(K, self._keySchedule._keysize)
+        state, inputType = _convert_to_vector(C, 64)
+        K, _ = _convert_to_vector(K, self._keySchedule._keysize)
         roundKeys = self._keySchedule(K)
         state = state + roundKeys[self._rounds]
         for r, K in enumerate(roundKeys[:self._rounds][::-1]):
@@ -634,7 +634,7 @@ class PRESENT_KS(SageObject):
             pass a ``master_key`` value on initialisation. Otherwise you can
             omit ``master_key`` and pass a key when you call the object.
         """
-        K, inputType = convert_to_vector(K, self._keysize)
+        K, inputType = _convert_to_vector(K, self._keysize)
         roundKeys = []
         if self._keysize == 80:
             for i in range(1, self._rounds+1):
@@ -733,7 +733,7 @@ class PRESENT_KS(SageObject):
         return iter(self(self._master_key))
 
 
-def convert_to_vector(I, L):
+def _convert_to_vector(I, L):
     r"""
     Convert ``I`` to a bit vector of length ``L``.
 
@@ -751,11 +751,11 @@ def convert_to_vector(I, L):
 
     EXAMPLES::
 
-        sage: from sage.crypto.block_cipher.present import convert_to_vector
-        sage: convert_to_vector(0x1F, 8)
+        sage: from sage.crypto.block_cipher.present import _convert_to_vector
+        sage: _convert_to_vector(0x1F, 8)
         ((1, 1, 1, 1, 1, 0, 0, 0), 'integer')
         sage: v = vector(GF(2), 4, [1,0,1,0])
-        sage: convert_to_vector(v, 4)
+        sage: _convert_to_vector(v, 4)
         ((1, 0, 1, 0), 'vector')
     """
     try:

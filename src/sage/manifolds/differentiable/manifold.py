@@ -2054,8 +2054,7 @@ class DifferentiableManifold(TopologicalManifold):
             resu._init_components(*comp, **kwargs)
         return resu
 
-    def automorphism_field(self, name=None, latex_name=None,
-                          dest_map=None):
+    def automorphism_field(self, *comp, **kwargs):
         r"""
         Define a field of automorphisms (invertible endomorphisms in each
         tangent space) on ``self``.
@@ -2093,6 +2092,18 @@ class DifferentiableManifold(TopologicalManifold):
 
         INPUT:
 
+        - ``comp`` -- (optional) either the components of the field of
+          automorphisms with respect to the vector frame specified by the
+          argument ``frame`` or a dictionary of components, the keys of which
+          are vector frames or pairs ``(f, c)`` where ``f`` is a vector frame
+          and ``c`` the chart in which the components are expressed
+        - ``frame`` -- (default: ``None``; unused if ``comp`` is not given or
+          is a dictionary) vector frame in which the components are given; if
+          ``None``, the default vector frame of ``self`` is assumed
+        - ``chart`` -- (default: ``None``; unused if ``comp`` is not given or
+          is a dictionary) coordinate chart in which the components are
+          expressed; if ``None``, the default chart on the domain of ``frame``
+          is assumed
         - ``name`` -- (default: ``None``) name given to the field
         - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
           field; if none is provided, the LaTeX symbol is set to ``name``
@@ -2112,16 +2123,21 @@ class DifferentiableManifold(TopologicalManifold):
 
         EXAMPLES:
 
-        A field of automorphisms on a 3-dimensional manifold::
+        A field of automorphisms on a 2-dimensional manifold::
 
-            sage: M = Manifold(3,'M')
-            sage: c_xyz.<x,y,z> = M.chart()
-            sage: a = M.automorphism_field('A') ; a
-            Field of tangent-space automorphisms A on the 3-dimensional
+            sage: M = Manifold(2,'M')
+            sage: X.<x,y> = M.chart()
+            sage: a = M.automorphism_field([[1+x^2, 0], [0, 1+y^2]], name='A')
+            sage: a
+            Field of tangent-space automorphisms A on the 2-dimensional
              differentiable manifold M
             sage: a.parent()
             General linear group of the Free module X(M) of vector fields on
-             the 3-dimensional differentiable manifold M
+             the 2-dimensional differentiable manifold M
+            sage: a(X.frame()[0]).display()
+            A(d/dx) = (x^2 + 1) d/dx
+            sage: a(X.frame()[1]).display()
+            A(d/dy) = (y^2 + 1) d/dy
 
         .. SEEALSO::
 
@@ -2129,8 +2145,15 @@ class DifferentiableManifold(TopologicalManifold):
             :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismField`.
 
         """
+        name = kwargs.pop('name', None)
+        latex_name = kwargs.pop('latex_name', None)
+        dest_map = kwargs.pop('dest_map', None)
         vmodule = self.vector_field_module(dest_map)
-        return vmodule.automorphism(name=name, latex_name=latex_name)
+        resu = vmodule.automorphism(name=name, latex_name=latex_name)
+        if comp:
+            # Some components are to be initialized
+            resu._init_components(*comp, **kwargs)
+        return resu
 
     def tangent_identity_field(self, name='Id', latex_name=None,
                                dest_map=None):

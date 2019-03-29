@@ -4494,7 +4494,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: basis = g.cycle_basis()
 
         Building the space of (directed) edges over `Z/2Z`. On the way, building
-        a dictionary associating an unique vector to each undirected edge::
+        a dictionary associating a unique vector to each undirected edge::
 
             sage: m = g.size()
             sage: edge_space = VectorSpace(FiniteField(2), m)
@@ -4552,7 +4552,7 @@ class GenericGraph(GenericGraph_pyx):
 
         Not yet implemented for directed graphs with multiple edges::
 
-            sage: G = DiGraph([(0,2,'a'),(0,2,'b'),(0,1,'c'),(1,2,'d')], multiedges=True)
+            sage: G = DiGraph([(0, 2, 'a'), (0, 2, 'b'), (0, 1, 'c'), (1, 2, 'd')], multiedges=True)
             sage: G.cycle_basis()
             Traceback (most recent call last):
             ...
@@ -4561,11 +4561,11 @@ class GenericGraph(GenericGraph_pyx):
         if not output in ['vertex', 'edge']:
             raise ValueError('output must be either vertex or edge')
 
-        if self.allows_multiple_edges():
-            if self.is_directed():
-                raise NotImplementedError('not implemented for directed '
-                                          'graphs with multiple edges')
+        if self.is_directed():
+                raise NotImplementedError('not implemented for directed
+                                          graphs')
 
+        if self.allows_multiple_edges():
             if not self.is_connected():
                 return sum([g.cycle_basis(output=output)
                             for g in self.connected_components_subgraphs()],
@@ -4584,7 +4584,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # second case: there are no multiple edges
         import networkx
-        cycle_basis_v = networkx.cycle_basis(self.networkx_graph(copy=False))
+        cycle_basis_v = networkx.cycle_basis(self.networkx_graph())
         if output == 'vertex':
             return cycle_basis_v
 

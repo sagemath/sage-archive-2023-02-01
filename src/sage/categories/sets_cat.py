@@ -1137,11 +1137,9 @@ class Sets(Category_singleton):
                 ....:         return Bla()
                 sage: CC = CCls()
                 sage: CC._test_elements()
-                  Failure in _test_pickling:
-                  ...
-                  PicklingError: Can't pickle <class '__main__.Bla'>: attribute lookup __main__.Bla failed
-                  ...
-                  The following tests failed: _test_pickling
+                Failure in _test_pickling:
+                ...
+                The following tests failed: _test_pickling
             """
             # TODO: add native support for nested test suites to TestSuite
 
@@ -1763,7 +1761,9 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 TESTS::
 
                     sage: from six import get_method_function as gmf
-                    sage: gmf(C.is_finite) is gmf(sage.categories.sets_cat.Sets.Infinite.ParentMethods.is_finite)
+                    sage: gmf(C.is_finite) is gmf(sage.categories.sets_cat.Sets.Infinite.ParentMethods.is_finite)  # py2
+                    True
+                    sage: gmf(C.is_finite) is sage.categories.sets_cat.Sets.Infinite.ParentMethods.is_finite  # py3
                     True
                 """
                 return False

@@ -175,7 +175,7 @@ class DES_KS(SageObject):
         return self(self._master_key)[r]
 
     def __iter__(self):
-        """
+        r"""
         Iterate over the ``self._rounds + 1`` PRESENT round keys, derived from
         `master_key`
 
@@ -191,3 +191,22 @@ class DES_KS(SageObject):
         if self._master_key is None:
             raise ValueError('Key not set during initialisation')
         return iter(self(self._master_key))
+
+    def _pc1(self, key):
+        r"""
+        Compute Permuted Choice 1 of ``key``.
+        """
+        raise NotImplementedError
+
+    def _pc2(self, key):
+        r"""
+        Compute Permuted Choice 2 of ``key``.
+        """
+        raise NotImplementedError
+
+    def _left_shift(self, half, iteration):
+        r"""
+        Shift ``half`` one or two positions to the left depending on the
+        iteration number.
+        """
+        raise NotImplementedError

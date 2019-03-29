@@ -114,4 +114,80 @@ class DES(SageObject):
 
 
 class DES_KS(SageObject):
-    raise NotImplementedError
+    r"""
+    This class implements the DES key schedules described in [BKLPPRSV2007]_.
+    """
+
+    def __init__(self, rounds=16, master_key=None):
+        raise NotImplementedError
+
+    def __call__(self, K):
+        r"""
+        Return all round keys in a list.
+
+        INPUT:
+
+        - ``K`` -- integer or bit list-like; the key
+
+        OUTPUT:
+
+        - A list containing the round keys
+
+        .. NOTE::
+
+            If you want to use a DES_KS object as an iterable you have to
+            pass a ``master_key`` value on initialisation. Otherwise you can
+            omit ``master_key`` and pass a key when you call the object.
+        """
+        raise NotImplementedError
+
+    def __eq__(self, other):
+        r"""
+        Compare ``self`` with ``other``.
+
+        DES_KS objects are the same if all attributes are the same.
+        """
+        if not isinstance(other, DES_KS):
+            return False
+        else:
+            return self.__dict__ == other.__dict__
+
+    def __repr__(self):
+        r"""
+        A string representation of this DES_KS.
+        """
+        return ('Original DES key schedule with %s-bit keys and %s rounds'
+                % (self._keysize, self._rounds))
+
+    def __getitem__(self, r):
+        r"""
+        Computes the sub key for round ``r`` derived from initial master key.
+
+        The key schedule object has to have been initialised with the
+        `master_key` argument.
+
+        INPUT:
+
+        - ``r`` integer; the round for which the sub key is computed
+        """
+        if self._master_key is None:
+            raise ValueError('Key not set during initialisation')
+        return self(self._master_key)[r]
+
+    def __iter__(self):
+        """
+        Iterate over the ``self._rounds + 1`` PRESENT round keys, derived from
+        `master_key`
+
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.present import PRESENT_KS
+            sage: K = [k for k in PRESENT_KS(master_key=0x0)]
+            sage: K[0] == 0x0 # indirect doctest
+            True
+            sage: K[31] == 0x6dab31744f41d700 # indirect doctest
+            True
+        """
+        if self._master_key is None:
+            raise ValueError('Key not set during initialisation')
+        return iter(self(self._master_key))

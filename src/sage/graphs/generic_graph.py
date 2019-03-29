@@ -4571,10 +4571,10 @@ class GenericGraph(GenericGraph_pyx):
                             for g in self.connected_components_subgraphs()],
                            [])
 
-            T = self.min_spanning_tree()
-            H = self.copy()
-            H.delete_edges(T)
             from sage.graphs.graph import Graph
+            T = Graph(self.min_spanning_tree(), multiedges=True, format='list_of_edges')
+            H = self.copy()
+            H.delete_edges(T.edge_iterator())
             L = []
             for e in H.edge_iterator():
                 T.add_edge(e)

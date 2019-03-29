@@ -4438,6 +4438,7 @@ class GenericGraph(GenericGraph_pyx):
         A basis of cycles of a graph is a minimal collection of cycles
         (considered as sets of edges) such that the edge set of any cycle in the
         graph can be written as a `Z/2Z` sum of the cycles in the basis.
+        See the :wikipedia:`Cycle_basis` for more information.
 
         INPUT:
 
@@ -4520,7 +4521,7 @@ class GenericGraph(GenericGraph_pyx):
             [[0, 2], [2, 1, 0]]
             sage: G.cycle_basis(output='edge')
             [[(0, 2, 'a'), (2, 0, 'b')], [(2, 1, 'd'), (1, 0, 'c'), (0, 2, 'a')]]
-            sage: H = Graph([(1,2),(2,3),(2,3),(3,4),(1,4),(1,4),(4,5),(5,6),(4,6),(6,7)],multiedges=True)
+            sage: H = Graph([(1, 2), (2, 3), (2, 3), (3, 4), (1, 4), (1, 4), (4, 5), (5, 6), (4, 6), (6, 7)], multiedges=True)
             sage: H.cycle_basis()
             [[1, 4], [2, 3], [4, 3, 2, 1], [6, 5, 4]]
 

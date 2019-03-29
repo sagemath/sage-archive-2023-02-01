@@ -4575,9 +4575,12 @@ class GenericGraph(GenericGraph_pyx):
             H = self.copy()
             H.delete_edges(T)
             from sage.graphs.graph import Graph
-            return [Graph(T + [e], multiedges=True).is_tree(certificate=True,
-                                                            output=output)[1]
-                    for e in H.edge_iterator()]
+            L = []
+            for e in H.edge_iterator():
+                T.add_edge(e)
+                L.append(T.is_tree(certificate=True, output=output)[1])
+                T.delete_edge(e)
+            return L
 
         # second case: there are no multiple edges
         import networkx

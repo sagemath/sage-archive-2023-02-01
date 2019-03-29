@@ -2253,7 +2253,7 @@ class GenericGraph(GenericGraph_pyx):
             signless and `D^{-1/2}(D-M)D^{-1/2}` otherwise, a normalized
             version of the Laplacian matrix. More accurately, the normalizing
             matrix used is equal to `D^{-1/2}` only for non-isolated vertices.
-            If vertex `i` is isolated, then diagonal entry `i` in the matrix is 
+            If vertex `i` is isolated, then diagonal entry `i` in the matrix is
             1, rather than a division by zero
 
           - Else, the matrix `D+M` for signless and `D-M` otherwise is returned
@@ -4520,6 +4520,9 @@ class GenericGraph(GenericGraph_pyx):
             [[0, 2], [2, 1, 0]]
             sage: G.cycle_basis(output='edge')
             [[(0, 2, 'a'), (2, 0, 'b')], [(2, 1, 'd'), (1, 0, 'c'), (0, 2, 'a')]]
+            sage: H = Graph([(1,2),(2,3),(2,3),(3,4),(1,4),(1,4),(4,5),(5,6),(4,6),(6,7)],multiedges=True)
+            sage: H.cycle_basis()
+            [[1, 4], [2, 3], [4, 3, 2, 1], [6, 5, 4]]
 
         Disconnected graph::
 
@@ -4571,8 +4574,8 @@ class GenericGraph(GenericGraph_pyx):
             H = self.copy()
             H.delete_edges(T)
             from sage.graphs.graph import Graph
-            return [Graph(T + [e], multiedges=True).is_forest(certificate=True,
-                                                           output=output)[1]
+            return [Graph(T + [e], multiedges=True).is_tree(certificate=True,
+                                                            output=output)[1]
                     for e in H.edge_iterator()]
 
         # second case: there are no multiple edges
@@ -9898,7 +9901,7 @@ class GenericGraph(GenericGraph_pyx):
 
         if not self.has_vertex(vertex):
             raise ValueError('vertex (%s) not in the graph' % str(vertex))
-            
+
         self._assoc[vertex] = object
 
     def get_vertex(self, vertex):
@@ -12428,7 +12431,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: C.edges()
             [(0, 1, None), (0, 3, None), (1, 2, None), (2, 3, None)]
 
-            sage: for (u,v) in G.edges(labels=False): 
+            sage: for (u,v) in G.edges(labels=False):
             ....:     G.set_edge_label(u, v, u)
 
             sage: C = G.subgraph_search(graphs.CycleGraph(4))
@@ -22930,7 +22933,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         if alpha <= 0:
             raise ValueError('the parameter alpha must be strictly positive')
-        
+
         n = self.order()
         if n == 0 :
             raise ValueError('graph is empty')

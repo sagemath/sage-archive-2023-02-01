@@ -280,11 +280,10 @@ class PRESENT(SageObject):
             sage: present == PRESENT() # indirect doctest
             False
         """
-        try:
-            return self.__dict__ == other.__dict__
-        except AttributeError:
-            # if other has not attribute __dict__
+        if not isinstance(other, PRESENT):
             return False
+        else:
+            return self.__dict__ == other.__dict__
 
     def __repr__(self):
         r"""
@@ -672,11 +671,10 @@ class PRESENT_KS(SageObject):
             sage: PRESENT_KS(80) == 80 # indirect doctest
             False
         """
-        try:
-            return self.__dict__ == other.__dict__
-        except AttributeError:
-            # if other has no attribute __dict__
+        if not isinstance(other, PRESENT_KS):
             return False
+        else:
+            return self.__dict__ == other.__dict__
 
     def __repr__(self):
         r"""

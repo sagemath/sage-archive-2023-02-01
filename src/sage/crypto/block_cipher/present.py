@@ -59,7 +59,8 @@ from sage.crypto.sboxes import PRESENT as PRESENTSBOX
 
 def smallscale_present_linearlayer(nsboxes=16):
     """
-    TODO: switch to sage.crypto.linearlayer as soon as it is included in sage
+    TODO: switch to sage.crypto.linearlayer
+    (https://trac.sagemath.org/ticket/25735) as soon as it is included in sage
     """
     from sage.modules.free_module import VectorSpace
     from sage.modules.free_module_element import vector

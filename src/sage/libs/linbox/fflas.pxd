@@ -3,7 +3,7 @@
 # distutils: library_dirs = FFLASFFPACK_LIBDIR
 # distutils: language = c++ 
 
-from .givaro cimport Modular_double, Modular_float, Dense, Sparse, Integer
+from .givaro cimport Modular_double, Modular_float, Dense, Sparse
 from .givaro cimport givvector, Poly1Dom
 from libcpp.vector cimport vector
 
@@ -12,48 +12,6 @@ ctypedef Poly1Dom[Modular_float, Dense] PolynomialRing_Modular_float
 
 ctypedef givvector[Modular_double.Element] ModDoubleDensePolynomial
 ctypedef givvector[Modular_float.Element] ModFloatDensePolynomial
-
-# from cython cimport parallel
-
-#cdef extern from "fflas-ffpack/paladin/blockcuts.inl" namespace "FFLAS::CuttingStrategy":
-#     cdef struct Single:
-#         pass
-#     cdef struct Row:
-#         pass
-#     cdef struct Column:
-#         pass
-#     cdef cppclass Block:
-#         pass
-#     cdef struct Recursive:
-#         pass
-#
-#
-#cdef extern from "fflas-ffpack/paladin/blockcuts.inl" namespace "FFLAS::StrategyParameter":
-#     cdef struct Fixed:
-#         pass
-#     cdef cppclass Threads:
-#         pass
-#     cdef struct Grain:
-#         pass
-#     cdef struct TwoD:
-#         pass
-#     cdef struct TwoDAdaptive:
-#         pass
-#     cdef struct ThreeD:
-#         pass
-#     cdef struct ThreeDInPlace:
-#         pass
-#     cdef struct ThreeDAdaptive:
-#         pass
-#
-#cdef extern from "fflas-ffpack/paladin/blockcuts.inl" namespace "FFLAS::ParSeqHelper":
-#    cdef cppclass Parallel[C,P]:
-#         Parallel()
-#         Parallel(size_t n)
-#         size_t& set_numthreads(size_t n)
-#
-#cdef cppclass Sequential:
-#    Sequential()
 
 cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFLAS":
     ctypedef enum FFLAS_TRANSPOSE:
@@ -65,12 +23,19 @@ cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFLAS":
         FflasRight
 
     # double
-    void fgemv (Modular_double F, FFLAS_TRANSPOSE transA,
+    Modular_double.Element* fgemv (Modular_double F, FFLAS_TRANSPOSE transA,
              size_t nrows, size_t ncols,
              Modular_double.Element alpha, Modular_double.Element* A,
              size_t lda, Modular_double.Element* X, size_t incX,
              Modular_double.Element beta, Modular_double.Element* Y,
              size_t incY)
+
+    Modular_double.Element* pfgemv(Modular_double F, FFLAS_TRANSPOSE transA,
+             size_t nrowsA, size_t ncolsA,
+             Modular_double.Element alpha, Modular_double.Element* A,
+             size_t A_stride, Modular_double.Element* B, int B_stride,
+             Modular_double.Element beta, Modular_double.Element* C,
+             size_t C_stride, size_t numthreads)
 
     Modular_double.Element* fgemm (Modular_double F,
              FFLAS_TRANSPOSE transA, FFLAS_TRANSPOSE transB,
@@ -88,14 +53,20 @@ cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFLAS":
              Modular_double.Element beta, Modular_double.Element* C,
              size_t C_stride, size_t nbthreads)
 
-
     # float
-    void fgemv (Modular_float F, FFLAS_TRANSPOSE transA,
+    Modular_float.Element* fgemv (Modular_float F, FFLAS_TRANSPOSE transA,
              size_t nrows, size_t ncols,
              Modular_float.Element alpha, Modular_float.Element* A,
              size_t lda, Modular_float.Element* X, size_t incX,
              Modular_float.Element beta, Modular_float.Element* Y,
              size_t incY)
+
+    Modular_float.Element* pfgemv(Modular_float F, FFLAS_TRANSPOSE transA,
+             size_t nrowsA, size_t ncolsA,
+             Modular_float.Element alpha, Modular_float.Element* A,
+             size_t A_stride, Modular_float.Element* B, int B_stride,
+             Modular_float.Element beta, Modular_float.Element* C,
+             size_t C_stride, size_t numthreads)
 
     Modular_float.Element* fgemm (Modular_float F,
              FFLAS_TRANSPOSE transA, FFLAS_TRANSPOSE transB,
@@ -113,25 +84,6 @@ cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFLAS":
              Modular_float.Element beta, Modular_float.Element* C,
              size_t C_stride, size_t nbthreads)
 
-######################
-    # float
-    Modular_float.Element* pfgemv(Modular_float F,
-             FFLAS_TRANSPOSE transA,
-             size_t nrowsA, size_t ncolsA,
-             Modular_float.Element alpha, Modular_float.Element* A,
-             size_t A_stride, Modular_float.Element* B, int B_stride,
-             Modular_float.Element beta, Modular_float.Element* C,
-             size_t C_stride, size_t numthreads)
-    # double
-    Modular_double.Element* pfgemv(Modular_double F,
-             FFLAS_TRANSPOSE transA,
-             size_t nrowsA, size_t ncolsA,
-             Modular_double.Element alpha, Modular_double.Element* A,
-             size_t A_stride, Modular_double.Element* B, int B_stride,
-             Modular_double.Element beta, Modular_double.Element* C,
-             size_t C_stride, size_t numthreads)
-######################
-######################
 
 cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFPACK":
     # double

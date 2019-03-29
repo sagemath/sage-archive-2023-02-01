@@ -95,9 +95,7 @@ from cysignals.signals cimport sig_check, sig_on, sig_off
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.linbox.fflas cimport FFLAS_TRANSPOSE, FflasNoTrans, FflasTrans, \
-    FflasRight, vector, list as std_list \
-    ,pfgemm ,pfgemv
-#    ,Parallel, Row, Grain, Sequential
+    FflasRight, vector, list as std_list, pfgemm, pfgemv
 
 from sage.parallel.parallelism import Parallelism
 #from cython cimport parallel
@@ -287,14 +285,20 @@ cdef inline celement linbox_matrix_matrix_multiply(celement modulus, celement* a
     F[0].init(one, <int>1)
     F[0].init(zero, <int>0)
 
-    cpdef size_t nbthreads = 1
-    if nbthreads < Parallelism().get('tensor'):
-        nbthreads = Parallelism().get('tensor')
+    cpdef size_t nbthreads
+    nbthreads = Parallelism().get('linbox')
 
     if m*n*k > 100000: sig_on()
-    pfgemm(F[0], FflasNoTrans, FflasNoTrans, m, n, k,
-        one, <ModField.Element*>A, k, <ModField.Element*>B, n, zero,
-        <ModField.Element*>ans, n, nbthreads)
+
+    if nbthreads > 1:
+        pfgemm(F[0], FflasNoTrans, FflasNoTrans, m, n, k, one,
+               <ModField.Element*>A, k, <ModField.Element*>B, n, zero,
+               <ModField.Element*>ans, n, nbthreads)
+    else:
+        fgemm(F[0], FflasNoTrans, FflasNoTrans, m, n, k, one,
+               <ModField.Element*>A, k, <ModField.Element*>B, n, zero,
+               <ModField.Element*>ans, n)
+
     if m*n*k > 100000: sig_off()
 
     del F
@@ -308,14 +312,20 @@ cdef inline int linbox_matrix_vector_multiply(celement modulus, celement* C, cel
     F.init(one, <int>1)
     F.init(zero, <int>0)
 
-    cpdef size_t nbthreads = 1
-    if nbthreads < Parallelism().get('tensor'):
-        nbthreads = Parallelism().get('tensor')
+    cpdef size_t nbthreads
+    nbthreads = Parallelism().get('linbox')
 
-    pfgemv(F[0], trans,  m, n,
-              one, <ModField.Element*>A, n,
-              <ModField.Element*>b, 1,
-              zero, <ModField.Element*>C, 1, nbthreads)
+    if m*n > 100000: sig_on()
+
+    if nbthreads > 1:
+        pfgemv(F[0], trans,  m, n, one, <ModField.Element*>A, n, <ModField.Element*>b, 1,
+               zero, <ModField.Element*>C, 1, nbthreads)
+    else:
+        fgemv(F[0], trans,  m, n, one, <ModField.Element*>A, n, <ModField.Element*>b, 1,
+               zero, <ModField.Element*>C, 1)
+
+    if m*n > 100000: sig_off()
+
     del F
 
 cdef inline linbox_minpoly(celement modulus, Py_ssize_t nrows, celement* entries):

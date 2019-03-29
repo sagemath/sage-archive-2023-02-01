@@ -94,7 +94,7 @@ The ranges of the coordinates introduced so far are::
     sage: cartesian.coord_range()
     x: (-oo, +oo); y: (-oo, +oo)
     sage: polar.coord_range()
-    r: (0, +oo); ph: (0, 2*pi)
+    r: (0, +oo); ph: [0, 2*pi] (periodic)
 
 The transition map from polar coordinates to Cartesian ones is::
 
@@ -341,7 +341,7 @@ REFERENCES:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.functions.trig import cos, sin, atan2
@@ -1238,7 +1238,8 @@ class EuclideanPlane(EuclideanSpace):
         """
         coords = symbols.split()  # list of strings, one per coordinate
         # Adding the coordinate ranges:
-        coordinates = coords[0] + ':(0,+oo) ' + coords[1] + ':(0,2*pi)'
+        coordinates = (coords[0] + ':(0,+oo) ' + coords[1]
+                       + ':(0,2*pi):periodic')
         chart = self.chart(coordinates=coordinates)
         self._polar_chart = chart
         frame = chart.frame()
@@ -1449,7 +1450,7 @@ class EuclideanPlane(EuclideanSpace):
             sage: latex(_)
             \left(\mathbb{E}^{2},(r, {\phi})\right)
             sage: E.polar_coordinates().coord_range()
-            r: (0, +oo); ph: (0, 2*pi)
+            r: (0, +oo); ph: [0, 2*pi] (periodic)
 
         The relation to Cartesian coordinates is::
 
@@ -1776,7 +1777,7 @@ class Euclidean3dimSpace(EuclideanSpace):
         coords = symbols.split()  # list of strings, one per coordinate
         # Adding the coordinate ranges:
         coordinates = (coords[0] + ':(0,+oo) ' + coords[1] + ':(0,pi) '
-                       + coords[2] + ':(0,2*pi)')
+                       + coords[2] + ':(0,2*pi):periodic')
         chart = self.chart(coordinates=coordinates)
         self._spherical_chart = chart
         frame = chart.frame()
@@ -1819,8 +1820,8 @@ class Euclidean3dimSpace(EuclideanSpace):
         """
         coords = symbols.split()  # list of strings, one per coordinate
         # Adding the coordinate ranges:
-        coordinates = (coords[0] + ':(0,+oo) ' + coords[1] + ':(0,2*pi) '
-                       + coords[2])
+        coordinates = (coords[0] + ':(0,+oo) ' + coords[1]
+                       + ':(0,2*pi):periodic '+ coords[2])
         chart = self.chart(coordinates=coordinates)
         self._cylindrical_chart = chart
         frame = chart.frame()
@@ -2189,7 +2190,7 @@ class Euclidean3dimSpace(EuclideanSpace):
             sage: latex(_)
             \left(\mathbb{E}^{3},(r, {\theta}, {\phi})\right)
             sage: E.spherical_coordinates().coord_range()
-            r: (0, +oo); th: (0, pi); ph: (0, 2*pi)
+            r: (0, +oo); th: (0, pi); ph: [0, 2*pi] (periodic)
 
         The relation to Cartesian coordinates is::
 
@@ -2338,7 +2339,7 @@ class Euclidean3dimSpace(EuclideanSpace):
             sage: latex(_)
             \left(\mathbb{E}^{3},({\rho}, {\phi}, z)\right)
             sage: E.cylindrical_coordinates().coord_range()
-            rh: (0, +oo); ph: (0, 2*pi); z: (-oo, +oo)
+            rh: (0, +oo); ph: [0, 2*pi] (periodic); z: (-oo, +oo)
 
         The relation to Cartesian coordinates is::
 

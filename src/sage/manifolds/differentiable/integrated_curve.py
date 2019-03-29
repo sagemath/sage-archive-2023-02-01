@@ -1339,8 +1339,8 @@ class IntegratedCurve(DifferentiableCurve):
                              "of the chart domain; a curve with a " +
                              "smaller maximal value of the curve " +
                              "parameter, or a smaller initial tangent "+
-                             "vector might be considered. You can also try"+
-                             "'solve_across_charts' in order to not be"+
+                             "vector, might be considered. You can also try "+
+                             "'solve_across_charts' in order not to be "+
                              "confined to a single chart")
         else:
             self._solutions[solution_key] = coords_sol
@@ -2612,11 +2612,11 @@ class IntegratedCurve(DifferentiableCurve):
                     transf = {}
                     required_coords = set()
                     for pc in ambient_coords:
-                        j = chart[:].index(pc)
+                        jpc = chart[:].index(pc)
                         AUX = mapping._coord_expression[chart_pair]
                         # 'AUX' used only for the lines of source code
                         # to be shorter
-                        transf[pc] = AUX.expr()[j]
+                        transf[pc] = AUX.expr()[jpc]
                         AUX2 = transf[pc].variables() # idem
                         required_coords=required_coords.union(AUX2)
                     break

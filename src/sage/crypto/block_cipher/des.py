@@ -16,6 +16,8 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from sage.structure.sage_object import SageObject
+from sage.modules.free_module_element import vector
+from sage.rings.finite_rings.finite_field_constructor import GF
 
 
 class DES(SageObject):
@@ -119,7 +121,11 @@ class DES_KS(SageObject):
     """
 
     def __init__(self, rounds=16, master_key=None):
-        raise NotImplementedError
+        r"""
+        Construct an instance of DES_KS.
+        """
+        self._rounds = rounds
+        self._master_key = master_key
 
     def __call__(self, K):
         r"""
@@ -204,9 +210,23 @@ class DES_KS(SageObject):
         """
         raise NotImplementedError
 
-    def _left_shift(self, half, iteration):
+    def _left_shift(self, half, i):
         r"""
         Shift ``half`` one or two positions to the left depending on the
-        iteration number.
+        iteration number ``i``.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.des import DES_KS
+            sage: ks = DES_KS()
+            sage: bits = vector(GF(2), 6, [1,0,1,0,1,0])
+            sage: ks._left_shift(bits, 1)
+            (0, 1, 0, 1, 0, 1)
+            sage: bits
+            (1, 0, 1, 0, 1, 0)
+            sage: ks._left_shift(bits, 3)
+            (1, 0, 1, 0, 1, 0)
         """
-        raise NotImplementedError
+        amount = [1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1]
+        return vector(GF(2),
+                      list(half[amount[i-1]:]) + list(half[0:amount[i-1]]))

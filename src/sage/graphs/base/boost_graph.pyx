@@ -1020,8 +1020,9 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
     r"""
     Use Johnson algorithm to solve the all-pairs-shortest-paths.
 
-    This routine outputs the distance between each pair of vertices, using a
-    dictionary of dictionaries. It works on all kinds of graphs, but it is
+    This routine outputs the distance between each pair of vertices and the predecessors 
+    matrix (depending on the values of boolean ``distances`` and ``predecessors``) using 
+    a dictionary of dictionaries. It works on all kinds of graphs, but it is
     designed specifically for graphs with negative weights (otherwise there are
     more efficient algorithms, like Dijkstra).
 
@@ -1103,7 +1104,14 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
     if not isinstance(g, GenericGraph):
         raise TypeError("the input must be a Sage graph")
     elif not g.num_edges():
-        return {v: {v: 0} for v in g}
+        dist = {v: {v: 0} for v in g}
+        pred = {v: {v: None} for v in g}
+        if distances and predecessors:
+            return (dist, pred)
+        if distances:
+            return dist
+        if predecessors:
+            return pred
     # These variables are automatically deleted when the function terminates.
     cdef v_index i
     cdef list int_to_v = list(g)

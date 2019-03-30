@@ -2737,7 +2737,7 @@ class Link(SageObject):
 
         - :wikipedia:`Fox_n-coloring`
 
-        - Chapter 3 of [Livi1993]_
+        - Chapter 3 of [Liv1993]_
 
         .. SEEALSO:: :meth:`colorings`
         """
@@ -2779,7 +2779,7 @@ class Link(SageObject):
 
         - :wikipedia:`Fox_n-coloring`
 
-        - Chapter 3 of [Livi1993]_
+        - Chapter 3 of [Liv1993]_
 
         .. SEEALSO:: :meth:`is_colorable`
         """

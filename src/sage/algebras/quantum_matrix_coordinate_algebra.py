@@ -709,12 +709,8 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
 
     REFERENCES:
 
-    .. [DD91] \R. Dipper and S. Donkin. *Quantum* `GL_n`.
-       Proc. London Math. Soc. (3) **63** (1991), no. 1, pp. 165-211.
-
-    .. [Karimipour93] Vahid Karimipour.
-       *Representations of the coordinate ring of* `GL_q(n)`.
-       (1993). :arxiv:`hep-th/9306058`.
+    - [DD1991]_
+    - [Kar1993]_
     """
     @staticmethod
     def __classcall_private__(cls, n, q=None, bar=None, R=None):

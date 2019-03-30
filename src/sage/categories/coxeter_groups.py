@@ -1341,13 +1341,7 @@ class CoxeterGroups(Category_singleton):
 
             The algorithm uses the Matsumoto property that any two
             reduced expressions are related by braid relations, see
-            [Theorem 3.3.1(ii), BB2005].
-
-            REFERENCES:
-
-            .. [BB2005] A. Björner, F. Brenti *Combinatorics of Coxeter groups.*
-               Graduate Texts in Mathematics, 231. Springer, New York, 2005,
-               (MR2133266).
+            Theorem 3.3.1(ii) in [BB2005]_.
 
             .. SEEALSO::
 

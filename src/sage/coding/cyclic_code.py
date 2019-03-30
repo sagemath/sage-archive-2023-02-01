@@ -2,7 +2,7 @@ r"""
 Cyclic Code
 
 Let `F` be a field. A `[n, k]` code `C` over `F` is called cyclic if every
-cyclic shift of a codeword is also a codeword [R06]_:
+cyclic shift of a codeword is also a codeword [Rot2006]_:
 
     .. MATH::
 
@@ -20,13 +20,6 @@ This polynomial is called the generator polynomial of `C`.
 
 For now, only single-root cyclic codes (i.e. whose length `n` and field order
 `q` are coprimes) are implemented.
-
-
-REFERENCES:
-
-    .. [R06] Ron Roth, Introduction to Coding Theory,
-       Cambridge University Press, 2006
-
 
 TESTS:
 

@@ -4633,12 +4633,9 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         REFERENCES:
 
-        .. [CLG1997] Frank Celler and C. R. Leedham-Green,
-           *Calculating the Order of an Invertible Matrix*, 1997
+        - [CLG1997]_
 
-        .. [KuPa2002] James Kuzmanovich; Andrey Pavlichenkov, *Finite
-           Groups of Matrices Whose Entries Are Integers*, The American
-           Mathematical Monthly, Vol. 109, No. 2. (2002) pp. 173-186
+        - [KP2002b]_
         """
         from sage.rings.integer import Integer
         from sage.rings.integer_ring import ZZ

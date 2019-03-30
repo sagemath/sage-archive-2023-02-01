@@ -556,7 +556,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         Subgroup with 2 generators (
         [  E(3)^2        0]  [       1 -E(12)^7]
         [-E(12)^7        1], [       0   E(3)^2]
-        ) of General Unitary Group of degree 2 over Universal Cyclotomic Field with respect to hermitian form
+        ) of General Unitary Group of degree 2 over Universal Cyclotomic Field with respect to positive definite hermitian form
         [-E(12)^7 + E(12)^11                  -1]
         [                 -1 -E(12)^7 + E(12)^11]
 
@@ -1435,7 +1435,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
             [       1        0        0]
             [       0        1 -E(12)^7]
             [       0        0   E(3)^2]
-            ) of General Unitary Group of degree 3 over Universal Cyclotomic Field with respect to hermitian form
+            ) of General Unitary Group of degree 3 over Universal Cyclotomic Field with respect to positive definite hermitian form
             [-E(12)^7 + E(12)^11                  -1                   0]
             [                 -1 -E(12)^7 + E(12)^11                  -1]
             [                  0                  -1 -E(12)^7 + E(12)^11]

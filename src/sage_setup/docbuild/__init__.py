@@ -102,13 +102,11 @@ def builder_helper(type):
 
         sage: from sage_setup.docbuild import builder_helper, build_many, build_ref_doc
         sage: helper = builder_helper("html")
-        sage: build_many(build_ref_doc, [("docname", "en", "html", {})])
-        Traceback (most recent call last):
-        ...
-        Exception: ('Non-exception during docbuild: abort pool operation', BaseException('abort pool operation',))
-
-        sage: sage_setup.docbuild.sphinxbuild.runsphinx = original_runsphinx
-
+        sage: try:
+        ....:     build_many(build_ref_doc, [("docname", "en", "html", {})])
+        ....: except Exception as E:
+        ....:     "Non-exception during docbuild: abort pool operation" in str(E)
+        True
     """
     def f(self, *args, **kwds):
         output_dir = self._output_dir(type)

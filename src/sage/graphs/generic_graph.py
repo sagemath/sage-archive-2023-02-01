@@ -21797,6 +21797,7 @@ class GenericGraph(GenericGraph_pyx):
 
         from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
         from sage.groups.perm_gps.permgroup import PermutationGroup
+        from sage.graphs.all import Graph, DiGraph
         from itertools import chain
         dig = (self._directed or self.has_loops())
 
@@ -21807,7 +21808,6 @@ class GenericGraph(GenericGraph_pyx):
             G, partition, relabeling = graph_isom_equivalent_non_edge_labeled_graph(self, partition, return_relabeling=True, ignore_edge_labels=(not edge_labels))
             G_vertices = list(chain(*partition))
             G_to = {u: i for i,u in enumerate(G_vertices)}
-            from sage.graphs.all import Graph, DiGraph
             DoDG = DiGraph if self._directed else Graph
             H = DoDG(len(G_vertices), implementation='c_graph', loops=G.allows_loops())
             HB = H._backend
@@ -21849,7 +21849,6 @@ class GenericGraph(GenericGraph_pyx):
         else:
             G_vertices = list(chain(*partition))
             G_to = {u: i for i,u in enumerate(G_vertices)}
-            from sage.graphs.all import Graph, DiGraph
             DoDG = DiGraph if self._directed else Graph
             H = DoDG(len(G_vertices), implementation='c_graph', loops=self.allows_loops())
             HB = H._backend
@@ -22445,9 +22444,11 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS::
 
-            sage: G = Graph({'a': ['b']})
+            sage: G = Graph([['a', 'b'], [('a', 'b')]])
             sage: G.canonical_label(algorithm='sage', certificate=True)
             (Graph on 2 vertices, {'a': 0, 'b': 1})
+            sage: G.canonical_label(algorithm='bliss', certificate=True)  # optional - bliss
+            (Graph on 2 vertices, {'a': 1, 'b': 0})
 
         Check for immutable graphs (:trac:`16602`)::
 
@@ -22515,17 +22516,16 @@ class GenericGraph(GenericGraph_pyx):
 
         # algorithm == 'sage':
         from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
+        from sage.graphs.all import Graph, DiGraph
+        from itertools import chain
 
         dig = (self.has_loops() or self._directed)
         if partition is None:
-            partition = [self.vertices()]
+            partition = [list(self)]
         if edge_labels or self.has_multiple_edges():
             G, partition, relabeling = graph_isom_equivalent_non_edge_labeled_graph(self, partition, return_relabeling=True)
-            G_vertices = sum(partition, [])
-            G_to = {}
-            for i,u in enumerate(G_vertices):
-                G_to[u] = i
-            from sage.graphs.all import Graph, DiGraph
+            G_vertices = list(chain(*partition))
+            G_to = {u: i for i,u in enumerate(G_vertices)}
             DoDG = DiGraph if self._directed else Graph
             H = DoDG(len(G_vertices), implementation='c_graph', loops=G.allows_loops())
             HB = H._backend
@@ -22536,31 +22536,20 @@ class GenericGraph(GenericGraph_pyx):
             a,b,c = search_tree(GC, partition, certificate=True, dig=dig)
             # c is a permutation to the canonical label of G, which depends only on isomorphism class of self.
             H = copy(self)
-            c_new = {}
-            for v in self.vertices():
-                c_new[v] = c[G_to[relabeling[v]]]
-            H.relabel(c_new)
-            if certificate:
-                return H, c_new
-            else:
-                return H
-        G_vertices = sum(partition, [])
-        G_to = {}
-        for i,u in enumerate(G_vertices):
-            G_to[u] = i
-        from sage.graphs.all import Graph, DiGraph
-        DoDG = DiGraph if self._directed else Graph
-        H = DoDG(len(G_vertices), implementation='c_graph', loops=self.allows_loops())
-        HB = H._backend
-        for u,v in self.edge_iterator(labels=False):
-            HB.add_edge(G_to[u], G_to[v], None, self._directed)
-        GC = HB.c_graph()[0]
-        partition = [[G_to[vv] for vv in cell] for cell in partition]
-        a,b,c = search_tree(GC, partition, certificate=True, dig=dig)
-        H = copy(self)
-        c_new = {}
-        for v in G_to:
-            c_new[v] = c[G_to[v]]
+            c_new = {v: c[G_to[relabeling[v]]] for v in self}
+        else:
+            G_vertices = list(chain(*partition))
+            G_to = {u: i for i,u in enumerate(G_vertices)}
+            DoDG = DiGraph if self._directed else Graph
+            H = DoDG(len(G_vertices), implementation='c_graph', loops=self.allows_loops())
+            HB = H._backend
+            for u,v in self.edge_iterator(labels=False):
+                HB.add_edge(G_to[u], G_to[v], None, self._directed)
+            GC = HB.c_graph()[0]
+            partition = [[G_to[vv] for vv in cell] for cell in partition]
+            a,b,c = search_tree(GC, partition, certificate=True, dig=dig)
+            H = copy(self)
+            c_new = {v: c[G_to[v]] for v in G_to}
         H.relabel(c_new)
         if certificate:
             return H, c_new

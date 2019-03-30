@@ -2605,11 +2605,11 @@ def petersen_family(generate=False):
 
     The two different inputs generate the same graphs::
 
-        sage: F1 = graphs.petersen_family(generate=False)
-        sage: F2 = graphs.petersen_family(generate=True)
-        sage: F1 = [g.canonical_label().graph6_string() for g in F1]
-        sage: F2 = [g.canonical_label().graph6_string() for g in F2]
-        sage: set(F1) == set(F2)
+        sage: F1 = graphs.petersen_family(generate=False)  # not tested
+        sage: F2 = graphs.petersen_family(generate=True)  # not tested
+        sage: F1 = [g.canonical_label().graph6_string() for g in F1]  # not tested
+        sage: F2 = [g.canonical_label().graph6_string() for g in F2]  # not tested
+        sage: set(F1) == set(F2)  # not tested
         True
     """
     from sage.graphs.generators.smallgraphs import PetersenGraph

@@ -319,6 +319,7 @@ class MultivectorField(TensorField):
             # call of the AlternatingContrTensor version:
             return AlternatingContrTensor.wedge(self_r, other_r)
         # otherwise, the result is created here:
+        resu_name = None
         if self._name is not None and other._name is not None:
             sname = self._name
             oname = other._name
@@ -327,6 +328,7 @@ class MultivectorField(TensorField):
             if not is_atomic(oname):
                 oname = '(' + oname + ')'
             resu_name = sname + '/\\' + oname
+        resu_latex_name = None
         if self._latex_name is not None and other._latex_name is not None:
             slname = self._latex_name
             olname = other._latex_name

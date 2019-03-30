@@ -5,4 +5,5 @@ SAGE_SPKG_CONFIGURE([zlib], [
         AX_CHECK_ZLIB([], [zlib_cv_libz=no])
     ])
     AS_IF([test "x$zlib_cv_libz" != "xyes"], [sage_spkg_install_zlib=yes])
+    AC_CHECK_FILE([/usr/include/],[],[sage_spkg_install_zlib=yes])
 ])

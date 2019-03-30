@@ -3484,30 +3484,30 @@ cdef class Matrix(sage.structure.element.Matrix):
         - [FZ2001] S. Fomin, A. Zelevinsky. *Cluster Algebras 1: Foundations*,
           :arxiv:`math/0104151` (2001).
         """
-        cdef Py_ssize_t i,j,_
+        cdef Py_ssize_t i, j, _
         cdef list pairs, k0_pairs, k1_pairs
 
         if k < 0 or k >= self._nrows or k >= self._ncols:
             raise IndexError("The mutation index is invalid")
 
         pairs = self.nonzero_positions()
-        k0_pairs = [ pair for pair in pairs if pair[0] == k ]
-        k1_pairs = [ pair for pair in pairs if pair[1] == k ]
-        for _,j in k0_pairs:
-            self[k,j] = -self.get_unsafe(k,j)
+        k0_pairs = [pair for pair in pairs if pair[0] == k]
+        k1_pairs = [pair for pair in pairs if pair[1] == k]
+        for _, j in k0_pairs:
+            self[k, j] = -self.get_unsafe(k, j)
         for i,_ in k1_pairs:
-            self[i,k] = -self.get_unsafe(i,k)
+            self[i, k] = -self.get_unsafe(i, k)
 
         for i,_ in k1_pairs:
-            ik = self.get_unsafe(i,k)
-            ineg = True if ik < 0 else False
-            for _,j in k0_pairs:
-                kj = self.get_unsafe(k,j)
-                jneg = True if kj < 0 else False
-                if ineg == jneg == True:
-                    self[i,j] = self.get_unsafe(i,j) + self.get_unsafe(i,k)*self.get_unsafe(k,j)
-                elif ineg == jneg == False:
-                    self[i,j] = self.get_unsafe(i,j) - self.get_unsafe(i,k)*self.get_unsafe(k,j)
+            ik = self.get_unsafe(i, k)
+            ineg = bool(ik < 0)
+            for _, j in k0_pairs:
+                kj = self.get_unsafe(k, j)
+                jneg = bool(kj < 0)
+                if ineg and jneg:
+                    self[i, j] = self.get_unsafe(i, j) + self.get_unsafe(i, k)*self.get_unsafe(k, j)
+                elif not ineg and not jneg:
+                    self[i, j] = self.get_unsafe(i, j) - self.get_unsafe(i, k)*self.get_unsafe(k, j)
 
     def _travel_column( self, dict d, int k, int sign, positive ):
         r"""

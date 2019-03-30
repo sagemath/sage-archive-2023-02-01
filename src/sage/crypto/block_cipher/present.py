@@ -87,7 +87,7 @@ class PRESENT(SageObject):
     EXAMPLES:
 
     You can invoke PRESENT encryption/decryption either by calling PRESENT with
-    an appropriate flag ...::
+    an appropriate flag::
 
         sage: from sage.crypto.block_cipher.present import PRESENT
         sage: present = PRESENT()
@@ -96,7 +96,7 @@ class PRESENT(SageObject):
         sage: present(present(P, K, 'encrypt'), K, 'decrypt') == P
         True
 
-    ... or by calling encryption/decryption methods directly::
+    Or by calling encryption/decryption methods directly::
 
         sage: C = present.encrypt(P, K)
         sage: P == present.decrypt(C, K)

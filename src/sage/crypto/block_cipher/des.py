@@ -188,16 +188,7 @@ class DES_KS(SageObject):
         r"""
         Iterate over the ``self._rounds + 1`` PRESENT round keys, derived from
         `master_key`
-
-        EXAMPLES::
-
-            sage: from sage.crypto.block_cipher.present import PRESENT_KS
-            sage: K = [k for k in PRESENT_KS(master_key=0x0)]
-            sage: K[0] == 0x0 # indirect doctest
-            True
-            sage: K[31] == 0x6dab31744f41d700 # indirect doctest
-            True
-        """
+       """
         if self._master_key is None:
             raise ValueError('Key not set during initialisation')
         return iter(self(self._master_key))

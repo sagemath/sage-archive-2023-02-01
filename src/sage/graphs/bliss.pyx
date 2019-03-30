@@ -695,14 +695,20 @@ cpdef automorphism_group(G, partition=None, use_edge_labels=True):
     cdef list Vin    = []
     cdef list labels = []
 
-    cdef list int2vert = list(G)
-    cdef dict vert2int = {v: i for i, v in enumerate(int2vert)}
+    cdef list int2vert
+    cdef dict vert2int
     cdef list edge_labels = []
     cdef dict edge_labels_rev = {}
     cdef int Lnr = 0
 
     if bool(partition):
-        partition = [[ vert2int[i] for i in part] for part in partition]
+        from itertools import chain
+        int2vert = list(chain(*partition))
+    else:
+        int2vert = list(G)
+    vert2int = {v: i for i, v in enumerate(int2vert)}
+    if bool(partition):
+        partition = [[vert2int[i] for i in part] for part in partition]
 
     for x,y,lab in G.edge_iterator(labels=True):
         if use_edge_labels is False:
@@ -725,7 +731,7 @@ cpdef automorphism_group(G, partition=None, use_edge_labels=True):
     gens = automorphism_group_gens_from_edge_list(Vnr, Vout, Vin, Lnr, labels, int2vert, partition, directed)
 
     from sage.groups.perm_gps.permgroup import PermutationGroup
-    return PermutationGroup(gens, domain=list(G))
+    return PermutationGroup(gens, domain=int2vert)
 
 
 #####################################################

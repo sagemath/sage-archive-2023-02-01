@@ -1621,7 +1621,16 @@ def floyd_warshall(gg, paths=True, distances=False):
     for v_int in gverts:
         dist[v_int][v_int] =  0
         for u_int in g.out_neighbors(v_int):
-            dist[v_int][u_int] = 1
+            if gg.weighted() == True:
+                label = str(gg.edge_label(v_int, u_int))
+                try:
+                    weight = int(label)
+                    if weight < 0: weight = 1
+                    dist[v_int][u_int] = weight
+                except ValueError:
+                    dist[v_int][u_int] = 1
+            else:
+                 dist[v_int][u_int] = 1
 
     if paths:
         # init prec

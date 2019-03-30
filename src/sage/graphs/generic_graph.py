@@ -2267,7 +2267,7 @@ class GenericGraph(GenericGraph_pyx):
             signless and `D^{-1/2}(D-M)D^{-1/2}` otherwise, a normalized
             version of the Laplacian matrix. More accurately, the normalizing
             matrix used is equal to `D^{-1/2}` only for non-isolated vertices.
-            If vertex `i` is isolated, then diagonal entry `i` in the matrix is 
+            If vertex `i` is isolated, then diagonal entry `i` in the matrix is
             1, rather than a division by zero
 
           - Else, the matrix `D+M` for signless and `D-M` otherwise is returned
@@ -4453,11 +4453,13 @@ class GenericGraph(GenericGraph_pyx):
         (considered as sets of edges) such that the edge set of any cycle in the
         graph can be written as a `Z/2Z` sum of the cycles in the basis.
 
+        See the :wikipedia:`Cycle_basis` for more information.
+
         INPUT:
 
         - ``output`` -- string (default: ``'vertex'``); whether every cycle is
           given as a list of vertices (``output == 'vertex'``) or a list of
-          edges (``output == 'edges'``)
+          edges (``output == 'edge'``)
 
         OUTPUT:
 
@@ -4507,7 +4509,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: basis = g.cycle_basis()
 
         Building the space of (directed) edges over `Z/2Z`. On the way, building
-        a dictionary associating an unique vector to each undirected edge::
+        a dictionary associating a unique vector to each undirected edge::
 
             sage: m = g.size()
             sage: edge_space = VectorSpace(FiniteField(2), m)
@@ -4534,6 +4536,9 @@ class GenericGraph(GenericGraph_pyx):
             [[0, 2], [2, 1, 0]]
             sage: G.cycle_basis(output='edge')
             [[(0, 2, 'a'), (2, 0, 'b')], [(2, 1, 'd'), (1, 0, 'c'), (0, 2, 'a')]]
+            sage: H = Graph([(1, 2), (2, 3), (2, 3), (3, 4), (1, 4), (1, 4), (4, 5), (5, 6), (4, 6), (6, 7)], multiedges=True)
+            sage: H.cycle_basis()
+            [[1, 4], [2, 3], [4, 3, 2, 1], [6, 5, 4]]
 
         Disconnected graph::
 
@@ -4560,31 +4565,50 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.cycle_basis()
             [[2, 1, 0]]
 
-        Not yet implemented for directed graphs with multiple edges::
+        Not yet implemented for directed graphs::
 
-            sage: G = DiGraph([(0,2,'a'),(0,2,'b'),(0,1,'c'),(1,2,'d')], multiedges=True)
+            sage: G = DiGraph([(0, 2, 'a'), (0, 1, 'c'), (1, 2, 'd')])
             sage: G.cycle_basis()
             Traceback (most recent call last):
             ...
-            NotImplementedError: not implemented for directed graphs with multiple edges
+            NotImplementedError: not implemented for directed graphs
+
+        TESTS:
+
+        :trac:`27538`::
+
+            sage: G= Graph([(1, 2, 'a'), (2, 3, 'b'), (2, 3, 'c'), (3, 4, 'd'), (3, 4, 'e'), (4, 1, 'f')], multiedges=True)
+            sage: G.cycle_basis()
+            [[2, 3], [4, 3, 2, 1], [4, 3, 2, 1]]
+            sage: G.cycle_basis(output='edge')
+            [[(2, 3, 'b'), (3, 2, 'c')],
+             [(4, 3, 'd'), (3, 2, 'b'), (2, 1, 'a'), (1, 4, 'f')],
+             [(4, 3, 'e'), (3, 2, 'b'), (2, 1, 'a'), (1, 4, 'f')]]
+
         """
         if not output in ['vertex', 'edge']:
             raise ValueError('output must be either vertex or edge')
 
-        if self.allows_multiple_edges():
-            if self.is_directed():
+        if self.is_directed():
                 raise NotImplementedError('not implemented for directed '
-                                          'graphs with multiple edges')
+                                          'graphs')
 
+        if self.allows_multiple_edges():
             if not self.is_connected():
                 return sum([g.cycle_basis(output=output)
                             for g in self.connected_components_subgraphs()],
                            [])
 
-            T = self.min_spanning_tree()
-            return [self.subgraph(edges=T + [e]).is_forest(certificate=True,
-                                                           output=output)[1]
-                    for e in self.edge_iterator() if not e in T]
+            from sage.graphs.graph import Graph
+            T = Graph(self.min_spanning_tree(), multiedges=True, format='list_of_edges')
+            H = self.copy()
+            H.delete_edges(T.edge_iterator())
+            L = []
+            for e in H.edge_iterator():
+                T.add_edge(e)
+                L.append(T.is_tree(certificate=True, output=output)[1])
+                T.delete_edge(e)
+            return L
 
         # second case: there are no multiple edges
         import networkx
@@ -9910,7 +9934,7 @@ class GenericGraph(GenericGraph_pyx):
 
         if not self.has_vertex(vertex):
             raise ValueError('vertex (%s) not in the graph' % str(vertex))
-            
+
         self._assoc[vertex] = object
 
     def get_vertex(self, vertex):
@@ -12440,7 +12464,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: C.edges()
             [(0, 1, None), (0, 3, None), (1, 2, None), (2, 3, None)]
 
-            sage: for (u,v) in G.edges(labels=False): 
+            sage: for (u,v) in G.edges(labels=False):
             ....:     G.set_edge_label(u, v, u)
 
             sage: C = G.subgraph_search(graphs.CycleGraph(4))
@@ -23072,7 +23096,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         if alpha <= 0:
             raise ValueError('the parameter alpha must be strictly positive')
-        
+
         n = self.order()
         if n == 0 :
             raise ValueError('graph is empty')

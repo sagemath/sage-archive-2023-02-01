@@ -44,16 +44,17 @@ AUTHORS:
 - Kwankyu Lee (2017-04-30): added higher derivations and completions
 
 """
-from __future__ import absolute_import
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
 #       Copyright (C) 2011-2017 Julian Rüth <julian.rueth@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from __future__ import absolute_import
+
 from sage.categories.morphism import Morphism, SetMorphism
 from sage.categories.map import Map
 from sage.categories.homset import Hom
@@ -139,6 +140,7 @@ class FunctionFieldDerivation(Map):
             False
         """
         return False
+
 
 class FunctionFieldDerivation_rational(FunctionFieldDerivation):
     """
@@ -1768,7 +1770,7 @@ class FunctionFieldRingMorphism(SetMorphism):
     """
     def _repr_(self):
         """
-        Return the string representaton of the map.
+        Return the string representation of the map.
 
         EXAMPLES::
 
@@ -1795,7 +1797,7 @@ class FunctionFieldLinearMap(SetMorphism):
     """
     def _repr_(self):
         """
-        Return the string representaton of the map.
+        Return the string representation of the map.
 
         EXAMPLES::
 
@@ -1815,13 +1817,14 @@ class FunctionFieldLinearMap(SetMorphism):
         s += "\n  To:   {}".format(self.codomain())
         return s
 
+
 class FunctionFieldLinearMapSection(SetMorphism):
     """
     Section of linear map from function fields.
     """
     def _repr_(self):
         """
-        Return the string representaton of the map.
+        Return the string representation of the map.
 
         EXAMPLES::
 

@@ -2275,7 +2275,7 @@ class Link(SageObject):
         If ``skein_normalization`` if ``False``, this returns an element
         in the symbolic ring as the Jones polynomial of the link might
         have fractional powers when the link is not a knot. Otherwise the
-        result is a Laurant polynomial in ``variab``.
+        result is a Laurent polynomial in ``variab``.
 
         EXAMPLES:
 
@@ -2386,7 +2386,7 @@ class Link(SageObject):
             poly = self._bracket()
             t = poly.parent().gens()[0]
             writhe = self.writhe()
-            jones = (poly * (-t)**(-3 * writhe))
+            jones = poly * (-t)**(-3 * writhe)
             # Switch to the variable A to have the result agree with the output
             # of the jonesrep algorithm
             A = LaurentPolynomialRing(ZZ, 'A').gen()

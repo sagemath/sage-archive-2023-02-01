@@ -12,6 +12,8 @@ Database of Modular Polynomials
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function, absolute_import
+import bz2
+import os
 from sage.cpython.string import bytes_to_str
 
 
@@ -31,15 +33,14 @@ def _dbz_to_string(name):
         sage: _dbz_to_string('PolHeeg/Cls/0000001-0005000/pol.0000003.dbz') # optional - database_kohel
         '0\n1\n'
     """
-    import bz2
-    import os
     from sage.env import SAGE_SHARE
     dblocation = os.path.join(SAGE_SHARE, 'kohel')
     filename = os.path.join(dblocation, name)
-
-    with open(filename, 'rb') as f:
-        data = bz2.decompress(f.read())
-
+    try:
+        with open(filename, 'rb') as f:
+            data = bz2.decompress(f.read())
+    except FileNotFoundError:
+        raise ValueError('file not found in the Kohel database')
     return bytes_to_str(data)
 
 
@@ -139,7 +140,7 @@ class ModularPolynomialDatabase:
             sage: DBMP[50]                                     # optional - database_kohel
             Traceback (most recent call last):
             ...
-            IOError: filename .../kohel/PolMod/Cls/pol.050.dbz does not exist
+            ValueError: file not found in the Kohel database
         """
         from sage.rings.integer import Integer
         from sage.rings.integer_ring import IntegerRing

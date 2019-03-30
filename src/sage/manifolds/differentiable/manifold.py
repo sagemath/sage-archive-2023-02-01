@@ -1161,7 +1161,7 @@ class DifferentiableManifold(TopologicalManifold):
         .. SEEALSO::
 
             :class:`~sage.manifolds.differentiable.tensorfield_module.TensorFieldModule`
-            for complete documentation.
+            for a complete documentation.
 
         INPUT:
 
@@ -1412,8 +1412,12 @@ class DifferentiableManifold(TopologicalManifold):
         being an immersion and `\Phi` being a curve in `N` (`M` is then
         an open interval of `\RR`).
 
-        See :class:`~sage.manifolds.differentiable.vectorfield.VectorField`
-        for a complete documentation.
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.vectorfield.VectorField`
+            and
+            :class:`~sage.manifolds.differentiable.vectorfield.VectorFieldParal`
+            for a complete documentation.
 
         INPUT:
 
@@ -1471,10 +1475,9 @@ class DifferentiableManifold(TopologicalManifold):
             sage: v in U.vector_field_module()
             True
 
-        .. SEEALSO::
-
-            For more examples, see
-            :class:`~sage.manifolds.differentiable.vectorfield.VectorField`.
+        For more examples, see
+        :class:`~sage.manifolds.differentiable.vectorfield.VectorField` and
+        :class:`~sage.manifolds.differentiable.vectorfield.VectorFieldParal`.
 
         """
         name = kwargs.pop('name', None)
@@ -1517,8 +1520,12 @@ class DifferentiableManifold(TopologicalManifold):
         being an immersion and `\Phi` being a curve in `N` (`M` is then
         an open interval of `\RR`).
 
-        See :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
-        for a complete documentation.
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
+            and
+            :class:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal`
+            for a complete documentation.
 
         INPUT:
 
@@ -1587,12 +1594,9 @@ class DifferentiableManifold(TopologicalManifold):
             sage: t in M.tensor_field_module((2,0))
             True
 
-        .. SEEALSO::
-
-            For more examples, see
-            :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
-            and
-            :class:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal`
+        For more examples, see
+        :class:`~sage.manifolds.differentiable.tensorfield.TensorField` and
+        :class:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal`.
 
         """
         k = args[0]
@@ -1610,7 +1614,7 @@ class DifferentiableManifold(TopologicalManifold):
             resu._init_components(args[2], **kwargs)
         return resu
 
-    def sym_bilin_form_field(self, name=None, latex_name=None, dest_map=None):
+    def sym_bilin_form_field(self, *comp, **kwargs):
         r"""
         Define a field of symmetric bilinear forms on ``self``.
 
@@ -1642,6 +1646,18 @@ class DifferentiableManifold(TopologicalManifold):
 
         INPUT:
 
+        - ``comp`` -- (optional) either the components of the field of
+          symmetric bilinear forms with respect to the vector frame specified
+          by the argument ``frame`` or a dictionary of components, the keys of
+          which are vector frames or pairs ``(f, c)`` where ``f`` is a vector
+          frame and ``c`` the chart in which the components are expressed
+        - ``frame`` -- (default: ``None``; unused if ``comp`` is not given or
+          is a dictionary) vector frame in which the components are given; if
+          ``None``, the default vector frame of ``self`` is assumed
+        - ``chart`` -- (default: ``None``; unused if ``comp`` is not given or
+          is a dictionary) coordinate chart in which the components are
+          expressed; if ``None``, the default chart on the domain of ``frame``
+          is assumed
         - ``name`` -- (default: ``None``) name given to the field
         - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
           field; if none is provided, the LaTeX symbol is set to ``name``
@@ -1661,19 +1677,19 @@ class DifferentiableManifold(TopologicalManifold):
 
         EXAMPLES:
 
-        A field of symmetric bilinear forms on a 3-dimensional manifold::
+        A field of symmetric bilinear forms on a 2-dimensional manifold::
 
-            sage: M = Manifold(3, 'M')
-            sage: c_xyz.<x,y,z> = M.chart()
-            sage: t = M.sym_bilin_form_field('T'); t
-            Field of symmetric bilinear forms T on the 3-dimensional
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: t = M.sym_bilin_form_field(name='T'); t
+            Field of symmetric bilinear forms T on the 2-dimensional
              differentiable manifold M
 
         Such a object is a tensor field of rank 2 and type `(0,2)`::
 
             sage: t.parent()
             Free module T^(0,2)(M) of type-(0,2) tensors fields on the
-             3-dimensional differentiable manifold M
+             2-dimensional differentiable manifold M
             sage: t.tensor_rank()
             2
             sage: t.tensor_type()
@@ -1684,45 +1700,31 @@ class DifferentiableManifold(TopologicalManifold):
 
             sage: latex(t)
             T
-            sage: om = M.sym_bilin_form_field('Omega', r'\Omega')
+            sage: om = M.sym_bilin_form_field(name='Omega', latex_name=r'\Omega')
             sage: latex(om)
             \Omega
 
-        Components with respect to some vector frame::
+        Setting the components in the manifold's default vector frame::
 
-            sage: e = M.vector_frame('e') ; M.set_default_frame(e)
-            sage: t.set_comp()
-            Fully symmetric 2-indices components w.r.t. Vector frame
-             (M, (e_0,e_1,e_2))
-            sage: type(t.comp())
-            <class 'sage.tensor.modules.comp.CompFullySym'>
+            sage: t[0,0], t[0,1], t[1,1] = -1, x, x*y
 
-        For the default frame, the components are accessed with the
-        square brackets::
+        The unset components are either zero or deduced by symmetry::
 
-            sage: t[0,0], t[0,1], t[0,2] = (1, 2, 3)
-            sage: t[1,1], t[1,2] = (4, 5)
-            sage: t[2,2] = 6
-
-        The other components are deduced by symmetry::
-
-            sage: t[1,0], t[2,0], t[2,1]
-            (2, 3, 5)
+            sage: t[1, 0]
+            x
             sage: t[:]
-            [1 2 3]
-            [2 4 5]
-            [3 5 6]
+            [ -1   x]
+            [  x x*y]
+
+        One can also set the components while defining the field of symmetric
+        bilinear forms::
+
+            sage: t = M.sym_bilin_form_field([[-1, x], [x, x*y]], name='T')
 
         A symmetric bilinear form acts on vector pairs::
 
-            sage: M = Manifold(2, 'M')
-            sage: c_xy.<x,y> = M.chart()
-            sage: t = M.sym_bilin_form_field('T')
-            sage: t[0,0], t[0,1], t[1,1] = (-1, x, y*x)
-            sage: v1 = M.vector_field('V_1')
-            sage: v1[:] = (y,x)
-            sage: v2 = M.vector_field('V_2')
-            sage: v2[:] = (x+y,2)
+            sage: v1 = M.vector_field(y, x, name='V_1')
+            sage: v2 = M.vector_field(x+y, 2, name='V_2')
             sage: s = t(v1,v2) ; s
             Scalar field T(V_1,V_2) on the 2-dimensional differentiable
              manifold M
@@ -1737,10 +1739,8 @@ class DifferentiableManifold(TopologicalManifold):
         Adding two symmetric bilinear forms results in another symmetric
         bilinear form::
 
-            sage: a = M.sym_bilin_form_field()
-            sage: a[0,0], a[0,1], a[1,1] = (1,2,3)
-            sage: b = M.sym_bilin_form_field()
-            sage: b[0,0], b[0,1], b[1,1] = (-1,4,5)
+            sage: a = M.sym_bilin_form_field([[1, 2], [2, 3]])
+            sage: b = M.sym_bilin_form_field([[-1, 4], [4, 5]])
             sage: s = a + b ; s
             Field of symmetric bilinear forms on the 2-dimensional
              differentiable manifold M
@@ -1751,8 +1751,7 @@ class DifferentiableManifold(TopologicalManifold):
         But adding a symmetric bilinear from with a non-symmetric bilinear
         form results in a generic type `(0,2)` tensor::
 
-            sage: c = M.tensor_field(0,2)
-            sage: c[:] = [[-2, -3], [1,7]]
+            sage: c = M.tensor_field(0, 2, [[-2, -3], [1,7]])
             sage: s1 = a + c ; s1
             Tensor field of type (0,2) on the 2-dimensional differentiable
              manifold M
@@ -1767,11 +1766,18 @@ class DifferentiableManifold(TopologicalManifold):
             [ 3 10]
 
         """
-        return self.tensor_field(0, 2, name=name, latex_name=latex_name,
-                                 sym=(0,1))
+        name = kwargs.pop('name', None)
+        latex_name = kwargs.pop('latex_name', None)
+        dest_map = kwargs.pop('dest_map', None)
+        vmodule = self.vector_field_module(dest_map)
+        resu = vmodule.tensor((0, 2), name=name, latex_name=latex_name,
+                              sym=(0,1))
+        if comp:
+            # Some components are to be initialized
+            resu._init_components(*comp, **kwargs)
+        return resu
 
-    def multivector_field(self, degree, name=None, latex_name=None,
-                          dest_map=None):
+    def multivector_field(self, *args, **kwargs):
         r"""
         Define a multivector field on ``self``.
 
@@ -1809,12 +1815,26 @@ class DifferentiableManifold(TopologicalManifold):
         .. SEEALSO::
 
             :class:`~sage.manifolds.differentiable.multivectorfield.MultivectorField`
-            for complete documentation.
+            and
+            :class:`~sage.manifolds.differentiable.multivectorfield.MultivectorFieldParal`
+            for a complete documentation.
 
         INPUT:
 
         - ``degree`` -- the degree `p` of the multivector field (i.e.
           its tensor rank)
+        - ``comp`` -- (optional) either the components of the multivector field
+          with respect to the vector frame specified by the argument ``frame``
+          or a dictionary of components, the keys of which are vector frames
+          or pairs ``(f, c)`` where ``f`` is a vector frame and ``c`` the chart
+          in which the components are expressed
+        - ``frame`` -- (default: ``None``; unused if ``comp`` is not given or
+          is a dictionary) vector frame in which the components are given; if
+          ``None``, the default vector frame of ``self`` is assumed
+        - ``chart`` -- (default: ``None``; unused if ``comp`` is not given or
+          is a dictionary) coordinate chart in which the components are
+          expressed; if ``None``, the default chart on the domain of ``frame``
+          is assumed
         - ``name`` -- (default: ``None``) name given to the multivector
           field
         - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote
@@ -1835,25 +1855,33 @@ class DifferentiableManifold(TopologicalManifold):
 
         EXAMPLES:
 
-        A 2-vector field on a open subset of a 4-dimensional
-         differentiable manifold::
+        A 2-vector field on a 3-dimensional differentiable manifold::
 
-            sage: M = Manifold(4, 'M')
-            sage: A = M.open_subset('A', latex_name=r'\mathcal{A}'); A
-            Open subset A of the 4-dimensional differentiable manifold M
-            sage: c_xyzt.<x,y,z,t> = A.chart()
-            sage: h = A.multivector_field(2, 'H'); h
-            2-vector field H on the Open subset A of the 4-dimensional
-             differentiable manifold M
+            sage: M = Manifold(3, 'M')
+            sage: X.<x,y,z> = M.chart()
+            sage: h = M.multivector_field(2, name='H'); h
+            2-vector field H on the 3-dimensional differentiable manifold M
+            sage: h[0,1], h[0,2], h[1,2] = x+y, x*z, -3
+            sage: h.display()
+            H = (x + y) d/dx/\d/dy + x*z d/dx/\d/dz - 3 d/dy/\d/dz
 
-        See the documentation of class
+        For more examples, see
         :class:`~sage.manifolds.differentiable.multivectorfield.MultivectorField`
-        for more examples.
+        and
+        :class:`~sage.manifolds.differentiable.multivectorfield.MultivectorFieldParal`.
 
         """
+        degree = args[0]
+        name = kwargs.pop('name', None)
+        latex_name = kwargs.pop('latex_name', None)
+        dest_map = kwargs.pop('dest_map', None)
         vmodule = self.vector_field_module(dest_map)
-        return vmodule.alternating_contravariant_tensor(degree,
-                                       name=name, latex_name=latex_name)
+        resu = vmodule.alternating_contravariant_tensor(degree, name=name,
+                                                        latex_name=latex_name)
+        if len(args)>1:
+            # Some components are to be initialized
+            resu._init_components(args[1], **kwargs)
+        return resu
 
     def diff_form(self, *args, **kwargs):
         r"""
@@ -1892,8 +1920,9 @@ class DifferentiableManifold(TopologicalManifold):
 
         .. SEEALSO::
 
-            :class:`~sage.manifolds.differentiable.diff_form.DiffForm`
-            for complete documentation.
+            :class:`~sage.manifolds.differentiable.diff_form.DiffForm` and
+            :class:`~sage.manifolds.differentiable.diff_form.DiffFormParal`
+            for a complete documentation.
 
         INPUT:
 
@@ -1941,9 +1970,9 @@ class DifferentiableManifold(TopologicalManifold):
             sage: f.display()
             F = (x + y) dx/\dy + x*z dy/\dz
 
-        See the documentation of class
-        :class:`~sage.manifolds.differentiable.diff_form.DiffForm` for
-        more examples.
+        For more examples, see
+        :class:`~sage.manifolds.differentiable.diff_form.DiffForm` and
+        :class:`~sage.manifolds.differentiable.diff_form.DiffFormParal`.
 
         """
         degree = args[0]
@@ -1989,8 +2018,9 @@ class DifferentiableManifold(TopologicalManifold):
 
         .. SEEALSO::
 
-            :class:`~sage.manifolds.differentiable.diff_form.DiffForm`
-            for complete documentation.
+            :class:`~sage.manifolds.differentiable.diff_form.DiffForm` and
+            :class:`~sage.manifolds.differentiable.diff_form.DiffFormParal`
+            for a complete documentation.
 
         INPUT:
 
@@ -2038,10 +2068,9 @@ class DifferentiableManifold(TopologicalManifold):
             Free module Omega^1(M) of 1-forms on the 2-dimensional
              differentiable manifold M
 
-        .. SEEALSO::
-
-            For more examples, see
-            :class:`~sage.manifolds.differentiable.diff_form.DiffForm`.
+        For more examples, see
+        :class:`~sage.manifolds.differentiable.diff_form.DiffForm` and
+        :class:`~sage.manifolds.differentiable.diff_form.DiffFormParal`.
 
         """
         name = kwargs.pop('name', None)
@@ -2088,7 +2117,9 @@ class DifferentiableManifold(TopologicalManifold):
         .. SEEALSO::
 
             :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismField`
-            for complete documentation.
+            and
+            :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismFieldParal`
+            for a complete documentation.
 
         INPUT:
 
@@ -2139,10 +2170,10 @@ class DifferentiableManifold(TopologicalManifold):
             sage: a(X.frame()[1]).display()
             A(d/dy) = (y^2 + 1) d/dy
 
-        .. SEEALSO::
-
-            For more examples, see
-            :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismField`.
+        For more examples, see
+        :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismField`
+        and
+        :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismFieldParal`.
 
         """
         name = kwargs.pop('name', None)
@@ -2219,10 +2250,8 @@ class DifferentiableManifold(TopologicalManifold):
             sage: a.comp()
             Kronecker delta of size 3x3
 
-        .. SEEALSO::
-
-            For more examples, see
-            :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismField`.
+        For more examples, see
+        :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismField`.
 
         """
         vmodule = self.vector_field_module(dest_map)

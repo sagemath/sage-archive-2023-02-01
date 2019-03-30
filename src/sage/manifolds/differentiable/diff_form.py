@@ -147,7 +147,6 @@ class DiffForm(TensorField):
         sage: a.display(eV)
         a = 1/2*v du - 1/2*u dv
 
-
     It is also possible to set the components at the 1-form definition, via
     a dictionary whose keys are the vector frames::
 

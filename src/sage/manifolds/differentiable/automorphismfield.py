@@ -15,17 +15,16 @@ AUTHORS:
 
 """
 
-#******************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 
-from sage.tensor.modules.free_module_tensor import FreeModuleTensor
 from sage.tensor.modules.free_module_automorphism import FreeModuleAutomorphism
 from sage.manifolds.differentiable.tensorfield import TensorField
 from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
@@ -1021,7 +1020,6 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
             True
 
         """
-        from sage.rings.real_mpfr import RR
         from sage.matrix.constructor import matrix
         from sage.tensor.modules.comp import Components
         from sage.manifolds.differentiable.vectorframe import CoordFrame

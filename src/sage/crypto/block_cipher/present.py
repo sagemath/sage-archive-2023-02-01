@@ -149,8 +149,8 @@ class PRESENT(SageObject):
           used for encryption and decryption. Use ``80`` or ``128`` as a
           shortcut for the original key schedules from [BKLPPRSV2007]_.
 
-        - ``rounds``  -- integer (default: ``Nonne``); the number of rounds. If
-          ``None`` the number of rounds of the keyschedule is used.
+        - ``rounds``  -- integer (default: ``None``); the number of rounds. If
+          ``None`` the number of rounds of the key schedule is used.
 
         - ``doLastLinearLayer`` -- boolean (default: ``False``); flag to
           control wether the linear layer in the last round should take place

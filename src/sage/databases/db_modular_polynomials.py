@@ -39,7 +39,7 @@ def _dbz_to_string(name):
     try:
         with open(filename, 'rb') as f:
             data = bz2.decompress(f.read())
-    except FileNotFoundError:
+    except IOError:
         raise ValueError('file not found in the Kohel database')
     return bytes_to_str(data)
 

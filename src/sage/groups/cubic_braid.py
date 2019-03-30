@@ -411,7 +411,7 @@ class CubicBraidElement(FinitelyPresentedGroupElement):
                 except ValueError:
                     raise ValueError('characteristic must be in integer')
 
-                if  characteristic <> 0  and not characteristic.is_prime():
+                if  characteristic != 0  and not characteristic.is_prime():
                     raise ValueError('characteristic must be a prime')
                 if characteristic == 0:
                     if unitary:
@@ -423,19 +423,19 @@ class CubicBraidElement(FinitelyPresentedGroupElement):
                 root_bur = find_root(domain)
                 domain = root_bur.parent()
 
-            else: # domain <> None
+            else: # domain != None
                 if characteristic is None:
                     characteristic = domain.characteristic()
-                elif characteristic <> domain.characteristic():
+                elif characteristic != domain.characteristic():
                     raise ValueError('characteristic of domain does not match given characteristic')
                 root_bur = find_root(domain)
 
-        else:  # root_bur <> None
+        else:  # root_bur != None
             if domain is None:
                 domain = root_bur.parent()
             if characteristic is None:
                 characteristic = domain.characteristic()
-            elif characteristic <> domain.characteristic():
+            elif characteristic != domain.characteristic():
                 raise ValueError('characteristic of domain does not match given characteristic')
 
             if 1 not in domain:

@@ -195,6 +195,12 @@ class DES_KS(SageObject):
     def __repr__(self):
         r"""
         A string representation of this DES_KS.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.des import DES_KS
+            sage: DES_KS() # indirect doctest
+            Original DES key schedule with 56-bit keys and 16 rounds
         """
         return ('Original DES key schedule with %s-bit keys and %s rounds'
                 % (self._keysize, self._rounds))

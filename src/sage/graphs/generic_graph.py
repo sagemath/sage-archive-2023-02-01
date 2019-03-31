@@ -9597,7 +9597,7 @@ class GenericGraph(GenericGraph_pyx):
             import igraph
             if by_weight:
                 I = self.igraph_graph(edge_attrs={'weight': [weight_function(e)
-                                                  for e in self.edge_iterator]})
+                                                  for e in self.edge_iterator()]})
                 return I.pagerank(damping=alpha, weight='weight')
             else:
                 I = G.igraph_graph()
@@ -9605,13 +9605,13 @@ class GenericGraph(GenericGraph_pyx):
         else:
             import networkx
             if by_weight:
-                return networkx.pagerank_numpy(self.networkx_graph
+                return networkx.pagerank_scipy(self.networkx_graph
                        (weight_function=weight_function), alpha=alpha, 
                        personalization=personalization, weight='weight', 
                        dangling=dangling)
             else:
-                return networkx.pagerank_numpy(self.networkx_graph(), 
-                       alpha=alpha, personalization=personalization,  
+                return networkx.pagerank_scipy(self.networkx_graph(), 
+                       alpha=alpha, personalization=personalization, 
                        weight=None, dangling=dangling)
 
     ### Vertex handlers

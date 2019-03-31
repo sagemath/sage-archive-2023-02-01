@@ -602,6 +602,6 @@ class BackendIPythonNotebook(BackendIPython):
 <script src="/nbextensions/threejs/three.min.js"></script>
 <script src="/nbextensions/threejs/OrbitControls.js"></script>
 <script>
-  if ( !window.THREE ) document.write(`{}`);
+  if ( !window.THREE ) document.write('{}');
 </script>
-        """.format(CDN_scripts.replace('</script>', r'<\/script>'))
+        """.format(CDN_scripts.replace('</script>', r'<\/script>').replace('\n', '\\n'))

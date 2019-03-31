@@ -1020,11 +1020,11 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
     r"""
     Use Johnson algorithm to solve the all-pairs-shortest-paths.
 
-    This routine outputs the distance between each pair of vertices and the predecessors 
-    matrix (depending on the values of boolean ``distances`` and ``predecessors``) using 
-    a dictionary of dictionaries. It works on all kinds of graphs, but it is
-    designed specifically for graphs with negative weights (otherwise there are
-    more efficient algorithms, like Dijkstra).
+    This routine outputs the distance between each pair of vertices and the 
+    predecessors matrix (depending on the values of boolean ``distances`` and
+    ``predecessors``) using a dictionary of dictionaries. It works on all kinds of 
+    graphs, but it is designed specifically for graphs with negative weights
+    (otherwise there are more efficient algorithms, like Dijkstra).
 
     The time-complexity is `O(mn\log n)`, where `n` is the number of nodes and
     `m` is the number of edges.
@@ -1038,8 +1038,8 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
       ``g`` are used, if available, otherwise all edges have weight 1.
     - ``distances`` -- boolean (default: ``True``); whether to return the dictionary
       of shortest distances
-    - ``predecessors`` -- boolean (default: ``False``); whether to return the predecessors 
-      matrix 
+    - ``predecessors`` -- boolean (default: ``False``); whether to return the
+      predecessors matrix 
 
     OUTPUT:
 
@@ -1062,10 +1062,10 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
          3: {0: 4, 1: 3, 2: 1, 3: 0}}
         sage: g = graphs.Grid2dGraph(2,2)
         sage: johnson_shortest_paths(g, distances=False,  predecessors=True)
-        {(0, 0): {(0, 0): None, (0, 1): (0, 0), (1, 0): (0, 0), (1, 1): (0, 1)},
-         (0, 1): {(0, 0): (0, 1), (0, 1): None, (1, 0): (0, 0), (1, 1): (0, 1)},
-         (1, 0): {(0, 0): (1, 0), (0, 1): (0, 0), (1, 0): None, (1, 1): (1, 0)},
-         (1, 1): {(0, 0): (0, 1), (0, 1): (1, 1), (1, 0): (1, 1), (1, 1): None}}
+        {(0, 0): {(0, 0): None, (0, 1): (0, 0), (1, 0): (0, 0), (1, 1): (1, 0)},
+         (0, 1): {(0, 0): (0, 1), (0, 1): None, (1, 0): (1, 1), (1, 1): (0, 1)},
+         (1, 0): {(0, 0): (1, 0), (0, 1): (1, 1), (1, 0): None, (1, 1): (1, 0)},
+         (1, 1): {(0, 0): (1, 0), (0, 1): (1, 1), (1, 0): (1, 1), (1, 1): None}}
 
     Directed graphs::
 
@@ -1075,7 +1075,7 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
          1: {1: 0, 2: -2, 3: -1},
          2: {2: 0, 3: 1},
          3: {3: 0}}
-        sage: g = DiGraph([(1, 2, 3), (2, 3, 2), (1, 4, 1), (4, 2, 1)], weighted=True)]
+        sage: g = DiGraph([(1, 2, 3), (2, 3, 2), (1, 4, 1), (4, 2, 1)], weighted=True)
         sage: johnson_shortest_paths(g, distances=False,  predecessors=True)
         {1: {1: None, 2: 4, 3: 2, 4: 1},
          2: {2: None, 3: 2},
@@ -1150,15 +1150,12 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
     dist = {}
     pred = {}
     if distances:
-        for v in range(N):
-            dv = {}
-            for w in range(N):
-                if result[v][w] != sys.float_info.max:
-                    dv[int_to_v[w]] = correct_type(result[v][w])
-            dist[int_to_v[v]] = dv
+        dist = {int_to_v[v]: {int_to_v[w]: correct_type(result[v][w])
+                     for w in range(N) if result[v][w] != sys.float_info.max}
+             for v in range(N)}
 
     if predecessors:
-        weights = {v : {} for v in g.vertices()}
+        pred = {v : {v : None} for v in g}
         for e in g.edges():
             dst = 0
             if weight_function is not None:
@@ -1167,34 +1164,17 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
                 dst = e[2]
             else:
                 dst = 1
-            weights[e[0]][e[1]] = dst
-            if not g.is_directed():
-                weights[e[1]][e[0]] = dst
-        for v in range(N):
-            pred_v = {}
-            for w in range(N):
-                if w == v:
-                    pred_v[int_to_v[w]] = None
-                    continue
-                if result[v][w] == sys.float_info.max:
-                    continue
-                if g.is_directed():
-                    for u in g.neighbors_in(int_to_v[w]):
-                        uu = v_to_int[u]
-                        if result[v][uu] == sys.float_info.max:
-                            continue
-                        if result[v][uu] + weights[u][int_to_v[w]] == result[v][w]:
-                            pred_v[int_to_v[w]] = u
-                            break
-                else:
-                    for u in g.neighbors(int_to_v[w]):
-                        uu = v_to_int[u]
-                        if result[v][uu] == sys.float_info.max:
-                            continue
-                        if result[v][uu] + weights[u][int_to_v[w]] == result[v][w]:
-                            pred_v[int_to_v[w]] = u
-                            break
-            pred[int_to_v[v]] = pred_v
+            #dst is the weight of the edge (e[0], e[1])
+            u = e[0]
+            v = e[1]
+            for k in range(N):
+                if result[k][v_to_int[u]] == sys.float_info.max or result[k][v_to_int[v]] == sys.float_info.max:
+                    continue;
+                if result[k][v_to_int[u]] + dst == result[k][v_to_int[v]]:
+                    pred[int_to_v[k]][v] = u
+                if g.is_directed(): continue
+                if result[k][v_to_int[u]] == result[k][v_to_int[v]] + dst:
+                    pred[int_to_v[k]][u] = v
 
     if distances and predecessors:
         return (dist, pred)

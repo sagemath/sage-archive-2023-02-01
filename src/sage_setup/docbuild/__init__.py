@@ -53,7 +53,6 @@ import warnings
 
 logger = logging.getLogger(__name__)
 
-import sphinx.cmdline
 import sphinx.util.console
 import sphinx.ext.intersphinx
 
@@ -352,6 +351,7 @@ class AllBuilder(object):
             getattr(get_builder(document), 'inventory')(*args, **kwds)
 
         logger.warning("Building reference manual, second pass.\n")
+        sage_makedirs(os.path.join(SAGE_DOC, "html", "en", "reference", "_static"))
         for document in refs:
             getattr(get_builder(document), name)(*args, **kwds)
 

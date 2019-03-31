@@ -15470,20 +15470,20 @@ class GenericGraph(GenericGraph_pyx):
             iterator = self.neighbor_iterator
 
         if report_edges and labels:
-            my_dict = {}
+            edge_labels = {}
             if use_multiedges:
                 for e in self.edge_iterator():
-                    if (e[0], e[1]) in my_dict.keys():
-                        my_dict[(e[0], e[1])].append(e)
+                    if (e[0], e[1]) in edge_labels.keys():
+                        edge_labels[(e[0], e[1])].append(e)
                     else:
-                        my_dict[(e[0], e[1])] = [e]
+                        edge_labels[(e[0], e[1])] = [e]
             else:
                 for e in self.edge_iterator():
-                    if (e[0], e[1]) not in my_dict.keys():
-                        my_dict[(e[0], e[1])] = [e]
+                    if (e[0], e[1]) not in edge_labels.keys():
+                        edge_labels[(e[0], e[1])] = [e]
             if not self.is_directed():
-                for u, v in my_dict.keys():
-                    my_dict[v, u] = my_dict[u, v]
+                for u, v in list(edge_labels.keys()):
+                    edge_labels[v, u] = edge_labels[u, v]
         elif use_multiedges and self.has_multiple_edges():
             from collections import Counter
             edge_multiplicity = Counter(self.edge_iterator(labels=False))
@@ -15516,7 +15516,7 @@ class GenericGraph(GenericGraph_pyx):
         if report_edges and labels:
             path_with_labels = []
             for p in all_paths:
-                path_with_labels.extend(cartesian_product([my_dict[e] for e in zip(p[:-1], p[1:])]))
+                path_with_labels.extend(cartesian_product([edge_labels[e] for e in zip(p[:-1], p[1:])]))
             return path_with_labels
         elif use_multiedges and self.has_multiple_edges():
             multiple_all_paths = []

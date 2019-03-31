@@ -9470,9 +9470,9 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``dangling`` -- dict (default: ``None``); The outedges to be assigned
           to any "dangling" nodes, i.e., nodes without any outedges. The dict
-          key is the node the outedge points to and the dict value is the   
+          key is the node the outedge points to and the dict value is the
           weight of that outedge. By default, dangling nodes are given outedges
-          according to the personalization vector (uniform if not specified). 
+          according to the personalization vector (uniform if not specified).
           This must be selected to result in an irreducible transition matrix.
           It may be common to have the dangling dict to be the same as the
           personalization dict.
@@ -9580,7 +9580,7 @@ class GenericGraph(GenericGraph_pyx):
                        dangling=dangling)
             else:
                 return networkx.pagerank_numpy(self.networkx_graph(),
-                       alpha=alpha, personalization=personalization, 
+                       alpha=alpha, personalization=personalization,
                        weight=None, dangling=dangling)
         elif  implementation == 'Scipy':
             import networkx

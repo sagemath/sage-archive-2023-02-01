@@ -127,6 +127,7 @@ class DES_KS(SageObject):
         """
         self._rounds = rounds
         self._master_key = master_key
+        self._keysize = 56
 
     def __call__(self, K):
         r"""
@@ -140,17 +141,45 @@ class DES_KS(SageObject):
 
         - A list containing the round keys
 
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.des import DES_KS
+            sage: K = vector(GF(2),[0,0,0,1,0,0,1,1,0,0,1,1,0,1,0,0,0,1,0,1,0,1,1,1,0,1,1,1,1,0,0,1,1,0,0,1,1,0,1,1,1,0,1,1,1,1,0,0,1,1,0,1,1,1,1,1,1,1,1,1,0,0,0,1])
+            sage: ks = DES_KS(16, K)
+            sage: [k for k in ks]
+            [(0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0),
+             (0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1),
+             ...
+             (1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1)]
+            sage: K = vector(GF(2),[0,0,0,1,0,0,1,0,0,1,1,0,1,0,0,1,0,1,0,1,1,0,1,1,1,1,0,0,1,0,0,1,1,0,1,1,0,1,1,1,1,0,1,1,0,1,1,1,1,1,1,1,1,0,0,0])
+            sage: ks = DES_KS(16, K)
+            sage: [k for k in ks]
+            [(0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0),
+             (0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1),
+             ...
+             (1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1)]
+
         .. NOTE::
 
             If you want to use a DES_KS object as an iterable you have to
             pass a ``master_key`` value on initialisation. Otherwise you can
             omit ``master_key`` and pass a key when you call the object.
         """
-        if len(K) == 56:
-            # insert 'parity' bits
+        K, inputType = _convert_to_vector(K, 64)
+        roundKeys = []
+        # ensure that K is a 64 bit vector
+        if not any(K[56:]):
+            # delete msbs and insert 'parity' bits
+            K = list(K)[:56]
             for i in range(7, 64, 8):
                 K.insert(i, 0)
-        raise NotImplementedError
+            K = vector(GF(2), 64, K)
+        C, D = self._pc1(K)
+        for i in range(16):
+            C, D = self._left_shift(C, i), self._left_shift(D, i)
+            roundKeys.append(self._pc2(list(C)+list(D)))
+        return roundKeys if inputType == 'vector' else [ZZ(list(k), 2) for k in
+                                                        roundKeys]
 
     def __eq__(self, other):
         r"""

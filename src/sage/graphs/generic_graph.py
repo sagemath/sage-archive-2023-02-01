@@ -9440,7 +9440,7 @@ class GenericGraph(GenericGraph_pyx):
         r"""
         Return the PageRank of the nodes in the graph.
 
-        PageRank calculates the ranking of nodes in the graph G based on the 
+        PageRank calculates the ranking of nodes in the graph G based on the
         structure of the incoming links. It is popularly used to rank web pages.
 
         See the :wikipedia:`PageRank` for more information.
@@ -9450,14 +9450,14 @@ class GenericGraph(GenericGraph_pyx):
         - ``alpha`` -- float (default: ``0.85``); Damping parameter for
           PageRank.
 
-        - ``personalization`` -- dict (default: ``None``); The "personalization 
-          vector" consisting of a dictionary with a key for every graph node 
+        - ``personalization`` -- dict (default: ``None``); The "personalization
+          vector" consisting of a dictionary with a key for every graph node
           and nonzero personalization value for each node.
           By default, a uniform distribution is used.
-        
+
         - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
           in the graph are weighted, otherwise all edges have weight 1
-        
+
         - ``value_only`` -- boolean (default: ``False``); whether to only return
           the cardinality of the computed dominating set, or to return its list
           of vertices (default)
@@ -9469,16 +9469,16 @@ class GenericGraph(GenericGraph_pyx):
           weight.
 
         - ``dangling`` -- dict (default: ``None``); The outedges to be assigned
-          to any "dangling" nodes, i.e., nodes without any outedges. The dict   
-          key is the node the outedge points to and the dict value is the       
+          to any "dangling" nodes, i.e., nodes without any outedges. The dict
+          key is the node the outedge points to and the dict value is the   
           weight of that outedge. By default, dangling nodes are given outedges
-          according to the personalization vector (uniform if not specified).   
-          This must be selected to result in an irreducible transition matrix. 
-          It may be common to have the dangling dict to be the same as the 
+          according to the personalization vector (uniform if not specified). 
+          This must be selected to result in an irreducible transition matrix.
+          It may be common to have the dangling dict to be the same as the
           personalization dict.
 
         - ``implementation`` -- string (default: ``None``); the implemetation to
-          use in computing PageRank of ``G``. The following implementations are 
+          use in computing PageRank of ``G``. The following implementations are
           supported:
 
           - ``NetworkX`` -- uses NetworkX's PageRank algorithm implementation
@@ -9540,12 +9540,12 @@ class GenericGraph(GenericGraph_pyx):
              4: 0.3063198690713853,
              5: 0.1700057609707141,
              6: 0.05390084497706962}
-        
+
         .. SEEALSO:
 
             * :wikipedia:`PageRank`
 
-        """        
+        """
         if self.order() == 0:
             return {}
 
@@ -9565,33 +9565,33 @@ class GenericGraph(GenericGraph_pyx):
             import networkx
             if by_weight:
                 return networkx.pagerank(self.networkx_graph
-                       (weight_function=weight_function), alpha=alpha, 
-                       personalization=personalization, weight='weight', 
+                       (weight_function=weight_function), alpha=alpha,
+                       personalization=personalization, weight='weight',
                        dangling=dangling)
             else:
-                return networkx.pagerank(self.networkx_graph(), alpha=alpha, 
+                return networkx.pagerank(self.networkx_graph(), alpha=alpha,
                 personalization=personalization, weight=None, dangling=dangling)
         elif implementation == 'Numpy':
             import networkx
             if by_weight:
                 return networkx.pagerank_numpy(self.networkx_graph
-                       (weight_function=weight_function), alpha=alpha, 
-                       personalization=personalization, weight='weight', 
+                       (weight_function=weight_function), alpha=alpha,
+                       personalization=personalization, weight='weight',
                        dangling=dangling)
             else:
-                return networkx.pagerank_numpy(self.networkx_graph(), 
-                       alpha=alpha, personalization=personalization,  
+                return networkx.pagerank_numpy(self.networkx_graph(),
+                       alpha=alpha, personalization=personalization, 
                        weight=None, dangling=dangling)
         elif  implementation == 'Scipy':
             import networkx
             if by_weight:
                 return networkx.pagerank_scipy(self.networkx_graph
-                       (weight_function=weight_function), alpha=alpha, 
-                       personalization=personalization, weight='weight', 
+                       (weight_function=weight_function), alpha=alpha,
+                       personalization=personalization, weight='weight',
                        dangling=dangling)
             else:
-                return networkx.pagerank_scipy(self.networkx_graph(), 
-                       alpha=alpha, personalization=personalization, 
+                return networkx.pagerank_scipy(self.networkx_graph(),
+                       alpha=alpha, personalization=personalization,
                        weight=None, dangling=dangling)
         elif implementation == 'Igraph':
             import igraph
@@ -9606,12 +9606,12 @@ class GenericGraph(GenericGraph_pyx):
             import networkx
             if by_weight:
                 return networkx.pagerank_scipy(self.networkx_graph
-                       (weight_function=weight_function), alpha=alpha, 
-                       personalization=personalization, weight='weight', 
+                       (weight_function=weight_function), alpha=alpha,
+                       personalization=personalization, weight='weight',
                        dangling=dangling)
             else:
-                return networkx.pagerank_scipy(self.networkx_graph(), 
-                       alpha=alpha, personalization=personalization, 
+                return networkx.pagerank_scipy(self.networkx_graph(),
+                       alpha=alpha, personalization=personalization,
                        weight=None, dangling=dangling)
 
     ### Vertex handlers

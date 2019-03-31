@@ -15473,13 +15473,13 @@ class GenericGraph(GenericGraph_pyx):
             edge_labels = {}
             if use_multiedges:
                 for e in self.edge_iterator():
-                    if (e[0], e[1]) in edge_labels.keys():
+                    if (e[0], e[1]) in edge_labels:
                         edge_labels[(e[0], e[1])].append(e)
                     else:
                         edge_labels[(e[0], e[1])] = [e]
             else:
                 for e in self.edge_iterator():
-                    if (e[0], e[1]) not in edge_labels.keys():
+                    if (e[0], e[1]) not in edge_labels:
                         edge_labels[(e[0], e[1])] = [e]
             if not self.is_directed():
                 for u, v in list(edge_labels):

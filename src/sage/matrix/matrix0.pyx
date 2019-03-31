@@ -3486,6 +3486,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         cdef Py_ssize_t i, j, _
         cdef list pairs, k0_pairs, k1_pairs
+        cdef bint ineg, jneg
 
         if k < 0 or k >= self._nrows or k >= self._ncols:
             raise IndexError("The mutation index is invalid")
@@ -3500,10 +3501,10 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         for i,_ in k1_pairs:
             ik = self.get_unsafe(i, k)
-            ineg = bool(ik < 0)
+            ineg = (ik < 0)
             for _, j in k0_pairs:
                 kj = self.get_unsafe(k, j)
-                jneg = bool(kj < 0)
+                jneg = (kj < 0)
                 if ineg and jneg:
                     self[i, j] = self.get_unsafe(i, j) + self.get_unsafe(i, k)*self.get_unsafe(k, j)
                 elif not ineg and not jneg:

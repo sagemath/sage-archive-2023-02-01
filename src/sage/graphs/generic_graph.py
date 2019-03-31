@@ -22536,7 +22536,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: g, c = g1.canonical_label(algorithm='sage', certificate=True)
             sage: g
             Grid Graph for [2, 3]: Graph on 6 vertices
-            sage: c
+            sage: c  # py2
+            {(0, 0): 2, (0, 1): 4, (0, 2): 3, (1, 0): 1, (1, 1): 5, (1, 2): 0}
+            sage: c  # py3
             {(0, 0): 3, (0, 1): 4, (0, 2): 2, (1, 0): 0, (1, 1): 5, (1, 2): 1}
 
         Multigraphs and directed graphs work too::

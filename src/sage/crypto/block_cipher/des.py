@@ -16,6 +16,7 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from sage.structure.sage_object import SageObject
+from sage.rings.integer_ring import ZZ
 from sage.modules.free_module_element import vector
 from sage.rings.finite_rings.finite_field_constructor import GF
 
@@ -196,6 +197,17 @@ class DES_KS(SageObject):
     def _pc1(self, K):
         r"""
         Compute Permuted Choice 1 of ``key``.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.des import DES_KS
+            sage: ks = DES_KS()
+            sage: K = vector(GF(2),[0,0,0,1,0,0,1,1,0,0,1,1,0,1,0,0,0,1,0,1,0,1,1,1,0,1,1,1,1,0,0,1,1,0,0,1,1,0,1,1,1,0,1,1,1,1,0,0,1,1,0,1,1,1,1,1,1,1,1,1,0,0,0,1])
+            sage: C, D = ks._pc1(K)
+            sage: C
+            (1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1)
+            sage: D
+            (0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1)
         """
         orderC = [57, 49, 41, 33, 25, 17,  9,
                    1, 58, 50, 42, 34, 26, 18,
@@ -212,6 +224,14 @@ class DES_KS(SageObject):
     def _pc2(self, K):
         r"""
         Compute Permuted Choice 2 of ``key``.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.des import DES_KS
+            sage: ks = DES_KS()
+            sage: K = vector(GF(2),[1,1,1,0,0,0,0,1,1,0,0,1,1,0,0,1,0,1,0,1,0,1,0,1,1,1,1,1,1,0,1,0,1,0,1,0,1,1,0,0,1,1,0,0,1,1,1,1,0,0,0,1,1,1,1,0])
+            sage: ks._pc2(K)
+            (0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0)
         """
         order = [14, 17, 11, 24,  1,  5,
                   3, 28, 15,  6, 21, 10,
@@ -233,13 +253,48 @@ class DES_KS(SageObject):
             sage: from sage.crypto.block_cipher.des import DES_KS
             sage: ks = DES_KS()
             sage: bits = vector(GF(2), 6, [1,0,1,0,1,0])
-            sage: ks._left_shift(bits, 1)
+            sage: ks._left_shift(bits, 0)
             (0, 1, 0, 1, 0, 1)
             sage: bits
             (1, 0, 1, 0, 1, 0)
-            sage: ks._left_shift(bits, 3)
+            sage: ks._left_shift(bits, 2)
             (1, 0, 1, 0, 1, 0)
         """
         amount = [1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1]
         return vector(GF(2),
-                      list(half[amount[i-1]:]) + list(half[0:amount[i-1]]))
+                      list(half[amount[i]:]) + list(half[0:amount[i]]))
+
+
+def _convert_to_vector(I, L):
+    r"""
+    Convert ``I`` to a bit vector of length ``L``.
+
+    INPUT:
+
+    - ``I`` -- integer or bit list-like
+
+    - ``L`` -- integer; the desired bit length of the ouput
+
+    OUTPUT: a tuple of
+
+    - the ``L``-bit vector representation of ``I``
+
+    - a flag indicating the input type. Either ``'integer'`` or ``'vector'``.
+
+    EXAMPLES::
+
+        sage: from sage.crypto.block_cipher.des import _convert_to_vector
+        sage: _convert_to_vector(0x1F, 8)
+        ((1, 1, 1, 1, 1, 0, 0, 0), 'integer')
+        sage: v = vector(GF(2), 4, [1,0,1,0])
+        sage: _convert_to_vector(v, 4)
+        ((1, 0, 1, 0), 'vector')
+    """
+    try:
+        state = vector(GF(2), L, ZZ(I).digits(2, padto=L))
+        return state, 'integer'
+    except TypeError:
+        # ignore the error and try list-like types
+        pass
+    state = vector(GF(2), L, ZZ(list(I), 2).digits(2, padto=L))
+    return state, 'vector'

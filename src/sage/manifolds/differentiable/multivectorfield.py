@@ -727,7 +727,7 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
 
         sage: M = Manifold(4, 'M')
         sage: c_txyz.<t,x,y,z> = M.chart()
-        sage: a = M.multivector_field(2, 'a') ; a
+        sage: a = M.multivector_field(2, name='a') ; a
         2-vector field a on the 4-dimensional differentiable manifold M
         sage: a.parent()
         Free module A^2(M) of 2-vector fields on the 4-dimensional

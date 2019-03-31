@@ -124,7 +124,7 @@ class VectorField(MultivectorField):
         sage: W = U.intersection(V)
         sage: eU = c_xy.frame() ; eV = c_tu.frame()
         sage: c_tuW = c_tu.restrict(W) ; eVW = c_tuW.frame()
-        sage: v = M.vector_field('v') ; v
+        sage: v = M.vector_field(name='v') ; v
         Vector field v on the 2-dimensional differentiable manifold M
         sage: v.parent()
         Module X(M) of vector fields on the 2-dimensional differentiable
@@ -1375,7 +1375,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, MultivectorFieldParal,
 
         sage: M = Manifold(3, 'M')
         sage: c_xyz.<x,y,z> = M.chart()
-        sage: v = M.vector_field('V') ; v
+        sage: v = M.vector_field(name='V') ; v
         Vector field V on the 3-dimensional differentiable manifold M
         sage: latex(v)
         V

@@ -883,7 +883,7 @@ class DiffMap(ContinuousMap):
 
         Pullback on `S^2` of the standard Euclidean metric on `R^3`::
 
-            sage: g = N.sym_bilin_form_field('g')
+            sage: g = N.sym_bilin_form_field(name='g')
             sage: g[1,1], g[2,2], g[3,3] = 1, 1, 1
             sage: g.display()
             g = dx*dx + dy*dy + dz*dz
@@ -906,7 +906,7 @@ class DiffMap(ContinuousMap):
 
         Pullback on `S^2` of a 3-form on `R^3`::
 
-            sage: a = N.diff_form(3, 'A')
+            sage: a = N.diff_form(3, name='A')
             sage: a[1,2,3] = f
             sage: a.display()
             A = x*y*z dx/\dy/\dz

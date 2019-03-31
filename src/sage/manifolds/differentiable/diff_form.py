@@ -857,7 +857,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
         sage: M = Manifold(4, 'M')
         sage: c_txyz.<t,x,y,z> = M.chart()
-        sage: a = M.diff_form(2, 'a') ; a
+        sage: a = M.diff_form(2, name='a') ; a
         2-form a on the 4-dimensional differentiable manifold M
         sage: a.parent()
         Free module Omega^2(M) of 2-forms on the 4-dimensional differentiable

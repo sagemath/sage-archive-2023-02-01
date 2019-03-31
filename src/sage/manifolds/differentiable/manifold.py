@@ -210,7 +210,7 @@ specified, is the coordinate frame associated with the first defined chart::
 
 A vector field on the sphere::
 
-    sage: w = M.vector_field('w')
+    sage: w = M.vector_field(name='w')
     sage: w[stereoN.frame(), :] = [x, y]
     sage: w.add_comp_by_continuation(stereoS.frame(), W, stereoS)
     sage: w.display() # display in the default frame (stereoN.frame())

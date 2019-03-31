@@ -212,8 +212,7 @@ class AffineConnection(SageObject):
 
     The connection acting on a vector field::
 
-        sage: v = M.vector_field('v')
-        sage: v[:] = (y*z, x*z, x*y)
+        sage: v = M.vector_field(y*z, x*z, x*y, name='v')
         sage: Dv = nab(v) ; Dv
         Tensor field nabla(v) of type (1,1) on the 3-dimensional differentiable
          manifold M
@@ -263,10 +262,8 @@ class AffineConnection(SageObject):
 
     We may let it act on a vector field defined globally on `M`::
 
-        sage: a = M.vector_field('a')
-        sage: a[eU,:] = [-y,x]
-        sage: a[eV,0] = a[eVW,0,c_uvW].expr()
-        sage: a[eV,1] = a[eVW,1,c_uvW].expr()
+        sage: a = M.vector_field({eU: [-y,x]}, name='a')
+        sage: a.add_comp_by_continuation(eV, W, c_uv)
         sage: a.display(eU)
         a = -y d/dx + x d/dy
         sage: a.display(eV)
@@ -316,10 +313,8 @@ class AffineConnection(SageObject):
 
     We may let it act on a vector field defined globally on `M`::
 
-        sage: a = M.vector_field('a')
-        sage: a[eU,:] = [-y,x]
-        sage: a[eV,0] = a[eVW,0,c_uvW].expr()
-        sage: a[eV,1] = a[eVW,1,c_uvW].expr()
+        sage: a = M.vector_field({eU: [-y,x]}, name='a')
+        sage: a.add_comp_by_continuation(eV, W, c_uv)
         sage: a.display(eU)
         a = -y d/dx + x d/dy
         sage: a.display(eV)

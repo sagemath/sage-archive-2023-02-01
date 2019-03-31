@@ -187,7 +187,7 @@ class DES_KS(SageObject):
 
     def __iter__(self):
         r"""
-        Iterate over the ``self._rounds + 1`` PRESENT round keys, derived from
+        Iterate over the DES round keys, derived from
         `master_key`
        """
         if self._master_key is None:

@@ -1421,7 +1421,8 @@ class TopologicalManifold(ManifoldSubset):
         INPUT:
 
         - ``coordinates`` --  (default: ``''`` (empty string)) string
-          defining the coordinate symbols and ranges, see below
+          defining the coordinate symbols, ranges and possible periodicities,
+          see below
         - ``names`` -- (default: ``None``) unused argument, except if
           ``coordinates`` is not provided; it must then be a tuple containing
           the coordinate symbols (this is guaranteed if the shortcut operator
@@ -1435,7 +1436,7 @@ class TopologicalManifold(ManifoldSubset):
             used (cf. :meth:`set_calculus_method`)
 
         The coordinates declared in the string ``coordinates`` are
-        separated by ``' '`` (whitespace) and each coordinate has at most three
+        separated by ``' '`` (whitespace) and each coordinate has at most four
         fields, separated by a colon (``':'``):
 
         1. The coordinate symbol (a letter or a few letters).
@@ -1448,32 +1449,37 @@ class TopologicalManifold(ManifoldSubset):
            non-open intervals such as ``[a,b]`` and
            ``(a,b]`` (or equivalently ``]a,b]``) are allowed. Note that
            the interval declaration must not contain any space character.
-        3. (optional) The LaTeX spelling of the coordinate; if not provided
+        3. (optional) Indicator of the periodic character of the coordinate,
+           either as ``period=T``, where ``T`` is the period, or, for manifolds
+           over `\RR` only, as the keyword ``periodic`` (the value of the
+           period is then deduced from the interval `I` declared in field 2;
+           see the example below)
+        4. (optional) The LaTeX spelling of the coordinate; if not provided
            the coordinate symbol given in the first field will be used.
 
-        The order of the fields 2 and 3 does not matter and each of them can
+        The order of fields 2 to 4 does not matter and each of them can
         be omitted. If it contains any LaTeX expression, the string
         ``coordinates`` must be declared with the prefix 'r' (for "raw") to
         allow for a proper treatment of the backslash character (see
-        examples below). If no interval range and no LaTeX spelling is to
-        be provided for any coordinate, the argument ``coordinates`` can be
-        omitted when the shortcut operator ``<,>`` is used via Sage
-        preparser (see examples below).
+        examples below). If no interval range, no period and no LaTeX spelling
+        is to be set for any coordinate, the argument ``coordinates`` can be
+        omitted when the shortcut operator ``<,>`` is used to declare the
+        chart (see examples below).
 
         OUTPUT:
 
         - the created chart, as an instance of
-          :class:`~sage.manifolds.chart.Chart` or of the subclass
-          :class:`~sage.manifolds.chart.RealChart` for manifolds over `\RR`.
+          :class:`~sage.manifolds.chart.Chart` or one of its subclasses, like
+          :class:`~sage.manifolds.differentiable.chart.RealDiffChart` for
+          differentiable manifolds over `\RR`.
 
         EXAMPLES:
 
         Chart on a 2-dimensional manifold::
 
             sage: M = Manifold(2, 'M', structure='topological')
-            sage: U = M.open_subset('U')
-            sage: X = U.chart('x y'); X
-            Chart (U, (x, y))
+            sage: X = M.chart('x y'); X
+            Chart (M, (x, y))
             sage: X[0]
             x
             sage: X[1]
@@ -1501,9 +1507,8 @@ class TopologicalManifold(ManifoldSubset):
         pass the string 'x y' to chart())::
 
             sage: M = Manifold(2, 'M', structure='topological')
-            sage: U = M.open_subset('U')
-            sage: X.<x,y> = U.chart(); X
-            Chart (U, (x, y))
+            sage: X.<x,y> = M.chart(); X
+            Chart (M, (x, y))
 
         Indeed, the declared coordinates are then known at the global level::
 
@@ -1512,12 +1517,25 @@ class TopologicalManifold(ManifoldSubset):
             sage: (x,y) == X[:]
             True
 
-        Actually the instruction ``X.<x,y> = U.chart()`` is
+        Actually the instruction ``X.<x,y> = M.chart()`` is
         equivalent to the combination of the two instructions
-        ``X = U.chart('x y')`` and ``(x,y) = X[:]``.
+        ``X = M.chart('x y')`` and ``(x,y) = X[:]``.
 
-        See the documentation of class
-        :class:`~sage.manifolds.chart.Chart` for more examples,
+        As an example of coordinate ranges and LaTeX symbols passed via the
+        string ``coordinates`` to ``chart()``, let us introduce polar
+        coordinates::
+
+            sage: U = M.open_subset('U', coord_def={X: x^2+y^2 != 0})
+            sage: P.<r,ph> = U.chart(r'r:(0,+oo) ph:(0,2*pi):periodic:\phi'); P
+            Chart (U, (r, ph))
+            sage: P.coord_range()
+            r: (0, +oo); ph: [0, 2*pi] (periodic)
+            sage: latex(P)
+            \left(U,(r, {\phi})\right)
+
+        See the documentation of classes
+        :class:`~sage.manifolds.chart.Chart` and
+        :class:`~sage.manifolds.chart.RealChart` for more examples,
         especially regarding the coordinates ranges and restrictions.
 
         """

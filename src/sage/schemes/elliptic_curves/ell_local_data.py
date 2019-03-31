@@ -1114,7 +1114,7 @@ def check_prime(K,P):
         sage: L.<b> = NumberField(x^2+3)
         sage: check_prime(K, L.ideal(5))
         Traceback (most recent call last):
-        ..
+        ...
         TypeError: The ideal Fractional ideal (5) is not a prime ideal of Number Field in a with defining polynomial x^2 - 5
         sage: check_prime(K, L.ideal(b))
         Traceback (most recent call last):

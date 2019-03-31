@@ -1,5 +1,7 @@
 .. nodoctest
 
+.. highlight:: shell-session
+
 .. _chapter-doctesting:
 
 =======================
@@ -20,7 +22,9 @@ level Sage directory is::
 See the section :ref:`chapter-testing` for information on Sage's
 automated testing process. The general syntax for doctesting is as
 follows. To doctest a module in the library of a version of Sage, use
-this syntax::
+this syntax:
+
+.. CODE-BLOCK:: text
 
     /path/to/sage-x.y.z/sage -t [--long] /path/to/sage-x.y.z/path/to/module.py[x]
 
@@ -332,7 +336,9 @@ argument, the module ``sage/crypto/mq/sr.py`` took about five
 seconds. With this optional argument, it required 82 seconds to run
 through all tests in that module. Here is a snippet of a function in
 the module ``sage/crypto/mq/sr.py`` with a doctest that has been flagged
-as taking a long time::
+as taking a long time:
+
+.. CODE-BLOCK:: python
 
     def test_consistency(max_n=2, **kwargs):
         r"""
@@ -507,7 +513,9 @@ In any case, this will test the Sage library with multiple threads::
     [jdemeyer@sage sage-6.0]$ make ptestlong
 
 Any of the following commands would also doctest the Sage library or
-one of its clones::
+one of its clones:
+
+.. CODE-BLOCK:: text
 
     make test
     make check
@@ -654,7 +662,9 @@ Doctesting from Within Sage
 
 You can run doctests from within Sage, which can be useful since you
 don't have to wait for Sage to start.  Use the ``run_doctests``
-function in the global namespace, passing it either a string or a module::
+function in the global namespace, passing it either a string or a module:
+
+.. CODE-BLOCK:: ipycon
 
     sage: run_doctests(sage.combinat.affine_permutation)
     Running doctests with ID 2018-02-07-13-23-13-89fe17b1.
@@ -680,7 +690,9 @@ Run Long Doctests
 
 Ideally, doctests should not take any noticeable amount of time. If
 you really need longer-running doctests (anything beyond about one
-second) then you should mark them as::
+second) then you should mark them as:
+
+.. CODE-BLOCK:: text
 
     sage: my_long_test()  # long time
 

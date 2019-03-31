@@ -471,7 +471,7 @@ class SBox(SageObject):
             yield self(i)
 
     def derivative(self, u):
-        """
+        r"""
         Return the derivative in direction of ``u``
 
         INPUT:

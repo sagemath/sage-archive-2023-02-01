@@ -798,9 +798,9 @@ Initialization
 
 There are three main classes for sandpile structures in Sage: ``Sandpile``,
 ``SandpileConfig``, and ``SandpileDivisor``.  Initialization for ``Sandpile``
-has the form
+has the form ::
 
-.. code-block:: python
+.. skip
 
     sage: S = Sandpile(graph, sink)
 

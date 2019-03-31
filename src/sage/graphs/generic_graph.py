@@ -15482,7 +15482,7 @@ class GenericGraph(GenericGraph_pyx):
                     if (e[0], e[1]) not in edge_labels.keys():
                         edge_labels[(e[0], e[1])] = [e]
             if not self.is_directed():
-                for u, v in list(edge_labels.keys()):
+                for u, v in list(edge_labels):
                     edge_labels[v, u] = edge_labels[u, v]
         elif use_multiedges and self.has_multiple_edges():
             from collections import Counter

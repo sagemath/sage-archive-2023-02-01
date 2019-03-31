@@ -458,7 +458,6 @@ class DiffForm(TensorField):
 
         Exterior product of two 1-forms on the 2-sphere::
 
-
             sage: M = Manifold(2, 'S^2', start_index=1) # the 2-dimensional sphere S^2
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # S^2 is the union of U and V
@@ -482,6 +481,24 @@ class DiffForm(TensorField):
             sage: c.display(e_uv)
             a/\b = -(v^2 - u)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) du/\dv
 
+        If one of the two operands is unnamed, the result is unnamed too::
+
+            sage: b1 = M.diff_form(1)  # no name set
+            sage: b1[e_xy,:] = x^2 + y^2, y
+            sage: b1.add_comp_by_continuation(e_uv, W, c_uv)
+            sage: c1 = a.wedge(b1); c1
+            2-form on the 2-dimensional differentiable manifold S^2
+            sage: c1.display(e_xy)
+            (-x^3 - (x - 1)*y^2) dx/\dy
+
+        To give a name to the result, one shall use the method
+        :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.set_name`::
+
+            sage: c1.set_name('c');  c1
+            2-form c on the 2-dimensional differentiable manifold S^2
+            sage: c1.display(e_xy)
+            c = (-x^3 - (x - 1)*y^2) dx/\dy
+
         """
         from sage.tensor.modules.format_utilities import is_atomic
         if self._domain.is_subset(other._domain):
@@ -498,6 +515,7 @@ class DiffForm(TensorField):
             # call of the FreeModuleAltForm version:
             return FreeModuleAltForm.wedge(self_r, other_r)
         # otherwise, the result is created here:
+        resu_name = None
         if self._name is not None and other._name is not None:
             sname = self._name
             oname = other._name
@@ -506,6 +524,7 @@ class DiffForm(TensorField):
             if not is_atomic(oname):
                 oname = '(' + oname + ')'
             resu_name = sname + '/\\' + oname
+        resu_latex_name = None
         if self._latex_name is not None and other._latex_name is not None:
             slname = self._latex_name
             olname = other._latex_name

@@ -198,7 +198,7 @@ AUTHOR:
     - William Stein, 2009
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -206,7 +206,7 @@ AUTHOR:
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 from __future__ import print_function, absolute_import
 
 from sage.modules.module import Module
@@ -218,7 +218,6 @@ from .fgp_morphism import FGP_Morphism, FGP_Homset
 from sage.rings.all import Integer, ZZ
 from sage.arith.all import lcm
 from sage.misc.cachefunc import cached_method
-from sage.misc.superseded import deprecation
 from sage.matrix.constructor import matrix
 
 import sage.misc.weak_dict
@@ -617,10 +616,7 @@ class FGP_Module_class(Module):
         """
         INPUT:
 
-        - ``x`` -- a vector, an fgp module element, or a list or tuple:
-
-               - list or tuple: take the corresponding linear combination of
-                 the generators of self.
+        - ``x`` -- a vector or an fgp module element:
 
                - vector: coerce vector into V and define the
                  corresponding element of V/W
@@ -629,11 +625,14 @@ class FGP_Module_class(Module):
                  space and try to put into V.  If x is in self already,
                  just return x.
 
-        - `check` -- bool (default: True)
+        - `check` -- bool (default: ``True``)
+
+        .. SEEALSO:: :meth:`linear_combination_of_smith_form_gens`
 
         EXAMPLES::
 
-            sage: V = span([[1/2,1,1],[3/2,2,1],[0,0,1]],ZZ); W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2])
+            sage: V = span([[1/2,1,1],[3/2,2,1],[0,0,1]],ZZ)
+            sage: W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2])
             sage: Q = V/W
             sage: x = Q(V.0-V.1); x  # indirect doctest
             (0, 3)
@@ -646,10 +645,6 @@ class FGP_Module_class(Module):
         """
         if isinstance(x, FGP_Element):
             x = x.lift()
-        elif isinstance(x,(list,tuple)):
-            deprecation(16261, "The default behaviour changed! If you"
-                               " *really* want a linear combination of smith"
-                               " generators, use .linear_combination_of_smith_form_gens.")
         return self.element_class(self, self._V(x))
 
     def linear_combination_of_smith_form_gens(self, x):
@@ -1968,5 +1963,3 @@ def test_morphism_0(*args, **kwds):
     if len(I.smith_form_gens()) > 0:
         x = phi.lift(I.smith_form_gen(0))
         assert phi(x) == I.smith_form_gen(0)
-
-

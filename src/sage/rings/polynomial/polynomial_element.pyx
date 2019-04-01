@@ -92,9 +92,10 @@ from sage.rings.real_double import is_RealDoubleField, RDF
 from sage.rings.complex_double import is_ComplexDoubleField, CDF
 from sage.rings.real_mpfi import is_RealIntervalField
 
+from sage.structure.coerce cimport coercion_model
 from sage.structure.element import coerce_binop
 from sage.structure.element cimport (parent, have_same_parent,
-        Element, RingElement, coercion_model)
+        Element, RingElement)
 
 from sage.rings.rational_field import QQ, is_RationalField
 from sage.rings.integer_ring import ZZ, is_IntegerRing
@@ -772,13 +773,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # Coerce a once and for all to a parent containing the coefficients.
         # This can save lots of coercions when the common parent is the
         # polynomial's base ring (e.g., for evaluations at integers).
-
-        if not type(a) is type(cst):
+        if not have_same_parent(a, cst):
             cst, aa = coercion_model.canonical_coercion(cst, a)
-            tgt = parent(cst)
-            # Use fast right multiplication actions like matrix × scalar
-            if (isinstance(tgt, type)
-                or (<Parent> tgt).get_action(parent(a), operator.mul) is None):
+            # Use fast multiplication actions like matrix × scalar.
+            # If there is no action, replace a by an element of the
+            # target parent.
+            if coercion_model.get_action(parent(aa), parent(a)) is None:
                 a = aa
 
         d = pol.degree()
@@ -813,7 +813,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: Pol.<x> = CBF[]
             sage: (1 + x + x^2/2 + x^3/6 + x^4/24 + x^5/120).compose_trunc(1 + x, 2)
-            ([2.708333333333333 +/- 6.64e-16])*x + [2.71666666666667 +/- 4.29e-15]
+            ([2.708333333333333 +/- ...e-16])*x + [2.71666666666667 +/- ...e-15]
 
             sage: Pol.<x> = QQ['y'][]
             sage: (1 + x + x^2/2 + x^3/6 + x^4/24 + x^5/120).compose_trunc(1 + x, 2)
@@ -1370,21 +1370,29 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.inverse_of_unit()
             Traceback (most recent call last):
             ...
-            ValueError: self is not a unit
+            ArithmeticError: x - 90283 is not a unit in Univariate Polynomial Ring in x over Rational Field
             sage: f = R(-90283); g = f.inverse_of_unit(); g
             -1/90283
             sage: parent(g)
             Univariate Polynomial Ring in x over Rational Field
+
+        TESTS::
+
+            sage: Integers(1)['x'](0).inverse_of_unit()
+            0
         """
         d = self.degree()
         if d > 0:
             if not self.is_unit():
-                raise ValueError("self is not a unit")
+                raise ArithmeticError(f"{self} is not a unit in {self.parent()}")
             else:
                 raise NotImplementedError("polynomial inversion over non-integral domains not implemented")
         elif d == -1:
-            return self._parent(~self._parent._base.zero())
-        return self._parent(~self.get_unsafe(0))
+            cst = self._parent._base.zero()
+        else:
+            cst = self.get_unsafe(0)
+        inv = cst.inverse_of_unit()
+        return self._parent([inv])
 
     def inverse_mod(a, m):
         """
@@ -1600,7 +1608,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             3/40*x^5 - 1/6*x^3 + x
             sage: Pol.<x> = CBF[]
             sage: (x + x^3/6 + x^5/120).revert_series(6)
-            ([0.075000000000000 +/- 9.75e-17])*x^5 + ([-0.166666666666667 +/- 4.45e-16])*x^3 + x
+            ([0.075000000000000 +/- ...e-17])*x^5 + ([-0.166666666666667 +/- ...e-16])*x^3 + x
             sage: Pol.<x> = SR[]
             sage: x.revert_series(6)
             Traceback (most recent call last):
@@ -4364,8 +4372,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: G.prod() == g
             True
         """
-        pols = G[0]
-        exps = G[1]
+        pols, exps = G
         R = self._parent
         F = [(R(f), int(e)) for f, e in zip(pols, exps)]
 
@@ -5883,11 +5890,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         ALGORITHM:
 
-        See Section 4 of Man & Wright [ManWright1994]_.
-
-        .. [ManWright1994] Yiu-Kwong Man and Francis J. Wright.
-           *Fast Polynomial Dispersion Computation and its Application to
-           Indefinite Summation*. ISSAC 1994.
+        See Section 4 of Man & Wright [MW1994]_.
 
         .. SEEALSO:: :meth:`dispersion`
 
@@ -6088,7 +6091,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         For internal use only.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: R.<a> = PolynomialRing(ZZ)
             sage: (2*a^2 + a)._pari_with_name()
@@ -6355,14 +6358,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         The computation is straightforward using resultants. Indeed for the
         composed sum it would be `Res_y(p1(x-y), p2(y))`. However, the method
-        from [BFSS]_ using series expansions is asymptotically much faster.
+        from [BFSS2006]_ using series expansions is asymptotically much faster.
 
         Note that the algorithm ``BFSS`` with polynomials with coefficients in
         `\ZZ` needs to perform operations over `\QQ`.
 
         .. TODO::
 
-           - The [BFSS]_ algorithm has been implemented here only in the case of
+           - The [BFSS2006]_ algorithm has been implemented here only in the case of
              polynomials over rationals. For other rings of zero characteristic
              (or if the characteristic is larger than the product of the degrees),
              one needs to implement a generic method ``_exp_series``. In the
@@ -6370,7 +6373,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
              algorithm in the same paper.
 
            - The Newton series computation can be done much more efficiently!
-             See [BFSS]_.
+             See [BFSS2006]_.
 
         EXAMPLES::
 
@@ -6440,12 +6443,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             ....:         pr = p1.composed_op(p2, op, "resultant", monic=monic)
             ....:         pb = p1.composed_op(p2, op, "BFSS", monic=monic)
             ....:         assert ((pr == pb) or ((not monic) and pr == -pb) and (parent(pr) is parent(pb)))
-
-        REFERENCES:
-
-        .. [BFSS] \A. Bostan, P. Flajolet, B. Salvy and E. Schost,
-           *Fast Computation of special resultants*,
-           Journal of Symbolic Computation 41 (2006), 1-29
         """
         cdef long j
         cdef long prec
@@ -7274,15 +7271,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: Pol.<x> = CBF[]
             sage: (x^2 + 2).roots(multiplicities=False)
-            [[+/- 1.54e-19] + [-1.414213562373095 +/- 4.90e-17]*I,
-            [+/- 1.54e-19] + [1.414213562373095 +/- 4.90e-17]*I]
+            [[+/- ...e-19] + [-1.414213562373095 +/- ...e-17]*I,
+            [+/- ...e-19] + [1.414213562373095 +/- ...e-17]*I]
             sage: (x^3 - 1/2).roots(RBF, multiplicities=False)
-            [[0.7937005259840997 +/- 3.76e-17]]
+            [[0.7937005259840997 +/- ...e-17]]
             sage: ((x - 1)^2).roots(multiplicities=False, proof=False)
             doctest:...
             UserWarning: roots may have been lost...
-            [[1.00000000000 +/- 8.43e-12] + [+/- 1.01e-11]*I,
-             [1.0000000000 +/- 5.22e-12] + [+/- 6.20e-12]*I]
+            [[1.00000000000 +/- ...e-12] + [+/- ...e-11]*I,
+             [1.0000000000 +/- ...e-12] + [+/- ...e-12]*I]
 
         Note that coefficients in a number field with defining polynomial
         `x^2 + 1` are considered to be Gaussian rationals (with the
@@ -9266,7 +9263,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         ALGORITHM:
 
         The native algorithm implemented in Sage uses the first
-        algorithm of [BD89]_. The algorithm in pari (using
+        algorithm of [BD1989]_. The algorithm in pari (using
         :pari:`poliscyclo`) is more subtle since it does compute the
         inverse of the Euler `\phi` function to determine the `n` such
         that the polynomial is the `n`-th cyclotomic polynomial.
@@ -9351,12 +9348,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: x = polygen(QQ)
             sage: (x-1).is_cyclotomic(certificate=True)
             1
-
-        REFERENCES:
-
-        .. [BD89] \R. J. Bradford and J. H. Davenport, Effective tests
-           for cyclotomic polynomials, Symbolic and Algebraic Computation (1989)
-           pp. 244 -- 251, :doi:`10.1007/3-540-51084-2_22`
         """
         S = self.base_ring()
         if S.characteristic() != 0:
@@ -10905,7 +10896,8 @@ cdef class Polynomial_generic_dense(Polynomial):
         OUTPUT:
             element of base ring
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R.<t> = QQ[]
             sage: S.<x> = R[]
             sage: f = x*t + x + t
@@ -11046,6 +11038,14 @@ cdef class Polynomial_generic_dense(Polynomial):
             sage: q,r = h.quo_rem(f)
             sage: h == q*f + r and r.degree() < f.degree()
             True
+
+        :trac:`26907`::
+
+            sage: P.<x> = ZZ[]
+            sage: R.<y> = P[]
+            sage: a = 3*y + 1
+            sage: a//a
+            1
         """
         if other.is_zero():
             raise ZeroDivisionError("division by zero polynomial")
@@ -11496,7 +11496,7 @@ cdef class PolynomialBaseringInjection(Morphism):
     By :trac:`9944`, there are now only very few exceptions::
 
         sage: PolynomialRing(QQ,names=[]).coerce_map_from(QQ)
-        Generic morphism:
+        Call morphism:
           From: Rational Field
           To:   Multivariate Polynomial Ring in no variables over Rational Field
     """

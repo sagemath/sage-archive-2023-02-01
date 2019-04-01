@@ -15,4 +15,10 @@ fi
 
 PYTHON="$(PATH="$SAGE_ORIG_PATH" command -v python)"
 
+# fallback for systems where only the python3 command is available
+# see https://trac.sagemath.org/ticket/26953
+if [ -z "$PYTHON" ]; then
+    PYTHON="$(PATH="$SAGE_ORIG_PATH" command -v python3)"
+fi
+
 exec "$PYTHON" "$@"

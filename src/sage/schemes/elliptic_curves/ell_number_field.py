@@ -75,7 +75,7 @@ REFERENCE:
 """
 from __future__ import absolute_import
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #                          William Stein <wstein@gmail.com>
 #
@@ -83,8 +83,8 @@ from __future__ import absolute_import
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from .ell_field import EllipticCurve_field
 from .ell_generic import is_EllipticCurve
@@ -93,6 +93,7 @@ from .constructor import EllipticCurve
 from sage.rings.all import PolynomialRing, ZZ, QQ, RealField, Integer
 from sage.misc.all import cached_method, verbose, prod, union, flatten
 from six import reraise as raise_
+
 
 class EllipticCurve_number_field(EllipticCurve_field):
     r"""
@@ -880,10 +881,12 @@ class EllipticCurve_number_field(EllipticCurve_field):
         K = self.base_ring()
         ZK = K.maximal_order()
         try:
-            (a1, a2, a3, a4, a6) = [ZK(a) for a in self.a_invariants()]
+            a1, a2, a3, a4, a6 = (ZK(a) for a in self.a_invariants())
         except TypeError:
             import sys
-            raise_(TypeError, "_reduce_model() requires an integral model.", sys.exc_info()[2])
+            raise_(TypeError,
+                   TypeError("_reduce_model() requires an integral model."),
+                   sys.exc_info()[2])
 
         # N.B. Must define s, r, t in the right order.
         if ZK.absolute_degree() == 1:
@@ -3834,6 +3837,14 @@ class EllipticCurve_number_field(EllipticCurve_field):
             ([(-3/4 : -15/8 : 1), (159965/16129 : -67536260/2048383 : 1)],
             45,
             0.152460177943144)
+
+        See :trac:`27387`::
+
+            sage: K.<a> = NumberField(x^2-x-26)
+            sage: E = EllipticCurve([a,1-a,0,93-16*a, 3150-560*a])
+            sage: P = E([65-35*a/3, (959*a-5377)/9])
+            sage: E.saturation([P],one_prime=2)
+            ([(-1/4*a + 3/4 : 59/8*a - 317/8 : 1)], 2, 0.344624259712631)
         """
         full_saturation = (max_prime == 0) and (one_prime == 0)
         Plist = [self(P) for P in points]

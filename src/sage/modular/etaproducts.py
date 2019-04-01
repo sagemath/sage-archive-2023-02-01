@@ -29,7 +29,7 @@ AUTHOR:
 #****************************************************************************
 
 from sage.structure.sage_object import SageObject
-from sage.structure.richcmp import richcmp, op_EQ, op_NE
+from sage.structure.richcmp import richcmp, richcmp_method, op_EQ, op_NE
 from sage.rings.power_series_ring import PowerSeriesRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.arith.all import divisors, prime_divisors, is_square, euler_phi, gcd
@@ -727,6 +727,8 @@ def AllCusps(N):
                 c.append(CuspFamily(N, d, label=str(i + 1)))
     return c
 
+
+@richcmp_method
 class CuspFamily(SageObject):
     r"""
     A family of elliptic curves parametrising a region of
@@ -760,6 +762,52 @@ class CuspFamily(SageObject):
         if num_cusps_of_width(N, width) == 1 and label is not None:
             raise ValueError("There is only one cusp of width %s on X_0(%s): no need to specify a label" % (width, N))
         self.label = label
+
+    @property
+    def __tuple(self):
+        """
+        The defining data of this ``CuspFamily`` as tuple, used for
+        comparisons.
+        """
+        return (self._N, self._width, self.label)
+
+    def __richcmp__(self, other, op):
+        """
+        EXAMPLES::
+
+            sage: a = CuspFamily(16, 4, "1"); a
+            (c_{4,1})
+            sage: b = CuspFamily(16, 4, "2"); b
+            (c_{4,2})
+            sage: c = CuspFamily(8, 8); c
+            (0)
+            sage: a == a
+            True
+            sage: a == b
+            False
+            sage: a != b
+            True
+            sage: a == c
+            False
+            sage: a < c
+            False
+            sage: a > c
+            True
+            sage: a != "foo"
+            True
+        """
+        if not isinstance(other, CuspFamily):
+            return NotImplemented
+        return richcmp(self.__tuple, other.__tuple, op)
+
+    def __hash__(self):
+        """
+        EXAMPLES::
+
+            sage: hash(CuspFamily(10, 1))  # random
+            -4769758480201659164
+        """
+        return hash(self.__tuple)
 
     def width(self):
         r"""

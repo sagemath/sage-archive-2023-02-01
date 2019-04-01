@@ -8,7 +8,7 @@ various parts or sub-sequences. These kind of polynomial sequences
 which naturally split into parts arise naturally for example in
 algebraic cryptanalysis of symmetric cryptographic primitives. The
 most prominent examples of these systems are: the small scale variants
-of the AES [CMR2005]_ (cf. :func:`sage.crypto.mq.sr.SR`) and Flurry/Curry [BPW06]_. By
+of the AES [CMR2005]_ (cf. :func:`sage.crypto.mq.sr.SR`) and Flurry/Curry [BPW2006]_. By
 default, a polynomial sequence has exactly one part.
 
 AUTHORS:
@@ -144,11 +144,6 @@ TESTS::
    In many other computer algebra systems (cf. Singular) this class
    would be called ``Ideal`` but an ideal is a very distinct object
    from its generators and thus this is not an ideal in Sage.
-
-.. [BPW06] \J. Buchmann, A. Pychkine, R.-P. Weinmann
-   *Block Ciphers Sensitive to Groebner Basis Attacks*
-   in Topics in Cryptology -- CT RSA'06; LNCS 3860; pp. 313--331; Springer Verlag 2006;
-   pre-print available at http://eprint.iacr.org/2005/200
 
 Classes
 -------
@@ -1056,6 +1051,17 @@ class PolynomialSequence_generic(Sequence_generic):
         Uses Singular's interred command or
         :func:`sage.rings.polynomial.toy_buchberger.inter_reduction`
         if conversion to Singular fails.
+
+        TESTS:
+
+        Check that :trac:`26952` is fixed::
+
+            sage: Qp = pAdicField(2)
+            sage: R.<x,y,z> = PolynomialRing(Qp, implementation="generic")
+            sage: F = Sequence([z*x+y^3,z+y^3,3*z+x*y])
+            sage: F.reduced()
+            [y^3 + z, x*y + (1 + 2 + O(2^20))*z, x*z - z]
+
         """
         from sage.rings.polynomial.multi_polynomial_ideal_libsingular import interred_libsingular
         from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
@@ -1075,7 +1081,8 @@ class PolynomialSequence_generic(Sequence_generic):
                     ret.append(f.lc()**(-1)*f) # lead coeffs are not reduced by interred
                 s.option("set",o)
             except TypeError:
-                ret = toy_buchberger.inter_reduction(self.gens())
+                from sage.rings.polynomial.toy_buchberger import inter_reduction
+                ret = inter_reduction(self)
 
         ret = sorted(ret, reverse=True)
         ret = PolynomialSequence(R, ret, immutable=True)
@@ -1227,16 +1234,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
 
         .. NOTE::
 
-            This is called "massaging" in [CBJ07]_.
-
-        REFERENCES:
-
-        .. [CBJ07] Gregory V. Bard, and Nicolas T. Courtois, and Chris Jefferson.
-           *Efficient Methods for Conversion and Solution of Sparse Systems of Low-Degree
-           Multivariate Polynomials over GF(2) via SAT-Solvers*.
-           Cryptology ePrint Archive: Report 2007/024. available at
-           http://eprint.iacr.org/2007/024
-
+            This is called "massaging" in [BCJ2007]_.
         """
         from sage.rings.polynomial.pbori import BooleanPolynomialRing
         from brial import gauss_on_polys

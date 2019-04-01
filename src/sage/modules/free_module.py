@@ -1055,7 +1055,7 @@ done from the right side.""")
             doctest:warning
             ...
             DeprecationWarning: The default order on free modules has changed. The old ordering is in sage.modules.free_module.EchelonMatrixKey
-            See http://trac.sagemath.org/23878 for details.
+            See http://trac.sagemath.org/23978 for details.
             False
             sage: CC^3 <= QQ^3
             False
@@ -1269,7 +1269,7 @@ done from the right side.""")
             return self._eq(other)
         if op == op_NE:
             return not self._eq(other)
-        deprecation(23878,"The default order on free modules has changed. "
+        deprecation(23978,"The default order on free modules has changed. "
                     "The old ordering is in sage.modules.free_module.EchelonMatrixKey")
         if op == op_LE:
             return self.is_submodule(other)
@@ -2044,7 +2044,7 @@ done from the right side.""")
             sage: (QQ^3).gen(4/3)
             Traceback (most recent call last):
             ...
-            TypeError: rational is not an integer
+            TypeError: unable to convert rational 4/3 to an integer
         """
         if i < 0 or i >= self.rank():
             raise ValueError("Generator %s not defined." % i)
@@ -5184,7 +5184,7 @@ class FreeModule_ambient(FreeModule_generic):
             sage: (QQ^3).gen(4/3)
             Traceback (most recent call last):
             ...
-            TypeError: rational is not an integer
+            TypeError: unable to convert rational 4/3 to an integer
 
         Check that :trac:`10262` and :trac:`13304` are fixed
         (coercions involving :class:`FreeModule_ambient` used to take

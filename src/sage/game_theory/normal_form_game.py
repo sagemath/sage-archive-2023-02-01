@@ -2213,12 +2213,12 @@ class NormalFormGame(SageObject, MutableMapping):
             False
         """
         # Check that supports are obeyed
-        if not(all([a[i] > 0 for i in p1_support]) and
-               all([b[j] > 0 for j in p2_support]) and
-               all([a[i] == 0 for i in range(len(a))
-                    if i not in p1_support]) and
-               all([b[j] == 0 for j in range(len(b))
-                    if j not in p2_support])):
+        if not(all(a[i] > 0 for i in p1_support) and
+               all(b[j] > 0 for j in p2_support) and
+               all(a[i] == 0 for i in range(len(a))
+                    if i not in p1_support) and
+               all(b[j] == 0 for j in range(len(b))
+                    if j not in p2_support)):
             return False
 
         # Check that have pair of best responses
@@ -2611,13 +2611,13 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g.best_responses((1/2, 1/2), player='Player1')
             Traceback (most recent call last):
             ...
-            ValueError: Player1 is not an index of the oponent, must be 0 or 1
+            ValueError: Player1 is not an index of the opponent, must be 0 or 1
         """
         if len(self.players) != 2:
             raise ValueError('Only available for 2 player games')
 
         if player != 0 and player != 1:
-            raise ValueError('%s is not an index of the oponent, must be 0 or 1' % player)
+            raise ValueError('%s is not an index of the opponent, must be 0 or 1' % player)
 
         strategy = vector(strategy)
 

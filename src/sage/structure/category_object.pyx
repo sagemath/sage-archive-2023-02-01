@@ -65,46 +65,13 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.dynamic_class import DynamicMetaclass
 
 
-def guess_category(obj):
-    from sage.misc.superseded import deprecation
-    deprecation(24109, f"guess_category() is deprecated: CategoryObject of type {type(obj)} requires a category")
-
-    # this should be obsolete if things declare their categories
-    try:
-        if obj.is_field():
-            from sage.categories.all import Fields
-            return Fields()
-    except (AttributeError, NotImplementedError):
-        pass
-    try:
-        if obj.is_ring():
-            from sage.categories.all import CommutativeAlgebras, Algebras, CommutativeRings, Rings
-            if obj.is_commutative():
-                if obj._base is not obj:
-                    return CommutativeAlgebras(obj._base)
-                else:
-                    return CommutativeRings()
-            else:
-                if obj._base is not obj:
-                    return Algebras(obj._base)
-                else:
-                    return Rings()
-    except Exception:
-        pass
-    from sage.structure.parent import Parent
-    #if isinstance(obj, Parent):
-    #    import sys
-    #    sys.stderr.write("bla: %s"%obj)
-    #    from sage.categories.all import Sets
-    #    return Sets()
-    return None # don't want to risk importing stuff...
-
 cpdef inline check_default_category(default_category, category):
     ## The resulting category is guaranteed to be
     ## a sub-category of the default.
     if category is None:
         return default_category
     return default_category.join([default_category,category])
+
 
 cdef class CategoryObject(SageObject):
     """
@@ -157,7 +124,7 @@ cdef class CategoryObject(SageObject):
 
         INPUT:
 
-        - ``category`` -- a category, or list or tuple thereof, or ``None``
+        - ``category`` -- a category, or list or tuple thereof
 
         EXAMPLES::
 
@@ -176,17 +143,16 @@ cdef class CategoryObject(SageObject):
 
             sage: A = sage.structure.category_object.CategoryObject()
             sage: A._init_category_(None)
-            doctest:...: DeprecationWarning: guess_category() is deprecated: CategoryObject of type <... 'sage.structure.category_object.CategoryObject'> requires a category
-            See http://trac.sagemath.org/24109 for details.
-            sage: A.category()
-            Category of objects
+            Traceback (most recent call last):
+            ...
+            TypeError: CategoryObject of type CategoryObject requires a Category, list or tuple, not NoneType
         """
-        if category is None:
-            # Deprecated in Trac #24109
-            category = guess_category(self)
-        if isinstance(category, (list, tuple)):
-            category = Category.join(category)
-        self._category = category
+        if isinstance(category, Category):
+            self._category = category
+        elif isinstance(category, (list, tuple)):
+            self._category = Category.join(category)
+        else:
+            raise TypeError(f"CategoryObject of type {type(self).__name__} requires a Category, list or tuple, not {type(category).__name__}")
 
     def _refine_category_(self, category):
         """
@@ -291,7 +257,14 @@ cdef class CategoryObject(SageObject):
     # Generators
     ##############################################################################
 
-    def gens_dict(self):
+    @cached_method
+    def __gens_dict(self):
+        cdef dict v = {}
+        for x in self._defining_names():
+            v[str(x)] = x
+        return v
+
+    def gens_dict(self, *, copy=True):
         r"""
         Return a dictionary whose entries are ``{name:variable,...}``,
         where ``name`` stands for the variable names of this
@@ -303,11 +276,19 @@ cdef class CategoryObject(SageObject):
             sage: B.<a,b,c,d> = BooleanPolynomialRing()
             sage: B.gens_dict()
             {'a': a, 'b': b, 'c': c, 'd': d}
+
+        TESTS::
+
+            sage: B.<a,b,c,d> = PolynomialRing(QQ)
+            sage: B.gens_dict(copy=False) is B.gens_dict(copy=False)
+            True
+            sage: B.gens_dict(copy=False) is B.gens_dict()
+            False
         """
-        cdef dict v = {}
-        for x in self._defining_names():
-            v[str(x)] = x
-        return v
+        if copy:
+            return dict(self.__gens_dict())
+        else:
+            return self.__gens_dict()
 
     def gens_dict_recursive(self):
         r"""

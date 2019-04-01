@@ -101,7 +101,7 @@ def centrality_betweenness(G, bint exact=False, bint normalize=True):
 
         sage: import networkx
         sage: g = graphs.RandomGNP(100, .2)
-        sage: nw = networkx.betweenness_centrality(g.networkx_graph(copy=False))
+        sage: nw = networkx.betweenness_centrality(g.networkx_graph())
         sage: sg = centrality_betweenness(g)
         sage: max(abs(nw[x] - sg[x]) for x in g) # abs tol 1e-10
         0
@@ -581,14 +581,14 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
         sage: from sage.graphs.centrality import centrality_closeness_top_k
         sage: g = graphs.PathGraph(10)
         sage: centrality_closeness_top_k(g, 4, 1)
-        Final performance ratio: 0.711111111111
+        Final performance ratio: 0.711111111111...
         [(0.36, 5),
          (0.36, 4),
          (0.3333333333333333, 6),
          (0.3333333333333333, 3)]
         sage: g = digraphs.Path(10)
         sage: centrality_closeness_top_k(g, 5, 1)
-        Final performance ratio: 0.422222222222
+        Final performance ratio: 0.422222222222...
         [(0.2, 0),
          (0.19753086419753085, 1),
          (0.19444444444444442, 2),

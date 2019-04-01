@@ -292,11 +292,12 @@ cdef int init_short_digraph(short_digraph g, G, edge_labelled=False, vertex_list
             qsort(g.neighbors[i], g.neighbors[i+1] - g.neighbors[i], sizeof(int), compare_uint32_p)
 
     else:
+        from operator import itemgetter
         edge_labels = [None] * n_edges
         for v in G:
             neighbor_label = [(v_to_id[uu], l) if uu != v else (v_to_id[u], l)
                               for u,uu,l in G.edges_incident(v)]
-            neighbor_label.sort()
+            neighbor_label.sort(key=itemgetter(0))
             v_id = v_to_id[v]
 
             for i, (j, label) in enumerate(neighbor_label):
@@ -699,8 +700,8 @@ def tarjan_strongly_connected_components(G):
         sage: D.strongly_connected_components()
         [[3], [0, 1, 2], [6], [5], [4]]
         sage: D = DiGraph([('a','b'), ('b','c'), ('c', 'd'), ('d', 'b'), ('c', 'e')])
-        sage: D.strongly_connected_components()
-        [['e'], ['c', 'b', 'd'], ['a']]
+        sage: [sorted(scc) for scc in D.strongly_connected_components()]
+        [['e'], ['b', 'c', 'd'], ['a']]
 
     TESTS:
 

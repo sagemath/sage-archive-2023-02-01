@@ -3882,7 +3882,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.reduced_form(prec=50, smallest_coeffs=False) #needs 2 periodic
             Traceback (most recent call last):
             ...
-            ValueError: accuracy of Newton's root not within tolerance(0.000066950849420871 > 1e-06), increase precision
+            ValueError: accuracy of Newton's root not within tolerance(0.000066... > 1e-06), increase precision
             sage: f.reduced_form(smallest_coeffs=False)
             (
             Dynamical System of Projective Space of dimension 1 over Rational Field
@@ -3933,7 +3933,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.reduced_form(prec=30, smallest_coeffs=False)
             Traceback (most recent call last):
             ...
-            ValueError: accuracy of Newton's root not within tolerance(0.000087401733 > 1e-06), increase precision
+            ValueError: accuracy of Newton's root not within tolerance(0.00008... > 1e-06), increase precision
             sage: f.reduced_form(smallest_coeffs=False)
             (
             Dynamical System of Projective Space of dimension 1 over Rational Field
@@ -5075,7 +5075,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         ALGORITHM:
 
-        Implementing invariant set algorithim from the paper [FMV2014]_.
+        Implementing invariant set algorithm from the paper [FMV2014]_.
         Given that the set of  `n` th preimages of fixed points is
         invariant under conjugation find all elements of PGL that
         take one set to another.
@@ -5222,7 +5222,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         ALGORITHM:
 
-        Implementing invariant set algorithim from the paper [FMV2014]_.
+        Implementing invariant set algorithm from the paper [FMV2014]_.
         Given that the set of `n` th preimages is invariant under
         conjugation this function finds whether two maps are conjugate.
 

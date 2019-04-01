@@ -1076,11 +1076,13 @@ cdef class Matrix_double_dense(Matrix_dense):
         the zero entries of ``U``.
 
         .. NOTE::
-            Earlier LU() returned ``P,L,U`` such that ``P*A=L*U``,
-            where ``P`` represents the permutation and is
-            the matrix inverse of the ``P`` returned by this method.
-            The computation of this matrix inverse can be accomplished
+            The behaviour of ``LU()`` has been changed. Earlier ``LU()`` 
+            returned ``P,L,U`` such that ``P*A=L*U``, where ``P`` represents
+            the permutation and is the matrix inverse of the ``P`` returned
+            by this method. The computation of this matrix inverse can be accomplished
             quickly with just a transpose as the matrix is orthogonal/unitary.
+                
+            For Details See :trac:`18365`.
 
         EXAMPLES::
 
@@ -1091,6 +1093,13 @@ cdef class Matrix_double_dense(Matrix_dense):
             [ 4.0  5.0  6.0  7.0]
             [ 8.0  9.0 10.0 11.0]
             [12.0 13.0 14.0 15.0]
+            
+        Below example illustrate the change in behaviour of ``LU()``. ::
+
+            sage: m == P*L*U
+            True
+            sage: P*m == L*U
+            False
 
         :trac:`10839` made this routine available for rectangular matrices.  ::
 

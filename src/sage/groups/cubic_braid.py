@@ -423,14 +423,14 @@ class CubicBraidElement(FinitelyPresentedGroupElement):
                 root_bur = find_root(domain)
                 domain = root_bur.parent()
 
-            else: # domain != None
+            else: # domain is not None
                 if characteristic is None:
                     characteristic = domain.characteristic()
                 elif characteristic != domain.characteristic():
                     raise ValueError('characteristic of domain does not match given characteristic')
                 root_bur = find_root(domain)
 
-        else:  # root_bur != None
+        else:  # root_bur is not!= None
             if domain is None:
                 domain = root_bur.parent()
             if characteristic is None:
@@ -649,6 +649,13 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         OUTPUT:
 
         String describing ``self``.
+
+        EXAMPLES::
+
+            sage: CubicBraidGroup(2)
+            Cubic Braid group on 2 strands
+            sage: AssionGroupU(2)
+            Assion group on 2 strands of type U
         """
         if self._cbg_type == CubicBraidGroupType.Coxeter:
             return "Cubic Braid group on %s strands"%(self.strands())
@@ -669,6 +676,13 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         INPUT:
 
          - ``attached_group`` -- attached group to be tested as specified above.
+
+        EXAMPLES::
+
+            sage: CBG2 = CubicBraidGroup(2)
+            sage: tester = CBG2._tester()
+            sage: CBG2M = CBG2.as_matrix_group()
+            sage: CBG2._internal_test_attached_group(CBG2M, tester)
         """
         elem = self.an_element()
         att_grp_elem = attached_group(elem)
@@ -685,6 +699,11 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         The following is checked:
            - construction of classical group was faithfull.
            - coercion maps to and from classical group exist and are inverse to each other.
+
+        EXAMPLES::
+
+            sage: CBG2 = CubicBraidGroup(2)
+            sage: CBG2._test_classical_group()
         """
         tester = self._tester(**options)
         classic_grp = self.as_classical_group()
@@ -700,6 +719,11 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         The following is checked:
            - construction of permutation group was faithfull.
            - coercion maps to and from permutation group exist and are inverse to each other.
+
+        EXAMPLES::
+
+            sage: CBG2 = CubicBraidGroup(2)
+            sage: CBG2._test_permutation_group()
         """
         if self.is_finite():
             tester = self._tester(**options)
@@ -715,6 +739,11 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         The following is checked:
            - construction of matrix group was faithfull in several cases.
            - coercion maps to and from matrix group exist.
+
+        EXAMPLES::
+
+            sage: CBG2 = CubicBraidGroup(2)
+            sage: CBG2._test_matrix_group()
         """
         tester = self._tester(**options)
         F3 = GF(3); r63 = F3(2); F4 = GF(4); r64 = F4.gen()
@@ -745,6 +774,11 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         The following is checked:
            - construction of reflection group was faithfull.
            - coercion maps to and from reflection group exist and are inverse to each other.
+
+        EXAMPLES::
+
+            sage: CBG2 = CubicBraidGroup(2)
+            sage: CBG2._test_reflection_group()
         """
         if self._cbg_type == CubicBraidGroupType.Coxeter and self.is_finite() and  self.strands() > 2:
             from sage.combinat.root_system.reflection_group_real import is_chevie_available
@@ -772,6 +806,23 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
          - self._centralizing_matrix        for AssionGroup: element in classical base group commuting with self.
          - self._centralizing_element       image under natural map of the former one in the projective classical group.
          - self._classical_embedding        as subgroup of classical base group (if different from classical group).
+
+        EXAMPLES::
+
+            sage: AU2 = AssionGroupU(2)
+            sage: AU2._classical_group is None
+            True
+            sage: AU2._classical_embedding is None
+            True
+            sage: AU2._classical_invariant_form is None
+            True
+            sage: AU2._create_classical_realization()
+            sage: AU2._classical_group
+            General Unitary Group of degree 1 over Finite Field in a of size 2^2
+            sage: AU2._classical_embedding is AU2._classical_group
+            True
+            sage: AU2._classical_invariant_form
+            [1]
         """
 
         # -------------------------------------------------------------------------------
@@ -821,6 +872,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
                 classical_group = base_group
                 hom_to_classic = self.hom(im_gens, check=check)
                 classical_group.register_conversion(hom_to_classic)
+                embedding = classical_group
             else:
                 if embedding is None:
                     im_gens.pop()
@@ -881,7 +933,6 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
 
             bform = base_group.invariant_form()
             bas = bform.column_space().basis()
-            F = bform.base_ring()
 
             if m % 2  == 0:
                 mhalf = m/2
@@ -1071,7 +1122,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
             -- constructing element from an element of the attached permutation group
             -- constructing element from an element of the attached refelction group
 
-        INPUT::
+        INPUT:
 
         - ``x`` -- can be one of the following:
                 -- an instance of the element class of ``self`` (but possible to a different parent).
@@ -1729,6 +1780,13 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
     def is_finite(self):
         r"""
         Method from :class:`GroupMixinLibGAP` overwriten because of performance reason.
+
+        EXAMPLES::
+
+            sage: CubicBraidGroup(6).is_finite()
+            False
+            sage: AssionGroupS(6).is_finite()
+            True
         """
         from sage.rings.infinity import infinity
         return not self.order() is infinity

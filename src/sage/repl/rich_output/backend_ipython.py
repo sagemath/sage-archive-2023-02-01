@@ -604,4 +604,4 @@ class BackendIPythonNotebook(BackendIPython):
 <script>
   if ( !window.THREE ) document.write('{}');
 </script>
-        """.format(CDN_scripts.replace('</script>', r'<\/script>').replace('\n', '\\n'))
+        """.format(CDN_scripts.replace('</script>', r'<\/script>').replace('\n', ' \\\n'))

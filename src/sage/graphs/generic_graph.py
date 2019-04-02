@@ -9437,7 +9437,7 @@ class GenericGraph(GenericGraph_pyx):
             return [v for v in g if b[v] == 1]
 
     def pagerank(self, alpha=0.85, personalization=None, by_weight=False,
-                 weight_function=None, dangling=None, implementation=None):
+                 weight_function=None, dangling=None, algorithm=None):
         r"""
         Return the PageRank of the nodes in the graph.
 
@@ -9479,9 +9479,9 @@ class GenericGraph(GenericGraph_pyx):
           It may be common to have the dangling dict to be the same as the
           personalization dict.
 
-        - ``implementation`` -- string (default: ``None``); the implemetation
-            to use in computing PageRank of ``G``. The following
-            implementations are supported:
+        - ``algorithm`` -- string (default: ``None``); the algorithm to use in
+           computing PageRank of ``G``. The following algorithms are
+           supported:
 
           - ``NetworkX`` -- uses NetworkX's PageRank algorithm implementation
 
@@ -9489,7 +9489,7 @@ class GenericGraph(GenericGraph_pyx):
 
           - ``"Scipy"`` -- uses Scipy's PageRank algorithm implementation
 
-          - ``"Igraph"`` -- uses Igraph's PageRank algorithm implementation
+          - ``"igraph"`` -- uses igraph's PageRank algorithm implementation
 
           - ``"None"`` -- uses best implementation available
 
@@ -9500,49 +9500,49 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: G = Graph([(1, 2, 40), (2, 3, 50), (3, 4, 60), (1, 4, 70), (4, 5, 80), (5, 6, 20)])
-            sage: G.pagerank(implementation="NetworkX")
+            sage: G.pagerank(algorithm="NetworkX")
             {1: 0.16112205885619568,
              2: 0.16195310432472196,
              3: 0.16112205885619568,
              4: 0.2375,
              5: 0.17775588228760858,
              6: 0.10054689567527803}
-            sage: G.pagerank(implementation="NetworkX", by_weight=True)
+            sage: G.pagerank(algorithm="NetworkX", by_weight=True)
             {1: 0.16459583718588988,
              2: 0.1397792859515451,
              3: 0.165398401843396,
              4: 0.3063198690713852,
              5: 0.17000576097071404,
              6: 0.053900844977069616}
-            sage: G.pagerank(implementation="Numpy")
+            sage: G.pagerank(algorithm="Numpy")
             {1: 0.16112198303979114,
              2: 0.16195368558382248,
              3: 0.16112198303979122,
              4: 0.2375000000000002,
              5: 0.17775603392041756,
              6: 0.10054631441617742}
-            sage: G.pagerank(implementation="Numpy", by_weight=True)
+            sage: G.pagerank(algorithm="Numpy", by_weight=True)
             {1: 0.16459613361799788,
              2: 0.13977926864974763,
              3: 0.1653988472578896,
              4: 0.3063198780991534,
              5: 0.17000501912411242,
              6: 0.053900853251099105}
-            sage: G.pagerank(implementation="Scipy")
+            sage: G.pagerank(algorithm="Scipy")
             {1: 0.16112205885619563,
              2: 0.1619531043247219,
              3: 0.16112205885619563,
              4: 0.2374999999999999,
              5: 0.17775588228760858,
              6: 0.100546895675278}
-            sage: G.pagerank(implementation="Scipy", by_weight=True)
+            sage: G.pagerank(algorithm="Scipy", by_weight=True)
             {1: 0.16459583718588994,
              2: 0.13977928595154515,
              3: 0.16539840184339605,
              4: 0.3063198690713853,
              5: 0.1700057609707141,
              6: 0.05390084497706962}
-            sage: G.pagerank(implementation="Igraph")
+            sage: G.pagerank(algorithm="igraph")
             {1: 0.16112198303979128,
              2: 0.16195368558382262,
              3: 0.16112198303979125,
@@ -9555,7 +9555,7 @@ class GenericGraph(GenericGraph_pyx):
             * :wikipedia:`PageRank`
 
         """
-        if self.order() == 0:
+        if not self.order():
             return {}
 
         if weight_function is not None:
@@ -9567,8 +9567,10 @@ class GenericGraph(GenericGraph_pyx):
         
         if by_weight:
             self._check_weight_function(weight_function)
-
-        if implementation == 'NetworkX':
+        
+        if algorithm:
+            algorithm = algorithm.lower()
+        if algorithm == 'networkx':
             if self.has_multiple_edges():
                 raise ValueError("the 'networkx' implementation does not support multigraphs")
             import networkx
@@ -9580,7 +9582,7 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 return networkx.pagerank(self.networkx_graph(), alpha=alpha,
                        personalization=personalization, weight=None, dangling=dangling)
-        elif implementation == 'Numpy':
+        elif algorithm == 'numpy':
             import networkx
             if by_weight:
                 return networkx.pagerank_numpy(self.networkx_graph
@@ -9591,7 +9593,7 @@ class GenericGraph(GenericGraph_pyx):
                 return networkx.pagerank_numpy(self.networkx_graph(),
                        alpha=alpha, personalization=personalization,
                        weight=None, dangling=dangling)
-        elif  implementation == 'Scipy':
+        elif algorithm == 'scipy':
             import networkx
             if by_weight:
                 return networkx.pagerank_scipy(self.networkx_graph
@@ -9602,7 +9604,12 @@ class GenericGraph(GenericGraph_pyx):
                 return networkx.pagerank_scipy(self.networkx_graph(),
                        alpha=alpha, personalization=personalization,
                        weight=None, dangling=dangling)
-        elif implementation == 'Igraph':
+        elif algorithm == 'igraph':
+            try:
+                import igraph
+            except ImportError:
+                from sage.misc.package import PackageNotFoundError
+                raise PackageNotFoundError("igraph")
             if by_weight:
                 I = self.igraph_graph(edge_attrs={'weight': [weight_function(e)
                                                   for e in self.edge_iterator()]})
@@ -9612,7 +9619,7 @@ class GenericGraph(GenericGraph_pyx):
                 I = self.igraph_graph()
                 page_rank = I.pagerank(damping=alpha)
                 return {v: page_rank[i] for i, v in enumerate(self.vertices())}
-        else:
+        elif not algorithm:  #default
             if by_weight:
                 import networkx
                 return networkx.pagerank_scipy(self.networkx_graph
@@ -9620,10 +9627,11 @@ class GenericGraph(GenericGraph_pyx):
                        personalization=personalization, weight='weight',
                        dangling=dangling)
             else:
-                import igraph
                 I = self.igraph_graph()
                 page_rank = I.pagerank(damping=alpha)
                 return {v: page_rank[i] for i, v in enumerate(self.vertices())}
+        else:
+            raise NotImplementedError("Only 'NetworkX', 'Numpy', 'Scipy', and 'igraph' are supported.")
 
     ### Vertex handlers
 

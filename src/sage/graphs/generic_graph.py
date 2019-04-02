@@ -9570,7 +9570,7 @@ class GenericGraph(GenericGraph_pyx):
                        dangling=dangling)
             else:
                 return networkx.pagerank(self.networkx_graph(), alpha=alpha,
-                personalization=personalization, weight=None, dangling=dangling)
+                       personalization=personalization, weight=None, dangling=dangling)
         elif implementation == 'Numpy':
             import networkx
             if by_weight:

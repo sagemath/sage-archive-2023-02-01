@@ -509,6 +509,12 @@ class FindStat(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: FindStat expects that every object occurs at most once.
+
+        Check that values which can be converted to integers are supported::
+
+            sage: findstat([(la, la[0]/1) for la in Partitions(10)], depth=0)   # optional -- internet
+            0: (St000147: The largest part of an integer partition., [], 42)
+
         """
         try:
             depth = int(depth)
@@ -544,18 +550,22 @@ class FindStat(SageObject):
                                      depth=depth)._find_by_values(max_values=max_values)
 
         def query_by_iterable(query, collection=None):
-            # either a pair (objects, values)
-            # or an iterable of such or (object, integer) pairs
-
+            """
+            Perform a query given either a pair `(objects, values)` or an
+            iterable of such or `(object, integer)`  pairs.
+            """
             # we must convert to lists because we want to allow
             # iterables for the values
             query = list(query)
             if len(query) == 2:
+                # either a pure distribution query or a query with a
+                # list of two distributions - exactly in the first
+                # case the second element is a list of integer-like
+                # objects
                 try:
                     query[1] = list(map(Integer, query[1]))
-                except TypeError:
+                except (TypeError, IndexError):
                     pass
-                # just a single pair, i.e., a pure distribution query
                 else:
                     collection, to_str = get_collection(collection, query[0][0])
                     data = [(query[0], list(map(to_str, query[0])), query[1])]
@@ -568,25 +578,31 @@ class FindStat(SageObject):
                                              collection=collection,
                                              depth=depth)._find_by_values(max_values=max_values)
 
+            # query is a list, each element being either a pair
+            # `(object, integer)` or a pair `(objects, integers)`
             key, value = query[0]
             try:
-                query[0][1] = list(value)
-                collection, to_str = get_collection(collection, key[0])
-            except TypeError:
+                Integer(value)
                 collection, to_str = get_collection(collection, key)
+            except TypeError:
+                collection, to_str = get_collection(collection, key[0])
 
             data = []
             is_statistic = True
             for key, value in query:
                 try:
-                    value = list(map(Integer, value))
-                    if len(key) != len(value):
-                        raise ValueError("FindStat expects the same number of objects as values.")
-                    if len(value) != 1:
-                        is_statistic = False
-                    data += [(key, list(map(to_str, key)), value)]
+                    v = [Integer(value)]
+                    k = [key]
                 except TypeError:
-                    data += [([key], [to_str(key)], [Integer(value)])]
+                    v = list(map(Integer, value))
+                    k = key
+
+                if len(k) != len(v):
+                    raise ValueError("FindStat expects the same number of objects as values.")
+
+                data += [(k, list(map(to_str, k)), v)]
+                if len(v) != 1:
+                    is_statistic = False
 
             all_elements = [e for (elements, elements_str, value) in data for e in elements_str]
             if len(set(all_elements)) != len(all_elements):

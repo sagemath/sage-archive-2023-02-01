@@ -31,7 +31,7 @@ from sage.structure.richcmp import (richcmp_method, richcmp, richcmp_not_equal,
 
 
 @richcmp_method
-class baseWI:
+class baseWI(object):
     r"""
     This class implements the basic arithmetic of isomorphisms between
     Weierstrass models of elliptic curves.

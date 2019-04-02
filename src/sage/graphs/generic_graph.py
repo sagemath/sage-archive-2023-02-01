@@ -9436,12 +9436,14 @@ class GenericGraph(GenericGraph_pyx):
             b = p.get_values(b)
             return [v for v in g if b[v] == 1]
 
-    def pagerank(self, alpha=0.85, personalization=None, by_weight=False, weight_function=None, dangling=None, implementation=None):
+    def pagerank(self, alpha=0.85, personalization=None, by_weight=False,
+                 weight_function=None, dangling=None, implementation=None):
         r"""
         Return the PageRank of the nodes in the graph.
 
         PageRank calculates the ranking of nodes in the graph G based on the
-        structure of the incoming links. It is popularly used to rank web pages.
+        structure of the incoming links. It is popularly used to rank web
+        pages.
 
         See the :wikipedia:`PageRank` for more information.
 
@@ -9458,9 +9460,9 @@ class GenericGraph(GenericGraph_pyx):
         - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
           in the graph are weighted, otherwise all edges have weight 1
 
-        - ``value_only`` -- boolean (default: ``False``); whether to only return
-          the cardinality of the computed dominating set, or to return its list
-          of vertices (default)
+        - ``value_only`` -- boolean (default: ``False``); whether to only
+          return the cardinality of the computed dominating set, or to return
+          its list of vertices (default)
 
         - ``weight_function`` -- function (default: ``None``); a function that
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
@@ -9477,9 +9479,9 @@ class GenericGraph(GenericGraph_pyx):
           It may be common to have the dangling dict to be the same as the
           personalization dict.
 
-        - ``implementation`` -- string (default: ``None``); the implemetation to
-          use in computing PageRank of ``G``. The following implementations are
-          supported:
+        - ``implementation`` -- string (default: ``None``); the implemetation
+            to use in computing PageRank of ``G``. The following
+            implementations are supported:
 
           - ``NetworkX`` -- uses NetworkX's PageRank algorithm implementation
 
@@ -9540,6 +9542,13 @@ class GenericGraph(GenericGraph_pyx):
              4: 0.3063198690713853,
              5: 0.1700057609707141,
              6: 0.05390084497706962}
+            sage: G.pagerank(implementation="Igraph")
+            [0.16112198303979128,
+             0.16195368558382262,
+             0.16112198303979125,
+             0.23749999999999993,
+             0.17775603392041744,
+             0.10054631441617742]
 
         .. SEEALSO:
 
@@ -9594,25 +9603,27 @@ class GenericGraph(GenericGraph_pyx):
                        alpha=alpha, personalization=personalization,
                        weight=None, dangling=dangling)
         elif implementation == 'Igraph':
-            import igraph
             if by_weight:
                 I = self.igraph_graph(edge_attrs={'weight': [weight_function(e)
                                                   for e in self.edge_iterator()]})
-                return I.pagerank(damping=alpha, weight='weight')
+                page_rank = I.pagerank(damping=alpha, weights='weight')
+                return {v: page_rank[i] for i, v in enumerate(self.vertices())}
             else:
-                I = G.igraph_graph()
-                return I.pagerank(damping=alpha)
+                I = self.igraph_graph()
+                page_rank = I.pagerank(damping=alpha)
+                return {v: page_rank[i] for i, v in enumerate(self.vertices())}
         else:
-            import networkx
             if by_weight:
+                import networkx
                 return networkx.pagerank_scipy(self.networkx_graph
                        (weight_function=weight_function), alpha=alpha,
                        personalization=personalization, weight='weight',
                        dangling=dangling)
             else:
-                return networkx.pagerank_scipy(self.networkx_graph(),
-                       alpha=alpha, personalization=personalization,
-                       weight=None, dangling=dangling)
+                import igraph
+                I = self.igraph_graph()
+                page_rank = I.pagerank(damping=alpha)
+                return {v: page_rank[i] for i, v in enumerate(self.vertices())}
 
     ### Vertex handlers
 

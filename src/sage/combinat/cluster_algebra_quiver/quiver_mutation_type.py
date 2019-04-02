@@ -298,7 +298,8 @@ class QuiverMutationTypeFactory(SageObject):
 QuiverMutationType = QuiverMutationTypeFactory()
 
 
-QuiverMutationType.__doc__ = r"""
+QuiverMutationType.__doc__ = \
+r"""
 
 *Quiver mutation types* can be seen as a slight generalization of
  *generalized Cartan types*.
@@ -541,101 +542,101 @@ Elliptic types::
 
 Mutation finite types:
 
-    rank 2 cases::
+Rank 2 cases::
 
-        sage: QuiverMutationType('R2',(1,1))
-        ['A', 2]
-        sage: QuiverMutationType('R2',(1,2))
-        ['B', 2]
-        sage: QuiverMutationType('R2',(1,3))
-        ['G', 2]
-        sage: QuiverMutationType('R2',(1,4))
-        ['BC', 1, 1]
-        sage: QuiverMutationType('R2',(1,5))
-        ['R2', [1, 5]]
-        sage: QuiverMutationType('R2',(2,2))
-        ['A', [1, 1], 1]
-        sage: QuiverMutationType('R2',(3,5))
-        ['R2', [3, 5]]
+    sage: QuiverMutationType('R2',(1,1))
+    ['A', 2]
+    sage: QuiverMutationType('R2',(1,2))
+    ['B', 2]
+    sage: QuiverMutationType('R2',(1,3))
+    ['G', 2]
+    sage: QuiverMutationType('R2',(1,4))
+    ['BC', 1, 1]
+    sage: QuiverMutationType('R2',(1,5))
+    ['R2', [1, 5]]
+    sage: QuiverMutationType('R2',(2,2))
+    ['A', [1, 1], 1]
+    sage: QuiverMutationType('R2',(3,5))
+    ['R2', [3, 5]]
 
-    Exceptional Derksen-Owen quivers::
+Exceptional Derksen-Owen quivers::
 
-        sage: QuiverMutationType('X',6)
-        ['X', 6]
+    sage: QuiverMutationType('X',6)
+    ['X', 6]
 
 
 (Mainly) mutation infinite types:
 
-    Infinite type E::
+Infinite type E::
 
-        sage: QuiverMutationType('E',9)
-        ['E', 8, 1]
-        sage: QuiverMutationType('E',10)
-        ['E', 10]
-        sage: QuiverMutationType('E',12)
-        ['E', 12]
+    sage: QuiverMutationType('E',9)
+    ['E', 8, 1]
+    sage: QuiverMutationType('E',10)
+    ['E', 10]
+    sage: QuiverMutationType('E',12)
+    ['E', 12]
 
-        sage: QuiverMutationType('AE',(2,3))
-        ['AE', [2, 3]]
-        sage: QuiverMutationType('BE',5)
-        ['BE', 5]
-        sage: QuiverMutationType('CE',5)
-        ['CE', 5]
-        sage: QuiverMutationType('DE',6)
-        ['DE', 6]
+    sage: QuiverMutationType('AE',(2,3))
+    ['AE', [2, 3]]
+    sage: QuiverMutationType('BE',5)
+    ['BE', 5]
+    sage: QuiverMutationType('CE',5)
+    ['CE', 5]
+    sage: QuiverMutationType('DE',6)
+    ['DE', 6]
 
-    Grassmannian types::
+Grassmannian types::
 
-        sage: QuiverMutationType('GR',(2,4))
-        ['A', 1]
-        sage: QuiverMutationType('GR',(2,6))
-        ['A', 3]
-        sage: QuiverMutationType('GR',(3,6))
-        ['D', 4]
-        sage: QuiverMutationType('GR',(3,7))
-        ['E', 6]
-        sage: QuiverMutationType('GR',(3,8))
-        ['E', 8]
-        sage: QuiverMutationType('GR',(3,10))
-        ['GR', [3, 10]]
+    sage: QuiverMutationType('GR',(2,4))
+    ['A', 1]
+    sage: QuiverMutationType('GR',(2,6))
+    ['A', 3]
+    sage: QuiverMutationType('GR',(3,6))
+    ['D', 4]
+    sage: QuiverMutationType('GR',(3,7))
+    ['E', 6]
+    sage: QuiverMutationType('GR',(3,8))
+    ['E', 8]
+    sage: QuiverMutationType('GR',(3,10))
+    ['GR', [3, 10]]
 
-    Triangular types::
+Triangular types::
 
-        sage: QuiverMutationType('TR',2)
-        ['A', 3]
-        sage: QuiverMutationType('TR',3)
-        ['D', 6]
-        sage: QuiverMutationType('TR',4)
-        ['E', 8, [1, 1]]
-        sage: QuiverMutationType('TR',5)
-        ['TR', 5]
+    sage: QuiverMutationType('TR',2)
+    ['A', 3]
+    sage: QuiverMutationType('TR',3)
+    ['D', 6]
+    sage: QuiverMutationType('TR',4)
+    ['E', 8, [1, 1]]
+    sage: QuiverMutationType('TR',5)
+    ['TR', 5]
 
-    T types::
+T types::
 
-        sage: QuiverMutationType('T',(1,1,1))
-        ['A', 1]
-        sage: QuiverMutationType('T',(1,1,4))
-        ['A', 4]
-        sage: QuiverMutationType('T',(1,4,4))
-        ['A', 7]
-        sage: QuiverMutationType('T',(2,2,2))
-        ['D', 4]
-        sage: QuiverMutationType('T',(2,2,4))
-        ['D', 6]
-        sage: QuiverMutationType('T',(2,3,3))
-        ['E', 6]
-        sage: QuiverMutationType('T',(2,3,4))
-        ['E', 7]
-        sage: QuiverMutationType('T',(2,3,5))
-        ['E', 8]
-        sage: QuiverMutationType('T',(2,3,6))
-        ['E', 8, 1]
-        sage: QuiverMutationType('T',(2,3,7))
-        ['E', 10]
-        sage: QuiverMutationType('T',(3,3,3))
-        ['E', 6, 1]
-        sage: QuiverMutationType('T',(3,3,4))
-        ['T', [3, 3, 4]]
+    sage: QuiverMutationType('T',(1,1,1))
+    ['A', 1]
+    sage: QuiverMutationType('T',(1,1,4))
+    ['A', 4]
+    sage: QuiverMutationType('T',(1,4,4))
+    ['A', 7]
+    sage: QuiverMutationType('T',(2,2,2))
+    ['D', 4]
+    sage: QuiverMutationType('T',(2,2,4))
+    ['D', 6]
+    sage: QuiverMutationType('T',(2,3,3))
+    ['E', 6]
+    sage: QuiverMutationType('T',(2,3,4))
+    ['E', 7]
+    sage: QuiverMutationType('T',(2,3,5))
+    ['E', 8]
+    sage: QuiverMutationType('T',(2,3,6))
+    ['E', 8, 1]
+    sage: QuiverMutationType('T',(2,3,7))
+    ['E', 10]
+    sage: QuiverMutationType('T',(3,3,3))
+    ['E', 6, 1]
+    sage: QuiverMutationType('T',(3,3,4))
+    ['T', [3, 3, 4]]
 
 Reducible types::
 

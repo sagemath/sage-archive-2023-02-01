@@ -71,6 +71,7 @@ cdef extern from "boost_interface.cpp":
         result_distances dijkstra_shortest_paths(v_index s)
         result_distances bellman_ford_shortest_paths(v_index s)
         vector[vector[double]] johnson_shortest_paths()
+        vector[vector[double]] floyd_warshall_shortest_paths()
 
 ctypedef property[edge_weight_t, double] EdgeWeight
 

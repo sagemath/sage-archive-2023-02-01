@@ -1290,3 +1290,178 @@ cpdef johnson_closeness_centrality(g, weight_function=None):
             closeness.push_back(sys.float_info.max)
         sig_check()
     return {v: closeness[i] for i,v in enumerate(int_to_v) if closeness[i] != sys.float_info.max}
+
+cpdef floyd_warshall_shortest_paths(g, weight_function=None, distances=True, predecessors=False):
+    r"""
+    Use Floyd-Warshall algorithm to solve the all-pairs-shortest-paths.
+
+    This routine outputs the distance between each pair of vertices and the 
+    predecessors matrix (depending on the values of boolean ``distances`` and
+    ``predecessors``) using a dictionary of dictionaries. This method should be
+    preferred only if the graph is dense. If the graph is sparse the much faster
+    johnson_shortest_paths should be used.
+    
+
+    The time-complexity is `O(n^3 + nm)`, where `n` is the number of nodes and
+    `m` the number of edges. The factor `nm` in the complexity is added only
+    when ``predecessors`` is set to ``True``.
+    
+
+    INPUT:
+
+    - ``g`` -- the input Sage graph
+
+    - ``weight_function`` -- function (default: ``None``); a function that
+      associates a weight to each edge. If ``None`` (default), the weights of
+      ``g`` are used, if available, otherwise all edges have weight 1.
+      
+    - ``distances`` -- boolean (default: ``True``); whether to return the dictionary
+      of shortest distances
+      
+    - ``predecessors`` -- boolean (default: ``False``); whether to return the
+      predecessors matrix 
+
+    OUTPUT:
+
+    Depending on the input, this function return the dictionary of predecessors, the
+    dictionary of distances, or a pair of dictionaries ``(distances, predecessors)``
+    where ``distance[u][v]`` denotes the distance of a shortest path from `u` to
+    `v` and ``predecessors[u][v]`` denotes a neighbor `w` of `v` such that
+    `dist(u,v) = 1 + dist(u,w)`.
+
+    EXAMPLES:
+
+    Undirected graphs::
+
+        sage: from sage.graphs.base.boost_graph import floyd_warshall_shortest_paths
+        sage: g = Graph([(0,1,1),(1,2,2),(1,3,4),(2,3,1)], weighted=True)
+        sage: floyd_warshall_shortest_paths(g)
+        {0: {0: 0, 1: 1, 2: 3, 3: 4},
+         1: {0: 1, 1: 0, 2: 2, 3: 3},
+         2: {0: 3, 1: 2, 2: 0, 3: 1},
+         3: {0: 4, 1: 3, 2: 1, 3: 0}}
+        sage: g = graphs.Grid2dGraph(2,2)
+        sage: floyd_warshall_shortest_paths(g, distances=False,  predecessors=True)
+        {(0, 0): {(0, 0): None, (0, 1): (0, 0), (1, 0): (0, 0), (1, 1): (1, 0)},
+         (0, 1): {(0, 0): (0, 1), (0, 1): None, (1, 0): (1, 1), (1, 1): (0, 1)},
+         (1, 0): {(0, 0): (1, 0), (0, 1): (1, 1), (1, 0): None, (1, 1): (1, 0)},
+         (1, 1): {(0, 0): (1, 0), (0, 1): (1, 1), (1, 0): (1, 1), (1, 1): None}}
+
+    Directed graphs::
+
+        sage: g = DiGraph([(0,1,1),(1,2,-2),(1,3,4),(2,3,1)], weighted=True)
+        sage: floyd_warshall_shortest_paths(g)
+        {0: {0: 0, 1: 1, 2: -1, 3: 0},
+         1: {1: 0, 2: -2, 3: -1},
+         2: {2: 0, 3: 1},
+         3: {3: 0}}
+        sage: g = DiGraph([(1, 2, 3), (2, 3, 2), (1, 4, 1), (4, 2, 1)], weighted=True)
+        sage: floyd_warshall_shortest_paths(g, distances=False,  predecessors=True)
+        {1: {1: None, 2: 4, 3: 2, 4: 1},
+         2: {2: None, 3: 2},
+         3: {3: None},
+         4: {2: 4, 3: 2, 4: None}}
+
+    TESTS:
+
+    Given an input which is not a graph::
+
+        sage: floyd_warshall_shortest_paths("I am not a graph!")
+        Traceback (most recent call last):
+        ...
+        TypeError: the input must be a Sage graph
+
+    If there is a negative cycle::
+
+        sage: g = DiGraph([(0,1,1),(1,2,-2),(2,0,0.5),(2,3,1)], weighted=True)
+        sage: floyd_warshall_shortest_paths(g)
+        Traceback (most recent call last):
+        ...
+        ValueError: the graph contains a negative cycle
+    """
+    from sage.graphs.generic_graph import GenericGraph
+    cpdef dict dist = {}
+    cpdef dict pred = {}
+
+    if not isinstance(g, GenericGraph):
+        raise TypeError("the input must be a Sage graph")
+    elif not g.num_edges():
+        dist = {v: {v: 0} for v in g}
+        pred = {v: {v: None} for v in g}
+        if distances and predecessors:
+            return (dist, pred)
+        if distances:
+            return dist
+        if predecessors:
+            return pred
+    # These variables are automatically deleted when the function terminates.
+    cdef v_index i
+    cdef list int_to_v = list(g)
+    cdef dict v_to_int = {v: i for i, v in enumerate(int_to_v)}
+    cdef BoostVecWeightedDiGraphU g_boost_dir
+    cdef BoostVecWeightedGraph g_boost_und
+    cdef int N = g.num_verts()
+    cdef vector[vector[double]] result
+
+    if g.is_directed():
+        boost_weighted_graph_from_sage_graph(&g_boost_dir, g, v_to_int, weight_function)
+        sig_on()
+        result = g_boost_dir.floyd_warshall_shortest_paths()
+        sig_off()
+    else:
+        boost_weighted_graph_from_sage_graph(&g_boost_und, g, v_to_int, weight_function)
+        sig_on()
+        result = g_boost_und.floyd_warshall_shortest_paths()
+        sig_off()
+
+    if not result.size():
+        raise ValueError("the graph contains a negative cycle")
+
+    if weight_function is not None:
+        correct_type = type(weight_function(next(g.edge_iterator())))
+    elif g.weighted():
+        correct_type = type(next(g.edge_iterator())[2])
+    else:
+        correct_type = int
+    # Needed for rational curves.
+    from sage.rings.real_mpfr import RealNumber, RR
+    if correct_type == RealNumber:
+        correct_type = RR
+
+    import sys
+    if distances:
+        dist = {int_to_v[v]: {int_to_v[w]: correct_type(result[v][w])
+                              for w in range(N) if result[v][w] != sys.float_info.max}
+                for v in range(N)}
+
+    if predecessors:
+        pred = {v : {v : None} for v in g}
+        for e in g.edges():
+            dst = 0
+            if weight_function is not None:
+                dst = weight_function(e)
+            elif g.weighted():
+                dst = e[2]
+            else:
+                dst = 1
+            # dst is the weight of the edge (e[0], e[1])
+            u = e[0]
+            v = e[1]
+            u_int = v_to_int[u]
+            v_int = v_to_int[v]
+            for k in range(N):
+                if result[k][u_int] == sys.float_info.max or result[k][v_int] == sys.float_info.max:
+                    continue
+                if result[k][u_int] + dst == result[k][v_int]:
+                    pred[int_to_v[k]][v] = u
+                if g.is_directed():
+                    continue
+                if result[k][u_int] == result[k][v_int] + dst:
+                    pred[int_to_v[k]][u] = v
+
+    if distances and predecessors:
+        return (dist, pred)
+    if distances:
+        return dist
+    if predecessors:
+        return pred

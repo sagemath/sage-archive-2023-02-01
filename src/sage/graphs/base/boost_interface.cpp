@@ -12,6 +12,7 @@
 #include <boost/graph/bellman_ford_shortest_paths.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <boost/graph/johnson_all_pairs_shortest.hpp>
+#include <boost/graph/floyd_warshall_shortest.hpp>
 #include <boost/graph/biconnected_components.hpp>
 #include <boost/graph/properties.hpp>
 
@@ -263,7 +264,16 @@ public:
          }
          return to_return;
      }
+     std::vector<std::vector<double> > floyd_warshall_shortest_paths() {
+         v_index N = num_verts();
 
+         std::vector<std::vector<double> > D(N, std::vector<double>(N));
+         if (floyd_warshall_all_pairs_shortest_paths(graph, D)) {
+             return D;
+         } else {
+             return std::vector<std::vector<double> >();
+         }
+     }
      std::vector<std::vector<double> > johnson_shortest_paths() {
          v_index N = num_verts();
 

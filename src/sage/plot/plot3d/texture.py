@@ -3,10 +3,8 @@ Texture Support
 
 This module provides texture/material support for 3D Graphics
 objects and plotting.  This is a very rough common interface for
-Tachyon, x3d, and obj (mtl).   See
-:meth:`Texture <sage.plot.plot3d.texture.Texture>` and
-:class:`Texture_class <sage.plot.plot3d.texture.Texture_class>`
-for full details about options and use.
+Tachyon, x3d, and obj (mtl).   See :class:`Texture
+<sage.plot.plot3d.texture.Texture>` for full details about options and use.
 
 Initially, we have no textures set::
 
@@ -38,12 +36,16 @@ AUTHOR:
 
 from __future__ import division
 
+import six
+
 from textwrap import dedent
 
+from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
 
-from sage.plot.colors import Color
+from sage.plot.colors import colors, Color
+
 
 
 uniq_c = 0
@@ -63,124 +65,23 @@ def _new_global_texture_id():
     return "texture%s" % uniq_c
 
 
-from sage.plot.colors import colors
-
 def is_Texture(x):
     r"""
-    Return whether ``x`` is an instance of ``Texture_class``.
+    Deprecated. Use ``isinstance(x, Texture)`` instead.
 
     EXAMPLES::
 
         sage: from sage.plot.plot3d.texture import is_Texture, Texture
         sage: t = Texture(0.5)
         sage: is_Texture(t)
+        doctest:...: DeprecationWarning: Please use isinstance(x, Texture)
+        See https://trac.sagemath.org/27593 for details.
         True
-
-    ::
-
-        sage: is_Texture(4)
-        False
     """
-    return isinstance(x, Texture_class)
+    from sage.misc.superseded import deprecation
+    deprecation(27593, "Please use isinstance(x, Texture)")
+    return isinstance(x, Texture)
 
-def Texture(id=None, **kwds):
-    r"""
-    Return a texture.
-
-    INPUT:
-
-    - ``id`` - a texture (optional, default: None), a dict, a color, a
-      str, a tuple, None or any other type acting as an ID. If ``id`` is
-      None and keyword ``texture`` is empty, then it returns a unique texture object.
-    - ``texture`` - a texture
-    - ``color`` - tuple or str, (optional, default: (.4, .4, 1))
-    - ``opacity`` - number between 0 and 1 (optional, default: 1)
-    - ``ambient`` - number (optional, default: 0.5)
-    - ``diffuse`` - number (optional, default: 1)
-    - ``specular`` - number (optional, default: 0)
-    - ``shininess`` - number (optional, default: 1)
-    - ``name`` - str (optional, default: None)
-    - ``**kwds`` - other valid keywords
-
-    OUTPUT:
-
-    A texture object.
-
-    EXAMPLES:
-
-    Texture from integer ``id``::
-
-        sage: from sage.plot.plot3d.texture import Texture
-        sage: Texture(17)
-        Texture(17, 6666ff)
-
-    Texture from rational ``id``::
-
-        sage: Texture(3/4)
-        Texture(3/4, 6666ff)
-
-    Texture from a dict::
-
-        sage: Texture({'color':'orange','opacity':0.5})
-        Texture(texture..., orange, ffa500)
-
-    Texture from a color::
-
-        sage: c = Color('red')
-        sage: Texture(c)
-        Texture(texture..., ff0000)
-
-    Texture from a valid string color::
-
-        sage: Texture('red')
-        Texture(texture..., red, ff0000)
-
-    Texture from a non valid string color::
-
-        sage: Texture('redd')
-        Texture(redd, 6666ff)
-
-    Texture from a tuple::
-
-        sage: Texture((.2,.3,.4))
-        Texture(texture..., 334c66)
-
-    Textures using other keywords::
-
-        sage: Texture(specular=0.4)
-        Texture(texture..., 6666ff)
-        sage: Texture(diffuse=0.4)
-        Texture(texture..., 6666ff)
-        sage: Texture(shininess=0.3)
-        Texture(texture..., 6666ff)
-        sage: Texture(ambient=0.7)
-        Texture(texture..., 6666ff)
-    """
-    if isinstance(id, Texture_class):
-        return id
-    if 'texture' in kwds:
-        t = kwds['texture']
-        if is_Texture(t):
-            return t
-        else:
-            raise TypeError("texture keyword must be a texture object")
-    if isinstance(id, dict):
-        kwds = id
-        if 'rgbcolor' in kwds:
-            kwds['color'] = kwds['rgbcolor']
-        id = None
-    elif isinstance(id, Color):
-        kwds['color'] = id.rgb()
-        id = None
-    elif isinstance(id, str) and id in colors:
-        kwds['color'] = id
-        id = None
-    elif isinstance(id, tuple):
-        kwds['color'] = id
-        id = None
-    if id is None:
-        id = _new_global_texture_id()
-    return Texture_class(id, **kwds)
 
 def parse_color(info, base=None):
     r"""
@@ -244,12 +145,13 @@ def parse_color(info, base=None):
         return (float(info*r), float(info*g), float(info*b))
 
 
-class Texture_class(WithEqualityById, SageObject):
+class Texture(six.with_metaclass(ClasscallMetaclass, WithEqualityById, SageObject)):
     r"""
-    Construction of a texture.
+    Class representing a texture.
 
-    See documentation of :meth:`Texture <sage.plot.plot3d.texture.Texture>`
-    for more details and examples.
+    See documentation of :meth:`Texture.__classcall__
+    <sage.plot.plot3d.texture.Texture.__classcall__>` for more details and
+    examples.
 
     EXAMPLES:
 
@@ -276,17 +178,119 @@ class Texture_class(WithEqualityById, SageObject):
         sage: hash(Texture()) # random
         42
     """
-    def __init__(self, id, color=(.4, .4, 1), opacity=1, ambient=0.5, diffuse=1, specular=0, shininess=1, name=None, **kwds):
+    @staticmethod
+    def __classcall__(cls, id=None, **kwds):
+        r"""
+        Construct a new texture by id.
+
+        INPUT:
+
+        - ``id`` - a texture (optional, default: None), a dict, a color, a
+          str, a tuple, None or any other type acting as an ID. If ``id`` is
+          None and keyword ``texture`` is empty, then it returns a unique texture object.
+        - ``texture`` - a texture
+        - ``color`` - tuple or str, (optional, default: (.4, .4, 1))
+        - ``opacity`` - number between 0 and 1 (optional, default: 1)
+        - ``ambient`` - number (optional, default: 0.5)
+        - ``diffuse`` - number (optional, default: 1)
+        - ``specular`` - number (optional, default: 0)
+        - ``shininess`` - number (optional, default: 1)
+        - ``name`` - str (optional, default: None)
+        - ``**kwds`` - other valid keywords
+
+        OUTPUT:
+
+        A texture object.
+
+        EXAMPLES:
+
+        Texture from integer ``id``::
+
+            sage: from sage.plot.plot3d.texture import Texture
+            sage: Texture(17)
+            Texture(17, 6666ff)
+
+        Texture from rational ``id``::
+
+            sage: Texture(3/4)
+            Texture(3/4, 6666ff)
+
+        Texture from a dict::
+
+            sage: Texture({'color':'orange','opacity':0.5})
+            Texture(texture..., orange, ffa500)
+
+        Texture from a color::
+
+            sage: c = Color('red')
+            sage: Texture(c)
+            Texture(texture..., ff0000)
+
+        Texture from a valid string color::
+
+            sage: Texture('red')
+            Texture(texture..., red, ff0000)
+
+        Texture from a non valid string color::
+
+            sage: Texture('redd')
+            Texture(redd, 6666ff)
+
+        Texture from a tuple::
+
+            sage: Texture((.2,.3,.4))
+            Texture(texture..., 334c66)
+
+        Textures using other keywords::
+
+            sage: Texture(specular=0.4)
+            Texture(texture..., 6666ff)
+            sage: Texture(diffuse=0.4)
+            Texture(texture..., 6666ff)
+            sage: Texture(shininess=0.3)
+            Texture(texture..., 6666ff)
+            sage: Texture(ambient=0.7)
+            Texture(texture..., 6666ff)
+        """
+        if isinstance(id, Texture):
+            return id
+        if 'texture' in kwds:
+            t = kwds['texture']
+            if isinstance(t, Texture):
+                return t
+            else:
+                raise TypeError("texture keyword must be a texture object")
+        if isinstance(id, dict):
+            kwds = id
+            if 'rgbcolor' in kwds:
+                kwds['color'] = kwds['rgbcolor']
+            id = None
+        elif isinstance(id, Color):
+            kwds['color'] = id.rgb()
+            id = None
+        elif isinstance(id, str) and id in colors:
+            kwds['color'] = id
+            id = None
+        elif isinstance(id, tuple):
+            kwds['color'] = id
+            id = None
+        if id is None:
+            id = _new_global_texture_id()
+        return typecall(cls, id, **kwds)
+
+    def __init__(self, id, color=(.4, .4, 1), opacity=1, ambient=0.5,
+                 diffuse=1, specular=0, shininess=1, name=None, **kwds):
         r"""
         Construction of a texture.
 
-        See documentation of :meth:`Texture <sage.plot.plot3d.texture.Texture>`
-        for more details and examples.
+        See documentation of :meth:`Texture.__classcall__
+        <sage.plot.plot3d.texture.Texture.__classcall__>` for more details and
+        examples.
 
         EXAMPLES::
 
-            sage: from sage.plot.plot3d.texture import Texture_class
-            sage: Texture_class(3, opacity=0.6)
+            sage: from sage.plot.plot3d.texture import Texture
+            sage: Texture(3, opacity=0.6)
             Texture(3, 6666ff)
         """
         self.id = id

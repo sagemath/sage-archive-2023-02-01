@@ -1036,8 +1036,10 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
     - ``weight_function`` -- function (default: ``None``); a function that
       associates a weight to each edge. If ``None`` (default), the weights of
       ``g`` are used, if available, otherwise all edges have weight 1.
+      
     - ``distances`` -- boolean (default: ``True``); whether to return the dictionary
       of shortest distances
+      
     - ``predecessors`` -- boolean (default: ``False``); whether to return the
       predecessors matrix 
 
@@ -1100,6 +1102,8 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
         ValueError: the graph contains a negative cycle
     """
     from sage.graphs.generic_graph import GenericGraph
+    cpdef dict dist = {}
+    cpdef dict pred = {}
 
     if not isinstance(g, GenericGraph):
         raise TypeError("the input must be a Sage graph")
@@ -1147,12 +1151,10 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
         correct_type = RR
 
     import sys
-    dist = {}
-    pred = {}
     if distances:
         dist = {int_to_v[v]: {int_to_v[w]: correct_type(result[v][w])
-                     for w in range(N) if result[v][w] != sys.float_info.max}
-             for v in range(N)}
+                              for w in range(N) if result[v][w] != sys.float_info.max}
+                for v in range(N)}
 
     if predecessors:
         pred = {v : {v : None} for v in g}
@@ -1164,16 +1166,19 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
                 dst = e[2]
             else:
                 dst = 1
-            #dst is the weight of the edge (e[0], e[1])
+            # dst is the weight of the edge (e[0], e[1])
             u = e[0]
             v = e[1]
+            u_int = v_to_int[u]
+            v_int = v_to_int[v]
             for k in range(N):
-                if result[k][v_to_int[u]] == sys.float_info.max or result[k][v_to_int[v]] == sys.float_info.max:
-                    continue;
-                if result[k][v_to_int[u]] + dst == result[k][v_to_int[v]]:
+                if result[k][u_int] == sys.float_info.max or result[k][v_int] == sys.float_info.max:
+                    continue
+                if result[k][u_int] + dst == result[k][v_int]:
                     pred[int_to_v[k]][v] = u
-                if g.is_directed(): continue
-                if result[k][v_to_int[u]] == result[k][v_to_int[v]] + dst:
+                if g.is_directed():
+                    continue
+                if result[k][u_int] == result[k][v_int] + dst:
                     pred[int_to_v[k]][u] = v
 
     if distances and predecessors:

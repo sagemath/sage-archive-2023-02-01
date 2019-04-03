@@ -26,10 +26,7 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.all import *
-#from .graph_generators import GraphGenerators
-#from sage.graphs.generic_graph import GenericGraph
-
+from copy import copy
 
 def _parent(G, dom, V_prev):
     r'''
@@ -246,18 +243,18 @@ def _cand_ext_enum(G, dom, u_next, V_next):
                 break
 
 
-def minimal_dominating_sets(self, vertices_to_dominate=None):
+def minimal_dominating_sets(G, vertices_to_dominate=None):
     r'''
     Return an iterator over the minimal dominating sets of the graph.
 
     INPUT:
 
-    - `self` -- a graph
+    - `G` -- a graph
     - `vertices_to_dominate` -- vertex iterable or None (default: `None`)
 
     OUTPUT:
 
-    An iterator over the inclusion-minimal sets of vertices of `self`
+    An iterator over the inclusion-minimal sets of vertices of `G`
     that dominate `vertices_to_dominate`.
 
     ALGORITHM:
@@ -314,49 +311,49 @@ def minimal_dominating_sets(self, vertices_to_dominate=None):
 
     '''
 
-    def tree_search(G, plng, dom, i):
+    def tree_search(H, plng, dom, i):
         # Internal routine
         # Recursively generates the leaves descendant of (dom,i)
-        # G: graph; plng: peeling
+        # H: graph; plng: peeling
 
         if i == len(plng) - 2:
             # we reached a leaf, i.e. dom is a minimal DS of vertices_to_dominate
             # '-2' because the last cell of plng is used
-            # for the vertices of G - vertices_to_dominate
+            # for the vertices of H - vertices_to_dominate
             yield dom
             return
 
         u_next, V_next = plng[i+1]
 
-        if G.is_dominating(dom, V_next):  # if dom dominates V_{i+1}
+        if H.is_dominating(dom, V_next):  # if dom dominates V_{i+1}
             # then dom is its unique extension: we recurse on it
-            for L in tree_search(G, plng, dom, i + 1):
+            for L in tree_search(H, plng, dom, i + 1):
                 yield L
             return
 
         # For every candidate extension
-        for can_ext in _cand_ext_enum(G, dom, u_next, V_next):
+        for can_ext in _cand_ext_enum(H, dom, u_next, V_next):
 
             # We complete dom with can_ext -> canD
             canD = set.union(set(can_ext), set(dom))
 
-            if (not G.is_redundant(canD, V_next)) and set(dom) == set(_parent(G, canD, plng[i][1])):
+            if (not H.is_redundant(canD, V_next)) and set(dom) == set(_parent(H, canD, plng[i][1])):
                 # If canD is a legitimate child of dom and is not
                 # redundant, we recurse on it:
-                for Di in tree_search(G, plng, canD, i + 1):
+                for Di in tree_search(H, plng, canD, i + 1):
                     yield Di
     ##
     # end of tree-search routine
 
     if vertices_to_dominate is None:
-        vertices_to_dominate = self.vertices()
+        vertices_to_dominate = G.vertices()
 
     elif not vertices_to_dominate:  # base case: vertices_to_dominate is empty
         yield set()  # the empty set/list is the only minimal DS of the empty set of vertex
         return
 
-    peeling = _peel(self, vertices_to_dominate)
+    peeling = _peel(G, vertices_to_dominate)
 
-    for dom in tree_search(self, peeling, set(), 0):
+    for dom in tree_search(G, peeling, set(), 0):
         # we generate the leaves of the search tree that are descendant of (empty set, 0)
         yield dom

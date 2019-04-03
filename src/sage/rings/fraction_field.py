@@ -584,6 +584,13 @@ class FractionField_generic(ring.Field):
             sage: z = SR.var('z')
             sage: CyclotomicField(2)['z'].fraction_field()(2*(4*z + 5)/((z + 1)*(z - 1)^4))
             (8*z + 10)/(z^5 - 3*z^4 + 2*z^3 + 2*z^2 - 3*z + 1)
+
+        ::
+
+            sage: T.<t> = ZZ[]
+            sage: S.<s> = ZZ[]
+            sage: S.fraction_field()(s/(s+1), (t-1)/(t+2))
+            (s^2 + 2*s)/(s^2 - 1)
         """
         if y is None:
             if isinstance(x, Element) and x.parent() is self:

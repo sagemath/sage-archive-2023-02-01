@@ -1134,7 +1134,7 @@ class TopologicalManifold(ManifoldSubset):
         while ind != ind_end:
             yield tuple(ind)
             ret = 1
-            for pos in range(nb_indices-1,-1,-1):
+            for pos in range(nb_indices-1, -1, -1):
                 if ind[pos] != imax:
                     ind[pos] += ret
                     ret = 0
@@ -2230,7 +2230,7 @@ class TopologicalManifold(ManifoldSubset):
             control of the calculus method chart by chart
 
         """
-        for chart in self._atlas :
+        for chart in self._atlas:
             chart.calculus_method().set(method)
 
     def set_simplify_function(self, simplifying_func, method=None):
@@ -2307,8 +2307,8 @@ class TopologicalManifold(ManifoldSubset):
 
         We can replaced it by any user defined function, for instance::
 
-            sage: def simpl_trig(expr):
-            ....:     return expr.simplify_trig()
+            sage: def simpl_trig(a):
+            ....:     return a.simplify_trig()
             ....:
             sage: M.set_simplify_function(simpl_trig)
             sage: s = f + g
@@ -2330,8 +2330,8 @@ class TopologicalManifold(ManifoldSubset):
         instance, let us define a simplifying function for SymPy (note that
         ``trigsimp()`` is a SymPy method only)::
 
-            sage: def simpl_trig_sympy(expr):
-            ....:     return expr.trigsimp()
+            sage: def simpl_trig_sympy(a):
+            ....:     return a.trigsimp()
             ....:
             sage: M.set_simplify_function(simpl_trig_sympy, method='sympy')
 
@@ -2351,7 +2351,7 @@ class TopologicalManifold(ManifoldSubset):
             <class 'sympy.core.numbers.One'>
 
         """
-        for chart in self._atlas :
+        for chart in self._atlas:
             chart.calculus_method().set_simplify_function(simplifying_func,
                                                           method=method)
 
@@ -2692,7 +2692,7 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
             if dim>ambient._dim:
                 raise ValueError("the submanifold must be of smaller "
                                  + "dimension than its ambient manifold")
-            return PseudoRiemannianSubmanifold(dim, name, ambient = ambient,
+            return PseudoRiemannianSubmanifold(dim, name, ambient=ambient,
                                                metric_name=metric_name,
                                                signature=signature,
                                                diff_degree=diff_degree,
@@ -2710,6 +2710,7 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
                                         unique_tag=getrandbits(128)*time())
     raise NotImplementedError("manifolds of type {} are ".format(structure) +
                               "not implemented")
+
 
 Manifold.options = TopologicalManifold.options
 

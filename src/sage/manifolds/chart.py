@@ -50,6 +50,7 @@ from sage.manifolds.calculus_method import CalculusMethod
 from sage.symbolic.expression import Expression
 from sage.ext.fast_callable import fast_callable
 
+
 class Chart(UniqueRepresentation, SageObject):
     r"""
     Chart on a topological manifold.
@@ -341,9 +342,9 @@ class Chart(UniqueRepresentation, SageObject):
         # restriction of:
         self._supercharts = set([self])
         #
-        self._dom_restrict = {} # dict. of the restrictions of self to
-                                # subsets of self._domain, with the
-                                # subsets as keys
+        self._dom_restrict = {}  # dict. of the restrictions of self to
+                                 # subsets of self._domain, with the
+                                 # subsets as keys
         # The null and one functions of the coordinates:
         # Expression in self of the zero and one scalar fields of open sets
         # containing the domain of self:
@@ -354,7 +355,6 @@ class Chart(UniqueRepresentation, SageObject):
             if hasattr(dom, '_one_scalar_field'):
                 # dom is an open set
                 dom._one_scalar_field._express[self] = self.function_ring().one()
-
 
     def _init_coordinates(self, coord_list):
         r"""
@@ -860,8 +860,6 @@ class Chart(UniqueRepresentation, SageObject):
         # Case of a single condition:
         return bool(restrict.subs(substitutions))
 
-
-
     def transition_map(self, other, transformations, intersection_name=None,
                        restrictions1=None, restrictions2=None):
         r"""
@@ -1322,7 +1320,7 @@ class Chart(UniqueRepresentation, SageObject):
         return MultiCoordFunction(self, expressions)
 
 
-#*****************************************************************************
+# *****************************************************************************
 
 class RealChart(Chart):
     r"""
@@ -1805,6 +1803,7 @@ class RealChart(Chart):
 
         """
         from sage.tensor.modules.format_utilities import FormattedExpansion
+
         def _display_coord_range(self, xx, rtxt, rlatex):
             ind = self._xx.index(xx)
             bounds = self._bounds[ind]
@@ -1840,6 +1839,7 @@ class RealChart(Chart):
                 rtxt += ")"
                 rlatex += r"\right)"
             return rtxt, rlatex
+
         resu_txt = ""
         resu_latex = ""
         if xx is None:
@@ -1853,7 +1853,6 @@ class RealChart(Chart):
             resu_txt, resu_latex = _display_coord_range(self, xx, resu_txt,
                                                         resu_latex)
         return FormattedExpansion(resu_txt, resu_latex)
-
 
     def add_restrictions(self, restrictions):
         r"""
@@ -2288,7 +2287,7 @@ class RealChart(Chart):
         self._fast_valid_coordinates = evaluate_fast_callable
         return self._fast_valid_coordinates(*coordinates)
 
-    @options(max_range=8, color='red',  style='-', thickness=1, plot_points=75,
+    @options(max_range=8, color='red', style='-', thickness=1, plot_points=75,
              label_axes=True)
     def plot(self, chart=None, ambient_coords=None, mapping=None,
              fixed_coords=None, ranges=None, number_values=None,
@@ -2934,7 +2933,7 @@ class RealChart(Chart):
                 resu = set_axes_labels(resu, *labels)
         return resu
 
-#*****************************************************************************
+# *****************************************************************************
 
 class CoordChange(SageObject):
     r"""
@@ -3390,7 +3389,7 @@ class CoordChange(SageObject):
         ch1 = self._chart1.restrict(dom1)
         ch2 = self._chart2.restrict(dom2)
         if (ch1, ch2) in dom1.coord_changes():
-            return dom1.coord_changes()[(ch1,ch2)]
+            return dom1.coord_changes()[(ch1, ch2)]
         return type(self)(self._chart1.restrict(dom1),
                           self._chart2.restrict(dom2), *(self._transf.expr()))
 

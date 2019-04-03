@@ -29,6 +29,7 @@ from sage.manifolds.utilities import (simplify_chain_real,
 from sage.misc.latex import latex
 import sympy
 
+
 # Conversion functions
 def _SR_to_Sympy(expression):
     r"""
@@ -67,6 +68,7 @@ def _SR_to_Sympy(expression):
     if type(expression) in sympy.core.all_classes:
         return expression
     return SR(expression)._sympy_()
+
 
 def _Sympy_to_SR(expression):
     r"""
@@ -173,7 +175,7 @@ class CalculusMethod(SageObject):
     """
     _default = 'SR'  # default calculus method
     _methods = ('SR', 'sympy')  # implemented methods
-    _tranf = {'SR':  _Sympy_to_SR, 'sympy' : _SR_to_Sympy}  # translators
+    _tranf = {'SR':  _Sympy_to_SR, 'sympy': _SR_to_Sympy}  # translators
 
     def __init__(self, current=None, base_field_type='real'):
         r"""
@@ -511,7 +513,7 @@ class CalculusMethod(SageObject):
             ....: sage.manifolds.utilities.simplify_chain_generic_sympy
             True
 
-        Note that the symplifying functions can be customized via
+        Note that the simplifying functions can be customized via
         :meth:`set_simplify_function`.
 
         """
@@ -560,7 +562,9 @@ class CalculusMethod(SageObject):
         resu = 'Available calculus methods (* = current):\n'
         for method in self._methods:
             resu += ' - {}'.format(method)
-            if method == self._default: resu += ' (default)'
-            if method == self._current: resu += ' (*)'
+            if method == self._default:
+                resu += ' (default)'
+            if method == self._current:
+                resu += ' (*)'
             resu += '\n'
         return resu[:-1]

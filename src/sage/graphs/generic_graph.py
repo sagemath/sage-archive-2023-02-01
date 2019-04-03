@@ -4027,7 +4027,7 @@ class GenericGraph(GenericGraph_pyx):
           to a float, an error is raised)
 
         - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
-          in the graph are weighted, otherwise all edges have weight 1    
+          in the graph are weighted, otherwise all edges have weight 1
 
         - ``algorithm`` -- string (default: ``"Prim_Boost"``); the algorithm to
           use in computing a minimum spanning tree of ``G``. The following

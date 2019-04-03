@@ -9549,6 +9549,20 @@ class GenericGraph(GenericGraph_pyx):
              4: 0.23749999999999993,
              5: 0.17775603392041744,
              6: 0.10054631441617742}
+            sage: G.pagerank()
+            {1: 0.16112205885619563,
+             2: 0.1619531043247219,
+             3: 0.16112205885619563,
+             4: 0.2374999999999999,
+             5: 0.17775588228760858,
+             6: 0.100546895675278}
+            sage: G.pagerank(by_weight=True)
+            {1: 0.16459583718588994,
+             2: 0.13977928595154515,
+             3: 0.16539840184339605,
+             4: 0.3063198690713853,
+             5: 0.1700057609707141,
+             6: 0.05390084497706962}
 
         .. SEEALSO:
 
@@ -9577,8 +9591,8 @@ class GenericGraph(GenericGraph_pyx):
             if by_weight:
                 return networkx.pagerank(self.networkx_graph
                        (weight_function=weight_function), alpha=alpha,
-                       personalization=personalization, weight='weight',
-                       dangling=dangling)
+                        personalization=personalization, weight='weight',
+                        dangling=dangling)
             else:
                 return networkx.pagerank(self.networkx_graph(), alpha=alpha,
                        personalization=personalization, weight=None, dangling=dangling)
@@ -9587,8 +9601,8 @@ class GenericGraph(GenericGraph_pyx):
             if by_weight:
                 return networkx.pagerank_numpy(self.networkx_graph
                        (weight_function=weight_function), alpha=alpha,
-                       personalization=personalization, weight='weight',
-                       dangling=dangling)
+                        personalization=personalization, weight='weight',
+                        dangling=dangling)
             else:
                 return networkx.pagerank_numpy(self.networkx_graph(),
                        alpha=alpha, personalization=personalization,
@@ -9598,8 +9612,8 @@ class GenericGraph(GenericGraph_pyx):
             if by_weight:
                 return networkx.pagerank_scipy(self.networkx_graph
                        (weight_function=weight_function), alpha=alpha,
-                       personalization=personalization, weight='weight',
-                       dangling=dangling)
+                        personalization=personalization, weight='weight',
+                        dangling=dangling)
             else:
                 return networkx.pagerank_scipy(self.networkx_graph(),
                        alpha=alpha, personalization=personalization,
@@ -9620,16 +9634,27 @@ class GenericGraph(GenericGraph_pyx):
                 page_rank = I.pagerank(damping=alpha)
                 return {v: page_rank[i] for i, v in enumerate(self.vertices())}
         elif not algorithm:  #default
+            import networkx
             if by_weight:
-                import networkx
-                return networkx.pagerank_scipy(self.networkx_graph
-                       (weight_function=weight_function), alpha=alpha,
-                       personalization=personalization, weight='weight',
-                       dangling=dangling)
+                if self.order<=60:
+                    return networkx.pagerank_numpy(self.networkx_graph
+                           (weight_function=weight_function), alpha=alpha,
+                            personalization=personalization, weight='weight',
+                            dangling=dangling)
+                else:
+                    return networkx.pagerank_scipy(self.networkx_graph
+                           (weight_function=weight_function), alpha=alpha,
+                            personalization=personalization, weight='weight',
+                            dangling=dangling)
             else:
-                I = self.igraph_graph()
-                page_rank = I.pagerank(damping=alpha)
-                return {v: page_rank[i] for i, v in enumerate(self.vertices())}
+                if self.order<=60:
+                    return networkx.pagerank_numpy(self.networkx_graph(),
+                           alpha=alpha, personalization=personalization,
+                           weight=None, dangling=dangling)
+                else:
+                    return networkx.pagerank_scipy(self.networkx_graph(),
+                           alpha=alpha, personalization=personalization,
+                           weight=None, dangling=dangling)
         else:
             raise NotImplementedError("Only 'NetworkX', 'Numpy', 'Scipy', and 'igraph' are supported.")
 

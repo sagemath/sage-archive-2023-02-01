@@ -4,14 +4,16 @@ Chart Functions
 In the context of a topological manifold `M` over a topological field
 `K`, a *chart function* is a function from a chart codomain
 to `K`.
-In other words, for any defined calculus method, a chart function is a
-`K`-valued function of the coordinates associated to some chart.
-The internal expression of chart functions and calculus on them can be
-performed via different calculus methods, at the choice of the user:
+In other words, a chart function is a `K`-valued function of the coordinates
+associated to some chart. The internal coordinate expressions of chart
+functions and calculus on them are taken in charge by different calculus
+methods, at the choice of the user:
 
-- Sage's default symbolic engine (Pynac/Maxima), implemented via the
-  symbolic ring ``SR``
+- Sage's default symbolic engine (Pynac + Maxima), implemented via the
+  Symbolic Ring (``SR``)
 - SymPy engine, denoted ``sympy`` hereafter
+
+See :class:`~sage.manifolds.calculus_method.CalculusMethod` for details.
 
 AUTHORS:
 
@@ -22,7 +24,7 @@ AUTHORS:
   parameter
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2017 Marco Mancini <marco.mancini@obspm.fr>
 #  Copyright (C) 2018 Florentin Jaffredo <florentin.jaffredo@polytechnique.edu>
 #
@@ -30,7 +32,7 @@ AUTHORS:
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 from sage.structure.element import AlgebraElement
 from sage.structure.parent import Parent
 from sage.structure.sage_object import SageObject
@@ -63,8 +65,7 @@ class ChartFunction(AlgebraElement):
     The chart function `f` can be represented by expressions pertaining to
     different calculus methods; the currently implemented ones are
 
-    - ``Pynac`` (+ ``Maxima`` for simplifications) (Sage's default calculus
-      engine)
+    - ``SR`` (Sage's Symbolic Ring)
     - ``SymPy``
 
     See :meth:`~sage.manifolds.chart_func.ChartFunction.expr` for details.
@@ -92,7 +93,8 @@ class ChartFunction(AlgebraElement):
 
     - ``order`` -- integer (default: ``None``); the order of the expansion
       if ``expansion_symbol`` is not ``None``; the *order* is defined as the
-      degree of the polynomial representing the truncated power series in ``expansion_symbol``.
+      degree of the polynomial representing the truncated power series in
+      ``expansion_symbol``
 
       .. WARNING::
 
@@ -331,7 +333,7 @@ class ChartFunction(AlgebraElement):
 
         Using SymPy::
 
-            sage: X.set_calculus_method('sympy')
+            sage: X.calculus_method().set('sympy')
             sage: f = X.function(x^3+y)
             sage: f
             x**3 + y
@@ -351,7 +353,7 @@ class ChartFunction(AlgebraElement):
         self._nc = len(self._chart[:])
         self._express = {}
         # set the calculation method managing
-        self._calc_method = parent._chart._calc_method
+        self._calc_method = self._chart._calc_method
         if expression is not None:
             if calc_method is None:
                 calc_method = self._calc_method._current
@@ -502,12 +504,12 @@ class ChartFunction(AlgebraElement):
         If we change the current calculus method on chart ``X``, we change the
         default::
 
-            sage: X.set_calculus_method('sympy')
+            sage: X.calculus_method().set('sympy')
             sage: f.expr()
             x**2 + y
             sage: f.expr() is f.expr('sympy')
             True
-            sage: X.set_calculus_method('SR')  # revert back to SR
+            sage: X.calculus_method().set('SR')  # revert back to SR
 
         Internally, the expressions corresponding to various calculus methods
         are stored in the dictionary ``_express``::
@@ -722,7 +724,7 @@ class ChartFunction(AlgebraElement):
 
         With SymPy::
 
-            sage: X.set_calculus_method('sympy')
+            sage: X.calculus_method().set('sympy')
             sage: f(-2,3)
             -sin(6)
             sage: type(f(-2,3))
@@ -783,7 +785,7 @@ class ChartFunction(AlgebraElement):
             False
             sage: g.is_zero()
             True
-            sage: X.set_calculus_method('sympy')
+            sage: X.calculus_method().set('sympy')
             sage: g.is_zero()
             True
             sage: g == 0
@@ -1201,7 +1203,7 @@ class ChartFunction(AlgebraElement):
 
         The same test with SymPy::
 
-            sage: X.set_calculus_method('sympy')
+            sage: X.calculus_method().set('sympy')
             sage: f = X.function(x+y^2)
             sage: g = X.function(x+1)
             sage: s = f + g; s.display()
@@ -1280,7 +1282,7 @@ class ChartFunction(AlgebraElement):
 
         Tests with SymPy::
 
-            sage: X.set_calculus_method('sympy')
+            sage: X.calculus_method().set('sympy')
             sage: h = X.function(2*(x+y^2))
             sage: s = h - f
             sage: s.display()
@@ -1337,7 +1339,7 @@ class ChartFunction(AlgebraElement):
 
         The same test with SymPy::
 
-            sage: X.set_calculus_method('sympy')
+            sage: X.calculus_method().set('sympy')
             sage: f = X.function(x+y)
             sage: g = X.function(x-y)
             sage: s = f._mul_(g); s.expr()
@@ -1386,7 +1388,7 @@ class ChartFunction(AlgebraElement):
 
         The same test with SymPy::
 
-            sage: X.set_calculus_method('sympy')
+            sage: X.calculus_method().set('sympy')
             sage: f = X.function(x+y)
             sage: (f * pi).expr()
             pi*(x + y)
@@ -1422,7 +1424,7 @@ class ChartFunction(AlgebraElement):
 
         The same test with SymPy::
 
-            sage: X.set_calculus_method('sympy')
+            sage: X.calculus_method().set('sympy')
             sage: f = X.function(x+y)
             sage: (f * 2).display()
             (x, y) |--> 2*x + 2*y
@@ -1482,7 +1484,7 @@ class ChartFunction(AlgebraElement):
 
         The same test with SymPy::
 
-            sage: X.set_calculus_method('sympy')
+            sage: X.calculus_method().set('sympy')
             sage: f = X.function(x+y)
             sage: g = X.function(1+x**2+y**2)
             sage: s = f._div_(g); s.display()
@@ -1528,7 +1530,7 @@ class ChartFunction(AlgebraElement):
 
         The same test with SymPy::
 
-            sage: X.set_calculus_method('sympy')
+            sage: X.calculus_method().set('sympy')
             sage: f = X.function(x+y)
             sage: f.exp()
             exp(x + y)
@@ -1581,7 +1583,7 @@ class ChartFunction(AlgebraElement):
 
         The same test with SymPy::
 
-            sage: X.set_calculus_method('sympy')
+            sage: X.calculus_method().set('sympy')
             sage: f = X.function(x+y)
             sage: f.log()
             log(x + y)
@@ -1637,7 +1639,7 @@ class ChartFunction(AlgebraElement):
 
         The same test with SymPy::
 
-            sage: X.set_calculus_method('sympy')
+            sage: X.calculus_method().set('sympy')
             sage: f = X.function(x+y)
             sage: f.__pow__(3)
             x**3 + 3*x**2*y + 3*x*y**2 + y**3
@@ -1720,7 +1722,7 @@ class ChartFunction(AlgebraElement):
 
         The same tests with SymPy::
 
-            sage: X.set_calculus_method('sympy')
+            sage: X.calculus_method().set('sympy')
             sage: f.cos()
             cos(x*y)
             sage: cos(f)  # equivalent to f.cos()
@@ -1765,7 +1767,7 @@ class ChartFunction(AlgebraElement):
 
         The same tests with SymPy::
 
-            sage: X.set_calculus_method('sympy')
+            sage: X.calculus_method().set('sympy')
             sage: f = X.function(x*y)
             sage: f.sin()
             sin(x*y)
@@ -1901,7 +1903,7 @@ class ChartFunction(AlgebraElement):
 
         The same tests with SymPy::
 
-            sage: X.set_calculus_method('sympy')
+            sage: X.calculus_method().set('sympy')
             sage: f.arcsin()
             asin(x*y)
             sage: arcsin(f)  # equivalent to f.arcsin()
@@ -1946,7 +1948,7 @@ class ChartFunction(AlgebraElement):
 
         The same tests with SymPy::
 
-            sage: X.set_calculus_method('sympy')
+            sage: X.calculus_method().set('sympy')
             sage: f.arctan()
             atan(x*y)
             sage: arctan(f)  # equivalent to f.arctan()
@@ -1989,7 +1991,7 @@ class ChartFunction(AlgebraElement):
 
         The same tests with SymPy::
 
-            sage: X.set_calculus_method('sympy')
+            sage: X.calculus_method().set('sympy')
             sage: f.cosh()
             cosh(x*y)
             sage: cosh(f)  # equivalent to f.cosh()
@@ -2030,7 +2032,7 @@ class ChartFunction(AlgebraElement):
 
         The same tests with SymPy::
 
-            sage: X.set_calculus_method('sympy')
+            sage: X.calculus_method().set('sympy')
             sage: f.sinh()
             sinh(x*y)
             sage: sinh(f)  # equivalent to f.sinh()
@@ -2071,7 +2073,7 @@ class ChartFunction(AlgebraElement):
 
         The same tests with SymPy::
 
-            sage: X.set_calculus_method('sympy')
+            sage: X.calculus_method().set('sympy')
             sage: f.tanh()
             tanh(x*y)
             sage: tanh(f)  # equivalent to f.tanh()
@@ -2114,7 +2116,7 @@ class ChartFunction(AlgebraElement):
 
         The same tests with SymPy::
 
-            sage: X.set_calculus_method('sympy')
+            sage: X.calculus_method().set('sympy')
             sage: f.arccosh()
             acosh(x*y)
             sage: arccosh(f)  # equivalent to f.arccosh()
@@ -2159,7 +2161,7 @@ class ChartFunction(AlgebraElement):
 
         The same tests with SymPy::
 
-            sage: X.set_calculus_method('sympy')
+            sage: X.calculus_method().set('sympy')
             sage: f.arcsinh()
             asinh(x*y)
             sage: arcsinh(f)  # equivalent to f.arcsinh()
@@ -2204,7 +2206,7 @@ class ChartFunction(AlgebraElement):
 
         The same tests with SymPy::
 
-            sage: X.set_calculus_method('sympy')
+            sage: X.calculus_method().set('sympy')
             sage: f.arctanh()
             atanh(x*y)
             sage: arctanh(f)  # equivalent to f.arctanh()
@@ -2241,7 +2243,7 @@ class ChartFunction(AlgebraElement):
 
         The same tests with SymPy::
 
-            sage: X.set_calculus_method('sympy')
+            sage: X.calculus_method().set('sympy')
             sage: f = X.function(cos(x*y))
             sage: f._der
             sage: f.diff(x)
@@ -2359,7 +2361,7 @@ class ChartFunction(AlgebraElement):
         the moment, this is implemented only for the ``SR`` calculus backend,
         hence the first line below)::
 
-            sage: X.set_calculus_method('SR')
+            sage: X.calculus_method().set('SR')
             sage: t = var('t')
             sage: f = X.function(exp(t*x), expansion_symbol=t, order=3)
 
@@ -2408,7 +2410,7 @@ class ChartFunction(AlgebraElement):
 
         The same test with SymPy ::
 
-            sage: X.set_calculus_method('sympy')
+            sage: X.calculus_method().set('sympy')
             sage: g = X.function(x^2 + 2*x*y + y^2)
             sage: g.display()
             (x, y) |--> x**2 + 2*x*y + y**2
@@ -2448,7 +2450,7 @@ class ChartFunction(AlgebraElement):
 
         The same test with SymPy ::
 
-            sage: X.set_calculus_method('sympy')
+            sage: X.calculus_method().set('sympy')
             sage: g = X.function((x - y)^2)
             sage: g.expand()
             x**2 - 2*x*y + y**2
@@ -2492,7 +2494,7 @@ class ChartFunction(AlgebraElement):
 
         The same test with SymPy ::
 
-            sage: X.set_calculus_method('sympy')
+            sage: X.calculus_method().set('sympy')
             sage: f = X.function(x^2*y + x*y + (x*y)^2)
             sage: f.display()
             (x, y) |--> x**2*y**2 + x**2*y + x*y
@@ -2537,7 +2539,7 @@ class ChartFunction(AlgebraElement):
 
         The same test with SymPy::
 
-            sage: X.set_calculus_method('sympy')
+            sage: X.calculus_method().set('sympy')
             sage: g = X.function(x/(x^2*y + x*y))
             sage: g.display()
             (x, y) |--> x/(x**2*y + x*y)

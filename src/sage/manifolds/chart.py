@@ -15,7 +15,8 @@ AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013-2015) : initial version
 - Travis Scrimshaw (2015): review tweaks
-- Eric Gourgoulhon (2019): periodic coordinates
+- Eric Gourgoulhon (2019): periodic coordinates,
+  add :meth:`~Chart.calculus_method`
 
 REFERENCES:
 
@@ -24,7 +25,7 @@ REFERENCES:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #       Copyright (C) 2015 Travis Scrimshaw <tscrimsh@umn.edu>
@@ -34,7 +35,7 @@ REFERENCES:
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
 
@@ -1197,54 +1198,71 @@ class Chart(UniqueRepresentation, SageObject):
         """
         return self.function_ring().one()
 
-    def set_calculus_method(self, method):
+    def calculus_method(self):
         r"""
-        Set the calculus method for computations involving coordinates of
-        this chart.
+        Return the interface governing the calculus engine for expressions
+        involving coordinates of this chart.
 
-        INPUT:
+        The calculus engine can be one of the following:
 
-        - ``method`` -- string; one of
+        - Sage's symbolic engine (Pynac + Maxima), implemented via the
+          Symbolic Ring ``SR``
+        - SymPy
 
-          - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
-          - ``'sympy'``: SymPy
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.calculus_method.CalculusMethod` for a
+            complete documentation.
+
+        OUTPUT:
+
+        - an instance of :class:`~sage.manifolds.calculus_method.CalculusMethod`
 
         EXAMPLES:
 
         The default calculus method relies on Sage's Symbolic Ring::
 
-            sage: M = Manifold(3, 'M', structure='topological')
-            sage: X.<x,y,z> = M.chart()
-            sage: f = X.function(sin(x)*cos(y) + z^2)
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: X.calculus_method()
+            Available calculus methods (* = current):
+             - SR (default) (*)
+             - sympy
+
+        Accordingly the method
+        :meth:`~sage.manifolds.chart_func.ChartFunction.expr` of a function
+        ``f`` defined on the chart ``X`` returns a Sage symbolic expression::
+
+            sage: f = X.function(x^2 + cos(y)*sin(x))
             sage: f.expr()
-            z^2 + cos(y)*sin(x)
+            x^2 + cos(y)*sin(x)
             sage: type(f.expr())
             <type 'sage.symbolic.expression.Expression'>
             sage: parent(f.expr())
             Symbolic Ring
             sage: f.display()
-            (x, y, z) |--> z^2 + cos(y)*sin(x)
+            (x, y) |--> x^2 + cos(y)*sin(x)
 
         Changing to SymPy::
 
-            sage: X.set_calculus_method('sympy')
+            sage: X.calculus_method().set('sympy')
             sage: f.expr()
-            z**2 + sin(x)*cos(y)
+            x**2 + sin(x)*cos(y)
             sage: type(f.expr())
             <class 'sympy.core.add.Add'>
             sage: parent(f.expr())
             <class 'sympy.core.add.Add'>
             sage: f.display()
-            (x, y, z) |--> z**2 + sin(x)*cos(y)
+            (x, y) |--> x**2 + sin(x)*cos(y)
 
-        Changing back to the Symbolic Ring::
+        Back to the Symbolic Ring::
 
-            sage: X.set_calculus_method('SR')
+            sage: X.calculus_method().set('SR')
             sage: f.display()
-            (x, y, z) |--> z^2 + cos(y)*sin(x)
+            (x, y) |--> x^2 + cos(y)*sin(x)
 
         """
-        self._calc_method.set(method)
+        return self._calc_method
 
     def multifunction(self, *expressions):
         r"""

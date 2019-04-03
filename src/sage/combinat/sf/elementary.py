@@ -20,7 +20,10 @@ from __future__ import absolute_import
 #*****************************************************************************
 from . import multiplicative, classical
 from sage.combinat.partition import Partition
-
+from sage.misc.all import prod
+from sage.functions.other import factorial, binomial
+from sage.rings.all import infinity
+from sage.combinat.q_analogues import q_binomial, q_factorial
 
 ###################################
 #                                 #
@@ -304,6 +307,118 @@ class SymmetricFunctionAlgebra_elementary(multiplicative.SymmetricFunctionAlgebr
             """
             condition = lambda part: max(part) > n
             return self._expand(condition, n, alphabet)
+
+
+        def principal_specialization(self, n=infinity, q=None):
+            r"""
+            Return the principal specialization of the symmetric function.
+
+            The principal specialization of order `n` is the ring
+            homomorphism given by setting `x_i = q^i` for `i \in
+            \{0,\dots,n-1\}` and `x_i = 0` for `i\geq n`.
+
+            The stable principal specialization is the ring
+            homomorphism given by setting `x_i = q^i` for all `i`.
+
+            INPUT:
+
+            - ``n`` (default: ``infinity``) -- a nonnegative integer or
+              ``infinity``, specifying whether to compute the principal
+              specialization of order ``n`` or the stable principal
+              specialization.
+
+            - ``q`` (default: ``None``) -- the value to use for `q`,
+              the default is to create the fraction field of
+              polynomials in ``q`` over the coefficient ring.
+
+            EXAMPLES::
+
+                sage: e = SymmetricFunctions(QQ).e()
+                sage: x = e[3,1]
+                sage: x.principal_specialization(3)
+                q^5 + q^4 + q^3
+                sage: x = 5*e[1,1,1] + 3*e[2,1] + 1
+                sage: x.principal_specialization(3)
+                5*q^6 + 18*q^5 + 36*q^4 + 44*q^3 + 36*q^2 + 18*q + 6
+
+            By default, we return a rational functions in q.  Sometimes it is
+            it is better to obtain an element of the symbolic ring::
+
+                sage: x.principal_specialization(q=var("q"))
+                -3*q/((q^2 - 1)*(q - 1)^2) - 5/(q - 1)^3 + 1
+
+            TESTS::
+
+                sage: e.zero().principal_specialization(3)
+                0
+
+            """
+            if q is None:
+                q = self.base_ring()["q"].fraction_field().gen()
+            if q == 1:
+                f = lambda partition: prod(binomial(n, part) for part in partition)
+            elif n == infinity:
+                f = lambda partition: prod(q**binomial(part, 2)/prod((1-q**i)
+                                                                     for i in range(1,part+1))
+                                           for part in partition)
+            else:
+                f = lambda partition: prod(q**binomial(part, 2)*q_binomial(n, part, q=q)
+                                           for part in partition)
+
+            return self.parent()._apply_module_morphism(self, f, q.parent())
+
+
+        def exponential_specialization(self, t=None, q=1):
+            r"""
+            EXAMPLES::
+
+                sage: e = SymmetricFunctions(QQ).e()
+                sage: x = e[3,2]
+                sage: x.exponential_specialization()
+                1/12*t^5
+                sage: x = 5*e[2] + 3*e[1] + 1
+                sage: x.exponential_specialization(t=var("t"), q=var("q"))
+                5*q*t^2/(q + 1) + 3*t + 1
+
+            TESTS::
+
+                sage: e.zero().exponential_specialization()
+                0
+
+            """
+            if q == 1:
+                if t is None:
+                    t = self.base_ring()["t"].gen()
+                def f(partition):
+                    n = 0
+                    m = 1
+                    for part in partition:
+                        n += part
+                        m *= factorial(part)
+                    return t**n/m
+
+                return self.parent()._apply_module_morphism(self, f, t.parent())
+
+            if q is None and t is None:
+                Rq = self.base_ring()["q"].fraction_field()
+                q = Rq.gen()
+                t = Rq["t"].gen()
+            elif q is None:
+                q = t.parent()["q"].fraction_field().gen()
+            elif t is None:
+                t = q.parent()["t"].gen()
+
+            def f(partition):
+                n = 0
+                m = 1
+                for part in partition:
+                    n += part
+                    m *= q**binomial(part, 2)/q_factorial(part, q=q)
+
+                return t**n * m
+
+            return self.parent()._apply_module_morphism(self, f, t.parent())
+
 
 # Backward compatibility for unpickling
 from sage.misc.persist import register_unpickle_override

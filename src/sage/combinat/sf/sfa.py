@@ -213,7 +213,7 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.misc.cachefunc import cached_method
-from sage.rings.all import Integer, PolynomialRing, QQ, ZZ
+from sage.rings.all import Integer, PolynomialRing, QQ, ZZ, infinity
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.combinat.partition import _Partitions, Partitions, Partitions_n, Partition
@@ -5438,6 +5438,126 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         p = self.parent().symmetric_function_ring().p()
         return self.parent()(p.sum(self.eval_at_permutation_roots(rho) \
             *p(rho)/rho.centralizer_size() for rho in Partitions(n)))
+
+    def principal_specialization(self, n=infinity, q=None):
+        r"""
+        Return the principal specialization of a symmetric function.
+
+        The principal specialization of order `n` is the ring
+        homomorphism given by setting `x_i = q^i` for `i \in
+        \{0,\dots,n-1\}` and `x_i = 0` for `i\geq n`.
+
+        The stable principal specialization is the ring homomorphism
+        given by setting `x_i = q^i` for all `i`.
+
+        INPUT:
+
+        - ``n`` (default: ``infinity``) -- a nonnegative integer or
+          ``infinity``, specifying whether to compute the principal
+          specialization of order ``n`` or the stable principal
+          specialization.
+
+        - ``q`` (default: ``None``) -- the value to use for `q`, the
+          default is to create the fraction field of polynomials in
+          ``q`` over the coefficient ring.
+
+        EXAMPLES::
+
+            sage: m = SymmetricFunctions(QQ).m()
+            sage: x = m[1,1]
+            sage: x.principal_specialization(3)
+            q^3 + q^2 + q
+
+        By default we return a rational function in ``q``.  Sometimes
+        it is better to obtain an element of the symbolic ring::
+
+            sage: h = SymmetricFunctions(QQ).h()
+            sage: (h[3]+h[2]).principal_specialization(q=var("q"))
+            1/((q^2 - 1)*(q - 1)) - 1/((q^3 - 1)*(q^2 - 1)*(q - 1))
+
+        TESTS::
+
+            sage: m = SymmetricFunctions(QQ).m()
+            sage: m.zero().principal_specialization(3)
+            0
+
+            sage: x = 5*m[1,1,1] + 3*m[2,1] + 1
+            sage: x.principal_specialization(3)
+            3*q^5 + 6*q^4 + 5*q^3 + 6*q^2 + 3*q + 1
+
+            sage: B = SymmetricFunctions(QQ).realizations()
+            sage: x = m[2,1]
+            sage: len(set([b(x).principal_specialization(n=3) for b in B]))
+            1
+            sage: len(set([b(x).principal_specialization() for b in B]))
+            1
+            sage: len(set([b(x).principal_specialization(n=4, q=1) for b in B]))
+            1
+            sage: len(set([b(x).principal_specialization(n=4, q=2) for b in B]))
+            1
+
+        """
+        from sage.combinat.sf.sf import SymmetricFunctions
+        p = SymmetricFunctions(self.parent().base_ring()).p()
+        return p(self).principal_specialization(n, q=q)
+
+
+    def exponential_specialization(self, t=None, q=1):
+        r"""Return the exponential specialization of a symmetric function.
+
+        The `q`-exponential specialization is a ring homomorphism
+        defined on homogeneous symmetric functions `f` of degree `n`
+        as
+
+        .. MATH::
+
+            ex_q(f) = (1-q)^n t^n ps(f),
+
+        where `ps(f)` is the stable principal specialisation of `f`.
+
+        INPUT:
+
+        - ``t`` (default: None) -- the value to use for `t`, the default
+          is to create the fraction field of polynomials in ``t``
+          over the coefficient ring.
+
+        - ``q`` (default: 1) -- the value to use for `q`.
+
+        EXAMPLES::
+
+            sage: m = SymmetricFunctions(QQ).m()
+            sage: (m[2,1]+m[1,1]).exponential_specialization()
+            1/2*t^2
+
+            sage: x = m[3]+m[2,1]+m[1,1,1]
+            sage: d = x.homogeneous_degree()
+            sage: var("q t")
+            (q, t)
+            sage: factor((x.principal_specialization()*(1-q)^d*t^d))
+            t^3/((q^2 + q + 1)*(q + 1))
+            sage: factor(x.exponential_specialization(q=q, t=t))
+            t^3/((q^2 + q + 1)*(q + 1))
+
+        TESTS::
+
+            sage: m = SymmetricFunctions(QQ).m()
+            sage: m.zero().exponential_specialization()
+            0
+
+            sage: B = SymmetricFunctions(QQ).realizations()
+            sage: x = m[3]+m[2,1]+m[1,1,1]
+            sage: len(set([b(x).exponential_specialization(q=None, t=None) for b in B]))
+            1
+            sage: len(set([b(x).exponential_specialization(q=1) for b in B]))
+            1
+            sage: len(set([b(x).exponential_specialization(q=2) for b in B]))
+            1
+            sage: len(set([b(x).exponential_specialization(t=2) for b in B]))
+            1
+
+        """
+        p = self.parent().realization_of().powersum()
+        return p(self).exponential_specialization(t=t, q=q)
 
 SymmetricFunctionAlgebra_generic.Element = SymmetricFunctionAlgebra_generic_Element
 

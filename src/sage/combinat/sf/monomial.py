@@ -22,7 +22,10 @@ from __future__ import absolute_import
 from . import classical
 import sage.libs.symmetrica.all as symmetrica
 from sage.rings.integer import Integer
+from sage.rings.infinity import infinity
 from sage.combinat.partition import Partition, _Partitions
+from sage.functions.other import factorial, binomial
+from sage.arith.misc import multinomial
 
 
 class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_classical):
@@ -312,6 +315,91 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
                 return len(part) > n
             return self._expand(condition, n, alphabet)
 
+<<<<<<< HEAD
+=======
+        def principal_specialization(self, n=infinity, q=None):
+            r"""
+            Return the principal specialization of the symmetric function.
+
+            The principal specialization of order `n` is the ring
+            homomorphism given by setting `x_i = q^i` for `i \in
+            \{0,\dots,n-1\}` and `x_i = 0` for `i\geq n`.
+
+            The stable principal specialization is the ring
+            homomorphism given by setting `x_i = q^i` for all `i`.
+
+            INPUT:
+
+            - ``n`` (default: ``infinity``) -- a nonnegative integer or
+              ``infinity``, specifying whether to compute the principal
+              specialization of order ``n`` or the stable principal
+              specialization.
+
+            - ``q`` (default: ``None``) -- the value to use for `q`,
+              the default is to create the fraction field of
+              polynomials in ``q`` over the coefficient ring.
+
+            EXAMPLES::
+
+                sage: m = SymmetricFunctions(QQ).m()
+                sage: x = m[3,1]
+                sage: x.principal_specialization(3)
+                q^7 + q^6 + q^5 + q^3 + q^2 + q
+
+                sage: x = 5*m[2] + 3*m[1] + 1
+                sage: x.principal_specialization(3, q=var("q"))
+                5*(q^6 - 1)/(q^2 - 1) + 3*(q^3 - 1)/(q - 1) + 1
+
+            TESTS::
+
+                sage: m.zero().principal_specialization(3)
+                0
+
+            """
+            if q == 1:
+                f = lambda partition: binomial(n, len(partition))*multinomial(partition.to_exp())
+                return self.parent()._apply_module_morphism(self, f, q.parent())
+
+            return self.parent().realization_of().powersum()(self).principal_specialization(n=n, q=q)
+
+        def exponential_specialization(self, t=None, q=1):
+            r"""
+            EXAMPLES::
+
+                sage: m = SymmetricFunctions(QQ).m()
+                sage: (m[3]+m[2,1]+m[1,1,1]).exponential_specialization()
+                1/6*t^3
+
+                sage: x = 5*m[1,1,1] + 3*m[2,1] + 1
+                sage: x.exponential_specialization()
+                5/6*t^3 + 1
+
+            We also support the `q`-exponential_specialization::
+
+                sage: factor(m[3].exponential_specialization(q=var("q"), t=var("t")))
+                (q - 1)^2*t^3/(q^2 + q + 1)
+
+            TESTS::
+
+                sage: m.zero().exponential_specialization()
+                0
+
+            """
+            if q == 1:
+                if t is None:
+                    t = self.base_ring()["t"].gen()
+                def f(partition):
+                    n = 0
+                    for part in partition:
+                        if part != 1:
+                            return 0
+                        n += 1
+                    return t**n/factorial(n)
+
+                return self.parent()._apply_module_morphism(self, f, t.parent())
+
+            return self.parent().realization_of().powersum()(self).exponential_specialization(t=t, q=q)
+>>>>>>> rebase and correct
 
 # Backward compatibility for unpickling
 from sage.misc.persist import register_unpickle_override

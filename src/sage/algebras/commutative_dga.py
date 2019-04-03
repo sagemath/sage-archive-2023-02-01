@@ -2252,20 +2252,24 @@ class DifferentialGCAlgebra(GCAlgebra):
             res[max_degree] = [vector_to_element(CR.lift(Q.lift(g)),max_degree) for g in Q.basis()]
         return res
 
-    def minimal_model(self, max_degree=3, max_iterations=3):
+    def minimal_model(self, i=3, max_iterations=3):
         """
-        Try to compute a map from a minimal gcda that is a quasi-isomorphism up to degree ``max_degree``.
+        Try to compute a map from a ``i``-minimal gcda that is a
+        ``i``-quasi-isomorphism up to degree ``max_degree``.
 
         INPUT:
 
-        - ``max_degree`` -- integer (default: `3`); degree to which the result is required to induce an
-        isomorphism in cohomology
+        - ``i`` -- integer (default: `3`); degree to which the result is required
+        to induce an isomorphism in cohomology, and the domain is required to be
+        minimal.
 
-        - ``max_iterations`` -- integer (default: `3`); the number of iterations of the method at each degree.
-        If the algorithm does not finish in this many iterations at each degree, an error is raised.
+        - ``max_iterations`` -- integer (default: `3`); the number of iterations
+        of the method at each degree. If the algorithm does not finish in this
+        many iterations at each degree, an error is raised.
 
-        OUTPUT: a morphism from a minimal Sullivan (up to degree ``max_degree``) CDGA's to self, that induces
-        an isomorphism in cohomology up to degree ``max_degree``.
+        OUTPUT: a morphism from a minimal Sullivan (up to degree ``i``) CDGA's
+        to self, that induces an isomorphism in cohomology up to degree ``i``,
+        and a monomorphism in degree ``i+1``.
 
         EXAMPLES::
 
@@ -2302,10 +2306,10 @@ class DifferentialGCAlgebra(GCAlgebra):
             sage: A.<e1,e2,e3,e4,e5,e6,e7> = GradedCommutativeAlgebra(QQ)
             sage: d = A.differential({e1:e1*e7,e2:e2*e7,e3:-e3*e7, e4:-e4*e7})
             sage: B = A.cdg_algebra(d)
-            sage: phi = B.minimal_model(max_degree=3)
+            sage: phi = B.minimal_model(i=3)
             sage: M = phi.domain()
             sage: M
-            Commutative Differential Graded Algebra with generators ('x1_0', 'x1_1', 'x1_2', 'x2_0', 'x2_1', 'x2_2', 'x2_3') in degrees (1, 1, 1, 2, 2, 2, 2) over Rational Field with differential:
+            Commutative Differential Graded Algebra with generators ('x1_0', 'x1_1', 'x1_2', 'x2_0', 'x2_1', 'x2_2', 'x2_3', 'y3_0', 'y3_1', 'y3_2', 'y3_3', 'y3_4', 'y3_5', 'y3_6', 'y3_7', 'y3_8') in degrees (1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3) over Rational Field with differential:
                x1_0 --> 0
                x1_1 --> 0
                x1_2 --> 0
@@ -2313,9 +2317,18 @@ class DifferentialGCAlgebra(GCAlgebra):
                x2_1 --> 0
                x2_2 --> 0
                x2_3 --> 0
+               y3_0 --> x2_3^2
+               y3_1 --> x2_2*x2_3
+               y3_2 --> x2_1*x2_3
+               y3_3 --> x2_1*x2_2 + x2_0*x2_3
+               y3_4 --> x2_2^2
+               y3_5 --> x2_0*x2_2
+               y3_6 --> x2_1^2
+               y3_7 --> x2_0*x2_1
+               y3_8 --> x2_0^2
             sage: phi
             Commutative Differential Graded Algebra morphism:
-            From: Commutative Differential Graded Algebra with generators ('x1_0', 'x1_1', 'x1_2', 'x2_0', 'x2_1', 'x2_2', 'x2_3') in degrees (1, 1, 1, 2, 2, 2, 2) over Rational Field with differential:
+              From: Commutative Differential Graded Algebra with generators ('x1_0', 'x1_1', 'x1_2', 'x2_0', 'x2_1', 'x2_2', 'x2_3', 'y3_0', 'y3_1', 'y3_2', 'y3_3', 'y3_4', 'y3_5', 'y3_6', 'y3_7', 'y3_8') in degrees (1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3) over Rational Field with differential:
                x1_0 --> 0
                x1_1 --> 0
                x1_2 --> 0
@@ -2323,7 +2336,16 @@ class DifferentialGCAlgebra(GCAlgebra):
                x2_1 --> 0
                x2_2 --> 0
                x2_3 --> 0
-            To:   Commutative Differential Graded Algebra with generators ('e1', 'e2', 'e3', 'e4', 'e5', 'e6', 'e7') in degrees (1, 1, 1, 1, 1, 1, 1) over Rational Field with differential:
+               y3_0 --> x2_3^2
+               y3_1 --> x2_2*x2_3
+               y3_2 --> x2_1*x2_3
+               y3_3 --> x2_1*x2_2 + x2_0*x2_3
+               y3_4 --> x2_2^2
+               y3_5 --> x2_0*x2_2
+               y3_6 --> x2_1^2
+               y3_7 --> x2_0*x2_1
+               y3_8 --> x2_0^2
+              To:   Commutative Differential Graded Algebra with generators ('e1', 'e2', 'e3', 'e4', 'e5', 'e6', 'e7') in degrees (1, 1, 1, 1, 1, 1, 1) over Rational Field with differential:
                e1 --> e1*e7
                e2 --> e2*e7
                e3 --> -e3*e7
@@ -2331,7 +2353,7 @@ class DifferentialGCAlgebra(GCAlgebra):
                e5 --> 0
                e6 --> 0
                e7 --> 0
-              Defn: (x1_0, x1_1, x1_2, x2_0, x2_1, x2_2, x2_3) --> (e7, e6, e5, e2*e4, e2*e3, e1*e4, e1*e3)
+              Defn: (x1_0, x1_1, x1_2, x2_0, x2_1, x2_2, x2_3, y3_0, y3_1, y3_2, y3_3, y3_4, y3_5, y3_6, y3_7, y3_8) --> (e7, e6, e5, e2*e4, e2*e3, e1*e4, e1*e3, 0, 0, 0, 0, 0, 0, 0, 0, 0)
             sage: [B.cohomology(i).dimension() for i in [1..3]]
             [3, 7, 13]
             sage: [M.cohomology(i).dimension() for i in [1..3]]
@@ -2361,7 +2383,7 @@ class DifferentialGCAlgebra(GCAlgebra):
             sage: A.<x,y,z,t> = GradedCommutativeAlgebra(QQ,degrees = (1,2,3,3))
             sage: d = A.differential({x:y})
             sage: B = A.cdg_algebra(d)
-            sage: B.minimal_model(max_degree=3)
+            sage: B.minimal_model(i=3)
             Commutative Differential Graded Algebra morphism:
               From: Commutative Differential Graded Algebra with generators ('x3_0', 'x3_1') in degrees (3, 3) over Rational Field with differential:
                x3_0 --> 0
@@ -2375,6 +2397,7 @@ class DifferentialGCAlgebra(GCAlgebra):
 
 
         """
+        max_degree = int(i)
         if max_degree in self._minimalmodels.keys():
             return self._minimalmodels[max_degree]
         from copy import copy
@@ -2395,27 +2418,36 @@ class DifferentialGCAlgebra(GCAlgebra):
             NB = A.cdg_algebra(diff)
             Nphi = NB.hom([phi(g) for g in B.gens()]+nimags, check=False)
             return Nphi
-        if not self._minimalmodels:
-            degnzero = 1
-            while self.cohomology(degnzero).dimension() == 0:
-                degnzero += 1
-                if degnzero > max_degree:
-                    raise ValueError("Cohomology is trivial up to max_degree")
-            gens = [g.representative() for g in self.cohomology(degnzero).basis().keys()]
-            names = ['x{}_{}'.format(degnzero, i) for i in range(len(gens))]
-            A = GradedCommutativeAlgebra(self.base_ring(), names, degrees=[degnzero for i in names])
-            B = A.cdg_algebra(A.differential({}))
-            ##### Solve case that fails with one generator return B,gens
-            phi = B.hom(gens)
-            self._minimalmodels[degnzero] = phi
-        else:
-            degnzero = max(self._minimalmodels.keys())
-            phi = self._minimalmodels[degnzero]
+        def extendx(phi, degree):
             B = phi.domain()
-        for degree in range(degnzero+1, max_degree+1):
+            imagesbcohom = [phi(g.representative()) for g in B.cohomology(degree).basis().keys()]
+            CS = self.cohomology_raw(degree)
+            VS = CS.V()
+            CB = B.cohomology_raw(degree)
+            imagesphico = []
+            for g in imagesbcohom:
+                if g.is_zero():
+                    imagesphico.append(CS.zero())
+                else:
+                    imagesphico.append(CS(VS(g.basis_coefficients())))
+            phico = CB.hom(imagesphico, codomain=CS)
+            QI =CS.quotient(phico.image())
+            if QI.dimension()>0:
+                nnames = ['x{}_{}'.format(degree, j) for j in range(QI.dimension())]
+                nbasis = []
+                bbasis = self.basis(degree)
+                for v in QI.basis():
+                    vl = CS.lift(QI.lift(v))
+                    g = sum(bbasis[j]*vl[j] for j in range(len(bbasis)))
+                    nbasis.append(g)
+                nimags = nbasis
+                ndegrees = [degree for j in nbasis]
+                return extend(phi, ndegrees, [B.zero() for g in nimags], nimags, nnames)
+            return phi
+        def extendy(phi,degree):
             nnamesy = 0
-            scohom = self.cohomology_raw(degree)
             for iteration in range(max_iterations):
+                B = phi.domain()
                 imagesbcohom = [phi(g.representative()) for g in B.cohomology(degree).basis().keys()]
                 CS = self.cohomology_raw(degree)
                 VS = CS.V()
@@ -2429,12 +2461,12 @@ class DifferentialGCAlgebra(GCAlgebra):
                 phico = CB.hom(imagesphico, codomain=CS)
                 K = phico.kernel()
                 if K.dimension()==0:
-                    break
+                    return phi
                 elif iteration == max_iterations-1:
                     raise ValueError("Could not cover all relations in max iterations in degree {}".format(degree))
                 ndifs = [CB.lift(g) for g in K.basis()]
                 basisdegree=B.basis(degree)
-                ndifs = [sum(basisdegree[i]*g[i] for i in range(len(basisdegree))) for g in ndifs]
+                ndifs = [sum(basisdegree[j]*g[j] for j in range(len(basisdegree))) for g in ndifs]
                 MS = self.differential().differential_matrix(degree-1)
                 nimags = []
                 for g in ndifs:
@@ -2442,29 +2474,61 @@ class DifferentialGCAlgebra(GCAlgebra):
                         nimags.append(vector(MS.nrows()*[0]))
                     else:
                         nimags.append(MS.solve_left(vector(phi(g).basis_coefficients())))
-                nimags = [sum(self.basis(degree-1)[i]*g[i] for i in range(len(self.basis(degree-1)))) for g in nimags]
+                nimags = [sum(self.basis(degree-1)[j]*g[j] for j in range(len(self.basis(degree-1)))) for g in nimags]
                 ndegrees = [degree-1 for g in nimags]
-                nnames = ['y{}_{}'.format(degree-1, i+nnamesy) for i in range(len(nimags))]
+                nnames = ['y{}_{}'.format(degree-1, j+nnamesy) for j in range(len(nimags))]
                 nnamesy += len(nimags)
                 phi = extend(phi, ndegrees, ndifs, nimags, nnames)
                 B = phi.domain()
 
-            QI =CS.quotient(phico.image())
-            if QI.dimension()>0:
-                nnames = ['x{}_{}'.format(degree, i) for i in range(QI.dimension())]
-                nbasis = []
-                bbasis = self.basis(degree)
-                for v in QI.basis():
-                    vl = CS.lift(QI.lift(v))
-                    g = sum(bbasis[i]*vl[i] for i in range(len(bbasis)))
-                    nbasis.append(g)
-                nimags = nbasis
-                ndegrees = [degree for i in nbasis]
-                phi = extend(phi, ndegrees, [B.zero() for g in nimags], nimags, nnames)
-                B = phi.domain()
+        if not self._minimalmodels:
+            degnzero = 1
+            while self.cohomology(degnzero).dimension() == 0:
+                degnzero += 1
+                if degnzero > max_degree:
+                    raise ValueError("Cohomology is trivial up to max_degree")
+            gens = [g.representative() for g in self.cohomology(degnzero).basis().keys()]
+            names = ['x{}_{}'.format(degnzero, j) for j in range(len(gens))]
+            A = GradedCommutativeAlgebra(self.base_ring(), names, degrees=[degnzero for j in names])
+            B = A.cdg_algebra(A.differential({}))
+            ##### Solve case that fails with one generator return B,gens
+            phi = B.hom(gens)
+            phi = extendy(phi, degnzero+1)
+            self._minimalmodels[degnzero] = phi
+        else:
+            degnzero = max(self._minimalmodels.keys())
+            phi = self._minimalmodels[degnzero]
+
+        for degree in range(degnzero+1, max_degree+1):
+            phi = extendx(phi, degree)
+            phi = extendy(phi, degree+1)
             self._minimalmodels[degree] = phi
 
         return phi
+
+    def is_formal(self, i=3, max_iterations=3):
+        """
+        Compute whether the algebra is ``i``-formal. A CDGA is ``i``-formal
+        if it is ``i``-quasi-isomorphic to its cohomology algebra. This is
+        equivalent to their ``i``-minimal models being isomorphic.
+
+        INPUT:
+
+        - ``i`` - the degree up to which the formality condition is checked.
+
+        - ``max_iterations`` - the number of iterations tried to compute the
+        minimal models
+
+        TESTS::
+
+            sage: A.<e1,e2,e3,e4> = GradedCommutativeAlgebra(QQ)
+            sage: B = A.cdg_algebra({e1:e1*e3,e2:-e2*e3,e4:e1*e2})
+            sage: B.is_formal(4)
+            True
+        """
+        M1 = self.minimal_model(i, max_iterations)
+        M2 = self.cohomology_algebra(i+1).minimal_model(i, max_iterations)
+        return M1.domain() == M2.domain()
 
     def cohomology_algebra(self, max_degree=3):
         """
@@ -2528,59 +2592,6 @@ class DifferentialGCAlgebra(GCAlgebra):
                 l = sum(g[i]*B1[i] for i in range(len(B1)))
                 rels.append(l)
         return A.quotient(A.ideal(rels)).cdg_algebra({})
-
-    def is_formal(self, k, max_iterations=3):
-        r"""
-        Check if the CDGA is formal up to degree ``k``
-
-        INPUT:
-
-        - ``k`` -- integer; the degree up to which the formality is checked
-
-        - ``max_iterations`` -- integer (default : `3`); the maximum number of iterations used to compute the minimal model.
-
-        The algebra is said to be k-formal if its minimal model satisfies that each closed monomial of degree up to ``k``, which is
-        a multiple of a non-closed generator, is also exact.
-
-        EXAMPLES::
-
-            sage: A.<e1,e2,e3,e4,e5,e6> = GradedCommutativeAlgebra(QQ)
-            sage: B = A.cdg_algebra({e5:e1*e3+e2*e4,e6:-e1*e4-e2*e3})
-            sage: B.is_formal(2)
-            False
-
-            sage: A.<e1,e2,e3,e4,e5,e6,e7> = GradedCommutativeAlgebra(QQ)
-            sage: B = A.cdg_algebra({e1:e1*e7,e2:e2*e7,e3:2*e3*e7,e4:2*e4*e7,e5:-3*e5*e7,e6:-3*e6*e7})
-            sage: B.is_formal(2)
-            True
-
-            sage: A.<e3,e5> = GradedCommutativeAlgebra(QQ,degrees=[3,5])
-            sage: I = A.ideal([e3*e5])
-            sage: B = A.quotient(I)
-            sage: C = B.cdg_algebra({})
-            sage: C.is_formal(100)
-            True
-
-
-        """
-        if all(g.differential().is_zero() for g in self.gens()):  # Return True if self is trivially isomorphic to its cohomology
-            return True
-        phi = self.minimal_model(k+1, max_iterations)
-        M = phi.domain()
-        diff = M.differential()
-        nonclosedgens = set([i for i in range(M.ngens()) if not M.gen(i).differential().is_zero()])
-        for degree in range(1, k+1):
-            basis = M.basis(degree)
-            Ndegree = [g.basis_coefficients() for g in basis if any(list(g.dict().keys())[0][j]!= 0 for j in nonclosedgens)]
-            cocycles = M.cocycles(degree)
-            coboundaries = M.coboundaries(degree)
-            V = cocycles.ambient_vector_space()
-            S = V.subspace(Ndegree)
-            I = S.intersection(cocycles)
-            if not I.is_subspace(coboundaries):
-                return False
-        return True
-
 
     class Element(GCAlgebra.Element):
         def differential(self):

@@ -383,7 +383,8 @@ class Knots(Singleton, Parent):
 
         INPUT:
 
-        a pair of integers `(n, k)` where `n` is the crossing number
+        - ``n`` -- the crossing number
+        - ``k`` -- a positive integer
 
         OUTPUT:
 

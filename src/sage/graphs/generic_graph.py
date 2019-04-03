@@ -9845,6 +9845,167 @@ class GenericGraph(GenericGraph_pyx):
                                   for v in vertex_subset_list))
         output.update(vertex_subset_list)
         return list(output)
+
+    def private_neighbors(self, vertex, vertex_subset):
+        r'''
+        Return the private neighbors of a vertex with repect to an iterable.
+
+        INPUT:
+    
+        - ``vertex`` -- a vertex of ``self``
+        - ``vertex_subset`` -- an iterable of vertices of self
+
+        OUTPUT:
+
+        Return the closed neighbors of ``vertex`` that are not closed
+        neighbors of an other vertex of ``vertex_subset``.
+
+        EXAMPLES::
+
+            sage: g = graphs.PathGraph(5)
+            sage: list(g.private_neighbors(1, [1, 3, 4]))
+            [1, 0]
+
+            sage: list(g.private_neighbors(1, [3, 4]))
+            [1, 0]
+
+            sage: list(g.private_neighbors(1, [3, 4, 0]))
+            []
+
+        '''
+    
+        closed_neighborhood_vs = set(self.closed_vertex_boundary(
+            u for u in vertex_subset if u!=vertex))
+    
+    
+        return (neighbor for neighbor in self.closed_neighbor_iterator(vertex)
+                if neighbor not in closed_neighborhood_vs)
+
+
+    def is_dominating(self, p_dominating, p_dominated=None):
+        r'''
+        Return whether the first set dominates the second one.
+        
+        We say that as set `D` of vertices of a graph `G`dominated a set `S`
+        if every vertex of `S` belongs to `D` or is adjacent to a vertex of
+        `D`.  Also, `D` is a dominating set of `G` if it dominates `V(G)`.
+
+        INPUT:
+    
+        - ``p_dominating`` -- an iterable of vertices of ``self``
+        - ``vertex_subset`` -- (default: `None`) an iterable of vertices of
+        ``self``
+
+        OUTPUT:
+
+        Return whether ``p_dominating`` dominates ``p_dominated``.
+        If ``p_dominated`` is set to ``None``, returns whether
+        ``p_dominating`` dominates ``self``.
+
+        EXAMPLES::
+
+            sage: g = graphs.CycleGraph(5)
+            sage: g.is_dominating([0,1], [4, 2])
+            True
+
+            sage: g.is_dominating([0,1])
+            False
+
+        TESTS::
+
+            sage: g.is_dominating([0,1], {2, 42})
+            LookupError: vertex (42) is not a vertex of the graph
+        '''
+        if p_dominated is None:
+            sp_dominated = set(self.vertex_iterator())
+        else:
+            sp_dominated = set(p_dominated)
+
+            # using a set to check membership repeatedly faster
+            all_vertices = set(self.vertex_iterator()) 
+
+            # check that sp_dominated is a subset of self.vertices
+            try:
+                bad_boy = next(v for v in sp_dominated if v not in all_vertices)
+                raise LookupError(
+                    'vertex ({0}) is not a vertex of the graph'.format(bad_boy))
+            except StopIteration:
+                pass
+
+        actually_dominated = set(self.closed_vertex_boundary(p_dominating))
+        return sp_dominated <= actually_dominated
+
+
+    def is_redundant(self, dom, focus=None):
+        r'''
+        Return whether a vertex iterable has redundant vertices.
+
+        Let `G` be a graph and `D` be a subset of its vertices. A vertex `v`
+        of `D` is said to be redundant in `S` if every closed neighbors of
+        `v` that belongs to `S` is dominated by `D \ {v}`.
+
+        INPUT:
+    
+        - ``dom`` -- an iterable of vertices of ``self``
+        - ``focus`` -- (default: `None`) an iterable of vertices of
+        ``self``
+
+        OUTPUT:
+
+        Return whether ``dom`` has a redundant vertex in ``focus``.
+        When called with value ``None`` for ``focus``, the function is ran
+        with ``focus`` being equal to all vertices of ``self``.
+
+        EXAMPLES::
+
+            sage: G = graphs.CubeGraph(3)
+            sage: G.is_redundant(['000', '101'], ['011'])
+            True
+            sage: G.is_redundant(['000', '101'])
+            False
+        '''
+
+        if focus is None:
+            focus = self.vertices()
+
+        # dominator[v] (for v in focus) will contain the list of vertices
+        # of dom that are adjacent to v
+        dominator = dict()
+
+        # For every x in dom, has_private[x] will be True
+        # iff x has a private neighbor in focus
+        has_private = dict()
+
+        # Counts the number of vertices of dom with a private neighbor in S:
+        irredundant_ds = 0
+
+        for v in focus:
+            dominator[v] = []  # Initialization
+
+        for x in dom:
+            has_private[x] = False      # Initialization
+            for v in self.closed_neighbor_iterator(x):
+                if v in focus:
+                    # x dominates all its closed neighbors:
+                    dominator[v].append(x)
+
+        # Now we can compute has_private[]:
+        for v in focus:
+            # Here we do care neither about vertices dominated by more than
+            # one vertex of dom (they are not private neighbor of anybody)
+            # nor about vertices not dominated by dom (idem).
+            if len(dominator[v]) == 1:
+                # If v is dominated only by one vertex x,
+                # then v is a private neighbor of x
+                if not has_private[dominator[v][0]]:
+                    # If it was not know yet that x has a private
+                    has_private[dominator[v][0]] = True
+                    # We found a new useful vertex
+                    irredundant_ds = irredundant_ds + 1
+
+        # True iff each element of dom is irredundant
+        return len(dom) != irredundant_ds
+
     
     def set_vertices(self, vertex_dict):
         """

@@ -1,4 +1,6 @@
+from sage.misc.cachefunc import cached_method
 from sage.structure.element import AlgebraElement
+from sage.rings.integer import Integer
 
 class MixedForm(AlgebraElement):
 
@@ -8,26 +10,26 @@ class MixedForm(AlgebraElement):
     # Constructor
     #####
 
-    def __init__(self, vector_field_module, comp=None, name=None,
-                 latex_name=None):
-        if vector_field_module is None:
-            raise ValueError("underlying vector field module must be provided")
+    def __init__(self, parent, comp=None, name=None, latex_name=None):
+        if parent is None:
+            raise ValueError("a parent must be provided")
 
         # Add this element (instance) to the set of parent algebra:
-        parent = MixedFormAlgebra(vector_field_module)
         AlgebraElement.__init__(self, parent)
 
+        vmodule = parent._vmodule
+
         # Define attributes:
-        self._vmodule = vector_field_module
-        self._dest_map = vector_field_module._dest_map
-        self._domain = vector_field_module._domain
-        self._ambient_domain = vector_field_module._ambient_domain
-        self._max_deg = vector_field_module._ambient_domain.dim()
+        self._vmodule = vmodule
+        self._dest_map = vmodule._dest_map
+        self._domain = vmodule._domain
+        self._ambient_domain = vmodule._ambient_domain
+        self._max_deg = vmodule._ambient_domain.dim()
         self._comp = []
 
         # Set components:
         if comp is None:
-            for j in [0..self._max_deg]:
+            for j in range(0,self._max_deg + 1):
                 self._comp.append(self._domain.diff_form(j))
         else:
             self._comp = comp
@@ -180,7 +182,7 @@ class MixedForm(AlgebraElement):
             else:
                 latex_txt += latex(self._comp[0])
 
-            for j in [1..self._max_deg]:
+            for j in range(1, self._max_deg + 1):
                 if self._comp[j]._name is None:
                     plain_txt += " + (unnamed " + str(j) + "-form)"
                 else:
@@ -200,7 +202,7 @@ class MixedForm(AlgebraElement):
             self._comp[0].expr(chart, from_chart)) \
                      + LatexExpr(r"\right]_0")
 
-        for j in [1..self._max_deg]:
+        for j in range(1, self._max_deg + 1):
             rst = self._comp[j].restrict(basis._domain,
                                          dest_map=basis._dest_map)
             format_txt = _display_form(self, rst, basis, chart)
@@ -224,8 +226,6 @@ class MixedForm(AlgebraElement):
                 self._latex_name = self._name
         if latex_name is not None:
             self._latex_name = latex_name
-        for rst in self._restrictions.values():
-            rst.set_name(name=name, latex_name=latex_name)
 
     #####
     # __bool__
@@ -248,7 +248,7 @@ class MixedForm(AlgebraElement):
         from sage.structure.richcmp import richcmp
 
         # Compare all elements separately:
-        for j in [0..self._max_deg]:
+        for j in range(0, self._max_deg + 1):
             if not richcmp(self._comp[j], other._comp[j], op):
                 return False
         return True
@@ -261,10 +261,10 @@ class MixedForm(AlgebraElement):
 
     def _add_(self, other):
         resu_comp = []
-        for j in [0..self._max_deg]:
+        for j in range(0, self._max_deg + 1):
             resu_comp.append(self._comp[j] + other._comp[j])
 
-        resu = self.__class__(self._vmodule, comp=resu_comp)
+        resu = self.__class__(self.parent(), comp=resu_comp)
 
         # Compose name:
         if self._name is not None and other._name is not None:
@@ -282,10 +282,10 @@ class MixedForm(AlgebraElement):
 
     def _sub_(self, other):
         resu_comp = []
-        for j in [0..self._max_deg]:
+        for j in range(0, self._max_deg + 1):
             resu_comp.append(self._comp[j] - other._comp[j])
 
-        resu = self.__class__(self._vmodule, comp=resu_comp)
+        resu = self.__class__(self.parent(), comp=resu_comp)
 
         # Compose name:
         from sage.tensor.modules.format_utilities import is_atomic
@@ -325,14 +325,14 @@ class MixedForm(AlgebraElement):
         resu_comp = [None] * (self._max_deg + 1)
 
         resu_comp[0] = self._comp[0] * other._comp[0]
-        for j in [1..self._max_deg]:
+        for j in range(1, self._max_deg + 1):
             resu_comp[j] = self._comp[j] * other._comp[0]
             resu_comp[j] = resu_comp[j] + self._comp[0] * other._comp[j]
-            for k in [1..j - 1]:
+            for k in range(1, j):
                 resu_comp[j] = resu_comp[j] + self._comp[k].wedge(
                     other._comp[j - k])
 
-        resu = self.__class__(self._vmodule, comp=resu_comp)
+        resu = self.__class__(self.parent(), comp=resu_comp)
 
         # Compose name:
         from sage.tensor.modules.format_utilities import format_mul_txt, \
@@ -355,10 +355,10 @@ class MixedForm(AlgebraElement):
         resu_comp = []
         resu_comp.append(self._domain.scalar_field_algebra().zero())
         resu_comp.append(self._comp[0].differential())
-        for j in [1..self._max_deg - 1]:
+        for j in range(1, self._max_deg):
             resu_comp.append(self._comp[j].exterior_derivative())
 
-        resu = self.__class__(self._vmodule, comp=resu_comp)
+        resu = self.__class__(self.parent(), comp=resu_comp)
 
         # Compose name:
         from sage.tensor.modules.format_utilities import (format_unop_txt,
@@ -375,7 +375,7 @@ class MixedForm(AlgebraElement):
     #####
 
     def copy(self):
-        return self.__class__(self._vmodule, comp=self._comp, name=self._name,
+        return self.__class__(self.parent(), comp=self._comp, name=self._name,
                               latex_name=self._latex_name)
 
     #####
@@ -441,7 +441,7 @@ class MixedForm(AlgebraElement):
     def set_restriction(self, rst):
         if not isinstance(rst, MixedForm):
             raise TypeError("the argument must be a mixed form")
-        for j in [0..self._max_deg]:
+        for j in range(0, self._max_deg + 1):
             self._comp[j].restrict(rst._comp[j])
 
     #####
@@ -453,10 +453,10 @@ class MixedForm(AlgebraElement):
     def restrict(self, subdomain, dest_map=None):
         resu_comp = []
         resu_comp.append(self._comp[0].restrict(subdomain))
-        for j in [1..self._max_deg]:
+        for j in range(1, self._max_deg + 1):
             resu_comp.append(self._comp[j].restrict(subdomain, dest_map))
-        return self.__class__(subdomain.vector_field_module(), resu_comp,
-                              self._name, self._latex_name)
+        return self.__class__(subdomain.mixed_form_algebra(dest_map=dest_map),
+                              resu_comp, self._name, self._latex_name)
 
     #####
     # add_comp_by_continuation
@@ -469,5 +469,5 @@ class MixedForm(AlgebraElement):
         if chart is None:
             chart = frame._chart
         self._comp[0].add_expr_by_continuation(chart, subdomain)
-        for j in [1..self._max_deg]:
+        for j in range(1, self._max_deg + 1):
             self._comp[j].add_comp_by_continuation(frame, subdomain, chart)

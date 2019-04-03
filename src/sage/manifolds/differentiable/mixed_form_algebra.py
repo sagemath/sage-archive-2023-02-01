@@ -1,7 +1,9 @@
+from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
 from sage.categories.graded_algebras import GradedAlgebras
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.symbolic.ring import SR
+from sage.manifolds.differentiable.mixed_form import MixedForm
 
 class MixedFormAlgebra(Parent, UniqueRepresentation):
     # Declare elements:
@@ -102,10 +104,8 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
                 comp_list[deg] = comp
 
         # Use already existing coercions:
-        for j in [0..self._max_deg]:
-            comp_list[j] = self._domain.diff_form_module(j,
-                                                         self._dest_map).coerce(
-                comp_list[j])
+        for j in range(0, self._max_deg + 1):
+            comp_list[j] = self._domain.diff_form_module(j, self._dest_map).coerce(comp_list[j])
 
         try:
             if name is None and comp._name is not None:
@@ -115,7 +115,7 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
         except AttributeError:
             pass
 
-        return self.element_class(self._vmodule, comp_list, name, latex_name)
+        return self.element_class(self, comp_list, name, latex_name)
 
     #####
     # _coerce_map_from_

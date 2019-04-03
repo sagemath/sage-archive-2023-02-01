@@ -85,7 +85,7 @@ def _parent(G, dom, V_prev):
 
 def _peel(G, A):
     r'''
-    Return a peeling of a bicolored graph.
+    Return a peeling of a vertex iterable of a graph.
 
     For internal use.
     Given a graph `G` and a subset `A` of its vertices, a peeling
@@ -152,13 +152,20 @@ def _cand_ext_enum(G, dom, u_next, V_next):
     - `G` -- a graph
     - `dom` -- an iterable over some vertices of `G`
     - `u_next` -- a vertex of `G`
-    - `V_next` -- an iterable over some vertices
+    - `V_next` -- an iterable over some vertices of `G`
     
     OUTPUT:
 
     An iterator over all sets `X` that dominate
     $N(u_next) \cap V_next \setminus N[dom]$ and are inclusion-wise
     minimal (hereafter called candidate extensions of ``dom`` to ``V_next``).
+
+    Intuitively, we have a partial (irredundant) dominating set `dom` and we
+    want to extend it to `V_next`. For this we enumerate all the minimal
+    dominating sets of $N(u_next) \cap V_next \setminus N[dom]$,
+    which will contain all the extensions of `dom` into a minimal dominating
+    set of `V_next`. (Note that by doing so we also enumerate sets `X` such
+    that $dom \cup X$ is dominating `V_next` but is not minimal.)
     '''
 
     def _aux_with_rep(G, dom, u_next, V_next):
@@ -259,7 +266,7 @@ def minimal_dominating_sets(G, vertices_to_dominate=None):
 
     ALGORITHM:
 
-    The algorithm is described in https://arxiv.org/abs/1810.00789 .
+    The algorithm is described in :arxiv:`1810.00789`.
 
     EXAMPLES:
 
@@ -309,6 +316,9 @@ def minimal_dominating_sets(G, vertices_to_dominate=None):
         {9, 2, 5}
         {0, 4, 5, 7, 9}
 
+    .. WARNING:
+    
+    We assume that vertices are sortable (i.e. they can be compared).
     '''
 
     def tree_search(H, plng, dom, i):

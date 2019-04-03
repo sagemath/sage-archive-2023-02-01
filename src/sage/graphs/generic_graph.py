@@ -9814,6 +9814,38 @@ class GenericGraph(GenericGraph_pyx):
             output.intersection_update(vertices2)
         return list(output)
 
+    def closed_vertex_boundary(self, vertex_subset):
+        r"""
+        Return the closed neighborhood of an iterable of vertices.
+
+        INPUT:
+
+        - ``vertex_subset`` -- an iterable of vertices of self
+
+        OUTPUT:
+
+        An iterator over vertices of ``self`` that belong to
+        ``vertex_subset`` or have a neighbor in this set.
+
+        EXAMPLES::
+
+            sage: G = graphs.PathGraph(5)
+            sage: G.neighbors_of_a_set({2,3})
+            {1, 2, 3, 4}
+        """
+
+        vertex_subset_list = list(vertex_subset)
+        output = set()
+
+        if self._directed:
+            output.update(*(set(self.neighbor_out_iterator(v))
+                                  for v in vertex_subset_list))
+        else:
+            output.update(*(set(self.neighbor_iterator(v))
+                                  for v in vertex_subset_list))
+        output.update(vertex_subset_list)
+        return list(output)
+    
     def set_vertices(self, vertex_dict):
         """
         Associate arbitrary objects with each vertex, via an association
@@ -9992,6 +10024,53 @@ class GenericGraph(GenericGraph_pyx):
         """
         return self._backend.iterator_nbrs(vertex)
 
+    def closed_neighbor_iterator(self, vertex):
+        r'''
+        Return an iterator over the closed neighbors of ``vertex``.
+        
+        INPUT:
+        
+        - ``vertex`` -- the vertex of ``self``, the closed neighborhood of
+        which we want to iterate over.
+        
+        EXAMPLES::
+        
+            sage: g = graphs.CubeGraph(3)
+            sage: for i in g.closed_neighbor_iterator('010'):
+            ....:     print(i)
+            010
+            011
+            000
+            110
+
+        ::
+
+            sage: g = Graph(3, loops = True)
+            sage: g.add_edge(0,1)
+            sage: g.add_edge(0,0)
+            sage: list(g.closed_neighbor_iterator(0))
+            [0, 1]
+            sage: list(g.closed_neighbor_iterator(2))
+            [2]
+
+        TESTS::
+
+            sage: G = graphs.CubeGraph(3)
+            sage: list(G.closed_neighbor_iterator('013'))
+            LookupError: vertex (013) is not a vertex of the graph
+        '''
+
+        if not self.has_vertex(vertex):
+            raise LookupError(
+                'vertex ({0}) is not a vertex of the graph'.format(vertex))
+
+        if not self.has_edge(vertex, vertex):
+            yield vertex
+
+        for neighbor in self.neighbor_iterator(vertex):
+            yield neighbor
+        return
+    
     def vertices(self, sort=True, key=None):
         r"""
         Return a list of the vertices.

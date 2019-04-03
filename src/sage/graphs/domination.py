@@ -5,8 +5,7 @@ This file contains varied functions related to domination as well as an
 implementation of the algorithm described in _Enumerating minimal
 dominating sets in $K_t$-free graphs and variants_ by Marthe Bonamy,
 Oscar Defrain, Marc Heinrich, Michał Pilipczuk, and Jean-Florent Raymond
-(https://arxiv.org/abs/1810.00789 ) to enumerate the minimal dominating
-sets of a graph.
+:arxiv:`1810.00789` to enumerate the minimal dominating sets of a graph.
 
 EXAMPLES::
 
@@ -28,110 +27,8 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.all import *
-
-
-def closed_neighbor_iterator(self, vertex):
-    r'''
-    Return an iterator over the closed neighbors of ``vertex``.
-
-    INPUT:
-    - ``vertex`` -- the vertex of ``self``, the closed neighborhood of
-    which we want to iterate over.
-
-    EXAMPLES::
-
-        sage: g = graphs.CubeGraph(3)
-        sage: for i in g.closed_neighbor_iterator('010'):
-        ....:     print(i)
-        010
-        011
-        000
-        110
-
-    ::
-
-        sage: g = Graph(3, loops = True)
-        sage: g.add_edge(0,1)
-        sage: g.add_edge(0,0)
-        sage: list(g.closed_neighbor_iterator(0))
-        [0, 1]
-        sage: list(g.closed_neighbor_iterator(2))
-        [2]
-
-    TESTS::
-
-        sage: G = graphs.CubeGraph(3)
-        sage: list(G.closed_neighbor_iterator('013'))
-        LookupError: vertex (013) is not a vertex of the graph
-    '''
-
-    if not self.has_vertex(vertex):
-        raise LookupError(
-            'vertex ({0}) is not a vertex of the graph'.format(vertex))
-
-    if not self.has_edge(vertex, vertex):
-        yield vertex
-
-    for neighbor in self.neighbor_iterator(vertex):
-        yield neighbor
-    return
-
-
-def neighbors_of_a_set(self, vertex_subset):
-    r'''
-    Return the set of neighbors of an iterable of vertices.
-
-    INPUT:
-
-    - ``vertex_subset`` -- iterable; contains the vertices of ``self``
-    for which we want to enumerate neighbors
-
-    OUTPUT:
-
-    An iterator over vertices of ``self`` that does not belong to
-    ``vertex_subset`` and have a neighbor in this set.
-
-    EXAMPLES::
-
-        sage: g = graphs.PathGraph(5)
-        sage: g.neighbors_of_a_set({2,3})
-        {1, 4}
-    '''
-
-    vertex_subset_list = list(vertex_subset)
-    if vertex_subset_list:
-        neigh = set.union(*(set(self.neighbor_iterator(v))
-                            for v in vertex_subset_list))
-        neigh.difference_update(vertex_subset_list)
-        return neigh
-    return set()
-
-
-def closed_neighbors_of_a_set(self, vertex_subset):
-    r'''
-    Return the closed neighborhood of an iterable of vertices.
-
-    INPUT:
-
-    - ``vertex_subset`` -- an iterable of vertices of self
-
-    OUTPUT:
-
-    An iterator over vertices of ``self`` that belong to
-    ``vertex_subset`` or have a neighbor in this set.
-
-    EXAMPLES::
-
-        sage: G = graphs.PathGraph(5)
-        sage: G.neighbors_of_a_set({2,3})
-        {1, 2, 3, 4}
-    '''
-
-    vertex_subset_list = list(vertex_subset)
-    if vertex_subset_list:
-        return set.union(*(set(self.closed_neighbor_iterator(v))
-                           for v in vertex_subset_list))
-    return set()
+#from .graph_generators import GraphGenerators
+#from sage.graphs.generic_graph import GenericGraph
 
 
 def private_neighbors(self, vertex, vertex_subset):
@@ -162,7 +59,7 @@ def private_neighbors(self, vertex, vertex_subset):
 
     '''
     
-    closed_neighborhood_vs = set(self.closed_neighbors_of_a_set(
+    closed_neighborhood_vs = set(self.closed_vertex_boundary(
         u for u in vertex_subset if u!=vertex))
     
     
@@ -220,7 +117,7 @@ def is_dominating(self, p_dominating, p_dominated=None):
         except StopIteration:
             pass
 
-    actually_dominated = self.closed_neighbors_of_a_set(p_dominating)
+    actually_dominated = self.closed_vertex_boundary(p_dominating)
     return sp_dominated <= actually_dominated
 
 
@@ -295,11 +192,6 @@ def is_redundant(self, dom, focus=None):
     return len(dom) != irredundant_ds
 
 
-# Adding the functions defined above to the Graph class
-
-Graph.closed_neighbor_iterator = closed_neighbor_iterator
-Graph.neighbors_of_a_set = neighbors_of_a_set
-Graph.closed_neighbors_of_a_set = closed_neighbors_of_a_set
 Graph.private_neighbors = private_neighbors
 
 Graph.is_dominating = is_dominating
@@ -453,7 +345,7 @@ def _cand_ext_enum(G, dom, u_next, V_next):
 
         # S = neighbors of u_next in V_next that are not yet dominated:
         S = set.intersection(set(G.neighbor_iterator(u_next)), set(
-            V_next)) - G.closed_neighbors_of_a_set(dom)
+            V_next)) - set(G.closed_vertex_boundary(dom))
 
         # True iff u_next is dominated by dom:
         u_next_dom_by_dom = any(
@@ -498,7 +390,7 @@ def _cand_ext_enum(G, dom, u_next, V_next):
 
                 for Q in minimal_dominating_sets(G, S_minus):
                     sQ = set(Q)
-                    NQ = G.closed_neighbors_of_a_set(sQ)
+                    NQ = set(G.closed_vertex_boundary(sQ))
                     Nw_minus = set.intersection(
                         set(G.closed_neighbor_iterator(w)), S_plus)
                     if not NQ >= Nw_minus:

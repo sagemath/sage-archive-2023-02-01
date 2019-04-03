@@ -5485,8 +5485,13 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: x.principal_specialization(3)
             3*q^5 + 6*q^4 + 5*q^3 + 6*q^2 + 3*q + 1
 
-            sage: B = SymmetricFunctions(QQ).realizations()
-            sage: x = m[2,1]
+        Check that the principal specializations in different bases
+        are all the same.  When specific implementations for further
+        bases are added, this test should be adapted::
+
+            sage: S = SymmetricFunctions(QQ)
+            sage: B = [S.p(), S.m(), S.e(), S.h(), S.s(), S.f()]
+            sage: m = S.m(); x = m[2,1]
             sage: len(set([b(x).principal_specialization(n=3) for b in B]))
             1
             sage: len(set([b(x).principal_specialization() for b in B]))
@@ -5497,13 +5502,12 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             1
 
         """
-        from sage.combinat.sf.sf import SymmetricFunctions
-        p = SymmetricFunctions(self.parent().base_ring()).p()
+        p = self.parent().realization_of().powersum()
         return p(self).principal_specialization(n, q=q)
 
-
     def exponential_specialization(self, t=None, q=1):
-        r"""Return the exponential specialization of a symmetric function.
+        r"""
+        Return the exponential specialization of a symmetric function.
 
         The `q`-exponential specialization is a ring homomorphism
         defined on homogeneous symmetric functions `f` of degree `n`
@@ -5544,8 +5548,13 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: m.zero().exponential_specialization()
             0
 
-            sage: B = SymmetricFunctions(QQ).realizations()
-            sage: x = m[3]+m[2,1]+m[1,1,1]
+        Check that the exponential specializations in different bases
+        are all the same.  When specific implementations for further
+        bases are added, this test should be adapted::
+
+            sage: S = SymmetricFunctions(QQ)
+            sage: B = [S.p(), S.m(), S.e(), S.h(), S.s(), S.f()]
+            sage: m = S.m(); x = m[3]+m[2,1]+m[1,1,1]
             sage: len(set([b(x).exponential_specialization(q=None, t=None) for b in B]))
             1
             sage: len(set([b(x).exponential_specialization(q=1) for b in B]))

@@ -154,7 +154,7 @@ class TorsionQuadraticModuleElement(FGP_Element):
             sage: W = FreeQuadraticModule(ZZ, 2, 2*matrix.identity(2))
             sage: V = (1/2) * W
             sage: T = TorsionQuadraticModule(V,W)
-            sage: x = T.gen(0);
+            sage: x = T.gen(0)
             sage: x
             (1, 0)
             sage: x.quadratic_product()
@@ -557,7 +557,7 @@ class TorsionQuadraticModule(FGP_Module_class):
             raise NotImplementedError("at the moment sage knows how to do this only for even genera. " +
                                       " Help us to implement this for odd genera.")
         for p in D.prime_divisors():
-            # check the determinat conditions
+            # check the determinant conditions
             Q_p = self.primary_part(p)
             gram_p = Q_p.gram_matrix_quadratic()
             length_p = len(Q_p.invariants())

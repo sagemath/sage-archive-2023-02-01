@@ -103,14 +103,14 @@ REFERENCES:
 .. [KnuMil] Knutson and Miller. *Subword complexes in Coxeter groups*. Adv. Math., 184(1):161-176, 2004.
 .. [PilStu] Pilaud and Stump. *Brick polytopes of spherical subword complexes and generalized associahedra*. Adv. Math. 276:1-61, 2015.
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015      Christian Stump <christian.stump@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 # python3
 from __future__ import division, print_function
 from six.moves import range
@@ -556,7 +556,7 @@ class SubwordComplexFacet(Simplex, Element):
             pi = W.one()
             for i, wi in enumerate(Q):
                 fund_weight = Lambda[wi]
-                V_weights.append(pi*fund_weight)
+                V_weights.append(pi * fund_weight)
                 if i not in self:
                     pi = pi.apply_simple_reflection_right(wi)
             if self._extended_weight_conf is None:
@@ -810,7 +810,7 @@ class SubwordComplexFacet(Simplex, Element):
         else:
             type = None
 
-        if type not in ['A','B','C'] or not G.is_connected():
+        if type not in ['A', 'B', 'C'] or not G.is_connected():
             raise ValueError(error_msg)
 
         # organization of the indexing
@@ -819,8 +819,8 @@ class SubwordComplexFacet(Simplex, Element):
         for a in G.vertex_iterator():
             if G.degree(a) == 1:
                 b = G.neighbors(a)[0]
-                if ( type == "A" or G.edge_label(a,b) == 4 ):
-                    index_set = [a,b]
+                if type == "A" or G.edge_label(a, b) == 4:
+                    index_set = [a, b]
                     break
         assert index_set is not None, "Bug in the plot method"
         while G.degree(b) == 2:
@@ -1796,20 +1796,20 @@ class SubwordComplex(UniqueRepresentation, SimplicialComplex):
 
             sage: W = ReflectionGroup(['A',2])                          # optional - gap3
             sage: SC = SubwordComplex([1,2,1,2,1], W.w0)                # optional - gap3
-            sage: SC.cover_relations()                                  # optional - gap3
-            [((0, 1), (1, 2)),
-             ((0, 1), (0, 4)),
-             ((1, 2), (2, 3)),
+            sage: sorted(SC.cover_relations())                          # optional - gap3
+            [((0, 1), (0, 4)),
+             ((0, 1), (1, 2)),
              ((0, 4), (3, 4)),
+             ((1, 2), (2, 3)),
              ((2, 3), (3, 4))]
 
             sage: W = CoxeterGroup(['A',2])
             sage: SC = SubwordComplex([1,2,1,2,1], W.w0)
-            sage: SC.cover_relations()
-            [((0, 1), (1, 2)),
-             ((0, 1), (0, 4)),
-             ((1, 2), (2, 3)),
+            sage: sorted(SC.cover_relations())
+            [((0, 1), (0, 4)),
+             ((0, 1), (1, 2)),
              ((0, 4), (3, 4)),
+             ((1, 2), (2, 3)),
              ((2, 3), (3, 4))]
         """
         N = len(self.group().long_element(as_word=True))

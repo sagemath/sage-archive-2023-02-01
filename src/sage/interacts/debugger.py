@@ -48,12 +48,12 @@ class Debug(object):
     """
     Create a debugger for the most recent stack trace.
 
-    NOTES:
+    .. NOTE::
 
-    - Input is not preparsed.
-    - You can define and work with many debug interacts at the same time.
+        - Input is not preparsed.
+        - You can define and work with many debug interacts at the same time.
 
-    TESTS::
+    TESTS:
 
     The current position in the stack frame is self._curframe_index::
 

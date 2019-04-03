@@ -434,7 +434,7 @@ cdef class Lfunction_I(Lfunction):
 
     - ``residue`` - List of the residues of the L-function
 
-    NOTES:
+    .. NOTE::
 
         If an L-function satisfies `\Lambda(s) = \omega Q^s \Lambda(k-s)`,
         by replacing `s` by `s+(k-1)/2`, one can get it in the form we need.
@@ -571,7 +571,7 @@ cdef class Lfunction_D(Lfunction):
 
     - ``residue`` - List of the residues of the L-function
 
-    NOTES:
+    .. NOTE::
 
         If an L-function satisfies `\Lambda(s) = \omega Q^s \Lambda(k-s)`,
         by replacing `s` by `s+(k-1)/2`, one can get it in the form we need.
@@ -710,7 +710,7 @@ cdef class Lfunction_C:
 
     - ``residue`` - List of the residues of the L-function
 
-    NOTES:
+    .. NOTE::
 
         If an L-function satisfies `\Lambda(s) = \omega Q^s \Lambda(k-s)`,
         by replacing `s` by `s+(k-1)/2`, one can get it in the form we need.

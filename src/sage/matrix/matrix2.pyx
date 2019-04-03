@@ -7,28 +7,22 @@ AUTHORS:
 
 - William Stein: initial version
 
+- Sebastian Pancratz (2009-06-12): implemented ``adjoint`` and ``charpoly`` methods
+
+- Sebastian Pancratz (2009-06-25): fixed ``adjoint`` reflecting the change that
+  ``_adjoint`` is now implemented in :class:`Matrix`
+
+- Sebastian Pancratz (2009-06-25): use the division-free algorithm for ``charpoly``
+
 - Miguel Marco (2010-06-19): modified eigenvalues and eigenvectors functions to
-  allow the option extend=False
+  allow the option ``extend=False``
+
+- Thierry Monteil (2010-10-05): Bugfix for :trac:`10063`, so that the
+  determinant is computed even for rings for which the ``is_field`` method is not
+  implemented.
 
 - Rob Beezer (2011-02-05): refactored all of the matrix kernel routines
 
-TESTS::
-
-    sage: m = matrix(ZZ['x'], 2, 3, [1..6])
-    sage: TestSuite(m).run()
-
-Check that a pair consisting of a matrix and its echelon form is
-pickled correctly (this used to give a wrong answer due to a Python
-bug, see :trac:`17527`)::
-
-    sage: K.<x> = FractionField(QQ['x'])
-    sage: m = Matrix([[1], [x]])
-    sage: t = (m, m.echelon_form())
-    sage: loads(dumps(t))
-    (
-    [1]  [1]
-    [x], [0]
-    )
 """
 
 #*****************************************************************************
@@ -37,7 +31,7 @@ bug, see :trac:`17527`)::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import, division
 
@@ -47,8 +41,9 @@ from cysignals.signals cimport sig_check
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.coerce cimport py_scalar_parent
 from sage.structure.sequence import Sequence
+from sage.structure.coerce cimport coercion_model
 from sage.structure.element import is_Vector
-from sage.structure.element cimport have_same_parent, coercion_model
+from sage.structure.element cimport have_same_parent
 from sage.misc.misc import verbose, get_verbose
 from sage.rings.ring import is_Ring
 from sage.rings.number_field.number_field_base import is_NumberField
@@ -69,8 +64,31 @@ from . import berlekamp_massey
 from sage.modules.free_module_element import is_FreeModuleElement
 from sage.matrix.matrix_misc import permanental_minor_polynomial
 
+# used to deprecate only adjoint method
+from sage.misc.superseded import deprecated_function_alias
 
 cdef class Matrix(Matrix1):
+    """
+    Base class for matrices, part 2
+
+    TESTS::
+
+        sage: m = matrix(ZZ['x'], 2, 3, [1..6])
+        sage: TestSuite(m).run()
+
+    Check that a pair consisting of a matrix and its echelon form is
+    pickled correctly (this used to give a wrong answer due to a Python
+    bug, see :trac:`17527`)::
+
+        sage: K.<x> = FractionField(QQ['x'])
+        sage: m = Matrix([[1], [x]])
+        sage: t = (m, m.echelon_form())
+        sage: loads(dumps(t))
+        (
+        [1]  [1]
+        [x], [0]
+        )
+    """
     def _backslash_(self, B):
         r"""
         Used to compute `A \backslash B`, i.e., the backslash solver
@@ -1486,7 +1504,7 @@ cdef class Matrix(Matrix1):
 
         If the base ring has a method :meth:`_matrix_determinant`, we call it.
 
-        Otherwise, for small matrices (n less than 4), this is computed using the 
+        Otherwise, for small matrices (n less than 4), this is computed using the
         naive formula. In the specific case of matrices over the integers modulo a
         non-prime, the determinant of a lift is computed over the integers.
         In general, the characteristic polynomial is computed either using
@@ -1584,14 +1602,6 @@ cdef class Matrix(Matrix1):
             sage: A.determinant() == B.determinant()
             True
 
-        AUTHORS:
-
-          - Unknown: No author specified in the file from 2009-06-25
-          - Sebastian Pancratz (2009-06-25): Use the division-free
-            algorithm for charpoly
-          - Thierry Monteil (2010-10-05): Bugfix for :trac:`10063`,
-            so that the determinant is computed even for rings for which
-            the is_field method is not implemented.
         """
 
         from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
@@ -2327,10 +2337,6 @@ cdef class Matrix(Matrix1):
             sage: A._cache['charpoly']
             x^2 - 3.00000000000000*x - 2.00000000000000
 
-        AUTHORS:
-
-        - Unknown: No author specified in the file from 2009-06-25
-        - Sebastian Pancratz (2009-06-25): Include the division-free algorithm
         """
 
         f = self.fetch('charpoly')
@@ -2386,10 +2392,9 @@ cdef class Matrix(Matrix1):
         rationals::
 
             sage: R.<t> = QQ[]
-            sage: A = matrix(R, [[7*t^2 - t - 9, -1/4*t - 1, -17*t^2 - t + 1], \
-                                 [-t^2 + 1/4*t, t^2 + 5/7*t + 3, 1/5*t^2 +     \
-                                  1662],                                       \
-                                 [-2*t - 3, 2*t^2 + 6*t - 1/2, -1/6*t^2]])
+            sage: A = matrix(R,[[7*t^2 - t - 9, -1/4*t - 1, -17*t^2 - t + 1],
+            ....:               [-t^2 + 1/4*t, t^2 + 5/7*t + 3, 1/5*t^2 + 1662],
+            ....:               [-2*t - 3, 2*t^2 + 6*t - 1/2, -1/6*t^2]])
             sage: A
             [    7*t^2 - t - 9        -1/4*t - 1   -17*t^2 - t + 1]
             [     -t^2 + 1/4*t   t^2 + 5/7*t + 3    1/5*t^2 + 1662]
@@ -2421,24 +2426,16 @@ cdef class Matrix(Matrix1):
             sage: A._charpoly_df()
             x - 23
 
-        NOTES:
+        .. NOTE::
 
-        The key feature of this implementation is that it is division-free.
-        This means that it can be used as a generic implementation for any
-        ring (commutative and with multiplicative identity).  The algorithm
-        is described in full detail as Algorithm 3.1 in [Se02].
+            The key feature of this implementation is that it is division-free.
+            This means that it can be used as a generic implementation for any
+            ring (commutative and with multiplicative identity).  The algorithm
+            is described in full detail as Algorithm 3.1 in [Sei2002]_.
 
-        Note that there is a missing minus sign in front of the last term in
-        the penultimate line of Algorithm 3.1.
+            Note that there is a missing minus sign in front of the last term in
+            the penultimate line of Algorithm 3.1.
 
-        REFERENCES:
-
-        - [Se02] T. R. Seifullin, "Computation of determinants, adjoint
-          matrices, and characteristic polynomials without division"
-
-        AUTHORS:
-
-        - Sebastian Pancratz (2009-06-12)
         """
 
         # Validate assertions
@@ -4594,7 +4591,7 @@ cdef class Matrix(Matrix1):
 
         ::
 
-            sage: m = Matrix(Integers(5),2,2,[2,2,2,2]);
+            sage: m = Matrix(Integers(5),2,2,[2,2,2,2])
             sage: m.row_space()
             Vector space of degree 2 and dimension 1 over Ring of integers modulo 5
             Basis matrix:
@@ -4960,7 +4957,7 @@ cdef class Matrix(Matrix1):
 
         TESTS::
 
-            sage: t = matrix(QQ, 3, [3, 0, -2, 0, -2, 0, 0, 0, 0]);
+            sage: t = matrix(QQ, 3, [3, 0, -2, 0, -2, 0, 0, 0, 0])
             sage: t.decomposition_of_subspace(v, check_restrict = False) == t.decomposition_of_subspace(v)
             True
         """
@@ -5499,10 +5496,10 @@ cdef class Matrix(Matrix1):
         Next we compute the left eigenspaces over the finite field of order 11. ::
 
             sage: A = ModularSymbols(43, base_ring=GF(11), sign=1).T(2).matrix(); A
-            [ 3  9  0  0]
-            [ 0  9  0  1]
-            [ 0 10  9  2]
-            [ 0  9  0  2]
+            [ 3  0  9  0]
+            [ 0  9  0 10]
+            [ 0  0 10  1]
+            [ 0  0  1  1]
             sage: A.base_ring()
             Finite Field of size 11
             sage: A.charpoly()
@@ -5511,13 +5508,13 @@ cdef class Matrix(Matrix1):
             [
             (9, Vector space of degree 4 and dimension 1 over Finite Field of size 11
             User basis matrix:
-            [0 0 1 5]),
+            [0 1 5 6]),
             (3, Vector space of degree 4 and dimension 1 over Finite Field of size 11
             User basis matrix:
-            [1 6 0 6]),
+            [1 0 1 6]),
             (beta2, Vector space of degree 4 and dimension 1 over Univariate Quotient Polynomial Ring in beta2 over Finite Field of size 11 with modulus x^2 + 9
             User basis matrix:
-            [           0            1            0 5*beta2 + 10])
+            [        0         0         1 beta2 + 1])
             ]
 
         This method is only applicable to exact matrices.
@@ -6198,7 +6195,7 @@ cdef class Matrix(Matrix1):
             [13.348469228349522                0.0                 0.0]
             [               0.0 -1.348469228349534                 0.0]
             [               0.0                0.0                 0.0]
-            sage: evectors = em[1];
+            sage: evectors = em[1]
             sage: for i in range(3):
             ....:     scale = evectors[i,0].sign()
             ....:     evectors.rescale_row(i, scale)
@@ -6306,7 +6303,7 @@ cdef class Matrix(Matrix1):
             [13.348469228349522                0.0                0.0]
             [               0.0 -1.348469228349534                0.0]
             [               0.0                0.0                0.0]
-            sage: evectors = em[1];
+            sage: evectors = em[1]
             sage: for i in range(3):
             ....:     scale = evectors[0,i].sign()
             ....:     evectors.rescale_col(i, scale)
@@ -6523,7 +6520,7 @@ cdef class Matrix(Matrix1):
 
         TESTS:
 
-        Check that http://trac.sagemath.org/sage_trac/ticket/11558 is fixed::
+        Check that :trac:`11558` is fixed::
 
             sage: matrix(ZZ, [[1,2],[4,6]], sparse=False).echelon_form(transformation=True)
             (
@@ -7348,20 +7345,31 @@ cdef class Matrix(Matrix1):
 
             sage: all(M.with_permuted_rows_and_columns(*i) == M for i in A)
             True
+
+        Check that :trac:`25426` is fixed::
+
+            sage: j = matrix([(3, 2, 1, 0, 0),
+            ....:             (2, 2, 0, 1, 0),
+            ....:             (1, 0, 3, 0, 2),
+            ....:             (0, 1, 0, 2, 1),
+            ....:             (0, 0, 2, 1, 2)])
+            sage: j.automorphisms_of_rows_and_columns()
+            [((), ()), ((1,3)(2,5), (1,3)(2,5))]
         """
         from sage.groups.perm_gps.permgroup_element import \
             PermutationGroupElement
         B = self.as_bipartite_graph()
         nrows = self.nrows()
-        A = B.automorphism_group(edge_labels = True)
+        ncols = self.ncols()
+        A = B.automorphism_group(edge_labels=True)
+
+        # Convert to elements of Sym(self) from S_n
         permutations = []
         for p in A:
-            p = p.domain()
-            # Convert to elements of Sym(self) from S_n
-            if p[0] <= nrows:
+            if p(1) <= nrows:  # Check that rows are mapped to rows
                 permutations.append(
-                    (PermutationGroupElement(p[:nrows]),
-                     PermutationGroupElement([elt - nrows for elt in p[nrows:]])
+                    (PermutationGroupElement([p(1 + i) for i in range(nrows)]),
+                     PermutationGroupElement([p(1 + nrows + i) - nrows for i in range(ncols)])
                     ))
         return permutations
 
@@ -8859,30 +8867,22 @@ cdef class Matrix(Matrix1):
         """
         return ~self
 
-    def adjoint(self):
-        """
-        Returns the adjoint matrix of self (matrix of cofactors).
+    def adjugate(self):
+        r"""
+        Return the adjugate matrix of ``self`` (that is, the transpose of the
+        matrix of cofactors).
 
-        OUTPUT:
-
-        - ``N`` - the adjoint matrix, such that
-          N \* M = M \* N = M.parent(M.det())
-
-        ALGORITHM:
-
-        Use PARI whenever the method ``self._adjoint`` is included to do so
-        in an inheriting class.  Otherwise, use a generic division-free
-        algorithm to compute the characteristic polynomial and hence the
-        adjoint.
-
-        The result is cached.
+        Let `M` be an `n \times n`-matrix. The adjugate matrix of `M` is the `n
+        \times n`-matrix `N` whose `(i, j)`-th entry is `(-1)^{i + j}
+        \det(M_{j, i})`, where `M_{j,i}` is the matrix `M` with its `j`-th row
+        and `i`-th column removed. It is known to satisfy `NM = MN = \det(M)I`.
 
         EXAMPLES::
 
             sage: M = Matrix(ZZ,2,2,[5,2,3,4]) ; M
             [5 2]
             [3 4]
-            sage: N = M.adjoint() ; N
+            sage: N = M.adjugate() ; N
             [ 4 -2]
             [-3  5]
             sage: M * N
@@ -8894,38 +8894,56 @@ cdef class Matrix(Matrix1):
             sage: M = Matrix(QQ,2,2,[5/3,2/56,33/13,41/10]) ; M
             [  5/3  1/28]
             [33/13 41/10]
-            sage: N = M.adjoint() ; N
+            sage: N = M.adjugate() ; N
             [ 41/10  -1/28]
             [-33/13    5/3]
             sage: M * N
             [7363/1092         0]
             [        0 7363/1092]
 
-        AUTHORS:
+        An alias is :meth:`adjoint_classical`, which replaces the deprecated
+        :meth:`adjoint` method::
 
-        - Unknown: No author specified in the file from 2009-06-25
-        - Sebastian Pancratz (2009-06-25): Reflecting the change that
-          ``_adjoint`` is now implemented in this class
+            sage: M.adjoint()
+            ...: DeprecationWarning: adjoint is deprecated. Please use adjugate instead.
+            See http://trac.sagemath.org/10501 for details.
+            [ 41/10  -1/28]
+            [-33/13    5/3]
+            sage: M.adjoint_classical()
+            [ 41/10  -1/28]
+            [-33/13    5/3]
+
+        ALGORITHM:
+
+        Use PARI whenever the method ``self._adjugate`` is included to do so in
+        an inheriting class. Otherwise, use a generic division-free algorithm
+        that computes the adjugate matrix from the characteristic polynomial.
+
+        The result is cached.
         """
 
         if self._nrows != self._ncols:
-            raise ValueError("self must be a square matrix")
+            raise ValueError("must be a square matrix")
 
-        X = self.fetch('adjoint')
+        X = self.fetch('adjugate')
         if not X is None:
             return X
 
-        X = self._adjoint()
-        self.cache('adjoint', X)
+        X = self._adjugate()
+        self.cache('adjugate', X)
         return X
 
-    def _adjoint(self):
+    adjoint = deprecated_function_alias(10501, adjugate)
+
+    adjoint_classical = adjugate
+
+    def _adjugate(self):
         r"""
-        Returns the adjoint of self.
+        Return the adjugate of this matrix.
 
         OUTPUT:
 
-        - matrix -- the adjoint of self
+        - matrix -- the adjugate of the matrix
 
         EXAMPLES:
 
@@ -8935,31 +8953,30 @@ cdef class Matrix(Matrix1):
             sage: A
             [ 1 24]
             [ 3  5]
-            sage: A._adjoint()
+            sage: A._adjugate()
             [  5 -24]
             [ -3   1]
 
         Secondly, here is an example over a polynomial ring::
 
             sage: R.<t> = QQ[]
-            sage: A = matrix(R, [[-2*t^2 + t + 3/2, 7*t^2 + 1/2*t - 1,      \
-                                  -6*t^2 + t - 2/11],                       \
-                                 [-7/3*t^2 - 1/2*t - 1/15, -2*t^2 + 19/8*t, \
-                                  -10*t^2 + 2*t + 1/2],                     \
-                                 [6*t^2 - 1/2, -1/7*t^2 + 9/4*t, -t^2 - 4*t \
-                                  - 1/10]])
+            sage: A = matrix(R, [[-2*t^2 + t + 3/2, 7*t^2 + 1/2*t - 1,
+            ....:                 -6*t^2 + t - 2/11],
+            ....:                [-7/3*t^2 - 1/2*t - 1/15, -2*t^2 + 19/8*t,
+            ....:                 -10*t^2 + 2*t + 1/2],
+            ....:                [6*t^2 - 1/2, -1/7*t^2 + 9/4*t, -t^2 - 4*t
+            ....:                 - 1/10]])
             sage: A
             [       -2*t^2 + t + 3/2       7*t^2 + 1/2*t - 1       -6*t^2 + t - 2/11]
             [-7/3*t^2 - 1/2*t - 1/15         -2*t^2 + 19/8*t     -10*t^2 + 2*t + 1/2]
             [            6*t^2 - 1/2        -1/7*t^2 + 9/4*t       -t^2 - 4*t - 1/10]
-            sage: A._adjoint()
+            sage: A._adjugate()
             [          4/7*t^4 + 1591/56*t^3 - 961/70*t^2 - 109/80*t 55/7*t^4 + 104/7*t^3 + 6123/1540*t^2 - 959/220*t - 1/10       -82*t^4 + 101/4*t^3 + 1035/88*t^2 - 29/22*t - 1/2]
             [   -187/3*t^4 + 13/6*t^3 + 57/10*t^2 - 79/60*t - 77/300            38*t^4 + t^3 - 793/110*t^2 - 28/5*t - 53/220 -6*t^4 + 44/3*t^3 + 4727/330*t^2 - 1147/330*t - 487/660]
             [          37/3*t^4 - 136/7*t^3 - 1777/840*t^2 + 83/80*t      292/7*t^4 + 107/14*t^3 - 323/28*t^2 - 29/8*t + 1/2   61/3*t^4 - 25/12*t^3 - 269/120*t^2 + 743/240*t - 1/15]
 
-        Finally, an example over a general ring, that is to say, as of
-        version 4.0.2, SAGE does not even determine that ``S`` in the following
-        example is an integral domain::
+        Finally, an example over a general ring ``S`` that is
+        not an integral domain::
 
             sage: R.<a,b> = QQ[]
             sage: S.<x,y> = R.quo((b^3))
@@ -8971,10 +8988,10 @@ cdef class Matrix(Matrix1):
             -4*x
             sage: A.charpoly('T')
             T^2 + (-x^10*y - x*y^2)*T - 4*x
-            sage: A.adjoint()
+            sage: A.adjugate()
             [x^10*y   -2*x]
             [    -2  x*y^2]
-            sage: A.adjoint() * A
+            sage: A.adjugate() * A
             [-4*x    0]
             [   0 -4*x]
 
@@ -8985,72 +9002,56 @@ cdef class Matrix(Matrix1):
             sage: A = matrix(ZZ, 0, 0)
             sage: A
             []
-            sage: A._adjoint()
+            sage: A._adjugate()
             []
             sage: A = matrix(ZZ, [[2]])
             sage: A
             [2]
-            sage: A._adjoint()
+            sage: A._adjugate()
             [1]
 
-        Ensure proper computation of the adjoint matrix even in the
+        Ensure proper computation of the adjugate matrix even in the
         presence of non-integral powers of the variable `x`
         (:trac:`14403`)::
 
             sage: x = var('x')
-            sage: Matrix([[sqrt(x),x],[1,0]]).adjoint()
+            sage: Matrix([[sqrt(x),x],[1,0]]).adjugate()
             [      0      -x]
             [     -1 sqrt(x)]
 
-        NOTES:
+        .. NOTE::
 
-        The key feature of this implementation is that it is division-free.
-        This means that it can be used as a generic implementation for any
-        ring (commutative and with multiplicative identity).  The algorithm
-        is described in full detail as Algorithm 3.1 in [Se02].
+            The key feature of this implementation is that it is division-free.
+            This means that it can be used as a generic implementation for any
+            ring (commutative and with multiplicative identity).  The algorithm
+            is described in full detail as Algorithm 3.1 in [Sei2002]_.
 
-        Note that this method does not utilise a lookup if the adjoint has
-        already been computed previously, and it does not cache the result.
-        This is all left to the method `adjoint`.
+            Note that this method does not utilise a lookup if the adjugate has
+            already been computed previously, and it does not cache the result.
+            This is all left to the method `adjugate`.
 
-        REFERENCES:
-
-        - [Se02] T. R. Seifullin, "Computation of determinants, adjoint
-          matrices, and characteristic polynomials without division"
-
-        AUTHORS:
-
-        - Sebastian Pancratz (2009-06-12): Initial version
         """
-
-        # Validate assertions
-        #
+        # self must be square
         if self._nrows != self._ncols:
             raise ValueError("self must be a square matrix")
 
-        # Corner cases
-        # N.B.  We already tested for the matrix  to be square, hence we do not
-        # need to test for 0 x n or m x 0 matrices.
-        #
+        # as self is square, we do not need to test for 0 x n or m x 0
+        # matrices
         if self._ncols == 0:
             return self.copy()
 
-        # Extract parameters
-        #
+        # extract parameters
         n  = self._ncols
         R  = self._base_ring
         MS = self._parent
 
         f = self.charpoly()
 
-        # Let A denote the adjoint of M, which we want to compute, and
-        # N denote a copy of M used to store powers of M.
-        #
+        # A will be the adjugate of M and N is used to store powers of M
         A = f[1] * MS.identity_matrix()
         N = R(1) * MS.identity_matrix()
         for i in range(1, n):
-            # Set N to be M^i
-            #
+            # set N to M^i
             N = N * self
             A = A + f[i+1] * N
         if not (n % 2):
@@ -9893,8 +9894,8 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES::
 
-            sage: a = matrix(ZZ,4,[1, 0, 0, 0, 0, 1, 0, 0, 1, \
-            -1, 1, 0, 1, -1, 1, 2]); a
+            sage: a = matrix(ZZ,4,[1, 0, 0, 0, 0, 1, 0, 0,
+            ....:                  1, -1, 1, 0, 1, -1, 1, 2]); a
             [ 1  0  0  0]
             [ 0  1  0  0]
             [ 1 -1  1  0]
@@ -9927,7 +9928,7 @@ cdef class Matrix(Matrix1):
         Here we need to specify a field, since the eigenvalues are not defined
         in the smallest ring containing the matrix entries (:trac:`14508`)::
 
-            sage: c = matrix([[0,1,0],[0,0,1],[1,0,0]]);
+            sage: c = matrix([[0,1,0],[0,0,1],[1,0,0]])
             sage: c.jordan_form(CyclotomicField(3))
             [         1|         0|         0]
             [----------+----------+----------]
@@ -13018,7 +13019,7 @@ cdef class Matrix(Matrix1):
             [2*a + 1       1]
 
         Conjugation does not make sense over rings not containing complex
-        numbers or finite fields which are not a qadratic extension::
+        numbers or finite fields which are not a quadratic extension::
 
             sage: N = matrix(GF(5), 2, [0,1,2,3])
             sage: N.conjugate_transpose()
@@ -13028,7 +13029,7 @@ cdef class Matrix(Matrix1):
 
         AUTHOR:
 
-            Rob Beezer (2010-12-13)
+        Rob Beezer (2010-12-13)
         """
         # limited testing on a 1000 x 1000 matrix over CC:
         #   transpose is fast, conjugate is slow
@@ -13146,7 +13147,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES::
 
-            sage: d = matrix([[3, 0],[0,sqrt(2)]]) ;
+            sage: d = matrix([[3, 0],[0,sqrt(2)]])
             sage: b = matrix([[1, -1], [2, 2]]) ; e = b * d * b.inverse();e
             [ 1/2*sqrt(2) + 3/2 -1/4*sqrt(2) + 3/4]
             [      -sqrt(2) + 3  1/2*sqrt(2) + 3/2]
@@ -13794,17 +13795,17 @@ cdef class Matrix(Matrix1):
 
         We check some degenerate cases::
 
-            sage: m = matrix(OL, 0, 0, []); r,s,p = m._echelon_form_PID();
+            sage: m = matrix(OL, 0, 0, []); r,s,p = m._echelon_form_PID()
             sage: (r,s,p)
             ([], [], [])
             sage: r * m == s and r.det() == 1
             True
-            sage: m = matrix(OL, 0, 1, []); r,s,p = m._echelon_form_PID();
+            sage: m = matrix(OL, 0, 1, []); r,s,p = m._echelon_form_PID()
             sage: (r,s,p)
             ([], [], [])
             sage: r * m == s and r.det() == 1
             True
-            sage: m = matrix(OL, 1, 0, []); r,s,p = m._echelon_form_PID();
+            sage: m = matrix(OL, 1, 0, []); r,s,p = m._echelon_form_PID()
             sage: (r,s,p)
             ([1], [], [])
             sage: r * m == s and r.det() == 1
@@ -13812,7 +13813,7 @@ cdef class Matrix(Matrix1):
 
         A 2x2 matrix::
 
-            sage: m = matrix(OL, 2, 2, [1,0, a, 2]);
+            sage: m = matrix(OL, 2, 2, [1,0, a, 2])
             sage: r,s,p = m._echelon_form_PID(); (r,s,p)
             (
             [ 1  0]  [1 0]
@@ -13949,7 +13950,7 @@ cdef class Matrix(Matrix1):
         [Sto1998]_, where the former is more
         representative of the code here.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: A = matrix(QQ, [[-68,   69, -27, -11, -65,   9, -181, -32],
             ....:                 [-52,   52, -27,  -8, -52, -16, -133, -14],
@@ -15470,37 +15471,6 @@ cdef class Matrix(Matrix1):
         """
         return self.conjugate().transpose()
 
-    @property
-    def I(self):
-        r"""
-        Returns the inverse of the matrix, if it exists.
-
-        EXAMPLES::
-
-            sage: A = matrix(QQ, [[-5, -3, -1, -7],
-            ....:                 [ 1,  1,  1,  0],
-            ....:                 [-1, -2, -2,  0],
-            ....:                 [-2, -1,  0, -4]])
-            sage: A.I
-            doctest:...: DeprecationWarning: The I property on matrices has been deprecated. Please use the inverse() method instead.
-            See http://trac.sagemath.org/20904 for details.
-            [ 0  2  1  0]
-            [-4 -8 -2  7]
-            [ 4  7  1 -7]
-            [ 1  1  0 -2]
-
-            sage: B = matrix(QQ, [[-11, -5, 18,  -6],
-            ....:                 [  1,  2, -6,   8],
-            ....:                 [ -4, -2,  7,  -3],
-            ....:                 [  1, -2,  5, -11]])
-            sage: B.I
-            Traceback (most recent call last):
-            ...
-            ZeroDivisionError: input matrix must be nonsingular
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(20904, "The I property on matrices has been deprecated. Please use the inverse() method instead.")
-        return ~self
 
 def _smith_diag(d, transformation=True):
     r"""
@@ -15763,7 +15733,6 @@ def decomp_seq(v):
     """
     list.sort(v, key=lambda x: x[0].dimension())
     return Sequence(v, universe=tuple, check=False, cr=True)
-
 
 def _choose(Py_ssize_t n, Py_ssize_t t):
     """

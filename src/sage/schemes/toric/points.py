@@ -227,12 +227,12 @@ class NaiveFinitePointEnumerator(object):
 
     def _Chow_group_torsion(self):
         r"""
-        Return the relations coming from the torison part of the Chow group
+        Return the relations coming from the torsion part of the Chow group.
 
         OUTPUT:
 
         A tuple containing the non-identity elements of
-        $Hom(A_{d-1,\text{tors}}, F^\times)$
+        `Hom(A_{d-1,\text{tors}}, F^\times)`
 
         EXAMPLES::
 
@@ -437,7 +437,7 @@ class FiniteFieldPointEnumerator(NaiveFinitePointEnumerator):
 
         A finite field element.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: point_set = toric_varieties.P2(base_ring=GF(5^2, 'a')).point_set()
             sage: ffe = point_set._finite_field_enumerator()
@@ -879,7 +879,7 @@ class FiniteFieldSubschemePointEnumerator(NaiveSubschemePointEnumerator):
             sage: point_set = X.point_set()
             sage: ffe = point_set._enumerator()
             sage: ffe.solutions_serial([s^2-1, s^6-s^2], [range(6)])
-            <generator object solutions_serial at 0x...>
+            <generator object ...solutions_serial at 0x...>
             sage: list(_)
             [(0,), (3,)]
         """
@@ -907,7 +907,7 @@ class FiniteFieldSubschemePointEnumerator(NaiveSubschemePointEnumerator):
             sage: point_set = X.point_set()
             sage: ffe = point_set._enumerator()
             sage: ffe.solutions([s^2-1, s^6-s^2], [range(6)])
-            <generator object solutions at 0x...>
+            <generator object ...solutions at 0x...>
             sage: sorted(_)
             [(0,), (3,)]
         """
@@ -1031,4 +1031,3 @@ class FiniteFieldSubschemePointEnumerator(NaiveSubschemePointEnumerator):
             for log_t in self.solutions(inhomogeneous, log_range):
                 n += 1
         return n
-

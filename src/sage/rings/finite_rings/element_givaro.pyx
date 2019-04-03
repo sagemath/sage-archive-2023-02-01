@@ -40,15 +40,15 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from __future__ import absolute_import, print_function
 
@@ -71,10 +71,9 @@ import sage.rings.finite_rings.finite_field_constructor as finite_field
 import sage.interfaces.gap
 from sage.libs.pari.all import pari
 from cypari2.gen cimport Gen
+from cypari2.stack cimport clear_stack
 
 from sage.structure.parent cimport Parent
-
-from sage.misc.superseded import deprecated_function_alias
 
 cdef object is_IntegerMod
 cdef object Integer
@@ -467,7 +466,7 @@ cdef class Cache_givaro(SageObject):
 
             if typ(t) == t_INT:
                 res = self.int_to_log(itos(t))
-                sig_off()
+                clear_stack()
             elif typ(t) == t_POL:
                 res = self._zero_element
 
@@ -478,9 +477,10 @@ cdef class Cache_givaro(SageObject):
                     c = gtolong(gel(t, i+2))
                     res = self.objectptr.axpyin(res, self.int_to_log(c), x)
                     x = self.objectptr.mul(x,x,g)
-                sig_off()
+                clear_stack()
             else:
-                raise TypeError("bad PARI type %r" % e.type())
+                clear_stack()
+                raise TypeError(f"unable to convert PARI {e.type()} to {self.parent}")
 
         return make_FiniteField_givaroElement(self,res)
 
@@ -1424,8 +1424,6 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         """
         return Integer(self._cache.log_to_int(self.element))
 
-    log_to_int = deprecated_function_alias(11295, _log_to_int)
-
     def log(FiniteField_givaroElement self, base):
         """
         Return the log to the base `b` of ``self``, i.e., an integer `n`
@@ -1462,8 +1460,6 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         """
         return self._cache._element_int_repr(self)
 
-    int_repr = deprecated_function_alias(11295, _int_repr)
-
     def _log_repr(FiniteField_givaroElement self):
         r"""
         Return the log representation of ``self`` as a string.  See the
@@ -1479,8 +1475,6 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         """
         return self._cache._element_log_repr(self)
 
-    log_repr = deprecated_function_alias(11295, _log_repr)
-
     def _poly_repr(FiniteField_givaroElement self):
         r"""
         Return representation of this finite field element as a polynomial
@@ -1494,8 +1488,6 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             'b + 2'
         """
         return self._cache._element_poly_repr(self)
-
-    poly_repr = deprecated_function_alias(11295, _poly_repr)
 
     def polynomial(FiniteField_givaroElement self, name=None):
         """

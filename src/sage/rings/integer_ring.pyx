@@ -294,6 +294,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         Traceback (most recent call last):
         ...
         NotImplementedError: len() of an infinite set
+
+        sage: ZZ.is_finite()
+        False
+        sage: ZZ.cardinality()
+        +Infinity
     """
 
     def __init__(self):
@@ -588,7 +593,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         Note that the input *MUST* be an ``int``::
 
             sage: a = 10000000000000000000000rL
-            sage: f(a)
+            sage: f(a)  # py2
             Traceback (most recent call last):
             ...
             TypeError: must be a Python int object
@@ -832,17 +837,6 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         EXAMPLES::
 
             sage: ZZ.is_field()
-            False
-        """
-        return False
-
-    def is_finite(self):
-        """
-        Return ``False`` since the integers are an infinite ring.
-
-        EXAMPLES::
-
-            sage: ZZ.is_finite()
             False
         """
         return False
@@ -1431,6 +1425,17 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             Integers
         """
         return 'Integers'
+
+    def _fricas_init_(self):
+        """
+        Return a FriCAS representation of ``self``.
+
+        EXAMPLES::
+
+            sage: fricas(ZZ)          # indirect doctest, optional - fricas
+            Integer
+        """
+        return 'Integer'
 
     def _magma_init_(self, magma):
         """

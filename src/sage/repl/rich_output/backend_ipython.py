@@ -50,7 +50,7 @@ class BackendIPython(BackendBase):
             sage: from sage.repl.interpreter import get_test_shell
             sage: from sage.repl.rich_output.backend_ipython import BackendIPython
             sage: backend = BackendIPython()
-            sage: shell = get_test_shell();
+            sage: shell = get_test_shell()
             sage: backend.install(shell=shell)
             sage: shell.run_cell('1+1')
             2
@@ -569,7 +569,7 @@ class BackendIPythonNotebook(BackendIPython):
                      u'text/plain': plain_text.text.get_unicode(),
             }, {})
         elif isinstance(rich_output, OutputSceneThreejs):
-            escaped_html = rich_output.html.get().replace('"', '&quot;')
+            escaped_html = rich_output.html.get_unicode().replace('"', '&quot;')
             iframe = IFRAME_TEMPLATE.format(
                 escaped_html=escaped_html,
                 width='100%',

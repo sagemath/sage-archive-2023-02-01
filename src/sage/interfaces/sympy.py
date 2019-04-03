@@ -324,8 +324,9 @@ def _sympysage_derivative(self):
         sage: assert diff(f(x),x) == sympy_diff._sage_()
     """
     from sage.calculus.functional import derivative
-    args = [arg._sage_() for arg in self.args]
-    return derivative(*args)
+    f = self.args[0]._sage_()
+    args = [[a._sage_() for a in arg] if isinstance(arg,tuple) else arg._sage_() for arg in self.args[2:]]
+    return derivative(f, *args)
 
 def _sympysage_order(self):
     """
@@ -504,7 +505,7 @@ def _sympysage_piecewise(self):
 
         sage: _ = var('y, z')
         sage: (x^y - z).integrate(y, algorithm="sympy")
-        -y*z + cases(((log(x) == 0, y), (1, x^y/log(x))))
+        -y*z + cases(((log(x) != 0, x^y/log(x)), (1, y)))
     """
     from sage.functions.other import cases
     return cases([(p.cond._sage_(),p.expr._sage_()) for p in self.args])
@@ -814,7 +815,6 @@ def check_expression(expr, var_symbols, only_from_sympy=False):
         sage: from sage.interfaces.sympy import check_expression
         sage: check_expression("1.123*x", "x")
     """
-    from sage import __dict__ as sagedict
     from sage.symbolic.ring import SR
     from sympy import (__dict__ as sympydict, Basic, S, var as svar)
     # evaluate the expression in the context of Sage:
@@ -826,7 +826,6 @@ def check_expression(expr, var_symbols, only_from_sympy=False):
         assert not isinstance(e_sage, Basic)
     except (NameError, TypeError):
         is_different = True
-        pass
 
     # evaluate the expression in the context of SymPy:
     if var_symbols:
@@ -967,10 +966,12 @@ def test_all():
     #test_integral_failing()
     test_undefined_function()
 
+
 def sympy_set_to_list(set, vars):
     """
     Convert all set objects that can be returned by SymPy's solvers.
     """
+    from sage.rings.infinity import UnsignedInfinity
     from sympy import (FiniteSet, And, Or, Union, Interval, oo, S)
     from sympy.core.relational import Relational
     if set == S.Reals:

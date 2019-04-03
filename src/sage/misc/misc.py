@@ -35,7 +35,7 @@ Check the fix from :trac:`8323`::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import range
@@ -61,7 +61,7 @@ LOCAL_IDENTIFIER = '%s.%s' % (HOSTNAME, os.getpid())
 #################################################################
 
 
-def sage_makedirs(dir):
+def sage_makedirs(dirname):
     """
     Python version of ``mkdir -p``: try to create a directory, and also
     create all intermediate directories as necessary.  Succeed silently
@@ -74,18 +74,18 @@ def sage_makedirs(dir):
         sage: sage_makedirs(DOT_SAGE) # no output
 
     The following fails because we are trying to create a directory in
-    place of an ordinary file (the main Sage executable)::
+    place of an ordinary file::
 
-        sage: sage_executable = os.path.join(SAGE_ROOT, 'sage')
-        sage: sage_makedirs(sage_executable)
+        sage: filename = tmp_filename()
+        sage: sage_makedirs(filename)
         Traceback (most recent call last):
         ...
-        OSError: ...
+        OSError: [Errno ...] File exists: ...
     """
     try:
-        os.makedirs(dir)
+        os.makedirs(dirname)
     except OSError:
-        if not os.path.isdir(dir):
+        if not os.path.isdir(dirname):
             raise
 
 
@@ -117,9 +117,109 @@ if hasattr(os, 'chmod'):
                   "can read and write it.")
 
 
+def try_read(obj, splitlines=False):
+    r"""
+    Determine if a given object is a readable file-like object and if so
+    read and return its contents.
+
+    That is, the object has a callable method named ``read()`` which takes
+    no arguments (except ``self``) then the method is executed and the
+    contents are returned.
+
+    Alternatively, if the ``splitlines=True`` is given, first ``splitlines()``
+    is tried, then if that fails ``read().splitlines()``.
+
+    If either method fails, ``None`` is returned.
+
+    INPUT:
+
+    - ``obj`` -- typically a `file` or `io.BaseIO` object, but any other
+      object with a ``read()`` method is accepted.
+
+    - ``splitlines`` -- `bool`, optional; if True, return a list of lines
+      instead of a string.
+
+    EXAMPLES::
+
+        sage: import io
+        sage: filename = tmp_filename()
+        sage: from sage.misc.misc import try_read
+        sage: with open(filename, 'w') as fobj:
+        ....:     _ = fobj.write('a\nb\nc')
+        sage: with open(filename) as fobj:
+        ....:     print(try_read(fobj))
+        a
+        b
+        c
+        sage: with open(filename) as fobj:
+        ....:     try_read(fobj, splitlines=True)
+        ['a\n', 'b\n', 'c']
+
+    The following example is identical to the above example on Python 3,
+    but different on Python 2 where ``open != io.open``::
+
+        sage: with io.open(filename) as fobj:
+        ....:     print(try_read(fobj))
+        a
+        b
+        c
+
+    I/O buffers::
+
+        sage: buf = io.StringIO(u'a\nb\nc')
+        sage: print(try_read(buf))
+        a
+        b
+        c
+        sage: _ = buf.seek(0); try_read(buf, splitlines=True)
+        [u'a\n', u'b\n', u'c']
+        sage: buf = io.BytesIO(b'a\nb\nc')
+        sage: try_read(buf) == b'a\nb\nc'
+        True
+        sage: _ = buf.seek(0)
+        sage: try_read(buf, splitlines=True) == [b'a\n', b'b\n', b'c']
+        True
+
+    Custom readable::
+
+        sage: class MyFile(object):
+        ....:     def read(self): return 'Hello world!'
+        sage: try_read(MyFile())
+        'Hello world!'
+        sage: try_read(MyFile(), splitlines=True)
+        ['Hello world!']
+
+    Not readable::
+
+        sage: try_read(1) is None
+        True
+    """
+
+    if splitlines:
+        try:
+            return obj.readlines()
+        except (AttributeError, TypeError):
+            pass
+
+    try:
+        data = obj.read()
+    except (AttributeError, TypeError):
+        return
+
+    if splitlines:
+        try:
+            data = data.splitlines()
+        except (AttributeError, TypeError):
+            # Not a string??
+            data = [data]
+
+    return data
+
+
 #################################################
 # Next we create the Sage temporary directory.
 #################################################
+
 
 @lazy_string
 def SAGE_TMP():
@@ -499,7 +599,7 @@ def set_verbose(level, files='all'):
 
     INPUT:
 
-    - ``level`` - an integer between 0 and 2, inclusive.
+    - ``level`` -- an integer between 0 and 2, inclusive.
 
     - ``files`` (default: 'all'): list of files to make verbose, or
        'all' to make ALL files verbose (the default).
@@ -518,6 +618,8 @@ def set_verbose(level, files='all'):
         [no output]
         sage: set_verbose(0)
     """
+    if level is None:
+        level = -1
     if isinstance(level, str):
         set_verbose_files([level])
     global LEVEL
@@ -575,19 +677,6 @@ def get_verbose():
     return LEVEL
 
 
-def cmp_props(left, right, props):
-    from sage.misc.superseded import deprecation
-    deprecation(23149, "cmp_props is deprecated")
-    for a in props:
-        lx = left.__getattribute__(a)()
-        rx = right.__getattribute__(a)()
-        if lx < rx:
-            return -1
-        elif lx > rx:
-            return 1
-    return 0
-
-
 def union(x, y=None):
     """
     Return the union of x and y, as a list. The resulting list need not
@@ -626,14 +715,44 @@ def uniq(x):
 
     EXAMPLES::
 
-        sage: v = uniq([1,1,8,-5,3,-5,'a','x','a'])
-        sage: v            # potentially random ordering of output
-        ['a', 'x', -5, 1, 3, 8]
-        sage: set(v) == set(['a', 'x', -5, 1, 3, 8])
-        True
+        sage: uniq([1, 1, 8, -5, 3, -5, -13, 13, -13])
+        doctest:...: DeprecationWarning: the output of uniq(X) being sorted is deprecated; use sorted(set(X)) instead if you want sorted output
+        See https://trac.sagemath.org/27014 for details.
+        [-13, -5, 1, 3, 8, 13]
     """
-    v = sorted(set(x))
-    return v
+    # After deprecation period, rename _stable_uniq -> uniq
+    from sage.misc.superseded import deprecation
+    deprecation(27014, "the output of uniq(X) being sorted is deprecated; use sorted(set(X)) instead if you want sorted output")
+    return sorted(set(x))
+
+
+def _stable_uniq(L):
+    """
+    Iterate over the elements of ``L``, yielding every element at most
+    once: keep only the first occurance of any item.
+
+    The items must be hashable.
+
+    INPUT:
+
+    - ``L`` -- iterable
+
+    EXAMPLES::
+
+        sage: from sage.misc.misc import _stable_uniq
+        sage: L = [1, 1, 8, -5, 3, -5, 'a', 'x', 'a']
+        sage: it = _stable_uniq(L)
+        sage: it
+        <generator object _stable_uniq at ...>
+        sage: list(it)
+        [1, 8, -5, 3, 'a', 'x']
+    """
+    seen = set()
+    for x in L:
+        if x in seen:
+            continue
+        yield x
+        seen.add(x)
 
 
 def coeff_repr(c, is_latex=False):
@@ -765,7 +884,7 @@ def repr_lincomb(terms, is_latex=False, scalar_mult="*", strip_one=False,
             try:
                 if c < 0:
                     negative = True
-            except NotImplementedError:
+            except (NotImplementedError, TypeError):
                 # comparisons may not be implemented for some coefficients
                 pass
             if negative:
@@ -960,24 +1079,24 @@ class BackslashOperator:
     r"""
     Implements Matlab-style backslash operator for solving systems::
 
-        A \\ b
+        A \ b
 
     The preparser converts this to multiplications using
     ``BackslashOperator()``.
 
     EXAMPLES::
 
-        sage: preparse("A \ matrix(QQ,2,1,[1/3,'2/3'])")
+        sage: preparse("A \\ matrix(QQ,2,1,[1/3,'2/3'])")
         "A  * BackslashOperator() * matrix(QQ,Integer(2),Integer(1),[Integer(1)/Integer(3),'2/3'])"
-        sage: preparse("A \ matrix(QQ,2,1,[1/3,2*3])")
+        sage: preparse("A \\ matrix(QQ,2,1,[1/3,2*3])")
         'A  * BackslashOperator() * matrix(QQ,Integer(2),Integer(1),[Integer(1)/Integer(3),Integer(2)*Integer(3)])'
-        sage: preparse("A \ B + C")
+        sage: preparse("A \\ B + C")
         'A  * BackslashOperator() * B + C'
-        sage: preparse("A \ eval('C+D')")
+        sage: preparse("A \\ eval('C+D')")
         "A  * BackslashOperator() * eval('C+D')"
-        sage: preparse("A \ x / 5")
+        sage: preparse("A \\ x / 5")
         'A  * BackslashOperator() * x / Integer(5)'
-        sage: preparse("A^3 \ b")
+        sage: preparse("A^3 \\ b")
         'A**Integer(3)  * BackslashOperator() * b'
     """
     def __rmul__(self, left):
@@ -1032,19 +1151,29 @@ def is_iterator(it):
         sage: is_iterator(it)
         True
 
-        sage: class wrong():
+        sage: class wrong():  # py2
         ....:    def __init__(self): self.n = 5
         ....:    def next(self):
+        ....:        self.n -= 1
+        ....:        if self.n == 0: raise StopIteration
+        ....:        return self.n
+        sage: class wrong():  # py3
+        ....:    def __init__(self): self.n = 5
+        ....:    def __next__(self):
         ....:        self.n -= 1
         ....:        if self.n == 0: raise StopIteration
         ....:        return self.n
         sage: x = wrong()
         sage: is_iterator(x)
         False
-        sage: list(x)
+        sage: list(x)  # py2
         Traceback (most recent call last):
         ...
         TypeError: iteration over non-sequence
+        sage: list(x)  # py3
+        Traceback (most recent call last):
+        ...
+        TypeError: 'wrong' object is not iterable
 
         sage: class good(wrong):
         ....:    def __iter__(self): return self
@@ -1142,7 +1271,7 @@ def some_tuples(elements, repeat, bound, max_samples=None):
     if max_samples is None:
         from itertools import islice, product
         P = elements if repeat is None else product(elements, repeat=repeat)
-        return islice(P, bound)
+        return islice(P, int(bound))
     else:
         if not (hasattr(elements, '__len__') and hasattr(elements, '__getitem__')):
             elements = list(elements)
@@ -1212,7 +1341,7 @@ def powerset(X):
     You may also use subsets as an alias for powerset::
 
         sage: subsets([1,2,3])
-        <generator object powerset at 0x...>
+        <generator object ...powerset at 0x...>
         sage: list(subsets([1,2,3]))
         [[], [1], [2], [1, 2], [3], [1, 3], [2, 3], [1, 2, 3]]
 
@@ -1231,7 +1360,7 @@ def powerset(X):
     pairs = []
     for x in X:
         pairs.append((2**len(pairs), x))
-        for w in range(2**(len(pairs)-1), 2**(len(pairs))):
+        for w in range(2**(len(pairs) - 1), 2**(len(pairs))):
             yield [x for m, x in pairs if m & w]
 
 
@@ -1452,7 +1581,7 @@ class AttrCallObject(object):
             sage: series(sin(x), 4)
             1*x + (-1/6)*x^3 + Order(x^4)
         """
-        return getattr(x, self.name)(*(self.args+args), **self.kwds)
+        return getattr(x, self.name)(*(self.args + args), **self.kwds)
 
     def __repr__(self):
         """
@@ -1525,7 +1654,7 @@ class AttrCallObject(object):
             sage: hash(x)       # random # indirect doctest
             210434060
             sage: type(hash(x))
-            <... 'int'>
+            <type 'int'>
             sage: y = attrcall('core', 3, blah = 1, flatten = True)
             sage: hash(y) == hash(x)
             True
@@ -1541,7 +1670,7 @@ class AttrCallObject(object):
         unique representation of parents taking ``attrcall`` objects
         as input; see :trac:`8911`.
         """
-        return hash((self.args, tuple(self.kwds.items())))
+        return hash((self.args, tuple(sorted(self.kwds.items()))))
 
 
 def attrcall(name, *args, **kwds):
@@ -1613,8 +1742,8 @@ def is_in_string(line, pos):
         # which is the case if the previous character isn't
         # a backslash, or it is but both previous characters
         # are backslashes.
-        if line[i-1:i] != '\\' or line[i-2:i] == '\\\\':
-            if line[i:i+3] in ['"""', "'''"]:
+        if line[i - 1: i] != '\\' or line[i - 2: i] == '\\\\':
+            if line[i: i + 3] in ['"""', "'''"]:
                 if not in_quote():
                     in_triple_quote = True
                 elif in_triple_quote:

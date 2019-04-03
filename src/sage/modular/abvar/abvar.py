@@ -22,15 +22,15 @@ TESTS::
 """
 from __future__ import absolute_import
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.categories.all        import ModularAbelianVarieties
 from sage.structure.sequence    import Sequence, Sequence_generic
@@ -1365,9 +1365,21 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
             sage: f.kernel()[0] == G
             True
+
+        Quotienting by the identity should return the original variety and the
+        identity morphism. :trac:`6392` ::
+
+            sage: J = J0(22)
+            sage: G = J.zero_subgroup()
+            sage: Q, f = J / G
+            sage: Q
+            Abelian variety J0(22) of dimension 2
+            sage: f
+            Abelian variety endomorphism of Abelian variety J0(22) of dimension 2
+
         """
         if G.order() == 1:
-            return self
+            return self, self.endomorphism_ring().identity()
         L = self.lattice() + G.lattice()
         A = ModularAbelianVariety(self.groups(), L, G.field_of_definition())
         M = L.coordinate_module(self.lattice()).basis_matrix()
@@ -2202,10 +2214,10 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: (J0(11) * J1(13))._ambient_hecke_matrix_on_modular_symbols(2)
             [-2  0  0  0  0  0]
             [ 0 -2  0  0  0  0]
-            [ 0  0 -2  0 -1  1]
-            [ 0  0  1 -1  0 -1]
-            [ 0  0  1  1 -2  0]
-            [ 0  0  0  1 -1 -1]
+            [ 0  0 -1 -1 -1  1]
+            [ 0  0  1 -2 -1  0]
+            [ 0  0  0  0 -2  1]
+            [ 0  0  0  0 -1 -1]
         """
         if not self.is_ambient():
             return self.ambient_variety()._ambient_hecke_matrix_on_modular_symbols(n)
@@ -2489,10 +2501,10 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: H.hecke_operator(2).matrix()
             [-2  0  0  0  0  0]
             [ 0 -2  0  0  0  0]
-            [ 0  0 -2  0 -1  1]
-            [ 0  0  1 -1  0 -1]
-            [ 0  0  1  1 -2  0]
-            [ 0  0  0  1 -1 -1]
+            [ 0  0 -1 -1 -1  1]
+            [ 0  0  1 -2 -1  0]
+            [ 0  0  0  0 -2  1]
+            [ 0  0  0  0 -1 -1]
         """
         return self.homology(ZZ)
 
@@ -3049,6 +3061,18 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             Finite subgroup with invariants [6] over QQbar of Abelian variety J0(33) of dimension 3
             sage: J.finite_subgroup(C)
             Finite subgroup with invariants [5] over QQ of Abelian variety J0(33) of dimension 3
+
+        This method gives a way of changing the ambient abelian variety of a
+        finite subgroup. This caused an issue in :trac:`6392` but should be
+        fixed now. ::
+
+            sage: A, B = J0(43)
+            sage: G, _ = A.intersection(B)
+            sage: G
+            Finite subgroup with invariants [2, 2] over QQ of Simple abelian subvariety 43a(1,43) of dimension 1 of J0(43)
+            sage: B.finite_subgroup(G)
+            Finite subgroup with invariants [2, 2] over QQ of Simple abelian subvariety 43b(1,43) of dimension 2 of J0(43)
+
         """
         if isinstance(X, (list, tuple)):
             X = self._ambient_lattice().span(X)
@@ -3062,18 +3086,17 @@ class ModularAbelianVariety_abstract(ParentWithBase):
                 X = X.lattice()
             else:
                 if X.is_subgroup(self):
-                    X = (X.lattice() + self.lattice()).intersection(self.vector_space())
+                    X = (X.lattice() +
+                         self.ambient_variety().lattice()).intersection(
+                             self.vector_space())
                 else:
                     raise ValueError("X must be a subgroup of self.")
 
-
         if field_of_definition is None:
             field_of_definition = QQbar
-        else:
-            field_of_definition = field_of_definition
 
-        return FiniteSubgroup_lattice(self, X, field_of_definition=field_of_definition, check=check)
-
+        return FiniteSubgroup_lattice(
+            self, X, field_of_definition=field_of_definition, check=check)
 
     def torsion_subgroup(self, n):
         """

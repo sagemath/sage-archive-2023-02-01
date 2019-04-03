@@ -63,7 +63,7 @@ from sage.homology.chain_complex import ChainComplex
 from sage.graphs.graph import Graph
 from sage.arith.all import binomial
 from sage.misc.cachefunc import cached_method
-from sage.misc.decorators import rename_keyword
+
 
 class DeltaComplex(GenericCellComplex):
     r"""
@@ -426,8 +426,7 @@ class DeltaComplex(GenericCellComplex):
         """
         if isinstance(data, (list, tuple)):
             data = dict(zip(range(len(data)), data))
-        else:
-            data = data
+
         # new_dict: dictionary for constructing the subcomplex
         new_dict = {}
         # new_data: dictionary of all cells in the subcomplex: store
@@ -571,7 +570,6 @@ class DeltaComplex(GenericCellComplex):
             cells[-1] = (None,)
         return cells
 
-    @rename_keyword(deprecation=20723, check_diffs='check')
     def chain_complex(self, subcomplex=None, augmented=False,
                       verbose=False, check=False, dimensions=None,
                       base_ring=ZZ, cochain=False):
@@ -1363,10 +1361,10 @@ class DeltaComplex(GenericCellComplex):
         to the same place::
 
             sage: T = delta_complexes.Torus()
-            sage: T._epi_from_standard_simplex()[1]
-            {(1, 0): 1, (2, 0): 2, (2, 1): 0}
-            sage: T._epi_from_standard_simplex()[0]
-            {(0,): 0, (1,): 0, (2,): 0}
+            sage: sorted(T._epi_from_standard_simplex()[1].items())
+            [((1, 0), 1), ((2, 0), 2), ((2, 1), 0)]
+            sage: sorted(T._epi_from_standard_simplex()[0].items())
+            [((0,), 0), ((1,), 0), ((2,), 0)]
         """
         if dim is None:
             dim = self.dimension()

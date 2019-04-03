@@ -231,7 +231,6 @@ class FinitelyPresentedGroupElement(FreeGroupElement):
 
             sage: TestSuite(G).run()
             sage: TestSuite(H).run()
-
             sage: G.<a,b> = FreeGroup()
             sage: H = G / (G([1]), G([2, 2, 2]))
             sage: x = H([1, 2, -1, -2])
@@ -1096,6 +1095,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             sage: C7 = G / [G.0**7]; C6 =  G / [G.0**6]
             sage: C14 = G / [G.0**14]; C3 =  G / [G.0**3]
             sage: C7.direct_product(C6).is_isomorphic(C14.direct_product(C3))
+            #I  Forcing finiteness test
             True
             sage: F = FreeGroup(2); D = F / [F([1,1,1,1,1]),F([2,2]),F([1,2])**2]
             sage: D.direct_product(D).as_permutation_group().is_isomorphic(
@@ -1189,6 +1189,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             sage: alpha = (Q.gens(), [a,b])
             sage: S2 = C2.semidirect_product(Q, ([C2.0],[alpha]))
             sage: S1.is_isomorphic(S2)
+            #I  Forcing finiteness test
             True
 
         Dihedral groups can be constructed as semidirect products
@@ -1245,8 +1246,10 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             sage: Se1 =  C.semidirect_product(D, id1)
             sage: id2 = (D.gens(), [(C.gens(),C.gens()),(C.gens(),C.gens())])
             sage: Se2 =  D.semidirect_product(C ,id2)
-            sage: Dp1 = C.direct_product(D);
+            sage: Dp1 = C.direct_product(D)
             sage: Dp1.is_isomorphic(Se1), Dp1.is_isomorphic(Se2)
+            #I  Forcing finiteness test
+            #I  Forcing finiteness test
             (True, True)
 
         Most checks for validity of input are left to GAP to handle::
@@ -1260,7 +1263,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             sage: D.semidirect_product(C, bad_hom)
             Traceback (most recent call last):
             ...
-            ValueError: libGAP: Error, <gens> and <imgs> must be lists of same length
+            GAPError: Error, <gens> and <imgs> must be lists of same length
         """
         from sage.groups.free_group import FreeGroup, _lexi_gen
 
@@ -1277,7 +1280,8 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         # check for automorphism validity in images of operation defining homomorphism,
         # and construct the defining homomorphism.
         if check:
-            if not all([a in libgap.List(libgap.AutomorphismGroup(GAP_H)) for a in GAP_aut_imgs]):
+            if not all(a in libgap.List(libgap.AutomorphismGroup(GAP_H))
+                       for a in GAP_aut_imgs):
                 raise ValueError("images of input homomorphism must be automorphisms")
             GAP_def_hom = libgap.GroupHomomorphismByImages(GAP_self, auto_grp, self_gens, GAP_aut_imgs)
         else:
@@ -1445,27 +1449,27 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             sage: H = AlternatingGroup(3)
             sage: G.epimorphisms(H)
             [Generic morphism:
-            From: Finitely presented group < x0, x1, x2 | (x0*x1*x2)^2, x0^3 >
-            To:   Alternating group of order 3!/2 as a permutation group
-            Defn: x0 |--> ()
-                  x1 |--> (1,2,3)
-                  x2 |--> (1,3,2), Generic morphism:
-            From: Finitely presented group < x0, x1, x2 | (x0*x1*x2)^2, x0^3 >
-            To:   Alternating group of order 3!/2 as a permutation group
-            Defn: x0 |--> (1,2,3)
-                  x1 |--> ()
-                  x2 |--> (1,3,2), Generic morphism:
-            From: Finitely presented group < x0, x1, x2 | (x0*x1*x2)^2, x0^3 >
-            To:   Alternating group of order 3!/2 as a permutation group
-            Defn: x0 |--> (1,2,3)
-                  x1 |--> (1,2,3)
-                  x2 |--> (1,2,3), Generic morphism:
-            From: Finitely presented group < x0, x1, x2 | (x0*x1*x2)^2, x0^3 >
-            To:   Alternating group of order 3!/2 as a permutation group
-            Defn: x0 |--> (1,2,3)
-                  x1 |--> (1,3,2)
-                  x2 |--> ()]
-        
+               From: Finitely presented group < x0, x1, x2 | (x0*x1*x2)^2, x0^3 >
+               To:   Alternating group of order 3!/2 as a permutation group
+               Defn: x0 |--> ()
+                     x1 |--> (1,3,2)
+                     x2 |--> (1,2,3), Generic morphism:
+               From: Finitely presented group < x0, x1, x2 | (x0*x1*x2)^2, x0^3 >
+               To:   Alternating group of order 3!/2 as a permutation group
+               Defn: x0 |--> (1,3,2)
+                     x1 |--> ()
+                     x2 |--> (1,2,3), Generic morphism:
+               From: Finitely presented group < x0, x1, x2 | (x0*x1*x2)^2, x0^3 >
+               To:   Alternating group of order 3!/2 as a permutation group
+               Defn: x0 |--> (1,3,2)
+                     x1 |--> (1,2,3)
+                     x2 |--> (), Generic morphism:
+               From: Finitely presented group < x0, x1, x2 | (x0*x1*x2)^2, x0^3 >
+               To:   Alternating group of order 3!/2 as a permutation group
+               Defn: x0 |--> (1,2,3)
+                     x1 |--> (1,2,3)
+                     x2 |--> (1,2,3)]
+
         ALGORITHM:
         
         Uses libgap's GQuotients function.

@@ -20,7 +20,7 @@ AUTHORS:
   for affine/projective, height functionality
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
 #       Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu.au>
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -29,8 +29,8 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 
 from sage.categories.integral_domains import IntegralDomains
@@ -364,7 +364,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
     def __hash__(self):
         """
-        Computes the hash value of this point.
+        Compute the hash value of this point.
 
         If the base ring has a fraction field, normalize the point in
         the fraction field and then hash so that equal points have
@@ -396,12 +396,16 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             -1562365407                    # 32-bit
             1251212645657227809            # 64-bit
 
-        ::
+        TESTS::
 
             sage: P.<x,y> = ProjectiveSpace(Zmod(10), 1)
-            sage: hash(P([2, 5]))
-            -479010389                     # 32-bit
-            4677413289753502123            # 64-bit
+            sage: Q.<x,y> = ProjectiveSpace(Zmod(10), 1)
+            sage: hash(P([2, 5])) == hash(Q([2, 5]))
+            True
+            sage: hash(P([2, 5])) == hash(P([2,5]))
+            True
+            sage: hash(P([3, 7])) == hash(P([2,5]))
+            True
         """
         R = self.codomain().base_ring()
         #if there is a fraction field normalize the point so that
@@ -414,7 +418,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         #a constant value
         return hash(self.codomain())
 
-    def scale_by(self,t):
+    def scale_by(self, t):
         """
         Scale the coordinates of the point by ``t``.
 
@@ -1719,9 +1723,9 @@ class SchemeMorphism_point_projective_finite_field(SchemeMorphism_point_projecti
         """
         p = self.codomain().base_ring().order()
         N = self.codomain().ambient_space().dimension_relative()
-        return sum(hash(self[i])*p**i for i in range(N+1))
+        return hash(sum(hash(self[i]) * p**i for i in range(N + 1)))
 
-    def orbit_structure(self,f):
+    def orbit_structure(self, f):
         r"""
         This function returns the pair `[m,n]` where `m` is the
         preperiod and `n` is the period of the point by the map ``f``.

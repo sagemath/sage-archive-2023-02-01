@@ -714,7 +714,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
 
             sage: F = FreeAlgebra(ZZ,3,'x,y,z')
             sage: F.algebra_generators()
-            Finite family {'y': y, 'x': x, 'z': z}
+            Finite family {'x': x, 'y': y, 'z': z}
         """
         ret = {}
         for i in range(self.__ngens):
@@ -809,6 +809,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
     def g_algebra(self, relations, names=None, order='degrevlex', check=True):
         """
         The `G`-Algebra derived from this algebra by relations.
+
         By default is assumed, that two variables commute.
 
         .. TODO::

@@ -121,6 +121,7 @@ __append_to_doc(
      "FranklinGraph",
      "FruchtGraph",
      "GoldnerHararyGraph",
+     "GolombGraph",
      "GossetGraph",
      "GrayGraph",
      "GrotzschGraph",
@@ -204,19 +205,23 @@ __append_to_doc(
     ["BalancedTree",
      "BarbellGraph",
      "BubbleSortGraph",
+     "CaiFurerImmermanGraph",
      "chang_graphs",
      "CirculantGraph",
      "cospectral_graphs",
      "CubeGraph",
      "DorogovtsevGoltsevMendesGraph",
+     "EgawaGraph",
      "FibonacciTree",
      "FoldedCubeGraph",
      "FriendshipGraph",
      "fullerenes",
+     "FurerGadget",
      "fusenes",
      "FuzzyBallGraph",
      "GeneralizedPetersenGraph",
      "GoethalsSeidelGraph",
+     "HammingGraph",
      "HanoiTowerGraph",
      "HararyGraph",
      "HyperStarGraph",
@@ -313,6 +318,7 @@ __append_to_doc(
      "RandomGNM",
      "RandomGNP",
      "RandomHolmeKim",
+     "RandomChordalGraph",
      "RandomIntervalGraph",
      "RandomLobster",
      "RandomNewmanWattsStrogatz",
@@ -752,7 +758,8 @@ class GraphGenerators():
             return
 
         if property is None:
-            property = lambda x: True
+            def property(x):
+                return True
 
         from sage.graphs.all import Graph
         from copy import copy as copyfun
@@ -764,15 +771,25 @@ class GraphGenerators():
                 raise ValueError("Invalid degree sequence.")
             degree_sequence = sorted(degree_sequence)
             if augment == 'edges':
-                property = lambda x: all([degree_sequence[i] >= d for i,d in enumerate(sorted(x.degree()))])
-                extra_property = lambda x: degree_sequence == sorted(x.degree())
+                def property(x):
+                    D = sorted(x.degree())
+                    return all(degree_sequence[i] >= d for i, d in enumerate(D))
+                def extra_property(x):
+                    return degree_sequence == sorted(x.degree())
             else:
-                property = lambda x: all([degree_sequence[i] >= d for i,d in enumerate(sorted(x.degree() + [0]*(vertices-x.num_verts()) ))])
-                extra_property = lambda x: x.num_verts() == vertices and degree_sequence == sorted(x.degree())
+                def property(x):
+                    D = sorted(x.degree() + [0] * (vertices - x.num_verts()))
+                    return all(degree_sequence[i] >= d for i, d in enumerate(D))
+                def extra_property(x):
+                    if x.num_verts() != vertices:
+                        return False
+                    return degree_sequence == sorted(x.degree())
         elif size is not None:
-            extra_property = lambda x: x.size() == size
+            def extra_property(x):
+                return x.size() == size
         else:
-            extra_property = lambda x: True
+            def extra_property(x):
+                return True
 
         if augment == 'vertices':
             if vertices is None:
@@ -1080,7 +1097,7 @@ class GraphGenerators():
             sage: _ = code_input.write('>>planar_code<<')
             sage: for c in [4,2,3,4,0,1,4,3,0,1,2,4,0,1,3,2,0]:
             ....:     _ = code_input.write('{:c}'.format(c))
-            sage: code_input.seek(0)
+            sage: _ = code_input.seek(0)
             sage: gen = graphs._read_planar_code(code_input)
             sage: l = list(gen)
             sage: l
@@ -1951,6 +1968,7 @@ class GraphGenerators():
     FranklinGraph            = staticmethod(sage.graphs.generators.smallgraphs.FranklinGraph)
     FruchtGraph              = staticmethod(sage.graphs.generators.smallgraphs.FruchtGraph)
     GoldnerHararyGraph       = staticmethod(sage.graphs.generators.smallgraphs.GoldnerHararyGraph)
+    GolombGraph              = staticmethod(sage.graphs.generators.smallgraphs.GolombGraph)
     GossetGraph              = staticmethod(sage.graphs.generators.smallgraphs.GossetGraph)
     GrayGraph                = staticmethod(sage.graphs.generators.smallgraphs.GrayGraph)
     GrotzschGraph            = staticmethod(sage.graphs.generators.smallgraphs.GrotzschGraph)
@@ -2028,17 +2046,21 @@ class GraphGenerators():
     BalancedTree           = staticmethod(sage.graphs.generators.families.BalancedTree)
     BarbellGraph           = staticmethod(sage.graphs.generators.families.BarbellGraph)
     BubbleSortGraph        = staticmethod(sage.graphs.generators.families.BubbleSortGraph)
+    CaiFurerImmermanGraph  = staticmethod(sage.graphs.generators.families.CaiFurerImmermanGraph)
     chang_graphs           = staticmethod(sage.graphs.generators.families.chang_graphs)
     CirculantGraph         = staticmethod(sage.graphs.generators.families.CirculantGraph)
     CubeGraph              = staticmethod(sage.graphs.generators.families.CubeGraph)
     DipoleGraph            = staticmethod(sage.graphs.generators.families.DipoleGraph)
     DorogovtsevGoltsevMendesGraph = staticmethod(sage.graphs.generators.families.DorogovtsevGoltsevMendesGraph)
+    EgawaGraph             = staticmethod(sage.graphs.generators.families.EgawaGraph)
     FibonacciTree          = staticmethod(sage.graphs.generators.families.FibonacciTree)
     FoldedCubeGraph        = staticmethod(sage.graphs.generators.families.FoldedCubeGraph)
     FriendshipGraph        = staticmethod(sage.graphs.generators.families.FriendshipGraph)
+    FurerGadget            = staticmethod(sage.graphs.generators.families.FurerGadget)
     FuzzyBallGraph         = staticmethod(sage.graphs.generators.families.FuzzyBallGraph)
     GeneralizedPetersenGraph = staticmethod(sage.graphs.generators.families.GeneralizedPetersenGraph)
     GoethalsSeidelGraph    = staticmethod(sage.graphs.generators.families.GoethalsSeidelGraph)
+    HammingGraph           = staticmethod(sage.graphs.generators.families.HammingGraph)
     HanoiTowerGraph        = staticmethod(sage.graphs.generators.families.HanoiTowerGraph)
     HararyGraph            = staticmethod(sage.graphs.generators.families.HararyGraph)
     HyperStarGraph         = staticmethod(sage.graphs.generators.families.HyperStarGraph)
@@ -2121,6 +2143,7 @@ class GraphGenerators():
     RandomBicubicPlanar      = staticmethod(sage.graphs.generators.random.RandomBicubicPlanar)
     RandomBlockGraph         = staticmethod(sage.graphs.generators.random.RandomBlockGraph)
     RandomBoundedToleranceGraph = staticmethod(sage.graphs.generators.random.RandomBoundedToleranceGraph)
+    RandomChordalGraph       = staticmethod(sage.graphs.generators.random.RandomChordalGraph)
     RandomGNM                = staticmethod(sage.graphs.generators.random.RandomGNM)
     RandomGNP                = staticmethod(sage.graphs.generators.random.RandomGNP)
     RandomHolmeKim           = staticmethod(sage.graphs.generators.random.RandomHolmeKim)
@@ -2212,7 +2235,6 @@ def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False, loops=Fals
         Digraph on 2 vertices
     """
     from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
-
     if not property(g):
         return
     yield g

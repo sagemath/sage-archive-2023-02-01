@@ -23,14 +23,6 @@ AUTHORS:
 - Julian Rueth (2011-09-14): replaced ``@cached_function`` with
   ``UniqueFactory``
 
-EXAMPLES::
-
-    sage: K.<x> = FunctionField(QQ); K
-    Rational function field in x over Rational Field
-    sage: L.<x> = FunctionField(QQ); L
-    Rational function field in x over Rational Field
-    sage: K is L
-    True
 """
 from __future__ import absolute_import
 #*****************************************************************************

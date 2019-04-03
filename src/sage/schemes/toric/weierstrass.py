@@ -160,7 +160,7 @@ from sage.misc.all import prod
 from sage.rings.infinity import Infinity
 from sage.modules.all import vector
 from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
-from sage.rings.all import invariant_theory
+from sage.rings.invariants.all import invariant_theory
 
 import six
 
@@ -649,7 +649,7 @@ def _check_polynomial_P2(cubic, variables):
     polynomial ring. A ``ValueError`` is raised if the polynomial is
     not homogeneous.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.schemes.toric.weierstrass import _check_polynomial_P2
         sage: R.<x,y,z> = QQ[]
@@ -990,7 +990,7 @@ def _check_polynomial_P2_112(polynomial, variables):
     polynomial ring. A ``ValueError`` is raised if the polynomial is
     not homogeneous.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.schemes.toric.weierstrass import _check_polynomial_P2_112
         sage: R.<x,y,z,t> = QQ[]

@@ -392,7 +392,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
 
         Different lift modes affect the choice of `a_i`.  When
         ``lift_mode`` is ``'simple'``, the resulting `a_i` will be
-        non-negative: if the residue field is `\mathbb{F}_p` then they
+        non-negative: if the residue field is `\GF{p}` then they
         will be integers with `0 \le a_i < p`; otherwise they will be
         a list of integers in the same range giving the coefficients
         of a polynomial in the indeterminant representing the maximal
@@ -688,7 +688,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
                 n = 0
             else:
                 n -= self.valuation()
-        return list(itertools.chain(itertools.islice(L, n), itertools.repeat(zero, n - len(L))))
+        return list(itertools.chain(itertools.islice(L, int(n)), itertools.repeat(zero, n - len(L))))
 
     def _ext_p_list(self, pos):
         """
@@ -1222,7 +1222,10 @@ cdef class ExpansionIterable(object):
             -2
         """
         if isinstance(n, slice):
-            return itertools.islice(iter(self), n.start, n.stop, n.step)
+            start = int(n.start) if n.start is not None else None
+            stop = int(n.stop) if n.stop is not None else None
+            step = int(n.step) if n.step is not None else None
+            return itertools.islice(iter(self), start, stop, step)
         cdef long m = n - self.val_shift
         cdef celement value
         if n < 0:

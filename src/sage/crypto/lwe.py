@@ -90,7 +90,7 @@ from six.moves import range
 
 from sage.functions.log import log
 from sage.functions.other import sqrt, floor, ceil
-from sage.misc.functional import cyclotomic_polynomial
+from sage.misc.functional import cyclotomic_polynomial, round
 from sage.misc.randstate import set_random_seed
 from sage.misc.prandom import randint
 from sage.modules.free_module import FreeModule
@@ -104,6 +104,7 @@ from sage.symbolic.constants import pi
 from sage.symbolic.ring import SR
 from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianDistributionIntegerSampler
 from sage.stats.distributions.discrete_gaussian_polynomial import DiscreteGaussianDistributionPolynomialSampler
+
 
 class UniformSampler(SageObject):
     """
@@ -312,7 +313,7 @@ class LWE(SageObject):
             self.__s = vector(self.K, self.n, [self.D() for _ in range(n)])
         else:
             try:
-                lb, ub = map(ZZ,secret_dist)
+                lb, ub = map(ZZ, secret_dist)
                 self.__s = vector(self.K, self.n, [randint(lb,ub) for _ in range(n)])
             except (IndexError, TypeError):
                 raise TypeError("Parameter secret_dist=%s not understood."%(secret_dist))
@@ -524,7 +525,7 @@ class RingLWE(SageObject):
             sage: from sage.crypto.lwe import RingLWE
             sage: from sage.stats.distributions.discrete_gaussian_polynomial import DiscreteGaussianDistributionPolynomialSampler
             sage: D = DiscreteGaussianDistributionPolynomialSampler(ZZ['x'], n=euler_phi(20), sigma=3.0)
-            sage: RingLWE(N=20, q=next_prime(800), D=D);
+            sage: RingLWE(N=20, q=next_prime(800), D=D)
             RingLWE(20, 809, Discrete Gaussian sampler for polynomials of degree < 8 with σ=3.000000 in each component, x^8 - x^6 + x^4 - x^2 + 1, 'uniform', None)
         """
         self.N  = ZZ(N)
@@ -559,7 +560,7 @@ class RingLWE(SageObject):
 
             sage: from sage.crypto.lwe import DiscreteGaussianDistributionPolynomialSampler, RingLWE
             sage: D = DiscreteGaussianDistributionPolynomialSampler(ZZ['x'], n=8, sigma=3.0)
-            sage: RingLWE(N=16, q=next_prime(400), D=D);
+            sage: RingLWE(N=16, q=next_prime(400), D=D)
             RingLWE(16, 401, Discrete Gaussian sampler for polynomials of degree < 8 with σ=3.000000 in each component, x^8 + 1, 'uniform', None)
         """
         if isinstance(self.secret_dist, str):
@@ -740,15 +741,15 @@ def samples(m, n, lwe, seed=None, balanced=False, **kwds):
     if isinstance(lwe, type):
         lwe = lwe(n, m=m, **kwds)
     else:
-        lwe = lwe
         if lwe.n != n:
-            raise ValueError("Passed LWE instance has n=%d, but n=%d was passed to this function."%(lwe.n, n))
+            raise ValueError("Passed LWE instance has n=%d, but n=%d was passed to this function." % (lwe.n, n))
 
     if balanced is False:
         f = lambda a_c: a_c
     else:
         f = balance_sample
     return [f(lwe()) for _ in range(m)]
+
 
 def balance_sample(s, q=None):
     r"""
@@ -767,7 +768,7 @@ def balance_sample(s, q=None):
     EXAMPLES::
 
         sage: from sage.crypto.lwe import balance_sample, samples, Regev
-        sage: list(map(balance_sample, samples(10, 5, Regev)))
+        sage: [balance_sample(s) for s in samples(10, 5, Regev)]
         [((-9, -4, -4, 4, -4), 4), ((-8, 11, 12, -11, -11), -7),
         ...
         ((-11, 12, 0, -6, -3), 7), ((-7, 14, 8, 11, -8), -12)]
@@ -776,7 +777,7 @@ def balance_sample(s, q=None):
         sage: from sage.crypto.lwe import balance_sample, DiscreteGaussianDistributionPolynomialSampler, RingLWE, samples
         sage: D = DiscreteGaussianDistributionPolynomialSampler(ZZ['x'], 8, 5)
         sage: rlwe = RingLWE(20, 257, D)
-        sage: list(map(balance_sample, samples(10, 8, rlwe)))
+        sage: [balance_sample(s) for s in samples(10, 8, rlwe)]
         [((-64, 107, -91, -24, 120, 54, 38, -35), (-84, 121, 28, -99, 91, 54, -60, 11)),
         ...
         ((-40, -117, 35, -69, -11, 10, 122, 48), (-80, -2, 119, -91, 27, 66, 121, -1))]

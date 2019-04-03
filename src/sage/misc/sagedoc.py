@@ -50,7 +50,7 @@ from sage.misc.temporary_file import tmp_dir
 from .viewer import browser
 from .sphinxify import sphinxify
 import sage.version
-from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC
+from sage.env import SAGE_DOC, SAGE_SRC
 
 # The detex function does two kinds of substitutions: math, which
 # should only be done on the command line -- in the notebook, these
@@ -845,58 +845,9 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
         module = ''
         exts = ['html']
         title = 'Documentation'
-        base_path = SAGE_DOC
-        doc_path = SAGE_DOC_SRC
-
-        from sage_setup.docbuild.build_options import LANGUAGES, OMIT
-        # List of languages
-        lang = LANGUAGES
-        # Documents in SAGE_DOC_SRC/LANG/ to omit
-        omit = OMIT
-
-        # List of documents, minus the omitted ones
-        documents = []
-        for L in lang:
-            documents += [os.path.join(L, dir) for dir
-                          in os.listdir(os.path.join(doc_path, L))
-                          if dir not in omit]
-
-        # Check to see if any documents are missing.  This just
-        # checks to see if the appropriate output directory exists,
-        # not that it contains a complete build of the docs.
-        missing = [os.path.join(SAGE_DOC, 'html', doc)
-                   for doc in documents if not
-                   os.path.exists(os.path.join(SAGE_DOC, 'html', doc))]
-        num_missing = len(missing)
-        if num_missing > 0:
-            print("""Warning, the following Sage documentation hasn't been built,
-so documentation search results may be incomplete:
-""")
-            for s in missing:
-                print(s)
-            if num_missing > 1:
-                print("""
-You can build these with 'sage -docbuild DOCUMENT html',
-where DOCUMENT is one of""", end=' ')
-                for s in missing:
-                    if s.find('en') != -1:
-                        print("'{}',".format(os.path.split(s)[-1]), end=' ')
-                    else:
-                        print("'{}',".format(os.path.join(
-                            os.path.split(os.path.split(s)[0])[-1],
-                            os.path.split(s)[-1])), end=' ')
-                print("""
-or you can use 'sage -docbuild all html' to build all of the missing documentation.""")
-            else:
-                s = missing[0]
-                if s.find('en') != -1:
-                    s = os.path.split(s)[-1]
-                else:
-                    s = os.path.join(
-                        os.path.split(os.path.split(s)[0])[-1],
-                        os.path.split(s)[-1])
-                print("""
-You can build this with 'sage -docbuild {} html'.""".format(s))
+        base_path = os.path.join(SAGE_DOC, 'html')
+    if not os.path.exists(base_path):
+        print("""Warning: the Sage documentation is not available""")
 
     strip = len(base_path)
     results = []
@@ -916,13 +867,18 @@ You can build this with 'sage -docbuild {} html'.""".format(s))
 
     # done with preparation; ready to start search
     for dirpath, dirs, files in os.walk(os.path.join(base_path, module)):
+        try:
+            dirs.remove('_static')
+        except ValueError:
+            pass
         for f in files:
             if not f.startswith('.') and re.search(r"\.(" + "|".join(exts) + ")$", f):
                 filename = os.path.join(dirpath, f)
                 if re.search(path_re, filename):
                     if multiline:
-                        line = open(filename).read()
-                        if re.search(string, line, flags):
+                        with open(filename) as fobj:
+                            line = fobj.read()
+                        if re.search(regexp, line, flags):
                             match_list = line
                         else:
                             match_list = None
@@ -933,9 +889,10 @@ You can build this with 'sage -docbuild {} html'.""".format(s))
                         if match_list:
                             results.append(filename[strip:].lstrip("/") + '\n')
                     else:
-                        match_list = [(lineno, line) for lineno, line in
-                                      enumerate(open(filename).read().splitlines(True))
-                                      if re.search(string, line, flags)]
+                        with open(filename) as fobj:
+                            match_list = [(lineno, line)
+                                          for lineno, line in enumerate(fobj)
+                                          if re.search(regexp, line, flags)]
                         for extra in extra_regexps:
                             if extra:
                                 match_list = [s for s in match_list
@@ -1061,18 +1018,23 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='',
     The following produces an error because the string 'fetch(' is a
     malformed regular expression::
 
-        sage: print(search_src(" fetch(", "def", interact=False))
+        sage: print(search_src(" fetch(", "def", interact=False)) # py2
         Traceback (most recent call last):
         ...
         error: unbalanced parenthesis
 
+        sage: print(search_src(" fetch(", "def", interact=False)) # py3
+        Traceback (most recent call last):
+        ...
+        sre_constants.error: missing ), unterminated subpattern at position 6
+
     To fix this, *escape* the parenthesis with a backslash::
 
-        sage: print(search_src(" fetch\(", "def", interact=False)) # random # long time
+        sage: print(search_src(r" fetch\(", "def", interact=False)) # random # long time
         matrix/matrix0.pyx:    cdef fetch(self, key):
         matrix/matrix0.pxd:    cdef fetch(self, key)
 
-        sage: print(search_src(" fetch\(", "def", "pyx", interact=False)) # random # long time
+        sage: print(search_src(r" fetch\(", "def", "pyx", interact=False)) # random # long time
         matrix/matrix0.pyx:    cdef fetch(self, key):
 
     As noted above, the search is case-insensitive, but you can make it
@@ -1106,28 +1068,28 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='',
 
     ::
 
-        sage: print(search_src('^ *sage[:] .*search_src\(', interact=False)) # long time
+        sage: print(search_src(r'^ *sage[:] .*search_src\(', interact=False)) # long time
         misc/sagedoc.py:... len(search_src("matrix", interact=False).splitlines()) # random # long time
         misc/sagedoc.py:... len(search_src("matrix", module="sage.calculus", interact=False).splitlines()) # random
         misc/sagedoc.py:... len(search_src("matrix", path_re="calc", interact=False).splitlines()) > 15
-        misc/sagedoc.py:... print(search_src(" fetch(", "def", interact=False))
-        misc/sagedoc.py:... print(search_src(" fetch\(", "def", interact=False)) # random # long time
-        misc/sagedoc.py:... print(search_src(" fetch\(", "def", "pyx", interact=False)) # random # long time
+        misc/sagedoc.py:... print(search_src(" fetch(", "def", interact=False)) # py2
+        misc/sagedoc.py:... print(search_src(" fetch(", "def", interact=False)) # py3
+        misc/sagedoc.py:... print(search_src(r" fetch\(", "def", interact=False)) # random # long time
+        misc/sagedoc.py:... print(search_src(r" fetch\(", "def", "pyx", interact=False)) # random # long time
         misc/sagedoc.py:... s = search_src('Matrix', path_re='matrix', interact=False); s.find('x') > 0
         misc/sagedoc.py:... s = search_src('MatRiX', path_re='matrix', interact=False); s.find('x') > 0
         misc/sagedoc.py:... s = search_src('MatRiX', path_re='matrix', interact=False, ignore_case=False); s.find('x') > 0
         misc/sagedoc.py:... len(search_src('log', 'derivative', interact=False).splitlines()) < 40
         misc/sagedoc.py:... len(search_src('log', 'derivative', interact=False, multiline=True).splitlines()) > 70
-        misc/sagedoc.py:... print(search_src('^ *sage[:] .*search_src\(', interact=False)) # long time
+        misc/sagedoc.py:... print(search_src(r'^ *sage[:] .*search_src\(', interact=False)) # long time
         misc/sagedoc.py:... len(search_src("matrix", interact=False).splitlines()) > 9000 # long time
         misc/sagedoc.py:... print(search_src('matrix', 'column', 'row', 'sub', 'start', 'index', interact=False)) # random # long time
         misc/sagedoc.py:... sage: results = search_src('format_search_as_html', # long time
 
-
     TESTS:
 
     As of this writing, there are about 9500 lines in the Sage library that
-    contain "matrix"; it seems safe to assume we'll continue to have
+    contain "matrix"; it seems safe to assume we will continue to have
     over 9000 such lines::
 
         sage: len(search_src("matrix", interact=False).splitlines()) > 9000 # long time
@@ -1146,9 +1108,10 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='',
                               extra3=extra3, extra4=extra4, extra5=extra5,
                               **kwds)
 
+
 def search_doc(string, extra1='', extra2='', extra3='', extra4='',
                extra5='', **kwds):
-    """
+    r"""
     Search Sage HTML documentation for lines containing ``string``. The
     search is case-insensitive by default.
 

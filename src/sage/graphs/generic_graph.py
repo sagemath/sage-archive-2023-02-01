@@ -4004,7 +4004,8 @@ class GenericGraph(GenericGraph_pyx):
                           weight_function=None,
                           algorithm="Prim_Boost",
                           starting_vertex=None,
-                          check=False):
+                          check=False,
+                          by_weight=False):
         r"""
         Return the edges of a minimum spanning tree.
 
@@ -4018,22 +4019,15 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         - ``weight_function`` -- function (default: ``None``); a function that
-          takes as input an edge ``e`` and outputs its weight. An edge has the
-          form ``(u, v, l)``, where ``u`` and ``v`` are vertices, ``l`` is a
-          label (that can be of any kind). The ``weight_function`` can be used
-          to transform the label into a weight (note that, if the weight
-          returned is not convertible to a float, an error is raised). In
-          particular:
+          takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+          ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
+          weight. The ``weight_function`` can be used to transform the label
+          into a weight (note that, if the weight returned is not convertible
+          to a float, an error is raised)
 
-          - if ``weight_function`` is not ``None``, the weight of an edge ``e``
-            is ``weight_function(e)``;
-
-          - if ``weight_function`` is ``None`` (default) and ``g`` is weighted
-            (that is, ``g.weighted()==True``), for each edge ``e=(u,v,l)``, we
-            set weight ``l``;
-
-          - if ``weight_function`` is ``None`` and ``g`` is not weighted, we set
-            all weights to 1 (hence, the output can be any spanning tree).
+        - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
+          in the graph are weighted, otherwise all edges have weight 1
 
         - ``algorithm`` -- string (default: ``"Prim_Boost"``); the algorithm to
           use in computing a minimum spanning tree of ``G``. The following
@@ -4128,7 +4122,7 @@ class GenericGraph(GenericGraph_pyx):
             [(1, 2, 1), (1, 3, 2)]
 
         In order to use weights, we need either to set variable ``weighted`` to
-        ``True``, or to specify a weight function::
+        ``True``, or to specify a weight function or set by_weight to ``True``::
 
             sage: g.weighted(True)
             sage: sorted(g.min_spanning_tree())
@@ -4136,6 +4130,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.weighted(False)
             sage: sorted(g.min_spanning_tree())
             [(1, 2, 1), (1, 3, 2)]
+            sage: sorted(g.min_spanning_tree(by_weight=True))
+            [(1, 2, 1), (2, 3, 1)]
             sage: sorted(g.min_spanning_tree(weight_function=lambda e: e[2]))
             [(1, 2, 1), (2, 3, 1)]
 
@@ -4254,12 +4250,19 @@ class GenericGraph(GenericGraph_pyx):
         """
         if not self.order():
             return []
+        if weight_function is not None:
+            by_weight = True
 
-        if weight_function is None:
-            if self.weighted():
-                weight_function = lambda e: e[2]
-            else:
-                weight_function = lambda e: 1
+        # for weighted graphs
+        if self.weighted():
+            by_weight = True
+
+        if weight_function is None and by_weight:
+            def weight_function(e):
+                return e[2]
+
+        if not by_weight:
+            weight_function = lambda e: 1
 
         wfunction_float = lambda e: float(weight_function(e))
 
@@ -4348,12 +4351,11 @@ class GenericGraph(GenericGraph_pyx):
         elif algorithm == "NetworkX":
             import networkx
             G = networkx.Graph([(e[0], e[1], {'weight': wfunction_float(e)}) for e in self.edge_iterator()])
-            E = networkx.minimum_spanning_tree(G).edges()
+            E = networkx.minimum_spanning_edges(G, data=False)
             return [(u, v, self.edge_label(u, v)) if hash(u) < hash(v) else (v, u, self.edge_label(u, v))
                                for u, v in E]
-
         else:
-            raise NotImplementedError("minimum Sspanning tree algorithm '%s' is not implemented" % algorithm)
+            raise NotImplementedError("minimum spanning tree algorithm '%s' is not implemented" % algorithm)
 
     def spanning_trees_count(self, root_vertex=None):
         r"""

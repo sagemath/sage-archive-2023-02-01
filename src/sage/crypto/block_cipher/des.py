@@ -26,7 +26,7 @@ class DES(SageObject):
     This class implements DES described in [TODO: ADD REF]_.
     """
 
-    def __init__(self, rounds=None, keySchedule=False):
+    def __init__(self, rounds=None, keySchedule=None):
         r"""
         Construct an instance of DES.
 
@@ -136,11 +136,39 @@ class DES(SageObject):
 
     def _sboxes(self, B):
         r"""
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.des import DES
+            sage: des = DES()
+            sage: B = vector(GF(2), 48, [0,1,1,0,0,0,0,1,0,0,0,1,0,1,1,1,1,0,1,1,1,0,1,0,1,0,0,0,0,1,1,0,0,1,1,0,0,1,0,1,0,0,1,0,0,1,1,1])
+            sage: des._sboxes(B)
+            (0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1)
+
         .. SEEALSO::
 
             :mod:`sage.crypto.sboxes`
         """
-        pass
+        from sage.crypto.sboxes import DES_S1_1, DES_S1_2, DES_S1_3, DES_S1_4
+        from sage.crypto.sboxes import DES_S2_1, DES_S2_2, DES_S2_3, DES_S2_4
+        from sage.crypto.sboxes import DES_S3_1, DES_S3_2, DES_S3_3, DES_S3_4
+        from sage.crypto.sboxes import DES_S4_1, DES_S4_2, DES_S4_3, DES_S4_4
+        from sage.crypto.sboxes import DES_S5_1, DES_S5_2, DES_S5_3, DES_S5_4
+        from sage.crypto.sboxes import DES_S6_1, DES_S6_2, DES_S6_3, DES_S6_4
+        from sage.crypto.sboxes import DES_S7_1, DES_S7_2, DES_S7_3, DES_S7_4
+        from sage.crypto.sboxes import DES_S8_1, DES_S8_2, DES_S8_3, DES_S8_4
+        from itertools import chain
+        sbox = [[DES_S1_1, DES_S1_2, DES_S1_3, DES_S1_4],
+                [DES_S2_1, DES_S2_2, DES_S2_3, DES_S2_4],
+                [DES_S3_1, DES_S3_2, DES_S3_3, DES_S3_4],
+                [DES_S4_1, DES_S4_2, DES_S4_3, DES_S4_4],
+                [DES_S5_1, DES_S5_2, DES_S5_3, DES_S5_4],
+                [DES_S6_1, DES_S6_2, DES_S6_3, DES_S6_4],
+                [DES_S7_1, DES_S7_2, DES_S7_3, DES_S7_4],
+                [DES_S8_1, DES_S8_2, DES_S8_3, DES_S8_4]]
+        B = [B[i:i+6] for i in range(0, 48, 6)]
+        B = list(chain.from_iterable([sbox[i][2*int(b[0])+int(b[5])](b[1:5])
+                                      for i, b in enumerate(B)]))
+        return vector(GF(2), 32, B)
 
     def _permutaion(self, B):
         pass

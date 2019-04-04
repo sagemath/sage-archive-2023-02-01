@@ -18,10 +18,8 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
     def __init__(self, vector_field_module):
         if vector_field_module is None:
             raise ValueError("underlying vector field module must be provided")
-
         domain = vector_field_module._domain
         dest_map = vector_field_module._dest_map
-
         # Set name and latex_name:
         name = "Omega^*(" + domain._name
         latex_name = r"\Omega^*\left(" + domain._latex_name
@@ -36,23 +34,18 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
             latex_name += "," + dm_latex_name
         self._name = name + ")"
         self._latex_name = latex_name + r"\right)"
-
         # Add this algebra to the category of graded algebras:
         base_field = domain.base_field()
         if domain.base_field_type() in ['real', 'complex']:
             base_field = SR
         Parent.__init__(self, base=base_field,
                         category=GradedAlgebras(base_field))
-
         # Define attributes:
         self._domain = domain
         self._ambient_domain = vector_field_module._ambient_domain
         self._dest_map = dest_map
         self._vmodule = vector_field_module
         self._max_deg = vector_field_module._ambient_domain.dim()
-
-        # Register coercions:
-        # self._populate_coercion_lists_()
 
     #####
     # _repr_
@@ -72,7 +65,6 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
             else:
                 dm_name = self._dest_map._name
             description += "via " + dm_name
-
         return description
 
     #####
@@ -84,7 +76,6 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
     def _element_constructor_(self, comp=None, name=None, latex_name=None):
         if comp is None:
             return self.element_class(self, comp, name, latex_name)
-
         # Prepare list:
         if isinstance(comp, list):
             if len(comp) != self._max_deg + 1:
@@ -102,11 +93,9 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
             deg = comp.degree()
             if deg <= self._max_deg:
                 comp_list[deg] = comp
-
         # Use already existing coercions:
-        for j in range(0, self._max_deg + 1):
-            comp_list[j] = self._domain.diff_form_module(j, self._dest_map).coerce(comp_list[j])
-
+        comp_list = [self._domain.diff_form_module(j, self._dest_map).coerce(comp_list[j])
+                     for j in range(0, self._max_deg + 1)]
         try:
             if name is None and comp._name is not None:
                 name = comp._name
@@ -114,7 +103,6 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
                 latex_name = comp._latex_name
         except AttributeError:
             pass
-
         return self.element_class(self, comp_list, name, latex_name)
 
     #####
@@ -137,12 +125,10 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
         try:
             deg = S.degree()
             if self._domain.diff_form_module(deg,
-                                             self._dest_map).has_coerce_map_from(
-                    S):
+                                             self._dest_map).has_coerce_map_from(S):
                 return True
         except (NotImplementedError, AttributeError, TypeError):
             pass
-
         return False
 
     #####
@@ -163,7 +149,6 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
     @cached_method
     def zero(self):
         resu_comp = [0] * (self._max_deg + 1)
-
         return self._element_constructor_(comp=resu_comp, name='zero',
                                           latex_name='0')
 
@@ -177,6 +162,5 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
     def one(self):
         resu_comp = [0] * (self._max_deg + 1)
         resu_comp[0] = 1
-
         return self._element_constructor_(comp=resu_comp, name='one',
                                           latex_name='1')

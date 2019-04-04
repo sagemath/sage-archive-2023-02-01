@@ -1,3 +1,32 @@
+r"""
+Mixed Differential Forms
+
+Let `M` and `N` be differentiable manifolds and `\Phi : M \longrightarrow N` a
+differentiable map. A *mixed differential form along* `\Phi` is an element of
+the graded algebra represented by
+:class:`~sage.manifolds.differentiable.mixed_form_algebra.MixedFormAlgebra`.
+Its homogeneous components consist of differential forms along `\Phi`. Mixed
+forms are useful to represent characteristic classes and perform computations
+of such.
+
+AUTHORS:
+
+- Michael Jung (2019) : initial version
+
+REFERENCES:
+
+- [Baer2006]_
+
+"""
+
+#******************************************************************************
+#       Copyright (C) 2019 Michael Jung <michi-jung@kabelmail.de>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+#******************************************************************************
 from sage.misc.cachefunc import cached_method
 from sage.structure.element import AlgebraElement
 from sage.rings.integer import Integer
@@ -29,8 +58,8 @@ class MixedForm(AlgebraElement):
 
         # Set components:
         if comp is None:
-            for j in range(0,self._max_deg + 1):
-                self._comp.append(self._domain.diff_form(j))
+            self._comp = [self._domain.diff_form(j)
+                          for j in range(0, self._max_deg + 1)]
         else:
             self._comp = comp
 
@@ -142,8 +171,8 @@ class MixedForm(AlgebraElement):
                         if is_atomic(coef_latex):
                             terms_latex.append(coef_latex + basis_term_latex)
                         else:
-                            terms_latex.append(
-                                r"\left(" + coef_latex + r"\right)" + basis_term_latex)
+                            terms_latex.append(r"\left(" + coef_latex +
+                                               r"\right)" + basis_term_latex)
             if not terms_txt:
                 resu_txt = "0"
             else:
@@ -260,12 +289,9 @@ class MixedForm(AlgebraElement):
     #####
 
     def _add_(self, other):
-        resu_comp = []
-        for j in range(0, self._max_deg + 1):
-            resu_comp.append(self._comp[j] + other._comp[j])
-
+        resu_comp = [self._comp[j] + other._comp[j]
+                     for j in range(0, self._max_deg + 1)]
         resu = self.__class__(self.parent(), comp=resu_comp)
-
         # Compose name:
         if self._name is not None and other._name is not None:
             resu._name = self._name + '+' + other._name
@@ -281,12 +307,9 @@ class MixedForm(AlgebraElement):
     #####
 
     def _sub_(self, other):
-        resu_comp = []
-        for j in range(0, self._max_deg + 1):
-            resu_comp.append(self._comp[j] - other._comp[j])
-
+        resu_comp = [self._comp[j] - other._comp[j]
+                     for j in range(0, self._max_deg + 1)]
         resu = self.__class__(self.parent(), comp=resu_comp)
-
         # Compose name:
         from sage.tensor.modules.format_utilities import is_atomic
 
@@ -323,17 +346,14 @@ class MixedForm(AlgebraElement):
 
     def wedge(self, other):
         resu_comp = [None] * (self._max_deg + 1)
-
         resu_comp[0] = self._comp[0] * other._comp[0]
         for j in range(1, self._max_deg + 1):
             resu_comp[j] = self._comp[j] * other._comp[0]
             resu_comp[j] = resu_comp[j] + self._comp[0] * other._comp[j]
             for k in range(1, j):
-                resu_comp[j] = resu_comp[j] + self._comp[k].wedge(
-                    other._comp[j - k])
-
+                resu_comp[j] = resu_comp[j] + \
+                               self._comp[k].wedge(other._comp[j - k])
         resu = self.__class__(self.parent(), comp=resu_comp)
-
         # Compose name:
         from sage.tensor.modules.format_utilities import format_mul_txt, \
             format_mul_latex
@@ -341,7 +361,6 @@ class MixedForm(AlgebraElement):
         resu._name = format_mul_txt(self._name, '/\\', other._name)
         resu._latex_name = format_mul_latex(self._latex_name, r'\wedge ',
                                             other._latex_name)
-
         return resu
 
     #####
@@ -352,14 +371,12 @@ class MixedForm(AlgebraElement):
 
     @cached_method
     def exterior_derivative(self):
-        resu_comp = []
+        resu_comp = list()
         resu_comp.append(self._domain.scalar_field_algebra().zero())
         resu_comp.append(self._comp[0].differential())
-        for j in range(1, self._max_deg):
-            resu_comp.append(self._comp[j].exterior_derivative())
-
+        resu_comp.extend([self._comp[j].exterior_derivative()
+                          for j in range(1, self._max_deg)])
         resu = self.__class__(self.parent(), comp=resu_comp)
-
         # Compose name:
         from sage.tensor.modules.format_utilities import (format_unop_txt,
                                                           format_unop_latex)
@@ -404,23 +421,24 @@ class MixedForm(AlgebraElement):
         for deg, j in zip(range(start, stop, step), range(0, len(form_list))):
             if form_list[j] in self._domain.diff_form_module(deg,
                                                              self._dest_map):
-                self._comp[deg] = self._domain.diff_form_module(deg,
-                                                                self._dest_map).coerce(
-                    form_list[j])
+                self._comp[deg] = \
+                    self._domain.diff_form_module(deg,
+                                                  self._dest_map).coerce(form_list[j])
             else:
                 # A very datailed error message:
-                error_msg = "input must be a differential form of degree {} ".format(
-                    deg)
+                error_msg = "input must be a " \
+                            "differential form of degree {}".format(deg)
                 if self._dest_map is self._domain.identity_map():
-                    error_msg += "on {}".format(self._domain)
+                    error_msg += " on {}".format(self._domain)
                 else:
-                    error_msg += "along {} mapped into {} ".format(self._domain,
-                                                                   self._ambient_domain)
+                    error_msg += " along {} mapped " \
+                                 "into {}".format(self._domain,
+                                                   self._ambient_domain)
                     if self._dest_map._name is None:
                         dm_name = "unnamed map"
                     else:
                         dm_name = self._dest_map._name
-                    error_msg += "via " + dm_name
+                    error_msg += " via " + dm_name
                 raise TypeError(error_msg)
 
     #####
@@ -451,10 +469,10 @@ class MixedForm(AlgebraElement):
     #####
 
     def restrict(self, subdomain, dest_map=None):
-        resu_comp = []
+        resu_comp = list()
         resu_comp.append(self._comp[0].restrict(subdomain))
-        for j in range(1, self._max_deg + 1):
-            resu_comp.append(self._comp[j].restrict(subdomain, dest_map))
+        resu_comp.extend([self._comp[j].restrict(subdomain, dest_map)
+                          for j in range(1, self._max_deg + 1)])
         return self.__class__(subdomain.mixed_form_algebra(dest_map=dest_map),
                               resu_comp, self._name, self._latex_name)
 

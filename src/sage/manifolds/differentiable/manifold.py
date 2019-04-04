@@ -1289,7 +1289,7 @@ class DifferentiableManifold(TopologicalManifold):
           differentiable map `\Phi:\ M \rightarrow N`, where `M` is the
           current manifold and `N` a differentiable manifold;
           if ``None``, it is assumed that `N = M` and that `\Phi` is the
-          identity map (case of differential forms *on* `M`), otherwise
+          identity map (case of mixed forms *on* `M`), otherwise
           ``dest_map`` must be a
           :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
 
@@ -1302,7 +1302,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         EXAMPLES:
 
-        Graded algebra of mixed forms on a 3-dimensional parallelizable manifold::
+        Graded algebra of mixed forms on a 2-dimensional manifold::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
@@ -2034,10 +2034,10 @@ class DifferentiableManifold(TopologicalManifold):
 
         .. MATH::
 
-            a:\ M  \longrightarrow \bigoplus^\infty_{k=0} T^{(0,k)}N
+            a: M  \longrightarrow \bigoplus^\infty_{k=0} T^{(0,k)}N
 
-        (`T^{(0,k)} N` being the tensor bundle of type `(0,k)` over `N`)
-        such that
+        (`T^{(0,k)} N` being the tensor bundle of type `(0,k)` over `N` and `\oplus`
+        being the Whitney sum) such that
 
         .. MATH::
 
@@ -2045,6 +2045,10 @@ class DifferentiableManifold(TopologicalManifold):
 
         where `\Lambda^k(T^*_{\Phi(x)} N)` is the `k`-th exterior power
         of the dual of the tangent space `T_{\Phi(x)} N`.
+
+        .. NOTE::
+        Though the direct sum is infinite, notice that the space
+        `\Lambda^k(T^*_{\Phi(x)} N)` is zero if `k` exceeds the dimension of `N`.
 
         The standard case of a mixed form *on* `M` corresponds
         to `N = M` and `\Phi = \mathrm{Id}_M`. Other common cases are
@@ -2076,11 +2080,11 @@ class DifferentiableManifold(TopologicalManifold):
 
         EXAMPLES:
 
-        A 2-form on a open subset of a 3-dimensional differentiable
+        A mixed form on an open subset of a 3-dimensional differentiable
         manifold::
 
             sage: M = Manifold(3, 'M')
-            sage: A = M.open_subset('U', latex_name=r'\mathcal{A}'); U
+            sage: A = M.open_subset('U', latex_name=r'\mathcal{U}'); U
             Open subset U of the 3-dimensional differentiable manifold M
             sage: c_xyz.<x,y,z> = U.chart()
             sage: f = U.mixed_form(name='F'); f

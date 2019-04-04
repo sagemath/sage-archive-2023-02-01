@@ -178,7 +178,7 @@ class LazyLaurentSeries(Element):
 
         return True
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Test whether ``self`` is not zero.
 
@@ -203,6 +203,9 @@ class LazyLaurentSeries(Element):
                 return True
 
         return False
+
+    # for Python 2 compatibility
+    __nonzero__ = __bool__
 
     def _repr_(self):
         """

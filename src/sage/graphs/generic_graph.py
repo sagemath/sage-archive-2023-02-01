@@ -9939,7 +9939,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(g.private_neighbors(1, [3, 4, 0]))
             []
         """
-    
+
         closed_neighborhood_vs = set(self.closed_vertex_boundary(
             u for u in vertex_subset if u!=vertex))
     

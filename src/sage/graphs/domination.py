@@ -114,7 +114,7 @@ def _peel(G, A):
         (2, {2, 3, 4}),
         (1, {1, 2, 3, 4}),
         (0, {0, 1, 2, 3, 4}),
-        (None, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])]
+        (None, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9})]
 
 
         sage: from sage.graphs.domination import _peel
@@ -129,13 +129,13 @@ def _peel(G, A):
 
     '''
 
-    Acomp = set(G.vertices())
+    Acomp = set(G)
     Acomp.difference_update(A)  # Acomp  = V - A
 
-    peeling = [(None, G.vertices())]
+    peeling = [(None, set(G))]
     H = copy(G)
     H.delete_vertices(Acomp)
-    while H.order() > 0:
+    while H:
         ui = next(H.vertex_iterator())  # pick some vertex of H
         Vi = set(H.vertex_iterator())
         peeling.append((ui, Vi))

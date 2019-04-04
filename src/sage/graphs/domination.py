@@ -46,6 +46,7 @@ def _parent(G, dom, V_prev):
 
     EXAMPLES:
 
+        sage: from sage.graphs.domination import _parent
         sage: G = graphs.PathGraph(4)
         sage: G.add_vertices([4, 5])
         sage: G.add_edges([(4, 1), (5, 2)])
@@ -67,12 +68,12 @@ def _parent(G, dom, V_prev):
 
     while D_start:
         v = D_start.pop() # element of min index
-        priv = set(G.closed_neighbor_iterator(v))
+        priv = set(G.neighbor_iterator(v, closed=True))
         # We remove the vertices already dominated
         # by other vertices of (D_end union D_start)
-        priv.difference_update(*(G.closed_neighbor_iterator(u)
+        priv.difference_update(*(G.neighbor_iterator(u, closed=True)
                                  for u in D_start if u != v))
-        priv.difference_update(*(G.closed_neighbor_iterator(u)
+        priv.difference_update(*(G.neighbor_iterator(u, closed=True)
                                  for u in D_end if u != v))
         # Now priv is the private neighborhood of v
         # in G wrt D_start + D_end
@@ -105,6 +106,7 @@ def _peel(G, A):
 
     EXAMPLES:
 
+        sage: from sage.graphs.domination import _peel
         sage: G = Graph(10); _peel(G, range(5))
         [(None, set()),
         (4, {4}),
@@ -114,6 +116,8 @@ def _peel(G, A):
         (0, {0, 1, 2, 3, 4}),
         (None, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])]
 
+
+        sage: from sage.graphs.domination import _peel
         sage: G = graphs.PathGraph(10); _peel(G, (i for i in range(10) if i%2==0))
         [(None, set()),
         (8, {8}),
@@ -135,7 +139,7 @@ def _peel(G, A):
         ui = next(H.vertex_iterator())  # pick some vertex of H
         Vi = set(H.vertex_iterator())
         peeling.append((ui, Vi))
-        H.delete_vertices(H.closed_neighbor_iterator(ui))
+        H.delete_vertices(H.neighbor_iterator(ui, closed=True))
     peeling.append((None, set()))
     peeling.reverse()
     return peeling
@@ -184,7 +188,7 @@ def _cand_ext_enum(G, dom, u_next, V_next):
 
         # True iff u_next is dominated by dom:
         u_next_dom_by_dom = any(
-            v in dom for v in G.closed_neighbor_iterator(u_next))
+            v in dom for v in G.neighbor_iterator(u_next, closed=True))
 
         if u_next_dom_by_dom:
             # In this case, u_next is already dominated by dom,
@@ -199,7 +203,7 @@ def _cand_ext_enum(G, dom, u_next, V_next):
         elif not S:
             # In this case, only u_next has to be dominated
             cand_ext_index = 0
-            for w in G.closed_neighbor_iterator(u_next):
+            for w in G.neighbor_iterator(u_next, closed=True):
                 # Notice that the case w = u_next is included
                 yield ({w}, cand_ext_index)
                 cand_ext_index += 1
@@ -219,7 +223,7 @@ def _cand_ext_enum(G, dom, u_next, V_next):
                 # as we are not in the first case of the if statement
 
                 S_minus = set.difference(
-                    S, set(G.closed_neighbor_iterator(w)))
+                    S, set(G.neighbor_iterator(w, closed=True)))
                 # S_minus: vertices of S that still need to be
                 # dominated, assuming w is included in the DS
 
@@ -227,7 +231,7 @@ def _cand_ext_enum(G, dom, u_next, V_next):
                     sQ = set(Q)
                     NQ = set(G.closed_vertex_boundary(sQ))
                     Nw_minus = set.intersection(
-                        set(G.closed_neighbor_iterator(w)), S_plus)
+                        set(G.neighbor_iterator(w, closed=True)), S_plus)
                     if not NQ >= Nw_minus:
                         # If Nw_minus is not included in i.e. if w has
                         # a private neighbor in V_next wrt Q + {w}:
@@ -272,12 +276,12 @@ def minimal_dominating_sets(G, vertices_to_dominate=None):
 
         sage: G = Graph()
         sage: for ds in minimal_dominating_sets(G):
-               .. print(ds)
-        sage: set([])
+        ....:     print(ds)
+        set()
 
         sage: G = graphs.ButterflyGraph()
         sage: sorted(list(minimal_dominating_sets(G)))
-        sage: [{0, 1}, {1, 3}, {0, 2}, {2, 3}, {4}]
+        [{0, 1}, {1, 3}, {0, 2}, {2, 3}, {4}]
         sage: sorted(list(minimal_dominating_sets(G, [0,3])))
         [{0}, {3}, {4}]
         sage: sorted(list(minimal_dominating_sets(G, [4])))

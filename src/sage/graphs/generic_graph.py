@@ -9897,7 +9897,7 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: G = graphs.PathGraph(5)
-            sage: G.neighbors_of_a_set({2,3})
+            sage: G.closed_vertex_boundary({2,3})
             {1, 2, 3, 4}
         """
 
@@ -9914,7 +9914,7 @@ class GenericGraph(GenericGraph_pyx):
         return list(output)
 
     def private_neighbors(self, vertex, vertex_subset):
-        r'''
+        r"""
         Return the private neighbors of a vertex with repect to an iterable.
 
         INPUT:
@@ -9938,19 +9938,18 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: list(g.private_neighbors(1, [3, 4, 0]))
             []
-
-        '''
+        """
     
         closed_neighborhood_vs = set(self.closed_vertex_boundary(
             u for u in vertex_subset if u!=vertex))
     
     
-        return (neighbor for neighbor in self.closed_neighbor_iterator(vertex)
+        return (neighbor for neighbor in self.neighbor_iterator(vertex, closed=True)
                 if neighbor not in closed_neighborhood_vs)
 
 
     def is_dominating(self, p_dominating, p_dominated=None):
-        r'''
+        r"""
         Return whether the first set dominates the second one.
         
         We say that as set `D` of vertices of a graph `G`dominated a set `S`
@@ -9961,7 +9960,7 @@ class GenericGraph(GenericGraph_pyx):
     
         - ``p_dominating`` -- an iterable of vertices of ``self``
         - ``vertex_subset`` -- (default: `None`) an iterable of vertices of
-        ``self``
+          ``self``
 
         OUTPUT:
 
@@ -9982,40 +9981,30 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g.is_dominating([0,1], {2, 42})
             LookupError: vertex (42) is not a vertex of the graph
-        '''
+        """
+        closed_neighb = set()
+        # Construct the closed neighborhood of p_dominating
+        for v in p_dominating:
+            closed_neighb.update(self.neighbor_iterator(v, closed=True))
+
         if p_dominated is None:
-            sp_dominated = set(self.vertex_iterator())
-        else:
-            sp_dominated = set(p_dominated)
-
-            # using a set to check membership repeatedly faster
-            all_vertices = set(self.vertex_iterator()) 
-
-            # check that sp_dominated is a subset of self.vertices
-            try:
-                bad_boy = next(v for v in sp_dominated if v not in all_vertices)
-                raise LookupError(
-                    'vertex ({0}) is not a vertex of the graph'.format(bad_boy))
-            except StopIteration:
-                pass
-
-        actually_dominated = set(self.closed_vertex_boundary(p_dominating))
-        return sp_dominated <= actually_dominated
-
+            p_dominated = set(self)
+            
+        return closed_neighb >= set(p_dominated)
+        
 
     def is_redundant(self, dom, focus=None):
-        r'''
+        r"""
         Return whether a vertex iterable has redundant vertices.
 
-        Let `G` be a graph and `D` be a subset of its vertices. A vertex `v`
-        of `D` is said to be redundant in `S` if every closed neighbors of
-        `v` that belongs to `S` is dominated by `D \ {v}`.
+        Let ``G`` be a graph and ``D`` be a subset of its vertices. A vertex
+        ``v`` of ``D`` is said to be redundant in ``S`` if every closed
+        neighbors of ``v`` that belongs to ``S`` is dominated by ``D \ {v}``.
 
         INPUT:
     
         - ``dom`` -- an iterable of vertices of ``self``
-        - ``focus`` -- (default: `None`) an iterable of vertices of
-        ``self``
+        - ``focus`` -- (default: ``None``) an iterable of vertices of ``self``
 
         OUTPUT:
 
@@ -10030,7 +10019,7 @@ class GenericGraph(GenericGraph_pyx):
             True
             sage: G.is_redundant(['000', '101'])
             False
-        '''
+        """
 
         if focus is None:
             focus = self.vertices()
@@ -10051,7 +10040,7 @@ class GenericGraph(GenericGraph_pyx):
 
         for x in dom:
             has_private[x] = False      # Initialization
-            for v in self.closed_neighbor_iterator(x):
+            for v in self.neighbor_iterator(x, closed=True):
                 if v in focus:
                     # x dominates all its closed neighbors:
                     dominator[v].append(x)
@@ -10269,6 +10258,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(D.neighbor_iterator(0))
             [1, 2, 3]
 
+
         ::
 
             sage: g = graphs.CubeGraph(3)
@@ -10304,53 +10294,7 @@ class GenericGraph(GenericGraph_pyx):
         for u in self._backend.iterator_nbrs(vertex):
             yield u
 
-    def closed_neighbor_iterator(self, vertex):
-        r'''
-        Return an iterator over the closed neighbors of ``vertex``.
-        
-        INPUT:
-        
-        - ``vertex`` -- the vertex of ``self``, the closed neighborhood of
-        which we want to iterate over.
-        
-        EXAMPLES::
-        
-            sage: g = graphs.CubeGraph(3)
-            sage: for i in g.closed_neighbor_iterator('010'):
-            ....:     print(i)
-            010
-            011
-            000
-            110
 
-        ::
-
-            sage: g = Graph(3, loops = True)
-            sage: g.add_edge(0,1)
-            sage: g.add_edge(0,0)
-            sage: list(g.closed_neighbor_iterator(0))
-            [0, 1]
-            sage: list(g.closed_neighbor_iterator(2))
-            [2]
-
-        TESTS::
-
-            sage: G = graphs.CubeGraph(3)
-            sage: list(G.closed_neighbor_iterator('013'))
-            LookupError: vertex (013) is not a vertex of the graph
-        '''
-
-        if not self.has_vertex(vertex):
-            raise LookupError(
-                'vertex ({0}) is not a vertex of the graph'.format(vertex))
-
-        if not self.has_edge(vertex, vertex):
-            yield vertex
-
-        for neighbor in self.neighbor_iterator(vertex):
-            yield neighbor
-        return
-    
     def vertices(self, sort=True, key=None):
         r"""
         Return a list of the vertices.

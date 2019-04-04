@@ -2405,6 +2405,51 @@ cdef class CGraphBackend(GenericGraphBackend):
         bitset_free(seen)
         return distances
 
+    def min_cycle_basis(G, by_weight):
+        cb = []    
+        spanning_tree_edges = list(min_spanning_edges(comp, weight=None,
+                                                         data=False))
+
+        edges_complement = [frozenset(e) for e in G.edges() if e not in spanning_tree_edges]
+        l = len(edges_complement)
+
+        orth_set = [set([e]) for e in edges_complement]
+
+        for i in range(l):
+            orth = orth_set[i]
+            T = Graph()
+
+            nodes_idx = {node: idx for idx, node in enumerate(G.nodes())}
+            idx_nodes = {idx: node for node, idx in nodes_idx.items()}
+
+            n = len(nodes_idx)
+
+            for u, v in G.edges(labels=False):
+                uidx, vidx = nodes_idx[u], nodes_idx[v]
+                edge_w = weight_function(e)
+                if frozenset((u, v)) in orth:
+                    T.add_edge(uidx, n + vidx, edge_w)
+                    T.add_edge(n + uidx, vidx, edge_w)
+                else:
+                    T.add_edge(uidx, vidx, edge_w)
+                    T.add_edge(n + uidx, n + vidx, edge_w)
+            
+        from sage.graphs.distances_all_pairs import distances_all_pairs
+        all_pair_shortest_pathlens = shortest_path_all_pairs(G, algorithm = Johnson_Boost)
+        cross_paths_lens = {j: all_pair_shortest_pathlens[j][n+j] for j in range(n)}
+
+        start = min(cross_paths_lens, key=cross_paths_lens.get)
+        end = n + start
+        min_path = shortest_path(start,end)
+
+        min_path_nodes = [node if node < n else node - n for node in min_path]
+
+        edges = set()
+        for edge in pairwise(min_path_nodes):
+            edges ^= {edge}
+        
+        return {frozenset((idx_nodes[u], idx_nodes[v])) for u, v in edges}
+
     def depth_first_search(self, v, reverse=False, ignore_direction=False):
         r"""
         Return a depth-first search from vertex ``v``.

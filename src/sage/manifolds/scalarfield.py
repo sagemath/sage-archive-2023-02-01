@@ -1594,8 +1594,9 @@ class ScalarField(CommutativeAlgebraElement):
 
         OUTPUT:
 
-        - symbolic expression representing the coordinate
-          expression of the scalar field in the given chart.
+        - the coordinate expression of the scalar field in the given chart,
+          either as a Sage's symbolic expression or as a SymPy object,
+          depending on the symbolic calculus method used on the chart
 
         EXAMPLES:
 
@@ -1608,8 +1609,6 @@ class ScalarField(CommutativeAlgebraElement):
             x*y^2
             sage: f.expr(c_xy)  # equivalent form (since c_xy is the default chart)
             x*y^2
-            sage: type(f.expr())
-            <type 'sage.symbolic.expression.Expression'>
 
         Expression via a change of coordinates::
 
@@ -1624,6 +1623,17 @@ class ScalarField(CommutativeAlgebraElement):
             True
             sage: f._express  # random (dict. output); f has now 2 coordinate expressions:
             {Chart (M, (x, y)): x*y^2, Chart (M, (u, v)): u^3 - u^2*v - u*v^2 + v^3}
+
+        Note that the object returned by ``expr()`` depends on the symbolic
+        backend used for coordinate computations::
+
+            sage: type(f.expr())
+            <type 'sage.symbolic.expression.Expression'>
+            sage: M.set_calculus_method('sympy')
+            sage: type(f.expr())
+            <class 'sympy.core.mul.Mul'>
+            sage: f.expr()  # note the SymPy exponent notation
+            x*y**2
 
         """
         return self.coord_function(chart, from_chart).expr()

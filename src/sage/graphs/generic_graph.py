@@ -4351,10 +4351,9 @@ class GenericGraph(GenericGraph_pyx):
         elif algorithm == "NetworkX":
             import networkx
             G = networkx.Graph([(e[0], e[1], {'weight': wfunction_float(e)}) for e in self.edge_iterator()])
-            E = list(networkx.minimum_spanning_edges(G, data=False))
+            E = networkx.minimum_spanning_edges(G, data=False)
             return [(u, v, self.edge_label(u, v)) if hash(u) < hash(v) else (v, u, self.edge_label(u, v))
                                for u, v in E]
-
         else:
             raise NotImplementedError("minimum spanning tree algorithm '%s' is not implemented" % algorithm)
 

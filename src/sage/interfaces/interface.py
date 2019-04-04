@@ -133,8 +133,16 @@ class Interface(WithEqualityById, ParentWithBase):
             sage: s.rand_seed() # random
             365260051L
         """
-        from sage.misc.randstate import randstate
-        return randstate().seed()&0x1FFFFFFF
+        import sage.doctest
+        if sage.doctest.DOCTEST_MODE:
+            # set the random seed through the current randstate
+            from sage.misc.randstate import current_randstate
+            seed = current_randstate().seed()
+        else:
+            from sage.misc.randstate import randstate
+            seed = randstate().seed()
+
+        return seed & 0x1FFFFFFF
 
     def set_seed(self, seed=None):
         """
@@ -1106,7 +1114,7 @@ class InterfaceElement(Element):
 
         """
         try:
-            P = self._check_valid()
+            self._check_valid()
         except ValueError as msg:
             return '(invalid {} object -- {})'.format(self.parent() or type(self), msg)
         cr = getattr(self, '_cached_repr', None)

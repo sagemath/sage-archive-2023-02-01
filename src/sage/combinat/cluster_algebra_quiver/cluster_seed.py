@@ -1243,7 +1243,7 @@ class ClusterSeed(SageObject):
 
     def free_vertices(self):
         r"""
-        Return the list of *exchangable vertices* of ``self``.
+        Return the list of *exchangeable vertices* of ``self``.
 
         EXAMPLES::
 
@@ -1252,7 +1252,7 @@ class ClusterSeed(SageObject):
             sage: S.free_vertices()
             ['a', 'c', 'e']
 
-            sage: S=ClusterSeed(DiGraph([[5, 'b']]))
+            sage: S = ClusterSeed(DiGraph([[5, 'b']]))
             sage: S.free_vertices()
             [5, 'b']
         """
@@ -1266,16 +1266,16 @@ class ClusterSeed(SageObject):
 
             sage: S = ClusterSeed(DiGraph([['a', 'b'], ['c', 'b'], ['c', 'd'], ['e', 'd']]),
             ....:          frozen = ['b', 'd'])
-            sage: S.frozen_vertices()
+            sage: sorted(S.frozen_vertices())
             ['b', 'd']
         """
         return self._mlist
 
     def mutations(self):
         r"""
-        Returns the list of mutations ``self`` has undergone if they are being tracked.
+        Return the list of mutations ``self`` has undergone if they are being tracked.
 
-        Examples::
+        EXAMPLES::
 
             sage: S = ClusterSeed(['A',3])
             sage: S.mutations()
@@ -2426,17 +2426,17 @@ class ClusterSeed(SageObject):
         if inplace:
             seed = self
         else:
-            seed = ClusterSeed(self)# change to deepcopy?
+            seed = ClusterSeed(self)  # change to deepcopy?
 
         # If we get a string, execute as a function
-        if isinstance(sequence, str) and len(sequence) > 1 and sequence[0] is not '_':
-            if sequence is 'green':
+        if isinstance(sequence, str) and len(sequence) > 1 and sequence[0] != '_':
+            if sequence == 'green':
                 sequence = self.first_green_vertex()
-            elif sequence is 'red':
+            elif sequence == 'red':
                 sequence = self.first_red_vertex()
-            elif sequence is 'urban' or sequence is 'urban_renewal':
+            elif sequence == 'urban' or sequence == 'urban_renewal':
                 sequence = self.first_urban_renewal()
-            elif sequence is 'all_urbans' or sequence is 'all_urban_renewals':
+            elif sequence == 'all_urbans' or sequence == 'all_urban_renewals':
                 sequence = self.urban_renewals()
             elif hasattr(self, sequence):
                 sequence = getattr(self, sequence)()
@@ -4514,33 +4514,34 @@ class ClusterSeed(SageObject):
             genSet.append(self.get_upper_cluster_algebra_element(a))
         return (genSet)
 
-    def _compute_compatible_vectors(self,vd):
+    def _compute_compatible_vectors(self, vd):
         r"""
-        Return a list of compatible vectors of each vector in the vector decomposition `vd`.
+        Return a list of compatible vectors for each vector in the vector decomposition ``vd``.
 
         Compatibility is defined as in [LLM]_ with respect to the matrix `B`.
 
         INPUT:
 
-        - `B` -- a skew-symmetric matrix. Must have the same number of columns as the length of the vectors in `vd`.
-        - `vd` -- a collection of tuples `(v,z)` with `v \in \{0,1\}^n` and `z \in \ZZ`.
+        - `B` -- a skew-symmetric matrix. Must have the same number of columns as the length of the vectors in ``vd``.
+        - ``vd`` -- a collection of tuples `(v,z)` with `v \in \{0,1\}^n` and `z \in \ZZ`.
                     `n` must be the number of columns in `B`. Taken from the output of vector_decomposition.
 
         OUTPUT:
 
-        Returns an a 2-dimensional array containing all the vectors compatible with each vector in `vd.` 
+        a 2-dimensional array containing all the vectors compatible with each vector in ``vd.`` 
 
-        NOTE:
+        .. NOTE::
 
-        If the vector in `vd` is negative it will not have any compatible vectors, so it does not contribute to the list.
+            If the vector in ``vd`` is negative, it will not have any
+            compatible vectors, so it does not contribute to the list.
 
         EXAMPLES::
 
             sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import _vector_decomposition
 
-            sage: B=matrix([[0,1,0,0],[-1,0,1,0],[0,-1,0,1],[0,0,-1,0]])
-            sage: C=ClusterSeed(B)
-            sage: v=_vector_decomposition([3,2,3,4],4)
+            sage: B = matrix([[0,1,0,0],[-1,0,1,0],[0,-1,0,1],[0,0,-1,0]])
+            sage: C = ClusterSeed(B)
+            sage: v = _vector_decomposition([3,2,3,4],4)
             sage: C._compute_compatible_vectors(v)
             [[[0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 1], [0, 1, 1, 1], [1, 1, 1, 1]],
             [[0, 0, 0, 0],
@@ -4552,9 +4553,9 @@ class ClusterSeed(SageObject):
             [[0, 0, 0, 0], [0, 0, 0, 1]]]
 
 
-            sage: B=matrix([[0,1,1,0],[-1,0,1,1],[-1,-1,0,0],[0,-1,0,0]])
-            sage: C=ClusterSeed(B)
-            sage: v=_vector_decomposition([2,-1,3,-2],4)
+            sage: B = matrix([[0,1,1,0],[-1,0,1,1],[-1,-1,0,0],[0,-1,0,0]])
+            sage: C = ClusterSeed(B)
+            sage: v = _vector_decomposition([2,-1,3,-2],4)
             sage: C._compute_compatible_vectors(v)
             [[],
              [],
@@ -4585,7 +4586,7 @@ class ClusterSeed(SageObject):
 
         # For each vector a in vd. check if a vector s in {0,1}^n is compatible.
         compatibleList = []
-        psetvect_temp = list(itertools.product([0,1],repeat=num_cols))
+        psetvect_temp = list(itertools.product([0, 1], repeat=num_cols))
         psetvect = []
         for p_tuple in psetvect_temp:
             p = list(p_tuple)
@@ -4594,33 +4595,24 @@ class ClusterSeed(SageObject):
             psetvect.append(p)
 
         for a in vd:
-            negative = False
-            for m in range(len(a)):
-        # If the vector a in vd is non-positive it is not compatible
-        # with any vector. 0 vector will pass this check but will be
-        # handled later.
-                if a[m] < 0:
-                    negative = True
-                    break
-            if negative:
+            if any(am < 0 for am in a[0]):
+                compatibleList.append([])
                 continue
+                # If the vector a in vd is non-positive, it is not compatible
+                # with any vector. 0 vector will pass this check but will be
+                # handled later.
             clist = []
             for s in psetvect:
-                pass1 = True
-        #The first possible failure for compatibility is if any entry in s is larger than the corresponding entry of a.
-        #Only checks for the mutable vertices since all entries in a_i i>num_cols are zero. 
-                for k in range(num_cols):
-                    if s[k] > a[0][k]:
-                        pass1 = False
-                        break
-        #The second possible failure is if (s_i,a_j-s_j) = (1,1).
-                if pass1:
-                    for e in E:
-                        if s[e[0]] == 1 and (a[0][e[1]]-s[e[1]]) == 1:
-                            pass1 = False
-                            break
-                if pass1:
-                    clist.append(s)
+                # The first possible failure for compatibility is if
+                # any entry in s is larger than the corresponding entry
+                # of a. Only checks for the mutable vertices since all
+                # entries in a_i i > num_cols are zero.
+                if any(s[k] > a[0][k] for k in range(num_cols)):
+                    continue
+                # The second possible failure is if (s_i,a_j-s_j) = (1,1).
+                if any(s[e[0]] == 1 == (a[0][e[1]] - s[e[1]]) for e in E):
+                    continue
+                clist.append(s)
             compatibleList.append(clist)
         return compatibleList
 
@@ -4905,15 +4897,17 @@ def get_red_vertices(C):
 
 def _vector_decomposition(a, length):
     r"""
-    Decomposes an integer vector.
+    Decompose an integer vector.
 
     INPUT:
 
-    - `a` -- a vector in `\ZZ^n.`
+    - `a` -- a vector in `\ZZ^n`
 
     OUTPUT:
 
-    A decomposition of `a` into vectors `b_i \in \{0,1\}^n` such that `a= \sum c_i b_i` for `c_i \in \ZZ.`
+    A decomposition of `a` into vectors `b_i \in \{0,1\}^n` such that
+    `a= \sum c_i b_i` for `c_i \in \ZZ.`
+
     Returns an array of tuples `\right[b_i,c_i\left].` 
 
     EXAMPLES::
@@ -4924,37 +4918,38 @@ def _vector_decomposition(a, length):
         sage: _vector_decomposition([3,2,3,4],4)
         [[(1, 1, 1, 1), 2], [(1, 0, 1, 1), 1], [(0, 0, 0, 1), 1]]
     """
-
     multiList = []
-    a_plus=[]
+    a_plus = []
     for i in range(len(a)):
-        if a[i]<0:
+        if a[i] < 0:
             a_plus.append(0)
-            #create a vector with i-th coordinate -1
-            temp=[0]*length;temp[i]=-1
-            multiList.append([tuple(temp),-a[i]])
+            # create a vector with i-th coordinate -1
+            temp = [0] * length
+            temp[i] = -1
+            multiList.append([tuple(temp), -a[i]])
         else:
-            a_plus.append(a[i])    
-    
-    #Finds the difference between the largest and smallest entry in the vector to determine the how many vectors are in the decomposition
-    max = 0
-    min = 0
-    for i in range(len(a_plus)):
-        if a_plus[i] > max:
-            max = a_plus[i]
-        if a_plus[i] < min:
-            min = a_plus[i]
-    diff = max - min
+            a_plus.append(a[i])
 
-    #Creates a copy of a that will be edited when decomposing the vector.  
+    # Finds the difference between the largest and smallest entry in
+    # the vector to determine how many vectors are in the
+    # decomposition
+    maxi = 0
+    mini = 0
+    for api in a_plus:
+        maxi = max(maxi, api)
+        mini = min(mini, api)
+    diff = maxi - mini
+
+    # Creates a copy of a that will be edited when decomposing the vector.  
     ap = copy(a_plus)
-    if max == 0 and min == 0:
+    if maxi == 0 == mini:
         ap = []
         for i in range(length):
             ap.append(0)
         return [[ap, 1]]
-    #Resets the counter i and puts the integer partition of the ith component of a into an array. 
-    i = 0
+
+    # Resets the counter i and puts the integer partition of the ith
+    # component of a into an array.
     cols = []
     for i in range(len(a_plus)):
         c = []
@@ -4968,23 +4963,24 @@ def _vector_decomposition(a, length):
             elif ap[i] == 0:
                 c.append(0)
         cols.append(c)
-    #Converts the integer partitions into decomposition vectors.
-    i = 0
+
+    # Converts the integer partitions into decomposition vectors.
     for i in range(len(cols)):
         if cols[i][0] < 0:
             cols[i].reverse()
     mat = matrix(cols)
-    #Adds a zero to the end of every vector for each frozen vertex. 
-    froz_mat = matrix(length-mat.nrows(),mat.ncols())
+
+    # Adds a zero to the end of every vector for each frozen vertex. 
+    froz_mat = matrix(length - mat.nrows(), mat.ncols())
     mat = mat.stack(froz_mat)
     mat = mat.transpose()
     vects = mat.rows()
-    #Collects identical decomposition vectors and counts their multiplicities. 
-    while(len(vects) > 0):
+
+    # Collects identical decomposition vectors and counts their multiplicities. 
+    while vects:
         vect = vects[0]
         count = vects.count(vect)
         multiList.append([vect, count])
-        i = 0
         for i in range(count):
             vects.remove(vect)
     return multiList
@@ -4992,7 +4988,7 @@ def _vector_decomposition(a, length):
 
 def _power_set(n):
     r"""
-    Returns an array of all vectors in `\{0,1\}^n`.
+    Return an array of all vectors in `\{0,1\}^n`.
 
     INPUT:
 

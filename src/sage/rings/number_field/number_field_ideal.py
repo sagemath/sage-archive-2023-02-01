@@ -1099,7 +1099,7 @@ class NumberFieldIdeal(Ideal_generic):
         ``proof=True`` (this is the default setting) to prove the correctness
         of the output.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: K = QuadraticField(-119,'a')
             sage: P = K.factor(2)[1][0]
@@ -1656,8 +1656,7 @@ class NumberFieldIdeal(Ideal_generic):
 
         REFERENCES:
 
-        .. [Cohen] Henri Cohen, A Course in Computational Algebraic
-           Number Theory. Section 5.2.
+        - [Coh1993]_
         """
         K = self.number_field()
         if K.degree() == 2:

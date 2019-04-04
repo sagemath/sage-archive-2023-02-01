@@ -204,7 +204,7 @@ class ShiftedPrimedTableau(ClonableArray):
             sage: s.check()
             sage: t = T([['1p','2p',2,2],[2,'3p']])
             Traceback (most recent call last):
-            ....
+            ...
             ValueError: [['1p', '2p', 2, 2], [2, '3p']] is not an element of
             Shifted Primed Tableaux of shape [4, 2]
         """
@@ -1136,7 +1136,7 @@ class PrimedEntry(SageObject):
             3'
             sage: PrimedEntry(None)
             Traceback (most recent call last):
-            ....
+            ...
             ValueError: primed entry must not be None
         """
         # store primed numbers as odd, unprimed numbers as even integers
@@ -2199,7 +2199,6 @@ def _add_strip(sub_tab, full_tab, length):
                 if cliff == 0:
                     row += 1
                     primed_strip.append(0)
-                    pass
                 primed_strip.extend([int(primed_list[i] > j)
                                      for j in range(cliff)])
                 row += cliff

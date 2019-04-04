@@ -1013,7 +1013,7 @@ def log_p(a, prime, prec):
     #In order to get an approximation with small coefficients we have to take into account the other primes above p
     #with negative valuation.  For example, say prime2 is another (principal ideal) prime above p, and a=(unit)(prime2)^(-k) for some unit and k
     #a postive integer, and let tilde(a):=a(prime2)^k.  Then log_p(a)=log_p(tilde(a))-k(log_p(prime2)), where the series representations
-    #of these two logs will have smaller coeffiecients.
+    #of these two logs will have smaller coefficients.
 
     primes = [(-(a.valuation(pr)),pr) for pr in K.primes_above(p) if a.valuation(pr) < 0]
     local_terms = []

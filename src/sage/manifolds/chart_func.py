@@ -18,16 +18,18 @@ AUTHORS:
 - Marco Mancini (2017) : initial version
 - Eric Gourgoulhon (2015) : for a previous class implementing only SR
   calculus (CoordFunctionSymb)
-
+- Florentin Jaffredo (2018) : series expansion with respect to a given
+  parameter
 
 """
 #*****************************************************************************
-#       Copyright (C) 2017 Marco Mancini <marco.mancini@obspm.fr>
+#  Copyright (C) 2017 Marco Mancini <marco.mancini@obspm.fr>
+#  Copyright (C) 2018 Florentin Jaffredo <florentin.jaffredo@polytechnique.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.structure.element import AlgebraElement
 from sage.structure.parent import Parent
@@ -83,6 +85,19 @@ class ChartFunction(AlgebraElement):
       - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
       - ``'sympy'``: SymPy
       - ``None``: the chart current calculus method is assumed
+
+    - ``expansion_symbol`` -- (default: ``None``) symbolic variable (the "small
+      parameter") with respect to which the coordinate expression is expanded
+      in power series (around the zero value of this variable)
+
+    - ``order`` -- integer (default: ``None``); the order of the expansion
+      if ``expansion_symbol`` is not ``None``; the *order* is defined as the
+      degree of the polynomial representing the truncated power series in ``expansion_symbol``.
+
+      .. WARNING::
+
+         The value of ``order`` is `n-1`, where `n` is the order of the
+         big `O` in the power series expansion
 
     EXAMPLES:
 
@@ -160,6 +175,18 @@ class ChartFunction(AlgebraElement):
         sage: f == h
         True
 
+    Expansion to a given order with respect to a small parameter::
+
+        sage: t = var('t')  # the small parameter
+        sage: f = X.function(cos(t)*x*y, expansion_symbol=t, order=2)
+
+    The expansion is triggered by the call to :meth:`simplify`::
+
+        sage: f
+        x*y*cos(t)
+        sage: f.simplify()
+        -1/2*t^2*x*y + x*y
+
     .. RUBRIC:: Differences between ``ChartFunction`` and callable
       symbolic expressions
 
@@ -174,9 +201,10 @@ class ChartFunction(AlgebraElement):
         sage: f0(x,y)
         x^2 + 3*y + 1
 
-    To get an output similar to that of ``f0`` for the chart function
-    ``f``, we must use the method :meth:`display`::
+    To get an output similar to that of ``f0`` for a chart function, we must
+    use the method :meth:`display`::
 
+        sage: f = X.function(x^2+3*y+1)
         sage: f
         x^2 + 3*y + 1
         sage: f.display()
@@ -283,7 +311,9 @@ class ChartFunction(AlgebraElement):
     .. automethod:: __call__
 
     """
-    def __init__(self, parent, expression=None, calc_method=None):
+
+    def __init__(self, parent, expression=None, calc_method=None,
+                 expansion_symbol=None, order=None):
         r"""
         Initialize ``self``.
 
@@ -322,7 +352,6 @@ class ChartFunction(AlgebraElement):
         self._express = {}
         # set the calculation method managing
         self._calc_method = parent._chart._calc_method
-        self._simplify = self._calc_method.simplify
         if expression is not None:
             if calc_method is None:
                 calc_method = self._calc_method._current
@@ -331,6 +360,38 @@ class ChartFunction(AlgebraElement):
         # Derived quantities:
         self._der = None  # list of partial derivatives (to be set by diff()
                           # and unset by del_derived())
+        self._expansion_symbol = expansion_symbol
+        self._order = order
+
+    def _simplify(self, expr):
+        """
+        Simplify the expression `expr` using `self._calc_method.simplify`.
+
+        If needed, truncate the expression to the predefined order in the
+        power series with respect to a small parameter.
+
+        INPUT:
+
+        - ``expr`` -- expression to simplify
+
+        OUTPUT:
+
+        - simplified expression
+
+        EXAMPLES:
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: c_xy.<x,y> = M.chart()
+            sage: fc = c_xy.function(x+2*y^3)
+            sage: fc._simplify(x+x)
+            2*x
+
+        """
+        res = self._calc_method.simplify(expr)
+        if (self._expansion_symbol is not None and
+            self._calc_method._current == 'SR'):
+            res = res.series(self._expansion_symbol, self._order+1).truncate()
+        return res
 
     def chart(self):
         r"""
@@ -824,6 +885,8 @@ class ChartFunction(AlgebraElement):
         resu = type(self)(self.parent())
         for kk, vv in self._express.items():
             resu._express[kk] = vv
+        resu._expansion_symbol = self._expansion_symbol
+        resu._order = self._order
         return resu
 
     def diff(self, coord):
@@ -901,12 +964,14 @@ class ChartFunction(AlgebraElement):
             curr = self._calc_method._current
             if curr == 'SR' :
                 self._der = [type(self)(self.parent(),
-                             self._simplify(diff(self.expr(), xx)))
+                                        self._simplify(diff(self.expr(), xx)),
+                                        expansion_symbol=self._expansion_symbol,
+                                        order=self._order)
                              for xx in self._chart[:]]
             elif curr == 'sympy' :
                 self._der = [type(self)(self.parent(),
-                             self._simplify(sympy.diff(self.expr(),
-                                                       xx._sympy_())))
+                                        self._simplify(sympy.diff(self.expr(),
+                                                                  xx._sympy_())))
                              for xx in self._chart[:]]
         if isinstance(coord, (int, Integer)):
             # NB: for efficiency, we access directly to the "private" attributes
@@ -1036,6 +1101,8 @@ class ChartFunction(AlgebraElement):
         curr = self._calc_method._current
         resu = type(self)(self.parent())
         resu._express[curr] = self._simplify(- self.expr())
+        resu._order = self._order
+        resu._expansion_symbol = self._expansion_symbol
         return resu
 
     def __invert__(self):
@@ -1085,14 +1152,15 @@ class ChartFunction(AlgebraElement):
         curr = self._calc_method._current
         if curr == 'SR':
             return type(self)(self.parent(),
-                              calc_method = 'SR',
-                              expression = self._simplify(SR.one()/self.expr()))
+                              calc_method='SR',
+                              expression=self._simplify(SR.one()/self.expr()))
             # NB: self._express.__invert__() would return 1/self._express
             # (cf. the code of __invert__ in src/sage/symbolic/expression.pyx)
             # Here we prefer SR(1)/self._express
         return type(self)(self.parent(),
-                          calc_method = curr,
-                          expression = self._simplify(1/self.expr()))
+                          calc_method=curr,
+                          expression=self._simplify(1/self.expr()),
+                          expansion_symbol=self._expansion_symbol, order=self._order)
 
     def _add_(self, other):
         r"""
@@ -1155,12 +1223,21 @@ class ChartFunction(AlgebraElement):
 
         """
         curr = self._calc_method._current
-        res = self._simplify(self.expr() + other.expr())
+        if other._expansion_symbol is not None:
+            res = other._simplify(self.expr() + other.expr())
+        else:
+            res = self._simplify(self.expr() + other.expr())
         if curr =='SR' and res.is_trivial_zero():
             # NB: "if res == 0" would be too expensive (cf. #22859)
             return self.parent().zero()
+        if other._expansion_symbol is not None:
+            return type(self)(self.parent(), res,
+                              expansion_symbol=other._expansion_symbol,
+                              order=other._order)
         else:
-            return type(self)(self.parent(), res)
+            return type(self)(self.parent(), res,
+                              expansion_symbol=self._expansion_symbol,
+                              order=self._order)
 
 
     def _sub_(self, other):
@@ -1212,11 +1289,21 @@ class ChartFunction(AlgebraElement):
             x + y**2
         """
         curr = self._calc_method._current
-        res = self._simplify(self.expr() - other.expr())
+        if other._expansion_symbol is not None:
+            res = other._simplify(self.expr() - other.expr())
+        else:
+            res = self._simplify(self.expr() - other.expr())
         if curr =='SR' and res.is_trivial_zero():
             # NB: "if res == 0" would be too expensive (cf. #22859)
             return self.parent().zero()
-        return type(self)(self.parent(), res)
+        if other._expansion_symbol is not None:
+            return type(self)(self.parent(), res,
+                              expansion_symbol=other._expansion_symbol,
+                              order=other._order)
+        else:
+            return type(self)(self.parent(), res,
+                              expansion_symbol=self._expansion_symbol,
+                              order=self._order)
 
     def _mul_(self, other):
         r"""
@@ -1264,11 +1351,21 @@ class ChartFunction(AlgebraElement):
 
         """
         curr = self._calc_method._current
-        res = self._simplify(self.expr() * other.expr())
+        if other._expansion_symbol is not None:
+            res = other._simplify(self.expr() * other.expr())
+        else:
+            res = self._simplify(self.expr() * other.expr())
         if curr =='SR' and res.is_trivial_zero():
             # NB: "if res == 0" would be too expensive (cf. #22859)
             return self.parent().zero()
-        return type(self)(self.parent(), res)
+        if other._expansion_symbol is not None:
+            return type(self)(self.parent(), res,
+                              expansion_symbol=other._expansion_symbol,
+                              order=other._order)
+        else:
+            return type(self)(self.parent(), res,
+                              expansion_symbol=self._expansion_symbol,
+                              order=self._order)
 
     def _rmul_(self, other):
         """
@@ -1302,7 +1399,9 @@ class ChartFunction(AlgebraElement):
             other = self._calc_method._tranf[curr](other)
         except (TypeError, ValueError):
             return
-        return type(self)(self.parent(), other * self.expr())
+        return type(self)(self.parent(), other * self.expr(),
+                          expansion_symbol=self._expansion_symbol,
+                          order=self._order)
 
     def _lmul_(self, other):
         """
@@ -1336,7 +1435,9 @@ class ChartFunction(AlgebraElement):
             other = self._calc_method._tranf[curr](other)
         except (TypeError, ValueError):
             return
-        return type(self)(self.parent(), self.expr() * other)
+        return type(self)(self.parent(), self.expr() * other,
+                          expansion_symbol=self._expansion_symbol,
+                          order=self._order)
 
 
     def _div_(self, other):
@@ -1398,7 +1499,9 @@ class ChartFunction(AlgebraElement):
         if curr =='SR' and res.is_trivial_zero():
             # NB: "if res == 0" would be too expensive (cf. #22859)
             return self.parent().zero()
-        return type(self)(self.parent(), res)
+        return type(self)(self.parent(), res,
+                          expansion_symbol=self._expansion_symbol,
+                          order=self._order)
 
     def exp(self):
         r"""
@@ -1442,7 +1545,9 @@ class ChartFunction(AlgebraElement):
             val = self.expr().exp()
         elif curr == 'sympy' :
             val = sympy.exp(self.expr())
-        return type(self)(self.parent(), self._simplify(val))
+        return type(self)(self.parent(), self._simplify(val),
+                          expansion_symbol=self._expansion_symbol,
+                          order=self._order)
 
     def log(self, base=None):
         r"""
@@ -1495,7 +1600,9 @@ class ChartFunction(AlgebraElement):
             val = self.expr().log(base)
         elif curr == 'sympy' :
             val = sympy.log(self.expr()) if base is None else sympy.log(self.expr(),base)
-        return type(self)(self.parent(), self._simplify(val))
+        return type(self)(self.parent(), self._simplify(val),
+                          expansion_symbol=self._expansion_symbol,
+                          order=self._order)
 
     def __pow__(self, exponent):
         r"""
@@ -1551,7 +1658,9 @@ class ChartFunction(AlgebraElement):
             val = pow(self.expr(), exponent)
         elif curr == 'sympy' :
             val = self.expr() ** exponent
-        return type(self)(self.parent(), self._simplify(val))
+        return type(self)(self.parent(), self._simplify(val),
+                          expansion_symbol=self._expansion_symbol,
+                          order=self._order)
 
     def sqrt(self):
         r"""
@@ -1582,7 +1691,9 @@ class ChartFunction(AlgebraElement):
             val = self.expr().sqrt()
         elif curr == 'sympy' :
             val = sympy.sqrt(self.expr())
-        return type(self)(self.parent(), self._simplify(val))
+        return type(self)(self.parent(), self._simplify(val),
+                          expansion_symbol=self._expansion_symbol,
+                          order=self._order)
 
     def cos(self):
         r"""
@@ -1621,7 +1732,9 @@ class ChartFunction(AlgebraElement):
             val = self.expr().cos()
         elif curr == 'sympy' :
             val = sympy.cos(self.expr())
-        return type(self)(self.parent(), self._simplify(val))
+        return type(self)(self.parent(), self._simplify(val),
+                          expansion_symbol=self._expansion_symbol,
+                          order=self._order)
 
     def sin(self):
         r"""
@@ -1665,7 +1778,9 @@ class ChartFunction(AlgebraElement):
             val = self.expr().sin()
         elif curr == 'sympy' :
             val = sympy.sin(self.expr())
-        return type(self)(self.parent(), self._simplify(val))
+        return type(self)(self.parent(), self._simplify(val),
+                          expansion_symbol=self._expansion_symbol,
+                          order=self._order)
 
     def tan(self):
         r"""
@@ -1707,7 +1822,9 @@ class ChartFunction(AlgebraElement):
             val = self.expr().tan()
         elif curr == 'sympy' :
             val = sympy.tan(self.expr())
-        return type(self)(self.parent(), self._simplify(val))
+        return type(self)(self.parent(), self._simplify(val),
+                          expansion_symbol=self._expansion_symbol,
+                          order=self._order)
 
     def arccos(self):
         r"""
@@ -1753,7 +1870,9 @@ class ChartFunction(AlgebraElement):
             val = self.expr().arccos()
         elif curr == 'sympy' :
             val = sympy.acos(self.expr())
-        return type(self)(self.parent(), self._simplify(val))
+        return type(self)(self.parent(), self._simplify(val),
+                          expansion_symbol=self._expansion_symbol,
+                          order=self._order)
 
     def arcsin(self):
         r"""
@@ -1796,7 +1915,9 @@ class ChartFunction(AlgebraElement):
             val = self.expr().arcsin()
         elif curr == 'sympy' :
             val = sympy.asin(self.expr())
-        return type(self)(self.parent(), self._simplify(val))
+        return type(self)(self.parent(), self._simplify(val),
+                          expansion_symbol=self._expansion_symbol,
+                          order=self._order)
 
     def arctan(self):
         r"""
@@ -1839,7 +1960,9 @@ class ChartFunction(AlgebraElement):
             val = self.expr().arctan()
         elif curr == 'sympy' :
             val = sympy.atan(self.expr())
-        return type(self)(self.parent(), self._simplify(val))
+        return type(self)(self.parent(), self._simplify(val),
+                          expansion_symbol=self._expansion_symbol,
+                          order=self._order)
 
     def cosh(self):
         r"""
@@ -1878,7 +2001,9 @@ class ChartFunction(AlgebraElement):
             val = self.expr().cosh()
         elif curr == 'sympy' :
             val = sympy.cosh(self.expr())
-        return type(self)(self.parent(), self._simplify(val))
+        return type(self)(self.parent(), self._simplify(val),
+                          expansion_symbol=self._expansion_symbol,
+                          order=self._order)
 
     def sinh(self):
         r"""
@@ -1917,7 +2042,9 @@ class ChartFunction(AlgebraElement):
             val = self.expr().sinh()
         elif curr == 'sympy' :
             val = sympy.sinh(self.expr())
-        return type(self)(self.parent(), self._simplify(val))
+        return type(self)(self.parent(), self._simplify(val),
+                          expansion_symbol=self._expansion_symbol,
+                          order=self._order)
 
     def tanh(self):
         r"""
@@ -1956,7 +2083,9 @@ class ChartFunction(AlgebraElement):
             val = self.expr().tanh()
         elif curr == 'sympy' :
             val = sympy.tanh(self.expr())
-        return type(self)(self.parent(), self._simplify(val))
+        return type(self)(self.parent(), self._simplify(val),
+                          expansion_symbol=self._expansion_symbol,
+                          order=self._order)
 
     def arccosh(self):
         r"""
@@ -1999,7 +2128,9 @@ class ChartFunction(AlgebraElement):
             val = self.expr().arccosh()
         elif curr == 'sympy' :
             val = sympy.acosh(self.expr())
-        return type(self)(self.parent(), self._simplify(val))
+        return type(self)(self.parent(), self._simplify(val),
+                          expansion_symbol=self._expansion_symbol,
+                          order=self._order)
 
     def arcsinh(self):
         r"""
@@ -2042,7 +2173,9 @@ class ChartFunction(AlgebraElement):
             val = self.expr().arcsinh()
         elif curr == 'sympy' :
             val = sympy.asinh(self.expr())
-        return type(self)(self.parent(), self._simplify(val))
+        return type(self)(self.parent(), self._simplify(val),
+                          expansion_symbol=self._expansion_symbol,
+                          order=self._order)
 
     def arctanh(self):
         r"""
@@ -2085,7 +2218,9 @@ class ChartFunction(AlgebraElement):
             val = self.expr().arctanh()
         elif curr == 'sympy' :
             val = sympy.atanh(self.expr())
-        return type(self)(self.parent(), self._simplify(val))
+        return type(self)(self.parent(), self._simplify(val),
+                          expansion_symbol=self._expansion_symbol,
+                          order=self._order)
 
     def _del_derived(self):
         r"""
@@ -2131,6 +2266,11 @@ class ChartFunction(AlgebraElement):
         functions on real manifolds and
         :func:`~sage.manifolds.utilities.simplify_chain_generic` for the
         generic case.
+
+        If ``self`` has been defined with the small parameter
+        ``expansion_symbol`` and some truncation order, the coordinate
+        expression of ``self`` will be expanded in power series of that
+        parameter and truncated to the the given order.
 
         OUTPUT:
 
@@ -2214,6 +2354,26 @@ class ChartFunction(AlgebraElement):
             sqrt(x**2 - 2*x + 1)
             sage: f.simplify()
             -x + 1
+
+        Power series expansion with respect to a small parameter `t` (at
+        the moment, this is implemented only for the ``SR`` calculus backend,
+        hence the first line below)::
+
+            sage: X.set_calculus_method('SR')
+            sage: t = var('t')
+            sage: f = X.function(exp(t*x), expansion_symbol=t, order=3)
+
+        At this stage, `f` is not expanded in power series::
+
+            sage: f
+            e^(t*x)
+
+        Invoking ``simplify()`` triggers the expansion to the given order::
+
+            sage: f.simplify()
+            1/6*t^3*x^3 + 1/2*t^2*x^2 + t*x + 1
+            sage: f.display()
+            (x, y) |--> 1/6*t^3*x^3 + 1/2*t^2*x^2 + t*x + 1
 
         """
         curr = self._calc_method._current
@@ -2807,8 +2967,8 @@ class MultiCoordFunction(SageObject):
             return False
         if other._nf != self._nf:
             return False
-        return all([other._functions[i] == self._functions[i]
-                    for i in range(self._nf)])
+        return all(other._functions[i] == self._functions[i]
+                   for i in range(self._nf))
 
     def __ne__(self, other):
         r"""

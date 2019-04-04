@@ -2405,9 +2405,9 @@ cdef class CGraphBackend(GenericGraphBackend):
         bitset_free(seen)
         return distances
 
-    def min_cycle_basis(G, by_weight):
+    def min_cycle_basis(self, by_weight):
         cb = []    
-        spanning_tree_edges = list(min_spanning_edges(comp, weight=None,
+        spanning_tree_edges = list(min_spanning_edges(self, weight=None,
                                                          data=False))
 
         edges_complement = [frozenset(e) for e in G.edges() if e not in spanning_tree_edges]
@@ -2435,7 +2435,7 @@ cdef class CGraphBackend(GenericGraphBackend):
                     T.add_edge(n + uidx, n + vidx, edge_w)
             
         from sage.graphs.distances_all_pairs import distances_all_pairs
-        all_pair_shortest_pathlens = shortest_path_all_pairs(G, algorithm = Johnson_Boost)
+        all_pair_shortest_pathlens,pred = shortest_path_all_pairs(G, by_weight=by_weight, algorithm = Johnson_Boost)
         cross_paths_lens = {j: all_pair_shortest_pathlens[j][n+j] for j in range(n)}
 
         start = min(cross_paths_lens, key=cross_paths_lens.get)

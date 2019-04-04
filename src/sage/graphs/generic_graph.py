@@ -120,6 +120,7 @@ can be applied on both. Here is what it can do:
 
     :meth:`~GenericGraph.eulerian_orientation` | Return a DiGraph which is an Eulerian orientation of the current graph.
     :meth:`~GenericGraph.eulerian_circuit` | Return a list of edges forming an Eulerian circuit if one exists.
+    :meth:`~GenericGraph.minimum_cycle_basis` | Return a minimum weight cycle basis of the graph.
     :meth:`~GenericGraph.cycle_basis` | Return a list of cycles which form a basis of the cycle space of ``self``.
     :meth:`~GenericGraph.all_paths` | Return a list of all paths (also lists) between a pair of vertices in the (di)graph.
     :meth:`~GenericGraph.triangles_count` | Return the number of triangles in the (di)graph.
@@ -4597,6 +4598,48 @@ class GenericGraph(GenericGraph_pyx):
                     for u in zip(x, x[1:] + [x[0]])]
         return [vertices_to_edges(_) for _ in cycle_basis_v]
 
+    def minimum_cycle_basis(self, weight_function=None, by_weight=True, algorithm="None"):
+        r"""
+        Return a minimum weight cycle basis of the graph.
+
+        Minimum weight cycle basis is the cycle basis for which the total weight
+        (length for unweighted graphs) of all the cycles is minimum.
+
+        Not implemented for directed graphs and multigraphs.
+
+        INPUT:
+
+        - ``weight_function`` -- function (default: ``None``); a function that
+          takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+          ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
+          weight.
+
+        - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
+          in the graph are weighted, otherwise all edges have weight 1
+
+        - ``algorithm`` -- string (default: ``None``); algorithm to use:
+
+          * If ``algorithm = "NotworkX"``, a networkx implementation of the
+            minimum_cycle_basis algorithm is used
+
+          * If ``algorithm = None``, the cython implementation of the
+            minimum_cycle_basis algorithm is used
+        
+        EXAMPLES::
+
+
+
+        """
+        #Sanity checks
+        if self.is_directed():
+            raise NotImplementedError("not implemented for directed graphs")
+
+        if self.has_multiple_edges():
+            raise NotImplementedError("not implemented for graphs with multiedges")
+
+        return sum(comp._backend.min_cycle_basis(weight_function=weight_function, by_weight=by_weight)
+                   for comp in self.connected_components_subgraphs())
 
     ### Planarity
 

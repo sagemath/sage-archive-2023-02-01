@@ -9872,7 +9872,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(g.private_neighbors(1, [3, 4, 0]))
             []
         """
-    
+
         closed_neighborhood_vs = set(self.closed_vertex_boundary(
             u for u in vertex_subset if u!=vertex))
     
@@ -10201,15 +10201,15 @@ class GenericGraph(GenericGraph_pyx):
             LookupError: vertex (013) is not a vertex of the graph
         """
 
-        if not closed:
-            return self._backend.iterator_nbrs(vertex)
-        else:
+        if closed:
             if not self.has_vertex(vertex):
                 raise LookupError(
                     'vertex ({0}) is not a vertex of the graph'.format(vertex))
             if not self.has_edge(vertex, vertex):
                 yield vertex
-            yield from self._backend.iterator_nbrs(vertex)
+
+        for u in self._backend.iterator_nbrs(vertex):
+            yield u
     
     
     def vertices(self, sort=True, key=None):

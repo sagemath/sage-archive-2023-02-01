@@ -2,7 +2,7 @@ r"""
 Regular Supercrystals
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2017 Franco Saliola <saliola@gmail.com>
 #                     2017 Anne Schilling <anne at math.ucdavis.edu>
 #                     2017 Travis Scrimshaw <tcscrims at gmail.com>
@@ -11,18 +11,15 @@ Regular Supercrystals
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.crystals import Crystals
 from sage.categories.tensor import TensorProductsCategory
-from sage.combinat.subset import Subsets
-from sage.graphs.dot2tex_utils import have_dot2tex
+
 
 class RegularSuperCrystals(Category_singleton):
     r"""

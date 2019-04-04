@@ -105,6 +105,16 @@ class DES(SageObject):
         r"""
         Return the ciphertext corresponding to the plaintext ``P``,
         using DES encryption with key ``K``.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.des import DES
+            sage: des = DES()
+            sage: K = 0x0101010101010101
+            sage: P = 0x95F8A5E5DD31D900
+            sage: C = 0x8000000000000000
+            sage: des.encrypt(P, K).hex()
+            '8000000000000000'
         """
         raise NotImplementedError
 

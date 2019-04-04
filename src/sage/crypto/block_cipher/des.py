@@ -125,6 +125,29 @@ class DES(SageObject):
         """
         raise NotImplementedError
 
+    def _ip(self, B):
+        pass
+
+    def _f(self, R, K):
+        pass
+
+    def _expand(self, R):
+        pass
+
+    def _sboxes(self, B):
+        r"""
+        .. SEEALSO::
+
+            :mod:`sage.crypto.sboxes`
+        """
+        pass
+
+    def _permutaion(self, B):
+        pass
+
+    def _invIp(self, B):
+        pass
+
 
 class DES_KS(SageObject):
     r"""

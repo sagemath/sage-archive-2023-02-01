@@ -4620,7 +4620,7 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``algorithm`` -- string (default: ``None``); algorithm to use:
 
-          * If ``algorithm = "NotworkX"``, a networkx implementation of the
+          * If ``algorithm = "NetworkX"``, a networkx implementation of the
             minimum_cycle_basis algorithm is used
 
           * If ``algorithm = None``, the cython implementation of the
@@ -4631,14 +4631,32 @@ class GenericGraph(GenericGraph_pyx):
 
 
         """
-        #Sanity checks
+        if not self.order():
+            return []
+        # Sanity checks
         if self.is_directed():
             raise NotImplementedError("not implemented for directed graphs")
 
         if self.has_multiple_edges():
-            raise NotImplementedError("not implemented for graphs with multiedges")
-
-        return sum(comp._backend.min_cycle_basis(weight_function=weight_function, by_weight=by_weight)
+            raise NotImplementedError("not implemented for multigraphs")
+        
+        if weight_function is not None:
+            by_weight = True
+        if weight_function is None and by_weight:
+            def weight_function(e):
+                return e[2]
+        if by_weight:
+            self._check_weight_function(weight_function)
+  
+        if algorithm:
+            algorithm = algorithm.lower()
+        if algorithm == "networkx":
+            import networkx
+            G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
+            return G.minimum_cycle_basis(weight='weight')
+        else:
+            sp_edges = G.minimum_spanning_tree(by_weight=False)
+            return sum(comp._backend.min_cycle_basis(weight_function=weight_function, by_weight=by_weight ,spanning_tree_edges=sp_edges)
                    for comp in self.connected_components_subgraphs())
 
     ### Planarity

@@ -2405,12 +2405,15 @@ cdef class CGraphBackend(GenericGraphBackend):
         bitset_free(seen)
         return distances
 
-    def min_cycle_basis(self, by_weight):
-        cb = []    
-        spanning_tree_edges = list(min_spanning_edges(self, weight=None,
-                                                         data=False))
+    def min_cycle_basis(self, weight_function=None, by_weight=False, spanning_tree_edges=None):
+        """r
 
-        edges_complement = [frozenset(e) for e in G.edges() if e not in spanning_tree_edges]
+        """
+        cb = []
+        w_f = lambda e: 1
+        from sage.graphs.base.boost_graph import min_spanning_tree
+        spanning_tree_edges = self.min_spanning_tree(weight_function=w_f, algorithm="Prim").edges(labels=False)
+        edges_complement = [frozenset(e) for e in self.edges() if e not in spanning_tree_edges]
         l = len(edges_complement)
 
         orth_set = [set([e]) for e in edges_complement]
@@ -2434,21 +2437,30 @@ cdef class CGraphBackend(GenericGraphBackend):
                     T.add_edge(uidx, vidx, edge_w)
                     T.add_edge(n + uidx, n + vidx, edge_w)
             
-        from sage.graphs.distances_all_pairs import distances_all_pairs
-        all_pair_shortest_pathlens,pred = shortest_path_all_pairs(G, by_weight=by_weight, algorithm = Johnson_Boost)
-        cross_paths_lens = {j: all_pair_shortest_pathlens[j][n+j] for j in range(n)}
+            if not by_weight:
+                def weight_function(e):
+                    return 1
+            from sage.graphs.base.boost_graph import johnson_shortest_paths
+            all_pair_shortest_pathlens]= johnson_shortest_paths(self, weight_function)
+            cross_paths_lens = {j: all_pair_shortest_pathlens[j][n+j] for j in range(n)}
 
-        start = min(cross_paths_lens, key=cross_paths_lens.get)
-        end = n + start
-        min_path = shortest_path(start,end)
+            start = min(cross_paths_lens, key=cross_paths_lens.get)
+            end = n + start
+            min_path = self.bidirectional_dijkstra(start, end, weight_function=weight_function, distance_flag=True)
 
-        min_path_nodes = [node if node < n else node - n for node in min_path]
+            min_path_nodes = [node if node < n else node - n for node in min_path]
 
-        edges = set()
-        for edge in pairwise(min_path_nodes):
-            edges ^= {edge}
+            edges = set()
+            for edge in pairwise(min_path_nodes):
+                edges ^= {edge}
         
-        return {frozenset((idx_nodes[u], idx_nodes[v])) for u, v in edges}
+            new_cycle = {frozenset((idx_nodes[u], idx_nodes[v])) for u, v in edges}
+            cb.append(list(set().union(*new_cycle)))
+            #
+            #
+            base = orth_set[i]
+            orth_set[i + 1:] = [orth ^ base if len(o & new_cycle) % 2 else o for o in orth_set[k + 1:]]
+        return cb
 
     def depth_first_search(self, v, reverse=False, ignore_direction=False):
         r"""

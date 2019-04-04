@@ -14,7 +14,7 @@ in: "Factor groups of the braid groups, Proceedings of the Fourth Canadian
 Mathematical Congress (Vancouver 1957), pp. 95-122".
 
 Coxeter showed, that these groups are finite as long as the number of
-strands is less than 6 and infinite elsewise. More explicitely the factor
+strands is less than 6 and infinite else-wise. More explicitly the factor
 group on three strand braids is isomorphic to `SL(2,3)`, on four strand
 braids to `GU(3,2)` and on five strand braids to `Sp(4,3)  \times C_3`.
 Today, these finite groups are known as irreducible complex reflection groups
@@ -277,7 +277,7 @@ class CubicBraidElement(FinitelyPresentedGroupElement):
         Return the Burau matrix of the cubic braid coset.
 
         This method uses the same method belonging to :class:`Braid`, but
-        reduces the indeterminant to a primitive sixth (resp. twelfth in case
+        reduces the indeterminate to a primitive sixth (resp. twelfth in case
         reduced='unitary') root of unity.
 
         INPUT (all arguments are optional keywords):
@@ -288,7 +288,7 @@ class CubicBraidElement(FinitelyPresentedGroupElement):
           Field of order 3 and degree 2, resp. the domain of `root_bur` if given).
         - ``characteristic`` - integer giving the characteristic of the
           domain (default is 0 or the characteristic of `domain` if given).
-        - ``var`` -- string used for the indeterminant name in case root_bur
+        - ``var`` -- string used for the indeterminate name in case root_bur
           must be constructed in a splitting field.
         - ``reduced`` -- boolean (default: ``False``) or string; for more
           information see the documentation of :meth:`burau_matrix` of
@@ -299,7 +299,7 @@ class CubicBraidElement(FinitelyPresentedGroupElement):
         The Burau matrix of the cubic braid coset with entries in the
         domain given by the options. In case the option `reduced='unitary'`
         is given a triple consisting of the Burau matrix, its adjoined and
-        the hermitain form is returned.
+        the hermitian form is returned.
 
         EXAMPLES::
 
@@ -478,7 +478,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
     r"""
     This class implements factor groups of the Artin braid group mapping
     their generators to elements of order 3 (see the module header for more
-    informations on these groups).
+    information on these groups).
 
     These groups are implemented as a particular case of finitely presented
     groups similar to the :class:`BraidGroup_class`.
@@ -507,7 +507,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         \end{array}
 
     where `t_i = (s_i s_{i+1})^3`. If ``cbg_type == CubicBraidGroupType.Coxeter`` (default)
-    only the cubic relation on the generators is active (Coxeters case of investigation).
+    only the cubic relation on the generators is active (Coxeter's case of investigation).
     Note that for `n = 2, 3, 4` the groups do not differ between the three possible
     values of cbg_type (as finitely presented groups). But anyway, the instances for
     ``CubicBraidGroupType.Coxeter, CubicBraidGroupType.AssionS`` and ``CubicBraidGroupType.AssionU``
@@ -610,7 +610,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         self._ident       = self._cbg_type.value + self._nstrands.str()
         self._braid_group = BraidGroup(names)
 
-        # internal naming of elements for convinience
+        # internal naming of elements for convenience
         b  = [free_group([i])  for i in range(1 , n+1)]
         t  = [free_group([i,  i+1])**3  for i in range(1 , n)]
         ti = [free_group([-i, -i-1])**3  for i in range(1 , n)]
@@ -622,7 +622,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         for i in range(n):
             rels.append(b[i]**3)
 
-        # than Assions relation Satz 2.2 for cbg_type=CubicBraidGroupType.AssionS
+        # than Assion's relation Satz 2.2 for cbg_type=CubicBraidGroupType.AssionS
         # and Satz 2.4 for cbg_type=CubicBraidGroupType.AssionU
         if n > 3:
             for i in range(n-3):
@@ -639,10 +639,10 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         # _create_classical_realization
         # ------------------------------------------------------------------------------------------------
         self._classical_group             = None   # This is the classical Group returned by as_classical_group
-        self._classical_base_group        = None   # this only differs for special cases for AssionGroup from the former
+        self._classical_base_group        = None   # this only differs for special cases for Assion groups from the former
         self._classical_invariant_form    = None   # invariant form of the classical base group
         self._classical_embedding         = None   # if self._classical_group different from self._classical_base_group
-        self._centralizing_matrix         = None   # for AssionGroup: element in classical base group commuting with self
+        self._centralizing_matrix         = None   # for Assion groups: element in classical base group commuting with self
         self._centralizing_element        = None   # image under nat. map of the former one in the proj. classical group
         return
 
@@ -702,7 +702,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         Method called by TestSuite.
 
         The following is checked:
-           - construction of classical group was faithfull.
+           - construction of classical group was faithful.
            - coercion maps to and from classical group exist and are inverse to each other.
 
         EXAMPLES::
@@ -722,7 +722,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         Method called by TestSuite.
 
         The following is checked:
-           - construction of permutation group was faithfull.
+           - construction of permutation group was faithful.
            - coercion maps to and from permutation group exist and are inverse to each other.
 
         EXAMPLES::
@@ -742,7 +742,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         Method called by TestSuite.
 
         The following is checked:
-           - construction of matrix group was faithfull in several cases.
+           - construction of matrix group was faithful in several cases.
            - coercion maps to and from matrix group exist.
 
         EXAMPLES::
@@ -755,11 +755,11 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         MatDEF = self.as_matrix_group()
         self._internal_test_attached_group(MatDEF, tester)
 
-        if self._cbg_type != CubicBraidGroupType.AssionU or self.strands() < 5 : # not well defined elsewise
+        if self._cbg_type != CubicBraidGroupType.AssionU or self.strands() < 5 : # not well defined else-wise
             matrix_grpF3 = self.as_matrix_group(root_bur=r63)
             self._internal_test_attached_group(matrix_grpF3, tester)
 
-        if self._cbg_type != CubicBraidGroupType.AssionS or self.strands() < 5 : # not well defined elsewise
+        if self._cbg_type != CubicBraidGroupType.AssionS or self.strands() < 5 : # not well defined else-wise
             matrix_grpF4 = self.as_matrix_group(root_bur=r64)
             self._internal_test_attached_group(matrix_grpF4, tester)
 
@@ -777,7 +777,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         Method called by TestSuite.
 
         The following is checked:
-           - construction of reflection group was faithfull.
+           - construction of reflection group was faithful.
            - coercion maps to and from reflection group exist and are inverse to each other.
 
         EXAMPLES::
@@ -806,9 +806,9 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         This methods sets the following attributes of ``self``:
 
          - self._classical_group            This is the classical group returned by as_classical_group method.
-         - self._classical_base_group       this only differs in special cases for AssionGroup from the former.
+         - self._classical_base_group       this only differs in special cases for Assion groups from the former.
          - self._classical_invariant_form   invariant form of the classical base group.
-         - self._centralizing_matrix        for AssionGroup: element in classical base group commuting with self.
+         - self._centralizing_matrix        for Assion groups: element in classical base group commuting with self.
          - self._centralizing_element       image under natural map of the former one in the projective classical group.
          - self._classical_embedding        as subgroup of classical base group (if different from classical group).
 
@@ -831,7 +831,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         """
 
         # -------------------------------------------------------------------------------
-        # Set up all incrediences of the classical Assion group (generic part)
+        # Set up data of the classical Assion group (generic part)
         # -------------------------------------------------------------------------------
         def set_classical_realization(self, base_group, proj_group, centralizing_matrix, transvec_matrices):
             r"""
@@ -839,18 +839,18 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
 
             This is a local function of :meth:`_create_classical_realization`.
 
-            It handels the common part of symplectic and unitary version and creates conversion maps.
+            It handles the common part of symplectic and unitary version and creates conversion maps.
 
             INPUT:
 
             - ``base_group`` -- The symplectic or unitary groups Sp(m,3) resp. GU(m,2).
-            - ``proj_group`` -- The corresponding projeective group of base_group.
+            - ``proj_group`` -- The corresponding projective group of base_group.
             - ``centralizing_matrix`` -- The centralizing matrix according to Assion.
             - ``transvec_matrices`` -- List of transvection matrices according to Assion.
 
             OUTPUT:
 
-            No output, but the function sets the attributes of ``self`` decribed above.
+            No output, but the function sets the attributes of ``self`` described above.
             """
             centralizing_element = None
 
@@ -861,7 +861,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
 
             # ------------------------------------------------------------------------------
             # By the work of Assion no check on the group homomorphism is needed, at all.
-            # But to take care of software bugs they are perfomed in cases where they are
+            # But to take care of software bugs they are performed in cases where they are
             # not really expansive.
             # ------------------------------------------------------------------------------
             check = False
@@ -906,7 +906,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
             return
 
         # -------------------------------------------------------------------------------
-        # local methods to set up the classical group (spezific part)
+        # local methods to set up the classical group (specific part)
         # -------------------------------------------------------------------------------
         # Case for symlectic groups
         # -------------------------------------------------------------------------------
@@ -917,14 +917,14 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
 
             INPUT:
 
-            - ``m`` --  Integer, the dimension of the classical groups vectorspace of operation.
+            - ``m`` --  Integer, the dimension of the classical groups vector-space of operation.
 
             The function calculates the centralizing matrix and the transvections as given by Assion
             and then uses set_classical_realization to complete the construction.
             """
 
             # -----------------------------------------------------------
-            # getting the invariant bilinearform of the group
+            # getting the invariant bilinear form of the group
             # and setting constants.
             # -----------------------------------------------------------
             n = self.strands()
@@ -968,7 +968,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
                 return matrix(bform.base_ring(),  t)
 
             # ------------------------------------------------------------------------------
-            # setting the centralizing matrix for the case of projective group realizaton
+            # setting the centralizing matrix for the case of projective group realization
             # ------------------------------------------------------------------------------
             centralizing_vector = xbas[mhalf-1]
             centralizing_matrix = base_group(transvec2mat(centralizing_vector, fact=1))
@@ -987,14 +987,14 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
 
             INPUT:
 
-            - ``m`` --  Integer, the dimension of the classical groups vectorspace of operation.
+            - ``m`` --  Integer, the dimension of the classical groups vector-space of operation.
 
             The function calculates the centralizing_matrix and the transvections as given by Assion
             and then uses set_classical_realization to complete the construction.
             """
 
             # ---------------------------------------------------------------------
-            # getting the invariant bilinearform of the group
+            # getting the invariant bilinear form of the group
             # and setting constants
             # ---------------------------------------------------------------------
             n = self.strands()
@@ -1051,7 +1051,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
 
 
             # ------------------------------------------------------------------------------
-            # setting the centralizing matrix for the case of projective group realizaton.
+            # setting the centralizing matrix for the case of projective group realization.
             # ------------------------------------------------------------------------------
             centralizing_vector = xbas[m-2]+xbas[m-1]
             centralizing_matrix = base_group(transvec2mat(centralizing_vector, fact=1))
@@ -1098,7 +1098,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
             #     buc_[i,i-1] = buc_[i,i+1]= - i\theta, buc_[i,i] = 1 + 2*cos(\pi/6)*i\theta
             #     bus_[i,i-1] = bus_[i,i+1]=   s,       bus_[i,i] = -s^2
             # now 1 + 2*cos(\pi/6)*i\theta = 1 + sqrt(3)*(-sqrt(3)/2 + I/2) = 1- 3/2 + sqrt(3)I/2 = z12^4 = - ~z12^2
-            # finally: Coxeters Realization is the unitary Burau representation of Squier for s = ~z12
+            # finally: Coxeter's Realization is the unitary Burau representation of Squier for s = ~z12
             # -----------------------------------------------------------------------------------------------
             UCF = UniversalCyclotomicField(); z12 = UCF.gen(12)
             classical_group = self.as_matrix_group(root_bur=~z12, domain=UCF, reduced='unitary')
@@ -1117,7 +1117,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
             -- constructing element from an element of the attached classical group
                (embedded and not embedded)
             -- constructing element from an element of the attached permutation group
-            -- constructing element from an element of the attached refelction group
+            -- constructing element from an element of the attached reflection group
 
         INPUT:
 
@@ -1181,7 +1181,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
     def braid_group(self):
         r"""
         Return an Instance of :class:`BraidGroup` with identical generators, such that
-        there exists an epimorhism to ``self``.
+        there exists an epimorphism to ``self``.
 
         OUTPUT:
 
@@ -1238,7 +1238,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
           If none of the keywords `root_bur`, `domain` and `characteristic` is
           given the default characteristic is 3 (resp. 2) if ``self`` is of ``cbg_type
           CubicBraidGroupType.AssionS`` (resp. ``CubicBraidGroupType.AssionU``).
-        - ``var`` -- string used for the indeterminant name in case `root_bur`
+        - ``var`` -- string used for the indeterminate name in case `root_bur`
           must be constructed in a splitting field.
         - ``reduced`` -- boolean (default: ``False``); for more information
           see the documentation of :meth:`burau_matrix` of :class:`Braid`.
@@ -1246,7 +1246,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         OUTPUT:
 
         An instance of the class :class:`FinitelyGeneratedMatrixGroup_gap` according to the
-        input arguments together with a group homomorphism registerd as a conversion
+        input arguments together with a group homomorphism registered as a conversion
         from ``self`` to it.
 
         EXAMPLES::
@@ -1302,7 +1302,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
 
         # -------------------------------------------------------------------------------
         # adaption of default options for Assion groups on more then 4 stands
-        # (in order to achieve the maps beeing well defined)
+        # (in order to achieve the maps being well defined)
         # -------------------------------------------------------------------------------
         if root_bur is None and domain is None and characteristic is None:
             if   self._cbg_type == CubicBraidGroupType.AssionS:
@@ -1330,7 +1330,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
             gen_list.append(bur_mat)
 
         if unitary and herm_form.is_singular():
-            unitary = False  # since a degenertated hermitian form doesn't define a unitary group
+            unitary = False  # since a degenerated hermitian form doesn't define a unitary group
             if self._classical_invariant_form is None:
                 self._classical_invariant_form  = herm_form
 
@@ -1363,12 +1363,12 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
 
     # ----------------------------------------------------------------------------------
     # Although this method is available for finitely presented group
-    # we use the classical group implementation (by performace reason) to get
+    # we use the classical group implementation (by performance reason) to get
     # the permutation_group.
     # ----------------------------------------------------------------------------------
     def as_permutation_group(self, use_classical=True):
         r"""
-        This method returns a permutation group isomporhic to ``self`` together
+        This method returns a permutation group isomorphic to ``self`` together
         with group isomorphism from ``self`` as a conversion.
 
         INPUT (all arguments are optional by keyword):
@@ -1381,7 +1381,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         OUTPUT:
 
         An instance of class :class:`PermutationGroup_generic` together with a group homomorphism
-        from ``self`` registerd as a conversion.
+        from ``self`` registered as a conversion.
 
         EXAMPLES::
 
@@ -1493,7 +1493,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         # -------------------------------------------------------------------------------
         if self._classical_group is None:
             if embedded and self._classical_embedding is None:
-                # this is separated to avoid unneccessary (for larger group exhaustive) calculations
+                # this is separated to avoid unnecessary (for larger group exhaustive) calculations
                 self._create_classical_realization(just_embedded=True)
             else:
                 self._create_classical_realization()
@@ -1581,13 +1581,13 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         # -------------------------------------------------------------------------------
         from sage.combinat.root_system.reflection_group_real import is_chevie_available
         if not is_chevie_available():
-            raise ImportError("the GAP3 package 'chevie' is needed to obtain the corresponding reflection groups")
+            raise ImportError("the GAP3 package 'CHEVIE' is needed to obtain the corresponding reflection groups")
 
         if self._cbg_type  != CubicBraidGroupType.Coxeter or self.strands() > 5  or self.strands() < 2:
             raise ValueError("no reflection group defined")
 
         # -------------------------------------------------------------------------------
-        # define reflection group assiossiated to self
+        # define reflection group associated to self
         # -------------------------------------------------------------------------------
         reflection_group = None
 
@@ -1617,7 +1617,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         OUTPUT:
 
         A square matrix of dimension according to the space the classical realization is
-        operating on. In the case of the full cubic braid groups and of the assion groups
+        operating on. In the case of the full cubic braid groups and of the Assion groups
         of ``cbg_type CubicBraidGroupType.AssionU`` the matrix is hermitian. In the case of
         the Assion groups of ``cbg_type CubicBraidGroupType.AssionS`` it is alternating.
         Note that the invariant form of the full cubic braid group on more than 5 strands
@@ -1693,7 +1693,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
 
         Depending on the optional keyword a permutation as an element of ``PSp(n,3)``
         (type S) or ``PGU(n,2)`` (type U) for ``n = 0 mod 2`` (type S) reps. ``n = 0 mod 3``
-        (type U) is returned. Elsewise, the centralizing element is a matrix
+        (type U) is returned. Else-wise, the centralizing element is a matrix
         belonging to ``Sp(n,3)`` reps. ``GU(n,2)``.
 
         EXAMPLES::
@@ -1744,7 +1744,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
     # ----------------------------------------------------------------------------------
     def order(self):
         r"""
-        To avoid long waittime on calculations the order will be obtained
+        To avoid long wait-time on calculations the order will be obtained
         using the classical realization.
 
         OUTPUT:
@@ -1776,7 +1776,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
 
     def is_finite(self):
         r"""
-        Method from :class:`GroupMixinLibGAP` overwriten because of performance reason.
+        Method from :class:`GroupMixinLibGAP` overwritten because of performance reason.
 
         EXAMPLES::
 

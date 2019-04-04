@@ -1583,8 +1583,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         n = pmat.ncols()
 
         # set default shifts / check shifts dimension
-        if shifts == None:
-            shifts = [0]*m if row_wise else [0]*n
+        if shifts is None:
+            shifts = [0] * m if row_wise else [0] * n
         elif row_wise and len(shifts) != m:
             raise ValueError('shifts length should be the row dimension of' \
                                                       + ' the input matrix')
@@ -1796,8 +1796,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         n = self.ncols()
 
         # set default shifts / check shifts dimension
-        if shifts == None:
-            shifts = [0]*m if row_wise else [0]*n
+        if shifts is None:
+            shifts = [0] * m if row_wise else [0] * n
         elif row_wise and len(shifts) != m:
             raise ValueError('shifts length should be the row dimension')
         elif (not row_wise) and len(shifts) != n:

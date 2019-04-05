@@ -4099,8 +4099,8 @@ class Polyhedron_base(Element):
             sage: L = P.lawrence_polytope()
             sage: L.is_lattice_polytope()
             True
-            sage: egyptian_py = polytopes.regular_polygon(4).pyramid()
-            sage: egyptian_py.is_lawrence_polytope()
+            sage: egyptian_pyramid = polytopes.regular_polygon(4).pyramid()
+            sage: egyptian_pyramid.is_lawrence_polytope()
             True
             sage: polytopes.octahedron().is_lawrence_polytope()
             False

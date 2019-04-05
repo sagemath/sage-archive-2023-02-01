@@ -226,6 +226,9 @@ REFERENCES:
             Rationality in Game Theory*. The American Economic Review
             (1994): 391-395.
 
+.. [BaSt1990] Margaret M. Bayer and Bernd Sturmfels. *Lawrence polytopes*.
+              Canadian J. Math.42 (1990), 62–79.
+
 .. [BAK1998] \E. Biham, R. J. Anderson, and L. R. Knudsen,
              *Serpent: A new block cipher proposal*; in FSE, (1998), pp. 222-238.
 

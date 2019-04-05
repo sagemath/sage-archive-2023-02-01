@@ -20,25 +20,117 @@ REFERENCES:
 """
 
 #******************************************************************************
-#       Copyright (C) 2019 Michael Jung <michi-jung@kabelmail.de>
+#       Copyright (C) 2019 Michael Jung <micjung@uni-potsdam.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 #******************************************************************************
+
 from sage.misc.cachefunc import cached_method
 from sage.structure.element import AlgebraElement
 from sage.rings.integer import Integer
 
 class MixedForm(AlgebraElement):
+    r"""
+    An instance of this class is a mixed form along some differentiable map
+    `\phi: M \to N` between two differentiable manifolds `M` and `N`. More
+    precisely, a mixed form `a` along `\phi: M \to N` can be considered as a
+    differentiable map
 
-    #####
-    # __init__
-    #
-    # Constructor
-    #####
+    .. MATH::
 
+        a: M \longrightarrow \bigoplus^\infty_{k=0} T^{(0,k)}N,
+
+    where `T^{(0,k)}` denotes the tensor bundle of type `(0,k)` and `\bigoplus`
+    the Whitney sum, such that
+
+    .. MATH::
+
+        \forall x\in M: \quad a(x) \in \bigoplus^\infty_{k=0} \Lambda^k\left( T_{\phi(x)}^* N \right).
+
+    .. NOTE::
+
+        Though the direct sum is infinite, notice that the space
+        `\Lambda^k(T^*_{\phi(x)} N)` is trivially zero as soon as `k` exceeds
+        the dimension of `N`.
+
+    The standard case of a mixed form *on* `M` corresponds to `M=N` with `\phi = \mathrm{Id}_M$`
+
+    INPUT:
+
+    - ``parent`` -- graded algebra of mixed forms represented by
+      :class:`~sage.manifolds.differentiable.mixed_form_algebra.MixedFormAlgebra`
+      where the mixed form ``self`` belongs to
+    - ``comp```-- (default: ``None``) homogeneous components of the mixed form; if
+      none is provided, the components are set to blank unnamed differential forms
+    - ``name`` -- (default: ``None``) name given to the mixed form
+    - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+      mixed form; if none is provided, the LaTeX symbol is set to ``name``
+
+    EXAMPLES:
+
+    Initialize a mixed form on a 2-dimensional differentiable manifold::
+
+        sage: M = Manifold(2, 'M')
+        sage: X.<x,y> = M.chart()
+        sage: F = M.mixed_form(name='F'); F
+        Mixed differential form F on the 2-dimensional differentiable manifold M
+        sage: F.parent()
+        Graded algebra Omega^*(M) of mixed differential forms on the
+         2-dimensional differentiable manifold M
+
+    To define the homogenous components of our mixed form, let us define some
+    differential forms first::
+
+        sage: f = M.scalar_field(x, name='f'); f
+        Scalar field f on the 2-dimensional differentiable manifold M
+        sage: omega = M.diff_form(1, name='omega', latex_name=r'\omega'); omega
+        1-form omega on the 2-dimensional differentiable manifold M
+        sage: omega[X.frame(),0] = y*x; omega.disp()
+        omega = x*y dx
+        sage: eta = M.diff_form(2, name='eta', latex_name=r'\eta'); eta
+        2-form eta on the 2-dimensional differentiable manifold M
+        sage: eta[X.frame(),0,1] = y^2*x; eta.disp()
+        eta = x*y^2 dx/\dy
+        Now, we can manipulate the components of our mixed form:
+        sage: F[:] = [f, omega, eta]; F.disp()
+        F = f + omega + eta
+        sage: F.disp(X.frame())
+        F = [x] + [x*y dx] + [x*y^2 dx/\dy]
+        sage: F[0]
+        Scalar field f on the 2-dimensional differentiable manifold M
+        sage: F[1]
+        1-form omega on the 2-dimensional differentiable manifold M
+        sage: F[2]
+        2-form eta on the 2-dimensional differentiable manifold M
+
+    Moreover, we can compute the exterior derivative of a mixed form::
+
+        sage: dF = F.exterior_derivative(); dF.disp()
+        dF = zero + df + domega
+        sage: dF.disp(X.frame())
+        dF = [0] + [dx] + [-x dx/\dy]
+
+    Mixed forms can also be added and multiplied (via wedge product)::
+
+        sage: F+dF
+        F+dF = [x] + [(x*y + 1) dx] + [(x*y^2 - x) dx/\dy]
+        sage: (F*dF).disp(X.frame())
+        F/\dF = [0] + [x dx] + [-x^2 dx/\dy]
+
+    And thanks to the coercion system, this can even be done with simple
+    differential forms::
+
+        sage: sage: omega*F
+        Mixed differential form omega/\F on the 2-dimensional differentiable
+         manifold M
+        sage: omega+F
+        Mixed differential form omega+F on the 2-dimensional differentiable
+         manifold M
+
+    """
     def __init__(self, parent, comp=None, name=None, latex_name=None):
         if parent is None:
             raise ValueError("a parent must be provided")
@@ -54,7 +146,6 @@ class MixedForm(AlgebraElement):
         self._domain = vmodule._domain
         self._ambient_domain = vmodule._ambient_domain
         self._max_deg = vmodule._ambient_domain.dim()
-        self._comp = []
 
         # Set components:
         if comp is None:
@@ -73,11 +164,11 @@ class MixedForm(AlgebraElement):
     #####
     # domain
     #
-    # Return domain of the differential form.
+    # Return the underlying vector field module.
     #####
 
-    def domain(self):
-        return self._domain
+    def vector_field_module(self):
+        return self._vmodule
 
     #####
     # _repr_

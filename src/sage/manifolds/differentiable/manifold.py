@@ -2047,8 +2047,10 @@ class DifferentiableManifold(TopologicalManifold):
         of the dual of the tangent space `T_{\Phi(x)} N`.
 
         .. NOTE::
+
         Though the direct sum is infinite, notice that the space
-        `\Lambda^k(T^*_{\Phi(x)} N)` is zero if `k` exceeds the dimension of `N`.
+        `\Lambda^k(T^*_{\Phi(x)} N)` is zero if `k` is greater than the dimension
+         of `N`.
 
         The standard case of a mixed form *on* `M` corresponds
         to `N = M` and `\Phi = \mathrm{Id}_M`. Other common cases are

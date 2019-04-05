@@ -552,6 +552,45 @@ class FreeModuleTensor(ModuleElement):
 
     #### End of simple accessors #####
 
+    def _preparse_display(self, basis=None, format_spec=None):
+        r"""
+        Helper function for display (to be used in the derived classes
+        FreeModuleAltForm and AlternatingContrTensor as well)
+
+        TESTS::
+
+            sage: M = FiniteRankFreeModule(ZZ, 2, name='M')
+            sage: e = M.basis('e')
+            sage: f = M.basis('f')
+            sage: v = M([1,-2])
+            sage: v._preparse_display()
+            (Basis (e_0,e_1) on the Rank-2 free module M over the Integer Ring, None)
+            sage: v._preparse_display(f)
+            (Basis (f_0,f_1) on the Rank-2 free module M over the Integer Ring, None)
+            sage: v._preparse_display(e, 10)
+            (Basis (e_0,e_1) on the Rank-2 free module M over the Integer Ring, 10)
+            sage: v._preparse_display(format_spec=10)
+            (Basis (e_0,e_1) on the Rank-2 free module M over the Integer Ring, 10)
+
+        """
+        if basis is None:
+            basis = self._fmodule._def_basis
+        else:
+            try:
+                frame = basis.frame()
+                # if this succeeds, basis is actually not a module basis, but
+                # is assumed to be a "format specification" that carries a
+                # genuine basis via the attribute frame() (this holds for
+                # coordinate charts on manifolds, the basis returned by frame()
+                # being the coordinate vector frame)
+                if format_spec is None:
+                    format_spec = basis
+                basis = frame
+            except AttributeError:
+                # case of a genuine basis
+                pass
+        return (basis, format_spec)
+
     def display(self, basis=None, format_spec=None):
         r"""
         Display ``self`` in terms of its expansion w.r.t. a given module basis.
@@ -628,7 +667,6 @@ class FreeModuleTensor(ModuleElement):
             sage: t.display(f)
             v*w = -6 f_1*f^1 - 20/3 f_1*f^2 + 27/8 f_2*f^1 + 15/4 f_2*f^2
 
-
         Parallel computation::
 
             sage: Parallelism().set('tensor', nproc=2)
@@ -667,10 +705,10 @@ class FreeModuleTensor(ModuleElement):
 
         """
         from sage.misc.latex import latex
-        from sage.tensor.modules.format_utilities import is_atomic, \
-                                                         FormattedExpansion
-        if basis is None:
-            basis = self._fmodule._def_basis
+        from sage.tensor.modules.format_utilities import (is_atomic,
+                                                          FormattedExpansion)
+        basis, format_spec = self._preparse_display(basis=basis,
+                                                    format_spec=format_spec)
         cobasis = basis.dual_basis()
         comp = self.comp(basis)
         terms_txt = []

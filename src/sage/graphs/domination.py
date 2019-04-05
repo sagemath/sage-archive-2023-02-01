@@ -98,7 +98,7 @@ def _peel(G, A):
     INPUT:
     
     - ``G`` -- a graph
-    - ``A`` -- an iterable of vertices of ``G``
+    - ``A`` -- a set of vertices of ``G``
 
     OUTPUT:
 
@@ -107,7 +107,7 @@ def _peel(G, A):
     EXAMPLES:
 
         sage: from sage.graphs.domination import _peel
-        sage: G = Graph(10); _peel(G, range(5))
+        sage: G = Graph(10); _peel(G, {0, 1, 2, 3, 4})
         [(None, set()),
         (4, {4}),
         (3, {3, 4}),
@@ -118,7 +118,7 @@ def _peel(G, A):
 
 
         sage: from sage.graphs.domination import _peel
-        sage: G = graphs.PathGraph(10); _peel(G, (i for i in range(10) if i%2==0))
+        sage: G = graphs.PathGraph(10); _peel(G, set((i for i in range(10) if i%2==0)))
         [(None, set()),
         (8, {8}),
         (6, {6, 8}),
@@ -128,13 +128,14 @@ def _peel(G, A):
         (None, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9})]
 
     '''
-
     Acomp = set(G)
-    Acomp.difference_update(A)  # Acomp  = V - A
+    Acomp.difference_update(A) # Acomp  = V - A
 
     peeling = [(None, set(G))]
     H = copy(G)
-    H.delete_vertices(Acomp)
+    H.delete_vertices(list(Acomp))
+    del Acomp
+    
     while H:
         ui = next(H.vertex_iterator())  # pick some vertex of H
         Vi = set(H.vertex_iterator())
@@ -199,7 +200,7 @@ def _cand_ext_enum(G, dom, u_next, V_next):
             # We enumerate the minimal DSs of the bicolored graph G(S):
 
             cand_ext_index = 0
-            for X in minimal_dominating_sets(G, list(S)):
+            for X in minimal_dominating_sets(G, S):
                 yield (X, cand_ext_index)
                 cand_ext_index += 1
 
@@ -208,7 +209,7 @@ def _cand_ext_enum(G, dom, u_next, V_next):
             cand_ext_index = 0
             for w in G.neighbor_iterator(u_next, closed=True):
                 # Notice that the case w = u_next is included
-                yield ({w}, cand_ext_index)
+                yield (set(w), cand_ext_index)
                 cand_ext_index += 1
 
         else:
@@ -225,8 +226,8 @@ def _cand_ext_enum(G, dom, u_next, V_next):
                 # Note that w never belongs to dom,
                 # as we are not in the first case of the if statement
 
-                S_minus = set.difference(
-                    S, set(G.neighbor_iterator(w, closed=True)))
+                S_minus = S
+                S_minus.difference_update(G.neighbor_iterator(w, closed=True))
                 # S_minus: vertices of S that still need to be
                 # dominated, assuming w is included in the DS
 
@@ -239,7 +240,8 @@ def _cand_ext_enum(G, dom, u_next, V_next):
                     if not NQ >= Nw_minus:
                         # If Nw_minus is not included in i.e. if w has
                         # a private neighbor in V_next wrt Q + {w}:
-                        sQ = set(Q).add(w)
+                        sQ = set(Q)
+                        sQ.add(w)
                         yield (sQ, cand_ext_index)
                         cand_ext_index += 1
     #
@@ -258,30 +260,25 @@ def _cand_ext_enum(G, dom, u_next, V_next):
                 break
 
 
-def minimal_dominating_sets(G, vertices_to_dominate=None):
+def minimal_dominating_sets(G, to_dominate=None):
     r'''
     Return an iterator over the minimal dominating sets of the graph.
 
     INPUT:
 
     - `G` -- a graph
-    - `vertices_to_dominate` -- vertex iterable or None (default: `None`)
+    - `to_dominate` -- vertex iterable or None (default: `None`)
 
     OUTPUT:
 
     An iterator over the inclusion-minimal sets of vertices of `G`
-    that dominate `vertices_to_dominate`.
+    that dominate `to_dominate`.
 
     ALGORITHM:
 
     The algorithm is described in :arxiv:`1810.00789`.
 
     EXAMPLES:
-
-        sage: G = Graph()
-        sage: for ds in minimal_dominating_sets(G):
-        ....:     print(ds)
-        set()
 
         sage: G = graphs.ButterflyGraph()
         sage: sorted(list(minimal_dominating_sets(G)))
@@ -291,38 +288,54 @@ def minimal_dominating_sets(G, vertices_to_dominate=None):
         sage: sorted(list(minimal_dominating_sets(G, [4])))
         [{4}, {0}, {1}, {2}, {3}]
 
+        sage: sorted(list(minimal_dominating_sets(graphs.PetersenGraph())))
+        [{0, 2, 6},
+        {0, 9, 3},
+        {0, 8, 7},
+        {1, 3, 7},
+        {1, 4, 5},
+        {8, 1, 9},
+        {8, 2, 4},
+        {9, 2, 5},
+        {3, 5, 6},
+        {4, 6, 7},
+        {0, 8, 2, 9},
+        {0, 3, 6, 7},
+        {1, 3, 5, 9},
+        {8, 1, 4, 7},
+        {2, 4, 5, 6},
+        {0, 1, 2, 3, 4},
+        {0, 1, 2, 5, 7},
+        {0, 1, 4, 6, 9},
+        {0, 1, 5, 6, 8},
+        {0, 3, 4, 5, 8},
+        {0, 4, 5, 7, 9},
+        {1, 2, 3, 6, 8},
+        {1, 2, 6, 7, 9},
+        {2, 3, 4, 7, 9},
+        {2, 3, 5, 7, 8},
+        {3, 4, 6, 8, 9},
+        {5, 6, 7, 8, 9}]
+
     TESTS:
-        
-        sage: G = graphs.PetersenGraph()
-        sage: for d in minimal_dominating_sets(G):
-        ....:     print(d)
-        {0, 2, 6}
-        {1, 2, 6, 7, 9}
-        {1, 2, 3, 6, 8}
-        {2, 4, 5, 6}
-        {0, 1, 5, 6, 8}
-        {0, 1, 4, 6, 9}
-        {0, 3, 6, 7}
-        {3, 5, 6}
-        {4, 6, 7}
-        {0, 1, 2, 3, 4}
-        {1, 4, 5}
-        {1, 3, 7}
-        {0, 1, 2, 5, 7}
-        {0, 8, 2, 9}
-        {8, 1, 9}
-        {8, 2, 4}
-        {0, 3, 4, 5, 8}
-        {0, 8, 7}
-        {8, 1, 4, 7}
-        {2, 3, 5, 7, 8}
-        {5, 6, 7, 8, 9}
-        {0, 9, 3}
-        {1, 3, 5, 9}
-        {2, 3, 4, 7, 9}
-        {3, 4, 6, 8, 9}
-        {9, 2, 5}
-        {0, 4, 5, 7, 9}
+
+        sage: list(minimal_dominating_sets(Graph())):
+        [set()]
+
+    ::
+
+        sage: from sage.combinat.subset import Subsets
+        sage: def minimal_dominating_sets_naive(G):
+        ....:     return (S for S in Subsets(G.vertices())
+        ....:             if not(G.is_redundant(S)) and G.is_dominating(S))
+        sage: G = graphs.RandomGNP(5, 0.5)
+        sage: sorted(list(minimal_dominating_sets(G))) == sorted(list(minimal_dominating_sets_naive(G))) # long time
+        True
+
+    ::
+
+        sage: findstat([(G, sum(1 for _ in minimal_dominating_sets(G))) for n in range(6) for G in graphs(n)], depth=0) # optional - internet
+        0: (St001302: The number of minimally dominating sets of vertices of a graph., [], 52)
 
     .. WARNING:
     
@@ -343,10 +356,10 @@ def minimal_dominating_sets(G, vertices_to_dominate=None):
 
         u_next, V_next = plng[i+1]
 
-        if H.is_dominating(dom, V_next):  # if dom dominates V_{i+1}
+        if H.is_dominating(dom, V_next):  # if dom dominates V_next
             # then dom is its unique extension: we recurse on it
-            for L in tree_search(H, plng, dom, i + 1):
-                yield L
+            for Di in tree_search(H, plng, dom, i + 1):
+                yield Di
             return
 
         # For every candidate extension
@@ -363,10 +376,12 @@ def minimal_dominating_sets(G, vertices_to_dominate=None):
     ##
     # end of tree-search routine
 
-    if vertices_to_dominate is None:
-        vertices_to_dominate = G.vertices()
+    if to_dominate is None:
+        vertices_to_dominate = set(G)
+    else:
+        vertices_to_dominate = set(to_dominate)
 
-    elif not vertices_to_dominate:  # base case: vertices_to_dominate is empty
+    if not vertices_to_dominate:  # base case: vertices_to_dominate is empty
         yield set()  # the empty set/list is the only minimal DS of the empty set of vertex
         return
 
@@ -375,3 +390,4 @@ def minimal_dominating_sets(G, vertices_to_dominate=None):
     for dom in tree_search(G, peeling, set(), 0):
         # we generate the leaves of the search tree that are descendant of (empty set, 0)
         yield dom
+

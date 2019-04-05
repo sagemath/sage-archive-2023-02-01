@@ -9948,11 +9948,6 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g.is_dominating([0,1])
             False
-
-        TESTS::
-
-            sage: g.is_dominating([0,1], {2, 42})
-            LookupError: vertex (42) is not a vertex of the graph
         """
         closed_neighb = set()
         # Construct the closed neighborhood of p_dominating

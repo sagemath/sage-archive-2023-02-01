@@ -9,11 +9,12 @@ Integral domains
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
 
+from sage.misc.lazy_import import lazy_import
 from sage.misc.lazy_attribute import lazy_class_attribute
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.category_singleton import Category_contains_method_by_parent_class
 from sage.categories.domains import Domains
-from sage.categories.fields import Fields
+lazy_import('sage.categories.fields', 'Fields')
 
 
 class IntegralDomains(CategoryWithAxiom):

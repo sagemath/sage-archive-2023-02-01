@@ -500,6 +500,7 @@ class Polyhedron_base(Element):
             elif base_ring is not RDF:
                 raise ValueError("the only allowed inexact ring is 'RDF' with backend 'cdd'")
 
+        x = None
         try:
             vertices = [[base_ring(x) for x in vertex] for vertex in self.vertices_list()]
             rays = [[base_ring(x) for x in ray] for ray in self.rays_list()]
@@ -4026,9 +4027,6 @@ class Polyhedron_base(Element):
 
             For more information, see Section 6.6 of [Zie2007]_.
         """
-
-        from sage.matrix.constructor import block_matrix
-
         if not self.is_compact():
             raise NotImplementedError("self must be a polytope")
 
@@ -4077,7 +4075,6 @@ class Polyhedron_base(Element):
 
             For more information, see Section 6.6 of [Zie2007]_.
         """
-
         from sage.matrix.constructor import block_matrix
 
         if not self.is_compact():
@@ -4085,8 +4082,8 @@ class Polyhedron_base(Element):
 
         V = self.vertices_matrix().transpose()
         n = self.n_vertices()
-        I_n= matrix.identity(n)
-        lambda_V = block_matrix([[V, I_n],[V, 2*I_n]])
+        I_n = matrix.identity(n)
+        lambda_V = block_matrix([[V, I_n], [V, 2*I_n]])
         return Polyhedron(lambda_V)
 
     def is_lawrence_polytope(self):
@@ -4102,8 +4099,8 @@ class Polyhedron_base(Element):
             sage: L = P.lawrence_polytope()
             sage: L.is_lattice_polytope()
             True
-            sage: Q = polytopes.regular_polygon(4).pyramid()
-            sage: Q.is_lawrence_polytope()
+            sage: egyptian_py = polytopes.regular_polygon(4).pyramid()
+            sage: egyptian_py.is_lawrence_polytope()
             True
             sage: polytopes.octahedron().is_lawrence_polytope()
             False
@@ -4111,9 +4108,7 @@ class Polyhedron_base(Element):
         REFERENCES:
 
             For more information, see [BaSt1990]_.
-
         """
-
         if not self.is_compact():
             raise NotImplementedError("self must be a polytope")
 

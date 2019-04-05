@@ -125,7 +125,7 @@ def _peel(G, A):
         (4, {4, 6, 8}),
         (2, {2, 4, 6, 8}),
         (0, {0, 2, 4, 6, 8}),
-        (None, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])]
+        (None, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9})]
 
     '''
 
@@ -179,12 +179,15 @@ def _cand_ext_enum(G, dom, u_next, V_next):
         #
         # In order to later remove duplicates, we here output pairs
         # (dom,i) where dom is the output candidate extension and i counts
-        # how many elements were already output.
+        # how many elements have already been output.
         #
 
+        dominated_by_dom = set().union(
+            (self.neighbor_iterator(u, closed=True) for u in dom))
         # S = neighbors of u_next in V_next that are not yet dominated:
-        S = set.intersection(set(G.neighbor_iterator(u_next)), set(
-            V_next)) - set(G.closed_vertex_boundary(dom))
+        S = set.intersection(G.neighbor_iterator(u_next),
+                             V_next - dominated_by_dom)
+        del dominated_by_dom
 
         # True iff u_next is dominated by dom:
         u_next_dom_by_dom = any(
@@ -228,14 +231,15 @@ def _cand_ext_enum(G, dom, u_next, V_next):
                 # dominated, assuming w is included in the DS
 
                 for Q in minimal_dominating_sets(G, S_minus):
-                    sQ = set(Q)
-                    NQ = set(G.closed_vertex_boundary(sQ))
+                    # Closed neighborhood of Q:
+                    NQ = set().union(
+                        (self.neighbor_iterator(u, closed=True) for u in Q))
                     Nw_minus = set.intersection(
                         set(G.neighbor_iterator(w, closed=True)), S_plus)
                     if not NQ >= Nw_minus:
                         # If Nw_minus is not included in i.e. if w has
                         # a private neighbor in V_next wrt Q + {w}:
-                        sQ.add(w)
+                        sQ = set(Q).add(w)
                         yield (sQ, cand_ext_index)
                         cand_ext_index += 1
     #

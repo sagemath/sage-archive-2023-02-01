@@ -9814,38 +9814,6 @@ class GenericGraph(GenericGraph_pyx):
             output.intersection_update(vertices2)
         return list(output)
 
-    def closed_vertex_boundary(self, vertex_subset):
-        r"""
-        Return the closed neighborhood of an iterable of vertices.
-
-        INPUT:
-
-        - ``vertex_subset`` -- an iterable of vertices of self
-
-        OUTPUT:
-
-        An iterator over vertices of ``self`` that belong to
-        ``vertex_subset`` or have a neighbor in this set.
-
-        EXAMPLES::
-
-            sage: G = graphs.PathGraph(5)
-            sage: G.closed_vertex_boundary({2,3})
-            {1, 2, 3, 4}
-        """
-
-        vertex_subset_list = list(vertex_subset)
-        output = set()
-
-        if self._directed:
-            output.update(*(set(self.neighbor_out_iterator(v))
-                                  for v in vertex_subset_list))
-        else:
-            output.update(*(set(self.neighbor_iterator(v))
-                                  for v in vertex_subset_list))
-        output.update(vertex_subset_list)
-        return list(output)
-
     def private_neighbors(self, vertex, vertex_subset):
         r"""
         Return the private neighbors of a vertex with repect to an iterable.
@@ -9858,7 +9826,7 @@ class GenericGraph(GenericGraph_pyx):
         OUTPUT:
 
         Return the closed neighbors of ``vertex`` that are not closed
-        neighbors of an other vertex of ``vertex_subset``.
+        neighbors of any other vertex of ``vertex_subset``.
 
         EXAMPLES::
 
@@ -9873,11 +9841,15 @@ class GenericGraph(GenericGraph_pyx):
             []
         """
 
-        closed_neighborhood_vs = set(self.closed_vertex_boundary(
-            u for u in vertex_subset if u!=vertex))
-    
-    
-        return (neighbor for neighbor in self.neighbor_iterator(vertex, closed=True)
+        # The set of all vertices that are dominated by vertex_subset - vertex:
+        closed_neighborhood_vs = set()
+        for u in vertex_subset:
+            if u != vertex:
+                closed_neighborhood_vs.update(
+                    self.neighbor_iterator(u, closed=True))
+                
+        return (neighbor
+                for neighbor in self.neighbor_iterator(vertex, closed=True)
                 if neighbor not in closed_neighborhood_vs)
 
 

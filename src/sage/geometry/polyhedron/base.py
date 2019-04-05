@@ -2644,11 +2644,10 @@ class Polyhedron_base(Element):
         """
         if not self.is_compact(): return False
 
-        for v in self.vertex_generator():
-            adj = [a for a in v.neighbors()]
-            if len(adj) != self.dim():
-                return False
-        return True
+        d = self.dim()
+        return all(len([facet for facet in vertex.incident()
+                        if not facet.is_equation()]) == d
+                   for vertex in self.Vrepresentation())
 
     def is_simplicial(self):
         """

@@ -2405,20 +2405,21 @@ cdef class CGraphBackend(GenericGraphBackend):
         bitset_free(seen)
         return distances
 
-    def min_cycle_basis(self, weight_function=None, by_weight=False, spanning_tree_edges=None, edges=None):
+    def min_cycle_basis(self, weight_function=None, by_weight=False, edges_complement=None):
         """r
 
         """
         cb = []
-        w_f = lambda e: 1
+        
+        edgesg = list(self.iterator_unsorted_edges(list(self.iterator_verts(None)),True))
         from sage.graphs.graph import Graph
         #from sage.graphs.base.boost_graph import min_spanning_tree
         #spanning_tree_edges = min_spanning_tree(Graph(self), weight_function=w_f, algorithm="Prim").edges(labels=False)
-        edges_complement = [frozenset(e) for e in edges if e not in spanning_tree_edges]
+        #edges_complement = [frozenset(e) for e in edges if e not in spanning_tree_edges]
         l = len(edges_complement)
 
         orth_set = [set([e]) for e in edges_complement]
-
+        
         for i in range(l):
             orth = orth_set[i]
             
@@ -2429,10 +2430,10 @@ cdef class CGraphBackend(GenericGraphBackend):
 
             n = len(nodes_idx)
 
-            for u, v in edges:
-                uidx, vidx = nodes_idx[u], nodes_idx[v]
+            for e in edgesg:
+                uidx, vidx = nodes_idx[e[0]], nodes_idx[e[1]]
                 edge_w = weight_function(e)
-                if frozenset((u, v)) in orth:
+                if frozenset((e[0], e[1])) in orth:
                     T.add_edge(uidx, n + vidx, edge_w)
                     T.add_edge(n + uidx, vidx, edge_w)
                 else:
@@ -2448,8 +2449,8 @@ cdef class CGraphBackend(GenericGraphBackend):
 
             start = min(cross_paths_lens, key=cross_paths_lens.get)
             end = n + start
-            min_path = T.bidirectional_dijkstra(start, end, weight_function=weight_function, distance_flag=True)
-
+            min_path = T._backend.bidirectional_dijkstra(start, end, weight_function=weight_function, distance_flag=False)
+            #print(min_path)
             min_path_nodes = [node if node < n else node - n for node in min_path]
 
             edges = set()

@@ -4656,10 +4656,14 @@ class GenericGraph(GenericGraph_pyx):
             return networkx.minimum_cycle_basis(G, weight='weight')
         else:
             from sage.graphs.base.boost_graph import min_spanning_tree
-            sp_edges = min_spanning_tree(self, weight_function=weight_function, algorithm="Prim")
-            edges_s = [(a, b) for a, b, c in sp_edges]
-            return sum(comp._backend.min_cycle_basis(weight_function=weight_function, by_weight=by_weight, spanning_tree_edges=edges_s ,edges=self.edges(labels=False))
-                   for comp in self.connected_components_subgraphs())
+            w_f = lambda e: 1
+            lis = []
+            for comp in self.connected_components_subgraphs():
+                sp_edges = comp.min_spanning_tree(weight_function=w_f)
+                edges_s = [(a, b) for a, b, c in sp_edges]
+                edges_c = [frozenset(e) for e in comp.edges(labels=False) if e not in edges_s]
+                lis.append(comp._backend.min_cycle_basis(weight_function=weight_function, by_weight=by_weight, edges_complement=edges_c))
+            return lis[0]
 
     ### Planarity
 

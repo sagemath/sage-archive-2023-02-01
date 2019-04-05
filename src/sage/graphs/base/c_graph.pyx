@@ -2405,29 +2405,31 @@ cdef class CGraphBackend(GenericGraphBackend):
         bitset_free(seen)
         return distances
 
-    def min_cycle_basis(self, weight_function=None, by_weight=False, spanning_tree_edges=None):
+    def min_cycle_basis(self, weight_function=None, by_weight=False, spanning_tree_edges=None, edges=None):
         """r
 
         """
         cb = []
         w_f = lambda e: 1
-        from sage.graphs.base.boost_graph import min_spanning_tree
-        spanning_tree_edges = self.min_spanning_tree(weight_function=w_f, algorithm="Prim").edges(labels=False)
-        edges_complement = [frozenset(e) for e in self.edges() if e not in spanning_tree_edges]
+        from sage.graphs.graph import Graph
+        #from sage.graphs.base.boost_graph import min_spanning_tree
+        #spanning_tree_edges = min_spanning_tree(Graph(self), weight_function=w_f, algorithm="Prim").edges(labels=False)
+        edges_complement = [frozenset(e) for e in edges if e not in spanning_tree_edges]
         l = len(edges_complement)
 
         orth_set = [set([e]) for e in edges_complement]
 
         for i in range(l):
             orth = orth_set[i]
+            
             T = Graph()
 
-            nodes_idx = {node: idx for idx, node in enumerate(G.nodes())}
+            nodes_idx = {node: idx for idx, node in enumerate(self.iterator_verts(None))}
             idx_nodes = {idx: node for node, idx in nodes_idx.items()}
 
             n = len(nodes_idx)
 
-            for u, v in G.edges(labels=False):
+            for u, v in edges:
                 uidx, vidx = nodes_idx[u], nodes_idx[v]
                 edge_w = weight_function(e)
                 if frozenset((u, v)) in orth:
@@ -2441,17 +2443,17 @@ cdef class CGraphBackend(GenericGraphBackend):
                 def weight_function(e):
                     return 1
             from sage.graphs.base.boost_graph import johnson_shortest_paths
-            all_pair_shortest_pathlens]= johnson_shortest_paths(self, weight_function)
+            all_pair_shortest_pathlens = johnson_shortest_paths(T, weight_function)
             cross_paths_lens = {j: all_pair_shortest_pathlens[j][n+j] for j in range(n)}
 
             start = min(cross_paths_lens, key=cross_paths_lens.get)
             end = n + start
-            min_path = self.bidirectional_dijkstra(start, end, weight_function=weight_function, distance_flag=True)
+            min_path = T.bidirectional_dijkstra(start, end, weight_function=weight_function, distance_flag=True)
 
             min_path_nodes = [node if node < n else node - n for node in min_path]
 
             edges = set()
-            for edge in pairwise(min_path_nodes):
+            for edge in list(zip(min_path_nodes[:-1], min_path_nodes[1:])):
                 edges ^= {edge}
         
             new_cycle = {frozenset((idx_nodes[u], idx_nodes[v])) for u, v in edges}
@@ -2459,7 +2461,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             #
             #
             base = orth_set[i]
-            orth_set[i + 1:] = [orth ^ base if len(o & new_cycle) % 2 else o for o in orth_set[k + 1:]]
+            orth_set[i + 1:] = [orth ^ base if len(o & new_cycle) % 2 else o for o in orth_set[i + 1:]]
         return cb
 
     def depth_first_search(self, v, reverse=False, ignore_direction=False):

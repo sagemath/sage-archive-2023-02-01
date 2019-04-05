@@ -4623,7 +4623,7 @@ class GenericGraph(GenericGraph_pyx):
           * If ``algorithm = "NetworkX"``, a networkx implementation of the
             minimum_cycle_basis algorithm is used
 
-          * If ``algorithm = None``, the cython implementation of the
+          * If ``algorithm = None``, then cython implementation of the
             minimum_cycle_basis algorithm is used
         
         EXAMPLES::
@@ -4653,10 +4653,12 @@ class GenericGraph(GenericGraph_pyx):
         if algorithm == "networkx":
             import networkx
             G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
-            return G.minimum_cycle_basis(weight='weight')
+            return networkx.minimum_cycle_basis(G, weight='weight')
         else:
-            sp_edges = G.minimum_spanning_tree(by_weight=False)
-            return sum(comp._backend.min_cycle_basis(weight_function=weight_function, by_weight=by_weight ,spanning_tree_edges=sp_edges)
+            from sage.graphs.base.boost_graph import min_spanning_tree
+            sp_edges = min_spanning_tree(self, weight_function=weight_function, algorithm="Prim")
+            edges_s = [(a, b) for a, b, c in sp_edges]
+            return sum(comp._backend.min_cycle_basis(weight_function=weight_function, by_weight=by_weight, spanning_tree_edges=edges_s ,edges=self.edges(labels=False))
                    for comp in self.connected_components_subgraphs())
 
     ### Planarity

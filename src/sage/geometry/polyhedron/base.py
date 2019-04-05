@@ -4124,9 +4124,9 @@ class Polyhedron_base(Element):
         for facet in facets:
             facet_vertices = facet.nonzero_positions()
             if len(facet_vertices) == n-1 or len(facet_vertices) == n-2:
-                non_vertices = [i for i in range(n) if i not in facet_vertices]
-                if all([vertex in vertices for vertex in non_vertices]):
-                    for vertex in non_vertices:
+                facet_non_vertices = [i for i in range(n) if i not in facet_vertices]
+                if all([vertex in vertices for vertex in facet_non_vertices]):
+                    for vertex in facet_non_vertices:
                         vertices.remove(vertex)
         if vertices == []:
             return True

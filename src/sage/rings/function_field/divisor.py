@@ -50,6 +50,7 @@ from __future__ import absolute_import
 import random
 
 from sage.misc.cachefunc import cached_method
+from sage.misc.latex import latex
 
 from sage.arith.all import lcm
 
@@ -205,6 +206,48 @@ class FunctionFieldDivisor(ModuleElement):
                 r += cr + plus + repr(m) + mul + repr(p)
             elif m < 0:
                 r += cr + minus + repr(-m) + mul + repr(p)
+        return r
+
+    def _latex_(self):
+        """
+        Return the LaTeX representation of the divisor.
+
+        EXAMPLES::
+
+            sage: K.<x>=FunctionField(GF(2)); _.<Y>=K[]
+            sage: L.<y>=K.extension(Y^3+x+x^3*Y)
+            sage: p = L.places_finite()[0]
+            sage: p
+            Place (x, y)
+        """
+        mul = ''
+        plus = ' + '
+        minus = ' - '
+        cr = ''
+
+        places = sorted(self._data.keys())
+
+        if len(places) == 0:
+            return '0'
+
+        p = places.pop(0)
+        m = self._data[p]
+        if m == 1:
+            r = latex(p)
+        elif m == -1:
+            r = '-' + latex(p) # seems more readable then `-1*`
+        else: # nonzero
+            r = latex(m) + mul + latex(p)
+        for p in places:
+            m = self._data[p]
+            if m == 1:
+                r += cr + plus + latex(p)
+            elif m == -1:
+                r += cr + minus + latex(p)
+            elif m > 0:
+                r += cr + plus + latex(m) + mul + latex(p)
+            elif m < 0:
+                r += cr + minus + latex(-m) + mul + latex(p)
         return r
 
     def _richcmp_(self, other, op):

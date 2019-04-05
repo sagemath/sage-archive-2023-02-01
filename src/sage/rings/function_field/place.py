@@ -139,6 +139,31 @@ class FunctionFieldPlace(Element):
         gens_str = ', '.join(repr(g) for g in gens)
         return "Place ({})".format(gens_str)
 
+    def _latex_(self):
+        """
+        Return the LaTeX representation of the place.
+
+        We use Stichtenoth's notation for the ideal.
+
+        EXAMPLES::
+
+            sage: K.<x>=FunctionField(GF(2)); _.<Y>=K[]
+            sage: L.<y>=K.extension(Y^3+x+x^3*Y)
+            sage: p = L.places_finite()[0]
+            sage: latex(p)
+            Place (x, y)
+        """
+        try:
+            gens = self._prime.gens_two()
+        except AttributeError:
+            gens = self._prime.gens()
+        gens_str = ', '.join(g._latex_() for g in gens)
+
+        if self.is_infinite_place():
+            return "({})\\mathcal{{O}}_\infty".format(gens_str)
+        else:
+            return "({})\\mathcal{{O}}".format(gens_str)
+
     def _richcmp_(self, other, op):
         """
         Compare the place with ``other`` place.

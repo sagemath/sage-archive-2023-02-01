@@ -9881,11 +9881,6 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g.is_dominating([0,1])
             False
-
-        TESTS::
-
-            sage: g.is_dominating([0,1], {2, 42})
-            LookupError: vertex (42) is not a vertex of the graph
         """
         closed_neighb = set()
         # Construct the closed neighborhood of p_dominating
@@ -10149,12 +10144,8 @@ class GenericGraph(GenericGraph_pyx):
 
         ::
             sage: g = graphs.CubeGraph(3)
-            sage: for i in g.neighbor_iterator('010', closed=True):
-            ....:     print(i)
-            010
-            011
-            000
-            110
+            sage: sorted(list(g.neighbor_iterator('010', closed=True)))
+            ['000', '010', '011', '110']
 
         ::
 
@@ -10170,6 +10161,8 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = graphs.CubeGraph(3)
             sage: list(G.neighbor_iterator('013', closed=True))
+            Traceback (most recent call last):
+            ...
             LookupError: vertex (013) is not a vertex of the graph
         """
 

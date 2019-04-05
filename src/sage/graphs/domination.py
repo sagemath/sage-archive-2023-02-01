@@ -183,9 +183,9 @@ def _cand_ext_enum(G, dom, u_next, V_next):
         #
 
         dominated_by_dom = set().union(
-            (self.neighbor_iterator(u, closed=True) for u in dom))
+            (G.neighbor_iterator(u, closed=True) for u in dom))
         # S = neighbors of u_next in V_next that are not yet dominated:
-        S = set.intersection(G.neighbor_iterator(u_next),
+        S = set().intersection(G.neighbor_iterator(u_next),
                              V_next - dominated_by_dom)
         del dominated_by_dom
 

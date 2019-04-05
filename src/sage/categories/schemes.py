@@ -13,7 +13,6 @@ Schemes
 from sage.categories.category import Category
 from sage.categories.category_types import Category_over_base
 from sage.categories.sets_cat import Sets
-from sage.categories.homsets import HomsetsCategory
 
 
 class Schemes(Category):

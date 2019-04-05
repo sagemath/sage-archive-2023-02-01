@@ -566,8 +566,6 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 ...
                 AssertionError: 4 != 3
             """
-            # isinstance with LazyImported classes is not robust
-            from sage.rings.integer import Integer
             tester = self._tester(**options)
             if self.cardinality != self._cardinality_from_iterator:
                 card = self.cardinality()

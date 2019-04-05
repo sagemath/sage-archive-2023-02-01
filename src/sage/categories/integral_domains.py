@@ -13,6 +13,7 @@ from sage.misc.lazy_attribute import lazy_class_attribute
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.category_singleton import Category_contains_method_by_parent_class
 from sage.categories.domains import Domains
+from sage.categories.fields import Fields
 
 
 class IntegralDomains(CategoryWithAxiom):
@@ -121,7 +122,7 @@ class IntegralDomains(CategoryWithAxiom):
             tester = self._tester(**options)
             try:
                 fraction_field = self.fraction_field()
-            except Exception:
+            except AttributeError:
                 # some integral domains do not implement fraction_field() yet
                 if self in Fields():
                     raise

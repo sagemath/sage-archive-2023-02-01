@@ -16,8 +16,6 @@ from sage.categories.category_singleton import Category_singleton
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.covariant_functorial_construction import FunctorialConstructionCategory
 
-import sage.categories.category_with_axiom
-
 
 class HomsetsCategory(FunctorialConstructionCategory):
 

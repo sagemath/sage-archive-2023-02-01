@@ -2361,18 +2361,23 @@ class DifferentialGCAlgebra(GCAlgebra):
 
         ALGORITHM:
 
-        Construct the minimal Sullivan algebra ``S`` by iteratively adding generators to it. Start with one
-        closed generator of degree 1 for each element in the basis of the first cohomology o ``self``.
-        Then proceed degree by degree. At each degree `d`, we keep adding generators of degree `d-1`
-        whose differential kills the elements in the kernel of the map $H^d(S)\to H^d(self)$. Once this
-        map is made injective, we add the needed closed generators in degree `d` to make it surjective.
+        Construct the minimal Sullivan algebra ``S`` by iteratively adding
+        generators to it. Start with one closed generator of degree 1 for each
+        element in the basis of the first cohomology o ``self``. Then proceed
+        degree by degree. At each degree `d`, we keep adding generators of degree
+        `d-1` whose differential kills the elements in the kernel of the map
+        $H^d(S)\to H^d(self)$. Once this map is made injective, we add the needed
+        closed generators in degree `d` to make it surjective.
 
         .. WARNING::
 
-            The method is not granted to finish (it can't, since the minimal model could be infinitely generated).
-            The parameter ``max_iterations`` controls how many iterations of the method are attempted at each degree.
-            In case they are not enough, an exception is raised. If you think that the result will be finitely generated,
-            you can try to run it again with a higher value for ``max_iterations``.
+            The method is not granted to finish (it can't, since the minimal model
+            could be infinitely generated in some degrees).
+            The parameter ``max_iterations`` controls how many iterations of the
+            method are attempted at each degree. In case they are not enough, an
+            exception is raised. If you think that the result will be finitely
+            generated, you can try to run it again with a higher value for
+            ``max_iterations``.
 
         ..SEEALSO::
 
@@ -2398,6 +2403,10 @@ class DifferentialGCAlgebra(GCAlgebra):
 
         """
         max_degree = int(i)
+        if max_degree < 1:
+            raise ValueError("The degree must be a positive integer")
+        if not max_iterations in ZZ or max_iterations < 1:
+            raise ValueError("max_iterations must be a positive integer")
         if max_degree in self._minimalmodels.keys():
             return self._minimalmodels[max_degree]
         from copy import copy
@@ -2505,30 +2514,6 @@ class DifferentialGCAlgebra(GCAlgebra):
             self._minimalmodels[degree] = phi
 
         return phi
-
-    def is_formal(self, i=3, max_iterations=3):
-        """
-        Compute whether the algebra is ``i``-formal. A CDGA is ``i``-formal
-        if it is ``i``-quasi-isomorphic to its cohomology algebra. This is
-        equivalent to their ``i``-minimal models being isomorphic.
-
-        INPUT:
-
-        - ``i`` - the degree up to which the formality condition is checked.
-
-        - ``max_iterations`` - the number of iterations tried to compute the
-        minimal models
-
-        TESTS::
-
-            sage: A.<e1,e2,e3,e4> = GradedCommutativeAlgebra(QQ)
-            sage: B = A.cdg_algebra({e1:e1*e3,e2:-e2*e3,e4:e1*e2})
-            sage: B.is_formal(4)
-            True
-        """
-        M1 = self.minimal_model(i, max_iterations)
-        M2 = self.cohomology_algebra(i+1).minimal_model(i, max_iterations)
-        return M1.domain() == M2.domain()
 
     def cohomology_algebra(self, max_degree=3):
         """

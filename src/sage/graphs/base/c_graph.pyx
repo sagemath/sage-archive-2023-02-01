@@ -2409,28 +2409,33 @@ cdef class CGraphBackend(GenericGraphBackend):
         """r
 
         """
-        cb = []
-        
-        edgesg = list(self.iterator_unsorted_edges(list(self.iterator_verts(None)),True))
+        cdef int start
+        cdef int end
+        cdef int n
+        cdef int l
+        cdef list min_path_nodes
+        cdef dict all_pair_shortest_pathlens
+        cdef dict cross_paths_lens
+        cdef dict nodes_idx
+        cdef dict idx_nodes
+        cdef list cycle_basis = []
+        cdef list edgelist = list(self.iterator_unsorted_edges(list(self.iterator_verts(None)), True))
+        print(edgelist)
         from sage.graphs.graph import Graph
-        #from sage.graphs.base.boost_graph import min_spanning_tree
-        #spanning_tree_edges = min_spanning_tree(Graph(self), weight_function=w_f, algorithm="Prim").edges(labels=False)
-        #edges_complement = [frozenset(e) for e in edges if e not in spanning_tree_edges]
-        l = len(edges_complement)
 
-        orth_set = [set([e]) for e in edges_complement]
-        
+        l = len(edges_complement)
+        print(l)
+        cdef list orth_set = [set([e]) for e in edges_complement]
+        nodes_idx = {node: idx for idx, node in enumerate(self.iterator_verts(None))}
+        idx_nodes = {idx: node for node, idx in nodes_idx.items()}
+        if not by_weight:
+            def weight_function(e):
+                return 1
+        n = len(nodes_idx)
         for i in range(l):
             orth = orth_set[i]
-            
-            T = Graph()
-
-            nodes_idx = {node: idx for idx, node in enumerate(self.iterator_verts(None))}
-            idx_nodes = {idx: node for node, idx in nodes_idx.items()}
-
-            n = len(nodes_idx)
-
-            for e in edgesg:
+            T = Graph()    
+            for e in edgelist:
                 uidx, vidx = nodes_idx[e[0]], nodes_idx[e[1]]
                 edge_w = weight_function(e)
                 if frozenset((e[0], e[1])) in orth:
@@ -2439,31 +2444,29 @@ cdef class CGraphBackend(GenericGraphBackend):
                 else:
                     T.add_edge(uidx, vidx, edge_w)
                     T.add_edge(n + uidx, n + vidx, edge_w)
-            
-            if not by_weight:
-                def weight_function(e):
-                    return 1
-            from sage.graphs.base.boost_graph import johnson_shortest_paths
-            all_pair_shortest_pathlens = johnson_shortest_paths(T, weight_function)
+            print(T.edges(labels=False))
+            from sage.graphs.base.boost_graph import shortest_paths
+            cross_paths_lens = dict()
+            all_pair_shortest_pathlens = dict()
+            pred = dict()
+            for u in T.vertices():
+                all_pair_shortest_pathlens[u],pred[u] = shortest_paths(T, u, weight_function)
+            print(i)
+            print(all_pair_shortest_pathlens)
             cross_paths_lens = {j: all_pair_shortest_pathlens[j][n+j] for j in range(n)}
-
             start = min(cross_paths_lens, key=cross_paths_lens.get)
             end = n + start
             min_path = T._backend.bidirectional_dijkstra(start, end, weight_function=weight_function, distance_flag=False)
-            #print(min_path)
             min_path_nodes = [node if node < n else node - n for node in min_path]
 
             edges = set()
             for edge in list(zip(min_path_nodes[:-1], min_path_nodes[1:])):
                 edges ^= {edge}
-        
             new_cycle = {frozenset((idx_nodes[u], idx_nodes[v])) for u, v in edges}
-            cb.append(list(set().union(*new_cycle)))
-            #
-            #
+            cycle_basis.append(list(set().union(*new_cycle)))
             base = orth_set[i]
             orth_set[i + 1:] = [orth ^ base if len(o & new_cycle) % 2 else o for o in orth_set[i + 1:]]
-        return cb
+        return cycle_basis
 
     def depth_first_search(self, v, reverse=False, ignore_direction=False):
         r"""

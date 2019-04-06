@@ -4647,7 +4647,9 @@ class GenericGraph(GenericGraph_pyx):
                 return e[2]
         if by_weight:
             self._check_weight_function(weight_function)
-  
+        else:
+            def weight_function(e):
+                return 1
         if algorithm:
             algorithm = algorithm.lower()
         if algorithm == "networkx":
@@ -4657,14 +4659,15 @@ class GenericGraph(GenericGraph_pyx):
         else:
             from sage.graphs.base.boost_graph import min_spanning_tree
             w_f = lambda e: 1
-            lis = []
+            basis = []
             for comp in self.connected_components_subgraphs():
+                # just need the edges of any spanning tree
                 sp_edges = comp.min_spanning_tree(weight_function=w_f)
                 edges_s = [(a, b) for a, b, c in sp_edges]
+                # compliment of the edges of the spanning tree with respect to edges in self
                 edges_c = [frozenset(e) for e in comp.edges(labels=False) if e not in edges_s]
-                lis.append(comp._backend.min_cycle_basis(weight_function=weight_function, by_weight=by_weight, edges_complement=edges_c))
-            return lis[0]
-
+                basis.append(comp._backend.min_cycle_basis(weight_function=weight_function, by_weight=by_weight, edges_complement=edges_c))
+            return sum(basis, [])
     ### Planarity
 
     def is_planar(self, on_embedding=None, kuratowski=False, set_embedding=False, set_pos=False):

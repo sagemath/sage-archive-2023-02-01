@@ -294,7 +294,7 @@ class LazyLaurentSeries(Element):
 
         try:
             c = self._cache[n]
-        except:
+        except KeyError:
             c = R(self._coefficient_function(self, n))
             self._cache[n] = c
 

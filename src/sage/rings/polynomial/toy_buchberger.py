@@ -138,11 +138,10 @@ AUTHOR:
 from __future__ import print_function
 
 from sage.misc.misc import get_verbose
-from sage.arith.all import LCM
 from sage.structure.sequence import Sequence
 
 #some aliases that conform to Becker and Weispfenning's notation:
-LCM = lambda f,g: f.parent().monomial_lcm(f,g)
+LCM = lambda f, g: f.parent().monomial_lcm(f, g)
 LM = lambda f: f.lm()
 LT = lambda f: f.lt()
 
@@ -165,7 +164,7 @@ def spol(f,g):
         sage: spol(x^2 - z - 1, z^2 - y - 1)
         x^2*y - z^3 + x^2 - z^2
     """
-    fg_lcm = LCM(LM(f),LM(g))
+    fg_lcm = LCM(LM(f), LM(g))
     return fg_lcm//LT(f)*f - fg_lcm//LT(g)*g
 
 

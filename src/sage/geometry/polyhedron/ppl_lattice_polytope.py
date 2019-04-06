@@ -1170,8 +1170,6 @@ class LatticePolytope_PPL_class(C_Polyhedron):
                 return (ambient, p, p.find_isomorphism(self))
             except LatticePolytopesNotIsomorphicError:
                 pass
-        from sage.geometry.polyhedron.lattice_euclidean_group_element import \
-            LatticePolytopeNoEmbeddingError
         raise LatticePolytopeNoEmbeddingError('not a sub-polytope of a reflexive polygon')
 
     def embed_in_reflexive_polytope(self, output='hom'):

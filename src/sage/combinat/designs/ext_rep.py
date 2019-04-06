@@ -40,7 +40,6 @@ import os.path
 import gzip
 import bz2
 from sage.misc.all import tmp_filename
-import sys
 
 # import compatible with py2 and py3
 import six

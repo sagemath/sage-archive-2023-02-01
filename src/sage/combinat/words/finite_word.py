@@ -220,7 +220,6 @@ from builtins import zip
 
 from six import iteritems
 from six.moves import range
-from six import iteritems
 from collections import defaultdict
 from itertools import islice, cycle
 from sage.combinat.words.abstract_word import Word_class

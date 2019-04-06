@@ -24,7 +24,7 @@ REFERENCES:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.combinat.sf.sfa import SymmetricFunctionAlgebra_generic as SFA_generic
@@ -231,7 +231,6 @@ class induced_trivial_character_basis(generic_character):
 
         self.module_morphism(self._self_to_power_on_basis,
                              codomain=Sym.powersum()).register_as_coercion()
-        from sage.categories.morphism import SetMorphism
         self.register_coercion(SetMorphism(Hom(self._other, self),
                                            self._other_to_self))
 
@@ -458,7 +457,6 @@ class irreducible_character_basis(generic_character):
 
         self.module_morphism(self._self_to_power_on_basis,
                              codomain=Sym.powersum()).register_as_coercion()
-        from sage.categories.morphism import SetMorphism
         self.register_coercion(SetMorphism(Hom(self._other, self),
                                            self._other_to_self))
 

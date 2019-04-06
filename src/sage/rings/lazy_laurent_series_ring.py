@@ -1,13 +1,13 @@
 r"""
 Lazy Laurent Series Rings
 
-The ring of lazy laurent series over a ring has usual arithmetic operations,
+The ring of lazy Laurent series over a ring has usual arithmetic operations,
 but it is actually not a ring in the usual sense since every
 arithmetic operation gives a new series.
 
 EXAMPLES:
 
-The definition of laurent series rings is not initially imported into the
+The definition of Laurent series rings is not initially imported into the
 global namespace. You need to import it explicitly to use it::
 
     sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
@@ -20,9 +20,9 @@ global namespace. You need to import it explicitly to use it::
     sage: 1/(1 - z) == 1/(1 - z)
     Traceback (most recent call last):
     ...
-    ValueError: undecidable as lazy laurent series
+    ValueError: undecidable as lazy Laurent series
 
-Lazy laurent series ring over a finite field::
+Lazy Laurent series ring over a finite field::
 
     sage: L = LazyLaurentSeriesRing(GF(3), 'z'); L
     Lazy Laurent Series Ring in z over Finite Field of size 3
@@ -33,7 +33,7 @@ Lazy laurent series ring over a finite field::
     sage: e.coefficient(100).parent()
     Finite Field of size 3
 
-Generating functions of integer sequences are laurent series over the integer
+Generating functions of integer sequences are Laurent series over the integer
 ring::
 
     sage: L = LazyLaurentSeriesRing(ZZ, 'z'); L
@@ -70,13 +70,13 @@ from .lazy_laurent_series import LazyLaurentSeries
 
 class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
     """
-    Lazy laurent series ring.
+    Lazy Laurent series ring.
 
     INPUT:
 
-    - ``base_ring`` -- base ring of this laurent series ring
+    - ``base_ring`` -- base ring of this Laurent series ring
 
-    - ``names`` -- name of the generator of this laurent series ring
+    - ``names`` -- name of the generator of this Laurent series ring
 
     EXAMPLES::
 
@@ -101,7 +101,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
     def _repr_(self):
         """
-        String representation of this laurent series ring.
+        String representation of this Laurent series ring.
 
         EXAMPLES::
 
@@ -114,7 +114,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
     @cached_method
     def gen(self, n=0):
         """
-        Return the generator of this laurent series ring.
+        Return the generator of this Laurent series ring.
 
         EXAMPLES::
 
@@ -140,7 +140,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
     def ngens(self):
         """
-        Return the number of generators of this laurent series ring.
+        Return the number of generators of this Laurent series ring.
 
         This is always 1.
 
@@ -172,7 +172,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
     def _element_constructor_(self, x):
         """
-        Construct a laurent series from ``x``.
+        Construct a Laurent series from ``x``.
 
         EXAMPLES::
 
@@ -191,7 +191,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
     def _an_element_(self):
         """
-        Return a laurent series in this ring.
+        Return a Laurent series in this ring.
 
         EXAMPLES::
 
@@ -214,7 +214,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
     def series(self, coefficient, valuation, constant=None):
         """
-        Return a lazy laurent series.
+        Return a lazy Laurent series.
 
         INPUT:
 

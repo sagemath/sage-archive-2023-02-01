@@ -1,14 +1,14 @@
 r"""
 Lazy Laurent Series
 
-A lazy laurent series is a laurent series whose coefficients are computed as
-demanded or needed. Unlike the usual laurent series in Sage, lazy laurent
-series do not have precisions because a lazy laurent series knows (can be
+A lazy Laurent series is a Laurent series whose coefficients are computed as
+demanded or needed. Unlike the usual Laurent series in Sage, lazy Laurent
+series do not have precisions because a lazy Laurent series knows (can be
 computed, lazily) all its coefficients.
 
 EXAMPLES:
 
-Generating functions are laurent series over the integer ring::
+Generating functions are Laurent series over the integer ring::
 
     sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
     sage: L = LazyLaurentSeriesRing(ZZ, 'z')
@@ -85,7 +85,7 @@ from sage.arith.power import generic_power
 
 class LazyLaurentSeries(Element):
     r"""
-    Return a lazy laurent series.
+    Return a lazy Laurent series.
 
     INPUT:
 
@@ -162,7 +162,7 @@ class LazyLaurentSeries(Element):
         n = self._approximate_valuation
 
         if self._constant is None or other._constant is None:
-            raise ValueError("undecidable as lazy laurent series")
+            raise ValueError("undecidable as lazy Laurent series")
 
         sc, sm = self._constant
         oc, om = other._constant
@@ -191,7 +191,7 @@ class LazyLaurentSeries(Element):
             True
         """
         if self._constant is None:
-            raise ValueError("undecidable as lazy laurent series")
+            raise ValueError("undecidable as lazy Laurent series")
 
         sc, sm = self._constant
 
@@ -209,7 +209,7 @@ class LazyLaurentSeries(Element):
 
     def _repr_(self):
         """
-        Return the string representation of this laurent series.
+        Return the string representation of this Laurent series.
 
         EXAMPLES::
 
@@ -255,7 +255,7 @@ class LazyLaurentSeries(Element):
 
         s = s.replace(" + -", " - ").replace(" 1*"," ").replace(" -1*", " -")[1:]
 
-        if len(s) == 0:
+        if not s:  # zero series
             s = '0'
 
         if self._constant is None or self._constant[1] > m or self._constant[0] != 0:

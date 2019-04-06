@@ -9439,11 +9439,11 @@ class GenericGraph(GenericGraph_pyx):
     def pagerank(self, alpha=0.85, personalization=None, by_weight=False,
                  weight_function=None, dangling=None, algorithm=None):
         r"""
-        Return the PageRank of the nodes in the graph.
+        Return the PageRank of the vertices in the graph.
 
-        PageRank calculates the ranking of nodes in the graph G based on the
-        structure of the incoming links. It is popularly used to rank web
-        pages.
+        PageRank is a centrality measure earlier used to rank web pages.
+        The PageRank algorithm outputs the probability distribution that
+        a random walker in the graph visits a vertex.
 
         See the :wikipedia:`PageRank` for more information.
 
@@ -9471,13 +9471,13 @@ class GenericGraph(GenericGraph_pyx):
           weight.
 
         - ``dangling`` -- dict (default: ``None``); The outedges to be assigned
-          to any "dangling" nodes, i.e., nodes without any outedges. The dict
-          key is the node the outedge points to and the dict value is the
-          weight of that outedge. By default, dangling nodes are given outedges
-          according to the personalization vector (uniform if not specified).
-          This must be selected to result in an irreducible transition matrix.
-          It may be common to have the dangling dict to be the same as the
-          personalization dict.
+          to any "dangling" vertices, i.e., vertices without any outedges. The
+          dict key is the node the outedge points to and the dict value is the
+          weight of that outedge. By default, dangling vertices are given
+          outedges according to the personalization vector (uniform if not
+          specified). This must be selected to result in an irreducible
+          transition matrix. It may be common to have the dangling dict to be
+          the same as the personalization dict.
 
         - ``algorithm`` -- string (default: ``None``); the algorithm to use in
            computing PageRank of ``G``. The following algorithms are
@@ -9587,6 +9587,11 @@ class GenericGraph(GenericGraph_pyx):
 
         if algorithm:
             algorithm = algorithm.lower()
+        elif self.order <= 60:
+            algorithm = 'numpy'
+        else:
+            algorithm = 'scipy'
+
         if algorithm == 'networkx':
             if self.has_multiple_edges():
                 raise ValueError("the 'networkx' implementation does not support multigraphs")
@@ -9622,20 +9627,8 @@ class GenericGraph(GenericGraph_pyx):
                 I = self.igraph_graph()
                 page_rank = I.pagerank(damping=alpha)
                 return {v: page_rank[i] for i, v in enumerate(self.vertices())}
-        elif not algorithm:  #default
-            import networkx
-            if self.order<=60:
-                return networkx.pagerank_numpy(self.networkx_graph
-                       (weight_function=weight_function), alpha=alpha,
-                        personalization=personalization, weight=weight,
-                        dangling=dangling)
-            else:
-                return networkx.pagerank_scipy(self.networkx_graph
-                       (weight_function=weight_function), alpha=alpha,
-                        personalization=personalization, weight=weight,
-                        dangling=dangling)
         else:
-            raise NotImplementedError("Only 'NetworkX', 'Numpy', 'Scipy', and 'igraph' are supported.")
+            raise NotImplementedError("Only 'NetworkX', 'Numpy', 'Scipy', and 'igraph' are supported")
 
     ### Vertex handlers
 

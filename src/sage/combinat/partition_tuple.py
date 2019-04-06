@@ -268,13 +268,11 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.interfaces.all import gp
 from sage.misc.cachefunc import cached_method
-from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.rings.all import NN, ZZ, IntegerModRing
 from sage.rings.integer import Integer
 from sage.sets.positive_integers import PositiveIntegers
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.misc.lazy_attribute import lazy_attribute
 
 
 #--------------------------------------------------

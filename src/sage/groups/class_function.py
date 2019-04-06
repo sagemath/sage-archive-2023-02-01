@@ -28,7 +28,7 @@ from sage.structure.richcmp import richcmp, richcmp_method
 from sage.interfaces.gap import gap
 from sage.rings.all import Integer
 from sage.rings.all import CyclotomicField
-from sage.libs.gap.element import GapElement, GapElement_List
+from sage.libs.gap.element import GapElement
 
 # TODO:
 #
@@ -118,7 +118,6 @@ class ClassFunction_gap(SageObject):
             self._gap_classfunction = gap.ClassFunction(G, list(values))
         e = self._gap_classfunction.Conductor()
         self._base_ring = CyclotomicField(e)
-
 
     def _gap_init_(self):
         r"""

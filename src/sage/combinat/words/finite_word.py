@@ -228,7 +228,6 @@ from sage.misc.cachefunc import cached_method
 from sage.combinat.words.word_options import word_options
 from sage.rings.all import Integer, Infinity, ZZ, QQ
 from sage.sets.set import Set
-from sage.misc.superseded import deprecated_function_alias
 
 
 class FiniteWord_class(Word_class):

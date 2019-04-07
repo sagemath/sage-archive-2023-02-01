@@ -126,6 +126,20 @@ class LazyLaurentSeries(Element):
         1 + z + 2*z^2 + 3*z^3 + 5*z^4 + 8*z^5 + 13*z^6 + ...
         sage: f.coefficient(100)
         573147844013817084101
+
+    Lazy Laurent series is not picklable in general::
+
+        sage: loads(dumps(f))
+        1 + z + 2*z^2 + 3*z^3 + 5*z^4 + 8*z^5 + 13*z^6 + ...
+        sage: loads(dumps(f)) == f
+        Traceback (most recent call last):
+        ...
+        ValueError: undecidable as lazy Laurent series
+        sage: g = f + f
+        sage: loads(dumps(g))
+        Traceback (most recent call last):
+        ...
+        PicklingError: Can't pickle <type 'function'> ...
     """
     def __init__(self, parent, coefficient=None, valuation=0, constant=None):
         """
@@ -314,6 +328,50 @@ class LazyLaurentSeries(Element):
             self._cache[n] = c
 
         return c
+
+    def valuation(self):
+        """
+        Return the valuation of the series.
+
+        This method determines the valuation of the series by looking for a
+        nonzero coefficient. Hence if the series happens to be zero, then it
+        may run forever.
+
+        EXAMPLES::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: s = 1/(1 - z) - 1/(1 - 2*z)
+            sage: s.valuation()
+            1
+            sage: t = z - z
+            sage: t.valuation()
+            +Infinity
+        """
+        if self._constant is None:
+            n = self._approximate_valuation
+            cache = self._cache
+            while True:
+                if n in cache:
+                    if cache[n]:
+                        self._approximate_valuation = n
+                        return n
+                    n += 1
+                else:
+                    if self.coefficient(n) != 0:
+                        self._approximate_valuation = n
+                        return n
+                    n += 1
+        else:
+            n = self._approximate_valuation
+            m = self._constant[1]
+            while n <= m:
+                if self.coefficient(n) != 0:
+                    self._approximate_valuation = n
+                    return n
+                n += 1
+            return infinity
 
     def _mul_(self, other):
         """
@@ -579,50 +637,6 @@ class LazyLaurentSeries(Element):
         from .lazy_laurent_series_ring import LazyLaurentSeriesRing
         Q = LazyLaurentSeriesRing(ring, names=R.variable_name())
         return Q.element_class(Q, coefficient=change, valuation=a, constant=c)
-
-    def valuation(self):
-        """
-        Return the valuation of the series.
-
-        This method determines the valuation of the series by looking for a
-        nonzero coefficient. Hence if the series happens to be zero, then it
-        may run forever.
-
-        EXAMPLES::
-
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: z = L.gen()
-            sage: s = 1/(1 - z) - 1/(1 - 2*z)
-            sage: s.valuation()
-            1
-            sage: t = z - z
-            sage: t.valuation()
-            +Infinity
-        """
-        if self._constant is None:
-            n = self._approximate_valuation
-            cache = self._cache
-            while True:
-                if n in cache:
-                    if cache[n]:
-                        self._approximate_valuation = n
-                        return n
-                    n += 1
-                else:
-                    if self.coefficient(n) != 0:
-                        self._approximate_valuation = n
-                        return n
-                    n += 1
-        else:
-            n = self._approximate_valuation
-            m = self._constant[1]
-            while n <= m:
-                if self.coefficient(n) != 0:
-                    self._approximate_valuation = n
-                    return n
-                n += 1
-            return infinity
 
     def truncate(self, d):
         """

@@ -576,7 +576,7 @@ class IdealDiagram(AbstractPartitionDiagram):
         """
         super(IdealDiagram, self).check()
         if self.propagating_number() >= self.order():
-            raise ValueError("the diagram %s must have a propagating number smaller than the order" % (self))
+            raise ValueError("the diagram %s must have a propagating number smaller than the order" % self)
 
 
 class PlanarDiagram(AbstractPartitionDiagram):
@@ -3215,6 +3215,7 @@ class SubPartitionAlgebra(DiagramBasis):
             P = self.parent().lift.codomain()
             OP = P.orbit_basis()
             return OP(P(self))
+
 
 class BrauerAlgebra(SubPartitionAlgebra, UnitDiagramMixin):
     r"""

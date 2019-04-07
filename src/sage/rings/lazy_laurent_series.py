@@ -129,17 +129,11 @@ class LazyLaurentSeries(Element):
 
     Lazy Laurent series is not picklable in general::
 
-        sage: loads(dumps(f))
-        1 + z + 2*z^2 + 3*z^3 + 5*z^4 + 8*z^5 + 13*z^6 + ...
-        sage: loads(dumps(f)) == f
-        Traceback (most recent call last):
-        ...
-        ValueError: undecidable as lazy Laurent series
         sage: g = f + f
         sage: loads(dumps(g))
         Traceback (most recent call last):
         ...
-        PicklingError: Can't pickle <type 'function'> ...
+        PicklingError: Can't pickle <type 'function'>: attribute lookup __builtin__.function failed
     """
     def __init__(self, parent, coefficient=None, valuation=0, constant=None):
         """

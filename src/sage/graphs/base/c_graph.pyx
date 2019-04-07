@@ -2419,8 +2419,8 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef dict nodes_idx
         cdef dict idx_nodes
         cdef list cycle_basis = []
-        cdef list edgelist = list(self.iterator_unsorted_edges(list(self.iterator_verts(None)), True))
-        print(edgelist)
+        cdef list edgelist = list(self.iterator_edges(list(self.iterator_verts(None)), True))
+        #print(edgelist)
         from sage.graphs.graph import Graph
 
         l = len(edges_complement)
@@ -2444,7 +2444,7 @@ cdef class CGraphBackend(GenericGraphBackend):
                 else:
                     T.add_edge(uidx, vidx, edge_w)
                     T.add_edge(n + uidx, n + vidx, edge_w)
-            print(T.edges(labels=False))
+            #print(T.edges(labels=False))
             from sage.graphs.base.boost_graph import shortest_paths
             cross_paths_lens = dict()
             all_pair_shortest_pathlens = dict()
@@ -2452,7 +2452,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             for u in T.vertices():
                 all_pair_shortest_pathlens[u],pred[u] = shortest_paths(T, u, weight_function)
             print(i)
-            print(all_pair_shortest_pathlens)
+            #print(all_pair_shortest_pathlens)
             cross_paths_lens = {j: all_pair_shortest_pathlens[j][n+j] for j in range(n)}
             start = min(cross_paths_lens, key=cross_paths_lens.get)
             end = n + start

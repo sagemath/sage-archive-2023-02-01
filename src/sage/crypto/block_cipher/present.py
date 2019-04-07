@@ -61,6 +61,27 @@ def _smallscale_present_linearlayer(nsboxes=16):
     """
     TODO: switch to sage.crypto.linearlayer
     (https://trac.sagemath.org/ticket/25735) as soon as it is included in sage
+
+    EXAMPLES::
+
+        sage: from sage.crypto.block_cipher.present import _smallscale_present_linearlayer
+        sage: _smallscale_present_linearlayer(4)
+        [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0]
+        [0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0]
+        [0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0]
+        [0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
     """
     from sage.modules.free_module import VectorSpace
     from sage.modules.free_module_element import vector
@@ -252,6 +273,15 @@ class PRESENT(SageObject):
         - The plaintext or ciphertext corresponding to ``B``, obtained using
           the key ``K``. If ``B`` is an integer the output will be too. If
           ``B`` is list-like the output will be a bit vector.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.present import PRESENT
+            sage: present = PRESENT(doLastLinearLayer=True)
+            sage: P = 0xFFFFFFFFFFFFFFFF
+            sage: K = 0x0
+            sage: present(P, K, 'encrypt').hex()
+            'a112ffc72f68417b'
         """
         if algorithm == 'encrypt':
             return self.encrypt(B, K)
@@ -598,6 +628,12 @@ class PRESENT_KS(SageObject):
 
         - ``master_key`` -- integer of bit list-like; the key that will be used
 
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.present import PRESENT_KS
+            sage: PRESENT_KS()
+            Original PRESENT key schedule with 80-bit keys and 31 rounds
+
         .. NOTE::
 
             If you want to use a PRESENT_KS object as an iterable you have to
@@ -627,6 +663,13 @@ class PRESENT_KS(SageObject):
           ``rounds + 1`` round keys.  If ``K`` is an integer the elements of
           the output list will be too. If ``K`` is list-like the element of the
           output list will be  bit vectors.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.present import PRESENT_KS
+            sage: ks = PRESENT_KS()
+            sage: ks(0)[31] == 0x6dab31744f41d700
+            True
 
         .. NOTE::
 

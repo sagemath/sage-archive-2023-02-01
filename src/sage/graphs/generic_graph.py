@@ -4598,7 +4598,7 @@ class GenericGraph(GenericGraph_pyx):
                     for u in zip(x, x[1:] + [x[0]])]
         return [vertices_to_edges(_) for _ in cycle_basis_v]
 
-    def minimum_cycle_basis(self, weight_function=None, by_weight=True, algorithm="None"):
+    def minimum_cycle_basis(self, weight_function=None, by_weight=False, algorithm="None"):
         r"""
         Return a minimum weight cycle basis of the graph.
 
@@ -4628,15 +4628,34 @@ class GenericGraph(GenericGraph_pyx):
         
         EXAMPLES::
 
+        sage: g = Graph([(1, 2, 3), (2, 3, 5), (3, 4, 8), (4, 1, 13), (1, 3, 250), (5, 6, 9), (6, 7, 17), (7, 5, 20)])
+        sage: g.minimum_cycle_basis(by_weight=True)
+        [[1, 2, 3, 4], [1, 2, 3], [5, 6, 7]]
+        sage: g.minimum_cycle_basis()
+        [[1, 2, 3], [1, 3, 4], [5, 6, 7]]
+        sage: g.minimum_cycle_basis(by_weight=True, algorithm="NetworkX")
+        [[1, 2, 3, 4], [1, 2, 3], [5, 6, 7]]
+        sage: g.minimum_cycle_basis(by_weight=False, algorithm="NetworkX")
+        [[1, 2, 3], [1, 3, 4], [5, 6, 7]]
 
+        ::
 
+        sage: g = Graph([(1, 2), (2, 3), (3, 4), (4, 5), (5, 1), (5, 3)])
+        sage: g.minimum_cycle_basis(by_weight=False, algorithm="NetworkX")
+        [[3, 4, 5], [1, 2, 3, 5]]
+        sage: g.minimum_cycle_basis(by_weight=False)
+        [[3, 4, 5], [1, 2, 3, 5]]
+    
+        .. SEEALSO::
+
+            * :meth:`~cycle_basis`
+            * :wikipedia:`cycle_basis`
         """
         if not self.order():
             return []
         # Sanity checks
         if self.is_directed():
             raise NotImplementedError("not implemented for directed graphs")
-
         if self.has_multiple_edges():
             raise NotImplementedError("not implemented for multigraphs")
         
@@ -4661,13 +4680,15 @@ class GenericGraph(GenericGraph_pyx):
             w_f = lambda e: 1
             basis = []
             for comp in self.connected_components_subgraphs():
-                # just need the edges of any spanning tree
+                # We just need the edges of any spanning tree
                 sp_edges = comp.min_spanning_tree(weight_function=w_f)
                 edges_s = [(a, b) for a, b, c in sp_edges]
-                # compliment of the edges of the spanning tree with respect to edges in self
+                # compliment of the edges of the spanning tree with respect to self
                 edges_c = [frozenset(e) for e in comp.edges(labels=False) if e not in edges_s]
                 basis.append(comp._backend.min_cycle_basis(weight_function=weight_function, by_weight=by_weight, edges_complement=edges_c))
             return sum(basis, [])
+        else:
+
     ### Planarity
 
     def is_planar(self, on_embedding=None, kuratowski=False, set_embedding=False, set_pos=False):

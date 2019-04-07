@@ -2414,6 +2414,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef int n
         cdef int l
         cdef list min_path_nodes
+        cdef list min_path
         cdef dict all_pair_shortest_pathlens
         cdef dict cross_paths_lens
         cdef dict nodes_idx
@@ -2422,7 +2423,6 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef list edgelist = list(self.iterator_unsorted_edges(list(self.iterator_verts(None)), True))
         from sage.graphs.graph import Graph
         l = len(edges_complement)
-
         cdef list orth_set = [set([e]) for e in edges_complement]
         nodes_idx = {node: idx for idx, node in enumerate(self.iterator_verts(None))}
         idx_nodes = {idx: node for node, idx in nodes_idx.items()}

@@ -141,8 +141,27 @@ class DES(SageObject):
         r"""
         Return the plaintext corresponding to the ciphertext ``C``,
         using DES decryption with key ``K``.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.des import DES
+            sage: des = DES()
+            sage: K = 0x7CA110454A1A6E57
+            sage: P = 0x01A1D6D039776742
+            sage: C = 0x690F5B0D9A26939B
+            sage: des.decrypt(C, K) == P
+            True
         """
-        raise NotImplementedError
+        state, inputType = _convert_to_vector(C, 64)
+        K, _ = _convert_to_vector(K, 64)
+        roundKeys = self._keySchedule(K)
+        state = self._ip(state)
+        L, R = state[0:32], state[32:64]
+        for k in roundKeys[:self._rounds][::-1]:
+            L, R = R, L + self._f(R, k)
+        state = vector(GF(2), 64, list(R)+list(L))
+        state = self._inv_ip(state)
+        return state if inputType == 'vector' else ZZ(list(state)[::-1], 2)
 
     def _ip(self, B):
         r"""

@@ -9449,7 +9449,7 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``alpha`` -- float (default: ``0.85``); Damping parameter for
+        - ``alpha`` -- float (default: ``0.85``); damping parameter for
           PageRank.
 
         - ``personalization`` -- dict (default: ``None``); The "personalization
@@ -9564,7 +9564,7 @@ class GenericGraph(GenericGraph_pyx):
              5: 0.1700057609707141,
              6: 0.05390084497706962}
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             * :wikipedia:`PageRank`
 
@@ -9587,7 +9587,7 @@ class GenericGraph(GenericGraph_pyx):
 
         if algorithm:
             algorithm = algorithm.lower()
-        elif self.order <= 60:
+        elif self.order() <= 60:
             algorithm = 'numpy'
         else:
             algorithm = 'scipy'
@@ -9621,14 +9621,12 @@ class GenericGraph(GenericGraph_pyx):
             if by_weight:
                 I = self.igraph_graph(edge_attrs={'weight': [weight_function(e)
                                                   for e in self.edge_iterator()]})
-                page_rank = I.pagerank(damping=alpha, weights='weight')
-                return {v: page_rank[i] for i, v in enumerate(self.vertices())}
             else:
                 I = self.igraph_graph()
-                page_rank = I.pagerank(damping=alpha)
-                return {v: page_rank[i] for i, v in enumerate(self.vertices())}
+            page_rank = I.pagerank(damping=alpha, weights=weight)
+            return {v: page_rank[i] for i, v in enumerate(self)}
         else:
-            raise NotImplementedError("Only 'NetworkX', 'Numpy', 'Scipy', and 'igraph' are supported")
+            raise NotImplementedError("only 'NetworkX', 'Numpy', 'Scipy', and 'igraph' are supported")
 
     ### Vertex handlers
 

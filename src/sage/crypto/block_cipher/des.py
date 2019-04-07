@@ -98,8 +98,16 @@ class DES(SageObject):
     def __repr__(self):
         r"""
         A string representation of this DES.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.des import DES
+            sage: DES() # indirect doctest
+            DES block cipher with 16 rounds and the following key schedule:
+            Original DES key schedule with 16 rounds
         """
-        raise NotImplementedError
+        return('DES block cipher with %s rounds and the following key '
+               'schedule:\n%s' % (self._rounds, self._keySchedule.__repr__()))
 
     def encrypt(self, P, K):
         r"""
@@ -363,8 +371,8 @@ class DES_KS(SageObject):
         for i in range(16):
             C, D = self._left_shift(C, i), self._left_shift(D, i)
             roundKeys.append(self._pc2(list(C)+list(D)))
-        return roundKeys if inputType == 'vector' else [ZZ(list(k)[::-1], 2) for k in
-                                                        roundKeys]
+        return roundKeys if inputType == 'vector' else [ZZ(list(k)[::-1], 2)
+                                                        for k in roundKeys]
 
     def __eq__(self, other):
         r"""
@@ -385,10 +393,9 @@ class DES_KS(SageObject):
 
             sage: from sage.crypto.block_cipher.des import DES_KS
             sage: DES_KS() # indirect doctest
-            Original DES key schedule with 56-bit keys and 16 rounds
+            Original DES key schedule with 16 rounds
         """
-        return ('Original DES key schedule with %s-bit keys and %s rounds'
-                % (self._keysize, self._rounds))
+        return ('Original DES key schedule with %s rounds' % (self._rounds))
 
     def __getitem__(self, r):
         r"""

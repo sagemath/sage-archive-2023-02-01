@@ -20,6 +20,7 @@ AUTHORS:
 from __future__ import print_function
 from six.moves import range
 
+import os
 from copy import copy
 from sage.misc.all import cached_function
 from sage.misc.flatten import flatten
@@ -1221,7 +1222,7 @@ def _connected_mutation_type_AAtildeD(dg, ret_conn_vert=False):
 
 
 @cached_function
-def load_data(n):
+def load_data(n, user=True):
     r"""
     Load a dict with keys being tuples representing exceptional
     QuiverMutationTypes, and with values being lists or sets
@@ -1229,8 +1230,13 @@ def load_data(n):
 
     We check
 
-    - if the data is stored by the user, and if this is not the case
-    - if the data is stored by the optional package install.
+    - the data stored by the user (unless ``user=False`` was given)
+    - and the data installed by the optional package ``database_mutation_class``.
+
+    INPUT:
+
+    - ``user`` -- boolean (default: ``True``) whether to look at user
+      data. If not, only consider the optional package.
 
     EXAMPLES::
 
@@ -1242,19 +1248,10 @@ def load_data(n):
 
     We test data from the ``database_mutation_class`` optional package::
 
-        sage: def test_database(n):
-        ....:     import os.path
-        ....:     from six.moves import cPickle
-        ....:     from sage.env import SAGE_SHARE
-        ....:     relative_filename = 'cluster_algebra_quiver/mutation_classes_%s.dig6'%n
-        ....:     filename = os.path.join(SAGE_SHARE, relative_filename)
-        ....:     f = open(filename,'r')
-        ....:     data = cPickle.load(f)
-        ....:     f.close()
-        ....:     return data
-        sage: test_database(2) # optional - database_mutation_class
+        sage: load_data(2, user=False)      # optional - database_mutation_class
         {('G', 2): [('AO', (((0, 1), (1, -3)),)), ('AO', (((0, 1), (3, -1)),))]}
-        sage: sorted(test_database(3).items()) # optional - database_mutation_class
+        sage: D = load_data(3, user=False)  # optional - database_mutation_class
+        sage: sorted(D.items())             # optional - database_mutation_class
         [(('G', 2, -1),
           [('BH?', (((1, 2), (1, -3)),)),
            ('BGO', (((2, 1), (3, -1)),)),
@@ -1270,21 +1267,27 @@ def load_data(n):
            ('BKO', (((1, 0), (3, -1)), ((2, 1), (1, -3)))),
            ('BP_', (((0, 1), (2, -2)), ((1, 2), (1, -3)), ((2, 0), (3, -1))))])]
     """
-    import os.path
     from six.moves import cPickle
     from sage.env import DOT_SAGE, SAGE_SHARE
-    relative_filename = 'cluster_algebra_quiver/mutation_classes_%s.dig6'%n
-    getfilename = lambda path: os.path.join(path,relative_filename)
+
     # we check
     # - if the data is stored by the user, and if this is not the case
     # - if the data is stored by the optional package install
-    data_dict = dict()
-    for filename in [getfilename(DOT_SAGE),getfilename(SAGE_SHARE)]:
-        if os.path.isfile(filename):
+    paths = [SAGE_SHARE]
+    if user:
+        paths.append(DOT_SAGE)
+    data = {}
+    for path in paths:
+        filename = os.path.join(path, 'cluster_algebra_quiver', 'mutation_classes_%s.dig6'%n)
+        try:
             with open(filename, 'rb') as fobj:
                 data_new = cPickle.load(fobj)
-            data_dict.update(data_new)
-    return data_dict
+        except Exception:
+            # File does not exist, corrupt pickle, wrong Python version...
+            pass
+        else:
+            data.update(data_new)
+    return data
 
 
 def _mutation_type_from_data( n, dig6, compute_if_necessary=True ):

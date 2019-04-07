@@ -80,6 +80,7 @@ AUTHORS:
 from .infinity import infinity
 
 from sage.structure.element import Element
+from sage.structure.richcmp import op_EQ, op_NE
 
 from sage.arith.power import generic_power
 
@@ -145,38 +146,52 @@ class LazyLaurentSeries(Element):
 
         self._cache = dict() # cache of known coefficients
 
-    def __eq__(self, other):
+    def _richcmp_(self, other, op):
         """
-        Return ``True`` if this series is known to be equal to ``other``.
+        Compare ``self` with ``other`` with respect to the comparison operator ``op``.
 
-        EXAMPLES::
+        Inequality is not defined for lazy Laurent series.
+
+        TESTS::
 
             sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
-            sage: L = LazyLaurentSeriesRing(GF(2), 'z')
+            sage: L = LazyLaurentSeriesRing(QQ, 'z')
             sage: z = L.gen()
-            sage: z == z^2 + z - z^2
+            sage: z + z^2 == z^2 + z
             True
+            sage: z + z^2 != z^2 + z
+            False
+            sage: z + z^2 > z^2 + z
+            False
+            sage: z + z^2 < z^2 + z
+            False
         """
-        other = self.parent()(other)
+        if op is op_EQ:
+            other = self.parent()(other)
 
-        n = self._approximate_valuation
+            n = self._approximate_valuation
 
-        if self._constant is None or other._constant is None:
-            raise ValueError("undecidable as lazy Laurent series")
+            if self._constant is None or other._constant is None:
+                raise ValueError("undecidable as lazy Laurent series")
 
-        sc, sm = self._constant
-        oc, om = other._constant
+            sc, sm = self._constant
+            oc, om = other._constant
 
-        if sc != oc:
-            return False
-
-        m = max(sm, om)
-
-        for i in range(n, m):
-            if self.coefficient(i) != other.coefficient(i):
+            if sc != oc:
                 return False
 
-        return True
+            m = max(sm, om)
+
+            for i in range(n, m):
+                if self.coefficient(i) != other.coefficient(i):
+                    return False
+
+            return True
+
+        if op is op_NE:
+            return not (self == other)
+
+        return False
 
     def __bool__(self):
         """

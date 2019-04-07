@@ -4598,7 +4598,7 @@ class GenericGraph(GenericGraph_pyx):
                     for u in zip(x, x[1:] + [x[0]])]
         return [vertices_to_edges(_) for _ in cycle_basis_v]
 
-    def minimum_cycle_basis(self, weight_function=None, by_weight=False, algorithm="None"):
+    def minimum_cycle_basis(self, weight_function=None, by_weight=False, algorithm=None):
         r"""
         Return a minimum weight cycle basis of the graph.
 
@@ -4628,28 +4628,29 @@ class GenericGraph(GenericGraph_pyx):
         
         EXAMPLES::
 
-        sage: g = Graph([(1, 2, 3), (2, 3, 5), (3, 4, 8), (4, 1, 13), (1, 3, 250), (5, 6, 9), (6, 7, 17), (7, 5, 20)])
-        sage: g.minimum_cycle_basis(by_weight=True)
-        [[1, 2, 3, 4], [1, 2, 3], [5, 6, 7]]
-        sage: g.minimum_cycle_basis()
-        [[1, 2, 3], [1, 3, 4], [5, 6, 7]]
-        sage: g.minimum_cycle_basis(by_weight=True, algorithm="NetworkX")
-        [[1, 2, 3, 4], [1, 2, 3], [5, 6, 7]]
-        sage: g.minimum_cycle_basis(by_weight=False, algorithm="NetworkX")
-        [[1, 2, 3], [1, 3, 4], [5, 6, 7]]
+            sage: g = Graph([(1, 2, 3), (2, 3, 5), (3, 4, 8), (4, 1, 13), (1, 3, 250), (5, 6, 9), (6, 7, 17), (7, 5, 20)])
+            sage: g.minimum_cycle_basis(by_weight=True)
+            [[1, 2, 3, 4], [1, 2, 3], [5, 6, 7]]
+            sage: g.minimum_cycle_basis()
+            [[1, 2, 3], [1, 3, 4], [5, 6, 7]]
+            sage: g.minimum_cycle_basis(by_weight=True, algorithm="NetworkX")
+            DeprecationWarning: connected_component_subgraphs is deprecated and will be removedin 2.2. Use (G.subgraph(c).copy() for c in connected_components(G))
+            [[1, 2, 3, 4], [1, 2, 3], [5, 6, 7]]
+            sage: g.minimum_cycle_basis(by_weight=False, algorithm="NetworkX")
+            [[1, 2, 3], [1, 3, 4], [5, 6, 7]]
 
         ::
 
-        sage: g = Graph([(1, 2), (2, 3), (3, 4), (4, 5), (5, 1), (5, 3)])
-        sage: g.minimum_cycle_basis(by_weight=False, algorithm="NetworkX")
-        [[3, 4, 5], [1, 2, 3, 5]]
-        sage: g.minimum_cycle_basis(by_weight=False)
-        [[3, 4, 5], [1, 2, 3, 5]]
+            sage: g = Graph([(1, 2), (2, 3), (3, 4), (4, 5), (5, 1), (5, 3)])
+            sage: g.minimum_cycle_basis(by_weight=False, algorithm="NetworkX")
+            [[3, 4, 5], [1, 2, 3, 5]]
+            sage: g.minimum_cycle_basis(by_weight=False)
+            [[3, 4, 5], [1, 2, 3, 5]]
     
         .. SEEALSO::
 
             * :meth:`~cycle_basis`
-            * :wikipedia:`cycle_basis`
+            * :wikipedia:`Cycle_basis`
         """
         if not self.order():
             return []
@@ -4675,20 +4676,24 @@ class GenericGraph(GenericGraph_pyx):
             import networkx
             G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
             return networkx.minimum_cycle_basis(G, weight='weight')
-        else:
+        elif algorithm == None:
             from sage.graphs.base.boost_graph import min_spanning_tree
             w_f = lambda e: 1
             basis = []
             for comp in self.connected_components_subgraphs():
-                # We just need the edges of any spanning tree
+                # We just need the edges of any spanning tree here not
+                # necessarily a minimum spanning tree.
                 sp_edges = comp.min_spanning_tree(weight_function=w_f)
                 edges_s = [(a, b) for a, b, c in sp_edges]
-                # compliment of the edges of the spanning tree with respect to self
+                # compliment of the edges of the spanning tree with respect
+                # to self
                 edges_c = [frozenset(e) for e in comp.edges(labels=False) if e not in edges_s]
-                basis.append(comp._backend.min_cycle_basis(weight_function=weight_function, by_weight=by_weight, edges_complement=edges_c))
+                # calling Cython implementation from backend
+                basis.append(comp._backend.min_cycle_basis(weight_function=weight_function,
+                             by_weight=by_weight, edges_complement=edges_c))
             return sum(basis, [])
         else:
-
+            raise NotImplementedError("only 'NetworkX' and Cython implementation is supported")
     ### Planarity
 
     def is_planar(self, on_embedding=None, kuratowski=False, set_embedding=False, set_pos=False):

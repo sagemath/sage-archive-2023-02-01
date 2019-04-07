@@ -1,23 +1,23 @@
 r"""
 Modules
 """
-from __future__ import absolute_import
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
 #                2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
 #                2008-2011 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
+from __future__ import absolute_import
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.homsets import HomsetsCategory
-from .category import Category, JoinCategory
-from .category_types import Category_module, Category_over_base_ring
+from .category import Category
+from .category_types import Category_module
 from sage.categories.tensor import TensorProductsCategory, tensor
 from .dual import DualObjectsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
@@ -25,6 +25,7 @@ from sage.categories.sets_cat import Sets
 from sage.categories.bimodules import Bimodules
 from sage.categories.fields import Fields
 _Fields = Fields()
+
 
 class Modules(Category_module):
     r"""

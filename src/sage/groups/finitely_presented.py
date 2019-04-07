@@ -125,7 +125,7 @@ AUTHOR:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.groups.group import Group
@@ -139,10 +139,8 @@ from sage.rings.integer_ring import IntegerRing
 from sage.misc.cachefunc import cached_method
 from sage.groups.free_group import FreeGroupElement
 
-from sage.structure.element import Element, MultiplicativeGroupElement
+from sage.structure.element import MultiplicativeGroupElement
 from sage.interfaces.gap import gap
-from sage.rings.integer import Integer
-from sage.rings.integer_ring import IntegerRing
 from sage.functions.generalized import sign
 from sage.matrix.constructor import matrix
 from sage.categories.morphism import SetMorphism
@@ -1475,7 +1473,6 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         Uses libgap's GQuotients function.
         """
         from sage.misc.misc_c import prod
-        from sage.functions.generalized import sign
         HomSpace = self.Hom(H)
         Gg = libgap(self)
         Hg = libgap(H)

@@ -77,7 +77,7 @@ from sage.matrix.constructor import matrix
 from ppl import (
     C_Polyhedron, Linear_Expression, Variable,
     point, ray, line, Generator, Generator_System,
-    Constraint_System, Poly_Con_Relation )
+    Poly_Con_Relation )
 
 
 ########################################################################
@@ -996,7 +996,6 @@ class LatticePolytope_PPL_class(C_Polyhedron):
                 restricted_automorphism_group(vertex_labels=vertex_labels)
         if vertex_labels is None:
             vertex_labels = self.vertices()
-        from sage.groups.perm_gps.permgroup import PermutationGroup
         from sage.graphs.graph import Graph
         # good coordinates for the vertices
         v_list = []
@@ -1008,7 +1007,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
         # Finally, construct the graph
         Qinv = sum( v.column() * v.row() for v in v_list ).inverse()
         G = Graph()
-        for i in range(0,len(v_list)):
+        for i in range(len(v_list)):
             for j in range(i+1,len(v_list)):
                 v_i = v_list[i]
                 v_j = v_list[j]
@@ -1170,8 +1169,6 @@ class LatticePolytope_PPL_class(C_Polyhedron):
                 return (ambient, p, p.find_isomorphism(self))
             except LatticePolytopesNotIsomorphicError:
                 pass
-        from sage.geometry.polyhedron.lattice_euclidean_group_element import \
-            LatticePolytopeNoEmbeddingError
         raise LatticePolytopeNoEmbeddingError('not a sub-polytope of a reflexive polygon')
 
     def embed_in_reflexive_polytope(self, output='hom'):

@@ -20,15 +20,15 @@ AUTHORS:
 #       Copyright (C) 2008 Franco Saliola <saliola@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp, richcmp_method
-from sage.interfaces.gap import gap, GapElement
+from sage.interfaces.gap import gap
 from sage.rings.all import Integer
 from sage.rings.all import CyclotomicField
-from sage.libs.gap.element import GapElement, GapElement_List
+from sage.libs.gap.element import GapElement
 
 # TODO:
 #
@@ -118,7 +118,6 @@ class ClassFunction_gap(SageObject):
             self._gap_classfunction = gap.ClassFunction(G, list(values))
         e = self._gap_classfunction.Conductor()
         self._base_ring = CyclotomicField(e)
-
 
     def _gap_init_(self):
         r"""

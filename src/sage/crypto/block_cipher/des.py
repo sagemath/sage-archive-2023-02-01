@@ -110,10 +110,20 @@ class DES(SageObject):
 
             sage: from sage.crypto.block_cipher.des import DES
             sage: des = DES()
-            sage: K = vector(GF(2), ZZ(0x133457799BBCDFF1).digits(2, padto=64)[::-1])
-            sage: P = vector(GF(2), ZZ(0x0123456789ABCDEF).digits(2, padto=64)[::-1])
-            sage: C = vector(GF(2), ZZ(0x85E813540F0AB405).digits(2, padto=64)[::-1])
+            sage: K = 0x133457799BBCDFF1
+            sage: P = 0x0123456789ABCDEF
+            sage: C = 0x85E813540F0AB405
             sage: des.encrypt(P, K) == C
+            True
+            sage: K = 0x0101010101010101
+            sage: P = 0x95F8A5E5DD31D900
+            sage: C = 0x8000000000000000
+            sage: des.encrypt(P, K) == C
+            True
+            sage: K = ZZ(0x133457799BBCDFF1).digits(2, padto=64)[::-1]
+            sage: P = ZZ(0x0123456789ABCDEF).digits(2, padto=64)[::-1]
+            sage: C = ZZ(0x85E813540F0AB405).digits(2, padto=64)[::-1]
+            sage: des.encrypt(P, K) == vector(GF(2), C)
             True
         """
         state, inputType = _convert_to_vector(P, 64)
@@ -125,7 +135,7 @@ class DES(SageObject):
             L, R = R, L + self._f(R, k)
         state = vector(GF(2), 64, list(R)+list(L))
         state = self._inv_ip(state)
-        return state if inputType == 'vector' else ZZ(list(state), 2)
+        return state if inputType == 'vector' else ZZ(list(state)[::-1], 2)
 
     def decrypt(self, C, K):
         r"""
@@ -307,13 +317,13 @@ class DES_KS(SageObject):
              (0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1),
              ...
              (1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1)]
-            sage: K = 0x1feded93da9648
+            sage: K = 0x133457799bbcdff1
             sage: ks = DES_KS(master_key=K)
             sage: [k.hex() for k in ks]
-            ['4e0e3ff740d8',
-             'a793db9b759e',
+            ['1b02effc7072',
+             '79aed9dbc9e5',
              ...
-             'afe870d1bcd3']
+             'cb3d8b0e17f5']
 
         .. NOTE::
 
@@ -334,7 +344,7 @@ class DES_KS(SageObject):
         for i in range(16):
             C, D = self._left_shift(C, i), self._left_shift(D, i)
             roundKeys.append(self._pc2(list(C)+list(D)))
-        return roundKeys if inputType == 'vector' else [ZZ(list(k), 2) for k in
+        return roundKeys if inputType == 'vector' else [ZZ(list(k)[::-1], 2) for k in
                                                         roundKeys]
 
     def __eq__(self, other):
@@ -476,13 +486,13 @@ def _convert_to_vector(I, L):
 
         sage: from sage.crypto.block_cipher.des import _convert_to_vector
         sage: _convert_to_vector(0x1F, 8)
-        ((1, 1, 1, 1, 1, 0, 0, 0), 'integer')
+        ((0, 0, 0, 1, 1, 1, 1, 1), 'integer')
         sage: v = vector(GF(2), 4, [1,0,1,0])
         sage: _convert_to_vector(v, 4)
         ((1, 0, 1, 0), 'vector')
     """
     try:
-        state = vector(GF(2), L, ZZ(I).digits(2, padto=L))
+        state = vector(GF(2), L, ZZ(I).digits(2, padto=L)[::-1])
         return state, 'integer'
     except TypeError:
         # ignore the error and try list-like types

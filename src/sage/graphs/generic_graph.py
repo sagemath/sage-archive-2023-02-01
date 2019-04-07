@@ -9450,9 +9450,12 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         - ``alpha`` -- float (default: ``0.85``); damping parameter for
-          PageRank.
+          PageRank. ``alpha`` is the click-through probability useful for
+          preventing sinks. The probability at any step, that an imaginary
+          surfer who is randomly clicking on links will continue is a damping
+          factor d.
 
-        - ``personalization`` -- dict (default: ``None``); The "personalization
+        - ``personalization`` -- dict (default: ``None``); the "personalization
           vector" consisting of a dictionary with a key for every graph node
           and nonzero personalization value for each node.
           By default, a uniform distribution is used.
@@ -9470,7 +9473,7 @@ class GenericGraph(GenericGraph_pyx):
           and ``by_weight`` is ``True``, we use the edge label ``l`` as a
           weight.
 
-        - ``dangling`` -- dict (default: ``None``); The outedges to be assigned
+        - ``dangling`` -- dict (default: ``None``); the outedges to be assigned
           to any "dangling" vertices, i.e., vertices without any outedges. The
           dict key is the node the outedge points to and the dict value is the
           weight of that outedge. By default, dangling vertices are given
@@ -9550,19 +9553,19 @@ class GenericGraph(GenericGraph_pyx):
              5: 0.17775603392041744,
              6: 0.10054631441617742}
             sage: G.pagerank()
-            {1: 0.16112205885619563,
-             2: 0.1619531043247219,
-             3: 0.16112205885619563,
-             4: 0.2374999999999999,
-             5: 0.17775588228760858,
-             6: 0.100546895675278}
+            {1: 0.16112198303979114,
+             2: 0.16195368558382248,
+             3: 0.16112198303979122,
+             4: 0.2375000000000002,
+             5: 0.17775603392041756,
+             6: 0.10054631441617742}
             sage: G.pagerank(by_weight=True)
-            {1: 0.16459583718588994,
-             2: 0.13977928595154515,
-             3: 0.16539840184339605,
-             4: 0.3063198690713853,
-             5: 0.1700057609707141,
-             6: 0.05390084497706962}
+            {1: 0.16459613361799788,
+             2: 0.13977926864974763,
+             3: 0.1653988472578896,
+             4: 0.3063198780991534,
+             5: 0.17000501912411242,
+             6: 0.053900853251099105}
 
         .. SEEALSO::
 

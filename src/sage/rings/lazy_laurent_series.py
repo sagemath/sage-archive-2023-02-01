@@ -713,6 +713,64 @@ class LazyLaurentSeriesOperator_constant(LazyLaurentSeriesOperator):
         return (isinstance(other, LazyLaurentSeriesOperator_constant)
                 and self._ring == other._ring and self._constant == other._constant)
 
+class LazyLaurentSeriesOperator_list(LazyLaurentSeriesOperator):
+    """
+    Operator for the series defined by a list.
+
+    INPUT:
+
+    - ``l`` -- list
+
+    - ``v`` -- integer
+
+    """
+    def __init__(self, ring, l, v):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: f = L.series([1,2,3,4], -5)
+            sage: loads(dumps(f)) == f
+            True
+        """
+        self._ring = ring
+        self._list = l
+        self._valuation = v
+
+    def __call__(self, s, n):
+        """
+        Return the `n`-th coefficient of the series ``s``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: f = L.series([1,2,3,4], -5)
+            sage: f
+            z^-5 + 2*z^-4 + 3*z^-3 + 4*z^-2
+        """
+        return self._ring.base_ring()(self._list[n - self._valuation])
+
+    def __eq__(self, other):
+        """
+        Test equality.
+
+        TESTS::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: f1 = L.series([1,2,3,4], -5)
+            sage: f2 = L.series([1,2,3,4,0], -5)
+            sage: f1 == f2
+            True
+        """
+        return (isinstance(other, LazyLaurentSeriesOperator_list) and
+                self._ring == other._ring and self._list == other._list and
+                self._valuation == other._valuation)
+
 
 class LazyLaurentSeries(Element):
     r"""

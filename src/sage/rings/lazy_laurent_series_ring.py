@@ -66,7 +66,8 @@ from sage.misc.cachefunc import cached_method
 
 from .lazy_laurent_series import (LazyLaurentSeries,
                                   LazyLaurentSeriesOperator_gen,
-                                  LazyLaurentSeriesOperator_constant)
+                                  LazyLaurentSeriesOperator_constant,
+                                  LazyLaurentSeriesOperator_list)
 
 
 class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
@@ -227,12 +228,12 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         Python function ``coefficient`` returns the value of the coefficient of
         index `i` from input `s` and `i` where `s` is the series itself.
 
-        Let ``valuation`` be `n`. All coefficients of index below `n` are zero.  If
-        ``constant`` is ``None``, then the ``coefficient`` function is responsible
-        to compute the values of all coefficients of index `\ge n`. If ``constant``
-        is a pair `(c,m)`, then the ``coefficient`` function is responsible to
-        compute the values of all coefficients of index `\ge n` and `< m` and all
-        the coefficients of index `\ge m` is the constant `c`.
+        Let ``valuation`` be `n`. All coefficients of index below `n` are zero.
+        If ``constant`` is ``None``, then the ``coefficient`` function is responsible to
+        compute the values of all coefficients of index `\ge n`. If
+        ``constant`` is a pair `(c,m)`, then the ``coefficient`` function is responsible
+        to compute the values of all coefficients of index `\ge n` and `< m`
+        and all the coefficients of index `\ge m` is the constant `c`.
 
         EXAMPLES::
 
@@ -257,11 +258,37 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             9
             sage: f.coefficient(30)
             -219
+
+        Alternatively, the ``coefficient`` can be a list of elements of the
+        base ring. Then these elements are read as coefficients of the terms of
+        degrees starting from the ``valuation``. In this case, ``constant``
+        may be just an element of the base ring instead of a tuple or can be
+        simply omitted if it is zero.
+
+        EXAMPLES::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: f = L.series([1,2,3,4], -5)
+            sage: f
+            z^-5 + 2*z^-4 + 3*z^-3 + 4*z^-2
+            sage: g = L.series([1,3,5,7,9], 5, -1)
+            sage: g
+            z^5 + 3*z^6 + 5*z^7 + 7*z^8 + 9*z^9 - z^10 - z^11 - z^12 + ...
         """
-        if constant is not None:
+        if isinstance(coefficient, (tuple, list)):
+            if isinstance(constant, tuple):
+                constant = constant[0]
+            if constant is None:
+                constant = self.base_ring().zero()
+            elif constant not in self.base_ring():
+                raise ValueError("constant is not an element of the base ring")
+            constant = (constant, valuation + len(coefficient))
+            coefficient = LazyLaurentSeriesOperator_list(self, coefficient, valuation)
+        elif constant is not None:
             try:
                 c,m = constant
-            except:
+            except TypeError:
                 raise TypeError('not a tuple')
 
             if valuation > m and c: # weird case

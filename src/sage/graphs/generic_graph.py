@@ -149,7 +149,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.szeged_index` | Return the Szeged index of the graph.
     :meth:`~GenericGraph.katz_centrality` | Return the katz centrality of the vertex u of the graph.
     :meth:`~GenericGraph.katz_matrix` | Return the katz matrix of the graph.
-    :meth:`~GenericGraph.pagerank` | Return the PageRank of the nodes in the graph.
+    :meth:`~GenericGraph.pagerank` | Return the PageRank of the vertices of ``self``.
 
 **Automorphism group:**
 
@@ -9439,7 +9439,7 @@ class GenericGraph(GenericGraph_pyx):
     def pagerank(self, alpha=0.85, personalization=None, by_weight=False,
                  weight_function=None, dangling=None, algorithm=None):
         r"""
-        Return the PageRank of the vertices in the graph.
+        Return the PageRank of the vertices of ``self``.
 
         PageRank is a centrality measure earlier used to rank web pages.
         The PageRank algorithm outputs the probability distribution that
@@ -9455,17 +9455,15 @@ class GenericGraph(GenericGraph_pyx):
           surfer who is randomly clicking on links will continue is a damping
           factor d.
 
-        - ``personalization`` -- dict (default: ``None``); the "personalization
-          vector" consisting of a dictionary with a key for every graph node
-          and nonzero personalization value for each node.
-          By default, a uniform distribution is used.
+        - ``personalization`` -- dict (default: ``None``); a dictionary keyed
+          by vertices associating to each vertex a value. The personalization
+          can be specified for a subset of the vertices, if not specified a
+          nodes personalization value will be taken as zero. The sum of the
+          values must be nonzero.
+          By default (``None``), a uniform distribution is used.
 
         - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
           in the graph are weighted, otherwise all edges have weight 1
-
-        - ``value_only`` -- boolean (default: ``False``); whether to only
-          return the cardinality of the computed dominating set, or to return
-          its list of vertices (default)
 
         - ``weight_function`` -- function (default: ``None``); a function that
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
@@ -9473,20 +9471,20 @@ class GenericGraph(GenericGraph_pyx):
           and ``by_weight`` is ``True``, we use the edge label ``l`` as a
           weight.
 
-        - ``dangling`` -- dict (default: ``None``); the outedges to be assigned
-          to any "dangling" vertices, i.e., vertices without any outedges. The
-          dict key is the node the outedge points to and the dict value is the
-          weight of that outedge. By default, dangling vertices are given
-          outedges according to the personalization vector (uniform if not
-          specified). This must be selected to result in an irreducible
-          transition matrix. It may be common to have the dangling dict to be
-          the same as the personalization dict.
+        - ``dangling`` -- dict (default: ``None``); a dictionary keyed by a
+          vertex the outedge of "dangling" vertices, (i.e., vertices without
+          any outedges) points to and the dict value is the weight of that
+          outedge. By default, dangling vertices are given outedges according
+          to the personalization vector (uniform if not specified). It may be
+          common to have the dangling dict to be the same as the personalization
+          dict.
 
         - ``algorithm`` -- string (default: ``None``); the algorithm to use in
            computing PageRank of ``G``. The following algorithms are
            supported:
 
           - ``NetworkX`` -- uses NetworkX's PageRank algorithm implementation
+            Note that ``'networkx'`` does not support multigraphs.
 
           - ``"Numpy"`` -- uses Numpy's PageRank algorithm implementation
 
@@ -9496,12 +9494,22 @@ class GenericGraph(GenericGraph_pyx):
 
           - ``"None"`` -- uses best implementation available
 
-          Note that ``'networkx'`` does not support multigraphs.
-
         OUTPUT: a dictionary containing the PageRank value of each node
+
+        .. NOTE::
+
+            Parameter ``alpha``, ``by_weight`` and ``weight_function`` is common
+            for all algorithms but ``personalization`` and ``dangling``
+            parameters are used only in ``NetworkX``, ``Numpy`` and ``Scipy``
+            implementations.
 
         EXAMPLES::
 
+            sage: G = graphs.CycleGraph(4)
+            sage: G.pagerank(algorithm="Networkx")
+            {0: 0.25, 1: 0.25, 2: 0.25, 3: 0.25}
+            sage: G.pagerank(alpha=0.50, algorithm="igraph")
+            {0: 0.25, 1: 0.25, 2: 0.24999999999999997, 3: 0.24999999999999997}
             sage: G = Graph([(1, 2, 40), (2, 3, 50), (3, 4, 60), (1, 4, 70), (4, 5, 80), (5, 6, 20)])
             sage: G.pagerank(algorithm="NetworkX")
             {1: 0.16112205885619568,
@@ -9567,6 +9575,14 @@ class GenericGraph(GenericGraph_pyx):
              5: 0.17000501912411242,
              6: 0.053900853251099105}
 
+        TESTS::
+
+            sage: G = Graph([(1, 2), (2, 3), (3, 4), (1, 3)])
+            sage: G.pagerank(algorithm="NetworkX", personalization={1:0, 2:3, 3:-2, 4:-1})
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: float division by zero
+
         .. SEEALSO::
 
             * :wikipedia:`PageRank`
@@ -9616,6 +9632,10 @@ class GenericGraph(GenericGraph_pyx):
                     personalization=personalization, weight=weight,
                     dangling=dangling)
         elif algorithm == 'igraph':
+            if personalization:
+                raise ValueError('personalization parameter is not used in igraph implementation')
+            if dangling:
+                raise ValueError('dangling parameter is not used in igraph implementation')
             try:
                 import igraph
             except ImportError:

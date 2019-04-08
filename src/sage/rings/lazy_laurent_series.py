@@ -912,9 +912,9 @@ class LazyLaurentSeries(Element):
                 if not atomic_repr and n > 0 and (x[1:].find('+') != -1 or x[1:].find('-') != -1):
                     x = '({})'.format(x)
                 if n > 1 or n < 0:
-                    var = '*%s^%s'%(X,n)
+                    var = '*{}^{}'.format(X,n)
                 elif n == 1:
-                    var = '*%s'%X
+                    var = '*{}'.format(X)
                 else:  # n == 0
                     var = ''
                 s += '{}{}'.format(x,var)

@@ -110,7 +110,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             sage: LazyLaurentSeriesRing(GF(2), 'z')
             Lazy Laurent Series Ring in z over Finite Field of size 2
         """
-        return "Lazy Laurent Series Ring in %s over %s"%(self.variable_name(), self.base_ring())
+        return "Lazy Laurent Series Ring in {} over {}".format(self.variable_name(), self.base_ring())
 
     @cached_method
     def gen(self, n=0):

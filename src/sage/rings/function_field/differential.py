@@ -430,6 +430,17 @@ class DifferentialsSpaceMorphism(Morphism):
         sage: mor = L.space_of_differentials().coerce_map_from(K.space_of_differentials())
         sage: isinstance(mor, sage.rings.function_field.differential.DifferentialsSpaceMorphism)
         True
+
+    TESTS::
+
+        sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+        sage: L.<y> = K.extension(y^2 - x*y + 5*x^3)
+        sage: mor2 = L.space_of_differentials().coerce_map_from(K.space_of_differentials())
+
+        sage: mor == mor2
+        False
+        sage: mor == mor
+        True
     """
 
     def _repr_(self):
@@ -477,45 +488,14 @@ class DifferentialsSpaceMorphism(Morphism):
         """
         return False
 
-    def _richcmp_(self, other, op):
-        r"""
-        Compare this morphism to ``other``.
-
-        .. NOTE::
-
-            This implementation assumes that this morphism is defined by its
-            domain and codomain.  Morphisms for which this is not true must
-            override this implementation.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
-            sage: f = L.space_of_differentials().coerce_map_from(K.space_of_differentials())
-
-            sage: K.<x> = FunctionField(QQbar); R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
-            sage: g = L.space_of_differentials().coerce_map_from(K.space_of_differentials())
-
-            sage: f == g
-            False
-            sage: f == f
-            True
-
-        """
-        if type(self) != type(other):
-            return NotImplemented
-
-        from sage.structure.richcmp import richcmp
-        return richcmp((self.domain(),self.codomain()), (other.domain(),other.codomain()), op)
-
     def __hash__(self):
         r"""
         Return a hash value of this morphism.
 
-        This implementation assumes that this morphism is defined by its
-        domain and codomain.  Morphisms for which this is not true should
-        override this implementation.
+        .. TODO::
+
+            Make FunctionFieldDifferential hashable, so we can drop this
+            method and use Morphism's default __hash__() method instead.
 
         EXAMPLES::
 

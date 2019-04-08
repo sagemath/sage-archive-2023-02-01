@@ -10151,7 +10151,7 @@ class GenericGraph(GenericGraph_pyx):
 
         if not self.has_vertex(vertex):
             raise ValueError('vertex (%s) not in the graph' % str(vertex))
-            
+
         self._assoc[vertex] = object
 
     def get_vertex(self, vertex):
@@ -23313,7 +23313,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         if alpha <= 0:
             raise ValueError('the parameter alpha must be strictly positive')
-        
+
         n = self.order()
         if n == 0 :
             raise ValueError('graph is empty')

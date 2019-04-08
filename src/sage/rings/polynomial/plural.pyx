@@ -2243,7 +2243,7 @@ cdef class NCPolynomial_plural(RingElement):
             -2*a^2*b^3 + 2*a^2*b^2*c
         """
         if self.is_zero():
-            return sum(0*i for i in im_gens)
+            return codomain.zero()
         from sage.misc.misc_c import prod
         d = self.dict()
         return sum(prod(im_gens[i]**t[i] for i in range(len(t)))*codomain(d[t]) for t in d)
@@ -3090,9 +3090,9 @@ def ExteriorAlgebra(base_ring, names,order='degrevlex'):
 
 cdef poly *addwithcarry(poly *tempvector, poly *maxvector, int pos, ring *_ring):
     if p_GetExp(tempvector, pos, _ring) < p_GetExp(maxvector, pos, _ring):
-      p_SetExp(tempvector, pos, p_GetExp(tempvector, pos, _ring)+1, _ring)
+        p_SetExp(tempvector, pos, p_GetExp(tempvector, pos, _ring)+1, _ring)
     else:
-      p_SetExp(tempvector, pos, 0, _ring)
-      tempvector = addwithcarry(tempvector, maxvector, pos + 1, _ring)
+        p_SetExp(tempvector, pos, 0, _ring)
+        tempvector = addwithcarry(tempvector, maxvector, pos + 1, _ring)
     p_Setm(tempvector, _ring)
     return tempvector

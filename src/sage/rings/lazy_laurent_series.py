@@ -780,7 +780,7 @@ class LazyLaurentSeries(Element):
             sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
             sage: L = LazyLaurentSeriesRing(GF(2), 'z')
             sage: z = L.gen()
-            sage: TestSuite(z).run(skip='_test_pickling')
+            sage: TestSuite(z).run()
         """
         Element.__init__(self, parent)
 

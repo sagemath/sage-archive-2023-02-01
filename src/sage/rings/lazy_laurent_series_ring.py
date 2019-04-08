@@ -95,7 +95,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
             sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
             sage: L = LazyLaurentSeriesRing(ZZ, 't')
-            sage: TestSuite(L).run(skip = ['_test_pickling', '_test_elements'])
+            sage: TestSuite(L).run(skip='_test_elements')
         """
         Parent.__init__(self, base=base_ring, names=names,
                         category=MagmasAndAdditiveMagmas().or_subcategory(category))

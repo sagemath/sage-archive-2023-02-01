@@ -27,7 +27,7 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
 from sage.categories.graded_algebras import GradedAlgebras
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.symbolic.ring import SR
+from sage.symbolic.ring import ZZ, SR
 from sage.rings.integer import Integer
 from sage.manifolds.differentiable.mixed_form import MixedForm
 
@@ -174,12 +174,14 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
         self._dest_map = dest_map
         self._vmodule = vector_field_module
         self._max_deg = vector_field_module._ambient_domain.dim()
+        # Register coercions:
+        self._populate_coercion_lists_()
 
     def _element_constructor_(self, comp=None, name=None, latex_name=None):
         r"""
         Construct a mixed form.
 
-        TESTS:
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U'); V = M.open_subset('V')
@@ -194,9 +196,9 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
         if comp is None:
             return self.element_class(self, comp, name, latex_name)
         # Treat one and zero separately for cache:
-        elif isinstance(comp, (int, Integer)) and comp == 0:
+        elif comp in ZZ and comp == 0:
             return self.zero()
-        elif isinstance(comp, (int, Integer)) and comp == 1:
+        elif comp in ZZ and comp == 1:
             return self.one()
         # Prepare list:
         if isinstance(comp, list):
@@ -217,15 +219,21 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
                 comp_list[deg] = comp
         # Use already existing coercions:
         comp_list = [self._domain.diff_form_module(j,
-                            self._dest_map).coerce(comp_list[j])
+                            self._dest_map)(comp_list[j])
                      for j in range(0, self._max_deg + 1)]
+        # Now, define names:
         try:
             if name is None and comp._name is not None:
                 name = comp._name
             if latex_name is None and comp._latex_name is not None:
                 latex_name = comp._latex_name
         except AttributeError:
-            pass
+            if comp in SR:
+                if name is None:
+                    name = repr(comp)
+                if latex_name is None:
+                    from sage.misc.latex import latex
+                    latex_name = latex(comp)
         return self.element_class(self, comp_list, name, latex_name)
 
     def _an_element_(self):
@@ -253,7 +261,7 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
         r"""
         Determine whether coercion to ``self`` exists from other parent.
 
-        TESTS:
+        TESTS::
 
             sage: M = Manifold(3, 'M')
             sage: A = M.mixed_form_algebra()
@@ -277,7 +285,7 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
             # coercion by domain restriction
             return self._domain.is_subset(
                 S._domain) and self._ambient_domain.is_subset(S._ambient_domain)
-        # Test scalar_field_algebra separately to ensure coercion from RR or CC:
+        # Test scalar_field_algebra separately to ensure coercion from SR:
         if self._domain.scalar_field_algebra().has_coerce_map_from(S):
             return True
         # This is tricky, we need to check the degree first:
@@ -295,13 +303,13 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
         r"""
         Return the zero of ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        sage: M = Manifold(3, 'M')
-        sage: A = M.mixed_form_algebra()
-        sage: A.zero()
-        Mixed differential form zero on the 3-dimensional differentiable
-         manifold M
+            sage: M = Manifold(3, 'M')
+            sage: A = M.mixed_form_algebra()
+            sage: A.zero()
+            Mixed differential form zero on the 3-dimensional differentiable
+             manifold M
 
         """
         dmap = self._dest_map
@@ -318,13 +326,13 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
         r"""
         Return the one of ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        sage: M = Manifold(3, 'M')
-        sage: A = M.mixed_form_algebra()
-        sage: A.one()
-        Mixed differential form one on the 3-dimensional differentiable
-         manifold M
+            sage: M = Manifold(3, 'M')
+            sage: A = M.mixed_form_algebra()
+            sage: A.one()
+            Mixed differential form one on the 3-dimensional differentiable
+             manifold M
 
         """
         dmap = self._dest_map
@@ -340,20 +348,20 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
         r"""
         Return the underlying vector field module.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        sage: M = Manifold(2, 'M')
-        sage: N = Manifold(3, 'N')
-        sage: Phi = M.diff_map(N, name='Phi'); Phi
-        Differentiable map Phi from the 2-dimensional differentiable manifold M
-         to the 3-dimensional differentiable manifold N
-        sage: A = M.mixed_form_algebra(Phi); A
-        Graded algebra Omega^*(M,Phi) of mixed differential forms along the
-         2-dimensional differentiable manifold M mapped into the 3-dimensional
-         differentiable manifold N via Phi
-        sage: A.vector_field_module()
-        Module X(M,Phi) of vector fields along the 2-dimensional differentiable
-         manifold M mapped into the 3-dimensional differentiable manifold N
+            sage: M = Manifold(2, 'M')
+            sage: N = Manifold(3, 'N')
+            sage: Phi = M.diff_map(N, name='Phi'); Phi
+            Differentiable map Phi from the 2-dimensional differentiable manifold M
+             to the 3-dimensional differentiable manifold N
+            sage: A = M.mixed_form_algebra(Phi); A
+            Graded algebra Omega^*(M,Phi) of mixed differential forms along the
+             2-dimensional differentiable manifold M mapped into the 3-dimensional
+             differentiable manifold N via Phi
+            sage: A.vector_field_module()
+            Module X(M,Phi) of vector fields along the 2-dimensional differentiable
+             manifold M mapped into the 3-dimensional differentiable manifold N
 
         """
         return self._vmodule
@@ -362,12 +370,12 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
         r"""
         Return a string representation of the object.
 
-        TESTS:
+        TESTS::
 
-        sage: M = Manifold(3, 'M')
-        sage: A = M.mixed_form_algebra(); A
-        Graded algebra Omega^*(M) of mixed differential forms on the
-         3-dimensional differentiable manifold M
+            sage: M = Manifold(3, 'M')
+            sage: A = M.mixed_form_algebra(); A
+            Graded algebra Omega^*(M) of mixed differential forms on the
+             3-dimensional differentiable manifold M
 
         """
         description = "Graded algebra " + self._name + \
@@ -388,14 +396,14 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
         r"""
         Return a LaTeX representation of the object.
 
-        TESTS:
+        TESTS::
 
-        sage: M = Manifold(3, 'M', latex_name=r'\mathcal{M}')
-        sage: A = M.mixed_form_algebra()
-        sage: A._latex_()
-        '\\Omega^*\\left(\\mathcal{M}\\right)'
-        sage: latex(A)  # indirect doctest
-        \Omega^*\left(\mathcal{M}\right)
+            sage: M = Manifold(3, 'M', latex_name=r'\mathcal{M}')
+            sage: A = M.mixed_form_algebra()
+            sage: A._latex_()
+            '\\Omega^*\\left(\\mathcal{M}\\right)'
+            sage: latex(A)  # indirect doctest
+            \Omega^*\left(\mathcal{M}\right)
 
         """
         return self._latex_name

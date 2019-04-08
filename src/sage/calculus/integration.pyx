@@ -219,11 +219,6 @@ def numerical_integral(func, a, b=None,
 
     ALGORITHM: Uses calls to the GSL (GNU Scientific Library) C library [GSL]_.
 
-    REFERENCES:
-
-    .. [GSL] GNU numerical integration.
-       https://www.gnu.org/software/gsl/manual/html_node/Numerical-Integration.html
-
     TESTS:
 
     Make sure that constant Expressions, not merely uncallable arguments,

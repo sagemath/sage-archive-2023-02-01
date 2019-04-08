@@ -2058,7 +2058,7 @@ def is_kernel_polynomial(E, m, f):
         return True
 
     # For each a in a set of generators of (Z/mZ)^* we check that the
-    # multiplcation-by-a map permutes the roots of f.  It would be
+    # multiplication-by-a map permutes the roots of f.  It would be
     # enough to take a generating (Z/mZ)^*/{1,-1} but that is not
     # implemented.  If m is prime (or more generally, has a primitive
     # root) then only one a will be needed.

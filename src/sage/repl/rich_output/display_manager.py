@@ -737,7 +737,7 @@ class DisplayManager(SageObject):
 
             sage: from sage.repl.rich_output import get_display_manager
             sage: get_display_manager().threejs_scripts(online=True)
-            '...<script src="https://cdn.rawgit.com/mrdoob/three.js/...'
+            '...<script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@...'
             sage: get_display_manager().threejs_scripts(online=False)
             Traceback (most recent call last):
             ...
@@ -748,8 +748,8 @@ class DisplayManager(SageObject):
             from sage.misc.package import installed_packages
             version = installed_packages()['threejs'].split('.')[0]
             return """
-<script src="https://cdn.rawgit.com/mrdoob/three.js/{0}/build/three.min.js"></script>
-<script src="https://cdn.rawgit.com/mrdoob/three.js/{0}/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@{0}/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@{0}/examples/js/controls/OrbitControls.js"></script>
             """.format(version)
         try:
             return self._backend.threejs_offline_scripts()

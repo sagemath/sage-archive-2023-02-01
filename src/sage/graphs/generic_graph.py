@@ -4005,7 +4005,8 @@ class GenericGraph(GenericGraph_pyx):
                           weight_function=None,
                           algorithm="Prim_Boost",
                           starting_vertex=None,
-                          check=False):
+                          check=False,
+                          by_weight=False):
         r"""
         Return the edges of a minimum spanning tree.
 
@@ -4019,22 +4020,15 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         - ``weight_function`` -- function (default: ``None``); a function that
-          takes as input an edge ``e`` and outputs its weight. An edge has the
-          form ``(u, v, l)``, where ``u`` and ``v`` are vertices, ``l`` is a
-          label (that can be of any kind). The ``weight_function`` can be used
-          to transform the label into a weight (note that, if the weight
-          returned is not convertible to a float, an error is raised). In
-          particular:
+          takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+          ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
+          weight. The ``weight_function`` can be used to transform the label
+          into a weight (note that, if the weight returned is not convertible
+          to a float, an error is raised)
 
-          - if ``weight_function`` is not ``None``, the weight of an edge ``e``
-            is ``weight_function(e)``;
-
-          - if ``weight_function`` is ``None`` (default) and ``g`` is weighted
-            (that is, ``g.weighted()==True``), for each edge ``e=(u,v,l)``, we
-            set weight ``l``;
-
-          - if ``weight_function`` is ``None`` and ``g`` is not weighted, we set
-            all weights to 1 (hence, the output can be any spanning tree).
+        - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
+          in the graph are weighted, otherwise all edges have weight 1
 
         - ``algorithm`` -- string (default: ``"Prim_Boost"``); the algorithm to
           use in computing a minimum spanning tree of ``G``. The following
@@ -4129,7 +4123,7 @@ class GenericGraph(GenericGraph_pyx):
             [(1, 2, 1), (1, 3, 2)]
 
         In order to use weights, we need either to set variable ``weighted`` to
-        ``True``, or to specify a weight function::
+        ``True``, or to specify a weight function or set by_weight to ``True``::
 
             sage: g.weighted(True)
             sage: sorted(g.min_spanning_tree())
@@ -4137,6 +4131,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.weighted(False)
             sage: sorted(g.min_spanning_tree())
             [(1, 2, 1), (1, 3, 2)]
+            sage: sorted(g.min_spanning_tree(by_weight=True))
+            [(1, 2, 1), (2, 3, 1)]
             sage: sorted(g.min_spanning_tree(weight_function=lambda e: e[2]))
             [(1, 2, 1), (2, 3, 1)]
 
@@ -4255,12 +4251,19 @@ class GenericGraph(GenericGraph_pyx):
         """
         if not self.order():
             return []
+        if weight_function is not None:
+            by_weight = True
 
-        if weight_function is None:
-            if self.weighted():
-                weight_function = lambda e: e[2]
-            else:
-                weight_function = lambda e: 1
+        # for weighted graphs
+        if self.weighted():
+            by_weight = True
+
+        if weight_function is None and by_weight:
+            def weight_function(e):
+                return e[2]
+
+        if not by_weight:
+            weight_function = lambda e: 1
 
         wfunction_float = lambda e: float(weight_function(e))
 
@@ -4349,12 +4352,11 @@ class GenericGraph(GenericGraph_pyx):
         elif algorithm == "NetworkX":
             import networkx
             G = networkx.Graph([(e[0], e[1], {'weight': wfunction_float(e)}) for e in self.edge_iterator()])
-            E = networkx.minimum_spanning_tree(G).edges()
+            E = networkx.minimum_spanning_edges(G, data=False)
             return [(u, v, self.edge_label(u, v)) if hash(u) < hash(v) else (v, u, self.edge_label(u, v))
                                for u, v in E]
-
         else:
-            raise NotImplementedError("minimum Sspanning tree algorithm '%s' is not implemented" % algorithm)
+            raise NotImplementedError("minimum spanning tree algorithm '%s' is not implemented" % algorithm)
 
     def spanning_trees_count(self, root_vertex=None):
         r"""
@@ -4454,6 +4456,8 @@ class GenericGraph(GenericGraph_pyx):
         (considered as sets of edges) such that the edge set of any cycle in the
         graph can be written as a `Z/2Z` sum of the cycles in the basis.
 
+        See the :wikipedia:`Cycle_basis` for more information.
+
         INPUT:
 
         - ``output`` -- string (default: ``'vertex'``); whether every cycle is
@@ -4508,7 +4512,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: basis = g.cycle_basis()
 
         Building the space of (directed) edges over `Z/2Z`. On the way, building
-        a dictionary associating an unique vector to each undirected edge::
+        a dictionary associating a unique vector to each undirected edge::
 
             sage: m = g.size()
             sage: edge_space = VectorSpace(FiniteField(2), m)
@@ -4535,6 +4539,9 @@ class GenericGraph(GenericGraph_pyx):
             [[0, 2], [2, 1, 0]]
             sage: G.cycle_basis(output='edge')
             [[(0, 2, 'a'), (2, 0, 'b')], [(2, 1, 'd'), (1, 0, 'c'), (0, 2, 'a')]]
+            sage: H = Graph([(1, 2), (2, 3), (2, 3), (3, 4), (1, 4), (1, 4), (4, 5), (5, 6), (4, 6), (6, 7)], multiedges=True)
+            sage: H.cycle_basis()
+            [[1, 4], [2, 3], [4, 3, 2, 1], [6, 5, 4]]
 
         Disconnected graph::
 
@@ -4561,22 +4568,35 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.cycle_basis()
             [[2, 1, 0]]
 
-        Not yet implemented for directed graphs with multiple edges::
+        Not yet implemented for directed graphs::
 
-            sage: G = DiGraph([(0,2,'a'),(0,2,'b'),(0,1,'c'),(1,2,'d')], multiedges=True)
+            sage: G = DiGraph([(0, 2, 'a'), (0, 1, 'c'), (1, 2, 'd')])
             sage: G.cycle_basis()
             Traceback (most recent call last):
             ...
-            NotImplementedError: not implemented for directed graphs with multiple edges
+            NotImplementedError: not implemented for directed graphs
+
+        TESTS:
+
+        :trac:`27538`::
+
+            sage: G= Graph([(1, 2, 'a'), (2, 3, 'b'), (2, 3, 'c'), (3, 4, 'd'), (3, 4, 'e'), (4, 1, 'f')], multiedges=True)
+            sage: G.cycle_basis()
+            [[2, 3], [4, 3, 2, 1], [4, 3, 2, 1]]
+            sage: G.cycle_basis(output='edge')
+            [[(2, 3, 'b'), (3, 2, 'c')],
+             [(4, 3, 'd'), (3, 2, 'b'), (2, 1, 'a'), (1, 4, 'f')],
+             [(4, 3, 'e'), (3, 2, 'b'), (2, 1, 'a'), (1, 4, 'f')]]
+
         """
         if not output in ['vertex', 'edge']:
             raise ValueError('output must be either vertex or edge')
 
-        if self.allows_multiple_edges():
-            if self.is_directed():
+        if self.is_directed():
                 raise NotImplementedError('not implemented for directed '
-                                          'graphs with multiple edges')
+                                          'graphs')
 
+        if self.allows_multiple_edges():
             if not self.is_connected():
                 return sum([g.cycle_basis(output=output)
                             for g in self.connected_components_subgraphs()],
@@ -4586,6 +4606,16 @@ class GenericGraph(GenericGraph_pyx):
             return [self.subgraph(edges=T + [e]).is_forest(certificate=True,
                                                            output=output)[1]
                     for e in self.edge_iterator() if not e in T]
+            from sage.graphs.graph import Graph
+            T = Graph(self.min_spanning_tree(), multiedges=True, format='list_of_edges')
+            H = self.copy()
+            H.delete_edges(T.edge_iterator())
+            L = []
+            for e in H.edge_iterator():
+                T.add_edge(e)
+                L.append(T.is_tree(certificate=True, output=output)[1])
+                T.delete_edge(e)
+            return L
 
         # second case: there are no multiple edges
         import networkx
@@ -15685,20 +15715,20 @@ class GenericGraph(GenericGraph_pyx):
             iterator = self.neighbor_iterator
 
         if report_edges and labels:
-            my_dict = {}
+            edge_labels = {}
             if use_multiedges:
                 for e in self.edge_iterator():
-                    if (e[0], e[1]) in my_dict.keys():
-                        my_dict[(e[0], e[1])].append(e)
+                    if (e[0], e[1]) in edge_labels:
+                        edge_labels[(e[0], e[1])].append(e)
                     else:
-                        my_dict[(e[0], e[1])] = [e]
+                        edge_labels[(e[0], e[1])] = [e]
             else:
                 for e in self.edge_iterator():
-                    if (e[0], e[1]) not in my_dict.keys():
-                        my_dict[(e[0], e[1])] = [e]
+                    if (e[0], e[1]) not in edge_labels:
+                        edge_labels[(e[0], e[1])] = [e]
             if not self.is_directed():
-                for u, v in my_dict.keys():
-                    my_dict[v, u] = my_dict[u, v]
+                for u, v in list(edge_labels):
+                    edge_labels[v, u] = edge_labels[u, v]
         elif use_multiedges and self.has_multiple_edges():
             from collections import Counter
             edge_multiplicity = Counter(self.edge_iterator(labels=False))
@@ -15731,7 +15761,7 @@ class GenericGraph(GenericGraph_pyx):
         if report_edges and labels:
             path_with_labels = []
             for p in all_paths:
-                path_with_labels.extend(cartesian_product([my_dict[e] for e in zip(p[:-1], p[1:])]))
+                path_with_labels.extend(cartesian_product([edge_labels[e] for e in zip(p[:-1], p[1:])]))
             return path_with_labels
         elif use_multiedges and self.has_multiple_edges():
             multiple_all_paths = []

@@ -3084,8 +3084,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
         REFERENCES:
 
-        .. [Baty91] \V. V. Batyrev, *On the classification of smooth projective
-                    toric varieties*, Tohoku Math. J. **43** (1991), 569-585
+        - [Bat1991]_
 
         EXAMPLES::
 

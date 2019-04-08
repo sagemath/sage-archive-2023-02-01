@@ -106,7 +106,7 @@ class Debug(object):
 
             sage: a = sage0.eval("sage.interacts.debugger.test_function('n', 'm')")
             sage: d = sage0('sage.interacts.debugger.Debug()')
-            sage: d.curframe()
+            sage: d.curframe()  # py2
             <frame object at 0x...>
         """
         return self._stack[self._curframe_index][0]

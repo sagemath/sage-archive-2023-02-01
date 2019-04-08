@@ -15,7 +15,8 @@ AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013-2015) : initial version
 - Travis Scrimshaw (2015): review tweaks
-- Eric Gourgoulhon (2019): periodic coordinates
+- Eric Gourgoulhon (2019): periodic coordinates,
+  add :meth:`~Chart.calculus_method`
 
 REFERENCES:
 
@@ -24,7 +25,7 @@ REFERENCES:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #       Copyright (C) 2015 Travis Scrimshaw <tscrimsh@umn.edu>
@@ -34,7 +35,7 @@ REFERENCES:
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
 
@@ -48,6 +49,7 @@ from sage.manifolds.chart_func import ChartFunctionRing
 from sage.manifolds.calculus_method import CalculusMethod
 from sage.symbolic.expression import Expression
 from sage.ext.fast_callable import fast_callable
+
 
 class Chart(UniqueRepresentation, SageObject):
     r"""
@@ -340,9 +342,9 @@ class Chart(UniqueRepresentation, SageObject):
         # restriction of:
         self._supercharts = set([self])
         #
-        self._dom_restrict = {} # dict. of the restrictions of self to
-                                # subsets of self._domain, with the
-                                # subsets as keys
+        self._dom_restrict = {}  # dict. of the restrictions of self to
+                                 # subsets of self._domain, with the
+                                 # subsets as keys
         # The null and one functions of the coordinates:
         # Expression in self of the zero and one scalar fields of open sets
         # containing the domain of self:
@@ -353,7 +355,6 @@ class Chart(UniqueRepresentation, SageObject):
             if hasattr(dom, '_one_scalar_field'):
                 # dom is an open set
                 dom._one_scalar_field._express[self] = self.function_ring().one()
-
 
     def _init_coordinates(self, coord_list):
         r"""
@@ -859,8 +860,6 @@ class Chart(UniqueRepresentation, SageObject):
         # Case of a single condition:
         return bool(restrict.subs(substitutions))
 
-
-
     def transition_map(self, other, transformations, intersection_name=None,
                        restrictions1=None, restrictions2=None):
         r"""
@@ -1197,54 +1196,71 @@ class Chart(UniqueRepresentation, SageObject):
         """
         return self.function_ring().one()
 
-    def set_calculus_method(self, method):
+    def calculus_method(self):
         r"""
-        Set the calculus method for computations involving coordinates of
-        this chart.
+        Return the interface governing the calculus engine for expressions
+        involving coordinates of this chart.
 
-        INPUT:
+        The calculus engine can be one of the following:
 
-        - ``method`` -- string; one of
+        - Sage's symbolic engine (Pynac + Maxima), implemented via the
+          Symbolic Ring ``SR``
+        - SymPy
 
-          - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
-          - ``'sympy'``: SymPy
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.calculus_method.CalculusMethod` for a
+            complete documentation.
+
+        OUTPUT:
+
+        - an instance of :class:`~sage.manifolds.calculus_method.CalculusMethod`
 
         EXAMPLES:
 
         The default calculus method relies on Sage's Symbolic Ring::
 
-            sage: M = Manifold(3, 'M', structure='topological')
-            sage: X.<x,y,z> = M.chart()
-            sage: f = X.function(sin(x)*cos(y) + z^2)
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: X.calculus_method()
+            Available calculus methods (* = current):
+             - SR (default) (*)
+             - sympy
+
+        Accordingly the method
+        :meth:`~sage.manifolds.chart_func.ChartFunction.expr` of a function
+        ``f`` defined on the chart ``X`` returns a Sage symbolic expression::
+
+            sage: f = X.function(x^2 + cos(y)*sin(x))
             sage: f.expr()
-            z^2 + cos(y)*sin(x)
+            x^2 + cos(y)*sin(x)
             sage: type(f.expr())
             <type 'sage.symbolic.expression.Expression'>
             sage: parent(f.expr())
             Symbolic Ring
             sage: f.display()
-            (x, y, z) |--> z^2 + cos(y)*sin(x)
+            (x, y) |--> x^2 + cos(y)*sin(x)
 
         Changing to SymPy::
 
-            sage: X.set_calculus_method('sympy')
+            sage: X.calculus_method().set('sympy')
             sage: f.expr()
-            z**2 + sin(x)*cos(y)
+            x**2 + sin(x)*cos(y)
             sage: type(f.expr())
             <class 'sympy.core.add.Add'>
             sage: parent(f.expr())
             <class 'sympy.core.add.Add'>
             sage: f.display()
-            (x, y, z) |--> z**2 + sin(x)*cos(y)
+            (x, y) |--> x**2 + sin(x)*cos(y)
 
-        Changing back to the Symbolic Ring::
+        Back to the Symbolic Ring::
 
-            sage: X.set_calculus_method('SR')
+            sage: X.calculus_method().set('SR')
             sage: f.display()
-            (x, y, z) |--> z^2 + cos(y)*sin(x)
+            (x, y) |--> x^2 + cos(y)*sin(x)
 
         """
-        self._calc_method.set(method)
+        return self._calc_method
 
     def multifunction(self, *expressions):
         r"""
@@ -1304,7 +1320,7 @@ class Chart(UniqueRepresentation, SageObject):
         return MultiCoordFunction(self, expressions)
 
 
-#*****************************************************************************
+# *****************************************************************************
 
 class RealChart(Chart):
     r"""
@@ -1787,6 +1803,7 @@ class RealChart(Chart):
 
         """
         from sage.tensor.modules.format_utilities import FormattedExpansion
+
         def _display_coord_range(self, xx, rtxt, rlatex):
             ind = self._xx.index(xx)
             bounds = self._bounds[ind]
@@ -1822,6 +1839,7 @@ class RealChart(Chart):
                 rtxt += ")"
                 rlatex += r"\right)"
             return rtxt, rlatex
+
         resu_txt = ""
         resu_latex = ""
         if xx is None:
@@ -1835,7 +1853,6 @@ class RealChart(Chart):
             resu_txt, resu_latex = _display_coord_range(self, xx, resu_txt,
                                                         resu_latex)
         return FormattedExpansion(resu_txt, resu_latex)
-
 
     def add_restrictions(self, restrictions):
         r"""
@@ -2270,7 +2287,7 @@ class RealChart(Chart):
         self._fast_valid_coordinates = evaluate_fast_callable
         return self._fast_valid_coordinates(*coordinates)
 
-    @options(max_range=8, color='red',  style='-', thickness=1, plot_points=75,
+    @options(max_range=8, color='red', style='-', thickness=1, plot_points=75,
              label_axes=True)
     def plot(self, chart=None, ambient_coords=None, mapping=None,
              fixed_coords=None, ranges=None, number_values=None,
@@ -2916,7 +2933,7 @@ class RealChart(Chart):
                 resu = set_axes_labels(resu, *labels)
         return resu
 
-#*****************************************************************************
+# *****************************************************************************
 
 class CoordChange(SageObject):
     r"""
@@ -3372,7 +3389,7 @@ class CoordChange(SageObject):
         ch1 = self._chart1.restrict(dom1)
         ch2 = self._chart2.restrict(dom2)
         if (ch1, ch2) in dom1.coord_changes():
-            return dom1.coord_changes()[(ch1,ch2)]
+            return dom1.coord_changes()[(ch1, ch2)]
         return type(self)(self._chart1.restrict(dom1),
                           self._chart2.restrict(dom2), *(self._transf.expr()))
 

@@ -162,11 +162,9 @@ class PseudoRiemannianMetric(TensorField):
     As a field of bilinear forms, the metric acts on pairs of tensor fields,
     yielding a scalar field::
 
-        sage: a = M.vector_field('a')
-        sage: a[eU,:] = [x, 2+y]
+        sage: a = M.vector_field({eU: [x, 2+y]}, name='a')
         sage: a.add_comp_by_continuation(eV, W, chart=c_uv)
-        sage: b = M.vector_field('b')
-        sage: b[eU,:] = [-y, x]
+        sage: b = M.vector_field({eU: [-y, x]}, name='b')
         sage: b.add_comp_by_continuation(eV, W, chart=c_uv)
         sage: s = g(a,b) ; s
         Scalar field g(a,b) on the 2-dimensional differentiable manifold S^2
@@ -1772,10 +1770,9 @@ class PseudoRiemannianMetric(TensorField):
             sage: X.<x,y,z> = M.chart()
             sage: g = M.metric('g')
             sage: g[1,1], g[2,2], g[3,3] = 1, 1, 1
-            sage: a = M.one_form('A')
             sage: var('Ax Ay Az')
             (Ax, Ay, Az)
-            sage: a[:] = (Ax, Ay, Az)
+            sage: a = M.one_form(Ax, Ay, Az, name='A')
             sage: sa = g.hodge_star(a) ; sa
             2-form *A on the 3-dimensional differentiable manifold M
             sage: sa.display()
@@ -1827,10 +1824,9 @@ class PseudoRiemannianMetric(TensorField):
 
         Hodge dual of a 1-form in Minkowksi spacetime::
 
-            sage: a = M.one_form('A')
             sage: var('At Ax Ay Az')
             (At, Ax, Ay, Az)
-            sage: a[:] = (At, Ax, Ay, Az)
+            sage: a = M.one_form(At, Ax, Ay, Az, name='A')
             sage: a.display()
             A = At dt + Ax dx + Ay dy + Az dz
             sage: sa = g.hodge_star(a) ; sa
@@ -1846,7 +1842,7 @@ class PseudoRiemannianMetric(TensorField):
 
         Hodge dual of a 2-form in Minkowksi spacetime::
 
-            sage: F = M.diff_form(2, 'F')
+            sage: F = M.diff_form(2, name='F')
             sage: var('Ex Ey Ez Bx By Bz')
             (Ex, Ey, Ez, Bx, By, Bz)
             sage: F[0,1], F[0,2], F[0,3] = -Ex, -Ey, -Ez
@@ -1888,10 +1884,10 @@ class PseudoRiemannianMetric(TensorField):
         where `A` and `B` are any 1-forms and `A^\sharp` and `B^\sharp` the
         vectors associated to them by the metric `g` (index raising)::
 
-            sage: b = M.one_form('B')
             sage: var('Bt Bx By Bz')
             (Bt, Bx, By, Bz)
-            sage: b[:] = (Bt, Bx, By, Bz) ; b.display()
+            sage: b = M.one_form(Bt, Bx, By, Bz, name='B')
+            sage: b.display()
             B = Bt dt + Bx dx + By dy + Bz dz
             sage: epsilon = g.volume_form()
             sage: g.hodge_star(a.wedge(b)) == epsilon.contract(0,a.up(g)).contract(0,b.up(g))

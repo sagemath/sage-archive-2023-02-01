@@ -3465,8 +3465,10 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
 
     def le(self, el1, el2):
         r"""
-        Poset stucture on the set of interval-posets through interval
+        Poset structure on the set of interval-posets through interval
         containment.
+
+        This is not the most natural partial order.
 
         Return whether the interval represented by ``el1`` is contained in
         the interval represented by ``el2``.

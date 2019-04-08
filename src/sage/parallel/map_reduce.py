@@ -1558,23 +1558,6 @@ class RESetMapReduceWorker(mp.Process):
     def _thief(self):
         r"""
         The thief thread of a worker process
-
-        EXAMPLES::
-
-            sage: from sage.parallel.map_reduce import RESetMPExample, RESetMapReduceWorker
-            sage: from threading import Thread
-            sage: EX = RESetMPExample(maxl=6)
-            sage: EX.setup_workers(2)
-
-            sage: w0, w1 = EX._workers
-            sage: w0._todo.append(42)
-            sage: thief0 = Thread(target = w0._thief, name="Thief")
-            sage: thief0.start()
-
-            sage: w1.steal()
-            42
-            sage: w0._todo
-            deque([])
         """
         logger.debug("Thief started")
         reqs = 0
@@ -1627,10 +1610,12 @@ class RESetMapReduceWorker(mp.Process):
             sage: w0, w1 = EX._workers
             sage: w0._todo.append(42)
             sage: thief0 = Thread(target = w0._thief, name="Thief")
-            sage: thief0.start()
+            sage: thief0.start()  # known bug (Trac #27537)
 
-            sage: w1.steal()
+            sage: w1.steal()  # known bug (Trac #27537)
             42
+            sage: w0._todo  # known bug (Trac #27537)
+            deque([])
         """
         self._mapred._signal_task_done()
         node = None

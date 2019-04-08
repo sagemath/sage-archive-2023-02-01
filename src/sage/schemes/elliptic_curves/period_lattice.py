@@ -497,8 +497,8 @@ class PeriodLattice_ell(PeriodLattice):
             sage: tau = w1/w2; tau
             0.387694505032876 + 1.30821088214407*I
         """
-        w1, w2 = periods = self.basis(prec=prec, algorithm=algorithm)
-        periods, mat = normalise_periods(w1,w2)
+        w1, w2 = self.basis(prec=prec, algorithm=algorithm)
+        periods, _ = normalise_periods(w1, w2)
         return periods
 
     @cached_method

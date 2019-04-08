@@ -459,7 +459,7 @@ class Polyhedron_base(Element):
             sage: P.change_ring(ZZ)
             Traceback (most recent call last):
             ...
-            TypeError: cannot change the base ring to the Integer Ring (cannot coerce -1.3 into the Integer Ring)
+            TypeError: cannot change the base ring to the Integer Ring
 
             sage: P = polytopes.regular_polygon(3); P
             A 2-dimensional polyhedron in AA^2 defined as the convex hull of 3 vertices
@@ -470,7 +470,7 @@ class Polyhedron_base(Element):
             sage: P.change_ring(QQ)
             Traceback (most recent call last):
             ...
-            TypeError: cannot change the base ring to the Rational Field (cannot coerce 0.866025403784439? into the Rational Field)
+            TypeError: cannot change the base ring to the Rational Field
 
         .. WARNING::
 
@@ -506,8 +506,8 @@ class Polyhedron_base(Element):
             rays = [[base_ring(x) for x in ray] for ray in self.rays_list()]
             lines = [[base_ring(x) for x in line] for line in self.lines_list()]
 
-        except(TypeError, ValueError):
-            raise TypeError("cannot change the base ring to the {0} (cannot coerce {1} into the {0})".format(base_ring, x))
+        except (TypeError, ValueError):
+            raise TypeError("cannot change the base ring to the {0}".format(base_ring))
 
         new_parent = self.parent().change_ring(base_ring, backend)
         return new_parent([vertices, rays, lines], None)

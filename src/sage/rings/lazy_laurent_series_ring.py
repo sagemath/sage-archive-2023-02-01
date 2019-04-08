@@ -18,9 +18,7 @@ global namespace. You need to import it explicitly to use it::
     sage: 1/(1 - z)
     1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
     sage: 1/(1 - z) == 1/(1 - z)
-    Traceback (most recent call last):
-    ...
-    ValueError: undecidable as lazy Laurent series
+    True
 
 Lazy Laurent series ring over a finite field::
 

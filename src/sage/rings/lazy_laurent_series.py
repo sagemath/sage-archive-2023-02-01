@@ -114,7 +114,7 @@ class LazyLaurentSeriesOperator_add(LazyLaurentSeriesOperator):
             sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
             sage: z = L.gen()
-            sage: f = z + z^2 + z
+            sage: f = 1/(1 - z) + 1/(1 + z)
             sage: loads(dumps(f)) == f
             True
         """
@@ -136,6 +136,23 @@ class LazyLaurentSeriesOperator_add(LazyLaurentSeriesOperator):
         """
         return self._left.coefficient(n) + self._right.coefficient(n)
 
+    def __eq__(self, other):
+        """
+        Test equality.
+
+        TESTS::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = 1/(1 - z) + 1/(1 + z)
+            sage: g = 1/(1 - z) + 1/(1 + z)
+            sage: f == g
+            True
+        """
+        return (isinstance(other, LazyLaurentSeriesOperator_add) and
+                self._left == other._left and self._right == other._right)
+
 class LazyLaurentSeriesOperator_sub(LazyLaurentSeriesOperator):
     """
     Operator for subtraction.
@@ -156,7 +173,7 @@ class LazyLaurentSeriesOperator_sub(LazyLaurentSeriesOperator):
             sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
             sage: z = L.gen()
-            sage: f = 1 + 3*z - z
+            sage: f = 1/(1 - z) - 1/(1 + z)
             sage: loads(dumps(f)) == f
             True
         """
@@ -178,6 +195,23 @@ class LazyLaurentSeriesOperator_sub(LazyLaurentSeriesOperator):
         """
         return self._left.coefficient(n) - self._right.coefficient(n)
 
+    def __eq__(self, other):
+        """
+        Test equality.
+
+        TESTS::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = 1/(1 - z) - 1/(1 + z)
+            sage: g = 1/(1 - z) - 1/(1 + z)
+            sage: f == g
+            True
+        """
+        return (isinstance(other, LazyLaurentSeriesOperator_sub) and
+                self._left == other._left and self._right == other._right)
+
 class LazyLaurentSeriesOperator_mul(LazyLaurentSeriesOperator):
     """
     Operator for multiplication.
@@ -198,7 +232,7 @@ class LazyLaurentSeriesOperator_mul(LazyLaurentSeriesOperator):
             sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
             sage: z = L.gen()
-            sage: f = (1 + z)*(1 - z)
+            sage: f = 1/(1 - z) * 1/(1 + z)
             sage: loads(dumps(f)) == f
             True
         """
@@ -224,6 +258,23 @@ class LazyLaurentSeriesOperator_mul(LazyLaurentSeriesOperator):
             c += self._left.coefficient(k) * self._right.coefficient(n-k)
         return c
 
+    def __eq__(self, other):
+        """
+        Test equality.
+
+        TESTS::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = 1/(1 - z) * 1/(1 + z)
+            sage: g = 1/(1 - z) * 1/(1 + z)
+            sage: f == g
+            True
+        """
+        return (isinstance(other, LazyLaurentSeriesOperator_mul) and
+                self._left == other._left and self._right == other._right)
+
 class LazyLaurentSeriesOperator_neg(LazyLaurentSeriesOperator):
     """
     Operator for negation.
@@ -242,9 +293,9 @@ class LazyLaurentSeriesOperator_neg(LazyLaurentSeriesOperator):
             sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
             sage: z = L.gen()
-            sage: f = -(1 + z)
+            sage: f = -1/(1 - z)
             sage: f
-            -1 - z
+            -1 - z - z^2 - z^3 - z^4 - z^5 - z^6 + ...
             sage: loads(dumps(f)) == f
             True
         """
@@ -264,6 +315,22 @@ class LazyLaurentSeriesOperator_neg(LazyLaurentSeriesOperator):
             -1
         """
         return -self._series.coefficient(n)
+
+    def __eq__(self, other):
+        """
+        Test equality.
+
+        TESTS::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = -1/(1 - z)
+            sage: g = -1/(1 - z)
+            sage: f == g
+            True
+        """
+        return (isinstance(other, LazyLaurentSeriesOperator_neg) and self._series == other._series)
 
 class LazyLaurentSeriesOperator_inv(LazyLaurentSeriesOperator):
     """
@@ -286,8 +353,8 @@ class LazyLaurentSeriesOperator_inv(LazyLaurentSeriesOperator):
             sage: f = ~(1 - z)
             sage: f
             1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
-            sage: loads(dumps(f))
-            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
+            sage: loads(dumps(f)) == f
+            True
         """
         self._series = series
         self._v = series.valuation()
@@ -315,6 +382,22 @@ class LazyLaurentSeriesOperator_inv(LazyLaurentSeriesOperator):
             c += s.coefficient(k) * self._series.coefficient(n + v - k)
         return -c * self._ainv
 
+    def __eq__(self, other):
+        """
+        Test equality.
+
+        TESTS::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = ~(1 - z)
+            sage: g = ~(1 - z)
+            sage: f == g
+            True
+        """
+        return (isinstance(other, LazyLaurentSeriesOperator_inv) and self._series == other._series)
+
 class LazyLaurentSeriesOperator_change_ring(LazyLaurentSeriesOperator):
     """
     Operator for changing the base ring of the ``series`` to ``ring``.
@@ -339,8 +422,8 @@ class LazyLaurentSeriesOperator_change_ring(LazyLaurentSeriesOperator):
             sage: g = f.change_ring(GF(3))
             sage: g
             1 + 2*z + z^2 + 2*z^3 + z^4 + 2*z^5 + z^6 + ...
-            sage: loads(dumps(g))
-            1 + 2*z + z^2 + 2*z^3 + z^4 + 2*z^5 + z^6 + ...
+            sage: loads(dumps(g)) == g
+            True
         """
         self._series = series
         self._ring = ring
@@ -365,6 +448,23 @@ class LazyLaurentSeriesOperator_change_ring(LazyLaurentSeriesOperator):
         """
         return self._ring(self._series.coefficient(n))
 
+    def __eq__(self, other):
+        """
+        Test equality.
+
+        TESTS::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = 1/(1 - z)
+            sage: g = 1/(1 - z)
+            sage: f == g
+            True
+        """
+        return (isinstance(other, LazyLaurentSeriesOperator_change_ring)
+                and self._series == other._series and self._ring == other._ring)
+
 class LazyLaurentSeriesOperator_apply(LazyLaurentSeriesOperator):
     """
     Operator for applying a function.
@@ -385,7 +485,7 @@ class LazyLaurentSeriesOperator_apply(LazyLaurentSeriesOperator):
             sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
             sage: z = L.gen()
-            sage: f = ~(1 + z)
+            sage: f = 1/(1 + z)
             sage: g = f.apply_to_coefficients(abs)
             sage: g
             1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
@@ -411,6 +511,24 @@ class LazyLaurentSeriesOperator_apply(LazyLaurentSeriesOperator):
             1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
         """
         return self._function(self._series.coefficient(n))
+
+    def __eq__(self, other):
+        """
+        Test equality.
+
+        TESTS::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = 1/(1 + z)
+            sage: g = f.apply_to_coefficients(abs)
+            sage: h = f.apply_to_coefficients(abs)
+            sage: g == h
+            True
+        """
+        return (isinstance(other, LazyLaurentSeriesOperator_apply)
+                and self._series == other._series and self._function is other._function)
 
 class LazyLaurentSeriesOperator_truncate(LazyLaurentSeriesOperator):
     """
@@ -439,6 +557,7 @@ class LazyLaurentSeriesOperator_truncate(LazyLaurentSeriesOperator):
         """
         self._series = series
         self._d = d
+
         self._zero = series.base_ring().zero()
 
     def __call__(self, s, n):
@@ -461,6 +580,24 @@ class LazyLaurentSeriesOperator_truncate(LazyLaurentSeriesOperator):
         else:
             return self._zero
 
+    def __eq__(self, other):
+        """
+        Test equality.
+
+        TESTS::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = 1/(1 + z)
+            sage: g = f.truncate(4)
+            sage: h = f.truncate(4)
+            sage: g == h
+            True
+        """
+        return (isinstance(other, LazyLaurentSeriesOperator_truncate)
+                and self._series == other._series and self._d == other._d)
+
 class LazyLaurentSeriesOperator_gen(LazyLaurentSeriesOperator):
     """
     Operator for the generator element.
@@ -482,6 +619,8 @@ class LazyLaurentSeriesOperator_gen(LazyLaurentSeriesOperator):
             sage: loads(dumps(z)) == z
             True
         """
+        self._ring = ring
+
         self._one = ring.base_ring().one()
         self._zero = ring.base_ring().zero()
 
@@ -497,6 +636,21 @@ class LazyLaurentSeriesOperator_gen(LazyLaurentSeriesOperator):
             z
         """
         return self._one if n == 1 else self._zero
+
+    def __eq__(self, other):
+        """
+        Test equality.
+
+        TESTS::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z1 = L.gen()
+            sage: z2 = L.gen()
+            sage: z1 == z2
+            True
+        """
+        return (isinstance(other, LazyLaurentSeriesOperator_gen) and self._ring == other._ring)
 
 class LazyLaurentSeriesOperator_constant(LazyLaurentSeriesOperator):
     """
@@ -521,7 +675,9 @@ class LazyLaurentSeriesOperator_constant(LazyLaurentSeriesOperator):
             sage: loads(dumps(f)) == f
             True
         """
+        self._ring = ring
         self._constant = constant
+
         self._zero = ring.base_ring().zero()
 
     def __call__(self, s, n):
@@ -540,6 +696,22 @@ class LazyLaurentSeriesOperator_constant(LazyLaurentSeriesOperator):
             0
         """
         return self._constant if n == 0 else self._zero
+
+    def __eq__(self, other):
+        """
+        Test equality.
+
+        TESTS::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z1 = L(10)
+            sage: z2 = L(10)
+            sage: z1 == z2
+            True
+        """
+        return (isinstance(other, LazyLaurentSeriesOperator_constant)
+                and self._ring == other._ring and self._constant == other._constant)
 
 
 class LazyLaurentSeries(Element):
@@ -587,9 +759,7 @@ class LazyLaurentSeries(Element):
         sage: f.coefficient(100)
         573147844013817084101
 
-    Lazy Laurent series is picklable. Though the unpickled series is
-    mathematically equal to the original series, their equality cannot be
-    verified computationally in general::
+    Lazy Laurent series is picklable::
 
         sage: z = L.gen()
         sage: f = 1/(1 - z - z^2)
@@ -599,9 +769,7 @@ class LazyLaurentSeries(Element):
         sage: g
         1 + z + 2*z^2 + 3*z^3 + 5*z^4 + 8*z^5 + 13*z^6 + ...
         sage: g == f
-        Traceback (most recent call last):
-        ...
-        ValueError: undecidable as lazy Laurent series
+        True
     """
     def __init__(self, parent, coefficient=None, valuation=0, constant=None):
         """
@@ -643,11 +811,19 @@ class LazyLaurentSeries(Element):
             False
         """
         if op is op_EQ:
-            other = self.parent()(other)
-
-            n = self._approximate_valuation
-
-            if self._constant is None or other._constant is None:
+            if self._constant is None:
+                if other._constant is None:
+                    n = min(self._approximate_valuation, other._approximate_valuation)
+                    m = max(self._approximate_valuation, other._approximate_valuation)
+                    for i in range(n, m):
+                        if self.coefficient(i) != other.coefficient(i):
+                            return False
+                    if self._coefficient_function == other._coefficient_function:
+                        return True
+                    raise ValueError("undecidable as lazy Laurent series")
+                else:
+                    raise ValueError("undecidable as lazy Laurent series")
+            elif other._constant is None:
                 raise ValueError("undecidable as lazy Laurent series")
 
             sc, sm = self._constant
@@ -656,6 +832,7 @@ class LazyLaurentSeries(Element):
             if sc != oc:
                 return False
 
+            n = self._approximate_valuation
             m = max(sm, om)
 
             for i in range(n, m):

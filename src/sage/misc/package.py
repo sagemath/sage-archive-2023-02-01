@@ -43,7 +43,7 @@ Functions
 # ****************************************************************************
 from __future__ import print_function
 
-from sage.env import SAGE_PKGS
+from sage.env import SAGE_PKGS, SAGE_SPKG_INST
 
 import json
 import os
@@ -286,7 +286,6 @@ def installed_packages(exclude_pip=True):
 
         :func:`sage.misc.package.list_packages`
     """
-    from sage.env import SAGE_SPKG_INST
     installed = {}
     if not exclude_pip:
         installed.update(pip_installed_packages())
@@ -493,7 +492,7 @@ def package_manifest(package):
         KeyError: 'dummy-package'
     """
     version = installed_packages()[package]
-    stamp_file = os.path.join(os.environ['SAGE_SPKG_INST'],
+    stamp_file = os.path.join(SAGE_SPKG_INST,
                               '{}-{}'.format(package, version))
     with open(stamp_file) as f:
         spkg_meta = json.load(f)

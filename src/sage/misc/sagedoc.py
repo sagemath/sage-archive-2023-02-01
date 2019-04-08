@@ -1026,7 +1026,7 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='',
         sage: print(search_src(" fetch(", "def", interact=False)) # py3
         Traceback (most recent call last):
         ...
-        ...error: missing ), unterminated subpattern at position 6
+        re.error: missing ), unterminated subpattern at position 6
 
     To fix this, *escape* the parenthesis with a backslash::
 

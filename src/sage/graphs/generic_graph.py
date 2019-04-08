@@ -2268,7 +2268,7 @@ class GenericGraph(GenericGraph_pyx):
             signless and `D^{-1/2}(D-M)D^{-1/2}` otherwise, a normalized
             version of the Laplacian matrix. More accurately, the normalizing
             matrix used is equal to `D^{-1/2}` only for non-isolated vertices.
-            If vertex `i` is isolated, then diagonal entry `i` in the matrix is 
+            If vertex `i` is isolated, then diagonal entry `i` in the matrix is
             1, rather than a division by zero
 
           - Else, the matrix `D+M` for signless and `D-M` otherwise is returned
@@ -4462,7 +4462,7 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``output`` -- string (default: ``'vertex'``); whether every cycle is
           given as a list of vertices (``output == 'vertex'``) or a list of
-          edges (``output == 'edges'``)
+          edges (``output == 'edge'``)
 
         OUTPUT:
 
@@ -4602,10 +4602,6 @@ class GenericGraph(GenericGraph_pyx):
                             for g in self.connected_components_subgraphs()],
                            [])
 
-            T = self.min_spanning_tree()
-            return [self.subgraph(edges=T + [e]).is_forest(certificate=True,
-                                                           output=output)[1]
-                    for e in self.edge_iterator() if not e in T]
             from sage.graphs.graph import Graph
             T = Graph(self.min_spanning_tree(), multiedges=True, format='list_of_edges')
             H = self.copy()
@@ -12685,7 +12681,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: C.edges()
             [(0, 1, None), (0, 3, None), (1, 2, None), (2, 3, None)]
 
-            sage: for (u,v) in G.edges(labels=False): 
+            sage: for (u,v) in G.edges(labels=False):
             ....:     G.set_edge_label(u, v, u)
 
             sage: C = G.subgraph_search(graphs.CycleGraph(4))

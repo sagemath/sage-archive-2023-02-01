@@ -66,7 +66,10 @@ from sage.categories.magmas_and_additive_magmas import MagmasAndAdditiveMagmas
 
 from sage.misc.cachefunc import cached_method
 
-from .lazy_laurent_series import LazyLaurentSeries
+from .lazy_laurent_series import (LazyLaurentSeries,
+                                  LazyLaurentSeriesOperator_gen,
+                                  LazyLaurentSeriesOperator_constant)
+
 
 class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
     """
@@ -130,13 +133,9 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         if n != 0:
             raise IndexError("there is only one generator")
 
-        one = self.base_ring().one()
-        zero = self.base_ring().zero()
-
-        def f(s, m):
-            return one if m == 1 else zero
-
-        return self.element_class(self, coefficient=f, valuation=1, constant=(zero,2))
+        op = LazyLaurentSeriesOperator_gen(self)
+        c = (self.base_ring().zero(), 2)
+        return self.element_class(self, coefficient=op, valuation=1, constant=c)
 
     def ngens(self):
         """
@@ -183,11 +182,11 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             sage: L(3)
             1
         """
-        zero = self.base_ring().zero()
-        def f(s, m):
-            return self.base_ring()(x) if m == 0 else zero
+        R = self.base_ring()
 
-        return self.element_class(self, coefficient=f, constant=(zero,1))
+        op = LazyLaurentSeriesOperator_constant(self, R(x))
+
+        return self.element_class(self, coefficient=op, constant=(R.zero(), 1))
 
     def _an_element_(self):
         """

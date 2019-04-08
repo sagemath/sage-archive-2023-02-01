@@ -84,6 +84,464 @@ from sage.structure.richcmp import op_EQ, op_NE
 
 from sage.arith.power import generic_power
 
+
+class LazyLaurentSeriesOperator(object):
+    """
+    Base class for operators computing coefficients of a lazy Laurent series.
+
+    Subclasses of this class are used to implement arithmetic operations for
+    lazy Laurent series. These classes are not to be used directly by the user.
+    """
+    pass
+
+class LazyLaurentSeriesOperator_add(LazyLaurentSeriesOperator):
+    """
+    Operator for addition.
+
+    INPUT:
+
+    - ``left`` -- series on the left side of ``+``
+
+    - ``right`` -- series on the right side of ``+``
+
+    """
+    def __init__(self, left, right):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = z + z^2 + z
+            sage: loads(dumps(f)) == f
+            True
+        """
+        self._left = left
+        self._right = right
+
+    def __call__(self, s, n):
+        """
+        Return the `n`-th coefficient of the series ``s``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = z + z^2 + z
+            sage: f.coefficient(1)
+            2
+        """
+        return self._left.coefficient(n) + self._right.coefficient(n)
+
+class LazyLaurentSeriesOperator_sub(LazyLaurentSeriesOperator):
+    """
+    Operator for subtraction.
+
+    INPUT:
+
+    - ``left`` -- series on the left side of ``-``
+
+    - ``right`` -- series on the right side of ``-``
+
+    """
+    def __init__(self, left, right):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = 1 + 3*z - z
+            sage: loads(dumps(f)) == f
+            True
+        """
+        self._left = left
+        self._right = right
+
+    def __call__(self, s, n):
+        """
+        Return the `n`-th coefficient of the series ``s``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = 1 + 3*z - z
+            sage: f.coefficient(1)
+            2
+        """
+        return self._left.coefficient(n) - self._right.coefficient(n)
+
+class LazyLaurentSeriesOperator_mul(LazyLaurentSeriesOperator):
+    """
+    Operator for multiplication.
+
+    INPUT:
+
+    - ``left`` -- series on the left side of ``*``
+
+    - ``right`` -- series on the right side of ``*``
+
+    """
+    def __init__(self, left, right):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = (1 + z)*(1 - z)
+            sage: loads(dumps(f)) == f
+            True
+        """
+        self._left = left
+        self._right = right
+        self._zero = left.base_ring().zero()
+
+    def __call__(self, s, n):
+        """
+        Return the `n`-th coefficient of the series ``s``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = (1 + z)*(1 - z)
+            sage: f.coefficient(2)
+            -1
+        """
+        c = self._zero
+        for k in range(self._left._approximate_valuation, n - self._right._approximate_valuation + 1):
+            c += self._left.coefficient(k) * self._right.coefficient(n-k)
+        return c
+
+class LazyLaurentSeriesOperator_neg(LazyLaurentSeriesOperator):
+    """
+    Operator for negation.
+
+    INPUT:
+
+    - ``series`` -- a lazy Laurent series
+
+    """
+    def __init__(self, series):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = -(1 + z)
+            sage: f
+            -1 - z
+            sage: loads(dumps(f)) == f
+            True
+        """
+        self._series = series
+
+    def __call__(self, s, n):
+        """
+        Return the `n`-th coefficient of the series ``s``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = -(1 + z)
+            sage: f.coefficient(1)
+            -1
+        """
+        return -self._series.coefficient(n)
+
+class LazyLaurentSeriesOperator_inv(LazyLaurentSeriesOperator):
+    """
+    Operator for inversion.
+
+    INPUT:
+
+    - ``series`` -- a lazy Laurent series
+
+    """
+    def __init__(self, series):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = ~(1 - z)
+            sage: f
+            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
+            sage: loads(dumps(f))
+            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
+        """
+        self._series = series
+        self._v = series.valuation()
+        self._ainv = ~series.coefficient(self._v)
+        self._zero = series.base_ring().zero()
+
+    def __call__(self, s, n):
+        """
+        Return the `n`-th coefficient of the series ``s``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = ~(1 - z)
+            sage: f.coefficient(2)
+            1
+        """
+        v = self._v
+        if n == -v:
+            return self._ainv
+        c = self._zero
+        for k in range(-v, n):
+            c += s.coefficient(k) * self._series.coefficient(n + v - k)
+        return -c * self._ainv
+
+class LazyLaurentSeriesOperator_change_ring(LazyLaurentSeriesOperator):
+    """
+    Operator for changing the base ring of the ``series`` to ``ring``.
+
+    INPUT:
+
+    - ``series`` -- a lazy Laurent series
+
+    - ``ring`` -- a ring
+
+    """
+    def __init__(self, series, ring):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = ~(1 - 2*z)
+            sage: g = f.change_ring(GF(3))
+            sage: g
+            1 + 2*z + z^2 + 2*z^3 + z^4 + 2*z^5 + z^6 + ...
+            sage: loads(dumps(g))
+            1 + 2*z + z^2 + 2*z^3 + z^4 + 2*z^5 + z^6 + ...
+        """
+        self._series = series
+        self._ring = ring
+
+    def __call__(self, s, n):
+        """
+        Return the `n`-th coefficient of the series ``s``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = ~(1 - 2*z)
+            sage: f
+            1 + 2*z + 4*z^2 + 8*z^3 + 16*z^4 + 32*z^5 + 64*z^6 + ...
+            sage: g = f.change_ring(GF(2))
+            sage: g.coefficient(3)
+            0
+            sage: g
+            1 + ...
+        """
+        return self._ring(self._series.coefficient(n))
+
+class LazyLaurentSeriesOperator_apply(LazyLaurentSeriesOperator):
+    """
+    Operator for applying a function.
+
+    INPUT:
+
+    - ``series`` -- a lazy Laurent series
+
+    - ``function`` -- a Python function to apply to each coefficient of the series
+
+    """
+    def __init__(self, series, function):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = ~(1 + z)
+            sage: g = f.apply_to_coefficients(abs)
+            sage: g
+            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
+            sage: loads(dumps(g))
+            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
+        """
+        self._series = series
+        self._function = function
+
+    def __call__(self, s, n):
+        """
+        Return the `n`-th coefficient of the series ``s``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = ~(1 + z)
+            sage: f
+            1 - z + z^2 - z^3 + z^4 - z^5 + z^6 + ...
+            sage: f.apply_to_coefficients(lambda c: c if c >= 0 else -c)
+            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
+        """
+        return self._function(self._series.coefficient(n))
+
+class LazyLaurentSeriesOperator_truncate(LazyLaurentSeriesOperator):
+    """
+    Operator for truncation.
+
+    INPUT:
+
+    - ``series`` -- a lazy Laurent series
+
+    - ``d`` -- an interger; the series is truncated the terms of degree `> d`
+
+    """
+    def __init__(self, series, d):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = ~(1 + z)
+            sage: g = f.truncate(4)
+            sage: loads(dumps(g)) == g
+            True
+        """
+        self._series = series
+        self._d = d
+        self._zero = series.base_ring().zero()
+
+    def __call__(self, s, n):
+        """
+        Return the `n`-th coefficient of the series ``s``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = ~(1 + z)
+            sage: f
+            1 - z + z^2 - z^3 + z^4 - z^5 + z^6 + ...
+            sage: f.truncate(4)
+            1 - z + z^2 - z^3 + z^4
+        """
+        if n <= self._d:
+            return self._series.coefficient(n)
+        else:
+            return self._zero
+
+class LazyLaurentSeriesOperator_gen(LazyLaurentSeriesOperator):
+    """
+    Operator for the generator element.
+
+    INPUT:
+
+    - ``ring`` -- a lazy Laurent series ring
+
+    """
+    def __init__(self, ring):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: loads(dumps(z)) == z
+            True
+        """
+        self._one = ring.base_ring().one()
+        self._zero = ring.base_ring().zero()
+
+    def __call__(self, s, n):
+        """
+        Return the `n`-th coefficient of the series ``s``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: L.gen()
+            z
+        """
+        return self._one if n == 1 else self._zero
+
+class LazyLaurentSeriesOperator_constant(LazyLaurentSeriesOperator):
+    """
+    Operator for the generator element.
+
+    INPUT:
+
+    - ``ring`` -- a lazy Laurent series ring
+
+    - ``constant`` -- a constant of the base ring of ``ring``
+
+    """
+    def __init__(self, ring, constant):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: f = L(10)
+            sage: loads(dumps(f)) == f
+            True
+        """
+        self._constant = constant
+        self._zero = ring.base_ring().zero()
+
+    def __call__(self, s, n):
+        """
+        Return the `n`-th coefficient of the series ``s``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: f = L(10); f
+            10
+            sage: f.coefficient(0)
+            10
+            sage: f.coefficient(1)
+            0
+        """
+        return self._constant if n == 0 else self._zero
+
+
 class LazyLaurentSeries(Element):
     r"""
     Return a lazy Laurent series.
@@ -116,6 +574,8 @@ class LazyLaurentSeries(Element):
         sage: L.series(lambda s, i: i, valuation=-3, constant=(-1,3))
         -3*z^-3 - 2*z^-2 - z^-1 + z + 2*z^2 - z^3 - z^4 - z^5 + ...
 
+    ::
+
         sage: def coeff(s, i):
         ....:     if i in [0, 1]:
         ....:         return 1
@@ -127,13 +587,21 @@ class LazyLaurentSeries(Element):
         sage: f.coefficient(100)
         573147844013817084101
 
-    Lazy Laurent series is not picklable in general::
+    Lazy Laurent series is picklable. Though the unpickled series is
+    mathematically equal to the original series, their equality cannot be
+    verified computationally in general::
 
-        sage: g = f + f
-        sage: loads(dumps(g))
+        sage: z = L.gen()
+        sage: f = 1/(1 - z - z^2)
+        sage: f
+        1 + z + 2*z^2 + 3*z^3 + 5*z^4 + 8*z^5 + 13*z^6 + ...
+        sage: g = loads(dumps(f))
+        sage: g
+        1 + z + 2*z^2 + 3*z^3 + 5*z^4 + 8*z^5 + 13*z^6 + ...
+        sage: g == f
         Traceback (most recent call last):
         ...
-        PicklingError: Can't pickle <type 'function'>: attribute lookup __builtin__.function failed
+        ValueError: undecidable as lazy Laurent series
     """
     def __init__(self, parent, coefficient=None, valuation=0, constant=None):
         """
@@ -388,11 +856,7 @@ class LazyLaurentSeries(Element):
 
         R = self.parent()
 
-        def mul(s, n):
-            c = self.base_ring().zero()
-            for k in range(self._approximate_valuation, n - other._approximate_valuation + 1):
-                c += self.coefficient(k) * other.coefficient(n-k)
-            return c
+        op = LazyLaurentSeriesOperator_mul(self, other)
 
         a = self._approximate_valuation + other._approximate_valuation
 
@@ -401,7 +865,7 @@ class LazyLaurentSeries(Element):
             if self._constant[0] == 0 and other._constant[0] == 0:
                 c = (self._constant[0], self._constant[1] + other._constant[1] - 1)
 
-        return R.element_class(R, coefficient=mul, valuation=a, constant=c)
+        return R.element_class(R, coefficient=op, valuation=a, constant=c)
 
     def _add_(self, other):
         """
@@ -423,8 +887,7 @@ class LazyLaurentSeries(Element):
         """
         R = self.parent()
 
-        def add(s, n):
-            return self.coefficient(n) + other.coefficient(n)
+        op = LazyLaurentSeriesOperator_add(self, other)
 
         a = min(self._approximate_valuation, other._approximate_valuation)
 
@@ -434,7 +897,7 @@ class LazyLaurentSeries(Element):
         else:
             c = None
 
-        return R.element_class(R, coefficient=add, valuation=a, constant=c)
+        return R.element_class(R, coefficient=op, valuation=a, constant=c)
 
     def _sub_(self, other):
         """
@@ -454,8 +917,7 @@ class LazyLaurentSeries(Element):
         """
         R = self.parent()
 
-        def sub(s, n):
-            return self.coefficient(n) - other.coefficient(n)
+        op = LazyLaurentSeriesOperator_sub(self, other)
 
         a = min(self._approximate_valuation, other._approximate_valuation)
 
@@ -465,7 +927,7 @@ class LazyLaurentSeries(Element):
         else:
             c = None
 
-        return R.element_class(R, coefficient=sub, valuation=a, constant=c)
+        return R.element_class(R, coefficient=op, valuation=a, constant=c)
 
     def _neg_(self):
         """
@@ -481,8 +943,7 @@ class LazyLaurentSeries(Element):
         """
         R = self.parent()
 
-        def neg(s, i):
-            return -self.coefficient(i)
+        op = LazyLaurentSeriesOperator_neg(self)
 
         a = self._approximate_valuation
 
@@ -491,7 +952,7 @@ class LazyLaurentSeries(Element):
         else:
             c = None
 
-        return R.element_class(R, coefficient=neg, valuation=a, constant=c)
+        return R.element_class(R, coefficient=op, valuation=a, constant=c)
 
     def __invert__(self):
         """
@@ -512,18 +973,9 @@ class LazyLaurentSeries(Element):
 
         R = self.parent()
 
-        a0 = self.coefficient(v)
-        zero = self.base_ring().zero()
+        op = LazyLaurentSeriesOperator_inv(self)
 
-        def inv(s, n):
-            if n == -v:
-                return ~a0
-            c = zero
-            for k in range(-v, n):
-                c += s.coefficient(k) * self.coefficient(n + v - k)
-            return -c / a0
-
-        return R.element_class(R, coefficient=inv, valuation=-v, constant=None)
+        return R.element_class(R, coefficient=op, valuation=-v, constant=None)
 
     def __pow__(self, n):
         """
@@ -586,8 +1038,7 @@ class LazyLaurentSeries(Element):
         """
         R = self.parent()
 
-        def apply_map(s, n):
-            return function(self.coefficient(n))
+        op = LazyLaurentSeriesOperator_apply(self, function)
 
         a = self._approximate_valuation
 
@@ -596,7 +1047,7 @@ class LazyLaurentSeries(Element):
         else:
             c = None
 
-        return R.element_class(R, coefficient=apply_map, valuation=a, constant=c)
+        return R.element_class(R, coefficient=op, valuation=a, constant=c)
 
     def change_ring(self, ring):
         """
@@ -618,8 +1069,7 @@ class LazyLaurentSeries(Element):
         """
         R = self.parent()
 
-        def change(s, n):
-            return ring(self.coefficient(n))
+        op = LazyLaurentSeriesOperator_change_ring(self, ring)
 
         a = self._approximate_valuation
 
@@ -630,7 +1080,7 @@ class LazyLaurentSeries(Element):
 
         from .lazy_laurent_series_ring import LazyLaurentSeriesRing
         Q = LazyLaurentSeriesRing(ring, names=R.variable_name())
-        return Q.element_class(Q, coefficient=change, valuation=a, constant=c)
+        return Q.element_class(Q, coefficient=op, valuation=a, constant=c)
 
     def truncate(self, d):
         """
@@ -655,13 +1105,9 @@ class LazyLaurentSeries(Element):
             z^6 + z^7 + z^8 + z^9 + z^10 + z^11 + z^12 + ...
         """
         R = self.parent()
-        zero = self.base_ring().zero()
 
-        def trunc(s, n):
-            if n <= d:
-                return self.coefficient(n)
-            else:
-                return zero
+        op = LazyLaurentSeriesOperator_truncate(self, d)
+        a = self._approximate_valuation
+        c = (self.base_ring().zero(), d + 1)
 
-        return R.element_class(R, coefficient=trunc, valuation=self._approximate_valuation,
-                               constant=(zero, d+1))
+        return R.element_class(R, coefficient=op, valuation=a, constant=c)

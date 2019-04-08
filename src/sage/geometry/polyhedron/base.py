@@ -500,6 +500,7 @@ class Polyhedron_base(Element):
             elif base_ring is not RDF:
                 raise ValueError("the only allowed inexact ring is 'RDF' with backend 'cdd'")
 
+        x = None
         try:
             vertices = [[base_ring(x) for x in vertex] for vertex in self.vertices_list()]
             rays = [[base_ring(x) for x in ray] for ray in self.rays_list()]
@@ -4000,6 +4001,131 @@ class Polyhedron_base(Element):
         return Polyhedron(vertices=self.vertices() + (new_vertex,),
                           rays=self.rays(),
                           lines=self.lines())
+
+    def lawrence_extension(self, v):
+        """
+        Return the Lawrence extension of ``self`` on the point ``v``.
+
+        Let `P` be a polytope and `v` be a vertex of `P` or a point outside
+        `P`. The Lawrence extension of `P` on `v` is the convex hull of
+        `(v,1),(v,2)` and `(u,0)` for all vertices `u` in `P` other than `v`
+        if `v` is a vertex.
+
+        INPUT:
+            - ``v`` -- a vertex of ``self`` or a point outside it
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: P.lawrence_extension(P.vertices()[0])
+            A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 9 vertices
+            sage: P.lawrence_extension([-1,-1,-1])
+            A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 9 vertices
+
+        REFERENCES:
+
+            For more information, see Section 6.6 of [Zie2007]_.
+        """
+        if not self.is_compact():
+            raise NotImplementedError("self must be a polytope")
+
+        V = self.vertices_list()
+        v = list(v)
+
+        if self.contains(v) and (v not in V):
+            raise ValueError("{} must not be a vertex or outside self".format(v))
+
+        lambda_V = [u + [0] for u in V if u != v] + [v+[1]] + [v+[2]]
+        return Polyhedron(lambda_V)
+
+
+    def lawrence_polytope(self):
+        r"""
+        Return the Lawrence polytope of ``self``.
+
+        Let `P` be a `d`-polytope in `\RR^r` with `n` vertices. The Lawrence
+        polytope of `P` is the polytope whose vertices are the columns of the
+        following `(r+n)`-by-`2n` matrix.
+
+        .. MATH::
+
+            \begin{pmatrix}
+             V      &   V    \\
+             I_n    &   2I_n
+            \end{pmatrix},
+
+        where `V` is the `r`-by-`n` vertices matrix of `P`.
+
+        EXAMPLES::
+
+            sage: P = polytopes.octahedron()
+            sage: L = P.lawrence_polytope(); L
+            A 9-dimensional polyhedron in ZZ^9 defined as the convex hull of 12 vertices
+            sage: V = P.vertices_list()
+            sage: i = 0
+            sage: for v in V:
+            ....:     v = v + i*[0]
+            ....:     P = P.lawrence_extension(v)
+            ....:     i = i + 1
+            sage: P == L
+            True
+
+        REFERENCES:
+
+            For more information, see Section 6.6 of [Zie2007]_.
+        """
+        from sage.matrix.constructor import block_matrix
+
+        if not self.is_compact():
+            raise NotImplementedError("self must be a polytope")
+
+        V = self.vertices_matrix().transpose()
+        n = self.n_vertices()
+        I_n = matrix.identity(n)
+        lambda_V = block_matrix([[V, I_n], [V, 2*I_n]])
+        return Polyhedron(lambda_V)
+
+    def is_lawrence_polytope(self):
+        """
+        Return ``True`` if ``self`` is a Lawrence polytope.
+
+        A polytope is called a Lawrence polytope if it has a centrally
+        symmetric (normalized) Gale diagram.
+
+        EXAMPLES::
+
+            sage: P = polytopes.hypersimplex(5,2)
+            sage: L = P.lawrence_polytope()
+            sage: L.is_lattice_polytope()
+            True
+            sage: egyptian_pyramid = polytopes.regular_polygon(4).pyramid()
+            sage: egyptian_pyramid.is_lawrence_polytope()
+            True
+            sage: polytopes.octahedron().is_lawrence_polytope()
+            False
+
+        REFERENCES:
+
+            For more information, see [BaSt1990]_.
+        """
+        if not self.is_compact():
+            raise NotImplementedError("self must be a polytope")
+
+        n = self.n_vertices()
+        vertices = list(range(n))
+        facets = self.incidence_matrix().columns()
+
+        for facet in facets:
+            facet_vertices = facet.nonzero_positions()
+            if len(facet_vertices) == n-1 or len(facet_vertices) == n-2:
+                facet_non_vertices = [i for i in range(n) if i not in facet_vertices]
+                if all([vertex in vertices for vertex in facet_non_vertices]):
+                    for vertex in facet_non_vertices:
+                        vertices.remove(vertex)
+        if vertices == []:
+            return True
+        else:
+            return False
 
     def barycentric_subdivision(self, subdivision_frac=None):
         r"""

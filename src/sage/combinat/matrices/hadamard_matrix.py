@@ -772,64 +772,59 @@ def _helper_payley_matrix(n, zero_position=True):
 
         sage: from sage.combinat.matrices.hadamard_matrix import _helper_payley_matrix
         sage: _helper_payley_matrix(5)
-        [ 0  1 -1 -1  1]
-        [ 1  0  1 -1 -1]
-        [-1  1  0  1 -1]
-        [-1 -1  1  0  1]
-        [ 1 -1 -1  1  0]
+        [ 0  1  1 -1 -1]
+        [ 1  0 -1  1 -1]
+        [ 1 -1  0 -1  1]
+        [-1  1 -1  0  1]
+        [-1 -1  1  1  0]
 
     TESTS::
 
         sage: _helper_payley_matrix(11,zero_position=True)
-        [ 0 -1  1 -1 -1 -1  1  1  1 -1  1]
-        [ 1  0 -1 -1  1 -1  1 -1  1  1 -1]
-        [-1  1  0  1 -1 -1 -1 -1  1  1  1]
-        [ 1  1 -1  0  1 -1 -1  1 -1 -1  1]
-        [ 1 -1  1 -1  0  1 -1 -1 -1  1  1]
-        [ 1  1  1  1 -1  0  1 -1 -1 -1 -1]
-        [-1 -1  1  1  1 -1  0  1 -1  1 -1]
-        [-1  1  1 -1  1  1 -1  0  1 -1 -1]
-        [-1 -1 -1  1  1  1  1 -1  0 -1  1]
-        [ 1 -1 -1  1 -1  1 -1  1  1  0 -1]
-        [-1  1 -1 -1 -1  1  1  1 -1  1  0]
+        [ 0 -1  1 -1 -1  1 -1  1  1  1 -1]
+        [ 1  0 -1  1 -1 -1 -1 -1  1  1  1]
+        [-1  1  0 -1  1  1 -1 -1 -1  1  1]
+        [ 1 -1  1  0 -1  1  1 -1 -1 -1  1]
+        [ 1  1 -1  1  0  1 -1  1 -1 -1 -1]
+        [-1  1 -1 -1 -1  0  1  1  1 -1  1]
+        [ 1  1  1 -1  1 -1  0 -1  1 -1 -1]
+        [-1  1  1  1 -1 -1  1  0 -1  1 -1]
+        [-1 -1  1  1  1 -1 -1  1  0 -1  1]
+        [-1 -1 -1  1  1  1  1 -1  1  0 -1]
+        [ 1 -1 -1 -1  1 -1  1  1 -1  1  0]
         sage: _helper_payley_matrix(11,zero_position=False)
-        [ 0  1  1  1  1 -1  1 -1 -1 -1 -1]
-        [-1  0 -1  1 -1 -1  1  1  1 -1  1]
-        [-1  1  0 -1 -1  1  1 -1  1  1 -1]
-        [-1 -1  1  0  1 -1 -1 -1  1  1  1]
-        [-1  1  1 -1  0  1 -1  1 -1 -1  1]
-        [ 1  1 -1  1 -1  0 -1 -1 -1  1  1]
-        [-1 -1 -1  1  1  1  0  1 -1  1 -1]
-        [ 1 -1  1  1 -1  1 -1  0  1 -1 -1]
-        [ 1 -1 -1 -1  1  1  1 -1  0 -1  1]
-        [ 1  1 -1 -1  1 -1 -1  1  1  0 -1]
-        [ 1 -1  1 -1 -1 -1  1  1 -1  1  0]
+        [ 0 -1  1 -1 -1 -1  1  1  1 -1  1]
+        [ 1  0 -1  1 -1 -1 -1  1  1  1 -1]
+        [-1  1  0 -1  1 -1 -1 -1  1  1  1]
+        [ 1 -1  1  0 -1  1 -1 -1 -1  1  1]
+        [ 1  1 -1  1  0 -1  1 -1 -1 -1  1]
+        [ 1  1  1 -1  1  0 -1  1 -1 -1 -1]
+        [-1  1  1  1 -1  1  0 -1  1 -1 -1]
+        [-1 -1  1  1  1 -1  1  0 -1  1 -1]
+        [-1 -1 -1  1  1  1 -1  1  0 -1  1]
+        [ 1 -1 -1 -1  1  1  1 -1  1  0 -1]
+        [-1  1 -1 -1 -1  1  1  1 -1  1  0]
     """
-    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
-    K = GF(n,prefix='x')
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
+    K = FiniteField(n, prefix='x')
 
     # Order the elements of K in K_list
-    # so that K_list[i] = -K_list[n-i-1]
-    K_pairs = set(frozenset([x,-x]) for x in K)
-    K_pairs.discard(frozenset([0]))
-    K_list = [None]*n
-    if zero_position:
-        zero_position=n//2
-        shift=0
-    else:
-        shift=1
+    # so that K_list[i] = -K_list[n - i - 1]
+    K_pairs = set(tuple(sorted([x, -x])) for x in K if x)
+    K_list = [K.zero()] * n
+    shift = 0 if zero_position else 1
 
-    for i,(x,y) in enumerate(K_pairs):
-        K_list[i+shift]   = x
-        K_list[-i-1] = y
-    K_list[zero_position] = K(0)
-    M = matrix(n,[[2*((x-y).is_square())-1
-                   for x in K_list]
-                  for y in K_list])
-    M = M-I(n)
-    assert (M*J(n)).is_zero()
-    assert (M*M.transpose()) == n*I(n)-J(n)
+    for i, (x, y) in enumerate(sorted(K_pairs)):
+        K_list[i + shift] = x
+        K_list[-i - 1] = y
+
+    M = matrix(ZZ, n, n, [(1 if (x - y).is_square() else -1)
+                          for x in K_list for y in K_list])
+    M -= I(n)
+    assert (M * J(n)).is_zero()
+    assert M * M.transpose() == n * I(n) - J(n)
     return M
+
 
 def rshcd_from_close_prime_powers(n):
     r"""
@@ -855,25 +850,25 @@ def rshcd_from_close_prime_powers(n):
         sage: from sage.combinat.matrices.hadamard_matrix import rshcd_from_close_prime_powers
         sage: rshcd_from_close_prime_powers(4)
         [-1 -1  1 -1  1 -1 -1  1 -1  1 -1 -1  1 -1  1 -1]
-        [-1 -1  1  1 -1 -1 -1 -1 -1  1  1 -1 -1  1 -1  1]
-        [ 1  1 -1  1  1 -1 -1 -1 -1 -1  1 -1 -1 -1  1 -1]
+        [-1 -1 -1  1  1 -1 -1  1 -1 -1  1 -1 -1  1 -1  1]
+        [ 1 -1 -1  1  1  1  1 -1 -1 -1 -1 -1 -1 -1  1 -1]
         [-1  1  1 -1  1  1 -1 -1 -1 -1 -1  1 -1 -1 -1  1]
-        [ 1 -1  1  1 -1  1  1 -1 -1 -1 -1 -1  1 -1 -1 -1]
-        [-1 -1 -1  1  1 -1  1  1 -1 -1 -1  1 -1  1 -1 -1]
-        [-1 -1 -1 -1  1  1 -1 -1  1 -1  1 -1  1  1 -1 -1]
-        [ 1 -1 -1 -1 -1  1 -1 -1 -1  1 -1  1 -1  1  1 -1]
+        [ 1  1  1  1 -1 -1 -1 -1 -1 -1  1 -1  1 -1 -1 -1]
+        [-1 -1  1  1 -1 -1  1 -1 -1  1 -1  1 -1  1 -1 -1]
+        [-1 -1  1 -1 -1  1 -1 -1  1 -1  1 -1 -1  1  1 -1]
+        [ 1  1 -1 -1 -1 -1 -1 -1 -1  1 -1 -1 -1  1  1  1]
         [-1 -1 -1 -1 -1 -1  1 -1 -1 -1  1  1  1 -1  1  1]
-        [ 1  1 -1 -1 -1 -1 -1  1 -1 -1 -1 -1  1  1 -1  1]
-        [-1  1  1 -1 -1 -1  1 -1  1 -1 -1 -1 -1  1  1 -1]
-        [-1 -1 -1  1 -1  1 -1  1  1 -1 -1 -1 -1 -1  1  1]
-        [ 1 -1 -1 -1  1 -1  1 -1  1  1 -1 -1 -1 -1 -1  1]
+        [ 1 -1 -1 -1 -1  1 -1  1 -1 -1 -1  1  1  1 -1 -1]
+        [-1  1 -1 -1  1 -1  1 -1  1 -1 -1 -1  1  1 -1 -1]
+        [-1 -1 -1  1 -1  1 -1 -1  1  1 -1 -1  1 -1 -1  1]
+        [ 1 -1 -1 -1  1 -1 -1 -1  1  1  1  1 -1 -1 -1 -1]
         [-1  1 -1 -1 -1  1  1  1 -1  1  1 -1 -1 -1 -1 -1]
-        [ 1 -1  1 -1 -1 -1 -1  1  1 -1  1  1 -1 -1 -1 -1]
-        [-1  1 -1  1 -1 -1 -1 -1  1  1 -1  1  1 -1 -1 -1]
+        [ 1 -1  1 -1 -1 -1  1  1  1 -1 -1 -1 -1 -1 -1  1]
+        [-1  1 -1  1 -1 -1 -1  1  1 -1 -1  1 -1 -1  1 -1]
 
     REFERENCE:
 
-    .. [SWW72] A Street, W. Wallis, J. Wallis,
+    .. [SWW72] \A. Street, W. Wallis, J. Wallis,
       Combinatorics: Room squares, sum-free sets, Hadamard matrices.
       Lecture notes in Mathematics 292 (1972).
     """
@@ -896,6 +891,7 @@ def rshcd_from_close_prime_powers(n):
     assert len(set(map(sum,HH))) == 1
     assert HH**2 == n**2*I(n**2)
     return HH
+
 
 def williamson_goethals_seidel_skew_hadamard_matrix(a, b, c, d, check=True):
     r"""

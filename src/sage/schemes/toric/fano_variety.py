@@ -1445,7 +1445,7 @@ class AnticanonicalHypersurface(AlgebraicScheme_subscheme_toric):
         else:
             variables = set()
             nonstr = []
-            regex = re.compile("[_A-Za-z]\w*")
+            regex = re.compile(r"[_A-Za-z]\w*")
             for c in coefficients:
                 if isinstance(c, str):
                     variables.update(regex.findall(c))
@@ -1575,7 +1575,7 @@ class NefCompleteIntersection(AlgebraicScheme_subscheme_toric):
             else:
                 variables = set()
                 nonstr = []
-                regex = re.compile("[_A-Za-z]\w*")
+                regex = re.compile(r"[_A-Za-z]\w*")
                 for c in coefficients[i]:
                     if isinstance(c, str):
                         variables.update(regex.findall(c))

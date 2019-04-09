@@ -46,15 +46,15 @@ AUTHORS:
 - Paolo Menegatti (2018-03): Added IntegralLatticeDirectSum, IntegralLatticeGluing
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2017 Simon Brandhorst <sbrandhorst@web.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from copy import copy
 from sage.rings.integer_ring import ZZ
@@ -379,7 +379,6 @@ def IntegralLatticeDirectSum(Lattices, return_embeddings=False):
     N = len(Lattices)
     dims = [L_i.dimension() for L_i in Lattices]
     degrees = [L_i.degree() for L_i in Lattices]
-    dim_tot = sum(dims)
     degree_tot = sum(degrees)
     sum_degree = [sum(degrees[:i]) for i in range(N+1)]
     inner_product_list = [copy(L_i.inner_product_matrix()) for L_i in Lattices]
@@ -632,11 +631,9 @@ def IntegralLatticeGluing(Lattices, glue, return_embeddings=False):
     for i in range(N):
         ALi = Lattices[i].discriminant_group()
         for g in glue:
-            try:
-                x = ALi(g[i])
-            except:
-                raise ValueError("the gluing vectors must be in the"
-                                 "corresponding discriminant groups")
+            # Check that the gluing vectors are in the
+            # corresponding discriminant groups
+            ALi(g[i])
     generators = [sum(phi[i](g[i].lift()*g[i].order())/g[i].order()
                       for i in range(N))
                   for g in glue]
@@ -1113,7 +1110,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             sage: conj = Aut.conjugacy_classes_representatives()
             sage: len(conj)
             14
-            sage: Aut.structure_description()   # optional - database_gap
+            sage: Aut.structure_description()
             'C2 x S5'
 
         The lattice can live in a larger ambient space::
@@ -1220,6 +1217,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             Genus of
             [0 1]
             [1 0]
+            Signature:  (1, 1)
             Genus symbol at 2:    1^2
         """
         from sage.quadratic_forms.genera.genus import Genus
@@ -1346,9 +1344,9 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         """
         try:
             s = self.base_ring()(s)
-        except:
-            ValueError("the scaling factor must be an element of the base ring.")
-        if (s==0):
+        except TypeError:
+            raise ValueError("the scaling factor must be an element of the base ring.")
+        if s==0:
             raise ValueError("the scaling factor must be non zero")
         if discard_basis:
             return IntegralLattice(s * self.gram_matrix())
@@ -1357,4 +1355,3 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             inner_product_matrix = s * self.inner_product_matrix()
             ambient = FreeQuadraticModule(self.base_ring(), n, inner_product_matrix)
             return FreeQuadraticModule_integer_symmetric(ambient=ambient, basis=self.basis(), inner_product_matrix=inner_product_matrix)
-

@@ -1495,7 +1495,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             4 e^0/\e^1 + 5 e^1/\e^2
 
         """
-        from .comp import CompWithSym, CompFullySym, CompFullyAntiSym
+        from .comp import CompWithSym, CompFullyAntiSym
         #
         # 0/ Compatibility checks:
         if comp._ring is not self._ring:

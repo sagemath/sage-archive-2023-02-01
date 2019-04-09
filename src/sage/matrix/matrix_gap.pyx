@@ -1,15 +1,15 @@
 r"""
 Wrappers on GAP matrices
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2017 Vincent Delecroix <20100.delecroix@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from __future__ import print_function, absolute_import
 
@@ -79,8 +79,8 @@ cdef class Matrix_gap(Matrix_dense):
 
         - ``copy`` -- ignored (for backwards compatibility)
 
-        - ``coerce`` -- if True (the default), convert elements to the
-          base ring before passing them to GAP. If False, pass the
+        - ``coerce`` -- if ``True`` (the default), convert elements to the
+          base ring before passing them to GAP. If ``False``, pass the
           elements to GAP as given.
 
         TESTS::
@@ -110,14 +110,13 @@ cdef class Matrix_gap(Matrix_dense):
             Traceback (most recent call last):
             ...
             TypeError: nonzero scalar matrix must be square
-            sage: MatrixSpace(QQ, 1, 2)(0)
+            sage: MatrixSpace(QQ, 1, 2, implementation='gap')(0)
             [0 0]
-            sage: MatrixSpace(QQ, 2, 1)(0)
+            sage: MatrixSpace(QQ, 2, 1, implementation='gap')(0)
             [0]
             [0]
         """
         ma = MatrixArgs_init(parent, entries)
-        Matrix_dense.__init__(self, ma.space)
         it = ma.iter(coerce)
         cdef list mat = []
         cdef long i, j
@@ -132,9 +131,7 @@ cdef class Matrix_gap(Matrix_dense):
         else:
             P = self.matrix_space(nrows, ncols)
 
-        cdef Matrix_gap M = Matrix_gap.__new__(Matrix_gap, P, None, None, None)
-        Matrix_dense.__init__(M, P)
-        return M
+        return Matrix_gap.__new__(Matrix_gap, P)
 
     def __copy__(self):
         r"""
@@ -273,7 +270,7 @@ cdef class Matrix_gap(Matrix_dense):
         r"""
         TESTS::
 
-            sage: M = MatrixSpace(QQ, 2)
+            sage: M = MatrixSpace(QQ, 2, implementation='gap')
             sage: ~M([4,2,2,2])
             [ 1/2 -1/2]
             [-1/2    1]
@@ -285,7 +282,6 @@ cdef class Matrix_gap(Matrix_dense):
             return M
         else:
             return Matrix_dense.__invert__(self)
-
 
     cpdef _add_(left, right):
         r"""
@@ -330,6 +326,28 @@ cdef class Matrix_gap(Matrix_dense):
         M._libgap = <Matrix_gap> ((<Matrix_gap> left)._libgap * (<Matrix_gap> right)._libgap)
         return M
 
+    def transpose(self):
+        r"""
+        Return the transpose of this matrix.
+        
+        EXAMPLES::
+
+            sage: M = MatrixSpace(QQ, 2, implementation='gap')
+            sage: M([4,2,23,52]).transpose()
+            [ 4 23]
+            [ 2 52]
+
+            sage: M = MatrixSpace(QQ, 1, 3, implementation='gap')
+            sage: M([4,2,52]).transpose()
+            [ 4]
+            [ 2]
+            [52]
+        """
+        cdef Matrix_gap M
+        M = self._new(self._ncols, self._nrows)
+        M._libgap = self._libgap.TransposedMat()
+        return M
+
     def determinant(self):
         r"""
         Return the determinant of this matrix.
@@ -356,7 +374,7 @@ cdef class Matrix_gap(Matrix_dense):
             sage: parent(M(1).determinant())
             Universal Cyclotomic Field
         """
-        return self._base_ring(self._libgap.Determinant())
+        return self._base_ring(self._libgap.DeterminantMat())
 
     def trace(self):
         r"""
@@ -384,7 +402,7 @@ cdef class Matrix_gap(Matrix_dense):
             sage: parent(M(1).trace())
             Universal Cyclotomic Field
         """
-        return self._base_ring(self._libgap.Trace())
+        return self._base_ring(self._libgap.TraceMat())
 
     def rank(self):
         r"""
@@ -398,4 +416,18 @@ cdef class Matrix_gap(Matrix_dense):
             sage: M([2, 1, 4, 2]).rank()
             1
         """
-        return int(self._libgap.Rank())
+        return int(self._libgap.RankMat())
+
+    def elementary_divisors(self):
+        """
+        Return the list of elementary divisors of this matrix.
+
+        EXAMPLES::
+
+            sage: M = MatrixSpace(ZZ, 5, implementation='gap')
+            sage: T = M([(i+1)**(j+1) for i in range(5) for j in range(5)])
+            sage: T.elementary_divisors()
+            [1, 2, 6, 24, 120]
+        """
+        return [self._base_ring(u)
+                for u in self._libgap.ElementaryDivisorsMat()]

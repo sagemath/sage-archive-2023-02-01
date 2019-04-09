@@ -58,7 +58,7 @@ import sys
 import subprocess
 
 from sage.env import DOT_SAGE
-COMMANDS_CACHE = '%s/maxima_commandlist_cache.sobj'%DOT_SAGE
+COMMANDS_CACHE = '%s/maxima_commandlist_cache.sobj' % DOT_SAGE
 
 from sage.cpython.string import bytes_to_str
 
@@ -68,7 +68,7 @@ from sage.structure.richcmp import richcmp, rich_to_bool
 import sage.server.support
 
 from .interface import (Interface, InterfaceElement, InterfaceFunctionElement,
-  InterfaceFunction, AsciiArtString)
+                        InterfaceFunction, AsciiArtString)
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.docs.instancedoc import instancedoc
 
@@ -986,7 +986,7 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
         if n < 1:
             raise ValueError("n (=%s) must be >= 1" % n)
         s = repr(self('qunit(%s)' % n)).lower()
-        r = re.compile('sqrt\(.*\)')
+        r = re.compile(r'sqrt\(.*\)')
         a = QuadraticField(n, 'a').gen()
         s = r.sub('a', s)
         return eval(s)
@@ -2028,10 +2028,8 @@ class MaximaAbstractElementFunction(MaximaAbstractElement):
         return self.definition()
 
     def _latex_(self):
-        """
+        r"""
         Return latex representation of this Maxima function.
-
-        INPUT: none
 
         OUTPUT: string
 
@@ -2042,7 +2040,7 @@ class MaximaAbstractElementFunction(MaximaAbstractElement):
             \mathrm{sin(x+y)}
         """
         if self.__latex is None:
-            return r'\mathrm{%s}'%self.__defn
+            return r'\mathrm{%s}' % self.__defn
         else:
             return self.__latex
 
@@ -2155,17 +2153,17 @@ class MaximaAbstractElementFunction(MaximaAbstractElement):
         """
         P = self._check_valid()
         if isinstance(f, P._object_function_class()):
-            tmp = list(sorted(set(self.arguments() + f.arguments())))
+            tmp = sorted(set(self.arguments() + f.arguments()))
             args = ','.join(tmp)
-            defn = "(%s)%s(%s)"%(self.definition(), operation, f.definition())
+            defn = "(%s)%s(%s)" % (self.definition(), operation, f.definition())
         elif f is None:
             args = self.arguments(split=False)
-            defn = "%s(%s)"%(operation, self.definition())
+            defn = "%s(%s)" % (operation, self.definition())
         else:
             args = self.arguments(split=False)
-            defn = "(%s)%s(%s)"%(self.definition(), operation, repr(f))
+            defn = "(%s)%s(%s)" % (self.definition(), operation, repr(f))
 
-        return P.function(args,P.eval(defn))
+        return P.function(args, P.eval(defn))
 
 
 def reduce_load_MaximaAbstract_function(parent, defn, args, latex):

@@ -931,7 +931,6 @@ class VectorSpaceMorphism(free_module_morphism.FreeModuleMorphism):
             '}\n\\left(\\begin{array}{rr}\n0', '&', '1',
             '\\\\\n2', '&', '3', '\\\\\n4', '&', '5\n\\end{array}\\right)']
         """
-        from sage.misc.latex import latex
         s = ('\\text{vector space morphism from }\n', self.domain()._latex_(),
              '\\text{ to }\n', self.codomain()._latex_(),
              '\\text{ represented by the matrix }\n', self.matrix()._latex_())

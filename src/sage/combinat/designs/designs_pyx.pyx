@@ -243,7 +243,7 @@ def is_group_divisible_design(groups,blocks,v,G=None,K=None,lambd=1,verbose=Fals
                     print("a block has size {} while K={}".format(len(b),list(K)))
                 return False
 
-    # Check that "groups" consists of disjoints sets whose union has length n
+    # Check that "groups" consists of disjoint sets whose union has length n
     if (groups is not None and
         (sum(len(g) for g in groups) != n or
          len(set().union(*groups)) != n)):

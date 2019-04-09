@@ -475,7 +475,6 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         point = list(point)
         self._check_satisfies_equations(point)
         PP = self.ambient_space()
-        n = PP.dimension()
         fan = PP.fan()
         cone_idx = self._best_affine_patch(point)
         cone = fan.generating_cone(cone_idx)
@@ -484,7 +483,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         R = patch_cover.coordinate_ring()
         phi = []
         point_preimage = []
-        for i in range(0,fan.nrays()):
+        for i in range(fan.nrays()):
             try:
                 ray_index = cone.ambient_ray_indices().index(i)
                 phi.append(R.gen(ray_index))

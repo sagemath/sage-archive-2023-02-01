@@ -12,13 +12,12 @@ Cell Modules
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.all import ModulesWithBasis
 from sage.structure.element import Element
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.data_structures.blas_dict import linear_combination
 from sage.modules.with_basis.subquotient import QuotientModuleWithBasis
-from sage.sets.family import Family
+
 
 class CellModule(CombinatorialFreeModule):
     r"""
@@ -265,7 +264,7 @@ class CellModule(CombinatorialFreeModule):
         return tuple([self.from_vector(v) for v in mat.left_kernel().basis()])
 
     def radical(self):
-        """
+        r"""
         Return the radical of ``self``.
 
         Let `W(\lambda)` denote a cell module. The *radical* of `W(\lambda)`
@@ -288,7 +287,6 @@ class CellModule(CombinatorialFreeModule):
             sage: R.basis()
             Finite family {}
         """
-        from sage.modules.with_basis.subquotient import SubmoduleWithBasis
         radical = self.submodule(self.radical_basis(),
                                 category=self.category().Subobjects(),
                                 already_echelonized=True)
@@ -377,8 +375,9 @@ class CellModule(CombinatorialFreeModule):
         _lmul_ = _acted_upon_
         _rmul_ = _acted_upon_
 
+
 class SimpleModule(QuotientModuleWithBasis):
-    """
+    r"""
     A simple module of a cellular algebra.
 
     Let `W(\lambda)` denote a cell module. The simple module `L(\lambda)`

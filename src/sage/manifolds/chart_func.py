@@ -1427,7 +1427,7 @@ class ChartFunction(AlgebraElement):
 
             sage: X.set_calculus_method('sympy')
             sage: f = X.function(x+y)
-            sage: f.exp();
+            sage: f.exp()
             exp(x + y)
             sage: exp(f) # equivalent to f.exp()
             exp(x + y)
@@ -2807,8 +2807,8 @@ class MultiCoordFunction(SageObject):
             return False
         if other._nf != self._nf:
             return False
-        return all([other._functions[i] == self._functions[i]
-                    for i in range(self._nf)])
+        return all(other._functions[i] == self._functions[i]
+                   for i in range(self._nf))
 
     def __ne__(self, other):
         r"""

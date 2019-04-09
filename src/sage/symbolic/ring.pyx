@@ -2,7 +2,7 @@
 The symbolic ring
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
 #       Copyright (C) 2008 Burcin Erocal <burcin@erocal.org>
 #
@@ -10,8 +10,8 @@ The symbolic ring
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import
 
 from sage.ext.cplusplus cimport ccrepr
@@ -24,7 +24,7 @@ from sage.rings.real_mpfr cimport RealNumber
 from sage.symbolic.expression cimport Expression, new_Expression_from_GEx, new_Expression_from_pyobject, is_Expression
 
 from sage.misc.latex import latex_variable_name
-from sage.cpython.string cimport str_to_bytes, char_to_str
+from sage.cpython.string cimport str_to_bytes, bytes_to_str, char_to_str
 from sage.structure.element cimport RingElement, Element, Matrix
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
@@ -32,7 +32,8 @@ from sage.structure.coerce cimport is_numpy_type
 from sage.rings.all import RR, CC, ZZ
 
 import operator
-
+import parser
+    
 cdef class SymbolicRing(CommutativeRing):
     """
     Symbolic Ring, parent object for all symbolic expressions.
@@ -305,7 +306,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: r^(1/2)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert R Interpreter to a symbolic expression
+            TypeError: unsupported operand type(s) for ** or pow(): 'R' and 'sage.rings.rational.Rational'
 
         Check that :trac:`22068` is fixed::
 
@@ -344,7 +345,8 @@ cdef class SymbolicRing(CommutativeRing):
                 return self(symbolic_expression_from_string(x))
             except SyntaxError as err:
                 msg, s, pos = err.args
-                raise TypeError("%s: %s !!! %s" % (msg, s[:pos], s[pos:]))
+                raise TypeError("%s: %s !!! %s" %
+                        (msg, bytes_to_str(s[:pos]), bytes_to_str(s[pos:])))
 
         from sage.rings.infinity import (infinity, minus_infinity,
                                          unsigned_infinity)
@@ -1072,7 +1074,20 @@ cdef class SymbolicRing(CommutativeRing):
         from .subring import SymbolicSubring
         return SymbolicSubring(*args, **kwds)
 
+    def _fricas_init_(self):
+        """
+        Return a FriCAS representation of ``self``.
+
+        EXAMPLES::
+
+            sage: fricas(SR)          # indirect doctest, optional - fricas
+            Expression(Integer)
+        """
+        return 'Expression Integer'
+
+
 SR = SymbolicRing()
+
 
 cdef unsigned sage_domain_to_ginac_domain(object domain) except? 3474701533:
     """
@@ -1135,7 +1150,7 @@ cdef class NumpyToSRMorphism(Morphism):
         sage: cos(numpy.int('2'))
         cos(2)
         sage: numpy.cos(numpy.int('2'))
-        -0.41614683654714241
+        -0.4161468365471424
     """
     cdef _intermediate_ring
 
@@ -1219,7 +1234,7 @@ cdef class UnderscoreSageMorphism(Morphism):
             Symbolic Ring
         """
         import sage.categories.homset
-        from sage.structure.parent import Set_PythonType
+        from sage.sets.pythonclass import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(t), R))
 
     cpdef Element _call_(self, a):
@@ -1317,6 +1332,7 @@ def is_SymbolicVariable(x):
     """
     return is_Expression(x) and is_a_symbol((<Expression>x)._gobj)
 
+
 def isidentifier(x):
     """
     Return whether ``x`` is a valid identifier.
@@ -1326,7 +1342,7 @@ def isidentifier(x):
 
     INPUT:
 
-    - ``x`` -- a string.
+    - ``x`` -- a string
 
     OUTPUT:
 
@@ -1349,10 +1365,15 @@ def isidentifier(x):
         True
         sage: isidentifier('lambda s:s+1')
         False
+        sage: isidentifier('None')
+        True
     """
-    import parser
+    try:
+        return x.isidentifier()  # py3
+    except AttributeError:
+        pass  # py2
     try:
         code = parser.expr(x).compile()
-    except (MemoryError, OverflowError, SyntaxError, SystemError, parser.ParserError), msg:
+    except (MemoryError, OverflowError, SyntaxError, SystemError, parser.ParserError):
         return False
     return len(code.co_names) == 1 and code.co_names[0] == x

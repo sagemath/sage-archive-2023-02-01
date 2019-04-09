@@ -1,4 +1,4 @@
-"""
+r"""
 Polynomial Sequences
 
 We call a finite list of polynomials a ``Polynomial Sequence``.
@@ -986,8 +986,16 @@ class PolynomialSequence_generic(Sequence_generic):
             sage: F = Sequence([x*y + z, y + z + 1])
             sage: loads(dumps(F)) == F # indirect doctest
             True
+
+        We check that :trac:`26354` is fixed::
+
+            sage: f = P.hom([y,z,x])
+            sage: hash(f) == hash(loads(dumps(f)))
+            True
+
         """
-        return PolynomialSequence, (self._ring, self._parts)
+        return PolynomialSequence, (self._ring, self._parts, self._is_immutable, 
+                                    self._Sequence_generic__cr, self._Sequence_generic__cr_str)
 
     @singular_gb_standard_options
     @libsingular_gb_standard_options
@@ -1048,6 +1056,17 @@ class PolynomialSequence_generic(Sequence_generic):
         Uses Singular's interred command or
         :func:`sage.rings.polynomial.toy_buchberger.inter_reduction`
         if conversion to Singular fails.
+
+        TESTS:
+
+        Check that :trac:`26952` is fixed::
+
+            sage: Qp = pAdicField(2)
+            sage: R.<x,y,z> = PolynomialRing(Qp, implementation="generic")
+            sage: F = Sequence([z*x+y^3,z+y^3,3*z+x*y])
+            sage: F.reduced()
+            [y^3 + z, x*y + (1 + 2 + O(2^20))*z, x*z - z]
+
         """
         from sage.rings.polynomial.multi_polynomial_ideal_libsingular import interred_libsingular
         from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
@@ -1067,7 +1086,8 @@ class PolynomialSequence_generic(Sequence_generic):
                     ret.append(f.lc()**(-1)*f) # lead coeffs are not reduced by interred
                 s.option("set",o)
             except TypeError:
-                ret = toy_buchberger.inter_reduction(self.gens())
+                from sage.rings.polynomial.toy_buchberger import inter_reduction
+                ret = inter_reduction(self)
 
         ret = sorted(ret, reverse=True)
         ret = PolynomialSequence(R, ret, immutable=True)
@@ -1101,8 +1121,8 @@ class PolynomialSequence_generic(Sequence_generic):
         return self.ideal().basis_is_groebner()
 
 class PolynomialSequence_gf2(PolynomialSequence_generic):
-    """
-    Polynomial Sequences over `\mathbb{F}_2`.
+    r"""
+    Polynomial Sequences over `\GF{2}`.
     """
     def eliminate_linear_variables(self, maxlength=Infinity, skip=None, return_reductors=False, use_polybori=False):
         """
@@ -1523,19 +1543,20 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
         else:
             return PolynomialSequence_generic.reduced(self)
 
+
 class PolynomialSequence_gf2e(PolynomialSequence_generic):
-    """
-    PolynomialSequence over `\mathbb{F}_{2^e}`, i.e extensions over
-    GF(2).
+    r"""
+    PolynomialSequence over `\GF{2^e}`, i.e extensions over
+    `\GF(2)`.
     """
 
     def weil_restriction(self):
-        """
-        Project this polynomial system to `\mathbb{F}_2`.
+        r"""
+        Project this polynomial system to `\GF{2}`.
 
         That is, compute the Weil restriction of scalars for the
         variety corresponding to this polynomial system and express it
-        as a polynomial system over `\mathbb{F}_2`.
+        as a polynomial system over `\GF{2}`.
 
         EXAMPLES::
 
@@ -1561,6 +1582,6 @@ class PolynomialSequence_gf2e(PolynomialSequence_generic):
         J += FieldIdeal(J.ring())
         return PolynomialSequence(J)
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override("sage.crypto.mq.mpolynomialsystem","MPolynomialSystem_generic", PolynomialSequence_generic)
 register_unpickle_override("sage.crypto.mq.mpolynomialsystem","MPolynomialRoundSystem_generic", PolynomialSequence_generic)

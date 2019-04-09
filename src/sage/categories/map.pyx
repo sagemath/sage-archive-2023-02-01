@@ -25,9 +25,8 @@ from . import homset
 import weakref
 from sage.ext.stdsage cimport HAS_DICTIONARY
 from sage.arith.power cimport generic_power
-from sage.structure.parent cimport Set_PythonType
+from sage.sets.pythonclass cimport Set_PythonType
 from sage.misc.constant_function import ConstantFunction
-from sage.misc.superseded import deprecated_function_alias
 from sage.structure.element cimport parent
 from cpython.object cimport PyObject_RichCompare
 
@@ -1825,10 +1824,9 @@ cdef class FormalCompositeMap(Map):
             sage: (f*g).then() == f
             True
         """
-        if len(self.__list) == 2: return self.__list[1]
+        if len(self.__list) == 2:
+            return self.__list[1]
         return FormalCompositeMap(self.__list[1:])
-
-    second = deprecated_function_alias(16291, then)
 
     def is_injective(self):
         """
@@ -1896,7 +1894,7 @@ cdef class FormalCompositeMap(Map):
         else:
             return True
 
-        if all([f.is_surjective() for f in injectives]):
+        if all(f.is_surjective() for f in injectives):
             return False
 
         raise NotImplementedError("Not enough information to deduce injectivity.")
@@ -1962,7 +1960,7 @@ cdef class FormalCompositeMap(Map):
         else:
             return True
 
-        if all([f.is_injective() for f in surjectives]):
+        if all(f.is_injective() for f in surjectives):
             return False
 
         raise NotImplementedError("Not enough information to deduce surjectivity.")

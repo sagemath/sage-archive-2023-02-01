@@ -14,7 +14,7 @@ http://www.risc.uni-linz.ac.at/people/hemmecke/aldor/combinat/index.html.
 In particular, the relevant section for this file can be found at
 http://www.risc.uni-linz.ac.at/people/hemmecke/AldorCombinat/combinatse9.html.
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -26,8 +26,8 @@ http://www.risc.uni-linz.ac.at/people/hemmecke/AldorCombinat/combinatse9.html.
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import
 
 from .stream import Stream, Stream_class
@@ -36,15 +36,15 @@ from sage.rings.all import Integer
 from sage.misc.all import prod
 from functools import partial
 from sage.misc.misc import repr_lincomb, is_iterator
-from sage.misc.superseded import deprecated_function_alias
 
 from sage.algebras.algebra import Algebra
 import sage.structure.parent_base
 from sage.categories.all import Rings
 from sage.structure.element import Element, parent, AlgebraElement
 
+
 class LazyPowerSeriesRing(Algebra):
-    def __init__(self, R, element_class = None, names=None):
+    def __init__(self, R, element_class=None, names=None):
         """
         TESTS::
 
@@ -61,12 +61,8 @@ class LazyPowerSeriesRing(Algebra):
 
         """
         #Make sure R is a ring with unit element
-        if not R in Rings():
+        if R not in Rings():
             raise TypeError("Argument R must be a ring.")
-        try:
-            z = R(Integer(1))
-        except Exception:
-            raise ValueError("R must have a unit element")
 
         #Take care of the names
         if names is None:
@@ -95,10 +91,10 @@ class LazyPowerSeriesRing(Algebra):
             sage: LazyPowerSeriesRing(QQ)
             Lazy Power Series Ring over Rational Field
         """
-        return "Lazy Power Series Ring over %s"%self.base_ring()
+        return "Lazy Power Series Ring over %s" % self.base_ring()
 
     def __eq__(self, x):
-        """ 
+        """
         Check whether ``self`` is equal to ``x``.
 
         EXAMPLES::
@@ -128,6 +124,22 @@ class LazyPowerSeriesRing(Algebra):
             True
         """
         return not (self == other)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: LQ = LazyPowerSeriesRing(QQ)
+            sage: LZ = LazyPowerSeriesRing(ZZ)
+            sage: hash(LQ) == hash(LQ)
+            True
+            sage: hash(LZ) == hash(LQ)
+            False
+        """
+        # with a random number, so that the hash is not that of the base ring
+        return hash((16079305, self.base_ring()))
 
     def _coerce_impl(self, x):
         """
@@ -227,11 +239,11 @@ class LazyPowerSeriesRing(Algebra):
             x = BR(x)
             return self.term(x, 0)
 
-        raise TypeError("do not know how to coerce %s into self"%x)
+        raise TypeError("do not know how to coerce %s into self" % x)
 
     def zero(self):
         """
-        Returns the zero power series.
+        Return the zero power series.
 
         EXAMPLES::
 
@@ -243,7 +255,7 @@ class LazyPowerSeriesRing(Algebra):
 
     def identity_element(self):
         """
-        Returns the one power series.
+        Return the one power series.
 
         EXAMPLES::
 
@@ -291,13 +303,13 @@ class LazyPowerSeriesRing(Algebra):
             elif n == 1:
                 res._name = repr(r) + "*" + self._name
             else:
-                res._name = "%s*%s^%s"%(repr(r), self._name, n)
+                res._name = "%s*%s^%s" % (repr(r), self._name, n)
 
         return res
 
     def _new_initial(self, order, stream):
         """
-        Returns a new power series with specified order.
+        Return a new power series with specified order.
 
         INPUT:
 
@@ -535,9 +547,9 @@ class LazyPowerSeries(AlgebraElement):
         """
         n = len(self._stream)
         m = ['1', x]
-        m += [x+"^"+str(i) for i in range(2, n)]
-        c = [ self._stream[i] for i in range(n) ]
-        return [ (m,c) for m,c in zip(m,c) if c != 0]
+        m += [x + "^" + str(i) for i in range(2, n)]
+        c = [self._stream[i] for i in range(n)]
+        return [(mo, co) for mo, co in zip(m, c) if co != 0]
 
     def __repr__(self):
         """
@@ -584,7 +596,7 @@ class LazyPowerSeries(AlgebraElement):
                 else:
                     l = baserepr + " + " + repr_lincomb([(x+"^"+str(i), self._stream[n-1]) for i in range(n, n+3)]) + " + ..."
             else:
-                l = baserepr + " + O(x^%s)"%n if n > 0 else "O(1)"
+                l = baserepr + " + O(x^%s)" % n if n > 0 else "O(1)"
         else:
             l = 'Uninitialized lazy power series'
         return l
@@ -727,7 +739,7 @@ class LazyPowerSeries(AlgebraElement):
 
     def coefficients(self, n):
         """
-        Returns the first n coefficients of self.
+        Return the first n coefficients of self.
 
         EXAMPLES::
 
@@ -740,7 +752,7 @@ class LazyPowerSeries(AlgebraElement):
 
     def is_zero(self):
         """
-        Returns True if and only if self is zero.
+        Return True if and only if self is zero.
 
         EXAMPLES::
 
@@ -906,7 +918,7 @@ class LazyPowerSeries(AlgebraElement):
 
     def coefficient(self, n):
         """
-        Returns the coefficient of xn in self.
+        Return the coefficient of xn in self.
 
         EXAMPLES::
 
@@ -926,7 +938,7 @@ class LazyPowerSeries(AlgebraElement):
 
     def get_aorder(self):
         """
-        Returns the approximate order of self.
+        Return the approximate order of self.
 
         EXAMPLES::
 
@@ -940,7 +952,7 @@ class LazyPowerSeries(AlgebraElement):
 
     def get_order(self):
         """
-        Returns the order of self.
+        Return the order of self.
 
         EXAMPLES::
 
@@ -954,7 +966,7 @@ class LazyPowerSeries(AlgebraElement):
 
     def get_stream(self):
         """
-        Returns self's underlying Stream object.
+        Return self's underlying Stream object.
 
         EXAMPLES::
 
@@ -1128,8 +1140,8 @@ class LazyPowerSeries(AlgebraElement):
     times = _mul_
 
     def _times_gen(self, y, ao):
-        """
-        Returns an iterator for the coefficients of self \* y.
+        r"""
+        Return an iterator for the coefficients of self \* y.
 
         EXAMPLES::
 
@@ -1186,8 +1198,7 @@ class LazyPowerSeries(AlgebraElement):
 
     def __call__(self, y):
         """
-        Returns the composition of this power series and the power series
-        y.
+        Return the composition of this power series and the power series y.
 
         EXAMPLES::
 
@@ -1232,7 +1243,7 @@ class LazyPowerSeries(AlgebraElement):
 
     def _compose_gen(self, y, ao):
         """
-        Returns a iterator for the coefficients of the composition of this
+        Return a iterator for the coefficients of the composition of this
         power series with the power series y.
 
         EXAMPLES::
@@ -1246,18 +1257,16 @@ class LazyPowerSeries(AlgebraElement):
         """
         assert y.coefficient(0) == 0
         yield self._stream[0]
-        z = self.tail().compose(y)*y
-        c = z.coefficient(1)
-
+        z = self.tail().compose(y) * y
+        z.coefficient(1)
         n = 1
         while True:
             yield z._stream[n]
             n += 1
 
-
     def tail(self):
         """
-        Returns the power series whose coefficients obtained by subtracting
+        Return the power series whose coefficients obtained by subtracting
         the constant term from this series and then dividing by x.
 
         EXAMPLES::
@@ -1273,7 +1282,7 @@ class LazyPowerSeries(AlgebraElement):
 
     def iterator(self, n=0, initial=None):
         """
-        Returns an iterator for the coefficients of self starting at n.
+        Return an iterator for the coefficients of self starting at n.
 
         EXAMPLES::
 
@@ -1298,7 +1307,7 @@ class LazyPowerSeries(AlgebraElement):
 
     def _power_gen(self):
         """
-        Returns a generator for all the powers self^k starting with k = 1.
+        Return a generator for all the powers self^k starting with k = 1.
 
         EXAMPLES::
 
@@ -1378,8 +1387,7 @@ class LazyPowerSeries(AlgebraElement):
 
     def _diff_gen(self, ao):
         """
-        Returns an iterator for the coefficients of the derivative of
-        self.
+        Return an iterator for the coefficients of the derivative of self.
 
         EXAMPLES::
 
@@ -1514,9 +1522,9 @@ class LazyPowerSeries(AlgebraElement):
             for _ in range(ao-1):
                 yield self._zero
 
-            n = max(1,ao)
+            n = max(1, ao)
             while True:
-                c = self.coefficient(n-1)
+                self.coefficient(n - 1)
 
                 #Check to see if the stream is finite
                 if self.is_finite(n-1):
@@ -1591,7 +1599,7 @@ class LazyPowerSeries(AlgebraElement):
 
     def __getitem__(self, i):
         """
-        Returns the ith coefficient of self.
+        Return the ith coefficient of self.
 
         EXAMPLES::
 
@@ -1608,10 +1616,11 @@ class LazyPowerSeries(AlgebraElement):
     #########################
     def restricted(self, min=None, max=None):
         """
-        Returns the power series restricted to the coefficients starting at
-        min and going up to, but not including max. If min is not
-        specified, then it is assumed to be zero. If max is not specified,
-        then it is assumed to be infinity.
+        Return the power series restricted to the coefficients starting at
+        ``min`` and going up to, but not including ``max``.
+
+        If ``min`` is not specified, then it is assumed to be zero. If
+        ``max`` is not specified, then it is assumed to be infinity.
 
         EXAMPLES::
 
@@ -1627,10 +1636,13 @@ class LazyPowerSeries(AlgebraElement):
             [0, 0, 1, 1, 1, 1, 0, 0, 0, 0]
         """
         from six.moves import builtins
+
         if ((min is None and max is None) or
             (max is None and self.get_aorder() >= min)):
             return self
 
+        if min is None:
+            min = 0
         return self._new(partial(self._restricted_gen, min, max),
                          lambda ao: builtins.max(ao, min), self)
 

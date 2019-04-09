@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Animated plots
 
@@ -43,8 +44,6 @@ Animate using FFmpeg_ instead of ImageMagick::
 Animate as an APNG_::
 
     sage: a.apng()  # long time
-    doctest:...: DeprecationWarning: use tmp_filename instead
-    See http://trac.sagemath.org/17234 for details.
 
 An animated :class:`sage.plot.graphics.GraphicsArray` of rotating ellipses::
 
@@ -122,7 +121,7 @@ import six
 
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
-from sage.misc.temporary_file import tmp_dir, tmp_filename, graphics_filename
+from sage.misc.temporary_file import tmp_dir, tmp_filename
 from . import plot
 import sage.misc.misc
 import sage.misc.viewer
@@ -561,7 +560,7 @@ class Animation(WithEqualityById, SageObject):
             sage: td = tmp_dir()
             sage: a.gif()              # not tested
             sage: a.gif(savefile=td + 'my_animation.gif', delay=35, iterations=3)  # optional -- ImageMagick
-            sage: with open(td + 'my_animation.gif', 'rb') as f: print('\x21\xf9\x04\x08\x23\x00') in f.read()  # optional -- ImageMagick
+            sage: with open(td + 'my_animation.gif', 'rb') as f: print('\x21\xf9\x04\x08\x23\x00' in f.read())  # optional -- ImageMagick
             True
             sage: a.gif(savefile=td + 'my_animation.gif', show_path=True) # optional -- ImageMagick
             Animation saved to .../my_animation.gif.
@@ -607,7 +606,7 @@ www.ffmpeg.org, or use 'convert' to produce gifs instead."""
                 raise OSError(msg)
         else:
             if not savefile:
-                savefile = graphics_filename(ext='.gif')
+                savefile = tmp_filename(ext='.gif')
             if not savefile.endswith('.gif'):
                 savefile += '.gif'
             savefile = os.path.abspath(savefile)
@@ -878,8 +877,6 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
         TESTS::
 
             sage: a.ffmpeg(output_format='gif',delay=30,iterations=5)     # optional -- ffmpeg
-            doctest:...: DeprecationWarning: use tmp_filename instead
-            See http://trac.sagemath.org/17234 for details.
         """
         if not self._have_ffmpeg():
             msg = """Error: ffmpeg does not appear to be installed. Saving an animation to
@@ -893,7 +890,7 @@ please install it and try again."""
                 else:
                     if output_format[0] != '.':
                         output_format = '.'+output_format
-                savefile = graphics_filename(ext=output_format)
+                savefile = tmp_filename(ext=output_format)
             else:
                 if output_format is None:
                     suffix = os.path.splitext(savefile)[1]
@@ -998,7 +995,7 @@ please install it and try again."""
         """
         pngdir = self.png()
         if savefile is None:
-            savefile = graphics_filename('.png')
+            savefile = tmp_filename('.png')
         with open(savefile, "wb") as out:
             apng = APngAssembler(
                 out, len(self),
@@ -1056,19 +1053,19 @@ please install it and try again."""
         GIF image (see :trac:`18176`)::
 
             sage: a.save(td + 'wave.gif')   # optional -- ImageMagick
-            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xf9\x04\x08\x14\x00') in f.read()  # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xf9\x04\x08\x14\x00' in f.read())  # optional -- ImageMagick
             True
-            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xff\x0bNETSCAPE2.0\x03\x01\x00\x00\x00') in f.read()  # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xff\x0bNETSCAPE2.0\x03\x01\x00\x00\x00' in f.read())  # optional -- ImageMagick
             True
             sage: a.save(td + 'wave.gif', delay=35)   # optional -- ImageMagick
-            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xf9\x04\x08\x14\x00') in f.read()  # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xf9\x04\x08\x14\x00' in f.read())  # optional -- ImageMagick
             False
-            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xf9\x04\x08\x23\x00') in f.read()  # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xf9\x04\x08\x23\x00' in f.read())  # optional -- ImageMagick
             True
             sage: a.save(td + 'wave.gif', iterations=3)   # optional -- ImageMagick
-            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xff\x0bNETSCAPE2.0\x03\x01\x00\x00\x00') in f.read()  # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xff\x0bNETSCAPE2.0\x03\x01\x00\x00\x00' in f.read())  # optional -- ImageMagick
             False
-            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xff\x0bNETSCAPE2.0\x03\x01\x03\x00\x00') in f.read()  # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xff\x0bNETSCAPE2.0\x03\x01\x03\x00\x00' in f.read())  # optional -- ImageMagick
             True
         """
         if filename is None:

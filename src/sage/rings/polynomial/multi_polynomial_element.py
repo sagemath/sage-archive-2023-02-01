@@ -56,7 +56,7 @@ from __future__ import absolute_import
 from six.moves import range
 from six import iteritems, integer_types
 
-from sage.structure.element import CommutativeRingElement, canonical_coercion, coerce_binop
+from sage.structure.element import CommutativeRingElement, coerce_binop
 from sage.misc.all import prod
 import sage.rings.integer
 from . import polydict
@@ -92,14 +92,14 @@ class MPolynomial_element(MPolynomial):
 
             sage: P.<x,y,z> = PolynomialRing(QQbar)
             sage: x + QQbar.random_element() # indirect doctest
-            x - 4
+            x + 0.4142135623730951?
         """
         return "%s"%self.__element
 
     ####################
 
     def __call__(self, *x, **kwds):
-        """
+        r"""
         Evaluate this multi-variate polynomial at `x`, where
         `x` is either the tuple of values to substitute in, or one
         can use functional notation `f(a_0,a_1,a_2, \ldots)` to
@@ -1243,11 +1243,11 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
         monomial_coefficients = self._MPolynomial_element__element.dict()
 
-        if( not self.is_constant() ):
+        if not self.is_constant():
             var_idx = self.degrees().nonzero_positions()[0] #variable
         else:
-            var_idx = 0; #constant
-            if( len(monomial_coefficients.keys())==0 ):
+            var_idx = 0 #constant
+            if len(monomial_coefficients) == 0:
                 return R(0)
 
         #construct list
@@ -1412,7 +1412,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             return self.__lc
 
     def lt(self):
-        """
+        r"""
         Returns the leading term of self i.e., self.lc()\*self.lm(). The
         notion of "leading term" depends on the ordering defined in the
         parent ring.
@@ -1435,7 +1435,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: f=x+y
             sage: f.lt()
             x
-
         """
         try:
             return self.__lt
@@ -1464,9 +1463,12 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             return CommutativeRingElement.__ne__(self, right)
         return self._MPolynomial_element__element != right._MPolynomial_element__element
 
+    # required by Python 3
+    __hash__ = MPolynomial_element.__hash__
+
     def __bool__(self):
         """
-        Returns True if self != 0
+        Return True if self != 0
 
         .. note::
 
@@ -1642,23 +1644,15 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         d = polydict.PolyDict(d, self.parent().base_ring()(0), remove_zero=True)
         return MPolynomial_polydict(self.parent(), d)
 
-    def factor(self, proof=True):
+    def factor(self, proof=None):
         r"""
         Compute the irreducible factorization of this polynomial.
 
         INPUT:
 
-        - ``proof'' - insist on provably correct results (ignored, always ``True``)
-
-        ALGORITHM: Use univariate factorization code.
-
-        If a polynomial is univariate, the appropriate univariate
-        factorization code is called::
-
-            sage: R.<z> = PolynomialRing(CC,1)
-            sage: f = z^4 - 6*z + 3
-            sage: f.factor()
-            (z - 1.60443920904349) * (z - 0.511399619393097) * (z + 1.05791941421830 - 1.59281852704435*I) * (z + 1.05791941421830 + 1.59281852704435*I)
+        - ``proof'' - insist on provably correct results (default: ``True``
+          unless explicitly disabled for the ``"polynomial"`` subsystem with
+          :class:`sage.structure.proof.proof.WithProof`.)
 
         TESTS:
 
@@ -1688,10 +1682,25 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         Check that we prohibit too large moduli, :trac:`11829`::
 
             sage: R.<x,y> = GF(previous_prime(2^31))[]
-            sage: factor(x+y+1,proof=False)
+            sage: factor(x+y+1)
             Traceback (most recent call last):
             ...
             NotImplementedError: Factorization of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.
+
+        Check that the global proof flag for polynomials is honored::
+
+            sage: R.<x,y> = QQbar[]
+            sage: f = x^2 + y^2
+            sage: with proof.WithProof('polynomial', True):
+            ....:     f.factor()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Provably correct factorization not implemented. Disable this error by wrapping your code in a `with proof.WithProof('polynomial', False):` block.
+            sage: with proof.WithProof('polynomial', False):
+            ....:     f.factor()
+            Traceback (most recent call last):
+            ...
+            TypeError: no conversion of this ring to a Singular ring defined
 
         We check that the original issue in :trac:`7554` is fixed::
 
@@ -1699,6 +1708,40 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: R.<x,y> = PolynomialRing(FractionField(K))
             sage: factor(x)
             x
+
+        In the example below, we set the special method
+        ``_factor_multivariate_polynomial()`` in the base ring which is called to
+        factor multivariate polynomials.  This facility can be used to easily
+        extend polynomial factorization to work over new rings you introduce::
+
+             sage: R.<x, y> = PolynomialRing(QQ['z'])
+             sage: (x*y).factor()
+             Traceback (most recent call last):
+             ...
+             NotImplementedError: ...
+             sage: R.base_ring()._factor_multivariate_polynomial = lambda f, **kwargs: f.change_ring(QQ).factor()
+             sage: (x*y).factor()
+             y * x
+             sage: del R.base_ring()._factor_multivariate_polynomial # clean up
+
+        Check that a "multivariate" polynomial in one variable is factored
+        correctly::
+
+            sage: R.<z> = PolynomialRing(CC,1)
+            sage: f = z^4 - 6*z + 3
+            sage: f.factor()
+            (z - 1.60443920904349) * (z - 0.511399619393097) * (z + 1.05791941421830 - 1.59281852704435*I) * (z + 1.05791941421830 + 1.59281852704435*I)
+
+        We check a case that failed with an exception at some point::
+
+            sage: k.<u> = GF(4)
+            sage: R.<v> = k[]
+            sage: l.<v> = R.quo(v^3 + v + 1)
+            sage: R.<x,y> = l[]
+            sage: f = y^3 + x^3 + (u + 1)*x
+            sage: f.factor()
+            x^3 + y^3 + (u + 1)*x
+
         """
         R = self.parent()
 
@@ -1715,6 +1758,10 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
                 F = base_ring(self).factor()
                 return Factorization([(R(f),m) for f,m in F], unit=F.unit())
 
+        base_ring = self.base_ring()
+        if hasattr(base_ring, '_factor_multivariate_polynomial'):
+            return base_ring._factor_multivariate_polynomial(self, proof=proof)
+
         # try to use univariate factoring
         try:
             F = self.univariate_polynomial().factor()
@@ -1726,8 +1773,12 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         if base_ring.is_finite():
             if base_ring.characteristic() > 1<<29:
                 raise NotImplementedError("Factorization of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.")
+
+        if proof is None:
+            from sage.structure.proof.proof import get_flag
+            proof = get_flag(subsystem="polynomial")
         if proof:
-            raise NotImplementedError("proof = True factorization not implemented.  Call factor with proof=False.")
+            raise NotImplementedError("Provably correct factorization not implemented. Disable this error by wrapping your code in a `with proof.WithProof('polynomial', False):` block.")
 
         R._singular_().set_ring()
         S = self._singular_().factorize()

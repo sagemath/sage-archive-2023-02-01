@@ -99,13 +99,13 @@ class SetShuffleProduct(SageObject):
     def __init__(self, l1, l2, element_constructor=None):
         """
         Construct the set of all possible shuffle products of two sets of iterables.
-        
+
         INPUT:
-        
+
         - ``l1``, ``l2`` -- iterable: the sets to shuffle
 
         - ``element_constructor`` --  constructor for the returned elements
-        
+
 
         TESTS::
 
@@ -241,9 +241,9 @@ class ShuffleProduct(SageObject):
     def __init__(self, l1, l2, element_constructor=None):
         """
         Construct the shuffle product of two iterable.
-        
+
         INPUT:
-        
+
         - ``l1``, ``l2`` -- iterable: iterables to shuffle
 
         - ``element_constructor``:  constructor for the returned elements
@@ -324,11 +324,11 @@ class ShuffleProduct(SageObject):
             sage: B = BinaryTree
             sage: ascii_art(list(ShuffleProduct([B([]), B([[],[]])],
             ....:   [B([[[],[]],[[],None]])])))
-            [ [ o,   o  ,     __o__   ]  [     __o__  , o,   o   ]  [ o,     __o__  , 
-            [ [     / \      /     \  ]  [    /     \       / \  ]  [       /     \   
-            [ [    o   o    o       o ]  [   o       o     o   o ]  [      o       o 
+            [ [ o,   o  ,     __o__   ]  [     __o__  , o,   o   ]  [ o,     __o__  ,
+            [ [     / \      /     \  ]  [    /     \       / \  ]  [       /     \
+            [ [    o   o    o       o ]  [   o       o     o   o ]  [      o       o
             [ [            / \     /  ]  [  / \     /            ]  [     / \     /
-            [ [           o   o   o   ], [ o   o   o             ], [    o   o   o   
+            [ [           o   o   o   ], [ o   o   o             ], [    o   o   o
             <BLANKLINE>
                o   ] ]
               / \  ] ]
@@ -366,7 +366,7 @@ class ShuffleProduct(SageObject):
         m = len(self._l1)
         n = len(self._l2)
         mn = m + n
-        l = [0] * m + [1] * n # [0, 0 ... m times, 1, 1, 1 ... n times]
+        l = [0] * m + [1] * n  # [0, 0 ... m times, 1, 1, 1 ... n times]
 
         EC = self._element_constructor_
         yield EC(self._l1 + self._l2)
@@ -374,8 +374,7 @@ class ShuffleProduct(SageObject):
         for _ in gen(mn, m):
             l1 = iter(self._l1)
             l2 = iter(self._l2)
-            d = {0: l1.next, 1: l2.next}
-            yield EC([d[l[k]]() for k in range(mn)])
+            yield EC([next(l2) if l[k] else next(l1) for k in range(mn)])
 
     def __contains__(self, iterable):
         """
@@ -715,4 +714,3 @@ class ShuffleProduct_overlapping(CombinatorialClass):
                                                   self._element_constructor_,
                                                   add=self._add):
                 yield w
-

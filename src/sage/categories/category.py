@@ -37,10 +37,13 @@ Let's request the category of some objects::
     sage: V.category()
     Category of finite dimensional vector spaces with basis
      over (number fields and quotient fields and metric spaces)
+
     sage: G = SymmetricGroup(9)
     sage: G.category()
-    Join of Category of finite enumerated permutation groups
-     and Category of finite weyl groups
+    Join of Category of finite enumerated permutation groups and
+    Category of finite weyl groups and
+    Category of well generated finite irreducible complex reflection groups
+
     sage: P = PerfectMatchings(3)
     sage: P.category()
     Category of finite enumerated sets
@@ -336,7 +339,7 @@ class Category(UniqueRepresentation, SageObject):
         ....:         Parent.__init__(self, category=Ds())
         ....:     def g(self):
         ....:         return "myparent"
-        ....:     class Element:
+        ....:     class Element(object):
         ....:         pass
         sage: D = myparent()
         sage: D.__class__
@@ -373,7 +376,7 @@ class Category(UniqueRepresentation, SageObject):
         <class '__main__.myparent_with_category.element_class'>
         sage: D.element_class.mro()
         [<class '__main__.myparent_with_category.element_class'>,
-        <class __main__.Element at ...>,
+        <class ...__main__....Element...>,
         <class '__main__.Ds.element_class'>,
         <class '__main__.Cs.element_class'>,
         <class '__main__.Bs.element_class'>,
@@ -396,22 +399,22 @@ class Category(UniqueRepresentation, SageObject):
         sage: loads(dumps(Ds().element_class)) is Ds().element_class
         True
 
-    .. automethod:: _super_categories
-    .. automethod:: _super_categories_for_classes
-    .. automethod:: _all_super_categories
-    .. automethod:: _all_super_categories_proper
-    .. automethod:: _set_of_super_categories
-    .. automethod:: _make_named_class
-    .. automethod:: _repr_
-    .. automethod:: _repr_object_names
-    .. automethod:: _test_category
-    .. automethod:: _with_axiom
-    .. automethod:: _with_axiom_as_tuple
-    .. automethod:: _without_axioms
-    .. automethod:: _sort
-    .. automethod:: _sort_uniq
-    .. automethod:: __classcall__
-    .. automethod:: __init__
+    .. automethod:: Category._super_categories
+    .. automethod:: Category._super_categories_for_classes
+    .. automethod:: Category._all_super_categories
+    .. automethod:: Category._all_super_categories_proper
+    .. automethod:: Category._set_of_super_categories
+    .. automethod:: Category._make_named_class
+    .. automethod:: Category._repr_
+    .. automethod:: Category._repr_object_names
+    .. automethod:: Category._test_category
+    .. automethod:: Category._with_axiom
+    .. automethod:: Category._with_axiom_as_tuple
+    .. automethod:: Category._without_axioms
+    .. automethod:: Category._sort
+    .. automethod:: Category._sort_uniq
+    .. automethod:: Category.__classcall__
+    .. automethod:: Category.__init__
     """
     @staticmethod
     def __classcall__(cls, *args, **options):
@@ -907,15 +910,15 @@ class Category(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: Groups()._set_of_super_categories
-            frozenset({Category of inverse unital magmas,
-                       Category of unital magmas,
-                       Category of magmas,
-                       Category of monoids,
-                       Category of objects,
-                       Category of semigroups,
-                       Category of sets with partial maps,
-                       Category of sets})
+            sage: sorted(Groups()._set_of_super_categories, key=str)
+            [Category of inverse unital magmas,
+             Category of magmas,
+             Category of monoids,
+             Category of objects,
+             Category of semigroups,
+             Category of sets,
+             Category of sets with partial maps,
+             Category of unital magmas]
             sage: sorted(Groups()._set_of_super_categories, key=str)
             [Category of inverse unital magmas, Category of magmas, Category of monoids,
              Category of objects, Category of semigroups, Category of sets,
@@ -1315,7 +1318,7 @@ class Category(UniqueRepresentation, SageObject):
 
     @cached_method
     def full_super_categories(self):
-        """
+        r"""
         Return the *immediate* full super categories of ``self``.
 
         .. SEEALSO::
@@ -1718,13 +1721,12 @@ class Category(UniqueRepresentation, SageObject):
             sage: Algebras(ZZ['t']).element_class is Algebras(ZZ['t','x']).element_class
             True
 
-        These classes are constructed with ``__slots__ = []``, so they
-        behave like extension types::
+        These classes are constructed with ``__slots__ = ()``, so
+        instances may not have a ``__dict__``::
 
             sage: E = FiniteEnumeratedSets().element_class
-            sage: from sage.structure.misc import is_extension_type
-            sage: is_extension_type(E)
-            True
+            sage: E.__dictoffset__
+            0
 
         .. SEEALSO:: :meth:`parent_class`
         """
@@ -1761,8 +1763,11 @@ class Category(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: Algebras(QQ).required_methods()
+            sage: Algebras(QQ).required_methods() # py2
             {'element': {'optional': ['_add_', '_mul_'], 'required': ['__nonzero__']},
+             'parent': {'optional': ['algebra_generators'], 'required': ['__contains__']}}
+            sage: Algebras(QQ).required_methods() # py3
+            {'element': {'optional': ['_add_', '_mul_'], 'required': ['__bool__']},
              'parent': {'optional': ['algebra_generators'], 'required': ['__contains__']}}
         """
         return { "parent"  : abstract_methods_of_class(self.parent_class),
@@ -2214,7 +2219,7 @@ class Category(UniqueRepresentation, SageObject):
         """
         return self
 
-    _flatten_categories = _flatten_categories
+    _flatten_categories = staticmethod(_flatten_categories)  # a cythonised helper
 
     @staticmethod
     def _sort(categories):
@@ -2263,7 +2268,7 @@ class Category(UniqueRepresentation, SageObject):
         """
         return tuple(sorted(categories, key=category_sort_key, reverse=True))
 
-    _sort_uniq = _sort_uniq   # a cythonised helper
+    _sort_uniq = staticmethod(_sort_uniq)  # a cythonised helper
 
     def __and__(self, other):
         """
@@ -2701,7 +2706,7 @@ class CategoryWithParameters(Category):
         sage: C1.parent_class is C3.parent_class
         False
 
-    .. automethod:: _make_named_class
+    .. automethod:: Category._make_named_class
     """
 
     def _make_named_class(self, name, method_provider, cache = False, **options):
@@ -2778,7 +2783,7 @@ class CategoryWithParameters(Category):
              and Category of quotient fields
              and Category of metric spaces
             sage: RR.category()
-            Join of Category of fields and Category of complete metric spaces
+            Join of Category of fields and Category of infinite sets and Category of complete metric spaces
             sage: Modules(QQ).parent_class is Modules(RR).parent_class
             False
 
@@ -2927,9 +2932,9 @@ class JoinCategory(CategoryWithParameters):
         sage: type(A3) is type(A5)
         True
 
-    .. automethod:: _repr_object_names
-    .. automethod:: _repr_
-    .. automethod:: _without_axioms
+    .. automethod:: Category._repr_object_names
+    .. automethod:: Category._repr_
+    .. automethod:: Category._without_axioms
     """
 
     def __init__(self, super_categories, **kwds):

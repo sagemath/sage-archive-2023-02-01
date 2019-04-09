@@ -335,7 +335,7 @@ def ClassifyingSpace(group):
 
 
 def RealProjectiveSpace(n):
-    """
+    r"""
     Return real `n`-dimensional projective space, as a simplicial set.
 
     This is constructed as the `n`-skeleton of the nerve of the group
@@ -635,7 +635,7 @@ def simplicial_data_from_kenzo_output(filename):
     OUTPUT: data to construct a simplicial set from the Kenzo output
 
     Several files with Kenzo output are in the directory
-    :file:`SAGE_ROOT/src/ext/kenzo/`.
+    :file:`SAGE_EXTCODE/kenzo/`.
 
     EXAMPLES::
 

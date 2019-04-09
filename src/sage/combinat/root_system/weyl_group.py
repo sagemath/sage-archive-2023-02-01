@@ -356,7 +356,7 @@ class WeylGroup_gens(UniqueRepresentation,
 
             sage: W = WeylGroup("B2", prefix="s")
             sage: refdict = W.reflections(); refdict
-            Finite family {(1, -1): s1, (1, 1): s2*s1*s2, (1, 0): s1*s2*s1, (0, 1): s2}
+            Finite family {(1, -1): s1, (0, 1): s2, (1, 1): s2*s1*s2, (1, 0): s1*s2*s1}
             sage: [r+refdict[r].action(r) for r in refdict.keys()]
             [(0, 0), (0, 0), (0, 0), (0, 0)]
 
@@ -1318,19 +1318,6 @@ class WeylGroup_permutation(UniqueRepresentation, PermutationGroup_generic):
             [0, 1, 2]
         """
         return self._index_set_inverse[i]
-
-    def _element_class(self):
-        r"""
-        A temporary workaround for compatibility with Sage's
-        permutation groups.
-
-        TESTS::
-
-            sage: W = WeylGroup(['B',3], implementation="permutation")
-            sage: W._element_class() is W.element_class
-            True
-        """
-        return self.element_class
 
     class Element(RealReflectionGroupElement):
         def _repr_(self):

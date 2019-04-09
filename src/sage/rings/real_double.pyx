@@ -32,13 +32,13 @@ Test NumPy conversions::
     dtype('float64')
 """
 
-#*****************************************************************************
+# ****************************************************************************
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from __future__ import print_function, absolute_import
 
@@ -72,8 +72,7 @@ from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.richcmp cimport rich_to_bool
 from sage.arith.constants cimport *
 
-IF HAVE_GMPY2:
-    cimport gmpy2
+cimport gmpy2
 
 
 def is_RealDoubleField(x):
@@ -137,6 +136,10 @@ cdef class RealDoubleField_class(Field):
         sage: b == RR(a)
         True
 
+    TESTS::
+
+        sage: RDF.is_finite()
+        False
     """
     def __init__(self):
         """
@@ -148,7 +151,7 @@ cdef class RealDoubleField_class(Field):
             sage: TestSuite(R).run()
         """
         from sage.categories.fields import Fields
-        Field.__init__(self, self, category=Fields().Metric().Complete())
+        Field.__init__(self, self, category=Fields().Infinite().Metric().Complete())
         self._populate_coercion_lists_(init_no_parent=True,
                                        convert_method_name='_real_double_')
 
@@ -387,6 +390,17 @@ cdef class RealDoubleField_class(Field):
         """
         return "RealField(%s : Bits := true)" % self.prec()
 
+    def _fricas_init_(self):
+        r"""
+        Return the FriCAS representation of the real double field.
+
+        EXAMPLES::
+
+            sage: fricas(RDF)    # indirect doctest, optional - fricas
+            DoubleFloat
+        """
+        return "DoubleFloat"
+
     def _polymake_init_(self):
         r"""
         Return the polymake representation of the real double field.
@@ -459,20 +473,6 @@ cdef class RealDoubleField_class(Field):
         """
         return 1
 
-    def is_finite(self):
-        """
-        Return ``False``, since the field of real numbers is not finite.
-
-        Technical note: There exists an upper bound on the double
-        representation.
-
-        EXAMPLES::
-
-            sage: RDF.is_finite()
-            False
-        """
-        return False
-
     def characteristic(self):
         """
         Returns 0, since the field of real numbers has characteristic 0.
@@ -521,12 +521,16 @@ cdef class RealDoubleField_class(Field):
         """
         Return the hash value of ``self``.
 
+        This class is intended for use as a singleton so any instance
+        of it should be equivalent from a hashing perspective.
+
         TESTS::
 
-            sage: hash(RDF) % 2^32 == hash(str(RDF)) % 2^32
+            sage: from sage.rings.real_double import RealDoubleField_class
+            sage: hash(RDF) == hash(RealDoubleField_class())
             True
         """
-        return 1157042230 #return hash(str(self))
+        return 1157042230
 
     def pi(self):
         r"""
@@ -665,7 +669,7 @@ cdef class RealDoubleField_class(Field):
         # collect real roots and conjugate pairs of non-real roots
         real_roots = [(r, e) for r, e in roots if r.imag().is_zero()]
         non_real_roots = {r: e for r, e in roots if not r.imag().is_zero()}
-        assert all([non_real_roots[r.conj()] == e for r, e in non_real_roots.items()]), "Bug in root finding code over RDF - roots must always come in conjugate pairs"
+        assert all(non_real_roots[r.conj()] == e for r, e in non_real_roots.items()), "Bug in root finding code over RDF - roots must always come in conjugate pairs"
         non_real_roots = [(r, e) for r, e in non_real_roots.items() if r.imag() > 0]
 
         # turn the roots into irreducible factors
@@ -711,12 +715,12 @@ cdef class RealDoubleElement(FieldElement):
 
         TESTS::
 
-            sage: from gmpy2 import *  # optional - gmpy2
-            sage: RDF(mpz(42))         # optional - gmpy2
+            sage: from gmpy2 import *
+            sage: RDF(mpz(42))
             42.0
-            sage: RDF(mpq(3/4))        # optional - gmpy2
+            sage: RDF(mpq(3/4))
             0.75
-            sage: RDF(mpq('4.1'))      # optional - gmpy2
+            sage: RDF(mpq('4.1'))
             4.1
         """
         self._value = float(x)
@@ -940,10 +944,10 @@ cdef class RealDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: RDF(42.2).__mpfr__()    # optional - gmpy2
+            sage: RDF(42.2).__mpfr__()
             mpfr('42.200000000000003')
-            sage: from gmpy2 import mpfr  # optional - gmpy2
-            sage: mpfr(RDF(5.1))          # optional - gmpy2
+            sage: from gmpy2 import mpfr
+            sage: mpfr(RDF(5.1))
             mpfr('5.0999999999999996')
 
         TESTS::
@@ -953,10 +957,7 @@ cdef class RealDoubleElement(FieldElement):
             ...
             NotImplementedError: gmpy2 is not installed
         """
-        IF HAVE_GMPY2:
-            return gmpy2.mpfr(self._value)
-        ELSE:
-            raise NotImplementedError("gmpy2 is not installed")
+        return gmpy2.mpfr(self._value)
 
     def _interface_init_(self, I=None):
         """
@@ -1134,19 +1135,6 @@ cdef class RealDoubleElement(FieldElement):
         """
         return codomain(self) # since 1 |--> 1
 
-    def __str__(self):
-        """
-        Return the string representation of ``self``, see :meth:`str`.
-
-        EXAMPLES::
-
-            sage: print(RDF(-2/3))
-            -0.666666666667
-            sage: print(RDF(oo))
-            +infinity
-        """
-        return double_str(self._value)
-
     def str(self):
         """
         Return the informal string representation of ``self``.
@@ -1156,7 +1144,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: a = RDF('4.5'); a.str()
             '4.5'
             sage: a = RDF('49203480923840.2923904823048'); a.str()
-            '4.92034809238e+13'
+            '49203480923840.29'
             sage: a = RDF(1)/RDF(0); a.str()
             '+infinity'
             sage: a = -RDF(1)/RDF(0); a.str()
@@ -1173,7 +1161,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: str(RR(RDF(0)/RDF(0))) == str(RDF(0)/RDF(0))
             True
         """
-        return double_str(self._value)
+        return double_repr(self._value)
 
     def __copy__(self):
         """
@@ -2402,7 +2390,7 @@ cdef class RealDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: x = RDF(4e300); y = RDF(3e300);
+            sage: x = RDF(4e300); y = RDF(3e300)
             sage: x.hypot(y)
             5e+300
             sage: sqrt(x^2+y^2) # overflow
@@ -2716,7 +2704,7 @@ cdef class ToRDF(Morphism):
         """
         from sage.categories.homset import Hom
         if isinstance(R, type):
-            from sage.structure.parent import Set_PythonType
+            from sage.sets.pythonclass import Set_PythonType
             R = Set_PythonType(R)
         Morphism.__init__(self, Hom(R, RDF))
 
@@ -2904,11 +2892,3 @@ cdef double_repr(double x):
     if v < 0:
         return "-infinity"
     return "NaN"
-
-cdef double_str(double x):
-    """
-    Convert a double to an informal string.
-    """
-    if gsl_finite(x):
-        return str(x)
-    return double_repr(x)

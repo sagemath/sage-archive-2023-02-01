@@ -24,7 +24,6 @@ import os
 import zipfile
 
 from sage.cpython.string import bytes_to_str
-from sage.env import SAGE_LOCAL
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 
@@ -159,7 +158,7 @@ class JSMolHtml(SageObject):
                     if meshfile not in [b'dots\n', b'mesh\n']:
                         assert (meshfile.startswith(b'"') and
                                 meshfile.endswith(b'"\n'))
-                        meshfile = meshfile[1:-2]    # strip quotes
+                        meshfile = bytes_to_str(meshfile[1:-2])  # strip quotes
                         script += [
                             'pmesh {0} inline "'.format(bytes_to_str(obj)),
                             bytes_to_str(self._zip.open(meshfile).read()),
@@ -302,4 +301,3 @@ class JSMolHtml(SageObject):
             escaped_inner_html=escaped_inner_html,
         )
         return outer
-        

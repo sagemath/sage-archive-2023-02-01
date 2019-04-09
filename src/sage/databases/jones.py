@@ -72,7 +72,7 @@ from sage.rings.all import NumberField, RationalField, PolynomialRing
 from sage.misc.misc import powerset
 from sage.env import SAGE_SHARE
 
-from sage.structure.sage_object import load, save
+from sage.misc.persist import load, save
 
 from sage.misc.package import PackageNotFoundError
 
@@ -233,7 +233,7 @@ class JonesDatabase:
             S = list(S)
         except TypeError:
             S = [S]
-        if not all([p.is_prime() for p in S]):
+        if not all(p.is_prime() for p in S):
             raise ValueError("S must be a list of primes")
         S.sort()
         s = tuple(S)

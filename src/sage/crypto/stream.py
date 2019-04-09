@@ -23,7 +23,7 @@ from sage.arith.all import gcd, power_mod
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
 from sage.rings.finite_rings.integer_mod_ring import IntegerModFactory
 from sage.rings.polynomial.polynomial_element import is_Polynomial
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
 
 IntegerModRing = IntegerModFactory("IntegerModRing")
 

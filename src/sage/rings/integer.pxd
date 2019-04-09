@@ -34,8 +34,6 @@ cdef class Integer(EuclideanDomainElement):
     cdef bint _pseudoprime_is_prime(self, proof) except -1
     cpdef list _pari_divisors_small(self)
 
-    cdef _reduce_set(self, s) # do not use, since integers are immutable.
-
 cdef int mpz_set_str_python(mpz_ptr z, char* s, int base) except -1
 
 cdef Integer smallInteger(long value)

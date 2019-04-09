@@ -172,6 +172,19 @@ def has_octave():
     except Exception:
         return False
 
+def has_pandoc():
+    """
+    Test if pandoc is available.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import has_pandoc
+        sage: has_pandoc()      # optional -- pandoc
+        FeatureTestResult('Pandoc', True)
+    """
+    from sage.features.pandoc import Pandoc
+    return Pandoc().is_present()
+
 def has_scilab():
     """
     Test if Scilab is available.
@@ -223,6 +236,45 @@ def has_gurobi():
     except Exception:
         return False
 
+def has_graphviz():
+    """
+    Test if graphviz (dot, twopi, neato) are available.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import has_graphviz
+        sage: has_graphviz()   # optional -- graphviz
+        FeatureTestResult('Graphviz', True)
+    """
+    from sage.features.graphviz import Graphviz
+    return Graphviz().is_present()
+
+def has_ffmpeg():
+    """
+    Test if ffmpeg is available.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import has_ffmpeg
+        sage: has_ffmpeg()      # optional -- ffmpeg
+        FeatureTestResult('FFmpeg', True)
+    """
+    from sage.features.ffmpeg import FFmpeg
+    return FFmpeg().is_present()
+
+def has_imagemagick():
+    """
+    Test if ImageMagick (command convert) is available.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import has_imagemagick
+        sage: has_imagemagick() # optional -- imagemagick
+        FeatureTestResult('convert', True)
+    """
+    from sage.features.imagemagick import ImageMagick
+    return ImageMagick().is_present()
+
 def external_software():
     """
     Return the alphabetical list of external software supported by this module.
@@ -266,7 +318,10 @@ class AvailableSoftware(object):
         sage: from sage.doctest.external import external_software, available_software
         sage: external_software
         ['cplex',
+         'ffmpeg',
+         'graphviz',
          'gurobi',
+         'imagemagick',
          'internet',
          'latex',
          'macaulay2',
@@ -275,6 +330,7 @@ class AvailableSoftware(object):
          'mathematica',
          'matlab',
          'octave',
+         'pandoc',
          'scilab']
         sage: 'internet' in available_software # random
         True

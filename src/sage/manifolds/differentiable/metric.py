@@ -371,7 +371,7 @@ class PseudoRiemannianMetric(TensorField):
                     raise ValueError("the metric signature must be odd")
         self._signature = signature
         # the pair (n_+, n_-):
-        self._signature_pm = ((ndim+signature)/2, (ndim-signature)/2)
+        self._signature_pm = ((ndim+signature)//2, (ndim-signature)//2)
         self._indic_signat = 1 - 2*(self._signature_pm[1]%2)  # (-1)^n_-
         # Initialization of derived quantities:
         PseudoRiemannianMetric._init_derived(self)
@@ -2052,7 +2052,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
                     raise ValueError("the metric signature must be odd")
         self._signature = signature
         # the pair (n_+, n_-):
-        self._signature_pm = ((ndim+signature)/2, (ndim-signature)/2)
+        self._signature_pm = ((ndim+signature)//2, (ndim-signature)//2)
         self._indic_signat = 1 - 2*(self._signature_pm[1]%2)  # (-1)^n_-
         # Initialization of derived quantities:
         PseudoRiemannianMetricParal._init_derived(self)
@@ -2271,7 +2271,6 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         """
         from sage.matrix.constructor import matrix
         from sage.tensor.modules.comp import CompFullySym
-        from sage.manifolds.differentiable.vectorframe import CoordFrame
         # Is the inverse metric up to date ?
         for frame in self._components:
             if frame not in self._inverse._components:

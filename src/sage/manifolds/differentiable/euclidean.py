@@ -663,7 +663,7 @@ class EuclideanSpace(PseudoRiemannianManifold):
 
     def __init__(self, n, name=None, latex_name=None,
                  coordinates='Cartesian', symbols=None, metric_name='g',
-                 metric_latex_name=None, start_index=1, ambient=None,
+                 metric_latex_name=None, start_index=1, base_manifold=None,
                  category=None, init_coord_methods=None,
                  unique_tag=None):
         r"""
@@ -673,9 +673,9 @@ class EuclideanSpace(PseudoRiemannianManifold):
 
         This class also takes the following input:
 
-        - ``ambient`` -- (default: ``None``) if not ``None``, must be
+        - ``base_manifold`` -- (default: ``None``) if not ``None``, must be
           an Euclidean space; the created object is then an open subset
-          of ``ambient``
+          of ``base_manifold``
         - ``category`` -- (default: ``None``) to specify the category;
           if ``None``, ``Manifolds(RR).Differentiable()`` (or
           ``Manifolds(RR).Smooth()`` if ``diff_degree`` = ``infinity``)
@@ -708,7 +708,7 @@ class EuclideanSpace(PseudoRiemannianManifold):
             if latex_name is None:
                 latex_name = r'\mathbb{E}^{' + str(n) + '}'
         PseudoRiemannianManifold.__init__(self, n, name, metric_name=metric_name,
-                                          signature=n, ambient=ambient,
+                                          signature=n, base_manifold=base_manifold,
                                           latex_name=latex_name,
                                           metric_latex_name=metric_latex_name,
                                           start_index=start_index,
@@ -1088,8 +1088,8 @@ class EuclideanPlane(EuclideanSpace):
     - ``start_index`` -- (default: 1) integer; lower value of the range of
       indices used for "indexed objects" in the Euclidean plane, e.g.
       coordinates of a chart
-    - ``ambient`` -- (default: ``None``) if not ``None``, must be an
-      Euclidean plane; the created object is then an open subset of ``ambient``
+    - ``base_manifold`` -- (default: ``None``) if not ``None``, must be an
+      Euclidean plane; the created object is then an open subset of ``base_manifold``
     - ``category`` -- (default: ``None``) to specify the category; if ``None``,
       ``Manifolds(RR).Differentiable()`` (or ``Manifolds(RR).Smooth()``
       if ``diff_degree`` = ``infinity``) is assumed (see the category
@@ -1165,7 +1165,7 @@ class EuclideanPlane(EuclideanSpace):
     """
     def __init__(self, name=None, latex_name=None, coordinates='Cartesian',
                  symbols=None, metric_name='g', metric_latex_name=None,
-                 start_index=1, ambient=None, category=None, unique_tag=None):
+                 start_index=1, base_manifold=None, category=None, unique_tag=None):
         r"""
         Construct an Euclidean plane.
 
@@ -1196,11 +1196,11 @@ class EuclideanPlane(EuclideanSpace):
                                 metric_name=metric_name,
                                 metric_latex_name=metric_latex_name,
                                 start_index=start_index,
-                                ambient=ambient, category=category,
+                                base_manifold=base_manifold, category=category,
                                 init_coord_methods=init_coord_methods)
         if coordinates == 'polar':
             # The default frame is the polar coordinate frame; we change it
-            # to the orthornomal polar frame
+            # to the orthonormal polar frame
             self.set_default_frame(self.polar_frame())
 
     def _repr_(self):
@@ -1607,9 +1607,9 @@ class Euclidean3dimSpace(EuclideanSpace):
     - ``start_index`` -- (default: 1) integer; lower value of the range of
       indices used for "indexed objects" in the Euclidean 3-space, e.g.
       coordinates of a chart
-    - ``ambient`` -- (default: ``None``) if not ``None``, must be an
+    - ``base_manifold`` -- (default: ``None``) if not ``None``, must be an
       Euclidean 3-space; the created object is then an open subset of
-      ``ambient``
+      ``base_manifold``
     - ``category`` -- (default: ``None``) to specify the category; if ``None``,
       ``Manifolds(RR).Differentiable()`` (or ``Manifolds(RR).Smooth()``
       if ``diff_degree`` = ``infinity``) is assumed (see the category
@@ -1693,7 +1693,7 @@ class Euclidean3dimSpace(EuclideanSpace):
     """
     def __init__(self, name=None, latex_name=None, coordinates='Cartesian',
                  symbols=None, metric_name='g', metric_latex_name=None,
-                 start_index=1, ambient=None, category=None, unique_tag=None):
+                 start_index=1, base_manifold=None, category=None, unique_tag=None):
         r"""
         Construct an Euclidean 3-space.
 
@@ -1729,15 +1729,15 @@ class Euclidean3dimSpace(EuclideanSpace):
                                 metric_name=metric_name,
                                 metric_latex_name=metric_latex_name,
                                 start_index=start_index,
-                                ambient=ambient, category=category,
+                                base_manifold=base_manifold, category=category,
                                 init_coord_methods=init_coord_methods)
         if coordinates == 'spherical':
             # The default frame is the spherical coordinate frame; we change it
-            # to the orthornomal spherical frame
+            # to the orthonormal spherical frame
             self.set_default_frame(self.spherical_frame())
         if coordinates == 'cylindrical':
             # The default frame is the cylindrical coordinate frame; we change
-            # it to the orthornomal cylindrical frame
+            # it to the orthonormal cylindrical frame
             self.set_default_frame(self.cylindrical_frame())
 
     def _repr_(self):

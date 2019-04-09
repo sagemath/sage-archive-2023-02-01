@@ -494,15 +494,26 @@ cdef class RingMap_lift(RingMap):
             <type 'sage.rings.integer.Integer'>
             sage: type(f)
             <type 'sage.rings.morphism.RingMap_lift'>
+
+        An invalid example::
+
+            sage: GF9.<one, a> = GaussianIntegers().quotient(3)
+            sage: from sage.rings.morphism import RingMap_lift
+            sage: RingMap_lift(GF9, ZZ)
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Number Field in I with defining polynomial x^2 + 1 to Integer Ring
         """
+        self.S = <Parent?>S
+        x = <Element?>R(0).lift()
+        f = self.S.coerce_map_from(x._parent)
+        if f is None:
+            raise TypeError(f"no canonical coercion from {x._parent} to {S}")
+        self.to_S = f
+
         from sage.categories.sets_cat import Sets
         H = R.Hom(S, Sets())
         RingMap.__init__(self, H)
-        self.S = S  # for efficiency
-        try:
-            S._coerce_(R(0).lift())
-        except TypeError:
-            raise TypeError("No natural lift map")
 
     cdef _update_slots(self, dict _slots):
         """
@@ -520,6 +531,7 @@ cdef class RingMap_lift(RingMap):
             False
         """
         self.S = _slots['S']
+        self.to_S = _slots['to_S']
         Morphism._update_slots(self, _slots)
 
     cdef dict _extra_slots(self):
@@ -535,6 +547,7 @@ cdef class RingMap_lift(RingMap):
         """
         slots = Morphism._extra_slots(self)
         slots['S'] = self.S
+        slots['to_S'] = self.to_S
         return slots
 
     cpdef _richcmp_(self, other, int op):
@@ -615,7 +628,7 @@ cdef class RingMap_lift(RingMap):
             sage: type(f(-1))
             <type 'sage.rings.integer.Integer'>
         """
-        return self.S._coerce_c(x.lift())
+        return self.to_S(x.lift())
 
 
 cdef class RingHomomorphism(RingMap):
@@ -799,7 +812,10 @@ cdef class RingHomomorphism(RingMap):
         - Simon King (2010-05)
         - Francis Clarke (2011-02)
         """
+        from sage.categories.morphism import IdentityMorphism
         from sage.categories.rings import Rings
+        if isinstance(right, IdentityMorphism):
+            return self
         if homset.homset_category().is_subcategory(Rings()):
             if isinstance(right, RingHomomorphism_im_gens):
                 try:
@@ -1578,7 +1594,7 @@ cdef class RingHomomorphism_cover(RingHomomorphism):
             sage: f._call_(1/2)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Inverse does not exist.
+            ZeroDivisionError: inverse of Mod(2, 6) does not exist
             sage: f(1/2)
             Traceback (most recent call last):
             ...
@@ -1974,7 +1990,7 @@ cdef class FrobeniusEndomorphism_generic(RingHomomorphism):
         EXAMPLES::
 
             sage: K.<u> = PowerSeriesRing(GF(5))
-            sage: Frob = K.frobenius_endomorphism(2);
+            sage: Frob = K.frobenius_endomorphism(2)
             sage: Frob._latex_()
             '\\verb"Frob"^{2}'
         """

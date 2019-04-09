@@ -433,14 +433,7 @@ class ContinuousMap(Morphism):
             else:
                 self._latex_name = latex_name
         self._init_derived()  # initialization of derived quantities
-        self._restrictions_graph = {(domain, codomain): self}
-                # dict. of known extensions of self on bigger domains,
-                # including self, with pairs of domain codomain as keys.
-                # Its elements can be seen as incomming edges on a graph.
-        self._extensions_graph = {(domain, codomain): self}
-                # dict. of known restrictions of self on samller domains,
-                # including self, with pairs of domain codomain as keys.
-                # Its elements can be seen as outgoing edges on a graph.
+
     #
     # SageObject methods
     #
@@ -513,6 +506,32 @@ class ContinuousMap(Morphism):
             return r'\mbox{' + str(self) + r'}'
         else:
            return self._latex_name
+
+    #
+    # Hash and equality
+    #
+
+    def __hash__(self):
+        """
+        Hash function.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: N = Manifold(2, 'N', structure='topological')
+            sage: Y.<u,v> = N.chart()
+            sage: f = M.continuous_map(N, {(X,Y): (x+y,x*y)})
+            sage: hash(f) == f.__hash__()
+            True
+
+        Let us check that ``f`` can be used as a dictionary key::
+
+            sage: {f: 1}[f]
+            1
+
+        """
+        return hash((self._domain, self._codomain))
 
     def __eq__(self, other):
         r"""
@@ -859,9 +878,36 @@ class ContinuousMap(Morphism):
             {}
             sage: f._inverse
 
+        ``_extensions_graph`` and ``_restrictions_graph`` were not originally
+        derived quantities, but this induced a bug when dealing with other
+        derived quantities (see :trac:`26012`)::
+
+            sage: M = Manifold(2, 'M')
+            sage: C.<x, y> = M.chart()
+            sage: U = M.open_subset('U', coord_def={C:x>0})
+            sage: g = M.metric('g')
+            sage: g[:] = [[1, 0], [0, 1]]
+            sage: gU = g.restrict(U)
+            sage: g[:] = [[1, 0], [0, 2]]
+            sage: g.inverse()[:]
+            [  1   0]
+            [  0 1/2]
+            sage: g.inverse().restrict(U)[:] # used to be wrong
+            [  1   0]
+            [  0 1/2]
+
         """
         self._restrictions = {} # dict. of restrictions to subdomains of
                                 # self._domain
+        self._restrictions_graph = {(self._domain, self._codomain): self}
+        # dict. of known extensions of self on bigger domains,
+        # including self, with pairs of domain codomain as keys.
+        # Its elements can be seen as incomming edges on a graph.
+        self._extensions_graph = {(self._domain, self._codomain): self}
+        # dict. of known restrictions of self on samller domains,
+        # including self, with pairs of domain codomain as keys.
+        # Its elements can be seen as outgoing edges on a graph.
+
         if self._is_identity:
             self._inverse = self
         else:
@@ -885,6 +931,8 @@ class ContinuousMap(Morphism):
 
         """
         self._restrictions.clear()
+        self._restrictions_graph = {(self._domain, self._codomain): self}
+        self._extensions_graph = {(self._domain, self._codomain): self}
         if not self._is_identity:
             self._inverse = None
 
@@ -1730,8 +1778,8 @@ class ContinuousMap(Morphism):
                     self._restrictions[(subdomain, subcodomain)] = res
                     self._restrictions.update(res._restrictions)
                     self._restrictions_graph.update(res._restrictions_graph)
-                    res._extension_graph.update(self._extension_graph)
-                    for ext in self._extension._graph.values():
+                    res._extensions_graph.update(self._extensions_graph)
+                    for ext in self._extensions_graph.values():
                         ext._restrictions[subdomain] = res
                         ext._restrictions.update(res._restrictions)
                         ext._restrictions_graph.update(res._restrictions_graph)

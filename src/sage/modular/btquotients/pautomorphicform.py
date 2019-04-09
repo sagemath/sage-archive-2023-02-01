@@ -47,7 +47,7 @@ REFERENCES:
 """
 from __future__ import print_function, division
 
-from builtins import zip
+from six.moves import zip, filter
 
 from sage.modular.btquotients.btquotient import DoubleCosetReduction
 from sage.structure.unique_representation import UniqueRepresentation
@@ -940,7 +940,7 @@ class BruhatTitsHarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
             sage: X = BruhatTitsQuotient(5,23)
             sage: H = X.harmonic_cocycles(2,prec=10)
             sage: latex(H) # indirect doctest
-            \text{Space of harmonic cocycles of weight } 2 \text{ on } X(5 \cdot 23,1)\otimes_{\mathbb{Z}} \mathbb{F}_{5}
+            \text{Space of harmonic cocycles of weight } 2 \text{ on } X(5 \cdot 23,1)\otimes_{\Bold{Z}} \Bold{F}_{5}
         """
         s = '\\text{Space of harmonic cocycles of weight } '
         s += (self._k)._latex_() + ' \\text{ on } ' + self._X._latex_()
@@ -954,7 +954,7 @@ class BruhatTitsHarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         A harmonic cocycle in self.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: X = BruhatTitsQuotient(5,23)
             sage: H = X.harmonic_cocycles(2,prec=10)
@@ -1037,6 +1037,20 @@ class BruhatTitsHarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
             False
         """
         return not self.__eq__(other)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: X = BruhatTitsQuotient(5,7)
+            sage: H1 = X.harmonic_cocycles(2,prec=10)
+            sage: H2 = X.harmonic_cocycles(2,prec=10)
+            sage: hash(H1) == hash(H2)
+            True
+        """
+        return hash((self.base_ring(), self._X, self._k))
 
     def _element_constructor_(self, x):
         r"""
@@ -1194,11 +1208,11 @@ class BruhatTitsHarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
         d = self._k - 1
         for e in self._E:
             try:
-                g = filter(lambda g: g[2], S[e.label])[0]
+                g = next(filter(lambda g: g[2], S[e.label]))
                 C = self._U.acting_matrix(self._Sigma0(self.embed_quaternion(g[0])), d).transpose()  # Warning - Need to allow the check = True
                 C -= self._U.acting_matrix(self._Sigma0(Matrix(QQ, 2, 2, p ** g[1])), d).transpose()  # Warning - Need to allow the check = True
                 stab_conds.append([e.label, C])
-            except IndexError:
+            except StopIteration:
                 pass
 
         n_stab_conds = len(stab_conds)
@@ -1713,7 +1727,7 @@ class pAdicAutomorphicFormElement(ModuleElement):
         X = self.parent()._source
         p = self.parent().prime()
         u = DoubleCosetReduction(X, e1)
-        tmp = ((u.t(self.parent()._U.base_ring().precision_cap())) * p ** (u.power)).adjoint()
+        tmp = ((u.t(self.parent()._U.base_ring().precision_cap())) * p ** (u.power)).adjugate()
         S0 = self.parent()._Sigma0
         return S0(tmp, check=False) * self._value[u.label]
         # Warning! Should remove check=False...
@@ -2391,6 +2405,20 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
         """
         return not self.__eq__(other)
 
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: X = BruhatTitsQuotient(5,7)
+            sage: H1 = X.padic_automorphic_forms(2,prec = 10)
+            sage: H2 = X.padic_automorphic_forms(2,prec = 10)
+            sage: hash(H1) == hash(H2)
+            True
+        """
+        return hash((self.base_ring(), self._source, self._U))
+
     def _repr_(self):
         r"""
         Return the representation of self as a string.
@@ -2598,7 +2626,7 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
                 m = M[ii]
                 for v in Si:
                     s += 1
-                    g = self._Sigma0(m.adjoint() * self._source.embed_quaternion(v[0], prec=self._prec).adjoint() * m,check = False)
+                    g = self._Sigma0(m.adjugate() * self._source.embed_quaternion(v[0], prec=self._prec).adjugate() * m,check = False)
                     newFi += g * x
                 newF.append((QQ(1) / s) * newFi)
             else:
@@ -2643,7 +2671,7 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
             for gg, edge_list in HeckeData:
                 u = edge_list[jj]
                 tprec = 2 * (prec_cap + u.power) + 1
-                r = S0(self._p ** -u.power * (u.t(tprec) * gg).adjoint(),check=False)
+                r = S0(self._p ** -u.power * (u.t(tprec) * gg).adjugate(),check=False)
                 tmp += r * f._value[u.label]
             tmp *= factor
             for ii in range(self._n + 1):

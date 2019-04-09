@@ -26,7 +26,7 @@ from .expect import Expect, ExpectElement, FunctionElement
 import sage.repl.preparse
 
 from sage.interfaces.tab_completion import ExtraTabCompletion
-from sage.structure.sage_object import dumps, load
+from sage.misc.persist import dumps, load
 from sage.docs.instancedoc import instancedoc
 
 

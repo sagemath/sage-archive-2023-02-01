@@ -361,7 +361,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                 sage: W = SymmetricGroup(4); W
                 Symmetric group of order 4! as a permutation group
                 sage: W.an_element()               # indirect doctest
-                (1,2,3,4)
+                (2,3,4)
 
             For a complex reflection group::
 

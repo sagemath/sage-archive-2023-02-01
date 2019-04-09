@@ -32,6 +32,8 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 
+from textwrap import dedent
+
 from libc.math cimport isfinite, INFINITY
 from libc.string cimport memset, memcpy
 from cysignals.memory cimport check_calloc, check_allocarray, check_reallocarray, sig_free
@@ -761,34 +763,35 @@ cdef class IndexFaceSet(PrimitiveObject):
             <BLANKLINE>
             <IndexedFaceSet solid='False' colorPerVertex='False' coordIndex='0,4,5,-1,3,4,5,-1,2,3,4,-1,1,3,5,-1'>
               <Coordinate point='2.0 0.0 0.0,0.0 2.0 0.0,0.0 0.0 2.0,0.0 1.0 1.0,1.0 0.0 1.0,1.0 1.0 0.0'/>
-              <Color color='1.0 0.0 0.0,1.0 0.6 0.0,0.8 1.0 0.0,0.2 1.0 0.0' />
+              <Color color='1.0 0.0 0.0,1.0 0.6000000000000001 0.0,0.7999999999999998 1.0 0.0,0.20000000000000018 1.0 0.0' />
             </IndexedFaceSet>
             <BLANKLINE>
         """
         cdef Py_ssize_t i
-        points = ",".join(["%s %s %s" % (self.vs[i].x,
-                                         self.vs[i].y,
-                                         self.vs[i].z)
+        vs = self.vs
+        fs = self._faces
+        points = ",".join(["%r %r %r" % (vs[i].x, vs[i].y, vs[i].z)
                            for i from 0 <= i < self.vcount])
-        coordIndex = ",-1,".join([",".join([str(self._faces[i].vertices[j])
-                                            for j from 0 <= j < self._faces[i].n])
-                                  for i from 0 <= i < self.fcount])
+        coord_idx = ",-1,".join([",".join([repr(fs[i].vertices[j])
+                                           for j from 0 <= j < fs[i].n])
+                                 for i from 0 <= i < self.fcount])
         if not self.global_texture:
-            colorIndex = ",".join([str(self._faces[i].color.r) + " "
-                                   + str(self._faces[i].color.g) + " "
-                                   + str(self._faces[i].color.b)
-                                   for i from 0 <= i < self.fcount])
-            return """
-<IndexedFaceSet solid='False' colorPerVertex='False' coordIndex='%s,-1'>
-  <Coordinate point='%s'/>
-  <Color color='%s' />
-</IndexedFaceSet>
-""" % (coordIndex, points, colorIndex)
-        return """
-<IndexedFaceSet coordIndex='%s,-1'>
-  <Coordinate point='%s'/>
-</IndexedFaceSet>
-""" % (coordIndex, points)
+            color_idx = ",".join(['%r %r %r' % (fs[i].color.r, fs[i].color.g, fs[i].color.b)
+                                  for i from 0 <= i < self.fcount])
+            # Note: Don't use f-strings, since Sage on Python 2 still expects
+            # this to return a plain str instead of a unicode
+            return dedent("""
+                <IndexedFaceSet solid='False' colorPerVertex='False' coordIndex='{coord_idx},-1'>
+                  <Coordinate point='{points}'/>
+                  <Color color='{color_idx}' />
+                </IndexedFaceSet>
+            """.format(coord_idx=coord_idx, points=points, color_idx=color_idx))
+
+        return dedent("""
+            <IndexedFaceSet coordIndex='{coord_idx},-1'>
+              <Coordinate point='{points}'/>
+            </IndexedFaceSet>
+        """.format(coord_idx=coord_idx, points=points))
 
     def bounding_box(self):
         r"""

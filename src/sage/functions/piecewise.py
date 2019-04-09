@@ -58,7 +58,7 @@ TESTS::
     0.125000000000...
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #                     2006 David Joyner <wdjoyner@gmail.com>
 #                     2013 Volker Braun <vbraun.name@gmail.com>
@@ -68,7 +68,7 @@ TESTS::
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 
 from __future__ import absolute_import, division, print_function
 
@@ -289,6 +289,26 @@ class PiecewiseFunction(BuiltinFunction):
 
 
     class EvaluationMethods(object):
+
+        def __pow__(self, parameters, variable, n):
+            """
+            Return the `n`-th power of the piecewise function by applying the
+            operation to each piece.
+
+            INPUT:
+
+            - ``n`` -- number or symbolic expression
+
+            EXAMPLES::
+
+                sage: f1(x) = -abs(x) + 1; f2(x) = abs(x - 2) - 1
+                sage: f = piecewise([ [(-1,1), f1], [(1,3), f2]])
+                sage: (f^2).integral(definite=True)
+                4/3
+            """
+            return piecewise(zip(self.domains(),
+                                 [ex**n for ex in self.expressions()]),
+                             var=variable)
 
         def expression_at(self, parameters, variable, point):
             """
@@ -702,6 +722,7 @@ class PiecewiseFunction(BuiltinFunction):
         def integral(self, parameters, variable, x=None, a=None, b=None, definite=False):
             r"""
             By default, return the indefinite integral of the function.
+
             If definite=True is given, returns the definite integral.
 
             AUTHOR:
@@ -889,7 +910,7 @@ class PiecewiseFunction(BuiltinFunction):
             return crit_pts
 
         def convolution(self, parameters, variable, other):
-            """
+            r"""
             Return the convolution function,
             `f*g(t)=\int_{-\infty}^\infty f(u)g(t-u)du`, for compactly
             supported `f,g`.

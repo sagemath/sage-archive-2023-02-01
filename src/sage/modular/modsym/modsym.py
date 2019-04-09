@@ -60,7 +60,7 @@ This test catches a tricky corner case for spaces with character::
 
     sage: ModularSymbols(DirichletGroup(20).1**3, weight=3, sign=1).cuspidal_subspace()
     Modular Symbols subspace of dimension 3 of Modular Symbols space of dimension 6 and level 20, weight 3, character [1, -zeta4], sign 1, over Cyclotomic Field of order 4 and degree 2
-    
+
 This tests the bugs reported in :trac:`20932`::
 
     sage: chi = kronecker_character(3*34603)
@@ -182,6 +182,7 @@ def ModularSymbols_clear_cache():
     global _cache
     _cache = {}
 
+
 def ModularSymbols(group  = 1,
                    weight = 2,
                    sign   = 0,
@@ -194,7 +195,7 @@ def ModularSymbols(group  = 1,
     INPUT:
 
     - ``group`` - A congruence subgroup or a Dirichlet character eps.
-    - ``weight`` - int, the weight, which must be = 2.
+    - ``weight`` - int, the weight, which must be >= 2.
     - ``sign`` - int, The sign of the involution on modular symbols
       induced by complex conjugation. The default is 0, which means
       "no sign", i.e., take the whole space.

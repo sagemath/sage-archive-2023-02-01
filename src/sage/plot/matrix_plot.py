@@ -217,20 +217,19 @@ class MatrixPlot(GraphicPrimitive):
             opts = dict(cmap=cmap, interpolation='nearest', aspect='equal',
                       norm=norm, vmin=options['vmin'], vmax=options['vmax'],
                       origin=origin,zorder=options.get('zorder',None))
-            image=subplot.imshow(self.xy_data_array, **opts)
+            image = subplot.imshow(self.xy_data_array, **opts)
 
             if options.get('colorbar', False):
                 colorbar_options = options['colorbar_options']
                 from matplotlib import colorbar
                 cax,kwds=colorbar.make_axes_gridspec(subplot,**colorbar_options)
-                cb=colorbar.Colorbar(cax,image, **kwds)
+                colorbar.Colorbar(cax, image, **kwds)
 
-        if origin=='upper':
+        if origin == 'upper':
             subplot.xaxis.tick_top()
-        elif origin=='lower':
+        elif origin == 'lower':
             subplot.xaxis.tick_bottom()
         subplot.xaxis.set_ticks_position('both') #only tick marks, not tick labels
-
 
 
 

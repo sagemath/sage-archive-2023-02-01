@@ -33,7 +33,7 @@ from sage.rings.all import ZZ, QQ
 from sage.interfaces.gap3 import gap3
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
 from sage.misc.sage_eval import sage_eval
-from sage.combinat.root_system.reflection_group_c import reduced_word_c
+from sage.combinat.root_system.reflection_group_c import reduced_word_c, reduce_in_coset
 from sage.matrix.all import Matrix, identity_matrix
 
 
@@ -755,6 +755,52 @@ cdef class RealReflectionGroupElement(ComplexReflectionGroupElement):
             return self.has_right_descent(i) is negative
         else:
             raise ValueError('side must be "left" or "right"')
+
+    def coset_representative(self, index_set, side="right"):
+        """
+        Return the unique shortest element of the Coxeter group
+        `W` which is in the same left (resp. right) coset as
+        ``self``, with respect to the parabolic subgroup `W_I`.
+
+        INPUT:
+
+        - ``index_set`` -- a subset (or iterable) of the nodes of the index set
+        - ``side`` -- (default: ``right``) ``'left'`` or ``'right'``
+
+        EXAMPLES::
+
+            sage: W = CoxeterGroup(['A',4], implementation="permutation")
+            sage: s = W.simple_reflections()
+            sage: w = s[2] * s[1] * s[3]
+            sage: w.coset_representative([]).reduced_word()
+            [2, 1, 3]
+            sage: w.coset_representative([1]).reduced_word()
+            [2, 3]
+            sage: w.coset_representative([1,2]).reduced_word()
+            [2, 3]
+            sage: w.coset_representative([1,3]                 ).reduced_word()
+            [2]
+            sage: w.coset_representative([2,3]                 ).reduced_word()
+            [2, 1]
+            sage: w.coset_representative([1,2,3]               ).reduced_word()
+            []
+            sage: w.coset_representative([],      side = 'left').reduced_word()
+            [2, 1, 3]
+            sage: w.coset_representative([1],     side = 'left').reduced_word()
+            [2, 1, 3]
+            sage: w.coset_representative([1,2],   side = 'left').reduced_word()
+            [3]
+            sage: w.coset_representative([1,3],   side = 'left').reduced_word()
+            [2, 1, 3]
+            sage: w.coset_representative([2,3],   side = 'left').reduced_word()
+            [1]
+            sage: w.coset_representative([1,2,3], side = 'left').reduced_word()
+            []
+        """
+        S = tuple(self._parent.simple_reflections())
+        N = self._parent.number_of_reflections()
+        I = self._parent._index_set_inverse
+        return reduce_in_coset(self, S, [I[i] for i in index_set], N, side=="left")
 
     def to_matrix(self, side="right", on_space="primal"):
         r"""

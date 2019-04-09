@@ -81,11 +81,11 @@ else:
 
 # make the list of packages
 if args['category'] == 'all':
-    L = [pkg for pkg in list_packages(local=True, ignore_URLError=True).values()]
+    L = list(list_packages(local=True, ignore_URLError=True).values())
 elif args['category'] == 'optional':
-    L = list_packages('optional', 'pip', local=args['local'], ignore_URLError=True).values()
+    L = list(list_packages('optional', 'pip', local=args['local'], ignore_URLError=True).values())
 else:
-    L = list_packages(args['category'], local=args['local'], ignore_URLError=True).values()
+    L = list(list_packages(args['category'], local=args['local'], ignore_URLError=True).values())
 
 # possible filter by installed/not installed
 if WARN:

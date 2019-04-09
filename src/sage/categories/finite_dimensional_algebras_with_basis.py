@@ -44,7 +44,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         Category of finite dimensional algebras with basis over Rational Field
         sage: C.super_categories()
         [Category of algebras with basis over Rational Field,
-         Category of finite dimensional modules with basis over Rational Field]
+         Category of finite dimensional magmatic algebras with basis over Rational Field]
         sage: C.example()
         An example of a finite dimensional algebra with basis:
         the path algebra of the Kronecker quiver
@@ -284,7 +284,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: S in Algebras(QQ).Semisimple()
                 True
                 sage: S.basis()
-                Finite family {'y': B['y'], 'x': B['x']}
+                Finite family {'x': B['x'], 'y': B['y']}
                 sage: xs,ys = sorted(S.basis())
                 sage: (xs + ys) * xs
                 B['x']
@@ -885,10 +885,10 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: [[decomposition[i][j].dimension()          # long time (4s)
                 ....:   for j in range(len(decomposition))]
                 ....:  for i in range(len(decomposition))]
-                [[1, 0, 0, 0, 0],
+                [[9, 0, 0, 0, 0],
                  [0, 9, 0, 0, 0],
                  [0, 0, 4, 0, 0],
-                 [0, 0, 0, 9, 0],
+                 [0, 0, 0, 1, 0],
                  [0, 0, 0, 0, 1]]
 
             The dimension of each block is `d^2`, where `d` is the
@@ -1153,7 +1153,6 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 tester = self._tester(**options)
                 cell_basis = self.cellular_basis()
                 B = cell_basis.basis()
-                K = B.keys()
                 P = self.cell_poset()
                 for mu in P:
                     C = self.cell_module_indices(mu)
@@ -1189,7 +1188,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             @abstract_method
             def cell_module_indices(self, mu):
-                """
+                r"""
                 Return the indices of the cell module of ``self``
                 indexed by ``mu`` .
 
@@ -1376,7 +1375,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     return ret
 
                 def cell_module_indices(self, mu):
-                    """
+                    r"""
                     Return the indices of the cell module of ``self``
                     indexed by ``mu`` .
 

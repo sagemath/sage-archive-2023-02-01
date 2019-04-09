@@ -1084,10 +1084,10 @@ class Composition(CombinatorialElement):
         size `n = 8`::
 
             sage: n = 8
-            sage: all(Composition(from_subset=(S, n)).to_subset() == S \
+            sage: all(Composition(from_subset=(S, n)).to_subset() == S
             ....:     for S in Subsets(n-1))
             True
-            sage: all(Composition(from_subset=(I.to_subset(), n)) == I \
+            sage: all(Composition(from_subset=(I.to_subset(), n)) == I
             ....:     for I in Compositions(n))
             True
         """
@@ -2018,6 +2018,6 @@ def composition_iterator_fast(n):
         else:
             cur.append(Integer(0))
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.composition', 'Composition_class', Composition)
 

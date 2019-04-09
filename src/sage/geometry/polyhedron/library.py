@@ -51,8 +51,6 @@ The following constructions are available
     :meth:`~sage.geometry.polyhedron.library.Polytopes.truncated_octahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.twenty_four_cell`
 """
-from __future__ import absolute_import
-
 ########################################################################
 #       Copyright (C) 2008 Marshall Hampton <hamptonio@gmail.com>
 #                     2011 Volker Braun <vbraun.name@gmail.com>
@@ -60,15 +58,15 @@ from __future__ import absolute_import
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ########################################################################
+from __future__ import absolute_import, division
 
 import itertools
 
 from sage.rings.all import ZZ, QQ, RDF, RR, AA, QQbar
 from sage.combinat.permutation import Permutations
 from sage.groups.perm_gps.permgroup_named import AlternatingGroup
-from sage.misc.decorators import rename_keyword
 from .constructor import Polyhedron
 from sage.graphs.digraph import DiGraph
 from sage.combinat.root_system.associahedron import Associahedron
@@ -108,6 +106,7 @@ def zero_sum_projection(d, base_ring=RDF):
     from sage.modules.free_module_element import vector
     basis = [vector(base_ring,[1]*i + [-i] + [0]*(d-i-1)) for i in range(1,d)]
     return matrix(base_ring, [v / v.norm() for v in basis])
+
 
 def project_points(*points, **kwds):
     """
@@ -170,9 +169,10 @@ def project_points(*points, **kwds):
     if base_ring is None:
         base_ring = RDF
     from sage.modules.free_module_element import vector
-    vecs = [vector(base_ring,p) for p in points]
+    vecs = [vector(base_ring, p) for p in points]
     m = zero_sum_projection(len(vecs[0]), base_ring=base_ring)
-    return [m*v for v in vecs]
+    return [m * v for v in vecs]
+
 
 class Polytopes():
     """
@@ -287,7 +287,8 @@ class Polytopes():
         from itertools import permutations
         verts = []
         for p in permutations(range(n)):
-            verts.append( [ZZ.one() if p[i]==j else ZZ.zero() for j in range(n) for i in range(n) ] )
+            verts.append([ZZ.one() if p[i] == j else ZZ.zero()
+                          for j in range(n) for i in range(n)])
         return Polyhedron(vertices=verts, base_ring=ZZ, backend=backend)
 
     def simplex(self, dim=3, project=False, base_ring=None, backend=None):
@@ -356,7 +357,7 @@ class Polytopes():
             sage: s6norm = polytopes.simplex(6,backend='normaliz')  # optional - pynormaliz
             sage: TestSuite(s6norm).run(skip='_test_pickling')      # optional - pynormaliz
         """
-        verts = list((ZZ ** (dim+1)).basis())
+        verts = list((ZZ**(dim + 1)).basis())
         if project:
             # Handling of default in base_ring is delegated to project_points
             verts = project_points(*verts, base_ring=base_ring)
@@ -578,9 +579,8 @@ class Polytopes():
         """
         if base_ring is None and exact:
             from sage.rings.number_field.number_field import QuadraticField
-            K = QuadraticField(2, 'sqrt2')
-            sqrt2 = K.gen()
-            base_ring = K
+            base_ring = QuadraticField(2, 'sqrt2')
+            sqrt2 = base_ring.gen()
         else:
             if base_ring is None:
                 base_ring = RDF
@@ -588,10 +588,10 @@ class Polytopes():
 
         one = base_ring.one()
         v1 = sqrt2 + 1
-        v2 = 2*sqrt2 + 1
-        verts = [ [s1*z1, s2*z2, s3*z3]
-                       for z1,z2,z3 in itertools.permutations([one,v1,v2])
-                       for s1,s2,s3 in itertools.product([1,-1], repeat=3)]
+        v2 = 2 * sqrt2 + 1
+        verts = [[s1 * z1, s2 * z2, s3 * z3]
+                 for z1, z2, z3 in itertools.permutations([one, v1, v2])
+                 for s1, s2, s3 in itertools.product([1, -1], repeat=3)]
         return Polyhedron(vertices=verts, base_ring=base_ring, backend=backend)
 
     def rhombic_dodecahedron(self, backend=None):
@@ -683,10 +683,9 @@ class Polytopes():
             sage: co_norm = polytopes.cuboctahedron(backend='normaliz')  # optional - pynormaliz
             sage: TestSuite(co_norm).run(skip='_test_pickling')          # optional - pynormaliz
         """
-        v = [ [ 0, -1, -1], [ 0, 1,-1], [ 1,-1, 0],
-              [ 1,  1,  0], [ 1, 0, 1], [ 1, 0,-1],
-              [ 0,  1,  1], [ 0,-1, 1], [-1, 0, 1],
-              [-1,  1,  0], [-1, 0,-1], [-1,-1, 0] ]
+        v = [[0, -1, -1], [0, 1, -1], [0, -1, 1], [0, 1, 1],
+             [-1, -1, 0], [1, -1, 0], [-1, 1, 0], [1, 1, 0],
+             [-1, 0, -1], [1, 0, -1], [-1, 0, 1], [1, 0, 1]]
         return Polyhedron(vertices=v, base_ring=ZZ, backend=backend)
 
     def truncated_cube(self, exact=True, base_ring=None, backend=None):
@@ -917,7 +916,7 @@ class Polytopes():
             sage: TestSuite(o_norm).run(skip='_test_pickling')       # optional - pynormaliz
         """
         v = [[0, 0, -1], [0, 0, 1], [1, 0, 0],
-             [-1, 0,  0], [0, 1, 0], [0, -1, 0]]
+             [-1, 0, 0], [0, 1, 0], [0, -1, 0]]
         return Polyhedron(vertices=v, base_ring=ZZ, backend=backend)
 
     def snub_cube(self, backend=None):
@@ -1334,7 +1333,7 @@ class Polytopes():
                 for s1, s2, s3 in itertools.product([1, -1], repeat=3)]
         pts += [[s1 * (2 + g), 0, s2 * (g**2)]
                 for s1, s2 in itertools.product([1, -1], repeat=2)]
-        #the vertices are all even permutations of the lists in pts
+        # the vertices are all even permutations of the lists in pts
         verts = pts
         verts += [[v[1], v[2], v[0]] for v in pts]
         verts += [[v[2], v[0], v[1]] for v in pts]
@@ -1406,7 +1405,7 @@ class Polytopes():
                 for s1, s2, s3 in itertools.product([1, -1], repeat=3)]
         pts += [[s1 * g, s2 * 3 * base_ring.one(), s3 * 2 * g]
                 for s1, s2, s3 in itertools.product([1, -1], repeat=3)]
-        #the vertices are all ever permutations of the lists in pts
+        # the vertices are all ever permutations of the lists in pts
         verts = pts
         verts += [[v[1], v[2], v[0]] for v in pts]
         verts += [[v[2], v[0], v[1]] for v in pts]
@@ -1451,8 +1450,8 @@ class Polytopes():
         if base_ring is None:
             base_ring = RDF
         phi = (1 + base_ring(5).sqrt()) / 2
-        xi = ((phi/2 + (phi - 5/27).sqrt()/2)**(~ZZ(3)) +
-              (phi/2 - (phi - 5/27).sqrt()/2)**(~ZZ(3)))
+        xi = ((phi/2 + (phi - ZZ(5)/27).sqrt()/2)**(~ZZ(3)) +
+              (phi/2 - (phi - ZZ(5)/27).sqrt()/2)**(~ZZ(3)))
 
         alpha = xi - 1 / xi
         beta = xi * phi + phi**2 + phi / xi
@@ -1511,8 +1510,8 @@ class Polytopes():
             sage: tfcell = polytopes.twenty_four_cell(backend='normaliz')  # optional - pynormaliz
             sage: TestSuite(tfcell).run(skip='_test_pickling')             # optional - pynormaliz
         """
-        q12 = QQ((1,2))
-        verts = list(itertools.product([q12,-q12], repeat=4))
+        q12 = QQ((1, 2))
+        verts = list(itertools.product([q12, -q12], repeat=4))
         B4 = (ZZ**4).basis()
         verts.extend(v for v in B4)
         verts.extend(-v for v in B4)
@@ -1562,7 +1561,7 @@ class Polytopes():
             base_ring = RDF
 
         q12 = base_ring(1) / base_ring(2)
-        z   = base_ring.zero()
+        z = base_ring.zero()
         verts = [[s1*q12, s2*q12, s3*q12, s4*q12] for s1,s2,s3,s4 in itertools.product([1,-1], repeat=4)]
         V = (base_ring)**4
         verts.extend(V.basis())
@@ -1623,7 +1622,7 @@ class Polytopes():
             base_ring = RDF
 
         q12 = base_ring(1) / base_ring(2)
-        z   = base_ring.zero()
+        z = base_ring.zero()
         verts = [[s1*q12, s2*q12, s3*q12, s4*q12] for s1,s2,s3,s4 in product([1,-1], repeat=4)]
         V = (base_ring)**4
         verts.extend(V.basis()[2:])
@@ -1764,8 +1763,9 @@ class Polytopes():
             sage: h_7_3.f_vector()
             (1, 35, 210, 350, 245, 84, 14, 1)
         """
-        verts = Permutations([0]*(dim-k) + [1]*k).list()
-        if project: verts = project_points(*verts)
+        verts = Permutations([0] * (dim - k) + [1] * k).list()
+        if project:
+            verts = project_points(*verts)
         return Polyhedron(vertices=verts, backend=backend)
 
     def permutahedron(self, n, project=False, backend=None):
@@ -1821,8 +1821,9 @@ class Polytopes():
             sage: p4 = polytopes.permutahedron(4,backend='normaliz')   # optional - pynormaliz
             sage: TestSuite(p4).run(skip='_test_pickling')             # optional - pynormaliz
         """
-        verts = list(itertools.permutations(range(1,n+1)))
-        if project: verts = project_points(*verts)
+        verts = list(itertools.permutations(range(1, n + 1)))
+        if project:
+            verts = project_points(*verts)
         return Polyhedron(vertices=verts, backend=backend)
 
     def hypercube(self, dim, backend=None):
@@ -1966,5 +1967,6 @@ class Polytopes():
     associahedron = staticmethod(Associahedron)
 
     flow_polytope = staticmethod(DiGraph.flow_polytope)
+
 
 polytopes = Polytopes()

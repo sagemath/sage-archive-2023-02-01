@@ -9524,10 +9524,9 @@ class GenericGraph(GenericGraph_pyx):
 
         .. NOTE::
 
-            Parameter ``alpha``, ``by_weight`` and ``weight_function`` is common
-            for all algorithms but ``personalization`` and ``dangling``
-            parameters are used only in ``NetworkX``, ``Numpy`` and ``Scipy``
-            implementations.
+            Parameters ``alpha``, ``by_weight`` and ``weight_function`` are common
+            to all algorithms. Parameters ``personalization`` and ``dangling``
+            are used only by algorithms ``NetworkX``, ``Numpy`` and ``Scipy``.
 
         EXAMPLES::
 

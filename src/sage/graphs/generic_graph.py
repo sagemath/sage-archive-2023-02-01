@@ -1550,8 +1550,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = graphs.GridGraph([2, 2])                                # optional - python_igraph
             sage: V = list(G)                                                 # optional - python_igraph
             sage: H = G.igraph_graph(vertex_list=V, vertex_attrs={'name': V}) # optional - python_igraph
-            sage: H.vs()['name']                                              # optional - python_igraph
-            [(0, 1), (1, 0), (0, 0), (1, 1)]
+            sage: H.vs()['name'] == V                                         # optional - python_igraph
+            True
 
         Sometimes, Sage integer/floats are not compatible with igraph::
 

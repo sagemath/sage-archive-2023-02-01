@@ -79,7 +79,7 @@ AUTHORS:
 # ****************************************************************************
 from .infinity import infinity
 
-from sage.structure.element import Element
+from sage.structure.element import ModuleElement
 from sage.structure.richcmp import op_EQ, op_NE
 
 from sage.arith.power import generic_power
@@ -90,13 +90,14 @@ from .lazy_laurent_series_operator import (
     LazyLaurentSeriesOperator_sub,
     LazyLaurentSeriesOperator_neg,
     LazyLaurentSeriesOperator_inv,
+    LazyLaurentSeriesOperator_scale,
     LazyLaurentSeriesOperator_apply,
     LazyLaurentSeriesOperator_change_ring,
     LazyLaurentSeriesOperator_truncate
 )
 
 
-class LazyLaurentSeries(Element):
+class LazyLaurentSeries(ModuleElement):
     r"""
     Return a lazy Laurent series.
 
@@ -164,7 +165,7 @@ class LazyLaurentSeries(Element):
             sage: z = L.gen()
             sage: TestSuite(z).run()
         """
-        Element.__init__(self, parent)
+        ModuleElement.__init__(self, parent)
 
         self._coefficient_function = coefficient
         self._approximate_valuation = valuation
@@ -439,6 +440,40 @@ class LazyLaurentSeries(Element):
         if self._constant is not None and other._constant is not None:
             if self._constant[0] == 0 and other._constant[0] == 0:
                 c = (self._constant[0], self._constant[1] + other._constant[1] - 1)
+
+        return R.element_class(R, coefficient=op, valuation=a, constant=c)
+
+    def _rmul_(self, scalar):
+        """
+        Return the scalar multiplication of this series by ``scalar``.
+
+        INPUT:
+
+        - ``scalar`` -- an element of the base ring
+
+        EXAMPLES::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: 2*z
+            2*z
+            sage: -1*z
+            -z
+        """
+        R = self.parent()
+
+        if scalar.is_zero():
+            return R(0)
+
+        op = LazyLaurentSeriesOperator_scale(self, scalar)
+
+        a = self._approximate_valuation
+
+        if self._constant is not None:
+            c = (scalar * self._constant[0], self._constant[1])
+        else:
+            c = None
 
         return R.element_class(R, coefficient=op, valuation=a, constant=c)
 

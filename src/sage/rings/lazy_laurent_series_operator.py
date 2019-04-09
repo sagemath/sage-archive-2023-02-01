@@ -21,8 +21,14 @@ Constructors::
 
     sage: L(1)
     1
+
+::
+
     sage: L.series([1,2,3,4], -10)
     z^-10 + 2*z^-9 + 3*z^-8 + 4*z^-7
+
+::
+
     sage: L.gen()
     z
 
@@ -30,6 +36,9 @@ Unary operators::
 
     sage: -f
     -1 - 2*z - 4*z^2 - 8*z^3 - 16*z^4 - 32*z^5 - 64*z^6 + ...
+
+::
+
     sage: ~f
     1 - 2*z + ...
 
@@ -37,19 +46,39 @@ Binary operators::
 
     sage: f + g
     2 + 2*z + 3*z^2 + 8*z^3 + 17*z^4 + 32*z^5 + 63*z^6 + ...
+
+::
+
     sage: f - g
     2*z + 5*z^2 + 8*z^3 + 15*z^4 + 32*z^5 + 65*z^6 + 128*z^7 + ...
+
+::
+
     sage: f * g
     1 + 2*z + 3*z^2 + 6*z^3 + 13*z^4 + 26*z^5 + 51*z^6 + ...
+
+::
+
     sage: f / g
     1 + 2*z + 5*z^2 + 10*z^3 + 20*z^4 + 40*z^5 + 80*z^6 + ...
 
 Transformers::
 
+    sage: 2*f
+    2 + 4*z + 8*z^2 + 16*z^3 + 32*z^4 + 64*z^5 + 128*z^6 + ...
+
+::
+
     sage: f.change_ring(GF(3))
     1 + 2*z + z^2 + 2*z^3 + z^4 + 2*z^5 + z^6 + ...
+
+::
+
     sage: f.apply_to_coefficients(lambda c: c^2)
     1 + 4*z + 16*z^2 + 64*z^3 + 256*z^4 + 1024*z^5 + 4096*z^6 + ...
+
+::
+
     sage: f.truncate(5)
     1 + 2*z + 4*z^2 + 8*z^3 + 16*z^4 + 32*z^5
 
@@ -369,6 +398,80 @@ class LazyLaurentSeriesOperator_inv(LazyLaurentSeriesUnaryOperator):
         for k in range(-v, n):
             c += s.coefficient(k) * self._series.coefficient(n + v - k)
         return -c * self._ainv
+
+class LazyLaurentSeriesOperator_scale(LazyLaurentSeriesOperator):
+    """
+    Operator for scalar multiplication of ``series`` with ``scalar``.
+
+    INPUT:
+
+    - ``series`` -- a lazy Laurent series
+
+    - ``scalar`` -- an element of the base ring
+
+    """
+    def __init__(self, series, scalar):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: g = 2*z
+            sage: loads(dumps(g)) == g
+            True
+        """
+        self._series = series
+        self._scalar = scalar
+
+    def __call__(self, s, n):
+        """
+        Return the `n`-th coefficient of the series ``s``.
+
+        TESTS::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = 2*(z + z^2)
+            sage: f.coefficient(2)
+            2
+            sage: f
+            2*z + 2*z^2
+        """
+        return self._scalar * self._series.coefficient(n)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = 2*(z + z^2)
+            sage: {f: 1}
+            {2*z + 2*z^2: 1}
+        """
+        return hash((type(self), self._series, self._scalar))
+
+    def __eq__(self, other):
+        """
+        Test equality.
+
+        TESTS::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = 2*z
+            sage: g = 2*z
+            sage: f == g
+            True
+        """
+        return (isinstance(other, LazyLaurentSeriesOperator_scale)
+                and self._series == other._series and self._scalar == other._scalar)
 
 class LazyLaurentSeriesOperator_change_ring(LazyLaurentSeriesOperator):
     """

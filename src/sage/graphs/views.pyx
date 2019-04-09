@@ -45,9 +45,9 @@ class EdgesView():
 
     - ``G`` -- a (di)graph
 
-    - ``vertices`` -- object (default: ``None``); a vertex, an iterable
-      container of vertices or ``None``. When set, consider only edges incident
-      to specified vertices.
+    - ``vertices`` -- list (default: ``None``); an iterable container of
+      vertices or ``None``. When set, consider only edges incident to specified
+      vertices.
 
     - ``labels`` -- boolean (default: ``True``); if ``False``, each edge is
       simply a pair ``(u, v)`` of vertices
@@ -168,7 +168,7 @@ class EdgesView():
         sage: G = graphs.CycleGraph(5)
         sage: E = EdgesView(G, vertices=[0, 1], labels=False, sort=True); E
         [(0, 1), (0, 4), (1, 2)]
-        sage: E = EdgesView(G, vertices=0, labels=False, sort=True); E
+        sage: E = EdgesView(G, vertices=[0], labels=False, sort=True); E
         [(0, 1), (0, 4)]
         sage: E = EdgesView(G, vertices=None, labels=False, sort=True); E
         [(0, 1), (0, 4), (1, 2), (2, 3), (3, 4)]
@@ -320,9 +320,6 @@ class EdgesView():
         if vertices is None:
             self._vertices = G
             self._vertex_set = G
-        elif vertices in G:
-            self._vertices = [vertices]
-            self._vertex_set = self._vertices
         else:
             self._vertices = list(vertices)
             self._vertex_set = frozenset(self._vertices)
@@ -350,7 +347,7 @@ class EdgesView():
             6
             sage: len(E) == G.size()
             True
-            sage: E = EdgesView(G, vertices=0, labels=False, sort=True); E
+            sage: E = EdgesView(G, vertices=[0], labels=False, sort=True); E
             [(0, 1), (0, 2)]
             sage: len(E)
             2

@@ -1,0 +1,14 @@
+diff --git a/setup.py b/setup.py
+index 15d81e4..bd37c46 100755
+--- a/setup.py
++++ b/setup.py
+@@ -311,6 +311,9 @@ class pil_build_ext(build_ext):
+             # darwin ports installation directories
+             _add_directory(library_dirs, "/opt/local/lib")
+             _add_directory(include_dirs, "/opt/local/include")
++            sysroot = subprocess.check_output(["xcrun", "--show-sdk-path"]).decode("utf-8").strip('\n')
++            _add_directory(library_dirs, sysroot+"/usr/lib")
++            _add_directory(include_dirs, sysroot+"/usr/include")
+ 
+             # if Homebrew is installed, use its lib and include directories
+             try:

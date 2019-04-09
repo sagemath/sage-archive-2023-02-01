@@ -1912,8 +1912,3 @@ class RCTypeA2Dual(RCTypeA2Even):
         return self.element_class(self, partitions)
 
     Element = KRRCTypeA2DualElement
-
-# deprecations from trac:18555
-from sage.misc.superseded import deprecated_function_alias
-RiggedConfigurations.global_options=deprecated_function_alias(18555, RiggedConfigurations.options)
-RiggedConfigurationOptions = deprecated_function_alias(18555, RiggedConfigurations.options)

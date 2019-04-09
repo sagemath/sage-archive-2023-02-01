@@ -133,9 +133,6 @@ from sage.arith.srange import xsrange
 multiplication_names = ( 'multiplication', 'times', 'product', '*')
 addition_names       = ( 'addition', 'plus', 'sum', '+')
 
-# deprecation(24256)
-from sage.structure.element import generic_power as power
-
 
 def multiple(a, n, operation='*', identity=None, inverse=None, op=None):
     r"""

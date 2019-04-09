@@ -2543,7 +2543,3 @@ register_unpickle_override('sage.combinat.skew_tableau', 'SemistandardSkewTablea
 # July 2013: But wait, there more!
 register_unpickle_override('sage.combinat.skew_tableau', 'StandardSkewTableaux_skewpartition',  StandardSkewTableaux_shape)
 register_unpickle_override('sage.combinat.skew_tableau', 'SkewTableau_class',  SkewTableau_class)
-
-# Deprecations from trac:18555. July 2016
-from sage.misc.superseded import deprecated_function_alias
-SkewTableaux.global_options=deprecated_function_alias(18555, SkewTableaux.options)

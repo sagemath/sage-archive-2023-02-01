@@ -1692,10 +1692,3 @@ class GlobalOptions(object):
             elif option in self._linked_value:
                 link, linked_opt=self._linked_value[option]
                 link._reset(linked_opt)
-
-
-# Deprecations from trac:18555. July 2016
-from sage.misc.superseded import deprecated_function_alias
-GlobalOptions.default_value=deprecated_function_alias(18555, GlobalOptions._default_value)
-GlobalOptions.dispatch=deprecated_function_alias(18555, GlobalOptions._dispatch)
-GlobalOptions.reset=deprecated_function_alias(18555, GlobalOptions._reset)

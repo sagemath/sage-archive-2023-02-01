@@ -16,9 +16,6 @@ lazy_import('sage.groups.generic',
              'merge_points', 'structure_description'],
             deprecation=(25785, "this is being removed from the global namespace"))
 
-# deprecation(24256)
-from sage.structure.element import generic_power as power
-
 lazy_import('sage.groups.class_function', 'ClassFunction')
 
 from .additive_abelian.all import *

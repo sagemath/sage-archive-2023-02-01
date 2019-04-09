@@ -64,10 +64,12 @@ from sage.categories.magmas_and_additive_magmas import MagmasAndAdditiveMagmas
 
 from sage.misc.cachefunc import cached_method
 
-from .lazy_laurent_series import (LazyLaurentSeries,
-                                  LazyLaurentSeriesOperator_gen,
-                                  LazyLaurentSeriesOperator_constant,
-                                  LazyLaurentSeriesOperator_list)
+from .lazy_laurent_series import LazyLaurentSeries
+from .lazy_laurent_series_operator import (
+    LazyLaurentSeriesOperator_gen,
+    LazyLaurentSeriesOperator_constant,
+    LazyLaurentSeriesOperator_list
+)
 
 
 class LazyLaurentSeriesRing(UniqueRepresentation, Parent):

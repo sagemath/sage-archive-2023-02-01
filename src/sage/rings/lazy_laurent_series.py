@@ -177,6 +177,10 @@ class LazyLaurentSeries(ModuleElement):
         """
         Compare ``self` with ``other`` with respect to the comparison operator ``op``.
 
+        Equality is verified if corresponding coefficients of both series can
+        be checked for equality without computing coefficients indefinitely.
+        Otherwise an exception is raised to declare equality is not decidable.
+
         Inequality is not defined for lazy Laurent series.
 
         TESTS::

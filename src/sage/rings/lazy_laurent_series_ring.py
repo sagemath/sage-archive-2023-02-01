@@ -61,14 +61,21 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 
 from sage.categories.magmas_and_additive_magmas import MagmasAndAdditiveMagmas
+from sage.categories.morphism import SetMorphism
+from sage.categories.homset import Hom
+from sage.categories.sets_cat import Sets
 
 from sage.misc.cachefunc import cached_method
+
+from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
+from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing_generic
 
 from .lazy_laurent_series import LazyLaurentSeries
 from .lazy_laurent_series_operator import (
     LazyLaurentSeriesOperator_gen,
     LazyLaurentSeriesOperator_constant,
-    LazyLaurentSeriesOperator_list
+    LazyLaurentSeriesOperator_list,
+    LazyLaurentSeriesOperator_polynomial
 )
 
 
@@ -168,6 +175,16 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         if self.base_ring().has_coerce_map_from(S):
             return True
 
+        if isinstance(S, (PolynomialRing_general, LaurentPolynomialRing_generic)):
+            def make_series_from(poly):
+                op = LazyLaurentSeriesOperator_polynomial(self, poly)
+                a = poly.valuation()
+                c = (self.base_ring().zero(), poly.degree() + 1)
+
+                return self.element_class(self, coefficient=op, valuation=a, constant=c)
+
+            return SetMorphism(Hom(S, self, Sets()), make_series_from)
+
         return False
 
     def _element_constructor_(self, x):
@@ -187,7 +204,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         op = LazyLaurentSeriesOperator_constant(self, R(x))
 
-        return self.element_class(self, coefficient=op, constant=(R.zero(), 1))
+        return self.element_class(self, coefficient=op, valuation=0, constant=(R.zero(), 1))
 
     def _an_element_(self):
         """

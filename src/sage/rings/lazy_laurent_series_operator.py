@@ -32,6 +32,13 @@ Constructors::
     sage: L.gen()
     z
 
+::
+
+    sage: P.<x> = LaurentPolynomialRing(ZZ)
+    sage: p = (1 + 1/x)^3 + (1 + x)^4
+    sage: L(p)
+    z^-3 + 3*z^-2 + 3*z^-1 + 2 + 4*z + 6*z^2 + 4*z^3 + z^4
+
 Unary operators::
 
     sage: -f
@@ -931,3 +938,81 @@ class LazyLaurentSeriesOperator_list(LazyLaurentSeriesOperator):
         return (isinstance(other, LazyLaurentSeriesOperator_list) and
                 self._ring == other._ring and self._list == other._list and
                 self._valuation == other._valuation)
+
+class LazyLaurentSeriesOperator_polynomial(LazyLaurentSeriesOperator):
+    """
+    Operator for the series coerced from a polynomial or a Laurent polynomial.
+
+    INPUT:
+
+    - ``ring`` -- a lazy Laurent series ring
+
+    - ``poly`` -- a polynomial or a Laurent polynomial
+
+    """
+    def __init__(self, ring, poly):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: P.<x> = ZZ[]
+            sage: p = (1 + 2*x)^-3
+            sage: f = L(p)
+            sage: loads(dumps(f)) == f
+            True
+        """
+        self._ring = ring
+        self._poly = poly
+
+    def __call__(self, s, n):
+        """
+        Return the `n`-th coefficient of the series ``s``.
+
+        TESTS::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: P.<x> = ZZ[]
+            sage: p = (1 + 2*x)^3
+            sage: f = L(p)
+            sage: f
+            1 + 6*z + 12*z^2 + 8*z^3
+        """
+        return self._poly[n]
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        TESTS::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: P.<x> = ZZ[]
+            sage: p = (1 + 2*x)^3
+            sage: f = L(p)
+            sage: {f: 1}
+            {1 + 6*z + 12*z^2 + 8*z^3: 1}
+        """
+        return hash((type(self), self._ring, self._poly))
+
+    def __eq__(self, other):
+        """
+        Test equality.
+
+        TESTS::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: P.<x> = ZZ[]
+            sage: p = (1 + 2*x)^3
+            sage: f = L(p)
+            sage: g = L(p)
+            sage: f == g
+            True
+        """
+        return (isinstance(other, LazyLaurentSeriesOperator_polynomial) and
+                self._ring == other._ring and self._poly == other._poly)

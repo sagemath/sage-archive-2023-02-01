@@ -1124,6 +1124,7 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
     cdef BoostVecWeightedGraph g_boost_und
     cdef int N = g.num_verts()
     cdef vector[vector[double]] result
+    cdef int u_int, v_int
 
     if g.is_directed():
         boost_weighted_graph_from_sage_graph(&g_boost_dir, g, v_to_int, weight_function)
@@ -1158,7 +1159,7 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
 
     if predecessors:
         pred = {v : {v : None} for v in g}
-        for e in g.edges():
+        for e in g.edge_iterator():
             dst = 0
             if weight_function is not None:
                 dst = weight_function(e)
@@ -1306,7 +1307,6 @@ cpdef floyd_warshall_shortest_paths(g, weight_function=None, distances=True, pre
     `m` the number of edges. The factor `nm` in the complexity is added only
     when ``predecessors`` is set to ``True``.
     
-
     INPUT:
 
     - ``g`` -- the input Sage graph
@@ -1371,7 +1371,7 @@ cpdef floyd_warshall_shortest_paths(g, weight_function=None, distances=True, pre
         ...
         TypeError: the input must be a Sage graph
 
-    If there is a negative cycle::
+    If there is a negative cycle:
 
         sage: g = DiGraph([(0,1,1),(1,2,-2),(2,0,0.5),(2,3,1)], weighted=True)
         sage: floyd_warshall_shortest_paths(g)
@@ -1402,6 +1402,7 @@ cpdef floyd_warshall_shortest_paths(g, weight_function=None, distances=True, pre
     cdef BoostVecWeightedGraph g_boost_und
     cdef int N = g.num_verts()
     cdef vector[vector[double]] result
+    cdef int u_int, v_int
 
     if g.is_directed():
         boost_weighted_graph_from_sage_graph(&g_boost_dir, g, v_to_int, weight_function)
@@ -1436,7 +1437,7 @@ cpdef floyd_warshall_shortest_paths(g, weight_function=None, distances=True, pre
 
     if predecessors:
         pred = {v : {v : None} for v in g}
-        for e in g.edges():
+        for e in g.edge_iterator():
             dst = 0
             if weight_function is not None:
                 dst = weight_function(e)

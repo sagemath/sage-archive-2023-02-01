@@ -155,13 +155,12 @@ def covariant_z0(F, z0_cov=False, prec=53, emb=None, error_limit=0.000001):
     # now we have a single variable polynomial with all the roots of F
     K = ComplexField(prec=prec)
     if f.base_ring() != K:
-        if emb == None:
+        if emb is None:
             f = f.change_ring(K)
         else:
             f = f.change_ring(emb)
     roots = f.roots()
-    if (max([ex for p,ex in roots]) > 1)\
-      or (f.degree() < d-1):
+    if max(ex for _, ex in roots) > 1 or f.degree() < d - 1:
         if z0_cov:
             raise ValueError('cannot have multiple roots for z0 invariant')
         else:
@@ -170,7 +169,7 @@ def covariant_z0(F, z0_cov=False, prec=53, emb=None, error_limit=0.000001):
             if f.degree() < 3:
                 raise ValueError('must have at least 3 distinct roots')
             roots = f.roots()
-    roots = [p for p,ex in roots]
+    roots = [p for p, _ in roots]
 
     # finding quadratic Q_0, gives us our covariant, z_0
     dF = f.derivative()

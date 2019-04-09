@@ -302,11 +302,15 @@ def _write_started_file():
 import warnings
 warnings.filters.remove(('ignore', None, DeprecationWarning, None, 0))
 # Ignore all deprecations from IPython etc.
-warnings.filterwarnings('ignore',
+warnings.filterwarnings('ignore', category=DeprecationWarning,
     module='.*(IPython|ipykernel|jupyter_client|jupyter_core|nbformat|notebook|ipywidgets|storemagic)')
+# Ignore collections.abc warnings, there are a lot of them but they are
+# harmless.
+warnings.filterwarnings('ignore', category=DeprecationWarning,
+    message='.*collections[.]abc.*')
 # However, be sure to keep OUR deprecation warnings
-warnings.filterwarnings('default',
-    r'[\s\S]*See https\?://trac.sagemath.org/[0-9]* for details.')
+warnings.filterwarnings('default', category=DeprecationWarning,
+    message=r'[\s\S]*See https\?://trac.sagemath.org/[0-9]* for details.')
 
 
 # Set a new random number seed as the very last thing

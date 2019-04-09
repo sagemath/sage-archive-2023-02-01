@@ -1027,9 +1027,7 @@ class AbstractLinearCode(Module):
 
         REFERENCE:
 
-        .. [Du04] \I. Duursma, "Combinatorics of the two-variable zeta function",
-           Finite fields and applications, 109-136, Lecture Notes in
-           Comput. Sci., 2948, Springer, Berlin, 2004.
+        - [Du2004]_
         """
         n = self.length()
         k = self.dimension()
@@ -3469,8 +3467,7 @@ class AbstractLinearCode(Module):
 
         REFERENCES:
 
-        .. [Du01] \I. Duursma, "From weight enumerators to zeta functions", in
-           Discrete Applied Mathematics, vol. 111, no. 1-2, pp. 55-73, 2001.
+        - [Du2001]_
         """
         n = self.length()
         q = (self.base_ring()).order()

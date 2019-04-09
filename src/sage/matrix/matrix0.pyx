@@ -671,20 +671,20 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         More examples::
 
-            sage: M[list(range(2)),:]
+            sage: M[range(2),:]
             [ 1 -2 -1 -1  9]
             [ 1  8  6  2  2]
-            sage: M[list(range(2)),4]
+            sage: M[range(2),4]
             [9]
             [2]
-            sage: M[list(range(3)),list(range(5))]
+            sage: M[range(3),range(5)]
             [ 1 -2 -1 -1  9]
             [ 1  8  6  2  2]
             [ 1  1 -1  1  4]
 
         ::
 
-            sage: M[3,list(range(5))]
+            sage: M[3,range(5)]
             [-1  2 -2 -1  4]
             sage: M[3,:]
             [-1  2 -2 -1  4]
@@ -733,14 +733,14 @@ cdef class Matrix(sage.structure.element.Matrix):
         ::
 
             sage: A= matrix(3,4,[1, 0, -3, -1, 3, 0, -2, 1, -3, -5, -1, -5])
-            sage: A[list(range(2,-1,-1)),:]
+            sage: A[range(2,-1,-1),:]
             [-3 -5 -1 -5]
             [ 3  0 -2  1]
             [ 1  0 -3 -1]
 
         ::
 
-            sage: A[list(range(2,-1,-1)),list(range(3,-1,-1))]
+            sage: A[range(2,-1,-1),range(3,-1,-1)]
             [-5 -1 -5 -3]
             [ 1 -2  0  3]
             [-1 -3  0  1]
@@ -761,7 +761,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             []
             sage: M[2:3, 3:3]
             []
-            sage: M[list(range(2,2)), :3]
+            sage: M[range(2,2), :3]
             []
             sage: M[(1,2), 3]
             [ 7]
@@ -899,8 +899,9 @@ cdef class Matrix(sage.structure.element.Matrix):
             row_index = <object>PyTuple_GET_ITEM(key_tuple, 0)
             col_index = <object>PyTuple_GET_ITEM(key_tuple, 1)
 
-            if type(row_index) is list or type(row_index) is tuple:
-                if type(row_index) is tuple:
+            type_row = type(row_index)
+            if type_row is list or type_row is tuple or type_row is range:
+                if type_row is tuple or type_row is range:
                     row_list = list(row_index)
                 else:
                     row_list = row_index
@@ -931,8 +932,9 @@ cdef class Matrix(sage.structure.element.Matrix):
                     raise IndexError("matrix index out of range")
                 single_row = 1
 
-            if type(col_index) is list or type(col_index) is tuple:
-                if type(col_index) is tuple:
+            type_col = type(col_index)
+            if type_col is list or type_col is tuple or type_col is range:
+                if type_col is tuple or type_col is range:
                     col_list = list(col_index)
                 else:
                     col_list = col_index
@@ -1202,26 +1204,26 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         More examples::
 
-            sage: M[list(range(2)),:]=[[1..5], [6..10]]; M
+            sage: M[range(2),:]=[[1..5], [6..10]]; M
             [ 1  2  3  4  5]
             [ 6  7  8  9 10]
             [30 -1  2 -2  4]
             [30  2 -2 -1  4]
 
-            sage: M[list(range(2)),4]=0; M
+            sage: M[range(2),4]=0; M
             [ 1  2  3  4  0]
             [ 6  7  8  9  0]
             [30 -1  2 -2  4]
             [30  2 -2 -1  4]
 
-            sage: M[list(range(3)),list(range(5))]=M[list(range(1,4)), :]; M
+            sage: M[range(3),range(5)]=M[range(1,4), :]; M
             [ 6  7  8  9  0]
             [30 -1  2 -2  4]
             [30  2 -2 -1  4]
             [30  2 -2 -1  4]
 
 
-            sage: M[3,list(range(5))]=vector([-2,3,4,-5,4]); M
+            sage: M[3,range(5)]=vector([-2,3,4,-5,4]); M
             [ 6  7  8  9  0]
             [30 -1  2 -2  4]
             [30  2 -2 -1  4]
@@ -1249,12 +1251,12 @@ cdef class Matrix(sage.structure.element.Matrix):
             [ 3  0 -2  1]
             [-3 -5 -1 -5]
 
-            sage: A[list(range(2,-1,-1)),:]=A; A
+            sage: A[range(2,-1,-1),:]=A; A
             [-3 -5 -1 -5]
             [ 3  0 -2  1]
             [ 1  0 -3 -1]
 
-            sage: A[list(range(2,-1,-1)),list(range(3,-1,-1))]=A; A
+            sage: A[range(2,-1,-1),range(3,-1,-1)]=A; A
             [-1 -3  0  1]
             [ 1 -2  0  3]
             [-5 -1 -5 -3]
@@ -1277,7 +1279,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [ 0  1  2  3]
             [ 4  5  6  7]
             [ 8  9 10 11]
-            sage: M[list(range(2,2)), :3]=20; M
+            sage: M[range(2,2), :3]=20; M
             [ 0  1  2  3]
             [ 4  5  6  7]
             [ 8  9 10 11]
@@ -3484,30 +3486,31 @@ cdef class Matrix(sage.structure.element.Matrix):
         - [FZ2001] S. Fomin, A. Zelevinsky. *Cluster Algebras 1: Foundations*,
           :arxiv:`math/0104151` (2001).
         """
-        cdef Py_ssize_t i,j,_
+        cdef Py_ssize_t i, j, _
         cdef list pairs, k0_pairs, k1_pairs
+        cdef bint ineg, jneg
 
         if k < 0 or k >= self._nrows or k >= self._ncols:
             raise IndexError("The mutation index is invalid")
 
         pairs = self.nonzero_positions()
-        k0_pairs = [ pair for pair in pairs if pair[0] == k ]
-        k1_pairs = [ pair for pair in pairs if pair[1] == k ]
-        for _,j in k0_pairs:
-            self[k,j] = -self.get_unsafe(k,j)
+        k0_pairs = [pair for pair in pairs if pair[0] == k]
+        k1_pairs = [pair for pair in pairs if pair[1] == k]
+        for _, j in k0_pairs:
+            self[k, j] = -self.get_unsafe(k, j)
         for i,_ in k1_pairs:
-            self[i,k] = -self.get_unsafe(i,k)
+            self[i, k] = -self.get_unsafe(i, k)
 
         for i,_ in k1_pairs:
-            ik = self.get_unsafe(i,k)
-            ineg = True if ik < 0 else False
-            for _,j in k0_pairs:
-                kj = self.get_unsafe(k,j)
-                jneg = True if kj < 0 else False
-                if ineg == jneg == True:
-                    self[i,j] = self.get_unsafe(i,j) + self.get_unsafe(i,k)*self.get_unsafe(k,j)
-                elif ineg == jneg == False:
-                    self[i,j] = self.get_unsafe(i,j) - self.get_unsafe(i,k)*self.get_unsafe(k,j)
+            ik = self.get_unsafe(i, k)
+            ineg = (ik < 0)
+            for _, j in k0_pairs:
+                kj = self.get_unsafe(k, j)
+                jneg = (kj < 0)
+                if ineg and jneg:
+                    self[i, j] = self.get_unsafe(i, j) + self.get_unsafe(i, k)*self.get_unsafe(k, j)
+                elif not ineg and not jneg:
+                    self[i, j] = self.get_unsafe(i, j) - self.get_unsafe(i, k)*self.get_unsafe(k, j)
 
     def _travel_column( self, dict d, int k, int sign, positive ):
         r"""
@@ -4633,12 +4636,9 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         REFERENCES:
 
-        .. [CLG1997] Frank Celler and C. R. Leedham-Green,
-           *Calculating the Order of an Invertible Matrix*, 1997
+        - [CLG1997]_
 
-        .. [KuPa2002] James Kuzmanovich; Andrey Pavlichenkov, *Finite
-           Groups of Matrices Whose Entries Are Integers*, The American
-           Mathematical Monthly, Vol. 109, No. 2. (2002) pp. 173-186
+        - [KP2002b]_
         """
         from sage.rings.integer import Integer
         from sage.rings.integer_ring import ZZ

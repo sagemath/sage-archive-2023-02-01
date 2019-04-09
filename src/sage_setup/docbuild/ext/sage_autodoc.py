@@ -40,7 +40,8 @@ from sphinx.errors import ExtensionError
 from sphinx.ext.autodoc.importer import mock, import_object, get_object_members
 from sphinx.ext.autodoc.inspector import format_annotation, formatargspec
 from sphinx.locale import _, __
-from sphinx.pycode import ModuleAnalyzer, PycodeError
+from sphinx.pycode import ModuleAnalyzer
+from sphinx.errors import ExtensionError, PycodeError
 from sphinx.util import logging
 from sphinx.util import rpartition, force_decode
 from sphinx.util.docstrings import prepare_docstring

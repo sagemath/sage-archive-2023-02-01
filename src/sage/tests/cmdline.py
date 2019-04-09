@@ -353,7 +353,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
     Test ``sage -t --debug -p 2`` on a ReST file, the ``-p 2`` should
     be ignored. In Pdb, we run the ``help`` command::
 
-        sage: s = "::\n\n    sage: assert True == False\n    sage: 2 + 2\n    5"
+        sage: s = "::\n\n    sage: assert True is False\n    sage: 2 + 2\n    5"
         sage: script = tmp_filename(ext='.rst')
         sage: F = open(script, 'w')
         sage: _ = F.write(s)
@@ -368,13 +368,13 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         **********************************************************************
         File "...", line 3, in ...
         Failed example:
-            assert True == False
+            assert True is False
         Exception raised:
             Traceback (most recent call last):
             ...
             AssertionError
         > <doctest ...>(1)<module>()
-        -> assert True == False
+        -> assert True is False
         (Pdb)
         Documented commands (type help <topic>):
         ========================================
@@ -389,7 +389,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
             4
         **********************************************************************
         Previously executed commands:
-            s...: assert True == False
+            s...: assert True is False
         sage:
         <BLANKLINE>
         Returning to doctests...

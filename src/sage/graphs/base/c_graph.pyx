@@ -2436,7 +2436,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         - ``edges_complement`` -- list (default: ``None``); a list of edges
           present in the ``self`` but not in present in a particular spanning
           tree.
-        
+
         EXAMPLES::
 
             sage: g = Graph([(1, 2, 3), (2, 3, 5), (3, 4, 8), (4, 1, 13), (1, 3, 250), (5, 6, 9), (6, 7, 17), (7, 5, 20)])
@@ -2461,7 +2461,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef dict idx_nodes
         cdef list cycle_basis = []
         cdef list edgelist = list(self.iterator_unsorted_edges(list(self.iterator_verts(None)), True))
-        
+
         from sage.graphs.graph import Graph
         l = len(edges_complement)
         cdef list orth_set = [set([e]) for e in edges_complement]
@@ -2470,7 +2470,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         if not by_weight:
             def weight_function(e):
                 return 1
-        
+
         n = len(nodes_idx)
         for i in range(l):
             orth = orth_set[i]
@@ -2484,17 +2484,17 @@ cdef class CGraphBackend(GenericGraphBackend):
                 else:
                     G.add_edge(uidx, vidx, edge_w)
                     G.add_edge(n + uidx, n + vidx, edge_w)
-            
+
             from sage.graphs.base.boost_graph import johnson_shortest_paths
             all_pair_shortest_pathlens = johnson_shortest_paths(G, weight_function)
             cross_paths_lens = {j: all_pair_shortest_pathlens[j][n+j] for j in range(n)}
             start = min(cross_paths_lens, key=cross_paths_lens.get)
             end = n + start
             min_path = G._backend.bidirectional_dijkstra(start, end, weight_function=weight_function, distance_flag=False)
-            
+
             # Mapping the nodes in G to nodes in self
             min_path_nodes = [node if node < n else node - n for node in min_path]
-            
+
             # removal of edges occuring even number of times
             edges = set()
             for edge in list(zip(min_path_nodes[:-1], min_path_nodes[1:])):

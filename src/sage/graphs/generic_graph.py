@@ -4651,7 +4651,7 @@ class GenericGraph(GenericGraph_pyx):
 
           * If ``algorithm = None``, then cython implementation of the
             minimum_cycle_basis algorithm is used
-        
+
         EXAMPLES::
 
             sage: g = Graph([(1, 2, 3), (2, 3, 5), (3, 4, 8), (4, 1, 13), (1, 3, 250), (5, 6, 9), (6, 7, 17), (7, 5, 20)])
@@ -4659,20 +4659,13 @@ class GenericGraph(GenericGraph_pyx):
             [[1, 2, 3, 4], [1, 2, 3], [5, 6, 7]]
             sage: g.minimum_cycle_basis()
             [[1, 2, 3], [1, 3, 4], [5, 6, 7]]
-            sage: g.minimum_cycle_basis(by_weight=True, algorithm="NetworkX")
-            DeprecationWarning: connected_component_subgraphs is deprecated and will be removedin 2.2. Use (G.subgraph(c).copy() for c in connected_components(G))
-            [[1, 2, 3, 4], [1, 2, 3], [5, 6, 7]]
-            sage: g.minimum_cycle_basis(by_weight=False, algorithm="NetworkX")
-            [[1, 2, 3], [1, 3, 4], [5, 6, 7]]
 
         ::
 
             sage: g = Graph([(1, 2), (2, 3), (3, 4), (4, 5), (5, 1), (5, 3)])
-            sage: g.minimum_cycle_basis(by_weight=False, algorithm="NetworkX")
-            [[3, 4, 5], [1, 2, 3, 5]]
             sage: g.minimum_cycle_basis(by_weight=False)
             [[3, 4, 5], [1, 2, 3, 5]]
-    
+
         .. SEEALSO::
 
             * :meth:`~cycle_basis`
@@ -4720,6 +4713,7 @@ class GenericGraph(GenericGraph_pyx):
             return sum(basis, [])
         else:
             raise NotImplementedError("only 'NetworkX' and Cython implementation is supported")
+
     ### Planarity
 
     def is_planar(self, on_embedding=None, kuratowski=False, set_embedding=False, set_pos=False):

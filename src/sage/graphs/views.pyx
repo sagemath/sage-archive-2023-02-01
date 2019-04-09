@@ -30,7 +30,7 @@ from sage.misc.superseded import deprecation
 from itertools import islice
 from sys import maxsize as sys_maxsize
 
-class EdgesView():
+class EdgesView:
     r"""
     EdgesView class.
 
@@ -364,6 +364,22 @@ class EdgesView():
         else:
             return sum(1 for _ in self)
 
+    def __bool__(self):
+        """
+        Check whether ``self`` is empty.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.views import EdgesView
+            sage: E = EdgesView(Graph())
+            sage: bool(E)
+            False
+            sage: E = EdgesView(graphs.HouseGraph())
+            sage: bool(E)
+            True
+        """
+        return len(self) > 0
+
     def __repr__(self):
         """
         Return a string representation of ``self``.
@@ -399,18 +415,11 @@ class EdgesView():
         """
         if self._sort_edges is True:
             self._sort_edges = False
-            # use try / except to restore _sort_edges
-            try:
-                yield from sorted(self, key=self._sort_edges_key)
-            except Exception as msg:
-                raise TypeError("the edges cannot be sorted due to " + msg)
+            yield from sorted(self, key=self._sort_edges_key)
             self._sort_edges = True
         elif self._sort_edges is None:
             self._sort_edges = False
-            try:
-                yield from sorted(self)
-            except Exception as msg:
-                raise TypeError("the edges cannot be sorted due to " + msg)
+            yield from sorted(self)
             self._sort_edges = True
         else:
             if self._graph._directed:
@@ -454,9 +463,19 @@ class EdgesView():
             sage: EH = EdgesView(H)
             sage: EG == EH
             False
+
+        TESTS::
+
+            sage: from sage.graphs.views import EdgesView
+            sage: G = graphs.HouseGraph()
+            sage: E = EdgesView(G)
+            sage: E == G
+            False
+            sage: G == E
+            False
         """
         if not isinstance(other, EdgesView):
-            return False
+            return NotImplemented
         if self is other:
             return True
         # Check parameters
@@ -559,7 +578,7 @@ class EdgesView():
             return list(self)[i]
         else:
             try:
-                return next(islice(self, <int> i, <int>i + 1, 1))
+                return next(islice(self, i, i + 1, 1))
             except StopIteration:
                 raise IndexError('index out of range')
 
@@ -633,16 +652,12 @@ class EdgesView():
             sage: from sage.graphs.views import EdgesView
             sage: E = EdgesView(Graph([(0, 1)]))
             sage: E * (-1)
-            Traceback (most recent call last):
-            ...
-            TypeError: multiplication of a EdgesView and a nonpositive integer is not defined
+            []
             sage: E * 1.5
             Traceback (most recent call last):
             ...
             TypeError: can't multiply sequence by non-int of type 'sage.rings.real_mpfr.RealLiteral'
         """
-        if n < 1:
-            raise TypeError('multiplication of a EdgesView and a nonpositive integer is not defined')
         return list(self) * n
 
     def __rmul__(self, n):

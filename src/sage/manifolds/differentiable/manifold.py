@@ -446,6 +446,7 @@ from sage.rings.real_mpfr import RR
 from sage.rings.infinity import infinity, minus_infinity
 from sage.rings.integer import Integer
 from sage.manifolds.manifold import TopologicalManifold
+from sage.manifolds.differentiable.mixed_form_algebra import MixedFormAlgebra
 
 ###############################################################################
 
@@ -1272,6 +1273,56 @@ class DifferentiableManifold(TopologicalManifold):
         """
         return self.vector_field_module(dest_map=dest_map).dual_exterior_power(degree)
 
+    def mixed_form_algebra(self, dest_map=None):
+        r"""
+        Return the set of mixed forms defined on ``self``, possibly with values
+        in another manifold, as a graded algebra.
+
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.mixed_form_algebra.MixedFormAlgebra`
+            for complete documentation.
+
+        INPUT:
+
+        - ``dest_map`` -- (default: ``None``) destination map, i.e. a
+          differentiable map `\Phi:\ M \rightarrow N`, where `M` is the
+          current manifold and `N` a differentiable manifold;
+          if ``None``, it is assumed that `N = M` and that `\Phi` is the
+          identity map (case of mixed forms *on* `M`), otherwise
+          ``dest_map`` must be a
+          :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+
+        OUTPUT:
+
+        - a
+          :class:`~sage.manifolds.differentiable.mixed_form_algebra.MixedFormAlgebra`
+          representing the graded algebra `\Omega^*(M,\Phi)` of mixed forms on `M`
+          taking values on `\Phi(M)\subset N`
+
+        EXAMPLES:
+
+        Graded algebra of mixed forms on a 2-dimensional manifold::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: M.mixed_form_algebra()
+            Graded algebra Omega^*(M) of mixed differential forms on the
+             2-dimensional differentiable manifold M
+            sage: M.mixed_form_algebra().category()
+            Category of graded algebras over Symbolic Ring
+            sage: M.mixed_form_algebra().base_ring()
+            Symbolic Ring
+
+        The outcome is cached::
+
+            sage: M.mixed_form_algebra() is M.mixed_form_algebra()
+            True
+
+        """
+        vmodule = self.vector_field_module(dest_map=dest_map)
+        return MixedFormAlgebra(vmodule)
+
     def multivector_module(self, degree, dest_map=None):
         r"""
         Return the set of multivector fields of a given degree defined
@@ -2082,6 +2133,77 @@ class DifferentiableManifold(TopologicalManifold):
             # Some components are to be initialized
             resu._init_components(*comp, **kwargs)
         return resu
+
+    def mixed_form(self, name=None, latex_name=None, dest_map=None):
+        r"""
+        Define a mixed form on ``self``.
+
+        Via the argument ``dest_map``, it is possible to let the
+        mixed form take its values on another manifold. More
+        precisely, if `M` is the current manifold, `N` a differentiable
+        manifold, `\Phi:\  M \rightarrow N` a differentiable map, a
+        *mixed form along* `\Phi` can be considered as a differentiable map
+
+        .. MATH::
+
+            a: M  \longrightarrow \bigoplus^n_{k=0} T^{(0,k)}N
+
+        (`T^{(0,k)} N` being the tensor bundle of type `(0,k)` over `N`, `\oplus`
+        being the Whitney sum and `n` being the dimension of `N`) such that
+
+        .. MATH::
+
+            \forall x \in M,\quad a(x) \in \bigoplus^n_{k=0} \Lambda^k(T^*_{\Phi(x)} N),
+
+        where `\Lambda^k(T^*_{\Phi(x)} N)` is the `k`-th exterior power
+        of the dual of the tangent space `T_{\Phi(x)} N`.
+
+        The standard case of a mixed form *on* `M` corresponds
+        to `N = M` and `\Phi = \mathrm{Id}_M`.
+
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.mixed_form.MixedForm`
+            for complete documentation.
+
+        INPUT:
+
+        - ``name`` -- (default: ``None``) name given to the differential
+          form
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote
+          the differential form; if none is provided, the LaTeX symbol
+          is set to ``name``
+        - ``dest_map`` -- (default: ``None``) the destination map
+          `\Phi:\ M \rightarrow N`; if ``None``, it is assumed that
+          `N = M` and that `\Phi` is the identity map (case of a
+          differential form *on* `M`), otherwise ``dest_map`` must be a
+          :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+
+        OUTPUT:
+
+        - the mixed form as a
+          :class:`~sage.manifolds.differentiable.mixed_form.MixedForm`
+
+        EXAMPLES:
+
+        A mixed form on an open subset of a 3-dimensional differentiable
+        manifold::
+
+            sage: M = Manifold(3, 'M')
+            sage: U = M.open_subset('U', latex_name=r'\mathcal{U}'); U
+            Open subset U of the 3-dimensional differentiable manifold M
+            sage: c_xyz.<x,y,z> = U.chart()
+            sage: f = U.mixed_form(name='F'); f
+            Mixed differential form F on the Open subset U of the 3-dimensional
+             differentiable manifold M
+
+        See the documentation of class
+        :class:`~sage.manifolds.differentiable.mixed_form.MixedForm` for
+        more examples.
+
+        """
+        algebra = self.mixed_form_algebra(dest_map=dest_map)
+        return algebra.element_class(algebra, name=name, latex_name=latex_name)
 
     def automorphism_field(self, *comp, **kwargs):
         r"""

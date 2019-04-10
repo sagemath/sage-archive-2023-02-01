@@ -327,11 +327,6 @@ def minimal_dominating_sets(G, to_dominate=None):
         sage: big_check(6) # long time
         True
 
-    ::
-
-        sage: findstat([(G, sum(1 for _ in minimal_dominating_sets(G))) for n in range(6) for G in graphs(n)], depth=0) # optional - internet
-        0: (St001302: The number of minimally dominating sets of vertices of a graph., [], 52)
-
     .. WARNING:
     
     We assume that vertices are sortable (i.e. they can be compared).

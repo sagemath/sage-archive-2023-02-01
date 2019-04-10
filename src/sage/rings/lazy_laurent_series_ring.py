@@ -40,6 +40,13 @@ ring::
     sage: 1/(1 - 2*z)^3
     1 + 6*z + 24*z^2 + 80*z^3 + 240*z^4 + 672*z^5 + 1792*z^6 + ...
 
+Power series can be defined recursively::
+
+    sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+    sage: z = L.gen()
+    sage: L.series(lambda s,n: (1 + z*s^2)[n], valuation=0)
+    1 + z + 2*z^2 + 5*z^3 + 14*z^4 + 42*z^5 + 132*z^6 + ...
+
 AUTHORS:
 
 - Kwankyu Lee (2019-02-24): initial version

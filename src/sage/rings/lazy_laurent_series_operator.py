@@ -87,7 +87,7 @@ Transformers::
 ::
 
     sage: f.truncate(5)
-    1 + 2*z + 4*z^2 + 8*z^3 + 16*z^4 + 32*z^5
+    1 + 2*z + 4*z^2 + 8*z^3 + 16*z^4
 
 AUTHORS:
 
@@ -684,7 +684,7 @@ class LazyLaurentSeriesOperator_truncate(LazyLaurentSeriesOperator):
             sage: f
             1 - z + z^2 - z^3 + z^4 - z^5 + z^6 + ...
             sage: f.truncate(4)
-            1 - z + z^2 - z^3 + z^4
+            1 - z + z^2 - z^3
         """
         if n <= self._d:
             return self._series.coefficient(n)

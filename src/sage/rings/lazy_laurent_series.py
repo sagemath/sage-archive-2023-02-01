@@ -755,7 +755,7 @@ class LazyLaurentSeries(ModuleElement):
 
     def truncate(self, d):
         """
-        Return this series with its terms of degree > ``d`` truncated.
+        Return this series with its terms of degree >= ``d`` truncated.
 
         INPUT:
 
@@ -771,14 +771,14 @@ class LazyLaurentSeries(ModuleElement):
             1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
             sage: beta = alpha.truncate(5)
             sage: beta
-            1 + z + z^2 + z^3 + z^4 + z^5
+            1 + z + z^2 + z^3 + z^4
             sage: alpha - beta
-            z^6 + z^7 + z^8 + z^9 + z^10 + z^11 + z^12 + ...
+            z^5 + z^6 + z^7 + z^8 + z^9 + z^10 + z^11 + ...
         """
         R = self.parent()
 
         op = LazyLaurentSeriesOperator_truncate(self, d)
         a = self._approximate_valuation
-        c = (self.base_ring().zero(), d + 1)
+        c = (self.base_ring().zero(), d)
 
         return R.element_class(R, coefficient=op, valuation=a, constant=c)

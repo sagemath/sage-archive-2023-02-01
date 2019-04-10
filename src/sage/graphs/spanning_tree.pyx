@@ -281,7 +281,7 @@ def kruskal_iterator(G, wfunction=None, bint check=False):
 
     .. SEEALSO:: :func:`kruskal`
 
-    EXAMPLES::
+    EXAMPLES:
 
         sage: from sage.graphs.spanning_tree import kruskal_iterator
         sage: G = Graph({1:{2:28, 6:10}, 2:{3:16, 7:14}, 3:{4:12}, 4:{5:22, 7:18}, 5:{6:25, 7:24}})

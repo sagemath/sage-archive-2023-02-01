@@ -26,7 +26,6 @@ Classes
 
 from __future__ import print_function, absolute_import
 
-from sage.misc.superseded import deprecation
 from itertools import islice
 from sys import maxsize as sys_maxsize
 from sage.graphs.generic_graph_pyx cimport GenericGraph_pyx
@@ -286,15 +285,6 @@ cdef class EdgesView:
         [(0, 2), (1, 3), (2, 3), (2, 4)]
         sage: E[::-1]
         [(3, 4), (2, 4), (2, 3), (1, 3), (0, 2), (0, 1)]
-
-    TESTS:
-
-    Deprecation warning for ``sort=None`` (:trac:`27408`)::
-
-        sage: G = graphs.HouseGraph()
-        sage: EG = EdgesView(G, sort=None)
-        doctest:...: DeprecationWarning: parameter 'sort' will be set to False by default in the future
-        See https://trac.sagemath.org/27408 for details.
     """
     cdef readonly GenericGraph_pyx _graph
     cdef list _vertices
@@ -323,7 +313,7 @@ cdef class EdgesView:
             ...
             ValueError: sort keyword is not True, yet a key function is given
         """
-        self._graph = <GenericGraph_pyx>G
+        self._graph = <GenericGraph_pyx?>G
 
         if vertices is None:
             self._vertices = None
@@ -335,9 +325,7 @@ cdef class EdgesView:
         # None and 0 are interpreted as False, 1 as True
         self._labels = labels
         self._ignore_direction = ignore_direction
-        if sort is None:
-            deprecation(27408, "parameter 'sort' will be set to False by default in the future")
-        self._sort_edges = False if sort is False else True
+        self._sort_edges = sort
         if not sort and key is not None:
             raise ValueError('sort keyword is not True, yet a key function is given')
         self._sort_edges_key = key
@@ -597,7 +585,7 @@ cdef class EdgesView:
             except StopIteration:
                 raise IndexError('index out of range')
 
-    def __add__(self, other):
+    def __add__(left, right):
         """
         Return a list containing the edges of ``self`` and ``other``.
 
@@ -632,21 +620,21 @@ cdef class EdgesView:
             sage: E + 'foo'
             Traceback (most recent call last):
             ...
-            TypeError: other is not a EdgesView
+            TypeError: right is not a EdgesView
         """
-        if not isinstance(other, EdgesView):
-            raise TypeError('other is not a EdgesView')
-        cdef list L = list(self)
-        L.extend(other)
+        if not isinstance(right, EdgesView):
+            raise TypeError('right is not a EdgesView')
+        cdef list L = list(left)
+        L.extend(right)
         return L
 
-    def __mul__(self, n):
+    def __mul__(left, right):
         r"""
-        Return the sum of ``self`` with itself ``n`` times.
+        Return the sum of ``left`` with itself ``right`` times.
 
         INPUT:
 
-        - ``n`` -- integer
+        - ``right`` -- integer
 
         EXAMPLES::
 
@@ -675,8 +663,8 @@ cdef class EdgesView:
             ...
             TypeError: can't multiply sequence by non-int of type 'sage.rings.real_mpfr.RealLiteral'
         """
-        if isinstance(self, EdgesView):
-            return list(self) * n
+        if isinstance(left, EdgesView):
+            return list(left) * right
         else:
             # Case __rmul__
-            return list(n) * self
+            return list(right) * left

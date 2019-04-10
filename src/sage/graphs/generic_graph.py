@@ -11152,7 +11152,18 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.edge_label(0, 1)[0] += 1
             sage: G.edges()
             [(0, 1, [8]), (0, 2, [7])]
+
+        Deprecation warning for ``sort=None`` (:trac:`27408`)::
+
+            sage: G = graphs.HouseGraph()
+            sage: G.edges(sort=None)
+            doctest:...: DeprecationWarning: parameter 'sort' will be set to False by default in the future
+            See https://trac.sagemath.org/27408 for details.
+            [(0, 1, None), (0, 2, None), (1, 3, None), (2, 3, None), (2, 4, None), (3, 4, None)]
         """
+        if sort is None:
+            deprecation(27408, "parameter 'sort' will be set to False by default in the future")
+            sort = True
         return EdgesView(self, labels=labels, sort=sort, key=key)
 
     def edge_boundary(self, vertices1, vertices2=None, labels=True, sort=False):
@@ -17320,7 +17331,6 @@ class GenericGraph(GenericGraph_pyx):
             [0, 2, 1]
 
         """
-        from sage.misc.superseded import deprecation
         if distance is not None:
             deprecation(19227, "Parameter 'distance' is broken. Do not use.")
 

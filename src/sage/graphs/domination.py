@@ -343,14 +343,21 @@ def minimal_dominating_sets(G, to_dominate=None):
 
         OUTPUT:
 
-        An iterator over the inclusion-minimal sets of vertices of `H`
-        that dominate plng[len(plng) - 1][1] (i.e. the set of vertices
-        we initially wanted to dominate) and are children of dom (with
+        An iterator over those minimal dominating sets (in H) of
+        plng[-1][1] that are children of dom (with
         respect to the `parent` function).
+
+        ALGORITHM:
+
+        We iterate over those minimal dominating sets of plng[i + 1][1]
+        that are children of dom and call recursively on each. The fact
+        that we iterate over children (with respect to the `parent`
+        function) ensures that we do not have repeated outputs.
         '''
         
         if i == len(plng) - 1:
-            # we reached a leaf, i.e. dom is a minimal DS of vertices_to_dominate
+            # we reached a leaf, i.e. dom is a minimal dominating set
+            # of plng[i][1] = plng[-1][1]
             yield dom
             return
 
@@ -368,9 +375,10 @@ def minimal_dominating_sets(G, to_dominate=None):
             # We complete dom with can_ext -> canD
             canD = set().union(can_ext, dom)
 
-            if (not H.is_redundant(canD, V_next)) and set(dom) == set(_parent(H, canD, plng[i][1])):
-                # By construction, can_ext is a dominating set of `V_next - N[dom]`, so
-                # canD dominates V_next
+            if (not H.is_redundant(canD, V_next))
+            and set(dom) == set(_parent(H, canD, plng[i][1])):
+                # By construction, can_ext is a dominating set of
+                #`V_next - N[dom]`, so canD dominates V_next
                 # If canD is a legitimate child of dom and is not
                 # redundant, we recurse on it:
                 for Di in tree_search(H, plng, canD, i + 1):
@@ -383,12 +391,13 @@ def minimal_dominating_sets(G, to_dominate=None):
     else:
         vertices_to_dominate = set(to_dominate)
 
-    if not vertices_to_dominate:  # base case: vertices_to_dominate is empty
-        yield set()  # the empty set/list is the only minimal DS of the empty set of vertex
+    if not vertices_to_dominate:
+        # base case: vertices_to_dominate is empty
+        # the empty set/list is the only minimal DS of the empty set
+        yield set()
         return
 
     peeling = _peel(G, vertices_to_dominate)
 
     for dom in tree_search(G, peeling, set(), 0):
-        # we generate the leaves of the search tree that are descendant of (empty set, 0)
         yield dom

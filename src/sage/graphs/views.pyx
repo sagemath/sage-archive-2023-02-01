@@ -29,8 +29,9 @@ from __future__ import print_function, absolute_import
 from sage.misc.superseded import deprecation
 from itertools import islice
 from sys import maxsize as sys_maxsize
+from sage.graphs.generic_graph_pyx cimport GenericGraph_pyx
 
-class EdgesView:
+cdef class EdgesView:
     r"""
     EdgesView class.
 
@@ -295,6 +296,13 @@ class EdgesView:
         doctest:...: DeprecationWarning: parameter 'sort' will be set to False by default in the future
         See https://trac.sagemath.org/27408 for details.
     """
+    cdef readonly GenericGraph_pyx _graph
+    cdef list _vertices
+    cdef frozenset _vertex_set
+    cdef readonly bint _labels
+    cdef readonly bint _ignore_direction
+    cdef bint _sort_edges
+    cdef _sort_edges_key
 
     def __init__(self, G, vertices=None, labels=True, ignore_direction=False,
                      sort=None, key=None):
@@ -315,11 +323,11 @@ class EdgesView:
             ...
             ValueError: sort keyword is not True, yet a key function is given
         """
-        self._graph = G
+        self._graph = <GenericGraph_pyx>G
 
         if vertices is None:
-            self._vertices = G
-            self._vertex_set = G
+            self._vertices = None
+            self._vertex_set = None
         else:
             self._vertices = list(vertices)
             self._vertex_set = frozenset(self._vertices)
@@ -329,7 +337,7 @@ class EdgesView:
         self._ignore_direction = ignore_direction
         if sort is None:
             deprecation(27408, "parameter 'sort' will be set to False by default in the future")
-        self._sort_edges = sort
+        self._sort_edges = False if sort is False else True
         if not sort and key is not None:
             raise ValueError('sort keyword is not True, yet a key function is given')
         self._sort_edges_key = key
@@ -422,12 +430,16 @@ class EdgesView:
             yield from sorted(self)
             self._sort_edges = True
         else:
-            if self._graph._directed:
-                yield from self._graph._backend.iterator_out_edges(self._vertices, self._labels)
-                if self._ignore_direction:
-                    yield from self._graph._backend.iterator_in_edges(self._vertices, self._labels)
+            if self._vertices is None:
+                vertices = self._graph
             else:
-                yield from self._graph._backend.iterator_edges(self._vertices, self._labels)
+                vertices = self._vertices
+            if self._graph._directed:
+                yield from self._graph._backend.iterator_out_edges(vertices, self._labels)
+                if self._ignore_direction:
+                    yield from self._graph._backend.iterator_in_edges(vertices, self._labels)
+            else:
+                yield from self._graph._backend.iterator_edges(vertices, self._labels)
 
     def __eq__(self, other):
         """
@@ -526,7 +538,7 @@ class EdgesView:
             except Exception:
                 return False
             label = None
-        if (self._vertex_set is not self._graph
+        if (self._vertex_set is not None
                 and u not in self._vertex_set and v not in self._vertex_set):
             return False
         if self._graph._directed and self._ignore_direction:
@@ -639,6 +651,8 @@ class EdgesView:
             sage: E = EdgesView(Graph([(0, 1), (2, 3)]), labels=False, sort=True)
             sage: E * 3
             [(0, 1), (2, 3), (0, 1), (2, 3), (0, 1), (2, 3)]
+            sage: 3 * E
+            [(0, 1), (2, 3), (0, 1), (2, 3), (0, 1), (2, 3)]
 
         Recall that a :class:`EdgesView` is read-only and that this method
         returns a list::
@@ -658,21 +672,8 @@ class EdgesView:
             ...
             TypeError: can't multiply sequence by non-int of type 'sage.rings.real_mpfr.RealLiteral'
         """
-        return list(self) * n
-
-    def __rmul__(self, n):
-        r"""
-        Return the sum of ``self`` with itself ``n`` times.
-
-        INPUT:
-
-        - ``n`` -- integer
-
-        EXAMPLES::
-
-            sage: from sage.graphs.views import EdgesView
-            sage: E = EdgesView(Graph([(0, 1), (2, 3)]), labels=False, sort=True)
-            sage: 3 * E
-            [(0, 1), (2, 3), (0, 1), (2, 3), (0, 1), (2, 3)]
-        """
-        return self * n
+        if isinstance(self, EdgesView):
+            return list(self) * n
+        else:
+            # Case __rmul__
+            return list(n) * self

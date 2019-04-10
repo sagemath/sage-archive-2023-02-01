@@ -683,7 +683,7 @@ class Kash(Expect):
         """
         EXAMPLES::
 
-            sage: kash.function_call('ComplexToPolar', [1+I], {'Results' : 1})
+            sage: kash.function_call('ComplexToPolar', [1+I], {'Results' : 1})   # optional -- kash
             1.41421356237309504880168872421
         """
         args, kwds = self._convert_args_kwds(args, kwds)

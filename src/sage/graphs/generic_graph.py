@@ -4696,7 +4696,6 @@ class GenericGraph(GenericGraph_pyx):
             G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
             return networkx.minimum_cycle_basis(G, weight='weight')
         elif algorithm == None:
-            from sage.graphs.base.boost_graph import min_spanning_tree
             w_f = lambda e: 1
             basis = []
             for comp in self.connected_components_subgraphs():

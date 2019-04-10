@@ -620,10 +620,10 @@ cdef class EdgesView:
             sage: E + 'foo'
             Traceback (most recent call last):
             ...
-            TypeError: right is not a EdgesView
+            TypeError: unsupported operand type(s) for +: 'sage.graphs.views.EdgesView' and 'str'
         """
         if not isinstance(right, EdgesView):
-            raise TypeError('right is not a EdgesView')
+            return NotImplemented
         cdef list L = list(left)
         L.extend(right)
         return L

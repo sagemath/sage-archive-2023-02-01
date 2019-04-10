@@ -90,9 +90,9 @@ def _peel(G, A):
 
     For internal use.
     Given a graph `G` and a subset `A` of its vertices, a peeling
-    of `(G,A)` is a list $[(u_0, V_0), \dots, (u_{p+1}, V_{p+1})]$ such
-    that $u_0$ and $u_{p+1}$ are `None`, $V_0$ is the empty set,
-    $V_{p+1} = V(G)$, $V_p = A$ and for every $i \in $\{1, \dots, p\}$,
+    of `(G,A)` is a list $[(u_0, V_0), \dots, (u_{p}, V_{p})]$ such
+    that $u_0$ is is `None`, $V_0$ is the empty set,
+    $V_p = A$ and for every $i \in $\{1, \dots, p\}$,
     $V_{i-1} = V_i \setminus N[v_i]$, for some $u_i\in V_i$.
 
     INPUT:
@@ -113,8 +113,7 @@ def _peel(G, A):
         (3, {3, 4}),
         (2, {2, 3, 4}),
         (1, {1, 2, 3, 4}),
-        (0, {0, 1, 2, 3, 4}),
-        (None, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9})]
+        (0, {0, 1, 2, 3, 4})]
 
 
         sage: from sage.graphs.domination import _peel
@@ -124,21 +123,20 @@ def _peel(G, A):
         (6, {6, 8}),
         (4, {4, 6, 8}),
         (2, {2, 4, 6, 8}),
-        (0, {0, 2, 4, 6, 8}),
-        (None, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9})]
+        (0, {0, 2, 4, 6, 8})]
 
     '''
     Acomp = set(G)
     Acomp.difference_update(A) # Acomp  = V - A
 
-    peeling = [(None, set(G))]
+    peeling = []
     H = copy(G)
     H.delete_vertices(list(Acomp))
     del Acomp
     
     while H:
         ui = next(H.vertex_iterator())  # pick some vertex of H
-        Vi = set(H.vertex_iterator())
+        Vi = set(H)
         peeling.append((ui, Vi))
         H.delete_vertices(H.neighbor_iterator(ui, closed=True))
     peeling.append((None, set()))
@@ -346,15 +344,13 @@ def minimal_dominating_sets(G, to_dominate=None):
         OUTPUT:
 
         An iterator over the inclusion-minimal sets of vertices of `H`
-        that dominate plng[len(plng) - 2][1] (i.e. the set of vertices
+        that dominate plng[len(plng) - 1][1] (i.e. the set of vertices
         we initially wanted to dominate) and are children of dom (with
         respect to the `parent` function).
         '''
         
-        if i == len(plng) - 2:
+        if i == len(plng) - 1:
             # we reached a leaf, i.e. dom is a minimal DS of vertices_to_dominate
-            # '-2' because the last cell of plng is used
-            # for the vertices of H - vertices_to_dominate
             yield dom
             return
 

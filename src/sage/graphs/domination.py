@@ -9,7 +9,18 @@ Oscar Defrain, Marc Heinrich, Michał Pilipczuk, and Jean-Florent Raymond
 
 EXAMPLES::
 
-to be added
+    sage: g = graphs.StarGraph(5)
+    sage: list(minimal_dominating_sets(g))
+    [{0}, {1, 2, 3, 4, 5}]
+    sage: list(minimal_dominating_sets(g, [0]))
+    [{0}, {1}, {2}, {3}, {4}, {5}]
+    sage: g = graphs.PathGraph(5)
+    sage: list(minimal_dominating_sets(g))
+    [{0, 2, 4}, {1, 4}, {0, 3}, {1, 3}]
+
+    sage: g = graphs.PetersenGraph()
+    sage: len(list(minimal_dominating_sets(g)))
+    27
 
 AUTHORS:
 
@@ -250,12 +261,20 @@ def minimal_dominating_sets(G, to_dominate=None):
     EXAMPLES:
 
         sage: G = graphs.ButterflyGraph()
-        sage: sorted(list(minimal_dominating_sets(G)))
-        [{0, 1}, {1, 3}, {0, 2}, {2, 3}, {4}]
-        sage: sorted(list(minimal_dominating_sets(G, [0,3])))
-        [{0}, {3}, {4}]
-        sage: sorted(list(minimal_dominating_sets(G, [4])))
-        [{4}, {0}, {1}, {2}, {3}]
+        sage: ll = list(minimal_dominating_sets(G))
+        sage: pp = [{0, 1}, {1, 3}, {0, 2}, {2, 3}, {4}]
+        sage: len(pp) == len(pp) and all(x in pp for x in ll) and all(x in ll for x in pp)
+        True
+
+        sage: ll = list(minimal_dominating_sets(G, [0,3]))
+        sage: pp = [{0}, {3}, {4}]
+        sage: len(pp) == len(pp) and all(x in pp for x in ll) and all(x in ll for x in pp)
+        True
+
+        sage: ll = list(minimal_dominating_sets(G, [4]))
+        sage: pp = [{4}, {0}, {1}, {2}, {3}]
+        sage: len(pp) == len(pp) and all(x in pp for x in ll) and all(x in ll for x in pp)
+        True
 
         sage: ll = list(minimal_dominating_sets(graphs.PetersenGraph()))
         sage: pp = [{0, 2, 6},
@@ -286,7 +305,7 @@ def minimal_dominating_sets(G, to_dominate=None):
         ....: {8, 9, 3, 4, 6},
         ....: {8, 9, 5, 6, 7}]
         sage: len(pp) == len(pp) and all(x in pp for x in ll) and all(x in ll for x in pp)
-        True 
+        True
 
     TESTS:
 

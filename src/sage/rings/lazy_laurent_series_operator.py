@@ -406,6 +406,55 @@ class LazyLaurentSeriesOperator_inv(LazyLaurentSeriesUnaryOperator):
             c += s.coefficient(k) * self._series.coefficient(n + v - k)
         return -c * self._ainv
 
+class LazyLaurentSeriesOperator_div(LazyLaurentSeriesBinaryOperator):
+    """
+    Operator for division.
+    """
+    def __init__(self, left, right):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = 1/(1 - z) / 1/(1 + z)
+            sage: loads(dumps(f)) == f
+            True
+        """
+        LazyLaurentSeriesBinaryOperator.__init__(self, left, right)
+
+        lv = left.valuation()
+        rv = right.valuation()
+
+        self._lv = lv
+        self._rv = rv
+        self._ainv = ~right.coefficient(rv)
+
+    def __call__(self, s, n):
+        """
+        Return the `n`-th coefficient of the series ``s``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = (1 + z) / (1 - z)
+            sage: f.coefficient(2)
+            2
+        """
+        lv = self._lv
+        rv = self._rv
+
+        if n == lv - rv:
+            return self._left.coefficient(lv)/self._right.coefficient(rv)
+        c = self._left.coefficient(n + rv)
+        for k in range(lv - rv, n):
+            c -= s.coefficient(k) * self._right.coefficient(n + rv - k)
+        return c * self._ainv
+
 class LazyLaurentSeriesOperator_scale(LazyLaurentSeriesOperator):
     """
     Operator for scalar multiplication of ``series`` with ``scalar``.

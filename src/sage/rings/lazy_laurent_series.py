@@ -86,6 +86,7 @@ from sage.arith.power import generic_power
 
 from .lazy_laurent_series_operator import (
     LazyLaurentSeriesOperator_mul,
+    LazyLaurentSeriesOperator_div,
     LazyLaurentSeriesOperator_add,
     LazyLaurentSeriesOperator_sub,
     LazyLaurentSeriesOperator_neg,
@@ -267,7 +268,7 @@ class LazyLaurentSeries(ModuleElement):
         """
         if self._constant is None:
             for a in self._cache:
-                if not a.is_zero() :
+                if a:
                     return True
             if self.coefficient(self._approximate_valuation):
                 return True
@@ -696,7 +697,11 @@ class LazyLaurentSeries(ModuleElement):
 
     def _div_(self, other):
         """
-        Return the multiplicative inverse of the element.
+        Return ``self`` divided by ``other``.
+
+        INPUT:
+
+        - ``other`` -- nonzero series
 
         EXAMPLES::
 
@@ -706,7 +711,19 @@ class LazyLaurentSeries(ModuleElement):
             sage: z/(1 - z)
             z + z^2 + z^3 + z^4 + z^5 + z^6 + z^7 + ...
         """
-        return self * ~other
+        R = self.parent()
+
+        if other.is_zero():
+            raise ZeroDivisionError("division by zero series")
+
+        if self.is_zero():
+            return R.zero()
+
+        op = LazyLaurentSeriesOperator_div(self, other)
+
+        a = self.valuation() - other.valuation()
+
+        return R.element_class(R, coefficient=op, valuation=a, constant=None)
 
     def apply_to_coefficients(self, function):
         """

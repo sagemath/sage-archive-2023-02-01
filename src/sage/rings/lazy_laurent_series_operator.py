@@ -419,7 +419,7 @@ class LazyLaurentSeriesOperator_div(LazyLaurentSeriesBinaryOperator):
             sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
             sage: z = L.gen()
-            sage: f = 1/(1 - z) / 1/(1 + z)
+            sage: f = (1 - z)/(1 + z)
             sage: loads(dumps(f)) == f
             True
         """
@@ -441,7 +441,7 @@ class LazyLaurentSeriesOperator_div(LazyLaurentSeriesBinaryOperator):
             sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
             sage: z = L.gen()
-            sage: f = (1 + z) / (1 - z)
+            sage: f = (1 + z)/(1 - z)
             sage: f.coefficient(2)
             2
         """

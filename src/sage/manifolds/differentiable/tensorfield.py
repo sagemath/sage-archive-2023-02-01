@@ -52,10 +52,10 @@ from __future__ import print_function
 from six import itervalues, string_types
 
 from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
 from sage.structure.element import ModuleElement
 from sage.tensor.modules.free_module_tensor import FreeModuleTensor
 from sage.tensor.modules.tensor_with_indices import TensorWithIndices
-from sage.rings.integer_ring import ZZ
 
 class TensorField(ModuleElement):
     r"""
@@ -1438,7 +1438,7 @@ class TensorField(ModuleElement):
         rst = self.restrict(basis._domain, dest_map=basis._dest_map)
         return rst.comp(basis=basis, from_basis=from_basis)
 
-    def display(self, basis=None, chart=None):
+    def display(self, frame=None, chart=None):
         r"""
         Display the tensor field in terms of its expansion with respect
         to a given vector frame.
@@ -1448,78 +1448,138 @@ class TensorField(ModuleElement):
 
         INPUT:
 
-        - ``basis`` -- (default: ``None``) vector frame with respect to
-          which the tensor is expanded; if ``None``, the default frame
-          of the domain of definition of the tensor field is assumed
+        - ``frame`` -- (default: ``None``) vector frame with respect to
+          which the tensor is expanded; if ``frame`` is ``None`` and ``chart``
+          is not ``None``, the coordinate frame associated with ``chart`` is
+          assumed; if both ``frame`` and ``chart`` are ``None``, the default
+          frame of the domain of definition of the tensor field is assumed
         - ``chart`` -- (default: ``None``) chart with respect to which the
           components of the tensor field in the selected frame are expressed;
           if ``None``, the default chart of the vector frame domain is assumed
 
         EXAMPLES:
 
-        Display of a type-`(1,1)` tensor field defined on two open subsets::
+        Display of a type-`(1,1)` tensor field on a 2-dimensional manifold::
 
             sage: M = Manifold(2, 'M')
-            sage: U = M.open_subset('U')
-            sage: c_xy.<x, y> = U.chart()
-            sage: e = U.default_frame() ; e
-            Coordinate frame (U, (d/dx,d/dy))
-            sage: V = M.open_subset('V')
-            sage: c_uv.<u, v> = V.chart()
-            sage: f = V.default_frame() ; f
-            Coordinate frame (V, (d/du,d/dv))
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
+            ....:                    intersection_name='W', restrictions1= x>0,
+            ....:                    restrictions2= u+v>0)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: W = U.intersection(V)
+            sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
             sage: t = M.tensor_field(1,1, name='t')
-            sage: t[e,0,0] = - x + y^3
-            sage: t[e,0,1] = 2+x
-            sage: t[f,1,1] = - u*v
-            sage: t.display(e)
-            t = (y^3 - x) d/dx*dx + (x + 2) d/dx*dy
-            sage: t.display(f)
-            t = -u*v d/dv*dv
+            sage: t[e_xy,:] = [[x, 1], [y, 0]]
+            sage: t.add_comp_by_continuation(e_uv, W, c_uv)
+            sage: t.display(e_xy)
+            t = x d/dx*dx + d/dx*dy + y d/dy*dx
+            sage: t.display(e_uv)
+            t = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv
+              + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
 
-        Since ``e`` is ``M``'s default frame, the argument ``e`` can
+        Since ``e_xy`` is ``M``'s default frame, the argument ``e_xy`` can
         be omitted::
 
-            sage: e is M.default_frame()
+            sage: e_xy is M.default_frame()
             True
             sage: t.display()
-            t = (y^3 - x) d/dx*dx + (x + 2) d/dx*dy
+            t = x d/dx*dx + d/dx*dy + y d/dy*dx
 
-        Similarly, since ``f`` is ``V``'s default frame, the argument ``f``
+        Similarly, since ``e_uv`` is ``V``'s default frame, the argument ``e_uv``
         can be omitted when considering the restriction of ``t`` to ``V``::
 
             sage: t.restrict(V).display()
-            t = -u*v d/dv*dv
+            t = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv
+              + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
 
-        Display with respect to a frame in which ``t`` has not been
-        initialized (automatic use of a change-of-frame formula)::
+        If the coordinate expression of the components are to be displayed in
+        a chart distinct from the default one on the considered domain, then
+        the chart has to be passed as the second argument of ``display``.
+        For instance, on `W = U \cap V`, two charts are available:
+        ``c_xy.restrict(W)`` (the default one) and ``c_uv.restrict(W)``.
+        Accordingly, one can have two views of the expansion of ``t`` in the
+        *same* vector frame ``e_uv.restrict(W)``::
+
+            sage: t.display(e_uv.restrict(W))  # W's default chart assumed
+            t = (1/2*x + 1/2*y + 1/2) d/du*du + (1/2*x + 1/2*y - 1/2) d/du*dv
+              + (1/2*x - 1/2*y + 1/2) d/dv*du + (1/2*x - 1/2*y - 1/2) d/dv*dv
+            sage: t.display(e_uv.restrict(W), c_uv.restrict(W))
+            t = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv
+              + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
+
+        As a shortcut, one can pass just a chart to ``display``. It is then
+        understood that the expansion is to be performed with respect to the
+        coordinate frame associated with this chart. Therefore the above
+        command can be abridged to::
+
+            sage: t.display(c_uv.restrict(W))
+            t = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv
+              + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
+
+        and one has::
+
+            sage: t.display(c_xy)
+            t = x d/dx*dx + d/dx*dy + y d/dy*dx
+            sage: t.display(c_uv)
+            t = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv
+              + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
+            sage: t.display(c_xy.restrict(W))
+            t = x d/dx*dx + d/dx*dy + y d/dy*dx
+            sage: t.restrict(W).display(c_uv.restrict(W))
+            t = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv
+              + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
+
+        One can ask for the display with respect to a frame in which ``t`` has
+        not been initialized (automatic use of a change-of-frame formula)::
 
             sage: a = V.automorphism_field()
             sage: a[:] = [[1+v, -u^2], [0, 1-u]]
-            sage: h = f.new_frame(a, 'h')
-            sage: t.display(h)
-            t = -u^3*v/(v + 1) h_0*h^1 - u*v h_1*h^1
+            sage: f = e_uv.new_frame(a, 'f')
+            sage: [f[i].display() for i in M.irange()]
+            [f_0 = (v + 1) d/du, f_1 = -u^2 d/du + (-u + 1) d/dv]
+            sage: t.display(f)
+            t = -1/2*(u^2*v + 1)/(u - 1) f_0*f^0
+              - 1/2*(2*u^3 - 5*u^2 - (u^4 + u^3 - u^2)*v + 3*u - 1)/((u - 1)*v + u - 1) f_0*f^1
+              - 1/2*(v^2 + 2*v + 1)/(u - 1) f_1*f^0
+              + 1/2*(u^2 + (u^2 + u - 1)*v - u + 1)/(u - 1) f_1*f^1
 
         A shortcut of ``display()`` is ``disp()``::
 
-            sage: t.disp(h)
-            t = -u^3*v/(v + 1) h_0*h^1 - u*v h_1*h^1
+            sage: t.disp(e_uv)
+            t = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv
+              + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
 
         """
-        if basis is None:
-            if self._vmodule._dest_map.is_identity():
-                basis = self._domain._def_frame
+        if frame is None:
+            if chart is not None:
+                frame = chart.frame()
             else:
-                for rst in self._restrictions.values():
-                    try:
-                        return rst.display()
-                    except ValueError:
-                        pass
-            if basis is None:  # should be "is still None" ;-)
-                raise ValueError("a frame must be provided for the display")
-        rst = self.restrict(basis._domain, dest_map=basis._dest_map)
-        return rst.display(basis, chart)
+                if self._vmodule._dest_map.is_identity():
+                    frame = self._domain._def_frame
+                else:
+                    for rst in self._restrictions.values():
+                        try:
+                            return rst.display()
+                        except ValueError:
+                            pass
+                if frame is None:  # should be "is still None" ;-)
+                    raise ValueError("a frame must be provided for the display")
+        else:
+            try:
+                frame0 = frame.frame()
+                # if this succeeds, frame is actually not a vector frame, but
+                # a coordinate chart
+                if chart is None:
+                    chart = frame
+                frame = frame0
+            except AttributeError:
+                # case of a genuine vector frame
+                pass
+        rst = self.restrict(frame._domain, dest_map=frame._dest_map)
+        return rst.display(frame, chart)
 
     disp = display
 
@@ -3120,7 +3180,7 @@ class TensorField(ModuleElement):
         EXAMPLES:
 
         Lie derivative of a type-`(1,1)` tensor field along a vector field on
-        the 2-sphere::
+        a non-parallelizable 2-dimensional manifold::
 
             sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
@@ -3185,7 +3245,7 @@ class TensorField(ModuleElement):
             # the computation must be performed:
             resu_rst = []
             for dom, rst in self._restrictions.items():
-                resu_rst.append(rst.lie_der(vector.restrict(dom)))
+                resu_rst.append(rst.lie_derivative(vector.restrict(dom)))
             resu = self._vmodule.tensor(self._tensor_type,
                                         sym=resu_rst[0]._sym,
                                         antisym=resu_rst[0]._antisym)

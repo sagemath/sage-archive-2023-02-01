@@ -186,7 +186,7 @@ def _cand_ext_enum(G, dom, u_next, V_next):
         dominated_by_dom = set().union(
             (G.neighbor_iterator(u, closed=True) for u in dom))
         # S = neighbors of u_next in V_next that are not yet dominated:
-        S = set().intersection(G.neighbor_iterator(u_next),
+        S = set.intersection(set(G.neighbor_iterator(u_next)),
                              V_next - dominated_by_dom)
         del dominated_by_dom
 
@@ -209,7 +209,7 @@ def _cand_ext_enum(G, dom, u_next, V_next):
             cand_ext_index = 0
             for w in G.neighbor_iterator(u_next, closed=True):
                 # Notice that the case w = u_next is included
-                yield (set(w), cand_ext_index)
+                yield ({w}, cand_ext_index)
                 cand_ext_index += 1
 
         else:
@@ -234,7 +234,7 @@ def _cand_ext_enum(G, dom, u_next, V_next):
                 for Q in minimal_dominating_sets(G, S_minus):
                     # Closed neighborhood of Q:
                     NQ = set().union(
-                        (self.neighbor_iterator(u, closed=True) for u in Q))
+                        (G.neighbor_iterator(u, closed=True) for u in Q))
                     Nw_minus = set.intersection(
                         set(G.neighbor_iterator(w, closed=True)), S_plus)
                     if not NQ >= Nw_minus:

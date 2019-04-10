@@ -340,9 +340,32 @@ class LazyLaurentSeries(ModuleElement):
 
         return s
 
+    def __getitem__(self, n):
+        """
+        Return the coefficient of the term with exponent ``n`` of the series.
+
+        INPUT:
+
+        - ``n`` -- integer
+
+        EXAMPLES::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = z/(1 - 2*z^3)
+            sage: [f[n] for n in range(20)]
+            [0, 1, 0, 0, 2, 0, 0, 4, 0, 0, 8, 0, 0, 16, 0, 0, 32, 0, 0, 64]
+        """
+        return self.coefficient(n)
+
     def coefficient(self, n):
         """
-        Return the coefficient of the term of the sereis with exponent `n`.
+        Return the coefficient of the term with exponent ``n`` of the series.
+
+        INPUT:
+
+        - ``n`` -- integer
 
         EXAMPLES::
 

@@ -1,6 +1,38 @@
 r"""
 DES
 
+The Data Encryption Standard.
+
+This file implements the Data Encryption Standard and the corresponding key
+schedule as described in [TODO: ADD REF]_.
+
+Note that since this is Sage the implementation is neither meant to be
+particular secure nor super fast but to be easy to use for research purposes.
+
+EXAMPLES:
+
+Encrypt a message::
+
+    sage: from sage.crypto.block_cipher.des import DES
+    sage: des = DES()
+    sage: des.encrypt(P=0x01A1D6D039776742, K=0x7CA110454A1A6E57).hex()
+    '690f5b0d9a26939b'
+
+And decrypt it again::
+
+    sage: des.decrypt(C=0x690F5B0D9A26939B, K=0x7CA110454A1A6E57).hex()
+    '1a1d6d039776742'
+
+Have a look at the used round keys::
+
+    sage: from sage.crypto.block_cipher.des import DES_KS
+    sage: ks = DES_KS()
+    sage: [k.hex() for k in ks(0x1F08260D1AC2465E)]
+    ['103041bfb90e',
+     '808540f07bf',
+      ...
+     '221000f2dd97']
+
 AUTHORS:
 
 - Lukas Stennes (2019-03-29): initial version
@@ -24,6 +56,51 @@ from sage.rings.finite_rings.finite_field_constructor import GF
 class DES(SageObject):
     r"""
     This class implements DES described in [TODO: ADD REF]_.
+
+    EXAMPLES:
+
+    You can invoke DES encryption/decryption either by calling DES with an
+    appropriate falg::
+
+        sage: from sage.crypto.block_cipher.des import DES
+        sage: des = DES()
+        sage: P = 0x95F8A5E5DD31D900
+        sage: K = 0x0
+        sage: des(des(P, K, 'encrypt'), K, 'decrypt') == P
+        True
+
+    Or by calling encryption/decryption methods directly::
+
+        sage: C = des.encrypt(P, K)
+        sage: P == des.decrypt(C, K)
+        True
+
+    The number of rounds can be reduced easily::
+
+        sage: des = DES(rounds=15)
+        sage: des(des(P, K, 'encrypt'), K, 'decrypt') == P
+        True
+
+    You can use hex (i.e. integers) or a list-like bit representation for the
+    inputs. If the input is an integer the output will be too. If it is
+    list-like the output will be a bit vector::
+
+        sage: P = ZZ(0).digits(2,padto=64)
+        sage: K = ZZ(0).digits(2,padto=56)
+        sage: list(des(des(P, K, 'encrypt'), K, 'decrypt')) == P
+        True
+        sage: P = ZZ(0).digits(2,padto=64)
+        sage: K = 0x0
+        sage: list(des(des(P, K, 'encrypt'), K, 'decrypt')) == P
+        True
+
+    .. SEEALSO::
+
+        :class:`DES_KS`
+        :mod:`sage.crypto.sboxes`
+
+    .. automethod:: __init__
+    .. automethod:: __call__
     """
 
     def __init__(self, rounds=None, keySchedule=None):
@@ -39,6 +116,32 @@ class DES(SageObject):
           used for encryption and decryption. If ``None`` the default DES key
           schedule is used.
 
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.des import DES
+            sage: DES() # indirect doctest
+            DES block cipher with 16 rounds and the following key schedule:
+            Original DES key schedule with 16 rounds
+
+        Reducing the number of rounds is simple. But increasing it is not
+        possible::
+
+            sage: DES(rounds=11) # indirect doctest
+            DES block cipher with 11 rounds and the following key schedule:
+            Original DES key schedule with 16 rounds
+            sage: DES(rounds=42) # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: number of rounds must be less or equal to the number
+            of rounds of the key schedule
+
+        You can use arbitrary key schedules. Since it is the only one
+        implemented here the original key schedule is used for demonstration::
+
+            sage: from sage.crypto.block_cipher.des import DES_KS
+            sage: DES(keySchedule=DES_KS(11)) # indirect doctest
+            DES block cipher with 11 rounds and the following key schedule:
+            Original DES key schedule with 11 rounds
         """
         if keySchedule is None:
             self._keySchedule = DES_KS()
@@ -75,6 +178,15 @@ class DES(SageObject):
         - The plaintext or ciphertext corresponding to ``B``, obtained using
           the key ``K``. If ``B`` is an integer the output will be too. If
           ``B`` is list-like the output will be a bit vector.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.des import DES
+            sage: des = DES()
+            sage: P = 0x480D39006EE762F2
+            sage: K = 0x025816164629B007
+            sage: des(P, K, 'encrypt').hex()
+            'a1f9915541020b56'
         """
         if algorithm == 'encrypt':
             return self.encrypt(B, K)
@@ -89,6 +201,19 @@ class DES(SageObject):
         Compare ``self`` with ``other``.
 
         DES objects are the same if all attributes are the same.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.des import DES
+            sage: des1 = DES()
+            sage: des2 = DES()
+            sage: des3 = DES(rounds=11)
+            sage: des1 == des2
+            True
+            sage: des1 == des3
+            False
+            sage: des2 == 42
+            False
         """
         if not isinstance(other, DES):
             return False
@@ -114,6 +239,19 @@ class DES(SageObject):
         Return the ciphertext corresponding to the plaintext ``P``,
         using DES encryption with key ``K``.
 
+        INPUT:
+
+        - ``P`` -- integer or bit list-like; the plaintext that will be
+          encrypted.
+
+        - ``K`` -- integer or bit list-like; the key
+
+        OUTPUT:
+
+        - The ciphertext corresponding to ``P``, obtained using the key
+          ``K``. If ``P`` is an integer the output will be too. If ``P`` is
+          list-like the output will be a bit vector.
+
         EXAMPLES::
 
             sage: from sage.crypto.block_cipher.des import DES
@@ -128,14 +266,9 @@ class DES(SageObject):
             sage: C = 0x8000000000000000
             sage: des.encrypt(P, K) == C
             True
-            sage: K = ZZ(0x133457799BBCDFF1).digits(2, padto=64)[::-1]
-            sage: P = ZZ(0x0123456789ABCDEF).digits(2, padto=64)[::-1]
-            sage: C = ZZ(0x85E813540F0AB405).digits(2, padto=64)[::-1]
-            sage: des.encrypt(P, K) == vector(GF(2), C)
-            True
         """
         state, inputType = _convert_to_vector(P, 64)
-        K, _ = _convert_to_vector(K, 64)
+        K, _ = _convert_to_vector(K, self._keySchedule._keysize)
         roundKeys = self._keySchedule(K)
         state = self._ip(state)
         L, R = state[0:32], state[32:64]
@@ -150,18 +283,30 @@ class DES(SageObject):
         Return the plaintext corresponding to the ciphertext ``C``,
         using DES decryption with key ``K``.
 
+        INPUT:
+
+        - ``C`` -- integer or bit list-like; the ciphertext that will be
+          decrypted
+
+        - ``K`` -- integer or bit list-like; the key
+
+        OUTPUT:
+
+        - The plaintext corresponding to ``C``, obtained using the key
+          ``K``. If ``C`` is an integer the output will be too. If ``C`` is
+          list-like the output will be a bit vector.
+
         EXAMPLES::
 
             sage: from sage.crypto.block_cipher.des import DES
             sage: des = DES()
             sage: K = 0x7CA110454A1A6E57
-            sage: P = 0x01A1D6D039776742
             sage: C = 0x690F5B0D9A26939B
-            sage: des.decrypt(C, K) == P
-            True
+            sage: des.decrypt(C, K).hex()
+            '1a1d6d039776742'
         """
         state, inputType = _convert_to_vector(C, 64)
-        K, _ = _convert_to_vector(K, 64)
+        K, _ = _convert_to_vector(K, self._keySchedule._keysize)
         roundKeys = self._keySchedule(K)
         state = self._ip(state)
         L, R = state[0:32], state[32:64]
@@ -173,6 +318,8 @@ class DES(SageObject):
 
     def _ip(self, B):
         r"""
+        Return the initial permutation of ``B``.
+
         EXAMPLES::
 
             sage: from sage.crypto.block_cipher.des import DES
@@ -193,6 +340,8 @@ class DES(SageObject):
 
     def _f(self, R, K):
         r"""
+        Apply the cipher function to ``R`` and ``K``.
+
         EXAMPLES::
 
             sage: from sage.crypto.block_cipher.des import DES
@@ -206,6 +355,8 @@ class DES(SageObject):
 
     def _expand(self, R):
         r"""
+        Apply the expansion function to ``R``.
+
         EXAMPLES::
 
             sage: from sage.crypto.block_cipher.des import DES
@@ -226,6 +377,8 @@ class DES(SageObject):
 
     def _sboxes(self, B):
         r"""
+        Apply the Sboxes to ``R``.
+
         EXAMPLES::
 
             sage: from sage.crypto.block_cipher.des import DES
@@ -262,6 +415,8 @@ class DES(SageObject):
 
     def _permutaion(self, B):
         r"""
+        Apply the permutation function to ``R``.
+
         EXAMPLES::
 
             sage: from sage.crypto.block_cipher.des import DES
@@ -282,6 +437,8 @@ class DES(SageObject):
 
     def _inv_ip(self, B):
         r"""
+        Apply the inverse permutation function to ``R``.
+
         EXAMPLES::
 
             sage: from sage.crypto.block_cipher.des import DES
@@ -301,19 +458,64 @@ class DES(SageObject):
         return vector(GF(2), 64, [B[i-1] for i in invIP])
 
 
-
 class DES_KS(SageObject):
     r"""
-    This class implements the DES key schedules described in [BKLPPRSV2007]_.
+    This class implements the DES key schedules described in [TODO: ADD REF]_.
+
+    EXAMPLES:
+
+    Initialise the key schedule with a `master\_key` to use it as an iterable::
+
+        sage: from sage.crypto.block_cipher.des import DES_KS
+        sage: ks = DES_KS(master_key=0)
+        sage: ks[0] == 0x0
+        True
+        sage: ks[15] == 0x0
+        True
+
+    Or omit the `master\_key` and pass a key when calling the key schedule::
+
+        sage: ks = DES_KS()
+        sage: K = ks(0x584023641ABA6176)
+        sage: K[0] == 0xD0A2E52FA124
+        True
+        sage: K[15] == 0x42B42AF81183
+        True
+
+    .. SEEALSO::
+
+        :class:`DES`
+
+    .. automethod:: __init__
+    .. automethod:: __call__
     """
 
     def __init__(self, rounds=16, master_key=None):
         r"""
         Construct an instance of DES_KS.
+
+        INPUT:
+
+        - ``rounds`` -- integer (default: ``16``); the number of rounds
+          ``self`` can create keys for
+
+        - ``master_key`` -- integer of bit list-like; the key that will be used
+
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.des import DES_KS
+            sage: DES_KS()
+            Original DES key schedule with 16 rounds
+
+        .. NOTE::
+
+            If you want to use a DES_KS object as an iterable you have to
+            pass a ``master_key`` value on initialisation. Otherwise you can
+            omit ``master_key`` and pass a key when you call the object.
         """
         self._rounds = rounds
         self._master_key = master_key
-        self._keysize = 56
+        self._keysize = 64
 
     def __call__(self, K):
         r"""
@@ -358,7 +560,7 @@ class DES_KS(SageObject):
             pass a ``master_key`` value on initialisation. Otherwise you can
             omit ``master_key`` and pass a key when you call the object.
         """
-        K, inputType = _convert_to_vector(K, 64)
+        K, inputType = _convert_to_vector(K, self._keysize)
         roundKeys = []
         # ensure that K is a 64 bit vector
         if not any(K[56:]):
@@ -379,6 +581,14 @@ class DES_KS(SageObject):
         Compare ``self`` with ``other``.
 
         DES_KS objects are the same if all attributes are the same.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.des import DES_KS
+            sage: DES_KS() == DES_KS() # indirect doctest
+            True
+            sage: DES_KS() == DES_KS(11) # indirect doctest
+            False
         """
         if not isinstance(other, DES_KS):
             return False
@@ -407,6 +617,15 @@ class DES_KS(SageObject):
         INPUT:
 
         - ``r`` integer; the round for which the sub key is computed
+
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.des import DES_KS
+            sage: ks = DES_KS(master_key=0x0)
+            sage: ks[0] ==  0x0 # indirect doctest
+            True
+            sage: ks[15] ==  0x0 # indirect doctest
+            True
         """
         if self._master_key is None:
             raise ValueError('Key not set during initialisation')
@@ -414,8 +633,16 @@ class DES_KS(SageObject):
 
     def __iter__(self):
         r"""
-        Iterate over the DES round keys, derived from
-        `master_key`
+        Iterate over the DES round keys, derived from `master_key`.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.des import DES_KS
+            sage: K = [k for k in DES_KS(master_key=0x0)]
+            sage: K[0] == 0x0 # indirect doctest
+            True
+            sage: K[15] == 0x0 # indirect doctest
+            True
        """
         if self._master_key is None:
             raise ValueError('Key not set during initialisation')
@@ -423,7 +650,7 @@ class DES_KS(SageObject):
 
     def _pc1(self, K):
         r"""
-        Compute Permuted Choice 1 of ``key``.
+        Return Permuted Choice 1 of ``K``.
 
         EXAMPLES::
 
@@ -450,7 +677,7 @@ class DES_KS(SageObject):
 
     def _pc2(self, K):
         r"""
-        Compute Permuted Choice 2 of ``key``.
+        Return Permuted Choice 2 of ``K``.
 
         EXAMPLES::
 

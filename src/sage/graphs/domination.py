@@ -333,16 +333,24 @@ def minimal_dominating_sets(G, to_dominate=None):
     '''
 
     def tree_search(H, plng, dom, i):
-        # Internal routine
-        # Recursively generates the leaves descendant of (dom,i)
-        # H: graph; plng: peeling
-        # dom: minimal dominating set of plng[i][1]
-        # recursively generate the minimal dominating sets of plng[i+1][1] that are descendant
-        # (wrt the `parent` function) of the minimal DS `dom` of plng[i][1]
+        r'''
+        Enumerate minimal dominating sets recursively.
+        
+        INPUT:
 
-        assert H.is_dominating(dom, plng[i][1]) #debug
-        assert i<=len(plng) -2 #debug
+        - `H` -- a graph
+        - `plng` -- a peeling of H (result of the function `_peel`)
+        - `dom` -- a minimal dominating set of `plng[i][1]`
+        - `i` -- an integer, the current position in `plng`
 
+        OUTPUT:
+
+        An iterator over the inclusion-minimal sets of vertices of `H`
+        that dominate plng[len(plng) - 2][1] (i.e. the set of vertices
+        we initially wanted to dominate) and are children of dom (with
+        respect to the `parent` function).
+        '''
+        
         if i == len(plng) - 2:
             # we reached a leaf, i.e. dom is a minimal DS of vertices_to_dominate
             # '-2' because the last cell of plng is used

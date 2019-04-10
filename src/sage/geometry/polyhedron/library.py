@@ -1432,9 +1432,6 @@ class Polytopes():
         snub dodecahedron at the moment::
 
             sage: sd = polytopes.snub_dodecahedron()
-            Traceback (most recent call last):
-            ...
-            ValueError: *Error: Numerical inconsistency is found.  Use the GMP exact arithmetic.
             sage: sd.f_vector() # not tested
             (1, 60, 150, 92, 1)
             sage: sd.base_ring() # not tested

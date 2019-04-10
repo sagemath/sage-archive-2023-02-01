@@ -1016,6 +1016,59 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
     return (dist, pred)
 
 
+cpdef get_predecessors(g, result, int_to_v, v_to_int, weight_function):
+    r"""
+    Given the shortest distances between all pairs of vertices in a graph return
+    the predecessors matrix.
+    
+    INPUT:
+    
+    - ``g`` -- the input sage graph
+    
+    - ``result`` -- the matrix of shortest distances
+    
+    - ``int_to_v`` -- a dictionary; it is a mapping from `(0, \ldots, n-1)`
+      to the vertex set of ``g``.
+    
+    - ``v_to_int`` -- a dictionary; it is a mapping from the vertex set of
+      ``g`` to `(0, \ldots, n-1)`
+    
+    - ``weight_function`` -- function; a function that
+      associates a weight to each edge. If ``None`` (default), the weights of
+      ``g`` are used, if available, otherwise all edges have weight 1.
+      
+    OUTPUT:
+    
+    This function returns the dictionary of predecessors where
+    ``predecessors[u][v]`` denotes a neighbor `w` of `v` such that it lies on 
+    the shortest path from `u` to `v`.
+    """
+    cdef int N = g.num_verts()
+    pred = {v: {v: None} for v in g}
+    for e in g.edge_iterator():
+        if weight_function is not None:
+            dst = weight_function(e)
+        elif g.weighted():
+            dst = e[2]
+        else:
+            dst = 1
+        # dst is the weight of the edge (e[0], e[1])
+        u = e[0]
+        v = e[1]
+        u_int = v_to_int[u]
+        v_int = v_to_int[v]
+        import sys
+        for k in range(N):
+            if result[k][u_int] == sys.float_info.max or result[k][v_int] == sys.float_info.max:
+                continue
+            if result[k][u_int] + dst == result[k][v_int]:
+                pred[int_to_v[k]][v] = u
+            if g.is_directed():
+                continue
+            if result[k][u_int] == result[k][v_int] + dst:
+                pred[int_to_v[k]][u] = v
+    return pred
+
 cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecessors=False):
     r"""
     Use Johnson algorithm to solve the all-pairs-shortest-paths.
@@ -1049,7 +1102,7 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
     dictionary of distances, or a pair of dictionaries ``(distances, predecessors)``
     where ``distance[u][v]`` denotes the distance of a shortest path from `u` to
     `v` and ``predecessors[u][v]`` denotes a neighbor `w` of `v` such that
-    `dist(u,v) = 1 + dist(u,w)`.
+    it lies on the shortest path from `u` to `v`.
 
     EXAMPLES:
 
@@ -1102,8 +1155,8 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
         ValueError: the graph contains a negative cycle
     """
     from sage.graphs.generic_graph import GenericGraph
-    cpdef dict dist = {}
-    cpdef dict pred = {}
+    cdef dict dist = {}
+    cdef dict pred = {}
 
     if not isinstance(g, GenericGraph):
         raise TypeError("the input must be a Sage graph")
@@ -1158,29 +1211,7 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
                 for v in range(N)}
 
     if predecessors:
-        pred = {v : {v : None} for v in g}
-        for e in g.edge_iterator():
-            dst = 0
-            if weight_function is not None:
-                dst = weight_function(e)
-            elif g.weighted():
-                dst = e[2]
-            else:
-                dst = 1
-            # dst is the weight of the edge (e[0], e[1])
-            u = e[0]
-            v = e[1]
-            u_int = v_to_int[u]
-            v_int = v_to_int[v]
-            for k in range(N):
-                if result[k][u_int] == sys.float_info.max or result[k][v_int] == sys.float_info.max:
-                    continue
-                if result[k][u_int] + dst == result[k][v_int]:
-                    pred[int_to_v[k]][v] = u
-                if g.is_directed():
-                    continue
-                if result[k][u_int] == result[k][v_int] + dst:
-                    pred[int_to_v[k]][u] = v
+        pred = get_predecessors(g, result, int_to_v, v_to_int, weight_function)
 
     if distances and predecessors:
         return (dist, pred)
@@ -1327,7 +1358,7 @@ cpdef floyd_warshall_shortest_paths(g, weight_function=None, distances=True, pre
     dictionary of distances, or a pair of dictionaries ``(distances, predecessors)``
     where ``distance[u][v]`` denotes the distance of a shortest path from `u` to
     `v` and ``predecessors[u][v]`` denotes a neighbor `w` of `v` such that
-    `dist(u,v) = 1 + dist(u,w)`.
+    it lies on the shortest path from `u` to `v`.
 
     EXAMPLES:
 
@@ -1380,8 +1411,8 @@ cpdef floyd_warshall_shortest_paths(g, weight_function=None, distances=True, pre
         ValueError: the graph contains a negative cycle
     """
     from sage.graphs.generic_graph import GenericGraph
-    cpdef dict dist = {}
-    cpdef dict pred = {}
+    cdef dict dist = {}
+    cdef dict pred = {}
 
     if not isinstance(g, GenericGraph):
         raise TypeError("the input must be a Sage graph")
@@ -1436,29 +1467,7 @@ cpdef floyd_warshall_shortest_paths(g, weight_function=None, distances=True, pre
                 for v in range(N)}
 
     if predecessors:
-        pred = {v : {v : None} for v in g}
-        for e in g.edge_iterator():
-            dst = 0
-            if weight_function is not None:
-                dst = weight_function(e)
-            elif g.weighted():
-                dst = e[2]
-            else:
-                dst = 1
-            # dst is the weight of the edge (e[0], e[1])
-            u = e[0]
-            v = e[1]
-            u_int = v_to_int[u]
-            v_int = v_to_int[v]
-            for k in range(N):
-                if result[k][u_int] == sys.float_info.max or result[k][v_int] == sys.float_info.max:
-                    continue
-                if result[k][u_int] + dst == result[k][v_int]:
-                    pred[int_to_v[k]][v] = u
-                if g.is_directed():
-                    continue
-                if result[k][u_int] == result[k][v_int] + dst:
-                    pred[int_to_v[k]][u] = v
+        pred = get_predecessors(g, result, int_to_v, v_to_int, weight_function)
 
     if distances and predecessors:
         return (dist, pred)

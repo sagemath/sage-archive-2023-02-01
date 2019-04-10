@@ -959,7 +959,7 @@ class LazyLaurentSeriesOperator_polynomial(LazyLaurentSeriesOperator):
             sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
             sage: P.<x> = ZZ[]
-            sage: p = (1 + 2*x)^-3
+            sage: p = 1 + 2*x + x^10
             sage: f = L(p)
             sage: loads(dumps(f)) == f
             True
@@ -976,10 +976,10 @@ class LazyLaurentSeriesOperator_polynomial(LazyLaurentSeriesOperator):
             sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
             sage: P.<x> = ZZ[]
-            sage: p = (1 + 2*x)^3
+            sage: p = (1 + 2*x + 3*x)^3
             sage: f = L(p)
             sage: f
-            1 + 6*z + 12*z^2 + 8*z^3
+            1 + 15*z + 75*z^2 + 125*z^3
         """
         return self._poly[n]
 

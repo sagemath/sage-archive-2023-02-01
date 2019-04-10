@@ -175,12 +175,11 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         if self.base_ring().has_coerce_map_from(S):
             return True
 
-        if isinstance(S, (PolynomialRing_general, LaurentPolynomialRing_generic)):
+        if isinstance(S, (PolynomialRing_general, LaurentPolynomialRing_generic)) and S.ngens() == 1:
             def make_series_from(poly):
                 op = LazyLaurentSeriesOperator_polynomial(self, poly)
                 a = poly.valuation()
                 c = (self.base_ring().zero(), poly.degree() + 1)
-
                 return self.element_class(self, coefficient=op, valuation=a, constant=c)
 
             return SetMorphism(Hom(S, self, Sets()), make_series_from)
@@ -228,6 +227,32 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         m = random.randint(0,N)
 
         return self.element_class(self, coefficient=r, valuation=n, constant=(e,n+m))
+
+    def one(self):
+        """
+        Return the constant series `1`.
+
+        EXAMPLES::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: L.one()
+            1
+        """
+        return self._element_constructor_(1)
+
+    def zero(self):
+        """
+        Return the zero series.
+
+        EXAMPLES::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: L.zero()
+            0
+        """
+        return self._element_constructor_(0)
 
     def series(self, coefficient, valuation, constant=None):
         """

@@ -177,9 +177,10 @@ class LazyLaurentSeries(ModuleElement):
         """
         Compare ``self` with ``other`` with respect to the comparison operator ``op``.
 
-        Equality is verified if corresponding coefficients of both series can
-        be checked for equality without computing coefficients indefinitely.
-        Otherwise an exception is raised to declare equality is not decidable.
+        Equality is verified if the corresponding coefficients of both series
+        can be checked for equality without computing coefficients
+        indefinitely.  Otherwise an exception is raised to declare that
+        equality is not decidable.
 
         Inequality is not defined for lazy Laurent series.
 
@@ -260,8 +261,16 @@ class LazyLaurentSeries(ModuleElement):
             sage: z = L.gen()
             sage: (z-z).is_zero()
             True
+            sage: f = 1/(1 - z)
+            sage: f.is_zero()
+            False
         """
         if self._constant is None:
+            for a in self._cache:
+                if not a.is_zero() :
+                    return True
+            if self.coefficient(self._approximate_valuation):
+                return True
             raise ValueError("undecidable as lazy Laurent series")
 
         sc, sm = self._constant
@@ -293,10 +302,7 @@ class LazyLaurentSeries(ModuleElement):
         atomic_repr = self.base_ring()._repr_option('element_is_atomic')
         X = self.parent().variable_name()
 
-        try:
-            n = self.valuation()
-        except ValueError:
-            n = self._approximate_valuation
+        n = self.valuation()
 
         if self._constant is None:
             m = n + 7 # long enough
@@ -414,6 +420,57 @@ class LazyLaurentSeries(ModuleElement):
                     return n
                 n += 1
             return infinity
+
+    def polynomial(self, name=None):
+        """
+        Return the polynomial or Laurent polynomial if the series is actually so.
+
+        INPUT:
+
+        - ``name`` -- name of the variable; if it is ``None``, the name of the variable
+          of the series is used
+
+        OUTPUT: a Laurent polynomial if the valuation of the series is negative or
+        a polynomial otherwise.
+
+        If the series is not a polynomial or a Laurent polynomial,
+        a ``ValueError`` is raised.
+
+        EXAMPLES::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: f = L.series([1,0,0,2,0,0,0,3], 5); f
+            z^5 + 2*z^8 + 3*z^12
+            sage: f.polynomial()
+            3*z^12 + 2*z^8 + z^5
+
+        ::
+
+            sage: g = L.series([1,0,0,2,0,0,0,3], -5); g
+            z^-5 + 2*z^-2 + 3*z^2
+            sage: g.polynomial()
+            z^-5 + 2*z^-2 + 3*z^2
+        """
+        if self._constant is None or not self._constant[0].is_zero():
+            raise ValueError("not a polynomial")
+
+        m = self._constant[1]
+        S = self.parent()
+
+        if name is None:
+            name = S.variable_name()
+
+        if self.valuation() < 0:
+            from sage.rings.all import LaurentPolynomialRing
+            R = LaurentPolynomialRing(S.base_ring(), name=name)
+            n = self.valuation()
+            return R([self.coefficient(i) for i in range(n,m)]).shift(n)
+        else:
+            from sage.rings.all import PolynomialRing
+            R = PolynomialRing(S.base_ring(), name=name)
+            return R([self.coefficient(i) for i in range(m)])
+
 
     def _mul_(self, other):
         """
@@ -610,7 +667,7 @@ class LazyLaurentSeries(ModuleElement):
             1 + 3*z + 6*z^2 + 10*z^3 + 15*z^4 + 21*z^5 + 28*z^6 + ...
         """
         if n == 0:
-            return self.parent()(1)
+            return self.parent().one()
 
         return generic_power(self, n)
 

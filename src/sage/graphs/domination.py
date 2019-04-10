@@ -143,51 +143,37 @@ def _peel(G, A):
     peeling.reverse()
     return peeling
 
-def _cand_ext_enum(G, dom_par, u_next, V_next):
+def _cand_ext_enum(G, to_dom, u_next):
     r'''
-    Return an iterator over the candidate extensions of ``dom_par`` to ``V_next``.
+    Return the minimal dominating sets of `to_dom`, assuming {u_next} is one.
 
-    For internal use. (See description below.)
+    For internal use.
     
     INPUT:
 
     - `G` -- a graph
-    - `dom_par` -- an iterable over some vertices of `G`
-    - `u_next` -- a vertex of `G`
-    - `V_next` -- an iterable over some vertices of `G`
+    - `to_dom` -- a `set()` of vertices of `G`
+    - `u_next` -- a vertex of `G` that dominates `to_dom`
     
     OUTPUT:
 
-    An iterator over all sets `X` that dominate
-    $N(u_next) \cap V_next \setminus N[dom_par]$ and are inclusion-wise
-    minimal (hereafter called candidate extensions of ``dom_par`` to ``V_next``).
-
-    Intuitively, we have a partial (irredundant) dominating set `dom_par` and we
-    want to extend it to `V_next`. For this we enumerate all the minimal
-    dominating sets of $N(u_next) \cap V_next \setminus N[dom_par]$,
-    which will contain all the extensions of `dom_par` into a minimal dominating
-    set of `V_next`. (Note that by doing so we also enumerate sets `X` such
-    that $dom_par \cup X$ is dominating `V_next` but is not minimal.)
+    An iterator over the minimal dominating sets of `to_dom`.
     '''
 
     def _aux_with_rep(H, to_dom, u_next):
         # Auxilliary routine.
-        # returns the minimal dominating sets of to_dom, with the
-        # assumption that to_som is included in the neighborhood
-        # of u_next.
+        # Return the minimal dominating sets of to_dom, with the
+        # assumption that u_next dominates to_som.
         # WARNING: the same output may be output several times
         # (up to |H| times).
         #
         # In order to later remove duplicates, we here output pairs
-        # (ext,i) where ext is the output candidate extension and i counts
-        # how many elements have already been output.
-        #
-
+        # (ext,i) where ext is the output candidate extension and i
+        # counts how many elements have already been output.
+        
         if u_next not in to_dom:
-            # In this case, u_next is already dominated by dom_par,
-            # so only S has to be dominated.
-            # We enumerate the minimal DSs of the subset to_dom in H,
-            # which is a smaller instance as it excludes u_next:
+            # In this case, enumerating the minimal DSs of the subset
+            # to_dom is a smaller instance as it excludes u_next:
 
             cand_ext_index = 0
 
@@ -205,7 +191,10 @@ def _cand_ext_enum(G, dom_par, u_next, V_next):
 
         else:
             # In this case, both u_next and to_dom-u_next have to be dominated
-            yield ({u_next}, 0)  # The trivial extension (as to_dom is subset of N(u_next))
+            
+            # We first output the trivial output
+            # (as to_dom is subset of N(u_next)):
+            yield ({u_next}, 0)
             # Start from 1 because we already output the 0-th elt:
             cand_ext_index = 1
 
@@ -214,23 +203,19 @@ def _cand_ext_enum(G, dom_par, u_next, V_next):
 
                 remains_to_dom = set(to_dom)
                 remains_to_dom.difference_update(H.neighbor_iterator(w, closed=True))
-                # Here again we recurse on a smaller instance at it excludes u_next (and w)
+                # Here again we recurse on a smaller instance at it
+                # excludes u_next (and w)
                 for Q in minimal_dominating_sets(H, remains_to_dom):
                     ext = set(Q)
                     ext.add(w)
-                    # By construction w dominates u_next and Q dominates to_dom - N[w],
-                    # so ext dominates to_dom: it is a candidate extension
-                    # if it is not redundant
+                    # By construction w dominates u_next and Q dominates
+                    # to_dom - N[w], so ext dominates to_dom: it is a
+                    # valid output iff it is not redundant
                     if not H.is_redundant(ext):
                         yield (ext, cand_ext_index)
                         cand_ext_index += 1
     #
     # End of aux_with_rep routine
-
-    # V_next - <what dom_par dominates> is what we have to dominate
-    to_dom = V_next - set().union(
-        *(G.neighbor_iterator(vert, closed=True)
-          for vert in dom_par))
 
     # Here we use aux_with_rep twice to enumerate the minimal
     # dominating sets while avoiding repeated outputs
@@ -243,7 +228,6 @@ def _cand_ext_enum(G, dom_par, u_next, V_next):
             elif Y == X: # These are sets
                 # X has already been output in the past: we ignore it
                 break
-
 
 def minimal_dominating_sets(G, to_dominate=None):
     r'''
@@ -363,20 +347,25 @@ def minimal_dominating_sets(G, to_dominate=None):
 
         u_next, V_next = plng[i + 1]
 
-        if H.is_dominating(dom, V_next):  # if dom dominates V_next
+        if H.is_dominating(dom, V_next):
+            # if dom dominates V_next
             # then dom is its unique extension: we recurse on it
             for Di in tree_search(H, plng, dom, i + 1):
                 yield Di
             return
 
-        # Otherwise, for every candidate extension
-        for can_ext in _cand_ext_enum(H, dom, u_next, V_next):
+        # Otherwise,
+        # V_next - <what dom dominates> is what we have to dominate
+        to_dom = V_next - set().union(
+                                *(G.neighbor_iterator(vert, closed=True)
+                                  for vert in dom))
+
+        for can_ext in _cand_ext_enum(H, to_dom, u_next):
 
             # We complete dom with can_ext -> canD
             canD = set().union(can_ext, dom)
 
-            if (not H.is_redundant(canD, V_next))
-            and set(dom) == set(_parent(H, canD, plng[i][1])):
+            if (not H.is_redundant(canD, V_next)) and set(dom) == set(_parent(H, canD, plng[i][1])):
                 # By construction, can_ext is a dominating set of
                 #`V_next - N[dom]`, so canD dominates V_next
                 # If canD is a legitimate child of dom and is not

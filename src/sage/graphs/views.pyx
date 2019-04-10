@@ -441,9 +441,9 @@ cdef class EdgesView:
             else:
                 yield from self._graph._backend.iterator_edges(vertices, self._labels)
 
-    def __eq__(self, other):
+    def __eq__(self, right):
         """
-        Check whether ``self`` and ``other`` are equal.
+        Check whether ``self`` and ``right`` are equal.
 
         Do not call this method directly. That is, for ``E1.__eq__(E2)`` write
         ``E1 == E2``.
@@ -481,13 +481,16 @@ cdef class EdgesView:
             sage: from sage.graphs.views import EdgesView
             sage: G = graphs.HouseGraph()
             sage: E = EdgesView(G)
+            sage: E == E
+            True
             sage: E == G
             False
             sage: G == E
             False
         """
-        if not isinstance(other, EdgesView):
+        if not isinstance(right, EdgesView):
             return NotImplemented
+        cdef EdgesView other = <EdgesView>right
         if self is other:
             return True
         # Check parameters

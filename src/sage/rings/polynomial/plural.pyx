@@ -2223,9 +2223,9 @@ cdef class NCPolynomial_plural(RingElement):
 
         INPUT:
 
-        - ``codomain`` - The parent where the images live
+        - ``codomain`` -- The parent where the images live
 
-        - ``im_gens`` - A list or tuple with the images of the generators of this ring.
+        - ``im_gens`` -- A list or tuple with the images of the generators of this ring.
 
         EXAMPLES::
 
@@ -2246,7 +2246,7 @@ cdef class NCPolynomial_plural(RingElement):
             return codomain.zero()
         from sage.misc.misc_c import prod
         d = self.dict()
-        return sum(prod(im_gens[i]**t[i] for i in range(len(t)))*codomain(d[t]) for t in d)
+        return sum(prod(im_gens[i]**val for i, val in enumerate(t))*codomain(d[t]) for t in d)
 
 
     cdef long _hash_c(self):

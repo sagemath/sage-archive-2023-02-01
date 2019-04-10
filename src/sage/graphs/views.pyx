@@ -630,7 +630,7 @@ cdef class EdgesView:
             ...
             TypeError: unsupported operand type(s) for +: 'sage.graphs.views.EdgesView' and 'str'
         """
-        if not isinstance(right, EdgesView):
+        if not isinstance(right, EdgesView) or not isinstance(right, EdgesView):
             return NotImplemented
         cdef list L = list(left)
         L.extend(right)

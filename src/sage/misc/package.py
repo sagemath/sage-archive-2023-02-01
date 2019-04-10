@@ -43,7 +43,7 @@ Functions
 # ****************************************************************************
 from __future__ import print_function
 
-from sage.env import SAGE_PKGS, SAGE_SPKG_INST
+import sage.env
 
 import json
 import os
@@ -232,6 +232,7 @@ def list_packages(*pkg_types, **opts):
     installed = installed_packages(exclude_pip)
 
     pkgs = {}
+    SAGE_PKGS = sage.env.SAGE_PKGS
     for p in os.listdir(SAGE_PKGS):
         try:
             f = open(os.path.join(SAGE_PKGS, p, "type"))
@@ -290,7 +291,8 @@ def installed_packages(exclude_pip=True):
     if not exclude_pip:
         installed.update(pip_installed_packages())
     # Sage packages should override pip packages (Trac #23997)
-    installed.update(pkgname_split(pkgname) for pkgname in os.listdir(SAGE_SPKG_INST))
+    installed.update(pkgname_split(pkgname)
+                     for pkgname in os.listdir(sage.env.SAGE_SPKG_INST))
     return installed
 
 
@@ -492,7 +494,7 @@ def package_manifest(package):
         KeyError: 'dummy-package'
     """
     version = installed_packages()[package]
-    stamp_file = os.path.join(SAGE_SPKG_INST,
+    stamp_file = os.path.join(sage.env.SAGE_SPKG_INST,
                               '{}-{}'.format(package, version))
     with open(stamp_file) as f:
         spkg_meta = json.load(f)

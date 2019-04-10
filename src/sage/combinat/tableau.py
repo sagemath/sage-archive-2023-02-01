@@ -9422,8 +9422,3 @@ register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_n',  S
 register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_p',  SemistandardTableaux_shape)
 register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_nmu',  SemistandardTableaux_size_weight)
 register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_pmu',  SemistandardTableaux_shape_weight)
-
-
-# Deprecations from trac:18555. July 2016
-from sage.misc.superseded import deprecated_function_alias
-Tableaux.global_options=deprecated_function_alias(18555, Tableaux.options)

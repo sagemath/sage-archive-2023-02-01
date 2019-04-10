@@ -392,6 +392,25 @@ cdef class EdgesView:
         """
         return "[%s]" % ', '.join(map(repr, self))
 
+    def _iter_unsorted(self, vertices):
+        """
+        Iterator over the unsorted edges in ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.views import EdgesView
+            sage: G = graphs.HouseGraph()
+            sage: E = EdgesView(G, labels=False, sort=False)
+            sage: list(E)
+            [(0, 1), (0, 2), (1, 3), (2, 3), (2, 4), (3, 4)]
+        """
+        if self._graph._directed:
+            yield from self._graph._backend.iterator_out_edges(vertices, self._labels)
+            if self._ignore_direction:
+                yield from self._graph._backend.iterator_in_edges(vertices, self._labels)
+        else:
+            yield from self._graph._backend.iterator_edges(vertices, self._labels)
+
     def __iter__(self):
         """
         Iterator over the edges in ``self``.
@@ -409,25 +428,14 @@ cdef class EdgesView:
             sage: sum(1 for e in E for ee in E) == G.size() * G.size()
             True
         """
-        if self._sort_edges is True:
-            self._sort_edges = False
-            yield from sorted(self, key=self._sort_edges_key)
-            self._sort_edges = True
-        elif self._sort_edges is None:
-            self._sort_edges = False
-            yield from sorted(self)
-            self._sort_edges = True
+        if self._vertices is None:
+            vertices = self._graph
         else:
-            if self._vertices is None:
-                vertices = self._graph
-            else:
-                vertices = self._vertices
-            if self._graph._directed:
-                yield from self._graph._backend.iterator_out_edges(vertices, self._labels)
-                if self._ignore_direction:
-                    yield from self._graph._backend.iterator_in_edges(vertices, self._labels)
-            else:
-                yield from self._graph._backend.iterator_edges(vertices, self._labels)
+            vertices = self._vertices
+        if self._sort_edges:
+            yield from sorted(self._iter_unsorted(vertices), key=self._sort_edges_key)
+        else:
+            yield from self._iter_unsorted(vertices)
 
     def __eq__(self, right):
         """

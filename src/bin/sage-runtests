@@ -68,6 +68,7 @@ if __name__ == "__main__":
              'if "dochtml" is listed, will also run the tests relying on the HTML documentation; '
              'if "optional" is listed, will also run tests for installed optional (new-style) packages; '
              'if "external" is listed, will also run tests for available external software; '
+             'if "build" is listed, will also run tests specific to Sage\'s build/packaging system; '
              'if set to "all", then all tests will be run')
     parser.add_option("--randorder", type=int, metavar="SEED", help="randomize order of tests")
     parser.add_option("--global-iterations", "--global_iterations", type=int, default=0, help="repeat the whole testing process this many times")

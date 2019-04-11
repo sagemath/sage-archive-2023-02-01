@@ -10039,9 +10039,12 @@ class GenericGraph(GenericGraph_pyx):
 
     __iter__ = vertex_iterator
 
-    def neighbor_iterator(self, vertex):
+    def neighbor_iterator(self, vertex, closed=False):
         """
         Return an iterator over neighbors of ``vertex``.
+
+        When ``closed`` is set to ``True``, the returned iterator also
+        contains ``vertex``.
 
         EXAMPLES::
 
@@ -10063,8 +10066,41 @@ class GenericGraph(GenericGraph_pyx):
             sage: D = DiGraph({0: [1, 2], 3: [0]})
             sage: list(D.neighbor_iterator(0))
             [1, 2, 3]
+
+        ::
+
+            sage: g = graphs.CubeGraph(3)
+            sage: sorted(list(g.neighbor_iterator('010', closed=True)))
+            ['000', '010', '011', '110']
+
+        ::
+
+            sage: g = Graph(3, loops = True)
+            sage: g.add_edge(0,1)
+            sage: g.add_edge(0,0)
+            sage: list(g.neighbor_iterator(0, closed=True))
+            [0, 1]
+            sage: list(g.neighbor_iterator(2, closed=True))
+            [2]
+
+        TESTS::
+
+            sage: G = graphs.CubeGraph(3)
+            sage: list(G.neighbor_iterator('013', closed=True))
+            Traceback (most recent call last):
+            ...
+            LookupError: vertex (013) is not a vertex of the graph
         """
-        return self._backend.iterator_nbrs(vertex)
+
+        if closed:
+            if not self.has_vertex(vertex):
+                raise LookupError(
+                    'vertex ({0}) is not a vertex of the graph'.format(vertex))
+            if not self.has_edge(vertex, vertex):
+                yield vertex
+
+        for u in self._backend.iterator_nbrs(vertex):
+            yield u
 
     def vertices(self, sort=True, key=None):
         r"""

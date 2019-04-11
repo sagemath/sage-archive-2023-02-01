@@ -391,6 +391,10 @@ if [ "$1" = '-i' ]; then
         fi
         $MAKE SAGE_SPKG="sage-spkg $INSTALL_OPTIONS" "$PKG"
     done
+
+    echo "New packages may have been installed."
+    echo "Re-running configure and make in case any dependent packages need updating."
+    touch "$SAGE_ROOT/configure" && $MAKE all-build
     exit 0
 fi
 

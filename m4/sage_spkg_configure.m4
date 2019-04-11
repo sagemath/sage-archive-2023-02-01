@@ -57,12 +57,17 @@ AC_ARG_WITH([system-]SPKG_NAME,
 m4_divert_once([HELP_WITH], AS_HELP_STRING(--with-system-SPKG_NAME=force,
    [require use of an existing system SPKG_NAME]))
 
+AS_VAR_SET([sage_spkg_name], SPKG_NAME)
+
 $4
 
+AS_IF([test -n "`ls "${SAGE_SPKG_INST}/${sage_spkg_name}"-* 2>/dev/null`"],
+SPKG_INSTALL_VAR[=yes;] SPKG_USE_SYSTEM[=no], [
 m4_ifval(
 [$2],
 [AS_VAR_SET_IF(SPKG_INSTALL_VAR, [], SPKG_INSTALL_VAR[=no])],
 [AS_VAR_SET_IF(SPKG_INSTALL_VAR, [], SPKG_INSTALL_VAR[=yes])])
+])
 
 m4_ifval([$3], [
 AS_VAR_SET_IF(SPKG_REQUIRE_VAR, [], SPKG_REQUIRE_VAR[=no])

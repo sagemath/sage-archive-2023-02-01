@@ -525,7 +525,7 @@ class DifferentialsSpaceMorphism(Morphism):
 
         """
         codomain = self.codomain()
-        return FunctionFieldDifferential_global(codomain, codomain.function_field()(v._f))
+        return codomain.element_class(codomain, codomain.function_field()(v._f))
 
 class DifferentialMultiplicationAction(Action):
     """

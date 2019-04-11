@@ -1,10 +1,18 @@
 """
 Hyperelliptic curve constructor
+
+AUTHORS:
+
+- David Kohel (2006): initial version
+
+- Anna Somoza (2019-04): dynamic class creation
+
 """
 from __future__ import absolute_import
 
 #*****************************************************************************
 #  Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu>
+#		 2019 Anna Somoza <anna.somoza.henares@gmail.com>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
@@ -15,13 +23,9 @@ from .hyperelliptic_generic import HyperellipticCurve_generic
 from .hyperelliptic_finite_field import HyperellipticCurve_finite_field
 from .hyperelliptic_rational_field import HyperellipticCurve_rational_field
 from .hyperelliptic_padic_field import HyperellipticCurve_padic_field
-from .hyperelliptic_g2_generic import HyperellipticCurve_g2_generic
-from .hyperelliptic_g2_finite_field import HyperellipticCurve_g2_finite_field
-from .hyperelliptic_g2_rational_field import HyperellipticCurve_g2_rational_field
-from .hyperelliptic_g2_padic_field import HyperellipticCurve_g2_padic_field
+from .hyperelliptic_g2 import HyperellipticCurve_g2
 
 from sage.rings.padics.all import is_pAdicField
-
 from sage.rings.rational_field import is_RationalField
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.polynomial.polynomial_element import is_Polynomial
@@ -221,23 +225,24 @@ def HyperellipticCurve(f, h=0, names=None, PP=None, check_squarefree=True):
     PP = ProjectiveSpace(2, R)
     if names is None:
         names = ["x","y"]
-    if is_FiniteField(R):
-        if g == 2:
-            return HyperellipticCurve_g2_finite_field(PP, f, h, names=names, genus=g)
-        else:
-            return HyperellipticCurve_finite_field(PP, f, h, names=names, genus=g)
-    elif is_RationalField(R):
-        if g == 2:
-            return HyperellipticCurve_g2_rational_field(PP, f, h, names=names, genus=g)
-        else:
-            return HyperellipticCurve_rational_field(PP, f, h, names=names, genus=g)
-    elif is_pAdicField(R):
-        if g == 2:
-            return HyperellipticCurve_g2_padic_field(PP, f, h, names=names, genus=g)
-        else:
-            return HyperellipticCurve_padic_field(PP, f, h, names=names, genus=g)
+    supercls = []
+    cls_name = []
+    genus_class = {2:HyperellipticCurve_g2}
+    if g in genus_class.keys():
+        supercls.append(genus_class[g])
+	cls_name.append("g"+str(g))
+    fld = map(lambda fnc : fnc(R), [is_FiniteField, is_RationalField, is_pAdicField])
+    fld_class = [HyperellipticCurve_finite_field,HyperellipticCurve_rational_field,HyperellipticCurve_padic_field]
+    fld_name = ["FiniteField", "RationalField", "pAdicField"]
+    try:
+        fld_type = fld.index(True)
+        supercls.append(fld_class[fld_type])
+        cls_name.append(fld_name[fld_type])
+    except ValueError:
+        pass
+
+    if len(supercls) > 0:
+        cls = type("HyperellipticCurve_" + "_".join(cls_name), tuple(supercls), {})
+        return cls(PP, f, h, names=names, genus=g)
     else:
-        if g == 2:
-            return HyperellipticCurve_g2_generic(PP, f, h, names=names, genus=g)
-        else:
-            return HyperellipticCurve_generic(PP, f, h, names=names, genus=g)
+        return HyperellipticCurve_generic(PP, f, h, names=names, genus=g)

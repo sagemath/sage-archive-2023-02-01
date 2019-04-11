@@ -13,7 +13,7 @@ from . import jacobian_g2
 from . import invariants
 
 
-class HyperellipticCurve_g2_generic(hyperelliptic_generic.HyperellipticCurve_generic):
+class HyperellipticCurve_g2(hyperelliptic_generic.HyperellipticCurve_generic):
     def is_odd_degree(self):
         """
         Return ``True`` if the curve is an odd degree model.

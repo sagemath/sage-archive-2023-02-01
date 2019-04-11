@@ -45,6 +45,7 @@ AUTHORS:
 
 from copy import copy
 
+
 def _parent(G, dom, V_prev):
     r'''
     Return an subset of dom that is irredundant in ``V_prev``.
@@ -52,7 +53,7 @@ def _parent(G, dom, V_prev):
     For internal use.
 
     INPUT:
-    
+
     - ``G`` -- a graph
     - ``dom`` -- an iterable of vertices of ``G``
     - ``V_prev`` -- an iterable of vertices of ``G``
@@ -81,7 +82,7 @@ def _parent(G, dom, V_prev):
     D_end = []
 
     while D_start:
-        v = D_start.pop() # element of min index
+        v = D_start.pop()  # element of min index
         priv = set(G.neighbor_iterator(v, closed=True))
         # We remove the vertices already dominated
         # by other vertices of (D_end union D_start)
@@ -110,7 +111,7 @@ def _peel(G, A):
     `V_{i-1} = V_i \setminus N[v_i]`, for some vertex `u_i` of `V_i`.
 
     INPUT:
-    
+
     - `G` -- a graph
     - `A` -- a set of vertices of `G`
 
@@ -141,13 +142,13 @@ def _peel(G, A):
 
     '''
     Acomp = set(G)
-    Acomp.difference_update(A) # Acomp  = V - A
+    Acomp.difference_update(A)  # Acomp  = V - A
 
     peeling = []
     H = copy(G)
     H.delete_vertices(list(Acomp))
     del Acomp
-    
+
     while H:
         ui = next(H.vertex_iterator())  # pick some vertex of H
         Vi = set(H)
@@ -157,19 +158,20 @@ def _peel(G, A):
     peeling.reverse()
     return peeling
 
+
 def _cand_ext_enum(G, to_dom, u_next):
     r'''
     Return the minimal dominating sets of ``to_dom``.
 
     For internal use.
     Assumption: ``u_next`` dominates ``to_dom``.
-    
+
     INPUT:
 
     - ``G`` -- a graph
     - ``to_dom`` -- a ``set()`` of vertices of ``G``
     - ``u_next`` -- a vertex of ``G`` that dominates ``to_dom``
-    
+
     OUTPUT:
 
     An iterator over the minimal dominating sets of ``to_dom``.
@@ -185,7 +187,7 @@ def _cand_ext_enum(G, to_dom, u_next):
         # In order to later remove duplicates, we here output pairs
         # (ext,i) where ext is the output candidate extension and i
         # counts how many elements have already been output.
-        
+
         if u_next not in to_dom:
             # In this case, enumerating the minimal DSs of the subset
             # to_dom is a smaller instance as it excludes u_next:
@@ -206,7 +208,7 @@ def _cand_ext_enum(G, to_dom, u_next):
 
         else:
             # In this case, both u_next and to_dom-u_next have to be dominated
-            
+
             # We first output the trivial output
             # (as to_dom is subset of N(u_next)):
             yield ({u_next}, 0)
@@ -217,7 +219,8 @@ def _cand_ext_enum(G, to_dom, u_next):
             for w in H.neighbor_iterator(u_next):
 
                 remains_to_dom = set(to_dom)
-                remains_to_dom.difference_update(H.neighbor_iterator(w, closed=True))
+                remains_to_dom.difference_update(
+                    H.neighbor_iterator(w, closed=True))
                 # Here again we recurse on a smaller instance at it
                 # excludes u_next (and w)
                 for Q in minimal_dominating_sets(H, remains_to_dom):
@@ -240,9 +243,10 @@ def _cand_ext_enum(G, to_dom, u_next):
                 # This is the first time we meet X: we output it
                 yield X
                 break
-            elif Y == X: # These are sets
+            elif Y == X:  # These are sets
                 # X has already been output in the past: we ignore it
                 break
+
 
 def minimal_dominating_sets(G, to_dominate=None, work_on_copy=True):
     r'''
@@ -345,7 +349,7 @@ def minimal_dominating_sets(G, to_dominate=None, work_on_copy=True):
     def tree_search(H, plng, dom, i):
         r'''
         Enumerate minimal dominating sets recursively.
-        
+
         INPUT:
 
         - ``H`` -- a graph
@@ -366,7 +370,7 @@ def minimal_dominating_sets(G, to_dominate=None, work_on_copy=True):
         that we iterate over children (with respect to the `parent`
         function) ensures that we do not have repeated outputs.
         '''
-        
+
         if i == len(plng) - 1:
             # we reached a leaf, i.e. dom is a minimal dominating set
             # of plng[i][1] = plng[-1][1]
@@ -385,8 +389,8 @@ def minimal_dominating_sets(G, to_dominate=None, work_on_copy=True):
         # Otherwise,
         # V_next - <what dom dominates> is what we have to dominate
         to_dom = V_next - set().union(
-                                *(G.neighbor_iterator(vert, closed=True)
-                                  for vert in dom))
+            *(G.neighbor_iterator(vert, closed=True)
+              for vert in dom))
 
         for can_ext in _cand_ext_enum(H, to_dom, u_next):
 
@@ -395,7 +399,7 @@ def minimal_dominating_sets(G, to_dominate=None, work_on_copy=True):
 
             if (not H.is_redundant(canD, V_next)) and set(dom) == set(_parent(H, canD, plng[i][1])):
                 # By construction, can_ext is a dominating set of
-                #`V_next - N[dom]`, so canD dominates V_next
+                # `V_next - N[dom]`, so canD dominates V_next
                 # If canD is a legitimate child of dom and is not
                 # redundant, we recurse on it:
                 for Di in tree_search(H, plng, canD, i + 1):

@@ -2425,14 +2425,6 @@ cdef class CGraphBackend(GenericGraphBackend):
         - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
           in the graph are weighted, otherwise all edges have weight 1
 
-        - ``algorithm`` -- string (default: ``None``); algorithm to use:
-
-          * If ``algorithm = "NetworkX"``, a networkx implementation of the
-            minimum_cycle_basis algorithm is used
-
-          * If ``algorithm = None``, then cython implementation of the
-            minimum_cycle_basis algorithm is used
-
         - ``edges_complement`` -- list (default: ``None``); a list of edges
           present in the ``self`` but not in present in a particular spanning
           tree.
@@ -2449,6 +2441,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
             * :wikipedia:`Cycle_basis`
         """
+        from sage.graphs.base.boost_graph import johnson_shortest_paths
         cdef int start
         cdef int end
         cdef int n
@@ -2457,26 +2450,25 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef list min_path
         cdef dict all_pair_shortest_pathlens
         cdef dict cross_paths_lens
-        cdef dict nodes_idx
-        cdef dict idx_nodes
         cdef list cycle_basis = []
         cdef list edgelist = list(self.iterator_unsorted_edges(list(self.iterator_verts(None)), True))
 
         from sage.graphs.graph import Graph
         l = len(edges_complement)
         cdef list orth_set = [set([e]) for e in edges_complement]
-        nodes_idx = {node: idx for idx, node in enumerate(self.iterator_verts(None))}
-        idx_nodes = {idx: node for node, idx in nodes_idx.items()}
+        cdef list int_to_vertex = list(self.iterator_verts(None))
+        cdef dict vertex_to_int = {u: i for i, u in enumerate(int_to_vertex)}
+        
         if not by_weight:
             def weight_function(e):
                 return 1
 
-        n = len(nodes_idx)
+        n = len(vertex_to_int)
         for i in range(l):
             orth = orth_set[i]
             G = Graph()    
             for e in edgelist:
-                uidx, vidx = nodes_idx[e[0]], nodes_idx[e[1]]
+                uidx, vidx = vertex_to_int[e[0]], vertex_to_int[e[1]]
                 edge_w = weight_function(e)
                 if frozenset((e[0], e[1])) in orth:
                     G.add_edge(uidx, n + vidx, edge_w)
@@ -2485,7 +2477,6 @@ cdef class CGraphBackend(GenericGraphBackend):
                     G.add_edge(uidx, vidx, edge_w)
                     G.add_edge(n + uidx, n + vidx, edge_w)
 
-            from sage.graphs.base.boost_graph import johnson_shortest_paths
             all_pair_shortest_pathlens = johnson_shortest_paths(G, weight_function)
             cross_paths_lens = {j: all_pair_shortest_pathlens[j][n+j] for j in range(n)}
             start = min(cross_paths_lens, key=cross_paths_lens.get)
@@ -2499,7 +2490,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             edges = set()
             for edge in list(zip(min_path_nodes[:-1], min_path_nodes[1:])):
                 edges ^= {edge}
-            new_cycle = {frozenset((idx_nodes[u], idx_nodes[v])) for u, v in edges}
+            new_cycle = {frozenset((int_to_vertex[u], int_to_vertex[v])) for u, v in edges}
             cycle_basis.append(list(set().union(*new_cycle)))
             base = orth_set[i]
             orth_set[i + 1:] = [o ^ base if len(o & new_cycle) % 2 else o for o in orth_set[i + 1:]]

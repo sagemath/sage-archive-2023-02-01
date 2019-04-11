@@ -445,11 +445,28 @@ class LazyLaurentSeries(ModuleElement):
                 n += 1
             return infinity
 
-    def polynomial(self, name=None):
+    def prec(self):
+        """
+        Return the precision of the series, which is infinity.
+
+        EXAMPLES::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = 1/(1 - z)
+            sage: f.prec()
+            +Infinity
+        """
+        return infinity
+
+    def polynomial(self, degree=None, name=None):
         """
         Return the polynomial or Laurent polynomial if the series is actually so.
 
         INPUT:
+
+        - ``degree`` -- ``None`` or an integer
 
         - ``name`` -- name of the variable; if it is ``None``, the name of the variable
           of the series is used
@@ -457,8 +474,10 @@ class LazyLaurentSeries(ModuleElement):
         OUTPUT: a Laurent polynomial if the valuation of the series is negative or
         a polynomial otherwise.
 
-        If the series is not a polynomial or a Laurent polynomial,
-        a ``ValueError`` is raised.
+        If ``degree`` is not ``None``, the terms of the series of degree
+        greater than ``degree`` are truncated first. If ``degree`` is ``None``
+        and the series is not a polynomial or a Laurent polynomial, a
+        ``ValueError`` is raised.
 
         EXAMPLES::
 
@@ -475,11 +494,27 @@ class LazyLaurentSeries(ModuleElement):
             z^-5 + 2*z^-2 + 3*z^2
             sage: g.polynomial()
             z^-5 + 2*z^-2 + 3*z^2
-        """
-        if self._constant is None or not self._constant[0].is_zero():
-            raise ValueError("not a polynomial")
 
-        m = self._constant[1]
+        ::
+
+            sage: z = L.gen()
+            sage: f = (1 + z)/(z^3 - z^5)
+            sage: f
+            z^-3 + z^-2 + z^-1 + 1 + z + z^2 + z^3 + ...
+            sage: f.polynomial(5)
+            z^-3 + z^-2 + z^-1 + 1 + z + z^2 + z^3 + z^4 + z^5
+            sage: f.polynomial(0)
+            z^-3 + z^-2 + z^-1 + 1
+            sage: f.polynomial(-5)
+            0
+        """
+        if degree is None:
+            if self._constant is None or not self._constant[0].is_zero():
+                raise ValueError("not a polynomial")
+            m = self._constant[1]
+        else:
+            m = degree + 1
+
         S = self.parent()
 
         if name is None:
@@ -495,6 +530,56 @@ class LazyLaurentSeries(ModuleElement):
             R = PolynomialRing(S.base_ring(), name=name)
             return R([self.coefficient(i) for i in range(m)])
 
+    def approximate_series(self, prec, name=None):
+        """
+        Return the Laurent series with absolute precision ``prec`` approximated
+        from this series.
+
+        INPUT:
+
+        - ``prec`` -- an integer
+
+        - ``name`` -- name of the variable; if it is ``None``, the name of the variable
+          of the series is used
+
+        OUTPUT: a Laurent series with absolute precision ``prec``
+
+        EXAMPLES::
+
+            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = (z - 2*z^3)^5/(1 - 2*z)
+            sage: f
+            z^5 + 2*z^6 - 6*z^7 - 12*z^8 + 16*z^9 + 32*z^10 - 16*z^11 + ...
+            sage: g = f.approximate_series(10)
+            sage: g
+            z^5 + 2*z^6 - 6*z^7 - 12*z^8 + 16*z^9 + O(z^10)
+            sage: g.parent()
+            Power Series Ring in z over Integer Ring
+
+        ::
+
+            sage: h = (f^-1).approximate_series(3)
+            sage: h
+            z^-5 - 2*z^-4 + 10*z^-3 - 20*z^-2 + 60*z^-1 - 120 + 280*z - 560*z^2 + O(z^3)
+            sage: h.parent()
+            Laurent Series Ring in z over Integer Ring
+        """
+        S = self.parent()
+
+        if name is None:
+            name = S.variable_name()
+
+        if self.valuation() < 0:
+            from sage.rings.all import LaurentSeriesRing
+            R = LaurentSeriesRing(S.base_ring(), name=name)
+            n = self.valuation()
+            return R([self.coefficient(i) for i in range(n,prec)], n).add_bigoh(prec)
+        else:
+            from sage.rings.all import PowerSeriesRing
+            R = PowerSeriesRing(S.base_ring(), name=name)
+            return R([self.coefficient(i) for i in range(prec)]).add_bigoh(prec)
 
     def _mul_(self, other):
         """

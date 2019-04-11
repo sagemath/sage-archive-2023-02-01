@@ -399,10 +399,16 @@ REFERENCES:
             pre-print available at
             http://www.itwm.fraunhofer.de/fileadmin/ITWM-Media/Zentral/Pdf/Berichte_ITWM/2007/bericht122.pdf
 
+.. [BDHPR2019] Marthe Bonamy, Oscar Defrain, Marc Heinrich, Michał
+               Pilipczuk, and Jean-Florent Raymond.
+               *Enumerating minimal dominating sets in* `K_t`-*free graphs
+               and variants*.
+               :arxiv:`1810.00789`
+            
 .. [BDLV2006] \S. Brlek, S. Dulucq, A. Ladouceur, L. Vuillon, Combinatorial
               properties of smooth infinite words, Theoret. Comput. Sci. 352
               (2006) 306--317.
-
+   
 .. [BDP2013] Thomas Brüstle, Grégoire Dupont, Matthieu Pérotin
    *On Maximal Green Sequences*
    :arxiv:`1205.2050`

@@ -1,25 +1,31 @@
 r"""
-Functions related to domination.
+Enumeration of minimal dominating sets
 
-This file contains varied functions related to domination as well as an
-implementation of the algorithm described in _Enumerating minimal
-dominating sets in $K_t$-free graphs and variants_ by Marthe Bonamy,
-Oscar Defrain, Marc Heinrich, Michał Pilipczuk, and Jean-Florent Raymond
-:arxiv:`1810.00789` to enumerate the minimal dominating sets of a graph.
+Implementation of the algorithm described in [BDHPR2019]_ to enumerate
+the minimal dominating sets of a graph.
 
 EXAMPLES::
+
+We enumerate the minimal dominating sets of the 5-star graph::
 
     sage: g = graphs.StarGraph(5)
     sage: list(minimal_dominating_sets(g))
     [{0}, {1, 2, 3, 4, 5}]
+
+Now only those that dominate the middle vertex::
+
     sage: list(minimal_dominating_sets(g, [0]))
     [{0}, {1}, {2}, {3}, {4}, {5}]
+
+Now the minimal dominating sets of the 5-path graph::
+
     sage: g = graphs.PathGraph(5)
     sage: list(minimal_dominating_sets(g))
     [{0, 2, 4}, {1, 4}, {0, 3}, {1, 3}]
 
-    sage: g = graphs.PetersenGraph()
-    sage: len(list(minimal_dominating_sets(g)))
+We count the minimal dominating sets of the Petersen graph::
+
+    sage: sum(1 for _ in minimal_dominating_sets(graphs.PetersenGraph()))
     27
 
 AUTHORS:
@@ -41,21 +47,22 @@ from copy import copy
 
 def _parent(G, dom, V_prev):
     r'''
-    Return an subset of dom that is irredundant in V_prev.
+    Return an subset of dom that is irredundant in ``V_prev``.
 
     For internal use.
 
     INPUT:
     
-    - ``dom`` -- an iterable of vertices of ``self``
-    - ``V_prev`` -- an iterable of vertices of ``self``
+    - ``G`` -- a graph
+    - ``dom`` -- an iterable of vertices of ``G``
+    - ``V_prev`` -- an iterable of vertices of ``G``
 
     OUTPUT:
 
     Return the list obtained from ``dom`` by iteratively removing those
-    vertices of mininum index that have no private neighbor in V_prev.
+    vertices of mininum index that have no private neighbor in ``V_prev``.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.graphs.domination import _parent
         sage: G = graphs.PathGraph(4)
@@ -66,9 +73,9 @@ def _parent(G, dom, V_prev):
         sage: _parent(G, [0, 2, 4, 5], [1, 3])
         [2]
 
-    .. WARNING:
+    .. WARNING::
     
-    We assume that vertices are sortable (i.e. they can be compared).
+        We assume that vertices are sortable (i.e. they can be compared).
     '''
 
     # The list where we search vertices
@@ -101,21 +108,21 @@ def _peel(G, A):
 
     For internal use.
     Given a graph `G` and a subset `A` of its vertices, a peeling
-    of `(G,A)` is a list $[(u_0, V_0), \dots, (u_{p}, V_{p})]$ such
-    that $u_0$ is is `None`, $V_0$ is the empty set,
-    $V_p = A$ and for every $i \in $\{1, \dots, p\}$,
-    $V_{i-1} = V_i \setminus N[v_i]$, for some $u_i\in V_i$.
+    of `(G,A)` is a list `[(u_0, V_0), \dots, (u_p, V_p)]` such
+    that `u_0` is ``None``, `V_0` is the empty set,
+    `V_p = A` and for every `i \in \{1, \dots, p\}`,
+    `V_{i-1} = V_i \setminus N[v_i]`, for some vertex `u_i` of `V_i`.
 
     INPUT:
     
-    - ``G`` -- a graph
-    - ``A`` -- a set of vertices of ``G``
+    - `G` -- a graph
+    - `A` -- a set of vertices of `G`
 
     OUTPUT:
 
     A peeling of `(G,A)`.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.graphs.domination import _peel
         sage: G = Graph(10); _peel(G, {0, 1, 2, 3, 4})
@@ -156,19 +163,20 @@ def _peel(G, A):
 
 def _cand_ext_enum(G, to_dom, u_next):
     r'''
-    Return the minimal dominating sets of `to_dom`, assuming {u_next} is one.
+    Return the minimal dominating sets of ``to_dom``.
 
     For internal use.
+    Assumption: ``u_next`` dominates ``to_dom``.
     
     INPUT:
 
-    - `G` -- a graph
-    - `to_dom` -- a `set()` of vertices of `G`
-    - `u_next` -- a vertex of `G` that dominates `to_dom`
+    - ``G`` -- a graph
+    - ``to_dom`` -- a ``set()`` of vertices of ``G``
+    - ``u_next`` -- a vertex of ``G`` that dominates ``to_dom``
     
     OUTPUT:
 
-    An iterator over the minimal dominating sets of `to_dom`.
+    An iterator over the minimal dominating sets of ``to_dom``.
     '''
 
     def _aux_with_rep(H, to_dom, u_next):
@@ -242,23 +250,29 @@ def _cand_ext_enum(G, to_dom, u_next):
 
 def minimal_dominating_sets(G, to_dominate=None):
     r'''
-    Return an iterator over the minimal dominating sets of the graph.
+    Return an iterator over the minimal dominating sets of a graph.
 
     INPUT:
 
-    - `G` -- a graph
-    - `to_dominate` -- vertex iterable or None (default: `None`)
+    - ``G`` -- a graph
+    - ``to_dominate`` -- vertex iterable or ``None`` (default: ``None``)
 
     OUTPUT:
 
-    An iterator over the inclusion-minimal sets of vertices of `G`
-    that dominate `to_dominate`.
+    An iterator over the inclusion-minimal sets of vertices of ``G``
+    that dominate ``to_dominate``. When ``to_dominate = None`` (default
+    value), the output is an iterator over the the minimal dominating
+    sets of ``G``.
 
     ALGORITHM:
 
-    The algorithm is described in :arxiv:`1810.00789`.
+    The algorithm described in [BDHPR2019]_.
 
-    EXAMPLES:
+    .. WARNING::
+    
+        We assume that vertices are sortable (i.e. they can be compared).
+
+    EXAMPLES::
 
         sage: G = graphs.ButterflyGraph()
         sage: ll = list(minimal_dominating_sets(G))
@@ -275,6 +289,8 @@ def minimal_dominating_sets(G, to_dominate=None):
         sage: pp = [{4}, {0}, {1}, {2}, {3}]
         sage: len(pp) == len(pp) and all(x in pp for x in ll) and all(x in ll for x in pp)
         True
+
+    ::
 
         sage: ll = list(minimal_dominating_sets(graphs.PetersenGraph()))
         sage: pp = [{0, 2, 6},
@@ -307,12 +323,14 @@ def minimal_dominating_sets(G, to_dominate=None):
         sage: len(pp) == len(pp) and all(x in pp for x in ll) and all(x in ll for x in pp)
         True
 
-    TESTS:
+    TESTS::
+
+    The empty graph is handled correctly::
 
         sage: list(minimal_dominating_sets(Graph()))
         [set()]
 
-    ::
+    Test on all graphs on 6 vertices::
 
         sage: from sage.combinat.subset import Subsets
         sage: def minimal_dominating_sets_naive(G):
@@ -327,10 +345,6 @@ def minimal_dominating_sets(G, to_dominate=None):
         ....:     return True
         sage: big_check(6) # long time
         True
-
-    .. WARNING:
-    
-    We assume that vertices are sortable (i.e. they can be compared).
     '''
 
     def tree_search(H, plng, dom, i):
@@ -339,20 +353,20 @@ def minimal_dominating_sets(G, to_dominate=None):
         
         INPUT:
 
-        - `H` -- a graph
-        - `plng` -- a peeling of H (result of the function `_peel`)
-        - `dom` -- a minimal dominating set of `plng[i][1]`
-        - `i` -- an integer, the current position in `plng`
+        - ``H`` -- a graph
+        - ``plng`` -- a peeling of H (result of :func:`_peel`)
+        - ``dom`` -- a minimal dominating set of ``plng[i][1]``
+        - ``i`` -- an integer, the current position in ``plng``
 
         OUTPUT:
 
-        An iterator over those minimal dominating sets (in H) of
-        plng[-1][1] that are children of dom (with
-        respect to the `parent` function).
+        An iterator over those minimal dominating sets (in ``H``) of
+        ``plng[-1][1]`` that are children of ``dom`` (with
+        respect to the :func:`parent` function).
 
         ALGORITHM:
 
-        We iterate over those minimal dominating sets of plng[i + 1][1]
+        We iterate over those minimal dominating sets of ``plng[i + 1][1]``
         that are children of dom and call recursively on each. The fact
         that we iterate over children (with respect to the `parent`
         function) ensures that we do not have repeated outputs.

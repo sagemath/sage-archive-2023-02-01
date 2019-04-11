@@ -325,6 +325,12 @@ REFERENCES:
             *A study of the DVD content scrambling system (CSS) algorithm*; in
             Proceedings of ISSPIT, (2004), pp. 353-356.
 
+.. [BDHPR2019] Marthe Bonamy, Oscar Defrain, Marc Heinrich, Michał
+               Pilipczuk, and Jean-Florent Raymond.
+               *Enumerating minimal dominating sets in* `K_t`-*free graphs
+               and variants*.
+               :arxiv:`1810.00789`
+   
 .. [BDP2013] Thomas Brüstle, Grégoire Dupont, Matthieu Pérotin
    *On Maximal Green Sequences*
    :arxiv:`1205.2050`

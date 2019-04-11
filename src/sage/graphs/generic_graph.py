@@ -10143,6 +10143,7 @@ class GenericGraph(GenericGraph_pyx):
             [1, 2, 3]
 
         ::
+
             sage: g = graphs.CubeGraph(3)
             sage: sorted(list(g.neighbor_iterator('010', closed=True)))
             ['000', '010', '011', '110']

@@ -227,19 +227,21 @@ def HyperellipticCurve(f, h=0, names=None, PP=None, check_squarefree=True):
         names = ["x","y"]
     supercls = []
     cls_name = []
+    
     genus_class = {2:HyperellipticCurve_g2}
     if g in genus_class.keys():
         supercls.append(genus_class[g])
     cls_name.append("g"+str(g))
-    fld = map(lambda fnc : fnc(R), [is_FiniteField, is_RationalField, is_pAdicField])
-    fld_class = [HyperellipticCurve_finite_field,HyperellipticCurve_rational_field,HyperellipticCurve_padic_field]
-    fld_name = ["FiniteField", "RationalField", "pAdicField"]
-    try:
-        fld_type = fld.index(True)
-        supercls.append(fld_class[fld_type])
-        cls_name.append(fld_name[fld_type])
-    except ValueError:
-        pass
+
+    fields = [
+        ("FiniteField", is_FiniteField, HyperellipticCurve_finite_field),
+        ("RationalField", is_RationalField, HyperellipticCurve_rational_field),
+        ("pAdicField", is_pAdicField, HyperellipticCurve_padic_field)]
+    for name,test,cls in fields:
+        if test(R):
+            supercls.append(cls)
+            cls_name.append(name)
+            break
 
     if len(supercls) > 0:
         cls = type("HyperellipticCurve_" + "_".join(cls_name), tuple(supercls), {})

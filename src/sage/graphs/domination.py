@@ -72,10 +72,6 @@ def _parent(G, dom, V_prev):
         [4, 5]
         sage: _parent(G, [0, 2, 4, 5], [1, 3])
         [2]
-
-    .. WARNING::
-    
-        We assume that vertices are sortable (i.e. they can be compared).
     '''
 
     # The list where we search vertices
@@ -248,7 +244,7 @@ def _cand_ext_enum(G, to_dom, u_next):
                 # X has already been output in the past: we ignore it
                 break
 
-def minimal_dominating_sets(G, to_dominate=None):
+def minimal_dominating_sets(G, to_dominate=None, work_on_copy=True):
     r'''
     Return an iterator over the minimal dominating sets of a graph.
 
@@ -256,21 +252,20 @@ def minimal_dominating_sets(G, to_dominate=None):
 
     - ``G`` -- a graph
     - ``to_dominate`` -- vertex iterable or ``None`` (default: ``None``)
+    - ``work_on_copy`` -- boolean (default: ``True``)
 
     OUTPUT:
 
     An iterator over the inclusion-minimal sets of vertices of ``G``
-    that dominate ``to_dominate``. When ``to_dominate = None`` (default
-    value), the output is an iterator over the the minimal dominating
-    sets of ``G``.
+    that dominate ``to_dominate``. When ``to_dominate`` is ``None``
+    (default), the output is an iterator over the the minimal
+    dominating sets of ``G``. When ``work_on_copy`` is ``True``
+    (default), work on a copy of ``G``. Otherwise, the vertices of ``G``
+    will be relabeled.
 
     ALGORITHM:
 
     The algorithm described in [BDHPR2019]_.
-
-    .. WARNING::
-    
-        We assume that vertices are sortable (i.e. they can be compared).
 
     EXAMPLES::
 
@@ -408,6 +403,14 @@ def minimal_dominating_sets(G, to_dominate=None):
     ##
     # end of tree-search routine
 
+    int_to_vertex = list(G)
+    vertex_to_int = {u: i for i, u in enumerate(int_to_vertex)}
+
+    if work_on_copy:
+        G.relabel(perm=vertex_to_int)
+    else:
+        G = G.relabel(perm=vertex_to_int, inplace=False)
+
     if to_dominate is None:
         vertices_to_dominate = set(G)
     else:
@@ -422,4 +425,4 @@ def minimal_dominating_sets(G, to_dominate=None):
     peeling = _peel(G, vertices_to_dominate)
 
     for dom in tree_search(G, peeling, set(), 0):
-        yield dom
+        yield {int_to_vertex[v] for v in dom}

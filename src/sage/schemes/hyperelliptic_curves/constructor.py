@@ -12,7 +12,7 @@ from __future__ import absolute_import
 
 #*****************************************************************************
 #  Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu>
-#		 2019 Anna Somoza <anna.somoza.henares@gmail.com>
+#                2019 Anna Somoza <anna.somoza.henares@gmail.com>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
@@ -230,7 +230,7 @@ def HyperellipticCurve(f, h=0, names=None, PP=None, check_squarefree=True):
     genus_class = {2:HyperellipticCurve_g2}
     if g in genus_class.keys():
         supercls.append(genus_class[g])
-	cls_name.append("g"+str(g))
+    cls_name.append("g"+str(g))
     fld = map(lambda fnc : fnc(R), [is_FiniteField, is_RationalField, is_pAdicField])
     fld_class = [HyperellipticCurve_finite_field,HyperellipticCurve_rational_field,HyperellipticCurve_padic_field]
     fld_name = ["FiniteField", "RationalField", "pAdicField"]

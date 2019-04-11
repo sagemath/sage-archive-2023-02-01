@@ -195,42 +195,42 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--root"])
-        sage: len(out) >= 2   # at least one character + newline
+        sage: (out, err, ret) = test_executable(["sage", "--root"])  # optional - build
+        sage: len(out) >= 2   # at least one character + newline; optional - build
         True
-        sage: err
+        sage: err  # optional - build
         ''
-        sage: ret
+        sage: ret  # optional -build
         0
 
     Test ``sage --info [packages]`` and the equivalent
     ``sage -p --info --info [packages]`` (the doubling of ``--info``
     is intentional, that option should be idempotent)::
 
-        sage: out, err, ret = test_executable(["sage", "--info", "sqlite"])
-        sage: print(out)
+        sage: out, err, ret = test_executable(["sage", "--info", "sqlite"])  # optional - build
+        sage: print(out)  # optional - build
         Found local metadata for sqlite-...
         = SQLite =
         ...
         SQLite is a software library that implements a self-contained,
         serverless, zero-configuration, transactional SQL database engine.
         ...
-        sage: err
+        sage: err  # optional - build
         ''
-        sage: ret
+        sage: ret  # optional - build
         0
 
-        sage: out, err, ret = test_executable(["sage", "-p", "--info", "--info", "sqlite"])
-        sage: print(out)
+        sage: out, err, ret = test_executable(["sage", "-p", "--info", "--info", "sqlite"])  # optional - build
+        sage: print(out)  # optional - build
         Found local metadata for sqlite-...
         = SQLite =
         ...
         SQLite is a software library that implements a self-contained,
         serverless, zero-configuration, transactional SQL database engine.
         ...
-        sage: err
+        sage: err  # optional - build
         ''
-        sage: ret
+        sage: ret  # optional - build
         0
 
     Test ``sage-run`` on a Python file, both with an absolute and with a relative path::

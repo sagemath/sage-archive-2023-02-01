@@ -1377,7 +1377,6 @@ cdef class LaurentSeries(AlgebraElement):
             sage: (x - x^2).reverse(precision=3)
             x + x^2 + O(x^3)
 
-
         TESTS::
 
             sage: R.<x> = LaurentSeriesRing(QQ)
@@ -1387,8 +1386,15 @@ cdef class LaurentSeries(AlgebraElement):
             ...
             ValueError: Series must have valuation one for reversion.
 
-
-
+            sage: B.<b> = PolynomialRing(ZZ)
+            sage: A.<t> = LaurentSeriesRing(B)
+            sage: f = 2*b*t + b*t^2 + 3*b^2*t^3 + O(t^4)
+            sage: g = f.reverse(); g
+            1/(2*b)*t - 1/(8*b^2)*t^2 + ((-3*b + 1)/(16*b^3))*t^3 + O(t^4)
+            sage: f(g)
+            t + O(t^4)
+            sage: g(f)
+            t + O(t^4)
         """
         val = self.valuation()
         if val != 1:

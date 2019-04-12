@@ -10051,9 +10051,9 @@ class GenericGraph(GenericGraph_pyx):
         - ``vertex`` -- a vertex of ``self``
 
         - ``closed`` -- a boolean (default: ``False``); whether to
-        return the closed neighborhood of ``vertex``, i.e., including
-        ``vertex``, or the open neighborhood in which ``vertex``
-        is included only if there is a loop on that vertex.
+          return the closed neighborhood of ``vertex``, i.e., including
+          ``vertex``, or the open neighborhood in which ``vertex``
+          is included only if there is a loop on that vertex.
 
         EXAMPLES::
 
@@ -10217,9 +10217,9 @@ class GenericGraph(GenericGraph_pyx):
         - ``vertex`` -- a vertex of ``self``
 
         - ``closed`` -- a boolean (default: ``False``); whether to
-        return the closed neighborhood of ``vertex``, i.e., including
-        ``vertex``, or the open neighborhood in which ``vertex``
-        is included only if there is a loop on that vertex.
+          return the closed neighborhood of ``vertex``, i.e., including
+          ``vertex``, or the open neighborhood in which ``vertex``
+          is included only if there is a loop on that vertex.
 
         EXAMPLES::
 

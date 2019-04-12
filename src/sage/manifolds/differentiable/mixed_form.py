@@ -1179,7 +1179,7 @@ class MixedForm(AlgebraElement):
         INPUT:
 
         - ``rst`` -- :class:`MixedForm` of the same type as ``self``, defined on
-        a subdomain of the domain of ``self``
+          a subdomain of the domain of ``self``
 
         EXAMPLES:
 

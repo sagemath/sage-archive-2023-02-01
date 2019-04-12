@@ -28,7 +28,6 @@ from sage.structure.parent import Parent
 from sage.categories.graded_algebras import GradedAlgebras
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.symbolic.ring import ZZ, SR
-from sage.rings.integer import Integer
 from sage.manifolds.differentiable.mixed_form import MixedForm
 
 class MixedFormAlgebra(Parent, UniqueRepresentation):

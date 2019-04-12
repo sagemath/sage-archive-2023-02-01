@@ -595,14 +595,14 @@ cdef class EdgesView:
 
     def __add__(left, right):
         """
-        Return a list containing the edges of ``self`` and ``other``.
+        Return a list containing the edges of ``left`` and ``right``.
 
-        The returned list contains the edges of ``self`` with prescribed order
-        followed by the edges of ``other`` in prescribed order.
+        The returned list contains the edges of ``left`` with prescribed order
+        followed by the edges of ``right`` in prescribed order.
 
         INPUT:
 
-        - ``other`` -- :class:`EdgesView`
+        - ``left,right`` -- :class:`EdgesView` or list of edges
 
         EXAMPLES::
 
@@ -613,6 +613,8 @@ cdef class EdgesView:
             [(0, 1), (2, 3)]
             sage: E2 + E1
             [(2, 3), (0, 1)]
+            sage: E1 + E2 + E1
+            [(0, 1), (2, 3), (0, 1)]
 
         Recall that a :class:`EdgesView` is read-only and that this method
         returns a list::
@@ -630,7 +632,7 @@ cdef class EdgesView:
             ...
             TypeError: unsupported operand type(s) for +: 'sage.graphs.views.EdgesView' and 'str'
         """
-        if not isinstance(right, EdgesView) or not isinstance(right, EdgesView):
+        if not isinstance(left, (list, EdgesView)) or not isinstance(right, (list, EdgesView)):
             return NotImplemented
         cdef list L = list(left)
         L.extend(right)

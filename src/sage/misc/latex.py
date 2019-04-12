@@ -616,7 +616,6 @@ def latex_extra_preamble():
 
         sage: from sage.misc.latex import latex_extra_preamble
         sage: print(latex_extra_preamble())
-        ...
         <BLANKLINE>
         \newcommand{\ZZ}{\Bold{Z}}
         \newcommand{\NN}{\Bold{N}}
@@ -625,8 +624,8 @@ def latex_extra_preamble():
         \newcommand{\QQ}{\Bold{Q}}
         \newcommand{\QQbar}{\overline{\QQ}}
         \newcommand{\GF}[1]{\Bold{F}_{#1}}
-        \newcommand{\Zp}[1]{\ZZ_{#1}}
-        \newcommand{\Qp}[1]{\QQ_{#1}}
+        \newcommand{\Zp}[1]{\Bold{Z}_{#1}}
+        \newcommand{\Qp}[1]{\Bold{Q}_{#1}}
         \newcommand{\Zmod}[1]{\ZZ/#1\ZZ}
         \newcommand{\CDF}{\Bold{C}}
         \newcommand{\CIF}{\Bold{C}}
@@ -2384,7 +2383,7 @@ def repr_lincomb(symbols, coeffs):
         sage: x = EllipticCurve('64a1').modular_symbol_space(sign=1).basis()[0]
         sage: from sage.misc.latex import repr_lincomb
         sage: latex(x.modular_symbol_rep())
-        \left\{\frac{-1}{3}, \frac{-1}{4}\right\} - \left\{\frac{1}{5}, \frac{1}{4}\right\}
+        \left\{\frac{-3}{11}, \frac{-1}{4}\right\} - \left\{\frac{3}{13}, \frac{1}{4}\right\}
 
     Verify that it works when the symbols are numbers::
 
@@ -2614,10 +2613,15 @@ def latex_variable_name(x, is_fname=False):
         'C'
         sage: latex_variable_name('_K1')
         'K_{1}'
+
+        sage: latex_variable_name('5')
+        '5'
     """
+    # if x is an integer (it might be the case for padics), we return x
+    if re.match(r'\d+$', x):
+        return x
     underscore = x.find("_")
     if underscore == -1:
-        import re
         # * The "\d|[.,]" means "decimal digit" or period or comma
         # * The "+" means "1 or more"
         # * The "$" means "at the end of the line"
@@ -2816,7 +2820,7 @@ should get a nice picture."""
             """
             String representation
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: from sage.misc.latex import latex_examples
                 sage: len(latex_examples.knot()._repr_()) > 300
@@ -2868,7 +2872,7 @@ should get a nice picture.
             """
             String representation
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: from sage.misc.latex import latex_examples
                 sage: len(latex_examples.diagram()._repr_()) > 300

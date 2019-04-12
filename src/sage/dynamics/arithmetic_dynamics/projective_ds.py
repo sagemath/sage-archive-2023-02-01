@@ -486,8 +486,12 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         OUTPUT:
 
-        :class:`DynamicalSystem_affine` given by dehomogenizing the
-        source and target of `self` with respect to the given indices.
+        If the dehomogenizing indices are the same for the domain and
+        codomain, then a :class:`DynamicalSystem_affine` given by
+        dehomogenizing the source and target of `self` with respect to
+        the given indices. is returned. If the dehomogenizing indicies
+        for the domain and codomain are different then the resulting
+        affine patches are different and a scheme morphism is returned.
 
         EXAMPLES::
 
@@ -495,11 +499,20 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([x^2+y^2, y^2])
             sage: f.dehomogenize(0)
             Dynamical System of Affine Space of dimension 1 over Integer Ring
-              Defn: Defined on coordinates by sending (x) to
-                    (x^2/(x^2 + 1))
+              Defn: Defined on coordinates by sending (y) to
+                    (y^2/(y^2 + 1))
+            sage: f.dehomogenize((0, 1))
+            Scheme morphism:
+              From: Affine Space of dimension 1 over Integer Ring
+              To:   Affine Space of dimension 1 over Integer Ring
+              Defn: Defined on coordinates by sending (y) to
+                    ((y^2 + 1)/y^2)
         """
         F = self.as_scheme_morphism().dehomogenize(n)
-        return F.as_dynamical_system()
+        if F.domain() == F.codomain():
+            return F.as_dynamical_system()
+        else:
+            return F
 
     def dynatomic_polynomial(self, period):
         r"""
@@ -3869,7 +3882,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.reduced_form(prec=50, smallest_coeffs=False) #needs 2 periodic
             Traceback (most recent call last):
             ...
-            ValueError: accuracy of Newton's root not within tolerance(0.000066950849420871 > 1e-06), increase precision
+            ValueError: accuracy of Newton's root not within tolerance(0.000066... > 1e-06), increase precision
             sage: f.reduced_form(smallest_coeffs=False)
             (
             Dynamical System of Projective Space of dimension 1 over Rational Field
@@ -3920,7 +3933,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.reduced_form(prec=30, smallest_coeffs=False)
             Traceback (most recent call last):
             ...
-            ValueError: accuracy of Newton's root not within tolerance(0.000087401733 > 1e-06), increase precision
+            ValueError: accuracy of Newton's root not within tolerance(0.00008... > 1e-06), increase precision
             sage: f.reduced_form(smallest_coeffs=False)
             (
             Dynamical System of Projective Space of dimension 1 over Rational Field
@@ -5062,7 +5075,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         ALGORITHM:
 
-        Implementing invariant set algorithim from the paper [FMV2014]_.
+        Implementing invariant set algorithm from the paper [FMV2014]_.
         Given that the set of  `n` th preimages of fixed points is
         invariant under conjugation find all elements of PGL that
         take one set to another.
@@ -5209,7 +5222,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         ALGORITHM:
 
-        Implementing invariant set algorithim from the paper [FMV2014]_.
+        Implementing invariant set algorithm from the paper [FMV2014]_.
         Given that the set of `n` th preimages is invariant under
         conjugation this function finds whether two maps are conjugate.
 

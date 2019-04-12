@@ -223,7 +223,7 @@ author, which contains more than 190000 sequences of integers::
 
     sage: oeis([1,1,2,5,14])                            # optional -- internet
     0: A000108: Catalan numbers: C(n) = binomial(2n,n)/(n+1) = (2n)!/(n!(n+1)!). Also called Segner numbers.
-    1: A120588: G.f. satisfies: 3*A(x) = 2 + x + A(x)^2, with a(0) = 1.
+    1: ...
     2: ...
 
 The result suggests that the trees are counted by one of the most famous
@@ -1264,7 +1264,7 @@ or select only the elements in positions 2, 3, and 4 (analogue of
 ``l[1:4]``)::
 
     sage: import itertools
-    sage: list(itertools.islice(Permutations(3), 1, 4))
+    sage: list(itertools.islice(Permutations(3), int(1), int(4)))
     [[1, 3, 2], [2, 1, 3], [2, 3, 1]]
 
 The itertools methods ``imap`` and ``ifilter`` have been renamed to

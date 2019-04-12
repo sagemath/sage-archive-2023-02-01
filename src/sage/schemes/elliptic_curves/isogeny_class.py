@@ -22,10 +22,9 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ##############################################################################
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 import six
 from six.moves import range
 
@@ -58,7 +57,7 @@ class IsogenyClass_EC(SageObject):
 
         INPUT:
 
-        - ``label`` -- string or None, a Cremona or LMFDB label, used
+        - ``label`` -- string or ``None``, a Cremona or LMFDB label, used
           in printing.  Ignored if base field is not `\QQ`.
 
         EXAMPLES::
@@ -99,7 +98,7 @@ class IsogenyClass_EC(SageObject):
 
     def __getitem__(self, i):
         """
-        Returns the `i`th curve in the class.
+        Return the `i`th curve in the class.
 
         EXAMPLES::
 
@@ -112,7 +111,7 @@ class IsogenyClass_EC(SageObject):
 
     def index(self, C):
         """
-        Returns the index of a curve in this class.
+        Return the index of a curve in this class.
 
         INPUT:
 
@@ -141,7 +140,7 @@ class IsogenyClass_EC(SageObject):
 
     def __richcmp__(self, other, op):
         """
-        Compare self and other.
+        Compare ``self`` and ``other``.
 
         If they are different, compares the sorted underlying lists of
         curves.
@@ -158,7 +157,8 @@ class IsogenyClass_EC(SageObject):
             True
         """
         if isinstance(other, IsogenyClass_EC):
-            return richcmp(sorted(self.curves), sorted(other.curves), op)
+            return richcmp(sorted(e.a_invariants() for e in self.curves),
+                           sorted(f.a_invariants() for f in other.curves), op)
         return NotImplemented
 
     def __hash__(self):
@@ -176,7 +176,7 @@ class IsogenyClass_EC(SageObject):
         try:
             return self._hash
         except AttributeError:
-            self._hash = hash(tuple(sorted([E.a_invariants() for E in self.curves])))
+            self._hash = hash(tuple(sorted(E.a_invariants() for E in self.curves)))
             return self._hash
 
     def _repr_(self):
@@ -263,13 +263,13 @@ class IsogenyClass_EC(SageObject):
     @cached_method
     def matrix(self, fill=True):
         """
-        Returns the matrix whose entries give the minimal degrees of
+        Return the matrix whose entries give the minimal degrees of
         isogenies between curves in this class.
 
         INPUT:
 
-        - ``fill`` -- boolean (default True).  If False then the
-          matrix will contain only zeros and prime entries; if True it
+        - ``fill`` -- boolean (default ``True``).  If ``False`` then the
+          matrix will contain only zeros and prime entries; if ``True`` it
           will fill in the other degrees.
 
         EXAMPLES::
@@ -297,10 +297,10 @@ class IsogenyClass_EC(SageObject):
         if self._mat is None:
             self._compute_matrix()
         mat = self._mat
-        if fill and mat[0,0] == 0:
+        if fill and mat[0, 0] == 0:
             from sage.schemes.elliptic_curves.ell_curve_isogeny import fill_isogeny_matrix
             mat = fill_isogeny_matrix(mat)
-        if not fill and mat[0,0] == 1:
+        if not fill and mat[0, 0] == 1:
             from sage.schemes.elliptic_curves.ell_curve_isogeny import unfill_isogeny_matrix
             mat = unfill_isogeny_matrix(mat)
         return mat
@@ -308,7 +308,7 @@ class IsogenyClass_EC(SageObject):
     @cached_method
     def qf_matrix(self):
         """
-        Returns the array whose entries are quadratic forms
+        Return the array whose entries are quadratic forms
         representing the degrees of isogenies between curves in this
         class (CM case only).
 
@@ -339,12 +339,12 @@ class IsogenyClass_EC(SageObject):
     @cached_method
     def isogenies(self, fill=False):
         r"""
-        Returns a list of lists of isogenies and 0s, corresponding to
+        Return a list of lists of isogenies and 0s, corresponding to
         the entries of :meth:`matrix`
 
         INPUT:
 
-        - ``fill`` -- boolean (default False).  Whether to only return
+        - ``fill`` -- boolean (default ``False``).  Whether to only return
           prime degree isogenies.  Currently only implemented for
           ``fill=False``.
 
@@ -594,8 +594,8 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
 
         - ``E`` -- an elliptic curve over a number field.
 
-        - ``reducible_primes`` (list of ints, or None (default)) -- if
-          not None then this should be a list of primes; in computing
+        - ``reducible_primes`` (list of ints, or ``None`` (default)) -- if
+          not ``None`` then this should be a list of primes; in computing
           the isogeny class, only composites isogenies of these
           degrees will be used.
 
@@ -716,7 +716,7 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
 
     def copy(self):
         """
-        Returns a copy (mostly used in reordering).
+        Return a copy (mostly used in reordering).
 
         EXAMPLES::
 
@@ -740,7 +740,7 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
 
     def _compute(self, verbose=False):
         """
-        Computes the list of curves, the matrix and prime-degree
+        Compute the list of curves, the matrix and prime-degree
         isogenies.
 
         EXAMPLES::
@@ -956,7 +956,7 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
 
     def _compute_matrix(self):
         """
-        Computes the matrix, assuming that the list of curves is computed.
+        Compute the matrix, assuming that the list of curves is computed.
 
         EXAMPLES::
 
@@ -1025,7 +1025,7 @@ class IsogenyClass_EC_Rational(IsogenyClass_EC_NumberField):
 
     def copy(self):
         """
-        Returns a copy (mostly used in reordering).
+        Return a copy (mostly used in reordering).
 
         EXAMPLES::
 
@@ -1048,7 +1048,7 @@ class IsogenyClass_EC_Rational(IsogenyClass_EC_NumberField):
 
     def _compute(self):
         """
-        Computes the list of curves, and possibly the matrix and
+        Compute the list of curves, and possibly the matrix and
         prime-degree isogenies (depending on the algorithm selected).
 
         EXAMPLES::

@@ -1214,7 +1214,7 @@ class GrowthDiagram(SageObject):
                     return 1
                 elif rule.rank(la) > rule.rank(mu):
                     if is_P_edge is not None and e not in is_P_edge(mu, la):
-                        raise ValueError("%s has smaller rank than %s but there is no edge of color %s in in P" % (mu, la, e))
+                        raise ValueError("%s has smaller rank than %s but there is no edge of color %s in P" % (mu, la, e))
                     return 0
                 else:
                     raise ValueError("can only determine the shape of the growth"

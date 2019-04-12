@@ -799,10 +799,10 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             are those covers of `ws_i` that have a descent at `i`.
             """
 
-            i = self.first_descent(positive=True)
+            i = self.first_descent(positive=True,side='right')
             if i is not None:
-                wsi = self.apply_simple_reflection(i)
-                return [u.apply_simple_reflection(i) for u in wsi.bruhat_upper_covers() if u.has_descent(i)] + [wsi]
+                wsi = self.apply_simple_reflection(i,side='right')
+                return [u.apply_simple_reflection(i,side='right') for u in wsi.bruhat_upper_covers() if u.has_descent(i,side='right')] + [wsi]
             else:
                 return []
 

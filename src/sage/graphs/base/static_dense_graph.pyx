@@ -30,7 +30,7 @@ Index
     :widths: 30, 70
     :delim: |
 
-    ``dense_graph_init`` | Fills a binary matrix with the information of a (di)graph.
+    ``dense_graph_init`` | Fill a binary matrix with the information from a Sage (di)graph.
 
 **Python functions**
 
@@ -39,7 +39,7 @@ Index
     :widths: 30, 70
     :delim: |
 
-    :meth:`is_strongly_regular` | Tests if a graph is strongly regular
+    :meth:`is_strongly_regular` | Check whether the graph is strongly regular
     :meth:`triangles_count` | Return the number of triangles containing `v`, for every `v`
     :meth:`connected_subgraph_iterator` | Iterator over the induced connected subgraphs of order at most `k`
 
@@ -50,9 +50,9 @@ include "sage/data_structures/binary_matrix.pxi"
 from cysignals.signals cimport sig_on, sig_off, sig_check
 
 
-cdef dict dense_graph_init(binary_matrix_t m, g, translation=False, force_undirected=False):
+cdef dict dense_graph_init(binary_matrix_t m, g, translation=None, force_undirected=False):
     r"""
-    Initializes the binary matrix from a Sage (di)graph.
+    Fill a binary matrix with the information from a Sage (di)graph.
 
     INPUT:
 
@@ -60,66 +60,91 @@ cdef dict dense_graph_init(binary_matrix_t m, g, translation=False, force_undire
 
     - ``g`` -- a graph or digraph
 
-    - ``translation`` (boolean) -- whether to return a dictionary associating to
-      each vertex its corresponding integer in the binary matrix.
+    - ``translation`` -- (default: `None``); several options for this parameter
+      used to specify the mapping from vertices to integers:
 
-    - ``force_undirected`` (boolean) -- whether to consider the graph as
-      undirected or not.
+      - ``True``, ``False``, ``None`` -- the `i`-th vertex in the binary matrix
+        corresponds to vertex ``g.vertices()[i]``.
+        When set to ``True``, a dictionary encoding the mapping from the
+        vertices of `g` to integers in `(0, \dots, n-1)` is returned.
+
+      - a ``list`` -- defines a mapping from integers in `(0, \dots, n-1)` to
+        the vertices in the graph `g`. So the `i`-th vertex in the binary matrix
+        corresponds to vertex ``translation[i]``.
+        **Beware that no checks are made that this input is correct**.
+
+      - a ``dict`` -- defines a mapping from the vertices of the graph to
+        integers in `(0, \dots, n-1)`. So the `i`-th vertex in the binary matrix
+        corresponds to ``translation[v]`` for some vertex `v \in g`.
+        **Beware that no checks are made that this input is correct**.
+
+    - ``force_undirected`` -- boolean (default: ``False``); whether to consider
+      the graph as undirected or not
     """
-    cdef dict d_translation
+    cdef dict d_translation = {}
     from sage.graphs.graph import Graph
     cdef bint is_undirected = isinstance(g, Graph) or force_undirected
     cdef int n = g.order()
+    cdef int i, j
 
     binary_matrix_init(m, n, n)
 
+    if translation and translation is not True:
+        if isinstance(translation, list):
+            # We are given a mapping from integers to vertices
+            d_translation = {v: i for i, v in enumerate(translation)}
+        elif isinstance(translation, dict):
+            # We are given a mapping vertices to integers
+            d_translation = translation
+
     # If the vertices are 0...n-1, let's avoid an unnecessary dictionary
-    if g.vertices() == list(xrange(n)):
-        if translation:
+    if not d_translation and set(g.vertex_iterator()) == set(range(n)):
+        if translation is True:
             d_translation = {i: i for i in range(n)}
 
-        for i,j in g.edge_iterator(labels = False):
+        for i, j in g.edge_iterator(labels=False):
             binary_matrix_set1(m, i, j)
             if is_undirected:
                 binary_matrix_set1(m, j, i)
     else:
-        d_translation = {v:i for i,v in enumerate(g.vertices())}
+        if not d_translation:
+            d_translation = {v: i for i, v in enumerate(g.vertices())}
 
-        for u,v in g.edge_iterator(labels = False):
+        for u,v in g.edge_iterator(labels=False):
             binary_matrix_set1(m, d_translation[u], d_translation[v])
             if is_undirected:
                 binary_matrix_set1(m, d_translation[v], d_translation[u])
 
-    if translation:
+    if translation is True:
         return d_translation
 
-def is_strongly_regular(g, parameters = False):
+def is_strongly_regular(g, parameters=False):
     r"""
-    Tests whether ``self`` is strongly regular.
+    Check whether the graph is strongly regular.
 
-    A simple graph `G` is said to be strongly regular with parameters `(n, k, \lambda,
-    \mu)` if and only if:
+    A simple graph `G` is said to be strongly regular with parameters
+    `(n, k, \lambda, \mu)` if and only if:
 
-        * `G` has `n` vertices.
+    * `G` has `n` vertices
 
-        * `G` is `k`-regular.
+    * `G` is `k`-regular
 
-        * Any two adjacent vertices of `G` have `\lambda` common neighbors.
+    * Any two adjacent vertices of `G` have `\lambda` common neighbors
 
-        * Any two non-adjacent vertices of `G` have `\mu` common neighbors.
+    * Any two non-adjacent vertices of `G` have `\mu` common neighbors
 
-    By convention, the complete graphs, the graphs with no edges
-    and the empty graph are not strongly regular.
+    By convention, the complete graphs, the graphs with no edges and the empty
+    graph are not strongly regular.
 
     See the :wikipedia:`Strongly regular graph`.
 
     INPUT:
 
-    - ``parameters`` (boolean) -- whether to return the quadruple `(n,
-      k,\lambda,\mu)`. If ``parameters = False`` (default), this method only
-      returns ``True`` and ``False`` answers. If ``parameters=True``, the
-      ``True`` answers are replaced by quadruples `(n, k,\lambda,\mu)`. See
-      definition above.
+    - ``parameters`` -- boolean (default: ``False``); whether to return the
+      quadruple `(n, k, \lambda, \mu)`. If ``parameters = False`` (default),
+      this method only returns ``True`` and ``False`` answers.
+      If ``parameters = True``, the ``True`` answers are replaced by quadruples
+      `(n, k, \lambda, \mu)`. See definition above.
 
     EXAMPLES:
 
@@ -128,7 +153,7 @@ def is_strongly_regular(g, parameters = False):
         sage: g = graphs.PetersenGraph()
         sage: g.is_strongly_regular()
         True
-        sage: g.is_strongly_regular(parameters = True)
+        sage: g.is_strongly_regular(parameters=True)
         (10, 3, 0, 1)
 
     And Clebsch's graph is too::
@@ -136,7 +161,7 @@ def is_strongly_regular(g, parameters = False):
         sage: g = graphs.ClebschGraph()
         sage: g.is_strongly_regular()
         True
-        sage: g.is_strongly_regular(parameters = True)
+        sage: g.is_strongly_regular(parameters=True)
         (16, 5, 0, 2)
 
     But Chvatal's graph is not::
@@ -185,9 +210,9 @@ def is_strongly_regular(g, parameters = False):
     cdef bitset_t b_tmp
     cdef int n = g.order()
     cdef int inter
-    cdef int i,j,l, k
+    cdef int i, j, l, k
 
-    if g.size() == 0: # no vertices or no edges
+    if not g.order() or not g.size(): # no vertices or no edges
         return False
 
     if g.is_clique():
@@ -195,19 +220,19 @@ def is_strongly_regular(g, parameters = False):
 
     cdef list degree = g.degree()
     k = degree[0]
-    if not all(d == k for d in degree):
+    if any(d != k for d in degree):
         return False
 
     bitset_init(b_tmp, n)
 
     # m is now our copy of the graph
-    dense_graph_init(m, g)
+    dense_graph_init(m, g, translation={v: i for i, v in enumerate(g)})
 
     cdef int llambda = -1
     cdef int mu = -1
 
     for i in range(n):
-        for j in range(i+1,n):
+        for j in range(i + 1, n):
 
             # The intersection of the common neighbors of i and j is a AND of
             # their respective rows. A popcount then returns its cardinality.
@@ -215,7 +240,7 @@ def is_strongly_regular(g, parameters = False):
             inter = bitset_len(b_tmp)
 
             # Check that this cardinality is correct according to the values of lambda and mu
-            if binary_matrix_get(m,i,j):
+            if binary_matrix_get(m, i, j):
                 if llambda == -1:
                     llambda = inter
                 elif llambda != inter:
@@ -234,7 +259,7 @@ def is_strongly_regular(g, parameters = False):
     bitset_free(b_tmp)
 
     if parameters:
-        return (n,k,llambda,mu)
+        return (n, k, llambda, mu)
     else:
         return True
 
@@ -244,14 +269,14 @@ def triangles_count(G):
 
     INPUT:
 
-    - ``G``-- a simple graph
+    - ``G`` -- a simple Sage graph
 
     EXAMPLES::
 
         sage: from sage.graphs.base.static_dense_graph import triangles_count
         sage: triangles_count(graphs.PetersenGraph())
         {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}
-        sage: sum(triangles_count(graphs.CompleteGraph(15)).values()) == 3*binomial(15,3)
+        sage: sum(triangles_count(graphs.CompleteGraph(15)).values()) == 3 * binomial(15, 3)
         True
     """
     from sage.rings.integer import Integer
@@ -261,7 +286,8 @@ def triangles_count(G):
     cdef uint64_t * count = <uint64_t *> check_calloc(n, sizeof(uint64_t))
 
     cdef binary_matrix_t g
-    dense_graph_init(g, G)
+    cdef list int_to_vertex = list(G)
+    dense_graph_init(g, G, translation=int_to_vertex)
 
     cdef bitset_t b_tmp
     bitset_init(b_tmp, n)
@@ -270,16 +296,15 @@ def triangles_count(G):
     cdef uint64_t tmp_count = 0
 
     for i in range(n):
-        for j in range(i+1,n):
-            if not bitset_in(g.rows[i],j):
+        for j in range(i + 1, n):
+            if not bitset_in(g.rows[i], j):
                 continue
             bitset_and(b_tmp, g.rows[i], g.rows[j])
             tmp_count = bitset_len(b_tmp)
             count[i] += tmp_count
             count[j] += tmp_count
 
-    ans = {v:Integer(count[i]/2)
-           for i,v in enumerate(G.vertices())}
+    ans = {v: Integer(count[i] // 2) for i, v in enumerate(int_to_vertex)}
 
     bitset_free(b_tmp)
     binary_matrix_free(g)
@@ -309,7 +334,7 @@ def connected_subgraph_iterator(G, k=None, bint vertices_only=False):
       report; by default, the method iterates over all connected subgraphs
       (equivalent to ``k == n``)
 
-    - ``vertices_only`` -- (default: ``False``) boolean; whether to return
+    - ``vertices_only`` -- boolean (default: ``False``); whether to return
       (Di)Graph or list of vertices
 
     EXAMPLES::
@@ -396,10 +421,10 @@ def connected_subgraph_iterator(G, k=None, bint vertices_only=False):
     if not n or mk < 1:
         return
 
-    cdef list int_to_vertex = G.vertices()
+    cdef list int_to_vertex = list(G)
     cdef binary_matrix_t DG
     sig_on()
-    dense_graph_init(DG, G, translation=False, force_undirected=True)
+    dense_graph_init(DG, G, translation=int_to_vertex, force_undirected=True)
 
     # We use a stack of bitsets. We need 3 bitsets per level with at most n + 1
     # levels, so 3 * n + 3 bitsets. We also need 1 bitset that we create at the

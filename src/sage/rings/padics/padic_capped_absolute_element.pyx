@@ -256,10 +256,11 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
 
     def multiplicative_order(self):
         r"""
-        Returns the minimum possible multiplicative order of this element.
+        Return the minimum possible multiplicative order of this element.
 
         OUTPUT:
-        the multiplicative order of self.  This is the minimum multiplicative
+
+        The multiplicative order of self.  This is the minimum multiplicative
         order of all elements of `\ZZ_p` lifting ``self`` to infinite
         precision.
 

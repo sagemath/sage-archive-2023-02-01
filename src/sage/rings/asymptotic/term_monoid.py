@@ -2982,7 +2982,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('z^QQ')
             sage: T = TermMonoid('exact', G, ZZ)
-            sage: tuple(islice(T.some_elements(), 10))
+            sage: tuple(islice(T.some_elements(), int(10)))
             (z^(1/2), z^(-1/2), -z^(1/2), z^2, -z^(-1/2), 2*z^(1/2),
              z^(-2), -z^2, 2*z^(-1/2), -2*z^(1/2))
         """
@@ -3123,7 +3123,7 @@ class ExactTerm(TermWithCoefficient):
 
         if latex:
             import re
-            s = re.sub(r'([0-9])\s+([0-9])', r'\1 \cdot \2', s)
+            s = re.sub(r'([0-9])\s+([0-9])', r'\1 \\cdot \2', s)
 
         return s
 
@@ -3505,24 +3505,7 @@ class ExactTerm(TermWithCoefficient):
             sage: n.rpow(2)
             2^n
             sage: _.parent()
-            Exact Term Monoid QQ^n * n^SR with coefficients in Symbolic Ring
-
-        Above, we get ``QQ^n * n^SR``. The reason is the following:
-        Since $n = 1_{SR} \cdot (1_{\QQ})^n \cdot n^{1_{\QQ}}$, we have
-
-        .. MATH::
-
-            2^n = (2_{\QQ})^{1_{SR} \cdot (1_{\QQ})^n \cdot n^{1_{\QQ}}}
-            = \left( (2_{\QQ})^n \cdot n^{0_{\QQ}} \right)^{1_{SR}}
-            = \left((2_{\QQ})^{1_{SR}}\right)^n \cdot n^{0_{\QQ} 1_{SR}}
-            = (2_{\QQ})^n \cdot n^{0_{SR}}
-
-        where ::
-
-            sage: (QQ(2)^SR(1)).parent(), (QQ(0)*SR(1)).parent()
-            (Rational Field, Symbolic Ring)
-
-        was used.
+            Exact Term Monoid SR^n * n^SR with coefficients in Symbolic Ring
         """
         P = self.parent()
 

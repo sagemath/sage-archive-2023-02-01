@@ -165,35 +165,35 @@ r"""
     *  a b c d e f
      +------------
     a| a b c d e f
-    b| b c a f d e
-    c| c a b e f d
-    d| d e f a b c
-    e| e f d c a b
+    b| b a d c f e
+    c| c e a f b d
+    d| d f b e a c
+    e| e c f a d b
     f| f d e b c a
 
 ~~~~~~~~~~~~~~~~~~~~~~ ::
 
     sage: triangle.cayley_table(names='elements')
-          *       () (1,3,2) (1,2,3)   (2,3)   (1,3)   (1,2)
+          *       ()   (2,3)   (1,2) (1,2,3) (1,3,2)   (1,3)
            +------------------------------------------------
-         ()|      () (1,3,2) (1,2,3)   (2,3)   (1,3)   (1,2)
-    (1,3,2)| (1,3,2) (1,2,3)      ()   (1,2)   (2,3)   (1,3)
-    (1,2,3)| (1,2,3)      () (1,3,2)   (1,3)   (1,2)   (2,3)
-      (2,3)|   (2,3)   (1,3)   (1,2)      () (1,3,2) (1,2,3)
-      (1,3)|   (1,3)   (1,2)   (2,3) (1,2,3)      () (1,3,2)
-      (1,2)|   (1,2)   (2,3)   (1,3) (1,3,2) (1,2,3)      ()
+         ()|      ()   (2,3)   (1,2) (1,2,3) (1,3,2)   (1,3)
+      (2,3)|   (2,3)      () (1,2,3)   (1,2)   (1,3) (1,3,2)
+      (1,2)|   (1,2) (1,3,2)      ()   (1,3)   (2,3) (1,2,3)
+    (1,2,3)| (1,2,3)   (1,3)   (2,3) (1,3,2)      ()   (1,2)
+    (1,3,2)| (1,3,2)   (1,2)   (1,3)      () (1,2,3)   (2,3)
+      (1,3)|   (1,3) (1,2,3) (1,3,2)   (2,3)   (1,2)      ()
 
 ~~~~~~~~~~~~~~~~~~~~~~ ::
 
-    sage: triangle.cayley_table(names=['id','u3','r1','r2','u1','u2'])
-     *  id u3 r1 r2 u1 u2
+    sage: triangle.cayley_table(names=['id','u1','u3','r1','r2','u2'])
+     *  id u1 u3 r1 r2 u2
       +------------------
-    id| id u3 r1 r2 u1 u2
-    u3| u3 r1 id u2 r2 u1
-    r1| r1 id u3 u1 u2 r2
-    r2| r2 u1 u2 id u3 r1
-    u1| u1 u2 r2 r1 id u3
-    u2| u2 r2 u1 u3 r1 id
+    id| id u1 u3 r1 r2 u2
+    u1| u1 id r1 u3 u2 r2
+    u3| u3 r2 id u2 u1 r1
+    r1| r1 u2 u1 r2 id u3
+    r2| r2 u3 u2 id r1 u1
+    u2| u2 r1 r2 u1 u3 id
 
 ~~~~~~~~~~~~~~~~~~~~~~ ::
 
@@ -214,13 +214,13 @@ r"""
     *  a b c d e f g h
      +----------------
     a| a b c d e f g h
-    b| b a d c f e h g
-    c| c d b a g h f e
-    d| d c a b h g e f
-    e| e f h g b a c d
-    f| f e g h a b d c
-    g| g h e f d c b a
-    h| h g f e c d a b
+    b| b c d a h e f g
+    c| c d a b g h e f
+    d| d a b c f g h e
+    e| e f g h c d a b
+    f| f g h e b c d a
+    g| g h e f a b c d
+    h| h e f g d a b c
 
 ~~~~~~~~~~~~~~~~~~~~~~ ::
 

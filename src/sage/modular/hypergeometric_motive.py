@@ -48,7 +48,7 @@ REFERENCES:
 - [Watkins]_
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2017     Frédéric Chapoton
 #                              Kiran S. Kedlaya <kskedl@gmail.com>
 #
@@ -56,8 +56,8 @@ REFERENCES:
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from collections import defaultdict
 from itertools import combinations
@@ -196,11 +196,12 @@ def enumerate_hypergeometric_data(d, weight=None):
     def formule(u):
         return [possible[j][0] for j in range(N) for _ in range(u[j])]
 
-    for a,b in combinations(vectors, 2):
+    for a, b in combinations(vectors, 2):
         if not any(a[j] and b[j] for j in range(N)):
             H = HypergeometricData(cyclotomic=(formule(a), formule(b)))
             if weight is None or H.weight() == weight:
                 yield H
+
 
 def possible_hypergeometric_data(d, weight=None):
     """
@@ -219,6 +220,7 @@ def possible_hypergeometric_data(d, weight=None):
         [0, 0, 10, 30, 93, 234]
     """
     return list(enumerate_hypergeometric_data(d, weight))
+
 
 def cyclotomic_to_alpha(cyclo):
     """
@@ -749,7 +751,7 @@ class HypergeometricData(object):
         """
         gamma = self.gamma_array()
         resu = []
-        for v, n in gamma.items():
+        for v, n in sorted(gamma.items()):
             resu += [sgn(n) * v] * abs(n)
         return resu
 
@@ -982,8 +984,8 @@ class HypergeometricData(object):
 
 #        m = {r: beta.count(QQ((r, q - 1))) for r in range(q - 1)}
         m = defaultdict(lambda: 0)
-        for r in range(q-1):
-            u = QQ((r, q-1))
+        for r in range(q - 1):
+            u = QQ((r, q - 1))
             if u in beta:
                 m[r] = beta.count(u)
         M = self.M_value()
@@ -991,20 +993,21 @@ class HypergeometricData(object):
         # also: D = (self.weight() + 1 - m[0]) // 2
 
         if prec is None:
-            prec = (self.weight()*f)//2 + ceil(log(self.degree(),p)) + 1
+            prec = (self.weight() * f) // 2 + ceil(log(self.degree(), p)) + 1
         # For some reason, working in Qp instead of Zp is much faster;
         # it appears to avoid some costly conversions.
         p_ring = Qp(p, prec=prec)
         teich = p_ring.teichmuller(M / t)
 
-        gauss_table = [padic_gauss_sum(r, p, f, prec, factored=True, algorithm='sage', parent=p_ring)
-                       for r in range(q-1)]
+        gauss_table = [padic_gauss_sum(r, p, f, prec, factored=True,
+                                       algorithm='sage', parent=p_ring)
+                       for r in range(q - 1)]
 
-        sigma = sum( ((-p)**(sum(gauss_table[(v * r) % (q - 1)][0] * gv
+        sigma = sum(((-p)**(sum(gauss_table[(v * r) % (q - 1)][0] * gv
                                 for v, gv in gamma.items()) // (p - 1)) *
-                     prod(gauss_table[(v * r) % (q - 1)][1] ** gv
-                          for v, gv in gamma.items()) * teich ** r)
-                     << (f*(D+m[0]-m[r])) for r in range(q-1))
+                    prod(gauss_table[(v * r) % (q - 1)][1] ** gv
+                         for v, gv in gamma.items()) * teich ** r)
+                    << (f * (D + m[0] - m[r])) for r in range(q - 1))
         resu = ZZ(-1) ** m[0] / (1 - q) * sigma
         return IntegerModRing(p**prec)(resu).lift_centered()
 
@@ -1136,7 +1139,7 @@ class HypergeometricData(object):
         else:
             sign = kronecker_symbol(t * (t - 1) * self._sign_param, p)
         return sign
-    
+
     @cached_method
     def euler_factor(self, t, p):
         """

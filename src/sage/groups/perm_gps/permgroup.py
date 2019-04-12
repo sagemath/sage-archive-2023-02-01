@@ -147,6 +147,8 @@ from sage.groups.group import FiniteGroup
 from sage.rings.all import QQ, Integer
 from sage.interfaces.expect import is_ExpectElement
 from sage.interfaces.gap import GapElement
+from sage.libs.gap.libgap import libgap as gap
+from sage.libs.gap.element import GapElement as LibGapElement
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement, standardize_generator
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.misc.cachefunc import cached_method
@@ -166,7 +168,6 @@ def load_hap():
 
         sage: sage.groups.perm_gps.permgroup.load_hap() # optional - gap_packages
     """
-    from sage.libs.gap.libgap import libgap as gap
     from sage.features.gap import GapPackage
     GapPackage("hap", spkg="gap_packages").require()
     gap.load_package("hap")
@@ -228,7 +229,6 @@ def direct_product_permgroups(P):
     elif n == 1:
         return P[0]
     else:
-        from sage.libs.gap.libgap import libgap as gap
         G = gap.DirectProduct(*P)
         return PermutationGroup(gap_group=G)
 
@@ -420,14 +420,12 @@ class PermutationGroup_generic(FiniteGroup):
         super(PermutationGroup_generic, self).__init__(category=category)
 
         if isinstance(gap_group, str):
-            from sage.libs.gap.libgap import libgap
             # defining the GAP group from the original construction information
             # helps to avoid buffer size overflow since it avoids transferring
             # lists of long generators (example PSp(8,3), see :trac:`26750`
-            self._libgap = libgap.eval(gap_group)
+            self._libgap = gap.eval(gap_group)
             gap_group = self._libgap
 
-        from sage.libs.gap.element import GapElement as LibGapElement
         if isinstance(gap_group, LibGapElement):
             self._libgap = gap_group
 
@@ -603,8 +601,8 @@ class PermutationGroup_generic(FiniteGroup):
         """
         if self._libgap is not None:
             return self._libgap
-        from sage.libs.gap.libgap import libgap
-        return libgap(self)
+
+        return gap(self)
 
     def _Hom_(self, G, category=None, check=True):
         r"""
@@ -1528,7 +1526,7 @@ class PermutationGroup_generic(FiniteGroup):
              ({'b', (12, (12, 11))}, {(11, (12, 13)), 'd'}))
         """
         from sage.sets.set import Set
-        from sage.libs.gap.libgap import libgap as gap
+
         actions = {
             "OnPoints"           : [],
             "OnSets"             : [Set],
@@ -1671,7 +1669,6 @@ class PermutationGroup_generic(FiniteGroup):
             ...
             ValueError: 'action' must be equal to 'OnPoints' or to 'OnSets'.
         """
-        from sage.libs.gap.libgap import libgap as gap
 
         if action not in ["OnPoints", "OnSets"]:
             raise ValueError("'action' must be equal to 'OnPoints' or to 'OnSets'.")
@@ -1831,12 +1828,11 @@ class PermutationGroup_generic(FiniteGroup):
             True
         """
         if implementation == "gap":
-            from sage.libs.gap.libgap import libgap
             if not base_of_group is None:
                 raise ValueError("the optional argument 'base_of_group'"
                                  " (='%s') must be None if 'implementation'='gap'" % base_of_group)
 
-            gap_cosets = libgap.function_factory("""function ( S0 )
+            gap_cosets = gap.function_factory("""function ( S0 )
                 local   CosetsStabChain;
                 CosetsStabChain := function(S)  # for the recursive call
                 local   cosets,             # element list, result
@@ -1873,11 +1869,11 @@ class PermutationGroup_generic(FiniteGroup):
                end;
                return CosetsStabChain(S0);
             end;""")
-            G = libgap.Group(self.gens())  # G = libgap(self)
+            G = gap.Group(self.gens())  # G = libgap(self)
             S = G.StabChain()
             cosets = gap_cosets(S)
             one = self.one()
-            return [[one._generate_new_GAP(libgap.ListPerm(elt))
+            return [[one._generate_new_GAP(gap.ListPerm(elt))
                      for elt in coset] for coset in cosets]
 
         if implementation == "sage":
@@ -2280,7 +2276,6 @@ class PermutationGroup_generic(FiniteGroup):
             TypeError: junk is not a permutation group
         """
         from sage.categories.finite_permutation_groups import FinitePermutationGroups
-        from sage.libs.gap.libgap import libgap as gap
 
         if other not in FinitePermutationGroups():
             raise TypeError("{0} is not a permutation group".format(other))
@@ -2321,7 +2316,6 @@ class PermutationGroup_generic(FiniteGroup):
              Conjugacy class of (2,3) in Dihedral group of order 6 as a permutation group,
              Conjugacy class of (1,2,3) in Dihedral group of order 6 as a permutation group]
         """
-        from sage.libs.gap.libgap import libgap as gap
         cls = self.gap().ConjugacyClasses()
         L = [cl.Representative() for cl in cls]
         return [ConjugacyClassGAP(self, self.element_class(l, self, check=False))
@@ -2407,7 +2401,6 @@ class PermutationGroup_generic(FiniteGroup):
             ...
             TypeError: junk does not convert to a permutation group element
         """
-        from sage.libs.gap.libgap import libgap as gap
 
         try:
             g = PermutationGroupElement(g)
@@ -2639,7 +2632,6 @@ class PermutationGroup_generic(FiniteGroup):
         - Kevin Halasz (2012-8-12)
 
         """
-        from sage.libs.gap.libgap import libgap as gap
 
         if check:
             from sage.categories.finite_permutation_groups import FinitePermutationGroups
@@ -2733,7 +2725,6 @@ class PermutationGroup_generic(FiniteGroup):
 
         - Kevin Halasz (2012-08-14)
         """
-        from sage.libs.gap.libgap import libgap as gap
 
         gap.eval('G := Group({})'.format(self.gens()))
         gap.eval('aut := AutomorphismGroup(G)')
@@ -2881,9 +2872,8 @@ class PermutationGroup_generic(FiniteGroup):
         """
         from sage.groups.free_group import FreeGroup, _lexi_gen
         from sage.groups.finitely_presented import FinitelyPresentedGroup
-        from sage.libs.gap.libgap import libgap
 
-        image_fp = libgap.Image( libgap.IsomorphismFpGroupByGenerators(self, self.gens()))
+        image_fp = gap.Image(gap.IsomorphismFpGroupByGenerators(self, self.gens()))
         image_gens = image_fp.FreeGeneratorsOfFpGroup()
         name_itr = _lexi_gen() # Python generator object for variable names
         F = FreeGroup([next(name_itr) for x in image_gens])
@@ -3010,7 +3000,6 @@ class PermutationGroup_generic(FiniteGroup):
             ...
             TypeError: junk is not a permutation group
         """
-        from sage.libs.gap.libgap import libgap as gap
 
         if other is None:
             return PermutationGroup(gap_group=gap.DerivedSubgroup(self))

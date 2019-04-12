@@ -143,7 +143,8 @@ class FunctionFieldPlace(Element):
         """
         Return the LaTeX representation of the place.
 
-        We use Stichtenoth's notation for the ideal.
+        We use Stichtenoth's notation for the ideal: the generators
+        followed by a symbol for the ring, either O or Oinf.
 
         EXAMPLES::
 
@@ -151,7 +152,7 @@ class FunctionFieldPlace(Element):
             sage: L.<y>=K.extension(Y^3+x+x^3*Y)
             sage: p = L.places_finite()[0]
             sage: latex(p)
-            Place (x, y)
+            (x, y)\mathcal{O}
         """
         try:
             gens = self._prime.gens_two()

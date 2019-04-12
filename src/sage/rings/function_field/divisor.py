@@ -156,6 +156,47 @@ class FunctionFieldDivisor(ModuleElement):
         ModuleElement.__init__(self, parent)
         self._data = data
 
+    def _format(self, formatter, mul, cr):
+        """
+        Return a string representation of the divisor, used by both
+        `_repr_` and `_latex_`.
+
+        INPUT:
+
+        - ``formatter`` -- either `repr` or `latex`
+
+        - ``mul`` -- the string inserted between multiplicity and place
+
+        - ``cr`` -- the string inserted between places
+        """
+        plus = ' + '
+        minus = ' - '
+
+        places = sorted(self._data)
+
+        if len(places) == 0:
+            return '0'
+
+        p = places.pop(0)
+        m = self._data[p]
+        if m == 1:
+            r = formatter(p)
+        elif m == -1:
+            r = '- ' + formatter(p) # seems more readable than `-`
+        else: # nonzero
+            r = formatter(m) + mul + formatter(p)
+        for p in places:
+            m = self._data[p]
+            if m == 1:
+                r += cr + plus + formatter(p)
+            elif m == -1:
+                r += cr + minus + formatter(p)
+            elif m > 0:
+                r += cr + plus + formatter(m) + mul + formatter(p)
+            elif m < 0:
+                r += cr + minus + formatter(-m) + mul + formatter(p)
+        return r
+
     def _repr_(self, split=True):
         """
         Return a string representation of the divisor.
@@ -174,39 +215,12 @@ class FunctionFieldDivisor(ModuleElement):
             'Place (1/x, 1/x^4*y^2 + 1/x^2*y + 1) + Place (1/x, 1/x^2*y + 1)
             + 3*Place (x, (1/(x^3 + x^2 + x))*y^2) - 6*Place (x + 1, y + 1)'
         """
-        mul = '*'
-        plus = ' + '
-        minus = ' - '
-
         if split:
             cr = '\n'
         else:
             cr = ''
 
-        places = sorted(self._data)
-
-        if len(places) == 0:
-            return '0'
-
-        p = places.pop(0)
-        m = self._data[p]
-        if m == 1:
-            r = repr(p)
-        elif m == -1:
-            r = '- ' + repr(p) # seems more readable than `-`
-        else: # nonzero
-            r = repr(m) + mul + repr(p)
-        for p in places:
-            m = self._data[p]
-            if m == 1:
-                r += cr + plus + repr(p)
-            elif m == -1:
-                r += cr + minus + repr(p)
-            elif m > 0:
-                r += cr + plus + repr(m) + mul + repr(p)
-            elif m < 0:
-                r += cr + minus + repr(-m) + mul + repr(p)
-        return r
+        return self._format(repr, '*', cr)
 
     def _latex_(self):
         """
@@ -214,41 +228,17 @@ class FunctionFieldDivisor(ModuleElement):
 
         EXAMPLES::
 
-            sage: K.<x>=FunctionField(GF(2)); _.<Y>=K[]
-            sage: L.<y>=K.extension(Y^3+x+x^3*Y)
-            sage: p = L.places_finite()[0]
-            sage: p
-            Place (x, y)
+            sage: K.<x> = FunctionField(GF(2)); R.<t> = PolynomialRing(K)
+            sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)
+            sage: f = x/(y+1)
+            sage: d = f.divisor()
+            sage: d._latex_()
+            (\frac{1}{x}, \frac{1}{x^{4}} y^{2} + \frac{1}{x^{2}} y + 1)\mathcal{O}_\infty
+             + (\frac{1}{x}, \frac{1}{x^{2}} y + 1)\mathcal{O}_\infty
+             + 3 (x, \left(\frac{1}{x^{3} + x^{2} + x}\right) y^{2})\mathcal{O}
+             - 6 (x + 1, y + 1)\mathcal{O}
         """
-        mul = ''
-        plus = ' + '
-        minus = ' - '
-        cr = ''
-
-        places = sorted(self._data.keys())
-
-        if len(places) == 0:
-            return '0'
-
-        p = places.pop(0)
-        m = self._data[p]
-        if m == 1:
-            r = latex(p)
-        elif m == -1:
-            r = '-' + latex(p) # seems more readable then `-1*`
-        else: # nonzero
-            r = latex(m) + mul + latex(p)
-        for p in places:
-            m = self._data[p]
-            if m == 1:
-                r += cr + plus + latex(p)
-            elif m == -1:
-                r += cr + minus + latex(p)
-            elif m > 0:
-                r += cr + plus + latex(m) + mul + latex(p)
-            elif m < 0:
-                r += cr + minus + latex(-m) + mul + latex(p)
-        return r
+        return self._format(latex, '', '')
 
     def _richcmp_(self, other, op):
         """

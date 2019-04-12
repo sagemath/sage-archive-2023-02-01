@@ -1,11 +1,11 @@
 r"""
 Mixed Differential Forms
 
-Let `M` and `N` be differentiable manifolds and `\Phi : M \longrightarrow N` a
-differentiable map. A *mixed differential form along* `\Phi` is an element of
+Let `M` and `N` be differentiable manifolds and `\varphi : M \longrightarrow N` a
+differentiable map. A *mixed differential form along* `\varphi` is an element of
 the graded algebra represented by
 :class:`~sage.manifolds.differentiable.mixed_form_algebra.MixedFormAlgebra`.
-Its homogeneous components consist of differential forms along `\Phi`. Mixed
+Its homogeneous components consist of differential forms along `\varphi`. Mixed
 forms are useful to represent characteristic classes and perform computations
 of such.
 
@@ -42,7 +42,7 @@ class MixedForm(AlgebraElement):
     where `T^{(0,k)}` denotes the tensor bundle of type `(0,k)`, `\bigoplus`
     the Whitney sum and `n` the dimension of `N`, such that
     
-    .. MATH:
+    .. MATH::
 
         \forall x\in M, \quad a(x) \in \bigoplus^n_{k=0} \Lambda^k\left( T_{\varphi(x)}^* N \right),
     
@@ -57,7 +57,7 @@ class MixedForm(AlgebraElement):
     - ``parent`` -- graded algebra of mixed forms represented by
       :class:`~sage.manifolds.differentiable.mixed_form_algebra.MixedFormAlgebra`
       where the mixed form ``self`` shall belong to
-    - ``comp```-- (default: ``None``) homogeneous components of the mixed form;
+    - ``comp`` -- (default: ``None``) homogeneous components of the mixed form;
       if none is provided, the components are set to innocent unnamed
       differential forms
     - ``name`` -- (default: ``None``) name given to the mixed form

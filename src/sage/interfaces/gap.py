@@ -735,14 +735,11 @@ class Gap_generic(ExtraTabCompletion, Expect):
             sage: a
             3
         """
-        #if line.find('\n') != -1:
-        #    raise ValueError, "line must not contain any newlines"
         E = None
         try:
             if self._expect is None:
                 self._start()
             E = self._expect
-            #import pdb; pdb.set_trace()
             if allow_use_file and wait_for_prompt and len(line) > self._eval_using_file_cutoff:
                 return self._eval_line_using_file(line)
             (normal, error) = self._execute_line(line, wait_for_prompt=wait_for_prompt,

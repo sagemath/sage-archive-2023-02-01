@@ -218,6 +218,7 @@ def string_to_tuples(g):
     g = '[' + g + ']'
     return sage_eval(g, preparse=False)
 
+
 def standardize_generator(g, convert_dict=None):
     """
     Standardizes the input for permutation group elements to a list of
@@ -512,8 +513,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             if not (parent is None or isinstance(parent, PermutationGroup_generic)):
                 raise TypeError('parent must be a permutation group')
             if parent is not None:
-                P = parent._gap_()
-                if not P.parent()(self.__gap) in P:
+                P = parent.gap()
+                if not P.parent().eval(self.__gap) in P:
                     raise TypeError('permutation %s not in %s' % (g, parent))
 
         Element.__init__(self, parent)
@@ -598,6 +599,16 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             if gap is None:
                 from sage.interfaces.gap import gap
             self._gap_element = gap(self._gap_init_())
+
+        return self._gap_element
+
+    def _libgap_(self):
+        from sage.libs.gap.libgap import libgap as gap
+
+        if (self._gap_element is None or
+                self._gap_element._parent is not gap):
+            self._gap_element = gap.eval(self._gap_init_())
+
         return self._gap_element
 
     # for compatibility with sage.groups.libgap_wrapper.ElementLibGAP

@@ -10046,6 +10046,11 @@ class GenericGraph(GenericGraph_pyx):
         When ``closed`` is set to ``True``, the returned iterator also
         contains ``vertex``.
 
+        INPUT:
+
+        - ``vertex`` -- a vertex of ``self``
+        - ``closed`` -- a boolean (default: ``False``)
+
         EXAMPLES::
 
             sage: G = graphs.PetersenGraph()
@@ -10195,11 +10200,18 @@ class GenericGraph(GenericGraph_pyx):
             return sorted(list(self.vertex_iterator()), key=key)
         return list(self.vertex_iterator())
 
-    def neighbors(self, vertex):
+    def neighbors(self, vertex, closed=False):
         """
         Return a list of neighbors (in and out if directed) of ``vertex``.
 
         ``G[vertex]`` also works.
+        When ``closed`` is set to ``True``, the returned iterator also
+        contains ``vertex``.
+
+        INPUT:
+
+        - ``vertex`` -- a vertex of ``self``
+        - ``closed`` -- a boolean (default: ``False``)
 
         EXAMPLES::
 
@@ -10208,8 +10220,10 @@ class GenericGraph(GenericGraph_pyx):
             [2, 4, 8]
             sage: sorted(P[4])
             [0, 3, 9]
+            sage: sorted(P.neighbors(3, closed=True))
+            [2, 3, 4, 8]
         """
-        return list(self.neighbor_iterator(vertex))
+        return list(self.neighbor_iterator(vertex, closed))
 
     __getitem__ = neighbors
 

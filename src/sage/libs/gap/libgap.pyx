@@ -408,6 +408,30 @@ class Gap(Parent):
 
         return elem
 
+    def load_package(self, pkg):
+        """
+        If loading fails, raise a RuntimeError exception.
+
+        TESTS::
+
+            sage: libgap.load_package("chevie")
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Error loading GAP package chevie. You may want to
+            install gap_packages SPKG.
+        """
+        load_package = self.function_factory('LoadPackage')
+        # Note: For some reason the default package loading error messages are
+        # controlled with InfoWarning and not InfoPackageLoading
+        prev_infolevel = libgap.InfoLevel(libgap.InfoWarning)
+        libgap.SetInfoLevel(libgap.InfoWarning, 0)
+        ret = load_package(pkg)
+        libgap.SetInfoLevel(libgap.InfoWarning, prev_infolevel)
+        if str(ret) == 'fail':
+            raise RuntimeError(f"Error loading GAP package {pkg}.  "
+                               f"You may want to install gap_packages SPKG.")
+        return ret
+
     @cached_method
     def function_factory(self, function_name):
         """

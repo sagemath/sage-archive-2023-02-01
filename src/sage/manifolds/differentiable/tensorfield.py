@@ -699,13 +699,13 @@ class TensorField(ModuleElement):
             sage: Y.<u,v> = M.chart()
             sage: t._init_components([[2*u, 3*v], [u+v, -u]], frame=Y.frame(),
             ....:                    chart=Y)
-            sage: t.display(Y.frame(), Y)
+            sage: t.display(Y)
             t = 2*u d/du*du + 3*v d/du*dv + (u + v) d/dv*du - u d/dv*dv
             sage: t._init_components({X.frame(): [[2*x, 1-y],[0, x]]})
             sage: t.display()
             t = 2*x d/dx*dx + (-y + 1) d/dx*dy + x d/dy*dy
             sage: t._init_components({(Y.frame(), Y): [[2*u, 0],[v^3, u+v]]})
-            sage: t.display(Y.frame(), Y)
+            sage: t.display(Y)
             t = 2*u d/du*du + v^3 d/dv*du + (u + v) d/dv*dv
 
         """
@@ -1533,7 +1533,8 @@ class TensorField(ModuleElement):
               + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
 
         One can ask for the display with respect to a frame in which ``t`` has
-        not been initialized (automatic use of a change-of-frame formula)::
+        not been initialized yet (this will automatically trigger the use of
+        the change-of-frame formula for tensors)::
 
             sage: a = V.automorphism_field()
             sage: a[:] = [[1+v, -u^2], [0, 1-u]]

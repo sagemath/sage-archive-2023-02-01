@@ -1018,8 +1018,7 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
 
 cpdef get_predecessors(g, result, int_to_v, v_to_int, weight_function):
     r"""
-    Given the shortest distances between all pairs of vertices in a graph return
-    the predecessors matrix.
+    Return the predecessor matrix from the distance matrix of the graph.
     
     INPUT:
     
@@ -1039,12 +1038,12 @@ cpdef get_predecessors(g, result, int_to_v, v_to_int, weight_function):
       
     OUTPUT:
     
-    This function returns the dictionary of predecessors where
-    ``predecessors[u][v]`` denotes a neighbor `w` of `v` such that it lies on 
-    the shortest path from `u` to `v`.
+    A dictionary of dictionaries ``pred`` such that ``pred[u][v]`` indicates 
+    the predecessor  of `v` in the shortest path from `u` to `v`.
     """
     cdef int N = g.num_verts()
     pred = {v: {v: None} for v in g}
+    import sys
     for e in g.edge_iterator():
         if weight_function is not None:
             dst = weight_function(e)
@@ -1057,7 +1056,6 @@ cpdef get_predecessors(g, result, int_to_v, v_to_int, weight_function):
         v = e[1]
         u_int = v_to_int[u]
         v_int = v_to_int[v]
-        import sys
         for k in range(N):
             if result[k][u_int] == sys.float_info.max or result[k][v_int] == sys.float_info.max:
                 continue
@@ -1101,8 +1099,8 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
     Depending on the input, this function return the dictionary of predecessors, the
     dictionary of distances, or a pair of dictionaries ``(distances, predecessors)``
     where ``distance[u][v]`` denotes the distance of a shortest path from `u` to
-    `v` and ``predecessors[u][v]`` denotes a neighbor `w` of `v` such that
-    it lies on the shortest path from `u` to `v`.
+    `v` and ``predecessors[u][v]`` indicates the predecessor of `w` on a
+    shortest path from `u` to `v`.
 
     EXAMPLES:
 
@@ -1333,7 +1331,6 @@ cpdef floyd_warshall_shortest_paths(g, weight_function=None, distances=True, pre
     preferred only if the graph is dense. If the graph is sparse the much faster
     johnson_shortest_paths should be used.
     
-
     The time-complexity is `O(n^3 + nm)`, where `n` is the number of nodes and
     `m` the number of edges. The factor `nm` in the complexity is added only
     when ``predecessors`` is set to ``True``.
@@ -1357,8 +1354,8 @@ cpdef floyd_warshall_shortest_paths(g, weight_function=None, distances=True, pre
     Depending on the input, this function return the dictionary of predecessors, the
     dictionary of distances, or a pair of dictionaries ``(distances, predecessors)``
     where ``distance[u][v]`` denotes the distance of a shortest path from `u` to
-    `v` and ``predecessors[u][v]`` denotes a neighbor `w` of `v` such that
-    it lies on the shortest path from `u` to `v`.
+    `v` and ``predecessors[u][v]`` indicates the predecessor of `w` on a
+    shortest path from `u` to `v`.
 
     EXAMPLES:
 

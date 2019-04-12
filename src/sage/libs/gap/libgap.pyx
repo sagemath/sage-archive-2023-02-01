@@ -213,19 +213,16 @@ AUTHORS:
 
 from __future__ import print_function, absolute_import
 
-from pprint import pprint
-
 from .gap_includes cimport *
 from .util cimport *
 from .element cimport *
 
-from sage.structure.sage_object cimport SageObject
 from sage.structure.parent cimport Parent
-from sage.structure.element cimport ModuleElement, RingElement, Vector
+from sage.structure.element cimport Vector
 from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_method
 from sage.misc.randstate cimport current_randstate
-from sage.misc.superseded import deprecated_function_alias, deprecation
+from sage.misc.superseded import deprecation
 
 
 ############################################################################

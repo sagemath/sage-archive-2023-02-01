@@ -1327,6 +1327,7 @@ common_gap_functions = set([
   'TrivialSubspace',
   'Tuple',
   'Tuples',
+  'TypeObj',
   'UnbindElmWPObj',
   'UnbindGlobal',
   'UnderlyingCharacterTable',

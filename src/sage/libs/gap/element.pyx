@@ -1355,7 +1355,6 @@ cdef class GapElement(RingElement):
         """
         if self.value is NULL:
             return None
-        libgap = self.parent()
 
         if self.IsInfinity():
             from sage.rings.infinity import Infinity

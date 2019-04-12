@@ -2294,8 +2294,8 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             sage: M.set_calculus_method('sympy')
             sage: g[1,1], g[1,2], g[2,2] = 1+x, x*y, 1-x
             sage: g[:]  # components in the manifold's default frame
-            [ x + 1    x*y]
-            [   x*y -x + 1]
+            [x + 1   x*y]
+            [  x*y 1 - x]
             sage: g.inverse()[:]
             [ (x - 1)/(x**2*y**2 + x**2 - 1)      x*y/(x**2*y**2 + x**2 - 1)]
             [     x*y/(x**2*y**2 + x**2 - 1) -(x + 1)/(x**2*y**2 + x**2 - 1)]

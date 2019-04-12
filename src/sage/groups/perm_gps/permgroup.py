@@ -787,7 +787,7 @@ class PermutationGroup_generic(FiniteGroup):
             compatible_domains = all(point in self._domain_to_gap
                                      for point in x_parent.domain())
             if compatible_domains and (isinstance(self, SymmetricGroup)
-                                       or x._gap_() in self._gap_()):
+                                       or x.gap() in self.gap()):
                 return self.element_class(x.cycle_tuples(), self, check=False)
 
         return self.element_class(x, self, check=check)

@@ -4628,6 +4628,10 @@ class GenericGraph(GenericGraph_pyx):
         r"""
         Return a minimum weight cycle basis of the graph.
 
+        A list of cycle lists is returned. Each cycle list is a list of vertices
+        which forms a cycle in G. Note that the vertices are not necessarily
+        returned in the order by which they appear in the cycle
+
         Minimum weight cycle basis is the cycle basis for which the total weight
         (length for unweighted graphs) of all the cycles is minimum.
 
@@ -4676,8 +4680,7 @@ class GenericGraph(GenericGraph_pyx):
         # Sanity checks
         if self.is_directed():
             raise NotImplementedError("not implemented for directed graphs")
-        if self.has_multiple_edges():
-            raise NotImplementedError("not implemented for multigraphs")
+        self._scream_if_not_simple()
         
         if weight_function is not None:
             by_weight = True
@@ -4705,7 +4708,7 @@ class GenericGraph(GenericGraph_pyx):
                 edges_s = [(a, b) for a, b, c in sp_edges]
                 # compliment of the edges of the spanning tree with respect
                 # to self
-                edges_c = [frozenset(e) for e in comp.edges(labels=False) if e not in edges_s]
+                edges_c = [frozenset(e) for e in comp.edge_iterator(labels=False) if e not in edges_s]
                 # calling Cython implementation from backend
                 basis.append(comp._backend.min_cycle_basis(weight_function=weight_function,
                              by_weight=by_weight, edges_complement=edges_c))

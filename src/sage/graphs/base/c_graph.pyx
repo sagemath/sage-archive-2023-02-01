@@ -2409,6 +2409,10 @@ cdef class CGraphBackend(GenericGraphBackend):
         r"""
         Return a minimum weight cycle basis of the graph.
 
+        A list of cycle lists is returned. Each cycle list is a list of vertices
+        which forms a cycle in G. Note that the vertices are not necessarily
+        returned in the order by which they appear in the cycle
+
         Minimum weight cycle basis is the cycle basis for which the total weight
         (length for unweighted graphs) of all the cycles is minimum.
 
@@ -2467,7 +2471,10 @@ cdef class CGraphBackend(GenericGraphBackend):
         for i in range(l):
             orth = orth_set[i]
             G = Graph()    
+            # Add 2 copies of each edge in self to T. Cross edge is added if
+            # edge is in orth otherwise in-plane edge is added
             for e in edgelist:
+                # mapping the nodes in self from 0 to n-1
                 uidx, vidx = vertex_to_int[e[0]], vertex_to_int[e[1]]
                 edge_w = weight_function(e)
                 if frozenset((e[0], e[1])) in orth:
@@ -2492,8 +2499,12 @@ cdef class CGraphBackend(GenericGraphBackend):
                 edges ^= {edge}
             new_cycle = {frozenset((int_to_vertex[u], int_to_vertex[v])) for u, v in edges}
             cycle_basis.append(list(set().union(*new_cycle)))
+            # updating orth_set so that i+1, i+2, ...th elements are orthogonal
+            # to the newly found cycle
             base = orth_set[i]
-            orth_set[i + 1:] = [o ^ base if len(o & new_cycle) % 2 else o for o in orth_set[i + 1:]]
+            for j in range(i + 1, len(orth_set)):
+                if len(orth_set[j] & new_cycle) % 2:
+                    orth_set[j] = orth_set[j] ^ base
         return cycle_basis
 
     def depth_first_search(self, v, reverse=False, ignore_direction=False):

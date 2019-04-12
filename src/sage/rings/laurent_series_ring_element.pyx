@@ -1399,7 +1399,7 @@ cdef class LaurentSeries(AlgebraElement):
         rev = u.reverse(precision=precision)
 
         if rev.parent() == u.parent():
-            return type(self)(self._parent, rev)
+            return self._parent(rev)
         else:
             P = self._parent.change_ring(rev.parent().base_ring())
             return P(rev)

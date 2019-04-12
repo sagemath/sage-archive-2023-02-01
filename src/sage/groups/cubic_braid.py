@@ -89,141 +89,75 @@ from sage.rings.finite_rings.finite_field_constructor import GF
 from enum import Enum
 
 
-##############################################################################
-#
-#                  Enum for the type of the group
-#
-##############################################################################
-class CubicBraidGroupType(Enum):
-    r"""
-    Enum class to select the type of the group:
-
-    - ``Coxeter`` -- 'C' the full cubic braid group.
-    - ``AssionS`` -- 'S' finite factor group of type S considered by Assion.
-    - ``AssionU`` -- 'U' finite factor group of type U considered by Assion.
-    """
-    Coxeter = 'C'
-    AssionS = 'S'
-    AssionU = 'U'
 
 
 ##############################################################################
 #
-#   Functions to create Instances of the CubicBraidGroup_class
+#   Functions to create Instances of the CubicBraidGroup
 #
 ##############################################################################
-def CubicBraidGroup(n=None, names='c', cbg_type=CubicBraidGroupType.Coxeter):
-    r"""
-    Construct cubic braid groups as instance of :class:`CubicBraidGroup_class`.
-
-    INPUT:
-
-    - ``n`` -- integer or ``None`` (default). The number of
-      strands. If not specified the ``names`` are counted and the
-      group is assumed to have one more strand than generators.
-
-    - ``names`` -- string or list/tuple/iterable of strings (default:
-      ``'c'``). The generator names or name prefix.
-
-    - ``cbg_type`` --  (optional keyword, default = CubicBraidGroupType.Coxeter)
-      of enum type :class:`CubicBraidGroupType` is passed to the corresponding
-      keyword argument of the constructor of :class:`CubicBraidGroup_class`.
-
-    EXAMPLES::
-
-        sage: C3 = CubicBraidGroup(3); C3.generators()
-        (c0, c1)
-        sage: CubicBraidGroup(3, 'g').generators()
-        (g0, g1)
-        sage: from sage.groups.cubic_braid import CubicBraidGroupType
-        sage: U3.<u1,u2>=CubicBraidGroup(3, cbg_type=CubicBraidGroupType.AssionU); U3.generators()
-        (u1, u2)
-    """
-    # this code is adapted from :func:`BraidGroup`
-    # Support Freegroup('a,b') syntax
-    if n is not None:
-        try:
-            n = Integer(n)-1
-        except TypeError:
-            names = n
-
-            n = None
-    # derive n from counting names
-    if n is None:
-        import six
-        if isinstance(names, six.string_types):
-            n = len(names.split(','))
-        else:
-            names = list(names)
-            n = len(names)
-
-    from sage.structure.category_object import normalize_names
-    names = tuple(normalize_names(n, names))
-    return CubicBraidGroup_class(names, cbg_type=cbg_type)
 
 
 # ----------------------------------------------------------------------------------
-# Short-Hands for AssionsGroups:
+# Short-Hands for Assions groups:
 # ----------------------------------------------------------------------------------
 def AssionGroupS(n=None, names='s'):
     r"""
-    Construct cubic braid groups as instance of :class:`CubicBraidGroup_class` which
-    have been investigated by J.Assion using the notation S(m). This function is a short
-    hand cut for :func:`CubicBraidGroup` setting ``cbg_type=CubicBraidGroupType.AssionS``
+    Construct cubic braid groups as instance of :class:`CubicBraidGroup` which have been
+    investigated by J.Assion using the notation S(m). This function is a short hand cut
+    for setting the construction arguments ``cbg_type=CubicBraidGroup.type.AssionS``
     and default ``names='s'``.
 
-    For more information type ``CubicBraidGroup_class?``
+    For more information type ``CubicBraidGroup?``
 
     INPUT:
 
     - ``n`` -- integer or None (default). The number of strands. This argument is passed
-      to the corresponding argument of :func:`CubicBraidGroup`.
+      to the corresponding argument of the classcall of :class:`CubicBraidGroup`.
 
     - ``names`` -- string or list/tuple/iterable of strings (default:'s'). This argument is
-      passed to the corresponding argument of :func:`CubicBraidGroup`.
+      passed to the corresponding argument of the classcall of :class:`CubicBraidGroup`.
 
     EXAMPLES::
 
         sage: S3 = AssionGroupS(3);  S3
         Assion group on 3 strands of type S
-        sage: from sage.groups.cubic_braid import CubicBraidGroupType
-        sage: S3x = CubicBraidGroup(3, names='s', cbg_type=CubicBraidGroupType.AssionS); S3x
+        sage: S3x = CubicBraidGroup(3, names='s', cbg_type=CubicBraidGroup.type.AssionS); S3x
         Assion group on 3 strands of type S
         sage: S3 == S3x
         True
     """
-    return CubicBraidGroup(n = n, names = names, cbg_type=CubicBraidGroupType.AssionS)
+    return CubicBraidGroup(n = n, names = names, cbg_type=CubicBraidGroup.type.AssionS)
 
 
 def AssionGroupU(n=None, names='u'):
     r"""
-    Construct cubic braid groups as instance of :class:`CubicBraidGroup_class` which
-    have been investigated by J.Assion using the notation U(m). This function is a short
-    hand cut for :func:`CubicBraidGroup` setting ``cbg_type=CubicBraidGroupType.AssionU``
+    Construct cubic braid groups as instance of :class:`CubicBraidGroup` which have been
+    investigated by J.Assion using the notation U(m). This function is a short hand cut
+    for setting the construction arguments ``cbg_type=CubicBraidGroup.type.AssionU``
     and default ``names='u'``.
 
-    For more information type ``CubicBraidGroup_class?``
+    For more information type ``CubicBraidGroup?``
 
     INPUT:
 
     - ``n`` -- integer or None (default). The number of strands. This argument is passed
-      to the corresponding argument of :func:`CubicBraidGroup`.
+      to the corresponding argument of the classcall of :class:`CubicBraidGroup`.
 
     - ``names`` -- string or list/tuple/iterable of strings (default:'u'). This argument is
-      passed to the corresponding argument of :func:`CubicBraidGroup`.
+      passed to the corresponding argument of the classcall of :class:`CubicBraidGroup`.
 
     EXAMPLES::
 
         sage: U3 = AssionGroupU(3);  U3
         Assion group on 3 strands of type U
-        sage: from sage.groups.cubic_braid import CubicBraidGroupType
-        sage: U3x = CubicBraidGroup(3, names='u', cbg_type=CubicBraidGroupType.AssionU); U3x
+        sage: U3x = CubicBraidGroup(3, names='u', cbg_type=CubicBraidGroup.type.AssionU); U3x
         Assion group on 3 strands of type U
         sage: U3 == U3x
         True
 
     """
-    return CubicBraidGroup(n = n, names = names, cbg_type=CubicBraidGroupType.AssionU)
+    return CubicBraidGroup(n = n, names = names, cbg_type=CubicBraidGroup.type.AssionU)
 
 
 
@@ -235,10 +169,10 @@ def AssionGroupU(n=None, names='u'):
 class CubicBraidElement(FinitelyPresentedGroupElement):
     r"""
     This class models elements of cubic factor groups of the braid group.
-    It is the element class of the CubicBraidGroup_class.
+    It is the element class of the CubicBraidGroup.
 
     For more information see the documentation of the parent
-    :class:`CubicBraidGroup_class`.
+    :class:`CubicBraidGroup`.
 
     EXAMPLES::
 
@@ -471,10 +405,10 @@ class CubicBraidElement(FinitelyPresentedGroupElement):
 
 ##############################################################################
 #
-#                  Class CubicBraidGroup_class
+#                  Class CubicBraidGroup
 #
 ##############################################################################
-class CubicBraidGroup_class(FinitelyPresentedGroup):
+class CubicBraidGroup(FinitelyPresentedGroup):
     r"""
     This class implements factor groups of the Artin braid group mapping
     their generators to elements of order 3 (see the module header for more
@@ -491,11 +425,11 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
 
     - ``names`` -- see the corresponding documentation of :class:`BraidGroup_class`.
 
-    - ``cbg_type`` -- (optional keyword, default = CubicBraidGroupType.Coxeter,
-      see explanation below) of enum type :class:`CubicBraidGroupType`.
+    - ``cbg_type`` -- (optional keyword, default = CubicBraidGroup.type.Coxeter,
+      see explanation below) of enum type :class:`CubicBraidGroup.type`.
 
-    Setting the keyword ``cbg_type`` to one on the values ``CubicBraidGroupType.AssionS``
-    or ``CubicBraidGroupType.AssionU`` the additional relations due to Assion are added:
+    Setting the keyword ``cbg_type`` to one on the values ``CubicBraidGroup.type.AssionS``
+    or ``CubicBraidGroup.type.AssionU`` the additional relations due to Assion are added:
 
     .. MATH::
 
@@ -506,11 +440,11 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
                   & \mbox{ for } m >= 5 \mbox{ in case } U(m)
         \end{array}
 
-    where `t_i = (s_i s_{i+1})^3`. If ``cbg_type == CubicBraidGroupType.Coxeter`` (default)
+    where `t_i = (s_i s_{i+1})^3`. If ``cbg_type == CubicBraidGroup.type.Coxeter`` (default)
     only the cubic relation on the generators is active (Coxeter's case of investigation).
     Note that for `n = 2, 3, 4` the groups do not differ between the three possible
     values of cbg_type (as finitely presented groups). But anyway, the instances for
-    ``CubicBraidGroupType.Coxeter, CubicBraidGroupType.AssionS`` and ``CubicBraidGroupType.AssionU``
+    ``CubicBraidGroup.type.Coxeter, CubicBraidGroup.type.AssionS`` and ``CubicBraidGroup.type.AssionU``
     are different, since they have different classical realizations implemented.
 
     The creation of instances of this class can also be done more easily by help
@@ -519,8 +453,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
 
     EXAMPLES::
 
-        sage: from sage.groups.cubic_braid import CubicBraidGroupType
-        sage: U3 = CubicBraidGroup(3, cbg_type=CubicBraidGroupType.AssionU); U3
+        sage: U3 = CubicBraidGroup(3, cbg_type=CubicBraidGroup.type.AssionU); U3
         Assion group on 3 strands of type U
         sage: U3.gens()
         (c0, c1)
@@ -567,10 +500,85 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
 
     Element = CubicBraidElement
 
+    ##############################################################################
+    #                  Enum for the type of the group
+    ##############################################################################
+    class type(Enum):
+        r"""
+        Enum class to select the type of the group:
+
+        - ``Coxeter`` -- 'C' the full cubic braid group.
+        - ``AssionS`` -- 'S' finite factor group of type S considered by Assion.
+        - ``AssionU`` -- 'U' finite factor group of type U considered by Assion.
+
+        EXAMPLES::
+
+            sage: S2 = CubicBraidGroup(2, cbg_type=CubicBraidGroup.type.AssionS); S2
+            Assion group on 2 strands of type S
+            sage: U3 = CubicBraidGroup(2, cbg_type='U')
+            Traceback (most recent call last):
+            ...
+            TypeError: the cbg_type must be an instance of <enum 'CubicBraidGroup.type'>
+        """
+        Coxeter = 'C'
+        AssionS = 'S'
+        AssionU = 'U'
+
+
     ###########################################################################################
     # private methods
     ###########################################################################################
-    def __init__(self, names, cbg_type=CubicBraidGroupType.Coxeter):
+    @staticmethod
+    def __classcall_private__(cls, n=None, names='c', cbg_type=None):
+        r"""
+        Normalize input to ensure a unique representation.
+
+        INPUT:
+
+        - ``n`` -- integer or ``None`` (default). The number of
+          strands. If not specified the ``names`` are counted and the
+          group is assumed to have one more strand than generators.
+
+        - ``names`` -- string or list/tuple/iterable of strings (default:
+          ``'c'``). The generator names or name prefix.
+
+        - ``cbg_type`` --  (optional keyword, default = CubicBraidGroup.type.Coxeter)
+          of enum type :class:`CubicBraidGroup.type` is passed to the corresponding
+          keyword argument of the constructor of :class:`CubicBraidGroup`.
+
+        EXAMPLES::
+
+            sage: C3 = CubicBraidGroup(3); C3.generators()
+            (c0, c1)
+            sage: CubicBraidGroup(3, 'g').generators()
+            (g0, g1)
+            sage: U3.<u1,u2>=CubicBraidGroup(3, cbg_type=CubicBraidGroup.type.AssionU); U3.generators()
+            (u1, u2)
+        """
+        # this code is adapted from :func:`BraidGroup`
+        # Support Freegroup('a,b') syntax
+        if n is not None:
+            try:
+                n = Integer(n)-1
+            except TypeError:
+                names = n
+
+                n = None
+        # derive n from counting names
+        if n is None:
+            import six
+            if isinstance(names, six.string_types):
+                n = len(names.split(','))
+            else:
+                names = list(names)
+                n = len(names)
+
+        from sage.structure.category_object import normalize_names
+        names = tuple(normalize_names(n, names))
+        return super(CubicBraidGroup, cls).__classcall__(cls, names, cbg_type=cbg_type)
+
+
+    def __init__(self, names, cbg_type=None):
         """
         Python constructor.
 
@@ -578,8 +586,8 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
 
         - ``names`` -- see the corresponding documentation of :class:`BraidGroup_class`.
 
-        - ``cbg_type`` -- (optional keyword, default = CubicBraidGroupType.Coxeter) of enum type
-          :class:`CubicBraidGroupType` to select the type of the group.
+        - ``cbg_type`` -- (optional keyword, default = CubicBraidGroup.type.Coxeter) of enum type
+          :class:`CubicBraidGroup.type` to select the type of the group.
 
         TESTS::
 
@@ -604,6 +612,11 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         if n < 1:
             raise ValueError("the number of strands must be an integer larger than one")
 
+        if cbg_type is None:
+            cbg_type = CubicBraidGroup.type.Coxeter
+        if not isinstance(cbg_type, CubicBraidGroup.type):
+            raise TypeError("the cbg_type must be an instance of %s" %(CubicBraidGroup.type))
+
         free_group        = FreeGroup(names)
         self._cbg_type    = cbg_type
         self._nstrands    = n+1
@@ -622,13 +635,13 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         for i in range(n):
             rels.append(b[i]**3)
 
-        # than Assion's relation Satz 2.2 for cbg_type=CubicBraidGroupType.AssionS
-        # and Satz 2.4 for cbg_type=CubicBraidGroupType.AssionU
+        # than Assion's relation Satz 2.2 for cbg_type=CubicBraidGroup.type.AssionS
+        # and Satz 2.4 for cbg_type=CubicBraidGroup.type.AssionU
         if n > 3:
             for i in range(n-3):
-                if cbg_type == CubicBraidGroupType.AssionU:
+                if cbg_type == CubicBraidGroup.type.AssionU:
                     rels.append((t[i]*t[i+2])**3)
-                elif cbg_type == CubicBraidGroupType.AssionS:
+                elif cbg_type == CubicBraidGroup.type.AssionS:
                     rels.append(b[i+2]*b[i]*t[i+1]*b[i]*ti[i+1]*t[i+2]*t[i+1]*b[i]*ti[i+1]*ti[i+2])
 
         FinitelyPresentedGroup.__init__(self, free_group, tuple(rels))
@@ -662,7 +675,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
             sage: AssionGroupU(2)
             Assion group on 2 strands of type U
         """
-        if self._cbg_type == CubicBraidGroupType.Coxeter:
+        if self._cbg_type == CubicBraidGroup.type.Coxeter:
             return "Cubic Braid group on %s strands"%(self.strands())
         else:
             return "Assion group on %s strands of type %s"%(self.strands() ,self._cbg_type.value)
@@ -755,15 +768,15 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         MatDEF = self.as_matrix_group()
         self._internal_test_attached_group(MatDEF, tester)
 
-        if self._cbg_type != CubicBraidGroupType.AssionU or self.strands() < 5 : # not well defined else-wise
+        if self._cbg_type != CubicBraidGroup.type.AssionU or self.strands() < 5: # not well defined else-wise
             matrix_grpF3 = self.as_matrix_group(root_bur=r63)
             self._internal_test_attached_group(matrix_grpF3, tester)
 
-        if self._cbg_type != CubicBraidGroupType.AssionS or self.strands() < 5 : # not well defined else-wise
+        if self._cbg_type != CubicBraidGroup.type.AssionS or self.strands() < 5: # not well defined else-wise
             matrix_grpF4 = self.as_matrix_group(root_bur=r64)
             self._internal_test_attached_group(matrix_grpF4, tester)
 
-        if self.strands() < 5  or self._cbg_type == CubicBraidGroupType.Coxeter:
+        if self.strands() < 5  or self._cbg_type == CubicBraidGroup.type.Coxeter:
             matrix_grpF5 = self.as_matrix_group(characteristic=5)
             self._internal_test_attached_group(matrix_grpF5, tester)
 
@@ -785,7 +798,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
             sage: CBG2 = CubicBraidGroup(2)
             sage: CBG2._test_reflection_group()
         """
-        if self._cbg_type == CubicBraidGroupType.Coxeter and self.is_finite() and  self.strands() > 2:
+        if self._cbg_type == CubicBraidGroup.type.Coxeter and self.is_finite() and  self.strands() > 2:
             from sage.combinat.root_system.reflection_group_real import is_chevie_available
             if is_chevie_available():
                 tester = self._tester(**options)
@@ -913,7 +926,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         def create_sympl_realization(self, m):
             r"""
             Internal method to create classical group for symplectic
-            Assion groups (`cbg_type CubicBraidGroupType.AssionS`).
+            Assion groups (`cbg_type == CubicBraidGroup.type.AssionS`).
 
             INPUT:
 
@@ -983,7 +996,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         def create_unitary_realization(self, m):
             """
             Internal method to create classical group for
-            unitary Assion groups (`cbg_type CubicBraidGroupType.AssionU`).
+            unitary Assion groups (`cbg_type == CubicBraidGroup.type.AssionU`).
 
             INPUT:
 
@@ -1074,12 +1087,12 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         # -------------------------------------------------------------------------------
         # Setting the Classical group
         # -------------------------------------------------------------------------------
-        if   self._cbg_type == CubicBraidGroupType.AssionS:
+        if   self._cbg_type == CubicBraidGroup.type.AssionS:
             dim_sympl_group   = n-1              # S(n-1) = Sp(n-1, 3)
             if n % 2  == 0:
                 dim_sympl_group   = n            # S(n-1) = subgroup of PSp(n, 3)
             create_sympl_realization(self,  dim_sympl_group)
-        elif self._cbg_type == CubicBraidGroupType.AssionU:
+        elif self._cbg_type == CubicBraidGroup.type.AssionU:
             dim_unitary_group = n-1              # U(n-1) = GU(n-1, 2)
             if n % 3  == 0:
                 dim_unitary_group = n            # U(n-1) = subgroup PGU(n, 3)
@@ -1148,7 +1161,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
             if map_to is not None:
                 if hasattr(map_to, 'lift'):
                     return map_to.lift(x)
-        return super(CubicBraidGroup_class, self)._element_constructor_(x)
+        return super(CubicBraidGroup, self)._element_constructor_(x)
 
 
     #######################################################################################################################
@@ -1237,7 +1250,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
           domain (default is 0 or the characteristic of `domain` if given)
           If none of the keywords `root_bur`, `domain` and `characteristic` is
           given the default characteristic is 3 (resp. 2) if ``self`` is of ``cbg_type
-          CubicBraidGroupType.AssionS`` (resp. ``CubicBraidGroupType.AssionU``).
+          CubicBraidGroup.type.AssionS`` (resp. ``CubicBraidGroup.type.AssionU``).
         - ``var`` -- string used for the indeterminate name in case `root_bur`
           must be constructed in a splitting field.
         - ``reduced`` -- boolean (default: ``False``); for more information
@@ -1305,9 +1318,9 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         # (in order to achieve the maps being well defined)
         # -------------------------------------------------------------------------------
         if root_bur is None and domain is None and characteristic is None:
-            if   self._cbg_type == CubicBraidGroupType.AssionS:
+            if   self._cbg_type == CubicBraidGroup.type.AssionS:
                 characteristic = 3
-            elif self._cbg_type == CubicBraidGroupType.AssionU:
+            elif self._cbg_type == CubicBraidGroup.type.AssionU:
                 characteristic = 2
             else:
                 characteristic = 0
@@ -1408,7 +1421,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
             PG = CGM.as_permutation_group()
             img_gens = [PG(CGM(CG(gen))) for gen in self.gens()]
         else:
-            PG = super(CubicBraidGroup_class, self).as_permutation_group()
+            PG = super(CubicBraidGroup, self).as_permutation_group()
             img_gens = PG.gens()
 
         img_gens = [PG(gen) for gen in img_gens]
@@ -1429,7 +1442,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
 
         - ``embedded`` -- boolean (default = False). This boolean does effect the
           cases of Assion groups when they are realized as projective groups, only.
-          More precisely: if ``self`` is of ``cbg_type CubicBraidGroupType.AssionS``
+          More precisely: if ``self`` is of ``cbg_type CubicBraidGroup.type.AssionS``
           (for example) and the number of strands ``n`` is even, than its classical group
           is a subgroup of ``PSp(n,3)`` (being centralized by the element
           ``self.centralizing_element(projective=True))``. By default this group will be
@@ -1441,7 +1454,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
 
         Depending on the type of ``self`` and the number of strands an instance of ``Sp(n-1,3)``,
         ``GU(n-1,2)``, subgroup of ``PSp(n,3), PGU(n,2)`` or a subgroup of ``GU(n-1, UCF)``
-        (``cbg_type CubicBraidGroupType.Coxeter``) with respect to a certain hermitian form
+        (``cbg_type == CubicBraidGroup.type.Coxeter``) with respect to a certain hermitian form
         attached to the Burau representation (used by Coxeter and Squier). Here ``UCF`` stands
         for the universal cyclotomic field.
 
@@ -1520,7 +1533,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         r"""
         Creates an isomorphic image of ``self`` as irreducible complex reflection group.
         This is possible only for the finite cubic braid groups of ``cbg_type
-        CubicBraidGroupType.Coxeter``.
+        CubicBraidGroup.type.Coxeter``.
 
         This method uses the sage implementation of reflection group via the gap3 CHEVIE
         package. To use this method you must have gap3 together with CHEVIE installed!
@@ -1583,7 +1596,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         if not is_chevie_available():
             raise ImportError("the GAP3 package 'CHEVIE' is needed to obtain the corresponding reflection groups")
 
-        if self._cbg_type  != CubicBraidGroupType.Coxeter or self.strands() > 5  or self.strands() < 2:
+        if self._cbg_type  != CubicBraidGroup.type.Coxeter or self.strands() > 5  or self.strands() < 2:
             raise ValueError("no reflection group defined")
 
         # -------------------------------------------------------------------------------
@@ -1618,8 +1631,8 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
 
         A square matrix of dimension according to the space the classical realization is
         operating on. In the case of the full cubic braid groups and of the Assion groups
-        of ``cbg_type CubicBraidGroupType.AssionU`` the matrix is hermitian. In the case of
-        the Assion groups of ``cbg_type CubicBraidGroupType.AssionS`` it is alternating.
+        of ``cbg_type CubicBraidGroup.type.AssionU`` the matrix is hermitian. In the case of
+        the Assion groups of ``cbg_type CubicBraidGroup.type.AssionS`` it is alternating.
         Note that the invariant form of the full cubic braid group on more than 5 strands
         is degenerated (causing the group to be infinite).
 
@@ -1682,7 +1695,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
 
         - ``embedded`` -- boolean (default = False). This boolean just effects
           the cases of Assion groups when they are realized as projective groups.
-          More precisely: if ``self`` is of ``cbg_type CubicBraidGroupType.AssionS``
+          More precisely: if ``self`` is of ``cbg_type CubicBraidGroup.type.AssionS``
           (for example) and the number of strands ``n`` is even, than its classical
           group is a subgroup of ``PSp(n,3)`` being centralized by the element return
           for option ``embedded=False``. Otherwise the image of this element inside
@@ -1763,7 +1776,7 @@ class CubicBraidGroup_class(FinitelyPresentedGroup):
         from sage.rings.infinity import infinity
         n = self.strands()
 
-        if self._cbg_type == CubicBraidGroupType.Coxeter and n > 5:
+        if self._cbg_type == CubicBraidGroup.type.Coxeter and n > 5:
             order = infinity
         else:
             order = self.as_classical_group(embedded=True).order()

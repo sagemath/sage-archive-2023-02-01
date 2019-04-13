@@ -29,7 +29,7 @@ from sage.geometry.hyperplane_arrangement.arrangement import HyperplaneArrangeme
 def make_parent(base_ring, dimension, names=None):
     """
     Construct the parent for the hyperplane arrangements.
-    
+
     For internal use only.
 
     INPUT:
@@ -377,8 +377,8 @@ class HyperplaneArrangementLibrary(object):
 
         .. MATH::
 
-            \{ x_i - x_j = 0 : 1 \leq i \leq j \leq n \} 
-            \cup 
+            \{ x_i - x_j = 0 : 1 \leq i \leq j \leq n \}
+            \cup
             \{ x_1 - x_j = i : 1 \leq i \leq j \leq n \}.
 
         EXAMPLES::
@@ -490,7 +490,7 @@ class HyperplaneArrangementLibrary(object):
             sage: h.characteristic_polynomial()
             x^5 - 20*x^4 + 180*x^3 - 790*x^2 + 1380*x
             sage: h.characteristic_polynomial.clear_cache()  # long time
-            sage: h.characteristic_polynomial()              # long time 
+            sage: h.characteristic_polynomial()              # long time
             x^5 - 20*x^4 + 180*x^3 - 790*x^2 + 1380*x
         """
         H = make_parent(K, n, names)
@@ -502,7 +502,7 @@ class HyperplaneArrangementLibrary(object):
                     hyperplanes.append(x[i] - x[j] - k)
         A = H(*hyperplanes)
         x = polygen(QQ, 'x')
-        charpoly = x * sum([stirling_number2(n, k) * prod([x - k - i for i in range(1, k)]) 
+        charpoly = x * sum([stirling_number2(n, k) * prod([x - k - i for i in range(1, k)])
                             for k in range(1, n+1)])
         A.characteristic_polynomial.set_cache(charpoly)
         return A
@@ -537,7 +537,7 @@ class HyperplaneArrangementLibrary(object):
 
         The `m`-extended Shi arrangement of a given crystallographic
         Cartan type is defined by the inner product
-        `\langle a,x \rangle = k` for `-m < k \leq m` and 
+        `\langle a,x \rangle = k` for `-m < k \leq m` and
         `a \in \Phi^+` is a positive root of the root system `\Phi`.
 
         EXAMPLES::
@@ -561,7 +561,7 @@ class HyperplaneArrangementLibrary(object):
             sage: hyperplane_arrangements.Shi("E6",m=2)
             Arrangement of 144 hyperplanes of dimension 8 and rank 6
 
-        Ιf the Cartan type is not crystallographic, the Shi arrangement
+        If the Cartan type is not crystallographic, the Shi arrangement
         is not defined::
 
             sage: hyperplane_arrangements.Shi("H4")
@@ -579,7 +579,7 @@ class HyperplaneArrangementLibrary(object):
             sage: hyperplane_arrangements.Shi("A3",m=2).characteristic_polynomial()
             x^4 - 24*x^3 + 192*x^2 - 512*x
             sage: hyperplane_arrangements.Shi("C3").characteristic_polynomial()
-            x^3 - 18*x^2 + 108*x - 216         
+            x^3 - 18*x^2 + 108*x - 216
             sage: hyperplane_arrangements.Shi("E6").characteristic_polynomial()
             x^8 - 72*x^7 + 2160*x^6 - 34560*x^5 + 311040*x^4 - 1492992*x^3 + 2985984*x^2
             sage: hyperplane_arrangements.Shi("B4",m=3).characteristic_polynomial()
@@ -617,7 +617,7 @@ class HyperplaneArrangementLibrary(object):
         h = cartan_type.coxeter_number()
         Ra = RootSystem(cartan_type).ambient_space()
         PR = Ra.positive_roots()
-        d = Ra.dimension() 
+        d = Ra.dimension()
         H = make_parent(K, d, names)
         x = H.gens()
         hyperplanes = []
@@ -625,7 +625,7 @@ class HyperplaneArrangementLibrary(object):
         for a in PR:
             for const in range(-m+1,m+1):
                 hyperplanes.append(sum(a[j]*x[j] for j in range(d
-                ))-const) 
+                ))-const)
         A = H(*hyperplanes)
         x = polygen(QQ, 'x')
         charpoly = (x**(d-n))*(x-m*h)**n

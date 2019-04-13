@@ -137,8 +137,8 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
             ....:                   intersection_name='W', restrictions1= x>0,
             ....:                   restrictions2= u+v>0)
             sage: inv = transf.inverse()
-            sage: from sage.manifolds.differentiable.mixed_form_algebra import \
-            ....:                                               MixedFormAlgebra
+            sage: from sage.manifolds.differentiable.mixed_form_algebra import (
+            ....:                                              MixedFormAlgebra)
             sage: A = MixedFormAlgebra(M.vector_field_module())
             sage: TestSuite(A).run()
 
@@ -173,8 +173,6 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
         self._dest_map = dest_map
         self._vmodule = vector_field_module
         self._max_deg = vector_field_module._ambient_domain.dim()
-        # Register coercions:
-        self._populate_coercion_lists_()
 
     def _element_constructor_(self, comp=None, name=None, latex_name=None):
         r"""
@@ -219,7 +217,7 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
         # Use already existing coercions:
         comp_list = [self._domain.diff_form_module(j,
                             self._dest_map)(comp_list[j])
-                     for j in range(0, self._max_deg + 1)]
+                     for j in range(self._max_deg + 1)]
         # Now, define names:
         try:
             if name is None and comp._name is not None:
@@ -253,7 +251,7 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
         """
         resu_comp = [self._domain.diff_form_module(j,
                             self._dest_map)._an_element_()
-                     for j in range(0, self._max_deg + 1)]
+                     for j in range(self._max_deg + 1)]
         return self.element_class(self, comp=resu_comp)
 
     def _coerce_map_from_(self, S):
@@ -377,8 +375,8 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
              3-dimensional differentiable manifold M
 
         """
-        description = "Graded algebra " + self._name + \
-                      " of mixed differential forms "
+        description = ("Graded algebra " + self._name +
+                      " of mixed differential forms ")
         if self._dest_map is self._domain.identity_map():
             description += "on the {}".format(self._domain)
         else:

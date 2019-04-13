@@ -206,26 +206,22 @@ class MixedForm(AlgebraElement):
         """
         if parent is None:
             raise ValueError("a parent must be provided")
-
         # Add this element (instance) to the set of parent algebra:
         AlgebraElement.__init__(self, parent)
-
+        # Get the underlying vector field module:
         vmodule = parent._vmodule
-
         # Define attributes:
         self._vmodule = vmodule
         self._dest_map = vmodule._dest_map
         self._domain = vmodule._domain
         self._ambient_domain = vmodule._ambient_domain
         self._max_deg = vmodule._ambient_domain.dim()
-
         # Set components:
         if comp is None:
             self._comp = [self._domain.diff_form(j)
                           for j in range(self._max_deg + 1)]
         else:
             self._comp = comp
-
         # Set names:
         self._name = name
         if latex_name is None:
@@ -654,7 +650,6 @@ class MixedForm(AlgebraElement):
             resu._name = self._name + '+' + other._name
         if self._latex_name is not None and other._latex_name is not None:
             resu._latex_name = self._latex_name + '+' + other._latex_name
-
         return resu
 
     def _sub_(self, other):
@@ -733,7 +728,6 @@ class MixedForm(AlgebraElement):
             if not is_atomic(olname):
                 olname = '(' + olname + ')'
             resu._latex_name = slname + '-' + olname
-
         return resu
 
     def wedge(self, other):
@@ -1063,11 +1057,9 @@ class MixedForm(AlgebraElement):
             form_list = values
         else:
             form_list = [values]
-
         if len(form_list) != len(range(start, stop, step)):
             raise IndexError("either input or index out of range")
-
-        for deg, j in zip(range(start, stop, step), range( len(form_list))):
+        for deg, j in zip(range(start, stop, step), range(len(form_list))):
             if form_list[j] in self._domain.diff_form_module(deg,
                                                              self._dest_map):
                 self._comp[deg] = self._domain.diff_form_module(deg,

@@ -227,7 +227,7 @@ REFERENCES:
 
 .. [Ath1996] \C. A. Athanasiadis,
             *Characteristic polynomials of subspace arrangements and finite fields*.
-            Advances in Mathematics, 122(2):193–233, 1996.
+            Advances in Mathematics, 122(2):193-233, 1996.
 
 .. [Av2000] \D. Avis, *A revised implementation of the reverse search
             vertex enumeration algorithm.* Polytopes-combinatorics and

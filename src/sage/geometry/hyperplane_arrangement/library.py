@@ -569,10 +569,8 @@ class HyperplaneArrangementLibrary(object):
             ...
             NotImplementedError: Shi arrangements are not defined for non crystallographic Cartan types
 
-        The characteristic polynomial is pre-computed using the results of
-         [Ath1996]_.
-
-        EXAMPLES::
+        The characteristic polynomial is pre-computed using the results
+        of [Ath1996]_::
 
             sage: hyperplane_arrangements.Shi("A3").characteristic_polynomial()
             x^4 - 12*x^3 + 48*x^2 - 64*x
@@ -593,13 +591,13 @@ class HyperplaneArrangementLibrary(object):
             sage: h.characteristic_polynomial.clear_cache()  # long time
             sage: h.characteristic_polynomial()              # long time
             x^4 - 12*x^3 + 48*x^2 - 64*x
-            sage: h=hyperplane_arrangements.Shi("A3",m=2)
+            sage: h = hyperplane_arrangements.Shi("A3",m=2)
             sage: h.characteristic_polynomial()
             x^4 - 24*x^3 + 192*x^2 - 512*x
             sage: h.characteristic_polynomial.clear_cache()
             sage: h.characteristic_polynomial()
             x^4 - 24*x^3 + 192*x^2 - 512*x
-            sage: h=hyperplane_arrangements.Shi("B3",m=3)
+            sage: h = hyperplane_arrangements.Shi("B3",m=3)
             sage: h.characteristic_polynomial()
             x^3 - 54*x^2 + 972*x - 5832
             sage: h.characteristic_polynomial.clear_cache()
@@ -612,7 +610,6 @@ class HyperplaneArrangementLibrary(object):
             cartan_type = CartanType(data)
         if not cartan_type.is_crystallographic():
             raise NotImplementedError("Shi arrangements are not defined for non crystallographic Cartan types")
-        R = RootSystem(cartan_type)
         n = cartan_type.rank()
         h = cartan_type.coxeter_number()
         Ra = RootSystem(cartan_type).ambient_space()

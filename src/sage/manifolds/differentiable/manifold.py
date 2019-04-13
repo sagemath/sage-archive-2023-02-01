@@ -2134,7 +2134,7 @@ class DifferentiableManifold(TopologicalManifold):
             resu._init_components(*comp, **kwargs)
         return resu
 
-    def mixed_form(self, name=None, latex_name=None, dest_map=None):
+    def mixed_form(self, name=None, latex_name=None, dest_map=None, comp=None):
         r"""
         Define a mixed form on ``self``.
 
@@ -2203,7 +2203,8 @@ class DifferentiableManifold(TopologicalManifold):
 
         """
         algebra = self.mixed_form_algebra(dest_map=dest_map)
-        return algebra.element_class(algebra, name=name, latex_name=latex_name)
+        return algebra._element_constructor_(comp=comp, name=name,
+                                             latex_name=latex_name)
 
     def automorphism_field(self, *comp, **kwargs):
         r"""

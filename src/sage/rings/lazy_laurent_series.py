@@ -630,11 +630,13 @@ class LazyLaurentSeries(ModuleElement):
             2*z
             sage: -1*z
             -z
+            sage: 0*z
+            0
         """
         R = self.parent()
 
         if scalar.is_zero():
-            return R(0)
+            return R.zero()
 
         op = LazyLaurentSeriesOperator_scale(self, scalar)
 

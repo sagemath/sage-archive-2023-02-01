@@ -2203,8 +2203,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         """
         algebra = self.mixed_form_algebra(dest_map=dest_map)
-        return algebra._element_constructor_(comp=comp, name=name,
-                                             latex_name=latex_name)
+        return algebra(comp, name=name, latex_name=latex_name)
 
     def automorphism_field(self, *comp, **kwargs):
         r"""

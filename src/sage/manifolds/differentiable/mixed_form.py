@@ -1046,26 +1046,8 @@ class MixedForm(AlgebraElement):
         if len(form_list) != len(range(start, stop, step)):
             raise IndexError("either input or index out of range")
         for deg, j in zip(range(start, stop, step), range(len(form_list))):
-            if form_list[j] in self._domain.diff_form_module(deg,
-                                                             self._dest_map):
-                self._comp[deg] = self._domain.diff_form_module(deg,
+            self._comp[deg] = self._domain.diff_form_module(deg,
                                             self._dest_map)(form_list[j])
-            else:
-                # A very detailed error message:
-                error_msg = ("input must be a "
-                            "differential form of degree {}".format(deg))
-                if self._dest_map is self._domain.identity_map():
-                    error_msg += " on the {}".format(self._domain)
-                else:
-                    error_msg += (" along {} mapped "
-                                 "into {}".format(self._domain,
-                                                   self._ambient_domain))
-                    if self._dest_map._name is None:
-                        dm_name = "unnamed map"
-                    else:
-                        dm_name = self._dest_map._name
-                    error_msg += " via " + dm_name
-                raise TypeError(error_msg)
 
     def __getitem__(self, deg):
         r"""

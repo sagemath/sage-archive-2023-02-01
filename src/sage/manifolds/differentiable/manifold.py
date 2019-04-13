@@ -2168,8 +2168,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         INPUT:
 
-        - ``name`` -- (default: ``None``) name given to the differential
-          form
+        - ``name`` -- (default: ``None``) name given to the differential form
         - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote
           the differential form; if none is provided, the LaTeX symbol
           is set to ``name``
@@ -2181,7 +2180,7 @@ class DifferentiableManifold(TopologicalManifold):
         - ``comp`` -- (default: ``None``) homogeneous components of the mixed
           form as a list; if none is provided, the components are set to
           innocent unnamed differential forms
-    -
+
         OUTPUT:
 
         - the mixed form as a

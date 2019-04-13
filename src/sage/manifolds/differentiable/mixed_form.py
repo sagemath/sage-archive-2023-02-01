@@ -758,11 +758,11 @@ class MixedForm(AlgebraElement):
             sage: f = M.scalar_field(x, name='f')
             sage: f.disp()
             f: M --> R
-                (x, y, z) |--> x
+               (x, y, z) |--> x
             sage: g = M.scalar_field(y, name='g')
             sage: g.disp()
             g: M --> R
-                (x, y, z) |--> y
+               (x, y, z) |--> y
             sage: omega = M.diff_form(1, name='omega')
             sage: omega[c_xyz.frame(),0] = x
             sage: omega.disp()

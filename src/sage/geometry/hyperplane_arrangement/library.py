@@ -507,7 +507,7 @@ class HyperplaneArrangementLibrary(object):
         A.characteristic_polynomial.set_cache(charpoly)
         return A
 
-    def Shi(self, data, K=QQ, names=None, m = 1):
+    def Shi(self, data, K=QQ, names=None, m=1):
         r"""
         Return the Shi arrangement.
 
@@ -570,7 +570,7 @@ class HyperplaneArrangementLibrary(object):
             NotImplementedError: Shi arrangements are not defined for non crystallographic Cartan types
 
         The characteristic polynomial is pre-computed using the results of
-         [Ath1996]_ .
+         [Ath1996]_.
 
         EXAMPLES::
 
@@ -607,7 +607,7 @@ class HyperplaneArrangementLibrary(object):
             x^3 - 54*x^2 + 972*x - 5832
         """
         if data in NN:
-            cartan_type = CartanType(["A",data -1])
+            cartan_type = CartanType(["A",data-1])
         else:
             cartan_type = CartanType(data)
         if not cartan_type.is_crystallographic():
@@ -624,18 +624,11 @@ class HyperplaneArrangementLibrary(object):
 
         for a in PR:
             for const in range(-m+1,m+1):
-                hyperplanes.append(sum(a[j]*x[j] for j in range(d
-                ))-const)
+                hyperplanes.append(sum(a[j]*x[j] for j in range(d))-const)
         A = H(*hyperplanes)
         x = polygen(QQ, 'x')
-        charpoly = (x**(d-n))*(x-m*h)**n
+        charpoly = x**(d-n) * (x-m*h)**n
         A.characteristic_polynomial.set_cache(charpoly)
         return A
 
-
 hyperplane_arrangements = HyperplaneArrangementLibrary()
-
-
-
-
-

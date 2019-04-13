@@ -9533,7 +9533,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = graphs.CycleGraph(4)
             sage: G.pagerank(algorithm="Networkx")
             {0: 0.25, 1: 0.25, 2: 0.25, 3: 0.25}
-            sage: G.pagerank(alpha=0.50, algorithm="igraph")
+            sage: G.pagerank(alpha=0.50, algorithm="igraph")  # optional - python_igraph
             {0: 0.25, 1: 0.25, 2: 0.24999999999999997, 3: 0.24999999999999997}
             sage: G = Graph([(1, 2, 40), (2, 3, 50), (3, 4, 60), (1, 4, 70), (4, 5, 80), (5, 6, 20)])
             sage: G.pagerank(algorithm="NetworkX")
@@ -9578,7 +9578,7 @@ class GenericGraph(GenericGraph_pyx):
              4: 0.3063198690713853,
              5: 0.1700057609707141,
              6: 0.05390084497706962}
-            sage: G.pagerank(algorithm="igraph")
+            sage: G.pagerank(algorithm="igraph")  # optional - python_igraph
             {1: 0.16112198303979128,
              2: 0.16195368558382262,
              3: 0.16112198303979125,

@@ -354,7 +354,6 @@ class MixedForm(AlgebraElement):
                 sage: F.disp(c_xy.frame())
                 [0] + [x^2 dx] + [0]
 
-
             """
             from sage.tensor.modules.format_utilities import is_atomic
 
@@ -417,15 +416,12 @@ class MixedForm(AlgebraElement):
                     else:
                         resu_latex += "+" + term
             return FormattedExpansion(resu_txt, resu_latex)
-
         plain_txt = ""
         latex_txt = r""
-
         if self._name is not None:
             plain_txt += self._name + " = "
         if self._latex_name is not None:
             latex_txt += latex(self) + LatexExpr(r"=")
-
         if basis is None:
             if self[0]._name is None:
                 plain_txt += "(unnamed scalar field) "
@@ -435,7 +431,6 @@ class MixedForm(AlgebraElement):
                 latex_txt += LatexExpr(r"\mbox{(unnamed scalar field)}")
             else:
                 latex_txt += latex(self[0])
-
             for j in range(1, self._max_deg + 1):
                 if self[j]._name is None:
                     plain_txt += " + (unnamed " + str(j) + "-form)"
@@ -447,15 +442,13 @@ class MixedForm(AlgebraElement):
                 else:
                     latex_txt += LatexExpr(r"+") + latex(self[j])
             return FormattedExpansion(plain_txt, latex_txt)
-
+        # In case no other chart is given:
         if chart is None:
             chart = basis._chart
-
         plain_txt += "[" + repr(self[0].expr(chart, from_chart)) + "]"
         latex_txt += LatexExpr(r"\left[") + latex(
             self[0].expr(chart, from_chart)) \
                      + LatexExpr(r"\right]_0")
-
         for j in range(1, self._max_deg + 1):
             rst = self[j].restrict(basis._domain,
                                          dest_map=basis._dest_map)

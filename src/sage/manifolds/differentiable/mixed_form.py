@@ -58,8 +58,8 @@ class MixedForm(AlgebraElement):
     - ``parent`` -- graded algebra of mixed forms represented by
       :class:`~sage.manifolds.differentiable.mixed_form_algebra.MixedFormAlgebra`
       where the mixed form ``self`` shall belong to
-    - ``comp`` -- (default: ``None``) homogeneous components of the mixed form;
-      if none is provided, the components are set to innocent unnamed
+    - ``comp`` -- (default: ``None``) homogeneous components of the mixed form
+      as a list; if none is provided, the components are set to innocent unnamed
       differential forms
     - ``name`` -- (default: ``None``) name given to the mixed form
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
@@ -116,8 +116,6 @@ class MixedForm(AlgebraElement):
         sage: G = M.mixed_form(name='G', comp=[f, omega, eta])
         sage: G == F
         True
-        sage: H = M.mixed_form(name='H', comp=omega); H.disp()
-        H = zero + omega + zero
 
     Mixed forms are elements of an algebra, so they can be added, and multiplied
     via the wedge product::

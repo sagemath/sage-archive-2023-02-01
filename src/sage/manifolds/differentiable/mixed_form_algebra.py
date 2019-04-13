@@ -191,7 +191,7 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
 
         """
         if comp is None:
-            return self.element_class(self, comp, name, latex_name)
+            return self.element_class(self, name=name, latex_name=latex_name)
         # Treat one and zero separately for cache:
         elif comp in ZZ and comp == 0:
             return self.zero()
@@ -225,6 +225,7 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
             if latex_name is None and comp._latex_name is not None:
                 latex_name = comp._latex_name
         except AttributeError:
+            # AttributeError? Then comp might be in SR:
             if comp in SR:
                 if name is None:
                     name = repr(comp)

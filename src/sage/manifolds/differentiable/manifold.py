@@ -2178,7 +2178,10 @@ class DifferentiableManifold(TopologicalManifold):
           `N = M` and that `\Phi` is the identity map (case of a
           differential form *on* `M`), otherwise ``dest_map`` must be a
           :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
-
+        - ``comp`` -- (default: ``None``) homogeneous components of the mixed
+          form as a list; if none is provided, the components are set to
+          innocent unnamed differential forms
+    -
         OUTPUT:
 
         - the mixed form as a
@@ -2203,7 +2206,10 @@ class DifferentiableManifold(TopologicalManifold):
 
         """
         algebra = self.mixed_form_algebra(dest_map=dest_map)
-        return algebra(comp, name=name, latex_name=latex_name)
+        resu = algebra.element_class(algebra, name=name, latex_name=latex_name)
+        if comp is not None:
+            resu[:] = comp
+        return resu
 
     def automorphism_field(self, *comp, **kwargs):
         r"""

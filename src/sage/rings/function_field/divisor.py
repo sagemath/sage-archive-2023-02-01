@@ -168,6 +168,14 @@ class FunctionFieldDivisor(ModuleElement):
         - ``mul`` -- the string inserted between multiplicity and place
 
         - ``cr`` -- the string inserted between places
+
+        TESTS::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: x.divisor()                # indirect doctest
+            - Place (1/x) + Place (x)
+            sage: latex(x.divisor())         # indirect doctest
+            - (\frac{1}{x})\mathcal{O}_\infty + (x)\mathcal{O}
         """
         plus = ' + '
         minus = ' - '

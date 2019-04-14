@@ -234,7 +234,7 @@ class FunctionFieldDivisor(ModuleElement):
         """
         Return the LaTeX representation of the divisor.
 
-        We use an additive notation combined with [Stich2009]'s notation
+        We use an additive notation combined with [Stich2009]_'s notation
         for the ideal: the generators followed by a symbol for the ring,
         either O or Oinf.
 

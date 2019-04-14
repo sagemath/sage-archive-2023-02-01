@@ -143,7 +143,7 @@ class FunctionFieldPlace(Element):
         """
         Return the LaTeX representation of the place.
 
-        We use [Stich2009]'s notation for the ideal: the generators
+        We use [Stich2009]_'s notation for the ideal: the generators
         followed by a symbol for the ring, either O or Oinf.
 
         EXAMPLES::

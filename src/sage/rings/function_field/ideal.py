@@ -263,7 +263,8 @@ class FunctionFieldIdeal(Element):
         r"""
         Return reduced generators.
 
-        This just returns the generators for now.
+        For now, this method just runs through the generators and sees
+        if any can be removed without changing the ideal.
 
         This method is provided so that ideals in function fields have
         the method :meth:`gens_reduced()`, just like ideals of number
@@ -275,17 +276,17 @@ class FunctionFieldIdeal(Element):
             sage: O = K.equation_order()
             sage: I = O.ideal(x,x^2,x^2+x)
             sage: I.gens_reduced()
-            (x,)
+            [x]
         """
-        gens = self.gens()
+        gens = set(self.gens())
         if len(gens) == 1:
-            return gens
-        for gen in reversed(self.gens()):
-            candidate_gens = list(set(gens).difference([gen]))
+            return list(gens)
+        for gen in reversed(list(gens)):
+            candidate_gens = list(gens.difference([gen]))
             new_ideal = self.parent()(candidate_gens)
             if new_ideal == self:
-                return sorted(candidate_gens)
-        return sorted(gens)
+                gens.remove(gen)
+        return list(gens)
 
     def ring(self):
         """

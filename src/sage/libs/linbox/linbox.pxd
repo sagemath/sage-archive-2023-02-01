@@ -3,7 +3,7 @@
 # distutils: library_dirs = LINBOX_LIBDIR
 # distutils: language = c++
 
-from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
+from libc.stdint cimport uint32_t, uint64_t
 from libcpp.vector cimport vector as cppvector
 
 from .givaro cimport *
@@ -59,11 +59,11 @@ cdef extern from "linbox/matrix/sparse-matrix.h":
 
         ostream& write(ostream&)
 
-    cdef cppclass SparseMatrix_Modular_int64 "LinBox::SparseMatrix<Givaro::Modular<int64_t>, LinBox::SparseMatrixFormat::SparseSeq>":
-        ctypedef Modular_int64 Field
-        ctypedef int64_t Element
-        SparseMatrix_Modular_int64(Field &F, size_t m, size_t n)
-        SparseMatrix_Modular_int64(SparseMatrix_Modular_int64&)
+    cdef cppclass SparseMatrix_Modular_uint64 "LinBox::SparseMatrix<Givaro::Modular<uint64_t>, LinBox::SparseMatrixFormat::SparseSeq>":
+        ctypedef Modular_uint64 Field
+        ctypedef uint64_t Element
+        SparseMatrix_Modular_uint64(Field &F, size_t m, size_t n)
+        SparseMatrix_Modular_uint64(SparseMatrix_Modular_uint64&)
         size_t rowdim()
         size_t coldim()
         void setEntry(size_t i, size_t j, Element &a)
@@ -140,18 +140,20 @@ cdef extern from "linbox/solutions/methods.h" namespace "LinBox":
 
 cdef extern from "linbox/solutions/charpoly.h" namespace "LinBox":
     PolynomialRing_integer.Element& charpoly (PolynomialRing_integer.Element&, DenseMatrix_integer&)
+    PolynomialRing_integer.Element& charpoly (PolynomialRing_integer.Element&, SparseMatrix_integer&)
 
 cdef extern from "linbox/solutions/minpoly.h" namespace "LinBox":
     PolynomialRing_integer.Element& minpoly (PolynomialRing_integer.Element&, DenseMatrix_integer&)
+    PolynomialRing_integer.Element& minpoly (PolynomialRing_integer.Element&, SparseMatrix_integer&)
 
 cdef extern from "linbox/algorithms/gauss.h":
-    cdef cppclass GaussDomain_Modular_int64 "LinBox::GaussDomain<Givaro::Modular<int64_t>>":
-        ctypedef Modular_int64 Field
-        ctypedef int64_t Element
-        GaussDomain_Modular_int64(Field &)
+    cdef cppclass GaussDomain_Modular_uint64 "LinBox::GaussDomain<Givaro::Modular<uint64_t>>":
+        ctypedef Modular_uint64 Field
+        ctypedef uint64_t Element
+        GaussDomain_Modular_uint64(Field &)
         unsigned long& InPlaceLinearPivoting(unsigned long &rank,
                                              Element& determinant,
-                                             SparseMatrix_Modular_int64 &A,
+                                             SparseMatrix_Modular_uint64 &A,
                                              unsigned long Ni,
                                              unsigned long Nj)
 
@@ -195,4 +197,15 @@ cdef extern from "linbox/solutions/solve.h" namespace "LinBox":
                                 Integer &,
                                 SparseMatrix_integer &,
                                 DenseVector_integer &,
+                                Method.Blackbox) except +
+
+    DenseVector_integer& solve (DenseVector_integer &,
+                                Integer &,
+                                SparseMatrix_integer &,
+                                DenseVector_integer &,
                                 Method.Wiedemann) except +
+
+    DenseVector_integer& solve (DenseVector_integer &,
+                                Integer &,
+                                SparseMatrix_integer &,
+                                DenseVector_integer &)

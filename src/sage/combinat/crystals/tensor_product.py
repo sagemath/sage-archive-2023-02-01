@@ -715,7 +715,7 @@ class CrystalOfTableaux(CrystalOfWords):
     have this property.
 
     Crystals of tableaux are constructed using an embedding into
-    tensor products following Kashiwara and Nakashima [KN94]_. Sage's tensor
+    tensor products following Kashiwara and Nakashima [KN1994]_. Sage's tensor
     product rule for crystals differs from that of Kashiwara and Nakashima
     by reversing the order of the tensor factors. Sage produces the same
     crystals of tableaux as Kashiwara and Nakashima. With Sage's convention,

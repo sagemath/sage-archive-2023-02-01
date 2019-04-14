@@ -399,7 +399,7 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
         cdef Matrix M = self._matrix
         # We have a special method for dense matrices over ZZ
         if M.base_ring() is ZZ and M.is_dense():
-            M = M._invert_unit()
+            M = M.inverse_of_unit()
         else:
             M = ~M
             if M.base_ring() is not parent.base_ring():

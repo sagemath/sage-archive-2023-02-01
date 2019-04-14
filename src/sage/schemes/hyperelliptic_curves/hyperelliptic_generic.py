@@ -19,7 +19,7 @@ EXAMPLES::
 
     sage: D = C.affine_patch(0)
     sage: D.defining_polynomials()[0].parent()
-    Multivariate Polynomial Ring in x0, x1 over Rational Field
+    Multivariate Polynomial Ring in x1, x2 over Rational Field
 """
 from __future__ import absolute_import
 
@@ -457,7 +457,6 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
         L.set_default_prec(prec)
         K = PowerSeriesRing(L, 'x')
         pol = K(pol)
-        x = K.gen()
         b = P[0]
         f = pol(t+b)
         for i in range((RR(log(prec)/log(2))).ceil()):

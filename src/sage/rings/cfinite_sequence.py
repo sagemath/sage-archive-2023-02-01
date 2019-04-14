@@ -10,7 +10,7 @@ C-finite infinite sequences satisfy homogenous linear recurrences with constant 
 
 CFiniteSequences are completely defined by their ordinary generating function (o.g.f., which
 is always a :mod:`fraction <sage.rings.fraction_field_element>` of
-:mod:`polynomials <sage.rings.polynomial.polynomial_element>` over `\mathbb{Z}` or `\mathbb{Q}` ).
+:mod:`polynomials <sage.rings.polynomial.polynomial_element>` over `\ZZ` or `\QQ` ).
 
 EXAMPLES::
 
@@ -119,7 +119,7 @@ def CFiniteSequences(base_ring, names = None, category = None):
     r"""
     Return the ring of C-Finite sequences.
 
-    The ring is defined over a base ring (`\mathbb{Z}` or `\mathbb{Q}` )
+    The ring is defined over a base ring (`\ZZ` or `\QQ` )
     and each element is represented by its ordinary generating function (ogf)
     which is a rational function over the base ring.
 

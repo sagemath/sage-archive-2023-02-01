@@ -422,6 +422,8 @@ def parse_lmfdb_label(label):
     return int(conductor), iso, int(num)
 
 
+_class_curve_re = re.compile(r'(?P<class>[a-z]+)(?P<curve>\d+)')
+
 def split_code(key):
     """
     Splits class + curve id string into its two parts.
@@ -431,10 +433,18 @@ def split_code(key):
         sage: import sage.databases.cremona as cremona
         sage: cremona.split_code('ba2')
         ('ba', '2')
+        sage: cremona.split_code('42')
+        Traceback (most recent call last):
+        ...
+        ValueError: invalid curve ID: '42'
     """
-    cu = re.split("[a-z]+", key)[1]
-    cl =  re.split("[0-9]+", key)[0]
-    return (cl, cu)
+
+    m = _class_curve_re.match(key)
+
+    if not m:
+        raise ValueError("invalid curve ID: '{0}'".format(key))
+
+    return (m.group('class'), m.group('curve'))
 
 
 def class_to_int(k):

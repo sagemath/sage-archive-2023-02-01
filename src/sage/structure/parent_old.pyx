@@ -80,7 +80,6 @@ cdef class Parent(parent.Parent):
             from sage.misc.superseded import deprecation
             deprecation(24614, "the 'actions' keyword is deprecated")
             self._action_list = list(actions)
-        self._action_hash = TripleDict()
 
         cdef parent.Parent other
         if embeddings is not None:

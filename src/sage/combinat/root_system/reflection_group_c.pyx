@@ -526,6 +526,7 @@ cdef parabolic_recursive(PermutationGroupElement x, list v, f):
         for y in v[0]:
             parabolic_recursive(_new_mul_(x, <PermutationGroupElement>y), v[1:], f)
 
+
 def parabolic_iteration_application(W, f):
     r"""
     This is the word-for-word translation of the algorithm in chevie.
@@ -533,7 +534,7 @@ def parabolic_iteration_application(W, f):
     .. NOTE::
 
         It keeps all products of elements of the reduced coset
-        represenatives in memory.
+        representatives in memory.
 
     INPUT:
 

@@ -557,7 +557,7 @@ class TorsionQuadraticModule(FGP_Module_class):
             raise NotImplementedError("at the moment sage knows how to do this only for even genera. " +
                                       " Help us to implement this for odd genera.")
         for p in D.prime_divisors():
-            # check the determinat conditions
+            # check the determinant conditions
             Q_p = self.primary_part(p)
             gram_p = Q_p.gram_matrix_quadratic()
             length_p = len(Q_p.invariants())

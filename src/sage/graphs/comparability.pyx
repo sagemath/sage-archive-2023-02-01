@@ -256,8 +256,10 @@ def greedy_is_comparability(g, no_certificate = False, equivalence_class = False
       sage: g = graphs.PetersenGraph()
       sage: is_comparability(g)
       False
-      sage: is_comparability(g, no_certificate = True)
+      sage: is_comparability(g, no_certificate=True)  # py2
       (False, [0, 4, 9, 6, 1, 0])
+      sage: is_comparability(g, no_certificate=True)  # py3
+      (False, [2, 1, 0, 4, 3, 2])
 
     But the Bull graph is::
 
@@ -280,7 +282,7 @@ def greedy_is_comparability(g, no_certificate = False, equivalence_class = False
     # We add an edge between two vertices of h if they represent
     # opposed equivalence classes
 
-    for u,v in g.edges(labels = False):
+    for u,v in g.edge_iterator(labels=False):
 
         for i,s in enumerate(equivalence_classes[v]):
             if u in s:
@@ -351,13 +353,17 @@ def greedy_is_comparability_with_certificate(g, certificate = False):
     The 5-cycle or the Petersen Graph are not transitively orientable::
 
       sage: from sage.graphs.comparability import greedy_is_comparability_with_certificate as is_comparability
-      sage: is_comparability(graphs.CycleGraph(5), certificate = True)
+      sage: is_comparability(graphs.CycleGraph(5), certificate=True)  # py2
       (False, [1, 2, 3, 4, 0, 1])
+      sage: is_comparability(graphs.CycleGraph(5), certificate=True)  # py3
+      (False, [2, 1, 0, 4, 3, 2])
       sage: g = graphs.PetersenGraph()
       sage: is_comparability(g)
       False
-      sage: is_comparability(g, certificate = True)
+      sage: is_comparability(g, certificate=True)  # py2
       (False, [0, 4, 9, 6, 1, 0])
+      sage: is_comparability(g, certificate=True)  # py3
+      (False, [2, 1, 0, 4, 3, 2])
 
     But the Bull graph is::
 
@@ -382,7 +388,7 @@ def greedy_is_comparability_with_certificate(g, certificate = False):
     gg = copy(g)
     from sage.graphs.digraph import DiGraph
     h = DiGraph()
-    h.add_vertices(gg.vertices())
+    h.add_vertices(gg)
 
     for u,v in certif:
         gg.delete_edge(u,v)
@@ -483,10 +489,10 @@ def is_comparability_MILP(g, certificate=False, solver=None, verbose=0):
         # Building the transitive orientation
         from sage.graphs.digraph import DiGraph
         d = DiGraph()
-        d.add_vertices(g.vertices())
+        d.add_vertices(g)
 
         o = p.get_values(o)
-        for u,v in g.edges(labels=False):
+        for u,v in g.edge_iterator(labels=False):
             if o[u,v] > .5:
                 d.add_edge(u,v)
             else:
@@ -701,8 +707,8 @@ def is_permutation(g, algorithm="greedy", certificate=False, check=True,
             return False, co_certif
 
         # Building the two orderings
-        tmp = co_certif.edges(labels=False)
-        for u,v in certif.edges(labels=False):
+        tmp = co_certif.edges(labels=False, sort=False)
+        for u,v in certif.edge_iterator(labels=False):
             co_certif.add_edge(v,u)
         certif.add_edges(tmp)
 
@@ -754,10 +760,14 @@ def is_transitive(g, certificate=False):
         (0, 2)
         sage: digraphs.RandomDirectedGNP(30,.2).is_transitive()
         False
-        sage: digraphs.DeBruijn(5,2).is_transitive()
+        sage: D = digraphs.DeBruijn(5, 2)
+        sage: D.is_transitive()
         False
-        sage: digraphs.DeBruijn(5,2).is_transitive(certificate=True)
-        ('00', '10')
+        sage: cert = D.is_transitive(certificate=True)
+        sage: D.has_edge(*cert)
+        False
+        sage: D.shortest_path(*cert) != []
+        True
         sage: digraphs.RandomDirectedGNP(20,.2).transitive_closure().is_transitive()
         True
     """
@@ -766,10 +776,10 @@ def is_transitive(g, certificate=False):
     if n <= 2:
         return True
 
-    cdef unsigned short * distances = c_distances_all_pairs(g)
+    cdef list int_to_vertex = list(g)
+    cdef unsigned short * distances = c_distances_all_pairs(g, vertex_list=int_to_vertex)
     cdef unsigned short * c_distances = distances
 
-    cdef list int_to_vertex = g.vertices()
     cdef int i, j
 
     # Only 3 distances can appear in the matrix of all distances : 0, 1, and

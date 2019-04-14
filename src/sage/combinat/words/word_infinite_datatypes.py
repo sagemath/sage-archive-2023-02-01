@@ -841,7 +841,7 @@ class WordDatatype_iter(WordDatatype):
                     else: # key.stop > 0
                         length = int(max(0,ceil((key.stop-start)/float(step))))
                         stop = int(key.stop)
-                    data = itertools.islice(self, start, key.stop, step)
+                    data = itertools.islice(self, start, stop, step)
                 else:
                     if key.start is None or key.start < 0:
                         raise ValueError("start value must be nonnegative for negative step values")
@@ -855,9 +855,9 @@ class WordDatatype_iter(WordDatatype):
                 else:
                     return self._parent.factors()(data, length=length)
             else:
-                start = 0 if key.start is None else key.start
-                stop = self._len if key.stop is None else key.stop
-                step = 1 if key.step is None else key.step
+                start = 0 if key.start is None else int(key.start)
+                stop = int(self._len) if key.stop is None else int(key.stop)
+                step = 1 if key.step is None else int(key.step)
                 # If either key.start or key.stop is negative,
                 # then we need to expand the word.
                 if start < 0 or (not(stop is None) and stop < 0):
@@ -868,10 +868,10 @@ class WordDatatype_iter(WordDatatype):
                     if key.start is None:
                         data = list(self)[key]
                     else:
-                        data = list(itertools.islice(self, start+1))[start:stop:step]
+                        data = list(itertools.islice(self, int(start+1)))[start:stop:step]
                     length = None
                 else: # start >= 0, step >= 1, stop >= 0 or None
-                    data = itertools.islice(self, key.start, key.stop, key.step)
+                    data = itertools.islice(self, start, stop, step)
                     length = "unknown" if stop is None else int(max(0,((stop-start)/float(step))))
 
                 return self._parent.factors()(data, length=length)

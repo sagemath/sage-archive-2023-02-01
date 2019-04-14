@@ -2,14 +2,14 @@
 """
 Free modules
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007      Mike Hansen <mhansen@gmail.com>,
 #                     2007-2009 Nicolas M. Thiery <nthiery at users.sf.net>
 #                     2010      Christian Stump <christian.stump@univie.ac.at>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 from six.moves import range
 
@@ -181,7 +181,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
          ('latex_bracket', False), ('latex_prefix', None),
          ('latex_scalar_mult', None), ('prefix', 'x'),
          ('scalar_mult', '*'),
-         ('sorting_key', <function <lambda> at ...>),
+         ('sorting_key', <function ...<lambda> at ...>),
          ('sorting_reverse', False), ('string_quotes', True),
          ('tensor_symbol', None)]
 
@@ -315,9 +315,6 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             base_ring, basis_keys, category=category, prefix=prefix, names=names,
             **keywords)
 
-    # We make this explicitly a Python class so that the methods,
-    #   specifically _mul_, from category framework still works. -- TCS
-    # We also need to deal with the old pickles too. -- TCS
     Element = IndexedFreeModuleElement
 
     @lazy_attribute
@@ -863,11 +860,11 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             DeprecationWarning: comparison should use keys
             See http://trac.sagemath.org/24548 for details.
 
-            sage: sorted(A.basis().keys(), Acmp)
+            sage: sorted(A.basis().keys(), Acmp) # py2
             ['x', 'y', 'a', 'b']
             sage: A.set_order(list(reversed(A.basis().keys())))
             sage: Acmp = A.get_order_cmp()
-            sage: sorted(A.basis().keys(), Acmp)
+            sage: sorted(A.basis().keys(), Acmp) # py2
             ['b', 'a', 'y', 'x']
         """
         deprecation(24548, 'comparison should use keys')
@@ -1182,39 +1179,10 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         assert isinstance(d, dict)
         if coerce:
             R = self.base_ring()
-            d = {key: R(coeff) for key,coeff in six.iteritems(d)}
+            d = {key: R(coeff) for key, coeff in six.iteritems(d)}
         if remove_zeros:
             d = {key: coeff for key, coeff in six.iteritems(d) if coeff}
-        return self.element_class( self, d )
-
-class CombinatorialFreeModuleElement(CombinatorialFreeModule.Element):
-    """
-    Deprecated. Use
-    :class:`sage.modules.with_basis.indexed_element.IndexedFreeModuleElement`
-    or :class:`CombinatorialFreeModule.Element` instead.
-    """
-    def __init__(self, *args, **kwds):
-        """
-        TESTS::
-
-            sage: from sage.combinat.free_module import CombinatorialFreeModuleElement
-            sage: class Test(CombinatorialFreeModule):
-            ....:     class Element(CombinatorialFreeModuleElement):
-            ....:         pass
-            sage: T = Test(QQ, (1,2))
-            sage: T.an_element()
-            doctest:warning
-            ...
-            DeprecationWarning: CombinatorialFreeModuleElement is deprecated.
-             Use IndexedFreeModuleElement or CombinatorialFreeModule.Element instead.
-            See http://trac.sagemath.org/22632 for details.
-            2*B[1] + 2*B[2]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(22632, "CombinatorialFreeModuleElement is deprecated."
-                           " Use IndexedFreeModuleElement"
-                           " or CombinatorialFreeModule.Element instead.")
-        super(CombinatorialFreeModuleElement, self).__init__(*args, **kwds)
+        return self.element_class(self, d)
 
 
 class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):

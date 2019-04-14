@@ -1,15 +1,15 @@
 """
 Root system data for super type A
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2017 Travis Scrimshaw <tcscrims at gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import range
 from six import iteritems
@@ -700,11 +700,11 @@ class CartanType(SuperCartanType_standard):
             A1|2
             sage: f={1:2,2:1,0:0,-1:-1}
             sage: ct.relabel(f)
-            ['A', [1, 2]] relabelled by {0: 0, 1: 2, 2: 1, -1: -1}
+            ['A', [1, 2]] relabelled by {-1: -1, 0: 0, 1: 2, 2: 1}
             sage: ct.relabel(f).dynkin_diagram()
             O---X---O---O
             -1  0   2   1
-            A1|2 relabelled by {0: 0, 1: 2, 2: 1, -1: -1}
+            A1|2 relabelled by {-1: -1, 0: 0, 1: 2, 2: 1}
         """
         from . import type_relabel
         return type_relabel.CartanType(self, relabelling)
@@ -829,4 +829,3 @@ class CartanType(SuperCartanType_standard):
         ret += "{!s:4}".format(label(0))
         ret += "".join("{!s:4}".format(label(i)) for i in range(1,self.n+1))
         return ret
-

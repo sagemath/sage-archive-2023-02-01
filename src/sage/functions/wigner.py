@@ -691,8 +691,8 @@ def gaunt(l_1, l_2, l_3, m_1, m_2, m_3, prec=None):
     if (abs(m_1) > l_1) or (abs(m_2) > l_2) or (abs(m_3) > l_3):
         return 0
 
-    imin = max(-l_3 + l_1 + m_2, -l_3 + l_2 - m_1, 0)
-    imax = min(l_2 + m_2, l_1 - m_1, l_1 + l_2 - l_3)
+    imin = int(max(-l_3 + l_1 + m_2, -l_3 + l_2 - m_1, 0))
+    imax = int(min(l_2 + m_2, l_1 - m_1, l_1 + l_2 - l_3))
 
     maxfact = max(l_1 + l_2 + l_3 + 1, imax + 1)
     _calc_factlist(maxfact)

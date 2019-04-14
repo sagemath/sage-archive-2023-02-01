@@ -77,13 +77,7 @@ def setup_for_eval_on_grid(funcs, ranges, plot_points=None, return_vars=False):
         Traceback (most recent call last):
         ...
         ValueError: Some variable ranges specify variables while others do not
-        sage: sage.plot.misc.setup_for_eval_on_grid(x+y, [(1,-1),(-1,1)], plot_points=5)
-        doctest:...: DeprecationWarning:
-        Unnamed ranges for more than one variable is deprecated and
-        will be removed from a future release of Sage; you can used
-        named ranges instead, like (x,0,2)
-        See http://trac.sagemath.org/7008 for details.
-        (<sage.ext...>, [(1.0, -1.0, 0.5), (-1.0, 1.0, 0.5)])
+
         sage: sage.plot.misc.setup_for_eval_on_grid(x+y, [(y,1,-1),(x,-1,1)], plot_points=5)
         (<sage.ext...>, [(1.0, -1.0, 0.5), (-1.0, 1.0, 0.5)])
         sage: sage.plot.misc.setup_for_eval_on_grid(x+y, [(x,1,-1),(x,-1,1)], plot_points=5)
@@ -102,40 +96,37 @@ def setup_for_eval_on_grid(funcs, ranges, plot_points=None, return_vars=False):
     if max(map(len, ranges)) != min(map(len, ranges)):
         raise ValueError("Some variable ranges specify variables while others do not")
 
-    if len(ranges[0])==3:
+    if len(ranges[0]) == 3:
         vars = [r[0] for r in ranges]
         ranges = [r[1:] for r in ranges]
-        if len(set(vars))<len(vars):
+        if len(set(vars)) < len(vars):
             raise ValueError("range variables should be distinct, but there are duplicates")
     else:
         vars, free_vars = unify_arguments(funcs)
-        if len(free_vars)>1:
-            from sage.misc.superseded import deprecation
-            deprecation(7008, "Unnamed ranges for more than one variable is deprecated and will be removed from a future release of Sage; you can used named ranges instead, like (x,0,2)")
 
     # pad the variables if we don't have enough
     nargs = len(ranges)
-    if len(vars)<nargs:
+    if len(vars) < nargs:
         vars += ('_',)*(nargs-len(vars))
 
     ranges = [[float(z) for z in r] for r in ranges]
 
     if plot_points is None:
-        plot_points=2
+        plot_points = 2
 
     if not isinstance(plot_points, (list, tuple)):
         plot_points = [plot_points]*len(ranges)
-    elif len(plot_points)!=nargs:
+    elif len(plot_points) != nargs:
         raise ValueError("plot_points must be either an integer or a list of integers, one for each range")
 
-    plot_points = [int(p) if p>=2 else 2 for p in plot_points]
+    plot_points = [int(p) if p >= 2 else 2 for p in plot_points]
     range_steps = [abs(range[1] - range[0])/(p-1) for range, p in zip(ranges, plot_points)]
     if min(range_steps) == float(0):
         raise ValueError("plot start point and end point must be different")
 
-    options={}
-    if nargs==1:
-        options['expect_one_var']=True
+    options = {}
+    if nargs == 1:
+        options['expect_one_var'] = True
 
     if is_Vector(funcs):
         funcs = list(funcs)
@@ -143,9 +134,14 @@ def setup_for_eval_on_grid(funcs, ranges, plot_points=None, return_vars=False):
     #TODO: raise an error if there is a function/method in funcs that takes more values than we have ranges
 
     if return_vars:
-        return fast_float(funcs, *vars,**options), [tuple(range+[range_step]) for range,range_step in zip(ranges, range_steps)], vars
+        return (fast_float(funcs, *vars, **options),
+                [tuple(_range + [range_step])
+                 for _range, range_step in zip(ranges, range_steps)],
+                vars)
     else:
-        return fast_float(funcs, *vars,**options), [tuple(range+[range_step]) for range,range_step in zip(ranges, range_steps)]
+        return (fast_float(funcs, *vars, **options),
+                [tuple(_range + [range_step])
+                 for _range, range_step in zip(ranges, range_steps)])
 
 
 def unify_arguments(funcs):

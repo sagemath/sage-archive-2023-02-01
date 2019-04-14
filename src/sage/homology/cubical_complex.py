@@ -79,8 +79,8 @@ from sage.matrix.constructor import matrix
 from sage.homology.chain_complex import ChainComplex
 from sage.graphs.graph import Graph
 from sage.misc.cachefunc import cached_method
-from sage.misc.decorators import rename_keyword
 from functools import total_ordering
+
 
 @total_ordering
 class Cube(SageObject):
@@ -1128,7 +1128,6 @@ class CubicalComplex(GenericCellComplex):
         """
         return set(self.n_cells(n, subcomplex))
 
-    @rename_keyword(deprecation=20723, check_diffs='check')
     def chain_complex(self, subcomplex=None, augmented=False,
                       verbose=False, check=False, dimensions=None,
                       base_ring=ZZ, cochain=False):

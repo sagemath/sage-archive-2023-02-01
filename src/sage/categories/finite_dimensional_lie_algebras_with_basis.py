@@ -1389,7 +1389,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: K.morphism({A:X, B: Y})
                 Traceback (most recent call last):
                 ...
-                ValueError: {B: Y, A: X} does not define a Lie algebra morphism;
+                ValueError: this does not define a Lie algebra morphism;
                  contradictory values for brackets of length 2
             """
             from sage.algebras.lie_algebras.morphism import LieAlgebraMorphism_from_generators

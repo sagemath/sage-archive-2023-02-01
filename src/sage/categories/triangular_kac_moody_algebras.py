@@ -170,8 +170,8 @@ class TriangularKacMoodyAlgebras(Category_over_base_ring):
 
                 sage: L = lie_algebras.so(QQ, 5)
                 sage: L._negative_half_index_set()
-                [-alpha[2], -alpha[1] - alpha[2],
-                 -alpha[1], -alpha[1] - 2*alpha[2]]
+                [-alpha[2], -alpha[1], -alpha[1] - alpha[2],
+                 -alpha[1] - 2*alpha[2]]
             """
 
         @abstract_method

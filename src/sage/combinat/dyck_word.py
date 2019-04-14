@@ -10,20 +10,20 @@ AUTHORS:
 
 - Mike Hansen
 
-- Dan Drake (2008--05-30): DyckWordBacktracker support
+- Dan Drake (2008-05-30): DyckWordBacktracker support
 
-- Florent Hivert (2009--02-01): Bijections with NonDecreasingParkingFunctions
+- Florent Hivert (2009-02-01): Bijections with NonDecreasingParkingFunctions
 
-- Christian Stump (2011--12): added combinatorial maps and statistics
+- Christian Stump (2011-12): added combinatorial maps and statistics
 
 - Mike Zabrocki:
 
-  * (2012--10): added pretty print, characteristic function, more functions
-  * (2013--01): added inverse of area/dinv, bounce/area map
+  * (2012-10): added pretty print, characteristic function, more functions
+  * (2013-01): added inverse of area/dinv, bounce/area map
 
-- Jean--Baptiste Priez, Travis Scrimshaw (2013--05-17): Added ASCII art
+- Jean--Baptiste Priez, Travis Scrimshaw (2013-05-17): Added ASCII art
 
-- Travis Scrimshaw (2013--07-09): Removed ``CombinatorialClass`` and added
+- Travis Scrimshaw (2013-07-09): Removed ``CombinatorialClass`` and added
   global options.
 
 REFERENCES:
@@ -43,7 +43,7 @@ REFERENCES:
    University of Pennsylvania, Philadelphia -- AMS, 2008, 167 pp.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -55,8 +55,8 @@ REFERENCES:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import
 from six.moves import range
 
@@ -189,7 +189,7 @@ class DyckWord(CombinatorialElement):
     A Dyck word may also be specified by either a noncrossing partition or
     by an area sequence or the sequence of heights.
 
-    A Dyck word may also be thought of as a lattice path in the `\mathbb{Z}^2`
+    A Dyck word may also be thought of as a lattice path in the `\ZZ^2`
     grid, starting at the origin `(0,0)`, and with steps in the North
     `N = (0,1)` and east `E = (1,0)` directions such that it does not pass
     below the `x = y` diagonal. The diagonal is referred to as the "main
@@ -345,8 +345,9 @@ class DyckWord(CombinatorialElement):
 
     def set_latex_options(self, D):
         r"""
-        Set the latex options for use in the ``_latex_`` function.  The
-        default values are set in the ``__init__`` function.
+        Set the latex options for use in the ``_latex_`` function.
+
+        The default values are set in the ``__init__`` function.
 
         - ``tikz_scale`` -- (default: 1) scale for use with the tikz package.
 
@@ -387,7 +388,9 @@ class DyckWord(CombinatorialElement):
     def latex_options(self):
         r"""
         Return the latex options for use in the ``_latex_`` function as a
-        dictionary. The default values are set using the options.
+        dictionary.
+
+        The default values are set using the options.
 
         - ``tikz_scale`` -- (default: 1) scale for use with the tikz package.
 
@@ -581,8 +584,12 @@ class DyckWord(CombinatorialElement):
 
     def to_path_string(self, unicode=False):
         r"""
-        A path representation of the Dyck word consisting of steps
+        Return a path representation of the Dyck word consisting of steps
         ``/`` and ``\`` .
+
+        INPUT:
+
+        - ``unicode`` -- boolean (default ``False``) whether to use unicode
 
         EXAMPLES::
 
@@ -621,7 +628,7 @@ class DyckWord(CombinatorialElement):
         r"""
         Display a DyckWord as a lattice path in the `\ZZ^2` grid.
 
-        If the ``type`` is "N-E", then the a cell below the diagonal is
+        If the ``type`` is "N-E", then a cell below the diagonal is
         indicated by a period, whereas a cell below the path but above
         the diagonal is indicated by an x. If a list of labels is
         included, they are displayed along the vertical edges of the
@@ -1009,7 +1016,7 @@ class DyckWord(CombinatorialElement):
         The heights is the sequence of the `y`-coordinates of all
         `2n+1` lattice points along the path.
 
-        .. SEEALSO:: :meth:`from_heights`, :meth:`min_from_heights`
+        .. SEEALSO:: :meth:`~DyckWords.from_heights`, :meth:`~DyckWords.min_from_heights`
 
         EXAMPLES::
 
@@ -1197,7 +1204,7 @@ class DyckWord(CombinatorialElement):
 
     def number_of_initial_rises(self):
         r"""
-        Return the length of the initial run of ``self``
+        Return the length of the initial run of ``self``.
 
         OUTPUT:
 
@@ -1235,6 +1242,8 @@ class DyckWord(CombinatorialElement):
         A peak is `1` followed by a `0`.  Note that this does not agree with
         the definition given in [Hag2008]_.
 
+        .. SEEALSO:: :meth:`valleys`, :meth:`number_of_peaks`
+
         EXAMPLES::
 
             sage: DyckWord([1, 0, 1, 0]).peaks()
@@ -1244,14 +1253,14 @@ class DyckWord(CombinatorialElement):
             sage: DyckWord([1,1,0,1,0,1,0,0]).peaks() # Haglund's def gives 2
             [1, 3, 5]
         """
-        return [i for i in range(len(self)-1)
-                if self[i] == open_symbol and self[i+1] == close_symbol]
+        return [i for i in range(len(self) - 1)
+                if self[i] == open_symbol and self[i + 1] == close_symbol]
 
     def number_of_peaks(self):
         r"""
-        The number of peaks of the Dyck path associated to ``self`` .
+        Return the number of peaks of the Dyck path associated to ``self`` .
 
-        .. SEEALSO:: :meth:`peaks`
+        .. SEEALSO:: :meth:`peaks`, :meth:`number_of_valleys`
 
         EXAMPLES::
 
@@ -1272,6 +1281,8 @@ class DyckWord(CombinatorialElement):
 
         A valley is `0` followed by a `1`.
 
+        .. SEEALSO:: :meth:`peaks`, :meth:`number_of_valleys`
+
         EXAMPLES::
 
             sage: DyckWord([1, 0, 1, 0]).valleys()
@@ -1281,12 +1292,14 @@ class DyckWord(CombinatorialElement):
             sage: DyckWord([1,1,0,1,0,1,0,0]).valleys()
             [2, 4]
         """
-        return [i for i in range(len(self)-1)
-                if self[i] == close_symbol and self[i+1] == open_symbol]
+        return [i for i in range(len(self) - 1)
+                if self[i] == close_symbol and self[i + 1] == open_symbol]
 
     def number_of_valleys(self):
         r"""
         Return the number of valleys of ``self``.
+
+        .. SEEALSO:: :meth:`number_of_peaks`, :meth:`valleys`
 
         EXAMPLES::
 
@@ -1857,11 +1870,14 @@ class DyckWord_complete(DyckWord):
 
     def reading_permutation(self):
         r"""
-        The permutation formed by taking the reading word of the Dyck path
-        representing ``self`` (with `N` and `E` steps) if the vertical
-        edges of the Dyck path are labeled from bottom to top with `1`
-        through `n` and the diagonals are read from top to bottom starting
-        with the diagonal furthest from the main diagonal.
+        Return the reading permutation of ``self``.
+
+        This is the permutation formed by taking the reading word of
+        the Dyck path representing ``self`` (with `N` and `E` steps)
+        if the vertical edges of the Dyck path are labeled from bottom
+        to top with `1` through `n` and the diagonals are read from
+        top to bottom starting with the diagonal furthest from the
+        main diagonal.
 
         EXAMPLES::
 
@@ -2018,12 +2034,6 @@ class DyckWord_complete(DyckWord):
         which are strictly increasing.  Sends the area to the inversion number
         and ``self.major_index()`` to `n(n-1) - maj(\sigma) - maj(\sigma^{-1})`.
         Uses the function :func:`~sage.combinat.dyck_word.pealing`
-
-        REFERENCES:
-
-        .. [Stu2008] \C. Stump -- More bijective Catalan combinatorics on
-           permutations and on colored permutations, Preprint.
-           :arXiv:`0808.2822`.
 
         EXAMPLES::
 
@@ -2223,7 +2233,7 @@ class DyckWord_complete(DyckWord):
         from [Stu2008]_, see also the method :meth:`to_noncrossing_permutation`.
 
         Thanks to Mathieu Dutour for describing the bijection.  See also
-        :func:`from_noncrossing_partition`.
+        :func:`~DyckWords.from_noncrossing_partition`.
 
         EXAMPLES::
 
@@ -2470,6 +2480,7 @@ class DyckWord_complete(DyckWord):
         r"""
         Bijection to :class:`non-decreasing parking
         functions<sage.combinat.non_decreasing_parking_function.NonDecreasingParkingFunctions>`.
+
         See there the method
         :meth:`~sage.combinat.non_decreasing_parking_function.NonDecreasingParkingFunction.to_dyck_word`
         for more information.
@@ -2526,6 +2537,8 @@ class DyckWord_complete(DyckWord):
 
     def pyramid_weight(self):
         r"""
+        Return the pyramid weight of ``self``.
+
         A pyramid of ``self`` is a subsequence of the form
         `1^h 0^h`. A pyramid is maximal if it is neither preceded by a `1`
         nor followed by a `0`.
@@ -3298,7 +3311,7 @@ class DyckWords(UniqueRepresentation, Parent):
         steps in the direction `(1, 1)` and ``0``'s represent steps in
         the direction `(1, -1)`.
 
-        The :meth:`heights` is the sequence of the `y`-coordinates of
+        The :meth:`~DyckWord.heights` is the sequence of the `y`-coordinates of
         the `2n+1` lattice points along this path.
 
         EXAMPLES::
@@ -3319,7 +3332,7 @@ class DyckWords(UniqueRepresentation, Parent):
             sage: D.from_heights((0, 1, 2, 1))
             [1, 1, 0]
 
-        .. SEEALSO:: :meth:`heights`, :meth:`min_from_heights`
+        .. SEEALSO:: :meth:`~DyckWord.heights`, :meth:`min_from_heights`
 
         TESTS::
 
@@ -3372,7 +3385,7 @@ class DyckWords(UniqueRepresentation, Parent):
 
         .. SEEALSO::
 
-            - :meth:`heights`
+            - :meth:`~DyckWord.heights`
             - :meth:`from_heights`
 
         EXAMPLES::
@@ -3415,6 +3428,7 @@ class DyckWords(UniqueRepresentation, Parent):
             if heights[i] > heights[i - 1]:
                 heights[i-1] = heights[i] - 1
         return self.from_heights(heights)
+
 
 class DyckWords_all(DyckWords):
     """
@@ -3733,10 +3747,10 @@ class CompleteDyckWords(DyckWords):
         Return the Dyck word associated to the given area sequence
         ``code``.
 
-        See :meth:`to_area_sequence` for a definition of the area
+        See :meth:`~DyckWord.to_area_sequence` for a definition of the area
         sequence of a Dyck word.
 
-        .. SEEALSO:: :meth:`area`, :meth:`to_area_sequence`.
+        .. SEEALSO:: :meth:`~DyckWord.area`, :meth:`~DyckWord.to_area_sequence`.
 
         INPUT:
 
@@ -3798,6 +3812,7 @@ class CompleteDyckWords(DyckWords):
         r"""
         Bijection from :class:`non-decreasing parking
         functions<sage.combinat.non_decreasing_parking_function.NonDecreasingParkingFunctions>`.
+
         See there the method
         :meth:`~sage.combinat.non_decreasing_parking_function.NonDecreasingParkingFunction.to_dyck_word`
         for more information.
@@ -3985,7 +4000,7 @@ class CompleteDyckWords_size(CompleteDyckWords, DyckWords_size):
 
     def random_element(self):
         """
-        Return a random complete Dyck word of semilength `n`
+        Return a random complete Dyck word of semilength `n`.
 
         The algorithm is based on a classical combinatorial fact. One
         chooses at random a word with `n` 0's and `n+1` 1's. One then
@@ -4156,18 +4171,6 @@ def is_a(obj, k1=None, k2=None):
     return (k1 is None and k2 is None) or (n_opens == k1 and n_closes == k2)
 
 
-def from_ordered_tree(tree):
-    r"""
-    TESTS::
-
-        sage: sage.combinat.dyck_word.from_ordered_tree(1)
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: TODO
-    """
-    raise NotImplementedError("TODO")
-
-
 def pealing(D, return_touches=False):
     r"""
     A helper function for computing the bijection from a Dyck word to a
@@ -4226,8 +4229,3 @@ def pealing(D, return_touches=False):
 
 from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.dyck_word', 'DyckWord', DyckWord)
-
-# Deprecations from trac:18555. July 2016
-from sage.misc.superseded import deprecated_function_alias
-DyckWords.global_options=deprecated_function_alias(18555, DyckWords.options)
-DyckWordOptions = deprecated_function_alias(18555, DyckWords.options)

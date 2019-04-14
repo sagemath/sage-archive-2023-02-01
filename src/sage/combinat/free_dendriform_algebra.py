@@ -119,7 +119,7 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
 
     REFERENCES:
 
-    - [LodayRonco]_
+    - [LR1998]_
     """
     @staticmethod
     def __classcall_private__(cls, R, names=None):

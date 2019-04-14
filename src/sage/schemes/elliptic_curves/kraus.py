@@ -55,7 +55,7 @@ REFERENCES:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ##############################################################################
 from __future__ import print_function
 
@@ -142,6 +142,7 @@ def c4c6_model(c4, c6, assume_nonsingular=False):
 
 # Arithmetic utility functions
 
+
 def make_integral(a, P, e):
     r"""
     Returns b in O_K with P^e|(a-b), given a in O_{K,P}.
@@ -188,7 +189,7 @@ def make_integral(a, P, e):
     for b in (P**e).residues():
         if (a-b).valuation(P) >= e:
             return b
-    raise ArithmeticError("Cannot lift %s to O_K mod (%s)^%s" % (a,P,e))
+    raise ArithmeticError("Cannot lift %s to O_K mod (%s)^%s" % (a, P, e))
 
 
 def sqrt_mod_4(x, P):
@@ -230,6 +231,7 @@ def sqrt_mod_4(x, P):
     return False, 0
 
 # Kraus test and check for primes dividing 3:
+
 
 def test_b2_local(c4, c6, P, b2, debug=False):
     r"""
@@ -407,6 +409,7 @@ def check_Kraus_local_3(c4, c6, P, assume_nonsingular=False, debug=False):
     return False, 0
 
 # Kraus test and check for primes dividing 2:
+
 
 def test_a1a3_local(c4, c6, P, a1, a3, debug=False):
     r"""
@@ -636,6 +639,7 @@ def check_Kraus_local_2(c4, c6, P, a1=None, assume_nonsingular=False):
 
 # Wrapper function for local Kraus check, outsources the real work to
 # other functions for primes dividing 2 or 3:
+
 
 def check_Kraus_local(c4, c6, P, assume_nonsingular=False):
     r"""
@@ -871,6 +875,7 @@ def check_Kraus_global(c4, c6, assume_nonsingular=False, debug=False):
         print("...and it does!")
     return E
 
+
 def semi_global_minimal_model(E, debug=False):
     r"""
     Return a global minimal model for this elliptic curve if it
@@ -880,7 +885,7 @@ def semi_global_minimal_model(E, debug=False):
 
     - ``E`` -- an elliptic curve over a number field
 
-    - ``debug`` (boolean, default False) -- if True, prints some
+    - ``debug`` (boolean, default ``False``) -- if ``True``, prints some
       messages about the progress of the computation.
 
     OUTPUT:
@@ -896,10 +901,10 @@ def semi_global_minimal_model(E, debug=False):
 
     .. note::
 
-       This function is normally not called directly by users, who
-       will use the elliptic curve method :meth:`global_minimal_model`
-       instead; that method also applied various reductions after
-       minimising the model.
+        This function is normally not called directly by users, who
+        will use the elliptic curve method :meth:`global_minimal_model`
+        instead; that method also applied various reductions after
+        minimising the model.
 
     EXAMPLES::
 
@@ -914,23 +919,24 @@ def semi_global_minimal_model(E, debug=False):
         sage: E.minimal_discriminant_ideal()*P**12 == K.ideal(Emin.discriminant())
         True
 
-    TESTS (see :trac:`20737`): a curve with no global minimal model
+    TESTS:
+
+    Consider (see :trac:`20737`) a curve with no global minimal model
     whose non-minimality class has order 3 in the class group, which
-    has order 3315.  The smallest prime in that ideal class has norm
+    has order 3315. The smallest prime in that ideal class has norm
     23567::
 
-    sage: K.<a> = NumberField(x^2-x+31821453)
-    sage: ainvs = (0, 0, 0, -382586771000351226384*a - 2498023791133552294513515, 358777608829102441023422458989744*a + 1110881475104109582383304709231832166)
-    sage: E = EllipticCurve(ainvs)
-    sage: from sage.schemes.elliptic_curves.kraus import semi_global_minimal_model
-    sage: Emin, p = semi_global_minimal_model(E) # long time (25s)
-    sage: p                                      # long time
-    Fractional ideal (23567, a + 2270)
-    sage: p.norm()                               # long time
-    23567
-    sage: Emin.discriminant().norm().factor()    # long time
-    23567^12
-
+        sage: K.<a> = NumberField(x^2-x+31821453)
+        sage: ainvs = (0, 0, 0, -382586771000351226384*a - 2498023791133552294513515, 358777608829102441023422458989744*a + 1110881475104109582383304709231832166)
+        sage: E = EllipticCurve(ainvs)
+        sage: from sage.schemes.elliptic_curves.kraus import semi_global_minimal_model
+        sage: Emin, p = semi_global_minimal_model(E) # long time (25s)
+        sage: p                                      # long time
+        Fractional ideal (23567, a + 2270)
+        sage: p.norm()                               # long time
+        23567
+        sage: Emin.discriminant().norm().factor()    # long time
+        23567^12
     """
     c = E.global_minimality_class()
     I = c.ideal()
@@ -939,22 +945,22 @@ def semi_global_minimal_model(E, debug=False):
         P = E.base_field().ideal(1)
     else:
         if debug:
-            print("No global minimal model, obstruction class = %s of order %s" % (c,c.order()))
-        bound = round(E.base_field().minkowski_bound())*5
+            print("No global minimal model, obstruction class = %s of order %s" % (c, c.order()))
+        bound = E.base_field().minkowski_bound().round() * 5
         have_prime = False
         while not have_prime:
             try:
                 P = c.representative_prime(norm_bound=bound)
                 have_prime = True
             except RuntimeError:
-                bound *=2
+                bound *= 2
         if debug:
-            print("Using prime {} of norm {} in that class".format(P,P.norm()))
-        I = I/P
+            print("Using prime {} of norm {} in that class".format(P, P.norm()))
+        I = I / P
     u = I.gens_reduced()[0]
-    rc4 = c4/u**4
-    rc6 = c6/u**6
-    Emin = check_Kraus_global(rc4,rc6,assume_nonsingular=True,debug=debug)
+    rc4 = c4 / u**4
+    rc6 = c6 / u**6
+    Emin = check_Kraus_global(rc4, rc6, assume_nonsingular=True, debug=debug)
     if Emin:
         return Emin, P
     raise RuntimeError("failed to compute global minimal model")

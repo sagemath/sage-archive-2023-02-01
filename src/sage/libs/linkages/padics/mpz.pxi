@@ -540,7 +540,7 @@ cdef inline cexpansion_getitem(mpz_t value, long m, PowComputer_ prime_pow):
         mpz_mod(ans.value, value, prime_pow.prime.value)
     return ans
 
-# The element is filled in for zero in the the p-adic expansion if necessary.
+# The element is filled in for zero in the p-adic expansion if necessary.
 # It could be [] for some other linkages.
 _expansion_zero = Integer(0)
 

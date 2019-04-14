@@ -172,10 +172,10 @@ with Sage by including
 
 ::
 
-    [Sage] William A. Stein et al., Sage Mathematics Software (Version 4.3).
-           The Sage Development Team, 2009, http://www.sagemath.org.
+    [Sage] SageMath, the Sage Mathematics Software System (Version 8.7),
+           The Sage Developers, 2019, https://www.sagemath.org.
 
-in your bibliography (replacing 4.3 with the version of Sage you
+in your bibliography (replacing 8.7 with the version of Sage you
 used). Moreover, please attempt to track down what components of Sage
 are used for your computation, e.g., PARI?, GAP?, Singular? Maxima?
 and also cite those systems. If you are in doubt about what

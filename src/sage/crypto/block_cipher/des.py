@@ -28,10 +28,10 @@ Have a look at the used round keys::
     sage: from sage.crypto.block_cipher.des import DES_KS
     sage: ks = DES_KS()
     sage: [k.hex() for k in ks(0x1F08260D1AC2465E)]
-    ['103041bfb90e',
-     '808540f07bf',
+    ['103049bfb90e',
+     '808d40f07bf',
       ...
-     '221000f2dd97']
+     '231000f2dd97']
 
 AUTHORS:
 
@@ -483,10 +483,10 @@ class DES_KS(SageObject):
 
         sage: ks = DES_KS()
         sage: K = ks(0x584023641ABA6176)
-        sage: K[0] == 0xD0A2E52FA124
-        True
-        sage: K[15] == 0x42B42AF81183
-        True
+        sage: K[0].hex()
+        'd0a2ed2fa124'
+        sage: K[15].hex()
+        '43b42af81183'
 
     .. SEEALSO::
 

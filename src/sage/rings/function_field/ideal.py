@@ -277,7 +277,15 @@ class FunctionFieldIdeal(Element):
             sage: I.gens_reduced()
             (x,)
         """
-        return self.gens()
+        gens = self.gens()
+        if len(gens) == 1:
+            return gens
+        for gen in reversed(self.gens()):
+            candidate_gens = list(set(gens).difference([gen]))
+            new_ideal = self.parent()(candidate_gens)
+            if new_ideal == self:
+                return sorted(candidate_gens)
+        return sorted(gens)
 
     def ring(self):
         """

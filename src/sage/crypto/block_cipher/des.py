@@ -252,23 +252,37 @@ class DES(SageObject):
           ``K``. If ``P`` is an integer the output will be too. If ``P`` is
           list-like the output will be a bit vector.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        Encrypt a message::
 
             sage: from sage.crypto.block_cipher.des import DES
             sage: des = DES()
             sage: K64 = 0x133457799BBCDFF1
-            sage: K56 = 0x12695BC9B7B7F8
             sage: P = 0x0123456789ABCDEF
-            sage: C = 0x85E813540F0AB405
-            sage: des.encrypt(P, K64) == C
-            True
+            sage: C = des.encrypt(P, K64); C.hex()
+            '85e813540f0ab405'
+
+        You can also use 56 bit keys i.e. you can leave out the parity bits::
+
+            sage: K56 = 0x12695BC9B7B7F8
             sage: des.encrypt(P, K56) == C
             True
-            sage: K = 0x0101010101010101
-            sage: P = 0x95F8A5E5DD31D900
-            sage: C = 0x8000000000000000
+
+        If the seven left most bits of your 64 bit key are all zero, the first
+        parity bit MUST be set correct i.e. it must be one. Otherwise your key
+        will be interpreted as a 56 bit key.
+
+            sage: K = 0x0107910491190101
+            sage: P = 0
+            sage: C = des.encrypt(P, K); C.hex()
+            'b46604816c0e0774'
+            sage: K = 0x0107940491190401
+            sage: C = des.encrypt(P, K); C.hex()
+            '6e7e6221a4f34e87'
+            sage: K = 0x0007910491190101
             sage: des.encrypt(P, K) == C
-            True
+            False
         """
         state, inputType = _convert_to_vector(P, 64)
         K, _ = _convert_to_vector(K, self._keySchedule._keysize)
@@ -299,17 +313,22 @@ class DES(SageObject):
           ``K``. If ``C`` is an integer the output will be too. If ``C`` is
           list-like the output will be a bit vector.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        Decrypt a message::
 
             sage: from sage.crypto.block_cipher.des import DES
             sage: des = DES()
             sage: K64 = 0x7CA110454A1A6E57
-            sage: K56 = 0x7D404224A35BAB
             sage: C = 0x690F5B0D9A26939B
-            sage: des.decrypt(C, K64).hex()
+            sage: P = des.decrypt(C, K64).hex(); P
             '1a1d6d039776742'
-            sage: des.decrypt(C, K56).hex()
-            '1a1d6d039776742'
+
+        You can also use 56 bit keys i.e. you can leave out the parity bits::
+
+            sage: K56 = 0x7D404224A35BAB
+            sage: des.decrypt(C, K56).hex() == P
+            True
         """
         state, inputType = _convert_to_vector(C, 64)
         K, _ = _convert_to_vector(K, self._keySchedule._keysize)
@@ -474,10 +493,10 @@ class DES_KS(SageObject):
 
         sage: from sage.crypto.block_cipher.des import DES_KS
         sage: ks = DES_KS(master_key=0)
-        sage: ks[0] == 0x0
-        True
-        sage: ks[15] == 0x0
-        True
+        sage: ks[0]
+        0
+        sage: ks[15]
+        0
 
     Or omit the `master\_key` and pass a key when calling the key schedule::
 
@@ -505,7 +524,8 @@ class DES_KS(SageObject):
         - ``rounds`` -- integer (default: ``16``); the number of rounds
           ``self`` can create keys for
 
-        - ``master_key`` -- integer of bit list-like; the key that will be used
+        - ``master_key`` -- integer or bit list-like (default: ``None``); the
+          key that will be used
 
         EXAMPLES::
 
@@ -533,9 +553,15 @@ class DES_KS(SageObject):
 
         OUTPUT:
 
-        - A list containing the round keys
+        - A list containing the round keys. If ``K`` is an integer the elements
+          of the output list will be too. If ``K`` is list-like the element of
+          the output list will be  bit vectors.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        This implementation is using bit vectors for all internal
+        representations. So you could invoke the key schedule with a bit
+        vector::
 
             sage: from sage.crypto.block_cipher.des import DES_KS
             sage: K = vector(GF(2),[0,0,0,1,0,0,1,1,0,0,1,1,0,1,0,0,0,1,0,1,0,1,1,1,0,1,1,1,1,0,0,1,1,0,0,1,1,0,1,1,1,0,1,1,1,1,0,0,1,1,0,1,1,1,1,1,1,1,1,1,0,0,0,1])
@@ -545,27 +571,19 @@ class DES_KS(SageObject):
              (0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1),
              ...
              (1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1)]
-            sage: K = vector(GF(2),[0,0,0,1,0,0,1,1,0,0,1,1,0,1,0,0,0,1,0,1,0,1,1,1,0,1,1,1,1,0,0,1,1,0,0,1,1,0,1,1,1,0,1,1,1,1,0,0,1,1,0,1,1,1,1,1,1,1,1,1,0,0,0,1])
-            sage: ks = DES_KS()
-            sage: ks(K)
-            [(0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0),
-             (0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1),
-             ...
-             (1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1)]
-            sage: K = 0x133457799bbcdff1
-            sage: ks = DES_KS(master_key=K)
+
+        But of course you could invoke it with hex representation as well::
+
+            sage: K64 = 0x133457799bbcdff1
+            sage: ks = DES_KS(16, K64)
             sage: [k.hex() for k in ks]
             ['1b02effc7072',
              '79aed9dbc9e5',
              ...
              'cb3d8b0e17f5']
-            sage: K56 = vector(GF(2),[0,0,0,1,0,0,1,0,0,1,1,0,1,0,0,1,0,1,0,1,1,0,1,1,1,1,0,0,1,0,0,1,1,0,1,1,0,1,1,1,1,0,1,1,0,1,1,1,1,1,1,1,1,0,0,0])
-            sage: ks = DES_KS(16, K56)
-            sage: [k for k in ks]
-            [(0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0),
-             (0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1),
-             ...
-             (1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1)]
+
+        And again you can leave out the parity bit::
+
             sage: K56 = 0x12695BC9B7B7F8
             sage: ks = DES_KS(master_key=K56)
             sage: [k.hex() for k in ks]
@@ -641,11 +659,11 @@ class DES_KS(SageObject):
         EXAMPLES::
 
             sage: from sage.crypto.block_cipher.des import DES_KS
-            sage: ks = DES_KS(master_key=0x0)
-            sage: ks[0] ==  0x0 # indirect doctest
-            True
-            sage: ks[15] ==  0x0 # indirect doctest
-            True
+            sage: ks = DES_KS(master_key=0x1F08260D1AC2465E)
+            sage: ks[0].hex() # indirect doctest
+            '103049bfb90e'
+            sage: ks[15].hex() # indirect doctest
+            '231000f2dd97'
         """
         if self._master_key is None:
             raise ValueError('Key not set during initialisation')
@@ -658,11 +676,11 @@ class DES_KS(SageObject):
         EXAMPLES::
 
             sage: from sage.crypto.block_cipher.des import DES_KS
-            sage: K = [k for k in DES_KS(master_key=0x0)]
-            sage: K[0] == 0x0 # indirect doctest
-            True
-            sage: K[15] == 0x0 # indirect doctest
-            True
+            sage: K = [k for k in DES_KS(master_key=0x0113B970FD34F2CE)]
+            sage: K[0].hex() # indirect doctest
+            '6f26cc480fc6'
+            sage: K[15].hex() # indirect doctest
+            '9778f17524a'
        """
         if self._master_key is None:
             raise ValueError('Key not set during initialisation')

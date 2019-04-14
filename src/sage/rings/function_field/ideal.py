@@ -92,6 +92,7 @@ import itertools
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.misc import powerset
 
 from sage.structure.parent import Parent
 from sage.structure.element import Element
@@ -263,8 +264,10 @@ class FunctionFieldIdeal(Element):
         r"""
         Return reduced generators.
 
-        For now, this method just runs through the generators and sees
-        if any can be removed without changing the ideal.
+        For now, this method just looks at the generators and sees if any
+        can be removed without changing the ideal.  It prefers principal
+        representations (a single generator) over all others, and otherwise
+        picks the generator set with the shortest print representation.
 
         This method is provided so that ideals in function fields have
         the method :meth:`gens_reduced()`, just like ideals of number
@@ -276,17 +279,17 @@ class FunctionFieldIdeal(Element):
             sage: O = K.equation_order()
             sage: I = O.ideal(x,x^2,x^2+x)
             sage: I.gens_reduced()
-            [x]
+            (x,)
         """
-        gens = set(self.gens())
+        gens = self.gens()
         if len(gens) == 1:
-            return list(gens)
-        for gen in reversed(list(gens)):
-            candidate_gens = list(gens.difference([gen]))
-            new_ideal = self.parent()(candidate_gens)
-            if new_ideal == self:
-                gens.remove(gen)
-        return list(gens)
+            return gens
+        candidate_gensets = []
+        for genset in powerset(gens):
+            if self.parent()(genset) == self:
+                candidate_gensets.append(genset)
+        candidate_gensets.sort(key=lambda item: (len(item), len(repr(item)), item))
+        return candidate_gensets[0]
 
     def ring(self):
         """

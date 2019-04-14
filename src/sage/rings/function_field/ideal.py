@@ -213,6 +213,33 @@ class FunctionFieldIdeal(Element):
 
         return "Ideal %s of %s" % (self._repr_short(), self.ring())
 
+    def _latex_(self):
+        """
+        Return the LaTeX representation of the ideal.
+
+        We use Stichtenoth's notation for the ideal: the generators
+        followed by a symbol for the ring, either O or Oinf.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 - x^3*Y - x)
+            sage: O = L.maximal_order()
+            sage: I = O.ideal(y)
+            sage: latex(I)
+            (y)\mathcal{O}
+        """
+        gens_str = ', '.join(g._latex_() for g in self.gens_reduced())
+
+        # maybe we should have a better way to test this... like an
+        # order method called 'is_infinite'?
+
+        from .order import FunctionFieldOrderInfinite
+        if isinstance(self.ring(), FunctionFieldOrderInfinite):
+            return "({})\\mathcal{{O}}_\infty".format(gens_str)
+        else:
+            return "({})\\mathcal{{O}}".format(gens_str)
+
     def _div_(self, other):
         """
         Return the ideal divided by the ``other`` ideal.

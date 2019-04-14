@@ -1428,7 +1428,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
             sage: I = O.ideal(y)
             sage: J = O.ideal(x+y)
             sage: I * J
-            Ideal (x^4 + x^2 + x, x*y + x^4 + x) of Maximal order
+            Ideal (x^4 + x^2 + x, x*y + x^2) of Maximal order
             of Function field in y defined by y^2 + x^3*y + x
 
             sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)

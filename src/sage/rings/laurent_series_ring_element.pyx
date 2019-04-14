@@ -1340,9 +1340,7 @@ cdef class LaurentSeries(AlgebraElement):
             1/(2*b)*t - 1/(8*b^2)*t^2 + ((-3*b + 1)/(16*b^3))*t^3 + O(t^4)
             sage: f(g)
             t + O(t^4)
-            sage: g(f)  # known bug - f fails to coerce properly, but next test works
-            t + O(t^4)
-            sage: g(g.parent()(f))
+            sage: g(f)
             t + O(t^4)
 
         We can handle some base rings of positive characteristic::
@@ -1385,16 +1383,6 @@ cdef class LaurentSeries(AlgebraElement):
             Traceback (most recent call last):
             ...
             ValueError: Series must have valuation one for reversion.
-
-            sage: B.<b> = PolynomialRing(ZZ)
-            sage: A.<t> = LaurentSeriesRing(B)
-            sage: f = 2*b*t + b*t^2 + 3*b^2*t^3 + O(t^4)
-            sage: g = f.reverse(); g
-            1/(2*b)*t - 1/(8*b^2)*t^2 + ((-3*b + 1)/(16*b^3))*t^3 + O(t^4)
-            sage: f(g)
-            t + O(t^4)
-            sage: g(f)
-            t + O(t^4)
         """
         val = self.valuation()
         if val != 1:

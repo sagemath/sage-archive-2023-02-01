@@ -6,7 +6,7 @@ from __future__ import absolute_import
 from cysignals.memory cimport check_allocarray, sig_free
 from cysignals.signals cimport sig_check
 
-from sage.misc.search import search
+from sage.misc.search cimport search
 from sage.structure.richcmp cimport rich_to_bool
 
 cimport sage.rings.fast_arith

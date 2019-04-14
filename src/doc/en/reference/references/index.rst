@@ -225,6 +225,10 @@ REFERENCES:
              by F. Morain.
              http://citeseer.ist.psu.edu/atkin92probabilistic.html
 
+.. [Ath1996] \C. A. Athanasiadis,
+            *Characteristic polynomials of subspace arrangements and finite fields*.
+            Advances in Mathematics, 122(2):193-233, 1996.
+
 .. [Av2000] \D. Avis, *A revised implementation of the reverse search
             vertex enumeration algorithm.* Polytopes-combinatorics and
             computation. Birkhauser Basel, 2000.

@@ -226,6 +226,10 @@ class FunctionFieldDivisor(ModuleElement):
         """
         Return the LaTeX representation of the divisor.
 
+        We use an additive notation combined with Stichtenoth's notation
+        for the ideal: the generators followed by a symbol for the ring,
+        either O or Oinf.
+
         EXAMPLES::
 
             sage: K.<x> = FunctionField(GF(2)); R.<t> = PolynomialRing(K)

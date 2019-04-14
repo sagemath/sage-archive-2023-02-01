@@ -1561,7 +1561,7 @@ class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder):
             sage: L.<y> = K.extension(y^4 + x*y + 4*x + 1)
             sage: O = L.maximal_order()
             sage: O.different()
-            Ideal (x^4 + 4*x^3 + 3*x^2 + 6*x + 4, y + 2*x^3 + x^2 + 6*x + 1)
+            Ideal (y^3 + 2*x)
             of Maximal order of Function field in y defined by y^4 + x*y + 4*x + 1
         """
         return ~self.codifferent()
@@ -2367,9 +2367,9 @@ class FunctionFieldMaximalOrderInfinite_global(FunctionFieldMaximalOrderInfinite
             sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
             sage: Oinf = F.maximal_order_infinite()
             sage: Oinf.decomposition()
-            [(Ideal (1/x,1/x^2*y + 1) of Maximal infinite order
+            [(Ideal ((1/(x^4 + x^3 + x^2))*y^2 + 1) of Maximal infinite order
              of Function field in y defined by y^3 + x^6 + x^4 + x^2, 1, 1),
-             (Ideal (1/x,1/x^4*y^2 + 1/x^2*y + 1) of Maximal infinite order
+             (Ideal ((1/(x^4 + x^3 + x^2))*y^2 + 1/x^2*y + 1) of Maximal infinite order
              of Function field in y defined by y^3 + x^6 + x^4 + x^2, 2, 1)]
 
             sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]

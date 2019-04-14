@@ -426,9 +426,9 @@ class FunctionFieldIdeal(Element):
             sage: f= 1/x
             sage: I = Oinf.ideal(f)
             sage: I.factor()
-            (Ideal (1/x,1/x^4*y^2 + 1/x^2*y + 1) of Maximal infinite order
+            (Ideal ((1/(x^4 + x^3 + x^2))*y^2 + 1/x^2*y + 1) of Maximal infinite order
             of Function field in y defined by y^3 + x^6 + x^4 + x^2) *
-            (Ideal (1/x,1/x^2*y + 1) of Maximal infinite order
+            (Ideal ((1/(x^4 + x^3 + x^2))*y^2 + 1) of Maximal infinite order
             of Function field in y defined by y^3 + x^6 + x^4 + x^2)
         """
         return Factorization(self._factor(), cr=True)

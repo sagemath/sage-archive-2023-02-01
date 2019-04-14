@@ -3356,6 +3356,7 @@ REFERENCES:
 
 .. [U.S1999] \U.S. Department Of Commerce/National Institute of Standards and Technology,
              *Data Encryption Standard*, (1999).
+             https://csrc.nist.gov/CSRC/media/Publications/fips/46/3/archive/1999-10-25/documents/fips46-3.pdf
 
 .. _ref-V:
 

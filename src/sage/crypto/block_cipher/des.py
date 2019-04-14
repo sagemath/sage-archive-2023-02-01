@@ -4,7 +4,7 @@ DES
 The Data Encryption Standard.
 
 This file implements the Data Encryption Standard and the corresponding key
-schedule as described in [TODO: ADD REF]_.
+schedule as described in [U.S1999]_.
 
 Note that since this is Sage the implementation is neither meant to be
 particular secure nor super fast but to be easy to use for research purposes.
@@ -55,7 +55,7 @@ from sage.rings.finite_rings.finite_field_constructor import GF
 
 class DES(SageObject):
     r"""
-    This class implements DES described in [TODO: ADD REF]_.
+    This class implements DES described in [U.S1999]_.
 
     EXAMPLES:
 
@@ -460,7 +460,7 @@ class DES(SageObject):
 
 class DES_KS(SageObject):
     r"""
-    This class implements the DES key schedules described in [TODO: ADD REF]_.
+    This class implements the DES key schedules described in [U.S1999]_.
 
     EXAMPLES:
 

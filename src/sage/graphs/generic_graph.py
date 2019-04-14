@@ -9536,63 +9536,63 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.pagerank(alpha=0.50, algorithm="igraph")  # optional - python_igraph
             {0: 0.25, 1: 0.25, 2: 0.24999999999999997, 3: 0.24999999999999997}
             sage: G = Graph([(1, 2, 40), (2, 3, 50), (3, 4, 60), (1, 4, 70), (4, 5, 80), (5, 6, 20)])
-            sage: G.pagerank(algorithm="NetworkX")
+            sage: G.pagerank(algorithm="NetworkX") # abs tol 1e-9
             {1: 0.16112205885619568,
              2: 0.16195310432472196,
              3: 0.16112205885619568,
              4: 0.2375,
              5: 0.17775588228760858,
              6: 0.10054689567527803}
-            sage: G.pagerank(algorithm="NetworkX", by_weight=True)
+            sage: G.pagerank(algorithm="NetworkX", by_weight=True) # abs tol 1e-9
             {1: 0.16459583718588988,
              2: 0.1397792859515451,
              3: 0.165398401843396,
              4: 0.3063198690713852,
              5: 0.17000576097071404,
              6: 0.053900844977069616}
-            sage: G.pagerank(algorithm="Numpy")
+            sage: G.pagerank(algorithm="Numpy") # abs tol 1e-9
             {1: 0.16112198303979114,
              2: 0.16195368558382248,
              3: 0.16112198303979122,
              4: 0.2375000000000002,
              5: 0.17775603392041756,
              6: 0.10054631441617742}
-            sage: G.pagerank(algorithm="Numpy", by_weight=True)
+            sage: G.pagerank(algorithm="Numpy", by_weight=True) # abs tol 1e-9
             {1: 0.16459613361799788,
              2: 0.13977926864974763,
              3: 0.1653988472578896,
              4: 0.3063198780991534,
              5: 0.17000501912411242,
              6: 0.053900853251099105}
-            sage: G.pagerank(algorithm="Scipy")
+            sage: G.pagerank(algorithm="Scipy") # abs tol 1e-9
             {1: 0.16112205885619563,
              2: 0.1619531043247219,
              3: 0.16112205885619563,
              4: 0.2374999999999999,
              5: 0.17775588228760858,
              6: 0.100546895675278}
-            sage: G.pagerank(algorithm="Scipy", by_weight=True)
+            sage: G.pagerank(algorithm="Scipy", by_weight=True) # abs tol 1e-9
             {1: 0.16459583718588994,
              2: 0.13977928595154515,
              3: 0.16539840184339605,
              4: 0.3063198690713853,
              5: 0.1700057609707141,
              6: 0.05390084497706962}
-            sage: G.pagerank(algorithm="igraph")  # optional - python_igraph
+            sage: G.pagerank(algorithm="igraph")  # optional - python_igraph # abs tol 1e-9
             {1: 0.16112198303979128,
              2: 0.16195368558382262,
              3: 0.16112198303979125,
              4: 0.23749999999999993,
              5: 0.17775603392041744,
              6: 0.10054631441617742}
-            sage: G.pagerank()
+            sage: G.pagerank() # abs tol 1e-9
             {1: 0.16112198303979114,
              2: 0.16195368558382248,
              3: 0.16112198303979122,
              4: 0.2375000000000002,
              5: 0.17775603392041756,
              6: 0.10054631441617742}
-            sage: G.pagerank(by_weight=True)
+            sage: G.pagerank(by_weight=True) # abs tol 1e-9
             {1: 0.16459613361799788,
              2: 0.13977926864974763,
              3: 0.1653988472578896,

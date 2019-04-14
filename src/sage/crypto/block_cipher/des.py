@@ -256,10 +256,13 @@ class DES(SageObject):
 
             sage: from sage.crypto.block_cipher.des import DES
             sage: des = DES()
-            sage: K = 0x133457799BBCDFF1
+            sage: K64 = 0x133457799BBCDFF1
+            sage: K56 = 0x12695BC9B7B7F8
             sage: P = 0x0123456789ABCDEF
             sage: C = 0x85E813540F0AB405
-            sage: des.encrypt(P, K) == C
+            sage: des.encrypt(P, K64) == C
+            True
+            sage: des.encrypt(P, K56) == C
             True
             sage: K = 0x0101010101010101
             sage: P = 0x95F8A5E5DD31D900
@@ -300,9 +303,12 @@ class DES(SageObject):
 
             sage: from sage.crypto.block_cipher.des import DES
             sage: des = DES()
-            sage: K = 0x7CA110454A1A6E57
+            sage: K64 = 0x7CA110454A1A6E57
+            sage: K56 = 0x7D404224A35BAB
             sage: C = 0x690F5B0D9A26939B
-            sage: des.decrypt(C, K).hex()
+            sage: des.decrypt(C, K64).hex()
+            '1a1d6d039776742'
+            sage: des.decrypt(C, K56).hex()
             '1a1d6d039776742'
         """
         state, inputType = _convert_to_vector(C, 64)
@@ -539,7 +545,7 @@ class DES_KS(SageObject):
              (0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1),
              ...
              (1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1)]
-            sage: K = vector(GF(2),[0,0,0,1,0,0,1,0,0,1,1,0,1,0,0,1,0,1,0,1,1,0,1,1,1,1,0,0,1,0,0,1,1,0,1,1,0,1,1,1,1,0,1,1,0,1,1,1,1,1,1,1,1,0,0,0])
+            sage: K = vector(GF(2),[0,0,0,1,0,0,1,1,0,0,1,1,0,1,0,0,0,1,0,1,0,1,1,1,0,1,1,1,1,0,0,1,1,0,0,1,1,0,1,1,1,0,1,1,1,1,0,0,1,1,0,1,1,1,1,1,1,1,1,1,0,0,0,1])
             sage: ks = DES_KS()
             sage: ks(K)
             [(0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0),
@@ -548,6 +554,20 @@ class DES_KS(SageObject):
              (1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1)]
             sage: K = 0x133457799bbcdff1
             sage: ks = DES_KS(master_key=K)
+            sage: [k.hex() for k in ks]
+            ['1b02effc7072',
+             '79aed9dbc9e5',
+             ...
+             'cb3d8b0e17f5']
+            sage: K56 = vector(GF(2),[0,0,0,1,0,0,1,0,0,1,1,0,1,0,0,1,0,1,0,1,1,0,1,1,1,1,0,0,1,0,0,1,1,0,1,1,0,1,1,1,1,0,1,1,0,1,1,1,1,1,1,1,1,0,0,0])
+            sage: ks = DES_KS(16, K56)
+            sage: [k for k in ks]
+            [(0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0),
+             (0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1),
+             ...
+             (1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1)]
+            sage: K56 = 0x12695BC9B7B7F8
+            sage: ks = DES_KS(master_key=K56)
             sage: [k.hex() for k in ks]
             ['1b02effc7072',
              '79aed9dbc9e5',
@@ -563,9 +583,9 @@ class DES_KS(SageObject):
         K, inputType = _convert_to_vector(K, self._keysize)
         roundKeys = []
         # ensure that K is a 64 bit vector
-        if not any(K[56:]):
+        if not any(K[0:8]):
             # delete msbs and insert 'parity' bits
-            K = list(K)[:56]
+            K = list(K)[8:]
             for i in range(7, 64, 8):
                 K.insert(i, 0)
             K = vector(GF(2), 64, K)
@@ -750,5 +770,5 @@ def _convert_to_vector(I, L):
     except TypeError:
         # ignore the error and try list-like types
         pass
-    state = vector(GF(2), L, ZZ(list(I), 2).digits(2, padto=L))
+    state = vector(GF(2), L, [0]*(L-len(I))+list(I))
     return state, 'vector'

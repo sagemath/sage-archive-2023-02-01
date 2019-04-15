@@ -2067,7 +2067,7 @@ cdef class CGraphBackend(GenericGraphBackend):
                         dist_current[v] = dist_current[u] + 1
                         if not distance_flag:
                             pred_current[v] = u
-                        next_current.append(v)
+                        next_temporary.append(v)
 
                         # If the new neighbor is already known by the other
                         # side ...

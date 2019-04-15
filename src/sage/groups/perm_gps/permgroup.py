@@ -698,17 +698,17 @@ class PermutationGroup_generic(FiniteGroup):
         if self is right:
             return rich_to_bool(op, 0)
 
-        gSelf = self._gap_()
-        gRight = right._gap_()
-        gapcmp = gSelf._cmp_(gRight)
-        if not gapcmp:
-            return rich_to_bool(op, 0)
+        gSelf = self._libgap_()
+        gRight = right._libgap_()
+        if op == op_EQ:
+            return gSelf._richcmp_(gRight, op)
 
         if gSelf.IsSubgroup(gRight):
             return rich_to_bool(op, 1)
         if gRight.IsSubgroup(gSelf):
             return rich_to_bool(op, -1)
-        return rich_to_bool(op, gapcmp)
+
+        return gSelf._richcmp_(gRight, op)
 
     Element = PermutationGroupElement
 

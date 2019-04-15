@@ -11656,31 +11656,39 @@ class Automaton(FiniteStateMachine):
             sage: B = A.minimization(algorithm='Brzozowski')
             sage: B.transitions(B.states()[1])
             [Transition from frozenset({frozenset({'B', 'C'}),
-                        frozenset({'A', 'C'}),
-                        frozenset({'A', 'B', 'C'})}) to frozenset({frozenset({'C'}),
-                        frozenset({'B', 'C'}),
-                        frozenset({'A', 'C'}),
-                        frozenset({'A', 'B', 'C'})}): 0|-,
+                                        frozenset({'A', 'C'}),
+                                        frozenset({'A', 'B', 'C'})})
+                        to frozenset({frozenset({'C'}),
+                                      frozenset({'B', 'C'}),
+                                      frozenset({'A', 'C'}),
+                                      frozenset({'A', 'B', 'C'})}):
+                        0|-,
              Transition from frozenset({frozenset({'B', 'C'}),
-                        frozenset({'A', 'C'}),
-                        frozenset({'A', 'B', 'C'})}) to frozenset({frozenset({'B', 'C'}),
-                        frozenset({'A', 'C'}),
-                        frozenset({'A', 'B', 'C'})}): 1|-]
+                                        frozenset({'A', 'C'}),
+                                        frozenset({'A', 'B', 'C'})})
+                        to frozenset({frozenset({'B', 'C'}),
+                                      frozenset({'A', 'C'}),
+                                      frozenset({'A', 'B', 'C'})}):
+                        1|-]
             sage: len(B.states())
             3
             sage: C = A.minimization(algorithm='Brzozowski')
             sage: C.transitions(C.states()[1])
             [Transition from frozenset({frozenset({'B', 'C'}),
-                        frozenset({'A', 'C'}),
-                        frozenset({'A', 'B', 'C'})}) to frozenset({frozenset({'C'}),
-                        frozenset({'B', 'C'}),
-                        frozenset({'A', 'C'}),
-                        frozenset({'A', 'B', 'C'})}): 0|-,
+                                        frozenset({'A', 'C'}),
+                                        frozenset({'A', 'B', 'C'})})
+                        to frozenset({frozenset({'C'}),
+                                      frozenset({'B', 'C'}),
+                                      frozenset({'A', 'C'}),
+                                      frozenset({'A', 'B', 'C'})}):
+                        0|-,
              Transition from frozenset({frozenset({'B', 'C'}),
-                        frozenset({'A', 'C'}),
-                        frozenset({'A', 'B', 'C'})}) to frozenset({frozenset({'B', 'C'}),
-                        frozenset({'A', 'C'}),
-                        frozenset({'A', 'B', 'C'})}): 1|-]
+                                        frozenset({'A', 'C'}),
+                                        frozenset({'A', 'B', 'C'})})
+                        to frozenset({frozenset({'B', 'C'}),
+                                      frozenset({'A', 'C'}),
+                                      frozenset({'A', 'B', 'C'})}):
+                        1|-]
             sage: len(C.states())
             3
 

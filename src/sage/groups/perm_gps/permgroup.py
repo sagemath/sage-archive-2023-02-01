@@ -152,7 +152,7 @@ from sage.libs.gap.element import GapElement as LibGapElement
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement, standardize_generator
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.misc.cachefunc import cached_method
-from sage.groups.class_function import ClassFunction
+from sage.groups.class_function import ClassFunction_libgap
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.categories.all import FiniteEnumeratedSets
 from sage.groups.conjugacy_classes import ConjugacyClassGAP
@@ -3287,7 +3287,7 @@ class PermutationGroup_generic(FiniteGroup):
             sage: [x.values() for x in irr]
             [[1, -1, 1], [2, 0, -1], [1, 1, 1]]
         """
-        return [ClassFunction(self, irr) for irr in self._gap_().Irr()]
+        return [ClassFunction_libgap(self, irr) for irr in self._libgap_().Irr()]
 
     def trivial_character(self):
         r"""
@@ -3314,7 +3314,7 @@ class PermutationGroup_generic(FiniteGroup):
             sage: G.character([1]*n)
             Character of Alternating group of order 4!/2 as a permutation group
         """
-        return ClassFunction(self, values)
+        return ClassFunction_libgap(self, values)
 
     def conjugacy_classes_representatives(self):
         """

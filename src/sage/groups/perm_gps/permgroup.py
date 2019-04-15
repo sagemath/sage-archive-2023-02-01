@@ -3866,7 +3866,7 @@ class PermutationGroup_generic(FiniteGroup):
             sage: G.is_abelian()
             True
         """
-        return self._gap_().IsAbelian().bool()
+        return bool(self._libgap_().IsAbelian())
 
     def is_commutative(self):
         """
@@ -3896,7 +3896,7 @@ class PermutationGroup_generic(FiniteGroup):
             sage: G.is_cyclic()
             True
         """
-        return self._gap_().IsCyclic().bool()
+        return bool(self._libgap_().IsCyclic())
 
     def is_elementary_abelian(self):
         """
@@ -3913,7 +3913,7 @@ class PermutationGroup_generic(FiniteGroup):
             sage: G.is_elementary_abelian()
             True
         """
-        return self._gap_().IsElementaryAbelian().bool()
+        return bool(self._libgap_().IsElementaryAbelian())
 
     def isomorphism_to(self, right):
         """
@@ -4015,7 +4015,7 @@ class PermutationGroup_generic(FiniteGroup):
             sage: G.is_monomial()
             True
         """
-        return self._gap_().IsMonomialGroup().bool()
+        return bool(self._libgap_().IsMonomialGroup())
 
     def is_nilpotent(self):
         """
@@ -4030,7 +4030,7 @@ class PermutationGroup_generic(FiniteGroup):
             sage: G.is_nilpotent()
             True
         """
-        return self._gap_().IsNilpotent().bool()
+        return bool(self._libgap_().IsNilpotent())
 
     def is_normal(self, other):
         """
@@ -4063,7 +4063,7 @@ class PermutationGroup_generic(FiniteGroup):
             sage: G.is_perfect()
             False
         """
-        return self._gap_().IsPerfectGroup().bool()
+        return bool(self._libgap_().IsPerfectGroup())
 
     def is_pgroup(self):
         """
@@ -4077,7 +4077,7 @@ class PermutationGroup_generic(FiniteGroup):
             sage: G.is_pgroup()
             True
         """
-        return self._gap_().IsPGroup().bool()
+        return bool(self._libgap_().IsPGroup())
 
     def is_polycyclic(self):
         r"""
@@ -4095,7 +4095,7 @@ class PermutationGroup_generic(FiniteGroup):
             sage: G.is_polycyclic()
             True
         """
-        return self._gap_().IsPolycyclicGroup().bool()
+        return bool(self._libgap_().IsPolycyclicGroup())
 
     def is_simple(self):
         """
@@ -4108,7 +4108,7 @@ class PermutationGroup_generic(FiniteGroup):
             sage: G.is_simple()
             False
         """
-        return self._gap_().IsSimpleGroup().bool()
+        return bool(self._libgap_().IsSimpleGroup())
 
     def is_solvable(self):
         """
@@ -4120,7 +4120,7 @@ class PermutationGroup_generic(FiniteGroup):
             sage: G.is_solvable()
             True
         """
-        return self._gap_().IsSolvableGroup().bool()
+        return bool(self._libgap_().IsSolvableGroup())
 
     def is_subgroup(self, other):
         """
@@ -4146,7 +4146,7 @@ class PermutationGroup_generic(FiniteGroup):
             sage: G.is_supersolvable()
             True
         """
-        return self._gap_().IsSupersolvableGroup().bool()
+        return bool(self._libgap_().IsSupersolvableGroup())
 
     def non_fixed_points(self):
         r"""
@@ -4233,11 +4233,11 @@ class PermutationGroup_generic(FiniteGroup):
         #If the domain is not a subset of self.domain(), then the
         #action isn't transitive.
         try:
-            domain = self._domain_gap(domain)
+            domain = libgap.eval(self._domain_gap(domain))
         except ValueError:
             return False
 
-        return self._gap_().IsTransitive(domain).bool()
+        return bool(self._libgap_().IsTransitive(domain))
 
     def is_primitive(self, domain=None):
         r"""
@@ -4282,11 +4282,11 @@ class PermutationGroup_generic(FiniteGroup):
         #If the domain is not a subset of self.domain(), then the
         #action isn't primitive.
         try:
-            domain = self._domain_gap(domain)
+            domain = libgap.eval(self._domain_gap(domain))
         except ValueError:
             return False
 
-        return self._gap_().IsPrimitive(domain).bool()
+        return bool(self._libgap_().IsPrimitive(domain))
 
     def is_semi_regular(self, domain=None):
         r"""
@@ -4315,10 +4315,10 @@ class PermutationGroup_generic(FiniteGroup):
 
         """
         try:
-            domain = self._domain_gap(domain)
+            domain = libgap.eval(self._domain_gap(domain))
         except ValueError:
             return False
-        return self._gap_().IsSemiRegular(domain).bool()
+        return bool(self._libgap_().IsSemiRegular(domain))
 
     def is_regular(self, domain=None):
         r"""
@@ -4347,10 +4347,10 @@ class PermutationGroup_generic(FiniteGroup):
 
         """
         try:
-            domain = self._domain_gap(domain)
+            domain = libgap.eval(self._domain_gap(domain))
         except ValueError:
             return False
-        return self._gap_().IsRegular(domain).bool()
+        return bool(self._libgap_().IsRegular(domain))
 
 
     def normalizes(self, other):
@@ -4378,7 +4378,7 @@ class PermutationGroup_generic(FiniteGroup):
         In the last example, `G` and `H` are disjoint, so each normalizes the
         other.
         """
-        return self._gap_().IsNormal(other).bool()
+        return bool(self._libgap_().IsNormal(other))
 
     ############## Series ######################
 

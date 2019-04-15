@@ -10225,7 +10225,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(D.neighbor_iterator(0))
             [1, 2, 3]
 
-
         ::
 
             sage: g = graphs.CubeGraph(3)
@@ -10260,8 +10259,8 @@ class GenericGraph(GenericGraph_pyx):
 
         for u in self._backend.iterator_nbrs(vertex):
             yield u
-
-
+    
+    
     def vertices(self, sort=True, key=None):
         r"""
         Return a list of the vertices.

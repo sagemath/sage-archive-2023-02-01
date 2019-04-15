@@ -3261,11 +3261,11 @@ class PermutationGroup_generic(FiniteGroup):
         - David Joyner and William Stein (2006-01-04)
 
         """
-        G    = self._gap_()
+        G    = self._libgap_()
         cl   = G.ConjugacyClasses()
         n    = Integer(cl.Length())
         irrG = G.Irr()
-        ct   = [[irrG[i+1, j+1] for j in range(n)] for i in range(n)]
+        ct   = [[irrG[i, j] for j in range(n)] for i in range(n)]
 
         from sage.rings.all import CyclotomicField
         e = irrG.Flat().Conductor()

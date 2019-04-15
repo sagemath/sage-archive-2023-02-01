@@ -4698,9 +4698,9 @@ class PermutationGroup_subgroup(PermutationGroup_generic):
         if check:
             from sage.groups.perm_gps.permgroup_named import SymmetricGroup
             if not isinstance(ambient, SymmetricGroup):
-                ambient_gap_group = ambient._gap_()
+                ambient_gap_group = ambient._libgap_()
                 for g in self.gens():
-                    if g._gap_() not in ambient_gap_group:
+                    if g._libgap_() not in ambient_gap_group:
                         raise TypeError("each generator must be in the ambient group")
 
     def __richcmp__(self, other, op):

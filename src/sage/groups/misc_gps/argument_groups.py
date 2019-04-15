@@ -294,7 +294,7 @@ class AbstractArgument(MultiplicativeGroupElement):
             sage: abs(U(exponent=1/4))  # indirect doctest
             1
         """
-        return 1
+        return self.parent().base().one()
 
 
 class AbstractArgumentGroup(UniqueRepresentation, Parent):

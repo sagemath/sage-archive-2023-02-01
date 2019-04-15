@@ -4503,9 +4503,15 @@ class PermutationGroup_generic(FiniteGroup):
             sage: G.molien_series()
             1/(x^2 - 2*x + 1)
         """
-        pi = self._gap_().NaturalCharacter()
+        pi = self._libgap_().NaturalCharacter()
         # because NaturalCharacter forgets about fixed points :
-        pi += self._gap_().TrivialCharacter() * len(self.fixed_points())
+        pi += self._libgap_().TrivialCharacter() * len(self.fixed_points())
+
+        # TODO: pi is a Character from a CharacterTable on self, however libgap
+        # does not know about this type and when adding two Characters just
+        # returns a plain List; this needs to be fixed on the libgap side but
+        # in the meantime we can fix by converting pi back to the right type
+        pi = libgap.VirtualCharacter(self._libgap_().CharacterTable(), pi)
 
         M = pi.MolienSeries()
 

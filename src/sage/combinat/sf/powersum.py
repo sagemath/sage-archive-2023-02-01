@@ -711,7 +711,8 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
 
             The principal specialization of order `n` is the ring
             homomorphism given by setting `x_i = q^i` for `i \in
-            \{0,\dots,n-1\}` and `x_i = 0` for `i\geq n`.
+            \{0,\dots,n-1\}` and `x_i = 0` for `i\geq n`, see Section
+            7.8 of [EnumComb2]_.
 
             The stable principal specialization is the ring
             homomorphism given by setting `x_i = q^i` for all `i`.
@@ -767,6 +768,40 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
 
         def exponential_specialization(self, t=None, q=1):
             r"""
+            Return the exponential specialization of a symmetric function.
+
+            The exponential specialization `ex` is the ring homomorphism
+            defined on the basis of powersum symmetric functions by
+            setting `p_1 = t` and `p_n = 0` for `n > 1`.  Equivalently,
+            on the basis of homogeneous functions it is given by `ex(h_n)
+            = t^n / n!`, see Proposition 7.8.4 of [EnumComb2]_.
+
+            By analogy `q`-exponential specialization is a ring homomorphism
+            defined on homogeneous symmetric functions `f` of degree `n`
+            as
+
+            .. MATH::
+
+                ex_q(h_n) = t^n / [n]_q!,
+
+            where `[n]_q!` is the `q`-factorial.  Equivalently, for `q \neq 1`
+
+            .. MATH::
+
+                ex_q(f) = (1-q)^n t^n ps(f),
+
+            where `ps(f)` is the stable principal specialisation of `f`.
+            Note that setting `q = 1` in the stable principal
+            specialisation is an invalid operation.
+
+            INPUT:
+
+            - ``t`` (default: None) -- the value to use for `t`, the default
+              is to create the fraction field of polynomials in ``t``
+              over the coefficient ring.
+
+            - ``q`` (default: 1) -- the value to use for `q`.
+
             EXAMPLES::
 
                 sage: p = SymmetricFunctions(QQ).p()

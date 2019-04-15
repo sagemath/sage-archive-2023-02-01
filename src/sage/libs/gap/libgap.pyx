@@ -128,7 +128,7 @@ convert the entries into Sage objects, you should use the
 :meth:`~sage.libs.gap.element.GapElement.sage` method::
 
     sage: rec.sage()
-    {'Sym3': NotImplementedError('cannot construct equivalent Sage object',),
+    {'Sym3': NotImplementedError('cannot construct equivalent Sage object'...),
      'a': 123,
      'b': 456}
 

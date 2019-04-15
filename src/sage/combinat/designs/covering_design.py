@@ -311,7 +311,7 @@ class CoveringDesign(SageObject):
         # mark all t-sets covered by each block
         for a in self.__incidence_structure.blocks():
             for z in Skt:
-                y = [a[x] for x in z]
+                y = (a[x] for x in z)
                 tset[tuple(y)] = True
         for i in Svt:
             if not tset[tuple(i)]:  # uncovered
@@ -516,6 +516,7 @@ def best_known_covering_design_www(v, k, t, verbose=False):
     """
     # import compatible with py2 and py3
     from six.moves.urllib.request import urlopen
+    from sage.cpython.string import bytes_to_str
     v = int(v)
     k = int(k)
     t = int(t)
@@ -523,9 +524,8 @@ def best_known_covering_design_www(v, k, t, verbose=False):
     url = "https://ljcr.dmgordon.org/cover/get_cover.php" + param
     if verbose:
         print("Looking up the bounds at %s" % url)
-    f = urlopen(url)
-    s = f.read()
-    f.close()
+    with urlopen(url) as f:
+        s = bytes_to_str(f.read())
     if 'covering not in database' in s:  # not found
         str = "no (%d, %d, %d) covering design in database\n" % (v, k, t)
         raise ValueError(str)

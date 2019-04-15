@@ -1254,7 +1254,8 @@ class PermutationIET(Permutation):
             2
 
         REFERENCES:
-            Veech
+
+        - Veech
         """
         return self.stratum().genus()
 
@@ -1294,12 +1295,8 @@ class PermutationIET(Permutation):
 
         REFERENCES:
 
-        .. [Jo80] D. Johnson, "Spin structures and quadratic forms on surfaces",
-           J. London Math. Soc (2), 22, 1980, 365-373
-
-        .. [KoZo03] M. Kontsevich, A. Zorich "Connected components of the moduli
-           spaces of Abelian differentials with prescribed singularities",
-           Inventiones Mathematicae, 153, 2003, 631-678
+        - [Joh1980]_
+        - [KZ2003]_
         """
         M = self.intersection_matrix()
         F, C = M.symplectic_form()
@@ -1524,12 +1521,8 @@ class PermutationIET(Permutation):
 
         REFERENCES:
 
-        Gerard Rauzy, "Echanges d'intervalles et transformations induites",
-        Acta Arith. 34, no. 3, 203-212, 1980
-
-        M. Kontsevich, A. Zorich "Connected components of the moduli space
-        of Abelian differentials with prescribed singularities" Invent. math.
-        153, 631-678 (2003)
+        - [Rau1979]_
+        - [KZ2003]_
         """
         test = self.erase_marked_points()
 

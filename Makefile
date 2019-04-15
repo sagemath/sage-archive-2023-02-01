@@ -53,11 +53,10 @@ build/make/Makefile: configure build/make/deps build/make/Makefile.in build/pkgs
 		fi; )
 
 # This is used to monitor progress towards Python 3 and prevent
-# regressions. The target "build" should be upgraded to reflect the
-# level of Python 3 support that is known to work.
+# regressions.
 buildbot-python3: configure
 	./configure --with-python=3
-	$(MAKE) build
+	$(MAKE)
 
 # Preemptively download all standard upstream source tarballs.
 download:

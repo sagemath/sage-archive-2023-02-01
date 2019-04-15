@@ -564,7 +564,7 @@ cdef class InteractiveLPBackend:
                                        problem_type, ring, objective_constant_term=d)
 
 
-    cpdef add_col(self, list indices, list coeffs):
+    cpdef add_col(self, indices, coeffs):
         """
         Add a column.
 
@@ -598,7 +598,7 @@ cdef class InteractiveLPBackend:
             sage: p.nrows()
             5
         """
-        self.add_variable(coefficients = zip(indices, coeffs))
+        self.add_variable(coefficients=zip(indices, coeffs))
 
     cpdef int solve(self) except -1:
         """

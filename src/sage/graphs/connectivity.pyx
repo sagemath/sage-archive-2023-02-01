@@ -2415,7 +2415,7 @@ def spqr_tree(G, algorithm="Hopcroft_Tarjan", solver=None, verbose=0):
                 try:
                     if block[1].has_edge(e):
                         Tree.add_edge(block, P_block)
-                except:
+                except LookupError:
                     continue
             if num == 2:
                 # When 2 S or R blocks are separated by a 2-cut without edge, we
@@ -2439,7 +2439,7 @@ def spqr_tree(G, algorithm="Hopcroft_Tarjan", solver=None, verbose=0):
                     if block[1].has_edge(e):
                         Tree.add_edge(block, P_block)
                         break
-                except:
+                except LookupError:
                     continue
 
     return Tree

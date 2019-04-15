@@ -16,7 +16,7 @@
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from sage.rings.all import Integer
+from sage.rings.all import Integer, ZZ
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.realizations import Realizations, Category_realization_of_parent
@@ -370,7 +370,7 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
                 return self.retract * P._internal_coerce_map_from(Q)
             return None
 
-        def __getitem__(self, c, *rest):
+        def __getitem__(self, c):
             r"""
             Implements shorthand for accessing basis elements.
 
@@ -400,14 +400,11 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
                 ...
                 TypeError: do not know how to make [4, 1] an element of 3-bounded Symmetric Functions over Rational Field with t=1 in the 3-Schur basis
             """
-            if isinstance(c, Partition):
-                if rest:
-                    raise ValueError("Can only accept a partition")
-            else:
-                if rest or isinstance(c, (int, Integer)):
-                    c = Partition([c] + list(rest))
+            if not isinstance(c, Partition):
+                if c in ZZ:
+                    c = Partition([c])
                 else:
-                    c = Partition(list(c))
+                    c = Partition(c)
 
             if c not in self._indices:
                 raise TypeError("do not know how to make %s an element of %s" % (c, self))

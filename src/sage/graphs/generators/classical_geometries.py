@@ -13,7 +13,7 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 #           Copyright (C) 2015 Sagemath project
 #
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
+#                         https://www.gnu.org/licenses/
 ###########################################################################
 from __future__ import absolute_import, division
 from six.moves import range
@@ -173,13 +173,13 @@ def AffineOrthogonalPolarGraph(d,q,sign="+"):
         sage: g.is_vertex_transitive()
         True
     """
-    if sign in ["+","-"]:
+    if sign in ["+", "-"]:
         s = 1 if sign == "+" else -1
-        if d%2 == 1:
-            raise ValueError("d must be even when sign!=None")
+        if d % 2:
+            raise ValueError("d must be even when sign is not None")
     else:
-        if d%2 == 0:
-            raise ValueError("d must be odd when sign==None")
+        if d % 2 == 0:
+            raise ValueError("d must be odd when sign is None")
         s = 0
 
     from sage.modules.free_module import VectorSpace

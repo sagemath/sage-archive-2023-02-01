@@ -143,14 +143,14 @@ cpdef py_scalar_parent(py_type):
         sage: py_scalar_parent(numpy.complex)
         Complex Double Field
         
-        sage: import gmpy2                  # optional - gmpy2
-        sage: py_scalar_parent(gmpy2.mpz)   # optional - gmpy2
+        sage: import gmpy2
+        sage: py_scalar_parent(gmpy2.mpz)
         Integer Ring
-        sage: py_scalar_parent(gmpy2.mpq)   # optional - gmpy2
+        sage: py_scalar_parent(gmpy2.mpq)
         Rational Field
-        sage: py_scalar_parent(gmpy2.mpfr)  # optional - gmpy2
+        sage: py_scalar_parent(gmpy2.mpfr)
         Real Double Field
-        sage: py_scalar_parent(gmpy2.mpc)   # optional - gmpy2
+        sage: py_scalar_parent(gmpy2.mpc)
         Complex Double Field
     """
     if issubclass(py_type, int) or issubclass(py_type, long):
@@ -233,18 +233,18 @@ cpdef py_scalar_to_element(x):
 
     Test gmpy2's types::
 
-        sage: import gmpy2                               # optional - gmpy2 
-        sage: x = py_scalar_to_element(gmpy2.mpz(42))    # optional - gmpy2
-        sage: x, parent(x)                               # optional - gmpy2
+        sage: import gmpy2
+        sage: x = py_scalar_to_element(gmpy2.mpz(42))
+        sage: x, parent(x)
         (42, Integer Ring)
-        sage: x = py_scalar_to_element(gmpy2.mpq('3/4')) # optional - gmpy2
-        sage: x, parent(x)                               # optional - gmpy2
+        sage: x = py_scalar_to_element(gmpy2.mpq('3/4'))
+        sage: x, parent(x)
         (3/4, Rational Field) 
-        sage: x = py_scalar_to_element(gmpy2.mpfr(42.57))# optional - gmpy2
-        sage: x, parent(x)                               # optional - gmpy2
+        sage: x = py_scalar_to_element(gmpy2.mpfr(42.57))
+        sage: x, parent(x)
         (42.57, Real Double Field)
-        sage: x = py_scalar_to_element(gmpy2.mpc(int(42), int(42))) # optional - gmpy2
-        sage: x, parent(x)                               # optional - gmpy2
+        sage: x = py_scalar_to_element(gmpy2.mpc(int(42), int(42)))
+        sage: x, parent(x)
         (42.0 + 42.0*I, Complex Double Field)
 
     Test compatibility with :func:`py_scalar_parent`::
@@ -265,9 +265,9 @@ cpdef py_scalar_to_element(x):
         sage: for x in elt:
         ....:     assert py_scalar_parent(type(x)) == py_scalar_to_element(x).parent()
         
-        sage: elt = [gmpy2.mpz(42), gmpy2.mpq('3/4'),               # optional - gmpy2
+        sage: elt = [gmpy2.mpz(42), gmpy2.mpq('3/4'),
         ....:        gmpy2.mpfr(42.57), gmpy2.mpc(int(42), int(42))]
-        sage: for x in elt:                                         # optional - gmpy2
+        sage: for x in elt:
         ....:     assert py_scalar_parent(type(x)) == py_scalar_to_element(x).parent()
     """
     if isinstance(x, Element):
@@ -490,7 +490,7 @@ cdef class CoercionModel:
 
     - Robert Bradshaw
     """
-    def __init__(self, *args, **kwds):
+    def __init__(self):
         """
         EXAMPLES::
 
@@ -500,18 +500,10 @@ cdef class CoercionModel:
             sage: A = cm.get_action(ZZ, K, operator.mul)
             sage: f, g = cm.coercion_maps(QQ, int)
             sage: f, g = cm.coercion_maps(ZZ, int)
-
-        TESTS::
-
-            sage: cm = CoercionModel(4, .95)
-            doctest:...: DeprecationWarning: the 'lookup_dict_size' argument is deprecated
-            See http://trac.sagemath.org/24135 for details.
-            doctest:...: DeprecationWarning: the 'lookup_dict_threshold' argument is deprecated
-            See http://trac.sagemath.org/24135 for details.
         """
-        self.reset_cache(*args, **kwds)
+        self.reset_cache()
 
-    def reset_cache(self, lookup_dict_size=None, lookup_dict_threshold=None):
+    def reset_cache(self):
         """
         Clear the coercion cache.
 
@@ -529,12 +521,6 @@ cdef class CoercionModel:
             sage: cm.get_cache()
             ({}, {})
         """
-        if lookup_dict_size is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(24135, "the 'lookup_dict_size' argument is deprecated")
-        if lookup_dict_threshold is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(24135, "the 'lookup_dict_threshold' argument is deprecated")
         # This MUST be a mapping of tuples, where each
         # tuple contains at least two elements that are either
         # None or of type Map.

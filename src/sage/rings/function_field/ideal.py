@@ -108,7 +108,7 @@ from sage.rings.ideal import Ideal_generic
 
 from sage.matrix.constructor import matrix
 
-from .divisor import divisor, prime_divisor
+from .divisor import divisor
 
 class FunctionFieldIdeal(Element):
     """

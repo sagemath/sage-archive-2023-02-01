@@ -95,7 +95,6 @@ from __future__ import print_function
 
 from sage.structure.sage_object import SageObject
 from sage.modular.modsym.all import ModularSymbols
-from sage.libs.eclib.newforms import ECModularSymbol
 from sage.databases.cremona import parse_cremona_label
 
 from sage.arith.all import next_prime, kronecker_symbol, prime_divisors, valuation
@@ -304,6 +303,8 @@ class ModularSymbolECLIB(ModularSymbol):
             sage: m(0)
             1/5
         """
+        from sage.libs.eclib.newforms import ECModularSymbol
+
         if not sign in [-1,1]:
             raise TypeError('sign must -1 or 1')
         self._sign = ZZ(sign)

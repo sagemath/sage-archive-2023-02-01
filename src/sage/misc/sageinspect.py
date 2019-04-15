@@ -122,14 +122,22 @@ import ast
 import inspect
 import functools
 import os
+import sys
 import tokenize
 import re
 EMBEDDED_MODE = False
 from sage.env import SAGE_LIB
 
+try:
+    import importlib.machinery as import_machinery
+except ImportError:
+    pass
+
+
 def loadable_module_extension():
     r"""
     Return the filename extension of loadable modules, including the dot.
+
     It is '.dll' on cygwin, '.so' otherwise.
 
     EXAMPLES::
@@ -138,11 +146,15 @@ def loadable_module_extension():
         sage: sage.structure.sage_object.__file__.endswith(loadable_module_extension())
         True
     """
-    import sys
-    if sys.platform == 'cygwin':
-        return os.path.extsep+'dll'
+    if six.PY2:
+        if sys.platform == 'cygwin':
+            return os.path.extsep + 'dll'
+        else:
+            return os.path.extsep + 'so'
     else:
-        return os.path.extsep+'so'
+        # Return the full platform-specific extension module suffix
+        return import_machinery.EXTENSION_SUFFIXES[0]
+
 
 def isclassinstance(obj):
     r"""
@@ -2093,7 +2105,8 @@ def _sage_getsourcelines_name_with_dot(obj):
         # the length of lines, which causes an error.  Safeguard against that.
         lnum = min(obj.co_firstlineno,len(lines))-1
         while lnum > 0:
-            if pmatch(lines[lnum]): break
+            if pmatch(lines[lnum]):
+                break
             lnum -= 1
 
         return inspect.getblock(lines[lnum:]), lnum+base_lineno

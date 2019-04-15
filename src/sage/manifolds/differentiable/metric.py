@@ -9,7 +9,8 @@ parallelizable manifold.
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013-2015) : initial version
-- Pablo Angulo (2016): Schouten, Cotton and Cotton-York tensors
+- Pablo Angulo (2016) : Schouten, Cotton and Cotton-York tensors
+- Florentin Jaffredo (2018) : series expansion for the inverse metric
 
 REFERENCES:
 
@@ -19,14 +20,15 @@ REFERENCES:
 
 """
 #******************************************************************************
-#       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
-#       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
-#       Copyright (C) 2016 Pablo Angulo <pang@cancamusa.net>
+#  Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
+#  Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
+#  Copyright (C) 2016 Pablo Angulo <pang@cancamusa.net>
+#  Copyright (C) 2018 Florentin Jaffredo <florentin.jaffredo@polytechnique.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #******************************************************************************
 from six.moves import range
 
@@ -160,11 +162,9 @@ class PseudoRiemannianMetric(TensorField):
     As a field of bilinear forms, the metric acts on pairs of tensor fields,
     yielding a scalar field::
 
-        sage: a = M.vector_field('a')
-        sage: a[eU,:] = [x, 2+y]
+        sage: a = M.vector_field({eU: [x, 2+y]}, name='a')
         sage: a.add_comp_by_continuation(eV, W, chart=c_uv)
-        sage: b = M.vector_field('b')
-        sage: b[eU,:] = [-y, x]
+        sage: b = M.vector_field({eU: [-y, x]}, name='b')
         sage: b.add_comp_by_continuation(eV, W, chart=c_uv)
         sage: s = g(a,b) ; s
         Scalar field g(a,b) on the 2-dimensional differentiable manifold S^2
@@ -643,15 +643,31 @@ class PseudoRiemannianMetric(TensorField):
                 rst.set(symbiform_rst)
 
 
-    def inverse(self):
+    def inverse(self, expansion_symbol=None, order=1):
         r"""
         Return the inverse metric.
+
+        INPUT:
+
+        - ``expansion_symbol`` -- (default: ``None``) symbolic variable; if
+          specified, the inverse will be expanded in power series with respect
+          to this variable (around its zero value)
+        - ``order`` -- integer (default: 1); the order of the expansion
+          if ``expansion_symbol`` is not ``None``; the *order* is defined as
+          the degree of the polynomial representing the truncated power series
+          in ``expansion_symbol``; currently only first order inverse is
+          supported
+
+        If ``expansion_symbol`` is set, then the zeroth order metric must be
+        invertible. Moreover, subsequent calls to this method will return
+        a cached value, even when called with the default value (to enable
+        computation of derived quantities). To reset, use :meth:`_del_derived`.
 
         OUTPUT:
 
         - instance of
           :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
-          with tensor_type = (2,0) representing the inverse metric
+          with ``tensor_type`` = (2,0) representing the inverse metric
 
         EXAMPLES:
 
@@ -687,10 +703,12 @@ class PseudoRiemannianMetric(TensorField):
             True
 
         """
-        # Is the inverse metric up to date ?
+        # Is the inverse metric up to date?
         for dom, rst in self._restrictions.items():
-            self._inverse._restrictions[dom] = rst.inverse() # forces the
-                                                    # update of the restriction
+            self._inverse._restrictions[dom] = rst.inverse(
+                                             expansion_symbol=expansion_symbol,
+                                             order=order) # forces the update
+                                                          # of the restriction
         return self._inverse
 
     def connection(self, name=None, latex_name=None, init_coef=True):
@@ -1752,10 +1770,9 @@ class PseudoRiemannianMetric(TensorField):
             sage: X.<x,y,z> = M.chart()
             sage: g = M.metric('g')
             sage: g[1,1], g[2,2], g[3,3] = 1, 1, 1
-            sage: a = M.one_form('A')
             sage: var('Ax Ay Az')
             (Ax, Ay, Az)
-            sage: a[:] = (Ax, Ay, Az)
+            sage: a = M.one_form(Ax, Ay, Az, name='A')
             sage: sa = g.hodge_star(a) ; sa
             2-form *A on the 3-dimensional differentiable manifold M
             sage: sa.display()
@@ -1807,10 +1824,9 @@ class PseudoRiemannianMetric(TensorField):
 
         Hodge dual of a 1-form in Minkowksi spacetime::
 
-            sage: a = M.one_form('A')
             sage: var('At Ax Ay Az')
             (At, Ax, Ay, Az)
-            sage: a[:] = (At, Ax, Ay, Az)
+            sage: a = M.one_form(At, Ax, Ay, Az, name='A')
             sage: a.display()
             A = At dt + Ax dx + Ay dy + Az dz
             sage: sa = g.hodge_star(a) ; sa
@@ -1826,7 +1842,7 @@ class PseudoRiemannianMetric(TensorField):
 
         Hodge dual of a 2-form in Minkowksi spacetime::
 
-            sage: F = M.diff_form(2, 'F')
+            sage: F = M.diff_form(2, name='F')
             sage: var('Ex Ey Ez Bx By Bz')
             (Ex, Ey, Ez, Bx, By, Bz)
             sage: F[0,1], F[0,2], F[0,3] = -Ex, -Ey, -Ez
@@ -1868,10 +1884,10 @@ class PseudoRiemannianMetric(TensorField):
         where `A` and `B` are any 1-forms and `A^\sharp` and `B^\sharp` the
         vectors associated to them by the metric `g` (index raising)::
 
-            sage: b = M.one_form('B')
             sage: var('Bt Bx By Bz')
             (Bt, Bx, By, Bz)
-            sage: b[:] = (Bt, Bx, By, Bz) ; b.display()
+            sage: b = M.one_form(Bt, Bx, By, Bz, name='B')
+            sage: b.display()
             B = Bt dt + Bx dx + By dy + Bz dz
             sage: epsilon = g.volume_form()
             sage: g.hodge_star(a.wedge(b)) == epsilon.contract(0,a.up(g)).contract(0,b.up(g))
@@ -2220,15 +2236,31 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             rst = self.restrict(dom)
             rst.set(symbiform_rst)
 
-    def inverse(self):
+    def inverse(self, expansion_symbol=None, order=1):
         r"""
         Return the inverse metric.
+
+        INPUT:
+
+        - ``expansion_symbol`` -- (default: ``None``) symbolic variable; if
+          specified, the inverse will be expanded in power series with respect
+          to this variable (around its zero value)
+        - ``order`` -- integer (default: 1); the order of the expansion
+          if ``expansion_symbol`` is not ``None``; the *order* is defined as
+          the degree of the polynomial representing the truncated power series
+          in ``expansion_symbol``; currently only first order inverse is
+          supported
+
+        If ``expansion_symbol`` is set, then the zeroth order metric must be
+        invertible. Moreover, subsequent calls to this method will return
+        a cached value, even when called with the default value (to enable
+        computation of derived quantities). To reset, use :meth:`_del_derived`.
 
         OUTPUT:
 
         - instance of
           :class:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal`
-          with tensor_type = (2,0) representing the inverse metric
+          with ``tensor_type`` = (2,0) representing the inverse metric
 
         EXAMPLES:
 
@@ -2268,7 +2300,66 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             [ (x - 1)/(x**2*y**2 + x**2 - 1)      x*y/(x**2*y**2 + x**2 - 1)]
             [     x*y/(x**2*y**2 + x**2 - 1) -(x + 1)/(x**2*y**2 + x**2 - 1)]
 
+        Demonstration of the series expansion capabilities::
+
+            sage: M = Manifold(4, 'M', structure='Lorentzian')
+            sage: C.<t,x,y,z> = M.chart()
+            sage: e = var('e')
+            sage: g = M.metric()
+            sage: h = M.tensor_field(0, 2, sym=(0,1))
+            sage: g[0, 0], g[1, 1], g[2, 2], g[3, 3] = -1, 1, 1, 1
+            sage: h[0, 1], h[1, 2], h[2, 3] = 1, 1, 1
+            sage: g.set(g + e*h)
+
+        If ``e`` is a small parameter, ``g`` is a tridiagonal approximation of
+        the Minkowski metric::
+
+            sage: g[:]
+            [-1  e  0  0]
+            [ e  1  e  0]
+            [ 0  e  1  e]
+            [ 0  0  e  1]
+
+        The inverse, truncated to first order in ``e``, is::
+
+            sage: g.inverse(expansion_symbol=e)[:]
+            [-1  e  0  0]
+            [ e  1 -e  0]
+            [ 0 -e  1 -e]
+            [ 0  0 -e  1]
+
+        If ``inverse()`` is called subsequently, the result will be the same.
+        This allows for all computations to be made to first order::
+
+            sage: g.inverse()[:]
+            [-1  e  0  0]
+            [ e  1 -e  0]
+            [ 0 -e  1 -e]
+            [ 0  0 -e  1]
+
         """
+        if expansion_symbol is not None:
+            if (self._inverse is not None and bool(self._inverse._components)
+                and self._inverse._components.values()[0][0,0]._expansion_symbol
+                    == expansion_symbol
+                and self._inverse._components.values()[0][0,0]._order == order):
+                return self._inverse
+
+            if order != 1:
+                raise NotImplementedError("only first order inverse is implemented")
+            decompo = self.series_expansion(expansion_symbol, order)
+            g0 = decompo[0]
+            g1 = decompo[1]
+
+            g0m = self._new_instance()   # needed because only metrics have
+            g0m.set_comp()[:] = g0[:]    # an "inverse" method.
+
+            contraction = g1.contract(0, g0m.inverse(), 0)
+            contraction = contraction.contract(1, g0m.inverse(), 1)
+            self._inverse = g0m.inverse() - expansion_symbol * contraction
+            self._inverse.set_calc_order(expansion_symbol, order)
+            return self._inverse
+
         from sage.matrix.constructor import matrix
         from sage.tensor.modules.comp import CompFullySym
         # Is the inverse metric up to date ?

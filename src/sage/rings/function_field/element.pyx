@@ -18,6 +18,13 @@ Arithmetic with rational functions::
     sage: h.valuation(t^2 - 3)
     -3
 
+Derivatives of elements in separable extensions::
+
+    sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+    sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+    sage: (y^3 + x).derivative()
+    ((x^2 + 1)/x^2)*y + (x^4 + x^3 + 1)/x^3
+
 The divisor of an element of a global function field::
 
     sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
@@ -333,6 +340,47 @@ cdef class FunctionFieldElement(FieldElement):
         R = self.parent().base_field().maximal_order()
         return all(a in R for a in self.minimal_polynomial())
 
+    def differential(self):
+        """
+        Return the differential `dx` where `x` is the element.
+
+        EXAMPLES::
+
+            sage: K.<t> = FunctionField(QQ)
+            sage: f = 1 / t
+            sage: f.differential()
+            (-1/t^2) d(t)
+
+            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x +1/x)
+            sage: (y^3 + x).differential()
+            (((x^2 + 1)/x^2)*y + (x^4 + x^3 + 1)/x^3) d(x)
+        """
+        F = self.parent()
+        W = F.space_of_differentials()
+        return W.element_class(W, F.one(), self)
+
+    def derivative(self):
+        """
+        Return the derivative of the element.
+
+        The derivative is with respect to the generator of the base rational
+        function field, over which the function field is a separable extension.
+
+        EXAMPLES::
+
+            sage: K.<t> = FunctionField(QQ)
+            sage: f = (t + 1) / (t^2 - 1/3)
+            sage: f.derivative()
+            (-t^2 - 2*t - 1/3)/(t^4 - 2/3*t^2 + 1/9)
+
+            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: (y^3 + x).derivative()
+            ((x^2 + 1)/x^2)*y + (x^4 + x^3 + 1)/x^3
+        """
+        D = self.parent().derivation()
+        return D(self)
 
 cdef class FunctionFieldElement_polymod(FunctionFieldElement):
     """
@@ -995,11 +1043,32 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         J = F.maximal_order_infinite().ideal(self)
         return I.divisor_of_poles() + J.divisor_of_poles()
 
+    def higher_derivative(self, i, separating_element=None):
+        """
+        Return the `i`-th derivative of the element with respect to the
+        separating element.
+
+        INPUT:
+
+        - ``i`` -- nonnegative integer
+
+        - ``separating_element`` -- separating element of the function field;
+            the default is the generator of the rational function field
+
+        EXAMPLES::
+
+            sage: K.<t> = FunctionField(GF(2))
+            sage: f = t^2
+            sage: f.higher_derivative(2)
+            1
+        """
+        D = self.parent().higher_derivation()
+        return D(self, i, separating_element)
+
 cdef class FunctionFieldElement_global(FunctionFieldElement_polymod):
     """
     Elements of global function fields
     """
-
     def valuation(self, place):
         """
         Return the valuation of the element at the place.
@@ -1079,3 +1148,25 @@ cdef class FunctionFieldElement_global(FunctionFieldElement_polymod):
         I = F.maximal_order().ideal(self)
         J = F.maximal_order_infinite().ideal(self)
         return I.divisor_of_poles() + J.divisor_of_poles()
+
+    def higher_derivative(self, i, separating_element=None):
+        """
+        Return the ``i``-th order higher derivative of the element with respect
+        to the separating element.
+
+        INPUT:
+
+        - ``i`` -- nonnegative integer
+
+        - ``separating_element`` -- separating element of the function field;
+          the default is the generator of the base rational function field
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: (y^3 + x).higher_derivative(2)
+            1/x^3*y + (x^6 + x^4 + x^3 + x^2 + x + 1)/x^5
+        """
+        D = self.parent().higher_derivation()
+        return D(self, i, separating_element)

@@ -1147,8 +1147,8 @@ cdef class UntwistedAffineLieAlgebraElement(Element):
 
             sage: L = lie_algebras.Affine(QQ, ['A',1,1])
             sage: e1,f1,h1,e0,f0,c,d = list(L.lie_algebra_generators())
-            sage: e0.bracket(e1) + d + e1 + c + 3*d
-            (E[alpha[1]])#t^0 + (-h1)#t^1 + c + 4*d
+            sage: e0.bracket(e1) + d + c + 3*d
+            (-h1)#t^1 + c + 4*d
         """
         cdef UntwistedAffineLieAlgebraElement rt = <UntwistedAffineLieAlgebraElement> other
         return type(self)(self._parent, add(self._t_dict, rt._t_dict),
@@ -1163,8 +1163,8 @@ cdef class UntwistedAffineLieAlgebraElement(Element):
 
             sage: L = lie_algebras.Affine(QQ, ['A',1,1])
             sage: e1,f1,h1,e0,f0,c,d = list(L.lie_algebra_generators())
-            sage: e0.bracket(e1) + d - e1 + c - 3*d
-            (-E[alpha[1]])#t^0 + (-h1)#t^1 + c + -2*d
+            sage: d - e1 + c - 3*d
+            (-E[alpha[1]])#t^0 + c + -2*d
             sage: 4*c - e0.bracket(f0)
             (h1)#t^0
             sage: 4*c - e0.bracket(f0) - h1
@@ -1188,8 +1188,8 @@ cdef class UntwistedAffineLieAlgebraElement(Element):
             sage: L = lie_algebras.Affine(QQ, ['A',1,1])
             sage: e1,f1,h1,e0,f0,c,d = list(L.lie_algebra_generators())
             sage: x = e0.bracket(e1) + d + e1 + c + 3*d
-            sage: -x
-            (-E[alpha[1]])#t^0 + (h1)#t^1 + -1*c + -4*d
+            sage: -x + e1
+            (h1)#t^1 + -1*c + -4*d
         """
         return type(self)(self._parent, negate(self._t_dict),
                           -self._c_coeff, -self._d_coeff)

@@ -171,7 +171,7 @@ For `i` an element of the index set of type `X`, the crystal `B_i` of type
 
     B_i = \{ b_i(m) : m \in \ZZ \},
 
-where the crystal stucture is given by `\mathrm{wt}\bigl(b_i(m)\bigr) =
+where the crystal structure is given by `\mathrm{wt}\bigl(b_i(m)\bigr) =
 m\alpha_i` and
 
 .. MATH::

@@ -526,7 +526,7 @@ cdef class CRElement(pAdicTemplateElement):
         When ``right`` is divisible by `p` then one can get more
         precision than expected.
 
-        Lemma 2.1 [SP]_:
+        Lemma 2.1 [Pau2006]_:
 
         Let `\alpha` be in `\mathcal{O}_K`.  Let
 
@@ -611,7 +611,7 @@ cdef class CRElement(pAdicTemplateElement):
 
         REFERENCES:
 
-        .. [SP] *Constructing Class Fields over Local Fields*. Sebastian Pauli.
+        - [Pau2006]_
 
         INPUT:
 

@@ -112,7 +112,6 @@ Comprehensive Module list
     sage/combinat/designs/subhypergraph_search
     sage/combinat/designs/twographs
     sage/combinat/diagram_algebras
-    sage/combinat/dict_addition
     sage/combinat/dlx
     sage/combinat/dyck_word
     sage/combinat/e_one_star

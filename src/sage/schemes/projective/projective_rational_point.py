@@ -163,7 +163,7 @@ def enum_projective_number_field(X, **kwds):
     ALGORITHM:
 
     This is an implementation of the revised algorithm (Algorithm 4) in
-    [Doyle-Krumm]_. Algorithm 5 is used for imaginary quadratic fields.
+    [DK2013]_. Algorithm 5 is used for imaginary quadratic fields.
     
     INPUT:
 
@@ -509,9 +509,11 @@ def sieve(X, bound):
                 continue
 
             try:
-                rat_points.add(X(list(A[1]))) # checks if this point lies on X or not
-            except:
+                pt = X(list(A[1]))
+            except TypeError:
                 pass
+            else:
+                rat_points.add(pt)
 
         return [list(_) for _ in rat_points]
 

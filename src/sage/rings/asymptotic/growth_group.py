@@ -5192,7 +5192,7 @@ class GrowthGroupFactory(UniqueFactory):
 
     ::
 
-        sage: TestSuite(GrowthGroup('QQ^y')).run(verbose=True)  # long time
+        sage: TestSuite(GrowthGroup('(QQ_+)^y')).run(verbose=True)  # long time
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
         running ._test_cardinality() . . . pass

@@ -1906,10 +1906,6 @@ class FSMState(SageObject):
 
         A string.
 
-        .. TODO::
-
-            When the label is a frozenset, py2 and py3 disagree.
-
         TESTS::
 
             sage: from sage.combinat.finite_state_machine import FSMState

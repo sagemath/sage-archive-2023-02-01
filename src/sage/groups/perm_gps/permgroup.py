@@ -3465,14 +3465,13 @@ class PermutationGroup_generic(FiniteGroup):
             [ (1,4)(2,3), (1,3)(2,4) ] ))
 
         """
-        gap = self._gap_().parent()
-        C = gap.new("""
-            First(ConjugacyClassesSubgroups(%s),
-                x -> IsRegular(Representative(x), [1..%d]))
-        """ % (self._gap_().name(), self.degree()))
+        filt = libgap.eval('x -> IsRegular(Representative(x), [1..{}])'.format(
+            self.degree()))
+        C = libgap.First(self._libgap_().ConjugacyClassesSubgroups(), filt)
         # prevent caching GAP fails
-        if gap.eval('%s = fail' % C.name()) == 'true':
+        if str(C) == 'fail':
             return None
+
         return C
 
     @cached_method

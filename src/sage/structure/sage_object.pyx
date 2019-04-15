@@ -697,6 +697,17 @@ cdef class SageObject:
         I = sage.interfaces.gap.gap
         return self._interface_init_(I)
 
+    def _libgap_(self):
+        from sage.libs.gap.libgap import libgap
+        return libgap.eval(self._libgap_init_())
+
+    def _libgap_init_(self):
+        """
+        For consistency's sake we provide a ``_libgap_init_`` but in most cases
+        we can use the same as ``_gap_init_`` here.
+        """
+        return self._gap_init_()
+
     def _gp_(self, G=None):
         if G is None:
             import sage.interfaces.gp

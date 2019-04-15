@@ -114,8 +114,7 @@ from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.structure.element import is_Matrix
 from sage.matrix.all     import MatrixSpace
-from sage.interfaces.all import gap
-from sage.interfaces.gap import is_GapElement
+from sage.libs.gap.libgap import libgap
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 import sage.structure.coerce as coerce
 from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
@@ -513,7 +512,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             if not (parent is None or isinstance(parent, PermutationGroup_generic)):
                 raise TypeError('parent must be a permutation group')
             if parent is not None:
-                P = parent.gap()
+                P = parent._libgap_()
                 if not P.parent().eval(self.__gap) in P:
                     raise TypeError('permutation %s not in %s' % (g, parent))
 
@@ -603,11 +602,9 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         return self._gap_element
 
     def _libgap_(self):
-        from sage.libs.gap.libgap import libgap as gap
-
         if (self._gap_element is None or
-                self._gap_element._parent is not gap):
-            self._gap_element = gap.eval(self._gap_init_())
+                self._gap_element._parent is not libgap):
+            self._gap_element = libgap.eval(self._libgap_init_())
 
         return self._gap_element
 
@@ -628,7 +625,6 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: type(p_libgap) == type(p_pexpect)
             False
         """
-        from sage.libs.gap.libgap import libgap
         return libgap(self)
 
     def _gap_init_(self):
@@ -1617,9 +1613,9 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         from sage.groups.perm_gps.permgroup import PermutationGroup
         from sage.interfaces.all import gap
 
-        G = gap(words[0].parent())
+        G = libgap(words[0].parent())
         g = words[0].parent()(self)
-        H = gap.Group(words)
+        H = libgap.Group(words)
         ans = G.EpimorphismFromFreeGroup().PreImagesRepresentative(g)
 
         l1 = str(ans)

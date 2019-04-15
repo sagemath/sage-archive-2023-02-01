@@ -147,7 +147,7 @@ from sage.groups.group import FiniteGroup
 from sage.rings.all import QQ, Integer
 from sage.interfaces.expect import is_ExpectElement
 from sage.interfaces.gap import GapElement
-from sage.libs.gap.libgap import libgap as gap
+from sage.libs.gap.libgap import libgap
 from sage.libs.gap.element import GapElement as LibGapElement
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement, standardize_generator
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
@@ -170,7 +170,7 @@ def load_hap():
     """
     from sage.features.gap import GapPackage
     GapPackage("hap", spkg="gap_packages").require()
-    gap.load_package("hap")
+    libgap.load_package("hap")
 
 
 def hap_decorator(f):
@@ -229,7 +229,7 @@ def direct_product_permgroups(P):
     elif n == 1:
         return P[0]
     else:
-        G = gap.DirectProduct(*P)
+        G = libgap.DirectProduct(*P)
         return PermutationGroup(gap_group=G)
 
 def from_gap_list(G, src):
@@ -423,7 +423,7 @@ class PermutationGroup_generic(FiniteGroup):
             # defining the GAP group from the original construction information
             # helps to avoid buffer size overflow since it avoids transferring
             # lists of long generators (example PSp(8,3), see :trac:`26750`
-            self._libgap = gap.eval(gap_group)
+            self._libgap = libgap.eval(gap_group)
             gap_group = self._libgap
 
         if isinstance(gap_group, LibGapElement):
@@ -602,7 +602,7 @@ class PermutationGroup_generic(FiniteGroup):
         if self._libgap is not None:
             return self._libgap
 
-        return gap(self)
+        return libgap(self)
 
     def _Hom_(self, G, category=None, check=True):
         r"""
@@ -1561,7 +1561,7 @@ class PermutationGroup_generic(FiniteGroup):
         except KeyError:
             raise NotImplementedError("This action is not implemented (yet?).")
         point = input_for_gap(point, 0, container)
-        result = self.gap().Orbit(point, getattr(gap, action)).sage()
+        result = self.gap().Orbit(point, getattr(libgap, action)).sage()
         result = [gap_to_output(x, 0, container) for x in result]
         return tuple(result)
 
@@ -1680,7 +1680,7 @@ class PermutationGroup_generic(FiniteGroup):
         except KeyError as x:
             raise ValueError("{} does not belong to the domain".format(x))
 
-        stabilizer = gap.Stabilizer(self, point, getattr(gap, action))
+        stabilizer = libgap.Stabilizer(self, point, getattr(libgap, action))
 
         return self.subgroup(gap_group=stabilizer)
 
@@ -1832,7 +1832,7 @@ class PermutationGroup_generic(FiniteGroup):
                 raise ValueError("the optional argument 'base_of_group'"
                                  " (='%s') must be None if 'implementation'='gap'" % base_of_group)
 
-            gap_cosets = gap.function_factory("""function ( S0 )
+            gap_cosets = libgap.function_factory("""function ( S0 )
                 local   CosetsStabChain;
                 CosetsStabChain := function(S)  # for the recursive call
                 local   cosets,             # element list, result
@@ -1869,11 +1869,11 @@ class PermutationGroup_generic(FiniteGroup):
                end;
                return CosetsStabChain(S0);
             end;""")
-            G = gap.Group(self.gens())  # G = libgap(self)
+            G = libgap.Group(self.gens())  # G = libgap(self)
             S = G.StabChain()
             cosets = gap_cosets(S)
             one = self.one()
-            return [[one._generate_new_GAP(gap.ListPerm(elt))
+            return [[one._generate_new_GAP(libgap.ListPerm(elt))
                      for elt in coset] for coset in cosets]
 
         if implementation == "sage":
@@ -2279,7 +2279,7 @@ class PermutationGroup_generic(FiniteGroup):
 
         if other not in FinitePermutationGroups():
             raise TypeError("{0} is not a permutation group".format(other))
-        return PermutationGroup(gap_group=gap.Intersection(self, other))
+        return PermutationGroup(gap_group=libgap.Intersection(self, other))
 
     def conjugacy_class(self, g):
         r"""
@@ -2406,7 +2406,7 @@ class PermutationGroup_generic(FiniteGroup):
             g = PermutationGroupElement(g)
         except Exception:
             raise TypeError("{0} does not convert to a permutation group element".format(g))
-        return PermutationGroup(gap_group=gap.ConjugateGroup(self, g))
+        return PermutationGroup(gap_group=libgap.ConjugateGroup(self, g))
 
     def direct_product(self, other, maps=True):
         """
@@ -2651,20 +2651,20 @@ class PermutationGroup_generic(FiniteGroup):
                 raise ValueError(msg)
 
         # create a parallel list of the automorphisms of N in GAP
-        gap.eval('N := Group(' + str(N.gens()) + ')')
+        libgap.eval('N := Group({})'.format(N.gens()))
         gens_string = ",".join(str(x) for x in N.gens())
         homomorphism_cmd = 'alpha := GroupHomomorphismByImages(N, N, [{0}],[{1}])'
-        gap.eval('morphisms := []')
+        libgap.eval('morphisms := []')
         for alpha in mapping[1]:
             images_string = ",".join(str(alpha(n)) for n in N.gens())
-            gap.eval(homomorphism_cmd.format(gens_string, images_string))
-            gap.eval('Add(morphisms, alpha)')
+            libgap.eval(homomorphism_cmd.format(gens_string, images_string))
+            libgap.eval('Add(morphisms, alpha)')
         # create the necessary homomorphism from self into the
         # automorphism group of N in GAP
-        gap.eval('H := Group({0})'.format(mapping[0]))
-        gap.eval('phi := GroupHomomorphismByImages(H, AutomorphismGroup(N),{},morphisms)'.format(mapping[0]))
-        gap.eval('sdp := SemidirectProduct(H, phi, N)')
-        return PermutationGroup(gap_group = 'sdp')
+        libgap.eval('H := Group({0})'.format(mapping[0]))
+        libgap.eval('phi := GroupHomomorphismByImages(H, AutomorphismGroup(N),{},morphisms)'.format(mapping[0]))
+        libgap.eval('sdp := SemidirectProduct(H, phi, N)')
+        return PermutationGroup(gap_group='sdp')
 
     def holomorph(self):
         r"""
@@ -2726,10 +2726,10 @@ class PermutationGroup_generic(FiniteGroup):
         - Kevin Halasz (2012-08-14)
         """
 
-        gap.eval('G := Group({})'.format(self.gens()))
-        gap.eval('aut := AutomorphismGroup(G)')
-        gap.eval('alpha := InverseGeneralMapping(NiceMonomorphism(aut))')
-        gap.eval('product := SemidirectProduct(NiceObject(aut),alpha,G)')
+        libgap.eval('G := Group({})'.format(self.gens()))
+        libgap.eval('aut := AutomorphismGroup(G)')
+        libgap.eval('alpha := InverseGeneralMapping(NiceMonomorphism(aut))')
+        libgap.eval('product := SemidirectProduct(NiceObject(aut),alpha,G)')
         return PermutationGroup(gap_group='product')
 
     def subgroup(self, gens=None, gap_group=None, domain=None, category=None, canonicalize=True, check=True):
@@ -2873,7 +2873,8 @@ class PermutationGroup_generic(FiniteGroup):
         from sage.groups.free_group import FreeGroup, _lexi_gen
         from sage.groups.finitely_presented import FinitelyPresentedGroup
 
-        image_fp = gap.Image(gap.IsomorphismFpGroupByGenerators(self, self.gens()))
+        fp = libgap.IsomorphismFpGroupByGenerators(self, self.gens())
+        image_fp = libgap.Image(fp)
         image_gens = image_fp.FreeGeneratorsOfFpGroup()
         name_itr = _lexi_gen() # Python generator object for variable names
         F = FreeGroup([next(name_itr) for x in image_gens])
@@ -3002,12 +3003,13 @@ class PermutationGroup_generic(FiniteGroup):
         """
 
         if other is None:
-            return PermutationGroup(gap_group=gap.DerivedSubgroup(self))
+            return PermutationGroup(gap_group=libgap.DerivedSubgroup(self))
         else:
             from sage.categories.finite_permutation_groups import FinitePermutationGroups
             if other not in FinitePermutationGroups():
                 raise TypeError("{0} is not a permutation group".format(other))
-            return PermutationGroup(gap_group=gap.CommutatorSubgroup(self, other))
+            gap_group = libgap.CommutatorSubgroup(self, other)
+            return PermutationGroup(gap_group=gap_group)
 
     @hap_decorator
     def cohomology(self, n, p = 0):

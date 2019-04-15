@@ -3121,11 +3121,11 @@ cdef class GapElement_Record(GapElement):
 
             sage: rec = libgap.eval('rec(a:=123, b:=456, Sym3:=SymmetricGroup(3))')
             sage: rec.sage()
-            {'Sym3': NotImplementedError('cannot construct equivalent Sage object',),
+            {'Sym3': NotImplementedError('cannot construct equivalent Sage object'...),
              'a': 123,
              'b': 456}
         """
-        result = dict()
+        result = {}
         for key, val in self:
             try:
                 val = val.sage()

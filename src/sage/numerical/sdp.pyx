@@ -1167,14 +1167,14 @@ class SDPSolverException(RuntimeError):
 
         sage: from sage.numerical.sdp import SDPSolverException
         sage: SDPSolverException("Error")
-        SDPSolverException('Error',)
+        SDPSolverException('Error'...)
 
     TESTS:
 
     No solution::
 
-        sage: p=SemidefiniteProgram(solver="cvxopt")
-        sage: x=p.new_variable()
+        sage: p = SemidefiniteProgram(solver="cvxopt")
+        sage: x = p.new_variable()
         sage: p.set_objective(x[0])
         sage: a = matrix([[1,2],[2,4]])
         sage: b = matrix([[1,9],[9,4]])

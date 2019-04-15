@@ -39,7 +39,7 @@ method :meth:`realloc <sage.graphs.base.c_graph.CGraph.realloc>`.
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from __future__ import print_function, absolute_import, division
@@ -2670,7 +2670,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
     def is_directed_acyclic(self, certificate=False):
         r"""
-        Check whether the graph is both directed and acylic (possibly with a
+        Check whether the graph is both directed and acyclic (possibly with a
         certificate)
 
         INPUT:

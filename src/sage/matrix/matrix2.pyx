@@ -11981,7 +11981,7 @@ cdef class Matrix(Matrix1):
         Partial pivoting is based on the absolute values of entries
         of a column. :trac:`12208` shows that the return value of the
         absolute value must be handled carefully.  This tests that
-        situation in the case of cylotomic fields.  ::
+        situation in the case of cyclotomic fields.  ::
 
             sage: C = SymmetricGroup(5).character_table()
             sage: C.base_ring()

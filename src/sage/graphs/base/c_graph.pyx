@@ -2410,8 +2410,8 @@ cdef class CGraphBackend(GenericGraphBackend):
         Return a minimum weight cycle basis of the graph.
 
         A cycle basis is a list of cycles (list of vertices forming a cycle) of
-        `self`. Note that the vertices are not necessarily returned in the order
-        in which they appear in the cycle.
+        ``self``. Note that the vertices are not necessarily returned in the
+        order in which they appear in the cycle.
 
         A minimum weight cycle basis is a cycle basis that minimizes the sum of
         the weights (length for unweighted graphs) of its cycles.
@@ -2430,7 +2430,8 @@ cdef class CGraphBackend(GenericGraphBackend):
           in the graph are weighted, otherwise all edges have weight 1
 
         - ``edges_complement`` -- list (default: ``None``); list of edges of
-          ``self`` without the edges of a particular spanning tree.
+          ``self`` (without labels) without the edges of a particular spanning
+          tree.
 
         EXAMPLES::
 
@@ -2444,6 +2445,8 @@ cdef class CGraphBackend(GenericGraphBackend):
 
             * :wikipedia:`Cycle_basis`
         """
+        if not edges_complement:
+            return []
         from sage.graphs.base.boost_graph import johnson_shortest_paths
         cdef int start
         cdef int end
@@ -2455,7 +2458,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef dict cross_paths_lens
         cdef list cycle_basis = []
         cdef list edgelist = list(self.iterator_unsorted_edges(list(self.iterator_verts(None)), True))
-
+        edges_complement = [frozenset(e) for e in edges_complement]
         from sage.graphs.graph import Graph
         l = len(edges_complement)
         cdef list orth_set = [set([e]) for e in edges_complement]

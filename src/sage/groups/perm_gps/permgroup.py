@@ -2480,7 +2480,7 @@ class PermutationGroup_generic(FiniteGroup):
             (1,4,3,2)
             (1,3)(2,4)
         """
-        G = self._gap_().DirectProduct(other)
+        G = self._libgap_().DirectProduct(other)
         D = PermutationGroup(gap_group=G)
         if not maps:
             return D

@@ -4628,12 +4628,12 @@ class GenericGraph(GenericGraph_pyx):
         r"""
         Return a minimum weight cycle basis of the graph.
 
-        A list of cycle lists is returned. Each cycle list is a list of vertices
-        which forms a cycle in G. Note that the vertices are not necessarily
-        returned in the order by which they appear in the cycle
+        A cycle basis is a list of cycles (list of vertices forming a cycle) of
+        `self`. Note that the vertices are not necessarily returned in the order
+        in which they appear in the cycle.
 
-        Minimum weight cycle basis is the cycle basis for which the total weight
-        (length for unweighted graphs) of all the cycles is minimum.
+        A minimum weight cycle basis is a cycle basis that minimizes the sum of
+        the weights (length for unweighted graphs) of its cycles.
 
         Not implemented for directed graphs and multigraphs.
 
@@ -4650,11 +4650,9 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``algorithm`` -- string (default: ``None``); algorithm to use:
 
-          * If ``algorithm = "NetworkX"``, a networkx implementation of the
-            minimum_cycle_basis algorithm is used
+          * If ``algorithm = "NetworkX"``, use networkx implementation
 
-          * If ``algorithm = None``, then cython implementation of the
-            minimum_cycle_basis algorithm is used
+          * If ``algorithm = None``, use Sage Cython implementation
 
         EXAMPLES::
 
@@ -4705,9 +4703,8 @@ class GenericGraph(GenericGraph_pyx):
                 # We just need the edges of any spanning tree here not
                 # necessarily a minimum spanning tree.
                 sp_edges = comp.min_spanning_tree(weight_function=w_f)
-                edges_s = [(a, b) for a, b, c in sp_edges]
-                # compliment of the edges of the spanning tree with respect
-                # to self
+                edges_s = set((a, b) for a, b, c in sp_edges)
+                # Edges of self that are not in the spanning tree
                 edges_c = [frozenset(e) for e in comp.edge_iterator(labels=False) if e not in edges_s]
                 # calling Cython implementation from backend
                 basis.append(comp._backend.min_cycle_basis(weight_function=weight_function,

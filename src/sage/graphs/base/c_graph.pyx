@@ -2409,12 +2409,12 @@ cdef class CGraphBackend(GenericGraphBackend):
         r"""
         Return a minimum weight cycle basis of the graph.
 
-        A list of cycle lists is returned. Each cycle list is a list of vertices
-        which forms a cycle in G. Note that the vertices are not necessarily
-        returned in the order by which they appear in the cycle
+        A cycle basis is a list of cycles (list of vertices forming a cycle) of
+        `self`. Note that the vertices are not necessarily returned in the order
+        in which they appear in the cycle.
 
-        Minimum weight cycle basis is the cycle basis for which the total weight
-        (length for unweighted graphs) of all the cycles is minimum.
+        A minimum weight cycle basis is a cycle basis that minimizes the sum of
+        the weights (length for unweighted graphs) of its cycles.
 
         Not implemented for directed graphs and multigraphs.
 
@@ -2429,9 +2429,8 @@ cdef class CGraphBackend(GenericGraphBackend):
         - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
           in the graph are weighted, otherwise all edges have weight 1
 
-        - ``edges_complement`` -- list (default: ``None``); a list of edges
-          present in the ``self`` but not in present in a particular spanning
-          tree.
+        - ``edges_complement`` -- list (default: ``None``); list of edges of
+          ``self`` without the edges of a particular spanning tree.
 
         EXAMPLES::
 
@@ -2471,8 +2470,8 @@ cdef class CGraphBackend(GenericGraphBackend):
         for i in range(l):
             orth = orth_set[i]
             G = Graph()    
-            # Add 2 copies of each edge in self to T. Cross edge is added if
-            # edge is in orth otherwise in-plane edge is added
+            # For each edge in self, add 2 edges to G: "cross" edges if
+            # edge is in orth otherwise "in-plane" edges
             for e in edgelist:
                 # mapping the nodes in self from 0 to n-1
                 uidx, vidx = vertex_to_int[e[0]], vertex_to_int[e[1]]
@@ -2495,7 +2494,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
             # removal of edges occuring even number of times
             edges = set()
-            for edge in list(zip(min_path_nodes[:-1], min_path_nodes[1:])):
+            for edge in zip(min_path_nodes[:-1], min_path_nodes[1:]):
                 edges ^= {edge}
             new_cycle = {frozenset((int_to_vertex[u], int_to_vertex[v])) for u, v in edges}
             cycle_basis.append(list(set().union(*new_cycle)))

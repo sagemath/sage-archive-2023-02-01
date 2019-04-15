@@ -101,6 +101,7 @@ We create element of a permutation group of large degree::
 
 from __future__ import absolute_import, print_function
 
+import copy
 import random
 
 import sage.groups.old as group
@@ -638,7 +639,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: g._gap_init_()
             'PermList([2, 3, 1, 5, 4])'
         """
-        return 'PermList(%s)'%self._gap_list()
+        return 'PermList(%s)' % self._gap_list()
 
 
     def _repr_(self):
@@ -1609,9 +1610,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         if not self._parent._has_natural_domain():
             raise NotImplementedError
 
-        import copy
         from sage.groups.perm_gps.permgroup import PermutationGroup
-        from sage.interfaces.all import gap
 
         G = libgap(words[0].parent())
         g = words[0].parent()(self)

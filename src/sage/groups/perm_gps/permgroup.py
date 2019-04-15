@@ -632,7 +632,6 @@ class PermutationGroup_generic(FiniteGroup):
         from sage.groups.libgap_morphism import GroupHomset_libgap
         return GroupHomset_libgap(self, G, category=category, check=check)
 
-
     def _magma_init_(self, magma):
         r"""
         Returns a string showing how to declare / initialize self in Magma.
@@ -4615,6 +4614,7 @@ class PermutationGroup_generic(FiniteGroup):
 
     from sage.groups.generic import structure_description
 
+
 class PermutationGroup_subgroup(PermutationGroup_generic):
     """
     Subgroup subclass of ``PermutationGroup_generic``, so instance methods
@@ -4691,8 +4691,10 @@ class PermutationGroup_subgroup(PermutationGroup_generic):
             domain = ambient.domain()
         if category is None:
             category = ambient.category()
-        PermutationGroup_generic.__init__(self, gens=gens, gap_group=gap_group, domain=domain,
-                                          category=category, canonicalize=canonicalize)
+        PermutationGroup_generic.__init__(self, gens=gens,
+                                          gap_group=gap_group, domain=domain,
+                                          category=category,
+                                          canonicalize=canonicalize)
 
         self._ambient_group = ambient
         if check:

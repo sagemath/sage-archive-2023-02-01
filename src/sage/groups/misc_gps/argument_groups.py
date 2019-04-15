@@ -294,7 +294,7 @@ class AbstractArgument(MultiplicativeGroupElement):
             sage: abs(U(exponent=1/4))  # indirect doctest
             1
         """
-        return 1
+        return self.parent().base().one()
 
 
 class AbstractArgumentGroup(UniqueRepresentation, Parent):
@@ -568,6 +568,8 @@ class UnitCirclePoint(AbstractArgument):
             e^(2*pi*0.600000000000000)
             sage: C(1) / C(exponent=0.4)
             e^(2*pi*0.600000000000000)
+            sage: C(exponent=0) / C(exponent=0.42)
+            e^(2*pi*0.580000000000000)
         """
         P = self.parent()
         return P.element_class(P, -self.exponent)
@@ -586,6 +588,8 @@ class UnitCirclePoint(AbstractArgument):
             False
             sage: C(exponent=2/3).is_one()
             False
+            sage: C(exponent=42).is_one()
+            True
         """
         return self.exponent == 0
 

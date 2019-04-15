@@ -55,7 +55,9 @@ def _parent(G, dom, V_prev):
     INPUT:
 
     - ``G`` -- a graph
+
     - ``dom`` -- an iterable of vertices of ``G``
+
     - ``V_prev`` -- an iterable of vertices of ``G``
 
     OUTPUT:
@@ -113,6 +115,7 @@ def _peel(G, A):
     INPUT:
 
     - `G` -- a graph
+
     - `A` -- a set of vertices of `G`
 
     OUTPUT:
@@ -169,7 +172,9 @@ def _cand_ext_enum(G, to_dom, u_next):
     INPUT:
 
     - ``G`` -- a graph
+
     - ``to_dom`` -- a ``set()`` of vertices of ``G``
+
     - ``u_next`` -- a vertex of ``G`` that dominates ``to_dom``
 
     OUTPUT:
@@ -255,7 +260,9 @@ def minimal_dominating_sets(G, to_dominate=None, work_on_copy=True):
     INPUT:
 
     - ``G`` -- a graph
+
     - ``to_dominate`` -- vertex iterable or ``None`` (default: ``None``)
+
     - ``work_on_copy`` -- boolean (default: ``True``)
 
     OUTPUT:
@@ -365,10 +372,11 @@ def minimal_dominating_sets(G, to_dominate=None, work_on_copy=True):
 
         ALGORITHM:
 
-        We iterate over those minimal dominating sets of ``plng[i + 1][1]``
-        that are children of dom and call recursively on each. The fact
-        that we iterate over children (with respect to the `parent`
-        function) ensures that we do not have repeated outputs.
+        We iterate over those minimal dominating sets of
+        ``plng[i + 1][1]`` that are children of dom and call
+        recursively on each. The fact that we iterate over children
+        (with respect to the `parent` function) ensures that we do not
+        have repeated outputs.
         '''
 
         if i == len(plng) - 1:

@@ -9886,8 +9886,9 @@ class GenericGraph(GenericGraph_pyx):
         Return the private neighbors of a vertex with repect to an iterable.
 
         INPUT:
-    
+
         - ``vertex`` -- a vertex of ``self``
+
         - ``vertex_subset`` -- an iterable of vertices of self
 
         OUTPUT:
@@ -9914,7 +9915,7 @@ class GenericGraph(GenericGraph_pyx):
             if u != vertex:
                 closed_neighborhood_vs.update(
                     self.neighbor_iterator(u, closed=True))
-                
+
         return (neighbor
                 for neighbor in self.neighbor_iterator(vertex, closed=True)
                 if neighbor not in closed_neighborhood_vs)
@@ -9923,16 +9924,18 @@ class GenericGraph(GenericGraph_pyx):
     def is_dominating(self, p_dominating, p_dominated=None):
         r"""
         Return whether the first set dominates the second one.
-        
-        We say that as set `D` of vertices of a graph `G`dominated a set `S`
-        if every vertex of `S` belongs to `D` or is adjacent to a vertex of
-        `D`.  Also, `D` is a dominating set of `G` if it dominates `V(G)`.
+
+        We say that as set `D` of vertices of a graph `G` dominates a
+        set `S` if every vertex of `S` belongs to `D` or is adjacent to
+        a vertex of `D`.  Also, `D` is a dominating set of `G` if it
+        dominates `V(G)`.
 
         INPUT:
-    
+
         - ``p_dominating`` -- an iterable of vertices of ``self``
-        - ``vertex_subset`` -- (default: `None`) an iterable of vertices of
-          ``self``
+
+        - ``vertex_subset`` -- (default: `None`) an iterable of
+          vertices of ``self``; the vertices that we want to dominate.
 
         OUTPUT:
 
@@ -9958,26 +9961,32 @@ class GenericGraph(GenericGraph_pyx):
             p_dominated = set(self)
             
         return closed_neighb >= set(p_dominated)
-        
+
 
     def is_redundant(self, dom, focus=None):
         r"""
         Return whether a vertex iterable has redundant vertices.
 
-        Let ``G`` be a graph and ``D`` be a subset of its vertices. A vertex
-        ``v`` of ``D`` is said to be redundant in ``S`` if every closed
-        neighbors of ``v`` that belongs to ``S`` is dominated by ``D \ {v}``.
+        For a graph ``G`` and sets ``D`` and ``S`` of vertices, we say
+        that a vertex ``v`` of ``D`` is redundant in ``S`` if ``v``
+        has no private neighbor with repect to ``D`` in ``S``.
+        In other words, there is no vertex in ``S` that is dominated
+        by ``v`` but not by ``D \ {v}``.
 
         INPUT:
     
-        - ``dom`` -- an iterable of vertices of ``self``
-        - ``focus`` -- (default: ``None``) an iterable of vertices of ``self``
+        - ``dom`` -- an iterable of vertices of ``self``; where we
+          look for redundant vertices
+
+        - ``focus`` -- (default: ``None``) an iterable of vertices of
+          ``self``; where we look for private neighbors
 
         OUTPUT:
 
         Return whether ``dom`` has a redundant vertex in ``focus``.
-        When called with value ``None`` for ``focus``, the function is ran
-        with ``focus`` being equal to all vertices of ``self``.
+        When ``focus`` has the (default) value ``None``, return wether
+        ``dom`` has a redundant vertex in the set of vertices of
+        ``self``.
 
         EXAMPLES::
 
@@ -9991,8 +10000,8 @@ class GenericGraph(GenericGraph_pyx):
         if focus is None:
             focus = self.vertices()
 
-        # dominator[v] (for v in focus) will contain the list of vertices
-        # of dom that are adjacent to v
+        # dominator[v] (for v in focus) will contain the list of
+        # vertices of dom that are adjacent to v
         dominator = dict()
 
         # For every x in dom, has_private[x] will be True
@@ -10014,9 +10023,9 @@ class GenericGraph(GenericGraph_pyx):
 
         # Now we can compute has_private[]:
         for v in focus:
-            # Here we do care neither about vertices dominated by more than
-            # one vertex of dom (they are not private neighbor of anybody)
-            # nor about vertices not dominated by dom (idem).
+            # Here we do care neither about vertices dominated by more
+            # than one vertex of dom (they are not private neighbor of
+            # anybody) nor about vertices not dominated by dom (idem).
             if len(dominator[v]) == 1:
                 # If v is dominated only by one vertex x,
                 # then v is a private neighbor of x

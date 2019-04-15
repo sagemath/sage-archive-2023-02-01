@@ -199,6 +199,7 @@ from sage.tensor.modules.comp import (Components, CompWithSym, CompFullySym,
 from sage.tensor.modules.tensor_with_indices import TensorWithIndices
 from sage.parallel.decorate import parallel
 from sage.parallel.parallelism import Parallelism
+from sage.manifolds.chart import Chart
 
 
 class FreeModuleTensor(ModuleElement):
@@ -573,7 +574,6 @@ class FreeModuleTensor(ModuleElement):
             (Basis (e_0,e_1) on the Rank-2 free module M over the Integer Ring, 10)
 
         """
-        from sage.manifolds.chart import Chart
         if basis is None:
             basis = self._fmodule._def_basis
         elif isinstance(basis, Chart):

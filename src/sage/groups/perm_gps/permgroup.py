@@ -602,7 +602,10 @@ class PermutationGroup_generic(FiniteGroup):
         if self._libgap is not None:
             return self._libgap
 
-        return libgap(self)
+        return super(PermutationGroup_generic, self)._libgap_()
+
+    # Override the default _libgap_ to use the caching as self._libgap
+    _libgap_ = gap
 
     def _Hom_(self, G, category=None, check=True):
         r"""

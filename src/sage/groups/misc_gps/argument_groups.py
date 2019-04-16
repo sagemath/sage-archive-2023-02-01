@@ -1717,45 +1717,6 @@ class SignGroup(AbstractArgumentGroup):
         return self.element_class(self, element)
 
 
-def exactly_one_is_true(iterable):
-    r"""
-    Return whether exactly one element of ``iterable`` evaluates ``True``.
-
-    INPUT:
-
-    - ``iterable`` -- an iterable object
-
-    OUTPUT:
-
-    A boolean.
-
-    .. NOTE::
-
-        The implementation is suggested by
-        `stackoverflow entry <https://stackoverflow.com/a/16801605/1052778>`_.
-
-    EXAMPLES::
-
-        sage: from sage.groups.misc_gps.argument_groups import exactly_one_is_true
-        sage: exactly_one_is_true([])
-        False
-        sage: exactly_one_is_true([True])
-        True
-        sage: exactly_one_is_true([False])
-        False
-        sage: exactly_one_is_true([True, True])
-        False
-        sage: exactly_one_is_true([False, True])
-        True
-        sage: exactly_one_is_true([True, False, True])
-        False
-        sage: exactly_one_is_true([False, True, False])
-        True
-    """
-    it = iter(iterable)
-    return any(it) and not any(it)
-
-
 class ArgumentGroupFactory(UniqueFactory):
     r"""
     A factory for creating argument groups.
@@ -1864,6 +1825,7 @@ class ArgumentGroupFactory(UniqueFactory):
         from sage.rings.complex_field import ComplexField_class
         from sage.rings.complex_interval_field import ComplexIntervalField_class
         from sage.rings.integer_ring import ZZ
+        from sage.misc.misc import exactly_one_is_true
         from sage.rings.qqbar import AA
         from sage.rings.rational_field import QQ
         from sage.rings.real_arb import RealBallField

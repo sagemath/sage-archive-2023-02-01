@@ -5299,14 +5299,21 @@ class GrowthGroupFactory(UniqueFactory):
             > *and* ValueError: Cannot create a parent out of 'y^z'.
             >> *previous* ValueError: unknown specification y^z
             >> *and* NameError: name 'y' is not defined
+
+        ::
+
+            sage: GrowthGroup('n^(I*ZZ)')
+            Growth Group n^(ZZ*I)
+            sage: GrowthGroup('n^(I  *   ZZ)')
+            Growth Group n^(ZZ*I)
         """
         from .misc import repr_short_to_parent, split_str_by_op
         from sage.groups.misc_gps.imaginary_groups import ImaginaryGroup
 
         kwds.setdefault('ignore_variables', ('e',))
 
-        sfactors = split_str_by_op(specification, '*')
-        sfactors = tuple(f.replace('**', '^') for f in sfactors)
+        sfactors = split_str_by_op(
+            ' '.join(specification.split()).replace('**', '^'), '*')
 
         def remove_parentheses(s):
             while s.startswith('(') and s.endswith(')'):

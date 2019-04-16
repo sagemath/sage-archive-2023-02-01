@@ -293,8 +293,11 @@ class AbstractArgument(MultiplicativeGroupElement):
             sage: U = RootsOfUnityGroup()
             sage: abs(U(exponent=1/4))  # indirect doctest
             1
+            sage: _.parent()
+            Integer Ring
         """
-        return self.parent().base().one()
+        from sage.rings.integer_ring import ZZ
+        return ZZ.one()
 
 
 class AbstractArgumentGroup(UniqueRepresentation, Parent):

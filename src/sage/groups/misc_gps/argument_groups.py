@@ -293,8 +293,11 @@ class AbstractArgument(MultiplicativeGroupElement):
             sage: U = RootsOfUnityGroup()
             sage: abs(U(exponent=1/4))  # indirect doctest
             1
+            sage: _.parent()
+            Integer Ring
         """
-        return self.parent().base().one()
+        from sage.rings.integer_ring import ZZ
+        return ZZ.one()
 
 
 class AbstractArgumentGroup(UniqueRepresentation, Parent):
@@ -668,7 +671,7 @@ class UnitCircleGroup(AbstractArgumentGroup):
             s = '({})'.format(s)
         return 'U_{}'.format(s)
 
-    def _element_constructor_(self, data, exponent=None):
+    def _element_constructor_(self, data, exponent=None, **kwds):
         r"""
         Construct an element out of the given data.
 
@@ -677,6 +680,8 @@ class UnitCircleGroup(AbstractArgumentGroup):
         - ``data`` -- an object
 
         - ``exponent`` -- a number (of a subset of the reals) or ``None``
+
+        - ``kwds`` -- are passed on to element
 
         OUTPUT:
 
@@ -726,6 +731,9 @@ class UnitCircleGroup(AbstractArgumentGroup):
 
             sage: R(U(exponent=1/3))
             e^(2*pi*0.333333333333333)
+
+            sage: U(exponent=5/2, normalize=False)
+            zeta2^5
         """
         from sage.groups.generic import discrete_log
         from sage.rings.asymptotic.misc import combine_exceptions
@@ -779,7 +787,7 @@ class UnitCircleGroup(AbstractArgumentGroup):
                              '{} as well as exponent={} '
                              'specified'.format(data, exponent))
 
-        return self.element_class(self, exponent)
+        return self.element_class(self, exponent, **kwds)
 
     def _create_element_in_extension_(self, exponent):
         r"""
@@ -1260,13 +1268,15 @@ class ArgumentByElementGroup(AbstractArgumentGroup):
         from sage.rings.asymptotic.misc import parent_to_repr_short, repr_op
         return repr_op('Arg', '_', parent_to_repr_short(self.base()))
 
-    def _element_constructor_(self, data):
+    def _element_constructor_(self, data, **kwds):
         r"""
         Construct an element out of the given data.
 
         INPUT:
 
         - ``data`` -- an object
+
+        - ``kwds`` -- are passed on to element
 
         OUTPUT:
 
@@ -1326,7 +1336,7 @@ class ArgumentByElementGroup(AbstractArgumentGroup):
             else:
                 element = data
 
-        return self.element_class(self, element)
+        return self.element_class(self, element, **kwds)
 
     def _create_element_in_extension_(self, element):
         r"""
@@ -1710,45 +1720,6 @@ class SignGroup(AbstractArgumentGroup):
         return self.element_class(self, element)
 
 
-def exactly_one_is_true(iterable):
-    r"""
-    Return whether exactly one element of ``iterable`` evaluates ``True``.
-
-    INPUT:
-
-    - ``iterable`` -- an iterable object
-
-    OUTPUT:
-
-    A boolean.
-
-    .. NOTE::
-
-        The implementation is suggested by
-        `stackoverflow entry <https://stackoverflow.com/a/16801605/1052778>`_.
-
-    EXAMPLES::
-
-        sage: from sage.groups.misc_gps.argument_groups import exactly_one_is_true
-        sage: exactly_one_is_true([])
-        False
-        sage: exactly_one_is_true([True])
-        True
-        sage: exactly_one_is_true([False])
-        False
-        sage: exactly_one_is_true([True, True])
-        False
-        sage: exactly_one_is_true([False, True])
-        True
-        sage: exactly_one_is_true([True, False, True])
-        False
-        sage: exactly_one_is_true([False, True, False])
-        True
-    """
-    it = iter(iterable)
-    return any(it) and not any(it)
-
-
 class ArgumentGroupFactory(UniqueFactory):
     r"""
     A factory for creating argument groups.
@@ -1857,6 +1828,7 @@ class ArgumentGroupFactory(UniqueFactory):
         from sage.rings.complex_field import ComplexField_class
         from sage.rings.complex_interval_field import ComplexIntervalField_class
         from sage.rings.integer_ring import ZZ
+        from sage.misc.misc import exactly_one_is_true
         from sage.rings.qqbar import AA
         from sage.rings.rational_field import QQ
         from sage.rings.real_arb import RealBallField

@@ -2840,6 +2840,7 @@ class MonomialGrowthElement(GenericGrowthElement):
         else:
             f = repr
 
+        from sage.symbolic.ring import isidentifier
         from sage.rings.integer_ring import ZZ
         from .misc import repr_op
 
@@ -2852,7 +2853,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             return repr_op(var, '^', latex=True) + \
                 '{' + latex_repr(self.exponent)._latex_() + '}'
         elif self.exponent in ZZ and self.exponent > 0 \
-                or str(self.exponent).isalpha():
+                or isidentifier(str(self.exponent)):
             return repr_op(var, '^') + str(self.exponent)
         else:
             return repr_op(var, '^') + '(' + str(self.exponent) + ')'

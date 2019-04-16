@@ -731,6 +731,9 @@ class UnitCircleGroup(AbstractArgumentGroup):
 
             sage: R(U(exponent=1/3))
             e^(2*pi*0.333333333333333)
+
+            sage: U(exponent=5/2, normalize=False)
+            zeta2^5
         """
         from sage.groups.generic import discrete_log
         from sage.rings.asymptotic.misc import combine_exceptions

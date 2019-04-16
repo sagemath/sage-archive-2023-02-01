@@ -241,9 +241,9 @@ def CohenOesterle(eps, k):
 
     K = eps.base_ring()
     return K(frac(-1, 2) *
-             prod([_lambda(r, valuation(f, p), p) for p, r in facN]) +
-             gamma_k * K.prod([CO_delta(r, p, N, eps) for p, r in facN]) +
-             mu_k * K.prod([CO_nu(r, p, N, eps) for p, r in facN]))
+             prod(_lambda(r, valuation(f, p), p) for p, r in facN) +
+             gamma_k * K.prod(CO_delta(r, p, N, eps) for p, r in facN) +
+             mu_k * K.prod(CO_nu(r, p, N, eps) for p, r in facN))
 
 
 ####################################################################
@@ -429,7 +429,7 @@ def dimension_cusp_forms(X, k=2):
     elif isinstance(X, (Integer,) + integer_types):
         return Gamma0(X).dimension_cusp_forms(k)
     else:
-        raise TypeError("Argument 1 must be a Dirichlet character, an integer "
+        raise TypeError("argument 1 must be a Dirichlet character, an integer "
                         "or a finite index subgroup of SL2Z")
 
 
@@ -512,7 +512,7 @@ def dimension_eis(X, k=2):
     elif isinstance(X, integer_types + (Integer,)):
         return Gamma0(X).dimension_eis(k)
     else:
-        raise TypeError("Argument in dimension_eis must be an integer, a Dirichlet character, or a finite index subgroup of SL2Z (got %s)" % X)
+        raise TypeError("argument in dimension_eis must be an integer, a Dirichlet character, or a finite index subgroup of SL2Z (got %s)" % X)
 
 
 def dimension_modular_forms(X, k=2):
@@ -558,8 +558,8 @@ def dimension_modular_forms(X, k=2):
     elif isinstance(X, dirichlet.DirichletCharacter):
         return Gamma1(X.modulus()).dimension_modular_forms(k, eps=X)
     else:
-        raise TypeError("Argument 1 must be an integer, a Dirichlet character "
-                        "or an arithmetic subgroup.")
+        raise TypeError("argument 1 must be an integer, a Dirichlet character "
+                        "or an arithmetic subgroup")
 
 
 def sturm_bound(level, weight=2):
@@ -595,7 +595,7 @@ def sturm_bound(level, weight=2):
         if level.is_congruence():
             return level.sturm_bound(weight)
         else:
-            raise ValueError("No Sturm bound defined for noncongruence "
+            raise ValueError("no Sturm bound defined for noncongruence "
                              "subgroups")
     if isinstance(level, integer_types + (Integer,)):
         return Gamma0(level).sturm_bound(weight)

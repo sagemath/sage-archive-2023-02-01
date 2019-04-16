@@ -668,7 +668,7 @@ class UnitCircleGroup(AbstractArgumentGroup):
             s = '({})'.format(s)
         return 'U_{}'.format(s)
 
-    def _element_constructor_(self, data, exponent=None):
+    def _element_constructor_(self, data, exponent=None, **kwds):
         r"""
         Construct an element out of the given data.
 
@@ -677,6 +677,8 @@ class UnitCircleGroup(AbstractArgumentGroup):
         - ``data`` -- an object
 
         - ``exponent`` -- a number (of a subset of the reals) or ``None``
+
+        - ``kwds`` -- are passed on to element
 
         OUTPUT:
 
@@ -779,7 +781,7 @@ class UnitCircleGroup(AbstractArgumentGroup):
                              '{} as well as exponent={} '
                              'specified'.format(data, exponent))
 
-        return self.element_class(self, exponent)
+        return self.element_class(self, exponent, **kwds)
 
     def _create_element_in_extension_(self, exponent):
         r"""
@@ -1260,13 +1262,15 @@ class ArgumentByElementGroup(AbstractArgumentGroup):
         from sage.rings.asymptotic.misc import parent_to_repr_short, repr_op
         return repr_op('Arg', '_', parent_to_repr_short(self.base()))
 
-    def _element_constructor_(self, data):
+    def _element_constructor_(self, data, **kwds):
         r"""
         Construct an element out of the given data.
 
         INPUT:
 
         - ``data`` -- an object
+
+        - ``kwds`` -- are passed on to element
 
         OUTPUT:
 
@@ -1326,7 +1330,7 @@ class ArgumentByElementGroup(AbstractArgumentGroup):
             else:
                 element = data
 
-        return self.element_class(self, element)
+        return self.element_class(self, element, **kwds)
 
     def _create_element_in_extension_(self, element):
         r"""

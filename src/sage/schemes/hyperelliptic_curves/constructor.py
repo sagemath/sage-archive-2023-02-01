@@ -239,16 +239,19 @@ def HyperellipticCurve(f, h=0, names=None, PP=None, check_squarefree=True):
     superclass = []
     cls_name = []
 
-    try:
-        superclass.append(getattr(sys.modules[__name__], "HyperellipticCurve_g" + str(g)))
-        cls_name.append("g"+str(g))
-    except AttributeError:
-        pass
+    genus_classes = {
+        2 :  HyperellipticCurve_g2
+    }
 
     fields = [
         ("FiniteField", is_FiniteField, HyperellipticCurve_finite_field),
         ("RationalField", is_RationalField, HyperellipticCurve_rational_field),
         ("pAdicField", is_pAdicField, HyperellipticCurve_padic_field)]
+
+    if g in genus_classes:
+        superclass.append(genus_classes[g])
+        cls_name.append('g%s'%g)
+
     for name,test,cls in fields:
         if test(R):
             superclass.append(cls)

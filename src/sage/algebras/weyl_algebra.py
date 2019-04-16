@@ -168,15 +168,16 @@ def repr_factored(w, latex_output=False):
         sage: from sage.algebras.weyl_algebra import repr_factored
         sage: R.<t> = QQ[]
         sage: D = DifferentialWeylAlgebra(R)
-        sage: t,dt = D.gens()
+        sage: t, dt = D.gens()
         sage: x = dt^3*t^3 + dt^2*t^4
         sage: x
         t^3*dt^3 + t^4*dt^2 + 9*t^2*dt^2 + 8*t^3*dt + 18*t*dt + 12*t^2 + 6
         sage: print(repr_factored(x))
-        (12*t^2 + 6) + (8*t^3 + 18*t)dt^1 + (t^4 + 9*t^2)dt^2 + (t^3)dt^3
+        (12*t^2 + 6) + (8*t^3 + 18*t)*dt + (t^4 + 9*t^2)*dt^2 + (t^3)*dt^3
         sage: repr_factored(x, True)
-        (12 t^{2} + 6) + (8 t^{3} + 18 t)d^{1}_{t}
-         + (t^{4} + 9 t^{2})d^{2}_{t} + (t^{3})d^{3}_{t}
+        (12 t^{2} + 6) + (8 t^{3} + 18 t) \frac{\partial}{\partial t}
+         + (t^{4} + 9 t^{2}) \frac{\partial^{2}}{\partial t^{2}}
+         + (t^{3}) \frac{\partial^{3}}{\partial t^{3}}
         sage: repr_factored(D.zero())
         '0'
 
@@ -184,27 +185,37 @@ def repr_factored(w, latex_output=False):
 
         sage: R.<x,y,z> = QQ[]
         sage: D = DifferentialWeylAlgebra(R)
-        sage: x,y,z,dx,dy,dz = D.gens()
+        sage: x, y, z, dx, dy, dz = D.gens()
         sage: elt = dx^3*x^3 + (y^3-z*x)*dx^3 + dy^3*x^3 + dx*dy*dz*x*y*z
         sage: elt
         x^3*dy^3 + x*y*z*dx*dy*dz + y^3*dx^3 + x^3*dx^3 - x*z*dx^3 + y*z*dy*dz
          + x*z*dx*dz + x*y*dx*dy + 9*x^2*dx^2 + z*dz + y*dy + 19*x*dx + 7
         sage: print(repr_factored(elt))
-        (7) + (z)dz^1 + (y)dy^1 + (y*z)dy^1*dz^1 + (x^3)dy^3 + (19*x)dx^1
-         + (x*z)dx^1*dz^1 + (x*y)dx^1*dy^1 + (x*y*z)dx^1*dy^1*dz^1
-         + (9*x^2)dx^2 + (x^3 + y^3 - x*z)dx^3
+        (7) + (z)*dz + (y)*dy + (y*z)*dy*dz + (x^3)*dy^3 + (19*x)*dx
+         + (x*z)*dx*dz + (x*y)*dx*dy + (x*y*z)*dx*dy*dz
+         + (9*x^2)*dx^2 + (x^3 + y^3 - x*z)*dx^3
         sage: repr_factored(D.zero(), True)
         0
     """
     f = w.factor_differentials()
     gens = w.parent().polynomial_ring().gens()
+
     if latex_output:
+        def exp(e):
+            return '^{{{}}}'.format(e) if e > 1 else ''
         def repr_dx(k):
-            return ' '.join('d^{{{}}}_{{{}}}'.format(e,g) for e,g in zip(k, gens) if e != 0)
+            total = sum(k)
+            if total == 0:
+                return ''
+            denom = ' '.join('\\partial {}{}'.format(latex(g), exp(e))
+                             for e, g in zip(k, gens) if e != 0)
+            return ''.join(' \\frac{{\\partial{}}}{{{}}}'.format(exp(total), denom) )
         repr_x = latex
     else:
+        def exp(e):
+            return '^{}'.format(e) if e > 1 else ''
         def repr_dx(k):
-            return '*'.join('d{}^{}'.format(g,e) for e,g in zip(k, gens) if e != 0)
+            return ''.join('*d{}{}'.format(g, exp(e)) for e, g in zip(k, gens) if e != 0)
         repr_x = repr
     ret = " + ".join("({}){}".format(repr_x(f[k]), repr_dx(k))
                      for k in sorted(f))
@@ -283,9 +294,11 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
         """
         if self.parent().options.factor_representation:
             return repr_factored(self, True)
+
+        def exp(e):
+            return '^{{{}}}'.format(e) if e > 1 else ''
         def term(m):
             R = self.parent()._poly_ring
-            exp = lambda e: '^{{{}}}'.format(e) if e > 1 else ''
             def half_term(mon, polynomial):
                 total = sum(mon)
                 if total == 0:
@@ -567,6 +580,39 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
         """
         Return a dict representing ``self`` with the differentials
         factored out.
+
+        EXAMPLES::
+
+            sage: R.<t> = QQ[]
+            sage: D = DifferentialWeylAlgebra(R)
+            sage: t, dt = D.gens()
+            sage: x = dt^3*t^3 + dt^2*t^4
+            sage: x
+            t^3*dt^3 + t^4*dt^2 + 9*t^2*dt^2 + 8*t^3*dt + 18*t*dt + 12*t^2 + 6
+            sage: x.factor_differentials()
+            {(0,): 12*t^2 + 6, (1,): 8*t^3 + 18*t, (2,): t^4 + 9*t^2, (3,): t^3}
+            sage: D.zero().factor_differentials()
+            {}
+
+            sage: R.<x,y,z> = QQ[]
+            sage: D = DifferentialWeylAlgebra(R)
+            sage: x, y, z, dx, dy, dz = D.gens()
+            sage: elt = dx^3*x^3 + (y^3-z*x)*dx^3 + dy^3*x^3 + dx*dy*dz*x*y*z
+            sage: elt
+            x^3*dy^3 + x*y*z*dx*dy*dz + y^3*dx^3 + x^3*dx^3 - x*z*dx^3 + y*z*dy*dz
+             + x*z*dx*dz + x*y*dx*dy + 9*x^2*dx^2 + z*dz + y*dy + 19*x*dx + 7
+            sage: elt.factor_differentials()
+            {(0, 0, 0): 7,
+             (0, 0, 1): z,
+             (0, 1, 0): y,
+             (0, 1, 1): y*z,
+             (0, 3, 0): x^3,
+             (1, 0, 0): 19*x,
+             (1, 0, 1): x*z,
+             (1, 1, 0): x*y,
+             (1, 1, 1): x*y*z,
+             (2, 0, 0): 9*x^2,
+             (3, 0, 0): x^3 + y^3 - x*z}
         """
         ret = {}
         DW = self.parent()
@@ -576,7 +622,7 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
             x, dx = m
             if dx not in ret:
                 ret[dx] = P.zero()
-            ret[dx] += c * prod(g**e for e,g in zip(x, gens))
+            ret[dx] += c * prod(g**e for e, g in zip(x, gens))
         return ret
 
 
@@ -732,7 +778,7 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
 
             sage: D.options.factor_representation = True
             sage: x
-            (12*t^2 + 6) + (8*t^3 + 18*t)dt^1 + (t^4 + 9*t^2)dt^2 + (t^3)dt^3
+            (12*t^2 + 6) + (8*t^3 + 18*t)*dt + (t^4 + 9*t^2)*dt^2 + (t^3)*dt^3
 
             sage: D.options._reset()
         """
@@ -740,7 +786,7 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
         module = 'sage.algebras.weyl_algebra'
         factor_representation = dict(default=False,
                  description='Controls whether to factor the differentials out or not in the output representations',
-                 checker=lambda x: x in [True,False])
+                 checker=lambda x: x in [True, False])
 
     def _element_constructor_(self, x):
         """

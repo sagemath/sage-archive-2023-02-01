@@ -1506,8 +1506,6 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
         A term monoid object derived from
         :class:`~sage.rings.asymptotic.term_monoid.GenericTermMonoid`.
 
-        # TODO
-
         EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup

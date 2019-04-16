@@ -1,0 +1,13 @@
+SAGE_SPKG_CONFIGURE([freetype], [
+    AC_REQUIRE([SAGE_SPKG_CONFIGURE_LIBPNG])
+    AC_MSG_CHECKING([Installing libpng? ])
+    if test x$sage_spkg_install_libpng = xyes; then
+      AC_MSG_RESULT([Yes. Install freetype as well.])
+      sage_spkg_install_freetype=yes
+    else
+      AC_MSG_RESULT([No.])
+      PKG_CHECK_MODULES([FREETYPE], [freetype2 >= 2.4], [], [sage_spkg_install_freetype=yes])
+    fi
+])
+
+

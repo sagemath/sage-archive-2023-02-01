@@ -18,7 +18,7 @@ fi
 # We explicitly disable X and fontconfig support, since (1) X is not a SAGE dependency,
 # and (2) the gd build fails on a lot of OS X PPC machines when X is enabled.
 sdh_configure --without-jpeg --without-xpm --without-x --without-fontconfig \
-              --with-zlib="$SAGE_LOCAL" --with-freetype="$SAGE_LOCAL" \
+              --with-zlib="$SAGE_LOCAL" --with-freetype="$SAGE_FREETYPE_PREFIX" \
               $LIBGD_CONFIGURE
 sdh_make
 sdh_make_install

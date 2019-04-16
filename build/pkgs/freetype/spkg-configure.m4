@@ -8,6 +8,11 @@ SAGE_SPKG_CONFIGURE([freetype], [
       AC_MSG_RESULT([No.])
       PKG_CHECK_MODULES([FREETYPE], [freetype2 >= 2.4], [], [sage_spkg_install_freetype=yes])
     fi
+    if test x$sage_spkg_install_freetype = xyes; then
+      AC_SUBST(SAGE_FREETYPE_PREFIX, ['$SAGE_LOCAL'])
+    else
+      AC_SUBST(SAGE_FREETYPE_PREFIX, [yes])
+    fi
 ])
 
 

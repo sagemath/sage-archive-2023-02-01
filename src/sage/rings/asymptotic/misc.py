@@ -583,9 +583,19 @@ def merge_sorted(A, B, key=None):
       of the list/tuple is used for comparison. Thus elements with the
       same key are considered as equal.
 
+    .. NOTE::
+
+        The two tuples/list need to overlap, i.e. need at least
+        one key in common.
+
     OUTPUT:
 
-    A pair of lists containing all elements totally ordered.
+    A pair of lists containing all elements totally ordered. (The first
+    component uses ``A`` as a merge base, the second component ``B``.)
+
+    If merging fails, then a
+    :python:`RuntimeError<library/exceptions.html#exceptions.RuntimeError>`
+    is raised.
 
     TESTS::
 

@@ -820,7 +820,10 @@ our finite automaton by a counter::
     sage: from sage.combinat.finite_state_machine import FSMState, FSMTransition
     sage: C = FiniteStateMachine()
     sage: def update_counter(process, state, output):
-    ....:     l = process.preview_word()
+    ....:     try:
+    ....:         l = process.preview_word()
+    ....:     except RuntimeError:
+    ....:         raise StopIteration
     ....:     process.fsm.counter += 1 if l == 1 else -1
     ....:     if process.fsm.counter > 0:
     ....:         next_state = 'positive'
@@ -13588,7 +13591,7 @@ class _FSMTapeCache_(SageObject):
             sage: while True:
             ....:     try:
             ....:         word = TC2.preview_word(return_word=True)
-            ....:     except StopIteration:
+            ....:     except RuntimeError:
             ....:         print('stop')
             ....:         break
             ....:     print('cache: {} {}'.format(TC2.cache, TC2))
@@ -13613,7 +13616,7 @@ class _FSMTapeCache_(SageObject):
             sage: TC2.preview_word()
             Traceback (most recent call last):
             ...
-            StopIteration
+            RuntimeError: tape reached the end
             sage: print('cache: {} {}'.format(TC2.cache, TC2))
             cache: (deque([41]), deque([])) multi-tape at (4, 4)
             sage: TC2.read(0)
@@ -13649,8 +13652,8 @@ class _FSMTapeCache_(SageObject):
 
         A single letter or a word.
 
-        An exception ``StopIteration`` is thrown if the tape (at least
-        one track) has reached its end.
+        A :python:`RuntimeError<library/exceptions.html#exceptions.RuntimeError>`
+        is thrown if the tape (at least one track) has reached its end.
 
         Typically, this method is called from a hook-function of a
         state.
@@ -13668,7 +13671,7 @@ class _FSMTapeCache_(SageObject):
             sage: while True:
             ....:     try:
             ....:         word = TC2.preview_word(return_word=True)
-            ....:     except StopIteration:
+            ....:     except RuntimeError:
             ....:         print('stop')
             ....:         break
             ....:     print('read: {}'.format(word))
@@ -13694,7 +13697,7 @@ class _FSMTapeCache_(SageObject):
             sage: TC2.preview_word()
             Traceback (most recent call last):
             ...
-            StopIteration
+            RuntimeError: tape reached the end
             sage: print('cache: {} {}'.format(TC2.cache, TC2))
             cache: (deque([41]), deque([])) multi-tape at (4, 4)
             sage: TC2.preview_word(0)
@@ -13713,7 +13716,7 @@ class _FSMTapeCache_(SageObject):
                 result = tuple(self.preview_word(n, length, return_word)
                                for n, _ in enumerate(self.cache))
                 if len(result) != len(self.cache):
-                    raise StopIteration
+                    raise RuntimeError('tape reached the end')
                 if return_word:
                     return tupleofwords_to_wordoftuples(result)
                 else:
@@ -13724,7 +13727,7 @@ class _FSMTapeCache_(SageObject):
         track_cache = self.cache[track_number]
         while len(track_cache) < length:
             if not self.read(track_number)[0]:
-                raise StopIteration
+                raise RuntimeError('tape reached the end')
         if return_word:
             return list(itertools.islice(track_cache, 0, length))
         else:
@@ -15042,8 +15045,11 @@ class FSMProcessIterator(SageObject,
             ....:     initial_states=['A'], final_states=['A'])
             sage: def state_hook(process, state, output):
             ....:     print("We are now in state %s." % (state.label(),))
-            ....:     print("Next on the tape is a %s." % (
-            ....:         process.preview_word(),))
+            ....:     try:
+            ....:         w = process.preview_word()
+            ....:     except RuntimeError:
+            ....:         raise StopIteration
+            ....:     print("Next on the tape is a %s." % (w,))
             sage: inverter.state('A').hook = state_hook
             sage: it = inverter.iter_process(
             ....:     input_tape=[0, 1, 1],

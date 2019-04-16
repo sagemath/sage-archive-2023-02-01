@@ -741,7 +741,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             Growth Group n^QQ * log(n)^ZZ * U^n
         """
         from .growth_group import GenericGrowthGroup, AbstractGrowthGroupFunctor
-        from .misc import merge_sorted
+        from .misc import bidirectional_merge_sorted
         from sage.structure.element import get_coercion_model
 
         Sfactors = self.cartesian_factors()
@@ -757,7 +757,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
         def pushout_univariate_factors(self, other, var, Sfactors, Ofactors):
             try:
-                return merge_sorted(
+                return bidirectional_merge_sorted(
                     Sfactors, Ofactors,
                     lambda f: (f._underlying_class(), f._var_.var_repr))
             except RuntimeError:
@@ -779,7 +779,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                         yield f
 
             try:
-                return merge_sorted(
+                return bidirectional_merge_sorted(
                     tuple(subfactors(Sfactors)), tuple(subfactors(Ofactors)),
                     lambda f: (f._underlying_class(), f._var_.var_repr))
             except RuntimeError:

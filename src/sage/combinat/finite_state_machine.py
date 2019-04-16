@@ -1016,7 +1016,7 @@ def full_group_by(l, key=lambda x: x):
         else:
             original_keys[s]=k
         elements[s].append(item)
-    return [(original_keys[s], values ) for (s, values) in elements.items()]
+    return [(original_keys[s], elements[s]) for s in sorted(elements)]
 
 
 def equal(iterator):

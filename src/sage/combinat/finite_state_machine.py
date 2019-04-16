@@ -1010,11 +1010,11 @@ def full_group_by(l, key=lambda x: x):
         k = key(item)
         s = str(k)
         if s in original_keys:
-            if original_keys[s]!=k:
-                raise ValueError("Two distinct elements with representation "
-                                 "%s " % s)
+            if original_keys[s] != k:
+                raise ValueError(
+                    'two distinct elements with representation {}'.format(s))
         else:
-            original_keys[s]=k
+            original_keys[s] = k
         elements[s].append(item)
     return [(original_keys[s], elements[s]) for s in sorted(elements)]
 

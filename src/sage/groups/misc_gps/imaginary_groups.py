@@ -84,6 +84,8 @@ class ImaginaryElement(AdditiveGroupElement):
             sage: J = ImaginaryGroup(ZZ)
             sage: J(I).imag()
             1
+            sage: imag_part(J(I))  # indirect doctest
+            1
         """
         return self._imag_
 
@@ -96,6 +98,8 @@ class ImaginaryElement(AdditiveGroupElement):
             sage: from sage.groups.misc_gps.imaginary_groups import ImaginaryGroup
             sage: J = ImaginaryGroup(ZZ)
             sage: J(I).real()
+            0
+            sage: real_part(J(I))  # indirect doctest
             0
         """
         return self.parent().base().zero()

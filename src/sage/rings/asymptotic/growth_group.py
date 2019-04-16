@@ -2860,6 +2860,7 @@ class MonomialGrowthElement(GenericGrowthElement):
         else:
             f = repr
 
+        from sage.symbolic.ring import isidentifier
         from sage.rings.integer_ring import ZZ
         from .misc import repr_op
 
@@ -2872,7 +2873,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             return repr_op(var, '^', latex=True) + \
                 '{' + latex_repr(self.exponent)._latex_() + '}'
         elif self.exponent in ZZ and self.exponent > 0 \
-                or str(self.exponent).isalpha():
+                or isidentifier(str(self.exponent)):
             return repr_op(var, '^') + str(self.exponent)
         else:
             return repr_op(var, '^') + '(' + str(self.exponent) + ')'
@@ -5212,7 +5213,7 @@ class GrowthGroupFactory(UniqueFactory):
 
     ::
 
-        sage: TestSuite(GrowthGroup('QQ^y')).run(verbose=True)  # long time
+        sage: TestSuite(GrowthGroup('(QQ_+)^y')).run(verbose=True)  # long time
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
         running ._test_cardinality() . . . pass
@@ -5318,14 +5319,21 @@ class GrowthGroupFactory(UniqueFactory):
             > *and* ValueError: Cannot create a parent out of 'y^z'.
             >> *previous* ValueError: unknown specification y^z
             >> *and* NameError: name 'y' is not defined
+
+        ::
+
+            sage: GrowthGroup('n^(I*ZZ)')
+            Growth Group n^(ZZ*I)
+            sage: GrowthGroup('n^(I  *   ZZ)')
+            Growth Group n^(ZZ*I)
         """
         from .misc import repr_short_to_parent, split_str_by_op
         from sage.groups.misc_gps.imaginary_groups import ImaginaryGroup
 
         kwds.setdefault('ignore_variables', ('e',))
 
-        sfactors = split_str_by_op(specification, '*')
-        sfactors = tuple(f.replace('**', '^') for f in sfactors)
+        sfactors = split_str_by_op(
+            ' '.join(specification.split()).replace('**', '^'), '*')
 
         def remove_parentheses(s):
             while s.startswith('(') and s.endswith(')'):

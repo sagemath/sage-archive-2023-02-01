@@ -147,7 +147,7 @@ class Lseries_ell(SageObject):
         ``RuntimeError`` is raised::
 
             sage: e = EllipticCurve([1,1,0,-63900,-1964465932632])
-            sage: L = e.lseries().dokchitser(15)
+            sage: L = e.lseries().dokchitser(15, algorithm='gp')
             Traceback (most recent call last):
             ...
             RuntimeError: Unable to create L-series, due to precision or other limits in PARI.

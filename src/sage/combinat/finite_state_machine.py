@@ -7339,19 +7339,19 @@ class FiniteStateMachine(SageObject):
             sage: A.transitions()
             [Transition from 0 to 0: 0|-,
              Transition from 0 to 0: 1|-,
-             Transition from 1 to 1: 0|-,
-             Transition from 1 to 2: 1|-,
-             Transition from 2 to 1: 0|-,
-             Transition from 2 to 0: 1|-]
+             Transition from 1 to 2: 0|-,
+             Transition from 1 to 0: 1|-,
+             Transition from 2 to 2: 0|-,
+             Transition from 2 to 1: 1|-]
             sage: A.initial_states()
-            [1]
+            [2]
             sage: A.final_states()
             [1, 2]
             sage: C = A.coaccessible_components()
             sage: C.transitions()
-            [Transition from 1 to 1: 0|-,
-             Transition from 1 to 2: 1|-,
-             Transition from 2 to 1: 0|-]
+            [Transition from 1 to 2: 0|-,
+             Transition from 2 to 2: 0|-,
+             Transition from 2 to 1: 1|-]
 
         .. SEEALSO::
             :meth:`accessible_components`,
@@ -10432,12 +10432,12 @@ class FiniteStateMachine(SageObject):
                 sage: block_difference = transducers.sub([0, 1])(product_01x10)
                 sage: T = block_difference.simplification().relabeled()
                 sage: T.transitions()
-                [Transition from 0 to 1: 0|-1,
+                [Transition from 0 to 2: 0|-1,
                  Transition from 0 to 0: 1|0,
-                 Transition from 1 to 1: 0|0,
-                 Transition from 1 to 0: 1|1,
-                 Transition from 2 to 1: 0|0,
-                 Transition from 2 to 0: 1|0]
+                 Transition from 1 to 2: 0|0,
+                 Transition from 1 to 0: 1|0,
+                 Transition from 2 to 2: 0|0,
+                 Transition from 2 to 0: 1|1]
                 sage: moments = T.asymptotic_moments()
                 sage: moments['expectation']
                 Order(1)
@@ -12896,19 +12896,15 @@ class Transducer(FiniteStateMachine):
             sage: fsms
             Transducer with 2 states
             sage: fsms.transitions()
-            [Transition from ('A', 'C')
-                          to ('B', 'D'): 0|1,
-             Transition from ('A', 'C')
-                          to ('B', 'D'): 1|0,
-             Transition from ('B', 'D')
-                          to ('A', 'C'): 0|0,
-             Transition from ('B', 'D')
-                          to ('A', 'C'): 1|1]
+            [Transition from ('B', 'D') to ('A', 'C'): 0|0,
+             Transition from ('B', 'D') to ('A', 'C'): 1|1,
+             Transition from ('A', 'C') to ('B', 'D'): 0|1,
+             Transition from ('A', 'C') to ('B', 'D'): 1|0]
             sage: fsms.relabeled().transitions()
-            [Transition from 0 to 1: 0|1,
-             Transition from 0 to 1: 1|0,
-             Transition from 1 to 0: 0|0,
-             Transition from 1 to 0: 1|1]
+            [Transition from 0 to 1: 0|0,
+             Transition from 0 to 1: 1|1,
+             Transition from 1 to 0: 0|1,
+             Transition from 1 to 0: 1|0]
 
         ::
 

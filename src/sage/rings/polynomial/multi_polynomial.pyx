@@ -7,7 +7,7 @@ Base class for elements of multivariate polynomial rings
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from __future__ import print_function, absolute_import
@@ -2137,7 +2137,7 @@ cdef class MPolynomial(CommutativeRingElement):
         a root with multiplicity at lease half the total degree of the polynomial,
         then we must also use the `z_0` covariant. See [CS2003]_ for details.
 
-        Note that, if the covariant is within ``error_limit`` of the boundry
+        Note that, if the covariant is within ``error_limit`` of the boundary
         but outside the fundamental domain, our function will erroneously move
         it to within the fundamental domain, hence our conjugation will be off
         by 1. If you don't want this to happen, decrease your ``error_limit``

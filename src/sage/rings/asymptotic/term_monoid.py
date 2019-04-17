@@ -196,7 +196,7 @@ Classes and Methods
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-# http://www.gnu.org/licenses/
+# https://www.gnu.org/licenses/
 # *****************************************************************************
 from __future__ import absolute_import
 
@@ -517,7 +517,7 @@ class GenericTerm(MultiplicativeGroupElement):
         """
         # This assumes `0 = O(g)` for any `g` in the growth group, which
         # is valid in the case of a variable going to `\infty`.
-        # Once non-standard asymptoptics are supported, this has to be
+        # Once non-standard asymptotics are supported, this has to be
         # rewritten.
         # See also #19083, comment 64, 27.
 

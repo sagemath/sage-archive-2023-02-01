@@ -6824,11 +6824,11 @@ class Polyhedron_base(Element):
 
         - ``orthonormal`` (boolean, default = False) -- if ``True``,
           provide an orthonormal transformation. If the base ring does not
-          provide the neccessary square roots, the extend parameter
+          provide the necessary square roots, the extend parameter
           needs to be set to ``True``.
 
         - ``extend`` (boolean, default = False) -- if ``True``,
-          allow base ring to be extended if neccessary. This becomes
+          allow base ring to be extended if necessary. This becomes
           relevant when requiering an orthonormal transformation.
 
         OUTPUT:
@@ -7085,10 +7085,10 @@ class Polyhedron_base(Element):
             assert v.vector() == Q.ambient_space().zero()
             # choose as an affine basis the neighbors of the origin vertex in Q
             M = matrix(self.base_ring(), self.dim(), self.ambient_dim(), [list(w) for w in itertools.islice(v.neighbors(), self.dim())])
-            # Switch base_ring to AA if neccessary,
+            # Switch base_ring to AA if necessary,
             # since gram_schmidt needs to be able to take square roots.
             # Pick orthonormal basis and transform all vertices accordingly
-            # if the orthonormal transform makes it neccessary, change base ring.
+            # if the orthonormal transform makes it necessary, change base ring.
             try:
                 A = M.gram_schmidt(orthonormal=orthonormal)[0]
             except TypeError:

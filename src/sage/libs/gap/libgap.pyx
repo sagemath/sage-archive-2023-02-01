@@ -706,7 +706,7 @@ class Gap(Parent):
 
         This includes the total memory allocated by GAP as returned by
         ``libgap.eval('TotalMemoryAllocated()'), as well as garbage collection
-        / object count statistitics as returned by
+        / object count statistics as returned by
         ``libgap.eval('GasmanStatistics')``, and finally the total number of
         GAP objects held by Sage as :class:`~sage.libs.gap.element.GapElement`
         instances.

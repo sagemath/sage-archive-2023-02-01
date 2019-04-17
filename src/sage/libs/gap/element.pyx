@@ -39,7 +39,7 @@ decode_type_number = {
     T_INTPOS: 'T_INTPOS (positive integer)',
     T_INTNEG: 'T_INTNEG (negative integer)',
     T_RAT: 'T_RAT (rational number)',
-    T_CYC: 'T_CYC (universal cylotomic)',
+    T_CYC: 'T_CYC (universal cyclotomic)',
     T_FFE: 'T_FFE (finite field element)',
     T_PERM2: 'T_PERM2',
     T_PERM4: 'T_PERM4',

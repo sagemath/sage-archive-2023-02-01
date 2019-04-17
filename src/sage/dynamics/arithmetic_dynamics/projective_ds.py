@@ -3187,7 +3187,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         but is slow as the defining equations of the variety get more
         complicated.
 
-        For rational map, where there are potentially infinitely many peiodic
+        For rational map, where there are potentially infinitely many periodic
         points of a given period, you must use the ``return_scheme`` option.
         Note that this scheme will include the indeterminacy locus.
 

@@ -2319,6 +2319,9 @@ class TensorField(ModuleElement):
             True
 
         """
+        from sage.manifolds.differentiable.mixed_form import MixedForm
+        if isinstance(other, MixedForm):
+            return other.parent()(self)._mul_(other)
         if not isinstance(other, TensorField):
             # Multiplication by a scalar field or a number
             return other * self

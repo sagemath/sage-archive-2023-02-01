@@ -4,7 +4,7 @@
     **This page was last updated in MONTH YEAR (Sage X.Y).**
     ***************************************************************************
 
-.. highlight:: shell-session
+.. HIGHLIGHT:: shell-session
 
 .. _sec-installation-from-sources:
 

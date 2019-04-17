@@ -4,6 +4,8 @@
     **This page was last updated in MONTH YEAR (Sage X.Y).**
     ***************************************************************************
 
+.. highlight:: shell-session
+
 .. _sec-installation-from-sources:
 
 Install from Source Code
@@ -108,7 +110,7 @@ Libraries
 Some Sage components (and among them, most notably, Python) *"use the
 OpenSSL library for added performance if made available by the
 operating system"* (literal quote from the Python license). Testing
-has proved that :
+has proved that:
 
    * Sage can be successfully built against other SSL libraries (at
      least GnuTLS).
@@ -185,11 +187,11 @@ Installing prerequisites
 To check if you have the above prerequisites installed, for example ``perl``,
 type::
 
-    command -v perl
+    $ command -v perl
 
 or::
 
-    which perl
+    $ which perl
 
 on the command line. If it gives an error (or returns nothing), then
 either ``perl`` is not installed, or it is installed but not in your
@@ -212,21 +214,21 @@ you would use
 `apt-get <https://en.wikipedia.org/wiki/Advanced_Packaging_Tool>`_::
 
      # debian
-     sudo apt-get install binutils gcc make m4 perl tar git openssl libssl-dev
+     $ sudo apt-get install binutils gcc make m4 perl tar git openssl libssl-dev
 
      # redhat
-     sudo yum install binutils gcc make m4 perl tar git \
+     $ sudo yum install binutils gcc make m4 perl tar git \
      perl-ExtUtils-MakeMaker openssl openssl-devel
      
 to install all general requirements, or, if you don't want Sage to build its
 own GCC::
 
      # debian
-     sudo apt-get install binutils gcc g++ gfortran make m4 perl tar \
+     $ sudo apt-get install binutils gcc g++ gfortran make m4 perl tar \
      git openssl libssl-dev
 
      # redhat
-     sudo yum install binutils gcc gcc-c++ gcc-gfortran make m4 perl \
+     $ sudo yum install binutils gcc gcc-c++ gcc-gfortran make m4 perl \
      tar git perl-ExtUtils-MakeMaker openssl openssl-devel
      
 (These examples suppose that you choose to use a systemwide OpenSSL
@@ -365,8 +367,8 @@ which can be installed following the directions on their web site.
 On Linux systems you can alternatively install your distribution's
 texlive packages::
 
-    sudo apt-get install texlive       # debian
-    sudo yum install texlive           # redhat
+    $ sudo apt-get install texlive       # debian
+    $ sudo yum install texlive           # redhat
 
 or similar commands. In addition to the base TeX Live install, you may
 need some optional TeX Live packages, for example
@@ -411,7 +413,7 @@ On Linux systems, the OpenSSH server, client and utilities are usually provided
 by the **openssh-server** and **openssh-client** packages and can be installed
 using::
 
-    sudo apt-get install openssh-server openssh-client
+    $ sudo apt-get install openssh-server openssh-client
 
 or similar commands.
 
@@ -427,15 +429,15 @@ Tcl/Tk.
 On Linux systems, these are usually provided by the **tk** and **tk-dev**
 (or **tk-devel**) packages which can be installed using::
 
-    sudo apt-get install tk tk-dev
+    $ sudo apt-get install tk tk-dev
 
 or similar commands.
 
 If you installed Sage first, all is not lost. You just need to rebuild
 Sage's Python and any part of Sage relying on it::
 
-    sage -f python2  # rebuild Python
-    make             # rebuild components of Sage depending on Python
+    $ sage -f python2  # rebuild Python
+    $ make             # rebuild components of Sage depending on Python
 
 after installing the Tcl/Tk development libraries as above.
 
@@ -443,7 +445,7 @@ If
 
 .. skip
 
-::
+.. CODE-BLOCK:: ipycon
 
    sage: import _tkinter
    sage: import Tkinter
@@ -484,13 +486,13 @@ Running Sage from a directory with spaces in its name will also fail.
 
 #. Extract the tarfile::
 
-       tar xvf sage-x.y.tar
+       $ tar xvf sage-x.y.tar
 
    This creates a directory :file:`sage-x.y`.
 
 #. Change into that directory::
 
-       cd sage-x.y
+       $ cd sage-x.y
 
    This is Sage's home directory.
    It is also referred to as :envvar:`SAGE_ROOT` or the top level Sage
@@ -516,7 +518,7 @@ Running Sage from a directory with spaces in its name will also fail.
    - Choose the installation hierarchy (:envvar:`SAGE_LOCAL`).
      The default is the ``local`` subdirectory of :envvar:`SAGE_ROOT`::
 
-       ./configure --prefix=SAGE_LOCAL
+       $ ./configure --prefix=SAGE_LOCAL
 
      Note that in Sage's build process, ``make`` builds **and**
      installs (``make install`` is a no-op).  Therefore the
@@ -524,16 +526,16 @@ Running Sage from a directory with spaces in its name will also fail.
 
    - Other options are available; see::
 
-       ./configure --help
+       $ ./configure --help
 
 #. Start the build process::
 
-       make
+       $ make
 
    or if your system supports multiprocessing and you want to use several
    processes to build Sage::
 
-       MAKE='make -jNUM' make
+       $ MAKE='make -jNUM' make
 
    to tell the ``make`` program to run ``NUM`` jobs in parallel when building
    Sage. This compiles Sage and all its dependencies.
@@ -584,7 +586,7 @@ Running Sage from a directory with spaces in its name will also fail.
 
 #. To start Sage, you can now simply type from Sage's home directory::
 
-       ./sage
+       $ ./sage
 
    You should see the Sage prompt, which will look something like this::
 
@@ -608,12 +610,16 @@ Running Sage from a directory with spaces in its name will also fail.
    If the above is not displayed (e.g., if you get a massive traceback), please
    report the problem, e.g., at https://groups.google.com/group/sage-support.
 
-   After Sage has started, try a simple command::
+   After Sage has started, try a simple command:
+
+   .. CODE-BLOCK:: ipycon
 
        sage: 2 + 2
        4
 
-   Or something slightly more complicated::
+   Or something slightly more complicated:
+
+   .. CODE-BLOCK:: ipycon
 
        sage: factor(2005)
        5 * 401
@@ -648,7 +654,9 @@ Running Sage from a directory with spaces in its name will also fail.
    Sage inserts this directory at the front of your :envvar:`PATH`, so your
    script may need to use an absolute path to avoid calling itself; also, your
    script should pass along all of its arguments.
-   For example, a ``maple`` script might look like::
+   For example, a ``maple`` script might look like:
+
+   .. CODE-BLOCK:: bash
 
        #!/bin/sh
 
@@ -660,18 +668,22 @@ Running Sage from a directory with spaces in its name will also fail.
    - Make a symbolic link from :file:`/usr/local/bin/sage` (or another
      directory in your :envvar:`PATH`) to :file:`$SAGE_ROOT/sage`::
 
-         ln -s /path/to/sage-x.y/sage /usr/local/bin/sage
+         $ ln -s /path/to/sage-x.y/sage /usr/local/bin/sage
 
      Now simply typing ``sage`` from any directory should be sufficient to run
      Sage.
 
    - Copy :file:`$SAGE_ROOT/sage` to a location in your :envvar:`PATH`.
-     If you do this, make sure you edit the line::
+     If you do this, make sure you edit the line:
+
+     .. CODE-BLOCK:: bash
 
          #SAGE_ROOT=/path/to/sage-version
 
      at the beginning of the copied ``sage`` script according to the direction
-     given there to something like::
+     given there to something like:
+
+     .. CODE-BLOCK:: bash
 
          SAGE_ROOT=<SAGE_ROOT>
 
@@ -680,7 +692,9 @@ Running Sage from a directory with spaces in its name will also fail.
 
    - For `KDE <https://www.kde.org/>`_ users, create a bash script called
      ``sage`` containing the lines
-     (note that you have to change ``<SAGE_ROOT>`` below!)::
+     (note that you have to change ``<SAGE_ROOT>`` below!):
+
+     .. CODE-BLOCK:: bash
 
          #!/usr/bin/env bash
 
@@ -688,7 +702,7 @@ Running Sage from a directory with spaces in its name will also fail.
 
      make it executable::
 
-         chmod a+x sage
+         $ chmod a+x sage
 
      and put it somewhere in your :envvar:`PATH`.
 
@@ -699,7 +713,9 @@ Running Sage from a directory with spaces in its name will also fail.
    - On Linux and macOS systems, you can make an alias to
      :file:`$SAGE_ROOT/sage`.
      For example, put something similar to the following line in your
-     :file:`.bashrc` file::
+     :file:`.bashrc` file:
+
+     .. CODE-BLOCK:: bash
 
          alias sage=<SAGE_ROOT>/sage
 
@@ -739,7 +755,7 @@ and they both require OpenSSL.
 If you have OpenSSL and the OpenSSL development headers installed on your
 system, you can install pyOpenSSL by building Sage and then typing::
 
-    ./sage -i pyopenssl
+    $ ./sage -i pyopenssl
 
 Alternatively, ``make ssl`` builds Sage and installs pyOpenSSL at once.
 Note that these commands require Internet access.
@@ -752,14 +768,14 @@ The procedure is as follows (again, with a computer connected to the
 Internet).
 Starting from a fresh Sage tarball::
 
-    ./sage -i openssl
-    make ssl
+    $ ./sage -i openssl
+    $ make ssl
 
 And if you've already built Sage::
 
-    ./sage -i openssl
-    ./sage -f python2
-    make ssl
+    $ ./sage -i openssl
+    $ ./sage -f python2
+    $ make ssl
 
 The third line will rebuild all parts of Sage that depend on Python;
 this can take a while.
@@ -938,7 +954,7 @@ Here are some of the more commonly used variables affecting the build process:
   at the beginning and at the end of the installation of each Sage
   package.  To see even less output, use::
 
-    make -s V=0
+    $ make -s V=0
 
   (Note that the above uses the syntax of setting a Makefile variable.)
 
@@ -1115,7 +1131,9 @@ an unsupported machine or an unusual compiler:
 - :envvar:`SAGE_PORT` - if you try to build Sage on a platform which is
   recognized as being unsupported (e.g. AIX, or HP-UX), or with a compiler
   which is unsupported (anything except GCC), you will see a message saying
-  something like::
+  something like:
+
+  .. CODE-BLOCK:: text
 
       You are attempting to build Sage on IBM's AIX operating system,
       which is not a supported platform for Sage yet. Things may or
@@ -1343,25 +1361,29 @@ the directory where you want to install Sage.
    to your normal user account (as opposed to ``root``). This is because
    Sage will refuse to compile as ``root``. ::
 
-       chown -R user:group /path/to/sage-x.y
+       $ chown -R user:group /path/to/sage-x.y
 
 #. Using your normal user account, build Sage.
    See the :ref:`build-from-source-step-by-step` above.
 
 #. Make a symbolic link to the ``sage`` script in :file:`/usr/local/bin`::
 
-       ln -s /path/to/sage-x.y/sage /usr/local/bin/sage
+       $ ln -s /path/to/sage-x.y/sage /usr/local/bin/sage
 
    Alternatively, copy the Sage script::
 
-       cp /path/to/sage-x.y/sage /usr/local/bin/sage
+       $ cp /path/to/sage-x.y/sage /usr/local/bin/sage
 
-   If you do this, make sure you edit the line::
+   If you do this, make sure you edit the line:
+
+   .. CODE-BLOCK:: bash
 
        #SAGE_ROOT=/path/to/sage-version
 
    at the beginning of the copied ``sage`` script according to the direction
-   given there to something like::
+   given there to something like:
+
+   .. CODE-BLOCK:: bash
 
        SAGE_ROOT=<SAGE_ROOT>
 
@@ -1371,7 +1393,7 @@ the directory where you want to install Sage.
 
 #. Optionally, you can test Sage by running::
 
-       make testlong
+       $ make testlong
 
    or ``make ptestlong`` which tests files in parallel using multiple
    processes.

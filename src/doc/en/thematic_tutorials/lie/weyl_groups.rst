@@ -274,7 +274,9 @@ the Bruhat interval `[u,v]` to itself, then this gives an explicit
 bijection between the elements of odd and even length in `[u,v]`.
 
 Let us search for such reflections. Put the following commands in a
-file and load the file::
+file and load the file:
+
+.. CODE-BLOCK:: python
 
     W = WeylGroup("A3",prefix="s")
     [s1,s2,s3] = W.simple_reflections()

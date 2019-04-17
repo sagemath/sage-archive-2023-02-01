@@ -70,7 +70,7 @@ behaves differently from Python in several ways.
 -  **Notation for exponentiation:** ``**`` versus ``^``. In Python,
    ``^`` means "xor", not exponentiation, so in Python we have
 
-   ::
+   .. CODE-BLOCK:: pycon
 
        >>> 2^8
        10
@@ -170,7 +170,7 @@ How do I reference Sage?
 If you write a paper using Sage, please reference computations done
 with Sage by including
 
-::
+.. CODE-BLOCK:: text
 
     [Sage] William A. Stein et al., Sage Mathematics Software (Version 4.3).
            The Sage Development Team, 2009, http://www.sagemath.org.

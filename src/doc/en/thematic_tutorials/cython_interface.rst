@@ -136,7 +136,9 @@ We also need a ``~/my_dir/hello.h`` header file:
 
    void hello_world();
 
-We can now **compile it** as a library::
+We can now **compile it** as a library:
+
+.. code-block:: shell-session
 
    [user@localhost ~/my_dir/] gcc -c -Wall -Werror -fpic hello.c
    [user@localhost ~/my_dir/] gcc -shared -o libhello.so hello.o

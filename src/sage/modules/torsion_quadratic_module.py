@@ -574,13 +574,25 @@ class TorsionQuadraticModule(FGP_Module_class):
             True
             sage: D.genus((1,0))
             Traceback (most recent call last):
-            TypeError: all local symbols must be of the same dimension
-        """
+            ...
+            ValueError: this discriminant form and signature do not define a genus
+
+
+        A systematic test of lattices of
+        small ranks and determinants::
+
+            sage: from sage.quadratic_forms.genera.genus import genera
+            sage: signatures = [(1,0),(1,1),(1,2),(3,0),(0,4)]
+            sage: dets = range(1,33)
+            sage: genera = flatten([genera(s, d, even=False) for d in dets for s in signatures])    # long
+            sage: all(g == g.discriminant_form().genus(g.signature_pair()) for g in genera)
+            True
+            """
         from sage.quadratic_forms.genera.genus import (Genus_Symbol_p_adic_ring,
-                                                    GenusSymbol_global_ring,
-                                                    p_adic_symbol,
-                                                    is_GlobalGenus,
-                                                    _blocks)
+                                                       GenusSymbol_global_ring,
+                                                       p_adic_symbol,
+                                                       is_GlobalGenus,
+                                                       _blocks)
         from sage.misc.misc_c import prod
         s_plus = signature_pair[0]
         s_minus = signature_pair[1]
@@ -592,7 +604,7 @@ class TorsionQuadraticModule(FGP_Module_class):
             D = self.primary_part(p)
             if len(D.invariants()) != 0:
                 G_p = D.gram_matrix_quadratic().inverse()
-                # get rid of denominators without changeing the local equivalence class
+                # get rid of denominators without changing the local equivalence class
                 G_p *= G_p.denominator()**2
                 G_p = G_p.change_ring(ZZ)
                 local_symbol = p_adic_symbol(G_p, p, D.invariants()[-1].valuation(p))
@@ -654,7 +666,7 @@ class TorsionQuadraticModule(FGP_Module_class):
                           and (b[2] - d) % 4 == 0
                           and (b[4] - t) % 4 == 0
                           and (b[2] - d) % 8 == (b[4] - t) % 8 # if the oddity is altered by 4 then so is the determinant
-                          ]
+                         ]
         elif self.value_module_qf().n == 2:
             # the form is even
             block0 = [b for b in _blocks(sym2[0]) if b[3] == 0]
@@ -672,7 +684,7 @@ class TorsionQuadraticModule(FGP_Module_class):
                           and (b[2] - d) % 4 == 0
                           and (b[4] - t) % 4 == 0
                           and (b[2] - d) % 8 == (b[4] - t) % 8 # if the oddity is altered by 4 then so is the determinant
-                          ]
+                         ]
             # this is completely determined
             block2 = [sym2[2]]
         else:
@@ -698,8 +710,7 @@ class TorsionQuadraticModule(FGP_Module_class):
                         local_symbols[0] = Genus_Symbol_p_adic_ring(2, sym2)
                         genus = GenusSymbol_global_ring(signature_pair, local_symbols)
                         return genus
-        else:
-            raise ValueError("this discriminant form and signature do not define a genus")
+        raise ValueError("this discriminant form and signature do not define a genus")
 
 
     def is_genus(self, signature_pair, even=True):

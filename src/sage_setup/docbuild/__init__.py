@@ -99,7 +99,8 @@ def builder_helper(type):
         ....:     raise BaseException("abort pool operation")
         sage: original_runsphinx, sage_setup.docbuild.sphinxbuild.runsphinx = sage_setup.docbuild.sphinxbuild.runsphinx, raiseBaseException
 
-        sage: from sage_setup.docbuild import builder_helper, build_many, build_ref_doc
+        sage: from sage_setup.docbuild import builder_helper, build_ref_doc
+        sage: from sage_setup.docbuild import _build_many as build_many
         sage: helper = builder_helper("html")
         sage: try:
         ....:     build_many(build_ref_doc, [("docname", "en", "html", {})])
@@ -269,30 +270,32 @@ class DocBuilder(object):
     inventory = builder_helper('inventory')
 
 
+def _build_many(target, args):
+    # Pool() uses an actual fork() to run each new instance. This is
+    # important for performance reasons, i.e., don't use a forkserver when
+    # it becomes available with Python 3: Here, sage is already initialized
+    # which is quite costly, with a forkserver we would have to
+    # reinitialize it for every document we build. At the same time, don't
+    # serialize this by taking the pool (and thus the call to fork()) out
+    # completely: The call to Sphinx leaks memory, so we need to build each
+    # document in its own process to control the RAM usage.
+    from multiprocessing import Pool
+    pool = Pool(NUM_THREADS, maxtasksperchild=1)
+    # map_async handles KeyboardInterrupt correctly. Plain map and
+    # apply_async does not, so don't use it.
+    x = pool.map_async(target, args, 1)
+    try:
+        ret = x.get(99999)
+        pool.close()
+        pool.join()
+    except Exception:
+        pool.terminate()
+        if ABORT_ON_ERROR:
+            raise
+    return ret
+
 if not (CYGWIN_VERSION and CYGWIN_VERSION[0] < 3):
-    def build_many(target, args):
-        # Pool() uses an actual fork() to run each new instance. This is
-        # important for performance reasons, i.e., don't use a forkserver when
-        # it becomes available with Python 3: Here, sage is already initialized
-        # which is quite costly, with a forkserver we would have to
-        # reinitialize it for every document we build. At the same time, don't
-        # serialize this by taking the pool (and thus the call to fork()) out
-        # completely: The call to Sphinx leaks memory, so we need to build each
-        # document in its own process to control the RAM usage.
-        from multiprocessing import Pool
-        pool = Pool(NUM_THREADS, maxtasksperchild=1)
-        # map_async handles KeyboardInterrupt correctly. Plain map and
-        # apply_async does not, so don't use it.
-        x = pool.map_async(target, args, 1)
-        try:
-            ret = x.get(99999)
-            pool.close()
-            pool.join()
-        except Exception:
-            pool.terminate()
-            if ABORT_ON_ERROR:
-                raise
-        return ret
+    build_many = _build_many
 else:
     # Cygwin 64-bit < 3.0.0 has a bug with exception handling when exceptions
     # occur in pthreads, so it's dangerous to use multiprocessing.Pool, as

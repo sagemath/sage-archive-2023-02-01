@@ -281,8 +281,8 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
         """
         if isinstance(S, self.__class__):
             # coercion by domain restriction
-            return self._domain.is_subset(
-                S._domain) and self._ambient_domain.is_subset(S._ambient_domain)
+            return (self._domain.is_subset(S._domain) and
+                   self._ambient_domain.is_subset(S._ambient_domain))
         # Test scalar_field_algebra separately to ensure coercion from SR:
         if self._domain.scalar_field_algebra().has_coerce_map_from(S):
             return True

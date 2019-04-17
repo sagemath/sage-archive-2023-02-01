@@ -476,7 +476,7 @@ class MixedForm(AlgebraElement):
              manifold M
             sage: latex(F)
             \ugly
-            sage: F.set_name(name='fancy', latex_name='\eta'); F
+            sage: F.set_name(name='fancy', latex_name=r'\eta'); F
             Mixed differential form fancy on the 4-dimensional differentiable
              manifold M
             sage: latex(F)

@@ -2078,7 +2078,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: S.round(4)
             [ 9.508    0.0    0.0]
             [   0.0 0.7729    0.0]
-            sage: [round(sqrt(abs(x)),4) for x in (S*S.transpose()).eigenvalues()]
+            sage: [N(sqrt(abs(x)), digits=4) for x in (S*S.transpose()).eigenvalues()]
             [9.508, 0.7729]
 
         U and V are orthogonal matrices::

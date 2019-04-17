@@ -2713,9 +2713,3 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
 
 
 Manifold.options = TopologicalManifold.options
-
-# Deprecations from trac:18555. July 2016
-from sage.misc.superseded import deprecated_function_alias
-Manifold.global_options=deprecated_function_alias(18555, TopologicalManifold.options)
-ManifoldOptions = deprecated_function_alias(18555, TopologicalManifold.options)
-TopologicalManifold.global_options=deprecated_function_alias(18555, TopologicalManifold.options)

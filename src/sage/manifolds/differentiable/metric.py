@@ -19,7 +19,7 @@ REFERENCES:
 - [ONe1983]_
 
 """
-#******************************************************************************
+# *****************************************************************************
 #  Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #  Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #  Copyright (C) 2016 Pablo Angulo <pang@cancamusa.net>
@@ -29,7 +29,7 @@ REFERENCES:
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#******************************************************************************
+# *****************************************************************************
 from six.moves import range
 
 from sage.rings.integer import Integer
@@ -2010,6 +2010,14 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         [ 1/8*u^2 - 1/8*v^2 + 1/2            1/4*u + 1/4*v]
         [           1/4*u + 1/4*v -1/8*u^2 + 1/8*v^2 + 1/2]
         sage: g.display(c_uv.frame(), c_uv)
+        g = (1/8*u^2 - 1/8*v^2 + 1/2) du*du + (1/4*u + 1/4*v) du*dv
+         + (1/4*u + 1/4*v) dv*du + (-1/8*u^2 + 1/8*v^2 + 1/2) dv*dv
+
+    As a shortcut of the above command, on can pass just the chart ``c_uv``
+    to ``display``, the vector frame being then assumed to be the coordinate
+    frame associated with the chart::
+
+        sage: g.display(c_uv)
         g = (1/8*u^2 - 1/8*v^2 + 1/2) du*du + (1/4*u + 1/4*v) du*dv
          + (1/4*u + 1/4*v) dv*du + (-1/8*u^2 + 1/8*v^2 + 1/2) dv*dv
 

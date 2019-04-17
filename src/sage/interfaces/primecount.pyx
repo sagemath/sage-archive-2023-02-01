@@ -110,7 +110,7 @@ cpdef prime_pi_128(n):
         sage: nth_prime_128(2**65)   # not tested
         ?
     """
-    cdef cppstring s = str(n)
+    cdef cppstring s = bytes(n)
     cdef bytes ans
     sig_on()
     ans = primecount.pi(s)

@@ -920,28 +920,81 @@ class Polytopes():
              [-1, 0,  0], [0, 1, 0], [0, -1, 0]]
         return Polyhedron(vertices=v, base_ring=ZZ, backend=backend)
 
-    def snub_cube(self, backend=None):
+    def snub_cube(self, exact=True, backend=None):
         """
         Return a snub cube.
 
         The snub cube is an Archimedean solid. It has 24 vertices and 38 faces.
         For more information see the :wikipedia:`Snub_cube`.
 
-        It uses the real double field for the coordinates.
+        The constant `z` used in constructing this polytope is the reciprocal
+        of the tribonacci constant, that is, the solution of the equation
+        `x^3 + x^2 + x - 1 = 0`.
+        See :wikipedia:`Generalizations_of_Fibonacci_numbers#Tribonacci_numbers`.
 
         INPUT:
 
-        - ``backend`` -- the backend to use to create the polytope.
+        - ``exact`` - (boolean, default ``True``) if ``True`` use exact
+          coordinates instead of floating point approximations
+
+        - ``backend`` -- the backend to use to create the polytope. This will
+          be set to ``field`` if ``exact`` is ``True``
 
         EXAMPLES::
 
-            sage: sc = polytopes.snub_cube()
-            sage: sc.f_vector()
+            sage: sc_inexact = polytopes.snub_cube(exact=False)
+            sage: sc_inexact
+            A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 24 vertices
+            sage: sc_inexact.f_vector()
             (1, 24, 60, 38, 1)
+            sage: sc_exact = polytopes.snub_cube()  # long time - 30secs
+            sage: sc_exact.f_vector()               # long time
+            (1, 24, 60, 38, 1)
+            sage: sc_exact.vertices()               # long time
+            (A vertex at (-1, -z, -z^2),
+             A vertex at (-z^2, -1, -z),
+             A vertex at (-z, -z^2, -1),
+             A vertex at (-1, z^2, -z),
+             A vertex at (-z, -1, z^2),
+             A vertex at (z^2, -z, -1),
+             A vertex at (z, -1, -z^2),
+             A vertex at (-z^2, z, -1),
+             A vertex at (-1, -z^2, z),
+             A vertex at (z, z^2, -1),
+             A vertex at (-1, z, z^2),
+             A vertex at (z^2, -1, z),
+             A vertex at (-z, 1, -z^2),
+             A vertex at (z^2, 1, -z),
+             A vertex at (-z^2, -z, 1),
+             A vertex at (-z, z^2, 1),
+             A vertex at (-z^2, 1, z),
+             A vertex at (1, -z^2, -z),
+             A vertex at (1, -z, z^2),
+             A vertex at (1, z, -z^2),
+             A vertex at (z, -z^2, 1),
+             A vertex at (z, 1, z^2),
+             A vertex at (z^2, z, 1),
+             A vertex at (1, z^2, z))
+            sage: sc_exact.is_combinatorially_isomorphic(sc_inexact) #long time
+            True
         """
-        base_ring = RDF
-        tsqr33 = 3 * base_ring(33).sqrt()
-        z = ((17 + tsqr33).cube_root() - (-17 + tsqr33).cube_root() - 1) / 3
+        # z here is the reciprocal of the tribonacci constant, that is, the
+        # solution of the equation x^3 + x^2 + x -1 = 0.
+
+        if exact:
+            backend = "field"
+            from sage.rings.number_field.number_field import NumberField
+            R = QQ['x']
+            f = R([-1,1,1,1])
+            embedding = ((AA(17) + AA(3)*AA(33)**(1/2))**(1/3) - \
+                         (-AA(17) + AA(3)*AA(33)**(1/2))**(1/3) - AA(1))/3
+            base_ring = NumberField(f, name='z', embedding=embedding)
+            z = base_ring.gen()
+
+        else:
+            base_ring = RDF
+            tsqr33 = 3 * base_ring(33).sqrt()
+            z = ((17 + tsqr33).cube_root() - (-17 + tsqr33).cube_root() - 1)/3
 
         verts = []
         z2 = z ** 2
@@ -957,7 +1010,7 @@ class Polytopes():
                         v = [f * z, e, g * z2]
                         for p in A3:
                             verts += [p(v)]
-        return Polyhedron(vertices=verts, base_ring=base_ring)
+        return Polyhedron(vertices=verts, base_ring=base_ring, backend=backend)
 
     def buckyball(self, exact=True, base_ring=None, backend=None):
         r"""

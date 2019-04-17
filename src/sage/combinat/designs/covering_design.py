@@ -46,12 +46,15 @@ Classes and methods
 # ****************************************************************************
 from __future__ import print_function
 
+from six.moves.urllib.request import urlopen
+
 from sage.misc.sage_eval import sage_eval
 from sage.structure.sage_object import SageObject
 from sage.rings.rational import Rational
 from sage.arith.all import binomial
 from sage.combinat.combination import Combinations
 from sage.combinat.designs.incidence_structures import IncidenceStructure
+from sage.cpython.string import bytes_to_str
 
 
 def schonheim(v, k, t):
@@ -514,9 +517,6 @@ def best_known_covering_design_www(v, k, t, verbose=False):
     A ValueError is raised if the ``(v, k, t)`` parameters are not
     found in the database.
     """
-    # import compatible with py2 and py3
-    from six.moves.urllib.request import urlopen
-    from sage.cpython.string import bytes_to_str
     v = int(v)
     k = int(k)
     t = int(t)

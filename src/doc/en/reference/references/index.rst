@@ -3118,6 +3118,11 @@ REFERENCES:
             Langlands dual quantum affine algebras: Exceptional cases*.
             Preprint: :arxiv:`1802.09253` (2018).
 
+.. [OSS2009] Vitaly Osipov, Peter Sanders, Johannes Singler:
+             *The Filter-Kruskal Minimum Spanning Tree Algorithm*.
+             SIAM ALENEX, 2009: 52-61
+             :doi:`10.1137/1.9781611972894.5`
+
 .. [Oxl1992] James Oxley, *Matroid theory*, Oxford University
              Press, 1992.
 

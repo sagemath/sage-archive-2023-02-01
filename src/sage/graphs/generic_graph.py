@@ -4043,6 +4043,8 @@ class GenericGraph(GenericGraph_pyx):
 
           - ``"Kruskal"`` -- Kruskal's algorithm
 
+          - ``"Filter_Kruskal"`` -- a variant of Kruskal's algorithm [OSS2009]_
+
           - ``"Kruskal_Boost"`` -- Kruskal's algorithm (Boost implementation)
 
           - ``"Boruvka"`` -- Boruvka's algorithm
@@ -4068,6 +4070,7 @@ class GenericGraph(GenericGraph_pyx):
         .. SEEALSO::
 
             - :func:`sage.graphs.spanning_tree.kruskal`
+            - :func:`sage.graphs.spanning_tree.filter_kruskal`
             - :func:`sage.graphs.spanning_tree.boruvka`
             - :func:`sage.graphs.base.boost_graph.min_spanning_tree`
 
@@ -4145,6 +4148,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.add_edges([[0, 1, 1], [1, 2, 1], [2, 0, 10]])
             sage: sorted(g.min_spanning_tree())
             [(0, 1, 1), (1, 2, 1)]
+            sage: sorted(g.min_spanning_tree(algorithm='Filter_Kruskal'))
+            [(0, 1, 1), (1, 2, 1)]
             sage: sorted(g.min_spanning_tree(algorithm='Kruskal_Boost'))
             [(0, 1, 1), (1, 2, 1)]
             sage: sorted(g.min_spanning_tree(algorithm='Prim_fringe'))
@@ -4164,6 +4169,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = Graph([[0, 1, 1], [1, 2, 1], [2, 0, 10]], weighted=True)
             sage: weight = lambda e: 3 - e[0] - e[1]
             sage: sorted(g.min_spanning_tree(weight_function=weight))
+            [(0, 2, 10), (1, 2, 1)]
+            sage: sorted(g.min_spanning_tree(algorithm='Filter_Kruskal', weight_function=weight))
             [(0, 2, 10), (1, 2, 1)]
             sage: sorted(g.min_spanning_tree(algorithm='Kruskal_Boost', weight_function=weight))
             [(0, 2, 10), (1, 2, 1)]
@@ -4206,6 +4213,10 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: could not convert string to float:...
+            sage: g.min_spanning_tree(algorithm="Filter_Kruskal")
+            Traceback (most recent call last):
+            ...
+            ValueError: could not convert string to float:...
             sage: g.min_spanning_tree(algorithm="Kruskal_Boost")
             Traceback (most recent call last):
             ...
@@ -4234,6 +4245,10 @@ class GenericGraph(GenericGraph_pyx):
             ...
             TypeError: float() argument must be a string or a number...
             sage: g.min_spanning_tree(algorithm="Kruskal")
+            Traceback (most recent call last):
+            ...
+            TypeError: float() argument must be a string or a number...
+            sage: g.min_spanning_tree(algorithm="Filter_Kruskal")
             Traceback (most recent call last):
             ...
             TypeError: float() argument must be a string or a number...
@@ -4267,7 +4282,7 @@ class GenericGraph(GenericGraph_pyx):
 
         wfunction_float = lambda e: float(weight_function(e))
 
-        if algorithm in ["Kruskal", "Kruskal_Boost", "Prim_Boost", "Boruvka"]:
+        if algorithm in ["Kruskal", "Filter_Kruskal", "Kruskal_Boost", "Prim_Boost", "Boruvka"]:
             if self.is_directed():
                 g = self.to_undirected()
             else:
@@ -4276,6 +4291,9 @@ class GenericGraph(GenericGraph_pyx):
             if algorithm == "Kruskal":
                 from .spanning_tree import kruskal
                 return kruskal(g, wfunction=wfunction_float, check=check)
+            if algorithm == "Filter_Kruskal":
+                from .spanning_tree import filter_kruskal
+                return filter_kruskal(g, weight_function=wfunction_float, check=check)
             elif algorithm == "Boruvka":
                 from .spanning_tree import boruvka
                 return boruvka(g, wfunction=wfunction_float, check=check)

@@ -3319,6 +3319,11 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
       If ``None``, then :class:`~sage.rings.asymptotic.term_monoid.DefaultTermMonoidFactory`
       is used.
 
+    - ``log`` -- a function. If ``None`` (default value)
+      is used, then the usual
+      :class:`log <sage.functions.log.Function_log>` is taken.
+      (See also :meth:`AsymptoticExpansion.log`.)
+
     EXAMPLES:
 
     We begin with the construction of an asymptotic ring in various
@@ -3705,6 +3710,10 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             sage: AR = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ, log=mylog)
             sage: AR.log
             <function mylog at 0x...>
+
+        .. SEEALSO::
+
+            :meth:`AsymptoticExpansion.log`
         """
         if self._log_ is None:
             from sage.functions.log import log

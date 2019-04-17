@@ -1959,14 +1959,33 @@ def conjugate_shrink(v):
         return v.real()
     return v
 
-
-def number_field_elements_from_algebraics(numbers, minimal=False, same_field=False):
+def number_field_elements_from_algebraics(numbers, minimal=False, same_field=False, embedded=False, prec=53):
     r"""
     Given a sequence of elements of either ``AA`` or ``QQbar``
     (or a mixture), computes a number field containing all of these
     elements, these elements as members of that number field, and a
     homomorphism from the number field back to ``AA`` or
     ``QQbar``.
+
+    INPUT:
+
+    - ``numbers`` -- a number or list of numbers.
+
+    - ``minimal`` -- Boolean (default: ``False``). Whether to minimize the
+      degree of the extension.
+
+    - ``same_field`` -- Boolean (default: ``False``). See below.
+
+    - ``embedded`` -- Boolean (default: ``False``). Whether to make the
+      NumberField embedded.
+
+    - ``prec`` -- integer (default: ``53``). The number of bit of precision for
+      the embedding.
+
+    OUTPUT:
+
+    A tuple with the NumberField, the numbers inside the NumberField, 
+    and a homomorphism from the number field back to ``AA`` or ``QQbar``.
 
     This may not return the smallest such number field, unless
     ``minimal=True`` is specified.
@@ -2105,6 +2124,20 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
         sage: [hom(n) for n in nums] == [rt2, rt3, qqI, z3]
         True
 
+    It is also possible to have an embedded Number Field::
+
+        sage: x = polygen(ZZ)
+        sage: my_num = AA.polynomial_root(x^3-2, RIF(0,3))
+        sage: res = number_field_elements_from_algebraics(my_num,embedded=True)
+        sage: res[0].gen_embedding()
+        1.259921049894873?
+        sage: res[2]
+        Ring morphism:
+          From: Number Field in a with defining polynomial y^3 - 2
+          To:   Algebraic Real Field
+          Defn: a |--> 1.259921049894873?
+
+
     TESTS::
 
         sage: number_field_elements_from_algebraics(rt3)
@@ -2127,7 +2160,7 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
     Also note that the exact answer depends on a Pari function that
     gives different answers for 32-bit and 64-bit machines::
 
-        sage: number_field_elements_from_algebraics(rt2c)
+        sage: number_field_elements_from_algebraics(rt2c)   # random
         (Number Field in a with defining polynomial y^4 + 2*y^2 + 4, 1/2*a^3, Ring morphism:
             From: Number Field in a with defining polynomial y^4 + 2*y^2 + 4
             To:   Algebraic Field
@@ -2143,6 +2176,31 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
             To:   Algebraic Field
             Defn: a |--> 1.414213562373095?)
 
+    Tests trivial cases::
+
+        sage: number_field_elements_from_algebraics([], embedded=True)
+        (Rational Field, [], Ring morphism:
+           From: Rational Field
+           To:   Algebraic Real Field
+           Defn: 1 |--> 1)
+        sage: number_field_elements_from_algebraics([1], embedded=True)
+        (Rational Field, [1], Ring morphism:
+           From: Rational Field
+           To:   Algebraic Real Field
+           Defn: 1 |--> 1)
+
+    Tests more complicated combinations::
+
+        sage: UCF = UniversalCyclotomicField()
+        sage: E = UCF.gen(5)
+        sage: L.<b> = NumberField(x^2-189*x+16, embedding=200)
+        sage: x = polygen(ZZ)
+        sage: my_nums = [-52*E - 136*E^2 - 136*E^3 - 52*E^4, \ 
+                         L.gen()._algebraic_(AA), \
+                         sqrt(2), AA.polynomial_root(x^3-3, RIF(0,3)), 11/9, 1]
+        sage: res = number_field_elements_from_algebraics(my_nums, embedded=True)
+        sage: res[0]
+        Number Field in a with defining polynomial y^24 - 107010*y^22 - 24*y^21 + ... + 250678447193040618624307096815048024318853254384
     """
     gen = qq_generator
 
@@ -2164,17 +2222,55 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
             return x
         return QQbar(x)
 
+    # Try to cast into AA
+    try:
+        aa_numbers = [AA(_) for _ in numbers]
+        numbers = aa_numbers
+        real_case = True
+    except:
+        real_case = False
+        if embedded:
+            raise NotImplementedError
+    # Make the numbers algebraic
     numbers = [mk_algebraic(_) for _ in numbers]
 
+    # Make the numbers have a real root
+    real_numbers = []
+    for v in numbers:
+        if v._exact_field().is_complex() and real_case:
+            # the number comes from a complex algebraic number field
+            embedded_rt = v.interval_fast(RealIntervalField(prec))
+            root = ANRoot(v.minpoly(), embedded_rt)
+            real_nf = NumberField(v.minpoly(),'a')
+            new_ef = AlgebraicGenerator(real_nf, root)
+            real_numbers += [new_ef.root_as_algebraic()]
+        else:
+            real_numbers += [v]
+    numbers = real_numbers
+
+    # Get the union of the exact fields
     for v in numbers:
         if minimal:
             v.simplify()
         gen = gen.union(v._exact_field())
 
     fld = gen._field
-
     nums = [gen(v._exact_value()) for v in numbers]
 
+    hom = fld.hom([gen.root_as_algebraic()])
+
+    if fld is not QQ and embedded:
+        assert real_case
+        exact_generator = hom(fld.gen(0))
+        embedding_field = RealIntervalField(prec)
+        embedded_gen = embedding_field(exact_generator)
+        embedded_field = NumberField(fld.defining_polynomial(),fld.variable_name(),embedding=embedded_gen)
+        
+        inter_hom = fld.hom([embedded_field.gen(0)])
+        nums = map(inter_hom, nums)
+        hom = embedded_field.hom([gen.root_as_algebraic()])
+        fld = embedded_field
+    
     if single_number:
         nums = nums[0]
 
@@ -3596,11 +3692,22 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
                 zlist.append(root)
             return zlist
 
-    def as_number_field_element(self, minimal=False):
+    def as_number_field_element(self, minimal=False, embedded=False, prec=53):
         r"""
         Return a number field containing this value, a representation of
         this value as an element of that number field, and a homomorphism
         from the number field back to ``AA`` or ``QQbar``.
+
+        INPUT:
+
+        - ``minimal`` -- Boolean (default: ``False``). Whether to minimize the
+          degree of the extension.
+
+        - ``embedded`` -- Boolean (default: ``False``). Whether to make the
+          NumberField embedded.
+    
+        - ``prec`` -- integer (default: ``53``). The number of bit of precision for
+          the embedding.
 
         This may not return the smallest such number field, unless
         ``minimal=True`` is specified.
@@ -3626,6 +3733,26 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
               From: Number Field in a with defining polynomial y^3 - 2*y^2 - 31*y - 50
               To:   Algebraic Real Field
               Defn: a |--> 7.237653139801104?)
+            sage: elt == rt
+            False
+            sage: AA(elt)
+            Traceback (most recent call last):
+            ...
+            ValueError: need a real or complex embedding to convert a non rational element of a number field into an algebraic number
+            sage: hom(elt) == rt
+            True
+
+        Creating an element of an embedded number field::
+
+            sage: (nf, elt, hom) = rt.as_number_field_element(embedded=True)
+            sage: elt
+            a^2 - 5*a - 19
+            sage: elt == rt
+            True
+            sage: AA(elt)
+            -2.804642726932742?
+            sage: RR(elt)
+            -2.804642726932742
             sage: hom(elt) == rt
             True
 
@@ -3646,7 +3773,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
                 To:   Algebraic Real Field
                 Defn: a |--> 1.732050807568878?)
         """
-        return number_field_elements_from_algebraics(self, minimal=minimal)
+        return number_field_elements_from_algebraics(self, minimal=minimal, embedded=embedded, prec=prec)
 
     def exactify(self):
         """

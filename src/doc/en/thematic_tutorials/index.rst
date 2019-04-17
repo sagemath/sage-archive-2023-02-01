@@ -52,6 +52,7 @@ Calculus and plotting
 * `Tutorial: Symbolics and Plotting (PREP) <../prep/Symbolics-and-Basic-Plotting.html>`_
 * `Tutorial: Calculus (PREP) <../prep/Calculus.html>`_
 * `Tutorial: Advanced-2D Plotting (PREP) <../prep/Advanced-2DPlotting.html>`_
+* :ref:`vector_calculus`
 
 Algebra
 -------

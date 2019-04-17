@@ -578,14 +578,13 @@ class TorsionQuadraticModule(FGP_Module_class):
             ValueError: this discriminant form and signature do not define a genus
 
 
-        A systematic test of lattices of
-        small ranks and determinants::
+        A systematic test of lattices of small ranks and determinants::
 
             sage: from sage.quadratic_forms.genera.genus import genera
             sage: signatures = [(1,0),(1,1),(1,2),(3,0),(0,4)]
             sage: dets = range(1,33)
-            sage: genera = flatten([genera(s, d, even=False) for d in dets for s in signatures])    # long
-            sage: all(g == g.discriminant_form().genus(g.signature_pair()) for g in genera)
+            sage: genera = flatten([genera(s, d, even=False) for d in dets for s in signatures])    # long time
+            sage: all(g == g.discriminant_form().genus(g.signature_pair()) for g in genera)  # long time
             True
             """
         from sage.quadratic_forms.genera.genus import (Genus_Symbol_p_adic_ring,

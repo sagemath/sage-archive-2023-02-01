@@ -137,7 +137,7 @@ shortcut alias:
         2*(r*cos(ph)*cos(th)*sin(ph)*u_theta(r, th, ph)
         + r*cos(ph)^2*u_phi(r, th, ph))*sin(th) + r*u_r(r, th, ph)
 
-It maps point of :math:`\mathbb{E}^3` to real numbers:
+It maps points of :math:`\mathbb{E}^3` to real numbers:
 
 ::
 
@@ -249,7 +249,7 @@ Differential operators
 While the standard operators :math:`\mathrm{grad}`, :math:`\mathrm{div}`,
 :math:`\mathrm{curl}`, etc. involved in vector calculus are accessible via
 the dot notation (e.g. ``v.div()``), let us import functions ``grad``,
-``div``, ``curl``, etc. that allows for using standard mathematical notations
+``div``, ``curl``, etc. that allow for using standard mathematical notations
 (e.g. ``div(v)``):
 
 ::
@@ -593,7 +593,7 @@ the corresponding Python variables ``r``, ``th`` and ``ph`` (SageMath
 symbolic expressions). Using other symbols, for instance
 :math:`(R,\Theta,\Phi)`, is possible through the optional argument
 ``symbols`` of the function ``EuclideanSpace``. It has to be a string,
-usually prefixed by r (for raw string, in order to allow for the
+usually prefixed by ``r`` (for raw string, in order to allow for the
 backslash character of LaTeX expressions). This string contains the
 coordinate fields separated by a blank space; each field contains the
 coordinate’s text symbol and possibly the coordinate’s LaTeX symbol
@@ -619,4 +619,5 @@ We have then
     ....:                    R*sin(2*Ph)*sin(Th)*cos(Th),
     ....:                    2*R*cos(Ph)^2*sin(Th), name='v')
     sage: v.display()
-    v = (R*sin(2*Ph)*sin(Th)^2 + R) e_R + R*cos(Th)*sin(2*Ph)*sin(Th) e_Th + 2*R*cos(Ph)^2*sin(Th) e_Ph
+    v = (R*sin(2*Ph)*sin(Th)^2 + R) e_R + R*cos(Th)*sin(2*Ph)*sin(Th) e_Th
+     + 2*R*cos(Ph)^2*sin(Th) e_Ph

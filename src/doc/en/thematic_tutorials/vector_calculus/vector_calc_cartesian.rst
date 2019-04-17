@@ -145,7 +145,7 @@ shortcut alias:
     u.v: E^3 --> R
        (x, y, z) |--> -y*u_x(x, y, z) + x*u_y(x, y, z) + sin(x*y*z)*u_z(x, y, z)
 
-It maps point of :math:`\mathbb{E}^3` to real numbers:
+It maps points of :math:`\mathbb{E}^3` to real numbers:
 
 ::
 
@@ -253,7 +253,7 @@ Differential operators
 While the standard operators :math:`\mathrm{grad}`, :math:`\mathrm{div}`,
 :math:`\mathrm{curl}`, etc. involved in vector calculus are accessible via
 the dot notation (e.g. ``v.div()``), let us import functions ``grad``,
-``div``, ``curl``, etc. that allows for using standard mathematical notations
+``div``, ``curl``, etc. that allow for using standard mathematical notations
 (e.g. ``div(v)``):
 
 ::

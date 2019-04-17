@@ -1,3 +1,80 @@
+r"""
+ListOfFaces
+
+This module provides a class to store faces of a polyhedron in Bit-representation.
+
+This class allocates memory to store the faces in.
+A face will be stored as vertex-incidences, where each Bit represents an incidence.
+In :mod:`.conversions` there a methods to actually convert facets of a polyhedron
+to bit-representations of vertices stored in :class:`ListOfFaces`.
+
+Moreover, :class:`ListOfFaces` calculates the dimension of a polyhedron, assuming the
+faces are the facets of this polyhedron.
+
+Each face is stored over-aligned according to :meth:`.bit_vector_operations.chunktype`.
+
+EXAMPLES:
+
+Provide enough space to store `20` faces as incidences to `60` vertices::
+
+    sage: from sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces \
+    ....: import ListOfFaces
+    sage: face_list = ListOfFaces(20, 60)
+
+Obtain the facets of a polyhedron::
+
+    sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
+    ....:         import incidence_matrix_to_bit_repr_of_facets
+    sage: P = polytopes.cube()
+    sage: face_list = incidence_matrix_to_bit_repr_of_facets(P.incidence_matrix())
+    sage: face_list = incidence_matrix_to_bit_repr_of_facets(P.incidence_matrix())
+    sage: face_list.compute_dimension()
+    3
+
+Obtain the vertices of a polyhedron as facet-incidences::
+
+    sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
+    ....:         import incidence_matrix_to_bit_repr_of_vertices
+    sage: P = polytopes.associahedron(['A',3])
+    sage: face_list = incidence_matrix_to_bit_repr_of_vertices(P.incidence_matrix())
+    sage: face_list.compute_dimension()
+    3
+
+Obtain the facets of a polyhedron as :class:`ListOfFaces` from a facet list::
+
+    sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
+    ....:         import facets_tuple_to_bit_repr_of_facets
+    sage: facets = ((0,1,2), (0,1,3), (0,2,3), (1,2,3))
+    sage: face_list = facets_tuple_to_bit_repr_of_facets(facets, 4)
+
+Likewise for the vertices as facet-incidences::
+
+    sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
+    ....:         import facets_tuple_to_bit_repr_of_vertices
+    sage: facets = ((0,1,2), (0,1,3), (0,2,3), (1,2,3))
+    sage: face_list = facets_tuple_to_bit_repr_of_vertices(facets, 4)
+
+.. SEEALSO::
+
+    :mod:`.base`,
+    :mod:`.face_iterator`,
+    :mod:`.conversions`,
+    :mod:`.list_of_all_faces`.
+
+AUTHOR:
+
+- Jonathan Kliem (2019-04)
+"""
+
+#*****************************************************************************
+#       Copyright (C) 2019 Jonathan Kliem <jonathan.kliem@fu-berlin.de>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 from __future__ import absolute_import, division
 from sage.structure.element import is_Matrix
 
@@ -16,7 +93,7 @@ cdef class ListOfFaces:
     INPUT:
 
     - ``nr_faces`` -- the number of faces to be stored
-    - ``nr_vertices`` -- the total number of vertices of the Polyhedron
+    - ``nr_vertices`` -- the total number of vertices of the polyhedron
 
     .. SEEALSO::
 
@@ -90,9 +167,11 @@ cdef class ListOfFaces:
             self.data[i] = <uint64_t *> \
                 self._mem.aligned_malloc(chunksize//8, self.face_length*8)
 
-    cpdef int calculate_dimension(self) except -2:
+    cpdef int compute_dimension(self) except -2:
         r"""
-        Calculate the dimension of a Polyhedron by its facets.
+        Compute the dimension of a polyhedron by its facets.
+
+        This assumes that ``self`` is the list of facets of a polyhedron.
 
         EXAMPLES::
 
@@ -105,28 +184,28 @@ cdef class ListOfFaces:
             ....:           (0,1,5), (1,2,5), (2,3,5), (3,0,5))
             sage: facets = facets_tuple_to_bit_repr_of_facets(bi_pyr, 6)
             sage: vertices = facets_tuple_to_bit_repr_of_vertices(bi_pyr, 6)
-            sage: facets.calculate_dimension()
+            sage: facets.compute_dimension()
             3
-            sage: vertices.calculate_dimension()
+            sage: vertices.compute_dimension()
             3
 
         ALGORITHM:
 
         This is done by iteration:
 
-        Calculates the facets of one of the facets (i.e. the ridges contained in
-        one of the facets). Then calculates the dimension of the facet, by
+        Computes the facets of one of the facets (i.e. the ridges contained in
+        one of the facets). Then computes the dimension of the facet, by
         considering its facets.
 
         Repeats until a face has only one facet. Usually this is a vertex.
 
         However, in the unbounded case, this might be different. The face with only
         one facet might be a ray or a line. So the correct dimension of a
-        Polyhedron with one facet is the number of ``[lines, rays, vertices]``
+        polyhedron with one facet is the number of ``[lines, rays, vertices]``
         that the facet contains.
 
         Hence, we know the dimension of a face, which has only one facet and
-        iteratively we know the dimension of entire Polyhedron we started with.
+        iteratively we know the dimension of entire polyhedron we started from.
 
         TESTS::
 
@@ -146,19 +225,19 @@ cdef class ListOfFaces:
             ....:     d1 = P.dimension()
             ....:     if d1 == 0:
             ....:         continue
-            ....:     d2 = facets.calculate_dimension()
-            ....:     d3 = vertices.calculate_dimension()
+            ....:     d2 = facets.compute_dimension()
+            ....:     d3 = vertices.compute_dimension()
             ....:     if not d1 == d2 == d3:
             ....:         print('calculation_dimension() seems to be incorrect')
         """
         if self.nr_faces == 0:
             raise TypeError("at least one face needed")
-        return self.calculate_dimension_loop(self.data, self.nr_faces, self.face_length)
+        return self.compute_dimension_loop(self.data, self.nr_faces, self.face_length)
 
-    cdef int calculate_dimension_loop(self, uint64_t **faces, size_t nr_faces,
+    cdef int compute_dimension_loop(self, uint64_t **faces, size_t nr_faces,
                                       size_t face_length) except -2:
         r"""
-        Calculate the dimension of a Polyhedron by its facets.
+        Compute the dimension of a polyhedron by its facets.
 
         INPUT:
 
@@ -168,18 +247,18 @@ cdef class ListOfFaces:
 
         OUTPUT:
 
-        - dimension of the Polyhedron
+        - dimension of the polyhedron
 
         .. SEEALSO::
 
-            :meth:`calculate_dimension`
+            :meth:`compute_dimension`
         """
         if nr_faces == 0:
-            raise TypeError("wrong usage of ``calculate_dimension_loop``,\n" +
+            raise TypeError("wrong usage of ``compute_dimension_loop``,\n" +
                             "at least one face needed.")
 
         if nr_faces == 1:
-            # We expect the face to be the empty Polyhedron.
+            # We expect the face to be the empty polyhedron.
             # Possibly it contains more than one vertex/rays/lines.
             # The dimension of a polyhedron with this face as only facet is
             # the number of atoms it contains.
@@ -202,6 +281,6 @@ cdef class ListOfFaces:
                                       newfaces, NULL, 0, face_length)
         sig_off()
 
-        # Calculate the dimension of the polyhedron,
+        # compute the dimension of the polyhedron,
         # by calculating dimension of one of its faces.
-        return self.calculate_dimension_loop(newfaces, new_nr_faces, face_length) + 1
+        return self.compute_dimension_loop(newfaces, new_nr_faces, face_length) + 1

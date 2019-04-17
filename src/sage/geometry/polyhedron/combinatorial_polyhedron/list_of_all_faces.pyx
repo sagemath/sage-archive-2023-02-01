@@ -1,3 +1,63 @@
+r"""
+ListOfAllFaces
+
+This module provides a class that stores and sorts all faces of the polyhedron.
+
+:class:`.base.CombinatorialPolyhedron` implicitely uses this class to generate
+the face lattice of a polyhedron.
+
+Terminology in this module:
+
+- Vertices              -- ``[vertices, rays, lines]`` of the polyhedron.
+- Facets                -- facets of the polyhedron.
+- Coatoms               -- the faces from which all others are constructed in
+                           the face iterator. This will be facets or vertices.
+                           In non-dual mode, faces are constructed as
+                           intersections of the facets. In dual mode, the are
+                           constructed theoretically as joins of vertices.
+                           The coatoms are reprsented as incidences with the
+                           atoms they contain.
+- Atoms                 -- facets or vertices depending on application of algorithm.
+                           Atoms are reprsented as incidences of coatoms they
+                           are contained in.
+
+- Vertex-Representation -- represents a face by a list of vertices it contains.
+- Facet-Representation  -- represents a face by a list of facets it is contained in.
+- Bit-Representation    -- represents incidences as ``uint64_t``-array, where
+                           each Bit represents one incidences. There might
+                           be trailing zeros, to fit alignment-requirements.
+                           In most instances, faces are represented by the
+                           Bit-representation, where each bit corresponds to
+                           an atom.
+
+EXAMPLES::
+
+    sage: from sage.geometry.polyhedron.combinatorial_polyhedron.list_of_all_faces \
+    ....: import ListOfAllFaces
+    sage: P = polytopes.octahedron()
+    sage: C = CombinatorialPolyhedron(P)
+    sage: all_faces = ListOfAllFaces(C)
+
+.. SEEALSO::
+
+    :mod:`.base`,
+    :class:`ListOfAllFaces`.
+
+AUTHOR:
+
+- Jonathan Kliem (2019-04)
+"""
+
+#*****************************************************************************
+#       Copyright (C) 2019 Jonathan Kliem <jonathan.kliem@fu-berlin.de>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from __future__ import absolute_import, division, print_function
 from .conversions \
         import facets_tuple_to_bit_repr_of_facets, \
@@ -21,7 +81,7 @@ cdef class ListOfAllFaces:
     are added and sorted (except coatoms). The incidences can be used to
     generate the ``face_lattice``.
 
-    Might generate the faces of the dual Polyhedron for speed.
+    Might generate the faces of the dual polyhedron for speed.
 
     INPUT:
 
@@ -32,7 +92,7 @@ cdef class ListOfAllFaces:
         :meth:`CombinatorialPolyhedron._record_all_faces`,
         :meth:`CombinatorialPolyhedron._record_all_faces_helper`,
         :meth:`CombinatorialPolyhedron.face_lattice`,
-        :meth:`CombinatorialPolyhedron._calculate_face_lattice_incidences`.
+        :meth:`CombinatorialPolyhedron._compute_face_lattice_incidences`.
 
     EXAMPLES::
 
@@ -72,7 +132,7 @@ cdef class ListOfAllFaces:
             self.dual = True
         if C._unbounded:
             self.dual = False
-        cdef FaceIterator face_iter = C._face_iter(self.dual)
+        cdef FaceIterator face_iter = C._face_iter(self.dual, -2)
         self.face_length = face_iter.face_length
         self._V = C._V
         self._H = C._H
@@ -98,7 +158,7 @@ cdef class ListOfAllFaces:
 
         # Initialize atoms, coatoms, ``atom_repr`` and ``coatom_repr``.
         if self.dimension == 0:
-            # In case of the 0-dimensional Polyhedron, we have to fix atoms and coatoms.
+            # In case of the 0-dimensional polyhedron, we have to fix atoms and coatoms.
             # So far this didn't matter, as we only iterated over proper faces.
             self.atoms = facets_tuple_to_bit_repr_of_vertices(((),), 1)
             self.coatoms = facets_tuple_to_bit_repr_of_facets(((),), 1)
@@ -117,7 +177,7 @@ cdef class ListOfAllFaces:
         if self.dimension > -1:
             # the coatoms
             self.faces_mem += (self.coatoms,)
-        self.faces_mem += (ListOfFaces(1, nr_atoms),)  # the full Polyhedron
+        self.faces_mem += (ListOfFaces(1, nr_atoms),)  # the full polyhedron
 
         # Setting up a pointer to raw data of ``faces``:
         self.faces = <uint64_t ***> self._mem.allocarray(self.dimension + 2, sizeof(uint64_t **))
@@ -294,7 +354,7 @@ cdef class ListOfAllFaces:
             Traceback (most recent call last):
             ...
             ValueError: cannot find a facet, as those are not sorted
-            sage: it.set_request_dimension(1)
+            sage: it = C.face_iter(dimension=1)
             sage: S = set(find_face_from_iterator(it, C) for _ in it)
             sage: S == set(range(36))
             True
@@ -380,8 +440,7 @@ cdef class ListOfAllFaces:
             ....: ''')
             sage: P = polytopes.permutahedron(4)
             sage: C = CombinatorialPolyhedron(P)
-            sage: it = C.face_iter()
-            sage: it.set_request_dimension(1)
+            sage: it = C.face_iter(dimension=1)
             sage: next(it)
             1
             sage: vertex_repr_via_all_faces_from_iterator(it, C, True)
@@ -434,7 +493,7 @@ cdef class ListOfAllFaces:
         and index ``index``.
 
         The facet-representation consists of the facets
-        that contain the face and of the equalities of the Polyhedron.
+        that contain the face and of the equalities of the polyhedron.
 
         INPUT:
 
@@ -463,8 +522,7 @@ cdef class ListOfAllFaces:
             ....: ''')
             sage: P = polytopes.permutahedron(4)
             sage: C = CombinatorialPolyhedron(P)
-            sage: it = C.face_iter()
-            sage: it.set_request_dimension(1)
+            sage: it = C.face_iter(dimension=1)
             sage: next(it)
             1
             sage: facet_repr_via_all_faces_from_iterator(it, C, True)
@@ -587,7 +645,7 @@ cdef class ListOfAllFaces:
         This will enable :meth:`next_incidence` to give all such incidences.
 
         Currently only ``dimension_one == dimension_two + 1`` and incidences
-        with empty and full Polyhedron are implemented, which suffices for the
+        with empty and full polyhedron are implemented, which suffices for the
         face-lattice.
         """
         cdef size_t i
@@ -705,7 +763,7 @@ cdef class ListOfAllFaces:
             return is_it_equal
 
         if self.is_incidence_initialized == 2:
-            # the case where ``dimension_one`` is dimension of Polyhedron.
+            # the case where ``dimension_one`` is dimension of polyhedron.
             return self.next_trivial_incidence(one, two)
 
         if self.is_incidence_initialized == 3:
@@ -717,7 +775,7 @@ cdef class ListOfAllFaces:
 
     cdef inline bint next_trivial_incidence(self, size_t *one, size_t *two):
         r"""
-        Handling the case where ``dimension_one`` is dimension of Polyhedron.
+        Handling the case where ``dimension_one`` is dimension of polyhedron.
 
         See :meth:`next_incidence`.
         """

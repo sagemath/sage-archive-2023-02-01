@@ -1,3 +1,163 @@
+r"""
+FaceIterator
+
+This module provides a face iterator for polyhedra.
+
+This iterator in principle works on every graded lattice, where
+every interval of length two has exactly 4 elements (diamond property).
+
+It also works on unbounded polyhedra, as those satisfy the diamond property,
+except for intervals including the empty face.
+
+Terminology in this module:
+
+- Vertices              -- ``[vertices, rays, lines]`` of the polyhedron.
+- Facets                -- facets of the polyhedron.
+- Coatoms               -- the faces from which all others are constructed in
+                           the face iterator. This will be facets or vertices.
+                           In non-dual mode, faces are constructed as
+                           intersections of the facets. In dual mode, the are
+                           constructed theoretically as joins of vertices.
+                           The coatoms are reprsented as incidences with the
+                           atoms they contain.
+- Atoms                 -- facets or vertices depending on application of algorithm.
+                           Atoms are reprsented as incidences of coatoms they
+                           are contained in.
+
+- Vertex-Representation -- represents a face by a list of vertices it contains.
+- Facet-Representation  -- represents a face by a list of facets it is contained in.
+- Bit-Representation    -- represents incidences as ``uint64_t``-array, where
+                           each Bit represents one incidences. There might
+                           be trailing zeros, to fit alignment-requirements.
+                           In most instances, faces are represented by the
+                           Bit-representation, where each bit corresponds to
+                           an atom.
+
+EXAMPLES:
+
+Construct a face iterator::
+
+    sage: from sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator \
+    ....:         import FaceIterator
+    sage: P = polytopes.octahedron()
+    sage: C = CombinatorialPolyhedron(P)
+
+    sage: FaceIterator(C, False)
+    Iterator over the proper faces of a polyhedron of dimension 3
+    sage: FaceIterator(C, False, output_dimension=2)
+    Iterator over the 2-faces of a polyhedron of dimension 3
+
+Iterator in the non-dual mode starts with facets.
+By default the dimension of the current face is given::
+
+    sage: it = FaceIterator(C, False)
+    sage: next(it)
+    2
+
+Iterator in the dual-mode start with vertices::
+
+    sage: it = FaceIterator(C, True)
+    sage: next(it)
+    0
+
+Obtain the vertex-representation::
+
+    sage: it = FaceIterator(C, False)
+    sage: next(it)
+    2
+    sage: it.vertex_repr()
+    (A vertex at (0, -1, 0), A vertex at (0, 0, -1), A vertex at (1, 0, 0))
+
+    sage: it.length_vertex_repr()
+    3
+
+Obtain the facet-representation::
+
+    sage: it = FaceIterator(C, True)
+    sage: next(it)
+    0
+    sage: it.facet_repr()
+    (An inequality (-1, -1, 1) x + 1 >= 0,
+     An inequality (-1, -1, -1) x + 1 >= 0,
+      An inequality (-1, 1, -1) x + 1 >= 0,
+       An inequality (-1, 1, 1) x + 1 >= 0)
+    sage: it.facet_repr(names=False)
+    (4, 5, 6, 7)
+
+    sage: it.length_facet_repr()
+    4
+
+In non-dual mode one can ignore all faces contained in the current face::
+
+    sage: it = FaceIterator(C, False)
+    sage: next(it)
+    2
+    sage: it.facet_repr(names=False)
+    (7,)
+    sage: it.ignore_subfaces()
+    sage: [it.facet_repr(names=False) for _ in it]
+    [(6,),
+    (5,),
+    (4,),
+    (3,),
+    (2,),
+    (1,),
+    (0,),
+    (5, 6),
+    (1, 6),
+    (0, 1, 5, 6),
+    (4, 5),
+    (0, 5),
+    (0, 3, 4, 5),
+    (3, 4),
+    (2, 3),
+    (0, 3),
+    (0, 1, 2, 3),
+    (1, 2),
+    (0, 1)]
+
+In dual mode one can ignore all faces that contain the current face::
+
+    sage: it = FaceIterator(C, True)
+    sage: next(it)
+    0
+    sage: it.vertex_repr(names=False)
+    (5,)
+    sage: it.ignore_supfaces()
+    sage: [it.vertex_repr(names=False) for _ in it]
+    [(4,),
+    (3,),
+    (2,),
+    (1,),
+    (0,),
+    (3, 4),
+    (2, 4),
+    (0, 4),
+    (0, 3, 4),
+    (0, 2, 4),
+    (1, 3),
+    (0, 3),
+    (0, 1, 3),
+    (1, 2),
+    (0, 2),
+    (0, 1, 2),
+    (0, 1)]
+
+AUTHOR:
+
+- Jonathan Kliem (2019-04)
+"""
+
+#*****************************************************************************
+#       Copyright (C) 2019 Jonathan Kliem <jonathan.kliem@fu-berlin.de>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from __future__ import absolute_import, division, print_function
 
 from sage.rings.integer     cimport smallInteger
@@ -11,7 +171,7 @@ cdef extern from "Python.h":
 
 cdef class FaceIterator(SageObject):
     r"""
-    A class to iterate over all faces of a Polyhedron.
+    A class to iterate over all faces of a polyhedron.
 
     Constructs all proper from the facets. In dual mode, constructs all proper
     faces from the vertices. Dual will be faster for less vertices than facets.
@@ -19,8 +179,10 @@ cdef class FaceIterator(SageObject):
     INPUT:
 
     - ``C`` -- a :class:`CombinatorialPolyhedron`
-    - ``dual`` -- if True, then dual Polyhedron is used for iteration
+    - ``dual`` -- if ``True``, then dual polyhedron is used for iteration
       (only possible for bounded Polyhedra)
+    - ``output_dimension`` -- if not ``None``, then the FaceIterator will only yield
+      faces of this dimension
 
     .. SEEALSO::
 
@@ -49,7 +211,7 @@ cdef class FaceIterator(SageObject):
         2
         sage: it.facet_repr()
         (An inequality (-1, 0, 0) x + 1 >= 0, An inequality (-1, -1, 1) x + 2 >= 0)
-        sage: it.get_dimension()
+        sage: it.current_face_dimension()
         1
 
     Ignore faces the current face contains::
@@ -83,6 +245,19 @@ cdef class FaceIterator(SageObject):
         ...
         ValueError: only possible when not in dual mode
 
+    Construct a FaceIterator only yielding dimension `2` faces::
+
+        sage: P = polytopes.permutahedron(5)
+        sage: C = CombinatorialPolyhedron(P)
+        sage: it = C.face_iter(dimension=2)
+        sage: counter = 0
+        sage: for _ in it: counter += 1
+        sage: print ('permutahedron(5) has', counter,
+        ....:        'faces of dimension 2')
+        permutahedron(5) has 150 faces of dimension 2
+        sage: C.f_vector()
+        (1, 120, 240, 150, 30, 1)
+
     ALGORITHM:
 
     The algorithm to visit all proper faces exactly once is roughly
@@ -92,14 +267,14 @@ cdef class FaceIterator(SageObject):
         face_iterator(faces, [])
 
         def face_iterator(faces, visited_all):
-            # Visit all faces of a Polyhedron `P`, except those contained in
+            # Visit all faces of a polyhedron `P`, except those contained in
             # any of the visited all.
 
             # Assumes ``faces`` to be excactly those facets of `P`
             # that are not contained in any of the ``visited_all``.
 
             # Assumes ``visited_all`` to be some list of faces of
-            # a Polyhedron `P_2`, which contains `P` as one of its faces.
+            # a polyhedron `P_2`, which contains `P` as one of its faces.
 
             while len(facets) > 0:
                 one_face = faces.pop()
@@ -120,8 +295,6 @@ cdef class FaceIterator(SageObject):
                 #     Then, intersecting ``one_face`` with ``second_face`` gives
                 #     ``F``. ∎
 
-                # Let ``maybe_newfaces2`` be the inclusion maximal faces of
-                # ``maybe_newfaces``.
                 # If an element in ``maybe_newfaces`` is inclusion maximal
                 # and not contained in any of the ``visited_all``,
                 # it is a facet of ``one_face``.
@@ -183,13 +356,26 @@ cdef class FaceIterator(SageObject):
         self.dimension = C.dimension()
         self.current_dimension = self.dimension -1
         self.nr_lines = C._nr_lines
-        self.request_dimension = -2
         self._mem = MemoryAllocator()
-        self.lowest_dimension = self.nr_lines
+
         # We will not yield the empty face.
         # If there are `n` lines, than there
         # are no faces below dimension `n`.
         # The dimension of the level-sets in the face lattice jumps from `n` to `-1`.
+        self.lowest_dimension = self.nr_lines
+
+        if output_dimension is not None:
+            if not output_dimension in range(0,self.dimension):
+                raise ValueError("``output_dimension`` must be the dimension of proper faces")
+            if self.dual:
+                # In dual mode, the dimensions are reversed.
+                self.output_dimension = self.dimension - 1 - output_dimension
+            else:
+                self.output_dimension = output_dimension
+            self.lowest_dimension = max(self.nr_lines, self.output_dimension)
+        else:
+            self.output_dimension = -2
+
         if dual:
             self.atoms = C.bitrep_facets
             self.coatoms = C.bitrep_vertices
@@ -251,9 +437,21 @@ cdef class FaceIterator(SageObject):
             sage: P = polytopes.associahedron(['A',3])
             sage: C = CombinatorialPolyhedron(P)
             sage: C.face_iter()
-            Iterator over the faces of a Polyhedron of dimension 3
+            Iterator over the proper faces of a polyhedron of dimension 3
+
+            sage: C.face_iter(1)
+            Iterator over the 1-faces of a polyhedron of dimension 3
         """
-        return "Iterator over the faces of a Polyhedron of dimension %s"%self.dimension
+        if self.output_dimension != -2:
+            if self.dual:
+                # ouput_dimension is stored with respect to the dual
+                intended_dimension = self.dimension - 1 - self.output_dimension
+            else:
+                intended_dimension = self.output_dimension
+            output = "Iterator over the {}-faces".format(intended_dimension)
+        else:
+            output = "Iterator over the proper faces"
+        return output + " of a polyhedron of dimension {}".format(self.dimension)
 
     def __next__(self):
         r"""
@@ -304,34 +502,7 @@ cdef class FaceIterator(SageObject):
         """
         raise NotImplementedError
 
-    def set_request_dimension(self, dim):
-        r"""
-        Set the iterator to only yield faces of dimension ``dim``.
-
-        EXAMPLES::
-
-            sage: P = polytopes.permutahedron(5)
-            sage: C = CombinatorialPolyhedron(P)
-            sage: it = C.face_iter()
-            sage: next(it)
-            3
-            sage: counter = 0
-            sage: it.set_request_dimension(2)
-            sage: for _ in it: counter += 1
-            sage: print ('permutahedron(5) has', counter,
-            ....:        'faces of dimension 2')
-            permutahedron(5) has 150 faces of dimension 2
-            sage: C.f_vector()
-            (1, 120, 240, 150, 30, 1)
-        """
-        if self.dual:
-            # In dual mode, the dimensions are reversed.
-            self.request_dimension = self.dimension - 1 - dim
-        else:
-            self.request_dimension = dim
-        self.lowest_dimension = max(self.nr_lines, self.request_dimension)
-
-    def get_dimension(self):
+    def current_face_dimension(self):
         r"""
         Return the dimension of the current face.
 
@@ -342,9 +513,9 @@ cdef class FaceIterator(SageObject):
             sage: it = C.face_iter()
             sage: next(it)
             2
-            sage: it.get_dimension()
+            sage: it.current_face_dimension()
             2
-            sage: all(d == it.get_dimension() for d in it)
+            sage: all(d == it.current_face_dimension() for d in it)
             True
         """
         if unlikely(self.face is NULL):
@@ -462,7 +633,7 @@ cdef class FaceIterator(SageObject):
         Return the facet-representation of the current face.
 
         The facet-representation consists of the facets
-        that contain the face and of the equalities of the Polyhedron.
+        that contain the face and of the equalities of the polyhedron.
 
         INPUT:
 
@@ -650,7 +821,7 @@ cdef class FaceIterator(SageObject):
         r"""
         Set attribute ``face`` to the next face and return the dimension.
 
-        Will return the dimension of the Polyhedron on failure.
+        Will return the dimension of the polyhedron on failure.
 
         The function calls :meth:`FaceIterator.next_face_loop` until a new
         face is set or until the iterator is consumed.
@@ -688,8 +859,8 @@ cdef class FaceIterator(SageObject):
         cdef size_t nr_faces = self.nr_newfaces[self.current_dimension]
         cdef size_t nr_visited_all = self.nr_visited_all[self.current_dimension]
 
-        if (self.request_dimension > -2) and (self.request_dimension != self.current_dimension):
-            # If only a specifice dimension was requested (i.e. ``self.request_dimension > 2``),
+        if (self.output_dimension > -2) and (self.output_dimension != self.current_dimension):
+            # If only a specific dimension was requested (i.e. ``self.output_dimension > -2``),
             # then we will not yield faces in other dimension.
             self.yet_to_visit = 0
 
@@ -761,7 +932,7 @@ cdef class FaceIterator(SageObject):
 
     cdef size_t length_atom_repr(self) except -1:
         r"""
-        Calculate the number of atoms in the current face by counting the
+        Compute the number of atoms in the current face by counting the
         number of set bits.
         """
         if self.face:

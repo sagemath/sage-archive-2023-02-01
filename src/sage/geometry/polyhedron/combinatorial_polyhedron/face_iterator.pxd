@@ -13,7 +13,7 @@ cdef class FaceIterator(SageObject):
     cdef int current_dimension      # dimension of current face, dual dimension if ``dual``
     cdef int dimension              # dimension of the polyhedron
     cdef int nr_lines               # ``_nr_lines`` of ``CombinatorialPolyhedron``
-    cdef int request_dimension      # only faces of this (dual?) dimension are considered
+    cdef int output_dimension      # only faces of this (dual?) dimension are considered
     cdef int lowest_dimension       # don't consider faces bewow this (dual?) dimension
     cdef MemoryAllocator _mem
     cdef tuple newfaces_lists       # tuple to hold the ListOfFaces corresponding to maybe_newfaces

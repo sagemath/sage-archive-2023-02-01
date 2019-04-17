@@ -1,3 +1,71 @@
+r"""
+Conversions
+
+This module provides conversions to class:`.list_of_faces.ListOfFaces` from
+- an incidence matrix of a polyhedron or
+- a tuple of facets (as tuple of vertices each).
+
+Also this module provides a conversion from the data of class:`list_of_faces.ListOfFaces`,
+which is a Bit-vector representing incidences of a face,
+to a list of entries which are incident.
+
+.. SEEALSO::
+
+    :mod:`.list_of_faces`,
+    :mod:`.face_iterator`,
+    :mod:`.base`.
+
+EXAMPLES:
+
+Obtain the facets of a polyhedron as :class:`.list_of_faces.ListOfFaces`::
+
+    sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
+    ....:         import incidence_matrix_to_bit_repr_of_facets
+    sage: P = polytopes.simplex(4)
+    sage: face_list = incidence_matrix_to_bit_repr_of_facets(P.incidence_matrix())
+    sage: face_list = incidence_matrix_to_bit_repr_of_facets(P.incidence_matrix())
+    sage: face_list.compute_dimension()
+    4
+
+Obtain the vertices of a polyhedron as facet-incidences stored in
+:class:`.list_of_faces.ListOfFaces`::
+
+    sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
+    ....:         import incidence_matrix_to_bit_repr_of_vertices
+    sage: P = polytopes.associahedron(['A',4])
+    sage: face_list = incidence_matrix_to_bit_repr_of_vertices(P.incidence_matrix())
+    sage: face_list.compute_dimension()
+    4
+
+Obtain the facets of a polyhedron as :class:`.list_of_faces.ListOfFaces` from a facet list::
+
+    sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
+    ....:         import facets_tuple_to_bit_repr_of_facets
+    sage: facets = ((0,1,2), (0,1,3), (0,2,3), (1,2,3))
+    sage: face_list = facets_tuple_to_bit_repr_of_facets(facets, 4)
+
+Likewise for the vertices as facet-incidences::
+
+    sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
+    ....:         import facets_tuple_to_bit_repr_of_vertices
+    sage: facets = ((0,1,2), (0,1,3), (0,2,3), (1,2,3))
+    sage: face_list = facets_tuple_to_bit_repr_of_vertices(facets, 4)
+
+AUTHOR:
+
+- Jonathan Kliem (2019-04)
+"""
+
+#*****************************************************************************
+#       Copyright (C) 2019 Jonathan Kliem <jonathan.kliem@fu-berlin.de>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from __future__ import absolute_import, division
 from sage.structure.element import is_Matrix
 
@@ -20,7 +88,7 @@ cdef int vertex_list_to_bit_repr(tuple vertex_list, uint64_t *output,
     r"""
     Convert a vertex list into Bit-representation. Store it in ``output``.
 
-    The first bit represent the entry ``0`` and is set to one, iff ``0`` is in
+    The first bit represents the entry ``0`` and is set to one, iff ``0`` is in
     ``vertex_list``. The second bit represents ``1`` and so on.
 
     INPUT:

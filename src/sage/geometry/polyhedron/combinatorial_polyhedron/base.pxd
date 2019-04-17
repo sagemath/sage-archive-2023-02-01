@@ -37,8 +37,8 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef ListOfAllFaces _all_faces          # class to generate Hasse diagram incidences
     cdef tuple _mem_tuple                   # stores MemoryAllocators for edges, ridges etc.
 
-    cdef FaceIterator _face_iter(self, bint dual)
-    cdef int _calculate_f_vector(self) except -1
-    cdef int _calculate_edges(self, dual) except -1
-    cdef int _calculate_ridges(self, dual) except -1
-    cdef int _calculate_face_lattice_incidences(self) except -1
+    cdef FaceIterator _face_iter(self, bint dual, int dimension)
+    cdef int _compute_f_vector(self) except -1
+    cdef int _compute_edges(self, dual) except -1
+    cdef int _compute_ridges(self, dual) except -1
+    cdef int _compute_face_lattice_incidences(self) except -1

@@ -297,16 +297,19 @@ ext_modules = [
               sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/base.pyx']),
 
     Extension('sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces',
-              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/list_of_faces.pyx',
-                         'sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc']),
+              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/list_of_faces.pyx']),
+
+    Extension('sage.geometry.polyhedron.combinatorial_polyhedron.bit_vector_operations.cc',
+              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc']),
 
     Extension('sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator',
-              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/face_iterator.pyx',
-                         'sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc']),
+              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/face_iterator.pyx']),
 
     Extension('sage.geometry.polyhedron.combinatorial_polyhedron.list_of_all_faces',
-              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/list_of_all_faces.pyx',
-                         'sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc']),
+              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/list_of_all_faces.pyx']),
+
+    Extension('sage.geometry.polyhedron.combinatorial_polyhedron.conversions',
+              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/conversions.pyx']),
 
     ################################
     ##

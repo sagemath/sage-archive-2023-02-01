@@ -1,5 +1,3 @@
-# distutils: language = c++
-
 r"""
 CombinatorialPolyhedron gathers several algorithms of Polyhedra depending only
 on the vertex-facet incidences.
@@ -62,7 +60,7 @@ from sage.geometry.polyhedron.base import is_Polyhedron
 from sage.geometry.lattice_polytope import is_LatticePolytope
 from sage.structure.element import is_Matrix
 from sage.misc.misc import is_iterator
-from .list_of_faces \
+from .conversions \
         import incidence_matrix_to_bit_repr_of_facets, \
                incidence_matrix_to_bit_repr_of_vertices, \
                facets_tuple_to_bit_repr_of_facets, \
@@ -622,7 +620,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             # the the V-representation contains also ``lines`` and ``rays``.
             return Integer(self._length_Vrep)
         else:
-            return len(self.vertices())
+            return Integer(len(self.vertices()))
 
     def vertices(self, names=True):
         r"""

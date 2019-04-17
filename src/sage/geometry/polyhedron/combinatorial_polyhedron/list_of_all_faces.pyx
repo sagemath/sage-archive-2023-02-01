@@ -1,33 +1,17 @@
-# distutils: language = c++
-
 from __future__ import absolute_import, division, print_function
-from .list_of_faces \
+from .conversions \
         import facets_tuple_to_bit_repr_of_facets, \
                facets_tuple_to_bit_repr_of_vertices
 
-from sage.rings.integer cimport smallInteger
-from libc.string        cimport memcmp, memcpy, memset
-from .list_of_faces     cimport vertex_list_to_bit_repr, bit_repr_to_vertex_list
-from .base              cimport CombinatorialPolyhedron
-from .face_iterator     cimport FaceIterator
+from sage.rings.integer     cimport smallInteger
+from libc.string            cimport memcmp, memcpy, memset
+from .conversions           cimport vertex_list_to_bit_repr, bit_repr_to_vertex_list
+from .base                  cimport CombinatorialPolyhedron
+from .face_iterator         cimport FaceIterator
+from .bit_vector_operations cimport intersection, bit_repr_to_coatom_repr
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
-
-cdef extern from "bit_vector_operations.cc":
-    cdef void intersection(uint64_t *A, uint64_t *B, uint64_t *C,
-                           size_t face_length)
-#    Return ``A & ~B == 0``.
-#    A is not subset of B, iff there is a vertex in A, which is not in B.
-#    ``face_length`` is the length of A and B in terms of uint64_t.
-
-    cdef size_t bit_repr_to_coatom_repr(
-            uint64_t *face, uint64_t **coatoms, size_t nr_coatoms,
-            size_t face_length, size_t *output)
-#        Write the coatom-representation of face in output. Return length.
-#        ``face_length`` is the length of ``face`` and ``coatoms[i]``
-#        in terms of uint64_t.
-#        ``nr_coatoms`` length of ``coatoms``.
 
 cdef class ListOfAllFaces:
     r"""
@@ -79,7 +63,7 @@ cdef class ListOfAllFaces:
             sage: C.face_lattice()
             Finite lattice containing 28 elements
 
-            sage: TestSuite(sage.geometry.polyhedron.combinatorial_polyhedron.base.ListOfAllFaces).run()
+            sage: TestSuite(sage.geometry.polyhedron.combinatorial_polyhedron.list_of_all_faces.ListOfAllFaces).run()
         """
         self._mem = MemoryAllocator()
         self.dimension = C.dimension()

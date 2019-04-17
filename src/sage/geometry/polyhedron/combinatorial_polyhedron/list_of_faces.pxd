@@ -2,15 +2,6 @@ cimport cython
 from libc.stdint cimport uint64_t
 from sage.ext.memory_allocator cimport MemoryAllocator
 
-cdef int vertex_list_to_bit_repr(tuple vertex_list, uint64_t *output,
-                                 size_t face_length) except -1
-
-cdef int incidences_to_bit_repr(tuple incidences, uint64_t *output,
-                                size_t face_length) except -1
-
-cdef size_t bit_repr_to_vertex_list(uint64_t *face, size_t *output,
-                                    size_t face_length) except -1
-
 @cython.final
 cdef class ListOfFaces:
     cdef MemoryAllocator _mem

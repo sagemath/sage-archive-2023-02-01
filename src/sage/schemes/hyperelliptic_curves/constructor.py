@@ -17,8 +17,6 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sys
-
 from sage.schemes.projective.projective_space import ProjectiveSpace
 
 from .hyperelliptic_generic import HyperellipticCurve_generic
@@ -32,7 +30,7 @@ from sage.rings.rational_field import is_RationalField
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 
-created_classes = None # used as a dictionary to retrieve previously dynamically created classes
+from sage.structure.dynamic_class import dynamic_class
 
 def HyperellipticCurve(f, h=0, names=None, PP=None, check_squarefree=True):
     r"""
@@ -178,7 +176,7 @@ def HyperellipticCurve(f, h=0, names=None, PP=None, check_squarefree=True):
         sage: HyperellipticCurve(-12, u^4 + 7)
         Hyperelliptic Curve over Rational Field defined by y^2 + (x^4 + 7)*y = -12
 
-    Check that two curves with the same class name have the same class type
+    Check that two curves with the same class name have the same class type::
 
         sage: R.<t> = PolynomialRing(GF(next_prime(10^9)))
         sage: C = HyperellipticCurve(t^5 + t + 1)
@@ -186,6 +184,16 @@ def HyperellipticCurve(f, h=0, names=None, PP=None, check_squarefree=True):
         sage: type(C2) == type(C)
         True
 
+    Check that the inheritance is correct::
+        sage: R.<t> = PolynomialRing(GF(next_prime(10^9)))
+        sage: C = HyperellipticCurve(t^5 + t + 1)
+        sage: type(C).mro()
+        [<class 'sage.schemes.hyperelliptic_curves.constructor.HyperellipticCurve_g2_FiniteField_with_category'>,
+         <class 'sage.schemes.hyperelliptic_curves.constructor.HyperellipticCurve_g2_FiniteField'>,
+         <class 'sage.schemes.hyperelliptic_curves.hyperelliptic_g2.HyperellipticCurve_g2'>,
+         <class 'sage.schemes.hyperelliptic_curves.hyperelliptic_finite_field.HyperellipticCurve_finite_field'>,
+         <class 'sage.schemes.hyperelliptic_curves.hyperelliptic_generic.HyperellipticCurve_generic'>,
+        ...]
     """
     # F is the discriminant; use this for the type check
     # rather than f and h, one of which might be constant.
@@ -236,12 +244,12 @@ def HyperellipticCurve(f, h=0, names=None, PP=None, check_squarefree=True):
     PP = ProjectiveSpace(2, R)
     if names is None:
         names = ["x","y"]
+
     superclass = []
-    cls_name = []
+    cls_name = ["HyperellipticCurve"]
 
     genus_classes = {
-        2 :  HyperellipticCurve_g2
-    }
+        2 :  HyperellipticCurve_g2}
 
     fields = [
         ("FiniteField", is_FiniteField, HyperellipticCurve_finite_field),
@@ -250,7 +258,7 @@ def HyperellipticCurve(f, h=0, names=None, PP=None, check_squarefree=True):
 
     if g in genus_classes:
         superclass.append(genus_classes[g])
-        cls_name.append('g%s'%g)
+        cls_name.append("g%s"%g)
 
     for name,test,cls in fields:
         if test(R):
@@ -258,16 +266,6 @@ def HyperellipticCurve(f, h=0, names=None, PP=None, check_squarefree=True):
             cls_name.append(name)
             break
 
-    if len(superclass) > 0:
-        global created_classes
-        class_name = "HyperellipticCurve_" + "_".join(cls_name)
-        if created_classes is None:
-            created_classes = {}
-        if class_name in created_classes:
-            cls = created_classes[class_name]
-        else:
-            cls = type(class_name, tuple(superclass), {})
-            created_classes[class_name] = cls
-        return cls(PP, f, h, names=names, genus=g)
-    else:
-        return HyperellipticCurve_generic(PP, f, h, names=names, genus=g)
+    class_name = "_".join(cls_name)
+    cls = dynamic_class(class_name, tuple(superclass), HyperellipticCurve_generic, doccls = HyperellipticCurve)
+    return cls(PP, f, h, names=names, genus=g)

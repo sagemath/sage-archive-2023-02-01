@@ -497,13 +497,13 @@ change !) filename is joined.
 The environment variable defining the licence's path must also be set when
 running Sage. You can append to your ``.bashrc`` file one of the following :
 
-    * For CPLEX ::
+* For CPLEX ::
 
-        export ILOG_LICENSE_FILE=/path/to/the/license/ilog/ilm/access_1.ilm
+    export ILOG_LICENSE_FILE=/path/to/the/license/ilog/ilm/access_1.ilm
 
-    * For GUROBI ::
+* For GUROBI ::
 
-        export GRB_LICENSE_FILE=/path/to/the/license/gurobi.lic
+    export GRB_LICENSE_FILE=/path/to/the/license/gurobi.lic
 
 
 As Sage also needs the files library and header files the easiest way is to
@@ -532,9 +532,9 @@ create symbolic links to these files in the appropriate directories:
 
         ln -s /path/to/include/gurobi_c.h .
 
-**It is very important that the names of the symbolic links in Sage's folders**
-** be precisely as indicated. If the names differ, Sage will not notice that**
-**the files are present**
+**It is very important that the names of the symbolic links in Sage's folders
+be precisely as indicated. If the names differ, Sage will not notice that
+the files are present**
 
 Once this is done, Sage is to be asked to notice the changes by running::
 

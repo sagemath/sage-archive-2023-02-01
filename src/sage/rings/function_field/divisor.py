@@ -531,7 +531,7 @@ class FunctionFieldDivisor(ModuleElement):
         return basis, coordinates_func
 
     def basis_differential_space(self):
-        """
+        r"""
         Return a basis of the space of differentials `\Omega(D)`
         for the divisor `D`.
 
@@ -554,7 +554,7 @@ class FunctionFieldDivisor(ModuleElement):
         return [W.element_class(W, f) for f in fbasis]
 
     def differential_space(self):
-        """
+        r"""
         Return the vector space of the differential space `\Omega(D)` of the divisor `D`.
 
         OUTPUT:

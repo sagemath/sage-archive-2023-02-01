@@ -1489,7 +1489,6 @@ class MatrixSpace(UniqueRepresentation, Parent):
                 v[r,c].set_immutable()
         from sage.sets.family import Family
         def old_index(i):
-            from sage.misc.superseded import deprecation
             deprecation(22955, "integer indices are deprecated. Use B[r,c] instead of B[i].")
             return v[keys[i]]
         return Family(keys, v.__getitem__,

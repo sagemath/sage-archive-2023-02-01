@@ -44,7 +44,7 @@ SAGE_SCRIPTS
     }
 
     var rRange = Math.sqrt( Math.pow( b[1].x - b[0].x, 2 )
-                            + Math.pow( b[1].x - b[0].x, 2 ) );
+                            + Math.pow( b[1].y - b[0].y, 2 ) );
     var xRange = b[1].x - b[0].x;
     var yRange = b[1].y - b[0].y;
     var zRange = b[1].z - b[0].z;
@@ -206,18 +206,12 @@ SAGE_SCRIPTS
     }
 
     var surfaces = SAGE_SURFACES;
-    for ( var i=0 ; i < surfaces.length ; i++ ) {
-        if ( surfaces[i].hasOwnProperty('face_colors') )
-        {
-            addSurfaceWithColors( surfaces[i] )
-        }
-        else
-        {
-            addSurface( surfaces[i] )
-        }
-    }
+    for ( var i=0 ; i < surfaces.length ; i++ ) addSurface( surfaces[i] );
 
     function addSurface( json ) {
+
+        var useFaceColors = json.hasOwnProperty( 'face_colors' ) ? true : false;
+
         var geometry = new THREE.Geometry();
         for ( var i=0 ; i < json.vertices.length ; i++ ) {
             var v = json.vertices[i];
@@ -226,45 +220,20 @@ SAGE_SCRIPTS
         for ( var i=0 ; i < json.faces.length ; i++ ) {
             var f = json.faces[i];
             for ( var j=0 ; j < f.length - 2 ; j++ ) {
-                geometry.faces.push( new THREE.Face3( f[0], f[j+1], f[j+2] ) );
+                var face = new THREE.Face3( f[0], f[j+1], f[j+2] );
+                if ( useFaceColors ) face.color.set( json.face_colors[i] );
+                geometry.faces.push( face );
             }
         }
         geometry.computeVertexNormals();
 
         var transparent = json.opacity < 1 ? true : false;
-        var material = new THREE.MeshPhongMaterial( {
-                                     color: json.color, side: THREE.DoubleSide,
+
+        var material = new THREE.MeshPhongMaterial( { side: THREE.DoubleSide,
+                                     color: useFaceColors ? 'white' : json.color,
+                                     vertexColors: useFaceColors ? THREE.FaceColors : THREE.NoColors,
                                      transparent: transparent, opacity: json.opacity,
                                      shininess: 20 } );
-
-        var c = geometry.center().multiplyScalar( -1 );
-        var mesh = new THREE.Mesh( geometry, material );
-        mesh.position.set( c.x, c.y, c.z );
-        scene.add( mesh );
-    }
-
-    function addSurfaceWithColors( json ) {
-        var geometry = new THREE.Geometry();
-        for ( var i=0 ; i < json.vertices.length ; i++ ) {
-            var v = json.vertices[i];
-            geometry.vertices.push( new THREE.Vector3( a[0]*v.x, a[1]*v.y, a[2]*v.z ) );
-        }
-        for ( var i=0 ; i < json.faces.length ; i++ ) {
-            var f = json.faces[i];
-            for ( var j=0 ; j < f.length - 2 ; j++ ) {
-                var tri = new THREE.Face3( f[0], f[j+1], f[j+2] )
-                tri.color.set(json.face_colors[i])
-                geometry.faces.push( tri );
-            }
-        }
-        geometry.computeVertexNormals();
-
-        var transparent = json.opacity < 1 ? true : false;
-        var material = new THREE.MeshPhongMaterial( {
-            vertexColors: THREE.FaceColors,
-            side: THREE.DoubleSide,
-            transparent: transparent, opacity: json.opacity,
-            shininess: 20 } );
 
         var c = geometry.center().multiplyScalar( -1 );
         var mesh = new THREE.Mesh( geometry, material );

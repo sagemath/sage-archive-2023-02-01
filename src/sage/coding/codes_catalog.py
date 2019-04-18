@@ -23,7 +23,7 @@ TESTS::
 #  Distributed under the terms of the GNU General Public License (GPL),
 #  version 2 or later (at your preference).
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 
@@ -35,7 +35,6 @@ TESTS::
 from __future__ import absolute_import
 from sage.misc.lazy_import import lazy_import
 
-from .linear_code import LinearCode
 from sage.coding.linear_code import LinearCode
 
 lazy_import('sage.coding.code_constructions',

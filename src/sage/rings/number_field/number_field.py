@@ -9326,7 +9326,7 @@ class NumberField_absolute(NumberField_generic):
         ALGORITHM:
 
         This is an implementation of the revised algorithm (Algorithm 4) in
-        [Doyle-Krumm]_. Algorithm 5 is used for imaginary quadratic fields.
+        [DK2013]_. Algorithm 5 is used for imaginary quadratic fields.
 
         INPUT:
 
@@ -10683,7 +10683,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             6
             sage: k.zeta(84)
             Traceback (most recent call last):
-            ..
+            ...
             ValueError: 84 does not divide order of generator (42)
 
         ::

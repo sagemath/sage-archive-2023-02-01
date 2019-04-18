@@ -555,7 +555,7 @@ class Polymake(ExtraTabCompletion, Expect):
             SAGE...
 
         """
-        if len(self._available_vars) != 0:
+        if len(self._available_vars):
             return self._available_vars.pop(0)
         try:
             self.__seq += 1
@@ -926,14 +926,14 @@ class Polymake(ExtraTabCompletion, Expect):
                         except (TypeError, RuntimeError):
                             pass
                         return self._eval_line(line,allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt, restart_if_needed=False, **kwds)
-                raise_(RuntimeError, "%s\nError evaluating %s in %s"%(msg, line, self), sys.exc_info()[2])
+                raise_(RuntimeError, RuntimeError("%s\nError evaluating %s in %s" % (msg, line, self)), sys.exc_info()[2])
 
             p_warnings = []
             p_errors = []
             have_warning = False
             have_error = False
             have_log = False
-            if len(line)>0:
+            if len(line):
                 first = True
                 while True:
                     try:

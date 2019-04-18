@@ -1,12 +1,12 @@
 r"""
 Additive semigroups
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2013 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
@@ -15,6 +15,7 @@ from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.algebra_functor import AlgebrasCategory
 from sage.categories.homsets import HomsetsCategory
 from sage.categories.additive_magmas import AdditiveMagmas
+
 
 class AdditiveSemigroups(CategoryWithAxiom_singleton):
     """
@@ -81,8 +82,8 @@ class AdditiveSemigroups(CategoryWithAxiom_singleton):
             tester = self._tester(**options)
             S = tester.some_elements()
             from sage.misc.misc import some_tuples
-            for x,y,z in some_tuples(S, 3, tester._max_runs):
-                tester.assertTrue((x + y) + z == x + (y + z))
+            for x, y, z in some_tuples(S, 3, tester._max_runs):
+                tester.assertEqual((x + y) + z, x + (y + z))
 
     class Homsets(HomsetsCategory):
 
@@ -175,4 +176,3 @@ class AdditiveSemigroups(CategoryWithAxiom_singleton):
                     B[b + c + d] + B[a + b]
                 """
                 return self.monomial(g1 + g2)
-

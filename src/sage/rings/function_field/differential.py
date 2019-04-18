@@ -360,7 +360,7 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
             return to_R(c)
 
     def cartier(self):
-        """
+        r"""
         Return the image of the differential by the Cartier operator.
 
         The Cartier operator operates on differentials. Let `x` be a separating

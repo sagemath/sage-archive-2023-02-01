@@ -1135,8 +1135,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
         REFERENCES:
 
-        .. [RL] \J. Rokne, P. Lancaster. Complex interval arithmetic.
-           Communications of the ACM 14. 1971.
+        - [RL1971]_
         """
         # Constructor sets intervals for real and imaginary part to NaN
         x = self._new()

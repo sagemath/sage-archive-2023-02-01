@@ -1934,7 +1934,3 @@ class SkewPartitions_rowlengths(SkewPartitions):
 
 from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.skew_partition', 'SkewPartition_class', SkewPartition)
-
-# Deprecations from trac:18555. July 2016
-from sage.misc.superseded import deprecated_function_alias
-SkewPartitions.global_options=deprecated_function_alias(18555, SkewPartitions.options)

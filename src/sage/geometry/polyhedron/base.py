@@ -2672,6 +2672,10 @@ class Polyhedron_base(Element):
             sage: q = Polyhedron([[1,1,1],[-1,1,1],[1,-1,1],[-1,-1,1],[1,1,-1]])
             sage: q.is_simplicial()
             False
+            sage: P = polytopes.simplex(); P
+            A 3-dimensional polyhedron in ZZ^4 defined as the convex hull of 4 vertices
+            sage: P.is_simplicial()
+            True
 
         The method is not implemented for unbounded polyhedra::
 

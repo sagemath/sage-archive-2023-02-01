@@ -2684,8 +2684,9 @@ class Polyhedron_base(Element):
         if not(self.is_compact()):
             raise NotImplementedError("This function is implemented for polytopes only.")
         d = self.dim()
-        return all(len([vertex for vertex in face.incident()]) == d
-                   for face in self.Hrepresentation())
+        return all(len([vertex for vertex in facet.incident()]) == d
+                   for facet in self.Hrepresentation()
+                   if not facet.is_equation())
 
     def hyperplane_arrangement(self):
         """

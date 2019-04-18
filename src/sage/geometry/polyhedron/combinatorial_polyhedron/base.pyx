@@ -786,19 +786,17 @@ cdef class CombinatorialPolyhedron(SageObject):
             # There is actually one facet, but we have not initialized it.
             return ((),)
 
-        # Get all facets from :meth:`face_iter`.
-        face_iter = self.face_iter(self.dimension() - 1, dual=False)
-        tup = tuple(face_iter.vertex_repr(names=names) for _ in face_iter)
-
-        # It is important to have the facets in the exact same order as
+        # It is essential to have the facets in the exact same order as
         # on input, so that pickle/unpickle by :meth:`reduce` works.
-        # Every facet knows its index by the facet-representation.
+        # Every facet knows its index by the facet representation.
         face_iter = self.face_iter(self.dimension() - 1, dual=False)
-        indices = tuple(face_iter.facet_repr(names=False)[0] for _ in face_iter)
-        dic = {}
-        for i in range(len(tup)):
-            dic[indices[i]] = tup[i]
-        return tuple(dic[i] for i in range(len(tup)))
+        facets = [None] * self._nr_facets
+        for _ in face_iter:
+            index = face_iter.facet_repr(names=False)[0]
+            verts = face_iter.vertex_repr(names=names)
+            facets[index] = verts
+
+        return tuple(facets)
 
     def edges(self, names=True):
         r"""

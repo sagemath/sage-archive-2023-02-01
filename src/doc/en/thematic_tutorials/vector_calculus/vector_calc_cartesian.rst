@@ -8,14 +8,13 @@
 Vector calculus 1: Cartesian coordinates
 ========================================
 
-This notebook illustrates some vector calculus capabilities of SageMath
+This tutorial introduces some vector calculus capabilities of SageMath
 within the 3-dimensional Euclidean space. The corresponding tools have
 been developed within the
 `SageManifolds <https://sagemanifolds.obspm.fr>`__ project.
 
-Click
-`here <https://raw.githubusercontent.com/sagemanifolds/SageManifolds/master/Worksheets/v1.3/SM_vector_calc_cartesian.ipynb>`__
-to download the corresponding Jupyter notebook file.
+It is also available as a
+`Jupyter notebook <https://nbviewer.jupyter.org/github/sagemanifolds/SageManifolds/blob/master/Notebooks/SM_vector_calc_cartesian.ipynb>`__.
 
 
 The 3-dimensional Euclidean space

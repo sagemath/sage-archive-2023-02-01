@@ -5,10 +5,10 @@
 .. _vector_calc_cylindrical:
 
 
-Vector calculus 3: cylindrical coordinates
+Vector calculus 3: Cylindrical coordinates
 ==========================================
 
-This notebook illustrates some vector calculus capabilities of SageMath
+This tutorial illustrates some vector calculus capabilities of SageMath
 within the 3-dimensional Euclidean space. The corresponding tools have
 been developed within the
 `SageManifolds <https://sagemanifolds.obspm.fr>`__ project.

@@ -5,7 +5,7 @@
 .. _vector_calc_spherical:
 
 
-Vector calculus 2: spherical coordinates
+Vector calculus 2: Spherical coordinates
 ========================================
 
 This notebook illustrates some vector calculus capabilities of SageMath

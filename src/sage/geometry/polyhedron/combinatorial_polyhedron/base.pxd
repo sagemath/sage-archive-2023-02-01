@@ -17,12 +17,12 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef unsigned int _length_Vrep      # Vrep might include rays/lines
     cdef size_t _nr_facets              # length Hrep without equalities
     cdef bint _unbounded                # ``True`` iff Polyhedron is unbounded
-    cdef int _nr_lines                  # number of affinely independet lines in the Polyhedron
-    cdef ListOfFaces bitrep_facets      # facets in Bit-Representation
-    cdef ListOfFaces bitrep_vertices    # vertices in Bit-Representation
+    cdef int _nr_lines                  # number of affinely independent lines in the Polyhedron
+    cdef ListOfFaces bitrep_facets      # facets in bit representation
+    cdef ListOfFaces bitrep_vertices    # vertices in bit representation
     cdef tuple _f_vector
 
-    # Edges, ridges and incidences are stored in a pointer of pointers,
+    # Edges, ridges and incidences are stored in a pointer of pointers.
     # This number determines how many edges are stored in ``edges[0]``,
     # how many ridges are stored in ``ridges[0]`` etc.
     cdef size_t _length_edges_list

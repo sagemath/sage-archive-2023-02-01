@@ -1,30 +1,27 @@
 r"""
-CombinatorialPolyhedron
+Combinatorial polyhedron
 
 This module gathers algorithms for polyhedra that only depend on the
-vertex-facet incidences.
+vertex-facet incidences and that are called combinatorial polyhedron.
+The main class is :class:`CombinatorialPolyhedron`. Most importantly,
+this class allows to iterate quickly through the faces (possibly
+of given dimension) via the :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator` object. The :class:`CombinatorialPolyhedron`
+uses this iterator to quickly generate the f-vector,  the edges,
+the ridges and the face lattice.
 
-Most importantly, one can construct a fast :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator`.
-This module uses this construction to quickly generate
-- the f-vector,
-- the edges,
-- the ridges,
-- and the face lattice.
-
-Terminology in this module:
+Terminology used in this module:
 
 - Vertices              -- ``[vertices, rays, lines]`` of the polyhedron.
 - Facets                -- facets of the polyhedron.
-- Vertex-Representation -- represents a face by a list of vertices it contains.
-- Facet-Representation  -- represents a face by a list of facets it is contained in.
-- Bit-Representation    -- represents incidences as ``uint64_t``-array, where
-                           each Bit represents one incidences. There might
-                           be trailing zeros, to fit alignment-requirements.
+- vertex representation -- represents a face by the list of vertices it contains.
+- facet representation  -- represents a face by the list of facets it is contained in.
+- bit representation    -- represents incidences as ``uint64_t``-array, where
+                           each bit represents one incidence. There might
+                           be trailing zeros, to fit alignment requirements.
                            In most instances, faces are represented by the
-                           Bit-representation, where each bit corresponds to
-                           a vertex or facet. Thus Bit-representation can be
-                           vertex-representation or facet-representation depending on
-                           context.
+                           bit representation, where each bit corresponds to
+                           a vertex or facet. Thus a bit representation can either be
+                           a vertex or facet representation depending on context.
 
 EXAMPLES:
 
@@ -113,63 +110,40 @@ cdef class CombinatorialPolyhedron(SageObject):
     INPUT:
 
     - ``data`` -- an instance of
-      :class:`~sage.geometry.polyhedron.parent.Polyhedron_base`
-
-    or
-
-    - ``data`` --  an instance of
-      :class:`~sage.geometry.lattice_polytope.LatticePolytopeClass`
-
-    or
-
-    - ``data`` -- an ``incidence_matrix`` as in
-      :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.incidence_matrix`
-
-      * ``vertices`` -- a list of ``[vertices, rays, lines]``, if
-        the rows in the incidence_matrix should correspond to names
-
-      * ``facets`` -- a list of facets, if
-        the columns in the incidence_matrix should correspond to names
-
-      * ``nr_lines`` -- ``None`` for bounded Polyhedra,
-        for unbounded Polyhedra, this needs to be set
-        to the correct number of lines,
-        i.e. the the maximum number of lines with
-        linearly independent directions in the Polyehdron
-
-    or
-
-    - ``data`` -- a ``[list, tuple, iterator]`` of facets,
-      each facet given as a list of ``[vertices, rays, lines]``
-      if the polyhedron is unbounded, then rays and lines are required
-      if the Polyehdron contains no lines, the rays can be thought of as
-      the vertices of the facets deleted from a bounded polyhedron
-      see :class:`~sage.geometry.polyhedron.parent.Polyhedron_base`
-      on how to use rays and lines
-
-      * ``facets`` -- a list of names of the facets, if
-        the facets given should correspond to names
-
-      * ``nr_lines`` -- ``None`` for bounded Polyhedra,
-        for unbounded Polyhedra, this needs to be set
-        to the correct number of lines,
-        i.e. the the maximum number of lines with
-        linearly independent directions in the Polyehdron
-
-    or
-
-    - ``data`` -- an Integer, representing the dimension of a polyhedron equal
-      to its affine hull
+       * :class:`~sage.geometry.polyhedron.parent.Polyhedron_base`
+       * or a :class:`~sage.geometry.lattice_polytope.LatticePolytopeClass`
+       * or an ``incidence_matrix`` as in
+         :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.incidence_matrix`
+         In this case you should also specify the ``vertices``, ``facets``
+         and ``nr_lines`` arguments.
+       * or a triple ``[list, tuple, iterator]`` of facets, each facet given as
+         a list of ``[vertices, rays, lines]`` if the polyhedron is unbounded,
+         then rays and lines are required if the polyehdron contains no lines,
+         the rays can be thought of as the vertices of the facets deleted from a
+         bounded polyhedron see
+         :class:`~sage.geometry.polyhedron.parent.Polyhedron_base` on how to use
+         rays and lines.
+       * or an integer, representing the dimension of a polyhedron equal to its
+         affine hull
+    - ``vertices`` -- (optional) when ``data`` is an incidence matrix, it should
+      be the list of ``[vertices, rays, lines]``, if the rows in the incidence_matrix
+      should correspond to names
+    - ``facets`` -- (optional) when ``data`` is an incidence matrix or a triple, it
+      should be a list of facets that would be used instead of indices (of the columns
+      of the incidence matrix).
+    - ``nr_lines`` -- (optional) when ``data` is an incidence matrix or a triple and
+      the polyhedra is unbounded this needs to be set to the dimension of the maximal
+      linear subspace contained in the polyhedron
 
     EXAMPLES:
 
-    Input is polyhedron:
+    We illustrate all possible input: a polyhedron:
 
         sage: P = polytopes.cube()
         sage: CombinatorialPolyhedron(P)
         Combinatorial type of a polyhedron of dimension 3 with 8 vertices
 
-    Input is a lattice polytope::
+    a lattice polytope::
 
         sage: points = [(1,0,0), (0,1,0), (0,0,1),
         ....: (-1,0,0), (0,-1,0), (0,0,-1)]
@@ -177,7 +151,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         sage: CombinatorialPolyhedron(L)
         Combinatorial type of a polyhedron of dimension 3 with 6 vertices
 
-    Input is an incidence matrix::
+    an incidence matrix::
 
         sage: data = Polyhedron(rays=[[0,1]]).incidence_matrix()
         sage: CombinatorialPolyhedron(data, nr_lines=0)
@@ -189,7 +163,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         sage: C.Hrepresentation()
         ('myfacet',)
 
-    You can also give the facets explicitely::
+    a list of facets::
 
         sage: CombinatorialPolyhedron(((1,2,3),(1,2,4),(1,3,4),(2,3,4)))
         Combinatorial type of a polyhedron of dimension 3 with 4 vertices
@@ -201,7 +175,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         sage: C.Hrepresentation()
         ('facet0', 'facet1', 'facet2', 'myfacet3')
 
-    Input is an integer::
+    an integer::
 
         sage: CombinatorialPolyhedron(-1).f_vector()
         (1,)
@@ -210,17 +184,18 @@ cdef class CombinatorialPolyhedron(SageObject):
         sage: CombinatorialPolyhedron(5).f_vector()
         (1, 0, 0, 0, 0, 0, 1)
 
-    Specifying the number of lines is important::
+    Specifying the number of lines is important. The following with a
+    polyhedron works fine::
 
         sage: P = Polyhedron(ieqs=[[1,-1,0],[1,1,0]])
         sage: C = CombinatorialPolyhedron(P)  # this works fine
         sage: C
         Combinatorial type of a polyhedron of dimension 2 with 0 vertices
+
+    But it becomes incorrect here due to the missing number of lines::
+
         sage: data = P.incidence_matrix()
         sage: vert = P.Vrepresentation()
-
-    Incorrect due to missing number of lines::
-
         sage: C = CombinatorialPolyhedron(data, vertices=vert)
         sage: C
         Combinatorial type of a polyhedron of dimension 2 with 3 vertices
@@ -231,7 +206,7 @@ cdef class CombinatorialPolyhedron(SageObject):
          A line in the direction (0, 1),
          A line in the direction (0, 1))
 
-    Correct usage with number of lines specified::
+    The correct usage is::
 
         sage: C = CombinatorialPolyhedron(data, vertices=vert, nr_lines=1)
         sage: C
@@ -241,17 +216,18 @@ cdef class CombinatorialPolyhedron(SageObject):
         sage: C.vertices()
         ()
 
-    Initialization from polyhedron will automatically specify number of lines::
+    TESTS::
 
         sage: P = Polyhedron(rays=[[1,0],[0,1]])
-        sage: C = CombinatorialPolyhedron(P) # this works fine
+        sage: C = CombinatorialPolyhedron(P)
         sage: C
         Combinatorial type of a polyhedron of dimension 2 with 1 vertices
+        sage: C.f_vector()
+        (1, 1, 2, 1)
+        sage: C.vertices()
+        (A vertex at (0, 0),)
         sage: data = P.incidence_matrix()
         sage: vert = P.Vrepresentation()
-
-    Incorrect due to missing number of lines::
-
         sage: C = CombinatorialPolyhedron(data, vertices=vert)
         sage: C
         Combinatorial type of a polyhedron of dimension 2 with 3 vertices
@@ -259,9 +235,6 @@ cdef class CombinatorialPolyhedron(SageObject):
         (1, 1, 2, 1)
         sage: C.vertices()
         (A vertex at (0, 0), A vertex at (0, 0), A vertex at (0, 0))
-
-    Correct usage with number of lines specified::
-
         sage: C = CombinatorialPolyhedron(data, vertices=vert, nr_lines=0)
         sage: C
         Combinatorial type of a polyhedron of dimension 2 with 1 vertices
@@ -301,7 +274,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         self._length_edges_list = 16348
 
         if is_Polyhedron(data):
-            # Input is ``Polyhedron``.
+            # input is ``Polyhedron``
             vertices = data.Vrepresentation()
             facets = tuple(inequality for inequality in data.Hrepresentation())
 
@@ -314,7 +287,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
             data = data.incidence_matrix()
         elif is_LatticePolytope(data):
-            # Input is ``LatticePolytope``.
+            # input is ``LatticePolytope``
             self._unbounded = False
             self._nr_lines = 0
             vertices = data.vertices()
@@ -326,16 +299,16 @@ cdef class CombinatorialPolyhedron(SageObject):
         else:
             # Input is different from ``Polyhedron`` and ``LatticePolytope``.
             if nr_lines is None:
-                # According to input, the polyhedron is bounded.
+                # bounded polyhedron
                 self._unbounded = False
                 self._nr_lines = 0
             else:
-                # According to input, the polyhedron is unbounded.
+                # unbounded polyhedron
                 self._unbounded = True
                 self._nr_lines = int(nr_lines)
 
         if vertices:
-            # The vertices have names, which the user might want later.
+            # store vertices names
             self._V = tuple(vertices)
             self._Vinv = {v: i for i,v in enumerate(self._V)}
         else:
@@ -343,10 +316,9 @@ cdef class CombinatorialPolyhedron(SageObject):
             self._Vinv = None
 
         if facets:
-            # The facets have names, which the user might want later.
+            # store facets names and compute equalities
             facets = tuple(facets)
 
-            # Remove equalities from facets.
             test = [1] * len(facets)  # 0 if that facet is an equality
             for i in range(len(facets)):
                 if hasattr(facets[i], "is_inequality"):
@@ -355,7 +327,6 @@ cdef class CombinatorialPolyhedron(SageObject):
                         test[i] = 0
             self._H = tuple(facets[i] for i in range(len(facets)) if test[i])
 
-            # Saving the equalities.
             self._equalities = tuple(facets[i] for i in range(len(facets)) if not test[i])
         else:
             self._H = None

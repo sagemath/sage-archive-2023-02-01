@@ -8,14 +8,14 @@
 Vector calculus 3: Cylindrical coordinates
 ==========================================
 
-This tutorial illustrates some vector calculus capabilities of SageMath
-within the 3-dimensional Euclidean space. The corresponding tools have
-been developed within the
+This tutorial introduces some vector calculus functionalities of SageMath
+within the 3-dimensional Euclidean space.
+The corresponding tools have been developed via the
 `SageManifolds <https://sagemanifolds.obspm.fr>`__ project.
 
-Click
-`here <https://raw.githubusercontent.com/sagemanifolds/SageManifolds/master/Notebooks/SM_vector_calc_cylindrical.ipynb>`__
-to download the corresponding Jupyter notebook file.
+The tutorial is also available as a Jupyter notebook, either
+`passive <https://nbviewer.jupyter.org/github/sagemanifolds/SageManifolds/blob/master/Notebooks/SM_vector_calc_cylindrical.ipynb>`__ (``nbviewer``)
+or `interactive <https://mybinder.org/v2/gh/sagemanifolds/SageManifolds/master?filepath=Notebooks/SM_vector_calc_cylindrical.ipynb>`__ (``binder``).
 
 
 The 3-dimensional Euclidean space

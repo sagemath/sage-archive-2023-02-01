@@ -8,14 +8,15 @@
 Vector calculus in the Euclidean plane
 ======================================
 
-This tutorial illustrates some vector calculus capabilities of SageMath
-within the 2-dimensional Euclidean space. The corresponding tools have
-been developed within the
+This tutorial introduces some vector calculus functionalities of SageMath
+within the 2-dimensional Euclidean space.
+The corresponding tools have been developed via the
 `SageManifolds <https://sagemanifolds.obspm.fr>`__ project.
 
-Click
-`here <https://raw.githubusercontent.com/sagemanifolds/SageManifolds/master/Worksheets/v1.3/SM_Euclidean_plane.ipynb>`__
-to download the corresponding Jupyter notebook file.
+The tutorial is also available as a Jupyter notebook, either
+`passive <https://nbviewer.jupyter.org/github/sagemanifolds/SageManifolds/blob/master/Notebooks/SM_Euclidean_plane.ipynb>`__ (``nbviewer``)
+or `interactive <https://mybinder.org/v2/gh/sagemanifolds/SageManifolds/master?filepath=Notebooks/SM_Euclidean_plane.ipynb>`__ (``binder``).
+
 
 1. Defining the Euclidean plane
 -------------------------------

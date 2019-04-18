@@ -1,23 +1,23 @@
 r"""
 Conversions
 
-This module provides conversions to class:`.list_of_faces.ListOfFaces` from
+This module provides conversions to class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces` from
 - an incidence matrix of a polyhedron or
 - a tuple of facets (as tuple of vertices each).
 
-Also this module provides a conversion from the data of class:`list_of_faces.ListOfFaces`,
+Also this module provides a conversion from the data of class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces`,
 which is a Bit-vector representing incidences of a face,
 to a list of entries which are incident.
 
 .. SEEALSO::
 
-    :mod:`.list_of_faces`,
-    :mod:`.face_iterator`,
-    :mod:`.base`.
+    :mod:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces`,
+    :mod:`~sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator`,
+    :mod:`~sage.geometry.polyhedron.combinatorial_polyhedron.base`.
 
 EXAMPLES:
 
-Obtain the facets of a polyhedron as :class:`.list_of_faces.ListOfFaces`::
+Obtain the facets of a polyhedron as :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces`::
 
     sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
     ....:         import incidence_matrix_to_bit_repr_of_facets
@@ -28,7 +28,7 @@ Obtain the facets of a polyhedron as :class:`.list_of_faces.ListOfFaces`::
     4
 
 Obtain the vertices of a polyhedron as facet-incidences stored in
-:class:`.list_of_faces.ListOfFaces`::
+:class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces`::
 
     sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
     ....:         import incidence_matrix_to_bit_repr_of_vertices
@@ -37,7 +37,7 @@ Obtain the vertices of a polyhedron as facet-incidences stored in
     sage: face_list.compute_dimension()
     4
 
-Obtain the facets of a polyhedron as :class:`.list_of_faces.ListOfFaces` from a facet list::
+Obtain the facets of a polyhedron as :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces` from a facet list::
 
     sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
     ....:         import facets_tuple_to_bit_repr_of_facets
@@ -232,7 +232,7 @@ cdef int incidences_to_bit_repr(tuple incidences, uint64_t *output,
 
 def incidence_matrix_to_bit_repr_of_facets(matrix):
     r"""
-    Initialize facets in Bit-representation as :class:`ListOfFaces`.
+    Initialize facets in Bit-representation as :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces`.
 
     INPUT:
 
@@ -241,7 +241,7 @@ def incidence_matrix_to_bit_repr_of_facets(matrix):
 
     OUTPUT:
 
-    - :class:`ListOfFaces`
+    - :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces`
 
     EXAMPLES::
 
@@ -317,7 +317,7 @@ def incidence_matrix_to_bit_repr_of_facets(matrix):
 
 def incidence_matrix_to_bit_repr_of_vertices(matrix):
     r"""
-    Initialize vertices in Bit-representation as :class:`ListOfFaces`.
+    Initialize vertices in Bit-representation as :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces`.
 
     Each vertex is represented as the facets it is contained in.
     Those are the facets of the polar polyhedron, if it exists.
@@ -329,7 +329,7 @@ def incidence_matrix_to_bit_repr_of_vertices(matrix):
 
     OUTPUT:
 
-    - :class:`ListOfFaces`
+    - :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces`
 
     EXAMPLES::
 
@@ -414,7 +414,7 @@ def incidence_matrix_to_bit_repr_of_vertices(matrix):
 
 def facets_tuple_to_bit_repr_of_facets(tuple facets_input, size_t nr_vertices):
     r"""
-    Initializes facets in Bit-representation as :class:`ListOfFaces`.
+    Initializes facets in Bit-representation as :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces`.
 
     INPUT:
 
@@ -424,7 +424,7 @@ def facets_tuple_to_bit_repr_of_facets(tuple facets_input, size_t nr_vertices):
 
     OUTPUT:
 
-    - :class:`ListOfFaces`
+    - :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces`
 
     EXAMPLES::
 
@@ -477,7 +477,7 @@ def facets_tuple_to_bit_repr_of_facets(tuple facets_input, size_t nr_vertices):
 
 def facets_tuple_to_bit_repr_of_vertices(tuple facets_input, size_t nr_vertices):
     r"""
-    Initialize vertices in Bit-representation as :class:`ListOfFaces`.
+    Initialize vertices in Bit-representation as :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces`.
 
     Each vertex is represented as the facets it is contained in.
     Those are the facets of the polar polyhedron, if it exists.
@@ -490,7 +490,7 @@ def facets_tuple_to_bit_repr_of_vertices(tuple facets_input, size_t nr_vertices)
 
     OUTPUT:
 
-    - :class:`ListOfFaces`
+    - :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces`
 
 
     EXAMPLES::

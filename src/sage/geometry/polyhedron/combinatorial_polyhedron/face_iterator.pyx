@@ -178,7 +178,7 @@ cdef class FaceIterator(SageObject):
 
     INPUT:
 
-    - ``C`` -- a :class:`CombinatorialPolyhedron`
+    - ``C`` -- a :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron`
     - ``dual`` -- if ``True``, then dual polyhedron is used for iteration
       (only possible for bounded Polyhedra)
     - ``output_dimension`` -- if not ``None``, then the FaceIterator will only yield
@@ -186,7 +186,7 @@ cdef class FaceIterator(SageObject):
 
     .. SEEALSO::
 
-        :class:`CombinatorialPolyhedron`.
+        :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron`.
 
     EXAMPLES:
 
@@ -537,7 +537,7 @@ cdef class FaceIterator(SageObject):
         INPUT:
 
         - ``names`` -- if ``True`` returns the names of the ``[vertices, rays, lines]``
-          as given on initialization of the :class:`CombinatorialPolyhedron`
+          as given on initialization of the :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron`
 
         EXAMPLES::
 
@@ -638,7 +638,7 @@ cdef class FaceIterator(SageObject):
         INPUT:
 
         - ``names`` -- if ``True`` returns the names of the ``[facets, equations]``
-          as given on initialization of :class:`CombinatorialPolyhedron`
+          as given on initialization of :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron`
 
         EXAMPLES::
 

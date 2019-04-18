@@ -5,13 +5,13 @@ This module provides a class to store faces of a polyhedron in Bit-representatio
 
 This class allocates memory to store the faces in.
 A face will be stored as vertex-incidences, where each Bit represents an incidence.
-In :mod:`.conversions` there a methods to actually convert facets of a polyhedron
+In :mod:`~sage.geometry.polyhedron.combinatorial_polyhedron.conversions` there a methods to actually convert facets of a polyhedron
 to bit-representations of vertices stored in :class:`ListOfFaces`.
 
 Moreover, :class:`ListOfFaces` calculates the dimension of a polyhedron, assuming the
 faces are the facets of this polyhedron.
 
-Each face is stored over-aligned according to :meth:`.bit_vector_operations.chunktype`.
+Each face is stored over-aligned according to :meth:`~sage.geometry.polyhedron.combinatorial_polyhedron.bit_vector_operations.chunktype`.
 
 EXAMPLES:
 
@@ -56,10 +56,10 @@ Likewise for the vertices as facet-incidences::
 
 .. SEEALSO::
 
-    :mod:`.base`,
-    :mod:`.face_iterator`,
-    :mod:`.conversions`,
-    :mod:`.list_of_all_faces`.
+    :mod:`~sage.geometry.polyhedron.combinatorial_polyhedron.base`,
+    :mod:`~sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator`,
+    :mod:`~sage.geometry.polyhedron.combinatorial_polyhedron.conversions`,
+    :mod:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_all_faces`.
 
 AUTHOR:
 
@@ -75,6 +75,7 @@ AUTHOR:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from __future__ import absolute_import, division
 from sage.structure.element import is_Matrix
 
@@ -101,8 +102,8 @@ cdef class ListOfFaces:
         :meth:`incidence_matrix_to_bit_repr_of_vertices`,
         :meth:`facets_tuple_to_bit_repr_of_facets`,
         :meth:`facets_tuple_to_bit_repr_of_vertices`,
-        :class:`FaceIterator`,
-        :class:`CombinatorialPolyhedron`.
+        :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator`,
+        :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron`.
 
     EXAMPLES::
 

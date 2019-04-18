@@ -4,7 +4,7 @@ CombinatorialPolyhedron
 This module gathers algorithms for polyhedra that only depend on the
 vertex-facet incidences.
 
-Most importantly, one can construct a fast :class:`.face_iterator.FaceIterator`.
+Most importantly, one can construct a fast :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator`.
 This module uses this construction to quickly generate
 - the f-vector,
 - the edges,
@@ -62,7 +62,7 @@ Face lattice::
     sage: C.face_lattice()
     Finite lattice containing 82 elements
 
-:class:`.face_iterator.FaceIterator`::
+:class:`~sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator`::
 
     sage: C.face_iter()
     Iterator over the proper faces of a polyhedron of dimension 4
@@ -163,13 +163,13 @@ cdef class CombinatorialPolyhedron(SageObject):
 
     EXAMPLES:
 
-    Input is :meth:`Polyhedron`::
+    Input is polyhedron:
 
         sage: P = polytopes.cube()
         sage: CombinatorialPolyhedron(P)
         Combinatorial type of a polyhedron of dimension 3 with 8 vertices
 
-    Input is a LatticePolytope::
+    Input is a lattice polytope::
 
         sage: points = [(1,0,0), (0,1,0), (0,0,1),
         ....: (-1,0,0), (0,-1,0), (0,0,-1)]
@@ -1201,11 +1201,12 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         OUTPUT:
 
-        - :class:`FaceIterator`
+        - :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator`
 
         .. NOTE::
 
-            :class:`FaceIterator` is more than just a plain iterator.
+            :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator`
+            is more than just a plain iterator.
             By default it will iterate over the dimensions of the faces, but
             more information can be received.
 
@@ -1269,7 +1270,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         .. SEEALSO::
 
-            :class:`FaceIterator`.
+            :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator`.
         """
         cdef FaceIterator face_iter
         if dual is None:
@@ -1285,7 +1286,8 @@ cdef class CombinatorialPolyhedron(SageObject):
         r"""
         A method to obtain the FaceIterator as Cython object.
 
-        ``dimension`` is the ``output_dimension`` of :class:`FaceIterator`.
+        ``dimension`` is the ``output_dimension`` of
+        :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator`.
         If ``dimension == -2`` this will indicate no ``output_dimension``.
 
         See :meth:`CombinatorialPolyhedron.face_iter`
@@ -1445,8 +1447,9 @@ cdef class CombinatorialPolyhedron(SageObject):
     def face_lattice_vertex_repr(self, index, names=True):
         r"""
         Return for each element in :meth:`CombinatorialPolyhedron.face_lattice`
-        its vertex-representation as in :meth:`ListOfAllFaces.vertex_repr` or
-        :meth:`FaceIterator.vertex_repr`.
+        its vertex-representation as in
+        :meth:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_all_faces.ListOfAllFaces.vertex_repr`
+        or :meth:`~sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator.vertex_repr`.
 
         If ``names`` is set to ``True``, then names of the
         ``[vertices, rays, lines]`` are used.
@@ -1542,8 +1545,9 @@ cdef class CombinatorialPolyhedron(SageObject):
     def face_lattice_facet_repr(self, index, names=True):
         r"""
         Return for each element in :meth:`CombinatorialPolyhedron.face_lattice`
-        its facet-representation as in :meth:`ListOfAllFaces.facet_repr` or
-        :meth:`FaceIterator.facet_repr`.
+        its facet-representation as in
+        :meth:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_all_faces.ListOfAllFaces.facet_repr`
+        or :meth:`~sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator.facet_repr`.
 
         If ``names`` is set to ``True``, then names of the
         ``facets`` are used.
@@ -1764,7 +1768,7 @@ cdef class CombinatorialPolyhedron(SageObject):
                 face_iter = self._face_iter(dual, 1)
             else:
                 # ``output_dimension`` in
-                # :meth:`FaceIterator.__init__`
+                # :meth:`~sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator.__init__`
                 # requires the dimension of the original polyhedron
                 face_iter = self._face_iter(dual, dim - 2)
 
@@ -2088,7 +2092,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
     def _record_all_faces(self):
         r"""
-        Initialize :class:`ListOfAllFaces` for the polyhedron.
+        Initialize :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_all_faces.ListOfAllFaces` for the polyhedron.
 
         Record and sort all faces of the polyhedron in that class.
 

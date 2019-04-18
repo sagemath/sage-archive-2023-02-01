@@ -3,7 +3,7 @@ ListOfAllFaces
 
 This module provides a class that stores and sorts all faces of the polyhedron.
 
-:class:`.base.CombinatorialPolyhedron` implicitely uses this class to generate
+:class:`~sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron` implicitely uses this class to generate
 the face lattice of a polyhedron.
 
 Terminology in this module:
@@ -40,7 +40,7 @@ EXAMPLES::
 
 .. SEEALSO::
 
-    :mod:`.base`,
+    :mod:`~sage.geometry.polyhedron.combinatorial_polyhedron.base`,
     :class:`ListOfAllFaces`.
 
 AUTHOR:
@@ -75,9 +75,9 @@ cdef extern from "Python.h":
 
 cdef class ListOfAllFaces:
     r"""
-    A class to generate incidences of :class:`CombinatorialPolyhedron`.
+    A class to generate incidences of :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron`.
 
-    On initialization all faces of the given :class:`CombinatorialPolyhedron`
+    On initialization all faces of the given :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron`
     are added and sorted (except coatoms). The incidences can be used to
     generate the ``face_lattice``.
 
@@ -85,14 +85,14 @@ cdef class ListOfAllFaces:
 
     INPUT:
 
-    - :class:`CombinatorialPolyhedron`
+    - :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.baseCombinatorialPolyhedron`
 
     .. SEEALSO::
 
-        :meth:`CombinatorialPolyhedron._record_all_faces`,
-        :meth:`CombinatorialPolyhedron._record_all_faces_helper`,
-        :meth:`CombinatorialPolyhedron.face_lattice`,
-        :meth:`CombinatorialPolyhedron._compute_face_lattice_incidences`.
+        :meth:`~sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron._record_all_faces`,
+        :meth:`~sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron._record_all_faces_helper`,
+        :meth:`~sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron.face_lattice`,
+        :meth:`~sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron._compute_face_lattice_incidences`.
 
     EXAMPLES::
 
@@ -103,7 +103,7 @@ cdef class ListOfAllFaces:
 
     ALGORITHM:
 
-    The faces are recorded with :class:`FaceIterator` in Bit-representation.
+    The faces are recorded with :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator` in Bit-representation.
     Once created, all level-sets but the coatoms are sorted with merge sort.
     Non-trivial incidences of elements whos rank differs by 1 are determined
     by intersecting with all coatoms. Then each intersection is looked up in
@@ -418,7 +418,7 @@ cdef class ListOfAllFaces:
         - ``dimension`` -- dimension of the face
         - ``index`` -- index of the face
         - ``names`` -- if ``True`` returns the names of the ``[vertices, rays, lines]``
-          as given on initialization of :class:`CombinatorialPolyhedron`
+          as given on initialization of :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron`
 
         EXAMPLES::
 
@@ -500,7 +500,7 @@ cdef class ListOfAllFaces:
         - ``dimension`` -- dimension of the face
         - ``index`` -- index of the face
         - ``names`` -- if ``True`` returns the names of the ``[facets, equations]``
-          as given on initialization of :class:`CombinatorialPolyhedron`
+          as given on initialization of :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron`
 
         EXAMPLES::
 

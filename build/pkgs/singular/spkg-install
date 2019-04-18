@@ -77,7 +77,7 @@ config()
     #    may be ignored.
     sdh_configure --exec-prefix="$SAGE_LOCAL" \
                   --bindir="$SAGE_LOCAL/bin" \
-                  --with-gmp="$SAGE_LOCAL" \
+                  $SAGE_CONFIGURE_GMP \
                   --with-ntl="$SAGE_LOCAL" \
                   --with-flint="$SAGE_LOCAL" \
                   --enable-gfanlib \

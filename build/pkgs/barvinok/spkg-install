@@ -1,6 +1,10 @@
 cd src
 
-sdh_configure --with-gmp-prefix=${SAGE_LOCAL} \
+if [ -n "$SAGE_GMP_PREFIX" ];
+   GMP_CONFIGURE="--with-gmp-prefix=$SAGE_GMP_PREFIX"
+fi
+
+sdh_configure $GMP_CONFIGURE \
               --with-ntl-prefix=${SAGE_LOCAL} \
               --with-isl=system               \
               --with-polylib=system           \

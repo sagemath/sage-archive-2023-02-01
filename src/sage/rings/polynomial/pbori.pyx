@@ -1325,12 +1325,12 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
         """
         from sage.rings.integer_ring import ZZ
         sample = current_randstate().python_random().sample
-        d = ZZ.random_element(0,degree+1)
+        d = ZZ.random_element(0, degree + 1)
         vars = sample(vars_set, d)
         M = self._monom_monoid
         m = M._one_element
         for j in vars:
-            m*=M.gen(j)
+            m *= M.gen(j)
         return self(m)
 
     def cover_ring(self):

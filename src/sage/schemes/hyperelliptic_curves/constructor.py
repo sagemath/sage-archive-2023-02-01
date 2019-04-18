@@ -185,6 +185,7 @@ def HyperellipticCurve(f, h=0, names=None, PP=None, check_squarefree=True):
         True
 
     Check that the inheritance is correct::
+
         sage: R.<t> = PolynomialRing(GF(next_prime(10^9)))
         sage: C = HyperellipticCurve(t^5 + t + 1)
         sage: type(C).mro()

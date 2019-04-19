@@ -2,13 +2,13 @@ r"""
 Elements of Laurent polynomial rings
 """
 
-#*****************************************************************************
+# ****************************************************************************
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 
 from sage.rings.integer cimport Integer
@@ -2253,8 +2253,8 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
             sage: P.<x,y> = LaurentPolynomialRing(QQ)
             sage: f = (y^2 - x^9 - 7*x*y^3 + 5*x*y)*x^-3
-            sage: list(f) # indirect doctest
-            [(-1, x^6), (1, x^-3*y^2), (5, x^-2*y), (-7, x^-2*y^3)]
+            sage: sorted(f) # indirect doctest
+            [(-7, x^-2*y^3), (-1, x^6), (1, x^-3*y^2), (5, x^-2*y)]
         """
         if self._prod is None:
             self._compute_polydict()
@@ -2276,8 +2276,8 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
             sage: P.<x,y> = LaurentPolynomialRing(QQ)
             sage: f = (y^2 - x^9 - 7*x*y^3 + 5*x*y)*x^-3
-            sage: f.monomials()
-            [x^6, x^-3*y^2, x^-2*y, x^-2*y^3]
+            sage: sorted(f.monomials())
+            [x^-3*y^2, x^-2*y, x^-2*y^3, x^6]
         """
         cdef list L = []
         if self._prod is None:
@@ -2754,6 +2754,10 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
     cpdef _richcmp_(self, right, int op):
         """
+        Compare two polynomials in a `LaurentPolynomialRing` based on the term
+        order from the parent ring.  If the parent ring does not specify a term
+        order then only comparison by equality is supported.
+
         EXAMPLES::
 
             sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
@@ -2770,7 +2774,14 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             self._compute_polydict()
         if (<LaurentPolynomial_mpair> right)._prod is None:
             (<LaurentPolynomial_mpair> right)._compute_polydict()
-        return richcmp(self._prod, (<LaurentPolynomial_mpair>right)._prod, op)
+
+        try:
+            sortkey = self.parent().term_order().sortkey
+        except AttributeError:
+            sortkey = None
+
+        return self._prod.rich_compare((<LaurentPolynomial_mpair>right)._prod,
+                                       op, sortkey)
 
     def exponents(self):
         """

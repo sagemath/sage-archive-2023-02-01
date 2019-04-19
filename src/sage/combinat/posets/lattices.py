@@ -64,6 +64,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_interval_dismantlable` | Return ``True`` if the lattice is interval dismantlable.
     :meth:`~FiniteLatticePoset.is_sublattice_dismantlable` | Return ``True`` if the lattice is sublattice dismantlable.
     :meth:`~FiniteLatticePoset.is_stone` | Return ``True`` if the lattice is a Stone lattice.
+    :meth:`~FiniteLatticePoset.is_trim` | Return ``True`` if the lattice is a trim lattice.
     :meth:`~FiniteLatticePoset.is_vertically_decomposable` | Return ``True`` if the lattice is vertically decomposable.
     :meth:`~FiniteLatticePoset.is_simple` | Return ``True`` if the lattice has no nontrivial congruences.
     :meth:`~FiniteLatticePoset.is_isoform` | Return ``True`` if all congruences of the lattice consists of isoform blocks.
@@ -141,7 +142,7 @@ List of (semi)lattice methods
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # *****************************************************************************
 from six.moves import range
 from six import iteritems
@@ -152,8 +153,6 @@ from sage.combinat.posets.elements import (LatticePosetElement,
                                            MeetSemilatticeElement,
                                            JoinSemilatticeElement)
 from sage.combinat.posets.hasse_diagram import LatticeError
-
-from sage.misc.decorators import rename_keyword
 
 
 ####################################################################################
@@ -1170,8 +1169,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             - Weaker properties: :meth:`is_modular`,
               :meth:`is_semidistributive`, :meth:`is_join_distributive`,
               :meth:`is_meet_distributive`, :meth:`is_subdirectly_reducible`,
+              :meth:`is_trim`,
               :meth:`is_constructible_by_doublings` (by interval doubling),
               :meth:`is_extremal`
+
             - Stronger properties: :meth:`is_stone`
 
         TESTS::
@@ -1456,7 +1457,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. SEEALSO::
 
-            - Stronger properties: :meth:`is_distributive`
+            - Stronger properties: :meth:`is_distributive`, :meth:`is_trim`
 
         REFERENCES:
 
@@ -1465,6 +1466,55 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         ji = len(self.join_irreducibles())
         mi = len(self.meet_irreducibles())
         return ji == mi == self.height() - 1
+
+    def is_trim(self, certificate=False):
+        """
+        Return whether a lattice is trim.
+
+        A lattice is trim if it is extremal and left modular.
+
+        This notion is defined in [Thom2006]_.
+
+        INPUT:
+
+        - certificate -- boolean (default ``False``) whether to return
+          instead a maximum chain of left modular elements
+
+        EXAMPLES::
+
+            sage: P = posets.PentagonPoset()
+            sage: P.is_trim()
+            True
+
+            sage: Q = LatticePoset(posets.SymmetricGroupWeakOrderPoset(3))
+            sage: Q.is_trim()
+            False
+
+        TESTS::
+
+            sage: LatticePoset({1:[]}).is_trim(True)
+            (True, [1])
+
+        .. SEEALSO::
+
+            - Weaker properties: :meth:`is_extremal`
+            - Stronger properties: :meth:`is_distributive`
+
+        REFERENCES:
+
+        .. [Thom2006] Hugh Thomas, *An analogue of distributivity for
+           ungraded lattices*. Order 23 (2006), no. 2-3, 249-269.
+        """
+        ji = len(self.join_irreducibles())
+        mi = len(self.meet_irreducibles())
+        h, chain = self.height(certificate=True)
+        if not (ji == mi == h - 1):
+            return (False, None) if certificate else False
+
+        if all(self.is_left_modular_element(e) for e in chain):
+            return (True, chain) if certificate else True
+        else:
+            return (False, None) if certificate else False
 
     def is_complemented(self, certificate=False):
         r"""
@@ -2783,10 +2833,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         """
         from sage.misc.cachefunc import cached_function
 
+        not_ok = (False, None) if certificate else False
+
         if not self.is_ranked():
-            if certificate:
-                return (False, None)
-            return False
+            return not_ok
 
         if self.cardinality() == 0:
             if certificate:
@@ -2807,7 +2857,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                        for b in range(n))
 
         if not is_modular_elt(cur):
-            return False
+            return not_ok
         while len(next_) < height:
             try:
                 cur = next(next_[-1])
@@ -2815,7 +2865,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                 next_.pop()
                 cert.pop()
                 if not next_:
-                    return False
+                    return not_ok
                 continue
             if is_modular_elt(cur):
                 next_.append(H.neighbor_in_iterator(cur))
@@ -3182,7 +3232,6 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         return [LatticePoset(self.subposet(map(self._vertex_to_element, elms)))
                 for elms in self._hasse_diagram.sublattices_iterator(set(), 0)]
 
-    @rename_keyword(deprecation=22225, element_constructor='labels')
     def sublattices_lattice(self, labels='lattice'):
         """
         Return the lattice of sublattices.
@@ -3451,8 +3500,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         # subset S, but we assume that the user made an error
         # if S is not also connected.
 
-        from sage.misc.misc import uniq
-        S = uniq(S)
+        S = sorted(set(S))
         S_ = [self._element_to_vertex(e) for e in S]
         if not self._hasse_diagram.is_convex_subset(S_):
             raise ValueError("subset S is not convex")
@@ -3851,7 +3899,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             Add a certificate-option.
         """
         # Todo: This can be made much faster, if we don't regenerate meet- and
-        # join-matrices every time, but instead remove some rows and colums
+        # join-matrices every time, but instead remove some rows and columns
         # from them.
 
         from sage.combinat.subset import Subsets
@@ -3915,6 +3963,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: hex.is_subdirectly_reducible()
             True
 
+            sage: hex.is_subdirectly_reducible(certificate=True)
+            (True,
+             (Finite lattice containing 5 elements, Finite lattice containing 5 elements))
+
             sage: N5.is_subdirectly_reducible(certificate=True)
             (False, (2, 3))
             sage: res, cert = hex.is_subdirectly_reducible(certificate=True)
@@ -3955,7 +4007,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         a1 = [min(v) for v in A[1]]
         K0 = LatticePoset(H_closure.subgraph(a0).transitive_reduction())
         K1 = LatticePoset(H_closure.subgraph(a1).transitive_reduction())
-        return (False, (K0, K1))
+        return (True, (K0, K1))
 
     def canonical_meetands(self, e):
         r"""

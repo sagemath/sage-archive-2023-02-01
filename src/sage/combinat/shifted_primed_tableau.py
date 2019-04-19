@@ -7,16 +7,15 @@ AUTHORS:
 - Kirill Paramonov (2017-08-18): initial implementation
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2017 Kirill Paramonov <kbparamonov at ucdavis.edu>,
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import, division
 from six import add_metaclass
 
@@ -205,7 +204,7 @@ class ShiftedPrimedTableau(ClonableArray):
             sage: s.check()
             sage: t = T([['1p','2p',2,2],[2,'3p']])
             Traceback (most recent call last):
-            ....
+            ...
             ValueError: [['1p', '2p', 2, 2], [2, '3p']] is not an element of
             Shifted Primed Tableaux of shape [4, 2]
         """
@@ -725,7 +724,7 @@ class ShiftedPrimedTableau(ClonableArray):
             AssertionError: can compute a chain of partitions only for skew shifted tableaux without repeated entries.
 
         """
-        assert all(e in [0,1] for e in self.weight()), "can compute a chain of partitions only for skew shifted tableaux without repeated entries."
+        assert all(e in [0, 1] for e in self.weight()), "can compute a chain of partitions only for skew shifted tableaux without repeated entries."
         entries = sorted(e for row in self for e in row if e is not None)
         if self._skew is None:
             mu = Partition([])
@@ -921,8 +920,8 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
         ind_plus_half = ind_e.increase_half()
 
         if T[r][c].is_primed():
-            T = [[elt.increase_half() if elt is not None else elt
-                  for elt in row] for row in T]
+            T = [[elmt.increase_half() if elmt is not None else elmt
+                  for elmt in row] for row in T]
             T = [list(z) for z in zip(*T)]
             r, c = c, r
         h, l = len(T), len(T[0])
@@ -954,11 +953,11 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
             T[r][c] = T[r][c].increase_half()
 
         if r > c:
-            T = [[elt.decrease_half() if elt is not None else elt
-                  for elt in row] for row in T]
+            T = [[elmt.decrease_half() if elmt is not None else elmt
+                  for elmt in row] for row in T]
             T = [list(z) for z in zip(*T)]
 
-        T = [tuple(elt for elt in row if elt is not None) for row in T]
+        T = [tuple(elmt for elmt in row if elmt is not None) for row in T]
         return type(self)(self.parent(), T, check=False, preprocessed=True)
 
     def e(self, ind):
@@ -1013,8 +1012,8 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
         ind_plus_half = ind_e.increase_half()
 
         if T[r][c].is_primed():
-            T = [[elt.increase_half() if elt is not None else elt
-                  for elt in row] for row in T]
+            T = [[elmt.increase_half() if elmt is not None else elmt
+                  for elmt in row] for row in T]
             T = [list(z) for z in zip(*T)]
             r, c = c, r
 
@@ -1040,11 +1039,11 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
             T[r][c-1] = T[r][c-1].decrease_half()
             T[r][c] = T[r][c].decrease_half()
         if r > c:
-            T = [[elt.decrease_half() if elt is not None else elt
-                  for elt in row] for row in T]
+            T = [[elmt.decrease_half() if elmt is not None else elmt
+                  for elmt in row] for row in T]
             T = [list(z) for z in zip(*T)]
 
-        T = [tuple(elt for elt in row if elt is not None) for row in T]
+        T = [tuple(elmt for elmt in row if elmt is not None) for row in T]
         return type(self)(self.parent(), T, check=False, preprocessed=True)
 
     def is_highest_weight(self, index_set=None):
@@ -1137,7 +1136,7 @@ class PrimedEntry(SageObject):
             3'
             sage: PrimedEntry(None)
             Traceback (most recent call last):
-            ....
+            ...
             ValueError: primed entry must not be None
         """
         # store primed numbers as odd, unprimed numbers as even integers
@@ -1174,7 +1173,7 @@ class PrimedEntry(SageObject):
             sage: a == b
             True
         """
-        return self._entry
+        return hash(self._entry)
 
     def __repr__(self):
         """
@@ -2200,7 +2199,6 @@ def _add_strip(sub_tab, full_tab, length):
                 if cliff == 0:
                     row += 1
                     primed_strip.append(0)
-                    pass
                 primed_strip.extend([int(primed_list[i] > j)
                                      for j in range(cliff)])
                 row += cliff

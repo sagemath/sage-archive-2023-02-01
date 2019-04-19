@@ -46,16 +46,15 @@ Check lazy import of ``interacts``::
     sage: interacts
     <module 'sage.interacts.all' from '...'>
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005-2012 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 # Future statements which apply to this module. We delete the
 # future globals because we do not want these to appear in the sage.all
@@ -78,6 +77,7 @@ from cysignals.signals import (AlarmInterrupt, SignalError,
         sig_on_reset as sig_on_count)
 
 from time                import sleep
+from functools import reduce  # in order to keep reduce in python3
 
 import sage.misc.lazy_import
 from sage.misc.all       import *         # takes a while
@@ -114,7 +114,7 @@ from sage.interfaces.all import *
 from sage.functions.all  import *
 from sage.calculus.all   import *
 
-import sage.tests.all as tests
+lazy_import('sage.tests', 'all', as_='tests', deprecation=27337)
 from sage.cpython.all    import *
 
 from sage.crypto.all     import *
@@ -174,8 +174,8 @@ from cysignals.alarm import alarm, cancel_alarm
 lazy_import('sagenb.notebook.notebook_object', 'notebook')
 lazy_import('sagenb.notebook.notebook_object', 'inotebook')
 lazy_import('sagenb.notebook.sage_email', 'email')
+lazy_import('sage.interacts.debugger', 'debug')
 lazy_import('sage.interacts', 'all', 'interacts')
-from sage.interacts.debugger import debug
 # interact decorator from SageNB (will be overridden by Jupyter)
 lazy_import('sagenb.notebook.interact', 'interact')
 
@@ -302,11 +302,15 @@ def _write_started_file():
 import warnings
 warnings.filters.remove(('ignore', None, DeprecationWarning, None, 0))
 # Ignore all deprecations from IPython etc.
-warnings.filterwarnings('ignore',
+warnings.filterwarnings('ignore', category=DeprecationWarning,
     module='.*(IPython|ipykernel|jupyter_client|jupyter_core|nbformat|notebook|ipywidgets|storemagic)')
+# Ignore collections.abc warnings, there are a lot of them but they are
+# harmless.
+warnings.filterwarnings('ignore', category=DeprecationWarning,
+    message='.*collections[.]abc.*')
 # However, be sure to keep OUR deprecation warnings
-warnings.filterwarnings('default',
-    r'[\s\S]*See https\?://trac.sagemath.org/[0-9]* for details.')
+warnings.filterwarnings('default', category=DeprecationWarning,
+    message=r'[\s\S]*See https\?://trac.sagemath.org/[0-9]* for details.')
 
 
 # Set a new random number seed as the very last thing

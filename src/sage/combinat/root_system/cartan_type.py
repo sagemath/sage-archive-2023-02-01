@@ -1029,7 +1029,7 @@ class CartanType_abstract(object):
             <class 'sage.combinat.root_system.type_A_affine.CartanType_with_superclass_with_superclass'>
             sage: C.__class__.__bases__
             (<class 'sage.combinat.root_system.type_A_affine.CartanType_with_superclass'>,
-             <class __main__.MyCartanType at ...>)
+             <class ...__main__.MyCartanType...>)
             sage: C.my_method()
             'I am here!'
 
@@ -2530,7 +2530,6 @@ class CartanType_standard_finite(CartanType_standard, CartanType_finite):
             True
 
         """
-        from .cartan_type import CartanType
         return (CartanType, (self.letter, self.n))
 
     def __hash__(self):
@@ -2725,11 +2724,11 @@ class CartanType_standard_affine(CartanType_standard, CartanType_affine):
                 letter = 'A'
                 n *= 2
             if compact:
-                return '%s%s^%s'%(letter, n, aff)
+                return '%s%s^%s' % (letter, n, aff)
         if compact:
-            return '%s%s~'%(letter, n)
+            return '%s%s~' % (letter, n)
         else:
-            return "['%s', %s, %s]"%(letter, n, aff)
+            return "['%s', %s, %s]" % (letter, n, aff)
 
     def __reduce__(self):
         """
@@ -2742,7 +2741,6 @@ class CartanType_standard_affine(CartanType_standard, CartanType_affine):
             True
 
         """
-        from sage.combinat.root_system.cartan_type import CartanType
         return (CartanType, (self.letter, self.n, self.affine))
 
     def __getitem__(self, i):
@@ -3088,9 +3086,3 @@ class CartanType_simple_finite(object):
         T = CartanType([dict['letter'], dict['n']])
         self.__class__ = T.__class__
         self.__dict__ = T.__dict__
-
-# deprecations from trac:18555
-from sage.misc.superseded import deprecated_function_alias
-CartanTypeFactory.global_options = deprecated_function_alias(18555, CartanTypeFactory.options)
-CartanTypeOptions = deprecated_function_alias(18555, CartanType.options)
-CartanType_abstract.global_options = deprecated_function_alias(18555, CartanType.options)

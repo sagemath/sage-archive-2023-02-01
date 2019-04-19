@@ -126,6 +126,15 @@ class MPolynomial_element(MPolynomial):
             sage: f(1,2,5)
             -17.0000000000000
 
+        TESTS:
+
+        Check :trac:`27446`::
+
+            sage: P = PolynomialRing(QQ, 't', 0)
+            sage: a = P(1)
+            sage: a(()).parent()
+            Rational Field
+
         AUTHORS:
 
         - David Kohel (2005-09-27)
@@ -142,7 +151,7 @@ class MPolynomial_element(MPolynomial):
         if len(x) != n:
             raise TypeError("x must be of correct length")
         if n == 0:
-            return self
+            return self.constant_coefficient()
         try:
             K = x[0].parent()
         except AttributeError:
@@ -1243,11 +1252,11 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
         monomial_coefficients = self._MPolynomial_element__element.dict()
 
-        if( not self.is_constant() ):
+        if not self.is_constant():
             var_idx = self.degrees().nonzero_positions()[0] #variable
         else:
-            var_idx = 0; #constant
-            if( len(monomial_coefficients.keys())==0 ):
+            var_idx = 0 #constant
+            if len(monomial_coefficients) == 0:
                 return R(0)
 
         #construct list

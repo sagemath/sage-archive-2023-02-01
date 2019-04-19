@@ -554,7 +554,7 @@ class AskeyWilsonAlgebra(CombinatorialFreeModule):
             rhs[0] += lhs[0]
             return self.monomial(I(rhs))
 
-        # othewise, lhs is just 1
+        # otherwise, lhs is just 1
         return self.monomial(I(rhs))
 
     def permutation_automorphism(self):

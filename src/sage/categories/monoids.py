@@ -118,22 +118,6 @@ class Monoids(CategoryWithAxiom):
 
     class ParentMethods:
 
-        def one_element(self):
-            r"""
-            Backward compatibility alias for :meth:`one`.
-
-            TESTS::
-
-                sage: S = Monoids().example()
-                sage: S.one_element()
-                doctest:...: DeprecationWarning: .one_element() is deprecated. Please use .one() instead.
-                See http://trac.sagemath.org/17694 for details.
-                ''
-            """
-            from sage.misc.superseded import deprecation
-            deprecation(17694, ".one_element() is deprecated. Please use .one() instead.")
-            return self.one()
-
         def semigroup_generators(self):
             """
             Return the generators of ``self`` as a semigroup.
@@ -525,17 +509,18 @@ class Monoids(CategoryWithAxiom):
 
                 EXAMPLES::
 
-                    sage: SG4=SymmetricGroupAlgebra(ZZ,4)
+                    sage: SG4 = SymmetricGroupAlgebra(ZZ,4)
                     sage: SG4(1).is_central()
                     True
                     sage: SG4(Permutation([1,3,2,4])).is_central()
                     False
-                    sage: A=GroupAlgebras(QQ).example(); A
+                    sage: A = GroupAlgebras(QQ).example(); A
                     Algebra of Dihedral group of order 8 as a permutation group over Rational Field
                     sage: sum(i for i in A.basis()).is_central()
                     True
                 """
-                return all([i*self == self*i for i in self.parent().algebra_generators()])
+                return all(i * self == self * i
+                           for i in self.parent().algebra_generators())
 
     class CartesianProducts(CartesianProductsCategory):
         """

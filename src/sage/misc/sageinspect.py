@@ -122,14 +122,22 @@ import ast
 import inspect
 import functools
 import os
+import sys
 import tokenize
 import re
 EMBEDDED_MODE = False
-from sage.env import SAGE_SRC
+from sage.env import SAGE_LIB
+
+try:
+    import importlib.machinery as import_machinery
+except ImportError:
+    pass
+
 
 def loadable_module_extension():
     r"""
     Return the filename extension of loadable modules, including the dot.
+
     It is '.dll' on cygwin, '.so' otherwise.
 
     EXAMPLES::
@@ -138,11 +146,15 @@ def loadable_module_extension():
         sage: sage.structure.sage_object.__file__.endswith(loadable_module_extension())
         True
     """
-    import sys
-    if sys.platform == 'cygwin':
-        return os.path.extsep+'dll'
+    if six.PY2:
+        if sys.platform == 'cygwin':
+            return os.path.extsep + 'dll'
+        else:
+            return os.path.extsep + 'so'
     else:
-        return os.path.extsep+'so'
+        # Return the full platform-specific extension module suffix
+        return import_machinery.EXTENSION_SUFFIXES[0]
+
 
 def isclassinstance(obj):
     r"""
@@ -249,7 +261,7 @@ def _extract_embedded_position(docstring):
         # 2) Module compiled by Sage's inline cython() compiler
         from sage.misc.misc import SPYX_TMP
         try_filenames = [
-            os.path.join(SAGE_SRC, raw_filename),
+            os.path.join(SAGE_LIB, raw_filename),
             os.path.join(SPYX_TMP, '_'.join(raw_filename.split('_')[:-1]),
                          raw_filename)
         ]
@@ -1337,7 +1349,7 @@ def sage_getfile(obj):
 
         sage: P.<x,y> = QQ[]
         sage: sage_getfile(P)
-        '...sage/rings/polynomial/multi_polynomial_libsingular.pyx'
+        '...sage/rings/polynomial/multi_polynomial_libsingular...'
 
     A problem fixed in :trac:`16309`::
 
@@ -1507,9 +1519,11 @@ def sage_getargspec(obj):
         sage: sage.misc.sageinspect.sage_getargspec(foo)
         ArgSpec(args=['x', 'a', 'b'], varargs=None, keywords=None, defaults=('\')"', {False: 'bar'}))
 
-    The following produced a syntax error before the patch at :trac:`11913`::
+    The following produced a syntax error before the patch at :trac:`11913`,
+    see also :trac:`26906`::
 
         sage: sage.misc.sageinspect.sage_getargspec(r.lm)
+        ArgSpec(args=['self'], varargs='args', keywords='kwds', defaults=None)
 
     The following was fixed in :trac:`16309`::
 
@@ -1598,8 +1612,9 @@ def sage_getargspec(obj):
                 return _sage_getargspec_from_ast(proxy)
             except SyntaxError:
                 # To fix trac #10860. See #11913 for more information.
-                return None
-        elif isinstance(obj,functools.partial):
+                # See also #26906.
+                pass
+        if isinstance(obj, functools.partial):
             base_spec = sage_getargspec(obj.func)
             return base_spec
         return sage_getargspec(obj.__class__.__call__)
@@ -2090,7 +2105,8 @@ def _sage_getsourcelines_name_with_dot(obj):
         # the length of lines, which causes an error.  Safeguard against that.
         lnum = min(obj.co_firstlineno,len(lines))-1
         while lnum > 0:
-            if pmatch(lines[lnum]): break
+            if pmatch(lines[lnum]):
+                break
             lnum -= 1
 
         return inspect.getblock(lines[lnum:]), lnum+base_lineno
@@ -2174,20 +2190,17 @@ def sage_getsourcelines(obj):
         sage: from sage.misc.sageinspect import sage_getsource
         sage: P = TestNestedParent()
         sage: E = P.element_class
-        sage: E.__bases__  # py2
-        (<class sage.misc.nested_class_test.TestNestedParent.Element at ...>,
-         <class 'sage.categories.sets_cat.Sets.element_class'>)
-        sage: E.__bases__  # py3
+        sage: E.__bases__
         (<class 'sage.misc.nested_class_test.TestNestedParent.Element'>,
          <class 'sage.categories.sets_cat.Sets.element_class'>)
         sage: print(sage_getsource(E))
-            class Element:
+            class Element(object):
                 "This is a dummy element class"
                 pass
         sage: print(sage_getsource(P))
         class TestNestedParent(UniqueRepresentation, Parent):
             ...
-            class Element:
+            class Element(object):
                 "This is a dummy element class"
                 pass
 
@@ -2452,7 +2465,7 @@ def __internal_tests():
 
     Test _extract_embedded_position:
 
-    We cannot test the filename since it depends on SAGE_SRC.
+    We cannot test the filename since it depends on ``SAGE_LIB``.
 
     Make sure things work with no trailing newline::
 

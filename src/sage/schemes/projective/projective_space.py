@@ -105,6 +105,7 @@ from sage.misc.all import (latex,
 from sage.misc.all import cartesian_product_iterator
 
 from sage.structure.category_object import normalize_names
+from sage.structure.unique_representation import UniqueRepresentation
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
 from sage.combinat.permutation import Permutation
@@ -236,7 +237,7 @@ def ProjectiveSpace(n, R=None, names='x'):
     else:
         raise TypeError("R (=%s) must be a commutative ring"%R)
 
-class ProjectiveSpace_ring(AmbientSpace):
+class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
     """
     Projective space of dimension `n` over the ring
     `R`.
@@ -260,7 +261,44 @@ class ProjectiveSpace_ring(AmbientSpace):
 
         sage: loads(X.dumps()) == X
         True
+        sage: P = ProjectiveSpace(ZZ, 1, 'x')
+        sage: loads(P.dumps()) is P
+        True
+
+    Equality and hashing::
+
+        sage: ProjectiveSpace(QQ, 3, 'a') == ProjectiveSpace(ZZ, 3, 'a')
+        False
+        sage: ProjectiveSpace(ZZ, 1, 'a') == ProjectiveSpace(ZZ, 0, 'a')
+        False
+        sage: ProjectiveSpace(ZZ, 2, 'a') == AffineSpace(ZZ, 2, 'a')
+        False
+
+        sage: ProjectiveSpace(QQ, 3, 'a') != ProjectiveSpace(ZZ, 3, 'a')
+        True
+        sage: ProjectiveSpace(ZZ, 1, 'a') != ProjectiveSpace(ZZ, 0, 'a')
+        True
+        sage: ProjectiveSpace(ZZ, 2, 'a') != AffineSpace(ZZ, 2, 'a')
+        True
+
+        sage: hash(ProjectiveSpace(QQ, 3, 'a')) == hash(ProjectiveSpace(ZZ, 3, 'a'))
+        False
+        sage: hash(ProjectiveSpace(ZZ, 1, 'a')) == hash(ProjectiveSpace(ZZ, 0, 'a'))
+        False
+        sage: hash(ProjectiveSpace(ZZ, 2, 'a')) == hash(AffineSpace(ZZ, 2, 'a'))
+        False
     """
+    @staticmethod
+    def __classcall__(self, n, RR=ZZ, names=None):
+        """
+        EXAMPLES::
+
+            sage: ProjectiveSpace(QQ, 2, names='XYZ') is ProjectiveSpace(QQ, 2, names='XYZ')
+            True
+        """
+        normalized_names = normalize_names(n+1, names)
+        return super(ProjectiveSpace_ring, self).__classcall__(self, n, RR, tuple(normalized_names))
+
     def __init__(self, n, R=ZZ, names=None):
         """
         Initialization function.
@@ -415,60 +453,6 @@ class ProjectiveSpace_ring(AmbientSpace):
                 raise TypeError("%s is not a homogeneous polynomial" % f)
         return polynomials
 
-    def __eq__(self, right):
-        """
-        Check equality of two projective spaces.
-
-        EXAMPLES::
-
-            sage: ProjectiveSpace(QQ, 3, 'a') == ProjectiveSpace(ZZ, 3, 'a')
-            False
-            sage: ProjectiveSpace(ZZ, 1, 'a') == ProjectiveSpace(ZZ, 0, 'a')
-            False
-            sage: ProjectiveSpace(ZZ, 2, 'a') == AffineSpace(ZZ, 2, 'a')
-            False
-            sage: P = ProjectiveSpace(ZZ, 1, 'x')
-            sage: loads(P.dumps()) == P
-            True
-        """
-        if not isinstance(right, ProjectiveSpace_ring):
-            return False
-        return (self.dimension_relative() == right.dimension_relative() and
-                self.coordinate_ring() == right.coordinate_ring())
-
-    def __ne__(self, other):
-        """
-        Check non-equality of two projective spaces.
-
-        EXAMPLES::
-
-            sage: ProjectiveSpace(QQ, 3, 'a') != ProjectiveSpace(ZZ, 3, 'a')
-            True
-            sage: ProjectiveSpace(ZZ, 1, 'a') != ProjectiveSpace(ZZ, 0, 'a')
-            True
-            sage: ProjectiveSpace(ZZ, 2, 'a') != AffineSpace(ZZ, 2, 'a')
-            True
-        """
-        return not (self == other)
-
-    def __hash__(self):
-        """
-        Return the hash of ``self``.
-
-        EXAMPLES::
-
-            sage: hash(ProjectiveSpace(QQ, 3, 'a')) == hash(ProjectiveSpace(ZZ, 3, 'a'))
-            False
-            sage: hash(ProjectiveSpace(ZZ, 1, 'a')) == hash(ProjectiveSpace(ZZ, 0, 'a'))
-            False
-            sage: hash(ProjectiveSpace(ZZ, 2, 'a')) == hash(AffineSpace(ZZ, 2, 'a'))
-            False
-            sage: P = ProjectiveSpace(ZZ, 1, 'x')
-            sage: hash(loads(P.dumps())) == hash(P)
-            True
-        """
-        return hash((self.dimension_relative(), self.coordinate_ring()))
-
     def __pow__(self, m):
         """
         Return the Cartesian power of this space.
@@ -575,7 +559,7 @@ class ProjectiveSpace_ring(AmbientSpace):
         TESTS::
 
             sage: ProjectiveSpace(3, Zp(5), 'y')._latex_()
-            '{\\mathbf P}_{\\ZZ_{5}}^3'
+            '{\\mathbf P}_{\\Bold{Z}_{5}}^3'
         """
         return "{\\mathbf P}_{%s}^%s"%(latex(self.base_ring()), self.dimension_relative())
 
@@ -615,7 +599,7 @@ class ProjectiveSpace_ring(AmbientSpace):
             [0]
             [0]
 
-        If the multiplicity `m` is 0, then the a matrix with zero rows
+        If the multiplicity `m` is 0, then a matrix with zero rows
         is returned::
 
             sage: P = ProjectiveSpace(GF(5), 2, names='x')
@@ -853,7 +837,7 @@ class ProjectiveSpace_ring(AmbientSpace):
 
             sage: P.<x, y, z> = ProjectiveSpace(2, ZZ)
             sage: P._latex_generic_point([z*y-x^2])
-            '\\left(- x^{2} + y z\\right)'
+            '\\left(-x^{2} + y z\\right)'
             sage: P._latex_generic_point()
             '\\left(x : y : z\\right)'
         """
@@ -986,14 +970,14 @@ class ProjectiveSpace_ring(AmbientSpace):
             Scheme morphism:
               From: Affine Space of dimension 5 over Rational Field
               To:   Projective Space of dimension 5 over Rational Field
-              Defn: Defined on coordinates by sending (x0, x1, x2, x3, x4) to
-                    (x0 : x1 : 1 : x2 : x3 : x4)
+              Defn: Defined on coordinates by sending (x0, x1, x3, x4, x5) to
+                    (x0 : x1 : 1 : x3 : x4 : x5)
             sage: AA.projective_embedding(0)
             Scheme morphism:
               From: Affine Space of dimension 5 over Rational Field
               To:   Projective Space of dimension 5 over Rational Field
-              Defn: Defined on coordinates by sending (x0, x1, x2, x3, x4) to
-                    (1 : x0 : x1 : x2 : x3 : x4)
+              Defn: Defined on coordinates by sending (x0, x1, x3, x4, x5) to
+                    (1 : x0 : x1 : x3 : x4 : x5)
 
         ::
 
@@ -1018,11 +1002,13 @@ class ProjectiveSpace_ring(AmbientSpace):
         #if no ith patch exists, we may still be here with AA==None
         if AA is None:
             from sage.schemes.affine.affine_space import AffineSpace
-            AA = AffineSpace(n, self.base_ring(), names = 'x')
+            g = self.gens()
+            gens = g[:i] + g[i+1:]
+            AA = AffineSpace(n, self.base_ring(), names=gens,
+                             ambient_projective_space=self,
+                             default_embedding_index=i)
         elif AA.dimension_relative() != n:
                 raise ValueError("affine space must be of the dimension %s"%(n))
-        AA._default_embedding_index = i
-        AA.projective_embedding(i, self)
         self.__affine_patches[i] = AA
         return AA
 
@@ -1299,7 +1285,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         Bound check is strict for the rational field. Requires self to be projective space
         over a number field. Uses the
         Doyle-Krumm algorithm 4 (algorithm 5 for imaginary quadratic) for
-        computing algebraic numbers up to a given height [Doyle-Krumm]_.
+        computing algebraic numbers up to a given height [DK2013]_.
 
         The algorithm requires floating point arithmetic, so the user is
         allowed to specify the precision for such calculations.

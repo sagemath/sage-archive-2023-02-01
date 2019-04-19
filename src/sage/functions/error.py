@@ -30,17 +30,17 @@ REFERENCES:
 - [WP-Error]_
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2016 Ralf Stephan <gtrwst9 at gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
-
+from sage.structure.all import parent as s_parent
 from sage.symbolic.function import BuiltinFunction
 from sage.libs.mpmath import utils as mpmath_utils
 from sage.symbolic.expression import Expression
@@ -49,6 +49,7 @@ from sage.symbolic.constants import pi
 from sage.rings.rational import Rational
 from sage.rings.infinity import unsigned_infinity
 from sage.libs.pynac.pynac import I
+
 
 class Function_erf(BuiltinFunction):
     r"""
@@ -600,7 +601,8 @@ class Function_Fresnel_sin(BuiltinFunction):
                                  conversions=dict(maxima='fresnel_s',
                                                   sympy='fresnels',
                                                   mathematica='FresnelS',
-                                                  maple='FresnelS'))
+                                                  maple='FresnelS',
+                                                  fricas='fresnelS'))
 
     def _eval_(self, x):
         r"""
@@ -697,7 +699,8 @@ class Function_Fresnel_cos(BuiltinFunction):
                                  conversions=dict(maxima='fresnel_c',
                                                   sympy='fresnelc',
                                                   mathematica='FresnelC',
-                                                  maple='FresnelC'))
+                                                  maple='FresnelC',
+                                                  fricas='fresnelC'))
 
     def _eval_(self, x):
         r"""

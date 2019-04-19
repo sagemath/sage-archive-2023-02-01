@@ -425,7 +425,7 @@ class ToricVarietyFactory(SageObject):
 
     def P1xP1_Z2(self, names='s t x y', base_ring=QQ):
         r"""
-        Construct the toric `\mathbb{Z}_2`-orbifold of the del Pezzo
+        Construct the toric `\ZZ_2`-orbifold of the del Pezzo
         surface `\mathbb{P}^1 \times \mathbb{P}^1` as a toric variety.
 
         INPUT:
@@ -894,7 +894,7 @@ class ToricVarietyFactory(SageObject):
         3-dimensional cube, but not the unit cube in the
         N-lattice. See [FultonP65]_.
 
-        Its Chow group is `A_2(X)=\mathbb{Z}^5`, which distinguishes
+        Its Chow group is `A_2(X)=\ZZ^5`, which distinguishes
         it from the face fan of the unit cube.
 
         INPUT:

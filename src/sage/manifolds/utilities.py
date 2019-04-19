@@ -1205,7 +1205,7 @@ def _list_functions(ex, list_f):
     if op:
         # FIXME: This hack is needed because the NewSymbolicFunction is
         #   a class defined inside of the *function* function_factory().
-        if str(type(op)) == "<class 'sage.symbolic.function_factory.NewSymbolicFunction'>":
+        if "NewSymbolicFunction" in str(type(op)):
             repr_function = repr(op)
             latex_function = latex(op)
 

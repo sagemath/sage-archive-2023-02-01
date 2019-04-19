@@ -130,17 +130,15 @@ AUTHORS:
 
 - Florent Hivert (2010-03): initial revision
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2009-2010 Florent Hivert <Florent.Hivert@univ-rouen.fr>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import, print_function
 
 from cpython.list cimport *
@@ -149,7 +147,6 @@ from cpython.ref cimport *
 
 from cysignals.memory cimport check_reallocarray, sig_free
 
-import sage
 from sage.ext.stdsage cimport HAS_DICTIONARY
 from sage.structure.element cimport Element
 from sage.structure.parent cimport Parent
@@ -953,7 +950,7 @@ cdef class ClonableArray(ClonableElement):
             dic = self.__dict__
         else:
             dic = None
-        return (sage.structure.list_clone._make_array_clone,
+        return (_make_array_clone,
                 (type(self), self._parent, self._list,
                  self._needs_check, self._is_immutable, dic))
 
@@ -1739,7 +1736,7 @@ cdef class ClonableIntArray(ClonableElement):
             dic = self.__dict__
         else:
             dic = None
-        return (sage.structure.list_clone._make_int_array_clone,
+        return (_make_int_array_clone,
                 (type(self), self._parent, self[:],
                  self._needs_check, self._is_immutable, dic))
 

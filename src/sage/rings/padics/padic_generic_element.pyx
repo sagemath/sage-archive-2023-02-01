@@ -541,6 +541,13 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: Zp(5,5)(1/3) # indirect doctest
             2 + 3*5 + 5^2 + 3*5^3 + 5^4 + O(5^5)
+
+        We check that :trac:`26479` is fixed::
+
+            sage: K.<pi> = Qp(2).extension(x^3 - 2)
+            sage: latex(pi)
+            \pi + O(\pi^{61})
+
         """
         return self.parent()._printer.repr_gen(self, do_latex, mode=mode)
 
@@ -1220,16 +1227,11 @@ cdef class pAdicGenericElement(LocalGenericElement):
             William Stein sped it up for GP
             (http://sage.math.washington.edu/home/wstein/www/home/wbhart/pari-2.4.2.alpha/src/basemath/trans2.c).
             The output is a `p`-adic integer from Dwork's expansion,
-            used to compute the `p`-adic gamma function as in [RV]_
+            used to compute the `p`-adic gamma function as in [RV2007]_
             section 6.2.
             The coefficients of the expansion are now cached to speed up
             multiple evaluation, as in the trace formula for hypergeometric
             motives.
-
-        REFERENCES:
-
-        .. [RV] Rodriguez Villegas, Fernando. Experimental Number Theory.
-           Oxford Graduate Texts in Mathematics 13, 2007.
 
         EXAMPLES::
 
@@ -1308,7 +1310,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             William Stein sped it up for GP
             (http://sage.math.washington.edu/home/wstein/www/home/wbhart/pari-2.4.2.alpha/src/basemath/trans2.c).
             The 'sage' version uses dwork_expansion() to compute the
-            `p`-adic gamma function of self as in [RV]_ section 6.2.
+            `p`-adic gamma function of self as in [RV2007]_ section 6.2.
 
         EXAMPLES:
 
@@ -2929,7 +2931,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         # capped-relative elements and keep track of the unit part and the
         # valuation separately.
 
-        # the value of x^N+N*x^(N-1)+...+x*N!+N!
+        # the value of x^N + N*x^(N-1) + ... + (N-1)!*x + N!
         series_unit,series_val = R.one(), 0
 
         # we compute the value of N! as we go through the loop
@@ -4085,16 +4087,6 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         The algorithm of Besser-de Jeu, as described in [BdJ2008]_ is used.
 
-        REFERENCES:
-
-        .. [BdJ2008] Besser, Amnon, and Rob de Jeu. "Li^(p)-Service? An Algorithm
-             for Computing p-Adic Polylogarithms." Mathematics of Computation
-             (2008): 1105-1134.
-
-        .. [DCW2016] Dan-Cohen, Ishai, and Stefan Wewers. "Mixed Tate motives and the
-             unit equation." International Mathematics Research Notices
-             2016.17 (2016): 5291-5354.
-
         AUTHORS:
 
         - Jennifer Balakrishnan - Initial implementation
@@ -4286,15 +4278,6 @@ def _polylog_c(n, p):
 
         sage: sage.rings.padics.padic_generic_element._polylog_c(1, 2)
         log(4/log(2))/log(2) + 2
-
-    REFERENCES:
-
-    Prop. 6.1 of
-
-        .. [BdJ2008] Besser, Amnon, and Rob de Jeu. "Li^(p)-Service? An Algorithm
-             for Computing p-Adic Polylogarithms." Mathematics of Computation
-             (2008): 1105-1134.
-
     """
     return p/(p-1) - (n-1)/p.log() + (n-1)*(n*(p-1)/p.log()).log(p) + (2*p*(p-1)*n/p.log()).log(p)
 
@@ -4319,13 +4302,7 @@ def _findprec(c_1, c_2, c_3, p):
         sage: 5*1 - 5*log(1, 2) > 2
         True
 
-    REFERENCES:
-
-    Remark 7.11 of
-
-        .. [BdJ2008] Besser, Amnon, and Rob de Jeu. "Li^(p)-Service? An Algorithm
-             for Computing p-Adic Polylogarithms." Mathematics of Computation
-             (2008): 1105-1134.
+    See Remark 7.11 of [BdJ2008]_.
     """
     from sage.functions.other import ceil
     k = Integer(max(ceil(c_2/c_1), 2))

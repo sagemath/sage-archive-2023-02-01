@@ -21,11 +21,11 @@ design from this database, we include extra information:
 REFERENCES:
 
 .. [1] La Jolla Covering Repository,
-  http://www.ccrwest.org/cover.html
+  https://math.ccrwest.org/cover.html
 
 .. [2] Coverings,
   Daniel Gordon and Douglas Stinson,
-  http://www.ccrwest.org/gordon/hcd.pdf
+  https://math.ccrwest.org/gordon/hcd.pdf
   from the Handbook of Combinatorial Designs
 
 AUTHORS:
@@ -453,7 +453,7 @@ class CoveringDesign(SageObject):
 def best_known_covering_design_www(v, k, t, verbose=False):
     r"""
     Gives the best known `(v,k,t)` covering design, using the database
-    available at `<http://www.ccrwest.org/>`_
+    available at `<https://math.ccrwest.org/cover.html>`_
 
     INPUT:
 
@@ -489,15 +489,13 @@ def best_known_covering_design_www(v, k, t, verbose=False):
     # import compatible with py2 and py3
     from six.moves.urllib.request import urlopen
 
-    from sage.misc.sage_eval import sage_eval
-
     v = int(v)
     k = int(k)
     t = int(t)
 
-    param = ("?v=%s&k=%s&t=%s"%(v,k,t))
+    param = ("?v=%s&k=%s&t=%s" % (v, k, t))
 
-    url = "http://www.ccrwest.org/cover/get_cover.php"+param
+    url = "https://math.ccrwest.org/cover/get_cover.php"+param
     if verbose:
         print("Looking up the bounds at %s" % url)
     f = urlopen(url)

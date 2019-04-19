@@ -290,21 +290,17 @@ from cpython.ref cimport PyObject
 from sage.ext.stdsage cimport *
 
 import types
-cdef add, sub, mul, div, truediv, floordiv, mod, pow
-cdef iadd, isub, imul, idiv, itruediv, ifloordiv, imod, ipow
+cdef add, sub, mul, truediv, floordiv, mod, pow
+cdef iadd, isub, imul, itruediv, ifloordiv, imod, ipow
 from operator import (add, sub, mul, truediv, floordiv, mod, pow,
                       iadd, isub, imul, itruediv, ifloordiv, imod, ipow)
-try:
-    from operator import div, idiv
-except ImportError:
-    div = idiv = None
 
 cdef dict _coerce_op_symbols = dict(
-        add='+', sub='-', mul='*', div='/', truediv='/', floordiv='//', mod='%', pow='^',
-        iadd='+', isub='-', imul='*', idiv='/', itruediv='/', ifloordiv='//', imod='%', ipow='^')
+        add='+', sub='-', mul='*', truediv='/', floordiv='//', mod='%', pow='^',
+        iadd='+', isub='-', imul='*', itruediv='/', ifloordiv='//', imod='%', ipow='^')
 
 from sage.structure.richcmp cimport rich_to_bool
-from sage.structure.coerce cimport py_scalar_to_element
+from sage.structure.coerce cimport py_scalar_to_element, coercion_model
 from sage.structure.parent cimport Parent
 from sage.cpython.type cimport can_assign_class
 from sage.cpython.getattr cimport getattr_from_other_class
@@ -1589,7 +1585,7 @@ cdef class Element(SageObject):
     def __div__(left, right):
         """
         Top-level division operator for :class:`Element` invoking
-        the coercion model.
+        the coercion model. This is always true division.
 
         See :ref:`element_arithmetic`.
 
@@ -1650,10 +1646,10 @@ cdef class Element(SageObject):
         if HAVE_SAME_PARENT(cl):
             return (<Element>left)._div_(right)
         if BOTH_ARE_ELEMENT(cl):
-            return coercion_model.bin_op(left, right, div)
+            return coercion_model.bin_op(left, right, truediv)
 
         try:
-            return coercion_model.bin_op(left, right, div)
+            return coercion_model.bin_op(left, right, truediv)
         except TypeError:
             return NotImplemented
 
@@ -1983,6 +1979,23 @@ cdef class Element(SageObject):
             Traceback (most recent call last):
             ...
             TypeError: the 3-argument version of pow() is not supported
+
+        ::
+
+            sage: (2/3)^I
+            (2/3)^I
+            sage: (2/3)^sqrt(2)
+            (2/3)^sqrt(2)
+            sage: var('x,y,z,n')
+            (x, y, z, n)
+            sage: (2/3)^(x^n + y^n + z^n)
+            (2/3)^(x^n + y^n + z^n)
+            sage: (-7/11)^(tan(x)+exp(x))
+            (-7/11)^(e^x + tan(x))
+            sage: float(1.2)**(1/2)
+            1.0954451150103321
+            sage: complex(1,2)**(1/2)
+            (1.272019649514069+0.786151377757423...j)
 
         TESTS::
 
@@ -3495,6 +3508,15 @@ cdef class Matrix(ModuleElement):
             ...
             TypeError: unsupported operand parent(s) for *: 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field' and 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in y over Rational Field'
 
+        We test that the bug reported in :trac:`27352` has been fixed::
+
+            sage: A = matrix(QQ, [[1, 2], [-1, 0], [1, 1]])
+            sage: B = matrix(QQ, [[0, 4], [1, -1], [1, 2]])
+            sage: A*B
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for *: 'Full MatrixSpace of 3 by 2 dense matrices over Rational Field' and 'Full MatrixSpace of 3 by 2 dense matrices over Rational Field'
+
         Here we test (matrix * vector) multiplication::
 
             sage: parent(matrix(ZZ,2,2,[1,2,3,4])*vector(ZZ,[1,2]))
@@ -3663,7 +3685,14 @@ cdef class Matrix(ModuleElement):
         """
         cdef int cl = classify_elements(left, right)
         if HAVE_SAME_PARENT(cl):
-            return (<Matrix>left)._matrix_times_matrix_(<Matrix>right)
+            # If they are matrices with the same parent, they had
+            # better be square for the product to be defined.
+            if (<Matrix>left)._nrows == (<Matrix>left)._ncols:
+                return (<Matrix>left)._matrix_times_matrix_(<Matrix>right)
+            else:
+                parent = (<Matrix>left)._parent
+                raise TypeError("unsupported operand parent(s) for *: '{}' and '{}'".format(parent, parent))
+
         if BOTH_ARE_ELEMENT(cl):
             return coercion_model.bin_op(left, right, mul)
 
@@ -3757,7 +3786,7 @@ cdef class Matrix(ModuleElement):
         """
         if have_same_parent(left, right):
             return left * ~right
-        return coercion_model.bin_op(left, right, div)
+        return coercion_model.bin_op(left, right, truediv)
 
     cdef _vector_times_matrix_(matrix_right, Vector vector_left):
         raise TypeError
@@ -4092,30 +4121,8 @@ def coerce(Parent p, x):
     except AttributeError:
         return p(x)
 
-# We define this base class here to avoid circular cimports.
-cdef class CoercionModel:
-    """
-    Most basic coercion scheme. If it doesn't already match, throw an error.
-    """
-    cpdef canonical_coercion(self, x, y):
-        if parent(x) is parent(y):
-            return x,y
-        raise TypeError("no common canonical parent for objects with parents: '%s' and '%s'"%(parent(x), parent(y)))
 
-    cpdef bin_op(self, x, y, op):
-        if parent(x) is parent(y):
-            return op(x,y)
-        raise bin_op_exception(op, x, y)
-
-    cpdef richcmp(self, x, y, int op):
-        x, y = self.canonical_coercion(x, y)
-        return PyObject_RichCompare(x, y, op)
-
-
-from . import coerce
-cdef CoercionModel coercion_model = coerce.CoercionModel_cache_maps()
-
-# Make this accessible as Python object
+# Make coercion_model accessible as Python object
 globals()["coercion_model"] = coercion_model
 
 
@@ -4128,7 +4135,7 @@ def get_coercion_model():
        sage: import sage.structure.element as e
        sage: cm = e.get_coercion_model()
        sage: cm
-       <sage.structure.coerce.CoercionModel_cache_maps object at ...>
+       <sage.structure.coerce.CoercionModel object at ...>
        sage: cm is coercion_model
        True
     """
@@ -4276,53 +4283,3 @@ def coerce_binop(method):
             else:
                 return getattr(a, method.__name__)(b, *args, **kwargs)
     return new_method
-
-
-###############################################################################
-
-def generic_power(a, n, one=None):
-    """
-    Computes `a^n`, where `n` is an integer, and `a` is an object which
-    supports multiplication.  Optionally an additional argument,
-    which is used in the case that ``n == 0``:
-
-    - ``one`` - the "unit" element, returned directly (can be anything)
-
-    If this is not supplied, ``int(1)`` is returned.
-
-    EXAMPLES::
-
-        sage: from sage.structure.element import generic_power
-        sage: generic_power(int(12),int(0))
-        doctest:...: DeprecationWarning: import 'generic_power' from sage.arith.power instead
-        See http://trac.sagemath.org/24256 for details.
-        1
-        sage: generic_power(int(0),int(100))
-        0
-        sage: generic_power(Integer(10),Integer(0))
-        1
-        sage: generic_power(Integer(0),Integer(23))
-        0
-        sage: sum([generic_power(2,i) for i in range(17)]) #test all 4-bit combinations
-        131071
-        sage: F = Zmod(5)
-        sage: a = generic_power(F(2), 5); a
-        2
-        sage: a.parent() is F
-        True
-        sage: a = generic_power(F(1), 2)
-        sage: a.parent() is F
-        True
-
-        sage: generic_power(int(5), 0)
-        1
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(24256, "import 'generic_power' from sage.arith.power instead")
-    if one is not None:
-        # Special cases not handled by sage.arith.power
-        if not n:
-            return one
-        if n < 0:
-            return ~arith_generic_power(a, -n)
-    return arith_generic_power(a, n)

@@ -645,13 +645,13 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
             sage: Lambda = RootSystem(['B',3,1]).weight_lattice(extended=true).fundamental_weights()
             sage: V = IntegrableRepresentation(Lambda[0]+Lambda[1]+Lambda[3])
             sage: mw = V.dominant_maximal_weights()[0]
-            sage: list(V._freudenthal_roots_real(V.highest_weight() - mw))
+            sage: sorted(V._freudenthal_roots_real(V.highest_weight() - mw), key=str)
             [alpha[1],
-             alpha[2],
-             alpha[3],
              alpha[1] + alpha[2],
+             alpha[1] + alpha[2] + alpha[3],
+             alpha[2],
              alpha[2] + alpha[3],
-             alpha[1] + alpha[2] + alpha[3]]
+             alpha[3]]
         """
         for al in self._classical_positive_roots:
             if min(self._from_weight_helper(nu-al)) >= 0:
@@ -724,8 +724,8 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
             sage: V = IntegrableRepresentation(Lambda[0]+Lambda[1]+Lambda[3])
             sage: mw = V.dominant_maximal_weights()[0]
             sage: F = V._freudenthal_roots_real(V.highest_weight() - mw)
-            sage: [V._freudenthal_accum(mw, al) for al in F]
-            [4, 4, 3, 4, 3, 3]
+            sage: sorted([V._freudenthal_accum(mw, al) for al in F])
+            [3, 3, 3, 4, 4, 4]
         """
         ret = 0
         n = list(self._from_weight_helper(self._Lam - nu))
@@ -1004,7 +1004,7 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
         """
         S = self.strings(depth=depth)
         for mw in self.dominant_maximal_weights():
-            print( "{}: {}".format(mw, ' '.join(str(x) for x in S[mw])) )
+            print("{}: {}".format(mw, ' '.join(str(x) for x in S[mw])) )
 
     def modular_characteristic(self, mu=None):
         r"""

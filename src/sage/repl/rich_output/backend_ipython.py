@@ -569,7 +569,7 @@ class BackendIPythonNotebook(BackendIPython):
                      u'text/plain': plain_text.text.get_unicode(),
             }, {})
         elif isinstance(rich_output, OutputSceneThreejs):
-            escaped_html = rich_output.html.get().replace('"', '&quot;')
+            escaped_html = rich_output.html.get_unicode().replace('"', '&quot;')
             iframe = IFRAME_TEMPLATE.format(
                 escaped_html=escaped_html,
                 width='100%',
@@ -604,4 +604,4 @@ class BackendIPythonNotebook(BackendIPython):
 <script>
   if ( !window.THREE ) document.write('{}');
 </script>
-        """.format(CDN_scripts.replace('</script>', r'<\/script>'))
+        """.format(CDN_scripts.replace('</script>', r'<\/script>').replace('\n', ' \\\n'))

@@ -11,6 +11,8 @@ Decorators
 ==========
 """
 
+from six.moves import map
+
 from sage.misc.decorators import decorator_keywords, sage_wraps
 
 @decorator_keywords
@@ -94,7 +96,7 @@ def handle_AA_and_QQbar(func):
             elif isinstance(item, MPolynomial):
                 return item.map_coefficients(elem_dict.__getitem__, new_base_ring=numfield)
             elif isinstance(item, list):
-                return map(forward_map, item)
+                return list(map(forward_map, item))
             elif isinstance(item, dict):
                 return {k: forward_map(v) for k,v in item.items()}
             elif isinstance(item, tuple):
@@ -112,7 +114,7 @@ def handle_AA_and_QQbar(func):
             elif isinstance(item, MPolynomial):
                 return item.map_coefficients(morphism)
             elif isinstance(item, list):
-                return map(reverse_map, item)
+                return list(map(reverse_map, item))
             elif isinstance(item, tuple):
                 return tuple(map(reverse_map, item))
             elif isinstance(item, set):

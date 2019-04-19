@@ -177,7 +177,11 @@ SAGE_SCRIPTS
                                                    transparent: transparent, opacity: json.opacity,
                                                    alphaTest: .1 } );
 
-        var c = geometry.center().multiplyScalar( -1 );
+        var c = new THREE.Vector3();
+        geometry.computeBoundingBox();
+        geometry.boundingBox.getCenter( c );
+        geometry.translate( -c.x, -c.y, -c.z );
+
         var mesh = new THREE.Points( geometry, material );
         mesh.position.set( c.x, c.y, c.z );
         scene.add( mesh );
@@ -199,7 +203,11 @@ SAGE_SCRIPTS
         var material = new THREE.LineBasicMaterial( { color: json.color, linewidth: json.linewidth,
                                                       transparent: transparent, opacity: json.opacity } );
 
-        var c = geometry.center().multiplyScalar( -1 );
+        var c = new THREE.Vector3();
+        geometry.computeBoundingBox();
+        geometry.boundingBox.getCenter( c );
+        geometry.translate( -c.x, -c.y, -c.z );
+
         var mesh = new THREE.LineSegments( geometry, material );
         mesh.position.set( c.x, c.y, c.z );
         scene.add( mesh );

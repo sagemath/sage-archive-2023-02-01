@@ -2,9 +2,6 @@
 
 .. linkall
 
-.. _vector_calc_cylindrical:
-
-
 Vector calculus 3: Cylindrical coordinates
 ==========================================
 
@@ -575,3 +572,9 @@ We have then
     sage: v = E.vector_field(R*(1+sin(2*Ph)), 2*R*cos(Ph)^2, Z, name='v')
     sage: v.display()
     v = R*(sin(2*Ph) + 1) e_R + 2*R*cos(Ph)^2 e_Ph + Z e_Z
+
+
+What's next?
+------------
+
+See :ref:`vector_calculus`.

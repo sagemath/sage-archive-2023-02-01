@@ -2,9 +2,6 @@
 
 .. linkall
 
-.. _vector_calc_advanced:
-
-
 Vector calculus 5: Advanced aspects (Euclidean spaces as Riemannian manifolds)
 ==============================================================================
 
@@ -30,8 +27,9 @@ Cartesian coordinates :math:`(x,y,z)`:
     sage: E
     Euclidean space E^3
 
-:math:`\mathbb{E}^3` is actually a Riemannian manifold, i.e. a smooth
-real manifold endowed with a positive definite metric tensor:
+:math:`\mathbb{E}^3` is actually a
+`Riemannian manifold <http://doc.sagemath.org/html/en/reference/manifolds/sage/manifolds/differentiable/pseudo_riemannian.html>`__,
+i.e. a smooth real manifold endowed with a positive definite metric tensor:
 
 ::
 
@@ -534,3 +532,9 @@ The connection coefficients with respect to the orthonormal
     True
     sage: laplacian(v) == nabla(nabla(v).up(g)).trace(1,2)
     True
+
+
+What's next?
+------------
+
+See :ref:`vector_calculus`.

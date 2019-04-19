@@ -424,3 +424,10 @@ the following example:
     'bessel_y(v,w)'
     sage: maxima.eval("diff(f,w)")
     '(bessel_y(v-1,w)-bessel_y(v+1,w))/2'
+
+
+Vector calculus
+---------------
+
+See the
+`Vector Calculus Tutorial <http://doc.sagemath.org/html/en/thematic_tutorials/vector_calculus.html>`__.

@@ -2,9 +2,6 @@
 
 .. linkall
 
-.. _euclidean_plane:
-
-
 Vector calculus in the Euclidean plane
 ======================================
 
@@ -803,3 +800,9 @@ all zero:
     True
     sage: laplacian(w) == nabla(nabla(w).up(g)).trace(1,2)
     True
+
+
+What's next?
+------------
+
+See :ref:`vector_calculus`.

@@ -2,9 +2,6 @@
 
 .. linkall
 
-.. _vector_calc_change:
-
-
 Vector calculus 4: Changing coordinates
 =======================================
 
@@ -626,3 +623,9 @@ Then
     v = r^2*cos(th)^3 e_r - r^2*cos(th)^2*sin(th) e_th + r*sin(th) e_ph
     sage: v.display(cartesian_frame, cartesian)
     v = -y e_x + x e_y + z^2 e_z
+
+
+What's next?
+------------
+
+See :ref:`vector_calculus`.

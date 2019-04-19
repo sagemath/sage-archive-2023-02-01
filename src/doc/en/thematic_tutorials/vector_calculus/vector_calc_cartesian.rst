@@ -2,9 +2,6 @@
 
 .. linkall
 
-.. _vector_calc_cartesian:
-
-
 Vector calculus 1: Cartesian coordinates
 ========================================
 
@@ -564,3 +561,9 @@ symbols being separated by a colon (``:``):
     sage: v = E.vector_field(-et, xi, sin(xi*et*ze), name='v')
     sage: v.display()
     v = -et e_xi + xi e_et + sin(et*xi*ze) e_ze
+
+
+What's next?
+------------
+
+See :ref:`vector_calculus`.

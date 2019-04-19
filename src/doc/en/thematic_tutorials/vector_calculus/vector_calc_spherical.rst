@@ -2,9 +2,6 @@
 
 .. linkall
 
-.. _vector_calc_spherical:
-
-
 Vector calculus 2: Spherical coordinates
 ========================================
 
@@ -621,3 +618,9 @@ We have then
     sage: v.display()
     v = (R*sin(2*Ph)*sin(Th)^2 + R) e_R + R*cos(Th)*sin(2*Ph)*sin(Th) e_Th
      + 2*R*cos(Ph)^2*sin(Th) e_Ph
+
+
+What's next?
+------------
+
+See :ref:`vector_calculus`.

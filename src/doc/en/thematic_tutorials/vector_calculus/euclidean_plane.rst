@@ -739,9 +739,9 @@ this point:
     2
     sage: isinstance(Tp, FiniteRankFreeModule)
     True
-    sage: sorted(Tp.bases())
-    [Basis (e_r,e_ph) on the Tangent space at Point p on the Euclidean plane E^2,
-     Basis (d/dr,d/dph) on the Tangent space at Point p on the Euclidean plane E^2,
+    sage: sorted(Tp.bases(), key=str)
+    [Basis (d/dr,d/dph) on the Tangent space at Point p on the Euclidean plane E^2,
+     Basis (e_r,e_ph) on the Tangent space at Point p on the Euclidean plane E^2,
      Basis (e_x,e_y) on the Tangent space at Point p on the Euclidean plane E^2]
 
 

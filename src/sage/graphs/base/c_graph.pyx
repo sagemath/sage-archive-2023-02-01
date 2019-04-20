@@ -2447,64 +2447,61 @@ cdef class CGraphBackend(GenericGraphBackend):
         """
         if not edges_complement:
             return []
+        if not by_weight:
+            def weight_function(e):
+                return 1
         from sage.graphs.base.boost_graph import johnson_shortest_paths
-        cdef int start
-        cdef int end
-        cdef int n
-        cdef int l
+        from sage.graphs.graph import Graph
+
+        cdef int u_int, v_int, i, j
+        cdef object u, v
+        cdef list int_to_vertex = list(self.iterator_verts(None))
+        cdef dict vertex_to_int = {u: u_int for u_int, u in enumerate(int_to_vertex)}
+        cdef list edgelist = [(vertex_to_int[e[0]], vertex_to_int[e[1]], weight_function(e))
+                                  for e in self.iterator_unsorted_edges(int_to_vertex, True)]
+        edges_complement = [frozenset((vertex_to_int[u], vertex_to_int[v])) for u, v in edges_complement]
+        cdef int l = len(edges_complement)
+        cdef list orth_set = [set([e]) for e in edges_complement]
+        cdef int n = self.num_verts()
         cdef list min_path_nodes
         cdef list min_path
         cdef dict all_pair_shortest_pathlens
         cdef dict cross_paths_lens
         cdef list cycle_basis = []
-        cdef list edgelist = list(self.iterator_unsorted_edges(list(self.iterator_verts(None)), True))
-        edges_complement = [frozenset(e) for e in edges_complement]
-        from sage.graphs.graph import Graph
-        l = len(edges_complement)
-        cdef list orth_set = [set([e]) for e in edges_complement]
-        cdef list int_to_vertex = list(self.iterator_verts(None))
-        cdef dict vertex_to_int = {u: i for i, u in enumerate(int_to_vertex)}
-        
-        if not by_weight:
-            def weight_function(e):
-                return 1
+        cdef set base
 
-        n = len(vertex_to_int)
         for i in range(l):
-            orth = orth_set[i]
-            G = Graph()    
-            # For each edge in self, add 2 edges to G: "cross" edges if
-            # edge is in orth otherwise "in-plane" edges
-            for e in edgelist:
+            base = orth_set[i]
+            G = Graph(weighted=True)
+            # For each edge in self, add 2 edges to G: "cross" edges if edge is
+            # in base, otherwise "in-plane" edges
+            for u_int, v_int, edge_w in edgelist:
                 # mapping the nodes in self from 0 to n-1
-                uidx, vidx = vertex_to_int[e[0]], vertex_to_int[e[1]]
-                edge_w = weight_function(e)
-                if frozenset((e[0], e[1])) in orth:
-                    G.add_edge(uidx, n + vidx, edge_w)
-                    G.add_edge(n + uidx, vidx, edge_w)
+                if frozenset((u_int, v_int)) in base:
+                    G.add_edge(u_int, n + v_int, edge_w)
+                    G.add_edge(n + u_int, v_int, edge_w)
                 else:
-                    G.add_edge(uidx, vidx, edge_w)
-                    G.add_edge(n + uidx, n + vidx, edge_w)
+                    G.add_edge(u_int, v_int, edge_w)
+                    G.add_edge(n + u_int, n + v_int, edge_w)
 
-            all_pair_shortest_pathlens = johnson_shortest_paths(G, weight_function)
-            cross_paths_lens = {j: all_pair_shortest_pathlens[j][n+j] for j in range(n)}
-            start = min(cross_paths_lens, key=cross_paths_lens.get)
-            end = n + start
-            min_path = G._backend.bidirectional_dijkstra(start, end, weight_function=weight_function, distance_flag=False)
+            all_pair_shortest_pathlens = johnson_shortest_paths(G)
+            cross_paths_lens = {j: all_pair_shortest_pathlens[j][n + j] for j in range(n)}
+            u_int = min(cross_paths_lens, key=cross_paths_lens.get)
+            v_int = n + u_int
+            min_path = G._backend.bidirectional_dijkstra(u_int, v_int, distance_flag=False)
 
             # Mapping the nodes in G to nodes in self
-            min_path_nodes = [node if node < n else node - n for node in min_path]
+            min_path_nodes = [u_int if u_int < n else u_int - n for u_int in min_path]
 
             # removal of edges occuring even number of times
             edges = set()
             for edge in zip(min_path_nodes[:-1], min_path_nodes[1:]):
                 edges ^= {edge}
-            new_cycle = {frozenset((int_to_vertex[u], int_to_vertex[v])) for u, v in edges}
-            cycle_basis.append(list(set().union(*new_cycle)))
+            new_cycle = {frozenset(e) for e in edges}
+            cycle_basis.append([int_to_vertex[u_int] for u_int in set().union(*new_cycle)])
             # updating orth_set so that i+1, i+2, ...th elements are orthogonal
             # to the newly found cycle
-            base = orth_set[i]
-            for j in range(i + 1, len(orth_set)):
+            for j in range(i + 1, l):
                 if len(orth_set[j] & new_cycle) % 2:
                     orth_set[j] = orth_set[j] ^ base
         return cycle_basis

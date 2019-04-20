@@ -2064,6 +2064,12 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: ``edges`` must be a permutation of the edges
+            sage: P5.incidence_matrix(edges=P5.edges(sort=False, labels=True))
+            [1 0 0 0]
+            [1 1 0 0]
+            [0 1 1 0]
+            [0 0 1 1]
+            [0 0 0 1]
         """
         if oriented is None:
             oriented = self.is_directed()
@@ -2080,13 +2086,14 @@ class GenericGraph(GenericGraph_pyx):
         elif len(edges) != self.size():
             raise ValueError("``edges`` must be a permutation of the edges")
         else:
+            # We check that we have the same set of unlabeled edges
             if oriented:
-                i_edges = [(verts[u], verts[v]) for u, v in edges]
+                i_edges = [(verts[e[0]], verts[e[1]]) for e in edges]
                 s_edges = [(verts[u], verts[v]) for u, v in self.edge_iterator(labels=False)]
             else:
                 def reorder(u, v):
                     return (u, v) if u <= v else (v, u)
-                i_edges = [reorder(verts[u], verts[v]) for u, v in edges]
+                i_edges = [reorder(verts[e[0]], verts[e[1]]) for e in edges]
                 s_edges = [reorder(verts[u], verts[v]) for u, v in self.edge_iterator(labels=False)]
             if sorted(i_edges) != sorted(s_edges):
                 raise ValueError("``edges`` must be a permutation of the edges")
@@ -2096,14 +2103,14 @@ class GenericGraph(GenericGraph_pyx):
         m = matrix(ZZ, self.num_verts(), self.num_edges(), sparse=sparse)
 
         if oriented:
-            for e, (i, j) in enumerate(edges):
-                if i != j:
-                    m[verts[i],e] = -1
-                    m[verts[j],e] = +1
+            for i, e in enumerate(edges):
+                if e[0] != e[1]:
+                    m[verts[e[0]], i] = -1
+                    m[verts[e[1]], i] = +1
         else:
-            for e, (i, j) in enumerate(edges):
-                m[verts[i],e] += 1
-                m[verts[j],e] += 1
+            for i, e in enumerate(edges):
+                m[verts[e[0]], i] += 1
+                m[verts[e[1]], i] += 1
 
         return m
 

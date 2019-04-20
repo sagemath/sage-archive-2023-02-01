@@ -2389,7 +2389,7 @@ class FunctionFieldMaximalOrderInfinite_global(FunctionFieldMaximalOrderInfinite
 
         dec = []
         for iprime, deg, exp in iO.decomposition(ip):
-            prime = FunctionFieldIdealInfinite_global(self, iprime)
+            prime = self.ideal_monoid().element_class(self, iprime)
             dec.append((prime, deg, exp))
         return dec
 

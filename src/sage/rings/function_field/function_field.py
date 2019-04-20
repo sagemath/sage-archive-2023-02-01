@@ -2900,6 +2900,33 @@ class FunctionField_global(FunctionField_polymod):
             if place.degree() == degree:
                 yield place
 
+    def places_above(self, p):
+        """
+        Return places lying above ``p``.
+
+        INPUT:
+
+        - ``p`` -- place of the base rational function field.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); R.<t> = PolynomialRing(K)
+            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
+            sage: all(q.place_below() == p for p in K.places() for q in F.places_above(p))
+            True
+        """
+        R = self.base_field()
+
+        if not p in R.place_set():
+            raise TypeError("not a place of the base rational function field")
+
+        if p.is_infinite_place():
+            dec = self.maximal_order_infinite().decomposition()
+        else:
+            dec = self.maximal_order().decomposition(p.prime_ideal())
+
+        return tuple([p.place() for p, deg, exp in dec])
+
     def different(self):
         """
         Return the different of the function field.
@@ -3113,6 +3140,76 @@ class FunctionField_global(FunctionField_polymod):
         """
         from .maps import FunctionFieldCompletion_global
         return FunctionFieldCompletion_global(self, place, name=name, prec=prec, gen_name=gen_name)
+
+    @cached_method
+    def L_polynomial(self, name='t'):
+        """
+        Return the L-polynomial of the function field.
+
+        INPUT:
+
+        - ``name`` -- (default: ``t``) name of the variable of the polynomial
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: F.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: F.L_polynomial()
+            2*t^2 + t + 1
+        """
+        from sage.rings.all import IntegerRing
+
+        Z = IntegerRing()
+        q = self.constant_field().order()
+        g = self.genus()
+
+        B = [len(self.places(i+1)) for i in range(g)]
+        N = [sum(d * B[d-1] for d in Z(i+1).divisors()) for i in range(g)]
+        S = [N[i] - q**(i+1) - 1 for i in range(g)]
+
+        a = [1]
+        for i in range(1, g+1):
+            a.append(sum(S[j] * a[i-j-1] for j in range(i)) / i)
+        for j in range(1, g+1):
+            a.append(q**j * a[g-j])
+
+        return Z[name](a)
+
+    def number_of_rational_places(self, r=1):
+        """
+        Return the number of rational places of the function field whose
+        constant field extended by degree ``r``.
+
+        INPUT:
+
+        - ``r`` -- positive integer (default: `1`)
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: F.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: F.number_of_rational_places()
+            4
+            sage: [F.number_of_rational_places(r) for r in [1..10]]
+            [4, 8, 4, 16, 44, 56, 116, 288, 508, 968]
+        """
+        from sage.rings.all import IntegerRing
+
+        q = self.constant_field().order()
+        L = self.L_polynomial()
+        Lp = L.derivative()
+
+        R = IntegerRing()[[L.parent().gen()]] # power series ring
+
+        old_prec = R.default_prec()
+        R.set_default_prec(r)
+
+        f = R(Lp / L)
+        n = f[r-1] + q**r + 1
+
+        R.set_default_prec(old_prec)
+
+        return n
 
 class FunctionField_global_integral(FunctionField_global):
     """
@@ -4224,6 +4321,15 @@ class RationalFunctionField_global(RationalFunctionField):
               To:   Laurent Series Ring in s over Finite Field of size 2
             sage: m(x)
             s^-1 + O(s^19)
+
+            sage: m = K.completion(p, prec=infinity); m
+            Completion map:
+              From: Rational function field in x over Finite Field of size 2
+              To:   Lazy Laurent Series Ring in s over Finite Field of size 2
+            sage: f = m(x); f
+            s^-1 + ...
+            sage: f.coefficient(100)
+            0
         """
         from .maps import FunctionFieldCompletion_global
         return FunctionFieldCompletion_global(self, place, name=name, prec=prec, gen_name=gen_name)

@@ -127,6 +127,9 @@ from .power_series_ring_element import PowerSeries
 from .laurent_series_ring import LaurentSeriesRing
 from .laurent_series_ring_element import LaurentSeries
 
+# Lazy Laurent series ring
+from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+
 # Tate algebras
 from .tate_algebra import TateAlgebra
 

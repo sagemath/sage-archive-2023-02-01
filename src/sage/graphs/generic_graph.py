@@ -4716,6 +4716,7 @@ class GenericGraph(GenericGraph_pyx):
             G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
             return networkx.minimum_cycle_basis(G, weight='weight')
         elif algorithm == None:
+            from sage.graphs.base.boost_graph import min_cycle_basis
             w_f = lambda e: 1
             basis = []
             for comp in self.connected_components_subgraphs():
@@ -4726,8 +4727,8 @@ class GenericGraph(GenericGraph_pyx):
                 # Edges of self that are not in the spanning tree
                 edges_c = [e for e in comp.edge_iterator(labels=False) if e not in edges_s]
                 # calling Cython implementation from backend
-                basis.append(comp._backend.min_cycle_basis(weight_function=weight_function,
-                             by_weight=by_weight, edges_complement=edges_c))
+                basis.append(min_cycle_basis(comp, weight_function=weight_function,
+                                             by_weight=by_weight, edges_complement=edges_c))
             return sum(basis, [])
         else:
             raise NotImplementedError("only 'NetworkX' and Cython implementation is supported")

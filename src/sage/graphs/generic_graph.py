@@ -120,6 +120,7 @@ can be applied on both. Here is what it can do:
 
     :meth:`~GenericGraph.eulerian_orientation` | Return a DiGraph which is an Eulerian orientation of the current graph.
     :meth:`~GenericGraph.eulerian_circuit` | Return a list of edges forming an Eulerian circuit if one exists.
+    :meth:`~GenericGraph.minimum_cycle_basis` | Return a minimum weight cycle basis of the graph.
     :meth:`~GenericGraph.cycle_basis` | Return a list of cycles which form a basis of the cycle space of ``self``.
     :meth:`~GenericGraph.all_paths` | Return a list of all paths (also lists) between a pair of vertices in the (di)graph.
     :meth:`~GenericGraph.triangles_count` | Return the number of triangles in the (di)graph.
@@ -4642,6 +4643,94 @@ class GenericGraph(GenericGraph_pyx):
                     for u in zip(x, x[1:] + [x[0]])]
         return [vertices_to_edges(_) for _ in cycle_basis_v]
 
+    def minimum_cycle_basis(self, weight_function=None, by_weight=False, algorithm=None):
+        r"""
+        Return a minimum weight cycle basis of the graph.
+
+        A cycle basis is a list of cycles (list of vertices forming a cycle) of
+        ``self``. Note that the vertices are not necessarily returned in the
+        order in which they appear in the cycle.
+
+        A minimum weight cycle basis is a cycle basis that minimizes the sum of
+        the weights (length for unweighted graphs) of its cycles.
+
+        Not implemented for directed graphs and multigraphs.
+
+        INPUT:
+
+        - ``weight_function`` -- function (default: ``None``); a function that
+          takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+          ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
+          weight.
+
+        - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
+          in the graph are weighted, otherwise all edges have weight 1
+
+        - ``algorithm`` -- string (default: ``None``); algorithm to use:
+
+          * If ``algorithm = "NetworkX"``, use networkx implementation
+
+          * If ``algorithm = None``, use Sage Cython implementation
+
+        EXAMPLES::
+
+            sage: g = Graph([(1, 2, 3), (2, 3, 5), (3, 4, 8), (4, 1, 13), (1, 3, 250), (5, 6, 9), (6, 7, 17), (7, 5, 20)])
+            sage: g.minimum_cycle_basis(by_weight=True)
+            [[1, 2, 3, 4], [1, 2, 3], [5, 6, 7]]
+            sage: g.minimum_cycle_basis()
+            [[1, 2, 3], [1, 3, 4], [5, 6, 7]]
+
+        ::
+
+            sage: g = Graph([(1, 2), (2, 3), (3, 4), (4, 5), (5, 1), (5, 3)])
+            sage: g.minimum_cycle_basis(by_weight=False)
+            [[3, 4, 5], [1, 2, 3, 5]]
+
+        .. SEEALSO::
+
+            * :meth:`~cycle_basis`
+            * :wikipedia:`Cycle_basis`
+        """
+        if not self.order():
+            return []
+        # Sanity checks
+        if self.is_directed():
+            raise NotImplementedError("not implemented for directed graphs")
+        self._scream_if_not_simple()
+        
+        if weight_function is not None:
+            by_weight = True
+        if weight_function is None and by_weight:
+            def weight_function(e):
+                return e[2]
+        if by_weight:
+            self._check_weight_function(weight_function)
+        else:
+            def weight_function(e):
+                return 1
+        if algorithm:
+            algorithm = algorithm.lower()
+        if algorithm == "networkx":
+            import networkx
+            G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
+            return networkx.minimum_cycle_basis(G, weight='weight')
+        elif algorithm == None:
+            w_f = lambda e: 1
+            basis = []
+            for comp in self.connected_components_subgraphs():
+                # We just need the edges of any spanning tree here not
+                # necessarily a minimum spanning tree.
+                sp_edges = comp.min_spanning_tree(weight_function=w_f)
+                edges_s = set((a, b) for a, b, c in sp_edges)
+                # Edges of self that are not in the spanning tree
+                edges_c = [e for e in comp.edge_iterator(labels=False) if e not in edges_s]
+                # calling Cython implementation from backend
+                basis.append(comp._backend.min_cycle_basis(weight_function=weight_function,
+                             by_weight=by_weight, edges_complement=edges_c))
+            return sum(basis, [])
+        else:
+            raise NotImplementedError("only 'NetworkX' and Cython implementation is supported")
 
     ### Planarity
 

@@ -4,9 +4,8 @@ Modular Decomposition
 
 This module implements the function for computing the modular decomposition
 of undirected graphs.
-
-
-#*****************************************************************************
+"""
+# ****************************************************************************
 #       Copyright (C) 2017 Lokesh Jain <lokeshj1703@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -14,8 +13,8 @@ of undirected graphs.
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
-"""
+# ****************************************************************************
+
 from collections import deque
 from enum import Enum
 
@@ -55,6 +54,19 @@ class NodeType(Enum):
             'PARALLEL'
         """
         return self.name
+
+    def __str__(self):
+        """
+        String representation of this node type.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.graph_decompositions.modular_decomposition \
+                      import NodeType
+            sage: str(NodeType.PARALLEL)
+            'PARALLEL'
+        """
+        return repr(self)
 
 
 class NodeSplit(Enum):
@@ -2472,12 +2484,12 @@ def print_md_tree(root):
         INPUT:
 
         - ``root`` -- root of the modular decomposition tree
+
         - ``level`` -- indicates the depth of root in the original modular
                        decomposition tree
-
         """
         if root.node_type != NodeType.NORMAL:
-            print("{}{}".format(level,str(root.node_type)))
+            print("{}{}".format(level, str(root.node_type)))
             for tree in root.children:
                 recursive_print_md_tree(tree, level + " ")
         else:
@@ -2516,8 +2528,8 @@ def gamma_classes(graph):
         sage: from sage.graphs.graph_decompositions.modular_decomposition \
                    import gamma_classes
         sage: g = graphs.OctahedralGraph()
-        sage: gamma_classes(g).keys()
-        [frozenset({1, 2, 3, 4}), frozenset({0, 2, 3, 5}), frozenset({0, 1, 4, 5})]
+        sage: sorted(gamma_classes(g), key=str)
+        [frozenset({0, 1, 4, 5}), frozenset({0, 2, 3, 5}), frozenset({1, 2, 3, 4})]
 
     TESTS:
 
@@ -2578,7 +2590,7 @@ def habib_maurer_algorithm(graph, g_classes=None):
         sage: from sage.graphs.graph_decompositions.modular_decomposition \
               import habib_maurer_algorithm, test_modular_decomposition, \
                     print_md_tree
-        sage: print_md_tree(habib_maurer_algorithm(graphs.IcosahedralGraph()))
+        sage: print_md_tree(habib_maurer_algorithm(graphs.IcosahedralGraph()))  # py2
         PRIME
          8
          0
@@ -2711,7 +2723,7 @@ def habib_maurer_algorithm(graph, g_classes=None):
     elif not graph.is_connected():
         root = create_parallel_node()
         root.children = [habib_maurer_algorithm(graph.subgraph(vertices=sg), g_classes)
-                 for sg in graph.connected_components()]
+                             for sg in graph.connected_components()]
         return root
 
     g_comp = graph.complement()
@@ -2720,7 +2732,7 @@ def habib_maurer_algorithm(graph, g_classes=None):
         root = create_prime_node()
         if g_classes is None:
             g_classes = gamma_classes(graph)
-        vertex_set = frozenset(graph.vertex_iterator())
+        vertex_set = frozenset(graph)
         edges = [tuple(e) for e in g_classes[vertex_set] ]
         sub = graph.subgraph(edges=edges)
         d = defaultdict(list)
@@ -2728,10 +2740,10 @@ def habib_maurer_algorithm(graph, g_classes=None):
             for v1 in sub.neighbor_iterator(v):
                 d[v1].append(v)
         d1 = defaultdict(list)
-        for k,v in d.items():
+        for k, v in d.items():
             d1[frozenset(v)].append(k)
         root.children = [habib_maurer_algorithm(graph.subgraph(vertices=sg), g_classes)
-                 for sg in d1.values()]
+                             for sg in d1.values()]
         return root
 
     root = create_series_node()

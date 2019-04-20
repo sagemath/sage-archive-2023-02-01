@@ -7123,14 +7123,13 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``algorithm`` -- string (default: ``'tedder'``); specifies the
+        - ``algorithm`` -- string (default: ``'habib'``); specifies the
           algorithm to use among:
 
-          - ``'tedder'`` -- Use the linear algorithm of [TCHP2008]_.
+          - ``'tedder'`` -- linear time algorithm of [TCHP2008]_
 
-          - ``'habib'`` -- Use the `O(n^3)` algorithm of [HM1979]_. This is
-            probably slower, but is a much simpler algorithm and so possibly
-            less error prone.
+          - ``'habib'`` -- `O(n^3)` algorithm of [HM1979]_. This algorithm is
+            much simpler and so possibly less prone to errors.
 
         OUTPUT:
 
@@ -7235,6 +7234,13 @@ class Graph(GenericGraph):
 
             sage: Graph({(1,2):[(2,3)],(2,3):[(1,2)]}).modular_decomposition()
             (SERIES, [(2, 3), (1, 2)])
+
+        Unknown algorithm::
+
+            sage: graphs.PathGraph(2).modular_decomposition(algorithm='abc')
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm must be 'habib' or 'tedder'
         """
         from sage.graphs.graph_decompositions.modular_decomposition import modular_decomposition, NodeType, habib_maurer_algorithm
 
@@ -7244,14 +7250,20 @@ class Graph(GenericGraph):
             return tuple()
 
         if self.order() == 1:
-            return (NodeType.PRIME, self.vertices())
+            return (NodeType.PRIME, list(self))
 
         if algorithm == 'habib':
             D = habib_maurer_algorithm(self)
-        else:
+        elif algorithm == 'tedder':
             D = modular_decomposition(self)
+        else:
+            raise ValueError("algorithm must be 'habib' or 'tedder'")
 
-        relabel = lambda x: (x.node_type, [relabel(_) for _ in x.children]) if x.node_type != NodeType.NORMAL else x.children[0]
+        def relabel(x):
+            if x.node_type == NodeType.NORMAL:
+                return x.children[0]
+            else:
+                return x.node_type, [relabel(y) for y in x.children]
 
         return relabel(D)
 

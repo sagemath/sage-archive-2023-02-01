@@ -4678,13 +4678,22 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = Graph([(1, 2, 3), (2, 3, 5), (3, 4, 8), (4, 1, 13), (1, 3, 250), (5, 6, 9), (6, 7, 17), (7, 5, 20)])
             sage: g.minimum_cycle_basis(by_weight=True)
             [[1, 2, 3, 4], [1, 2, 3], [5, 6, 7]]
-            sage: g.minimum_cycle_basis()
+            sage: g.minimum_cycle_basis(by_weight=False)
+            [[1, 2, 3], [1, 3, 4], [5, 6, 7]]
+            sage: g.minimum_cycle_basis(by_weight=True, algorithm='NetworkX')
+            doctest:...: DeprecationWarning: connected_component_subgraphs is
+            deprecated and will be removedin 2.2. Use (G.subgraph(c).copy()
+            for c in connected_components(G))
+            [[1, 2, 3, 4], [1, 2, 3], [5, 6, 7]]
+            sage: g.minimum_cycle_basis(by_weight=False, algorithm='NetworkX')
             [[1, 2, 3], [1, 3, 4], [5, 6, 7]]
 
         ::
 
             sage: g = Graph([(1, 2), (2, 3), (3, 4), (4, 5), (5, 1), (5, 3)])
             sage: g.minimum_cycle_basis(by_weight=False)
+            [[3, 4, 5], [1, 2, 3, 5]]
+            sage: g.minimum_cycle_basis(by_weight=False, algorithm='NetworkX')
             [[3, 4, 5], [1, 2, 3, 5]]
 
         .. SEEALSO::
@@ -4718,8 +4727,12 @@ class GenericGraph(GenericGraph_pyx):
         elif algorithm == None:
             from sage.graphs.base.boost_graph import min_cycle_basis
             w_f = lambda e: 1
+            if self.is_connected():
+                CC = [self]
+            else:
+                CC = self.connected_components_subgraphs()
             basis = []
-            for comp in self.connected_components_subgraphs():
+            for comp in CC:
                 # We just need the edges of any spanning tree here not
                 # necessarily a minimum spanning tree.
                 sp_edges = comp.min_spanning_tree(weight_function=w_f)

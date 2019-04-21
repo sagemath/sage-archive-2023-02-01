@@ -32,7 +32,7 @@ with ``delete()``.
     :func:`johnson_shortest_paths` | Use Johnson algorithm to compute the all-pairs shortest paths.
     :func:`johnson_closeness_centrality` | Use Johnson algorithm to compute the closeness centrality of all vertices.
     :func:`blocks_and_cut_vertices` | Use Tarjan's algorithm to compute the blocks and cut vertices of the graph.
-    :func:`min_cycle_basis` | Return a minimum weight cycle basis of the graph `g`.
+    :func:`min_cycle_basis` | Return a minimum weight cycle basis of the input graph.
 
 Functions
 ---------
@@ -1232,11 +1232,11 @@ cpdef johnson_closeness_centrality(g, weight_function=None):
 
 cpdef min_cycle_basis(g_sage, weight_function=None, by_weight=False, edges_complement=None):
     r"""
-    Return a minimum weight cycle basis of the graph `g`.
+    Return a minimum weight cycle basis of the input graph ``g_sage``.
 
     A cycle basis is a list of cycles (list of vertices forming a cycle) of
-    `g`. Note that the vertices are not necessarily returned in the order in
-    which they appear in the cycle.
+    ``g_sage``. Note that the vertices are not necessarily returned in the order
+    in which they appear in the cycle.
 
     A minimum weight cycle basis is a cycle basis that minimizes the sum of the
     weights (length for unweighted graphs) of its cycles.
@@ -1245,7 +1245,7 @@ cpdef min_cycle_basis(g_sage, weight_function=None, by_weight=False, edges_compl
 
     INPUT:
 
-    - ``g_sage`` -- a sage Graph
+    - ``g_sage`` -- a Sage Graph
 
     - ``weight_function`` -- function (default: ``None``); a function that takes
       as input an edge ``(u, v, l)`` and outputs its weight. If not ``None``,
@@ -1256,7 +1256,8 @@ cpdef min_cycle_basis(g_sage, weight_function=None, by_weight=False, edges_compl
       the graph are weighted, otherwise all edges have weight 1
 
     - ``edges_complement`` -- list (default: ``None``); list of edges of
-      ``self`` (without labels) without the edges of a particular spanning tree.
+      ``g_sage`` (without labels) without the edges of a particular spanning
+      tree
 
     EXAMPLES::
 

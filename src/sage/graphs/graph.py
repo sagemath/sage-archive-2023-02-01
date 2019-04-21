@@ -900,8 +900,8 @@ class Graph(GenericGraph):
     _directed = False
 
     def __init__(self, data=None, pos=None, loops=None, format=None,
-                 weighted=None, implementation='c_graph',
-                 data_structure="sparse", vertex_labels=True, name=None,
+                 weighted=None, data_structure="sparse",
+                 vertex_labels=True, name=None,
                  multiedges=None, convert_empty_dict_labels_to_None=None,
                  sparse=True, immutable=False):
         """
@@ -1012,12 +1012,6 @@ class Graph(GenericGraph):
                 raise ValueError("The 'sparse' argument is an alias for "
                                  "'data_structure'. Please do not define both.")
             data_structure = "dense"
-
-        # Choice of the backend
-
-        if implementation != 'c_graph':
-            deprecation(18375,"The 'implementation' keyword is deprecated, "
-                        "and the graphs has been stored as a 'c_graph'")
 
         if multiedges or weighted:
             if data_structure == "dense":
@@ -3776,7 +3770,7 @@ class Graph(GenericGraph):
         return D
 
     @doc_index("Connectivity, orientations, trees")
-    def orientations(self, implementation='c_graph', data_structure=None, sparse=None):
+    def orientations(self, data_structure=None, sparse=None):
         r"""
         Return an iterator over orientations of ``self``.
 
@@ -3873,7 +3867,6 @@ class Graph(GenericGraph):
                         pos=self._pos,
                         multiedges=self.allows_multiple_edges(),
                         loops=self.allows_loops(),
-                        implementation=implementation,
                         data_structure=data_structure)
             if hasattr(self, '_embedding'):
                 D._embedding = copy(self._embedding)
@@ -3891,7 +3884,6 @@ class Graph(GenericGraph):
                         pos=self._pos,
                         multiedges=self.allows_multiple_edges(),
                         loops=self.allows_loops(),
-                        implementation=implementation,
                         data_structure=data_structure)
             if hasattr(self, '_embedding'):
                 D._embedding = copy(self._embedding)
@@ -5304,8 +5296,7 @@ class Graph(GenericGraph):
     ### Constructors
 
     @doc_index("Basic methods")
-    def to_directed(self, implementation='c_graph', data_structure=None,
-                    sparse=None):
+    def to_directed(self, data_structure=None, sparse=None):
         """
         Return a directed version of the graph.
 
@@ -5368,7 +5359,6 @@ class Graph(GenericGraph):
                     pos            = self.get_pos(),
                     multiedges     = self.allows_multiple_edges(),
                     loops          = self.allows_loops(),
-                    implementation = implementation,
                     data_structure = (data_structure if data_structure!="static_sparse"
                                       else "sparse")) # we need a mutable copy
 

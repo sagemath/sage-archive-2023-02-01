@@ -16976,13 +16976,16 @@ class GenericGraph(GenericGraph_pyx):
             sage: D = DiGraph({1:[2,3],2:[4],3:[4],4:[1,5],5:[2,6]})
             sage: list(D.breadth_first_search(1, edges=True))
             [(1, 2), (1, 3), (2, 4), (4, 5), (5, 6)]
+            sage: G = Graph({1:[2,3],2:[4,5],3:[6,7]})
+            sage: list(G.breadth_first_search(1, report_distance=True, edges=True))
+            ValueError: parameters edges and report_distance cannot be True simultaneously
         """
         from sage.rings.semirings.non_negative_integer_semiring import NN
         if (distance is not None and distance not in NN):
             raise ValueError("distance must be a non-negative integer, not {0}".format(distance))
 
         if (report_distance and edges):
-            raise Exception("parameters edges and report_distance cannot be True simultaneously")
+            raise ValueError("parameters edges and report_distance cannot be True simultaneously")
 
         # Preferably use the Cython implementation
         if (neighbors is None and not isinstance(start, list) and distance is None
@@ -17028,8 +17031,6 @@ class GenericGraph(GenericGraph_pyx):
                                 yield w, d+1
                             else:
                                 yield w
-            
-            
 
     def depth_first_search(self, start, ignore_direction=False,
                            distance=None, neighbors=None):

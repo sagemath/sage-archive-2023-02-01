@@ -163,9 +163,9 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: L.<x> = LazyLaurentSeriesRing(ZZ)
-            sage: 1/(1 - x)
-            1 + x + x^2 + x^3 + x^4 + x^5 + x^6 + ...
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: 1/(1 - z)
+            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
         """
         return (self.gen(),)
 

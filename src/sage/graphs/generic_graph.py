@@ -812,7 +812,11 @@ class GenericGraph(GenericGraph_pyx):
             bit = lambda x, y: n_ch_2(max(x, y)) + min(x, y)
         bit_vector = set()
 
-        v_to_int = {v: i for i, v in enumerate(self)}
+        try:
+            V = sorted(self)
+        except:
+            V = self
+        v_to_int = {v: i for i, v in enumerate(V)}
         for u,v,_ in self.edge_iterator():
             bit_vector.add(bit(v_to_int[u], v_to_int[v]))
         bit_vector = sorted(bit_vector)

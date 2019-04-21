@@ -128,7 +128,7 @@ from .laurent_series_ring import LaurentSeriesRing
 from .laurent_series_ring_element import LaurentSeries
 
 # Lazy Laurent series ring
-from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+lazy_import('sage.rings.lazy_laurent_series_ring', 'LazyLaurentSeriesRing')
 
 # Tate algebras
 from .tate_algebra import TateAlgebra
@@ -161,7 +161,7 @@ from .fast_arith import prime_range
 # continued fractions
 from sage.rings.continued_fraction import (continued_fraction,
                                            continued_fraction_list)
-lazy_import("sage.rings.continued_fraction", 'convergents', deprecation=27066)
+lazy_import('sage.rings.continued_fraction', 'convergents', deprecation=27066)
 
 # asymptotic ring
 from .asymptotic.all import *

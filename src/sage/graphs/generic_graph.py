@@ -800,6 +800,15 @@ class GenericGraph(GenericGraph_pyx):
             15
             sage: G.num_edges()
             15
+
+        TESTS::
+
+        Verify that :trac:`27695` is fixed::
+
+            sage: G = Graph([[0,1,2],[(0,1)]])
+            sage: G.relabel({0:2,2:0})
+            sage: G._bit_vector()
+            '001'
         """
         self._scream_if_not_simple()
         n = self.order()

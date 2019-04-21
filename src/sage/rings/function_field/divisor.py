@@ -171,7 +171,7 @@ class FunctionFieldDivisor(ModuleElement):
               + 3*Place (x, (1/(x^3 + x^2 + x))*y^2)
               - 6*Place (x + 1, y + 1): 1}
         """
-        return hash(tuple(sorted(list(self._data))))
+        return hash(tuple(sorted(self._data.items())))
 
     def _repr_(self, split=True):
         """

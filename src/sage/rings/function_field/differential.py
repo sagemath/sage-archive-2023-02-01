@@ -351,8 +351,8 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
         """
         F = self.parent().function_field()
         x = F.base_field().gen()
-        return self._f.valuation(place) + 2*min(F(x).valuation(place), 0) \
-                + F.different().valuation(place)
+        return (self._f.valuation(place) + 2*min(F(x).valuation(place), 0)
+                + F.different().valuation(place))
 
     def residue(self, place):
         """

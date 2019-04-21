@@ -3157,14 +3157,12 @@ class FunctionField_global(FunctionField_polymod):
             sage: F.L_polynomial()
             2*t^2 + t + 1
         """
-        from sage.rings.all import IntegerRing
-
-        Z = IntegerRing()
+        from sage.rings.all import ZZ
         q = self.constant_field().order()
         g = self.genus()
 
         B = [len(self.places(i+1)) for i in range(g)]
-        N = [sum(d * B[d-1] for d in Z(i+1).divisors()) for i in range(g)]
+        N = [sum(d * B[d-1] for d in ZZ(i+1).divisors()) for i in range(g)]
         S = [N[i] - q**(i+1) - 1 for i in range(g)]
 
         a = [1]
@@ -3173,7 +3171,7 @@ class FunctionField_global(FunctionField_polymod):
         for j in range(1, g+1):
             a.append(q**j * a[g-j])
 
-        return Z[name](a)
+        return ZZ[name](a)
 
     def number_of_rational_places(self, r=1):
         """

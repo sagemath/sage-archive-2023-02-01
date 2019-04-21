@@ -1105,8 +1105,8 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         OUTPUT:
 
         If the element is in the valuation ring at the place, then an element
-        in the residue field at the place is returned. Otherwise, `ValueError`
-        is raised.
+        in the residue field at the place is returned. Otherwise,
+        ``ValueError`` is raised.
 
         EXAMPLES::
 
@@ -1270,7 +1270,7 @@ cdef class FunctionFieldElement_global(FunctionFieldElement_polymod):
         OUTPUT:
 
         If the element is in the valuation ring at the place, then an element
-        in the residue field at the place is returned. Otherwise, `ValueError`
+        in the residue field at the place is returned. Otherwise, ``ValueError``
         is raised.
 
         EXAMPLES::

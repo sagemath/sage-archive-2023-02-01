@@ -1786,7 +1786,7 @@ class FunctionFieldCompletion_global(FunctionFieldCompletion):
         sep = place.local_uniformizer()
 
         val = f.valuation(place)
-        e = f * sep **(-val)
+        e = f * sep**(-val)
 
         def coeff(s, n):
             return to_k(der._derive(e, n - val, sep))

@@ -817,7 +817,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: P.add_cycle(P.neighbors(v))
             sage: P.delete_vertex(v)
             sage: P.canonical_label()._bit_vector()
-            '011010100000011100100010010100100111'
+            '001100001111000000011010100110100011'
         """
         self._scream_if_not_simple()
         n = self.order()

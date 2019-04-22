@@ -2137,6 +2137,16 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
           To:   Algebraic Real Field
           Defn: a |--> 1.259921049894873?
 
+        sage: nf,nums,hom = number_field_elements_from_algebraics([2^(1/3),3^(1/5)],embedded=True)
+        sage: nf
+        Number Field in a with defining polynomial y^15 - 9*y^10 + 21*y^5 - 3
+        sage: nums
+        [a^10 - 5*a^5 + 2, -a^8 + 4*a^3]
+        sage: hom
+        Ring morphism:
+          From: Number Field in a with defining polynomial y^15 - 9*y^10 + 21*y^5 - 3
+          To:   Algebraic Real Field
+          Defn: a |--> 0.6866813218928813?
 
     TESTS::
 
@@ -2176,9 +2186,6 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
             From: Number Field in a with defining polynomial y^2 - 2
             To:   Algebraic Field
             Defn: a |--> 1.414213562373095?)
-    
-    Also note that the exact answer depends on a Pari function that
-    gives different answers for 32-bit and 64-bit machines.
 
     Tests trivial cases::
 

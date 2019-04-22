@@ -3723,10 +3723,12 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
                 From: Number Field in a with defining polynomial y^2 - 2
                 To:   Algebraic Real Field
                 Defn: a |--> 1.414213562373095?)
+
             sage: x = polygen(ZZ)
             sage: p = x^3 + x^2 + x + 17
             sage: (rt,) = p.roots(ring=AA, multiplicities=False); rt
             -2.804642726932742?
+
             sage: (nf, elt, hom) = rt.as_number_field_element()
             sage: nf, elt, hom
             (Number Field in a with defining polynomial y^3 - 2*y^2 - 31*y - 50, a^2 - 5*a - 19, Ring morphism:
@@ -3745,16 +3747,25 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         Creating an element of an embedded number field::
 
             sage: (nf, elt, hom) = rt.as_number_field_element(embedded=True)
+            sage: nf.coerce_embedding()
+            Generic morphism:
+              From: Number Field in a with defining polynomial y^3 - 2*y^2 - 31*y - 50
+              To:   Real Interval Field with 53 bits of precision
+              Defn: a -> 7.237653139801104?
             sage: elt
             a^2 - 5*a - 19
+            sage: elt.parent() == nf
+            True
+            sage: hom(elt).parent()
+            Algebraic Real Field
+            sage: hom(elt) == rt
+            True
             sage: elt == rt
             True
             sage: AA(elt)
             -2.804642726932742?
             sage: RR(elt)
             -2.804642726932742
-            sage: hom(elt) == rt
-            True
 
         We see an example where we do not get the minimal number field unless
         we specify ``minimal=True``::

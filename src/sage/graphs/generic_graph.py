@@ -801,14 +801,23 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.num_edges()
             15
 
-        TESTS::
+        TESTS:
 
-        Verify that :trac:`27695` is fixed::
+        Check that :trac:`27695` is fixed::
 
             sage: G = Graph([[0,1,2],[(0,1)]])
             sage: G.relabel({0:2,2:0})
             sage: G._bit_vector()
             '001'
+
+        Check that :trac:`27695` fixes :trac:`26800`::
+
+            sage: P = graphs.PetersenGraph()
+            sage: v = P.random_vertex()
+            sage: P.add_cycle(P.neighbors(v))
+            sage: P.delete_vertex(v)
+            sage: P.canonical_label()._bit_vector()
+            '011010100000011100100010010100100111'
         """
         self._scream_if_not_simple()
         n = self.order()

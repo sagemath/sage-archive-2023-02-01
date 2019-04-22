@@ -3087,9 +3087,16 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: k.<a> = NumberField(x^13 - (2/3)*x + 3)
             sage: k._repr_()
             'Number Field in a with defining polynomial x^13 - 2/3*x + 3'
+            sage: k.<a> = NumberField(x^13 - (2/3)*x + 3, embedding=-1)
+            sage: k._repr_()
+            'Number Field in a with defining polynomial x^13 - 2/3*x + 3 with a = -1.106745229567614?'
+
         """
-        return "Number Field in %s with defining polynomial %s"%(
-                   self.variable_name(), self.polynomial())
+        result = "Number Field in {} with defining polynomial {}".format(self.variable_name(), self.polynomial())
+        gen = self.gen_embedding()
+        if gen is not None:
+            result += " with {} = {}".format(self.variable_name(), gen)
+        return result
 
     def _latex_(self):
         r"""

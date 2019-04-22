@@ -2273,10 +2273,7 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
     if fld is not QQ and embedded:
         # creates the embedded field
         assert real_case
-        from sage.rings.real_mpfr import RealField
         exact_generator = hom(fld.gen(0))
-        embedding_field = RealField(prec)
-        embedded_gen = embedding_field(exact_generator)
         embedded_field = NumberField(fld.defining_polynomial(),fld.variable_name(),embedding=exact_generator)
 
         # embeds the numbers

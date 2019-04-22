@@ -3713,8 +3713,8 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         - ``embedded`` -- Boolean (default: ``False``). Whether to make the
           NumberField embedded.
     
-        - ``prec`` -- integer (default: ``53``). The number of bit of precision for
-          the embedding.
+        - ``prec`` -- integer (default: ``53``). The number of bit of precision
+          to guarantee finding real roots.
 
         This may not return the smallest such number field, unless
         ``minimal=True`` is specified.

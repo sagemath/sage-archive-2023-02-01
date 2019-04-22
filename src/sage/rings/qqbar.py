@@ -1979,8 +1979,8 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
     - ``embedded`` -- Boolean (default: ``False``). Whether to make the
       NumberField embedded.
 
-    - ``prec`` -- integer (default: ``53``). The number of bit of precision for
-      the embedding.
+    - ``prec`` -- integer (default: ``53``). The number of bit of precision
+      to guarantee finding real roots.
 
     OUTPUT:
 
@@ -2152,29 +2152,33 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
             Defn: a |--> 0.7071067811865475? + 0.7071067811865475?*I)
 
     Note that for the first example, where \sage does not realize that
-    the number is real, we get a homomorphism to ``QQbar``; but with
-    ``minimal=True``, we get a homomorphism to ``AA``.  If we specify
-    both ``minimal=True`` and ``same_field=True``, we get a second
-    degree extension (minimal) that maps back to ``QQbar``.
-
-    Also note that the exact answer depends on a Pari function that
-    gives different answers for 32-bit and 64-bit machines::
+    the number is real, we get a homomorphism to ``QQbar``::
 
         sage: number_field_elements_from_algebraics(rt2c)   # random
         (Number Field in a with defining polynomial y^4 + 2*y^2 + 4, 1/2*a^3, Ring morphism:
             From: Number Field in a with defining polynomial y^4 + 2*y^2 + 4
             To:   Algebraic Field
             Defn: a |--> -0.7071067811865475? - 1.224744871391589?*I)
+    
+    But with ``minimal=True``, we get a homomorphism to ``AA``::
+
         sage: number_field_elements_from_algebraics(rt2c, minimal=True)
         (Number Field in a with defining polynomial y^2 - 2, a, Ring morphism:
             From: Number Field in a with defining polynomial y^2 - 2
             To:   Algebraic Real Field
             Defn: a |--> 1.414213562373095?)
+
+    If we specify both ``minimal=True`` and ``same_field=True``, we get a second
+    degree extension (minimal) that maps back to ``QQbar``::
+
         sage: number_field_elements_from_algebraics(rt2c, minimal=True, same_field=True)
         (Number Field in a with defining polynomial y^2 - 2, a, Ring morphism:
             From: Number Field in a with defining polynomial y^2 - 2
             To:   Algebraic Field
             Defn: a |--> 1.414213562373095?)
+    
+    Also note that the exact answer depends on a Pari function that
+    gives different answers for 32-bit and 64-bit machines.
 
     Tests trivial cases::
 
@@ -2234,7 +2238,7 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
     # Make the numbers algebraic
     numbers = [mk_algebraic(_) for _ in numbers]
 
-    # Make the numbers have a real root
+    # Make the numbers have a real exact underlying field
     real_numbers = []
     for v in numbers:
         if v._exact_field().is_complex() and real_case:
@@ -2260,14 +2264,19 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
     hom = fld.hom([gen.root_as_algebraic()])
 
     if fld is not QQ and embedded:
+        # creates the embedded field
         assert real_case
+        from sage.rings.real_mpfr import RealField
         exact_generator = hom(fld.gen(0))
-        embedding_field = RealIntervalField(prec)
+        embedding_field = RealField(prec)
         embedded_gen = embedding_field(exact_generator)
-        embedded_field = NumberField(fld.defining_polynomial(),fld.variable_name(),embedding=embedded_gen)
-        
+        embedded_field = NumberField(fld.defining_polynomial(),fld.variable_name(),embedding=exact_generator)
+
+        # embeds the numbers
         inter_hom = fld.hom([embedded_field.gen(0)])
         nums = map(inter_hom, nums)
+
+        # get the field and homomorphism
         hom = embedded_field.hom([gen.root_as_algebraic()])
         fld = embedded_field
     
@@ -2276,8 +2285,6 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
 
     if same_field:
         hom = fld.hom([gen.root_as_algebraic()], codomain=algebraic_field)
-    else:
-        hom = fld.hom([gen.root_as_algebraic()])
 
     return (fld, nums, hom)
 
@@ -3750,7 +3757,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: nf.coerce_embedding()
             Generic morphism:
               From: Number Field in a with defining polynomial y^3 - 2*y^2 - 31*y - 50
-              To:   Real Interval Field with 53 bits of precision
+              To:   Algebraic Real Field
               Defn: a -> 7.237653139801104?
             sage: elt
             a^2 - 5*a - 19
@@ -3765,7 +3772,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: AA(elt)
             -2.804642726932742?
             sage: RR(elt)
-            -2.804642726932742
+            -2.80464272693274
 
         We see an example where we do not get the minimal number field unless
         we specify ``minimal=True``::

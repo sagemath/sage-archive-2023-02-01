@@ -16976,8 +16976,10 @@ class GenericGraph(GenericGraph_pyx):
             sage: D = DiGraph({1:[2,3],2:[4],3:[4],4:[1,5],5:[2,6]})
             sage: list(D.breadth_first_search(1, edges=True))
             [(1, 2), (1, 3), (2, 4), (4, 5), (5, 6)]
-            sage: G = Graph({1:[2,3],2:[4,5],3:[6,7]})
+            sage: G = Graph([(0,1)])
             sage: list(G.breadth_first_search(1, report_distance=True, edges=True))
+            Traceback (most recent call last):
+            ...
             ValueError: parameters edges and report_distance cannot be True simultaneously
         """
         from sage.rings.semirings.non_negative_integer_semiring import NN

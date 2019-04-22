@@ -394,9 +394,9 @@ class Order(IntegralDomain):
 
             sage: K.<a> = QuadraticField(5)
             sage: O2 = K.order(2*a); O2
-            Order in Number Field in a with defining polynomial x^2 - 5
+            Order in Number Field in a with defining polynomial x^2 - 5 with a = 2.236067977499790?
             sage: O2.integral_closure()
-            Maximal Order in Number Field in a with defining polynomial x^2 - 5
+            Maximal Order in Number Field in a with defining polynomial x^2 - 5 with a = 2.236067977499790?
             sage: OK = K.maximal_order()
             sage: OK is OK.integral_closure()
             True
@@ -1091,7 +1091,7 @@ class Order(IntegralDomain):
         EXAMPLES::
 
             sage: G = GaussianIntegers(); G
-            Gaussian Integers in Number Field in I with defining polynomial x^2 + 1
+            Gaussian Integers in Number Field in I with defining polynomial x^2 + 1 with I = 1*I
             sage: G.some_elements()
             [1, I, 2*I, -1, 0, -I, 2, 4*I, -2, -2*I, -4]
 
@@ -1300,7 +1300,7 @@ class AbsoluteOrder(Order):
             sage: K.<i> = QuadraticField(-1)
             sage: O3 = K.order(3*i); O5 = K.order(5*i)
             sage: R = O3 & O5; R
-            Order in Number Field in i with defining polynomial x^2 + 1
+            Order in Number Field in i with defining polynomial x^2 + 1 with i = 1*I
             sage: R.basis()
             [1, 15*i]
             sage: O3.intersection(O5).basis()
@@ -1496,7 +1496,7 @@ class AbsoluteOrder(Order):
             Gaussian Integers in Cyclotomic Field of order 4 and degree 2
             sage: K = QuadraticField(-3)
             sage: K.ring_of_integers()
-            Eisenstein Integers in Number Field in a with defining polynomial x^2 + 3
+            Eisenstein Integers in Number Field in a with defining polynomial x^2 + 3 with a = 1.732050807568878?*I
         """
         if self._is_maximal:
             s = "Maximal Order"
@@ -2150,7 +2150,7 @@ def GaussianIntegers(names="I"):
 
         sage: ZZI.<I> = GaussianIntegers()
         sage: ZZI
-        Gaussian Integers in Number Field in I with defining polynomial x^2 + 1
+        Gaussian Integers in Number Field in I with defining polynomial x^2 + 1 with I = 1*I
         sage: factor(3 + I)
         (-I) * (I + 1) * (2*I + 1)
         sage: CC(I)
@@ -2176,7 +2176,7 @@ def EisensteinIntegers(names="omega"):
 
         sage: R.<omega> = EisensteinIntegers()
         sage: R
-        Eisenstein Integers in Number Field in omega with defining polynomial x^2 + x + 1
+        Eisenstein Integers in Number Field in omega with defining polynomial x^2 + x + 1 with omega = -0.50000000000000000? + 0.866025403784439?*I
         sage: factor(3 + omega)
         (omega) * (-3*omega - 2)
         sage: CC(omega)

@@ -338,10 +338,10 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None, l
         sage: K.<a> = NumberField(x^3-2, embedding=1.2)
         sage: RR.coerce_map_from(K)
         Composite map:
-          From: Number Field in a with defining polynomial x^3 - 2
+          From: Number Field in a with defining polynomial x^3 - 2 with a = 1.259921049894873?
           To:   Real Field with 53 bits of precision
           Defn:   Generic morphism:
-                  From: Number Field in a with defining polynomial x^3 - 2
+                  From: Number Field in a with defining polynomial x^3 - 2 with a = 1.259921049894873?
                   To:   Real Lazy Field
                   Defn: a -> 1.259921049894873?
                 then
@@ -387,8 +387,8 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None, l
         True
         sage: K.coerce_embedding()
         Generic morphism:
-          From: Number Field in a with defining polynomial x^3 - x + 1/10
-          To:   Number Field in b with defining polynomial x^6 - x^2 + 1/10
+          From: Number Field in a with defining polynomial x^3 - x + 1/10 with a = b^2
+          To:   Number Field in b with defining polynomial x^6 - x^2 + 1/10 with b = 0.9724449978911874?
           Defn: a -> b^2
 
     The ``QuadraticField`` and ``CyclotomicField`` constructors
@@ -597,11 +597,11 @@ class NumberFieldFactory(UniqueFactory):
         sage: M = loads(dumps(L))
         sage: M.structure()
         (Isomorphism given by variable name change map:
-          From: Number Field in b with defining polynomial x^2 - 2
-          To:   Number Field in a with defining polynomial x^2 - 2,
+           From: Number Field in b with defining polynomial x^2 - 2
+           To:   Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095?,
          Isomorphism given by variable name change map:
-          From: Number Field in a with defining polynomial x^2 - 2
-          To:   Number Field in b with defining polynomial x^2 - 2)
+           From: Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095?
+           To:   Number Field in b with defining polynomial x^2 - 2)
 
     """
     def create_key_and_extra_args(self, polynomial, name, check, embedding, latex_name, assume_disc_small, maximize_at_primes, structure):
@@ -857,9 +857,9 @@ def QuadraticField(D, name='a', check=True, embedding=True, latex_name='sqrt', *
     EXAMPLES::
 
         sage: QuadraticField(3, 'a')
-        Number Field in a with defining polynomial x^2 - 3
+        Number Field in a with defining polynomial x^2 - 3 with a = 1.732050807568878?
         sage: K.<theta> = QuadraticField(3); K
-        Number Field in theta with defining polynomial x^2 - 3
+        Number Field in theta with defining polynomial x^2 - 3 with theta = 1.732050807568878?
         sage: RR(theta)
         1.73205080756888
         sage: QuadraticField(9, 'a')
@@ -867,7 +867,7 @@ def QuadraticField(D, name='a', check=True, embedding=True, latex_name='sqrt', *
         ...
         ValueError: D must not be a perfect square.
         sage: QuadraticField(9, 'a', check=False)
-        Number Field in a with defining polynomial x^2 - 9
+        Number Field in a with defining polynomial x^2 - 9 with a = 3
 
     Quadratic number fields derive from general number fields.
 
@@ -916,14 +916,14 @@ def QuadraticField(D, name='a', check=True, embedding=True, latex_name='sqrt', *
         sage: K1 is K3
         True
         sage: K1
-        Number Field in x with defining polynomial x^2 - 5
+        Number Field in x with defining polynomial x^2 - 5 with x = 2.236067977499790?
 
 
     Note that, in presence of two different names for the generator,
     the name given by the preparser takes precedence::
 
         sage: K4.<y> = QuadraticField(5, 'x'); K4
-        Number Field in y with defining polynomial x^2 - 5
+        Number Field in y with defining polynomial x^2 - 5 with y = 2.236067977499790?
         sage: K1 == K4
         False
 
@@ -1890,7 +1890,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: K.Hom(K) # indirect doctest
             Automorphism group of Number Field in i with defining polynomial x^2 + 1
             sage: Hom(K, QuadraticField(-1, 'b'))
-            Set of field embeddings from Number Field in i with defining polynomial x^2 + 1 to Number Field in b with defining polynomial x^2 + 1
+            Set of field embeddings from Number Field in i with defining polynomial x^2 + 1 to Number Field in b with defining polynomial x^2 + 1 with b = 1*I
 
         CHECKME: handling of the case where codomain is not a number field?
 
@@ -2094,12 +2094,12 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             Number Field in a with defining polynomial x^4 - 3
             sage: H.<b>, from_H = K.subfield(a^2)
             sage: H
-            Number Field in b with defining polynomial x^2 - 3
+            Number Field in b with defining polynomial x^2 - 3 with b = a^2
             sage: from_H(b)
             a^2
             sage: from_H
             Ring morphism:
-              From: Number Field in b with defining polynomial x^2 - 3
+              From: Number Field in b with defining polynomial x^2 - 3 with b = a^2
               To:   Number Field in a with defining polynomial x^4 - 3
               Defn: b |--> a^2
 
@@ -2117,7 +2117,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: K.<z> = CyclotomicField(5)
             sage: L, K_from_L = K.subfield(z-z^2-z^3+z^4)
             sage: L
-            Number Field in z0 with defining polynomial x^2 - 5
+            Number Field in z0 with defining polynomial x^2 - 5 with z0 = 2.236067977499790?
             sage: CLF_from_K = K.coerce_embedding(); CLF_from_K
             Generic morphism:
               From: Cyclotomic Field of order 5 and degree 4
@@ -2125,7 +2125,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
               Defn: z -> 0.309016994374948? + 0.951056516295154?*I
             sage: CLF_from_L = L.coerce_embedding(); CLF_from_L
             Generic morphism:
-              From: Number Field in z0 with defining polynomial x^2 - 5
+              From: Number Field in z0 with defining polynomial x^2 - 5 with z0 = 2.236067977499790?
               To:   Complex Lazy Field
               Defn: z0 -> 2.236067977499790?
 
@@ -2142,7 +2142,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: K.<a> = NumberField(x^6 - 6*x^4 + 8*x^2 - 1)
             sage: L.<b>, from_L = K.subfield(a^2)
             sage: L
-            Number Field in b with defining polynomial x^3 - 6*x^2 + 8*x - 1
+            Number Field in b with defining polynomial x^3 - 6*x^2 + 8*x - 1 with b = a^2
             sage: L.gen_embedding()
             a^2
 
@@ -2180,16 +2180,16 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             Number Field in i with defining polynomial x^2 + 1
             sage: K, from_K, to_K = L.change_generator(i/2 + 3)
             sage: K
-            Number Field in i0 with defining polynomial x^2 - 6*x + 37/4
+            Number Field in i0 with defining polynomial x^2 - 6*x + 37/4 with i0 = 1/2*i + 3
             sage: from_K
             Ring morphism:
-              From: Number Field in i0 with defining polynomial x^2 - 6*x + 37/4
+              From: Number Field in i0 with defining polynomial x^2 - 6*x + 37/4 with i0 = 1/2*i + 3
               To:   Number Field in i with defining polynomial x^2 + 1
               Defn: i0 |--> 1/2*i + 3
             sage: to_K
             Ring morphism:
               From: Number Field in i with defining polynomial x^2 + 1
-              To:   Number Field in i0 with defining polynomial x^2 - 6*x + 37/4
+              To:   Number Field in i0 with defining polynomial x^2 - 6*x + 37/4 with i0 = 1/2*i + 3
               Defn: i |--> 2*i0 - 6
 
         We can also do
@@ -2197,7 +2197,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         ::
 
             sage: K.<c>, from_K, to_K = L.change_generator(i/2 + 3); K
-            Number Field in c with defining polynomial x^2 - 6*x + 37/4
+            Number Field in c with defining polynomial x^2 - 6*x + 37/4 with c = 1/2*i + 3
 
 
         We compute the image of the generator `\sqrt{-1}` of `L`.
@@ -2594,13 +2594,13 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         EXAMPLES::
 
             sage: QuadraticField(-1, 'I').complex_conjugation()
-            Ring endomorphism of Number Field in I with defining polynomial x^2 + 1
+            Ring endomorphism of Number Field in I with defining polynomial x^2 + 1 with I = 1*I
               Defn: I |--> -I
             sage: CyclotomicField(8).complex_conjugation()
             Ring endomorphism of Cyclotomic Field of order 8 and degree 4
               Defn: zeta8 |--> -zeta8^3
             sage: QuadraticField(5, 'a').complex_conjugation()
-            Identity endomorphism of Number Field in a with defining polynomial x^2 - 5
+            Identity endomorphism of Number Field in a with defining polynomial x^2 - 5 with a = 2.236067977499790?
             sage: F = NumberField(x^4 + x^3 - 3*x^2 - x + 1, 'a')
             sage: F.is_totally_real()
             True
@@ -2684,18 +2684,20 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
             sage: F.<a> = QuadraticField(11)
             sage: F.maximal_totally_real_subfield()
-            [Number Field in a with defining polynomial x^2 - 11, Identity endomorphism of Number Field in a with defining polynomial x^2 - 11]
+            [Number Field in a with defining polynomial x^2 - 11 with a = 3.316624790355400?,
+             Identity endomorphism of Number Field in a with defining polynomial x^2 - 11 with a = 3.316624790355400?]
             sage: F.<a> = QuadraticField(-15)
             sage: F.maximal_totally_real_subfield()
             [Rational Field, Natural morphism:
-              From: Rational Field
-              To:   Number Field in a with defining polynomial x^2 + 15]
+               From: Rational Field
+               To:   Number Field in a with defining polynomial x^2 + 15 with a = 3.872983346207417?*I]
             sage: F.<a> = CyclotomicField(29)
             sage: F.maximal_totally_real_subfield()
-            (Number Field in a0 with defining polynomial x^14 + x^13 - 13*x^12 - 12*x^11 + 66*x^10 + 55*x^9 - 165*x^8 - 120*x^7 + 210*x^6 + 126*x^5 - 126*x^4 - 56*x^3 + 28*x^2 + 7*x - 1, Ring morphism:
-              From: Number Field in a0 with defining polynomial x^14 + x^13 - 13*x^12 - 12*x^11 + 66*x^10 + 55*x^9 - 165*x^8 - 120*x^7 + 210*x^6 + 126*x^5 - 126*x^4 - 56*x^3 + 28*x^2 + 7*x - 1
-              To:   Cyclotomic Field of order 29 and degree 28
-              Defn: a0 |--> -a^27 - a^26 - a^25 - a^24 - a^23 - a^22 - a^21 - a^20 - a^19 - a^18 - a^17 - a^16 - a^15 - a^14 - a^13 - a^12 - a^11 - a^10 - a^9 - a^8 - a^7 - a^6 - a^5 - a^4 - a^3 - a^2 - 1)
+            (Number Field in a0 with defining polynomial x^14 + x^13 - 13*x^12 - 12*x^11 + 66*x^10 + 55*x^9 - 165*x^8 - 120*x^7 + 210*x^6 + 126*x^5 - 126*x^4 - 56*x^3 + 28*x^2 + 7*x - 1 with a0 = 1.953241111420174?,
+             Ring morphism:
+               From: Number Field in a0 with defining polynomial x^14 + x^13 - 13*x^12 - 12*x^11 + 66*x^10 + 55*x^9 - 165*x^8 - 120*x^7 + 210*x^6 + 126*x^5 - 126*x^4 - 56*x^3 + 28*x^2 + 7*x - 1 with a0 = 1.953241111420174?
+               To:   Cyclotomic Field of order 29 and degree 28
+               Defn: a0 |--> -a^27 - a^26 - a^25 - a^24 - a^23 - a^22 - a^21 - a^20 - a^19 - a^18 - a^17 - a^16 - a^15 - a^14 - a^13 - a^12 - a^11 - a^10 - a^9 - a^8 - a^7 - a^6 - a^5 - a^4 - a^3 - a^2 - 1)
             sage: F.<a> = NumberField(x^3 - 2)
             sage: F.maximal_totally_real_subfield()
             [Rational Field, Coercion map:
@@ -2892,7 +2894,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
             sage: QuadraticField(-1, 'I').specified_complex_embedding()
             Generic morphism:
-              From: Number Field in I with defining polynomial x^2 + 1
+              From: Number Field in I with defining polynomial x^2 + 1 with I = 1*I
               To:   Complex Lazy Field
               Defn: I -> 1*I
 
@@ -2900,7 +2902,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
             sage: QuadraticField(3, 'a').specified_complex_embedding()
             Generic morphism:
-              From: Number Field in a with defining polynomial x^2 - 3
+              From: Number Field in a with defining polynomial x^2 - 3 with a = 1.732050807568878?
               To:   Real Lazy Field
               Defn: a -> 1.732050807568878?
 
@@ -2921,12 +2923,12 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             True
             sage: NumberField(x^3-x+5, 'a', embedding=2).specified_complex_embedding()
             Generic morphism:
-              From: Number Field in a with defining polynomial x^3 - x + 5
+              From: Number Field in a with defining polynomial x^3 - x + 5 with a = -1.904160859134921?
               To:   Real Lazy Field
               Defn: a -> -1.904160859134921?
             sage: NumberField(x^3-x+5, 'a', embedding=CDF.0).specified_complex_embedding()
             Generic morphism:
-              From: Number Field in a with defining polynomial x^3 - x + 5
+              From: Number Field in a with defining polynomial x^3 - x + 5 with a = 0.952080429567461? + 1.311248044077123?*I
               To:   Complex Lazy Field
               Defn: a -> 0.952080429567461? + 1.311248044077123?*I
 
@@ -2939,7 +2941,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             3 + 7 + 2*7^2 + 6*7^3 + 7^4 + 2*7^5 + 7^6 + 2*7^7 + 4*7^8 + 6*7^9 + 6*7^10 + 2*7^11 + 7^12 + 7^13 + 2*7^15 + 7^16 + 7^17 + 4*7^18 + 6*7^19 + O(7^20)
             sage: K.coerce_embedding()
             Generic morphism:
-              From: Number Field in a with defining polynomial x^2 - 2
+              From: Number Field in a with defining polynomial x^2 - 2 with a = 3 + 7 + 2*7^2 + 6*7^3 + 7^4 + 2*7^5 + 7^6 + 2*7^7 + 4*7^8 + 6*7^9 + 6*7^10 + 2*7^11 + 7^12 + 7^13 + 2*7^15 + 7^16 + 7^17 + 4*7^18 + 6*7^19 + O(7^20)
               To:   7-adic Field with capped relative precision 20
               Defn: a -> 3 + 7 + 2*7^2 + 6*7^3 + 7^4 + 2*7^5 + 7^6 + 2*7^7 + 4*7^8 + 6*7^9 + 6*7^10 + 2*7^11 + 7^12 + 7^13 + 2*7^15 + 7^16 + 7^17 + 4*7^18 + 6*7^19 + O(7^20)
         """
@@ -4236,13 +4238,13 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
             sage: K.<a> = QuadraticField(-5)
             sage: K.S_class_group([])
-            S-class group of order 2 with structure C2 of Number Field in a with defining polynomial x^2 + 5
+            S-class group of order 2 with structure C2 of Number Field in a with defining polynomial x^2 + 5 with a = 2.236067977499790?*I
 
         When we include the prime `(2, a+1)`, the S-class group becomes
         trivial::
 
             sage: K.S_class_group([K.ideal(2,a+1)])
-            S-class group of order 1 of Number Field in a with defining polynomial x^2 + 5
+            S-class group of order 1 of Number Field in a with defining polynomial x^2 + 5 with a = 2.236067977499790?*I
 
         TESTS::
 
@@ -4250,12 +4252,12 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: I = K.ideal(2,a)
             sage: S = (I,)
             sage: CS = K.S_class_group(S);CS
-            S-class group of order 2 with structure C2 of Number Field in a with defining polynomial x^2 + 14
+            S-class group of order 2 with structure C2 of Number Field in a with defining polynomial x^2 + 14 with a = 3.741657386773942?*I
             sage: T = tuple([])
             sage: CT = K.S_class_group(T);CT
-            S-class group of order 4 with structure C4 of Number Field in a with defining polynomial x^2 + 14
+            S-class group of order 4 with structure C4 of Number Field in a with defining polynomial x^2 + 14 with a = 3.741657386773942?*I
             sage: K.class_group()
-            Class group of order 4 with structure C4 of Number Field in a with defining polynomial x^2 + 14
+            Class group of order 4 with structure C4 of Number Field in a with defining polynomial x^2 + 14 with a = 3.741657386773942?*I
         """
         proof = proof_flag(proof)
         if all(P.is_principal() for P in S):
@@ -4288,7 +4290,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
             sage: K.<a> = QuadraticField(-3)
             sage: K.unit_group()
-            Unit group with structure C6 of Number Field in a with defining polynomial x^2 + 3
+            Unit group with structure C6 of Number Field in a with defining polynomial x^2 + 3 with a = 1.732050807568878?*I
             sage: K.S_units([])  # random
             [1/2*a + 1/2]
             sage: K.S_units([])[0].multiplicative_order()
@@ -4685,9 +4687,9 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: K1 = NumberField(x^4 - 2, 'a', embedding=RR(2^(1/4)))
             sage: K2 = NumberField(x^4 - 2, 'a', embedding=RR(-2^(1/4)))
             sage: K1.composite_fields(K2)
-            [Number Field in a with defining polynomial x^4 - 2]
+            [Number Field in a with defining polynomial x^4 - 2 with a = 1.189207115002722?]
             sage: [F, f, g, k], = K1.composite_fields(K2, both_maps=True); F
-            Number Field in a with defining polynomial x^4 - 2
+            Number Field in a with defining polynomial x^4 - 2 with a = 1.189207115002722?
             sage: f(K1.0), g(K2.0)
             (a, -a)
 
@@ -4695,14 +4697,14 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         are ignored::
 
             sage: K1.composite_fields(K2, preserve_embedding=False)
-            [Number Field in a with defining polynomial x^4 - 2,
+            [Number Field in a with defining polynomial x^4 - 2 with a = 1.189207115002722?,
              Number Field in a0 with defining polynomial x^8 + 28*x^4 + 2500]
 
         Changing the embedding selects a different compositum::
 
             sage: K3 = NumberField(x^4 - 2, 'a', embedding=CC(2^(1/4)*I))
             sage: [F, f, g, k], = K1.composite_fields(K3, both_maps=True); F
-            Number Field in a0 with defining polynomial x^8 + 28*x^4 + 2500
+            Number Field in a0 with defining polynomial x^8 + 28*x^4 + 2500 with a0 = -2.378414230005443? + 1.189207115002722?*I
             sage: f(K1.0), g(K3.0)
             (1/240*a0^5 - 41/120*a0, 1/120*a0^5 + 19/60*a0)
 
@@ -4833,7 +4835,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: A.<a> = NumberField(x^3 - 7, embedding=CC(-0.95+1.65*I))
             sage: B.<b> = NumberField(y^9 - 7, embedding=CC(-1.16+0.42*I))
             sage: A.composite_fields(B)
-            [Number Field in b with defining polynomial y^9 - 7]
+            [Number Field in b with defining polynomial y^9 - 7 with b = -1.166502297945062? + 0.4245721146551276?*I]
         """
         if not isinstance(other, NumberField_generic):
             raise TypeError("other must be a number field.")
@@ -7215,7 +7217,7 @@ class NumberField_absolute(NumberField_generic):
             sage: L(a)
             Traceback (most recent call last):
             ...
-            ValueError: Cannot convert a to Number Field in b with defining polynomial x^3 - 4*x + 1 (using the specified embeddings)
+            ValueError: Cannot convert a to Number Field in b with defining polynomial x^3 - 4*x + 1 with b in 1.860805853111704? (using the specified embeddings)
 
         Subfields automatically come with an embedding::
 
@@ -7402,7 +7404,7 @@ class NumberField_absolute(NumberField_generic):
             sage: QuadraticField(-3, 'a').coerce_map_from(CyclotomicField(3))
             Generic morphism:
               From: Cyclotomic Field of order 3 and degree 2
-              To:   Number Field in a with defining polynomial x^2 + 3
+              To:   Number Field in a with defining polynomial x^2 + 3 with a = 1.732050807568878?*I
               Defn: zeta3 -> 1/2*a - 1/2
 
         Two embedded number fields with mutual coercions (testing against a
@@ -7438,7 +7440,7 @@ class NumberField_absolute(NumberField_generic):
             sage: K.coerce(sqrt(2))
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion from Symbolic Ring to Number Field in a with defining polynomial x^2 - 2
+            TypeError: no canonical coercion from Symbolic Ring to Number Field in a with defining polynomial x^2 - 2 with a in 1.414213562373095?
 
         TESTS::
 
@@ -7813,7 +7815,8 @@ class NumberField_absolute(NumberField_generic):
 
             sage: K.<a> = NumberField(x^4 - 23, embedding=50)
             sage: K, CDF(a)
-            (Number Field in a with defining polynomial x^4 - 23, 2.1899387030948425)
+            (Number Field in a with defining polynomial x^4 - 23 with a = 2.189938703094843?,
+             2.1899387030948425)
             sage: Ss = K.subfields(); len(Ss) # indirect doctest
             3
             sage: diffs = [ S.coerce_embedding()(S.gen()) - CDF(S_into_K(S.gen())) for S, S_into_K, _ in Ss ]
@@ -7821,21 +7824,23 @@ class NumberField_absolute(NumberField_generic):
             True
 
             sage: L1, _, _ = K.subfields(2)[0]; L1, CDF(L1.gen()) # indirect doctest
-            (Number Field in a0 with defining polynomial x^2 - 23, -4.795831523312719)
+            (Number Field in a0 with defining polynomial x^2 - 23 with a0 = -4.795831523312720?,
+             -4.795831523312719)
 
             If we take a different embedding of the large field, we get a
             different embedding of the degree 2 subfield::
 
             sage: K.<a> = NumberField(x^4 - 23, embedding=-50)
             sage: L2, _, _ = K.subfields(2)[0]; L2, CDF(L2.gen()) # indirect doctest
-            (Number Field in a0 with defining polynomial x^2 - 23, -4.795831523312719)
+            (Number Field in a0 with defining polynomial x^2 - 23 with a0 = -4.795831523312720?,
+             -4.795831523312719)
 
         Test for :trac:`7695`::
 
             sage: F = CyclotomicField(7)
             sage: K = F.subfields(3)[0][0]
             sage: K
-            Number Field in zeta7_0 with defining polynomial x^3 + x^2 - 2*x - 1
+            Number Field in zeta7_0 with defining polynomial x^3 + x^2 - 2*x - 1 with zeta7_0 = 1.246979603717467?
 
         """
         if name is None:
@@ -8014,7 +8019,7 @@ class NumberField_absolute(NumberField_generic):
 
             sage: K.<a> = NumberField(x^3 - 2)
             sage: ZZ[a]
-            Order in Number Field in a0 with defining polynomial x^3 - 2
+            Order in Number Field in a0 with defining polynomial x^3 - 2 with a0 = a
 
         TESTS:
 
@@ -8374,11 +8379,11 @@ class NumberField_absolute(NumberField_generic):
             sage: L.embeddings(K)
             [
             Ring morphism:
-              From: Number Field in a with defining polynomial x^2 + 7
+              From: Number Field in a with defining polynomial x^2 + 7 with a = 2.645751311064591?*I
               To:   Cyclotomic Field of order 7 and degree 6
               Defn: a |--> 2*zeta7^4 + 2*zeta7^2 + 2*zeta7 + 1,
             Ring morphism:
-              From: Number Field in a with defining polynomial x^2 + 7
+              From: Number Field in a with defining polynomial x^2 + 7 with a = 2.645751311064591?*I
               To:   Cyclotomic Field of order 7 and degree 6
               Defn: a |--> -2*zeta7^4 - 2*zeta7^2 - 2*zeta7 - 1
             ]
@@ -8833,9 +8838,9 @@ class NumberField_absolute(NumberField_generic):
 
             sage: K.<z> = CyclotomicField(16)
             sage: L, L_into_K, _ = K.subfields(4)[0]; L
-            Number Field in z0 with defining polynomial x^4 + 16
+            Number Field in z0 with defining polynomial x^4 + 16 with z0 = 1.414213562373095? + 1.414213562373095?*I
             sage: F, F_into_L, _ = L.subfields(2)[0]; F
-            Number Field in z0_0 with defining polynomial x^2 + 64
+            Number Field in z0_0 with defining polynomial x^2 + 64 with z0_0 = 8*I
 
             sage: L_over_F = L.relativize(F_into_L, 'c'); L_over_F
             Number Field in c with defining polynomial x^2 - 1/2*z0_0 over its base field
@@ -9166,14 +9171,14 @@ class NumberField_absolute(NumberField_generic):
             Traceback (most recent call last):
             ...
             ValueError: Possibly real place (=Ring morphism:
-              From: Number Field in a with defining polynomial x^2 - 5
+              From: Number Field in a with defining polynomial x^2 - 5 with a in 2.236067977499790?
               To:   Complex Field with 53 bits of precision
               Defn: a |--> -2.23606797749979) given as complex embedding in hilbert_symbol. Is it real or complex?
             sage: K.hilbert_symbol(-1, -1, K.embeddings(QQbar)[0])
             Traceback (most recent call last):
             ...
             ValueError: Possibly real place (=Ring morphism:
-              From: Number Field in a with defining polynomial x^2 - 5
+              From: Number Field in a with defining polynomial x^2 - 5 with a in 2.236067977499790?
               To:   Algebraic Field
               Defn: a |--> -2.236067977499790?) given as complex embedding in hilbert_symbol. Is it real or complex?
             sage: K.<b> = QuadraticField(-5)
@@ -10792,9 +10797,9 @@ class NumberField_quadratic(NumberField_absolute):
     EXAMPLES::
 
         sage: QuadraticField(3, 'a')
-        Number Field in a with defining polynomial x^2 - 3
+        Number Field in a with defining polynomial x^2 - 3 with a = 1.732050807568878?
         sage: QuadraticField(-4, 'b')
-        Number Field in b with defining polynomial x^2 + 4
+        Number Field in b with defining polynomial x^2 + 4 with b = 2*I
     """
     def __init__(self, polynomial, name=None, latex_name=None, check=True, embedding=None,
                  assume_disc_small=False, maximize_at_primes=None, structure=None):
@@ -10804,12 +10809,12 @@ class NumberField_quadratic(NumberField_absolute):
         EXAMPLES::
 
             sage: k.<a> = QuadraticField(5, check=False); k
-            Number Field in a with defining polynomial x^2 - 5
+            Number Field in a with defining polynomial x^2 - 5 with a = 2.236067977499790?
 
         Don't do this::
 
             sage: k.<a> = QuadraticField(4, check=False); k
-            Number Field in a with defining polynomial x^2 - 4
+            Number Field in a with defining polynomial x^2 - 4 with a = 2
 
         TESTS::
 
@@ -10869,7 +10874,7 @@ class NumberField_quadratic(NumberField_absolute):
             sage: f = K.coerce_map_from(QQ); f # indirect doctest
             Natural morphism:
               From: Rational Field
-              To:   Number Field in a with defining polynomial x^2 + 3
+              To:   Number Field in a with defining polynomial x^2 + 3 with a = 1.732050807568878?*I
             sage: f(3/5)
             3/5
             sage: parent(f(3/5)) is K
@@ -10878,7 +10883,7 @@ class NumberField_quadratic(NumberField_absolute):
             sage: g = K.coerce_map_from(ZZ); g # indirect doctest
             Natural morphism:
               From: Integer Ring
-              To:   Number Field in a with defining polynomial x^2 + 3
+              To:   Number Field in a with defining polynomial x^2 + 3 with a = 1.732050807568878?*I
             sage: g(1)
             1
             sage: parent(g(1)) is K
@@ -11346,12 +11351,12 @@ def refine_embedding(e, prec=None):
         sage: from sage.rings.number_field.number_field import refine_embedding
         sage: refine_embedding(K.specified_complex_embedding(), 100)
         Ring morphism:
-          From: Number Field in a with defining polynomial x^3 + x - 1
+          From: Number Field in a with defining polynomial x^3 + x - 1 with a = 0.6823278038280193?
           To:   Real Field with 100 bits of precision
           Defn: a |--> 0.68232780382801932736948373971
         sage: refine_embedding(K.specified_complex_embedding(), Infinity)
         Ring morphism:
-          From: Number Field in a with defining polynomial x^3 + x - 1
+          From: Number Field in a with defining polynomial x^3 + x - 1 with a = 0.6823278038280193?
           To:   Algebraic Real Field
           Defn: a |--> 0.6823278038280193?
     """

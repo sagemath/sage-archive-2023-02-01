@@ -1947,7 +1947,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: x.gcd(x)
             Traceback (most recent call last):
             ...
-            NotImplementedError: GCD is not implemented for multivariate polynomials over Gaussian Integers in Number Field in I with defining polynomial x^2 + 1
+            NotImplementedError: GCD is not implemented for multivariate polynomials over Gaussian Integers in Number Field in I with defining polynomial x^2 + 1 with I in 1*I
 
         TESTS::
 

@@ -1229,8 +1229,10 @@ cpdef johnson_closeness_centrality(g, weight_function=None):
         sig_check()
     return {v: closeness[i] for i,v in enumerate(int_to_v) if closeness[i] != sys.float_info.max}
 
+cpdef w_f(e):
+    return 1
 
-cpdef min_cycle_basis(g_sage, weight_function=None, by_weight=False, edges_complement=None):
+cpdef min_cycle_basis(g_sage, weight_function=None, by_weight=False):
     r"""
     Return a minimum weight cycle basis of the input graph ``g_sage``.
 
@@ -1255,10 +1257,6 @@ cpdef min_cycle_basis(g_sage, weight_function=None, by_weight=False, edges_compl
     - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges in
       the graph are weighted, otherwise all edges have weight 1
 
-    - ``edges_complement`` -- list (default: ``None``); list of edges of
-      ``g_sage`` (without labels) without the edges of a particular spanning
-      tree
-
     EXAMPLES::
 
         sage: g = Graph([(1, 2, 3), (2, 3, 5), (3, 4, 8), (4, 1, 13), (1, 3, 250), (5, 6, 9), (6, 7, 17), (7, 5, 20)])
@@ -1271,13 +1269,10 @@ cpdef min_cycle_basis(g_sage, weight_function=None, by_weight=False, edges_compl
 
         * :wikipedia:`Cycle_basis`
     """
-    if not edges_complement:
-        return []
 
     cdef Py_ssize_t u_int, v_int, i, j
     cdef object u, v
     cdef Py_ssize_t n = g_sage.num_verts()
-    cdef Py_ssize_t l = len(edges_complement)
     cdef list int_to_vertex = list(g_sage)
     cdef dict vertex_to_int = {u: u_int for u_int, u in enumerate(int_to_vertex)}
     cdef list edgelist
@@ -1290,7 +1285,15 @@ cpdef min_cycle_basis(g_sage, weight_function=None, by_weight=False, edges_compl
     else:
         edgelist = [(vertex_to_int[u], vertex_to_int[v], 1) for u, v in g_sage.edge_iterator(labels=False)]
 
-    edges_complement = [frozenset((vertex_to_int[u], vertex_to_int[v])) for u, v in edges_complement]
+    # We just need the edges of any spanning tree here not necessarily a
+    # minimum spanning tree.
+    
+    cdef list sp_edges = min_spanning_tree(g_sage, weight_function=w_f)
+    cdef list edges_s = [(a, b) for a, b, c in sp_edges]
+    # Edges of self that are not in the spanning tree
+    cdef list edges_c = [e for e in g_sage.edge_iterator(labels=False) if e not in edges_s]
+    cdef list edges_complement = [frozenset((vertex_to_int[u], vertex_to_int[v])) for u, v in edges_c]
+    cdef Py_ssize_t l = len(edges_complement)
     cdef list orth_set = [set([e]) for e in edges_complement]
     cdef list cycle_basis = []
     cdef set base

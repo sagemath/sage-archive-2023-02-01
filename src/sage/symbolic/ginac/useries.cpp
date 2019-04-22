@@ -82,10 +82,10 @@ long fmpq_poly_ldegree(const fmpq_poly_t& fp)
         if (fmpq_poly_is_zero(fp))
                 return 0;
         long len = fmpq_poly_length(fp);
-        for (slong n=0; n<=len; n++) {
+        for (long n=0; n<=len; n++) {
                 fmpq_t c;
                 fmpq_init(c);
-                fmpq_poly_get_coeff_fmpq(c, fp, n);
+                fmpq_poly_get_coeff_fmpq(c, fp, (slong)n);
                 if (not fmpq_is_zero(c)) {
                         fmpq_clear(c);
                         return n;
@@ -435,12 +435,12 @@ ex useries(const ex& the_ex, const symbol& x, int order, unsigned options)
         }
 
         // Fill expair vector
-        for (slong n=0; n<=deg+prec; n++) {
+        for (int n=0; n<=deg+prec; n++) {
                 if (n + fp.offset >= order)
                         break;
                 fmpq_t c;
                 fmpq_init(c);
-                fmpq_poly_get_coeff_fmpq(c, fp.ft, n);
+                fmpq_poly_get_coeff_fmpq(c, fp.ft, (slong)n);
                 if (not fmpq_is_zero(c)) {
                         mpq_t gc;
                         mpq_init(gc);

@@ -358,10 +358,9 @@ class Polyhedron_normaliz(Polyhedron_base):
                 print(self._normaliz_format(data), end='')
                 print("# ----8<-------------------8<-------------------8<----")
 
-        if normaliz_field is not QQ:
-            for key, value in data.iteritems():
-                if key != 'number_field':
-                    data[key] = self._convert_to_Qnormaliz(value)
+        for key, value in data.iteritems():
+            if key != 'number_field':
+                data[key] = self._convert_to_Qnormaliz(value)
 
         if verbose:
             print("# Calling {}".format(_format_function_call('PyNormaliz.NmzCone', **data)))

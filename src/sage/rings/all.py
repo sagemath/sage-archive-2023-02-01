@@ -130,6 +130,10 @@ from .laurent_series_ring_element import LaurentSeries
 # Tate algebras
 from .tate_algebra import TateAlgebra
 
+# Puiseux series ring
+from puiseux_series_ring import PuiseuxSeriesRing
+from puiseux_series_ring_element import PuiseuxSeries
+
 # Pseudo-ring of PARI objects.
 from .pari_ring import PariRing, Pari
 

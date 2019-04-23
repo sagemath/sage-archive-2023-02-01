@@ -97,6 +97,7 @@ def Polyhedra(base_ring, ambient_dim, backend=None):
         else:
             raise ValueError("no appropriate backend for computations with {}".format(base_ring))
 
+    from sage.symbolic.ring import SR
     if backend == 'ppl' and base_ring is QQ:
         return Polyhedra_QQ_ppl(base_ring, ambient_dim, backend)
     elif backend == 'ppl' and base_ring is ZZ:
@@ -105,6 +106,8 @@ def Polyhedra(base_ring, ambient_dim, backend=None):
         return Polyhedra_QQ_normaliz(base_ring, ambient_dim, backend)
     elif backend == 'normaliz' and base_ring is ZZ:
         return Polyhedra_ZZ_normaliz(base_ring, ambient_dim, backend)
+    elif backend == 'normaliz' and (base_ring is SR or base_ring.is_exact()):
+        return Polyhedra_normaliz(base_ring, ambient_dim, backend)
     elif backend == 'cdd' and base_ring in (ZZ, QQ):
         return Polyhedra_QQ_cdd(QQ, ambient_dim, backend)
     elif backend == 'cdd' and base_ring is RDF:

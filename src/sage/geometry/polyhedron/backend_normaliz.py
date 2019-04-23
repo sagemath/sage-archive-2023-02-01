@@ -37,6 +37,32 @@ from .base_QQ import Polyhedron_QQ
 from .base_ZZ import Polyhedron_ZZ
 
 
+def _number_field_elements_from_algebraics_list_of_lists_of_lists(listss, **kwds):
+    r"""
+    Like `number_field_elements_from_algebraics`, but for a list of lists of lists.
+
+    EXAMPLES::
+
+        sage: rt2 = AA(sqrt(2)); rt2
+        1.414213562373095?
+        sage: rt3 = AA(sqrt(3)); rt3
+        1.732050807568878?
+        sage: from sage.geometry.polyhedron.backend_normaliz import _number_field_elements_from_algebraics_list_of_lists_of_lists
+        sage: K, results, hom = _number_field_elements_from_algebraics_list_of_lists_of_lists([[[rt2], [1]], [[rt3]], [[1], []]]); results
+        [[[-a^3 + 3*a], [1]], [[-a^2 + 2]], [[1], []]]
+    """
+    from sage.rings.qqbar import number_field_elements_from_algebraics
+    numbers = []
+    for lists in listss:
+        for list in lists:
+            numbers.extend(list)
+    global DEBUG_numbers, DEBUG_K_numbers
+    K, K_numbers, hom = number_field_elements_from_algebraics(numbers, **kwds)
+    DEBUG_numbers = numbers
+    DEBUG_K_numbers = K_numbers
+    g = iter(K_numbers)
+    return K, [ [ [ next(g) for x in list ] for list in lists ] for lists in listss ], hom
+
 def _format_function_call(fn_name, *v, **k):
     """
     Return a Python function call as a string.
@@ -140,8 +166,46 @@ class Polyhedron_normaliz(Polyhedron_base):
         sage: p.n_lines()                                                  # optional - pynormaliz
         1
 
+    Algebraic polyhedra::
+
+        sage: P = Polyhedron(vertices=[[1], [sqrt(2)]], backend='normaliz', verbose=True)
+        # ----8<---- Equivalent QNormaliz input file ---8<----
+        amb_space 1
+        number_field min_poly (a^2 - 2) embedding [1.414213562373095 +/- 2.99e-16]
+        cone 0
+        subspace 0
+        vertices 2
+         1 1
+         (a) 1
+        # ----8<-------------------8<-------------------8<----
+        # Calling PyQNormaliz_cpp.NmzCone(cone=[], number_field='min_poly (a^2 - 2) embedding [1.414213562373095 +/- 2.99e-16]', subspace=[], vertices=[[1L, 1L], [[[0L, 1L], [1L, 1L]], 1L]])
+        sage: P
+        A 1-dimensional polyhedron in (Symbolic Ring)^1 defined as the convex hull of 2 vertices
+        sage: P.vertices()
+        (A vertex at (1), A vertex at (1.414213562373095?))
+
+        sage: P = polytopes.icosahedron(exact=True, backend='normaliz')
+        sage: P
+        A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^3 defined as the convex hull of 12 vertices
+
+        sage: x = polygen(ZZ); P = Polyhedron(vertices=[[sqrt(2)], [AA.polynomial_root(x^3-2, RIF(0,3))]], backend='normaliz', verbose=True)   # optional - pyqnormaliz
+        # ----8<---- Equivalent QNormaliz input file ---8<----
+        amb_space 1
+        number_field min_poly (a^6 - 2) embedding [1.122462048309373 +/- 5.38e-16]
+        cone 0
+        subspace 0
+        vertices 2
+         (a^3) 1
+         (a^2) 1
+        # ----8<-------------------8<-------------------8<----
+        # Calling PyQNormaliz_cpp.NmzCone(cone=[], number_field='min_poly (a^6 - 2) embedding [1.122462048309373 +/- 5.38e-16]', subspace=[], vertices=[[[[0L, 1L], [0L, 1L], [0L, 1L], [1L, 1L], [0L, 1L], [0L, 1L]], 1L], [[[0L, 1L], [0L, 1L], [1L, 1L], [0L, 1L], [0L, 1L], [0L, 1L]], 1L]])
+        sage: P
+        A 1-dimensional polyhedron in (Symbolic Ring)^1 defined as the convex hull of 2 vertices
+        sage: P.vertices()
+        (A vertex at (1.259921049894873?), A vertex at (1.414213562373095?))
+
     """
-    def __init__(self, parent, Vrep, Hrep, normaliz_cone=None, normaliz_data=None, **kwds):
+    def __init__(self, parent, Vrep, Hrep, normaliz_cone=None, normaliz_data=None, normaliz_field=None, **kwds):
         """
         Initializes the polyhedron.
 
@@ -166,23 +230,58 @@ class Polyhedron_normaliz(Polyhedron_base):
             if Hrep is not None or Vrep is not None or normaliz_data is not None:
                 raise ValueError("only one of Vrep, Hrep, normaliz_cone, or normaliz_data can be different from None")
             Element.__init__(self, parent=parent)
-            self._init_from_normaliz_cone(normaliz_cone)
+            self._init_from_normaliz_cone(normaliz_cone, normaliz_field)
         elif normaliz_data:
             if Hrep is not None or Vrep is not None:
                 raise ValueError("only one of Vrep, Hrep, normaliz_cone, or normaliz_data can be different from None")
             Element.__init__(self, parent=parent)
-            self._init_from_normaliz_data(normaliz_data)
+            self._init_from_normaliz_data(normaliz_data, normaliz_field)
         else:
+            if normaliz_field:
+                raise ValueError("if Vrep or Hrep are given, cannot provide normaliz_field")
             Polyhedron_base.__init__(self, parent, Vrep, Hrep, **kwds)
 
     def _nmz_result(self, normaliz_cone, property):
         """
-        Call PyNormaliz's NmzResult function.
+        Call either PyNormaliz's or PyQNormaliz's NmzResult function.
         """
-        import PyNormaliz
-        return PyNormaliz.NmzResult(normaliz_cone, property)
+        if self._normaliz_field is QQ:
 
-    def _init_from_normaliz_cone(self, normaliz_cone):
+            import PyNormaliz
+            return PyNormaliz.NmzResult(normaliz_cone, property)
+
+        else:
+
+            import PyQNormaliz_cpp
+
+            # Careful: Any exception in these handlers leads to a segfault.
+
+            def rational_handler(list):
+                try:
+                    return QQ(tuple(list))
+                except Exception as e:
+                    print("Error in rational_handler: {}".format(e))
+                    return None
+
+            def nfelem_handler(list):
+                # PyQNormaliz 1.1 does not always give us the full-length list of coordinates...
+                try:
+                    v = [0] * self._normaliz_field.degree()
+                    for i, x in enumerate(list):
+                        if type(x) is list:
+                            v[i] = QQ(tuple(x))
+                        else: # assume it's already rational per rational_handler...
+                            v[i] = x
+                    return self._normaliz_field(v)
+                except Exception as e:
+                    print("Error in nfelem_handler: {}".format(e))
+                    return None
+
+            return PyQNormaliz_cpp.NmzResult(normaliz_cone, property,
+                                             RationalHandler=rational_handler,
+                                             NumberfieldElementHandler=nfelem_handler)
+
+    def _init_from_normaliz_cone(self, normaliz_cone, normaliz_field):
         """
         Construct polyhedron from a PyNormaliz wrapper of a normaliz cone.
 
@@ -192,6 +291,10 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz   # optional - pynormaliz
             sage: Polyhedron_normaliz._init_from_Hrepresentation(p, [], [])  # indirect doctest  # optional - pynormaliz
         """
+        if normaliz_field is None:
+            normaliz_field = QQ
+        self._normaliz_field = normaliz_field
+
         if normaliz_cone and self._nmz_result(normaliz_cone, "AffineDim") < 0:
             # Empty polyhedron. Special case because Normaliz defines the
             # recession cone of an empty polyhedron given by an
@@ -202,7 +305,27 @@ class Polyhedron_normaliz(Polyhedron_base):
             self._init_Vrepresentation_from_normaliz()
             self._init_Hrepresentation_from_normaliz()
 
-    def _init_from_normaliz_data(self, data, verbose=False):
+    def _convert_to_Qnormaliz(self, x):
+        def _QQ_pair(x):
+            x = QQ(x)
+            return [ long(x.numerator()), long(x.denominator())]
+        import six
+        from sage.rings.integer import Integer
+        from sage.rings.rational import Rational
+        if isinstance(x, six.string_types):
+            return x
+        if isinstance(x, list) or isinstance(x, tuple):
+            return [ self._convert_to_Qnormaliz(y) for y in x ]
+        try:
+            return long(ZZ(x))
+        except TypeError:
+            if isinstance(x, Rational):
+                return [ _QQ_pair(x) ]    # need extra brackets to distinguish from quadratic numberfield element
+            else:
+                # number field
+                return [ _QQ_pair(c) for c in x.list() ]
+
+    def _init_from_normaliz_data(self, data, normaliz_field=None, verbose=False):
         """
         Construct polyhedron from normaliz ``data`` (a dictionary).
 
@@ -215,24 +338,54 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: p.inequalities_list()                                                         # optional - pynormaliz
             [[0, -1, 2], [0, 2, -1]]
 
+            sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz     # optional - pyqnormaliz
+            sage: from sage.rings.qqbar import AA                                               # optional - pyqnormaliz
+            sage: from sage.rings.number_field.number_field import QuadraticField               # optional - pyqnormaliz
+            sage: data = {'number_field': 'min_poly (a^2 - 2) embedding [1.4 +/- 0.1]',         # optional - pyqnormaliz
+            ....: 'inhom_inequalities': [[-1L, 2L, 0L], [0L, 0L, 1L], [2L, -1L, 0L]]}
+            sage: from sage.geometry.polyhedron.parent import Polyhedra_normaliz                # optional - pyqnormaliz
+            sage: parent = Polyhedra_normaliz(AA, 2, 'normaliz')
+            sage: Polyhedron_normaliz(parent, None, None, normaliz_data=data, # indirect doctest, optional - pyqnormaliz
+            ....:                     normaliz_field=QuadraticField(2))
+            A 2-dimensional polyhedron in AA^2 defined as the convex hull of 1 vertex and 2 rays
+            sage: _.inequalities_list()                                                         # optional - pyqnormaliz
+            [[0, -1/2, 1], [0, 2, -1]]
         """
+        if normaliz_field is None:
+            normaliz_field = QQ
+            
         if verbose:
             import six
             if isinstance(verbose, six.string_types):
-                print("# Wrote equivalent Normaliz input file to {}".format(verbose))
+                if normaliz_field is QQ:
+                    print("# Wrote equivalent Normaliz input file to {}".format(verbose))
+                else:
+                    print("# Wrote equivalent QNormaliz input file to {}".format(verbose))
                 self._normaliz_format(data, file_output=verbose)
             else:
-                print("# ----8<---- Equivalent Normaliz input file ----8<----")
+                if normaliz_field is QQ:
+                    print("# ----8<---- Equivalent Normaliz input file ----8<----")
+                else:
+                    print("# ----8<---- Equivalent QNormaliz input file ---8<----")
                 print(self._normaliz_format(data), end='')
                 print("# ----8<-------------------8<-------------------8<----")
 
-        if verbose:
-            print("# Calling {}".format(_format_function_call('PyNormaliz.NmzCone', **data)))
-        import PyNormaliz
-        cone = PyNormaliz.NmzCone(**data)
-        assert cone, "{} did not return a cone".format(_format_function_call('PyNormaliz.NmzCone', **data))
+        if normaliz_field is QQ:
+            if verbose:
+                print("# Calling {}".format(_format_function_call('PyNormaliz.NmzCone', **data)))
+            import PyNormaliz
+            cone = PyNormaliz.NmzCone(**data)
+            assert cone, "{} did not return a cone".format(_format_function_call('PyNormaliz.NmzCone', **data))
+        else:
+            for key, value in data.iteritems():
+                data[key] = self._convert_to_Qnormaliz(value)
+            if verbose:
+                print("# Calling {}".format(_format_function_call('PyQNormaliz_cpp.NmzCone', **data)))
+            import PyQNormaliz_cpp
+            cone = PyQNormaliz_cpp.NmzCone(**data)
+            assert cone, "{} did not return a cone".format(_format_function_call('PyQNormaliz_cpp.NmzCone', **data))
 
-        self._init_from_normaliz_cone(cone)
+        self._init_from_normaliz_cone(cone, normaliz_field)
 
     def _is_zero(self, x):
         """
@@ -346,6 +499,12 @@ class Polyhedron_normaliz(Polyhedron_base):
                 nmz_lines.append(dl)
             return nmz_vertices, nmz_rays, nmz_lines
 
+        def vert_ray_line_NF():
+            h_vertices = [ v + [1] for v in vertices ]
+            return h_vertices, rays, lines
+
+        from sage.categories.number_fields import NumberFields
+
         if vertices is None:
                 vertices = []
         if rays is None:
@@ -353,7 +512,22 @@ class Polyhedron_normaliz(Polyhedron_base):
         if lines is None:
                 lines = []
 
-        nmz_vertices, nmz_rays, nmz_lines = vert_ray_line_QQ()
+        if self.base_ring() in (QQ, ZZ):
+            normaliz_field = QQ
+            nmz_vertices, nmz_rays, nmz_lines = vert_ray_line_QQ()
+        else:
+            nmz_vertices, nmz_rays, nmz_lines = vert_ray_line_NF()
+            if self.base_ring() in NumberFields:
+                normaliz_field = self.base_ring()
+            else:
+                K, (nmz_vertices, nmz_rays, nmz_lines), hom = _number_field_elements_from_algebraics_list_of_lists_of_lists([nmz_vertices, nmz_rays, nmz_lines], embedded=True)
+                normaliz_field = K
+                if K is QQ:
+                    # Compute it with Normaliz, not QNormaliz
+                    vertices = [ [ QQ(x) for x in v ] for v in vertices ]
+                    rays = [ [ QQ(x) for x in r ] for r in rays ]
+                    lines = [ [ QQ(x) for x in l ] for l in lines ]
+                    nmz_vertices, nmz_rays, nmz_lines = vert_ray_line_QQ()
 
         if not nmz_vertices and not nmz_rays and not nmz_lines:
             # Special case to avoid:
@@ -364,7 +538,10 @@ class Polyhedron_normaliz(Polyhedron_base):
             data = {"vertices": nmz_vertices,
                     "cone": nmz_rays,
                     "subspace": nmz_lines}
-            self._init_from_normaliz_data(data, verbose=verbose)
+            number_field_data = self._format_number_field_data(normaliz_field)
+            if number_field_data:
+                data["number_field"] = number_field_data
+            self._init_from_normaliz_data(data, normaliz_field=normaliz_field, verbose=verbose)
 
     def _init_from_Hrepresentation(self, ieqs, eqns, minimize=True, verbose=False):
         r"""
@@ -392,6 +569,19 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: Polyhedron_normaliz._init_from_Hrepresentation(p, [], [])   # optional - pynormaliz
         """
 
+        def nmz_ieqs_eqns_NF():
+            nmz_ieqs = []
+            for ieq in ieqs:
+                b = ieq[0]
+                A = ieq[1:]
+                nmz_ieqs.append(A + [b])
+            nmz_eqns = []
+            for eqn in eqns:
+                b = eqn[0]
+                A = eqn[1:]
+                nmz_eqns.append(A + [b])
+            return nmz_ieqs, nmz_eqns
+
         def nmz_ieqs_eqns_QQ():
             nmz_ieqs = []
             for ieq in ieqs:
@@ -409,12 +599,28 @@ class Polyhedron_normaliz(Polyhedron_base):
                 nmz_eqns.append(A + [b])
             return nmz_ieqs, nmz_eqns
 
+        from sage.categories.number_fields import NumberFields
+
         if ieqs is None:
             ieqs = []
         if eqns is None:
             eqns = []
 
-        nmz_ieqs, nmz_eqns = nmz_ieqs_eqns_QQ()
+        if self.base_ring() in (QQ, ZZ):
+            normaliz_field = QQ
+            nmz_ieqs, nmz_eqns = nmz_ieqs_eqns_QQ()
+        else:
+            nmz_ieqs, nmz_eqns = nmz_ieqs_eqns_NF()
+            if self.base_ring() in NumberFields:
+                normaliz_field = self.base_ring()
+            else:
+                K, (nmz_ieqs, nmz_eqns), hom = _number_field_elements_from_algebraics_list_of_lists_of_lists([nmz_ieqs, nmz_eqns], embedded=True)
+                normaliz_field = K
+                if K is QQ:
+                    # Compute it with Normaliz, not QNormaliz
+                    ieqs = [ [ QQ(x) for x in i ] for i in ieqs ]
+                    eqns = [ [ QQ(x) for x in e ] for e in eqns ]
+                    nmz_ieqs, nmz_eqns = nmz_ieqs_eqns_QQ()
 
         if not nmz_ieqs:
             # If normaliz gets an empty list of inequalities, it adds
@@ -423,7 +629,10 @@ class Polyhedron_normaliz(Polyhedron_base):
             nmz_ieqs.append([0]*self.ambient_dim() + [0])
         data = {"inhom_equations": nmz_eqns,
                 "inhom_inequalities": nmz_ieqs}
-        self._init_from_normaliz_data(data, verbose=verbose)
+        number_field_data = self._format_number_field_data(normaliz_field)
+        if number_field_data:
+            data["number_field"] = number_field_data
+        self._init_from_normaliz_data(data, normaliz_field=normaliz_field, verbose=verbose)
 
     def _init_Vrepresentation_from_normaliz(self):
         r"""
@@ -507,7 +716,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         self._normaliz_cone = None
 
     @classmethod
-    def _from_normaliz_cone(cls, parent, normaliz_cone):
+    def _from_normaliz_cone(cls, parent, normaliz_cone, normaliz_field=None):
         r"""
         Initializes a polyhedron from a PyNormaliz wrapper of a normaliz cone.
 
@@ -517,7 +726,19 @@ class Polyhedron_normaliz(Polyhedron_base):
             ....:              backend='normaliz')
             sage: PI = P.integral_hull()                 # indirect doctest; optional - pynormaliz
         """
-        return cls(parent, None, None, normaliz_cone=normaliz_cone)
+        return cls(parent, None, None, normaliz_cone=normaliz_cone, normaliz_field=normaliz_field)
+
+    @staticmethod
+    def _format_number_field_data(normaliz_field):
+        from sage.rings.real_arb import RealBallField
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        R = normaliz_field
+        if R is QQ:
+            return None
+        emb = RealBallField(53)(R.gen(0))
+        R_a = PolynomialRing(QQ, 'a')
+        min_poly = R_a(R.polynomial())
+        return 'min_poly ({}) embedding {}'.format(min_poly, emb)
 
     @staticmethod
     def _make_normaliz_cone(data, verbose=False):
@@ -635,6 +856,11 @@ class Polyhedron_normaliz(Polyhedron_base):
                 return '{} {}\n'.format(key, value)
 
         s = format_field('amb_space', self.ambient_dim())
+        from copy import copy
+        data = copy(data)
+        if data.has_key('number_field'):
+            s += format_field('number_field', data['number_field'])
+            del data['number_field']
         for key, value in sorted(data.iteritems()):
             s += format_field(key, value)
         if file_output is not None:

@@ -334,7 +334,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz     # optional - pynormaliz
             sage: from sage.rings.qqbar import AA                                               # optional - pynormaliz
             sage: from sage.rings.number_field.number_field import QuadraticField               # optional - pynormaliz
-            sage: data = {'number_field': 'min_poly (a^2 - 2) embedding [1.4 +/- 0.1]',         # optional - pynormaliz
+            sage: data = {'number_field': ['a^2 - 2', 'a', '[1.4 +/- 0.1]'],                    # optional - pynormaliz
             ....: 'inhom_inequalities': [[-1L, 2L, 0L], [0L, 0L, 1L], [2L, -1L, 0L]]}
             sage: from sage.geometry.polyhedron.parent import Polyhedra_normaliz                # optional - pynormaliz
             sage: parent = Polyhedra_normaliz(AA, 2, 'normaliz')
@@ -359,7 +359,8 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         if normaliz_field is not QQ:
             for key, value in data.iteritems():
-                data[key] = self._convert_to_Qnormaliz(value)
+                if key != 'number_field':
+                    data[key] = self._convert_to_Qnormaliz(value)
 
         if verbose:
             print("# Calling {}".format(_format_function_call('PyNormaliz.NmzCone', **data)))
@@ -521,7 +522,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             data = {"vertices": nmz_vertices,
                     "cone": nmz_rays,
                     "subspace": nmz_lines}
-            number_field_data = self._format_number_field_data(normaliz_field)
+            number_field_data = self._number_field_triple(normaliz_field)
             if number_field_data:
                 data["number_field"] = number_field_data
             self._init_from_normaliz_data(data, normaliz_field=normaliz_field, verbose=verbose)
@@ -612,7 +613,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             nmz_ieqs.append([0]*self.ambient_dim() + [0])
         data = {"inhom_equations": nmz_eqns,
                 "inhom_inequalities": nmz_ieqs}
-        number_field_data = self._format_number_field_data(normaliz_field)
+        number_field_data = self._number_field_triple(normaliz_field)
         if number_field_data:
             data["number_field"] = number_field_data
         self._init_from_normaliz_data(data, normaliz_field=normaliz_field, verbose=verbose)
@@ -712,16 +713,17 @@ class Polyhedron_normaliz(Polyhedron_base):
         return cls(parent, None, None, normaliz_cone=normaliz_cone, normaliz_field=normaliz_field)
 
     @staticmethod
-    def _format_number_field_data(normaliz_field):
+    def _number_field_triple(normaliz_field):
         from sage.rings.real_arb import RealBallField
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         R = normaliz_field
         if R is QQ:
             return None
         emb = RealBallField(53)(R.gen(0))
-        R_a = PolynomialRing(QQ, 'a')
+        gen = 'a'
+        R_a = PolynomialRing(QQ, gen)
         min_poly = R_a(R.polynomial())
-        return 'min_poly ({}) embedding {}'.format(min_poly, emb)
+        return [str(min_poly), gen, str(emb)]
 
     @staticmethod
     def _make_normaliz_cone(data, verbose=False):
@@ -837,12 +839,15 @@ class Polyhedron_normaliz(Polyhedron_base):
                 return s
             else:
                 return '{} {}\n'.format(key, value)
+        def format_number_field_data(nf_triple):
+            min_poly, gen, emb = nf_triple
+            return 'min_poly ({}) embedding {}'.format(min_poly, emb)
 
         s = format_field('amb_space', self.ambient_dim())
         from copy import copy
         data = copy(data)
         if data.has_key('number_field'):
-            s += format_field('number_field', data['number_field'])
+            s += 'number_field {}\n'.format(format_number_field_data(data['number_field']))
             del data['number_field']
         for key, value in sorted(data.iteritems()):
             s += format_field(key, value)

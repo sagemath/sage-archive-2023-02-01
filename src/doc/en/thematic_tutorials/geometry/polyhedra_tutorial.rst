@@ -164,7 +164,7 @@ The following example demonstrates the limitations of :code:`RDF`.
 
     sage: D = polytopes.dodecahedron()
     sage: D
-    A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^3 defined as the convex hull of 20 vertices
+    A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?)^3 defined as the convex hull of 20 vertices
     sage: D_RDF = Polyhedron(vertices = [n(v.vector(),digits=6) for v in D.vertices()], base_ring=RDF)
     Traceback (most recent call last):
     ...
@@ -216,7 +216,7 @@ If the base ring is known it may be a good option to use the proper :meth:`sage.
     sage: timeit('Polyhedron(vertices = [[J(a), 0], [0, J(b)]])')  # random
     25 loops, best of 3: 9.8 ms per loop
     sage: P5_comp = Polyhedron(vertices = [[J(a), 0], [0, J(b)]]); P5_comp
-    A 1-dimensional polyhedron in (Number Field in ab with defining polynomial x^6 - 6*x^4 - 4*x^3 + 12*x^2 - 24*x - 4)^2 defined as the convex hull of 2 vertices
+    A 1-dimensional polyhedron in (Number Field in ab with defining polynomial x^6 - 6*x^4 - 4*x^3 + 12*x^2 - 24*x - 4 with ab = -0.1542925124782219?)^2 defined as the convex hull of 2 vertices
 
 .. end of output
 
@@ -762,7 +762,7 @@ polytope is already defined!
 ::
 
     sage: A = polytopes.buckyball(); A  # can take long
-    A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^3 defined as the convex hull of 60 vertices
+    A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?)^3 defined as the convex hull of 60 vertices
     sage: B = polytopes.cross_polytope(4); B
     A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 8 vertices
     sage: C = polytopes.cyclic_polytope(3,10); C

@@ -201,8 +201,7 @@ triangle, that would be::
 
     sage: K.<sqrt3> = NumberField(x^2 - 3, embedding=AA(3)**(1/2))
     sage: Polyhedron([(0,0), (1,0), (1/2, sqrt3/2)])
-    A 2-dimensional polyhedron in (Number Field in sqrt3 with defining
-    polynomial x^2 - 3)^2 defined as the convex hull of 3 vertices
+    A 2-dimensional polyhedron in (Number Field in sqrt3 with defining polynomial x^2 - 3 with sqrt3 = 1.732050807568878?)^2 defined as the convex hull of 3 vertices
 
 .. WARNING::
 

@@ -128,7 +128,7 @@ class NumberFieldHomset(RingHomset_generic):
             sage: H.an_element()
             Traceback (most recent call last):
             ...
-            EmptySetError: There is no morphism from Number Field in a with defining polynomial x^2 + 1 with a in 1*I to Number Field in b with defining polynomial x^2 + 2 with b in 1.414213562373095?*I
+            EmptySetError: There is no morphism from Number Field in a with defining polynomial x^2 + 1 with a = 1*I to Number Field in b with defining polynomial x^2 + 2 with b = 1.414213562373095?*I
         """
         L = self.list()
         if len(L) != 0:

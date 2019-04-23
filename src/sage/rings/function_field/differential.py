@@ -134,7 +134,7 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
         if self._f.is_zero(): # zero differential
             return '0'
 
-        r =  'd({})'.format(F.base_field().gen())
+        r =  'd({})'.format(F.rational_function_field().gen())
 
         if self._f.is_one():
             return r
@@ -158,7 +158,7 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
         if self._f.is_zero(): # zero differential
             return '0'
 
-        r =  'd{}'.format(F.base_field().gen())
+        r =  'd{}'.format(F.rational_function_field().gen())
 
         if self._f.is_one():
             return r

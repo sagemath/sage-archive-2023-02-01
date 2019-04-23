@@ -256,15 +256,16 @@ class Polyhedron_normaliz(Polyhedron_base):
                 print("Error in rational_handler: {}".format(e))
                 return None
 
-        def nfelem_handler(list):
+        def nfelem_handler(coords):
             # PyQNormaliz 1.1 does not always give us the full-length list of coordinates...
             try:
                 v = [0] * self._normaliz_field.degree()
-                for i, x in enumerate(list):
-                    if type(x) is list:
-                        v[i] = QQ(tuple(x))
-                    else: # assume it's already rational per rational_handler...
-                        v[i] = x
+                for i, x in enumerate(coords):
+                    if i < len(v): # PyNormaliz 2.0 sometimes gives us too long vectors
+                        if type(x) is list:
+                            v[i] = QQ(tuple(x))
+                        else: # assume it's already rational per rational_handler...
+                            v[i] = x
                 return self._normaliz_field(v)
             except Exception as e:
                 print("Error in nfelem_handler: {}".format(e))

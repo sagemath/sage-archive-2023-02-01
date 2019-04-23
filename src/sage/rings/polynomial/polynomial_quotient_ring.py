@@ -1309,7 +1309,6 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             component_S_class_groups.append(clgp_gens)
 
         clgp_gens = []
-        clgp_gens_orders = []
         moduli = [D.relative_polynomial() for D in fields]
         for i in range(n):
             phi = isos[i][0]

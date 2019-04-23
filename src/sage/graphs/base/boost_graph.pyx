@@ -51,7 +51,8 @@ from __future__ import absolute_import
 
 cimport cython
 from cysignals.signals cimport sig_check, sig_on, sig_off
-
+from libcpp.set cimport set as cset
+from libcpp.pair cimport pair
 
 cdef boost_graph_from_sage_graph(BoostGenGraph *g, g_sage, vertex_to_int, reverse=False):
     r"""
@@ -1261,7 +1262,7 @@ cpdef min_cycle_basis(g_sage, weight_function=None, by_weight=False):
 
         sage: g = Graph([(1, 2, 3), (2, 3, 5), (3, 4, 8), (4, 1, 13), (1, 3, 250), (5, 6, 9), (6, 7, 17), (7, 5, 20)])
         sage: g.minimum_cycle_basis(by_weight=True)
-        [[1, 2, 3, 4], [1, 2, 3], [5, 6, 7]]
+        [[1, 2, 3], [1, 2, 3, 4], [5, 6, 7]]
         sage: g.minimum_cycle_basis()
         [[1, 2, 3], [1, 3, 4], [5, 6, 7]]
 
@@ -1289,9 +1290,11 @@ cpdef min_cycle_basis(g_sage, weight_function=None, by_weight=False):
     # minimum spanning tree.
     
     cdef list sp_edges = min_spanning_tree(g_sage, weight_function=w_f)
-    cdef list edges_s = [(a, b) for a, b, c in sp_edges]
+    cdef cset[pair[int, int]] edges_s
+    for a, b, c in sp_edges:
+        edges_s.insert((a, b))
     # Edges of self that are not in the spanning tree
-    cdef list edges_c = [e for e in g_sage.edge_iterator(labels=False) if e not in edges_s]
+    cdef list edges_c = [e for e in g_sage.edge_iterator(labels=False) if not edges_s.count(e)]
     cdef list edges_complement = [frozenset((vertex_to_int[u], vertex_to_int[v])) for u, v in edges_c]
     cdef Py_ssize_t l = len(edges_complement)
     cdef list orth_set = [set([e]) for e in edges_complement]

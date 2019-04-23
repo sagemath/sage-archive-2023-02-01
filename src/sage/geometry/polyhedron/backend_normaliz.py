@@ -169,7 +169,7 @@ class Polyhedron_normaliz(Polyhedron_base):
     Algebraic polyhedra::
 
         sage: P = Polyhedron(vertices=[[1], [sqrt(2)]], backend='normaliz', verbose=True)
-        # ----8<---- Equivalent QNormaliz input file ---8<----
+        # ----8<---- Equivalent Normaliz input file ----8<----
         amb_space 1
         number_field min_poly (a^2 - 2) embedding [1.414213562373095 +/- 2.99e-16]
         cone 0
@@ -178,18 +178,18 @@ class Polyhedron_normaliz(Polyhedron_base):
          1 1
          (a) 1
         # ----8<-------------------8<-------------------8<----
-        # Calling PyNormaliz.NmzCone(cone=[], number_field='min_poly (a^2 - 2) embedding [1.414213562373095 +/- 2.99e-16]', subspace=[], vertices=[[1L, 1L], [[[0L, 1L], [1L, 1L]], 1L]])
+        # Calling PyNormaliz.NmzCone(cone=[], number_field=['a^2 - 2', 'a', '[1.414213562373095 +/- 2.99e-16]'], subspace=[], vertices=[[1L, 1L], [[[0L, 1L], [1L, 1L]], 1L]])
         sage: P
         A 1-dimensional polyhedron in (Symbolic Ring)^1 defined as the convex hull of 2 vertices
         sage: P.vertices()
-        (A vertex at (1), A vertex at (1.414213562373095?))
+        (A vertex at (1), A vertex at (sqrt(2)))
 
         sage: P = polytopes.icosahedron(exact=True, backend='normaliz')
         sage: P
         A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^3 defined as the convex hull of 12 vertices
 
         sage: x = polygen(ZZ); P = Polyhedron(vertices=[[sqrt(2)], [AA.polynomial_root(x^3-2, RIF(0,3))]], backend='normaliz', verbose=True)   # optional - pynormaliz
-        # ----8<---- Equivalent QNormaliz input file ---8<----
+        # ----8<---- Equivalent Normaliz input file ----8<----
         amb_space 1
         number_field min_poly (a^6 - 2) embedding [1.122462048309373 +/- 5.38e-16]
         cone 0
@@ -198,11 +198,11 @@ class Polyhedron_normaliz(Polyhedron_base):
          (a^3) 1
          (a^2) 1
         # ----8<-------------------8<-------------------8<----
-        # Calling PyNormaliz.NmzCone(cone=[], number_field='min_poly (a^6 - 2) embedding [1.122462048309373 +/- 5.38e-16]', subspace=[], vertices=[[[[0L, 1L], [0L, 1L], [0L, 1L], [1L, 1L], [0L, 1L], [0L, 1L]], 1L], [[[0L, 1L], [0L, 1L], [1L, 1L], [0L, 1L], [0L, 1L], [0L, 1L]], 1L]])
+        # Calling PyNormaliz.NmzCone(cone=[], number_field=['a^6 - 2', 'a', '[1.122462048309373 +/- 5.38e-16]'], subspace=[], vertices=[[[[0L, 1L], [0L, 1L], [0L, 1L], [1L, 1L], [0L, 1L], [0L, 1L]], 1L], [[[0L, 1L], [0L, 1L], [1L, 1L], [0L, 1L], [0L, 1L], [0L, 1L]], 1L]])
         sage: P
         A 1-dimensional polyhedron in (Symbolic Ring)^1 defined as the convex hull of 2 vertices
         sage: P.vertices()
-        (A vertex at (1.259921049894873?), A vertex at (1.414213562373095?))
+        (A vertex at (2^(1/3)), A vertex at (sqrt(2)))
 
     """
     def __init__(self, parent, Vrep, Hrep, normaliz_cone=None, normaliz_data=None, normaliz_field=None, **kwds):

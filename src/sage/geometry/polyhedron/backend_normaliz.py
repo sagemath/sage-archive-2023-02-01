@@ -178,6 +178,16 @@ class Polyhedron_normaliz(Polyhedron_base):
     def _nmz_result(self, normaliz_cone, property):
         """
         Call PyNormaliz's NmzResult function.
+
+        TESTS::
+
+            sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)], rays=[(1,1)],   # optional - pynormaliz
+            ....:                lines=[], backend='normaliz')
+
+            sage: p._nmz_result(p._normaliz_cone, 'EquivariantXyzzyModuleSeries')
+            Traceback (most recent call last):
+            ...
+            error: Some error in the normaliz input data detected: Unknown ConeProperty...
         """
         import PyNormaliz
         return PyNormaliz.NmzResult(normaliz_cone, property)

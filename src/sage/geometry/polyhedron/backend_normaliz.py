@@ -30,7 +30,7 @@ from sage.misc.all import prod
 from sage.rings.all import ZZ, QQ
 from sage.arith.functions import LCM_list
 from sage.misc.functional import denominator
-from sage.matrix.constructor import matrix, vector
+from sage.matrix.constructor import vector
 
 from .base import Polyhedron_base
 from .base_QQ import Polyhedron_QQ
@@ -635,7 +635,7 @@ class Polyhedron_normaliz(Polyhedron_base):
                 return '{} {}\n'.format(key, value)
 
         s = format_field('amb_space', self.ambient_dim())
-        for key, value in sorted(data.iteritems()):
+        for key, value in sorted(data.items()):
             s += format_field(key, value)
         if file_output is not None:
             in_file = open(file_output, 'w')

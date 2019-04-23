@@ -18,7 +18,7 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.all import ZZ, QQ, RDF, CommutativeRing
 from sage.categories.fields import Fields
 
-from sage.geometry.polyhedron.base import Polyhedron_base, is_Polyhedron
+from sage.geometry.polyhedron.base import is_Polyhedron
 from .representation import Inequality, Equation, Vertex, Ray, Line
 
 

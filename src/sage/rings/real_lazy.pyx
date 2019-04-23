@@ -11,14 +11,14 @@ number fields) to embed for the coercion model (as only one embedding can be
 specified in the forward direction).
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #     Copyright (C) 2008 Robert Bradshaw <robertwb@math.washington.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import, division, print_function
 
 import math, cmath
@@ -315,7 +315,7 @@ class RealLazyField_class(LazyField):
 
         EXAMPLES::
 
-            sage: hash(RLF) % 2^32 == hash(str(RLF)) % 2^32
+            sage: hash(RLF) == hash(RealLazyField())
             True
         """
         return 1501555429
@@ -487,7 +487,8 @@ class ComplexLazyField_class(LazyField):
 
         EXAMPLES::
 
-            sage: hash(CLF) % 2^32 == hash(str(CLF)) % 2^32
+            sage: from sage.rings.real_lazy import ComplexLazyField_class
+            sage: hash(CLF) == hash(ComplexLazyField_class())
             True
         """
         return -1382606040
@@ -1176,9 +1177,9 @@ cdef class LazyBinop(LazyFieldElement):
 
             sage: from sage.rings.real_lazy import LazyBinop
             sage: a = LazyBinop(RLF, 5, 1/2, operator.sub)
-            sage: hash(a)
-            -1607638785           # 32-bit
-            -7461864723258187521  # 64-bit
+            sage: b = LazyBinop(RLF, 4, 1/2, operator.add)
+            sage: hash(a) == hash(b)
+            False
         """
         return hash(self._op(hash(self._left), hash(self._right)))
 
@@ -1390,8 +1391,9 @@ cdef class LazyNamedUnop(LazyUnop):
 
             sage: from sage.rings.real_lazy import LazyNamedUnop
             sage: a = LazyNamedUnop(RLF, 1, 'sin')
-            sage: hash(a)
-            2110729788
+            sage: b = LazyNamedUnop(RLF, 1, 'cos')
+            sage: hash(a) == hash(b)
+            False
         """
         return hash(complex(self))
 
@@ -1553,8 +1555,8 @@ cdef class LazyConstant(LazyFieldElement):
 
             sage: from sage.rings.real_lazy import LazyConstant
             sage: a = LazyConstant(RLF, 'e')
-            sage: hash(a)
-            2141977644
+            sage: hash(a) == hash(1)
+            False
         """
         return hash(complex(self))
 

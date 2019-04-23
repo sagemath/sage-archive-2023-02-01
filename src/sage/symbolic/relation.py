@@ -1145,6 +1145,7 @@ def solve(f, *args, **kwds):
     else:
         return sol_list
 
+
 def _solve_expression(f, x, explicit_solutions, multiplicities,
                      to_poly_solve, solution_dict, algorithm, domain):
     """
@@ -1152,7 +1153,7 @@ def _solve_expression(f, x, explicit_solutions, multiplicities,
 
     .. NOTE::
 
-        This is an auxillery function only meant to be called
+        This is an auxiliary function only meant to be called
         from :func:`solve`.
 
     TESTS:

@@ -358,7 +358,6 @@ class NewtonPolygon_element(Element):
             [0, 1, 7/2, 6]
         """
         # complexity: O(log(n))
-        from sage.functions.other import floor
         vertices = self.vertices()
         lastslope = self.last_slope()
         if len(vertices) == 0 or x < vertices[0][0]:
@@ -377,8 +376,8 @@ class NewtonPolygon_element(Element):
                 a = c
             else:
                 b = c
-        (xg,yg) = vertices[a]
-        (xd,yd) = vertices[b]
+        xg, yg = vertices[a]
+        xd, yd = vertices[b]
         return ((x-xg)*yd + (xd-x)*yg) / (xd-xg)
 
     def _richcmp_(self, other, op):

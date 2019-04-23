@@ -61,7 +61,7 @@ LOCAL_IDENTIFIER = '%s.%s' % (HOSTNAME, os.getpid())
 #################################################################
 
 
-def sage_makedirs(dir):
+def sage_makedirs(dirname):
     """
     Python version of ``mkdir -p``: try to create a directory, and also
     create all intermediate directories as necessary.  Succeed silently
@@ -74,17 +74,18 @@ def sage_makedirs(dir):
         sage: sage_makedirs(DOT_SAGE) # no output
 
     The following fails because we are trying to create a directory in
-    place of an ordinary file (the python executable)::
+    place of an ordinary file::
 
-        sage: sage_makedirs(sys.executable)
+        sage: filename = tmp_filename()
+        sage: sage_makedirs(filename)
         Traceback (most recent call last):
         ...
-        OSError: ...
+        OSError: [Errno ...] File exists: ...
     """
     try:
-        os.makedirs(dir)
+        os.makedirs(dirname)
     except OSError:
-        if not os.path.isdir(dir):
+        if not os.path.isdir(dirname):
             raise
 
 
@@ -752,6 +753,45 @@ def _stable_uniq(L):
             continue
         yield x
         seen.add(x)
+
+
+def exactly_one_is_true(iterable):
+    r"""
+    Return whether exactly one element of ``iterable`` evaluates ``True``.
+
+    INPUT:
+
+    - ``iterable`` -- an iterable object
+
+    OUTPUT:
+
+    A boolean.
+
+    .. NOTE::
+
+        The implementation is suggested by
+        `stackoverflow entry <https://stackoverflow.com/a/16801605/1052778>`_.
+
+    EXAMPLES::
+
+        sage: from sage.misc.misc import exactly_one_is_true
+        sage: exactly_one_is_true([])
+        False
+        sage: exactly_one_is_true([True])
+        True
+        sage: exactly_one_is_true([False])
+        False
+        sage: exactly_one_is_true([True, True])
+        False
+        sage: exactly_one_is_true([False, True])
+        True
+        sage: exactly_one_is_true([True, False, True])
+        False
+        sage: exactly_one_is_true([False, True, False])
+        True
+    """
+    it = iter(iterable)
+    return any(it) and not any(it)
 
 
 def coeff_repr(c, is_latex=False):

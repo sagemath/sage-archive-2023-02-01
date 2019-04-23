@@ -5126,26 +5126,28 @@ def _read_nef_x_partitions(data):
     if line == "":
         raise ValueError("Empty file!")
     partitions = []
-    while len(line) > 0 and line.find("np=") == -1:
+    while line and line.find("np=") == -1:
         if line.find("V:") == -1:
             line = data.readline()
             continue
         start = line.find("V:") + 2
         end = line.find("  ", start)  # Find DOUBLE space
-        partitions.append(Sequence(line[start:end].split(),int))
+        partitions.append(Sequence(line[start:end].split(), int))
         line = data.readline()
     # Compare the number of found partitions with np in data.
     start = line.find("np=")
     if start != -1:
-        start += 3
-        end = line.find(" ", start)
-        np = int(line[start:end])
-        if False and np != len(partitions):
-            raise ValueError("Found %d partitions, expected %d!" %
-                                 (len(partitions), np))
+        # start += 3
+        # end = line.find(" ", start)
+        # np = int(line[start:end])
+        # if False and np != len(partitions):
+        #     raise ValueError("Found %d partitions, expected %d!" %
+        #                          (len(partitions), np))
+        pass
     else:
         raise ValueError("Wrong data format, cannot find \"np=\"!")
     return partitions
+
 
 def _read_poly_x_incidences(data, dim):
     r"""
@@ -5195,11 +5197,13 @@ def _read_poly_x_incidences(data, dim):
         line.pop(0)
         subr = []
         for e in line:
-            f = Sequence([j for j in range(n) if e[n-1-j] == '1'], int, check=False)
+            f = Sequence([j for j in range(n) if e[n-1-j] == '1'],
+                         int, check=False)
             f.set_immutable()
             subr.append(f)
         result.append(subr)
     return result
+
 
 def all_cached_data(polytopes):
     r"""
@@ -5283,6 +5287,7 @@ def all_nef_partitions(polytopes, keep_symmetric=False):
     result.close()
     os.remove(result_name)
 
+
 def all_points(polytopes):
     r"""
     Compute lattice points for all given ``polytopes``.
@@ -5331,6 +5336,7 @@ def all_points(polytopes):
                 p._points = PointCollection(points, M)
     result.close()
     os.remove(result_name)
+
 
 def all_polars(polytopes):
     r"""
@@ -5394,7 +5400,7 @@ def convex_hull(points):
         return []
     vpoints = []
     for p in points:
-        v = vector(ZZ,p)
+        v = vector(ZZ, p)
         if not v in vpoints:
             vpoints.append(v)
     p0 = vpoints[0]

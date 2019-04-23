@@ -346,7 +346,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = Hom(P,P)
             sage: f = H([x^2+y^2,y^2])
             sage: [g.op_list() for g in f._fastpolys]
-            [[('load_const', 0), ('load_const', 1), ('load_arg', 1), ('ipow', 2), 'mul', 'add', ('load_const', 1), ('load_arg', 0), ('ipow', 2), 'mul', 'add', 'return'], [('load_const', 0), ('load_const', 1), ('load_arg', 1), ('ipow', 2), 'mul', 'add', 'return']]
+            [[('load_const', 0), ('load_const', 1), ('load_arg', ...), ('ipow', 2), 'mul', 'add', ('load_const', 1), ('load_arg', ...), ('ipow', 2), 'mul', 'add', 'return'], [('load_const', 0), ('load_const', 1), ('load_arg', 1), ('ipow', 2), 'mul', 'add', 'return']]
         """
         polys = self._polys
 
@@ -720,7 +720,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             x^2 + x*y + 2*y^2
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.dynatomic_polynomial instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.dynatomic_polynomial instead")
         return self.as_dynamical_system().dynatomic_polynomial(period)
 
     def nth_iterate_map(self, n, normalize=False):
@@ -741,7 +741,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                     (x^4 + 2*x^2*y^2 + 2*y^4 : y^4)
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.nth_iterate_map instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.nth_iterate_map instead")
         return self.as_dynamical_system().nth_iterate_map(n, normalize)
 
     def nth_iterate(self, P, n, **kwds):
@@ -761,7 +761,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             (32768 : 32768)
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.nth_iterate instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.nth_iterate instead")
         return self.as_dynamical_system().nth_iterate(P, n, **kwds)
 
     def degree(self):
@@ -826,7 +826,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             [2, 3, 5, 8, 11, 17, 24, 31, 45, 56, 68, 91, 93, 184, 275]
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.degree_sequence instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.degree_sequence instead")
         return self.as_dynamical_system().degree_sequence(iterates)
 
     def dynamical_degree(self, N=3, prec=53):
@@ -844,7 +844,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             2.00000000000000
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.dynamical_degree instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.dynamical_degree instead")
         return self.as_dynamical_system().dynamical_degree(N, prec)
 
     def dehomogenize(self, n):
@@ -993,7 +993,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             [(1 : 2 : 1), (5 : 3 : 2), (34 : 5 : 8), (1181 : -39 : 128)]
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.orbit instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.orbit instead")
         return self.as_dynamical_system().orbit(P, N, **kwds)
 
     @cached_method
@@ -1095,7 +1095,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             ValueError: must be an endomorphism
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.primes_of_bad_reduction instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.primes_of_bad_reduction instead")
         if self.is_endomorphism():
             return self.as_dynamical_system().resultant(normalize)
         raise ValueError("must be an endomorphism")
@@ -1115,7 +1115,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             [2, 3]
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.primes_of_bad_reduction instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.primes_of_bad_reduction instead")
         return self.as_dynamical_system().primes_of_bad_reduction(check)
 
     def conjugate(self, M):
@@ -1135,7 +1135,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                     (x^2 + 4*x*y + 3*y^2 : y^2)
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.conjugate instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.conjugate instead")
         return self.as_dynamical_system().conjugate(M)
 
     def green_function(self, P, v, **kwds):
@@ -1154,7 +1154,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             1.6460930159932946233759277576
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.green_function instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.green_function instead")
         return self.as_dynamical_system().green_function(P, v, **kwds)
 
     def canonical_height(self, P, **kwds):
@@ -1172,7 +1172,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             2.1970553519503404898926835324
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.canonical_height instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.canonical_height instead")
         return self.as_dynamical_system().canonical_height(P, **kwds)
 
     def global_height(self, prec=None):
@@ -1349,7 +1349,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             1.38629436111989
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.height_difference_bound instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.height_difference_bound instead")
         return self.as_dynamical_system().height_difference_bound(prec)
 
     def multiplier(self, P, n, check=True):
@@ -1369,7 +1369,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             [0 2]
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.multiplier instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.multiplier instead")
         return self.as_dynamical_system().multiplier(P, n, check)
 
     def _multipliermod(self, P, n, p, k):
@@ -1387,7 +1387,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             [3]
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds._multipliermod instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds._multipliermod instead")
         return self.as_dynamical_system()._multipliermod(P, n, p, k)
 
     def possible_periods(self, **kwds):
@@ -1405,12 +1405,12 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             [1, 3]
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.possible_periods instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.possible_periods instead")
         return self.as_dynamical_system().possible_periods(**kwds)
 
     def _preperiodic_points_to_cyclegraph(self, preper):
         """
-        Return the directed graph of the given preperidoic points.
+        Return the directed graph of the given preperiodic points.
 
         Examples::
 
@@ -1424,7 +1424,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             Looped digraph on 6 vertices
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds._preperiodic_points_to_cyclegraph instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds._preperiodic_points_to_cyclegraph instead")
         return self.as_dynamical_system()._preperiodic_points_to_cyclegraph(preper)
 
     def is_PGL_minimal(self, prime_list=None):
@@ -1442,7 +1442,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             True
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.is_PGL_minimal instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.is_PGL_minimal instead")
         return self.as_dynamical_system().is_PGL_minimal(prime_list)
 
     def minimal_model(self, return_transformation=False, prime_list=None):
@@ -1468,7 +1468,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             )
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.minimal_model instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.minimal_model instead")
         return self.as_dynamical_system().minimal_model(return_transformation, prime_list)
 
     def automorphism_group(self, **kwds):
@@ -1486,7 +1486,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             [x, -x]
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.automorphism_group instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.automorphism_group instead")
         return self.as_dynamical_system().automorphism_group(**kwds)
 
     def wronskian_ideal(self):
@@ -1546,7 +1546,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             9*x^2*y^2 - 6*y^4
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.critical_points instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.critical_points instead")
         return self.as_dynamical_system().critical_subscheme()
 
     def critical_points(self, R=None):
@@ -1565,7 +1565,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             [(1 : 0)]
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.critical_subscheme instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.critical_subscheme instead")
         return self.as_dynamical_system().critical_points()
 
     def is_postcritically_finite(self, err=0.01, embedding=None):
@@ -1583,7 +1583,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             True
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.is_postcritically_finite instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.is_postcritically_finite instead")
         return self.as_dynamical_system().is_postcritically_finite(err, embedding)
 
     def critical_point_portrait(self, check=True, embedding=None):
@@ -1603,7 +1603,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             Looped digraph on 6 vertices
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.critical_point_portrait instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.critical_point_portrait instead")
         return self.as_dynamical_system().critical_point_portrait(check, embedding)
 
     def critical_height(self, **kwds):
@@ -1621,7 +1621,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             1.1989273321156851418802151128
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.critical_height instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.critical_height instead")
         return self.as_dynamical_system().critical_height(*kwds)
 
     def periodic_points(self, n, minimal=True, R=None, algorithm='variety', return_scheme=False):
@@ -1641,7 +1641,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             (1 : 1)]
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.periodic_points instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.periodic_points instead")
         return self.as_dynamical_system().periodic_points(n, minimal, R, algorithm, return_scheme)
 
     def multiplier_spectra(self, n, formal=False, embedding=None, type='point'):
@@ -1691,7 +1691,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             82911372672808161930567/8192, -119820502365680843999, 3553497751559301575157261317/8192]
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.multiplier_spectra instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.multiplier_spectra instead")
         return self.as_dynamical_system().multiplier_spectra(n, formal, embedding)
 
     def sigma_invariants(self, n, formal=False, embedding=None, type='point'):
@@ -1714,7 +1714,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             338523204830161116503153209450763500631714178825448006778305/72057594037927936, 0]
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.sigma_invariants instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.sigma_invariants instead")
         return self.as_dynamical_system().sigma_invariants(n, formal, embedding)
 
     def reduced_form(self, prec=300, return_conjugation=True, error_limit=0.000001):
@@ -1739,7 +1739,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             )
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.reduced_form instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.reduced_form instead")
         return self.as_dynamical_system().reduced_form(prec=prec,\
             return_conjugation=return_conjugation, error_limit=error_limit)
 
@@ -1761,7 +1761,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             [[(0 : 1), 2]]
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.lift_to_rational_periodic instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.lift_to_rational_periodic instead")
         return self.as_dynamical_system().lift_to_rational_periodic(points_modp, B)
 
     def rational_periodic_points(self, **kwds):
@@ -1779,7 +1779,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             [(-1/2 : 1), (1 : 0), (3/2 : 1)]
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.rational_periodic_points instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.rational_periodic_points instead")
         return self.as_dynamical_system().rational_periodic_points(**kwds)
 
     def rational_preimages(self, Q, k=1):
@@ -1982,19 +1982,19 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: H = End(P)
             sage: f = H([16*x^2 - 29*y^2, 16*y^2])
-            sage: f.all_rational_preimages([P(16*w^2 - 29,16)])
-            [(-w^2 + 21/16 : 1),
-             (w : 1),
-             (w + 1/2 : 1),
-             (w^2 + w - 33/16 : 1),
-             (-w^2 - w + 25/16 : 1),
-             (w^2 - 21/16 : 1),
-             (-w^2 - w + 33/16 : 1),
+            sage: sorted(f.all_rational_preimages([P(16*w^2 - 29,16)]),key=str)
+            [(-w - 1/2 : 1),
              (-w : 1),
-             (-w - 1/2 : 1),
+             (-w^2 + 21/16 : 1),
              (-w^2 + 29/16 : 1),
-             (w^2 - 29/16 : 1),
-             (w^2 + w - 25/16 : 1)]
+             (-w^2 - w + 25/16 : 1),
+             (-w^2 - w + 33/16 : 1),
+             (w + 1/2 : 1),
+             (w : 1),
+             (w^2 + w - 25/16 : 1),
+             (w^2 + w - 33/16 : 1),
+             (w^2 - 21/16 : 1),
+             (w^2 - 29/16 : 1)]
 
         ::
 
@@ -2006,7 +2006,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             [(-w : 1), (w : 1)]
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.all_rational_preimages instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.all_rational_preimages instead")
         return self.as_dynamical_system().all_rational_preimages(points)
 
     def rational_preperiodic_points(self, **kwds):
@@ -2025,7 +2025,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             (2 : 1)]
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.rational_preperiodic_points instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.rational_preperiodic_points instead")
         return self.as_dynamical_system().rational_preperiodic_points(**kwds)
 
     def rational_preperiodic_graph(self, **kwds):
@@ -2043,7 +2043,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             Looped digraph on 12 vertices
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.rational_preperiodic_graph instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.rational_preperiodic_graph instead")
         return self.as_dynamical_system().rational_preperiodic_graph(**kwds)
 
     def connected_rational_component(self, P, n=0):
@@ -2075,7 +2075,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
              (-w^2 - w + 33/16 : 1)]
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.connected_rational_component instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.connected_rational_component instead")
         return self.as_dynamical_system().connected_rational_component(P, n)
 
     def _number_field_from_algebraics(self):
@@ -2184,7 +2184,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             ]
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.conjugating_set instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.conjugating_set instead")
         return self.as_dynamical_system().conjugating_set(other)
 
     def is_conjugate(self, other):
@@ -2203,7 +2203,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             True
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.is_conjugate instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.is_conjugate instead")
         return self.as_dynamical_system().is_conjugate(other)
 
     def is_polynomial(self):
@@ -2223,7 +2223,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             False
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.is_polynomial instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.is_polynomial instead")
         return self.as_dynamical_system().is_polynomial()
 
     def normal_form(self, return_conjugation=False):
@@ -2244,7 +2244,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             [     0      1]
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.normal_form instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.normal_form instead")
         return self.as_dynamical_system().normal_form(return_conjugation)
 
     def indeterminacy_locus(self):
@@ -2460,7 +2460,7 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
             [0, 6]
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.orbit_structure instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.orbit_structure instead")
         return self.as_dynamical_system().orbit_structure(P)
 
     def cyclegraph(self):
@@ -2478,7 +2478,7 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
             Looped digraph on 14 vertices
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.cyclegraph instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.cyclegraph instead")
         return self.as_dynamical_system().cyclegraph()
 
     def possible_periods(self, return_points=False):
@@ -2496,7 +2496,7 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
             [1, 5, 11, 22, 110]
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.possible_periods instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.possible_periods instead")
         return self.as_dynamical_system().possible_periods(return_points)
 
     def automorphism_group(self, **kwds):
@@ -2517,6 +2517,6 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
             ]
         """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.automorphism_group instead")
+        deprecation(23497, "use sage.dynamics.arithmetic_dynamics.projective_ds.automorphism_group instead")
         return self.as_dynamical_system().automorphism_group(**kwds)
 

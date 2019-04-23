@@ -1043,6 +1043,28 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         J = F.maximal_order_infinite().ideal(self)
         return I.divisor_of_poles() + J.divisor_of_poles()
 
+    def higher_derivative(self, i, separating_element=None):
+        """
+        Return the `i`-th derivative of the element with respect to the
+        separating element.
+
+        INPUT:
+
+        - ``i`` -- nonnegative integer
+
+        - ``separating_element`` -- separating element of the function field;
+            the default is the generator of the rational function field
+
+        EXAMPLES::
+
+            sage: K.<t> = FunctionField(GF(2))
+            sage: f = t^2
+            sage: f.higher_derivative(2)
+            1
+        """
+        D = self.parent().higher_derivation()
+        return D(self, i, separating_element)
+
 cdef class FunctionFieldElement_global(FunctionFieldElement_polymod):
     """
     Elements of global function fields
@@ -1126,3 +1148,25 @@ cdef class FunctionFieldElement_global(FunctionFieldElement_polymod):
         I = F.maximal_order().ideal(self)
         J = F.maximal_order_infinite().ideal(self)
         return I.divisor_of_poles() + J.divisor_of_poles()
+
+    def higher_derivative(self, i, separating_element=None):
+        """
+        Return the ``i``-th order higher derivative of the element with respect
+        to the separating element.
+
+        INPUT:
+
+        - ``i`` -- nonnegative integer
+
+        - ``separating_element`` -- separating element of the function field;
+          the default is the generator of the base rational function field
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: (y^3 + x).higher_derivative(2)
+            1/x^3*y + (x^6 + x^4 + x^3 + x^2 + x + 1)/x^5
+        """
+        D = self.parent().higher_derivation()
+        return D(self, i, separating_element)

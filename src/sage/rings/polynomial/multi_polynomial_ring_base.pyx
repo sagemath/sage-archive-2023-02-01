@@ -1140,14 +1140,11 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
 
         REFERENCES:
 
-        .. [CLO] \D. Cox, J. Little, D. O'Shea. Using Algebraic Geometry.
-                 Springer, 2005.
+        - [CLO2005]_
 
-        .. [Can] \J. Canny. Generalised characteristic polynomials.
-                 J. Symbolic Comput. Vol. 9, No. 3, 1990, 241--250.
+        - [Can1990]_
 
-        .. [Mac] \F.S. Macaulay. The algebraic theory of modular systems
-                 Cambridge university press, 1916.
+        - [Mac1916]_
 
         AUTHORS:
 
@@ -1200,7 +1197,7 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
             ...
             TypeError: not all inputs are polynomials in the calling ring
 
-        The following example recreates Proposition 2.10 in Ch.3 in [CLO]::
+        The following example recreates Proposition 2.10 in Ch.3 in [CLO2005]::
 
             sage: K.<x,y> = PolynomialRing(ZZ, 2)
             sage: flist,R = K._macaulay_resultant_universal_polynomials([1,1,2])

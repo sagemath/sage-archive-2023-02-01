@@ -847,11 +847,9 @@ class PermutationGroup_generic(FiniteGroup):
         We check consistency of coercion maps::
 
             sage: L = list(DihedralGroup(4).subgroups())
-            sage: out = sys.stdout.write
             sage: for G1 in L:
-            ....:    for G2 in L:
-            ....:        out("x" if G1.has_coerce_map_from(G2) else " ")
-            ....:    out("\n")
+            ....:     print("".join("x" if G1.has_coerce_map_from(G2) else " "
+            ....:                   for G2 in L))
             x
             xx
             x x

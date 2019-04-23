@@ -39,7 +39,7 @@ decode_type_number = {
     T_INTPOS: 'T_INTPOS (positive integer)',
     T_INTNEG: 'T_INTNEG (negative integer)',
     T_RAT: 'T_RAT (rational number)',
-    T_CYC: 'T_CYC (universal cylotomic)',
+    T_CYC: 'T_CYC (universal cyclotomic)',
     T_FFE: 'T_FFE (finite field element)',
     T_PERM2: 'T_PERM2',
     T_PERM4: 'T_PERM4',
@@ -904,14 +904,14 @@ cdef class GapElement(RingElement):
             Error, no 1st choice method found for `+' on 2 arguments
         """
         cdef Obj result
-        sig_on()
         try:
-            GAP_Enter()
+            sig_GAP_Enter()
+            sig_on()
             result = SUM(self.value, (<GapElement>right).value)
-            return make_any_gap_element(self.parent(), result)
+            sig_off()
         finally:
             GAP_Leave()
-            sig_off()
+        return make_any_gap_element(self.parent(), result)
 
     cpdef _sub_(self, right):
         r"""
@@ -932,14 +932,14 @@ cdef class GapElement(RingElement):
             GAPError: Error, no method found! ...
         """
         cdef Obj result
-        sig_on()
         try:
-            GAP_Enter()
+            sig_GAP_Enter()
+            sig_on()
             result = DIFF(self.value, (<GapElement>right).value)
-            return make_any_gap_element(self.parent(), result)
+            sig_off()
         finally:
             GAP_Leave()
-            sig_off()
+        return make_any_gap_element(self.parent(), result)
 
 
     cpdef _mul_(self, right):
@@ -962,14 +962,14 @@ cdef class GapElement(RingElement):
             Error, no 1st choice method found for `*' on 2 arguments
         """
         cdef Obj result
-        sig_on()
         try:
-            GAP_Enter()
+            sig_GAP_Enter()
+            sig_on()
             result = PROD(self.value, (<GapElement>right).value)
-            return make_any_gap_element(self.parent(), result)
+            sig_off()
         finally:
             GAP_Leave()
-            sig_off()
+        return make_any_gap_element(self.parent(), result)
 
     cpdef _div_(self, right):
         r"""
@@ -996,14 +996,14 @@ cdef class GapElement(RingElement):
             GAPError: Error, Rational operations: <divisor> must not be zero
         """
         cdef Obj result
-        sig_on()
         try:
-            GAP_Enter()
+            sig_GAP_Enter()
+            sig_on()
             result = QUO(self.value, (<GapElement>right).value)
-            return make_any_gap_element(self.parent(), result)
+            sig_off()
         finally:
             GAP_Leave()
-            sig_off()
+        return make_any_gap_element(self.parent(), result)
 
     cpdef _mod_(self, right):
         r"""
@@ -1023,14 +1023,14 @@ cdef class GapElement(RingElement):
             Error, no 1st choice method found for `mod' on 2 arguments
         """
         cdef Obj result
-        sig_on()
         try:
-            GAP_Enter()
+            sig_GAP_Enter()
+            sig_on()
             result = MOD(self.value, (<GapElement>right).value)
-            return make_any_gap_element(self.parent(), result)
+            sig_off()
         finally:
             GAP_Leave()
-            sig_off()
+        return make_any_gap_element(self.parent(), result)
 
     cpdef _pow_(self, other):
         r"""
@@ -2407,9 +2407,9 @@ cdef class GapElement_Function(GapElement):
             libgap = self.parent()
             a = [x if isinstance(x, GapElement) else libgap(x) for x in args]
 
-        sig_on()
         try:
-            GAP_Enter()
+            sig_GAP_Enter()
+            sig_on()
             if n == 0:
                 result = CALL_0ARGS(self.value)
             elif n == 1:
@@ -2448,15 +2448,13 @@ cdef class GapElement_Function(GapElement):
             elif n >= 7:
                 arg_list = make_gap_list(args)
                 result = CALL_XARGS(self.value, arg_list)
-
-            if result == NULL:
-                # We called a procedure that does not return anything
-                return None
-
-            return make_any_gap_element(self.parent(), result)
+            sig_off()
         finally:
             GAP_Leave()
-            sig_off()
+        if result == NULL:
+            # We called a procedure that does not return anything
+            return None
+        return make_any_gap_element(self.parent(), result)
 
 
 
@@ -3105,10 +3103,10 @@ cdef class GapElement_Record(GapElement):
         try:
             GAP_Enter()
             result = ELM_REC(self.value, i)
-            return make_any_gap_element(self.parent(), result)
         finally:
             GAP_Leave()
             sig_off()
+        return make_any_gap_element(self.parent(), result)
 
     def sage(self):
         r"""
@@ -3123,11 +3121,11 @@ cdef class GapElement_Record(GapElement):
 
             sage: rec = libgap.eval('rec(a:=123, b:=456, Sym3:=SymmetricGroup(3))')
             sage: rec.sage()
-            {'Sym3': NotImplementedError('cannot construct equivalent Sage object',),
+            {'Sym3': NotImplementedError('cannot construct equivalent Sage object'...),
              'a': 123,
              'b': 456}
         """
-        result = dict()
+        result = {}
         for key, val in self:
             try:
                 val = val.sage()

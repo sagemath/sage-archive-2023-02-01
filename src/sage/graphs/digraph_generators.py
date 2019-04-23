@@ -20,8 +20,8 @@ build by typing ``digraphs.`` in Sage and then hitting tab.
     :delim: |
 
     :meth:`~DiGraphGenerators.ButterflyGraph`      | Return a `n`-dimensional butterfly graph.
-    :meth:`~DiGraphGenerators.Circuit`             | Returns the circuit on `n` vertices.
-    :meth:`~DiGraphGenerators.Circulant`           | Returns a circulant digraph on `n` vertices from a set of integers.
+    :meth:`~DiGraphGenerators.Circuit`             | Return the circuit on `n` vertices.
+    :meth:`~DiGraphGenerators.Circulant`           | Return a circulant digraph on `n` vertices from a set of integers.
     :meth:`~DiGraphGenerators.Complete`            | Return a complete digraph on `n` vertices.
     :meth:`~DiGraphGenerators.DeBruijn`            | Return the De Bruijn digraph with parameters `k,n`.
     :meth:`~DiGraphGenerators.GeneralizedDeBruijn` | Return the generalized de Bruijn digraph of order `n` and degree `d`.
@@ -698,10 +698,10 @@ class DiGraphGenerators():
 
         INPUT:
 
-        - ``n`` (integer) -- number of vertices.
+        - ``n`` -- integer; number of vertices
 
-        - ``loops`` (boolean) -- whether to add loops or not, i.e., edges from
-          `u` to itself.
+        - ``loops`` -- boolean (default: ``False``); whether to add loops or
+          not, i.e., edges from `u` to itself
 
         .. SEEALSO::
 
@@ -725,22 +725,22 @@ class DiGraphGenerators():
             ...
             ValueError: the number of vertices cannot be strictly negative
         """
-        G = DiGraph(n, name="Complete digraph"+(" with loops" if loops else ''), loops=loops)
+        G = DiGraph(n, name="Complete digraph" + (" with loops" if loops else ''), loops=loops)
 
         if loops:
-            G.add_edges((u,u) for u in range(n))
+            G.add_edges((u, u) for u in range(n))
 
-        G.add_edges((u,v) for u in range(n) for v in range(n) if u!=v)
+        G.add_edges((u, v) for u in range(n) for v in range(n) if u != v)
 
         G._circle_embedding(list(range(n)))
 
         return G
 
-    def Circuit(self,n):
+    def Circuit(self, n):
         r"""
-        Returns the circuit on `n` vertices
+        Return the circuit on `n` vertices.
 
-        The circuit is an oriented ``CycleGraph``
+        The circuit is an oriented ``CycleGraph``.
 
         EXAMPLES:
 
@@ -750,30 +750,28 @@ class DiGraphGenerators():
             sage: len(circuit.strongly_connected_components()) == 1
             True
         """
-        g = DiGraph(n)
-        g.name("Circuit")
+        g = DiGraph(n, name="Circuit")
 
-        if n==0:
-            return g
-        elif n == 1:
+        if n == 1:
             g.allow_loops(True)
-            g.add_edge(0,0)
+            g.add_edge(0, 0)
             return g
-        else:
-            g.add_edges([(i,i+1) for i in range(n-1)])
-            g.add_edge(n-1,0)
-            return g
+        elif n:
+            g.add_edges(zip(range(n - 1), range(1, n)))
+            g.add_edge(n - 1, 0)
+        return g
 
-    def Circulant(self,n,integers):
+    def Circulant(self, n, integers):
         r"""
-        Returns a circulant digraph on `n` vertices from a set of integers.
+        Return a circulant digraph on `n` vertices from a set of integers.
 
         INPUT:
 
-        - ``n`` (integer) -- number of vertices.
+        - ``n`` -- integer; number of vertices
 
-        - ``integers`` -- the list of integers such that there is an edge from
-          `i` to `j` if and only if ``(j-i)%n in integers``.
+        - ``integers`` -- iterable container (list, set, etc.) of integers such
+          that there is an edge from `i` to `j` if and only if ``(j-i)%n in
+          integers``
 
         EXAMPLES::
 
@@ -785,11 +783,11 @@ class DiGraphGenerators():
             sage: digraphs.Circulant(13,[3,5,7,"hey"])
             Traceback (most recent call last):
             ...
-            ValueError: The list must contain only relative integers.
+            ValueError: the list must contain only integers
             sage: digraphs.Circulant(3,[3,5,7,3.4])
             Traceback (most recent call last):
             ...
-            ValueError: The list must contain only relative integers.
+            ValueError: the list must contain only integers
         """
         from sage.rings.integer_ring import ZZ
 
@@ -797,15 +795,15 @@ class DiGraphGenerators():
         loops = False
         for i in integers:
             if not i in ZZ:
-                raise ValueError("The list must contain only relative integers.")
-            if (i%n) == 0:
+                raise ValueError("the list must contain only integers")
+            if not i % n:
                 loops = True
 
-        G = DiGraph(n, name="Circulant graph ("+str(integers)+")", loops=loops)
+        G = DiGraph(n, name="Circulant graph (" + str(integers) + ")", loops=loops)
 
         G._circle_embedding(list(range(n)))
         for v in range(n):
-            G.add_edges([(v,(v+j)%n) for j in integers])
+            G.add_edges((v, (v + j) % n) for j in integers)
 
         return G
 

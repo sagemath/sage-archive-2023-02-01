@@ -1737,7 +1737,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
         # convenient for internal purposes.
         if "_ray_to_cones_tuple" not in self.__dict__:
             ray_to_cones = []
-            for ray in self.rays():
+            for _ in self.rays():
                 ray_to_cones.append([])
             for k, cone in enumerate(self):
                 for j in cone.ambient_ray_indices():
@@ -3084,8 +3084,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
         REFERENCES:
 
-        .. [Baty91] \V. V. Batyrev, *On the classification of smooth projective
-                    toric varieties*, Tohoku Math. J. **43** (1991), 569-585
+        - [Bat1991]_
 
         EXAMPLES::
 

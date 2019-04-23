@@ -31,8 +31,17 @@ AC_DEFUN_ONCE([SAGE_SPKG_CONFIGURE_]m4_toupper($1), [
 m4_pushdef([SPKG_NAME], [$1])
 m4_pushdef([SPKG_INSTALL_VAR], [sage_spkg_install_]SPKG_NAME)
 m4_pushdef([SPKG_REQUIRE_VAR], [sage_require_]SPKG_NAME)
+m4_pushdef([SPKG_USE_SYSTEM], [sage_use_system_]SPKG_NAME)
 # BEGIN SAGE_SPKG_CONFIGURE_]m4_toupper($1)[
 AC_MSG_NOTICE([=== checking whether to install the $1 SPKG ===])
+AC_ARG_WITH([system-]SPKG_NAME,
+       AS_HELP_STRING(--with-system-SPKG_NAME,
+           [detect and use an existing system SPKG_NAME (default is yes)]),
+       [AS_VAR_SET(SPKG_USE_SYSTEM, [$withval])],
+       [AS_VAR_SET(SPKG_USE_SYSTEM, [yes])]
+)
+m4_divert_once([HELP_WITH], AS_HELP_STRING(--with-system-SPKG_NAME=force,
+   [require use of an existing system SPKG_NAME]))
 m4_ifval(
 [$2],
 [AS_VAR_SET_IF(SPKG_INSTALL_VAR, [], SPKG_INSTALL_VAR[=no])],
@@ -42,8 +51,19 @@ AS_VAR_SET_IF(SPKG_REQUIRE_VAR, [], SPKG_REQUIRE_VAR[=no])
 $3
 ],
 [AS_VAR_SET_IF(SPKG_REQUIRE_VAR, [], SPKG_REQUIRE_VAR[=yes])])
-AS_VAR_IF(SPKG_REQUIRE_VAR, [yes], [$2], SPKG_INSTALL_VAR[=no])
+AS_VAR_IF(SPKG_USE_SYSTEM, [no], SPKG_INSTALL_VAR[=yes], [
+    AS_VAR_IF(SPKG_REQUIRE_VAR, [yes], [$2], SPKG_INSTALL_VAR[=no])
+])
+AS_VAR_IF(SPKG_USE_SYSTEM, [force], [
+    AS_VAR_IF(SPKG_INSTALL_VAR, [yes], [
+        AC_MSG_ERROR(m4_normalize([
+            given --with-system-]SPKG_NAME[=force but the package could not
+            be found on the system
+        ]))
+    ])
+])
 # END SAGE_SPKG_CONFIGURE_]m4_toupper($1)[
+m4_popdef([SPKG_USE_SYSTEM])
 m4_popdef([SPKG_REQUIRE_VAR])
 m4_popdef([SPKG_INSTALL_VAR])
 m4_popdef([SPKG_NAME])

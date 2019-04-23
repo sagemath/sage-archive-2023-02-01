@@ -40,10 +40,10 @@ Sage example in ./graphtheory.tex, line 128::
   sage: g.delete_edges([(1,5), (2,5)])
   sage: g.order(), g.size()
   (6, 3)
-  sage: g.vertices()
+  sage: sorted(g.vertices(sort=False), key=str)
   [1, 2, 5, 9, 'Edinburgh', 'Madrid']
-  sage: g.edges()
-  [(1, 9, None), (2, 9, None), ('Edinburgh', 'Madrid', None)]
+  sage: sorted(g.edges(sort=False, labels=False), key=str)
+  [('Edinburgh', 'Madrid'), (1, 9), (2, 9)]
 
 Sage example in ./graphtheory.tex, line 159::
 
@@ -280,8 +280,8 @@ Sage example in ./graphtheory.tex, line 1736::
 Sage example in ./graphtheory.tex, line 1746::
 
   sage: P = Permutations(range(g.order()))
-  sage: n_colors, coloration = min(
-  ....:    greedy_coloring(g, P.random_element()) for i in range(50))
+  sage: n_colors, coloration = min([greedy_coloring(g, P.random_element())
+  ....:     for i in range(50)], key=lambda c: c[0])
   sage: n_colors
   4
 

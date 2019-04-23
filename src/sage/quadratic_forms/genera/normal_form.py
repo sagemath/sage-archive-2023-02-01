@@ -77,15 +77,15 @@ AUTHORS:
 - Simon Brandhorst (2018-01): initial version
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2018 Simon Branhdorst <sbrandhorst@web.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.rings.all import Zp, ZZ, GF
 from sage.matrix.constructor import Matrix
@@ -253,10 +253,10 @@ def p_adic_normal_form(G, p, precision=None, partial=False, debug=False):
 
     # continue with the non-degenerate part
     G = nondeg * G * nondeg.T * p**d
-    if precision == None:
+    if precision is None:
         # in Zp(2) we have to calculate at least mod 8 for things to make sense.
         precision = G.det().valuation(p) + 4
-    R = Zp(p, prec = precision, type = 'fixed-mod')
+    R = Zp(p, prec=precision, type='fixed-mod')
     G = G.change_ring(R)
     G.set_immutable() # is not changed during computation
     D = copy(G)    # is transformed into jordan form

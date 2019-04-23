@@ -40,7 +40,7 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
 #       Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu.au>
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -50,9 +50,8 @@ AUTHORS:
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+# ****************************************************************************
+from __future__ import print_function, absolute_import
 
 from sage.arith.misc import is_prime
 from sage.categories.fields import Fields
@@ -3188,7 +3187,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         but is slow as the defining equations of the variety get more
         complicated.
 
-        For rational map, where there are potentially infinitely many peiodic
+        For rational map, where there are potentially infinitely many periodic
         points of a given period, you must use the ``return_scheme`` option.
         Note that this scheme will include the indeterminacy locus.
 
@@ -4104,7 +4103,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             except NotImplementedError: #not factorization in numericla rings
                 CF = ComplexField(prec=prec)
                 if pts_poly.base_ring() != CF:
-                    if emb == None:
+                    if emb is None:
                         pts_poly_CF = pts_poly.change_ring(CF)
                     else:
                         pts_poly_CF = pts_poly.change_ring(emb)
@@ -4124,7 +4123,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 except NotImplementedError: #not factorization in numericla rings
                     CF = ComplexField(prec=prec)
                     if pts_poly.base_ring() != CF:
-                        if emb == None:
+                        if emb is None:
                             pts_poly_CF = pts_poly.change_ring(CF)
                         else:
                             pts_poly_CF = pts_poly.change_ring(emb)

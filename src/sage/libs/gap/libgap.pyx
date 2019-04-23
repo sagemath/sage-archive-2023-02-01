@@ -128,7 +128,7 @@ convert the entries into Sage objects, you should use the
 :meth:`~sage.libs.gap.element.GapElement.sage` method::
 
     sage: rec.sage()
-    {'Sym3': NotImplementedError('cannot construct equivalent Sage object',),
+    {'Sym3': NotImplementedError('cannot construct equivalent Sage object'...),
      'a': 123,
      'b': 456}
 
@@ -231,15 +231,6 @@ from sage.misc.superseded import deprecated_function_alias, deprecation
 ############################################################################
 ### Debugging ##############################################################
 ############################################################################
-
-
-cdef void report(Obj bag):
-    print(TNAM_OBJ(bag),  <int>SIZE_OBJ(bag))
-
-
-cdef void print_gasman_objects():
-    CallbackForAllBags(report)
-
 
 from sage.misc.lazy_import import is_during_startup
 if is_during_startup():
@@ -715,7 +706,7 @@ class Gap(Parent):
 
         This includes the total memory allocated by GAP as returned by
         ``libgap.eval('TotalMemoryAllocated()'), as well as garbage collection
-        / object count statistitics as returned by
+        / object count statistics as returned by
         ``libgap.eval('GasmanStatistics')``, and finally the total number of
         GAP objects held by Sage as :class:`~sage.libs.gap.element.GapElement`
         instances.

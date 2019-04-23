@@ -222,12 +222,12 @@ class Polytopes():
 
         TESTS::
 
-            sage: octagon = polytopes.regular_polygon(8, backend='normaliz')  # optional - pyqnormaliz
-            sage: octagon                                                     # optional - pyqnormaliz
+            sage: octagon = polytopes.regular_polygon(8, backend='normaliz')  # optional - pynormaliz
+            sage: octagon                                                     # optional - pynormaliz
             A 2-dimensional polyhedron in AA^2 defined as the convex hull of 8 vertices
-            sage: octagon.n_vertices()                                        # optional - pyqnormaliz
+            sage: octagon.n_vertices()                                        # optional - pynormaliz
             8
-            sage: octagon.volume()                                            # optional - pyqnormaliz
+            sage: octagon.volume()                                            # optional - pynormaliz
             2.828427124746190?
         """
         n = ZZ(n)
@@ -427,10 +427,10 @@ class Polytopes():
 
         TESTS::
 
-            sage: ico = polytopes.icosahedron(backend='normaliz')  # optional - pyqnormaliz
-            sage: ico.f_vector()                                   # optional - pyqnormaliz
+            sage: ico = polytopes.icosahedron(backend='normaliz')  # optional - pynormaliz
+            sage: ico.f_vector()                                   # optional - pynormaliz
             (1, 12, 30, 20, 1)
-            sage: ico.volume()                                     # optional - pyqnormaliz
+            sage: ico.volume()                                     # optional - pynormaliz
             5/12*sqrt5 + 5/4
 
         """
@@ -494,8 +494,8 @@ class Polytopes():
 
         TESTS::
 
-            sage: d12 = polytopes.dodecahedron(backend='normaliz')  # optional - pyqnormaliz
-            sage: d12.f_vector()                                    # optional - pyqnormaliz
+            sage: d12 = polytopes.dodecahedron(backend='normaliz')  # optional - pynormaliz
+            sage: d12.f_vector()                                    # optional - pynormaliz
             (1, 20, 30, 12, 1)
 
         """
@@ -546,10 +546,10 @@ class Polytopes():
 
         TESTS::
 
-            sage: sr = polytopes.small_rhombicuboctahedron(backend='normaliz')  # optional - pyqnormaliz
-            sage: sr.f_vector()                                                 # optional - pyqnormaliz
+            sage: sr = polytopes.small_rhombicuboctahedron(backend='normaliz')  # optional - pynormaliz
+            sage: sr.f_vector()                                                 # optional - pynormaliz
             (1, 24, 48, 26, 1)
-            sage: sr.volume()                                                   # optional - pyqnormaliz
+            sage: sr.volume()                                                   # optional - pynormaliz
             80/3*sqrt2 + 32
         """
         if base_ring is None and exact:
@@ -764,8 +764,8 @@ class Polytopes():
 
         TESTS::
 
-            sage: co = polytopes.truncated_cube(backend='normaliz')  # optional - pyqnormaliz
-            sage: co.f_vector()                                      # optional - pyqnormaliz
+            sage: co = polytopes.truncated_cube(backend='normaliz')  # optional - pynormaliz
+            sage: co.f_vector()                                      # optional - pynormaliz
             (1, 24, 36, 14, 1)
 
         """
@@ -1100,10 +1100,10 @@ class Polytopes():
 
         TESTS::
 
-            sage: bb = polytopes.buckyball(backend='normaliz')  # optional - pyqnormaliz
-            sage: bb.f_vector()                                 # optional - pyqnormaliz
+            sage: bb = polytopes.buckyball(backend='normaliz')  # optional - pynormaliz
+            sage: bb.f_vector()                                 # optional - pynormaliz
             (1, 60, 90, 32, 1)
-            sage: bb.base_ring()                                # optional - pyqnormaliz
+            sage: bb.base_ring()                                # optional - pynormaliz
             Number Field in sqrt5 with defining polynomial x^2 - 5
 
         """
@@ -1135,10 +1135,10 @@ class Polytopes():
             sage: polytopes.icosidodecahedron(exact=False)
             A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 30 vertices
 
-            sage: id = polytopes.icosidodecahedron(backend='normaliz')  # optional - pyqnormaliz
-            sage: id.f_vector()                                         # optional - pyqnormaliz
+            sage: id = polytopes.icosidodecahedron(backend='normaliz')  # optional - pynormaliz
+            sage: id.f_vector()                                         # optional - pynormaliz
             (1, 30, 60, 32, 1)
-            sage: id.base_ring()                                        # optional - pyqnormaliz
+            sage: id.base_ring()                                        # optional - pynormaliz
             Number Field in sqrt5 with defining polynomial x^2 - 5
         """
         from sage.rings.number_field.number_field import QuadraticField
@@ -1207,10 +1207,10 @@ class Polytopes():
 
         TESTS::
 
-            sage: id = polytopes.icosidodecahedron_V2(backend='normaliz')  # optional - pyqnormaliz
-            sage: id.f_vector()                                            # optional - pyqnormaliz
+            sage: id = polytopes.icosidodecahedron_V2(backend='normaliz')  # optional - pynormaliz
+            sage: id.f_vector()                                            # optional - pynormaliz
             (1, 30, 60, 32, 1)
-            sage: id.base_ring()                                           # optional - pyqnormaliz
+            sage: id.base_ring()                                           # optional - pynormaliz
             Number Field in sqrt5 with defining polynomial x^2 - 5
 
         """
@@ -1285,10 +1285,10 @@ class Polytopes():
 
         TESTS::
 
-            sage: td = polytopes.truncated_dodecahedron(backend='normaliz')  # optional - pyqnormaliz
-            sage: td.f_vector()                                              # optional - pyqnormaliz
+            sage: td = polytopes.truncated_dodecahedron(backend='normaliz')  # optional - pynormaliz
+            sage: td.f_vector()                                              # optional - pynormaliz
             (1, 60, 90, 32, 1)
-            sage: td.base_ring()                                             # optional - pyqnormaliz
+            sage: td.base_ring()                                             # optional - pynormaliz
             Number Field in sqrt5 with defining polynomial x^2 - 5
 
         """
@@ -1445,10 +1445,10 @@ class Polytopes():
 
         TESTS::
 
-            sage: rid = polytopes.rhombicosidodecahedron(backend='normaliz')  # optional - pyqnormaliz
-            sage: rid.f_vector()                                              # optional - pyqnormaliz
+            sage: rid = polytopes.rhombicosidodecahedron(backend='normaliz')  # optional - pynormaliz
+            sage: rid.f_vector()                                              # optional - pynormaliz
             (1, 60, 120, 62, 1)
-            sage: rid.base_ring()                                             # optional - pyqnormaliz
+            sage: rid.base_ring()                                             # optional - pynormaliz
             Number Field in sqrt5 with defining polynomial x^2 - 5
 
         """
@@ -1522,10 +1522,10 @@ class Polytopes():
 
         TESTS::
 
-            sage: ti = polytopes.truncated_icosidodecahedron(backend='normaliz')  # optional - pyqnormaliz
-            sage: ti.f_vector()                                                   # optional - pyqnormaliz
+            sage: ti = polytopes.truncated_icosidodecahedron(backend='normaliz')  # optional - pynormaliz
+            sage: ti.f_vector()                                                   # optional - pynormaliz
             (1, 120, 180, 62, 1)
-            sage: ti.base_ring()                                                  # optional - pyqnormaliz
+            sage: ti.base_ring()                                                  # optional - pynormaliz
             Number Field in sqrt5 with defining polynomial x^2 - 5
 
         """
@@ -1591,10 +1591,10 @@ class Polytopes():
 
         TESTS::
 
-            sage: sd = polytopes.snub_dodecahedron(base_ring=AA, backend='normaliz') # optional - pyqnormaliz, not tested - very long time
-            sage: sd.f_vector()                                                      # optional - pyqnormaliz, not tested - very long time
+            sage: sd = polytopes.snub_dodecahedron(base_ring=AA, backend='normaliz') # optional - pynormaliz, not tested - very long time
+            sage: sd.f_vector()                                                      # optional - pynormaliz, not tested - very long time
             (1, 60, 150, 92, 1)
-            sage: sd.base_ring()                                                     # optional - pyqnormaliz, not tested - very long time
+            sage: sd.base_ring()                                                     # optional - pynormaliz, not tested - very long time
             Algebraic Real Field
         """
         if base_ring is None:
@@ -1702,8 +1702,8 @@ class Polytopes():
 
         TESTS::
 
-            sage: p600 = polytopes.six_hundred_cell(exact=True, backend='normaliz') # optional - pyqnormaliz
-            sage: len(list(p600.bounded_edges()))                                   # optional - pyqnormaliz
+            sage: p600 = polytopes.six_hundred_cell(exact=True, backend='normaliz') # optional - pynormaliz
+            sage: len(list(p600.bounded_edges()))                                   # optional - pynormaliz
             720
 
         """
@@ -1768,8 +1768,8 @@ class Polytopes():
 
         TESTS::
 
-            sage: gap = polytopes.grand_antiprism(exact=True, backend='normaliz')  # optional - pyqnormaliz
-            sage: gap                                                              # optional - pyqnormaliz
+            sage: gap = polytopes.grand_antiprism(exact=True, backend='normaliz')  # optional - pynormaliz
+            sage: gap                                                              # optional - pynormaliz
             A 4-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^4 defined as the convex hull of 100 vertices
         """
         from itertools import product

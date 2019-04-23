@@ -45,7 +45,7 @@ def _format_function_call(fn_name, *v, **k):
 
     EXAMPLES::
 
-        sage: from sage.numerical.backends.logging_backend import _format_function_call
+        sage: from sage.geometry.polyhedron.backend_normaliz import _format_function_call
         sage: _format_function_call('foo', 17, hellooooo='goodbyeeee')
         "foo(17, hellooooo='goodbyeeee')"
     """

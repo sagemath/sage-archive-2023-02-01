@@ -1186,7 +1186,7 @@ class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder):
         # places for which the theorem does not apply.
 
         # this element is integral over k[x] and a generator of the field.
-        for gen in basis[1:]:
+        for gen in basis:
             phi = gen.minimal_polynomial()
             if phi.degree() == n:
                 break

@@ -1230,9 +1230,6 @@ cpdef johnson_closeness_centrality(g, weight_function=None):
         sig_check()
     return {v: closeness[i] for i,v in enumerate(int_to_v) if closeness[i] != sys.float_info.max}
 
-cpdef w_f(e):
-    return 1
-
 cpdef min_cycle_basis(g_sage, weight_function=None, by_weight=False):
     r"""
     Return a minimum weight cycle basis of the input graph ``g_sage``.
@@ -1289,7 +1286,7 @@ cpdef min_cycle_basis(g_sage, weight_function=None, by_weight=False):
     # We just need the edges of any spanning tree here not necessarily a
     # minimum spanning tree.
     
-    cdef list sp_edges = min_spanning_tree(g_sage, weight_function=w_f)
+    cdef list sp_edges = min_spanning_tree(g_sage)
     cdef cset[pair[int, int]] edges_s
     for a, b, c in sp_edges:
         edges_s.insert((a, b))

@@ -1021,6 +1021,13 @@ class Polytopes():
              A vertex at (1, z^2, z))
             sage: sc_exact.is_combinatorially_isomorphic(sc_inexact) #long time
             True
+
+        TESTS::
+
+            sage: sc = polytopes.snub_cube(exact=True, backend='normaliz')  # optional - pynormaliz
+            sage: sc.f_vector()                                             # optional - pynormaliz
+            (1, 24, 60, 38, 1)
+
         """
         def construct_z(field):
             # z here is the reciprocal of the tribonacci constant, that is, the

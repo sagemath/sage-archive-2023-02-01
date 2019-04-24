@@ -1000,7 +1000,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
         log_factor = _log_factor_
 
 
-        def _log_factor_(self, base=None):
+        def _log_factor_(self, base=None, log=None):
             r"""
             Helper method for calculating the logarithm of the factorization
             of this element.
@@ -1009,6 +1009,10 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
             - ``base`` -- the base of the logarithm. If ``None``
               (default value) is used, the natural logarithm is taken.
+
+            - ``log`` -- a function. If ``None`` (default value)
+              is used, then the usual
+              :class:`log <sage.functions.log.Function_log>` is taken.
 
             OUTPUT:
 
@@ -1035,7 +1039,9 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
             try:
                 return sum(iter(tuple((try_create_growth(g), c)
-                                      for g, c in factor._log_factor_(base=base))
+                                      for g, c in
+                                      factor._log_factor_(base=base,
+                                                          log=log))
                                 for factor in self.cartesian_factors()
                                 if factor != factor.parent().one()),
                            tuple())

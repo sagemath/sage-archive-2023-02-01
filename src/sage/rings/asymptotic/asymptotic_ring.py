@@ -1932,7 +1932,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                    for element in self.summands.maximal_elements())
 
 
-    def log(self, base=None, precision=None):
+    def log(self, base=None, precision=None, log=None):
         r"""
         The logarithm of this asymptotic expansion.
 
@@ -1944,6 +1944,10 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         - ``precision`` -- the precision used for truncating the
           expansion. If ``None`` (default value) is used, the
           default precision of the parent is used.
+
+        - ``log`` -- a function. If ``None`` (default value)
+          is used, then the usual
+          :class:`log <sage.functions.log.Function_log>` is taken.
 
         OUTPUT:
 
@@ -1977,8 +1981,39 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: log(x-1)
             log(x) - x^(-1) - 1/2*x^(-2) - 1/3*x^(-3) - ... + O(x^(-21))
 
+        The coefficient ring is automatically extended if needed::
+
+            sage: R.<x> = AsymptoticRing(growth_group='x^ZZ * log(x)^ZZ', coefficient_ring=ZZ, default_prec=3)
+            sage: (49*x^3-1).log()
+            3*log(x) + 2*log(7) - 1/49*x^(-3) - 1/4802*x^(-6) ... + O(x^(-12))
+            sage: _.parent()
+            Asymptotic Ring <x^ZZ * log(x)^ZZ> over Symbolic Ring
+
+        If one wants to avoid this extending to the Symbolic Ring, then
+        the following helps::
+
+            sage: L.<log7> = ZZ[]
+            sage: def mylog(z, base=None):
+            ....:     try:
+            ....:         if ZZ(z).is_power_of(7):
+            ....:             return log(ZZ(z), 7) * log7
+            ....:     except (TypeError, ValueError):
+            ....:         pass
+            ....:     return log(z, base)
+            sage: R.<x> = AsymptoticRing(growth_group='x^ZZ * log(x)^ZZ', coefficient_ring=L, default_prec=3)
+            sage: (49*x^3-1).log(log=mylog)
+            3*log(x) + 2*log7 - 1/49*x^(-3) - 1/4802*x^(-6) ... + O(x^(-12))
+
+        A ``log``-function can also be specified to always be used with the
+        asymptotic ring::
+
+            sage: R.<x> = AsymptoticRing(growth_group='x^ZZ * log(x)^ZZ', coefficient_ring=L, default_prec=3, log=mylog)
+            sage: log(49*x^3-1)
+            3*log(x) + 2*log7 - 1/49*x^(-3) - 1/4802*x^(-6) - 1/352947*x^(-9) + O(x^(-12))
+
         TESTS::
 
+            sage: R.<x> = AsymptoticRing(growth_group='x^ZZ * log(x)^ZZ', coefficient_ring=QQ)
             sage: log(R(1))
             0
             sage: log(R(0))
@@ -1995,6 +2030,9 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         """
         P = self.parent()
 
+        if log is None:
+            log = P.log
+
         if not self.summands:
             raise ArithmeticError('Cannot compute log(0) in %s.' % (self.parent(),))
 
@@ -2003,7 +2041,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                 return P.zero()
             element = next(self.summands.elements())
             return sum(P._create_element_in_extension_(l, element.parent())
-                       for l in element.log_term(base=base))
+                       for l in element.log_term(base=base,
+                                                 log=log))
 
         (max_elem, x) = self._main_term_relative_error_()
         geom = -x
@@ -2019,10 +2058,11 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ratio_start=geom,
             precision=precision)
 
-        result += x.parent()(max_elem).log()
         if base:
-            from sage.functions.log import log
             result = result / log(base)
+
+        result += x.parent()(max_elem).log(base=base, log=log)
+
         return result
 
 
@@ -3303,6 +3343,11 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
       If ``None``, then :class:`~sage.rings.asymptotic.term_monoid.DefaultTermMonoidFactory`
       is used.
 
+    - ``log`` -- a function. If ``None`` (default value)
+      is used, then the usual
+      :class:`log <sage.functions.log.Function_log>` is taken.
+      (See also :meth:`AsymptoticExpansion.log`.)
+
     EXAMPLES:
 
     We begin with the construction of an asymptotic ring in various
@@ -3401,7 +3446,8 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
     @staticmethod
     def __classcall__(cls, growth_group=None, coefficient_ring=None,
                       names=None, category=None, default_prec=None,
-                      term_monoid_factory=None):
+                      term_monoid_factory=None,
+                      log=None):
         r"""
         Normalizes the input in order to ensure a unique
         representation of the parent.
@@ -3535,11 +3581,12 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
                      cls).__classcall__(cls, growth_group, coefficient_ring,
                                         category=category,
                                         default_prec=default_prec,
-                                        term_monoid_factory=term_monoid_factory)
+                                        term_monoid_factory=term_monoid_factory,
+                                        log=log)
 
     def __init__(self, growth_group, coefficient_ring,
                  category, default_prec,
-                 term_monoid_factory):
+                 term_monoid_factory, log):
         r"""
         See :class:`AsymptoticRing` for more information.
 
@@ -3563,6 +3610,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         self._growth_group_ = growth_group
         self._default_prec_ = default_prec
         self._term_monoid_factory_ = term_monoid_factory
+        self._log_ = log
         super(AsymptoticRing, self).__init__(base_ring=coefficient_ring,
                                              category=category)
 
@@ -3668,6 +3716,34 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         return TermMonoid(type, asymptotic_ring=self)
 
 
+    @property
+    def log(self):
+        r"""
+        The log function used for computations in this asymptotic ring.
+
+        EXAMPLES::
+
+            sage: AR = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
+            sage: AR.log
+            <function log at 0x...>
+            sage: AR = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ, log=log)
+            sage: AR.log
+            <function log at 0x...>
+            sage: def mylog(z):
+            ....:     return log(z)
+            sage: AR = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ, log=mylog)
+            sage: AR.log
+            <function mylog at 0x...>
+
+        .. SEEALSO::
+
+            :meth:`AsymptoticExpansion.log`
+        """
+        if self._log_ is None:
+            from sage.functions.log import log
+            return log
+        return self._log_
+
 
     def change_parameter(self, **kwds):
         r"""
@@ -3701,7 +3777,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             True
         """
         parameters = ('growth_group', 'coefficient_ring', 'default_prec',
-                      'term_monoid_factory')
+                      'term_monoid_factory', 'log')
         values = dict()
         for parameter in parameters:
             default = getattr(self, parameter)
@@ -4567,7 +4643,7 @@ class AsymptoticRingFunctor(ConstructionFunctor):
 
     def __init__(self, growth_group,
                  default_prec=None, category=None,
-                 term_monoid_factory=None,
+                 term_monoid_factory=None, log=None,
                  cls=None):
         r"""
         See :class:`AsymptoticRingFunctor` for details.
@@ -4587,6 +4663,7 @@ class AsymptoticRingFunctor(ConstructionFunctor):
         self._default_prec_ = default_prec
         self._category_ = category
         self._term_monoid_factory_ = term_monoid_factory
+        self._log_ = log
 
         from sage.categories.rings import Rings
         super(ConstructionFunctor, self).__init__(
@@ -4664,7 +4741,7 @@ class AsymptoticRingFunctor(ConstructionFunctor):
         kwds = {'growth_group': self.growth_group,
                 'coefficient_ring': coefficient_ring}
         parameters = ('category', 'default_prec',
-                      'term_monoid_factory')
+                      'term_monoid_factory', 'log')
         for parameter in parameters:
             value = getattr(self, '_{}_'.format(parameter))
             if value is not None:

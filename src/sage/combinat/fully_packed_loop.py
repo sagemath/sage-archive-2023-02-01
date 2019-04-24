@@ -105,7 +105,7 @@ class FullyPackedLoop(Element):
     A fully packed loop is a collection of non-intersecting lattice paths on a square
     grid such that every vertex is part of some path, and the paths are either closed
     internal loops or have endpoints corresponding to alternate points on the
-    boundary [Propp2001]_. They are known to be in bijection with alternating sign
+    boundary [Pro2001]_. They are known to be in bijection with alternating sign
     matrices.
 
     .. SEEALSO::
@@ -473,17 +473,10 @@ class FullyPackedLoop(Element):
             ...
             ValueError: invalid alternating sign matrix
 
-    REFERENCES:
+        REFERENCES:
 
-    .. [Propp2001] James Propp.
-       *The Many Faces of Alternating Sign Matrices*,
-       Discrete Mathematics and Theoretical Computer Science 43 (2001): 58
-       :arxiv:`math/0208125`
-
-    .. [Striker2015] Jessica Striker.
-       *The toggle group, homomesy, and the Razumov-Stroganov correspondence*,
-       Electron. J. Combin. 22 (2015) no. 2
-       :arxiv:`1503.08898`
+        - [Pro2001]_
+        - [Str2015]_
     """
     @staticmethod
     def __classcall_private__(cls, generator):
@@ -942,13 +935,8 @@ class FullyPackedLoop(Element):
         Return the fully packed loop obtained by applying gyration
         to the alternating sign matrix in bijection with ``self``.
 
-        Gyration was first defined in [Wieland00]_ as an action on
+        Gyration was first defined in [Wie2000]_ as an action on
         fully-packed loops.
-
-        REFERENCES:
-
-        .. [Wieland00] \B. Wieland. *A large dihedral symmetry of the set of
-           alternating sign matrices*. Electron. J. Combin. 7 (2000).
 
         EXAMPLES::
 
@@ -1071,7 +1059,7 @@ class FullyPackedLoop(Element):
         .. NOTE::
 
             by convention, we choose the top left vertex to be even.
-            See [Propp2001]_ and [Striker2015]_.
+            See [Pro2001]_ and [Str2015]_.
 
         EXAMPLES:
 

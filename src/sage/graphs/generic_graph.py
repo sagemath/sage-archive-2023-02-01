@@ -17490,7 +17490,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def breadth_first_search(self, start, ignore_direction=False,
                              distance=None, neighbors=None,
-                             report_distance=False):
+                             report_distance=False, edges=False):
         """
         Return an iterator over the vertices in a breadth-first ordering.
 
@@ -17517,6 +17517,13 @@ class GenericGraph(GenericGraph_pyx):
           reports pairs ``(vertex, distance)`` where ``distance`` is the
           distance from the ``start`` nodes. If ``False`` only the vertices are
           reported.
+        
+        - ``edges`` -- boolean (default ``False``); whether to return the edges
+          of the BFS tree in the order of visit or the vertices (default).
+          Edges are directed in root to leaf orientation of the tree.
+
+          Note that parameters ``edges`` and ``report_distance`` cannot be
+          ``True`` simultaneously.
 
         .. SEEALSO::
 
@@ -17598,6 +17605,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(C.breadth_first_search([0, 1], report_distance=True))
             [(0, 0), (1, 0), (3, 1), (2, 1)]
 
+        You can get edges of the BFS tree instead of the vertices using the
+        ``edges`` parameter::
+
+            sage: D = DiGraph({1:[2,3],2:[4],3:[4],4:[1],5:[2,6]})
+            sage: list(D.breadth_first_search(1, edges=True))
+            [(1, 2), (1, 3), (2, 4)]
+
         TESTS::
 
             sage: D = DiGraph({1: [0], 2: [0]})
@@ -17605,14 +17619,28 @@ class GenericGraph(GenericGraph_pyx):
             [0]
             sage: list(D.breadth_first_search(0, ignore_direction=True))
             [0, 1, 2]
+            sage: G = Graph({1:[2,3],2:[4,5],3:[5]})
+            sage: list(G.breadth_first_search(1, edges=True))
+            [(1, 2), (1, 3), (2, 4), (2, 5)]
+            sage: D = DiGraph({1:[2,3],2:[4],3:[4],4:[1,5],5:[2,6]})
+            sage: list(D.breadth_first_search(1, edges=True))
+            [(1, 2), (1, 3), (2, 4), (4, 5), (5, 6)]
+            sage: G = Graph([(0,1)])
+            sage: list(G.breadth_first_search(1, report_distance=True, edges=True))
+            Traceback (most recent call last):
+            ...
+            ValueError: parameters edges and report_distance cannot be True simultaneously
         """
         from sage.rings.semirings.non_negative_integer_semiring import NN
         if (distance is not None and distance not in NN):
             raise ValueError("distance must be a non-negative integer, not {0}".format(distance))
 
+        if (report_distance and edges):
+            raise ValueError("parameters edges and report_distance cannot be True simultaneously")
+
         # Preferably use the Cython implementation
         if (neighbors is None and not isinstance(start, list) and distance is None
-                and hasattr(self._backend, "breadth_first_search") and not report_distance):
+                and hasattr(self._backend, "breadth_first_search") and not report_distance and not edges):
             for v in self._backend.breadth_first_search(start, ignore_direction=ignore_direction):
                 yield v
         else:
@@ -17634,10 +17662,11 @@ class GenericGraph(GenericGraph_pyx):
                         raise LookupError("start vertex ({0}) is not a vertex of the graph".format(v[0]))
 
             for v, d in queue:
-                if report_distance:
-                    yield v, d
-                else:
-                    yield v
+                if not edges:
+                    if report_distance:
+                        yield v, d
+                    else:
+                        yield v
                 seen.add(v)
 
             while queue:
@@ -17647,8 +17676,10 @@ class GenericGraph(GenericGraph_pyx):
                         if w not in seen:
                             seen.add(w)
                             queue.append((w, d + 1))
-                            if report_distance:
-                                yield w, d + 1
+                            if edges:
+                                yield v, w
+                            elif report_distance:
+                                yield w, d+1
                             else:
                                 yield w
 

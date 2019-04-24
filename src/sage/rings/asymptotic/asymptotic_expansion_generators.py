@@ -876,11 +876,23 @@ class AsymptoticExpansionGenerators(SageObject):
             Traceback (most recent call last):
             ...
             NotImplementedError: not implemented for delta!=0
+
+        ::
+
+            sage: from sage.groups.misc_gps.argument_groups import SignGroup
+            sage: S = SignGroup()
+            sage: asymptotic_expansions.SingularityAnalysis(
+            ....:     'n', S(-1), alpha=2, beta=1, precision=5,
+            ....:     normalized=False)
+            n*log(n)*(-1)^n + (euler_gamma - 1)*n*(-1)^n + log(n)*(-1)^n
+            + (euler_gamma + 1/2)*(-1)^n + O(n^(-1)*(-1)^n)
+            sage: _.parent()
+            Asymptotic Ring <n^ZZ * log(n)^ZZ * S^n> over Symbolic Constants Subring
         """
         from itertools import islice, count
         from .asymptotic_ring import AsymptoticRing
         from .growth_group import ExponentialGrowthGroup, \
-                MonomialGrowthGroup
+                MonomialGrowthGroup, GenericNonGrowthGroup
         from sage.arith.all import falling_factorial
         from sage.categories.cartesian_product import cartesian_product
         from sage.functions.other import binomial
@@ -940,10 +952,13 @@ class AsymptoticExpansionGenerators(SageObject):
         groups = []
         non_growth_groups = []
         if zeta != 1:
-            E = ExponentialGrowthGroup.factory((1/zeta).parent(), var,
+            E = ExponentialGrowthGroup.factory((~zeta).parent(), var,
                                                return_factors=True)
-            groups.append(E[0])
-            non_growth_groups.extend(E[1:])
+            for factor in E:
+                if isinstance(factor, GenericNonGrowthGroup):
+                    non_growth_groups.append(factor)
+                else:
+                    groups.append(factor)
         groups.append(MonomialGrowthGroup(alpha.parent(), var))
         if beta != 0:
             groups.append(MonomialGrowthGroup(beta.parent(), 'log({})'.format(var)))
@@ -956,7 +971,18 @@ class AsymptoticExpansionGenerators(SageObject):
         if zeta == 1:
             exponential_factor = 1
         else:
-            exponential_factor = n.rpow(1/zeta)
+            exponential_factor = A(n.rpow(~zeta))
+
+        polynomial_factor = A(n**(alpha-1))
+
+        if beta != 0:
+            log_n = n.log()
+            logarithmic_factor = log_n**beta
+        else:
+            # avoid construction of log(n)
+            # because it does not exist in growth group.
+            log_n = 1
+            logarithmic_factor = 1
 
         if beta in ZZ and beta >= 0:
             it = ((k, r)
@@ -967,13 +993,6 @@ class AsymptoticExpansionGenerators(SageObject):
             it = ((0, r)
                   for r in count())
             k_max = 0
-
-        if beta != 0:
-            log_n = n.log()
-        else:
-            # avoid construction of log(n)
-            # because it does not exist in growth group.
-            log_n = 1
 
         it = reversed(list(islice(it, int(precision) + 1)))
         if normalized:
@@ -999,7 +1018,7 @@ class AsymptoticExpansionGenerators(SageObject):
                     if (k, ell) in L) * \
                 n**(-k) * log_n**(-r)
 
-        result *= exponential_factor * n**(alpha-1) * log_n**beta
+        result *= exponential_factor * polynomial_factor * logarithmic_factor
 
         return result
 

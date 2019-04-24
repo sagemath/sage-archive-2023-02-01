@@ -26,7 +26,7 @@ from cypari2.gen import Gen
 from sage.libs.pari import pari
 from sage.structure.sage_object import SageObject
 from sage.rings.all import (ZZ, RealField, ComplexField,
-        PowerSeriesRing, IntegerModRing)
+                            PowerSeriesRing, IntegerModRing)
 from sage.rings.complex_field import is_ComplexField
 
 
@@ -397,7 +397,7 @@ class LFunction(SageObject):
     r"""
     Build the L-function from a PARI L-function.
 
-    RANK 1 ELLIPTIC CURVE:
+    .. RUBRIC:: Rank 1 elliptic curve
 
     We compute with the `L`-series of a rank `1` curve. ::
 
@@ -417,7 +417,7 @@ class LFunction(SageObject):
         sage: L.check_functional_equation()
         1.08420217248550e-19
 
-    RANK 2 ELLIPTIC CURVE:
+    .. RUBRIC:: Rank 2 elliptic curve
 
     We compute the leading coefficient and Taylor expansion of the
     `L`-series of a rank `2` elliptic curve::
@@ -431,7 +431,7 @@ class LFunction(SageObject):
         sage: L.taylor_series(1,4)
         -3...e-19 + (...e-19)*z + 0.759316500288427*z^2 - 0.430302337583362*z^3 + O(z^4)
 
-    NUMBER FIELD:
+    .. RUBRIC:: Number field
 
     We compute with the Dedekind zeta function of a number field::
 
@@ -447,7 +447,7 @@ class LFunction(SageObject):
         sage: L.taylor_series(2,3)
         1.10398438736918 - 0.215822638498759*z + 0.279836437522536*z^2 + O(z^3)
 
-    RAMANUJAN DELTA L-FUNCTION:
+    .. RUBRIC:: Ramanujan `\Delta` L-function
 
     The coefficients are given by Ramanujan's tau function::
 

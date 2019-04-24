@@ -1608,10 +1608,6 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
             sage: c = polymake.cube(4)              # optional - polymake
             sage: c._tab_completion()               # optional - polymake
             ['AFFINE_HULL',
-             'ALTSHULER_DET',
-             'BALANCE',
-             'BALANCED',
-             'BOUNDARY_LATTICE_POINTS',
              ...
              'zero_vector',
              'zonotope',
@@ -1829,8 +1825,8 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
             sage: p = polymake.rand_sphere(3, 12, seed=15)           # optional - polymake
             sage: len(p.FACETS)                                     # optional - polymake
             20
-            sage: len(p.list_properties())                          # optional - polymake
-            13
+            sage: len(p.list_properties()) >= 12                     # optional - polymake
+            True
 
         """
         P = self._check_valid()

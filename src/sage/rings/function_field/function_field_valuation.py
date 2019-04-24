@@ -831,11 +831,11 @@ class InducedRationalFunctionFieldValuation_base(FunctionFieldValuation_base):
             return [self]
 
         from sage.categories.function_fields import FunctionFields
-        if L in FunctionFields() \
-            and K.is_subring(L) \
-            and L.base() is L \
-            and L.constant_base_field() is not K.constant_base_field() \
-            and K.constant_base_field().is_subring(L.constant_base_field()):
+        if (L in FunctionFields()
+            and K.is_subring(L)
+            and L.base() is L
+            and L.constant_base_field() is not K.constant_base_field()
+            and K.constant_base_field().is_subring(L.constant_base_field())):
             # The above condition checks whether L is an extension of K that
             # comes from an extension of the field of constants
             # Condition "L.base() is L" is important so we do not call this

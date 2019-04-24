@@ -441,6 +441,8 @@ from sage.rings.rational_field import QQ
 from sage.categories.cartesian_product import cartesian_product
 from sage.misc.misc_c import prod
 
+from sage.misc.package import is_package_installed, PackageNotFoundError
+
 to_hex = LazyImport('matplotlib.colors', 'to_hex')
 
 
@@ -1552,8 +1554,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = graphs.GridGraph([2, 2])                                # optional - python_igraph
             sage: V = list(G)                                                 # optional - python_igraph
             sage: H = G.igraph_graph(vertex_list=V, vertex_attrs={'name': V}) # optional - python_igraph
-            sage: H.vs()['name']                                              # optional - python_igraph
-            [(0, 1), (1, 0), (0, 0), (1, 1)]
+            sage: H.vs()['name'] == V                                         # optional - python_igraph
+            True
 
         Sometimes, Sage integer/floats are not compatible with igraph::
 
@@ -1614,7 +1616,10 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.edges() == H.edges()                               # optional - python_igraph
             False
         """
-        import igraph
+        if is_package_installed('python_igraph'):
+            import igraph
+        else:
+            raise PackageNotFoundError('python_igraph')
 
         if vertex_list is None:
             v_to_int = {v: i for i, v in enumerate(self.vertices())}
@@ -9771,15 +9776,11 @@ class GenericGraph(GenericGraph_pyx):
                     personalization=personalization, weight=weight,
                     dangling=dangling)
         elif algorithm == 'igraph':
+            # An error will be raised if igraph is not installed
             if personalization:
                 raise ValueError('personalization parameter is not used in igraph implementation')
             if dangling:
                 raise ValueError('dangling parameter is not used in igraph implementation')
-            try:
-                import igraph
-            except ImportError:
-                from sage.misc.package import PackageNotFoundError
-                raise PackageNotFoundError("igraph")
             if by_weight:
                 I = self.igraph_graph(edge_attrs={'weight': [weight_function(e)
                                                   for e in self.edge_iterator()]})

@@ -1258,9 +1258,9 @@ cpdef min_cycle_basis(g_sage, weight_function=None, by_weight=False):
     EXAMPLES::
 
         sage: g = Graph([(1, 2, 3), (2, 3, 5), (3, 4, 8), (4, 1, 13), (1, 3, 250), (5, 6, 9), (6, 7, 17), (7, 5, 20)])
-        sage: g.minimum_cycle_basis(by_weight=True)
+        sage: sorted(g.minimum_cycle_basis(by_weight=True))
         [[1, 2, 3], [1, 2, 3, 4], [5, 6, 7]]
-        sage: g.minimum_cycle_basis()
+        sage: sorted(g.minimum_cycle_basis())
         [[1, 2, 3], [1, 3, 4], [5, 6, 7]]
 
     .. SEEALSO::

@@ -4676,25 +4676,25 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: g = Graph([(1, 2, 3), (2, 3, 5), (3, 4, 8), (4, 1, 13), (1, 3, 250), (5, 6, 9), (6, 7, 17), (7, 5, 20)])
-            sage: g.minimum_cycle_basis(by_weight=True)
+            sage: sorted(g.minimum_cycle_basis(by_weight=True))
             [[1, 2, 3], [1, 2, 3, 4], [5, 6, 7]]
-            sage: g.minimum_cycle_basis(by_weight=False)
+            sage: sorted(g.minimum_cycle_basis(by_weight=False))
             [[1, 2, 3], [1, 3, 4], [5, 6, 7]]
-            sage: g.minimum_cycle_basis(by_weight=True, algorithm='NetworkX')
+            sage: sorted(g.minimum_cycle_basis(by_weight=True, algorithm='NetworkX'))
             doctest:...: DeprecationWarning: connected_component_subgraphs is
             deprecated and will be removedin 2.2. Use (G.subgraph(c).copy()
             for c in connected_components(G))
-            [[1, 2, 3, 4], [1, 2, 3], [5, 6, 7]]
+            [[1, 2, 3], [1, 2, 3, 4], [5, 6, 7]]
             sage: g.minimum_cycle_basis(by_weight=False, algorithm='NetworkX')
             [[1, 2, 3], [1, 3, 4], [5, 6, 7]]
 
         ::
 
             sage: g = Graph([(1, 2), (2, 3), (3, 4), (4, 5), (5, 1), (5, 3)])
-            sage: g.minimum_cycle_basis(by_weight=False)
+            sage: sorted(g.minimum_cycle_basis(by_weight=False))
             [[1, 2, 3, 5], [3, 4, 5]]
-            sage: g.minimum_cycle_basis(by_weight=False, algorithm='NetworkX')
-            [[3, 4, 5], [1, 2, 3, 5]]
+            sage: sorted(g.minimum_cycle_basis(by_weight=False, algorithm='NetworkX'))
+            [[1, 2, 3, 5], [3, 4, 5]]
 
         .. SEEALSO::
 

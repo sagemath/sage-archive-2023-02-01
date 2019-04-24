@@ -1131,7 +1131,7 @@ class Polymake(ExtraTabCompletion, Expect):
             sage: q.F_VECTOR                    # optional - polymake
             8 14 8
             sage: q.VERY_AMPLE                  # optional - polymake
-            1
+            true
 
         In the application 'fan', polymake can now compute the normal fan
         of `q` and its (primitive) rays::
@@ -1228,7 +1228,7 @@ class Polymake(ExtraTabCompletion, Expect):
             sage: q.N_VERTICES                  # optional - polymake
             4
             sage: q.BOUNDED                     # optional - polymake
-            1
+            true
             sage: q.VERTICES                    # optional - polymake
             1 2 0 4
             1 3 0 8
@@ -1669,7 +1669,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
             sage: c.contains                                    # optional - polymake
             Member function 'contains' of Polymake::polytope::Polytope__Rational object
             sage: c.contains(V)                                 # optional - polymake
-            1
+            true
 
         """
         P = self._check_valid()
@@ -1706,7 +1706,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
             sage: V                                                     # optional - polymake
             1 0 0
             sage: c.contains(V)                                         # optional - polymake
-            1
+            true
 
         Whether a member function of the given name actually exists for that
         object will only be clear when calling it::
@@ -2034,7 +2034,7 @@ class PolymakeFunctionElement(FunctionElement):
         sage: c.contains                                    # optional - polymake
         Member function 'contains' of Polymake::polytope::Polytope__Rational object
         sage: c.contains(V)                                 # optional - polymake
-        1
+        true
 
     """
     def __init__(self, obj, name, memberfunction=False):

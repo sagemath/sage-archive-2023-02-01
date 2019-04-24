@@ -919,7 +919,7 @@ class Polytopes():
              [-1, 0, 0], [0, 1, 0], [0, -1, 0]]
         return Polyhedron(vertices=v, base_ring=ZZ, backend=backend)
 
-    def snub_cube(self, exact=True, backend=None):
+    def snub_cube(self, exact=True, base_ring=None, backend=None, verbose=False):
         """
         Return a snub cube.
 
@@ -936,8 +936,12 @@ class Polytopes():
         - ``exact`` - (boolean, default ``True``) if ``True`` use exact
           coordinates instead of floating point approximations
 
-        - ``backend`` -- the backend to use to create the polytope. This will
-          be set to ``field`` if ``exact`` is ``True``
+        - ``base_ring`` -- the field to use. If ``None`` (the default), construct
+          the exact number field needed (if ``exact`` is ``True``) or default
+          to ``RDF`` (if ``exact`` is ``True``).
+
+        - ``backend`` -- the backend to use to create the polytope.  If ``None``
+          (the default), the backend will be selected automatically.
 
         EXAMPLES::
 
@@ -977,23 +981,24 @@ class Polytopes():
             sage: sc_exact.is_combinatorially_isomorphic(sc_inexact) #long time
             True
         """
-        # z here is the reciprocal of the tribonacci constant, that is, the
-        # solution of the equation x^3 + x^2 + x -1 = 0.
+        def construct_z(field):
+            # z here is the reciprocal of the tribonacci constant, that is, the
+            # solution of the equation x^3 + x^2 + x - 1 = 0.
+            tsqr33 = 3 * field(33).sqrt()
+            return ((17 + tsqr33)**QQ((1, 3)) - (-17 + tsqr33)**QQ((1, 3)) - 1) / 3
 
-        if exact:
-            backend = "field"
+        if exact and base_ring is None:
+            # construct the exact number field
             from sage.rings.number_field.number_field import NumberField
             R = QQ['x']
             f = R([-1,1,1,1])
-            embedding = ((AA(17) + AA(3)*AA(33)**(1/2))**(1/3) - \
-                         (-AA(17) + AA(3)*AA(33)**(1/2))**(1/3) - AA(1))/3
+            embedding = construct_z(AA)
             base_ring = NumberField(f, name='z', embedding=embedding)
             z = base_ring.gen()
-
         else:
-            base_ring = RDF
-            tsqr33 = 3 * base_ring(33).sqrt()
-            z = ((17 + tsqr33).cube_root() - (-17 + tsqr33).cube_root() - 1)/3
+            if base_ring is None:
+                base_ring = RDF
+            z = construct_z(base_ring)
 
         verts = []
         z2 = z ** 2

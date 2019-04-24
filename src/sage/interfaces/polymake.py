@@ -130,9 +130,7 @@ class Polymake(ExtraTabCompletion, Expect):
         sage: set_verbose(3)
         sage: p.H_VECTOR                                    # optional - polymake
         used package ppl
-          The Parma Polyhedra Library (PPL): A C++ library for convex polyhedra
-          and other numerical abstractions.
-          http://www.cs.unipr.it/ppl/
+          The Parma Polyhedra Library ...
         1 16 40 16 1
         sage: set_verbose(0)
         sage: p.F_VECTOR                                    # optional - polymake
@@ -1494,21 +1492,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
              'COMBINATORIAL_DIM',
              'CONE_AMBIENT_DIM',
              'CONE_DIM',
-             'DUAL_H_VECTOR',
-             'FACETS',
-             'FAR_FACE',
-             'FEASIBLE',
-             'FULL_DIM',
-             'F_VECTOR',
-             'GRAPH',
-             'LINEALITY_DIM',
-             'LINEALITY_SPACE',
-             'N_FACETS',
-             'N_VERTICES',
-             'POINTED',
-             'SIMPLE',
-             'SIMPLICIAL',
-             'VERTICES',
+            ...
              'VERTICES_IN_FACETS']
 
         """
@@ -1530,12 +1514,9 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
             sage: c = polymake.cube(4)                          # optional - polymake
             sage: c._member_list()                              # optional - polymake
             ['AFFINE_HULL',
-             'ALTSHULER_DET',
-             'BALANCE',
-             'BALANCED',
             ...
              'WEAKLY_CENTERED',
-             'ZONOTOPE_INPUT_POINTS']
+            ...]
 
         """
         # return the members of a "big" object.

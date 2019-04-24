@@ -973,6 +973,14 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         sage: eps.display(c_spher.frame(), c_spher)
         epsilon = r^2*sin(th) dr/\dth/\dph
 
+    As a shortcut of the above command, on can pass just the chart ``c_spher``
+    to ``display``, the vector frame being then assumed to be the coordinate
+    frame associated with the chart::
+
+        sage: eps.display(c_spher)
+        epsilon = r^2*sin(th) dr/\dth/\dph
+
+
     The exterior product of two differential forms is performed via the method
     :meth:`~sage.tensor.modules.free_module_alt_form.FreeModuleAltForm.wedge`::
 

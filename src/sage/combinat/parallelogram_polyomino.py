@@ -534,7 +534,7 @@ The options avalaible are :
 - display : this option is used to configurate the ASCII display.
   the option avalaible are :
   - list : (this is the default value) is used to represent PP as a list
-  containinge the upper and lower path.
+  containing the upper and lower path.
   - drawing : this value is used to explain we want to display an array with
   the PP drawn inside (with connected 1).
 

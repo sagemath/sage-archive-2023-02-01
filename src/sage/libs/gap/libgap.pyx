@@ -128,7 +128,7 @@ convert the entries into Sage objects, you should use the
 :meth:`~sage.libs.gap.element.GapElement.sage` method::
 
     sage: rec.sage()
-    {'Sym3': NotImplementedError('cannot construct equivalent Sage object',),
+    {'Sym3': NotImplementedError('cannot construct equivalent Sage object'...),
      'a': 123,
      'b': 456}
 
@@ -706,7 +706,7 @@ class Gap(Parent):
 
         This includes the total memory allocated by GAP as returned by
         ``libgap.eval('TotalMemoryAllocated()'), as well as garbage collection
-        / object count statistitics as returned by
+        / object count statistics as returned by
         ``libgap.eval('GasmanStatistics')``, and finally the total number of
         GAP objects held by Sage as :class:`~sage.libs.gap.element.GapElement`
         instances.

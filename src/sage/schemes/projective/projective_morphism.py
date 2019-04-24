@@ -1410,7 +1410,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def _preperiodic_points_to_cyclegraph(self, preper):
         """
-        Return the directed graph of the given preperidoic points.
+        Return the directed graph of the given preperiodic points.
 
         Examples::
 

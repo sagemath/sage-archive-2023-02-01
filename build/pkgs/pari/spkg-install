@@ -132,8 +132,9 @@ export CFLAGS
 # anyway, it doesn't hurt either. -- jdemeyer
 #
 # Note that "--graphic=none" is (usually) added to PARI_CONFIGURE:
+#--with-gmp-include="/usr/include/x86_64-linux-gnu" \
 bash ./Configure --prefix="$SAGE_LOCAL" \
-    --with-readline="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL" \
+    --with-readline="$SAGE_LOCAL" $SAGE_CONFIGURE_GMP \
     --with-runtime-perl="/usr/bin/env perl" \
     --kernel=gmp $PARI_CONFIGURE || \
     sdh_die "Error configuring PARI with readline and GMP kernel failed."

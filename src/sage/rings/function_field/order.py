@@ -85,7 +85,7 @@ from __future__ import absolute_import
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_method
@@ -2164,7 +2164,7 @@ class FunctionFieldMaximalOrderInfinite_global(FunctionFieldMaximalOrderInfinite
         try:
             f = F(f)
         except TypeError:
-            raise TypeError("unable to convert to an elemen of {}".format(F))
+            raise TypeError("unable to convert to an element of {}".format(F))
 
         O = F.base_field().maximal_order_infinite()
         coordinates = self.coordinate_vector(f)

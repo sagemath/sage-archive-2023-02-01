@@ -225,6 +225,10 @@ REFERENCES:
              by F. Morain.
              http://citeseer.ist.psu.edu/atkin92probabilistic.html
 
+.. [Ath1996] \C. A. Athanasiadis,
+            *Characteristic polynomials of subspace arrangements and finite fields*.
+            Advances in Mathematics, 122(2):193-233, 1996.
+
 .. [Av2000] \D. Avis, *A revised implementation of the reverse search
             vertex enumeration algorithm.* Polytopes-combinatorics and
             computation. Birkhauser Basel, 2000.
@@ -3113,6 +3117,11 @@ REFERENCES:
 .. [OS2018] Se-jin Oh and Travis Scrimshaw. *Categorical relations between
             Langlands dual quantum affine algebras: Exceptional cases*.
             Preprint: :arxiv:`1802.09253` (2018).
+
+.. [OSS2009] Vitaly Osipov, Peter Sanders, Johannes Singler:
+             *The Filter-Kruskal Minimum Spanning Tree Algorithm*.
+             SIAM ALENEX, 2009: 52-61
+             :doi:`10.1137/1.9781611972894.5`
 
 .. [Oxl1992] James Oxley, *Matroid theory*, Oxford University
              Press, 1992.

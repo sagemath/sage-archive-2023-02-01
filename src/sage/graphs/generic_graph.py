@@ -149,6 +149,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.szeged_index` | Return the Szeged index of the graph.
     :meth:`~GenericGraph.katz_centrality` | Return the katz centrality of the vertex u of the graph.
     :meth:`~GenericGraph.katz_matrix` | Return the katz matrix of the graph.
+    :meth:`~GenericGraph.pagerank` | Return the PageRank of the vertices of ``self``.
 
 **Automorphism group:**
 
@@ -4042,6 +4043,8 @@ class GenericGraph(GenericGraph_pyx):
 
           - ``"Kruskal"`` -- Kruskal's algorithm
 
+          - ``"Filter_Kruskal"`` -- a variant of Kruskal's algorithm [OSS2009]_
+
           - ``"Kruskal_Boost"`` -- Kruskal's algorithm (Boost implementation)
 
           - ``"Boruvka"`` -- Boruvka's algorithm
@@ -4067,6 +4070,7 @@ class GenericGraph(GenericGraph_pyx):
         .. SEEALSO::
 
             - :func:`sage.graphs.spanning_tree.kruskal`
+            - :func:`sage.graphs.spanning_tree.filter_kruskal`
             - :func:`sage.graphs.spanning_tree.boruvka`
             - :func:`sage.graphs.base.boost_graph.min_spanning_tree`
 
@@ -4144,6 +4148,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.add_edges([[0, 1, 1], [1, 2, 1], [2, 0, 10]])
             sage: sorted(g.min_spanning_tree())
             [(0, 1, 1), (1, 2, 1)]
+            sage: sorted(g.min_spanning_tree(algorithm='Filter_Kruskal'))
+            [(0, 1, 1), (1, 2, 1)]
             sage: sorted(g.min_spanning_tree(algorithm='Kruskal_Boost'))
             [(0, 1, 1), (1, 2, 1)]
             sage: sorted(g.min_spanning_tree(algorithm='Prim_fringe'))
@@ -4163,6 +4169,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = Graph([[0, 1, 1], [1, 2, 1], [2, 0, 10]], weighted=True)
             sage: weight = lambda e: 3 - e[0] - e[1]
             sage: sorted(g.min_spanning_tree(weight_function=weight))
+            [(0, 2, 10), (1, 2, 1)]
+            sage: sorted(g.min_spanning_tree(algorithm='Filter_Kruskal', weight_function=weight))
             [(0, 2, 10), (1, 2, 1)]
             sage: sorted(g.min_spanning_tree(algorithm='Kruskal_Boost', weight_function=weight))
             [(0, 2, 10), (1, 2, 1)]
@@ -4205,6 +4213,10 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: could not convert string to float:...
+            sage: g.min_spanning_tree(algorithm="Filter_Kruskal")
+            Traceback (most recent call last):
+            ...
+            ValueError: could not convert string to float:...
             sage: g.min_spanning_tree(algorithm="Kruskal_Boost")
             Traceback (most recent call last):
             ...
@@ -4233,6 +4245,10 @@ class GenericGraph(GenericGraph_pyx):
             ...
             TypeError: float() argument must be a string or a number...
             sage: g.min_spanning_tree(algorithm="Kruskal")
+            Traceback (most recent call last):
+            ...
+            TypeError: float() argument must be a string or a number...
+            sage: g.min_spanning_tree(algorithm="Filter_Kruskal")
             Traceback (most recent call last):
             ...
             TypeError: float() argument must be a string or a number...
@@ -4266,7 +4282,7 @@ class GenericGraph(GenericGraph_pyx):
 
         wfunction_float = lambda e: float(weight_function(e))
 
-        if algorithm in ["Kruskal", "Kruskal_Boost", "Prim_Boost", "Boruvka"]:
+        if algorithm in ["Kruskal", "Filter_Kruskal", "Kruskal_Boost", "Prim_Boost", "Boruvka"]:
             if self.is_directed():
                 g = self.to_undirected()
             else:
@@ -4275,6 +4291,9 @@ class GenericGraph(GenericGraph_pyx):
             if algorithm == "Kruskal":
                 from .spanning_tree import kruskal
                 return kruskal(g, wfunction=wfunction_float, check=check)
+            if algorithm == "Filter_Kruskal":
+                from .spanning_tree import filter_kruskal
+                return filter_kruskal(g, weight_function=wfunction_float, check=check)
             elif algorithm == "Boruvka":
                 from .spanning_tree import boruvka
                 return boruvka(g, wfunction=wfunction_float, check=check)
@@ -9461,6 +9480,219 @@ class GenericGraph(GenericGraph_pyx):
             b = p.get_values(b)
             return [v for v in g if b[v] == 1]
 
+    def pagerank(self, alpha=0.85, personalization=None, by_weight=False,
+                 weight_function=None, dangling=None, algorithm=None):
+        r"""
+        Return the PageRank of the vertices of ``self``.
+
+        PageRank is a centrality measure earlier used to rank web pages.
+        The PageRank algorithm outputs the probability distribution that
+        a random walker in the graph visits a vertex.
+
+        See the :wikipedia:`PageRank` for more information.
+
+        INPUT:
+
+        - ``alpha`` -- float (default: ``0.85``); damping parameter for
+          PageRank. ``alpha`` is the click-through probability useful for
+          preventing sinks. The probability at any step, that an imaginary
+          surfer who is randomly clicking on links will continue is a damping
+          factor d.
+
+        - ``personalization`` -- dict (default: ``None``); a dictionary keyed
+          by vertices associating to each vertex a value. The personalization
+          can be specified for a subset of the vertices, if not specified a
+          nodes personalization value will be taken as zero. The sum of the
+          values must be nonzero.
+          By default (``None``), a uniform distribution is used.
+
+        - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
+          in the graph are weighted, otherwise all edges have weight 1
+
+        - ``weight_function`` -- function (default: ``None``); a function that
+          takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+          ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
+          weight.
+
+        - ``dangling`` -- dict (default: ``None``); a dictionary keyed by a
+          vertex the outedge of "dangling" vertices, (i.e., vertices without
+          any outedges) points to and the dict value is the weight of that
+          outedge. By default, dangling vertices are given outedges according
+          to the personalization vector (uniform if not specified). It may be
+          common to have the dangling dict to be the same as the personalization
+          dict.
+
+        - ``algorithm`` -- string (default: ``None``); the algorithm to use in
+           computing PageRank of ``G``. The following algorithms are
+           supported:
+
+          - ``NetworkX`` -- uses NetworkX's PageRank algorithm implementation
+            Note that ``'networkx'`` does not support multigraphs.
+
+          - ``"Numpy"`` -- uses Numpy's PageRank algorithm implementation
+
+          - ``"Scipy"`` -- uses Scipy's PageRank algorithm implementation
+
+          - ``"igraph"`` -- uses igraph's PageRank algorithm implementation
+
+          - ``"None"`` -- uses best implementation available
+
+        OUTPUT: a dictionary containing the PageRank value of each node
+
+        .. NOTE::
+
+            Parameters ``alpha``, ``by_weight`` and ``weight_function`` are common
+            to all algorithms. Parameters ``personalization`` and ``dangling``
+            are used only by algorithms ``NetworkX``, ``Numpy`` and ``Scipy``.
+
+        EXAMPLES::
+
+            sage: G = graphs.CycleGraph(4)
+            sage: G.pagerank(algorithm="Networkx")
+            {0: 0.25, 1: 0.25, 2: 0.25, 3: 0.25}
+            sage: G.pagerank(alpha=0.50, algorithm="igraph")  # optional - python_igraph
+            {0: 0.25, 1: 0.25, 2: 0.24999999999999997, 3: 0.24999999999999997}
+            sage: G = Graph([(1, 2, 40), (2, 3, 50), (3, 4, 60), (1, 4, 70), (4, 5, 80), (5, 6, 20)])
+            sage: G.pagerank(algorithm="NetworkX") # abs tol 1e-9
+            {1: 0.16112205885619568,
+             2: 0.16195310432472196,
+             3: 0.16112205885619568,
+             4: 0.2375,
+             5: 0.17775588228760858,
+             6: 0.10054689567527803}
+            sage: G.pagerank(algorithm="NetworkX", by_weight=True) # abs tol 1e-9
+            {1: 0.16459583718588988,
+             2: 0.1397792859515451,
+             3: 0.165398401843396,
+             4: 0.3063198690713852,
+             5: 0.17000576097071404,
+             6: 0.053900844977069616}
+            sage: G.pagerank(algorithm="Numpy") # abs tol 1e-9
+            {1: 0.16112198303979114,
+             2: 0.16195368558382248,
+             3: 0.16112198303979122,
+             4: 0.2375000000000002,
+             5: 0.17775603392041756,
+             6: 0.10054631441617742}
+            sage: G.pagerank(algorithm="Numpy", by_weight=True) # abs tol 1e-9
+            {1: 0.16459613361799788,
+             2: 0.13977926864974763,
+             3: 0.1653988472578896,
+             4: 0.3063198780991534,
+             5: 0.17000501912411242,
+             6: 0.053900853251099105}
+            sage: G.pagerank(algorithm="Scipy") # abs tol 1e-9
+            {1: 0.16112205885619563,
+             2: 0.1619531043247219,
+             3: 0.16112205885619563,
+             4: 0.2374999999999999,
+             5: 0.17775588228760858,
+             6: 0.100546895675278}
+            sage: G.pagerank(algorithm="Scipy", by_weight=True) # abs tol 1e-9
+            {1: 0.16459583718588994,
+             2: 0.13977928595154515,
+             3: 0.16539840184339605,
+             4: 0.3063198690713853,
+             5: 0.1700057609707141,
+             6: 0.05390084497706962}
+            sage: G.pagerank(algorithm="igraph")  # optional - python_igraph # abs tol 1e-9
+            {1: 0.16112198303979128,
+             2: 0.16195368558382262,
+             3: 0.16112198303979125,
+             4: 0.23749999999999993,
+             5: 0.17775603392041744,
+             6: 0.10054631441617742}
+            sage: G.pagerank() # abs tol 1e-9
+            {1: 0.16112198303979114,
+             2: 0.16195368558382248,
+             3: 0.16112198303979122,
+             4: 0.2375000000000002,
+             5: 0.17775603392041756,
+             6: 0.10054631441617742}
+            sage: G.pagerank(by_weight=True) # abs tol 1e-9
+            {1: 0.16459613361799788,
+             2: 0.13977926864974763,
+             3: 0.1653988472578896,
+             4: 0.3063198780991534,
+             5: 0.17000501912411242,
+             6: 0.053900853251099105}
+
+        TESTS::
+
+            sage: G = Graph([(1, 2), (2, 3), (3, 4), (1, 3)])
+            sage: G.pagerank(algorithm="NetworkX", personalization={1:0, 2:3, 3:-2, 4:-1})
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: float division by zero
+
+        .. SEEALSO::
+
+            * :wikipedia:`PageRank`
+
+        """
+        if not self.order():
+            return {}
+
+        if weight_function is not None:
+            by_weight = True
+
+        if weight_function is None and by_weight:
+            def weight_function(e):
+                return e[2]
+
+        if by_weight:
+            self._check_weight_function(weight_function)
+            weight = "weight"
+        else:
+            weight = None
+
+        if algorithm:
+            algorithm = algorithm.lower()
+        elif self.order() <= 60:
+            algorithm = 'numpy'
+        else:
+            algorithm = 'scipy'
+
+        if algorithm == 'networkx':
+            if self.has_multiple_edges():
+                raise ValueError("the 'networkx' implementation does not support multigraphs")
+            import networkx
+            return networkx.pagerank(self.networkx_graph
+                   (weight_function=weight_function), alpha=alpha,
+                    personalization=personalization, weight=weight,
+                    dangling=dangling)
+        elif algorithm == 'numpy':
+            import networkx
+            return networkx.pagerank_numpy(self.networkx_graph
+                   (weight_function=weight_function), alpha=alpha,
+                    personalization=personalization, weight=weight,
+                    dangling=dangling)
+        elif algorithm == 'scipy':
+            import networkx
+            return networkx.pagerank_scipy(self.networkx_graph
+                   (weight_function=weight_function), alpha=alpha,
+                    personalization=personalization, weight=weight,
+                    dangling=dangling)
+        elif algorithm == 'igraph':
+            if personalization:
+                raise ValueError('personalization parameter is not used in igraph implementation')
+            if dangling:
+                raise ValueError('dangling parameter is not used in igraph implementation')
+            try:
+                import igraph
+            except ImportError:
+                from sage.misc.package import PackageNotFoundError
+                raise PackageNotFoundError("igraph")
+            if by_weight:
+                I = self.igraph_graph(edge_attrs={'weight': [weight_function(e)
+                                                  for e in self.edge_iterator()]})
+            else:
+                I = self.igraph_graph()
+            page_rank = I.pagerank(damping=alpha, weights=weight)
+            return {v: page_rank[i] for i, v in enumerate(self)}
+        else:
+            raise NotImplementedError("only 'NetworkX', 'Numpy', 'Scipy', and 'igraph' are supported")
 
     ### Vertex handlers
 
@@ -10039,9 +10271,21 @@ class GenericGraph(GenericGraph_pyx):
 
     __iter__ = vertex_iterator
 
-    def neighbor_iterator(self, vertex):
+    def neighbor_iterator(self, vertex, closed=False):
         """
         Return an iterator over neighbors of ``vertex``.
+
+        When ``closed`` is set to ``True``, the returned iterator also
+        contains ``vertex``.
+
+        INPUT:
+
+        - ``vertex`` -- a vertex of ``self``
+
+        - ``closed`` -- a boolean (default: ``False``); whether to
+          return the closed neighborhood of ``vertex``, i.e., including
+          ``vertex``, or the open neighborhood in which ``vertex``
+          is included only if there is a loop on that vertex.
 
         EXAMPLES::
 
@@ -10063,8 +10307,41 @@ class GenericGraph(GenericGraph_pyx):
             sage: D = DiGraph({0: [1, 2], 3: [0]})
             sage: list(D.neighbor_iterator(0))
             [1, 2, 3]
+
+        ::
+
+            sage: g = graphs.CubeGraph(3)
+            sage: sorted(list(g.neighbor_iterator('010', closed=True)))
+            ['000', '010', '011', '110']
+
+        ::
+
+            sage: g = Graph(3, loops = True)
+            sage: g.add_edge(0,1)
+            sage: g.add_edge(0,0)
+            sage: list(g.neighbor_iterator(0, closed=True))
+            [0, 1]
+            sage: list(g.neighbor_iterator(2, closed=True))
+            [2]
+
+        TESTS::
+
+            sage: G = graphs.CubeGraph(3)
+            sage: list(G.neighbor_iterator('013', closed=True))
+            Traceback (most recent call last):
+            ...
+            LookupError: vertex (013) is not a vertex of the graph
         """
-        return self._backend.iterator_nbrs(vertex)
+
+        if closed:
+            if not self.has_vertex(vertex):
+                raise LookupError(
+                    'vertex ({0}) is not a vertex of the graph'.format(vertex))
+            if not self.has_edge(vertex, vertex):
+                yield vertex
+
+        for u in self._backend.iterator_nbrs(vertex):
+            yield u
 
     def vertices(self, sort=True, key=None):
         r"""
@@ -10159,11 +10436,22 @@ class GenericGraph(GenericGraph_pyx):
             return sorted(list(self.vertex_iterator()), key=key)
         return list(self.vertex_iterator())
 
-    def neighbors(self, vertex):
+    def neighbors(self, vertex, closed=False):
         """
         Return a list of neighbors (in and out if directed) of ``vertex``.
 
         ``G[vertex]`` also works.
+        When ``closed`` is set to ``True``, the returned iterator also
+        contains ``vertex``.
+
+        INPUT:
+
+        - ``vertex`` -- a vertex of ``self``
+
+        - ``closed`` -- a boolean (default: ``False``); whether to
+          return the closed neighborhood of ``vertex``, i.e., including
+          ``vertex``, or the open neighborhood in which ``vertex``
+          is included only if there is a loop on that vertex.
 
         EXAMPLES::
 
@@ -10172,8 +10460,10 @@ class GenericGraph(GenericGraph_pyx):
             [2, 4, 8]
             sage: sorted(P[4])
             [0, 3, 9]
+            sage: sorted(P.neighbors(3, closed=True))
+            [2, 3, 4, 8]
         """
-        return list(self.neighbor_iterator(vertex))
+        return list(self.neighbor_iterator(vertex, closed))
 
     __getitem__ = neighbors
 

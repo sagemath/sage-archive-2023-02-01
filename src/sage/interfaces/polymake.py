@@ -1102,7 +1102,7 @@ class Polymake(ExtraTabCompletion, Expect):
         s = self.eval("apropos '';").split(self._expect.linesep)
         out = []
         for name in s:
-            if name.startswith("/function"):
+            if name.startswith("/common/functions/") or name.startswith("/" + self._application + "/functions/"):
                 out.append(name.split("/")[-1])
         self.__tab_completion[self._application] = sorted(out)
         return self.__tab_completion[self._application]

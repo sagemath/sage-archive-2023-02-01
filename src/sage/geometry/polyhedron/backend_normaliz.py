@@ -30,7 +30,7 @@ from sage.misc.all import prod
 from sage.rings.all import ZZ, QQ
 from sage.arith.functions import LCM_list
 from sage.misc.functional import denominator
-from sage.matrix.constructor import matrix, vector
+from sage.matrix.constructor import vector
 
 from .base import Polyhedron_base
 from .base_QQ import Polyhedron_QQ
@@ -244,6 +244,15 @@ class Polyhedron_normaliz(Polyhedron_base):
     def _nmz_result(self, normaliz_cone, property):
         """
         Call PyNormaliz's NmzResult function.
+
+        TESTS::
+
+            sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)], rays=[(1,1)],   # optional - pynormaliz
+            ....:                lines=[], backend='normaliz')
+            sage: p._nmz_result(p._normaliz_cone, 'EquivariantXyzzyModuleSeries')  # optional - pynormaliz
+            Traceback (most recent call last):
+            ...
+            error: Some error in the normaliz input data detected: Unknown ConeProperty...
         """
         import PyNormaliz
 
@@ -849,7 +858,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         if data.has_key('number_field'):
             s += 'number_field {}\n'.format(format_number_field_data(data['number_field']))
             del data['number_field']
-        for key, value in sorted(data.iteritems()):
+        for key, value in sorted(data.items()):
             s += format_field(key, value)
         if file_output is not None:
             in_file = open(file_output, 'w')

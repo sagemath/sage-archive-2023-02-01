@@ -818,7 +818,7 @@ class Polymake(ExtraTabCompletion, Expect):
         the verbosity is positive::
 
             sage: set_verbose(1)
-            sage: p.N_LATTICE_POINTS                # optional - polymake
+            sage: p.N_LATTICE_POINTS                # optional - polymake # random
             used package latte
               LattE (Lattice point Enumeration) is a computer software dedicated to the
               problems of counting lattice points and integration inside convex polytopes.

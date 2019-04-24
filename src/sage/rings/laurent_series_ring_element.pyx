@@ -1315,7 +1315,7 @@ cdef class LaurentSeries(AlgebraElement):
             return self.prec() - self.valuation()
 
     def __copy__(self):
-        return type(self)(self._parent, self.__u.copy(), self.__n)
+        return type(self)(self._parent, self.__u.__copy__(), self.__n)
 
     def reverse(self, precision=None):
         """

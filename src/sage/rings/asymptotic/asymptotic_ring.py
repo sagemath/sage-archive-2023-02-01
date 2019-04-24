@@ -135,7 +135,7 @@ Next, we construct a more sophisticated asymptotic ring in the
 variables `x` and `y` by
 ::
 
-    sage: B.<x, y> = AsymptoticRing(growth_group='x^QQ * log(x)^ZZ * QQ^y * y^QQ', coefficient_ring=QQ); B
+    sage: B.<x, y> = AsymptoticRing(growth_group='x^QQ * log(x)^ZZ * (QQ_+)^y * y^QQ', coefficient_ring=QQ); B
     Asymptotic Ring <x^QQ * log(x)^ZZ * QQ^y * y^QQ> over Rational Field
 
 Again, we can look at a typical (nontrivial) element::
@@ -659,9 +659,13 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         Check that :trac:`19999` is resolved::
 
+            sage: A.<x> = AsymptoticRing('(QQ_+)^x * x^QQ * U^x', QQ)
+            sage: 1 + (-1)^x + 2^x + (-2)^x
+            2^x + 2^x*(-1)^x + (-1)^x + 1
+
             sage: A.<x> = AsymptoticRing('QQ^x * x^QQ', QQ)
             sage: 1 + (-1)^x + 2^x + (-2)^x
-            (-2)^x + 2^x + (-1)^x + 1
+            2^x + 2^x*(-1)^x + (-1)^x + 1
         """
         super(AsymptoticExpansion, self).__init__(parent=parent)
 
@@ -1080,7 +1084,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ValueError: Cannot include n with parent Exact Term Monoid
             n^QQ with coefficients in Rational Field in Asymptotic Ring
             <m^QQ> over Rational Field
-            > *previous* ValueError: n is not in Growth Group m^QQ
+            > *previous* ValueError: n is not in Growth Group m^QQ.
 
         Only monomials are allowed::
 
@@ -1556,7 +1560,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: 2^(x + 1/x)
             2^x + log(2)*2^x*x^(-1) + 1/2*log(2)^2*2^x*x^(-2) + ... + O(2^x*x^(-20))
             sage: _.parent()
-            Asymptotic Ring <QQ^x * x^SR * log(x)^QQ> over Symbolic Ring
+            Asymptotic Ring <QQ^x * x^SR * log(x)^QQ * S^x> over Symbolic Ring
 
         ::
 
@@ -1565,12 +1569,12 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             3^c + 1/3*3^c*c^(-1) + 1/18*3^c*c^(-2) - 4/81*3^c*c^(-3)
             - 35/1944*3^c*c^(-4) + O(3^c*c^(-5))
             sage: _.parent()
-            Asymptotic Ring <QQ^c * c^QQ> over Rational Field
+            Asymptotic Ring <QQ^c * c^QQ * S^c> over Rational Field
             sage: (2 + (1/3)^c)^c
             2^c + 1/2*(2/3)^c*c + 1/8*(2/9)^c*c^2 - 1/8*(2/9)^c*c
             + 1/48*(2/27)^c*c^3 + O((2/27)^c*c^2)
             sage: _.parent()
-            Asymptotic Ring <QQ^c * c^QQ> over Rational Field
+            Asymptotic Ring <QQ^c * c^QQ * S^c> over Rational Field
 
         TESTS:
 
@@ -1620,15 +1624,17 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         Check that :trac:`19946` is fixed::
 
+            sage: assume(SR.an_element() > 0)
             sage: A.<n> = AsymptoticRing('QQ^n * n^QQ', SR)
             sage: e = 2^n; e
             2^n
             sage: e.parent()
-            Asymptotic Ring <SR^n * n^SR> over Symbolic Ring
+            Asymptotic Ring <SR^n * n^QQ * S^n> over Symbolic Ring
             sage: e = A(e); e
             2^n
             sage: e.parent()
-            Asymptotic Ring <QQ^n * n^QQ> over Symbolic Ring
+            Asymptotic Ring <QQ^n * n^QQ * S^n> over Symbolic Ring
+            sage: forget()
 
         :trac:`22120`::
 
@@ -1636,6 +1642,9 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: w^QQbar(sqrt(2))
             w^(1.414213562373095?)
         """
+        from .misc import strip_symbolic
+        exponent = strip_symbolic(exponent)
+
         if not self.summands:
             if exponent == 0:
                 return self.parent().one()
@@ -1784,6 +1793,14 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         ::
 
             sage: S.<s> = AsymptoticRing(growth_group='QQ^s * s^ZZ', coefficient_ring=QQ)
+            sage: (2 + 2/s^2).__pow_number__(s, precision=7)
+            2^s + 2^s*s^(-1) + 1/2*2^s*s^(-2) - 1/3*2^s*s^(-3)
+            - 11/24*2^s*s^(-4) + 11/120*2^s*s^(-5)
+            + 271/720*2^s*s^(-6) + O(2^s*s^(-7))
+            sage: _.parent()
+            Asymptotic Ring <QQ^s * s^QQ * S^s> over Rational Field
+
+            sage: S.<s> = AsymptoticRing(growth_group='(QQ_+)^s * s^ZZ', coefficient_ring=QQ)
             sage: (2 + 2/s^2).__pow_number__(s, precision=7)
             2^s + 2^s*s^(-1) + 1/2*2^s*s^(-2) - 1/3*2^s*s^(-3)
             - 11/24*2^s*s^(-4) + 11/120*2^s*s^(-5)
@@ -2157,20 +2174,30 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         TESTS::
 
-            sage: x.rpow(SR.var('y'))
+            sage: assume(SR.an_element() > 0)
+            sage: y = SR.var('y')
+            sage: x.rpow(y)
             Traceback (most recent call last):
             ...
             ArithmeticError: Cannot construct y^x in Growth Group x^ZZ
             > *previous* TypeError: unsupported operand parent(s) for *:
-            'Growth Group x^ZZ' and 'Growth Group SR^x'
+              'Growth Group x^ZZ' and 'Growth Group SR^x * Arg_SR^x'
+            sage: assume(y > 0)
+            sage: x.rpow(y)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Cannot construct y^x in Growth Group x^ZZ
+            > *previous* TypeError: unsupported operand parent(s) for *:
+              'Growth Group x^ZZ' and 'Growth Group SR^x'
+            sage: forget()
 
         Check that :trac:`19946` is fixed::
 
-            sage: A.<n> = AsymptoticRing('QQ^n * n^QQ', SR)
+            sage: A.<n> = AsymptoticRing('(QQ_+)^n * n^QQ', SR)
             sage: n.rpow(2)
             2^n
             sage: _.parent()
-            Asymptotic Ring <SR^n * n^SR> over Symbolic Ring
+            Asymptotic Ring <QQ^n * n^QQ> over Symbolic Ring
         """
         if isinstance(base, AsymptoticExpansion):
             return base.__pow__(self, precision=precision)
@@ -2742,6 +2769,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         EXAMPLES::
 
+            sage: assume(SR.an_element() > 0)
             sage: A.<n> = AsymptoticRing('QQ^n * n^ZZ', SR)
             sage: catalan = binomial(2*x, x)/(x+1)
             sage: expansion = 4^n*(1/sqrt(pi)*n^(-3/2)
@@ -2774,6 +2802,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
              (27, -0.008327898?),
              (28, -0.00832828?),
              (29, -0.00832862?)]
+            sage: forget()
 
         .. SEEALSO::
 
@@ -2949,7 +2978,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         INPUT:
 
         - ``R`` -- (a subring of) the symbolic ring or ``None``.
-          The output is will be an element of ``R``. If ``None``,
+          The output will be an element of ``R``. If ``None``,
           then the symbolic ring is used.
 
         OUTPUT:
@@ -2958,7 +2987,12 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         EXAMPLES::
 
-            sage: A.<x, y, z> = AsymptoticRing(growth_group='x^ZZ * y^QQ * log(y)^QQ * QQ^z * z^QQ', coefficient_ring=QQ)
+            sage: A.<x, y, z> = AsymptoticRing(growth_group='x^ZZ * y^QQ * log(y)^QQ * (QQ_+)^z * z^QQ', coefficient_ring=QQ)
+            sage: SR(A.an_element())  # indirect doctest
+            1/8*(1/8)^z*x^3*y^(3/2)*z^(3/2)*log(y)^(3/2) +
+            Order((1/2)^z*x*sqrt(y)*sqrt(z)*sqrt(log(y)))
+
+            sage: A.<x, y, z> = AsymptoticRing(growth_group='x^ZZ * y^QQ * log(y)^QQ * (QQ_+)^z * z^QQ', coefficient_ring=QQ)
             sage: SR(A.an_element())  # indirect doctest
             1/8*(1/8)^z*x^3*y^(3/2)*z^(3/2)*log(y)^(3/2) +
             Order((1/2)^z*x*sqrt(y)*sqrt(z)*sqrt(log(y)))
@@ -3065,10 +3099,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             + 1/288*sqrt(2)*sqrt(pi)*e^(n*log(n))*(e^n)^(-1)*n^(-3/2)
             + O(e^(n*log(n))*(e^n)^(-1)*n^(-5/2))
             sage: _.parent()
-            Asymptotic Ring <(e^(n*log(n)))^(Symbolic Constants Subring) *
-                             (e^n)^(Symbolic Constants Subring) *
-                             n^(Symbolic Constants Subring) *
-                             log(n)^(Symbolic Constants Subring)>
+            Asymptotic Ring <(e^(n*log(n)))^QQ * (e^n)^QQ * n^QQ * log(n)^QQ>
             over Symbolic Constants Subring
 
         :wikipedia:`Catalan numbers <Catalan_number>`
@@ -3282,18 +3313,18 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         EXAMPLES::
 
-            sage: A.<S> = AsymptoticRing("S^ZZ", SR, default_prec=3)
-            sage: (3 + 1/S + O(1/S^2)).limit()
+            sage: A.<s> = AsymptoticRing("s^ZZ", SR, default_prec=3)
+            sage: (3 + 1/s + O(1/s^2)).limit()
             3
-            sage: ((1+1/S)^S).limit()
+            sage: ((1+1/s)^s).limit()
             e
-            sage: (1/S).limit()
+            sage: (1/s).limit()
             0
-            sage: (S + 3 + 1/S + O(1/S^2)).limit()
+            sage: (s + 3 + 1/s + O(1/s^2)).limit()
             Traceback (most recent call last):
             ...
-            ValueError: Cannot determine limit of S + 3 + S^(-1) + O(S^(-2))
-            sage: (O(S^0)).limit()
+            ValueError: Cannot determine limit of s + 3 + s^(-1) + O(s^(-2))
+            sage: (O(s^0)).limit()
             Traceback (most recent call last):
             ...
             ValueError: Cannot determine limit of O(1)
@@ -3951,8 +3982,10 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             > *previous* ValueError: Growth c is not in
             Exact Term Monoid a^ZZ * b^ZZ with coefficients in Rational Field.
             >> *previous* ValueError: c is not in Growth Group a^ZZ * b^ZZ.
-            >...> *previous* ValueError: c is not in any of the factors of
-            Growth Group a^ZZ * b^ZZ
+            >...> *previous* ValueError: c is not in any of the factors
+            of Growth Group a^ZZ * b^ZZ
+            >...> *previous* ValueError: c is not in Growth Group a^ZZ.
+            >...> *and* ValueError: c is not in Growth Group b^ZZ.
 
         ::
 
@@ -3964,7 +3997,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             ValueError: Cannot include m^3 with parent
             Exact Term Monoid m^ZZ with coefficients in Integer Ring
             in Asymptotic Ring <n^ZZ> over Rational Field
-            > *previous* ValueError: m^3 is not in Growth Group n^ZZ
+            > *previous* ValueError: m^3 is not in Growth Group n^ZZ.
 
         ::
 
@@ -4561,7 +4594,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
             sage: A = AsymptoticRing(growth_group='x^ZZ * QQ^y', coefficient_ring=QQ)
             sage: A.construction()
-            (AsymptoticRing<x^ZZ * QQ^y>, Rational Field)
+            (AsymptoticRing<x^ZZ * QQ^y * S^y>, Rational Field)
 
         .. SEEALSO::
 

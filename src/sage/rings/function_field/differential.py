@@ -86,7 +86,7 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
     - ``f`` -- element of the function field
 
     - ``t`` -- element of the function field; if `t` is not specified, `t`
-      is the generator of the base rational function field
+      is the base differential of the differential space
 
     EXAMPLES::
 
@@ -99,10 +99,26 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
         sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
         sage: y.differential()
         (x*y^2 + 1/x*y) d(x)
+
+    If the base rational function field's differential is not a separating
+    element, and thus maps to zero, a different base differential is used::
+
+        sage: K.<x> = FunctionField(GF(5))
+        sage: R.<y> = K[]
+        sage: L.<y> = K.extension(y^5 - 1/x)
+
+        sage: L(x).differential()
+        0
+        sage: y.differential()
+        d(y)
+        sage: (y^2).differential()
+        (2*y) d(y)
     """
     def __init__(self, parent, f, t=None):
         """
         Initialize the differential `fdt`.
+
+        If `t` is not specified, the base differential is assumed.
 
         TESTS::
 
@@ -115,7 +131,7 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
 
         if t is not None:
             der = parent.function_field().derivation()
-            f *= der(t)
+            f *= der(t) / der(parent._base_differential)
 
         self._f = f
 
@@ -140,7 +156,7 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
         if self._f.is_zero(): # zero differential
             return '0'
 
-        r =  'd({})'.format(F.base_field().gen())
+        r =  'd({})'.format(self.parent()._base_differential)
 
         if self._f.is_one():
             return r
@@ -164,7 +180,7 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
         if self._f.is_zero(): # zero differential
             return '0'
 
-        r =  'd{}'.format(F.base_field().gen())
+        r =  'd{}'.format(self.parent()._base_differential)
 
         if self._f.is_one():
             return r
@@ -630,6 +646,16 @@ class DifferentialsSpace(UniqueRepresentation, Parent):
             sage: TestSuite(W).run()
         """
         Parent.__init__(self, base=field, category=Modules(field).FiniteDimensional().WithBasis().or_subcategory(category))
+
+        # Starting from the base rational function field, find the first
+        # generator that doesn't map to zero and use it as our
+        # base differential.
+
+        der = field.derivation()
+        for F in reversed(field._intermediate_fields(field.rational_function_field())):
+            if der(F.gen()) != 0:
+                self._base_differential = F.gen()
+                return
 
     def _repr_(self):
         """

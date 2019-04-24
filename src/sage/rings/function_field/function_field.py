@@ -730,7 +730,7 @@ class FunctionField(Field):
 
         OUTPUT:
 
-        - a list of fields; the first entry is ``base``, the last entry is this field.
+        - a list of fields; the first entry is this field, the last entry is ``base``
 
         EXAMPLES::
 

@@ -2589,6 +2589,13 @@ class FunctionField_global(FunctionField_polymod):
         sage: L.<y> = K.extension((1 - x)*Y^7 - x^3)
         sage: L.gaps()
         [1, 2, 3]
+
+    or may define a trivial extension::
+
+        sage: K.<x> = FunctionField(GF(5)); _.<Y> = K[]
+        sage: L.<y> = K.extension(Y-1)
+        sage: L.genus()
+        0
     """
     Element = FunctionFieldElement_global
 

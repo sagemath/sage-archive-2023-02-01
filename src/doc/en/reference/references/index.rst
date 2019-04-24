@@ -1460,6 +1460,9 @@ REFERENCES:
 .. [Eri1995] \H. Erikson.  Computational and Combinatorial Aspects
              of Coxeter Groups.  Thesis, 1995.
 
+.. [ER1959] Paul Erd\H{o}s and Alfr\'ed R\'enyi. "On Random Graphs",
+            Publicationes Mathematicae. 6: 290–297, 1959.
+
 .. [ERH2015] Jorge Espanoza and Steen Ryom-Hansen. *Cell structures
              for the Yokonuma-Hecke algebra and the algebra of braids
              and ties*. (2015) :arxiv:`1506.00715`.
@@ -1695,6 +1698,9 @@ REFERENCES:
 .. [GHJV1994] \E. Gamma, R. Helm, R. Johnson, J. Vlissides, *Design
               Patterns: Elements of Reusable Object-Oriented
               Software*. Addison-Wesley (1994). ISBN 0-201-63361-2.
+
+.. [Gil1959] Edgar Nelson Gilbert. "Random Graphs", Annals of Mathematical
+             Statistics. 30 (4): 1141–1144, 1959.
 
 .. [Gir2012] Samuele Giraudo,
              *Algebraic and combinatorial structures on pairs of twin binary trees*,
@@ -2434,6 +2440,12 @@ REFERENCES:
 .. [KR2001] \J. Kahane and A. Ryba. *The hexad game*, Electronic
             Journal of Combinatorics, **8**
             (2001). http://www.combinatorics.org/Volume_8/Abstracts/v8i2r11.html
+
+.. [KR2001b] \P.L. Krapivsky and S. Redner. "Organization of Growing Random
+             Networks", Phys. Rev. E vol. 63 (2001), p. 066123.
+
+.. [KR2005] \P.L. Krapivsky and S. Redner. "Network Growth by Copying",
+             Phys. Rev. E vol. 71 (2005), p. 036118.
 
 .. [Kre2002] \V. Kreps. *Social Network Analysis* (2002).
              [Online] Available: http://www.orgnet.com/sna.html

@@ -30,11 +30,11 @@ build by typing ``digraphs.`` in Sage and then hitting tab.
     :meth:`~DiGraphGenerators.nauty_directg`       | Return an iterator yielding digraphs using nauty's ``directg`` program.
     :meth:`~DiGraphGenerators.Paley`               | Return a Paley digraph on `q` vertices.
     :meth:`~DiGraphGenerators.Path`                | Return a directed path on `n` vertices.
-    :meth:`~DiGraphGenerators.RandomDirectedGNC`   | Returns a random GNC (growing network with copying) digraph with `n` vertices.
-    :meth:`~DiGraphGenerators.RandomDirectedGNM`   | Returns a random labelled digraph on `n` nodes and `m` arcs.
-    :meth:`~DiGraphGenerators.RandomDirectedGNP`   | Returns a random digraph on `n` nodes.
-    :meth:`~DiGraphGenerators.RandomDirectedGN`    | Returns a random GN (growing network) digraph with `n` vertices.
-    :meth:`~DiGraphGenerators.RandomDirectedGNR`   | Returns a random GNR (growing network with redirection) digraph.
+    :meth:`~DiGraphGenerators.RandomDirectedGNC`   | Return a random growing network with copying (GNC) digraph with `n` vertices.
+    :meth:`~DiGraphGenerators.RandomDirectedGNM`   | Return a random labelled digraph on `n` nodes and `m` arcs.
+    :meth:`~DiGraphGenerators.RandomDirectedGNP`   | Return a random digraph on `n` nodes.
+    :meth:`~DiGraphGenerators.RandomDirectedGN`    | Return a random growing network (GN) digraph with `n` vertices.
+    :meth:`~DiGraphGenerators.RandomDirectedGNR`   | Return a random growing network with redirection (GNR) digraph.
     :meth:`~DiGraphGenerators.RandomSemiComplete`  | Return a random semi-complete digraph of order `n`.
     :meth:`~DiGraphGenerators.RandomTournament`    | Return a random tournament on `n` vertices.
     :meth:`~DiGraphGenerators.TransitiveTournament`| Return a transitive tournament on `n` vertices.
@@ -1184,26 +1184,24 @@ class DiGraphGenerators():
         return G
 
     def RandomDirectedGN(self, n, kernel=lambda x:x, seed=None):
-        """
-        Returns a random GN (growing network) digraph with n vertices.
+        r"""
+        Return a random growing network (GN) digraph with `n` vertices.
 
         The digraph is constructed by adding vertices with a link to one
         previously added vertex. The vertex to link to is chosen with a
         preferential attachment model, i.e. probability is proportional to
         degree. The default attachment kernel is a linear function of
         degree. The digraph is always a tree, so in particular it is a
-        directed acyclic graph.
+        directed acyclic graph. See [KR2001b]_ for more details.
 
         INPUT:
 
+        - ``n`` -- integer; number of vertices
 
-        - ``n`` - number of vertices.
+        - ``kernel`` -- the attachment kernel
 
-        - ``kernel`` - the attachment kernel.
-
-        - ``seed`` - a ``random.Random`` seed or a Python ``int`` for the random
-          number generator (default: ``None``).
-
+        - ``seed`` -- a ``random.Random`` seed or a Python ``int`` for the
+          random number generator (default: ``None``)
 
         EXAMPLES::
 
@@ -1212,11 +1210,6 @@ class DiGraphGenerators():
             [(1, 0), (2, 0), (3, 2), (4, 2), (5, 4), (6, 3), (7, 0), (8, 4), (9, 4), (10, 3), (11, 4), (12, 4), (13, 3), (14, 4), (15, 4), (16, 0), (17, 2), (18, 4), (19, 6), (20, 14), (21, 4), (22, 0), (23, 22), (24, 14)]  # 32-bit
             [(1, 0), (2, 1), (3, 0), (4, 2), (5, 0), (6, 2), (7, 3), (8, 2), (9, 3), (10, 4), (11, 5), (12, 9), (13, 2), (14, 2), (15, 5), (16, 2), (17, 15), (18, 1), (19, 5), (20, 2), (21, 5), (22, 1), (23, 5), (24, 14)]   # 64-bit
             sage: D.show()  # long time
-
-        REFERENCE:
-
-        - [1] Krapivsky, P.L. and Redner, S. Organization of Growing
-          Random Networks, Phys. Rev. E vol. 63 (2001), p. 066123.
         """
         if seed is None:
             seed = int(current_randstate().long_seed() % sys.maxsize)
@@ -1224,24 +1217,22 @@ class DiGraphGenerators():
         return DiGraph(networkx.gn_graph(n, kernel, seed=seed))
 
     def RandomDirectedGNC(self, n, seed=None):
-        """
-        Returns a random GNC (growing network with copying) digraph with n
+        r"""
+        Return a random growing network with copying (GNC) digraph with `n`
         vertices.
 
         The digraph is constructed by adding vertices with a link to one
         previously added vertex. The vertex to link to is chosen with a
         preferential attachment model, i.e. probability is proportional to
         degree. The new vertex is also linked to all of the previously
-        added vertex's successors.
+        added vertex's successors. See [KR2005]_ for more details.
 
         INPUT:
 
+        - ``n`` -- integer; number of vertices
 
-        - ``n`` - number of vertices.
-
-        - ``seed`` - a ``random.Random`` seed or a Python ``int`` for the random
-          number generator (default: ``None``).
-
+        - ``seed`` -- a ``random.Random`` seed or a Python ``int`` for the
+          random number generator (default: ``None``)
 
         EXAMPLES::
 
@@ -1251,40 +1242,30 @@ class DiGraphGenerators():
             sage: D.topological_sort()
             [24, 23, ..., 1, 0]
             sage: D.show()  # long time
-
-        REFERENCE:
-
-        - [1] Krapivsky, P.L. and Redner, S. Network Growth by
-          Copying, Phys. Rev. E vol. 71 (2005), p. 036118.
         """
         if seed is None:
             seed = int(current_randstate().long_seed() % sys.maxsize)
         import networkx
         return DiGraph(networkx.gnc_graph(n, seed=seed))
 
-    def RandomDirectedGNP(self, n, p, loops = False, seed = None):
+    def RandomDirectedGNP(self, n, p, loops=False, seed=None):
         r"""
-        Returns a random digraph on `n` nodes. Each edge is inserted
-        independently with probability `p`.
+        Return a random digraph on `n` nodes.
+
+        Each edge is inserted independently with probability `p`.
+        See [ER1959]_ and [Gil1959]_ for more details.
 
         INPUT:
 
-        - ``n`` -- number of nodes of the digraph
+        - ``n`` -- integer; number of nodes of the digraph
 
-        - ``p`` -- probability of an edge
+        - ``p`` -- float; probability of an edge
 
-        - ``loops`` -- is a boolean set to True if the random digraph may have
-          loops, and False (default) otherwise.
+        - ``loops`` -- boolean (default: ``False``); whether the random digraph
+          may have loops
 
-        - ``seed`` -- integer seed for random number generator (default=None).
-
-        REFERENCES:
-
-        .. [1] \P. Erdos and A. Renyi, On Random Graphs, Publ.  Math. 6, 290
-               (1959).
-
-        .. [2] \E. N. Gilbert, Random Graphs, Ann. Math.  Stat., 30, 1141 (1959).
-
+        - ``seed`` -- integer (default: ``None``); seed for random number
+          generator
 
         PLOTTING: When plotting, this graph will use the default spring-layout
         algorithm, unless a position dictionary is specified.
@@ -1300,25 +1281,24 @@ class DiGraphGenerators():
         """
         from sage.graphs.graph_generators_pyx import RandomGNP
         if 0.0 > p or 1.0 < p:
-            raise ValueError("The probability p must be in [0..1].")
+            raise ValueError("the probability p must be in [0..1]")
 
         if seed is None:
             seed = current_randstate().long_seed()
 
-        return RandomGNP(n, p, directed = True, loops = loops)
+        return RandomGNP(n, p, directed=True, loops=loops)
 
-    def RandomDirectedGNM(self, n, m, loops = False):
+    def RandomDirectedGNM(self, n, m, loops=False):
         r"""
-        Returns a random labelled digraph on `n` nodes and `m` arcs.
+        Return a random labelled digraph on `n` nodes and `m` arcs.
 
         INPUT:
 
-        - ``n`` (integer) -- number of vertices.
+        - ``n`` -- integer; number of vertices
 
-        - ``m`` (integer) -- number of edges.
+        - ``m`` -- integer; number of edges
 
-        - ``loops`` (boolean) -- whether to allow loops (set to ``False`` by
-          default).
+        - ``loops`` -- boolean (default: ``False``); whether to allow loops
 
         PLOTTING: When plotting, this graph will use the default spring-layout
         algorithm, unless a position dictionary is specified.
@@ -1344,12 +1324,12 @@ class DiGraphGenerators():
             sage: digraphs.RandomDirectedGNM(10,-3)
             Traceback (most recent call last):
             ...
-            ValueError: The number of edges must satisfy 0<= m <= n(n-1) when no loops are allowed, and 0<= m <= n^2 otherwise.
+            ValueError: the number of edges must satisfy 0 <= m <= n(n-1) when no loops are allowed, and 0 <= m <= n^2 otherwise
 
             sage: digraphs.RandomDirectedGNM(10,100)
             Traceback (most recent call last):
             ...
-            ValueError: The number of edges must satisfy 0<= m <= n(n-1) when no loops are allowed, and 0<= m <= n^2 otherwise.
+            ValueError: the number of edges must satisfy 0 <= m <= n(n-1) when no loops are allowed, and 0 <= m <= n^2 otherwise
         """
         n, m = int(n), int(m)
 
@@ -1362,7 +1342,7 @@ class DiGraphGenerators():
 
         from sage.misc.prandom import _pyrand
         rand = _pyrand()
-        D = DiGraph(n, loops = loops)
+        D = DiGraph(n, loops=loops)
 
         # Ensuring the parameters n,m make sense.
         #
@@ -1376,21 +1356,22 @@ class DiGraphGenerators():
             good_input = False
 
         if loops:
-            if m > n*n:
+            if m > n * n:
                 good_input = False
-            elif 2*m > n*n:
+            elif 2 * m > n * n:
                 is_dense = True
-                m = n*n - m
+                m = n * n - m
 
         else:
-            if m > n*(n-1):
+            if m > n * (n - 1):
                 good_input = False
             elif m > (n * (n - 1)) // 2:
                 is_dense = True
-                m = n*(n-1) - m
+                m = n * (n - 1) - m
 
         if not good_input:
-            raise ValueError("The number of edges must satisfy 0<= m <= n(n-1) when no loops are allowed, and 0<= m <= n^2 otherwise.")
+            raise ValueError("the number of edges must satisfy 0 <= m <= n(n-1) "
+                             "when no loops are allowed, and 0 <= m <= n^2 otherwise")
 
         # When the given number of edges defines a density larger than 1/2, it
         # should be faster to compute the complement of the graph (less edges to
@@ -1401,12 +1382,11 @@ class DiGraphGenerators():
         # than to test the adjacency of two vertices in a graph. For these
         # reasons, the following code mainly works on dictionaries.
 
-        adj = dict( (i, dict()) for i in range(n) )
+        adj = {i: dict() for i in range(n)}
 
         # We fill the dictionary structure, but add the corresponding edge in
         # the graph only if is_dense is False. If it is true, we will add the
         # edges in a second phase.
-
 
         while m > 0:
 
@@ -1416,14 +1396,14 @@ class DiGraphGenerators():
             # following lines is precisely what they do anyway, after checking
             # their parameters are correct.
 
-            u=int(rand.random()*n)
-            v=int(rand.random()*n)
+            u = int(rand.random() * n)
+            v = int(rand.random() * n)
 
             if (u != v or loops) and (not v in adj[u]):
                 adj[u][v] = 1
                 m -= 1
                 if not is_dense:
-                    D.add_edge(u,v)
+                    D.add_edge(u, v)
 
         # If is_dense is True, it means the graph has not been built. We fill D
         # with the complement of the edges stored in the adj dictionary
@@ -1432,30 +1412,29 @@ class DiGraphGenerators():
             for u in range(n):
                 for v in range(n):
                     if ((u != v) or loops) and (not (v in adj[u])):
-                        D.add_edge(u,v)
+                        D.add_edge(u, v)
 
         return D
 
     def RandomDirectedGNR(self, n, p, seed=None):
-        """
-        Returns a random GNR (growing network with redirection) digraph
-        with n vertices and redirection probability p.
+        r"""
+        Return a random growing network with redirection (GNR) digraph
+        with `n` vertices and redirection probability `p`.
 
         The digraph is constructed by adding vertices with a link to one
         previously added vertex. The vertex to link to is chosen uniformly.
         With probability p, the arc is instead redirected to the successor
         vertex. The digraph is always a tree.
+        See [KR2001b]_ for more details.
 
         INPUT:
 
+        - ``n`` -- integer; number of vertices
 
-        - ``n`` - number of vertices.
+        - ``p`` -- redirection probability
 
-        - ``p`` - redirection probability.
-
-        - ``seed`` - a ``random.Random`` seed or a Python ``int`` for the random
-          number generator (default: ``None``).
-
+        - ``seed`` -- a ``random.Random`` seed or a Python ``int`` for the
+          random number generator (default: ``None``)
 
         EXAMPLES::
 
@@ -1465,11 +1444,6 @@ class DiGraphGenerators():
             sage: D.to_undirected().is_tree()
             True
             sage: D.show()  # long time
-
-        REFERENCE:
-
-        - [1] Krapivsky, P.L. and Redner, S. Organization of Growing
-          Random Networks, Phys. Rev. E vol. 63 (2001), p. 066123.
         """
         if seed is None:
             seed = int(current_randstate().long_seed() % sys.maxsize)
@@ -1494,7 +1468,7 @@ class DiGraphGenerators():
 
         INPUT:
 
-        - ``n`` (integer) -- the number of nodes
+        - ``n`` -- integer; the number of nodes
 
         .. SEEALSO::
 
@@ -1520,12 +1494,12 @@ class DiGraphGenerators():
         # We select edge `(v,u)` if `coin==2` or `coin==3`.
         import itertools
         from sage.misc.prandom import randint
-        for u,v in itertools.combinations(range(n), 2):
-            coin = randint(1,3)
-            if coin<=2:
-                G.add_edge(u,v)
-            if coin>=2:
-                G.add_edge(v,u)
+        for u, v in itertools.combinations(range(n), 2):
+            coin = randint(1, 3)
+            if coin <= 2:
+                G.add_edge(u, v)
+            if coin >= 2:
+                G.add_edge(v, u)
 
         G._circle_embedding(list(range(n)))
 

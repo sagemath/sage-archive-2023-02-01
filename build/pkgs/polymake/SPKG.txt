@@ -31,7 +31,13 @@ On Fedora 23, use:
  sudo yum install perl-ExtUtils-Embed perl-File-Slurp
 
 On Mac OS X, all modules (except for Term::Readline::Gnu) appear to be
-standard.
+standard.  To build Term::Readline::Gnu, on macOS 10.14 (Mojave), one
+needs to do the following:
+
+ sudo installer -pkg /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg -target /
+
+or a "fatal error: 'EXTERN.h' file not found" will be signalled.
+
 
 A distribution-independent way to install Perl modules (into a user's
 home directory) is using CPAN.

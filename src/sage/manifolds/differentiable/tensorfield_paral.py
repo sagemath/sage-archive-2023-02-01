@@ -195,15 +195,16 @@ To keep the other components, one must use the method
     sage: # We now set the components in the frame e with add_comp:
     sage: t.add_comp(e)[:] = [[x+y, 0], [y, -3*x]]
 
-The expansion of the tensor field in a given frame is obtained via the
-method
-:meth:`~sage.tensor.modules.free_module_tensor.FreeModuleTensor.display`
-(the symbol ``*`` stands for tensor product)::
+The expansion of the tensor field in a given frame is obtained via the method
+``display``::
 
     sage: t.display()  # expansion in the manifold's default frame
     T = d/dx*dx - x d/dx*dy + x*y d/dy*dx + 2 d/dy*dy
     sage: t.display(e)
     T = (x + y) e_1*e^1 + y e_2*e^1 - 3*x e_2*e^2
+
+See :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.display`
+for more examples.
 
 By definition, a tensor field acts as a multilinear map on 1-forms and vector
 fields; in the present case, ``T`` being of type `(1,1)`, it acts on pairs

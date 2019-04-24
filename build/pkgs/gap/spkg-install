@@ -17,7 +17,7 @@ else
     export CFLAGS="-O2 -g $CFLAGS"
 fi
 
-sdh_configure --with-gmp="$SAGE_LOCAL"
+sdh_configure $SAGE_CONFIGURE_GMP
 sdh_make -j1
 
 # GAP's "make install" is work in progress; we use bits and pieces of it

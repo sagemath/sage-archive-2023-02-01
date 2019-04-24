@@ -410,7 +410,9 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
 
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quotient(x^3-2)
-            sage: long(S(10))
+            sage: long(S(10)) # py2
+            doctest:...: DeprecationWarning: converting polynomials to longs is deprecated, since long() will no longer be supported in Python 3
+            See https://trac.sagemath.org/27675 for details.
             10L
             sage: long(a)  # py2
             Traceback (most recent call last):

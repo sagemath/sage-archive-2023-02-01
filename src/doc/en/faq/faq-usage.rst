@@ -72,7 +72,7 @@ Debian/Ubuntu, you can install these prerequisites as follows:
     $ sudo apt-get install build-essential m4
 
 If you have a multi-core system, you can opt for a parallel build of
-Sage. The command ::
+Sage. The command
 
 .. CODE-BLOCK:: shell-session
 
@@ -88,7 +88,7 @@ How to get Sage's Python to recognize my system's Tcl/Tk install?
 
 It may be that you have Tcl/Tk installed and that your system's Python
 recognizes it but Sage's Python does not. To fix that, install the
-tcl/tk development library. On Ubuntu, this is the command :
+tcl/tk development library. On Ubuntu, this is the command
 
 .. CODE-BLOCK:: shell-session
 
@@ -488,7 +488,7 @@ your system.
 For Linux users, if you suspect that the compilation fails because of
 a resource issue, a fix might be to edit your ``/etc/inittab`` so that
 Linux boots into run level 3. The file ``/etc/inittab`` usually
-contains something similar to the following snippet::
+contains something similar to the following snippet:
 
 .. CODE-BLOCK:: text
 
@@ -505,7 +505,7 @@ contains something similar to the following snippet::
 
 which directs your Linux distribution to boot into a graphical login
 screen. Comment out the line ``id:5:initdefault:`` and add the line
-``id:3:initdefault:``, so that you now have something like::
+``id:3:initdefault:``, so that you now have something like:
 
 .. CODE-BLOCK:: text
 

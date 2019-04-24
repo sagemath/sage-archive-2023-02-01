@@ -183,8 +183,7 @@ class Polyhedron_normaliz(Polyhedron_base):
 
             sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)], rays=[(1,1)],   # optional - pynormaliz
             ....:                lines=[], backend='normaliz')
-
-            sage: p._nmz_result(p._normaliz_cone, 'EquivariantXyzzyModuleSeries')
+            sage: p._nmz_result(p._normaliz_cone, 'EquivariantXyzzyModuleSeries')  # optional - pynormaliz
             Traceback (most recent call last):
             ...
             error: Some error in the normaliz input data detected: Unknown ConeProperty...

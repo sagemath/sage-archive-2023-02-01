@@ -1672,16 +1672,14 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
         if attrname[:1] == "_":
             raise AttributeError
         if attrname not in P._tab_completion():
+            # Does not appear in list of global functions.
             if attrname in self._member_list():
                 try:
                     return P('{}->{}'.format(self._name, attrname))
                 except (TypeError, PolymakeError):
                     raise AttributeError
             else:
-                try:
-                    return P._function_element_class()(self, '{}->{}'.format(self._name, attrname), memberfunction=True)
-                except (TypeError, PolymakeError):
-                    raise AttributeError
+                return P._function_element_class()(self, '{}->{}'.format(self._name, attrname), memberfunction=True)
         return P._function_element_class()(self, attrname, memberfunction=False)
 
     def get_member_function(self, attrname):

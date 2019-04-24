@@ -1868,7 +1868,10 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
         """
         P = self._check_valid()
         name = self._name
-        return P.eval('print ref({});'.format(name)), P.eval('print reftype({});'.format(name))
+        T1, T2 = P.eval('print ref({});'.format(name)), P.eval('print reftype({});'.format(name))
+        if T1 == 'false':                 # Polymake 3.4 returns this
+            T1 = ''
+        return T1, T2
 
     def _sage_(self):
         """

@@ -1162,18 +1162,18 @@ class Polymake(ExtraTabCompletion, Expect):
 
         TESTS:
 
-        Since 'tubing_of_graph' is not defined in the polymake application 'polytope'
+        Since 'trop_witness' is not defined in the polymake application 'polytope'
         but only in 'tropical', the following shows the effect of changing
         the application. ::
 
             sage: polymake.application('polytope')                   # optional - polymake
-            sage: 'tubing_of_graph' in dir(polymake)                 # optional - polymake
+            sage: 'trop_witness' in dir(polymake)                 # optional - polymake
             False
             sage: polymake.application('tropical')                   # optional - polymake
-            sage: 'tubing_of_graph' in dir(polymake)                 # optional - polymake
+            sage: 'trop_witness' in dir(polymake)                 # optional - polymake
             True
             sage: polymake.application('polytope')                   # optional - polymake
-            sage: 'tubing_of_graph' in dir(polymake)                 # optional - polymake
+            sage: 'trop_witness' in dir(polymake)                 # optional - polymake
             False
 
         For completeness, we show what happens when asking for an application

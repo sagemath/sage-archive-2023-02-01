@@ -6,8 +6,8 @@ The Data Encryption Standard.
 This file implements the Data Encryption Standard and the corresponding key
 schedule as described in [U.S1999]_.
 
-Note that since this is Sage the implementation is neither meant to be
-particular secure nor super fast but to be easy to use for research purposes.
+Note, this implementation is ment for experimental and educational usage only,
+do not use it in production code!
 
 EXAMPLES:
 

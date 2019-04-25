@@ -261,7 +261,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: dir = tmp_dir(); name = 'sage_test_file.sage'
         sage: fullname = os.path.join(dir, name)
         sage: F = open(fullname, 'w')
-        sage: _ = F.write("k.<a> = GF(5^3); print(a^124)\n")
+        sage: _ = F.write("from __future__ import print_function\nk.<a> = GF(5^3); print(a^124)\n")
         sage: F.close()
         sage: (out, err, ret) = test_executable(["sage", fullname])
         sage: print(out)

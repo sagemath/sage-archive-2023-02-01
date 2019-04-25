@@ -960,7 +960,7 @@ class Polytopes():
              [-1, 0, 0], [0, 1, 0], [0, -1, 0]]
         return Polyhedron(vertices=v, base_ring=ZZ, backend=backend)
 
-    def snub_cube(self, exact=True, base_ring=None, backend=None, verbose=False):
+    def snub_cube(self, exact=False, base_ring=None, backend=None, verbose=False):
         """
         Return a snub cube.
 
@@ -974,7 +974,7 @@ class Polytopes():
 
         INPUT:
 
-        - ``exact`` - (boolean, default ``True``) if ``True`` use exact
+        - ``exact`` - (boolean, default ``False``) if ``True`` use exact
           coordinates instead of floating point approximations
 
         - ``base_ring`` -- the field to use. If ``None`` (the default), construct
@@ -991,7 +991,7 @@ class Polytopes():
             A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 24 vertices
             sage: sc_inexact.f_vector()
             (1, 24, 60, 38, 1)
-            sage: sc_exact = polytopes.snub_cube()  # long time - 30secs
+            sage: sc_exact = polytopes.snub_cube(exact=True)  # long time - 30secs
             sage: sc_exact.f_vector()               # long time
             (1, 24, 60, 38, 1)
             sage: sc_exact.vertices()               # long time

@@ -683,25 +683,6 @@ class Polyhedron_normaliz(Polyhedron_base):
         else:
             return s
 
-
-#########################################################################
-class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
-    r"""
-    Polyhedra over `\QQ` with normaliz.
-
-    INPUT:
-
-    - ``Vrep`` -- a list ``[vertices, rays, lines]`` or ``None``
-    - ``Hrep`` -- a list ``[ieqs, eqns]`` or ``None``
-
-    EXAMPLES::
-
-        sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)],                 # optional - pynormaliz
-        ....:                rays=[(1,1)], lines=[],
-        ....:                backend='normaliz', base_ring=QQ)
-        sage: TestSuite(p).run(skip='_test_pickling')                      # optional - pynormaliz
-    """
-
     def integral_hull(self):
         r"""
         Return the integral hull in the polyhedron.
@@ -1408,7 +1389,6 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
         sage: TestSuite(p).run(skip='_test_pickling')                      # optional - pynormaliz
     """
     pass
-
 
 #########################################################################
 class Polyhedron_ZZ_normaliz(Polyhedron_QQ_normaliz, Polyhedron_ZZ):

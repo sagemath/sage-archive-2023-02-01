@@ -974,7 +974,7 @@ class Polytopes():
 
         INPUT:
 
-        - ``exact`` - (boolean, default ``False``) if ``True`` use exact
+        - ``exact`` -- (boolean, default ``False``) if ``True`` use exact
           coordinates instead of floating point approximations
 
         - ``base_ring`` -- the field to use. If ``None`` (the default), construct

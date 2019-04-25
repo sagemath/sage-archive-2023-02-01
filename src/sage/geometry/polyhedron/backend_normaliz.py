@@ -942,7 +942,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: magic_square = Polyhedron(eqns=eq,backend='normaliz') & Polyhedron(rays=identity_matrix(9).rows()) # optional - pynormaliz
             sage: grading = [1,1,1,0,0,0,0,0,0]
             sage: magic_square.hilbert_series(grading) # optional - pynormaliz
-            (t^2 + 2*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
+            (t^6 + 2*t^3 + 1)/(-t^9 + 3*t^6 - 3*t^3 + 1)
         
         .. SEEALSO: :meth:`~sage.geometry.polyhedron.backend_normaliz.ehrhart_series`
         """

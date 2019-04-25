@@ -33,6 +33,21 @@ Have a look at the used round keys::
       ...
      '231000f2dd97']
 
+Validate the Sample Round Outputs for DES (cf. [KeSm1998]_ p. 124)::
+
+    sage: from sage.crypto.block_cipher.des import DES
+    sage: P = 0
+    sage: K = 0x10316E028C8F3B4A
+    sage: for r in range(1, 17):
+    ....:     DES(rounds=r, doLastSwap=True).encrypt(P, K).hex()
+    '47092b5b'
+    '47092b5b53f372af'
+    '53f372af9f1d158b'
+    ...
+    '3f6c3efd5a1e5228'
+    sage: DES().encrypt(P, K).hex()
+    '82dcbafbdeab6602'
+
 AUTHORS:
 
 - Lukas Stennes (2019-03-29): initial version
@@ -103,7 +118,7 @@ class DES(SageObject):
     .. automethod:: __call__
     """
 
-    def __init__(self, rounds=None, keySchedule='DES_KS', keySize=64):
+    def __init__(self, rounds=None, keySchedule='DES_KS', keySize=64, doLastSwap=False):
         r"""
         Construct an instance of DES.
 
@@ -118,6 +133,10 @@ class DES(SageObject):
 
         - ``keySize`` -- (default: ``64``); the key length in bits. Must be
           ``56`` of ``64``. In the latter case the key contains 8 parity bits.
+
+        - ``doLastSwap`` -- (default: ``False``); if ``True`` a swap takes
+          places but the inverse initial permutation is omitted (i.e. you can
+          get the state after ``rounds``). This only effects encryption.
 
         EXAMPLES::
 
@@ -154,6 +173,7 @@ class DES(SageObject):
         self._keySize = keySize
         if keySize not in (56, 64):
             raise ValueError('key size must be 56 or 64')
+        self._doLastSwap = doLastSwap
         self._blocksize = 64
 
     def __call__(self, block, key, algorithm='encrypt'):
@@ -282,8 +302,11 @@ class DES(SageObject):
         L, R = state[0:32], state[32:64]
         for k in roundKeys[:self._rounds]:
             L, R = R, L + self._f(R, k)
-        state = vector(GF(2), 64, list(R)+list(L))
-        state = self._inv_ip(state)
+        if self._doLastSwap:
+            state = vector(GF(2), 64, list(L)+list(R))
+        else:
+            state = vector(GF(2), 64, list(R)+list(L))
+            state = self._inv_ip(state)
         return state if inputType == 'vector' else ZZ(list(state)[::-1], 2)
 
     def decrypt(self, ciphertext, key):

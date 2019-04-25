@@ -103,7 +103,7 @@ class DES(SageObject):
     .. automethod:: __call__
     """
 
-    def __init__(self, rounds=None, keySchedule=None):
+    def __init__(self, rounds=None, keySchedule='DES_KS'):
         r"""
         Construct an instance of DES.
 
@@ -112,9 +112,9 @@ class DES(SageObject):
         - ``rounds``  -- integer (default: ``None``); the number of rounds. If
           ``None`` the number of rounds of the key schedule is used.
 
-        - ``keySchedule`` -- (default: ``None``); the key schedule that will be
-          used for encryption and decryption. If ``None`` the default DES key
-          schedule is used.
+        - ``keySchedule`` -- (default: ``'DES_KS'``); the key schedule that
+          will be used for encryption and decryption. If ``None`` the default
+          DES key schedule is used.
 
         EXAMPLES::
 
@@ -143,15 +143,9 @@ class DES(SageObject):
             DES block cipher with 11 rounds and the following key schedule:
             Original DES key schedule with 11 rounds
         """
-        if keySchedule is None:
-            self._keySchedule = DES_KS()
-        else:
-            self._keySchedule = keySchedule
-        if rounds is None:
-            self._rounds = self._keySchedule._rounds
-        elif rounds <= self._keySchedule._rounds:
-            self._rounds = rounds
-        else:
+        self._keySchedule = DES_KS() if keySchedule == 'DES_KS' else keySchedule
+        self._rounds = self._keySchedule._rounds if rounds is None else rounds
+        if self._rounds > self._keySchedule._rounds:
             raise ValueError('number of rounds must be less or equal to the '
                              'number of rounds of the key schedule')
         self._blocksize = 64

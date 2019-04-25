@@ -867,8 +867,8 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         cone = self._normaliz_cone
         # Normaliz needs to compute the EhrhartSeries first
-        assert PyNormaliz.NmzCompute(cone,"EhrhartSeries")
-        e = PyNormaliz.NmzResult(cone, "HilbertQuasiPolynomial")
+        assert PyNormaliz.NmzCompute(cone, ["EhrhartSeries"])
+        e = PyNormaliz.NmzResult(cone, "EhrhartQuasiPolynomial")
 
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         poly_ring = PolynomialRing(QQ,variable)

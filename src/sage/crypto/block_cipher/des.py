@@ -86,7 +86,7 @@ class DES(SageObject):
     list-like the output will be a bit vector::
 
         sage: P = ZZ(0).digits(2,padto=64)
-        sage: K = ZZ(0).digits(2,padto=56)
+        sage: K = ZZ(0).digits(2,padto=64)
         sage: list(des(des(P, K, 'encrypt'), K, 'decrypt')) == P
         True
         sage: P = ZZ(0).digits(2,padto=64)
@@ -103,7 +103,7 @@ class DES(SageObject):
     .. automethod:: __call__
     """
 
-    def __init__(self, rounds=None, keySchedule='DES_KS'):
+    def __init__(self, rounds=None, keySchedule='DES_KS', keySize=64):
         r"""
         Construct an instance of DES.
 
@@ -115,6 +115,9 @@ class DES(SageObject):
         - ``keySchedule`` -- (default: ``'DES_KS'``); the key schedule that
           will be used for encryption and decryption. If ``None`` the default
           DES key schedule is used.
+
+        - ``keySize`` -- (default: ``64``); the key length in bits. Must be
+          ``56`` of ``64``. In the latter case the key contains 8 parity bits.
 
         EXAMPLES::
 
@@ -148,6 +151,9 @@ class DES(SageObject):
         if self._rounds > self._keySchedule._rounds:
             raise ValueError('number of rounds must be less or equal to the '
                              'number of rounds of the key schedule')
+        self._keySize = keySize
+        if keySize not in (56, 64):
+            raise ValueError('key size must be 56 or 64')
         self._blocksize = 64
 
     def __call__(self, block, key, algorithm='encrypt'):
@@ -259,26 +265,18 @@ class DES(SageObject):
         You can also use 56 bit keys i.e. you can leave out the parity bits::
 
             sage: K56 = 0x12695BC9B7B7F8
+            sage: des = DES(keySize=56)
             sage: des.encrypt(P, K56) == C
             True
-
-        If the seven left most bits of your 64 bit key are all zero, the first
-        parity bit MUST be set correct i.e. it must be one. Otherwise your key
-        will be interpreted as a 56 bit key.
-
-            sage: K = 0x0107910491190101
-            sage: P = 0
-            sage: C = des.encrypt(P, K); C.hex()
-            'b46604816c0e0774'
-            sage: K = 0x0107940491190401
-            sage: C = des.encrypt(P, K); C.hex()
-            '6e7e6221a4f34e87'
-            sage: K = 0x0007910491190101
-            sage: des.encrypt(P, K) == C
-            False
         """
         state, inputType = _convert_to_vector(plaintext, 64)
-        key, _ = _convert_to_vector(key, self._keySchedule._keysize)
+        key, _ = _convert_to_vector(key, self._keySize)
+        if self._keySize == 56:
+            # insert 'parity' bits
+            key = list(key)
+            for i in range(7, 64, 8):
+                key.insert(i, 0)
+            key = vector(GF(2), 64, key)
         roundKeys = self._keySchedule(key)
         state = self._ip(state)
         L, R = state[0:32], state[32:64]
@@ -320,11 +318,18 @@ class DES(SageObject):
         You can also use 56 bit keys i.e. you can leave out the parity bits::
 
             sage: K56 = 0x7D404224A35BAB
+            sage: des = DES(keySize=56)
             sage: des.decrypt(C, K56).hex() == P
             True
         """
         state, inputType = _convert_to_vector(ciphertext, 64)
-        key, _ = _convert_to_vector(key, self._keySchedule._keysize)
+        key, _ = _convert_to_vector(key, self._keySize)
+        if self._keySize == 56:
+            # insert 'parity' bits
+            key = list(key)
+            for i in range(7, 64, 8):
+                key.insert(i, 0)
+            key = vector(GF(2), 64, key)
         roundKeys = self._keySchedule(key)
         state = self._ip(state)
         L, R = state[0:32], state[32:64]
@@ -518,7 +523,7 @@ class DES_KS(SageObject):
           ``self`` can create keys for
 
         - ``master_key`` -- integer or bit list-like (default: ``None``); the
-          key that will be used
+          64-bit key that will be used
 
         EXAMPLES::
 
@@ -534,7 +539,7 @@ class DES_KS(SageObject):
         """
         self._rounds = rounds
         self._master_key = master_key
-        self._keysize = 64
+        self._keySize = 64
 
     def __call__(self, key):
         r"""
@@ -542,7 +547,7 @@ class DES_KS(SageObject):
 
         INPUT:
 
-        - ``key`` -- integer or bit list-like; the key
+        - ``key`` -- integer or bit list-like; the 64-bit key
 
         OUTPUT:
 
@@ -567,18 +572,8 @@ class DES_KS(SageObject):
 
         But of course you can invoke it with hex representation as well::
 
-            sage: K64 = 0x133457799bbcdff1
-            sage: ks = DES_KS(16, K64)
-            sage: [k.hex() for k in ks]
-            ['1b02effc7072',
-             '79aed9dbc9e5',
-             ...
-             'cb3d8b0e17f5']
-
-        And again you can leave out the parity bit::
-
-            sage: K56 = 0x12695BC9B7B7F8
-            sage: ks = DES_KS(master_key=K56)
+            sage: K = 0x133457799bbcdff1
+            sage: ks = DES_KS(16, K)
             sage: [k.hex() for k in ks]
             ['1b02effc7072',
              '79aed9dbc9e5',
@@ -591,15 +586,8 @@ class DES_KS(SageObject):
             pass a ``master_key`` value on initialisation. Otherwise you can
             omit ``master_key`` and pass a key when you call the object.
         """
-        key, inputType = _convert_to_vector(key, self._keysize)
+        key, inputType = _convert_to_vector(key, self._keySize)
         roundKeys = []
-        # ensure that K is a 64 bit vector
-        if not any(key[0:8]):
-            # delete msbs and insert 'parity' bits
-            key = list(key)[8:]
-            for i in range(7, 64, 8):
-                key.insert(i, 0)
-            key = vector(GF(2), 64, key)
         C, D = self._pc1(key)
         for i in range(16):
             C, D = self._left_shift(C, i), self._left_shift(D, i)

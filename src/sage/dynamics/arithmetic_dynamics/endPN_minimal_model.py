@@ -725,7 +725,7 @@ def HS_all_minimal_p(p, f, m=None, return_transformation=False):
     This function implements the algorithm in Hutz-Stoll [HS2018]_.
     A representatives in each distinct `SL(2,\ZZ)` orbit with minimal
     valuation with respect to the prime ``p`` is returned. The input
-    ``f`` must have minimal resultant in its conguacy class.
+    ``f`` must have minimal resultant in its conjugacy class.
 
     INPUT:
 
@@ -824,7 +824,7 @@ def HS_all_minimal(f, return_transformation=False, D=None):
 
     This function implements the algorithm in Hutz-Stoll [HS2018]_.
     A representative in each distinct `SL(2,\ZZ)` orbit is returned.
-    The input ``f`` must have minimal resultant in its conguacy class.
+    The input ``f`` must have minimal resultant in its conjugacy class.
 
     INPUT:
 
@@ -998,7 +998,7 @@ def smallest_dynamical(f, dynatomic=True, start_n=1, prec=53, emb=None, algorith
 
     - ``f`` -- a dynamical system on `P^1`
 
-    - ``dynetomic`` -- boolean. whether ``F`` is the periodic points or the
+    - ``dynatomic`` -- boolean. whether ``F`` is the periodic points or the
       formal periodic points of period ``m`` for ``f``
 
     - ``start_n`` - positive integer. the period used to start trying to

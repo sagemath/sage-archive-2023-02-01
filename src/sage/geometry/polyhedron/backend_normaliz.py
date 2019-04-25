@@ -1507,8 +1507,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         if measure == 'euclidean':
             return self._nmz_result(cone, 'EuclideanVolume')
         elif measure == 'induced_lattice':
-            n, d = self._nmz_result(cone, 'Volume')
-            return ZZ(n) / ZZ(d)
+            return self._nmz_result(cone, 'Volume')
 
     def _triangulate_normaliz(self):
         r"""

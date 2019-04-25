@@ -951,7 +951,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             return 0
 
         data = self._get_nmzcone_data()
-        data['grading'] = grading
+        data['grading'] = [grading]
         new_cone = self._make_normaliz_cone(data)
         h = PyNormaliz.NmzResult(new_cone, "HilbertSeries")
 

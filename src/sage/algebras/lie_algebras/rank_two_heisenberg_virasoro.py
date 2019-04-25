@@ -20,13 +20,11 @@ from sage.misc.cachefunc import cached_method
 from sage.categories.lie_algebras import LieAlgebras
 from sage.rings.all import ZZ
 from sage.sets.family import Family
-from sage.sets.set import Set
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.structure.indexed_generators import IndexedGenerators
 from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElement
 from sage.algebras.lie_algebras.lie_algebra import (InfinitelyGeneratedLieAlgebra)
-from sage.combinat.free_module import CombinatorialFreeModule
 
 class RankTwoHeisenbergVirasoro(InfinitelyGeneratedLieAlgebra, IndexedGenerators):
     r"""
@@ -45,7 +43,7 @@ class RankTwoHeisenbergVirasoro(InfinitelyGeneratedLieAlgebra, IndexedGenerators
     .. MATH::
 
         \begin{aligned}
-        [t^{\alpha}, t^{\beta}] & = [K_i, L] = 0,
+        \mbox{ } [t^{\alpha}, t^{\beta}] & = [K_i, L] = 0,
         \\
         [t^{\alpha}, E(\beta)] & =
           \det\begin{pmatrix} \beta \\ \alpha \end{pmatrix} t^{\alpha+\beta}
@@ -189,7 +187,6 @@ class RankTwoHeisenbergVirasoro(InfinitelyGeneratedLieAlgebra, IndexedGenerators
         """
         if i is None:
             return Family(self._KI, self.K)
-        I = self._indices
         return self.monomial( ('K', i) )
 
     def t(self, a, b):
@@ -241,8 +238,8 @@ class RankTwoHeisenbergVirasoro(InfinitelyGeneratedLieAlgebra, IndexedGenerators
 
     def bracket_on_basis(self, i, j):
         r"""
-        Return the bracket of basis elements indexed by ``x`` and ``y``,
-        where ``x < y``.
+        Return the bracket of basis elements indexed by ``i`` and ``j``,
+        where ``i < j``.
 
         EXAMPLES::
 
@@ -275,19 +272,19 @@ class RankTwoHeisenbergVirasoro(InfinitelyGeneratedLieAlgebra, IndexedGenerators
                 return self.zero()
             k = ('t', i[1] + j[1])
             if not k[1]: # == 0
-                d = {('K',1): i[1][0], ('K',2): i[1][1]}
+                d = {('K',1): i[1][0], ('K',2): i[1][1]}     # Kronecker delta summand
             else:
                 k[1].set_immutable()
-                d = {k: j[1][0]*i[1][1] - j[1][1]*i[1][0]}
+                d = {k: j[1][0]*i[1][1] - j[1][1]*i[1][0]}   # determinant summand
             return self._from_dict(d)
 
         # else i[0] == 'E'
         k = ('E', i[1] + j[1])
         if not k[1]: # == 0
-            d = {('K',3): i[1][0], ('K',4): i[1][1]}
+            d = {('K',3): i[1][0], ('K',4): i[1][1]}      # Kronecker delta summand
         else:
             k[1].set_immutable()
-            d = {k: (j[1][0]*i[1][1] - j[1][1]*i[1][0])}
+            d = {k: (j[1][0]*i[1][1] - j[1][1]*i[1][0])}  # determinant summand
         return self._from_dict(d)
 
     def _an_element_(self):

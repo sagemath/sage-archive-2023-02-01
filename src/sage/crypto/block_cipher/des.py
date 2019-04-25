@@ -60,7 +60,7 @@ class DES(SageObject):
     EXAMPLES:
 
     You can invoke DES encryption/decryption either by calling DES with an
-    appropriate falg::
+    appropriate flag::
 
         sage: from sage.crypto.block_cipher.des import DES
         sage: des = DES()
@@ -123,8 +123,8 @@ class DES(SageObject):
             DES block cipher with 16 rounds and the following key schedule:
             Original DES key schedule with 16 rounds
 
-        Reducing the number of rounds is simple. But increasing it is not
-        possible::
+        Reducing the number of rounds is simple. But increasing it is only
+        possible if the key schedule can produce enough round keys::
 
             sage: DES(rounds=11) # indirect doctest
             DES block cipher with 11 rounds and the following key schedule:
@@ -560,7 +560,7 @@ class DES_KS(SageObject):
         EXAMPLES:
 
         This implementation is using bit vectors for all internal
-        representations. So you could invoke the key schedule with a bit
+        representations. So you can invoke the key schedule with a bit
         vector::
 
             sage: from sage.crypto.block_cipher.des import DES_KS
@@ -572,7 +572,7 @@ class DES_KS(SageObject):
              ...
              (1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1)]
 
-        But of course you could invoke it with hex representation as well::
+        But of course you can invoke it with hex representation as well::
 
             sage: K64 = 0x133457799bbcdff1
             sage: ks = DES_KS(16, K64)

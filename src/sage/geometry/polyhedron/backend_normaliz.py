@@ -777,7 +777,6 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         .. SEEALSO: :meth:`~sage.geometry.polyhedron.backend_normaliz.hilbert_series`
         """
-        import PyNormaliz
         if self.is_empty():
             return 0
 
@@ -785,7 +784,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             raise NotImplementedError("Ehrhart series can only be computed for compact polyhedron.")
 
         cone = self._normaliz_cone
-        e = PyNormaliz.NmzResult(cone, "EhrhartSeries")
+        e = self._nmz_result(cone, "EhrhartSeries")
         # The output format of PyNormaliz is a list with 3 things:
         # 1) the coefficients of the h^*-polynomial
         # 2) a list of the exponents e such that (1-t^e) appears as a factor in
@@ -858,7 +857,6 @@ class Polyhedron_normaliz(Polyhedron_base):
         .. SEEALSO: :meth:`~sage.geometry.polyhedron.backend_normaliz.hilbert_series`
             :meth:`~sage.geometry.polyhedron.backend_normaliz.ehrhart_series`
         """
-        import PyNormaliz
         if self.is_empty():
             return 0
 
@@ -867,8 +865,9 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         cone = self._normaliz_cone
         # Normaliz needs to compute the EhrhartSeries first
+        import PyNormaliz
         assert PyNormaliz.NmzCompute(cone, ["EhrhartSeries"])
-        e = PyNormaliz.NmzResult(cone, "EhrhartQuasiPolynomial")
+        e = self._nmz_result(cone, "EhrhartQuasiPolynomial")
 
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         poly_ring = PolynomialRing(QQ,variable)
@@ -946,14 +945,13 @@ class Polyhedron_normaliz(Polyhedron_base):
         
         .. SEEALSO: :meth:`~sage.geometry.polyhedron.backend_normaliz.ehrhart_series`
         """
-        import PyNormaliz
         if self.is_empty():
             return 0
 
         data = self._get_nmzcone_data()
         data['grading'] = [grading]
         new_cone = self._make_normaliz_cone(data)
-        h = PyNormaliz.NmzResult(new_cone, "HilbertSeries")
+        h = self._nmz_result(new_cone, "HilbertSeries")
 
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from sage.rings.fraction_field import FractionField
@@ -1227,8 +1225,6 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: P.integral_points_generators()      # optional - pynormaliz
             ((), (), ())
         """
-
-        import PyNormaliz
         # Trivial cases: polyhedron with 0 vertices
         if self.n_vertices() == 0:
             return ((),(),())
@@ -1238,15 +1234,15 @@ class Polyhedron_normaliz(Polyhedron_base):
         recession_cone_part = []
         lineality_part = []
         assert cone
-        for g in PyNormaliz.NmzResult(cone, "ModuleGenerators"):
+        for g in self._nmz_result(cone, "ModuleGenerators"):
             assert g[-1] == 1
             compact_part.append(vector(ZZ, g[:-1]))
 
-        for g in PyNormaliz.NmzResult(cone, "HilbertBasis"):
+        for g in self._nmz_result(cone, "HilbertBasis"):
             assert g[-1] == 0
             recession_cone_part.append(vector(ZZ, g[:-1]))
 
-        for g in PyNormaliz.NmzResult(cone, "MaximalSubspace"):
+        for g in self._nmz_result(cone, "MaximalSubspace"):
             assert g[-1] == 0
             lineality_part.append(vector(ZZ, g[:-1]))
 
@@ -1294,13 +1290,12 @@ class Polyhedron_normaliz(Polyhedron_base):
             6
 
         """
-        import PyNormaliz
         cone = self._normaliz_cone
         assert cone
         if measure == 'euclidean':
-            return PyNormaliz.NmzResult(cone,'EuclideanVolume')
+            return self._nmz_result(cone, 'EuclideanVolume')
         elif measure == 'induced_lattice':
-            n,d = PyNormaliz.NmzResult(cone,'Volume')
+            n, d = self._nmz_result(cone, 'Volume')
             return ZZ(n) / ZZ(d)
 
     def _triangulate_normaliz(self):

@@ -3987,9 +3987,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.reduced_form(smallest_coeffs=False)
             (
             Dynamical System of Projective Space of dimension 1 over Number Field in w with defining polynomial x^2 - 2 with w = 1.414213562373095?
-              Defn: Defined on coordinates by sending (x : y) to
+              Defn: Defined on coordinates by sending (x : y) to                                                                                   
                     (x^3 : (w)*y^3)                                                                                                                ,
-            ,
             <BLANKLINE>
             [  1 -12]
             [  0   1]
@@ -4005,11 +4004,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = f.conjugate(m)
             sage: f.reduced_form(smallest_coeffs=False)
             (
-            Dynamical System of Projective Space of dimension 1 over Number Field
-            in w with defining polynomial x^5 + x - 3 with w = 1.132997565885066?
-              Defn: Defined on coordinates by sending (x : y) to
+            Dynamical System of Projective Space of dimension 1 over Number Field in w with defining polynomial x^5 + x - 3 with w = 1.132997565885066?
+              Defn: Defined on coordinates by sending (x : y) to                                                                                       
                     (12*x^3 : (2334*w)*y^3)                                                                                                            ,
-            ,
+            <BLANKLINE>
             [  0  -1]
             [  1 -12]
             )

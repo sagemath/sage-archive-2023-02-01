@@ -987,7 +987,7 @@ class Polytopes():
             sage: bb.f_vector()                # long time
             (1, 60, 90, 32, 1)
             sage: bb.base_ring()               # long time
-            Number Field in sqrt5 with defining polynomial x^2 - 5
+            Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
 
         A much faster implementation using floating point approximations::
 
@@ -1079,7 +1079,7 @@ class Polytopes():
             sage: id.f_vector()                # long time
             (1, 30, 60, 32, 1)
             sage: id.base_ring()               # long time
-            Number Field in sqrt5 with defining polynomial x^2 - 5
+            Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
 
         A much faster implementation using floating point approximations::
 
@@ -1297,7 +1297,7 @@ class Polytopes():
             sage: rid.f_vector()                # long time
             (1, 60, 120, 62, 1)
             sage: rid.base_ring()               # long time
-            Number Field in sqrt5 with defining polynomial x^2 - 5
+            Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
 
         A much faster implementation using floating point approximations::
 
@@ -1365,7 +1365,7 @@ class Polytopes():
             sage: ti.f_vector()                # long time
             (1, 120, 180, 62, 1)
             sage: ti.base_ring()               # long time
-            Number Field in sqrt5 with defining polynomial x^2 - 5
+            Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
 
         The implementation using floating point approximations is much faster::
 

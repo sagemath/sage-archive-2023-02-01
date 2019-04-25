@@ -1948,6 +1948,10 @@ REFERENCES:
 .. [Ke2008] \B. Keller, *Cluster algebras, quiver representations
             and triangulated categories*, :arxiv:`0807.1960`.
 
+.. [KeSm1998] \S. Keller and M. Smid, *Modes of Operation Validation System
+              (MOVS): Requirements and Procedures* NIST Special Publication
+              800-17, 1998 :doi:`10.6028/NIST.SP.800-17`
+
 .. [KG2016] \P. Karpmann and Benjamin Gregoire, *The LITTLUN S-box and the FLY
             block cipher*, Lightweight Cryptography Workshop, 2016.
             https://www.nist.gov/sites/default/files/documents/2016/10/18/karpman-paper-lwc2016.pdf

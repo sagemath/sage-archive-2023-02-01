@@ -15,12 +15,12 @@ Encrypt a message::
 
     sage: from sage.crypto.block_cipher.des import DES
     sage: des = DES()
-    sage: des.encrypt(P=0x01A1D6D039776742, K=0x7CA110454A1A6E57).hex()
+    sage: des.encrypt(plaintext=0x01A1D6D039776742, key=0x7CA110454A1A6E57).hex()
     '690f5b0d9a26939b'
 
 And decrypt it again::
 
-    sage: des.decrypt(C=0x690F5B0D9A26939B, K=0x7CA110454A1A6E57).hex()
+    sage: des.decrypt(ciphertext=0x690F5B0D9A26939B, key=0x7CA110454A1A6E57).hex()
     '1a1d6d039776742'
 
 Have a look at the used round keys::
@@ -156,28 +156,27 @@ class DES(SageObject):
                              'number of rounds of the key schedule')
         self._blocksize = 64
 
-    def __call__(self, B, K, algorithm='encrypt'):
+    def __call__(self, block, key, algorithm='encrypt'):
         r"""
-        Apply DES encryption or decryption on ``B`` using the key ``K``.
-        The flag ``algorithm`` controls what action is to be performed on
-        ``B``.
+        Apply DES encryption or decryption on ``block`` using ``key``. The flag
+        ``algorithm`` controls what action is to be performed on ``block``.
 
         INPUT:
 
-        - ``B`` -- integer or bit list-like; the plaintext or ciphertext
+        - ``block`` -- integer or bit list-like; the plaintext or ciphertext
 
-        - ``K`` -- integer or bit list-like; the key
+        - ``key`` -- integer or bit list-like; the key
 
         - ``algorithm`` -- string (default: ``'encrypt'``); a flag to signify
-          whether encryption or decryption is to be applied to ``B``. The
+          whether encryption or decryption is to be applied to ``block``. The
           encryption flag is ``'encrypt'`` and the decryption flag is
           ``'decrypt'``
 
         OUTPUT:
 
-        - The plaintext or ciphertext corresponding to ``B``, obtained using
-          the key ``K``. If ``B`` is an integer the output will be too. If
-          ``B`` is list-like the output will be a bit vector.
+        - The plaintext or ciphertext corresponding to ``block``, obtained
+          using ``key``. If ``block`` is an integer the output will be too. If
+          ``block`` is list-like the output will be a bit vector.
 
         EXAMPLES::
 
@@ -189,9 +188,9 @@ class DES(SageObject):
             'a1f9915541020b56'
         """
         if algorithm == 'encrypt':
-            return self.encrypt(B, K)
+            return self.encrypt(block, key)
         elif algorithm == 'decrypt':
-            return self.decrypt(B, K)
+            return self.decrypt(block, key)
         else:
             raise ValueError('Algorithm must be \'encrypt\' or \'decrypt\' and'
                              ' not \'%s\'' % algorithm)
@@ -234,23 +233,23 @@ class DES(SageObject):
         return('DES block cipher with %s rounds and the following key '
                'schedule:\n%s' % (self._rounds, self._keySchedule.__repr__()))
 
-    def encrypt(self, P, K):
+    def encrypt(self, plaintext, key):
         r"""
-        Return the ciphertext corresponding to the plaintext ``P``,
-        using DES encryption with key ``K``.
+        Return the ciphertext corresponding to ``plaintext``, using DES
+        encryption with ``key``.
 
         INPUT:
 
-        - ``P`` -- integer or bit list-like; the plaintext that will be
+        - ``plaintext`` -- integer or bit list-like; the plaintext that will be
           encrypted.
 
-        - ``K`` -- integer or bit list-like; the key
+        - ``key`` -- integer or bit list-like; the key
 
         OUTPUT:
 
-        - The ciphertext corresponding to ``P``, obtained using the key
-          ``K``. If ``P`` is an integer the output will be too. If ``P`` is
-          list-like the output will be a bit vector.
+        - The ciphertext corresponding to ``plaintext``, obtained using
+          ``key``. If ``plaintext`` is an integer the output will be too. If
+          ``plaintext`` is list-like the output will be a bit vector.
 
         EXAMPLES:
 
@@ -284,9 +283,9 @@ class DES(SageObject):
             sage: des.encrypt(P, K) == C
             False
         """
-        state, inputType = _convert_to_vector(P, 64)
-        K, _ = _convert_to_vector(K, self._keySchedule._keysize)
-        roundKeys = self._keySchedule(K)
+        state, inputType = _convert_to_vector(plaintext, 64)
+        key, _ = _convert_to_vector(key, self._keySchedule._keysize)
+        roundKeys = self._keySchedule(key)
         state = self._ip(state)
         L, R = state[0:32], state[32:64]
         for k in roundKeys[:self._rounds]:
@@ -295,23 +294,23 @@ class DES(SageObject):
         state = self._inv_ip(state)
         return state if inputType == 'vector' else ZZ(list(state)[::-1], 2)
 
-    def decrypt(self, C, K):
+    def decrypt(self, ciphertext, key):
         r"""
-        Return the plaintext corresponding to the ciphertext ``C``,
-        using DES decryption with key ``K``.
+        Return the plaintext corresponding to ``ciphertext``, using DES
+        decryption with ``key``.
 
         INPUT:
 
-        - ``C`` -- integer or bit list-like; the ciphertext that will be
-          decrypted
+        - ``ciphertext`` -- integer or bit list-like; the ciphertext that will
+          be decrypted
 
-        - ``K`` -- integer or bit list-like; the key
+        - ``key`` -- integer or bit list-like; the key
 
         OUTPUT:
 
-        - The plaintext corresponding to ``C``, obtained using the key
-          ``K``. If ``C`` is an integer the output will be too. If ``C`` is
-          list-like the output will be a bit vector.
+        - The plaintext corresponding to ``ciphertext``, obtained using
+          ``key``. If ``ciphertext`` is an integer the output will be too. If
+          ``ciphertext`` is list-like the output will be a bit vector.
 
         EXAMPLES:
 
@@ -330,9 +329,9 @@ class DES(SageObject):
             sage: des.decrypt(C, K56).hex() == P
             True
         """
-        state, inputType = _convert_to_vector(C, 64)
-        K, _ = _convert_to_vector(K, self._keySchedule._keysize)
-        roundKeys = self._keySchedule(K)
+        state, inputType = _convert_to_vector(ciphertext, 64)
+        key, _ = _convert_to_vector(key, self._keySchedule._keysize)
+        roundKeys = self._keySchedule(key)
         state = self._ip(state)
         L, R = state[0:32], state[32:64]
         for k in roundKeys[:self._rounds][::-1]:
@@ -341,9 +340,9 @@ class DES(SageObject):
         state = self._inv_ip(state)
         return state if inputType == 'vector' else ZZ(list(state)[::-1], 2)
 
-    def _ip(self, B):
+    def _ip(self, block):
         r"""
-        Return the initial permutation of ``B``.
+        Return the initial permutation of ``block``.
 
         EXAMPLES::
 
@@ -361,11 +360,11 @@ class DES(SageObject):
               59, 51, 43, 35, 27, 19, 11, 3,
               61, 53, 45, 37, 29, 21, 13, 5,
               63, 55, 47, 39, 31, 23, 15, 7]
-        return vector(GF(2), 64, [B[i-1] for i in IP])
+        return vector(GF(2), 64, [block[i-1] for i in IP])
 
-    def _f(self, R, K):
+    def _f(self, right, subkey):
         r"""
-        Apply the cipher function to ``R`` and ``K``.
+        Apply the cipher function to ``right`` and ``subkey``.
 
         EXAMPLES::
 
@@ -376,11 +375,11 @@ class DES(SageObject):
             sage: des._f(R, K)
             (0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1)
         """
-        return self._permutaion(self._sboxes(self._expand(R)+K))
+        return self._permutaion(self._sboxes(self._expand(right)+subkey))
 
-    def _expand(self, R):
+    def _expand(self, right):
         r"""
-        Apply the expansion function to ``R``.
+        Apply the expansion function to ``right``.
 
         EXAMPLES::
 
@@ -398,11 +397,11 @@ class DES(SageObject):
              20, 21, 22, 23, 24, 25,
              24, 25, 26, 27, 28, 29,
              28, 29, 30, 31, 32,  1]
-        return vector(GF(2), 48, [R[i-1] for i in E])
+        return vector(GF(2), 48, [right[i-1] for i in E])
 
-    def _sboxes(self, B):
+    def _sboxes(self, block):
         r"""
-        Apply the Sboxes to ``R``.
+        Apply the Sboxes to ``block``.
 
         EXAMPLES::
 
@@ -433,14 +432,14 @@ class DES(SageObject):
                 [DES_S6_1, DES_S6_2, DES_S6_3, DES_S6_4],
                 [DES_S7_1, DES_S7_2, DES_S7_3, DES_S7_4],
                 [DES_S8_1, DES_S8_2, DES_S8_3, DES_S8_4]]
-        B = [B[i:i+6] for i in range(0, 48, 6)]
-        B = list(chain.from_iterable([sbox[i][2*int(b[0])+int(b[5])](b[1:5])
-                                      for i, b in enumerate(B)]))
-        return vector(GF(2), 32, B)
+        block = [block[i:i+6] for i in range(0, 48, 6)]
+        block = list(chain.from_iterable([sbox[i][2*int(b[0])+int(b[5])](b[1:5])
+                                      for i, b in enumerate(block)]))
+        return vector(GF(2), 32, block)
 
-    def _permutaion(self, B):
+    def _permutaion(self, block):
         r"""
-        Apply the permutation function to ``R``.
+        Apply the permutation function to ``block``.
 
         EXAMPLES::
 
@@ -458,11 +457,11 @@ class DES(SageObject):
              32, 27,  3,  9,
              19, 13, 30,  6,
              22, 11,  4, 25]
-        return vector(GF(2), 32, [B[i-1] for i in P])
+        return vector(GF(2), 32, [block[i-1] for i in P])
 
-    def _inv_ip(self, B):
+    def _inv_ip(self, block):
         r"""
-        Apply the inverse permutation function to ``R``.
+        Apply the inverse permutation function to ``block``.
 
         EXAMPLES::
 
@@ -480,7 +479,7 @@ class DES(SageObject):
                  35, 3, 43, 11, 51, 19, 59, 27,
                  34, 2, 42, 10, 50, 18, 58, 26,
                  33, 1, 41,  9, 49, 17, 57, 25]
-        return vector(GF(2), 64, [B[i-1] for i in invIP])
+        return vector(GF(2), 64, [block[i-1] for i in invIP])
 
 
 class DES_KS(SageObject):
@@ -543,19 +542,19 @@ class DES_KS(SageObject):
         self._master_key = master_key
         self._keysize = 64
 
-    def __call__(self, K):
+    def __call__(self, key):
         r"""
         Return all round keys in a list.
 
         INPUT:
 
-        - ``K`` -- integer or bit list-like; the key
+        - ``key`` -- integer or bit list-like; the key
 
         OUTPUT:
 
-        - A list containing the round keys. If ``K`` is an integer the elements
-          of the output list will be too. If ``K`` is list-like the element of
-          the output list will be  bit vectors.
+        - A list containing the round keys. If ``key`` is an integer the
+          elements of the output list will be too. If ``key`` is list-like the
+          element of the output list will be  bit vectors.
 
         EXAMPLES:
 
@@ -598,16 +597,16 @@ class DES_KS(SageObject):
             pass a ``master_key`` value on initialisation. Otherwise you can
             omit ``master_key`` and pass a key when you call the object.
         """
-        K, inputType = _convert_to_vector(K, self._keysize)
+        key, inputType = _convert_to_vector(key, self._keysize)
         roundKeys = []
         # ensure that K is a 64 bit vector
-        if not any(K[0:8]):
+        if not any(key[0:8]):
             # delete msbs and insert 'parity' bits
-            K = list(K)[8:]
+            key = list(key)[8:]
             for i in range(7, 64, 8):
-                K.insert(i, 0)
-            K = vector(GF(2), 64, K)
-        C, D = self._pc1(K)
+                key.insert(i, 0)
+            key = vector(GF(2), 64, key)
+        C, D = self._pc1(key)
         for i in range(16):
             C, D = self._left_shift(C, i), self._left_shift(D, i)
             roundKeys.append(self._pc2(list(C)+list(D)))
@@ -686,9 +685,9 @@ class DES_KS(SageObject):
             raise ValueError('Key not set during initialisation')
         return iter(self(self._master_key))
 
-    def _pc1(self, K):
+    def _pc1(self, key):
         r"""
-        Return Permuted Choice 1 of ``K``.
+        Return Permuted Choice 1 of ``key``.
 
         EXAMPLES::
 
@@ -709,13 +708,13 @@ class DES_KS(SageObject):
                   7, 62, 54, 46, 38, 30, 22,
                  14,  6, 61, 53, 45, 37, 29,
                  21, 13,  5, 28, 20, 12,  4]
-        C = vector(GF(2), 28, [K[i-1] for i in PC1_C])
-        D = vector(GF(2), 28, [K[i-1] for i in PC1_D])
+        C = vector(GF(2), 28, [key[i-1] for i in PC1_C])
+        D = vector(GF(2), 28, [key[i-1] for i in PC1_D])
         return C, D
 
-    def _pc2(self, K):
+    def _pc2(self, key):
         r"""
-        Return Permuted Choice 2 of ``K``.
+        Return Permuted Choice 2 of ``key``.
 
         EXAMPLES::
 
@@ -733,7 +732,7 @@ class DES_KS(SageObject):
                30, 40, 51, 45, 33, 48,
                44, 49, 39, 56, 34, 53,
                46, 42, 50, 36, 29, 32]
-        return vector(GF(2), 48, [K[i-1] for i in PC2])
+        return vector(GF(2), 48, [key[i-1] for i in PC2])
 
     def _left_shift(self, half, i):
         r"""

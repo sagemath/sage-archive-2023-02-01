@@ -10,9 +10,9 @@ from sage.quadratic_forms.extras import extend_to_primitive
 from sage.matrix.constructor import matrix
 
 
-# ######################################################################
-# Routines used for understanding p-neighbors and computing classes in a genus.
-# ######################################################################
+# ############################################################################
+# Routines used for understanding p-neighbors and computing classes in a genus
+# ############################################################################
 
 
 def find_primitive_p_divisible_vector__random(self, p):
@@ -113,7 +113,7 @@ def find_primitive_p_divisible_vector__next(self, p, v=None):
             ind += 1
 
         # Increment
-        if (ind < nz):
+        if ind < nz:
             w[ind] += 1
             for j in range(ind):
                 w[j] = 0
@@ -164,8 +164,9 @@ def find_p_neighbor_from_vec(self, p, v):
     B2 = self.matrix()
 
     # Find a (dual) vector w with B(v,w) != 0 (mod p)
-    v_dual = B2 * vector(v)
     # We want the dot product with this to not be divisible by 2*p.
+    v_dual = B2 * vector(v)
+
     y_ind = 0
     while ((y_ind < n) and (v_dual[y_ind] % p) == 0):
         # Check the dot product for the std basis vectors!

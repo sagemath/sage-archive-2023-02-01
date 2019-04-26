@@ -2871,7 +2871,7 @@ class Polyhedron_base(Element):
         TESTS::
 
             sage: K = Polyhedron(vertices=[[1,1]], rays=[[1,0],[1,2]])
-            sage: K.triangulate(engine='normaliz')
+            sage: K._triangulate_normaliz(engine='normaliz')
             Traceback (most recent call last):
             ...
             TypeError: The polyhedron's backend should be 'normaliz'
@@ -5199,6 +5199,14 @@ class Polyhedron_base(Element):
 
             This function depends on Normaliz (i.e., the ``pynormaliz`` optional
             package). See the Normaliz documentation for further details.
+
+        TESTS::
+
+            sage: P = Polyhedron(vertices=[[0,0],[1,0],[0,1],[1,1]])
+            sage: P._volume_normaliz()
+            Traceback (most recent call last):
+            ...
+            TypeError: The backend should be normaliz.
         """
         raise TypeError("The backend should be normaliz.")
 

@@ -581,6 +581,11 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         TESTS::
 
+            sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz     # optional - pynormaliz
+            sage: data = {'inhom_inequalities': [[-1L, 2L, 0L], [0L, 0L, 1L], [2L, -1L, 0L]]}   # optional - pynormaliz
+            sage: nmz_cone = Polyhedron_normaliz._make_normaliz_cone(data,verbose=False)        # optional - pynormaliz
+            sage: Polyhedron_normaliz._cone_generators(nmz_cone)                                # optional - pynormaliz
+            [[1L, 2L, 0L], [0L, 0L, 1L], [2L, 1L, 0L]]
         """
         import PyNormaliz
         return PyNormaliz.NmzResult(pynormaliz_cone, "Generators")
@@ -775,7 +780,9 @@ class Polyhedron_normaliz(Polyhedron_base):
             ...
             NotImplementedError: Ehrhart series can only be computed for compact polyhedron.
 
-        .. SEEALSO: :meth:`~sage.geometry.polyhedron.backend_normaliz.hilbert_series`
+        .. SEEALSO::
+
+            :meth:`~sage.geometry.polyhedron.backend_normaliz.hilbert_series`
         """
         if self.is_empty():
             return 0
@@ -854,7 +861,9 @@ class Polyhedron_normaliz(Polyhedron_base):
             ...
             NotImplementedError: Ehrhart quasi-polynomial can only be computed for compact polyhedron.
 
-        .. SEEALSO: :meth:`~sage.geometry.polyhedron.backend_normaliz.hilbert_series`
+        .. SEEALSO::
+
+            :meth:`~sage.geometry.polyhedron.backend_normaliz.hilbert_series`,
             :meth:`~sage.geometry.polyhedron.backend_normaliz.ehrhart_series`
         """
         if self.is_empty():
@@ -943,7 +952,9 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: magic_square.hilbert_series(grading) # optional - pynormaliz
             (t^6 + 2*t^3 + 1)/(-t^9 + 3*t^6 - 3*t^3 + 1)
 
-        .. SEEALSO: :meth:`~sage.geometry.polyhedron.backend_normaliz.ehrhart_series`
+        .. SEEALSO::
+
+            :meth:`~sage.geometry.polyhedron.backend_normaliz.ehrhart_series`
         """
         if self.is_empty():
             return 0
@@ -1268,7 +1279,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             This function depends on Normaliz (i.e., the ``pynormaliz`` optional
             package). See the Normaliz documentation for further details.
 
-        EXAMPLE:
+        EXAMPLES:
 
         For normaliz, the default is the euclidean volume in the ambient
         space and the result is a float::

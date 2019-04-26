@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
 """
 The Normaliz backend for polyhedral computations
 
@@ -49,7 +49,7 @@ def _format_function_call(fn_name, *v, **k):
         sage: _format_function_call('foo', 17, hellooooo='goodbyeeee')
         "foo(17, hellooooo='goodbyeeee')"
     """
-    args = [ repr(a) for a in v ] + [ "%s=%r" % (arg,val) for arg, val in sorted(k.items()) ]
+    args = [ repr(a) for a in v ] + [ "%s=%r" % (arg, val) for arg, val in sorted(k.items()) ]
     return "{}({})".format(fn_name, ", ".join(args))
 
 #########################################################################
@@ -583,7 +583,7 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         """
         import PyNormaliz
-        return PyNormaliz.NmzResult(pynormaliz_cone,"Generators") 
+        return PyNormaliz.NmzResult(pynormaliz_cone, "Generators")
 
     def _get_nmzcone_data(self):
         r"""
@@ -725,17 +725,17 @@ class Polyhedron_normaliz(Polyhedron_base):
         return self.parent().element_class._from_normaliz_cone(parent=self.parent(),
                                                                normaliz_cone=cone)
 
-    def ehrhart_series(self,variable='t'):
+    def ehrhart_series(self, variable='t'):
         r"""
         Return the Ehrhart series of a compact rational polyhedron.
 
         The Ehrhart series is the generating function where the coefficient of
-        ``t^k`` is number of integer lattice points inside the ``k``-th dilation of
+        `t^k` is number of integer lattice points inside the `k`-th dilation of
         the polytope.
 
         INPUT:
 
-        - ``variable`` -- string (default: ``'t'``). 
+        - ``variable`` -- string (default: ``'t'``)
 
         OUTPUT:
 
@@ -743,18 +743,18 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         EXAMPLES::
 
-            sage: S = Polyhedron(vertices = [[0,1],[1,0]],backend='normaliz') # optional - pynormaliz
-            sage: ES = S.ehrhart_series()  # optional - pynormaliz
-            sage: ES.numerator() # optional - pynormaliz
+            sage: S = Polyhedron(vertices=[[0,1],[1,0]], backend='normaliz')  # optional - pynormaliz
+            sage: ES = S.ehrhart_series()                                     # optional - pynormaliz
+            sage: ES.numerator()                                              # optional - pynormaliz
             1
-            sage: ES.denominator().factor()  # optional - pynormaliz
+            sage: ES.denominator().factor()                                   # optional - pynormaliz
             (t - 1)^2
 
             sage: C = Polyhedron(vertices = [[0,0,0],[0,0,1],[0,1,0],[0,1,1],[1,0,0],[1,0,1],[1,1,0],[1,1,1]],backend='normaliz') # optional - pynormaliz
-            sage: ES = C.ehrhart_series()  # optional - pynormaliz
-            sage: ES.numerator() # optional - pynormaliz
+            sage: ES = C.ehrhart_series()            # optional - pynormaliz
+            sage: ES.numerator()                     # optional - pynormaliz
             t^2 + 4*t + 1
-            sage: ES.denominator().factor()  # optional - pynormaliz
+            sage: ES.denominator().factor()          # optional - pynormaliz
             (t - 1)^4
 
         The following example is from the Normaliz manual contained in the file
@@ -793,7 +793,7 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from sage.rings.fraction_field import FractionField
-        poly_ring = FractionField(PolynomialRing(ZZ,variable))
+        poly_ring = FractionField(PolynomialRing(ZZ, variable))
         t = poly_ring.gens()[0]
         es = sum([e[0][i]*t**i for i in range(len(e[0]))])
         for expo in range(len(e[1])):
@@ -804,18 +804,18 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         return es
 
-    def ehrhart_quasipolynomial(self,variable='t'):
+    def ehrhart_quasipolynomial(self, variable='t'):
         r"""
         Return the Ehrhart quasi-polynomial of a compact rational polyhedron
         using Normaliz.
 
         INPUT:
 
-        - ``variable`` -- string (default: ``'t'``). 
+        - ``variable`` -- string (default: ``'t'``)
 
         OUTPUT:
 
-        If it is a polynomial, returns the polynomial. Otherwise, returns a 
+        If it is a polynomial, returns the polynomial. Otherwise, returns a
         tuple of rational polynomials whose length is the quasi-period of the
         quasi-polynomial and each rational polynomial describes a residue class.
 
@@ -831,7 +831,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: P.ehrhart_quasipolynomial('x')  # optional - pynormaliz
             (3/2*x^2 + 2*x + 1, 3/2*x^2 + 2*x + 1/2)
 
-        The quasi-polynomial evaluated at ``i`` counts the integral points 
+        The quasi-polynomial evaluated at ``i`` counts the integral points
         in the ``i``-th dilate::
 
             sage: Q = Polyhedron(vertices = [[-1/3],[2/3]],backend='normaliz')  # optional - pynormaliz
@@ -870,7 +870,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         e = self._nmz_result(cone, "EhrhartQuasiPolynomial")
 
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        poly_ring = PolynomialRing(QQ,variable)
+        poly_ring = PolynomialRing(QQ, variable)
         t = poly_ring.gens()[0]
         if len(e) == 2:
             # It is a polynomial
@@ -885,7 +885,7 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         return tuple(polynomials)
 
-    def hilbert_series(self,grading,variable='t'):
+    def hilbert_series(self, grading, variable='t'):
         r"""
         Return the Hilbert series of the polyhedron with respect to ``grading``.
 
@@ -893,7 +893,7 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         - ``grading`` -- vector. The grading to use to form the Hilbert series
 
-        - ``variable`` -- string (default: ``'t'``). 
+        - ``variable`` -- string (default: ``'t'``)
 
         OUTPUT:
 
@@ -942,7 +942,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: grading = [1,1,1,0,0,0,0,0,0]
             sage: magic_square.hilbert_series(grading) # optional - pynormaliz
             (t^6 + 2*t^3 + 1)/(-t^9 + 3*t^6 - 3*t^3 + 1)
-        
+
         .. SEEALSO: :meth:`~sage.geometry.polyhedron.backend_normaliz.ehrhart_series`
         """
         if self.is_empty():
@@ -955,7 +955,7 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from sage.rings.fraction_field import FractionField
-        poly_ring = FractionField(PolynomialRing(ZZ,variable))
+        poly_ring = FractionField(PolynomialRing(ZZ, variable))
         t = poly_ring.gens()[0]
         hs = sum([h[0][i]*t**i for i in range(len(h[0]))])
         for expo in range(len(h[1])):
@@ -1179,7 +1179,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             if box_min is None:
                 return ()
             box_points = prod(max_coord-min_coord+1 for min_coord, max_coord in zip(box_min, box_max))
-            if  box_points < threshold:
+            if box_points < threshold:
                 from sage.geometry.integral_points import rectangular_box_points
                 return rectangular_box_points(list(box_min), list(box_max), self)
         # Compute with normaliz
@@ -1221,13 +1221,13 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         Empty polyhedron::
 
-            sage: P = Polyhedron(backend='normaliz')  # optional - pynormaliz 
+            sage: P = Polyhedron(backend='normaliz')  # optional - pynormaliz
             sage: P.integral_points_generators()      # optional - pynormaliz
             ((), (), ())
         """
         # Trivial cases: polyhedron with 0 vertices
         if self.n_vertices() == 0:
-            return ((),(),())
+            return ((), (), ())
         # Compute with normaliz
         cone = self._normaliz_cone
         compact_part = []
@@ -1246,7 +1246,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             assert g[-1] == 0
             lineality_part.append(vector(ZZ, g[:-1]))
 
-        return tuple(compact_part),tuple(recession_cone_part),tuple(lineality_part)
+        return tuple(compact_part), tuple(recession_cone_part), tuple(lineality_part)
 
     def _volume_normaliz(self, measure='euclidean'):
         r"""
@@ -1329,9 +1329,9 @@ class Polyhedron_normaliz(Polyhedron_base):
         assert cone
         if self.lines():
             raise NotImplementedError("Triangulation of non-compact not pointed polyhedron is not supported.")
-        if len(self.vertices_list()) >= 2 and self.rays_list(): # A mix of polytope and cone
-            raise NotImplementedError("Triangulation of non-compact not pointed polyhedron is not supported.")
-        
+        if len(self.vertices_list()) >= 2 and self.rays_list():  # A mix of polytope and cone
+            raise NotImplementedError("Triangulation of non-compact polyhedra that are not cones is not supported.")
+
         data = self._get_nmzcone_data()
         # Recreates a pointed cone. This is a hack and should be fixed once
         # Normaliz accepts compact polyhedron
@@ -1339,20 +1339,20 @@ class Polyhedron_normaliz(Polyhedron_base):
         # if self.is_compact():
         #     data['cone'] = data['vertices']
         if not self.is_compact():
-            data.pop('vertices',None)
-        data.pop('inhom_equations',None)
-        data.pop('inhom_inequalities',None)
+            data.pop('vertices', None)
+        data.pop('inhom_equations', None)
+        data.pop('inhom_inequalities', None)
         cone = self._make_normaliz_cone(data)
-    
-        nmz_triangulation = PyNormaliz.NmzResult(cone,"Triangulation")
-        triang_indices = tuple(vector(ZZ,s[0]) for s in nmz_triangulation)
+
+        nmz_triangulation = PyNormaliz.NmzResult(cone, "Triangulation")
+        triang_indices = tuple(vector(ZZ, s[0]) for s in nmz_triangulation)
 
         # Get the Normaliz ordering of generators
         if self.is_compact():
-            generators = [list(vector(ZZ,g)[:-1]) for g in self._cone_generators(cone)]
+            generators = [list(vector(ZZ, g)[:-1]) for g in self._cone_generators(cone)]
         else:
-            generators = [list(vector(ZZ,g)) for g in self._cone_generators(cone)]
-        
+            generators = [list(vector(ZZ, g)) for g in self._cone_generators(cone)]
+
         # Get the Sage ordering of generators
         if self.is_compact():
             poly_gen = self.vertices_list()
@@ -1403,4 +1403,3 @@ class Polyhedron_ZZ_normaliz(Polyhedron_QQ_normaliz, Polyhedron_ZZ):
         sage: TestSuite(p).run(skip='_test_pickling')                      # optional - pynormaliz
     """
     pass
-

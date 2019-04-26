@@ -391,7 +391,7 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``base_ring`` -- the new base ring.
+        - ``base_ring`` -- the new base ring
 
         - ``backend`` -- the new backend, see
           :func:`~sage.geometry.polyhedron.constructor.Polyhedron`.
@@ -433,7 +433,7 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``base_ring`` -- the new base ring.
+        - ``base_ring`` -- the new base ring
 
         - ``backend`` -- the new backend or ``None`` (default), see
             :func:`~sage.geometry.polyhedron.constructor.Polyhedron`.
@@ -570,11 +570,11 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``other`` -- a :class:`Polyhedron`.
+        - ``other`` -- a :class:`Polyhedron`
 
         OUTPUT:
 
-        Boolean.
+        Boolean
 
         EXAMPLES::
 
@@ -1362,7 +1362,7 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``index`` -- either an integer or ``None``.
+        - ``index`` -- either an integer or ``None``
 
         OUTPUT:
 
@@ -1568,7 +1568,7 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``index`` -- either an integer or ``None``.
+        - ``index`` -- either an integer or ``None``
 
         OUTPUT:
 
@@ -2511,7 +2511,7 @@ class Polyhedron_base(Element):
         INPUT:
 
         - ``certificate`` -- (default: ``False``) boolean; specifies whether to
-          return the circumcenter, if found
+          return the circumcenter, if found.
 
         OUTPUT:
 
@@ -2872,7 +2872,7 @@ class Polyhedron_base(Element):
 
 
         """
-        raise NotImplementedError("The backend should be 'normaliz'")
+        raise TypeError("The backend should be 'normaliz'")
 
     def triangulate(self, engine='auto', connected=True, fine=False, regular=None, star=None):
         r"""
@@ -2966,9 +2966,9 @@ class Polyhedron_base(Element):
         if self.lines():
             raise NotImplementedError('Triangulation of polyhedra with lines is not supported.')
         if len(self.vertices_list()) >= 2 and self.rays_list():
-            raise NotImplementedError('Triangulation of non-compact not pointed polyhedra is not supported.')
+            raise NotImplementedError('Triangulation of non-compact polyhedra that are not cones is not supported.')
         if not self.is_compact() and engine != 'normaliz':
-            raise NotImplementedError("Triangulation of pointed cones requires 'normaliz'")
+            raise NotImplementedError("Triangulation of pointed polyhedra requires 'normaliz'")
         from sage.geometry.triangulation.point_configuration import PointConfiguration
         if self.is_compact():
             pc = PointConfiguration((v.vector() for v in self.vertex_generator()),
@@ -3012,11 +3012,11 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``other`` -- a :class:`Polyhedron_base`.
+        - ``other`` -- a :class:`Polyhedron_base`
 
         OUTPUT:
 
-        The Minkowski sum of ``self`` and ``other``.
+        The Minkowski sum of ``self`` and ``other``
 
         EXAMPLES::
 
@@ -3089,7 +3089,7 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``other`` -- a :class:`Polyhedron_base`.
+        - ``other`` -- a :class:`Polyhedron_base`
 
         OUTPUT:
 
@@ -3187,7 +3187,7 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``other`` -- a translation vector or a polyhedron.
+        - ``other`` -- a translation vector or a polyhedron
 
         OUTPUT:
 
@@ -3263,7 +3263,7 @@ class Polyhedron_base(Element):
         INPUT:
 
         - ``displacement`` -- a displacement vector or a list/tuple of
-          coordinates that determines a displacement vector.
+          coordinates that determines a displacement vector
 
         OUTPUT:
 
@@ -3290,7 +3290,7 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``other`` -- a :class:`Polyhedron_base`.
+        - ``other`` -- a :class:`Polyhedron_base`
 
         OUTPUT:
 
@@ -3421,7 +3421,7 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``other`` -- a :class:`Polyhedron_base`.
+        - ``other`` -- a :class:`Polyhedron_base`
 
         EXAMPLES::
 
@@ -3477,7 +3477,7 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``other`` -- a :class:`Polyhedron_base`.
+        - ``other`` -- a :class:`Polyhedron_base`
 
         EXAMPLES::
 
@@ -3527,7 +3527,7 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``scalar`` -- A scalar, not necessarily in :meth:`base_ring`.
+        - ``scalar`` -- A scalar, not necessarily in :meth:`base_ring`
 
         OUTPUT:
 
@@ -3589,7 +3589,7 @@ class Polyhedron_base(Element):
         INPUT:
 
         - ``actor`` -- A scalar, not necessarily in :meth:`base_ring`,
-          or a :class:`Polyhedron`.
+          or a :class:`Polyhedron`
 
         OUTPUT:
 
@@ -3667,7 +3667,7 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``other`` -- a :class:`Polyhedron`.
+        - ``other`` -- a :class:`Polyhedron`
 
         OUTPUT:
 
@@ -3695,7 +3695,7 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``other`` -- a :class:`Polyhedron`.
+        - ``other`` -- a :class:`Polyhedron`
 
         OUTPUT:
 
@@ -3812,7 +3812,7 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``face`` -- a PolyhedronFace.
+        - ``face`` -- a PolyhedronFace
         - ``linear_coefficients`` -- tuple of integer. Specifies the coefficient
           of the normal vector of the cutting hyperplane used to truncate the
           face.
@@ -3956,7 +3956,7 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``face`` -- a PolyhedronFace.
+        - ``face`` -- a PolyhedronFace
 
         - ``position`` -- a positive integer. Determines a relative distance
           from the barycenter of ``face``. A value close to 0 will place the
@@ -4102,7 +4102,6 @@ class Polyhedron_base(Element):
 
         lambda_V = [u + [0] for u in V if u != v] + [v+[1]] + [v+[2]]
         return Polyhedron(lambda_V)
-
 
     def lawrence_polytope(self):
         r"""
@@ -4864,7 +4863,7 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``vertex`` -- a Vertex of ``self``.
+        - ``vertex`` -- a Vertex of ``self``
 
         EXAMPLES::
 
@@ -4920,7 +4919,7 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``face`` -- a PolyhedronFace or a Vertex.
+        - ``face`` -- a PolyhedronFace or a Vertex
 
         EXAMPLES::
 
@@ -5117,7 +5116,7 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``arg`` -- a cdd or LattE description string.
+        - ``arg`` -- a cdd or LattE description string
 
         - ``algorithm`` -- (default: 'triangulate') the integration method. Use 'triangulate' for
           polytope triangulation or 'cone-decompose' for tangent cone decomposition method.
@@ -5179,19 +5178,19 @@ class Polyhedron_base(Element):
 
         - ``measure`` -- (default: 'induced') the measure to take. 'induced'
           correspond to ``EuclideanVolume`` in normaliz and 'induced_lattice'
-          correspond to ``Volume`` in normaliz.
+          correspond to ``Volume`` in normaliz
 
         OUTPUT:
 
         A float value (when ``measure`` is 'induced') or a rational number
-        (when ``measure`` is 'induced_lattice').
+        (when ``measure`` is 'induced_lattice')
 
         .. NOTE::
 
             This function depends on Normaliz (i.e., the ``pynormaliz`` optional
             package). See the Normaliz documentation for further details.
         """
-        raise NotImplementedError("The backend should be normaliz.")
+        raise TypeError("The backend should be normaliz.")
 
     @cached_method
     def volume(self, measure='ambient', engine='auto', **kwds):
@@ -5207,23 +5206,23 @@ class Polyhedron_base(Element):
           * ``induced_rational``: Scaling of the Lebesgue measure for rational
             polytopes, such that the unit hypercube has volume 1
           * ``induced_lattice``: Scaling of the Lebesgue measure, such that the
-            volume of the hypercube is factorial(n).
+            volume of the hypercube is factorial(n)
 
         - ``engine`` -- string. The backend to use. Allowed values are:
 
           * ``'auto'`` (default): choose engine according to measure
-          * ``'internal'``: see :meth:`triangulate`.
-          * ``'TOPCOM'``: see :meth:`triangulate`.
-          * ``'lrs'``: use David Avis's lrs program (optional).
-          * ``'latte'``: use LattE integrale program (optional).
-          * ``'normaliz'``: use Normaliz program (optional).
+          * ``'internal'``: see :meth:`triangulate`
+          * ``'TOPCOM'``: see :meth:`triangulate`
+          * ``'lrs'``: use David Avis's lrs program (optional)
+          * ``'latte'``: use LattE integrale program (optional)
+          * ``'normaliz'``: use Normaliz program (optional)
 
         - ``**kwds`` -- keyword arguments that are passed to the
-          triangulation engine.
+          triangulation engine
 
         OUTPUT:
 
-        The volume of the polytope.
+        The volume of the polytope
 
         EXAMPLES::
 
@@ -5441,16 +5440,16 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``P`` -- Polyhedron.
+        - ``P`` -- Polyhedron
 
         - ``polynomial`` -- A multivariate polynomial or a valid LattE description string for
-          polynomials.
+          polynomials
 
-        - ``**kwds`` -- additional keyword arguments that are passed to the engine.
+        - ``**kwds`` -- additional keyword arguments that are passed to the engine
 
         OUTPUT:
 
-        The integral of the polynomial over the polytope.
+        The integral of the polynomial over the polytope
 
         .. NOTE::
 
@@ -5532,7 +5531,7 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``point`` -- coordinates of a point (an iterable).
+        - ``point`` -- coordinates of a point (an iterable)
 
         OUTPUT:
 
@@ -5612,7 +5611,7 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``point`` -- coordinates of a point.
+        - ``point`` -- coordinates of a point
 
         OUTPUT:
 
@@ -5669,11 +5668,11 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``point`` -- coordinates of a point.
+        - ``point`` -- coordinates of a point
 
         OUTPUT:
 
-        ``True`` or ``False``.
+        ``True`` or ``False``
 
         EXAMPLES::
 
@@ -6193,7 +6192,7 @@ class Polyhedron_base(Element):
         if box_min is None:
             return ()
         box_points = prod(max_coord-min_coord+1 for min_coord, max_coord in zip(box_min, box_max))
-        if  not self.is_lattice_polytope() or \
+        if not self.is_lattice_polytope() or \
                 (self.is_simplex() and box_points < 1000) or \
                 box_points < threshold:
             from sage.geometry.integral_points import rectangular_box_points
@@ -6379,7 +6378,7 @@ class Polyhedron_base(Element):
 
         - ``vertex_graph_only`` -- boolean (default: ``False``); whether
           to return the automorphism group of the vertex edges graph or
-          of the lattice.
+          of the lattice
 
         OUTPUT:
 
@@ -6829,7 +6828,7 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``other`` -- a polyhedron object.
+        - ``other`` -- a polyhedron object
         - ``algorithm`` (default = ``bipartite_graph``) -- the algorithm to use.
           The other possible value is ``face_lattice``.
 

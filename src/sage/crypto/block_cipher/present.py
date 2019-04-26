@@ -11,7 +11,6 @@ lengths of 80 and 128 bits are supported.
 Note that since this is Sage the implementation is neither meant to be
 particular secure nor super fast but to be easy to use for research purposes.
 
-
 EXAMPLES:
 
 Encrypt a message::
@@ -626,7 +625,8 @@ class PRESENT_KS(SageObject):
         - ``rounds`` -- integer (default: ``31``); the number of rounds
           ``self`` can create keys for
 
-        - ``master_key`` -- integer of bit list-like; the key that will be used
+        - ``master_key`` -- integer or bit list-like (default: ``None``); the
+          key that will be used
 
         EXAMPLES::
 
@@ -744,7 +744,7 @@ class PRESENT_KS(SageObject):
 
         - ``r`` integer; the round for which the sub key is computed
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.crypto.block_cipher.present import PRESENT_KS
             sage: ks = PRESENT_KS(master_key=0x0)

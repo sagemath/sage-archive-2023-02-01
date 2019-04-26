@@ -1585,8 +1585,25 @@ class Polytopes():
 
         EXAMPLES:
 
-        Unfortunately, no polyhedra backend supports the construction of the
-        snub dodecahedron at the moment::
+        Only the backend using the optional normaliz package can construct
+        the snub dodecahedron in reasonable time::
+
+            sage: sd = polytopes.snub_dodecahedron(base_ring=AA, backend='normaliz') # optional - pynormaliz, long time
+            sage: sd.f_vector()                                                      # optional - pynormaliz, long time
+            (1, 60, 150, 92, 1)
+            sage: sd.base_ring()                                                     # optional - pynormaliz, long time
+            Algebraic Real Field
+
+        Its faces are 80 triangles and 12 pentagons::
+
+            sage: sum(1 for f in sd.faces(2) if len(f.vertices()) == 3)              # optional - pynormaliz, long time
+            80
+            sage: sum(1 for f in sd.faces(2) if len(f.vertices()) == 5)              # optional - pynormaliz, long time
+            12
+
+        TESTS:
+
+        The cdd backend with floating point arithmetic fails for this polytope::
 
             sage: sd = polytopes.snub_dodecahedron()
             sage: sd.f_vector() # not tested
@@ -1594,20 +1611,6 @@ class Polytopes():
             sage: sd.base_ring() # not tested
             Real Double Field
 
-        Its faces are 80 triangles and 12 pentagons::
-
-            sage: sum(1 for f in sd.faces(2) if len(f.vertices()) == 3) # not tested
-            80
-            sage: sum(1 for f in sd.faces(2) if len(f.vertices()) == 5) # not tested
-            12
-
-        TESTS::
-
-            sage: sd = polytopes.snub_dodecahedron(base_ring=AA, backend='normaliz') # optional - pynormaliz, long time
-            sage: sd.f_vector()                                                      # optional - pynormaliz, long time
-            (1, 60, 150, 92, 1)
-            sage: sd.base_ring()                                                     # optional - pynormaliz, long time
-            Algebraic Real Field
         """
         if base_ring is None:
             base_ring = RDF

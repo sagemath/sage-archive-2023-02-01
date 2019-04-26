@@ -498,9 +498,6 @@ class Polyhedron_normaliz(Polyhedron_base):
             h_vertices = [ v + [1] for v in vertices ]
             return h_vertices, rays, lines
 
-        from sage.categories.number_fields import NumberFields
-        from sage.rings.all import RDF
-
         if vertices is None:
                 vertices = []
         if rays is None:
@@ -508,24 +505,10 @@ class Polyhedron_normaliz(Polyhedron_base):
         if lines is None:
                 lines = []
 
-        if self.base_ring() in (QQ, ZZ):
-            normaliz_field = QQ
-            nmz_vertices, nmz_rays, nmz_lines = vert_ray_line_QQ(vertices, rays, lines)
-        else:
-            nmz_vertices, nmz_rays, nmz_lines = vert_ray_line_NF(vertices, rays, lines)
-            if self.base_ring() in NumberFields:
-                if not RDF.has_coerce_map_from(self.base_ring()):
-                    raise ValueError("invalid base ring: {} is a number field that is not real embedded".format(self.base_ring()))
-                normaliz_field = self.base_ring()
-            else:
-                K, (nmz_vertices, nmz_rays, nmz_lines), hom = _number_field_elements_from_algebraics_list_of_lists_of_lists([nmz_vertices, nmz_rays, nmz_lines], embedded=True)
-                normaliz_field = K
-                if K is QQ:
-                    # Compute it with Normaliz, not QNormaliz
-                    vertices = [ [ QQ(x) for x in v ] for v in vertices ]
-                    rays = [ [ QQ(x) for x in r ] for r in rays ]
-                    lines = [ [ QQ(x) for x in l ] for l in lines ]
-                    nmz_vertices, nmz_rays, nmz_lines = vert_ray_line_QQ(vertices, rays, lines)
+        (nmz_vertices, nmz_rays, nmz_lines), normaliz_field \
+            = self._compute_nmz_data_lists_and_field((vertices, rays, lines),
+                                                     vert_ray_line_QQ,
+                                                     vert_ray_line_NF)
 
         if not nmz_vertices and not nmz_rays and not nmz_lines:
             # Special case to avoid:
@@ -597,29 +580,15 @@ class Polyhedron_normaliz(Polyhedron_base):
                 nmz_eqns.append(A + [b])
             return nmz_ieqs, nmz_eqns
 
-        from sage.categories.number_fields import NumberFields
-
         if ieqs is None:
             ieqs = []
         if eqns is None:
             eqns = []
 
-        if self.base_ring() in (QQ, ZZ):
-            normaliz_field = QQ
-            nmz_ieqs, nmz_eqns = nmz_ieqs_eqns_QQ(ieqs, eqns)
-        else:
-            nmz_ieqs, nmz_eqns = nmz_ieqs_eqns_NF(ieqs, eqns)
-            if self.base_ring() in NumberFields:
-                normaliz_field = self.base_ring()
-            else:
-                K, (nmz_ieqs, nmz_eqns), hom = _number_field_elements_from_algebraics_list_of_lists_of_lists([nmz_ieqs, nmz_eqns], embedded=True)
-                normaliz_field = K
-                if K is QQ:
-                    # Compute it with Normaliz, not QNormaliz
-                    ieqs = [ [ QQ(x) for x in i ] for i in ieqs ]
-                    eqns = [ [ QQ(x) for x in e ] for e in eqns ]
-                    nmz_ieqs, nmz_eqns = nmz_ieqs_eqns_QQ(ieqs, eqns)
-
+        (nmz_ieqs, nmz_eqns), normaliz_field \
+            = self._compute_nmz_data_lists_and_field((ieqs, eqns),
+                                                     nmz_ieqs_eqns_QQ,
+                                                     nmz_ieqs_eqns_NF)
         if not nmz_ieqs:
             # If normaliz gets an empty list of inequalities, it adds
             # nonnegativities. So let's add a tautological inequality to work
@@ -631,6 +600,61 @@ class Polyhedron_normaliz(Polyhedron_base):
         if number_field_data:
             data["number_field"] = number_field_data
         self._init_from_normaliz_data(data, normaliz_field=normaliz_field, verbose=verbose)
+
+    def _compute_nmz_data_lists_and_field(self, data_lists, convert_QQ, convert_NF):
+        r"""
+        Compute data lists in Normaliz format and the number field to use with Normaliz.
+
+        EXAMPLES::
+
+            sage: p = Polyhedron(vertices=[(0,1/2),(2,0),(4,5/6)],                      # optional - pynormaliz
+            ....:                base_ring=AA, backend='normaliz')
+            sage: def convert_QQ(ieqs, eqs):                                            # optional - pynormaliz
+            ....:     return [ [ 1000*x for x in ieq ] for ieq in ieqs], \
+            ....:            [ [ 1000*x for x in eq ] for eq in eqs]
+            sage: def convert_NF(ieqs, eqs):                                            # optional - pynormaliz
+            ....:     return ieqs, eqs
+            sage: p._compute_nmz_data_lists_and_field([[[1]], [[1/2]]],
+            ....:                                     convert_QQ, convert_NF)
+            (([[1000]], [[500]]), Rational Field)
+            sage: p._compute_nmz_data_lists_and_field([[[AA(1)]], [[1/2]]],             # optional - pynormaliz
+            ....:                                     convert_QQ, convert_NF)
+            (([[1000]], [[500]]), Rational Field)
+            sage: p._compute_nmz_data_lists_and_field([[[AA(sqrt(2))]], [[1/2]]],       # optional - pynormaliz
+            ....:                                     convert_QQ, convert_NF)
+            ([[[a]], [[1/2]]], Number Field in a with defining polynomial y^2 - 2)
+
+        TESTS:::
+
+            sage: K.<a> = QuadraticField(-5)
+            sage: p = Polyhedron(vertices=[(a,1/2),(2,0),(4,5/6)],   # indirect doctest # optional - pynormaliz
+            ....:                base_ring=K, backend='normaliz')
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid base ring: Number Field in a ... is not real embedded
+
+
+        """
+        from sage.categories.number_fields import NumberFields
+        from sage.rings.all import RDF
+
+        if self.base_ring() in (QQ, ZZ):
+            normaliz_field = QQ
+            nmz_data_lists = convert_QQ(*data_lists)
+        else:
+            nmz_data_lists = convert_NF(*data_lists)
+            if self.base_ring() in NumberFields:
+                if not RDF.has_coerce_map_from(self.base_ring()):
+                    raise ValueError("invalid base ring: {} is a number field that is not real embedded".format(self.base_ring()))
+                normaliz_field = self.base_ring()
+            else:
+                K, nmz_data_lists, hom = _number_field_elements_from_algebraics_list_of_lists_of_lists(nmz_data_lists, embedded=True)
+                normaliz_field = K
+                if K is QQ:
+                    # Compute it with Normaliz, not QNormaliz
+                    nmz_data_lists = convert_QQ(*[ [ [ QQ(x) for x in v ] for v in l]
+                                                   for l in data_lists ])
+        return nmz_data_lists, normaliz_field
 
     def _init_Vrepresentation_from_normaliz(self):
         r"""

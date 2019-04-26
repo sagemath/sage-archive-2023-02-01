@@ -476,7 +476,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: Polyhedron_normaliz._init_from_Vrepresentation(p, [], [], [])   # optional - pynormaliz
         """
 
-        def vert_ray_line_QQ():
+        def vert_ray_line_QQ(vertices, rays, lines):
             nmz_vertices = []
             for v in vertices:
                 d = LCM_list([denominator(v_i) for v_i in v])
@@ -494,7 +494,7 @@ class Polyhedron_normaliz(Polyhedron_base):
                 nmz_lines.append(dl)
             return nmz_vertices, nmz_rays, nmz_lines
 
-        def vert_ray_line_NF():
+        def vert_ray_line_NF(vertices, rays, lines):
             h_vertices = [ v + [1] for v in vertices ]
             return h_vertices, rays, lines
 
@@ -510,9 +510,9 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         if self.base_ring() in (QQ, ZZ):
             normaliz_field = QQ
-            nmz_vertices, nmz_rays, nmz_lines = vert_ray_line_QQ()
+            nmz_vertices, nmz_rays, nmz_lines = vert_ray_line_QQ(vertices, rays, lines)
         else:
-            nmz_vertices, nmz_rays, nmz_lines = vert_ray_line_NF()
+            nmz_vertices, nmz_rays, nmz_lines = vert_ray_line_NF(vertices, rays, lines)
             if self.base_ring() in NumberFields:
                 if not RDF.has_coerce_map_from(self.base_ring()):
                     raise ValueError("invalid base ring: {} is a number field that is not real embedded".format(self.base_ring()))
@@ -525,7 +525,7 @@ class Polyhedron_normaliz(Polyhedron_base):
                     vertices = [ [ QQ(x) for x in v ] for v in vertices ]
                     rays = [ [ QQ(x) for x in r ] for r in rays ]
                     lines = [ [ QQ(x) for x in l ] for l in lines ]
-                    nmz_vertices, nmz_rays, nmz_lines = vert_ray_line_QQ()
+                    nmz_vertices, nmz_rays, nmz_lines = vert_ray_line_QQ(vertices, rays, lines)
 
         if not nmz_vertices and not nmz_rays and not nmz_lines:
             # Special case to avoid:
@@ -567,7 +567,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: Polyhedron_normaliz._init_from_Hrepresentation(p, [], [])   # optional - pynormaliz
         """
 
-        def nmz_ieqs_eqns_NF():
+        def nmz_ieqs_eqns_NF(ieqs, eqns):
             nmz_ieqs = []
             for ieq in ieqs:
                 b = ieq[0]
@@ -580,7 +580,7 @@ class Polyhedron_normaliz(Polyhedron_base):
                 nmz_eqns.append(A + [b])
             return nmz_ieqs, nmz_eqns
 
-        def nmz_ieqs_eqns_QQ():
+        def nmz_ieqs_eqns_QQ(ieqs, eqns):
             nmz_ieqs = []
             for ieq in ieqs:
                 d = LCM_list([denominator(ieq_i) for ieq_i in ieq])
@@ -606,9 +606,9 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         if self.base_ring() in (QQ, ZZ):
             normaliz_field = QQ
-            nmz_ieqs, nmz_eqns = nmz_ieqs_eqns_QQ()
+            nmz_ieqs, nmz_eqns = nmz_ieqs_eqns_QQ(ieqs, eqns)
         else:
-            nmz_ieqs, nmz_eqns = nmz_ieqs_eqns_NF()
+            nmz_ieqs, nmz_eqns = nmz_ieqs_eqns_NF(ieqs, eqns)
             if self.base_ring() in NumberFields:
                 normaliz_field = self.base_ring()
             else:
@@ -618,7 +618,7 @@ class Polyhedron_normaliz(Polyhedron_base):
                     # Compute it with Normaliz, not QNormaliz
                     ieqs = [ [ QQ(x) for x in i ] for i in ieqs ]
                     eqns = [ [ QQ(x) for x in e ] for e in eqns ]
-                    nmz_ieqs, nmz_eqns = nmz_ieqs_eqns_QQ()
+                    nmz_ieqs, nmz_eqns = nmz_ieqs_eqns_QQ(ieqs, eqns)
 
         if not nmz_ieqs:
             # If normaliz gets an empty list of inequalities, it adds

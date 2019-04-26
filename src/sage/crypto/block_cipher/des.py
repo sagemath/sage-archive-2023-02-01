@@ -114,6 +114,18 @@ class DES(SageObject):
         :class:`DES_KS`
         :mod:`sage.crypto.sboxes`
 
+    TESTS:
+
+    Test test vectors from [KeSm1998]_ pp. 125-136::
+
+        sage: from sage.crypto.block_cipher.des import DES
+        sage: load("des_test_vectors.sage")
+        sage: des = DES()
+        sage: for K, P, C in test: # long time
+        ....:    if des.encrypt(P, K) != C or des.decrypt(C, K) != P:
+        ....:        print("DES tests failed for K=0x%s, P=0x%s, C=0x%s" %
+        ....:              (K.hex(), P.hex(), C.hex()))
+
     .. automethod:: __init__
     .. automethod:: __call__
     """

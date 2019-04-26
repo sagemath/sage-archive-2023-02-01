@@ -1,12 +1,12 @@
 r"""
 Finitely generated semigroups
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2014 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 
 import itertools
 from sage.misc.abstract_method import abstract_method
@@ -14,6 +14,7 @@ from sage.misc.cachefunc import cached_method
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.semigroups import Semigroups
 from sage.categories.enumerated_sets import EnumeratedSets
+
 
 class FinitelyGeneratedSemigroups(CategoryWithAxiom):
     r"""
@@ -119,10 +120,10 @@ class FinitelyGeneratedSemigroups(CategoryWithAxiom):
                 ('ac', 'bca', 'ca', 'dca', 'ca', 'cab', 'ca', 'cad')
 
             """
-            left  = (side == "left"  or side == "twosided")
+            left = (side == "left" or side == "twosided")
             right = (side == "right" or side == "twosided")
             generators = self.semigroup_generators()
-            return lambda x: (tuple(g * x for g in generators) if left  else ()) + (tuple(x * g for g in generators) if right else ())
+            return lambda x: (tuple(g * x for g in generators) if left else ()) + (tuple(x * g for g in generators) if right else ())
 
         def __iter__(self):
             r"""
@@ -202,8 +203,7 @@ class FinitelyGeneratedSemigroups(CategoryWithAxiom):
                     sage: sorted(S.some_elements())
                     ['x', 'xy', 'y', 'yx']
                     sage: S = FiniteSemigroups().example(alphabet=('x','y','z'))
-                    sage: S.some_elements()
-                    ['x', 'y', 'z', 'xz', 'yx', 'yz', 'zx', 'zy', 'xy', 'yxz']
+                    sage: sorted(S.some_elements()[:9])
+                    ['x', 'xy', 'xz', 'y', 'yx', 'yz', 'z', 'zx', 'zy']
                 """
                 return list(itertools.islice(self, 10))
-

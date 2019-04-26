@@ -1603,10 +1603,10 @@ class Polytopes():
 
         TESTS::
 
-            sage: sd = polytopes.snub_dodecahedron(base_ring=AA, backend='normaliz') # optional - pynormaliz, not tested - very long time
-            sage: sd.f_vector()                                                      # optional - pynormaliz, not tested - very long time
+            sage: sd = polytopes.snub_dodecahedron(base_ring=AA, backend='normaliz') # optional - pynormaliz, long time
+            sage: sd.f_vector()                                                      # optional - pynormaliz, long time
             (1, 60, 150, 92, 1)
-            sage: sd.base_ring()                                                     # optional - pynormaliz, not tested - very long time
+            sage: sd.base_ring()                                                     # optional - pynormaliz, long time
             Algebraic Real Field
         """
         if base_ring is None:

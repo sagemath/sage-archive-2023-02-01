@@ -459,18 +459,8 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
             sage: GK.coerce(G.character(0, [4]))
             Character of Q_3*, of level 0, mapping 3 |--> 4
             sage: G.coerce(GK.character(0, [4]))
-            <BLANKLINE>
             Traceback (most recent call last):
-              File "/home/jplabbe/sage/local/lib/python2.7/site-packages/sage/doctest/forker.py", line 671, in _run
-                self.compile_and_execute(example, compiler, test.globs)
-              File "/home/jplabbe/sage/local/lib/python2.7/site-packages/sage/doctest/forker.py", line 1095, in compile_and_execute
-                exec(compiled, globs)
-              File "<doctest sage.modular.local_comp.smoothchar.SmoothCharacterGroupGeneric._coerce_map_from_[7]>", line 1, in <module>
-                G.coerce(GK.character(Integer(0), [Integer(4)]))
-              File "sage/structure/parent.pyx", line 1114, in sage.structure.parent.Parent.coerce (build/cythonized/sage/structure/parent.c:10541)
-                cpdef coerce(self, x):
-              File "sage/structure/parent.pyx", line 1144, in sage.structure.parent.Parent.coerce (build/cythonized/sage/structure/parent.c:10470)
-                raise TypeError(_LazyString(_lazy_format, ("no canonical coercion from %s to %s", parent(x), self), {}))
+            ...
             TypeError: no canonical coercion from Group of smooth characters of Q_3* with values in Number Field in i with defining polynomial x^2 + 1 with i = 1*I to Group of smooth characters of Q_3* with values in Rational Field
             sage: G.character(0, [4]) in GK # indirect doctest
             True

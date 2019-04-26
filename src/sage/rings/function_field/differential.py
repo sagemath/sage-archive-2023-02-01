@@ -145,8 +145,6 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
             sage: f.differential()
             (-1/x^2) d(x)
         """
-        F = self.parent().function_field()
-
         if self._f.is_zero(): # zero differential
             return '0'
 
@@ -169,8 +167,6 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
             sage: latex(w)
             \left( x y^{2} + \frac{1}{x} y \right)\, dx
         """
-        F = self.parent().function_field()
-
         if self._f.is_zero(): # zero differential
             return '0'
 

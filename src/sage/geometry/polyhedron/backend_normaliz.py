@@ -770,7 +770,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         The polyhedron should be compact::
 
             sage: C = Polyhedron(backend='normaliz',rays=[[1,2],[2,1]])  # optional - pynormaliz
-            sage: C.ehrhart_series()
+            sage: C.ehrhart_series()                                     # optional - pynormaliz
             Traceback (most recent call last):
             ...
             NotImplementedError: Ehrhart series can only be computed for compact polyhedron.
@@ -849,7 +849,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         The polyhedron should be compact::
 
             sage: C = Polyhedron(backend='normaliz',rays=[[1,2],[2,1]])  # optional - pynormaliz
-            sage: C.ehrhart_quasipolynomial()
+            sage: C.ehrhart_quasipolynomial()                            # optional - pynormaliz
             Traceback (most recent call last):
             ...
             NotImplementedError: Ehrhart quasi-polynomial can only be computed for compact polyhedron.

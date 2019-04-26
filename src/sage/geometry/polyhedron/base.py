@@ -2868,11 +2868,15 @@ class Polyhedron_base(Element):
             This function depends on Normaliz (i.e. the ``pynormaliz`` optional
             package). See the Normaliz documentation for further details.
 
-        EXAMPLES::
+        TESTS::
 
-
+            sage: K = Polyhedron(vertices=[[1,1]], rays=[[1,0],[1,2]])
+            sage: K.triangulate(engine='normaliz')
+            Traceback (most recent call last):
+            ...
+            TypeError: The polyhedron's backend should be 'normaliz'
         """
-        raise TypeError("The backend should be 'normaliz'")
+        raise TypeError("The polyhedron's backend should be 'normaliz'")
 
     def triangulate(self, engine='auto', connected=True, fine=False, regular=None, star=None):
         r"""
@@ -2944,15 +2948,15 @@ class Polyhedron_base(Element):
         It is possible to use ``'normaliz'`` as an engine. For this, the
         polyhedron should have the backend set to normaliz::
 
+            sage: P = Polyhedron(vertices=[[0,0,1],[1,0,1],[0,1,1],[1,1,1]],backend='normaliz')  # optional - pynormaliz
+            sage: P.triangulate(engine='normaliz')  # optional - pynormaliz
+            (<0,1,2>, <1,2,3>)
+
             sage: P = Polyhedron(vertices=[[0,0,1],[1,0,1],[0,1,1],[1,1,1]])
             sage: P.triangulate(engine='normaliz')
             Traceback (most recent call last):
             ...
-            NotImplementedError: The backend should be 'normaliz'
-
-            sage: P = Polyhedron(vertices=[[0,0,1],[1,0,1],[0,1,1],[1,1,1]],backend='normaliz')  # optional - pynormaliz
-            sage: P.triangulate(engine='normaliz')  # optional - pynormaliz
-            (<0,1,2>, <1,2,3>)
+            TypeError: The polyhedron's backend should be 'normaliz'
 
         The normaliz engine can triangulate pointed cones::
 
@@ -2962,6 +2966,12 @@ class Polyhedron_base(Element):
             sage: C2 = Polyhedron(rays=[[1,0,1],[0,0,1],[0,1,1],[1,1,10/9]],backend='normaliz')  # optional - pynormaliz
             sage: C2.triangulate(engine='normaliz')  # optional - pynormaliz
             (<0,1,2>, <1,2,3>)
+
+        They can also be affine cones::
+
+            sage: K = Polyhedron(vertices=[[1,1,1]],rays=[[1,0,0],[0,1,0],[1,1,-1],[1,1,1]], backend='normaliz')
+            sage: K.triangulate(engine='normaliz')
+            (<0,1,2>, <0,1,3>)
         """
         if self.lines():
             raise NotImplementedError('Triangulation of polyhedra with lines is not supported.')
@@ -5352,6 +5362,7 @@ class Polyhedron_base(Element):
             sage: P.volume(measure='induced_rational')
             +Infinity
         """
+        from sage.features import FeatureNotPresentError
         if measure == 'induced_rational' and engine not in ['auto', 'latte', 'normaliz']:
             raise TypeError("The induced rational measure can only be computed with the engine set to `auto`, `latte`, or `normaliz`")
         if measure == 'induced_lattice' and engine not in ['auto', 'latte', 'normaliz']:

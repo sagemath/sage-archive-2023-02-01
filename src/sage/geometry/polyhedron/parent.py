@@ -82,6 +82,11 @@ def Polyhedra(base_ring, ambient_dim, backend=None):
         Traceback (most recent call last):
         ...
         ValueError: no appropriate backend for computations with Real Field with 53 bits of precision
+        sage: Polyhedra(QQ[I], 2)
+        Traceback (most recent call last):
+        ...
+        ValueError: invalid base ring: Number Field in I with defining polynomial x^2 + 1 cannot be coerced to a real field
+
     """
     if backend is None:
         if base_ring is ZZ or base_ring is QQ:
@@ -92,7 +97,7 @@ def Polyhedra(base_ring, ambient_dim, backend=None):
             # TODO: find a more robust way of checking that the coefficients are indeed
             # real numbers
             if not RDF.has_coerce_map_from(base_ring):
-                raise ValueError("invalid base ring")
+                raise ValueError("invalid base ring: {} cannot be coerced to a real field".format(base_ring))
             backend = 'field'
         else:
             raise ValueError("no appropriate backend for computations with {}".format(base_ring))

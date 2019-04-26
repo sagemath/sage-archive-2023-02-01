@@ -499,6 +499,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             return h_vertices, rays, lines
 
         from sage.categories.number_fields import NumberFields
+        from sage.rings.all import RDF
 
         if vertices is None:
                 vertices = []
@@ -513,6 +514,8 @@ class Polyhedron_normaliz(Polyhedron_base):
         else:
             nmz_vertices, nmz_rays, nmz_lines = vert_ray_line_NF()
             if self.base_ring() in NumberFields:
+                if not RDF.has_coerce_map_from(self.base_ring()):
+                    raise ValueError("invalid base ring: {} is a number field that is not real embedded".format(self.base_ring()))
                 normaliz_field = self.base_ring()
             else:
                 K, (nmz_vertices, nmz_rays, nmz_lines), hom = _number_field_elements_from_algebraics_list_of_lists_of_lists([nmz_vertices, nmz_rays, nmz_lines], embedded=True)

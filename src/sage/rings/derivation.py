@@ -948,7 +948,7 @@ class RingDerivationWithoutTwist(RingDerivation):
         """
         Return ``True`` if this derivation is zero.
 
-        EXEMPLES::
+        EXAMPLES::
 
             sage: R.<x,y> = ZZ[]
             sage: f = R.derivation(); f
@@ -969,7 +969,7 @@ class RingDerivationWithoutTwist(RingDerivation):
         Compare this derivation with ``other`` according
         to the comparison operator ``op``.
 
-        EXEMPLES::
+        EXAMPLES::
 
             sage: R.<x,y,z> = GF(5)[]
             sage: D = sum(v*R.derivation(v) for v in R.gens()); D
@@ -1741,7 +1741,7 @@ class RingDerivationWithoutTwist_function(RingDerivationWithoutTwist):
         """
         Return ``True`` if this derivation is zero.
 
-        EXEMPLES::
+        EXAMPLES::
 
             sage: R.<x,y> = ZZ[]
             sage: f = R.derivation(); f
@@ -2143,7 +2143,7 @@ class RingDerivationWithTwist_generic(RingDerivation):
         Compare this derivation with ``other`` according
         to the comparison operator ``op``.
 
-        EXEMPLES::
+        EXAMPLES::
 
             sage: R.<x,y> = ZZ[]
             sage: theta = R.hom([y,x])

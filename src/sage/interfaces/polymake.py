@@ -303,10 +303,6 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
 
         TESTS::
 
-            sage: polymake.application('fan')               # optional - polymake
-            sage: 'normal_fan' in dir(polymake)             # optional - polymake
-            True
-            sage: polymake.quit()                           # optional - polymake
             sage: polymake._start()                         # optional - polymake
 
         Since 'normal_fan' is not defined in the polymake application 'polytope',
@@ -320,15 +316,6 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
         self.application("polytope")
         self.eval('use Scalar::Util qw(reftype);')
         self.eval('use Scalar::Util qw(blessed);')
-
-    def _quit_string(self):
-        """
-        TESTS::
-
-            sage: polymake._quit_string()
-            'exit;'
-        """
-        return "exit;"
 
     def _assign_symbol(self):
         """
@@ -628,8 +615,7 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
             sage: polymake.application('fan')                   # optional - polymake
             sage: 'normal_fan' in dir(polymake)                 # optional - polymake  # indirect doctest
             True
-            sage: polymake.quit()                               # optional - polymake
-            sage: polymake._start()                             # optional - polymake
+            sage: polymake.application('polytope')              # optional - polymake
 
         Since 'normal_fan' is not defined in the polymake application 'polytope',
         we now get
@@ -1775,6 +1761,16 @@ class PolymakeExpect(PolymakeAbstract, Expect):
             Expect._start(self, alt_message=None)
         PolymakeAbstract._start(self)
         self.eval('use File::Slurp;')
+
+    def _quit_string(self):
+        """
+        TESTS::
+
+            sage: from sage.interfaces.polymake import polymake_expect as polymake
+            sage: polymake._quit_string()
+            'exit;'
+        """
+        return "exit;"
 
     def _keyboard_interrupt(self):
         """

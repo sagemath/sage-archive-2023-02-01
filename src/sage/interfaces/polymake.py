@@ -320,7 +320,6 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
         self.application("polytope")
         self.eval('use Scalar::Util qw(reftype);')
         self.eval('use Scalar::Util qw(blessed);')
-        self.eval('use File::Slurp;')
 
     def _quit_string(self):
         """
@@ -1764,6 +1763,7 @@ class PolymakeExpect(PolymakeAbstract, Expect):
             self._change_prompt("polytope > ")
             Expect._start(self, alt_message=None)
         PolymakeAbstract._start(self)
+        self.eval('use File::Slurp;')
 
     def _keyboard_interrupt(self):
         """

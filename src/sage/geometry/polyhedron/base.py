@@ -2871,7 +2871,7 @@ class Polyhedron_base(Element):
         TESTS::
 
             sage: K = Polyhedron(vertices=[[1,1]], rays=[[1,0],[1,2]])
-            sage: K._triangulate_normaliz(engine='normaliz')
+            sage: K._triangulate_normaliz()
             Traceback (most recent call last):
             ...
             TypeError: The polyhedron's backend should be 'normaliz'
@@ -2969,8 +2969,8 @@ class Polyhedron_base(Element):
 
         They can also be affine cones::
 
-            sage: K = Polyhedron(vertices=[[1,1,1]],rays=[[1,0,0],[0,1,0],[1,1,-1],[1,1,1]], backend='normaliz')
-            sage: K.triangulate(engine='normaliz')
+            sage: K = Polyhedron(vertices=[[1,1,1]],rays=[[1,0,0],[0,1,0],[1,1,-1],[1,1,1]], backend='normaliz')  # optional - pynormaliz
+            sage: K.triangulate(engine='normaliz')  # optional - pynormaliz
             (<0,1,2>, <0,1,3>)
         """
         if self.lines():
@@ -5367,7 +5367,9 @@ class Polyhedron_base(Element):
             +Infinity
             sage: P.volume(measure='ambient')
             0
-            sage: P.volume(measure='induced_rational')
+            sage: P.volume(measure='induced_rational')  # optional - pynormaliz
+            +Infinity
+            sage: P.volume(measure='induced_rational',engine='latte')  # optional - latte_int
             +Infinity
         """
         from sage.features import FeatureNotPresentError

@@ -111,57 +111,29 @@ def polymake_console(command=''):
 
 class PolymakeAbstract(ExtraTabCompletion, Interface):
     r"""
-    Interface to the polymake interpreter.
+    Abstract interface to the polymake interpreter.
 
-    In order to use this interface, you need to either install the
-    optional polymake package for Sage, or install polymake system-wide
-    on your computer; it is available from https://polymake.org.
+    This class should not be instantiated directly,
+    but through its subclasses Polymake (Pexpect interface)
+    or PolymakeJuPyMake (JuPyMake interface).
 
-    Type ``polymake.[tab]`` for a list of most functions
-    available from your polymake install. Type
-    ``polymake.Function?`` for polymake's help about a given ``Function``.
-    Type ``polymake(...)`` to create a new polymake
-    object, and ``polymake.eval(...)`` to run a string using
-    polymake and get the result back as a string.
+    EXAMPLES:
 
-    EXAMPLES::
-
-        sage: p = polymake.rand_sphere(4, 20, seed=5)       # optional - polymake
-        sage: p                                             # optional - polymake
-        Random spherical polytope of dimension 4; seed=5...
-        sage: set_verbose(3)
-        sage: p.H_VECTOR                                    # optional - polymake
-        used package ppl
-          The Parma Polyhedra Library ...
-        1 16 40 16 1
-        sage: set_verbose(0)
-        sage: p.F_VECTOR                                    # optional - polymake
-        20 94 148 74
-        sage: print(p.F_VECTOR._sage_doc_())                # optional - polymake # random
-        property_types/Algebraic Types/Vector:
-         A type for vectors with entries of type Element.
-
-         You can perform algebraic operations such as addition or scalar multiplication.
-
-         You can create a new Vector by entering its elements, e.g.:
-            $v = new Vector<Int>(1,2,3);
-         or
-            $v = new Vector<Int>([1,2,3]);
-
-    .. automethod:: _eval_line
+        sage: from sage.interfaces.polymake import PolymakeAbstract, Polymake
+        sage: m = Polymake()
+        sage: isinstance(m, PolymakeAbstract)
+        True
     """
-    def __init__(self, name="polymake_abstract", seed=None):
+    def __init__(self, seed=None):
         """
         TESTS::
 
-            sage: from sage.interfaces.polymake import Polymake
-            sage: Polymake()
+            sage: from sage.interfaces.polymake import PolymakeAbstract
+            sage: PolymakeAbstract()
             Polymake
-            sage: Polymake().is_running()
-            False
 
         """
-        Interface.__init__(self, name)
+        Interface.__init__(self, "polymake")
         self._seed = seed
         self.__tab_completion = {}
 
@@ -1691,7 +1663,50 @@ class PolymakeFunctionElement(InterfaceFunctionElement):
         return P.help(self._name.split("->")[-1], pager=False)
 
 
-class Polymake(PolymakeAbstract, Expect):
+class PolymakeExpect(PolymakeAbstract, Expect):
+    r"""
+    Interface to the polymake interpreter using pexpect.
+
+    In order to use this interface, you need to either install the
+    optional polymake package for Sage, or install polymake system-wide
+    on your computer; it is available from https://polymake.org.
+
+    Type ``polymake.[tab]`` for a list of most functions
+    available from your polymake install. Type
+    ``polymake.Function?`` for polymake's help about a given ``Function``.
+    Type ``polymake(...)`` to create a new polymake
+    object, and ``polymake.eval(...)`` to run a string using
+    polymake and get the result back as a string.
+
+    EXAMPLES::
+
+        sage: from sage.interfaces.polymake import polymake_expect as polymake
+        sage: type(polymake)
+        <...sage.interfaces.polymake.PolymakeExpect...
+        sage: p = polymake.rand_sphere(4, 20, seed=5)       # optional - polymake
+        sage: p                                             # optional - polymake
+        Random spherical polytope of dimension 4; seed=5...
+        sage: set_verbose(3)
+        sage: p.H_VECTOR                                    # optional - polymake
+        used package ppl
+          The Parma Polyhedra Library ...
+        1 16 40 16 1
+        sage: set_verbose(0)
+        sage: p.F_VECTOR                                    # optional - polymake
+        20 94 148 74
+        sage: print(p.F_VECTOR._sage_doc_())                # optional - polymake # random
+        property_types/Algebraic Types/Vector:
+         A type for vectors with entries of type Element.
+
+         You can perform algebraic operations such as addition or scalar multiplication.
+
+         You can create a new Vector by entering its elements, e.g.:
+            $v = new Vector<Int>(1,2,3);
+         or
+            $v = new Vector<Int>([1,2,3]);
+
+    .. automethod:: _eval_line
+    """
 
     def __init__(self, script_subdirectory=None,
                  logfile=None, server=None, server_tmpdir=None,
@@ -1699,16 +1714,16 @@ class Polymake(PolymakeAbstract, Expect):
         """
         TESTS::
 
-            sage: from sage.interfaces.polymake import Polymake
-            sage: Polymake()
+            sage: from sage.interfaces.polymake import PolymakeExpect
+            sage: PolymakeExpect()
             Polymake
-            sage: Polymake().is_running()
+            sage: PolymakeExpect().is_running()
             False
 
         """
         if command is None:
             command = "env TERM=dumb {}".format(os.getenv('SAGE_POLYMAKE_COMMAND') or 'polymake')
-        PolymakeAbstract.__init__(self, name="polymake", seed=seed)
+        PolymakeAbstract.__init__(self, seed=seed)
         Expect.__init__(self,
                         name="polymake",
                         command=command,
@@ -1730,7 +1745,7 @@ class Polymake(PolymakeAbstract, Expect):
 
         TESTS::
 
-            sage: from sage.interfaces.polymake import polymake_pexpect as polymake
+            sage: from sage.interfaces.polymake import polymake_expect as polymake
             sage: polymake.application('fan')               # optional - polymake
             sage: 'normal_fan' in dir(polymake)             # optional - polymake
             True
@@ -1759,7 +1774,7 @@ class Polymake(PolymakeAbstract, Expect):
         For reasons that are not clear to the author, the following test
         is very flaky. Therefore, this test is marked as "not tested".
 
-            sage: from sage.interfaces.polymake import polymake_pexpect as polymake
+            sage: from sage.interfaces.polymake import polymake_expect as polymake
             sage: c = polymake.cube(15)                         # optional - polymake
             sage: alarm(1)                                      # not tested
             sage: try:                                          # not tested # indirect doctest
@@ -1807,7 +1822,7 @@ class Polymake(PolymakeAbstract, Expect):
         """
         TESTS::
 
-            sage: from sage.interfaces.polymake import polymake_pexpect as polymake
+            sage: from sage.interfaces.polymake import polymake_expect as polymake
             sage: Q = polymake.cube(4)                          # optional - polymake
             sage: polymake('"ok"')                              # optional - polymake
             ok
@@ -1910,7 +1925,7 @@ class Polymake(PolymakeAbstract, Expect):
 
         EXAMPLES::
 
-            sage: from sage.interfaces.polymake import polymake_pexpect as polymake
+            sage: from sage.interfaces.polymake import polymake_expect as polymake
             sage: p = polymake.cube(3)              # optional - polymake  # indirect doctest
 
         Here we see that remarks printed by polymake are displayed if
@@ -2181,7 +2196,7 @@ class Polymake(PolymakeAbstract, Expect):
         terms of inequalities. Polymake knows to compute the f- and h-vector
         and finds that the polytope is very ample::
 
-            sage: from sage.interfaces.polymake import polymake_pexpect as polymake
+            sage: from sage.interfaces.polymake import polymake_expect as polymake
             sage: q = polymake.new_object("Polytope", INEQUALITIES=[[5,-4,0,1],[-3,0,-4,1],[-2,1,0,0],[-4,4,4,-1],[0,0,1,0],[8,0,0,-1],[1,0,-1,0],[3,-1,0,0]]) # optional - polymake
             sage: q.H_VECTOR                    # optional - polymake
             1 5 5 1
@@ -2270,12 +2285,65 @@ class Polymake(PolymakeAbstract, Expect):
         if pat:
             raise RuntimeError("When changing the application, polymake unexpectedly {}".format(_available_polymake_answers[pat]))
 
+Polymake = PolymakeExpect
 
 class PolymakeJuPyMake(PolymakeAbstract):
 
-    def __init__(self, name="polymake", seed=None, verbose=False):
+    r"""
+    Interface to the polymake interpreter using JuPyMake.
+
+    In order to use this interface, you need to either install the
+    optional polymake package for Sage, or install polymake system-wide
+    on your computer; it is available from https://polymake.org.
+    Also install the jupymake Python package.
+
+    Type ``polymake.[tab]`` for a list of most functions
+    available from your polymake install. Type
+    ``polymake.Function?`` for polymake's help about a given ``Function``.
+    Type ``polymake(...)`` to create a new polymake
+    object, and ``polymake.eval(...)`` to run a string using
+    polymake and get the result back as a string.
+
+    EXAMPLES::
+
+        sage: type(polymake)
+        <...sage.interfaces.polymake.PolymakeJuPyMake...
+        sage: p = polymake.rand_sphere(4, 20, seed=5)       # optional - polymake
+        sage: p                                             # optional - polymake
+        Random spherical polytope of dimension 4; seed=5...
+        sage: set_verbose(3)
+        sage: p.H_VECTOR                                    # optional - polymake
+        used package ppl
+          The Parma Polyhedra Library ...
+        1 16 40 16 1
+        sage: set_verbose(0)
+        sage: p.F_VECTOR                                    # optional - polymake
+        20 94 148 74
+        sage: print(p.F_VECTOR._sage_doc_())                # optional - polymake # random
+        property_types/Algebraic Types/Vector:
+         A type for vectors with entries of type Element.
+
+         You can perform algebraic operations such as addition or scalar multiplication.
+
+         You can create a new Vector by entering its elements, e.g.:
+            $v = new Vector<Int>(1,2,3);
+         or
+            $v = new Vector<Int>([1,2,3]);
+    """
+
+    def __init__(self, seed=None, verbose=False):
+        """
+        TESTS::
+
+            sage: from sage.interfaces.polymake import PolymakeJuPyMake
+            sage: PolymakeJuPyMake()
+            Polymake
+            sage: PolymakeJuPyMake().is_running()
+            False
+
+        """
         self._verbose = verbose
-        PolymakeAbstract.__init__(self, name=name, seed=seed)
+        PolymakeAbstract.__init__(self, seed=seed)
 
     _is_running = False    # class variable
 
@@ -2390,9 +2458,10 @@ class PolymakeJuPyMake(PolymakeAbstract):
         if self._verbose:
             print("## eval: {}".format(code))
         parsed, stdout, stderr, error = ExecuteCommand(code)
-        stderr = stderr.rstrip('\n\r')
-        if self._verbose:
-            print("## stderr: {}".format(stderr))
+        if get_verbose() > 0 or self._verbose:
+            stderr = stderr.rstrip('\n\r')
+            if stderr:
+                print(stderr)
         if error:
             # "Error evaluating {} in {}: {}".format(code, self, error)
             raise PolymakeError(error)
@@ -2416,7 +2485,7 @@ def reduce_load_Polymake():
     return polymake
 
 
-polymake_pexpect = Polymake()
+polymake_expect = PolymakeExpect()
 
 polymake_jupymake = PolymakeJuPyMake()
 

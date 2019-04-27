@@ -407,8 +407,7 @@ Methods
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 import six
 from six.moves import range
 
@@ -3346,7 +3345,7 @@ class Graph(GenericGraph):
 
         OUTPUT:
 
-        - When a solution exists, this method outputs the degree-constained
+        - When a solution exists, this method outputs the degree-constrained
           subgraph as a Graph object.
 
         - When no solution exists, returns ``False``.
@@ -8252,9 +8251,9 @@ class Graph(GenericGraph):
 
         EXAMPLES:
 
-        Effective resitances in a straight linear 2-tree on 6 vertices ::
+        Effective resistances in a straight linear 2-tree on 6 vertices ::
 
-            sage: G=Graph([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
+            sage: G = Graph([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
             sage: G.effective_resistance(0,1)
             34/55
             sage: G.effective_resistance(0,3)
@@ -8350,7 +8349,7 @@ class Graph(GenericGraph):
 
         EXAMPLES:
 
-        The effective resitance matrix  for a straight linear 2-tree counting
+        The effective resistance matrix  for a straight linear 2-tree counting
         only non-adjacent vertex pairs ::
 
             sage: G = Graph([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
@@ -8479,7 +8478,7 @@ class Graph(GenericGraph):
 
         EXAMPLES:
 
-        Pairs of non-adjacent nodes with least effective resitance in a
+        Pairs of non-adjacent nodes with least effective resistance in a
         straight linear 2-tree on 6 vertices::
 
             sage: G = Graph([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
@@ -8487,12 +8486,12 @@ class Graph(GenericGraph):
             [(1, 4)]
 
         Pairs of (adjacent or non-adjacent) nodes with least effective
-        resitance in a straight linear 2-tree on 6 vertices ::
+        resistance in a straight linear 2-tree on 6 vertices ::
 
             sage: G.least_effective_resistance(nonedgesonly = False)
             [(2, 3)]
 
-        Pairs of non-adjacent nodes with least effective resitance in a fan on
+        Pairs of non-adjacent nodes with least effective resistance in a fan on
         6 vertices counting only non-adjacent vertex pairs ::
 
             sage: H = Graph([(0,1),(0,2),(0,3),(0,4),(0,5),(0,6),(1,2),(2,3),(3,4),(4,5)])

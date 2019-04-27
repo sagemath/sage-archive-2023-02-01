@@ -11954,7 +11954,7 @@ class GenericGraph(GenericGraph_pyx):
         - When ``vertices`` is a single vertex and ``labels`` is ``False``,
           returns the degree of that vertex as an integer
 
-        - When ``vertices`` is an interable container of vertices (or ``None``)
+        - When ``vertices`` is an iterable container of vertices (or ``None``)
           and ``labels`` is ``False``, returns a list of integers. The `i`-th
           value is the degree of the `i`-th vertex in the list
           ``vertices``. When ``vertices`` is ``None``, the `i`-th value is the

@@ -158,7 +158,7 @@ AUTHORS:
 
 """
 from __future__ import absolute_import
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
 #       Copyright (C) 2010 Robert Bradshaw <robertwb@math.washington.edu>
 #       Copyright (C) 2011-2018 Julian Rüth <julian.rueth@gmail.com>
@@ -167,8 +167,8 @@ from __future__ import absolute_import
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from sage.misc.cachefunc import cached_method
 
 from sage.interfaces.all import singular
@@ -3256,7 +3256,7 @@ class FunctionField_global_integral(FunctionField_global):
         g = sum([v[i].numerator().subs(x) * y**i for i in range(len(v))])
 
         # Singular "normalP" algorithm assumes affine domain over
-        # a prime field. So we constuct gflat lifting g as in
+        # a prime field. So we construct gflat lifting g as in
         # k_prime[yy,xx,zz]/(k_poly) where k = k_prime[zz]/(k_poly)
         R = PolynomialRing(k.prime_subfield(), names='yy,xx,zz')
         gflat = R.zero()

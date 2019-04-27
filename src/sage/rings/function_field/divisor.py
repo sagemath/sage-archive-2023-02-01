@@ -698,7 +698,7 @@ class FunctionFieldDivisor(ModuleElement):
         C = matrix([to(v) for v in I.gens_over_base()])
         M = C * B.inverse()
 
-        # Step 2.5: get the denonimator d of M and set mat = d * M
+        # Step 2.5: get the denominator d of M and set mat = d * M
         den = lcm([e.denominator() for e in M.list()])
         R = den.parent() # polynomial ring
         one = R.one()

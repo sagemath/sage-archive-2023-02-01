@@ -1121,7 +1121,7 @@ def _relations(G,n):
     OUTPUT:
 
     - square matrix ``B`` such that ``B * G * B.T`` is the right side of the
-      relation which consits of blocks of types `U`, `V`, `W` again
+      relation which consists of blocks of types `U`, `V`, `W` again
 
     EXAMPLES::
 

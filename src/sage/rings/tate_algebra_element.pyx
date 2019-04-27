@@ -1531,7 +1531,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         - ``modulus`` -- discarded
 
-        EXEMPLES::
+        EXAMPLES::
 
             sage: R = Zp(3, prec=4, print_mode="digits")
             sage: A.<x,y> = TateAlgebra(R)

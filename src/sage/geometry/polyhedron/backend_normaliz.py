@@ -495,7 +495,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             return nmz_vertices, nmz_rays, nmz_lines
 
         def vert_ray_line_NF(vertices, rays, lines):
-            h_vertices = [ v + [1] for v in vertices ]
+            h_vertices = [ list(v) + [1] for v in vertices ]
             return h_vertices, rays, lines
 
         if vertices is None:
@@ -548,6 +548,13 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: p = Polyhedron(backend='normaliz')                       # optional - pynormaliz
             sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz   # optional - pynormaliz
             sage: Polyhedron_normaliz._init_from_Hrepresentation(p, [], [])   # optional - pynormaliz
+
+        TESTS::
+
+            sage: K.<a> = QuadraticField(2)
+            sage: p = Polyhedron(ieqs=[(1, a, 0)], backend='normaliz')
+            sage: p & p == p
+            True
         """
 
         def nmz_ieqs_eqns_NF(ieqs, eqns):
@@ -555,12 +562,12 @@ class Polyhedron_normaliz(Polyhedron_base):
             for ieq in ieqs:
                 b = ieq[0]
                 A = ieq[1:]
-                nmz_ieqs.append(A + [b])
+                nmz_ieqs.append(list(A) + [b])
             nmz_eqns = []
             for eqn in eqns:
                 b = eqn[0]
                 A = eqn[1:]
-                nmz_eqns.append(A + [b])
+                nmz_eqns.append(list(A) + [b])
             return nmz_ieqs, nmz_eqns
 
         def nmz_ieqs_eqns_QQ(ieqs, eqns):

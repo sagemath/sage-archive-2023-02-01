@@ -111,45 +111,42 @@ class DiGraphGenerators():
     ORDERLY GENERATION: digraphs(vertices, property=lambda x: True,
     augment='edges', size=None)
 
-    Accesses the generator of isomorphism class representatives.
+    Accesses the generator of isomorphism class representatives [McK1998]_.
     Iterates over distinct, exhaustive representatives.
 
     INPUT:
 
+    - ``vertices`` -- natural number or ``None`` to infinitely generate bigger
+      and bigger digraphs.
 
-    - ``vertices`` - natural number or ``None`` to infinitely generate
-      bigger and bigger digraphs.
+    - ``property`` -- any property to be tested on digraphs before generation
 
-    - ``property`` - any property to be tested on digraphs
-      before generation.
+    - ``augment`` -- choices:
 
-    - ``augment`` - choices:
+      - ``'vertices'`` -- augments by adding a vertex, and edges incident to
+        that vertex. In this case, all digraphs on *up to* n=vertices are
+        generated. If for any digraph G satisfying the property, every subgraph,
+        obtained from G by deleting one vertex and only edges incident to that
+        vertex, satisfies the property, then this will generate all digraphs
+        with that property. If this does not hold, then all the digraphs
+        generated will satisfy the property, but there will be some missing.
 
-      - ``'vertices'`` - augments by adding a vertex, and
-        edges incident to that vertex. In this case, all digraphs on *up to*
-        n=vertices are generated. If for any digraph G satisfying the
-        property, every subgraph, obtained from G by deleting one vertex
-        and only edges incident to that vertex, satisfies the property,
-        then this will generate all digraphs with that property. If this
-        does not hold, then all the digraphs generated will satisfy the
-        property, but there will be some missing.
+      - ``'edges'`` -- augments a fixed number of vertices by adding one
+        edge. In this case, all digraphs on *exactly* n=vertices are
+        generated. If for any graph G satisfying the property, every subgraph,
+        obtained from G by deleting one edge but not the vertices incident to
+        that edge, satisfies the property, then this will generate all digraphs
+        with that property. If this does not hold, then all the digraphs
+        generated will satisfy the property, but there will be some missing.
 
-      - ``'edges'`` - augments a fixed number of vertices by
-        adding one edge In this case, all digraphs on *exactly* n=vertices
-        are generated. If for any graph G satisfying the property, every
-        subgraph, obtained from G by deleting one edge but not the vertices
-        incident to that edge, satisfies the property, then this will
-        generate all digraphs with that property. If this does not hold,
-        then all the digraphs generated will satisfy the property, but
-        there will be some missing.
+    - ``implementation`` -- which underlying implementation to use
+      (see DiGraph?)
 
-    - ``implementation`` - which underlying implementation to use (see DiGraph?)
+    - ``sparse`` -- ignored if implementation is not ``'c_graph'``
 
-    - ``sparse`` - ignored if implementation is not ``c_graph``
+    EXAMPLES:
 
-    EXAMPLES: Print digraphs on 2 or less vertices.
-
-    ::
+    Print digraphs on 2 or less vertices::
 
         sage: for D in digraphs(2, augment='vertices'):
         ....:     print(D)
@@ -169,9 +166,7 @@ class DiGraphGenerators():
         Digraph on 2 vertices
         Digraph on 2 vertices
 
-    Print digraphs on 3 vertices.
-
-    ::
+    Print digraphs on 3 vertices::
 
         sage: for D in digraphs(3):
         ....:     print(D)
@@ -181,35 +176,27 @@ class DiGraphGenerators():
         Digraph on 3 vertices
         Digraph on 3 vertices
 
-    Generate all digraphs with 4 vertices and 3 edges.
-
-    ::
+    Generate all digraphs with 4 vertices and 3 edges::
 
         sage: L = digraphs(4, size=3)
         sage: len(list(L))
         13
 
-    Generate all digraphs with 4 vertices and up to 3 edges.
-
-    ::
+    Generate all digraphs with 4 vertices and up to 3 edges::
 
         sage: L = list(digraphs(4, lambda G: G.size() <= 3))
         sage: len(L)
         20
         sage: graphs_list.show_graphs(L)  # long time
 
-    Generate all digraphs with degree at most 2, up to 5 vertices.
+    Generate all digraphs with degree at most 2, up to 5 vertices::
 
-    ::
-
-        sage: property = lambda G: ( max([G.degree(v) for v in G] + [0]) <= 2 )
+        sage: property = lambda G: (max([G.degree(v) for v in G] + [0]) <= 2)
         sage: L = list(digraphs(5, property, augment='vertices'))
         sage: len(L)
         75
 
-    Generate digraphs on the fly: (see http://oeis.org/classic/A000273)
-
-    ::
+    Generate digraphs on the fly (see http://oeis.org/classic/A000273)::
 
         sage: for i in range(5):
         ....:     print(len(list(digraphs(i))))
@@ -218,11 +205,6 @@ class DiGraphGenerators():
         3
         16
         218
-
-    REFERENCE:
-
-    - Brendan D. McKay, Isomorph-Free Exhaustive generation.  Journal
-      of Algorithms Volume 26, Issue 2, February 1998, pages 306-324.
     """
 
     def ButterflyGraph(self, n, vertices='strings'):
@@ -1505,59 +1487,59 @@ class DiGraphGenerators():
 
         return G
 
-################################################################################
+# ##############################################################################
 #   DiGraph Iterators
-################################################################################
+# ##############################################################################
 
     def __call__(self, vertices=None, property=lambda x: True, augment='edges',
                  size=None, implementation='c_graph', sparse=True, copy=True):
         """
-        Accesses the generator of isomorphism class representatives.
+        Access the generator of isomorphism class representatives [McK1998]_.
         Iterates over distinct, exhaustive representatives.
 
         INPUT:
 
-        - ``vertices`` - natural number or ``None`` to generate all digraphs
+        - ``vertices`` -- natural number or ``None`` to generate all digraphs
 
-        - ``property`` - any property to be tested on digraphs
-          before generation.
+        - ``property`` -- any property to be tested on digraphs before
+          generation
 
-        - ``augment`` - choices:
+        - ``augment`` -- choices:
 
-          - ``'vertices'`` - augments by adding a vertex, and
-            edges incident to that vertex. In this case, all digraphs on up to
-            n=vertices are generated. If for any digraph G satisfying the
-            property, every subgraph, obtained from G by deleting one vertex
-            and only edges incident to that vertex, satisfies the property,
-            then this will generate all digraphs with that property. If this
-            does not hold, then all the digraphs generated will satisfy the
-            property, but there will be some missing.
+          - ``'vertices'`` -- augments by adding a vertex, and edges incident to
+            that vertex. In this case, all digraphs on up to n=vertices are
+            generated. If for any digraph G satisfying the property, every
+            subgraph, obtained from G by deleting one vertex and only edges
+            incident to that vertex, satisfies the property, then this will
+            generate all digraphs with that property. If this does not hold,
+            then all the digraphs generated will satisfy the property, but there
+            will be some missing.
 
-          - ``'edges'`` - augments a fixed number of vertices by
-             adding one edge In this case, all digraphs on exactly n=vertices
-            are generated. If for any graph G satisfying the property, every
+          - ``'edges'`` -- augments a fixed number of vertices by adding one
+            edge. In this case, all digraphs on exactly n=vertices are
+            generated. If for any graph G satisfying the property, every
             subgraph, obtained from G by deleting one edge but not the vertices
             incident to that edge, satisfies the property, then this will
             generate all digraphs with that property. If this does not hold,
-            then all the digraphs generated will satisfy the property, but
-            there will be some missing.
+            then all the digraphs generated will satisfy the property, but there
+            will be some missing.
 
-        -  ``implementation`` - which underlying implementation to use (see DiGraph?)
+        - ``implementation`` -- which underlying implementation to use
+          (see DiGraph?)
 
-        -  ``sparse`` - ignored if implementation is not ``c_graph``
+        - ``sparse`` -- ignored if implementation is not ``'c_graph'``
 
-        - ``copy`` (boolean) -- If set to ``True`` (default)
-          this method makes copies of the digraphs before returning
-          them. If set to ``False`` the method returns the digraph it
-          is working on. The second alternative is faster, but modifying
-          any of the digraph instances returned by the method may break
-          the function's behaviour, as it is using these digraphs to
-          compute the next ones: only use ``copy = False`` when
-          you stick to *reading* the digraphs returned.
+        - ``copy`` -- boolean (default: ``True``); whether to make copies of the
+          digraphs before returning them. If set to ``False`` the method returns
+          the digraph it is working on. The second alternative is faster, but
+          modifying any of the digraph instances returned by the method may
+          break the function's behaviour, as it is using these digraphs to
+          compute the next ones: only use ``copy = False`` when you stick to
+          *reading* the digraphs returned.
 
-      EXAMPLES: Print digraphs on 2 or less vertices.
+        EXAMPLES:
 
-        ::
+        Print digraphs on 2 or less vertices::
 
             sage: for D in digraphs(2, augment='vertices'):
             ....:     print(D)
@@ -1567,9 +1549,7 @@ class DiGraphGenerators():
             Digraph on 2 vertices
             Digraph on 2 vertices
 
-        Print digraphs on 3 vertices.
-
-        ::
+        Print digraphs on 3 vertices::
 
             sage: for D in digraphs(3):
             ....:     print(D)
@@ -1579,17 +1559,9 @@ class DiGraphGenerators():
             Digraph on 3 vertices
             Digraph on 3 vertices
 
-        For more examples, see the class level documentation, or type
+        For more examples, see the class level documentation, or type ::
 
-        ::
-
-            sage: digraphs? # not tested
-
-        REFERENCE:
-
-        - Brendan D. McKay, Isomorph-Free Exhaustive generation.
-          Journal of Algorithms Volume 26, Issue 2, February 1998,
-          pages 306-324.
+            sage: digraphs?  # not tested
         """
         from copy import copy as copyfun
         if size is not None:
@@ -1618,9 +1590,10 @@ class DiGraphGenerators():
             from sage.graphs.graph_generators import canaug_traverse_edge
             g = DiGraph(vertices, implementation=implementation, sparse=sparse)
             gens = []
-            for i in range(vertices-1):
+            for i in range(vertices - 1):
                 gen = list(range(i))
-                gen.append(i+1); gen.append(i)
+                gen.append(i + 1)
+                gen.append(i)
                 gen += list(range(i + 2, vertices))
                 gens.append(gen)
             for gg in canaug_traverse_edge(g, gens, property, dig=True, implementation=implementation, sparse=sparse):
@@ -1632,7 +1605,3 @@ class DiGraphGenerators():
 
 # Easy access to the graph generators from the command line:
 digraphs = DiGraphGenerators()
-
-
-
-

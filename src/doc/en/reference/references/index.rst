@@ -2895,6 +2895,9 @@ REFERENCES:
 .. [McE1987] Robert J. McEliece. Finite Fields for Computer
              Scientists and Engineers. Kluwer Academic Publishers, 1987.
 
+.. [McK1998] Brendan D. McKay, "Isomorph-Free Exhaustive generation".
+             Journal of Algorithms, 26(2): 306-324, February 1998.
+
 .. [McM1992] John McMillan. *Games, strategies, and managers*. Oxford
              University Press.
 

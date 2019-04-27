@@ -435,7 +435,7 @@ def substitute_raise_exception(element, e):
                 (element, element.parent())), e)
 
 
-def merge_overlapping(A, B, key=None):
+def bidirectional_merge_overlapping(A, B, key=None):
     r"""
     Merge the two overlapping tuples/lists.
 
@@ -458,62 +458,62 @@ def merge_overlapping(A, B, key=None):
 
         Suppose we can decompose the list `A=ac` and `B=cb` with
         lists `a`, `b`, `c`, where `c` is nonempty. Then
-        :func:`merge_overlapping` returns the pair `(acb, acb)`.
+        :func:`bidirectional_merge_overlapping` returns the pair `(acb, acb)`.
 
         Suppose a ``key``-function is specified and `A=ac_A` and
         `B=c_Bb`, where the list of keys of the elements of `c_A`
         equals the list of keys of the elements of `c_B`. Then
-        :func:`merge_overlapping` returns the pair `(ac_Ab, ac_Bb)`.
+        :func:`bidirectional_merge_overlapping` returns the pair `(ac_Ab, ac_Bb)`.
 
         After unsuccessfully merging `A=ac` and `B=cb`,
         a merge of `A=ca` and `B=bc` is tried.
 
     TESTS::
 
-        sage: from sage.rings.asymptotic.misc import merge_overlapping
+        sage: from sage.rings.asymptotic.misc import bidirectional_merge_overlapping
         sage: def f(L, s):
         ....:     return list((ell, s) for ell in L)
         sage: key = lambda k: k[0]
-        sage: merge_overlapping(f([0..3], 'a'), f([5..7], 'b'), key)
+        sage: bidirectional_merge_overlapping(f([0..3], 'a'), f([5..7], 'b'), key)
         Traceback (most recent call last):
         ...
         ValueError: Input does not have an overlap.
-        sage: merge_overlapping(f([0..2], 'a'), f([4..7], 'b'), key)
+        sage: bidirectional_merge_overlapping(f([0..2], 'a'), f([4..7], 'b'), key)
         Traceback (most recent call last):
         ...
         ValueError: Input does not have an overlap.
-        sage: merge_overlapping(f([4..7], 'a'), f([0..2], 'b'), key)
+        sage: bidirectional_merge_overlapping(f([4..7], 'a'), f([0..2], 'b'), key)
         Traceback (most recent call last):
         ...
         ValueError: Input does not have an overlap.
-        sage: merge_overlapping(f([0..3], 'a'), f([3..4], 'b'), key)
+        sage: bidirectional_merge_overlapping(f([0..3], 'a'), f([3..4], 'b'), key)
         ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a'), (4, 'b')],
          [(0, 'a'), (1, 'a'), (2, 'a'), (3, 'b'), (4, 'b')])
-        sage: merge_overlapping(f([3..4], 'a'), f([0..3], 'b'), key)
+        sage: bidirectional_merge_overlapping(f([3..4], 'a'), f([0..3], 'b'), key)
         ([(0, 'b'), (1, 'b'), (2, 'b'), (3, 'a'), (4, 'a')],
          [(0, 'b'), (1, 'b'), (2, 'b'), (3, 'b'), (4, 'a')])
-        sage: merge_overlapping(f([0..1], 'a'), f([0..4], 'b'), key)
+        sage: bidirectional_merge_overlapping(f([0..1], 'a'), f([0..4], 'b'), key)
         ([(0, 'a'), (1, 'a'), (2, 'b'), (3, 'b'), (4, 'b')],
          [(0, 'b'), (1, 'b'), (2, 'b'), (3, 'b'), (4, 'b')])
-        sage: merge_overlapping(f([0..3], 'a'), f([0..1], 'b'), key)
+        sage: bidirectional_merge_overlapping(f([0..3], 'a'), f([0..1], 'b'), key)
         ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a')],
          [(0, 'b'), (1, 'b'), (2, 'a'), (3, 'a')])
-        sage: merge_overlapping(f([0..3], 'a'), f([1..3], 'b'), key)
+        sage: bidirectional_merge_overlapping(f([0..3], 'a'), f([1..3], 'b'), key)
         ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a')],
          [(0, 'a'), (1, 'b'), (2, 'b'), (3, 'b')])
-        sage: merge_overlapping(f([1..3], 'a'), f([0..3], 'b'), key)
+        sage: bidirectional_merge_overlapping(f([1..3], 'a'), f([0..3], 'b'), key)
         ([(0, 'b'), (1, 'a'), (2, 'a'), (3, 'a')],
          [(0, 'b'), (1, 'b'), (2, 'b'), (3, 'b')])
-        sage: merge_overlapping(f([0..6], 'a'), f([3..4], 'b'), key)
+        sage: bidirectional_merge_overlapping(f([0..6], 'a'), f([3..4], 'b'), key)
         ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a'), (4, 'a'), (5, 'a'), (6, 'a')],
          [(0, 'a'), (1, 'a'), (2, 'a'), (3, 'b'), (4, 'b'), (5, 'a'), (6, 'a')])
-        sage: merge_overlapping(f([0..3], 'a'), f([1..2], 'b'), key)
+        sage: bidirectional_merge_overlapping(f([0..3], 'a'), f([1..2], 'b'), key)
         ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a')],
          [(0, 'a'), (1, 'b'), (2, 'b'), (3, 'a')])
-        sage: merge_overlapping(f([1..2], 'a'), f([0..3], 'b'), key)
+        sage: bidirectional_merge_overlapping(f([1..2], 'a'), f([0..3], 'b'), key)
         ([(0, 'b'), (1, 'a'), (2, 'a'), (3, 'b')],
          [(0, 'b'), (1, 'b'), (2, 'b'), (3, 'b')])
-        sage: merge_overlapping(f([1..3], 'a'), f([1..3], 'b'), key)
+        sage: bidirectional_merge_overlapping(f([1..3], 'a'), f([1..3], 'b'), key)
         ([(1, 'a'), (2, 'a'), (3, 'a')],
          [(1, 'b'), (2, 'b'), (3, 'b')])
     """
@@ -566,6 +566,142 @@ def merge_overlapping(A, B, key=None):
         return B[:i] + A + B[i+len(A):], B
 
     raise ValueError('Input does not have an overlap.')
+
+
+def bidirectional_merge_sorted(A, B, key=None):
+    r"""
+    Merge the two tuples/lists, keeping the orders provided by them.
+
+    INPUT:
+
+    - ``A`` -- a list or tuple (type has to coincide with type of ``B``).
+
+    - ``B`` -- a list or tuple (type has to coincide with type of ``A``).
+
+    - ``key`` -- (default: ``None``) a function. If ``None``, then the
+      identity is used.  This ``key``-function applied on an element
+      of the list/tuple is used for comparison. Thus elements with the
+      same key are considered as equal.
+
+    .. NOTE::
+
+        The two tuples/list need to overlap, i.e. need at least
+        one key in common.
+
+    OUTPUT:
+
+    A pair of lists containing all elements totally ordered. (The first
+    component uses ``A`` as a merge base, the second component ``B``.)
+
+    If merging fails, then a
+    :python:`RuntimeError<library/exceptions.html#exceptions.RuntimeError>`
+    is raised.
+
+    TESTS::
+
+        sage: from sage.rings.asymptotic.misc import bidirectional_merge_sorted
+        sage: def f(L, s):
+        ....:     return list((ell, s) for ell in L)
+        sage: key = lambda k: k[0]
+        sage: bidirectional_merge_sorted(f([0..3], 'a'), f([5..7], 'b'), key)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: no common elements
+        sage: bidirectional_merge_sorted(f([0..2], 'a'), f([4..7], 'b'), key)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: no common elements
+        sage: bidirectional_merge_sorted(f([4..7], 'a'), f([0..2], 'b'), key)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: no common elements
+        sage: bidirectional_merge_sorted(f([0..3], 'a'), f([3..4], 'b'), key)
+        ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a'), (4, 'b')],
+         [(0, 'a'), (1, 'a'), (2, 'a'), (3, 'b'), (4, 'b')])
+        sage: bidirectional_merge_sorted(f([3..4], 'a'), f([0..3], 'b'), key)
+        ([(0, 'b'), (1, 'b'), (2, 'b'), (3, 'a'), (4, 'a')],
+         [(0, 'b'), (1, 'b'), (2, 'b'), (3, 'b'), (4, 'a')])
+        sage: bidirectional_merge_sorted(f([0..1], 'a'), f([0..4], 'b'), key)
+        ([(0, 'a'), (1, 'a'), (2, 'b'), (3, 'b'), (4, 'b')],
+         [(0, 'b'), (1, 'b'), (2, 'b'), (3, 'b'), (4, 'b')])
+        sage: bidirectional_merge_sorted(f([0..3], 'a'), f([0..1], 'b'), key)
+        ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a')],
+         [(0, 'b'), (1, 'b'), (2, 'a'), (3, 'a')])
+        sage: bidirectional_merge_sorted(f([0..3], 'a'), f([1..3], 'b'), key)
+        ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a')],
+         [(0, 'a'), (1, 'b'), (2, 'b'), (3, 'b')])
+        sage: bidirectional_merge_sorted(f([1..3], 'a'), f([0..3], 'b'), key)
+        ([(0, 'b'), (1, 'a'), (2, 'a'), (3, 'a')],
+         [(0, 'b'), (1, 'b'), (2, 'b'), (3, 'b')])
+        sage: bidirectional_merge_sorted(f([0..6], 'a'), f([3..4], 'b'), key)
+        ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a'), (4, 'a'), (5, 'a'), (6, 'a')],
+         [(0, 'a'), (1, 'a'), (2, 'a'), (3, 'b'), (4, 'b'), (5, 'a'), (6, 'a')])
+        sage: bidirectional_merge_sorted(f([0..3], 'a'), f([1..2], 'b'), key)
+        ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a')],
+         [(0, 'a'), (1, 'b'), (2, 'b'), (3, 'a')])
+        sage: bidirectional_merge_sorted(f([1..2], 'a'), f([0..3], 'b'), key)
+        ([(0, 'b'), (1, 'a'), (2, 'a'), (3, 'b')],
+         [(0, 'b'), (1, 'b'), (2, 'b'), (3, 'b')])
+        sage: bidirectional_merge_sorted(f([1..3], 'a'), f([1..3], 'b'), key)
+        ([(1, 'a'), (2, 'a'), (3, 'a')],
+         [(1, 'b'), (2, 'b'), (3, 'b')])
+
+    ::
+
+        sage: bidirectional_merge_sorted(f([1, 2, 3], 'a'), f([1, 3], 'b'), key)
+        ([(1, 'a'), (2, 'a'), (3, 'a')],
+         [(1, 'b'), (2, 'a'), (3, 'b')])
+        sage: bidirectional_merge_sorted(f([1, 4, 5, 6], 'a'), f([1, 2, 3, 4, 6], 'b'), key)
+        ([(1, 'a'), (2, 'b'), (3, 'b'), (4, 'a'), (5, 'a'), (6, 'a')],
+         [(1, 'b'), (2, 'b'), (3, 'b'), (4, 'b'), (5, 'a'), (6, 'b')])
+        sage: bidirectional_merge_sorted(f([1, 2, 3, 4], 'a'), f([1, 3, 5], 'b'), key)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: sorting not unique
+        sage: bidirectional_merge_sorted(f([1, 2], 'a'), f([2, 1], 'b'), key)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: sorting in lists not compatible
+        sage: bidirectional_merge_sorted(f([1, 2, 4], 'a'), f([1, 3, 4], 'b'), key)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: sorting not unique
+    """
+    if key is None:
+        Akeys = A
+        Bkeys = B
+    else:
+        Akeys = tuple(key(a) for a in A)
+        Bkeys = tuple(key(b) for b in B)
+
+    matches = tuple((i, j)
+                    for i, a in enumerate(Akeys)
+                    for j, b in enumerate(Bkeys)
+                    if a == b)
+    if not matches:
+        raise RuntimeError('no common elements')
+
+    resultA = []
+    resultB = []
+    last = (0, 0)
+    end = (len(A), len(B))
+    for current in matches + (end,):
+        if not all(a <= b for a, b in zip(last, current)):
+            raise RuntimeError('sorting in lists not compatible')
+        if last[0] == current[0]:
+            resultA.extend(B[last[1]:current[1]])
+            resultB.extend(B[last[1]:current[1]])
+        elif last[1] == current[1]:
+            resultA.extend(A[last[0]:current[0]])
+            resultB.extend(A[last[0]:current[0]])
+        else:
+            raise RuntimeError('sorting not unique')
+        if current != end:
+            resultA.append(A[current[0]])
+            resultB.append(B[current[1]])
+            last = (current[0]+1, current[1]+1)
+
+    return (resultA, resultB)
 
 
 def log_string(element, base=None):

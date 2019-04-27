@@ -2506,4 +2506,8 @@ polymake_expect = PolymakeExpect()
 
 polymake_jupymake = PolymakeJuPyMake()
 
-polymake = polymake_jupymake
+from sage.features import PythonModule
+if PythonModule("JuPyMake").is_present():
+    polymake = polymake_jupymake
+else:
+    polymake = polymake_expect

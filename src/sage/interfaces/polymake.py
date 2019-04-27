@@ -2313,20 +2313,21 @@ class PolymakeJuPyMake(PolymakeAbstract):
 
     EXAMPLES::
 
+        sage: from sage.interfaces.polymake import polymake_jupymake as polymake
         sage: type(polymake)
         <...sage.interfaces.polymake.PolymakeJuPyMake...
-        sage: p = polymake.rand_sphere(4, 20, seed=5)       # optional - polymake
-        sage: p                                             # optional - polymake
+        sage: p = polymake.rand_sphere(4, 20, seed=5)       # optional - jupymake
+        sage: p                                             # optional - jupymake
         Random spherical polytope of dimension 4; seed=5...
         sage: set_verbose(3)
-        sage: p.H_VECTOR                                    # optional - polymake
+        sage: p.H_VECTOR                                    # optional - jupymake
         used package ppl
           The Parma Polyhedra Library ...
         1 16 40 16 1
         sage: set_verbose(0)
-        sage: p.F_VECTOR                                    # optional - polymake
+        sage: p.F_VECTOR                                    # optional - jupymake
         20 94 148 74
-        sage: print(p.F_VECTOR._sage_doc_())                # optional - polymake # random
+        sage: print(p.F_VECTOR._sage_doc_())                # optional - jupymake # random
         property_types/Algebraic Types/Vector:
          A type for vectors with entries of type Element.
 
@@ -2387,13 +2388,14 @@ class PolymakeJuPyMake(PolymakeAbstract):
 
         EXAMPLES::
 
-            sage: p = polymake.cube(3)              # optional - polymake  # indirect doctest
+            sage: from sage.interfaces.polymake import polymake_jupymake as polymake
+            sage: p = polymake.cube(3)              # optional - jupymake  # indirect doctest
 
         Here we see that remarks printed by polymake are displayed if
         the verbosity is positive::
 
             sage: set_verbose(1)
-            sage: p.N_LATTICE_POINTS                # optional - polymake # random
+            sage: p.N_LATTICE_POINTS                # optional - jupymake # random
             used package latte
               LattE (Lattice point Enumeration) is a computer software dedicated to the
               problems of counting lattice points and integration inside convex polytopes.
@@ -2405,7 +2407,7 @@ class PolymakeJuPyMake(PolymakeAbstract):
         If polymake raises an error, the polymake *interface* raises
         a :class:`PolymakeError`::
 
-            sage: polymake.eval('FOOBAR(3);')       # optional - polymake
+            sage: polymake.eval('FOOBAR(3);')       # optional - jupymake
             Traceback (most recent call last):
             ...
             PolymakeError: Undefined subroutine &Polymake::User::FOOBAR called...
@@ -2413,17 +2415,17 @@ class PolymakeJuPyMake(PolymakeAbstract):
         If a command is incomplete, then polymake returns a continuation
         prompt. In that case, we raise an error::
 
-            sage: polymake.eval('print 3')          # optional - polymake
+            sage: polymake.eval('print 3')          # optional - jupymake
             Traceback (most recent call last):
             ...
             SyntaxError: Incomplete polymake command 'print 3'
-            sage: polymake.eval('print 3;')         # optional - polymake
+            sage: polymake.eval('print 3;')         # optional - jupymake
             '3'
 
         However, if the command contains line breaks but eventually is complete,
         no error is raised::
 
-            sage: print(polymake.eval('$tmp="abc";\nprint $tmp;'))  # optional - polymake
+            sage: print(polymake.eval('$tmp="abc";\nprint $tmp;'))  # optional - jupymake
             abc
 
         When requesting help, polymake sometimes expect the user to choose
@@ -2431,7 +2433,7 @@ class PolymakeJuPyMake(PolymakeAbstract):
         the list from which the user can choose; we could demonstrate this using
         the :meth:`help` method, but here we use an explicit code evaluation::
 
-            sage: print(polymake.eval('help "TRIANGULATION";'))     # optional - polymake # random
+            sage: print(polymake.eval('help "TRIANGULATION";'))     # optional - jupymake # random
             doctest:warning
             ...
             UserWarning: Polymake expects user interaction. We abort and return
@@ -2448,17 +2450,17 @@ class PolymakeJuPyMake(PolymakeAbstract):
         work in an interactive session and often in doc tests, too. However,
         sometimes it hangs, and therefore we remove it from the tests, for now::
 
-            sage: c = polymake.cube(15)             # optional - polymake
-            sage: polymake.eval('print {}->F_VECTOR;'.format(c.name()), timeout=1) # optional - polymake # not tested
+            sage: c = polymake.cube(15)             # optional - jupymake
+            sage: polymake.eval('print {}->F_VECTOR;'.format(c.name()), timeout=1) # optional - jupymake # not tested
             Traceback (most recent call last):
             ...
             RuntimeError: Polymake fails to respond timely
 
         We verify that after the timeout, polymake is still able to give answers::
 
-            sage: c                                 # optional - polymake
+            sage: c                                 # optional - jupymake
             cube of dimension 15
-            sage: c.N_VERTICES                      # optional - polymake
+            sage: c.N_VERTICES                      # optional - jupymake
             32768
 
         Note, however, that the recovery after a timeout is not perfect.

@@ -119,10 +119,44 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
 
     EXAMPLES:
 
-        sage: from sage.interfaces.polymake import PolymakeAbstract, Polymake
-        sage: m = Polymake()
-        sage: isinstance(m, PolymakeAbstract)
+        sage: from sage.interfaces.polymake import PolymakeAbstract, polymake_expect, polymake_jupymake
+
+    We test the verbosity management with very early doctests
+    because messages will not be repeated.
+
+    Testing the Pexpect interface::
+
+        sage: type(polymake_expect)
+        <...sage.interfaces.polymake.PolymakeExpect...
+        sage: isinstance(polymake_expect, PolymakeAbstract)
         True
+        sage: p = polymake_expect.rand_sphere(4, 20, seed=5)       # optional - polymake
+        sage: p                                             # optional - polymake
+        Random spherical polytope of dimension 4; seed=5...
+        sage: set_verbose(3)
+        sage: p.H_VECTOR                                    # optional - polymake
+        used package ppl
+          The Parma Polyhedra Library ...
+        1 16 40 16 1
+        sage: set_verbose(0)
+        sage: p.F_VECTOR                                    # optional - polymake
+        20 94 148 74
+
+    Testing the JuPyMake interface::
+
+        sage: isinstance(polymake_jupymake, PolymakeAbstract)
+        True
+        sage: p = polymake_jupymake.rand_sphere(4, 20, seed=5)       # optional - jupymake
+        sage: p                                             # optional - jupymake
+        Random spherical polytope of dimension 4; seed=5...
+        sage: set_verbose(3)
+        sage: p.H_VECTOR                                    # optional - jupymake
+        polymake: used package ppl
+          The Parma Polyhedra Library ...
+        1 16 40 16 1
+        sage: set_verbose(0)
+        sage: p.F_VECTOR                                    # optional - jupymake
+        20 94 148 74
     """
     def __init__(self, seed=None):
         """
@@ -1683,9 +1717,10 @@ class PolymakeExpect(PolymakeAbstract, Expect):
         sage: p                                             # optional - polymake
         Random spherical polytope of dimension 4; seed=5...
         sage: set_verbose(3)
-        sage: p.H_VECTOR                                    # optional - polymake
+        sage: p.H_VECTOR;                                   # optional - polymake # random
         used package ppl
           The Parma Polyhedra Library ...
+        sage: p.H_VECTOR                                    # optional - polymake
         1 16 40 16 1
         sage: set_verbose(0)
         sage: p.F_VECTOR                                    # optional - polymake
@@ -2320,9 +2355,10 @@ class PolymakeJuPyMake(PolymakeAbstract):
         sage: p                                             # optional - jupymake
         Random spherical polytope of dimension 4; seed=5...
         sage: set_verbose(3)
-        sage: p.H_VECTOR                                    # optional - jupymake
+        sage: p.H_VECTOR;                                   # optional - jupymake # random
         used package ppl
           The Parma Polyhedra Library ...
+        sage: p.H_VECTOR                                    # optional - jupymake
         1 16 40 16 1
         sage: set_verbose(0)
         sage: p.F_VECTOR                                    # optional - jupymake

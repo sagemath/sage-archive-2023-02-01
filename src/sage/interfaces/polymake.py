@@ -1092,6 +1092,16 @@ class Polymake(ExtraTabCompletion, Expect):
             sage: 'normal_fan' in dir(polymake)                 # optional - polymake
             False
 
+        Global functions from 'core' are available::
+
+            sage: 'show_credits' in dir(polymake)
+            True
+
+        Global functions from 'common' are available::
+
+            sage: 'lex_ordered' in dir(polymake)
+            True
+
         """
         if not self.is_running():
             self._start()
@@ -1102,7 +1112,7 @@ class Polymake(ExtraTabCompletion, Expect):
         s = self.eval("apropos '';").split(self._expect.linesep)
         out = []
         for name in s:
-            if name.startswith("/common/functions/") or name.startswith("/" + self._application + "/functions/"):
+            if name.startswith("/common/functions/") or name.startswith("/core/functions") or name.startswith("/" + self._application + "/functions/"):
                 out.append(name.split("/")[-1])
         self.__tab_completion[self._application] = sorted(out)
         return self.__tab_completion[self._application]

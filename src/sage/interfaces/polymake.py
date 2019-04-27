@@ -2333,6 +2333,13 @@ class PolymakeJuPyMake(PolymakeAbstract):
 
     def __init__(self, seed=None, verbose=False):
         """
+        Initialize ``self``.
+
+        INPUT:
+
+        - ``verbose`` -- boolean (default: ``False``); whether to print the
+        commands passed to polymake.
+
         TESTS::
 
             sage: from sage.interfaces.polymake import PolymakeJuPyMake

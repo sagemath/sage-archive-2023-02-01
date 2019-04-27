@@ -604,6 +604,8 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
             PolymakeError: unknown help topic 'Triangulation'
         """
         H = self.eval('help("{}");\n'.format(topic))
+        if not H:
+            raise PolymakeError("unknown help topic '{}'".format(topic))
         if pager:
             from IPython.core.page import page
             page(H, start=0)
@@ -2363,6 +2365,7 @@ class PolymakeJuPyMake(PolymakeAbstract):
             InitializePolymake()          # Can only be called once
             self._is_running = True
         PolymakeAbstract._start(self)
+        self.eval("sub Polymake::Core::Shell::Mock::fill_history {}")
         self._tab_completion()   # Run it here already because it causes a segfault when invoked in actual tab completion situation?!
 
     def eval(self, code, **kwds):

@@ -231,7 +231,7 @@ def find_future_imports(G):
 
     This function will raise an error if it detects lines of these forms.
     """
-    import_statements = ''
+    import_statements = []
     # "from __future__ import ..." should not be indented.
     m = re.search("^(from __future__ import .*)$", G, re.MULTILINE)
     while m:
@@ -245,10 +245,10 @@ def find_future_imports(G):
         if (statement[-1] == '\\' or
             (statement.find('(') > -1 and statement.find(')') == -1)):
             raise NotImplementedError('the Sage preparser can only preparse "from __future__ import ..." statements which are on a single line')
-        import_statements += statement + '\n'
+        import_statements.append(statement)
         G = G[:m.start()] + G[m.end():]
         m = re.search("^(from __future__ import .*)$", G, re.MULTILINE)
-    return (import_statements, G)
+    return ('\n'.join(import_statements), G)
 
 
 def do_load_and_attach(G, file, files_before):

@@ -319,8 +319,8 @@ class DES(SageObject):
           ``None`` the number of rounds of the key schedule is used.
 
         - ``keySchedule`` -- (default: ``'DES_KS'``); the key schedule that
-          will be used for encryption and decryption. If ``None`` the default
-          DES key schedule is used.
+          will be used for encryption and decryption. If ``'DES_KS'`` the
+          default DES key schedule is used.
 
         - ``keySize`` -- (default: ``64``); the key length in bits. Must be
           ``56`` of ``64``. In the latter case the key contains 8 parity bits.

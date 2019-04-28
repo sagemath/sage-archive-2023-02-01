@@ -79,10 +79,12 @@ class DES(SageObject):
 
         sage: from sage.crypto.block_cipher.des import DES
         sage: des = DES()
-        sage: P = 0x95F8A5E5DD31D900
+        sage: P = 0x8000000000000000
         sage: K = 0x0
-        sage: des(des(P, K, 'encrypt'), K, 'decrypt') == P
-        True
+        sage: C = des(P, K, 'encrypt'); C.hex()
+        '95f8a5e5dd31d900'
+        sage: des(C, K, 'decrypt').hex()
+        '8000000000000000'
 
     Or by calling encryption/decryption methods directly::
 
@@ -301,7 +303,7 @@ class DES(SageObject):
             sage: des.encrypt(P, K56) == C
             True
         """
-        state, inputType = _convert_to_vector(plaintext, 64)
+        state, inputType = _convert_to_vector(plaintext, self._blocksize)
         key, _ = _convert_to_vector(key, self._keySize)
         if self._keySize == 56:
             # insert 'parity' bits
@@ -453,7 +455,9 @@ class DES(SageObject):
 
             sage: from sage.crypto.block_cipher.des import DES
             sage: des = DES()
-            sage: B = vector(GF(2), 48, [0,1,1,0,0,0,0,1,0,0,0,1,0,1,1,1,1,0,1,1,1,0,1,0,1,0,0,0,0,1,1,0,0,1,1,0,0,1,0,1,0,0,1,0,0,1,1,1])
+            sage: B = vector(GF(2), 48, [0,1,1,0,0,0,0,1,0,0,0,1,0,1,1,1,1,0,1,
+            ....:                        1,1,0,1,0,1,0,0,0,0,1,1,0,0,1,1,0,0,1,
+            ....:                        0,1,0,0,1,0,0,1,1,1])
             sage: des._sboxes(B)
             (0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1,
              0, 1, 1, 0, 0, 1, 0, 1, 1, 1)
@@ -480,7 +484,7 @@ class DES(SageObject):
                 [DES_S7_1, DES_S7_2, DES_S7_3, DES_S7_4],
                 [DES_S8_1, DES_S8_2, DES_S8_3, DES_S8_4]]
         block = [block[i:i+6] for i in range(0, 48, 6)]
-        block = list(chain.from_iterable([sbox[i][2*int(b[0])+int(b[5])](b[1:5])
+        block = list(chain.from_iterable([sbox[i][ZZ([b[5], b[0]], 2)](b[1:5])
                                           for i, b in enumerate(block)]))
         return vector(GF(2), 32, block)
 
@@ -542,16 +546,16 @@ class DES_KS(SageObject):
 
     EXAMPLES:
 
-    Initialise the key schedule with a `master\_key` to use it as an iterable::
+    Initialise the key schedule with a `masterKey` to use it as an iterable::
 
         sage: from sage.crypto.block_cipher.des import DES_KS
-        sage: ks = DES_KS(master_key=0)
+        sage: ks = DES_KS(masterKey=0)
         sage: ks[0]
         0
         sage: ks[15]
         0
 
-    Or omit the `master\_key` and pass a key when calling the key schedule::
+    Or omit the `masterKey` and pass a key when calling the key schedule::
 
         sage: ks = DES_KS()
         sage: K = ks(0x584023641ABA6176)
@@ -568,7 +572,7 @@ class DES_KS(SageObject):
     .. automethod:: __call__
     """
 
-    def __init__(self, rounds=16, master_key=None):
+    def __init__(self, rounds=16, masterKey=None):
         r"""
         Construct an instance of DES_KS.
 
@@ -577,7 +581,7 @@ class DES_KS(SageObject):
         - ``rounds`` -- integer (default: ``16``); the number of rounds
           ``self`` can create keys for
 
-        - ``master_key`` -- integer or bit list-like (default: ``None``); the
+        - ``masterKey`` -- integer or bit list-like (default: ``None``); the
           64-bit key that will be used
 
         EXAMPLES::
@@ -589,11 +593,11 @@ class DES_KS(SageObject):
         .. NOTE::
 
             If you want to use a DES_KS object as an iterable you have to
-            pass a ``master_key`` value on initialisation. Otherwise you can
-            omit ``master_key`` and pass a key when you call the object.
+            pass a ``masterKey`` value on initialisation. Otherwise you can
+            omit ``masterKey`` and pass a key when you call the object.
         """
         self._rounds = rounds
-        self._master_key = master_key
+        self._masterKey = masterKey
         self._keySize = 64
 
     def __call__(self, key):
@@ -646,8 +650,8 @@ class DES_KS(SageObject):
         .. NOTE::
 
             If you want to use a DES_KS object as an iterable you have to
-            pass a ``master_key`` value on initialisation. Otherwise you can
-            omit ``master_key`` and pass a key when you call the object.
+            pass a ``masterKey`` value on initialisation. Otherwise you can
+            omit ``masterKey`` and pass a key when you call the object.
         """
         key, inputType = _convert_to_vector(key, self._keySize)
         roundKeys = []
@@ -694,7 +698,7 @@ class DES_KS(SageObject):
         Computes the sub key for round ``r`` derived from initial master key.
 
         The key schedule object has to have been initialised with the
-        `master_key` argument.
+        `masterKey` argument.
 
         INPUT:
 
@@ -703,32 +707,32 @@ class DES_KS(SageObject):
         EXAMPLES::
 
             sage: from sage.crypto.block_cipher.des import DES_KS
-            sage: ks = DES_KS(master_key=0x1F08260D1AC2465E)
+            sage: ks = DES_KS(masterKey=0x1F08260D1AC2465E)
             sage: ks[0].hex() # indirect doctest
             '103049bfb90e'
             sage: ks[15].hex() # indirect doctest
             '231000f2dd97'
         """
-        if self._master_key is None:
+        if self._masterKey is None:
             raise ValueError('Key not set during initialisation')
-        return self(self._master_key)[r]
+        return self(self._masterKey)[r]
 
     def __iter__(self):
         r"""
-        Iterate over the DES round keys, derived from `master_key`.
+        Iterate over the DES round keys, derived from `masterKey`.
 
         EXAMPLES::
 
             sage: from sage.crypto.block_cipher.des import DES_KS
-            sage: K = [k for k in DES_KS(master_key=0x0113B970FD34F2CE)]
+            sage: K = [k for k in DES_KS(masterKey=0x0113B970FD34F2CE)]
             sage: K[0].hex() # indirect doctest
             '6f26cc480fc6'
             sage: K[15].hex() # indirect doctest
             '9778f17524a'
        """
-        if self._master_key is None:
+        if self._masterKey is None:
             raise ValueError('Key not set during initialisation')
-        return iter(self(self._master_key))
+        return iter(self(self._masterKey))
 
     def _pc1(self, key):
         r"""

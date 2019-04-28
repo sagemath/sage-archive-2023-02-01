@@ -102,14 +102,18 @@ class DES(SageObject):
     inputs. If the input is an integer the output will be too. If it is
     list-like the output will be a bit vector::
 
-        sage: P = ZZ(0).digits(2,padto=64)
-        sage: K = ZZ(0).digits(2,padto=64)
-        sage: list(des(des(P, K, 'encrypt'), K, 'decrypt')) == P
-        True
-        sage: P = ZZ(0).digits(2,padto=64)
-        sage: K = 0x0
-        sage: list(des(des(P, K, 'encrypt'), K, 'decrypt')) == P
-        True
+        sage: des = DES()
+        sage: P = vector(GF(2), 64, [1] + [0]*63)
+        sage: K = vector(GF(2), 64, [0,0,0,0,0,0,0,1]*8)
+        sage: des.encrypt(P, K)
+        (1, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0,
+         1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0,
+         0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0)
+        sage: P = 0x8000000000000000
+        sage: K = 0x0101010101010101
+        sage: C = des.encrypt(P, K); C; C.hex()
+        10806569712552630528
+        '95f8a5e5dd31d900'
 
     .. SEEALSO::
 

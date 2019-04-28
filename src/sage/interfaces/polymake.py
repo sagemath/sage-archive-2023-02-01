@@ -1935,6 +1935,13 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
             sage: _.parent()              # optional - polymake
             Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
 
+        Polytopes::
+
+            sage: polymake.cube(3).sage() # optional - polymake
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 8 vertices
+            sage: polymake.icosahedron().sage()
+            A 3-dimensional polyhedron in AA^3 defined as the convex hull of 12 vertices
+
         """
         T1, T2 = self.typeof()
         self._check_valid()

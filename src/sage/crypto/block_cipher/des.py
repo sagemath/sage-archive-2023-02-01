@@ -15,12 +15,14 @@ Encrypt a message::
 
     sage: from sage.crypto.block_cipher.des import DES
     sage: des = DES()
-    sage: des.encrypt(plaintext=0x01A1D6D039776742, key=0x7CA110454A1A6E57).hex()
+    sage: P = 0x01A1D6D039776742
+    sage: K = 0x7CA110454A1A6E57
+    sage: C = des.encrypt(plaintext=P, key=K); C.hex()
     '690f5b0d9a26939b'
 
 And decrypt it again::
 
-    sage: des.decrypt(ciphertext=0x690F5B0D9A26939B, key=0x7CA110454A1A6E57).hex()
+    sage: des.decrypt(ciphertext=C, key=K).hex()
     '1a1d6d039776742'
 
 Have a look at the used round keys::

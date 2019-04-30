@@ -1673,7 +1673,6 @@ def CremonaDatabase(name=None,mini=None,set_global=None):
         'should_not_exist.db' not found in any of [...]
         To install Cremona's database of elliptic curves you can try to run 'sage -i database_cremona_ellcurve'.
         Further installation instructions might be available at https://github.com/JohnCremona/ecdata.
-        You can influence the search path by setting the environment variable `CREMONA_DATA_DIR`.
         sage: c = CremonaDatabase('should not exist',mini=False)
         Traceback (most recent call last):
         ...
@@ -1681,7 +1680,6 @@ def CremonaDatabase(name=None,mini=None,set_global=None):
         'should_not_exist.db' not found in any of [...]
         To install Cremona's database of elliptic curves you can try to run 'sage -i database_cremona_ellcurve'.
         Further installation instructions might be available at https://github.com/JohnCremona/ecdata.
-        You can influence the search path by setting the environment variable `CREMONA_DATA_DIR`.
     """
     global _db
     if set_global is None:

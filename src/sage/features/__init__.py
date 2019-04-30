@@ -383,7 +383,7 @@ class StaticFile(Feature):
         To install no_such_file you can try to run 'sage -i some_spkg'.
         Further installation instructions might be available at http://rand.om.
     """
-    def __init__(self, name, filename, search_path=None, search_path_override=None, **kwds):
+    def __init__(self, name, filename, search_path=None, **kwds):
         r"""
         TESTS::
 
@@ -397,12 +397,6 @@ class StaticFile(Feature):
             self.search_path = [SAGE_SHARE]
         else:
             self.search_path = list(search_path)
-
-        self.search_path_override = search_path_override
-        if search_path_override is not None:
-            path_variable = os.environ.get(search_path_override)
-            if path_variable is not None:
-                self.search_path = path_variable.split(':')
 
     def _is_present(self):
         r"""
@@ -433,14 +427,6 @@ class StaticFile(Feature):
             sage: feature = StaticFile(name="file", filename="file.txt", search_path=search_path)
             sage: feature.absolute_path() == file_path
             True
-            sage: os.environ['ENV_VAR'] = '/foo/bar:/other/dir'
-            sage: feature = StaticFile(name="does-not-exist", filename="does-not-exist.txt", search_path=('/is/overwritten'), search_path_override='ENV_VAR')
-            sage: feature.absolute_path()
-            Traceback (most recent call last):
-            ...
-            FeatureNotPresentError: does-not-exist is not available.
-            'does-not-exist.txt' not found in any of ['/foo/bar', '/other/dir']
-            You can influence the search path by setting the environment variable `ENV_VAR`.
 
         A ``FeatureNotPresentError`` is raised if the file can not be found::
 
@@ -460,27 +446,6 @@ class StaticFile(Feature):
         raise FeatureNotPresentError(self,
             reason="{filename!r} not found in any of {search_path}".format(filename=self.filename, search_path=self.search_path),
             resolution=self.resolution())
-
-    def resolution(self):
-        r"""
-        Return a suggestion on how to make :meth:`is_present` pass if it did not
-        pass.
-
-        EXAMPLES::
-
-            sage: from sage.features import StaticFile
-            sage: StaticFile(name="does-not-exist", filename="does-not-exist", search_path_override="ENV_VAR").resolution()
-            'You can influence the search path by setting the environment variable `ENV_VAR`.'
-        """
-        super_text = super(StaticFile, self).resolution()
-        if self.search_path_override is not None:
-            addition = "You can influence the search path by setting the environment variable `{}`.".format(self.search_path_override)
-            if super_text is None:
-                return addition
-            else:
-                return '\n'.join([super_text, addition])
-        else:
-            return super_text
 
 
 class CythonFeature(Feature):

@@ -30,6 +30,5 @@ class DatabaseCremona(StaticFile):
         StaticFile.__init__(self, "Cremona's database of elliptic curves",
             filename='{}.db'.format(name.replace(' ', '_')),
             search_path=[ os.path.join(SAGE_SHARE, 'cremona') ],
-            search_path_override='CREMONA_DATA_DIR',
             spkg=spkg,
             url="https://github.com/JohnCremona/ecdata")

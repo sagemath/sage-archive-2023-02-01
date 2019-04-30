@@ -5400,18 +5400,18 @@ class Polyhedron_base(Element):
                 Latte().require()
                 engine = 'latte'
             except FeatureNotPresentError:
-                from sage.misc.package import is_package_installed
-                if is_package_installed('pynormaliz'):
+                try:
+                    PythonModule("PyNormaliz", spkg="pynormaliz").require()
                     engine = 'normaliz'
-                else:
+                except FeatureNotPresentError:
                     raise TypeError("the induced rational measure can only be computed with the optional packages `latte_int`, or `pynormaliz`")
 
         if engine == 'auto' and measure == 'induced_lattice':
             # Enforce a default choice, change if a better engine is found.
-            from sage.misc.package import is_package_installed
-            if is_package_installed('pynormaliz'):
+            try:
+                PythonModule("PyNormaliz", spkg="pynormaliz").require()
                 engine = 'normaliz'
-            else:
+            except FeatureNotPresentError:
                 try:
                     from sage.features.latte import Latte
                     Latte().require()

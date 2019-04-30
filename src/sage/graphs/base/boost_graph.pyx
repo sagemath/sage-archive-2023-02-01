@@ -1016,7 +1016,7 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
     return (dist, pred)
 
 
-cdef get_predecessors(BoostWeightedGraph g, result, int_to_v, directed):
+cdef get_predecessors(BoostWeightedGraph g, result, int_to_v, directed, weight_type):
     r"""
     Return the predecessor matrix from the distance matrix of the graph.
     
@@ -1030,7 +1030,9 @@ cdef get_predecessors(BoostWeightedGraph g, result, int_to_v, directed):
       to the vertex set of the original sage graph.
     
     - ``directed`` -- boolean; whether the input graph is directed
-      
+    
+    - ``weight_type`` -- correct data type for edge weights
+    
     OUTPUT:
     
     A dictionary of dictionaries ``pred`` such that ``pred[u][v]`` indicates 
@@ -1044,18 +1046,18 @@ cdef get_predecessors(BoostWeightedGraph g, result, int_to_v, directed):
     pred = {int_to_v[i]: {int_to_v[i]: None} for i in range(0, N)}
     import sys
     for p in edges:
-        dst = p.second.second
+        dst = weight_type(p.second.second)
         # dst is the weight of the edge (u, v)
         u = p.first
         v = p.second.first
         for k in range(N):
             if result[k][u] == sys.float_info.max or result[k][v] == sys.float_info.max:
                 continue
-            if result[k][u] + dst == result[k][v]:
+            if weight_type(result[k][u]) + dst == weight_type(result[k][v]):
                 pred[int_to_v[k]][int_to_v[v]] = int_to_v[u]
             if directed:
                 continue
-            if result[k][u] == result[k][v] + dst:
+            if weight_type(result[k][u]) == weight_type(result[k][v]) + dst:
                 pred[int_to_v[k]][int_to_v[u]] = int_to_v[v]
     return pred
 
@@ -1202,9 +1204,9 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
 
     if predecessors:
         if g.is_directed():
-            pred = get_predecessors(g_boost_dir, result, int_to_v, directed=True)
+            pred = get_predecessors(g_boost_dir, result, int_to_v, directed=True, weight_type=correct_type)
         else:
-            pred = get_predecessors(g_boost_und, result, int_to_v, directed=False)
+            pred = get_predecessors(g_boost_und, result, int_to_v, directed=False, weight_type=correct_type)
 
     if distances and predecessors:
         return (dist, pred)
@@ -1460,9 +1462,9 @@ cpdef floyd_warshall_shortest_paths(g, weight_function=None, distances=True, pre
 
     if predecessors:
         if g.is_directed():
-            pred = get_predecessors(g_boost_dir, result, int_to_v, directed=True)
+            pred = get_predecessors(g_boost_dir, result, int_to_v, directed=True, weight_type=correct_type)
         else:
-            pred = get_predecessors(g_boost_und, result, int_to_v, directed=False)
+            pred = get_predecessors(g_boost_und, result, int_to_v, directed=False, weight_type=correct_type)
 
     if distances and predecessors:
         return (dist, pred)

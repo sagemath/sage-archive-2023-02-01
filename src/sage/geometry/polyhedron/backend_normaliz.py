@@ -778,7 +778,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: C.ehrhart_series()                                     # optional - pynormaliz
             Traceback (most recent call last):
             ...
-            NotImplementedError: Ehrhart series can only be computed for compact polyhedron.
+            NotImplementedError: Ehrhart series can only be computed for compact polyhedron
 
         .. SEEALSO::
 
@@ -788,7 +788,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             return 0
 
         if not self.is_compact():
-            raise NotImplementedError("Ehrhart series can only be computed for compact polyhedron.")
+            raise NotImplementedError("Ehrhart series can only be computed for compact polyhedron")
 
         cone = self._normaliz_cone
         e = self._nmz_result(cone, "EhrhartSeries")
@@ -859,7 +859,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: C.ehrhart_quasipolynomial()                            # optional - pynormaliz
             Traceback (most recent call last):
             ...
-            NotImplementedError: Ehrhart quasi-polynomial can only be computed for compact polyhedron.
+            NotImplementedError: Ehrhart quasi-polynomial can only be computed for compact polyhedron
 
         .. SEEALSO::
 
@@ -870,7 +870,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             return 0
 
         if not self.is_compact():
-            raise NotImplementedError("Ehrhart quasi-polynomial can only be computed for compact polyhedron.")
+            raise NotImplementedError("Ehrhart quasi-polynomial can only be computed for compact polyhedron")
 
         cone = self._normaliz_cone
         # Normaliz needs to compute the EhrhartSeries first
@@ -1339,9 +1339,9 @@ class Polyhedron_normaliz(Polyhedron_base):
         cone = self._normaliz_cone
         assert cone
         if self.lines():
-            raise NotImplementedError("Triangulation of non-compact not pointed polyhedron is not supported.")
+            raise NotImplementedError("triangulation of non-compact not pointed polyhedron is not supported")
         if len(self.vertices_list()) >= 2 and self.rays_list():  # A mix of polytope and cone
-            raise NotImplementedError("Triangulation of non-compact polyhedra that are not cones is not supported.")
+            raise NotImplementedError("triangulation of non-compact polyhedra that are not cones is not supported")
 
         data = self._get_nmzcone_data()
         # Recreates a pointed cone. This is a hack and should be fixed once

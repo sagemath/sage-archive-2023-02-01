@@ -26,6 +26,7 @@ from __future__ import absolute_import, print_function
 
 from sage.structure.element import Element
 from sage.misc.all import prod
+from sage.features import PythonModule
 
 from sage.rings.all import ZZ, QQ
 from sage.arith.functions import LCM_list
@@ -188,10 +189,8 @@ class Polyhedron_normaliz(Polyhedron_base):
             ...
             NormalizError: Some error in the normaliz input data detected: Unknown ConeProperty...
         """
-        try:
-            import PyNormaliz
-        except ImportError:
-            raise ImportError("This backend requires PyNormaliz. To install PyNormaliz, type 'sage -i pynormaliz' in the terminal.")
+        PythonModule("PyNormaliz", spkg="pynormaliz").require()
+        import PyNormaliz
         return PyNormaliz.NmzResult(normaliz_cone, property)
 
     def _init_from_normaliz_cone(self, normaliz_cone):
@@ -240,6 +239,7 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         if verbose:
             print("# Calling {}".format(_format_function_call('PyNormaliz.NmzCone', **data)))
+        PythonModule("PyNormaliz", spkg="pynormaliz").require()
         import PyNormaliz
         cone = PyNormaliz.NmzCone(**data)
         assert cone, "{} did not return a cone".format(_format_function_call('PyNormaliz.NmzCone', **data))
@@ -513,10 +513,8 @@ class Polyhedron_normaliz(Polyhedron_base):
             The empty polyhedron in ZZ^0
             sage: Polyhedron(backend='normaliz')._init_empty_polyhedron()  # optional - pynormaliz
         """
-        try:
-            import PyNormaliz
-        except ImportError:
-            raise ImportError("This backend requires PyNormaliz. To install PyNormaliz, type 'sage -i pynormaliz' in the terminal.")
+        PythonModule("PyNormaliz", spkg="pynormaliz").require()
+        import PyNormaliz
         super(Polyhedron_normaliz, self)._init_empty_polyhedron()
         # Can't seem to set up an empty _normaliz_cone.
         # For example, PyNormaliz.NmzCone(vertices=[]) gives
@@ -556,6 +554,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: NmzResult(nmz_cone, "ExtremeRays")                                           # optional - pynormaliz
             [[1L, 2L, 0L], [2L, 1L, 0L]]
         """
+        PythonModule("PyNormaliz", spkg="pynormaliz").require()
         import PyNormaliz
         if verbose:
             print("# Calling PyNormaliz.NmzCone(**{})".format(data))
@@ -587,6 +586,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: Polyhedron_normaliz._cone_generators(nmz_cone)                                # optional - pynormaliz
             [[1L, 2L, 0L], [0L, 0L, 1L], [2L, 1L, 0L]]
         """
+        PythonModule("PyNormaliz", spkg="pynormaliz").require()
         import PyNormaliz
         return PyNormaliz.NmzResult(pynormaliz_cone, "Generators")
 
@@ -616,6 +616,7 @@ class Polyhedron_normaliz(Polyhedron_base):
              'subspace': [],
              'vertices': [[0L, 0L, 1L]]}
         """
+        PythonModule("PyNormaliz", spkg="pynormaliz").require()
         import PyNormaliz
         if self.is_empty():
             return {}
@@ -874,6 +875,7 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         cone = self._normaliz_cone
         # Normaliz needs to compute the EhrhartSeries first
+        PythonModule("PyNormaliz", spkg="pynormaliz").require()
         import PyNormaliz
         assert PyNormaliz.NmzCompute(cone, ["EhrhartSeries"])
         e = self._nmz_result(cone, "EhrhartQuasiPolynomial")
@@ -1335,6 +1337,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: C2._triangulate_normaliz()  #  optional - pynormaliz
             [(0, 1, 2), (1, 2, 3)]
         """
+        PythonModule("PyNormaliz", spkg="pynormaliz").require()
         import PyNormaliz
         cone = self._normaliz_cone
         assert cone

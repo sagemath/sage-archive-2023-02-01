@@ -6,16 +6,26 @@ Testing for databases at runtime
 import os
 
 from . import StaticFile
-from sage.env import SAGE_SHARE
+from sage.env import CREMONA_MINI_DATA_DIR, CREMONA_LARGE_DATA_DIR
+
+CREMONA_DATA_DIRS = set([CREMONA_MINI_DATA_DIR, CREMONA_LARGE_DATA_DIR])
+
 
 class DatabaseCremona(StaticFile):
     r"""
-    A :class:`Feature` which describes the presence of John Cremona's full
+    A :class:`Feature` which describes the presence of John Cremona's
     database of elliptic curves.
+
+    INPUT:
+
+    - ``name`` -- either ``'cremona'`` (the default) for the full large
+      database or ``'cremona_mini'`` for the small database.
 
     EXAMPLES::
 
         sage: from sage.features.databases import DatabaseCremona
+        sage: DatabaseCremona('cremona_mini').is_present()
+        FeatureTestResult("Cremona's database of elliptic curves", True)
         sage: DatabaseCremona().is_present()  # optional: database_cremona_ellcurve
         FeatureTestResult("Cremona's database of elliptic curves", True)
     """
@@ -29,6 +39,6 @@ class DatabaseCremona(StaticFile):
         """
         StaticFile.__init__(self, "Cremona's database of elliptic curves",
             filename='{}.db'.format(name.replace(' ', '_')),
-            search_path=[ os.path.join(SAGE_SHARE, 'cremona') ],
+            search_path=CREMONA_DATA_DIRS,
             spkg=spkg,
             url="https://github.com/JohnCremona/ecdata")

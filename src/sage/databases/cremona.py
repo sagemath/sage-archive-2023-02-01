@@ -1643,8 +1643,8 @@ class LargeCremonaDatabase(MiniCremonaDatabase):
             print("Committing...")
             if largest_conductor and int(v[0]) > largest_conductor: break
 
-_db = None
-def CremonaDatabase(name=None,mini=None,set_global=None):
+
+def CremonaDatabase(name=None, mini=None, set_global=None):
     """
     Initializes the Cremona database with name ``name``. If ``name`` is
     ``None`` it instead initializes large Cremona database (named 'cremona'),
@@ -1652,9 +1652,6 @@ def CremonaDatabase(name=None,mini=None,set_global=None):
 
     If the Cremona database in question is in the format of the mini database,
     you must set ``mini=True``, otherwise it must be set to ``False``.
-
-    If you would like other components of Sage to use this database, mark
-    ``set_global=True``.
 
     TESTS::
 
@@ -1681,12 +1678,10 @@ def CremonaDatabase(name=None,mini=None,set_global=None):
         To install Cremona's database of elliptic curves you can try to run 'sage -i database_cremona_ellcurve'.
         Further installation instructions might be available at https://github.com/JohnCremona/ecdata.
     """
-    global _db
-    if set_global is None:
-        set_global = _db is None and name is None
-    if name is None and not set_global:
-        return _db
-    if set_global and name is None:
+    if set_global is not None:
+        from sage.misc.superseded import deprecation
+        deprecation(25825, "the set_global argument for CremonaDatabase is deprecated and ignored")
+    if name is None:
         if DatabaseCremona().is_present():
             name = 'cremona'
         else:
@@ -1697,12 +1692,8 @@ def CremonaDatabase(name=None,mini=None,set_global=None):
         mini = True
     if mini is None:
         raise ValueError('mini must be set as either True or False')
-    if set_global:
-        if mini:
-            _db = MiniCremonaDatabase(name)
-        else:
-            _db = LargeCremonaDatabase(name)
-        return _db
+
     if mini:
         return MiniCremonaDatabase(name)
-    return LargeCremonaDatabase(name)
+    else:
+        return LargeCremonaDatabase(name)

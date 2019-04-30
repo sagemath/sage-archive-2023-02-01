@@ -5390,9 +5390,9 @@ class Polyhedron_base(Element):
         """
         from sage.features import FeatureNotPresentError
         if measure == 'induced_rational' and engine not in ['auto', 'latte', 'normaliz']:
-            raise TypeError("the induced rational measure can only be computed with the engine set to `auto`, `latte`, or `normaliz`")
+            raise RuntimeError("the induced rational measure can only be computed with the engine set to `auto`, `latte`, or `normaliz`")
         if measure == 'induced_lattice' and engine not in ['auto', 'latte', 'normaliz']:
-            raise TypeError("the induced lattice measure can only be computed with the engine set to `auto`, `latte`, or `normaliz`")
+            raise RuntimeError("the induced lattice measure can only be computed with the engine set to `auto`, `latte`, or `normaliz`")
         if engine == 'auto' and measure == 'induced_rational':
             # Enforce a default choice, change if a better engine is found.
             from sage.features.latte import Latte
@@ -5404,7 +5404,7 @@ class Polyhedron_base(Element):
                     PythonModule("PyNormaliz", spkg="pynormaliz").require()
                     engine = 'normaliz'
                 except FeatureNotPresentError:
-                    raise TypeError("the induced rational measure can only be computed with the optional packages `latte_int`, or `pynormaliz`")
+                    raise RuntimeError("the induced rational measure can only be computed with the optional packages `latte_int`, or `pynormaliz`")
 
         if engine == 'auto' and measure == 'induced_lattice':
             # Enforce a default choice, change if a better engine is found.
@@ -5417,7 +5417,7 @@ class Polyhedron_base(Element):
                     Latte().require()
                     engine = 'latte'
                 except FeatureNotPresentError:
-                    raise TypeError("the induced rational measure can only be computed with the optional packages `latte_int`, or `pynormaliz`")
+                    raise RuntimeError("the induced rational measure can only be computed with the optional packages `latte_int`, or `pynormaliz`")
 
         if measure == 'ambient':
             if self.dim() < self.ambient_dim():

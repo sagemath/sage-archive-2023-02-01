@@ -1128,6 +1128,48 @@ class HyperplaneArrangementElement(Element):
             return False
 
     @cached_method
+    def is_simplicial(self):
+        r"""
+        Test whether the arrangement is simplicial.
+        
+        A hyperplane arrangement is said simplical if every region is simplicial.
+        A region is simplicial if the normal vectors of the bounding hyperplanes are
+        linearly independent. In an essential arrangement, this equates to each
+        region have rank number of facets/bounding hyperplanes.
+
+        OUTPUT:
+        
+        A boolean whether the hyperplane arrangement is simplicial.
+
+        EXAMPLES::
+
+            sage: H.<x,y,z> = HyperplaneArrangements(QQ)
+            sage: A = H([[0,1,1,1],[0,1,2,3]])
+            sage: A.is_simplicial()
+            True
+            sage: A = H([[0,1,1,1],[0,1,2,3],[0,1,3,2]])
+            sage: A.is_simplicial()
+            True
+            sage: A = H([[0,1,1,1],[0,1,2,3],[0,1,3,2],[0,2,1,3]])
+            sage: A.is_simplicial()
+            False
+            sage: hyperplane_arrangements.braid(3).is_simplicial()
+            True
+        """
+        # Grab the rank of the arrangements 
+        n = self.rank()
+
+        # if the arr is not essential, grab the essential version and check there.
+        if not self.is_essential():
+            E = self.essentialization()
+            return E.is_simplicial()
+        for R in self.regions():
+            if R.n_facets() != n:
+                return False
+        return True
+
+
+    @cached_method
     def essentialization(self):
         r"""
         Return the essentialization of the hyperplane arrangement.
@@ -1497,6 +1539,74 @@ class HyperplaneArrangementElement(Element):
                         subdivided.append(part)
             regions = subdivided
         return tuple(regions)
+
+    @cached_method
+    def poset_of_regions(self, B = None, numbered_labels=True):
+        r"""
+        Returns the poset of regions for a central hyperplane arrangement.
+
+        The poset of regions is the regions ordered by `R\leq R'` if and only if
+        `S(R) \subseteq S(R')` where `S(R)` is the set of hyperplanes which
+        separate the region `R` from the base region `B`.
+
+        OUTPUT:
+
+        A Poset object containing the poset of regions.
+
+        EXAMPLES::
+
+            sage: H.<x,y,z> = HyperplaneArrangements(QQ)
+            sage: A = H([[0,1,1,1],[0,1,2,3]])
+            sage: A.poset_of_regions()
+            Finite poset containing 4 elements
+
+            sage: A = hyperplane_arrangements.braid(3)
+            sage: A.poset_of_regions()
+            Finite poset containing 6 elements
+            sage: A = hyperplane_arrangements.braid(4)
+            sage: A.poset_of_regions()
+            Finite poset containing 24 elements
+        """
+
+        # We use RX to keep track of indexes and R to keep track of which regions
+        # we've already hit. This poset is graded, so we can go one set at a time
+        RX = self.regions()
+        R = set(RX)
+        if B in R:
+            R.discard(B)
+        else:
+            B = R.pop()
+
+        # Will record the edges in our poset
+        edges = []
+
+        # Start with rank=0 for the poset
+        nextTest = [B]
+
+        # Let n be the rank -> two regions are next to one another if the intersection
+        # of their rays is equal to the dimension of the space minus one. Aka, there is
+        # a facet between them.
+        n = self.rank()
+        while len(R):
+            # Transfer the "next step" to the "current step"
+            curTest = list(nextTest)
+            nextTest = set([])
+            # we want to test each region that we haven't hit yet
+            for r in R:
+                # Since it's graded, it suffices to look at the regions of the previous rank
+                for b in curTest:
+                    if self.distance_between_regions(b,r) == 1:
+                        nextTest.add(r)
+                        if numbered_labels:
+                            edges.append([RX.index(b),RX.index(r)])
+                        else:
+                            edges.append([b,r])
+            for x in nextTest:
+                R.discard(x)
+
+        from sage.combinat.posets.posets import Poset
+        return Poset([range(len(RX)),edges])
+
 
     @cached_method
     def closed_faces(self, labelled=True):

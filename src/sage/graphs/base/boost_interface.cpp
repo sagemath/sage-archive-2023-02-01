@@ -15,9 +15,12 @@
 #include <boost/graph/floyd_warshall_shortest.hpp>
 #include <boost/graph/biconnected_components.hpp>
 #include <boost/graph/properties.hpp>
+#include <boost/tuple/tuple.hpp>
+#include <boost/graph/edge_list.hpp>
 
 #include <map>
 #include <iostream>
+#include <utility>
 
 typedef int v_index;
 typedef long e_index;
@@ -107,6 +110,15 @@ public:
 
     void add_edge(v_index u, v_index v, double weight) {
         boost::add_edge(vertices[u], vertices[v], weight, graph);
+    }
+
+    std::vector<std::pair<v_index, std::pair<v_index, double>>> edge_list() {
+        std::vector<std::pair<v_index, std::pair<v_index, double>>> to_return;
+        typename boost::graph_traits<adjacency_list>::edge_iterator ei, ei_end;
+        for (boost::tie(ei, ei_end) = boost::edges(graph); ei != ei_end; ++ei) {
+            to_return.push_back({index[boost::source(*ei, graph)], {index[boost::target(*ei, graph)], get(boost::edge_weight, graph, *ei)}});
+        }
+        return to_return;
     }
 
     result_ec edge_connectivity() {

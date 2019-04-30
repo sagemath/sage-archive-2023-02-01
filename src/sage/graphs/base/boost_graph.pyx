@@ -50,7 +50,7 @@ from __future__ import absolute_import
 
 cimport cython
 from cysignals.signals cimport sig_check, sig_on, sig_off
-
+from libcpp.pair cimport pair
 
 cdef boost_graph_from_sage_graph(BoostGenGraph *g, g_sage, vertex_to_int, reverse=False):
     r"""
@@ -1016,55 +1016,47 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
     return (dist, pred)
 
 
-cpdef get_predecessors(g, result, int_to_v, v_to_int, weight_function):
+cdef get_predecessors(BoostWeightedGraph g, result, int_to_v, directed):
     r"""
     Return the predecessor matrix from the distance matrix of the graph.
     
     INPUT:
     
-    - ``g`` -- the input sage graph
+    - ``g`` -- the input boost graph
     
     - ``result`` -- the matrix of shortest distances
     
     - ``int_to_v`` -- a dictionary; it is a mapping from `(0, \ldots, n-1)`
-      to the vertex set of ``g``.
+      to the vertex set of the original sage graph.
     
-    - ``v_to_int`` -- a dictionary; it is a mapping from the vertex set of
-      ``g`` to `(0, \ldots, n-1)`
-    
-    - ``weight_function`` -- function; a function that
-      associates a weight to each edge. If ``None`` (default), the weights of
-      ``g`` are used, if available, otherwise all edges have weight 1.
+    - ``directed`` -- boolean; whether the input graph is directed
       
     OUTPUT:
     
     A dictionary of dictionaries ``pred`` such that ``pred[u][v]`` indicates 
     the predecessor  of `v` in the shortest path from `u` to `v`.
     """
+    cdef vector[pair[int, pair[int, double]]] edges
+    sig_on()
+    edges = g.edge_list()
+    sig_off()
     cdef int N = g.num_verts()
-    pred = {v: {v: None} for v in g}
+    pred = {int_to_v[i]: {int_to_v[i]: None} for i in range(0, N)}
     import sys
-    for e in g.edge_iterator():
-        if weight_function is not None:
-            dst = weight_function(e)
-        elif g.weighted():
-            dst = e[2]
-        else:
-            dst = 1
-        # dst is the weight of the edge (e[0], e[1])
-        u = e[0]
-        v = e[1]
-        u_int = v_to_int[u]
-        v_int = v_to_int[v]
+    for p in edges:
+        dst = p.second.second
+        # dst is the weight of the edge (u, v)
+        u = p.first
+        v = p.second.first
         for k in range(N):
-            if result[k][u_int] == sys.float_info.max or result[k][v_int] == sys.float_info.max:
+            if result[k][u] == sys.float_info.max or result[k][v] == sys.float_info.max:
                 continue
-            if result[k][u_int] + dst == result[k][v_int]:
-                pred[int_to_v[k]][v] = u
-            if g.is_directed():
+            if result[k][u] + dst == result[k][v]:
+                pred[int_to_v[k]][int_to_v[v]] = int_to_v[u]
+            if directed:
                 continue
-            if result[k][u_int] == result[k][v_int] + dst:
-                pred[int_to_v[k]][u] = v
+            if result[k][u] == result[k][v] + dst:
+                pred[int_to_v[k]][int_to_v[u]] = int_to_v[v]
     return pred
 
 cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecessors=False):
@@ -1116,8 +1108,8 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
         sage: g = graphs.Grid2dGraph(2,2)
         sage: johnson_shortest_paths(g, distances=False,  predecessors=True)
         {(0, 0): {(0, 0): None, (0, 1): (0, 0), (1, 0): (0, 0), (1, 1): (1, 0)},
-         (0, 1): {(0, 0): (0, 1), (0, 1): None, (1, 0): (1, 1), (1, 1): (0, 1)},
-         (1, 0): {(0, 0): (1, 0), (0, 1): (1, 1), (1, 0): None, (1, 1): (1, 0)},
+         (0, 1): {(0, 0): (0, 1), (0, 1): None, (1, 0): (0, 0), (1, 1): (0, 1)},
+         (1, 0): {(0, 0): (1, 0), (0, 1): (0, 0), (1, 0): None, (1, 1): (1, 0)},
          (1, 1): {(0, 0): (1, 0), (0, 1): (1, 1), (1, 0): (1, 1), (1, 1): None}}
 
     Directed graphs::
@@ -1209,7 +1201,10 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
                 for v in range(N)}
 
     if predecessors:
-        pred = get_predecessors(g, result, int_to_v, v_to_int, weight_function)
+        if g.is_directed():
+            pred = get_predecessors(g_boost_dir, result, int_to_v, directed=True)
+        else:
+            pred = get_predecessors(g_boost_und, result, int_to_v, directed=False)
 
     if distances and predecessors:
         return (dist, pred)
@@ -1371,8 +1366,8 @@ cpdef floyd_warshall_shortest_paths(g, weight_function=None, distances=True, pre
         sage: g = graphs.Grid2dGraph(2,2)
         sage: floyd_warshall_shortest_paths(g, distances=False,  predecessors=True)
         {(0, 0): {(0, 0): None, (0, 1): (0, 0), (1, 0): (0, 0), (1, 1): (1, 0)},
-         (0, 1): {(0, 0): (0, 1), (0, 1): None, (1, 0): (1, 1), (1, 1): (0, 1)},
-         (1, 0): {(0, 0): (1, 0), (0, 1): (1, 1), (1, 0): None, (1, 1): (1, 0)},
+         (0, 1): {(0, 0): (0, 1), (0, 1): None, (1, 0): (0, 0), (1, 1): (0, 1)},
+         (1, 0): {(0, 0): (1, 0), (0, 1): (0, 0), (1, 0): None, (1, 1): (1, 0)},
          (1, 1): {(0, 0): (1, 0), (0, 1): (1, 1), (1, 0): (1, 1), (1, 1): None}}
 
     Directed graphs::
@@ -1464,7 +1459,10 @@ cpdef floyd_warshall_shortest_paths(g, weight_function=None, distances=True, pre
                 for v in range(N)}
 
     if predecessors:
-        pred = get_predecessors(g, result, int_to_v, v_to_int, weight_function)
+        if g.is_directed():
+            pred = get_predecessors(g_boost_dir, result, int_to_v, directed=True)
+        else:
+            pred = get_predecessors(g_boost_und, result, int_to_v, directed=False)
 
     if distances and predecessors:
         return (dist, pred)

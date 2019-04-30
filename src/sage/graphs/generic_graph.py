@@ -16361,6 +16361,7 @@ class GenericGraph(GenericGraph_pyx):
         `u` to `v`. The second is a compact representation of all the paths - it
         indicates the predecessor ``pred[u][v]`` of `v` in the shortest path
         from `u` to `v`.
+
         .. NOTE::
 
             Only reachable vertices are present in the dictionaries.

@@ -55,6 +55,7 @@ The following constructions are available
 #       Copyright (C) 2008 Marshall Hampton <hamptonio@gmail.com>
 #                     2011 Volker Braun <vbraun.name@gmail.com>
 #                     2015 Vincent Delecroix <20100.delecroix@gmail.com>
+#                     2019 Jean-Philippe Labbé <labbe@math.fu-berlin.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -104,7 +105,7 @@ def zero_sum_projection(d, base_ring=RDF):
     """
     from sage.matrix.constructor import matrix
     from sage.modules.free_module_element import vector
-    basis = [vector(base_ring,[1]*i + [-i] + [0]*(d-i-1)) for i in range(1,d)]
+    basis = [vector(base_ring, [1]*i + [-i] + [0]*(d-i-1)) for i in range(1, d)]
     return matrix(base_ring, [v / v.norm() for v in basis])
 
 
@@ -565,9 +566,9 @@ class Polytopes():
         one = base_ring.one()
         a = sqrt2 + one
         verts = []
-        verts.extend([s1*one, s2*one, s3*a] for s1,s2,s3 in itertools.product([1,-1], repeat=3))
-        verts.extend([s1*one, s3*a, s2*one] for s1,s2,s3 in itertools.product([1,-1], repeat=3))
-        verts.extend([s1*a, s2*one, s3*one] for s1,s2,s3 in itertools.product([1,-1], repeat=3))
+        verts.extend([s1*one, s2*one, s3*a] for s1, s2, s3 in itertools.product([1, -1], repeat=3))
+        verts.extend([s1*one, s3*a, s2*one] for s1, s2, s3 in itertools.product([1, -1], repeat=3))
+        verts.extend([s1*a, s2*one, s3*one] for s1, s2, s3 in itertools.product([1, -1], repeat=3))
         return Polyhedron(vertices=verts, backend=backend)
 
     def great_rhombicuboctahedron(self, exact=True, base_ring=None, backend=None):
@@ -1039,7 +1040,7 @@ class Polytopes():
             # construct the exact number field
             from sage.rings.number_field.number_field import NumberField
             R = QQ['x']
-            f = R([-1,1,1,1])
+            f = R([-1, 1, 1, 1])
             embedding = construct_z(AA)
             base_ring = NumberField(f, name='z', embedding=embedding)
             z = base_ring.gen()
@@ -2003,6 +2004,125 @@ class Polytopes():
         if project:
             verts = project_points(*verts)
         return Polyhedron(vertices=verts, backend=backend)
+
+    def generalized_permutahedron(self, coxeter_type, point=None, regular= False, backend=None):
+        r"""
+        Return the generalized permutahedron of type ``coxeter_type`` as the
+        convex hull of the orbit of ``point`` in the fundamental cone.
+
+        This generalized permutahedron lies in the vector space used in the
+        geometric representation, that is, in the default case, the dimension
+        of generalized permutahedron equals the dimension of the space.
+
+        INPUT:
+
+        - ``coxeter_type`` -- a Coxeter type; given as a pair [type,rank],
+          where type is a letter and rank is the number of generators.
+
+        - ``point`` -- a list (default: ``None``); a point given by its
+          coordinates in the weight basis. If ``None`` is given, the point
+          `(1, 1, 1, \ldots)` is used.
+
+        - ``regular`` -- boolean (default: ``False``); whether to apply a
+          linear transformation making the vertex figures isometric.
+
+        - ``backend`` -- backend to use to create the polytope; (default:
+          ``None``)
+
+        EXAMPLES::
+
+            sage: perm_a3 = polytopes.generalized_permutahedron(['A',3]); perm_a3
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 24 vertices
+
+        You can put the starting point along the hyperplane of the first
+        generator::
+
+            sage: perm_a3_011 = polytopes.generalized_permutahedron(['A',3],[0,1,1]); perm_a3_011
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 12 vertices
+            sage: perm_a3_110 = polytopes.generalized_permutahedron(['A',3],[1,1,0]); perm_a3_110
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 12 vertices
+            sage: perm_a3_110.is_combinatorially_isomorphic(perm_a3_011)
+            True
+            sage: perm_a3_101 = polytopes.generalized_permutahedron(['A',3],[1,0,1]); perm_a3_101
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 12 vertices
+            sage: perm_a3_110.is_combinatorially_isomorphic(perm_a3_101)
+            False
+            sage: perm_a3_011.f_vector()
+            (1, 12, 18, 8, 1)
+            sage: perm_a3_101.f_vector()
+            (1, 12, 24, 14, 1)
+
+        The usual output does not necessarily give a polyhedron with isometric
+        vertex figures, setting ``regular=True`` applies a linear
+        transformation to get isometric vertex figures::
+
+            sage: perm_a2 = polytopes.generalized_permutahedron(['A',2])
+            sage: perm_a2.vertices()
+            (A vertex at (-2, -2),
+             A vertex at (-2, 0),
+             A vertex at (0, -2),
+             A vertex at (0, 2),
+             A vertex at (2, 0),
+             A vertex at (2, 2))
+            sage: perm_a2_reg = polytopes.generalized_permutahedron(['A',2],regular=True)
+            sage: perm_a2_reg.vertices()
+            (A vertex at (-2, 0),
+             A vertex at (-1, -2),
+             A vertex at (-1, 2),
+             A vertex at (1, -2),
+             A vertex at (1, 2),
+             A vertex at (2, 0))
+
+        It works also with types with non-rational coordinates::
+
+            sage: perm_b3 = polytopes.generalized_permutahedron(['B',3]); perm_b3
+            A 3-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 2)^3 defined as the convex hull of 48 vertices
+
+        The backend ``normaliz`` allows faster computation in the non-rational
+        case::
+
+            sage: perm_h3 = polytopes.generalized_permutahedron(['H',3],backend='normaliz')  # optional - pynormaliz
+            sage: perm_h3                                                                    # optional - pynormaliz
+            A 3-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^3 defined as the convex hull of 120 vertices
+            sage: perm_f4 = polytopes.generalized_permutahedron(['F',4],backend='normaliz') # optional - pynormaliz
+            sage: perm_f4                                                                   # optional - pynormaliz
+            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 2)^4 defined as the convex hull of 1152 vertices
+
+        .. SEEALSO::
+
+            * :meth:`~sage.combinat.root_system.reflection_group_real.permutahedron`
+              :meth:`~sage.categories.finite_coxeter_groups.permutahedron`
+
+        TESTS::
+
+            sage: TestSuite(perm_h3).run(skip='_test_pickling')             # optional - pynormaliz
+        """
+        from sage.combinat.root_system.coxeter_group import CoxeterGroup
+        from sage.modules.free_module_element import vector
+        try:
+            W = CoxeterGroup(coxeter_type)
+        except:
+            raise ValueError("can not build a Coxeter group from {}".format(coxeter_type))
+        n = W.one().canonical_matrix().rank()
+        weights = W.fundamental_weights()
+        if point is None:
+            point = [ZZ.one()] * n
+        apex = sum(point[i-1] * weights[i] for i in weights.keys())
+        apex.set_immutable()
+        vertices = set()
+        for w in W:
+            # The apex is considered in the space on which it acts and not in
+            # the weight space.
+            new_point = w * apex
+            new_point.set_immutable()
+            vertices.add(new_point)
+        if regular:
+            # This transformation fixes the first root and adjust the other
+            # roots to have the correct angles
+            from sage.matrix.constructor import matrix
+            transf = matrix([[1]+[0] * (n-1)] + W.bilinear_form().columns()[1:]).transpose()
+            vertices = [transf * v for v in vertices]
+        return Polyhedron(vertices=vertices,backend=backend)
 
     def hypercube(self, dim, backend=None):
         r"""

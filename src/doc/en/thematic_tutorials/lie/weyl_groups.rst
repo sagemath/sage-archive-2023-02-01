@@ -83,15 +83,22 @@ construct a list (e.g., using the ``list`` function) or use the method
 
     sage: W = WeylGroup("B3",prefix="s")
     sage: ref = W.reflections(); ref
-    Finite family {(1, -1, 0): s1, (0, 1, -1): s2, (0, 0, 1): s3, (0, 1, 1): s3*s2*s3, (0, 1, 0): s2*s3*s2, (1, 0, -1): s1*s2*s1, (1, 0, 1): s3*s1*s2*s3*s1, (1, 0, 0): s1*s2*s3*s2*s1, (1, 1, 0): s2*s3*s1*s2*s3*s1*s2}
+    Finite family {(1, -1, 0): s1, (0, 1, -1): s2, ...}
     sage: [a1,a2,a3] = W.domain().simple_roots()
     sage: a1+a2+a3
     (1, 0, 0)
     sage: ref[a1+a2+a3]
     s1*s2*s3*s2*s1
-    sage: list(ref)
-    [s1, s2, s3, s3*s2*s3, s2*s3*s2, s1*s2*s1, s3*s1*s2*s3*s1,
-     s1*s2*s3*s2*s1, s2*s3*s1*s2*s3*s1*s2]
+    sage: sorted(ref)
+    [s1*s2*s3*s2*s1,
+     s2*s3*s1*s2*s3*s1*s2,
+     s3*s1*s2*s3*s1,
+     s1*s2*s1,
+     s1,
+     s2*s3*s2,
+     s3*s2*s3,
+     s2,
+     s3]
 
 If instead you want a family whose keys are the reflections
 and whose values are the roots, you may use the inverse family::

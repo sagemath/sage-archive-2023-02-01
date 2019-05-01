@@ -5388,7 +5388,7 @@ class Polyhedron_base(Element):
             sage: P.volume(measure='induced_rational',engine='latte')  # optional - latte_int
             +Infinity
         """
-        from sage.features import FeatureNotPresentError
+        from sage.features import FeatureNotPresentError, PythonModule
         if measure == 'induced_rational' and engine not in ['auto', 'latte', 'normaliz']:
             raise RuntimeError("the induced rational measure can only be computed with the engine set to `auto`, `latte`, or `normaliz`")
         if measure == 'induced_lattice' and engine not in ['auto', 'latte', 'normaliz']:

@@ -10,6 +10,7 @@ The Normaliz backend for polyhedral computations
 AUTHORS:
 
 - Matthias Köppe (2016-12): initial version
+- Jean-Philippe Labbé (2019-04): Expose normaliz features and added functionalities
 """
 
 #*****************************************************************************

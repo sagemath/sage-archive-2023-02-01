@@ -1563,6 +1563,8 @@ class HyperplaneArrangementElement(Element):
             sage: A = hyperplane_arrangements.braid(3)
             sage: A.poset_of_regions()
             Finite poset containing 6 elements
+            sage: A.poset_of_regions(numbered_labels=False)
+            Finite poset containing 6 elements
             sage: A = hyperplane_arrangements.braid(4)
             sage: A.poset_of_regions()
             Finite poset containing 24 elements
@@ -1583,10 +1585,7 @@ class HyperplaneArrangementElement(Element):
         # Start with rank=0 for the poset
         nextTest = [B]
 
-        # Let n be the rank -> two regions are next to one another if the intersection
-        # of their rays is equal to the dimension of the space minus one. Aka, there is
-        # a facet between them.
-        n = self.rank()
+        # While we have objects in our set R
         while len(R):
             # Transfer the "next step" to the "current step"
             curTest = list(nextTest)
@@ -1605,7 +1604,10 @@ class HyperplaneArrangementElement(Element):
                 R.discard(x)
 
         from sage.combinat.posets.posets import Poset
-        return Poset([range(len(RX)),edges])
+        if numbered_labels:
+            return Poset([range(len(RX)),edges])
+        else:
+            return Poset([RX,edges])
 
 
     @cached_method

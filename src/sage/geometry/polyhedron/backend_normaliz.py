@@ -515,7 +515,6 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: Polyhedron(backend='normaliz')._init_empty_polyhedron()  # optional - pynormaliz
         """
         PythonModule("PyNormaliz", spkg="pynormaliz").require()
-        import PyNormaliz
         super(Polyhedron_normaliz, self)._init_empty_polyhedron()
         # Can't seem to set up an empty _normaliz_cone.
         # For example, PyNormaliz.NmzCone(vertices=[]) gives

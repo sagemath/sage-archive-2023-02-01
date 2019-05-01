@@ -2005,7 +2005,7 @@ class Polytopes():
             verts = project_points(*verts)
         return Polyhedron(vertices=verts, backend=backend)
 
-    def generalized_permutahedron(self, coxeter_type, point=None, regular= False, backend=None):
+    def generalized_permutahedron(self, coxeter_type, point=None, regular=False, backend=None):
         r"""
         Return the generalized permutahedron of type ``coxeter_type`` as the
         convex hull of the orbit of ``point`` in the fundamental cone.
@@ -2098,7 +2098,6 @@ class Polytopes():
             sage: TestSuite(perm_h3).run(skip='_test_pickling')             # optional - pynormaliz
         """
         from sage.combinat.root_system.coxeter_group import CoxeterGroup
-        from sage.modules.free_module_element import vector
         try:
             W = CoxeterGroup(coxeter_type)
         except:
@@ -2122,7 +2121,7 @@ class Polytopes():
             from sage.matrix.constructor import matrix
             transf = matrix([[1]+[0] * (n-1)] + W.bilinear_form().columns()[1:]).transpose()
             vertices = [transf * v for v in vertices]
-        return Polyhedron(vertices=vertices,backend=backend)
+        return Polyhedron(vertices=vertices, backend=backend)
 
     def hypercube(self, dim, backend=None):
         r"""

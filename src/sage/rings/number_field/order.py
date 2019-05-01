@@ -51,7 +51,6 @@ from sage.rings.ring import IntegralDomain
 from sage.structure.sequence import Sequence
 from sage.rings.integer_ring import ZZ
 from sage.structure.element import is_Element
-from sage.combinat.subset import Subsets
 from .number_field_element import OrderElement_absolute, OrderElement_relative
 
 from .number_field_element_quadratic import OrderElement_quadratic
@@ -1879,7 +1878,7 @@ def each_is_integral(v):
         sage: each_is_integral([sqrt5, (1+sqrt5)/3])
         False
     """
-    return all(x.is_integral for x in v)
+    return all(x.is_integral() for x in v)
 
 
 def absolute_order_from_ring_generators(gens, check_is_integral=True,
@@ -2084,7 +2083,7 @@ def absolute_order_from_module_generators(gens,
             raise ValueError("the rank of the span of gens is wrong")
 
     if check_is_ring:
-        if any(to_V(x * y) not in W for x, y in Subsets(gens, 2)):
+        if any(to_V(x * y) not in W for x in gens for y in gens):
             raise ValueError("the module span of the gens is not closed under multiplication.")
 
     return AbsoluteOrder(K, W, check=False, is_maximal=is_maximal)  # we have already checked everything

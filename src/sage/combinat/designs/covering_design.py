@@ -23,10 +23,10 @@ REFERENCES:
 .. [1] La Jolla Covering Repository,
   https://ljcr.dmgordon.org/cover.html
 
-.. [2] Coverings,
-  Daniel Gordon and Douglas Stinson,
-  https://drive.google.com/file/d/0B6s9_JNV1EjtUFd4MkhBc0hSdVU/view
-  from the Handbook of Combinatorial Designs
+.. [2] Daniel M. Gordon and Douglas R. Stinson, *Coverings*,
+  Chapter 1 in: Charles J. Colbourn and Jeffrey H. Dinitz,
+  *Handbook of Combinatorial Designs*, 2nd Edition, 2006.
+  https://www.dmgordon.org/papers/hcd.pdf
 
 AUTHORS:
 

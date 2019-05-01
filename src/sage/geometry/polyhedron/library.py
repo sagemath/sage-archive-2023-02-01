@@ -32,9 +32,12 @@ The following constructions are available
     :meth:`~sage.geometry.polyhedron.library.Polytopes.icosidodecahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.Kirkman_icosahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.octahedron`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.omnitruncated_one_hundred_twenty_cell`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.omnitruncated_six_hundred_cell`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.parallelotope`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.pentakis_dodecahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.permutahedron`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.generalized_permutahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.regular_polygon`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.rhombic_dodecahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.rhombicosidodecahedron`
@@ -2005,7 +2008,7 @@ class Polytopes():
             verts = project_points(*verts)
         return Polyhedron(vertices=verts, backend=backend)
 
-    def generalized_permutahedron(self, coxeter_type, point=None, regular=False, backend=None):
+    def generalized_permutahedron(self, coxeter_type, point=None, exact=True, regular=False, backend=None):
         r"""
         Return the generalized permutahedron of type ``coxeter_type`` as the
         convex hull of the orbit of ``point`` in the fundamental cone.
@@ -2022,6 +2025,9 @@ class Polytopes():
         - ``point`` -- a list (default: ``None``); a point given by its
           coordinates in the weight basis. If ``None`` is given, the point
           `(1, 1, 1, \ldots)` is used.
+
+        - ``exact`` - (boolean, default ``True``) if ``False`` use floating
+          point approximations instead of exact coordinates
 
         - ``regular`` -- boolean (default: ``False``); whether to apply a
           linear transformation making the vertex figures isometric.
@@ -2121,7 +2127,72 @@ class Polytopes():
             from sage.matrix.constructor import matrix
             transf = matrix([[1]+[0] * (n-1)] + W.bilinear_form().columns()[1:]).transpose()
             vertices = [transf * v for v in vertices]
+        if not exact:
+            vertices = [v.change_ring(RDF) for v in vertices]
         return Polyhedron(vertices=vertices, backend=backend)
+
+    def omnitruncated_one_hundred_twenty_cell(self, exact=True, backend=None):
+        """
+        Return the omnitruncated 120-cell.
+
+        The omnitruncated 120-cell is a 4-dimensional 4-uniform in the `H_4`
+        family. It has 14400 vertices. For more information see
+        :wikipedia:`Omnitruncated 120-cell`.
+
+        .. WARNING::
+
+            The coordinates are exact by default. The computation with inexact
+            coordinates (using the backend ``'cdd'``) returns a numerical
+            inconsistency error, and thus can not be computed.
+
+        INPUT:
+
+        - ``exact`` - (boolean, default ``True``) if ``True`` use exact
+          coordinates instead of floating point approximations.
+
+        - ``backend`` -- the backend to use to create the polytope.
+
+        EXAMPLES::
+
+            sage: oohtc = polytopes.omnitruncated_one_hundred_twenty_cell(backend='normaliz') # not tested - very long time
+            sage: oohtc                                                                       # not tested - very long time
+            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 14400 vertices
+        """
+        if not exact:
+            # cdd finds a numerical inconsistency.
+            raise NotImplementedError("can not compute the convex hull using floating points")
+        return self.generalized_permutahedron(['H',4], exact=exact, backend=backend)
+
+    omnitruncated_six_hundred_cell = omnitruncated_one_hundred_twenty_cell
+
+    def runcitruncated_one_hundred_twenty_cell(self, exact=True, backend=None):
+        """
+        Return the runcitruncated 120-cell.
+
+        The runcitruncated 120-cell is a 4-dimensional 4-uniform in the `H_4`
+        family. It has 7200 vertices. For more information see
+        :wikipedia:`Runcitruncated 120-cell`.
+
+        .. WARNING::
+
+            The coordinates are exact by default. The computation with inexact
+            coordinates (using the backend ``'cdd'``) returns a numerical
+            inconsistency error, and thus can not be computed.
+
+        INPUT:
+
+        - ``exact`` - (boolean, default ``True``) if ``True`` use exact
+          coordinates instead of floating point approximations.
+
+        - ``backend`` -- the backend to use to create the polytope.
+
+        EXAMPLES::
+
+            sage: oohtc = polytopes.omnitruncated_one_hundred_twenty_cell(backend='normaliz') # not tested - very long time
+            sage: oohtc                                                                       # not tested - very long time
+            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 14400 vertices
+        """
+        return self.generalized_permutahedron(['H',4], point=[1,0,1,1], exact=exact, backend=backend)
 
     def hypercube(self, dim, backend=None):
         r"""

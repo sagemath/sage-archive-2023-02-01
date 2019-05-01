@@ -1026,7 +1026,7 @@ cdef get_predecessors(BoostWeightedGraph g, result, int_to_v, directed, weight_t
     
     - ``result`` -- the matrix of shortest distances
     
-    - ``int_to_v`` -- a dictionary; it is a mapping from `(0, \ldots, n-1)`
+    - ``int_to_v`` -- a list; it is a mapping from `(0, \ldots, n-1)`
       to the vertex set of the original sage graph.
     
     - ``directed`` -- boolean; whether the input graph is directed
@@ -1043,7 +1043,7 @@ cdef get_predecessors(BoostWeightedGraph g, result, int_to_v, directed, weight_t
     edges = g.edge_list()
     sig_off()
     cdef int N = g.num_verts()
-    pred = {int_to_v[i]: {int_to_v[i]: None} for i in range(0, N)}
+    cdef dict pred = {v: {v: None} for v in int_to_v}
     import sys
     for p in edges:
         dst = weight_type(p.second.second)
@@ -1108,7 +1108,7 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
          2: {0: 3, 1: 2, 2: 0, 3: 1},
          3: {0: 4, 1: 3, 2: 1, 3: 0}}
         sage: g = graphs.Grid2dGraph(2,2)
-        sage: johnson_shortest_paths(g, distances=False,  predecessors=True)
+        sage: johnson_shortest_paths(g, distances=False, predecessors=True)
         {(0, 0): {(0, 0): None, (0, 1): (0, 0), (1, 0): (0, 0), (1, 1): (1, 0)},
          (0, 1): {(0, 0): (0, 1), (0, 1): None, (1, 0): (0, 0), (1, 1): (0, 1)},
          (1, 0): {(0, 0): (1, 0), (0, 1): (0, 0), (1, 0): None, (1, 1): (1, 0)},
@@ -1123,7 +1123,7 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
          2: {2: 0, 3: 1},
          3: {3: 0}}
         sage: g = DiGraph([(1,2,3),(2,3,2),(1,4,1),(4,2,1)], weighted=True)
-        sage: johnson_shortest_paths(g, distances=False,  predecessors=True)
+        sage: johnson_shortest_paths(g, distances=False, predecessors=True)
         {1: {1: None, 2: 4, 3: 2, 4: 1},
          2: {2: None, 3: 2},
          3: {3: None},
@@ -1204,9 +1204,9 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
 
     if predecessors:
         if g.is_directed():
-            pred = get_predecessors(g_boost_dir, result, int_to_v, directed=True, weight_type=correct_type)
+            pred = get_predecessors(g_boost_dir, result, int_to_v, True, correct_type)
         else:
-            pred = get_predecessors(g_boost_und, result, int_to_v, directed=False, weight_type=correct_type)
+            pred = get_predecessors(g_boost_und, result, int_to_v, False, correct_type)
 
     if distances and predecessors:
         return (dist, pred)
@@ -1366,7 +1366,7 @@ cpdef floyd_warshall_shortest_paths(g, weight_function=None, distances=True, pre
          2: {0: 3, 1: 2, 2: 0, 3: 1},
          3: {0: 4, 1: 3, 2: 1, 3: 0}}
         sage: g = graphs.Grid2dGraph(2,2)
-        sage: floyd_warshall_shortest_paths(g, distances=False,  predecessors=True)
+        sage: floyd_warshall_shortest_paths(g, distances=False, predecessors=True)
         {(0, 0): {(0, 0): None, (0, 1): (0, 0), (1, 0): (0, 0), (1, 1): (1, 0)},
          (0, 1): {(0, 0): (0, 1), (0, 1): None, (1, 0): (0, 0), (1, 1): (0, 1)},
          (1, 0): {(0, 0): (1, 0), (0, 1): (0, 0), (1, 0): None, (1, 1): (1, 0)},
@@ -1381,7 +1381,7 @@ cpdef floyd_warshall_shortest_paths(g, weight_function=None, distances=True, pre
          2: {2: 0, 3: 1},
          3: {3: 0}}
         sage: g = DiGraph([(1,2,3),(2,3,2),(1,4,1),(4,2,1)], weighted=True)
-        sage: floyd_warshall_shortest_paths(g, distances=False,  predecessors=True)
+        sage: floyd_warshall_shortest_paths(g, distances=False, predecessors=True)
         {1: {1: None, 2: 4, 3: 2, 4: 1},
          2: {2: None, 3: 2},
          3: {3: None},
@@ -1462,9 +1462,9 @@ cpdef floyd_warshall_shortest_paths(g, weight_function=None, distances=True, pre
 
     if predecessors:
         if g.is_directed():
-            pred = get_predecessors(g_boost_dir, result, int_to_v, directed=True, weight_type=correct_type)
+            pred = get_predecessors(g_boost_dir, result, int_to_v, True, correct_type)
         else:
-            pred = get_predecessors(g_boost_und, result, int_to_v, directed=False, weight_type=correct_type)
+            pred = get_predecessors(g_boost_und, result, int_to_v, False, correct_type)
 
     if distances and predecessors:
         return (dist, pred)

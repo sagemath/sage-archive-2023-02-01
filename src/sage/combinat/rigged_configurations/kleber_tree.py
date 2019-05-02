@@ -73,6 +73,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.latex import latex
 from sage.misc.misc_c import prod
 from sage.arith.all import binomial
+from sage.features import FeatureNotPresentError
 from sage.rings.integer import Integer
 
 from sage.structure.parent import Parent
@@ -834,7 +835,7 @@ class KleberTree(UniqueRepresentation, Parent):
         try:
             poly = Polyhedron(ieqs=ieqs, backend='normaliz')
             self._has_normaliz = True
-        except ImportError:
+        except FeatureNotPresentError:
             poly = Polyhedron(ieqs=ieqs)
             self._has_normaliz = False
 

@@ -41,7 +41,7 @@ Validate the Sample Round Outputs for DES (cf. [KeSm1998]_ p. 124)::
     sage: P = 0
     sage: K = 0x10316E028C8F3B4A
     sage: for r in range(1, 17):
-    ....:     DES(rounds=r, doLastSwap=True).encrypt(P, K).hex()
+    ....:     DES(rounds=r, doFinalRound=True).encrypt(P, K).hex()
     '47092b5b'
     '47092b5b53f372af'
     '53f372af9f1d158b'
@@ -309,7 +309,7 @@ class DES(SageObject):
     .. automethod:: __call__
     """
 
-    def __init__(self, rounds=None, keySchedule='DES_KS', keySize=64, doLastSwap=False):
+    def __init__(self, rounds=None, keySchedule='DES_KS', keySize=64, doFinalRound=False):
         r"""
         Construct an instance of DES.
 
@@ -325,7 +325,7 @@ class DES(SageObject):
         - ``keySize`` -- (default: ``64``); the key length in bits. Must be
           ``56`` of ``64``. In the latter case the key contains 8 parity bits.
 
-        - ``doLastSwap`` -- (default: ``False``); if ``True`` a swap takes
+        - ``doFinalRound`` -- (default: ``False``); if ``True`` a swap takes
           places but the inverse initial permutation is omitted (i.e. you can
           get the state after ``rounds``). This only effects encryption.
 
@@ -364,7 +364,7 @@ class DES(SageObject):
         self._keySize = keySize
         if keySize not in (56, 64):
             raise ValueError('key size must be 56 or 64')
-        self._doLastSwap = doLastSwap
+        self._doFinalRound = doFinalRound
         self._blocksize = 64
 
     def __call__(self, block, key, algorithm='encrypt'):
@@ -493,7 +493,7 @@ class DES(SageObject):
         L, R = state[0:32], state[32:64]
         for k in roundKeys[:self._rounds]:
             L, R = R, L + self._f(R, k)
-        if self._doLastSwap:
+        if self._doFinalRound:
             state = vector(GF(2), 64, list(L)+list(R))
         else:
             state = vector(GF(2), 64, list(R)+list(L))

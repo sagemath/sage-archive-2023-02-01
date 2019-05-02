@@ -2270,12 +2270,12 @@ class Polytopes():
              A vertex at (2, 2))
             sage: perm_a2_reg = polytopes.generalized_permutahedron(['A',2],regular=True)
             sage: perm_a2_reg.vertices()
-            (A vertex at (-2, 0),
-             A vertex at (-1, -2),
-             A vertex at (-1, 2),
-             A vertex at (1, -2),
-             A vertex at (1, 2),
-             A vertex at (2, 0))
+            (A vertex at (2, 0),
+             A vertex at (1, -1.788854381999832?),
+             A vertex at (-1, -1.788854381999832?),
+             A vertex at (1, 1.788854381999832?),
+             A vertex at (-2.000000000000000?, 0.?e-17),
+             A vertex at (-1.000000000000000?, 1.788854381999832?))
 
         It works also with types with non-rational coordinates::
 
@@ -2323,11 +2323,21 @@ class Polytopes():
             # This transformation fixes the first root and adjust the other
             # roots to have the correct angles
             from sage.matrix.constructor import matrix
+            from sage.matrix.special import diagonal_matrix
+            from sage.rings.qqbar import number_field_elements_from_algebraics
             transf = matrix([[1]+[0] * (n-1)] + W.bilinear_form().columns()[1:]).transpose()
+            # Then scales the images so that the polytope is inscribed
+            # This is broken HERE:
+            diag_val = [1/AA(c.norm()) for c in transf.columns()]
+            nf,elmts,hom = number_field_elements_from_algebraics(diag_val + transf.list())
+            transf = matrix(nf,n,n,elmts[n:])
+            transf = diagonal_matrix(nf,elmts[:n]) * transf
             vertices = [transf * v for v in vertices]
+            br = nf
         if not exact:
             vertices = [v.change_ring(RDF) for v in vertices]
-        return Polyhedron(vertices=vertices, backend=backend)
+            br = RDF
+        return Polyhedron(vertices=vertices, backend=backend, base_ring=br)
 
     def omnitruncated_one_hundred_twenty_cell(self, exact=True, backend=None):
         """
@@ -2385,7 +2395,7 @@ class Polytopes():
 
         EXAMPLES::
 
-            sage: rohtc = polytopes.runcitruncated_one_hundred_twenty_cell(exact=False) # not tested - very long time
+            sage: polytopes.runcitruncated_one_hundred_twenty_cell(exact=False) # not tested - very long time
             doctest:warning
             ...
             UserWarning: This polyhedron data is numerically complicated; cdd

@@ -339,6 +339,7 @@ from sage.modules.free_module import VectorSpace
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from sage.geometry.hyperplane_arrangement.hyperplane import AmbientVectorSpace, Hyperplane
+from sage.combinat.posets.posets import Poset
 
 
 class HyperplaneArrangementElement(Element):
@@ -1132,10 +1133,11 @@ class HyperplaneArrangementElement(Element):
         r"""
         Test whether the arrangement is simplicial.
         
-        A hyperplane arrangement is said simplical if every region is simplicial.
-        A region is simplicial if the normal vectors of the bounding hyperplanes are
-        linearly independent. In an essential arrangement, this equates to each
-        region have rank number of facets/bounding hyperplanes.
+        A region is simplicial if the normal vectors of its bounding hyperplanes
+        are linearly independent. In an essential arrangement, this equates to
+        a region having a rank number of facets/bounding hyperplanes. A
+        hyperplane arrangement is then said to be simplicial if every region is
+        simplicial.
 
         OUTPUT:
         
@@ -1156,17 +1158,13 @@ class HyperplaneArrangementElement(Element):
             sage: hyperplane_arrangements.braid(3).is_simplicial()
             True
         """
-        # Grab the rank of the arrangements 
-        n = self.rank()
-
         # if the arr is not essential, grab the essential version and check there.
         if not self.is_essential():
-            E = self.essentialization()
-            return E.is_simplicial()
-        for R in self.regions():
-            if R.n_facets() != n:
-                return False
-        return True
+            return self.essentialization().is_simplicial()
+
+        # Check that the number of facets for each region is equal to rank
+        rank = self.rank()
+        return all(R.n_facets() == rank for R in self.regions())
 
 
     @cached_method
@@ -1541,13 +1539,23 @@ class HyperplaneArrangementElement(Element):
         return tuple(regions)
 
     @cached_method
-    def poset_of_regions(self, B = None, numbered_labels=True):
+    def poset_of_regions(self, B=None, numbered_labels=True):
         r"""
-        Returns the poset of regions for a central hyperplane arrangement.
+        Return the poset of regions for a central hyperplane arrangement.
 
-        The poset of regions is the regions ordered by `R\leq R'` if and only if
+        The poset of regions is a partial order on the set of regions
+        where the regions are ordered by `R\leq R'` if and only if
         `S(R) \subseteq S(R')` where `S(R)` is the set of hyperplanes which
         separate the region `R` from the base region `B`.
+
+        INPUT:
+
+        - ``B`` -- a region (optional; default: ``None``); if ``None``, then
+          an arbitrary region is chosen as the base region.
+
+        - ``numbered_labels`` -- bool (optional; default: ``True``); if ``True``,
+        then the elements of the poset are numbered. Else they are labelled
+        with the regions themselves.
 
         OUTPUT:
 
@@ -1568,8 +1576,15 @@ class HyperplaneArrangementElement(Element):
             sage: A = hyperplane_arrangements.braid(4)
             sage: A.poset_of_regions()
             Finite poset containing 24 elements
-        """
 
+            sage: H.<x,y,z> = HyperplaneArrangements(QQ)
+            sage: A = H([[0,1,1,1],[0,1,2,3],[0,1,3,2],[0,2,1,3]])
+            sage: R = A.regions()
+            sage: base_region = R[3]
+            sage: A.poset_of_regions(B=base_region)
+            Finite poset containing 14 elements
+
+        """
         # We use RX to keep track of indexes and R to keep track of which regions
         # we've already hit. This poset is graded, so we can go one set at a time
         RX = self.regions()
@@ -1586,7 +1601,7 @@ class HyperplaneArrangementElement(Element):
         nextTest = [B]
 
         # While we have objects in our set R
-        while len(R):
+        while R:
             # Transfer the "next step" to the "current step"
             curTest = list(nextTest)
             nextTest = set([])
@@ -1603,7 +1618,6 @@ class HyperplaneArrangementElement(Element):
             for x in nextTest:
                 R.discard(x)
 
-        from sage.combinat.posets.posets import Poset
         if numbered_labels:
             return Poset([range(len(RX)),edges])
         else:

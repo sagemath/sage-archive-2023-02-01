@@ -1725,7 +1725,7 @@ class Polytopes():
             sage: polytopes.runcitruncated_six_hundred_cell(exact=True,backend='normaliz') # not tested - very long time
             A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 7200 vertices
         """
-        return self.generalized_permutahedron(['H',4], point=[1,1,0,1], exact=exact, backend=backend)
+        return self.generalized_permutahedron(['H',4], point=[1,1,0,1], exact=exact, backend=backend, regular=True)
 
     def cantitruncated_six_hundred_cell(self, exact=True, backend=None):
         """
@@ -1753,7 +1753,7 @@ class Polytopes():
             sage: polytopes.cantitruncated_six_hundred_cell(exact=True,backend='normaliz') # not tested - very long time
             A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 7200 vertices
         """
-        return self.generalized_permutahedron(['H',4], point=[1,1,1,0], exact=exact, backend=backend)
+        return self.generalized_permutahedron(['H',4], point=[1,1,1,0], exact=exact, backend=backend, regular=True)
 
     def bitruncated_six_hundred_cell(self, exact=True, backend=None):
         """
@@ -1780,7 +1780,7 @@ class Polytopes():
             sage: polytopes.runcinated_six_hundred_cell(exact=True,backend='normaliz') # not tested - very long time
             A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 3600 vertices
         """
-        return self.generalized_permutahedron(['H',4], point=[0,1,1,0], exact=exact, backend=backend)
+        return self.generalized_permutahedron(['H',4], point=[0,1,1,0], exact=exact, backend=backend, regular=True)
 
     def cantellated_six_hundred_cell(self, exact=False, backend=None):
         """
@@ -1820,7 +1820,7 @@ class Polytopes():
             sage: polytopes.cantellated_six_hundred_cell(exact=True,backend='normaliz') # not tested - long time
             A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 3600 vertices
         """
-        return self.generalized_permutahedron(['H',4], point=[1,0,1,0], exact=exact, backend=backend)
+        return self.generalized_permutahedron(['H',4], point=[1,0,1,0], exact=exact, backend=backend, regular = True)
 
     def truncated_six_hundred_cell(self, exact=False, backend=None):
         """
@@ -1853,7 +1853,7 @@ class Polytopes():
             sage: polytopes.truncated_six_hundred_cell(exact=True,backend='normaliz') # not tested - long time ~16sec
             A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 1440 vertices
         """
-        return self.generalized_permutahedron(['H',4], point=[1,1,0,0], exact=exact, backend=backend)
+        return self.generalized_permutahedron(['H',4], point=[1,1,0,0], exact=exact, backend=backend, regular=True)
 
     def rectified_six_hundred_cell(self, exact=True, backend=None):
         """
@@ -1882,7 +1882,7 @@ class Polytopes():
             polytopes.rectified_six_hundred_cell(exact=True,backend='normaliz') # not tested - long time ~14sec
             A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 720 vertices
         """
-        return self.generalized_permutahedron(['H',4], point=[0,1,0,0], exact=exact, backend=backend)
+        return self.generalized_permutahedron(['H',4], point=[0,1,0,0], exact=exact, backend=backend, regular=True)
 
     def six_hundred_cell(self, exact=False, backend=None):
         """
@@ -2358,7 +2358,7 @@ class Polytopes():
         if not exact:
             # cdd finds a numerical inconsistency.
             raise NotImplementedError("can not compute the convex hull using floating points")
-        return self.generalized_permutahedron(['H',4], exact=exact, backend=backend)
+        return self.generalized_permutahedron(['H',4], exact=exact, backend=backend, regular=True)
 
     omnitruncated_six_hundred_cell = omnitruncated_one_hundred_twenty_cell
 
@@ -2399,7 +2399,7 @@ class Polytopes():
             sage: polytopes.runcitruncated_one_hundred_twenty_cell(exact=True,backend='normaliz') # not tested - very long time
             A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 7200 vertices
         """
-        return self.generalized_permutahedron(['H',4], point=[1,0,1,1], exact=exact, backend=backend)
+        return self.generalized_permutahedron(['H',4], point=[1,0,1,1], exact=exact, backend=backend, regular=True)
 
     def cantitruncated_one_hundred_twenty_cell(self, exact=True, backend=None):
         """
@@ -2427,7 +2427,7 @@ class Polytopes():
             sage: polytopes.cantitruncated_one_hundred_twenty_cell(exact=True,backend='normaliz') # not tested - very long time
             A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 7200 vertices
         """
-        return self.generalized_permutahedron(['H',4], point=[0,1,1,1], exact=exact, backend=backend)
+        return self.generalized_permutahedron(['H',4], point=[0,1,1,1], exact=exact, backend=backend, regular=True)
 
     def runcinated_one_hundred_twenty_cell(self, exact=False, backend=None):
         """
@@ -2464,7 +2464,7 @@ class Polytopes():
             sage: polytopes.runcinated_one_hundred_twenty_cell(exact=True,backend='normaliz') # not tested - very long time
             A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 2400 vertices
         """
-        return self.generalized_permutahedron(['H',4], point=[1,0,0,1], exact=exact, backend=backend)
+        return self.generalized_permutahedron(['H',4], point=[1,0,0,1], exact=exact, backend=backend, regular=True)
 
     def cantellated_one_hundred_twenty_cell(self, exact=True, backend=None):
         """
@@ -2492,7 +2492,7 @@ class Polytopes():
             sage: polytopes.cantellated_one_hundred_twenty_cell(exact=True,backend='normaliz') # not tested - long time
             A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 3600 vertices
         """
-        return self.generalized_permutahedron(['H',4], point=[0,1,0,1], exact=exact, backend=backend)
+        return self.generalized_permutahedron(['H',4], point=[0,1,0,1], exact=exact, backend=backend, regular=True)
 
     def truncated_one_hundred_twenty_cell(self, exact=True, backend=None):
         """
@@ -2520,7 +2520,7 @@ class Polytopes():
             sage: polytopes.truncated_one_hundred_twenty_cell(exact=True,backend='normaliz') # not tested - long time
             A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 2400 vertices
         """
-        return self.generalized_permutahedron(['H',4], point=[0,0,1,1], exact=exact, backend=backend)
+        return self.generalized_permutahedron(['H',4], point=[0,0,1,1], exact=exact, backend=backend, regular=True)
 
     def rectified_one_hundred_twenty_cell(self, exact=True, backend=None):
         """
@@ -2548,7 +2548,7 @@ class Polytopes():
             sage: polytopes.rectified_one_hundred_twenty_cell(exact=True,backend='normaliz') # not tested - long time
             A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 1200 vertices
         """
-        return self.generalized_permutahedron(['H',4], point=[0,0,1,0], exact=exact, backend=backend)
+        return self.generalized_permutahedron(['H',4], point=[0,0,1,0], exact=exact, backend=backend, regular=True)
 
     def one_hundred_twenty_cell(self, exact=True, backend=None):
         """
@@ -2576,7 +2576,7 @@ class Polytopes():
             sage: polytopes.one_hundred_twenty_cell(exact=True,backend='normaliz') # not tested - long time
             A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 600 vertices
         """
-        return self.generalized_permutahedron(['H',4], point=[0,0,0,1], exact=exact, backend=backend)
+        return self.generalized_permutahedron(['H',4], point=[0,0,0,1], exact=exact, backend=backend, regular=True)
 
     def hypercube(self, dim, backend=None):
         r"""

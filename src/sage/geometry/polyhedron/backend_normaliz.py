@@ -192,7 +192,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         """
         PythonModule("PyNormaliz", spkg="pynormaliz").require()
         import PyNormaliz
-        return PyNormaliz.NmzResult(normaliz_cone, property)
+        return self._nmz_result(normaliz_cone, property)
 
     def _init_from_normaliz_cone(self, normaliz_cone):
         """
@@ -514,7 +514,6 @@ class Polyhedron_normaliz(Polyhedron_base):
             The empty polyhedron in ZZ^0
             sage: Polyhedron(backend='normaliz')._init_empty_polyhedron()  # optional - pynormaliz
         """
-        PythonModule("PyNormaliz", spkg="pynormaliz").require()
         super(Polyhedron_normaliz, self)._init_empty_polyhedron()
         # Can't seem to set up an empty _normaliz_cone.
         # For example, PyNormaliz.NmzCone(vertices=[]) gives
@@ -586,9 +585,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: Polyhedron_normaliz._cone_generators(nmz_cone)                                # optional - pynormaliz
             [[1L, 2L, 0L], [0L, 0L, 1L], [2L, 1L, 0L]]
         """
-        PythonModule("PyNormaliz", spkg="pynormaliz").require()
-        import PyNormaliz
-        return PyNormaliz.NmzResult(pynormaliz_cone, "Generators")
+        return self._nmz_result(pynormaliz_cone, "Generators")
 
     def _get_nmzcone_data(self):
         r"""
@@ -616,17 +613,15 @@ class Polyhedron_normaliz(Polyhedron_base):
              'subspace': [],
              'vertices': [[0L, 0L, 1L]]}
         """
-        PythonModule("PyNormaliz", spkg="pynormaliz").require()
-        import PyNormaliz
         if self.is_empty():
             return {}
 
-        vertices = PyNormaliz.NmzResult(self._normaliz_cone, "VerticesOfPolyhedron")
+        vertices = self._nmz_result(self._normaliz_cone, "VerticesOfPolyhedron")
         # get rid of the last 0 in rays:
-        rays = [r[:-1] for r in PyNormaliz.NmzResult(self._normaliz_cone, "ExtremeRays")]
-        lines = PyNormaliz.NmzResult(self._normaliz_cone, "MaximalSubspace")
-        ineqs = PyNormaliz.NmzResult(self._normaliz_cone, "SupportHyperplanes")
-        eqs = PyNormaliz.NmzResult(self._normaliz_cone, "Equations")
+        rays = [r[:-1] for r in self._nmz_result(self._normaliz_cone, "ExtremeRays")]
+        lines = self._nmz_result(self._normaliz_cone, "MaximalSubspace")
+        ineqs = self._nmz_result(self._normaliz_cone, "SupportHyperplanes")
+        eqs = self._nmz_result(self._normaliz_cone, "Equations")
 
         data = {'vertices': vertices,
                 'cone': rays,
@@ -1337,8 +1332,6 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: C2._triangulate_normaliz()  #  optional - pynormaliz
             [(0, 1, 2), (1, 2, 3)]
         """
-        PythonModule("PyNormaliz", spkg="pynormaliz").require()
-        import PyNormaliz
         cone = self._normaliz_cone
         assert cone
         if self.lines():
@@ -1358,7 +1351,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         data.pop('inhom_inequalities', None)
         cone = self._make_normaliz_cone(data)
 
-        nmz_triangulation = PyNormaliz.NmzResult(cone, "Triangulation")
+        nmz_triangulation = self._nmz_result(cone, "Triangulation")
         triang_indices = tuple(vector(ZZ, s[0]) for s in nmz_triangulation)
 
         # Get the Normaliz ordering of generators

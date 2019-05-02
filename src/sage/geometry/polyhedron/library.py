@@ -17,6 +17,7 @@ The following constructions are available
     :meth:`~sage.geometry.polyhedron.library.Polytopes.Birkhoff_polytope`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.associahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.buckyball`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.cantitruncated_one_hundred_twenty_cell`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.cross_polytope`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.cube`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.cuboctahedron`
@@ -1686,6 +1687,191 @@ class Polytopes():
         verts.extend(-v for v in B4)
         return Polyhedron(vertices=verts, backend=backend)
 
+    def runcitruncated_six_hundred_cell(self, exact=True, backend=None):
+        """
+        Return the runcitruncated 600-cell.
+
+        The runcitruncated 600-cell is a 4-dimensional 4-uniform in the `H_4`
+        family. It has 7200 vertices. For more information see
+        :wikipedia:`Runcitruncated 600-cell`.
+
+        .. WARNING::
+
+            The coordinates are exact by default. The computation with inexact
+            coordinates (using the backend ``'cdd'``) returns a numerical
+            inconsistency error, and thus can not be computed.
+
+        INPUT:
+
+        - ``exact`` - (boolean, default ``True``) if ``True`` use exact
+          coordinates instead of floating point approximations.
+
+        - ``backend`` -- the backend to use to create the polytope.
+
+        EXAMPLES::
+
+            sage: polytopes.runcitruncated_six_hundred_cell(exact=True,backend='normaliz') # not tested - very long time
+            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 7200 vertices
+        """
+        return self.generalized_permutahedron(['H',4], point=[1,1,0,1], exact=exact, backend=backend)
+
+    def cantitruncated_six_hundred_cell(self, exact=True, backend=None):
+        """
+        Return the cantitruncated 600-cell.
+
+        The cantitruncated 600-cell is a 4-dimensional 4-uniform in the `H_4`
+        family. It has 7200 vertices. For more information see
+        :wikipedia:`Cantitruncated 600-cell`.
+
+        .. WARNING::
+
+            The coordinates are exact by default. The computation with inexact
+            coordinates (using the backend ``'cdd'``) returns a numerical
+            inconsistency error, and thus can not be computed.
+
+        INPUT:
+
+        - ``exact`` - (boolean, default ``True``) if ``True`` use exact
+          coordinates instead of floating point approximations.
+
+        - ``backend`` -- the backend to use to create the polytope.
+
+        EXAMPLES::
+
+            sage: polytopes.cantitruncated_six_hundred_cell(exact=True,backend='normaliz') # not tested - very long time
+            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 7200 vertices
+        """
+        return self.generalized_permutahedron(['H',4], point=[1,1,1,0], exact=exact, backend=backend)
+
+    def bitruncated_six_hundred_cell(self, exact=True, backend=None):
+        """
+        Return the bitruncated 600-cell.
+
+        The bitruncated 600-cell is a 4-dimensional 4-uniform in the `H_4`
+        family. It has 3600 vertices. For more information see
+        :wikipedia:`Bitruncated 600-cell`.
+
+        .. WARNING::
+
+            The coordinates are exact by default. The computation with inexact
+            coordinates (using the backend ``'cdd'``) returns a numerical
+            inconsistency error, and thus can not be computed.
+
+        INPUT:
+
+        - ``exact`` - (boolean, default ``True``) if ``True`` use exact
+          coordinates instead of floating point approximations.
+
+        - ``backend`` -- the backend to use to create the polytope.
+        EXAMPLES::
+
+            sage: polytopes.runcinated_six_hundred_cell(exact=True,backend='normaliz') # not tested - very long time
+            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 3600 vertices
+        """
+        return self.generalized_permutahedron(['H',4], point=[0,1,1,0], exact=exact, backend=backend)
+
+    def cantellated_six_hundred_cell(self, exact=False, backend=None):
+        """
+        Return the cantellated 600-cell.
+
+        The cantellated 600-cell is a 4-dimensional 4-uniform in the `H_4`
+        family. It has 3600 vertices. For more information see
+        :wikipedia:`Cantellated 600-cell`.
+
+        .. WARNING::
+
+            The coordinates are inexact by default. The computation with inexact
+            coordinates (using the backend ``'cdd'``) issues a UserWarning
+            on inconsistencies.
+
+        INPUT:
+
+        - ``exact`` - (boolean, default ``False``) if ``True`` use exact
+          coordinates instead of floating point approximations.
+
+        - ``backend`` -- the backend to use to create the polytope.
+
+        EXAMPLES::
+
+            sage: polytopes.cantellated_six_hundred_cell() # not tested - very long time
+            doctest:warning
+            ...
+            UserWarning: This polyhedron data is numerically complicated; cdd
+            could not convert between the inexact V and H representation
+            without loss of data. The resulting object might show
+            inconsistencies.
+            A 4-dimensional polyhedron in RDF^4 defined as the convex hull of 3600 vertices
+
+        It is possible to use the backend ``'normaliz'`` to get an exact
+        representation::
+
+            sage: polytopes.cantellated_six_hundred_cell(exact=True,backend='normaliz') # not tested - long time
+            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 3600 vertices
+        """
+        return self.generalized_permutahedron(['H',4], point=[1,0,1,0], exact=exact, backend=backend)
+
+    def truncated_six_hundred_cell(self, exact=False, backend=None):
+        """
+        Return the truncated 600-cell.
+
+        The truncated 600-cell is a 4-dimensional 4-uniform in the `H_4`
+        family. It has 1440 vertices. For more information see
+        :wikipedia:`Truncated 600-cell`.
+
+        .. WARNING::
+
+            The coordinates are not exact by default. The computation with exact
+            coordinates takes a huge amount of time.
+
+        INPUT:
+
+        - ``exact`` - (boolean, default ``False``) if ``True`` use exact
+          coordinates instead of floating point approximations
+
+        - ``backend`` -- the backend to use to create the polytope.
+
+        EXAMPLES::
+
+            sage: polytopes.truncated_six_hundred_cell() # not tested - long time
+            A 4-dimensional polyhedron in RDF^4 defined as the convex hull of 1440 vertices
+
+        It is possible to use the backend ``'normaliz'`` to get an exact
+        representation::
+
+            sage: polytopes.truncated_six_hundred_cell(exact=True,backend='normaliz') # not tested - long time ~16sec
+            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 1440 vertices
+        """
+        return self.generalized_permutahedron(['H',4], point=[1,1,0,0], exact=exact, backend=backend)
+
+    def rectified_six_hundred_cell(self, exact=True, backend=None):
+        """
+        Return the rectified 600-cell.
+
+        The rectified 600-cell is a 4-dimensional 4-uniform in the `H_4`
+        family. It has 720 vertices. For more information see
+        :wikipedia:`Rectified 600-cell`.
+
+        .. WARNING::
+
+            The coordinates are exact by default. The computation with inexact
+            coordinates (using the backend ``'cdd'``) returns a numerical
+            inconsistency error, and thus can not be computed.
+
+        INPUT:
+
+        - ``exact`` - (boolean, default ``True``) if ``True`` use exact
+          coordinates instead of floating point approximations.
+
+        - ``backend`` -- the backend to use to create the polytope.
+
+        EXAMPLES::
+
+            sage:
+            polytopes.rectified_six_hundred_cell(exact=True,backend='normaliz') # not tested - long time ~14sec
+            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 720 vertices
+        """
+        return self.generalized_permutahedron(['H',4], point=[0,1,0,0], exact=exact, backend=backend)
+
     def six_hundred_cell(self, exact=False, backend=None):
         """
         Return the standard 600-cell polytope.
@@ -2154,8 +2340,7 @@ class Polytopes():
 
         EXAMPLES::
 
-            sage: oohtc = polytopes.omnitruncated_one_hundred_twenty_cell(backend='normaliz') # not tested - very long time
-            sage: oohtc                                                                       # not tested - very long time
+            sage: polytopes.omnitruncated_one_hundred_twenty_cell(backend='normaliz') # not tested - very long time ~10min
             A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 14400 vertices
         """
         if not exact:
@@ -2165,13 +2350,52 @@ class Polytopes():
 
     omnitruncated_six_hundred_cell = omnitruncated_one_hundred_twenty_cell
 
-    def runcitruncated_one_hundred_twenty_cell(self, exact=True, backend=None):
+    def runcitruncated_one_hundred_twenty_cell(self, exact=False, backend=None):
         """
         Return the runcitruncated 120-cell.
 
         The runcitruncated 120-cell is a 4-dimensional 4-uniform in the `H_4`
         family. It has 7200 vertices. For more information see
         :wikipedia:`Runcitruncated 120-cell`.
+
+        .. WARNING::
+
+            The coordinates are inexact by default. The computation with inexact
+            coordinates (using the backend ``'cdd'``) issues a UserWarning
+            on inconsistencies.
+
+        INPUT:
+
+        - ``exact`` - (boolean, default ``False``) if ``True`` use exact
+          coordinates instead of floating point approximations.
+
+        - ``backend`` -- the backend to use to create the polytope.
+
+        EXAMPLES::
+
+            sage: rohtc = polytopes.runcitruncated_one_hundred_twenty_cell(exact=False) # not tested - very long time
+            doctest:warning
+            ...
+            UserWarning: This polyhedron data is numerically complicated; cdd
+            could not convert between the inexact V and H representation
+            without loss of data. The resulting object might show
+            inconsistencies.
+
+        It is possible to use the backend ``'normaliz'`` to get an exact
+        representation::
+
+            sage: polytopes.runcitruncated_one_hundred_twenty_cell(exact=True,backend='normaliz') # not tested - very long time
+            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 7200 vertices
+        """
+        return self.generalized_permutahedron(['H',4], point=[1,0,1,1], exact=exact, backend=backend)
+
+    def cantitruncated_one_hundred_twenty_cell(self, exact=True, backend=None):
+        """
+        Return the cantitruncated 120-cell.
+
+        The cantitruncated 120-cell is a 4-dimensional 4-uniform in the `H_4`
+        family. It has 7200 vertices. For more information see
+        :wikipedia:`Cantitruncated 120-cell`.
 
         .. WARNING::
 
@@ -2188,11 +2412,159 @@ class Polytopes():
 
         EXAMPLES::
 
-            sage: oohtc = polytopes.omnitruncated_one_hundred_twenty_cell(backend='normaliz') # not tested - very long time
-            sage: oohtc                                                                       # not tested - very long time
-            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 14400 vertices
+            sage: polytopes.cantitruncated_one_hundred_twenty_cell(exact=True,backend='normaliz') # not tested - very long time
+            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 7200 vertices
         """
-        return self.generalized_permutahedron(['H',4], point=[1,0,1,1], exact=exact, backend=backend)
+        return self.generalized_permutahedron(['H',4], point=[0,1,1,1], exact=exact, backend=backend)
+
+    def runcinated_one_hundred_twenty_cell(self, exact=False, backend=None):
+        """
+        Return the runcinated 120-cell.
+
+        The runcinated 120-cell is a 4-dimensional 4-uniform in the `H_4`
+        family. It has 2400 vertices. For more information see
+        :wikipedia:`Runcinated 120-cell`.
+
+        .. WARNING::
+
+            The coordinates are inexact by default. The computation with inexact
+            coordinates (using the backend ``'cdd'``) issues a UserWarning
+            on inconsistencies.
+
+        INPUT:
+
+        - ``exact`` - (boolean, default ``False``) if ``True`` use exact
+          coordinates instead of floating point approximations.
+
+        - ``backend`` -- the backend to use to create the polytope.
+
+        EXAMPLES::
+
+            sage: polytopes.runcinated_one_hundred_twenty_cell(exact=False) # not tested - very long time
+            doctest:warning
+            ...
+            UserWarning: This polyhedron data is numerically complicated; cdd could not convert between the inexact V and H representation without loss of data. The resulting object might show inconsistencies.
+            A 4-dimensional polyhedron in RDF^4 defined as the convex hull of 2400 vertices
+
+        It is possible to use the backend ``'normaliz'`` to get an exact
+        representation::
+
+            sage: polytopes.runcinated_one_hundred_twenty_cell(exact=True,backend='normaliz') # not tested - very long time
+            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 2400 vertices
+        """
+        return self.generalized_permutahedron(['H',4], point=[1,0,0,1], exact=exact, backend=backend)
+
+    def cantellated_one_hundred_twenty_cell(self, exact=True, backend=None):
+        """
+        Return the cantellated 120-cell.
+
+        The cantellated 120-cell is a 4-dimensional 4-uniform in the `H_4`
+        family. It has 3600 vertices. For more information see
+        :wikipedia:`Cantellated 120-cell`.
+
+        .. WARNING::
+
+            The coordinates are exact by default. The computation with inexact
+            coordinates (using the backend ``'cdd'``) returns a numerical
+            inconsistency error, and thus can not be computed.
+
+        INPUT:
+
+        - ``exact`` - (boolean, default ``True``) if ``True`` use exact
+          coordinates instead of floating point approximations.
+
+        - ``backend`` -- the backend to use to create the polytope.
+
+        EXAMPLES::
+
+            sage: polytopes.cantellated_one_hundred_twenty_cell(exact=True,backend='normaliz') # not tested - long time
+            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 3600 vertices
+        """
+        return self.generalized_permutahedron(['H',4], point=[0,1,0,1], exact=exact, backend=backend)
+
+    def truncated_one_hundred_twenty_cell(self, exact=True, backend=None):
+        """
+        Return the truncated 120-cell.
+
+        The truncated 120-cell is a 4-dimensional 4-uniform in the `H_4`
+        family. It has 2400 vertices. For more information see
+        :wikipedia:`Truncated 120-cell`.
+
+        .. WARNING::
+
+            The coordinates are exact by default. The computation with inexact
+            coordinates (using the backend ``'cdd'``) returns a numerical
+            inconsistency error, and thus can not be computed.
+
+        INPUT:
+
+        - ``exact`` - (boolean, default ``True``) if ``True`` use exact
+          coordinates instead of floating point approximations.
+
+        - ``backend`` -- the backend to use to create the polytope.
+
+        EXAMPLES::
+
+            sage: polytopes.truncated_one_hundred_twenty_cell(exact=True,backend='normaliz') # not tested - long time
+            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 2400 vertices
+        """
+        return self.generalized_permutahedron(['H',4], point=[0,0,1,1], exact=exact, backend=backend)
+
+    def rectified_one_hundred_twenty_cell(self, exact=True, backend=None):
+        """
+        Return the rectified 120-cell.
+
+        The rectified 120-cell is a 4-dimensional 4-uniform in the `H_4`
+        family. It has 1200 vertices. For more information see
+        :wikipedia:`Rectified 120-cell`.
+
+        .. WARNING::
+
+            The coordinates are exact by default. The computation with inexact
+            coordinates (using the backend ``'cdd'``) returns a numerical
+            inconsistency error, and thus can not be computed.
+
+        INPUT:
+
+        - ``exact`` - (boolean, default ``True``) if ``True`` use exact
+          coordinates instead of floating point approximations.
+
+        - ``backend`` -- the backend to use to create the polytope.
+
+        EXAMPLES::
+
+            sage: polytopes.rectified_one_hundred_twenty_cell(exact=True,backend='normaliz') # not tested - long time
+            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 1200 vertices
+        """
+        return self.generalized_permutahedron(['H',4], point=[0,0,1,0], exact=exact, backend=backend)
+
+    def one_hundred_twenty_cell(self, exact=True, backend=None):
+        """
+        Return the 120-cell.
+
+        The 120-cell is a 4-dimensional 4-uniform in the `H_4`
+        family. It has 600 vertices and 120 facets. For more information see
+        :wikipedia:`120-cell`.
+
+        .. WARNING::
+
+            The coordinates are exact by default. The computation with inexact
+            coordinates (using the backend ``'cdd'``) returns a numerical
+            inconsistency error, and thus can not be computed.
+
+        INPUT:
+
+        - ``exact`` - (boolean, default ``True``) if ``True`` use exact
+          coordinates instead of floating point approximations.
+
+        - ``backend`` -- the backend to use to create the polytope.
+
+        EXAMPLES::
+
+            sage: polytopes.one_hundred_twenty_cell(exact=True,backend='normaliz') # not tested - long time
+            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 600 vertices
+        """
+        return self.generalized_permutahedron(['H',4], point=[0,0,0,1], exact=exact, backend=backend)
 
     def hypercube(self, dim, backend=None):
         r"""

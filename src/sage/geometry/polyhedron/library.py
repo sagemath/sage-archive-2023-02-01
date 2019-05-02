@@ -16,8 +16,12 @@ The following constructions are available
 
     :meth:`~sage.geometry.polyhedron.library.Polytopes.Birkhoff_polytope`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.associahedron`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.bitruncated_six_hundred_cell`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.buckyball`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.cantellated_one_hundred_twenty_cell`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.cantellated_six_hundred_cell`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.cantitruncated_one_hundred_twenty_cell`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.cantitruncated_six_hundred_cell`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.cross_polytope`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.cube`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.cuboctahedron`
@@ -35,13 +39,19 @@ The following constructions are available
     :meth:`~sage.geometry.polyhedron.library.Polytopes.octahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.omnitruncated_one_hundred_twenty_cell`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.omnitruncated_six_hundred_cell`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.one_hundred_twenty_cell`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.parallelotope`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.pentakis_dodecahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.permutahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.generalized_permutahedron`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.rectified_one_hundred_twenty_cell`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.rectified_six_hundred_cell`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.regular_polygon`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.rhombic_dodecahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.rhombicosidodecahedron`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.runcinated_one_hundred_twenty_cell`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.runcitruncated_one_hundred_twenty_cell`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.runcitruncated_six_hundred_cell`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.simplex`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.six_hundred_cell`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.small_rhombicuboctahedron`
@@ -53,6 +63,8 @@ The following constructions are available
     :meth:`~sage.geometry.polyhedron.library.Polytopes.truncated_icosidodecahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.truncated_tetrahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.truncated_octahedron`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.truncated_one_hundred_twenty_cell`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.truncated_six_hundred_cell`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.twenty_four_cell`
 """
 ########################################################################

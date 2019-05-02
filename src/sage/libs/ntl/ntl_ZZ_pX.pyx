@@ -30,6 +30,7 @@ from sage.libs.ntl.ntl_ZZ_pContext import ntl_ZZ_pContext
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.libs.gmp.mpz cimport *
+from past.builtins import xrange
 
 cdef inline make_ZZ_p(ZZ_p_c* x, ntl_ZZ_pContext_class ctx):
     cdef ntl_ZZ_p y
@@ -93,7 +94,7 @@ cdef class ntl_ZZ_pX(object):
 
         if isinstance(v, ntl_ZZ_pX) and (<ntl_ZZ_pX>v).c is self.c:
             self.x = (<ntl_ZZ_pX>v).x
-        elif isinstance(v, (list, tuple, range)):
+        elif isinstance(v, (list, tuple, xrange)):
             for i, x in enumerate(v):
                 if not isinstance(x, ntl_ZZ_p):
                     cc = ntl_ZZ_p(x, self.c)

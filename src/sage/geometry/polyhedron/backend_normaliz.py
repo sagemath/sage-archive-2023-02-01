@@ -192,7 +192,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         """
         PythonModule("PyNormaliz", spkg="pynormaliz").require()
         import PyNormaliz
-        return self._nmz_result(normaliz_cone, property)
+        return PyNormaliz.NmzResult(normaliz_cone, property)
 
     def _init_from_normaliz_cone(self, normaliz_cone):
         """
@@ -585,7 +585,9 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: Polyhedron_normaliz._cone_generators(nmz_cone)                                # optional - pynormaliz
             [[1L, 2L, 0L], [0L, 0L, 1L], [2L, 1L, 0L]]
         """
-        return self._nmz_result(pynormaliz_cone, "Generators")
+        PythonModule("PyNormaliz", spkg="pynormaliz").require()
+        import PyNormaliz
+        return PyNormaliz.NmzResult(pynormaliz_cone, "Generators")
 
     def _get_nmzcone_data(self):
         r"""

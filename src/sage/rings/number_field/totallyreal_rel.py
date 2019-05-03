@@ -70,6 +70,12 @@ discriminant `\le 17 \times 10^9`.
     [[16240385609L, x^9 - x^8 - 9*x^7 + 4*x^6 + 26*x^5 - 2*x^4 - 25*x^3 - x^2 + 7*x + 1, xF^3 + (-t^2 - 4*t + 1)*xF^2 + (t^2 + 3*t - 5)*xF + 3*t^2 + 11*t - 5]]    # 32-bit
     [[16240385609, x^9 - x^8 - 9*x^7 + 4*x^6 + 26*x^5 - 2*x^4 - 25*x^3 - x^2 + 7*x + 1, xF^3 + (-t^2 - 4*t + 1)*xF^2 + (t^2 + 3*t - 5)*xF + 3*t^2 + 11*t - 5]]     # 64-bit
 
+TESTS:
+
+Check that :trac:`27646` is fixed::
+
+    sage: L = enumerate_totallyreal_fields_all(6,435000) # long time
+
 AUTHORS:
 
 - John Voight (2007-11-03): Initial version.

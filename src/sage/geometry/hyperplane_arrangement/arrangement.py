@@ -1554,8 +1554,8 @@ class HyperplaneArrangementElement(Element):
           an arbitrary region is chosen as the base region.
 
         - ``numbered_labels`` -- bool (optional; default: ``True``); if ``True``,
-        then the elements of the poset are numbered. Else they are labelled
-        with the regions themselves.
+          then the elements of the poset are numbered. Else they are labelled
+          with the regions themselves.
 
         OUTPUT:
 

@@ -1134,10 +1134,8 @@ class HyperplaneArrangementElement(Element):
         Test whether the arrangement is simplicial.
         
         A region is simplicial if the normal vectors of its bounding hyperplanes
-        are linearly independent. In an essential arrangement, this equates to
-        a region having a rank number of facets/bounding hyperplanes. A
-        hyperplane arrangement is then said to be simplicial if every region is
-        simplicial.
+        are linearly independent. A hyperplane arrangement is said to be
+        simplicial if every region is simplicial.
 
         OUTPUT:
         

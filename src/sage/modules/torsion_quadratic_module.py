@@ -522,6 +522,12 @@ class TorsionQuadraticModule(FGP_Module_class):
         r"""
         Return the genus defined by ``self`` and the ``signature_pair``.
 
+        If no such genus exists, raise a ``ValueError``.
+
+        REFERENCES:
+
+        [Nik1977]_ Corollary 1.9.4 and 1.16.3.
+
         EXAMPLES::
 
             sage: L = IntegralLattice("D4").direct_sum(IntegralLattice("A2"))
@@ -536,8 +542,8 @@ class TorsionQuadraticModule(FGP_Module_class):
             sage: genus == L.genus()
             True
 
-        Let `H` be an even unimodular lattice of signature `(9, 1)` and suppose
-        that `D4` is primitively embedded in `H`. We compute the discriminant
+        Let `H` be an even unimodular lattice of signature `(9, 1)`.
+        Then `L = D_4 + A_2` is primitively embedded in `H`. We compute the discriminant
         form of the orthogonal complement of `L` in `H`::
 
             sage: DK = D.twist(-1)
@@ -557,7 +563,8 @@ class TorsionQuadraticModule(FGP_Module_class):
             Genus symbol at 2:    1^2:2^-2
             Genus symbol at 3:     1^-3 3^1
 
-        We can also compute the discriminant group of an odd lattice::
+        We can also compute the genus of an odd lattice
+        from its discriminant form::
 
             sage: L = IntegralLattice(matrix.diagonal(range(1,5)))
             sage: D = L.discriminant_group()
@@ -577,7 +584,6 @@ class TorsionQuadraticModule(FGP_Module_class):
             ...
             ValueError: this discriminant form and signature do not define a genus
 
-
         A systematic test of lattices of small ranks and determinants::
 
             sage: from sage.quadratic_forms.genera.genus import genera
@@ -596,10 +602,13 @@ class TorsionQuadraticModule(FGP_Module_class):
         s_plus = signature_pair[0]
         s_minus = signature_pair[1]
         rank = s_plus + s_minus
-        D = self.cardinality()
-        determinant = (-1)**s_minus * D
+        if len(self.invariants()) > rank:
+            raise ValueError("this discriminant form and " +
+                             "signature do not define a genus")
+        disc = self.cardinality()
+        determinant = (-1)**s_minus * disc
         local_symbols = []
-        for p in (2*D).prime_divisors():
+        for p in (2*disc).prime_divisors():
             D = self.primary_part(p)
             if len(D.invariants()) != 0:
                 G_p = D.gram_matrix_quadratic().inverse()

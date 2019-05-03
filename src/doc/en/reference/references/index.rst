@@ -2655,6 +2655,9 @@ REFERENCES:
              differential concomitants of certain tensor fields. I*,
              Indagationes Mathematicae (Proceedings) **58**, 390 (1955).
 
+.. [Nik1977] V. V. Nikulin, "Integral symmetric bilinear forms and some of their applications"
+             Izv. Akad. Nauk SSSR Ser. Mat., 1979, Volume 43, Issue 1, Pages 111–177.
+
 .. [NN2007] Nisan, Noam, et al., eds. *Algorithmic game theory.*
             Cambridge University Press, 2007.
 

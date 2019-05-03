@@ -499,16 +499,16 @@ class Polyhedron_normaliz(Polyhedron_base):
             # Calling ...
             # ----8<---- Equivalent Normaliz input file ----8<----
             amb_space 2
+            cone 0
             subspace 0
             vertices 3
              0 0 1
              0 1 1
              1 0 1
-            cone 0
             # ----8<-------------------8<-------------------8<----
         """
         s = 'amb_space {}\n'.format(self.ambient_dim())
-        for key, value in data.items():
+        for key, value in sorted(data.items()):
             s += '{} {}\n'.format(key, len(value))
             for e in value:
                 for x in e:

@@ -159,7 +159,7 @@ class PRESENT(SageObject):
     .. automethod:: __call__
     """
 
-    def __init__(self, keySchedule=80, rounds=None, doLastLinearLayer=False):
+    def __init__(self, keySchedule=80, rounds=None, doFinalRound=False):
         r"""
         Construct an instance of PRESENT.
 
@@ -172,7 +172,7 @@ class PRESENT(SageObject):
         - ``rounds``  -- integer (default: ``None``); the number of rounds. If
           ``None`` the number of rounds of the key schedule is used.
 
-        - ``doLastLinearLayer`` -- boolean (default: ``False``); flag to
+        - ``doFinalRound`` -- boolean (default: ``False``); flag to
           control wether the linear layer in the last round should take place
           or not. Since the last linear layer does not add any security, it
           usually does not take place in real world implementations for
@@ -212,7 +212,7 @@ class PRESENT(SageObject):
         By default the linear layer operation in the last round is omitted but
         of course you can enable it::
 
-            sage: PRESENT(doLastLinearLayer=True) # indirect doctest
+            sage: PRESENT(doFinalRound=True) # indirect doctest
             PRESENT block cipher with 31 rounds, activated linear layer in
             last round and the following key schedule:
             Original PRESENT key schedule with 80-bit keys and 31 rounds
@@ -248,7 +248,7 @@ class PRESENT(SageObject):
         self._inverseSbox = self._sbox.inverse()
         self._permutationMatrix = _smallscale_present_linearlayer()
         self._inversePermutationMatrix = self._permutationMatrix.inverse()
-        self._doLastLinearLayer = doLastLinearLayer
+        self._doFinalRound = doFinalRound
 
     def __call__(self, B, K, algorithm='encrypt'):
         r"""
@@ -276,7 +276,7 @@ class PRESENT(SageObject):
         EXAMPLES::
 
             sage: from sage.crypto.block_cipher.present import PRESENT
-            sage: present = PRESENT(doLastLinearLayer=True)
+            sage: present = PRESENT(doFinalRound=True)
             sage: P = 0xFFFFFFFFFFFFFFFF
             sage: K = 0x0
             sage: present(P, K, 'encrypt').hex()
@@ -329,7 +329,7 @@ class PRESENT(SageObject):
         """
         return ('PRESENT block cipher with %s rounds, %s linear layer in last '
                 'round and the following key schedule:\n%s'
-                % (self._rounds, 'activated' if self._doLastLinearLayer else
+                % (self._rounds, 'activated' if self._doFinalRound else
                    'deactivated', self._keySchedule.__repr__()))
 
     def encrypt(self, P, K):
@@ -355,7 +355,7 @@ class PRESENT(SageObject):
         The test vectors from [BKLPPRSV2007]_ are checked here::
 
             sage: from sage.crypto.block_cipher.present import PRESENT
-            sage: present = PRESENT(doLastLinearLayer=True)
+            sage: present = PRESENT(doFinalRound=True)
             sage: p1 = 0x0
             sage: k1 = 0x0
             sage: c1 = 0x5579C1387B228445
@@ -451,7 +451,7 @@ class PRESENT(SageObject):
             state = state + K
             for nibble in [slice(4*j, 4*j+4) for j in range(16)]:
                 state[nibble] = self._sbox(state[nibble][::-1])[::-1]
-            if self._doLastLinearLayer or r != self._rounds - 1:
+            if self._doFinalRound or r != self._rounds - 1:
                 state[0:] = self._permutationMatrix * state
         state = state + roundKeys[self._rounds]
         return state if inputType == 'vector' else ZZ(list(state), 2)
@@ -479,7 +479,7 @@ class PRESENT(SageObject):
         The test vectors from [BKLPPRSV2007]_ are checked here::
 
             sage: from sage.crypto.block_cipher.present import PRESENT
-            sage: present = PRESENT(doLastLinearLayer=True)
+            sage: present = PRESENT(doFinalRound=True)
             sage: p1 = 0x0
             sage: k1 = 0x0
             sage: c1 = 0x5579C1387B228445
@@ -506,7 +506,7 @@ class PRESENT(SageObject):
         roundKeys = self._keySchedule(K)
         state = state + roundKeys[self._rounds]
         for r, K in enumerate(roundKeys[:self._rounds][::-1]):
-            if self._doLastLinearLayer or r != 0:
+            if self._doFinalRound or r != 0:
                 state[0:] = self._inversePermutationMatrix * state
             for nibble in [slice(4*j, 4*j+4) for j in range(16)]:
                 state[nibble] = self._inverseSbox(state[nibble][::-1])[::-1]

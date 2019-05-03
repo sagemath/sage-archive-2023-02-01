@@ -112,7 +112,7 @@ def zero_sum_projection(d, base_ring=RDF):
         [ 0.7071067811865475 -0.7071067811865475                 0.0]
         [ 0.4082482904638631  0.4082482904638631 -0.8164965809277261]
 
-    Exact computation in `AA <sage.rings.qqbar.AlgebraicRealField>``::
+    Exact computation in :class:`AA <sage.rings.qqbar.AlgebraicRealField>`::
 
         sage: zero_sum_projection(3, base_ring=AA)
         [ 0.7071067811865475? -0.7071067811865475?                    0]

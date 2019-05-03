@@ -1178,8 +1178,8 @@ class Polytopes():
         phi = (one+K.gen())/2
 
         gens = [((-1)**a*one/2, (-1)**b*phi/2, (-1)**c*(one+phi)/2)
-                  for a,b,c in product([0,1],repeat=3)]
-        gens.extend([(0,0,phi), (0,0,-phi)])
+                  for a,b,c in product([0, 1],repeat=3)]
+        gens.extend([(0, 0, phi), (0, 0, -phi)])
 
         verts = []
         for p in AlternatingGroup(3):
@@ -1725,7 +1725,7 @@ class Polytopes():
             sage: polytopes.runcitruncated_six_hundred_cell(exact=True,backend='normaliz') # not tested - very long time
             A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 7200 vertices
         """
-        return self.generalized_permutahedron(['H',4], point=[1,1,0,1], exact=exact, backend=backend, regular=True)
+        return self.generalized_permutahedron(['H', 4], point=[1, 1, 0, 1], exact=exact, backend=backend, regular=True)
 
     def cantitruncated_six_hundred_cell(self, exact=True, backend=None):
         """
@@ -1753,7 +1753,7 @@ class Polytopes():
             sage: polytopes.cantitruncated_six_hundred_cell(exact=True,backend='normaliz') # not tested - very long time
             A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 7200 vertices
         """
-        return self.generalized_permutahedron(['H',4], point=[1,1,1,0], exact=exact, backend=backend, regular=True)
+        return self.generalized_permutahedron(['H', 4], point=[1, 1, 1, 0], exact=exact, backend=backend, regular=True)
 
     def bitruncated_six_hundred_cell(self, exact=True, backend=None):
         """
@@ -1780,7 +1780,7 @@ class Polytopes():
             sage: polytopes.runcinated_six_hundred_cell(exact=True,backend='normaliz') # not tested - very long time
             A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 3600 vertices
         """
-        return self.generalized_permutahedron(['H',4], point=[0,1,1,0], exact=exact, backend=backend, regular=True)
+        return self.generalized_permutahedron(['H', 4], point=[0, 1, 1, 0], exact=exact, backend=backend, regular=True)
 
     def cantellated_six_hundred_cell(self, exact=False, backend=None):
         """
@@ -1820,7 +1820,7 @@ class Polytopes():
             sage: polytopes.cantellated_six_hundred_cell(exact=True,backend='normaliz') # not tested - long time
             A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 3600 vertices
         """
-        return self.generalized_permutahedron(['H',4], point=[1,0,1,0], exact=exact, backend=backend, regular = True)
+        return self.generalized_permutahedron(['H', 4], point=[1, 0, 1, 0], exact=exact, backend=backend, regular=True)
 
     def truncated_six_hundred_cell(self, exact=False, backend=None):
         """
@@ -1853,7 +1853,7 @@ class Polytopes():
             sage: polytopes.truncated_six_hundred_cell(exact=True,backend='normaliz') # not tested - long time ~16sec
             A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 1440 vertices
         """
-        return self.generalized_permutahedron(['H',4], point=[1,1,0,0], exact=exact, backend=backend, regular=True)
+        return self.generalized_permutahedron(['H', 4], point=[1, 1, 0, 0], exact=exact, backend=backend, regular=True)
 
     def rectified_six_hundred_cell(self, exact=True, backend=None):
         """
@@ -1882,7 +1882,7 @@ class Polytopes():
             polytopes.rectified_six_hundred_cell(exact=True,backend='normaliz') # not tested - long time ~14sec
             A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 720 vertices
         """
-        return self.generalized_permutahedron(['H',4], point=[0,1,0,0], exact=exact, backend=backend, regular=True)
+        return self.generalized_permutahedron(['H', 4], point=[0, 1, 0, 0], exact=exact, backend=backend, regular=True)
 
     def six_hundred_cell(self, exact=False, backend=None):
         """
@@ -1922,7 +1922,6 @@ class Polytopes():
             sage: p600 = polytopes.six_hundred_cell(exact=True, backend='normaliz') # optional - pynormaliz
             sage: len(list(p600.bounded_edges()))                                   # optional - pynormaliz
             720
-
         """
         if exact:
             from sage.rings.number_field.number_field import QuadraticField
@@ -2097,7 +2096,7 @@ class Polytopes():
             sage: cp = polytopes.cyclic_polytope(4,10,backend='normaliz')  # optional - pynormaliz
             sage: TestSuite(cp).run(skip='_test_pickling')                 # optional - pynormaliz
         """
-        verts = [[t**i for i in range(1,dim+1)] for t in range(n)]
+        verts = [[t**i for i in range(1, dim+1)] for t in range(n)]
         return Polyhedron(vertices=verts, base_ring=base_ring, backend=backend)
 
     def hypersimplex(self, dim, k, project=False, backend=None):
@@ -2257,45 +2256,83 @@ class Polytopes():
             (1, 12, 24, 14, 1)
 
         The usual output does not necessarily give a polyhedron with isometric
-        vertex figures, setting ``regular=True`` applies a linear
-        transformation to get isometric vertex figures::
+        vertex figures::
 
             sage: perm_a2 = polytopes.generalized_permutahedron(['A',2])
             sage: perm_a2.vertices()
-            (A vertex at (-2, -2),
-             A vertex at (-2, 0),
-             A vertex at (0, -2),
-             A vertex at (0, 2),
-             A vertex at (2, 0),
-             A vertex at (2, 2))
+            (A vertex at (-1, -1),
+             A vertex at (-1, 0),
+             A vertex at (0, -1),
+             A vertex at (0, 1),
+             A vertex at (1, 0),
+             A vertex at (1, 1))
+
+        Setting ``regular=True`` applies a linear transformation to get
+        isometric vertex figures and the result is inscribed. Even though there
+        are traces of small numbers, the internal computations are done using
+        an exact embedded NumberField::
+
             sage: perm_a2_reg = polytopes.generalized_permutahedron(['A',2],regular=True)
             sage: perm_a2_reg.vertices()
-            (A vertex at (2, 0),
-             A vertex at (1, -1.788854381999832?),
-             A vertex at (-1, -1.788854381999832?),
-             A vertex at (1, 1.788854381999832?),
-             A vertex at (-2.000000000000000?, 0.?e-17),
-             A vertex at (-1.000000000000000?, 1.788854381999832?))
+            (A vertex at (-1/2, -0.866025403784439?),
+             A vertex at (-1, 0),
+             A vertex at (1/2, -0.866025403784439?),
+             A vertex at (-1/2, 0.866025403784439?),
+             A vertex at (1.000000000000000?, 0.?e-18),
+             A vertex at (0.500000000000000?, 0.866025403784439?))
+            sage: perm_a2_reg.is_inscribed()
+            True
+            sage: perm_a3_reg = polytopes.generalized_permutahedron(['A',3],regular=True)
+            sage: perm_a3_reg.is_inscribed()
+            True
+
+        The same is possible with vertices in ``RDF``::
+
+            sage: perm_a2_inexact = polytopes.generalized_permutahedron(['A',2],exact=False)
+            sage: perm_a2_inexact.vertices()
+            (A vertex at (0.0, 1.0),
+             A vertex at (-1.0, 0.0),
+             A vertex at (-1.0, -1.0),
+             A vertex at (0.0, -1.0),
+             A vertex at (1.0, 0.0),
+             A vertex at (1.0, 1.0))
+
+            sage: perm_a2_inexact_reg = polytopes.generalized_permutahedron(['A',2],exact=False,regular=True)
+            sage: perm_a2_inexact_reg.vertices()
+            (A vertex at (-0.5, 0.8660254038),
+             A vertex at (-1.0, 0.0),
+             A vertex at (-0.5, -0.8660254038),
+             A vertex at (0.5, -0.8660254038),
+             A vertex at (1.0, 0.0),
+             A vertex at (0.5, 0.8660254038))
 
         It works also with types with non-rational coordinates::
 
             sage: perm_b3 = polytopes.generalized_permutahedron(['B',3]); perm_b3
             A 3-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 2)^3 defined as the convex hull of 48 vertices
+            sage: perm_b3_reg = polytopes.generalized_permutahedron(['B',3],regular=True); perm_b3_reg # long time - 12sec.
+            A 3-dimensional polyhedron in AA^3 defined as the convex hull of 48 vertices
 
-        The backend ``normaliz`` allows faster computation in the non-rational
+        It is faster with the backend ``'normaliz'``::
+
+            sage: perm_b3_reg_norm = polytopes.generalized_permutahedron(['B',3],regular=True,backend='normaliz') # optional - pynormaliz
+            sage: perm_b3_reg_norm # optional - pynormaliz
+            A 3-dimensional polyhedron in AA^3 defined as the convex hull of 48 vertices
+
+        The backend ``'normaliz'`` allows further faster computation in the non-rational
         case::
 
             sage: perm_h3 = polytopes.generalized_permutahedron(['H',3],backend='normaliz')  # optional - pynormaliz
             sage: perm_h3                                                                    # optional - pynormaliz
             A 3-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^3 defined as the convex hull of 120 vertices
-            sage: perm_f4 = polytopes.generalized_permutahedron(['F',4],backend='normaliz') # optional - pynormaliz
-            sage: perm_f4                                                                   # optional - pynormaliz
+            sage: perm_f4 = polytopes.generalized_permutahedron(['F',4],backend='normaliz')  # optional - pynormaliz
+            sage: perm_f4                                                                    # optional - pynormaliz
             A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 2)^4 defined as the convex hull of 1152 vertices
 
         .. SEEALSO::
 
             * :meth:`~sage.combinat.root_system.reflection_group_real.permutahedron`
-              :meth:`~sage.categories.finite_coxeter_groups.permutahedron`
+            * :meth:`~sage.categories.finite_coxeter_groups.permutahedron`
 
         TESTS::
 
@@ -2311,8 +2348,14 @@ class Polytopes():
         if point is None:
             point = [ZZ.one()] * n
         apex = sum(point[i-1] * weights[i] for i in weights.keys())
+        # Try to rationalize the starting point
+        non_zero_index = list(apex).index(filter(lambda x: x!=0, apex)[0])
+        apex = (QQ(1)/apex[non_zero_index]) * apex
         apex.set_immutable()
         vertices = set()
+        # This does not work well with UCF, so we set it to None:
+        # br = apex.base_ring()
+        br = None
         for w in W:
             # The apex is considered in the space on which it acts and not in
             # the weight space.
@@ -2320,20 +2363,29 @@ class Polytopes():
             new_point.set_immutable()
             vertices.add(new_point)
         if regular:
+            from sage.matrix.constructor import matrix
+            from sage.modules.free_module_element import vector
             # This transformation fixes the first root and adjust the other
             # roots to have the correct angles
-            from sage.matrix.constructor import matrix
-            from sage.matrix.special import diagonal_matrix
-            from sage.rings.qqbar import number_field_elements_from_algebraics
-            transf = matrix([[1]+[0] * (n-1)] + W.bilinear_form().columns()[1:]).transpose()
-            # Then scales the images so that the polytope is inscribed
-            # This is broken HERE:
-            diag_val = [1/AA(c.norm()) for c in transf.columns()]
-            nf,elmts,hom = number_field_elements_from_algebraics(diag_val + transf.list())
-            transf = matrix(nf,n,n,elmts[n:])
-            transf = diagonal_matrix(nf,elmts[:n]) * transf
-            vertices = [transf * v for v in vertices]
-            br = nf
+            bf = W.bilinear_form()
+            transf_col = [[1] + [0]*(n-1)]
+            for i in range(1,n):
+                new_col = [0]*i + [1] + [0]*(n-i-1)
+                transf_col += [new_col]
+                m = matrix(AA,transf_col)
+                col = bf.column(i)
+                rhs = vector(list(col[:i+1]))
+                adjusted_col = m.solve_right(rhs)
+                # Then scales the images so that the polytope is inscribed
+                c = 1 - sum([adjusted_col[j]**2 for j in range(n) if j != i])
+                c = c.sqrt()
+                adjusted_col[i] = c
+                transf_col[-1] = adjusted_col
+            # TODO: Make this matrix into the cyclotomics, the value of c is an
+            # algebraic number not anymore in the cyclotomic field.
+            transf = matrix(transf_col).transpose()
+            vertices = [transf * v.change_ring(AA) for v in vertices]
+            br = AA
         if not exact:
             vertices = [v.change_ring(RDF) for v in vertices]
             br = RDF
@@ -2368,7 +2420,7 @@ class Polytopes():
         if not exact:
             # cdd finds a numerical inconsistency.
             raise NotImplementedError("can not compute the convex hull using floating points")
-        return self.generalized_permutahedron(['H',4], exact=exact, backend=backend, regular=True)
+        return self.generalized_permutahedron(['H', 4], exact=exact, backend=backend, regular=True)
 
     omnitruncated_six_hundred_cell = omnitruncated_one_hundred_twenty_cell
 
@@ -2409,7 +2461,7 @@ class Polytopes():
             sage: polytopes.runcitruncated_one_hundred_twenty_cell(exact=True,backend='normaliz') # not tested - very long time
             A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 7200 vertices
         """
-        return self.generalized_permutahedron(['H',4], point=[1,0,1,1], exact=exact, backend=backend, regular=True)
+        return self.generalized_permutahedron(['H', 4], point=[1, 0, 1, 1], exact=exact, backend=backend, regular=True)
 
     def cantitruncated_one_hundred_twenty_cell(self, exact=True, backend=None):
         """
@@ -2437,7 +2489,7 @@ class Polytopes():
             sage: polytopes.cantitruncated_one_hundred_twenty_cell(exact=True,backend='normaliz') # not tested - very long time
             A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 7200 vertices
         """
-        return self.generalized_permutahedron(['H',4], point=[0,1,1,1], exact=exact, backend=backend, regular=True)
+        return self.generalized_permutahedron(['H', 4], point=[0, 1, 1, 1], exact=exact, backend=backend, regular=True)
 
     def runcinated_one_hundred_twenty_cell(self, exact=False, backend=None):
         """
@@ -2474,7 +2526,7 @@ class Polytopes():
             sage: polytopes.runcinated_one_hundred_twenty_cell(exact=True,backend='normaliz') # not tested - very long time
             A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 2400 vertices
         """
-        return self.generalized_permutahedron(['H',4], point=[1,0,0,1], exact=exact, backend=backend, regular=True)
+        return self.generalized_permutahedron(['H', 4], point=[1, 0, 0, 1], exact=exact, backend=backend, regular=True)
 
     def cantellated_one_hundred_twenty_cell(self, exact=True, backend=None):
         """
@@ -2502,7 +2554,7 @@ class Polytopes():
             sage: polytopes.cantellated_one_hundred_twenty_cell(exact=True,backend='normaliz') # not tested - long time
             A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 3600 vertices
         """
-        return self.generalized_permutahedron(['H',4], point=[0,1,0,1], exact=exact, backend=backend, regular=True)
+        return self.generalized_permutahedron(['H', 4], point=[0, 1, 0, 1], exact=exact, backend=backend, regular=True)
 
     def truncated_one_hundred_twenty_cell(self, exact=True, backend=None):
         """
@@ -2530,7 +2582,7 @@ class Polytopes():
             sage: polytopes.truncated_one_hundred_twenty_cell(exact=True,backend='normaliz') # not tested - long time
             A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 2400 vertices
         """
-        return self.generalized_permutahedron(['H',4], point=[0,0,1,1], exact=exact, backend=backend, regular=True)
+        return self.generalized_permutahedron(['H', 4], point=[0, 0, 1, 1], exact=exact, backend=backend, regular=True)
 
     def rectified_one_hundred_twenty_cell(self, exact=True, backend=None):
         """
@@ -2558,7 +2610,7 @@ class Polytopes():
             sage: polytopes.rectified_one_hundred_twenty_cell(exact=True,backend='normaliz') # not tested - long time
             A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 1200 vertices
         """
-        return self.generalized_permutahedron(['H',4], point=[0,0,1,0], exact=exact, backend=backend, regular=True)
+        return self.generalized_permutahedron(['H', 4], point=[0, 0, 1, 0], exact=exact, backend=backend, regular=True)
 
     def one_hundred_twenty_cell(self, exact=True, backend=None):
         """
@@ -2586,7 +2638,7 @@ class Polytopes():
             sage: polytopes.one_hundred_twenty_cell(exact=True,backend='normaliz') # not tested - long time
             A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 600 vertices
         """
-        return self.generalized_permutahedron(['H',4], point=[0,0,0,1], exact=exact, backend=backend, regular=True)
+        return self.generalized_permutahedron(['H', 4], point=[0, 0, 0, 1], exact=exact, backend=backend, regular=True)
 
     def hypercube(self, dim, backend=None):
         r"""

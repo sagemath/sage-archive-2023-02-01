@@ -8,8 +8,8 @@ schedule as described in [BKLPPRSV2007]_. PRESENT is an example of an
 SP-network and consists of 31 rounds. The block length is 64 bits and two key
 lengths of 80 and 128 bits are supported.
 
-Note that since this is Sage the implementation is neither meant to be
-particular secure nor super fast but to be easy to use for research purposes.
+Note, this implementation is ment for experimental and educational usage only,
+do not use it in production code!
 
 EXAMPLES:
 

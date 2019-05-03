@@ -1082,19 +1082,19 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
       associates a weight to each edge. If ``None`` (default), the weights of
       ``g`` are used, if available, otherwise all edges have weight 1.
       
-    - ``distances`` -- boolean (default: ``True``); whether to return the dictionary
-      of shortest distances
+    - ``distances`` -- boolean (default: ``True``); whether to return the
+      dictionary of shortest distances
       
     - ``predecessors`` -- boolean (default: ``False``); whether to return the
       predecessors matrix 
 
     OUTPUT:
 
-    Depending on the input, this function return the dictionary of predecessors, the
-    dictionary of distances, or a pair of dictionaries ``(distances, predecessors)``
-    where ``distance[u][v]`` denotes the distance of a shortest path from `u` to
-    `v` and ``predecessors[u][v]`` indicates the predecessor of `w` on a
-    shortest path from `u` to `v`.
+    Depending on the input, this function return the dictionary of predecessors, 
+    the dictionary of distances, or a pair of dictionaries
+    ``(distances, predecessors)`` where ``distance[u][v]`` denotes the distance of 
+    a shortest path from `u` to `v` and ``predecessors[u][v]`` indicates the
+    predecessor of `w` on a shortest path from `u` to `v`.
 
     EXAMPLES:
 
@@ -1340,19 +1340,19 @@ cpdef floyd_warshall_shortest_paths(g, weight_function=None, distances=True, pre
       associates a weight to each edge. If ``None`` (default), the weights of
       ``g`` are used, if available, otherwise all edges have weight 1.
       
-    - ``distances`` -- boolean (default: ``True``); whether to return the dictionary
-      of shortest distances
+    - ``distances`` -- boolean (default: ``True``); whether to return
+      the dictionary of shortest distances
       
     - ``predecessors`` -- boolean (default: ``False``); whether to return the
       predecessors matrix 
 
     OUTPUT:
 
-    Depending on the input, this function return the dictionary of predecessors, the
-    dictionary of distances, or a pair of dictionaries ``(distances, predecessors)``
-    where ``distance[u][v]`` denotes the distance of a shortest path from `u` to
-    `v` and ``predecessors[u][v]`` indicates the predecessor of `w` on a
-    shortest path from `u` to `v`.
+    Depending on the input, this function return the dictionary of predecessors,
+    the dictionary of distances, or a pair of dictionaries
+    ``(distances, predecessors)`` where ``distance[u][v]`` denotes the distance
+    of a shortest path from `u` to `v` and ``predecessors[u][v]`` indicates the
+    predecessor of `w` on a shortest path from `u` to `v`.
 
     EXAMPLES:
 

@@ -1067,8 +1067,8 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
 
     This routine outputs the distance between each pair of vertices and the 
     predecessors matrix (depending on the values of boolean ``distances`` and
-    ``predecessors``) using a dictionary of dictionaries. It works on all kinds of 
-    graphs, but it is designed specifically for graphs with negative weights
+    ``predecessors``) using a dictionary of dictionaries. It works on all kinds
+    of graphs, but it is designed specifically for graphs with negative weights
     (otherwise there are more efficient algorithms, like Dijkstra).
 
     The time-complexity is `O(mn\log n)`, where `n` is the number of nodes and
@@ -1079,7 +1079,7 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
     - ``g`` -- the input Sage graph
 
     - ``weight_function`` -- function (default: ``None``); a function that
-      associates a weight to each edge. If ``None`` (default), the weights of
+       associates a weight to each edge. If ``None`` (default), the weights of
       ``g`` are used, if available, otherwise all edges have weight 1.
       
     - ``distances`` -- boolean (default: ``True``); whether to return the
@@ -1090,10 +1090,10 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
 
     OUTPUT:
 
-    Depending on the input, this function return the dictionary of predecessors, 
-    the dictionary of distances, or a pair of dictionaries
-    ``(distances, predecessors)`` where ``distance[u][v]`` denotes the distance of 
-    a shortest path from `u` to `v` and ``predecessors[u][v]`` indicates the
+    Depending on the input, this function return the dictionary of
+    predecessors, the dictionary of distances, or a pair of dictionaries
+    ``(distances, predecessors)`` where ``distance[u][v]`` denotes the distance
+    of a shortest path from `u` to `v` and ``predecessors[u][v]`` indicates the
     predecessor of `w` on a shortest path from `u` to `v`.
 
     EXAMPLES:
@@ -1325,8 +1325,8 @@ cpdef floyd_warshall_shortest_paths(g, weight_function=None, distances=True, pre
     This routine outputs the distance between each pair of vertices and the 
     predecessors matrix (depending on the values of boolean ``distances`` and
     ``predecessors``) using a dictionary of dictionaries. This method should be
-    preferred only if the graph is dense. If the graph is sparse the much faster
-    johnson_shortest_paths should be used.
+    preferred only if the graph is dense. If the graph is sparse the much
+    faster johnson_shortest_paths should be used.
     
     The time-complexity is `O(n^3 + nm)`, where `n` is the number of nodes and
     `m` the number of edges. The factor `nm` in the complexity is added only
@@ -1348,8 +1348,8 @@ cpdef floyd_warshall_shortest_paths(g, weight_function=None, distances=True, pre
 
     OUTPUT:
 
-    Depending on the input, this function return the dictionary of predecessors,
-    the dictionary of distances, or a pair of dictionaries
+    Depending on the input, this function return the dictionary of
+    predecessors, the dictionary of distances, or a pair of dictionaries
     ``(distances, predecessors)`` where ``distance[u][v]`` denotes the distance
     of a shortest path from `u` to `v` and ``predecessors[u][v]`` indicates the
     predecessor of `w` on a shortest path from `u` to `v`.

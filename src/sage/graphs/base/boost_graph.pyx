@@ -30,6 +30,7 @@ with ``delete()``.
     :func:`min_spanning_tree` | Compute a minimum spanning tree of a (weighted) graph.
     :func:`shortest_paths` | Use Dijkstra or Bellman-Ford algorithm to compute the single-source shortest paths.
     :func:`johnson_shortest_paths` | Use Johnson algorithm to compute the all-pairs shortest paths.
+    :func:`floyd_warshall_shortest_paths` | Use Floyd-Warshall algorithm to compute the all-pairs shortest paths.
     :func:`johnson_closeness_centrality` | Use Johnson algorithm to compute the closeness centrality of all vertices.
     :func:`blocks_and_cut_vertices` | Use Tarjan's algorithm to compute the blocks and cut vertices of the graph.
 

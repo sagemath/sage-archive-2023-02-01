@@ -1011,16 +1011,16 @@ class AffinePlaneCurve(AffineCurve):
                 yt = lcs[1]
                 xt = lcs[0]
                 ldg = degree_lowest_rational_function(r(xt, yt), t)
-                if ldg[0] != 0:
-                    divf.append([ldg[0], pt0])
+                if ldg != 0:
+                    divf.append([ldg, pt0])
         return divf
 
     def local_coordinates(self, pt, n):
         r"""
         Return local coordinates to precision n at the given point.
 
-            Behaviour is flaky - some choices of `n` are worst that
-            others.
+        Behaviour is flaky - some choices of `n` are worst that
+        others.
 
 
         INPUT:

@@ -2016,29 +2016,24 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 # Useful for some geometry code.
 ###############################################################
 
-def degree_lowest_rational_function(r,x):
+def degree_lowest_rational_function(r, x):
     r"""
+    Return the difference of valuations of r with respect to variable x.
+
     INPUT:
 
+    - ``r`` -- a multivariate rational function
 
-    -  ``r`` - a multivariate rational function
-
-    -  ``x`` - a multivariate polynomial ring generator x
-
+    - ``x`` -- a multivariate polynomial ring generator x
 
     OUTPUT:
 
+    - ``integer`` -- the difference val_x(p) - val_x(q) where r = p/q
 
-    -  ``integer`` - the degree of r in x and its "leading"
-       (in the x-adic sense) coefficient.
+    .. NOTE::
 
-
-    .. note::
-
-       This function is dependent on the ordering of a python dict.
-       Thus, it isn't really mathematically well-defined. I think that
-       it should made a method of the FractionFieldElement class and
-       rewritten.
+        This function should be made a method of the
+        FractionFieldElement class.
 
     EXAMPLES::
 
@@ -2057,35 +2052,15 @@ def degree_lowest_rational_function(r,x):
         sage: r = f/g; r
         (-b*c^2 + 2)/(a*b^3*c^6 - 2*a*c)
         sage: degree_lowest_rational_function(r,a)
-        (-1, 3)
+        -1
         sage: degree_lowest_rational_function(r,b)
-        (0, 4)
+        0
         sage: degree_lowest_rational_function(r,c)
-        (-1, 4)
+        -1
     """
     from sage.rings.fraction_field import FractionField
-    R = r.parent()
-    F = FractionField(R)
+    F = FractionField(r.parent())
     r = F(r)
-    if r == 0:
-        return (0, F(0))
-    L = next(iter(x.dict()))
-    for ix in range(len(L)):
-        if L[ix] != 0:
-            break
-    f = r.numerator()
-    g = r.denominator()
-    M = f.dict()
-    keys = list(M)
-    numtermsf = len(M)
-    degreesf = [keys[j][ix] for j in range(numtermsf)]
-    lowdegf = min(degreesf)
-    cf = M[keys[degreesf.index(lowdegf)]] ## constant coeff of lowest degree term
-    M = g.dict()
-    keys = list(M)
-    numtermsg = len(M)
-    degreesg = [keys[j][ix] for j in range(numtermsg)]
-    lowdegg = min(degreesg)
-    cg = M[keys[degreesg.index(lowdegg)]] ## constant coeff of lowest degree term
-    return (lowdegf-lowdegg,cf/cg)
-
+    f = r.numerator().polynomial(x)
+    g = r.denominator().polynomial(x)
+    return f.valuation() - g.valuation()

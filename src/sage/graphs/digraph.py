@@ -500,8 +500,8 @@ class DiGraph(GenericGraph):
     _directed = True
 
     def __init__(self, data=None, pos=None, loops=None, format=None,
-                 weighted=None, implementation='c_graph',
-                 data_structure="sparse", vertex_labels=True, name=None,
+                 weighted=None, data_structure="sparse",
+                 vertex_labels=True, name=None,
                  multiedges=None, convert_empty_dict_labels_to_None=None,
                  sparse=True, immutable=False):
         """
@@ -623,13 +623,6 @@ class DiGraph(GenericGraph):
                 raise ValueError("the 'sparse' argument is an alias for "
                                  "'data_structure', please do not define both")
             data_structure = "dense"
-
-        # Choice of the backend
-
-        if implementation != 'c_graph':
-            from sage.misc.superseded import deprecation
-            deprecation(18375,"The 'implementation' keyword is deprecated, "
-                        "and the graphs has been stored as a 'c_graph'")
 
         if multiedges or weighted:
             if data_structure == "dense":
@@ -1037,8 +1030,7 @@ class DiGraph(GenericGraph):
         """
         return self.copy()
 
-    def to_undirected(self, implementation='c_graph', data_structure=None,
-                      sparse=None):
+    def to_undirected(self, data_structure=None, sparse=None):
         """
         Return an undirected version of the graph.
 
@@ -1100,7 +1092,6 @@ class DiGraph(GenericGraph):
                   pos            = self._pos,
                   multiedges     = self.allows_multiple_edges(),
                   loops          = self.allows_loops(),
-                  implementation = implementation,
                   data_structure = (data_structure if data_structure!="static_sparse"
                                     else "sparse")) # we need a mutable copy first
 

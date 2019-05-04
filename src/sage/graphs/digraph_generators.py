@@ -142,23 +142,15 @@ class DiGraphGenerators():
     - ``implementation`` -- which underlying implementation to use
       (see DiGraph?)
 
-    - ``sparse`` -- ignored if implementation is not ``'c_graph'``
+    - ``sparse`` -- boolean (default: ``True``); whether to use a sparse or
+      dense data structure. See the documentation of
+      :class:`~sage.graphs.graph.Graph`.
 
     EXAMPLES:
 
     Print digraphs on 2 or less vertices::
 
         sage: for D in digraphs(2, augment='vertices'):
-        ....:     print(D)
-        Digraph on 0 vertices
-        Digraph on 1 vertex
-        Digraph on 2 vertices
-        Digraph on 2 vertices
-        Digraph on 2 vertices
-
-    Note that we can also get digraphs with underlying Cython implementation::
-
-        sage: for D in digraphs(2, augment='vertices', implementation='c_graph'):
         ....:     print(D)
         Digraph on 0 vertices
         Digraph on 1 vertex
@@ -1492,7 +1484,7 @@ class DiGraphGenerators():
 # ##############################################################################
 
     def __call__(self, vertices=None, property=lambda x: True, augment='edges',
-                 size=None, implementation='c_graph', sparse=True, copy=True):
+                 size=None, sparse=True, copy=True):
         """
         Access the generator of isomorphism class representatives [McK1998]_.
         Iterates over distinct, exhaustive representatives.
@@ -1524,10 +1516,9 @@ class DiGraphGenerators():
             then all the digraphs generated will satisfy the property, but there
             will be some missing.
 
-        - ``implementation`` -- which underlying implementation to use
-          (see DiGraph?)
-
-        - ``sparse`` -- ignored if implementation is not ``'c_graph'``
+        - ``sparse`` -- boolean (default: ``True``); whether to use a sparse or
+          dense data structure. See the documentation of
+          :class:`~sage.graphs.graph.Graph`.
 
         - ``copy`` -- boolean (default: ``True``); whether to make copies of the
           digraphs before returning them. If set to ``False`` the method returns
@@ -1573,8 +1564,8 @@ class DiGraphGenerators():
                 raise NotImplementedError
 
             from sage.graphs.graph_generators import canaug_traverse_vert
-            g = DiGraph(implementation=implementation, sparse=sparse)
-            for gg in canaug_traverse_vert(g, [], vertices, property, dig=True, implementation=implementation, sparse=sparse):
+            g = DiGraph(sparse=sparse)
+            for gg in canaug_traverse_vert(g, [], vertices, property, dig=True, sparse=sparse):
                 if extra_property(gg):
                     yield copyfun(gg) if copy else gg
 
@@ -1583,12 +1574,12 @@ class DiGraphGenerators():
             if vertices is None:
                 vertices = 0
                 while True:
-                    for g in self(vertices, implementation=implementation, sparse=sparse, copy=copy):
+                    for g in self(vertices, sparse=sparse, copy=copy):
                         yield g
                     vertices += 1
 
             from sage.graphs.graph_generators import canaug_traverse_edge
-            g = DiGraph(vertices, implementation=implementation, sparse=sparse)
+            g = DiGraph(vertices, sparse=sparse)
             gens = []
             for i in range(vertices - 1):
                 gen = list(range(i))
@@ -1596,7 +1587,7 @@ class DiGraphGenerators():
                 gen.append(i)
                 gen += list(range(i + 2, vertices))
                 gens.append(gen)
-            for gg in canaug_traverse_edge(g, gens, property, dig=True, implementation=implementation, sparse=sparse):
+            for gg in canaug_traverse_edge(g, gens, property, dig=True, sparse=sparse):
                 if extra_property(gg):
                     yield copyfun(gg) if copy else gg
         else:

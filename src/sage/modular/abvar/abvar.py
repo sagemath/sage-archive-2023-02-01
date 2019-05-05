@@ -937,7 +937,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: J.intersection(B)
             (Finite subgroup with invariants [] over QQbar of Abelian variety J0(22) of dimension 2,
              Abelian subvariety of dimension 1 of J0(22))
-            sage: G, B = B.intersection(J); BcapJ
+            sage: G, B = B.intersection(J); G, B
             (Finite subgroup with invariants [2] over QQbar of Abelian subvariety of dimension 1 of J0(22),
              Abelian subvariety of dimension 1 of J0(22))
             sage: G.is_subgroup(B)

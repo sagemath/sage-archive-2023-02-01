@@ -2914,9 +2914,9 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
             sage: f= 1/x
             sage: I = Oinf.ideal(f)
             sage: I._factor()
-            [(Ideal (1/x,1/x^4*y^2 + 1/x^2*y + 1) of Maximal infinite order of Function field in y
+            [(Ideal (1/x, 1/x^4*y^2 + 1/x^2*y + 1) of Maximal infinite order of Function field in y
             defined by y^3 + x^6 + x^4 + x^2, 1),
-             (Ideal (1/x,1/x^2*y + 1) of Maximal infinite order of Function field in y
+             (Ideal (1/x, 1/x^2*y + 1) of Maximal infinite order of Function field in y
              defined by y^3 + x^6 + x^4 + x^2, 1)]
         """
         if self._ideal.is_prime.is_in_cache() and self._ideal.is_prime():

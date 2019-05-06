@@ -2806,9 +2806,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
             sage: R.<x,y> = ProjectiveSpace(QQ,1)
             sage: f = DynamicalSystem_projective([3*x^2*y - y^3, x^3 - 3*x*y^2])
-            sage: f.automorphism_group(algorithm='CRT', return_functions=True, iso_type=True)
-            ([x, (x + 1)/(x - 1), (-x + 1)/(x + 1), -x, 1/x, -1/x,
-            (x - 1)/(x + 1), (-x - 1)/(x - 1)], 'Dihedral of order 8')
+            sage: lst, label = f.automorphism_group(algorithm='CRT', return_functions=True, iso_type=True)
+            sage: sorted(lst), label
+            ([-1/x, 1/x, (-x - 1)/(x - 1), (-x + 1)/(x + 1), (x - 1)/(x + 1),
+            (x + 1)/(x - 1), -x, x], 'Dihedral of order 8')
 
         ::
 
@@ -4689,19 +4690,19 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: K.<w> = NumberField(z^3 + (z^2)/4 - (41/16)*z + 23/64);
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: f = DynamicalSystem_projective([16*x^2 - 29*y^2, 16*y^2])
-            sage: f.all_rational_preimages([P(16*w^2 - 29,16)])
-            [(-w^2 + 21/16 : 1),
-             (w : 1),
-             (w + 1/2 : 1),
-             (w^2 + w - 33/16 : 1),
-             (-w^2 - w + 25/16 : 1),
-             (w^2 - 21/16 : 1),
-             (-w^2 - w + 33/16 : 1),
+            sage: sorted(f.all_rational_preimages([P(16*w^2 - 29,16)]), key=str)
+            [(-w - 1/2 : 1),
              (-w : 1),
-             (-w - 1/2 : 1),
+             (-w^2 + 21/16 : 1),
              (-w^2 + 29/16 : 1),
-             (w^2 - 29/16 : 1),
-             (w^2 + w - 25/16 : 1)]
+             (-w^2 - w + 25/16 : 1),
+             (-w^2 - w + 33/16 : 1),
+             (w + 1/2 : 1),
+             (w : 1),
+             (w^2 + w - 25/16 : 1),
+             (w^2 + w - 33/16 : 1),
+             (w^2 - 21/16 : 1),
+             (w^2 - 29/16 : 1)]
 
         ::
 
@@ -5125,10 +5126,10 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: K.<i> = QuadraticField(-1)
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: D8 = DynamicalSystem_projective([y^3, x^3])
-            sage: D8.conjugating_set(D8) # long time
+            sage: sorted(D8.conjugating_set(D8)) # long time
             [
-            [1 0]  [0 1]  [ 0 -i]  [i 0]  [ 0 -1]  [-1  0]  [-i  0]  [0 i]
-            [0 1], [1 0], [ 1  0], [0 1], [ 1  0], [ 0  1], [ 0  1], [1 0]
+            [-1  0]  [-i  0]  [ 0 -1]  [ 0 -i]  [0 i]  [0 1]  [i 0]  [1 0]
+            [ 0  1], [ 0  1], [ 1  0], [ 1  0], [1 0], [1 0], [0 1], [0 1]
             ]
 
         ::
@@ -5885,31 +5886,32 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
 
             sage: R.<x,y> = ProjectiveSpace(GF(3^2,'t'),1)
             sage: f = DynamicalSystem_projective([x^3,y^3])
-            sage: f.automorphism_group(return_functions=True, iso_type=True) # long time
-            ([x,
-              x/(x + 1),
-              2*x/(x + 2),
-              2/(x + 2),
-              (x + 2)/x,
-              (2*x + 2)/x,
-              2/(x + 1),
-              x + 1,
-              x + 2,
-              x/(x + 2),
-              2*x/(x + 1),
-              2*x,
-              1/x,
-              2*x + 1,
-              2*x + 2,
-              (x + 2)/(x + 1),
-              2/x,
-              (2*x + 2)/(x + 2),
-              (x + 1)/(x + 2),
+            sage: lst, label = f.automorphism_group(return_functions=True, iso_type=True) # long time
+            sage: sorted(lst, key=str), label
+            ([(2*x + 1)/(x + 1),
               (2*x + 1)/x,
+              (2*x + 2)/(x + 2),
+              (2*x + 2)/x,
+              (x + 1)/(x + 2),
+              (x + 1)/x,
+              (x + 2)/(x + 1),
+              (x + 2)/x,
               1/(x + 1),
               1/(x + 2),
-              (2*x + 1)/(x + 1),
-              (x + 1)/x],
+              1/x,
+              2*x,
+              2*x + 1,
+              2*x + 2,
+              2*x/(x + 1),
+              2*x/(x + 2),
+              2/(x + 1),
+              2/(x + 2),
+              2/x,
+              x,
+              x + 1,
+              x + 2,
+              x/(x + 1),
+              x/(x + 2)],
              'PGL(2,3)')
 
         ::

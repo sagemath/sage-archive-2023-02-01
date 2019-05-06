@@ -1094,14 +1094,13 @@ class Polymake(ExtraTabCompletion, Expect):
 
         Global functions from 'core' are available::
 
-            sage: 'show_credits' in dir(polymake)
+            sage: 'show_credits' in dir(polymake)               # optional - polymake
             True
 
         Global functions from 'common' are available::
 
-            sage: 'lex_ordered' in dir(polymake)
+            sage: 'lex_ordered' in dir(polymake)                # optional - polymake
             True
-
         """
         if not self.is_running():
             self._start()

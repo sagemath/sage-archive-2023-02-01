@@ -2249,7 +2249,7 @@ class FunctionFieldMaximalOrderInfinite_global(FunctionFieldMaximalOrderInfinite
             sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
             sage: Oinf = F.maximal_order_infinite()
             sage: I = Oinf.ideal(x,y); I
-            Ideal (x^2) of Maximal infinite order of Function field
+            Ideal (y) of Maximal infinite order of Function field
             in y defined by y^3 + x^6 + x^4 + x^2
 
             sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
@@ -2279,7 +2279,7 @@ class FunctionFieldMaximalOrderInfinite_global(FunctionFieldMaximalOrderInfinite
             sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
             sage: Oinf = F.maximal_order_infinite()
             sage: Oinf.ideal_with_gens_over_base((x^2, y, (1/(x^2 + x + 1))*y^2))
-            Ideal (x^2) of Maximal infinite order of Function field in y
+            Ideal (y) of Maximal infinite order of Function field in y
             defined by y^3 + x^6 + x^4 + x^2
         """
         F = self.function_field()

@@ -53,7 +53,7 @@ rational function field in an extension::
     sage: O.decomposition(p)
     [(Ideal (x + 1, y + 1) of Maximal order
      of Function field in y defined by y^3 + x^6 + x^4 + x^2, 1, 1),
-     (Ideal (x + 1, y^2 + y + 1) of Maximal order
+     (Ideal (x + 1, (1/(x^3 + x^2 + x))*y^2 + y + 1) of Maximal order
      of Function field in y defined by y^3 + x^6 + x^4 + x^2, 2, 1)]
 
     sage: p1,relative_degree,ramification_index = O.decomposition(p)[1]
@@ -1692,7 +1692,7 @@ class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder):
             sage: O.decomposition(p)
             [(Ideal (x + 1, y + 1) of Maximal order
              of Function field in y defined by y^3 + x^6 + x^4 + x^2, 1, 1),
-             (Ideal (x + 1, y^2 + y + 1) of Maximal order
+             (Ideal (x + 1, (1/(x^3 + x^2 + x))*y^2 + y + 1) of Maximal order
              of Function field in y defined by y^3 + x^6 + x^4 + x^2, 2, 1)]
         """
         F = self.function_field()

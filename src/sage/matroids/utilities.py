@@ -752,13 +752,13 @@ def split_vertex(G, u, v=None, edges=None):
 
         sage: from sage.matroids.utilities import split_vertex
         sage: G = graphs.BullGraph()
-        sage: split_vertex(G, u = 1, v = 'a', edges = [(1, 3)])
+        sage: split_vertex(G, u = 1, v = 55, edges = [(1, 3)])
         Traceback (most recent call last):
         ...
         ValueError: the edges are not all incident with u
-        sage: split_vertex(G, u = 1, v = 'a', edges = [(1, 3, None)])
-        sage: G.edges()
-        [(0, 1, None), (0, 2, None), (1, 2, None), (2, 4, None), (3, 'a', None)]
+        sage: split_vertex(G, u = 1, v = 55, edges = [(1, 3, None)])
+        sage: list(G.edges(sort=False))
+        [(0, 1, None), (0, 2, None), (1, 2, None), (2, 4, None), (3, 55, None)]
 
     """
     if v is None:

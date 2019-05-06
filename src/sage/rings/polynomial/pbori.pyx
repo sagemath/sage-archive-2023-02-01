@@ -6363,7 +6363,7 @@ cdef class ReductionStrategy:
 
     def cheap_reductions(self, BooleanPolynomial p):
         """
-        Peform 'cheap' reductions on ``p``.
+        Perform 'cheap' reductions on ``p``.
 
         INPUT:
 

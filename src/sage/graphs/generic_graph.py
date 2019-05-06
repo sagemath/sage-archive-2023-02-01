@@ -369,7 +369,7 @@ Methods
 #                               Nathan Carter <ncarter@bentley.edu>
 #                               Punarbasu Purkayastha <ppurka@gmail.com>
 #                               Stefano Leucci <leucci.stefano@gmail.com>
-#                     2012-2013 Frederic Chapoton <chapoton at math.univ-lyon1.fr>
+#                     2012-2013 Frédéric Chapoton <chapoton at math.univ-lyon1.fr>
 #                     2012-2015 Jernej Azarija <jernej.azarija@gmail.com>
 #                                Volker Braun <vbraun.name@gmail.com>
 #                     2012-2018 Julian Rueth <julian.rueth@gmail.com>
@@ -15853,7 +15853,7 @@ class GenericGraph(GenericGraph_pyx):
             ...
             LookupError: end vertex (junk) is not a vertex of the graph
 
-        Distingusing between multiedged paths (see :trac:`27501`)::
+        Distinguishing between multiedged paths (see :trac:`27501`)::
 
             sage: g = Graph(multiedges=True)
             sage: g.add_edge(0, 3, 1)

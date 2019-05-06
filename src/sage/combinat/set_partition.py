@@ -2734,7 +2734,7 @@ class SetPartitions_set(SetPartitions):
             {{1, 4, 9}, {2, 5, 7}, {3}, {6}, {8, 10}}
 
             sage: S = SetPartitions(["a", "b", "c"])
-            sage: S.random_element()
+            sage: S.random_element() # random
             {{'a'}, {'b', 'c'}}
         """
         base_set = list(self.base_set())
@@ -2799,8 +2799,8 @@ class SetPartitions_set(SetPartitions):
             sage: SetPartitions(3).base_set()
             {1, 2, 3}
 
-            sage: SetPartitions(["a", "b", "c"]).base_set()
-            {'a', 'c', 'b'}
+            sage: sorted(SetPartitions(["a", "b", "c"]).base_set())
+            ['a', 'b', 'c']
         """
         return Set(self._set)
 
@@ -2985,8 +2985,8 @@ class SetPartitions_setparts(SetPartitions_set):
             sage: SetPartitions(3, [2,1]).list()
             [{{1}, {2, 3}}, {{1, 2}, {3}}, {{1, 3}, {2}}]
 
-            sage: SetPartitions(["a", "b", "c"], [2,1]).list()
-            [{{'a'}, {'b', 'c'}}, {{'a', 'c'}, {'b'}}, {{'a', 'b'}, {'c'}}]
+            sage: sorted(SetPartitions(["a", "b", "c"], [2,1]), key=str)
+            [{{'a', 'b'}, {'c'}}, {{'a', 'c'}, {'b'}}, {{'a'}, {'b', 'c'}}]
 
         TESTS::
 
@@ -3161,7 +3161,7 @@ class SetPartitions_setn(SetPartitions_set):
             sage: S.random_element()
             {{1, 2, 4, 6, 9, 10}, {3}, {5, 7}, {8}}
 
-            sage: SetPartitions(["a", "b", "c"], 2).random_element()
+            sage: SetPartitions(["a", "b", "c"], 2).random_element() # random
             {{'a'}, {'b', 'c'}}
 
         """

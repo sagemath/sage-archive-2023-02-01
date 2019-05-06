@@ -20,8 +20,8 @@ To list the packages available, either use in a terminal one of ``sage
 command inside Sage::
 
     sage: from sage.misc.package import list_packages
-    sage: pkgs = list_packages(local=True)
-    sage: sorted(pkgs.keys())  # random
+    sage: pkgs = list_packages(local=True)  # optional - build
+    sage: sorted(pkgs.keys())  # optional - build, random
     ['4ti2',
      'alabaster',
      'arb',
@@ -184,8 +184,8 @@ def list_packages(*pkg_types, **opts):
     EXAMPLES::
 
         sage: from sage.misc.package import list_packages
-        sage: L = list_packages('standard')
-        sage: sorted(L.keys())  # random
+        sage: L = list_packages('standard')  # optional - build
+        sage: sorted(L.keys())  # optional - build, random
         ['alabaster',
          'arb',
          'babel',
@@ -199,7 +199,7 @@ def list_packages(*pkg_types, **opts):
          'type': 'standard'}
 
         sage: L = list_packages('pip', local=True)  # optional - build
-        sage: L['beautifulsoup']
+        sage: L['beautifulsoup']                    # optional - build
         {'installed': ...,
          'installed_version': ...,
          'remote_version': None,
@@ -366,7 +366,7 @@ def package_versions(package_type, local=False):
         sage: std = package_versions('standard', local=True)  # optional - build
         sage: 'gap' in std  # optional - build
         True
-        sage: std['zn_poly']  # random
+        sage: std['zn_poly']  # optional - build, random
         ('0.9.p12', '0.9.p12')
     """
     return {pkg['name']: (pkg['installed_version'], pkg['remote_version']) for pkg in list_packages(package_type, local=local).values()}

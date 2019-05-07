@@ -425,7 +425,6 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
         R = PolynomialRing(BR, N, PS.gens(), order='lex')
         RF = R.change_ring(F)
         I = R.ideal(X.defining_polynomials())
-        I0 = R.ideal(0)
         # Determine the points through elimination This is much faster
         # than using the I.variety() function on each affine chart.
         G = I.groebner_basis()

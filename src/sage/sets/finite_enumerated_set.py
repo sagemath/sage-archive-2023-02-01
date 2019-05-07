@@ -1,7 +1,7 @@
 """
 Finite Enumerated Sets
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2009 Florent Hivert <Florent.Hivert@univ-rouen.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -13,8 +13,8 @@ Finite Enumerated Sets
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 from __future__ import print_function
 
 from sage.structure.element import Element
@@ -325,7 +325,7 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
             facade parents over plain Python objects into ``self``.
 
         If the :meth:`Parent.__call__` fails, then we try
-        :meth:`_element_constuctor_` directly as the element returned
+        :meth:`_element_constructor_` directly as the element returned
         may not be a subclass of :class:`Element`, which is currently
         not supported (see :trac:`19553`).
 

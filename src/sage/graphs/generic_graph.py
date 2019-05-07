@@ -120,6 +120,7 @@ can be applied on both. Here is what it can do:
 
     :meth:`~GenericGraph.eulerian_orientation` | Return a DiGraph which is an Eulerian orientation of the current graph.
     :meth:`~GenericGraph.eulerian_circuit` | Return a list of edges forming an Eulerian circuit if one exists.
+    :meth:`~GenericGraph.minimum_cycle_basis` | Return a minimum weight cycle basis of the graph.
     :meth:`~GenericGraph.cycle_basis` | Return a list of cycles which form a basis of the cycle space of ``self``.
     :meth:`~GenericGraph.all_paths` | Return a list of all paths (also lists) between a pair of vertices in the (di)graph.
     :meth:`~GenericGraph.triangles_count` | Return the number of triangles in the (di)graph.
@@ -439,6 +440,8 @@ from sage.matrix.constructor import matrix
 from sage.rings.rational_field import QQ
 from sage.categories.cartesian_product import cartesian_product
 from sage.misc.misc_c import prod
+
+from sage.misc.package import is_package_installed, PackageNotFoundError
 
 to_hex = LazyImport('matplotlib.colors', 'to_hex')
 
@@ -800,6 +803,24 @@ class GenericGraph(GenericGraph_pyx):
             15
             sage: G.num_edges()
             15
+
+        TESTS:
+
+        Check that :trac:`27695` is fixed::
+
+            sage: G = Graph([[0,1,2],[(0,1)]])
+            sage: G.relabel({0:2,2:0})
+            sage: G._bit_vector()
+            '001'
+
+        Check that :trac:`27695` fixes :trac:`26800`::
+
+            sage: P = graphs.PetersenGraph()
+            sage: v = P.random_vertex()
+            sage: P.add_cycle(P.neighbors(v))
+            sage: P.delete_vertex(v)
+            sage: P.canonical_label(algorithm='sage')._bit_vector()
+            '001100001111000000011010100110100011'
         """
         self._scream_if_not_simple()
         n = self.order()
@@ -812,7 +833,11 @@ class GenericGraph(GenericGraph_pyx):
             bit = lambda x, y: n_ch_2(max(x, y)) + min(x, y)
         bit_vector = set()
 
-        v_to_int = {v: i for i, v in enumerate(self)}
+        try:
+            V = sorted(self)
+        except:
+            V = self
+        v_to_int = {v: i for i, v in enumerate(V)}
         for u,v,_ in self.edge_iterator():
             bit_vector.add(bit(v_to_int[u], v_to_int[v]))
         bit_vector = sorted(bit_vector)
@@ -1551,8 +1576,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = graphs.GridGraph([2, 2])                                # optional - python_igraph
             sage: V = list(G)                                                 # optional - python_igraph
             sage: H = G.igraph_graph(vertex_list=V, vertex_attrs={'name': V}) # optional - python_igraph
-            sage: H.vs()['name']                                              # optional - python_igraph
-            [(0, 1), (1, 0), (0, 0), (1, 1)]
+            sage: H.vs()['name'] == V                                         # optional - python_igraph
+            True
 
         Sometimes, Sage integer/floats are not compatible with igraph::
 
@@ -1613,7 +1638,10 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.edges() == H.edges()                               # optional - python_igraph
             False
         """
-        import igraph
+        if is_package_installed('python_igraph'):
+            import igraph
+        else:
+            raise PackageNotFoundError('python_igraph')
 
         if vertex_list is None:
             v_to_int = {v: i for i, v in enumerate(self.vertices())}
@@ -4642,6 +4670,101 @@ class GenericGraph(GenericGraph_pyx):
                     for u in zip(x, x[1:] + [x[0]])]
         return [vertices_to_edges(_) for _ in cycle_basis_v]
 
+    def minimum_cycle_basis(self, weight_function=None, by_weight=False, algorithm=None):
+        r"""
+        Return a minimum weight cycle basis of the graph.
+
+        A cycle basis is a list of cycles (list of vertices forming a cycle) of
+        ``self``. Note that the vertices are not necessarily returned in the
+        order in which they appear in the cycle.
+
+        A minimum weight cycle basis is a cycle basis that minimizes the sum of
+        the weights (length for unweighted graphs) of its cycles.
+
+        Not implemented for directed graphs and multigraphs.
+
+        INPUT:
+
+        - ``weight_function`` -- function (default: ``None``); a function that
+          takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+          ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
+          weight.
+
+        - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
+          in the graph are weighted, otherwise all edges have weight 1
+
+        - ``algorithm`` -- string (default: ``None``); algorithm to use:
+
+          * If ``algorithm = "NetworkX"``, use networkx implementation
+
+          * If ``algorithm = None``, use Sage Cython implementation
+
+        EXAMPLES::
+
+            sage: g = Graph([(1, 2, 3), (2, 3, 5), (3, 4, 8), (4, 1, 13), (1, 3, 250), (5, 6, 9), (6, 7, 17), (7, 5, 20)])
+            sage: sorted(g.minimum_cycle_basis(by_weight=True))
+            [[1, 2, 3], [1, 2, 3, 4], [5, 6, 7]]
+            sage: sorted(g.minimum_cycle_basis(by_weight=False))
+            [[1, 2, 3], [1, 3, 4], [5, 6, 7]]
+            sage: sorted(g.minimum_cycle_basis(by_weight=True, algorithm='NetworkX'))
+            doctest:...: DeprecationWarning: connected_component_subgraphs is
+            deprecated and will be removedin 2.2. Use (G.subgraph(c).copy()
+            for c in connected_components(G))
+            [[1, 2, 3], [1, 2, 3, 4], [5, 6, 7]]
+            sage: g.minimum_cycle_basis(by_weight=False, algorithm='NetworkX')
+            [[1, 2, 3], [1, 3, 4], [5, 6, 7]]
+
+        ::
+
+            sage: g = Graph([(1, 2), (2, 3), (3, 4), (4, 5), (5, 1), (5, 3)])
+            sage: sorted(g.minimum_cycle_basis(by_weight=False))
+            [[1, 2, 3, 5], [3, 4, 5]]
+            sage: sorted(g.minimum_cycle_basis(by_weight=False, algorithm='NetworkX'))
+            [[1, 2, 3, 5], [3, 4, 5]]
+
+        .. SEEALSO::
+
+            * :meth:`~cycle_basis`
+            * :wikipedia:`Cycle_basis`
+        """
+        if not self.order():
+            return []
+        # Sanity checks
+        if self.is_directed():
+            raise NotImplementedError("not implemented for directed graphs")
+        self._scream_if_not_simple()
+        
+        if weight_function is not None:
+            by_weight = True
+        if weight_function is None and by_weight:
+            def weight_function(e):
+                return e[2]
+        if by_weight:
+            self._check_weight_function(weight_function)
+        else:
+            def weight_function(e):
+                return 1
+        if algorithm:
+            algorithm = algorithm.lower()
+        if algorithm == "networkx":
+            import networkx
+            G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
+            return networkx.minimum_cycle_basis(G, weight='weight')
+        elif algorithm == None:
+            from sage.graphs.base.boost_graph import min_cycle_basis
+            if self.is_connected():
+                CC = [self]
+            else:
+                CC = self.connected_components_subgraphs()
+            basis = []
+            for comp in CC:
+                # calling Cython implementation from backend
+                basis.append(min_cycle_basis(comp, weight_function=weight_function,
+                                             by_weight=by_weight))
+            return sum(basis, [])
+        else:
+            raise NotImplementedError("only 'NetworkX' and Cython implementation is supported")
 
     ### Planarity
 
@@ -9675,15 +9798,11 @@ class GenericGraph(GenericGraph_pyx):
                     personalization=personalization, weight=weight,
                     dangling=dangling)
         elif algorithm == 'igraph':
+            # An error will be raised if igraph is not installed
             if personalization:
                 raise ValueError('personalization parameter is not used in igraph implementation')
             if dangling:
                 raise ValueError('dangling parameter is not used in igraph implementation')
-            try:
-                import igraph
-            except ImportError:
-                from sage.misc.package import PackageNotFoundError
-                raise PackageNotFoundError("igraph")
             if by_weight:
                 I = self.igraph_graph(edge_attrs={'weight': [weight_function(e)
                                                   for e in self.edge_iterator()]})
@@ -11835,7 +11954,7 @@ class GenericGraph(GenericGraph_pyx):
         - When ``vertices`` is a single vertex and ``labels`` is ``False``,
           returns the degree of that vertex as an integer
 
-        - When ``vertices`` is an interable container of vertices (or ``None``)
+        - When ``vertices`` is an iterable container of vertices (or ``None``)
           and ``labels`` is ``False``, returns a list of integers. The `i`-th
           value is the degree of the `i`-th vertex in the list
           ``vertices``. When ``vertices`` is ``None``, the `i`-th value is the
@@ -17371,7 +17490,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def breadth_first_search(self, start, ignore_direction=False,
                              distance=None, neighbors=None,
-                             report_distance=False):
+                             report_distance=False, edges=False):
         """
         Return an iterator over the vertices in a breadth-first ordering.
 
@@ -17398,6 +17517,13 @@ class GenericGraph(GenericGraph_pyx):
           reports pairs ``(vertex, distance)`` where ``distance`` is the
           distance from the ``start`` nodes. If ``False`` only the vertices are
           reported.
+        
+        - ``edges`` -- boolean (default ``False``); whether to return the edges
+          of the BFS tree in the order of visit or the vertices (default).
+          Edges are directed in root to leaf orientation of the tree.
+
+          Note that parameters ``edges`` and ``report_distance`` cannot be
+          ``True`` simultaneously.
 
         .. SEEALSO::
 
@@ -17479,6 +17605,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(C.breadth_first_search([0, 1], report_distance=True))
             [(0, 0), (1, 0), (3, 1), (2, 1)]
 
+        You can get edges of the BFS tree instead of the vertices using the
+        ``edges`` parameter::
+
+            sage: D = DiGraph({1:[2,3],2:[4],3:[4],4:[1],5:[2,6]})
+            sage: list(D.breadth_first_search(1, edges=True))
+            [(1, 2), (1, 3), (2, 4)]
+
         TESTS::
 
             sage: D = DiGraph({1: [0], 2: [0]})
@@ -17486,14 +17619,28 @@ class GenericGraph(GenericGraph_pyx):
             [0]
             sage: list(D.breadth_first_search(0, ignore_direction=True))
             [0, 1, 2]
+            sage: G = Graph({1:[2,3],2:[4,5],3:[5]})
+            sage: list(G.breadth_first_search(1, edges=True))
+            [(1, 2), (1, 3), (2, 4), (2, 5)]
+            sage: D = DiGraph({1:[2,3],2:[4],3:[4],4:[1,5],5:[2,6]})
+            sage: list(D.breadth_first_search(1, edges=True))
+            [(1, 2), (1, 3), (2, 4), (4, 5), (5, 6)]
+            sage: G = Graph([(0,1)])
+            sage: list(G.breadth_first_search(1, report_distance=True, edges=True))
+            Traceback (most recent call last):
+            ...
+            ValueError: parameters edges and report_distance cannot be True simultaneously
         """
         from sage.rings.semirings.non_negative_integer_semiring import NN
         if (distance is not None and distance not in NN):
             raise ValueError("distance must be a non-negative integer, not {0}".format(distance))
 
+        if (report_distance and edges):
+            raise ValueError("parameters edges and report_distance cannot be True simultaneously")
+
         # Preferably use the Cython implementation
         if (neighbors is None and not isinstance(start, list) and distance is None
-                and hasattr(self._backend, "breadth_first_search") and not report_distance):
+                and hasattr(self._backend, "breadth_first_search") and not report_distance and not edges):
             for v in self._backend.breadth_first_search(start, ignore_direction=ignore_direction):
                 yield v
         else:
@@ -17515,10 +17662,11 @@ class GenericGraph(GenericGraph_pyx):
                         raise LookupError("start vertex ({0}) is not a vertex of the graph".format(v[0]))
 
             for v, d in queue:
-                if report_distance:
-                    yield v, d
-                else:
-                    yield v
+                if not edges:
+                    if report_distance:
+                        yield v, d
+                    else:
+                        yield v
                 seen.add(v)
 
             while queue:
@@ -17528,8 +17676,10 @@ class GenericGraph(GenericGraph_pyx):
                         if w not in seen:
                             seen.add(w)
                             queue.append((w, d + 1))
-                            if report_distance:
-                                yield w, d + 1
+                            if edges:
+                                yield v, w
+                            elif report_distance:
+                                yield w, d+1
                             else:
                                 yield w
 

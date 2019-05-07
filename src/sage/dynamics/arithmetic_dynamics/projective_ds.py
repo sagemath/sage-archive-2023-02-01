@@ -3950,7 +3950,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([x^4, RR(sqrt(2))*y^4])
             sage: m = matrix(RR, 2, 2, [1,12,0,1])
             sage: f = f.conjugate(m)
-            sage: f.reduced_form(smallest_coeffs=False)
+            sage: f.reduced_form(smallest_coeffs=False) # abs tol 1e-11
             (
             Dynamical System of Projective Space of dimension 1 over Real Field with 53 bits of precision
               Defn: Defined on coordinates by sending (x : y) to

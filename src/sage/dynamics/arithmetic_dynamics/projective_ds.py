@@ -3950,16 +3950,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([x^4, RR(sqrt(2))*y^4])
             sage: m = matrix(RR, 2, 2, [1,12,0,1])
             sage: f = f.conjugate(m)
-            sage: f.reduced_form(smallest_coeffs=False) # abs tol 1e-11
-            (
-            Dynamical System of Projective Space of dimension 1 over Real Field with 53 bits of precision
-              Defn: Defined on coordinates by sending (x : y) to
-                    (x^4 - 2.86348722511320e-12*y^4 : 1.41421356237310*y^4)
-            ,
-            <BLANKLINE>
+            sage: g, m = f.reduced_form(smallest_coeffs=False); m
             [  1 -12]
             [  0   1]
-            )
 
         ::
 
@@ -3967,16 +3960,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([x^4, CC(sqrt(-2))*y^4])
             sage: m = matrix(CC, 2, 2, [1,12,0,1])
             sage: f = f.conjugate(m)
-            sage: f.reduced_form(smallest_coeffs=False)
-            (
-            Dynamical System of Projective Space of dimension 1 over Complex Field with 53 bits of precision
-              Defn: Defined on coordinates by sending (x : y) to
-                    (x^4 + (1.03914726748259e-15)*y^4 : (8.65956056235493e-17 + 1.41421356237309*I)*y^4)
-            ,
-            <BLANKLINE>
+            sage: g, m = f.reduced_form(smallest_coeffs=False); m
             [  1 -12]
             [  0   1]
-            )
 
         ::
 

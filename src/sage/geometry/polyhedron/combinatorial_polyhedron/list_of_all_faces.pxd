@@ -2,6 +2,7 @@ cimport cython
 from libc.stdint                cimport uint64_t
 from sage.ext.memory_allocator  cimport MemoryAllocator
 from .list_of_faces             cimport ListOfFaces
+from .combinatorial_face        cimport CombinatorialFace
 
 @cython.final
 cdef class ListOfAllFaces:
@@ -15,8 +16,8 @@ cdef class ListOfAllFaces:
     cdef size_t *atom_repr          # a place where atom-representaion of face will be stored
     cdef size_t *coatom_repr        # a place where coatom-representaion of face will be stored
 
-    # Atoms and coatoms are the vertices/facets of the Polyedron.
-    # If ``dual == 0``, then coatoms are facets, atoms vertices and vice versa.
+    # Atoms and coatoms are the Vrepr/facets of the Polyedron.
+    # If ``dual == 0``, then coatoms are facets, atoms Vrepresentatives and vice versa.
     cdef ListOfFaces atoms, coatoms
 
     # All faces are stored in ``faces``. ``faces[i]`` stores all faces of
@@ -40,14 +41,15 @@ cdef class ListOfAllFaces:
 
     cdef int _add_face(self, int face_dim, uint64_t *face) except -1
     cdef int _sort(self) except -1
-    cdef int _sort_one_list(self, uint64_t **faces, size_t nr_faces) except -1
+    cdef int _sort_one_list(self, uint64_t **faces, size_t n_faces) except -1
     cdef int _sort_one_list_loop(
             self, uint64_t **inp, uint64_t **output1,
-            uint64_t **output2, size_t nr_faces) except -1
+            uint64_t **output2, size_t n_faces) except -1
     cdef inline size_t find_face(self, int dimension, uint64_t *face) except -1
     cdef inline bint is_smaller(self, uint64_t *one, uint64_t *two)
     cdef inline int is_equal(self, int dimension, size_t index,
                              uint64_t *face) except -1
+    cdef CombinatorialFace get_face(self, int dimension, size_t index)
     cdef size_t set_coatom_repr(self, int dimension, size_t index) except -1
     cdef size_t set_atom_repr(self, int dimension, size_t index) except -1
     cdef void incidence_init(self, int dimension_one, int dimension_two)

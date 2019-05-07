@@ -308,6 +308,9 @@ ext_modules = [
     Extension('sage.geometry.polyhedron.combinatorial_polyhedron.list_of_all_faces',
               sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/list_of_all_faces.pyx']),
 
+    Extension('sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face',
+              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/combinatorial_face.pyx']),
+
     Extension('sage.geometry.polyhedron.combinatorial_polyhedron.conversions',
               sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/conversions.pyx']),
 

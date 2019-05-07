@@ -2,7 +2,7 @@ cimport cython
 from libc.stdint                cimport uint64_t
 from sage.ext.memory_allocator  cimport MemoryAllocator
 from sage.structure.sage_object cimport SageObject
-from .face_iterator             cimport FaceIterator
+from .face_iterator             cimport FaceIterator, CombinatorialFace
 from .list_of_faces             cimport ListOfFaces
 from .list_of_all_faces         cimport ListOfAllFaces
 
@@ -14,28 +14,35 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef tuple _equalities              # stores equalities, given on input (might belong to Hrep)
     cdef int _dimension                 # stores dimension, -2 on init
     cdef unsigned int _length_Hrep      # Hrep might include equalities
-    cdef unsigned int _length_Vrep      # Vrep might include rays/lines
-    cdef size_t _nr_facets              # length Hrep without equalities
+    cdef unsigned int _length_Vrepr      # Vrep might include rays/lines
+    cdef size_t _n_facets               # length Hrep without equalities
     cdef bint _unbounded                # ``True`` iff Polyhedron is unbounded
-    cdef int _nr_lines                  # number of affinely independent lines in the Polyhedron
+    cdef int _n_lines                   # number of affinely independent lines in the Polyhedron
     cdef ListOfFaces bitrep_facets      # facets in bit representation
-    cdef ListOfFaces bitrep_vertices    # vertices in bit representation
+    cdef ListOfFaces bitrep_Vrepr       # vertices in bit representation
     cdef tuple _f_vector
 
     # Edges, ridges and incidences are stored in a pointer of pointers.
-    # This number determines how many edges are stored in ``edges[0]``,
-    # how many ridges are stored in ``ridges[0]`` etc.
+    # The first edge has vertices ``edges[0][0]`` and ``edges[0][1]``,
+    # the second edge has vertices ``edges[0][2]`` and ``edges[0][3]``, etc.
+    # There are ``_length_edges_list`` edges in ``edges[i]``, so the edge
+    # ``_length_edges_list + 1`` has vertices ``edges[1][0]`` and ``edges[1][1]``.
+    # Likewise for ridges and incidences.
     cdef size_t _length_edges_list
 
 
-    cdef size_t **_edges                    # stores edges
-    cdef size_t _nr_edges
-    cdef size_t **_ridges                   # stores ridges
-    cdef size_t _nr_ridges
-    cdef size_t **_face_lattice_incidences  # stores incidences in Hasse diagram
-    cdef size_t _nr_face_lattice_incidences
+    cdef size_t **_edges                    # stores edges labeled by vertex indices
+    cdef size_t _n_edges
+    cdef size_t **_ridges                   # stores ridges labeld by facet indices
+    cdef size_t _n_ridges
+    cdef size_t **_face_lattice_incidences  # stores incidences in Hasse diagram labeled indices of the faces
+    cdef size_t _n_face_lattice_incidences
     cdef ListOfAllFaces _all_faces          # class to generate Hasse diagram incidences
-    cdef tuple _mem_tuple                   # stores MemoryAllocators for edges, ridges etc.
+
+    # Space for edges, ridges, etc. is allocated with ``MemoryAllocators``.
+    # Upon sucess they are copied to ``_mem_tuple``.
+    # Thus deallocation (at the correct time) is taken care of.
+    cdef tuple _mem_tuple
 
     cdef FaceIterator _face_iter(self, bint dual, int dimension)
     cdef int _compute_f_vector(self) except -1

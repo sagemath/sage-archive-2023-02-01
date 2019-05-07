@@ -67,19 +67,19 @@ inline size_t count_atoms(uint64_t* A, size_t face_length){
 }
 
 size_t get_next_level(\
-        uint64_t **faces, const size_t nr_faces, uint64_t **maybe_newfaces, \
+        uint64_t **faces, const size_t n_faces, uint64_t **maybe_newfaces, \
         uint64_t **newfaces, uint64_t **visited_all, \
-        size_t nr_visited_all, size_t face_length){
+        size_t n_visited_all, size_t face_length){
     /*
-    Set ``newfaces`` to be the facets of ``faces[nr_faces -1]``
+    Set ``newfaces`` to be the facets of ``faces[n_faces -1]``
     that are not contained in a face of ``visited_all``.
 
     INPUT:
 
-    - ``maybe_newfaces`` -- quasi of type ``uint64_t[nr_faces -1][face_length]``,
+    - ``maybe_newfaces`` -- quasi of type ``uint64_t[n_faces -1][face_length]``,
       needs to be ``chunksize``-Bit aligned
-    - ``newfaces`` -- quasi of type ``*uint64_t[nr_faces -1]
-    - ``visited_all`` -- quasi of type ``*uint64_t[nr_visited_all]
+    - ``newfaces`` -- quasi of type ``*uint64_t[n_faces -1]
+    - ``visited_all`` -- quasi of type ``*uint64_t[n_visited_all]
     - ``face_length`` -- length of the faces
 
     OUTPUT:
@@ -89,32 +89,32 @@ size_t get_next_level(\
 
     ALGORITHM:
 
-    To get all facets of ``faces[nr_faces-1]``, we would have to:
-    - Intersect the first ``nr_faces-1`` faces of ``faces`` with the last face.
+    To get all facets of ``faces[n_faces-1]``, we would have to:
+    - Intersect the first ``n_faces-1`` faces of ``faces`` with the last face.
     - Add all the intersection of ``visited_all`` with the last face
     - Out of both the inclusion-maximal ones are of codimension one, i.e. facets.
 
     As we have visited all faces of ``visited_all``, we alter the algorithm
     to not revisit:
-    Step 1: Intersect the first ``nr_faces-1`` faces of ``faces`` with the last face.
+    Step 1: Intersect the first ``n_faces-1`` faces of ``faces`` with the last face.
     Step 2: Out of thosse the inclusion-maximal ones are some of the facets.
             At least we obtain all of those, that we have not already visited.
             Maybe, we get some more.
     Step 3: Only keep those that we have not already visited.
-            We obtain exactly the facets of ``faces[nr_faces-1]`` that we have
+            We obtain exactly the facets of ``faces[n_faces-1]`` that we have
             not visited yet.
     */
 
     // Step 1:
-    for (size_t j = 0; j < nr_faces - 1; j++){
-        intersection(faces[j], faces[nr_faces - 1], maybe_newfaces[j], face_length);
+    for (size_t j = 0; j < n_faces - 1; j++){
+        intersection(faces[j], faces[n_faces - 1], maybe_newfaces[j], face_length);
     }
 
     // We keep track, which face in ``maybe_newfaces`` is a new face.
-    int *is_not_newface = new int[nr_faces -1]();
+    int *is_not_newface = new int[n_faces -1]();
 
     // For each face we will Step 2 and Step 3.
-    for (size_t j = 0; j < nr_faces-1; j++){
+    for (size_t j = 0; j < n_faces-1; j++){
         // Step 2a:
         for(size_t k = 0; k < j; k++){
             // Testing if maybe_newfaces[j] is contained in different nextface.
@@ -130,7 +130,7 @@ size_t get_next_level(\
         }
 
         // Step 2b:
-        for(size_t k = j+1; k < nr_faces-1; k++){
+        for(size_t k = j+1; k < n_faces-1; k++){
             // Testing if maybe_newfaces[j] is contained in different nextface.
             if(is_subset(maybe_newfaces[j],maybe_newfaces[k], face_length)){
                 // If so, it is not inclusion-maximal and hence not of codimension 1.
@@ -144,7 +144,7 @@ size_t get_next_level(\
         }
 
         // Step 3:
-        for (size_t k = 0; k < nr_visited_all; k++){
+        for (size_t k = 0; k < n_visited_all; k++){
             // Testing if maybe_newfaces[j] is contained in one,
             // we have already completely visited.
             if(is_subset(maybe_newfaces[j], visited_all[k], face_length)){
@@ -156,31 +156,31 @@ size_t get_next_level(\
     }
 
     // Set ``newfaces`` to point to the correct ones.
-    size_t nr_newfaces = 0;  // length of newfaces2
-    for (size_t j = 0; j < nr_faces -1; j++){
+    size_t n_newfaces = 0;  // length of newfaces2
+    for (size_t j = 0; j < n_faces -1; j++){
         if (is_not_newface[j]) {
             // Not a new face of codimension 1.
             continue;
         }
         // It is a new face of codimension 1.
-        newfaces[nr_newfaces] = maybe_newfaces[j];
-        nr_newfaces++;
+        newfaces[n_newfaces] = maybe_newfaces[j];
+        n_newfaces++;
     }
     delete[] is_not_newface;
-    return nr_newfaces;
+    return n_newfaces;
 }
 
 size_t bit_repr_to_coatom_repr(uint64_t *face, uint64_t **coatoms, \
-                               size_t nr_coatoms, size_t face_length, \
+                               size_t n_coatoms, size_t face_length, \
                                size_t *output){
     /*
     Write the coatom-representation of face in output. Return length.
     ``face_length`` is the length of ``face`` and ``coatoms[i]``
     in terms of uint64_t.
-    ``nr_coatoms`` length of ``coatoms``.
+    ``n_coatoms`` length of ``coatoms``.
     */
     size_t count_length = 0;
-    for (size_t i = 0; i < nr_coatoms; i++){
+    for (size_t i = 0; i < n_coatoms; i++){
         if (is_subset(face, coatoms[i], face_length)){
             // ``face`` is contain in ``coatoms[i]``,
             // then ``i`` is an element in the coatom-represention.

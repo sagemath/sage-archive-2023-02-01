@@ -8,22 +8,23 @@ the face lattice of a polyhedron.
 
 Terminology in this module:
 
-- Vertices              -- ``[vertices, rays, lines]`` of the polyhedron.
+- Vrepr                 -- ``[vertices, rays, lines]`` of the polyhedron.
+- Hrepr                 -- inequalities and equalities of the polyhedron.
 - Facets                -- facets of the polyhedron.
 - Coatoms               -- the faces from which all others are constructed in
-                           the face iterator. This will be facets or vertices.
+                           the face iterator. This will be facets or Vrepr.
                            In non-dual mode, faces are constructed as
                            intersections of the facets. In dual mode, the are
                            constructed theoretically as joins of vertices.
                            The coatoms are reprsented as incidences with the
                            atoms they contain.
-- Atoms                 -- facets or vertices depending on application of algorithm.
+- Atoms                 -- facets or Vrepr depending on application of algorithm.
                            Atoms are reprsented as incidences of coatoms they
                            are contained in.
 
-- Vertex-Representation -- represents a face by a list of vertices it contains.
-- Facet-Representation  -- represents a face by a list of facets it is contained in.
-- Bit-Representation    -- represents incidences as ``uint64_t``-array, where
+- Vrepresentation       -- represents a face by a list of VRepr it contains.
+- Hrepresentation       -- represents a face by a list of Hrepr it is contained in.
+- bit representation    -- represents incidences as ``uint64_t``-array, where
                            each Bit represents one incidences. There might
                            be trailing zeros, to fit alignment-requirements.
                            In most instances, faces are represented by the
@@ -61,11 +62,11 @@ AUTHOR:
 from __future__ import absolute_import, division, print_function
 from .conversions \
         import facets_tuple_to_bit_repr_of_facets, \
-               facets_tuple_to_bit_repr_of_vertices
+               facets_tuple_to_bit_repr_of_Vrepr
 
 from sage.rings.integer     cimport smallInteger
 from libc.string            cimport memcmp, memcpy, memset
-from .conversions           cimport vertex_list_to_bit_repr, bit_repr_to_vertex_list
+from .conversions           cimport Vrepr_list_to_bit_repr, bit_repr_to_Vrepr_list
 from .base                  cimport CombinatorialPolyhedron
 from .face_iterator         cimport FaceIterator
 from .bit_vector_operations cimport intersection, bit_repr_to_coatom_repr
@@ -128,7 +129,7 @@ cdef class ListOfAllFaces:
         self._mem = MemoryAllocator()
         self.dimension = C.dimension()
         self.dual = False
-        if C.bitrep_facets.nr_faces > C.bitrep_vertices.nr_faces:
+        if C.bitrep_facets.n_faces > C.bitrep_Vrepr.n_faces:
             self.dual = True
         if C._unbounded:
             self.dual = False
@@ -160,24 +161,24 @@ cdef class ListOfAllFaces:
         if self.dimension == 0:
             # In case of the 0-dimensional polyhedron, we have to fix atoms and coatoms.
             # So far this didn't matter, as we only iterated over proper faces.
-            self.atoms = facets_tuple_to_bit_repr_of_vertices(((),), 1)
+            self.atoms = facets_tuple_to_bit_repr_of_Vrepr(((),), 1)
             self.coatoms = facets_tuple_to_bit_repr_of_facets(((),), 1)
             self.face_length = self.coatoms.face_length
         else:
             self.atoms = face_iter.atoms
             self.coatoms = face_iter.coatoms
-        cdef size_t nr_atoms = self.atoms.nr_faces
-        self.atom_repr = <size_t *> self._mem.allocarray(self.coatoms.nr_vertices, sizeof(size_t))
-        self.coatom_repr = <size_t *> self._mem.allocarray(self.coatoms.nr_faces, sizeof(size_t))
+        cdef size_t n_atoms = self.atoms.n_faces
+        self.atom_repr = <size_t *> self._mem.allocarray(self.coatoms.n_atoms, sizeof(size_t))
+        self.coatom_repr = <size_t *> self._mem.allocarray(self.coatoms.n_faces, sizeof(size_t))
 
         # Initialize the data for ``faces``:
         cdef ListOfFaces coatoms_mem
-        self.faces_mem = tuple(ListOfFaces(self.f_vector[i+1], nr_atoms)
+        self.faces_mem = tuple(ListOfFaces(self.f_vector[i+1], n_atoms)
                                for i in range(-1, self.dimension-1))
         if self.dimension > -1:
             # the coatoms
             self.faces_mem += (self.coatoms,)
-        self.faces_mem += (ListOfFaces(1, nr_atoms),)  # the full polyhedron
+        self.faces_mem += (ListOfFaces(1, n_atoms),)  # the full polyhedron
 
         # Setting up a pointer to raw data of ``faces``:
         self.faces = <uint64_t ***> self._mem.allocarray(self.dimension + 2, sizeof(uint64_t **))
@@ -189,15 +190,15 @@ cdef class ListOfAllFaces:
         if self.dimension != 0:
             # Initialize the empty face.
             # In case ``dimension == 0``, we would overwrite the coatoms.
-            vertex_list_to_bit_repr((), self.faces[0][0], self.face_length)
+            Vrepr_list_to_bit_repr((), self.faces[0][0], self.face_length)
         # Intialize the full polyhedron
-        vertex_list_to_bit_repr(tuple(j for j in range(nr_atoms)),
+        Vrepr_list_to_bit_repr(tuple(j for j in range(n_atoms)),
                                 self.faces[self.dimension + 1][0],
                                 self.face_length)
 
         # Attributes for iterating over the incidences.
         self.is_incidence_initialized = 0
-        cdef ListOfFaces incidence_face_mem = ListOfFaces(1, nr_atoms)
+        cdef ListOfFaces incidence_face_mem = ListOfFaces(1, n_atoms)
         self.incidence_face = incidence_face_mem.data[0]
         self.faces_mem += (incidence_face_mem,)  # needs to be stored somewhere
 
@@ -205,13 +206,13 @@ cdef class ListOfAllFaces:
         cdef int d
         if face_iter.current_dimension != self.dimension:
             # If there are proper faces.
-            d = face_iter.next_face()
+            d = face_iter.next_dimension()
             while (d == self.dimension - 1):
                 # We already have the coatoms.
-                d = face_iter.next_face()
+                d = face_iter.next_dimension()
             while (d < self.dimension):
                 self._add_face(d, face_iter.face)
-                d = face_iter.next_face()
+                d = face_iter.next_dimension()
 
         # Sorting the faces, except for coatoms.
         self._sort()
@@ -247,23 +248,23 @@ cdef class ListOfAllFaces:
             # Sort each level set, except for coatoms, full- and empty polyhedron.
             self._sort_one_list(self.faces[i], self.f_vector[i])
 
-    cdef int _sort_one_list(self, uint64_t **faces, size_t nr_faces) except -1:
+    cdef int _sort_one_list(self, uint64_t **faces, size_t n_faces) except -1:
         r"""
-        Sort ``faces`` of length ``nr_faces``.
+        Sort ``faces`` of length ``n_faces``.
 
         See :meth:`sort`.
         """
         cdef MemoryAllocator mem = MemoryAllocator()
 
         # Merge sort needs a second list of pointers.
-        cdef uint64_t **extra_mem = <uint64_t **> mem.allocarray(nr_faces, sizeof(uint64_t *))
+        cdef uint64_t **extra_mem = <uint64_t **> mem.allocarray(n_faces, sizeof(uint64_t *))
 
         # Sort the faces using merge sort.
-        self._sort_one_list_loop(faces, faces, extra_mem, nr_faces)
+        self._sort_one_list_loop(faces, faces, extra_mem, n_faces)
 
     cdef int _sort_one_list_loop(
             self, uint64_t **inp, uint64_t **output1,
-            uint64_t **output2, size_t nr_faces) except -1:
+            uint64_t **output2, size_t n_faces) except -1:
         r"""
         This is merge sort.
 
@@ -275,18 +276,18 @@ cdef class ListOfAllFaces:
 
         See :meth:`sort`.
         """
-        if unlikely(nr_faces == 0):
+        if unlikely(n_faces == 0):
             # Prevent it from crashing.
             # In this case there is nothing to do anyway.
             return 0
 
-        if nr_faces == 1:
+        if n_faces == 1:
             # The final case, where there is only one element.
             output1[0] = inp[0]
             return 0
 
-        cdef size_t middle = nr_faces//2
-        cdef size_t len_upper_half = nr_faces - middle
+        cdef size_t middle = n_faces//2
+        cdef size_t len_upper_half = n_faces - middle
 
         # Sort the upper and lower half of ``inp`` iteratively into ``output2``.
         self._sort_one_list_loop(inp, output2, output1, middle)
@@ -297,7 +298,7 @@ cdef class ListOfAllFaces:
         cdef size_t i = 0        # index through lower half
         cdef size_t j = middle   # index through upper half
         cdef size_t counter = 0  # counts how many elements have been "merged" already
-        while i < middle and j < nr_faces:
+        while i < middle and j < n_faces:
             # Compare the lowest elements of lower and upper half.
             if self.is_smaller(output2[i], output2[j]):
                 output1[counter] = output2[i]
@@ -315,7 +316,7 @@ cdef class ListOfAllFaces:
                 counter += 1
         else:
             # Add the remaining elements of upper half.
-            while j < nr_faces:
+            while j < n_faces:
                 output1[counter] = output2[j]
                 j += 1
                 counter += 1
@@ -348,8 +349,7 @@ cdef class ListOfAllFaces:
             sage: P = polytopes.permutahedron(4)
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter()
-            sage: next(it)
-            2
+            sage: face = next(it)
             sage: find_face_from_iterator(it, C)
             Traceback (most recent call last):
             ...
@@ -367,22 +367,22 @@ cdef class ListOfAllFaces:
             raise IndexError("dimension out of range")
         cdef size_t start = 0
         cdef size_t middle
-        cdef nr_faces = self.f_vector[dimension + 1]
+        cdef n_faces = self.f_vector[dimension + 1]
         cdef uint64_t **faces = self.faces[dimension + 1]
 
-        while (nr_faces > 1):
+        while (n_faces > 1):
             # In each iteration step, we will look for ``face`` in
-            # ``faces[start:start+nr_faces]``.
-            middle = nr_faces//2
+            # ``faces[start:start+n_faces]``.
+            middle = n_faces//2
             if self.is_smaller(face, faces[middle + start]):
                 # If face is in the list, then in the lower half.
                 # Look for face in ``faces[start : start + middle]`` in next step.
-                nr_faces = middle
+                n_faces = middle
             else:
                 # If face is in the list, then in the upper half.
-                # Look for face in ``faces[start+middle:start+nr_faces]``, i.e.
-                # ``faces[start + middle : (start + middle) + nr_faces - middle]``.
-                nr_faces -= middle
+                # Look for face in ``faces[start+middle:start+n_faces]``, i.e.
+                # ``faces[start + middle : (start + middle) + n_faces - middle]``.
+                n_faces -= middle
                 start += middle
         return start
 
@@ -405,13 +405,9 @@ cdef class ListOfAllFaces:
         cdef size_t i
         return (0 == memcmp(face, face2, self.face_length*8))
 
-    def vertex_repr(self, dimension, index, names=True):
+    cdef CombinatorialFace get_face(self, int dimension, size_t index):
         r"""
-        Return the vertex-representation of the face of dimension ``dimension``
-        and index ``index``.
-
-        The vertex-representation consists of
-        the ``[vertices, rays, lines]`` that face contains.
+        Return the face of dimension ``dimension`` and index ``index``.
 
         INPUT:
 
@@ -427,7 +423,7 @@ cdef class ListOfAllFaces:
             ....: from sage.geometry.polyhedron.combinatorial_polyhedron.base \
             ....: cimport CombinatorialPolyhedron, FaceIterator, ListOfAllFaces
             ....:
-            ....: def vertex_repr_via_all_faces_from_iterator(it, C1, names):
+            ....: def face_via_all_faces_from_iterator(it, C1):
             ....:     cdef FaceIterator face_iter = it
             ....:     cdef CombinatorialPolyhedron C = C1
             ....:     cdef int dimension = face_iter.current_dimension
@@ -436,163 +432,38 @@ cdef class ListOfAllFaces:
             ....:     if not (all_faces.dual == it.dual):
             ....:         raise ValueError("iterator and allfaces not in same mode")
             ....:     index = all_faces.find_face(dimension, face_iter.face)
-            ....:     return all_faces.vertex_repr(dimension, index, names)
+            ....:     return all_faces.get_face(dimension, index)
             ....: ''')
             sage: P = polytopes.permutahedron(4)
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter(dimension=1)
-            sage: next(it)
-            1
-            sage: vertex_repr_via_all_faces_from_iterator(it, C, True)
+            sage: face = next(it)
+            sage: face_via_all_faces_from_iterator(it, C).Vrepr()
             (A vertex at (3, 1, 4, 2), A vertex at (3, 2, 4, 1))
-            sage: it.vertex_repr()
+            sage: face.Vrepr()
             (A vertex at (3, 1, 4, 2), A vertex at (3, 2, 4, 1))
-            sage: all(vertex_repr_via_all_faces_from_iterator(it, C, True) ==
-            ....:     it.vertex_repr() for _ in it)
+            sage: all(face_via_all_faces_from_iterator(it, C).Vrepr() ==
+            ....:     face.Vrepr() for face in it)
             True
 
             sage: P = polytopes.twenty_four_cell()
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter()
-            sage: d = next(it)
-            sage: while (d == 3): d = next(it)
-            sage: vertex_repr_via_all_faces_from_iterator(it, C, True)
+            sage: face = next(it)
+            sage: while (face.dimension() == 3): face = next(it)
+            sage: face_via_all_faces_from_iterator(it, C).Vrepr()
             (A vertex at (-1/2, 1/2, -1/2, -1/2),
              A vertex at (-1/2, 1/2, 1/2, -1/2),
              A vertex at (0, 0, 0, -1))
-            sage: vertex_repr_via_all_faces_from_iterator(it, C, False)
-            (5, 7, 11)
-            sage: all(vertex_repr_via_all_faces_from_iterator(it, C, False) ==
-            ....:     it.vertex_repr(False) for _ in it)
+            sage: all(face_via_all_faces_from_iterator(it, C).Vrepr(False) ==
+            ....:     face.Vrepr(False) for face in it)
             True
         """
         cdef size_t length
         if self.dual:
-            # if dual, the vertex-represention corresponds to the coatom-representation
+            # if dual, the Vrepresention corresponds to the coatom-representation
             dimension = self.dimension - 1 - dimension  # if dual, the dimensions are reversed
-            length = self.set_coatom_repr(dimension, index)
-            if names and self._V:
-                return tuple(self._V[self.coatom_repr[i]]
-                             for i in range(length))
-            else:
-                return tuple(smallInteger(self.coatom_repr[i])
-                             for i in range(length))
-        else:
-            # if not dual, the vertex-represention corresponds to the atom-representation
-            length = self.set_atom_repr(dimension, index)
-            if names and self._V:
-                return tuple(self._V[self.atom_repr[i]]
-                             for i in range(length))
-            else:
-                return tuple(smallInteger(self.atom_repr[i])
-                             for i in range(length))
-
-    def facet_repr(self, dimension, index, names=True):
-        r"""
-        Return the facet-representation of the face of dimension ``dimension``
-        and index ``index``.
-
-        The facet-representation consists of the facets
-        that contain the face and of the equalities of the polyhedron.
-
-        INPUT:
-
-        - ``dimension`` -- dimension of the face
-        - ``index`` -- index of the face
-        - ``names`` -- if ``True`` returns the names of the ``[facets, equations]``
-          as given on initialization of :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron`
-
-        EXAMPLES::
-
-            sage: cython('''
-            ....: from libc.stdint cimport uint64_t
-            ....: from sage.geometry.polyhedron.combinatorial_polyhedron.base \
-            ....: cimport CombinatorialPolyhedron, FaceIterator, ListOfAllFaces
-            ....:
-            ....: def facet_repr_via_all_faces_from_iterator(it, C1, names):
-            ....:     cdef FaceIterator face_iter = it
-            ....:     cdef CombinatorialPolyhedron C = C1
-            ....:     cdef int dimension = face_iter.current_dimension
-            ....:     C._record_all_faces()
-            ....:     cdef ListOfAllFaces all_faces = C._all_faces
-            ....:     if not (all_faces.dual == it.dual):
-            ....:         raise ValueError("iterator and allfaces not in same mode")
-            ....:     index = all_faces.find_face(dimension, face_iter.face)
-            ....:     return all_faces.facet_repr(dimension, index, names)
-            ....: ''')
-            sage: P = polytopes.permutahedron(4)
-            sage: C = CombinatorialPolyhedron(P)
-            sage: it = C.face_iter(dimension=1)
-            sage: next(it)
-            1
-            sage: facet_repr_via_all_faces_from_iterator(it, C, True)
-            (An inequality (0, 0, -1, 0) x + 4 >= 0,
-             An inequality (0, 1, 0, 1) x - 3 >= 0,
-             An equation (1, 1, 1, 1) x - 10 == 0)
-            sage: all(facet_repr_via_all_faces_from_iterator(it, C, True) ==
-            ....:     it.facet_repr() for _ in it)
-            True
-
-            sage: P = polytopes.twenty_four_cell()
-            sage: C = CombinatorialPolyhedron(P)
-            sage: it = C.face_iter()
-            sage: d = next(it)
-            sage: while (d == 3): d = next(it)
-            sage: facet_repr_via_all_faces_from_iterator(it, C, True)
-            (An inequality (1, 0, 0, 1) x + 1 >= 0, An inequality (0, -1, 0, 1) x + 1 >= 0)
-            sage: facet_repr_via_all_faces_from_iterator(it, C, False)
-            (16, 23)
-            sage: all(facet_repr_via_all_faces_from_iterator(it, C, False) ==
-            ....:     it.facet_repr(False) for _ in it)
-            True
-
-            sage: P = Polyhedron(vertices=[[0,1]])
-            sage: C = CombinatorialPolyhedron(P)
-            sage: C.face_lattice_facet_repr(0)
-            (An equation (0, 1) x - 1 == 0, An equation (1, 0) x + 0 == 0)
-            sage: C.face_lattice_facet_repr(1)
-            (An equation (0, 1) x - 1 == 0, An equation (1, 0) x + 0 == 0)
-            sage: C.face_lattice_vertex_repr(0)
-            ()
-            sage: C.face_lattice_vertex_repr(1)
-            (A vertex at (0, 1),)
-
-            sage: P = Polyhedron()
-            sage: C = CombinatorialPolyhedron(P)
-            sage: C.face_lattice_facet_repr(0)
-            (An equation -1 == 0,)
-
-            sage: P = Polyhedron(lines=[[0,1]])
-            sage: C = CombinatorialPolyhedron(P)
-            sage: C.face_lattice_facet_repr(0)
-            (An equation (1, 0) x + 0 == 0,)
-            sage: C.face_lattice_facet_repr(1)
-            (An equation (1, 0) x + 0 == 0,)
-        """
-        cdef size_t length
-        if not self.dual:
-            # if not dual, the vertex-represention corresponds to the coatom-representation
-            length = self.set_coatom_repr(dimension, index)
-            if unlikely((self.coatoms.nr_faces == 0 or self.dimension == 0)
-                        and names and self._H is not None):
-                # in this case the facet does not correspond to a Hrep
-                return self._equalities + self._H
-            elif names and self._H:
-                return tuple(self._H[self.coatom_repr[i]]
-                             for i in range(length)) + self._equalities
-            else:
-                return tuple(smallInteger(self.coatom_repr[i])
-                             for i in range(length))
-        else:
-            # if dual, the facet-represention corresponds to the atom-representation
-            dimension = self.dimension - 1 - dimension  # if dual, the dimensions are reversed
-            length = self.set_atom_repr(dimension, index)
-            if names and self._H:
-                return tuple(self._H[self.atom_repr[i]]
-                             for i in range(length)) + self._equalities
-            else:
-                return tuple(smallInteger(self.atom_repr[i])
-                             for i in range(length))
+        return CombinatorialFace(self, dimension=dimension, index=index)
 
     cdef size_t set_coatom_repr(self, int dimension, size_t index) except -1:
         r"""
@@ -608,14 +479,14 @@ cdef class ListOfAllFaces:
             raise ValueError("no face of dimension %s"%dimension)
         if unlikely(index >= self.f_vector[dimension + 1]):
             raise IndexError("no %s-th face of dimension %s"%(index, dimension))
-        if unlikely(self.coatoms.nr_faces == 0):
+        if unlikely(self.coatoms.n_faces == 0):
             return 0
 
-        cdef size_t nr_coatoms = self.f_vector[self.dimension]
+        cdef size_t n_coatoms = self.f_vector[self.dimension]
         cdef uint64_t **coatoms = self.faces[self.dimension]
         cdef size_t face_length = self.face_length
         cdef uint64_t *face = self.faces[dimension+1][index]
-        return bit_repr_to_coatom_repr(face, coatoms, nr_coatoms,
+        return bit_repr_to_coatom_repr(face, coatoms, n_coatoms,
                                        face_length, self.coatom_repr)
 
     cdef size_t set_atom_repr(self, int dimension, size_t index) except -1:
@@ -635,7 +506,7 @@ cdef class ListOfAllFaces:
 
         cdef size_t face_length = self.face_length
         cdef uint64_t *face = self.faces[dimension+1][index]
-        return bit_repr_to_vertex_list(face, self.atom_repr, face_length)
+        return bit_repr_to_Vrepr_list(face, self.atom_repr, face_length)
 
     cdef void incidence_init(self, int dimension_one, int dimension_two):
         r"""
@@ -701,7 +572,7 @@ cdef class ListOfAllFaces:
         ``two[0]`` will represent the index of a face in ``dimension_two``
         according to their order in :class:`ListOfAllFaces`.
 
-        Use :meth:`vertex_repr` and :meth:`facet_repr` to interpret the output.
+        Use :meth:`Vrepr` and :meth:`Hrepr` to interpret the output.
 
         ALGORITHM:
 

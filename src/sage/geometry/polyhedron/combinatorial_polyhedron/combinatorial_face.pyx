@@ -87,7 +87,7 @@ AUTHOR:
 from __future__ import absolute_import, division, print_function
 
 import numbers
-from sage.rings.integer     cimport smallInteger,
+from sage.rings.integer     cimport smallInteger
 from .conversions           cimport bit_repr_to_Vrepr_list
 from .base                  cimport CombinatorialPolyhedron
 from .bit_vector_operations cimport count_atoms, bit_repr_to_coatom_repr
@@ -201,13 +201,13 @@ cdef class CombinatorialFace(SageObject):
             self._hash_index        = it._index
 
         elif isinstance(data, ListOfAllFaces):
-            assert isinstance(dimension,numbers.integral), "dimension must be an integer"
-            assert isinstance(index, numbers.integral), "index must be an integer"
+            all_faces = data
+            assert isinstance(dimension, numbers.Integral), "dimension must be an integer"
+            assert isinstance(index, numbers.Integral), "index must be an integer"
             assert -1 <= dimension <= all_faces.dimension, "dimension must be a face dimension of the polyhedron"
             assert 0 <= index < all_faces.f_vector[dimension + 1], "index is out of range"
 
             # Copy data from ListOfAllFaces.
-            all_faces = data
             self._dual              = all_faces.dual
             self.face_mem           = ListOfFaces(1, all_faces.face_length*64)
             self.face               = self.face_mem.data[0]

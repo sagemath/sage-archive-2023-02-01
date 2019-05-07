@@ -5887,7 +5887,7 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
             sage: R.<x,y> = ProjectiveSpace(GF(3^2,'t'),1)
             sage: f = DynamicalSystem_projective([x^3,y^3])
             sage: lst, label = f.automorphism_group(return_functions=True, iso_type=True) # long time
-            sage: sorted(lst, key=str), label
+            sage: sorted(lst, key=str), label # long time
             ([(2*x + 1)/(x + 1),
               (2*x + 1)/x,
               (2*x + 2)/(x + 2),

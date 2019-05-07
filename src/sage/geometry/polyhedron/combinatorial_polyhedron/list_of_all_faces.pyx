@@ -471,9 +471,7 @@ cdef class ListOfAllFaces:
         of dimension ``dimension`` and index ``index``.
         Return its length.
 
-        .. SEEALSO::
-
-            :class:`ListOfAllFaces`.
+        This is a shortcut of :class:`sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face.CombinatorialFace.set_coatom_repr`
         """
         if unlikely(dimension < -1 or dimension > self.dimension):
             raise ValueError("no face of dimension %s"%dimension)
@@ -495,9 +493,7 @@ cdef class ListOfAllFaces:
         of dimension ``dimension`` and index ``index``.
         Return its length.
 
-        .. SEEALSO::
-
-            :class:`ListOfAllFaces`.
+        This is a shortcut of :class:`sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face.CombinatorialFace.set_atom_repr`
         """
         if unlikely(dimension < -1 or dimension > self.dimension):
             raise ValueError("no face of dimension %s"%dimension)

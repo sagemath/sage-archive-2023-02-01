@@ -1919,12 +1919,12 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: AR(0).O()
             Traceback (most recent call last):
             ...
-            NotImplementedOZero: The error term in the result is O(0)
-            which means 0 for sufficiently large x.
+            NotImplementedOZero: got O(0)
+            The error term O(0) means 0 for sufficiently large x.
         """
         if not self.summands:
             from .misc import NotImplementedOZero
-            raise NotImplementedOZero(self.parent())
+            raise NotImplementedOZero(self.parent(), exact_part=self.parent().zero())
         return sum(self.parent().create_summand('O', growth=element)
                    for element in self.summands.maximal_elements())
 
@@ -3205,7 +3205,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: (1/T)._singularity_analysis_('n', 1)
             Traceback (most recent call last):
             ...
-            NotImplementedOZero: T^(-1)
+            NotImplementedOZero: got O(0)
+            The error term O(0) means 0 for sufficiently large n.
         """
         from .misc import NotImplementedOZero
         OZeroEncountered = False
@@ -3219,14 +3220,15 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                 contribution = s._singularity_analysis_(
                     var=var, zeta=zeta,
                     precision=precision)
-            except NotImplementedOZero:
+            except NotImplementedOZero as ozero:
                 OZeroEncountered = True
+                result += ozero.exact_part
             else:
                 result += contribution
 
         if OZeroEncountered and (isinstance(result, int) and result == 0
                                  or result.is_exact()):
-            raise NotImplementedOZero(self)
+            raise NotImplementedOZero(var=var, exact_part=result)
         return result
 
     def limit(self):
@@ -4249,13 +4251,14 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
                 contribution = singular_expansion._singularity_analysis_(
                         var='Z', zeta=singularity,
                         precision=precision).subs(Z=self.gen())
-            except NotImplementedOZero:
+            except NotImplementedOZero as ozero:
                 OZeroEncountered = True
+                result += ozero.exact_part.subs(Z=self.gen())
             else:
                 result += contribution
 
         if OZeroEncountered and result.is_exact():
-            raise NotImplementedOZero(self)
+            raise NotImplementedOZero(self, exact_part=result)
 
         if return_singular_expansions:
             from collections import namedtuple

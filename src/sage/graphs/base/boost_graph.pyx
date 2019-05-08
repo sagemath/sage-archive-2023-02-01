@@ -32,6 +32,7 @@ with ``delete()``.
     :func:`johnson_shortest_paths` | Use Johnson algorithm to compute the all-pairs shortest paths.
     :func:`johnson_closeness_centrality` | Use Johnson algorithm to compute the closeness centrality of all vertices.
     :func:`blocks_and_cut_vertices` | Use Tarjan's algorithm to compute the blocks and cut vertices of the graph.
+    :func:`min_cycle_basis` | Return a minimum weight cycle basis of the input graph.
 
 Functions
 ---------
@@ -50,7 +51,8 @@ from __future__ import absolute_import
 
 cimport cython
 from cysignals.signals cimport sig_check, sig_on, sig_off
-
+from libcpp.set cimport set as cset
+from libcpp.pair cimport pair
 
 cdef boost_graph_from_sage_graph(BoostGenGraph *g, g_sage, vertex_to_int, reverse=False):
     r"""
@@ -1227,3 +1229,121 @@ cpdef johnson_closeness_centrality(g, weight_function=None):
             closeness.push_back(sys.float_info.max)
         sig_check()
     return {v: closeness[i] for i,v in enumerate(int_to_v) if closeness[i] != sys.float_info.max}
+
+cpdef min_cycle_basis(g_sage, weight_function=None, by_weight=False):
+    r"""
+    Return a minimum weight cycle basis of the input graph ``g_sage``.
+
+    A cycle basis is a list of cycles (list of vertices forming a cycle) of
+    ``g_sage``. Note that the vertices are not necessarily returned in the order
+    in which they appear in the cycle.
+
+    A minimum weight cycle basis is a cycle basis that minimizes the sum of the
+    weights (length for unweighted graphs) of its cycles.
+
+    Not implemented for directed graphs and multigraphs.
+
+    INPUT:
+
+    - ``g_sage`` -- a Sage Graph
+
+    - ``weight_function`` -- function (default: ``None``); a function that takes
+      as input an edge ``(u, v, l)`` and outputs its weight. If not ``None``,
+      ``by_weight`` is automatically set to ``True``. If ``None`` and
+      ``by_weight`` is ``True``, we use the edge label ``l`` as a weight.
+
+    - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges in
+      the graph are weighted, otherwise all edges have weight 1
+
+    EXAMPLES::
+
+        sage: g = Graph([(1, 2, 3), (2, 3, 5), (3, 4, 8), (4, 1, 13), (1, 3, 250), (5, 6, 9), (6, 7, 17), (7, 5, 20)])
+        sage: sorted(g.minimum_cycle_basis(by_weight=True))
+        [[1, 2, 3], [1, 2, 3, 4], [5, 6, 7]]
+        sage: sorted(g.minimum_cycle_basis())
+        [[1, 2, 3], [1, 3, 4], [5, 6, 7]]
+
+    .. SEEALSO::
+
+        * :wikipedia:`Cycle_basis`
+    """
+
+    cdef Py_ssize_t u_int, v_int, i, j
+    cdef object u, v
+    cdef Py_ssize_t n = g_sage.num_verts()
+    cdef list int_to_vertex = list(g_sage)
+    cdef dict vertex_to_int = {u: u_int for u_int, u in enumerate(int_to_vertex)}
+    cdef list edgelist
+    if by_weight and weight_function is not None:
+        edgelist = [(vertex_to_int[e[0]], vertex_to_int[e[1]], float(weight_function(e)))
+                        for e in g_sage.edge_iterator()]
+    if by_weight:
+        edgelist = [(vertex_to_int[e[0]], vertex_to_int[e[1]], float(e[2]))
+                        for e in g_sage.edge_iterator()]
+    else:
+        edgelist = [(vertex_to_int[u], vertex_to_int[v], 1) for u, v in g_sage.edge_iterator(labels=False)]
+
+    # We just need the edges of any spanning tree here not necessarily a
+    # minimum spanning tree.
+    
+    cdef list sp_edges = min_spanning_tree(g_sage)
+    cdef cset[pair[int, int]] edges_s
+    for a, b, c in sp_edges:
+        edges_s.insert((a, b))
+    # Edges of self that are not in the spanning tree
+    cdef list edges_c = [e for e in g_sage.edge_iterator(labels=False) if not edges_s.count(e)]
+    cdef list edges_complement = [frozenset((vertex_to_int[u], vertex_to_int[v])) for u, v in edges_c]
+    cdef Py_ssize_t l = len(edges_complement)
+    cdef list orth_set = [set([e]) for e in edges_complement]
+    cdef list cycle_basis = []
+    cdef set base
+    cdef BoostVecWeightedGraph g_boost_und
+    cdef vector[vector[double]] all_pair_shortest_pathlens
+    cdef result_distances min_path
+    cdef list min_path_nodes
+    cdef dict cross_paths_lens
+    cdef float edge_w
+
+    for i in range(l):
+        base = orth_set[i]
+        # For each edge in g, add 2 edges to g_boost_und: "cross" edges if edge
+        # is in base, otherwise "in-plane" edges
+        g_boost_und = BoostVecWeightedGraph()
+        for u_int in range(2 * n):
+            g_boost_und.add_vertex()
+        for u_int, v_int, edge_w in edgelist:
+            # mapping the nodes in g from 0 to n-1
+            if frozenset((u_int, v_int)) in base:
+                g_boost_und.add_edge(u_int, n + v_int, edge_w)
+                g_boost_und.add_edge(n + u_int, v_int, edge_w)
+            else:
+                g_boost_und.add_edge(u_int, v_int, edge_w)
+                g_boost_und.add_edge(n + u_int, n + v_int, edge_w)
+
+        sig_on()
+        all_pair_shortest_pathlens = g_boost_und.johnson_shortest_paths()
+        sig_off()
+        cross_paths_lens = {j: all_pair_shortest_pathlens[j][n + j] for j in range(n)}
+        u_int = min(cross_paths_lens, key=cross_paths_lens.get)
+        v_int = n + u_int
+        sig_on()
+        min_path = g_boost_und.dijkstra_shortest_paths(u_int)
+        sig_off()
+        # Mapping the nodes in G to nodes in g
+        min_path_nodes = [v_int if v_int < n else v_int - n]
+        while v_int != u_int:
+            v_int = min_path.predecessors[v_int]
+            min_path_nodes.append(v_int if v_int < n else v_int - n)
+
+        # removal of edges occuring even number of times
+        edges = set()
+        for edge in zip(min_path_nodes[:-1], min_path_nodes[1:]):
+            edges ^= {edge}
+        new_cycle = {frozenset(e) for e in edges}
+        cycle_basis.append([int_to_vertex[u_int] for u_int in set().union(*new_cycle)])
+        # updating orth_set so that i+1, i+2, ...th elements are orthogonal
+        # to the newly found cycle
+        for j in range(i + 1, l):
+            if len(orth_set[j] & new_cycle) % 2:
+                orth_set[j] = orth_set[j] ^ base
+    return cycle_basis

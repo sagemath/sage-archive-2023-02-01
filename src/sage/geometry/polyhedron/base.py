@@ -3054,13 +3054,6 @@ class Polyhedron_base(Element):
             sage: poly_eggs = Polyhedron([[5,4,5,4],[-4,5,-4,5],[4,-5,4,-5],[0,0,0,0]], base_ring=QQ)
             sage: poly_spam + poly_spam + poly_eggs
             A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 12 vertices
-
-        TESTS::
-
-            sage: Z = X.Minkowski_sum(X)
-            doctest:warning...:
-            DeprecationWarning: Minkowski_sum is deprecated. Please use minkowski_sum instead.
-            See http://trac.sagemath.org/23685 for details.
         """
         new_vertices = []
         for v1 in self.vertex_generator():
@@ -3074,8 +3067,6 @@ class Polyhedron_base(Element):
             return self.parent().element_class(self.parent(), None, None)
 
     _add_ = minkowski_sum
-
-    Minkowski_sum = deprecated_function_alias(23685, minkowski_sum)
 
     @coerce_binop
     def minkowski_difference(self, other):
@@ -3165,13 +3156,6 @@ class Polyhedron_base(Element):
             True
             sage: (X-Y)+Y == X
             True
-
-        TESTS::
-
-            sage: Z = X.Minkowski_difference(X)
-            doctest:warning...:
-            DeprecationWarning: Minkowski_difference is deprecated. Please use minkowski_difference instead.
-            See http://trac.sagemath.org/23685 for details.
         """
         if other.is_empty():
             return self.parent().universe()   # empty intersection = everything
@@ -3192,9 +3176,6 @@ class Polyhedron_base(Element):
             new_ieqs.append(ieq)
         P = self.parent()
         return P.element_class(P, None, [new_ieqs, new_eqns])
-
-    Minkowski_difference = deprecated_function_alias(23685,
-                                                     minkowski_difference)
 
     def __sub__(self, other):
         r"""
@@ -3261,18 +3242,8 @@ class Polyhedron_base(Element):
             False
             sage: C.is_minkowski_summand(B)
             False
-
-        TESTS::
-
-            sage: b = C.is_Minkowski_summand(B)
-            doctest:warning...:
-            DeprecationWarning: is_Minkowski_summand is deprecated. Please use is_minkowski_summand instead.
-            See http://trac.sagemath.org/23685 for details.
         """
         return self.minkowski_difference(Y).minkowski_sum(Y) == self
-
-    is_Minkowski_summand = deprecated_function_alias(23685,
-                                                     is_minkowski_summand)
 
     def translation(self, displacement):
         """

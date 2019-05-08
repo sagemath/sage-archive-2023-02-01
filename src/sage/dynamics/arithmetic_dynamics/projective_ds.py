@@ -4100,7 +4100,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             d = ZZ(pts_poly.degree())
             try:
                 max_mult = max([ex for p,ex in pts_poly.factor()])
-            except NotImplementedError: #not factorization in numericla rings
+            except NotImplementedError: #not factorization in numerical rings
                 CF = ComplexField(prec=prec)
                 if pts_poly.base_ring() != CF:
                     if emb is None:
@@ -4120,7 +4120,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 d = ZZ(pts_poly.degree())
                 try:
                     max_mult = max([ex for p,ex in pts_poly.factor()])
-                except NotImplementedError: #not factorization in numericla rings
+                except NotImplementedError: #not factorization in numerical rings
                     CF = ComplexField(prec=prec)
                     if pts_poly.base_ring() != CF:
                         if emb is None:

@@ -73,7 +73,7 @@ AUTHORS:
   and bug-fix in cmd-string for calling GAP (see :trac:`26028`)
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 David Joyner and William Stein
 #       Copyright (C) 2013 Volker Braun <vbraun.name@gmail.com>
 #
@@ -81,8 +81,8 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.rings.all import ZZ
 from sage.rings.finite_rings.finite_field_base import is_FiniteField
@@ -499,7 +499,7 @@ class OrthogonalMatrixGroup_generic(NamedMatrixGroup_generic):
         return m
 
     invariant_quadratic_form = invariant_bilinear_form # this is identical in the generic case
-    invariant_form           = invariant_bilinear_form # alias (analogues to symplectc and unitary cases)
+    invariant_form           = invariant_bilinear_form # alias (analogues to symplectic and unitary cases)
 
     def _check_matrix(self, x, *args):
         """a
@@ -583,7 +583,7 @@ class OrthogonalMatrixGroup_gap(OrthogonalMatrixGroup_generic, NamedMatrixGroup_
         m.set_immutable()
         return m
 
-    invariant_form  = invariant_bilinear_form # alias (analogues to symplectc and unitary cases)
+    invariant_form = invariant_bilinear_form # alias (analogues to symplectic and unitary cases)
 
     @cached_method
     def invariant_quadratic_form(self):

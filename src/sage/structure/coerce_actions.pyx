@@ -253,7 +253,7 @@ cdef class ModuleAction(Action):
     By default, the sample elements of ``S`` and ``G`` are obtained from
     :meth:`~sage.structure.parent.Parent.an_element`, which relies on the
     implementation of an ``_an_element_()`` method. This is not always
-    awailable. But usually, the action is only needed when one already
+    available. But usually, the action is only needed when one already
     *has* two elements. Hence, by :trac:`14249`, the coercion model will
     pass these two elements to the :class:`ModuleAction` constructor.
 

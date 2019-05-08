@@ -4145,7 +4145,8 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
 
     def coefficients_of_generating_function(self, function, singularities, precision=None,
-                             return_singular_expansions=False):
+                                            return_singular_expansions=False,
+                                            error_term=None):
         r"""
         Return the asymptotic growth of the coefficients of some
         generating function by means of Singularity Analysis.
@@ -4161,6 +4162,11 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
         - ``return_singular_expansions`` -- (default: ``False``) a boolean.
           If set, the singular expansions are also returned.
+
+        - ``error_term`` -- (default: ``None``) an asymptotic expansion.
+          If ``None``, then this is interpreted as zero.
+          The contributions of the coefficients are added to ``error_term``
+          during Singularity Analysis.
 
         OUTPUT:
 
@@ -4221,15 +4227,24 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             ``return_singular_expansions`` will change to return singular
             expansions around the singularities.
 
-        TESTS::
+        In the following example, the result is an exact asymptotic expression
+        for sufficiently large `n` (i.e., there might be finitely many
+        exceptional values). This is encoded by an `O(0)` error term::
 
             sage: def f(z):
             ....:     return z/(1-z)
             sage: B.coefficients_of_generating_function(f, (1,), precision=3)
             Traceback (most recent call last):
             ...
-            NotImplementedOZero: The error term in the result is O(0)
-            which means 0 for sufficiently large n.
+            NotImplementedOZero: got 1 + O(0)
+            The error term O(0) means 0 for sufficiently large n.
+
+        In this case, we can manually intervene by adding an an error term
+        that suits us::
+
+            sage: B.coefficients_of_generating_function(f, (1,), precision=3,
+            ....:                                       error_term=O(n^-100))
+            1 + O(n^(-100))
         """
         from sage.symbolic.ring import SR
         from .misc import NotImplementedOZero
@@ -4242,7 +4257,10 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
                            default_prec=precision)
         T = A.gen()
 
-        result = A.zero()
+        if error_term is None:
+            result = self.zero()
+        else:
+            result = error_term
         for singularity in singularities:
             singular_expansion = A(function((1-1/T)*singularity))
             singular_expansions[singularity] = singular_expansion

@@ -50,7 +50,7 @@ We verify Lagrange's four squares identity::
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
 from six.moves import range
@@ -1880,6 +1880,9 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         If a second argument is not provided, the first variable of
         ``self.parent()`` is chosen.
 
+        For inexact rings or rings not available in Singular,
+        this computes the determinant of the Sylvester matrix.
+
         INPUT:
 
         - ``other`` -- polynomial in ``self.parent()``
@@ -1914,11 +1917,18 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: (x^2 + 1).resultant(x^2 - y)
             y^2 + 2*y + 1
 
+        Test for :trac:`2693`::
+
+            sage: R.<x,y> = RR[]
+            sage: p = x + y
+            sage: q = x*y
+            sage: p.resultant(q)
+            -y^2
         """
         R = self.parent()
         if variable is None:
             variable = R.gen(0)
-        if R._has_singular:
+        if R._has_singular and R.is_exact():
             rt = self._singular_().resultant(other._singular_(), variable._singular_())
             r = rt.sage_poly(R)
         else:

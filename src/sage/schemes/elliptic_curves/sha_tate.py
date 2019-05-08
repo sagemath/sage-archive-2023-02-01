@@ -1082,11 +1082,10 @@ class Sha(SageObject):
         # We include 2 since Kolyvagin (in Gross) says nothing there
         if n == 0:
             return 0, 0  # no bound
-        F = factor(n)
         B = [2]
         for p, e in factor(n):
             if p > 2:
-                if e % 2 != 0:
+                if e % 2:
                     raise RuntimeError("Problem in bound_kolyvagin; square of index is not a perfect square!  D=%s, I=%s, n=%s, e=%s." % (D, I, n, e))
                 B.append(p)
             else:
@@ -1094,7 +1093,7 @@ class Sha(SageObject):
         if not ignore_nonsurj_hypothesis:
             for p in E.galois_representation().non_surjective():
                 B.append(p)
-        B = sorted(set([int(x) for x in B]))
+        B = sorted(set(int(x) for x in B))
         return B, n
 
     def bound_kato(self):

@@ -2576,7 +2576,9 @@ cdef class NumberFieldElement(FieldElement):
             Traceback (most recent call last):
             ...
             TypeError: cannot coerce nonconstant polynomial to long
-            sage: long(K(1234))
+            sage: long(K(1234)) # py2
+            doctest:...: DeprecationWarning: converting polynomials to longs is deprecated, since long() will no longer be supported in Python 3
+            See https://trac.sagemath.org/27675 for details.
             1234L
 
         The value does not have to be preserved, in the case of fractions.

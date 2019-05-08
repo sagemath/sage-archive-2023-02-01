@@ -489,13 +489,11 @@ def best_known_covering_design_www(v, k, t, verbose=False):
     # import compatible with py2 and py3
     from six.moves.urllib.request import urlopen
 
-    from sage.misc.sage_eval import sage_eval
-
     v = int(v)
     k = int(k)
     t = int(t)
 
-    param = ("?v=%s&k=%s&t=%s"%(v,k,t))
+    param = ("?v=%s&k=%s&t=%s" % (v, k, t))
 
     url = "https://math.ccrwest.org/cover/get_cover.php"+param
     if verbose:

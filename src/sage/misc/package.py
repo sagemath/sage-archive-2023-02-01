@@ -135,12 +135,12 @@ def pip_installed_packages():
     EXAMPLES::
 
         sage: from sage.misc.package import pip_installed_packages
-        sage: d = pip_installed_packages()
-        sage: 'scipy' in d
+        sage: d = pip_installed_packages()  # optional - build
+        sage: 'scipy' in d  # optional - build
         True
-        sage: d['scipy']
+        sage: d['scipy']  # optional - build
         u'...'
-        sage: d['beautifulsoup']   # optional - beautifulsoup
+        sage: d['beautifulsoup']   # optional - build beautifulsoup
         u'...'
     """
     with open(os.devnull, 'w')  as devnull:
@@ -192,21 +192,21 @@ def list_packages(*pkg_types, **opts):
          ...
          'zn_poly',
          'zope_interface']
-        sage: L['ppl']
+        sage: L['ppl']  # optional - build
         {'installed': True,
          'installed_version': '...',
          'remote_version': '...',
          'type': 'standard'}
 
-        sage: L = list_packages('pip', local=True)
+        sage: L = list_packages('pip', local=True)  # optional - build
         sage: L['beautifulsoup']
         {'installed': ...,
          'installed_version': ...,
          'remote_version': None,
          'type': 'pip'}
 
-        sage: L = list_packages('pip')   # optional - internet
-        sage: L['beautifulsoup']         # optional - internet
+        sage: L = list_packages('pip')   # optional - build internet
+        sage: L['beautifulsoup']         # optional - build internet
         {'installed': ...,
          'installed_version': ...,
          'remote_version': u'...',
@@ -214,7 +214,7 @@ def list_packages(*pkg_types, **opts):
 
     Check the option ``exclude_pip``::
 
-        sage: list_packages('pip', exclude_pip=True)
+        sage: list_packages('pip', exclude_pip=True)  # optional - build
         {}
     """
     if not pkg_types:
@@ -279,7 +279,7 @@ def installed_packages(exclude_pip=True):
 
     EXAMPLES::
 
-        sage: installed_packages()
+        sage: installed_packages()  # optional - build
         {...'arb': ...'pynac': ...}
 
     .. SEEALSO::
@@ -309,12 +309,12 @@ def is_package_installed(package, exclude_pip=True):
 
     EXAMPLES::
 
-        sage: is_package_installed('pari')
+        sage: is_package_installed('pari')  # optional - build
         True
 
     Giving just the beginning of the package name is not good enough::
 
-        sage: is_package_installed('matplotli')
+        sage: is_package_installed('matplotli')  # optional - build
         False
 
     Otherwise, installing "pillow" would cause this function to think
@@ -323,7 +323,7 @@ def is_package_installed(package, exclude_pip=True):
     Check that the option ``exclude_pip`` is turned on by default::
 
         sage: from sage.misc.package import list_packages
-        sage: for pkg in list_packages('pip', local=True):
+        sage: for pkg in list_packages('pip', local=True):  # optional - build
         ....:     assert not is_package_installed(pkg)
 
     .. NOTE::
@@ -362,8 +362,8 @@ def package_versions(package_type, local=False):
 
     EXAMPLES::
 
-        sage: std = package_versions('standard', local=True)
-        sage: 'gap' in std
+        sage: std = package_versions('standard', local=True)  # optional - build
+        sage: 'gap' in std  # optional - build
         True
         sage: std['zn_poly']  # random
         ('0.9.p12', '0.9.p12')
@@ -391,13 +391,14 @@ def standard_packages():
     EXAMPLES::
 
         sage: from sage.misc.package import standard_packages
-        sage: installed, not_installed = standard_packages()
-        sage: installed[0], installed[-1]
+        sage: installed, not_installed = standard_packages()  # optional - build
+        sage: installed[0], installed[-1]  # optional - build
         ('alabaster', 'zope_interface')
     """
     pkgs = list_packages('standard', local=True).values()
     return (sorted(pkg['name'] for pkg in pkgs if pkg['installed']),
             sorted(pkg['name'] for pkg in pkgs if not pkg['installed']))
+
 
 def optional_packages():
     """
@@ -419,15 +420,15 @@ def optional_packages():
     EXAMPLES::
 
         sage: from sage.misc.package import optional_packages
-        sage: installed, not_installed = optional_packages()
-        sage: 'ore_algebra' in installed+not_installed
+        sage: installed, not_installed = optional_packages()  # optional - build
+        sage: 'ore_algebra' in installed+not_installed  # optional - build
         True
-        sage: 'beautifulsoup' in installed+not_installed
+        sage: 'beautifulsoup' in installed+not_installed  # optional - build
         True
 
-        sage: 'beautifulsoup' in installed   # optional - beautifulsoup
+        sage: 'beautifulsoup' in installed   # optional - build beautifulsoup
         True
-        sage: 'ore_algebra' in installed     # optional - ore_algebra
+        sage: 'ore_algebra' in installed     # optional - build ore_algebra
         True
     """
     pkgs = list_packages('optional', local=True)
@@ -457,7 +458,7 @@ def experimental_packages():
     EXAMPLES::
 
         sage: from sage.misc.package import experimental_packages
-        sage: installed, not_installed = experimental_packages()
+        sage: installed, not_installed = experimental_packages()  # optional - build
     """
     pkgs = list_packages('experimental', local=True).values()
     return (sorted(pkg['name'] for pkg in pkgs if pkg['installed']),
@@ -479,15 +480,15 @@ def package_manifest(package):
     EXAMPLES::
 
         sage: from sage.misc.package import package_manifest
-        sage: sagetex_manifest = package_manifest('sagetex')
-        sage: sagetex_manifest['package_name'] == 'sagetex'
+        sage: sagetex_manifest = package_manifest('sagetex')  # optional - build
+        sage: sagetex_manifest['package_name'] == 'sagetex'  # optional - build
         True
-        sage: 'files' in sagetex_manifest
+        sage: 'files' in sagetex_manifest  # optional - build
         True
 
     Test a nonexistent package::
 
-        sage: package_manifest('dummy-package')
+        sage: package_manifest('dummy-package')  # optional - build
         Traceback (most recent call last):
         ...
         KeyError: 'dummy-package'

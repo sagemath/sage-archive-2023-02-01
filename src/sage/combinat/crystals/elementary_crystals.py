@@ -666,6 +666,7 @@ class RCrystal(UniqueRepresentation, Parent):
             """
             return self.parent()._weight
 
+
 class ElementaryCrystal(UniqueRepresentation, Parent):
     r"""
     The elementary crystal `B_i`.
@@ -677,7 +678,7 @@ class ElementaryCrystal(UniqueRepresentation, Parent):
 
         B_i = \{ b_i(m) : m \in \ZZ \},
 
-    where the crystal stucture is given by
+    where the crystal structure is given by
 
     .. MATH::
 

@@ -418,7 +418,7 @@ class DiscreteValuation(DiscretePseudoValuation):
           (with respect to the partial order on valuations defined by comparing
           them pointwise.)
 
-        - ``require_maximal_degree`` -- a boolean (deault: ``False``); whether
+        - ``require_maximal_degree`` -- a boolean (default: ``False``); whether
           to require the last key polynomial of the returned valuation to have
           maximal degree. This is most relevant when using this algorithm to
           compute approximate factorizations of ``G``, when set to ``True``,

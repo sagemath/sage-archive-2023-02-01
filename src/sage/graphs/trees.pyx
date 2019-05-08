@@ -155,21 +155,6 @@ cdef class TreeIterator:
         cdef int vertex2
         cdef object G
 
-#        from networkx import MultiGraph
-#        G = Graph(self.vertices)
-#        cdef object XG = G._backend._nxg
-#
-#        for i from 2 <= i <= self.vertices:
-#            vertex1 = i - 1
-#            vertex2 = self.current_level_sequence[i - 1] - 1
-#            XG.add_edge(vertex1, vertex2)
-#
-#        return G
-
-        # Currently, c_graph does not have all the same functionality as networkx.
-        # Until it does, we can't generate graphs using the c_graph backend even
-        # though it is twice as fast (for our purposes) as networkx.
-
         G = Graph(self.vertices, implementation='c_graph', sparse=True)
         cdef SparseGraph SG = (<SparseGraphBackend?> G._backend)._cg
 

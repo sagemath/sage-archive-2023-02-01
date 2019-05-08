@@ -716,7 +716,7 @@ class Ideal_generic(MonoidElement):
         a prime ideal `P` is specified).
 
         Recall that an ideal `I` is primary if and only if `I` has a
-        unique associated prime (see page 52 in [AtiMac]_).  If this
+        unique associated prime (see page 52 in [AM1969]_).  If this
         prime is `P`, then `I` is said to be `P`-primary.
 
         INPUT:
@@ -754,12 +754,6 @@ class Ideal_generic(MonoidElement):
         .. NOTE::
 
             This uses the list of associated primes.
-
-        REFERENCES:
-
-        .. [AtiMac] Atiyah and Macdonald, "Introduction to commutative
-           algebra", Addison-Wesley, 1969.
-
         """
         try:
             ass = self.associated_primes()

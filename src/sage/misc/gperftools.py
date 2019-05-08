@@ -40,6 +40,7 @@ import time
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 from sage.misc.compat import find_library
+from sage.cpython.string import bytes_to_str
 
 
 libc = None
@@ -222,6 +223,7 @@ class Profiler(SageObject):
                 version = check_output([name, '--version'], stderr=STDOUT)
             except (CalledProcessError, OSError):
                 continue
+            version = bytes_to_str(version)
             if 'gperftools' not in version:
                 from warnings import warn
                 warn('the "{0}" utility does not appear to be the gperftools profiler'

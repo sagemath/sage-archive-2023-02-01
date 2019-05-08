@@ -42,15 +42,15 @@ AUTHORS:
   - Add support for indefinite forms.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006-2009 William Stein and Jon Hanke
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from functools import total_ordering
 
 from sage.libs.pari.all import pari_gen
@@ -483,7 +483,7 @@ class BinaryQF(SageObject):
         # Note: Cacheing in _poly seems to give a very slight
         # improvement (~0.2 usec) in 'timeit()' runs.  Not sure it
         # is worth the instance variable.
-        if self._poly == None:
+        if self._poly is None:
             self._poly = self(ZZ['x, y'].gens())
         return self._poly
 
@@ -802,7 +802,7 @@ class BinaryQF(SageObject):
             else:
                 return self
 
-        if algorithm is "default":
+        if algorithm == "default":
             if self.is_reducible() or (self.discriminant() > 0 and transformation):
                 algorithm = 'sage'
             elif not transformation:
@@ -949,7 +949,7 @@ class BinaryQF(SageObject):
         if proper:
             # Prop 6.10.5 in Buchmann Vollmer
             C = self.cycle(proper=False)
-            if len(C) % 2 == 1:
+            if len(C) % 2:
                 return C
             else:
                 return C[:1] + [q._Tau() for q in C[1:]]

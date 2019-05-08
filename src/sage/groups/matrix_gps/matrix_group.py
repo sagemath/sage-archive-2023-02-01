@@ -279,7 +279,7 @@ class MatrixGroup_base(Group):
         """
         ambient_group = self._ambient
 
-        if ambient_group == None:
+        if ambient_group is None:
             if self.ngens() > 5:
                 return 'Matrix group over {0} with {1} generators'.format(
                     self.base_ring(), self.ngens())

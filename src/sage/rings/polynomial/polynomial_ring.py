@@ -1895,7 +1895,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
         EXAMPLES:
 
         Only return the divided-difference coefficients `F_{i,i}`.
-        This example is taken from Example 1, page 121 of [BF05]_::
+        This example is taken from Example 1, page 121 of [BF2005]_::
 
             sage: points = [(1.0, 0.7651977), (1.3, 0.6200860), (1.6, 0.4554022), (1.9, 0.2818186), (2.2, 0.1103623)]
             sage: R = PolynomialRing(RR, "x")
@@ -1925,7 +1925,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             0.00182510288066044]]
 
         The following example is taken from Example 4.12, page 225 of
-        [MF99]_::
+        [MF1999]_::
 
             sage: points = [(1, -3), (2, 0), (3, 15), (4, 48), (5, 105), (6, 192)]
             sage: R = PolynomialRing(QQ, "x")
@@ -1938,12 +1938,6 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             [48, 33, 9, 1],
             [105, 57, 12, 1, 0],
             [192, 87, 15, 1, 0, 0]]
-
-        REFERENCES:
-
-        .. [MF99] \J.H. Mathews and K.D. Fink. *Numerical Methods Using
-           MATLAB*.  3rd edition, Prentice-Hall, 1999.
-
         """
         to_base_ring = self.base_ring()
         points = [tuple(to_base_ring(c) for c in p) for p in points]
@@ -1978,7 +1972,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             differences.
 
           - ``algorithm='neville'``: adapt Neville's method as
-            described on page 144 of [BF05]_ to recursively generate
+            described on page 144 of [BF2005]_ to recursively generate
             the Lagrange interpolation polynomial.  Neville's method
             generates a table of approximating polynomials, where the
             last row of that table contains the `n`-th Lagrange
@@ -2099,12 +2093,6 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             0
             sage: R.lagrange_polynomial([[1, 0], [2, 0], [3, 0]])
             0
-
-        REFERENCES:
-
-        .. [BF05] \R.L. Burden and J.D. Faires. *Numerical Analysis*.
-           8th edition, Thomson Brooks/Cole, 2005.
-
         """
         # Perhaps we should be slightly stricter on the input and use
         # self.base_ring().coerce here and in the divided_difference()

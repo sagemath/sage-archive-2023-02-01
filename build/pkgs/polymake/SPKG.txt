@@ -40,8 +40,7 @@ On Fedora 23, use:
 On Gentoo, use
  emerge --ask XML-Writer XML-LibXML XML-LibXSLT File-Slurp dev-perl/Term-ReadLine-Gnu JSON SVG
 
-On Mac OS X, all modules (except for Term::Readline::Gnu) appear to be
-standard.  To build Term::Readline::Gnu, on macOS 10.14 (Mojave), one
+On Mac OS X, to build Term::Readline::Gnu, on macOS 10.14 (Mojave), one
 needs to do the following:
 
  sudo installer -pkg /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg -target /
@@ -50,8 +49,9 @@ or a "fatal error: 'EXTERN.h' file not found" will be signalled.
 
 
 A distribution-independent way to install Perl modules (into a user's
-home directory) is using CPAN. For this, if you don't have root access,
-you will need the local::lib Perl module installed.
+home directory) is using CPAN.  This is also the way to install the
+modules on macOS.  For this, if you don't have root access, you will
+need the local::lib Perl module installed.
 
  cpan -i XML::Writer XML::LibXML XML::LibXSLT File::Slurp Term::ReadLine::Gnu JSON SVG MongoDB
 

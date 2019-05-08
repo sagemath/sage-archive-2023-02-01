@@ -822,7 +822,6 @@ class NotImplementedOZero(NotImplementedError):
             ...
             ValueError: specify either 'asymptotic_ring' or 'var'
         """
-        from .asymptotic_ring import AsymptoticRing
         if (asymptotic_ring is None) == (var is None):
             raise ValueError("specify either 'asymptotic_ring' or 'var'")
 

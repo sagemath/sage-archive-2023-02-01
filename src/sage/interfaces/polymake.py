@@ -874,7 +874,7 @@ class Polymake(ExtraTabCompletion, Expect):
         sometimes it hangs, and therefore we remove it from the tests, for now::
 
             sage: c = polymake.cube(15)             # optional - polymake
-            sage: polymake.eval('print {}->F_VECTOR;'.format(c.name()), timeout=1) # optional - polymake # not tested
+            sage: polymake.eval('print {}->F_VECTOR;'.format(c.name()), timeout=1) # not tested # optional - polymake
             Traceback (most recent call last):
             ...
             RuntimeError: Polymake fails to respond timely

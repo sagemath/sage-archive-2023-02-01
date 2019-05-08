@@ -351,6 +351,23 @@ def minimal_dominating_sets(G, to_dominate=None, work_on_copy=True):
         ....:     return True
         sage: big_check(6) # long time
         True
+
+    Outputs are unique:
+
+        sage: def check_uniqueness(g):
+        ....:     counter_1 = 0
+        ....:     for dom_1 in minimal_dominating_sets(g):
+        ....:         counter_1 += 1
+        ....:         counter_2 = 0
+        ....:         for dom_2 in minimal_dominating_sets(g):
+        ....:             counter_2 += 1
+        ....:             if counter_2 >= counter_1:
+        ....:                 break
+        ....:             if dom_1 == dom_2:
+        ....:                 return False
+        ....:     return True
+        sage: check_uniqueness(graphs.RandomGNP(9, 0.5))
+        True
     '''
 
     def tree_search(H, plng, dom, i):

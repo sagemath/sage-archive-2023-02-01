@@ -300,6 +300,42 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
             return "{}({});".format(function, ",".join(list(kwds)))
         return "{}({});".format(function, ",".join(list(args)))
 
+    def _coerce_impl(self, x, use_special=True):
+        """
+        Implementation of coercion.
+
+        TESTS:
+
+        Test that dictionaries are converted to hashes::
+
+            sage: h = polymake({'"a"': 1, '"b"': 2})
+            sage: h
+            HASH(0x...)
+            sage: h['"a"']
+            1
+        """
+        if isinstance(x, dict):
+            # Convert dictionaries to hashes.
+            # This is an adaptation of the list/tuple code from Interface._coerce_impl
+            A = []
+            z = dict()
+            cls = self._object_class()
+            def convert(y):
+                if isinstance(y, cls):
+                    return y
+                else:
+                    return self(y)
+            for k, v in x.items():
+                k = convert(k)
+                v = convert(v)
+                z[k] = v
+                A.append("{}=>{}".format(k.name(), v.name()))
+            r = self.new("{" + ",".join(A) + "}")
+            r.__sage_dict = z # do this to avoid having the entries of the list be garbage collected
+            return r
+        else:
+            return super(PolymakeAbstract, self)._coerce_impl(x, use_special=use_special)
+
     def console(self):
         """
         Raise an error, pointing to :meth:`~sage.interfaces.interface.Interface.interact` and :func:`polymake_console`.

@@ -5670,16 +5670,18 @@ class Graph(GenericGraph):
             sage: g.is_dominating([0,1])
             False
         """
-        closed_neighb = set()
-        # Construct the closed neighborhood of p_dominating
-        for v in p_dominating:
-            closed_neighb.update(self.neighbor_iterator(v, closed=True))
 
         if p_dominated is None:
-            p_dominated = set(self)
+            to_dom = set(self)
+        else:
+            to_dom = set(p_dominated)
 
-        return closed_neighb >= set(p_dominated)
+        for v in p_dominating:
+            if not to_dom:
+                return True
+            to_dom.difference_update(self.neighbor_iterator(v, closed=True))
 
+        return to_dom == set()
 
     @doc_index("Basic methods")
     def is_redundant(self, dom, focus=None):

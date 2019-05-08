@@ -2904,7 +2904,7 @@ REFERENCES:
 .. [Me1997] \G. Melançon, *Factorizing infinite words using Maple*,
             MapleTech journal, vol. 4, no. 1, 1997, pp. 34-42.
 
-.. [MeNoTh11] Frederic Menous, Jean-Christophe Novelli, Jean-Yves Thibon,
+.. [MeNoTh11] Frédéric Menous, Jean-Christophe Novelli, Jean-Yves Thibon,
               *Mould calculus, polyhedral cones, and characters of
               combinatorial Hopf algebras*,
               Advances in Applied Mathematics, Volume 51, Issue 2, July 2013,
@@ -2915,7 +2915,7 @@ REFERENCES:
 .. [MF1999] \J.H. Mathews and K.D. Fink. *Numerical Methods Using
             MATLAB*.  3rd edition, Prentice-Hall, 1999.
 
-.. [Mil1958] \J. W. Milnor, "The Steenrod algebra and its dual,"
+.. [Mil1958] \J. W. Milnor, *The Steenrod algebra and its dual*,
              Ann. of Math. (2) 67 (1958), 150-171.
 
 .. [Mil1978] \S. Milne, *A q-analog of restricted growth functions,
@@ -3197,13 +3197,13 @@ REFERENCES:
              `\Gamma_0(N)`, J. Algebra 64 (1980), 340-390.
 
 .. [Platt1976] \C. R. Platt,
-               Planar lattices and planar graphs,
+               *Planar lattices and planar graphs*,
                Journal of Combinatorial Theory Series B,
                Vol 21, no. 1 (1976): 30-39.
 
 .. [PoiReu95] Stephane Poirier, Christophe Reutenauer,
-              *Algebres de Hopf de tableaux*,
-              Ann. Sci. Math. Quebec, 19 (1): 79--90.
+              *Algèbres de Hopf de tableaux*,
+              Ann. Sci. Math. Québec, 19 (1): 79--90.
               http://www.lacim.uqam.ca/~christo/Publi%C3%A9s/1995/Alg%C3%A8bres%20de%20Hopf%20de%20tableaux.pdf
 
 .. [Pon2010] \S. Pon. *Types B and D affine Stanley symmetric

@@ -89,7 +89,7 @@ TESTS::
     - make Matrix_modn_frontend and use it (?)
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2004,2005,2006 William Stein <wstein@gmail.com>
 #       Copyright (C) 2007,2008,2009 Martin Albrecht <M.R.Albrecht@rhul.ac.uk>
 #
@@ -97,8 +97,8 @@ TESTS::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import
 
 from cysignals.memory cimport check_malloc, sig_free
@@ -1752,7 +1752,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         Return the density of this matrix.
 
-        By density we understand the ration of the number of nonzero
+        By density we understand the ratio of the number of nonzero
         positions and the self.nrows() * self.ncols(), i.e. the number
         of possible nonzero positions.
 

@@ -39,7 +39,7 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ######################################################################
 
 from sage.rings.integer_ring import ZZ
@@ -376,8 +376,8 @@ class TateCurve(SageObject):
 
         [MTT]_
 
-        .. [Col] Pierre Colmez, Invariant `\mathcal{L}` et derivees de
-           valeurs propres de Frobenius, preprint, 2004.
+        .. [Col] Pierre Colmez, Invariant `\mathcal{L}` et dérivées de
+           valeurs propres de Frobenius, Astérisque 331 (2010), 13-28.
 
         EXAMPLES::
 

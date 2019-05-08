@@ -141,14 +141,14 @@ fields can be found in Section 4.6 of [Rüt2014]_. Most of this was originally
 developed for number fields in [Mac1936I]_ and [Mac1936II]_.
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2016-2018 Julian Rüth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from sage.structure.factory import UniqueFactory
 from sage.rings.all import QQ
 from sage.misc.cachefunc import cached_method
@@ -276,7 +276,7 @@ class FunctionFieldValuationFactory(UniqueFactory):
             # generator is a polynomial
             generator = domain._ring(generator)
             if not generator.is_monic():
-                raise ValueError("place must be defined by a monic polynomiala but %r is not monic" % (generator,))
+                raise ValueError("place must be defined by a monic polynomial but %r is not monic" % (generator,))
             if not generator.is_irreducible():
                 raise ValueError("place must be defined by an irreducible polynomial but %r factors over %r" % (generator, domain._ring))
             # we construct the corresponding valuation on the polynomial ring

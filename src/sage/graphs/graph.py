@@ -5721,43 +5721,39 @@ class Graph(GenericGraph):
         if focus is None:
             focus = self.vertices()
 
-        # dominator[v] (for v in focus) will contain the list of
-        # vertices of dom that are adjacent to v
+        # dominator[v] (for v in focus) will be equal to:
+        #  - (0, None) if v has no neighbor in dom
+        #  - (1, u) if v has a unique neighbor in dom, u
+        #  - (2, None) if v has >= 2 neighbors in dom
         dominator = dict()
-
-        # For every x in dom, has_private[x] will be True
-        # iff x has a private neighbor in focus
-        has_private = dict()
-
-        # Counts the number of vertices of dom with a private neighbor in S:
-        irredundant_ds = 0
-
         for v in focus:
-            dominator[v] = []  # Initialization
+            dominator[v] = (0, None)  # Initialization
 
+        # has_private[x] will store whether x (in dom) has a private
+        # neighbor in focus
+        has_private = dict()
         for x in dom:
             has_private[x] = False      # Initialization
             for v in self.neighbor_iterator(x, closed=True):
                 if v in focus:
-                    # x dominates all its closed neighbors:
-                    dominator[v].append(x)
+                    # remember about x only if we never encountered
+                    # neighbors of v so far
+                    if dominator[v][0] == 0:
+                        dominator[v] = (1, x)
+                    elif dominator[v][0] == 1:
+                        dominator[v] = (2, None)
 
         # Now we can compute has_private[]:
         for v in focus:
             # Here we do care neither about vertices dominated by more
             # than one vertex of dom (they are not private neighbor of
             # anybody) nor about vertices not dominated by dom (idem).
-            if len(dominator[v]) == 1:
+            if dominator[v][0] == 1:
                 # If v is dominated only by one vertex x,
                 # then v is a private neighbor of x
-                if not has_private[dominator[v][0]]:
-                    # If it was not know yet that x has a private
-                    has_private[dominator[v][0]] = True
-                    # We found a new useful vertex
-                    irredundant_ds = irredundant_ds + 1
-
-        # True iff each element of dom is irredundant
-        return len(dom) != irredundant_ds
+                has_private[dominator[v][1]] = True
+                
+        return any(not has_private[x] for x in dom)
 
 
     @doc_index("Basic methods")

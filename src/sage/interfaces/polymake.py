@@ -2409,6 +2409,22 @@ class PolymakeJuPyMake(PolymakeAbstract):
             $v = new Vector<Int>(1,2,3);
          or
             $v = new Vector<Int>([1,2,3]);
+
+    Python strings are translated to polymake (Perl) identifiers.
+    To obtain Perl strings, use strings containing double-quote characters.
+    Python dicts are translated to Perl hashes.
+
+         sage: L = polymake.db_query({'"_id"': '"F.4D.0047"'},    # long time, optional - jupymake internet perl_mongodb
+         ....:                       db='"LatticePolytopes"',
+         ....:                       collection='"SmoothReflexive"'); L
+         BigObjectArray
+         sage: len(L)                                             # long time, optional - jupymake internet perl_mongodb
+         1
+         sage: P = L[0]                                           # long time, optional - jupymake internet perl_mongodb
+         sage: sorted(P.list_properties(), key=str)               # long time, optional - jupymake internet perl_mongodb
+         [..., LATTICE_POINTS_GENERATORS, ..., POINTED, ...]
+         sage: P.F_VECTOR                                         # long time, optional - jupymake internet perl_mongodb
+         20 40 29 9
     """
 
     def __init__(self, seed=None, verbose=False):

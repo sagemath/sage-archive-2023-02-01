@@ -43,7 +43,6 @@ from sage.categories.finite_fields import FiniteFields
 from sage.categories.homset import Hom, End
 from sage.categories.number_fields import NumberFields
 from sage.interfaces.all import singular
-import sage.libs.singular
 
 from sage.misc.all import add
 
@@ -1065,17 +1064,15 @@ class AffinePlaneCurve(AffineCurve):
         S.eval('poly f = '+str(ft) + ';')
         c = S('coeffs(%s, t)' % ft)
         N = int(c.size())
-        b = ["%s[%s,1]," % (c.name(), i) for i in range(2,N//2-4)]
-        b = ''.join(b)
-        b = b[:len(b)-1] # to cut off the trailing comma
-        cmd = 'ideal I = '+b
+        b = ','.join("%s[%s,1]" % (c.name(), i) for i in range(2, N//2-4))
+        cmd = 'ideal I = ' + b
         S.eval(cmd)
         S.eval('short=0')    # print using *'s and ^'s.
         c = S.eval('slimgb(I)')
         d = c.split("=")
         d = d[1:]
         d[len(d)-1] += "\n"
-        e = [x[:x.index("\n")] for x in d]
+        e = [xx[:xx.index("\n")] for xx in d]
         vals = []
         for x in e:
             for y in vars0:
@@ -1090,9 +1087,7 @@ class AffinePlaneCurve(AffineCurve):
                     else:
                         vals.append([eval(str(y)[1:]),str(y),F(0)])
         vals.sort()
-        k = len(vals)
-        v = [x0+t,y0+add([vals[i][2]*t**(i+1) for i in range(k)])]
-        return v
+        return [x0 + t, y0 + add(v[2] * t**(j+1) for j, v in enumerate(vals))]
 
     def plot(self, *args, **kwds):
         r"""
@@ -1355,10 +1350,9 @@ class AffinePlaneCurve(AffineCurve):
                     T = T(1, vars[1])
                     roots = T.univariate_polynomial().roots()
                     fact.extend([vars[1] - roots[i][0]*vars[0] for i in range(len(roots))])
-            return [f(coords) for f in fact]
+            return [ff(coords) for ff in fact]
         else:
-            fact = T.factor()
-            return [l[0](coords) for l in fact]
+            return [l[0](coords) for l in T.factor()]
 
     def is_ordinary_singularity(self, P):
         r"""

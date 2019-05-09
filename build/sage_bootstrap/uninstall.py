@@ -252,7 +252,7 @@ def dir_type(path):
     """
 
     if path and not pth.isdir(path):
-        raise argparse.ArgumentError(
+        raise argparse.ArgumentTypeError(
             "'{0}' is not a directory".format(path))
 
     return path
@@ -267,7 +267,7 @@ def spkg_type(pkg):
     pkgbase = pth.join(PKGS, pkg)
 
     if not pth.isdir(pkgbase):
-        raise argparse.ArgumentError(
+        raise argparse.ArgumentTypeError(
                 "'{0}' is not a known spkg".format(pkg))
 
     return pkg

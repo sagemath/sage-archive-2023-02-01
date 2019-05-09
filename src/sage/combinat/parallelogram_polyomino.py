@@ -12,7 +12,7 @@ parallelogram polyominoes.
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # *****************************************************************************
 from __future__ import (
     division, absolute_import, print_function, unicode_literals
@@ -519,7 +519,7 @@ r"""
 This global option contains all the data needed by the Parallelogram classes
 to draw, display in ASCII, compile in latex a parallelogram polyomino.
 
-The options avalaible are :
+The available options are :
 
 - tikz_options : this option configurate all the information useful to
   generate TIKZ code. For example, color, line size, etc ...
@@ -532,7 +532,7 @@ The options avalaible are :
   - the bounce paths inside the parallelogram polyomino.
 
 - display : this option is used to configurate the ASCII display.
-  the option avalaible are :
+  The available options are :
   - list : (this is the default value) is used to represent PP as a list
   containing the upper and lower path.
   - drawing : this value is used to explain we want to display an array with
@@ -1660,7 +1660,7 @@ class ParallelogramPolyomino(ClonableList):
     def upper_heights(self):
         r"""
         Return the list of heights associated to each vertical step of the
-        parallogram polyomino's upper path.
+        parallelogram polyomino's upper path.
 
         OUTPUT:
 
@@ -1680,7 +1680,7 @@ class ParallelogramPolyomino(ClonableList):
     def lower_heights(self):
         r"""
         Return the list of heights associated to each vertical step of the
-        parallogram polyomino's lower path.
+        parallelogram polyomino's lower path.
 
         OUTPUT:
 
@@ -1700,7 +1700,7 @@ class ParallelogramPolyomino(ClonableList):
     def upper_widths(self):
         r"""
         Return the list of widths associated to each horizontal step of the
-        parallogram polyomino's upper path.
+        parallelogram polyomino's upper path.
 
         OUTPUT:
 
@@ -1720,7 +1720,7 @@ class ParallelogramPolyomino(ClonableList):
     def lower_widths(self):
         r"""
         Return the list of widths associated to each horizontal step of the
-        parallogram polyomino's lower path.
+        parallelogram polyomino's lower path.
 
         OUTPUT:
 
@@ -2842,7 +2842,7 @@ class ParallelogramPolyomino(ClonableList):
 
         - ``direction`` -- the direction (0 or 1).
 
-        - ``nb_crossed_nodes`` -- ``[0]`` (default) a list containg just one
+        - ``nb_crossed_nodes`` -- ``[0]`` (default) a list containing just one
           integer.
 
         OUTPUT:
@@ -3553,7 +3553,7 @@ class ParallelogramPolyominoesFactory(SetFactory):
 
         INPUT:
 
-        - ``size`` -- integer (default: ``None``), the size of the paralleogram
+        - ``size`` -- integer (default: ``None``), the size of the parallelogram
                       polyominoes contained in the family.
                       If set to ``None``, the family returned contains all
                       the parallelogram polyominoes.

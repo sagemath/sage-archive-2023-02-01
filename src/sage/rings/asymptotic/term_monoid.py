@@ -363,14 +363,11 @@ class GenericTerm(MultiplicativeGroupElement):
             sage: GenericTerm(T, GrowthGroup('y^ZZ').gen())
             Traceback (most recent call last):
             ...
-            ValueError: y is not in Growth Group x^ZZ
+            ValueError: y is not in Growth Group x^ZZ.
         """
         if parent is None:
             raise ValueError('The parent must be provided')
-        try:
-            self.growth = parent.growth_group(growth)
-        except (ValueError, TypeError):
-            raise ValueError("%s is not in %s" % (growth, parent.growth_group))
+        self.growth = parent.growth_group(growth)
 
         super(GenericTerm, self).__init__(parent=parent)
 
@@ -770,7 +767,7 @@ class GenericTerm(MultiplicativeGroupElement):
         """
         raise NotImplementedError('Not implemented in abstract base classes')
 
-    def log_term(self, base=None):
+    def log_term(self, base=None, log=None):
         r"""
         Determine the logarithm of this term.
 
@@ -778,6 +775,10 @@ class GenericTerm(MultiplicativeGroupElement):
 
         - ``base`` -- the base of the logarithm. If ``None``
           (default value) is used, the natural logarithm is taken.
+
+        - ``log`` -- a function. If ``None`` (default value)
+          is used, then the usual
+          :class:`log <sage.functions.log.Function_log>` is taken.
 
         OUTPUT:
 
@@ -822,7 +823,7 @@ class GenericTerm(MultiplicativeGroupElement):
         raise NotImplementedError('This method is not implemented in this '
                                   'abstract base class.')
 
-    def _log_growth_(self, base=None):
+    def _log_growth_(self, base=None, log=None):
         r"""
         Helper function to calculate the logarithm of the growth of this element.
 
@@ -830,6 +831,10 @@ class GenericTerm(MultiplicativeGroupElement):
 
         - ``base`` -- the base of the logarithm. If ``None``
           (default value) is used, the natural logarithm is taken.
+
+        - ``log`` -- a function. If ``None`` (default value)
+          is used, then the usual
+          :class:`log <sage.functions.log.Function_log>` is taken.
 
         OUTPUT:
 
@@ -852,7 +857,9 @@ class GenericTerm(MultiplicativeGroupElement):
             :meth:`OTerm.log_term`.
         """
         return tuple(self.parent()._create_element_in_extension_(g, c)
-                     for g, c in self.growth.log_factor(base=base))
+                     for g, c in
+                     self.growth.log_factor(base=base,
+                                            log=log))
 
     _richcmp_ = richcmp_by_eq_and_lt("_eq_", "_lt_")
 
@@ -2250,7 +2257,8 @@ class OTerm(GenericTerm):
             ZeroDivisionError: Cannot take O(z) to exponent -1.
             > *previous* ZeroDivisionError: rational division by zero
         """
-        return self._calculate_pow_test_zero_(exponent)
+        from .misc import strip_symbolic
+        return self._calculate_pow_test_zero_(strip_symbolic(exponent))
 
     def can_absorb(self, other):
         r"""
@@ -2330,7 +2338,7 @@ class OTerm(GenericTerm):
         """
         return self
 
-    def log_term(self, base=None):
+    def log_term(self, base=None, log=None):
         r"""
         Determine the logarithm of this O-term.
 
@@ -2338,6 +2346,10 @@ class OTerm(GenericTerm):
 
         - ``base`` -- the base of the logarithm. If ``None``
           (default value) is used, the natural logarithm is taken.
+
+        - ``log`` -- a function. If ``None`` (default value)
+          is used, then the usual
+          :class:`log <sage.functions.log.Function_log>` is taken.
 
         OUTPUT:
 
@@ -2370,7 +2382,7 @@ class OTerm(GenericTerm):
 
             :meth:`ExactTerm.log_term`.
         """
-        return self._log_growth_(base=base)
+        return self._log_growth_(base=base, log=log)
 
     def is_little_o_of_one(self):
         r"""
@@ -2990,7 +3002,7 @@ class TermWithCoefficient(GenericTerm):
                                 (self, exponent, self.parent(), self.coefficient)), e)
         return super(TermWithCoefficient, self)._calculate_pow_(exponent, new_coefficient=c)
 
-    def _log_coefficient_(self, base=None):
+    def _log_coefficient_(self, base=None, log=None):
         r"""
         Helper function to calculate the logarithm of the coefficient of this element.
 
@@ -2998,6 +3010,10 @@ class TermWithCoefficient(GenericTerm):
 
         - ``base`` -- the base of the logarithm. If ``None``
           (default value) is used, the natural logarithm is taken.
+
+        - ``log`` -- a function. If ``None`` (default value)
+          is used, then the usual
+          :class:`log <sage.functions.log.Function_log>` is taken.
 
         OUTPUT:
 
@@ -3018,12 +3034,28 @@ class TermWithCoefficient(GenericTerm):
 
             :meth:`ExactTerm.log_term`,
             :meth:`OTerm.log_term`.
+
+        TESTS::
+
+            sage: L.<log3> = QQ[]
+            sage: T = TermMonoid('exact', GrowthGroup('x^ZZ * log(x)^ZZ'), L)
+            sage: T(3*x^2)._log_coefficient_()
+            (log(3),)
+            sage: mylog=lambda z, base: log3 if z == 3 else log(z)
+            sage: T(3*x^2)._log_coefficient_(log=mylog)
+            (log3,)
+            sage: T(3*x^2).log_term()  # indirect doctest
+            (log(3), 2*log(x))
+            sage: T(3*x^2).log_term(log=mylog)  # indirect doctest
+            (log3, 2*log(x))
         """
         if self.coefficient.is_one():
             return tuple()
-        from sage.functions.log import log
+        if log is None:
+            from sage.functions.log import log
         return (self.parent()._create_element_in_extension_(
-            self.parent().growth_group.one(), log(self.coefficient, base=base)),)
+            self.parent().growth_group.one(),
+            log(self.coefficient, base=base)),)
 
     def _eq_(self, other):
         r"""
@@ -3430,7 +3462,8 @@ class ExactTerm(TermWithCoefficient):
             sage: t^(1/2)  # indirect doctest
             sqrt(2)*z^(1/2)
         """
-        return self._calculate_pow_(exponent)
+        from .misc import strip_symbolic
+        return self._calculate_pow_(strip_symbolic(exponent))
 
     def can_absorb(self, other):
         r"""
@@ -3520,7 +3553,7 @@ class ExactTerm(TermWithCoefficient):
         else:
             return self.parent()(self.growth, coeff_new)
 
-    def log_term(self, base=None):
+    def log_term(self, base=None, log=None):
         r"""
         Determine the logarithm of this exact term.
 
@@ -3528,6 +3561,10 @@ class ExactTerm(TermWithCoefficient):
 
         - ``base`` -- the base of the logarithm. If ``None``
           (default value) is used, the natural logarithm is taken.
+
+        - ``log`` -- a function. If ``None`` (default value)
+          is used, then the usual
+          :class:`log <sage.functions.log.Function_log>` is taken.
 
         OUTPUT:
 
@@ -3563,7 +3600,8 @@ class ExactTerm(TermWithCoefficient):
 
             :meth:`OTerm.log_term`.
         """
-        return self._log_coefficient_(base=base) + self._log_growth_(base=base)
+        return self._log_coefficient_(base=base, log=log) \
+             + self._log_growth_(base=base, log=log)
 
     def is_constant(self):
         r"""
@@ -3708,18 +3746,19 @@ class ExactTerm(TermWithCoefficient):
             Traceback (most recent call last):
             ...
             ArithmeticError: Cannot construct 2^(x^2) in
-            Growth Group QQ^x * x^ZZ * log(x)^ZZ
+            Growth Group QQ^x * x^ZZ * log(x)^ZZ * S^x
             > *previous* TypeError: unsupported operand parent(s) for *:
-            'Growth Group QQ^x * x^ZZ * log(x)^ZZ' and 'Growth Group ZZ^(x^2)'
+            'Growth Group QQ^x * x^ZZ * log(x)^ZZ * S^x' and
+            'Growth Group ZZ^(x^2)'
 
         ::
 
-            sage: T = TermMonoid('exact', GrowthGroup('QQ^n * n^QQ'), SR)
+            sage: T = TermMonoid('exact', GrowthGroup('(QQ_+)^n * n^QQ'), SR)
             sage: n = T('n')
             sage: n.rpow(2)
             2^n
             sage: _.parent()
-            Exact Term Monoid SR^n * n^SR with coefficients in Symbolic Ring
+            Exact Term Monoid QQ^n * n^QQ with coefficients in Symbolic Ring
         """
         P = self.parent()
 
@@ -3980,7 +4019,7 @@ class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
         O-Term Monoid x^ZZ with implicit coefficients in Rational Field
 
         sage: TermMonoid('exact', 'QQ^m * m^QQ * log(n)^ZZ', ZZ)
-        Exact Term Monoid QQ^m * m^QQ * log(n)^ZZ
+        Exact Term Monoid QQ^m * m^QQ * S^m * log(n)^ZZ
         with coefficients in Integer Ring
 
     TESTS::

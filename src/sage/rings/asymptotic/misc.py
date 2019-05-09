@@ -57,6 +57,8 @@ def repr_short_to_parent(s):
         Symbolic Ring
         sage: repr_short_to_parent('NN')
         Non negative integer semiring
+        sage: repr_short_to_parent('U')
+        Group of Roots of Unity
 
     TESTS::
 
@@ -64,14 +66,30 @@ def repr_short_to_parent(s):
         Traceback (most recent call last):
         ...
         ValueError: Cannot create a parent out of 'abcdef'.
-        > *previous* NameError: name 'abcdef' is not defined
+        > *previous* ValueError: unknown specification abcdef
+        > *and* NameError: name 'abcdef' is not defined
     """
+    from sage.groups.misc_gps.argument_groups import ArgumentGroup
     from sage.misc.sage_eval import sage_eval
-    try:
-        P = sage_eval(s)
-    except Exception as e:
+
+    def extract(s):
+        try:
+            return ArgumentGroup(specification=s)
+        except Exception as e:
+            e_ag = e
+            e_ag.__traceback__ = None
+
+        try:
+            return sage_eval(s)
+        except Exception as e:
+            e_se = e
+            e_se.__traceback__ = None
+
         raise combine_exceptions(
-            ValueError("Cannot create a parent out of '%s'." % (s,)), e)
+            ValueError("Cannot create a parent out of '%s'." % (s,)),
+            e_ag, e_se)
+
+    P = extract(s)
 
     from sage.misc.lazy_import import LazyImport
     if type(P) is LazyImport:
@@ -315,12 +333,17 @@ def repr_op(left, op, right=None, latex=False):
 
         sage: print(repr_op(r'\frac{1}{2}', '^', 'c', latex=True))
         \left(\frac{1}{2}\right)^c
+
+    ::
+
+        sage: repr_op('Arg', '_', 'Symbolic Ring')
+        'Arg_(Symbolic Ring)'
     """
     left = str(left)
     right = str(right) if right is not None else ''
 
     def add_parentheses(s, op):
-        if op == '^':
+        if op in ('^', '_'):
             signals = ('^', '/', '*', '-', '+', ' ')
         else:
             return s
@@ -412,7 +435,7 @@ def substitute_raise_exception(element, e):
                 (element, element.parent())), e)
 
 
-def merge_overlapping(A, B, key=None):
+def bidirectional_merge_overlapping(A, B, key=None):
     r"""
     Merge the two overlapping tuples/lists.
 
@@ -435,62 +458,62 @@ def merge_overlapping(A, B, key=None):
 
         Suppose we can decompose the list `A=ac` and `B=cb` with
         lists `a`, `b`, `c`, where `c` is nonempty. Then
-        :func:`merge_overlapping` returns the pair `(acb, acb)`.
+        :func:`bidirectional_merge_overlapping` returns the pair `(acb, acb)`.
 
         Suppose a ``key``-function is specified and `A=ac_A` and
         `B=c_Bb`, where the list of keys of the elements of `c_A`
         equals the list of keys of the elements of `c_B`. Then
-        :func:`merge_overlapping` returns the pair `(ac_Ab, ac_Bb)`.
+        :func:`bidirectional_merge_overlapping` returns the pair `(ac_Ab, ac_Bb)`.
 
         After unsuccessfully merging `A=ac` and `B=cb`,
         a merge of `A=ca` and `B=bc` is tried.
 
     TESTS::
 
-        sage: from sage.rings.asymptotic.misc import merge_overlapping
+        sage: from sage.rings.asymptotic.misc import bidirectional_merge_overlapping
         sage: def f(L, s):
         ....:     return list((ell, s) for ell in L)
         sage: key = lambda k: k[0]
-        sage: merge_overlapping(f([0..3], 'a'), f([5..7], 'b'), key)
+        sage: bidirectional_merge_overlapping(f([0..3], 'a'), f([5..7], 'b'), key)
         Traceback (most recent call last):
         ...
         ValueError: Input does not have an overlap.
-        sage: merge_overlapping(f([0..2], 'a'), f([4..7], 'b'), key)
+        sage: bidirectional_merge_overlapping(f([0..2], 'a'), f([4..7], 'b'), key)
         Traceback (most recent call last):
         ...
         ValueError: Input does not have an overlap.
-        sage: merge_overlapping(f([4..7], 'a'), f([0..2], 'b'), key)
+        sage: bidirectional_merge_overlapping(f([4..7], 'a'), f([0..2], 'b'), key)
         Traceback (most recent call last):
         ...
         ValueError: Input does not have an overlap.
-        sage: merge_overlapping(f([0..3], 'a'), f([3..4], 'b'), key)
+        sage: bidirectional_merge_overlapping(f([0..3], 'a'), f([3..4], 'b'), key)
         ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a'), (4, 'b')],
          [(0, 'a'), (1, 'a'), (2, 'a'), (3, 'b'), (4, 'b')])
-        sage: merge_overlapping(f([3..4], 'a'), f([0..3], 'b'), key)
+        sage: bidirectional_merge_overlapping(f([3..4], 'a'), f([0..3], 'b'), key)
         ([(0, 'b'), (1, 'b'), (2, 'b'), (3, 'a'), (4, 'a')],
          [(0, 'b'), (1, 'b'), (2, 'b'), (3, 'b'), (4, 'a')])
-        sage: merge_overlapping(f([0..1], 'a'), f([0..4], 'b'), key)
+        sage: bidirectional_merge_overlapping(f([0..1], 'a'), f([0..4], 'b'), key)
         ([(0, 'a'), (1, 'a'), (2, 'b'), (3, 'b'), (4, 'b')],
          [(0, 'b'), (1, 'b'), (2, 'b'), (3, 'b'), (4, 'b')])
-        sage: merge_overlapping(f([0..3], 'a'), f([0..1], 'b'), key)
+        sage: bidirectional_merge_overlapping(f([0..3], 'a'), f([0..1], 'b'), key)
         ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a')],
          [(0, 'b'), (1, 'b'), (2, 'a'), (3, 'a')])
-        sage: merge_overlapping(f([0..3], 'a'), f([1..3], 'b'), key)
+        sage: bidirectional_merge_overlapping(f([0..3], 'a'), f([1..3], 'b'), key)
         ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a')],
          [(0, 'a'), (1, 'b'), (2, 'b'), (3, 'b')])
-        sage: merge_overlapping(f([1..3], 'a'), f([0..3], 'b'), key)
+        sage: bidirectional_merge_overlapping(f([1..3], 'a'), f([0..3], 'b'), key)
         ([(0, 'b'), (1, 'a'), (2, 'a'), (3, 'a')],
          [(0, 'b'), (1, 'b'), (2, 'b'), (3, 'b')])
-        sage: merge_overlapping(f([0..6], 'a'), f([3..4], 'b'), key)
+        sage: bidirectional_merge_overlapping(f([0..6], 'a'), f([3..4], 'b'), key)
         ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a'), (4, 'a'), (5, 'a'), (6, 'a')],
          [(0, 'a'), (1, 'a'), (2, 'a'), (3, 'b'), (4, 'b'), (5, 'a'), (6, 'a')])
-        sage: merge_overlapping(f([0..3], 'a'), f([1..2], 'b'), key)
+        sage: bidirectional_merge_overlapping(f([0..3], 'a'), f([1..2], 'b'), key)
         ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a')],
          [(0, 'a'), (1, 'b'), (2, 'b'), (3, 'a')])
-        sage: merge_overlapping(f([1..2], 'a'), f([0..3], 'b'), key)
+        sage: bidirectional_merge_overlapping(f([1..2], 'a'), f([0..3], 'b'), key)
         ([(0, 'b'), (1, 'a'), (2, 'a'), (3, 'b')],
          [(0, 'b'), (1, 'b'), (2, 'b'), (3, 'b')])
-        sage: merge_overlapping(f([1..3], 'a'), f([1..3], 'b'), key)
+        sage: bidirectional_merge_overlapping(f([1..3], 'a'), f([1..3], 'b'), key)
         ([(1, 'a'), (2, 'a'), (3, 'a')],
          [(1, 'b'), (2, 'b'), (3, 'b')])
     """
@@ -545,6 +568,142 @@ def merge_overlapping(A, B, key=None):
     raise ValueError('Input does not have an overlap.')
 
 
+def bidirectional_merge_sorted(A, B, key=None):
+    r"""
+    Merge the two tuples/lists, keeping the orders provided by them.
+
+    INPUT:
+
+    - ``A`` -- a list or tuple (type has to coincide with type of ``B``).
+
+    - ``B`` -- a list or tuple (type has to coincide with type of ``A``).
+
+    - ``key`` -- (default: ``None``) a function. If ``None``, then the
+      identity is used.  This ``key``-function applied on an element
+      of the list/tuple is used for comparison. Thus elements with the
+      same key are considered as equal.
+
+    .. NOTE::
+
+        The two tuples/list need to overlap, i.e. need at least
+        one key in common.
+
+    OUTPUT:
+
+    A pair of lists containing all elements totally ordered. (The first
+    component uses ``A`` as a merge base, the second component ``B``.)
+
+    If merging fails, then a
+    :python:`RuntimeError<library/exceptions.html#exceptions.RuntimeError>`
+    is raised.
+
+    TESTS::
+
+        sage: from sage.rings.asymptotic.misc import bidirectional_merge_sorted
+        sage: def f(L, s):
+        ....:     return list((ell, s) for ell in L)
+        sage: key = lambda k: k[0]
+        sage: bidirectional_merge_sorted(f([0..3], 'a'), f([5..7], 'b'), key)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: no common elements
+        sage: bidirectional_merge_sorted(f([0..2], 'a'), f([4..7], 'b'), key)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: no common elements
+        sage: bidirectional_merge_sorted(f([4..7], 'a'), f([0..2], 'b'), key)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: no common elements
+        sage: bidirectional_merge_sorted(f([0..3], 'a'), f([3..4], 'b'), key)
+        ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a'), (4, 'b')],
+         [(0, 'a'), (1, 'a'), (2, 'a'), (3, 'b'), (4, 'b')])
+        sage: bidirectional_merge_sorted(f([3..4], 'a'), f([0..3], 'b'), key)
+        ([(0, 'b'), (1, 'b'), (2, 'b'), (3, 'a'), (4, 'a')],
+         [(0, 'b'), (1, 'b'), (2, 'b'), (3, 'b'), (4, 'a')])
+        sage: bidirectional_merge_sorted(f([0..1], 'a'), f([0..4], 'b'), key)
+        ([(0, 'a'), (1, 'a'), (2, 'b'), (3, 'b'), (4, 'b')],
+         [(0, 'b'), (1, 'b'), (2, 'b'), (3, 'b'), (4, 'b')])
+        sage: bidirectional_merge_sorted(f([0..3], 'a'), f([0..1], 'b'), key)
+        ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a')],
+         [(0, 'b'), (1, 'b'), (2, 'a'), (3, 'a')])
+        sage: bidirectional_merge_sorted(f([0..3], 'a'), f([1..3], 'b'), key)
+        ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a')],
+         [(0, 'a'), (1, 'b'), (2, 'b'), (3, 'b')])
+        sage: bidirectional_merge_sorted(f([1..3], 'a'), f([0..3], 'b'), key)
+        ([(0, 'b'), (1, 'a'), (2, 'a'), (3, 'a')],
+         [(0, 'b'), (1, 'b'), (2, 'b'), (3, 'b')])
+        sage: bidirectional_merge_sorted(f([0..6], 'a'), f([3..4], 'b'), key)
+        ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a'), (4, 'a'), (5, 'a'), (6, 'a')],
+         [(0, 'a'), (1, 'a'), (2, 'a'), (3, 'b'), (4, 'b'), (5, 'a'), (6, 'a')])
+        sage: bidirectional_merge_sorted(f([0..3], 'a'), f([1..2], 'b'), key)
+        ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a')],
+         [(0, 'a'), (1, 'b'), (2, 'b'), (3, 'a')])
+        sage: bidirectional_merge_sorted(f([1..2], 'a'), f([0..3], 'b'), key)
+        ([(0, 'b'), (1, 'a'), (2, 'a'), (3, 'b')],
+         [(0, 'b'), (1, 'b'), (2, 'b'), (3, 'b')])
+        sage: bidirectional_merge_sorted(f([1..3], 'a'), f([1..3], 'b'), key)
+        ([(1, 'a'), (2, 'a'), (3, 'a')],
+         [(1, 'b'), (2, 'b'), (3, 'b')])
+
+    ::
+
+        sage: bidirectional_merge_sorted(f([1, 2, 3], 'a'), f([1, 3], 'b'), key)
+        ([(1, 'a'), (2, 'a'), (3, 'a')],
+         [(1, 'b'), (2, 'a'), (3, 'b')])
+        sage: bidirectional_merge_sorted(f([1, 4, 5, 6], 'a'), f([1, 2, 3, 4, 6], 'b'), key)
+        ([(1, 'a'), (2, 'b'), (3, 'b'), (4, 'a'), (5, 'a'), (6, 'a')],
+         [(1, 'b'), (2, 'b'), (3, 'b'), (4, 'b'), (5, 'a'), (6, 'b')])
+        sage: bidirectional_merge_sorted(f([1, 2, 3, 4], 'a'), f([1, 3, 5], 'b'), key)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: sorting not unique
+        sage: bidirectional_merge_sorted(f([1, 2], 'a'), f([2, 1], 'b'), key)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: sorting in lists not compatible
+        sage: bidirectional_merge_sorted(f([1, 2, 4], 'a'), f([1, 3, 4], 'b'), key)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: sorting not unique
+    """
+    if key is None:
+        Akeys = A
+        Bkeys = B
+    else:
+        Akeys = tuple(key(a) for a in A)
+        Bkeys = tuple(key(b) for b in B)
+
+    matches = tuple((i, j)
+                    for i, a in enumerate(Akeys)
+                    for j, b in enumerate(Bkeys)
+                    if a == b)
+    if not matches:
+        raise RuntimeError('no common elements')
+
+    resultA = []
+    resultB = []
+    last = (0, 0)
+    end = (len(A), len(B))
+    for current in matches + (end,):
+        if not all(a <= b for a, b in zip(last, current)):
+            raise RuntimeError('sorting in lists not compatible')
+        if last[0] == current[0]:
+            resultA.extend(B[last[1]:current[1]])
+            resultB.extend(B[last[1]:current[1]])
+        elif last[1] == current[1]:
+            resultA.extend(A[last[0]:current[0]])
+            resultB.extend(A[last[0]:current[0]])
+        else:
+            raise RuntimeError('sorting not unique')
+        if current != end:
+            resultA.append(A[current[0]])
+            resultB.append(B[current[1]])
+            last = (current[0]+1, current[1]+1)
+
+    return (resultA, resultB)
+
+
 def log_string(element, base=None):
     r"""
     Return a representation of the log of the given element to the
@@ -570,6 +729,51 @@ def log_string(element, base=None):
     """
     basestr = ', base=' + str(base) if base else ''
     return 'log(%s%s)' % (element, basestr)
+
+
+def strip_symbolic(expression):
+    r"""
+    Return, if possible, the underlying (numeric) object of
+    the symbolic expression.
+
+    If ``expression`` is not symbolic, then ``expression`` is returned.
+
+    INPUT:
+
+    - ``expression`` -- an object
+
+    OUTPUT:
+
+    An object.
+
+    EXAMPLES::
+
+        sage: from sage.rings.asymptotic.misc import strip_symbolic
+        sage: strip_symbolic(SR(2)); _.parent()
+        2
+        Integer Ring
+        sage: strip_symbolic(SR(2/3)); _.parent()
+        2/3
+        Rational Field
+        sage: strip_symbolic(SR('x')); _.parent()
+        x
+        Symbolic Ring
+        sage: strip_symbolic(pi); _.parent()
+        pi
+        Symbolic Ring
+    """
+    from sage.structure.element import parent, Element
+    from sage.symbolic.ring import SymbolicRing
+
+    P = parent(expression)
+    if isinstance(P, SymbolicRing):
+        try:
+            stripped = expression.pyobject()
+            if isinstance(stripped, Element):
+                return stripped
+        except TypeError:
+            pass
+    return expression
 
 
 class NotImplementedOZero(NotImplementedError):

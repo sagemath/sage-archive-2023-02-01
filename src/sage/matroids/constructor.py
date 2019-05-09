@@ -787,10 +787,10 @@ def Matroid(groundset=None, data=None, **kwds):
                 # 3. Use numbers
                 groundset = list(range(m))
         if want_regular:
-        # Construct the incidence matrix
-        # NOTE: we are not using Sage's built-in method because
-        # 1) we would need to fix the loops anyway
-        # 2) Sage will sort the columns, making it impossible to keep labels!
+            # Construct the incidence matrix
+            # NOTE: we are not using Sage's built-in method because
+            # 1) we would need to fix the loops anyway
+            # 2) Sage will sort the columns, making it impossible to keep labels!
             V = G.vertices()
             n = G.num_verts()
             A = Matrix(ZZ, n, m, 0)

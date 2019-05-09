@@ -2945,12 +2945,12 @@ class NCPolynomialIdeal(MPolynomialIdeal_singular_repr, Ideal_nc):
             Defining x, y, z
             sage: I = H.ideal([y^2, x^2, z^2-H.one()],coerce=False)
             sage: I.elimination_ideal([x, z])
-            Left Ideal (y^2) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {z*y: y*z - 2*y, y*x: x*y - z, z*x: x*z + 2*x}
+            Left Ideal (y^2) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {...}
             sage: J = I.twostd()
             sage: J
-            Twosided Ideal (z^2 - 1, y*z - y, x*z + x, y^2, 2*x*y - z - 1, x^2) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {z*y: y*z - 2*y, y*x: x*y - z, z*x: x*z + 2*x}
+            Twosided Ideal (z^2 - 1, y*z - y, x*z + x, y^2, 2*x*y - z - 1, x^2) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {...}
             sage: J.elimination_ideal([x, z])
-            Twosided Ideal (y^2) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {z*y: y*z - 2*y, y*x: x*y - z, z*x: x*z + 2*x}
+            Twosided Ideal (y^2) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {...}
 
 
         ALGORITHM: Uses Singular's eliminate command

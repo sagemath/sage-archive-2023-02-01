@@ -4262,8 +4262,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if not (ch == 0 or is_prime(ch)):
             raise NotImplementedError("factorization of polynomials over rings with composite characteristic is not implemented")
 
-        from sage.rings.number_field.number_field_base import is_NumberField
-        from sage.rings.number_field.number_field_rel import is_RelativeNumberField
         from sage.rings.number_field.all import NumberField
         from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 
@@ -4275,41 +4273,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             except PariError:
                 raise NotImplementedError
 
-        elif is_RelativeNumberField(R):
-
-            M = R.absolute_field('a')
-            from_M, to_M = M.structure()
-            g = M['x']([to_M(x) for x in self.list()])
-            F = g.factor()
-            S = self._parent
-            v = [(S([from_M(x) for x in f.list()]), e) for f, e in F]
-            return Factorization(v, from_M(F.unit()))
-
         elif is_FiniteField(R):
             v = [x.__pari__("a") for x in self.list()]
             f = pari(v).Polrev()
             G = list(f.factor())
-
-        elif is_NumberField(R):
-            if R.degree() == 1:
-                factors = self.change_ring(QQ).factor()
-                return Factorization([(self._parent(p), e) for p, e in factors], R(factors.unit()))
-
-            # Convert the polynomial we want to factor to PARI
-            f = self._pari_with_name()
-            try:
-                # Try to compute the PARI nf structure with important=False.
-                # This will raise RuntimeError if the computation is too
-                # difficult.
-                Rpari = R.pari_nf(important=False)
-            except RuntimeError:
-                # Cannot easily compute the nf structure, use the defining
-                # polynomial instead.
-                Rpari = R.pari_polynomial("y")
-            G = list(Rpari.nffactor(f))
-            # PARI's nffactor() ignores the unit, _factor_pari_helper()
-            # adds back the unit of the factorization.
-            return self._factor_pari_helper(G)
 
         if G is None:
             # See if we can do this as a singular polynomial as a fallback

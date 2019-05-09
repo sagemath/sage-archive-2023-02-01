@@ -132,7 +132,7 @@ from .class_group import SClassGroup
 
 from sage.structure.element import is_Element
 from sage.structure.sequence import Sequence
-
+from sage.structure.factorization import Factorization
 from sage.structure.category_object import normalize_names
 import sage.structure.parent_gens
 import sage.structure.coerce_exceptions
@@ -9444,6 +9444,41 @@ class NumberField_absolute(NumberField_generic):
             tol = kwds.pop('tolerance', 1e-2)
             prec = kwds.pop('precision', 53)
             return bdd_height(self, B, tolerance=tol, precision=prec)
+
+    def _factor_univariate_polynomial(self, poly, **kwargs):
+        """
+        Factorisation of univariate polynomials over absolute number fields.
+
+        This is called by the ``factor`` method of univariate polynomials.
+
+        EXAMPLES::
+
+            sage: K.<i> = NumberField(x**2+1)
+            sage: x = polygen(K,'x')
+            sage: factor(x*x+4)  # indirect doctest
+            (x - 2*i) * (x + 2*i)
+        """
+        if self.degree() == 1:
+            factors = poly.change_ring(QQ).factor()
+            return Factorization([(p.change_ring(self), e)
+                                  for p, e in factors], self(factors.unit()))
+
+        # Convert the polynomial we want to factor to PARI
+        f = poly._pari_with_name()
+        try:
+            # Try to compute the PARI nf structure with important=False.
+            # This will raise RuntimeError if the computation is too
+            # difficult.
+            Rpari = self.pari_nf(important=False)
+        except RuntimeError:
+            # Cannot easily compute the nf structure, use the defining
+            # polynomial instead.
+            Rpari = self.pari_polynomial("y")
+        G = list(Rpari.nffactor(f))
+        # PARI's nffactor() ignores the unit, _factor_pari_helper()
+        # adds back the unit of the factorization.
+        return poly._factor_pari_helper(G)
+
 
 class NumberField_cyclotomic(NumberField_absolute):
     """

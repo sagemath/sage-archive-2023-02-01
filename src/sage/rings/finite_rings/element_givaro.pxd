@@ -47,7 +47,7 @@ cdef extern from "givaro/gfq.h":
         int axmy(int r, int a, int b, int c)
         int maxpy(int r, int a, int b, int c)
         bint isZero(int e)
-        bint isOne(inte)
+        bint isOne(int e)
         bint isunit(int e)
 
     GivaroGfq *gfq_factorypk "new Givaro::GFqDom<int>" (unsigned int p, unsigned int k)

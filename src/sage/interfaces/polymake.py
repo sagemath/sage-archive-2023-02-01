@@ -762,7 +762,7 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
         Of course, a different error results when we send an explicit
         command in polymake to change to an unknown application::
 
-            sage: polymake.eval('application "killerapp";')         # known bug # optional - polymake
+            sage: polymake.eval('application "killerapp";')         # optional - polymake
             Traceback (most recent call last):
             ...
             PolymakeError: Unknown application killerapp

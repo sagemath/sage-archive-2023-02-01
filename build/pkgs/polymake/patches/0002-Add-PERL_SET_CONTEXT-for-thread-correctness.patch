@@ -1,7 +1,7 @@
 From 51f36ef29e7d2482c23ea4da697e626cc61da611 Mon Sep 17 00:00:00 2001
 From: Matthias Koeppe <mkoeppe@math.ucdavis.edu>
 Date: Thu, 2 May 2019 13:31:00 +0200
-Subject: [PATCH 2/2] Add PERL_SET_CONTEXT for thread correctness
+Subject: [PATCH 2/3] Add PERL_SET_CONTEXT for thread correctness
 
 ---
  lib/callable/src/perl/methods.cc | 14 ++++++++++++++

@@ -1317,8 +1317,8 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                 sage: G(1)._singularity_analysis_('n', 2, precision=3)
                 Traceback (most recent call last):
                 ...
-                NotImplementedOZero: The error term in the result is O(0)
-                which means 0 for sufficiently large n.
+                NotImplementedOZero: got O(0)
+                The error term O(0) means 0 for sufficiently large n.
                 sage: G('exp(x)')._singularity_analysis_('n', 2, precision=3)
                 Traceback (most recent call last):
                 ...
@@ -1329,7 +1329,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             if len(factors) == 0:
                 from .asymptotic_expansion_generators import asymptotic_expansions
                 from .misc import NotImplementedOZero
-                raise NotImplementedOZero(var=var)
+                raise NotImplementedOZero(var=var, exact_part=0)
             elif len(factors) == 1:
                 return factors[0]._singularity_analysis_(
                     var=var, zeta=zeta, precision=precision)

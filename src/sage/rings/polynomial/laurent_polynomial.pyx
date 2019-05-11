@@ -1963,6 +1963,21 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
         return result
 
+    def _im_gens_(self, codomain, im_gens):
+        """
+        Return the image of ``self`` under the morphism defined by
+        ``im_gens`` in ``codomain``.
+
+        EXAMPLES::
+
+            sage: L.<x,y> = LaurentPolynomialRing(ZZ)
+            sage: M.<u,v> = LaurentPolynomialRing(ZZ)
+            sage: phi = L.hom([u,v])
+            sage: phi(x^2*~y -5*y**3)            # indirect doctest
+            -5*v^3 + u^2*v^-1
+        """
+        return codomain(self(im_gens))
+
     cdef _normalize(self, i=None):
         r"""
         Remove the common monomials from ``self._poly`` and store

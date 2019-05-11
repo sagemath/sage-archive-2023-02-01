@@ -1984,7 +1984,7 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
 
     OUTPUT:
 
-    A tuple with the NumberField, the numbers inside the NumberField, 
+    A tuple with the NumberField, the numbers inside the NumberField,
     and a homomorphism from the number field back to ``AA`` or ``QQbar``.
 
     This may not return the smallest such number field, unless
@@ -2169,7 +2169,7 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
             From: Number Field in a with defining polynomial y^4 + 2*y^2 + 4
             To:   Algebraic Field
             Defn: a |--> -0.7071067811865475? - 1.224744871391589?*I)
-    
+
     But with ``minimal=True``, we get a homomorphism to ``AA``::
 
         sage: number_field_elements_from_algebraics(rt2c, minimal=True)
@@ -2206,7 +2206,7 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
         sage: E = UCF.gen(5)
         sage: L.<b> = NumberField(x^2-189*x+16, embedding=200)
         sage: x = polygen(ZZ)
-        sage: my_nums = [-52*E - 136*E^2 - 136*E^3 - 52*E^4, \ 
+        sage: my_nums = [-52*E - 136*E^2 - 136*E^3 - 52*E^4, \
                          L.gen()._algebraic_(AA), \
                          sqrt(2), AA.polynomial_root(x^3-3, RIF(0,3)), 11/9, 1]
         sage: res = number_field_elements_from_algebraics(my_nums, embedded=True)
@@ -2278,12 +2278,12 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
 
         # embeds the numbers
         inter_hom = fld.hom([embedded_field.gen(0)])
-        nums = map(inter_hom, nums)
+        nums = [inter_hom(n) for n in nums]
 
         # get the field and homomorphism
         hom = embedded_field.hom([gen.root_as_algebraic()])
         fld = embedded_field
-    
+
     if single_number:
         nums = nums[0]
 
@@ -3716,7 +3716,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
         - ``embedded`` -- Boolean (default: ``False``). Whether to make the
           NumberField embedded.
-    
+
         - ``prec`` -- integer (default: ``53``). The number of bit of precision
           to guarantee finding real roots.
 

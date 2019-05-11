@@ -900,7 +900,6 @@ class AsymptoticExpansionGenerators(SageObject):
         from sage.calculus.calculus import limit
         from sage.misc.cachefunc import cached_function
         from sage.arith.srange import srange
-        from sage.rings.rational_field import QQ
         from sage.rings.integer_ring import ZZ
         from sage.symbolic.ring import SR
 
@@ -1268,9 +1267,6 @@ class AsymptoticExpansionGenerators(SageObject):
             2 - 2*Z^(-1/2) + 2*Z^(-1) - 2*Z^(-3/2) + 2*Z^(-2) - 2*Z^(-5/2) + O(Z^(-3))
 
         """
-        from sage.symbolic.ring import SR
-        u = SR('u')
-
         if tau is None:
             tau = _fundamental_constant_implicit_function_(phi=phi)
 

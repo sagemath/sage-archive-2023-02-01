@@ -618,8 +618,8 @@ class ProjectivePlaneCurve(ProjectiveCurve):
                 # What is the '5' in this line and the 'r()' in the next???
                 lcs = self.local_coordinates(P,5)
                 ldg = degree_lowest_rational_function(r(lcs[0],lcs[1]),z)
-                if ldg[0] != 0:
-                    divf.append([ldg[0],P])
+                if ldg != 0:
+                    divf.append([ldg, P])
         return divf
 
 

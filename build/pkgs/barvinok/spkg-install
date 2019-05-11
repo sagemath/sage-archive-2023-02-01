@@ -1,6 +1,6 @@
 cd src
 
-if [ -n "$SAGE_GMP_PREFIX" ];
+if [ -n "$SAGE_GMP_PREFIX" ]; then
    GMP_CONFIGURE="--with-gmp-prefix=$SAGE_GMP_PREFIX"
 fi
 

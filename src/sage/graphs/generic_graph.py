@@ -369,7 +369,7 @@ Methods
 #                               Nathan Carter <ncarter@bentley.edu>
 #                               Punarbasu Purkayastha <ppurka@gmail.com>
 #                               Stefano Leucci <leucci.stefano@gmail.com>
-#                     2012-2013 Frederic Chapoton <chapoton at math.univ-lyon1.fr>
+#                     2012-2013 Frédéric Chapoton <chapoton at math.univ-lyon1.fr>
 #                     2012-2015 Jernej Azarija <jernej.azarija@gmail.com>
 #                                Volker Braun <vbraun.name@gmail.com>
 #                     2012-2018 Julian Rueth <julian.rueth@gmail.com>
@@ -441,9 +441,12 @@ from sage.rings.rational_field import QQ
 from sage.categories.cartesian_product import cartesian_product
 from sage.misc.misc_c import prod
 
-from sage.misc.package import is_package_installed, PackageNotFoundError
-
 to_hex = LazyImport('matplotlib.colors', 'to_hex')
+
+
+def igraph_feature():
+    from sage.features import PythonModule
+    return PythonModule("igraph", spkg="python_igraph", url="http://igraph.org")
 
 
 class GenericGraph(GenericGraph_pyx):
@@ -967,8 +970,7 @@ class GenericGraph(GenericGraph_pyx):
 
     ### Formats
 
-    def copy(self, weighted=None, implementation='c_graph', data_structure=None,
-             sparse=None, immutable=None):
+    def copy(self, weighted=None, data_structure=None, sparse=None, immutable=None):
         """
         Change the graph implementation
 
@@ -979,27 +981,24 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``sparse`` -- boolean (default: ``None``); ``sparse=True`` is an alias
           for ``data_structure="sparse"``, and ``sparse=False`` is an alias for
-          ``data_structure="dense"``. Only used when
-          ``implementation='c_graph'`` and ``data_structure=None``.
+          ``data_structure="dense"``. Only used when ``data_structure=None``.
 
         - ``data_structure`` -- string (default: ``None``); one of ``"sparse"``,
           ``"static_sparse"``, or ``"dense"``. See the documentation of
-          :class:`Graph` or :class:`DiGraph`. Only used when
-          ``implementation='c_graph'``.
+          :class:`Graph` or :class:`DiGraph`.
 
         - ``immutable`` -- boolean (default: ``None``); whether to create a
-          mutable/immutable copy. Only used when ``implementation='c_graph'``
-          and ``data_structure=None``.
+          mutable/immutable copy. Only used when ``data_structure=None``.
 
           * ``immutable=None`` (default) means that the graph and its copy will
             behave the same way.
 
           * ``immutable=True`` is a shortcut for
-            ``data_structure='static_sparse'`` and ``implementation='c_graph'``
+            ``data_structure='static_sparse'``
 
-          * ``immutable=False`` sets ``implementation`` to ``'c_graph'``. When
-            ``immutable=False`` is used to copy an immutable graph, the data
-            structure used is ``"sparse"`` unless anything else is specified.
+          * ``immutable=False`` means that the created graph is mutable. When
+            used to copy an immutable graph, the data structure used is
+            ``"sparse"`` unless anything else is specified.
 
         .. NOTE::
 
@@ -1015,7 +1014,7 @@ class GenericGraph(GenericGraph_pyx):
         .. WARNING::
 
            Please use this method only if you need to copy but change the
-           underlying implementation or weightedness. Otherwise simply do
+           underlying data structure or weightedness. Otherwise simply do
            ``copy(g)`` instead of ``g.copy()``.
 
         .. WARNING::
@@ -1048,8 +1047,8 @@ class GenericGraph(GenericGraph_pyx):
 
         Examples of the keywords in use::
 
-            sage: G = graphs.CompleteGraph(19)
-            sage: H = G.copy(implementation='c_graph')
+            sage: G = graphs.CompleteGraph(9)
+            sage: H = G.copy()
             sage: H == G; H is G
             True
             False
@@ -1159,20 +1158,13 @@ class GenericGraph(GenericGraph_pyx):
             <sage.graphs.base.sparse_graph.SparseGraphBackend object at ...>
         """
         # Which data structure should be used ?
-        if implementation != 'c_graph':
-            # We do not care about the value of data_structure. But let's check
-            # the user did not define too much.
-            if data_structure is not None or immutable is not None or sparse is not None:
-                raise ValueError("'data_structure' 'immutable' and 'sparse' can"
-                                 " only be defined when 'implementation'='c_graph'")
-        elif data_structure is not None:
+        if data_structure is not None:
             # data_structure is already defined so there is nothing left to do
             # here ! Did the user try to define too much ?
             if immutable is not None or sparse is not None:
                 raise ValueError("you cannot define 'immutable' or 'sparse' "
                                  "when 'data_structure' has a value")
         # At this point :
-        # - implementation is 'c_graph'
         # - data_structure is None.
         elif immutable is True:
             data_structure = 'static_sparse'
@@ -1195,7 +1187,6 @@ class GenericGraph(GenericGraph_pyx):
                 (weighted is None or self._weighted == weighted)):
             from sage.graphs.base.static_sparse_backend import StaticSparseBackend
             if (isinstance(self._backend, StaticSparseBackend) and
-                implementation=='c_graph' and
                 (data_structure=='static_sparse' or data_structure is None)):
                 return self
 
@@ -1208,7 +1199,6 @@ class GenericGraph(GenericGraph_pyx):
 
         G = self.__class__(self, name=self.name(), pos=copy(self._pos),
                            weighted=weighted,
-                           implementation=implementation,
                            data_structure=data_structure)
 
         attributes_to_copy = ('_assoc', '_embedding')
@@ -1535,19 +1525,19 @@ class GenericGraph(GenericGraph_pyx):
 
         Standard conversion::
 
-            sage: G = graphs.TetrahedralGraph() # optional - python_igraph
+            sage: G = graphs.TetrahedralGraph()
             sage: H = G.igraph_graph()          # optional - python_igraph
             sage: H.summary()                   # optional - python_igraph
             'IGRAPH U--- 4 6 -- '
-            sage: G = digraphs.Path(3)          # optional - python_igraph
+            sage: G = digraphs.Path(3)
             sage: H = G.igraph_graph()          # optional - python_igraph
             sage: H.summary()                   # optional - python_igraph
             'IGRAPH D--- 3 2 -- '
 
         Adding edge attributes::
 
-            sage: G = Graph([(1, 2, 'a'), (2, 3, 'b')])                       # optional - python_igraph
-            sage: E = list(G.edge_iterator())                                 # optional - python_igraph
+            sage: G = Graph([(1, 2, 'a'), (2, 3, 'b')])
+            sage: E = list(G.edge_iterator())
             sage: H = G.igraph_graph(edge_attrs={'label': [e[2] for e in E]}) # optional - python_igraph
             sage: H.es['label']                                               # optional - python_igraph
             ['a', 'b']
@@ -1556,8 +1546,8 @@ class GenericGraph(GenericGraph_pyx):
         If edges have an attribute ``weight``, the igraph graph is considered
         weighted::
 
-            sage: G = Graph([(1, 2, {'weight': 1}), (2, 3, {'weight': 2})])              # optional - python_igraph
-            sage: E = list(G.edge_iterator())                                            # optional - python_igraph
+            sage: G = Graph([(1, 2, {'weight': 1}), (2, 3, {'weight': 2})])
+            sage: E = list(G.edge_iterator())
             sage: H = G.igraph_graph(edge_attrs={'weight': [e[2]['weight'] for e in E]}) # optional - python_igraph
             sage: H.is_weighted()                                                        # optional - python_igraph
             True
@@ -1566,23 +1556,23 @@ class GenericGraph(GenericGraph_pyx):
 
         Adding vertex attributes::
 
-            sage: G = graphs.GridGraph([2, 2])                            # optional - python_igraph
+            sage: G = graphs.GridGraph([2, 2])
             sage: H = G.igraph_graph(vertex_attrs={'name': G.vertices()}) # optional - python_igraph
             sage: H.vs()['name']                                          # optional - python_igraph
             [(0, 0), (0, 1), (1, 0), (1, 1)]
 
         Providing a mapping from vertices to consecutive integers::
 
-            sage: G = graphs.GridGraph([2, 2])                                # optional - python_igraph
-            sage: V = list(G)                                                 # optional - python_igraph
+            sage: G = graphs.GridGraph([2, 2])
+            sage: V = list(G)
             sage: H = G.igraph_graph(vertex_list=V, vertex_attrs={'name': V}) # optional - python_igraph
             sage: H.vs()['name'] == V                                         # optional - python_igraph
             True
 
         Sometimes, Sage integer/floats are not compatible with igraph::
 
-            sage: G = Graph([(0, 1, 2)])                                         # optional - python_igraph
-            sage: E = list(G.edge_iterator())                                    # optional - python_igraph
+            sage: G = Graph([(0, 1, 2)])
+            sage: E = list(G.edge_iterator())
             sage: H = G.igraph_graph(edge_attrs={'capacity': [e[2] for e in E]}) # optional - python_igraph
             sage: H.maxflow_value(0, 1, 'capacity')                              # optional - python_igraph
             1.0
@@ -1594,10 +1584,10 @@ class GenericGraph(GenericGraph_pyx):
 
         Converting a DiGraph back and forth::
 
-            sage: G = DiGraph([('a', 'b', {'w': 1}), ('b', 'c', {'w': 2})])                     # optional - python_igraph
-            sage: vertex_attrs = {'name': G.vertices()}                                         # optional - python_igraph
-            sage: E = list(G.edge_iterator())                                                   # optional - python_igraph
-            sage: edge_attrs = {'w': [e[2]['w'] for e in E]}                                    # optional - python_igraph
+            sage: G = DiGraph([('a', 'b', {'w': 1}), ('b', 'c', {'w': 2})])
+            sage: vertex_attrs = {'name': G.vertices()}
+            sage: E = list(G.edge_iterator())
+            sage: edge_attrs = {'w': [e[2]['w'] for e in E]}
             sage: H = DiGraph(G.igraph_graph(vertex_attrs=vertex_attrs, edge_attrs=edge_attrs)) # optional - python_igraph
             sage: G == H                                                                        # optional - python_igraph
             True
@@ -1617,10 +1607,10 @@ class GenericGraph(GenericGraph_pyx):
 
         Converting a Graph back and forth::
 
-            sage: G = Graph([('a', 'b', {'w': 1}), ('b', 'c', {'w': 2})])                     # optional - python_igraph
-            sage: vertex_attrs = {'name': G.vertices()}                                       # optional - python_igraph
-            sage: E = list(G.edge_iterator())                                                 # optional - python_igraph
-            sage: edge_attrs = {'w': [e[2]['w'] for e in E]}                                  # optional - python_igraph
+            sage: G = Graph([('a', 'b', {'w': 1}), ('b', 'c', {'w': 2})])
+            sage: vertex_attrs = {'name': G.vertices()}
+            sage: E = list(G.edge_iterator())
+            sage: edge_attrs = {'w': [e[2]['w'] for e in E]}
             sage: H = Graph(G.igraph_graph(vertex_attrs=vertex_attrs, edge_attrs=edge_attrs)) # optional - python_igraph
             sage: G == H                                                                      # optional - python_igraph
             True
@@ -1638,17 +1628,14 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.edges() == H.edges()                               # optional - python_igraph
             False
         """
-        if is_package_installed('python_igraph'):
-            import igraph
-        else:
-            raise PackageNotFoundError('python_igraph')
-
         if vertex_list is None:
-            v_to_int = {v: i for i, v in enumerate(self.vertices())}
-        else:
-            v_to_int = {v: i for i, v in enumerate(vertex_list)}
+            vertex_list = self.vertices()
+
+        v_to_int = {v: i for i, v in enumerate(vertex_list)}
         edges = [(v_to_int[v], v_to_int[w]) for v, w in self.edge_iterator(labels=False)]
 
+        igraph_feature().require()
+        import igraph
         return igraph.Graph(n=self.num_verts(),
                             edges=edges,
                             directed=self.is_directed(),
@@ -8549,10 +8536,9 @@ class GenericGraph(GenericGraph_pyx):
             capacity=lambda x: 1
 
         if algorithm is None:
-            from sage.features import PythonModule
             if vertex_bound:
                 algorithm = "LP"
-            elif PythonModule("igraph", spkg="python_igraph", url="http://igraph.org").is_present():
+            elif igraph_feature().is_present():
                 algorithm = "igraph"
             else:
                 algorithm = "FF"
@@ -11906,7 +11892,7 @@ class GenericGraph(GenericGraph_pyx):
             'Cycle graph'
             sage: G.get_vertex(0)
             'vertex0'
-            sage: H = G.copy(implementation='c_graph', sparse=True)
+            sage: H = G.copy(sparse=True)
             sage: H.clear()
             sage: H.order(); H.size()
             0
@@ -11916,7 +11902,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: H.name()
             ''
             sage: H.get_vertex(0)
-            sage: H = G.copy(implementation='c_graph', sparse=False)
+            sage: H = G.copy(sparse=False)
             sage: H.clear()
             sage: H.order(); H.size()
             0
@@ -15853,7 +15839,7 @@ class GenericGraph(GenericGraph_pyx):
             ...
             LookupError: end vertex (junk) is not a vertex of the graph
 
-        Distingusing between multiedged paths (see :trac:`27501`)::
+        Distinguishing between multiedged paths (see :trac:`27501`)::
 
             sage: g = Graph(multiedges=True)
             sage: g.add_edge(0, 3, 1)
@@ -22257,7 +22243,7 @@ class GenericGraph(GenericGraph_pyx):
             Permutation Group with generators [(0,1)]
 
             sage: foo = Graph(sparse=True)
-            sage: bar = Graph(implementation='c_graph',sparse=True)
+            sage: bar = Graph(sparse=True)
             sage: foo.add_edges([(0,1,1),(1,2,2), (2,3,3)])
             sage: bar.add_edges([(0,1,1),(1,2,2), (2,3,3)])
             sage: foo.automorphism_group(edge_labels=True)
@@ -22401,7 +22387,7 @@ class GenericGraph(GenericGraph_pyx):
             G_to = {u: i for i,u in enumerate(G_vertices)}
             from sage.graphs.all import Graph, DiGraph
             DoDG = DiGraph if self._directed else Graph
-            H = DoDG(len(G_vertices), implementation='c_graph', loops=G.allows_loops())
+            H = DoDG(len(G_vertices), loops=G.allows_loops())
             HB = H._backend
             for u,v in G.edge_iterator(labels=False):
                 HB.add_edge(G_to[u], G_to[v], None, G._directed)
@@ -22443,7 +22429,7 @@ class GenericGraph(GenericGraph_pyx):
             G_to = {u: i for i,u in enumerate(G_vertices)}
             from sage.graphs.all import Graph, DiGraph
             DoDG = DiGraph if self._directed else Graph
-            H = DoDG(len(G_vertices), implementation='c_graph', loops=self.allows_loops())
+            H = DoDG(len(G_vertices), loops=self.allows_loops())
             HB = H._backend
             for u,v in self.edge_iterator(labels=False):
                 HB.add_edge(G_to[u], G_to[v], None, self._directed)
@@ -22886,7 +22872,7 @@ class GenericGraph(GenericGraph_pyx):
         G_to = {u: i for i,u in enumerate(self_vertices)}
         from sage.graphs.all import Graph, DiGraph
         DoDG = DiGraph if self._directed else Graph
-        H = DoDG(len(self_vertices), implementation='c_graph', loops=G.allows_loops())
+        H = DoDG(len(self_vertices), loops=G.allows_loops())
         HB = H._backend
         for u,v in G.edge_iterator(labels=False):
             HB.add_edge(G_to[u], G_to[v], None, G._directed)
@@ -22894,7 +22880,7 @@ class GenericGraph(GenericGraph_pyx):
         partition = [[G_to[vv] for vv in cell] for cell in partition]
         GC = G
         G2_to = {u: i for i,u in enumerate(other_vertices)}
-        H2 = DoDG(len(other_vertices), implementation='c_graph', loops=G2.allows_loops())
+        H2 = DoDG(len(other_vertices), loops=G2.allows_loops())
         H2B = H2._backend
         for u,v in G2.edge_iterator(labels=False):
             H2B.add_edge(G2_to[u], G2_to[v], None, G2._directed)
@@ -22995,7 +22981,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.add_edge((0,1))
             sage: G.canonical_label()
             Multi-graph on 2 vertices
-            sage: Graph('A?', implementation='c_graph').canonical_label()
+            sage: Graph('A?').canonical_label()
             Graph on 2 vertices
 
             sage: P = graphs.PetersenGraph()
@@ -23119,7 +23105,7 @@ class GenericGraph(GenericGraph_pyx):
                 G_to[u] = i
             from sage.graphs.all import Graph, DiGraph
             DoDG = DiGraph if self._directed else Graph
-            H = DoDG(len(G_vertices), implementation='c_graph', loops=G.allows_loops())
+            H = DoDG(len(G_vertices), loops=G.allows_loops())
             HB = H._backend
             for u,v in G.edge_iterator(labels=False):
                 HB.add_edge(G_to[u], G_to[v], None, G._directed)
@@ -23142,7 +23128,7 @@ class GenericGraph(GenericGraph_pyx):
             G_to[u] = i
         from sage.graphs.all import Graph, DiGraph
         DoDG = DiGraph if self._directed else Graph
-        H = DoDG(len(G_vertices), implementation='c_graph', loops=self.allows_loops())
+        H = DoDG(len(G_vertices), loops=self.allows_loops())
         HB = H._backend
         for u,v in self.edge_iterator(labels=False):
             HB.add_edge(G_to[u], G_to[v], None, self._directed)

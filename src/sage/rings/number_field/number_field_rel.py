@@ -2386,9 +2386,11 @@ class NumberField_relative(NumberField_generic):
             (x + 2*i*sqrt2) * (x - 2*i*sqrt2)
         """
         M = self.absolute_field('a')
-        from_M, _ = M.structure()
-        F = poly.change_ring(M).factor()
-        v = [(f.change_ring(self), e) for f, e in F]
+        from_M, to_M = M.structure()
+        g = M['x']([to_M(x) for x in poly.list()])
+        F = g.factor()
+        S = poly.parent()
+        v = [(S([from_M(x) for x in f.list()]), e) for f, e in F]
         return Factorization(v, from_M(F.unit()))
 
     def lift_to_base(self, element):

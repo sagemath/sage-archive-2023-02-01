@@ -142,6 +142,8 @@ class gosper_iterator(object):
                 print("ERROR: Next loop iteration ran too many times.")
                 raise StopIteration
 
+    next = __next__  # for python2
+
     def emit(self, q):
         """
         Change the state of the iterator, emitting the term `q`.

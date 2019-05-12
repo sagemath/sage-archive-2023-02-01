@@ -307,9 +307,7 @@ class Constant(object):
             sage: p != s
             True
         """
-        equality = (self.__class__ == other.__class__ and
-                    self._name == other._name)
-        if equality:
+        if self.__class__ == other.__class__ and self._name == other._name:
             return op in [op_EQ, op_GE, op_LE]
         else:
             return NotImplemented

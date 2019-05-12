@@ -243,7 +243,7 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
         #we're supposed to find an irreducible polynomial, so we cannot
         #return a constant one. If the first LLL basis vector gives
         #a constant polynomial, use the next one.
-        if all(c==0 for c in coeffs[1:]):
+        if all(c == 0 for c in coeffs[1:]):
             coeffs = LLL[1][:n]
 
         if height_bound:
@@ -898,7 +898,8 @@ def primes_first_n(n, leave_pari=False):
 
 
 # This is from
-#    http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/366178
+#    https://github.com/ActiveState/code
+#    https://github.com/ActiveState/code/tree/master/recipes/Python/366178_fast_prime_number_list
 # It's impressively fast given that it's in Pure Python.
 
 
@@ -1317,10 +1318,13 @@ def previous_prime_power(n):
 
 
 def random_prime(n, proof=None, lbound=2):
-    """
-    Return a random prime p between `lbound` and n (i.e. `lbound <= p <= n`).
-    The returned prime is chosen uniformly at random from the set of prime
-    numbers less than or equal to n.
+    r"""
+    Return a random prime `p` between ``lbound`` and `n`.
+
+    The returned prime `p` satisfies ``lbound`` `\leq p \leq n`.
+
+    The returned prime `p` is chosen uniformly at random from the set
+    of prime numbers less than or equal to `n`.
 
     INPUT:
 
@@ -1331,8 +1335,7 @@ def random_prime(n, proof=None, lbound=2):
        does not provide a proof of primality. If None, uses the global default
        (see :mod:`sage.structure.proof.proof`)
 
-    - ``lbound`` - an integer >= 2
-      lower bound for the chosen primes
+    - ``lbound`` - an integer >= 2, lower bound for the chosen primes
 
     EXAMPLES::
 
@@ -1374,7 +1377,7 @@ def random_prime(n, proof=None, lbound=2):
 
     - Jonathan Bober (2007-03-17)
     """
-    # since we don't want current_randstate to get
+    # since we do not want current_randstate to get
     # pulled when you say "from sage.arith.misc import *".
     from sage.structure.proof.proof import get_flag
     proof = get_flag(proof, "arithmetic")
@@ -1646,17 +1649,16 @@ sigma = Sigma()
 
 def gcd(a, b=None, **kwargs):
     r"""
-    The greatest common divisor of a and b, or if a is a list and b is
-    omitted the greatest common divisor of all elements of a.
+    Return the greatest common divisor of ``a`` and ``b``.
+
+    If ``a`` is a list and ``b`` is omitted, return instead the
+    greatest common divisor of all elements of ``a``.
 
     INPUT:
 
+    - ``a,b`` -- two elements of a ring with gcd or
 
-    -  ``a,b`` - two elements of a ring with gcd or
-
-    -  ``a`` - a list or tuple of elements of a ring with
-       gcd
-
+    - ``a`` -- a list or tuple of elements of a ring with gcd
 
     Additional keyword arguments are passed to the respectively called
     methods.
@@ -1735,7 +1737,7 @@ def gcd(a, b=None, **kwargs):
         sage: parent(gcd(SR(2), SR(4)))
         Symbolic Ring
 
-    Verify that objects without gcd methods but which can't be
+    Verify that objects without gcd methods but which cannot be
     coerced to ZZ or QQ raise an error::
 
         sage: F.<a,b> = FreeMonoid(2)
@@ -1861,7 +1863,7 @@ def xlcm(m, n):
     g = gcd(m, n//g) # divisible by those primes which divide n to a
                      # higher power than m
 
-    while not g==1:
+    while g != 1:
         m //= g
         g = gcd(m, g)
 
@@ -2145,7 +2147,7 @@ def get_inverse_mod(order):
 
 def power_mod(a, n, m):
     """
-    The n-th power of a modulo the integer m.
+    Return the ``n``-th power of ``a`` modulo the integer ``m``.
 
     EXAMPLES::
 
@@ -2177,14 +2179,14 @@ def power_mod(a, n, m):
         sage: power_mod(mpz(2),mpz(390),mpz(391))
         mpz(285)
     """
-    if m==0:
+    if m == 0:
         raise ZeroDivisionError("modulus must be nonzero.")
-    if m==1:
+    if m == 1:
         return 0
     if n < 0:
-        ainv = inverse_mod(a,m)
+        ainv = inverse_mod(a, m)
         return power_mod(ainv, -n, m)
-    if n==0:
+    if n == 0:
         if a == 0:
             raise ArithmeticError("0^0 is undefined.")
         return 1
@@ -2465,7 +2467,7 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
     implementations of algorithms for doing certain integer
     factorization problems. These implementations are not used by the
     generic factor command, which currently just calls PARI (note that
-    PARI also implements sieve and ecm algorithms, but they aren't as
+    PARI also implements sieve and ecm algorithms, but they are not as
     optimized). Thus you might consider using them instead for certain
     numbers.
 
@@ -2595,7 +2597,7 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
     try:
         return m(proof=proof, **kwds)
     except TypeError:
-        # Maybe the factor() method doesn't have a proof option
+        # Maybe the factor() method does not have a proof option
         return m(**kwds)
 
 
@@ -2725,14 +2727,15 @@ def odd_part(n):
 
 def prime_to_m_part(n, m):
     """
-    Return the prime-to-m part of n, i.e., the largest divisor of n
-    that is coprime to m.
+    Return the prime-to-``m`` part of ``n``.
+
+    This is the largest divisor of ``n`` that is coprime to ``m``.
 
     INPUT:
 
-    -  ``n`` - Integer (nonzero)
+    - ``n`` -- Integer (nonzero)
 
-    -  ``m`` - Integer
+    - ``m`` -- Integer
 
     OUTPUT: Integer
 
@@ -2766,26 +2769,24 @@ def prime_to_m_part(n, m):
 
 def is_square(n, root=False):
     """
-    Return whether or not n is square, and if n is a square also
-    returns the square root. If n is not square, also returns None.
+    Return whether or not ``n`` is square.
+
+    If ``n`` is a square also return the square root.
+    If ``n`` is not square, also return ``None``.
 
     INPUT:
 
+    - ``n`` -- an integer
 
-    -  ``n`` - an integer
-
-    -  ``root`` - whether or not to also return a square
-       root (default: False)
-
+    - ``root`` -- whether or not to also return a square
+      root (default: ``False``)
 
     OUTPUT:
 
+    - ``bool`` -- whether or not a square
 
-    -  ``bool`` - whether or not a square
-
-    -  ``object`` - (optional) an actual square if found,
-       and None otherwise.
-
+    - ``object`` -- (optional) an actual square if found,
+      and ``None`` otherwise.
 
     EXAMPLES::
 
@@ -3171,7 +3172,7 @@ def crt(a, b, m=None, n=None):
         f = (b-a).quo_rem
     except (TypeError, AttributeError):
         # Maybe there is no coercion between a and b.
-        # Maybe (b-a) don't have a quo_rem attribute
+        # Maybe (b-a) does not have a quo_rem attribute
         a = py_scalar_to_element(a)
         b = py_scalar_to_element(b)
         f = (b-a).quo_rem
@@ -3964,7 +3965,7 @@ def jacobi_symbol(a, b):
         sage: jacobi_symbol(mpz(10),mpz(777))
         -1
     """
-    if b % 2==0:
+    if b % 2 == 0:
         raise ValueError("second input must be odd, %s is not odd" % b)
 
     return kronecker_symbol(a, b)

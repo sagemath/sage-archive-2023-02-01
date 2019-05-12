@@ -3,7 +3,7 @@ r"""
 Graphics objects
 
 This file contains the definition of the class :class:`Graphics`.
-Usually, you don't call the constructor of thsis class directly
+Usually, you don't call the constructor of this class directly
 (although you can do it), you would use :func:`plot` instead.
 
 AUTHORS:
@@ -2871,12 +2871,10 @@ class Graphics(WithEqualityById, SageObject):
                 subs = [float(_) for _ in srange(2*base_inv, 1, base_inv)]
                 subplot.yaxis.set_minor_locator(LogLocator(base=basey,
                                                            subs=subs))
-
             # Set the color and fontsize of ticks
-            figure.get_axes()[0].tick_params(color=self._axes_color,
-                    labelcolor=self._tick_label_color,
-                    labelsize=self._fontsize, which='both')
-
+            subplot.tick_params(color=self._axes_color,
+                                labelcolor=self._tick_label_color,
+                                labelsize=self._fontsize, which='both')
 
         if gridlines is not None:
             if isinstance(gridlines, (list, tuple)):

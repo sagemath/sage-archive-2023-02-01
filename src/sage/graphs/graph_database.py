@@ -922,18 +922,19 @@ class GraphDatabase(SQLDatabase):
         not be called directly.
         """
         from sagenb.notebook.interact import input_grid
+        function_name = '__temporary_interact_function'
         arg = ['%s=%s'%(word, kwds[word]) for word in kwds]
         boxes = ["%s=input_grid(1,2,['=',%s])"%(word, kwds[word]) for word in kwds]
         params = ['%s=%s[0]'%tuple(2 * [arg[i].split('=')[0]]) for i in range(len(arg))]
 
-        s = 'def _(%s):'%','.join(boxes)
+        s = 'def %s(%s):' % (function_name, ','.join(boxes))
         t = """
         print('<html><h2>Query Results:</h2></html>')
         GraphQuery(display_cols=%s,%s).show(with_picture=True)
         """%tuple([display, ','.join(params)])
         s += '\t' + '\n\t'.join(t.split('\n')) + '\n'
         exec(s)
-        return _
+        return locals()[function_name]
 
     def query(self, query_dict=None, display_cols=None, **kwds):
         """

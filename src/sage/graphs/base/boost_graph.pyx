@@ -1082,7 +1082,7 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
     - ``g`` -- the input Sage graph
 
     - ``weight_function`` -- function (default: ``None``); a function that
-       associates a weight to each edge. If ``None`` (default), the weights of
+      associates a weight to each edge. If ``None`` (default), the weights of
       ``g`` are used, if available, otherwise all edges have weight 1.
       
     - ``distances`` -- boolean (default: ``True``); whether to return the

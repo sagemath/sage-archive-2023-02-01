@@ -14,12 +14,16 @@ SAGE_SPKG_CONFIGURE([ntl], [
     if test x$sage_spkg_install_ntl != xyes; then
         AC_CHECK_HEADER([NTL/ZZ.h], [], [sage_spkg_install_ntl=yes])
         AC_MSG_CHECKING([whether we can link a program using NTL])
+        NTL_SAVED_LDFLAGS=$LDFLAGS
+        LDFLAGS="$LDFLAGS -lntl"
         AC_LINK_IFELSE([
             AC_LANG_PROGRAM([[#include <NTL/ZZ.h>]],
                             [[NTL::ZZ a;]]
-            )], [AC_MSG_RESULT([yes])], [
+            )], [LIBS=$LIBS -lntl]
+                [AC_MSG_RESULT([yes])], [
             AC_MSG_RESULT([no]); sage_spkg_install_ntl=yes
         ])
+        LDFLAGS=$NTL_SAVED_LDFLAGS
         AC_MSG_CHECKING([NTL version >= ]SAGE_NTL_VERSION_MAJOR[.]SAGE_NTL_VERSION_MINOR)
         AC_RUN_IFELSE([
             AC_LANG_PROGRAM(

@@ -3437,7 +3437,11 @@ class PermutationGroupFunctor(ConstructionFunctor):
         from sage.sets.all import FiniteEnumeratedSet
 
         new_domain = set(self._domain).union(set(other._domain))
-        new_domain = FiniteEnumeratedSet(sorted(new_domain))
+        try:
+            new_domain = FiniteEnumeratedSet(sorted(new_domain))
+        except TypeError:
+            # Sorting may fail in Python 3.
+            new_domain = FiniteEnumeratedSet(new_domain)
         return PermutationGroupFunctor(self.gens() + other.gens(),
                                        new_domain)
 

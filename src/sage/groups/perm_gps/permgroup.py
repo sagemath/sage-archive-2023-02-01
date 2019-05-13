@@ -501,8 +501,19 @@ class PermutationGroup_generic(FiniteGroup):
             sage: g2 = PermutationGroup([('a','b')], domain=['a', 'b']).gens()[0]
             sage: g2
             ('a','b')
-            sage: p = g1*g2; p
+            sage: p = g1*g2
+            sage: p # py2
             (1,2)(3,4,5)('a','b')
+
+        With Python 3, the numeric terms and the string terms will
+        appear in random order::
+
+            sage: p # py3 random
+            (1,2)(3,4,5)('a','b')
+
+            sage: P = parent(p)
+            sage: "('b','a')" in P.gens_dict() or "('a','b')" in P.gens_dict()
+            True
         """
         gens = self.gens()
         if len(gens) == 1 and gens[0].is_one():

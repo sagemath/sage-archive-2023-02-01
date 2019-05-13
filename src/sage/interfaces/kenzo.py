@@ -36,6 +36,7 @@ from sage.structure.sage_object import SageObject
 from sage.homology.homology_group import HomologyGroup
 from sage.rings.integer_ring import ZZ
 from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
+from sage.categories.commutative_additive_groups import CommutativeAdditiveGroups
 
 from sage.libs.ecl import EclObject, ecl_eval, EclListIterator
 

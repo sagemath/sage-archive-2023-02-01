@@ -109,9 +109,7 @@ the command, you can press q to immediately get back to your
 original prompt.
 
 Incidentally you can always get into a maple console by the
-command
-
-::
+command ::
 
     sage: maple.console()          # not tested
     sage: !maple                   # not tested

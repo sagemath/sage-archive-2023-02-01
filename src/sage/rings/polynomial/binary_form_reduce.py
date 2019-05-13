@@ -102,7 +102,7 @@ def covariant_z0(F, z0_cov=False, prec=53, emb=None, error_limit=0.000001):
     ::
 
         sage: R.<x,y> = QQ[]
-        sage: covariant_z0(x^2*y - x*y^2, prec=100)
+        sage: covariant_z0(x^2*y - x*y^2, prec=100) # tol 1e-28
          (0.50000000000000000000000000003 + 0.86602540378443864676372317076*I,
          1.5396007178390020386910634147)
 
@@ -155,13 +155,12 @@ def covariant_z0(F, z0_cov=False, prec=53, emb=None, error_limit=0.000001):
     # now we have a single variable polynomial with all the roots of F
     K = ComplexField(prec=prec)
     if f.base_ring() != K:
-        if emb == None:
+        if emb is None:
             f = f.change_ring(K)
         else:
             f = f.change_ring(emb)
     roots = f.roots()
-    if (max([ex for p,ex in roots]) > 1)\
-      or (f.degree() < d-1):
+    if max(ex for _, ex in roots) > 1 or f.degree() < d - 1:
         if z0_cov:
             raise ValueError('cannot have multiple roots for z0 invariant')
         else:
@@ -170,7 +169,7 @@ def covariant_z0(F, z0_cov=False, prec=53, emb=None, error_limit=0.000001):
             if f.degree() < 3:
                 raise ValueError('must have at least 3 distinct roots')
             roots = f.roots()
-    roots = [p for p,ex in roots]
+    roots = [p for p, _ in roots]
 
     # finding quadratic Q_0, gives us our covariant, z_0
     dF = f.derivative()
@@ -292,7 +291,7 @@ def epsinv(F, target, prec=53, target_tol=0.001, z=None, emb=None):
 
         sage: from sage.rings.polynomial.binary_form_reduce import epsinv
         sage: R.<x,y> = QQ[]
-        sage: epsinv(-2*x^3 + 2*x^2*y + 3*x*y^2 + 127*y^3, 31.5022020249597)
+        sage: epsinv(-2*x^3 + 2*x^2*y + 3*x*y^2 + 127*y^3, 31.5022020249597) # tol 1e-12
         4.02520895942207       
     """
     def coshdelta(z):
@@ -412,9 +411,9 @@ def get_bound_poly(F, prec=53, norm_type='norm', emb=None):
         sage: from sage.rings.polynomial.binary_form_reduce import get_bound_poly
         sage: R.<x,y> = QQ[]
         sage: F = -2*x^3 + 2*x^2*y + 3*x*y^2 + 127*y^3
-        sage: get_bound_poly(F)
+        sage: get_bound_poly(F) # tol 1e-12
         28.0049336543295
-        sage: get_bound_poly(F, norm_type='height')
+        sage: get_bound_poly(F, norm_type='height') # tol 1e-11
         111.890642019092
     """
     def coshdelta(z):

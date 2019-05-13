@@ -422,7 +422,7 @@ class MultivectorModule(UniqueRepresentation, Parent):
             description += "on the {}".format(self._domain)
         else:
             description += "along the {} mapped into the {}".format(
-                                      elf._domain, self._ambient_domain)
+                                      self._domain, self._ambient_domain)
         return description
 
     def _latex_(self):

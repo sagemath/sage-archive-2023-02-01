@@ -82,15 +82,15 @@ The above is consistent with the following analytic computation::
     3.0000?
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005-2009 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from __future__ import print_function, absolute_import, division
 
@@ -124,7 +124,7 @@ from sage.modular.modsym.p1list import P1List
 # The exported functions, which are in most cases enough to get the
 # user going working with Heegner points:
 #
-#    heegner_points -- all of them with given level, discriminant, conducto
+#    heegner_points -- all of them with given level, discriminant, conductor
 #    heegner_point -- a specific one
 #
 ##################################################################################
@@ -4062,11 +4062,11 @@ class KolyvaginPoint(HeegnerPoint):
     def index(self, *args, **kwds):
         """
         Return index of this Kolyvagin point in the full group of
-        $K_c$ rational points on $E$.
+        `K_c` rational points on `E`.
 
         When the conductor is 1, this is computed numerically using
         the Gross-Zagier formula and explicit point search, and it may
-        be off by $2$. See the documentation for ``E.heegner_index``,
+        be off by `2`. See the documentation for ``E.heegner_index``,
         where `E` is the curve attached to ``self``.
 
         EXAMPLES::

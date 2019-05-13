@@ -372,8 +372,8 @@ def _sporadic_Q_data(j):
     and ``coeffs`` is a list of coefficients of a polynomial defining
     the kernel of an l-isogeny from E.  In all but one case this
     polynomial is monic with integer coefficients.  In one case
-    ($\ell=37$, $j=-162677523113838677$) the constant coefficient has
-    denominator $37$.
+    (`\ell=37`, `j=-162677523113838677`) the constant coefficient has
+    denominator 37.
 
     Whenever we have a curve of j-invariant ``j``, we can compute the
     corresponding l-isogeny by just scaling ``coeffs`` by the right
@@ -2058,7 +2058,7 @@ def is_kernel_polynomial(E, m, f):
         return True
 
     # For each a in a set of generators of (Z/mZ)^* we check that the
-    # multiplcation-by-a map permutes the roots of f.  It would be
+    # multiplication-by-a map permutes the roots of f.  It would be
     # enough to take a generating (Z/mZ)^*/{1,-1} but that is not
     # implemented.  If m is prime (or more generally, has a primitive
     # root) then only one a will be needed.

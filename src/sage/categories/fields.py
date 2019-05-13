@@ -304,13 +304,7 @@ class Fields(CategoryWithAxiom):
             ALGORITHM:
 
             This uses the extended Euclidean algorithm; see for example
-            [Cohen1996]_, Algorithm 3.2.2.
-
-            REFERENCES:
-
-            .. [Cohen1996] \H. Cohen, A Course in Computational Algebraic
-               Number Theory.  Graduate Texts in Mathematics 138.
-               Springer-Verlag, 1996.
+            [Coh1993]_, Algorithm 3.2.2.
 
             EXAMPLES::
 

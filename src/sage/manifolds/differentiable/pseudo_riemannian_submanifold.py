@@ -675,7 +675,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         # case no foliation:
         max_frame = self._ambient.default_frame().along(self._immersion)
         self._normal = self.multivector_field(self._ambient._dim - self._dim,
-                                              "n", r"n", self._immersion)
+                                              name="n",
+                                              dest_map=self._immersion)
 
         # an auxiliary functions:
         def calc_normal(chart):

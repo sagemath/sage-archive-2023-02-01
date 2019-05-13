@@ -7,7 +7,7 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2010 Nathann Cohen <nathann.cohen@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -15,7 +15,7 @@ AUTHORS:
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# *****************************************************************************
 
 from cysignals.memory cimport sig_malloc, sig_free
 
@@ -140,6 +140,7 @@ cdef class CPLEXBackend(GenericBackend):
             self.set_variable_type(n,1)
 
         if name is not None:
+            name = str_to_bytes(name)
             c_name = name
             status = CPXchgcolname(self.env, self.lp, 1, &n, &c_name)
             check(status)
@@ -237,7 +238,8 @@ cdef class CPLEXBackend(GenericBackend):
                 self.set_variable_type(j, 1)
 
             if names:
-                c_name = names[i]
+                name = str_to_bytes(names[i])
+                c_name = name
                 status = CPXchgcolname(self.env, self.lp, 1, &j, &c_name)
                 check(status)
 
@@ -483,7 +485,7 @@ cdef class CPLEXBackend(GenericBackend):
             sage: p.solve()                                    # optional - CPLEX
             10.0
             sage: p.get_values([x,y])                          # optional - CPLEX
-            [0.0, 3.0]
+            [0, 3]
         """
         cdef int status
         status = CPXdelrows(self.env, self.lp, i, i)
@@ -549,7 +551,8 @@ cdef class CPLEXBackend(GenericBackend):
             bound[0] = lower_bound
 
         if names:
-            c_names[0] = names[0]
+            name = str_to_bytes(names[0])
+            c_names[0] = name
 
         for 1<= i <number:
             sense[i] = sense[0]
@@ -557,7 +560,8 @@ cdef class CPLEXBackend(GenericBackend):
             if rng != NULL:
                 rng[i] = rng[0]
             if names:
-                c_names[i] = names[i]
+                name = str_to_bytes(names[i])
+                c_names[i] = name
 
         status = CPXnewrows(self.env, self.lp, number, bound, sense, rng, c_names if names else NULL)
 
@@ -588,12 +592,12 @@ cdef class CPLEXBackend(GenericBackend):
             sage: p = get_solver(solver = "CPLEX")                             # optional - CPLEX
             sage: p.add_variables(5)                                           # optional - CPLEX
             4
-            sage: p.add_linear_constraint( zip(range(5), range(5)), 2.0, 2.0)  # optional - CPLEX
+            sage: p.add_linear_constraint([(i, i) for i in range(5)], 2.0, 2.0)  # optional - CPLEX
             sage: p.row(0)                                                     # optional - CPLEX
             ([1, 2, 3, 4], [1.0, 2.0, 3.0, 4.0])
             sage: p.row_bounds(0)                                              # optional - CPLEX
             (2.0, 2.0)
-            sage: p.add_linear_constraint( zip(range(5), range(5)), 1.0, 1.0, name='foo') # optional - CPLEX
+            sage: p.add_linear_constraint([(i, i) for i in range(5)], 1.0, 1.0, name='foo') # optional - CPLEX
             sage: p.row_name(1)                                                           # optional - CPLEX
             'foo'
 
@@ -649,6 +653,7 @@ cdef class CPLEXBackend(GenericBackend):
             bound = lower_bound
 
         if name:
+            name = str_to_bytes(name)
             c_name = name
 
         status = CPXnewrows(self.env, self.lp, 1, &bound, &sense, &rng, NULL if (name is None) else &c_name)
@@ -683,7 +688,7 @@ cdef class CPLEXBackend(GenericBackend):
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
             sage: p.add_variables(5)                               # optional - CPLEX
             4
-            sage: p.add_linear_constraint(zip(range(5), range(5)), 2, 2)       # optional - CPLEX
+            sage: p.add_linear_constraint([(i, i) for i in range(5)], 2, 2)  # optional - CPLEX
             sage: p.row(0)                                     # optional - CPLEX
             ([1, 2, 3, 4], [1.0, 2.0, 3.0, 4.0])
             sage: p.row_bounds(0)                              # optional - CPLEX
@@ -732,7 +737,7 @@ cdef class CPLEXBackend(GenericBackend):
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
             sage: p.add_variables(5)                               # optional - CPLEX
             4
-            sage: p.add_linear_constraint(zip(range(5), range(5)), 2, 2)       # optional - CPLEX
+            sage: p.add_linear_constraint([(i, i) for i in range(5)], 2, 2)  # optional - CPLEX
             sage: p.row(0)                                     # optional - CPLEX
             ([1, 2, 3, 4], [1.0, 2.0, 3.0, 4.0])
             sage: p.row_bounds(0)                              # optional - CPLEX
@@ -797,8 +802,8 @@ cdef class CPLEXBackend(GenericBackend):
         status = CPXgetlb(self.env, self.lp, &lb, index, index)
         check(status)
 
-        return (None if lb <= -int(CPX_INFBOUND) else lb,
-                None if ub >= +int(CPX_INFBOUND) else ub)
+        return (None if lb <= -CPX_INFBOUND else lb,
+                None if ub >= +CPX_INFBOUND else ub)
 
     cpdef add_col(self, indices, coeffs):
         r"""
@@ -1098,7 +1103,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         status = CPXgetctype(self.env, self.lp, &ctype, variable, variable)
 
-        return value if (status == 3003 or ctype=='C') else round(value)
+        return value if (status == 3003 or ctype == 'C') else int(round(value))
 
     cpdef int ncols(self):
         r"""
@@ -1163,7 +1168,7 @@ cdef class CPLEXBackend(GenericBackend):
             return ""
         check(status)
 
-        s = str(n)
+        s = char_to_str(n)
         sig_free(n)
 
         return s
@@ -1197,7 +1202,7 @@ cdef class CPLEXBackend(GenericBackend):
             return ""
         check(status)
 
-        s = str(n)
+        s = char_to_str(n)
         sig_free(n)
         return s
 
@@ -1371,7 +1376,7 @@ cdef class CPLEXBackend(GenericBackend):
             status = CPXgetub(self.env, self.lp, &ub, index, index)
             check(status)
 
-            return ub if ub < int(CPX_INFBOUND) else None
+            return ub if ub < CPX_INFBOUND else None
 
         else:
             x = 'U'
@@ -1423,7 +1428,7 @@ cdef class CPLEXBackend(GenericBackend):
         if value is False:
             status = CPXgetlb(self.env, self.lp, &lb, index, index)
             check(status)
-            return None if lb <= int(-CPX_INFBOUND) else lb
+            return None if lb <= -CPX_INFBOUND else lb
 
         else:
             x = 'L'
@@ -1592,7 +1597,7 @@ cdef class CPLEXBackend(GenericBackend):
                 check( CPXsetlogfile(self.env, NULL) )
                 self._logfilename = ''
             else:             # Set log file to logfilename
-                ff = fopen(value, "a")
+                ff = fopen(str_to_bytes(value), "a")
                 if not ff:
                     raise ValueError("Unable to append file {}.".format(value))
                 check( CPXsetlogfile(self.env, ff) )

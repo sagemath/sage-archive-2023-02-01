@@ -1,3 +1,5 @@
+.. highlight:: shell-session
+
 .. _chapter-sage-trac:
 
 ====================
@@ -348,7 +350,9 @@ This second ticket does not fix the problem but adds a warning that will be
 printed whenever anyone uses the relevant code. This, until the problem is
 finally fixed.
 
-To produce the warning message, use code like the following::
+To produce the warning message, use code like the following:
+
+.. CODE-BLOCK:: python
 
     from sage.misc.stopgap import stopgap
     stopgap("This code contains bugs and may be mathematically unreliable.",

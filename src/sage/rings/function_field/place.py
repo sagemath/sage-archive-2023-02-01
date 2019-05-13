@@ -183,6 +183,22 @@ class FunctionFieldPlace(Element):
             raise TypeError("only left multiplication by integers is allowed")
         return other * self.divisor()
 
+    def _neg_(self):
+        """
+        Return the negative of the prime divisor of this place.
+
+        EXAMPLES::
+
+            sage: K.<x>=FunctionField(GF(2)); _.<Y>=K[]
+            sage: L.<y>=K.extension(Y^3+x+x^3*Y)
+            sage: p1, p2, p3 = L.places()[:3]
+            sage: -p1 + p2
+            - Place (1/x, 1/x^3*y^2 + 1/x)
+             + Place (1/x, 1/x^3*y^2 + 1/x^2*y + 1)
+        """
+        from .divisor import divisor
+        return divisor(self.function_field(), {self: -1})
+
     def _add_(self, other):
         """
         Return the divisor that is the sum of the place and ``other``.

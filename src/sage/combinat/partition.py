@@ -1756,14 +1756,14 @@ class Partition(CombinatorialElement):
 
     def up(self):
         r"""
-        Returns a generator for partitions that can be obtained from ``self``
+        Return a generator for partitions that can be obtained from ``self``
         by adding a cell.
 
         EXAMPLES::
 
-            sage: [p for p in Partition([2,1,1]).up()]
+            sage: list(Partition([2,1,1]).up())
             [[3, 1, 1], [2, 2, 1], [2, 1, 1, 1]]
-            sage: [p for p in Partition([3,2]).up()]
+            sage: list(Partition([3,2]).up())
             [[4, 2], [3, 3], [3, 2, 1]]
             sage: [p for p in Partition([]).up()]
             [[1]]
@@ -1772,10 +1772,9 @@ class Partition(CombinatorialElement):
         previous = p.get_part(0) + 1
         for i, current in enumerate(p):
             if current < previous:
-                yield Partition(p[:i] + [ p[i] + 1 ] + p[i+1:])
+                yield Partition(p[:i] + [current + 1] + p[i + 1:])
             previous = current
-        else:
-            yield Partition(p + [1])
+        yield Partition(p + [1])
 
     def up_list(self):
         """
@@ -1791,7 +1790,7 @@ class Partition(CombinatorialElement):
             sage: Partition([]).up_list()
             [[1]]
         """
-        return [p for p in self.up()]
+        return list(self.up())
 
     def down(self):
         r"""
@@ -3815,7 +3814,7 @@ class Partition(CombinatorialElement):
 
         INPUT:
 
-        - ``e`` -- the quantum characteritic
+        - ``e`` -- the quantum characteristic
 
         - ``multicharge`` -- the multicharge (default `(0,)`)
 
@@ -5730,7 +5729,7 @@ class Partitions(UniqueRepresentation, Parent):
             if (len(kwargs) > 1 and
                 ('parts_in' in kwargs or
                  'starting' in kwargs or
-                 'ending'   in kwargs)):
+                 'ending' in kwargs)):
                 raise ValueError("The parameters 'parts_in', 'starting' and "+
                                  "'ending' cannot be combined with anything else.")
 
@@ -6600,9 +6599,10 @@ class Partitions_n(Partitions):
             for j in range(1, n+1):
                 d = 1
                 r = n-j        # n - d*j
-                while  r >= 0:
+                while r >= 0:
                     rand -= d * cached_number_of_partitions(r)
-                    if rand < 0: break
+                    if rand < 0:
+                        break
                     d +=1
                     r -= j
                 else:

@@ -13,7 +13,9 @@ List comprehensions
 ===================
 
 *List comprehensions* are a very handy way to construct lists in
-Python. You can use either of the following idioms::
+Python. You can use either of the following idioms:
+
+.. CODE-BLOCK:: python
 
       [ <expr> for <name> in <iterable> ]
       [ <expr> for <name> in <iterable> if <condition> ]

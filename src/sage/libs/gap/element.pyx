@@ -22,6 +22,7 @@ from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
 from cysignals.signals cimport sig_on, sig_off
 
 from .gap_includes cimport *
+from .libgap import libgap
 from .util cimport *
 from .util import GAPError
 from sage.cpython.string cimport str_to_bytes, char_to_str
@@ -39,7 +40,7 @@ decode_type_number = {
     T_INTPOS: 'T_INTPOS (positive integer)',
     T_INTNEG: 'T_INTNEG (negative integer)',
     T_RAT: 'T_RAT (rational number)',
-    T_CYC: 'T_CYC (universal cylotomic)',
+    T_CYC: 'T_CYC (universal cyclotomic)',
     T_FFE: 'T_FFE (finite field element)',
     T_PERM2: 'T_PERM2',
     T_PERM4: 'T_PERM4',
@@ -73,7 +74,6 @@ cdef Obj make_gap_list(sage_list) except NULL:
 
     The list of the elements in ``a`` as a Gap ``Obj``.
     """
-    from sage.libs.gap.libgap import libgap
     cdef GapElement l = libgap.eval('[]')
     cdef GapElement elem
     for x in sage_list:
@@ -104,7 +104,6 @@ cdef Obj make_gap_matrix(sage_list, gap_ring) except NULL:
 
     The list of the elements in ``sage_list`` as a Gap ``Obj``.
     """
-    from sage.libs.gap.libgap import libgap
     cdef GapElement l = libgap.eval('[]')
     cdef GapElement elem
     cdef GapElement one
@@ -170,7 +169,6 @@ cdef Obj make_gap_record(sage_dict) except NULL:
         sage: libgap({'a': 1, 'b':123})   # indirect doctest
         rec( a := 1, b := 123 )
     """
-    from sage.libs.gap.libgap import libgap
     data = [ (str(key), libgap(value)) for key, value in sage_dict.iteritems() ]
 
     cdef Obj rec
@@ -578,7 +576,6 @@ cdef class GapElement(RingElement):
             ...
             GAPError: Error, no method found! Error, no 1st choice method found for `in' on 2 arguments
         """
-        from sage.libs.gap.libgap import libgap
         GAP_IN = libgap.eval(r'\in')
         return GAP_IN(other, self).sage()
 
@@ -3121,11 +3118,11 @@ cdef class GapElement_Record(GapElement):
 
             sage: rec = libgap.eval('rec(a:=123, b:=456, Sym3:=SymmetricGroup(3))')
             sage: rec.sage()
-            {'Sym3': NotImplementedError('cannot construct equivalent Sage object',),
+            {'Sym3': NotImplementedError('cannot construct equivalent Sage object'...),
              'a': 123,
              'b': 456}
         """
-        result = dict()
+        result = {}
         for key, val in self:
             try:
                 val = val.sage()

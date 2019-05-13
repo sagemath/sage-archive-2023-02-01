@@ -1,5 +1,5 @@
-Power Series Rings
-==================
+Power Series Rings and Laurent Series Rings
+===========================================
 
 .. toctree::
    :maxdepth: 2
@@ -14,5 +14,9 @@ Power Series Rings
 
    sage/rings/laurent_series_ring
    sage/rings/laurent_series_ring_element
+
+   sage/rings/lazy_laurent_series
+   sage/rings/lazy_laurent_series_ring
+   sage/rings/lazy_laurent_series_operator
 
 .. include:: ../footer.txt

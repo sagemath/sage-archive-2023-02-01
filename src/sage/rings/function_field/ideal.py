@@ -87,7 +87,6 @@ from __future__ import absolute_import
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-
 import itertools
 
 from sage.misc.cachefunc import cached_method
@@ -110,6 +109,7 @@ from sage.rings.ideal import Ideal_generic
 from sage.matrix.constructor import matrix
 
 from .divisor import divisor
+
 
 class FunctionFieldIdeal(Element):
     """
@@ -548,6 +548,7 @@ class FunctionFieldIdeal(Element):
         data = {prime.place(): - multiplicity for prime, multiplicity in self._factor() if multiplicity < 0}
         return divisor(F, data)
 
+
 class FunctionFieldIdeal_rational(FunctionFieldIdeal):
     """
     Fractional ideals of the maximal order of a rational function field.
@@ -872,6 +873,7 @@ class FunctionFieldIdeal_rational(FunctionFieldIdeal):
         for f,m in self._gen.factor():
              factors.append( (self.ring().ideal(f), m) )
         return factors
+
 
 class FunctionFieldIdeal_module(FunctionFieldIdeal, Ideal_generic):
     """
@@ -2121,6 +2123,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
                     factors.append((q,exp))
         return factors
 
+
 class FunctionFieldIdealInfinite(FunctionFieldIdeal):
     """
     Base class of ideals of maximal infinite orders
@@ -2368,6 +2371,7 @@ class FunctionFieldIdealInfinite_rational(FunctionFieldIdealInfinite):
             return []
         else:
             return [(self.ring().ideal(g), m)]
+
 
 class FunctionFieldIdealInfinite_module(FunctionFieldIdealInfinite, Ideal_generic):
     """
@@ -2928,6 +2932,7 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
             prime = FunctionFieldIdealInfinite_global(O, iprime)
             factors.append((prime, exp))
         return factors
+
 
 class IdealMonoid(UniqueRepresentation, Parent):
     r"""

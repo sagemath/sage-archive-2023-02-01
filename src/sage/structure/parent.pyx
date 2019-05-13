@@ -1391,14 +1391,12 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         self.init_coerce(False)
 
         if not unpickling:
-            if element_constructor is None:
-                try:
-                    element_constructor = self._element_constructor_
-                except AttributeError:
-                    raise RuntimeError("an _element_constructor_ method must be defined")
-            else:
-                from sage.misc.superseded import deprecation
-                deprecation(24363, "the 'element_constructor' keyword of _populate_coercion_lists_ is deprecated: override the _element_constructor_ method or define an Element attribute instead")
+            if element_constructor is not None:
+                raise ValueError("element_constructor can only be given when unpickling is True")
+            try:
+                element_constructor = self._element_constructor_
+            except AttributeError:
+                raise RuntimeError("an _element_constructor_ method must be defined")
         self._element_constructor = element_constructor
         self._element_init_pass_parent = guess_pass_parent(self, element_constructor)
 
@@ -1456,24 +1454,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         self._embedding = None
         self._unset_coercions_used()
 
-    def is_coercion_cached(self, domain):
-        """
-        Deprecated method
-
-        TESTS::
-
-            sage: Parent().is_coercion_cached(QQ)
-            doctest:warning
-            ...
-            DeprecationWarning: is_coercion_cached is deprecated use _is_coercion_cached instead
-            See http://trac.sagemath.org/24254 for details.
-            False
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(24254, "is_coercion_cached is deprecated use _is_coercion_cached instead")
-        return self._is_coercion_cached(domain)
-
-    cpdef bint _is_coercion_cached(self, domain):
+    def _is_coercion_cached(self, domain):
         r"""
         Test whether the coercion from ``domain`` is already cached.
 
@@ -1488,24 +1469,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         """
         return domain in self._coerce_from_hash
 
-    def is_conversion_cached(self, domain):
-        """
-        Deprecated method
-
-        TESTS::
-
-            sage: Parent().is_conversion_cached(QQ)
-            doctest:warning
-            ...
-            DeprecationWarning: is_conversion_cached is deprecated use _is_conversion_cached instead
-            See http://trac.sagemath.org/24254 for details.
-            False
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(24254, "is_conversion_cached is deprecated use _is_conversion_cached instead")
-        return self._is_conversion_cached(domain)
-
-    cpdef bint _is_conversion_cached(self, domain):
+    def _is_conversion_cached(self, domain):
         r"""
         Test whether the conversion from ``domain`` is already set.
 

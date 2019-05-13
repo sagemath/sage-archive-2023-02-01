@@ -233,8 +233,8 @@ class ModularSymbolECLIB(ModularSymbol):
         normalization chosen here by a factor of 2 in the case of elliptic
         curves with negative discriminant (with one real component) since
         the convention there is to write the above integral as
-        $[r]^{+}x+[r]^{-}yi$, where the lattice is $\left<2x,x+yi\right>$,
-        so that $\Omega^{+}=2x$ and $\Omega^{-}=2yi$.  We
+        `[r]^{+}x+[r]^{-}yi`, where the lattice is `\left<2x,x+yi\right>`,
+        so that `\Omega^{+}=2x` and `\Omega^{-}=2yi`.  We
         allow for this below.
 
         INPUT:
@@ -245,8 +245,8 @@ class ModularSymbolECLIB(ModularSymbol):
         EXAMPLES::
 
             sage: import sage.schemes.elliptic_curves.ell_modular_symbols
-            sage: E=EllipticCurve('11a1')
-            sage: M=sage.schemes.elliptic_curves.ell_modular_symbols.ModularSymbolECLIB(E,+1)
+            sage: E = EllipticCurve('11a1')
+            sage: M = sage.schemes.elliptic_curves.ell_modular_symbols.ModularSymbolECLIB(E,+1)
             sage: M
             Modular symbol with sign 1 over Rational Field attached to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
             sage: M(0)

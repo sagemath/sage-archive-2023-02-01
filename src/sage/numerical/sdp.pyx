@@ -78,10 +78,10 @@ The following example shows all these steps::
     0: ...
     ...
     Optimal solution found.
-    sage: print('Objective Value: {}'.format(round(opt,3)))
+    sage: print('Objective Value: {}'.format(N(opt,3)))
     Objective Value: 1.0
-    sage: [round(x, 3) for x in sorted(p.get_values(x).values())]
-    [0.0, 1.0]
+    sage: [N(x, 3) for x in sorted(p.get_values(x).values())]
+    [3.0e-8, 1.0]
     sage: p.show()
     Maximization:
       x_0 - x_1
@@ -278,7 +278,7 @@ cdef class SemidefiniteProgram(SageObject):
          sage: b3 = matrix([[3, 3.], [3., 3.]])
          sage: p.add_constraint(a1*x[0] + a2*x[1] <= a3)
          sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)
-         sage: round(p.solve(), 2)
+         sage: N(p.solve(), 2)
          -3.0
     """
 
@@ -716,12 +716,12 @@ cdef class SemidefiniteProgram(SageObject):
             sage: b3 = matrix([[3, 3.], [3., 3.]])
             sage: p.add_constraint(a1*x[3] + a2*x[5] <= a3)
             sage: p.add_constraint(b1*x[3] + b2*x[5] <= b3)
-            sage: round(p.solve(),3)
+            sage: N(p.solve(),3)
             -3.0
 
         To return  the optimal value of ``x[3]``::
 
-            sage: round(p.get_values(x[3]),3)
+            sage: N(p.get_values(x[3]),3)
             -1.0
 
         To get a dictionary identical to ``x`` containing optimal
@@ -791,7 +791,7 @@ cdef class SemidefiniteProgram(SageObject):
             sage: a2 = matrix([[1,1],[1,1]])
             sage: a3 = matrix([[1,-1],[-1,1]])
             sage: p.add_constraint(a1*x[1]+a2*x[2] <= a3)
-            sage: round(p.solve(),5)
+            sage: N(p.solve(),digits=3)
             16.2
             sage: p.set_objective(None)
             sage: _ = p.solve()
@@ -850,7 +850,7 @@ cdef class SemidefiniteProgram(SageObject):
             sage: a2 = matrix([[1,1],[1,1]])
             sage: a3 = matrix([[1,-1],[-1,1]])
             sage: p.add_constraint(a1*x[1]+a2*x[2] <= a3)
-            sage: round(p.solve(),5)
+            sage: N(p.solve(),digits=3)
             16.2
 
         One can also define double-bounds or equality using the symbol
@@ -863,7 +863,7 @@ cdef class SemidefiniteProgram(SageObject):
             sage: a2 = matrix([[1,1],[1,1]])
             sage: a3 = matrix([[1,-1],[-1,1]])
             sage: p.add_constraint(a3 >= a1*x[1] + a2*x[2])
-            sage: round(p.solve(),5)
+            sage: N(p.solve(),digits=3)
             16.2
 
         TESTS:
@@ -943,12 +943,12 @@ cdef class SemidefiniteProgram(SageObject):
             sage: b3 = matrix([[3, 3.], [3., 3.]])
             sage: p.add_constraint(a1*x[0] + a2*x[1] <= a3)
             sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)
-            sage: round(p.solve(),4)
-            -11.0
+            sage: N(p.solve(),4)
+            -11.
             sage: x = p.get_values(x)
-            sage: round(x[0],4)
+            sage: N(x[0],4)
             -8.0
-            sage: round(x[1],4)
+            sage: N(x[1],4)
             3.0
         """
         self._backend.solve()
@@ -1085,12 +1085,12 @@ cdef class SemidefiniteProgram(SageObject):
             sage: b3 = matrix([[3, 3.], [3., 3.]])
             sage: p.add_constraint(a1*x[0] + a2*x[1] <= a3)
             sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)
-            sage: round(p.solve(),4)
+            sage: N(p.solve(),4)
                  pcost       dcost       gap    pres   dres   k/t
              0:  1...
             ...
             Optimal solution found.
-            -11.0
+            -11.
         """
         if value is None:
             return self._backend.solver_parameter(name)
@@ -1167,14 +1167,14 @@ class SDPSolverException(RuntimeError):
 
         sage: from sage.numerical.sdp import SDPSolverException
         sage: SDPSolverException("Error")
-        SDPSolverException('Error',)
+        SDPSolverException('Error'...)
 
     TESTS:
 
     No solution::
 
-        sage: p=SemidefiniteProgram(solver="cvxopt")
-        sage: x=p.new_variable()
+        sage: p = SemidefiniteProgram(solver="cvxopt")
+        sage: x = p.new_variable()
         sage: p.set_objective(x[0])
         sage: a = matrix([[1,2],[2,4]])
         sage: b = matrix([[1,9],[9,4]])

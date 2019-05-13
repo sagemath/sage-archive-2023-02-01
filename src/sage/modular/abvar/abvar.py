@@ -927,8 +927,8 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         When the intersection is infinite, the output is ``(G, A)``, where
         ``G`` surjects onto the component group. This choice of ``G`` is not
-        canonical. (see :trac:`26189`). In this following example, ``B`` is a
-        subvariety of ``J``.::
+        canonical (see :trac:`26189`). In this following example, ``B`` is a
+        subvariety of ``J``::
 
             sage: d1 = J0(11).degeneracy_map(22, 1)
             sage: d2 = J0(11).degeneracy_map(22, 2)

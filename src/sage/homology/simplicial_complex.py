@@ -181,7 +181,6 @@ from sage.graphs.graph import Graph
 from functools import reduce, total_ordering
 from itertools import combinations
 lazy_import('sage.categories.simplicial_complexes', 'SimplicialComplexes')
-from sage.misc.cachefunc import cached_method
 
 
 def lattice_paths(t1, t2, length=None):

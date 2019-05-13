@@ -1302,6 +1302,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         ``extend`` is ``True``).
 
         .. warning::
+
            The 'extend' option is not implemented (yet).
 
         NOTES:
@@ -3881,18 +3882,11 @@ cpdef square_root_mod_prime(IntegerMod_abstract a, p=None):
 
     REFERENCES:
 
-    - Siguna Muller.  'On the Computation of Square Roots in Finite
-      Fields' Designs, Codes and Cryptography, Volume 31, Issue 3
-      (March 2004)
+    - [Mul2004]_
 
-    - A. Oliver L. Atkin. 'Probabilistic primality testing' (Chapter
-      30, Section 4) In Ph. Flajolet and P. Zimmermann, editors,
-      Algorithms Seminar, 1991-1992. INRIA Research Report 1779, 1992,
-      http://www.inria.fr/rrrt/rr-1779.html. Summary by F. Morain.
-      http://citeseer.ist.psu.edu/atkin92probabilistic.html
+    - [Atk1992]_
 
-    - H. Postl. 'Fast evaluation of Dickson Polynomials' Contrib. to
-      General Algebra, Vol. 6 (1988) pp. 223-225
+    - [Pos1988]_
 
     AUTHORS:
 
@@ -3982,8 +3976,7 @@ def lucas_q1(mm, IntegerMod_abstract P):
 
     REFERENCES:
 
-    .. [Pos88] \H. Postl. 'Fast evaluation of Dickson Polynomials' Contrib. to
-       General Algebra, Vol. 6 (1988) pp. 223-225
+    - [Pos1988]_
 
     AUTHORS:
 
@@ -4045,9 +4038,7 @@ def lucas(k, P, Q=1, n=None):
 
     REFERENCES:
 
-    .. [IEEEP1363] IEEE P1363 / D13 (Draft Version 13). Standard Specifications
-       for Public Key Cryptography Annex A (Informative).
-       Number-Theoretic Background. Section A.2.4
+    - [IEEEP1363]_
 
     AUTHORS:
 

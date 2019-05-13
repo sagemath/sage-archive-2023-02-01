@@ -35,3 +35,17 @@ export SAGE_PYTHON_VERSION=@SAGE_PYTHON_VERSION@
 if [ "$SAGE_PYTHON_VERSION" = 3 ]; then
     export SAGE_PYTHON3=yes
 fi
+
+# This is usually blank if the system GMP is used, or $SAGE_LOCAL otherwise
+export SAGE_GMP_PREFIX="@SAGE_GMP_PREFIX@"
+export SAGE_GMP_INCLUDE="@SAGE_GMP_INCLUDE@"
+if [ -n "$SAGE_GMP_PREFIX" ]; then
+    # Many packages that depend on GMP accept a --with-gmp=<prefix> flag to
+    # their ./configure scripts.  When using the system's GMP this is not
+    # generally necessary, but when using the GMP package installed in
+    # SAGE_LOCAL it is useful to pass it.  We define this variable to
+    # pass to these packages' ./configure scripts.  When using the system
+    # GMP its value is just blank (for many of these packages passing
+    # --with-gmp without an argument is actually a bug)
+    export SAGE_CONFIGURE_GMP="--with-gmp=$SAGE_GMP_PREFIX"
+fi

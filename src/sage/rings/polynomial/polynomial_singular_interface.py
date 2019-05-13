@@ -112,7 +112,7 @@ class PolynomialRing_singular_repr:
             polynomial ring, over a field, global ordering
             //   coefficients: ZZ/127
             //   number of vars : 1
-            //        block   1 : ordering lp
+            //        block   1 : ordering dp
             //                  : names    x
             //        block   2 : ordering C
 
@@ -121,7 +121,7 @@ class PolynomialRing_singular_repr:
             polynomial ring, over a field, global ordering
             //   coefficients: QQ
             //   number of vars : 1
-            //        block   1 : ordering lp
+            //        block   1 : ordering dp
             //                  : names    x
             //        block   2 : ordering C
 

@@ -7,7 +7,7 @@ Base class for elements of multivariate polynomial rings
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from __future__ import print_function, absolute_import
@@ -297,7 +297,7 @@ cdef class MPolynomial(CommutativeRingElement):
         monomial at a time, with no sharing of repeated computations and
         with useless additions of 0 and multiplications by 1::
 
-            sage: list(ff)
+            sage: list(ff) # random
             ['push 0.0', 'push 12.0', 'load 1', 'load 2', 'dup', 'mul', 'mul', 'mul', 'add', 'push 4.0', 'load 0', 'load 1', 'mul', 'mul', 'add', 'push 42.0', 'add', 'push 1.0', 'load 0', 'dup', 'mul', 'mul', 'add', 'push 9.0', 'load 2', 'dup', 'mul', 'dup', 'mul', 'mul', 'add', 'push 6.0', 'load 0', 'load 2', 'dup', 'mul', 'mul', 'mul', 'add', 'push 4.0', 'load 1', 'dup', 'mul', 'mul', 'add']
 
         TESTS::
@@ -336,8 +336,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=['x','y','z'])
             sage: K.<x,y,z> = QQ[]
-            sage: v = K.random_element(degree=3, terms=4); v
-            -6/5*x*y*z + 2*y*z^2 - x
+            sage: v = -6/5*x*y*z + 2*y*z^2 - x
             sage: v._fast_callable_(etb)
             add(add(add(0, mul(-6/5, mul(mul(ipow(v_0, 1), ipow(v_1, 1)), ipow(v_2, 1)))), mul(2, mul(ipow(v_1, 1), ipow(v_2, 2)))), mul(-1, ipow(v_0, 1)))
 
@@ -2137,7 +2136,7 @@ cdef class MPolynomial(CommutativeRingElement):
         a root with multiplicity at lease half the total degree of the polynomial,
         then we must also use the `z_0` covariant. See [CS2003]_ for details.
 
-        Note that, if the covariant is within ``error_limit`` of the boundry
+        Note that, if the covariant is within ``error_limit`` of the boundary
         but outside the fundamental domain, our function will erroneously move
         it to within the fundamental domain, hence our conjugation will be off
         by 1. If you don't want this to happen, decrease your ``error_limit``
@@ -2223,7 +2222,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: F.reduced_form(prec=50, smallest_coeffs=False)
             Traceback (most recent call last):
             ...
-            ValueError: accuracy of Newton's root not within tolerance(0.000012462581882703 > 1e-06), increase precision
+            ValueError: accuracy of Newton's root not within tolerance(0.0000124... > 1e-06), increase precision
             sage: F.reduced_form(prec=100, smallest_coeffs=False)
             (
                                                                   [-1 -1]
@@ -2281,7 +2280,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: R.<x,y> = PolynomialRing(RR)
             sage: F = 217.992172373276*x^3 + 96023.1505442490*x^2*y + 1.40987971253579e7*x*y^2\
             + 6.90016027113216e8*y^3
-            sage: F.reduced_form(smallest_coeffs=False)
+            sage: F.reduced_form(smallest_coeffs=False) # tol 1e-8
             (
             -39.5673942565918*x^3 + 111.874026298523*x^2*y + 231.052762985229*x*y^2 - 138.380829811096*y^3,
             <BLANKLINE>
@@ -2294,7 +2293,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: R.<x,y> = PolynomialRing(CC)
             sage: F = (0.759099196558145 + 0.845425869641446*CC.0)*x^3 + (84.8317207268542 + 93.8840848648033*CC.0)*x^2*y\
             + (3159.07040755858 + 3475.33037377779*CC.0)*x*y^2 + (39202.5965389079 + 42882.5139724962*CC.0)*y^3
-            sage: F.reduced_form(smallest_coeffs=False)
+            sage: F.reduced_form(smallest_coeffs=False) # tol 1e-11
             (
             (-0.759099196558145 - 0.845425869641446*I)*x^3 + (-0.571709908900118 - 0.0418133346027929*I)*x^2*y
             + (0.856525964330103 - 0.0721403997649759*I)*x*y^2 + (-0.965531044130330 + 0.754252314465703*I)*y^3,

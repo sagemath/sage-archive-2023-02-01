@@ -101,7 +101,7 @@ def centrality_betweenness(G, bint exact=False, bint normalize=True):
 
         sage: import networkx
         sage: g = graphs.RandomGNP(100, .2)
-        sage: nw = networkx.betweenness_centrality(g.networkx_graph(copy=False))
+        sage: nw = networkx.betweenness_centrality(g.networkx_graph())
         sage: sg = centrality_betweenness(g)
         sage: max(abs(nw[x] - sg[x]) for x in g) # abs tol 1e-10
         0

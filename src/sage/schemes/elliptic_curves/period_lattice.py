@@ -80,7 +80,7 @@ We test that bug :trac:`8415` (caused by a PARI bug fixed in v2.3.5) is OK::
 REFERENCES:
 
 .. [CT] \J. E. Cremona and T. Thongjunthug, The Complex AGM, periods of
-   elliptic curves over $\CC$ and complex elliptic logarithms.
+   elliptic curves over `\CC` and complex elliptic logarithms.
    Journal of Number Theory Volume 133, Issue 8, August 2013, pages
    2813-2841.
 
@@ -497,8 +497,8 @@ class PeriodLattice_ell(PeriodLattice):
             sage: tau = w1/w2; tau
             0.387694505032876 + 1.30821088214407*I
         """
-        w1, w2 = periods = self.basis(prec=prec, algorithm=algorithm)
-        periods, mat = normalise_periods(w1,w2)
+        w1, w2 = self.basis(prec=prec, algorithm=algorithm)
+        periods, _ = normalise_periods(w1, w2)
         return periods
 
     @cached_method

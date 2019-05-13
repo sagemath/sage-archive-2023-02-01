@@ -578,7 +578,8 @@ from sage.ext.fast_eval import fast_float, is_fast_float
 
 from sage.misc.decorators import options
 
-from .graphics import Graphics, GraphicsArray
+from .graphics import Graphics
+from .multi_graphics import GraphicsArray
 from sage.plot.polygon import polygon
 
 # import of line2d below is only for redirection of imports
@@ -1015,9 +1016,9 @@ def plot(funcs, *args, **kwds):
 
     - ``fillalpha`` - (default: 0.5) How transparent the fill is.
       A number between 0 and 1.
-      
+
     MATPLOTLIB STYLE SHEET OPTION:
-    
+
     - ``stylesheet`` - (Default: classic) Support for loading a full matplotlib style sheet.
       Any style sheet listed in ``matplotlib.pyplot.style.available`` is acceptable. If a
       non-existing style is provided the default classic is applied.
@@ -3291,7 +3292,7 @@ def list_plot_semilogy(data, plotjoined=False, **kwds):
 
         If ``plotjoined`` is ``False`` then the vertical axis must have all
         points strictly positive. Otherwise the plot will come up empty.
-        For instance the following plot contains a point at `(1,0)`. Further, 
+        For instance the following plot contains a point at `(1,0)`. Further,
         matplotlib will display a user warning.
 
         ::
@@ -3445,8 +3446,8 @@ def graphics_array(array, nrows=None, ncols=None):
         g = graphics_array(((p1,p2),(p3,p4))) # long time
         sphinx_plot(g)
 
-    One can also name the array, and then use :meth:`~sage.plot.graphics.GraphicsArray.show`
-    or :meth:`~sage.plot.graphics.GraphicsArray.save`::
+    One can also name the array, and then use :meth:`~sage.plot.multi_graphics.GraphicsArray.show`
+    or :meth:`~sage.plot.multi_graphics.GraphicsArray.save`::
 
         sage: ga = graphics_array(((p1,p2),(p3,p4))) # long time
         sage: ga.show() # long time

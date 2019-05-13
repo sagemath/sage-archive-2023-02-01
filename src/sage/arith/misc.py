@@ -19,7 +19,7 @@ from six.moves import range
 import math
 import collections
 
-from sage.misc.misc import powerset, get_verbose
+from sage.misc.misc import powerset
 from sage.misc.misc_c import prod
 
 from sage.libs.pari.all import pari

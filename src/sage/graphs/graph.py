@@ -407,8 +407,7 @@ Methods
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 import six
 from six.moves import range
 
@@ -900,8 +899,8 @@ class Graph(GenericGraph):
     _directed = False
 
     def __init__(self, data=None, pos=None, loops=None, format=None,
-                 weighted=None, implementation='c_graph',
-                 data_structure="sparse", vertex_labels=True, name=None,
+                 weighted=None, data_structure="sparse",
+                 vertex_labels=True, name=None,
                  multiedges=None, convert_empty_dict_labels_to_None=None,
                  sparse=True, immutable=False):
         """
@@ -1002,6 +1001,16 @@ class Graph(GenericGraph):
             Traceback (most recent call last):
             ...
             ValueError: each column of a non-oriented incidence matrix must sum to 2, but column 0 does not
+
+        Vertex labels are retained in the graph (:trac:`14708`)::
+
+            sage: g = Graph()
+            sage: g.add_vertex(0)
+            sage: g.set_vertex(0, 'foo')
+            sage: g.get_vertices()
+            {0: 'foo'}
+            sage: Graph(g).get_vertices()
+            {0: 'foo'}
         """
         GenericGraph.__init__(self)
 
@@ -1012,12 +1021,6 @@ class Graph(GenericGraph):
                 raise ValueError("The 'sparse' argument is an alias for "
                                  "'data_structure'. Please do not define both.")
             data_structure = "dense"
-
-        # Choice of the backend
-
-        if implementation != 'c_graph':
-            deprecation(18375,"The 'implementation' keyword is deprecated, "
-                        "and the graphs has been stored as a 'c_graph'")
 
         if multiedges or weighted:
             if data_structure == "dense":
@@ -1166,6 +1169,7 @@ class Graph(GenericGraph):
                 pos = data.get_pos()
             self.name(data.name())
             self.add_vertices(data.vertex_iterator())
+            self.set_vertices(data.get_vertices())
             self.add_edges(data.edge_iterator(), loops=loops)
         elif format == 'NX':
             if convert_empty_dict_labels_to_None is not False:
@@ -3335,7 +3339,7 @@ class Graph(GenericGraph):
 
         OUTPUT:
 
-        - When a solution exists, this method outputs the degree-constained
+        - When a solution exists, this method outputs the degree-constrained
           subgraph as a Graph object.
 
         - When no solution exists, returns ``False``.
@@ -3776,7 +3780,7 @@ class Graph(GenericGraph):
         return D
 
     @doc_index("Connectivity, orientations, trees")
-    def orientations(self, implementation='c_graph', data_structure=None, sparse=None):
+    def orientations(self, data_structure=None, sparse=None):
         r"""
         Return an iterator over orientations of ``self``.
 
@@ -3873,7 +3877,6 @@ class Graph(GenericGraph):
                         pos=self._pos,
                         multiedges=self.allows_multiple_edges(),
                         loops=self.allows_loops(),
-                        implementation=implementation,
                         data_structure=data_structure)
             if hasattr(self, '_embedding'):
                 D._embedding = copy(self._embedding)
@@ -3891,7 +3894,6 @@ class Graph(GenericGraph):
                         pos=self._pos,
                         multiedges=self.allows_multiple_edges(),
                         loops=self.allows_loops(),
-                        implementation=implementation,
                         data_structure=data_structure)
             if hasattr(self, '_embedding'):
                 D._embedding = copy(self._embedding)
@@ -5304,8 +5306,7 @@ class Graph(GenericGraph):
     ### Constructors
 
     @doc_index("Basic methods")
-    def to_directed(self, implementation='c_graph', data_structure=None,
-                    sparse=None):
+    def to_directed(self, data_structure=None, sparse=None):
         """
         Return a directed version of the graph.
 
@@ -5347,6 +5348,16 @@ class Graph(GenericGraph):
             sage: G2.add_vertex(5)
             sage: gp2 = G2.graphplot()
             sage: gp1 = G1.graphplot()
+
+        Vertex labels will be retained (:trac:`14708`)::
+
+            sage: G = Graph({0: [1, 2], 1: [0]})
+            sage: G.set_vertex(0, 'foo')
+            sage: D = G.to_directed()
+            sage: G.get_vertices()
+            {0: 'foo', 1: None, 2: None}
+            sage: D.get_vertices()
+            {0: 'foo', 1: None, 2: None}
         """
         if sparse is not None:
             if data_structure is not None:
@@ -5368,11 +5379,11 @@ class Graph(GenericGraph):
                     pos            = self.get_pos(),
                     multiedges     = self.allows_multiple_edges(),
                     loops          = self.allows_loops(),
-                    implementation = implementation,
                     data_structure = (data_structure if data_structure!="static_sparse"
                                       else "sparse")) # we need a mutable copy
 
         D.add_vertices(self.vertex_iterator())
+        D.set_vertices(self.get_vertices())
         for u,v,l in self.edge_iterator():
             D.add_edge(u,v,l)
             D.add_edge(v,u,l)
@@ -8230,9 +8241,9 @@ class Graph(GenericGraph):
 
         EXAMPLES:
 
-        Effective resitances in a straight linear 2-tree on 6 vertices ::
+        Effective resistances in a straight linear 2-tree on 6 vertices ::
 
-            sage: G=Graph([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
+            sage: G = Graph([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
             sage: G.effective_resistance(0,1)
             34/55
             sage: G.effective_resistance(0,3)
@@ -8328,7 +8339,7 @@ class Graph(GenericGraph):
 
         EXAMPLES:
 
-        The effective resitance matrix  for a straight linear 2-tree counting
+        The effective resistance matrix  for a straight linear 2-tree counting
         only non-adjacent vertex pairs ::
 
             sage: G = Graph([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
@@ -8457,7 +8468,7 @@ class Graph(GenericGraph):
 
         EXAMPLES:
 
-        Pairs of non-adjacent nodes with least effective resitance in a
+        Pairs of non-adjacent nodes with least effective resistance in a
         straight linear 2-tree on 6 vertices::
 
             sage: G = Graph([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
@@ -8465,12 +8476,12 @@ class Graph(GenericGraph):
             [(1, 4)]
 
         Pairs of (adjacent or non-adjacent) nodes with least effective
-        resitance in a straight linear 2-tree on 6 vertices ::
+        resistance in a straight linear 2-tree on 6 vertices ::
 
             sage: G.least_effective_resistance(nonedgesonly = False)
             [(2, 3)]
 
-        Pairs of non-adjacent nodes with least effective resitance in a fan on
+        Pairs of non-adjacent nodes with least effective resistance in a fan on
         6 vertices counting only non-adjacent vertex pairs ::
 
             sage: H = Graph([(0,1),(0,2),(0,3),(0,4),(0,5),(0,6),(1,2),(2,3),(3,4),(4,5)])

@@ -187,7 +187,7 @@ You can compute Laplace transforms also; the Laplace transform of
 Here is a more involved example. The displacement from equilibrium
 (respectively) for a coupled spring attached to a wall on the left
 
-::
+.. CODE-BLOCK:: text
 
     |------\/\/\/\/\---|mass1|----\/\/\/\/\/----|mass2|
              spring1               spring2

@@ -96,6 +96,7 @@ from itertools import combinations
 from sage.rings.integer import Integer
 from sage.sets.disjoint_set import DisjointSet
 
+
 class GraphicMatroid(Matroid):
     r"""
     The graphic matroid class.
@@ -289,7 +290,7 @@ class GraphicMatroid(Matroid):
         # This counts components:
         DS_vertices = DisjointSet(vertices)
         for (u, v, l) in edges:
-            DS_vertices.union(u,v)
+            DS_vertices.union(u, v)
         return (len(vertices) - DS_vertices.number_of_subsets())
 
     # Representation:
@@ -673,7 +674,7 @@ class GraphicMatroid(Matroid):
                 # then use method from abstract matroid class
                 conset, delset = sanitize_contractions_deletions(self, contractions, deletions)
                 M = self.minor(contractions=conset, deletions=delset)
-                (should_be_true, elements) =  Matroid._has_minor(M, N, certificate=True)
+                should_be_true, elements = Matroid._has_minor(M, N, certificate=True)
 
                 # elements is a tuple (contractions, deletions, dict)
                 # There should be no more contractions
@@ -712,13 +713,12 @@ class GraphicMatroid(Matroid):
             sage: M._corank([1,2,3])
             3
         """
-        edges = self.groundset_to_edges(X)
         all_vertices = self._G.vertices()
         not_our_edges = self.groundset_to_edges(self._groundset.difference(X))
         DS_vertices = DisjointSet(all_vertices)
-        for (u, v, l) in not_our_edges:
+        for u, v, l in not_our_edges:
             DS_vertices.union(u, v)
-        return (len(X) - (DS_vertices.number_of_subsets() - Integer(1)))
+        return len(X) - (DS_vertices.number_of_subsets() - Integer(1))
 
     def _is_circuit(self, X):
         """
@@ -834,7 +834,7 @@ class GraphicMatroid(Matroid):
         DS_vertices = DisjointSet(vertices)
         for (u, v, l) in edges:
             if DS_vertices.find(u) != DS_vertices.find(v):
-                DS_vertices.union(u,v)
+                DS_vertices.union(u, v)
                 our_set.add(l)
         return frozenset(our_set)
 
@@ -929,12 +929,11 @@ class GraphicMatroid(Matroid):
             set([v for (u, v, l) in edges]))
         edge_set = set()
         DS_vertices = DisjointSet(vertices)
-        for (u, v, l) in edges:
+        for u, v, l in edges:
             edge_set.add((u, v, l))
             if DS_vertices.find(u) != DS_vertices.find(v):
                 DS_vertices.union(u, v)
             else:
-                last_edge = (u, v, l)
                 break
         else:
             raise ValueError("no circuit in independent set")
@@ -1739,7 +1738,7 @@ class GraphicMatroid(Matroid):
         # If a vertex has degree 1, or 2, or 3, we already handled it.
         for u in vertices:
             if G.degree(u) > 3:
-                elts_incident = [l for (u0, v0, l) in G.edges_incident(u)]
+                elts_incident = [ll for (_, _, ll) in G.edges_incident(u)]
                 x = elts_incident.pop()
                 for i in range(1, (len(elts_incident) - Integer(1))):
                     groups = combinations(elts_incident, i)
@@ -1857,7 +1856,6 @@ class GraphicMatroid(Matroid):
                 v = a
             G.add_edge(u, v, l)
         return GraphicMatroid(G)
-
 
     def one_sum(self, X, u, v):
         """

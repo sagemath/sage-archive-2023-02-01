@@ -6306,13 +6306,20 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: A.<a,b,c> = Frac(PolynomialRing(QQ,'a,b,c'))
             sage: B.<d,e,f> = PolynomialRing(A,'d,e,f')
-            sage: R.<x>= PolynomialRing(B,'x')
+            sage: R.<x> = PolynomialRing(B,'x')
             sage: S.<y> = PolynomialRing(R,'y')
             sage: p = ((1/b^2*d^2+1/a)*x*y^2+a*b/c*y+e+x^2)
             sage: q = -4*c^2*y^3+1
             sage: p.resultant(q)
             16*c^4*x^6 + 48*c^4*e*x^4 + (1/b^6*d^6 + 3/(a*b^4)*d^4 + ((-12*a^3*b*c + 3)/(a^2*b^2))*d^2 + (-12*a^3*b*c + 1)/a^3)*x^3 + 48*c^4*e^2*x^2 + (((-12*a*c)/b)*d^2*e + (-12*b*c)*e)*x + 16*c^4*e^3 + 4*a^3*b^3/c
 
+        Test for :trac:`10978`::
+
+            sage: R.<x> = PolynomialRing(CDF)
+            sage: f = R(1 - I*x + (0.5)*x^2 + (1.7)*x^3)
+            sage: g = f.derivative()
+            sage: f.resultant(g)
+            133.92599999999996 + 37.56999999999999*I
         """
         variable = self.variable_name()
         try:
@@ -7133,7 +7140,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.roots(SR, multiplicities=False)
             [-I*sqrt(2), I*sqrt(2)]
 
-        The roots of some polynomials can't be described using radical
+        The roots of some polynomials cannot be described using radical
         expressions::
 
             sage: (x^5 - x + 1).roots(SR)
@@ -7141,7 +7148,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         For some other polynomials, no roots can be found at the moment
         due to the way roots are computed. :trac:`17516` addresses
-        these defecits. Until that gets implemented, one such example
+        these defects. Until that gets implemented, one such example
         is the following::
 
             sage: f = x^6-300*x^5+30361*x^4-1061610*x^3+1141893*x^2-915320*x+101724

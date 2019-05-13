@@ -1006,7 +1006,9 @@ Groups of small order as permutation groups
 ============================================
 
 We list here constructions, as permutation groups, for all of the
-groups of order less than 16. ::
+groups of order less than 16.
+
+.. CODE-BLOCK:: text
 
     ---------------------------------------------------------------------------------------------
     Size  Construction                                Notes

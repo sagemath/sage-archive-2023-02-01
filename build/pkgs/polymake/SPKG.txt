@@ -35,7 +35,7 @@ On Ubuntu/Debian, use:
  sudo apt-get install libxml-libxslt-perl libxml-writer-perl libxml2-dev libperl-dev libfile-slurp-perl libjson-perl libsvg-perl libterm-readkey-perl libterm-readline-gnu-perl libmongodb-perl
 
 On Fedora 23, use:
- sudo yum install perl-ExtUtils-Embed perl-File-Slurp perl-JSON perl-MongoDB
+ sudo yum install perl-ExtUtils-Embed perl-File-Slurp perl-JSON perl-MongoDB perl-Term-ReadLine-Gnu
 
 On Gentoo, use
  emerge --ask XML-Writer XML-LibXML XML-LibXSLT File-Slurp dev-perl/Term-ReadLine-Gnu JSON SVG dev-perl/MongoDB

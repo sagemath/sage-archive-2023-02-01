@@ -1186,7 +1186,7 @@ class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder):
         # places for which the theorem does not apply.
 
         # this element is integral over k[x] and a generator of the field.
-        for gen in basis[1:]:
+        for gen in basis:
             phi = gen.minimal_polynomial()
             if phi.degree() == n:
                 break
@@ -2389,7 +2389,7 @@ class FunctionFieldMaximalOrderInfinite_global(FunctionFieldMaximalOrderInfinite
 
         dec = []
         for iprime, deg, exp in iO.decomposition(ip):
-            prime = FunctionFieldIdealInfinite_global(self, iprime)
+            prime = self.ideal_monoid().element_class(self, iprime)
             dec.append((prime, deg, exp))
         return dec
 

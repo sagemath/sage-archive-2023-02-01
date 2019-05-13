@@ -155,7 +155,7 @@ cdef class TreeIterator:
         cdef int vertex2
         cdef object G
 
-        G = Graph(self.vertices, implementation='c_graph', sparse=True)
+        G = Graph(self.vertices, sparse=True)
         cdef SparseGraph SG = (<SparseGraphBackend?> G._backend)._cg
 
         for i in range(2, self.vertices + 1):

@@ -229,17 +229,6 @@ from sage.misc.superseded import deprecated_function_alias, deprecation
 
 
 ############################################################################
-### Debugging ##############################################################
-############################################################################
-
-from sage.misc.lazy_import import is_during_startup
-if is_during_startup():
-    import sys, traceback
-    print('Importing libgap during startup!')
-    traceback.print_stack(None, None, sys.stdout)
-
-
-############################################################################
 ### Gap  ###################################################################
 ############################################################################
 # The libGap interpreter object Gap is the parent of the GapElements
@@ -312,6 +301,7 @@ class Gap(Parent):
             [ 0.333333, 0.8, 3. ]
 
         """
+        initialize()
         if isinstance(x, GapElement):
             return x
         elif isinstance(x, (list, tuple, Vector)):
@@ -412,6 +402,7 @@ class Gap(Parent):
         if not isinstance(gap_command, basestring):
             gap_command = str(gap_command._gap_init_())
 
+        initialize()
         elem = make_any_gap_element(self, gap_eval(gap_command))
 
         # If the element is NULL just return None instead
@@ -445,6 +436,7 @@ class Gap(Parent):
             sage: libgap.function_factory('Print')
             <Gap function "Print">
         """
+        initialize()
         return make_GapElement_Function(self, gap_eval(function_name))
 
     def set_global(self, variable, value):
@@ -552,6 +544,7 @@ class Gap(Parent):
             1
         """
         from sage.libs.gap.context_managers import GlobalVariableContext
+        initialize()
         return GlobalVariableContext(variable, value)
 
     def set_seed(self, seed=None):
@@ -630,8 +623,6 @@ class Gap(Parent):
             sage: type(libgap._get_object())
             <class 'sage.libs.gap.libgap.Gap'>
         """
-        initialize()
-        from sage.rings.integer_ring import ZZ
         Parent.__init__(self, base=ZZ)
 
     def __repr__(self):
@@ -690,9 +681,11 @@ class Gap(Parent):
         from sage.libs.gap.gap_functions import common_gap_functions
         from sage.libs.gap.gap_globals import common_gap_globals
         if name in common_gap_functions:
+            initialize()
             g = make_GapElement_Function(self, gap_eval(name))
             assert g.is_function()
         elif name in common_gap_globals:
+            initialize()
             g = make_any_gap_element(self, gap_eval(name))
         else:
             raise AttributeError(f'No such attribute: {name}.')
@@ -785,6 +778,7 @@ class Gap(Parent):
             sage: del a
             sage: libgap.collect()
         """
+        initialize()
         rc = CollectBags(0, 1)
         if rc != 1:
             raise RuntimeError('Garbage collection failed.')

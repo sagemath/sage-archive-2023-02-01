@@ -108,14 +108,14 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, division, absolute_import
 
 import math
@@ -601,7 +601,6 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         """
         if self.is_zero():
             return plot.text("$\\infty$", (-3, 3), **args)
-
         else:
             return plot.point((self[0], self[1]), **args)
 

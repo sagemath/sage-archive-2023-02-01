@@ -220,7 +220,7 @@ class Polyhedron_polymake(Polyhedron_base):
             ....:                backend='polymake')
             sage: TestSuite(p).run(skip="_test_pickling")            # optional - polymake
         """
-        if polymake_polytope:
+        if polymake_polytope is not None:
             if Hrep is not None or Vrep is not None:
                 raise ValueError("only one of Vrep, Hrep, or polymake_polytope can be different from None")
             Element.__init__(self, parent=parent)

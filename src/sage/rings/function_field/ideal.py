@@ -1673,18 +1673,18 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
 
         If the ideal is principal, one generator *may* be returned.
 
-        ALGORITHM::
+        ALGORITHM:
 
-            At most two generators are required to generate ideals
-            in Dedekind domains.
+        At most two generators are required to generate ideals in
+        Dedekind domains.
 
-            Lemma 4.7.9, algorithm 4.7.10, and exercise 4.29 of [Coh1993]_
-            tell us that for an integral ideal $I$ in a number field,
-            if we pick $a$ such that $\gcd(N(I), N(a)/N(I)) = 1$, then
-            $a$ and $N(I)$ generate the ideal.  $N()$ is the norm, and
-            this result (presumably) generalizes to function fields.
+        Lemma 4.7.9, algorithm 4.7.10, and exercise 4.29 of [Coh1993]_
+        tell us that for an integral ideal `I` in a number field, if
+        we pick `a` such that `\gcd(N(I), N(a)/N(I)) = 1`, then `a`
+        and `N(I)` generate the ideal.  `N()` is the norm, and this
+        result (presumably) generalizes to function fields.
 
-            After computing $N(I)$, we search exhaustively to find $a$.
+        After computing `N(I)`, we search exhaustively to find `a`.
 
         .. TODO::
 

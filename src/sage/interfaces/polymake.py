@@ -2461,9 +2461,6 @@ class PolymakeJuPyMake(PolymakeAbstract):
             sage: from sage.interfaces.polymake import PolymakeJuPyMake
             sage: PolymakeJuPyMake()
             Polymake
-            sage: PolymakeJuPyMake().is_running()
-            False
-
         """
         self._verbose = verbose
         PolymakeAbstract.__init__(self, seed=seed)
@@ -2471,13 +2468,43 @@ class PolymakeJuPyMake(PolymakeAbstract):
     _is_running = False    # class variable
 
     def is_running(self):
+        """
+        Return True if self is currently running.
+
+        TESTS::
+
+            sage: from sage.interfaces.polymake import PolymakeJuPyMake
+            sage: pm = PolymakeJuPyMake()
+            sage: pm(1)                         # optional - jupymake
+            1
+            sage: pm.is_running()               # optional - jupymake
+            True
+
+        Several PolymakeJuPyMake interfaces can be created, but they all
+        talk to the same polymake interpreter::
+
+            sage: pm2 = PolymakeJuPyMake()
+            sage: pm2.is_running()              # optional - jupymake
+            True
+        """
         return self._is_running
 
     def _start(self):
+        """
+        Initialize the interpreter.
+
+        TESTS::
+
+            sage: from sage.interfaces.polymake import PolymakeJuPyMake
+            sage: pm = PolymakeJuPyMake()
+            sage: pm._start()                   # optional - jupymake
+            sage: pm.is_running()               # optional - jupymake
+            True
+        """
         from JuPyMake import InitializePolymake
         if not self.is_running():
             InitializePolymake()          # Can only be called once
-            self._is_running = True
+            PolymakeJuPyMake._is_running = True
         PolymakeAbstract._start(self)
         self.eval("sub Polymake::Core::Shell::Mock::fill_history {}")
         self._tab_completion()   # Run it here already because it causes a segfault when invoked in actual tab completion situation?!

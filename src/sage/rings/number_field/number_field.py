@@ -9300,24 +9300,29 @@ class NumberField_absolute(NumberField_generic):
 
             sage: K.<a> = NumberField(x^2 + 20072)
             sage: S = [K.primes_above(3)[0], K.primes_above(23)[0]]
-            sage: s = K.hilbert_symbol_negative_at_S(S, a + 1)
-            sage: K.hilbert_symbol(s, a + 1, S[0])
-            -1
-            sage: K.hilbert_symbol(s, a + 1, S[1])
-            -1
-            sage: K.<a> = CyclotomicField(11)
+            sage: b = K.hilbert_symbol_negative_at_S(S, a + 1)
+            sage: [K.hilbert_symbol(b, a + 1, p) for p in S]
+            [-1, -1]
+            sage: K.<d> = CyclotomicField(11)
             sage: S = [K.primes_above(2)[0], K.primes_above(11)[0]]
-            sage: K.hilbert_symbol_negative_at_S(S, a + 5)
-            -a^9 + a^2
+            sage: b = d + 5
+            sage: a = K.hilbert_symbol_negative_at_S(S, b)
+            sage: [K.hilbert_symbol(a,b,p) for p in S]
+            [-1, -1]
             sage: k.<c> = K.maximal_totally_real_subfield()[0]
             sage: S = [k.primes_above(3)[0], k.primes_above(5)[0]]
             sage: S += k.real_places()[:2]
-            sage: b = 5 + b + b^9
-            sage: a = k.hilbert_symbol_negative_at_S(S, c)
-            sage: [k.hilbert_symbol(s, a, p) for p in S]
+            sage: b = 5 + c + c^9
+            sage: a = k.hilbert_symbol_negative_at_S(S, b)
+            sage: [k.hilbert_symbol(a, b, p) for p in S]
             [-1, -1, -1, -1]
-            sage: k.hilbert_conductor(a, b).norm()
-            15
+
+        Note that the closely related hilbert conductor
+        takes only the finite places into account::
+
+            sage: k.hilbert_conductor(a, b)
+            Fractional ideal (15)
+
 
         TESTS::
 

@@ -7,7 +7,6 @@ from __future__ import print_function, absolute_import
 import os
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
-from sage.misc.decorators import suboptions
 from sage.misc.temporary_file import tmp_filename
 from .graphics import Graphics, ALLOWED_EXTENSIONS
 
@@ -219,17 +218,6 @@ class MultiGraphics(WithEqualityById, SageObject):
         """
         return len(self._glist)
 
-    @suboptions('legend',
-                back_color='white', borderpad=0.6,
-                borderaxespad=None,
-                columnspacing=None,
-                fancybox=False, font_family='sans-serif',
-                font_size='medium', font_style='normal',
-                font_variant='normal', font_weight='medium',
-                handlelength=0.05, handletextpad=0.5,
-                labelspacing=0.02, loc='best',
-                markerscale=0.6, ncol=1, numpoints=2,
-                shadow=True, title=None)
     def matplotlib(self, figure=None, figsize=None, **kwds):
         r"""
         Create a matplotlib ``Figure`` object from ``self``.
@@ -275,30 +263,21 @@ class MultiGraphics(WithEqualityById, SageObject):
         for i, g in zip(range(1, dims + 1), glist):
             # Creation of the matplotlib Axes object "subplot" for g
             subplot = self._add_subplot(figure, i)
-            # Adding g to the figure via subplot:
+            # Setting the options for g.matplotlib:
             options = {}
             options.update(Graphics.SHOW_OPTIONS)  # default options for show()
+            options['legend_options'] = Graphics.LEGEND_OPTIONS  # default legend options
             options.update(g._extra_kwds)  # options set in g
             options.update(kwds)
             # We get rid of options that are not relevant for g.matplotlib():
             options.pop('dpi', None)
             options.pop('transparent', None)
             options.pop('fig_tight', None)
+            # Adding g to the figure via subplot:
             g.matplotlib(figure=figure, sub=subplot, verify=do_verify,
                          **options)
         return figure
 
-    @suboptions('legend',
-                back_color='white', borderpad=0.6,
-                borderaxespad=None,
-                columnspacing=None,
-                fancybox=False, font_family='sans-serif',
-                font_size='medium', font_style='normal',
-                font_variant='normal', font_weight='medium',
-                handlelength=0.05, handletextpad=0.5,
-                labelspacing=0.02, loc='best',
-                markerscale=0.6, ncol=1, numpoints=2,
-                shadow=True, title=None)
     def save(self, filename, figsize=None, **kwds):
         r"""
         Save ``self``.
@@ -442,17 +421,6 @@ class MultiGraphics(WithEqualityById, SageObject):
             latex_list = tmpfile.readlines()
         return ''.join(latex_list)
 
-    @suboptions('legend',
-                back_color='white', borderpad=0.6,
-                borderaxespad=None,
-                columnspacing=None,
-                fancybox=False, font_family='sans-serif',
-                font_size='medium', font_style='normal',
-                font_variant='normal', font_weight='medium',
-                handlelength=0.05, handletextpad=0.5,
-                labelspacing=0.02, loc='best',
-                markerscale=0.6, ncol=1, numpoints=2,
-                shadow=True, title=None)
     def show(self, **kwds):
         r"""
         Show ``self`` immediately.

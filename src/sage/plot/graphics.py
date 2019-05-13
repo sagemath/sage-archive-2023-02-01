@@ -1314,17 +1314,20 @@ class Graphics(WithEqualityById, SageObject):
                         # Text options
                         typeset='default')
 
-    @suboptions('legend',
-                back_color='white', borderpad=0.6,
-                borderaxespad=None,
-                columnspacing=None,
-                fancybox=False, font_family='sans-serif',
-                font_size='medium', font_style='normal',
-                font_variant='normal', font_weight='medium',
-                handlelength=0.05, handletextpad=0.5,
-                labelspacing=0.02, loc='best',
-                markerscale=0.6, ncol=1, numpoints=2,
-                shadow=True, title=None)
+    # Default options for the legends:
+
+    LEGEND_OPTIONS = dict(back_color='white', borderpad=0.6,
+                          borderaxespad=None,
+                          columnspacing=None,
+                          fancybox=False, font_family='sans-serif',
+                          font_size='medium', font_style='normal',
+                          font_variant='normal', font_weight='medium',
+                          handlelength=0.05, handletextpad=0.5,
+                          labelspacing=0.02, loc='best',
+                          markerscale=0.6, ncol=1, numpoints=2,
+                          shadow=True, title=None)
+
+    @suboptions('legend', **LEGEND_OPTIONS)
     def show(self, **kwds):
         r"""
         Show this graphics image immediately.
@@ -3042,20 +3045,10 @@ class Graphics(WithEqualityById, SageObject):
         self.save(filename, *args, **kwds)
 
 
-    # ALLOWED_EXTENSIONS is the list of recognized formats.
     # filename argument is written explicitly so that it can be used as a
     # positional one, which is a very likely usage for this function.
-    @suboptions('legend',
-                back_color='white', borderpad=0.6,
-                borderaxespad=None,
-                columnspacing=None,
-                fancybox=False, font_family='sans-serif',
-                font_size='medium', font_style='normal',
-                font_variant='normal', font_weight='medium',
-                handlelength=0.05, handletextpad=0.5,
-                labelspacing=0.02, loc='best',
-                markerscale=0.6, ncol=1, numpoints=2,
-                shadow=True, title=None)
+
+    @suboptions('legend', **LEGEND_OPTIONS)
     def save(self, filename, **kwds):
         r"""
         Save the graphics to an image file.

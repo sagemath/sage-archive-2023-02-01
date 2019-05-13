@@ -40,10 +40,11 @@ def sphinx_plot(graphics, **kwds):
     if os.environ.get('SAGE_SKIP_PLOT_DIRECTIVE', 'no') != 'yes':
         ## Option handling is taken from Graphics.save
         options = dict()
-        if isinstance(graphics, (sage.plot.graphics.Graphics,
-                                 sage.plot.multigraphics.GraphicsArray)):
+        if isinstance(graphics, sage.plot.graphics.Graphics):
             options.update(sage.plot.graphics.Graphics.SHOW_OPTIONS)
             options.update(graphics._extra_kwds)
+            options.update(kwds)
+        elif isinstance(graphics, sage.plot.multigraphics.MultiGraphics):
             options.update(kwds)
         else:
             graphics = graphics.plot(**kwds)
@@ -78,7 +79,7 @@ def sphinx_plot(graphics, **kwds):
         plt.figure(figsize=figsize)
         figure = plt.gcf()
         if isinstance(graphics, (sage.plot.graphics.Graphics,
-                                 sage.plot.multigraphics.GraphicsArray)):
+                                 sage.plot.multigraphics.MultiGraphics)):
             graphics.matplotlib(figure=figure, figsize=figsize, **options)
         else:
             # 3d graphics via png

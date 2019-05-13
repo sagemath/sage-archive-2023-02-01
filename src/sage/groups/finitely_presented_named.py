@@ -523,7 +523,7 @@ def BinaryDihedralPresentation(n):
     Build a binary dihedral group of order `4n` as a finitely presented group.
 
     The binary dihedral group `BD_n` has the following presentation
-    (note that there is a typo in [Sun]_):
+    (note that there is a typo in [Sun2010]_):
 
     .. MATH::
 

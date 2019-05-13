@@ -226,7 +226,13 @@ def _sympysage_symbol(self):
         sage: assert x == Symbol('x')._sage_()
     """
     from sage.symbolic.ring import SR
-    return SR.var(self.name)
+    try:
+        return SR.var(self.name)
+    except ValueError:
+        # sympy sometimes returns dummy variables
+        # with name = 'None', str rep = '_None'
+        # in particular in inverse Laplace and inverse Mellin transforms
+        return SR.var(str(self))
 
 def _sympysage_Subs(self):
      """

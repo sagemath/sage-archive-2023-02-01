@@ -370,8 +370,8 @@ class YokonumaHeckeAlgebra(CombinatorialFreeModule):
         """
         t1,g1 = m1
         t2,g2 = m2
-        # Commmute g1 and t2, then multiply t1 and t2
-        #ig1 = g1
+        # Commute g1 and t2, then multiply t1 and t2
+        # ig1 = g1
         t = [(t1[i] + t2[g1.index(i+1)]) % self._d for i in range(self._n)]
         one = self._Pn.one()
         if g1 == one:

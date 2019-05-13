@@ -1,18 +1,18 @@
 r"""
 Coalgebras
 """
-from __future__ import absolute_import
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2008 Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
 #  Copyright (C) 2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
+from __future__ import absolute_import
 
 from .category_types import Category_over_base_ring
 from sage.categories.all import Modules
-from sage.categories.tensor import TensorProductsCategory, tensor
+from sage.categories.tensor import TensorProductsCategory
 from sage.categories.dual import DualObjectsCategory
 from sage.categories.super_modules import SuperModulesCategory
 from sage.categories.realizations import RealizationsCategory
@@ -20,6 +20,7 @@ from sage.categories.with_realizations import WithRealizationsCategory
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
+
 
 class Coalgebras(Category_over_base_ring):
     """

@@ -63,7 +63,7 @@ Methods
 from __future__ import absolute_import
 
 cimport cython
-
+from sage.ext.memory_allocator cimport MemoryAllocator
 from sage.sets.disjoint_set cimport DisjointSet_of_hashables
 
 
@@ -81,11 +81,11 @@ cpdef kruskal(G, wfunction=None, bint check=False):
 
     - ``G`` -- an undirected graph.
 
-    - ``weight_function`` (function) - a function that inputs an edge ``e``
-      and outputs its weight. An edge has the form ``(u,v,l)``, where ``u``
-      and ``v`` are vertices, ``l`` is a label (that can be of any kind).
-      The ``weight_function`` can be used to transform the label into a
-      weight. In particular:
+    - ``weight_function`` -- function (default: ``None``); a function that
+      inputs an edge ``e`` and outputs its weight. An edge has the form
+      ``(u,v,l)``, where ``u`` and ``v`` are vertices, ``l`` is a label (that
+      can be of any kind).  The ``weight_function`` can be used to transform the
+      label into a weight. In particular:
 
       - if ``weight_function`` is not ``None``, the weight of an edge ``e``
         is ``weight_function(e)``;
@@ -98,10 +98,10 @@ cpdef kruskal(G, wfunction=None, bint check=False):
       - if ``weight_function`` is ``None`` and ``g`` is not weighted, we set
         all weights to 1 (hence, the output can be any spanning tree).
 
-    - ``check`` -- Whether to first perform sanity checks on the input
-      graph ``G``. Default: ``check=False``. If we toggle ``check=True``, the
-      following sanity checks are first performed on ``G`` prior to running
-      Kruskal's algorithm on that input graph:
+    - ``check`` -- boolean (default: ``False``); whether to first perform sanity
+      checks on the input graph ``G``. Default: ``check=False``. If we toggle
+      ``check=True``, the following sanity checks are first performed on ``G``
+      prior to running Kruskal's algorithm on that input graph:
 
       - Is ``G`` the null graph?
       - Is ``G`` disconnected?
@@ -128,6 +128,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
 
         - :meth:`sage.graphs.generic_graph.GenericGraph.min_spanning_tree`
         - :func:`kruskal_iterator`
+        - :func:`filter_kruskal` and :func:`filter_kruskal_iterator`
 
     EXAMPLES:
 
@@ -307,32 +308,295 @@ def kruskal_iterator(G, wfunction=None, bint check=False):
     else:
         g = G
 
-    # G is assumed to be connected, undirected, and with at least a vertex
-    # We sort edges, as specified.
-    sortedE_iter = None
-    if wfunction is None:
-        if g.weighted():
-            from operator import itemgetter
-            sortedE_iter = iter(sorted(g.edges(sort=False), key=itemgetter(2)))
-        else:
-            sortedE_iter = g.edge_iterator()
-    else:
-        sortedE_iter = iter(sorted(g.edges(sort=False), key=wfunction))
+    cdef DisjointSet_of_hashables union_find = DisjointSet_of_hashables(g)
+    yield from kruskal_iterator_from_edges(g.edge_iterator(), union_find,
+                                           weighted=G.weighted(),
+                                           weight_function=wfunction)
 
+def kruskal_iterator_from_edges(edges, union_find, weighted=False, weight_function=None):
+    """
+    Return an iterator implementation of Kruskal algorithm on list of edges.
+
+    INPUT:
+
+    - ``edges`` -- list of edges
+
+    - ``union_find`` -- a
+      :class:`~sage.sets.disjoint_set.DisjointSet_of_hashables` encoding a
+      forest
+
+    - ``weighted`` -- boolean (default: ``False``); whether edges are weighted,
+      i.e., the label of an edge is a weight
+
+    - ``weight_function`` -- function (default: ``None``); a function that
+      inputs an edge ``e`` and outputs its weight. See :func:`kruskal` for more
+      details.
+
+    OUTPUT:
+
+    The edges of a minimum spanning tree of ``G``, one by one.
+
+    .. SEEALSO::
+
+        - :func:`kruskal`
+        - :func:`filter_kruskal`
+
+    EXAMPLES::
+
+        sage: from sage.graphs.spanning_tree import kruskal_iterator_from_edges
+        sage: G = Graph({1:{2:28, 6:10}, 2:{3:16, 7:14}, 3:{4:12}, 4:{5:22, 7:18}, 5:{6:25, 7:24}})
+        sage: G.weighted(True)
+        sage: union_set=DisjointSet(G.order())
+        sage: next(kruskal_iterator_from_edges(G.edges(sort=False), union_set, weighted=G.weighted()))
+        (1, 6, 10)
+    """
+    # We sort edges, as specified.
+    if weight_function is None:
+        if weighted:
+            from operator import itemgetter
+            edges = sorted(edges, key=itemgetter(2))
+    else:
+        edges = sorted(edges, key=weight_function)
     # Kruskal's algorithm
-    cdef int m = g.order() - 1
-    cdef int i = 0  # count the number of edges added so far
-    cdef DisjointSet_of_hashables union_find = DisjointSet_of_hashables(g.vertex_iterator())
-    while i < m:
-        e = next(sortedE_iter)
-        # acyclic test via union-find
-        u = union_find.find(e[0])
-        v = union_find.find(e[1])
-        if u != v:
-            i += 1
-            yield e
-            # union the components by making one the parent of the other
-            union_find.union(u, v)
+    for e in edges:
+         # acyclic test via union-find
+         u = union_find.find(e[0])
+         v = union_find.find(e[1])
+         if u != v:
+             yield e
+             # merge the trees
+             union_find.union(u, v)
+             if union_find.number_of_subsets() == 1:
+                 return
+
+def filter_kruskal(G, threshold=10000, weight_function=None, bint check=False):
+    """
+    Minimum spanning tree using Filter Kruskal algorithm.
+
+    This function implements the variant of Kruskal's algorithm proposed in
+    [OSS2009]_. Instead of directly sorting the whole set of edges, it
+    partitions it in a similar way to quicksort and filter out edges that
+    connect vertices of the same tree to reduce the cost of sorting.
+
+    This function assumes that we can only compute minimum spanning trees for
+    undirected graphs. Such graphs can be weighted or unweighted, and they can
+    have multiple edges (since we are computing the minimum spanning tree, only
+    the minimum weight among all `(u,v)`-edges is considered, for each pair of
+    vertices `u`, `v`).
+
+    INPUT:
+
+    - ``G`` -- an undirected graph
+
+    - ``weight_function`` -- function (default: ``None``); a function that
+      inputs an edge ``e`` and outputs its weight. An edge has the form
+      ``(u,v,l)``, where ``u`` and ``v`` are vertices, ``l`` is a label (that
+      can be of any kind). The ``weight_function`` can be used to transform the
+      label into a weight. In particular:
+
+      - if ``weight_function`` is not ``None``, the weight of an edge ``e``
+        is ``weight_function(e)``;
+
+      - if ``weight_function`` is ``None`` (default) and ``g`` is weighted
+        (that is, ``g.weighted()==True``), the weight of an edge
+        ``e=(u,v,l)`` is ``l``, independently on which kind of object ``l``
+        is: the ordering of labels relies on Python's operator ``<``;
+
+      - if ``weight_function`` is ``None`` and ``g`` is not weighted, we set
+        all weights to 1 (hence, the output can be any spanning tree).
+
+    - ``threshold`` -- integer (default: 10000); maximum number of edges on
+       which to run kruskal algorithm. Above that value, edges are partitioned
+       into sets of size at most ``threshold``
+
+    - ``check`` -- boolean (default: ``False``); whether to first perform sanity
+      checks on the input graph ``G``. Default: ``check=False``. If we toggle
+      ``check=True``, the following sanity checks are first performed on ``G``
+      prior to running Kruskal's algorithm on that input graph:
+
+      - Is ``G`` the null graph?
+      - Is ``G`` disconnected?
+      - Is ``G`` a tree?
+      - Does ``G`` have self-loops?
+      - Does ``G`` have multiple edges?
+
+    OUTPUT:
+
+    The edges of a minimum spanning tree of ``G``, if one exists, otherwise
+    returns the empty list.
+
+    .. SEEALSO::
+
+        - :meth:`sage.graphs.generic_graph.GenericGraph.min_spanning_tree`
+        - :wikipedia:`Kruskal's_algorithm`
+        - :func:`kruskal`
+        - :func:`filter_kruskal_iterator`
+
+    EXAMPLES::
+
+        sage: from sage.graphs.spanning_tree import filter_kruskal
+        sage: G = Graph({1:{2:28, 6:10}, 2:{3:16, 7:14}, 3:{4:12}, 4:{5:22, 7:18}, 5:{6:25, 7:24}})
+        sage: G.weighted(True)
+        sage: filter_kruskal(G, check=True)
+        [(1, 6, 10), (3, 4, 12), (2, 7, 14), (2, 3, 16), (4, 5, 22), (5, 6, 25)]
+
+        sage: filter_kruskal(Graph(2), check=True)
+        []
+    """
+    return list(filter_kruskal_iterator(G, threshold=threshold, weight_function=weight_function, check=check))
+
+def filter_kruskal_iterator(G, threshold=10000, weight_function=None, bint check=False):
+    r"""
+    Return an iterator implementation of Filter Kruskal's algorithm.
+
+    OUTPUT:
+
+    The edges of a minimum spanning tree of ``G``, one by one.
+
+    .. SEEALSO::
+
+        - :meth:`sage.graphs.generic_graph.GenericGraph.min_spanning_tree`
+        - :wikipedia:`Kruskal's_algorithm`
+        - :func:`kruskal`
+        - :func:`filter_kruskal`
+
+    EXAMPLES:
+
+    The edges of a minimum spanning tree of ``G``, if one exists, otherwise
+    returns the empty list.
+
+        sage: from sage.graphs.spanning_tree import filter_kruskal_iterator
+        sage: G = Graph({1:{2:28, 6:10}, 2:{3:16, 7:14}, 3:{4:12}, 4:{5:22, 7:18}, 5:{6:25, 7:24}})
+        sage: G.weighted(True)
+        sage: list(filter_kruskal_iterator(G, threshold=3, check=True))
+        [(1, 6, 10), (3, 4, 12), (2, 7, 14), (2, 3, 16), (4, 5, 22), (5, 6, 25)]
+
+    The weights of the spanning trees returned by :func:`kruskal_iterator` and
+    :func:`filter_kruskal_iterator` are the same::
+
+        sage: from sage.graphs.spanning_tree import kruskal_iterator
+        sage: G = graphs.RandomBarabasiAlbert(50, 2)
+        sage: for u, v in G.edge_iterator(labels=False):
+        ....:     G.set_edge_label(u, v, randint(1, 10))
+        sage: G.weighted(True)
+        sage: sum(e[2] for e in kruskal_iterator(G)) == sum(e[2] for e in filter_kruskal_iterator(G, threshold=20))
+        True
+
+    TESTS:
+
+    The threshold must be at least 1::
+
+        sage: from sage.graphs.spanning_tree import filter_kruskal_iterator
+        sage: next(filter_kruskal_iterator(Graph(), threshold=0))
+        Traceback (most recent call last):
+        ...
+        ValueError: the threshold mut be at least 1
+
+    Check that a threshold of 1 is accepted::
+
+        sage: len(list(filter_kruskal_iterator(graphs.HouseGraph(), threshold=1)))
+        4
+    """
+    from sage.graphs.graph import Graph
+    if not isinstance(G, Graph):
+        raise ValueError("the input graph must be undirected")
+    if threshold < 1:
+        raise ValueError("the threshold mut be at least 1")
+    if check:
+        if not G.order() or not G.is_connected():
+            return
+        # G is now assumed to be a nonempty connected graph
+        if G.order() == G.size() + 1:
+            # G is a tree
+            yield from G.edge_iterator()
+            return
+
+        g = G.to_simple(to_undirected=False, keep_label='min')
+    else:
+        g = G
+
+    cdef int m = g.size()
+    if m <= threshold:
+        yield from kruskal_iterator_from_edges(g.edge_iterator(),
+                                               DisjointSet_of_hashables(g),
+                                               weighted=G.weighted(),
+                                               weight_function=weight_function)
+        return
+
+    #
+    # Initialize some data structure
+    #
+    cdef list edges = list(g.edge_iterator())
+    # Precompute edge weights to avoid frequent calls to weight_function
+    cdef list weight
+    if weight_function is None:
+        if G.weighted():
+            weight = [e[2] for e in edges]
+        else:
+            weight = [1 for _ in range(m)]
+    else:
+        weight = [weight_function(e) for e in edges]
+
+    cdef MemoryAllocator mem = MemoryAllocator()
+    # Array storing a permutation of the edges.
+    # e_index[i] is the position of edge i in list edges
+    cdef int* e_index = <int*> mem.allocarray(m, sizeof(int))
+    cdef int i, j
+    for i in range(m):
+        e_index[i] = i
+    # Stack of range of edge partitions
+    cdef list stack = [(0, m - 1)]
+    cdef int begin, end
+    # Parameter to  equally divide edges with weight equal the to pivot
+    cdef bint ch = True
+    # Data structure to record the vertices in each tree of the forest
+    cdef DisjointSet_of_hashables union_find = DisjointSet_of_hashables(g)
+
+    #
+    # Iteratively partition the list of edges
+    #
+    while stack:
+        begin, end = stack.pop()
+
+        if end - begin < threshold:
+            # Filter edges connecting vertices of a same tree
+            L = [edges[e_index[i]] for i in range(begin, end + 1)
+                 if union_find.find(edges[e_index[i]][0]) != union_find.find(edges[e_index[i]][1])]
+            yield from kruskal_iterator_from_edges(L, union_find,
+                                                   weighted=G.weighted(),
+                                                   weight_function=weight_function)
+            if union_find.number_of_subsets() == 1:
+                return
+            continue
+
+        # Choose a pivot
+        pivot = weight[e_index[(begin + end) // 2]]
+
+        # Partition edges with respect to pivot, as in quicksort
+        i, j = begin, end
+        while i < j:
+            while weight[e_index[i]] < pivot and i < j:
+                i += 1
+            if ch and weight[e_index[i]] == pivot and i < j:
+                i += 1
+                ch = False
+                continue
+            while weight[e_index[j]] > pivot and i < j:
+                j -= 1
+            if not ch and weight[e_index[j]] == pivot and i < j:
+                j -= 1
+                ch = True
+                continue
+            if i < j:
+                e_index[i], e_index[j] = e_index[j], e_index[i]
+
+        # Record range of edge partitions
+        if weight[e_index[i]] <= pivot:
+            stack.append((i + 1, end))
+            stack.append((begin, i))
+        else:
+            stack.append((i, end))
+            stack.append((begin, i - 1))
 
 
 cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
@@ -475,7 +739,7 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
 
     # Boruvka's algorithm
 
-    # Store the list of active edges as (e, e_weight) in a list 
+    # Store the list of active edges as (e, e_weight) in a list
     if by_weight:
         if wfunction is None:
             if G.weighted():
@@ -491,7 +755,7 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
     cdef DisjointSet_of_hashables partitions = DisjointSet_of_hashables(G.vertex_iterator())
     # a dictionary to store the least weight outgoing edge for each component
     cdef dict cheapest = {}
-    cdef list T = [] # stores the edges in minimum spanning tree
+    cdef list T = []  # stores the edges in minimum spanning tree
     cdef int numConComp = G.order()
     cdef int numConCompPrevIter = numConComp + 1
 
@@ -543,7 +807,7 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
             component1 = partitions.find(e[0])
             component2 = partitions.find(e[1])
 
-            if component1 != component2 :
+            if component1 != component2:
                 partitions.union(component1, component2)
                 T.append(e)
                 numConComp = numConComp - 1

@@ -5,6 +5,6 @@ You need libxml2 to run igraph. On Ubuntu and Debian Linux, installing the build
 fi
 
 cd src
-sdh_configure
+sdh_configure --with-external-glpk
 sdh_make
 sdh_make_install -j1

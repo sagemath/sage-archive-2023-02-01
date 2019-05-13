@@ -75,7 +75,7 @@ representation is equivalent to a 0-dimensional face of the
 polytope. This is why one generally does not distinguish vertices and
 0-dimensional faces. But for non-bounded polyhedra we have to allow
 for a more general notion of "vertex" in order to make sense of the
-Minkowsi sum presentation::
+Minkowski sum presentation::
 
     sage: half_plane = Polyhedron(ieqs=[(0,1,0)])
     sage: half_plane.Hrepresentation()
@@ -99,12 +99,16 @@ but only one generating line::
     (An inequality (1, 0) x + 1 >= 0, An inequality (-1, 0) x + 1 >= 0)
     sage: strip.lines()
     (A line in the direction (0, 1),)
-    sage: strip.faces(1)
-    (<0,1>, <0,2>)
+    sage: [f.ambient_V_indices() for f in strip.faces(1)]
+    [(0, 1), (0, 2)]
     sage: for face in strip.faces(1):
-    ....:      print("{} = {}".format(face, face.as_polyhedron().Vrepresentation()))
-    <0,1> = (A line in the direction (0, 1), A vertex at (-1, 0))
-    <0,2> = (A line in the direction (0, 1), A vertex at (1, 0))
+    ....:      print(face.ambient_V_indices())
+    (0, 1)
+    (0, 2)
+    sage: for face in strip.faces(1):
+    ....:      print("{} = {}".format(face.ambient_V_indices(), face.as_polyhedron().Vrepresentation()))
+    (0, 1) = (A line in the direction (0, 1), A vertex at (-1, 0))
+    (0, 2) = (A line in the direction (0, 1), A vertex at (1, 0))
 
 EXAMPLES::
 

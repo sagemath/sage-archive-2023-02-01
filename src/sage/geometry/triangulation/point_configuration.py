@@ -627,7 +627,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         proc.expect(r'Evaluating Commandline Options \.\.\.')
         proc.expect(r'\.\.\. done\.')
         proc.setecho(0)
-        assert proc.readline().strip() == ''
+        assert proc.readline().strip() == b''
 
         if verbose:
             print("#### TOPCOM input ####")
@@ -645,6 +645,8 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         while True:
             try:
                 line = proc.readline().strip()
+                if not isinstance(line, str):
+                    line = line.decode()
             except pexpect.TIMEOUT:
                 if verbose:
                     print('# Still running ' + str(executable))

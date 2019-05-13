@@ -34,7 +34,7 @@ REFERENCES:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
 from six.moves import range
@@ -138,7 +138,7 @@ class GelfandTsetlinPattern(ClonableArray):
           3  3  3  4
     """
     # Note that the width == height, so len(gt) == len(gt[0]) except
-    #   we don't have to check if it is the emtry GT pattern
+    #   we don't have to check if it is the entry GT pattern
     @staticmethod
     def __classcall_private__(self, gt):
         """

@@ -24,15 +24,15 @@ sdh_install \
     hecke-* \
     liealgdb-* \
     liepring-* \
-    liering \
-    loops \
+    liering-* \
+    loops-* \
     MapClass-* \
-    polymaking \
+    polymaking-* \
     qpa-* \
     quagroup \
     radiroot-* \
-    repsn \
-    sla \
+    repsn-* \
+    sla-* \
     sonata-* \
     Toric-* \
     utils-* \

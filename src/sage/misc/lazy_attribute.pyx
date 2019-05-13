@@ -7,7 +7,7 @@ AUTHORS:
 - Nils Bruin (2013-05): Cython version
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -19,9 +19,10 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
+
 
 cdef class _lazy_attribute(object):
     """
@@ -634,7 +635,7 @@ class lazy_class_attribute(lazy_attribute):
         sage: b.x
         1
 
-    First access from an object also porperly triggers the computation::
+    First access from an object also properly triggers the computation::
 
         sage: class Cl1(object):
         ....:     @lazy_class_attribute

@@ -120,11 +120,15 @@ class Function_abs(GinacFunction):
             abs(x)*e^2
             sage: abs((pi+e)*x)
             (pi + e)*abs(x)
+
+            sage: fricas(abs(x)).sage().derivative()  # optional - fricas
+            1/2*(x + conjugate(x))/abs(x)
         """
         GinacFunction.__init__(self, "abs", latex_name=r"\mathrm{abs}",
                                conversions=dict(sympy='Abs',
                                                 mathematica='Abs',
-                                                giac='abs'))
+                                                giac='abs',
+                                                fricas='abs'))
 
 abs = abs_symbolic = Function_abs()
 

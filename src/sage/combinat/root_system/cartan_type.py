@@ -3086,9 +3086,3 @@ class CartanType_simple_finite(object):
         T = CartanType([dict['letter'], dict['n']])
         self.__class__ = T.__class__
         self.__dict__ = T.__dict__
-
-# deprecations from trac:18555
-from sage.misc.superseded import deprecated_function_alias
-CartanTypeFactory.global_options = deprecated_function_alias(18555, CartanTypeFactory.options)
-CartanTypeOptions = deprecated_function_alias(18555, CartanType.options)
-CartanType_abstract.global_options = deprecated_function_alias(18555, CartanType.options)

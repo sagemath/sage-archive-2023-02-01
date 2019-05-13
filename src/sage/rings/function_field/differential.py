@@ -240,6 +240,36 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
         W = self.parent()
         return W.element_class(W, self._f + other._f)
 
+    def _div_(self, other):
+        """
+        Return the quotient of ``self`` and ``other``
+
+        INPUT:
+
+        - ``other`` -- differential
+
+        OUTPUT: an element of the function field
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(4)); _.<Y>=K[]
+            sage: L.<y> = K.extension(Y^3+x+x^3*Y)
+            sage: w1 = y.differential()
+            sage: w2 = (1/y).differential()
+            sage: w1 / w2
+            y^2
+
+            sage: F.<x> = FunctionField(QQ)
+            sage: w1 = (1/x).differential()
+            sage: w2 = (x^2+1).differential()
+            sage: w1 / w2
+            -1/2/x^3
+        """
+        if other._f.is_zero():
+            raise ZeroDivisionError("division by zero differential")
+
+        return self._f / other._f
+
     def _neg_(self):
         """
         Return the negation of the differential.
@@ -313,7 +343,28 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
         """
         F = self.parent().function_field()
         x = F.base_field().gen()
-        return self._f.divisor() + (-2) * F(x).divisor_of_poles() + F.different()
+        return self._f.divisor() + (-2)*F(x).divisor_of_poles() + F.different()
+
+    def valuation(self, place):
+        """
+        Return the valuation of the differential at the ``place``.
+
+        INPUT:
+
+        - ``place`` -- place of the function field
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(5)); _.<Y>=K[]
+            sage: L.<y> = K.extension(Y^3+x+x^3*Y)
+            sage: w = (1/y) * y.differential()
+            sage: [w.valuation(p) for p in L.places()]
+            [-1, -1, -1, 0, 1, 0]
+        """
+        F = self.parent().function_field()
+        x = F.base_field().gen()
+        return (self._f.valuation(place) + 2*min(F(x).valuation(place), 0)
+                + F.different().valuation(place))
 
     def residue(self, place):
         """
@@ -372,7 +423,7 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
             return to_R(c)
 
     def cartier(self):
-        """
+        r"""
         Return the image of the differential by the Cartier operator.
 
         The Cartier operator operates on differentials. Let `x` be a separating

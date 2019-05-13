@@ -34,9 +34,8 @@ import re
 import sys
 import time
 
-from .expect import Expect, ExpectElement, FunctionElement
-from .interface import (Interface, InterfaceElement, InterfaceFunctionElement,
-                        InterfaceFunction)
+from .expect import Expect
+from .interface import (Interface, InterfaceElement, InterfaceFunctionElement)
 
 from sage.misc.misc import get_verbose
 from sage.misc.cachefunc import cached_method
@@ -47,7 +46,6 @@ from random import randrange
 
 from time import sleep
 import warnings
-from warnings import warn
 
 _name_pattern = re.compile('SAGE[0-9]+')
 

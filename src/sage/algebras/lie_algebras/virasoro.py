@@ -531,7 +531,7 @@ class VirasoroAlgebra(InfinitelyGeneratedLieAlgebra, IndexedGenerators):
 
             sage: L = lie_algebras.VirasoroAlgebra(QQ)
             sage: L.verma_module(3, 2)
-            Verma module with charge 3 and confromal weight 2 of
+            Verma module with charge 3 and conformal weight 2 of
              The Virasoro algebra over Rational Field
         """
         return VermaModule(self, c, h)
@@ -868,10 +868,10 @@ class VermaModule(CombinatorialFreeModule):
             sage: L = lie_algebras.VirasoroAlgebra(QQ)
             sage: M = L.verma_module(3, 0)
             sage: M
-            Verma module with charge 3 and confromal weight 0 of
+            Verma module with charge 3 and conformal weight 0 of
              The Virasoro algebra over Rational Field
         """
-        return "Verma module with charge {} and confromal weight {} of {}".format(
+        return "Verma module with charge {} and conformal weight {} of {}".format(
                     self._c, self._h, self._V)
 
     def _monomial(self, index):

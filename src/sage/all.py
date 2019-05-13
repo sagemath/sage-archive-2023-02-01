@@ -282,10 +282,11 @@ def _write_started_file():
 
     TESTS:
 
-    Check that the file exists when Sage is running::
+    Check that the file exists when Sage is running (note, this file is not
+    necessarily installed or used by downstream packages of Sage)::
 
         sage: started_file = os.path.join(SAGE_LOCAL, 'etc', 'sage-started.txt')
-        sage: os.path.isfile(started_file)
+        sage: os.path.isfile(started_file)  # optional - build
         True
     """
     started_file = os.path.join(SAGE_LOCAL, 'etc', 'sage-started.txt')

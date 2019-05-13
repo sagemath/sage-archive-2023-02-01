@@ -13,19 +13,20 @@ AUTHORS:
   cryptominisat 2.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2017 Thierry Monteil <sage!lma.metelu.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 
 # Support of Python 3
 from __future__ import division, absolute_import, print_function, unicode_literals
 
 from .satsolver import SatSolver
+
 
 class CryptoMiniSat(SatSolver):
     r"""
@@ -62,8 +63,8 @@ class CryptoMiniSat(SatSolver):
             from sage.parallel.ncpus import ncpus
             threads = ncpus()
         if confl_limit is None:
-            from sys import maxint
-            confl_limit = maxint
+            from sys import maxsize
+            confl_limit = maxsize
         try:
             from pycryptosat import Solver
         except ImportError:

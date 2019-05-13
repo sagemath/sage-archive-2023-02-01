@@ -2,7 +2,7 @@
 
 set -e
 
-GIT_VERSION=r80
+GIT_VERSION=r100
 
 [ -n "${SAGE_ROOT}" ] || SAGE_ROOT="$(pwd)/../../../"
 

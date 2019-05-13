@@ -1363,7 +1363,7 @@ class RiemannSurface(object):
 
     def simple_vector_line_integral(self, upstairs_edge, differentials):
         r"""
-        Perfom vectorized integration along a straight path.
+        Perform vectorized integration along a straight path.
 
         INPUT:
 

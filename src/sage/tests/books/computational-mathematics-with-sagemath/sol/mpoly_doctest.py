@@ -16,9 +16,9 @@ Sage example in ./sol/mpoly.tex, line 27::
   sage: tmp2 = flatten(tmp1); tmp2
   [1, 1, x, x, y, y, z, z]
   sage: monomials = Subsets(tmp2, deg, submultiset=True); monomials
-  SubMultiset of [y, y, 1, 1, z, z, x, x] of size 2
+  SubMultiset of [1, 1, x, x, y, y, z, z] of size 2
   sage: monomials.list()
-  [[y, y], [y, 1], [y, z], [y, x], [1, 1], [1, z], [1, x], [z, z], [z, x], [x, x]]
+  [[1, 1], [1, x], [1, y], [1, z], [x, x], [x, y], [x, z], [y, y], [y, z], [z, z]]
 
 Sage example in ./sol/mpoly.tex, line 98::
 

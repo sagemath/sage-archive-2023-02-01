@@ -91,7 +91,7 @@ def rank_from_list(l):
         sage: type(r)
         <... 'sage.misc.callable_dict.CallableDict'>
         sage: r
-        {'a': 0, 'c': 2, 'b': 1}
+        {'a': 0, 'b': 1, 'c': 2}
 
     With the current implementation, no error is issued in case of
     duplicate value in ``l``. Instead, the rank function returns the
@@ -266,7 +266,6 @@ def unrank(L, i):
             for _ in range(i):
                 next(it)
             return next(it)
-        except StopIteration as e:
+        except StopIteration:
             raise IndexError("index out of range")
     raise ValueError("Don't know how to unrank on {}".format(L))
-

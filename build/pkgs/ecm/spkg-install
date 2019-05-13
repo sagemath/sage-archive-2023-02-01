@@ -53,16 +53,6 @@ if [ -n "$system_gmp_h" ]; then
 fi
 
 
-if [ "$SAGE64" = yes ]; then
-    echo "Building a 64-bit version of GMP-ECM."
-    if [ -z "$CFLAG64" ]; then
-        CFLAG64=-m64
-    fi
-    CFLAGS="$CFLAGS $CFLAG64"
-    LDFLAGS="$LDFLAGS $CFLAG64"; export LDFLAGS
-fi
-
-
 # libtool should add the proper flags, but doesn't use "-fPIC"
 # for the *static* library (which the Sage library links to unless
 # we also build the shared one). The following only handles the
@@ -220,7 +210,10 @@ else
 fi
 echo "  --prefix=\"$SAGE_LOCAL\""
 echo "  --libdir=\"$SAGE_LOCAL/lib\""
-echo "  --with-gmp=\"$SAGE_LOCAL\""
+if [ -n "$SAGE_CONFIGURE_GMP" ]; then
+    echo "  --with-gmp=\"$SAGE_LOCAL\""
+fi
+
 for opt in $ECM_CONFIGURE; do
     echo "  $opt"
 done
@@ -231,7 +224,7 @@ if [ -z "$ECM_CONFIGURE" ]; then
 fi
 echo
 
-sdh_configure --with-gmp="$SAGE_LOCAL" $ECM_CONFIGURE
+sdh_configure $SAGE_CONFIGURE_GMP $ECM_CONFIGURE
 
 ###############################################################################
 # Now build ECM:

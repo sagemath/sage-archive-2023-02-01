@@ -357,7 +357,8 @@ will consider how to draw pictures of these crystals.
 Once you have ``dot2tex`` installed, you may make images pictures of crystals
 with a command such as this::
 
-    sage: crystals.Tableaux("A2", shape=[2,1]).latex_file("/tmp/a2rho.tex")
+    sage: fn = tmp_filename(ext=".tex")
+    sage: crystals.Tableaux("A2", shape=[2,1]).latex_file(fn)
 
 Here `\lambda = (2,1)=(2,1,0)`. The crystal ``C`` is
 `\mathcal{B}_{\lambda}`. The character `\chi_\lambda` will therefore

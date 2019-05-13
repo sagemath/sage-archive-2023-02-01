@@ -24,7 +24,7 @@ Functions, Classes and Methods
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from __future__ import print_function, absolute_import
@@ -105,6 +105,10 @@ def parent_to_repr_short(P):
         'QQ'
         sage: parent_to_repr_short(SR)
         'SR'
+        sage: parent_to_repr_short(RR)
+        'RR'
+        sage: parent_to_repr_short(CC)
+        'CC'
         sage: parent_to_repr_short(ZZ['x'])
         'ZZ[x]'
         sage: parent_to_repr_short(QQ['d, k'])
@@ -118,19 +122,26 @@ def parent_to_repr_short(P):
         sage: parent_to_repr_short(Zmod(3)['g'])
         'Univariate Polynomial Ring in g over Ring of integers modulo 3'
     """
+    from sage.rings.all import RR, CC, RIF, CIF, RBF, CBF
     from sage.rings.integer_ring import ZZ
     from sage.rings.rational_field import QQ
     from sage.symbolic.ring import SR
     from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-    from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+    from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
     from sage.rings.power_series_ring import is_PowerSeriesRing
     def abbreviate(P):
-        if P is ZZ:
-            return 'ZZ'
-        elif P is QQ:
-            return 'QQ'
-        elif P is SR:
-            return 'SR'
+        try:
+            return P._repr_short_()
+        except AttributeError:
+            pass
+        abbreviations = {ZZ: 'ZZ', QQ: 'QQ', SR: 'SR',
+                         RR: 'RR', CC: 'CC',
+                         RIF: 'RIF', CIF: 'CIF',
+                         RBF: 'RBF', CBF: 'CBF'}
+        try:
+            return abbreviations[P]
+        except KeyError:
+            pass
         raise ValueError('Cannot abbreviate %s.' % (P,))
 
     poly = is_PolynomialRing(P) or is_MPolynomialRing(P)
@@ -278,7 +289,7 @@ def repr_op(left, op, right=None, latex=False):
 
     - ``op`` -- a string.
 
-    - ``right`` -- an alement.
+    - ``right`` -- an element.
 
     - ``latex`` -- (default: ``False``) a boolean. If set, then
       LaTeX-output is returned.
@@ -503,7 +514,7 @@ def merge_overlapping(A, B, key=None):
 
         Then ``A + B[i:]`` or ``A[:-i] + B`` are the merged tuples/lists.
 
-        Adapted from http://stackoverflow.com/a/30056066/1052778.
+        Adapted from https://stackoverflow.com/a/30056066/1052778.
         """
         matches = iter(i for i in range(min(len(A), len(B)), 0, -1)
                        if A[-i:] == B[:i])

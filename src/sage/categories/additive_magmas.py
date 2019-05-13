@@ -1,12 +1,12 @@
 r"""
 Additive Magmas
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2010-2014 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 
 import six
 
@@ -20,6 +20,7 @@ from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.homsets import HomsetsCategory
 from sage.categories.with_realizations import WithRealizationsCategory
 from sage.categories.sets_cat import Sets
+
 
 class AdditiveMagmas(Category_singleton):
     """
@@ -73,7 +74,7 @@ class AdditiveMagmas(Category_singleton):
 
         @cached_method
         def AdditiveAssociative(self):
-            """
+            r"""
             Return the full subcategory of the additive associative
             objects of ``self``.
 
@@ -99,7 +100,7 @@ class AdditiveMagmas(Category_singleton):
 
         @cached_method
         def AdditiveCommutative(self):
-            """
+            r"""
             Return the full subcategory of the commutative objects of ``self``.
 
             An :class:`additive magma <AdditiveMagmas>` `M` is
@@ -220,7 +221,6 @@ class AdditiveMagmas(Category_singleton):
             # But this is not yet implemented in the coercion model
             if (self.summation != self.summation_from_element_class_add) and hasattr(self, "element_class") and hasattr(self.element_class, "_add_parent"):
                 self.element_class._add_ = self.element_class._add_parent
-
 
         def addition_table(self, names='letters', elements=None):
             r"""
@@ -390,7 +390,7 @@ class AdditiveMagmas(Category_singleton):
 
     class ElementMethods:
 
-        @abstract_method(optional = True)
+        @abstract_method(optional=True)
         def _add_(self, right):
             """
             Return the sum of ``self`` and ``right``.
@@ -486,8 +486,8 @@ class AdditiveMagmas(Category_singleton):
                     (4, 0)
                 """
                 return self.parent()._cartesian_product_of_elements(
-                    x+y for x,y in zip(self.cartesian_factors(),
-                                       right.cartesian_factors()))
+                    x + y for x, y in zip(self.cartesian_factors(),
+                                          right.cartesian_factors()))
 
     class Algebras(AlgebrasCategory):
 
@@ -541,7 +541,7 @@ class AdditiveMagmas(Category_singleton):
                     sage: A = S.algebra(QQ)
                     sage: a,b,c,d = A.algebra_generators()
                     sage: a * b + b * d * c
-                    B[c + b + d] + B[a + b]
+                    B[b + c + d] + B[a + b]
                 """
                 return self.monomial(g1 + g2)
 
@@ -555,7 +555,7 @@ class AdditiveMagmas(Category_singleton):
                 EXAMPLES::
 
                     sage: C = AdditiveMagmas().AdditiveCommutative().CartesianProducts()
-                    sage: C.extra_super_categories();
+                    sage: C.extra_super_categories()
                     [Category of additive commutative additive magmas]
                     sage: C.axioms()
                     frozenset({'AdditiveCommutative'})
@@ -667,12 +667,12 @@ class AdditiveMagmas(Category_singleton):
                 # TODO: also call is_zero once it will work
                 tester.assertTrue(self.is_parent_of(zero))
                 for x in tester.some_elements():
-                    tester.assertTrue(x + zero == x)
+                    tester.assertEqual(x + zero, x)
                 # Check that zero is immutable if it looks like we can:
-                if hasattr(zero,"is_immutable"):
-                    tester.assertEqual(zero.is_immutable(),True)
-                if hasattr(zero,"is_mutable"):
-                    tester.assertEqual(zero.is_mutable(),False)
+                if hasattr(zero, "is_immutable"):
+                    tester.assertEqual(zero.is_immutable(), True)
+                if hasattr(zero, "is_mutable"):
+                    tester.assertEqual(zero.is_mutable(), False)
                 # Check that bool behave consistently on zero
                 tester.assertFalse(bool(self.zero()))
 
@@ -891,7 +891,7 @@ class AdditiveMagmas(Category_singleton):
                     EXAMPLES::
 
                         sage: C = AdditiveMagmas().AdditiveUnital().AdditiveInverse().CartesianProducts()
-                        sage: C.extra_super_categories();
+                        sage: C.extra_super_categories()
                         [Category of additive inverse additive unital additive magmas]
                         sage: sorted(C.axioms())
                         ['AdditiveInverse', 'AdditiveUnital']
@@ -927,7 +927,7 @@ class AdditiveMagmas(Category_singleton):
                 EXAMPLES::
 
                     sage: C = AdditiveMagmas().AdditiveUnital().CartesianProducts()
-                    sage: C.extra_super_categories();
+                    sage: C.extra_super_categories()
                     [Category of additive unital additive magmas]
                     sage: C.axioms()
                     frozenset({'AdditiveUnital'})
@@ -1015,4 +1015,3 @@ class AdditiveMagmas(Category_singleton):
                         sage: A._test_zero()
                     """
                     return self.a_realization().zero()
-

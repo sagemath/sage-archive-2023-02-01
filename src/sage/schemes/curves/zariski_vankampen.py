@@ -32,24 +32,22 @@ EXAMPLES::
     sage: fundamental_group(f) # optional - sirocco
     Finitely presented group < x0 |  >
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 Miguel Marco <mmarco@unizar.es>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import division, absolute_import
 
 from sage.groups.braid import BraidGroup
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.rings.rational_field import QQ
 from sage.rings.qqbar import QQbar
-from sage.rings.all import CC, CIF
+from sage.rings.all import CC
 from sage.parallel.decorate import parallel
 from sage.misc.flatten import flatten
 from sage.groups.free_group import FreeGroup
@@ -105,7 +103,8 @@ def braid_from_piecewise(strands):
 
     braid = []
     G = SymmetricGroup(len(totalpoints))
-    def sgn(x, y): # Opposite sign of cmp
+
+    def sgn(x, y):
         if x < y:
             return 1
         if x > y:
@@ -130,18 +129,21 @@ def braid_from_piecewise(strands):
             P = G(Permutation([]))
             while cruces:
                 # we select the crosses in the same t
-                crucesl = [c for c in cruces if c[0]==cruces[0][0]]
-                crossesl = [(P(c[2]+1) - P(c[1]+1),c[1],c[2],c[3]) for c in crucesl]
+                crucesl = [c for c in cruces if c[0] == cruces[0][0]]
+                crossesl = [(P(c[2]+1) - P(c[1]+1),c[1],c[2],c[3])
+                            for c in crucesl]
                 cruces = cruces[len(crucesl):]
                 while crossesl:
                     crossesl.sort()
                     c = crossesl.pop(0)
                     braid.append(c[3]*min(map(P, [c[1] + 1, c[2] + 1])))
                     P = G(Permutation([(c[1] + 1, c[2] + 1)]))*P
-                    crossesl = [(P(c[2]+1) - P(c[1]+1),c[1],c[2],c[3]) for c in crossesl]
+                    crossesl = [(P(cr[2]+1) - P(cr[1]+1), cr[1], cr[2], cr[3])
+                                for cr in crossesl]
 
     B = BraidGroup(len(L))
     return B(braid)
+
 
 def discrim(f):
     r"""
@@ -171,8 +173,9 @@ def discrim(f):
     """
     x, y = f.variables()
     F = f.base_ring()
-    disc = F[x](f.discriminant(y).resultant(f, y)).roots(QQbar, multiplicities=False)
+    disc = F[x](f.discriminant(y).resultant(f, y)).radical().roots(QQbar, multiplicities=False)
     return disc
+
 
 def segments(points):
     """
@@ -227,9 +230,10 @@ def segments(points):
             res.append((p1, p2))
     return res
 
+
 def followstrand(f, x0, x1, y0a, prec=53):
     r"""
-    Return a piecewise linear aproximation of the homotopy continuation
+    Return a piecewise linear approximation of the homotopy continuation
     of the root ``y0a`` from ``x0`` to ``x1``.
 
     INPUT:
@@ -246,7 +250,7 @@ def followstrand(f, x0, x1, y0a, prec=53):
 
     - ``t`` is a real number between zero and one
     - `f(t \cdot x_1 + (1-t) \cdot x_0, y_{tr} + I \cdot y_{ti})`
-      is zero (or a good enough aproximation)
+      is zero (or a good enough approximation)
     - the piecewise linear path determined by the points has a tubular
       neighborhood  where the actual homotopy continuation path lies, and
       no other root intersects it.
@@ -315,6 +319,23 @@ def braid_in_segment(f, x0, x1):
         sage: x1 = CC(1, 0.5)
         sage: braid_in_segment(f, x0, x1) # optional - sirocco
         s1
+
+    TESTS:
+
+    Check that :trac:`26503` is fixed::
+
+        sage: wp = QQ['t']([1, 1, 1]).roots(QQbar)[0][0]
+        sage: Kw.<wp> = NumberField(wp.minpoly(), embedding=wp)
+        sage: R.<x, y> = Kw[]
+        sage: z = -wp - 1
+        sage: f = y*(y + z)*x*(x - 1)*(x - y)*(x + z*y - 1)*(x + z*y + wp)
+        sage: from sage.schemes.curves import zariski_vankampen as zvk
+        sage: g = f.subs({x: x + 2*y})
+        sage: p1 = QQbar(sqrt(-1/3))
+        sage: p2 = QQbar(1/2+sqrt(-1/3)/2)
+        sage: B = zvk.braid_in_segment(g,CC(p1),CC(p2)) # optional - sirocco
+        sage: B.left_normal_form()  # optional - sirocco
+        (1, s5)
     """
     CC = ComplexField(64)
     (x, y) = f.variables()
@@ -335,7 +356,7 @@ def braid_in_segment(f, x0, x1):
         if y0 in used:
             raise ValueError("different roots are too close")
         used.append(y0)
-        initialstrands.append([(0, CC(y0)), (1, y0ap)])
+        initialstrands.append([(0, y0), (1, y0ap)])
     initialbraid = braid_from_piecewise(initialstrands)
     F1 = QQbar[y](f(X1,y))
     y1s = F1.roots(multiplicities=False)
@@ -348,9 +369,10 @@ def braid_in_segment(f, x0, x1):
         if y1 in used:
             raise ValueError("different roots are too close")
         used.append(y1)
-        finalstrands.append([(0, y1ap), (1, CC(y1))])
+        finalstrands.append([(0, y1ap), (1, y1)])
     finallbraid = braid_from_piecewise(finalstrands)
     return initialbraid * centralbraid * finallbraid
+
 
 def fundamental_group(f, simplified=True, projective=False):
     r"""
@@ -415,7 +437,7 @@ def fundamental_group(f, simplified=True, projective=False):
     """
     (x, y) = f.variables()
     F = f.base_ring()
-    g = f.factor().radical().prod()
+    g = f.radical()
     d = g.degree(y)
     while not g.coefficient(y**d) in F or (projective and g.total_degree() > d):
         g = g.subs({x: x + y})
@@ -445,4 +467,3 @@ def fundamental_group(f, simplified=True, projective=False):
         return G.simplified()
     else:
         return G
-

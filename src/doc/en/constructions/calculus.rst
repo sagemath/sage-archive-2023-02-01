@@ -28,7 +28,7 @@ Differentiation:
 If you type ``view(f.diff(x))`` another window will open up
 displaying the compiled output. In the notebook, you can enter
 
-::
+.. CODE-BLOCK:: ipython
 
     var('x k w')
     f = x^3 * e^(k*x) * sin(w*x)
@@ -38,7 +38,7 @@ displaying the compiled output. In the notebook, you can enter
 into a cell and press ``shift-enter`` for a similar result. You can
 also differentiate and integrate using the commands
 
-::
+.. CODE-BLOCK:: ipython
 
     R = PolynomialRing(QQ,"x")
     x = R.gen()
@@ -309,7 +309,7 @@ If you have ``Octave`` and ``gnuplot`` installed,
     sage: octave.de_system_plot(['x+y','x-y'], [1,-1], [0,2]) # optional - octave
 
 yields the two plots :math:`(t,x(t)), (t,y(t))` on the same graph
-(the :math:`t`-axis is the horizonal axis) of the system of ODEs
+(the :math:`t`-axis is the horizontal axis) of the system of ODEs
 
 .. math::
     x' = x+y, x(0) = 1; y' = x-y, y(0) = -1,

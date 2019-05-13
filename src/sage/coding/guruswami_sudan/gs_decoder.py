@@ -373,7 +373,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             the integers around `real_max` which gives the (local) integral
             maximum, and the value of at that point."""
             if real_max in ZZ:
-                int_max = Integer(real_max)
+                int_max = ZZ(real_max)
                 return (int_max, f(int_max))
             else:
                 x_f = floor(real_max)

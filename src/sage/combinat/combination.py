@@ -30,7 +30,6 @@ from sage.rings.all import ZZ, Integer
 from sage.arith.all import binomial
 from .combinat import CombinatorialClass
 from .integer_vector import IntegerVectors
-from sage.misc.misc import uniq
 
 
 def Combinations(mset, k=None):
@@ -209,8 +208,7 @@ class Combinations_mset(CombinatorialClass):
         except TypeError:
             return False
 
-        return all(i in self.mset for i in x) and len(uniq(x)) == len(x)
-
+        return all(i in self.mset for i in x) and len(set(x)) == len(x)
 
     def __repr__(self):
         """
@@ -345,8 +343,8 @@ class Combinations_msetk(CombinatorialClass):
             sage: Combinations(['a','a','b'],2).list() # indirect doctest
             [['a', 'a'], ['a', 'b']]
         """
-        items = map(self.mset.index, self.mset)
-        indices = uniq(sorted(items))
+        items = [self.mset.index(x) for x in self.mset]
+        indices = sorted(set(items))
         counts = [0] * len(indices)
         for i in items:
             counts[indices.index(i)] += 1
@@ -355,8 +353,9 @@ class Combinations_msetk(CombinatorialClass):
 
     def cardinality(self):
         """
-        Returns the size of combinations(mset,k). IMPLEMENTATION: Wraps
-        GAP's NrCombinations.
+        Return the size of combinations(mset,k).
+
+        IMPLEMENTATION: Wraps GAP's NrCombinations.
 
         EXAMPLES::
 
@@ -623,5 +622,5 @@ class ChooseNK(Combinations_setk):
         self.__class__ = Combinations_setk
         Combinations_setk.__init__(self, list(range(state['_n'])), state['_k'])
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override("sage.combinat.choose_nk", "ChooseNK", ChooseNK)

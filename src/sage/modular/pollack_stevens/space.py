@@ -3,7 +3,7 @@ r"""
 Pollack-Stevens' Modular Symbols Spaces
 
 This module contains a class for spaces of modular symbols that use Glenn
-Stevens' conventions, as explained in [PS]_.
+Stevens' conventions, as explained in [PS2011]_.
 
 There are two main differences between the modular symbols in this directory
 and the ones in :mod:`sage.modular.modsym`:
@@ -55,13 +55,6 @@ classical modular symbols (or even elliptic curves) as follows::
     [0, 1, 0, 0, 0, -1, 1, 0, 0]
     sage: phi.parent()
     Space of modular symbols for Congruence Subgroup Gamma0(37) with sign 0 and values in Sym^0 Q^2
-
-REFERENCES:
-
-.. [PS] Overconvergent modular symbols and p-adic L-functions
-   Robert Pollack, Glenn Stevens
-   Annales Scientifiques de l'Ecole Normale Superieure, serie 4, 44 fascicule 1 (2011), 1--42.
-
 """
 #*****************************************************************************
 #       Copyright (C) 2012 Robert Pollack <rpollack@math.bu.edu>
@@ -761,7 +754,8 @@ class PollackStevensModularSymbolspace(Module):
             if (not g in manin.reps_with_two_torsion()) and (not g in manin.reps_with_three_torsion()):
                 t += D[g] * manin.gammas[g] - D[g]
             else:
-                if g in MR.reps_with_two_torsion():  # What is MR ??
+                # this was previously MR.reps_with_two_torsion() but there is no variable MR defined...
+                if g in manin.reps_with_two_torsion():
                     t -= D[g]
                 else:
                     t -= D[g]

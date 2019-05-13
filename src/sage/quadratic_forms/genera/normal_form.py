@@ -77,20 +77,21 @@ AUTHORS:
 - Simon Brandhorst (2018-01): initial version
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2018 Simon Branhdorst <sbrandhorst@web.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
-from sage.rings.all import Zp, ZZ, GF, QQ
+from sage.rings.all import Zp, ZZ, GF
 from sage.matrix.constructor import Matrix
 from copy import copy
 from sage.rings.finite_rings.integer_mod import mod
+
 
 def collect_small_blocks(G):
     r"""
@@ -252,10 +253,10 @@ def p_adic_normal_form(G, p, precision=None, partial=False, debug=False):
 
     # continue with the non-degenerate part
     G = nondeg * G * nondeg.T * p**d
-    if precision == None:
+    if precision is None:
         # in Zp(2) we have to calculate at least mod 8 for things to make sense.
         precision = G.det().valuation(p) + 4
-    R = Zp(p, prec = precision, type = 'fixed-mod')
+    R = Zp(p, prec=precision, type='fixed-mod')
     G = G.change_ring(R)
     G.set_immutable() # is not changed during computation
     D = copy(G)    # is transformed into jordan form
@@ -265,7 +266,7 @@ def p_adic_normal_form(G, p, precision=None, partial=False, debug=False):
         return G.parent().zero(), G.parent().zero()
     # the transformation matrix is called B
     B = Matrix.identity(R, n)
-    if(p == 2):
+    if p == 2:
         D, B = _jordan_2_adic(G)
     else:
         D, B = _jordan_odd_adic(G)
@@ -273,7 +274,7 @@ def p_adic_normal_form(G, p, precision=None, partial=False, debug=False):
     B = B1 * B
     # we have reached a normal form for p != 2
     # for p == 2 extra work is necessary
-    if p==2:
+    if p == 2:
         D, B1 = _two_adic_normal_forms(D, partial=partial)
         B = B1 * B
     nondeg = B * nondeg
@@ -281,11 +282,12 @@ def p_adic_normal_form(G, p, precision=None, partial=False, debug=False):
     D = Matrix.block_diagonal([D, Matrix.zero(kernel.nrows())])
     if debug:
         assert B.determinant().valuation() == 0     # B is invertible!
-        if p==2:
+        if p == 2:
             assert B*G*B.T == Matrix.block_diagonal(collect_small_blocks(D))
         else:
             assert B*G*B.T == Matrix.diagonal(D.diagonal())
     return D/p**d, B
+
 
 def _find_min_p(G, cnt, lower_bound=0):
     r"""
@@ -680,7 +682,6 @@ def _jordan_2_adic(G):
             pivot = _find_min_p(D, cnt)
             piv1 = pivot[1]
             piv2 = pivot[2]
-            minval_last = minval
             minval = pivot[0]
             # the smallest valuation is on the diagonal
             if piv1 == piv2:
@@ -716,7 +717,7 @@ def _jordan_2_adic(G):
                     eqn_mat = D[cnt:cnt+2, cnt:cnt+2].list()
                     eqn_mat = Matrix(R, 2, 2, [e // content for e in eqn_mat])
                     # calculate the inverse without using division
-                    inv = eqn_mat.adjoint() * eqn_mat.det().inverse_of_unit()
+                    inv = eqn_mat.adjugate() * eqn_mat.det().inverse_of_unit()
                     B1 = B[cnt:cnt+2, :]
                     B2 = D[cnt+2:, cnt:cnt+2] * inv
                     for i in range(B2.nrows()):
@@ -755,7 +756,7 @@ def _min_nonsquare(p):
         if not R(i).is_square():
             return i
 
-def _normalize(G):
+def _normalize(G, normal_odd=True):
     r"""
     Return the transformation to sums of forms of types `U`, `V` and `W`.
 
@@ -763,8 +764,10 @@ def _normalize(G):
 
     INPUT:
 
-    - a symmetric matrix over `\ZZ_p` in jordan form --
+    - ``G`` -- a symmetric matrix over `\ZZ_p` in jordan form --
       the output of :meth:`p_adic_normal_form` or :meth:`_jordan_2_adic`
+    - ``normal_odd`` -- bool (default: True) if true and `p` is odd,
+      compute a normal form.
 
     OUTPUT:
 
@@ -804,7 +807,7 @@ def _normalize(G):
             if D[i,i].valuation() > val:
                 # a new block starts
                 val = D[i,i].valuation()
-                if len(non_squares) != 0:
+                if normal_odd and len(non_squares) != 0:
                     # move the non-square to
                     # the last entry of the previous block
                     j = non_squares.pop()
@@ -816,7 +819,7 @@ def _normalize(G):
             else:
                 D[i, i] = v
                 B[i, :] *= (v * d.inverse_of_unit()).sqrt()
-                if len(non_squares) != 0:
+                if normal_odd and len(non_squares) != 0:
                     # we combine two non-squares to get
                     # the 2 x 2 identity matrix
                     j = non_squares.pop()
@@ -826,7 +829,7 @@ def _normalize(G):
                     D[j,j] = 1
                 else:
                     non_squares.append(i)
-        if len(non_squares) != 0:
+        if normal_odd and len(non_squares) != 0:
             j=non_squares.pop()
             B.swap_rows(j,n-1)
     else:
@@ -1066,7 +1069,6 @@ def _partial_normal_form_of_block(G):
         [0 0 0 0 0 0 0 0 0 0 0 7]
     """
     D = copy(G)
-    R = D.base_ring()
     n = D.ncols()
     B = copy(G.parent().identity_matrix())     # the transformation matrix
     blocks = _get_small_block_indices(D)
@@ -1084,7 +1086,6 @@ def _partial_normal_form_of_block(G):
                 U += [i,i+1]
         if len(W) == 3:
             # W W W transforms to W U or W V
-            T = _relations(D[W,W], 2)
             B[W,:] = _relations(D[W,W],2) * B[W,:]
             D = B * G * B.T
             if mod(D[W[1:], W[1:]].det().unit_part(), 8) == 3:
@@ -1102,6 +1103,7 @@ def _partial_normal_form_of_block(G):
     B = B[UVW,:]
     D = B * G * B.T
     return D, B, len(W)
+
 
 def _relations(G,n):
     r"""
@@ -1318,9 +1320,6 @@ def _relations(G,n):
         e1 = G[0,0].unit_part()
         e2 = G[1,1].unit_part()
         e3 = G[2,2].unit_part()
-        s1 = e1 + e2 + e3
-        s2 = e1*e2 + e1*e3 + e2*e3
-        s3 = e1*e2*e3
         B = Matrix(R,3,[1,1,1,e2,-e1,0,e3,0,-e1])
     if n == 3:
         B = Matrix(R,4,[1,1,1,0, 1,1,0,1, 1,0,-1,-1, 0,1,-1,-1])
@@ -1367,6 +1366,7 @@ def _relations(G,n):
         B = Matrix(R,2,[1,1,-4*e2,e1])
     D, B1 = _normalize(B*G*B.T)
     return B1*B
+
 
 def _two_adic_normal_forms(G, partial=False):
     r"""
@@ -1435,8 +1435,8 @@ def _two_adic_normal_forms(G, partial=False):
             if not partial:
                 Dk, B1k = _homogeneous_normal_form(Dk, wk)
                 B[h[i]:h[i+1],:] = B1k * B[h[i]:h[i+1], :]
-            UVlist.append(range(h[i], h[i+1] - wk))
-            Wlist.append(range(h[i+1]-wk, h[i+1]))
+            UVlist.append(list(range(h[i], h[i+1] - wk)))
+            Wlist.append(list(range(h[i+1]-wk, h[i+1])))
         else:
             UVlist.append([])
             Wlist.append([])
@@ -1445,7 +1445,7 @@ def _two_adic_normal_forms(G, partial=False):
         return D, B
     # use relations descending in k
     # we never leave partial normal form
-    # but the homogneneous normal form may be destroyed
+    # but the homogeneous normal form may be destroyed
     # it is restored at the end.
     for k in range(len(UVlist)-1,2,-1):
         # setup notation
@@ -1494,7 +1494,7 @@ def _two_adic_normal_forms(G, partial=False):
                     R = Wm + [w]
                     B[R,:] = _relations(D[R,R],9) * B[R,:]
         D = B * G * B.T
-        # condition a) - stay in homogneneous normal form
+        # condition a) - stay in homogeneous normal form
         R = UV + W
         Dk = D[R,R]
         Bk = _homogeneous_normal_form(Dk, len(W))[1]

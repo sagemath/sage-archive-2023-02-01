@@ -98,7 +98,6 @@ cdef class ParentWithGens(ParentWithBase):
             ('a', 'b', 'c')
         """
         self._base = base
-        self._has_coerce_map_from = MonoDict()
         self._assign_names(names=names, normalize=normalize)
 
         ParentWithBase.__init__(self, base, category=category)

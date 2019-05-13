@@ -54,15 +54,16 @@ Below are some examples of constructing a graphic matroid.
     sage: isinstance(M1, RegularMatroid)
     False
 
-Note that if there is not a complete set of unique edge labels, and there are
-no parallel edges, then vertex tuples will be used for the ground set. The user
-may wish to override this by specifying the ground set, as the vertex tuples will
-not be updated if the matroid is modified.
+Note that if there is not a complete set of unique edge labels, and
+there are no parallel edges, then vertex tuples will be used for the
+ground set. The user may wish to override this by specifying the
+ground set, as the vertex tuples will not be updated if the matroid is
+modified::
 
     sage: G = graphs.DiamondGraph()
     sage: M1 = Matroid(G)
     sage: N1 = M1.contract((0,1))
-    sage: N1.graph().edges_incident(0)
+    sage: N1.graph().edges_incident(0, sort=True)
     [(0, 2, (0, 2)), (0, 2, (1, 2)), (0, 3, (1, 3))]
     sage: M2 = Matroid(range(G.num_edges()), G)
     sage: N2 = M2.contract(0)
@@ -201,7 +202,7 @@ class GraphicMatroid(Matroid):
         self._groundset = groundset_set
 
         # Map vertices on input graph to vertices in self._G
-        self._vertex_map = {v: v for v in G.vertices()}
+        self._vertex_map = {v: v for v in G.vertex_iterator()}
         comps = G.connected_components()
         while len(comps) > 1:
             comp = comps.pop()
@@ -226,7 +227,7 @@ class GraphicMatroid(Matroid):
         # Map ground set elements to graph edges:
         # The the edge labels should already be the elements.
         self._groundset_edge_map = ({l: (u, v) for
-            (u, v, l) in self._G.edges()})
+            (u, v, l) in self._G.edge_iterator()})
 
     def groundset(self):
         """
@@ -328,19 +329,19 @@ class GraphicMatroid(Matroid):
         EXAMPLES::
 
             sage: M = Matroid(range(5), graphs.DiamondGraph())
-            sage: sorted(M._vertex_stars())
-            [frozenset({0, 2, 3}),
+            sage: sorted(M._vertex_stars(), key=str)
+            [frozenset({0, 1}),
+             frozenset({0, 2, 3}),
              frozenset({1, 2, 4}),
-             frozenset({3, 4}),
-             frozenset({0, 1})]
+             frozenset({3, 4})]
 
             sage: N = Matroid(range(5), graphs.BullGraph())
-            sage: sorted(N._vertex_stars())
-            [frozenset({0, 2, 3}),
-             frozenset({4}),
+            sage: sorted(N._vertex_stars(), key=str)
+            [frozenset({0, 1}),
+             frozenset({0, 2, 3}),
              frozenset({1, 2, 4}),
              frozenset({3}),
-             frozenset({0, 1})]
+             frozenset({4})]
         """
         star_list = []
         for v in self._G.vertices():
@@ -1350,15 +1351,15 @@ class GraphicMatroid(Matroid):
             sage: M = matroids.CompleteGraphic(4)
             sage: M1 = M.graphic_extension(0,1,'a'); M1
             Graphic matroid of rank 3 on 7 elements
-            sage: M1.graph().edges()
-            [(0, 1, 0), (0, 1, 'a'), (0, 2, 1), (0, 3, 2), (1, 2, 3), (1, 3, 4), (2, 3, 5)]
+            sage: list(M1.graph().edge_iterator())
+            [(0, 1, 'a'), (0, 1, 0), (0, 2, 1), (0, 3, 2), (1, 2, 3), (1, 3, 4), (2, 3, 5)]
             sage: M2 = M1.graphic_extension(3); M2
             Graphic matroid of rank 3 on 8 elements
 
         ::
 
             sage: M = Matroid(range(10), graphs.PetersenGraph())
-            sage: M.graphic_extension(0, 'b', 'c').graph().vertices()
+            sage: sorted(M.graphic_extension(0, 'b', 'c').graph().vertex_iterator(), key=str)
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'b']
             sage: M.graphic_extension('a', 'b', 'c').graph().vertices()
             Traceback (most recent call last):
@@ -1426,14 +1427,14 @@ class GraphicMatroid(Matroid):
             sage: M = Matroid(range(5), graphs.DiamondGraph())
             sage: I = M.graphic_extensions('a')
             sage: for N in I:
-            ....:     N.graph().edges()
+            ....:     list(N.graph().edge_iterator())
             [(0, 0, 'a'), (0, 1, 0), (0, 2, 1), (1, 2, 2), (1, 3, 3), (2, 3, 4)]
-            [(0, 1, 0), (0, 1, 'a'), (0, 2, 1), (1, 2, 2), (1, 3, 3), (2, 3, 4)]
-            [(0, 1, 0), (0, 2, 1), (0, 2, 'a'), (1, 2, 2), (1, 3, 3), (2, 3, 4)]
+            [(0, 1, 'a'), (0, 1, 0), (0, 2, 1), (1, 2, 2), (1, 3, 3), (2, 3, 4)]
+            [(0, 1, 0), (0, 2, 'a'), (0, 2, 1), (1, 2, 2), (1, 3, 3), (2, 3, 4)]
             [(0, 1, 0), (0, 2, 1), (0, 3, 'a'), (1, 2, 2), (1, 3, 3), (2, 3, 4)]
-            [(0, 1, 0), (0, 2, 1), (1, 2, 2), (1, 2, 'a'), (1, 3, 3), (2, 3, 4)]
-            [(0, 1, 0), (0, 2, 1), (1, 2, 2), (1, 3, 3), (1, 3, 'a'), (2, 3, 4)]
-            [(0, 1, 0), (0, 2, 1), (1, 2, 2), (1, 3, 3), (2, 3, 4), (2, 3, 'a')]
+            [(0, 1, 0), (0, 2, 1), (1, 2, 'a'), (1, 2, 2), (1, 3, 3), (2, 3, 4)]
+            [(0, 1, 0), (0, 2, 1), (1, 2, 2), (1, 3, 'a'), (1, 3, 3), (2, 3, 4)]
+            [(0, 1, 0), (0, 2, 1), (1, 2, 2), (1, 3, 3), (2, 3, 'a'), (2, 3, 4)]
 
         ::
 
@@ -1549,8 +1550,8 @@ class GraphicMatroid(Matroid):
 
             sage: M = Matroid(graphs.DiamondGraph())
             sage: N = M.graphic_coextension(0,'q')
-            sage: N.graph().vertices()
-            [0, 1, 2, 3, 'q']
+            sage: list(N.graph().vertex_iterator())
+            ['q', 0, 1, 2, 3]
 
         ::
 
@@ -1629,23 +1630,22 @@ class GraphicMatroid(Matroid):
             sage: G = Graph([(0, 1), (0, 2), (0, 3), (0, 4), (1, 2), (1, 4), (2, 3), (3, 4)])
             sage: M = Matroid(range(8), G)
             sage: I = M.graphic_coextensions(vertices=[0], element='a')
-            sage: for N in I:
-            ....:     N.graph().edges_incident(0)
-            [(0, 1, 0), (0, 2, 1), (0, 3, 2), (0, 4, 3), (0, 5, 'a')]
-            [(0, 2, 1), (0, 3, 2), (0, 4, 3), (0, 5, 'a')]
-            [(0, 1, 0), (0, 2, 1), (0, 3, 2), (0, 5, 'a')]
-            [(0, 1, 0), (0, 3, 2), (0, 4, 3), (0, 5, 'a')]
-            [(0, 1, 0), (0, 2, 1), (0, 4, 3), (0, 5, 'a')]
-            [(0, 2, 1), (0, 3, 2), (0, 5, 'a')]
-            [(0, 1, 0), (0, 3, 2), (0, 5, 'a')]
-            [(0, 1, 0), (0, 2, 1), (0, 5, 'a')]
+            sage: sorted([N.graph().edges_incident(0, sort=True) for N in I],key=str)
+            [[(0, 1, 0), (0, 2, 1), (0, 3, 2), (0, 4, 3), (0, 5, 'a')],
+             [(0, 1, 0), (0, 2, 1), (0, 3, 2), (0, 5, 'a')],
+             [(0, 1, 0), (0, 2, 1), (0, 4, 3), (0, 5, 'a')],
+             [(0, 1, 0), (0, 2, 1), (0, 5, 'a')],
+             [(0, 1, 0), (0, 3, 2), (0, 4, 3), (0, 5, 'a')],
+             [(0, 1, 0), (0, 3, 2), (0, 5, 'a')],
+             [(0, 2, 1), (0, 3, 2), (0, 4, 3), (0, 5, 'a')],
+             [(0, 2, 1), (0, 3, 2), (0, 5, 'a')]]
 
         ::
 
             sage: N = Matroid(range(4), graphs.CycleGraph(4))
             sage: I = N.graphic_coextensions(element='a')
             sage: for N1 in I:
-            ....:     N1.graph().edges()
+            ....:     N1.graph().edges(sort=True)
             [(0, 1, 0), (0, 3, 1), (0, 4, 'a'), (1, 2, 2), (2, 3, 3)]
             [(0, 1, 0), (0, 3, 1), (1, 4, 2), (2, 3, 3), (2, 4, 'a')]
             sage: sum(1 for n in N.graphic_coextensions(cosimple=True))

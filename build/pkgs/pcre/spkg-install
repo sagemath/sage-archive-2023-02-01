@@ -9,17 +9,17 @@ sdh_make
 # particular on Solaris. We run the testsuite of pcre (this takes only
 # a few seconds). It the testsuite fails, we rebuild pcre without JIT
 # support. See https://trac.sagemath.org/ticket/24628
-# We don't do this on Cygwin because the feature is already known to work there
-# and the test suite doesn't pass on Cygwin otherwise, albeit for unrelated,
-# mostly harmless reasons.
-if [ "$UNAME" != "CYGWIN" ]; then
-    if ! $MAKE check; then
-        echo >&2 "*** Rebuilding pcre without JIT support ***"
-        $MAKE clean
+if ! $MAKE check; then
+    echo >&2 "*** Rebuilding pcre without JIT support ***"
+    $MAKE clean
 
-        sdh_configure $PCRE_CONFIGURE --disable-jit
-        sdh_make
+    sdh_configure $PCRE_CONFIGURE --disable-jit
+    sdh_make
 
+    # On some systems, the test suite fails anyway but PCRE still works
+    # for all practical purposes. So, the second time, we only run the
+    # testsuite if explicitly asked.
+    if [ "$SAGE_CHECK" = yes ]; then
         $MAKE check || sdh_die "Error checking $PKG_NAME"
     fi
 fi

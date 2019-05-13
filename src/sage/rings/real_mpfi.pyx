@@ -274,7 +274,8 @@ cimport sage.rings.real_mpfr as real_mpfr
 import math # for log
 import sys
 import operator
-from sage.cpython.string cimport char_to_str
+
+from sage.cpython.string cimport char_to_str, bytes_to_str
 
 import sage.rings.complex_field
 import sage.rings.infinity
@@ -499,6 +500,9 @@ cdef class RealIntervalField_class(Field):
         sage: RIF.middle_field() is RR
         True
         sage: TestSuite(RIF).run()
+
+        sage: RealIntervalField(10).is_finite()
+        False
     """
     Element = RealIntervalFieldElement
 
@@ -974,17 +978,6 @@ cdef class RealIntervalField_class(Field):
         if key == 'element_is_atomic':
             return True
         return super(RealIntervalField_class, self)._repr_option(key)
-
-    def is_finite(self):
-        """
-        Return ``False``, since the field of real numbers is not finite.
-
-        EXAMPLES::
-
-            sage: RealIntervalField(10).is_finite()
-            False
-        """
-        return False
 
     def characteristic(self):
         """
@@ -2126,15 +2119,15 @@ cdef class RealIntervalFieldElement(RingElement):
         digits = strlen(tmp_cstr)
         if tmp_cstr[0] == '-':
             digits -= 1
-            mant_string = str(tmp_cstr+1)
-            sign_string = '-'
+            mant_string = bytes_to_str(tmp_cstr+1)
+            sign_string = bytes_to_str(b'-')
         else:
-            mant_string = str(tmp_cstr)
-            sign_string = ''
+            mant_string = bytes_to_str(tmp_cstr)
+            sign_string = bytes_to_str(b'')
         PyMem_Free(tmp_cstr)
 
         if error_digits == 0:
-            error_string = ''
+            error_string = bytes_to_str(b'')
         else:
             tmp_cstr = <char *>PyMem_Malloc(mpz_sizeinbase(cur_error, 10) + 2)
             if tmp_cstr == NULL:
@@ -2772,7 +2765,7 @@ cdef class RealIntervalFieldElement(RingElement):
             sage: RIF(1, 2).square().str(style='brackets')
             '[1.0000000000000000 .. 4.0000000000000000]'
             sage: RIF(-1, 1).square().str(style='brackets')
-            '[0.00000000000000000 .. 1.0000000000000000]'
+            '[0.0000000000000000 .. 1.0000000000000000]'
             sage: (RIF(-1, 1) * RIF(-1, 1)).str(style='brackets')
             '[-1.0000000000000000 .. 1.0000000000000000]'
         """
@@ -2924,7 +2917,7 @@ cdef class RealIntervalFieldElement(RingElement):
 
     def ceil(self):
         """
-        Return the celing of this interval as an interval
+        Return the ceiling of this interval as an interval
 
         The ceiling of a real number `x` is the smallest integer larger than or
         equal to `x`.
@@ -3959,7 +3952,7 @@ cdef class RealIntervalFieldElement(RingElement):
             sage: RIF(1, 2).union(pi).str(style='brackets')
             '[1.0000000000000000 .. 3.1415926535897936]'
             sage: RIF(1).union(RIF(0, 2)).str(style='brackets')
-            '[0.00000000000000000 .. 2.0000000000000000]'
+            '[0.0000000000000000 .. 2.0000000000000000]'
             sage: RIF(1).union(RIF(-1)).str(style='brackets')
             '[-1.0000000000000000 .. 1.0000000000000000]'
         """

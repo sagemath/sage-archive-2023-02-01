@@ -934,7 +934,7 @@ class ToricDivisor_generic(Divisor_generic):
         return self._is_Cartier
 
     def is_QQ_Cartier(self):
-        """
+        r"""
         Return whether the divisor is a `\QQ`-Cartier divisor.
 
         A `\QQ`-Cartier divisor is a divisor such that some multiple
@@ -1110,7 +1110,7 @@ class ToricDivisor_generic(Divisor_generic):
         The :class:`~sage.schemes.toric.chow_group.ChowCycle`
         represented by the divisor.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: dP6 = toric_varieties.dP6()
             sage: cone = dP6.fan(1)[0]
@@ -1128,7 +1128,7 @@ class ToricDivisor_generic(Divisor_generic):
                     for i, cone_1d in enumerate(fan(dim=1)) )
 
     def is_ample(self):
-        """
+        r"""
         Return whether a `\QQ`-Cartier divisor is ample.
 
         OUTPUT:
@@ -1212,7 +1212,7 @@ class ToricDivisor_generic(Divisor_generic):
         return self._is_ample
 
     def is_nef(self):
-        """
+        r"""
         Return whether a `\QQ`-Cartier divisor is nef.
 
         OUTPUT:

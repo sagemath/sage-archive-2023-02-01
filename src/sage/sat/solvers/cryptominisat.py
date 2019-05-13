@@ -8,9 +8,9 @@ The ``cryptominisat`` package should be installed on your Sage installation.
 AUTHORS:
 
 - Thierry Monteil (2017): complete rewrite, using upstream Python bindings,
-  works with crypominisat 5.
+  works with cryptominisat 5.
 - Martin Albrecht (2012): first version, as a cython interface, works with
-  crypominisat 2.
+  cryptominisat 2.
 """
 
 #*****************************************************************************
@@ -19,7 +19,7 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 # Support of Python 3
@@ -92,7 +92,8 @@ class CryptoMiniSat(SatSolver):
             sage: solver.var()                                              # optional - cryptominisat
             5
         """
-        return self._nvars + 1
+        self._nvars += 1
+        return self._nvars
 
     def nvars(self):
         r"""

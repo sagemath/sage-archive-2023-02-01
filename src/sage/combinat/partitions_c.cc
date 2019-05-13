@@ -63,9 +63,6 @@
  *
  *              http://www.math.uwaterloo.ca/~dmjackso/CO630/ptnform1.pdf
  *
- *      Also, it is worth noting that the code for GCD(), while trivial,
- *      was directly copied from the NTL source code.
- *
  *      Also, Bill Hart made some comments about ways to speed up this computation on the SAGE
  *      mailing list.
  *
@@ -98,10 +95,12 @@
 #include <iomanip>
 #include <limits>
 
-#include <mpfr.h>
 #include <gmp.h>
+#include <mpfr.h>
+#include <NTL/ZZ.h>
 
 using namespace std;
+using NTL::GCD;
 
 
 /*****************************************************************************
@@ -264,7 +263,6 @@ template <class T> static inline T one_over_12() {return T(1)/T(12);}
 
 // A few utility functions...
 
-static inline long GCD(long a, long b);
 int test(bool longtest = false, bool forever = false);                          // Runs a bunch of tests to make sure
                                                                                 // that we are getting the right answers.
                                                                                 // Tests are based on a few "known" values that
@@ -1018,37 +1016,6 @@ T s(unsigned int h, unsigned int k) {
         result -= T(.25);
     }
     return result;
-}
-
-
-static long GCD(long a, long b)
-{
-   long u, v, t, x;
-
-   if (a < 0) {
-      a = -a;
-   }
-
-   if (b < 0) {
-      b = -b;
-   }
-
-
-   if (b==0)
-      x = a;
-   else {
-      u = a;
-      v = b;
-      do {
-         t = u % v;
-         u = v;
-         v = t;
-      } while (v != 0);
-
-      x = u;
-   }
-
-   return x;
 }
 
 

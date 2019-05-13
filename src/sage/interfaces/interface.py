@@ -133,8 +133,16 @@ class Interface(WithEqualityById, ParentWithBase):
             sage: s.rand_seed() # random
             365260051L
         """
-        from sage.misc.randstate import randstate
-        return randstate().seed()&0x1FFFFFFF
+        import sage.doctest
+        if sage.doctest.DOCTEST_MODE:
+            # set the random seed through the current randstate
+            from sage.misc.randstate import current_randstate
+            seed = current_randstate().seed()
+        else:
+            from sage.misc.randstate import randstate
+            seed = randstate().seed()
+
+        return seed & 0x1FFFFFFF
 
     def set_seed(self, seed=None):
         """
@@ -817,6 +825,21 @@ class InterfaceElement(Element):
             sage: singular('1')._reduce()
             1
 
+        TESTS:
+
+        Special care has to be taken with strings. Since for example `r("abc")` will be
+        interpreted as the R-command abc (not a string in R), we have to reduce to
+        `"'abc'"` instead. That is dependant on the Elements `is_string` function to
+        be implemented correctly. This has gone wrong in the past and remained uncaught
+        by the doctests because the original identifier was reused. This test makes sure
+        that does not happen again:
+
+            sage: a = r("'abc'")
+            sage: b = dumps(a)
+            sage: r.set(a.name(), 0) # make identifier reuse doesn't accidentally lead to success
+            sage: loads(b)
+            [1] "abc"
+
         """
         if self.is_string():
             return repr(self.sage())
@@ -850,9 +873,9 @@ class InterfaceElement(Element):
         Returns the hash of self. This is a default implementation of hash
         which just takes the hash of the string of self.
         """
-        return hash('%s'%(self))
+        return hash('%s' % self)
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         Comparison of interface elements.
 
@@ -909,7 +932,7 @@ class InterfaceElement(Element):
 
         # everything is supposed to be comparable in Python, so we define
         # the comparison thus when no comparison is available in interfaced system.
-        if (hash(self) < hash(other)):
+        if hash(self) < hash(other):
             return -1
         else:
             return 1
@@ -1091,7 +1114,7 @@ class InterfaceElement(Element):
 
         """
         try:
-            P = self._check_valid()
+            self._check_valid()
         except ValueError as msg:
             return '(invalid {} object -- {})'.format(self.parent() or type(self), msg)
         cr = getattr(self, '_cached_repr', None)
@@ -1157,7 +1180,10 @@ class InterfaceElement(Element):
             return self.parent().get(self._name).rstrip()
 
     def __getattr__(self, attrname):
-        P = self._check_valid()
+        try:
+            P = self._check_valid()
+        except ValueError:
+            raise AttributeError(attrname)
         if attrname[:1] == "_":
             raise AttributeError
         return P._function_element_class()(self, attrname)
@@ -1336,7 +1362,7 @@ class InterfaceElement(Element):
             sage: x = r([1,2,3]); x
             [1] 1 2 3
             sage: x.name()
-            'sage3'
+            'sage...'
             sage: x = r([1,2,3]).name('x'); x
             [1] 1 2 3
             sage: x.name()

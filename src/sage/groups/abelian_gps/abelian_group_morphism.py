@@ -11,20 +11,17 @@ AUTHORS:
 
 - David Joyner (2006-03-03): initial version
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #   Copyright (C) 2006 David Joyner and William Stein <wstein@gmail.com>
 #
 #   Distributed under the terms of the GNU General Public License (GPL)
 #
-#                    http://www.gnu.org/licenses/
-#*****************************************************************************
+#                    https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 
-from sage.groups.perm_gps.permgroup import *
-from sage.interfaces.gap import *
-from sage.categories.morphism import *
-from sage.categories.homset import *
+from sage.interfaces.gap import gap
+from sage.categories.morphism import Morphism
 
 from sage.misc.all import prod
 
@@ -45,19 +42,6 @@ class AbelianGroupMap(Morphism):
 
     def _repr_type(self):
         return "AbelianGroup"
-
-
-class AbelianGroupMorphism_id(AbelianGroupMap):
-    """
-    Return the identity homomorphism from X to itself.
-
-    EXAMPLES:
-    """
-    def __init__(self, X):
-        AbelianGroupMorphism.__init__(self, X.Hom(X))
-
-    def _repr_defn(self):
-        return "Identity map of " + str(X)
 
 
 class AbelianGroupMorphism(Morphism):

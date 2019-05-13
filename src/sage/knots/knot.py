@@ -7,23 +7,31 @@ AUTHORS:
 - Amit Jamadagni
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2014   Travis Scrimshaw <tscrim at ucdavis.edu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+
+from six import add_metaclass
 
 from sage.knots.link import Link
-from sage.rings.integer import Integer
-from sage.rings.finite_rings.integer_mod import Mod
+from sage.knots.knot_table import small_knots_table
 
+from sage.structure.parent import Parent
+from sage.structure.element import Element
+from sage.misc.fast_methods import Singleton
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
+from sage.categories.monoids import Monoids
 
-class Knot(Link):
-    """
+# We need Link to be first in the MRO in order to use its equality, hash, etc.
+@add_metaclass(InheritComparisonClasscallMetaclass)
+class Knot(Link, Element):
+    r"""
     A knot.
 
     A knot is defined as embedding of the circle `\mathbb{S}^1` in the
@@ -70,12 +78,22 @@ class Knot(Link):
     REFERENCES:
 
     - :wikipedia:`Knot_(mathematics)`
-
-    .. TODO::
-
-        - Make a class Knots for the monoid of all knots and have this be an
-          element in that monoid.
     """
+    @staticmethod
+    def __classcall_private__(self, data, check=True):
+        """
+        Make sure this is an instance of the element class
+        of :class:`Knots`.
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(8)
+            sage: K = Knot(B([-1, -1, -1, 2, 1, -2, 3, -2, 3]))
+            sage: type(K)
+            <class 'sage.knots.knot.Knots_with_category.element_class'>
+        """
+        return Knots().element_class(data, check=check)
+
     def __init__(self, data, check=True):
         """
         Initialize ``self``.
@@ -83,8 +101,6 @@ class Knot(Link):
         TESTS::
 
             sage: B = BraidGroup(8)
-            sage: K = Knot(B([-1, -1, -1, 2, 1, -2, 3, -2, 3]))
-            sage: TestSuite(K).run()
             sage: K = Knot(B([1, -2, 1, -2]))
             sage: TestSuite(K).run()
             sage: K = Knot([[1, 1, 2, 2]])
@@ -100,12 +116,13 @@ class Knot(Link):
             sage: Knot([[[1, 2], [-2, -1]], [1, -1]], check=False)
             Knot represented by 2 crossings
         """
+        Element.__init__(self, Knots())
         Link.__init__(self, data)
         if check:
             if self.number_of_components() != 1:
                 raise ValueError("the input has more than 1 connected component")
 
-    def __repr__(self):
+    def _repr_(self):
         """
         Return a string representation.
 
@@ -178,7 +195,7 @@ class Knot(Link):
             assert label[2 * crossing + next_label % 2] != 1, "invalid knot"
 
             label[2 * crossing + next_label % 2] = next_label
-            next_label = next_label + 1
+            next_label += 1
             if type1 == 0:
                 if b[crossing] < 0:
                     type1 = 1
@@ -188,14 +205,14 @@ class Knot(Link):
                 type1 = -1 * type1
                 if ((abs(b[crossing]) == string and b[crossing] * type1 > 0)
                     or (abs(b[crossing]) != string and b[crossing] * type1 < 0)):
-                    if next_label % 2 == 1:
+                    if next_label % 2:
                         label[2 * crossing] = label[2 * crossing] * -1
             if abs(b[crossing]) == string:
-                string = string + 1
+                string += 1
             else:
-                string = string - 1
-            crossing = crossing + 1
-        code = [0 for i in range(N)]
+                string -= 1
+            crossing += 1
+        code = [0 for _ in range(N)]
         for i in range(N):
             for j in range(N):
                 if label[2 * j + 1] == 2 * i + 1:
@@ -221,10 +238,9 @@ class Knot(Link):
             sage: K.arf_invariant()
             1
         """
-        a = self.alexander_polynomial()
-        if Mod(a(-1), 8) == 1 or Mod(a(-1), 8) == 7:
+        a = self.alexander_polynomial()(-1)
+        if (a % 8) == 1 or (a % 8) == 7:
             return 0
-
         return 1
 
     def connected_sum(self, other):
@@ -249,9 +265,9 @@ class Knot(Link):
             sage: B = BraidGroup(2)
             sage: trefoil = Knot(B([1,1,1]))
             sage: K = trefoil.connected_sum(trefoil); K
-            Knot represented by 7 crossings
+            Knot represented by 6 crossings
             sage: K.braid()
-            s0^3*s2^3*s1
+            s0^3*s1^-1*s0^3*s1
 
         .. PLOT::
             :width: 300 px
@@ -265,9 +281,9 @@ class Knot(Link):
 
             sage: rev_trefoil = Knot(B([-1,-1,-1]))
             sage: K = trefoil.connected_sum(rev_trefoil); K
-            Knot represented by 7 crossings
+            Knot represented by 6 crossings
             sage: K.braid()
-            s0^3*s2^-3*s1
+            s0^3*s1^-1*s0^-3*s1
 
         .. PLOT::
             :width: 300 px
@@ -278,20 +294,150 @@ class Knot(Link):
             K = t.connected_sum(tr)
             sphinx_plot(K.plot())
 
+        TESTS::
+
+            sage: B = BraidGroup(2)
+            sage: trivial = Knots().one()
+            sage: trivial * trivial
+            Knot represented by 0 crossings
+            sage: trefoil = Knot(B([1,1,1]))
+            sage: trefoil * trivial
+            Knot represented by 3 crossings
+            sage: trefoil * trefoil
+            Knot represented by 6 crossings
+
         REFERENCES:
 
         - :wikipedia:`Connected_sum`
         """
+        from sage.functions.generalized import sign
+        ogc1 = self.oriented_gauss_code()
+        ogc2 = other.oriented_gauss_code()
+        if not ogc1[0]:
+            return other
+        if not ogc2[0]:
+            return self
+        # how much we have to "displace" the numbering of the crossings of other
+        m1 = max(abs(i) for i in ogc1[0][0])
+        m2 = min(abs(i) for i in ogc2[0][0])
+        n = m1 - m2 + 1
+        # construct the oriented gauss code of the result
+        ogc2_0_0 = [a + int(sign(a)) * n for a in ogc2[0][0]]
+        nogc = [[ogc1[0][0] + ogc2_0_0], ogc1[1] + ogc2[1]]
+        return type(self)(nogc)
+
+    _mul_ = connected_sum
+
+
+class Knots(Singleton, Parent):
+    """
+    The set for all knots, as a monoid for the connected sum.
+    """
+    def __init__(self):
+        """
+        TESTS::
+
+            sage: S = Knots()
+            sage: S.cardinality()
+            +Infinity
+            sage: TestSuite(S).run()
+        """
+        Parent.__init__(self, category=Monoids().Infinite())
+
+    def _repr_(self):
+        r"""
+        TESTS::
+
+            sage: Knots()
+            Knots
+        """
+        return "Knots"
+
+    def one(self):
+        """
+        Return the unit of the monoid.
+
+        This is the trivial knot.
+
+        EXAMPLES::
+
+            sage: Knots().one()
+            Knot represented by 0 crossings
+        """
+        return self.element_class([])
+
+    def an_element(self):
+        """
+        Return the trefoil knot.
+
+        EXAMPLES::
+
+            sage: Knots().an_element()
+            Knot represented by 3 crossings
+        """
+        return self.element_class([[1, 5, 2, 4], [5, 3, 6, 2], [3, 1, 4, 6]])
+
+    def from_table(self, n, k):
+        """
+        Return a knot from its index in the Rolfsen table.
+
+        INPUT:
+
+        - ``n`` -- the crossing number
+        - ``k`` -- a positive integer
+
+        OUTPUT:
+
+        the knot `K_{n,k}` in the Rolfsen table
+
+        EXAMPLES::
+
+            sage: K1 = Knots().from_table(6,3); K1
+            Knot represented by 6 crossings
+            sage: K1.alexander_polynomial()
+            t^-2 - 3*t^-1 + 5 - 3*t + t^2
+
+            sage: K2 = Knots().from_table(8,4); K2
+            Knot represented by 9 crossings
+            sage: K2.determinant()
+            19
+            sage: K2.signature()
+            2
+
+            sage: K3 = Knots().from_table(10,56); K3
+            Knot represented by 11 crossings
+            sage: K3.jones_polynomial()
+            t^10 - 3*t^9 + 6*t^8 - 9*t^7 + 10*t^6 - 11*t^5 + 10*t^4 - 7*t^3
+            + 5*t^2 - 2*t + 1
+
+            sage: K4 = Knots().from_table(10,100)
+            sage: K4.genus()
+            4
+
+        TESTS::
+
+            sage: Knots().from_table(6,6)
+            Traceback (most recent call last):
+            ...
+            ValueError: not found in the knot table
+
+            sage: Knots().from_table(12,6)
+            Traceback (most recent call last):
+            ...
+            ValueError: more than 10 crossings, not in the knot table
+
+        REFERENCES:
+
+        - KnotAtlas, http://katlas.math.toronto.edu/wiki/The_Rolfsen_Knot_Table
+        """
+        if n > 10:
+            raise ValueError('more than 10 crossings, not in the knot table')
         from sage.groups.braid import BraidGroup
-        b1 = self.braid()
-        b2 = other.braid()
+        if (n, k) in small_knots_table:
+            m, word = small_knots_table[(n, k)]
+            G = BraidGroup(m)
+            return Knot(G(word))
+        else:
+            raise ValueError('not found in the knot table')
 
-        b1s = b1.strands()
-        b2s = b2.strands()
-
-        B = BraidGroup(b1s + b2s)
-
-        return Knot(B(list(b1.Tietze())
-                      + [(abs(i) + b2s) * Integer(i).sign() for i in b2.Tietze()]
-                      + [b1s]))
-
+    Element = Knot

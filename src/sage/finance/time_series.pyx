@@ -45,12 +45,15 @@ AUTHOR:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from __future__ import absolute_import
 
+cimport cython
 from cpython.bytes cimport PyBytes_FromStringAndSize, PyBytes_AsString
 from libc.math cimport exp, floor, log, pow, sqrt
 from libc.string cimport memcpy
 from cysignals.memory cimport sig_malloc, sig_free
+from sage.structure.richcmp cimport rich_to_bool
 
 cimport numpy as cnumpy
 
@@ -108,8 +111,8 @@ cdef class TimeSeries:
 
             sage: import numpy
             sage: v = numpy.array([[1,2], [3,4]], dtype=float); v
-            array([[ 1.,  2.],
-                   [ 3.,  4.]])
+            array([[1., 2.],
+                   [3., 4.]])
             sage: finance.TimeSeries(v)
             [1.0000, 2.0000, 3.0000, 4.0000]
             sage: finance.TimeSeries(v[:,0])
@@ -176,7 +179,7 @@ cdef class TimeSeries:
 
             sage: v = finance.TimeSeries([1,-3.5])
             sage: v.__reduce__()
-            (<built-in function unpickle_time_series_v1>, (..., 2))
+            (<cyfunction unpickle_time_series_v1 at ...>, (..., 2))
             sage: loads(dumps(v)) == v
             True
 
@@ -190,7 +193,7 @@ cdef class TimeSeries:
         buf = PyBytes_FromStringAndSize(<char*>self._values, self._length*sizeof(double)/sizeof(char))
         return unpickle_time_series_v1, (buf, self._length)
 
-    def __cmp__(self, _other):
+    def __richcmp__(TimeSeries self, other, int op):
         """
         Compare ``self`` and ``other``.  This has the same semantics
         as list comparison.
@@ -207,22 +210,19 @@ cdef class TimeSeries:
             sage: w == w
             True
         """
-        cdef TimeSeries other
-        cdef Py_ssize_t c, i
+        cdef Py_ssize_t i
         cdef double d
-        if not isinstance(_other, TimeSeries):
-            _other = TimeSeries(_other)
-        other = _other
-        for i from 0 <= i < min(self._length, other._length):
-            d = self._values[i] - other._values[i]
+        if not isinstance(other, TimeSeries):
+            return NotImplemented
+        _other = <TimeSeries>other
+        for i in range(min(self._length, _other._length)):
+            d = self._values[i] - _other._values[i]
             if d:
-                return -1 if d < 0 else 1
-        c = self._length - other._length
-        if c < 0:
-            return -1
-        elif c > 0:
-            return 1
-        return 0
+                return rich_to_bool(op, -1 if d < 0 else 1)
+        c = self._length - _other._length
+        if c:
+            return rich_to_bool(op, -1 if c < 0 else 1)
+        return rich_to_bool(op, 0)
 
     def  __dealloc__(self):
         """
@@ -2000,7 +2000,7 @@ cdef class TimeSeries:
         kwds.setdefault('aspect_ratio','automatic')
         for i, (x0,x1) in enumerate(intervals):
             s += polygon([(x0,0), (x0,counts[i]), (x1,counts[i]), (x1,0)], **kwds)
-        if len(intervals) > 0:
+        if intervals:
             s.axes_range(ymin=0, ymax=max(counts), xmin=intervals[0][0], xmax=intervals[-1][1])
         return s
 
@@ -2100,14 +2100,14 @@ cdef class TimeSeries:
 
             sage: w[0] = 20
             sage: w
-            array([ 20. ,  -3. ,   4.5,  -2. ])
+            array([20. , -3. ,  4.5, -2. ])
             sage: v
             [20.0000, -3.0000, 4.5000, -2.0000]
 
         If you want a separate copy do not give the ``copy=False`` option. ::
 
             sage: z = v.numpy(); z
-            array([ 20. ,  -3. ,   4.5,  -2. ])
+            array([20. , -3. ,  4.5, -2. ])
             sage: z[0] = -10
             sage: v
             [20.0000, -3.0000, 4.5000, -2.0000]
@@ -2564,6 +2564,8 @@ cdef new_time_series(Py_ssize_t length):
     t._values = <double*> sig_malloc(sizeof(double)*length)
     return t
 
+
+@cython.binding(True)
 def unpickle_time_series_v1(bytes v, Py_ssize_t n):
     """
     Version 1 unpickle method.
@@ -2590,8 +2592,6 @@ def unpickle_time_series_v1(bytes v, Py_ssize_t n):
     cdef TimeSeries t = new_time_series(n)
     memcpy(t._values, PyBytes_AsString(v), n*sizeof(double))
     return t
-
-
 
 
 def autoregressive_fit(acvs):

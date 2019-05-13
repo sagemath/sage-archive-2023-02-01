@@ -53,7 +53,6 @@ AUTHOR:
 
 import sage.categories.morphism
 import sage.categories.homset
-import sage.matrix.all as matrix
 from sage.structure.all import Sequence, parent
 from sage.structure.richcmp import richcmp, op_NE, op_EQ
 
@@ -214,9 +213,9 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             sage: f((1, 0))
             Traceback (most recent call last):
             ...
-            TypeError: Unable to coerce entries (=[1.00000000000000*I, 0.000000000000000]) to coefficients in Real Field with 53 bits of precision
+            TypeError: Unable to coerce entries (=[1.00000000000000*I, 0]) to coefficients in Real Field with 53 bits of precision
             sage: f((1, 0), coerce=False)
-            (1.00000000000000*I, 0.000000000000000)
+            (1.00000000000000*I, 0)
 
         """
         if self.domain().is_ambient():
@@ -409,7 +408,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
         return self.parent()(R(left) * self.matrix())
 
     def __mul__(self, right):
-        """
+        r"""
         Composition of morphisms, denoted by \*.
 
         EXAMPLES::
@@ -534,10 +533,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             sage: phi + psi
             Traceback (most recent call last):
             ...
-            ValueError: a matrix from
-            Full MatrixSpace of 3 by 3 dense matrices over Integer Ring
-            cannot be converted to a matrix in
-            Full MatrixSpace of 2 by 2 dense matrices over Integer Ring!
+            ValueError: inconsistent number of rows: should be 2 but got 3
         """
         # TODO: move over to any coercion model!
         if not isinstance(right, MatrixMorphism):
@@ -1297,7 +1293,6 @@ class MatrixMorphism(MatrixMorphism_abstract):
             raise ValueError("no parent given when creating this matrix morphism")
         if isinstance(A, MatrixMorphism_abstract):
             A = A.matrix()
-        R = A.base_ring()
         if A.nrows() != parent.domain().rank():
             raise ArithmeticError("number of rows of matrix (={}) must equal rank of domain (={})".format(A.nrows(), parent.domain().rank()))
         if A.ncols() != parent.codomain().rank():

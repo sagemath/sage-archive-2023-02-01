@@ -27,8 +27,9 @@ from . import eisenstein_submodule
 
 from sage.misc.cachefunc import cached_method
 
+
 class ModularFormsAmbient_g0_Q(ambient.ModularFormsAmbient):
-    """
+    r"""
     A space of modular forms for `\Gamma_0(N)` over `\QQ`.
     """
     def __init__(self, level, weight):
@@ -83,7 +84,7 @@ class ModularFormsAmbient_g0_Q(ambient.ModularFormsAmbient):
 
     def _compute_atkin_lehner_matrix(self, d):
         r"""
-        Compute the matrix of the Atkin-Lehner involution W_d acting on self,
+        Compute the matrix of the Atkin-Lehner operator W_d acting on self,
         where d is a divisor of the level.  This is only implemented in the
         (trivial) level 1 case.
 

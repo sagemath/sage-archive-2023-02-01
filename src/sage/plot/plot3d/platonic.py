@@ -68,6 +68,7 @@ from __future__ import absolute_import
 
 from sage.rings.all import RDF
 from sage.matrix.constructor import matrix
+from sage.misc.decorators import rename_keyword
 from .shapes import Box, ColorCube
 from .shapes2 import frame3d
 from .index_face_set import IndexFaceSet
@@ -151,7 +152,7 @@ def prep(G, center, size, kwds):
     G._set_extra_kwds(kwds)
     return G
 
-
+@rename_keyword(alpha='opacity')
 def tetrahedron(center=(0, 0, 0), size=1, **kwds):
     """
     A 3d tetrahedron.
@@ -262,7 +263,7 @@ def tetrahedron(center=(0, 0, 0), size=1, **kwds):
         kwds['aspect_ratio'] = [1, 1, 1]
     return index_face_set(face_list, point_list, enclosed=True, center=center, size=size, **kwds)
 
-
+@rename_keyword(alpha='opacity')
 def cube(center=(0, 0, 0), size=1, color=None, frame_thickness=0,
          frame_color=None, **kwds):
     """
@@ -403,7 +404,7 @@ def cube(center=(0, 0, 0), size=1, color=None, frame_thickness=0,
             B += frame3d((-0.5,-0.5,-0.5),(0.5,0.5,0.5), thickness=frame_thickness, color=frame_color)
     return prep(B, center, size, kwds)
 
-
+@rename_keyword(alpha='opacity')
 def octahedron(center=(0, 0, 0), size=1, **kwds):
     r"""
     Return an octahedron.
@@ -440,7 +441,7 @@ def octahedron(center=(0, 0, 0), size=1, **kwds):
         kwds['aspect_ratio'] = [1, 1, 1]
     return prep(Box(1,1,1).dual(**kwds), center, size, kwds)
 
-
+@rename_keyword(alpha='opacity')
 def dodecahedron(center=(0, 0, 0), size=1, **kwds):
     r"""
     A dodecahedron.
@@ -553,7 +554,7 @@ def dodecahedron(center=(0, 0, 0), size=1, **kwds):
 #        vertex_spheres += [faces.stickers(['red','yellow','blue','purple','black','orange'], .1, .1)] # [faces]
 #        return Graphics3dGroup(vertex_spheres)
 
-
+@rename_keyword(alpha='opacity')
 def icosahedron(center=(0, 0, 0), size=1, **kwds):
     r"""
     An icosahedron.

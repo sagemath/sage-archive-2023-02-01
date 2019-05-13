@@ -762,7 +762,8 @@ def Matroid(groundset=None, data=None, **kwds):
                 b.discard(I.pop())
         rk = len(b)
         # Construct the basis matroid of appropriate rank. Note: slow!
-        BB = [frozenset(B) for B in combinations(groundset, rk) if not any([frozenset(C).issubset(B) for C in data])]
+        BB = [frozenset(B) for B in combinations(groundset, rk)
+              if not any(frozenset(C).issubset(B) for C in data)]
         M = BasisMatroid(groundset=groundset, bases=BB)
 
     # Graphs:

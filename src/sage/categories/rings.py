@@ -17,7 +17,7 @@ from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.rngs import Rngs
 from sage.structure.element import Element
 from functools import reduce
-from sage.misc.cachefunc import cached_method
+
 
 class Rings(CategoryWithAxiom):
     """
@@ -122,7 +122,7 @@ class Rings(CategoryWithAxiom):
                           From: Integer Ring
                           To:   Fraction Field of Univariate Polynomial Ring in x over Rational Field
                         then
-                          Isomorphism morphism:
+                          Isomorphism:
                           From: Fraction Field of Univariate Polynomial Ring in x over Rational Field
                           To:   Rational function field in x over Rational Field
                 sage: f.is_injective()
@@ -198,7 +198,7 @@ class Rings(CategoryWithAxiom):
     class SubcategoryMethods:
 
         def NoZeroDivisors(self):
-            """
+            r"""
             Return the full subcategory of the objects of ``self`` having
             no nonzero zero divisors.
 
@@ -1046,7 +1046,7 @@ class Rings(CategoryWithAxiom):
                 # how to pass in names?
                 names = tuple(_gen_names(elts))
                 if len(elts) == 1:
-                    from sage.rings.all import CIF, CLF, RIF, RLF
+                    from sage.rings.all import CIF, CLF, RLF
                     elt = elts[0]
                     try:
                         iv = CIF(elt)
@@ -1214,7 +1214,7 @@ def _gen_names(elts):
     next(it) # skip empty word
     for x in elts:
         name = str(x)
-        m = re.match('^sqrt\((\d+)\)$', name)
+        m = re.match(r'^sqrt\((\d+)\)$', name)
         if m:
             name = "sqrt%s" % m.groups()[0]
         try:

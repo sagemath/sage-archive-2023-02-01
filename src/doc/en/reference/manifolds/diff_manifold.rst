@@ -22,6 +22,10 @@ Differentiable Manifolds
 
    diff_form
 
+   mixed_form
+
    multivector
 
    sage/manifolds/differentiable/affine_connection
+
+   sage/manifolds/differentiable/differentiable_submanifold

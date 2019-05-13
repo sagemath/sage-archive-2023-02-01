@@ -1,19 +1,19 @@
 r"""
 Finite semigroups
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
 #                2008-2009 Florent Hivert <florent.hivert at univ-rouen.fr>
 #                2008-2014 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import attrcall
 from sage.categories.category_with_axiom import CategoryWithAxiom
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+
 
 class FiniteSemigroups(CategoryWithAxiom):
     r"""
@@ -117,7 +117,7 @@ class FiniteSemigroups(CategoryWithAxiom):
 
                 sage: S = FiniteSemigroups().example(alphabet=('a','b', 'c'))
                 sage: sorted(S.j_transversal_of_idempotents())
-                ['a', 'ab', 'abc', 'ac', 'b', 'bc', 'c']
+                ['a', 'acb', 'b', 'ba', 'bc', 'c', 'ca']
             """
             def first_idempotent(l):
                 for x in l:

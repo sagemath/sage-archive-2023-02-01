@@ -1248,12 +1248,17 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             sage: g.dual_basis()
             Dual basis (A,B,C) on the Rank-3 free module M over the Integer Ring
 
-        If the provided symbol is that of an already defined basis, the latter
-        is returned (no new basis is created)::
+        If the provided symbol and indices are that of an already defined
+        basis, the latter is returned (no new basis is created)::
 
             sage: M.basis('e') is e
             True
             sage: M.basis('eps') is eps
+            True
+            sage: M.basis('e', indices=['x', 'y', 'z']) is e
+            False
+            sage: M.basis('e', indices=['x', 'y', 'z']) is \
+            ....:  M.basis('e', indices=['x', 'y', 'z'])
             True
 
         The individual elements of the basis are labelled according the
@@ -1305,7 +1310,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         """
         from .free_module_basis import FreeModuleBasis
         for other in self._known_bases:
-            if symbol == other._symbol:
+            if symbol == other._symbol and indices == other._indices:
                 return other
         resu = FreeModuleBasis(self, symbol, latex_symbol=latex_symbol,
                                indices=indices, latex_indices=latex_indices,
@@ -1490,7 +1495,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             4 e^0/\e^1 + 5 e^1/\e^2
 
         """
-        from .comp import CompWithSym, CompFullySym, CompFullyAntiSym
+        from .comp import CompWithSym, CompFullyAntiSym
         #
         # 0/ Compatibility checks:
         if comp._ring is not self._ring:

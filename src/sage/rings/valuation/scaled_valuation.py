@@ -229,7 +229,11 @@ class ScaledValuation_generic(DiscreteValuation):
             3 * 5-adic valuation
 
         """
-        return ScaledValuation(self._base_valuation.restriction(ring), self._scale)
+        restricted = self._base_valuation.restriction(ring)
+        if restricted.is_trivial():
+            # trivial valuations can not be scaled explicitly for caching reasons
+            return restricted
+        return ScaledValuation(restricted, self._scale)
 
     def _strictly_separating_element(self, other):
         r"""

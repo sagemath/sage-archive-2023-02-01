@@ -73,7 +73,7 @@ cdef Rational si2sa_QQ(number *n, number **nn, ring *_ring):
 
     ##  Immediate integers handles carry the tag 'SR_INT', i.e. the last bit is 1.
     ##  This distinguishes immediate integers from other handles which point to
-    ##  structures aligned on 4 byte boundaries and therefor have last bit zero.
+    ##  structures aligned on 4 byte boundaries and therefore have last bit zero.
     ##  (The second bit is reserved as tag to allow extensions of this scheme.)
     ##  Using immediates as pointers and dereferencing them gives address errors.
     nom = nlGetNumerator(n, _ring.cf)
@@ -770,6 +770,11 @@ cdef init_libsingular():
     cdef void *handle = NULL
 
     from sage.env import SINGULAR_SO
+    if not SINGULAR_SO or not os.path.exists(SINGULAR_SO):
+        raise RuntimeError(
+            "libSingular not found--a working Singular install in $SAGE_LOCAL "
+            "is required for Sage to work")
+
     lib = SINGULAR_SO
 
     if not os.path.exists(lib):

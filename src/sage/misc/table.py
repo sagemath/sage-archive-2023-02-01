@@ -583,7 +583,6 @@ class table(SageObject):
             \end{tabular}
         """
         from .latex import latex, LatexExpr
-        import types
 
         rows = self._rows
         nc = len(rows[0])
@@ -715,7 +714,6 @@ class table(SageObject):
             </table>
             </div>
         """
-        import types
         from itertools import cycle
         rows = self._rows
         header_row = self._options['header_row']

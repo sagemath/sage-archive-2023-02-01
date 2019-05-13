@@ -40,8 +40,9 @@ def sphinx_plot(graphics, **kwds):
     if os.environ.get('SAGE_SKIP_PLOT_DIRECTIVE', 'no') != 'yes':
         ## Option handling is taken from Graphics.save
         options = dict()
-        if isinstance(graphics, sage.plot.graphics.Graphics):
-            options.update(graphics.SHOW_OPTIONS)
+        if isinstance(graphics, (sage.plot.graphics.Graphics,
+                                 sage.plot.multigraphics.GraphicsArray)):
+            options.update(sage.plot.graphics.Graphics.SHOW_OPTIONS)
             options.update(graphics._extra_kwds)
             options.update(kwds)
         else:
@@ -58,8 +59,9 @@ def sphinx_plot(graphics, **kwds):
             except TypeError:
                 raise TypeError("figsize should be a positive number, not {0}".format(figsize))
             if figsize > 0:
-                default_width, default_height=rcParams['figure.figsize']
-                figsize=(figsize, default_height*figsize/default_width)
+                from matplotlib import rcParams
+                default_width, default_height = rcParams['figure.figsize']
+                figsize = (figsize, default_height*figsize/default_width)
             else:
                 raise ValueError("figsize should be positive, not {0}".format(figsize))
 
@@ -75,20 +77,8 @@ def sphinx_plot(graphics, **kwds):
 
         plt.figure(figsize=figsize)
         figure = plt.gcf()
-        if isinstance(graphics, sage.plot.graphics.GraphicsArray):
-            ## from GraphicsArray.save
-            rows = graphics.nrows()
-            cols = graphics.ncols()
-            for i, g in enumerate(graphics):
-                subplot = figure.add_subplot(rows, cols, i + 1)
-                g_options = copy(options)
-                g_options.update(g.SHOW_OPTIONS)
-                g_options.update(g._extra_kwds)
-                g_options.pop('dpi', None)
-                g_options.pop('transparent', None)
-                g_options.pop('fig_tight', None)
-                g.matplotlib(figure=figure, sub=subplot, **g_options)
-        elif isinstance(graphics, sage.plot.graphics.Graphics):
+        if isinstance(graphics, (sage.plot.graphics.Graphics,
+                                 sage.plot.multigraphics.GraphicsArray)):
             graphics.matplotlib(figure=figure, figsize=figsize, **options)
         else:
             # 3d graphics via png

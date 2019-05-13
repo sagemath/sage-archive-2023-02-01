@@ -1201,13 +1201,13 @@ class Graphics(WithEqualityById, SageObject):
         """
         self._extra_kwds = kwds
 
-    def _set_scale(self, figure, scale=None, base=None):
+    def _set_scale(self, subplot, scale=None, base=None):
         """
-        Set the scale of the axes in the current figure. This function is
+        Set the scale of the axes in the current subplot. This function is
         only for internal use.
 
         INPUT:
-        - ``figure`` -- the matplotlib figure instance.
+        - ``subplot`` -- matplotlib Axes instance.
         - ``scale`` -- the scale of the figure. Values it can take are
           ``"linear"``, ``"loglog"``, ``"semilogx"``, ``"semilogy"``. See
           :meth:`show` for other options it can take.
@@ -1219,24 +1219,25 @@ class Graphics(WithEqualityById, SageObject):
 
         EXAMPLES::
 
-            sage: p = plot(x,1,10)
+            sage: p = plot(x, 1, 10)
             sage: fig = p.matplotlib()
-            sage: p._set_scale(fig, scale='linear', base=2)
+            sage: ax = fig.get_axes()[0]
+            sage: p._set_scale(ax, scale='linear', base=2)
             ('linear', 'linear', 10, 10)
-            sage: p._set_scale(fig, scale='semilogy', base=2)
+            sage: p._set_scale(ax, scale='semilogy', base=2)
             ('linear', 'log', 10, 2)
-            sage: p._set_scale(fig, scale=('loglog', 2, 3))
+            sage: p._set_scale(ax, scale=('loglog', 2, 3))
             ('log', 'log', 2, 3)
-            sage: p._set_scale(fig, scale=['semilogx', 2])
+            sage: p._set_scale(ax, scale=['semilogx', 2])
             ('log', 'linear', 2, 10)
 
         TESTS::
 
-            sage: p._set_scale(fig, 'log')
+            sage: p._set_scale(ax, 'log')
             Traceback (most recent call last):
             ...
             ValueError: The scale must be one of 'linear', 'loglog', 'semilogx' or 'semilogy' -- got 'log'
-            sage: p._set_scale(fig, ('loglog', 1))
+            sage: p._set_scale(ax, ('loglog', 1))
             Traceback (most recent call last):
             ...
             ValueError: The base of the logarithm must be greater than 1
@@ -1268,20 +1269,19 @@ class Graphics(WithEqualityById, SageObject):
             raise ValueError("The base of the logarithm must be greater "
                              "than 1")
 
-        ax = figure.get_axes()[0]
         xscale = yscale = 'linear'
         if scale == 'linear':
             basex = basey = 10
         elif scale == 'loglog':
-            ax.set_xscale('log', basex=basex)
-            ax.set_yscale('log', basey=basey)
+            subplot.set_xscale('log', basex=basex)
+            subplot.set_yscale('log', basey=basey)
             xscale = yscale = 'log'
         elif scale == 'semilogx':
-            ax.set_xscale('log', basex=basex)
+            subplot.set_xscale('log', basex=basex)
             basey = 10
             xscale = 'log'
         elif scale == 'semilogy':
-            ax.set_yscale('log', basey=basey)
+            subplot.set_yscale('log', basey=basey)
             basex = 10
             yscale = 'log'
 
@@ -1339,7 +1339,7 @@ class Graphics(WithEqualityById, SageObject):
 
         - ``dpi`` - (default: 100) dots per inch
 
-        - ``figsize`` - (default: [8.0,6.0]) [width, height] inches. The
+        - ``figsize`` - (default: [6.4, 4.8]) [width, height] inches. The
           maximum value of each of the width and the height can be 327
           inches, at the default ``dpi`` of 100 dpi, which is just shy of
           the maximum allowed value of 32768 dots (pixels).
@@ -2633,7 +2633,7 @@ class Graphics(WithEqualityById, SageObject):
         ymin = d['ymin']
         ymax = d['ymax']
 
-        xscale, yscale, basex, basey = self._set_scale(figure, scale=scale,
+        xscale, yscale, basex, basey = self._set_scale(subplot, scale=scale,
                                                        base=base)
 
         # If any of the x-data are negative, we leave the min/max alone.

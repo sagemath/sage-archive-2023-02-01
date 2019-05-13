@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Multi-graphics objects
+Graphics arrays and insets
 
 """
 from __future__ import print_function, absolute_import
@@ -14,8 +14,8 @@ from .graphics import Graphics, ALLOWED_EXTENSIONS
 
 class MultiGraphics(WithEqualityById, SageObject):
     r"""
-    Base class for objects composed of
-    :class:`~sage.plot.graphics.Graphics` objects.
+    Base class for composition of :class:`~sage.plot.graphics.Graphics`
+    objects.
 
     The graphical display of objects in this class is entirely governed by the
     method :meth:`save`. Subclasses have simply to define a method
@@ -31,7 +31,7 @@ class MultiGraphics(WithEqualityById, SageObject):
 
         TESTS::
 
-            sage: from sage.plot.multi_graphics import MultiGraphics
+            sage: from sage.plot.multigraphics import MultiGraphics
             sage: a = MultiGraphics()
             sage: a._glist
             []
@@ -39,6 +39,7 @@ class MultiGraphics(WithEqualityById, SageObject):
         """
         self._glist = []
         self._figsize = None
+        self._extra_kwds = {}
 
     def _repr_(self):
         """
@@ -59,6 +60,11 @@ class MultiGraphics(WithEqualityById, SageObject):
         Rich Output Magic Method.
 
         See :mod:`sage.repl.rich_output` for details.
+
+        .. TODO::
+
+           This method is identical to Graphics._rich_repr_ so it could be
+           inherited from a common base class
 
         EXAMPLES::
 
@@ -152,34 +158,50 @@ class MultiGraphics(WithEqualityById, SageObject):
         i = int(i)
         self._glist[i] = g
 
-    def _set_figsize_(self, ls):
+    def _set_figsize_(self, figsize):
         """
-        Set the figsize of all plots composing ``self``.
+        Set the size of the figure rendering ``self``.
+
+        INPUT:
+
+        - ``figsize`` -- width or [width, height] in inches of the matplotlib
+          figure; if only the width is provided, the height is computed from
+          matplotlib's default aspect ratio
 
         This is normally only used via the ``figsize`` keyword in
         :meth:`save` or :meth:`show`.
 
         EXAMPLES::
 
-            sage: L = [plot(sin(k*x),(x,-pi,pi)) for k in [1..3]]
-            sage: G = graphics_array(L)
-            sage: G.show(figsize=[5,3])  # smallish and compact
+            sage: L = [plot(sin(k*x), (x,-pi,pi)) for k in [1..3]]
+            sage: ga = graphics_array(L)
+            sage: ga.show(figsize=[5,3])  # smallish and compact
+            sage: ga.show(figsize=[5,7])  # tall and thin; long time
+            sage: ga.show(figsize=4)  # width=4 inches, height fixed from default aspect ratio
 
-        ::
-
-            sage: G.show(figsize=[10,20])  # bigger and tall and thin; long time (2s on sage.math, 2012)
-
-        ::
-
-            sage: G.show(figsize=8)  # figure as a whole is a square
         """
-        # if just one number is passed in for figsize, as documented
-        if not isinstance(ls,list):
-            ls = [ls,ls]
-        # now the list is a list
-        m = int(ls[0])
-        n = int(ls[1])
-        self._figsize = [m,n]
+        from matplotlib import rcParams
+        if not isinstance(figsize, (list, tuple)):
+            # in this case, figsize is a number and should be positive
+            try:
+                figsize = float(figsize) # to pass to mpl
+            except TypeError:
+                raise TypeError("figsize should be a positive number, not {0}".format(figsize))
+            if figsize > 0:
+                default_width, default_height=rcParams['figure.figsize']
+                figsize = (figsize, default_height*figsize/default_width)
+            else:
+                raise ValueError("figsize should be positive, not {0}".format(figsize))
+        else:
+            # then the figsize should be two positive numbers
+            if len(figsize) != 2:
+                raise ValueError("figsize should be a positive number "
+                                 "or a list of two positive numbers, not {0}".format(figsize))
+            figsize = (float(figsize[0]),float(figsize[1])) # floats for mpl
+            if not (figsize[0] > 0 and figsize[1] > 0):
+                raise ValueError("figsize should be positive numbers, "
+                                 "not {0} and {1}".format(figsize[0],figsize[1]))
+        self._figsize = figsize
 
     def __len__(self):
         """
@@ -208,14 +230,20 @@ class MultiGraphics(WithEqualityById, SageObject):
                 labelspacing=0.02, loc='best',
                 markerscale=0.6, ncol=1, numpoints=2,
                 shadow=True, title=None)
-    def matplotlib(self, figsize=None, **kwds):
+    def matplotlib(self, figure=None, figsize=None, **kwds):
         r"""
         Create a matplotlib ``Figure`` object from ``self``.
 
         INPUT:
 
-        - ``figsize`` -- width or [width, height] See documentation
-          for :meth:`sage.plot.graphics.Graphics.show` for more details.
+        - ``figure`` -- (default: ``None``) matplotlib figure (class
+          ``matplotlib.figure.Figure``) on which ``self`` is to be displayed;
+          if none is provided, the figure will be created from the parameter
+          ``figsize``
+
+        - ``figsize`` -- (default: ``None``) width or [width, height] in inches
+          of the matplotlib figure in case ``figure`` is ``None``; if none
+          is provided matplotlib's default is used
 
         - ``kwds`` -- options passed to the
           :meth:`~sage.plot.graphics.Graphics.matplotlib` method of
@@ -234,34 +262,28 @@ class MultiGraphics(WithEqualityById, SageObject):
         if dims == 0:  # empty MultiGraphics
             glist = [Graphics()]
             dims = 1
-        # Creation of a blank matplotlib Figure:
-        if figsize is not None:
-            self._set_figsize_(figsize)
-        figure = Figure(self._figsize)
+        # If no matplotlib figure is passed, it is created from scracth here:
+        if figure is None:
+            if figsize is not None:
+                self._set_figsize_(figsize)
+            if self._figsize is not None:
+                figure = Figure(self._figsize)
+            else:
+                figure = Figure()  # matplotlib's default is used
         global do_verify
         do_verify = True
         for i, g in zip(range(1, dims + 1), glist):
             # Creation of the matplotlib Axes object "subplot" for g
-            # (we treat the scale of g at this level)
-            scale = g._extra_kwds.get('scale')
-            sub_options = {}
-            if scale == 'loglog':
-                sub_options['xscale'] = 'log'
-                sub_options['yscale'] = 'log'
-            elif scale == 'semilogx':
-                sub_options['xscale'] = 'log'
-            elif scale == 'semilogy':
-                sub_options['yscale'] = 'log'
-            subplot = self._add_subplot(figure, i, **sub_options)
+            subplot = self._add_subplot(figure, i)
             # Adding g to the figure via subplot:
             options = {}
             options.update(Graphics.SHOW_OPTIONS)  # default options for show()
             options.update(g._extra_kwds)  # options set in g
             options.update(kwds)
             # We get rid of options that are not relevant for g.matplotlib():
-            options.pop('dpi')
-            options.pop('transparent')
-            options.pop('fig_tight')
+            options.pop('dpi', None)
+            options.pop('transparent', None)
+            options.pop('fig_tight', None)
             g.matplotlib(figure=figure, sub=subplot, verify=do_verify,
                          **options)
         return figure
@@ -300,9 +322,9 @@ class MultiGraphics(WithEqualityById, SageObject):
 
             * empty extension will be treated as ``.sobj``.
 
-        -  ``figsize`` -- width or [width, height] See documentation
-           for :meth:`sage.plot.graphics.Graphics.show` for more details.
-
+        - ``figsize`` -- (default: ``None``) width or [width, height] in inches
+          of the matplotlib figure in case ``figure`` is ``None``; if none
+          is provided matplotlib's default is used
 
         EXAMPLES::
 
@@ -445,9 +467,9 @@ class MultiGraphics(WithEqualityById, SageObject):
 
         -  ``dpi`` - dots per inch
 
-        -  ``figsize`` - width or [width, height]  See the
-           documentation for :meth:`sage.plot.graphics.Graphics.show`
-           for more information.
+        - ``figsize`` -- (default: ``None``) width or [width, height] in inches
+          of the matplotlib figure in case ``figure`` is ``None``; if none
+          is provided matplotlib's default is used
 
         -  ``axes`` - (default: True)
 
@@ -643,7 +665,7 @@ class GraphicsArray(MultiGraphics):
 
         TESTS::
 
-            sage: from sage.plot.multi_graphics import GraphicsArray
+            sage: from sage.plot.multigraphics import GraphicsArray
             sage: G = GraphicsArray([plot(sin),plot(cos)])
             sage: G.append(plot(tan))
             Traceback (most recent call last):

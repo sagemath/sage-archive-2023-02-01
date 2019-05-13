@@ -592,12 +592,12 @@ cdef class CPLEXBackend(GenericBackend):
             sage: p = get_solver(solver = "CPLEX")                             # optional - CPLEX
             sage: p.add_variables(5)                                           # optional - CPLEX
             4
-            sage: p.add_linear_constraint([(i, i) for i in range(5)], 2.0, 2.0)  # optional - CPLEX
+            sage: p.add_linear_constraint(zip(range(5), range(5), 2.0, 2.0)  # optional - CPLEX
             sage: p.row(0)                                                     # optional - CPLEX
             ([1, 2, 3, 4], [1.0, 2.0, 3.0, 4.0])
             sage: p.row_bounds(0)                                              # optional - CPLEX
             (2.0, 2.0)
-            sage: p.add_linear_constraint([(i, i) for i in range(5)], 1.0, 1.0, name='foo') # optional - CPLEX
+            sage: p.add_linear_constraint(zip(range(5), range(5), 1.0, 1.0, name='foo') # optional - CPLEX
             sage: p.row_name(1)                                                           # optional - CPLEX
             'foo'
 
@@ -605,6 +605,7 @@ cdef class CPLEXBackend(GenericBackend):
         if lower_bound is None and upper_bound is None:
             raise ValueError("At least one of 'upper_bound' or 'lower_bound' must be set.")
 
+        coefficients = list(coefficients)
         cdef int status
         cdef int i, j
         cdef int n = len(coefficients)

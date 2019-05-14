@@ -269,7 +269,7 @@ class FunctionFieldPlace(Element):
             sage: L.<y>=K.extension(Y^3+x+x^3*Y)
             sage: p = L.places()[0]
             sage: p.prime_ideal()
-            Ideal (1/x,1/x^3*y^2 + 1/x) of Maximal infinite order of Function field
+            Ideal (1/x^3*y^2 + 1/x) of Maximal infinite order of Function field
             in y defined by y^3 + x^3*y + x
         """
         return self._prime

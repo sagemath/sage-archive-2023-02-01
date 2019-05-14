@@ -2006,6 +2006,33 @@ cdef class Expression(CommutativeRingElement):
             return False
         return True
 
+    def is_rational_expression(self):
+        """
+        Return True if this expression if a rational expression, i.e.,
+        a quotient of polynomials.
+
+        EXAMPLES::
+
+            sage: var('x y z')
+            (x, y, z)
+            sage: ((x + y + z)/(1 + x^2)).is_rational_expression()
+            True
+            sage: ((1 + x + y)^10).is_rational_expression()
+            True
+            sage: ((1/x + z)^5 - 1).is_rational_expression()
+            True
+            sage: (1/(x + y)).is_rational_expression()
+            True
+            sage: (exp(x) + 1).is_rational_expression()
+            False
+            sage: (sin(x*y) + z^3).is_rational_expression()
+            False
+            sage: (exp(x) + exp(-x)).is_rational_expression()
+            False
+        """
+        return all([all([part.is_polynomial(v) for v in part.variables()])
+                    for part in (self.numerator(), self.denominator())])
+
     def is_real(self):
         """
         Return True if this expression is known to be a real number.

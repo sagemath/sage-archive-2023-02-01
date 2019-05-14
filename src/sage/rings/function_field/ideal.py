@@ -91,6 +91,7 @@ import itertools
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.latex import latex
 
 from sage.structure.parent import Parent
 from sage.structure.element import Element
@@ -152,7 +153,7 @@ class FunctionFieldIdeal(Element):
             sage: latex(I)
             \left(x, y\right)
         """
-        return '\\left(' + ', '.join(g._latex_() for g in self.gens_reduced()) + '\\right)'
+        return '\\left(' + ', '.join(latex(g) for g in self.gens_reduced()) + '\\right)'
 
     def _div_(self, other):
         """

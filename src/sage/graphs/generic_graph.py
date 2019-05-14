@@ -5855,7 +5855,7 @@ class GenericGraph(GenericGraph_pyx):
             ...
             NotImplementedError: the graph must be 3-vertex-connected
 
-            :trac:`27832`::
+        :trac:`27832`::
 
             sage: label_dict = {('000','001'): 1, ('001', '101'): 2, ('101', '100'): 3, ('100', '000'): 4}
             sage: g = graphs.CubeGraph(3)

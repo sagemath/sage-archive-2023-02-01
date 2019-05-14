@@ -2624,6 +2624,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
             sage: B(0).subs({'_zero_': None}) is None
             True
+            sage: B(1).subs({'_one_': AA(1)}).parent() is AA
+            True
         """
         # check if nothing to do
         if not rules and not kwds:

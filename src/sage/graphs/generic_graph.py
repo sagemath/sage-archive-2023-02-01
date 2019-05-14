@@ -5855,9 +5855,9 @@ class GenericGraph(GenericGraph_pyx):
             ...
             NotImplementedError: the graph must be 3-vertex-connected
 
-        :trac:`27832`::
+        This also keeps track of edge labels::
 
-            sage: label_dict = {('000','001'): 1, ('001', '101'): 2, ('101', '100'): 3, ('100', '000'): 4}
+            sage: label_dict = {('000', '001'): 1, ('001', '101'): 2, ('101', '100'): 3, ('100', '000'): 4}
             sage: g = graphs.CubeGraph(3)
             sage: for e in label_dict:
             ....:     g.set_edge_label(e[0], e[1], label_dict[e])
@@ -5883,7 +5883,7 @@ class GenericGraph(GenericGraph_pyx):
 
         from sage.graphs.graph import Graph
         from itertools import combinations
-        verts = [tuple(_) for _ in self.faces()]
+        verts = [tuple(f) for f in self.faces()]
         edges = []
         for v1, v2 in combinations(verts, 2):
             e = set([tuple(reversed(e)) for e in v1]).intersection(v2)

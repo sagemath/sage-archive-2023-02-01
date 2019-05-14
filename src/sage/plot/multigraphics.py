@@ -2,6 +2,20 @@
 r"""
 Graphics arrays and insets
 
+This module defines the classes :class:`MultiGraphics` and
+:class:`GraphicsArray`. :class:`MultiGraphics` is the (abstract) base class
+for 2-dimensional graphical objects that are composed of various
+:class:`~sage.plot.graphics.Graphics` objects. Currently, only one subclass
+is implemented:
+
+- :class:`GraphicsArray` for arrays of :class:`~sage.plot.graphics.Graphics`
+  objects
+
+AUTHORS:
+
+- Eric Gourgoulhon (2019-05-14): initial version, refactoring the class
+  ``GraphicsArray`` that was defined in :mod:`~sage.plot.graphics`.
+
 """
 from __future__ import print_function, absolute_import
 import os
@@ -418,19 +432,156 @@ class MultiGraphics(WithEqualityById, SageObject):
 
 
 class GraphicsArray(MultiGraphics):
-    """
-    GraphicsArray takes a (`m` x `n`) list of lists of
-    graphics objects and plots them all on one canvas.
+    r"""
+    This class implements 2-dimensional graphical objects that constitute
+    an array of :class:`~sage.plot.graphics.Graphics` drawn on a single
+    canvas.
+
+    The user interface is through the function
+    :func:`~sage.plot.plot.graphics_array`.
+
+    INPUT:
+
+    - ``array`` -- either a list of lists of
+      :class:`~sage.plot.graphics.Graphics` elements (generic case) or a
+      single list of :class:`~sage.plot.graphics.Graphics` elements (case of a
+      single-row array)
+
+    EXAMPLES:
+
+    An array made of four graphics objects::
+
+        sage: g1 = plot(sin(x^2), (x, 0, 6), axes_labels=['$x$', '$y$'],
+        ....:           axes=False, frame=True, gridlines='minor')
+        sage: g2 = circle((0,0), 1, rgbcolor='red', fill=True, alpha=0.2,
+        ....:             legend_label='pink')
+        sage: y = var('y')
+        sage: g3 = streamline_plot((sin(x), cos(y)), (x,-3,3), (y,-3,3),
+        ....:                      aspect_ratio=1)
+        sage: g4 = polar_plot(sin(5*x)^2, (x, 0, 2*pi), color='green',
+        ....:                 legend_label='green', fontsize=8)
+        sage: G = graphics_array([[g1, g2], [g3, g4]])
+        sage: G
+        Graphics Array of size 2 x 2
+
+    .. PLOT::
+
+        g1 = plot(sin(x**2), (x, 0, 6), axes_labels=['$x$', '$y$'], \
+                  axes=False, frame=True, gridlines='minor')
+        g2 = circle((0,0), 1, rgbcolor='red', fill=True, alpha=0.2, \
+                    legend_label='pink')
+        y = var('y')
+        g3 = streamline_plot((sin(x), cos(y)), (x,-3,3), (y,-3,3), \
+                             aspect_ratio=1)
+        g4 = polar_plot(sin(5*x)**2, (x, 0, 2*pi), color='green', \
+                        legend_label='green', fontsize=8)
+        G = graphics_array([[g1, g2], [g3, g4]])
+        sphinx_plot(G)
+
+    If one constructs the graphics array from a single list of graphics
+    objects, one obtains a single-row array::
+
+        sage: G = graphics_array([g1, g2, g3, g4])
+        sage: G
+        Graphics Array of size 1 x 4
+
+    .. PLOT::
+
+        g1 = plot(sin(x**2), (x, 0, 6), axes_labels=['$x$', '$y$'], \
+                  axes=False, frame=True, gridlines='minor')
+        g2 = circle((0,0), 1, rgbcolor='red', fill=True, alpha=0.2, \
+                    legend_label='pink')
+        y = var('y')
+        g3 = streamline_plot((sin(x), cos(y)), (x,-3,3), (y,-3,3), \
+                             aspect_ratio=1)
+        g4 = polar_plot(sin(5*x)**2, (x, 0, 2*pi), color='green', \
+                        legend_label='green', fontsize=8)
+        G = graphics_array([g1, g2, g3, g4])
+        sphinx_plot(G)
+
+    We note that the overall aspect ratio of the figure is 4/3 (the default),
+    which makes ``g1`` elongated, while the aspect ratio of ``g3``, which has
+    been specified with the parameter ``aspect_ratio=1`` is preserved. To get
+    a better aspect ratio for the whole figure, one can use the option
+    ``figsize`` in the method :meth:`~MultiGraphics.show`::
+
+        sage: G.show(figsize=[8, 3])
+
+    .. PLOT::
+
+        g1 = plot(sin(x**2), (x, 0, 6), axes_labels=['$x$', '$y$'], \
+                  axes=False, frame=True, gridlines='minor')
+        g2 = circle((0,0), 1, rgbcolor='red', fill=True, alpha=0.2, \
+                    legend_label='pink')
+        y = var('y')
+        g3 = streamline_plot((sin(x), cos(y)), (x,-3,3), (y,-3,3), \
+                             aspect_ratio=1)
+        g4 = polar_plot(sin(5*x)**2, (x, 0, 2*pi), color='green', \
+                        legend_label='green', fontsize=8)
+        G = graphics_array([g1, g2, g3, g4])
+        sphinx_plot(G, figsize=[8, 3])
+
+    We can access to individual elements of the graphics array with the
+    square bracket operator::
+
+        sage: G = graphics_array([[g1, g2], [g3, g4]])  # back to the 2x2 array
+        sage: print(G)
+        Graphics Array of size 2 x 2
+        sage: G[0] is g1
+        True
+        sage: G[1] is g2
+        True
+        sage: G[2] is g3
+        True
+        sage: G[3] is g4
+        True
+
+    Note that with respect to the square bracket operator, ``G`` is considered
+    as a flattened list of graphics objects, not as an array. For instance,
+    ``G[0, 1]`` will throw an error::
+
+        sage: G[0,1]
+        Traceback (most recent call last):
+        ...
+        TypeError: list indices must be integers or slices, not tuple
+
+    ``G[:]`` returns the full (flattened) list of graphics objects composing
+    ``G``::
+
+        sage: G[:]
+        [Graphics object consisting of 1 graphics primitive,
+         Graphics object consisting of 1 graphics primitive,
+         Graphics object consisting of 1 graphics primitive,
+         Graphics object consisting of 1 graphics primitive]
+
+    The square bracket operator can be used to replace elements in the array::
+
+        sage: G[2] = g4
+        sage: G
+        Graphics Array of size 2 x 2
+
+    .. PLOT::
+
+        g1 = plot(sin(x**2), (x, 0, 6), axes_labels=['$x$', '$y$'], \
+                  axes=False, frame=True, gridlines='minor')
+        g2 = circle((0,0), 1, rgbcolor='red', fill=True, alpha=0.2, \
+                    legend_label='pink')
+        y = var('y')
+        g3 = streamline_plot((sin(x), cos(y)), (x,-3,3), (y,-3,3), \
+                             aspect_ratio=1)
+        g4 = polar_plot(sin(5*x)**2, (x, 0, 2*pi), color='green', \
+                        legend_label='green', fontsize=8)
+        G = graphics_array([[g1, g2], [g3, g4]])
+        G[2] = g4
+        sphinx_plot(G)
+
 
     """
     def __init__(self, array):
         """
-        Constructor for ``GraphicsArray`` class.  Normally used only
-        via :func:`graphics_array` function.
+        Construct a ``GraphicsArray``.
 
-        INPUT: a list or list of lists/tuples, all of which are graphics objects
-
-        EXAMPLES::
+        TESTS::
 
             sage: L = [plot(sin(k*x),(x,-pi,pi)) for k in range(10)]
             sage: G = graphics_array(L)
@@ -441,7 +592,7 @@ class GraphicsArray(MultiGraphics):
             sage: str(H[1])
             'Graphics object consisting of 1 graphics primitive'
 
-        TESTS::
+        ::
 
             sage: L = [[plot(sin),plot(cos)],[plot(tan)]]
             sage: graphics_array(L)
@@ -464,7 +615,8 @@ class GraphicsArray(MultiGraphics):
         """
         MultiGraphics.__init__(self)
         if not isinstance(array, (list, tuple)):
-            raise TypeError("array (=%s) must be a list of lists of Graphics objects"%(array))
+            raise TypeError("array must be a list of lists of Graphics "
+                            "objects, not {}".format(array))
         array = list(array)
         self._rows = len(array)
         if self._rows > 0:
@@ -477,10 +629,12 @@ class GraphicsArray(MultiGraphics):
         self._dims = self._rows*self._cols
         for row in array: # basically flatten the list
             if not isinstance(row, (list, tuple)) or len(row) != self._cols:
-                raise TypeError("array (=%s) must be a list of lists of Graphics objects"%(array))
+                raise TypeError("array must be a list of lists of Graphics "
+                                "objects, not {}".format(array))
             for g in row:
                 if not isinstance(g, Graphics):
-                    raise TypeError("every element of array must be a Graphics object")
+                    raise TypeError("every element of array must be a "
+                                    "Graphics object")
                 self._glist.append(g)
 
     def __str__(self):

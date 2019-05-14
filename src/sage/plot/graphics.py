@@ -17,6 +17,9 @@ AUTHORS:
 
 - Eric Gourgoulhon (2015-03-19): Add parameter axes_labels_size (:trac:`18004`)
 
+- Eric Gourgoulhon (2019-05-14): ``GraphicsArray`` moved out this file, various
+  improvements in :meth:`Graphics.matplotlib`
+
 """
 
 #*****************************************************************************

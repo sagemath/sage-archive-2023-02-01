@@ -3404,13 +3404,14 @@ def reshape(v, n, m):
 
 def graphics_array(array, nrows=None, ncols=None):
     r"""
-    Plot a list of lists (or tuples) of graphics objects on one canvas.
+    Plot a list of lists (or tuples) of graphics objects on one canvas,
+    arranged as an array.
 
     INPUT:
 
-    - ``array`` -- the graphics objects to combine into a graphics array, as
-      either a list of lists (or tuples) (generic case) or a single list of
-      graphics objects (case of a single row)
+    - ``array`` -- either a list of lists of
+      :class:`~sage.plot.graphics.Graphics` elements or a
+      single list of :class:`~sage.plot.graphics.Graphics` elements
 
     - ``nrows, ncols`` -- (optional) integers. If both are given then
       the input array is flattened and turned into an ``nrows`` x

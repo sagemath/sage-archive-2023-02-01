@@ -176,7 +176,7 @@ added to cones!
 
 REFERENCES:
 
-- [Fu1993]_
+- [Ful1993]_
 """
 
 # ****************************************************************************
@@ -1244,9 +1244,9 @@ def classify_cone_2d(ray0, ray1, check=True):
     OUTPUT:
 
     A pair `(d,k)` of integers classifying the cone up to `GL(2, \ZZ)`
-    equivalence. See Proposition 10.1.1 of [CLS]_ for the
+    equivalence. See Proposition 10.1.1 of [CLS2011]_ for the
     definition. We return the unique `(d,k)` with minimal `k`, see
-    Proposition 10.1.3 of [CLS]_.
+    Proposition 10.1.3 of [CLS2011]_.
 
     EXAMPLES::
 
@@ -1272,7 +1272,7 @@ def classify_cone_2d(ray0, ray1, check=True):
     Check using the connection between the Hilbert basis of the cone
     spanned by the two rays (in arbitrary dimension) and the
     Hirzebruch-Jung continued fraction expansion, see Chapter 10 of
-    [CLS]_ ::
+    [CLS2011]_ ::
 
         sage: from sage.geometry.cone import normalize_rays
         sage: for i in range(10):
@@ -1316,7 +1316,7 @@ def classify_cone_2d(ray0, ray1, check=True):
             assert 0 <= k < d
             assert gcd(d,k) == 1
 
-    # compute unique k, see Proposition 10.1.3 of [CLS]
+    # compute unique k, see Proposition 10.1.3 of [CLS2011]
     if d > 0:
         for ktilde in range(k):
             if (k*ktilde) % d == 1:
@@ -3522,7 +3522,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         The sublattice spanned by the cone.
 
         Let `\sigma` be the given cone and `N=` ``self.lattice()`` the
-        ambient lattice. Then, in the notation of [Fu1993]_, this
+        ambient lattice. Then, in the notation of [Ful1993]_, this
         method returns the sublattice
 
         .. MATH::
@@ -3641,7 +3641,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         `\ZZ`-basis for the ambient :meth:`lattice()
         <sage.geometry.cone.IntegralRayCollection.lattice>`.
 
-        In the notation of [Fu1993]_, let `\sigma` be the given cone
+        In the notation of [Ful1993]_, let `\sigma` be the given cone
         and `N=` ``self.lattice()`` the ambient lattice. Then this
         method returns
 
@@ -3700,7 +3700,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         Let `M=` ``self.dual_lattice()`` be the lattice dual to the
         ambient lattice of the given cone `\sigma`. Then, in the
-        notation of [Fu1993]_, this method returns the sublattice
+        notation of [Ful1993]_, this method returns the sublattice
 
         .. MATH::
 
@@ -3763,7 +3763,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         The quotient of the spanned lattice by the lattice spanned by
         a subcone.
 
-        In the notation of [Fu1993]_, let `N` be the ambient lattice
+        In the notation of [Ful1993]_, let `N` be the ambient lattice
         and `N_\sigma` the sublattice spanned by the given cone
         `\sigma`. If `\rho < \sigma` is a subcone, then `N_\rho` =
         ``rho.sublattice()`` is a saturated sublattice of `N_\sigma` =
@@ -3863,7 +3863,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         The quotient of the dual spanned lattice by the dual of the
         supercone's spanned lattice.
 
-        In the notation of [Fu1993]_, if ``supercone`` = `\rho >
+        In the notation of [Ful1993]_, if ``supercone`` = `\rho >
         \sigma` = ``self`` is a cone that contains `\sigma` as a face,
         then `M(\rho)` = ``supercone.orthogonal_sublattice()`` is a
         saturated sublattice of `M(\sigma)` =

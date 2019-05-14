@@ -56,16 +56,11 @@ For more details on modular symbols consult the following
 
 REFERENCES:
 
-.. [MaTaTe] B. Mazur, J. Tate, and J. Teitelbaum,
-   On `p`-adic analogues of the conjectures of Birch and
-   Swinnerton-Dyer, Inventiones mathematicae 84, (1986), 1-48.
+- [MTT1986]_
 
-.. [Crem97] John Cremona, Algorithms for modular elliptic curves,
-   Cambridge University Press, 1997.
+- [Cre1997]_
 
-.. [StWu] William Stein and Christian Wuthrich, Algorithms for the
-   Arithmetic of Elliptic Curves using Iwasawa Theory, Mathematics
-   of Computation 82 (2013), 1757-1792.
+- [SW2013]_
 
 AUTHORS:
 
@@ -159,8 +154,8 @@ class ModularSymbol(SageObject):
     `\QQ\to \QQ` obtained by sending `r` to the normalized
     symmetrized (or anti-symmetrized) integral `\infty` to `r`.
 
-    This is as defined in [MaTaTe]_, but normalized to depend on the curve
-    and not only its isogeny class as in [StWu]_.
+    This is as defined in [MTT1986]_, but normalized to depend on the curve
+    and not only its isogeny class as in [SW2013]_.
 
     See the documentation of ``E.modular_symbol()`` in elliptic curves
     over the rational numbers for help.

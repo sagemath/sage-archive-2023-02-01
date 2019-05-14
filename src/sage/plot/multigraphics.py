@@ -8,20 +8,13 @@ import os
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
 from sage.misc.temporary_file import tmp_filename
-from .graphics import Graphics, ALLOWED_EXTENSIONS
+from .graphics import Graphics, ALLOWED_EXTENSIONS, _parse_figsize
 
 
 class MultiGraphics(WithEqualityById, SageObject):
     r"""
-    Base class for composition of :class:`~sage.plot.graphics.Graphics`
+    Base class for objects composed of :class:`~sage.plot.graphics.Graphics`
     objects.
-
-    The graphical display of objects in this class is entirely governed by the
-    method :meth:`save`. Subclasses have simply to define a method
-    ``_add_subplot`` to control the position of the individual graphics elements
-    in the main figure.
-
-    .. automethod:: _rich_repr_
 
     """
     def __init__(self):
@@ -37,25 +30,23 @@ class MultiGraphics(WithEqualityById, SageObject):
 
         """
         self._glist = []
-        self._figsize = None
-        self._extra_kwds = {}
 
     def _repr_(self):
-        """
+        r"""
         Representation of ``self``.
 
         EXAMPLES::
 
             sage: R = rainbow(6)
             sage: L = [plot(x^n, (x,0,1), color=R[n]) for n in range(6)]
-            sage: graphics_array(L,2,3)
+            sage: graphics_array(L, 2, 3)
             Graphics Array of size 2 x 3
 
         """
         return str(self)
 
     def _rich_repr_(self, display_manager, **kwds):
-        """
+        r"""
         Rich Output Magic Method.
 
         See :mod:`sage.repl.rich_output` for details.
@@ -72,6 +63,7 @@ class MultiGraphics(WithEqualityById, SageObject):
             sage: g = graphics_array([Graphics(), Graphics()], 1, 2)
             sage: g._rich_repr_(dm)
             OutputImagePng container
+
         """
         types = display_manager.types
         prefer_raster = (
@@ -110,21 +102,15 @@ class MultiGraphics(WithEqualityById, SageObject):
             sage: H[1]
             Graphics object consisting of 1 graphics primitive
 
-        They can also be represented::
-
-            sage: str(H[1])
-            'Graphics object consisting of 1 graphics primitive'
-
         Another example::
 
-            sage: L = [plot(sin(k*x),(x,-pi,pi))+circle((k,k),1,color='red') for k in range(10)]
-            sage: G = graphics_array(L,5,2)
-            sage: str(G[3])
-            'Graphics object consisting of 2 graphics primitives'
+            sage: L = [plot(sin(k*x), (x,-pi,pi)) + circle((k,k), 1, color='red')
+            ....:      for k in range(10)]
+            sage: G = graphics_array(L, 5, 2)
             sage: G[3]
             Graphics object consisting of 2 graphics primitives
+
         """
-        i = int(i)
         return self._glist[i]
 
     def __setitem__(self, i, g):
@@ -133,74 +119,19 @@ class MultiGraphics(WithEqualityById, SageObject):
 
         EXAMPLES::
 
-            sage: M = [[plot(x^2)],[plot(x^3)]]
+            sage: M = [[plot(x^2)], [plot(x^3)]]
             sage: H = graphics_array(M)
-            sage: str(H[1])
-            'Graphics object consisting of 1 graphics primitive'
-
-        We can check this is one primitive::
-
             sage: H[1] # the plot of x^3
             Graphics object consisting of 1 graphics primitive
 
         Now we change it::
 
-            sage: H[1] = circle((1,1),2)+points([(1,2),(3,2),(5,5)],color='purple')
-            sage: str(H[1])
-            'Graphics object consisting of 2 graphics primitives'
-
-        And we visually check that it's different::
-
+            sage: H[1] = circle((1,1), 2) + points([(1,2), (3,2), (5,5)], color='purple')
             sage: H[1] # a circle and some purple points
             Graphics object consisting of 2 graphics primitives
+
         """
-        i = int(i)
         self._glist[i] = g
-
-    def _set_figsize_(self, figsize):
-        """
-        Set the size of the figure rendering ``self``.
-
-        INPUT:
-
-        - ``figsize`` -- width or [width, height] in inches of the matplotlib
-          figure; if only the width is provided, the height is computed from
-          matplotlib's default aspect ratio
-
-        This is normally only used via the ``figsize`` keyword in
-        :meth:`save` or :meth:`show`.
-
-        EXAMPLES::
-
-            sage: L = [plot(sin(k*x), (x,-pi,pi)) for k in [1..3]]
-            sage: ga = graphics_array(L)
-            sage: ga.show(figsize=[5,3])  # smallish and compact
-            sage: ga.show(figsize=[5,7])  # tall and thin; long time
-            sage: ga.show(figsize=4)  # width=4 inches, height fixed from default aspect ratio
-
-        """
-        from matplotlib import rcParams
-        if not isinstance(figsize, (list, tuple)):
-            # in this case, figsize is a number and should be positive
-            try:
-                figsize = float(figsize) # to pass to mpl
-            except TypeError:
-                raise TypeError("figsize should be a positive number, not {0}".format(figsize))
-            if figsize > 0:
-                default_width, default_height=rcParams['figure.figsize']
-                figsize = (figsize, default_height*figsize/default_width)
-            else:
-                raise ValueError("figsize should be positive, not {0}".format(figsize))
-        else:
-            # then the figsize should be two positive numbers
-            if len(figsize) != 2:
-                raise ValueError("figsize should be a positive number "
-                                 "or a list of two positive numbers, not {0}".format(figsize))
-            figsize = (float(figsize[0]),float(figsize[1])) # floats for mpl
-            if not (figsize[0] > 0 and figsize[1] > 0):
-                raise ValueError("figsize should be positive numbers, "
-                                 "not {0} and {1}".format(figsize[0],figsize[1]))
-        self._figsize = figsize
 
     def __len__(self):
         """
@@ -209,12 +140,11 @@ class MultiGraphics(WithEqualityById, SageObject):
         EXAMPLES::
 
             sage: R = rainbow(6)
-            sage: L = [plot(x^n,(x,0,1),color=R[n]) for n in range(6)]
-            sage: G = graphics_array(L,2,3)
-            sage: G.ncols()
-            3
-            sage: graphics_array(L).ncols()
+            sage: L = [plot(x^n, (x,0,1), color=R[n]) for n in range(6)]
+            sage: G = graphics_array(L, 2, 3)
+            sage: len(G)
             6
+
         """
         return len(self._glist)
 
@@ -250,14 +180,11 @@ class MultiGraphics(WithEqualityById, SageObject):
         if dims == 0:  # empty MultiGraphics
             glist = [Graphics()]
             dims = 1
-        # If no matplotlib figure is passed, it is created from scracth here:
+        # If no matplotlib figure is provided, it is created here:
         if figure is None:
             if figsize is not None:
-                self._set_figsize_(figsize)
-            if self._figsize is not None:
-                figure = Figure(self._figsize)
-            else:
-                figure = Figure()  # matplotlib's default is used
+                figsize = _parse_figsize(figsize)
+            figure = Figure(figsize=figsize)
         global do_verify
         do_verify = True
         for i, g in zip(range(1, dims + 1), glist):
@@ -458,6 +385,12 @@ class MultiGraphics(WithEqualityById, SageObject):
 
             sage: G = graphics_array([[plot(sin), plot(cos)], [plot(tan), plot(sec)]])
             sage: G.show(axes=False)
+
+        .. PLOT::
+
+            G = graphics_array([[plot(sin), plot(cos)], [plot(tan), plot(sec)]])
+            sphinx_plot(G, axes=False)
+
         """
         from sage.repl.rich_output import get_display_manager
         dm = get_display_manager()

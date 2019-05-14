@@ -76,9 +76,9 @@ The following plotting functions are supported:
 The following miscellaneous Graphics functions are included:
 
 
--  :func:`Graphics`
+-  :func:`~sage.plot.graphics.Graphics`
 
--  :func:`is_Graphics`
+-  :func:`~sage.plot.graphics.is_Graphics`
 
 -  :func:`~sage.plot.colors.hue`
 
@@ -3511,6 +3511,12 @@ def graphics_array(array, nrows=None, ncols=None):
         sage: ga = graphics_array([plot(sin)] * 10, ncols=3)
         sage: ga.nrows(), ga.ncols()
         (4, 3)
+        sage: ga = graphics_array([plot(sin)] * 4, nrows=2)
+        sage: ga.nrows(), ga.ncols()
+        (2, 2)
+        sage: ga = graphics_array([plot(sin)] * 6, ncols=2)
+        sage: ga.nrows(), ga.ncols()
+        (3, 2)
 
     The options like ``fontsize``, ``scale`` or ``frame`` passed to individual
     plots are preserved::
@@ -3552,10 +3558,14 @@ def graphics_array(array, nrows=None, ncols=None):
             length = sum(map(len, array))
         if nrows is None:
             ncols = int(ncols)
-            nrows = length // ncols + 1
+            nrows = length // ncols
+            if nrows*ncols < length:
+                nrows += 1
         elif ncols is None:
             nrows = int(nrows)
-            ncols = length // nrows + 1
+            ncols = length // nrows
+            if nrows*ncols < length:
+                ncols += 1
         else:
             assert False
         array = reshape(array, nrows, ncols)

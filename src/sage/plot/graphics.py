@@ -65,6 +65,55 @@ def is_Graphics(x):
     """
     return isinstance(x, Graphics)
 
+def _parse_figsize(figsize):
+    r"""
+    Helper function to get a figure size in matplotlib format.
+
+    INPUT:
+
+    - ``figsize`` -- width or [width, height] in inches; if only the width is
+      provided, the height is computed from matplotlib's default aspect ratio
+
+    OUPUT:
+
+    - a pair of ``float``'s represening ``(width, height)``
+
+    EXAMPLES::
+
+        sage: from sage.plot.graphics import _parse_figsize
+        sage: _parse_figsize([5, 4])
+        (5.0, 4.0)
+
+    The default aspect ratio is 4/3::
+
+        sage: _parse_figsize(5)  # tol 1.0e-13
+        (5.0, 3.75)
+
+    """
+    from matplotlib import rcParams
+    if isinstance(figsize, (list, tuple)):
+        # figsize should be a pair of positive numbers
+        if len(figsize) != 2:
+            raise ValueError("figsize should be a positive number or a list "
+                             "of two positive numbers, not {0}".format(figsize))
+        figsize = (float(figsize[0]), float(figsize[1])) # floats for mpl
+        if not (figsize[0] > 0 and figsize[1] > 0):
+            raise ValueError("figsize should be positive numbers, "
+                             "not {0} and {1}".format(figsize[0], figsize[1]))
+    else:
+        # in this case, figsize is a single number representing the width and
+        # should be positive
+        try:
+            figsize = float(figsize) # to pass to mpl
+        except TypeError:
+            raise TypeError("figsize should be a positive number, not {0}".format(figsize))
+        if figsize > 0:
+            default_width, default_height = rcParams['figure.figsize']
+            figsize = (figsize, default_height*figsize/default_width)
+        else:
+            raise ValueError("figsize should be positive, not {0}".format(figsize))
+    return figsize
+
 
 class Graphics(WithEqualityById, SageObject):
     """
@@ -2577,36 +2626,17 @@ class Graphics(WithEqualityById, SageObject):
         self.axes_labels(l=axes_labels)
         self.axes_labels_size(s=axes_labels_size)
 
-        if figsize is not None and not isinstance(figsize, (list, tuple)):
-            # in this case, figsize is a number and should be positive
-            try:
-                figsize = float(figsize) # to pass to mpl
-            except TypeError:
-                raise TypeError("figsize should be a positive number, not {0}".format(figsize))
-            if figsize > 0:
-                default_width, default_height=rcParams['figure.figsize']
-                figsize=(figsize, default_height*figsize/default_width)
-            else:
-                raise ValueError("figsize should be positive, not {0}".format(figsize))
-
-        if figsize is not None:
-            # then the figsize should be two positive numbers
-            if len(figsize) != 2:
-                raise ValueError("figsize should be a positive number "
-                                 "or a list of two positive numbers, not {0}".format(figsize))
-            figsize = (float(figsize[0]),float(figsize[1])) # floats for mpl
-            if not (figsize[0] > 0 and figsize[1] > 0):
-                raise ValueError("figsize should be positive numbers, "
-                                 "not {0} and {1}".format(figsize[0],figsize[1]))
-
+        # If no matplotlib figure is provided, it is created here:
         if figure is None:
-            figure=Figure(figsize=figsize)
+            if figsize is not None:
+                figsize = _parse_figsize(figsize)
+            figure = Figure(figsize=figsize)
 
-        #the incoming subplot instance
+        # The incoming subplot instance
         subplot = sub
         if not subplot:
             subplot = figure.add_subplot(111)
-        #add all the primitives to the subplot
+        # Add all the primitives to the subplot
         old_opts = dict()
         for g in self._objects:
             opts, old_opts[g] = g.options(), g.options()

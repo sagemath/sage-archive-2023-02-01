@@ -151,11 +151,7 @@ class FunctionFieldPlace(Element):
             sage: latex(p)
             \left(x, y\right)
         """
-        try:
-            gens = self._prime.gens_two()
-        except AttributeError:
-            gens = self._prime.gens()
-        return '\\left(' + ', '.join(g._latex_() for g in gens) + '\\right)'
+        return self._prime._latex_()
 
     def _richcmp_(self, other, op):
         """

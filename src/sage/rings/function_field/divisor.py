@@ -175,7 +175,7 @@ class FunctionFieldDivisor(ModuleElement):
             sage: x.divisor()                # indirect doctest
             - Place (1/x) + Place (x)
             sage: latex(x.divisor())         # indirect doctest
-            - (\frac{1}{x})\mathcal{O}_\infty + (x)\mathcal{O}
+            - \left(\frac{1}{x}\right) + \left(x\right)
         """
         plus = ' + '
         minus = ' - '
@@ -234,10 +234,6 @@ class FunctionFieldDivisor(ModuleElement):
         """
         Return the LaTeX representation of the divisor.
 
-        We use an additive notation combined with [Stich2009]_'s notation
-        for the ideal: the generators followed by a symbol for the ring,
-        either O or Oinf.
-
         EXAMPLES::
 
             sage: K.<x> = FunctionField(GF(2)); R.<t> = PolynomialRing(K)
@@ -245,10 +241,10 @@ class FunctionFieldDivisor(ModuleElement):
             sage: f = x/(y+1)
             sage: d = f.divisor()
             sage: d._latex_()
-            (\frac{1}{x}, \frac{1}{x^{4}} y^{2} + \frac{1}{x^{2}} y + 1)\mathcal{O}_\infty
-             + (\frac{1}{x}, \frac{1}{x^{2}} y + 1)\mathcal{O}_\infty
-             + 3 (x, \left(\frac{1}{x^{3} + x^{2} + x}\right) y^{2})\mathcal{O}
-             - 6 (x + 1, y + 1)\mathcal{O}
+            \left(\frac{1}{x}, \frac{1}{x^{4}} y^{2} + \frac{1}{x^{2}} y + 1\right)
+             + \left(\frac{1}{x}, \frac{1}{x^{2}} y + 1\right)
+             + 3 \left(x, \left(\frac{1}{x^{3} + x^{2} + x}\right) y^{2}\right)
+             - 6 \left(x + 1, y + 1\right)
         """
         return self._format(latex, '', '')
 

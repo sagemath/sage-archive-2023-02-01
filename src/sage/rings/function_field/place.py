@@ -143,27 +143,19 @@ class FunctionFieldPlace(Element):
         """
         Return the LaTeX representation of the place.
 
-        We use [Stich2009]_'s notation for the ideal: the generators
-        followed by a symbol for the ring, either O or Oinf.
-
         EXAMPLES::
 
             sage: K.<x>=FunctionField(GF(2)); _.<Y>=K[]
             sage: L.<y>=K.extension(Y^3+x+x^3*Y)
             sage: p = L.places_finite()[0]
             sage: latex(p)
-            (x, y)\mathcal{O}
+            \left(x, y\right)
         """
         try:
             gens = self._prime.gens_two()
         except AttributeError:
             gens = self._prime.gens()
-        gens_str = ', '.join(g._latex_() for g in gens)
-
-        if self.is_infinite_place():
-            return "({})\\mathcal{{O}}_\infty".format(gens_str)
-        else:
-            return "({})\\mathcal{{O}}".format(gens_str)
+        return '\\left(' + ', '.join(g._latex_() for g in gens) + '\\right)'
 
     def _richcmp_(self, other, op):
         """

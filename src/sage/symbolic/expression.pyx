@@ -11147,7 +11147,7 @@ cdef class Expression(CommutativeRingElement):
         from sage.calculus.calculus import symbolic_expression_from_maxima_string
         cdef GEx x
         cdef bint b
-        if dontfactor:
+        if dontfactor or not self.is_rational_expression():
             m = self._maxima_()
             name = m.name()
             varstr = ','.join(['_SAGE_VAR_' + str(v) for v in dontfactor])

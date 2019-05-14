@@ -3440,8 +3440,9 @@ class PermutationGroupFunctor(ConstructionFunctor):
         try:
             new_domain = FiniteEnumeratedSet(sorted(new_domain))
         except TypeError:
-            # Sorting may fail in Python 3.
-            new_domain = FiniteEnumeratedSet(new_domain)
+            # Sorting the domain will sometimes fail with Python 3.
+            # Fallback (not ideal: find a better solution?)
+            new_domain = FiniteEnumeratedSet(sorted(new_domain, key=str))
         return PermutationGroupFunctor(self.gens() + other.gens(),
                                        new_domain)
 

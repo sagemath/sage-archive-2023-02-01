@@ -1182,7 +1182,7 @@ class VectorFrame(FreeModuleBasis):
         Structure coefficients of the orthonormal frame associated to
         spherical coordinates in the Euclidean space `\RR^3`::
 
-            sage: M = Manifold(3, 'R^3', '\RR^3', start_index=1)  # Part of R^3 covered by spherical coordinates
+            sage: M = Manifold(3, 'R^3', r'\RR^3', start_index=1)  # Part of R^3 covered by spherical coordinates
             sage: c_spher.<r,th,ph> = M.chart(r'r:(0,+oo) th:(0,pi):\theta ph:(0,2*pi):\phi')
             sage: ch_frame = M.automorphism_field()
             sage: ch_frame[1,1], ch_frame[2,2], ch_frame[3,3] = 1, 1/r, 1/(r*sin(th))

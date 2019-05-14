@@ -47,7 +47,7 @@ def automorphism_group_QQ_fixedpoints(rational_function, return_functions=False,
 
     INPUT:
 
-    - ``rational_function`` - Rational Function defined over `\mathbb{Z}` or `\mathbb{Q}`
+    - ``rational_function`` - Rational Function defined over `\ZZ` or `\QQ`
 
     - ``return_functions`` - Boolean Value, True will return elements in the automorphism group
         as linear fractional transformations. False will return elements as `PGL2` matrices

@@ -164,9 +164,6 @@ Deprecation checks::
     4
     sage: pari('9234.1').sizedigit()
     5
-    sage: pari(8).bernvec()
-    doctest:...: DeprecationWarning: the PARI/GP function bernvec() is obsolete: use repeated calls to bernfrac() instead
-    [1, 1/6, -1/30, 1/42, -1/30, 5/66, -691/2730, 7/6, -3617/510]
     sage: [pari(2*n).bernfrac() for n in range(9)]
     [1, 1/6, -1/30, 1/42, -1/30, 5/66, -691/2730, 7/6, -3617/510]
     sage: e = pari([0,1,1,-2,0]).ellinit()

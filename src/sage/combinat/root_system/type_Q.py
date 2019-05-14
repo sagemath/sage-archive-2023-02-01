@@ -87,7 +87,7 @@ class CartanType(CartanType_standard_finite):
             sage: CartanType(['Q', 3]).index_set()
             (1, 2, -2, -1)
         """
-        return tuple(range(1, self.n + 1) + range(-self.n, 0))
+        return tuple(list(range(1, self.n + 1)) + list(range(-self.n, 0)))
 
     def _latex_(self):
         r"""

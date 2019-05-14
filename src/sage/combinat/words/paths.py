@@ -1609,8 +1609,6 @@ class FiniteWordPath_2d(FiniteWordPath_all):
             Animation with 9 frames
             sage: show(a)               # optional -- ImageMagick
             sage: a.gif(delay=35, iterations=3)    # optional -- ImageMagick
-            doctest:...: DeprecationWarning: use tmp_filename instead
-            See http://trac.sagemath.org/17234 for details.
 
         ::
 

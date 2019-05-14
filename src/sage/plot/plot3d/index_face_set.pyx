@@ -16,7 +16,7 @@ AUTHORS:
     Smooth triangles using vertex normals
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #      Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -28,9 +28,12 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import
+
+from textwrap import dedent
+from sage.misc.superseded import deprecation
 
 from libc.math cimport isfinite, INFINITY
 from libc.string cimport memset, memcpy
@@ -380,8 +383,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             for j in range(face.n):
                 v = face.vertices[j]
                 if point_map[v] == -1:
-                    pt = &self.vs[v]
-                    if isfinite(pt.x) and isfinite(pt.y) and isfinite(pt.z):
+                    if point_c_isfinite(self.vs[v]):
                         point_map[v] = nv
                         nv += 1
                     else:
@@ -761,34 +763,35 @@ cdef class IndexFaceSet(PrimitiveObject):
             <BLANKLINE>
             <IndexedFaceSet solid='False' colorPerVertex='False' coordIndex='0,4,5,-1,3,4,5,-1,2,3,4,-1,1,3,5,-1'>
               <Coordinate point='2.0 0.0 0.0,0.0 2.0 0.0,0.0 0.0 2.0,0.0 1.0 1.0,1.0 0.0 1.0,1.0 1.0 0.0'/>
-              <Color color='1.0 0.0 0.0,1.0 0.6 0.0,0.8 1.0 0.0,0.2 1.0 0.0' />
+              <Color color='1.0 0.0 0.0,1.0 0.6000000000000001 0.0,0.7999999999999998 1.0 0.0,0.20000000000000018 1.0 0.0' />
             </IndexedFaceSet>
             <BLANKLINE>
         """
         cdef Py_ssize_t i
-        points = ",".join(["%s %s %s" % (self.vs[i].x,
-                                         self.vs[i].y,
-                                         self.vs[i].z)
+        vs = self.vs
+        fs = self._faces
+        points = ",".join(["%r %r %r" % (vs[i].x, vs[i].y, vs[i].z)
                            for i from 0 <= i < self.vcount])
-        coordIndex = ",-1,".join([",".join([str(self._faces[i].vertices[j])
-                                            for j from 0 <= j < self._faces[i].n])
-                                  for i from 0 <= i < self.fcount])
+        coord_idx = ",-1,".join([",".join([repr(fs[i].vertices[j])
+                                           for j from 0 <= j < fs[i].n])
+                                 for i from 0 <= i < self.fcount])
         if not self.global_texture:
-            colorIndex = ",".join([str(self._faces[i].color.r) + " "
-                                   + str(self._faces[i].color.g) + " "
-                                   + str(self._faces[i].color.b)
-                                   for i from 0 <= i < self.fcount])
-            return """
-<IndexedFaceSet solid='False' colorPerVertex='False' coordIndex='%s,-1'>
-  <Coordinate point='%s'/>
-  <Color color='%s' />
-</IndexedFaceSet>
-""" % (coordIndex, points, colorIndex)
-        return """
-<IndexedFaceSet coordIndex='%s,-1'>
-  <Coordinate point='%s'/>
-</IndexedFaceSet>
-""" % (coordIndex, points)
+            color_idx = ",".join(['%r %r %r' % (fs[i].color.r, fs[i].color.g, fs[i].color.b)
+                                  for i from 0 <= i < self.fcount])
+            # Note: Don't use f-strings, since Sage on Python 2 still expects
+            # this to return a plain str instead of a unicode
+            return dedent("""
+                <IndexedFaceSet solid='False' colorPerVertex='False' coordIndex='{coord_idx},-1'>
+                  <Coordinate point='{points}'/>
+                  <Color color='{color_idx}' />
+                </IndexedFaceSet>
+            """.format(coord_idx=coord_idx, points=points, color_idx=color_idx))
+
+        return dedent("""
+            <IndexedFaceSet coordIndex='{coord_idx},-1'>
+              <Coordinate point='{points}'/>
+            </IndexedFaceSet>
+        """.format(coord_idx=coord_idx, points=points))
 
     def bounding_box(self):
         r"""
@@ -861,7 +864,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             try:
                 count = part_counts[part]
             except KeyError:
-                part_counts[part] = count = [0,0]
+                part_counts[part] = count = [0, 0]
             count[0] += 1
             count[1] += face.n
         all = {}
@@ -1314,7 +1317,7 @@ cdef class EdgeIter:
                         return ((P.x, P.y, P.z), (Q.x, Q.y, Q.z))
                 else:
                     if point_c_cmp(P, Q) > 0:
-                        P,Q = Q,P
+                        P, Q = Q, P
                     edge = ((P.x, P.y, P.z), (Q.x, Q.y, Q.z))
                     if not edge in self.seen:
                         self.seen[edge] = edge
@@ -1352,12 +1355,18 @@ def len3d(v):
     """
     Return the norm of a vector in three dimensions.
 
+    This is deprecated since :trac:`27450` .
+
     EXAMPLES::
 
         sage: from sage.plot.plot3d.index_face_set import len3d
         sage: len3d((1,2,3))
+        doctest:warning...:
+        DeprecationWarning: len3d is deprecated, use point_c_len instead
+        See https://trac.sagemath.org/27450 for details.
         3.7416573867739413
     """
+    deprecation(27450, "len3d is deprecated, use point_c_len instead")
     return sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2])
 
 

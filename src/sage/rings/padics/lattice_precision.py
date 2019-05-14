@@ -30,6 +30,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
+from __future__ import division
 from collections import defaultdict
 
 from sage.misc.misc import walltime
@@ -376,7 +377,7 @@ class pRational:
             val = self._valuation + other._valuation
         return self.__class__(self.p, self.x * other.x, self.exponent + other.exponent, valuation=val)
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         r"""
         Return the quotient of ``self`` by ``other``.
 
@@ -395,6 +396,8 @@ class pRational:
         else:
             val = self._valuation - other._valuation
         return self.__class__(self.p, self.x / other.x, self.exponent - other.exponent, valuation=val)
+
+    __div__ = __truediv__
 
     def _quo_rem(self, other):
         """
@@ -777,7 +780,7 @@ class DifferentialPrecisionGeneric(SageObject):
         Return the dimension of the vector space in which the precision
         module/lattice lives.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: R = ZpLC(2, label='ambient_dim')
             sage: prec = R.precision()
@@ -1485,7 +1488,7 @@ class DifferentialPrecisionGeneric(SageObject):
           a dictionary
 
         Here are the meanings of the keywords above:
-        - ``add``: time spent in adding new colunmns to the precision matrix
+        - ``add``: time spent in adding new columns to the precision matrix
           (corresponding to the creation of new elements)
         - ``mark``: time spent in marking elements for deletion
         - ``del``: time spent in deleting columns of the precision matrix

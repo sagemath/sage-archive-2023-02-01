@@ -17,7 +17,7 @@ https://www.gap-system.org/Packages/quagroup.html.
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.misc.lazy_attribute import lazy_attribute
@@ -828,7 +828,7 @@ class QuantumGroup(UniqueRepresentation, Parent):
         for i in range(len(ext_rep)//2):
             if ext_rep[2*i].Length() == 0:
                 ext_rep.pop(2*i) # Pop the key
-                constant = R(str(ext_rep.pop(2*i))) # Pop the coefficent
+                constant = R(str(ext_rep.pop(2*i))) # Pop the coefficient
                 break
         # To reconstruct, we need the following
         F = libgap.eval('ElementsFamily')(libgap.eval('FamilyObj')(self._libgap))

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 Helper functions for reduction of binary forms.
 
 The algorithm for reducing is from Stoll and Cremona's "On the Reduction Theory of
@@ -16,15 +16,16 @@ AUTHORS:
 - Ben Hutz (2018-7) -- improvements to reduce and implement smallest coefficient model 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2018 Benjamin Hutz <bn4941#gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from __future__ import division
 
 from sage.arith.misc import gcd
 from sage.calculus.functions import jacobian
@@ -42,8 +43,9 @@ from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RealField
 from sage.symbolic.constants import e
 
+
 def covariant_z0(F, z0_cov=False, prec=53, emb=None, error_limit=0.000001):
-    """
+    r"""
     Return the covariant and Julia invariant from Cremona-Stoll [CS2003]_.
 
     In [CS2003]_ and [HS2018]_ the Julia invariant is denoted as `\Theta(F)`
@@ -100,7 +102,7 @@ def covariant_z0(F, z0_cov=False, prec=53, emb=None, error_limit=0.000001):
     ::
 
         sage: R.<x,y> = QQ[]
-        sage: covariant_z0(x^2*y - x*y^2, prec=100)
+        sage: covariant_z0(x^2*y - x*y^2, prec=100) # tol 1e-28
          (0.50000000000000000000000000003 + 0.86602540378443864676372317076*I,
          1.5396007178390020386910634147)
 
@@ -130,7 +132,7 @@ def covariant_z0(F, z0_cov=False, prec=53, emb=None, error_limit=0.000001):
     """
     R = F.parent()
     d = ZZ(F.degree())
-    if R.ngens() != 2 or any([sum(t) != d for t in F.exponents()]):
+    if R.ngens() != 2 or any(sum(t) != d for t in F.exponents()):
         raise TypeError('must be a binary form')
     if d < 3:
         raise ValueError('must be at least degree 3')
@@ -153,13 +155,12 @@ def covariant_z0(F, z0_cov=False, prec=53, emb=None, error_limit=0.000001):
     # now we have a single variable polynomial with all the roots of F
     K = ComplexField(prec=prec)
     if f.base_ring() != K:
-        if emb == None:
+        if emb is None:
             f = f.change_ring(K)
         else:
             f = f.change_ring(emb)
     roots = f.roots()
-    if (max([ex for p,ex in roots]) > 1)\
-      or (f.degree() < d-1):
+    if max(ex for _, ex in roots) > 1 or f.degree() < d - 1:
         if z0_cov:
             raise ValueError('cannot have multiple roots for z0 invariant')
         else:
@@ -168,7 +169,7 @@ def covariant_z0(F, z0_cov=False, prec=53, emb=None, error_limit=0.000001):
             if f.degree() < 3:
                 raise ValueError('must have at least 3 distinct roots')
             roots = f.roots()
-    roots = [p for p,ex in roots]
+    roots = [p for p, _ in roots]
 
     # finding quadratic Q_0, gives us our covariant, z_0
     dF = f.derivative()
@@ -290,7 +291,7 @@ def epsinv(F, target, prec=53, target_tol=0.001, z=None, emb=None):
 
         sage: from sage.rings.polynomial.binary_form_reduce import epsinv
         sage: R.<x,y> = QQ[]
-        sage: epsinv(-2*x^3 + 2*x^2*y + 3*x*y^2 + 127*y^3, 31.5022020249597)
+        sage: epsinv(-2*x^3 + 2*x^2*y + 3*x*y^2 + 127*y^3, 31.5022020249597) # tol 1e-12
         4.02520895942207       
     """
     def coshdelta(z):
@@ -326,7 +327,7 @@ def epsinv(F, target, prec=53, target_tol=0.001, z=None, emb=None):
     if z is None:
         z, th = covariant_z0(F, prec=prec, emb=emb)
     else: #need to do our own input checking
-        if R.ngens() != 2 or any([sum(t) != d for t in F.exponents()]):
+        if R.ngens() != 2 or any(sum(t) != d for t in F.exponents()):
             raise TypeError('must be a binary form')
         if d < 3:
             raise ValueError('must be at least degree 3')
@@ -410,9 +411,9 @@ def get_bound_poly(F, prec=53, norm_type='norm', emb=None):
         sage: from sage.rings.polynomial.binary_form_reduce import get_bound_poly
         sage: R.<x,y> = QQ[]
         sage: F = -2*x^3 + 2*x^2*y + 3*x*y^2 + 127*y^3
-        sage: get_bound_poly(F)
+        sage: get_bound_poly(F) # tol 1e-12
         28.0049336543295
-        sage: get_bound_poly(F, norm_type='height')
+        sage: get_bound_poly(F, norm_type='height') # tol 1e-11
         111.890642019092
     """
     def coshdelta(z):
@@ -444,7 +445,7 @@ def get_bound_poly(F, prec=53, norm_type='norm', emb=None):
 
 
 def smallest_poly(F, prec=53, norm_type='norm', emb=None):
-    """
+    r"""
     Determine the poly with smallest coefficients in `SL(2,\Z)` orbit of ``F``
 
     Smallest can be in the sense of `L_2` norm or height.
@@ -514,10 +515,10 @@ def smallest_poly(F, prec=53, norm_type='norm', emb=None):
             else:
                 pts.append(item)
             return pts
-        else: #binary insertion
+        else:  # binary insertion
             left = 1
             right = N
-            mid = ((left + right)/2)# these are ints so this is .floor()
+            mid = (left + right) // 2  # these are ints so this is .floor()
             if item[index] > pts[mid][index]: # item goes into first half
                 return insert_item(pts[:mid], item, index) + pts[mid:N]
             else: # item goes into second half

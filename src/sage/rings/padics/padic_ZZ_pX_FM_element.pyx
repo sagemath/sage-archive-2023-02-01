@@ -2,7 +2,7 @@
 `p`-Adic ``ZZ_pX`` FM Element
 
 This file implements elements of Eisenstein and unramified extensions
-of `\mathbb{Z}_p` with fixed modulus precision.
+of `\ZZ_p` with fixed modulus precision.
 
 For the parent class see ``padic_extension_leaves.pyx``.
 
@@ -150,7 +150,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
     def __init__(self, parent, x, absprec=None, relprec=None, empty=False):
         """
         Creates an element of a fixed modulus, unramified or
-        eisenstein extension of `\mathbb{Z}_p` or `\mathbb{Q}_p`.
+        eisenstein extension of `\ZZ_p` or `\QQ_p`.
 
         INPUT:
 
@@ -1050,8 +1050,8 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
         If `K` is given then `K` must be a subfield of the parent `L` of
         ``self``, in which case the norm is the relative norm from `L` to `K`.
-        In all other cases, the norm is the absolute norm down to `\mathbb{Q}_p`
-        or `\mathbb{Z}_p`.
+        In all other cases, the norm is the absolute norm down to `\QQ_p`
+        or `\ZZ_p`.
 
         EXAMPLES::
 
@@ -1082,8 +1082,8 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
         If `K` is given then `K` must be a subfield of the parent `L` of
         ``self``, in which case the norm is the relative norm from `L` to `K`.
-        In all other cases, the norm is the absolute norm down to `\mathbb{Q}_p`
-        or `\mathbb{Z}_p`.
+        In all other cases, the norm is the absolute norm down to `\QQ_p`
+        or `\ZZ_p`.
 
         EXAMPLES::
 

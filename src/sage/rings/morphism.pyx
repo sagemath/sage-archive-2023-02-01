@@ -812,7 +812,10 @@ cdef class RingHomomorphism(RingMap):
         - Simon King (2010-05)
         - Francis Clarke (2011-02)
         """
+        from sage.categories.morphism import IdentityMorphism
         from sage.categories.rings import Rings
+        if isinstance(right, IdentityMorphism):
+            return self
         if homset.homset_category().is_subcategory(Rings()):
             if isinstance(right, RingHomomorphism_im_gens):
                 try:

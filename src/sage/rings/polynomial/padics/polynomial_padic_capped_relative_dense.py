@@ -619,12 +619,14 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
         else:
             return Polynomial_padic_capped_relative_dense(self.parent(), (self._poly, self._valbase + shift, self._relprecs, False, self._valaddeds, [c.__lshift__(shift) for c in self._list]), construct = True)
 
-    def rshift_coeffs(self, shift, no_list = False):
+    def rshift_coeffs(self, shift, no_list=False):
         """
         Return a new polynomial whose coefficients are p-adically
-        shifted to the right by shift.
+        shifted to the right by ``shift``.
 
-        NOTES: Type Qp(5)(0).__rshift__? for more information.
+        .. NOTE::
+
+            Type ``Qp(5)(0).__rshift__?`` for more information.
 
         EXAMPLES::
 

@@ -267,13 +267,13 @@ def variance(v, bias=False):
         1
         sage: class SillyPythonList:
         ....:   def __init__(self):
-        ....:       self.__list = [2L,4L]
+        ....:       self.__list = [2, 4]
         ....:   def __len__(self):
         ....:       return len(self.__list)
         ....:   def __iter__(self):
         ....:       return self.__list.__iter__()
         ....:   def mean(self):
-        ....:       return 3L
+        ....:       return 3
         sage: R = SillyPythonList()
         sage: variance(R)
         2

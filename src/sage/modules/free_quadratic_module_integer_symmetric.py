@@ -46,15 +46,15 @@ AUTHORS:
 - Paolo Menegatti (2018-03): Added IntegralLatticeDirectSum, IntegralLatticeGluing
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2017 Simon Brandhorst <sbrandhorst@web.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from copy import copy
 from sage.rings.integer_ring import ZZ
@@ -88,7 +88,7 @@ def IntegralLattice(data, basis=None):
     - ``data`` -- can be one of the following:
 
       * a symmetric matrix over the rationals -- the inner product matrix
-      * an integer -- the dimension for a euclidian lattice
+      * an integer -- the dimension for an Euclidean lattice
       * a symmetric Cartan type or anything recognized by
         :class:`CartanMatrix` (see also
         :mod:`Cartan types <sage.combinat.root_system.cartan_type>`)
@@ -125,7 +125,7 @@ def IntegralLattice(data, basis=None):
         [ 2  1]
         [ 1 -2]
 
-    We can define a Euclidian lattice just by its dimension::
+    We can define an Euclidean lattice just by its dimension::
 
         sage: IntegralLattice(3)
         Lattice of degree 3 and rank 3 over Integer Ring
@@ -138,7 +138,7 @@ def IntegralLattice(data, basis=None):
         [0 1 0]
         [0 0 1]
 
-    Here is an example of the `A_2` root lattice in Euclidian space::
+    Here is an example of the `A_2` root lattice in Euclidean space::
 
         sage: basis = Matrix([[1,-1,0], [0,1,-1]])
         sage: A2 = IntegralLattice(3, basis)
@@ -631,11 +631,9 @@ def IntegralLatticeGluing(Lattices, glue, return_embeddings=False):
     for i in range(N):
         ALi = Lattices[i].discriminant_group()
         for g in glue:
-            try:
-                ALi(g[i])
-            except:
-                raise ValueError("the gluing vectors must be in the"
-                                 "corresponding discriminant groups")
+            # Check that the gluing vectors are in the
+            # corresponding discriminant groups
+            ALi(g[i])
     generators = [sum(phi[i](g[i].lift()*g[i].order())/g[i].order()
                       for i in range(N))
                   for g in glue]
@@ -1112,7 +1110,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             sage: conj = Aut.conjugacy_classes_representatives()
             sage: len(conj)
             14
-            sage: Aut.structure_description()   # optional - database_gap
+            sage: Aut.structure_description()
             'C2 x S5'
 
         The lattice can live in a larger ambient space::
@@ -1167,16 +1165,16 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         sig = self.signature_pair()
         if gens is None:
             gens = []
-            if sig[1]==0 or sig[0]==0: #definite
+            if sig[1] == 0 or sig[0] == 0:  # definite
                 from sage.quadratic_forms.quadratic_form import QuadraticForm
                 is_finite = True
                 # Compute transformation matrix to the ambient module.
                 L = self.overlattice(self.ambient_module().gens())
                 Orthogonal = L.orthogonal_complement(self)
                 B = self.basis_matrix().stack(Orthogonal.basis_matrix())
-                if sig[0] == 0: #negative definite
+                if sig[0] == 0:  # negative definite
                     q = QuadraticForm(ZZ, -2*self.gram_matrix())
-                else:    # positve definite
+                else:  # positive definite
                     q = QuadraticForm(ZZ, 2*self.gram_matrix())
                 identity = matrix.identity(Orthogonal.rank())
                 for g in q.automorphism_group().gens():
@@ -1185,7 +1183,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
                     g = matrix.block_diagonal([g, identity])
                     g = B.inverse()*g*B
                     gens.append(g)
-            else: #indefinite
+            else:  # indefinite
                 raise NotImplementedError(
                     "currently, we can only compute generators "
                     "for orthogonal groups over definite lattices.")
@@ -1219,6 +1217,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             Genus of
             [0 1]
             [1 0]
+            Signature:  (1, 1)
             Genus symbol at 2:    1^2
         """
         from sage.quadratic_forms.genera.genus import Genus
@@ -1345,9 +1344,9 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         """
         try:
             s = self.base_ring()(s)
-        except:
-            ValueError("the scaling factor must be an element of the base ring.")
-        if (s==0):
+        except TypeError:
+            raise ValueError("the scaling factor must be an element of the base ring.")
+        if s==0:
             raise ValueError("the scaling factor must be non zero")
         if discard_basis:
             return IntegralLattice(s * self.gram_matrix())
@@ -1356,4 +1355,3 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             inner_product_matrix = s * self.inner_product_matrix()
             ambient = FreeQuadraticModule(self.base_ring(), n, inner_product_matrix)
             return FreeQuadraticModule_integer_symmetric(ambient=ambient, basis=self.basis(), inner_product_matrix=inner_product_matrix)
-

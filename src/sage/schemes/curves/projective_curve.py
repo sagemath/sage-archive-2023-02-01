@@ -53,14 +53,11 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.qqbar import (number_field_elements_from_algebraics,
                               QQbar)
 from sage.rings.rational_field import is_RationalField
-from sage.schemes.affine.affine_space import AffineSpace
 from sage.schemes.projective.projective_space import ProjectiveSpace, is_ProjectiveSpace
 
 from . import point
 
 from sage.schemes.projective.projective_subscheme import AlgebraicScheme_subscheme_projective
-from sage.schemes.projective.projective_space import (is_ProjectiveSpace,
-                                                      ProjectiveSpace)
 
 from .curve import Curve_generic
 
@@ -129,14 +126,14 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             sage: C = Curve([y*z - x^2, w^2 - x*y], P)
             sage: C.affine_patch(0)
             Affine Curve over Complex Field with 53 bits of precision defined by
-            x0*x1 - 1.00000000000000, x2^2 - x0
+            y*z - 1.00000000000000, w^2 - y
 
         ::
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: C = Curve(x^3 - x^2*y + y^3 - x^2*z, P)
             sage: C.affine_patch(1)
-            Affine Plane Curve over Rational Field defined by x0^3 - x0^2*x1 - x0^2 + 1
+            Affine Plane Curve over Rational Field defined by x^3 - x^2*z - x^2 + 1
 
         ::
 
@@ -621,8 +618,8 @@ class ProjectivePlaneCurve(ProjectiveCurve):
                 # What is the '5' in this line and the 'r()' in the next???
                 lcs = self.local_coordinates(P,5)
                 ldg = degree_lowest_rational_function(r(lcs[0],lcs[1]),z)
-                if ldg[0] != 0:
-                    divf.append([ldg[0],P])
+                if ldg != 0:
+                    divf.append([ldg, P])
         return divf
 
 
@@ -676,21 +673,19 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         cmd = 'matrix c = coeffs ('+str(ft)+',t)'
         S.eval(cmd)
         N = int(S.eval('size(c)'))
-        b = ["c["+str(i)+",1]," for i in range(2, N//2 - 4)]
-        b = ''.join(b)
-        b = b[:len(b)-1] #to cut off the trailing comma
-        cmd = 'ideal I = '+b
+        b = ','.join("c[{},1]".format(i) for i in range(2, N//2 - 4))
+        cmd = 'ideal I = ' + b
         S.eval(cmd)
         c = S.eval('slimgb(I)')
         d = c.split("=")
         d = d[1:]
         d[len(d)-1] += "\n"
-        e = [x[:x.index("\n")] for x in d]
+        e = [xx[:xx.index("\n")] for xx in d]
         vals = []
         for x in e:
             for y in vars0:
                 if str(y) in x:
-                    if len(x.replace(str(y),"")) != 0:
+                    if len(x.replace(str(y),"")):
                         i = x.find("-")
                         if i>0:
                             vals.append([eval(x[1:i]),x[:i],F(eval(x[i+1:]))])
@@ -700,9 +695,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
                     else:
                         vals.append([eval(str(y)[1:]),str(y),F(0)])
         vals.sort()
-        k = len(vals)
-        v = [x0+t,y0+add([vals[i][2]*t**(i+1) for i in range(k)])]
-        return v
+        return [x0 + t, y0 + add(v[2] * t**(j+1) for j, v in enumerate(vals))]
 
     def plot(self, *args, **kwds):
         """
@@ -1319,7 +1312,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             -1/64*x^4 + 3/64*x^2*y^2 - 1/32*x*y^3 + 1/16*x*y^2*z - 1/16*y^3*z +
             1/16*y^2*z^2 : 3/64*x^4 - 3/32*x^3*y + 3/64*x^2*y^2 + 1/16*x^3*z -
             3/16*x^2*y*z + 1/8*x*y^2*z - 1/8*x*y*z^2 + 1/16*y^2*z^2)
-            sage: all([D.codomain().is_ordinary_singularity(Q) for Q in D.codomain().singular_points()]) # long time
+            sage: all(D.codomain().is_ordinary_singularity(Q) for Q in D.codomain().singular_points()) # long time
             True
 
         ::
@@ -1612,7 +1605,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             sage: R.<x,y,z>=QQ[]
             sage: C=Curve(x^3+3*y^3+5*z^3)
             sage: C.riemann_surface()
-            Riemann surface defined by polynomial f = x0^3 + 3*x1^3 + 5 = 0, with 53 bits of precision
+            Riemann surface defined by polynomial f = x^3 + 3*y^3 + 5 = 0, with 53 bits of precision
 
         """
         return self.affine_patch(2).riemann_surface(**kwargs)
@@ -1925,14 +1918,12 @@ class ProjectivePlaneCurve_prime_finite_field(ProjectivePlaneCurve_finite_field)
         v = singular('POINTS').sage_flattened_str_list()
         coords = [self(int(v[3*i]), int(v[3*i+1]), int(v[3*i+2])) for i in range(len(v)//3)]
         # build correct representation of D for singular
-        Dsupport = D.support()
         Dcoeffs = []
         for x in pnts:
             if x[0] == 1:
                 Dcoeffs.append(D.coefficient(coords[x[1]]))
             else:
                 Dcoeffs.append(0)
-        Dstr = str(tuple(Dcoeffs))
         G = singular(','.join([str(x) for x in Dcoeffs]), type='intvec')
         # call singular's brill noether routine and return
         T = X2[1][2]

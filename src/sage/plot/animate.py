@@ -877,8 +877,6 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
         TESTS::
 
             sage: a.ffmpeg(output_format='gif',delay=30,iterations=5)     # optional -- ffmpeg
-            doctest:...: DeprecationWarning: use tmp_filename instead
-            See http://trac.sagemath.org/17234 for details.
         """
         if not self._have_ffmpeg():
             msg = """Error: ffmpeg does not appear to be installed. Saving an animation to

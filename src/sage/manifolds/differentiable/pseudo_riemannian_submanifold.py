@@ -675,7 +675,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         # case no foliation:
         max_frame = self._ambient.default_frame().along(self._immersion)
         self._normal = self.multivector_field(self._ambient._dim - self._dim,
-                                              "n", r"n", self._immersion)
+                                              name="n",
+                                              dest_map=self._immersion)
 
         # an auxiliary functions:
         def calc_normal(chart):
@@ -1277,7 +1278,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             raise NotImplementedError("'mixed_projection' is"+
                                       " implemented only for hypersurfaces.")
         if isinstance(indices, (Integer, int)):
-            indices = range(indices)
+            indices = list(range(indices))
 
         if len(indices)>tensor.tensor_rank():
             raise ValueError("Too much contractions")
@@ -1299,8 +1300,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                 multiprojector = multiprojector * self.normal().contract(g)
             else:
                 multiprojector = multiprojector * self.projector()
-        args = range(kp - tensor.tensor_type()[0], kp) + range(
-            tensor.tensor_type()[1]) + [tensor] + range(k)
+        args = list(range(kp - tensor.tensor_type()[0], kp)) + list(range(
+                tensor.tensor_type()[1])) + [tensor] + list(range(k))
         return multiprojector.contract(*args)
 
     @cached_method

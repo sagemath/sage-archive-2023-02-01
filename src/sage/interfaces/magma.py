@@ -376,7 +376,7 @@ class Magma(ExtraTabCompletion, Expect):
             sage: m.set_seed(1) # optional - magma
             1
             sage: [m.Random(100) for i in range(5)] # optional - magma
-            [95, 20, 61, 59, 24]
+            [13, 55, 84, 100, 37]
         """
         if seed is None:
             seed = self.rand_seed()
@@ -1512,7 +1512,6 @@ class Magma(ExtraTabCompletion, Expect):
                         N.append(x[:i])
                 except RuntimeError as msg:  # weird internal problems in Magma type system
                     print('Error -- %s' % msg)
-                    pass
             if verbose:
                 print("Done! (%s seconds)" % sage.misc.misc.cputime(tm))
             N = sorted(set(N))
@@ -1566,11 +1565,9 @@ class Magma(ExtraTabCompletion, Expect):
 
         INPUT:
 
+        -  ``type`` -- string (e.g. 'Groebner')
 
-        -  ``type`` - string (e.g. 'Groebner')
-
-        -  ``level`` - integer = 0
-
+        -  ``level`` -- integer >= 0
 
         EXAMPLES::
 
@@ -1578,35 +1575,11 @@ class Magma(ExtraTabCompletion, Expect):
             sage: magma.get_verbose("Groebner")         # optional - magma
             2
         """
-        self.SetVerbose(type, level)
-
-    def SetVerbose(self, type, level):
-        """
-        Set the verbosity level for a given algorithm class etc. in Magma.
-
-        INPUT:
-
-
-        -  ``type`` - string (e.g. 'Groebner'), see Magma
-           documentation
-
-        -  ``level`` - integer = 0
-
-
-        .. note::
-
-           This method is provided to be consistent with the Magma
-           naming convention.
-
-        ::
-
-            sage: magma.SetVerbose("Groebner", 2)      # optional - magma
-            sage: magma.GetVerbose("Groebner")         # optional - magma
-            2
-        """
         if level < 0:
             raise TypeError("level must be >= 0")
         self.eval('SetVerbose("%s",%d)' % (type, level))
+
+    SetVerbose = set_verbose
 
     def get_verbose(self, type):
         """
@@ -1625,31 +1598,9 @@ class Magma(ExtraTabCompletion, Expect):
             sage: magma.get_verbose("Groebner")           # optional - magma
             2
         """
-        return self.GetVerbose(type)
-
-    def GetVerbose(self, type):
-        """
-        Get the verbosity level of a given algorithm class etc. in Magma.
-
-        INPUT:
-
-
-        -  ``type`` - string (e.g. 'Groebner'), see Magma
-           documentation
-
-
-        .. note::
-
-           This method is provided to be consistent with the Magma
-           naming convention.
-
-        EXAMPLES::
-
-            sage: magma.SetVerbose("Groebner", 2)      # optional - magma
-            sage: magma.GetVerbose("Groebner")         # optional - magma
-            2
-        """
         return int(self.eval('GetVerbose("%s")' % type))
+
+    GetVerbose = get_verbose
 
     def set_nthreads(self, n):
         """
@@ -1665,28 +1616,11 @@ class Magma(ExtraTabCompletion, Expect):
             sage: magma.get_nthreads()                 #optional - magma
             2
         """
-        self.SetNthreads(n)
-
-    def SetNthreads(self, n):
-        """
-        Set the number of threads used for parallelized algorithms in Magma.
-
-        INPUT:
-
-        - ``n`` - number of threads
-
-        .. note::
-
-           This method is provided to be consistent with the Magma
-           naming convention.
-
-        EXAMPLES::
-
-            sage: magma.SetNthreads(2)                 #optional - magma
-            sage: magma.GetNthreads()                  #optional - magma
-            2
-        """
+        if n < 1:
+            raise TypeError("no. of threads must be >= 1")
         self.eval('SetNthreads(%d)' % (n))
+
+    SetNthreads = set_nthreads
 
     def get_nthreads(self):
         """
@@ -1698,24 +1632,9 @@ class Magma(ExtraTabCompletion, Expect):
             sage: magma.get_nthreads()                 #optional - magma
             2
         """
-        return self.GetNthreads()
-
-    def GetNthreads(self):
-        """
-        Get the number of threads used in Magma.
-
-        .. note::
-
-           This method is provided to be consistent with the Magma
-           naming convention.
-
-        EXAMPLES::
-
-            sage: magma.SetNthreads(2)                 #optional - magma
-            sage: magma.GetNthreads()                  #optional - magma
-            2
-        """
         return int(self.eval('GetNthreads()'))
+
+    GetNthreads = get_nthreads
 
 @instancedoc
 class MagmaFunctionElement(FunctionElement):
@@ -2879,10 +2798,6 @@ class MagmaGBLogPrettyPrinter:
             sage: P.<x,y,z> = GF(32003)[]
             sage: I = sage.rings.ideal.Cyclic(P)
             sage: _ = I.groebner_basis('magma',prot=True) # indirect doctest, optional - magma, not tested
-
-            Homogeneous weights search
-            Number of variables: 3, nullity: 1
-            Exact search time: 0.000
             ********************
             FAUGERE F4 ALGORITHM
             ********************
@@ -2943,8 +2858,9 @@ class MagmaGBLogPrettyPrinter:
             sage: P.<x,y,z> = GF(32003)[]
             sage: I = sage.rings.ideal.Katsura(P)
             sage: _ = I.groebner_basis('magma',prot=True) # indirect doctest, optional - magma
-            <BLANKLINE>
-            Homogeneous weights search
+            ********************
+            FAUGERE F4 ALGORITHM
+            ********************
             ...
             Total Faugere F4 time: ..., real time: ...
         """

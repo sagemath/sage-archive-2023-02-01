@@ -450,8 +450,8 @@ Python pour plus de détails) vers des objets arbitraires.
     sage: d = {1:5, 'sage':17, ZZ:GF(7)}
     sage: type(d)
     <... 'dict'>
-    sage: d.keys()
-     [1, 'sage', Integer Ring]
+    sage: list(d.keys())
+    [1, 'sage', Integer Ring]
     sage: d['sage']
     17
     sage: d[ZZ]

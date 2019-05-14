@@ -479,7 +479,7 @@ class SchemeMorphism_point_affine_finite_field(SchemeMorphism_point_affine_field
         """
         p = self.codomain().base_ring().order()
         N = self.codomain().ambient_space().dimension_relative()
-        return sum(hash(self[i])*p**i for i in range(N))
+        return int(sum(hash(self[i])*p**i for i in range(N)))
 
     def orbit_structure(self, f):
         r"""

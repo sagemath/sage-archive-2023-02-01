@@ -2,7 +2,7 @@ r"""
 Regular Supercrystals
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2017 Franco Saliola <saliola@gmail.com>
 #                     2017 Anne Schilling <anne at math.ucdavis.edu>
 #                     2017 Travis Scrimshaw <tcscrims at gmail.com>
@@ -11,18 +11,15 @@ Regular Supercrystals
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.crystals import Crystals
 from sage.categories.tensor import TensorProductsCategory
-from sage.combinat.subset import Subsets
-from sage.graphs.dot2tex_utils import have_dot2tex
+
 
 class RegularSuperCrystals(Category_singleton):
     r"""
@@ -365,17 +362,17 @@ class RegularSuperCrystals(Category_singleton):
                 (3,)
 
                 sage: T = B.tensor(B)
-                sage: T.lowest_weight_vectors()
-                ([3, 3], [3, 2])
+                sage: sorted(T.lowest_weight_vectors())
+                [[3, 2], [3, 3]]
 
             We give an example from [BKK2000]_ that has fake
             lowest weight vectors::
 
                 sage: B = crystals.Tableaux(['A', [1,1]], shape=[3,2,1])
-                sage: B.lowest_weight_vectors()
-                ([[-1, 1, 2], [1, 2], [2]],
-                 [[-2, 1, 2], [-1, 2], [1]],
-                 [[-2, 1, 2], [-1, 2], [2]])
+                sage: sorted(B.lowest_weight_vectors())
+                [[[-2, 1, 2], [-1, 2], [1]],
+                 [[-2, 1, 2], [-1, 2], [2]],
+                 [[-1, 1, 2], [1, 2], [2]]]
                 sage: B.genuine_lowest_weight_vectors()
                 ([[-1, 1, 2], [1, 2], [2]],)
             """
@@ -477,11 +474,11 @@ class RegularSuperCrystals(Category_singleton):
             EXAMPLES::
 
                 sage: B = crystals.Tableaux(['A', [1,1]], shape=[3,2,1])
-                sage: for b in B.lowest_weight_vectors():
+                sage: for b in sorted(B.lowest_weight_vectors()):
                 ....:     print("{} {}".format(b, b.is_genuine_lowest_weight()))
-                [[-1, 1, 2], [1, 2], [2]] True
                 [[-2, 1, 2], [-1, 2], [1]] False
                 [[-2, 1, 2], [-1, 2], [2]] False
+                [[-1, 1, 2], [1, 2], [2]] True
                 sage: [b for b in B if b.is_genuine_lowest_weight([-1,0])]
                 [[[-2, -1, 1], [-1, 1], [1]],
                  [[-2, -1, 1], [-1, 1], [2]],

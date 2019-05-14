@@ -76,7 +76,7 @@ class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_pr
 
         For number fields, this uses the
         Doyle-Krumm algorithm 4 (algorithm 5 for imaginary quadratic) for
-        computing algebraic numbers up to a given height [Doyle-Krumm]_.
+        computing algebraic numbers up to a given height [DK2013]_.
 
         The algorithm requires floating point arithmetic, so the user is
         allowed to specify the precision for such calculations.
@@ -146,10 +146,7 @@ class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_pr
             (2 : 1 : 1 , 0 : 1), (2 : 1 : 1 , 1 : 0), (2 : 1 : 1 , 1 : 1), (2 : 1 : 1 , 2 : 1),
             (2 : 2 : 1 , 0 : 1), (2 : 2 : 1 , 1 : 0), (2 : 2 : 1 , 1 : 1), (2 : 2 : 1 , 2 : 1)]
         """
-        B = kwds.pop('bound', 0)
-        tol = kwds.pop('tolerance', 1e-2)
-        prec = kwds.pop('precision', 53)
-        
+        B = kwds.pop('bound', 0)        
         X = self.codomain()
 
         from sage.schemes.product_projective.space import is_ProductProjectiveSpaces
@@ -183,4 +180,4 @@ class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_pr
             from sage.schemes.product_projective.rational_point import enum_product_projective_finite_field
             return enum_product_projective_finite_field(self)
         else:
-            raise TypeError("unable to enumerate points over %s"%R)
+            raise TypeError("unable to enumerate points over %s" % R)

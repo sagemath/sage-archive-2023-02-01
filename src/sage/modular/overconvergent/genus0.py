@@ -169,7 +169,7 @@ classical) does not apply.
 #                     2008-9 David Loeffler <d.loeffler.01@cantab.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import range
@@ -178,7 +178,6 @@ from six import integer_types
 from sage.matrix.all        import matrix, MatrixSpace, diagonal_matrix
 from sage.misc.misc         import verbose
 from sage.misc.cachefunc    import cached_method
-from sage.misc.superseded   import deprecated_function_alias
 from sage.modular.all       import (trivial_character, EtaProduct,
                                     j_invariant_qexp, hecke_operator_on_qexp)
 from sage.modular.arithgroup.all import is_Gamma0, is_Gamma1
@@ -778,12 +777,11 @@ class OverconvergentModularFormsSpace(Module):
         """
         return self(0)
 
-    zero_element = deprecated_function_alias(17694, zero)
-
     def _coerce_from_ocmf(self, f):
         r"""
-        Try to convert the overconvergent modular form `f` into an element of self. An error will be raised if this is
-        obviously nonsense.
+        Try to convert the overconvergent modular form `f` into an element of self.
+
+        An error will be raised if this is obviously nonsense.
 
         EXAMPLES::
 
@@ -1019,12 +1017,12 @@ class OverconvergentModularFormsSpace(Module):
                             mat[i,j] = mat[i,j] + mat[i-u-1, j-v-1]*self.recurrence_matrix()[u,v]
 
         else:
-            if( n*self.prime() > self.prec()):
+            if n * self.prime() > self.prec():
                 raise ValueError("n is too large")
             for j in range(self.prime(), n):
                 l = self._convert_to_basis(self.hecke_operator(self._basis_cache[j], m))
                 for i in range(n):
-                    mat[i,j] = l[i]
+                    mat[i, j] = l[i]
         return mat
 
     def slopes(self, n, use_recurrence=False):
@@ -1261,14 +1259,15 @@ class OverconvergentModularFormsSpace(Module):
             sage: OverconvergentModularForms(3, 16, 1/2, base_ring=Qp(3), prec=30).cps_u(10)
             1 + O(3^20) + (2 + 2*3 + 2*3^2 + 2*3^4 + 3^5 + 3^6 + 3^7 + 2*3^15 + O(3^16))*T + (2*3^3 + 3^5 + 3^6 + 3^7 + 2*3^8 + 2*3^9 + 2*3^10 + 2*3^11 + 2*3^12 + 2*3^13 + 3^14 + 3^15 + O(3^16))*T^2 + (3^14 + 2*3^15 + 2*3^16 + 3^17 + 3^18 + O(3^19))*T^3 + (3^17 + 2*3^18 + 3^19 + 3^20 + 3^21 + O(3^24))*T^4 + (3^29 + 2*3^32 + O(3^33))*T^5 + (2*3^44 + O(3^45))*T^6 + (2*3^59 + O(3^60))*T^7 + (2*3^78 + O(3^79))*T^8
 
-        NOTES:
+        .. NOTE::
 
-        Uses the Hessenberg form of the Hecke matrix to compute the
-        characteristic polynomial.  Because of the use of relative precision
-        here this tends to give better precision in the p-adic coefficients.
+            Uses the Hessenberg form of the Hecke matrix to compute
+            the characteristic polynomial.  Because of the use of
+            relative precision here this tends to give better
+            precision in the p-adic coefficients.
         """
         m = self.hecke_matrix(self.prime(), n, use_recurrence)
-        A = PowerSeriesRing(self.base_ring(),'T')
+        A = PowerSeriesRing(self.base_ring(), 'T')
 
         # From a conversation with David Loeffler, apparently self.base_ring()
         # is either the field of rational numbers or some p-adic field.  In the

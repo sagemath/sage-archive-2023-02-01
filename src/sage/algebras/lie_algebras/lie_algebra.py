@@ -1226,7 +1226,8 @@ class LieAlgebraFromAssociative(LieAlgebraWithGenerators):
             sage: S = GroupAlgebra(G, QQ)
             sage: L = LieAlgebra(associative=S)
             sage: L.lie_algebra_generators()
-            Finite family {(): (), (1,2): (1,2), (1,2,3): (1,2,3), (1,3,2): (1,3,2), (2,3): (2,3), (1,3): (1,3)}
+            Finite family {(): (), (1,3,2): (1,3,2), (1,2,3): (1,2,3),
+                           (2,3): (2,3), (1,3): (1,3), (1,2): (1,2)}
         """
         if self._gens is not None:
             return self._gens

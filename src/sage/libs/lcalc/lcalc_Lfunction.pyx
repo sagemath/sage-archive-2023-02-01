@@ -322,7 +322,7 @@ cdef class Lfunction:
           If -1 is passed, then we attempt to compute it. (Use default if in
           doubt)
         - ``test_explicit_formula`` - integer (default: 0) If nonzero, test
-          the explicit fomula for additional confidence that all the zeros
+          the explicit formula for additional confidence that all the zeros
           have been found and are accurate. This is still being tested, so
           using the default is recommended.
 
@@ -434,7 +434,7 @@ cdef class Lfunction_I(Lfunction):
 
     - ``residue`` - List of the residues of the L-function
 
-    NOTES:
+    .. NOTE::
 
         If an L-function satisfies `\Lambda(s) = \omega Q^s \Lambda(k-s)`,
         by replacing `s` by `s+(k-1)/2`, one can get it in the form we need.
@@ -571,7 +571,7 @@ cdef class Lfunction_D(Lfunction):
 
     - ``residue`` - List of the residues of the L-function
 
-    NOTES:
+    .. NOTE::
 
         If an L-function satisfies `\Lambda(s) = \omega Q^s \Lambda(k-s)`,
         by replacing `s` by `s+(k-1)/2`, one can get it in the form we need.
@@ -710,7 +710,7 @@ cdef class Lfunction_C:
 
     - ``residue`` - List of the residues of the L-function
 
-    NOTES:
+    .. NOTE::
 
         If an L-function satisfies `\Lambda(s) = \omega Q^s \Lambda(k-s)`,
         by replacing `s` by `s+(k-1)/2`, one can get it in the form we need.

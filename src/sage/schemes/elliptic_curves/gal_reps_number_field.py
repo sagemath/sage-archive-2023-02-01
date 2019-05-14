@@ -32,23 +32,23 @@ AUTHORS:
 
 REFERENCES:
 
-.. [Serre72] Serre. Propriétés galoisiennes des points d'ordre fini des
-    courbes elliptiques. Inventiones mathematicae, 1972.
+.. [Serre72] Jean-Pierre Serre. *Propriétés galoisiennes des points d'ordre
+             fini des courbes elliptiques*. Inventiones mathematicae, 1972.
 
 .. [Sutherland12] Sutherland. A local-global principle for rational
     isogenies of prime degree. Journal de Théorie des Nombres de Bordeaux,
     2012.
 
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2012 Eric Larson <elarson3@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from __future__ import division
 from six.moves import range
 
 from sage.structure.sage_object import SageObject
@@ -59,6 +59,7 @@ from sage.misc.functional import cyclotomic_polynomial
 from sage.arith.all import legendre_symbol, primes
 from sage.sets.set import Set
 from sage.rings.all import Integer, ZZ, QQ, Infinity
+
 
 class GaloisRepresentation(SageObject):
     r"""
@@ -82,7 +83,6 @@ class GaloisRepresentation(SageObject):
         sage: rho
         Compatible family of Galois representations associated to the Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 + (-10)*x + (-20) over Number Field in a with defining polynomial x^2 + 1
     """
-
 
     def __init__(self, E):
         r"""
@@ -219,7 +219,7 @@ class GaloisRepresentation(SageObject):
     def is_surjective(self, p, A=100):
         r"""
         Return ``True`` if the mod-p representation is (provably)
-        surjective onto `Aut(E[p]) = GL_2(\mathbb{F}_p)`.  Return
+        surjective onto `Aut(E[p]) = GL_2(\GF{p})`.  Return
         ``False`` if it is (probably) not.
 
         INPUT:
@@ -704,7 +704,7 @@ def _exceptionals(E, L, patience=1000):
                 # be contained Borel subgroup.
                 D[l][0] = False
 
-            if det != 0: # c.f. [Serre72], Section 2.8, Prop. 19
+            if det != 0:  # c.f. [Serre72], Section 2.8, Prop. 19
                 u = trace**2 / det
                 if u not in (1, 2, 4) and u**2 - 3 * u + 1 != 0:
                     D[l][2] = False
@@ -877,14 +877,14 @@ def _semistable_reducible_primes(E, verbose=False):
 
     if verbose: print("Finished precomp, x={} (p={}), y={} (p={})".format(x,px,y,py))
 
-    for w in range(1+d/2):
+    for w in range(1 + d // 2):
         if verbose: print("w = {}".format(w))
         gx = xpol.symmetric_power(w).adams_operator(12).resultant(fx12pol)
         gy = ypol.symmetric_power(w).adams_operator(12).resultant(fy12pol)
         if verbose: print("computed gx and gy")
 
-        gxn = Integer(gx.absolute_norm()) if d>1 else gx
-        gyn = Integer(gy.absolute_norm()) if d>1 else gy
+        gxn = Integer(gx.absolute_norm()) if d > 1 else gx
+        gyn = Integer(gy.absolute_norm()) if d > 1 else gy
         gxyn = gxn.gcd(gyn)
         if gxyn:
             xprimes = gxyn.prime_factors()
@@ -1188,7 +1188,7 @@ def Billerey_B_l(E,l,B=0):
         return ZZ.zero()
     # We compute the factors one at a time since if any is 0 we quit:
     B_l = ZZ(1)
-    for k in range(1+d//2):
+    for k in range(1 + d // 2):
         factor = ZZ(P(l**(12*k)))
         if factor:
             B_l *= factor.gcd(B)
@@ -1229,7 +1229,7 @@ def Billerey_R_q(E, q, B=0):
 
     # We compute the factors one at a time since if any is 0 we quit:
     R_q = ZZ(1)
-    for k in range(1+d//2):
+    for k in range(1 + d // 2):
         # the following would be in QQ if we did not coerce
         factor = ZZ(P.resultant(Q.compose_power(k)))
         if factor:
@@ -1534,12 +1534,11 @@ def reducible_primes_Billerey(E, num_l=None, max_l=None, verbose=False):
     if verbose:
         print("Naive test of primes up to {} returns {}.".format(max_small_prime, OK_small_primes))
 
-    from sage.schemes.elliptic_curves.gal_reps_number_field import Billerey_B_bound
     B1 = Billerey_B_bound(E, max_l, num_l, max_small_prime, verbose)
     if B1 == [0]:
         if verbose:
             print("...  B_bound ineffective using max_l={}, moving on to R-bound".format(max_l))
-        from sage.schemes.elliptic_curves.gal_reps_number_field import Billerey_R_bound
+
         B1 = Billerey_R_bound(E,max_l, num_l, max_small_prime, verbose)
         if B1 == [0]:
             if verbose:
@@ -1553,7 +1552,7 @@ def reducible_primes_Billerey(E, num_l=None, max_l=None, verbose=False):
     B = sorted(set(B0 + B1 + OK_small_primes))
     if verbose:
         print("... combined bound = {}".format(B))
-    from sage.schemes.elliptic_curves.gal_reps_number_field import Frobenius_filter
+
     num_p = 100
     B = Frobenius_filter(E, B, num_p)
     if verbose:
@@ -1596,7 +1595,6 @@ def reducible_primes_naive(E, max_l=None, num_P=None, verbose=False):
         [2, 5]
         sage: [phi.degree() for phi in E.isogenies_prime_degree()]
         [2, 2, 2, 5]
-
     """
     if max_l is None:
         max_l = 1000
@@ -1604,7 +1602,7 @@ def reducible_primes_naive(E, max_l=None, num_P=None, verbose=False):
         num_P = 100
     if verbose:
         print("E = {}, finding reducible primes up to {} using Frobenius filter with {} primes".format(E.ainvs(), max_l, num_P))
-    from sage.schemes.elliptic_curves.gal_reps_number_field import Frobenius_filter
+
     B = Frobenius_filter(E, primes(max_l), num_P)
     if verbose:
         print("... returning {}".format(B))

@@ -12,15 +12,16 @@ AUTHORS:
 REFERENCES: [BM2012]_, [Mol2015]_
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2012 Alexander Molnar
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from __future__ import division
 
 from sage.functions.hyperbolic import cosh
 from sage.matrix.constructor import matrix
@@ -724,7 +725,7 @@ def HS_all_minimal_p(p, f, m=None, return_transformation=False):
     This function implements the algorithm in Hutz-Stoll [HS2018]_.
     A representatives in each distinct `SL(2,\ZZ)` orbit with minimal
     valuation with respect to the prime ``p`` is returned. The input
-    ``f`` must have minimal resultant in its conguacy class.
+    ``f`` must have minimal resultant in its conjugacy class.
 
     INPUT:
 
@@ -823,7 +824,7 @@ def HS_all_minimal(f, return_transformation=False, D=None):
 
     This function implements the algorithm in Hutz-Stoll [HS2018]_.
     A representative in each distinct `SL(2,\ZZ)` orbit is returned.
-    The input ``f`` must have minimal resultant in its conguacy class.
+    The input ``f`` must have minimal resultant in its conjugacy class.
 
     INPUT:
 
@@ -914,7 +915,7 @@ def get_bound_dynamical(F, f, m=1, dynatomic=True, prec=53, emb=None):
     The hyperbolic distance from `j` which must contain the smallest map.
 
     This defines the maximum possible distance from `j` to the `z_0` covariant
-    of the assocaited binary form `F` in the hyperbolic 3-space
+    of the associated binary form `F` in the hyperbolic 3-space
     for which the map `f`` could have smaller coefficients.
 
     INPUT:
@@ -926,7 +927,7 @@ def get_bound_dynamical(F, f, m=1, dynatomic=True, prec=53, emb=None):
 
     - ``m`` - positive integer. the period used to create ``F``
 
-    - ``dyantomic`` -- boolean. whether ``F`` is the periodic points or the
+    - ``dynatomic`` -- boolean. whether ``F`` is the periodic points or the
       formal periodic points of period ``m`` for ``f``
 
     - ``prec``-- positive integer. precision to use in CC
@@ -982,8 +983,8 @@ def get_bound_dynamical(F, f, m=1, dynatomic=True, prec=53, emb=None):
 
 
 def smallest_dynamical(f, dynatomic=True, start_n=1, prec=53, emb=None, algorithm='HS', check_minimal=True):
-    """
-    Determine the poly with smallest coefficients in `SL(2,\Z)` orbit of ``F``
+    r"""
+    Determine the poly with smallest coefficients in `SL(2,\ZZ)` orbit of ``F``
 
     Smallest is in the sense of global height.
     The method is the algorithm in Hutz-Stoll [HS2018]_.
@@ -997,7 +998,7 @@ def smallest_dynamical(f, dynatomic=True, start_n=1, prec=53, emb=None, algorith
 
     - ``f`` -- a dynamical system on `P^1`
 
-    - ``dyantomic`` -- boolean. whether ``F`` is the periodic points or the
+    - ``dynatomic`` -- boolean. whether ``F`` is the periodic points or the
       formal periodic points of period ``m`` for ``f``
 
     - ``start_n`` - positive integer. the period used to start trying to
@@ -1046,7 +1047,7 @@ def smallest_dynamical(f, dynatomic=True, start_n=1, prec=53, emb=None, algorith
         else: # binary insertion
             left = 1
             right = N
-            mid = ((left + right)/2)# these are ints so this is .floor()
+            mid = (left + right) // 2  # these are ints so this is .floor()
             if item[index] > pts[mid][index]: # item goes into first half
                 return insert_item(pts[:mid], item, index) + pts[mid:N]
             else: # item goes into second half

@@ -81,13 +81,6 @@ is returned by generators::
     sage: A = P.get_autom_gens()
     sage: all( [(a*mat).echelon_form() == mat.echelon_form() for a in A])
     True
-
-REFERENCES:
-
-.. [Feu2009] Thomas Feulner, The Automorphism Groups of Linear Codes and
-  Canonical Representatives of Their Semilinear Isometry Classes, Advances in
-  Mathematics of Communications 3 (4), pp. 363-383, 2009.
-
 """
 
 #*******************************************************************************
@@ -658,9 +651,9 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
 
     cdef _compute_group_element(self, SemimonomialTransformation trans, str algorithm_type):
         """
-        Apply ``trans`` to ``self._root_matrix`` and minimize the this matrix
+        Apply ``trans`` to ``self._root_matrix`` and minimize this matrix
         column by column under the inner minimization. The action is
-        simoultaneously applied to ``trans``.
+        simultaneously applied to ``trans``.
 
         The output of this function is a triple containing, the modified
         group element ``trans``, the minimized matrix and the stabilizer of this

@@ -75,7 +75,7 @@ representation is equivalent to a 0-dimensional face of the
 polytope. This is why one generally does not distinguish vertices and
 0-dimensional faces. But for non-bounded polyhedra we have to allow
 for a more general notion of "vertex" in order to make sense of the
-Minkowsi sum presentation::
+Minkowski sum presentation::
 
     sage: half_plane = Polyhedron(ieqs=[(0,1,0)])
     sage: half_plane.Hrepresentation()
@@ -99,12 +99,16 @@ but only one generating line::
     (An inequality (1, 0) x + 1 >= 0, An inequality (-1, 0) x + 1 >= 0)
     sage: strip.lines()
     (A line in the direction (0, 1),)
-    sage: strip.faces(1)
-    (<0,1>, <0,2>)
+    sage: [f.ambient_V_indices() for f in strip.faces(1)]
+    [(0, 1), (0, 2)]
     sage: for face in strip.faces(1):
-    ....:      print("{} = {}".format(face, face.as_polyhedron().Vrepresentation()))
-    <0,1> = (A line in the direction (0, 1), A vertex at (-1, 0))
-    <0,2> = (A line in the direction (0, 1), A vertex at (1, 0))
+    ....:      print(face.ambient_V_indices())
+    (0, 1)
+    (0, 2)
+    sage: for face in strip.faces(1):
+    ....:      print("{} = {}".format(face.ambient_V_indices(), face.as_polyhedron().Vrepresentation()))
+    (0, 1) = (A line in the direction (0, 1), A vertex at (-1, 0))
+    (0, 2) = (A line in the direction (0, 1), A vertex at (1, 0))
 
 EXAMPLES::
 
@@ -286,10 +290,9 @@ AUTHORS:
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ########################################################################
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 from sage.rings.all import ZZ, RDF, RR
 
@@ -442,7 +445,8 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         sage: grat = (1+r1)/2
         sage: v = [[0, 1, grat], [0, 1, -grat], [0, -1, grat], [0, -1, -grat]]
         sage: pp = Permutation((1, 2, 3))
-        sage: icosah = Polyhedron(map((pp^2).action,v) + map(pp.action,v) + v, base_ring=R1)
+        sage: icosah = Polyhedron([(pp^2).action(w) for w in v]
+        ....:             + [pp.action(w) for w in v] + v, base_ring=R1)
         sage: len(icosah.faces(2))
         20
 
@@ -513,13 +517,13 @@ def Polyhedron(vertices=None, rays=None, lines=None,
     """
     # Clean up the arguments
     vertices = _make_listlist(vertices)
-    rays     = _make_listlist(rays)
-    lines    = _make_listlist(lines)
-    ieqs     = _make_listlist(ieqs)
-    eqns     = _make_listlist(eqns)
+    rays = _make_listlist(rays)
+    lines = _make_listlist(lines)
+    ieqs = _make_listlist(ieqs)
+    eqns = _make_listlist(eqns)
 
-    got_Vrep = (len(vertices+rays+lines) > 0)
-    got_Hrep = (len(ieqs+eqns) > 0)
+    got_Vrep = (len(vertices + rays + lines) > 0)
+    got_Hrep = (len(ieqs + eqns) > 0)
 
     if got_Vrep and got_Hrep:
         raise ValueError('cannot specify both H- and V-representation.')
@@ -584,7 +588,7 @@ def Polyhedron(vertices=None, rays=None, lines=None,
 
     # Add the origin if necessary
     if got_Vrep and len(vertices) == 0:
-        vertices = [ [0]*ambient_dim ]
+        vertices = [[0] * ambient_dim]
 
     # Specific backends can override the base_ring
     from sage.geometry.polyhedron.parent import Polyhedra

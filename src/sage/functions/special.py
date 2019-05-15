@@ -159,17 +159,11 @@ Added 16-02-2008 (wdj): optional calls to scipy and replace all
 # ****************************************************************************
 
 from sage.rings.integer import Integer
-from sage.rings.real_mpfr import RealField
 from sage.rings.complex_field import ComplexField
 from sage.misc.latex import latex
-from sage.rings.all import ZZ, RR, RDF, CDF
-from .gamma import log_gamma
-from .other import real, imag
+from sage.rings.all import ZZ
 from sage.symbolic.constants import pi
 from sage.symbolic.function import BuiltinFunction
-from sage.symbolic.expression import Expression
-from sage.calculus.calculus import maxima
-from sage.structure.element import parent
 from sage.libs.mpmath import utils as mpmath_utils
 from sage.functions.all import sqrt, sin, cot, exp
 from sage.symbolic.all import I
@@ -551,7 +545,7 @@ class EllipticEC(BuiltinFunction):
             sage: elliptic_ec(I).n()
             1.63241178144043 - 0.369219492375499*I
         """
-        R = parent or parent(z)
+        R = parent or parent(x)
         from mpmath import ellipe
         return mpmath_utils.call(ellipe, x, parent=R)
 
@@ -623,7 +617,7 @@ class EllipticEU(BuiltinFunction):
             sage: elliptic_eu(1,1).n(200)
             0.7615941559557648881194582...
         """
-        R = parent or parent(z)
+        R = parent or parent(u)
         return mpmath_utils.call(elliptic_eu_f, u, m, parent=R)
 
     def _derivative_(self, u, m, diff_param):

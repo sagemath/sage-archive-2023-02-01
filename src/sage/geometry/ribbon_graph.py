@@ -395,7 +395,7 @@ class RibbonGraph(SageObject, UniqueRepresentation):
         """
         # It might seem a bit overkill to call boundary() here but it is
         #   necessary to either call it or do similar computations here.
-        #   The function boundary() avoids some patologies with boundaries
+        #   The function boundary() avoids some pathologies with boundaries
         #   formed by just one loop.
         return len(self.boundary())
 

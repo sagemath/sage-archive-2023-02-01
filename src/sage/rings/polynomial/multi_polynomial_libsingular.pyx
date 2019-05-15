@@ -1406,10 +1406,10 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
             _vars = str(self.gen())
             if "*" in _vars: # 1.000...000*x
                 _vars = _vars.split("*")[1]
-            order = 'lp'
         else:
             _vars = str(self.gens())
-            order = self.term_order().singular_str()%dict(ngens=self.ngens())
+
+        order = self.term_order().singular_str()%dict(ngens=self.ngens())
 
         base_ring = self.base_ring()
 

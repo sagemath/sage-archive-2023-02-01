@@ -485,6 +485,14 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
             sage: Q2 = A([0,0,0,-a,0])
             sage: X.multiplicity(Q2)
             7
+
+        Check that :trac:`27479` is fixed:: 
+
+            sage: A1.<x> = AffineSpace(QQ, 1)
+            sage: X = A1.subscheme([x^1789 + x])
+            sage: Q = X([0])
+            sage: X.multiplicity(Q)
+            1
         """
         if not self.base_ring() in Fields():
             raise TypeError("subscheme must be defined over a field")

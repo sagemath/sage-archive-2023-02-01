@@ -1475,8 +1475,8 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
 #
 # The main user function division_polynomial() (also aliased as
 # torsion_polynomial()) is used to compute polynomials whose roots
-# determine the $m$-torsion points on the curve.  Three options are
-# available, which effect the result when $m$ is even and also the
+# determine the m-torsion points on the curve.  Three options are
+# available, which effect the result when m is even and also the
 # parent ring of the returned value.  The function can return either a
 # polynomial or the evaluation of that polynomial at a point,
 # depending on the input.  Values are cached.
@@ -1485,25 +1485,25 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
 # two_torsion_multiplicity, which may be 0, 1 or 2.  If it is 0 or 2,
 # then a univariate polynomial will be returned (or evaluated at the
 # parameter x if x is not None).  This is the polynomial whose roots
-# are the values of $x(P)$ at the nonzero points $P$ where $m*P=0$
-# (when two_torsion_multiplicity==2), or the points where $m*P=0$ but
-# $2*P\not=0$ (when two_torsion_multiplicity==0).
+# are the values of x(P) at the nonzero points P where m*P=0
+# (when two_torsion_multiplicity==2), or the points where m*P=0 but
+# 2*P\not=0 (when two_torsion_multiplicity==0).
 #
 # If two_torsion_multiplicity==1, then a bivariate polynomial is
 # returned, which (as a function on the curve) has a simple zero at
-# each nonzero point $P$ such that $m*P=0$.  When $m$ is odd this is a
-# polynomial in $x$ alone, but is still returned as an element of a
-# polynomial ring in two variables; when $m$ is even it has a factor
-# $2y+a_1x+a_3$.  In this case if the parameter x is not None then it
+# each nonzero point P such that m*P=0.  When m is odd this is a
+# polynomial in x alone, but is still returned as an element of a
+# polynomial ring in two variables; when m is even it has a factor
+# 2y+a_1x+a_3.  In this case if the parameter x is not None then it
 # should be a tuple of length 2, or a point P on the curve, and the
 # returned value is the value of the bivariate polynomial at this
 # point.
 #
 # Comparison with Magma: Magma's function DivisionPolynomial(E,m)
-# returns a triple of univariate polynomials $f,g,h$ where $f$ is
-# \code{E.division_polynomial(m,two_torsion_multiplicity=2)}, $g$ is
-# \code{E.division_polynomial(m,two_torsion_multiplicity=0)} and $h$
-# is the quotient, so that $h=1$ when $m$ is odd.
+# returns a triple of univariate polynomials f,g,h where f is
+# \code{E.division_polynomial(m,two_torsion_multiplicity=2)}, g is
+# \code{E.division_polynomial(m,two_torsion_multiplicity=0)} and h
+# is the quotient, so that h=1 when m is odd.
 
 #############################################################
 
@@ -2728,7 +2728,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
 
     formal = formal_group
 
-    def _p_primary_torsion_basis(self,p,m=None):
+    def _p_primary_torsion_basis(self, p, m=None):
         r"""
         Find a basis for the `p`-primary part of the torsion
         subgroup of this elliptic curve.
@@ -2737,7 +2737,8 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
 
         - ``p`` (integer) -- a prime number.
 
-        - ``m`` (integer or None) -- if not None, the $p$-primary torsion will be assumed to have order at most $p^m$.
+        - ``m`` (integer or None) -- if not None, the `p`-primary torsion will
+          be assumed to have order at most `p^m`.
 
         OUTPUT:
 

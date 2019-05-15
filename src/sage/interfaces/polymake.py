@@ -45,6 +45,7 @@ from random import randrange
 
 from time import sleep
 import warnings
+from warnings import warn
 
 _name_pattern = re.compile('SAGE[0-9]+')
 
@@ -129,13 +130,11 @@ class Polymake(ExtraTabCompletion, Expect):
         sage: set_verbose(3)
         sage: p.H_VECTOR                                    # optional - polymake
         used package ppl
-          The Parma Polyhedra Library (PPL): A C++ library for convex polyhedra
-          and other numerical abstractions.
-          http://www.cs.unipr.it/ppl/
-        1 16 47 16 1
+          The Parma Polyhedra Library ...
+        1 16 40 16 1
         sage: set_verbose(0)
         sage: p.F_VECTOR                                    # optional - polymake
-        20 101 162 81
+        20 94 148 74
         sage: print(p.F_VECTOR._sage_doc_())                # optional - polymake # random
         property_types/Algebraic Types/Vector:
          A type for vectors with entries of type Element.
@@ -150,7 +149,7 @@ class Polymake(ExtraTabCompletion, Expect):
     .. automethod:: _eval_line
     """
     def __init__(self, script_subdirectory=None,
-                 logfile=None, server=None,server_tmpdir=None,
+                 logfile=None, server=None, server_tmpdir=None,
                  seed=None, command=None):
         """
         TESTS::
@@ -241,7 +240,7 @@ class Polymake(ExtraTabCompletion, Expect):
             sage: p = polymake.rand_sphere(4, 20, seed=5)    # optional - polymake
             sage: p.get_schedule                            # optional - polymake  # indirect doctest
             Member function 'get_schedule' of Polymake::polytope::Polytope__Rational object
-            sage: p.get_schedule('F_VECTOR')                # optional - polymake  # random
+            sage: p.get_schedule('"F_VECTOR"')                # optional - polymake  # random
             CONE_DIM : RAYS | INPUT_RAYS
             precondition : BOUNDED ( POINTED : )
             POINTED :
@@ -279,7 +278,7 @@ class Polymake(ExtraTabCompletion, Expect):
         self._check_valid_function_name(function)
         s = self._function_call_string(function,
                                        [s.name() for s in args],
-                                       ['%s=>%s'%(key,value.name()) for key, value in kwds.items()])
+                                       ['{}=>{}'.format(key, value.name()) for key, value in kwds.items()])
         return self(s)
 
     def _function_call_string(self, function, args, kwds):
@@ -297,14 +296,15 @@ class Polymake(ExtraTabCompletion, Expect):
             1 3 7
             1 7 7
             sage: c.GROUP                                               # optional - polymake
-            full combinatorial group on facets...
+            full combinatorial group
 
         """
         if kwds:
             if args:
-                return "%s(%s, %s);"%(function, ",".join(list(args)), ",".join(list(kwds)))
-            return "%s(%s);"%(function, ",".join(list(kwds)))
-        return "%s(%s);"%(function, ",".join(list(args)))
+                call_str = "{}({}, {});".format(function, ",".join(list(args)), ",".join(list(kwds)))
+                return call_str
+            return "{}({});".format(function, ",".join(list(kwds)))
+        return "{}({});".format(function, ",".join(list(args)))
 
     def console(self):
         """
@@ -453,18 +453,18 @@ class Polymake(ExtraTabCompletion, Expect):
                 raise pexpect.ExceptionPexpect("THIS IS A BUG -- PLEASE REPORT. This should never happen.\n" + msg)
             sleep(0.1)
             i = self._expect.expect_list(self._prompt, timeout=1)
-            if i==0:
+            if i == 0:
                 break
-            elif i==7:  # EOF
+            elif i == 7:  # EOF
                 warnings.warn("Polymake {} during keyboard interrupt".format(_available_polymake_answers[i]), RuntimeWarning)
                 self._crash_msg()
                 self.quit()
-            elif i==8:  # Timeout
+            elif i == 8:  # Timeout
                 self.quit()
                 raise RuntimeError("{} interface is not responding. We closed it".format(self))
-            elif i!=3: # Anything but a "computation killed"
+            elif i != 3:  # Anything but a "computation killed"
                 warnings.warn("We ignore that {} {} during keyboard interrupt".format(self, _available_polymake_answers[i]), RuntimeWarning)
-        raise KeyboardInterrupt("Ctrl-c pressed while running %s"%self)
+        raise KeyboardInterrupt("Ctrl-c pressed while running {}".format(self))
 
     def _synchronize(self):
         """
@@ -482,7 +482,7 @@ class Polymake(ExtraTabCompletion, Expect):
             <repr(<sage.interfaces.polymake.PolymakeElement at ...>) failed:
             PolymakeError: Can't locate object method "description" via package "1"
             (perhaps you forgot to load "1"?)...>
-            sage: Q.typeof()                                    # optional - polymake
+            sage: Q.typeof()                                    # optional - polymake # random
             ('foobar...', 'Polymake::polytope::Polytope__Rational')
             sage: Q.typeof.clear_cache()                        # optional - polymake
 
@@ -503,9 +503,9 @@ class Polymake(ExtraTabCompletion, Expect):
             return
         rnd = randrange(2147483647)
         res = str(rnd+1)
-        cmd='print 1+{};'+self._expect.linesep
+        cmd = 'print 1+{};' + self._expect.linesep
         self._sendstr(cmd.format(rnd))
-        pat = self._expect.expect(self._prompt,timeout=0.5)
+        pat = self._expect.expect(self._prompt, timeout=0.5)
         # 0: normal prompt
         # 1: continuation prompt
         # 2: user input expected when requestion "help"
@@ -515,24 +515,24 @@ class Polymake(ExtraTabCompletion, Expect):
         # 6: anything but an error or warning, thus, an information
         # 7: unexpected end of the stream
         # 8: (expected) timeout
-        if pat == 8: # timeout
+        if pat == 8:  # timeout
             warnings.warn("{} unexpectedly {} during synchronisation.".format(self, _available_polymake_answers[pat]), RuntimeWarning)
             self.interrupt()
             # ... but we continue, as that probably means we currently are at the end of the buffer
-        elif pat == 7: # EOF
+        elif pat == 7:  # EOF
             self._crash_msg()
             self.quit()
         elif pat == 0:
             # We got the right prompt, but perhaps in a wrong position in the stream
             # The result of the addition should appear *before* our prompt
-            if not res in self._expect.before:
+            if res not in self._expect.before:
                 try:
                     warnings.warn("{} seems out of sync: The expected output did not appear before reaching the next prompt.".format(self))
                     while True:
                         i = self._expect.expect_list(self._prompt, timeout=0.1)
-                        if i==8: # This time, we do expect a timeout
+                        if i == 8:  # This time, we do expect a timeout
                             return
-                        elif i>0:
+                        elif i > 0:
                             raise RuntimeError("Polymake unexpectedly {}".format(_available_polymake_answers[i]))
                 except pexpect.TIMEOUT:
                     warnings.warn("A timeout has occured when synchronising {}.".format(self), RuntimeWarning)
@@ -561,7 +561,7 @@ class Polymake(ExtraTabCompletion, Expect):
             self.__seq += 1
         except AttributeError:
             self.__seq = 0
-        return r'SAGE%s'%self.__seq
+        return r'SAGE{}'.format(self.__seq)
 
     def clear(self, var):
         """
@@ -616,7 +616,7 @@ class Polymake(ExtraTabCompletion, Expect):
             '@my_array'
             sage: print(polymake.eval('print join(", ", @my_array);'))  # optional - polymake
             foo, bar
-            sage: polymake._create("'foobar'", name="my_string")        # optional - polymake
+            sage: polymake._create('"foobar"', name="my_string")        # optional - polymake
             '$my_string[0]'
             sage: print(polymake.eval('print $my_string[0];'))          # optional - polymake
             foobar
@@ -711,7 +711,7 @@ class Polymake(ExtraTabCompletion, Expect):
         """
         if isinstance(value, six.string_types):
             value = value.strip().rstrip(';').strip()
-        cmd = '@%s%s(%s);'%(var,self._assign_symbol(), value)
+        cmd = "@{}{}({});".format(var, self._assign_symbol(), value)
         self.eval(cmd)
 
     def get(self, cmd):
@@ -781,7 +781,7 @@ class Polymake(ExtraTabCompletion, Expect):
         H = self.eval('help("{}");\n'.format(topic))
         if pager:
             from IPython.core.page import page
-            page(H, start = 0)
+            page(H, start=0)
         else:
             return H
 
@@ -818,7 +818,7 @@ class Polymake(ExtraTabCompletion, Expect):
         the verbosity is positive::
 
             sage: set_verbose(1)
-            sage: p.N_LATTICE_POINTS                # optional - polymake
+            sage: p.N_LATTICE_POINTS                # optional - polymake # random
             used package latte
               LattE (Lattice point Enumeration) is a computer software dedicated to the
               problems of counting lattice points and integration inside convex polytopes.
@@ -874,7 +874,7 @@ class Polymake(ExtraTabCompletion, Expect):
         sometimes it hangs, and therefore we remove it from the tests, for now::
 
             sage: c = polymake.cube(15)             # optional - polymake
-            sage: polymake.eval('print {}->F_VECTOR;'.format(c.name()), timeout=1) # optional - polymake # not tested
+            sage: polymake.eval('print {}->F_VECTOR;'.format(c.name()), timeout=1) # not tested # optional - polymake
             Traceback (most recent call last):
             ...
             RuntimeError: Polymake fails to respond timely
@@ -901,7 +901,7 @@ class Polymake(ExtraTabCompletion, Expect):
             E = self._expect
             try:
                 if len(line) >= 4096:
-                    raise RuntimeError("Sending more than 4096 characters with %s on a line may cause a hang and you're sending %s characters"%(self, len(line)))
+                    raise RuntimeError("Sending more than 4096 characters with {} on a line may cause a hang and you're sending {} characters".format(self, len(line)))
                 E.sendline(line)
                 if not wait_for_prompt:
                     return ''
@@ -925,15 +925,15 @@ class Polymake(ExtraTabCompletion, Expect):
                             self._synchronize()
                         except (TypeError, RuntimeError):
                             pass
-                        return self._eval_line(line,allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt, restart_if_needed=False, **kwds)
-                raise_(RuntimeError, RuntimeError("%s\nError evaluating %s in %s" % (msg, line, self)), sys.exc_info()[2])
+                        return self._eval_line(line, allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt, restart_if_needed=False, **kwds)
+                raise_(RuntimeError, "{}\nError evaluating {} in {}".format(msg, line, self), sys.exc_info()[2])
 
             p_warnings = []
             p_errors = []
             have_warning = False
             have_error = False
             have_log = False
-            if len(line):
+            if len(line) > 0:
                 first = True
                 while True:
                     try:
@@ -954,13 +954,13 @@ class Polymake(ExtraTabCompletion, Expect):
                         if self._quit_string() in line:
                             # we expect to get an EOF if we're quitting.
                             return ''
-                        elif restart_if_needed: # the subprocess might have crashed
+                        elif restart_if_needed:  # the subprocess might have crashed
                             try:
                                 self._synchronize()
-                                return self._eval_line(line,allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt, restart_if_needed=False, **kwds)
+                                return self._eval_line(line, allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt, restart_if_needed=False, **kwds)
                             except (TypeError, RuntimeError):
                                 pass
-                        raise RuntimeError("%s\n%s crashed executing %s"%(msg,self, line))
+                        raise RuntimeError("{}\n{} crashed executing {}".format(msg, self, line))
                     if self._terminal_echo:
                         out = E.before
                     else:
@@ -968,9 +968,9 @@ class Polymake(ExtraTabCompletion, Expect):
                     if self._terminal_echo and first:
                         i = out.find("\n")
                         j = out.rfind("\r")
-                        out = out[i+1:j].replace('\r\n','\n')
+                        out = out[i+1:j].replace('\r\n', '\n')
                     else:
-                        out = out.strip().replace('\r\n','\n')
+                        out = out.strip().replace('\r\n', '\n')
                     first = False
                     if have_error:
                         p_errors.append(out)
@@ -1006,17 +1006,17 @@ class Polymake(ExtraTabCompletion, Expect):
                                 if E.buffer or pat:
                                     raise RuntimeError("Couldn't return to prompt after command '{}'".format(line))
                         break
-                    elif pat == 1: # unexpected continuation prompt
+                    elif pat == 1:  # unexpected continuation prompt
                         # Return to normal prompt
                         i = pat
                         E.send(chr(3))
                         sleep(0.1)
                         i = E.expect_list(self._prompt)
-                        assert i==0, "Command '{}': Couldn't return to normal prompt after polymake {}. Instead, polymake {}".format(line,_available_polymake_answers[pat],_available_polymake_answers[i])
+                        assert i == 0, "Command '{}': Couldn't return to normal prompt after polymake {}. Instead, polymake {}".format(line, _available_polymake_answers[pat], _available_polymake_answers[i])
                         raise SyntaxError("Incomplete polymake command '{}'".format(line))
-                    elif pat == 2: # request for user interaction
+                    elif pat == 2:  # request for user interaction
                         # Return to normal prompt
-                        warnings.warn("{} expects user interaction. We abort and return the options that {} provides.".format(self,self))
+                        warnings.warn("{} expects user interaction. We abort and return the options that {} provides.".format(self, self))
                         i = pat
                         while i:
                             self._expect.send(chr(3))
@@ -1028,24 +1028,24 @@ class Polymake(ExtraTabCompletion, Expect):
                             break
                         else:
                             RuntimeError("Polymake unexpectedly {}".format(_available_polymake_answers[pat]))
-                    elif pat == 3: # killed by signal
+                    elif pat == 3:  # killed by signal
                         i = pat
                         while pat != 0:
                             E.send(chr(3))
                             sleep(0.1)
                             i = E.expect_list(self._prompt)
                         RuntimeError("Polymake unexpectedly {}".format(_available_polymake_answers[pat]))
-                    elif pat == 4: # polymake error
+                    elif pat == 4:  # polymake error
                         have_error = True
-                    elif pat == 5: # polymake warning
+                    elif pat == 5:  # polymake warning
                         have_warning = True
-                    elif pat == 6: # apparently polymake prints a comment
+                    elif pat == 6:  # apparently polymake prints a comment
                         have_log = True
-                    elif pat == 7: # we have reached the end of the buffer
+                    elif pat == 7:  # we have reached the end of the buffer
                         warnings.warn("Polymake unexpectedly {}".format(_available_polymake_answers[pat]), RuntimeWarning)
                         E.buffer = E.before + E.after + E.buffer
                         break
-                    else: # timeout or some other problem
+                    else:  # timeout or some other problem
                         # Polymake would still continue with the computation. Thus, we send an interrupt
                         E.send(chr(3))
                         sleep(0.1)
@@ -1059,7 +1059,7 @@ class Polymake(ExtraTabCompletion, Expect):
                 out = ''
         except KeyboardInterrupt:
             self._keyboard_interrupt()
-            raise KeyboardInterrupt("Ctrl-c pressed while running %s"%self)
+            raise KeyboardInterrupt("Ctrl-c pressed while running {}".format(self))
         for w in p_warnings:
             warnings.warn(w, RuntimeWarning)
         for e in p_errors:
@@ -1092,6 +1092,15 @@ class Polymake(ExtraTabCompletion, Expect):
             sage: 'normal_fan' in dir(polymake)                 # optional - polymake
             False
 
+        Global functions from 'core' are available::
+
+            sage: 'show_credits' in dir(polymake)               # optional - polymake
+            True
+
+        Global functions from 'common' are available::
+
+            sage: 'lex_ordered' in dir(polymake)                # optional - polymake
+            True
         """
         if not self.is_running():
             self._start()
@@ -1102,7 +1111,7 @@ class Polymake(ExtraTabCompletion, Expect):
         s = self.eval("apropos '';").split(self._expect.linesep)
         out = []
         for name in s:
-            if name.startswith("/function"):
+            if name.startswith("/common/functions/") or name.startswith("/core/functions") or name.startswith("/" + self._application + "/functions/"):
                 out.append(name.split("/")[-1])
         self.__tab_completion[self._application] = sorted(out)
         return self.__tab_completion[self._application]
@@ -1131,7 +1140,7 @@ class Polymake(ExtraTabCompletion, Expect):
             sage: q.F_VECTOR                    # optional - polymake
             8 14 8
             sage: q.VERY_AMPLE                  # optional - polymake
-            1
+            true
 
         In the application 'fan', polymake can now compute the normal fan
         of `q` and its (primitive) rays::
@@ -1162,18 +1171,18 @@ class Polymake(ExtraTabCompletion, Expect):
 
         TESTS:
 
-        Since 'tubing_of_graph' is not defined in the polymake application 'polytope'
+        Since 'trop_witness' is not defined in the polymake application 'polytope'
         but only in 'tropical', the following shows the effect of changing
         the application. ::
 
             sage: polymake.application('polytope')                   # optional - polymake
-            sage: 'tubing_of_graph' in dir(polymake)                 # optional - polymake
+            sage: 'trop_witness' in dir(polymake)                 # optional - polymake
             False
             sage: polymake.application('tropical')                   # optional - polymake
-            sage: 'tubing_of_graph' in dir(polymake)                 # optional - polymake
+            sage: 'trop_witness' in dir(polymake)                 # optional - polymake
             True
             sage: polymake.application('polytope')                   # optional - polymake
-            sage: 'tubing_of_graph' in dir(polymake)                 # optional - polymake
+            sage: 'trop_witness' in dir(polymake)                 # optional - polymake
             False
 
         For completeness, we show what happens when asking for an application
@@ -1228,7 +1237,7 @@ class Polymake(ExtraTabCompletion, Expect):
             sage: q.N_VERTICES                  # optional - polymake
             4
             sage: q.BOUNDED                     # optional - polymake
-            1
+            true
             sage: q.VERTICES                    # optional - polymake
             1 2 0 4
             1 3 0 8
@@ -1242,12 +1251,14 @@ class Polymake(ExtraTabCompletion, Expect):
             f = self.__new[name]
         except AttributeError:
             self.__new = {}
-            f = self.__new[name] = self._function_class()(self, "new %s"%name)
+            f = self.__new[name] = self._function_class()(self, "new {}".format(name))
         except KeyError:
-            f = self.__new[name] = self._function_class()(self, "new %s"%name)
+            f = self.__new[name] = self._function_class()(self, "new {}".format(name))
         return f(*args, **kwds)
 
+
 polymake = Polymake()
+
 
 def reduce_load_Polymake():
     """
@@ -1263,7 +1274,6 @@ def reduce_load_Polymake():
 
 ########################################
 ## Elements
-
 
 class PolymakeElement(ExtraTabCompletion, ExpectElement):
     """
@@ -1283,7 +1293,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
     Now, one can work with that element in Python syntax, for example::
 
         sage: p.VERTICES[2][2]                                  # optional - polymake
-        -3319173990813887/4503599627370496
+        1450479926727001/2251799813685248
 
     """
     def _repr_(self):
@@ -1389,9 +1399,9 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
         if not out:
             if "Polytope" == T1:
                 out = "{}[{}]".format(P.get("{}->type->full_name".format(name)) or "PolymakeElement", _name_pattern.search(name).group())
-            elif T1=='' and T2=='ARRAY':
+            elif T1 == '' and T2 == 'ARRAY':
                 out = P.eval('print join(", ", @{});'.format(name)).strip()
-            elif T1=='' and T2=='HASH':
+            elif T1 == '' and T2 == 'HASH':
                 out = P.get('%{}'.format(name)).strip()
             elif self._name[0] == '@':
                 out = P.eval('print join(", ", {});'.format(name)).strip()
@@ -1430,13 +1440,13 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
 
         """
         P = self._check_valid()
-        if P.eval("print %s %s %s;"%(self.name(), P._equality_symbol(), other.name())).strip() == P._true_symbol():
+        if P.eval("print {} {} {};".format(self.name(), P._equality_symbol(), other.name())).strip() == P._true_symbol():
             return 0
-        if P.eval("print %s %s %s;"%(self.name(), P._lessthan_symbol(), other.name())).strip() == P._true_symbol():
+        if P.eval("print {} {} {};".format(self.name(), P._lessthan_symbol(), other.name())).strip() == P._true_symbol():
             return -1
-        if P.eval("print %s %s %s;"%(self.name(), P._greaterthan_symbol(), other.name())).strip() == P._true_symbol():
+        if P.eval("print {} {} {};".format(self.name(), P._greaterthan_symbol(), other.name())).strip() == P._true_symbol():
             return 1
-        return -2 # that's supposed to be an error value.
+        return -2  # that's supposed to be an error value.
 
     def bool(self):
         """
@@ -1453,7 +1463,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
         """
         P = self._check_valid()
         t = P._true_symbol()
-        cmd = '%s %s %s;'%(self._name, P._equality_symbol(), t)
+        cmd = '{} {} {};'.format(self._name, P._equality_symbol(), t)
         return P.get(cmd) == t
 
     def known_properties(self):
@@ -1491,21 +1501,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
              'COMBINATORIAL_DIM',
              'CONE_AMBIENT_DIM',
              'CONE_DIM',
-             'DUAL_H_VECTOR',
-             'FACETS',
-             'FAR_FACE',
-             'FEASIBLE',
-             'FULL_DIM',
-             'F_VECTOR',
-             'GRAPH',
-             'LINEALITY_DIM',
-             'LINEALITY_SPACE',
-             'N_FACETS',
-             'N_VERTICES',
-             'POINTED',
-             'SIMPLE',
-             'SIMPLICIAL',
-             'VERTICES',
+            ...
              'VERTICES_IN_FACETS']
 
         """
@@ -1527,18 +1523,16 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
             sage: c = polymake.cube(4)                          # optional - polymake
             sage: c._member_list()                              # optional - polymake
             ['AFFINE_HULL',
-             'ALTSHULER_DET',
-             'BALANCE',
-             'BALANCED',
             ...
              'WEAKLY_CENTERED',
-             'ZONOTOPE_INPUT_POINTS']
+            ...]
 
         """
-        ### return the members of a "big" object.
+        # return the members of a "big" object.
         P = self._check_valid()
         try:
-            P.eval('$SAGETMP = typeof {+'+self._name+'};')
+            cmd = '$SAGETMP = ' + self._name + ' -> type;'
+            P.eval(cmd)
         except (TypeError, PolymakeError):  # this happens for a perl type that isn't a Polymake type
             return []
         cmd = 'print join(", ", sorted_uniq(sort { $a cmp $b } map { keys %{$_->properties} }$SAGETMP, @{$SAGETMP->super}));'
@@ -1623,10 +1617,6 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
             sage: c = polymake.cube(4)              # optional - polymake
             sage: c._tab_completion()               # optional - polymake
             ['AFFINE_HULL',
-             'ALTSHULER_DET',
-             'BALANCE',
-             'BALANCED',
-             'BOUNDARY_LATTICE_POINTS',
              ...
              'zero_vector',
              'zonotope',
@@ -1684,23 +1674,21 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
             sage: c.contains                                    # optional - polymake
             Member function 'contains' of Polymake::polytope::Polytope__Rational object
             sage: c.contains(V)                                 # optional - polymake
-            1
+            true
 
         """
         P = self._check_valid()
         if attrname[:1] == "_":
             raise AttributeError
         if attrname not in P._tab_completion():
+            # Does not appear in list of global functions.
             if attrname in self._member_list():
                 try:
                     return P('{}->{}'.format(self._name, attrname))
                 except (TypeError, PolymakeError):
                     raise AttributeError
             else:
-                try:
-                    return P._function_element_class()(self, '{}->{}'.format(self._name, attrname), memberfunction=True)
-                except (TypeError, PolymakeError):
-                    raise AttributeError
+                return P._function_element_class()(self, '{}->{}'.format(self._name, attrname), memberfunction=True)
         return P._function_element_class()(self, attrname, memberfunction=False)
 
     def get_member_function(self, attrname):
@@ -1721,18 +1709,17 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
             sage: V                                                     # optional - polymake
             1 0 0
             sage: c.contains(V)                                         # optional - polymake
-            1
+            true
 
         Whether a member function of the given name actually exists for that
         object will only be clear when calling it::
 
-            sage: c.get_member_function('foo')                          # optional - polymake
+            sage: c.get_member_function("foo")                          # optional - polymake
             Member function 'foo' of Polymake::polytope::Polytope__Rational object
-            sage: c.get_member_function('foo')()                        # optional - polymake
+            sage: c.get_member_function("foo")()                        # optional - polymake
             Traceback (most recent call last):
             ...
-            TypeError: Can't locate object method "foo" via package "Polymake::polytope::Polytope__Rational" at input line 1.
-
+            TypeError: Can't locate object method "foo" via package "Polymake::polytope::Polytope__Rational"
         """
         P = self._check_valid()
         return P._function_element_class()(self, '{}->{}'.format(self._name, attrname), memberfunction=True)
@@ -1754,12 +1741,12 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
         Normally, a property would be accessed as follows::
 
             sage: p.F_VECTOR                                # optional - polymake
-            20 101 162 81
+            20 94 148 74
 
         However, explicit access is possible as well::
 
             sage: p.get_member('F_VECTOR')                  # optional - polymake
-            20 101 162 81
+            20 94 148 74
 
         In some cases, the explicit access works better::
 
@@ -1778,7 +1765,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
 
         """
         P = self._check_valid()
-        return P('%s->%s'%(self.name(), attrname))
+        return P('{}->{}'.format(self.name(), attrname))
 
     def __getitem__(self, key):
         """
@@ -1790,7 +1777,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
 
             sage: p = polymake.rand_sphere(3, 12, seed=15)  # optional - polymake
             sage: p.VERTICES[3]                             # optional - polymake
-            1 -6157731020575175/18014398509481984 4184896164481703/4503599627370496 -2527292586301447/18014398509481984
+            1 7977905618560809/18014398509481984 -1671539598851959/144115188075855872 8075083879632623/9007199254740992
             sage: p.list_properties()[2]                    # optional - polymake
             BOUNDED
 
@@ -1833,7 +1820,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
 
             sage: p = polymake.rand_sphere(3, 12, seed=15)  # optional - polymake
             sage: [ x for x in p.VERTICES[3] ]              # optional - polymake
-            [1, -6157731020575175/18014398509481984, 4184896164481703/4503599627370496, -2527292586301447/18014398509481984]
+            [1, 7977905618560809/18014398509481984, -1671539598851959/144115188075855872, 8075083879632623/9007199254740992]
         """
         for i in range(len(self)):
             yield self[i]
@@ -1845,17 +1832,17 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
             sage: p = polymake.rand_sphere(3, 12, seed=15)           # optional - polymake
             sage: len(p.FACETS)                                     # optional - polymake
             20
-            sage: len(p.list_properties())                          # optional - polymake
-            13
+            sage: len(p.list_properties()) >= 12                     # optional - polymake
+            True
 
         """
         P = self._check_valid()
         T1, T2 = self.typeof()
         name = self._name
         if T2 == 'ARRAY':
-            return int(P.eval('print scalar @{+%s};' % name))
+            return int(P.eval('print scalar @{+%s};'%name))
         if T2 == 'HASH':
-            return int(P.eval('print scalar keys %{+' + '%s};' % name))
+            return int(P.eval('print scalar keys %{+%s};'%name))
         if T1:
             raise TypeError("Don't know how to compute the length of {} object".format(T1))
         return int(P.eval('print scalar {};'.format(name)))
@@ -1876,7 +1863,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
             ('Polymake::polytope::Polytope__Rational', 'ARRAY')
             sage: p.VERTICES.typeof()                                   # optional - polymake
             ('Polymake::common::Matrix_A_Rational_I_NonSymmetric_Z', 'ARRAY')
-            sage: p.get_schedule("F_VECTOR").typeof()                   # optional - polymake
+            sage: p.get_schedule('"F_VECTOR"').typeof()                   # optional - polymake
             ('Polymake::Core::Scheduler::RuleChain', 'ARRAY')
 
         On "small" objects, it just returns empty strings::
@@ -1888,7 +1875,10 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
         """
         P = self._check_valid()
         name = self._name
-        return P.eval('print ref({});'.format(name)), P.eval('print reftype({});'.format(name))
+        T1, T2 = P.eval('print ref({});'.format(name)), P.eval('print reftype({});'.format(name))
+        if T1 == 'false':                 # Polymake 3.4 returns this
+            T1 = ''
+        return T1, T2
 
     def _sage_(self):
         """
@@ -1935,6 +1925,13 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
             sage: _.parent()              # optional - polymake
             Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
 
+        Polytopes::
+
+            sage: polymake.cube(3).sage() # optional - polymake
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 8 vertices
+            sage: polymake.icosahedron().sage() # optional - polymake
+            A 3-dimensional polyhedron in AA^3 defined as the convex hull of 12 vertices
+
         """
         T1, T2 = self.typeof()
         self._check_valid()
@@ -1963,6 +1960,19 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
         elif T1 == 'Matrix' or T1 == 'SparseMatrix':
             from sage.matrix.constructor import matrix
             return matrix([x.sage() for x in self])
+        elif T1 == 'Polytope':
+            from sage.geometry.polyhedron.backend_polymake import Polyhedron_polymake
+            from sage.geometry.polyhedron.parent import Polyhedra
+            from sage.rings.rational_field import QQ
+            from sage.rings.qqbar import AA
+            if self.typeof()[0] == 'Polymake::polytope::Polytope__Rational':
+                base_ring = QQ
+            else:
+                # We could try to find out a more specific field.
+                base_ring = AA
+            ambient_dim = self.AMBIENT_DIM()
+            parent = Polyhedra(base_ring, ambient_dim, backend='polymake')
+            return Polyhedron_polymake._from_polymake_polytope(parent, self)
         else:
             return super(PolymakeElement, self)._sage_()
 
@@ -2036,6 +2046,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
             return doc
         return "Undocumented polymake type '{}'".format(self.full_typename())
 
+
 class PolymakeFunctionElement(FunctionElement):
     """
     A callable (function or member function) bound to a polymake element.
@@ -2049,7 +2060,7 @@ class PolymakeFunctionElement(FunctionElement):
         sage: c.contains                                    # optional - polymake
         Member function 'contains' of Polymake::polytope::Polytope__Rational object
         sage: c.contains(V)                                 # optional - polymake
-        1
+        true
 
     """
     def __init__(self, obj, name, memberfunction=False):
@@ -2074,6 +2085,7 @@ class PolymakeFunctionElement(FunctionElement):
         self._obj = obj
         self._name = name
         self._is_memberfunc = memberfunction
+
     def _repr_(self):
         """
         EXAMPLES::
@@ -2097,7 +2109,7 @@ class PolymakeFunctionElement(FunctionElement):
         bound to an element::
 
             sage: p = polymake.rand_sphere(3, 13, seed=12)      # optional - polymake
-            sage: p.get_schedule('VERTICES')                    # optional - polymake  # random
+            sage: p.get_schedule('"VERTICES"')                    # optional - polymake  # random
             sensitivity check for VertexPerm
             cdd.convex_hull.canon: POINTED, RAYS, LINEALITY_SPACE : INPUT_RAYS
             sage: p.minkowski_sum_fukuda(p).F_VECTOR            # optional - polymake

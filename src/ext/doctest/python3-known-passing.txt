@@ -24,6 +24,7 @@ src/sage/lfunctions/
 src/sage/libs/gsl/
 src/sage/logic/
 src/sage/manifolds/
+src/sage/matrix/
 src/sage/media/
 src/sage/modular/
 src/sage/modules/
@@ -36,11 +37,10 @@ src/sage/quivers/
 src/sage/rings/asymptotic/
 src/sage/rings/function_field/
 src/sage/rings/number_field/
+src/sage/rings/padics/
 src/sage/sandpiles/
 src/sage/sat/
-src/sage/schemes/curves/
-src/sage/schemes/product_projective/
-src/sage/schemes/toric/
+src/sage/schemes/
 src/sage/server/
 src/sage/stats/
 src/sage/structure/

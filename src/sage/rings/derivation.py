@@ -948,7 +948,7 @@ class RingDerivationWithoutTwist(RingDerivation):
         """
         Return ``True`` if this derivation is zero.
 
-        EXEMPLES::
+        EXAMPLES::
 
             sage: R.<x,y> = ZZ[]
             sage: f = R.derivation(); f
@@ -969,7 +969,7 @@ class RingDerivationWithoutTwist(RingDerivation):
         Compare this derivation with ``other`` according
         to the comparison operator ``op``.
 
-        EXEMPLES::
+        EXAMPLES::
 
             sage: R.<x,y,z> = GF(5)[]
             sage: D = sum(v*R.derivation(v) for v in R.gens()); D
@@ -1717,15 +1717,14 @@ class RingDerivationWithoutTwist_function(RingDerivationWithoutTwist):
             sage: D = x*R.derivation(x) + y*R.derivation(y)
             sage: D(x^2 + 3*x*y - y^2)
             2*x^2 + 6*x*y - 2*y^2
-
         """
         parent = self.parent()
         domain = parent.domain()
         codomain = parent.codomain()
         defining_morphism = parent.defining_morphism()
-        base_derivation = self._base_derivation
         if isinstance(domain, FractionField_generic):
-            num = x.numerator(); den = x.denominator()
+            num = x.numerator()
+            den = x.denominator()
             u = defining_morphism(num)
             v = defining_morphism(den)
             up = num.map_coefficients(self._base_derivation, codomain)(*domain.gens())
@@ -1741,7 +1740,7 @@ class RingDerivationWithoutTwist_function(RingDerivationWithoutTwist):
         """
         Return ``True`` if this derivation is zero.
 
-        EXEMPLES::
+        EXAMPLES::
 
             sage: R.<x,y> = ZZ[]
             sage: f = R.derivation(); f
@@ -2143,7 +2142,7 @@ class RingDerivationWithTwist_generic(RingDerivation):
         Compare this derivation with ``other`` according
         to the comparison operator ``op``.
 
-        EXEMPLES::
+        EXAMPLES::
 
             sage: R.<x,y> = ZZ[]
             sage: theta = R.hom([y,x])

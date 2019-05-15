@@ -34,7 +34,7 @@ EXAMPLES::
 """
 
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2017 Alejandra Alvarado <aalvarado2 at eiu.edu>
 #                          Angelos Koutsianas <koutsis.jr at gmail.com>
 #                          Beth Malmskog <beth.malmskog at gmail.com>
@@ -46,8 +46,8 @@ EXAMPLES::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from __future__ import absolute_import
 
@@ -1012,7 +1012,7 @@ def log_p(a, prime, prec):
 
     #In order to get an approximation with small coefficients we have to take into account the other primes above p
     #with negative valuation.  For example, say prime2 is another (principal ideal) prime above p, and a=(unit)(prime2)^(-k) for some unit and k
-    #a postive integer, and let tilde(a):=a(prime2)^k.  Then log_p(a)=log_p(tilde(a))-k(log_p(prime2)), where the series representations
+    #a positive integer, and let tilde(a):=a(prime2)^k.  Then log_p(a)=log_p(tilde(a))-k(log_p(prime2)), where the series representations
     #of these two logs will have smaller coefficients.
 
     primes = [(-(a.valuation(pr)),pr) for pr in K.primes_above(p) if a.valuation(pr) < 0]

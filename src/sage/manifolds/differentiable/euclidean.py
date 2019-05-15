@@ -142,7 +142,7 @@ coordinates, as we can check from the metric components in it::
 
 The expression of the metric tensor in terms of polar coordinates is::
 
-    sage: g.display(polar.frame(), polar)
+    sage: g.display(polar)
     g = dr*dr + r^2 dph*dph
 
 A vector field on ``E``::
@@ -1455,8 +1455,7 @@ class EuclideanPlane(EuclideanSpace):
         \frac{\partial}{\partial\phi}\right)`::
 
             sage: for e in E.polar_frame():
-            ....:     e.display(E.polar_coordinates().frame(),
-            ....:               E.polar_coordinates())
+            ....:     e.display(E.polar_coordinates())
             e_r = d/dr
             e_ph = 1/r d/dph
 
@@ -2203,8 +2202,7 @@ class Euclidean3dimSpace(EuclideanSpace):
         \frac{\partial}{\partial\phi}\right)`::
 
             sage: for e in E.spherical_frame():
-            ....:     e.display(E.spherical_coordinates().frame(),
-            ....:               E.spherical_coordinates())
+            ....:     e.display(E.spherical_coordinates())
             e_r = d/dr
             e_th = 1/r d/dth
             e_ph = 1/(r*sin(th)) d/dph
@@ -2352,8 +2350,7 @@ class Euclidean3dimSpace(EuclideanSpace):
         \frac{\partial}{\partial z}\right)`::
 
             sage: for e in E.cylindrical_frame():
-            ....:     e.display(E.cylindrical_coordinates().frame(),
-            ....:               E.cylindrical_coordinates())
+            ....:     e.display(E.cylindrical_coordinates())
             e_rh = d/drh
             e_ph = 1/rh d/dph
             e_z = d/dz

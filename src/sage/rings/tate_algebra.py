@@ -127,7 +127,7 @@ AUTHORS:
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 2 of the License, or
 #    (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # ***************************************************************************
 
 from sage.structure.factory import UniqueFactory
@@ -243,7 +243,7 @@ class TateAlgebraFactory(UniqueFactory):
     """
     def create_key(self, base, prec=None, log_radii=ZZ(0), names=None, order='degrevlex'):
         """
-        Create a key from the input paramaters.
+        Create a key from the input parameters.
 
         INPUT:
 

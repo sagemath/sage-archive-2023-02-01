@@ -3137,23 +3137,37 @@ cdef class Matrix(Matrix1):
         E = self.echelon_form(*args, **kwds)
         pivots = E.pivots()
         pivots_set = set(pivots)
-        R = self.base_ring()
-        zero = R(0)
-        one = R(1)
-        basis = []
-        for i in xrange(self._ncols):
-            if not (i in pivots_set):
-                v = [zero]*self._ncols
-                v[i] = one
-                for r in range(len(pivots)):
-                    v[pivots[r]] = -E[r,i]
-                basis.append(v)
-        tm = verbose("done computing right kernel matrix over an arbitrary field for %sx%s matrix" % (self.nrows(), self.ncols()),level=1,t=tm)
-        return 'pivot-generic', MatrixSpace(R, len(basis), self._ncols)(basis)
+        zero = self._base_ring.zero()
+        one = self._base_ring.one()
+        MS = self.matrix_space(self._ncols-len(pivots), self._ncols)
+        cdef Py_ssize_t i, r, cur_row
+        if self.is_sparse():
+            entries = {}
+            cur_row = 0
+            for i in range(self._ncols):
+                if i not in pivots_set:
+                    entries[cur_row, i] = one
+                    for r, p in enumerate(pivots):
+                        entries[cur_row, p] = -E[r, i]
+                    cur_row += 1
+            M = MS(entries, copy=False, coerce=False)
+        else:
+            basis = []
+            for i in range(self._ncols):
+                if i not in pivots_set:
+                    v = [zero] * self._ncols
+                    v[i] = one
+                    for r, p in enumerate(pivots):
+                        v[p] = -E[r, i]
+                    basis.append(v)
+            M = MS(basis, coerce=False)
+        tm = verbose("done computing right kernel matrix over an arbitrary field for %sx%s matrix"
+                     % (self.nrows(), self.ncols()),level=1,t=tm)
+        return 'pivot-generic', M
 
     def _right_kernel_matrix_over_domain(self):
         r"""
-        Returns a pair that includes a matrix of basis vectors
+        Return a pair that includes a matrix of basis vectors
         for the right kernel of ``self``.
 
         OUTPUT:
@@ -3164,7 +3178,7 @@ cdef class Matrix(Matrix1):
         Second item is a matrix whose rows are a basis for the right kernel,
         over the field, as computed by general Python code.
 
-        .. warning::
+        .. WARNING::
 
             This routine uses Smith normal form, which can fail
             if the domain is not a principal ideal domain.  Since we do
@@ -3174,7 +3188,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES:
 
-        Univariate polynomials over a field form a PID.  ::
+        Univariate polynomials over a field form a PID::
 
             sage: R.<y> = QQ[]
             sage: A = matrix(R, [[  1,   y, 1+y^2],
@@ -3189,7 +3203,7 @@ cdef class Matrix(Matrix1):
 
         TESTS:
 
-        We test some trivial cases. ::
+        We test some trivial cases::
 
             sage: R.<y> = QQ[]
             sage: A = matrix(R, 0, 2)
@@ -3205,13 +3219,16 @@ cdef class Matrix(Matrix1):
             [0 1 0]
             [0 0 1]
         """
-        tm = verbose("computing right kernel matrix over a domain for %sx%s matrix" % (self.nrows(), self.ncols()),level=1)
+        tm = verbose("computing right kernel matrix over a domain for %sx%s matrix"
+                     % (self.nrows(), self.ncols()), level=1)
         d, u, v = self.smith_form()
         basis = []
-        for i in xrange(self.ncols()):
-            if (i >= self.nrows()) or d[i][i] == 0:
-                basis.append( v.column(i).list() )
-        verbose("done computing right kernel matrix over a domain for %sx%s matrix" % (self.nrows(), self.ncols()),level=1,t=tm)
+        cdef Py_ssize_t i, nrows = self._nrows
+        for i in range(self._ncols):
+            if i >= nrows or d[i, i] == 0:
+                basis.append( v.column(i) )
+        verbose("done computing right kernel matrix over a domain for %sx%s matrix"
+                % (self.nrows(), self.ncols()), level=1, t=tm)
         return 'computed-smith-form', self.new_matrix(nrows=len(basis), ncols=self._ncols, entries=basis)
 
     def right_kernel_matrix(self, *args, **kwds):
@@ -11981,7 +11998,7 @@ cdef class Matrix(Matrix1):
         Partial pivoting is based on the absolute values of entries
         of a column. :trac:`12208` shows that the return value of the
         absolute value must be handled carefully.  This tests that
-        situation in the case of cylotomic fields.  ::
+        situation in the case of cyclotomic fields.  ::
 
             sage: C = SymmetricGroup(5).character_table()
             sage: C.base_ring()

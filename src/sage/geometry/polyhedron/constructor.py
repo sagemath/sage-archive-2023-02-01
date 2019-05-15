@@ -75,7 +75,7 @@ representation is equivalent to a 0-dimensional face of the
 polytope. This is why one generally does not distinguish vertices and
 0-dimensional faces. But for non-bounded polyhedra we have to allow
 for a more general notion of "vertex" in order to make sense of the
-Minkowsi sum presentation::
+Minkowski sum presentation::
 
     sage: half_plane = Polyhedron(ieqs=[(0,1,0)])
     sage: half_plane.Hrepresentation()

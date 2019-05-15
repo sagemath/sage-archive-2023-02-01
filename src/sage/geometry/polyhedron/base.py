@@ -2971,13 +2971,6 @@ class Polyhedron_base(Element):
             sage: poly_eggs = Polyhedron([[5,4,5,4],[-4,5,-4,5],[4,-5,4,-5],[0,0,0,0]], base_ring=QQ)
             sage: poly_spam + poly_spam + poly_eggs
             A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 12 vertices
-
-        TESTS::
-
-            sage: Z = X.Minkowski_sum(X)
-            doctest:warning...:
-            DeprecationWarning: Minkowski_sum is deprecated. Please use minkowski_sum instead.
-            See http://trac.sagemath.org/23685 for details.
         """
         new_vertices = []
         for v1 in self.vertex_generator():
@@ -2991,8 +2984,6 @@ class Polyhedron_base(Element):
             return self.parent().element_class(self.parent(), None, None)
 
     _add_ = minkowski_sum
-
-    Minkowski_sum = deprecated_function_alias(23685, minkowski_sum)
 
     @coerce_binop
     def minkowski_difference(self, other):
@@ -3082,13 +3073,6 @@ class Polyhedron_base(Element):
             True
             sage: (X-Y)+Y == X
             True
-
-        TESTS::
-
-            sage: Z = X.Minkowski_difference(X)
-            doctest:warning...:
-            DeprecationWarning: Minkowski_difference is deprecated. Please use minkowski_difference instead.
-            See http://trac.sagemath.org/23685 for details.
         """
         if other.is_empty():
             return self.parent().universe()   # empty intersection = everything
@@ -3109,9 +3093,6 @@ class Polyhedron_base(Element):
             new_ieqs.append(ieq)
         P = self.parent()
         return P.element_class(P, None, [new_ieqs, new_eqns])
-
-    Minkowski_difference = deprecated_function_alias(23685,
-                                                     minkowski_difference)
 
     def __sub__(self, other):
         r"""
@@ -3178,18 +3159,8 @@ class Polyhedron_base(Element):
             False
             sage: C.is_minkowski_summand(B)
             False
-
-        TESTS::
-
-            sage: b = C.is_Minkowski_summand(B)
-            doctest:warning...:
-            DeprecationWarning: is_Minkowski_summand is deprecated. Please use is_minkowski_summand instead.
-            See http://trac.sagemath.org/23685 for details.
         """
         return self.minkowski_difference(Y).minkowski_sum(Y) == self
-
-    is_Minkowski_summand = deprecated_function_alias(23685,
-                                                     is_minkowski_summand)
 
     def translation(self, displacement):
         """
@@ -6824,11 +6795,11 @@ class Polyhedron_base(Element):
 
         - ``orthonormal`` (boolean, default = False) -- if ``True``,
           provide an orthonormal transformation. If the base ring does not
-          provide the neccessary square roots, the extend parameter
+          provide the necessary square roots, the extend parameter
           needs to be set to ``True``.
 
         - ``extend`` (boolean, default = False) -- if ``True``,
-          allow base ring to be extended if neccessary. This becomes
+          allow base ring to be extended if necessary. This becomes
           relevant when requiering an orthonormal transformation.
 
         OUTPUT:
@@ -7085,10 +7056,10 @@ class Polyhedron_base(Element):
             assert v.vector() == Q.ambient_space().zero()
             # choose as an affine basis the neighbors of the origin vertex in Q
             M = matrix(self.base_ring(), self.dim(), self.ambient_dim(), [list(w) for w in itertools.islice(v.neighbors(), self.dim())])
-            # Switch base_ring to AA if neccessary,
+            # Switch base_ring to AA if necessary,
             # since gram_schmidt needs to be able to take square roots.
             # Pick orthonormal basis and transform all vertices accordingly
-            # if the orthonormal transform makes it neccessary, change base ring.
+            # if the orthonormal transform makes it necessary, change base ring.
             try:
                 A = M.gram_schmidt(orthonormal=orthonormal)[0]
             except TypeError:

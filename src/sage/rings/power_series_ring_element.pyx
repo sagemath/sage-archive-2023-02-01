@@ -128,9 +128,9 @@ def is_PowerSeries(x):
     """
     Return True if ``x`` is an instance of a univariate
     or multivariate power series.
-    
+
     EXAMPLES::
-    
+
         sage: R.<x> = PowerSeriesRing(ZZ)
         sage: from sage.rings.power_series_ring_element import is_PowerSeries
         sage: is_PowerSeries(1+x^2)
@@ -158,9 +158,9 @@ cdef class PowerSeries(AlgebraElement):
         Initialize a power series. Not for public use.
         It gets called by the ``PowerSeries_poly`` and
         ``MPowerSeries`` constructors.
-        
+
         EXAMPLES::
-        
+
             sage: PowerSeriesRing(CC, 'q')
             Power Series Ring in q over Complex Field with 53 bits of precision
             sage: T = PowerSeriesRing(GF(3),5,'t'); T
@@ -174,9 +174,9 @@ cdef class PowerSeries(AlgebraElement):
     def __hash__(self):
         """
         Compute a hash of self.
-        
+
         EXAMPLES::
-        
+
             sage: R.<x> = PowerSeriesRing(ZZ)
             sage: (1+x^2).__hash__()     # random
             15360174650385709
@@ -391,14 +391,14 @@ cdef class PowerSeries(AlgebraElement):
     def __call__(self, x):
         """
         Implementations *MUST* override this in the derived class.
-        
+
         EXAMPLES::
-        
+
             sage: R.<x> = PowerSeriesRing(ZZ)
             sage: PowerSeries.__call__(1+x^2,x)
             Traceback (most recent call last):
             ...
-            NotImplementedError        
+            NotImplementedError
         """
         raise NotImplementedError
 
@@ -434,13 +434,13 @@ cdef class PowerSeries(AlgebraElement):
     def list(self):
         """
         See this method in derived classes:
-        
+
         - :meth:`sage.rings.power_series_poly.PowerSeries_poly.list`,
-        
+
         - :meth:`sage.rings.multi_power_series_ring_element.MPowerSeries.list`
-        
+
         Implementations *MUST* override this in the derived class.
-        
+
         EXAMPLES::
 
             sage: R.<x> = PowerSeriesRing(ZZ)
@@ -454,13 +454,13 @@ cdef class PowerSeries(AlgebraElement):
     def polynomial(self):
         """
         See this method in derived classes:
-        
+
         - :meth:`sage.rings.power_series_poly.PowerSeries_poly.polynomial`,
-        
+
         - :meth:`sage.rings.multi_power_series_ring_element.MPowerSeries.polynomial`
 
         Implementations *MUST* override this in the derived class.
-        
+
         EXAMPLES::
 
             sage: R.<x> = PowerSeriesRing(ZZ)
@@ -958,7 +958,7 @@ cdef class PowerSeries(AlgebraElement):
     def is_unit(self):
         """
         Return True if this power series is invertible.
-        
+
         A power series is invertible precisely when the
         constant term is invertible.
 
@@ -1693,7 +1693,7 @@ cdef class PowerSeries(AlgebraElement):
         assert(val >= 1)
 
         x = self
-        
+
         prec = min(prec, self.prec())
         if is_Infinite(prec):
             prec = R.default_prec()
@@ -2076,9 +2076,9 @@ cdef class PowerSeries(AlgebraElement):
         r"""
         If `f = \sum a_m x^m`, then this function returns
         `\sum a_m x^{nm}`.
-        
+
         EXAMPLES::
-        
+
             sage: R.<x> = PowerSeriesRing(ZZ)
             sage: p = 1 + x^2 + x^10; p
             1 + x^2 + x^10
@@ -2131,7 +2131,7 @@ cdef class PowerSeries(AlgebraElement):
         """
         Return a string with the name of the variable
         of this power series.
-        
+
         EXAMPLES::
 
             sage: R.<x> = PowerSeriesRing(Rationals())
@@ -2191,7 +2191,7 @@ cdef class PowerSeries(AlgebraElement):
     def __setitem__(self, n, value):
         """
         Called when an attempt is made to change a power series.
-        
+
         EXAMPLES::
 
             sage: R.<t> = ZZ[[]]

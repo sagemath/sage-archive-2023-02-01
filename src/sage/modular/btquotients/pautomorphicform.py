@@ -398,11 +398,11 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
             sage: X = BruhatTitsQuotient(3,17)
             sage: H = X.harmonic_cocycles(2,prec=10)
             sage: H.basis()[0]._compute_element()
-            (1 + O(3^10), O(3^10), 0)
+            (1 + O(3^10), 0, 0)
             sage: H.basis()[1]._compute_element()
             (0, 1 + O(3^10), 0)
             sage: H.basis()[2]._compute_element()
-            (0, O(3^10), 1 + O(3^10))
+            (0, 0, 1 + O(3^10))
         """
         R = self._R
         A = self.parent().basis_matrix().transpose()

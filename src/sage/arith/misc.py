@@ -286,9 +286,9 @@ def bernoulli(n, algorithm='default', num_threads=1):
     - ``n`` - an integer
     - ``algorithm``:
 
-      - ``'default'`` -- use 'flint' for n <= 300000, and 'bernmm'
-        otherwise (this is just a heuristic, and not guaranteed to be
-        optimal on all hardware)
+      - ``'default'`` -- use 'flint' for n <= 20000, then 'arb' for n <= 300000
+        and 'bernmm' for larger values (this is just a heuristic, and not guaranteed
+        to be optimal on all hardware)
       - ``'arb'`` -- use the arb library
       - ``'flint'`` -- use the FLINT library
       - ``'pari'`` -- use the PARI C library
@@ -345,7 +345,6 @@ def bernoulli(n, algorithm='default', num_threads=1):
         sage: bernoulli(mpz(12))
         -691/2730
 
-
     AUTHOR:
 
     - David Joyner and William Stein
@@ -353,12 +352,20 @@ def bernoulli(n, algorithm='default', num_threads=1):
     n = ZZ(n)
 
     if algorithm == 'default':
-        algorithm = 'flint' if n <= 300000 else 'bernmm'
+        if n <= 20000:
+            algorithm = 'flint'
+        elif n <= 300000:
+            algorithm = 'arb'
+        else:
+            algorithm = 'bernmm'
 
     if algorithm == 'arb':
         import sage.libs.arb.arith as arb_arith
         return arb_arith.bernoulli(n)
     elif algorithm == 'flint':
+        if n >= 100000:
+            import warnings
+            warnings.warn("flint is known to not be accurate for large Bernoulli numbers")
         return flint_arith.bernoulli_number(n)
     elif algorithm == 'pari':
         x = pari(n).bernfrac()         # Use the PARI C library

@@ -5888,7 +5888,7 @@ class GenericGraph(GenericGraph_pyx):
         for v1, v2 in combinations(verts, 2):
             e = set([tuple(reversed(e)) for e in v1]).intersection(v2)
             if e:
-                e = e.pop() # since self is simple, there should be just one
+                e = e.pop() # just one edge since self and its dual are simple
                 edges.append([v1, v2, self.edge_label(e[0], e[1])])
         return Graph([verts, edges])
 

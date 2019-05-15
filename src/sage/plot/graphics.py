@@ -3179,11 +3179,11 @@ class Graphics(WithEqualityById, SageObject):
 
         ext = os.path.splitext(filename)[1].lower()
 
-        if ext not in ALLOWED_EXTENSIONS:
+        if ext in ['', '.sobj']:
+            SageObject.save(self, filename)
+        elif ext not in ALLOWED_EXTENSIONS:
             raise ValueError("allowed file extensions for images are '" +
                              "', '".join(ALLOWED_EXTENSIONS) + "'!")
-        elif ext in ['', '.sobj']:
-            SageObject.save(self, filename)
         else:
             from matplotlib import rcParams
             rc_backup = (rcParams['ps.useafm'], rcParams['pdf.use14corefonts'],

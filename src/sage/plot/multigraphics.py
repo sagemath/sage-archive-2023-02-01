@@ -30,9 +30,10 @@ class MultiGraphics(WithEqualityById, SageObject):
     Base class for objects composed of :class:`~sage.plot.graphics.Graphics`
     objects.
 
-    Both the graphical display and the output in a file of ``MultiGraphics``
-    objects are governed by the method :meth:`save`, which is called by
-    the rich output display manager.
+    Both the display and the output to a file of ``MultiGraphics`` objects
+    are governed by the method :meth:`save`, which is called by the rich output
+    display manager, via
+    :meth:`~sage.repl.rich_output.display_manager.DisplayManager.graphics_from_save`.
 
     """
     def __init__(self):
@@ -55,10 +56,12 @@ class MultiGraphics(WithEqualityById, SageObject):
 
         EXAMPLES::
 
-            sage: R = rainbow(6)
-            sage: L = [plot(x^n, (x,0,1), color=R[n]) for n in range(6)]
-            sage: graphics_array(L, 2, 3)
-            Graphics Array of size 2 x 3
+            sage: c = circle((0,0), 1)
+            sage: G = graphics_array([c, c, c])
+            sage: G._repr_()
+            'Graphics Array of size 1 x 3'
+            sage: G
+            Graphics Array of size 1 x 3
 
         """
         return str(self)
@@ -78,8 +81,8 @@ class MultiGraphics(WithEqualityById, SageObject):
 
             sage: from sage.repl.rich_output import get_display_manager
             sage: dm = get_display_manager()
-            sage: g = graphics_array([Graphics(), Graphics()], 1, 2)
-            sage: g._rich_repr_(dm)
+            sage: G = graphics_array([Graphics(), Graphics()], 1, 2)
+            sage: G._rich_repr_(dm)
             OutputImagePng container
 
         """
@@ -115,9 +118,9 @@ class MultiGraphics(WithEqualityById, SageObject):
 
         We can access and view individual plots::
 
-            sage: M = [[plot(x^2)], [plot(x^3)]]
-            sage: H = graphics_array(M)
-            sage: H[1]
+            sage: L = [[plot(x^2)], [plot(x^3)]]
+            sage: G = graphics_array(L)
+            sage: G[1]
             Graphics object consisting of 1 graphics primitive
 
         Another example::
@@ -137,15 +140,16 @@ class MultiGraphics(WithEqualityById, SageObject):
 
         EXAMPLES::
 
-            sage: M = [[plot(x^2)], [plot(x^3)]]
-            sage: H = graphics_array(M)
-            sage: H[1] # the plot of x^3
+            sage: L = [[plot(x^2)], [plot(x^3)]]
+            sage: G = graphics_array(L)
+            sage: G[1] # the plot of x^3
             Graphics object consisting of 1 graphics primitive
 
         Now we change it::
 
-            sage: H[1] = circle((1,1), 2) + points([(1,2), (3,2), (5,5)], color='purple')
-            sage: H[1] # a circle and some purple points
+            sage: G[1] = circle((1,1), 2) + points([(1,2), (3,2), (5,5)],
+            ....:                                  color='purple')
+            sage: G[1] # a circle and some purple points
             Graphics object consisting of 2 graphics primitives
 
         """
@@ -153,12 +157,11 @@ class MultiGraphics(WithEqualityById, SageObject):
 
     def __len__(self):
         r"""
-        Total number of elements graphics object composing ``self``.
+        Total number of Graphics objects composing ``self``.
 
         EXAMPLES::
 
-            sage: R = rainbow(6)
-            sage: L = [plot(x^n, (x,0,1), color=R[n]) for n in range(6)]
+            sage: L = [circle((0,0), n) for n in range(6)]
             sage: G = graphics_array(L, 2, 3)
             sage: len(G)
             6
@@ -168,18 +171,19 @@ class MultiGraphics(WithEqualityById, SageObject):
 
     def matplotlib(self, figure=None, figsize=None, **kwds):
         r"""
-        Construct or modify a matplotlib ``Figure`` object from ``self``.
+        Construct or modify a Matplotlib ``Figure`` by drawing the elements
+        of ``self`` on it.
 
         INPUT:
 
-        - ``figure`` -- (default: ``None``) matplotlib figure (class
+        - ``figure`` -- (default: ``None``) Matplotlib figure (class
           ``matplotlib.figure.Figure``) on which ``self`` is to be displayed;
           if none is provided, the figure will be created from the parameter
           ``figsize``
 
         - ``figsize`` -- (default: ``None``) width or [width, height] in inches
-          of the matplotlib figure in case ``figure`` is ``None``; if none
-          is provided, matplotlib's default (6.4 x 4.8 inches) is used
+          of the Matplotlib figure in case ``figure`` is ``None``; if none
+          is provided, Matplotlib's default (6.4 x 4.8 inches) is used
 
         - ``kwds`` -- options passed to the
           :meth:`~sage.plot.graphics.Graphics.matplotlib` method of
@@ -197,9 +201,9 @@ class MultiGraphics(WithEqualityById, SageObject):
             sage: G = graphics_array([plot(sin(x^k), (x, 0, 3))
             ....:                     for k in range(1, 4)])
 
-        If ``matplotlib()`` is invoked without any argument, a matplotlib
+        If ``matplotlib()`` is invoked without any argument, a Matplotlib
         figure is created and contains the 3 graphics element of the array
-        as 3 matplotlib ``Axes``::
+        as 3 Matplotlib ``Axes``::
 
             sage: fig = G.matplotlib()
             sage: fig
@@ -213,13 +217,14 @@ class MultiGraphics(WithEqualityById, SageObject):
             <Figure size 800x500 with 3 Axes>
 
         If a single number is provided for ``figsize``, it is considered to be
-        the width; the height is then computed according to matplotlib defaults
-        aspect ratio (4/3)::
+        the width; the height is then computed according to Matplotlib's
+        default aspect ratio (4/3)::
 
             sage: G.matplotlib(figsize=8.)
             <Figure size 800x600 with 3 Axes>
 
-        An example of use with a previously created figure, from ``pyplot``::
+        An example of use with a preexisting created figure, created by
+        ``pyplot``::
 
             sage: import matplotlib.pyplot as plt
             sage: fig1 = plt.figure(1)
@@ -237,6 +242,18 @@ class MultiGraphics(WithEqualityById, SageObject):
         It has however been modified by ``G.matplotlib(figure=fig1)``, which
         has added 3 new ``Axes`` to it.
 
+        Another example, with a figure created from scratch, via Matplolib's
+        ``Figure``::
+
+            sage: from matplotlib.figure import Figure
+            sage: fig2 = Figure()
+            sage: fig2
+            <Figure size 640x480 with 0 Axes>
+            sage: G.matplotlib(figure=fig2)
+            <Figure size 640x480 with 3 Axes>
+            sage: fig2
+            <Figure size 640x480 with 3 Axes>
+
         """
         from matplotlib.figure import Figure
         glist = self._glist
@@ -244,7 +261,7 @@ class MultiGraphics(WithEqualityById, SageObject):
         if dims == 0:  # empty MultiGraphics
             glist = [Graphics()]
             dims = 1
-        # If no matplotlib figure is provided, it is created here:
+        # If no Matplotlib figure is provided, it is created here:
         if figure is None:
             if figsize is not None:
                 figsize = _parse_figsize(figsize)
@@ -252,7 +269,7 @@ class MultiGraphics(WithEqualityById, SageObject):
         global do_verify
         do_verify = True
         for i, g in zip(range(1, dims + 1), glist):
-            # Creation of the matplotlib Axes object "subplot" for g
+            # Creation of the Matplotlib Axes object "subplot" for g
             subplot = self._add_subplot(figure, i)
             # Setting the options for g.matplotlib:
             options = {}
@@ -271,12 +288,12 @@ class MultiGraphics(WithEqualityById, SageObject):
 
     def save(self, filename, figsize=None, **kwds):
         r"""
-        Save ``self``.
+        Save ``self`` to a file, in various formats.
 
         INPUT:
 
-        - ``filename`` -- string. The filename and the image format
-          given by the extension, which can be one of the following:
+        - ``filename`` -- (string) the file name; the image format is given by
+          the extension, which can be one of the following:
 
             * ``.eps``,
 
@@ -293,76 +310,83 @@ class MultiGraphics(WithEqualityById, SageObject):
             * empty extension will be treated as ``.sobj``.
 
         - ``figsize`` -- (default: ``None``) width or [width, height] in inches
-          of the matplotlib figure in case ``figure`` is ``None``; if none
-          is provided matplotlib's default is used
+          of the Matplotlib figure; if none is provided, Matplotlib's default
+          (6.4 x 4.8 inches) is used
+
+        - ``kwds`` -- keyword arguments, like ``dpi=...``, passed to the
+          plotter, see :meth:`show`
 
         EXAMPLES::
 
             sage: F = tmp_filename(ext='.png')
-            sage: L = [plot(sin(k*x),(x,-pi,pi)) for k in [1..3]]
+            sage: L = [plot(sin(k*x), (x,-pi,pi)) for k in [1..3]]
             sage: G = graphics_array(L)
-            sage: G.save(F, dpi=500, axes=False)  # long time (6s on sage.math, 2012)
+            sage: G.save(F, dpi=500, axes=False)
 
         TESTS::
 
             sage: graphics_array([]).save(F)
             sage: graphics_array([[]]).save(F)
+
         """
         from matplotlib import rcParams
-        figure = self.matplotlib(figsize=figsize, **kwds)
-        transparent = kwds.get('transparent', Graphics.SHOW_OPTIONS['transparent'])
-        fig_tight = kwds.get('fig_tight', Graphics.SHOW_OPTIONS['fig_tight'])
-        dpi = kwds.get('dpi', Graphics.SHOW_OPTIONS['dpi'])
         ext = os.path.splitext(filename)[1].lower()
-        if ext not in ALLOWED_EXTENSIONS:
+        if ext in ['', '.sobj']:
+            SageObject.save(self, filename)
+        elif ext not in ALLOWED_EXTENSIONS:
             raise ValueError("allowed file extensions for images are '" +
                              "', '".join(ALLOWED_EXTENSIONS) + "'!")
-        rc_backup = (rcParams['ps.useafm'], rcParams['pdf.use14corefonts'],
-                     rcParams['text.usetex']) # save the rcParams
-        # You can output in PNG, PS, EPS, PDF, PGF, or SVG format, depending
-        # on the file extension.
-        # PGF is handled by a different backend
-        if ext == '.pgf':
-            from sage.misc.sage_ostools import have_program
-            latex_implementations = [i for i in ["xelatex", "pdflatex",
-                                                 "lualatex"]
-                                     if have_program(i)]
-            if not latex_implementations:
-                raise ValueError("Matplotlib requires either xelatex, "
-                                 "lualatex, or pdflatex.")
-            if latex_implementations[0] == "pdflatex":
-                # use pdflatex and set font encoding as per
-                # matplotlib documentation:
-                # https://matplotlib.org/users/pgf.html#pgf-tutorial
-                pgf_options= {"pgf.texsystem": "pdflatex",
-                              "pgf.preamble": [
-                                  r"\usepackage[utf8x]{inputenc}",
-                                  r"\usepackage[T1]{fontenc}"
-                              ]
-                }
-            else:
-                pgf_options = {
-                    "pgf.texsystem": latex_implementations[0],
-                }
-            rcParams.update(pgf_options)
-            from matplotlib.backends.backend_pgf import FigureCanvasPgf
-            figure.set_canvas(FigureCanvasPgf(figure))
-        # matplotlib looks at the file extension to see what the renderer should be.
-        # The default is FigureCanvasAgg for PNG's because this is by far the most
-        # common type of files rendered, like in the notebook, for example.
-        # if the file extension is not '.png', then matplotlib will handle it.
         else:
-            from matplotlib.backends.backend_agg import FigureCanvasAgg
-            figure.set_canvas(FigureCanvasAgg(figure))
-        # tight_layout adjusts the *subplot* parameters so ticks aren't cut off, etc.
-        figure.tight_layout()
-        opts = dict(dpi=dpi, transparent=transparent)
-        if fig_tight is True:
-            opts['bbox_inches'] = 'tight'
-        figure.savefig(filename, **opts)
-        # Restore the rcParams to the original, possibly user-set values
-        (rcParams['ps.useafm'], rcParams['pdf.use14corefonts'],
-                                       rcParams['text.usetex']) = rc_backup
+            rc_backup = (rcParams['ps.useafm'], rcParams['pdf.use14corefonts'],
+                         rcParams['text.usetex']) # save the rcParams
+            figure = self.matplotlib(figsize=figsize, **kwds)
+            transparent = kwds.get('transparent', Graphics.SHOW_OPTIONS['transparent'])
+            fig_tight = kwds.get('fig_tight', Graphics.SHOW_OPTIONS['fig_tight'])
+            dpi = kwds.get('dpi', Graphics.SHOW_OPTIONS['dpi'])
+            # You can output in PNG, PS, EPS, PDF, PGF, or SVG format, depending
+            # on the file extension.
+            # PGF is handled by a different backend
+            if ext == '.pgf':
+                from sage.misc.sage_ostools import have_program
+                latex_implementations = [i for i in ["xelatex", "pdflatex",
+                                                     "lualatex"]
+                                         if have_program(i)]
+                if not latex_implementations:
+                    raise ValueError("Matplotlib requires either xelatex, "
+                                     "lualatex, or pdflatex.")
+                if latex_implementations[0] == "pdflatex":
+                    # use pdflatex and set font encoding as per
+                    # Matplotlib documentation:
+                    # https://matplotlib.org/users/pgf.html#pgf-tutorial
+                    pgf_options= {"pgf.texsystem": "pdflatex",
+                                  "pgf.preamble": [
+                                      r"\usepackage[utf8x]{inputenc}",
+                                      r"\usepackage[T1]{fontenc}"
+                                  ]
+                    }
+                else:
+                    pgf_options = {
+                        "pgf.texsystem": latex_implementations[0],
+                    }
+                rcParams.update(pgf_options)
+                from matplotlib.backends.backend_pgf import FigureCanvasPgf
+                figure.set_canvas(FigureCanvasPgf(figure))
+            # Matplotlib looks at the file extension to see what the renderer should be.
+            # The default is FigureCanvasAgg for PNG's because this is by far the most
+            # common type of files rendered, like in the notebook, for example.
+            # if the file extension is not '.png', then Matplotlib will handle it.
+            else:
+                from matplotlib.backends.backend_agg import FigureCanvasAgg
+                figure.set_canvas(FigureCanvasAgg(figure))
+            # tight_layout adjusts the *subplot* parameters so ticks aren't cut off, etc.
+            figure.tight_layout()
+            opts = dict(dpi=dpi, transparent=transparent)
+            if fig_tight is True:
+                opts['bbox_inches'] = 'tight'
+            figure.savefig(filename, **opts)
+            # Restore the rcParams to the original, possibly user-set values
+            (rcParams['ps.useafm'], rcParams['pdf.use14corefonts'],
+                                           rcParams['text.usetex']) = rc_backup
 
     def save_image(self, filename=None, *args, **kwds):
         r"""
@@ -380,7 +404,8 @@ class MultiGraphics(WithEqualityById, SageObject):
 
         EXAMPLES::
 
-            sage: plots = [[plot(m*cos(x + n*pi/4), (x,0, 2*pi)) for n in range(3)] for m in range(1,3)]
+            sage: plots = [[plot(m*cos(x + n*pi/4), (x,0, 2*pi))
+            ....:           for n in range(3)] for m in range(1,3)]
             sage: G = graphics_array(plots)
             sage: G.save_image(tmp_filename(ext='.png'))
 
@@ -424,18 +449,21 @@ class MultiGraphics(WithEqualityById, SageObject):
 
         OPTIONAL INPUT:
 
-        -  ``dpi`` - dots per inch
+        - ``dpi`` -- dots per inch
 
-        - ``figsize`` -- (default: ``None``) width or [width, height] in inches
-          of the matplotlib figure in case ``figure`` is ``None``; if none
-          is provided matplotlib's default is used
+        - ``figsize`` -- width or [width, height] of the figure, in inches; the
+          default is 6.4 x 4.8 inches
 
-        -  ``axes`` - (default: True)
+        - ``axes`` -- boolean; if ``True``, all individual graphics are
+          endowed with axes; if ``False``, all axes are removed (this overrides
+          the ``axes`` option set in each graphics)
 
-        -  ``fontsize`` - positive integer
+        - ``frame`` -- boolean; if ``True``, all individual graphics are
+          drawn with a frame around them; if ``False``, all frames are removed
+          (this overrides the ``frame`` option set in each graphics)
 
-        -  ``frame`` - (default: False) draw a frame around the
-           image
+        - ``fontsize`` -- positive integer, the size of fonts for the axes
+          labels (this overrides the ``fontsize`` option set in each graphics)
 
         OUTPUT:
 
@@ -444,16 +472,39 @@ class MultiGraphics(WithEqualityById, SageObject):
 
         EXAMPLES:
 
-        This draws a graphics array with four trig plots and no
-        axes in any of the plots::
+        This draws a graphics array with four trig plots and no axes in any of
+        the plots and a figure width of 4 inches::
 
-            sage: G = graphics_array([[plot(sin), plot(cos)], [plot(tan), plot(sec)]])
-            sage: G.show(axes=False)
+            sage: G = graphics_array([[plot(sin), plot(cos)],
+            ....:                     [plot(tan), plot(sec)]])
+            sage: G.show(axes=False, figsize=4)
 
         .. PLOT::
 
             G = graphics_array([[plot(sin), plot(cos)], [plot(tan), plot(sec)]])
-            sphinx_plot(G, axes=False)
+            sphinx_plot(G, axes=False, figsize=4)
+
+        Same thing with a frame around each individual graphics::
+
+            sage: G.show(axes=False, frame=True, figsize=4)
+
+        .. PLOT::
+
+            G = graphics_array([[plot(sin), plot(cos)], [plot(tan), plot(sec)]])
+            sphinx_plot(G, axes=False, frame=True, figsize=4)
+
+        Actually, many options are possible; for instance, we may set
+        ``fontsize`` and ``gridlines``::
+
+            sage: G.show(axes=False, frame=True, figsize=4, fontsize=8,
+            ....:        gridlines='major')
+
+        .. PLOT::
+
+            G = graphics_array([[plot(sin), plot(cos)], [plot(tan), plot(sec)]])
+            sphinx_plot(G, axes=False, frame=True, figsize=4, fontsize=8, \
+                        gridlines='major')
+
 
         """
         from sage.repl.rich_output import get_display_manager
@@ -603,6 +654,11 @@ class GraphicsArray(MultiGraphics):
         Graphics object consisting of 51 graphics primitives,
         Graphics object consisting of 2 graphics primitives]
 
+    The total number of Graphics objects composing the array is returned
+    by the function ``len``::
+
+        sage: len(G)
+        4
 
     The square-bracket operator can be used to replace elements in the array::
 
@@ -709,22 +765,22 @@ class GraphicsArray(MultiGraphics):
 
     def _add_subplot(self, figure, index, **options):
         r"""
-        Add a subplot to a given matplotlib ``Figure``, the position of
+        Add a subplot to a given Matplotlib ``Figure``, the position of
         which is governed by a given element of ``self``.
 
-        This method encapsulates the matplotlib method ``Figure.add_subplot``
+        This method encapsulates the Matplotlib method ``Figure.add_subplot``
         and is intended to be called by :meth:`MultiGraphics.save`.
 
         INPUT:
 
-        - ``figure`` -- a matplotlib ``Figure`` object
+        - ``figure`` -- a Matplotlib ``Figure`` object
         - ``index `` -- integer specifiying the element of ``self``, starting
           from 1 for the first element of ``self[:]``.
         - ``options`` -- extra options to be passed to ``Figure.add_subplot``
 
         OUTPUT:
 
-        - a matplotlib ``Axes`` object
+        - a Matplotlib ``Axes`` object
 
         EXAMPLES::
 

@@ -538,12 +538,7 @@ class GraphicsArray(MultiGraphics):
 
     Note that with respect to the square bracket operator, ``G`` is considered
     as a flattened list of graphics objects, not as an array. For instance,
-    ``G[0, 1]`` will throw an error::
-
-        sage: G[0,1]
-        Traceback (most recent call last):
-        ...
-        TypeError: list indices must be integers or slices, not tuple
+    ``G[0, 1]`` will throw an error.
 
     ``G[:]`` returns the full (flattened) list of graphics objects composing
     ``G``::
@@ -575,7 +570,6 @@ class GraphicsArray(MultiGraphics):
         G[2] = g4
         sphinx_plot(G)
 
-
     """
     def __init__(self, array):
         """
@@ -583,35 +577,40 @@ class GraphicsArray(MultiGraphics):
 
         TESTS::
 
-            sage: L = [plot(sin(k*x),(x,-pi,pi)) for k in range(10)]
-            sage: G = graphics_array(L)
-            sage: G.ncols()
-            10
-            sage: M = [[plot(x^2)],[plot(x^3)]]
-            sage: H = graphics_array(M)
-            sage: str(H[1])
-            'Graphics object consisting of 1 graphics primitive'
+            sage: from sage.plot.multigraphics import GraphicsArray
+            sage: g = circle((0,0), 1)  # a Graphics object
+            sage: G = GraphicsArray([[g, g], [g, g]])
+            sage: print(G)
+            Graphics Array of size 2 x 2
 
-        ::
+        Construction from a single list ==> 1-row array::
 
-            sage: L = [[plot(sin),plot(cos)],[plot(tan)]]
-            sage: graphics_array(L)
+            sage: G = GraphicsArray([g, g, g])
+            sage: print(G)
+            Graphics Array of size 1 x 3
+            sage: G = GraphicsArray([g])
+            sage: print(G)
+            Graphics Array of size 1 x 1
+
+        Various cases of wrong input::
+
+            sage: G = GraphicsArray([[g, g], [g]])
             Traceback (most recent call last):
             ...
-            TypeError: array (=[[Graphics object consisting of 1 graphics primitive, Graphics object consisting of 1 graphics primitive], [Graphics object consisting of 1 graphics primitive]]) must be a list of lists of Graphics objects
-            sage: G = plot(x,(x,0,1))
-            sage: graphics_array(G)
+            TypeError: array must be a list of equal-size lists of Graphics
+             objects, not [[Graphics object consisting of 1 graphics primitive,
+             Graphics object consisting of 1 graphics primitive],
+             [Graphics object consisting of 1 graphics primitive]]
+            sage: G = GraphicsArray(g)
             Traceback (most recent call last):
             ...
-            TypeError: array (=Graphics object consisting of 1 graphics primitive) must be a list of lists of Graphics objects
-            sage: G = [[plot(x,(x,0,1)),x]]
-            sage: graphics_array(G)
+            TypeError: array must be a list of lists of Graphics objects, not
+             Graphics object consisting of 1 graphics primitive
+            sage: G = GraphicsArray([g, x])
             Traceback (most recent call last):
             ...
             TypeError: every element of array must be a Graphics object
 
-            sage: hash(graphics_array([])) # random
-            42
         """
         MultiGraphics.__init__(self)
         if not isinstance(array, (list, tuple)):
@@ -629,8 +628,8 @@ class GraphicsArray(MultiGraphics):
         self._dims = self._rows*self._cols
         for row in array: # basically flatten the list
             if not isinstance(row, (list, tuple)) or len(row) != self._cols:
-                raise TypeError("array must be a list of lists of Graphics "
-                                "objects, not {}".format(array))
+                raise TypeError("array must be a list of equal-size lists of "
+                                "Graphics objects, not {}".format(array))
             for g in row:
                 if not isinstance(g, Graphics):
                     raise TypeError("every element of array must be a "

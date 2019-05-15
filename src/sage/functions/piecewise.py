@@ -75,7 +75,6 @@ from __future__ import absolute_import, division, print_function
 from sage.symbolic.function import BuiltinFunction
 from sage.sets.real_set import RealSet
 from sage.symbolic.ring import SR
-from sage.rings.rational_field import QQ
 from sage.rings.infinity import minus_infinity, infinity
 
 from six import get_function_code

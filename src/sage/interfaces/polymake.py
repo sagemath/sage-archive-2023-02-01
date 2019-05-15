@@ -306,10 +306,10 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
 
         Test that dictionaries are converted to hashes::
 
-            sage: h = polymake({'"a"': 1, '"b"': 2})
-            sage: h
+            sage: h = polymake({'"a"': 1, '"b"': 2})                   # optional - polymake
+            sage: h                                                    # optional - polymake
             HASH(0x...)
-            sage: h['"a"']
+            sage: h['"a"']                                             # optional - polymake
             1
         """
         if isinstance(x, dict):

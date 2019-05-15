@@ -15,9 +15,9 @@ EXAMPLES::
     1/8
     sage: plot(f)    # not tested
 
-TODO:
+.. TODO::
 
-- Implement max/min location and values,
+    Implement max/min location and values,
 
 AUTHORS:
 
@@ -67,7 +67,7 @@ TESTS::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
 from __future__ import absolute_import, division, print_function

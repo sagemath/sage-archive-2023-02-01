@@ -35,8 +35,9 @@ plot_html_show_source_link = False
 plot_pre_code = """
 def sphinx_plot(graphics, **kwds):
     import matplotlib.image as mpimg
-    from sage.misc.temporary_file import tmp_filename
     import matplotlib.pyplot as plt
+    from sage.misc.temporary_file import tmp_filename
+    from sage.plot.graphics import _parse_figsize
     if os.environ.get('SAGE_SKIP_PLOT_DIRECTIVE', 'no') != 'yes':
         ## Option handling is taken from Graphics.save
         options = dict()
@@ -52,35 +53,16 @@ def sphinx_plot(graphics, **kwds):
         transparent = options.pop('transparent', None)
         fig_tight = options.pop('fig_tight', None)
         figsize = options.pop('figsize', None)
-        ## figsize handling is taken from Graphics.matplotlib()
-        if figsize is not None and not isinstance(figsize, (list, tuple)):
-            # in this case, figsize is a number and should be positive
-            try:
-                figsize = float(figsize) # to pass to mpl
-            except TypeError:
-                raise TypeError("figsize should be a positive number, not {0}".format(figsize))
-            if figsize > 0:
-                from matplotlib import rcParams
-                default_width, default_height = rcParams['figure.figsize']
-                figsize = (figsize, default_height*figsize/default_width)
-            else:
-                raise ValueError("figsize should be positive, not {0}".format(figsize))
-
         if figsize is not None:
-            # then the figsize should be two positive numbers
-            if len(figsize) != 2:
-                raise ValueError("figsize should be a positive number "
-                                 "or a list of two positive numbers, not {0}".format(figsize))
-            figsize = (float(figsize[0]),float(figsize[1])) # floats for mpl
-            if not (figsize[0] > 0 and figsize[1] > 0):
-                raise ValueError("figsize should be positive numbers, "
-                                 "not {0} and {1}".format(figsize[0],figsize[1]))
-
+            figsize = _parse_figsize(figsize)
         plt.figure(figsize=figsize)
         figure = plt.gcf()
         if isinstance(graphics, (sage.plot.graphics.Graphics,
                                  sage.plot.multigraphics.MultiGraphics)):
             graphics.matplotlib(figure=figure, figsize=figsize, **options)
+            # tight_layout adjusts the *subplot* parameters so ticks aren't
+            # cut off, etc.
+            figure.tight_layout()
         else:
             # 3d graphics via png
             import matplotlib as mpl
@@ -95,7 +77,8 @@ def sphinx_plot(graphics, **kwds):
             plt.imshow(img)
             plt.axis("off")
         plt.margins(0)
-        plt.tight_layout(pad=0)
+        if not isinstance(graphics, sage.plot.multigraphics.MultiGraphics):
+            plt.tight_layout(pad=0)
 
 from sage.all_cmdline import *
 """

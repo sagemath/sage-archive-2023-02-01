@@ -30,6 +30,10 @@ class MultiGraphics(WithEqualityById, SageObject):
     Base class for objects composed of :class:`~sage.plot.graphics.Graphics`
     objects.
 
+    Both the graphical display and the output in a file of ``MultiGraphics``
+    objects are governed by the method :meth:`save`, which is called by
+    the rich output display manager.
+
     """
     def __init__(self):
         r"""
@@ -104,7 +108,7 @@ class MultiGraphics(WithEqualityById, SageObject):
                     self.save, kwds, file_ext, output_container)
 
     def __getitem__(self, i):
-        """
+        r"""
         Return the ``i``th element of the list of graphics composing ``self``.
 
         EXAMPLES:
@@ -128,7 +132,7 @@ class MultiGraphics(WithEqualityById, SageObject):
         return self._glist[i]
 
     def __setitem__(self, i, g):
-        """
+        r"""
         Set the ``i``th element of the list of graphics composing ``self``.
 
         EXAMPLES::
@@ -148,7 +152,7 @@ class MultiGraphics(WithEqualityById, SageObject):
         self._glist[i] = g
 
     def __len__(self):
-        """
+        r"""
         Total number of elements graphics object composing ``self``.
 
         EXAMPLES::
@@ -164,7 +168,7 @@ class MultiGraphics(WithEqualityById, SageObject):
 
     def matplotlib(self, figure=None, figsize=None, **kwds):
         r"""
-        Create a matplotlib ``Figure`` object from ``self``.
+        Construct or modify a matplotlib ``Figure`` object from ``self``.
 
         INPUT:
 
@@ -175,7 +179,7 @@ class MultiGraphics(WithEqualityById, SageObject):
 
         - ``figsize`` -- (default: ``None``) width or [width, height] in inches
           of the matplotlib figure in case ``figure`` is ``None``; if none
-          is provided matplotlib's default is used
+          is provided, matplotlib's default (6.4 x 4.8 inches) is used
 
         - ``kwds`` -- options passed to the
           :meth:`~sage.plot.graphics.Graphics.matplotlib` method of
@@ -183,9 +187,55 @@ class MultiGraphics(WithEqualityById, SageObject):
 
         OUTPUT:
 
-        - a ``matplotlib.figure.Figure`` object
+        - a ``matplotlib.figure.Figure`` object; if the argument ``figure`` is
+          not ``None``, this is the same object as ``figure``.
 
         EXAMPLES:
+
+        Let us consider a :class:`GraphicsArray` object with 3 elements::
+
+            sage: G = graphics_array([plot(sin(x^k), (x, 0, 3))
+            ....:                     for k in range(1, 4)])
+
+        If ``matplotlib()`` is invoked without any argument, a matplotlib
+        figure is created and contains the 3 graphics element of the array
+        as 3 matplotlib ``Axes``::
+
+            sage: fig = G.matplotlib()
+            sage: fig
+            <Figure size 640x480 with 3 Axes>
+            sage: type(fig)
+            <class 'matplotlib.figure.Figure'>
+
+        Specifying the figure size (in inches)::
+
+            sage: G.matplotlib(figsize=(8., 5.))
+            <Figure size 800x500 with 3 Axes>
+
+        If a single number is provided for ``figsize``, it is considered to be
+        the width; the height is then computed according to matplotlib defaults
+        aspect ratio (4/3)::
+
+            sage: G.matplotlib(figsize=8.)
+            <Figure size 800x600 with 3 Axes>
+
+        An example of use with a previously created figure, from ``pyplot``::
+
+            sage: import matplotlib.pyplot as plt
+            sage: fig1 = plt.figure(1)
+            sage: fig1
+            <Figure size 640x480 with 0 Axes>
+            sage: fig_out = G.matplotlib(figure=fig1)
+            sage: fig_out
+            <Figure size 640x480 with 3 Axes>
+
+        Note that the output figure is the same object as the input one::
+
+            sage: fig_out is fig1
+            True
+
+        It has however been modified by ``G.matplotlib(figure=fig1)``, which
+        has added 3 new ``Axes`` to it.
 
         """
         from matplotlib.figure import Figure
@@ -338,7 +388,7 @@ class MultiGraphics(WithEqualityById, SageObject):
         self.save(filename, *args, **kwds)
 
     def _latex_(self, **kwds):
-        """
+        r"""
         Return a string plotting ``self`` with PGF.
 
         INPUT:
@@ -411,7 +461,7 @@ class MultiGraphics(WithEqualityById, SageObject):
         dm.display_immediately(self, **kwds)
 
     def plot(self):
-        """
+        r"""
         Draw a 2D plot of this graphics object, which just returns this
         object since this is already a 2D graphics object.
 
@@ -419,13 +469,12 @@ class MultiGraphics(WithEqualityById, SageObject):
 
             sage: g1 = plot(cos(20*x)*exp(-2*x), 0, 1)
             sage: g2 = plot(2*exp(-30*x) - exp(-3*x), 0, 1)
-            sage: S = graphics_array([g1, g2], 2, 1)
-            sage: S.plot() is S
+            sage: G = graphics_array([g1, g2], 2, 1)
+            sage: G.plot() is G
             True
+
         """
         return self
-
-
 
 
 # ****************************************************************************
@@ -453,13 +502,15 @@ class GraphicsArray(MultiGraphics):
 
         sage: g1 = plot(sin(x^2), (x, 0, 6), axes_labels=['$x$', '$y$'],
         ....:           axes=False, frame=True, gridlines='minor')
-        sage: g2 = circle((0,0), 1, rgbcolor='red', fill=True, alpha=0.2,
-        ....:             legend_label='pink')
         sage: y = var('y')
-        sage: g3 = streamline_plot((sin(x), cos(y)), (x,-3,3), (y,-3,3),
+        sage: g2 = streamline_plot((sin(x), cos(y)), (x,-3,3), (y,-3,3),
         ....:                      aspect_ratio=1)
+        sage: g3 = graphs.DodecahedralGraph().plot()
         sage: g4 = polar_plot(sin(5*x)^2, (x, 0, 2*pi), color='green',
-        ....:                 legend_label='green', fontsize=8)
+        ....:                 fontsize=8) \
+        ....:      + circle((0,0), 0.5, rgbcolor='red', fill=True, alpha=0.1,
+        ....:               legend_label='pink')
+        sage: g4.set_legend_options(loc='upper right')
         sage: G = graphics_array([[g1, g2], [g3, g4]])
         sage: G
         Graphics Array of size 2 x 2
@@ -468,13 +519,14 @@ class GraphicsArray(MultiGraphics):
 
         g1 = plot(sin(x**2), (x, 0, 6), axes_labels=['$x$', '$y$'], \
                   axes=False, frame=True, gridlines='minor')
-        g2 = circle((0,0), 1, rgbcolor='red', fill=True, alpha=0.2, \
-                    legend_label='pink')
         y = var('y')
-        g3 = streamline_plot((sin(x), cos(y)), (x,-3,3), (y,-3,3), \
+        g2 = streamline_plot((sin(x), cos(y)), (x,-3,3), (y,-3,3), \
                              aspect_ratio=1)
-        g4 = polar_plot(sin(5*x)**2, (x, 0, 2*pi), color='green', \
-                        legend_label='green', fontsize=8)
+        g3 = graphs.DodecahedralGraph().plot()
+        g4 = polar_plot(sin(5*x)**2, (x, 0, 2*pi), color='green', fontsize=8) \
+             + circle((0,0), 0.5, rgbcolor='red', fill=True, alpha=0.1, \
+                      legend_label='pink')
+        g4.set_legend_options(loc='upper right')
         G = graphics_array([[g1, g2], [g3, g4]])
         sphinx_plot(G)
 
@@ -489,18 +541,19 @@ class GraphicsArray(MultiGraphics):
 
         g1 = plot(sin(x**2), (x, 0, 6), axes_labels=['$x$', '$y$'], \
                   axes=False, frame=True, gridlines='minor')
-        g2 = circle((0,0), 1, rgbcolor='red', fill=True, alpha=0.2, \
-                    legend_label='pink')
         y = var('y')
-        g3 = streamline_plot((sin(x), cos(y)), (x,-3,3), (y,-3,3), \
+        g2 = streamline_plot((sin(x), cos(y)), (x,-3,3), (y,-3,3), \
                              aspect_ratio=1)
-        g4 = polar_plot(sin(5*x)**2, (x, 0, 2*pi), color='green', \
-                        legend_label='green', fontsize=8)
+        g3 = graphs.DodecahedralGraph().plot()
+        g4 = polar_plot(sin(5*x)**2, (x, 0, 2*pi), color='green', fontsize=8) \
+             + circle((0,0), 0.5, rgbcolor='red', fill=True, alpha=0.1, \
+                      legend_label='pink')
+        g4.set_legend_options(loc='upper right')
         G = graphics_array([g1, g2, g3, g4])
         sphinx_plot(G)
 
     We note that the overall aspect ratio of the figure is 4/3 (the default),
-    which makes ``g1`` elongated, while the aspect ratio of ``g3``, which has
+    which makes ``g1`` elongated, while the aspect ratio of ``g2``, which has
     been specified with the parameter ``aspect_ratio=1`` is preserved. To get
     a better aspect ratio for the whole figure, one can use the option
     ``figsize`` in the method :meth:`~MultiGraphics.show`::
@@ -511,18 +564,19 @@ class GraphicsArray(MultiGraphics):
 
         g1 = plot(sin(x**2), (x, 0, 6), axes_labels=['$x$', '$y$'], \
                   axes=False, frame=True, gridlines='minor')
-        g2 = circle((0,0), 1, rgbcolor='red', fill=True, alpha=0.2, \
-                    legend_label='pink')
         y = var('y')
-        g3 = streamline_plot((sin(x), cos(y)), (x,-3,3), (y,-3,3), \
+        g2 = streamline_plot((sin(x), cos(y)), (x,-3,3), (y,-3,3), \
                              aspect_ratio=1)
-        g4 = polar_plot(sin(5*x)**2, (x, 0, 2*pi), color='green', \
-                        legend_label='green', fontsize=8)
+        g3 = graphs.DodecahedralGraph().plot()
+        g4 = polar_plot(sin(5*x)**2, (x, 0, 2*pi), color='green', fontsize=8) \
+             + circle((0,0), 0.5, rgbcolor='red', fill=True, alpha=0.1, \
+                      legend_label='pink')
+        g4.set_legend_options(loc='upper right')
         G = graphics_array([g1, g2, g3, g4])
         sphinx_plot(G, figsize=[8, 3])
 
     We can access to individual elements of the graphics array with the
-    square bracket operator::
+    square-bracket operator::
 
         sage: G = graphics_array([[g1, g2], [g3, g4]])  # back to the 2x2 array
         sage: print(G)
@@ -536,7 +590,7 @@ class GraphicsArray(MultiGraphics):
         sage: G[3] is g4
         True
 
-    Note that with respect to the square bracket operator, ``G`` is considered
+    Note that with respect to the square-bracket operator, ``G`` is considered
     as a flattened list of graphics objects, not as an array. For instance,
     ``G[0, 1]`` will throw an error.
 
@@ -545,13 +599,14 @@ class GraphicsArray(MultiGraphics):
 
         sage: G[:]
         [Graphics object consisting of 1 graphics primitive,
-         Graphics object consisting of 1 graphics primitive,
-         Graphics object consisting of 1 graphics primitive,
-         Graphics object consisting of 1 graphics primitive]
+        Graphics object consisting of 1 graphics primitive,
+        Graphics object consisting of 51 graphics primitives,
+        Graphics object consisting of 2 graphics primitives]
 
-    The square bracket operator can be used to replace elements in the array::
 
-        sage: G[2] = g4
+    The square-bracket operator can be used to replace elements in the array::
+
+        sage: G[0] = g4
         sage: G
         Graphics Array of size 2 x 2
 
@@ -559,20 +614,21 @@ class GraphicsArray(MultiGraphics):
 
         g1 = plot(sin(x**2), (x, 0, 6), axes_labels=['$x$', '$y$'], \
                   axes=False, frame=True, gridlines='minor')
-        g2 = circle((0,0), 1, rgbcolor='red', fill=True, alpha=0.2, \
-                    legend_label='pink')
         y = var('y')
-        g3 = streamline_plot((sin(x), cos(y)), (x,-3,3), (y,-3,3), \
+        g2 = streamline_plot((sin(x), cos(y)), (x,-3,3), (y,-3,3), \
                              aspect_ratio=1)
-        g4 = polar_plot(sin(5*x)**2, (x, 0, 2*pi), color='green', \
-                        legend_label='green', fontsize=8)
+        g3 = graphs.DodecahedralGraph().plot()
+        g4 = polar_plot(sin(5*x)**2, (x, 0, 2*pi), color='green', fontsize=8) \
+             + circle((0,0), 0.5, rgbcolor='red', fill=True, alpha=0.1, \
+                      legend_label='pink')
+        g4.set_legend_options(loc='upper right')
         G = graphics_array([[g1, g2], [g3, g4]])
-        G[2] = g4
+        G[0] = g4
         sphinx_plot(G)
 
     """
     def __init__(self, array):
-        """
+        r"""
         Construct a ``GraphicsArray``.
 
         TESTS::
@@ -637,20 +693,19 @@ class GraphicsArray(MultiGraphics):
                 self._glist.append(g)
 
     def __str__(self):
-        """
+        r"""
         String representation of the graphics array.
 
         EXAMPLES::
 
-            sage: R = rainbow(6)
-            sage: L = [plot(x^n,(x,0,1),color=R[n]) for n in range(6)]
-            sage: G = graphics_array(L,2,3)
+            sage: c = circle((0,0), 1)
+            sage: G = graphics_array([c]*6, 2, 3)
             sage: G.__str__()
             'Graphics Array of size 2 x 3'
             sage: str(G)
             'Graphics Array of size 2 x 3'
         """
-        return "Graphics Array of size %s x %s"%(self._rows, self._cols)
+        return "Graphics Array of size {} x {}".format(self._rows, self._cols)
 
     def _add_subplot(self, figure, index, **options):
         r"""
@@ -658,17 +713,31 @@ class GraphicsArray(MultiGraphics):
         which is governed by a given element of ``self``.
 
         This method encapsulates the matplotlib method ``Figure.add_subplot``
-        and is intended to be called by :meth:`MultiGraphics.save`
+        and is intended to be called by :meth:`MultiGraphics.save`.
 
         INPUT:
 
-        - ``figure`` -- a matplotlib Figure
-        - ``index `` -- integer specifiying the element of ``self``
+        - ``figure`` -- a matplotlib ``Figure`` object
+        - ``index `` -- integer specifiying the element of ``self``, starting
+          from 1 for the first element of ``self[:]``.
         - ``options`` -- extra options to be passed to ``Figure.add_subplot``
 
         OUTPUT:
 
         - a matplotlib ``Axes`` object
+
+        EXAMPLES::
+
+            sage: c = circle((0,0), 1)
+            sage: G = graphics_array([c, c])
+            sage: from matplotlib.figure import Figure
+            sage: figure = Figure()
+            sage: ax1 = G._add_subplot(figure, 1)
+            sage: type(ax1)
+            <class 'matplotlib.axes._subplots.AxesSubplot'>
+            sage: ax2 = G._add_subplot(figure, 2)
+            sage: figure.get_axes() == [ax1, ax2]
+            True
 
         """
         if self._dims == 0:
@@ -681,30 +750,31 @@ class GraphicsArray(MultiGraphics):
 
 
     def nrows(self):
-        """
+        r"""
         Number of rows of the graphics array.
 
         EXAMPLES::
 
             sage: R = rainbow(6)
-            sage: L = [plot(x^n,(x,0,1),color=R[n]) for n in range(6)]
-            sage: G = graphics_array(L,2,3)
+            sage: L = [plot(x^n, (x,0,1), color=R[n]) for n in range(6)]
+            sage: G = graphics_array(L, 2, 3)
             sage: G.nrows()
             2
             sage: graphics_array(L).nrows()
             1
+
         """
         return self._rows
 
     def ncols(self):
-        """
+        r"""
         Number of columns of the graphics array.
 
         EXAMPLES::
 
             sage: R = rainbow(6)
-            sage: L = [plot(x^n,(x,0,1),color=R[n]) for n in range(6)]
-            sage: G = graphics_array(L,2,3)
+            sage: L = [plot(x^n, (x,0,1), color=R[n]) for n in range(6)]
+            sage: G = graphics_array(L, 2, 3)
             sage: G.ncols()
             3
             sage: graphics_array(L).ncols()
@@ -713,15 +783,17 @@ class GraphicsArray(MultiGraphics):
         return self._cols
 
     def append(self, g):
-        """
-        Appends a graphic to the array.  Currently
-        not implemented.
+        r"""
+        Appends a graphics to the array.
+
+        Currently not implemented.
 
         TESTS::
 
             sage: from sage.plot.multigraphics import GraphicsArray
-            sage: G = GraphicsArray([plot(sin),plot(cos)])
-            sage: G.append(plot(tan))
+            sage: c = circle((0,0), 1)
+            sage: G = GraphicsArray([c, c])
+            sage: G.append(c)
             Traceback (most recent call last):
             ...
             NotImplementedError: Appending to a graphics array is not yet implemented

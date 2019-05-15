@@ -12,9 +12,7 @@ AUTHORS:
 For this interface, Kenzo is loaded into ECL which is itself loaded
 as a C library in Sage. Kenzo objects in this interface are nothing
 but wrappers around ECL objects.
-
-
-
+"""
 # ****************************************************************************
 #       Copyright (C) 2019 Miguel Marco <mmarco@unizar.es>
 #                      and Ana Romero <ana.romero@unirioja.es>
@@ -25,17 +23,12 @@ but wrappers around ECL objects.
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-"""
+from __future__ import print_function, absolute_import
 
-
-from __future__ import print_function
-from __future__ import absolute_import
-from six import string_types
 
 from sage.structure.sage_object import SageObject
 from sage.homology.homology_group import HomologyGroup
 from sage.rings.integer_ring import ZZ
-from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
 from sage.categories.commutative_additive_groups import CommutativeAdditiveGroups
 
 from sage.libs.ecl import EclObject, ecl_eval, EclListIterator

@@ -73,7 +73,7 @@ TESTS::
 from __future__ import absolute_import, division, print_function
 
 from sage.symbolic.function import BuiltinFunction
-from sage.sets.real_set import RealSet, InternalRealInterval
+from sage.sets.real_set import RealSet
 from sage.symbolic.ring import SR
 from sage.rings.rational_field import QQ
 from sage.rings.infinity import minus_infinity, infinity
@@ -951,13 +951,10 @@ class PiecewiseFunction(BuiltinFunction):
             g = other
             if len(f.end_points())*len(g.end_points()) == 0:
                 raise ValueError('one of the piecewise functions is nowhere defined')
-            M = min(min(f.end_points()),min(g.end_points()))
-            N = max(max(f.end_points()),max(g.end_points()))
             tt = SR.var('tt')
             uu = SR.var('uu')
-            conv = 0
-            fd,f0 = parameters[0]
-            gd,g0 = next(other.items())
+            fd, f0 = parameters[0]
+            gd, g0 = next(other.items())
             if len(f)==1 and len(g)==1:
                 f = f.unextend_zero()
                 g = g.unextend_zero()

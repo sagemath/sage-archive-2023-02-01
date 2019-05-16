@@ -2607,11 +2607,11 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
             sage: GrowthGroup('(RBF_+)^x').extended_by_non_growth_group()
             Growth Group RBF^x * Signs^x
             sage: GrowthGroup('(CC_+)^x').extended_by_non_growth_group()
-            Growth Group CC^x * U_RR^x
+            Growth Group CC^x * UU_RR^x
             sage: GrowthGroup('(CIF_+)^x').extended_by_non_growth_group()
-            Growth Group CIF^x * U_RIF^x
+            Growth Group CIF^x * UU_RIF^x
             sage: GrowthGroup('(CBF_+)^x').extended_by_non_growth_group()
-            Growth Group CBF^x * U_RBF^x
+            Growth Group CBF^x * UU_RBF^x
         """
         from sage.categories.cartesian_product import cartesian_product
         return cartesian_product((self, self.non_growth_group()))
@@ -4724,7 +4724,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             Growth Group UU^n
 
             sage: ExponentialGrowthGroup.factory(CC, 'n')
-            Growth Group RR^n * U_RR^n
+            Growth Group RR^n * UU_RR^n
             sage: ExponentialGrowthGroup.factory(CyclotomicField(3), 'n')
             Growth Group (Algebraic Real Field)^n * (Arg_(Cyclotomic Field of order 3 and degree 2))^n
         """
@@ -4785,11 +4785,11 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             sage: GrowthGroup('(RBF_+)^x').non_growth_group()
             Growth Group Signs^x
             sage: GrowthGroup('(CC_+)^x').non_growth_group()
-            Growth Group U_RR^x
+            Growth Group UU_RR^x
             sage: GrowthGroup('(CIF_+)^x').non_growth_group()
-            Growth Group U_RIF^x
+            Growth Group UU_RIF^x
             sage: GrowthGroup('(CBF_+)^x').non_growth_group()
-            Growth Group U_RBF^x
+            Growth Group UU_RBF^x
         """
         from sage.groups.misc_gps.argument_groups import ArgumentGroup
         UU = ArgumentGroup(domain=self.base())

@@ -663,7 +663,7 @@ class UnitCircleGroup(AbstractArgumentGroup):
 
             sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup
             sage: UnitCircleGroup(RR)._repr_short_()
-            'U_RR'
+            'UU_RR'
         """
         from sage.rings.asymptotic.misc import parent_to_repr_short
         s = parent_to_repr_short(self.base())
@@ -1047,7 +1047,7 @@ class RootsOfUnityGroup(UnitCircleGroup):
 
             sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
             sage: RootsOfUnityGroup()._repr_short_()
-            'U'
+            'UU'
         """
         return 'UU'
 
@@ -1668,7 +1668,7 @@ class SignGroup(AbstractArgumentGroup):
             sage: from sage.groups.misc_gps.argument_groups import SignGroup
             sage: S = SignGroup()
             sage: S._repr_short_()
-            'S'
+            'Signs'
         """
         return 'Signs'
 
@@ -1762,14 +1762,14 @@ class ArgumentGroupFactory(UniqueFactory):
 
         sage: from sage.groups.misc_gps.argument_groups import ArgumentGroup
 
-        sage: ArgumentGroup('U')
+        sage: ArgumentGroup('UU')
         Group of Roots of Unity
 
         sage: ArgumentGroup(ZZ)
         Sign Group
         sage: ArgumentGroup(QQ)
         Sign Group
-        sage: ArgumentGroup('U_QQ')
+        sage: ArgumentGroup('UU_QQ')
         Group of Roots of Unity
         sage: ArgumentGroup(AA)
         Sign Group
@@ -1815,9 +1815,9 @@ class ArgumentGroupFactory(UniqueFactory):
 
             sage: from sage.groups.misc_gps.argument_groups import ArgumentGroup
 
-            sage: ArgumentGroup(specification='U')
+            sage: ArgumentGroup(specification='UU')
             Group of Roots of Unity
-            sage: ArgumentGroup('U') is ArgumentGroup(exponents=QQ)  # indirect doctest
+            sage: ArgumentGroup('UU') is ArgumentGroup(exponents=QQ)  # indirect doctest
             True
             sage: ArgumentGroup('Arg_CC') is ArgumentGroup(exponents=RR)  # indirect doctest
             True
@@ -1895,7 +1895,7 @@ class ArgumentGroupFactory(UniqueFactory):
         TESTS::
 
             sage: from sage.groups.misc_gps.argument_groups import ArgumentGroup
-            sage: ArgumentGroup('U')  # indirect doctest
+            sage: ArgumentGroup('UU')  # indirect doctest
             Group of Roots of Unity
         """
         cls, args = key

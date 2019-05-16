@@ -7199,7 +7199,9 @@ class Graph(GenericGraph):
 
         The Bull Graph is prime::
 
-            sage: graphs.BullGraph().modular_decomposition()
+            sage: graphs.BullGraph().modular_decomposition()  # py2
+            (PRIME, [0, 3, 4, 2, 1])
+            sage: graphs.BullGraph().modular_decomposition()  # py3
             (PRIME, [1, 2, 0, 3, 4])
 
         The Petersen Graph too::

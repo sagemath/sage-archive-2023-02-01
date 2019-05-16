@@ -3,18 +3,16 @@ r"""
 Graphics arrays and insets
 
 This module defines the classes :class:`MultiGraphics` and
-:class:`GraphicsArray`. :class:`MultiGraphics` is the (abstract) base class
+:class:`GraphicsArray`. The class :class:`MultiGraphics` is the base class
 for 2-dimensional graphical objects that are composed of various
-:class:`~sage.plot.graphics.Graphics` objects. Currently, only one subclass
-is implemented:
-
-- :class:`GraphicsArray` for arrays of :class:`~sage.plot.graphics.Graphics`
-  objects
+:class:`~sage.plot.graphics.Graphics` objects, arranged in a given canvas.
+The subclass :class:`GraphicsArray` is for
+:class:`~sage.plot.graphics.Graphics` objects arranged in a regular array.
 
 AUTHORS:
 
 - Eric Gourgoulhon (2019-05-14): initial version, refactoring the class
-  ``GraphicsArray`` that was defined in :mod:`~sage.plot.graphics`.
+  ``GraphicsArray`` that was defined in the module :mod:`~sage.plot.graphics`.
 
 """
 from __future__ import print_function, absolute_import
@@ -125,8 +123,8 @@ class MultiGraphics(WithEqualityById, SageObject):
 
         Another example::
 
-            sage: L = [plot(sin(k*x), (x,-pi,pi)) + circle((k,k), 1, color='red')
-            ....:      for k in range(10)]
+            sage: L = [plot(sin(k*x), (x,-pi,pi)) + circle((k,k), 1,
+            ....:           color='red') for k in range(10)]
             sage: G = graphics_array(L, 5, 2)
             sage: G[3]
             Graphics object consisting of 2 graphics primitives
@@ -171,19 +169,19 @@ class MultiGraphics(WithEqualityById, SageObject):
 
     def matplotlib(self, figure=None, figsize=None, **kwds):
         r"""
-        Construct or modify a Matplotlib ``Figure`` by drawing the elements
-        of ``self`` on it.
+        Construct or modify a Matplotlib figure by drawing ``self`` on it.
 
         INPUT:
 
         - ``figure`` -- (default: ``None``) Matplotlib figure (class
           ``matplotlib.figure.Figure``) on which ``self`` is to be displayed;
-          if none is provided, the figure will be created from the parameter
+          if ``None``, the figure will be created from the parameter
           ``figsize``
 
         - ``figsize`` -- (default: ``None``) width or [width, height] in inches
-          of the Matplotlib figure in case ``figure`` is ``None``; if none
-          is provided, Matplotlib's default (6.4 x 4.8 inches) is used
+          of the Matplotlib figure in case ``figure`` is ``None``; if
+          ``figsize`` is ``None``, Matplotlib's default (6.4 x 4.8 inches) is
+          used
 
         - ``kwds`` -- options passed to the
           :meth:`~sage.plot.graphics.Graphics.matplotlib` method of
@@ -192,7 +190,7 @@ class MultiGraphics(WithEqualityById, SageObject):
         OUTPUT:
 
         - a ``matplotlib.figure.Figure`` object; if the argument ``figure`` is
-          not ``None``, this is the same object as ``figure``.
+          provided, this is the same object as ``figure``.
 
         EXAMPLES:
 
@@ -274,7 +272,7 @@ class MultiGraphics(WithEqualityById, SageObject):
             # Setting the options for g.matplotlib:
             options = {}
             options.update(Graphics.SHOW_OPTIONS)  # default options for show()
-            options['legend_options'] = Graphics.LEGEND_OPTIONS  # default legend options
+            options['legend_options'] = Graphics.LEGEND_OPTIONS  # default leg.
             options.update(g._extra_kwds)  # options set in g
             options.update(kwds)
             # We get rid of options that are not relevant for g.matplotlib():
@@ -338,13 +336,15 @@ class MultiGraphics(WithEqualityById, SageObject):
                              "', '".join(ALLOWED_EXTENSIONS) + "'!")
         else:
             rc_backup = (rcParams['ps.useafm'], rcParams['pdf.use14corefonts'],
-                         rcParams['text.usetex']) # save the rcParams
+                         rcParams['text.usetex'])  # save the rcParams
             figure = self.matplotlib(figsize=figsize, **kwds)
-            transparent = kwds.get('transparent', Graphics.SHOW_OPTIONS['transparent'])
-            fig_tight = kwds.get('fig_tight', Graphics.SHOW_OPTIONS['fig_tight'])
+            transparent = kwds.get('transparent',
+                                   Graphics.SHOW_OPTIONS['transparent'])
+            fig_tight = kwds.get('fig_tight',
+                                 Graphics.SHOW_OPTIONS['fig_tight'])
             dpi = kwds.get('dpi', Graphics.SHOW_OPTIONS['dpi'])
-            # You can output in PNG, PS, EPS, PDF, PGF, or SVG format, depending
-            # on the file extension.
+            # One can output in PNG, PS, EPS, PDF, PGF, or SVG format,
+            # depending on the file extension.
             # PGF is handled by a different backend
             if ext == '.pgf':
                 from sage.misc.sage_ostools import have_program
@@ -358,27 +358,26 @@ class MultiGraphics(WithEqualityById, SageObject):
                     # use pdflatex and set font encoding as per
                     # Matplotlib documentation:
                     # https://matplotlib.org/users/pgf.html#pgf-tutorial
-                    pgf_options= {"pgf.texsystem": "pdflatex",
-                                  "pgf.preamble": [
+                    pgf_options = {"pgf.texsystem": "pdflatex",
+                                   "pgf.preamble": [
                                       r"\usepackage[utf8x]{inputenc}",
                                       r"\usepackage[T1]{fontenc}"
-                                  ]
-                    }
+                                      ]}
                 else:
-                    pgf_options = {
-                        "pgf.texsystem": latex_implementations[0],
-                    }
+                    pgf_options = {"pgf.texsystem": latex_implementations[0]}
                 rcParams.update(pgf_options)
                 from matplotlib.backends.backend_pgf import FigureCanvasPgf
                 figure.set_canvas(FigureCanvasPgf(figure))
-            # Matplotlib looks at the file extension to see what the renderer should be.
-            # The default is FigureCanvasAgg for PNG's because this is by far the most
-            # common type of files rendered, like in the notebook, for example.
-            # if the file extension is not '.png', then Matplotlib will handle it.
+            # Matplotlib looks at the file extension to see what the renderer
+            # should be. The default is FigureCanvasAgg for PNG's because this
+            # is by far the most common type of files rendered, like in the
+            # notebook, for example. If the file extension is not '.png', then
+            # Matplotlib will handle it.
             else:
                 from matplotlib.backends.backend_agg import FigureCanvasAgg
                 figure.set_canvas(FigureCanvasAgg(figure))
-            # tight_layout adjusts the *subplot* parameters so ticks aren't cut off, etc.
+            # tight_layout adjusts the *subplot* parameters so ticks aren't
+            # cut off, etc.
             figure.tight_layout()
             opts = dict(dpi=dpi, transparent=transparent)
             if fig_tight is True:
@@ -386,7 +385,7 @@ class MultiGraphics(WithEqualityById, SageObject):
             figure.savefig(filename, **opts)
             # Restore the rcParams to the original, possibly user-set values
             (rcParams['ps.useafm'], rcParams['pdf.use14corefonts'],
-                                           rcParams['text.usetex']) = rc_backup
+             rcParams['text.usetex']) = rc_backup
 
     def save_image(self, filename=None, *args, **kwds):
         r"""
@@ -481,7 +480,8 @@ class MultiGraphics(WithEqualityById, SageObject):
 
         .. PLOT::
 
-            G = graphics_array([[plot(sin), plot(cos)], [plot(tan), plot(sec)]])
+            G = graphics_array([[plot(sin), plot(cos)], \
+                                [plot(tan), plot(sec)]])
             sphinx_plot(G, axes=False, figsize=4)
 
         Same thing with a frame around each individual graphics::
@@ -490,7 +490,8 @@ class MultiGraphics(WithEqualityById, SageObject):
 
         .. PLOT::
 
-            G = graphics_array([[plot(sin), plot(cos)], [plot(tan), plot(sec)]])
+            G = graphics_array([[plot(sin), plot(cos)], \
+                                [plot(tan), plot(sec)]])
             sphinx_plot(G, axes=False, frame=True, figsize=4)
 
         Actually, many options are possible; for instance, we may set
@@ -501,10 +502,10 @@ class MultiGraphics(WithEqualityById, SageObject):
 
         .. PLOT::
 
-            G = graphics_array([[plot(sin), plot(cos)], [plot(tan), plot(sec)]])
+            G = graphics_array([[plot(sin), plot(cos)], \
+                                [plot(tan), plot(sec)]])
             sphinx_plot(G, axes=False, frame=True, figsize=4, fontsize=8, \
                         gridlines='major')
-
 
         """
         from sage.repl.rich_output import get_display_manager
@@ -738,7 +739,7 @@ class GraphicsArray(MultiGraphics):
         else:
             self._cols = 0
         self._dims = self._rows*self._cols
-        for row in array: # basically flatten the list
+        for row in array:  # basically flatten the list
             if not isinstance(row, (list, tuple)) or len(row) != self._cols:
                 raise TypeError("array must be a list of equal-size lists of "
                                 "Graphics objects, not {}".format(array))
@@ -804,7 +805,6 @@ class GraphicsArray(MultiGraphics):
             cols = self._cols
         return figure.add_subplot(rows, cols, index, **options)
 
-
     def nrows(self):
         r"""
         Number of rows of the graphics array.
@@ -852,8 +852,10 @@ class GraphicsArray(MultiGraphics):
             sage: G.append(c)
             Traceback (most recent call last):
             ...
-            NotImplementedError: Appending to a graphics array is not yet implemented
+            NotImplementedError: Appending to a graphics array is not yet
+             implemented
+
         """
         # Not clear if there is a way to do this
-        raise NotImplementedError('Appending to a graphics array is not yet implemented')
-
+        raise NotImplementedError('Appending to a graphics array is not '
+                                  'yet implemented')

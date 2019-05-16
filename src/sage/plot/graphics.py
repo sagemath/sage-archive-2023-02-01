@@ -17,9 +17,9 @@ AUTHORS:
 
 - Eric Gourgoulhon (2015-03-19): Add parameter axes_labels_size (:trac:`18004`)
 
-- Eric Gourgoulhon (2019-05-14): :class:`~sage.plot.multigraphics.GraphicsArray`
-  moved to module :mod:`~sage.plot.multigraphics`; various improvements in
-  :meth:`Graphics.matplotlib`
+- Eric Gourgoulhon (2019-05-18): :class:`~sage.plot.multigraphics.GraphicsArray`
+  moved to new module :mod:`~sage.plot.multigraphics`; various improvements and
+  fixes in :meth:`Graphics.matplotlib` and ``Graphics._set_scale``.
 
 """
 
@@ -2521,7 +2521,30 @@ class Graphics(WithEqualityById, SageObject):
                    stylesheet=None,
                    typeset='default'):
         r"""
-        Return a matplotlib figure object representing the graphic
+        Construct or modify a Matplotlib figure by drawing ``self`` on it.
+
+        INPUT (partial description, involving only Matplotlib objects; see
+        :meth:`show` for the other arguments):
+
+        - ``figure`` -- (default: ``None``) Matplotlib figure (class
+          ``matplotlib.figure.Figure``) on which ``self`` is to be displayed;
+          if ``None``, the figure will be created from the parameter
+          ``figsize``
+
+        - ``figsize`` -- (default: ``None``) width or [width, height] in inches
+          of the Matplotlib figure in case ``figure`` is ``None``; if
+          ``figsize`` is ``None``, Matplotlib's default (6.4 x 4.8 inches) is
+          used
+
+        - ``sub`` -- (default: ``None``) subpart of the figure, as an
+          instance of Matplotlib "axes" (class ``matplotlib.axes.Axes``) on
+          which ``self`` is to be drawn; if ``None``, the subpart will be
+          created so as to cover the whole figure
+
+        OUTPUT:
+
+        - a ``matplotlib.figure.Figure`` object; if the argument ``figure`` is
+          provided, this is the same object as ``figure``.
 
         EXAMPLES::
 
@@ -2529,18 +2552,14 @@ class Graphics(WithEqualityById, SageObject):
             sage: print(c.matplotlib())
             Figure(640x480)
 
-        To obtain the first matplotlib axes object inside of the
+        To obtain the first Matplotlib ``Axes`` object inside of the
         figure, you can do something like the following.
 
         ::
 
-            sage: p=plot(sin(x), (x, -2*pi, 2*pi))
-            sage: figure=p.matplotlib()
-            sage: axes=figure.axes[0]
-
-        For input parameters, see the documentation for the
-        :meth:`show` method (this function accepts all except the
-        transparent argument).
+            sage: p = plot(sin(x), (x, -2*pi, 2*pi))
+            sage: figure = p.matplotlib()
+            sage: axes = figure.axes[0]
 
         TESTS:
 

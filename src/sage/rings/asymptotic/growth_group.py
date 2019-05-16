@@ -1083,24 +1083,24 @@ def _rpow_(self, base):
         if base == 'e':
             from sage.rings.integer_ring import ZZ
             from .misc import repr_op
-            M = MonomialGrowthGroup(ZZ, repr_op('e', '^', var),
-                                    ignore_variables=('e',))
-            element = M(raw_element=ZZ(1))
+            MM = MonomialGrowthGroup(ZZ, repr_op('e', '^', var),
+                                     ignore_variables=('e',))
+            element = MM(raw_element=ZZ(1))
         else:
-            EU = ExponentialGrowthGroup.factory(base.parent(), var)
+            EEUU = ExponentialGrowthGroup.factory(base.parent(), var)
             try:
-                factors = EU.cartesian_factors()
+                factors = EEUU.cartesian_factors()
             except AttributeError:
-                factors = (EU,)
+                factors = (EEUU,)
             if len(factors) == 1:
-                E, = factors
-                element = E(raw_element=base)
+                EE, = factors
+                element = EE(raw_element=base)
             else:
-                E, U = factors
+                EE, UU = factors
                 try:
-                    element = E(raw_element=base)
+                    element = EE(raw_element=base)
                 except PartialConversionValueError as e:
-                    element = EU._convert_factors_([e.element])
+                    element = EEUU._convert_factors_([e.element])
 
     try:
         return self.parent().one() * element
@@ -4741,20 +4741,20 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             groups = (cls._non_growth_group_class_(base, var, **kwds),)
         elif extend_by_non_growth_group:
             if base == QQbar or isinstance(base, NumberField_cyclotomic):
-                E = cls(AA, var, **kwds)
-                U = cls._non_growth_group_class_(
+                EE = cls(AA, var, **kwds)
+                UU = cls._non_growth_group_class_(
                     ArgumentGroup(domain=base), var)
-                groups = (E, U)
+                groups = (EE, UU)
             elif isinstance(base, (ComplexField_class,
                                    ComplexIntervalField_class,
                                    ComplexBallField)):
-                E = cls(base._real_field(), var, **kwds)
-                U = cls._non_growth_group_class_(
+                EE = cls(base._real_field(), var, **kwds)
+                UU = cls._non_growth_group_class_(
                     ArgumentGroup(exponents=base._real_field()), var)
-                groups = (E, U)
+                groups = (EE, UU)
             else:
-                E = cls(base, var, **kwds)
-                groups = (E, E.non_growth_group())
+                EE = cls(base, var, **kwds)
+                groups = (EE, EE.non_growth_group())
         else:
             groups = (cls(base, var, **kwds),)
 
@@ -4792,8 +4792,8 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             Growth Group U_RBF^x
         """
         from sage.groups.misc_gps.argument_groups import ArgumentGroup
-        U = ArgumentGroup(domain=self.base())
-        return self._non_growth_group_class_(U, self._var_)
+        UU = ArgumentGroup(domain=self.base())
+        return self._non_growth_group_class_(UU, self._var_)
 
 
 class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):

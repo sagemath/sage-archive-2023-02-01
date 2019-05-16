@@ -204,7 +204,7 @@ cdef extern from "cplex.h":
      # Sets the value of a long parameter
      int CPXsetlongparam(c_cpxlp * env, int paramid, long value)
 
-     # Sets the log stream file
+     # sets the log stream file
      int CPXsetlogfile (c_cpxlp * env, FILE * f)
 
      # CONSTANTS

@@ -659,7 +659,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         Check that :trac:`19999` is resolved::
 
-            sage: A.<x> = AsymptoticRing('(QQ_+)^x * x^QQ * U^x', QQ)
+            sage: A.<x> = AsymptoticRing('(QQ_+)^x * x^QQ * UU^x', QQ)
             sage: 1 + (-1)^x + 2^x + (-2)^x
             2^x + 2^x*(-1)^x + (-1)^x + 1
 
@@ -1560,7 +1560,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: 2^(x + 1/x)
             2^x + log(2)*2^x*x^(-1) + 1/2*log(2)^2*2^x*x^(-2) + ... + O(2^x*x^(-20))
             sage: _.parent()
-            Asymptotic Ring <QQ^x * x^SR * log(x)^QQ * S^x> over Symbolic Ring
+            Asymptotic Ring <QQ^x * x^SR * log(x)^QQ * Signs^x> over Symbolic Ring
 
         ::
 
@@ -1569,12 +1569,12 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             3^c + 1/3*3^c*c^(-1) + 1/18*3^c*c^(-2) - 4/81*3^c*c^(-3)
             - 35/1944*3^c*c^(-4) + O(3^c*c^(-5))
             sage: _.parent()
-            Asymptotic Ring <QQ^c * c^QQ * S^c> over Rational Field
+            Asymptotic Ring <QQ^c * c^QQ * Signs^c> over Rational Field
             sage: (2 + (1/3)^c)^c
             2^c + 1/2*(2/3)^c*c + 1/8*(2/9)^c*c^2 - 1/8*(2/9)^c*c
             + 1/48*(2/27)^c*c^3 + O((2/27)^c*c^2)
             sage: _.parent()
-            Asymptotic Ring <QQ^c * c^QQ * S^c> over Rational Field
+            Asymptotic Ring <QQ^c * c^QQ * Signs^c> over Rational Field
 
         TESTS:
 
@@ -1629,11 +1629,11 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: e = 2^n; e
             2^n
             sage: e.parent()
-            Asymptotic Ring <SR^n * n^QQ * S^n> over Symbolic Ring
+            Asymptotic Ring <SR^n * n^QQ * Signs^n> over Symbolic Ring
             sage: e = A(e); e
             2^n
             sage: e.parent()
-            Asymptotic Ring <QQ^n * n^QQ * S^n> over Symbolic Ring
+            Asymptotic Ring <QQ^n * n^QQ * Signs^n> over Symbolic Ring
             sage: forget()
 
         :trac:`22120`::
@@ -1798,7 +1798,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             - 11/24*2^s*s^(-4) + 11/120*2^s*s^(-5)
             + 271/720*2^s*s^(-6) + O(2^s*s^(-7))
             sage: _.parent()
-            Asymptotic Ring <QQ^s * s^QQ * S^s> over Rational Field
+            Asymptotic Ring <QQ^s * s^QQ * Signs^s> over Rational Field
 
             sage: S.<s> = AsymptoticRing(growth_group='(QQ_+)^s * s^ZZ', coefficient_ring=QQ)
             sage: (2 + 2/s^2).__pow_number__(s, precision=7)
@@ -4595,7 +4595,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
             sage: A = AsymptoticRing(growth_group='x^ZZ * QQ^y', coefficient_ring=QQ)
             sage: A.construction()
-            (AsymptoticRing<x^ZZ * QQ^y * S^y>, Rational Field)
+            (AsymptoticRing<x^ZZ * QQ^y * Signs^y>, Rational Field)
 
         .. SEEALSO::
 

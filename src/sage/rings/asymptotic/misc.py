@@ -57,7 +57,7 @@ def repr_short_to_parent(s):
         Symbolic Ring
         sage: repr_short_to_parent('NN')
         Non negative integer semiring
-        sage: repr_short_to_parent('U')
+        sage: repr_short_to_parent('UU')
         Group of Roots of Unity
 
     TESTS::

@@ -1735,11 +1735,13 @@ class ArgumentGroupFactory(UniqueFactory):
 
       The following is possible:
 
-      - ``'U'`` give the :class:`RootsOfUnityGroup`,
+      - ``'Signs'`` give the :class:`SignGroup`
 
-      - ``'U_P'``, where ``'P'`` is
+      - ``'UU'`` give the :class:`RootsOfUnityGroup`
+
+      - ``'UU_P'``, where ``'P'`` is
         a string representing a SageMath parent which is interpreted as
-        ``exponents``.
+        ``exponents``
 
       - ``'Arg_P'``, where ``'P'`` is
         a string representing a SageMath parent which is interpreted as

@@ -7131,7 +7131,6 @@ class Graph(GenericGraph):
         modules form a tree. The ``modular_decomposition`` function returns
         that tree.
 
-
         INPUT:
 
         - ``algorithm`` -- string (default: ``'habib'``); specifies the
@@ -7205,8 +7204,10 @@ class Graph(GenericGraph):
 
         The Petersen Graph too::
 
-            sage: graphs.PetersenGraph().modular_decomposition()
-            (PRIME, [1, 4, 5, 0, 3, 7, 2, 8, 9, 6])
+            sage: graphs.PetersenGraph().modular_decomposition()  # py2
+            (PRIME, [6, 2, 5, 1, 9, 3, 0, 7, 8, 4])
+            sage: graphs.PetersenGraph().modular_decomposition()  # py3
+            (PRIME, [1, 4, 5, 0, 2, 6, 3, 7, 8, 9])
 
         This a clique on 5 vertices with 2 pendant edges, though, has a more
         interesting decomposition ::
@@ -7215,13 +7216,12 @@ class Graph(GenericGraph):
             sage: g.add_edge(0,5)
             sage: g.add_edge(0,6)
             sage: g.modular_decomposition()
-            (SERIES, [(PARALLEL, [(SERIES, [4, 3, 2, 1]), 5, 6]), 0])
-
-        We get an equivalent tree when we use the algorithm of Habib and
-        Maurer::
-
-            sage: g.modular_decomposition(algorithm='habib')
             (SERIES, [(PARALLEL, [(SERIES, [1, 2, 3, 4]), 5, 6]), 0])
+
+        We get an equivalent tree when we use the algorithm of [TCHP2008]_::
+
+            sage: g.modular_decomposition(algorithm='tedder')
+            (SERIES, [(PARALLEL, [(SERIES, [4, 3, 2, 1]), 5, 6]), 0])
 
         ALGORITHM:
 
@@ -7244,7 +7244,7 @@ class Graph(GenericGraph):
         Vertices may be arbitrary --- check that :trac:`24898` is fixed::
 
             sage: Graph({(1,2):[(2,3)],(2,3):[(1,2)]}).modular_decomposition()
-            (SERIES, [(2, 3), (1, 2)])
+            (SERIES, [(1, 2), (2, 3)])
 
         Unknown algorithm::
 

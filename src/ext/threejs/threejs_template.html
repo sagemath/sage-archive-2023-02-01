@@ -236,12 +236,13 @@ SAGE_SCRIPTS
         geometry.computeVertexNormals();
 
         var transparent = json.opacity < 1 ? true : false;
+        var flatShading = json.hasOwnProperty( 'useFlatShading' ) ? true : false;
 
         var material = new THREE.MeshPhongMaterial( { side: THREE.DoubleSide,
                                      color: useFaceColors ? 'white' : json.color,
                                      vertexColors: useFaceColors ? THREE.FaceColors : THREE.NoColors,
                                      transparent: transparent, opacity: json.opacity,
-                                     shininess: 20 } );
+                                     shininess: 20, flatShading: flatShading } );
 
         var c = new THREE.Vector3();
         geometry.computeBoundingBox();

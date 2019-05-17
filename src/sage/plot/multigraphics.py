@@ -255,10 +255,8 @@ class MultiGraphics(WithEqualityById, SageObject):
         """
         from matplotlib.figure import Figure
         glist = self._glist
-        dims = self._dims
-        if dims == 0:  # empty MultiGraphics
-            glist = [Graphics()]
-            dims = 1
+        if len(glist) == 0:       # for an empty MultiGraphics, we create
+            glist = [Graphics()]  # a 1-element list with an empty graphics
         # If no Matplotlib figure is provided, it is created here:
         if figure is None:
             if figsize is not None:
@@ -266,9 +264,9 @@ class MultiGraphics(WithEqualityById, SageObject):
             figure = Figure(figsize=figsize)
         global do_verify
         do_verify = True
-        for i, g in zip(range(1, dims + 1), glist):
-            # Creation of the Matplotlib Axes object "subplot" for g
-            subplot = self._add_subplot(figure, i)
+        for i, g in enumerate(glist):
+            # Creation of the Matplotlib Axes object "subplot" for g:
+            subplot = self._add_subplot(figure, i+1)  # index shift for subplot
             # Setting the options for g.matplotlib:
             options = {}
             options.update(Graphics.SHOW_OPTIONS)  # default options for show()

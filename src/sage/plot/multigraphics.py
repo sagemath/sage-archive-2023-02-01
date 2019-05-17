@@ -703,7 +703,20 @@ class GraphicsArray(MultiGraphics):
             sage: print(G)
             Graphics Array of size 1 x 1
 
-        Various cases of wrong input::
+        Empty array::
+
+            sage: G = GraphicsArray([])
+            sage: print(G)
+            Graphics Array of size 0 x 0
+            sage: len(G)
+            0
+            sage: G = GraphicsArray([[]])
+            sage: print(G)
+            Graphics Array of size 1 x 0
+            sage: len(G)
+            0
+
+        Check treatment of wrong inputs::
 
             sage: G = GraphicsArray([[g, g], [g]])
             Traceback (most recent call last):
@@ -736,7 +749,6 @@ class GraphicsArray(MultiGraphics):
             self._cols = len(array[0])
         else:
             self._cols = 0
-        self._dims = self._rows*self._cols
         for row in array:  # basically flatten the list
             if not isinstance(row, (list, tuple)) or len(row) != self._cols:
                 raise TypeError("array must be a list of equal-size lists of "
@@ -795,7 +807,7 @@ class GraphicsArray(MultiGraphics):
             True
 
         """
-        if self._dims == 0:
+        if self._rows == 0 or self._cols == 0:
             rows = 1
             cols = 1
         else:

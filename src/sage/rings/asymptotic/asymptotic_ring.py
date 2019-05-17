@@ -2619,6 +2619,13 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             ValueError: Cannot substitute in u: duplicate key u.
+
+        ::
+
+            sage: B(0).subs({'_zero_': None}) is None
+            True
+            sage: B(1).subs({'_one_': AA(1)}).parent() is AA
+            True
         """
         # check if nothing to do
         if not rules and not kwds:
@@ -2653,7 +2660,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         # check if all keys are generators
         gens_str = tuple(str(g) for g in gens)
         for k in locals:
-            if str(k) not in gens_str:
+            sk = str(k)
+            if sk not in gens_str and not sk.startswith('_'):
                 raise ValueError('Cannot substitute %s in %s '
                                  'since it is not a generator of %s.' %
                                  (k, self, self.parent()))

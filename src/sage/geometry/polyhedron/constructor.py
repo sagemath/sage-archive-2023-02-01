@@ -190,7 +190,7 @@ symbolic ring. This is currently not supported as SR is not exact::
     sage: Polyhedron([(0,0), (1,0), (1/2, sqrt(3)/2)])
     Traceback (most recent call last):
     ...
-    ValueError: no appropriate backend for computations with Symbolic Ring
+    ValueError: no default backend for computations with Symbolic Ring
 
     sage: SR.is_exact()
     False
@@ -505,11 +505,11 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         sage: Polyhedron(vertices =[(8.3, 7.0), (6.4, 4.8)], base_ring=RealField(40))
         Traceback (most recent call last):
         ...
-        ValueError: no appropriate backend for computations with Real Field with 40 bits of precision
+        ValueError: no default backend for computations with Real Field with 40 bits of precision
         sage: Polyhedron(vertices =[(8.3, 7.0), (6.4, 4.8)], base_ring=RealField(53))
         Traceback (most recent call last):
         ...
-        ValueError: no appropriate backend for computations with Real Field with 53 bits of precision
+        ValueError: no default backend for computations with Real Field with 53 bits of precision
 
     .. SEEALSO::
 

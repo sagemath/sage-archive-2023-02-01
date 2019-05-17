@@ -183,6 +183,8 @@ from sage.modules.free_module_element import vector
 from sage.categories.homset import Hom
 from sage.categories.function_fields import FunctionFields
 
+from .differential import DifferentialsSpace, DifferentialsSpace_global
+
 from .element import (
     FunctionFieldElement,
     FunctionFieldElement_rational,
@@ -234,6 +236,8 @@ class FunctionField(Field):
         sage: K
         Rational function field in x over Rational Field
     """
+    _differentials_space = DifferentialsSpace
+
     def __init__(self, base_field, names, category=FunctionFields()):
         """
         Initialize.
@@ -730,7 +734,7 @@ class FunctionField(Field):
 
         OUTPUT:
 
-        - a list of fields; the first entry is ``base``, the last entry is this field.
+        - a list of fields; the first entry is this field, the last entry is ``base``
 
         EXAMPLES::
 
@@ -926,8 +930,7 @@ class FunctionField(Field):
             sage: L.space_of_differentials()
             Space of differentials of Function field in y defined by y^3 + (4*x^3 + 1)/(x^3 + 3)
         """
-        from .differential import DifferentialsSpace
-        return DifferentialsSpace(self)
+        return self._differentials_space(self)
 
     def divisor_group(self):
         """
@@ -2598,6 +2601,7 @@ class FunctionField_global(FunctionField_polymod):
         0
     """
     Element = FunctionFieldElement_global
+    _differentials_space = DifferentialsSpace_global
 
     def __init__(self, polynomial, names):
         """
@@ -4173,6 +4177,8 @@ class RationalFunctionField_global(RationalFunctionField):
     """
     Rational function field over finite fields.
     """
+    _differentials_space = DifferentialsSpace_global
+
     def places(self, degree=1):
         """
         Return all places of the degree.

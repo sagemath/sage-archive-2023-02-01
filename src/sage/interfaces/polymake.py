@@ -34,9 +34,8 @@ import re
 import sys
 import time
 
-from .expect import Expect, ExpectElement, FunctionElement
-from .interface import (Interface, InterfaceElement, InterfaceFunctionElement,
-                        InterfaceFunction)
+from .expect import Expect
+from .interface import (Interface, InterfaceElement, InterfaceFunctionElement)
 
 from sage.misc.misc import get_verbose
 from sage.misc.cachefunc import cached_method
@@ -47,7 +46,6 @@ from random import randrange
 
 from time import sleep
 import warnings
-from warnings import warn
 
 _name_pattern = re.compile('SAGE[0-9]+')
 
@@ -299,6 +297,42 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
                 return call_str
             return "{}({});".format(function, ",".join(list(kwds)))
         return "{}({});".format(function, ",".join(list(args)))
+
+    def _coerce_impl(self, x, use_special=True):
+        """
+        Implementation of coercion.
+
+        TESTS:
+
+        Test that dictionaries are converted to hashes::
+
+            sage: h = polymake({'"a"': 1, '"b"': 2})                   # optional - polymake
+            sage: h                                                    # optional - polymake
+            HASH(0x...)
+            sage: h['"a"']                                             # optional - polymake
+            1
+        """
+        if isinstance(x, dict):
+            # Convert dictionaries to hashes.
+            # This is an adaptation of the list/tuple code from Interface._coerce_impl
+            A = []
+            z = dict()
+            cls = self._object_class()
+            def convert(y):
+                if isinstance(y, cls):
+                    return y
+                else:
+                    return self(y)
+            for k, v in x.items():
+                k = convert(k)
+                v = convert(v)
+                z[k] = v
+                A.append("{}=>{}".format(k.name(), v.name()))
+            r = self.new("{" + ",".join(A) + "}")
+            r.__sage_dict = z # do this to avoid having the entries of the list be garbage collected
+            return r
+        else:
+            return super(PolymakeAbstract, self)._coerce_impl(x, use_special=use_special)
 
     def console(self):
         """
@@ -2393,6 +2427,22 @@ class PolymakeJuPyMake(PolymakeAbstract):
             $v = new Vector<Int>(1,2,3);
          or
             $v = new Vector<Int>([1,2,3]);
+
+    Python strings are translated to polymake (Perl) identifiers.
+    To obtain Perl strings, use strings containing double-quote characters.
+    Python dicts are translated to Perl hashes.
+
+         sage: L = polymake.db_query({'"_id"': '"F.4D.0047"'},    # long time, optional - jupymake internet perl_mongodb
+         ....:                       db='"LatticePolytopes"',
+         ....:                       collection='"SmoothReflexive"'); L
+         BigObjectArray
+         sage: len(L)                                             # long time, optional - jupymake internet perl_mongodb
+         1
+         sage: P = L[0]                                           # long time, optional - jupymake internet perl_mongodb
+         sage: sorted(P.list_properties(), key=str)               # long time, optional - jupymake internet perl_mongodb
+         [..., LATTICE_POINTS_GENERATORS, ..., POINTED, ...]
+         sage: P.F_VECTOR                                         # long time, optional - jupymake internet perl_mongodb
+         20 40 29 9
     """
 
     def __init__(self, seed=None, verbose=False):
@@ -2409,9 +2459,6 @@ class PolymakeJuPyMake(PolymakeAbstract):
             sage: from sage.interfaces.polymake import PolymakeJuPyMake
             sage: PolymakeJuPyMake()
             Polymake
-            sage: PolymakeJuPyMake().is_running()
-            False
-
         """
         self._verbose = verbose
         PolymakeAbstract.__init__(self, seed=seed)
@@ -2419,13 +2466,43 @@ class PolymakeJuPyMake(PolymakeAbstract):
     _is_running = False    # class variable
 
     def is_running(self):
+        """
+        Return True if self is currently running.
+
+        TESTS::
+
+            sage: from sage.interfaces.polymake import PolymakeJuPyMake
+            sage: pm = PolymakeJuPyMake()
+            sage: pm(1)                         # optional - jupymake
+            1
+            sage: pm.is_running()               # optional - jupymake
+            True
+
+        Several PolymakeJuPyMake interfaces can be created, but they all
+        talk to the same polymake interpreter::
+
+            sage: pm2 = PolymakeJuPyMake()
+            sage: pm2.is_running()              # optional - jupymake
+            True
+        """
         return self._is_running
 
     def _start(self):
+        """
+        Initialize the interpreter.
+
+        TESTS::
+
+            sage: from sage.interfaces.polymake import PolymakeJuPyMake
+            sage: pm = PolymakeJuPyMake()
+            sage: pm._start()                   # optional - jupymake
+            sage: pm.is_running()               # optional - jupymake
+            True
+        """
         from JuPyMake import InitializePolymake
         if not self.is_running():
             InitializePolymake()          # Can only be called once
-            self._is_running = True
+            PolymakeJuPyMake._is_running = True
         PolymakeAbstract._start(self)
         self.eval("sub Polymake::Core::Shell::Mock::fill_history {}")
         self._tab_completion()   # Run it here already because it causes a segfault when invoked in actual tab completion situation?!

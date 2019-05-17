@@ -100,7 +100,7 @@ def Polyhedra(base_ring, ambient_dim, backend=None):
                 raise ValueError("invalid base ring: {} cannot be coerced to a real field".format(base_ring))
             backend = 'field'
         else:
-            raise ValueError("no appropriate backend for computations with {}".format(base_ring))
+            raise ValueError("no default backend for computations with {}".format(base_ring))
 
     from sage.symbolic.ring import SR
     if backend == 'ppl' and base_ring is QQ:

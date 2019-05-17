@@ -234,6 +234,23 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
         else:
             self._section_class = section_class
 
+    def __copy__(self):
+        """
+        Return a copy of this map.
+
+        TESTS::
+
+            sage: from sage.rings.finite_rings.hom_finite_field import FiniteFieldHomomorphism_generic
+            sage: k.<t> = GF(3^7)
+            sage: K.<T> = GF(3^21)
+            sage: f = FiniteFieldHomomorphism_generic(Hom(k, K))
+            sage: g = copy(f)
+            sage: g.section()(g(t)) == f.section()(f(t))
+            True
+        """
+        cdef FiniteFieldHomomorphism_generic out = super(FiniteFieldHomomorphism_generic, self).__copy__()
+        out._section_class = self._section_class
+        return out
 
     def _latex_(self):
         r"""
@@ -249,7 +266,6 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
             '\\Bold{F}_{3^{7}} \\hookrightarrow \\Bold{F}_{3^{21}}'
         """
         return self.domain()._latex_() + " \\hookrightarrow " + self.codomain()._latex_()
-
 
     cpdef Element _call_(self, x):
         """

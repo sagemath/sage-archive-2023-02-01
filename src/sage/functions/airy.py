@@ -102,7 +102,7 @@ class FunctionAiryAiGeneral(BuiltinFunction):
             Traceback (most recent call last):
             ...
             NotImplementedError: cannot differentiate airy_ai
-            in the first parameter
+             in the first parameter
         """
         if diff_param == 0:
             raise NotImplementedError("cannot differentiate airy_ai in the"
@@ -324,7 +324,7 @@ class FunctionAiryAiPrime(BuiltinFunction):
             Traceback (most recent call last):
             ...
             NotImplementedError: airy_ai_prime not implemented
-            for precision > 53
+             for precision > 53
         """
         algorithm = kwargs.get('algorithm', 'mpmath') or 'mpmath'
         parent = kwargs.get('parent', None)
@@ -539,7 +539,7 @@ class FunctionAiryBiGeneral(BuiltinFunction):
             Traceback (most recent call last):
             ...
             NotImplementedError: cannot differentiate airy_bi
-            in the first parameter
+             in the first parameter
         """
         if diff_param == 0:
             raise NotImplementedError("cannot differentiate airy_bi in the"
@@ -761,7 +761,7 @@ class FunctionAiryBiPrime(BuiltinFunction):
             Traceback (most recent call last):
             ...
             NotImplementedError: airy_bi_prime not implemented
-            for precision > 53
+             for precision > 53
         """
         algorithm = kwargs.get('algorithm', 'mpmath') or 'mpmath'
         parent = kwargs.get('parent', None)

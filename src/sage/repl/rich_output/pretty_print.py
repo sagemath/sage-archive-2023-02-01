@@ -101,7 +101,7 @@ class SequencePrettyPrinter(SageObject):
             sage: type(plt)
             <class 'sage.plot.multigraphics.GraphicsArray'>
             sage: plt
-            Graphics Array of size 2 x 4
+            Graphics Array of size 1 x 4
         """
         import sage.graphs.graph_list as graphs_list
         return graphs_list.to_graphics_array(self.args, **self.kwds)

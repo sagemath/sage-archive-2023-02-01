@@ -3560,12 +3560,12 @@ def graphics_array(array, nrows=None, ncols=None):
         if nrows is None:
             ncols = int(ncols)
             nrows = length // ncols
-            if nrows*ncols < length:
+            if nrows*ncols < length or nrows == 0:
                 nrows += 1
         elif ncols is None:
             nrows = int(nrows)
             ncols = length // nrows
-            if nrows*ncols < length:
+            if nrows*ncols < length or ncols == 0:
                 ncols += 1
         else:
             assert False

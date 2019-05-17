@@ -1420,7 +1420,7 @@ class GenericGraph(GenericGraph_pyx):
         Return a new ``NetworkX`` graph from the Sage graph.
 
         INPUT:
-        
+
         - ``weight_function`` -- function (default: ``None``); a function that
           takes as input an edge ``(u, v, l)`` and outputs its weight.
 
@@ -4721,7 +4721,7 @@ class GenericGraph(GenericGraph_pyx):
         if self.is_directed():
             raise NotImplementedError("not implemented for directed graphs")
         self._scream_if_not_simple()
-        
+
         if weight_function is not None:
             by_weight = True
         if weight_function is None and by_weight:
@@ -15753,7 +15753,7 @@ class GenericGraph(GenericGraph_pyx):
           along with its edge labels are used to represent the path.
 
         EXAMPLES::
-        
+
             sage: eg1 = Graph({0:[1,2], 1:[4], 2:[3,4], 4:[5], 5:[6]})
             sage: eg1.all_paths(0,6)
             [[0, 1, 4, 5, 6], [0, 2, 4, 5, 6]]
@@ -15823,7 +15823,7 @@ class GenericGraph(GenericGraph_pyx):
             [[0, 1, 2]]
             sage: g.all_paths(0, 2, use_multiedges=True, report_edges=False, labels=True)
             [[0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]
-    
+
         TESTS:
 
         Starting and ending at the same vertex (see :trac:`13006`)::
@@ -15878,7 +15878,7 @@ class GenericGraph(GenericGraph_pyx):
             [[(0, 3), (3, 5)]]
             sage: G.all_paths(0, 5, report_edges=True, use_multiedges=True)
             [[(0, 3), (3, 5)], [(0, 3), (3, 5)]]
-            
+
         """
         if start not in self:
             raise LookupError("start vertex ({0}) is not a vertex of the graph".format(start))
@@ -15933,7 +15933,7 @@ class GenericGraph(GenericGraph_pyx):
                     act_path_iter.pop()
                 if not act_path:                 # there is no other vertex ...
                     done = True                  # ... so we are done
-        
+
         if report_edges and labels:
             path_with_labels = []
             for p in all_paths:
@@ -17503,7 +17503,7 @@ class GenericGraph(GenericGraph_pyx):
           reports pairs ``(vertex, distance)`` where ``distance`` is the
           distance from the ``start`` nodes. If ``False`` only the vertices are
           reported.
-        
+
         - ``edges`` -- boolean (default ``False``); whether to return the edges
           of the BFS tree in the order of visit or the vertices (default).
           Edges are directed in root to leaf orientation of the tree.
@@ -22641,13 +22641,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: E.relabel(gamma)
             sage: a,b = D.is_isomorphic(E, certificate=True); a
             True
-            sage: from sage.plot.graphics import GraphicsArray
             sage: from sage.graphs.generic_graph_pyx import spring_layout_fast
             sage: position_D = spring_layout_fast(D)
             sage: position_E = {}
             sage: for vert in position_D:
             ....:  position_E[b[vert]] = position_D[vert]
-            sage: GraphicsArray([D.plot(pos=position_D), E.plot(pos=position_E)]).show() # long time
+            sage: graphics_array([D.plot(pos=position_D), E.plot(pos=position_E)]).show() # long time
 
         ::
 

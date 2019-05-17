@@ -93,11 +93,7 @@ contains additional variables that you want to treat as coefficients::
 
 REFERENCES:
 
-..  [AnEtAl]
-    An, Sang Yook et al:
-    *Jacobians of Genus One Curves*,
-    Journal of Number Theory 90 (2002), pp.304--315,
-    http://www.math.arizona.edu/~wmc/Research/JacobianFinal.pdf
+- [AKMMMP2002]_
 """
 
 ########################################################################

@@ -11,8 +11,8 @@ from . import Executable, FeatureTestResult
 
 class Plantri(Executable):
     r"""
-    A class:`sage.features.graph_generators.Feature` which checks for the ``plantri``
-    binary.
+    A class:`sage.features.graph_generators.Feature` which checks for
+    the ``plantri`` binary.
 
     EXAMPLES::
 
@@ -28,7 +28,9 @@ class Plantri(Executable):
             sage: isinstance(Plantri(), Plantri)
             True
         """
-        Executable.__init__(self, name="plantri", spkg="plantri", executable="plantri", url="http://users.cecs.anu.edu.au/~bdm/plantri/")
+        Executable.__init__(self, name="plantri", spkg="plantri",
+                            executable="plantri",
+                            url="http://users.cecs.anu.edu.au/~bdm/plantri/")
 
     def is_functional(self):
         r"""
@@ -50,7 +52,7 @@ class Plantri(Executable):
         expected = "1 triangulations written"
         if lines.find(expected) == -1:
             return FeatureTestResult(self, False,
-                    reason = "Call `{command}` did not produce output which contains `{expected}`".format(command=" ".join(command), expected=expected))
+                    reason="Call `{command}` did not produce output which contains `{expected}`".format(command=" ".join(command), expected=expected))
 
         return FeatureTestResult(self, True)
 
@@ -74,7 +76,9 @@ class Buckygen(Executable):
             sage: isinstance(Buckygen(), Buckygen)
             True
         """
-        Executable.__init__(self, name="Buckygen", spkg="buckygen", executable="buckygen", url="http://caagt.ugent.be/buckygen/")
+        Executable.__init__(self, name="Buckygen", spkg="buckygen",
+                            executable="buckygen",
+                            url="http://caagt.ugent.be/buckygen/")
 
     def is_functional(self):
         r"""
@@ -91,12 +95,12 @@ class Buckygen(Executable):
             lines = subprocess.check_output(command, stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as e:
             return FeatureTestResult(self, False,
-                    reason = "Call `{command}` failed with exit code {e.returncode}".format(command=" ".join(command), e=e))
+                    reason="Call `{command}` failed with exit code {e.returncode}".format(command=" ".join(command), e=e))
 
         expected = "Number of fullerenes generated with 13 vertices: 0"
         if lines.find(expected) == -1:
             return FeatureTestResult(self, False,
-                    reason = "Call `{command}` did not produce output which contains `{expected}`".format(command=" ".join(command), expected=expected))
+                    reason="Call `{command}` did not produce output which contains `{expected}`".format(command=" ".join(command), expected=expected))
 
         return FeatureTestResult(self, True)
 
@@ -120,7 +124,9 @@ class Benzene(Executable):
             sage: isinstance(Benzene(), Benzene)
             True
         """
-        Executable.__init__(self, name="Benzene", spkg="benzene", executable="benzene", url="http://www.grinvin.org/")
+        Executable.__init__(self, name="Benzene", spkg="benzene",
+                            executable="benzene",
+                            url="http://www.grinvin.org/")
 
     def is_functional(self):
         r"""

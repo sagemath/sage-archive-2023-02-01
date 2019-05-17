@@ -4100,6 +4100,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
                 'supported.' % (data, P, self))
             # Delete lines above as soon as we can deal with growths
             # other than the that at going to +oo.
+            from sage.rings.infinity import PlusInfinity
             p = P.gen()
             try:
                 result = self(data.polynomial())
@@ -4107,7 +4108,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
                 raise combine_exceptions(
                     ValueError('Powerseries %s is not in %s' % (data, self)), e)
             prec = data.precision_absolute()
-            if prec < sage.rings.infinity.PlusInfinity():
+            if prec < PlusInfinity():
                 try:
                     result += self.create_summand('O', growth=p**prec)
                 except ValueError as e:

@@ -1240,10 +1240,8 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
         EXAMPLES::
 
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: P._random_uniform_rec(2, [1, 3, 4], (0,1), True, 2)  # py2
+            sage: P._random_uniform_rec(2, [1, 3, 4], (0,1), True, 2)
             x + y
-            sage: P._random_uniform_rec(2, [1, 3, 4], (0,1), True, 2)  # py3
-            0
             sage: P._random_uniform_rec(2, [1, 3, 4], (0,1), True, 2)
             0
         """
@@ -1322,17 +1320,17 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: [P._random_monomial_dfirst(3, (0,1,2)) for _ in range(10)]  # py2
             [x*y*z, x*y*z, x*y*z, y*z, x*z, z, z, y*z, x*y*z, 1]
-            sage: [P._random_monomial_dfirst(3, (0,1,2)) for _ in range(10)]  # py3
+            sage: [P._random_monomial_dfirst(3, (0,1,2)) for _ in range(10)]  # py3 random
             [x*y*z, x*y*z, x*y*z, x*y, x*z, x, x, y*z, x*y*z, 1]
         """
         from sage.rings.integer_ring import ZZ
         sample = current_randstate().python_random().sample
-        d = ZZ.random_element(0,degree+1)
+        d = ZZ.random_element(0, degree + 1)
         vars = sample(vars_set, d)
         M = self._monom_monoid
         m = M._one_element
         for j in vars:
-            m*=M.gen(j)
+            m *= M.gen(j)
         return self(m)
 
     def cover_ring(self):
@@ -6363,7 +6361,7 @@ cdef class ReductionStrategy:
 
     def cheap_reductions(self, BooleanPolynomial p):
         """
-        Peform 'cheap' reductions on ``p``.
+        Perform 'cheap' reductions on ``p``.
 
         INPUT:
 

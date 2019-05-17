@@ -1374,7 +1374,7 @@ cdef class SparseGraphBackend(CGraphBackend):
     something like the following example, which creates a Sage Graph instance
     which wraps a SparseGraph object::
 
-        sage: G = Graph(30, implementation="c_graph", sparse=True)
+        sage: G = Graph(30, sparse=True)
         sage: G.add_edges([(0,1), (0,3), (4,5), (9, 23)])
         sage: G.edges(labels=False)
         [(0, 1), (0, 3), (4, 5), (9, 23)]
@@ -1456,7 +1456,7 @@ cdef class SparseGraphBackend(CGraphBackend):
 
         TESTS::
 
-            sage: D = DiGraph(implementation='c_graph', sparse=True)
+            sage: D = DiGraph(sparse=True)
             sage: D.add_edge(0,1,2)
             sage: D.add_edge(0,1,3)
             sage: D.edges()
@@ -1565,13 +1565,13 @@ cdef class SparseGraphBackend(CGraphBackend):
 
         TESTS::
 
-            sage: G = Graph(implementation='c_graph', sparse=True)
+            sage: G = Graph(sparse=True)
             sage: G.add_edge(0,1,2)
             sage: G.delete_edge(0,1)
             sage: G.edges()
             []
 
-            sage: G = Graph(multiedges=True, implementation='c_graph', sparse=True)
+            sage: G = Graph(multiedges=True, sparse=True)
             sage: G.add_edge(0,1,2)
             sage: G.add_edge(0,1,None)
             sage: G.delete_edge(0,1)
@@ -1580,7 +1580,7 @@ cdef class SparseGraphBackend(CGraphBackend):
 
         Do we remove loops correctly? (:trac:`12135`)::
 
-            sage: g=Graph({0:[0,0,0]}, implementation='c_graph', sparse=True)
+            sage: g=Graph({0:[0,0,0]}, sparse=True)
             sage: g.edges(labels=False)
             [(0, 0), (0, 0), (0, 0)]
             sage: g.delete_edge(0,0); g.edges(labels=False)

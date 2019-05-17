@@ -4062,11 +4062,11 @@ class KolyvaginPoint(HeegnerPoint):
     def index(self, *args, **kwds):
         """
         Return index of this Kolyvagin point in the full group of
-        $K_c$ rational points on $E$.
+        `K_c` rational points on `E`.
 
         When the conductor is 1, this is computed numerically using
         the Gross-Zagier formula and explicit point search, and it may
-        be off by $2$. See the documentation for ``E.heegner_index``,
+        be off by `2`. See the documentation for ``E.heegner_index``,
         where `E` is the curve attached to ``self``.
 
         EXAMPLES::

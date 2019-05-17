@@ -743,11 +743,11 @@ the computation is done using an embedded number field.
 ::
 
     sage: P4_normaliz = Polyhedron(vertices = [[sqrt_2, 0], [0, cbrt_2]], backend='normaliz')       # optional - pynormaliz
-    sage: P4_normaliz
+    sage: P4_normaliz                                                                               # optional - pynormaliz
     A 1-dimensional polyhedron in AA^2 defined as the convex hull of 2 vertices
 
     sage: P5_normaliz = Polyhedron(vertices = [[sqrt_2s, 0], [0, cbrt_2s]], backend='normaliz')     # optional - pynormaliz
-    sage: P5_normaliz
+    sage: P5_normaliz                                                                               # optional - pynormaliz
     A 1-dimensional polyhedron in (Symbolic Ring)^2 defined as the convex hull of 2 vertices
 
 .. end of output

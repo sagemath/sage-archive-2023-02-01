@@ -653,7 +653,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             ....:                                     convert_QQ, convert_NF)
             ([[[a]], [[1/2]]], Number Field in a with defining polynomial y^2 - 2)
 
-        TESTS:::
+        TESTS::
 
             sage: K.<a> = QuadraticField(-5)
             sage: p = Polyhedron(vertices=[(a,1/2),(2,0),(4,5/6)],   # indirect doctest # optional - pynormaliz

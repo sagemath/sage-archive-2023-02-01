@@ -390,7 +390,7 @@ class Polyhedron_normaliz(Polyhedron_base):
                 print(self._normaliz_format(data), end='')
                 print("# ----8<-------------------8<-------------------8<----")
 
-        for key, value in data.iteritems():
+        for key, value in data.items():
             if key != 'number_field':
                 data[key] = self._convert_to_pynormaliz(value)
 

@@ -748,7 +748,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         Returns an integer that has a negative Hilbert symbol with respect
         to a given rational number and a given set of primes (or places).
 
-        The function is algorithm 3.4.1 in _[Kir2016]. It finds an integer `a`
+        The function is algorithm 3.4.1 in [Kir2016]_. It finds an integer `a`
         that has negative Hilbert symbol with respect to a given rational number
         exactly at a given set of primes (or places).
 
@@ -763,7 +763,7 @@ class RationalField(Singleton, number_field_base.NumberField):
 
         OUTPUT:
 
-        - An integer that has negative Hilbert symbol `(*,b)_p` for
+        - An integer `a` that has negative Hilbert symbol `(a,b)_p` for
           every place `p` in `S` and no other place.
 
         EXAMPLES::
@@ -775,7 +775,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: QQ.hilbert_symbol_negative_at_S([3, 5], 2)
             15
 
-        TESTS:
+        TESTS::
 
         These examples show possible error messages::
 

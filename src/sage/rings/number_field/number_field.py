@@ -9291,7 +9291,7 @@ class NumberField_absolute(NumberField_generic):
 
         ALGORITHM:
 
-        The implementation is following algorithm 3.4.1 in _[Kir2016].
+        The implementation is following algorithm 3.4.1 in [Kir2016]_.
         We note that class and unit groups are computed using the generalized
         Riemann hypothesis. If it is false, this may result in an infinite loop.
         Nevertheless, if the algorithm terminates the output is correct.
@@ -9332,7 +9332,7 @@ class NumberField_absolute(NumberField_generic):
 
         AUTHORS:
 
-        - Simon Brandhorst (01-05-2018)
+        - Simon Brandhorst, Anna Haensch (01-05-2018)
         """
         from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
         from sage.modules.free_module import VectorSpace

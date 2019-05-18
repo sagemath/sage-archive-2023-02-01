@@ -683,9 +683,8 @@ export PKG_NAME="$PKG_NAME"
 export PKG_BASE="$PKG_BASE"
 export PKG_VER="$PKG_VER"
 
-for lib in env dist-helpers; do
-    lib="sage-\$lib"
-    source "\$SAGE_SRC/bin/\$lib"
+for lib in \$SAGE_ROOT/build/bin/sage-dist-helpers \$SAGE_SRC/bin/sage-env ; do
+    source "\$lib"
     if [ \$? -ne 0 ]; then
         echo >&2 "Error: failed to source \$lib"
         echo >&2 "Is \$SAGE_ROOT the correct SAGE_ROOT?"

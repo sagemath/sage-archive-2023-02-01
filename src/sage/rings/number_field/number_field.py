@@ -9343,7 +9343,7 @@ class NumberField_absolute(NumberField_generic):
         if not type(S) is list:
             raise TypeError( "first argument must be a list")
         if not b in self:
-            raise TypeError("second argument must be a an element of this field")
+            raise TypeError("second argument must be an element of this field")
         b = self(b)
         if b == 0:
             raise ValueError("second argument must be nonzero")

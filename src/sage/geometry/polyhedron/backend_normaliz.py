@@ -58,10 +58,7 @@ def _number_field_elements_from_algebraics_list_of_lists_of_lists(listss, **kwds
     for lists in listss:
         for list in lists:
             numbers.extend(list)
-    global DEBUG_numbers, DEBUG_K_numbers
     K, K_numbers, hom = number_field_elements_from_algebraics(numbers, **kwds)
-    DEBUG_numbers = numbers
-    DEBUG_K_numbers = K_numbers
     g = iter(K_numbers)
     return K, [ [ [ next(g) for x in list ] for list in lists ] for lists in listss ], hom
 

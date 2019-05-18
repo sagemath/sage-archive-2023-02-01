@@ -265,9 +265,7 @@ class MultiGraphics(WithEqualityById, SageObject):
         global do_verify
         do_verify = True
         for i, g in enumerate(glist):
-            # Creation of the Matplotlib Axes object "subplot" for g:
-            subplot = self._add_subplot(figure, i+1)  # index shift for subplot
-            # Setting the options for g.matplotlib:
+            # Options for g.matplotlib():
             options = {}
             options.update(Graphics.SHOW_OPTIONS)  # default options for show()
             options['legend_options'] = Graphics.LEGEND_OPTIONS  # default leg.
@@ -277,7 +275,9 @@ class MultiGraphics(WithEqualityById, SageObject):
             options.pop('dpi', None)
             options.pop('transparent', None)
             options.pop('fig_tight', None)
-            # Adding g to the figure via subplot:
+            # Creating the Matplotlib Axes object "subplot" on the figure:
+            subplot = self._add_subplot(figure, i)
+            # and drawing g on it:
             g.matplotlib(figure=figure, sub=subplot, verify=do_verify,
                          **options)
         return figure
@@ -785,8 +785,7 @@ class GraphicsArray(MultiGraphics):
         INPUT:
 
         - ``figure`` -- a Matplotlib ``Figure`` object
-        - ``index `` -- integer specifiying the element of ``self``, starting
-          from 1 for the first element of ``self[:]``.
+        - ``index `` -- integer specifiying the element of ``self``
         - ``options`` -- extra options to be passed to ``Figure.add_subplot``
 
         OUTPUT:
@@ -799,10 +798,10 @@ class GraphicsArray(MultiGraphics):
             sage: G = graphics_array([c, c])
             sage: from matplotlib.figure import Figure
             sage: figure = Figure()
-            sage: ax1 = G._add_subplot(figure, 1)
+            sage: ax1 = G._add_subplot(figure, 0)
             sage: type(ax1)
             <class 'matplotlib.axes._subplots.AxesSubplot'>
-            sage: ax2 = G._add_subplot(figure, 2)
+            sage: ax2 = G._add_subplot(figure, 1)
             sage: figure.get_axes() == [ax1, ax2]
             True
 
@@ -813,7 +812,8 @@ class GraphicsArray(MultiGraphics):
         else:
             rows = self._rows
             cols = self._cols
-        return figure.add_subplot(rows, cols, index, **options)
+        # index --> index + 1 for Figure.add_subplot:
+        return figure.add_subplot(rows, cols, index + 1, **options)
 
     def nrows(self):
         r"""

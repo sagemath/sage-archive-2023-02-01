@@ -302,8 +302,18 @@ class Macaulay2(ExtraTabCompletion, Expect):
             sage: macaulay2.set("a", "2") # optional - macaulay2
             sage: macaulay2.get("a")      # optional - macaulay2
             2
+
+        TESTS:
+
+        Since Macaulay2 version 1.13, matrices need to be handled separately
+        (see :trac:`27848`).  ::
+
+            sage: macaulay2('matrix {{1,2},{3,4}}')   # optional - macaulay2
+            | 1 2 |
+            | 3 4 |
         """
-        return self.eval("describe %s"%var, strip=True)
+        return self.eval('(if instance({0}, Matrix) then net else describe)'
+                         ' {0}'.format(var), strip=True)
 
     def set(self, var, value):
         """
@@ -614,7 +624,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             | 1 2 |
             | 3 4 |
             sage: latex(m) # optional - macaulay2
-            \begin{pmatrix}1& 2\\ 3& 4\\ \end{pmatrix}
+            \begin{pmatrix} 1&2\\ 3&4\end{pmatrix}
         """
         s = self.tex().external_string().strip('"').strip('$').replace('\\\\','\\')
         s = s.replace(r"\bgroup","").replace(r"\egroup","")

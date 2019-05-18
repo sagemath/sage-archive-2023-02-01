@@ -19,7 +19,7 @@ SAGE_SPKG_CONFIGURE([ntl], [
         AC_LINK_IFELSE([
             AC_LANG_PROGRAM([[#include <NTL/ZZ.h>]],
                             [[NTL::ZZ a;]]
-            )], [LIBS=$LIBS -lntl]
+            )], [LIBS="$LIBS -lntl"]
                 [AC_MSG_RESULT([yes])], [
             AC_MSG_RESULT([no]); sage_spkg_install_ntl=yes
         ])

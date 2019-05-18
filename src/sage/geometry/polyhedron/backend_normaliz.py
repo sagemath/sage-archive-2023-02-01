@@ -784,6 +784,17 @@ class Polyhedron_normaliz(Polyhedron_base):
 
     @staticmethod
     def _number_field_triple(normaliz_field):
+        r"""
+        Construct the PyNormaliz triple that describes the number field ``normaliz_field``.
+
+        TESTS::
+
+            sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz as Pn
+            sage: Pn._number_field_triple(QQ) is None
+            True
+            sage: Pn._number_field_triple(QuadraticField(5))
+            ['a^2 - 5', 'a', '[2.236067977499789 +/- 8.06e-16]']
+        """
         from sage.rings.real_arb import RealBallField
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         R = normaliz_field

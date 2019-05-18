@@ -88,7 +88,7 @@ class AskeyWilsonAlgebra(CombinatorialFreeModule):
     INPUT:
 
     - ``R`` -- a commutative ring
-    - ``q`` -- (optional) the parameter `q`; must be invertable in ``R``
+    - ``q`` -- (optional) the parameter `q`; must be invertible in ``R``
 
     If ``q`` is not specified, then ``R`` is taken to be the base
     ring of a Laurent polynomial ring with variable `q`. Otherwise

@@ -62,15 +62,15 @@ AUTHORS:
 - Miguel Marco, John Palmieri (2014-07): initial version
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2014 Miguel Marco <mmarco@unizar.es>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import
 from six import string_types
 
@@ -1458,7 +1458,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
 
             INPUT:
 
-            - ``total`` -- boolean (defalt ``False``); this
+            - ``total`` -- boolean (default ``False``); this
               is only used in the multi-graded case, in which case if
               ``True``, it returns the coefficients with respect to
               the basis for the total degree of this element

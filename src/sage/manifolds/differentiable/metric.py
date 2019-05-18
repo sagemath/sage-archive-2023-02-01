@@ -1799,7 +1799,7 @@ class PseudoRiemannianMetric(TensorField):
             sage: ssf == f # must hold for a Riemannian metric
             True
 
-        Hodge dual of a 0-form in Minkowksi spacetime::
+        Hodge dual of a 0-form in Minkowski spacetime::
 
             sage: M = Manifold(4, 'M')
             sage: X.<t,x,y,z> = M.chart()
@@ -1822,7 +1822,7 @@ class PseudoRiemannianMetric(TensorField):
             sage: ssf == -f  # must hold for a Lorentzian metric
             True
 
-        Hodge dual of a 1-form in Minkowksi spacetime::
+        Hodge dual of a 1-form in Minkowski spacetime::
 
             sage: var('At Ax Ay Az')
             (At, Ax, Ay, Az)
@@ -1840,7 +1840,7 @@ class PseudoRiemannianMetric(TensorField):
             sage: ssa == a  # must hold for a Lorentzian metric in dimension 4
             True
 
-        Hodge dual of a 2-form in Minkowksi spacetime::
+        Hodge dual of a 2-form in Minkowski spacetime::
 
             sage: F = M.diff_form(2, name='F')
             sage: var('Ex Ey Ez Bx By Bz')
@@ -2302,8 +2302,8 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             sage: M.set_calculus_method('sympy')
             sage: g[1,1], g[1,2], g[2,2] = 1+x, x*y, 1-x
             sage: g[:]  # components in the manifold's default frame
-            [ x + 1    x*y]
-            [   x*y -x + 1]
+            [x + 1   x*y]
+            [  x*y 1 - x]
             sage: g.inverse()[:]
             [ (x - 1)/(x**2*y**2 + x**2 - 1)      x*y/(x**2*y**2 + x**2 - 1)]
             [     x*y/(x**2*y**2 + x**2 - 1) -(x + 1)/(x**2*y**2 + x**2 - 1)]

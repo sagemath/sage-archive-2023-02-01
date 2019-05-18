@@ -58,8 +58,8 @@ as the *origin*, one can write every point `p` inside a polyhedron as a combinat
 where `\ell\in L` (using `o` as the origin), `\sum_{i=1}^n\lambda_i=1`,
 `\lambda_i\geq0`, `\mu_i\geq0`, and `r_i\neq0` for all `0\leq i\leq m` and the
 set of `r_i` 's are positively independent (the origin is not in their positive span).
-For a given point `p` there may be many equivalent ways to write the above using 
-different sets `\{v_i\}_{i=1}^{n}` and `\{r_i\}_{i=1}^{m}`. Hence we require the sets 
+For a given point `p` there may be many equivalent ways to write the above using
+different sets `\{v_i\}_{i=1}^{n}` and `\{r_i\}_{i=1}^{m}`. Hence we require the sets
 to be inclusion minimal sets such that we can get the above property equality
 for any point `p\in P`.
 
@@ -767,7 +767,7 @@ polytope is already defined!
     A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 8 vertices
     sage: C = polytopes.cyclic_polytope(3,10); C
     A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 10 vertices
-    sage: E = polytopes.snub_cube(); E
+    sage: E = polytopes.snub_cube(exact=False); E
     A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 24 vertices
     sage: polytopes.<tab>  # not tested, to view all the possible polytopes
 

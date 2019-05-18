@@ -659,7 +659,7 @@ which is roughly `2\cdot 10^{19728}`::
 
 or ask for its `237102124`-th element::
 
-    sage: S.unrank(237102123)
+    sage: S.unrank(237102123) # random print output
     {{{2, 4}, {1, 4}, {}, {1, 3, 4}, {1, 2, 4}, {4}, {2, 3}, {1, 3}, {2}},
       {{1, 3}, {2, 4}, {1, 2, 4}, {}, {3, 4}}}
 
@@ -673,10 +673,15 @@ result of ``len`` be an integer of type ``int``; this could cause
 overflows, and would not permit the return of {Infinity} for infinite
 sets::
 
-    sage: len(S)
+    sage: len(S)  #py2
     Traceback (most recent call last):
     ...
     OverflowError: Python int too large to convert to C long
+
+    sage: len(S)  #py3
+    Traceback (most recent call last):
+    ...
+    OverflowError: cannot fit 'int' into an index-sized integer
 
 Partitions of integers
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -832,7 +837,7 @@ Permutations::
 Set partitions::
 
     sage: C = SetPartitions(["a", "b", "c"])
-    sage: C
+    sage: C # random print output
     Set partitions of {'a', 'c', 'b'}
     sage: C.cardinality()
     5

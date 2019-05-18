@@ -1560,7 +1560,7 @@ def laplace(ex, t, s, algorithm='maxima'):
     Testing SymPy::
 
         sage: laplace(t^n, t, s, algorithm='sympy')
-        (gamma(n + 1)/(s*s^n), 0, -re(n) < 1)
+        (gamma(n + 1)/(s*s^n), 0, re(n) > -1)
 
     Testing Maxima::
 

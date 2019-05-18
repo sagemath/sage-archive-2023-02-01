@@ -149,7 +149,7 @@ PTEST_PYTHON3 = cat src/ext/doctest/python3-known-passing.txt | xargs ./sage -t 
 # By default, include all tests marked 'dochtml' -- see
 # https://trac.sagemath.org/ticket/25345 and
 # https://trac.sagemath.org/ticket/26110.
-TESTALL_FLAGS = --optional=sage,dochtml,optional,external
+TESTALL_FLAGS = --optional=sage,dochtml,optional,external,build
 
 test: all
 	$(TESTALL) --logfile=logs/test.log

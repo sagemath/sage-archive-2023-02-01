@@ -618,8 +618,8 @@ class ProjectivePlaneCurve(ProjectiveCurve):
                 # What is the '5' in this line and the 'r()' in the next???
                 lcs = self.local_coordinates(P,5)
                 ldg = degree_lowest_rational_function(r(lcs[0],lcs[1]),z)
-                if ldg[0] != 0:
-                    divf.append([ldg[0],P])
+                if ldg != 0:
+                    divf.append([ldg, P])
         return divf
 
 
@@ -673,21 +673,19 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         cmd = 'matrix c = coeffs ('+str(ft)+',t)'
         S.eval(cmd)
         N = int(S.eval('size(c)'))
-        b = ["c["+str(i)+",1]," for i in range(2, N//2 - 4)]
-        b = ''.join(b)
-        b = b[:len(b)-1] #to cut off the trailing comma
-        cmd = 'ideal I = '+b
+        b = ','.join("c[{},1]".format(i) for i in range(2, N//2 - 4))
+        cmd = 'ideal I = ' + b
         S.eval(cmd)
         c = S.eval('slimgb(I)')
         d = c.split("=")
         d = d[1:]
         d[len(d)-1] += "\n"
-        e = [x[:x.index("\n")] for x in d]
+        e = [xx[:xx.index("\n")] for xx in d]
         vals = []
         for x in e:
             for y in vars0:
                 if str(y) in x:
-                    if len(x.replace(str(y),"")) != 0:
+                    if len(x.replace(str(y),"")):
                         i = x.find("-")
                         if i>0:
                             vals.append([eval(x[1:i]),x[:i],F(eval(x[i+1:]))])
@@ -697,9 +695,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
                     else:
                         vals.append([eval(str(y)[1:]),str(y),F(0)])
         vals.sort()
-        k = len(vals)
-        v = [x0+t,y0+add([vals[i][2]*t**(i+1) for i in range(k)])]
-        return v
+        return [x0 + t, y0 + add(v[2] * t**(j+1) for j, v in enumerate(vals))]
 
     def plot(self, *args, **kwds):
         """

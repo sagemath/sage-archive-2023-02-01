@@ -94,6 +94,7 @@ def make_FunctionFieldElement(parent, element_class, representing_element):
     """
     return element_class(parent, representing_element, reduce=False)
 
+
 cdef class FunctionFieldElement(FieldElement):
     """
     Abstract base class for function field elements.
@@ -382,6 +383,7 @@ cdef class FunctionFieldElement(FieldElement):
         D = self.parent().derivation()
         return D(self)
 
+
 cdef class FunctionFieldElement_polymod(FunctionFieldElement):
     """
     Elements of a finite extension of a function field.
@@ -605,6 +607,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
             [0, x]
         """
         return self._x.padded_list(self.parent().degree())
+
 
 cdef class FunctionFieldElement_rational(FunctionFieldElement):
     """
@@ -1043,6 +1046,32 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         J = F.maximal_order_infinite().ideal(self)
         return I.divisor_of_poles() + J.divisor_of_poles()
 
+    def zeros(self):
+        """
+        Return the list of the zeros of the element.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: f = 1/(x^3 + x^2 + x)
+            sage: f.zeros()
+            [Place (1/x)]
+        """
+        return self.divisor_of_zeros().support()
+
+    def poles(self):
+        """
+        Return the list of the poles of the element.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: f = 1/(x^3 + x^2 + x)
+            sage: f.poles()
+            [Place (x), Place (x^2 + x + 1)]
+        """
+        return self.divisor_of_poles().support()
+
     def higher_derivative(self, i, separating_element=None):
         """
         Return the `i`-th derivative of the element with respect to the
@@ -1064,6 +1093,39 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         """
         D = self.parent().higher_derivation()
         return D(self, i, separating_element)
+
+    def evaluate(self, place):
+        """
+        Return the value of the element at the place.
+
+        INPUT:
+
+        - ``place`` -- a function field place
+
+        OUTPUT:
+
+        If the element is in the valuation ring at the place, then an element
+        in the residue field at the place is returned. Otherwise,
+        ``ValueError`` is raised.
+
+        EXAMPLES::
+
+            sage: K.<t> = FunctionField(GF(5))
+            sage: p = K.place_infinite()
+            sage: f = 1/t^2 + 3
+            sage: f.evaluate(p)
+            3
+        """
+        R, fr_R, to_R = place._residue_field()
+
+        v = self.valuation(place)
+        if v > 0:
+            return R.zero()
+        elif v  == 0:
+            return to_R(self)
+        else: # v < 0
+            raise ValueError('has a pole at the place')
+
 
 cdef class FunctionFieldElement_global(FunctionFieldElement_polymod):
     """
@@ -1149,6 +1211,32 @@ cdef class FunctionFieldElement_global(FunctionFieldElement_polymod):
         J = F.maximal_order_infinite().ideal(self)
         return I.divisor_of_poles() + J.divisor_of_poles()
 
+    def zeros(self):
+        """
+        Return the list of the zeros of the element.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: (x/y).zeros()
+            [Place (x, x*y)]
+        """
+        return self.divisor_of_zeros().support()
+
+    def poles(self):
+        """
+        Return the list of the poles of the element.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: (x/y).poles()
+            [Place (1/x, 1/x*y), Place (x + 1, x*y)]
+        """
+        return self.divisor_of_poles().support()
+
     def higher_derivative(self, i, separating_element=None):
         """
         Return the ``i``-th order higher derivative of the element with respect
@@ -1170,3 +1258,40 @@ cdef class FunctionFieldElement_global(FunctionFieldElement_polymod):
         """
         D = self.parent().higher_derivation()
         return D(self, i, separating_element)
+
+    def evaluate(self, place):
+        """
+        Return the value of the element at the place.
+
+        INPUT:
+
+        - ``place`` -- a function field place
+
+        OUTPUT:
+
+        If the element is in the valuation ring at the place, then an element
+        in the residue field at the place is returned. Otherwise, ``ValueError``
+        is raised.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: p, = L.places_infinite()
+            sage: p, = L.places_infinite()
+            sage: (y + x).evaluate(p)
+            Traceback (most recent call last):
+            ...
+            ValueError: has a pole at the place
+            sage: (y/x + 1).evaluate(p)
+            1
+        """
+        R, fr_R, to_R = place._residue_field()
+
+        v = self.valuation(place)
+        if v > 0:
+            return R.zero()
+        elif v  == 0:
+            return to_R(self)
+        else: # v < 0
+            raise ValueError('has a pole at the place')

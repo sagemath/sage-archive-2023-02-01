@@ -309,19 +309,44 @@ class Polyhedron_normaliz(Polyhedron_base):
             self._init_Vrepresentation_from_normaliz()
             self._init_Hrepresentation_from_normaliz()
 
-    def _convert_to_Qnormaliz(self, x):
+    @staticmethod
+    def _convert_to_pynormaliz(x):
+        """
+        Convert a number or nested lists and tuples of numbers to pynormaliz input format.
+
+        TESTS::
+
+            sage: K.<sqrt2> = QuadraticField(2)
+            sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz as Pn
+            sage: Pn._convert_to_pynormaliz(17)
+            17
+            sage: Pn._convert_to_pynormaliz(901824309821093821093812093810928309183091832091)     # py2
+            901824309821093821093812093810928309183091832091L
+            sage: Pn._convert_to_pynormaliz(901824309821093821093812093810928309183091832091)     # py3
+            901824309821093821093812093810928309183091832091
+            sage: Pn._convert_to_pynormaliz(QQ(17))
+            17
+            sage: Pn._convert_to_pynormaliz(28/5)
+            [[28, 5]]
+            sage: Pn._convert_to_pynormaliz(28901824309821093821093812093810928309183091832091/5234573685674784567853456543456456786543456765) # py2
+            [[28901824309821093821093812093810928309183091832091L, 5234573685674784567853456543456456786543456765L]]
+            sage: Pn._convert_to_pynormaliz(28901824309821093821093812093810928309183091832091/5234573685674784567853456543456456786543456765) # py3
+            [[28901824309821093821093812093810928309183091832091, 5234573685674784567853456543456456786543456765]]
+            sage: Pn._convert_to_pynormaliz(7 + sqrt2)
+            [[7, 1], [1, 1]]
+            sage: Pn._convert_to_pynormaliz(7/2 + sqrt2)
+            [[7, 2], [1, 1]]
+            sage: Pn._convert_to_pynormaliz([[1, 2], (3, 4)])
+            [[1, 2], [3, 4]]
+        """
         def _QQ_pair(x):
             x = QQ(x)
-            return [ long(x.numerator()), long(x.denominator())]
-        import six
-        from sage.rings.integer import Integer
+            return [ int(x.numerator()), int(x.denominator())]
         from sage.rings.rational import Rational
-        if isinstance(x, six.string_types):
-            return x
         if isinstance(x, list) or isinstance(x, tuple):
-            return [ self._convert_to_Qnormaliz(y) for y in x ]
+            return [ Polyhedron_normaliz._convert_to_pynormaliz(y) for y in x ]
         try:
-            return long(ZZ(x))
+            return int(ZZ(x))
         except TypeError:
             if isinstance(x, Rational):
                 return [ _QQ_pair(x) ]    # need extra brackets to distinguish from quadratic numberfield element
@@ -370,7 +395,7 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         for key, value in data.iteritems():
             if key != 'number_field':
-                data[key] = self._convert_to_Qnormaliz(value)
+                data[key] = self._convert_to_pynormaliz(value)
 
         if verbose:
             print("# Calling {}".format(_format_function_call('PyNormaliz.NmzCone', **data)))

@@ -777,8 +777,6 @@ class RationalField(Singleton, number_field_base.NumberField):
 
         TESTS::
 
-        These examples show possible error messages::
-
             sage: QQ.hilbert_symbol_negative_at_S(5/2, -2)
             Traceback (most recent call last):
             ...
@@ -884,7 +882,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         # This constructs the vector v in the algorithm. This is the vector
         # that we are searching for. It represents the case when the Hilbert
         # symbol is negative for all primes in S and positive
-        # at all primes in S'
+        # at all primes not in S'
         V = VectorSpace(GF(2), len(P))
         v = V([1]*len(S) + [0]*len(L))
 

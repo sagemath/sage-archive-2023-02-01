@@ -960,9 +960,9 @@ class Polyhedron_normaliz(Polyhedron_base):
             return 'min_poly ({}) embedding {}'.format(min_poly, emb)
 
         s = format_field('amb_space', self.ambient_dim())
-        from copy import copy
-        data = copy(data)
-        if data.has_key('number_field'):
+        if 'number_field' in data:
+            from copy import copy
+            data = copy(data)
             s += 'number_field {}\n'.format(format_number_field_data(data['number_field']))
             del data['number_field']
         for key, value in sorted(data.items()):

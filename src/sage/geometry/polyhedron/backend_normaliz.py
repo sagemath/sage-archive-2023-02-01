@@ -167,7 +167,7 @@ class Polyhedron_normaliz(Polyhedron_base):
 
     Algebraic polyhedra::
 
-        sage: P = Polyhedron(vertices=[[1], [sqrt(2)]], backend='normaliz', verbose=True)
+        sage: P = Polyhedron(vertices=[[1], [sqrt(2)]], backend='normaliz', verbose=True)  # optional - pynormaliz
         # ----8<---- Equivalent Normaliz input file ----8<----
         amb_space 1
         number_field min_poly (a^2 - 2) embedding [1.414213562373095 +/- 2.99e-16]
@@ -178,13 +178,13 @@ class Polyhedron_normaliz(Polyhedron_base):
          (a) 1
         # ----8<-------------------8<-------------------8<----
         # Calling PyNormaliz.NmzCone(cone=[], number_field=['a^2 - 2', 'a', '[1.414213562373095 +/- 2.99e-16]'], subspace=[], vertices=[[1, 1], [[[0, 1], [1, 1]], 1]])
-        sage: P
+        sage: P                                                             # optional - pynormaliz
         A 1-dimensional polyhedron in (Symbolic Ring)^1 defined as the convex hull of 2 vertices
-        sage: P.vertices()
+        sage: P.vertices()                                                  # optional - pynormaliz
         (A vertex at (1), A vertex at (sqrt(2)))
 
-        sage: P = polytopes.icosahedron(exact=True, backend='normaliz')
-        sage: P
+        sage: P = polytopes.icosahedron(exact=True, backend='normaliz')     # optional - pynormaliz
+        sage: P                                                             # optional - pynormaliz
         A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^3 defined as the convex hull of 12 vertices
 
         sage: x = polygen(ZZ); P = Polyhedron(vertices=[[sqrt(2)], [AA.polynomial_root(x^3-2, RIF(0,3))]], backend='normaliz', verbose=True)   # optional - pynormaliz
@@ -198,9 +198,9 @@ class Polyhedron_normaliz(Polyhedron_base):
          (a^2) 1
         # ----8<-------------------8<-------------------8<----
         # Calling PyNormaliz.NmzCone(cone=[], number_field=['a^6 - 2', 'a', '[1.122462048309373 +/- 5.38e-16]'], subspace=[], vertices=[[[[0, 1], [0, 1], [0, 1], [1, 1], [0, 1], [0, 1]], 1], [[[0, 1], [0, 1], [1, 1], [0, 1], [0, 1], [0, 1]], 1]])
-        sage: P
+        sage: P                                                             # optional - pynormaliz
         A 1-dimensional polyhedron in (Symbolic Ring)^1 defined as the convex hull of 2 vertices
-        sage: P.vertices()
+        sage: P.vertices()                                                  # optional - pynormaliz
         (A vertex at (2^(1/3)), A vertex at (sqrt(2)))
 
     """
@@ -370,7 +370,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: data = {'number_field': ['a^2 - 2', 'a', '[1.4 +/- 0.1]'],                    # optional - pynormaliz
             ....: 'inhom_inequalities': [[-1, 2, 0], [0, 0, 1], [2, -1, 0]]}
             sage: from sage.geometry.polyhedron.parent import Polyhedra_normaliz                # optional - pynormaliz
-            sage: parent = Polyhedra_normaliz(AA, 2, 'normaliz')
+            sage: parent = Polyhedra_normaliz(AA, 2, 'normaliz')                                # optional - pynormaliz
             sage: Polyhedron_normaliz(parent, None, None, normaliz_data=data, # indirect doctest, optional - pynormaliz
             ....:                     normaliz_field=QuadraticField(2))
             A 2-dimensional polyhedron in AA^2 defined as the convex hull of 1 vertex and 2 rays
@@ -574,8 +574,8 @@ class Polyhedron_normaliz(Polyhedron_base):
         TESTS::
 
             sage: K.<a> = QuadraticField(2)
-            sage: p = Polyhedron(ieqs=[(1, a, 0)], backend='normaliz')
-            sage: p & p == p
+            sage: p = Polyhedron(ieqs=[(1, a, 0)], backend='normaliz')        # optional - pynormaliz
+            sage: p & p == p                                                  # optional - pynormaliz
             True
         """
 
@@ -643,7 +643,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             ....:            [ [ 1000*x for x in eq ] for eq in eqs]
             sage: def convert_NF(ieqs, eqs):                                            # optional - pynormaliz
             ....:     return ieqs, eqs
-            sage: p._compute_nmz_data_lists_and_field([[[1]], [[1/2]]],
+            sage: p._compute_nmz_data_lists_and_field([[[1]], [[1/2]]],                 # optional - pynormaliz
             ....:                                     convert_QQ, convert_NF)
             (([[1000]], [[500]]), Rational Field)
             sage: p._compute_nmz_data_lists_and_field([[[AA(1)]], [[1/2]]],             # optional - pynormaliz

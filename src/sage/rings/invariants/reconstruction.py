@@ -24,7 +24,7 @@ AUTHORS:
 
 
 def binary_polynomial_from_invariants(degree, invariants, as_form=True, *args, **kwargs):
-    """
+    r"""
     Reconstruct a binary form from the values of its invariants.
 
     INPUT:

@@ -4292,7 +4292,7 @@ can then be queried for invariant and covariants. For example,
         try:
             construct_method = 'self.binary_' + ic[degree] + '(polynomial)'
             return eval(construct_method)
-        except (IndexError, AttributeError) as e:
+        except (IndexError, AttributeError):
             print('Warning: Construction of binary forms of degree {} is not'
                  ' implemented; a polynomial was returned.'.format(degree))
             return polynomial

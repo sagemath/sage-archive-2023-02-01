@@ -98,6 +98,8 @@ REFERENCES:
 #*****************************************************************************
 
 from builtins import zip
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.sage_object import SageObject
 
 from sage.structure.element import is_Matrix
 from sage.matrix.all import matrix
@@ -312,8 +314,8 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
     """
     from sage.combinat.tableau import SemistandardTableau, StandardTableau
 
-    if insertion == 'hecke':
-        return hecke_insertion(obj1, obj2)
+    # if insertion == 'hecke':
+    #     return hecke_insertion(obj1, obj2)
 
     if obj1 is None and obj2 is None:
         if 'matrix' in options:
@@ -360,7 +362,7 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
     p = []       #the "insertion" tableau
     q = []       #the "recording" tableau
 
-    use_EG = (insertion == 'EG')
+    # use_EG = (insertion == 'EG')
 
     #For each x in self, insert x into the tableau p.
     lt = 0
@@ -848,3 +850,62 @@ def hecke_insertion_reverse(p, q, output='array'):
         return list(reversed(lower_row))
     raise ValueError("invalid output option")
 
+class Rule(UniqueRepresenration):
+    has_multiple_edges = False          # override when necessary
+    zero_edge = 0                       # override when necessary
+    r = 1                               # override when necessary
+
+    def normalize_vertex(self, v):      # override when necessary
+        r"""
+        Return ``v`` as a vertex of the dual graded graph.
+
+        This is a default implementation, returning its argument.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.growth import Rule
+            sage: Rule().normalize_vertex("hello") is "hello"
+            True
+        """
+        return v
+
+
+class RuleSchensted(Rule):
+
+    def forward_rule(self, itr, check_standard):
+        from bisect import bisect_right
+        p = []       #the "insertion" tableau
+        q = []       #the "recording" tableau
+        lt = 0
+        lb = 0
+        for i, x in itr:
+            for r, qr in zip(p,q):
+                if r[-1] > x:
+                    #Figure out where to insert x into the row r.  The
+                    #bisect command returns the position of the least
+                    #element of r greater than x.  We will call it y.
+                    y_pos = bisect_right(r, x)
+                    #Switch x and y
+                    x, r[y_pos] = r[y_pos], x
+                else:
+                    break
+            else:
+                #We made through all of the rows of p without breaking
+                #so we need to add a new row to p and q.
+                r = []; p.append(r)
+                qr = []; q.append(qr)
+
+            r.append(x)
+            qr.append(i) # Values are always inserted to the right
+
+        if check_standard:
+            try:
+                P = StandardTableau(p)
+            except ValueError:
+                P = SemistandardTableau(p)
+            try:
+                Q = StandardTableau(q)
+            except ValueError:
+                Q = SemistandardTableau(q)
+            return [P, Q]
+        return [SemistandardTableau(p), SemistandardTableau(q)]

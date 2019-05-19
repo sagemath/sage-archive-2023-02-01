@@ -1607,7 +1607,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
 
     def gens_two(self):
         """
-        Return two generators of this fractional ideal.
+        Return at most two generators of this fractional ideal.
 
         If the ideal is principal, one generator may be returned.
 
@@ -1641,7 +1641,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
     @cached_method
     def _gens_two(self):
         """
-        Return a set of two generators of the integral ideal, that is
+        Return at most two generators of the integral ideal, that is
         the denominator times this fractional ideal.
 
         EXAMPLES::
@@ -1652,6 +1652,14 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
             sage: I = O.ideal(x^2,x*y,x+y)
             sage: I._gens_two()
             (x, y)
+
+        ::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: F.<y> = K.extension(Y)
+            sage: p, = F.places_infinite()
+            sage: p.prime_ideal().gens_two()
+            (1/x,)
         """
         O = self.ring()
         F = O.fraction_field()
@@ -1660,7 +1668,10 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
             _g1, _g2 = self._kummer_form
             g1 = F(_g1)
             g2 = sum([c1*c2 for c1,c2 in zip(_g2, O.basis())])
-            return (g1,g2)
+            if g2:
+                return (g1, g2)
+            else:
+                return (g1,)
 
         ### start to search for two generators
 
@@ -1722,8 +1733,8 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
                 if check(alpha):
                     return (l, alpha)
 
-        # should not reach here
-        raise ValueError("no two generators found")
+        # should never reach here
+        raise ValueError("failed to find two generators")
 
     @cached_method
     def basis_matrix(self):

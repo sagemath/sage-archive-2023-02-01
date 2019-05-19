@@ -1010,12 +1010,31 @@ class UniversalCyclotomicFieldElement(FieldElement):
 
         raise NotImplementedError("no powering implemented for non-rational exponents")
 
+    def is_square(self):
+        r"""
+        EXAMPLES::
+
+            sage: UCF = UniversalCyclotomicField()
+            sage: UCF(5/2).is_square()
+            True
+
+            sage: (2 + UCF.zeta(3)).is_square()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: is_square() not fully implemented for elements of Universal Cyclotomic Field
+        """
+        if self._obj.IsRat():
+            return True
+
+        return NotImplementedError("is_square() not fully implemented for elements of Universal Cyclotomic Field")
+
     def sqrt(self):
         """
         Return a square root of ``self``.
 
-        If this element is a rational number, then an element in the same
-        parent is returned. Otherwise, return an algebraic number.
+        If this element is a rational number or a single root of unity,
+        then an element of the Universal Cyclotomic Field is returned.
+        Otherwise, return an algebraic number.
 
         EXAMPLES::
 
@@ -1029,14 +1048,25 @@ class UniversalCyclotomicFieldElement(FieldElement):
             sage: r**2
             -1400/143
 
-            sage: f = E(33)
-            sage: f.sqrt()
-            0.9954719225730846? + 0.0950560433041827?*I
-            sage: f.sqrt()**2 == f
-            True
+            sage: E(33).sqrt()
+            -E(33)^17
+            sage: E(33).sqrt() ** 2
+            E(33)
+
+            sage: (3 * E(5)).sqrt()
+            -E(60)^11 + E(60)^31
+            sage: (3 * E(5)).sqrt() ** 2
+            3*E(5)
+
+        In the following situation, Sage is not (yet) able to compute a
+        square root within the universal cyclotomic field::
+
+            sage: (E(5) + E(5, 2)).sqrt()
+            0.7476743906106103? + 1.029085513635746?*I
         """
+        UCF = self.parent()
+
         if self._obj.IsRat():
-            UCF = self.parent()
             D = self._obj.sage()
 
             if self._obj.IsInt():
@@ -1044,6 +1074,14 @@ class UniversalCyclotomicFieldElement(FieldElement):
             else:
                 return UCF_sqrt_int(D.numerator(), UCF) / \
                        UCF_sqrt_int(D.denominator(), UCF)
+
+        k = self._obj.Conductor()
+        coeffs = self._obj.CoeffsCyc(k).sage()
+        if sum(bool(x) for x in coeffs) == 1:
+            for i,x in enumerate(coeffs):
+                if x:
+                    break
+            return UCF(x).sqrt() * UCF.zeta(2*k, i)
 
         return QQbar(self).sqrt()
 

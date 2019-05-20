@@ -12,7 +12,7 @@ We can perform RSK and the inverse on a variety of objects::
     sage: p = Tableau([[1,2,2],[2]]); q = Tableau([[1,3,3],[2]])
     sage: gp = RSK_inverse(p, q); gp
     [[1, 2, 3, 3], [2, 1, 2, 2]]
-    sage: RuleSchensted = Rules.Schensted()
+    sage: RuleSchensted = RulesforRSK().Schensted
 
     sage: RSK(*gp, RuleSchensted)
     [[[1, 2, 2], [2]], [[1, 3, 3], [2]]]
@@ -648,5 +648,5 @@ class RuleSchensted(Rule):
             return [P, Q]
         return [SemistandardTableau(p), SemistandardTableau(q)]
     
-class Rules(object):
+class RulesforRSK(object):
     Schensted = RuleSchensted

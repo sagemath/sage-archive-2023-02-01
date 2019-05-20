@@ -21,7 +21,7 @@ over which one would like to perform the following kind of operations:
 
 AUTHORS :
 
-- Florent Hivert -- code, documentation (2012-2016)
+- Florent Hivert -- code, documentation (2012--2016)
 
 - Jean Baptiste Priez -- prototype, debugging help on MacOSX (2011-June, 2016)
 
@@ -54,17 +54,17 @@ How can I use all that stuff?
 First, you need the information necessary to describe a
 :class:`RecursivelyEnumeratedSet of forest
 type<sage.combinat.backtrack.SearchForest>` representing your set `S` (see
-:mod:`sage.sets.recursively_enumerated_set`).  Then, you need to provide a Map
-function as well as a Reduce function. Here are some examples:
+:mod:`sage.sets.recursively_enumerated_set`).  Then, you need to provide a
+"map" function as well as a "reduce" function. Here are some examples:
 
 * **Counting the number of elements.** In this situation, the map function
-  can be set to ``lambda x : 1``, and the reduce function just adds the
-  values together, i.e. ``lambda x, y : x + y``.
+  can be set to ``lambda x: 1``, and the reduce function just adds the
+  values together, i.e. ``lambda x, y: x + y``.
 
   We count binary words of length `\leq 16`::
 
       sage: seeds = [[]]
-      sage: succ = lambda l: [l+[0], l+[1]] if len(l) <= 15 else []
+      sage: succ = lambda l: [l + [0], l + [1]] if len(l) < 16 else []
       sage: S = RecursivelyEnumeratedSet(seeds, succ,
       ....:     structure='forest', enumeration='depth')
       sage: map_function = lambda x: 1
@@ -101,7 +101,7 @@ function as well as a Reduce function. Here are some examples:
 
 * **Generating series.** For this, take a Map function that associates a
   monomial to each element of `S`, while the Reduce function is still equal to
-  ``lambda x, y : x + y``.
+  ``lambda x, y: x + y``.
 
   We compute the generating series for counting binary words of each
   length `\leq 16`::
@@ -119,7 +119,7 @@ function as well as a Reduce function. Here are some examples:
       + 2048*x^11 + 1024*x^10 + 512*x^9 + 256*x^8 + 128*x^7 + 64*x^6
       + 32*x^5 + 16*x^4 + 8*x^3 + 4*x^2 + 2*x + 1
 
-  This is of course `\sum_{i=0}^{i=16} (2x)^i`::
+  This is of course `\sum_{i=0}^{16} (2x)^i`::
 
       sage: sp == sum((2*x)^i for i in range(17))
       True
@@ -137,7 +137,7 @@ function as well as a Reduce function. Here are some examples:
       sage: sp = S.map_reduce(lambda z: x**len(z)); sp
       40320*x^8 + 5040*x^7 + 720*x^6 + 120*x^5 + 24*x^4 + 6*x^3 + 2*x^2 + x + 1
 
-  This is of course `\sum_{i=0}^{i=8} i! x^i`::
+  This is of course `\sum_{i=0}^{8} i! x^i`::
 
       sage: sp == sum(factorial(i)*x^i for i in range(9))
       True
@@ -171,12 +171,18 @@ function as well as a Reduce function. Here are some examples:
       sage: sp = S.map_reduce(lambda z: x**z.number_of_inversions()); sp
       x^10 + 4*x^9 + 9*x^8 + 15*x^7 + 20*x^6 + 22*x^5 + 20*x^4 + 15*x^3 + 9*x^2 + 4*x + 1
 
-  We get here a polynomial called the `x`-factorial of `5` that is
-  `\prod_{i=1}^{i=5} \frac{1-x^i}{1-x}`::
+  We get here a polynomial which is the `q`-factorial (in the variable `x`) of `5`,
+  that is, `\prod_{i=1}^{5} \frac{1-x^i}{1-x}`::
 
-      sage: (prod((1-x^i)/(1-x) for i in range(1, 6))).simplify_rational()
+      sage: x = polygen(ZZ)
+      sage: prod((1-x^i)//(1-x) for i in range(1, 6))
       x^10 + 4*x^9 + 9*x^8 + 15*x^7 + 20*x^6 + 22*x^5 + 20*x^4 + 15*x^3 + 9*x^2 + 4*x + 1
 
+  Compare::
+
+      sage: from sage.combinat.q_analogues import q_factorial
+      sage: q_factorial(5)
+      q^10 + 4*q^9 + 9*q^8 + 15*q^7 + 20*q^6 + 22*q^5 + 20*q^4 + 15*q^3 + 9*q^2 + 4*q + 1
 
 * **Listing the objects.** One can also compute the list of objects in a
   :class:`RecursivelyEnumeratedSet of forest type<sage.combinat.backtrack.SearchForest>`
@@ -258,7 +264,7 @@ The following should not timeout even on a very slow machine::
 
 
 As for ``reduce_locally``, one should not see any difference, except for speed
-during normal usage. Most of the time one should leave it to ``True``,
+during normal usage. Most of the time one should leave it set to ``True``,
 unless one sets up a mechanism to consume the partial results as soon as they
 arrive. See :class:`RESetParallelIterator` and in particular the ``__iter__``
 method for a example of consumer use.
@@ -294,9 +300,9 @@ should be a prefix (including a possible directory) for the profile dump::
     sage: res
     131071
 
-In this example, the profile have been dumped in files such as
+In this example, the profiles have been dumped in files such as
 ``profcomp0``. One can then load and print them as follows. See
-:class:`profile.profile` for more details::
+:class:`cProfile.Profile` for more details::
 
     sage: import cProfile, pstats
     sage: st = pstats.Stats(prof+'0')
@@ -322,7 +328,7 @@ Logging
 -------
 
 The computation progress is logged through a :class:`logging.Logger` in
-:obj:`sage.parallel.map_reduce.logger` together with :class:`logging.StreamHandler`
+``sage.parallel.map_reduce.logger`` together with :class:`logging.StreamHandler`
 and a :class:`logging.Formatter`. They are currently configured to print
 warning messages to the console.
 
@@ -378,19 +384,19 @@ They are also responsible for the load balancing thanks to work-stealing.
 Here is a description of the attributes of the **master** relevant to the
 map-reduce protocol:
 
-- ``master._results`` -- a :class:`~multiprocessing.queues.SimpleQueue` where
+- ``_results`` -- a :class:`~multiprocessing.queues.SimpleQueue` where
   the master gathers the results sent by the workers.
-- ``master._active_tasks`` -- a :class:`~multiprocessing.Semaphore` recording
+- ``_active_tasks`` -- a :class:`~multiprocessing.Semaphore` recording
   the number of active tasks.  The work is complete when it reaches 0.
-- ``master._done`` -- a :class:`~multiprocessing.Lock` which ensures that
+- ``_done`` -- a :class:`~multiprocessing.Lock` which ensures that
   shutdown is done only once.
-- ``master._aborted`` -- a :func:`~multiprocessing.Value` storing a shared
+- ``_aborted`` -- a :func:`~multiprocessing.Value` storing a shared
   :class:`ctypes.c_bool` which is ``True`` if the computation was aborted
   before all workers ran out of work.
-- ``master._workers`` -- a list of :class:`RESetMapReduceWorker` objects.
+- ``_workers`` -- a list of :class:`RESetMapReduceWorker` objects.
   Each worker is identified by its position in this list.
 
-Each worker is a process (:class:`RESetMapReduceWorker` inherits from
+Each **worker** is a process (:class:`RESetMapReduceWorker` inherits from
 :class:`~multiprocessing.Process`) which contains:
 
 - ``worker._iproc`` -- the identifier of the worker that is its position in the
@@ -415,7 +421,7 @@ Here is a schematic of the architecture:
 How thefts are performed
 ------------------------
 
-During normal time, that is when all workers are active) a worker ``W`` is
+During normal time, that is, when all workers are active, a worker ``W`` is
 iterating though a loop inside
 :meth:`RESetMapReduceWorker.walk_branch_locally`. Work nodes are taken from
 and new nodes ``W._todo`` are appended to ``W._todo``. When a worker ``W``
@@ -425,18 +431,18 @@ some work (i.e., a node) from another worker. This is performed in the
 
 From the point of view of ``W``, here is what happens:
 
-- ``W`` signals to the master that it is idle :meth:`master._signal_task_done`;
+- ``W`` signals to the master that it is idle: ``master._signal_task_done``;
 - ``W`` chooses a victim ``V`` at random;
-- ``W`` sends a request to ``V`` : it puts its identifier into ``V._request``;
+- ``W`` sends a request to ``V``: it puts its identifier into ``V._request``;
 - ``W`` tries to read a node from ``W._read_task``. Then three things may happen:
 
   + a proper node is read. Then the theft was a success and ``W`` starts
     working locally on the received node.
   + ``None`` is received. This means that ``V`` was idle. Then ``W`` tries
     another victim.
-  + ``AbortError`` is received. This means either that the computation was
+  + :exc:`AbortError` is received. This means either that the computation was
     aborted or that it simply succeeded and that no more work is required by
-    ``W``. Therefore an ``AbortError`` exception is raised leading ``W`` to
+    ``W``. Therefore an :exc:`AbortError` exception is raised leading ``W`` to
     shutdown.
 
 We now describe the protocol on the victim's side. Each worker process contains
@@ -448,18 +454,18 @@ From the point of view of ``V`` and ``T``, here is what happens:
 - during normal time, ``T`` is blocked waiting on ``V._request``;
 - upon steal request, ``T`` wakes up receiving the identification of ``W``;
 - ``T`` signals to the master that a new task is starting by
-  :meth:`master._signal_task_start`;
+  ``master._signal_task_start``;
 - Two things may happen depending if the queue ``V._todo`` is empty or not.
   Remark that due to the GIL, there is no parallel execution between the
   victim ``V`` and its thief thread ``T``.
 
   + If ``V._todo`` is empty, then ``None`` is answered on
     ``W._write_task``. The task is immediately signaled to end the master
-    through :meth:`master._signal_task_done`.
+    through ``master._signal_task_done``.
   + Otherwise, a node is removed from the bottom of ``V._todo``. The node is
     sent to ``W`` on ``W._write_task``. The task will be ended by ``W``, that
     is, when finished working on the subtree rooted at the node, ``W`` will
-    call :meth:`master._signal_task_done`.
+    call ``master._signal_task_done``.
 
 The end of the computation
 --------------------------
@@ -471,17 +477,17 @@ on the OS (see :class:`ActiveTaskCounter` and :class:`ActiveTaskCounterDarwin`
 and the note below).
 
 When a worker finishes working on a task, it calls
-:meth:`master._signal_task_done`. This decreases the task counter
+``master._signal_task_done``. This decreases the task counter
 ``master._active_tasks``. When it reaches 0, it means that there are no more
-nodes: the work is completed. The worker executes :meth:`master._shutdown`
-which sends ``AbortError`` to all :meth:`worker._request` and
-:meth:`worker._write_task` queues. Each worker or thief thread receiving such
+nodes: the work is completed. The worker executes ``master._shutdown``
+which sends :exc:`AbortError` to all ``worker._request`` and
+``worker._write_task`` queues. Each worker or thief thread receiving such
 a message raises the corresponding exception, therefore stopping its work. A
 lock called ``master._done`` ensures that shutdown is only done once.
 
 Finally, it is also possible to interrupt the computation before its ends,
-by calling :meth:`master.abort()`. This is achieved by setting
-``master._active_tasks`` to 0 and calling :meth:`master._shutdown`.
+by calling ``master.abort()``. This is achieved by setting
+``master._active_tasks`` to 0 and calling ``master._shutdown``.
 
 .. warning:: The macOS Semaphore bug
 
@@ -578,7 +584,7 @@ else:
 
 def proc_number(max_proc=None):
     r"""
-    Return the number of processes to use
+    Return the number of processes to use.
 
     INPUT:
 
@@ -605,9 +611,9 @@ def proc_number(max_proc=None):
 
 class AbortError(Exception):
     r"""
-    Exception for aborting parallel computations
+    Exception for aborting parallel computations.
 
-    This is used both as exception or as abort message
+    This is used both as exception or as abort message.
 
     TESTS::
 
@@ -622,7 +628,7 @@ class AbortError(Exception):
 
 class ActiveTaskCounterDarwin(object):
     r"""
-    Handling the number of Active Tasks
+    Handling the number of active tasks.
 
     A class for handling the number of active tasks in a distributed
     computation process. This is essentially a semaphore, but Darwin OSes
@@ -718,7 +724,7 @@ class ActiveTaskCounterDarwin(object):
 
     def abort(self):
         r"""
-        Set the task counter to 0.
+        Set the task counter to zero.
 
         EXAMPLES::
 
@@ -735,7 +741,7 @@ class ActiveTaskCounterDarwin(object):
 
 class ActiveTaskCounterPosix(object):
     r"""
-    Handling the number of Active Tasks
+    Handling the number of active tasks.
 
     A class for handling the number of active tasks in a distributed
     computation process. This is the standard implementation on POSIX
@@ -757,8 +763,8 @@ class ActiveTaskCounterPosix(object):
 
         For NNN = 10, averaging a dozen of runs, I got:
 
-        - Posix compliant implementation : 17.04 s
-        - Darwin implementation          : 18.26 s
+        - Posix compliant implementation: 17.04 s
+        - Darwin implementation: 18.26 s
 
         So there is a non negligible overhead. It will probably be worth it
         if we try to cythonize the code. So I'm keeping both implementations.
@@ -855,7 +861,7 @@ class ActiveTaskCounterPosix(object):
 
     def abort(self):
         r"""
-        Set the task counter to 0.
+        Set the task counter to zero.
 
         EXAMPLES::
 
@@ -879,7 +885,7 @@ ActiveTaskCounter = (ActiveTaskCounterDarwin if sys.platform == 'darwin'
 
 class RESetMapReduce(object):
     r"""
-    Map-Reduce on recursively enumerated sets
+    Map-Reduce on recursively enumerated sets.
 
     INPUT:
 
@@ -922,7 +928,7 @@ class RESetMapReduce(object):
         TESTS::
 
             sage: from sage.parallel.map_reduce import RESetMapReduce
-            sage: R = RESetMapReduce([[]], lambda : [[]])
+            sage: R = RESetMapReduce([[]], lambda: [[]])
             sage: R
             <sage.parallel.map_reduce.RESetMapReduce object at 0x...>
 
@@ -950,7 +956,7 @@ class RESetMapReduce(object):
     @lazy_attribute
     def _forest(self):
         r"""
-        The forest underlying the map-reduce computation
+        Return the forest underlying the map-reduce computation.
 
         EXAMPLES::
 
@@ -971,11 +977,11 @@ class RESetMapReduce(object):
 
     def roots(self):
         r"""
-        Return the roots of ``self``
+        Return the roots of ``self``.
 
         OUTPUT:
 
-        an iterable of nodes
+        An iterable of nodes.
 
         .. note:: This should be overloaded in applications.
 
@@ -990,7 +996,7 @@ class RESetMapReduce(object):
 
     def map_function(self, o):
         r"""
-        Return the function mapped by ``self``
+        Return the function mapped by ``self``.
 
         INPUT:
 
@@ -1016,15 +1022,15 @@ class RESetMapReduce(object):
 
     def reduce_function(self, a, b):
         r"""
-        Return the reducer function for ``self``
+        Return the reducer function for ``self``.
 
         INPUT:
 
-        - ``a``, ``b`` -- two value to be reduced
+        - ``a``, ``b`` -- two values to be reduced
 
         OUTPUT:
 
-        by default the sum of ``a`` and ``b``.
+        By default the sum of ``a`` and ``b``.
 
         .. note:: This should be overloaded in applications.
 
@@ -1042,11 +1048,14 @@ class RESetMapReduce(object):
 
     def post_process(self, a):
         r"""
-        Return the post-processing function for ``self``
+        Return the image of ``a`` under the post-processing function for ``self``.
 
-        INPUT: ``a`` -- a node
+        INPUT:
 
-        By default, returns ``a`` itself
+        - ``a`` -- a node
+
+        With the default post-processing function, which is the identity function,
+        this returns ``a`` itself.
 
         .. note:: This should be overloaded in applications.
 
@@ -1067,7 +1076,7 @@ class RESetMapReduce(object):
 
     def reduce_init(self):
         r"""
-        Return the initial element for a reduction
+        Return the initial element for a reduction.
 
         .. note:: This should be overloaded in applications.
 
@@ -1085,7 +1094,7 @@ class RESetMapReduce(object):
 
     def setup_workers(self, max_proc=None, reduce_locally=True):
         r"""
-        Setup the communication channels
+        Setup the communication channels.
 
         INPUT:
 
@@ -1118,7 +1127,7 @@ class RESetMapReduce(object):
 
     def start_workers(self):
         r"""
-        Lauch the workers
+        Launch the workers.
 
         The workers should have been created using :meth:`setup_workers`.
 
@@ -1155,11 +1164,11 @@ class RESetMapReduce(object):
 
     def get_results(self, timeout=None):
         r"""
-        Get the results from the queue
+        Get the results from the queue.
 
         OUTPUT:
 
-        the reduction of the results of all the workers, that is the result of
+        The reduction of the results of all the workers, that is, the result of
         the map/reduce computation.
 
         EXAMPLES::
@@ -1249,7 +1258,7 @@ class RESetMapReduce(object):
 
     def abort(self):
         r"""
-        Abort the current parallel computation
+        Abort the current parallel computation.
 
         EXAMPLES::
 
@@ -1274,7 +1283,7 @@ class RESetMapReduce(object):
 
     def _shutdown(self):
         r"""
-        Called to shutdown the workers
+        Shutdown the workers.
 
         Sends a poison pill to all workers and their thief thread.
 
@@ -1301,7 +1310,7 @@ class RESetMapReduce(object):
 
     def _signal_task_start(self):
         r"""
-        Signal a starting task
+        Signal a starting task.
 
         Used by the worker to signal that a new task is starting. As soon as
         there are no more active task, the work is done, in which case an
@@ -1320,7 +1329,7 @@ class RESetMapReduce(object):
             sage: S._active_tasks
             ActiveTaskCounter(value=3)
 
-        Signaling one time too many raise a ``AbortError``::
+        Signaling one time too many raises an :exc:`AbortError`::
 
             sage: S._signal_task_done()
             sage: S._signal_task_done()
@@ -1334,7 +1343,7 @@ class RESetMapReduce(object):
 
     def _signal_task_done(self):
         r"""
-        Signal a done task
+        Signal a task is done.
 
         Used by the worker to signal that a task is done. As soon as
         there are no more active task, the work is done, in which case an
@@ -1343,8 +1352,9 @@ class RESetMapReduce(object):
         EXAMPLES::
 
             sage: from sage.parallel.map_reduce import RESetParallelIterator
-            sage: S = RESetParallelIterator( [[]],
-            ....:   lambda l: [l+[0], l+[1]] if len(l) < 20 else [])
+            sage: S = RESetParallelIterator(
+            ....:     [[]],
+            ....:     lambda l: [l + [0], l + [1]] if len(l) < 20 else [])
             sage: S.setup_workers(2)
             sage: S._active_tasks
             ActiveTaskCounter(value=2)
@@ -1377,7 +1387,7 @@ class RESetMapReduce(object):
 
         OUTPUT:
 
-        A worker for ``self`` chosen at random
+        A worker for ``self`` chosen at random.
 
         EXAMPLES::
 
@@ -1403,7 +1413,7 @@ class RESetMapReduce(object):
             timeout=None,
             profile=None):
         r"""
-        Run the computations
+        Run the computations.
 
         INPUT:
 
@@ -1418,7 +1428,7 @@ class RESetMapReduce(object):
 
         OUTPUT:
 
-        the result of the map/reduce computation or an exception
+        The result of the map/reduce computation or an exception
         :exc:`AbortError` if the computation was interrupted or timeout.
 
         EXAMPLES::
@@ -1474,7 +1484,7 @@ class RESetMapReduce(object):
 
     def _get_stats(self):
         r"""
-        Gather the communication statistics and the end of a run
+        Gather the communication statistics at the end of a run.
 
         EXAMPLES::
 
@@ -1490,7 +1500,7 @@ class RESetMapReduce(object):
 
     def print_communication_statistics(self, blocksize=16):
         r"""
-        Print the communication statistics in a nice way
+        Print the communication statistics in a nice way.
 
         EXAMPLES::
 
@@ -1524,7 +1534,7 @@ class RESetMapReduce(object):
 
     def run_serial(self):
         r"""
-        Serial run of the computation (mostly for tests)
+        Run the computation serially (mostly for tests).
 
         EXAMPLES::
 
@@ -1541,7 +1551,7 @@ class RESetMapReduce(object):
 
 class RESetMapReduceWorker(mp.Process):
     """
-    Worker for generate-map-reduce
+    Worker for generate-map-reduce.
 
     This shouldn't be called directly, but instead created by
     :meth:`RESetMapReduce.setup_workers`.
@@ -1585,7 +1595,7 @@ class RESetMapReduceWorker(mp.Process):
 
     def _thief(self):
         r"""
-        The thief thread of a worker process
+        Return the thief thread of this worker process.
         """
         logger.debug("Thief started")
         reqs = 0
@@ -1626,7 +1636,7 @@ class RESetMapReduceWorker(mp.Process):
 
         OUTPUT:
 
-        a node stolen from another worker chosen at random
+        A node stolen from another worker chosen at random.
 
         EXAMPLES::
 
@@ -1664,7 +1674,7 @@ class RESetMapReduceWorker(mp.Process):
 
     def run(self):
         r"""
-        The main function executed by the worker
+        The main function executed by the worker.
 
         Calls :meth:`run_myself` after possibly setting up parallel profiling.
 
@@ -1702,7 +1712,7 @@ class RESetMapReduceWorker(mp.Process):
 
     def run_myself(self):
         r"""
-        The main function executed by the worker
+        The main function executed by the worker.
 
         EXAMPLES::
 
@@ -1760,7 +1770,7 @@ class RESetMapReduceWorker(mp.Process):
 
     def send_partial_result(self):
         r"""
-        Send results to the MapReduce process
+        Send results to the MapReduce process.
 
         Send the result stored in ``self._res`` to the master an reinitialize it to
         ``master.reduce_init``.
@@ -1783,7 +1793,7 @@ class RESetMapReduceWorker(mp.Process):
 
     def walk_branch_locally(self, node):
         r"""
-        Work locally
+        Work locally.
 
         Performs the map/reduce computation on the subtrees rooted at ``node``.
 
@@ -1793,7 +1803,7 @@ class RESetMapReduceWorker(mp.Process):
 
         OUTPUT:
 
-        nothing, the result are stored in ``self._res``
+        Nothing, the result are stored in ``self._res``.
 
         This is where the actual work is performed.
 
@@ -1824,7 +1834,7 @@ class RESetMapReduceWorker(mp.Process):
         mapred = self._mapred
         children = mapred.children
         post_process = mapred.post_process
-        fun  = mapred.map_function
+        fun = mapred.map_function
         reduc = mapred.reduce_function
 
         # logger.debug("Working on %s..." % (node,))
@@ -1842,7 +1852,7 @@ class RESetMapReduceWorker(mp.Process):
 
 class RESetMPExample(RESetMapReduce):
     r"""
-    An example of map reduce class
+    An example of map reduce class.
 
     INPUT:
 
@@ -1878,7 +1888,7 @@ class RESetMPExample(RESetMapReduce):
 
     def roots(self):
         r"""
-        Return the empty permutation
+        Return the empty permutation.
 
         EXAMPLES::
 
@@ -1898,7 +1908,7 @@ class RESetMPExample(RESetMapReduce):
 
         OUTPUT:
 
-        the lists of ``len(l)`` inserted at all possible positions into ``l``
+        The lists with ``len(l)`` inserted at all possible positions into ``l``.
 
         EXAMPLES::
 
@@ -1911,7 +1921,7 @@ class RESetMPExample(RESetMapReduce):
 
     def map_function(self, l):
         r"""
-        The monomial associated to the permutation `l`
+        The monomial associated to the permutation `l`.
 
         INPUT:
 
@@ -1919,7 +1929,7 @@ class RESetMPExample(RESetMapReduce):
 
         OUTPUT:
 
-        ``x^len(l)``.
+        The monomial ``x^len(l)``.
 
         EXAMPLES::
 
@@ -1932,7 +1942,7 @@ class RESetMPExample(RESetMapReduce):
 
 class RESetParallelIterator(RESetMapReduce):
     r"""
-    A parallel iterator for recursively enumerated sets
+    A parallel iterator for recursively enumerated sets.
 
     This demonstrates how to use :class:`RESetMapReduce` to get an iterator on
     a recursively enumerated set for which the computations are done in
@@ -1948,11 +1958,15 @@ class RESetParallelIterator(RESetMapReduce):
     """
     def map_function(self, z):
         r"""
-        Return a singleton tuple
+        Return a singleton tuple.
 
-        INPUT: ``z`` -- a node
+        INPUT:
 
-        OUTPUT: ``(z, )``
+        - ``z`` -- a node
+
+        OUTPUT:
+
+        The singleton ``(z, )``.
 
         EXAMPLES::
 
@@ -1972,7 +1986,7 @@ class RESetParallelIterator(RESetMapReduce):
 
             sage: from sage.parallel.map_reduce import RESetParallelIterator
             sage: S = RESetParallelIterator( [[]],
-            ....:     lambda l: [l+[0], l+[1]] if len(l) < 15 else [])
+            ....:     lambda l: [l + [0], l + [1]] if len(l) < 15 else [])
             sage: it = iter(S)
             sage: next(it)  # random
             [1, 1, 0]
@@ -1995,4 +2009,3 @@ class RESetParallelIterator(RESetMapReduce):
                 if active_proc == 0:
                     break
         self.finish()
-

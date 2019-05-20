@@ -12,7 +12,9 @@ We can perform RSK and the inverse on a variety of objects::
     sage: p = Tableau([[1,2,2],[2]]); q = Tableau([[1,3,3],[2]])
     sage: gp = RSK_inverse(p, q); gp
     [[1, 2, 3, 3], [2, 1, 2, 2]]
-    sage: RSK(*gp)
+    sage: RuleSchensted = Rules.Schensted()
+
+    sage: RSK(*gp, RuleSchensted)
     [[[1, 2, 2], [2]], [[1, 3, 3], [2]]]
     sage: m = RSK_inverse(p, q, 'matrix'); m
     [0 1]
@@ -105,7 +107,7 @@ from sage.structure.element import is_Matrix
 from sage.matrix.all import matrix
 
 
-def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
+def RSK(obj1=None, obj2=None, rule=None, check_standard=False, **options):
     r"""
     Perform the Robinson-Schensted-Knuth (RSK) correspondence.
 
@@ -257,29 +259,7 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
 
     #     sage: RSK([[0,1],[2,1]])
     #     [[[1, 1, 2], [2]], [[1, 2, 2], [2]]]
-
-    # There are also variations of the insertion algorithm in RSK.
-    # Here we consider Edelman-Greene insertion::
-
-    #     sage: RSK([2,1,2,3,2], insertion='EG')
-    #     [[[1, 2, 3], [2, 3]], [[1, 3, 4], [2, 5]]]
-
-    # We reproduce figure 6.4 in [EG1987]_::
-
-    #     sage: RSK([2,3,2,1,2,3], insertion='EG')
-    #     [[[1, 2, 3], [2, 3], [3]], [[1, 2, 6], [3, 5], [4]]]
-
-    # Hecke insertion is also supported. We construct Example 2.1
-    # in :arxiv:`0801.1319v2`::
-
-        # sage: w = [5, 4, 1, 3, 4, 2, 5, 1, 2, 1, 4, 2, 4]
-        # sage: RSK(w, insertion='hecke')
-        # [[[1, 2, 4, 5], [2, 4, 5], [3, 5], [4], [5]],
-        #  [[(1,), (4,), (5,), (7,)],
-        #   [(2,), (9,), (11, 13)],
-        #   [(3,), (12,)],
-        #   [(6,)],
-        #   [(8, 10)]]]
+    
 
     There is also :func:`~sage.combinat.rsk.RSK_inverse` which performs
     the inverse of the bijection on a pair of semistandard tableaux. We
@@ -307,13 +287,12 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
     #     [[], []]
     #     sage: RSK([[]])
     #     [[], []]
-    #     sage: RSK(Word([]), insertion='EG')
-    #     [[], []]
-    #     sage: RSK(Word([]), insertion='hecke')
-    #     [[], []]
     """
     from sage.combinat.tableau import SemistandardTableau, StandardTableau
 
+    if not isinstance(rule, Rule):
+        raise TypeError("the rule must be an instance of Rule")
+    
     if obj1 is None and obj2 is None:
         if 'matrix' in options:
             obj1 = matrix(options['matrix'])
@@ -354,8 +333,8 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
             lt = t
             lb = b
         itr = zip(obj1, obj2)
-    if(insertion == 'RSK'):
-        return RuleSchensted.forward_rule(itr, check_standard)
+
+        return rule.forward_rule(itr, check_standard)
 
 
 robinson_schensted_knuth = RSK
@@ -446,20 +425,6 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
         [1 0]
         [0 2]
 
-    Using Edelman-Greene insertion::
-
-        sage: pq = RSK([2,1,2,3,2], insertion='EG'); pq
-        [[[1, 2, 3], [2, 3]], [[1, 3, 4], [2, 5]]]
-        sage: RSK_inverse(*pq, insertion='EG')
-        [2, 1, 2, 3, 2]
-
-    Using Hecke insertion::
-
-        sage: w = [5, 4, 1, 3, 4, 2, 5, 1, 2, 1, 4, 2, 4]
-        sage: pq = RSK(w, insertion='hecke')
-        sage: RSK_inverse(*pq, insertion='hecke', output='list')
-        [5, 4, 1, 3, 4, 2, 5, 1, 2, 1, 4, 2, 4]
-
     .. NOTE::
 
         The constructor of ``Tableau`` accepts not only semistandard
@@ -496,18 +461,6 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
         sage: is_fine = True if p == f(p) else p ; is_fine
         True
 
-    Same for Edelman-Greene (but we are checking only the reduced words that
-    can be obtained using the ``reduced_word()`` method from permutations)::
-
-        sage: g = lambda w: RSK_inverse(*RSK(w, insertion='EG'), insertion='EG', output='permutation')
-        sage: all(p.reduced_word() == g(p.reduced_word()) for n in range(7) for p in Permutations(n))
-        True
-
-        sage: n = ZZ.random_element(200)
-        sage: p = Permutations(n).random_element()
-        sage: is_fine = True if p == f(p) else p ; is_fine
-        True
-
     Both tableaux must be of the same shape::
 
         sage: RSK_inverse(Tableau([[1,2,3]]), Tableau([[1,2]]))
@@ -525,9 +478,6 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
         [[1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3],
          [1, 1, 1, 1, 1, 1, 3, 2, 2, 2, 1]]
     """
-    if insertion == 'hecke':
-        return hecke_insertion_reverse(p, q, output)
-
     if p.shape() != q.shape():
         raise ValueError("p(=%s) and q(=%s) must have the same shape"%(p, q))
     from sage.combinat.tableau import SemistandardTableaux
@@ -544,8 +494,7 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
         # d is now a dictionary which assigns to each integer k the
         # number of the row of q containing k.
 
-        use_EG = (insertion == 'EG')
-
+    
         for key in sorted(d, reverse=True): # Delete last entry from i-th row of p_copy
             i = d[key]
             x = p_copy[i].pop() # Always the right-most entry
@@ -560,8 +509,6 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
                     x, row[y_pos] = row[y_pos], x
             rev_word.append(x)
 
-        if use_EG:
-            return list(reversed(rev_word))
         if output == 'word':
             from sage.combinat.words.word import Word
             return Word(reversed(rev_word))
@@ -656,7 +603,12 @@ def to_matrix(t, b):
     return matrix(entries, sparse=True)
 
 #####################################################################
-class RuleSchensted(UniqueRepresenration):
+class Rule(UniqueRepresentation):
+    #TO add common functionalities for all rules
+    def __call__(self, *args, **kwds):
+        return RSK(self, *args, **kwds)
+
+class RuleSchensted(Rule):
 
     def forward_rule(self, itr, check_standard):
         from bisect import bisect_right
@@ -696,3 +648,5 @@ class RuleSchensted(UniqueRepresenration):
             return [P, Q]
         return [SemistandardTableau(p), SemistandardTableau(q)]
     
+class Rules(object):
+    Schensted = RuleSchensted

@@ -447,7 +447,7 @@ AC_SUBST_FILE([SAGE_MAKE_DEPS])
 
 dnl AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([build/make/Makefile-auto build/make/Makefile src/Makefile])
-AC_CONFIG_FILES([src/bin/sage-env-config])
+AC_CONFIG_FILES([src/bin/sage-env-config build/bin/sage-build-env-config])
 
 AC_CONFIG_FILES([build/pkgs/sage_conf/src/sage_conf.py build/pkgs/sage_conf/src/setup.cfg])
 

@@ -247,6 +247,21 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
             sage: g = copy(f)
             sage: g.section()(g(t)) == f.section()(f(t))
             True
+
+        ::
+
+            sage: F = GF(2)
+            sage: E = GF(4)
+            sage: phi = E.coerce_map_from(F); phi
+            Ring morphism:
+              From: Finite Field of size 2
+              To:   Finite Field in z2 of size 2^2
+              Defn: 1 |--> 1
+            sage: phi.section()
+            Section of Ring morphism:
+              From: Finite Field of size 2
+              To:   Finite Field in z2 of size 2^2
+              Defn: 1 |--> 1
         """
         cdef FiniteFieldHomomorphism_generic out = super(FiniteFieldHomomorphism_generic, self).__copy__()
         out._section_class = self._section_class

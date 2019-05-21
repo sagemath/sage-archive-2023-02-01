@@ -1018,6 +1018,9 @@ class UniversalCyclotomicFieldElement(FieldElement):
             sage: UCF(5/2).is_square()
             True
 
+            sage: UCF.zeta(7,3).is_square()
+            True
+
             sage: (2 + UCF.zeta(3)).is_square()
             Traceback (most recent call last):
             ...
@@ -1026,15 +1029,31 @@ class UniversalCyclotomicFieldElement(FieldElement):
         if self._obj.IsRat():
             return True
 
-        return NotImplementedError("is_square() not fully implemented for elements of Universal Cyclotomic Field")
+        k = self._obj.Conductor()
+        coeffs = self._obj.CoeffsCyc(k).sage()
+        if sum(bool(x) for x in coeffs) == 1:
+            return True
 
-    def sqrt(self):
+        raise NotImplementedError("is_square() not fully implemented for elements of Universal Cyclotomic Field")
+
+    def sqrt(self, extend=True, all=False):
         """
         Return a square root of ``self``.
 
-        If this element is a rational number or a single root of unity,
-        then an element of the Universal Cyclotomic Field is returned.
-        Otherwise, return an algebraic number.
+        With default options, the output is an element of the universal
+        cyclotomic field when this element is expressed via a single root
+        of unity (including rational numbers). Otherwise, return an algebraic
+        number.
+
+        INPUT:
+
+        -  ``extend`` -- bool (default: ``True``); if ``True``, might return a
+           square root in the algebraic closure of the rationals. If false,
+           return a square root in the universal cyclotomic field or raises
+           an error.
+
+        -  ``all`` -- bool (default: ``False``); if ``True``, return a
+           list of all square roots.
 
         EXAMPLES::
 
@@ -1058,14 +1077,31 @@ class UniversalCyclotomicFieldElement(FieldElement):
             sage: (3 * E(5)).sqrt() ** 2
             3*E(5)
 
+        Setting ``all=True`` you obtain the two square roots in a list::
+
+            sage: UCF(3).sqrt(all=True)
+            [E(12)^7 - E(12)^11, -E(12)^7 + E(12)^11]
+            sage: (1 + UCF.zeta(5)).sqrt(all=True)
+            [1.209762576525833? + 0.3930756888787117?*I,
+             -1.209762576525833? - 0.3930756888787117?*I]
+
         In the following situation, Sage is not (yet) able to compute a
         square root within the universal cyclotomic field::
 
             sage: (E(5) + E(5, 2)).sqrt()
             0.7476743906106103? + 1.029085513635746?*I
+            sage: (E(5) + E(5, 2)).sqrt(extend=False)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: sqrt() not fully implemented for elements of Universal Cyclotomic Field
         """
+        if all:
+            s = self.sqrt(all=False)
+            return [s, -s]
+
         UCF = self.parent()
 
+        # rational case
         if self._obj.IsRat():
             D = self._obj.sage()
 
@@ -1075,6 +1111,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
                 return UCF_sqrt_int(D.numerator(), UCF) / \
                        UCF_sqrt_int(D.denominator(), UCF)
 
+        # root of unity
         k = self._obj.Conductor()
         coeffs = self._obj.CoeffsCyc(k).sage()
         if sum(bool(x) for x in coeffs) == 1:
@@ -1083,7 +1120,11 @@ class UniversalCyclotomicFieldElement(FieldElement):
                     break
             return UCF(x).sqrt() * UCF.zeta(2*k, i)
 
-        return QQbar(self).sqrt()
+        # no method to construct square roots yet...
+        if extend:
+            return QQbar(self).sqrt()
+        else:
+            raise NotImplementedError("sqrt() not fully implemented for elements of Universal Cyclotomic Field")
 
     def conjugate(self):
         r"""

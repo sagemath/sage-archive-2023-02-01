@@ -1076,7 +1076,7 @@ class ClusterQuiver(SageObject):
 
             sage: Q = ClusterQuiver(DiGraph([['a', 'b'], ['c', 'b'], ['c', 'd'], ['e', 'd']]),
             ....:                   frozen=['b', 'd'])
-            sage: Q.frozen_vertices()
+            sage: sorted(Q.frozen_vertices())
             ['b', 'd']
         """
         return self._mlist

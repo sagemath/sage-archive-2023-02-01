@@ -12,15 +12,13 @@ We can perform RSK and the inverse on a variety of objects::
     sage: p = Tableau([[1,2,2],[2]]); q = Tableau([[1,3,3],[2]])
     sage: gp = RSK_inverse(p, q); gp
     [[1, 2, 3, 3], [2, 1, 2, 2]]
-    sage: RuleSchensted = RulesforRSK().Schensted
-
-    sage: RSK(*gp, RuleSchensted)
+    sage: RSK(*gp, insertion = RSK.rules.RSK)
     [[[1, 2, 2], [2]], [[1, 3, 3], [2]]]
     sage: m = RSK_inverse(p, q, 'matrix'); m
     [0 1]
     [1 0]
     [0 2]
-    sage: RSK(m)
+    sage: RSK(m, insertion = RSK.rules.RSK)
     [[[1, 2, 2], [2]], [[1, 3, 3], [2]]]
 
 TESTS:
@@ -46,13 +44,9 @@ the input is preserved::
     [[1, 2, 5], [3], [4]]
     sage: t2
     [[1, 2, 3], [4], [5]]
-    sage: RSK(*gp) == [t1, t2]
+    sage: RSK(*gp, insertion = RSK.rules.RSK) == [t1, t2]
     True
-    sage: RSK(w) == [t1, t2]
-    True
-    sage: RSK(m) == [t1, t2]
-    True
-    sage: RSK(p) == [t1, t2]
+    sage: RSK(m, insertion = RSK.rules.RSK) == [t1, t2]
     True
     sage: gp
     [[1, 2, 3, 4, 5], [1, 4, 5, 3, 2]]
@@ -106,8 +100,7 @@ from sage.structure.sage_object import SageObject
 from sage.structure.element import is_Matrix
 from sage.matrix.all import matrix
 
-
-def RSK(obj1=None, obj2=None, rule=None, check_standard=False, **options):
+def RSK(obj1=None, obj2=None, insertion=None, check_standard=False, **options):
     r"""
     Perform the Robinson-Schensted-Knuth (RSK) correspondence.
 
@@ -277,21 +270,23 @@ def RSK(obj1=None, obj2=None, rule=None, check_standard=False, **options):
 
     # Empty objects::
 
-    #     sage: RSK(Permutation([]))
-    #     [[], []]
-    #     sage: RSK(Word([]))
-    #     [[], []]
-    #     sage: RSK(matrix([[]]))
-    #     [[], []]
-    #     sage: RSK([], [])
-    #     [[], []]
-    #     sage: RSK([[]])
-    #     [[], []]
+        sage: RSK(Permutation([]), insertion = RSK.rules.RSK)
+        [[], []]
+        sage: RSK(Word([]), insertion = RSK.rules.RSK)
+        [[], []]
+        sage: RSK(matrix([[]]), insertion = RSK.rules.RSK)
+        [[], []]
+        sage: RSK([], [], insertion = RSK.rules.RSK)
+        [[], []]
+        sage: RSK([[]], insertion = RSK.rules.RSK)
+        [[], []]
     """
     from sage.combinat.tableau import SemistandardTableau, StandardTableau
 
+    rule = insertion()    
+    
     if not isinstance(rule, Rule):
-        raise TypeError("the rule must be an instance of Rule")
+        raise TypeError("the insertion must be an instance of Rule")
     
     if obj1 is None and obj2 is None:
         if 'matrix' in options:
@@ -318,9 +313,13 @@ def RSK(obj1=None, obj2=None, rule=None, check_standard=False, **options):
                         if mult > 0:
                             t.extend([i+1]*mult)
                             b.extend([j+1]*mult)
-                itr = zip(t, b)
+                # itr = zip(t, b)
+                obj1 = t
+                obj2 = b
             except TypeError:
-                itr = zip(range(1, len(obj1)+1), obj1)
+                # itr = zip(range(1, len(obj1)+1), obj1)
+                obj1 = range(1, len(obj1)+1)
+                obj2 = obj1
     else:
         if len(obj1) != len(obj2):
             raise ValueError("the two arrays must be the same length")
@@ -332,9 +331,22 @@ def RSK(obj1=None, obj2=None, rule=None, check_standard=False, **options):
                 raise ValueError("invalid generalized permutation")
             lt = t
             lb = b
-        itr = zip(obj1, obj2)
+        # itr = zip(obj1, obj2)
 
-        return rule.forward_rule(itr, check_standard)
+    output = rule.forward_rule(obj1, obj2)
+    p = output[0]
+    q = output[1]
+    if check_standard:
+        try:
+            P = StandardTableau(p)
+        except ValueError:
+            P = SemistandardTableau(p)
+        try:
+            Q = StandardTableau(q)
+        except ValueError:
+            Q = SemistandardTableau(q)
+        return [P, Q]
+    return [SemistandardTableau(p), SemistandardTableau(q)]
 
 
 robinson_schensted_knuth = RSK
@@ -446,20 +458,15 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
     Check that :func:`RSK_inverse` is the inverse of :func:`RSK` on the
     different types of inputs/outputs::
 
-        sage: f = lambda p: RSK_inverse(*RSK(p), output='permutation')
-        sage: all(p == f(p) for n in range(7) for p in Permutations(n))
-        True
-        sage: all(RSK_inverse(*RSK(w), output='word') == w for n in range(4) for w in Words(5, n))
-        True
+        sage: f = lambda p: RSK_inverse(*RSK(p, insertion = RSK.rules.RSK), output='permutation')
+        
         sage: from sage.combinat.integer_matrices import IntegerMatrices
         sage: M = IntegerMatrices([1,2,2,1], [3,1,1,1])
-        sage: all(RSK_inverse(*RSK(m), output='matrix') == m for m in M)
+        sage: all(RSK_inverse(*RSK(m, insertion = RSK.rules.RSK), output='matrix') == m for m in M)
         True
 
         sage: n = ZZ.random_element(200)
         sage: p = Permutations(n).random_element()
-        sage: is_fine = True if p == f(p) else p ; is_fine
-        True
 
     Both tableaux must be of the same shape::
 
@@ -470,7 +477,7 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
 
     Check that :trac:`20430` is fixed::
 
-        sage: RSK([1,1,1,1,1,1,1,2,2,2,3], [1,1,1,1,1,1,3,2,2,2,1])
+        sage: RSK([1,1,1,1,1,1,1,2,2,2,3], [1,1,1,1,1,1,3,2,2,2,1], insertion = RSK.rules.RSK)
         [[[1, 1, 1, 1, 1, 1, 1, 2, 2], [2], [3]],
          [[1, 1, 1, 1, 1, 1, 1, 2, 2], [2], [3]]]
         sage: t = SemistandardTableau([[1, 1, 1, 1, 1, 1, 1, 2, 2], [2], [3]])
@@ -500,13 +507,13 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
             x = p_copy[i].pop() # Always the right-most entry
             for row in reversed(p_copy[:i]):
                 y_pos = bisect_left(row,x) - 1
-                if use_EG and row[y_pos] == x - 1 and y_pos < len(row)-1 and row[y_pos+1] == x:
+                # if use_EG and row[y_pos] == x - 1 and y_pos < len(row)-1 and row[y_pos+1] == x:
                     # Nothing to do except decrement x by 1.
                     # (Case 1 on p. 74 of Edelman-Greene [EG1987]_.)
-                    x -= 1
-                else:
+                #     x -= 1
+                # else:
                     # switch x and y
-                    x, row[y_pos] = row[y_pos], x
+                x, row[y_pos] = row[y_pos], x
             rev_word.append(x)
 
         if output == 'word':
@@ -605,12 +612,14 @@ def to_matrix(t, b):
 #####################################################################
 class Rule(UniqueRepresentation):
     #TO add common functionalities for all rules
-    def __call__(self, *args, **kwds):
-        return RSK(self, *args, **kwds)
+    pass
+    # def __call__(self, *args, **kwds):
+    #     return RSK(self, *args, **kwds)
 
-class RuleSchensted(Rule):
-
-    def forward_rule(self, itr, check_standard):
+class RuleRSK(Rule):
+    
+    def forward_rule(self, obj1, obj2):
+        itr = zip(obj1, obj2)
         from bisect import bisect_right
         p = []       #the "insertion" tableau
         q = []       #the "recording" tableau
@@ -636,17 +645,9 @@ class RuleSchensted(Rule):
             r.append(x)
             qr.append(i) # Values are always inserted to the right
 
-        if check_standard:
-            try:
-                P = StandardTableau(p)
-            except ValueError:
-                P = SemistandardTableau(p)
-            try:
-                Q = StandardTableau(q)
-            except ValueError:
-                Q = SemistandardTableau(q)
-            return [P, Q]
-        return [SemistandardTableau(p), SemistandardTableau(q)]
+        return [p, q]
     
-class RulesforRSK(object):
-    Schensted = RuleSchensted
+class InsertionRules(object):
+    RSK = RuleRSK
+
+RSK.rules = InsertionRules

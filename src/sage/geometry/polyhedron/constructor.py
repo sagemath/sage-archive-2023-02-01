@@ -114,7 +114,7 @@ EXAMPLES::
 
     sage: trunc_quadr = Polyhedron(vertices=[[1,0],[0,1]], rays=[[1,0],[0,1]])
     sage: trunc_quadr
-    A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices and 2 rays
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices and 2 rays
     sage: v = next(trunc_quadr.vertex_generator())  # the first vertex in the internal enumeration
     sage: v
     A vertex at (0, 1)
@@ -131,9 +131,9 @@ EXAMPLES::
     sage: type(v)
     <class 'sage.geometry.polyhedron.representation.Vertex'>
     sage: type( v() )
-    <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
+    <type 'sage.modules.vector_rational_dense.Vector_rational_dense'>
     sage: v.polyhedron()
-    A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices and 2 rays
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices and 2 rays
     sage: r = next(trunc_quadr.ray_generator())
     sage: r
     A ray in the direction (0, 1)
@@ -492,6 +492,25 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         sage: Polyhedron(vertices=[[f]])
         A 0-dimensional polyhedron in QQ^1 defined as the convex hull of 1 vertex
 
+    Check that non-compact polyhedra given by V-representation have base ring ``QQ``,
+    not ``ZZ`` (see :trac:`27840`)::
+
+        sage: Q = Polyhedron(vertices=[(1, 2, 3), (1, 3, 2), (2, 1, 3),
+        ....:                          (2, 3, 1), (3, 1, 2), (3, 2, 1)],
+        ....:                rays=[[1, 1, 1]], lines=[[1, 2, 3]], backend='ppl')
+        sage: Q.base_ring()
+        Rational Field
+
+    Check that enforcing base ring `ZZ` for this example gives an error::
+
+        sage: Q = Polyhedron(vertices=[(1, 2, 3), (1, 3, 2), (2, 1, 3),
+        ....:                          (2, 3, 1), (3, 1, 2), (3, 2, 1)],
+        ....:                rays=[[1, 1, 1]], lines=[[1, 2, 3]], backend='ppl',
+        ....:                base_ring=ZZ)
+        Traceback (most recent call last):
+        ...
+        TypeError: no conversion of this rational to integer
+
     Check that input with too many bits of precision returns an error (see
     :trac:`22552`)::
 
@@ -571,9 +590,12 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         else:
             base_ring = P
 
-        if not got_Vrep and base_ring not in Fields():
-            base_ring = base_ring.fraction_field()
-            convert = True
+        if base_ring not in Fields():
+            got_compact_Vrep = got_Vrep and not rays and not lines
+            got_cone_Vrep = got_Vrep and all(all(x == 0 for x in v) for v in vertices)
+            if not got_compact_Vrep and not got_cone_Vrep:
+                base_ring = base_ring.fraction_field()
+                convert = True
 
         if base_ring not in Rings():
             raise ValueError('invalid base ring')

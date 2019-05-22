@@ -3001,7 +3001,7 @@ class SetPartitions_setparts(SetPartitions_set):
         P = self._set_partition_poset()
         try:
             s = sorted(self._set)
-        except:
+        except TypeError:
             s = sorted(self._set, key=str)
 
         sums = [0]

@@ -793,7 +793,7 @@ class PiecewiseFunction(BuiltinFunction):
                 sage: f.integral(definite=True)
                 2
                 sage: f.integral()
-                piecewise(x|-->-1/2*((sgn(x) - 1)*e^(2*x) - 2*e^x*sgn(x) + sgn(x) + 1)*e^(-x) - 1 on (-oo, +oo); x)
+                piecewise(x|-->-integrate(e^(-abs(x)), x, x, +Infinity) on (-oo, +oo); x)
 
             ::
 

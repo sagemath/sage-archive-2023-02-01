@@ -723,9 +723,9 @@ class SetPartition(AbstractSetPartition):
             \node[label=-54:c] (2) at (-54:1cm) {};
             \node[label=-126:d] (3) at (-126:1cm) {};
             \node[label=-198:e] (4) at (-198:1cm) {};
-            \draw[-,thick,color=blue,fill=blue,fill opacity=0.1] (0.center) -- (2.center) -- cycle;
-            \draw[-,thick,color=blue,fill=blue,fill opacity=0.1] (1.center) -- (3.center) -- cycle;
-            \draw[-,thick,color=blue,fill=blue,fill opacity=0.1] (4.center) -- cycle;
+            \draw[-,thick,color=blue,fill=blue,fill opacity=0.1] ...
+            \draw[-,thick,color=blue,fill=blue,fill opacity=0.1] ...
+            \draw[-,thick,color=blue,fill=blue,fill opacity=0.1] ...
             \fill[color=black] (0) circle (1.5pt);
             \fill[color=black] (1) circle (1.5pt);
             \fill[color=black] (2) circle (1.5pt);

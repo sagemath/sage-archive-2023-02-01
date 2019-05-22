@@ -62,6 +62,8 @@ The following plotting functions are supported:
 
 -  :func:`graphics_array`
 
+-  :func:`multi_graphics`
+
 -  The following log plotting functions:
 
    - :func:`plot_loglog`
@@ -578,7 +580,7 @@ from sage.ext.fast_eval import fast_float, is_fast_float
 from sage.misc.decorators import options
 
 from .graphics import Graphics
-from .multigraphics import GraphicsArray
+from .multigraphics import GraphicsArray, MultiGraphics
 from sage.plot.polygon import polygon
 
 # import of line2d below is only for redirection of imports
@@ -3542,7 +3544,6 @@ def graphics_array(array, nrows=None, ncols=None):
 
         :class:`~sage.plot.multigraphics.GraphicsArray` for more examples
 
-
     """
     # TODO: refactor the whole array flattening and reshaping into a class
     if nrows is None and ncols is None:
@@ -3572,6 +3573,50 @@ def graphics_array(array, nrows=None, ncols=None):
         array = reshape(array, nrows, ncols)
     return GraphicsArray(array)
 
+def multi_graphics(graphics_list):
+    r"""
+    Plot a list of graphics at specified positions on a single canva.
+
+    INPUT:
+
+    - ``graphics_list`` -- a list of graphics along with their
+      positions on the canva; each element of ``graphics_list`` is either
+
+      - a pair ``(graphics, position)``, where ``graphics`` is a
+        :class:`~sage.plot.graphics.Graphics` object and ``position`` is
+        the 4-tupe ``(left, bottom, width, height)`` specifying the location
+        and size of the graphics on the canva, all quantities being in
+        fractions of the canva width and height
+
+      - or a single :class:`~sage.plot.graphics.Graphics` object; its position
+        is then assumed to occupy the whole canvas, except for some padding;
+        this corresponds to the default position
+        ``(left, bottom, width, height) = (0.125, 0.11, 0.775, 0.77)``
+
+    OUTPUT:
+
+    - instance of :class:`~sage.plot.multigraphics.MultiGraphics`
+
+    EXAMPLES:
+
+    ``multi_graphics`` can be used for plot arrangements that cannot be achived
+    with :func:`graphics_array`, for instance::
+
+        sage: g1 = plot(sin(x), (x, -10, 10), frame=True)
+        sage: g2 = EllipticCurve([0,0,1,-1,0]).plot(color='red', thickness=2)
+        sage: g3 = matrix_plot(matrix([[1,3,5,1], [2,4,5,6], [1,3,5,7]]))
+        sage: G = multi_graphics([(g1, (0.125, 0.55, 0.775, 0.35)),
+        ....:                     (g2, (0.125, 0.11, 0.35, 0.35)),
+        ....:                     (g3, (0.55, 0.11, 0.35, 0.35))])
+        sage: G
+        Multigraphics with 3 elements
+
+    .. SEEALSO::
+
+        :class:`~sage.plot.multigraphics.MultiGraphics` for more examples
+
+    """
+    return MultiGraphics(graphics_list)
 
 def minmax_data(xdata, ydata, dict=False):
     """

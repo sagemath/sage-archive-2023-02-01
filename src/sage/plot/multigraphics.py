@@ -33,20 +33,41 @@ class MultiGraphics(WithEqualityById, SageObject):
     display manager, via
     :meth:`~sage.repl.rich_output.display_manager.DisplayManager.graphics_from_save`.
 
+    INPUT:
+
+    The dimensions [left, bottom, width, height] of the new axes. All quantities are in fractions of figure width and height.
+
     """
-    def __init__(self):
+    def __init__(self, insets):
         r"""
         Initialize the attributes common to all MultiGraphics objects.
 
         TESTS::
 
             sage: from sage.plot.multigraphics import MultiGraphics
-            sage: a = MultiGraphics()
-            sage: a._glist
-            []
+            sage: G = MultiGraphics([])
+            sage: print(G)
+            Multigraphics with 0 element
+            sage: c = circle((0,0), 1)
+            sage: G = MultiGraphics([c, (c, (0.7, 0.6, 0.2, 0.2))])
+            sage: print(G)
+            Multigraphics with 2 elements
 
         """
+        if not isinstance(insets, (list, tuple)):
+            raise TypeError("insets must be a list or a tuple, "
+                            "not {}".format(insets))
         self._glist = []
+        self._positions = []
+        #
+        for ins in insets:
+            if isinstance(ins, Graphics):
+                self.append(ins)  # default position
+            else:
+                if not isinstance(ins, (list, tuple)) or len(ins) != 2:
+                    raise TypeError("a pair (Graphics, position) is "
+                                    "expected, not {}".format(ins))
+                self.append(ins[0], pos=ins[1])
 
     def _repr_(self):
         r"""
@@ -374,9 +395,10 @@ class MultiGraphics(WithEqualityById, SageObject):
             else:
                 from matplotlib.backends.backend_agg import FigureCanvasAgg
                 figure.set_canvas(FigureCanvasAgg(figure))
-            # tight_layout adjusts the *subplot* parameters so ticks aren't
-            # cut off, etc.
-            figure.tight_layout()
+            if isinstance(self, GraphicsArray):
+                # tight_layout adjusts the *subplot* parameters so ticks aren't
+                # cut off, etc.
+                figure.tight_layout()
             opts = dict(dpi=dpi, transparent=transparent)
             if fig_tight is True:
                 opts['bbox_inches'] = 'tight'
@@ -525,7 +547,81 @@ class MultiGraphics(WithEqualityById, SageObject):
 
         """
         return self
+    #
+    # Methods to reimplement in derived classes:
+    #
+    def __str__(self):
+        r"""
+        String representation of ``self``
 
+        EXAMPLES::
+
+            sage: from sage.plot.multigraphics import MultiGraphics
+            sage: G = MultiGraphics([])
+            sage: G.__str__()
+            'Multigraphics with 0 element'
+            sage: str(G)
+            'Multigraphics with 0 element'
+            sage: c = circle((0,0), 1)
+            sage: G = MultiGraphics([c])
+            sage: str(G)
+            'Multigraphics with 1 element'
+            sage: G = MultiGraphics([c, c, c])
+            sage: str(G)
+            'Multigraphics with 3 elements'
+
+        """
+        n = len(self._glist)
+        if n <= 1:
+            return "Multigraphics with {} element".format(n)
+        return "Multigraphics with {} elements".format(n)
+
+    def _add_subplot(self, figure, index, **options):
+        r"""
+        Add a subplot to a given Matplotlib ``Figure``, the position of
+        which is governed by a given element of ``self``.
+
+        This method encapsulates the Matplotlib method ``Figure.add_subplot``
+        and is intended to be called by :meth:`MultiGraphics.save`.
+
+        INPUT:
+
+        - ``figure`` -- a Matplotlib ``Figure`` object
+        - ``index `` -- integer specifiying the element of ``self``
+        - ``options`` -- extra options to be passed to ``Figure.add_subplot``
+
+        OUTPUT:
+
+        - a Matplotlib ``Axes`` object
+
+        """
+        # Note: using label=str(index) ensures that a new Axes is generated
+        # for each element of ``self``, even if some elements share the same
+        # positions
+        return figure.add_axes(self._positions[index], label=str(index),
+                               **options)
+
+    def append(self, graphics, pos=None):
+        r"""
+        Appends a graphics to ``self``.
+
+        """
+        from matplotlib import rcParams
+        if not isinstance(graphics, Graphics):
+            raise TypeError("a Graphics object is expected, "
+                            "not {}".format(graphics))
+        if pos is None:
+            # Default position:
+            left = rcParams['figure.subplot.left']
+            bottom = rcParams['figure.subplot.bottom']
+            width = rcParams['figure.subplot.right'] - left
+            height = rcParams['figure.subplot.top'] - bottom
+            pos = (left, bottom, width, height)
+        elif not isinstance(pos, (list, tuple)) or len(pos) != 4:
+            raise TypeError("pos must be a 4-tuple, not {}".format(pos))
+        pos = tuple(float(p) for p in pos)
+        self._glist.append(graphics)
+        self._positions.append(pos)
 
 # ****************************************************************************
 
@@ -736,7 +832,7 @@ class GraphicsArray(MultiGraphics):
             TypeError: every element of array must be a Graphics object
 
         """
-        MultiGraphics.__init__(self)
+        MultiGraphics.__init__(self, [])
         if not isinstance(array, (list, tuple)):
             raise TypeError("array must be a list of lists of Graphics "
                             "objects, not {}".format(array))

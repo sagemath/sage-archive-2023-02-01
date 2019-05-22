@@ -4529,7 +4529,6 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
     else:
         raise ValueError("Algorithm %s not defined"%algorithm)
 
-
 def hilbert_conductor(a, b):
     r"""
     This is the product of all (finite) primes where the Hilbert symbol is -1.

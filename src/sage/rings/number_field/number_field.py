@@ -9272,6 +9272,181 @@ class NumberField_absolute(NumberField_generic):
             raise ValueError("Non-prime ideal P (=%s) in hilbert_symbol" % P)
         return pari(self).nfhilbert(a, b, P.pari_prime())
 
+    def hilbert_symbol_negative_at_S(self, S, b, check=True):
+        """
+        Return `a` such that the hilbert conductor of `a` and `b` is `S`.
+
+        INPUT:
+
+        - ``S`` -- a list of places (or prime ideals) of even cardinality
+        - ``b`` -- a non-zero rational number which is a non-square locally
+          at every place in S.
+        - ``check`` -- bool (default: ``True``) perform additional checks on
+          the input and confirm the output
+
+        OUTPUT:
+
+        - an element `a` that has negative Hilbert symbol `(a,b)_p` for
+          every (finite and infinite) place `p` in `S`.
+
+        ALGORITHM:
+
+        The implementation is following algorithm 3.4.1 in [Kir2016]_.
+        We note that class and unit groups are computed using the generalized
+        Riemann hypothesis. If it is false, this may result in an infinite loop.
+        Nevertheless, if the algorithm terminates the output is correct.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^2 + 20072)
+            sage: S = [K.primes_above(3)[0], K.primes_above(23)[0]]
+            sage: b = K.hilbert_symbol_negative_at_S(S, a + 1)
+            sage: [K.hilbert_symbol(b, a + 1, p) for p in S]
+            [-1, -1]
+            sage: K.<d> = CyclotomicField(11)
+            sage: S = [K.primes_above(2)[0], K.primes_above(11)[0]]
+            sage: b = d + 5
+            sage: a = K.hilbert_symbol_negative_at_S(S, b)
+            sage: [K.hilbert_symbol(a,b,p) for p in S]
+            [-1, -1]
+            sage: k.<c> = K.maximal_totally_real_subfield()[0]
+            sage: S = [k.primes_above(3)[0], k.primes_above(5)[0]]
+            sage: S += k.real_places()[:2]
+            sage: b = 5 + c + c^9
+            sage: a = k.hilbert_symbol_negative_at_S(S, b)
+            sage: [k.hilbert_symbol(a, b, p) for p in S]
+            [-1, -1, -1, -1]
+
+        Note that the closely related hilbert conductor
+        takes only the finite places into account::
+
+            sage: k.hilbert_conductor(a, b)
+            Fractional ideal (15)
+
+
+        TESTS::
+
+            sage: K.<a> = NumberField(x^2 + 20072)
+            sage: S = [K.primes_above(3)[0], K.primes_above(23)[0]]
+            sage: s = K.hilbert_symbol_negative_at_S(S, a + 1)
+
+        AUTHORS:
+
+        - Simon Brandhorst, Anna Haensch (01-05-2018)
+        """
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
+        from sage.modules.free_module import VectorSpace
+        from sage.matrix.constructor import matrix
+        from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
+
+        # input checks
+        if not type(S) is list:
+            raise TypeError( "first argument must be a list")
+        if not b in self:
+            raise TypeError("second argument must be an element of this field")
+        b = self(b)
+        if b == 0:
+            raise ValueError("second argument must be nonzero")
+        if len(S) % 2 != 0:
+            raise ValueError("the list should be of even cardinality")
+        if check:
+            for p in S:
+                if p.parent() is self.ideal_monoid():
+                    if not p.is_prime():
+                        raise ValueError("not a prime ideal")
+                    if self.quadratic_defect(b, p) == infinity.Infinity:
+                        raise ValueError("%s is a square in the completion "%b +
+                                         "with respect to %s"%p)
+                else:
+                    if not p in self.real_places():
+                        raise ValueError("entries of the list must be " +
+                                         "prime ideals or real places")
+                    if p(b) > 0:
+                        raise ValueError("%s is a square in the completion " +
+                                         "with respect to %s" %(b,p))
+
+        # L is the list of primes that we need to consider, b must have
+        # nonzero valuation for each prime in L, this is the set S'
+        # in Kirschmer's algorithm
+        L = []
+        for P in self.prime_factors(b) + self.prime_factors(self(2)):
+            if not (P in S or P in L):
+                L.append(P)
+
+        # This adds some infinite places to L
+        for sigma in self.real_places():
+            if sigma(b) < 0 and sigma not in S:
+                L.append(sigma)
+        Cl = self.class_group(proof=False)
+        U = self.unit_group(proof=False).gens()
+        SL = S + L
+        # the finite places in SL
+        P = [p for p in SL if p.parent() is self.ideal_monoid()]
+
+        # v is the vector that we are searching for.
+        # It represents the case when the Hilbert
+        # symbol is negative for all primes in S and positive
+        # at all primes in S'
+        # For technical reasons, a Hilbert symbol of -1 is
+        # respresented as 1 and a Hilbert symbol of 1
+        # is represented as 0
+        V = VectorSpace(GF(2), len(SL))
+        v = V([1]*len(S) + [0]*len(L))
+
+        # The algorithm terminates when the vector v is in the
+        # subspace of V generated by the image of the phi map
+        # on the set of generators
+
+        def phi(x):
+            v = []
+            for p in SL:
+                v.append((1-self.hilbert_symbol(x, b, p))//2)
+            return V(v)
+        M = matrix([phi(g) for g in U])
+
+        # we have to work around the inconvenience that multiplicative
+        # abelian groups in sage do not yet have homomorphisms...
+        Cl_additive = AdditiveAbelianGroup(Cl.gens_orders())
+        n = len(Cl_additive.gens())
+        A = AdditiveAbelianGroup([0]*(len(P)+1))
+        PCl = []
+        for p in P:
+            pr = Cl(p).exponents()
+            pr = Cl_additive.sum([Cl_additive.gens()[i]*pr[i] for i in range(n)])
+            PCl.append(pr)
+
+        # search through all the primes
+        found = False
+        for q in sage.sets.primes.Primes():
+            for Q in self.primes_above(q):
+                if Q in P:
+                    continue
+                pr = Cl(Q).exponents()
+                pr = Cl_additive.sum([Cl_additive.gens()[i]*pr[i] for i in range(n)])
+                # compute the kernel
+                K = A.hom(PCl + [pr]).kernel().gens()
+                K = [A(k) for k in K]
+                # generate it by a list of ideals
+                Pq = P + [Q]
+                K = [prod([Pq[i]**k[i] for i in range(len(Pq))]) for k in K]
+                # the ideals are principal
+                # find a single generator for each
+                K = [k.gens_reduced(proof=False)[0] for k in K]
+                # we can now apply phi
+                W = M.stack(matrix([phi(g) for g in K]))
+                if v in W.row_space():
+                    found = True
+                    break
+            if found:
+                break
+        J = list(U) + K
+        l = W.solve_left(v)
+        a = prod([J[i]**l[i] for i in range(len(J))])
+        # let us double check the result
+        if check:
+            assert phi(a) == v, "oops"
+        return a
+
     def hilbert_conductor(self,a,b):
         """
         This is the product of all (finite) primes where the Hilbert symbol is -1.

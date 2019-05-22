@@ -92,9 +92,8 @@ computer:
 - A **C/C++ compiler**: Since SageMath builds its own GCC if needed,
   a wide variety of C/C++ compilers is supported.
   Many GCC versions work,
-  from as old as version 3.4.3 to the most recent release.
+  from as old as version 4.8 (but we recommend at least 5.1) to the most recent release.
   Clang also works.
-  On Solaris systems, the Sun compiler should also work.
   See also `Using alternative compilers`_.
 - **make**: GNU make, version 3.80 or later. Version 3.82 or later is recommended.
 - **m4**: GNU m4 1.4.2 or later (non-GNU or older versions might also work).
@@ -133,10 +132,18 @@ development files.
 Fortran and compiler suites
 ###########################
 
-Sage also needs a Fortran compiler.
-The only configuration currently supported is matching versions of the
-C, C++ and Fortran compilers from the
-`GNU Compiler Collection (GCC) <https://gcc.gnu.org/>`_.
+Sage installation also needs a Fortran compiler. Officially we support
+gfortran from `GNU Compiler Collection (GCC) <https://gcc.gnu.org/>`_.
+If C and C++ compilers also come from there (i.e., gcc and g++), their versions
+should match.
+Alternatively, one may use C and C++ compilers from
+`Clang: a C language family frontend for LLVM <https://clang.llvm.org/>`_,
+and thus  matching versions of
+clang, clang++ , along with a recent gfortran. (Flang (or other LLVM-based
+Fortran compilers) are not officially supported, however it is possible to
+to build Sage using flang, with some extra efforts needed to set various flags;
+this is work in progress at the moment (May 2019)).
+
 Therefore, if you plan on using your own GCC compilers, then make sure that
 their versions match.
 
@@ -148,9 +155,8 @@ or simply a missing Fortran compiler.
 In any case, you always need at least a C/C++ compiler to build the GCC
 package and its prerequisites before the compilers it provides can be used.
 
-Note that you can always override this behavior through the environment
-variable :envvar:`SAGE_INSTALL_GCC`, see :ref:`section_compilers` and
-:ref:`section_envvar`.
+Note that you can always override this behavior through the configure
+options `--without-system-gcc` and `--with-system-gcc`, see :ref:`section_compilers`.
 
 Other notes
 ^^^^^^^^^^^
@@ -197,14 +203,17 @@ on the command line. If it gives an error (or returns nothing), then
 either ``perl`` is not installed, or it is installed but not in your
 `PATH <https://en.wikipedia.org/wiki/PATH_%28variable%29>`_.
 
-Linux prerequisite installation
+Linux recommended installation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 On Linux systems (e.g., Ubuntu, Redhat, etc), ``ar`` and ``ranlib`` are in the
 `binutils <https://www.gnu.org/software/binutils/>`_ package.
 The other programs are usually located in packages with their respective names.
 Assuming you have sufficient privileges, you can install the ``binutils`` and
-other necessary components.
+other necessary/standard components. The lists provided below are longer than
+the minimal prerequisites, which are basically ``binutils``, ``gcc``/``clang``, ``make``,
+``tar``, but there is no real need to build compilers and other standard tools
+and libraries on a modern Linux system, in order to be able to build Sage.
 If you do not have the privileges to do this, ask your system administrator to
 do this, or build the components from source code.
 The method of installing additional software varies from distribution to
@@ -213,26 +222,29 @@ distribution, but on a `Debian <https://www.debian.org/>`_ based system (e.g.
 you would use
 `apt-get <https://en.wikipedia.org/wiki/Advanced_Packaging_Tool>`_::
 
-     # debian
-     $ sudo apt-get install binutils gcc make m4 perl tar git openssl libssl-dev
+     # debian (Stretch or newer) / ubuntu
+     $ sudo apt-get install binutils pixz gcc g++ gfortran make m4 perl tar \
+       git patch openssl libssl-dev libz-dev bc libbz2-dev liblzma-dev libgmp-dev \
+       libffi-dev libgf2x-dev libcurl4-openssl-dev curl yasm
 
-     # redhat
-     $ sudo yum install binutils gcc make m4 perl tar git \
-     perl-ExtUtils-MakeMaker openssl openssl-devel
-     
-to install all general requirements, or, if you don't want Sage to build its
-own GCC::
+     # redhat / fedora / centos
+     $ sudo yum install binutils xz gcc gcc-c++ gcc-gfortran make m4 perl \
+       tar git patch perl-ExtUtils-MakeMaker openssl openssl-devel zlib-devel \
+       bzip2 bzip2-devel xz-devel gmp gmp-devel libcurl-devel curl yasm
 
-     # debian
-     $ sudo apt-get install binutils gcc g++ gfortran make m4 perl tar \
-     git openssl libssl-dev
+(These examples suppose that you choose to use a systemwide OpenSSL library.)
+In addition, if you don't want Sage to build other packages that might be available from
+your OS, cf. the growing list of such packages on :trac:`27330`, install::
 
-     # redhat
-     $ sudo yum install binutils gcc gcc-c++ gcc-gfortran make m4 perl \
-     tar git perl-ExtUtils-MakeMaker openssl openssl-devel
-     
-(These examples suppose that you choose to use a systemwide OpenSSL
-library. This was tested on Ubuntu 12.04.2.)
+     # debian / ubuntu
+     $ sudo apt-get install libntl-dev libmpfr-dev libmpc-dev libflint-dev \
+       libpcre3-dev libgd-dev \
+       cmake libterm-readline-gnu-perl ninja-build librw-dev # not for standard Sage spkgs
+
+     # redhat / fedora / centos
+     $ sudo yum install ntl-devel mpfr-devel libmpc-devel \
+       cmake perl-Term-ReadLine-Gnu ninja-build rw-devel # not for standard Sage spkgs
+
 On other Linux systems, you might use
 `rpm <https://en.wikipedia.org/wiki/RPM_Package_Manager>`_,
 `yum <https://en.wikipedia.org/wiki/Yellowdog_Updater,_Modified>`_,
@@ -324,16 +336,29 @@ Using alternative compilers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Sage developers tend to use fairly recent versions of GCC.
-Nonetheless, the Sage build process should succeed with any reasonable C/C++ compiler.
+Nonetheless, the Sage build process on Linux
+should succeed with any reasonable C/C++ compiler;
+(we do not recommend GCC older than version 5.1).
 This is because Sage will build GCC first (if needed) and then use that newly
 built GCC to compile Sage.
 
 If you don't want this and want to try building Sage with a different set of
 compilers,
-you need to set the environment variable :envvar:`SAGE_INSTALL_GCC` to ``no``.
-Make sure you have C, C++, and Fortran compilers installed!
+you need to pass Sage's ``./configure`` compiler names, via environment
+variables ``CC``, ``CXX``, and ``FC``, for C, C++, and Fortran compilers,
+respectively, e.g. if you C compiler is ``clang``, your C++ compiler is ``clang++``,
+and your Fortran compiler is ``flang`` then you would need to run::
 
-Building all of Sage with Clang is currently not supported, see :trac:`12426`.
+    $ CC=clang CXX=clang++ FC=flang ./configure
+
+before running ``make``. It is recommended that you inspect the output of ``./configure``
+in order to check that Sage will not try to build GCC. Namely, there should be lines like::
+
+       gcc-7.2.0 will not be installed (configure check)
+       ...
+       gfortran-7.2.0 will not be installed (configure check)
+
+indicating that Sage will no attempt to build ``gcc/g++/gfortran``.
 
 If you are interested in working on support for commercial compilers from
 `HP <http://docs.hp.com/en/5966-9844/ch01s03.html>`_,
@@ -384,6 +409,8 @@ Sage notebook.
 
 Notebook additional features
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**attention: Sage's notebook is deprecated. Use Jupyter notebook instead**
 
 By default, the Sage notebook uses the
 `HTTP <https://en.wikipedia.org/wiki/HTTP>`_
@@ -981,12 +1008,7 @@ Here are some of the more commonly used variables affecting the build process:
      So when this variable is empty or unset, Sage uses a default of
      ``!python2,!python3``.
 
-- :envvar:`SAGE_INSTALL_GCC` - by default, Sage will automatically detect
-  whether to install the `GNU Compiler Collection (GCC) <https://gcc.gnu.org/>`_
-  package or not (depending on whether C, C++, and Fortran compilers are present
-  and the versions of those compilers).
-  Setting ``SAGE_INSTALL_GCC=yes`` will force Sage to install GCC.
-  Setting ``SAGE_INSTALL_GCC=no`` will prevent Sage from installing GCC.
+- :envvar:`SAGE_INSTALL_GCC` - **Obsolete, do not use, to be removed**
 
 - :envvar:`SAGE_INSTALL_CCACHE` - by default Sage doesn't install ccache,
   however by setting ``SAGE_INSTALL_CCACHE=yes`` Sage will install ccache.

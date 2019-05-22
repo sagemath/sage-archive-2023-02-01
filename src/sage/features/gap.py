@@ -10,7 +10,7 @@ class GapPackage(Feature):
     r"""
     A feature describing the presence of a GAP package.
 
-    EXMAPLES::
+    EXAMPLES::
 
         sage: from sage.features.gap import GapPackage
         sage: GapPackage("grape", spkg="gap_packages")

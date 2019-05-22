@@ -2464,7 +2464,7 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
     def __invert__(self):
         r"""
         Implement inversion, checking that the return value has the right parent.
-        See trac \#4190.
+        See :trac:`4190`.
 
         EXAMPLES::
 

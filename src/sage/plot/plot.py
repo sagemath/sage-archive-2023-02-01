@@ -3575,18 +3575,21 @@ def graphics_array(array, nrows=None, ncols=None):
 
 def multi_graphics(graphics_list):
     r"""
-    Plot a list of graphics at specified positions on a single canva.
+    Plot a list of graphics at specified positions on a single canvas.
+
+    If the graphics positions define a regular array, use
+    :func:`graphics_array` instead.
 
     INPUT:
 
     - ``graphics_list`` -- a list of graphics along with their
-      positions on the canva; each element of ``graphics_list`` is either
+      positions on the canvas; each element of ``graphics_list`` is either
 
       - a pair ``(graphics, position)``, where ``graphics`` is a
         :class:`~sage.plot.graphics.Graphics` object and ``position`` is
         the 4-tupe ``(left, bottom, width, height)`` specifying the location
-        and size of the graphics on the canva, all quantities being in
-        fractions of the canva width and height
+        and size of the graphics on the canvas, all quantities being in
+        fractions of the canvas width and height
 
       - or a single :class:`~sage.plot.graphics.Graphics` object; its position
         is then assumed to occupy the whole canvas, except for some padding;
@@ -3599,17 +3602,45 @@ def multi_graphics(graphics_list):
 
     EXAMPLES:
 
-    ``multi_graphics`` can be used for plot arrangements that cannot be achived
-    with :func:`graphics_array`, for instance::
+    ``multi_graphics`` is to be used for plot arrangements that cannot be
+    acheived with :func:`graphics_array`, for instance::
 
         sage: g1 = plot(sin(x), (x, -10, 10), frame=True)
-        sage: g2 = EllipticCurve([0,0,1,-1,0]).plot(color='red', thickness=2)
+        sage: g2 = EllipticCurve([0,0,1,-1,0]).plot(color='red', thickness=2,
+        ....:                    axes_labels=['$x$', '$y$']) \
+        ....:      + text(r"$y^2 + y = x^3 - x$", (1.2, 2), color='red')
         sage: g3 = matrix_plot(matrix([[1,3,5,1], [2,4,5,6], [1,3,5,7]]))
-        sage: G = multi_graphics([(g1, (0.125, 0.55, 0.775, 0.35)),
-        ....:                     (g2, (0.125, 0.11, 0.35, 0.35)),
-        ....:                     (g3, (0.55, 0.11, 0.35, 0.35))])
+        sage: G = multi_graphics([(g1, (0.125, 0.65, 0.775, 0.3)),
+        ....:                     (g2, (0.125, 0.11, 0.4, 0.4)),
+        ....:                     (g3, (0.55, 0.18, 0.4, 0.3))])
         sage: G
         Multigraphics with 3 elements
+
+    .. PLOT::
+
+        g1 = plot(sin(x), (x, -10, 10), frame=True)
+        g2 = EllipticCurve([0,0,1,-1,0]).plot(color='red', thickness=2, \
+                           axes_labels=['$x$', '$y$']) \
+             + text(r"$y^2 + y = x^3 - x$", (1.2, 2), color='red')
+        g3 = matrix_plot(matrix([[1,3,5,1], [2,4,5,6], [1,3,5,7]]))
+        G = multi_graphics([(g1, (0.125, 0.65, 0.775, 0.3)), \
+                            (g2, (0.125, 0.11, 0.4, 0.4)), \
+                            (g3, (0.55, 0.18, 0.4, 0.3))])
+        sphinx_plot(G)
+
+    An example with a list containing a graphics object without any specified
+    position (the graphics, here ``g3``, occupies then the whole canvas)::
+
+        sage: G = multi_graphics([g3, (g1, (0.4, 0.4, 0.2, 0.2))])
+        sage: G
+        Multigraphics with 2 elements
+
+    .. PLOT::
+
+        g1 = plot(sin(x), (x, -10, 10), frame=True)
+        g3 = matrix_plot(matrix([[1,3,5,1], [2,4,5,6], [1,3,5,7]]))
+        G = multi_graphics([g3, (g1, (0.4, 0.4, 0.2, 0.2))])
+        sphinx_plot(G)
 
     .. SEEALSO::
 

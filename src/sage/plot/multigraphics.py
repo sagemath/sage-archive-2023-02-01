@@ -33,12 +33,30 @@ class MultiGraphics(WithEqualityById, SageObject):
     display manager, via
     :meth:`~sage.repl.rich_output.display_manager.DisplayManager.graphics_from_save`.
 
+    The user interface is through the functions
+    :func:`~sage.plot.plot.multi_graphics` (generic multi-graphics) and
+    :func:`~sage.plot.plot.graphics_array` (subclass :class:`GraphicsArray`).
+
     INPUT:
 
-    The dimensions [left, bottom, width, height] of the new axes. All quantities are in fractions of figure width and height.
+    - ``graphics_list`` -- a list of graphics along with their positions on the
+      common canvas; each element of ``graphics_list`` is either
+
+      - a pair ``(graphics, position)``, where ``graphics`` is a
+        :class:`~sage.plot.graphics.Graphics` object and ``position`` is the
+        4-tupe ``(left, bottom, width, height)`` specifying the location and
+        size of the graphics on the canvas, all quantities being in fractions
+        of the canvas width and height
+
+      - or a single :class:`~sage.plot.graphics.Graphics` object; its position
+        is then assumed to occupy the whole canvas, except for some padding;
+        this corresponds to the default position
+        ``(left, bottom, width, height) = (0.125, 0.11, 0.775, 0.77)``
+
+    EXAMPLES:
 
     """
-    def __init__(self, insets):
+    def __init__(self, graphics_list):
         r"""
         Initialize the attributes common to all MultiGraphics objects.
 
@@ -54,13 +72,13 @@ class MultiGraphics(WithEqualityById, SageObject):
             Multigraphics with 2 elements
 
         """
-        if not isinstance(insets, (list, tuple)):
-            raise TypeError("insets must be a list or a tuple, "
-                            "not {}".format(insets))
+        if not isinstance(graphics_list, (list, tuple)):
+            raise TypeError("graphics_list must be a list or a tuple, "
+                            "not {}".format(graphics_list))
         self._glist = []
         self._positions = []
         #
-        for ins in insets:
+        for ins in graphics_list:
             if isinstance(ins, Graphics):
                 self.append(ins)  # default position
             else:
@@ -603,7 +621,19 @@ class MultiGraphics(WithEqualityById, SageObject):
 
     def append(self, graphics, pos=None):
         r"""
-        Appends a graphics to ``self``.
+        Append a graphics object to ``self``.
+
+        INPUT:
+
+        - ``graphics`` -- the graphics object (instance of :class:`Graphics`)
+          to be added to ``self``
+
+        - ``pos`` -- (default: ``None``) 4-tupe ``(left, bottom, width, height)``
+          specifying the location and size of ``graphics`` on the canvas, all
+          quantities being in fractions of the canvas width and height; if
+          ``None``, ``graphics`` is assumed to occupy the whole canvas, except
+          for some padding; this corresponds to the default position
+        ``(left, bottom, width, height) = (0.125, 0.11, 0.775, 0.77)``
 
         """
         from matplotlib import rcParams
@@ -622,6 +652,47 @@ class MultiGraphics(WithEqualityById, SageObject):
         pos = tuple(float(p) for p in pos)
         self._glist.append(graphics)
         self._positions.append(pos)
+
+    def inset(self, graphics, pos=None, fontsize=None):
+        r"""
+        Add a graphics object as an inset.
+
+        INPUT:
+
+        - ``graphics`` -- the graphics object (instance of :class:`Graphics`)
+          to be added as an inset
+
+        - ``pos`` -- (default: ``None``) 4-tupe ``(left, bottom, width, height)``
+          specifying the location and size of the inset on the figure, all
+          quantities being in fractions of the figure width and height; if
+          ``None``, the value ``(0.70, 068, 0.2, 0.2)`` is used
+
+        - ``fontsize`` -- (default: ``None``)  integer, font size (in points)
+          for the inset; if ``None``, the value of 6 points is used, unless
+          ``fontsize`` has been explicitely set in the construction of
+          ``graphics`` (in this case, it is not overwritten here)
+
+        OUTPUT:
+
+        - instance of :class:`~sage.plot.multigraphics.MultiGraphics`
+
+        EXAMPLES::
+
+        """
+        from matplotlib import rcParams
+        if pos is None:
+            width = 0.2
+            height = 0.2
+            left = rcParams['figure.subplot.right'] - width
+            bottom = rcParams['figure.subplot.top'] - height
+            pos = (left, bottom, width, height)
+        if fontsize is not None:
+            graphics._extra_kwds['fontsize'] = fontsize
+        elif 'fontsize' not in graphics._extra_kwds:
+            graphics._extra_kwds['fontsize'] = 6
+        resu = MultiGraphics(zip(self._glist, self._positions))
+        resu.append(graphics, pos=pos)
+        return resu
 
 # ****************************************************************************
 
@@ -946,7 +1017,7 @@ class GraphicsArray(MultiGraphics):
 
     def append(self, g):
         r"""
-        Appends a graphics to the array.
+        Append a graphics to the array.
 
         Currently not implemented.
 

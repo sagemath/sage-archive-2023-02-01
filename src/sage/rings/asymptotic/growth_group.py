@@ -764,8 +764,8 @@ class PartialConversionElement(SageObject):
             sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup, ExponentialNonGrowthGroup, PartialConversionElement
             sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
             sage: Q = ExponentialGrowthGroup(QQ, 'n')
-            sage: U = ExponentialNonGrowthGroup(RootsOfUnityGroup(), 'n')
-            sage: PartialConversionElement(Q, -42/5).is_compatible(U)
+            sage: UU = ExponentialNonGrowthGroup(RootsOfUnityGroup(), 'n')
+            sage: PartialConversionElement(Q, -42/5).is_compatible(UU)
             True
         """
         return self.growth_group.is_compatible(other)
@@ -1057,19 +1057,19 @@ def _rpow_(self, base):
         sage: x.rpow(SCR(5))
         5^x
         sage: _.parent()
-        Growth Group (Symbolic Constants Subring)^x * x^ZZ * S^x
+        Growth Group (Symbolic Constants Subring)^x * x^ZZ * Signs^x
 
     ::
 
         sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
-        sage: U = RootsOfUnityGroup()
+        sage: UU = RootsOfUnityGroup()
         sage: asymptotic_expansions.SingularityAnalysis(
-        ....:     'n', U(-1), alpha=2, beta=1, precision=5,
+        ....:     'n', UU(-1), alpha=2, beta=1, precision=5,
         ....:     normalized=False)
         n*log(n)*(-1)^n + (euler_gamma - 1)*n*(-1)^n + log(n)*(-1)^n
         + (euler_gamma + 1/2)*(-1)^n + O(n^(-1)*(-1)^n)
         sage: _.parent()
-        Asymptotic Ring <n^ZZ * log(n)^ZZ * U^n> over Symbolic Constants Subring
+        Asymptotic Ring <n^ZZ * log(n)^ZZ * UU^n> over Symbolic Constants Subring
     """
     if base == 0:
         raise ValueError('%s is not an allowed base for calculating the '
@@ -1083,24 +1083,24 @@ def _rpow_(self, base):
         if base == 'e':
             from sage.rings.integer_ring import ZZ
             from .misc import repr_op
-            M = MonomialGrowthGroup(ZZ, repr_op('e', '^', var),
-                                    ignore_variables=('e',))
-            element = M(raw_element=ZZ(1))
+            MM = MonomialGrowthGroup(ZZ, repr_op('e', '^', var),
+                                     ignore_variables=('e',))
+            element = MM(raw_element=ZZ(1))
         else:
-            EU = ExponentialGrowthGroup.factory(base.parent(), var)
+            EEUU = ExponentialGrowthGroup.factory(base.parent(), var)
             try:
-                factors = EU.cartesian_factors()
+                factors = EEUU.cartesian_factors()
             except AttributeError:
-                factors = (EU,)
+                factors = (EEUU,)
             if len(factors) == 1:
-                E, = factors
-                element = E(raw_element=base)
+                EE, = factors
+                element = EE(raw_element=base)
             else:
-                E, U = factors
+                EE, UU = factors
                 try:
-                    element = E(raw_element=base)
+                    element = EE(raw_element=base)
                 except PartialConversionValueError as e:
-                    element = EU._convert_factors_([e.element])
+                    element = EEUU._convert_factors_([e.element])
 
     try:
         return self.parent().one() * element
@@ -2161,9 +2161,9 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
             element with parameter -1/42 (Rational Field)
             in Growth Group QQ^n:
             this was already unsuccessful earlier
-            sage: U = GrowthGroup('U^n')
+            sage: UU = GrowthGroup('UU^n')
             sage: b, c = a.split()
-            sage: G(b), U(c)
+            sage: G(b), UU(c)
             ((1/42)^n, (-1)^n)
         """
         from .misc import combine_exceptions
@@ -2257,22 +2257,22 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
         EXAMPLES::
             sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup, ExponentialNonGrowthGroup
             sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
-            sage: Q = ExponentialGrowthGroup(QQ, 'n')
-            sage: Z = ExponentialGrowthGroup(ZZ, 'n')
-            sage: U = ExponentialNonGrowthGroup(RootsOfUnityGroup(), 'n')
-            sage: for a in (Q, Z, U):
-            ....:     for b in (Q, Z, U):
+            sage: EQ = ExponentialGrowthGroup(QQ, 'n')
+            sage: EZ = ExponentialGrowthGroup(ZZ, 'n')
+            sage: UU = ExponentialNonGrowthGroup(RootsOfUnityGroup(), 'n')
+            sage: for a in (EQ, EZ, UU):
+            ....:     for b in (EQ, EZ, UU):
             ....:         print('{} is {}compatible with {}'.format(
             ....:             a, '' if a.is_compatible(b) else 'not ', b))
             Growth Group QQ^n is compatible with Growth Group QQ^n
             Growth Group QQ^n is compatible with Growth Group ZZ^n
-            Growth Group QQ^n is compatible with Growth Group U^n
+            Growth Group QQ^n is compatible with Growth Group UU^n
             Growth Group ZZ^n is compatible with Growth Group QQ^n
             Growth Group ZZ^n is compatible with Growth Group ZZ^n
-            Growth Group ZZ^n is compatible with Growth Group U^n
-            Growth Group U^n is not compatible with Growth Group QQ^n
-            Growth Group U^n is not compatible with Growth Group ZZ^n
-            Growth Group U^n is compatible with Growth Group U^n
+            Growth Group ZZ^n is compatible with Growth Group UU^n
+            Growth Group UU^n is not compatible with Growth Group QQ^n
+            Growth Group UU^n is not compatible with Growth Group ZZ^n
+            Growth Group UU^n is compatible with Growth Group UU^n
         """
         return isinstance(other, self._underlying_class()) and self._var_ == other._var_
 
@@ -2599,19 +2599,19 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: GrowthGroup('(QQ_+)^x').extended_by_non_growth_group()
-            Growth Group QQ^x * S^x
+            Growth Group QQ^x * Signs^x
             sage: GrowthGroup('(RR_+)^x').extended_by_non_growth_group()
-            Growth Group RR^x * S^x
+            Growth Group RR^x * Signs^x
             sage: GrowthGroup('(RIF_+)^x').extended_by_non_growth_group()
-            Growth Group RIF^x * S^x
+            Growth Group RIF^x * Signs^x
             sage: GrowthGroup('(RBF_+)^x').extended_by_non_growth_group()
-            Growth Group RBF^x * S^x
+            Growth Group RBF^x * Signs^x
             sage: GrowthGroup('(CC_+)^x').extended_by_non_growth_group()
-            Growth Group CC^x * U_RR^x
+            Growth Group CC^x * UU_RR^x
             sage: GrowthGroup('(CIF_+)^x').extended_by_non_growth_group()
-            Growth Group CIF^x * U_RIF^x
+            Growth Group CIF^x * UU_RIF^x
             sage: GrowthGroup('(CBF_+)^x').extended_by_non_growth_group()
-            Growth Group CBF^x * U_RBF^x
+            Growth Group CBF^x * UU_RBF^x
         """
         from sage.categories.cartesian_product import cartesian_product
         return cartesian_product((self, self.non_growth_group()))
@@ -3905,8 +3905,8 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
             sage: from sage.rings.asymptotic.growth_group import ExponentialNonGrowthGroup
             sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
-            sage: U = ExponentialNonGrowthGroup(RootsOfUnityGroup(), 'x')
-            sage: U((-1)^x)  # indirect doctest
+            sage: UU = ExponentialNonGrowthGroup(RootsOfUnityGroup(), 'x')
+            sage: UU((-1)^x)  # indirect doctest
             (-1)^x
 
         ::
@@ -3959,8 +3959,8 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
             sage: from sage.rings.asymptotic.growth_group import ExponentialNonGrowthGroup
             sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
-            sage: U = ExponentialNonGrowthGroup(RootsOfUnityGroup(), 'x')
-            sage: latex(U((-1)^x))  # indirect doctest
+            sage: UU = ExponentialNonGrowthGroup(RootsOfUnityGroup(), 'x')
+            sage: latex(UU((-1)^x))  # indirect doctest
             \left(-1\right)^{x}
 
         ::
@@ -4038,8 +4038,8 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
         ::
 
-            sage: U = GrowthGroup('U^n')
-            sage: zeta = U.an_element(); zeta
+            sage: UU = GrowthGroup('UU^n')
+            sage: zeta = UU.an_element(); zeta
             (-1)^n
             sage: ~zeta
             (-1)^n
@@ -4079,12 +4079,12 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
              sage: SCR = SR.subring(no_variables=True)
              sage: G = GrowthGroup('QQ^x * x^ZZ'); G
-             Growth Group QQ^x * x^ZZ * S^x
+             Growth Group QQ^x * x^ZZ * Signs^x
              sage: x = G('x')
              sage: x^SCR(1)
              x
              sage: _.parent()
-             Growth Group QQ^x * x^ZZ * S^x
+             Growth Group QQ^x * x^ZZ * Signs^x
         """
         from .misc import strip_symbolic
         return self.parent()._create_element_in_extension_(
@@ -4176,8 +4176,8 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
         Check that :trac:`19999` is fixed::
 
-            sage: P_ZZ_U = GrowthGroup('ZZ^x * U^x')
-            sage: P_ZZ_U((-2)^x) <= P_ZZ_U(2^x) or P_ZZ_U(2^x) <= P_ZZ_U((-2)^x)
+            sage: P_ZZ_UU = GrowthGroup('ZZ^x * UU^x')
+            sage: P_ZZ_UU((-2)^x) <= P_ZZ_UU(2^x) or P_ZZ_UU(2^x) <= P_ZZ_UU((-2)^x)
             False
         """
         return bool(self.base < other.base)
@@ -4409,7 +4409,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
         ::
 
-            sage: E = GrowthGroup('(QQ_+)^x * U^x')
+            sage: E = GrowthGroup('(QQ_+)^x * UU^x')
             sage: E((-333)^x)  # indirect doctest
             333^x*(-1)^x
             sage: E('(-2)^x')
@@ -4710,21 +4710,21 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
             sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup
             sage: ExponentialGrowthGroup.factory(QQ, 'n')
-            Growth Group QQ^n * S^n
+            Growth Group QQ^n * Signs^n
 
         TESTS::
 
             sage: ExponentialGrowthGroup.factory(QQ, 'n', return_factors=True)
-            (Growth Group QQ^n, Growth Group S^n)
+            (Growth Group QQ^n, Growth Group Signs^n)
             sage: ExponentialGrowthGroup.factory(QQ, 'n', extend_by_non_growth_group=False)
             Growth Group QQ^n
             sage: from sage.groups.misc_gps.argument_groups import ArgumentGroup
-            sage: U = ArgumentGroup(exponents=QQ)
-            sage: ExponentialGrowthGroup.factory(U, 'n')
-            Growth Group U^n
+            sage: UU = ArgumentGroup(exponents=QQ)
+            sage: ExponentialGrowthGroup.factory(UU, 'n')
+            Growth Group UU^n
 
             sage: ExponentialGrowthGroup.factory(CC, 'n')
-            Growth Group RR^n * U_RR^n
+            Growth Group RR^n * UU_RR^n
             sage: ExponentialGrowthGroup.factory(CyclotomicField(3), 'n')
             Growth Group (Algebraic Real Field)^n * (Arg_(Cyclotomic Field of order 3 and degree 2))^n
         """
@@ -4741,20 +4741,20 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             groups = (cls._non_growth_group_class_(base, var, **kwds),)
         elif extend_by_non_growth_group:
             if base == QQbar or isinstance(base, NumberField_cyclotomic):
-                E = cls(AA, var, **kwds)
-                U = cls._non_growth_group_class_(
+                EE = cls(AA, var, **kwds)
+                UU = cls._non_growth_group_class_(
                     ArgumentGroup(domain=base), var)
-                groups = (E, U)
+                groups = (EE, UU)
             elif isinstance(base, (ComplexField_class,
                                    ComplexIntervalField_class,
                                    ComplexBallField)):
-                E = cls(base._real_field(), var, **kwds)
-                U = cls._non_growth_group_class_(
+                EE = cls(base._real_field(), var, **kwds)
+                UU = cls._non_growth_group_class_(
                     ArgumentGroup(exponents=base._real_field()), var)
-                groups = (E, U)
+                groups = (EE, UU)
             else:
-                E = cls(base, var, **kwds)
-                groups = (E, E.non_growth_group())
+                EE = cls(base, var, **kwds)
+                groups = (EE, EE.non_growth_group())
         else:
             groups = (cls(base, var, **kwds),)
 
@@ -4777,23 +4777,23 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: GrowthGroup('(QQ_+)^x').non_growth_group()
-            Growth Group S^x
+            Growth Group Signs^x
             sage: GrowthGroup('(RR_+)^x').non_growth_group()
-            Growth Group S^x
+            Growth Group Signs^x
             sage: GrowthGroup('(RIF_+)^x').non_growth_group()
-            Growth Group S^x
+            Growth Group Signs^x
             sage: GrowthGroup('(RBF_+)^x').non_growth_group()
-            Growth Group S^x
+            Growth Group Signs^x
             sage: GrowthGroup('(CC_+)^x').non_growth_group()
-            Growth Group U_RR^x
+            Growth Group UU_RR^x
             sage: GrowthGroup('(CIF_+)^x').non_growth_group()
-            Growth Group U_RIF^x
+            Growth Group UU_RIF^x
             sage: GrowthGroup('(CBF_+)^x').non_growth_group()
-            Growth Group U_RBF^x
+            Growth Group UU_RBF^x
         """
         from sage.groups.misc_gps.argument_groups import ArgumentGroup
-        U = ArgumentGroup(domain=self.base())
-        return self._non_growth_group_class_(U, self._var_)
+        UU = ArgumentGroup(domain=self.base())
+        return self._non_growth_group_class_(UU, self._var_)
 
 
 class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
@@ -4882,17 +4882,17 @@ class GenericNonGrowthElement(GenericGrowthElement):
 
             sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
             sage: from sage.rings.asymptotic.growth_group import ExponentialNonGrowthGroup
-            sage: U = ExponentialNonGrowthGroup(RootsOfUnityGroup(), 'n')
-            sage: U(raw_element=-1) < U(raw_element=1)
+            sage: UU = ExponentialNonGrowthGroup(RootsOfUnityGroup(), 'n')
+            sage: UU(raw_element=-1) < UU(raw_element=1)
             False
-            sage: U(raw_element=-1) > U(raw_element=1)
+            sage: UU(raw_element=-1) > UU(raw_element=1)
             False
 
             sage: from sage.rings.asymptotic.growth_group import MonomialNonGrowthGroup
-            sage: M = MonomialNonGrowthGroup(RootsOfUnityGroup(), 'n')
-            sage: M(raw_element=-1) < M(raw_element=1)
+            sage: MM = MonomialNonGrowthGroup(RootsOfUnityGroup(), 'n')
+            sage: MM(raw_element=-1) < MM(raw_element=1)
             False
-            sage: M(raw_element=-1) > M(raw_element=1)
+            sage: MM(raw_element=-1) > MM(raw_element=1)
             False
         """
         return False
@@ -4950,9 +4950,9 @@ class ExponentialNonGrowthElement(GenericNonGrowthElement,
 
             sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
             sage: from sage.rings.asymptotic.growth_group import ExponentialNonGrowthGroup
-            sage: U = RootsOfUnityGroup()
-            sage: E = ExponentialNonGrowthGroup(U, 'n')
-            sage: E(raw_element=U(-1))  # indirect doctest
+            sage: UU = RootsOfUnityGroup()
+            sage: EE = ExponentialNonGrowthGroup(UU, 'n')
+            sage: EE(raw_element=UU(-1))  # indirect doctest
             (-1)^n
         """
         pass
@@ -4968,18 +4968,18 @@ class ExponentialNonGrowthGroup(GenericNonGrowthGroup,
 
         sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
         sage: from sage.rings.asymptotic.growth_group import ExponentialNonGrowthGroup
-        sage: U = ExponentialNonGrowthGroup(RootsOfUnityGroup(), 'n')
-        sage: U(raw_element=-1)
+        sage: UU = ExponentialNonGrowthGroup(RootsOfUnityGroup(), 'n')
+        sage: UU(raw_element=-1)
         (-1)^n
 
     TESTS::
 
-        sage: U(raw_element=int(-1))
+        sage: UU(raw_element=int(-1))
         (-1)^n
 
     ::
 
-        sage: U.category()
+        sage: UU.category()
         Join of Category of commutative groups and Category of posets
     """
 
@@ -5011,7 +5011,7 @@ class ExponentialNonGrowthGroup(GenericNonGrowthGroup,
         EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: GrowthGroup('U^x').construction()
+            sage: GrowthGroup('UU^x').construction()
             (ExponentialNonGrowthGroup[x], Group of Roots of Unity)
         """
         return ExponentialNonGrowthGroupFunctor(self._var_), self.base()
@@ -5043,9 +5043,9 @@ class ExponentialNonGrowthGroupFunctor(ExponentialGrowthGroupFunctor):
         EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: F, R = GrowthGroup('U^z').construction()
+            sage: F, R = GrowthGroup('UU^z').construction()
             sage: F(R)  # indirect doctest
-            Growth Group U^z
+            Growth Group UU^z
         """
         return ExponentialNonGrowthGroup(base, self.var)
 
@@ -5179,7 +5179,7 @@ class GrowthGroupFactory(UniqueFactory):
         sage: GrowthGroup('(QQ_+)^x * x^ZZ * y^QQ * (QQ_+)^z')
         Growth Group QQ^x * x^ZZ * y^QQ * QQ^z
         sage: GrowthGroup('QQ^x * x^ZZ * y^QQ * QQ^z')
-        Growth Group QQ^x * x^ZZ * S^x * y^QQ * QQ^z * S^z
+        Growth Group QQ^x * x^ZZ * Signs^x * y^QQ * QQ^z * Signs^z
         sage: GrowthGroup('exp(x)^ZZ * x^ZZ')
         Growth Group exp(x)^ZZ * x^ZZ
         sage: GrowthGroup('(e^x)^ZZ * x^ZZ')
@@ -5188,9 +5188,9 @@ class GrowthGroupFactory(UniqueFactory):
     ::
 
         sage: GrowthGroup('QQ^n * n^ZZ')
-        Growth Group QQ^n * n^ZZ * S^n
-        sage: GrowthGroup('(QQ_+)^n * n^ZZ * U^n')
-        Growth Group QQ^n * n^ZZ * U^n
+        Growth Group QQ^n * n^ZZ * Signs^n
+        sage: GrowthGroup('(QQ_+)^n * n^ZZ * UU^n')
+        Growth Group QQ^n * n^ZZ * UU^n
         sage: GrowthGroup('(QQ_+)^n * n^ZZ')
         Growth Group QQ^n * n^ZZ
 
@@ -5467,7 +5467,7 @@ class GrowthGroupFactory(UniqueFactory):
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: GrowthGroup('QQ^n')  # indirect doctest
-            Growth Group QQ^n * S^n
+            Growth Group QQ^n * Signs^n
         """
         groups = []
         non_growth_groups = []

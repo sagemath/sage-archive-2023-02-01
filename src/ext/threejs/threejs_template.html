@@ -18,6 +18,7 @@ SAGE_SCRIPTS
     var scene = new THREE.Scene();
 
     var renderer = new THREE.WebGLRenderer( { antialias: true } );
+    renderer.setPixelRatio( window.devicePixelRatio );
     renderer.setSize( window.innerWidth, window.innerHeight );
     renderer.setClearColor( 0xffffff, 1 );
     document.body.appendChild( renderer.domElement );
@@ -95,15 +96,19 @@ SAGE_SCRIPTS
         var fontsize = 14;
 
         var canvas = document.createElement( 'canvas' );
-        canvas.width = 128;
-        canvas.height = 32; // powers of two
+        var pixelRatio = Math.round( window.devicePixelRatio );
+        canvas.width = 128 * pixelRatio;
+        canvas.height = 32 * pixelRatio; // powers of two
+        canvas.style.width = '128px';
+        canvas.style.height = '32px';
 
         var context = canvas.getContext( '2d' );
+        context.scale( pixelRatio, pixelRatio );
         context.fillStyle = 'black';
         context.font = fontsize + 'px monospace';
         context.textAlign = 'center';
         context.textBaseline = 'middle';
-        context.fillText( text, .5*canvas.width, .5*canvas.height );
+        context.fillText( text, canvas.width/2/pixelRatio, canvas.height/2/pixelRatio );
 
         var texture = new THREE.Texture( canvas );
         texture.needsUpdate = true;

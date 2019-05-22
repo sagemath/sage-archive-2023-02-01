@@ -3344,7 +3344,7 @@ class Graphics(WithEqualityById, SageObject):
 
             sage: f(x) = x^2*sin(1/x)
             sage: g1 = plot(f(x), (x, -2, 2), axes_labels=['$x$', '$y$'])
-            sage: g2 = plot(f(x), (x, -0.05, 0.05), axes_labels=['$x$', '$y$'],
+            sage: g2 = plot(f(x), (x, -0.3, 0.3), axes_labels=['$x$', '$y$'],
             ....:           frame=True)
             sage: g1.inset(g2)
             Multigraphics with 2 elements
@@ -3353,7 +3353,7 @@ class Graphics(WithEqualityById, SageObject):
 
             f = (x**2*sin(1/x)).function(x)
             g1 = plot(f(x), (x, -2, 2), axes_labels=['$x$', '$y$'])
-            g2 = plot(f(x), (x, -0.05, 0.05), axes_labels=['$x$', '$y$'], \
+            g2 = plot(f(x), (x, -0.3, 0.3), axes_labels=['$x$', '$y$'], \
                       frame=True)
             sphinx_plot(g1.inset(g2))
 
@@ -3366,9 +3366,28 @@ class Graphics(WithEqualityById, SageObject):
 
             f = (x**2*sin(1/x)).function(x)
             g1 = plot(f(x), (x, -2, 2), axes_labels=['$x$', '$y$'])
-            g2 = plot(f(x), (x, -0.05, 0.05), axes_labels=['$x$', '$y$'], \
+            g2 = plot(f(x), (x, -0.3, 0.3), axes_labels=['$x$', '$y$'], \
                       frame=True)
             sphinx_plot(g1.inset(g2, pos=(0.2, 0.68, 0.25, 0.25), fontsize=8))
+
+        We can add another inset by invoking ``inset`` on the last output::
+
+            sage: g1g2 = _
+            sage: g3 = plot(f(x), (x, -0.05, 0.05), axes_labels=['$x$', '$y$'],
+            ....:           frame=True)
+            sage: g1g2.inset(g3, pos=(0.68, 0.15, 0.25, 0.25))
+            Multigraphics with 3 elements
+
+        .. PLOT::
+
+            f = (x**2*sin(1/x)).function(x)
+            g1 = plot(f(x), (x, -2, 2), axes_labels=['$x$', '$y$'])
+            g2 = plot(f(x), (x, -0.3, 0.3), axes_labels=['$x$', '$y$'], \
+                      frame=True)
+            g1g2 = g1.inset(g2, pos=(0.2, 0.68, 0.25, 0.25), fontsize=8)
+            g3 = plot(f(x), (x, -0.05, 0.05), axes_labels=['$x$', '$y$'], \
+                      frame=True)
+            sphinx_plot(g1g2.inset(g3, pos=(0.68, 0.15, 0.25, 0.25)))
 
         """
         from matplotlib import rcParams

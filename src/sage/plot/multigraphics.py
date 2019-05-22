@@ -565,6 +565,50 @@ class MultiGraphics(WithEqualityById, SageObject):
 
         """
         return self
+
+    def inset(self, graphics, pos=None, fontsize=None):
+        r"""
+        Add a graphics object as an inset.
+
+        INPUT:
+
+        - ``graphics`` -- the graphics object (instance of :class:`Graphics`)
+          to be added as an inset
+
+        - ``pos`` -- (default: ``None``) 4-tupe ``(left, bottom, width, height)``
+          specifying the location and size of the inset on the figure, all
+          quantities being in fractions of the figure width and height; if
+          ``None``, the value ``(0.70, 068, 0.2, 0.2)`` is used
+
+        - ``fontsize`` -- (default: ``None``)  integer, font size (in points)
+          for the inset; if ``None``, the value of 6 points is used, unless
+          ``fontsize`` has been explicitely set in the construction of
+          ``graphics`` (in this case, it is not overwritten here)
+
+        OUTPUT:
+
+        - instance of :class:`~sage.plot.multigraphics.MultiGraphics`
+
+        EXAMPLES:
+
+        """
+        from matplotlib import rcParams
+        if pos is None:
+            width = 0.2
+            height = 0.2
+            left = rcParams['figure.subplot.right'] - width
+            bottom = rcParams['figure.subplot.top'] - height
+            pos = (left, bottom, width, height)
+        if fontsize is not None:
+            graphics._extra_kwds['fontsize'] = fontsize
+        elif 'fontsize' not in graphics._extra_kwds:
+            graphics._extra_kwds['fontsize'] = 6
+
+        resu = MultiGraphics([(self[i], self.position(i))
+                              for i in range(len(self))])
+        resu.append(graphics, pos=pos)
+        return resu
+
     #
     # Methods to reimplement in derived classes:
     #
@@ -619,6 +663,12 @@ class MultiGraphics(WithEqualityById, SageObject):
         return figure.add_axes(self._positions[index], label=str(index),
                                **options)
 
+    def position(self, index):
+        r"""
+        Return the position of an element of ``self``
+        """
+        return self._positions[index]
+
     def append(self, graphics, pos=None):
         r"""
         Append a graphics object to ``self``.
@@ -633,7 +683,7 @@ class MultiGraphics(WithEqualityById, SageObject):
           quantities being in fractions of the canvas width and height; if
           ``None``, ``graphics`` is assumed to occupy the whole canvas, except
           for some padding; this corresponds to the default position
-        ``(left, bottom, width, height) = (0.125, 0.11, 0.775, 0.77)``
+          ``(left, bottom, width, height) = (0.125, 0.11, 0.775, 0.77)``
 
         """
         from matplotlib import rcParams
@@ -653,46 +703,6 @@ class MultiGraphics(WithEqualityById, SageObject):
         self._glist.append(graphics)
         self._positions.append(pos)
 
-    def inset(self, graphics, pos=None, fontsize=None):
-        r"""
-        Add a graphics object as an inset.
-
-        INPUT:
-
-        - ``graphics`` -- the graphics object (instance of :class:`Graphics`)
-          to be added as an inset
-
-        - ``pos`` -- (default: ``None``) 4-tupe ``(left, bottom, width, height)``
-          specifying the location and size of the inset on the figure, all
-          quantities being in fractions of the figure width and height; if
-          ``None``, the value ``(0.70, 068, 0.2, 0.2)`` is used
-
-        - ``fontsize`` -- (default: ``None``)  integer, font size (in points)
-          for the inset; if ``None``, the value of 6 points is used, unless
-          ``fontsize`` has been explicitely set in the construction of
-          ``graphics`` (in this case, it is not overwritten here)
-
-        OUTPUT:
-
-        - instance of :class:`~sage.plot.multigraphics.MultiGraphics`
-
-        EXAMPLES::
-
-        """
-        from matplotlib import rcParams
-        if pos is None:
-            width = 0.2
-            height = 0.2
-            left = rcParams['figure.subplot.right'] - width
-            bottom = rcParams['figure.subplot.top'] - height
-            pos = (left, bottom, width, height)
-        if fontsize is not None:
-            graphics._extra_kwds['fontsize'] = fontsize
-        elif 'fontsize' not in graphics._extra_kwds:
-            graphics._extra_kwds['fontsize'] = 6
-        resu = MultiGraphics(zip(self._glist, self._positions))
-        resu.append(graphics, pos=pos)
-        return resu
 
 # ****************************************************************************
 
@@ -1036,3 +1046,19 @@ class GraphicsArray(MultiGraphics):
         # Not clear if there is a way to do this
         raise NotImplementedError('Appending to a graphics array is not '
                                   'yet implemented')
+
+    def position(self, index):
+        r"""
+        Return the position of an element of ``self``
+        """
+        if not self._positions:
+            # self._positions must be generated, by invoking get_position() on
+            # each of the Axes of the Matplotlib figure corresponding to self:
+            from matplotlib.backends.backend_agg import FigureCanvasAgg
+            figure = self.matplotlib()
+            figure.set_canvas(FigureCanvasAgg(figure))
+            figure.tight_layout()
+            axes = figure.get_axes()
+            self._positions = [ax.get_position().bounds for ax in axes]
+        return self._positions[index]
+

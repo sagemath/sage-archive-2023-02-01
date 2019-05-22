@@ -2985,8 +2985,8 @@ class SetPartitions_setparts(SetPartitions_set):
             sage: SetPartitions(3, [2,1]).list()
             [{{1}, {2, 3}}, {{1, 2}, {3}}, {{1, 3}, {2}}]
 
-            sage: sorted(SetPartitions(["a", "b", "c"], [2,1]), key=str)
-            [{{'a', 'b'}, {'c'}}, {{'a', 'c'}, {'b'}}, {{'a'}, {'b', 'c'}}]
+            sage: SetPartitions(["a", "b", "c"], [2,1]).list()
+            [{{'a'}, {'b', 'c'}}, {{'a', 'b'}, {'c'}}, {{'a', 'c'}, {'b'}}]
 
         TESTS::
 
@@ -2998,8 +2998,11 @@ class SetPartitions_setparts(SetPartitions_set):
         # Ruskey, Combinatorial Generation, sec. 5.10.1 and Knuth TAOCP 4A 7.2.1.5, Exercise 6
         k = len(self._parts)
         n = len(self._set)
-        s = list(self._set)
         P = self._set_partition_poset()
+        try:
+            s = sorted(self._set)
+        except:
+            s = sorted(self._set, key=str)
 
         sums = [0]
         for b in sorted(self._parts):

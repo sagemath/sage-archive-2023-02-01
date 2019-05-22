@@ -2178,6 +2178,30 @@ class FunctionFieldIdealInfinite_rational(FunctionFieldIdealInfinite):
         """
         return hash( (self.ring(), self._gen) )
 
+    def __contains__(self, element):
+        """
+        Test if ``element`` is in this ideal.
+
+        INPUT:
+
+        - ``element`` -- element of the function field
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: O = K.maximal_order_infinite()
+            sage: I = O.ideal(1/(x+1))
+            sage: x in I
+            False
+            sage: 1/x in I
+            True
+            sage: x/(x+1) in I
+            False
+            sage: 1/(x*(x+1)) in I
+            True
+        """
+        return (element / self._gen) in self._ring
+
     def _richcmp_(self, other, op):
         """
         Compare this ideal and ``other`` with respect to ``op``.
@@ -2565,6 +2589,31 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
             sage: d = { I: 1 }
         """
         return hash((self.ring(), self._ideal))
+
+    def __contains__(self, x):
+        """
+        Return ``True`` if ``x`` is in this ideal.
+
+        INPUT:
+
+        - ``x`` -- element of the function field
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(3^2)); _.<t> = PolynomialRing(K)
+            sage: F.<y> = K.extension(t^3 + t^2 - x^4)
+            sage: Oinf = F.maximal_order_infinite()
+            sage: I = Oinf.ideal(1/y)
+            sage: 1/y in I
+            True
+            sage: 1/x in I
+            False
+            sage: 1/x^2 in I
+            True
+        """
+        F = self.ring().fraction_field()
+        iF,from_iF,to_iF = F._inversion_isomorphism()
+        return to_iF(x) in self._ideal
 
     def _add_(self, other):
         """

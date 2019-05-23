@@ -257,10 +257,10 @@ We can put text in a graph::
 
     sage: L = [[cos(pi*i/100)^3,sin(pi*i/100)] for i in range(200)]
     sage: p = line(L, rgbcolor=(1/4,1/8,3/4))
-    sage: t = text('A Bulb', (1.5, 0.25))
-    sage: x = text('x axis', (1.5,-0.2))
-    sage: y = text('y axis', (0.4,0.9))
-    sage: g = p+t+x+y
+    sage: tt = text('A Bulb', (1.5, 0.25))
+    sage: tx = text('x axis', (1.5,-0.2))
+    sage: ty = text('y axis', (0.4,0.9))
+    sage: g = p + tt + tx + ty
     sage: g.show(xmin=-1.5, xmax=2, ymin=-1, ymax=1)
 
 .. PLOT::
@@ -277,9 +277,23 @@ We can put text in a graph::
     g.ymax(1)
     sphinx_plot(g)
 
+We can add a graphics object to another one as an inset::
+
+    sage: g1 = plot(x^2*sin(1/x), (x, -2, 2), axes_labels=['$x$', '$y$'])
+    sage: g2 = plot(x^2*sin(1/x), (x, -0.3, 0.3), axes_labels=['$x$', '$y$'],
+    ....:           frame=True)
+    sage: g1.inset(g2, pos=(0.18, 0.68, 0.25, 0.25))
+    Multigraphics with 2 elements
+
+.. PLOT::
+
+    g1 = plot(x**2*sin(1/x), (x, -2, 2), axes_labels=['$x$', '$y$'])
+    g2 = plot(x**2*sin(1/x), (x, -0.3, 0.3), axes_labels=['$x$', '$y$'], \
+              frame=True)
+    sphinx_plot(g1.inset(g2, pos=(0.18, 0.68, 0.25, 0.25)))
+
 We can add a title to a graph::
 
-    sage: x = var('x')
     sage: plot(x^2, (x,-2,2), title='A plot of $x^2$')
     Graphics object consisting of 1 graphics primitive
 
@@ -545,6 +559,8 @@ AUTHORS:
 - Aaron Lauve (2016-07-13): reworked handling of 'color' when passed
   a list of functions; now more in-line with other CAS's. Added list functionality
   to linestyle and legend_label options as well. (:trac:`12962`)
+
+- Eric Gourgoulhon (2019-04-24): add :func:`multi_graphics` and insets
 """
 #*****************************************************************************
 #       Copyright (C) 2006 Alex Clemesha <clemesha@gmail.com>

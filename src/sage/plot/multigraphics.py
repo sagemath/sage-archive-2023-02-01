@@ -11,7 +11,7 @@ The subclass :class:`GraphicsArray` is for
 
 AUTHORS:
 
-- Eric Gourgoulhon (2019-05-14): initial version, refactoring the class
+- Eric Gourgoulhon (2019-05-24): initial version, refactoring the class
   ``GraphicsArray`` that was defined in the module :mod:`~sage.plot.graphics`.
 
 """
@@ -44,7 +44,7 @@ class MultiGraphics(WithEqualityById, SageObject):
 
       - a pair ``(graphics, position)``, where ``graphics`` is a
         :class:`~sage.plot.graphics.Graphics` object and ``position`` is the
-        4-tupe ``(left, bottom, width, height)`` specifying the location and
+        4-tuple ``(left, bottom, width, height)`` specifying the location and
         size of the graphics on the canvas, all quantities being in fractions
         of the canvas width and height
 
@@ -514,7 +514,7 @@ class MultiGraphics(WithEqualityById, SageObject):
 
         EXAMPLES::
 
-            sage: plots = [[plot(m*cos(x + n*pi/4), (x,0, 2*pi))
+            sage: plots = [[plot(m*cos(x + n*pi/4), (x, 0, 2*pi))
             ....:           for n in range(3)] for m in range(1,3)]
             sage: G = graphics_array(plots)
             sage: G.save_image(tmp_filename(ext='.png'))
@@ -647,10 +647,11 @@ class MultiGraphics(WithEqualityById, SageObject):
         - ``graphics`` -- the graphics object (instance of :class:`Graphics`)
           to be added as an inset
 
-        - ``pos`` -- (default: ``None``) 4-tupe ``(left, bottom, width, height)``
-          specifying the location and relative size of the inset on the canvas,
-          all quantities being expressed in fractions of the canvas width and
-          height; if ``None``, the value ``(0.70, 068, 0.2, 0.2)`` is used
+        - ``pos`` -- (default: ``None``) 4-tuple
+          ``(left, bottom, width, height)`` specifying the location and
+          relative size of the inset on the canvas, all quantities being
+          expressed in fractions of the canvas width and height; if ``None``,
+          the value ``(0.70, 068, 0.2, 0.2)`` is used
 
         - ``fontsize`` -- (default: ``None``)  integer, font size (in points)
           for the inset; if ``None``, the value of 6 points is used, unless
@@ -764,6 +765,33 @@ class MultiGraphics(WithEqualityById, SageObject):
 
         - a Matplotlib ``Axes`` object
 
+        EXAMPLES::
+
+            sage: g0 = circle((0,0), 1)
+            sage: g1 = plot(sin)
+            sage: G = multi_graphics([g0, (g1, (0.2, 0.3, 0.4, 0.1))])
+            sage: from matplotlib.figure import Figure
+            sage: fig = Figure()
+            sage: fig
+            <Figure size 640x480 with 0 Axes>
+            sage: ax0 = G._add_subplot(fig, 0)
+            sage: type(ax0)
+            <class 'matplotlib.axes._axes.Axes'>
+            sage: fig
+            <Figure size 640x480 with 1 Axes>
+            sage: ax1 = G._add_subplot(fig, 1)
+            sage: fig
+            <Figure size 640x480 with 2 Axes>
+
+        TESTS::
+
+            sage: [ax0, ax1] == fig.get_axes()
+            True
+            sage: G.position(1)
+            (0.2, 0.3, 0.4, 0.1)
+            sage: ax1.get_position().bounds  # tol 1.0e-13
+            (0.2, 0.3, 0.4000000000000001, 0.10000000000000003)
+
         """
         # Note: using label=str(index) ensures that a new Axes is generated
         # for each element of ``self``, even if some elements share the same
@@ -808,12 +836,78 @@ class MultiGraphics(WithEqualityById, SageObject):
         - ``graphics`` -- the graphics object (instance of :class:`Graphics`)
           to be added to ``self``
 
-        - ``pos`` -- (default: ``None``) 4-tupe ``(left, bottom, width, height)``
-          specifying the location and size of ``graphics`` on the canvas, all
-          quantities being in fractions of the canvas width and height; if
-          ``None``, ``graphics`` is assumed to occupy the whole canvas, except
-          for some padding; this corresponds to the default position
+        - ``pos`` -- (default: ``None``) 4-tuple
+          ``(left, bottom, width, height)`` specifying the location and size
+          of ``graphics`` on the canvas, all quantities being in fractions of
+          the canvas width and height; if ``None``, ``graphics`` is assumed to
+          occupy the whole canvas, except for some padding; this corresponds to
+          the default position
           ``(left, bottom, width, height) = (0.125, 0.11, 0.775, 0.77)``
+
+        EXAMPLES:
+
+        Let us consider a multigraphics with 2 elements::
+
+            sage: g1 = plot(chebyshev_T(4, x), (x, -1, 1), title='n=4')
+            sage: g2 = plot(chebyshev_T(8, x), (x, -1, 1), title='n=8',
+            ....:           color='red')
+            sage: G = multi_graphics([(g1, (0.125, 0.2, 0.4, 0.4)),
+            ....:                     (g2, (0.55, 0.4, 0.4, 0.4))])
+            sage: G
+            Multigraphics with 2 elements
+
+        .. PLOT::
+
+            g1 = plot(chebyshev_T(4, x), (x, -1, 1), title='n=4')
+            g2 = plot(chebyshev_T(8, x), (x, -1, 1), title='n=8', color='red')
+            G = multi_graphics([(g1, (0.125, 0.2, 0.4, 0.4)), \
+                                (g2, (0.55, 0.4, 0.4, 0.4))])
+            sphinx_plot(G)
+
+        We append a third plot to it::
+
+            sage: g3 = plot(chebyshev_T(16, x), (x, -1, 1), title='n=16',
+            ....:           color='brown')
+            sage: G.append(g3, pos=(0.55, 0.11, 0.4, 0.15))
+            sage: G
+            Multigraphics with 3 elements
+
+        .. PLOT::
+
+            g1 = plot(chebyshev_T(4, x), (x, -1, 1), title='n=4')
+            g2 = plot(chebyshev_T(8, x), (x, -1, 1), title='n=8', color='red')
+            G = multi_graphics([(g1, (0.125, 0.2, 0.4, 0.4)), \
+                                (g2, (0.55, 0.4, 0.4, 0.4))])
+            g3 = plot(chebyshev_T(16, x), (x, -1, 1), title='n=16', \
+                      color='brown')
+            G.append(g3, pos=(0.55, 0.11, 0.4, 0.15))
+            sphinx_plot(G)
+
+        We may use ``append`` to add a title::
+
+            sage: title = text("Chebyshev polynomials", (0, 0), fontsize=16,
+            ....:              axes=False)
+            sage: G.append(title, pos=(0.18, 0.8, 0.7, 0.1))
+            sage: G
+            Multigraphics with 4 elements
+
+        .. PLOT::
+
+            g1 = plot(chebyshev_T(4, x), (x, -1, 1), title='n=4')
+            g2 = plot(chebyshev_T(8, x), (x, -1, 1), title='n=8', color='red')
+            G = multi_graphics([(g1, (0.125, 0.2, 0.4, 0.4)), \
+                                (g2, (0.55, 0.4, 0.4, 0.4))])
+            g3 = plot(chebyshev_T(16, x), (x, -1, 1), title='n=16', \
+                      color='brown')
+            G.append(g3, pos=(0.55, 0.11, 0.4, 0.15))
+            title = text("Chebyshev polynomials", (0, 0), fontsize=16, \
+                         axes=False)
+            G.append(title, pos=(0.18, 0.8, 0.7, 0.1))
+            sphinx_plot(G)
+
+        .. SEEALSO::
+
+            :meth:`inset`
 
         """
         from matplotlib import rcParams
@@ -1081,6 +1175,7 @@ class GraphicsArray(MultiGraphics):
             'Graphics Array of size 2 x 3'
             sage: str(G)
             'Graphics Array of size 2 x 3'
+
         """
         return "Graphics Array of size {} x {}".format(self._rows, self._cols)
 
@@ -1107,12 +1202,12 @@ class GraphicsArray(MultiGraphics):
             sage: c = circle((0,0), 1)
             sage: G = graphics_array([c, c])
             sage: from matplotlib.figure import Figure
-            sage: figure = Figure()
-            sage: ax1 = G._add_subplot(figure, 0)
+            sage: fig = Figure()
+            sage: ax1 = G._add_subplot(fig, 0)
             sage: type(ax1)
             <class 'matplotlib.axes._subplots.AxesSubplot'>
-            sage: ax2 = G._add_subplot(figure, 1)
-            sage: figure.get_axes() == [ax1, ax2]
+            sage: ax2 = G._add_subplot(fig, 1)
+            sage: fig.get_axes() == [ax1, ax2]
             True
 
         """
@@ -1222,4 +1317,3 @@ class GraphicsArray(MultiGraphics):
             axes = figure.get_axes()
             self._positions = [ax.get_position().bounds for ax in axes]
         return self._positions[index]
-

@@ -17,7 +17,7 @@ AUTHORS:
 
 - Eric Gourgoulhon (2015-03-19): Add parameter axes_labels_size (:trac:`18004`)
 
-- Eric Gourgoulhon (2019-05-18): :class:`~sage.plot.multigraphics.GraphicsArray`
+- Eric Gourgoulhon (2019-05-24): :class:`~sage.plot.multigraphics.GraphicsArray`
   moved to new module :mod:`~sage.plot.multigraphics`; various improvements and
   fixes in :meth:`Graphics.matplotlib` and ``Graphics._set_scale``; new method
   :meth:`Graphics.inset`

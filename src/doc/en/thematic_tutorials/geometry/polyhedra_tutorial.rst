@@ -228,20 +228,8 @@ It is not possible to define a polyhedron over it:
     sage: sqrt_2s = sqrt(2)
     sage: cbrt_2s = 2^(1/3)
     sage: Polyhedron(vertices = [[sqrt_2s, 0], [0, cbrt_2s]])
-    <BLANKLINE>
     Traceback (most recent call last):
-      File "/Users/mkoeppe/s/sage/sage-rebasing/worktree-algebraic-2018-spring/local/lib/python2.7/site-packages/sage/doctest/forker.py", line 671, in _run
-        self.compile_and_execute(example, compiler, test.globs)
-      File "/Users/mkoeppe/s/sage/sage-rebasing/worktree-algebraic-2018-spring/local/lib/python2.7/site-packages/sage/doctest/forker.py", line 1095, in compile_and_execute
-        exec(compiled, globs)
-      File "<doctest doc.en.thematic_tutorials.geometry.polyhedra_tutorial[28]>", line 1, in <module>
-        Polyhedron(vertices = [[sqrt_2s, Integer(0)], [Integer(0), cbrt_2s]])
-      File "sage/misc/lazy_import.pyx", line 354, in sage.misc.lazy_import.LazyImport.__call__ (build/cythonized/sage/misc/lazy_import.c:3690)
-        return self.get_object()(*args, **kwds)
-      File "/Users/mkoeppe/s/sage/sage-rebasing/worktree-algebraic-2018-spring/local/lib/python2.7/site-packages/sage/geometry/polyhedron/constructor.py", line 596, in Polyhedron
-        parent = Polyhedra(base_ring, ambient_dim, backend=backend)
-      File "/Users/mkoeppe/s/sage/sage-rebasing/worktree-algebraic-2018-spring/local/lib/python2.7/site-packages/sage/geometry/polyhedron/parent.py", line 104, in Polyhedra
-        raise ValueError("no default backend for computations with {}".format(base_ring))
+    ...
     ValueError: no default backend for computations with Symbolic Ring
 
 .. end of output
@@ -578,20 +566,8 @@ but not algebraic or symbolic values:
     ValueError: No such backend (=cdd) implemented for given basering (=Algebraic Real Field).
 
     sage: P5_cdd = Polyhedron(vertices = [[sqrt_2s, 0], [0, cbrt_2s]], backend='cdd')
-    <BLANKLINE>
     Traceback (most recent call last):
-      File "/Users/mkoeppe/s/sage/sage-rebasing/worktree-algebraic-2018-spring/local/lib/python2.7/site-packages/sage/doctest/forker.py", line 671, in _run
-        self.compile_and_execute(example, compiler, test.globs)
-      File "/Users/mkoeppe/s/sage/sage-rebasing/worktree-algebraic-2018-spring/local/lib/python2.7/site-packages/sage/doctest/forker.py", line 1095, in compile_and_execute
-        exec(compiled, globs)
-      File "<doctest doc.en.thematic_tutorials.geometry.polyhedra_tutorial[81]>", line 1, in <module>
-        P5_cdd = Polyhedron(vertices = [[sqrt_2s, Integer(0)], [Integer(0), cbrt_2s]], backend='cdd')
-      File "sage/misc/lazy_import.pyx", line 354, in sage.misc.lazy_import.LazyImport.__call__ (build/cythonized/sage/misc/lazy_import.c:3690)
-        return self.get_object()(*args, **kwds)
-      File "/Users/mkoeppe/s/sage/sage-rebasing/worktree-algebraic-2018-spring/local/lib/python2.7/site-packages/sage/geometry/polyhedron/constructor.py", line 596, in Polyhedron
-        parent = Polyhedra(base_ring, ambient_dim, backend=backend)
-      File "/Users/mkoeppe/s/sage/sage-rebasing/worktree-algebraic-2018-spring/local/lib/python2.7/site-packages/sage/geometry/polyhedron/parent.py", line 128, in Polyhedra
-        ') implemented for given basering (=' + str(base_ring)+').')
+    ...
     ValueError: No such backend (=cdd) implemented for given basering (=Symbolic Ring).
 
 .. end of output

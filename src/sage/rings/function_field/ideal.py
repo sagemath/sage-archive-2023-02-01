@@ -216,7 +216,7 @@ class FunctionFieldIdeal(Element):
         return "Ideal %s of %s" % (self._repr_short(), self.ring())
 
     def _latex_(self):
-        """
+        r"""
         Return the LaTeX representation of the ideal.
 
         EXAMPLES::
@@ -226,7 +226,7 @@ class FunctionFieldIdeal(Element):
             sage: O = L.maximal_order()
             sage: I = O.ideal(y)
             sage: latex(I)
-            \left(x, y\right)
+            \left(y\right)
         """
         return '\\left(' + ', '.join(latex(g) for g in self.gens_reduced()) + '\\right)'
 

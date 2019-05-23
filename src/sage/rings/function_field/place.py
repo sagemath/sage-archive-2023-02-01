@@ -140,16 +140,16 @@ class FunctionFieldPlace(Element):
         return "Place ({})".format(gens_str)
 
     def _latex_(self):
-        """
+        r"""
         Return the LaTeX representation of the place.
 
         EXAMPLES::
 
-            sage: K.<x>=FunctionField(GF(2)); _.<Y>=K[]
-            sage: L.<y>=K.extension(Y^3+x+x^3*Y)
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3+x+x^3*Y)
             sage: p = L.places_finite()[0]
             sage: latex(p)
-            \left(x, y\right)
+            \left(y\right)
         """
         return self._prime._latex_()
 

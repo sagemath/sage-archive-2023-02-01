@@ -666,9 +666,8 @@ class Posets(object):
             return LatticePoset(facade=facade)
         from sage.categories.cartesian_product import cartesian_product
         elements = cartesian_product([range(i) for i in l])
-        compare = lambda a,b : all(x <= y for x, y in zip(a ,b))
+        compare = lambda a, b: all(x <= y for x, y in zip(a, b))
         return LatticePoset([elements, compare], facade=facade)
-
 
     @staticmethod
     def RandomPoset(n, p):
@@ -1632,8 +1631,9 @@ class Posets(object):
         bottom = P(bottom)
         if not top.has_pattern(bottom):
             raise ValueError("{} doesn't contain {} as a pattern".format(top, bottom))
-        elem = [[top]] # Make a list of lists of elements in the interval divided by rank.
-                       # List will be flattened at the end
+        elem = [[top]]
+        # Make a list of lists of elements in the interval divided by rank.
+        # List will be flattened at the end
         level = 0    # Consider the top element to be level 0, and then go down from there.
         rel = []     # List of covering relations to be fed into poset constructor.
         while len(top) - len(bottom) >= level + 1:

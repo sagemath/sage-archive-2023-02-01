@@ -386,7 +386,7 @@ class IsogenyClass_EC(SageObject):
         .. note::
 
             There are only finitely many possible isogeny graphs for
-            curves over `\QQ` [M78].  This function tries to lay out
+            curves over `\QQ` [Maz1978b].  This function tries to lay out
             the graph nicely by special casing each isogeny graph.
             This could also be done over other number fields, such as
             quadratic fields.
@@ -402,11 +402,6 @@ class IsogenyClass_EC(SageObject):
             sage: G = isocls.graph()
             sage: sorted(G._pos.items())
             [(1, [-0.8660254, 0.5]), (2, [-0.8660254, 1.5]), (3, [-1.7320508, 0]), (4, [0, 0]), (5, [0, -1]), (6, [0.8660254, 0.5]), (7, [0.8660254, 1.5]), (8, [1.7320508, 0])]
-
-        REFERENCES:
-
-        .. [M78] \B. Mazur.  Rational Isogenies of Prime Degree.
-          *Inventiones mathematicae* 44,129-162 (1978).
         """
         from sage.graphs.graph import Graph
 

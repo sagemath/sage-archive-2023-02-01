@@ -2987,6 +2987,37 @@ class NCPolynomialIdeal(MPolynomialIdeal_singular_repr, Ideal_nc):
         return self.ring().ideal( self.__call_singular('std'), side=self.side())
 #        return self.__call_singular('std')
 
+    def elimination_ideal(self, variables):
+        r"""
+        Return the elimination ideal of this ideal with respect to the
+        variables given in "variables".
+
+        EXAMPLES::
+
+            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
+            sage: H = A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
+            sage: H.inject_variables()
+            Defining x, y, z
+            sage: I = H.ideal([y^2, x^2, z^2-H.one()],coerce=False)
+            sage: I.elimination_ideal([x, z])
+            Left Ideal (y^2) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {...}
+            sage: J = I.twostd()
+            sage: J
+            Twosided Ideal (z^2 - 1, y*z - y, x*z + x, y^2, 2*x*y - z - 1, x^2) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {...}
+            sage: J.elimination_ideal([x, z])
+            Twosided Ideal (y^2) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {...}
+
+
+        ALGORITHM: Uses Singular's eliminate command
+        """
+        from sage.misc.misc_c import prod
+        if self.side() == 'twosided':
+            J = self.twostd()
+        else:
+            J = self
+        return J.ring().ideal(J.__call_singular('eliminate', prod(variables)), side=self.side())
+#        return self.__call_singular('std')
+
     @cached_method
     def twostd(self):
         r"""

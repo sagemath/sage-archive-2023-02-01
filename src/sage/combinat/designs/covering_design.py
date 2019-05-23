@@ -524,8 +524,13 @@ def best_known_covering_design_www(v, k, t, verbose=False):
     url = "https://ljcr.dmgordon.org/cover/get_cover.php" + param
     if verbose:
         print("Looking up the bounds at %s" % url)
-    with urlopen(url) as f:
+
+    f = urlopen(url)
+    try:
         s = bytes_to_str(f.read())
+    finally:
+        f.close()
+
     if 'covering not in database' in s:  # not found
         str = "no (%d, %d, %d) covering design in database\n" % (v, k, t)
         raise ValueError(str)

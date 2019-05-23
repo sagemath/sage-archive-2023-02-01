@@ -3353,7 +3353,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             [2, 3]
             sage: E.reducible_primes()
             [2, 3]
-            sage: E = EllipticCurve_from_j(K(2268945/128)).global_minimal_model() # c.f. [Sutherland12]
+            sage: E = EllipticCurve_from_j(K(2268945/128)).global_minimal_model() # c.f. [Sut2012]
             sage: rho = E.galois_representation()
             sage: rho.isogeny_bound() # ... but there is no 7-isogeny ...
             [7]

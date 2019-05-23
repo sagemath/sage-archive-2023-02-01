@@ -1512,7 +1512,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
         Returns the `n^{th}` torsion (division) polynomial, without
         the 2-torsion factor if `n` is even, as a polynomial in `x`.
 
-        These are the polynomials `g_n` defined in [MazurTate1991]_, but with
+        These are the polynomials `g_n` defined in [MT1991]_, but with
         the sign flipped for even `n`, so that the leading coefficient is
         always positive.
 
@@ -1532,7 +1532,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
 
         -  ``n`` - positive integer, or the special values ``-1`` and ``-2``
            which mean `B_6 = (2y + a_1 x + a_3)^2` and `B_6^2` respectively (in
-           the notation of [MazurTate1991]_); or a list of integers.
+           the notation of [MT1991]_); or a list of integers.
 
         -  ``x`` - a ring element to use as the "x" variable or ``None``
            (default: ``None``). If ``None``, then a new polynomial ring will
@@ -1544,7 +1544,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
 
         ALGORITHM:
 
-        Recursion described in [MazurTate1991]_. The recursive
+        Recursion described in [MT1991]_. The recursive
         formulae are evaluated `O(\log^2 n)` times.
 
         AUTHORS:
@@ -1552,11 +1552,6 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
         - David Harvey (2006-09-24): initial version
 
         - John Cremona (2008-08-26): unified division polynomial code
-
-        REFERENCES:
-
-        .. [MazurTate1991] Mazur, B., & Tate, J. (1991). The `p`-adic sigma
-           function. Duke Mathematical Journal, 62(3), 663-688.
 
         EXAMPLES::
 
@@ -1869,13 +1864,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
            denominator (:meth:`_multiple_x_denominator`). Be careful. E.g. if
            a point on an elliptic curve with coefficients in `\ZZ` reduces to
            a singular point modulo a prime, then there will be cancellation,
-           otherwise not, see [Wuthrich2004]_.
-
-        REFERENCES:
-
-        .. [Wuthrich2004] Wuthrich, C. (2004). On p-adic heights in families of
-        elliptic curves. Journal of the London Mathematical Society, 70(1),
-        23-40.
+           otherwise not, see [Wu2004]_.
 
         .. SEEALSO::
 

@@ -79,10 +79,7 @@ We test that bug :trac:`8415` (caused by a PARI bug fixed in v2.3.5) is OK::
 
 REFERENCES:
 
-.. [CT] \J. E. Cremona and T. Thongjunthug, The Complex AGM, periods of
-   elliptic curves over `\CC` and complex elliptic logarithms.
-   Journal of Number Theory Volume 133, Issue 8, August 2013, pages
-   2813-2841.
+- [CT2013]_
 
 
 AUTHORS:
@@ -1245,7 +1242,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         ALGORITHM:
 
-        Uses the complex AGM.  See [CT]_ for details.
+        Uses the complex AGM.  See [CT2013]_ for details.
 
         EXAMPLES::
 
@@ -1438,7 +1435,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         ALGORITHM:
 
-        Uses the complex AGM.  See [CT]_ for details.
+        Uses the complex AGM.  See [CT2013]_ for details.
 
         EXAMPLES::
 

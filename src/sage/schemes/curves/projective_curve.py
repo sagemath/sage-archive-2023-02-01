@@ -449,7 +449,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
         r"""
         Return the arithmetic genus of this projective curve.
 
-        This is the arithmetic genus `g_a(C)` as defined in [Hartshorne]_. If `P` is the
+        This is the arithmetic genus `g_a(C)` as defined in [Har1977]_. If `P` is the
         Hilbert polynomial of the defining ideal of this curve, then the arithmetic genus
         of this curve is `1 - P(0)`. This curve must be irreducible.
 
@@ -545,7 +545,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         r"""
         Return the arithmetic genus of this projective curve.
 
-        This is the arithmetic genus `g_a(C)` as defined in [Hartshorne]_. For a projective
+        This is the arithmetic genus `g_a(C)` as defined in [Har1977]_. For a projective
         plane curve of degree `d`, this is simply `(d-1)(d-2)/2`. It need *not* equal
         the geometric genus (the genus of the normalization of the curve). This curve must be
         irreducible.
@@ -568,10 +568,6 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             sage: C = Curve([y^3*x - x^2*y*z - 7*z^4])
             sage: C.arithmetic_genus()
             3
-
-        REFERENCES:
-
-        ..  [Hartshorne] \R. Hartshorne. Algebraic Geometry. Springer-Verlag, New York, 1977.
         """
         if not self.is_irreducible():
             raise TypeError("this curve must be irreducible")
@@ -1053,7 +1049,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         r"""
         Return a transformation of this curve into one in excellent position with respect to the point ``Q``.
 
-        Here excellent position is defined as in [Fulton89]_. A curve `C` of degree `d` containing the point
+        Here excellent position is defined as in [Ful1989]_. A curve `C` of degree `d` containing the point
         `(0 : 0 : 1)` with multiplicity `r` is said to be in excellent position if none of the coordinate lines
         are tangent to `C` at any of the fundamental points `(1 : 0 : 0)`, `(0 : 1 : 0)`, and `(0 : 0 : 1)`, and
         if the two coordinate lines containing `(0 : 0 : 1)` intersect `C` transversally in `d - r` distinct
@@ -1128,11 +1124,6 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             (-2.828427124746190?)*x^3 + (-2)*x^2*y + 2*y^3 + (-2)*x^2*z + 2*y^2*z
               Defn: Defined on coordinates by sending (x : y : z) to
                     (1/2*x + 1/2*y : (-1/2)*x + 1/2*y : 1/2*x + (-1/2)*y + z)
-
-        REFERENCES:
-
-        ..  [Fulton89] \W. Fulton. Algebraic curves: an introduction to algebraic geometry. Addison-Wesley,
-            Redwood City CA (1989).
         """
         PP = self.ambient_space()
         # check that Q is on this curve

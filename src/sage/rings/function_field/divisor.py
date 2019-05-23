@@ -223,12 +223,7 @@ class FunctionFieldDivisor(ModuleElement):
             'Place (1/x, 1/x^4*y^2 + 1/x^2*y + 1) + Place (1/x, 1/x^2*y + 1)
             + 3*Place (x, (1/(x^3 + x^2 + x))*y^2) - 6*Place (x + 1, y + 1)'
         """
-        if split:
-            cr = '\n'
-        else:
-            cr = ''
-
-        return self._format(repr, '*', cr)
+        return self._format(repr, '*', '\n' if split else '')
 
     def _latex_(self):
         """

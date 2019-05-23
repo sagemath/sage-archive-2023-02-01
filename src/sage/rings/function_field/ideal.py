@@ -91,6 +91,7 @@ import itertools
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.latex import latex
 from sage.misc.misc import powerset
 
 from sage.structure.parent import Parent
@@ -218,9 +219,6 @@ class FunctionFieldIdeal(Element):
         """
         Return the LaTeX representation of the ideal.
 
-        We use Stichtenoth's notation for the ideal: the generators
-        followed by a symbol for the ring, either O or Oinf.
-
         EXAMPLES::
 
             sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
@@ -228,18 +226,9 @@ class FunctionFieldIdeal(Element):
             sage: O = L.maximal_order()
             sage: I = O.ideal(y)
             sage: latex(I)
-            (y)\mathcal{O}
+            \left(x, y\right)
         """
-        gens_str = ', '.join(g._latex_() for g in self.gens_reduced())
-
-        # maybe we should have a better way to test this... like an
-        # order method called 'is_infinite'?
-
-        from .order import FunctionFieldOrderInfinite
-        if isinstance(self.ring(), FunctionFieldOrderInfinite):
-            return "({})\\mathcal{{O}}_\infty".format(gens_str)
-        else:
-            return "({})\\mathcal{{O}}".format(gens_str)
+        return '\\left(' + ', '.join(latex(g) for g in self.gens_reduced()) + '\\right)'
 
     def _div_(self, other):
         """

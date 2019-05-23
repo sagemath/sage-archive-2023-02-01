@@ -11,7 +11,7 @@ SAGE_SPKG_CONFIGURE([freetype], [
     if test x$sage_spkg_install_freetype = xyes; then
       AC_SUBST(SAGE_FREETYPE_PREFIX, ['$SAGE_LOCAL'])
     else
-      AC_SUBST(SAGE_FREETYPE_PREFIX, [yes])
+      AC_SUBST(SAGE_FREETYPE_PREFIX, [''])
     fi
 ])
 

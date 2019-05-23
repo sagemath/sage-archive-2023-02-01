@@ -14,11 +14,15 @@ if [ "$UNAME" = "CYGWIN" ]; then
     # https://trac.sagemath.org/ticket/27970
     LIBGD_CONFIGURE="--without-vpx $LIBGD_CONFIGURE"
 fi
+if [ -n "$SAGE_FREETYPE_PREFIX" ]; then
+    LIBGD_CONFIGURE="--with-freetype=$SAGE_FREETYPE_PREFIX $LIBGD_CONFIGURE"
+else
+    LIBGD_CONFIGURE="--with-freetype=yes $LIBGD_CONFIGURE"
+fi
 
 # We explicitly disable X and fontconfig support, since (1) X is not a SAGE dependency,
 # and (2) the gd build fails on a lot of OS X PPC machines when X is enabled.
 sdh_configure --without-jpeg --without-xpm --without-x --without-fontconfig \
-              --with-zlib="$SAGE_LOCAL" --with-freetype="$SAGE_FREETYPE_PREFIX" \
-              $LIBGD_CONFIGURE
+              --with-zlib="$SAGE_LOCAL" $LIBGD_CONFIGURE
 sdh_make
 sdh_make_install

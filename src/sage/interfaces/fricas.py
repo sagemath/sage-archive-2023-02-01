@@ -329,7 +329,7 @@ class FriCAS(ExtraTabCompletion, Expect):
 
     def _install_hints(self):
         """
-        Hints for installing Giac on your computer.
+        Hints for installing FriCAS on your computer.
 
         EXAMPLES::
 

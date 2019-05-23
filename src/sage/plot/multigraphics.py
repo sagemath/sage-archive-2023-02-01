@@ -55,6 +55,77 @@ class MultiGraphics(WithEqualityById, SageObject):
 
     EXAMPLES:
 
+    A multi-graphics made from two graphics objects::
+
+        sage: g1 = plot(sin(x^3), (x, -pi, pi))
+        sage: g2 = circle((0,0), 1, color='red')
+        sage: G = multi_graphics([g1, (g2, (0.2, 0.55, 0.3, 0.3))])
+        sage: G
+        Multigraphics with 2 elements
+
+    .. PLOT::
+
+        g1 = plot(sin(x**3), (x, -pi, pi))
+        g2 = circle((0,0), 1, color='red')
+        G = multi_graphics([g1, (g2, (0.2, 0.55, 0.3, 0.3))])
+        sphinx_plot(G)
+
+    Since no position was given for ``g1``, it occupies the whole canvas.
+    Moreover, we note that ``g2`` has been drawn over ``g1`` with a white
+    background. To have a transparent background instead, one has to construct
+    ``g2`` with the keyword ``transparent`` set to ``True``::
+
+        sage: g2 = circle((0,0), 1, color='red', transparent=True)
+        sage: G = multi_graphics([g1, (g2, (0.2, 0.55, 0.3, 0.3))])
+        sage: G
+        Multigraphics with 2 elements
+
+    .. PLOT::
+
+        g1 = plot(sin(x**3), (x, -pi, pi))
+        g2 = circle((0,0), 1, color='red', transparent=True)
+        G = multi_graphics([g1, (g2, (0.2, 0.55, 0.3, 0.3))])
+        sphinx_plot(G)
+
+    We can add a new graphics object to G via the method :meth:`append`::
+
+        sage: g3 = complex_plot(zeta, (-20, 10), (-20, 20),
+        ....:                   axes_labels=['$x$', '$y$'], frame=True)
+        sage: G.append(g3, pos=(0.63, 0.12, 0.3, 0.3))
+        sage: G
+        Multigraphics with 3 elements
+
+    .. PLOT::
+
+        g1 = plot(sin(x**3), (x, -pi, pi))
+        g2 = circle((0,0), 1, color='red', transparent=True)
+        G = multi_graphics([g1, (g2, (0.2, 0.55, 0.3, 0.3))])
+        g3 = complex_plot(zeta, (-20, 10), (-20, 20), \
+                          axes_labels=['$x$', '$y$'], frame=True)
+        G.append(g3, pos=(0.63, 0.12, 0.3, 0.3))
+        sphinx_plot(G)
+
+    We can access to the individual elements composing ``G`` with the
+    square-bracket operator::
+
+        sage: print(G[0])
+        Graphics object consisting of 1 graphics primitive
+        sage: G[0] is g1
+        True
+        sage: G[1] is g2
+        True
+        sage: G[2] is g3
+        True
+
+    ``G[:]`` returns the full list of graphics objects composing ``G``::
+
+        sage: G[:]
+        [Graphics object consisting of 1 graphics primitive,
+         Graphics object consisting of 1 graphics primitive,
+         Graphics object consisting of 1 graphics primitive]
+        sage: len(G)
+        3
+
     """
     def __init__(self, graphics_list):
         r"""
@@ -312,13 +383,15 @@ class MultiGraphics(WithEqualityById, SageObject):
             options.update(kwds)
             # We get rid of options that are not relevant for g.matplotlib():
             options.pop('dpi', None)
-            options.pop('transparent', None)
             options.pop('fig_tight', None)
+            transparent = options.pop('transparent', None)
             # Creating the Matplotlib Axes object "subplot" on the figure:
             subplot = self._add_subplot(figure, i)
             # and drawing g on it:
             g.matplotlib(figure=figure, sub=subplot, verify=do_verify,
                          **options)
+            if transparent:
+                subplot.set_facecolor('none')
         return figure
 
     def save(self, filename, figsize=None, **kwds):
@@ -552,14 +625,13 @@ class MultiGraphics(WithEqualityById, SageObject):
 
     def plot(self):
         r"""
-        Draw a 2D plot of this graphics object, which just returns this
-        object since this is already a 2D graphics object.
+        Return ``self`` since ``self`` is already a graphics object.
 
         EXAMPLES::
 
-            sage: g1 = plot(cos(20*x)*exp(-2*x), 0, 1)
-            sage: g2 = plot(2*exp(-30*x) - exp(-3*x), 0, 1)
-            sage: G = graphics_array([g1, g2], 2, 1)
+            sage: g1 = plot(cos, 0, 1)
+            sage: g2 = circle((0,0), 1)
+            sage: G = multi_graphics([g1, g2])
             sage: G.plot() is G
             True
 
@@ -576,9 +648,9 @@ class MultiGraphics(WithEqualityById, SageObject):
           to be added as an inset
 
         - ``pos`` -- (default: ``None``) 4-tupe ``(left, bottom, width, height)``
-          specifying the location and size of the inset on the figure, all
-          quantities being in fractions of the figure width and height; if
-          ``None``, the value ``(0.70, 068, 0.2, 0.2)`` is used
+          specifying the location and relative size of the inset on the canvas,
+          all quantities being expressed in fractions of the canvas width and
+          height; if ``None``, the value ``(0.70, 068, 0.2, 0.2)`` is used
 
         - ``fontsize`` -- (default: ``None``)  integer, font size (in points)
           for the inset; if ``None``, the value of 6 points is used, unless
@@ -590,6 +662,41 @@ class MultiGraphics(WithEqualityById, SageObject):
         - instance of :class:`~sage.plot.multigraphics.MultiGraphics`
 
         EXAMPLES:
+
+        Let us consider a graphics array of 2 elements::
+
+            sage: G = graphics_array([plot(sin, (0, 2*pi)),
+            ....:                     plot(cos, (0, 2*pi))])
+            sage: G
+            Graphics Array of size 1 x 2
+
+        .. PLOT::
+
+            G = graphics_array([plot(sin, (0, 2*pi)), plot(cos, (0, 2*pi))])
+            sphinx_plot(G)
+
+        and add some inset at the default position::
+
+            sage: c = circle((0,0), 1, color='red', thickness=2, frame=True)
+            sage: G.inset(c)
+            Multigraphics with 3 elements
+
+        .. PLOT::
+
+            G = graphics_array([plot(sin, (0, 2*pi)), plot(cos, (0, 2*pi))])
+            c = circle((0,0), 1, color='red', thickness=2, frame=True)
+            sphinx_plot(G.inset(c))
+
+        We may customize the position and font size of the inset::
+
+            sage: G.inset(c, pos=(0.3, 0.7, 0.2, 0.2), fontsize=8)
+            Multigraphics with 3 elements
+
+        .. PLOT::
+
+            G = graphics_array([plot(sin, (0, 2*pi)), plot(cos, (0, 2*pi))])
+            c = circle((0,0), 1, color='red', thickness=2, frame=True)
+            sphinx_plot(G.inset(c, pos=(0.3, 0.7, 0.2, 0.2), fontsize=8))
 
         """
         from matplotlib import rcParams
@@ -603,9 +710,10 @@ class MultiGraphics(WithEqualityById, SageObject):
             graphics._extra_kwds['fontsize'] = fontsize
         elif 'fontsize' not in graphics._extra_kwds:
             graphics._extra_kwds['fontsize'] = 6
-
-        resu = MultiGraphics([(self[i], self.position(i))
-                              for i in range(len(self))])
+        current = []  # list of current pairs (graphics, position)
+        for i, g in enumerate(self._glist):
+            current.append((g, self.position(i)))
+        resu = MultiGraphics(current)
         resu.append(graphics, pos=pos)
         return resu
 
@@ -649,7 +757,7 @@ class MultiGraphics(WithEqualityById, SageObject):
         INPUT:
 
         - ``figure`` -- a Matplotlib ``Figure`` object
-        - ``index `` -- integer specifiying the element of ``self``
+        - ``index`` -- integer specifiying the element of ``self``
         - ``options`` -- extra options to be passed to ``Figure.add_subplot``
 
         OUTPUT:
@@ -665,7 +773,29 @@ class MultiGraphics(WithEqualityById, SageObject):
 
     def position(self, index):
         r"""
-        Return the position of an element of ``self``
+        Return the position and relative size of an element of ``self`` on the
+        canvas.
+
+        INPUT:
+
+        - ``index`` -- integer specifiying which element of ``self``
+
+        OUTPUT:
+
+        - a 4-tuple ``(left, bottom, width, height)`` giving the location and
+          relative size of the element on the canvas, all quantities being
+          expressed in fractions of the canvas width and height
+
+        EXAMPLES::
+
+            sage: g1 = plot(sin(x^2), (x, 0, 4))
+            sage: g2 = circle((0,0), 1, rgbcolor='red', fill=True, axes=False)
+            sage: G = multi_graphics([g1, (g2, (0.15, 0.2, 0.1, 0.15))])
+            sage: G.position(0)  # tol 1.0e-13
+            (0.125, 0.11, 0.775, 0.77)
+            sage: G.position(1)  # tol 1.0e-13
+            (0.15, 0.2, 0.1, 0.15)
+
         """
         return self._positions[index]
 
@@ -935,6 +1065,9 @@ class GraphicsArray(MultiGraphics):
                     raise TypeError("every element of array must be a "
                                     "Graphics object")
                 self._glist.append(g)
+        # self._positions is not initialized since most of the time, it is not
+        # not used. It is required only by the method inset(); it is then
+        # initialized by the method position().
 
     def __str__(self):
         r"""
@@ -962,7 +1095,7 @@ class GraphicsArray(MultiGraphics):
         INPUT:
 
         - ``figure`` -- a Matplotlib ``Figure`` object
-        - ``index `` -- integer specifiying the element of ``self``
+        - ``index`` -- integer specifiying the element of ``self``
         - ``options`` -- extra options to be passed to ``Figure.add_subplot``
 
         OUTPUT:
@@ -1049,7 +1182,35 @@ class GraphicsArray(MultiGraphics):
 
     def position(self, index):
         r"""
-        Return the position of an element of ``self``
+        Return the position and relative size of an element of ``self`` on the
+        canvas.
+
+        INPUT:
+
+        - ``index`` -- integer specifiying which element of ``self``
+
+        OUTPUT:
+
+        - a 4-tuple ``(left, bottom, width, height)`` giving the location and
+          relative size of the element on the canvas, all quantities being
+          expressed in fractions of the canvas width and height
+
+        EXAMPLES::
+
+            sage: g1 = plot(sin(x), (x, -pi, pi))
+            sage: g2 = circle((0,1), 1.)
+            sage: G = graphics_array([g1, g2])
+            sage: G.position(0)  # tol 1.0e-13
+            (0.028906249999999998,
+             0.038541666666666696,
+             0.45390624999999996,
+             0.9229166666666667)
+            sage: G.position(1)  # tol 1.0e-13
+            (0.5171874999999999,
+             0.038541666666666696,
+             0.45390624999999996,
+             0.9229166666666667)
+
         """
         if not self._positions:
             # self._positions must be generated, by invoking get_position() on

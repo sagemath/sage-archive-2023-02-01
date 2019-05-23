@@ -4321,7 +4321,7 @@ class KolyvaginPoint(HeegnerPoint):
         `(p+1) E(\GF{p})`, i.e., it gives a well defined element
         of the abelian group `E(\GF{p}) / (p+1) E(\GF{p})`.
 
-        See [SteinToward]_, Proposition 5.4 for a proof of the above
+        See [St2011b]_, Proposition 5.4 for a proof of the above
         well-definedness assertion.
 
         EXAMPLES:
@@ -4362,10 +4362,6 @@ class KolyvaginPoint(HeegnerPoint):
             ValueError: p must be coprime to conductors and discriminant
             sage: P.mod(13,70)
             (3 : 4 : 1)
-
-        REFERENCES:
-
-        .. [SteinToward] Stein, "Toward a Generalization of the Gross-Zagier Conjecture", Int Math Res Notices (2011), :doi:`10.1093/imrn/rnq075`
         """
         # check preconditions
         p = ZZ(p)
@@ -7071,7 +7067,7 @@ def heegner_sha_an(self, D, prec=53):
         1.00000000000000
 
     If we remove the hypothesis that `E(K)` has rank 1 in Conjecture
-    2.3 in [Gross-Zagier, 1986, page 311], then that conjecture is
+    2.3 in [GZ1986]_ page 311, then that conjecture is
     false, as the following example shows::
 
         sage: E = EllipticCurve('65a')                              # long time
@@ -7095,7 +7091,7 @@ def heegner_sha_an(self, D, prec=53):
         pass
 
     # Use the BSD conjecture over the quadratic imaginary K --
-    # see page 311 of [Gross-Zagier, 1986] for the formula.
+    # see page 311 of [GZ1986]_ for the formula.
     E   = self  # notational convenience
     F   = E.quadratic_twist(D).minimal_model()
     K   = rings.QuadraticField(D, 'a')
@@ -7137,7 +7133,7 @@ def heegner_sha_an(self, D, prec=53):
     #    accounts for the fact that the height over K is twice the
     #    height over QQ, i.e., for P in E(QQ) we have h_K(P,P) =
     #    2*h_Q(P,P).  See, e.g., equation (6.4) on page 230 of
-    #    [Gross-Zagier, 1986].
+    #    [GZ1986]_.
     Reg_prod = 2**(rE + rF) * E.regulator(precision=prec) * F.regulator(precision=prec)
     #    Next we call off to the _heegner_index_in_EK function, which
     #    saturates the group E(QQ) + E^D(QQ) in E(K), given us the index,

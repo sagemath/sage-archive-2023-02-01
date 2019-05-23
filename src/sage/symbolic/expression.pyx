@@ -2006,6 +2006,33 @@ cdef class Expression(CommutativeRingElement):
             return False
         return True
 
+    def is_rational_expression(self):
+        """
+        Return True if this expression if a rational expression, i.e.,
+        a quotient of polynomials.
+
+        EXAMPLES::
+
+            sage: var('x y z')
+            (x, y, z)
+            sage: ((x + y + z)/(1 + x^2)).is_rational_expression()
+            True
+            sage: ((1 + x + y)^10).is_rational_expression()
+            True
+            sage: ((1/x + z)^5 - 1).is_rational_expression()
+            True
+            sage: (1/(x + y)).is_rational_expression()
+            True
+            sage: (exp(x) + 1).is_rational_expression()
+            False
+            sage: (sin(x*y) + z^3).is_rational_expression()
+            False
+            sage: (exp(x) + exp(-x)).is_rational_expression()
+            False
+        """
+        return all([all([part.is_polynomial(v) for v in part.variables()])
+                    for part in (self.numerator(), self.denominator())])
+
     def is_real(self):
         """
         Return True if this expression is known to be a real number.
@@ -4104,7 +4131,7 @@ cdef class Expression(CommutativeRingElement):
             sage: g = derivative(f, x); g # this is a complex expression
             -1/2*((x^2 + 1)*x/(x^2 - 1)^2 - x/(x^2 - 1))/((x^2 + 1)/(x^2 - 1))^(3/4)
             sage: g.factor()
-            -x/((x + 1)^2*(x - 1)^2*((x^2 + 1)/((x + 1)*(x - 1)))^(3/4))
+            -x/((x + 1)^2*(x - 1)^2*((x^2 + 1)/(x^2 - 1))^(3/4))
 
         ::
 
@@ -11117,11 +11144,22 @@ cdef class Expression(CommutativeRingElement):
             sage: f(x) = function('f')(x)
             sage: (f(x).diff(x)^2-1).factor()
             (diff(f(x), x) + 1)*(diff(f(x), x) - 1)
+
+        Check that :trac:`27304` is fixed::
+
+            sage: factor(2*exp(x) + exp(-x))
+            (2*e^(2*x) + 1)*e^(-x)
+            sage: factor(x*exp(-x) + exp(-x))
+            (x + 1)*e^(-x)
+            sage: factor(x + sqrt(x))
+            x + sqrt(x)
+            sage: factor((x + sqrt(x))/(x - sqrt(x)))
+            (x + sqrt(x))/(x - sqrt(x))
         """
         from sage.calculus.calculus import symbolic_expression_from_maxima_string
         cdef GEx x
         cdef bint b
-        if dontfactor:
+        if dontfactor or not self.is_rational_expression():
             m = self._maxima_()
             name = m.name()
             varstr = ','.join(['_SAGE_VAR_' + str(v) for v in dontfactor])

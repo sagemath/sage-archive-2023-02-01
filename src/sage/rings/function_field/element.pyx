@@ -356,6 +356,23 @@ cdef class FunctionFieldElement(FieldElement):
             sage: L.<y> = K.extension(Y^2 + Y + x +1/x)
             sage: (y^3 + x).differential()
             (((x^2 + 1)/x^2)*y + (x^4 + x^3 + 1)/x^3) d(x)
+
+        TESTS:
+
+        Verify that :trac:`27712` is resolved::
+
+            sage: K.<x> = FunctionField(GF(31))
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x)
+            sage: R.<z> = L[]
+            sage: M.<z> = L.extension(z^2 - y)
+
+            sage: x.differential()
+            d(x)
+            sage: y.differential()
+            (16/x*y) d(x)
+            sage: z.differential()
+            (8/x*z) d(x)
         """
         F = self.parent()
         W = F.space_of_differentials()

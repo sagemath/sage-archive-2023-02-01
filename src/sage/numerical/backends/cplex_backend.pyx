@@ -978,14 +978,21 @@ cdef class CPLEXBackend(GenericBackend):
             0.0
             sage: p.get_variable_value(1)                          # optional - CPLEX
             1.5
-        """
 
+        TESTS:
+
+        :trac:`27773` is fixed::
+
+            sage: g = graphs.PetersenGraph()             # optional - CPLEX
+            sage: g.vertex_connectivity(solver='cplex')  # optional - CPLEX
+            3
+        """
         cdef int status
         cdef double value
-        status = CPXgetobjval (self.env, self.lp, &value)
+        status = CPXgetobjval(self.env, self.lp, &value)
         check(status)
 
-        return value + self.obj_constant_term
+        return value + <double>self.obj_constant_term
 
 
     cpdef best_known_objective_bound(self):
@@ -1025,10 +1032,10 @@ cdef class CPLEXBackend(GenericBackend):
         """
         cdef int status
         cdef double value
-        status = CPXgetbestobjval (self.env, self.lp, &value)
+        status = CPXgetbestobjval(self.env, self.lp, &value)
         check(status)
 
-        return value + self.obj_constant_term
+        return value + <double>self.obj_constant_term
 
     cpdef get_relative_objective_gap(self):
         r"""

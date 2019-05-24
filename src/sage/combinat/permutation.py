@@ -6710,18 +6710,7 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
 
             A *left descent* of a permutation `\pi \in S_n` means an index
             `i \in \{ 1, 2, \ldots, n-1 \}` such that
-            `s_i \circ \pi` has smaller length than `\pi`. Here, `\circ`
-            denotes the multiplication of `S_n`. How it is defined depends
-            on the ``mult`` variable in
-            :meth:`Permutations.options`. If this variable is set
-            to ``'l2r'``, then the multiplication is defined by the rule
-            `(\alpha \beta) (x) = \beta( \alpha (x) )` for `\alpha,
-            \beta \in S_n` and `x \in \{ 1, 2, \ldots, n \}`; then, a left
-            descent of `\pi` is an index `i \in \{ 1, 2, \ldots, n-1 \}`
-            satisfying `\pi(i) > \pi(i+1)`. If this variable is set
-            to ``'r2l'``, then the multiplication is defined by the rule
-            `(\alpha \beta) (x) = \alpha( \beta (x) )` for `\alpha,
-            \beta \in S_n` and `x \in \{ 1, 2, \ldots, n \}`; then, a left
+            `s_i \circ \pi` has smaller length than `\pi`. Thus, a left
             descent of `\pi` is an index `i \in \{ 1, 2, \ldots, n-1 \}`
             satisfying `\pi^{-1}(i) > \pi^{-1}(i+1)`.
 
@@ -6762,18 +6751,7 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
 
             A *right descent* of a permutation `\pi \in S_n` means an index
             `i \in \{ 1, 2, \ldots, n-1 \}` such that
-            `\pi \circ s_i` has smaller length than `\pi`. Here, `\circ`
-            denotes the multiplication of `S_n`. How it is defined depends
-            on the ``mult`` variable in
-            :meth:`Permutations.options`. If this variable is set
-            to ``'l2r'``, then the multiplication is defined by the rule
-            `(\alpha \beta) (x) = \beta( \alpha (x) )` for `\alpha,
-            \beta \in S_n` and `x \in \{ 1, 2, \ldots, n \}`; then, a right
-            descent of `\pi` is an index `i \in \{ 1, 2, \ldots, n-1 \}`
-            satisfying `\pi^{-1}(i) > \pi^{-1}(i+1)`. If this variable is
-            set to ``'r2l'``, then the multiplication is defined by the
-            rule `(\alpha \beta) (x) = \alpha( \beta (x) )` for `\alpha,
-            \beta \in S_n` and `x \in \{ 1, 2, \ldots, n \}`; then, a right
+            `\pi \circ s_i` has smaller length than `\pi`. Thus, a right
             descent of `\pi` is an index `i \in \{ 1, 2, \ldots, n-1 \}`
             satisfying `\pi(i) > \pi(i+1)`.
 
@@ -6876,6 +6854,8 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             Return ``self`` multiplied by the simple reflection ``s[i]``
             on the left.
 
+            This acts by switching the entries in positions `i` and `i+1`.
+
             .. WARNING::
 
                 This ignores the multiplication convention in order
@@ -6899,6 +6879,8 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             r"""
             Return ``self`` multiplied by the simple reflection ``s[i]``
             on the right.
+
+            This acts by switching the entries equal `i` and `i+1`.
 
             .. WARNING::
 

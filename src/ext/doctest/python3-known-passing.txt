@@ -13,12 +13,13 @@ src/sage/combinat/words/
 src/sage/data_structures/
 src/sage/databases/
 src/sage/docs/
+src/sage/dynamics/
 src/sage/features/
 src/sage/finance/
+src/sage/functions/
 src/sage/game_theory/
 src/sage/games/
-src/sage/groups/lie_gps/
-src/sage/groups/matrix_gps/
+src/sage/groups/
 src/sage/homology/
 src/sage/interacts/
 src/sage/knots/

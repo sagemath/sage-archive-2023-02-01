@@ -737,9 +737,9 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
              [ Gauss valuation induced by 2-adic valuation, v(x) = 3 ],
              [ Gauss valuation induced by 2-adic valuation, v(x) = 11/9 ]]
 
-        Note how this detected the two augmentations of ``V1[0]`` but also two
+        Note how this detected the two augmentations of ``V1[1]`` but also two
         other valuations that we had seen in the previous step and that are
-        greater than ``V1[0]``. To ignore such trivial augmentations, we can
+        greater than ``V1[1]``. To ignore such trivial augmentations, we can
         set ``allow_equivalent_key``::
 
             sage: V1[1].mac_lane_step(f, allow_equivalent_key=False)

@@ -572,7 +572,7 @@ def to_matrix(t, b):
 #####################################################################
 class Rule(UniqueRepresentation):
     #TO add common functionalities for all rules
-    pass
+    pass 
 
 class RuleRSK(Rule):
     
@@ -600,30 +600,12 @@ class RuleRSK(Rule):
                     obj2 = obj1
         else:
             itr = zip(obj1, obj2)
-        from bisect import bisect_right
         p = []       #the "insertion" tableau
         q = []       #the "recording" tableau
         lt = 0
         lb = 0
-        for i, x in itr:
-            for r, qr in zip(p,q):
-                if r[-1] > x:
-                    #Figure out where to insert x into the row r.  The
-                    #bisect command returns the position of the least
-                    #element of r greater than x.  We will call it y.
-                    y_pos = bisect_right(r, x)
-                    #Switch x and y
-                    x, r[y_pos] = r[y_pos], x
-                else:
-                    break
-            else:
-                #We made through all of the rows of p without breaking
-                #so we need to add a new row to p and q.
-                r = []; p.append(r)
-                qr = []; q.append(qr)
-
-            r.append(x)
-            qr.append(i) # Values are always inserted to the right
+        for i, j in itr:
+            self.insertion(i, j, p, q)
 
         if check_standard:
             try:
@@ -707,6 +689,26 @@ class RuleRSK(Rule):
             raise TypeError("q must be standard to have a %s as valid output"%output)
         raise ValueError("invalid output option")
 
+    def insertion(self, i, j, p, q):
+        from bisect import bisect_right
+        for r, qr in zip(p,q):
+            if r[-1] > j:
+                #Figure out where to insert j into the row r.  The
+                #bisect command returns the position of the least
+                #element of r greater than j.  We will call it y.
+                y_pos = bisect_right(r, j)
+                #Switch j and y
+                j, r[y_pos] = r[y_pos], j
+            else:
+                break
+        else:
+            #We made through all of the rows of p without breaking
+            #so we need to add a new row to p and q.
+            r = []; p.append(r)
+            qr = []; q.append(qr)
+        r.append(j)
+        qr.append(i) # Values are always inserted to the right
+
 class RuleEG(Rule):
 
     def forward_rule(self, obj1, obj2, check_standard=False):
@@ -733,37 +735,14 @@ class RuleEG(Rule):
                     obj2 = obj1
         else:
             itr = zip(obj1, obj2)
-        from bisect import bisect_right
         p = []       #the "insertion" tableau
         q = []       #the "recording" tableau
 
-        #For each x in self, insert x into the tableau p.
+        #For each j in self, insert j into the tableau p.
         lt = 0
         lb = 0
-        for i, x in itr:
-            for r, qr in zip(p,q):
-                if r[-1] > x:
-                    #Figure out where to insert x into the row r.  The
-                    #bisect command returns the position of the least
-                    #element of r greater than x.  We will call it y.
-                    y_pos = bisect_right(r, x)
-                    if r[y_pos] == x + 1 and y_pos > 0 and x == r[y_pos - 1]:
-                        #Special bump: Nothing to do except increment x by 1
-                        x += 1
-                    else:
-                        #Switch x and y
-                        x, r[y_pos] = r[y_pos], x
-                else:
-                    break
-            else:
-                #We made through all of the rows of p without breaking
-                #so we need to add a new row to p and q.
-                r = []; p.append(r)
-                qr = []; q.append(qr)
-
-            r.append(x)
-            qr.append(i) # Values are always inserted to the right
-
+        for i, j in itr:
+            self.insertion(i, j, p, q)
         if check_standard:
             try:
                 P = StandardTableau(p)
@@ -805,6 +784,31 @@ class RuleEG(Rule):
         else:
             raise NotImplementedError("only RuleRSK is implemented for non-standard q")
 
+    def insertion(self, i, j, p, q):
+        from bisect import bisect_right
+        for r, qr in zip(p,q):
+            if r[-1] > j:
+                #Figure out where to insert j into the row r.  The
+                #bisect command returns the position of the least
+                #element of r greater than j.  We will call it y.
+                y_pos = bisect_right(r, j)
+                if r[y_pos] == j + 1 and y_pos > 0 and j == r[y_pos - 1]:
+                    #Special bump: Nothing to do ejcept increment j by 1
+                    j += 1
+                else:
+                    #Switch j and y
+                    j, r[y_pos] = r[y_pos], j
+            else:
+                break
+        else:
+            #We made through all of the rows of p without breaking
+            #so we need to add a new row to p and q.
+            r = []; p.append(r)
+            qr = []; q.append(qr)
+        r.append(j)
+        qr.append(i) # Values are always inserted to the right
+
+
 class RuleHecke(Rule):
 
     def forward_rule(self, obj1, obj2, check_standard=False):
@@ -831,41 +835,11 @@ class RuleHecke(Rule):
             obj1 = list(range(1, len(obj1) + 1))
 
         from sage.combinat.tableau import SemistandardTableau, Tableau
-        from bisect import bisect_right
         p = []       #the "insertion" tableau
         q = []       #the "recording" tableau
 
-        for i, x in zip(obj1, obj2):
-            for j,r in enumerate(p):
-                if r[-1] > x:
-                    #Figure out where to insert x into the row r.  The
-                    #bisect command returns the position of the least
-                    #element of r greater than x.  We will call it y.
-                    y_pos = bisect_right(r, x)
-                    y = r[y_pos]
-                    # Check to see if we can swap x for y
-                    if (y_pos == 0 or r[y_pos-1] < x) and (j == 0 or p[j-1][y_pos] < x):
-                        r[y_pos] = x
-                    x = y
-                else:
-                    # We must have len(p[j-1]) > len(r), since x is coming
-                    # from the previous row.
-                    if r[-1] < x and (j == 0 or p[j-1][len(r)] < x):
-                        # We can add a box to the row
-                        r.append(x)
-                        q[j].append((i,)) # Values are always inserted to the right
-                    else:
-                        # We must append i to the bottom of this column
-                        l = len(r) - 1
-                        while j < len(q) and len(q[j]) > l:
-                            j += 1
-                        q[j-1][-1] = q[j-1][-1] + (i,)
-                    break
-            else:
-                #We made through all of the rows of p without breaking
-                #so we need to add a new row to p and q.
-                p.append([x])
-                q.append([(i,)])
+        for i, j in zip(obj1, obj2):
+            self.insertion(i, j, p, q)
 
         return [SemistandardTableau(p), Tableau(q)]
 
@@ -953,6 +927,39 @@ class RuleHecke(Rule):
                 raise TypeError("q must be standard to have a %s as valid output"%output)
             return list(reversed(lower_row))
         raise ValueError("invalid output option")
+
+    def insertion(self, i, j, p, q):
+        from bisect import bisect_right
+        for ir,r in enumerate(p):
+            if r[-1] > j:
+                #Figure out where to insert j into the row r.  The
+                #bisect command returns the position of the least
+                #element of r greater than j.  We will call it y.
+                y_pos = bisect_right(r, j)
+                y = r[y_pos]
+                # Check to see if we can swap j for y
+                if (y_pos == 0 or r[y_pos-1] < j) and (ir == 0 or p[ir-1][y_pos] < j):
+                    r[y_pos] = j
+                j = y
+            else:
+                # We must have len(p[ir-1]) > len(r), since j is coming
+                # from the previous row.
+                if r[-1] < j and (ir == 0 or p[ir-1][len(r)] < j):
+                    # We can add a boj to the row
+                    r.append(j)
+                    q[ir].append((i,)) # Values are always inserted to the right
+                else:
+                    # We must append i to the bottom of this column
+                    l = len(r) - 1
+                    while ir < len(q) and len(q[ir]) > l:
+                        ir += 1
+                    q[ir-1][-1] = q[ir-1][-1] + (i,)
+                break
+        else:
+            #We made through all of the rows of p without breaking
+            #so we need to add a new row to p and q.
+            p.append([j])
+            q.append([(i,)])
 
 class InsertionRules(object):
     RSK = RuleRSK

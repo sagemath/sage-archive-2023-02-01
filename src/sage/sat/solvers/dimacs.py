@@ -627,11 +627,7 @@ class GlucoseSyrup(DIMACS):
                     return False
             if line.startswith("v"):
                 full_line += line[2:] + ' '
-        try:
-            s = map(int, full_line[:-3].strip().split(" "))
-            s = (None,) + tuple(e>0 for e in s)
-            return s
-        except ValueError, m:
-            print m
-        return False
+        s = map(int, full_line[:-3].strip().split(" "))
+        s = (None,) + tuple(e>0 for e in s)
+        return s
 

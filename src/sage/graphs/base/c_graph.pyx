@@ -2195,7 +2195,8 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: G.distance(0, 5, by_weight=true)
             3
         """
-
+        if exclude_vertices and (x in exclude_vertices or y in exclude_vertices):
+            raise LookupError("No path between %s and %s" % (x, y))
         if x == y:
             return 0
 

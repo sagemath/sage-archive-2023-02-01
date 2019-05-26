@@ -16036,7 +16036,6 @@ class GenericGraph(GenericGraph_pyx):
 
         heap_paths = set()
         heap_sorted_paths = list()
-        all_paths = []
         listA = list()
         prev_path = None
         while True:

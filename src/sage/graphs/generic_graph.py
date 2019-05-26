@@ -15955,6 +15955,149 @@ class GenericGraph(GenericGraph_pyx):
             return [list(zip(p[:-1], p[1:])) for p in all_paths]
         return all_paths
 
+    def yen_k_shortest_paths(self, source, target, weight_function=None, by_weight=False):
+        r"""
+        Return an iterator over the paths between a pair of vertices in
+        increasing order of weights or edges in case of undirected graphs.
+
+        If ``source`` is the same vertex as ``target``, then ``[[source]]`` is
+        returned -- a list containing the 1-vertex, 0-edge path "``source``"
+
+        INPUT:
+
+        - ``source`` -- a vertex of the graph, where to start
+
+        - ``target`` -- a vertex of the graph, where to end
+
+        - ``weight_function`` -- function (default: ``None``); a function that
+          takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+          ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
+          weight.
+
+        - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
+          in the graph are weighted, otherwise all edges have weight 1
+
+        EXAMPLES::
+
+            sage: g = DiGraph([(1, 2, 20), (1, 3, 10), (1, 4, 30), (2, 5, 20), (3, 5, 10), (4, 5, 30)])
+            sage: list(g.yen_k_shortest_paths(1, 5, by_weight=True))
+            [[1, 3, 5], [1, 2, 5], [1, 4, 5]]
+            sage: list(g.yen_k_shortest_paths(1, 5))
+            [[1, 2, 5], [1, 3, 5], [1, 4, 5]]
+            sage: list(g.yen_k_shortest_paths(1, 1))
+            [[1]]
+
+            sage: g = Graph([(1, 2, 20), (1, 3, 10), (1, 4, 30), (2, 5, 20), (3, 5, 10), (4, 5, 30), (1, 6, 100), (5, 6, 5)])
+            sage: list(g.yen_k_shortest_paths(1, 6, by_weight = True))
+            [[1, 3, 5, 6], [1, 2, 5, 6], [1, 4, 5, 6], [1, 6]]
+            sage: list(g.yen_k_shortest_paths(1, 6))
+            [[1, 6], [1, 2, 5, 6], [1, 3, 5, 6], [1, 4, 5, 6]]
+
+        """
+        if source not in self:
+            raise ValueError("vertex '{}' is not in the graph".format(source))
+
+        if target not in self:
+            raise ValueError("vertex '{}' is not in the graph".format(target))
+
+        if source == target:
+            yield [source]
+            return
+
+        if weight_function is not None:
+            by_weight = True
+
+        if weight_function is None and by_weight:
+            def weight_function(e):
+                return e[2]
+
+        if by_weight:
+            self._check_weight_function(weight_function)
+            edge_wt = {}
+            for e in self.edge_iterator():
+                if self.is_directed():
+                    edge_wt[(e[0], e[1])] = weight_function(e)
+                else:
+                    edge_wt[(e[0], e[1])] = weight_function(e)
+                    edge_wt[(e[1], e[0])] = edge_wt[(e[0], e[1])]
+        else:
+            def weight_function(e):
+                return 1
+        from heapq import heappush, heappop
+
+        if by_weight is False:
+            length_func = len
+            shortest_path_func = self._backend.shortest_path
+        else:
+            def length_func(path):
+                return sum(edge_wt[e] for e in zip(path, path[1:]))
+            shortest_path_func = self._backend.bidirectional_dijkstra
+
+        heap_paths = set()
+        heap_sorted_paths = list()
+        all_paths = []
+        listA = list()
+        prev_path = None
+        while True:
+            if not prev_path:
+                if by_weight:
+                    path = shortest_path_func(source, target, weight_function=weight_function)
+                else:
+                    path = shortest_path_func(source, target)
+                length = length_func(path)
+                if length == 0:
+                    yield path
+                    return
+                hash_path = tuple(path)
+                heappush(heap_sorted_paths, (length, path))
+                heap_paths.add(hash_path)
+            else:
+                exclude_vertices = set()
+                exclude_edges = set()
+                for i in range(1, len(prev_path)):
+                    root = prev_path[:i]
+                    root_length = length_func(root)
+                    for path in listA:
+                        if path[:i] == root:
+                            if self.is_directed():
+                                exclude_edges.add((path[i - 1], path[i]))
+                            else:
+                                exclude_edges.add((path[i - 1], path[i]))
+                                exclude_edges.add((path[i], path[i - 1]))
+                    try:
+                        if by_weight is True:
+                            spur = shortest_path_func(root[-1], target,
+                                                      exclude_vertices=exclude_vertices,
+                                                      exclude_edges=exclude_edges,
+                                                      weight_function=weight_function)
+                        else:
+                            spur = shortest_path_func(root[-1], target,
+                                                      exclude_vertices=exclude_vertices,
+                                                      exclude_edges=exclude_edges)
+                        length = length_func(spur)    
+                        if(not spur):
+                            continue
+                        path = root[:-1] + spur
+                        # push operation
+                        hash_path = tuple(path)
+                        if hash_path not in heap_paths:
+                            heappush(heap_sorted_paths, (root_length + length, path))
+                            heap_paths.add(hash_path)
+                    except Exception:
+                        pass
+                    exclude_vertices.add(root[-1])
+
+            if heap_paths:
+                (cost, path1) = heappop(heap_sorted_paths)
+                hash_path = tuple(path1)
+                heap_paths.remove(hash_path)
+                yield path1
+                listA.append(path1)
+                prev_path = path1
+            else:
+                break
+
     def triangles_count(self, algorithm=None):
         r"""
         Return the number of triangles in the (di)graph.

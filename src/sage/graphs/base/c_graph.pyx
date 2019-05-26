@@ -1966,7 +1966,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         self.vertex_ints = new_vx_ints
         self.vertex_labels = new_vx_labels
 
-    def shortest_path(self, x, y, distance_flag=False):
+    def shortest_path(self, x, y, exclude_vertices=None, exclude_edges=None, distance_flag=False):
         r"""
         Return the shortest path or distance from ``x`` to ``y``.
 
@@ -1975,6 +1975,14 @@ cdef class CGraphBackend(GenericGraphBackend):
         - ``x`` -- the starting vertex in the shortest path from ``x`` to ``y``
 
         - ``y`` -- the end vertex in the shortest path from ``x`` to ``y``
+
+        - ``exclude_vertices`` -- set (default: ``None``); set of vertices to
+          exclude from the graph while calculating the shortest path from ``x``
+          to ``y``
+
+        - ``exclude_edges`` -- set (default: ``None``); set of edges to exclude
+          from the graph while calculating the shortest path from ``x`` to
+          ``y``
 
         - ``distance_flag`` -- boolean (default: ``False``); when set to
           ``True``, the shortest path distance from ``x`` to ``y`` is returned
@@ -1988,13 +1996,16 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         EXAMPLES::
 
-            sage: G = Graph(graphs.PetersenGraph())
+            sage: G = Graph(graphs.PetersenGraph(), implementation="c_graph")
             sage: G.shortest_path(0, 1)
             [0, 1]
             sage: G.shortest_path_length(0, 1)
             1
 
         """
+
+        if exclude_vertices and (x in exclude_vertices or y in exclude_vertices):
+            raise LookupError("No path between %s and %s" % (x, y))
         if x == y:
             return 0
 
@@ -2054,12 +2065,24 @@ cdef class CGraphBackend(GenericGraphBackend):
             #
             # After this, current and other are reversed, and the loop restarts
             for u in next_current:
+                neighbors = []
                 if out == 1:
-                    neighbors = self._cg.out_neighbors(u)
+                    nbr = self._cg.out_neighbors(u)
                 elif self._cg_rev is not None: # Sparse
-                    neighbors = self._cg_rev.out_neighbors(u)
+                    nbr = self._cg_rev.out_neighbors(u)
                 else: # Dense
-                    neighbors = self._cg.in_neighbors(u)
+                    nbr = self._cg.in_neighbors(u)
+                for w in nbr:
+                    if not exclude_edges and not exclude_vertices:
+                        neighbors.append(w)
+                    elif out == 1 and exclude_edges and (self.vertex_label(u), self.vertex_label(w)) not in exclude_edges:
+                        if not exclude_vertices or (exclude_vertices and self.vertex_label(w) not in exclude_vertices):
+                            neighbors.append(w)
+                    elif out == -1 and exclude_edges and (self.vertex_label(w), self.vertex_label(u)) not in exclude_edges:
+                        if not exclude_vertices or (exclude_vertices and self.vertex_label(w) not in exclude_vertices):
+                            neighbors.append(w)
+                    elif not exclude_edges and exclude_vertices and self.vertex_label(w) not in exclude_vertices:
+                        neighbors.append(w)
                 for v in neighbors:
                     # If the neighbor is new, updates the distances and adds
                     # to the list.
@@ -2107,6 +2130,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         return []
 
     def bidirectional_dijkstra(self, x, y, weight_function=None,
+                               exclude_vertices=None, exclude_edges=None,
                                distance_flag=False):
         r"""
         Return the shortest path or distance from ``x`` to ``y`` using a
@@ -2117,6 +2141,14 @@ cdef class CGraphBackend(GenericGraphBackend):
         - ``x`` -- the starting vertex in the shortest path from ``x`` to ``y``
 
         - ``y`` -- the end vertex in the shortest path from ``x`` to ``y``
+
+        - ``exclude_vertices`` -- set (default: ``None``); set of vertices to
+          exclude from the graph while calculating the shortest path from ``x``
+          to ``y``
+
+        - ``exclude_edges`` -- set (default: ``None``); set of edges to exclude
+          from the graph while calculating the shortest path from ``x`` to
+          ``y``
 
         - ``weight_function`` -- function (default: ``None``); a function that
           inputs an edge ``(u, v, l)`` and outputs its weight. If ``None``, we
@@ -2134,14 +2166,14 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         EXAMPLES::
 
-            sage: G = Graph(graphs.PetersenGraph())
-            sage: for (u,v) in G.edges(labels=None):
-            ....:    G.set_edge_label(u,v,1)
+            sage: G = Graph(graphs.PetersenGraph(), implementation="c_graph")
+            sage: for (u, v) in G.edges(labels=None):
+            ....:    G.set_edge_label(u, v, 1)
             sage: G.shortest_path(0, 1, by_weight=True)
             [0, 1]
             sage: G.shortest_path_length(0, 1, by_weight=True)
             1
-            sage: G = DiGraph([(1,2,{'weight':1}), (1,3,{'weight':5}), (2,3,{'weight':1})])
+            sage: G = DiGraph([(1, 2, {'weight':1}), (1, 3, {'weight':5}), (2, 3, {'weight':1})])
             sage: G.shortest_path(1, 3, weight_function=lambda e:e[2]['weight'])
             [1, 2, 3]
             sage: G.shortest_path_length(1, 3, weight_function=lambda e:e[2]['weight'])
@@ -2151,16 +2183,16 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         Bugfix from :trac:`7673` ::
 
-            sage: G = Graph([(0,1,9),(0,2,8),(1,2,7)])
-            sage: G.shortest_path_length(0,1,by_weight=True)
+            sage: G = Graph([(0, 1, 9),(0, 2, 8),(1, 2, 7)])
+            sage: G.shortest_path_length(0, 1, by_weight=True)
             9
 
         Bugfix from :trac:`27464` ::
 
-            sage: G = DiGraph({0:[1,2], 1:[4], 2:[3,4], 4:[5],5:[6]},multiedges=True)
+            sage: G = DiGraph({0:[1, 2], 1:[4], 2:[3, 4], 4:[5], 5:[6]},multiedges=True)
             sage: for (u,v) in G.edges(labels=None):
-            ....:    G.set_edge_label(u,v,1)
-            sage: G.distance(0,5,by_weight=true)
+            ....:    G.set_edge_label(u, v, 1)
+            sage: G.distance(0, 5, by_weight=true)
             3
         """
         if x == y:
@@ -2237,13 +2269,29 @@ cdef class CGraphBackend(GenericGraphBackend):
                     if meeting_vertex == -1 or f_tmp < shortest_path_length:
                         meeting_vertex = v
                         shortest_path_length = f_tmp
-
+                neighbors = []
                 if side == 1:
-                    neighbors = self._cg.out_neighbors(v)
+                    nbr = self._cg.out_neighbors(v)
                 elif self._cg_rev is not None: # Sparse
-                    neighbors = self._cg_rev.out_neighbors(v)
+                    nbr = self._cg_rev.out_neighbors(v)
                 else: # Dense
-                    neighbors = self._cg.in_neighbors(v)
+                    nbr = self._cg.in_neighbors(v)
+                for n in nbr:
+                    if not exclude_edges and not exclude_vertices:
+                        neighbors.append(n)
+                    elif side == 1 and exclude_edges and (self.vertex_label(v), self.vertex_label(n)) not in exclude_edges:
+                        if exclude_vertices and self.vertex_label(n) not in exclude_vertices:
+                            neighbors.append(n)
+                        elif not exclude_vertices:
+                            neighbors.append(n)
+                    elif side == -1 and exclude_edges and (self.vertex_label(n), self.vertex_label(v)) not in exclude_edges:
+                        if exclude_vertices and self.vertex_label(n) not in exclude_vertices:
+                            neighbors.append(n)
+                        elif not exclude_vertices:
+                            neighbors.append(n)
+                    elif not exclude_edges and exclude_vertices and self.vertex_label(n) not in exclude_vertices:
+                        neighbors.append(n) 
+                
                 for w in neighbors:
                     # If the neighbor is new, adds its non-found neighbors to
                     # the queue.

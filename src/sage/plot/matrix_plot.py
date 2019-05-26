@@ -18,7 +18,7 @@ Matrix Plots
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
-from six import iteritems
+from six import iterkeys
 
 from sage.plot.primitive import GraphicPrimitive
 from sage.misc.decorators import options, suboptions
@@ -115,12 +115,15 @@ class MatrixPlot(GraphicPrimitive):
             [('xmax', 4.5), ('xmin', -0.5), ('ymax', 4.5), ('ymin', -0.5)]
         """
         from sage.plot.plot import minmax_data
-        limits= minmax_data(self.xrange, self.yrange, dict=True)
-
-        # center the matrix so that, for example, the square representing the
-        # (0,0) entry is centered on the origin.
-        for k, v in iteritems(limits):
-            limits[k] -= 0.5
+        extent = self._options.get('extent')
+        if extent:
+            limits = minmax_data(extent[0:2], extent[2:4], dict=True)
+        else:
+            limits = minmax_data(self.xrange, self.yrange, dict=True)
+            # center the matrix so that, for example, the square representing
+            # the (0,0) entry is centered on the origin.
+            for k in iterkeys(limits):
+                limits[k] -= 0.5
         return limits
 
     def _allowed_options(self):
@@ -146,6 +149,7 @@ class MatrixPlot(GraphicPrimitive):
                 'vmin': "The minimum value",
                 'vmax': "The maximum value",
                 'flip_y': "If False, draw the matrix with the first row on the bottom of the graph",
+                'extent': "The bounding box in which to draw the matrix",
                 'subdivisions': "If True, draw subdivisions of the matrix",
                 'subdivision_options': "Options (boundaries and style) of the subdivisions"}
 
@@ -200,24 +204,29 @@ class MatrixPlot(GraphicPrimitive):
             lim=self.get_minmax_data()
             # First draw horizontal lines representing row subdivisions
             for y in rowsub:
-                l=line2d([(lim['xmin'],y-0.5), (lim['xmax'],y-0.5)], **rowstyle)[0]
+                y = lim['ymin'] + ((lim['ymax'] - lim['ymin'])
+                                   * y / self.xy_array_row)
+                l = line2d([(lim['xmin'], y), (lim['xmax'], y)], **rowstyle)[0]
                 l._render_on_subplot(subplot)
             for x in colsub:
-                l=line2d([(x-0.5, lim['ymin']), (x-0.5, lim['ymax'])], **colstyle)[0]
+                x = lim['xmin'] + ((lim['xmax'] - lim['xmin'])
+                                   * x / self.xy_array_col)
+                l = line2d([(x, lim['ymin']), (x, lim['ymax'])], **colstyle)[0]
                 l._render_on_subplot(subplot)
 
         if hasattr(self.xy_data_array, 'tocoo'):
             # Sparse matrix -- use spy
             opts=options.copy()
             for opt in ['vmin', 'vmax', 'norm', 'flip_y', 'subdivisions',
-                        'subdivision_options', 'colorbar', 'colorbar_options']:
+                        'subdivision_options', 'colorbar', 'colorbar_options',
+                        'extent']:
                 del opts[opt]
             subplot.spy(self.xy_data_array, **opts)
         else:
             opts = dict(cmap=cmap, interpolation='nearest', aspect='equal',
                       norm=norm, vmin=options['vmin'], vmax=options['vmax'],
                       origin=('upper' if flip_y else 'lower'),
-                      zorder=options.get('zorder'))
+                      extent=options['extent'], zorder=options.get('zorder'))
             image = subplot.imshow(self.xy_data_array, **opts)
 
             if options.get('colorbar', False):
@@ -237,7 +246,7 @@ class MatrixPlot(GraphicPrimitive):
 @suboptions('colorbar', orientation='vertical', format=None)
 @suboptions('subdivision',boundaries=None, style=None)
 @options(aspect_ratio=1, axes=False, cmap='Greys', colorbar=False,
-         frame=True, marker='.', norm=None, flip_y=True,
+         frame=True, marker='.', norm=None, flip_y=True, extent=None,
          subdivisions=False, ticks_integer=True, vmin=None, vmax=None)
 def matrix_plot(mat, **options):
     r"""
@@ -303,6 +312,17 @@ def matrix_plot(mat, **options):
     - ``flip_y`` - (default: True) boolean.  If False, the first row of the
       matrix is on the bottom of the graph.  Otherwise, the first row is on the
       top of the graph.
+
+    - ``extent`` - (default: None) tuple or list of the bounding box
+      ``(xmin, xmax, ymin, ymax)`` in which to draw the matrix.  The image is
+      stretched individually along x and y to fill the box.
+
+      If None, the extent is determined by the following conditions.  Matrix
+      entries have unit size in data coordinates.  Their centers are on integer
+      coordinates, and their center coordinates range from 0 to columns-1
+      horizontally and from 0 to rows-1 vertically.
+
+      If the matrix is sparse, this keyword is ignored.
 
     - ``subdivisions`` - If True, plot the subdivisions of the matrix as lines.
 
@@ -375,6 +395,21 @@ def matrix_plot(mat, **options):
     ``flip_y`` argument::
 
         sage: matrix_plot(identity_matrix(100), flip_y=False)
+        Graphics object consisting of 1 graphics primitive
+
+    A custom bounding box in which to draw the matrix can be specified using
+    the ``extent`` argument::
+
+        sage: P = matrix_plot(identity_matrix(10), extent=(0, pi, 0, pi)); P
+        Graphics object consisting of 1 graphics primitive
+        sage: sorted(P.get_minmax_data().items())
+        [('xmax', 3.14159...), ('xmin', 0.0), ('ymax', 3.14159...), ('ymin', 0.0)]
+
+    If the horizontal and vertical dimension of the image are very different,
+    the default ``aspect_ratio=1`` may be unsuitable and can be changed to
+    ``automatic``::
+
+        matrix_plot(random_matrix(RDF, 2, 2), extent=(-100,100,0,1), aspect_ratio='automatic')
         Graphics object consisting of 1 graphics primitive
 
     Another random plot, but over `\GF{389}`::
@@ -558,6 +593,13 @@ def matrix_plot(mat, **options):
     # Custom position the title. Otherwise it overlaps with tick labels
     if options['flip_y'] and 'title_pos' not in options:
         options['title_pos'] = (0.5, 1.05)
+
+    extent = options['extent']
+    if sparse:
+        options['extent'] = None
+    elif extent:
+        options['extent'] = tuple(map(float, sorted(extent[0:2])
+                + sorted(extent[2:4], reverse=options['flip_y'])))
 
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options))

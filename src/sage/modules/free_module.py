@@ -4587,6 +4587,21 @@ class FreeModule_ambient(FreeModule_generic):
 
             sage: FreeModule(ZZ, 4)
             Ambient free module of rank 4 over the principal ideal domain Integer Ring
+
+        TESTS:
+
+        We check that the creation of a submodule does not trigger
+        the construction of a basis of the ambient space. See :trac:`15953`::
+
+            sage: F.<a> = GF(4)
+            sage: V = VectorSpace(F, 1)
+            sage: v = V.random_element()
+            sage: _ = V.subspace([v])
+            sage: hasattr(V, '_FreeModule_ambient__basis')
+            False
+            sage: _ = V.basis()
+            sage: hasattr(V, '_FreeModule_ambient__basis')
+            True
         """
         FreeModule_generic.__init__(self, base_ring, rank=rank,
                 degree=rank, sparse=sparse, coordinate_ring=coordinate_ring)

@@ -1,7 +1,7 @@
 r"""
 Module of trace monoid related structures.
 
-Contains TraceMonoid, TraceMonoidElement and FoataForm classes.
+Contains TraceMonoid and TraceMonoidElement classes.
 
 EXAMPLES::
 
@@ -74,7 +74,7 @@ class TraceMonoidElement(FreeMonoidElement):
         sage: x.lexic_norm_form()
         b*a^2*d*b*c
         sage: x.foata_norm_form()
-        (b)(a*d)(a)(b*c)
+        (b, a*d, a, b*c)
 
     """
 
@@ -91,6 +91,16 @@ class TraceMonoidElement(FreeMonoidElement):
         when processing a letter `a` it is pushed on its stack and a
         marker is pushed on the stack of all the letters `b` ( `b \neq a` )
         which do not commute with `a`.
+
+        TESTS::
+
+            sage: from sage.monoids.trace_monoid import TraceMonoid
+            sage: I = (('a','d'), ('d','a'), ('b','c'), ('c','b'))
+            sage: M.<a,b,c,d> = TraceMonoid(I=I)
+            sage: x = b*a*d*a*c*b
+            sage: x._dependence_stack()
+            ([0, 0, 1, 1, 2, 3],
+             OrderedDict([(0, [False, False, False, False, True, True, False, False]), (1, [True, False, False, False, False, False, False, True]), (2, [True, False, False, False]), (3, [False, False, True, False])]))
         """
         independence = self.parent()._independence
         generators_set = sorted(e[0] for e in self._element_list)
@@ -180,7 +190,10 @@ class TraceMonoidElement(FreeMonoidElement):
             Trace monoid on 4 generators (a, b, c, d) over independence relation {(a, d), (b, c), (c, b), (d, a)}
             sage: x = b*a*d*a*c*b
             sage: x.foata_norm_form()
-            (b)(a*d)(a)(b*c)
+            (b, a*d, a, b*c)
+            sage: y = b*a*a*d*b*a*b*c^2*a
+            sage: y.foata_norm_form()
+            (b, a*d, a, b, a, b*c, c, a)
         """
         monoid = self.parent()
         if not self._element_list:
@@ -213,9 +226,23 @@ class TraceMonoidElement(FreeMonoidElement):
             if step:
                 steps.append(step)
 
-        return tuple(monoid(list((v, 1) for v in step)) for step in steps)
+        return tuple(monoid([(v, 1) for v in step]) for step in steps)
 
-    def _plain_elements(self):
+    def _flat_elements(self):
+        r"""
+        Return flatten list of generator numbers representing the trace.
+
+        OUTPUT: list of generator indexes
+
+        TESTS::
+
+            sage: from sage.monoids.trace_monoid import TraceMonoid
+            sage: I = (('a','d'), ('d','a'), ('b','c'), ('c','b'))
+            sage: M.<a,b,c,d> = TraceMonoid(I=I)
+            sage: x = b*a^3*d*a*c*b^2
+            sage: x._flat_elements()
+            [1, 0, 0, 0, 3, 0, 2, 1, 1]
+        """
         repeated_el_iter = (repeat(e, times) for e, times in self._element_list)
         return list(chain.from_iterable(repeated_el_iter))
 
@@ -229,8 +256,17 @@ class TraceMonoidElement(FreeMonoidElement):
         direction depend on the generator position in the trace.
 
         OUTPUT: directed graph of generator indexes
+
+        EXAMPLES::
+
+            sage: from sage.monoids.trace_monoid import TraceMonoid
+            sage: I = (('a','d'), ('d','a'), ('b','c'), ('c','b'))
+            sage: M.<a,b,c,d> = TraceMonoid(I=I)
+            sage: x = b*a*d*a*c*b
+            sage: x.dependence_graph()
+            Digraph on 6 vertices
         """
-        elements = self._plain_elements()
+        elements = self._flat_elements()
         independence = self.parent()._independence
         graph = {}
 
@@ -255,9 +291,35 @@ class TraceMonoidElement(FreeMonoidElement):
         INPUT:
 
         - ``alg`` -- string (default: ``'naive'``); defines algorithm that will be used
-          to compute Hasse diagram; there are two variants: `naive` and `min`.
+          to compute Hasse diagram; there are two variants: ``'naive'`` and ``'min'``.
 
         OUTPUT: directed graph of generator indexes
+
+        SEEALSO::
+
+            :meth:`sage.monoids.trace_monoid.TraceMonoidElement.naive_hasse_digram`,
+            :meth:`sage.monoids.trace_monoid.TraceMonoidElement.min_hasse_diagram`.
+
+        EXAMPLES::
+
+            sage: from sage.monoids.trace_monoid import TraceMonoid
+            sage: I = (('a','d'), ('d','a'), ('b','c'), ('c','b'))
+            sage: M.<a,b,c,d> = TraceMonoid(I=I)
+            sage: x = b*a*d*a*c*b
+            sage: x.hasse_diagram()
+            Digraph on 6 vertices
+
+        TESTS::
+
+            sage: from sage.monoids.trace_monoid import TraceMonoid
+            sage: I = (('a','d'), ('d','a'), ('b','c'), ('c','b'))
+            sage: M.<a,b,c,d> = TraceMonoid(I=I)
+            sage: x = b*a*d*a*c*b
+            sage: x.hasse_diagram(alg='naive') == x.hasse_diagram(alg='min')
+            True
+            sage: y = b*a^3*d*a*c*b^2
+            sage: y.hasse_diagram(alg='naive') == y.hasse_diagram(alg='min')
+            True
         """
         if alg == "naive":
             return self.naive_hasse_diagram()
@@ -272,30 +334,39 @@ class TraceMonoidElement(FreeMonoidElement):
         Return Hasse diagram of the trace.
 
         OUTPUT: directed graph of generator indexes
+
+        SEEALSO::
+
+            :meth:`sage.monoids.trace_monoid.TraceMonoidElement.hasse_digram`,
+            :meth:`sage.monoids.trace_monoid.TraceMonoidElement.naive_hasse_diagram`.
         """
-        elements = self._plain_elements()
+        elements = self._flat_elements()
         elements.reverse()
         independence = self.parent()._independence
+        reachable = dict()
         min = set()
         graph = DiGraph({})
 
-        def next_front(front, removed):
-            removed = set(dest for _, dest in graph.outgoing_edges(removed, labels=False))
+        def next_front(front, used):
+            forbidden = set(chain.from_iterable(reachable[v] for v in used))
             front = set(dest for _, dest in graph.outgoing_edges(front, labels=False))
-            return front - removed
+            return front - forbidden
 
         for i, x in enumerate(elements):
+            reachable[i] = set()
             front = min.copy()
             while front:
-                removed = set()
+                used = set()
                 for j in list(front):
                     y = elements[j]
                     if (x, y) not in independence:
+                        graph.add_edge(i, j)
+                        reachable[i].add(j)
+                        reachable[i].update(reachable[j])
                         if j in min:
                             min.remove(j)
-                        removed.add(j)
-                        graph.add_edge(i, j)
-                front = next_front(front, removed)
+                        used.add(j)
+                front = next_front(front, used)
 
             min.add(i)
 
@@ -313,6 +384,11 @@ class TraceMonoidElement(FreeMonoidElement):
         if they have common vertex, remove their transitive edge.
 
         OUTPUT: directed graph of generator indexes
+
+        SEEALSO::
+
+            :meth:`sage.monoids.trace_monoid.TraceMonoidElement.hasse_digram`,
+            :meth:`sage.monoids.trace_monoid.TraceMonoidElement.min_hasse_diagram`.
         """
         d = self.dependence_graph()
         h = d.copy()
@@ -330,11 +406,22 @@ class TraceMonoidElement(FreeMonoidElement):
 
         ALGORITHM:
 
-        Transform each trace to lexicographic form and then compare them.
-        Equality means that they have the same "meaning"
-        in terms of trace theory
+        Transform each trace to lexicographic form and then compare them
+        lexicographically in terms of free monoid.
 
         OUTPUT: 0 if self == other, -1 if self < other, 1 if self > other
+
+        EXAMPLES::
+
+            sage: from sage.monoids.trace_monoid import TraceMonoid
+            sage: I = (('a','d'), ('d','a'), ('b','c'), ('c','b'))
+            sage: M.<a,b,c,d> = TraceMonoid(I=I)
+            sage: a^2 > a
+            True
+            sage: a*b < b*a
+            True
+            sage: a*c*b == a*b*c
+            True
         """
         other = other.lexic_norm_form()
         return super(TraceMonoidElement, self.lexic_norm_form())._richcmp_(other, op)
@@ -358,7 +445,7 @@ class TraceMonoidElement(FreeMonoidElement):
 
     def projection(self, letters):
         r"""
-        Return a trace that formed from `self` using filtering by `letters`
+        Return a trace that formed from ``self`` using filtering by ``letters``
 
         INPUT:
 
@@ -433,6 +520,15 @@ class TraceMonoid(FreeMonoid):
     Element = TraceMonoidElement
 
     def __init__(self, n=None, names=None, I=None):
+        r"""
+        Initializes TraceMonoid.
+
+        TESTS::
+
+            sage: from sage.monoids.trace_monoid import TraceMonoid
+            sage: M.<a,b,c> = TraceMonoid(I=(('a','c'), ('c','a')))
+            sage: TestSuite(M).run()
+        """
         if n and not names:
             names = 'x'
         if names and not n:
@@ -474,18 +570,10 @@ class TraceMonoid(FreeMonoid):
 
         EXAMPLES::
 
-            Print the relation ::
-
-                sage: from sage.monoids.trace_monoid import TraceMonoid
-                sage: M.<a,b,c> = TraceMonoid(I=(('a','c'), ('c','a')))
-                sage: sorted(M.independence)
-                [(a, c), (c, a)]
-
-        TESTS::
-
             sage: from sage.monoids.trace_monoid import TraceMonoid
-            sage: M.<a,b,c> = TraceMonoid(I=(('a','c'), ('c','a')))
-            sage: M.independence() == I
+            sage: I=Set((('a','c'), ('c','a')))
+            sage: M.<a,b,c> = TraceMonoid(I=I)
+            sage: M.independence() == {(a,c), (c,a)}
             True
         """
         f = self.monoid_generators()
@@ -514,6 +602,13 @@ class TraceMonoid(FreeMonoid):
         Return set of commuting generator indexes without pair permutations.
 
         OUTPUT: list of generator index pairs
+
+        TESTS::
+
+            sage: from sage.monoids.trace_monoid import TraceMonoid
+            sage: M.<a,b,c> = TraceMonoid(I=(('a','c'), ('c','a')))
+            sage: M._dependence()
+            {(0, 1), (1, 2), (0, 0), (2, 2), (1, 0), (1, 1), (2, 1)}
         """
         return Set(
             pair for pair in product(range(self.ngens()), repeat=2)
@@ -529,13 +624,10 @@ class TraceMonoid(FreeMonoid):
 
         EXAMPLES:
 
-        Print the relation ::
-
             sage: from sage.monoids.trace_monoid import TraceMonoid
             sage: M.<a,b,c> = TraceMonoid(I=(('a','c'), ('c','a')))
-            sage: M.dependence
+            sage: M.dependence()
             {(c, c), (b, b), (b, a), (a, b), (c, b), (b, c), (a, a)}
-
         """
         f = self.monoid_generators()
         return Set((f[v1], f[v2]) for v1, v2 in self._dependence())
@@ -546,6 +638,13 @@ class TraceMonoid(FreeMonoid):
         Return graph of dependence relation.
 
         OUTPUT: dependence graph with generators as vertices
+
+        TESTS::
+
+            sage: from sage.monoids.trace_monoid import TraceMonoid
+            sage: M.<a,b,c> = TraceMonoid(I=(('a','c'), ('c','a')))
+            sage: M.dependence_graph() == Graph({a:[a,b], b:[b], c:[c,b]})
+            True
         """
         f = self.monoid_generators()
         return Graph([
@@ -559,6 +658,13 @@ class TraceMonoid(FreeMonoid):
         Return graph of dependence relation.
 
         OUTPUT: dependence graph with generators as vertices
+
+        TESTS::
+
+            sage: from sage.monoids.trace_monoid import TraceMonoid
+            sage: M.<a,b,c> = TraceMonoid(I=(('a','c'), ('c','a')))
+            sage: M.independence_graph() == Graph({a:[c], b:[], c:[]})
+            True
         """
         g = Graph(self._named_set_without_duplicates())
         g.add_vertices(self.gens())
@@ -614,7 +720,7 @@ class TraceMonoid(FreeMonoid):
             Trace monoid on 4 generators (a, b, c, d) over independence relation {(a, d), (b, c), (c, b), (d, a)}
             sage: M.number_of_words(3)
             48
-            """
+        """
         psr = PowerSeriesRing(ZZ, default_prec=length + 1)
         return psr(self.dependence_polynomial()).coefficients()[length]
 
@@ -631,6 +737,14 @@ class TraceMonoid(FreeMonoid):
         OUTPUT: words number as integer
 
         EXAMPLES:
+
+        All words of size 2 ::
+
+            sage: from sage.monoids.trace_monoid import TraceMonoid
+            sage: I = (('a','d'), ('d','a'), ('b','c'), ('c','b'))
+            sage: M.<a,b,c,d> = TraceMonoid(I=I)
+            sage: M.words(2)
+            [a^2, a*b, a*c, a*d, b*a, b^2, b*c, b*d, c*a, c^2, c*d, d*b, d*c, d^2]
 
         Get number of words of size 3 ::
 

@@ -729,7 +729,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([t*x^2 - 1/t*y^2, y^2])
             sage: f.dynatomic_polynomial([1, 2]).parent()
             Multivariate Polynomial Ring in x, y over Fraction Field of Univariate Polynomial
-            Ring in t over Number Field in v with defining polynomial x^2 - 33
+            Ring in t over Number Field in v with defining polynomial x^2 - 33 with v = 5.744562646538029?
 
         ::
 
@@ -3973,10 +3973,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = f.conjugate(m)
             sage: f.reduced_form(smallest_coeffs=False)
             (
-            Dynamical System of Projective Space of dimension 1 over Number Field in w with defining polynomial x^2 - 2
-              Defn: Defined on coordinates by sending (x : y) to
-                    (x^3 : (w)*y^3)
-            ,
+            Dynamical System of Projective Space of dimension 1 over Number Field in w with defining polynomial x^2 - 2 with w = 1.414213562373095?
+              Defn: Defined on coordinates by sending (x : y) to                                                                                   
+                    (x^3 : (w)*y^3)                                                                                                                ,
             <BLANKLINE>
             [  1 -12]
             [  0   1]
@@ -3992,11 +3991,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = f.conjugate(m)
             sage: f.reduced_form(smallest_coeffs=False)
             (
-            Dynamical System of Projective Space of dimension 1 over Number Field
-            in w with defining polynomial x^5 + x - 3
-              Defn: Defined on coordinates by sending (x : y) to
-                    (12*x^3 : (2334*w)*y^3)
-            ,
+            Dynamical System of Projective Space of dimension 1 over Number Field in w with defining polynomial x^5 + x - 3 with w = 1.132997565885066?
+              Defn: Defined on coordinates by sending (x : y) to                                                                                       
+                    (12*x^3 : (2334*w)*y^3)                                                                                                            ,
+            <BLANKLINE>
             [  0  -1]
             [  1 -12]
             )

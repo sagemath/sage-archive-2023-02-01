@@ -194,7 +194,7 @@ class SmoothCharacterGeneric(MultiplicativeGroupElement):
             sage: chi(QuadraticField(-1,'i').gen())
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion from Number Field in i with defining polynomial x^2 + 1 to Rational Field
+            TypeError: no canonical coercion from Number Field in i with defining polynomial x^2 + 1 with i = 1*I to Rational Field
             sage: chi(0)
             Traceback (most recent call last):
             ...
@@ -461,7 +461,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
             sage: G.coerce(GK.character(0, [4]))
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion from Group of smooth characters of Q_3* with values in Number Field in i with defining polynomial x^2 + 1 to Group of smooth characters of Q_3* with values in Rational Field
+            TypeError: no canonical coercion from Group of smooth characters of Q_3* with values in Number Field in i with defining polynomial x^2 + 1 with i = 1*I to Group of smooth characters of Q_3* with values in Rational Field
             sage: G.character(0, [4]) in GK # indirect doctest
             True
 

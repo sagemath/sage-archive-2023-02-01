@@ -66,7 +66,7 @@ Sage example in ./sol/mpoly.tex, line 154::
 Sage example in ./sol/mpoly.tex, line 166::
 
   sage: L.<a> = QQ[sqrt(2-sqrt(3))]; L
-  Number Field in a with defining polynomial x^4 - 4*x^2 + 1
+    Number Field in a with defining polynomial x^4 - 4*x^2 + 1 with a = 0.5176380902050415?
   sage: R.<x,y> = QQ[]
   sage: J1 = (x^2 + y^2 - 1, 16*x^2*y^2 - 1)*R
   sage: sorted(J1.variety(L), key=str)

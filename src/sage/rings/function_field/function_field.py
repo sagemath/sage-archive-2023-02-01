@@ -3443,7 +3443,7 @@ class RationalFunctionField(FunctionField):
             sage: TestSuite(K).run()
 
             sage: FunctionField(QQ[I], 'alpha')
-            Rational function field in alpha over Number Field in I with defining polynomial x^2 + 1
+            Rational function field in alpha over Number Field in I with defining polynomial x^2 + 1 with I = 1*I
 
         Must be over a field::
 

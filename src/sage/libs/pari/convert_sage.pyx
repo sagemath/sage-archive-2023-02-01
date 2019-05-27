@@ -128,14 +128,14 @@ cpdef gen_to_sage(Gen z, locals=None):
         sage: a = gen_to_sage(z); a
         i + 3
         sage: a.parent()
-        Number Field in i with defining polynomial x^2 + 1
+        Number Field in i with defining polynomial x^2 + 1 with i = 1*I
 
         sage: z = pari('(3+I)/2'); z
         3/2 + 1/2*I
         sage: a = gen_to_sage(z); a
         1/2*i + 3/2
         sage: a.parent()
-        Number Field in i with defining polynomial x^2 + 1
+        Number Field in i with defining polynomial x^2 + 1 with i = 1*I
 
         sage: z = pari('1.0 + 2.0*I'); z
         1.00000000000000 + 2.00000000000000*I
@@ -182,7 +182,7 @@ cpdef gen_to_sage(Gen z, locals=None):
         sage: [parent(b) for b in a1]
         [Integer Ring,
          Real Field with 64 bits of precision,
-         Number Field in i with defining polynomial x^2 + 1]
+         Number Field in i with defining polynomial x^2 + 1 with i = 1*I]
         sage: [parent(b) for b in a2]
         [Complex Field with 64 bits of precision, <... 'list'>]
 

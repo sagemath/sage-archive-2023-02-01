@@ -1270,16 +1270,10 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             sage: C = Curve([x^5 - K.0*y*z^4], P)
             sage: C.ordinary_model()
             Scheme morphism:
-              From: Projective Plane Curve over Number Field in a with defining
-            polynomial x^2 - 3 defined by x^5 + (-a)*y*z^4
-              To:   Projective Plane Curve over Number Field in a with defining
-            polynomial x^2 - 3 defined by (-a)*x^5*y + (-4*a)*x^4*y^2 +
-            (-6*a)*x^3*y^3 + (-4*a)*x^2*y^4 + (-a)*x*y^5 + (-a - 1)*x^5*z + (-4*a +
-            5)*x^4*y*z + (-6*a - 10)*x^3*y^2*z + (-4*a + 10)*x^2*y^3*z + (-a -
-            5)*x*y^4*z + y^5*z
+              From: Projective Plane Curve over Number Field in a with defining polynomial x^2 - 3 with a = 1.732050807568878? defined by x^5 + (-a)*y*z^4
+              To:   Projective Plane Curve over Number Field in a with defining polynomial x^2 - 3 with a = 1.732050807568878? defined by (-a)*x^5*y + (-4*a)*x^4*y^2 + (-6*a)*x^3*y^3 + (-4*a)*x^2*y^4 + (-a)*x*y^5 + (-a - 1)*x^5*z + (-4*a + 5)*x^4*y*z + (-6*a - 10)*x^3*y^2*z + (-4*a + 10)*x^2*y^3*z + (-a - 5)*x*y^4*z + y^5*z
               Defn: Defined on coordinates by sending (x : y : z) to
-                    (-1/4*x^2 - 1/2*x*y + 1/2*x*z + 1/2*y*z - 1/4*z^2 : 1/4*x^2 +
-            1/2*x*y + 1/2*y*z - 1/4*z^2 : -1/4*x^2 + 1/4*z^2)
+                    (-1/4*x^2 - 1/2*x*y + 1/2*x*z + 1/2*y*z - 1/4*z^2 : 1/4*x^2 + 1/2*x*y + 1/2*y*z - 1/4*z^2 : -1/4*x^2 + 1/4*z^2)
 
         ::
 

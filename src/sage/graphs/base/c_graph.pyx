@@ -2085,11 +2085,13 @@ cdef class CGraphBackend(GenericGraphBackend):
                 else:
                     neighbors = []
                     for w in nbr:
-                        if exclude_edges and ((out == 1 and (u, w) not in exclude_edges_int) or (out == -1 and (w, u) not in exclude_edges_int)):
-                            if not exclude_vertices or (exclude_vertices and w not in exclude_vertices_int):
-                                neighbors.append(w)
-                        elif not exclude_edges and exclude_vertices and w not in exclude_vertices_int:
-                            neighbors.append(w)
+                        if exclude_vertices and w in exclude_vertices_int:
+                            continue
+                        if (exclude_edges and
+                            ((out == 1 and (u, w) in exclude_edges_int) or
+                             (out == -1 and (w, u) in exclude_edges_int))):
+                            continue
+                        neighbors.append(w)
 
                 for v in neighbors:
                     # If the neighbor is new, updates the distances and adds
@@ -2300,11 +2302,13 @@ cdef class CGraphBackend(GenericGraphBackend):
                 else:
                     neighbors = []
                     for w in nbr:
-                        if exclude_edges and ((side == 1 and (v, w) not in exclude_edges_int) or (side == -1 and (w, v) not in exclude_edges_int)):
-                            if not exclude_vertices or (exclude_vertices and w not in exclude_vertices_int):
-                                neighbors.append(w)
-                        elif not exclude_edges and exclude_vertices and w not in exclude_vertices_int:
-                            neighbors.append(w)
+                        if exclude_vertices and w in exclude_vertices_int:
+                            continue
+                        if (exclude_edges and
+                            ((side == 1 and (v, w) in exclude_edges_int) or
+                             (side == -1 and (w, v) in exclude_edges_int))):
+                            continue
+                        neighbors.append(w)
 
                 for w in neighbors:
                     # If the neighbor is new, adds its non-found neighbors to

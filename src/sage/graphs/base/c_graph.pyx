@@ -2003,7 +2003,6 @@ cdef class CGraphBackend(GenericGraphBackend):
             1
 
         """
-
         if exclude_vertices and (x in exclude_vertices or y in exclude_vertices):
             raise LookupError("No path between %s and %s" % (x, y))
         if x == y:

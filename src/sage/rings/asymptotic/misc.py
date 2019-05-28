@@ -31,6 +31,8 @@ from __future__ import print_function, absolute_import
 from six.moves import range
 
 from sage.misc.cachefunc import cached_method
+from sage.structure.sage_object import SageObject
+
 
 def repr_short_to_parent(s):
     r"""
@@ -1063,3 +1065,72 @@ class Locals(dict):
         from sage.functions.log import log
         return {
             'log': log}
+
+
+class WithLocals(SageObject):
+    r"""
+    A class extensions for handling local values; see also
+    :class:`Locals`.
+
+    This is used in the
+    :class:`~sage.rings.asymptotic.asymptotic_ring.AsymptoticRing`.
+
+    EXAMPLES::
+
+        sage: A.<n> = AsymptoticRing('n^ZZ', QQ, locals={'a': 42})
+        sage: A.locals()
+        {'a': 42}
+    """
+    @staticmethod
+    def _convert_locals_(locals):
+        r"""
+        This helper method return data converted to :class:`Locals`.
+
+        TESTS::
+
+            sage: A.<n> = AsymptoticRing('n^ZZ', QQ)
+            sage: locals = A._convert_locals_({'a': 42}); locals
+            {'a': 42}
+            sage: type(locals)
+            <class 'sage.rings.asymptotic.misc.Locals'>
+        """
+        if locals is None:
+            return Locals()
+        else:
+            return Locals(locals)
+
+    def locals(self, locals=None):
+        r"""
+        Return the actual :class:`Locals` object to be used.
+
+        INPUT:
+
+        - ``locals`` -- an object
+
+          If ``locals`` is not ``None``, then a :class:`Locals` object
+          is created and returned.
+          If ``locals`` is ``None``, then a stored :class:`Locals` object,
+          if any, is returned. Otherwise, an empty (i.e. no values except
+          the default values)
+          :class:`Locals` object is created and returned.
+
+        OUTPUT:
+
+        A :class:`Locals` object.
+
+        TESTS::
+
+            sage: A.<n> = AsymptoticRing('n^ZZ', QQ, locals={'a': 42})
+            sage: A.locals()
+            {'a': 42}
+            sage: A.locals({'a': 41})
+            {'a': 41}
+            sage: A.locals({'b': -3})
+            {'b': -3}
+        """
+        if locals is None:
+            try:
+                locals = self._locals_
+            except AttributeError:
+                pass
+        return self._convert_locals_(locals)

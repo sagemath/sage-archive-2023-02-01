@@ -3,7 +3,7 @@
 .. _vector_calculus:
 
 =============================================
-Tutorial: Vector calculus in Euclidean spaces
+Tutorial: Vector Calculus in Euclidean Spaces
 =============================================
 
 .. MODULEAUTHOR:: Eric Gourgoulhon
@@ -23,7 +23,7 @@ features of the first five tutorials.
    :maxdepth: 1
 
    vector_calculus/vector_calc_cartesian
-   vector_calculus/vector_calc_spherical
+   vector_calculus/vector_calc_curvilinear
    vector_calculus/vector_calc_cylindrical
    vector_calculus/vector_calc_change
    vector_calculus/vector_calc_advanced

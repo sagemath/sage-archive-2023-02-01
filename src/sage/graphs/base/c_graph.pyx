@@ -2026,6 +2026,15 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef int v = 0
         cdef int w = 0
 
+        if exclude_vertices:
+            exclude_vertices_int = set()
+            for u in exclude_vertices:
+                exclude_vertices_int.add(self.get_vertex(u))
+        if exclude_edges:
+            exclude_edges_int = set()
+            for (u, v) in exclude_edges:
+                exclude_edges_int.add((self.get_vertex(u), self.get_vertex(v)))
+ 
         # Each vertex knows its predecessors in the search, for each side
         cdef dict pred_x = {}
         cdef dict pred_y = {}
@@ -2065,24 +2074,29 @@ cdef class CGraphBackend(GenericGraphBackend):
             #
             # After this, current and other are reversed, and the loop restarts
             for u in next_current:
-                neighbors = []
                 if out == 1:
                     nbr = self._cg.out_neighbors(u)
                 elif self._cg_rev is not None: # Sparse
                     nbr = self._cg_rev.out_neighbors(u)
                 else: # Dense
                     nbr = self._cg.in_neighbors(u)
-                for w in nbr:
-                    if not exclude_edges and not exclude_vertices:
-                        neighbors.append(w)
-                    elif out == 1 and exclude_edges and (self.vertex_label(u), self.vertex_label(w)) not in exclude_edges:
-                        if not exclude_vertices or (exclude_vertices and self.vertex_label(w) not in exclude_vertices):
+
+                if not exclude_edges and not exclude_vertices:
+                    neighbors = nbr
+                else:
+                    neighbors = []
+                    for w in nbr:
+                        if not exclude_edges and not exclude_vertices:
                             neighbors.append(w)
-                    elif out == -1 and exclude_edges and (self.vertex_label(w), self.vertex_label(u)) not in exclude_edges:
-                        if not exclude_vertices or (exclude_vertices and self.vertex_label(w) not in exclude_vertices):
+                        elif out == 1 and exclude_edges and (u, w) not in exclude_edges_int:
+                            if not exclude_vertices or (exclude_vertices and w not in exclude_vertices_int):
+                                neighbors.append(w)
+                        elif out == -1 and exclude_edges and (w, u) not in exclude_edges_int:
+                            if not exclude_vertices or (exclude_vertices and w not in exclude_vertices_int):
+                                neighbors.append(w)
+                        elif not exclude_edges and exclude_vertices and w not in exclude_vertices_int:
                             neighbors.append(w)
-                    elif not exclude_edges and exclude_vertices and self.vertex_label(w) not in exclude_vertices:
-                        neighbors.append(w)
+
                 for v in neighbors:
                     # If the neighbor is new, updates the distances and adds
                     # to the list.
@@ -2213,6 +2227,15 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef int pred
         cdef int side
 
+        if exclude_vertices:
+            exclude_vertices_int = set()
+            for u in exclude_vertices:
+                exclude_vertices_int.add(self.get_vertex(u))
+        if exclude_edges:
+            exclude_edges_int = set()
+            for (u, v) in exclude_edges:
+                exclude_edges_int.add((self.get_vertex(u), self.get_vertex(v)))
+
         # Each vertex knows its predecessors in the search, for each side
         cdef dict pred_x = {}
         cdef dict pred_y = {}
@@ -2271,29 +2294,29 @@ cdef class CGraphBackend(GenericGraphBackend):
                     if meeting_vertex == -1 or f_tmp < shortest_path_length:
                         meeting_vertex = v
                         shortest_path_length = f_tmp
-                neighbors = []
                 if side == 1:
                     nbr = self._cg.out_neighbors(v)
                 elif self._cg_rev is not None: # Sparse
                     nbr = self._cg_rev.out_neighbors(v)
                 else: # Dense
                     nbr = self._cg.in_neighbors(v)
-                for n in nbr:
-                    if not exclude_edges and not exclude_vertices:
-                        neighbors.append(n)
-                    elif side == 1 and exclude_edges and (self.vertex_label(v), self.vertex_label(n)) not in exclude_edges:
-                        if exclude_vertices and self.vertex_label(n) not in exclude_vertices:
-                            neighbors.append(n)
-                        elif not exclude_vertices:
-                            neighbors.append(n)
-                    elif side == -1 and exclude_edges and (self.vertex_label(n), self.vertex_label(v)) not in exclude_edges:
-                        if exclude_vertices and self.vertex_label(n) not in exclude_vertices:
-                            neighbors.append(n)
-                        elif not exclude_vertices:
-                            neighbors.append(n)
-                    elif not exclude_edges and exclude_vertices and self.vertex_label(n) not in exclude_vertices:
-                        neighbors.append(n) 
-                
+
+                if not exclude_edges and not exclude_vertices:
+                    neighbors = nbr
+                else:
+                    neighbors = []
+                    for w in nbr:
+                        if not exclude_edges and not exclude_vertices:
+                            neighbors.append(w)
+                        elif side == 1 and exclude_edges and (v, w) not in exclude_edges_int:
+                            if not exclude_vertices or (exclude_vertices and w not in exclude_vertices_int):
+                                neighbors.append(w)
+                        elif side == -1 and exclude_edges and (w, v) not in exclude_edges_int:
+                            if not exclude_vertices or (exclude_vertices and w not in exclude_vertices_int):
+                                neighbors.append(w)
+                        elif not exclude_edges and exclude_vertices and w not in exclude_vertices_int:
+                            neighbors.append(w)
+
                 for w in neighbors:
                     # If the neighbor is new, adds its non-found neighbors to
                     # the queue.

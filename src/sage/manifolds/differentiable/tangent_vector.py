@@ -534,7 +534,7 @@ class TangentVector(FiniteRankFreeModuleElement):
 
         - scalar (element of the manifold base field)
 
-        EXAMPLES::
+        EXAMPLES:
 
         Let us consider a tangent vector on a 2-dimensional manifold::
 

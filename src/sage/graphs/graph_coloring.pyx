@@ -1664,7 +1664,7 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver=Non
         return answer
 
 
-class Test:
+cdef class Test:
     r"""
     This class performs randomized testing for all_graph_colorings.
 
@@ -1704,6 +1704,8 @@ class Test:
             sage: from sage.graphs.graph_coloring import Test
             sage: Test().random_all_graph_colorings(1)
         """
+        cdef set S
+        cdef list parts
         for _ in range(tests):
             G = GraphGenerators().RandomGNP(10, .5)
             Q = G.chromatic_polynomial()

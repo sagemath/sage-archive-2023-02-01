@@ -143,8 +143,6 @@ Functions
 ---------
 """
 from __future__ import print_function
-from six import iteritems
-
 
 def is_line_graph(g, certificate=False):
     r"""
@@ -596,7 +594,7 @@ def root_graph(g, verbose=False):
 
     # Deal with vertices contained in only one clique. All edges must be defined
     # by TWO endpoints, so we add a fake clique.
-    for x, clique_list in iteritems(v_cliques):
+    for x, clique_list in v_cliques.items():
         if len(clique_list) == 1:
             clique_list.append((x,))
 
@@ -611,7 +609,7 @@ def root_graph(g, verbose=False):
     # Associates to each vertex of G its pair of coordinates in R
     cdef dict vertex_to_map = {}
 
-    for v, L in iteritems(v_cliques):
+    for v, L in v_cliques.items():
 
         # Add cliques to relabel dictionary
         for S in L:
@@ -623,7 +621,7 @@ def root_graph(g, verbose=False):
 
     if verbose:
         print("Final associations :")
-        for v, L in iteritems(v_cliques):
+        for v, L in v_cliques.items():
             print(v, L)
 
     # We now build R

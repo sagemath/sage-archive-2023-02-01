@@ -181,16 +181,16 @@ def all_graph_colorings(G, n, count_only=False, hex_colors=False, vertex_color_d
     if n < 0:
         raise ValueError("n must be non-negative")
 
-    V = list(G)
-    E = G.edges(sort=False)
+    cdef list V = list(G)
+    cdef list E = G.edges(sort=False)
 
-    nV = G.order()
-    nE = G.size()
+    cdef int nV = G.order()
+    cdef int nE = G.size()
 
-    ones = []
-    Vd = {}
-    colormap = {}
-    k = 0
+    cdef list ones = []
+    cdef dict Vd = {}
+    cdef dict colormap = {}
+    cdef int k = 0, v
     for i in range(nV):
         v = V[i]
         Vd[v] = i
@@ -199,7 +199,8 @@ def all_graph_colorings(G, n, count_only=False, hex_colors=False, vertex_color_d
             colormap[k] = (v, c)
             k += 1
 
-    kk = nV
+    cdef int kk = nV
+    cdef int v0, v1
     for e in E:
         v0 = n * Vd[e[0]]
         v1 = n * Vd[e[1]]
@@ -214,10 +215,11 @@ def all_graph_colorings(G, n, count_only=False, hex_colors=False, vertex_color_d
         for i in range(n * nE):
             ones.append([k + i, [nV + i]])
 
-    colors = rainbow(n)
-    color_dict = {col: i for i, col in enumerate(colors)}
+    cdef list colors = rainbow(n)
+    cdef dict color_dict = {col: i for i, col in enumerate(colors)}
 
     for i in range(len(ones)): ones[i] = ones[i][1]
+    cdef dict coloring
 
     try:
         for a in DLXCPP(ones):
@@ -251,7 +253,7 @@ def all_graph_colorings(G, n, count_only=False, hex_colors=False, vertex_color_d
     except RuntimeError:
         raise RuntimeError("too much recursion, Graph coloring failed")
 
-def first_coloring(G, n=0, hex_colors=False):
+cpdef first_coloring(G, n=0, hex_colors=False):
     r"""
     Return the first vertex coloring found.
 
@@ -274,7 +276,7 @@ def first_coloring(G, n=0, hex_colors=False):
         [[0], [1, 3], [2]]
     """
     G._scream_if_not_simple(allow_multiple_edges=True)
-    o = G.order()
+    cdef int o = G.order()
     for m in range(n, o + 1):
         for C in all_graph_colorings(G, m, hex_colors=True):
             if hex_colors:
@@ -282,7 +284,7 @@ def first_coloring(G, n=0, hex_colors=False):
             else:
                 return list(itervalues(C))
 
-def number_of_n_colorings(G, n):
+cpdef int number_of_n_colorings(G, n):
     r"""
     Compute the number of `n`-colorings of a graph
 
@@ -313,7 +315,7 @@ def number_of_n_colorings(G, n):
         m += 1
     return m
 
-def numbers_of_colorings(G):
+cpdef list numbers_of_colorings(G):
     r"""
     Compute the number of colorings of a graph.
 
@@ -327,10 +329,11 @@ def numbers_of_colorings(G):
         sage: numbers_of_colorings(G)
         [0, 0, 0, 12, 72]
     """
-    o = G.order()
-    return [number_of_n_colorings(G, n) for n in range(o + 1)]
+    cdef int o = G.order()
+    cdef list answer = [number_of_n_colorings(G, n) for n in range(o + 1)]
+    return answer
 
-def chromatic_number(G):
+cpdef int chromatic_number(G):
     r"""
     Return the chromatic number of the graph.
 
@@ -349,7 +352,8 @@ def chromatic_number(G):
         3
     """
     G._scream_if_not_simple(allow_multiple_edges=True)
-    o = G.order()
+    cdef int o = G.order()
+    cdef int m
     if not o:
         return 0
     if not G.size():
@@ -440,6 +444,11 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver=None, 
     """
     g._scream_if_not_simple(allow_multiple_edges=True)
     from sage.plot.colors import rainbow
+    cdef list colorings, value
+    cdef set vertices
+    cdef list deg
+    cdef list neighbors
+    cdef list classes
 
     # If k is None, tries to find an optimal coloring
     if k is None:
@@ -736,7 +745,7 @@ def grundy_coloring(g, k, value_only=True, solver=None, verbose=0):
     # Building the dictionary associating its color to every vertex
 
     b = p.get_values(b)
-    coloring = {}
+    cdef dict coloring = {}
 
     for v in g:
         for i in range(k):
@@ -838,8 +847,8 @@ def b_coloring(g, k, value_only=True, solver=None, verbose=0):
     # i - 1 (note that in the code we need to take in consideration that the
     # indices of the list starts with 0)
 
-    deg = g.degree_sequence()
-    n = g.order()
+    cdef list deg = g.degree_sequence()
+    cdef int n = g.order()
     for i in range(n):
         if deg[i] < i:
             break
@@ -924,7 +933,7 @@ def b_coloring(g, k, value_only=True, solver=None, verbose=0):
     # Building the dictionary associating its color to every vertex
 
     c = p.get_values(color)
-    coloring = {}
+    cdef dict coloring = {}
 
     for v in g:
         for i in range(k):
@@ -1065,8 +1074,10 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=No
     # The chromatic index of g is the maximum value over its connected
     # components, and the edge coloring is the union of the edge
     # coloring of its connected components
-    L = [g] if g.is_connected() else g.connected_components_subgraphs()
-    chi, classes = 0, []
+    cdef list L = [g] if g.is_connected() else g.connected_components_subgraphs()
+    cdef int chi = 0
+    cdef list classes = [], vertices
+    cdef list values
     for h in L:
 
         if not h.size():
@@ -1385,6 +1396,8 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
             raise ValueError("this graph can not be colored with the given number of colors")
 
     c = p.get_values(c)
+
+    cdef list answer
 
     if hex_colors:
         answer = [[] for i in range(k)]

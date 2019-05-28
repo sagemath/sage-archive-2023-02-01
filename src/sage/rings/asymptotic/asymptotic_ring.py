@@ -3616,7 +3616,6 @@ class AsymptoticRing(Algebra, UniqueRepresentation, WithLocals):
             term_monoid_factory = DefaultTermMonoidFactory
 
         if locals is not None:
-            from .misc import Locals
             locals = cls._convert_locals_(locals)
 
         return super(AsymptoticRing,

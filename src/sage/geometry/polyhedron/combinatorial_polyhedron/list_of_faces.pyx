@@ -1,5 +1,5 @@
 r"""
-ListOfFaces
+List of faces
 
 This module provides a class to store faces of a polyhedron in Bit-representation.
 
@@ -12,6 +12,10 @@ Moreover, :class:`ListOfFaces` calculates the dimension of a polyhedron, assumin
 faces are the facets of this polyhedron.
 
 Each face is stored over-aligned according to :meth:`~sage.geometry.polyhedron.combinatorial_polyhedron.bit_vector_operations.chunktype`.
+
+.. SEEALSO::
+
+    :mod:`sage.geometry.polyhedron.combinatorial_polyhedron.base`.
 
 EXAMPLES:
 
@@ -59,7 +63,7 @@ Likewise for the Vrepresenatives as facet-incidences::
     :mod:`~sage.geometry.polyhedron.combinatorial_polyhedron.base`,
     :mod:`~sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator`,
     :mod:`~sage.geometry.polyhedron.combinatorial_polyhedron.conversions`,
-    :mod:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_all_faces`.
+    :mod:`~sage.geometry.polyhedron.combinatorial_polyhedron.polyhedron_faces_lattice`.
 
 AUTHOR:
 
@@ -76,7 +80,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, division
+from __future__             import absolute_import, division
 from sage.structure.element import is_Matrix
 
 from cysignals.signals      cimport sig_on, sig_off

@@ -66,11 +66,11 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, division
+from __future__             import absolute_import, division
 from sage.structure.element import is_Matrix
 
-from libc.string    cimport memset
-from .list_of_faces cimport ListOfFaces
+from libc.string            cimport memset
+from .list_of_faces         cimport ListOfFaces
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -274,7 +274,7 @@ def incidence_matrix_to_bit_repr_of_facets(matrix):
         14
         sage: facets.n_atoms
         24
-        sage: for i in range(facets.n_faces):
+        sage: for i in range(facets.n_faces):  # long time
         ....:     print(bit_repr_to_Vrepr_list_wrapper(facets, i))
         (18, 19, 20, 21, 22, 23)
         (9, 11, 15, 17, 21, 23)
@@ -454,7 +454,7 @@ def facets_tuple_to_bit_repr_of_facets(tuple facets_input, size_t n_Vrepr):
         sage: bi_pyr = ((0,1,4), (1,2,4), (2,3,4), (3,0,4),
         ....:           (0,1,5), (1,2,5), (2,3,5), (3,0,5))
         sage: facets = facets_tuple_to_bit_repr_of_facets(bi_pyr, 6)
-        sage: for i in range(8):
+        sage: for i in range(8):  # long time
         ....:     print(bit_repr_to_Vrepr_list_wrapper(facets, i))
         (0, 1, 4)
         (1, 2, 4)

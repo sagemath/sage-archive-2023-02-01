@@ -5,7 +5,7 @@ from .list_of_faces             cimport ListOfFaces
 from .combinatorial_face        cimport CombinatorialFace
 
 @cython.final
-cdef class ListOfAllFaces:
+cdef class PolyhedronFaceLattice:
     cdef MemoryAllocator _mem
     cdef int dimension              # dimension of Polyhedron
     cdef readonly bint dual         # if True, then List of all faces by dual Polyhedron
@@ -26,7 +26,7 @@ cdef class ListOfAllFaces:
     cdef tuple faces_mem  # tuple to hold the ListOfFaces corresponding to faces
 
     # It follows a number of attributes to iterate over all incidences.
-    # After initialization, ``ListOfAllFaces`` can iterate over all incidences
+    # After initialization, ``PolyhedronFaceLattice`` can iterate over all incidences
     # of faces of dimension ``incidence_dim_one`` and ``incidence_dim_two``.
     cdef int is_incidence_initialized
     cdef int incidence_dim_one

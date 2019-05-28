@@ -4,7 +4,7 @@ from sage.ext.memory_allocator  cimport MemoryAllocator
 from sage.structure.sage_object cimport SageObject
 from .face_iterator             cimport FaceIterator, CombinatorialFace
 from .list_of_faces             cimport ListOfFaces
-from .list_of_all_faces         cimport ListOfAllFaces
+from .polyhedron_face_lattice   cimport PolyhedronFaceLattice
 
 @cython.final
 cdef class CombinatorialPolyhedron(SageObject):
@@ -37,7 +37,7 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef size_t _n_ridges
     cdef size_t **_face_lattice_incidences  # stores incidences in Hasse diagram labeled indices of the faces
     cdef size_t _n_face_lattice_incidences
-    cdef ListOfAllFaces _all_faces          # class to generate Hasse diagram incidences
+    cdef PolyhedronFaceLattice _all_faces          # class to generate Hasse diagram incidences
 
     # Space for edges, ridges, etc. is allocated with ``MemoryAllocators``.
     # Upon sucess they are copied to ``_mem_tuple``.

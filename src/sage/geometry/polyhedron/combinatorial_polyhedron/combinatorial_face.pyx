@@ -1,32 +1,12 @@
 r"""
-CombinatorialFace
+Combinatorial face of a polyhedron
 
 This module provides the combinatorical type of a polyhedral face.
 
-Terminology in this module:
+,, SEEALSO::
 
-- Vrepr                 -- ``[vertices, rays, lines]`` of the polyhedron.
-- Hrepr                 -- inequalities and equalities of the polyhedron.
-- Facets                -- facets of the polyhedron.
-- Coatoms               -- the faces from which all others are constructed in
-                           the face iterator. This will be facets or Vrepr.
-                           In non-dual mode, faces are constructed as
-                           intersections of the facets. In dual mode, the are
-                           constructed theoretically as joins of vertices.
-                           The coatoms are reprsented as incidences with the
-                           atoms they contain.
-- Atoms                 -- facets or Vrepr depending on application of algorithm.
-                           Atoms are reprsented as incidences of coatoms they
-                           are contained in.
-
-- Vrepresentation       -- represents a face by a list of Vrepr it contains.
-- Hrepresentation       -- represents a face by a list of Hrepr it is contained in.
-- bit representation    -- represents incidences as ``uint64_t``-array, where
-                           each Bit represents one incidences. There might
-                           be trailing zeros, to fit alignment-requirements.
-                           In most instances, faces are represented by the
-                           Bit-representation, where each bit corresponds to
-                           an atom.
+    :mod:`sage.geometry.polyhedron.combinatorial_polyhedron.base`,
+    :mod:`sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator`.
 
 EXAMPLES:
 
@@ -36,7 +16,7 @@ Obtain a face from a face iterator::
     sage: C = CombinatorialPolyhedron(P)
     sage: it = C.face_iter()
     sage: face = next(it); face
-    Combinatorial type of a 2-dimensional face of a 3-dimensional polyhedron
+    A 2-dimensional face of a 3-dimensional combinatorial polyhedron
 
 Obtain a face from a face lattice index:
 
@@ -45,7 +25,7 @@ Obtain a face from a face lattice index:
     sage: sorted(C.face_lattice()._elements)
     [0, 1, 2, 3, 4, 5, 6, 7]
     sage: face = C.face_by_face_lattice_index(0); face
-    Combinatorial type of a -1-dimensional face of a 2-dimensional polyhedron
+    A -1-dimensional face of a 2-dimensional combinatorial polyhedron
 
 Obtain further information regarding a face::
 
@@ -53,7 +33,7 @@ Obtain further information regarding a face::
     sage: C = CombinatorialPolyhedron(P)
     sage: it = C.face_iter(2)
     sage: face = next(it); face
-    Combinatorial type of a 2-dimensional face of a 3-dimensional polyhedron
+    A 2-dimensional face of a 3-dimensional combinatorial polyhedron
     sage: face.Vrepr()
     (A vertex at (0, 0, 1), A vertex at (0, 1, 0), A vertex at (1, 0, 0))
     sage: face.length_Vrepr()
@@ -87,12 +67,12 @@ AUTHOR:
 from __future__ import absolute_import, division, print_function
 
 import numbers
-from sage.rings.integer     cimport smallInteger
-from .conversions           cimport bit_repr_to_Vrepr_list
-from .base                  cimport CombinatorialPolyhedron
-from .bit_vector_operations cimport count_atoms, bit_repr_to_coatom_repr
-from .list_of_all_faces     cimport ListOfAllFaces
-from libc.string            cimport memcpy
+from sage.rings.integer         cimport smallInteger
+from .conversions               cimport bit_repr_to_Vrepr_list
+from .base                      cimport CombinatorialPolyhedron
+from .bit_vector_operations     cimport count_atoms, bit_repr_to_coatom_repr
+from .polyhedron_face_lattice   cimport PolyhedronFaceLattice
+from libc.string                cimport memcpy
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -109,7 +89,7 @@ cdef class CombinatorialFace(SageObject):
         sage: C = CombinatorialPolyhedron(P)
         sage: it = C.face_iter()
         sage: next(it)
-        Combinatorial type of a 0-dimensional face of a 5-dimensional polyhedron
+        A 0-dimensional face of a 5-dimensional combinatorial polyhedron
 
     Obtain a combinatorial face from an index of the face lattice::
 
@@ -117,7 +97,7 @@ cdef class CombinatorialFace(SageObject):
         sage: F._elements[3]
         29
         sage: C.face_by_face_lattice_index(29)
-        Combinatorial type of a 1-dimensional face of a 5-dimensional polyhedron
+        A 1-dimensional face of a 5-dimensional combinatorial polyhedron
 
     Obtain the dimension of a combinatorial face::
 
@@ -170,15 +150,15 @@ cdef class CombinatorialFace(SageObject):
             ....: [0,2,3],[1,2,3]])
             sage: it = C.face_iter()
             sage: next(it)     # indirect doctest
-            Combinatorial type of a 2-dimensional face of a 3-dimensional polyhedron
+            A 2-dimensional face of a 3-dimensional combinatorial polyhedron
 
             sage: C.face_by_face_lattice_index(0)
-            Combinatorial type of a -1-dimensional face of a 3-dimensional polyhedron
+            A -1-dimensional face of a 3-dimensional combinatorial polyhedron
 
             sage: TestSuite(sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face.CombinatorialFace).run()
         """
         cdef FaceIterator it
-        cdef ListOfAllFaces all_faces
+        cdef PolyhedronFaceLattice all_faces
 
         if isinstance(data, FaceIterator):
             assert dimension is None and index is None, "dimension and index must be ``None``, when providing a face iterator"
@@ -200,14 +180,14 @@ cdef class CombinatorialFace(SageObject):
             self.coatoms            = it.coatoms
             self._hash_index        = it._index
 
-        elif isinstance(data, ListOfAllFaces):
+        elif isinstance(data, PolyhedronFaceLattice):
             all_faces = data
             assert isinstance(dimension, numbers.Integral), "dimension must be an integer"
             assert isinstance(index, numbers.Integral), "index must be an integer"
             assert -1 <= dimension <= all_faces.dimension, "dimension must be a face dimension of the polyhedron"
             assert 0 <= index < all_faces.f_vector[dimension + 1], "index is out of range"
 
-            # Copy data from ListOfAllFaces.
+            # Copy data from PolyhedronFaceLattice.
             self._dual              = all_faces.dual
             self.face_mem           = ListOfFaces(1, all_faces.face_length*64)
             self.face               = self.face_mem.data[0]
@@ -239,13 +219,14 @@ cdef class CombinatorialFace(SageObject):
             sage: it = C.face_iter(dimension=3, dual=False)
             sage: face = next(it)
             sage: face.__repr__()
-            'Combinatorial type of a 3-dimensional face of a 5-dimensional polyhedron'
+            'A 3-dimensional face of a 5-dimensional combinatorial polyhedron'
             sage: it = C.face_iter(dimension=3, dual=True)
             sage: face = next(it)
             sage: face.__repr__()
-            'Combinatorial type of a 3-dimensional face of a 5-dimensional polyhedron'
+            'A 3-dimensional face of a 5-dimensional combinatorial polyhedron'
         """
-        return "Combinatorial type of a {}-dimensional face of a {}-dimensional polyhedron".format(self.dimension(), self.ambient_dimension())
+        return "A {}-dimensional face of a {}-dimensional combinatorial polyhedron"\
+                .format(self.dimension(), self.ambient_dimension())
 
     def __reduce__(self):
         r"""

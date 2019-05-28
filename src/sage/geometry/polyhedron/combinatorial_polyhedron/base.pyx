@@ -30,7 +30,7 @@ Construction::
 
     sage: P = polytopes.hypercube(4)
     sage: C = CombinatorialPolyhedron(P); C
-    Combinatorial type of a polyhedron of dimension 4 with 16 vertices
+    A 4-dimensional combinatorial polyhedron with 8 facets
 
 Obtaining edges and ridges::
 
@@ -63,10 +63,10 @@ Face lattice::
 Face iterator::
 
     sage: C.face_iter()
-    Iterator over the proper faces of a polyhedron of dimension 4
+    Iterator over the proper faces of a 4-dimensional combinatorial polyhedron
 
     sage: C.face_iter(2)
-    Iterator over the 2-faces of a polyhedron of dimension 4
+    Iterator over the 2-faces of a 4-dimensional combinatorial polyhedron
 
 AUTHOR:
 
@@ -83,24 +83,24 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, division, print_function
+from __future__                     import absolute_import, division, print_function
 import numbers
-from sage.rings.integer import Integer
-from sage.graphs.graph import Graph
-from sage.graphs.digraph import DiGraph
-from sage.combinat.posets.lattices import FiniteLatticePoset
-from sage.geometry.polyhedron.base import Polyhedron_base
+from sage.rings.integer             import Integer
+from sage.graphs.graph              import Graph
+from sage.graphs.digraph            import DiGraph
+from sage.combinat.posets.lattices  import FiniteLatticePoset
+from sage.geometry.polyhedron.base  import Polyhedron_base
 from sage.geometry.lattice_polytope import LatticePolytopeClass
-from sage.structure.element import Matrix
-from sage.misc.misc import is_iterator
+from sage.structure.element         import Matrix
+from sage.misc.misc                 import is_iterator
 from .conversions \
         import incidence_matrix_to_bit_repr_of_facets, \
                incidence_matrix_to_bit_repr_of_Vrepr, \
                facets_tuple_to_bit_repr_of_facets, \
                facets_tuple_to_bit_repr_of_Vrepr
 
-from sage.rings.integer cimport smallInteger
-from cysignals.signals cimport sig_check, sig_block, sig_unblock
+from sage.rings.integer             cimport smallInteger
+from cysignals.signals              cimport sig_check, sig_block, sig_unblock
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -143,7 +143,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         sage: P = polytopes.cube()
         sage: CombinatorialPolyhedron(P)
-        Combinatorial type of a polyhedron of dimension 3 with 8 vertices
+        A 3-dimensional combinatorial polyhedron with 6 facets
 
     a lattice polytope::
 
@@ -151,13 +151,13 @@ cdef class CombinatorialPolyhedron(SageObject):
         ....: (-1,0,0), (0,-1,0), (0,0,-1)]
         sage: L = LatticePolytope(points)
         sage: CombinatorialPolyhedron(L)
-        Combinatorial type of a polyhedron of dimension 3 with 6 vertices
+        A 3-dimensional combinatorial polyhedron with 8 facets
 
     an incidence matrix::
 
         sage: data = Polyhedron(rays=[[0,1]]).incidence_matrix()
         sage: CombinatorialPolyhedron(data, n_lines=0)
-        Combinatorial type of a polyhedron of dimension 1 with 1 vertices
+        A 1-dimensional combinatorial polyhedron with 1 facet
         sage: C = CombinatorialPolyhedron(data, Vrepr=['myvertex'],
         ....: facets=['myfacet'], n_lines=0)
         sage: C.Vrepresentation()
@@ -168,7 +168,7 @@ cdef class CombinatorialPolyhedron(SageObject):
     a list of facets::
 
         sage: CombinatorialPolyhedron(((1,2,3),(1,2,4),(1,3,4),(2,3,4)))
-        Combinatorial type of a polyhedron of dimension 3 with 4 vertices
+        A 3-dimensional combinatorial polyhedron with 4 facets
         sage: facetnames = ['facet0', 'facet1', 'facet2', 'myfacet3']
         sage: facetinc = ((1,2,3),(1,2,4),(1,3,4),(2,3,4))
         sage: C = CombinatorialPolyhedron(facetinc, facets=facetnames)
@@ -192,7 +192,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         sage: P = Polyhedron(ieqs=[[1,-1,0],[1,1,0]])
         sage: C = CombinatorialPolyhedron(P)  # this works fine
         sage: C
-        Combinatorial type of a polyhedron of dimension 2 with 0 vertices
+        A 2-dimensional combinatorial polyhedron with 2 facets
 
     But it becomes incorrect here due to the missing number of lines::
 
@@ -200,7 +200,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         sage: vert = P.Vrepresentation()
         sage: C = CombinatorialPolyhedron(data, Vrepr=vert)
         sage: C
-        Combinatorial type of a polyhedron of dimension 2 with 3 vertices
+        A 2-dimensional combinatorial polyhedron with 2 facets
         sage: C.f_vector()
         (1, 1, 2, 1)
         sage: C.vertices()
@@ -212,7 +212,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         sage: C = CombinatorialPolyhedron(data, Vrepr=vert, n_lines=1)
         sage: C
-        Combinatorial type of a polyhedron of dimension 2 with 0 vertices
+        A 2-dimensional combinatorial polyhedron with 2 facets
         sage: C.f_vector()
         (1, 0, 2, 1)
         sage: C.vertices()
@@ -223,7 +223,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         sage: P = Polyhedron(rays=[[1,0],[0,1]])
         sage: C = CombinatorialPolyhedron(P)
         sage: C
-        Combinatorial type of a polyhedron of dimension 2 with 1 vertices
+        A 2-dimensional combinatorial polyhedron with 2 facets
         sage: C.f_vector()
         (1, 1, 2, 1)
         sage: C.vertices()
@@ -232,20 +232,20 @@ cdef class CombinatorialPolyhedron(SageObject):
         sage: vert = P.Vrepresentation()
         sage: C = CombinatorialPolyhedron(data, Vrepr=vert)
         sage: C
-        Combinatorial type of a polyhedron of dimension 2 with 3 vertices
+        A 2-dimensional combinatorial polyhedron with 2 facets
         sage: C.f_vector()
         (1, 1, 2, 1)
         sage: C.vertices()
         (A vertex at (0, 0), A vertex at (0, 0), A vertex at (0, 0))
         sage: C = CombinatorialPolyhedron(data, Vrepr=vert, n_lines=0)
         sage: C
-        Combinatorial type of a polyhedron of dimension 2 with 1 vertices
+        A 2-dimensional combinatorial polyhedron with 2 facets
         sage: C.f_vector()
         (1, 1, 2, 1)
         sage: C.vertices()
         (A vertex at (0, 0),)
         sage: CombinatorialPolyhedron(3r)
-        Combinatorial type of a polyhedron of dimension 3 with 0 vertices
+        A 3-dimensional combinatorial polyhedron with 0 facets
     """
     def __init__(self, data, Vrepr=None, facets=None, n_lines=None):
         r"""
@@ -281,6 +281,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             # input is ``Polyhedron``
             Vrepr = data.Vrepresentation()
             facets = tuple(inequality for inequality in data.Hrepresentation())
+            self._dimension = data.dimension()
 
             if not data.is_compact():
                 self._unbounded = True
@@ -414,31 +415,33 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: P = polytopes.simplex()
             sage: C = CombinatorialPolyhedron(P)
             sage: C._repr_()
-            'Combinatorial type of a polyhedron of dimension 3 with 4 vertices'
+            'A 3-dimensional combinatorial polyhedron with 4 facets'
 
             sage: P = Polyhedron(vertices=[])
             sage: C = CombinatorialPolyhedron(P)
             sage: C._repr_()
-            'Combinatorial type of a polyhedron of dimension -1 with 0 vertices'
+            'A -1-dimensional combinatorial polyhedron with 0 facets'
 
             sage: P = Polyhedron(vertices=[[0,0]])
             sage: C = CombinatorialPolyhedron(P)
             sage: C._repr_()
-            'Combinatorial type of a polyhedron of dimension 0 with 1 vertices'
+            'A 0-dimensional combinatorial polyhedron with 1 facet'
 
             sage: P = Polyhedron(lines=[[0,0,1],[0,1,0]])
             sage: C = CombinatorialPolyhedron(P)
             sage: C._repr_()
-            'Combinatorial type of a polyhedron of dimension 2 with 0 vertices'
+            'A 2-dimensional combinatorial polyhedron with 0 facets'
 
             sage: P = Polyhedron(rays=[[1,0,0],[0,1,0],[-1,0,0]])
             sage: C = CombinatorialPolyhedron(P)
             sage: C._repr_()
-            'Combinatorial type of a polyhedron of dimension 2 with 0 vertices'
+            'A 2-dimensional combinatorial polyhedron with 1 facet'
         """
-        return "Combinatorial type of a polyhedron of "\
-               "dimension %s with %s vertices" \
-               % (self.dimension(), self.n_vertices())
+        desc = "A {}-dimensional combinatorial polyhedron with {} facet"\
+                .format(self.dimension(), self.n_facets())
+        if self.n_facets() != 1:
+            desc += "s"
+        return desc
 
     def __reduce__(self):
         r"""
@@ -1008,7 +1011,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: P = Polyhedron(rays=[[1,0]])
             sage: C = CombinatorialPolyhedron(P)
             sage: C
-            Combinatorial type of a polyhedron of dimension 1 with 1 vertices
+            A 1-dimensional combinatorial polyhedron with 1 facet
             sage: C.ridges()
             ()
             sage: it = C.face_iter(0)
@@ -1193,14 +1196,14 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter(dimension=2)
             sage: face = next(it); face
-            Combinatorial type of a 2-dimensional face of a 4-dimensional polyhedron
+            A 2-dimensional face of a 4-dimensional combinatorial polyhedron
             sage: face.Vrepr()
             (A vertex at (4, 1, 5, 2, 3),
              A vertex at (4, 2, 5, 1, 3),
              A vertex at (5, 1, 4, 2, 3),
              A vertex at (5, 2, 4, 1, 3))
             sage: face = next(it); face
-            Combinatorial type of a 2-dimensional face of a 4-dimensional polyhedron
+            A 2-dimensional face of a 4-dimensional combinatorial polyhedron
             sage: face.Vrepr()
             (A vertex at (4, 1, 5, 2, 3),
              A vertex at (4, 1, 5, 3, 2),
@@ -1213,7 +1216,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: face.Hrepr(names=False)
             (25, 29)
             sage: face = next(it); face
-            Combinatorial type of a 2-dimensional face of a 4-dimensional polyhedron
+            A 2-dimensional face of a 4-dimensional combinatorial polyhedron
             sage: face.Hrepr(names=False)
             (12, 29)
             sage: face.Vrepr(names=False)
@@ -1432,46 +1435,26 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: F
             Finite lattice containing 28 elements
             sage: G = F.relabel(C.face_by_face_lattice_index)
-            sage: G._elements
-            (Combinatorial type of a -1-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 0-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 0-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 0-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 1-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 0-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 1-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 0-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 1-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 1-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 1-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 2-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 0-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 1-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 0-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 1-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 1-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 1-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 2-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 2-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 0-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 1-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 1-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 2-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 1-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 2-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 2-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 3-dimensional face of a 3-dimensional polyhedron)
+            sage: G.level_sets()[0]
+            [A -1-dimensional face of a 3-dimensional combinatorial polyhedron]
+            sage: G.level_sets()[3]
+            [A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron]
 
             sage: P = Polyhedron(rays=[[0,1], [1,0]])
             sage: C = CombinatorialPolyhedron(P)
             sage: F = C.face_lattice()
             sage: G = F.relabel(C.face_by_face_lattice_index)
             sage: G._elements
-            (Combinatorial type of a -1-dimensional face of a 2-dimensional polyhedron,
-             Combinatorial type of a 0-dimensional face of a 2-dimensional polyhedron,
-             Combinatorial type of a 1-dimensional face of a 2-dimensional polyhedron,
-             Combinatorial type of a 1-dimensional face of a 2-dimensional polyhedron,
-             Combinatorial type of a 2-dimensional face of a 2-dimensional polyhedron)
+            (A -1-dimensional face of a 2-dimensional combinatorial polyhedron,
+              A 0-dimensional face of a 2-dimensional combinatorial polyhedron,
+              A 1-dimensional face of a 2-dimensional combinatorial polyhedron,
+              A 1-dimensional face of a 2-dimensional combinatorial polyhedron,
+              A 2-dimensional face of a 2-dimensional combinatorial polyhedron)
 
             sage: def f(i): return C.face_by_face_lattice_index(i).Vrepr(False)
             sage: G = F.relabel(f)
@@ -1846,7 +1829,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         f_vector = self.f_vector()
         cdef MemoryAllocator mem = MemoryAllocator()
         self._record_all_faces()  # set up ``self._all_faces``
-        cdef ListOfAllFaces all_faces = self._all_faces
+        cdef PolyhedronFaceLattice all_faces = self._all_faces
 
         # ``all_faces`` will store its incidences in ``first`` and ``second``.
         cdef size_t first = 0, second = 0
@@ -1939,7 +1922,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
     def _record_all_faces(self):
         r"""
-        Initialize :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_all_faces.ListOfAllFaces` for the polyhedron.
+        Initialize :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.polyhedron_faces_lattice.PolyhedronFaceLattice` for the polyhedron.
 
         Record and sort all faces of the polyhedron in that class.
 
@@ -1995,6 +1978,6 @@ cdef class CombinatorialPolyhedron(SageObject):
         if self._all_faces:
             return  # Have recorded all faces already.
 
-        self._all_faces = ListOfAllFaces(self)
+        self._all_faces = PolyhedronFaceLattice(self)
         if self._all_faces is None:
-            raise ValueError("could not determine a list of all faces")
+            raise RuntimeError("could not determine a list of all faces")

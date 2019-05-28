@@ -1,19 +1,15 @@
 r"""
-FaceIterator
-
-This module provides a face iterator for polyhedra.
+Face iterator for polyhedra
 
 This iterator in principle works on every graded lattice, where
 every interval of length two has exactly 4 elements (diamond property).
 
 It also works on unbounded polyhedra, as those satisfy the diamond property,
 except for intervals including the empty face.
+A (slightly generalized) description of the algorithm can be found in [KS2019]_.
 
 Terminology in this module:
 
-- Vrepr                 -- ``[vertices, rays, lines]`` of the polyhedron.
-- Hrepr                 -- inequalities and equalities of the polyhedron.
-- Facets                -- facets of the polyhedron.
 - Coatoms               -- the faces from which all others are constructed in
                            the face iterator. This will be facets or Vrepr.
                            In non-dual mode, faces are constructed as
@@ -25,14 +21,9 @@ Terminology in this module:
                            Atoms are reprsented as incidences of coatoms they
                            are contained in.
 
-- Vrepresentation       -- represents a face by a list of Vrepr it contains.
-- Hrepresentation       -- represents a face by a list of Hrepr it is contained in.
-- bit representation    -- represents incidences as ``uint64_t``-array, where
-                           each Bit represents one incidences. There might
-                           be trailing zeros, to fit alignment-requirements.
-                           In most instances, faces are represented by the
-                           Bit-representation, where each bit corresponds to
-                           an atom.
+.. SEEALSO::
+
+    :mod:`sage.geometry.polyhedron.combinatorial_polyhedron.base`.
 
 EXAMPLES:
 
@@ -44,35 +35,35 @@ Construct a face iterator::
     sage: C = CombinatorialPolyhedron(P)
 
     sage: FaceIterator(C, False)
-    Iterator over the proper faces of a polyhedron of dimension 3
+    Iterator over the proper faces of a 3-dimensional combinatorial polyhedron
     sage: FaceIterator(C, False, output_dimension=2)
-    Iterator over the 2-faces of a polyhedron of dimension 3
+    Iterator over the 2-faces of a 3-dimensional combinatorial polyhedron
 
 Iterator in the non-dual mode starts with facets::
 
     sage: it = FaceIterator(C, False)
     sage: [next(it) for _ in range(9)]
-    [Combinatorial type of a 2-dimensional face of a 3-dimensional polyhedron,
-     Combinatorial type of a 2-dimensional face of a 3-dimensional polyhedron,
-     Combinatorial type of a 2-dimensional face of a 3-dimensional polyhedron,
-     Combinatorial type of a 2-dimensional face of a 3-dimensional polyhedron,
-     Combinatorial type of a 2-dimensional face of a 3-dimensional polyhedron,
-     Combinatorial type of a 2-dimensional face of a 3-dimensional polyhedron,
-     Combinatorial type of a 2-dimensional face of a 3-dimensional polyhedron,
-     Combinatorial type of a 2-dimensional face of a 3-dimensional polyhedron,
-     Combinatorial type of a 1-dimensional face of a 3-dimensional polyhedron]
+    [A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+     A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+     A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+     A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+     A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+     A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+     A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+     A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+     A 1-dimensional face of a 3-dimensional combinatorial polyhedron]
 
 Iterator in the dual-mode starts with vertices::
 
     sage: it = FaceIterator(C, True)
     sage: [next(it) for _ in range(7)]
-    [Combinatorial type of a 0-dimensional face of a 3-dimensional polyhedron,
-     Combinatorial type of a 0-dimensional face of a 3-dimensional polyhedron,
-     Combinatorial type of a 0-dimensional face of a 3-dimensional polyhedron,
-     Combinatorial type of a 0-dimensional face of a 3-dimensional polyhedron,
-     Combinatorial type of a 0-dimensional face of a 3-dimensional polyhedron,
-     Combinatorial type of a 0-dimensional face of a 3-dimensional polyhedron,
-     Combinatorial type of a 1-dimensional face of a 3-dimensional polyhedron]
+    [A 0-dimensional face of a 3-dimensional combinatorial polyhedron,
+     A 0-dimensional face of a 3-dimensional combinatorial polyhedron,
+     A 0-dimensional face of a 3-dimensional combinatorial polyhedron,
+     A 0-dimensional face of a 3-dimensional combinatorial polyhedron,
+     A 0-dimensional face of a 3-dimensional combinatorial polyhedron,
+     A 0-dimensional face of a 3-dimensional combinatorial polyhedron,
+     A 1-dimensional face of a 3-dimensional combinatorial polyhedron]
 
 Obtain the Vrepresentation::
 
@@ -204,7 +195,7 @@ cdef class FaceIterator(SageObject):
         sage: C = CombinatorialPolyhedron(P)
         sage: it = C.face_iter()
         sage: next(it)
-        Combinatorial type of a 0-dimensional face of a 3-dimensional polyhedron
+        A 0-dimensional face of a 3-dimensional combinatorial polyhedron
 
     Construct faces by the dual or not::
 
@@ -283,7 +274,7 @@ cdef class FaceIterator(SageObject):
 
         sage: it = C.face_iter(dual=True)
         sage: next(it)
-        Combinatorial type of a 0-dimensional face of a 3-dimensional polyhedron
+        A 0-dimensional face of a 3-dimensional combinatorial polyhedron
         sage: it.ignore_subfaces()
         Traceback (most recent call last):
         ...
@@ -293,7 +284,7 @@ cdef class FaceIterator(SageObject):
 
         sage: it = C.face_iter(dual=True)
         sage: next(it)
-        Combinatorial type of a 0-dimensional face of a 3-dimensional polyhedron
+        A 0-dimensional face of a 3-dimensional combinatorial polyhedron
         sage: face = next(it)
         sage: face.Vrepr(names=False)
         (6,)
@@ -325,13 +316,15 @@ cdef class FaceIterator(SageObject):
 
         sage: it = C.face_iter(dual=False)
         sage: next(it)
-        Combinatorial type of a 2-dimensional face of a 3-dimensional polyhedron
+        A 2-dimensional face of a 3-dimensional combinatorial polyhedron
         sage: it.ignore_supfaces()
         Traceback (most recent call last):
         ...
         ValueError: only possible when in dual mode
 
     ALGORITHM:
+
+    A (slightly generalized) description of the algorithm can be found in [KS2019]_.
 
     The algorithm to visit all proper faces exactly once is roughly
     equivalent to::
@@ -511,10 +504,10 @@ cdef class FaceIterator(SageObject):
             sage: P = polytopes.associahedron(['A',3])
             sage: C = CombinatorialPolyhedron(P)
             sage: C.face_iter()
-            Iterator over the proper faces of a polyhedron of dimension 3
+            Iterator over the proper faces of a 3-dimensional combinatorial polyhedron
 
             sage: C.face_iter(1)
-            Iterator over the 1-faces of a polyhedron of dimension 3
+            Iterator over the 1-faces of a 3-dimensional combinatorial polyhedron
         """
         if self.output_dimension != -2:
             if self.dual:
@@ -525,7 +518,7 @@ cdef class FaceIterator(SageObject):
             output = "Iterator over the {}-faces".format(intended_dimension)
         else:
             output = "Iterator over the proper faces"
-        return output + " of a polyhedron of dimension {}".format(self.dimension)
+        return output + " of a {}-dimensional combinatorial polyhedron".format(self.dimension)
 
     def __next__(self):
         r"""
@@ -536,13 +529,13 @@ cdef class FaceIterator(SageObject):
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter()
             sage: [next(it) for _ in range(7)]
-            [Combinatorial type of a 2-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 2-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 2-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 2-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 2-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 2-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 1-dimensional face of a 3-dimensional polyhedron]
+            [A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron]
         """
         cdef CombinatorialFace face = self.next_face()
         if unlikely(self.current_dimension == self.dimension):
@@ -560,20 +553,20 @@ cdef class FaceIterator(SageObject):
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter()
             sage: [d for d in it]
-            [Combinatorial type of a 2-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 2-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 2-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 2-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 1-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 1-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 1-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 0-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 0-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 0-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 1-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 1-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 0-dimensional face of a 3-dimensional polyhedron,
-             Combinatorial type of a 1-dimensional face of a 3-dimensional polyhedron]
+            [A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 0-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 0-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 0-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 0-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron]
         """
         return self
 

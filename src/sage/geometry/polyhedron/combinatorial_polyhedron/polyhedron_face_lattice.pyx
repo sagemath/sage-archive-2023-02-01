@@ -1,5 +1,5 @@
 r"""
-ListOfAllFaces
+PolyhedronFaceLattice
 
 This module provides a class that stores and sorts all faces of the polyhedron.
 
@@ -33,16 +33,16 @@ Terminology in this module:
 
 EXAMPLES::
 
-    sage: from sage.geometry.polyhedron.combinatorial_polyhedron.list_of_all_faces \
-    ....: import ListOfAllFaces
+    sage: from sage.geometry.polyhedron.combinatorial_polyhedron.polyhedron_face_lattice \
+    ....: import PolyhedronFaceLattice
     sage: P = polytopes.octahedron()
     sage: C = CombinatorialPolyhedron(P)
-    sage: all_faces = ListOfAllFaces(C)
+    sage: all_faces = PolyhedronFaceLattice(C)
 
 .. SEEALSO::
 
     :mod:`~sage.geometry.polyhedron.combinatorial_polyhedron.base`,
-    :class:`ListOfAllFaces`.
+    :class:`PolyhedronFaceLattice`.
 
 AUTHOR:
 
@@ -74,7 +74,7 @@ from .bit_vector_operations cimport intersection, bit_repr_to_coatom_repr
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
 
-cdef class ListOfAllFaces:
+cdef class PolyhedronFaceLattice:
     r"""
     A class to generate incidences of :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron`.
 
@@ -112,9 +112,9 @@ cdef class ListOfAllFaces:
     """
     def __init__(self, CombinatorialPolyhedron C):
         r"""
-        Initialize :class:`ListOfAllFaces`.
+        Initialize :class:`PolyhedronFaceLattice`.
 
-        See :class:`ListOfAllFaces`.
+        See :class:`PolyhedronFaceLattice`.
 
         EXAMPLES::
 
@@ -124,7 +124,7 @@ cdef class ListOfAllFaces:
             sage: C.face_lattice()
             Finite lattice containing 28 elements
 
-            sage: TestSuite(sage.geometry.polyhedron.combinatorial_polyhedron.list_of_all_faces.ListOfAllFaces).run()
+            sage: TestSuite(sage.geometry.polyhedron.combinatorial_polyhedron.polyhedron_face_lattice.PolyhedronFaceLattice).run()
         """
         self._mem = MemoryAllocator()
         self.dimension = C.dimension()
@@ -219,14 +219,14 @@ cdef class ListOfAllFaces:
 
     cdef int _add_face(self, int face_dim, uint64_t *face) except -1:
         r"""
-        Add a face to :class:`ListOfAllFaces`.
+        Add a face to :class:`PolyhedronFaceLattice`.
 
         This method is used at initialization only.
         """
         cdef size_t counter = self.face_counter[face_dim + 1]
         cdef size_t max_number = self.f_vector[face_dim + 1]
         if unlikely(counter >= max_number):
-            raise IOError("trying to add too many faces to ``ListOfAllFaces``")
+            raise IOError("trying to add too many faces to ``PolyhedronFaceLattice``")
 
         # Actually add the face by copying its data.
         memcpy(self.faces[face_dim + 1][counter], face, self.face_length*8)
@@ -242,7 +242,7 @@ cdef class ListOfAllFaces:
         cdef int i
         for i in range(dim + 2):
             if unlikely(self.f_vector[i] != self.face_counter[i]):
-                raise ValueError("``ListOfAllFaces`` does not contain all faces")
+                raise ValueError("``PolyhedronFaceLattice`` does not contain all faces")
 
         for i in range(0, dim):
             # Sort each level set, except for coatoms, full- and empty polyhedron.
@@ -335,13 +335,13 @@ cdef class ListOfAllFaces:
             sage: cython('''
             ....: from libc.stdint cimport uint64_t
             ....: from sage.geometry.polyhedron.combinatorial_polyhedron.base \
-            ....: cimport CombinatorialPolyhedron, FaceIterator, ListOfAllFaces
+            ....: cimport CombinatorialPolyhedron, FaceIterator, PolyhedronFaceLattice
             ....:
             ....: def find_face_from_iterator(it, C1):
             ....:     cdef FaceIterator face_iter = it
             ....:     cdef CombinatorialPolyhedron C = C1
             ....:     C._record_all_faces()
-            ....:     cdef ListOfAllFaces all_faces = C._all_faces
+            ....:     cdef PolyhedronFaceLattice all_faces = C._all_faces
             ....:     if not (all_faces.dual == it.dual):
             ....:         raise ValueError("iterator and allfaces not in same mode")
             ....:     return all_faces.find_face(face_iter.current_dimension, face_iter.face)
@@ -421,14 +421,14 @@ cdef class ListOfAllFaces:
             sage: cython('''
             ....: from libc.stdint cimport uint64_t
             ....: from sage.geometry.polyhedron.combinatorial_polyhedron.base \
-            ....: cimport CombinatorialPolyhedron, FaceIterator, ListOfAllFaces
+            ....: cimport CombinatorialPolyhedron, FaceIterator, PolyhedronFaceLattice
             ....:
             ....: def face_via_all_faces_from_iterator(it, C1):
             ....:     cdef FaceIterator face_iter = it
             ....:     cdef CombinatorialPolyhedron C = C1
             ....:     cdef int dimension = face_iter.current_dimension
             ....:     C._record_all_faces()
-            ....:     cdef ListOfAllFaces all_faces = C._all_faces
+            ....:     cdef PolyhedronFaceLattice all_faces = C._all_faces
             ....:     if not (all_faces.dual == it.dual):
             ....:         raise ValueError("iterator and allfaces not in same mode")
             ....:     index = all_faces.find_face(dimension, face_iter.face)
@@ -506,7 +506,7 @@ cdef class ListOfAllFaces:
 
     cdef void incidence_init(self, int dimension_one, int dimension_two):
         r"""
-        Initialize the :class:`ListOfAllFaces` to give incidences between
+        Initialize the :class:`PolyhedronFaceLattice` to give incidences between
         ``dimension_one`` and ``dimension_two``.
 
         This will enable :meth:`next_incidence` to give all such incidences.
@@ -566,7 +566,7 @@ cdef class ListOfAllFaces:
         all incidences of faces of ``dimension_one`` and ``dimension_two``.
         ``one[0]`` will represent the index of a face in ``dimension_one`` and
         ``two[0]`` will represent the index of a face in ``dimension_two``
-        according to their order in :class:`ListOfAllFaces`.
+        according to their order in :class:`PolyhedronFaceLattice`.
 
         Use :meth:`Vrepr` and :meth:`Hrepr` to interpret the output.
 

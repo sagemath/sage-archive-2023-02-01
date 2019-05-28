@@ -6,8 +6,6 @@ AUTHORS:
 - Travis Scrimshaw (2012-12-07): Initial version
 
 
-Introduction
-------------
 The Robinson-Schensted-Knuth (RSK) correspondence (also known
 as the RSK algorithm) is most naturally stated as a bijection
 between generalized permutations (also known as two-line arrays,
@@ -53,26 +51,42 @@ length of `w`.
 
 On changing the insertion algorithm, different bijections can be 
 established. Some insertions have been implemented which can be used in 
-the `RSK()` and `inverse_RSK()` functions
+the **RSK()** and **inverse_RSK()** functions.
+
+EXAMPLES:
+
+We can perform RSK and the inverse on a variety of objects::
+
+    sage: p = Tableau([[1,2,2],[2]]); q = Tableau([[1,3,3],[2]])
+    sage: gp = RSK_inverse(p, q); gp
+    [[1, 2, 3, 3], [2, 1, 2, 2]]
+    sage: RSK(*gp)
+    [[[1, 2, 2], [2]], [[1, 3, 3], [2]]]
+    sage: m = RSK_inverse(p, q, 'matrix'); m
+    [0 1]
+    [1 0]
+    [0 2]
+    sage: RSK(m)
+    [[[1, 2, 2], [2]], [[1, 3, 3], [2]]]
 
 Insertions currently available
 ------------------------------
 We have implemented the following insertion algorithms for the 
 Robinson-Schensted-Knuth correspondence:
 
-- RSK (class:`~sage.combinat.RuleRSK`)
-- Edelman-Greene insertion (class:`~sage.combinat.RuleEG`), an algorithm 
+- RSK (:class:`~sage.combinat.rsk.RuleRSK`)
+- Edelman-Greene insertion (:class:`~sage.combinat.rsk.RuleEG`), an algorithm 
   defined in [EG1987]_ Definition 6.20 (where it is referred to as 
   Coxeter-Knuth insertion).
-- Hecke RSK algorithm (class:`~sage.combinat.RuleHecke`) , defined 
+- Hecke RSK algorithm (:class:`~sage.combinat.rsk.RuleHecke`) , defined 
   using the Hecke insertion studied in [BKSTY06]_ (but using rows instead 
   of columns).
 
 Background
 ----------
 
-Edelman-Greene insertion (class:`~sage.combinat.RuleEG`)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Edelman-Greene insertion (:class:`~sage.combinat.rsk.RuleEG`)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If the input is a reduced word of a permutation (i.e., an element of a 
 type-`A` Coxeter group), one can set ``insertion`` to ``'RuleEG'``, which 
@@ -82,8 +96,8 @@ The Edelman-Greene insertion is similar to the standard row insertion
 except that if `k_i` and `k_i + 1` both exist in row `i`, we *only* set 
 `k_{i+1} = k_i + 1` and continue.
 
-Hecke RSK algorithm (class:`~sage.combinat.RuleHecke`)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Hecke RSK algorithm (:class:`~sage.combinat.rsk.RuleHecke`)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 One can also perform a "Hecke RSK algorithm", defined using the
 Hecke insertion studied in [BKSTY06]_ (but using rows instead of
 columns). The algorithm proceeds similarly to the classical RSK
@@ -132,23 +146,7 @@ base class for a rule::
 
 Next, we implement the forward rule and backward rule for RSK() and 
 RSK_inverse respectively. For more information, 
-see :class:`~sage.combinat.rsk.Rule`. ::
-
-EXAMPLES:
-
-We can perform RSK and the inverse on a variety of objects::
-
-    sage: p = Tableau([[1,2,2],[2]]); q = Tableau([[1,3,3],[2]])
-    sage: gp = RSK_inverse(p, q); gp
-    [[1, 2, 3, 3], [2, 1, 2, 2]]
-    sage: RSK(*gp)
-    [[[1, 2, 2], [2]], [[1, 3, 3], [2]]]
-    sage: m = RSK_inverse(p, q, 'matrix'); m
-    [0 1]
-    [1 0]
-    [0 2]
-    sage: RSK(m)
-    [[[1, 2, 2], [2]], [[1, 3, 3], [2]]]
+see :class:`~sage.combinat.rsk.Rule`.
 
 TESTS:
 
@@ -295,19 +293,8 @@ def RSK(obj1=None, obj2=None, insertion=None, check_standard=False, **options):
 
         sage: RSK([[0,1],[2,1]])
         [[[1, 1, 2], [2]], [[1, 2, 2], [2]]]
-    
-    There are also variations of the insertion algorithm in RSK.
-    Here we consider Edelman-Greene insertion::
 
-        sage: RSK([2,1,2,3,2], insertion=RSK.rules.EG)
-        [[[1, 2, 3], [2, 3]], [[1, 3, 4], [2, 5]]]
-
-    We reproduce figure 6.4 in [EG1987]_::
-
-        sage: RSK([2,3,2,1,2,3], insertion=RSK.rules.EG)
-        [[[1, 2, 3], [2, 3], [3]], [[1, 2, 6], [3, 5], [4]]]
-
-    Hecke insertion is also supported. We construct Example 2.1
+    As an example of Hecke insertion we construct Example 2.1
     in :arxiv:`0801.1319v2`::
 
         sage: w = [5, 4, 1, 3, 4, 2, 5, 1, 2, 1, 4, 2, 4]
@@ -492,13 +479,6 @@ def RSK_inverse(p, q, output='array', insertion=None):
         [1 0]
         [0 2]
 
-    Using Edelman-Greene insertion::
-
-        sage: pq = RSK([2,1,2,3,2], insertion=RSK.rules.EG); pq
-        [[[1, 2, 3], [2, 3]], [[1, 3, 4], [2, 5]]]
-        sage: RSK_inverse(*pq, insertion=RSK.rules.EG)
-        [2, 1, 2, 3, 2]
-
     Using Hecke insertion::
 
         sage: w = [5, 4, 1, 3, 4, 2, 5, 1, 2, 1, 4, 2, 4]
@@ -634,8 +614,21 @@ class Rule(UniqueRepresentation):
     pass 
 
 class RuleRSK(Rule):
-    
+    r"""
+    A rule modelling Robinson-Schensted-Knuth insertion.
+
+    EXAMPLES::
+
+        sage: RSK([1, 2, 2, 2], [2, 1, 1, 2], insertion=RSK.rules.RSK)
+        [[[1, 1, 2], [2]], [[1, 2, 2], [2]]]
+        sage: p = Tableau([[1,2,2],[2]]); q = Tableau([[1,3,3],[2]])
+        sage: RSK_inverse(p, q, insertion=RSK.rules.RSK)
+        [[1, 2, 3, 3], [2, 1, 2, 2]]
+    """
     def forward_rule(self, obj1, obj2, check_standard=False):
+        r"""
+        Return the RSK insertion of the pair ``[obj1, obj2]``.
+        """
         from sage.combinat.tableau import SemistandardTableau, StandardTableau
         if obj2 is None:
             try:
@@ -668,6 +661,9 @@ class RuleRSK(Rule):
         return p, q
 
     def backward_rule(self, p, q, output):
+        r"""
+        Return the reverse RSK insertion of ``(p, q)``.
+        """
         from sage.combinat.tableau import SemistandardTableaux
         from bisect import bisect_left
         # Make a copy of p since this is destructive to it
@@ -738,6 +734,9 @@ class RuleRSK(Rule):
         raise ValueError("invalid output option")
 
     def insertion(self, i, j, p, q):
+        r"""
+        The algorithm for inserting the letter (i,j) from the bi-word to the current tableaux p and q.
+        """
         from bisect import bisect_right
         for r, qr in zip(p,q):
             if r[-1] > j:
@@ -758,8 +757,23 @@ class RuleRSK(Rule):
         qr.append(i) # Values are always inserted to the right
 
 class RuleEG(Rule):
+    r"""
+    A rule modelling Edelman-Greene insertion.
 
+    EXAMPLES::
+
+        sage: RSK([2,3,2,1,2,3], insertion=RSK.rules.EG)
+        [[[1, 2, 3], [2, 3], [3]], [[1, 2, 6], [3, 5], [4]]]
+        sage: pq = RSK([2,1,2,3,2], insertion=RSK.rules.EG); pq
+        [[[1, 2, 3], [2, 3]], [[1, 3, 4], [2, 5]]]
+        sage: RSK_inverse(*pq, insertion=RSK.rules.EG)
+        [2, 1, 2, 3, 2]
+
+    """
     def forward_rule(self, obj1, obj2, check_standard=False):
+        r"""
+        Return the EG insertion of the pair ``[obj1, obj2]``.
+        """
         from sage.combinat.tableau import SemistandardTableau, StandardTableau
         if obj2 is None:
             try:
@@ -794,6 +808,9 @@ class RuleEG(Rule):
         return p, q
 
     def backward_rule(self, p, q, output):
+        r"""
+        Return the reverse EG insertion of ``(p, q)``.
+        """
         from bisect import bisect_left
         # Make a copy of p since this is destructive to it
         p_copy = [list(row) for row in p]
@@ -823,6 +840,9 @@ class RuleEG(Rule):
             raise NotImplementedError("only RuleRSK is implemented for non-standard q")
 
     def insertion(self, i, j, p, q):
+        r"""
+        The algorithm for inserting the letter (i,j) from the bi-word to the current tableaux p and q.
+        """
         from bisect import bisect_right
         for r, qr in zip(p,q):
             if r[-1] > j:
@@ -848,25 +868,29 @@ class RuleEG(Rule):
 
 
 class RuleHecke(Rule):
+    r"""
+    A rule modelling Hecke insertion.
 
+    EXAMPLES::
+
+        sage: w = [5, 4, 1, 3, 4, 2, 5, 1, 2, 1, 4, 2, 4]
+        sage: RSK(w, insertion=RSK.rules.Hecke)
+        [[[1, 2, 4, 5], [2, 4, 5], [3, 5], [4], [5]],
+         [[(1,), (4,), (5,), (7,)],
+          [(2,), (9,), (11, 13)],
+          [(3,), (12,)],
+          [(6,)],
+          [(8, 10)]]]
+        sage: w = [5, 4, 1, 3, 4, 2, 5, 1, 2, 1, 4, 2, 4]
+        sage: P,Q = RSK(w, insertion=RSK.rules.Hecke)
+        sage: wp = RSK_inverse(P, Q, insertion=RSK.rules.Hecke, output='list'); wp
+        [5, 4, 1, 3, 4, 2, 5, 1, 2, 1, 4, 2, 4]
+        sage: wp == w
+        True
+    """
     def forward_rule(self, obj1, obj2, check_standard=False):
-        """
+        r"""
         Return the Hecke insertion of the pair ``[obj1, obj2]``.
-
-        .. SEEALSO::
-
-            :func:`RSK`
-
-        EXAMPLES::
-
-            sage: w = [5, 4, 1, 3, 4, 2, 5, 1, 2, 1, 4, 2, 4]
-            sage: RSK(w, insertion=RSK.rules.Hecke)
-            [[[1, 2, 4, 5], [2, 4, 5], [3, 5], [4], [5]],
-             [[(1,), (4,), (5,), (7,)],
-              [(2,), (9,), (11, 13)],
-              [(3,), (12,)],
-              [(6,)],
-              [(8, 10)]]]
         """
         if obj2 is None:
             obj2 = obj1
@@ -884,19 +908,6 @@ class RuleHecke(Rule):
     def backward_rule(self, p, q, output):
         r"""
         Return the reverse Hecke insertion of ``(p, q)``.
-
-        .. SEEALSO::
-
-            :func:`RSK_inverse`
-
-        EXAMPLES::
-
-            sage: w = [5, 4, 1, 3, 4, 2, 5, 1, 2, 1, 4, 2, 4]
-            sage: P,Q = RSK(w, insertion=RSK.rules.Hecke)
-            sage: wp = RSK_inverse(P, Q, insertion=RSK.rules.Hecke, output='list'); wp
-            [5, 4, 1, 3, 4, 2, 5, 1, 2, 1, 4, 2, 4]
-            sage: wp == w
-            True
         """
         if p.shape() != q.shape():
             raise ValueError("p(=%s) and q(=%s) must have the same shape"%(p, q))
@@ -967,6 +978,9 @@ class RuleHecke(Rule):
         raise ValueError("invalid output option")
 
     def insertion(self, i, j, p, q):
+        r"""
+        The algorithm for inserting the letter (i,j) from the bi-word to the current tableaux p and q.
+        """
         from bisect import bisect_right
         for ir,r in enumerate(p):
             if r[-1] > j:
@@ -1000,6 +1014,9 @@ class RuleHecke(Rule):
             q.append([(i,)])
 
 class InsertionRules(object):
+    r"""
+    Catalog of rules for growth diagrams.
+    """
     RSK = RuleRSK
     EG = RuleEG
     Hecke = RuleHecke

@@ -2717,9 +2717,9 @@ cdef class Expression(CommutativeRingElement):
 
             sage: x = var('x')
             sage: forget()
-            sage: SR(0).__nonzero__()
+            sage: bool(SR(0))
             False
-            sage: SR(1).__nonzero__()
+            sage: bool(SR(1))
             True
             sage: assert(abs(x))
             sage: assert(not x/x - 1)
@@ -2919,6 +2919,7 @@ cdef class Expression(CommutativeRingElement):
             return False
         else:
             return not bool(self == self._parent.zero())
+
 
     def test_relation(self, int ntests=20, domain=None, proof=True):
         """
@@ -5836,10 +5837,14 @@ cdef class Expression(CommutativeRingElement):
 
         Indexing directly with ``t[1]`` causes problems with numpy types.
 
-            sage: t[1]
+            sage: t[1] # py2
             Traceback (most recent call last):
             ...
             TypeError: 'sage.symbolic.expression.Expression' object does not support indexing
+            sage: t[1] # py3
+            Traceback (most recent call last):
+            ...
+            TypeError: 'sage.symbolic.expression.Expression' object is not subscriptable
         """
         if (is_a_symbol(self._gobj) or is_a_constant(self._gobj) or
             is_a_numeric(self._gobj)):

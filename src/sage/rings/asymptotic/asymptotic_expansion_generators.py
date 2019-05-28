@@ -287,7 +287,7 @@ class AsymptoticExpansionGenerators(SageObject):
         if precision is None:
             precision = series_precision()
 
-        from sage.functions.log import log
+        log = A.locals()['log']
         result = A.zero()
         if precision >= 1:
             result += n * log(n)
@@ -442,7 +442,7 @@ class AsymptoticExpansionGenerators(SageObject):
         if precision is None:
             precision = series_precision()
 
-        from sage.functions.log import log
+        log = A.locals()['log']
         result = A.zero()
         if precision >= 1:
             result += log(n)

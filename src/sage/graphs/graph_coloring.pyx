@@ -189,7 +189,7 @@ def all_graph_colorings(G, n, count_only=False, hex_colors=False, vertex_color_d
     cdef list ones = []
     cdef dict Vd = {}
     cdef dict colormap = {}
-    cdef int k = 0, v
+    cdef int k = 0
     for i in range(nV):
         v = V[i]
         Vd[v] = i
@@ -283,7 +283,7 @@ cpdef first_coloring(G, n=0, hex_colors=False):
             else:
                 return list(iter(C.values()))
 
-cpdef int number_of_n_colorings(G, n):
+cpdef number_of_n_colorings(G, n):
     r"""
     Compute the number of `n`-colorings of a graph
 
@@ -314,7 +314,7 @@ cpdef int number_of_n_colorings(G, n):
         m += 1
     return m
 
-cpdef list numbers_of_colorings(G):
+cpdef numbers_of_colorings(G):
     r"""
     Compute the number of colorings of a graph.
 
@@ -332,7 +332,7 @@ cpdef list numbers_of_colorings(G):
     cdef list answer = [number_of_n_colorings(G, n) for n in range(o + 1)]
     return answer
 
-cpdef int chromatic_number(G):
+cpdef chromatic_number(G):
     r"""
     Return the chromatic number of the graph.
 

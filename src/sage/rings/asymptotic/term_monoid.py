@@ -206,6 +206,7 @@ from sage.structure.factory import UniqueFactory
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.richcmp import richcmp_by_eq_and_lt
+from .misc import WithLocals
 
 
 class ZeroCoefficientError(ValueError):
@@ -767,7 +768,7 @@ class GenericTerm(MultiplicativeGroupElement):
         """
         raise NotImplementedError('Not implemented in abstract base classes')
 
-    def log_term(self, base=None, log=None):
+    def log_term(self, base=None, locals=None):
         r"""
         Determine the logarithm of this term.
 
@@ -776,9 +777,10 @@ class GenericTerm(MultiplicativeGroupElement):
         - ``base`` -- the base of the logarithm. If ``None``
           (default value) is used, the natural logarithm is taken.
 
-        - ``log`` -- a function. If ``None`` (default value)
-          is used, then the usual
-          :class:`log <sage.functions.log.Function_log>` is taken.
+        - ``locals`` -- a dictionary which may contain the following keys and values:
+
+          - ``'log'`` -- value: a function. If not used, then the usual
+            :class:`log <sage.functions.log.Function_log>` is taken.
 
         OUTPUT:
 
@@ -823,7 +825,7 @@ class GenericTerm(MultiplicativeGroupElement):
         raise NotImplementedError('This method is not implemented in this '
                                   'abstract base class.')
 
-    def _log_growth_(self, base=None, log=None):
+    def _log_growth_(self, base=None, locals=None):
         r"""
         Helper function to calculate the logarithm of the growth of this element.
 
@@ -832,9 +834,10 @@ class GenericTerm(MultiplicativeGroupElement):
         - ``base`` -- the base of the logarithm. If ``None``
           (default value) is used, the natural logarithm is taken.
 
-        - ``log`` -- a function. If ``None`` (default value)
-          is used, then the usual
-          :class:`log <sage.functions.log.Function_log>` is taken.
+        - ``locals`` -- a dictionary which may contain the following keys and values:
+
+          - ``'log'`` -- value: a function. If not used, then the usual
+            :class:`log <sage.functions.log.Function_log>` is taken.
 
         OUTPUT:
 
@@ -859,7 +862,7 @@ class GenericTerm(MultiplicativeGroupElement):
         return tuple(self.parent()._create_element_in_extension_(g, c)
                      for g, c in
                      self.growth.log_factor(base=base,
-                                            log=log))
+                                            locals=locals))
 
     _richcmp_ = richcmp_by_eq_and_lt("_eq_", "_lt_")
 
@@ -1329,7 +1332,7 @@ class GenericTerm(MultiplicativeGroupElement):
                                   'not implemented '.format(self))
 
 
-class GenericTermMonoid(UniqueRepresentation, Parent):
+class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
     r"""
     Parent for generic asymptotic terms.
 
@@ -2338,7 +2341,7 @@ class OTerm(GenericTerm):
         """
         return self
 
-    def log_term(self, base=None, log=None):
+    def log_term(self, base=None, locals=None):
         r"""
         Determine the logarithm of this O-term.
 
@@ -2347,9 +2350,10 @@ class OTerm(GenericTerm):
         - ``base`` -- the base of the logarithm. If ``None``
           (default value) is used, the natural logarithm is taken.
 
-        - ``log`` -- a function. If ``None`` (default value)
-          is used, then the usual
-          :class:`log <sage.functions.log.Function_log>` is taken.
+        - ``locals`` -- a dictionary which may contain the following keys and values:
+
+          - ``'log'`` -- value: a function. If not used, then the usual
+            :class:`log <sage.functions.log.Function_log>` is taken.
 
         OUTPUT:
 
@@ -2382,7 +2386,7 @@ class OTerm(GenericTerm):
 
             :meth:`ExactTerm.log_term`.
         """
-        return self._log_growth_(base=base, log=log)
+        return self._log_growth_(base=base, locals=locals)
 
     def is_little_o_of_one(self):
         r"""
@@ -3002,7 +3006,7 @@ class TermWithCoefficient(GenericTerm):
                                 (self, exponent, self.parent(), self.coefficient)), e)
         return super(TermWithCoefficient, self)._calculate_pow_(exponent, new_coefficient=c)
 
-    def _log_coefficient_(self, base=None, log=None):
+    def _log_coefficient_(self, base=None, locals=None):
         r"""
         Helper function to calculate the logarithm of the coefficient of this element.
 
@@ -3011,9 +3015,10 @@ class TermWithCoefficient(GenericTerm):
         - ``base`` -- the base of the logarithm. If ``None``
           (default value) is used, the natural logarithm is taken.
 
-        - ``log`` -- a function. If ``None`` (default value)
-          is used, then the usual
-          :class:`log <sage.functions.log.Function_log>` is taken.
+        - ``locals`` -- a dictionary which may contain the following keys and values:
+
+          - ``'log'`` -- value: a function. If not used, then the usual
+            :class:`log <sage.functions.log.Function_log>` is taken.
 
         OUTPUT:
 
@@ -3042,17 +3047,16 @@ class TermWithCoefficient(GenericTerm):
             sage: T(3*x^2)._log_coefficient_()
             (log(3),)
             sage: mylog=lambda z, base: log3 if z == 3 else log(z)
-            sage: T(3*x^2)._log_coefficient_(log=mylog)
+            sage: T(3*x^2)._log_coefficient_(locals={'log': mylog})
             (log3,)
             sage: T(3*x^2).log_term()  # indirect doctest
             (log(3), 2*log(x))
-            sage: T(3*x^2).log_term(log=mylog)  # indirect doctest
+            sage: T(3*x^2).log_term(locals={'log': mylog})  # indirect doctest
             (log3, 2*log(x))
         """
         if self.coefficient.is_one():
             return tuple()
-        if log is None:
-            from sage.functions.log import log
+        log = self.parent().locals(locals)['log']
         return (self.parent()._create_element_in_extension_(
             self.parent().growth_group.one(),
             log(self.coefficient, base=base)),)
@@ -3553,7 +3557,7 @@ class ExactTerm(TermWithCoefficient):
         else:
             return self.parent()(self.growth, coeff_new)
 
-    def log_term(self, base=None, log=None):
+    def log_term(self, base=None, locals=None):
         r"""
         Determine the logarithm of this exact term.
 
@@ -3562,9 +3566,11 @@ class ExactTerm(TermWithCoefficient):
         - ``base`` -- the base of the logarithm. If ``None``
           (default value) is used, the natural logarithm is taken.
 
-        - ``log`` -- a function. If ``None`` (default value)
-          is used, then the usual
-          :class:`log <sage.functions.log.Function_log>` is taken.
+
+        - ``locals`` -- a dictionary which may contain the following keys and values:
+
+          - ``'log'`` -- value: a function. If not used, then the usual
+            :class:`log <sage.functions.log.Function_log>` is taken.
 
         OUTPUT:
 
@@ -3600,8 +3606,8 @@ class ExactTerm(TermWithCoefficient):
 
             :meth:`OTerm.log_term`.
         """
-        return self._log_coefficient_(base=base, log=log) \
-             + self._log_growth_(base=base, log=log)
+        return self._log_coefficient_(base=base, locals=locals) \
+             + self._log_growth_(base=base, locals=locals)
 
     def is_constant(self):
         r"""

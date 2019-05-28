@@ -1662,8 +1662,8 @@ cdef class Expression(CommutativeRingElement):
             False
             sage: (x - 1 < 0) in [x - 2 < 0]
             False
-            sage: Set([-x + y < 0, x - y < 0])
-            {-x + y < 0, x - y < 0}
+            sage: len(Set([-x + y < 0, x - y < 0]))
+            2
             sage: (x < y) == (x > y)
             False
             sage: (x < 0) < (x < 1)

@@ -1,0 +1,569 @@
+.. -*- coding: utf-8 -*-
+
+.. linkall
+
+Vector calculus 1: Cartesian coordinates
+========================================
+
+This tutorial introduces some vector calculus functionalities of SageMath
+within the 3-dimensional Euclidean space.
+The corresponding tools have been developed via the
+`SageManifolds <https://sagemanifolds.obspm.fr>`__ project.
+
+The tutorial is also available as a Jupyter notebook, either
+`passive <https://nbviewer.jupyter.org/github/sagemanifolds/SageManifolds/blob/master/Notebooks/SM_vector_calc_cartesian.ipynb>`__ (``nbviewer``)
+or `interactive <https://mybinder.org/v2/gh/sagemanifolds/SageManifolds/master?filepath=Notebooks/SM_vector_calc_cartesian.ipynb>`__ (``binder``).
+
+
+The 3-dimensional Euclidean space
+---------------------------------
+
+We start by declaring the 3-dimensional Euclidean space
+:math:`\mathbb{E}^3`, with :math:`(x,y,z)` as Cartesian coordinates:
+
+::
+
+    sage: E.<x,y,z> = EuclideanSpace()
+    sage: E
+    Euclidean space E^3
+
+:math:`\mathbb{E}^3` is endowed with the chart of Cartesian coordinates:
+
+::
+
+    sage: E.atlas()
+    [Chart (E^3, (x, y, z))]
+
+as well as with the associated orthonormal vector frame:
+
+::
+
+    sage: E.frames()
+    [Coordinate frame (E^3, (e_x,e_y,e_z))]
+
+
+Vector fields
+-------------
+
+We define a vector field on :math:`\mathbb{E}^3` from its components in
+the vector frame :math:`(e_x,e_y,e_z)`:
+
+::
+
+    sage: v = E.vector_field(-y, x, sin(x*y*z), name='v')
+    sage: v.display()
+    v = -y e_x + x e_y + sin(x*y*z) e_z
+
+We can access to the components of :math:`v` via the square bracket
+operator:
+
+::
+
+    sage: v[1]
+    -y
+    sage: v[:]
+    [-y, x, sin(x*y*z)]
+
+A vector field can evaluated at any point of :math:`\mathbb{E}^3`:
+
+::
+
+    sage: p = E((3,-2,1), name='p')
+    sage: p
+    Point p on the Euclidean space E^3
+    sage: p.coordinates()
+    (3, -2, 1)
+    sage: vp = v.at(p)
+    sage: vp
+    Vector v at Point p on the Euclidean space E^3
+    sage: vp.display()
+    v = 2 e_x + 3 e_y - sin(6) e_z
+
+Vector fields can be plotted (see the `list of
+options <http://doc.sagemath.org/html/en/reference/manifolds/sage/manifolds/differentiable/vectorfield.html#sage.manifolds.differentiable.vectorfield.VectorField.plot>`__
+for customizing the plot)
+
+::
+
+    sage: v.plot(max_range=1.5, scale=0.5)
+    Graphics3d Object
+
+
+.. PLOT::
+
+    E = EuclideanSpace(3)
+    x, y, z = E.default_chart()[:]
+    v = E.vector_field(-y, x, sin(x*y*z), name='v')
+    sphinx_plot(v.plot(max_range=1.5, scale=0.5))
+
+
+We may define a vector field with generic components:
+
+::
+
+    sage: u = E.vector_field(function('u_x')(x,y,z),
+    ....:                    function('u_y')(x,y,z),
+    ....:                    function('u_z')(x,y,z),
+    ....:                    name='u')
+    sage: u.display()
+    u = u_x(x, y, z) e_x + u_y(x, y, z) e_y + u_z(x, y, z) e_z
+    sage: u[:]
+    [u_x(x, y, z), u_y(x, y, z), u_z(x, y, z)]
+
+::
+
+    sage: up = u.at(p)
+    sage: up.display()
+    u = u_x(3, -2, 1) e_x + u_y(3, -2, 1) e_y + u_z(3, -2, 1) e_z
+
+
+Algebraic operations on vector fields
+-------------------------------------
+
+Dot product
+~~~~~~~~~~~
+
+The dot (or scalar) product of the vector fields :math:`u` and :math:`v`
+is obtained by the method ``dot_product``, which admits ``dot`` as a
+shortcut alias:
+
+::
+
+    sage: s = u.dot(v)
+    sage: s
+    Scalar field u.v on the Euclidean space E^3
+
+:math:`s= u\cdot v` is a *scalar field*, i.e. a map
+:math:`\mathbb{E}^3 \rightarrow \mathbb{R}`:
+
+::
+
+    sage: s.display()
+    u.v: E^3 --> R
+       (x, y, z) |--> -y*u_x(x, y, z) + x*u_y(x, y, z) + sin(x*y*z)*u_z(x, y, z)
+
+It maps points of :math:`\mathbb{E}^3` to real numbers:
+
+::
+
+    sage: s(p)
+    -sin(6)*u_z(3, -2, 1) + 2*u_x(3, -2, 1) + 3*u_y(3, -2, 1)
+
+Its coordinate expression is
+
+::
+
+    sage: s.expr()
+    -y*u_x(x, y, z) + x*u_y(x, y, z) + sin(x*y*z)*u_z(x, y, z)
+
+
+Norm
+~~~~
+
+The norm of a vector field is
+
+::
+
+    sage: s = norm(u)
+    sage: s
+    Scalar field |u| on the Euclidean space E^3
+    sage: s.display()
+    |u|: E^3 --> R
+       (x, y, z) |--> sqrt(u_x(x, y, z)^2 + u_y(x, y, z)^2 + u_z(x, y, z)^2)
+    sage: s.expr()
+    sqrt(u_x(x, y, z)^2 + u_y(x, y, z)^2 + u_z(x, y, z)^2)
+
+The norm is related to the dot product by :math:`\|u\|^2 = u\cdot u`, as
+we can check:
+
+::
+
+    sage: norm(u)^2 == u.dot(u)
+    True
+
+For :math:`v`, we have
+
+::
+
+    sage: norm(v).expr()
+    sqrt(x^2 + y^2 + sin(x*y*z)^2)
+
+
+Cross product
+~~~~~~~~~~~~~
+
+The cross product of :math:`u` by :math:`v` is obtained by the method
+``cross_product``, which admits ``cross`` as a shortcut alias:
+
+::
+
+    sage: s = u.cross(v)
+    sage: s
+    Vector field u x v on the Euclidean space E^3
+    sage: s.display()
+    u x v = (sin(x*y*z)*u_y(x, y, z) - x*u_z(x, y, z)) e_x
+     + (-sin(x*y*z)*u_x(x, y, z) - y*u_z(x, y, z)) e_y
+     + (x*u_x(x, y, z) + y*u_y(x, y, z)) e_z
+
+
+Scalar triple product
+~~~~~~~~~~~~~~~~~~~~~
+
+Let us introduce a third vector field. As a example, we do not pass the
+components as arguments of ``vector_field``, as we did for :math:`u` and
+:math:`v`; instead, we set them in a second stage, via the square
+bracket operator, any unset component being assumed to be zero:
+
+::
+
+    sage: w = E.vector_field(name='w')
+    sage: w[1] = x*z
+    sage: w[2] = y*z
+    sage: w.display()
+    w = x*z e_x + y*z e_y
+
+The scalar triple product of the vector fields :math:`u`, :math:`v` and
+:math:`w` is obtained as follows:
+
+::
+
+    sage: triple_product = E.scalar_triple_product()
+    sage: s = triple_product(u, v, w)
+    sage: s
+    Scalar field epsilon(u,v,w) on the Euclidean space E^3
+    sage: s.expr()
+    -(y*u_x(x, y, z) - x*u_y(x, y, z))*z*sin(x*y*z) - (x^2*u_z(x, y, z)
+     + y^2*u_z(x, y, z))*z
+
+Let us check that the scalar triple product of :math:`u`, :math:`v` and
+:math:`w` is :math:`u\cdot(v\times w)`:
+
+::
+
+    sage: s == u.dot(v.cross(w))
+    True
+
+
+Differential operators
+----------------------
+
+While the standard operators :math:`\mathrm{grad}`, :math:`\mathrm{div}`,
+:math:`\mathrm{curl}`, etc. involved in vector calculus are accessible via
+the dot notation (e.g. ``v.div()``), let us import functions ``grad``,
+``div``, ``curl``, etc. that allow for using standard mathematical notations
+(e.g. ``div(v)``):
+
+::
+
+    sage: from sage.manifolds.operators import *
+
+
+Gradient of a scalar field
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We first introduce a scalar field, via its expression in terms of
+Cartesian coordinates; in this example, we consider an unspecified
+function of :math:`(x,y,z)`:
+
+::
+
+    sage: F = E.scalar_field(function('f')(x,y,z), name='F')
+    sage: F.display()
+    F: E^3 --> R
+       (x, y, z) |--> f(x, y, z)
+
+The value of :math:`F` at a point:
+
+::
+
+    sage: F(p)
+    f(3, -2, 1)
+
+The gradient of :math:`F`:
+
+::
+
+    sage: grad(F)
+    Vector field grad(F) on the Euclidean space E^3
+    sage: grad(F).display()
+    grad(F) = d(f)/dx e_x + d(f)/dy e_y + d(f)/dz e_z
+    sage: norm(grad(F)).display()
+    |grad(F)|: E^3 --> R
+       (x, y, z) |--> sqrt((d(f)/dx)^2 + (d(f)/dy)^2 + (d(f)/dz)^2)
+
+
+Divergence
+~~~~~~~~~~
+
+The divergence of a vector field:
+
+::
+
+    sage: s = div(u)
+    sage: s.display()
+    div(u): E^3 --> R
+       (x, y, z) |--> d(u_x)/dx + d(u_y)/dy + d(u_z)/dz
+
+For :math:`v` and :math:`w`, we have
+
+::
+
+    sage: div(v).expr()
+    x*y*cos(x*y*z)
+    sage: div(w).expr()
+    2*z
+
+An identity valid for any scalar field :math:`F` and any vector field
+:math:`u`:
+
+::
+
+    sage: div(F*u) == F*div(u) + u.dot(grad(F))
+    True
+
+
+Curl
+~~~~
+
+The curl of a vector field:
+
+::
+
+    sage: s = curl(u)
+    sage: s
+    Vector field curl(u) on the Euclidean space E^3
+    sage: s.display()
+    curl(u) = (-d(u_y)/dz + d(u_z)/dy) e_x + (d(u_x)/dz - d(u_z)/dx) e_y
+     + (-d(u_x)/dy + d(u_y)/dx) e_z
+
+To use the notation ``rot`` instead of ``curl``, simply do
+
+::
+
+    sage: rot = curl
+
+An alternative is
+
+::
+
+    sage: from sage.manifolds.operators import curl as rot
+
+We have then
+
+::
+
+    sage: rot(u).display()
+    curl(u) = (-d(u_y)/dz + d(u_z)/dy) e_x + (d(u_x)/dz - d(u_z)/dx) e_y
+     + (-d(u_x)/dy + d(u_y)/dx) e_z
+    sage: rot(u) == curl(u)
+    True
+
+For :math:`v` and :math:`w`, we have
+
+::
+
+    sage: curl(v).display()
+    curl(v) = x*z*cos(x*y*z) e_x - y*z*cos(x*y*z) e_y + 2 e_z
+
+::
+
+    sage: curl(w).display()
+    curl(w) = -y e_x + x e_y
+
+The curl of a gradient is always zero:
+
+::
+
+    sage: curl(grad(F)).display()
+    curl(grad(F)) = 0
+
+The divergence of a curl is always zero:
+
+::
+
+    sage: div(curl(u)).display()
+    div(curl(u)): E^3 --> R
+       (x, y, z) |--> 0
+
+An identity valid for any scalar field :math:`F` and any vector field
+:math:`u`:
+
+::
+
+    sage: curl(F*u) == grad(F).cross(u) + F*curl(u)
+    True
+
+
+Laplacian
+~~~~~~~~~
+
+The Laplacian of a scalar field:
+
+::
+
+    sage: s = laplacian(F)
+    sage: s.display()
+    Delta(F): E^3 --> R
+       (x, y, z) |--> d^2(f)/dx^2 + d^2(f)/dy^2 + d^2(f)/dz^2
+
+For a scalar field, the Laplacian is nothing but the divergence of the
+gradient:
+
+::
+
+    sage: laplacian(F) == div(grad(F))
+    True
+
+The Laplacian of a vector field:
+
+::
+
+    sage: laplacian(u).display()
+    Delta(u) = (d^2(u_x)/dx^2 + d^2(u_x)/dy^2 + d^2(u_x)/dz^2) e_x
+     + (d^2(u_y)/dx^2 + d^2(u_y)/dy^2 + d^2(u_y)/dz^2) e_y
+     + (d^2(u_z)/dx^2 + d^2(u_z)/dy^2 + d^2(u_z)/dz^2) e_z
+
+In the Cartesian frame, the components of the Laplacian of a vector
+field are nothing but the Laplacians of the components of the vector
+field, as we can check:
+
+::
+
+    sage: e = E.cartesian_frame()
+    sage: laplacian(u) == sum(laplacian(u[[i]])*e[i] for i in E.irange())
+    True
+
+In the above formula, ``u[[i]]`` return the :math:`i`-th component of
+:math:`u` as a scalar field, while ``u[i]`` would have returned the
+coordinate expression of this scalar field; besides, ``e`` is the
+Cartesian frame:
+
+::
+
+    sage: e[:]
+    (Vector field e_x on the Euclidean space E^3,
+     Vector field e_y on the Euclidean space E^3,
+     Vector field e_z on the Euclidean space E^3)
+
+For :math:`v` and :math:`w`, we have
+
+::
+
+    sage: laplacian(v).display()
+    Delta(v) = -(x^2*y^2 + (x^2 + y^2)*z^2)*sin(x*y*z) e_z
+    sage: laplacian(w).display()
+    Delta(w) = 0
+
+We have
+
+::
+
+    sage: curl(curl(u)).display()
+    curl(curl(u)) = (-d^2(u_x)/dy^2 - d^2(u_x)/dz^2 + d^2(u_y)/dxdy
+     + d^2(u_z)/dxdz) e_x + (d^2(u_x)/dxdy - d^2(u_y)/dx^2 - d^2(u_y)/dz^2
+     + d^2(u_z)/dydz) e_y + (d^2(u_x)/dxdz + d^2(u_y)/dydz - d^2(u_z)/dx^2
+     - d^2(u_z)/dy^2) e_z
+    sage: grad(div(u)).display()
+    grad(div(u)) = (d^2(u_x)/dx^2 + d^2(u_y)/dxdy + d^2(u_z)/dxdz) e_x
+     + (d^2(u_x)/dxdy + d^2(u_y)/dy^2 + d^2(u_z)/dydz) e_y
+     + (d^2(u_x)/dxdz + d^2(u_y)/dydz + d^2(u_z)/dz^2) e_z
+
+and we may check a famous identity:
+
+::
+
+    sage: curl(curl(u)) == grad(div(u)) - laplacian(u)
+    True
+
+
+Customizations
+--------------
+
+Customizing the symbols of the orthonormal frame vectors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, the vectors of the orthonormal frame associated with
+Cartesian coordinates are denoted :math:`(e_x,e_y,e_z)`:
+
+::
+
+    sage: frame = E.cartesian_frame()
+    sage: frame
+    Coordinate frame (E^3, (e_x,e_y,e_z))
+
+But this can be changed, thanks to the method ``set_name``:
+
+::
+
+    sage: frame.set_name('a', indices=('x', 'y', 'z'))
+    sage: frame
+    Coordinate frame (E^3, (a_x,a_y,a_z))
+    sage: v.display()
+    v = -y a_x + x a_y + sin(x*y*z) a_z
+
+::
+
+    sage: frame.set_name(('hx', 'hy', 'hz'),
+    ....:                latex_symbol=(r'\mathbf{\hat{x}}', r'\mathbf{\hat{y}}',
+    ....:                              r'\mathbf{\hat{z}}'))
+    sage: frame
+    Coordinate frame (E^3, (hx,hy,hz))
+    sage: v.display()
+    v = -y hx + x hy + sin(x*y*z) hz
+
+
+Customizing the coordinate symbols
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The coordinates symbols are defined within the angle brackets ``<...>``
+at the construction of the Euclidean space. Above we did
+
+::
+
+    sage: E.<x,y,z> = EuclideanSpace()
+
+which resulted in the coordinate symbols :math:`(x,y,z)` and in the
+corresponding Python variables ``x``, ``y`` and ``z`` (SageMath symbolic
+expressions). To use other symbols, for instance :math:`(X,Y,Z)`, it
+suffices to create ``E`` as
+
+::
+
+    sage: E.<X,Y,Z> = EuclideanSpace()
+
+We have then
+
+::
+
+    sage: E.atlas()
+    [Chart (E^3, (X, Y, Z))]
+    sage: E.cartesian_frame()
+    Coordinate frame (E^3, (e_X,e_Y,e_Z))
+    sage: v = E.vector_field(-Y, X, sin(X*Y*Z), name='v')
+    sage: v.display()
+    v = -Y e_X + X e_Y + sin(X*Y*Z) e_Z
+
+By default the LaTeX symbols of the coordinate coincide with the letters
+given within the angle brackets. But this can be adjusted through the
+optional argument ``symbols`` of the function ``EuclideanSpace``, which
+has to be a string, usually prefixed by r (for raw string, in order to
+allow for the backslash character of LaTeX expressions). This string
+contains the coordinate fields separated by a blank space; each field
+contains the coordinate’s text symbol and possibly the coordinate’s
+LaTeX symbol (when the latter is different from the text symbol), both
+symbols being separated by a colon (``:``):
+
+::
+
+    sage: E.<xi,et,ze> = EuclideanSpace(symbols=r"xi:\xi et:\eta ze:\zeta")
+    sage: E.atlas()
+    [Chart (E^3, (xi, et, ze))]
+    sage: v = E.vector_field(-et, xi, sin(xi*et*ze), name='v')
+    sage: v.display()
+    v = -et e_xi + xi e_et + sin(et*xi*ze) e_ze
+
+
+What's next?
+------------
+
+See :ref:`vector_calculus`.

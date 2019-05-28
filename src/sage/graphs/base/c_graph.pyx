@@ -2085,12 +2085,7 @@ cdef class CGraphBackend(GenericGraphBackend):
                 else:
                     neighbors = []
                     for w in nbr:
-                        if not exclude_edges and not exclude_vertices:
-                            neighbors.append(w)
-                        elif out == 1 and exclude_edges and (u, w) not in exclude_edges_int:
-                            if not exclude_vertices or (exclude_vertices and w not in exclude_vertices_int):
-                                neighbors.append(w)
-                        elif out == -1 and exclude_edges and (w, u) not in exclude_edges_int:
+                        if exclude_edges and ((out == 1 and (u, w) not in exclude_edges_int) or (out == -1 and (w, u) not in exclude_edges_int)):
                             if not exclude_vertices or (exclude_vertices and w not in exclude_vertices_int):
                                 neighbors.append(w)
                         elif not exclude_edges and exclude_vertices and w not in exclude_vertices_int:
@@ -2305,12 +2300,7 @@ cdef class CGraphBackend(GenericGraphBackend):
                 else:
                     neighbors = []
                     for w in nbr:
-                        if not exclude_edges and not exclude_vertices:
-                            neighbors.append(w)
-                        elif side == 1 and exclude_edges and (v, w) not in exclude_edges_int:
-                            if not exclude_vertices or (exclude_vertices and w not in exclude_vertices_int):
-                                neighbors.append(w)
-                        elif side == -1 and exclude_edges and (w, v) not in exclude_edges_int:
+                        if exclude_edges and ((side == 1 and (v, w) not in exclude_edges_int) or (side == -1 and (w, v) not in exclude_edges_int)):
                             if not exclude_vertices or (exclude_vertices and w not in exclude_vertices_int):
                                 neighbors.append(w)
                         elif not exclude_edges and exclude_vertices and w not in exclude_vertices_int:

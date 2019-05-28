@@ -15958,7 +15958,10 @@ class GenericGraph(GenericGraph_pyx):
     def yen_k_shortest_paths(self, source, target, weight_function=None, by_weight=False):
         r"""
         Return an iterator over the paths between a pair of vertices in
-        increasing order of weights or edges in case of undirected graphs.
+        increasing order of weights.
+
+        For undirected graphs paths are returned in order of increasing number
+        of edges.
 
         If ``source`` is the same vertex as ``target``, then ``[[source]]`` is
         returned -- a list containing the 1-vertex, 0-edge path "``source``"

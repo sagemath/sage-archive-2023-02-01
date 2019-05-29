@@ -204,7 +204,7 @@ class GraphicMatroid(Matroid):
 
         # Map vertices on input graph to vertices in self._G
         self._vertex_map = {v: v for v in G.vertex_iterator()}
-        comps = G.connected_components()
+        comps = G.connected_components(sort=False)
         while len(comps) > 1:
             comp = comps.pop()
             v1 = comps[-1][-1]
@@ -1230,16 +1230,16 @@ class GraphicMatroid(Matroid):
             [(0, 1, 0),
              (0, 2, 1),
              (1, 2, 2),
-             (2, 4, 3),
-             (2, 5, 4),
+             (1, 4, 3),
+             (1, 5, 4),
              (4, 5, 5),
-             (5, 7, 6),
-             (5, 8, 7),
+             (4, 7, 6),
+             (4, 8, 7),
              (7, 8, 8),
              (7, 8, 9),
              (8, 8, 10)]
             sage: M.vertex_map()
-            {0: 0, 1: 1, 2: 2, 3: 2, 4: 4, 5: 5, 6: 5, 7: 7, 8: 8}
+            {0: 0, 1: 1, 2: 2, 3: 1, 4: 4, 5: 5, 6: 4, 7: 7, 8: 8}
         """
         return copy(self._vertex_map)
 

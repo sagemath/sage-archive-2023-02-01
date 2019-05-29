@@ -757,9 +757,10 @@ def split_vertex(G, u, v=None, edges=None):
         ...
         ValueError: the edges are not all incident with u
         sage: split_vertex(G, u = 1, v = 'a', edges = [(1, 3, None)])
-        sage: G.edges()
+        sage: G.edges() # py2
         [(0, 1, None), (0, 2, None), (1, 2, None), (2, 4, None), (3, 'a', None)]
-
+        sage: [a for a in G.edge_iterator()] # py3 random
+        [(0, 1, None), (0, 2, None), (1, 2, None), (2, 4, None), ('a', 3, None)]
     """
     if v is None:
         v = G.add_vertex()

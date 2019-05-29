@@ -976,6 +976,7 @@ class TamariIntervalPoset(Element):
         """
         return self._size
 
+    @cached_method
     def cubical_coordinates(self):
         """
         Return the cubical coordinates of ``self``.
@@ -1006,7 +1007,7 @@ class TamariIntervalPoset(Element):
         REFERENCES:
 
         .. [Combe2019] Camille Combe, *Réalisation cubique du poset des
-           intervalles de Tamari*, :arxiv:`1904.00658`
+           intervalles de Tamari*, preprint :arxiv:`1904.00658`
         """
         tup = [0] * (self.size() - 1)
         for i, j in self._poset.relations_iterator(strict=True):

@@ -1112,7 +1112,18 @@ class GraphicMatroid(Matroid):
             M = self.regular_matroid()
             if isinstance(other, GraphicMatroid):
                 other = other.regular_matroid()
-            return M._is_isomorphic(other, certificate=certificate)
+            if certificate:
+                # Get isomorphism between M and self -- in this order,
+                # to prevent an infinite recursion.
+                iso0 = M._is_isomorphic(self, certificate=certificate)[1]
+                iso1 = {iso0[e]: e for e in iso0}
+                # Get isomorphism between M and other.
+                isomorphic, iso2 = M._is_isomorphic(other, certificate=certificate)
+                if not isomorphic:
+                    return (False, None)
+                # Compose the two isomorphisms.
+                return (True, {e: iso2[iso1[e]] for e in iso1})
+            return M._is_isomorphic(other)
 
     def _isomorphism(self, other):
         """
@@ -1147,8 +1158,9 @@ class GraphicMatroid(Matroid):
             sage: M._isomorphism(N)
             {'a': 2, 'b': 4, 'c': 5, 'd': 0, 'e': 1, 'f': 3}
             sage: O = Matroid(Graph(edgelist), regular=True)
-            sage: M._isomorphism(O)
-            {'a': 'a', 'b': 'c', 'c': 'b', 'd': 'e', 'e': 'd', 'f': 'f'}
+            sage: iso = M._isomorphism(O)
+            sage: M.is_isomorphism(O, iso)
+            True
         """
         return self.is_isomorphic(other, certificate=True)[1]
 

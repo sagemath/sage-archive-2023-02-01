@@ -30,13 +30,6 @@ cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFLAS":
              Modular_double.Element beta, Modular_double.Element* Y,
              size_t incY)
 
-    Modular_double.Element* pfgemv(Modular_double F, FFLAS_TRANSPOSE transA,
-             size_t nrowsA, size_t ncolsA,
-             Modular_double.Element alpha, Modular_double.Element* A,
-             size_t A_stride, Modular_double.Element* B, int B_stride,
-             Modular_double.Element beta, Modular_double.Element* C,
-             size_t C_stride, size_t numthreads)
-
     Modular_double.Element* fgemm (Modular_double F,
              FFLAS_TRANSPOSE transA, FFLAS_TRANSPOSE transB,
              size_t nrowsA, size_t ncolsB, size_t ncolsA,
@@ -45,13 +38,6 @@ cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFLAS":
              Modular_double.Element beta, Modular_double.Element* C,
              size_t C_stride)
 
-    Modular_double.Element* pfgemm(Modular_double F,
-             FFLAS_TRANSPOSE transA, FFLAS_TRANSPOSE transB,
-             size_t nrowsA, size_t ncolsB, size_t ncolsA,
-             Modular_double.Element alpha, Modular_double.Element* A,
-             size_t A_stride, Modular_double.Element* B, int B_stride,
-             Modular_double.Element beta, Modular_double.Element* C,
-             size_t C_stride, size_t nbthreads)
 
     # float
     Modular_float.Element* fgemv (Modular_float F, FFLAS_TRANSPOSE transA,
@@ -61,13 +47,6 @@ cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFLAS":
              Modular_float.Element beta, Modular_float.Element* Y,
              size_t incY)
 
-    Modular_float.Element* pfgemv(Modular_float F, FFLAS_TRANSPOSE transA,
-             size_t nrowsA, size_t ncolsA,
-             Modular_float.Element alpha, Modular_float.Element* A,
-             size_t A_stride, Modular_float.Element* B, int B_stride,
-             Modular_float.Element beta, Modular_float.Element* C,
-             size_t C_stride, size_t numthreads)
-
     Modular_float.Element* fgemm (Modular_float F,
              FFLAS_TRANSPOSE transA, FFLAS_TRANSPOSE transB,
              size_t nrowsA, size_t ncolsB, size_t ncolsA,
@@ -76,13 +55,6 @@ cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFLAS":
              Modular_float.Element beta, Modular_float.Element* C,
              size_t C_stride)
 
-    Modular_float.Element* pfgemm(Modular_float F,
-             FFLAS_TRANSPOSE transA, FFLAS_TRANSPOSE transB,
-             size_t nrowsA, size_t ncolsB, size_t ncolsA,
-             Modular_float.Element alpha, Modular_float.Element* A,
-             size_t A_stride, Modular_float.Element* B, int B_stride,
-             Modular_float.Element beta, Modular_float.Element* C,
-             size_t C_stride, size_t nbthreads)
 
 
 cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFPACK":
@@ -101,7 +73,15 @@ cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFPACK":
               size_t nrows, size_t ncols,
               Modular_double.Element *A, size_t lda)
 
+    int pRank (Modular_double,
+              size_t nrows, size_t ncols,
+              Modular_double.Element *A, size_t lda)
+
     size_t ReducedRowEchelonForm (Modular_double F, size_t a, size_t b,
+                                  Modular_double.Element* matrix,
+                                  size_t s, size_t* P, size_t* Q)
+
+    size_t pReducedRowEchelonForm (Modular_double F, size_t a, size_t b,
                                   Modular_double.Element* matrix,
                                   size_t s, size_t* P, size_t* Q)
 
@@ -134,7 +114,15 @@ cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFPACK":
               size_t nrows, size_t ncols,
               Modular_float.Element *A, size_t lda)
 
+    int pRank (Modular_float,
+              size_t nrows, size_t ncols,
+              Modular_float.Element *A, size_t lda)
+
     size_t ReducedRowEchelonForm (Modular_float F, size_t a, size_t b,
+                                  Modular_float.Element* matrix,
+                                  size_t s, size_t* P, size_t* Q)
+
+    size_t pReducedRowEchelonForm (Modular_float F, size_t a, size_t b,
                                   Modular_float.Element* matrix,
                                   size_t s, size_t* P, size_t* Q)
 

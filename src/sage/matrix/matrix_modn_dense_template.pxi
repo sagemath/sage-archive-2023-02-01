@@ -95,12 +95,11 @@ from cysignals.signals cimport sig_check, sig_on, sig_off
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.linbox.fflas cimport FFLAS_TRANSPOSE, FflasNoTrans, FflasTrans, \
-    FflasRight, vector, list as std_list, pfgemm, pfgemv
+    FflasRight, vector, list as std_list  #, pfgemm, pfgemv
 
 from sage.parallel.parallelism import Parallelism
 #from cython cimport parallel
-
-cimport openmp
+from libc.stdio cimport printf
 
 cimport sage.rings.fast_arith
 cdef sage.rings.fast_arith.arith_int ArithIntObj
@@ -185,8 +184,15 @@ cdef inline linbox_echelonize(celement modulus, celement* entries, Py_ssize_t nr
     cdef size_t* P = <size_t*>check_allocarray(nrows, sizeof(size_t))
     cdef size_t* Q = <size_t*>check_allocarray(ncols, sizeof(size_t))
 
+    cdef Py_ssize_t r
+    cpdef size_t nbthreads
+    nbthreads = Parallelism().get('linbox')
+    printf(">>>>>>>>>>>>>>>>>>>>>>>>>>")
     if nrows*ncols > 1000: sig_on()
-    cdef Py_ssize_t r = ReducedRowEchelonForm(F[0], nrows, ncols, <ModField.Element*>entries, ncols, P, Q)
+    if nbthreads > 1 :
+        r = pReducedRowEchelonForm(F[0], nrows, ncols, <ModField.Element*>entries, ncols, P, Q)
+    else : 
+        r = ReducedRowEchelonForm(F[0], nrows, ncols, <ModField.Element*>entries, ncols, P, Q)
     if nrows*ncols > 1000: sig_off()
 
     for i in range(nrows):
@@ -247,8 +253,15 @@ cdef inline int linbox_rank(celement modulus, celement* entries, Py_ssize_t nrow
 
     cdef celement *cpy = linbox_copy(modulus, entries, nrows, ncols)
 
+    cpdef Py_ssize_t r
+    cpdef size_t nbthreads
+    nbthreads = Parallelism().get('linbox')
+
     if nrows*ncols > 1000: sig_on()
-    r = Rank(F[0], nrows, ncols, <ModField.Element*>cpy, ncols)
+    if nbthreads > 1:
+        r = pRank(F[0], nrows, ncols, <ModField.Element*>cpy, ncols)
+    else:
+        r = Rank(F[0], nrows, ncols, <ModField.Element*>cpy, ncols)
     if nrows*ncols > 1000: sig_off()
     sig_free(cpy)
     del F
@@ -277,17 +290,9 @@ cdef inline celement linbox_matrix_matrix_multiply(celement modulus, celement* a
     F[0].init(one, <int>1)
     F[0].init(zero, <int>0)
 
-    cpdef size_t nbthreads
-    nbthreads = Parallelism().get('linbox')
-
     if m*n*k > 100000: sig_on()
 
-    if nbthreads > 1:
-        pfgemm(F[0], FflasNoTrans, FflasNoTrans, m, n, k, one,
-               <ModField.Element*>A, k, <ModField.Element*>B, n, zero,
-               <ModField.Element*>ans, n, nbthreads)
-    else:
-        fgemm(F[0], FflasNoTrans, FflasNoTrans, m, n, k, one,
+    fgemm(F[0], FflasNoTrans, FflasNoTrans, m, n, k, one,
                <ModField.Element*>A, k, <ModField.Element*>B, n, zero,
                <ModField.Element*>ans, n)
 
@@ -304,16 +309,9 @@ cdef inline int linbox_matrix_vector_multiply(celement modulus, celement* C, cel
     F.init(one, <int>1)
     F.init(zero, <int>0)
 
-    cpdef size_t nbthreads
-    nbthreads = Parallelism().get('linbox')
-
     if m*n > 100000: sig_on()
 
-    if nbthreads > 1:
-        pfgemv(F[0], trans,  m, n, one, <ModField.Element*>A, n, <ModField.Element*>b, 1,
-               zero, <ModField.Element*>C, 1, nbthreads)
-    else:
-        fgemv(F[0], trans,  m, n, one, <ModField.Element*>A, n, <ModField.Element*>b, 1,
+    fgemv(F[0], trans,  m, n, one, <ModField.Element*>A, n, <ModField.Element*>b, 1,
                zero, <ModField.Element*>C, 1)
 
     if m*n > 100000: sig_off()

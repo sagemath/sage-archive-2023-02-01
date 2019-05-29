@@ -406,7 +406,8 @@ ext_modules = [
               sources = ['sage/graphs/hyperbolicity.pyx']),
 
     Extension('sage.graphs.base.c_graph',
-              sources = ['sage/graphs/base/c_graph.pyx']),
+              sources = ['sage/graphs/base/c_graph.pyx'],
+              language = 'c++'),
 
     Extension('sage.graphs.base.sparse_graph',
               sources = ['sage/graphs/base/sparse_graph.pyx']),

@@ -424,6 +424,93 @@ class Polyhedron_base(Element):
         new_parent = self.parent().base_extend(base_ring, backend)
         return new_parent(self)
 
+    def change_ring(self, base_ring, backend=None):
+        """
+        Return the polyhedron obtained by coercing the entries of the
+        vertices/lines/rays of this polyhedron into the given ring.
+
+        This method can also be used to change the backend.
+
+        INPUT:
+
+        - ``base_ring`` -- the new base ring.
+
+        - ``backend`` -- the new backend or ``None`` (default), see
+            :func:`~sage.geometry.polyhedron.constructor.Polyhedron`.
+            If ``None`` (the default), use the same defaulting behavior
+            as described there; it is not attempted to keep the same
+            backend.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[(1,0), (0,1)], rays=[(1,1)], base_ring=QQ); P
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices and 1 ray
+            sage: P.change_ring(ZZ)
+            A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices and 1 ray
+            sage: P.change_ring(ZZ) == P
+            True
+
+            sage: P = Polyhedron(vertices=[(-1.3,0), (0,2.3)], base_ring=RDF); P.vertices()
+            (A vertex at (-1.3, 0.0), A vertex at (0.0, 2.3))
+            sage: P.change_ring(QQ).vertices()
+            (A vertex at (-13/10, 0), A vertex at (0, 23/10))
+            sage: P == P.change_ring(QQ)
+            True
+            sage: P.change_ring(ZZ)
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot change the base ring to the Integer Ring (cannot coerce -1.3 into the Integer Ring)
+
+            sage: P = polytopes.regular_polygon(3); P
+            A 2-dimensional polyhedron in AA^2 defined as the convex hull of 3 vertices
+            sage: P.vertices()
+            (A vertex at (0.?e-16, 1.000000000000000?),
+             A vertex at (0.866025403784439?, -0.500000000000000?),
+             A vertex at (-0.866025403784439?, -0.500000000000000?))
+            sage: P.change_ring(QQ)
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot change the base ring to the Rational Field (cannot coerce 0.866025403784439? into the Rational Field)
+
+        .. WARNING::
+
+            The base ring ``RDF`` should be used with care. As it is
+            not an exact ring, certain computations may break or
+            silently produce wrong results, for example changing the
+            base ring from an exact ring into ``RDF`` may cause a
+            loss of data::
+
+                sage: P = Polyhedron([[2/3,0],[6666666666666667/10^16,0]], base_ring=AA); P
+                A 1-dimensional polyhedron in AA^2 defined as the convex hull of 2 vertices
+                sage: P.change_ring(RDF)
+                A 0-dimensional polyhedron in RDF^2 defined as the convex hull of 1 vertex
+                sage: P == P.change_ring(RDF)
+                False
+       """
+
+        from sage.categories.all import Rings
+        from sage.rings.all import RDF, RR
+
+        if base_ring not in Rings:
+            raise ValueError("invalid base ring")
+
+        if not base_ring.is_exact():
+            if base_ring is RR:
+                base_ring = RDF
+            elif base_ring is not RDF:
+                raise ValueError("the only allowed inexact ring is 'RDF' with backend 'cdd'")
+
+        try:
+            vertices = [[base_ring(x) for x in vertex] for vertex in self.vertices_list()]
+            rays = [[base_ring(x) for x in ray] for ray in self.rays_list()]
+            lines = [[base_ring(x) for x in line] for line in self.lines_list()]
+
+        except(TypeError, ValueError):
+            raise TypeError("cannot change the base ring to the {0} (cannot coerce {1} into the {0})".format(base_ring, x))
+
+        new_parent = self.parent().change_ring(base_ring, backend)
+        return new_parent([vertices, rays, lines], None)
+
     def _richcmp_(self, other, op):
         """
         Compare ``self`` and ``other``.

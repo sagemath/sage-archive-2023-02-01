@@ -80,6 +80,12 @@ AUTHORS:
 
 - David Coudert (2018-10-07): cleaning
 
+- Amanda Francis, Caitlin Lienkaemper, Kate Collins, Rajat Mittal (2019-03-10):
+  methods for computing effective resistance
+  
+- Amanda Francis, Caitlin Lienkaemper, Kate Collins, Rajat Mittal (2019-03-19):
+  most_common_neighbors and common_neighbors_matrix added.
+
 Graph Format
 ------------
 
@@ -885,6 +891,11 @@ class Graph(GenericGraph):
         Graph on 3 vertices
         sage: G.edges()
         [(1, 2, None)]
+
+    Check that :trac:`27505` is fixed::
+
+        sage: Graph(Graph().networkx_graph(), weighted=None, format='NX')
+        Graph on 0 vertices
     """
     _directed = False
 
@@ -1162,6 +1173,7 @@ class Graph(GenericGraph):
             else:
                 r = lambda x: x
             if weighted is None:
+                import networkx
                 if isinstance(data, networkx.Graph):
                     weighted = False
                     if multiedges is None:
@@ -1419,13 +1431,18 @@ class Graph(GenericGraph):
 
 
     @doc_index("Connectivity, orientations, trees")
-    def spanning_trees(self):
+    def spanning_trees(self, labels=False):
         """
         Returns a list of all spanning trees.
 
         If the graph is disconnected, returns the empty list.
 
         Uses the Read-Tarjan backtracking algorithm [RT75]_.
+
+        INPUT:
+
+        - ``labels`` -- boolean (default: ``False``); whether to return edges
+          labels in the spanning trees or not
 
         EXAMPLES::
 
@@ -1461,6 +1478,17 @@ class Graph(GenericGraph):
              Graph on 6 vertices,
              Graph on 6 vertices]
 
+        Edges of the spanning trees can be labeled or unlabeled (:trac:27557)::
+
+            sage: g = Graph([(1,2,2),(1,2,1),(1,2,4),(1,4,5)],multiedges=True)
+            sage: l = g.spanning_trees(labels=True)
+            sage: l[0].edges()
+            [(1, 2, 4), (1, 4, 5)]
+            sage: l[1].edges()
+            [(1, 2, 1), (1, 4, 5)]
+            sage: l[2].edges()
+            [(1, 2, 2), (1, 4, 5)]
+
         REFERENCES:
 
         .. [RT75] Read, R. C. and Tarjan, R. E.
@@ -1468,7 +1496,7 @@ class Graph(GenericGraph):
           Networks, Volume 5 (1975), numer 3, pages 237-252.
         """
 
-        def _recursive_spanning_trees(G, forest):
+        def _recursive_spanning_trees(G, forest, labels):
             """
             Returns all the spanning trees of G containing forest
             """
@@ -1479,13 +1507,13 @@ class Graph(GenericGraph):
                 return [forest.copy()]
             else:
                 # Pick an edge e from G-forest
-                for e in G.edge_iterator(labels=False):
+                for e in G.edge_iterator(labels=labels):
                     if not forest.has_edge(e):
                         break
 
                 # 1) Recursive call with e removed from G
                 G.delete_edge(e)
-                trees = _recursive_spanning_trees(G, forest)
+                trees = _recursive_spanning_trees(G, forest, labels)
                 G.add_edge(e)
 
                 # 2) Recursive call with e include in forest
@@ -1502,7 +1530,7 @@ class Graph(GenericGraph):
                 # Actual call
                 forest.add_edge(e)
                 G.delete_edges(B)
-                trees.extend(_recursive_spanning_trees(G, forest))
+                trees.extend(_recursive_spanning_trees(G, forest, labels))
                 G.add_edges(B)
                 forest.delete_edge(e)
 
@@ -1512,7 +1540,7 @@ class Graph(GenericGraph):
             forest = Graph()
             forest.add_vertices(self.vertex_iterator())
             forest.add_edges(self.bridges())
-            return _recursive_spanning_trees(Graph(self, immutable=False, loops=False), forest)
+            return _recursive_spanning_trees(Graph(self, immutable=False, loops=False), forest, labels)
         else:
             return []
 
@@ -5907,7 +5935,7 @@ class Graph(GenericGraph):
             return list(IndependentSets(self, maximal=True, complement=True))
         elif algorithm == "NetworkX":
             import networkx
-            return list(networkx.find_cliques(self.networkx_graph(copy=False)))
+            return list(networkx.find_cliques(self.networkx_graph()))
         else:
             raise ValueError("Algorithm must be equal to 'native' or to 'NetworkX'.")
 
@@ -6087,7 +6115,7 @@ class Graph(GenericGraph):
             return clique_number(self)
         elif algorithm == "networkx":
             import networkx
-            return networkx.graph_clique_number(self.networkx_graph(copy=False), cliques)
+            return networkx.graph_clique_number(self.networkx_graph(), cliques)
         elif algorithm == "MILP":
             return len(self.complement().independent_set(algorithm=algorithm, solver=solver, verbosity=verbose))
         elif algorithm == "mcqd":
@@ -6141,7 +6169,7 @@ class Graph(GenericGraph):
             {0: 2, 1: 2, 2: 1, 3: 1}
         """
         import networkx
-        return networkx.number_of_cliques(self.networkx_graph(copy=False), vertices, cliques)
+        return networkx.number_of_cliques(self.networkx_graph(), vertices, cliques)
 
     @doc_index("Clique-related methods")
     def cliques_get_max_clique_graph(self):
@@ -6171,7 +6199,7 @@ class Graph(GenericGraph):
             sage: (G.cliques_get_max_clique_graph()).show(figsize=[2,2])
         """
         import networkx
-        return Graph(networkx.make_max_clique_graph(self.networkx_graph(copy=False), create_using=networkx.MultiGraph()))
+        return Graph(networkx.make_max_clique_graph(self.networkx_graph(), create_using=networkx.MultiGraph()))
 
     @doc_index("Clique-related methods")
     def cliques_get_clique_bipartite(self, **kwds):
@@ -6199,7 +6227,7 @@ class Graph(GenericGraph):
         """
         from .bipartite_graph import BipartiteGraph
         import networkx
-        return BipartiteGraph(networkx.make_clique_bipartite(self.networkx_graph(copy=False), **kwds))
+        return BipartiteGraph(networkx.make_clique_bipartite(self.networkx_graph(), **kwds))
 
     @doc_index("Algorithmically hard stuff")
     def independent_set(self, algorithm="Cliquer", value_only=False, reduction_rules=True, solver=None, verbosity=0):
@@ -6812,7 +6840,7 @@ class Graph(GenericGraph):
             return value
         elif algorithm == "networkx":
             import networkx
-            return networkx.node_clique_number(self.networkx_graph(copy=False), vertices, cliques)
+            return networkx.node_clique_number(self.networkx_graph(), vertices, cliques)
         else:
             raise NotImplementedError("Only 'networkx' and 'cliquer' are supported.")
 
@@ -6863,7 +6891,7 @@ class Graph(GenericGraph):
 
         """
         import networkx
-        return networkx.cliques_containing_node(self.networkx_graph(copy=False), vertices, cliques)
+        return networkx.cliques_containing_node(self.networkx_graph(), vertices, cliques)
 
     @doc_index("Clique-related methods")
     def clique_complex(self):
@@ -8182,6 +8210,500 @@ class Graph(GenericGraph):
                 return False
         else:
             raise ValueError('algorithm must be set to "Edmonds", "LP_matching" or "LP"')
+
+    @doc_index("Leftovers")
+    def effective_resistance(self, i, j):
+        r"""
+        Return the effective resistance between nodes `i` and `j`.
+
+        The resistance distance between vertices `i` and `j` of a simple
+        connected graph `G` is defined as the effective resistance between the
+        two vertices on an electrical network constructed from `G` replacing
+        each edge of the graph by a unit (1 ohm) resistor.
+
+        See the :wikipedia:`Resistance_distance` for more information.
+
+        INPUT:
+
+        - ``i``, ``j`` -- vertices of the graph
+
+        OUTPUT: rational number denoting resistance between nodes `i` and `j`
+
+        EXAMPLES:
+
+        Effective resitances in a straight linear 2-tree on 6 vertices ::
+
+            sage: G=Graph([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
+            sage: G.effective_resistance(0,1)
+            34/55
+            sage: G.effective_resistance(0,3)
+            49/55
+            sage: G.effective_resistance(1,4)
+            9/11
+            sage: G.effective_resistance(0,5)
+            15/11
+
+        Effective resistances in a fan on 6 vertices ::
+
+            sage: H = Graph([(0,1),(0,2),(0,3),(0,4),(0,5),(0,6),(1,2),(2,3),(3,4),(4,5)])
+            sage: H.effective_resistance(1,5)
+            6/5
+            sage: H.effective_resistance(1,3)
+            49/55
+
+        .. SEEALSO::
+
+            * :meth:`effective_resistance_matrix` --
+              a similar method giving a matrix full of all effective
+              resistances between all nodes
+
+            * :meth:`least_effective_resistance` --
+              gives node pairs with least effective resistances
+
+            * See :wikipedia:`Resistance_distance` for more details.
+
+        TESTS::
+
+            sage: G = graphs.CompleteGraph(4)
+            sage: all(G.effective_resistance(u, v) == 1/2 for u,v in G.edge_iterator(labels=False))
+            True
+            sage: Graph(1).effective_resistance(0,0)
+            0
+            sage: G = Graph([(0,1),(1,2)])
+            sage: G.effective_resistance(0,2)
+            2
+            sage: G = Graph([(0,1),(1,2),(2,0)])
+            sage: G.effective_resistance(0,2)
+            2/3
+            sage: G = Graph([(0,1),(0,2),(0,3),(0,4),(0,5),(1,2),(2,3),(3,4),(4,5),(5,1)])
+            sage: r = G.effective_resistance(0,3)
+            sage: r == fibonacci(2*(5-3)+1)*fibonacci(2*3-1)/fibonacci(2*5)
+            True
+        """
+        from sage.matrix.constructor import matrix
+        if i not in self:
+            raise ValueError("vertex ({0}) is not a vertex of the graph".format(repr(i)))
+        elif j not in self:
+            raise ValueError("vertex ({0}) is not a vertex of the graph".format(repr(j)))    
+
+        if i == j :
+            return 0
+
+        self._scream_if_not_simple()
+        if not self.is_connected():
+            raise ValueError('the Graph is not a connected graph')
+
+        vert = list(self)
+        i1 = vert.index(i)
+        i2 = vert.index(j)
+        n = self.order()
+        L = self.laplacian_matrix(vertices=vert)
+        M = L.pseudoinverse()
+        Id = matrix.identity(n)
+        sigma = matrix(Id[i1] - Id[i2])
+        diff = sigma * M * sigma.transpose()
+
+        return diff[0, 0]
+
+    @doc_index("Leftovers")
+    def effective_resistance_matrix(self, vertices=None, nonedgesonly=True):
+        r"""
+        Return a matrix whose (`i` , `j`) entry gives the effective resistance
+        between vertices `i` and `j`.
+
+        The resistance distance between vertices `i` and `j` of a simple
+        connected graph `G` is defined as the effective resistance between the
+        two vertices on an electrical network constructed from `G` replacing
+        each edge of the graph by a unit (1 ohm) resistor.
+
+        INPUT:
+
+        - ``nonedgesonly`` -- boolean (default: ``True``); if ``True`` assign
+          zero resistance to pairs of adjacent vertices.
+
+        - ``vertices`` -- list (default: ``None``); the ordering of the
+          vertices defining how they should appear in the matrix. By default,
+          the ordering given by :meth:`GenericGraph.vertices` is used.
+
+        OUTPUT: matrix
+
+        EXAMPLES:
+
+        The effective resitance matrix  for a straight linear 2-tree counting
+        only non-adjacent vertex pairs ::
+
+            sage: G = Graph([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
+            sage: G.effective_resistance_matrix()
+            [    0     0     0 49/55 59/55 15/11]
+            [    0     0     0     0  9/11 59/55]
+            [    0     0     0     0     0 49/55]
+            [49/55     0     0     0     0     0]
+            [59/55  9/11     0     0     0     0]
+            [15/11 59/55 49/55     0     0     0]
+
+        The same effective resistance matrix, this time including adjacent
+        vertices ::
+
+            sage: G.effective_resistance_matrix(nonedgesonly=False)
+            [    0 34/55 34/55 49/55 59/55 15/11]
+            [34/55     0 26/55 31/55  9/11 59/55]
+            [34/55 26/55     0  5/11 31/55 49/55]
+            [49/55 31/55  5/11     0 26/55 34/55]
+            [59/55  9/11 31/55 26/55     0 34/55]
+            [15/11 59/55 49/55 34/55 34/55     0]
+
+        This example illustrates the common neighbors matrix  for a fan on 6
+        vertices counting only non-adjacent vertex pairs ::
+
+            sage: H = Graph([(0,1),(0,2),(0,3),(0,4),(0,5),(0,6),(1,2),(2,3),(3,4),(4,5)])
+            sage: H.effective_resistance_matrix()
+            [    0     0     0     0     0     0     0]
+            [    0     0     0 49/55 56/55   6/5 89/55]
+            [    0     0     0     0   4/5 56/55 81/55]
+            [    0 49/55     0     0     0 49/55 16/11]
+            [    0 56/55   4/5     0     0     0 81/55]
+            [    0   6/5 56/55 49/55     0     0 89/55]
+            [    0 89/55 81/55 16/11 81/55 89/55     0]
+
+        .. SEEALSO::
+
+            * :meth:`least_effective_resistance` --
+              gives node pairs with least effective resistances
+
+            * :meth:`effective_resistance` --
+              computes effective resistance for a single node pair
+
+            * See :wikipedia:`Resistance_Distance` for more details.
+
+        TESTS::
+
+            sage: graphs.CompleteGraph(4).effective_resistance_matrix()
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 0 0 0]
+
+            sage: G = Graph(multiedges=True, sparse=True)
+            sage: G.add_edges([(0, 1)] * 3)
+            sage: G.effective_resistance_matrix()
+            Traceback (most recent call last):
+            ...
+            ValueError: This method is not known to work on graphs with
+            multiedges. Perhaps this method can be updated to handle them, but
+            in the meantime if you want to use it please disallow multiedges
+            using allow_multiple_edges().
+            
+            sage: graphs.CompleteGraph(4).effective_resistance_matrix(nonedgesonly=False)
+            [  0 1/2 1/2 1/2]
+            [1/2   0 1/2 1/2]
+            [1/2 1/2   0 1/2]
+            [1/2 1/2 1/2   0]
+            sage: Graph(1).effective_resistance_matrix()
+            [0]
+            sage: Graph().effective_resistance_matrix()
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to compute effective resistance for an empty Graph object
+            sage: G = Graph([(0,1),(1,2),(2,3),(3,0),(0,2)])
+            sage: G.effective_resistance_matrix()
+            [0 0 0 0]
+            [0 0 0 1]
+            [0 0 0 0]
+            [0 1 0 0]
+            sage: G = Graph([(0,1),(0,2),(0,3),(0,4),(0,5),(1,2),(2,3),(3,4),(4,5),(5,1)])
+            sage: r = G.effective_resistance_matrix(nonedgesonly=False)[0,3]
+            sage: r == fibonacci(2*(5-3)+1)*fibonacci(2*3-1)/fibonacci(2*5)
+            True
+        """
+        from sage.matrix.constructor import matrix
+        from sage.rings.rational_field import QQ
+
+        n = self.order()
+        if not n:
+            raise ValueError('unable to compute effective resistance for an empty Graph object')
+        if vertices is None:
+            vertices = self.vertices()
+        self._scream_if_not_simple()
+        if not self.is_connected():
+            raise ValueError('the Graph is not a connected graph')
+
+        L = self.laplacian_matrix(vertices=vertices)
+        M = L.pseudoinverse()
+        d = matrix(M.diagonal()).transpose()
+        onesvec = matrix(QQ, n, 1, lambda i, j: 1)
+        S = d * onesvec.transpose() + onesvec * d.transpose() - 2 * M
+        onesmat = matrix(QQ, n, n, lambda i, j: 1)
+        if nonedgesonly:
+            B = onesmat - self.adjacency_matrix(vertices=vertices) - matrix.identity(n)
+            S = S.elementwise_product(B)
+
+        return S
+
+    @doc_index("Leftovers")
+    def least_effective_resistance(self, nonedgesonly=True):
+        r"""
+        Return a list of pairs of nodes with the least effective resistance.
+
+        The resistance distance between vertices `i` and `j` of a simple
+        connected graph `G` is defined as the effective resistance between the
+        two vertices on an electrical network constructed from `G` replacing
+        each edge of the graph by a unit (1 ohm) resistor.
+
+        INPUT:
+
+        - ``nonedgesonly`` -- Boolean (default: `True`); if true, assign zero
+          resistance to pairs of adjacent vertices
+
+        OUTPUT: list
+
+        EXAMPLES:
+
+        Pairs of non-adjacent nodes with least effective resitance in a
+        straight linear 2-tree on 6 vertices::
+
+            sage: G = Graph([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
+            sage: G.least_effective_resistance()
+            [(1, 4)]
+
+        Pairs of (adjacent or non-adjacent) nodes with least effective
+        resitance in a straight linear 2-tree on 6 vertices ::
+
+            sage: G.least_effective_resistance(nonedgesonly = False)
+            [(2, 3)]
+
+        Pairs of non-adjacent nodes with least effective resitance in a fan on
+        6 vertices counting only non-adjacent vertex pairs ::
+
+            sage: H = Graph([(0,1),(0,2),(0,3),(0,4),(0,5),(0,6),(1,2),(2,3),(3,4),(4,5)])
+            sage: H.least_effective_resistance()
+            [(2, 4)]
+
+        .. SEEALSO::
+
+            * :meth:`effective_resistance_matrix` --
+              a similar method giving a matrix full of all effective
+              resistances
+
+            * :meth:`effective_resistance` --
+              compuetes effective resistance for a single node pair
+
+            * See :wikipedia:`Resistance_distance` for more details.
+
+
+        TESTS::
+
+            sage: graphs.CompleteGraph(4).least_effective_resistance()
+            []
+            sage: graphs.CompleteGraph(4).least_effective_resistance(nonedgesonly=False)
+            [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
+            sage: Graph(1).least_effective_resistance()
+            []
+            sage: G = Graph([(0,1),(1,2),(2,3),(3,0),(0,2)])
+            sage: G.least_effective_resistance()
+            [(1, 3)]
+        """
+        n = self.order()
+        if not n:
+            raise ValueError('unable to compute least resistance on empty Graph')
+        self._scream_if_not_simple()
+        if not self.is_connected():
+            raise ValueError('the Graph is not a connected graph')
+        if nonedgesonly and self.is_clique():
+            return []
+        verts = list(self)
+        verttoidx = {u: i for i, u in enumerate(verts)}
+        S = self.effective_resistance_matrix(vertices=verts, nonedgesonly=nonedgesonly)
+        if nonedgesonly:
+            edges = self.complement().edges(labels=False)
+        else:
+            edges = [(verts[i], verts[j]) for i in range(n) for j in range(i + 1, n)]
+            
+        rmin = min(S[(verttoidx[e[0]], verttoidx[e[1]])] for e in edges)
+        return [e for e in edges if S[(verttoidx[e[0]], verttoidx[e[1]])] == rmin]
+        
+    @doc_index("Leftovers")
+    def common_neighbors_matrix(self, vertices=None, nonedgesonly=True):
+        r"""
+        Return a matrix of numbers of common neighbors between each pairs.
+
+        The `(i , j)` entry of the matrix gives the number of common
+        neighbors between vertices `i` and `j`.
+
+        This method is only valid for simple (no loops, no multiple edges)
+        graphs.
+
+        INPUT:
+
+        - ``nonedgesonly``-- boolean (default: ``True``); if ``True``, assigns
+          `0` value to adjacent vertices.
+
+        - ``vertices`` -- list (default: ``None``); the ordering of the
+          vertices defining how they should appear in the matrix. By default,
+          the ordering given by :meth:`GenericGraph.vertices` is used.
+
+        OUTPUT: matrix
+
+        EXAMPLES:
+
+        The common neighbors matrix  for a straight linear 2-tree counting
+        only non-adjacent vertex pairs ::
+
+            sage: G1 = Graph()
+            sage: G1.add_edges([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
+            sage: G1.common_neighbors_matrix(nonedgesonly = True)
+            [0 0 0 2 1 0]
+            [0 0 0 0 2 1]
+            [0 0 0 0 0 2]
+            [2 0 0 0 0 0]
+            [1 2 0 0 0 0]
+            [0 1 2 0 0 0]
+
+        We now show the common neighbors matrix which includes adjacent
+        vertices ::
+
+            sage: G1.common_neighbors_matrix(nonedgesonly = False)
+            [0 1 1 2 1 0]
+            [1 0 2 1 2 1]
+            [1 2 0 2 1 2]
+            [2 1 2 0 2 1]
+            [1 2 1 2 0 1]
+            [0 1 2 1 1 0]
+
+        The common neighbors matrix  for a fan on 6 vertices counting only
+        non-adjacent vertex pairs ::
+
+            sage: H = Graph([(0,1),(0,2),(0,3),(0,4),(0,5),(0,6),(1,2),(2,3),(3,4),(4,5)])
+            sage: H.common_neighbors_matrix()
+            [0 0 0 0 0 0 0]
+            [0 0 0 2 1 1 1]
+            [0 0 0 0 2 1 1]
+            [0 2 0 0 0 2 1]
+            [0 1 2 0 0 0 1]
+            [0 1 1 2 0 0 1]
+            [0 1 1 1 1 1 0]
+
+        It is an error to input anything other than a simple graph::
+
+            sage: G = Graph([(0,0)],loops=True)
+            sage: G.common_neighbors_matrix()
+            Traceback (most recent call last):
+            ...
+            ValueError: This method is not known to work on graphs with loops. 
+            Perhaps this method can be updated to handle them, but in the 
+            meantime if you want to use it please disallow loops using 
+            allow_loops().
+
+        .. SEEALSO::
+
+            * :meth:`most_common_neighbors` --
+              returns node pairs with most shared neighbors
+
+        TESTS::
+
+            sage: G = graphs.CompleteGraph(4)
+            sage: M = G.common_neighbors_matrix()
+            sage: M.is_zero()
+            True
+            sage: Graph(1).common_neighbors_matrix()
+            [0]
+            sage: Graph().common_neighbors_matrix()
+            []
+            sage: G = Graph([(0,1),(1,2),(2,3),(3,0),(0,2)])
+            sage: G.common_neighbors_matrix()
+            [0 0 0 0]
+            [0 0 0 2]
+            [0 0 0 0]
+            [0 2 0 0]
+        """
+        self._scream_if_not_simple()
+        if vertices is None:
+            vertices = self.vertices()
+        A = self.adjacency_matrix(vertices=vertices)
+        M = A**2
+        for v in range(self.order()):
+            M[v, v] = 0
+            if nonedgesonly:
+                for w in range(v + 1, self.order()):
+                    if A[v, w]:
+                        M[v, w] = M[w, v] = 0
+        return M
+
+    @doc_index("Leftovers")
+    def most_common_neighbors(self, nonedgesonly=True):
+        r"""
+        Return vertex pairs with maximal number of common neighbors.
+
+        This method is only valid for simple (no loops, no multiple edges)
+        graphs with order `\geq 2`   
+
+        INPUT:
+
+        - ``nonedgesonly``-- boolean (default: ``True``); if ``True``, assigns
+          `0` value to adjacent vertices.
+
+        OUTPUT: list of tuples of edge pairs
+
+        EXAMPLES:
+
+        The maximum common neighbor (non-adjacent) pairs for a straight
+        linear 2-tree ::
+
+            sage: G1 = Graph([(0,1),(0,2),(1,2),(1,3),(3,5),(2,4),(2,3),(3,4),(4,5)])
+            sage: G1.most_common_neighbors()
+            [(0, 3), (1, 4), (2, 5)]
+
+        If we include non-adjacent pairs ::
+
+            sage: G1.most_common_neighbors(nonedgesonly = False)
+            [(0, 3), (1, 2), (1, 4), (2, 3), (2, 5), (3, 4)]
+
+        The common neighbors matrix  for a fan on 6 vertices counting only
+        non-adjacent vertex pairs ::
+
+            sage: H = Graph([(0,1),(0,2),(0,3),(0,4),(0,5),(0,6),(1,2),(2,3),(3,4),(4,5)])
+            sage: H.most_common_neighbors()
+            [(1, 3), (2, 4), (3, 5)]
+
+        .. SEEALSO::
+
+            * :meth:`common_neighbors_matrix` --
+              a similar method giving a matrix of number of common neighbors
+
+        TESTS::
+
+            sage: G=graphs.CompleteGraph(4)
+            sage: G.most_common_neighbors()
+            []
+            sage: G.most_common_neighbors(nonedgesonly=False)
+            [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
+            sage: Graph(1).most_common_neighbors()
+            Traceback (most recent call last):
+            ...
+            ValueError: this method is defined for graphs with at least 2 vertices
+            sage: Graph().most_common_neighbors()
+            Traceback (most recent call last):
+            ...
+            ValueError: this method is defined for graphs with at least 2 vertices
+            sage: G = Graph([(0,1),(1,2),(2,3),(3,0),(0,2)])
+            sage: G.most_common_neighbors()
+            [(1, 3)]
+            sage: G.most_common_neighbors(nonedgesonly=False)
+            [(0, 2), (1, 3)]
+        """
+        self._scream_if_not_simple()
+        if self.num_verts() < 2:
+            raise ValueError('this method is defined for graphs with at least 2 vertices')
+        verts = list(self)
+        M = self.common_neighbors_matrix(vertices=verts, nonedgesonly=nonedgesonly)
+        output = []
+        coefficients = M.coefficients()
+        if coefficients:
+            maximum = max(coefficients)
+            for v in range(self.num_verts()):
+                for w in range(v + 1, self.num_verts()):
+                    if M[v, w] == maximum:
+                        output.append((verts[v], verts[w]))
+        return output
 
     # Aliases to functions defined in other modules
     from sage.graphs.weakly_chordal import is_long_hole_free, is_long_antihole_free, is_weakly_chordal

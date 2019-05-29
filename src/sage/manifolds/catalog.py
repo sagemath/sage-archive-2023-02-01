@@ -163,10 +163,10 @@ def Sphere(dim=None, radius=1, names=None, stereo2d=False, stereo_lim=None):
         stereoN_A = stereoN_W.restrict(A)
         if names is None:
             names = tuple(["phi_{}:(0,pi)".format(i) for i in range(dim - 1)] +
-                          ["phi_{}:(-pi,pi)".format(dim - 1)])
+                          ["phi_{}:(-pi,pi):periodic".format(dim - 1)])
         else:
             names = tuple([names[i] + ":(0,pi)" for i in range(dim - 1)] +
-                          [names[dim - 1] + ":(-pi,pi)"])
+                          [names[dim - 1] + ":(-pi,pi):periodic"])
         spher = A.chart(names=names)
         th, ph = spher[:]
         spher_to_stereoN = spher.transition_map(stereoN_A, (sin(th)*cos(ph) / (1-cos(th)),
@@ -195,10 +195,10 @@ def Sphere(dim=None, radius=1, names=None, stereo2d=False, stereo_lim=None):
     M = Manifold(dim, 'S', ambient=E, structure='Riemannian')
     if names is None:
         names = tuple(["phi_{}:(0,pi)".format(i) for i in range(dim-1)] +
-                      ["phi_{}:(-pi,pi)".format(dim-1)])
+                      ["phi_{}:(-pi,pi):periodic".format(dim-1)])
     else:
         names = tuple([names[i]+":(0,pi)"for i in range(dim - 1)] +
-                      [names[dim-1]+":(-pi,pi)"])
+                      [names[dim-1]+":(-pi,pi):periodic"])
     C = M.chart(names=names)
     M._first_ngens = C._first_ngens
     phi = M._first_ngens(dim)[:]
@@ -259,7 +259,7 @@ def Kerr(m=1, a=0, coordinates="BL", names=None):
         g = (2/r - 1) dt*dt + r^2/(r^2 - 2*r) dr*dr
          + r^2 dth*dth + r^2*sin(th)^2 dph*dph
         sage: K.default_chart().coord_range()
-        t: (-oo, +oo); r: (0, +oo); th: (0, pi); ph: (-pi, pi)
+        t: (-oo, +oo); r: (0, +oo); th: (0, pi); ph: [-pi, pi] (periodic)
 
         sage: m, a = var('m, a')
         sage: K.<t, r, th, ph> = manifolds.Kerr(m, a, coordinates="Kerr")
@@ -280,7 +280,7 @@ def Kerr(m=1, a=0, coordinates="BL", names=None):
          + (2*a^2*m*r*sin(th)^2/(a^2*cos(th)^2 + r^2)
          + a^2 + r^2)*sin(th)^2 dph*dph
         sage: K.default_chart().coord_range()
-        t: (-oo, +oo); r: (0, +oo); th: (0, pi); ph: (-pi, pi)
+        t: (-oo, +oo); r: (0, +oo); th: (0, pi); ph: [-pi, pi] (periodic)
     """
     from sage.functions.other import sqrt
     from sage.functions.trig import cos, sin
@@ -288,10 +288,12 @@ def Kerr(m=1, a=0, coordinates="BL", names=None):
     M = Manifold(4, 'M', structure="Lorentzian")
     if coordinates == "Kerr":
         if names is None:
-            names = (r't:(-oo,+oo)', r'r:(0,+oo)', r'th:(0,pi):\theta', r'ph:(-pi,pi):\phi')
+            names = (r't:(-oo,+oo)', r'r:(0,+oo)', r'th:(0,pi):\theta',
+                     r'ph:(-pi,pi):periodic:\phi')
         else:
             names = (names[0]+r':(-oo,+oo)', names[1]+r':(0,+oo)',
-                     names[2]+r':(0,pi):\theta', names[3]+r':(-pi,pi):\phi')
+                     names[2]+r':(0,pi):\theta',
+                     names[3]+r':(-pi,pi):periodic:\phi')
         C = M.chart(names=names)
         M._first_ngens = C._first_ngens
         g = M.metric('g')
@@ -306,10 +308,12 @@ def Kerr(m=1, a=0, coordinates="BL", names=None):
 
     if coordinates == "BL":
         if names is None:
-            names = (r't:(-oo,+oo)', r'r:(0,+oo)', r'th:(0,pi):\theta', r'ph:(-pi,pi):\phi')
+            names = (r't:(-oo,+oo)', r'r:(0,+oo)', r'th:(0,pi):\theta',
+                     r'ph:(-pi,pi):periodic:\phi')
         else:
             names = (names[0]+r':(-oo,+oo)', names[1]+r':(0,+oo)',
-                     names[2]+r':(0,pi):\theta', names[3]+r':(-pi,pi):\phi')
+                     names[2]+r':(0,pi):\theta',
+                     names[3]+r':(-pi,pi):periodic:\phi')
         C = M.chart(names=names)
         M._first_ngens = C._first_ngens
         g = M.metric('g')
@@ -365,7 +369,7 @@ def Torus(R=2, r=1, names=None):
     M = Manifold(2, 'M', ambient=E, structure="Riemannian")
     if names is None:
         names = ("th", "ph")
-    names = tuple([names[i] + ":(-pi,pi)" for i in range(2)])
+    names = tuple([names[i] + ":(-pi,pi):periodic" for i in range(2)])
     C = M.chart(names=names)
     M._first_ngens = C._first_ngens
     th, ph = C[:]

@@ -27,6 +27,8 @@ AUTHORS:
 - Travis Scrimshaw (2016): review tweaks
 - Eric Gourgoulhon (2018): operators divergence, Laplacian and d'Alembertian;
   method :meth:`TensorField.along`
+- Florentin Jaffredo (2018) : series expansion with respect to a given
+  parameter
 
 REFERENCES:
 
@@ -44,7 +46,7 @@ REFERENCES:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #******************************************************************************
 from __future__ import print_function
 from six import itervalues
@@ -89,7 +91,7 @@ class TensorField(ModuleElement):
 
         t(p):\ \underbrace{T_q^*M\times\cdots\times T_q^*M}_{k\ \; \mbox{times}}
         \times \underbrace{T_q M\times\cdots\times T_q M}_{l\ \; \mbox{times}}
-        \longrightarrow K
+        \longrightarrow K,
 
     where `T_q^* M` is the dual vector space to `T_q M` and `K` is the
     topological field over which the manifold `M` is defined. The integer `k+l`
@@ -2296,6 +2298,7 @@ class TensorField(ModuleElement):
                               antisym=resu_rst[0]._antisym)
         for rst in resu_rst:
             resu._restrictions[rst._domain] = rst
+
         return resu
 
     def __truediv__(self, scalar):
@@ -3536,7 +3539,7 @@ class TensorField(ModuleElement):
 
             (\mathrm{div}\, t)^{a_1\ldots a_{k-1}} =
             \nabla_i t^{a_1\ldots a_{k-1} i} =
-            (\nabla t)^{a_1\ldots a_{k-1} i}_{\phantom{a_1\ldots a_{k-1} i}\, i}
+            (\nabla t)^{a_1\ldots a_{k-1} i}_{\phantom{a_1\ldots a_{k-1} i}\, i},
 
         where `\nabla` is the Levi-Civita connection of `g` (cf.
         :class:`~sage.manifolds.differentiable.levi_civita_connection.LeviCivitaConnection`).
@@ -3551,7 +3554,7 @@ class TensorField(ModuleElement):
             \ldots b_{l-1}} = \nabla_i (g^{ij} t^{a_1\ldots a_k}_{\phantom{a_1
             \ldots a_k}\, b_1\ldots b_{l-1} j})
             = (\nabla t^\sharp)^{a_1\ldots a_k i}_{\phantom{a_1\ldots a_k i}\,
-            b_1\ldots b_{l-1} i}
+            b_1\ldots b_{l-1} i},
 
         where `t^\sharp` is the tensor field deduced from `t` by raising the
         last index with the metric `g` (see :meth:`up`).
@@ -3683,7 +3686,7 @@ class TensorField(ModuleElement):
 
             (\Delta t)^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\,{b_1\ldots b_k}}
             = \nabla_i \nabla^i
-            t^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\,{b_1\ldots b_k}}
+            t^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\,{b_1\ldots b_k}},
 
         where `\nabla` is the Levi-Civita connection of `g` (cf.
         :class:`~sage.manifolds.differentiable.levi_civita_connection.LeviCivitaConnection`)
@@ -3779,7 +3782,7 @@ class TensorField(ModuleElement):
 
             (\Box t)^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\,{b_1\ldots b_k}}
             = \nabla_i \nabla^i
-            t^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\,{b_1\ldots b_k}}
+            t^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\,{b_1\ldots b_k}},
 
         where `\nabla` is the Levi-Civita connection of `g` (cf.
         :class:`~sage.manifolds.differentiable.levi_civita_connection.LeviCivitaConnection`)
@@ -3973,3 +3976,91 @@ class TensorField(ModuleElement):
                         rrmap = rmapping.restrict(dom1, subcodomain=rdom)
                         resu._restrictions[dom1] = self.restrict(rdom).along(rrmap)
         return resu
+
+    def set_calc_order(self, symbol, order, truncate=False):
+        r"""
+        Trigger a series expansion with respect to a small parameter in
+        computations involving the tensor field.
+
+        This property is propagated by usual operations. The internal
+        representation must be ``SR`` for this to take effect.
+
+        If the small parameter is `\epsilon` and `T` is ``self``, the
+        power series expansion to order `n` is
+
+        .. MATH::
+
+            T = T_0 + \epsilon T_1 + \epsilon^2 T_2 + \cdots + \epsilon^n T_n
+                + O(\epsilon^{n+1}),
+
+        where `T_0, T_1, \ldots, T_n` are `n+1` tensor fields of the same
+        tensor type as ``self`` and do not depend upon `\epsilon`.
+
+        INPUT:
+
+        - ``symbol`` -- symbolic variable (the "small parameter" `\epsilon`)
+          with respect to which the components of ``self`` are expanded in
+          power series
+        - ``order`` -- integer; the order `n` of the expansion, defined as the
+          degree of the polynomial representing the truncated power series in
+          ``symbol``
+        - ``truncate`` -- (default: ``False``) determines whether the
+          components of ``self`` are replaced by their expansions to the
+          given order
+
+        EXAMPLES:
+
+        Let us consider two vector fields depending on a small parameter `h`
+        on a non-parallelizable manifold::
+
+            sage: M = Manifold(2, 'M')
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: transf = c_xy.transition_map(c_uv, (x+y, x-y), intersection_name='W',
+            ....:                              restrictions1= x>0, restrictions2= u+v>0)
+            sage: inv = transf.inverse()
+            sage: W = U.intersection(V)
+            sage: eU = c_xy.frame() ; eV = c_uv.frame()
+            sage: a = M.vector_field()
+            sage: h = var('h', domain='real')
+            sage: a[eU,:] = (cos(h*x), -y)
+            sage: a.add_comp_by_continuation(eV, W, chart=c_uv)
+            sage: b = M.vector_field()
+            sage: b[eU,:] = (exp(h*x), exp(h*y))
+            sage: b.add_comp_by_continuation(eV, W, chart=c_uv)
+
+        If we set the calculus order on one of the vector fields, any operation
+        involving both of them is performed to that order::
+
+            sage: a.set_calc_order(h, 2)
+            sage: s = a + b
+            sage: s[eU,:]
+            [h*x + 2, 1/2*h^2*y^2 + h*y - y + 1]
+            sage: s[eV,:]
+            [1/8*(u^2 - 2*u*v + v^2)*h^2 + h*u - 1/2*u + 1/2*v + 3,
+             -1/8*(u^2 - 2*u*v + v^2)*h^2 + h*v + 1/2*u - 1/2*v + 1]
+
+        Note that the components of ``a`` have not been affected by the above
+        call to ``set_calc_order``::
+
+            sage: a[eU,:]
+            [cos(h*x), -y]
+            sage: a[eV,:]
+            [cos(1/2*h*u)*cos(1/2*h*v) - sin(1/2*h*u)*sin(1/2*h*v) - 1/2*u + 1/2*v,
+             cos(1/2*h*u)*cos(1/2*h*v) - sin(1/2*h*u)*sin(1/2*h*v) + 1/2*u - 1/2*v]
+
+        To have ``set_calc_order`` act on them, set the optional argument
+        ``truncate`` to ``True``::
+
+            sage: a.set_calc_order(h, 2, truncate=True)
+            sage: a[eU,:]
+            [-1/2*h^2*x^2 + 1, -y]
+            sage: a[eV,:]
+            [-1/8*(u^2 + 2*u*v + v^2)*h^2 - 1/2*u + 1/2*v + 1,
+             -1/8*(u^2 + 2*u*v + v^2)*h^2 + 1/2*u - 1/2*v + 1]
+
+        """
+        for rst in self._restrictions.values():
+            rst.set_calc_order(symbol, order, truncate)
+        self._del_derived()

@@ -5890,11 +5890,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         ALGORITHM:
 
-        See Section 4 of Man & Wright [ManWright1994]_.
-
-        .. [ManWright1994] Yiu-Kwong Man and Francis J. Wright.
-           *Fast Polynomial Dispersion Computation and its Application to
-           Indefinite Summation*. ISSAC 1994.
+        See Section 4 of Man & Wright [MW1994]_.
 
         .. SEEALSO:: :meth:`dispersion`
 
@@ -6362,14 +6358,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         The computation is straightforward using resultants. Indeed for the
         composed sum it would be `Res_y(p1(x-y), p2(y))`. However, the method
-        from [BFSS]_ using series expansions is asymptotically much faster.
+        from [BFSS2006]_ using series expansions is asymptotically much faster.
 
         Note that the algorithm ``BFSS`` with polynomials with coefficients in
         `\ZZ` needs to perform operations over `\QQ`.
 
         .. TODO::
 
-           - The [BFSS]_ algorithm has been implemented here only in the case of
+           - The [BFSS2006]_ algorithm has been implemented here only in the case of
              polynomials over rationals. For other rings of zero characteristic
              (or if the characteristic is larger than the product of the degrees),
              one needs to implement a generic method ``_exp_series``. In the
@@ -6377,7 +6373,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
              algorithm in the same paper.
 
            - The Newton series computation can be done much more efficiently!
-             See [BFSS]_.
+             See [BFSS2006]_.
 
         EXAMPLES::
 
@@ -6447,12 +6443,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             ....:         pr = p1.composed_op(p2, op, "resultant", monic=monic)
             ....:         pb = p1.composed_op(p2, op, "BFSS", monic=monic)
             ....:         assert ((pr == pb) or ((not monic) and pr == -pb) and (parent(pr) is parent(pb)))
-
-        REFERENCES:
-
-        .. [BFSS] \A. Bostan, P. Flajolet, B. Salvy and E. Schost,
-           *Fast Computation of special resultants*,
-           Journal of Symbolic Computation 41 (2006), 1-29
         """
         cdef long j
         cdef long prec
@@ -9273,7 +9263,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         ALGORITHM:
 
         The native algorithm implemented in Sage uses the first
-        algorithm of [BD89]_. The algorithm in pari (using
+        algorithm of [BD1989]_. The algorithm in pari (using
         :pari:`poliscyclo`) is more subtle since it does compute the
         inverse of the Euler `\phi` function to determine the `n` such
         that the polynomial is the `n`-th cyclotomic polynomial.
@@ -9358,12 +9348,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: x = polygen(QQ)
             sage: (x-1).is_cyclotomic(certificate=True)
             1
-
-        REFERENCES:
-
-        .. [BD89] \R. J. Bradford and J. H. Davenport, Effective tests
-           for cyclotomic polynomials, Symbolic and Algebraic Computation (1989)
-           pp. 244 -- 251, :doi:`10.1007/3-540-51084-2_22`
         """
         S = self.base_ring()
         if S.characteristic() != 0:

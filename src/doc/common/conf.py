@@ -4,6 +4,11 @@ import sage.version
 from sage.misc.sagedoc import extlinks
 import dateutil.parser
 from six import iteritems
+from docutils import nodes
+from docutils.transforms import Transform
+from sphinx.ext.doctest import blankline_re
+from sphinx import highlighting
+from IPython.lib.lexers import IPythonConsoleLexer, IPyLexer
 
 # If your extensions are in another directory, add it here.
 sys.path.append(os.path.join(SAGE_SRC, "sage_setup", "docbuild", "ext"))
@@ -13,9 +18,14 @@ sys.path.append(os.path.join(SAGE_SRC, "sage_setup", "docbuild", "ext"))
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['inventory_builder', 'multidocs', 'sage_autodoc',
-              'sphinx.ext.graphviz', 'sphinx.ext.inheritance_diagram',
-              'sphinx.ext.todo', 'sphinx.ext.extlinks',
+extensions = ['inventory_builder',
+              'multidocs',
+              'sage_autodoc',
+              'sphinx.ext.graphviz',
+              'sphinx.ext.inheritance_diagram',
+              'sphinx.ext.todo',
+              'sphinx.ext.extlinks',
+              'IPython.sphinxext.ipython_directive',
               'matplotlib.sphinxext.plot_directive']
 
 # This code is executed before each ".. PLOT::" directive in the Sphinx
@@ -92,6 +102,7 @@ def sphinx_plot(graphics, **kwds):
             graphics.save(fn)
             img = mpimg.imread(fn)
             plt.imshow(img)
+            plt.axis("off")
         plt.margins(0)
         plt.tight_layout(pad=0)
 
@@ -158,6 +169,14 @@ default_role = 'math'
 # The name of the Pygments (syntax highlighting) style to use.  NOTE:
 # This overrides a HTML theme's corresponding setting (see below).
 pygments_style = 'sphinx'
+
+# Default lexer to use when highlighting code blocks, using the IPython
+# console lexers. 'ipycon' is the IPython console, which is what we want
+# for most code blocks: anything with "sage:" prompts. For other IPython,
+# like blocks which might appear in a notebook cell, use 'ipython'.
+highlighting.lexers['ipycon'] = IPythonConsoleLexer(in1_regex=r'sage: ', in2_regex=r'[.][.][.][.]: ')
+highlighting.lexers['ipython'] = IPyLexer()
+highlight_language = 'ipycon'
 
 # GraphViz includes dot, neato, twopi, circo, fdp.
 graphviz_dot = 'dot'
@@ -816,6 +835,25 @@ def skip_TESTS_block(app, what, name, obj, options, docstringlines):
     while len(docstringlines) > len(lines):
         del docstringlines[len(lines)]
 
+class SagemathTransform(Transform):
+    """
+    Transform for code-blocks.
+
+    This allows Sphinx to treat code-blocks with prompt "sage:" as
+    associated with the pycon lexer, and in particular, to change
+    "<BLANKLINE>" to a blank line.
+    """
+    default_priority = 500
+
+    def apply(self):
+        for node in self.document.traverse(nodes.literal_block):
+            if node.get('language') is None and node.astext().startswith('sage:'):
+                node['language'] = 'ipycon'
+                source = node.rawsource
+                source = blankline_re.sub('', source)
+                node.rawsource = source
+                node[:] = [nodes.Text(source)]
+
 from sage.misc.sageinspect import sage_getargspec
 autodoc_builtin_argspec = sage_getargspec
 
@@ -828,6 +866,7 @@ def setup(app):
     if os.environ.get('SAGE_SKIP_TESTS_BLOCKS', False):
         app.connect('autodoc-process-docstring', skip_TESTS_block)
     app.connect('autodoc-skip-member', skip_member)
+    app.add_transform(SagemathTransform)
 
     # When building the standard docs, app.srcdir is set to SAGE_DOC_SRC +
     # 'LANGUAGE/DOCNAME', but when doing introspection, app.srcdir is

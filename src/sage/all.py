@@ -174,8 +174,8 @@ from cysignals.alarm import alarm, cancel_alarm
 lazy_import('sagenb.notebook.notebook_object', 'notebook')
 lazy_import('sagenb.notebook.notebook_object', 'inotebook')
 lazy_import('sagenb.notebook.sage_email', 'email')
+lazy_import('sage.interacts.debugger', 'debug')
 lazy_import('sage.interacts', 'all', 'interacts')
-from sage.interacts.debugger import debug
 # interact decorator from SageNB (will be overridden by Jupyter)
 lazy_import('sagenb.notebook.interact', 'interact')
 

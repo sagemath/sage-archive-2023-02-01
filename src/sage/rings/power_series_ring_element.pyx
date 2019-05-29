@@ -146,6 +146,7 @@ def is_PowerSeries(x):
     """
     return isinstance(x, PowerSeries)
 
+
 cdef class PowerSeries(AlgebraElement):
     """
     A power series. Base class of univariate and
@@ -446,7 +447,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: PowerSeries.list(1+x^2)
             Traceback (most recent call last):
             ...
-            NotImplementedError        
+            NotImplementedError
         """
         raise NotImplementedError
 
@@ -466,7 +467,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: PowerSeries.polynomial(1+x^2)
             Traceback (most recent call last):
             ...
-            NotImplementedError        
+            NotImplementedError
         """
         raise NotImplementedError
 
@@ -1579,7 +1580,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: cos(g)
             Traceback (most recent call last):
             ...
-            ValueError: Can only apply cos to formal power series with zero constant term.
+            ValueError: can only apply cos to formal power series with zero constant term
 
         If no precision is specified, the default precision is used::
 
@@ -1601,8 +1602,8 @@ cdef class PowerSeries(AlgebraElement):
 
         c = self[0]
         if not c.is_zero():
-            raise ValueError('Can only apply cos to formal power '
-                             'series with zero constant term.')
+            raise ValueError('can only apply cos to formal power '
+                             'series with zero constant term')
         x = self
         val = x.valuation()
         assert(val >= 1)
@@ -1664,7 +1665,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: sin(g)
             Traceback (most recent call last):
             ...
-            ValueError: Can only apply sin to formal power series with zero constant term.
+            ValueError: can only apply sin to formal power series with zero constant term
 
         If no precision is specified, the default precision is used::
 
@@ -1686,8 +1687,8 @@ cdef class PowerSeries(AlgebraElement):
 
         c = self[0]
         if not c.is_zero():
-            raise ValueError('Can only apply sin to formal power '
-                             'series with zero constant term.')
+            raise ValueError('can only apply sin to formal power '
+                             'series with zero constant term')
         val = self.valuation()
         assert(val >= 1)
 
@@ -1710,13 +1711,77 @@ cdef class PowerSeries(AlgebraElement):
             R = R.change_ring(self.base_ring().fraction_field())
         return R(result_bg, prec=prec)
 
+    def tan(self, prec=infinity):
+        r"""
+        Apply tan to the formal power series.
+
+        INPUT:
+
+        - ``prec`` -- Integer or ``infinity``. The degree to truncate
+          the result to.
+
+        OUTPUT:
+
+        A new power series.
+
+        EXAMPLES:
+
+        For one variable::
+
+            sage: t = PowerSeriesRing(QQ, 't').gen()
+            sage: f = (t + t**2).O(4)
+            sage: tan(f)
+            t + t^2 + 1/3*t^3 + O(t^4)
+
+        For several variables::
+
+            sage: T.<a,b> = PowerSeriesRing(ZZ,2)
+            sage: f = a + b + a*b + T.O(3)
+            sage: tan(f)
+            a + b + a*b + O(a, b)^3
+            sage: f.tan()
+            a + b + a*b + O(a, b)^3
+            sage: f.tan(prec=2)
+            a + b + O(a, b)^2
+
+        If the power series has a non-zero constant coefficient `c`,
+        one raises an error::
+
+            sage: g = 2+f
+            sage: tan(g)
+            Traceback (most recent call last):
+            ...
+            ValueError: can only apply tan to formal power series with zero constant term
+
+        If no precision is specified, the default precision is used::
+
+            sage: T.default_prec()
+            12
+            sage: tan(a)
+            a + 1/3*a^3 + 2/15*a^5 + 17/315*a^7 + 62/2835*a^9 + 1382/155925*a^11 + O(a, b)^12
+            sage: a.tan(prec=5)
+            a + 1/3*a^3 + O(a, b)^5
+            sage: tan(a + T.O(5))
+            a + 1/3*a^3 + O(a, b)^5
+
+        TESTS::
+
+            sage: tan(a^2 + T.O(5))
+            a^2 + O(a, b)^5
+        """
+        if not self[0].is_zero():
+            raise ValueError('can only apply tan to formal power '
+                             'series with zero constant term')
+        assert(self.valuation() >= 1)
+        return self.sin(prec) / self.cos(prec)
+
     def O(self, prec):
         r"""
         Return this series plus `O(x^\text{prec})`. Does not change
-        self.
-        
+        ``self``.
+
         EXAMPLES::
-        
+
             sage: R.<x> = PowerSeriesRing(ZZ)
             sage: p = 1 + x^2 + x^10; p
             1 + x^2 + x^10
@@ -1733,7 +1798,6 @@ cdef class PowerSeries(AlgebraElement):
             return self
         coeffs = self[:prec]
         return self._parent(coeffs, prec)
-
 
     def solve_linear_de(self, prec = infinity, b = None, f0 = None):
         r"""
@@ -2223,28 +2287,28 @@ cdef class PowerSeries(AlgebraElement):
             s = s.Ser(v, n - s.valuation(v) if s else n)
         return s
 
+
 def _solve_linear_de(R, N, L, a, b, f0):
     r"""
     Internal function used by PowerSeries.solve_linear_de().
 
     INPUT:
 
+    - ``R`` -- a PolynomialRing
 
-    -  ``R`` - a PolynomialRing
+    - ``N`` -- integer >= 0
 
-    -  ``N`` - integer = 0
+    - ``L`` -- integer >= 1
 
-    -  ``L`` - integer = 1
+    - ``a`` -- list of coefficients of `a`, any
+      length, all coefficients should belong to base ring of R.
 
-    -  ``a`` - list of coefficients of `a`, any
-       length, all coefficients should belong to base ring of R.
+    - ``b`` -- list of coefficients of `b`, length
+      at least `L` (only first `L` coefficients are
+      used), all coefficients should belong to base ring of R.
 
-    -  ``b`` - list of coefficients of `b`, length
-       at least `L` (only first `L` coefficients are
-       used), all coefficients should belong to base ring of R.
-
-    -  ``f0`` - constant term of `f` (only used if
-       `N == 0`), should belong to base ring of R.
+    - ``f0`` -- constant term of `f` (only used if
+      `N == 0`), should belong to base ring of R.
 
 
     OUTPUT: List of coefficients of `f` (length exactly

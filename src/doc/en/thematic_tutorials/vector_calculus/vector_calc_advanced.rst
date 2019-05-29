@@ -2,8 +2,8 @@
 
 .. linkall
 
-Vector calculus 5: Advanced aspects (Euclidean spaces as Riemannian manifolds)
-==============================================================================
+Advanced aspects: Euclidean spaces as Riemannian manifolds
+==========================================================
 
 This tutorial introduces some vector calculus functionalities of SageMath
 within the 3-dimensional Euclidean space.
@@ -18,7 +18,7 @@ or `interactive <https://mybinder.org/v2/gh/sagemanifolds/SageManifolds/master?f
 The Euclidean 3-space
 ---------------------
 
-We define the 3-dimensional Euclidean space :math:`\mathbb{E}^3`, with
+Let us consider the 3-dimensional Euclidean space :math:`\mathbb{E}^3`, with
 Cartesian coordinates :math:`(x,y,z)`:
 
 ::
@@ -37,6 +37,8 @@ i.e. a smooth real manifold endowed with a positive definite metric tensor:
     Category of smooth manifolds over Real Field with 53 bits of precision
     sage: E.base_field() is RR
     True
+    sage: E.metric()
+    Riemannian metric g on the Euclidean space E^3
 
 Actually ``RR`` is used here as a proxy for the real field (this should
 be replaced in the future, see the discussion at
@@ -71,8 +73,8 @@ while there are five vector frames defined on :math:`\mathbb{E}^3`:
 
 Indeed, there are two frames associated with each of the three
 coordinate systems: the coordinate frame (denoted with partial
-derivatives above) and an orthonormal frame, but for Cartesian
-coordinates, both frames coincide.
+derivatives above) and an orthonormal frame (denoted by ``e_*`` above), but for
+Cartesian coordinates, both frames coincide.
 
 We get the orthonormal spherical and cylindrical frames by
 
@@ -85,7 +87,11 @@ We get the orthonormal spherical and cylindrical frames by
     sage: cylindrical_frame
     Vector frame (E^3, (e_rh,e_ph,e_z))
 
-On the other side, the coordinate frames are returned by the method
+On the other side, the coordinate frames
+:math:`\left(\frac{\partial}{\partial r}, \frac{\partial}{\partial\theta}, \frac{\partial}{\partial \phi}\right)`
+and
+:math:`\left(\frac{\partial}{\partial \rho}, \frac{\partial}{\partial\phi}, \frac{\partial}{\partial z}\right)`
+are returned by the method
 ``frame()`` acting on the coordinate charts:
 
 ::
@@ -174,7 +180,7 @@ The fact that the above metric components are either 0 or 1 reflect the
 orthonormality of the vector frame :math:`(e_r,e_\theta,e_\phi)`. On the
 contrary, in the coordinate frame
 :math:`\left(\frac{\partial}{\partial r}, \frac{\partial}{\partial\theta}, \frac{\partial}{\partial \phi}\right)`,
-which is not orthonormal, the components differ from 0 or 1:
+which is not orthonormal, some components differ from 0 or 1:
 
 ::
 
@@ -190,6 +196,18 @@ the method ``display()``:
 
     sage: g.display(spherical.frame(), spherical)
     g = dr*dr + r^2 dth*dth + r^2*sin(th)^2 dph*dph
+
+Since SageMath 8.8, a shortcut is
+
+::
+
+    sage: g.display(spherical)
+    g = dr*dr + r^2 dth*dth + r^2*sin(th)^2 dph*dph
+
+The matrix view of the components is obtained via the square bracket operator:
+
+::
+
     sage: g[spherical.frame(), :, spherical]
     [            1             0             0]
     [            0           r^2             0]
@@ -201,15 +219,14 @@ Similarly, for cylindrical coordinates, we have
 
     sage: g.display(cylindrical_frame)
     g = e^rh*e^rh + e^ph*e^ph + e^z*e^z
-    sage: g.display(cylindrical.frame(), cylindrical)
+    sage: g.display(cylindrical)
     g = drh*drh + rh^2 dph*dph + dz*dz
     sage: g[cylindrical.frame(), :, cylindrical]
     [   1    0    0]
     [   0 rh^2    0]
     [   0    0    1]
 
-The metric :math:`g` is a *flat*: its (Riemann) curvature tensor is
-zero:
+The metric :math:`g` is a *flat*: its Riemann curvature tensor is zero:
 
 ::
 
@@ -256,9 +273,9 @@ Levi-Civita tensor (also called *volume form*) associated with :math:`g`
     True
     sage: epsilon.display()
     epsilon = dx/\dy/\dz
-    sage: epsilon.display(spherical.frame(), spherical)
+    sage: epsilon.display(spherical)
     epsilon = r^2*sin(th) dr/\dth/\dph
-    sage: epsilon.display(cylindrical.frame(), cylindrical)
+    sage: epsilon.display(cylindrical)
     epsilon = rh drh/\dph/\dz
 
 Checking that all orthonormal frames introduced above are right-handed:
@@ -291,7 +308,7 @@ Checking that all orthonormal frames introduced above are right-handed:
        (rh, ph, z) |--> 1
 
 
-Vector fields as derivatives
+Vector fields as derivations
 ----------------------------
 
 Let :math:`f` be a scalar field on :math:`\mathbb{E}^3`:
@@ -305,7 +322,7 @@ Let :math:`f` be a scalar field on :math:`\mathbb{E}^3`:
        (r, th, ph) |--> -2*r^2*cos(th)^2 + r^2
        (rh, ph, z) |--> rh^2 - z^2
 
-Vector fields acts as derivative on scalar fields:
+Vector fields acts as derivativations on scalar fields:
 
 ::
 
@@ -346,7 +363,7 @@ The set :math:`C^\infty(\mathbb{E}^3)` of all smooth scalar fields on
     sage: f in CE
     True
 
-In SageMath terminology :math:`C^\infty(\mathbb{E}^3)` is the parent of
+In SageMath terminology, :math:`C^\infty(\mathbb{E}^3)` is the parent of
 scalar fields:
 
 ::
@@ -406,6 +423,8 @@ this point:
     sage: Tp = vp.parent()
     sage: Tp
     Tangent space at Point p on the Euclidean space E^3
+    sage: Tp is E.tangent_space(p)
+    True
     sage: Tp.category()
     Category of finite dimensional vector spaces over Symbolic Ring
     sage: dim(Tp)
@@ -485,7 +504,7 @@ coordinates are
     Gam^rh_ph,ph = -rh
     Gam^ph_rh,ph = 1/rh
 
-The Christoffel symbols are nothing but the connection coefficient in
+The Christoffel symbols are nothing but the connection coefficients in
 the corresponding coordinate frame:
 
 ::
@@ -510,7 +529,8 @@ The connection coefficients with respect to the orthonormal
     Gam^1_22 = -1/rh
     Gam^2_12 = 1/rh
 
-:math:`\nabla_g` is the connection involved in differential operators:
+The Levi-Civita connection :math:`\nabla_g` is the connection involved in
+the standard differential operators:
 
 ::
 
@@ -532,9 +552,3 @@ The connection coefficients with respect to the orthonormal
     True
     sage: laplacian(v) == nabla(nabla(v).up(g)).trace(1,2)
     True
-
-
-What's next?
-------------
-
-See :ref:`vector_calculus`.

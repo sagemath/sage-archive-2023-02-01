@@ -230,7 +230,10 @@ drawn in terms of the coordinates :math:`(x, z)` is obtained via
                        color={r:'red', th:'green', ph:'orange'})
     sphinx_plot(g)
 
-:math:`\mathbb{E}^3` is also now endowed with three vector frames:
+What are the relations between the Cartesian and spherical vector frames?
+-------------------------------------------------------------------------
+
+At this stage, :math:`\mathbb{E}^3` is endowed with three vector frames:
 
 ::
 
@@ -239,8 +242,8 @@ drawn in terms of the coordinates :math:`(x, z)` is obtained via
      Coordinate frame (E^3, (d/dr,d/dth,d/dph)),
      Vector frame (E^3, (e_r,e_th,e_ph))]
 
-The second one is the coordinate frame of spherical coordinates, while
-the third one is the standard orthonormal frame associated with
+The second one is the *coordinate* frame of spherical coordinates, while
+the third one is the standard *orthonormal* frame associated with
 spherical coordinates. For Cartesian coordinates, the coordinate frame
 and the orthonormal frame coincide: it is :math:`(e_x,e_y,e_z)`. For
 spherical coordinates, the orthonormal frame is denoted
@@ -253,7 +256,8 @@ spherical coordinates, the orthonormal frame is denoted
     sage: spherical_frame
     Vector frame (E^3, (e_r,e_th,e_ph))
 
-We may check that it is an orthonormal frame:
+We may check that it is an orthonormal frame, i.e. that it obeys
+:math:`e_i\cdot e_j = \delta_{ij}`:
 
 ::
 
@@ -261,7 +265,8 @@ We may check that it is an orthonormal frame:
     sage: [[es[i].dot(es[j]).expr() for j in E.irange()] for i in E.irange()]
     [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
 
-The orthonormal spherical frame expressed in terms of the Cartesian one:
+Via the method ``display``, we may express the orthonormal spherical frame in
+terms of the Cartesian one:
 
 ::
 
@@ -272,7 +277,7 @@ The orthonormal spherical frame expressed in terms of the Cartesian one:
     e_ph = -sin(ph) e_x + cos(ph) e_y
 
 
-The reverse transformation:
+The reverse is
 
 ::
 
@@ -283,8 +288,8 @@ The reverse transformation:
     e_z = cos(th) e_r - sin(th) e_th
 
 
-The orthonormal frame :math:`(e_r,e_\theta,e_\phi)` expressed in terms
-on the coordinate frame
+We may also express the orthonormal frame :math:`(e_r,e_\theta,e_\phi)` in
+terms on the coordinate frame
 :math:`\left(\frac{\partial}{\partial r}, \frac{\partial}{\partial\theta}, \frac{\partial}{\partial \phi}\right)`
 (the latter being returned by the method ``frame()`` acting on the chart
 ``spherical``):
@@ -298,10 +303,11 @@ on the coordinate frame
     e_ph = 1/(r*sin(th)) d/dph
 
 
-Cylindrical coordinates
------------------------
+Introducing cylindrical coordinates
+-----------------------------------
 
-Cylindrical coordinates are introduced by
+Cylindrical coordinates are introduced in a way similar to spherical
+coordinates:
 
 ::
 
@@ -341,7 +347,7 @@ ones are
     ph = arctan2(y, x)
     z = z
 
-:math:`\mathbb{E}^3` is also now endowed with five vector frames:
+There are now five vector frames defined on :math:`\mathbb{E}^3`:
 
 ::
 
@@ -369,8 +375,7 @@ We may check that it is an orthonormal frame:
     sage: [[ec[i].dot(ec[j]).expr() for j in E.irange()] for i in E.irange()]
     [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
 
-The orthonormal cylindrical frame expressed in terms of the Cartesian
-one:
+and express it in terms of the Cartesian frame:
 
 ::
 
@@ -380,7 +385,7 @@ one:
     e_ph = -sin(ph) e_x + cos(ph) e_y
     e_z = e_z
 
-The reverse transformation:
+The reverse is
 
 ::
 
@@ -390,8 +395,8 @@ The reverse transformation:
     e_y = sin(ph) e_rh + cos(ph) e_ph
     e_z = e_z
 
-The orthonormal cylindrical frame expressed in terms of the spherical
-one:
+Of course, we may express the orthonormal cylindrical frame in terms of the
+spherical one:
 
 ::
 
@@ -401,7 +406,7 @@ one:
     e_ph = e_ph
     e_z = cos(th) e_r - sin(th) e_th
 
-The reverse transformation:
+along with the reverse transformation:
 
 ::
 
@@ -411,7 +416,7 @@ The reverse transformation:
     e_th = cos(th) e_rh - sin(th) e_z
     e_ph = e_ph
 
-The orthonormal frame :math:`(e_\rho,e_\phi,e_z)` expressed in terms on
+The orthonormal frame :math:`(e_\rho,e_\phi,e_z)` can be expressed in terms on
 the coordinate frame
 :math:`\left(\frac{\partial}{\partial\rho}, \frac{\partial}{\partial\phi}, \frac{\partial}{\partial z}\right)`
 (the latter being returned by the method ``frame()`` acting on the chart
@@ -426,10 +431,10 @@ the coordinate frame
     e_z = d/dz
 
 
-Coordinates of a point
-----------------------
+How to evaluate the coordinates of a point in various systems?
+--------------------------------------------------------------
 
-We introduce a point :math:`p\in \mathbb{E}^3` via the generic SageMath
+Let us introduce a point :math:`p\in \mathbb{E}^3` via the generic SageMath
 syntax for creating an element from its parent (here
 :math:`\mathbb{E}^3`), i.e. the call operator ``()``, with the
 coordinates of the point as the first argument:
@@ -441,7 +446,7 @@ coordinates of the point as the first argument:
     Point p on the Euclidean space E^3
 
 Actually, since the Cartesian coordinates are the default ones, the
-above writting is equivalent to
+argument ``chart=cartesian`` can be omitted:
 
 ::
 
@@ -461,13 +466,18 @@ letting the corresponding chart act on :math:`p`:
     sage: cylindrical(p)
     (sqrt(2), 3/4*pi, 0)
 
-A point defined from its spherical coordinates:
+Here some example of a point defined from its spherical coordinates:
 
 ::
 
     sage: q = E((4,pi/3,pi), chart=spherical, name='q')
     sage: q
     Point q on the Euclidean space E^3
+
+We have then
+
+::
+
     sage: spherical(q)
     (4, 1/3*pi, pi)
     sage: cartesian(q)
@@ -476,8 +486,8 @@ A point defined from its spherical coordinates:
     (2*sqrt(3), pi, 2)
 
 
-Expressions of a scalar field in various coordinate systems
------------------------------------------------------------
+How to express a scalar field in various coordinate systems?
+------------------------------------------------------------
 
 Let us define a scalar field on :math:`\mathbb{E}^3` from its expression
 in Cartesian coordinates:
@@ -486,8 +496,8 @@ in Cartesian coordinates:
 
     sage: f = E.scalar_field(x^2+y^2 - z^2, name='f')
 
-Note that since the Cartesian coordinates are the default ones, we did
-not specify them in the above definition. Thanks to the known coordinate
+Note that since the Cartesian coordinates are the default ones, we have
+not specified them in the above definition. Thanks to the known coordinate
 transformations, the expression of :math:`f` in terms of other
 coordinates is automatically computed:
 
@@ -522,7 +532,7 @@ the method ``expr()``
     sage: f.expr(cylindrical)
     rh^2 - z^2
 
-The value of :math:`f` at points :math:`p` and :math:`q`:
+The values of :math:`f` at points :math:`p` and :math:`q` are
 
 ::
 
@@ -544,6 +554,12 @@ dictionary as the first argument, with the chart as key:
 ::
 
     sage: g = E.scalar_field({spherical: r^2}, name='g')
+
+The computation of the expressions of :math:`g` in the other coordinate
+systems is triggered by the method ``display()``:
+
+::
+
     sage: g.display()
     g: E^3 --> R
        (x, y, z) |--> x^2 + y^2 + z^2
@@ -551,8 +567,8 @@ dictionary as the first argument, with the chart as key:
        (rh, ph, z) |--> rh^2 + z^2
 
 
-Expression of a vector field in various frames
-----------------------------------------------
+How to express a vector field in various frames?
+------------------------------------------------
 
 Let us introduce a vector field on :math:`\mathbb{E}^3` by its
 components in the Cartesian frame. Since the latter is the default
@@ -591,8 +607,8 @@ The components of :math:`v` are returned by the square bracket operator:
     sage: v[:]
     [-y, x, z^2]
 
-The expression of :math:`v` in terms of the orthonormal spherical frame
-is obtained by
+The computation of the expression of :math:`v` in terms of the orthonormal
+spherical frame is triggered by the method ``display()``:
 
 ::
 
@@ -610,7 +626,7 @@ it suffices to pass the latter as a second argument to ``display()``:
     v = r^2*cos(th)^3 e_r - r^2*cos(th)^2*sin(th) e_th + r*sin(th) e_ph
 
 Again, the components of :math:`v` are obtained by means of the square
-bracket operator, by specify the vector frame as first argument, and the
+bracket operator, by specifying the vector frame as first argument and the
 coordinate chart as the last one:
 
 ::
@@ -632,7 +648,7 @@ is
     sage: v[cylindrical_frame, :, cylindrical]
     [0, rh, z^2]
 
-The value of the vector field :math:`v` at point :math:`p`:
+The value of the vector field :math:`v` at point :math:`p` is
 
 ::
 
@@ -646,7 +662,7 @@ The value of the vector field :math:`v` at point :math:`p`:
     sage: vp.display(cylindrical_frame.at(p))
     v = sqrt(2) e_ph
 
-The value of the vector field :math:`v` at point :math:`q`:
+The value of the vector field :math:`v` at point :math:`q` is
 
 ::
 
@@ -661,8 +677,8 @@ The value of the vector field :math:`v` at point :math:`q`:
     v = 2*sqrt(3) e_ph + 4 e_z
 
 
-Changing the default coordinates and default vector frame
----------------------------------------------------------
+How to change the default coordinates and default vector frame?
+---------------------------------------------------------------
 
 At any time, one may change the default coordinates by the method
 ``set_default_chart``:

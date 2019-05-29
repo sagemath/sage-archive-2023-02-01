@@ -15955,13 +15955,15 @@ class GenericGraph(GenericGraph_pyx):
             return [list(zip(p[:-1], p[1:])) for p in all_paths]
         return all_paths
 
-    def yen_k_shortest_paths(self, source, target, weight_function=None, by_weight=False):
+    def yen_k_shortest_simple_paths(self, source, target, weight_function=None, by_weight=False):
         r"""
-        Return an iterator over the paths between a pair of vertices in
+        Return an iterator over the simple paths between a pair of vertices in
         increasing order of weights.
 
-        For undirected graphs paths are returned in order of increasing number
+        For unweighted graphs paths are returned in order of increasing number
         of edges.
+
+        In case of weighted graphs negative weights are not allowed.
 
         If ``source`` is the same vertex as ``target``, then ``[[source]]`` is
         returned -- a list containing the 1-vertex, 0-edge path "``source``"
@@ -15984,17 +15986,17 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: g = DiGraph([(1, 2, 20), (1, 3, 10), (1, 4, 30), (2, 5, 20), (3, 5, 10), (4, 5, 30)])
-            sage: list(g.yen_k_shortest_paths(1, 5, by_weight=True))
+            sage: list(g.yen_k_shortest_simple_paths(1, 5, by_weight=True))
             [[1, 3, 5], [1, 2, 5], [1, 4, 5]]
-            sage: list(g.yen_k_shortest_paths(1, 5))
+            sage: list(g.yen_k_shortest_simple_paths(1, 5))
             [[1, 2, 5], [1, 3, 5], [1, 4, 5]]
-            sage: list(g.yen_k_shortest_paths(1, 1))
+            sage: list(g.yen_k_shortest_simple_paths(1, 1))
             [[1]]
 
             sage: g = Graph([(1, 2, 20), (1, 3, 10), (1, 4, 30), (2, 5, 20), (3, 5, 10), (4, 5, 30), (1, 6, 100), (5, 6, 5)])
-            sage: list(g.yen_k_shortest_paths(1, 6, by_weight = True))
+            sage: list(g.yen_k_shortest_simple_paths(1, 6, by_weight = True))
             [[1, 3, 5, 6], [1, 2, 5, 6], [1, 4, 5, 6], [1, 6]]
-            sage: list(g.yen_k_shortest_paths(1, 6))
+            sage: list(g.yen_k_shortest_simple_paths(1, 6))
             [[1, 6], [1, 2, 5, 6], [1, 3, 5, 6], [1, 4, 5, 6]]
 
         """

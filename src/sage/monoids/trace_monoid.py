@@ -309,11 +309,6 @@ class TraceMonoidElement(MonoidElement):
         min = set()
         graph = DiGraph({})
 
-        def next_front(front, used):
-            forbidden = set(chain.from_iterable(reachable[v] for v in used))
-            front = set(dest for _, dest in graph.outgoing_edges(front, labels=False))
-            return front - forbidden
-
         for i, x in enumerate(elements):
             reachable[i] = set()
             front = min.copy()
@@ -328,7 +323,9 @@ class TraceMonoidElement(MonoidElement):
                         if j in min:
                             min.remove(j)
                         used.add(j)
-                front = next_front(front, used)
+                forbidden = set(chain.from_iterable(reachable[v] for v in used))
+                front = set(dest for _, dest in graph.outgoing_edges(front, labels=False))
+                front = front - forbidden
 
             min.add(i)
 

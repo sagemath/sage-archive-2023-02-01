@@ -1113,15 +1113,16 @@ class GraphicMatroid(Matroid):
             if isinstance(other, GraphicMatroid):
                 other = other.regular_matroid()
             if certificate:
-                # Get isomorphism between M and self -- in this order,
+                # iso0: isomorphism from M and self -- in this order,
                 # to prevent an infinite recursion.
                 iso0 = M._is_isomorphic(self, certificate=certificate)[1]
+                # Now invert iso0 to get iso1, an isomorphism from self to M.
                 iso1 = {iso0[e]: e for e in iso0}
-                # Get isomorphism between M and other.
+                # iso2: isomorphism from M and other.
                 isomorphic, iso2 = M._is_isomorphic(other, certificate=certificate)
                 if not isomorphic:
                     return (False, None)
-                # Compose the two isomorphisms.
+                # Compose iso1 and iso2, to go from self to other.
                 return (True, {e: iso2[iso1[e]] for e in iso1})
             return M._is_isomorphic(other)
 

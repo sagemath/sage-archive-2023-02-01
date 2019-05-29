@@ -56,8 +56,7 @@ from sage.sets.family import Family
 from sage.structure.element import Element
 from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent
-from sage.structure.richcmp import (richcmp, op_NE, op_EQ, op_LT,
-                                    op_LE, op_GT, op_GE)
+from sage.structure.richcmp import richcmp, op_NE, op_EQ
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.graphs.digraph import DiGraph
 

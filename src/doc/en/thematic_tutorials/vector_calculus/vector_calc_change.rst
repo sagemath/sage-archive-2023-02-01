@@ -2,8 +2,10 @@
 
 .. linkall
 
-Vector calculus 4: Changing coordinates
-=======================================
+.. _change_coord_euclidean:
+
+How to change coordinates?
+==========================
 
 This tutorial introduces some vector calculus functionalities of SageMath
 within the 3-dimensional Euclidean space.
@@ -15,10 +17,10 @@ The tutorial is also available as a Jupyter notebook, either
 or `interactive <https://mybinder.org/v2/gh/sagemanifolds/SageManifolds/master?filepath=Notebooks/SM_vector_calc_change.ipynb>`__ (``binder``).
 
 
-Cartesian coordinates
----------------------
+Starting from Cartesian coordinates
+-----------------------------------
 
-We start by declaring the 3-dimensional Euclidean space
+Let us start by declaring the 3-dimensional Euclidean space
 :math:`\mathbb{E}^3`, with :math:`(x,y,z)` as Cartesian coordinates:
 
 ::
@@ -27,7 +29,9 @@ We start by declaring the 3-dimensional Euclidean space
     sage: E
     Euclidean space E^3
 
-:math:`\mathbb{E}^3` is endowed with the chart of Cartesian coordinates:
+By default, i.e. without the optional argument ``coordinates`` in
+``EuclideanSpace()``, :math:`\mathbb{E}^3` is endowed with the chart of
+Cartesian coordinates:
 
 ::
 
@@ -53,9 +57,9 @@ bracket operator:
     (x, y, z)
 
 Thanks to use of ``<x,y,z>`` when declaring ``E``, the Python variables
-``x``, ``y`` and ``z`` have been created (i.e. there is no need to
-declare them by something like ``y = var('y')``); they represent the
-coordinates :math:`(x,y,z)` as symbolic expressions:
+``x``, ``y`` and ``z`` have been created to store the coordinates
+:math:`(x,y,z)` as symbolic expressions. There is no need to
+declare them by ``x, y, z = var('x y z')``; they are immediately available:
 
 ::
 
@@ -117,8 +121,8 @@ as well as :math:`e_x\cdot e_y = 0`:
     0
 
 
-Spherical coordinates
----------------------
+Introducing spherical coordinates
+---------------------------------
 
 Spherical coordinates are introduced by
 
@@ -157,6 +161,74 @@ during the above call ``E.spherical_coordinates()``:
     r = sqrt(x^2 + y^2 + z^2)
     th = arctan2(sqrt(x^2 + y^2), z)
     ph = arctan2(y, x)
+
+These formulas are automatically used if we ask to plot the grid of
+spherical coordinates in terms of Cartesian coordinates:
+
+::
+
+    sage: spherical.plot(cartesian, color={r:'red', th:'green', ph:'orange'})
+    Graphics3d Object
+
+.. PLOT::
+
+    E = EuclideanSpace(3)
+    cartesian = E.cartesian_coordinates()
+    spherical = E.spherical_coordinates()
+    r, th, ph = spherical[:]
+    g = spherical.plot(cartesian, color={r:'red', th:'green', ph:'orange'})
+    sphinx_plot(g)
+
+Note that
+
+- the red lines are those along which :math:`r` varies, while
+  :math:`(\theta,\phi)` are kept fixed;
+- the grid lines are those along which :math:`\theta` varies, while
+  :math:`(r,\phi)` are kept fixed;
+- the orange lines are those along which :math:`\phi` varies, while
+  :math:`(r,\theta)` are kept fixed.
+
+See the `plot
+options <http://doc.sagemath.org/html/en/reference/manifolds/sage/manifolds/chart.html#sage.manifolds.chart.RealChart.plot>`__
+to customize the plot. For instance, we may draw the spherical coordinates
+in the plane :math:`\theta=\pi/2` in terms of the coordinates :math:`(x, y)`:
+
+::
+
+    sage: spherical.plot(cartesian, ambient_coords=(x,y), fixed_coords={th: pi/2},
+    ....:                color={r:'red', th:'green', ph:'orange'})
+    Graphics object consisting of 18 graphics primitives
+
+.. PLOT::
+
+    E = EuclideanSpace(3)
+    cartesian = E.cartesian_coordinates()
+    spherical = E.spherical_coordinates()
+    x, y, z = cartesian[:]
+    r, th, ph = spherical[:]
+    g = spherical.plot(cartesian, ambient_coords=(x,y), fixed_coords={th: pi/2},
+                       color={r:'red', th:'green', ph:'orange'})
+    sphinx_plot(g)
+
+Similarly the grid of spherical coordinates in the plane :math:`\phi=0`
+drawn in terms of the coordinates :math:`(x, z)` is obtained via
+
+::
+
+    sage: spherical.plot(cartesian, ambient_coords=(x,z), fixed_coords={ph: 0},
+    ....:                color={r:'red', th:'green', ph:'orange'})
+    Graphics object consisting of 18 graphics primitives
+
+.. PLOT::
+
+    E = EuclideanSpace(3)
+    cartesian = E.cartesian_coordinates()
+    spherical = E.spherical_coordinates()
+    x, y, z = cartesian[:]
+    r, th, ph = spherical[:]
+    g = spherical.plot(cartesian, ambient_coords=(x,z), fixed_coords={ph: 0},
+                       color={r:'red', th:'green', ph:'orange'})
+    sphinx_plot(g)
 
 :math:`\mathbb{E}^3` is also now endowed with three vector frames:
 
@@ -623,9 +695,3 @@ Then
     v = r^2*cos(th)^3 e_r - r^2*cos(th)^2*sin(th) e_th + r*sin(th) e_ph
     sage: v.display(cartesian_frame, cartesian)
     v = -y e_x + x e_y + z^2 e_z
-
-
-What's next?
-------------
-
-See :ref:`vector_calculus`.

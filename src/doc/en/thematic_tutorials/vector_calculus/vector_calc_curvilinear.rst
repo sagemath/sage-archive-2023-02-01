@@ -461,3 +461,9 @@ Again, we may check that the above formulas coincide with those of
 Wikipedia's article `Del in cylindrical and spherical
 coordinates <https://en.wikipedia.org/wiki/Del_in_cylindrical_and_spherical_coordinates#Del_formula>`__.
 
+Changing coordinates
+--------------------
+
+Given the expression of a vector field in a given coordinate system, SageMath
+can compute its expression in another coordinate system, see the tutorial
+:ref:`change_coord_euclidean`

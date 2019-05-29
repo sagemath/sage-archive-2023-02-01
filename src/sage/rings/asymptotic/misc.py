@@ -1026,7 +1026,7 @@ class Locals(dict):
             sage: locals._data_()
             (('a', 2), ('b', 1))
         """
-        return tuple(sorted(self.items(), key=lambda e: e[0]))
+        return tuple(sorted(self.items(), key=lambda k_v: k_v[0]))
 
     def __hash__(self):
         r"""

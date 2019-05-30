@@ -16033,11 +16033,11 @@ class GenericGraph(GenericGraph_pyx):
 
         if by_weight is False:
             length_func = len
-            shortest_path_func = self._backend.shortest_path # shortest path function for undirected graph
+            shortest_path_func = self._backend.shortest_path # shortest path function for unweighted graph
         else:
             def length_func(path):
                 return sum(edge_wt[e] for e in zip(path, path[1:]))
-            shortest_path_func = self._backend.bidirectional_dijkstra # shortest path function for directed graph
+            shortest_path_func = self._backend.bidirectional_dijkstra # shortest path function for weighted graph
 
         heap_paths = set() # a set to check if a path is already present in the heap or not
         heap_sorted_paths = list() # heap data structure containing the candidate paths

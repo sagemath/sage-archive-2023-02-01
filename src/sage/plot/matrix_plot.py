@@ -343,6 +343,11 @@ def matrix_plot(mat, **options):
         sage: matrix_plot(matrix([[1,3,5,1],[2,4,5,6],[1,3,5,7]]))
         Graphics object consisting of 1 graphics primitive
 
+    .. PLOT::
+
+        P = matrix_plot(matrix([[1,3,5,1],[2,4,5,6],[1,3,5,7]]))
+        sphinx_plot(P)
+
     Here we make a random matrix over `\RR` and use ``cmap='hsv'``
     to color the matrix elements different RGB colors::
 

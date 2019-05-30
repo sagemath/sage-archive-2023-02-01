@@ -5,6 +5,8 @@ AUTHORS:
 
 - Travis Scrimshaw (2012-12-07): Initial version
 
+Introduction
+============
 
 The Robinson-Schensted-Knuth (RSK) correspondence (also known
 as the RSK algorithm) is most naturally stated as a bijection
@@ -15,43 +17,9 @@ tableau, and `Q` is known as the recording tableau.
 
 The basic operation is known as row insertion `P \leftarrow k`
 (where `P` is a given semi-standard Young tableau, and `k` is an
-integer). Row insertion is a recursive algorithm which starts by
-setting `k_0 = k`, and in its `i`-th step inserts the number `k_i`
-into the `i`-th row of `P` (we start counting the rows at `0`) by
-replacing the first integer greater than `k_i` in the row by `k_i`
-and defines `k_{i+1}` as the integer that has been replaced. If no
-integer greater than `k_i` exists in the `i`-th row, then `k_i` is
-simply appended to the row and the algorithm terminates at this
-point.
-
-Now the RSK algorithm, applied to a generalized permutation
-`p = ((j_0, k_0), (j_1, k_1), \ldots, (j_{\ell-1}, k_{\ell-1}))`
-(encoded as a lexicographically sorted list of pairs) starts by
-initializing two semi-standard tableaux `P_0` and `Q_0` as empty
-tableaux. For each nonnegative integer `t` starting at `0`, take
-the pair `(j_t, k_t)` from `p` and set
-`P_{t+1} = P_t \leftarrow k_t`, and define `Q_{t+1}` by adding a
-new box filled with `j_t` to the tableau `Q_t` at the same
-location the row insertion on `P_t` ended (that is to say, adding
-a new box with entry `j_t` such that `P_{t+1}` and `Q_{t+1}` have
-the same shape). The iterative process stops when `t` reaches the
-size of `p`, and the pair `(P_t, Q_t)` at this point is the image
-of `p` under the Robinson-Schensted-Knuth correspondence.
-
-This correspondence has been introduced in [Knu1970]_, where it has
-been referred to as "Construction A".
-
-For more information, see Chapter 7 in [Sta-EC2]_.
-
-We also note that integer matrices are in bijection with generalized
-permutations. Furthermore, we can convert any word `w` (and, in
-particular, any permutation) to a generalized permutation by
-considering the top line to be `(1, 2, \ldots, n)` where `n` is the
-length of `w`.
-
-On changing the insertion algorithm, different bijections can be 
-established. Some insertions have been implemented which can be used in 
-the **RSK()** and **inverse_RSK()** functions.
+integer). Different row insertion algorithms leads to different 
+bijections. Some row insertion algorithms are already implemented 
+which you can specify using the optional argument ``insertion``.
 
 EXAMPLES:
 
@@ -62,6 +30,10 @@ We can perform RSK and the inverse on a variety of objects::
     [[1, 2, 3, 3], [2, 1, 2, 2]]
     sage: RSK(*gp)
     [[[1, 2, 2], [2]], [[1, 3, 3], [2]]]
+    sage: RSK([2,3,2,1,2,3])
+    [[[1, 2, 2, 3], [2], [3]], [[1, 2, 5, 6], [3], [4]]]
+    sage: RSK([2,3,2,1,2,3], insertion=RSK.rules.EG)
+    [[[1, 2, 3], [2, 3], [3]], [[1, 2, 6], [3, 5], [4]]]
     sage: m = RSK_inverse(p, q, 'matrix'); m
     [0 1]
     [1 0]
@@ -231,9 +203,495 @@ from sage.structure.sage_object import SageObject
 from sage.structure.element import is_Matrix
 from sage.matrix.all import matrix
 
-def RSK(obj1=None, obj2=None, insertion=None, check_standard=False, **options):
+class Rule(UniqueRepresentation):
+    r"""
+    Base class for common functionalities in insertion rules.
+    """
+    #TO add common functionalities for all rules
+    def to_pair(self, obj1=None, obj2=None):
+        r"""
+        Returns an iterable two-array in pair form for row insertion.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import Rule
+            sage: Rule().to_pair([1, 2, 2, 2], [2, 1, 1, 2])
+            [(1, 2), (2, 1), (2, 1), (2, 2)]
+            sage: m = Matrix(ZZ, 3, 2, [0,1,1,0,0,2]) ; m
+            [0 1]
+            [1 0]
+            [0 2]
+            sage: Rule().to_pair(m)
+            [(1, 2), (2, 1), (3, 2), (3, 2)]
+        """
+        if obj2 is None:
+            try:
+                itr = obj1._rsk_iter()
+            except AttributeError:
+                # If this is (something which looks like) a matrix
+                #   then build the generalized permutation
+                try:
+                    t = []
+                    b = []
+                    for i, row in enumerate(obj1):
+                        for j, mult in enumerate(row):
+                            if mult > 0:
+                                t.extend([i+1]*mult)
+                                b.extend([j+1]*mult)
+                    itr = zip(t, b)
+                    obj1 = t
+                    obj2 = b
+                except TypeError:
+                    itr = zip(range(1, len(obj1)+1), obj1)
+                    obj2 = obj1
+        else:
+            itr = zip(obj1, obj2)
+        return list(itr)
+
+class RuleRSK(Rule):
+    r"""
+    A rule modelling Robinson-Schensted-Knuth insertion.
+
+    EXAMPLES::
+
+        sage: RSK([1, 2, 2, 2], [2, 1, 1, 2], insertion=RSK.rules.RSK)
+        [[[1, 1, 2], [2]], [[1, 2, 2], [2]]]
+        sage: p = Tableau([[1,2,2],[2]]); q = Tableau([[1,3,3],[2]])
+        sage: RSK_inverse(p, q, insertion=RSK.rules.RSK)
+        [[1, 2, 3, 3], [2, 1, 2, 2]]
+    """
+    def forward_rule(self, obj1, obj2, check_standard=False):
+        r"""
+        Return the RSK insertion of the pair ``[obj1, obj2]``.
+        """
+        from sage.combinat.tableau import SemistandardTableau, StandardTableau
+        
+        itr = self.to_pair(obj1, obj2)
+        p = []       #the "insertion" tableau
+        q = []       #the "recording" tableau
+        lt = 0
+        lb = 0
+        for i, j in itr:
+            self.insertion(i, j, p, q)
+
+        if check_standard:
+            try:
+                P = StandardTableau(p)
+            except ValueError:
+                P = SemistandardTableau(p)
+            try:
+                Q = StandardTableau(q)
+            except ValueError:
+                Q = SemistandardTableau(q)
+            return [P, Q]
+        return [SemistandardTableau(p), SemistandardTableau(q)]
+
+    def backward_rule(self, p, q, output):
+        r"""
+        Return the reverse RSK insertion of ``(p, q)``.
+        """
+        from sage.combinat.tableau import SemistandardTableaux
+        from bisect import bisect_left
+        # Make a copy of p since this is destructive to it
+        p_copy = [list(row) for row in p]
+
+        if q.is_standard():
+            rev_word = [] # This will be our word in reverse
+            d = dict((qij,i) for i, Li in enumerate(q) for qij in Li)
+            # d is now a dictionary which assigns to each integer k the
+            # number of the row of q containing k.
+
+            for key in sorted(d, reverse=True): # Delete last entry from i-th row of p_copy
+                i = d[key]
+                x = p_copy[i].pop() # Always the right-most entry
+                for row in reversed(p_copy[:i]):
+                    y_pos = bisect_left(row,x) - 1
+                    # switch x and y
+                    x, row[y_pos] = row[y_pos], x
+                rev_word.append(x)
+
+            if output == 'word':
+                from sage.combinat.words.word import Word
+                return Word(reversed(rev_word))
+            if output == 'matrix':
+                return to_matrix(list(range(1, len(rev_word)+1)), list(reversed(rev_word)))
+            if output == 'array':
+                return [list(range(1, len(rev_word)+1)), list(reversed(rev_word))]
+            if output == 'permutation':
+                if not p.is_standard():
+                    raise TypeError("p must be standard to have a valid permutation as output")
+                from sage.combinat.permutation import Permutation
+                return Permutation(reversed(rev_word))
+            raise ValueError("invalid output option")
+
+        if q not in SemistandardTableaux():
+            raise ValueError("q(=%s) must be a semistandard tableau"%q)
+
+        upper_row = []
+        lower_row = []
+        #upper_row and lower_row will be the upper and lower rows of the
+        #generalized permutation we get as a result, but both reversed.
+        d = {}
+        for row, Li in enumerate(q):
+            for col, val in enumerate(Li):
+                if val in d:
+                    d[val][col] = row
+                else:
+                    d[val] = {col: row}
+        #d is now a double family such that for every integers k and j,
+        #the value d[k][j] is the row i such that the (i, j)-th cell of
+        #q is filled with k.
+        for value, row_dict in sorted(d.items(), reverse=True, key=lambda x: x[0]):
+            for key in sorted(row_dict, reverse=True):
+                i = row_dict[key]
+                x = p_copy[i].pop() # Always the right-most entry
+                for row in reversed(p_copy[:i]):
+                    y = bisect_left(row,x) - 1
+                    x, row[y] = row[y], x
+                upper_row.append(value)
+                lower_row.append(x)
+
+        if output == 'matrix':
+            return to_matrix(list(reversed(upper_row)), list(reversed(lower_row)))
+        if output == 'array':
+            return [list(reversed(upper_row)), list(reversed(lower_row))]
+        if output in ['permutation', 'word']:
+            raise TypeError("q must be standard to have a %s as valid output"%output)
+        raise ValueError("invalid output option")
+
+    def insertion(self, i, j, p, q):
+        r"""
+        The algorithm for inserting the letter (i,j) from the bi-word to the current tableaux p and q.
+        """
+        from bisect import bisect_right
+        for r, qr in zip(p,q):
+            if r[-1] > j:
+                #Figure out where to insert j into the row r.  The
+                #bisect command returns the position of the least
+                #element of r greater than j.  We will call it y.
+                y_pos = bisect_right(r, j)
+                #Switch j and y
+                j, r[y_pos] = r[y_pos], j
+            else:
+                break
+        else:
+            #We made through all of the rows of p without breaking
+            #so we need to add a new row to p and q.
+            r = []; p.append(r)
+            qr = []; q.append(qr)
+        r.append(j)
+        qr.append(i) # Values are always inserted to the right
+
+    def to_pair(self, obj1, obj2):
+        return super(RuleRSK, self).to_pair(obj1, obj2)
+
+class RuleEG(Rule):
+    r"""
+    A rule modelling Edelman-Greene insertion.
+
+    EXAMPLES::
+
+        sage: RSK([2,3,2,1,2,3], insertion=RSK.rules.EG)
+        [[[1, 2, 3], [2, 3], [3]], [[1, 2, 6], [3, 5], [4]]]
+        sage: pq = RSK([2,1,2,3,2], insertion=RSK.rules.EG); pq
+        [[[1, 2, 3], [2, 3]], [[1, 3, 4], [2, 5]]]
+        sage: RSK_inverse(*pq, insertion=RSK.rules.EG)
+        [2, 1, 2, 3, 2]
+
+    """
+    def forward_rule(self, obj1, obj2, check_standard=False):
+        r"""
+        Return the EG insertion of the pair ``[obj1, obj2]``.
+        """
+        from sage.combinat.tableau import SemistandardTableau, StandardTableau
+        
+        itr = self.to_pair(obj1, obj2)
+        p = []       #the "insertion" tableau
+        q = []       #the "recording" tableau
+
+        #For each j in self, insert j into the tableau p.
+        lt = 0
+        lb = 0
+        for i, j in itr:
+            self.insertion(i, j, p, q)
+
+        if check_standard:
+            try:
+                P = StandardTableau(p)
+            except ValueError:
+                P = SemistandardTableau(p)
+            try:
+                Q = StandardTableau(q)
+            except ValueError:
+                Q = SemistandardTableau(q)
+            return [P, Q]
+        return [SemistandardTableau(p), SemistandardTableau(q)]
+
+    def backward_rule(self, p, q, output):
+        r"""
+        Return the reverse EG insertion of ``(p, q)``.
+        """
+        from bisect import bisect_left
+        # Make a copy of p since this is destructive to it
+        p_copy = [list(row) for row in p]
+
+        if q.is_standard():
+            rev_word = [] # This will be our word in reverse
+            d = dict((qij,i) for i, Li in enumerate(q) for qij in Li)
+            # d is now a dictionary which assigns to each integer k the
+            # number of the row of q containing k.
+
+            for key in sorted(d, reverse=True): # Delete last entry from i-th row of p_copy
+                i = d[key]
+                x = p_copy[i].pop() # Always the right-most entry
+                for row in reversed(p_copy[:i]):
+                    y_pos = bisect_left(row,x) - 1
+                    if row[y_pos] == x - 1 and y_pos < len(row)-1 and row[y_pos+1] == x:
+                        # Nothing to do except decrement x by 1.
+                        # (Case 1 on p. 74 of Edelman-Greene [EG1987]_.)
+                        x -= 1
+                    else:
+                        # switch x and y
+                        x, row[y_pos] = row[y_pos], x
+                rev_word.append(x)
+            return list(reversed(rev_word))
+
+        else:
+            raise NotImplementedError("only RuleRSK is implemented for non-standard q")
+
+    def insertion(self, i, j, p, q):
+        r"""
+        The algorithm for inserting the letter (i,j) from the bi-word to the current tableaux p and q.
+        """
+        from bisect import bisect_right
+        for r, qr in zip(p,q):
+            if r[-1] > j:
+                #Figure out where to insert j into the row r.  The
+                #bisect command returns the position of the least
+                #element of r greater than j.  We will call it y.
+                y_pos = bisect_right(r, j)
+                if r[y_pos] == j + 1 and y_pos > 0 and j == r[y_pos - 1]:
+                    #Special bump: Nothing to do ejcept increment j by 1
+                    j += 1
+                else:
+                    #Switch j and y
+                    j, r[y_pos] = r[y_pos], j
+            else:
+                break
+        else:
+            #We made through all of the rows of p without breaking
+            #so we need to add a new row to p and q.
+            r = []; p.append(r)
+            qr = []; q.append(qr)
+        r.append(j)
+        qr.append(i) # Values are always inserted to the right
+
+    def to_pair(self, obj1, obj2):
+        return super(RuleEG, self).to_pair(obj1, obj2)
+
+class RuleHecke(Rule):
+    r"""
+    A rule modelling Hecke insertion.
+
+    EXAMPLES::
+
+        sage: w = [5, 4, 1, 3, 4, 2, 5, 1, 2, 1, 4, 2, 4]
+        sage: RSK(w, insertion=RSK.rules.Hecke)
+        [[[1, 2, 4, 5], [2, 4, 5], [3, 5], [4], [5]],
+         [[(1,), (4,), (5,), (7,)],
+          [(2,), (9,), (11, 13)],
+          [(3,), (12,)],
+          [(6,)],
+          [(8, 10)]]]
+        sage: w = [5, 4, 1, 3, 4, 2, 5, 1, 2, 1, 4, 2, 4]
+        sage: P,Q = RSK(w, insertion=RSK.rules.Hecke)
+        sage: wp = RSK_inverse(P, Q, insertion=RSK.rules.Hecke, output='list'); wp
+        [5, 4, 1, 3, 4, 2, 5, 1, 2, 1, 4, 2, 4]
+        sage: wp == w
+        True
+    """
+    def forward_rule(self, obj1, obj2, check_standard=False):
+        r"""
+        Return the Hecke insertion of the pair ``[obj1, obj2]``.
+        """
+        from sage.combinat.tableau import SemistandardTableau, Tableau
+        if obj2 is None:    
+            obj2 = obj1
+            obj1 = list(range(1, len(obj1) + 1))
+
+        p = []       #the "insertion" tableau
+        q = []       #the "recording" tableau
+
+        for i, j in zip(obj1, obj2):
+            self.insertion(i, j, p, q)
+        
+        return [SemistandardTableau(p), Tableau(q)]
+
+    def backward_rule(self, p, q, output):
+        r"""
+        Return the reverse Hecke insertion of ``(p, q)``.
+        """
+        if p.shape() != q.shape():
+            raise ValueError("p(=%s) and q(=%s) must have the same shape"%(p, q))
+        from sage.combinat.tableau import SemistandardTableaux
+        if p not in SemistandardTableaux():
+            raise ValueError("p(=%s) must be a semistandard tableau"%p)
+
+        from bisect import bisect_left
+        # Make a copy of p and q since this is destructive to it
+        p_copy = [list(row) for row in p]
+        q_copy = [[list(v) for v in row] for row in q]
+        # We shall work on these copies of p and q. Notice that p might get
+        # some empty rows in the process; we do not bother pruning them, as
+        # they do not matter.
+
+        #upper_row and lower_row will be the upper and lower rows of the
+        #generalized permutation we get as a result, but both reversed.
+        upper_row = []
+        lower_row = []
+        d = {}
+        for ri, row in enumerate(q):
+            for ci, entry in enumerate(row):
+                for val in entry:
+                    if val in d:
+                        d[val][ci] = ri
+                    else:
+                        d[val] = {ci: ri}
+        #d is now a double family such that for every integers k and j,
+        #the value d[k][j] is the row i such that the (i, j)-th cell of
+        #q is filled with k.
+        for value, row_dict in sorted(d.items(), key=lambda x: -x[0]):
+            for i in sorted(row_dict.values(), reverse=True):
+                # These are always the right-most entry
+                should_be_value = q_copy[i][-1].pop()
+                assert value == should_be_value
+                if not q_copy[i][-1]:
+                    # That is, if value was alone in cell q_copy[i][-1].
+                    q_copy[i].pop()
+                    x = p_copy[i].pop()
+                else:
+                    x = p_copy[i][-1]
+                while i > 0:
+                    i -= 1
+                    row = p_copy[i]
+                    y_pos = bisect_left(row,x) - 1
+                    y = row[y_pos]
+                    # Check to see if we can swap x for y
+                    if ((y_pos == len(row) - 1 or x < row[y_pos+1])
+                        and (i == len(p_copy) - 1 or len(p_copy[i+1]) <= y_pos
+                             or x < p_copy[i+1][y_pos])):
+                        row[y_pos] = x
+                    x = y
+                upper_row.append(value)
+                lower_row.append(x)
+
+        if output == 'array':
+            return [list(reversed(upper_row)), list(reversed(lower_row))]
+        is_standard = (upper_row == list(range(len(upper_row), 0, -1)))
+        if output == 'word':
+            if not is_standard:
+                raise TypeError("q must be standard to have a %s as valid output"%output)
+            from sage.combinat.words.word import Word
+            return Word(reversed(lower_row))
+        if output == 'list':
+            if not is_standard:
+                raise TypeError("q must be standard to have a %s as valid output"%output)
+            return list(reversed(lower_row))
+        raise ValueError("invalid output option")
+
+    def insertion(self, i, j, p, q):
+        r"""
+        The algorithm for inserting the letter (i,j) from the bi-word to the current tableaux p and q.
+        """
+        from bisect import bisect_right
+        for ir,r in enumerate(p):
+            if r[-1] > j:
+                #Figure out where to insert j into the row r.  The
+                #bisect command returns the position of the least
+                #element of r greater than j.  We will call it y.
+                y_pos = bisect_right(r, j)
+                y = r[y_pos]
+                # Check to see if we can swap j for y
+                if (y_pos == 0 or r[y_pos-1] < j) and (ir == 0 or p[ir-1][y_pos] < j):
+                    r[y_pos] = j
+                j = y
+            else:
+                # We must have len(p[ir-1]) > len(r), since j is coming
+                # from the previous row.
+                if r[-1] < j and (ir == 0 or p[ir-1][len(r)] < j):
+                    # We can add a boj to the row
+                    r.append(j)
+                    q[ir].append((i,)) # Values are always inserted to the right
+                else:
+                    # We must append i to the bottom of this column
+                    l = len(r) - 1
+                    while ir < len(q) and len(q[ir]) > l:
+                        ir += 1
+                    q[ir-1][-1] = q[ir-1][-1] + (i,)
+                break
+        else:
+            #We made through all of the rows of p without breaking
+            #so we need to add a new row to p and q.
+            p.append([j])
+            q.append([(i,)])
+
+
+class InsertionRules(object):
+    r"""
+    Catalog of rules for growth diagrams.
+    """
+    RSK = RuleRSK
+    EG = RuleEG
+    Hecke = RuleHecke
+
+#####################################################################
+
+def RSK(obj1=None, obj2=None, insertion=InsertionRules.RSK, check_standard=False, **options):
     r"""
     Perform the Robinson-Schensted-Knuth (RSK) correspondence.
+
+    The Robinson-Schensted-Knuth (RSK) correspondence (also known
+    as the RSK algorithm) is most naturally stated as a bijection
+    between generalized permutations (also known as two-line arrays,
+    biwords, ...) and pairs of semi-standard Young tableaux `(P, Q)`
+    of identical shape. The tableau `P` is known as the insertion
+    tableau, and `Q` is known as the recording tableau.
+
+    The basic operation is known as row insertion `P \leftarrow k`
+    (where `P` is a given semi-standard Young tableau, and `k` is an
+    integer). Row insertion is a recursive algorithm which starts by
+    setting `k_0 = k`, and in its `i`-th step inserts the number `k_i`
+    into the `i`-th row of `P` (we start counting the rows at `0`) by
+    replacing the first integer greater than `k_i` in the row by `k_i`
+    and defines `k_{i+1}` as the integer that has been replaced. If no
+    integer greater than `k_i` exists in the `i`-th row, then `k_i` is
+    simply appended to the row and the algorithm terminates at this
+    point.
+
+    Now the RSK algorithm, applied to a generalized permutation
+    `p = ((j_0, k_0), (j_1, k_1), \ldots, (j_{\ell-1}, k_{\ell-1}))`
+    (encoded as a lexicographically sorted list of pairs) starts by
+    initializing two semi-standard tableaux `P_0` and `Q_0` as empty
+    tableaux. For each nonnegative integer `t` starting at `0`, take
+    the pair `(j_t, k_t)` from `p` and set
+    `P_{t+1} = P_t \leftarrow k_t`, and define `Q_{t+1}` by adding a
+    new box filled with `j_t` to the tableau `Q_t` at the same
+    location the row insertion on `P_t` ended (that is to say, adding
+    a new box with entry `j_t` such that `P_{t+1}` and `Q_{t+1}` have
+    the same shape). The iterative process stops when `t` reaches the
+    size of `p`, and the pair `(P_t, Q_t)` at this point is the image
+    of `p` under the Robinson-Schensted-Knuth correspondence.
+
+    This correspondence has been introduced in [Knu1970]_, where it has
+    been referred to as "Construction A".
+
+    For more information, see Chapter 7 in [Sta-EC2]_.
+
+    We also note that integer matrices are in bijection with generalized
+    permutations. Furthermore, we can convert any word `w` (and, in
+    particular, any permutation) to a generalized permutation by
+    considering the top line to be `(1, 2, \ldots, n)` where `n` is the
+    length of `w`.
 
     The optional argument ``insertion`` allows to specify an alternative
     insertion procedure to be used instead of the standard
@@ -338,10 +796,18 @@ def RSK(obj1=None, obj2=None, insertion=None, check_standard=False, **options):
         [[], []]
     """
     from sage.combinat.tableau import SemistandardTableau, StandardTableau, Tableau 
-    if insertion is None:
-        insertion = RSK.rules.RSK
-    rule = insertion()
 
+    if isinstance(insertion, str):
+        if insertion == 'RSK':
+            insertion = RSK.rules.RSK
+        elif insertion == 'EG':
+            insertion = RSK.rules.EG
+        elif insertion == 'hecke':
+            insertion = RSK.rules.Hecke
+        else:
+            raise ValueError("invalid input")
+
+    rule = insertion()
     if not isinstance(rule, Rule):
         raise TypeError("the insertion must be an instance of Rule")
 
@@ -368,32 +834,14 @@ def RSK(obj1=None, obj2=None, insertion=None, check_standard=False, **options):
             lt = t
             lb = b
 
-    p, q = rule.forward_rule(obj1, obj2, check_standard)
-    try:
-        if check_standard:
-            P = StandardTableau(p)
-        else:
-            raise ValueError
-    except ValueError:
-        try:
-            P = SemistandardTableau(p)
-        except ValueError:
-            P = Tableau(p)
-    try:
-        if check_standard:
-            Q = StandardTableau(q)
-        else:
-            raise ValueError
-    except ValueError:
-        try:
-            Q = SemistandardTableau(q)
-        except ValueError:
-            Q = Tableau(q)
-    return [P, Q]
+    output = rule.forward_rule(obj1, obj2, check_standard)
+    return output
 
 robinson_schensted_knuth = RSK
 
-def RSK_inverse(p, q, output='array', insertion=None):
+RSK.rules = InsertionRules
+
+def RSK_inverse(p, q, output='array', insertion=InsertionRules.RSK):
     r"""
     Return the generalized permutation corresponding to the pair of
     tableaux `(p,q)` under the inverse of the Robinson-Schensted-Knuth
@@ -551,10 +999,18 @@ def RSK_inverse(p, q, output='array', insertion=None):
         [[1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3],
          [1, 1, 1, 1, 1, 1, 3, 2, 2, 2, 1]]
     """
-    if insertion is None:
-        insertion = RSK.rules.RSK
+
+    if isinstance(insertion, str):
+        if insertion == 'RSK':
+            insertion = RSK.rules.RSK
+        elif insertion == 'EG':
+            insertion = RSK.rules.EG
+        elif insertion == 'hecke':
+            insertion = RSK.rules.Hecke
+        else:
+            raise ValueError("invalid input")
+
     rule = insertion()
-    
     if not isinstance(rule, Rule):
         raise TypeError("the insertion must be an instance of Rule")
 
@@ -607,418 +1063,3 @@ def to_matrix(t, b):
         else:
             entries[(t[i]-1, b[i]-1)] = 1
     return matrix(entries, sparse=True)
-
-#####################################################################
-class Rule(UniqueRepresentation):
-    #TO add common functionalities for all rules
-    pass 
-
-class RuleRSK(Rule):
-    r"""
-    A rule modelling Robinson-Schensted-Knuth insertion.
-
-    EXAMPLES::
-
-        sage: RSK([1, 2, 2, 2], [2, 1, 1, 2], insertion=RSK.rules.RSK)
-        [[[1, 1, 2], [2]], [[1, 2, 2], [2]]]
-        sage: p = Tableau([[1,2,2],[2]]); q = Tableau([[1,3,3],[2]])
-        sage: RSK_inverse(p, q, insertion=RSK.rules.RSK)
-        [[1, 2, 3, 3], [2, 1, 2, 2]]
-    """
-    def forward_rule(self, obj1, obj2, check_standard=False):
-        r"""
-        Return the RSK insertion of the pair ``[obj1, obj2]``.
-        """
-        from sage.combinat.tableau import SemistandardTableau, StandardTableau
-        if obj2 is None:
-            try:
-                itr = obj1._rsk_iter()
-            except AttributeError:
-                # If this is (something which looks like) a matrix
-                #   then build the generalized permutation
-                try:
-                    t = []
-                    b = []
-                    for i, row in enumerate(obj1):
-                        for j, mult in enumerate(row):
-                            if mult > 0:
-                                t.extend([i+1]*mult)
-                                b.extend([j+1]*mult)
-                    itr = zip(t, b)
-                    obj1 = t
-                    obj2 = b
-                except TypeError:
-                    itr = zip(range(1, len(obj1)+1), obj1)
-                    obj2 = obj1
-        else:
-            itr = zip(obj1, obj2)
-        p = []       #the "insertion" tableau
-        q = []       #the "recording" tableau
-        lt = 0
-        lb = 0
-        for i, j in itr:
-            self.insertion(i, j, p, q)
-        return p, q
-
-    def backward_rule(self, p, q, output):
-        r"""
-        Return the reverse RSK insertion of ``(p, q)``.
-        """
-        from sage.combinat.tableau import SemistandardTableaux
-        from bisect import bisect_left
-        # Make a copy of p since this is destructive to it
-        p_copy = [list(row) for row in p]
-
-        if q.is_standard():
-            rev_word = [] # This will be our word in reverse
-            d = dict((qij,i) for i, Li in enumerate(q) for qij in Li)
-            # d is now a dictionary which assigns to each integer k the
-            # number of the row of q containing k.
-
-            for key in sorted(d, reverse=True): # Delete last entry from i-th row of p_copy
-                i = d[key]
-                x = p_copy[i].pop() # Always the right-most entry
-                for row in reversed(p_copy[:i]):
-                    y_pos = bisect_left(row,x) - 1
-                    # switch x and y
-                    x, row[y_pos] = row[y_pos], x
-                rev_word.append(x)
-
-            if output == 'word':
-                from sage.combinat.words.word import Word
-                return Word(reversed(rev_word))
-            if output == 'matrix':
-                return to_matrix(list(range(1, len(rev_word)+1)), list(reversed(rev_word)))
-            if output == 'array':
-                return [list(range(1, len(rev_word)+1)), list(reversed(rev_word))]
-            if output == 'permutation':
-                if not p.is_standard():
-                    raise TypeError("p must be standard to have a valid permutation as output")
-                from sage.combinat.permutation import Permutation
-                return Permutation(reversed(rev_word))
-            raise ValueError("invalid output option")
-
-        if q not in SemistandardTableaux():
-            raise ValueError("q(=%s) must be a semistandard tableau"%q)
-
-        upper_row = []
-        lower_row = []
-        #upper_row and lower_row will be the upper and lower rows of the
-        #generalized permutation we get as a result, but both reversed.
-        d = {}
-        for row, Li in enumerate(q):
-            for col, val in enumerate(Li):
-                if val in d:
-                    d[val][col] = row
-                else:
-                    d[val] = {col: row}
-        #d is now a double family such that for every integers k and j,
-        #the value d[k][j] is the row i such that the (i, j)-th cell of
-        #q is filled with k.
-        for value, row_dict in sorted(d.items(), reverse=True, key=lambda x: x[0]):
-            for key in sorted(row_dict, reverse=True):
-                i = row_dict[key]
-                x = p_copy[i].pop() # Always the right-most entry
-                for row in reversed(p_copy[:i]):
-                    y = bisect_left(row,x) - 1
-                    x, row[y] = row[y], x
-                upper_row.append(value)
-                lower_row.append(x)
-
-        if output == 'matrix':
-            return to_matrix(list(reversed(upper_row)), list(reversed(lower_row)))
-        if output == 'array':
-            return [list(reversed(upper_row)), list(reversed(lower_row))]
-        if output in ['permutation', 'word']:
-            raise TypeError("q must be standard to have a %s as valid output"%output)
-        raise ValueError("invalid output option")
-
-    def insertion(self, i, j, p, q):
-        r"""
-        The algorithm for inserting the letter (i,j) from the bi-word to the current tableaux p and q.
-        """
-        from bisect import bisect_right
-        for r, qr in zip(p,q):
-            if r[-1] > j:
-                #Figure out where to insert j into the row r.  The
-                #bisect command returns the position of the least
-                #element of r greater than j.  We will call it y.
-                y_pos = bisect_right(r, j)
-                #Switch j and y
-                j, r[y_pos] = r[y_pos], j
-            else:
-                break
-        else:
-            #We made through all of the rows of p without breaking
-            #so we need to add a new row to p and q.
-            r = []; p.append(r)
-            qr = []; q.append(qr)
-        r.append(j)
-        qr.append(i) # Values are always inserted to the right
-
-class RuleEG(Rule):
-    r"""
-    A rule modelling Edelman-Greene insertion.
-
-    EXAMPLES::
-
-        sage: RSK([2,3,2,1,2,3], insertion=RSK.rules.EG)
-        [[[1, 2, 3], [2, 3], [3]], [[1, 2, 6], [3, 5], [4]]]
-        sage: pq = RSK([2,1,2,3,2], insertion=RSK.rules.EG); pq
-        [[[1, 2, 3], [2, 3]], [[1, 3, 4], [2, 5]]]
-        sage: RSK_inverse(*pq, insertion=RSK.rules.EG)
-        [2, 1, 2, 3, 2]
-
-    """
-    def forward_rule(self, obj1, obj2, check_standard=False):
-        r"""
-        Return the EG insertion of the pair ``[obj1, obj2]``.
-        """
-        from sage.combinat.tableau import SemistandardTableau, StandardTableau
-        if obj2 is None:
-            try:
-                itr = obj1._rsk_iter()
-            except AttributeError:
-                # If this is (something which looks like) a matrix
-                #   then build the generalized permutation
-                try:
-                    t = []
-                    b = []
-                    for i, row in enumerate(obj1):
-                        for j, mult in enumerate(row):
-                            if mult > 0:
-                                t.extend([i+1]*mult)
-                                b.extend([j+1]*mult)
-                    itr = zip(t, b)
-                    obj1 = t
-                    obj2 = b
-                except TypeError:
-                    itr = zip(range(1, len(obj1)+1), obj1)
-                    obj2 = obj1
-        else:
-            itr = zip(obj1, obj2)
-        p = []       #the "insertion" tableau
-        q = []       #the "recording" tableau
-
-        #For each j in self, insert j into the tableau p.
-        lt = 0
-        lb = 0
-        for i, j in itr:
-            self.insertion(i, j, p, q)
-        return p, q
-
-    def backward_rule(self, p, q, output):
-        r"""
-        Return the reverse EG insertion of ``(p, q)``.
-        """
-        from bisect import bisect_left
-        # Make a copy of p since this is destructive to it
-        p_copy = [list(row) for row in p]
-
-        if q.is_standard():
-            rev_word = [] # This will be our word in reverse
-            d = dict((qij,i) for i, Li in enumerate(q) for qij in Li)
-            # d is now a dictionary which assigns to each integer k the
-            # number of the row of q containing k.
-            use = True
-            for key in sorted(d, reverse=True): # Delete last entry from i-th row of p_copy
-                i = d[key]
-                x = p_copy[i].pop() # Always the right-most entry
-                for row in reversed(p_copy[:i]):
-                    y_pos = bisect_left(row,x) - 1
-                    if use and row[y_pos] == x - 1 and y_pos < len(row)-1 and row[y_pos+1] == x:
-                        # Nothing to do except decrement x by 1.
-                        # (Case 1 on p. 74 of Edelman-Greene [EG1987]_.)
-                        x -= 1
-                    else:
-                        # switch x and y
-                        x, row[y_pos] = row[y_pos], x
-                rev_word.append(x)
-            return list(reversed(rev_word))
-
-        else:
-            raise NotImplementedError("only RuleRSK is implemented for non-standard q")
-
-    def insertion(self, i, j, p, q):
-        r"""
-        The algorithm for inserting the letter (i,j) from the bi-word to the current tableaux p and q.
-        """
-        from bisect import bisect_right
-        for r, qr in zip(p,q):
-            if r[-1] > j:
-                #Figure out where to insert j into the row r.  The
-                #bisect command returns the position of the least
-                #element of r greater than j.  We will call it y.
-                y_pos = bisect_right(r, j)
-                if r[y_pos] == j + 1 and y_pos > 0 and j == r[y_pos - 1]:
-                    #Special bump: Nothing to do ejcept increment j by 1
-                    j += 1
-                else:
-                    #Switch j and y
-                    j, r[y_pos] = r[y_pos], j
-            else:
-                break
-        else:
-            #We made through all of the rows of p without breaking
-            #so we need to add a new row to p and q.
-            r = []; p.append(r)
-            qr = []; q.append(qr)
-        r.append(j)
-        qr.append(i) # Values are always inserted to the right
-
-
-class RuleHecke(Rule):
-    r"""
-    A rule modelling Hecke insertion.
-
-    EXAMPLES::
-
-        sage: w = [5, 4, 1, 3, 4, 2, 5, 1, 2, 1, 4, 2, 4]
-        sage: RSK(w, insertion=RSK.rules.Hecke)
-        [[[1, 2, 4, 5], [2, 4, 5], [3, 5], [4], [5]],
-         [[(1,), (4,), (5,), (7,)],
-          [(2,), (9,), (11, 13)],
-          [(3,), (12,)],
-          [(6,)],
-          [(8, 10)]]]
-        sage: w = [5, 4, 1, 3, 4, 2, 5, 1, 2, 1, 4, 2, 4]
-        sage: P,Q = RSK(w, insertion=RSK.rules.Hecke)
-        sage: wp = RSK_inverse(P, Q, insertion=RSK.rules.Hecke, output='list'); wp
-        [5, 4, 1, 3, 4, 2, 5, 1, 2, 1, 4, 2, 4]
-        sage: wp == w
-        True
-    """
-    def forward_rule(self, obj1, obj2, check_standard=False):
-        r"""
-        Return the Hecke insertion of the pair ``[obj1, obj2]``.
-        """
-        if obj2 is None:
-            obj2 = obj1
-            obj1 = list(range(1, len(obj1) + 1))
-
-        from sage.combinat.tableau import SemistandardTableau, Tableau
-        p = []       #the "insertion" tableau
-        q = []       #the "recording" tableau
-
-        for i, j in zip(obj1, obj2):
-            self.insertion(i, j, p, q)
-
-        return p, q
-
-    def backward_rule(self, p, q, output):
-        r"""
-        Return the reverse Hecke insertion of ``(p, q)``.
-        """
-        if p.shape() != q.shape():
-            raise ValueError("p(=%s) and q(=%s) must have the same shape"%(p, q))
-        from sage.combinat.tableau import SemistandardTableaux
-        if p not in SemistandardTableaux():
-            raise ValueError("p(=%s) must be a semistandard tableau"%p)
-
-        from bisect import bisect_left
-        # Make a copy of p and q since this is destructive to it
-        p_copy = [list(row) for row in p]
-        q_copy = [[list(v) for v in row] for row in q]
-        # We shall work on these copies of p and q. Notice that p might get
-        # some empty rows in the process; we do not bother pruning them, as
-        # they do not matter.
-
-        #upper_row and lower_row will be the upper and lower rows of the
-        #generalized permutation we get as a result, but both reversed.
-        upper_row = []
-        lower_row = []
-        d = {}
-        for ri, row in enumerate(q):
-            for ci, entry in enumerate(row):
-                for val in entry:
-                    if val in d:
-                        d[val][ci] = ri
-                    else:
-                        d[val] = {ci: ri}
-        #d is now a double family such that for every integers k and j,
-        #the value d[k][j] is the row i such that the (i, j)-th cell of
-        #q is filled with k.
-        for value, row_dict in sorted(d.items(), key=lambda x: -x[0]):
-            for i in sorted(row_dict.values(), reverse=True):
-                # These are always the right-most entry
-                should_be_value = q_copy[i][-1].pop()
-                assert value == should_be_value
-                if not q_copy[i][-1]:
-                    # That is, if value was alone in cell q_copy[i][-1].
-                    q_copy[i].pop()
-                    x = p_copy[i].pop()
-                else:
-                    x = p_copy[i][-1]
-                while i > 0:
-                    i -= 1
-                    row = p_copy[i]
-                    y_pos = bisect_left(row,x) - 1
-                    y = row[y_pos]
-                    # Check to see if we can swap x for y
-                    if ((y_pos == len(row) - 1 or x < row[y_pos+1])
-                        and (i == len(p_copy) - 1 or len(p_copy[i+1]) <= y_pos
-                             or x < p_copy[i+1][y_pos])):
-                        row[y_pos] = x
-                    x = y
-                upper_row.append(value)
-                lower_row.append(x)
-
-        if output == 'array':
-            return [list(reversed(upper_row)), list(reversed(lower_row))]
-        is_standard = (upper_row == list(range(len(upper_row), 0, -1)))
-        if output == 'word':
-            if not is_standard:
-                raise TypeError("q must be standard to have a %s as valid output"%output)
-            from sage.combinat.words.word import Word
-            return Word(reversed(lower_row))
-        if output == 'list':
-            if not is_standard:
-                raise TypeError("q must be standard to have a %s as valid output"%output)
-            return list(reversed(lower_row))
-        raise ValueError("invalid output option")
-
-    def insertion(self, i, j, p, q):
-        r"""
-        The algorithm for inserting the letter (i,j) from the bi-word to the current tableaux p and q.
-        """
-        from bisect import bisect_right
-        for ir,r in enumerate(p):
-            if r[-1] > j:
-                #Figure out where to insert j into the row r.  The
-                #bisect command returns the position of the least
-                #element of r greater than j.  We will call it y.
-                y_pos = bisect_right(r, j)
-                y = r[y_pos]
-                # Check to see if we can swap j for y
-                if (y_pos == 0 or r[y_pos-1] < j) and (ir == 0 or p[ir-1][y_pos] < j):
-                    r[y_pos] = j
-                j = y
-            else:
-                # We must have len(p[ir-1]) > len(r), since j is coming
-                # from the previous row.
-                if r[-1] < j and (ir == 0 or p[ir-1][len(r)] < j):
-                    # We can add a boj to the row
-                    r.append(j)
-                    q[ir].append((i,)) # Values are always inserted to the right
-                else:
-                    # We must append i to the bottom of this column
-                    l = len(r) - 1
-                    while ir < len(q) and len(q[ir]) > l:
-                        ir += 1
-                    q[ir-1][-1] = q[ir-1][-1] + (i,)
-                break
-        else:
-            #We made through all of the rows of p without breaking
-            #so we need to add a new row to p and q.
-            p.append([j])
-            q.append([(i,)])
-
-class InsertionRules(object):
-    r"""
-    Catalog of rules for growth diagrams.
-    """
-    RSK = RuleRSK
-    EG = RuleEG
-    Hecke = RuleHecke
-
-RSK.rules = InsertionRules

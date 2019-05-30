@@ -16057,18 +16057,18 @@ class GenericGraph(GenericGraph_pyx):
                 heappush(heap_sorted_paths, (length, path))
                 heap_paths.add(hash_path)
             else:
-                exclude_vertices = set()
-                exclude_edges = set()
+                exclude_vertices = []
+                exclude_edges = []
                 for i in range(1, len(prev_path)):
                     root = prev_path[:i]
                     root_length = length_func(root)
                     for path in listA:
                         if path[:i] == root:
                             if self.is_directed():
-                                exclude_edges.add((path[i - 1], path[i]))
+                                exclude_edges.append((path[i - 1], path[i]))
                             else:
-                                exclude_edges.add((path[i - 1], path[i]))
-                                exclude_edges.add((path[i], path[i - 1]))
+                                exclude_edges.append((path[i - 1], path[i]))
+                                exclude_edges.append((path[i], path[i - 1]))
                     try:
                         if by_weight is True:
                             spur = shortest_path_func(root[-1], target,
@@ -16090,7 +16090,7 @@ class GenericGraph(GenericGraph_pyx):
                             heap_paths.add(hash_path)
                     except Exception:
                         pass
-                    exclude_vertices.add(root[-1])
+                    exclude_vertices.append(root[-1])
 
             if heap_paths:
                 (cost, path1) = heappop(heap_sorted_paths)

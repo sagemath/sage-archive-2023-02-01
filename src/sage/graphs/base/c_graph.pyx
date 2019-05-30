@@ -1976,13 +1976,13 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         - ``y`` -- the end vertex in the shortest path from ``x`` to ``y``
 
-        - ``exclude_vertices`` -- set (default: ``None``); set of vertices to
-          exclude from the graph while calculating the shortest path from ``x``
-          to ``y``
+        - ``exclude_vertices`` -- iterable contatiner (default: ``None``);
+          iterable of vertices to exclude from the graph while calculating the
+          shortest path from ``x`` to ``y``
 
-        - ``exclude_edges`` -- set (default: ``None``); set of edges to exclude
-          from the graph while calculating the shortest path from ``x`` to
-          ``y``
+        - ``exclude_edges`` -- iterable contatiner (default: ``None``); iterable
+          of edges to exclude from the graph while calculating the shortest path
+          from ``x`` to ``y``
 
         - ``distance_flag`` -- boolean (default: ``False``); when set to
           ``True``, the shortest path distance from ``x`` to ``y`` is returned
@@ -2003,8 +2003,20 @@ cdef class CGraphBackend(GenericGraphBackend):
             1
 
         """
-        if exclude_vertices and (x in exclude_vertices or y in exclude_vertices):
-            raise LookupError("No path between %s and %s" % (x, y))
+        cdef bint exclude_v = exclude_vertices
+        cdef bint exclude_e = exclude_edges
+        cdef bint x_excluded
+        cdef bint y_excluded
+
+        if exclude_v:
+            x_excluded = x in exclude_vertices
+            y_excluded = y in exclude_vertices
+            if x_excluded and y_excluded:
+                raise LookupError("%s and %s are excluded vertices" % (x, y))
+            elif x_excluded:
+                raise LookupError("no path from an excluded vertex %s" % (x))
+            elif y_excluded:
+                raise LookupError("no path to an excluded vertex %s" % (y))
         if x == y:
             return 0
 
@@ -2025,14 +2037,13 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef int v = 0
         cdef int w = 0
 
-        if exclude_vertices:
-            exclude_vertices_int = set()
-            for u in exclude_vertices:
-                exclude_vertices_int.add(self.get_vertex(u))
-        if exclude_edges:
-            exclude_edges_int = set()
-            for (u, v) in exclude_edges:
-                exclude_edges_int.add((self.get_vertex(u), self.get_vertex(v)))
+        cdef set exclude_vertices_int
+        cdef set exclude_edges_int
+        
+        if exclude_v:
+            exclude_vertices_int = {self.get_vertex(u) for u in exclude_vertices}
+        if exclude_e:
+            exclude_edges_int = {(self.get_vertex(u), self.get_vertex(v)) for u, v in exclude_edges}
  
         # Each vertex knows its predecessors in the search, for each side
         cdef dict pred_x = {}
@@ -2080,14 +2091,14 @@ cdef class CGraphBackend(GenericGraphBackend):
                 else: # Dense
                     nbr = self._cg.in_neighbors(u)
 
-                if not exclude_edges and not exclude_vertices:
+                if not exclude_e and not exclude_v:
                     neighbors = nbr
                 else:
                     neighbors = []
                     for w in nbr:
-                        if exclude_vertices and w in exclude_vertices_int:
+                        if exclude_v and w in exclude_vertices_int:
                             continue
-                        if (exclude_edges and
+                        if (exclude_e and
                             ((out == 1 and (u, w) in exclude_edges_int) or
                              (out == -1 and (w, u) in exclude_edges_int))):
                             continue
@@ -2152,13 +2163,13 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         - ``y`` -- the end vertex in the shortest path from ``x`` to ``y``
 
-        - ``exclude_vertices`` -- set (default: ``None``); set of vertices to
-          exclude from the graph while calculating the shortest path from ``x``
-          to ``y``
+        - ``exclude_vertices`` -- iterable contatiner (default: ``None``);
+          iterable of vertices to exclude from the graph while calculating the
+          shortest path from ``x`` to ``y``
 
-        - ``exclude_edges`` -- set (default: ``None``); set of edges to exclude
-          from the graph while calculating the shortest path from ``x`` to
-          ``y``
+        - ``exclude_edges`` -- iterable contatiner (default: ``None``); iterable
+          of edges to exclude from the graph while calculating the shortest path
+          from ``x`` to ``y``
 
         - ``weight_function`` -- function (default: ``None``); a function that
           inputs an edge ``(u, v, l)`` and outputs its weight. If ``None``, we
@@ -2205,8 +2216,20 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: G.distance(0, 5, by_weight=true)
             3
         """
-        if exclude_vertices and (x in exclude_vertices or y in exclude_vertices):
-            raise LookupError("No path between %s and %s" % (x, y))
+        cdef bint exclude_v = exclude_vertices
+        cdef bint exclude_e = exclude_edges
+        cdef bint x_excluded
+        cdef bint y_excluded
+
+        if exclude_v:
+            x_excluded = x in exclude_vertices
+            y_excluded = y in exclude_vertices
+            if x_excluded and y_excluded:
+                raise LookupError("%s and %s are excluded vertices" % (x, y))
+            elif x_excluded:
+                raise LookupError("no path from an excluded vertex %s" % (x))
+            elif y_excluded:
+                raise LookupError("no path to an excluded vertex %s" % (y))
         if x == y:
             return 0
 
@@ -2222,15 +2245,13 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef int w = 0
         cdef int pred
         cdef int side
-
-        if exclude_vertices:
-            exclude_vertices_int = set()
-            for u in exclude_vertices:
-                exclude_vertices_int.add(self.get_vertex(u))
-        if exclude_edges:
-            exclude_edges_int = set()
-            for (u, v) in exclude_edges:
-                exclude_edges_int.add((self.get_vertex(u), self.get_vertex(v)))
+        cdef set exclude_vertices_int
+        cdef set exclude_edges_int
+        
+        if exclude_v:
+            exclude_vertices_int = {self.get_vertex(u) for u in exclude_vertices}
+        if exclude_e:
+            exclude_edges_int = {(self.get_vertex(u), self.get_vertex(v)) for u, v in exclude_edges}
 
         # Each vertex knows its predecessors in the search, for each side
         cdef dict pred_x = {}
@@ -2297,14 +2318,14 @@ cdef class CGraphBackend(GenericGraphBackend):
                 else: # Dense
                     nbr = self._cg.in_neighbors(v)
 
-                if not exclude_edges and not exclude_vertices:
+                if not exclude_e and not exclude_v:
                     neighbors = nbr
                 else:
                     neighbors = []
                     for w in nbr:
-                        if exclude_vertices and w in exclude_vertices_int:
+                        if exclude_v and w in exclude_vertices_int:
                             continue
-                        if (exclude_edges and
+                        if (exclude_e and
                             ((side == 1 and (v, w) in exclude_edges_int) or
                              (side == -1 and (w, v) in exclude_edges_int))):
                             continue

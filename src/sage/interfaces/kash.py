@@ -13,7 +13,7 @@ that).
 
 It is not enough to just have KASH installed on your computer. Note
 that the KASH Sage package is currently only available for Linux
-and OSX. If you need Windows, support contact me
+and OSX. If you need Windows support, contact me
 (wstein@gmail.com).
 
 The KASH interface offers three pieces of functionality:

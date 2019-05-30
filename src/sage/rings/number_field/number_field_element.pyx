@@ -3030,7 +3030,7 @@ cdef class NumberFieldElement(FieldElement):
             h ^= mpz_pythonhash(z) + (<Py_hash_t> 2701463124188384701) + (h << 16) + (h >> 2)
 
         ZZ_to_mpz(z, &self.__denominator)
-        # magic number below is floor((1+sqrt(5)) * 2^63)
+        # magic number below is floor((1+sqrt(5)) * 2^61)
         h += (mpz_pythonhash(z) - 1) * (<Py_hash_t> 7461864723258187525)
 
         mpz_clear(z)

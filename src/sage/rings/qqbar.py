@@ -1467,9 +1467,9 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             sage: QQbar(0) in z
             False
 
-         If you just want real algebraic numbers you can filter them out.
-         Using an odd degree for the polynomials will insure some degree of
-         success. ::
+        If you just want real algebraic numbers you can filter them out.
+        Using an odd degree for the polynomials will ensure some degree of
+        success. ::
 
             sage: r = []
             sage: while len(r) < 3:

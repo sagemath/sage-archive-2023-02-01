@@ -156,7 +156,8 @@ In any case, you always need at least a C/C++ compiler to build the GCC
 package and its prerequisites before the compilers it provides can be used.
 
 Note that you can always override this behavior through the configure
-options `--without-system-gcc` and `--with-system-gcc`, see :ref:`section_compilers`.
+options ``--without-system-gcc`` and ``--with-system-gcc``, see
+:ref:`section_compilers`.
 
 Other notes
 ^^^^^^^^^^^

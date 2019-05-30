@@ -5,11 +5,6 @@ then
    EXTRA_OPTS="-DFORCE_PYTHON2='ON'"
 fi
 
-cmake -DCMAKE_INSTALL_PREFIX="${SAGE_LOCAL}" \
-      -DZLIB_ROOT="${SAGE_LOCAL}" \
-      -DUSE_GAUSS='ON' \
-      $EXTRA_OPTS \
-      . || sdh_die 'Error configuring cryptominisat'
-
+sdh_cmake -DUSE_GAUSS='ON' $EXTRA_OPTS
 sdh_make VERBOSE=ON
 sdh_make_install VERBOSE=ON

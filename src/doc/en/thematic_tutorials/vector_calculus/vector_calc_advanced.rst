@@ -2,17 +2,17 @@
 
 .. linkall
 
-Advanced aspects: Euclidean spaces as Riemannian manifolds
-==========================================================
+Advanced aspects: the Euclidean space as a Riemannian manifold
+==============================================================
 
-This tutorial introduces some vector calculus functionalities of SageMath
+This tutorial introduces some vector calculus capabilities of SageMath
 within the 3-dimensional Euclidean space.
 The corresponding tools have been developed via the
 `SageManifolds <https://sagemanifolds.obspm.fr>`__ project.
 
 The tutorial is also available as a Jupyter notebook, either
-`passive <https://nbviewer.jupyter.org/github/sagemanifolds/SageManifolds/blob/master/Notebooks/SM_vector_calc_advanced.ipynb>`__ (``nbviewer``)
-or `interactive <https://mybinder.org/v2/gh/sagemanifolds/SageManifolds/master?filepath=Notebooks/SM_vector_calc_advanced.ipynb>`__ (``binder``).
+`passive <https://nbviewer.jupyter.org/github/sagemanifolds/SageManifolds/blob/master/Notebooks/VectorCalculus/vector_calc_advanced.ipynb>`__ (``nbviewer``)
+or `interactive <https://mybinder.org/v2/gh/sagemanifolds/SageManifolds/master?filepath=Notebooks/VectorCalculus/vector_calc_advanced.ipynb>`__ (``binder``).
 
 
 The Euclidean 3-space

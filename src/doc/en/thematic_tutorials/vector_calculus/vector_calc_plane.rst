@@ -5,14 +5,14 @@
 Vector calculus in the Euclidean plane
 ======================================
 
-This tutorial introduces some vector calculus functionalities of SageMath
-within the 2-dimensional Euclidean space.
+This tutorial introduces some vector calculus capabilities of SageMath
+in the framework of the 2-dimensional Euclidean space.
 The corresponding tools have been developed via the
 `SageManifolds <https://sagemanifolds.obspm.fr>`__ project.
 
 The tutorial is also available as a Jupyter notebook, either
-`passive <https://nbviewer.jupyter.org/github/sagemanifolds/SageManifolds/blob/master/Notebooks/SM_Euclidean_plane.ipynb>`__ (``nbviewer``)
-or `interactive <https://mybinder.org/v2/gh/sagemanifolds/SageManifolds/master?filepath=Notebooks/SM_Euclidean_plane.ipynb>`__ (``binder``).
+`passive <https://nbviewer.jupyter.org/github/sagemanifolds/SageManifolds/blob/master/Notebooks/VectorCalculus/vector_calc_plane.ipynb>`__ (``nbviewer``)
+or `interactive <https://mybinder.org/v2/gh/sagemanifolds/SageManifolds/master?filepath=Notebooks/VectorCalculus/vector_calc_plane.ipynb>`__ (``binder``).
 
 
 1. Defining the Euclidean plane
@@ -800,9 +800,3 @@ all zero:
     True
     sage: laplacian(w) == nabla(nabla(w).up(g)).trace(1,2)
     True
-
-
-What's next?
-------------
-
-See :ref:`vector_calculus`.

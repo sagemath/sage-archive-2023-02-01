@@ -11,8 +11,8 @@ The corresponding tools have been developed via the
 `SageManifolds <https://sagemanifolds.obspm.fr>`__ project.
 
 The tutorial is also available as a Jupyter notebook, either
-`passive <https://nbviewer.jupyter.org/github/sagemanifolds/SageManifolds/blob/master/Notebooks/SM_vector_calc_cartesian.ipynb>`__ (``nbviewer``)
-or `interactive <https://mybinder.org/v2/gh/sagemanifolds/SageManifolds/master?filepath=Notebooks/SM_vector_calc_cartesian.ipynb>`__ (``binder``).
+`passive <https://nbviewer.jupyter.org/github/sagemanifolds/SageManifolds/blob/master/Notebooks/VectorCalculus/vector_calc_cartesian.ipynb>`__ (``nbviewer``)
+or `interactive <https://mybinder.org/v2/gh/sagemanifolds/SageManifolds/master?filepath=Notebooks/VectorCalculus/vector_calc_cartesian.ipynb>`__ (``binder``).
 
 
 First stage: introduce the Euclidean 3-space
@@ -155,7 +155,7 @@ as a shortcut alias:
     True
 
 :math:`s= u\cdot v` is a *scalar field*, i.e. a map
-:math:`\mathbb{E}^3 \rightarrow \mathbb{R}`:
+:math:`\mathbb{E}^3 \to \mathbb{R}`:
 
 ::
 
@@ -192,7 +192,7 @@ of the dot product by :math:`\|u\| = \sqrt{u\cdot u}`:
     sage: norm(u) == sqrt(u.dot(u))
     True
 
-It is a scalar field on :math:`\mathbb{E}^3`
+It is a scalar field on :math:`\mathbb{E}^3`:
 
 ::
 
@@ -216,7 +216,7 @@ For :math:`v`, we have
 Cross product
 ~~~~~~~~~~~~~
 
-The cross product of :math:`u\times v` is obtained by the method
+The cross product :math:`u\times v` is obtained by the method
 ``cross_product``, which admits ``cross`` as a shortcut alias:
 
 ::
@@ -527,7 +527,7 @@ A famous identity is
 .. MATH::
 
     \mathrm{curl}\left(\mathrm{curl}\, u\right) =
-    \mathrm{grad}\left(\mathrm{div}\, u\right) - \Delta u
+    \mathrm{grad}\left(\mathrm{div}\, u\right) - \Delta u .
 
 Let us check it:
 

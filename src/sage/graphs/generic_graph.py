@@ -16022,7 +16022,7 @@ class GenericGraph(GenericGraph_pyx):
             edge_wt = {}
             for e in self.edge_iterator():
                 if self.is_directed():
-                    edge_wt[(e[0], e[1])] = weight_function(e)
+                    edge_wt[(e[0], e[1])] = weight_function(e) # dictionary to get weight of the edges
                 else:
                     edge_wt[(e[0], e[1])] = weight_function(e)
                     edge_wt[(e[1], e[0])] = edge_wt[(e[0], e[1])]
@@ -16033,34 +16033,35 @@ class GenericGraph(GenericGraph_pyx):
 
         if by_weight is False:
             length_func = len
-            shortest_path_func = self._backend.shortest_path
+            shortest_path_func = self._backend.shortest_path # shortest path function for undirected graph
         else:
             def length_func(path):
                 return sum(edge_wt[e] for e in zip(path, path[1:]))
-            shortest_path_func = self._backend.bidirectional_dijkstra
+            shortest_path_func = self._backend.bidirectional_dijkstra # shortest path function for directed graph
 
-        heap_paths = set()
-        heap_sorted_paths = list()
-        listA = list()
+        heap_paths = set() # a set to check if a path is already present in the heap or not
+        heap_sorted_paths = list() # heap data structure containing the candidate paths
+        listA = list() # list of previous paths already popped from the heap
         prev_path = None
         while True:
             if not prev_path:
+                # will enter here for the first time to compute the shortest path between source and target
                 if by_weight:
                     path = shortest_path_func(source, target, weight_function=weight_function)
                 else:
                     path = shortest_path_func(source, target)
                 length = length_func(path)
-                if length == 0:
+                if length == 0: # corner case
                     yield path
                     return
-                hash_path = tuple(path)
-                heappush(heap_sorted_paths, (length, path))
-                heap_paths.add(hash_path)
+                hash_path = tuple(path) # hashing the path to check the existence of a path in the heap
+                heappush(heap_sorted_paths, (length, path)) # heap push operation
+                heap_paths.add(hash_path) # adding the path to the heap_paths set
             else:
                 exclude_vertices = []
                 exclude_edges = []
-                for i in range(1, len(prev_path)):
-                    root = prev_path[:i]
+                for i in range(1, len(prev_path)): # deviating from the previous path to find the candidate paths
+                    root = prev_path[:i] # root part of previous path
                     root_length = length_func(root)
                     for path in listA:
                         if path[:i] == root:
@@ -16071,6 +16072,7 @@ class GenericGraph(GenericGraph_pyx):
                                 exclude_edges.append((path[i], path[i - 1]))
                     try:
                         if by_weight is True:
+                            # finding the spur part of the path after excluding certain vertices and edges
                             spur = shortest_path_func(root[-1], target,
                                                       exclude_vertices=exclude_vertices,
                                                       exclude_edges=exclude_edges,
@@ -16082,10 +16084,10 @@ class GenericGraph(GenericGraph_pyx):
                         length = length_func(spur)    
                         if(not spur):
                             continue
-                        path = root[:-1] + spur
+                        path = root[:-1] + spur # concatenating the root and the spur paths
                         # push operation
                         hash_path = tuple(path)
-                        if hash_path not in heap_paths:
+                        if hash_path not in heap_paths: # if this path is not already present inside the heap
                             heappush(heap_sorted_paths, (root_length + length, path))
                             heap_paths.add(hash_path)
                     except Exception:
@@ -16093,7 +16095,7 @@ class GenericGraph(GenericGraph_pyx):
                     exclude_vertices.append(root[-1])
 
             if heap_paths:
-                (cost, path1) = heappop(heap_sorted_paths)
+                (cost, path1) = heappop(heap_sorted_paths) # extracting the best next path from the heap
                 hash_path = tuple(path1)
                 heap_paths.remove(hash_path)
                 yield path1

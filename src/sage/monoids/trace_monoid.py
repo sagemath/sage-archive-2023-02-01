@@ -1,33 +1,31 @@
 r"""
-Module of trace monoid related structures.
-
-Contains TraceMonoid and TraceMonoidElement classes.
+Module of trace monoids (free partially commutative monoids).
 
 EXAMPLES:
 
 The following example demonstrates a monoid creation::
 
-sage: from sage.monoids.trace_monoid import TraceMonoid
-sage: M.<a,b,c> = TraceMonoid(I=(('a','c'), ('c','a'))); M
-Trace monoid on 3 generators ([a], [b], [c]) over Free monoid on 3 generators (a, b, c) with independence relation {(a, c), (c, a)}
+    sage: from sage.monoids.trace_monoid import TraceMonoid
+    sage: M.<a,b,c> = TraceMonoid(I=(('a','c'), ('c','a'))); M
+    Trace monoid on 3 generators ([a], [b], [c]) over Free monoid on 3 generators (a, b, c) with independence relation {(a, c), (c, a)}
 
 Different monoid elements can be equal because of partially commutative multiplication::
 
-sage: from sage.monoids.trace_monoid import TraceMonoid
-sage: M.<a,b,c> = TraceMonoid(I=(('a','c'), ('c','a')))
-sage: c*a*b == a*c*b
-True
+    sage: from sage.monoids.trace_monoid import TraceMonoid
+    sage: M.<a,b,c> = TraceMonoid(I=(('a','c'), ('c','a')))
+    sage: c*a*b == a*c*b
+    True
 
 Lets ensure that it is a monoid::
 
-sage: from sage.monoids.trace_monoid import TraceMonoid
-sage: M.<a,b,c> = TraceMonoid(I=(('a','c'), ('c','a')))
-sage: M in Monoids()
-True
+    sage: from sage.monoids.trace_monoid import TraceMonoid
+    sage: M.<a,b,c> = TraceMonoid(I=(('a','c'), ('c','a')))
+    sage: M in Monoids()
+    True
 
 AUTHORS:
 
-- Pavlo Tokariev (2019-05-26): initial version
+- Pavlo Tokariev (2019-05-31): initial version
 
 """
 # ****************************************************************************
@@ -74,19 +72,18 @@ class TraceMonoidElement(MonoidElement):
 
     Basic TraceMonoid elements usage::
 
-    sage: from sage.monoids.trace_monoid import TraceMonoid
-    sage: I = (('a','d'), ('d','a'), ('b','c'), ('c','b'))
-    sage: M.<a,b,c,d> = TraceMonoid(I=I)
-    sage: x = b*a*d*a*c*b
-    sage: x^3
-    [b*a^2*d*b^2*c*a^2*d*b^2*c*a^2*d*b*c]
-    sage: x^0
-    1
-    sage: x.lex_normal_form()
-    b*a^2*d*b*c
-    sage: x.foata_normal_form()
-    (b, a*d, a, b*c)
-
+        sage: from sage.monoids.trace_monoid import TraceMonoid
+        sage: I = (('a','d'), ('d','a'), ('b','c'), ('c','b'))
+        sage: M.<a,b,c,d> = TraceMonoid(I=I)
+        sage: x = b*a*d*a*c*b
+        sage: x^3
+        [b*a^2*d*b^2*c*a^2*d*b^2*c*a^2*d*b*c]
+        sage: x^0
+        1
+        sage: x.lex_normal_form()
+        b*a^2*d*b*c
+        sage: x.foata_normal_form()
+        (b, a*d, a, b*c)
     """
 
     def __init__(self, M, x):
@@ -388,6 +385,8 @@ class TraceMonoidElement(MonoidElement):
         r"""
         Return alphabet of a trace.
 
+        OUTPUT: set of free monoid generators
+
         EXAMPLES::
 
             sage: from sage.monoids.trace_monoid import TraceMonoid
@@ -396,8 +395,6 @@ class TraceMonoidElement(MonoidElement):
             sage: x = b*a*d*a*c*b
             sage: x.alphabet()
             {b, a, d, c}
-
-        OUTPUT: set of free monoid generators
         """
         return Set([g for g, _ in self._repr])
 
@@ -410,6 +407,8 @@ class TraceMonoidElement(MonoidElement):
         - ``letters`` -- set of generators; defines set of letters that will be
           used to filter the trace.
 
+        OUTPUT: a trace
+
         EXAMPLES::
 
             sage: from sage.monoids.trace_monoid import TraceMonoid
@@ -421,8 +420,6 @@ class TraceMonoidElement(MonoidElement):
             [b*a^2*b]
             sage: x.projection({b,d,c})
             [b*d*b*c]
-
-        OUTPUT: a trace
         """
         return self.parent(reduce(
             operator.mul,
@@ -455,17 +452,17 @@ class TraceMonoid(Monoid_class, UniqueRepresentation):
 
     EXAMPLES::
 
-        sage: from sage.monoids.trace_monoid import TraceMonoid
-        sage: F = TraceMonoid(names=('a', 'b', 'c'), I=Set({('a','c'), ('c','a')})); F
-        Trace monoid on 3 generators ([a], [b], [c]) over Free monoid on 3 generators (a, b, c) with independence relation {(a, c), (c, a)}
-        sage: x = F.gens()
-        sage: x[0]*x[1]**5 * (x[0]*x[2])
-        [a*b^5*a*c]
+    sage: from sage.monoids.trace_monoid import TraceMonoid
+    sage: F = TraceMonoid(names=('a', 'b', 'c'), I=Set({('a','c'), ('c','a')})); F
+    Trace monoid on 3 generators ([a], [b], [c]) over Free monoid on 3 generators (a, b, c) with independence relation {(a, c), (c, a)}
+    sage: x = F.gens()
+    sage: x[0]*x[1]**5 * (x[0]*x[2])
+    [a*b^5*a*c]
 
-        sage: from sage.monoids.trace_monoid import TraceMonoid
-        sage: M.<a,b,c> = TraceMonoid(I=(('a','c'), ('c','a')))
-        sage: latex(M)
-        \langle a, b, c \mid ac=ca \rangle
+    sage: from sage.monoids.trace_monoid import TraceMonoid
+    sage: M.<a,b,c> = TraceMonoid(I=(('a','c'), ('c','a')))
+    sage: latex(M)
+    \langle a, b, c \mid ac=ca \rangle
 
     TESTS::
 
@@ -620,12 +617,12 @@ class TraceMonoid(Monoid_class, UniqueRepresentation):
 
         EXAMPLES::
 
-        sage: from sage.monoids.trace_monoid import TraceMonoid
-        sage: F.<a,b,c,d> = FreeMonoid()
-        sage: I = ((a,d), (d,a), (b,c), (c,b))
-        sage: M.<ac,bc,cc,dc> = TraceMonoid(F, I=I)
-        sage: M._compute_lex_normal_form(c*a*c*b*a^2)
-        c*a*b*c*a^2
+            sage: from sage.monoids.trace_monoid import TraceMonoid
+            sage: F.<a,b,c,d> = FreeMonoid()
+            sage: I = ((a,d), (d,a), (b,c), (c,b))
+            sage: M.<ac,bc,cc,dc> = TraceMonoid(F, I=I)
+            sage: M._compute_lex_normal_form(c*a*c*b*a^2)
+            c*a*b*c*a^2
         """
         if not x._element_list:
             return x
@@ -662,16 +659,16 @@ class TraceMonoid(Monoid_class, UniqueRepresentation):
 
         EXAMPLES::
 
-        sage: from sage.monoids.trace_monoid import TraceMonoid
-        sage: F.<a,b,c,d> = FreeMonoid()
-        sage: I = ((a,d), (d,a), (b,c), (c,b))
-        sage: M.<ac,bc,cc,dc> = TraceMonoid(F, I=I)
-        sage: x = b*a*d*a*c*b
-        sage: M._compute_foata_normal_form(x)
-        (b, a*d, a, b*c)
-        sage: y = b*a*a*d*b*a*b*c^2*a
-        sage: M._compute_foata_normal_form(y)
-        (b, a*d, a, b, a, b*c, c, a)
+            sage: from sage.monoids.trace_monoid import TraceMonoid
+            sage: F.<a,b,c,d> = FreeMonoid()
+            sage: I = ((a,d), (d,a), (b,c), (c,b))
+            sage: M.<ac,bc,cc,dc> = TraceMonoid(F, I=I)
+            sage: x = b*a*d*a*c*b
+            sage: M._compute_foata_normal_form(x)
+            (b, a*d, a, b*c)
+            sage: y = b*a*a*d*b*a*b*c^2*a
+            sage: M._compute_foata_normal_form(y)
+            (b, a*d, a, b, a, b*c, c, a)
         """
         if not x._element_list:
             return tuple()
@@ -706,13 +703,13 @@ class TraceMonoid(Monoid_class, UniqueRepresentation):
 
         EXAMPLES::
 
-        sage: from sage.monoids.trace_monoid import TraceMonoid
-        sage: F.<a,b,c,d> = FreeMonoid()
-        sage: I = ((a,d), (d,a), (b,c), (c,b))
-        sage: M.<ac,bc,cc,dc> = TraceMonoid(F, I=I)
-        sage: x = b*a*d*a*c*b
-        sage: M(x)
-        [b*a^2*d*b*c]
+            sage: from sage.monoids.trace_monoid import TraceMonoid
+            sage: F.<a,b,c,d> = FreeMonoid()
+            sage: I = ((a,d), (d,a), (b,c), (c,b))
+            sage: M.<ac,bc,cc,dc> = TraceMonoid(F, I=I)
+            sage: x = b*a*d*a*c*b
+            sage: M(x)
+            [b*a^2*d*b*c]
         """
         if isinstance(x, TraceMonoidElement) and x.parent() is self:
             return x
@@ -731,12 +728,12 @@ class TraceMonoid(Monoid_class, UniqueRepresentation):
 
         EXAMPLES::
 
-        sage: from sage.monoids.trace_monoid import TraceMonoid
-        sage: F.<a,b,c> = FreeMonoid()
-        sage: I=Set(((a,c), (c,a)))
-        sage: M.<ac,bc,cc> = TraceMonoid(F, I=I)
-        sage: M.independence() == {(a,c), (c,a)}
-        True
+            sage: from sage.monoids.trace_monoid import TraceMonoid
+            sage: F.<a,b,c> = FreeMonoid()
+            sage: I=Set(((a,c), (c,a)))
+            sage: M.<ac,bc,cc> = TraceMonoid(F, I=I)
+            sage: M.independence() == {(a,c), (c,a)}
+            True
         """
         return Set(self._independence)
 
@@ -749,10 +746,10 @@ class TraceMonoid(Monoid_class, UniqueRepresentation):
 
         EXAMPLES::
 
-        sage: from sage.monoids.trace_monoid import TraceMonoid
-        sage: M.<a,b,c> = TraceMonoid(I=(('a','c'), ('c','a')))
-        sage: M.dependence()
-        {(a, a), (b, b), (b, a), (a, b), (c, b), (b, c), (c, c)}
+            sage: from sage.monoids.trace_monoid import TraceMonoid
+            sage: M.<a,b,c> = TraceMonoid(I=(('a','c'), ('c','a')))
+            sage: M.dependence()
+            {(a, a), (b, b), (b, a), (a, b), (c, b), (b, c), (c, c)}
         """
         return Set(pair for pair in product(self._base.gens(), repeat=2)
                    if pair not in self._independence)
@@ -807,12 +804,12 @@ class TraceMonoid(Monoid_class, UniqueRepresentation):
 
         EXAMPLES::
 
-        sage: from sage.monoids.trace_monoid import TraceMonoid
-        sage: I = (('a','d'), ('d','a'), ('b','c'), ('c','b'))
-        sage: M.<a,b,c,d> = TraceMonoid(I=I); M
-        Trace monoid on 4 generators ([a], [b], [c], [d]) over Free monoid on 4 generators (a, b, c, d) with independence relation {(a, d), (b, c), (c, b), (d, a)}
-        sage: M.dependence_polynomial()
-        1/(2*t^2 - 4*t + 1)
+            sage: from sage.monoids.trace_monoid import TraceMonoid
+            sage: I = (('a','d'), ('d','a'), ('b','c'), ('c','b'))
+            sage: M.<a,b,c,d> = TraceMonoid(I=I); M
+            Trace monoid on 4 generators ([a], [b], [c], [d]) over Free monoid on 4 generators (a, b, c, d) with independence relation {(a, d), (b, c), (c, b), (d, a)}
+            sage: M.dependence_polynomial()
+            1/(2*t^2 - 4*t + 1)
         """
         if t is None:
             R = PolynomialRing(ZZ, 't')
@@ -875,7 +872,7 @@ class TraceMonoid(Monoid_class, UniqueRepresentation):
             sage: M.<a,b,c,d> = TraceMonoid(I=I)
             sage: len(M.words(3))
             48
-            """
+        """
         if length < 0:
             raise ValueError("Bad length of words. Expected zero or positive number.")
         if length == 0:

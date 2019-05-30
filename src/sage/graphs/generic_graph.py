@@ -16061,7 +16061,7 @@ class GenericGraph(GenericGraph_pyx):
                 exclude_vertices = []
                 exclude_edges = []
                 for i in range(1, len(prev_path)): # deviating from the previous path to find the candidate paths
-                    root = prev_path[:i] # root part of previous path
+                    root = prev_path[:i] # root part of the previous path
                     root_length = length_func(root)
                     for path in listA:
                         if path[:i] == root:
@@ -16095,7 +16095,7 @@ class GenericGraph(GenericGraph_pyx):
                     exclude_vertices.append(root[-1])
 
             if heap_paths:
-                (cost, path1) = heappop(heap_sorted_paths) # extracting the best next path from the heap
+                (cost, path1) = heappop(heap_sorted_paths) # extracting the next best path from the heap
                 hash_path = tuple(path1)
                 heap_paths.remove(hash_path)
                 yield path1

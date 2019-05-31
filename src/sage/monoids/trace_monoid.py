@@ -851,9 +851,8 @@ class TraceMonoid(Monoid_class, UniqueRepresentation):
         INPUT:
 
         - ``length`` -- integer; defines size of words
-            what number should be computed
 
-        OUTPUT: words number as integer
+        OUTPUT: set of traces of size ``length``
 
         EXAMPLES:
 
@@ -863,7 +862,7 @@ class TraceMonoid(Monoid_class, UniqueRepresentation):
             sage: I = (('a','d'), ('d','a'), ('b','c'), ('c','b'))
             sage: M.<a,b,c,d> = TraceMonoid(I=I)
             sage: M.words(2)
-            [[a^2], [a*b], [a*c], [a*d], [b*a], [b^2], [b*c], [b*d], [c*a], [c^2], [c*d], [d*b], [d*c], [d^2]]
+            {[a^2], [a*b], [a*c], [a*d], [b*a], [b^2], [b*c], [b*d], [c*a], [c^2], [c*d], [d*b], [d*c], [d^2]}
 
         Get number of words of size 3 ::
 
@@ -872,20 +871,29 @@ class TraceMonoid(Monoid_class, UniqueRepresentation):
             sage: M.<a,b,c,d> = TraceMonoid(I=I)
             sage: len(M.words(3))
             48
+
+        TESTS::
+
+            sage: from sage.monoids.trace_monoid import TraceMonoid
+            sage: M.<a,b,c> = TraceMonoid(I=(('a','b'), ('b','a'), ('b', 'c'), ('c', 'b')))
+            sage: for i in range(10):
+            ....:    assert len(M.words(i)) == M.number_of_words(i)
+            sage: True
+            True
         """
         if length < 0:
             raise ValueError("Bad length of words. Expected zero or positive number.")
         if length == 0:
-            return [self(1)]
+            return {self(1)}
         if length == 1:
-            return list(self.gens())
+            return set(self.gens())
 
-        return [
+        return {
             word * suffix for word in self.words(length - 1)
             for suffix in self.gens()
             if not ((list(word._repr)[-1][0], suffix._repr) in self._independence
                     and list(word._repr)[-1][0] > suffix._repr)
-        ]
+        }
 
     def _repr_(self):
         r"""

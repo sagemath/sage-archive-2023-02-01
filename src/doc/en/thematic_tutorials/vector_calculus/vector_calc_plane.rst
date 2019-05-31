@@ -5,10 +5,10 @@
 Vector calculus in the Euclidean plane
 ======================================
 
-This tutorial introduces some vector calculus capabilities of SageMath
-in the framework of the 2-dimensional Euclidean space.
-The corresponding tools have been developed via the
-`SageManifolds <https://sagemanifolds.obspm.fr>`__ project.
+This tutorial introduces some vector calculus capabilities of SageMath in the
+framework of the 2-dimensional Euclidean space. The corresponding tools have
+been developed via the `SageManifolds <https://sagemanifolds.obspm.fr>`__
+project.
 
 The tutorial is also available as a Jupyter notebook, either
 `passive <https://nbviewer.jupyter.org/github/sagemanifolds/SageManifolds/blob/master/Notebooks/VectorCalculus/vector_calc_plane.ipynb>`__ (``nbviewer``)
@@ -18,28 +18,24 @@ or `interactive <https://mybinder.org/v2/gh/sagemanifolds/SageManifolds/master?f
 1. Defining the Euclidean plane
 -------------------------------
 
-We define the Euclidean plane :math:`\mathbb{E}^2` as a 2-dimensional
-Euclidean space, with Cartesian coordinates :math:`(x,y)`:
-
-::
+We define the Euclidean plane `\mathbb{E}^2` as a 2-dimensional Euclidean
+space, with Cartesian coordinates `(x,y)`, via the function
+:class:`EuclideanSpace`::
 
     sage: E.<x,y> = EuclideanSpace()
     sage: E
     Euclidean plane E^2
 
-Thanks to the use of ``<x,y>`` in the above command, the Python
-variables ``x`` and ``y`` are assigned to the symbolic variables
-:math:`x` and :math:`y` describing the Cartesian coordinates:
-
-::
+Thanks to the use of ``<x,y>`` in the above command, the Python variables
+``x`` and ``y`` are assigned to the symbolic variables `x` and `y` describing
+the Cartesian coordinates (there is no need to declare them via :func:`var`,
+i.e. to type ``x, y = var('x y')``)::
 
     sage: type(y)
     <type 'sage.symbolic.expression.Expression'>
 
-Instead of using the variables ``x`` and ``y``, one may also access to
-the coordinates by their indices in the chart of Cartesian coordinates:
-
-::
+Instead of using the variables ``x`` and ``y``, one may also access to the
+coordinates by their indices in the chart of Cartesian coordinates::
 
     sage: cartesian = E.cartesian_coordinates()
     sage: cartesian
@@ -54,9 +50,7 @@ the coordinates by their indices in the chart of Cartesian coordinates:
     sage: y is cartesian[2]
     True
 
-Each of the Cartesian coordinates spans the entire real line:
-
-::
+Each of the Cartesian coordinates spans the entire real line::
 
     sage: cartesian.coord_range()
     x: (-oo, +oo); y: (-oo, +oo)
@@ -66,39 +60,31 @@ Each of the Cartesian coordinates spans the entire real line:
 2. Vector fields
 ----------------
 
-The Euclidean plane :math:`\mathbb{E}^2` is canonically endowed with the
-vector frame associated with Cartesian coordinates:
-
-::
+The Euclidean plane `\mathbb{E}^2` is canonically endowed with the vector
+frame associated with Cartesian coordinates::
 
     sage: E.default_frame()
     Coordinate frame (E^2, (e_x,e_y))
 
-Vector fields on :math:`\mathbb{E}^2` are then defined from their
-components in that frame:
-
-::
+Vector fields on `\mathbb{E}^2` are then defined from their components in that
+frame::
 
     sage: v = E.vector_field(-y, x, name='v')
     sage: v.display()
     v = -y e_x + x e_y
 
 The access to individual components is performed by the square bracket
-operator:
-
-::
+operator::
 
     sage: v[1]
     -y
     sage: v[:]
     [-y, x]
 
-A plot of the vector field :math:`v` (this is with default parameters,
-see the `list of
-options <http://doc.sagemath.org/html/en/reference/manifolds/sage/manifolds/differentiable/vectorfield.html#sage.manifolds.differentiable.vectorfield.VectorField.plot>`__
-for customizing the plot):
-
-::
+A plot of the vector field `v` (this is with the default parameters, see the
+documentation of
+:meth:`~sage.manifolds.differentiable.vectorfield.VectorField.plot` for the
+various options)::
 
     sage: v.plot()
     Graphics object consisting of 80 graphics primitives
@@ -112,9 +98,7 @@ for customizing the plot):
     sphinx_plot(g)
 
 One may also define a vector field by setting the components in a second
-stage:
-
-::
+stage::
 
     sage: w = E.vector_field(name='w')
     sage: w[1] = function('w_x')(x,y)
@@ -122,13 +106,10 @@ stage:
     sage: w.display()
     w = w_x(x, y) e_x + w_y(x, y) e_y
 
-Note that in the above example the components of :math:`w` are
-unspecified functions of :math:`(x,y)`, contrary to the components of
-:math:`v`.
+Note that in the above example the components of `w` are unspecified functions
+of `(x,y)`, contrary to the components of `v`.
 
-Standard linear algebra operations are available on vector fields:
-
-::
+Standard linear algebra operations can be performed on vector fields::
 
     sage: s = 2*v + x*w
     sage: s.display()
@@ -138,19 +119,18 @@ Standard linear algebra operations are available on vector fields:
 Scalar product and norm
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-The dot (scalar) product of :math:`v` by :math:`w` in performed by the
-operator ``dot_product``; it gives rise to a scalar field on
-:math:`\mathbb{E}^2`:
-
-::
+The dot (or scalar) product `u\cdot v` of the vector fields `u` and `v` is
+obtained by the operator
+:meth:`~sage.manifolds.differentiable.vectorfield.VectorField.dot_product`; it
+gives rise to a scalar field on `\mathbb{E}^2`::
 
     sage: s = v.dot_product(w)
     sage: s
     Scalar field v.w on the Euclidean plane E^2
 
-A shortcut alias of ``dot_product`` is ``dot``:
-
-::
+A shortcut alias of
+:meth:`~sage.manifolds.differentiable.vectorfield.VectorField.dot_product` is
+``dot``::
 
     sage: s == v.dot(w)
     True
@@ -161,27 +141,22 @@ A shortcut alias of ``dot_product`` is ``dot``:
     v.w: E^2 --> R
        (x, y) |--> -y*w_x(x, y) + x*w_y(x, y)
 
-The symbolic expression representing the scalar field :math:`v\cdot w`
-is obtained by means of the method ``expr()``:
-
-::
+The symbolic expression representing the scalar field `v\cdot w` is obtained
+by means of the method :meth:`~sage.manifolds.scalarfield.ScalarField.expr`::
 
     sage: s.expr()
     -y*w_x(x, y) + x*w_y(x, y)
 
-The Euclidean norm of the vector field :math:`v` is a scalar field on
-:math:`\mathbb{E}^2`:
-
-::
+The Euclidean norm of the vector field `v` is a scalar field on
+`\mathbb{E}^2`::
 
     sage: s = norm(v)
     sage: s.display()
     |v|: E^2 --> R
        (x, y) |--> sqrt(x^2 + y^2)
 
-Again, the corresponding symbolic expression is obtained via ``expr()``:
-
-::
+Again, the corresponding symbolic expression is obtained via
+:meth:`~sage.manifolds.scalarfield.ScalarField.expr`::
 
     sage: s.expr()
     sqrt(x^2 + y^2)
@@ -191,9 +166,7 @@ Again, the corresponding symbolic expression is obtained via ``expr()``:
     sage: norm(w).expr()
     sqrt(w_x(x, y)^2 + w_y(x, y)^2)
 
-We have of course :math:`\|v\|^2 = v\cdot v` :
-
-::
+We have of course `\|v\|^2 = v\cdot v` ::
 
     sage: norm(v)^2 == v.dot(v)
     True
@@ -202,43 +175,35 @@ We have of course :math:`\|v\|^2 = v\cdot v` :
 Values at a given point
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-We introduce a point :math:`p\in \mathbb{E}^2` via the generic SageMath
-syntax for creating an element from its parent (here
-:math:`\mathbb{E}^2`), i.e. the call operator ``()``, with the Cartesian
-coordinates of the point as the first argument:
-
-::
+We introduce a point `p\in \mathbb{E}^2` via the generic SageMath syntax for
+creating an element from its parent (here `\mathbb{E}^2`), i.e. the call
+operator ``()``, with the Cartesian coordinates of the point as the first
+argument::
 
     sage: p = E((-2,3), name='p')
     sage: p
     Point p on the Euclidean plane E^2
 
-The coordinates of :math:`p` are returned by the method ``coord()``:
-
-::
+The coordinates of `p` are returned by the method
+:meth:`~sage.manifolds.point.ManifoldPoint.coord`::
 
     sage: p.coord()
     (-2, 3)
 
-or by letting the chart ``cartesian`` act on the point:
-
-::
+or by letting the chart ``cartesian`` act on the point::
 
     sage: cartesian(p)
     (-2, 3)
 
-The value of the scalar field ``s = norm(v)`` at :math:`p` is
-
-::
+The value of the scalar field ``s = norm(v)`` at `p` is::
 
     sage: s(p)
     sqrt(13)
 
-The value of a vector field at :math:`p` is obtained by the method
-``at`` (since the call operator ``()`` is reserved for the action of
-vector fields on scalar fields, see Section 5 below):
-
-::
+The value of a vector field at `p` is obtained by the method
+:meth:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal.at`
+(since the call operator ``()`` is reserved for the action on scalar fields,
+see :ref:`vector_fields_as_derivations_plane` below)::
 
     sage: vp = v.at(p)
     sage: vp
@@ -257,21 +222,22 @@ vector fields on scalar fields, see Section 5 below):
 3. Differential operators
 -------------------------
 
-Tu use functional notations, i.e. ``div(v)`` instead of ``v.div()`` for
-the divergence of the vector field ``v``, we import the functions
-``div``, ``grad``, etc. in the global namespace:
-
-::
+The standard operators `\mathrm{grad}`, `\mathrm{div}`, etc. involved in
+vector calculus are accessible as methods on scalar fields and vector fields
+(e.g. ``v.div()``). However, to use standard mathematical notations (e.g.
+``div(v)``), let us import the functions
+:func:`~sage.manifolds.operators.grad`, :func:`~sage.manifolds.operators.div`,
+and :func:`~sage.manifolds.operators.laplacian` in the global namespace::
 
     sage: from sage.manifolds.operators import *
+
 
 Divergence
 ~~~~~~~~~~
 
-The divergence of a vector field is returned by the function ``div``;
-the output is a scalar field on :math:`\mathbb{E}^2`:
-
-::
+The divergence of a vector field is returned by the function
+:func:`~sage.manifolds.operators.div`; the output is a scalar field on
+`\mathbb{E}^2`::
 
     sage: div(v)
     Scalar field div(v) on the Euclidean plane E^2
@@ -279,16 +245,12 @@ the output is a scalar field on :math:`\mathbb{E}^2`:
     div(v): E^2 --> R
        (x, y) |--> 0
 
-In the present case, :math:`\mathrm{div}\, v` vanishes identically:
-
-::
+In the present case, `\mathrm{div}\, v` vanishes identically::
 
     sage: div(v) == 0
     True
 
-On the contrary, the divergence of :math:`w` is
-
-::
+On the contrary, the divergence of `w` is::
 
     sage: div(w).display()
     div(w): E^2 --> R
@@ -301,9 +263,7 @@ Gradient
 ~~~~~~~~
 
 The gradient of a scalar field, e.g. ``s = norm(v)``, is returned by the
-function ``grad``; the output is a vector field:
-
-::
+function :func:`~sage.manifolds.operators.grad`; the output is a vector field::
 
     sage: s = norm(v)
     sage: grad(s)
@@ -313,24 +273,19 @@ function ``grad``; the output is a vector field:
     sage: grad(s)[2]
     y/sqrt(x^2 + y^2)
 
-For a generic scalar field, like
-
-::
+For a generic scalar field, like::
 
     sage: F = E.scalar_field(function('f')(x,y), name='F')
 
-we have
-
-::
+we have::
 
     sage: grad(F).display()
     grad(F) = d(f)/dx e_x + d(f)/dy e_y
     sage: grad(F)[:]
     [d(f)/dx, d(f)/dy]
 
-Of course, we may combine ``grad`` and ``div``:
-
-::
+Of course, we may combine :func:`~sage.manifolds.operators.grad` and
+:func:`~sage.manifolds.operators.div`::
 
     sage: grad(div(w)).display()
     grad(div(w)) = (d^2(w_x)/dx^2 + d^2(w_y)/dxdy) e_x + (d^2(w_x)/dxdy + d^2(w_y)/dy^2) e_y
@@ -339,25 +294,25 @@ Of course, we may combine ``grad`` and ``div``:
 Laplace operator
 ~~~~~~~~~~~~~~~~
 
-The Laplace operator is obtained by the function ``laplacian``; it
-acts on a scalar field:
-
-::
+The Laplace operator `\Delta` is obtained by the function
+:func:`~sage.manifolds.operators.laplacian`; it acts on scalar fields::
 
     sage: laplacian(F).display()
     Delta(F): E^2 --> R
        (x, y) |--> d^2(f)/dx^2 + d^2(f)/dy^2
 
-as well as on a vector field:
-
-::
+as well as on vector fields::
 
     sage: laplacian(w).display()
     Delta(w) = (d^2(w_x)/dx^2 + d^2(w_x)/dy^2) e_x + (d^2(w_y)/dx^2 + d^2(w_y)/dy^2) e_y
 
-For a scalar field, we have the identity:
+For a scalar field, we have the identity
 
-::
+.. MATH::
+
+    \Delta F = \mathrm{div}\left(\mathrm{grad}\, F\right),
+
+as we can check::
 
     sage: laplacian(F) == div(grad(F))
     True
@@ -366,10 +321,7 @@ For a scalar field, we have the identity:
 4. Polar coordinates
 --------------------
 
-Polar coordinates :math:`(r,\phi)` are introduced on
-:math:`\mathbb{E}^2` by
-
-::
+Polar coordinates `(r,\phi)` are introduced on `\mathbb{E}^2` by::
 
     sage: polar.<r,ph> = E.polar_coordinates()
     sage: polar
@@ -377,10 +329,7 @@ Polar coordinates :math:`(r,\phi)` are introduced on
     sage: polar.coord_range()
     r: (0, +oo); ph: [0, 2*pi] (periodic)
 
-They are related to Cartesian coordinates by the following
-transformations:
-
-::
+They are related to Cartesian coordinates by the following transformations::
 
     sage: E.coord_change(polar, cartesian).display()
     x = r*cos(ph)
@@ -389,9 +338,9 @@ transformations:
     r = sqrt(x^2 + y^2)
     ph = arctan2(y, x)
 
-The orthonormal vector frame associated to polar coordinates is
-
-::
+The orthonormal vector frame `(e_r, e_\phi)` associated with polar coordinates
+is returned by the method
+:meth:`~sage.manifolds.differentiable.euclidean.EuclideanPlane.polar_frame`::
 
     sage: polar_frame = E.polar_frame()
     sage: polar_frame
@@ -403,18 +352,14 @@ The orthonormal vector frame associated to polar coordinates is
     sage: er.display()
     e_r = x/sqrt(x^2 + y^2) e_x + y/sqrt(x^2 + y^2) e_y
 
-The above display is the default frame (Cartesian frame) with the
-default coordinates (Cartesian). Let us ask for the display in the same
-frame, but with the components expressed in polar coordinates:
-
-::
+The above display is in the default frame (Cartesian frame) with the default
+coordinates (Cartesian). Let us ask for the display in the same frame, but
+with the components expressed in polar coordinates::
 
     sage: er.display(cartesian.frame(), polar)
     e_r = cos(ph) e_x + sin(ph) e_y
 
-Similarly:
-
-::
+Similarly::
 
     sage: eph = polar_frame[2]
     sage: eph.display()
@@ -422,16 +367,12 @@ Similarly:
     sage: eph.display(cartesian.frame(), polar)
     e_ph = -sin(ph) e_x + cos(ph) e_y
 
-We may check that :math:`(e_r, e_\phi)` is an orthonormal frame:
-
-::
+We may check that `(e_r, e_\phi)` is an orthonormal frame::
 
     sage: all([er.dot(er) == 1, er.dot(eph) == 0, eph.dot(eph) == 1])
     True
 
-Scalar fields can be expressed in terms of polar coordinates:
-
-::
+Scalar fields can be expressed in terms of polar coordinates::
 
     sage: F.display()
     F: E^2 --> R
@@ -442,9 +383,7 @@ Scalar fields can be expressed in terms of polar coordinates:
        (r, ph) |--> f(r*cos(ph), r*sin(ph))
 
 and we may ask for the components of vector fields in terms of the polar
-frame:
-
-::
+frame::
 
     sage: v.display()  # default frame and default coordinates (both Cartesian ones)
     v = -y e_x + x e_y
@@ -465,40 +404,33 @@ frame:
 Gradient in polar coordinates
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Let us define a generic scalar field in terms of polar coordinates:
-
-::
+Let us define a generic scalar field in terms of polar coordinates::
 
     sage: H = E.scalar_field({polar: function('h')(r,ph)}, name='H')
     sage: H.display(polar)
     H: E^2 --> R
        (r, ph) |--> h(r, ph)
 
-The gradient of :math:`H` is then
-
-::
+The gradient of `H` is then::
 
     sage: grad(H).display(polar_frame, polar)
     grad(H) = d(h)/dr e_r + d(h)/dph/r e_ph
 
-To access to individual components is perfomed by the square bracket
-operator, where, in addition to the index, one has to specify the vector
-frame and the coordinates if they are not the default ones:
-
-::
+The access to individual components is achieved via the square bracket
+operator, where, in addition to the index, one has to specify the vector frame
+and the coordinates if they are not the default ones::
 
     sage: grad(H).display(cartesian.frame(), polar)
-    grad(H) = (r*cos(ph)*d(h)/dr - sin(ph)*d(h)/dph)/r e_x + (r*sin(ph)*d(h)/dr + cos(ph)*d(h)/dph)/r e_y
-    sage: grad(H)[polar_frame,2,polar]
+    grad(H) = (r*cos(ph)*d(h)/dr - sin(ph)*d(h)/dph)/r e_x + (r*sin(ph)*d(h)/dr
+     + cos(ph)*d(h)/dph)/r e_y
+    sage: grad(H)[polar_frame, 2, polar]
     d(h)/dph/r
 
 
 Divergence in polar coordinates
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Let us define a generic vector field in terms of polar coordinates:
-
-::
+Let us define a generic vector field in terms of polar coordinates::
 
     sage: u = E.vector_field(function('u_r')(r,ph),
     ....:                    function('u_ph', latex_name=r'u_\phi')(r,ph),
@@ -506,9 +438,7 @@ Let us define a generic vector field in terms of polar coordinates:
     sage: u.display(polar_frame, polar)
     u = u_r(r, ph) e_r + u_ph(r, ph) e_ph
 
-Its divergence is:
-
-::
+Its divergence is::
 
     sage: div(u).display(polar)
     div(u): E^2 --> R
@@ -522,18 +452,16 @@ Its divergence is:
 Using polar coordinates by default:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In order to avoid specifying the arguments ``polar_frame`` and ``polar``
-in ``display()``, ``expr()`` and ``[]``, we may change the default
-values by
-
-::
+In order to avoid specifying the arguments ``polar_frame`` and ``polar`` in
+``display()``, ``expr()`` and ``[]``, we may change the default values by
+means of
+:meth:`~sage.manifolds.manifold.TopologicalManifold.set_default_chart` and
+:meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.set_default_frame`::
 
     sage: E.set_default_chart(polar)
     sage: E.set_default_frame(polar_frame)
 
-Then we have
-
-::
+Then we have::
 
     sage: u.display()
     u = u_r(r, ph) e_r + u_ph(r, ph) e_ph
@@ -558,10 +486,9 @@ Then we have
 5. Advanced topics: the Euclidean plane as a Riemannian manifold
 ----------------------------------------------------------------
 
-:math:`\mathbb{E}^2` is actually a Riemannian manifold, i.e. a smooth
-real manifold endowed with a positive definite metric tensor:
-
-::
+`\mathbb{E}^2` is actually a *Riemannian manifold* (see
+:mod:`~sage.manifolds.differentiable.pseudo_riemannian`), i.e. a smooth real
+manifold endowed with a positive definite metric tensor::
 
     sage: E.category()
     Category of smooth manifolds over Real Field with 53 bits of precision
@@ -573,33 +500,26 @@ be replaced in the future, see the discussion at
 `#24456 <https://trac.sagemath.org/ticket/24456>`__) and the 53 bits of
 precision play of course no role for the symbolic computations.
 
-The user atlas of :math:`\mathbb{E}^2` has two charts:
-
-::
+The user atlas of `\mathbb{E}^2` has two charts::
 
     sage: E.atlas()
     [Chart (E^2, (x, y)), Chart (E^2, (r, ph))]
 
-while there are three vector frames defined on :math:`\mathbb{E}^2`:
-
-::
+while there are three vector frames defined on `\mathbb{E}^2`::
 
     sage: E.frames()
     [Coordinate frame (E^2, (e_x,e_y)),
      Coordinate frame (E^2, (d/dr,d/dph)),
      Vector frame (E^2, (e_r,e_ph))]
 
-Indeed, there are two frames associated with polar coordinates: the
-coordinate frame
-:math:`(\frac{\partial}{\partial r}, \frac{\partial}{\partial \phi})`
-and the orthonormal frame :math:`(e_r, e_\phi)`.
+Indeed, there are two frames associated with polar coordinates: the coordinate
+frame `(\frac{\partial}{\partial r}, \frac{\partial}{\partial \phi})` and the
+orthonormal frame `(e_r, e_\phi)`.
 
 Riemannian metric
 ~~~~~~~~~~~~~~~~~
 
-The default metric tensor of :math:`\mathbb{E}^2` is
-
-::
+The default metric tensor of `\mathbb{E}^2` is::
 
     sage: g = E.metric()
     sage: g
@@ -607,20 +527,15 @@ The default metric tensor of :math:`\mathbb{E}^2` is
     sage: g.display()
     g = e^r*e^r + e^ph*e^ph
 
-In the above display, ``e^r`` and ``e^ph`` are the 1-forms
-defining the coframe dual to the orthonormal polar frame
-:math:`(e_r,e_\phi)`, which is the default vector frame on
-:math:`\mathbb{E}^2`:
-
-::
+In the above display, ``e^r`` = `e^r` and ``e^ph`` = `e^\phi` are the 1-forms
+defining the coframe dual to the orthonormal polar frame `(e_r, e_\phi)`,
+which is the default vector frame on `\mathbb{E}^2`::
 
     sage: polar_frame.coframe()
     Coframe (E^2, (e^r,e^ph))
 
-Of course, we may ask for display with respect to frames different from
-the default one:
-
-::
+Of course, we may ask for some display with respect to frames different from
+the default one::
 
     sage: g.display(cartesian.frame())
     g = dx*dx + dy*dy
@@ -633,32 +548,28 @@ the default one:
     [  1   0]
     [  0 r^2]
 
-:math:`g` is a *flat* metric: its (Riemann) curvature tensor is zero:
-
-::
+`g` is a *flat* metric: its (Riemann) curvature tensor (see
+:meth:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric.riemann`)
+is zero::
 
     sage: g.riemann()
     Tensor field Riem(g) of type (1,3) on the Euclidean plane E^2
     sage: g.riemann().display()
     Riem(g) = 0
 
-The metric :math:`g` is defining the dot product on
-:math:`\mathbb{E}^2`:
-
-::
+The metric `g` is defining the dot product on `\mathbb{E}^2`::
 
     sage: v.dot(w) == g(v,w)
     True
     sage: norm(v) == sqrt(g(v,v))
     True
 
+.. _vector_fields_as_derivations_plane:
 
-Vector fields as derivatives
+Vector fields as derivations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Vector fields act as derivative on scalar fields:
-
-::
+Vector fields act as derivations on scalar fields::
 
     sage: v(F)
     Scalar field v(F) on the Euclidean plane E^2
@@ -677,12 +588,9 @@ Vector fields act as derivative on scalar fields:
     sage: v(F) == dF(v)
     True
 
-The set :math:`\mathfrak{X}(\mathbb{E}^2)` of all vector fields on
-:math:`\mathbb{E}^2` is a free module of rank 2 over the commutative
-algebra of smooth scalar fields on :math:`\mathbb{E}^2`,
-:math:`C^\infty(\mathbb{E}^2)`:
-
-::
+The set `\mathfrak{X}(\mathbb{E}^2)` of all vector fields on `\mathbb{E}^2` is
+a free module of rank 2 over the commutative algebra of smooth scalar fields
+on `\mathbb{E}^2`, `C^\infty(\mathbb{E}^2)`::
 
     sage: XE = v.parent()
     sage: XE
@@ -705,10 +613,8 @@ algebra of smooth scalar fields on :math:`\mathbb{E}^2`,
     sage: rank(XE)
     2
 
-The bases of the free module :math:`\mathfrak{X}(\mathbb{E}^2)` are
-nothing but the vector frames defined on :math:`\mathbb{E}^2`:
-
-::
+The bases of the free module `\mathfrak{X}(\mathbb{E}^2)` are nothing but the
+vector frames defined on `\mathbb{E}^2`::
 
     sage: XE.bases()
     [Coordinate frame (E^2, (e_x,e_y)),
@@ -719,10 +625,8 @@ nothing but the vector frames defined on :math:`\mathbb{E}^2`:
 Tangent spaces
 ~~~~~~~~~~~~~~
 
-Vector fields evaluated at a point are vectors in the tangent space at
-this point:
-
-::
+A vector field evaluated at a point $p$ is a vector in the tangent space
+`T_p\mathbb{E}^2`::
 
     sage: vp = v.at(p)
     sage: vp.display()
@@ -748,33 +652,25 @@ this point:
 Levi-Civita connection
 ~~~~~~~~~~~~~~~~~~~~~~
 
-The Levi-Civita connection associated to the Euclidean metric :math:`g`
-is
-
-::
+The Levi-Civita connection associated to the Euclidean metric `g` is::
 
     sage: nabla = g.connection()
     sage: nabla
     Levi-Civita connection nabla_g associated with the Riemannian metric g on the Euclidean plane E^2
 
-The corresponding Christoffel symbols with respect to the polar
-coordinates are:
-
-::
+The corresponding Christoffel symbols with respect to the polar coordinates
+are::
 
     sage: g.christoffel_symbols_display()
     Gam^r_ph,ph = -r
     Gam^ph_r,ph = 1/r
 
-By default, only nonzero and nonredundant values are displayed (for
-instance :math:`\Gamma^\phi_{\ \, \phi r}` is skipped, since it can be
-deduced from :math:`\Gamma^\phi_{\ \, r \phi}` by symmetry on the last
-two indices).
+By default, only nonzero and nonredundant values are displayed (for instance
+`\Gamma^\phi_{\ \, \phi r}` is skipped, since it can be deduced from
+`\Gamma^\phi_{\ \, r \phi}` by symmetry on the last two indices).
 
-The Christoffel symbols with respect to the Cartesian coordinates are
-all zero:
-
-::
+The Christoffel symbols with respect to the Cartesian coordinates are all
+zero::
 
     sage: g.christoffel_symbols_display(chart=cartesian, only_nonzero=False)
     Gam^x_xx = 0
@@ -784,9 +680,7 @@ all zero:
     Gam^y_xy = 0
     Gam^y_yy = 0
 
-:math:`\nabla_g` is the connection involved in differential operators:
-
-::
+`\nabla_g` is the connection involved in differential operators::
 
     sage: grad(F) == nabla(F).up(g)
     True

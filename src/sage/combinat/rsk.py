@@ -248,21 +248,9 @@ class Rule(UniqueRepresentation):
             itr = zip(obj1, obj2)
         return list(itr)
 
-class RuleRSK(Rule):
-    r"""
-    A rule modelling Robinson-Schensted-Knuth insertion.
-
-    EXAMPLES::
-
-        sage: RSK([1, 2, 2, 2], [2, 1, 1, 2], insertion=RSK.rules.RSK)
-        [[[1, 1, 2], [2]], [[1, 2, 2], [2]]]
-        sage: p = Tableau([[1,2,2],[2]]); q = Tableau([[1,3,3],[2]])
-        sage: RSK_inverse(p, q, insertion=RSK.rules.RSK)
-        [[1, 2, 3, 3], [2, 1, 2, 2]]
-    """
     def forward_rule(self, obj1, obj2, check_standard=False):
         r"""
-        Return the RSK insertion of the pair ``[obj1, obj2]``.
+        Return the default insertion(RSK) of the pair ``[obj1, obj2]``.
         """
         from sage.combinat.tableau import SemistandardTableau, StandardTableau
         
@@ -286,9 +274,51 @@ class RuleRSK(Rule):
             return [P, Q]
         return [SemistandardTableau(p), SemistandardTableau(q)]
 
+class RuleRSK(Rule):
+    r"""
+    A rule modeling Robinson-Schensted-Knuth insertion.
+
+    EXAMPLES::
+
+        sage: RSK([1, 2, 2, 2], [2, 1, 1, 2], insertion=RSK.rules.RSK)
+        [[[1, 1, 2], [2]], [[1, 2, 2], [2]]]
+        sage: p = Tableau([[1,2,2],[2]]); q = Tableau([[1,3,3],[2]])
+        sage: RSK_inverse(p, q, insertion=RSK.rules.RSK)
+        [[1, 2, 3, 3], [2, 1, 2, 2]]
+    """
+    def forward_rule(self, obj1, obj2, check_standard=False):
+        r"""
+        Return the RSK insertion of the pair ``[obj1, obj2]``.
+        
+        Input:  ``obj1, obj2`` -- Can be one of the following:
+
+          - A word in an ordered alphabet
+          - An integer matrix
+          - Two lists of equal length representing a generalized permutation
+          - Any object which has a method ``_rsk_iter()`` which returns an
+            iterator over the object represented as generalized permutation or
+            a pair of lists.
+
+        """
+        return super(RuleRSK, self).forward_rule(obj1, obj2, check_standard)
+
     def backward_rule(self, p, q, output):
         r"""
         Return the reverse RSK insertion of ``(p, q)``.
+
+        Input:  ``output`` -- (Default: ``'array'``) if ``q`` is semi-standard:
+
+          - ``'array'`` -- as a two-line array (i.e. generalized permutation or
+            biword)
+          -  ``'matrix'`` -- as an integer matrix
+
+          and if ``q`` is standard, we can have the output:
+
+          - ``'word'`` -- as a word
+
+          and additionally if ``p`` is standard, we can also have the output:
+
+          - ``'permutation'`` -- as a permutation 
         """
         from sage.combinat.tableau import SemistandardTableaux
         from bisect import bisect_left
@@ -382,18 +412,17 @@ class RuleRSK(Rule):
         r.append(j)
         qr.append(i) # Values are always inserted to the right
 
-    def to_pair(self, obj1, obj2):
-        return super(RuleRSK, self).to_pair(obj1, obj2)
-
 class RuleEG(Rule):
     r"""
-    A rule modelling Edelman-Greene insertion.
+    A rule modeling Edelman-Greene insertion.
 
     EXAMPLES::
 
         sage: RSK([2,3,2,1,2,3], insertion=RSK.rules.EG)
         [[[1, 2, 3], [2, 3], [3]], [[1, 2, 6], [3, 5], [4]]]
         sage: pq = RSK([2,1,2,3,2], insertion=RSK.rules.EG); pq
+        [[[1, 2, 3], [2, 3]], [[1, 3, 4], [2, 5]]]
+        sage: RSK(RSK_inverse(*pq, insertion=RSK.rules.EG, output='matrix'), insertion=RSK.rules.EG)
         [[[1, 2, 3], [2, 3]], [[1, 3, 4], [2, 5]]]
         sage: RSK_inverse(*pq, insertion=RSK.rules.EG)
         [2, 1, 2, 3, 2]
@@ -402,34 +431,28 @@ class RuleEG(Rule):
     def forward_rule(self, obj1, obj2, check_standard=False):
         r"""
         Return the EG insertion of the pair ``[obj1, obj2]``.
+
+         Input:  ``obj1, obj2`` -- Can be one of the following:
+
+          - A word in an ordered alphabet
+          - An integer matrix
+          - Two lists of equal length representing a generalized permutation
+          - Any object which has a method ``_rsk_iter()`` which returns an
+            iterator over the object represented as generalized permutation or
+            a pair of lists.
+
         """
-        from sage.combinat.tableau import SemistandardTableau, StandardTableau
-        
-        itr = self.to_pair(obj1, obj2)
-        p = []       #the "insertion" tableau
-        q = []       #the "recording" tableau
-
-        #For each j in self, insert j into the tableau p.
-        lt = 0
-        lb = 0
-        for i, j in itr:
-            self.insertion(i, j, p, q)
-
-        if check_standard:
-            try:
-                P = StandardTableau(p)
-            except ValueError:
-                P = SemistandardTableau(p)
-            try:
-                Q = StandardTableau(q)
-            except ValueError:
-                Q = SemistandardTableau(q)
-            return [P, Q]
-        return [SemistandardTableau(p), SemistandardTableau(q)]
+        return super(RuleEG, self).forward_rule(obj1, obj2, check_standard)
 
     def backward_rule(self, p, q, output):
         r"""
         Return the reverse EG insertion of ``(p, q)``.
+
+        Input:  ``output`` -- (Default: ``'array'``):
+
+          - ``'array'`` -- as a two-line array (i.e. generalized permutation or
+            biword)
+          -  ``'matrix'`` -- as an integer matrix
         """
         from bisect import bisect_left
         # Make a copy of p since this is destructive to it
@@ -454,7 +477,10 @@ class RuleEG(Rule):
                         # switch x and y
                         x, row[y_pos] = row[y_pos], x
                 rev_word.append(x)
-            return list(reversed(rev_word))
+            if output == 'matrix':
+                return to_matrix(list(range(1, len(rev_word)+1)), list(reversed(rev_word)))
+            else:
+                return list(reversed(rev_word))
 
         else:
             raise NotImplementedError("only RuleRSK is implemented for non-standard q")
@@ -486,12 +512,9 @@ class RuleEG(Rule):
         r.append(j)
         qr.append(i) # Values are always inserted to the right
 
-    def to_pair(self, obj1, obj2):
-        return super(RuleEG, self).to_pair(obj1, obj2)
-
 class RuleHecke(Rule):
     r"""
-    A rule modelling Hecke insertion.
+    A rule modeling Hecke insertion.
 
     EXAMPLES::
 
@@ -513,6 +536,16 @@ class RuleHecke(Rule):
     def forward_rule(self, obj1, obj2, check_standard=False):
         r"""
         Return the Hecke insertion of the pair ``[obj1, obj2]``.
+        
+        Input:  ``obj1, obj2`` -- Can be one of the following:
+
+          - A word in an ordered alphabet
+          - An integer matrix
+          - Two lists of equal length representing a generalized permutation
+          - Any object which has a method ``_rsk_iter()`` which returns an
+            iterator over the object represented as generalized permutation or
+            a pair of lists.
+
         """
         from sage.combinat.tableau import SemistandardTableau, Tableau
         if obj2 is None:    
@@ -530,6 +563,16 @@ class RuleHecke(Rule):
     def backward_rule(self, p, q, output):
         r"""
         Return the reverse Hecke insertion of ``(p, q)``.
+
+        Input:  ``output`` -- (Default: ``'array'``) if ``q`` is semi-standard:
+
+          - ``'array'`` -- as a two-line array (i.e. generalized permutation or
+            biword)
+
+          and if ``q`` is standard, we can have the output:
+
+          - ``'word'`` -- as a word
+          - ``list`` -- as a list
         """
         if p.shape() != q.shape():
             raise ValueError("p(=%s) and q(=%s) must have the same shape"%(p, q))

@@ -1494,7 +1494,7 @@ class PermutationGroup_generic(FiniteGroup):
             True
             sage: {1, 4} in O[1] and {2, 3} in O[1]
             True
-            sage: all([set(union(*x)) == {1,2,3,4} for x in O])
+            sage: all(set(union(*x)) == {1,2,3,4} for x in O)
             True
 
         Action of `S_4` (on a nonstandard domain) on tuples of sets::
@@ -2632,20 +2632,20 @@ class PermutationGroup_generic(FiniteGroup):
             if len(mapping[0]) != len(mapping[1]):
                 msg = 'the list of generators and the list of morphisms must be of equal length'
                 raise ValueError(msg)
-            if not all([a.is_endomorphism() for a in mapping[1]]):
+            if not all(a.is_endomorphism() for a in mapping[1]):
                 msg = 'an element of the automorphism list is not an endomorphism (and is therefore not an automorphism)'
                 raise ValueError(msg)
-            if not all([a.kernel().order() == 1 for a in mapping[1]]):
+            if not all(a.kernel().order() == 1 for a in mapping[1]):
                 msg = 'an element of the automorphism list is not an injection (and is therefore not an automorphism)'
                 raise ValueError(msg)
 
         # create a parallel list of the automorphisms of N in GAP
         gap.eval('N := Group(' + str(N.gens()) + ')')
-        gens_string = ",".join([str(x) for x in N.gens()])
+        gens_string = ",".join(str(x) for x in N.gens())
         homomorphism_cmd = 'alpha := GroupHomomorphismByImages(N, N, [{0}],[{1}])'
         gap.eval('morphisms := []')
         for alpha in mapping[1]:
-            images_string = ",".join([str(alpha(n)) for n in N.gens()])
+            images_string = ",".join(str(alpha(n)) for n in N.gens())
             gap.eval(homomorphism_cmd.format(gens_string, images_string))
             gap.eval('Add(morphisms, alpha)')
         # create the necessary homomorphism from self into the

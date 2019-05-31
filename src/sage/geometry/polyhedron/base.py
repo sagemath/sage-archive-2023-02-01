@@ -586,8 +586,8 @@ class Polyhedron_base(Element):
             True
         """
         return all(other_H.contains(self_V)
-                    for other_H in other.Hrepresentation()
-                    for self_V in self.Vrepresentation())
+                   for other_H in other.Hrepresentation()
+                   for self_V in self.Vrepresentation())
 
     @cached_method
     def vertex_facet_graph(self, labels=True):
@@ -3907,8 +3907,8 @@ class Polyhedron_base(Element):
         normal_vectors = []
 
         for facet in self.Hrepresentation():
-            if all(facet.contains(x) and not facet.interior_contains(x) for x
-                    in face_vertices):
+            if all(facet.contains(x) and not facet.interior_contains(x)
+                   for x in face_vertices):
                 # The facet contains the face
                 normal_vectors.append(facet.A())
 
@@ -4028,8 +4028,8 @@ class Polyhedron_base(Element):
         if face.dim() == self.dim() - 1:
             face_star = set([face.ambient_Hrepresentation()[0]])
         else:
-            face_star = set([facet for facet in self.Hrepresentation()
-                             if all(facet.contains(x) and not facet.interior_contains(x) for x in face_vertices)])
+            face_star = set(facet for facet in self.Hrepresentation()
+                            if all(facet.contains(x) and not facet.interior_contains(x) for x in face_vertices))
 
         neighboring_facets = set()
         for facet in face_star:
@@ -4171,13 +4171,10 @@ class Polyhedron_base(Element):
             facet_vertices = facet.nonzero_positions()
             if len(facet_vertices) == n-1 or len(facet_vertices) == n-2:
                 facet_non_vertices = [i for i in range(n) if i not in facet_vertices]
-                if all([vertex in vertices for vertex in facet_non_vertices]):
+                if all(vertex in vertices for vertex in facet_non_vertices):
                     for vertex in facet_non_vertices:
                         vertices.remove(vertex)
-        if vertices == []:
-            return True
-        else:
-            return False
+        return not vertices
 
     def barycentric_subdivision(self, subdivision_frac=None):
         r"""
@@ -5818,11 +5815,9 @@ class Polyhedron_base(Element):
             sage: cube.is_neighborly()
             False
 
-        Cyclic polytopes are neighborly:
+        Cyclic polytopes are neighborly::
 
-        ::
-
-            sage: all([polytopes.cyclic_polytope(i, i + 1 + j).is_neighborly() for i in range(5) for j in range(3)])
+            sage: all(polytopes.cyclic_polytope(i, i + 1 + j).is_neighborly() for i in range(5) for j in range(3))
             True
 
         The neighborliness of a polyhedron equals floor of dimension half
@@ -5835,8 +5830,9 @@ class Polyhedron_base(Element):
 
         """
         if k is None:
-            k = floor(self.dim()/2)
-        return all(len(self.faces(i)) == binomial(self.n_vertices(), i + 1) for i in range(1, k))
+            k = self.dim() // 2
+        return all(len(self.faces(i)) == binomial(self.n_vertices(), i + 1)
+                   for i in range(1, k))
 
     @cached_method
     def is_lattice_polytope(self):

@@ -2009,7 +2009,7 @@ def is_kernel_polynomial(E, m, f):
         sage: E = EllipticCurve(F,[0,0,0,-1,0])
         sage: f13 = E.division_polynomial(13)
         sage: factors = [f for f,e in f13.factor()]
-        sage: all([f.degree()==6 for f in factors])
+        sage: all(f.degree() == 6 for f in factors)
         True
         sage: [is_kernel_polynomial(E,13,f) for f in factors]
         [True,
@@ -2211,7 +2211,7 @@ def isogenies_prime_degree_general(E, l, minimal_models=True):
 
     # Exit now if all factors have been used already:
 
-    if all(factors == [] for factors in factors_by_degree.values()):
+    if all(not factors for factors in factors_by_degree.values()):
         return [E.isogeny(k) for k in ker]
 
     # In general we look for products of factors of the same degree d

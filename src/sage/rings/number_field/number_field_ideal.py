@@ -961,7 +961,7 @@ class NumberFieldIdeal(Ideal_generic):
             return self.__is_integral
         except AttributeError:
             one = self.number_field().ideal(1)
-            self.__is_integral = all([a in one for a in self.integral_basis()])
+            self.__is_integral = all(a in one for a in self.integral_basis())
             return self.__is_integral
 
     def is_maximal(self):
@@ -1326,7 +1326,7 @@ class NumberFieldIdeal(Ideal_generic):
 
             sage: K.<i> = QuadraticField(-1)
             sage: P1, P2 = [P for P,e in K.factor(13)]
-            sage: all([(P1^i*P2^j).smallest_integer() == 13^max(i,j,0) for i in range(-3,3) for j in range(-3,3)])
+            sage: all((P1^i*P2^j).smallest_integer() == 13^max(i,j,0) for i in range(-3,3) for j in range(-3,3))
             True
             sage: I = K.ideal(0)
             sage: I.smallest_integer()
@@ -2097,7 +2097,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
             sage: reps=I.residues()
             sage: len(list(reps)) == I.norm()
             True
-            sage: all([r==s or not (r-s) in I for r in reps for s in reps])  # long time (6s on sage.math, 2011)
+            sage: all(r == s or not (r-s) in I for r in reps for s in reps)  # long time (6s on sage.math, 2011)
             True
 
             sage: K.<a> = NumberField(x^3-10)
@@ -2547,7 +2547,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
             (f0, f1)
             sage: G.gens_values()   # random output
             (2*a^2 - 1, 2*a^2 + 2*a - 2)
-            sage: all([G.gen(i).value() in k for i in range(G.ngens())])
+            sage: all(G.gen(i).value() in k for i in range(G.ngens()))
             True
 
         TESTS::
@@ -2647,7 +2647,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         # sanitise input
 
         k = self.number_field()
-        if not all([k(x).valuation(p)==0 for p, e in self.factor()]):
+        if not all(k(x).valuation(p) == 0 for p, e in self.factor()):
             raise TypeError("the element must be invertible mod the ideal")
 
         # calculate ideal log w.r.t. standard gens

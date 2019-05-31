@@ -16043,66 +16043,63 @@ class GenericGraph(GenericGraph_pyx):
         heap_sorted_paths = list() # heap data structure containing the candidate paths
         listA = list() # list of previous paths already popped from the heap
         prev_path = None
-        while True:
-            if not prev_path:
-                # will enter here for the first time to compute the shortest path between source and target
-                if by_weight:
-                    path = shortest_path_func(source, target, weight_function=weight_function)
-                else:
-                    path = shortest_path_func(source, target)
-                length = length_func(path)
-                if length == 0: # corner case
-                    yield path
-                    return
-                hash_path = tuple(path) # hashing the path to check the existence of a path in the heap
-                heappush(heap_sorted_paths, (length, path)) # heap push operation
-                heap_paths.add(hash_path) # adding the path to the heap_paths set
-            else:
-                exclude_vertices = []
-                exclude_edges = []
-                for i in range(1, len(prev_path)): # deviating from the previous path to find the candidate paths
-                    root = prev_path[:i] # root part of the previous path
-                    root_length = length_func(root)
-                    for path in listA:
-                        if path[:i] == root:
-                            if self.is_directed():
-                                exclude_edges.append((path[i - 1], path[i]))
-                            else:
-                                exclude_edges.append((path[i - 1], path[i]))
-                                exclude_edges.append((path[i], path[i - 1]))
-                    try:
-                        if by_weight is True:
-                            # finding the spur part of the path after excluding certain vertices and edges
-                            spur = shortest_path_func(root[-1], target,
-                                                      exclude_vertices=exclude_vertices,
-                                                      exclude_edges=exclude_edges,
-                                                      weight_function=weight_function)
-                        else:
-                            spur = shortest_path_func(root[-1], target,
-                                                      exclude_vertices=exclude_vertices,
-                                                      exclude_edges=exclude_edges)
-                        length = length_func(spur)    
-                        if(not spur):
-                            continue
-                        path = root[:-1] + spur # concatenating the root and the spur paths
-                        # push operation
-                        hash_path = tuple(path)
-                        if hash_path not in heap_paths: # if this path is not already present inside the heap
-                            heappush(heap_sorted_paths, (root_length + length, path))
-                            heap_paths.add(hash_path)
-                    except Exception:
-                        pass
-                    exclude_vertices.append(root[-1])
 
-            if heap_paths:
-                (cost, path1) = heappop(heap_sorted_paths) # extracting the next best path from the heap
-                hash_path = tuple(path1)
-                heap_paths.remove(hash_path)
-                yield path1
-                listA.append(path1)
-                prev_path = path1
-            else:
-                break
+        # compute the shortest path between the source and the target
+        if by_weight:
+            path = shortest_path_func(source, target, weight_function=weight_function)
+        else:
+            path = shortest_path_func(source, target)
+        length = length_func(path)
+        if length == 0: # corner case
+            yield path
+            return
+        hash_path = tuple(path) # hashing the path to check the existence of a path in the heap
+        heappush(heap_sorted_paths, (length, path)) # heap push operation
+        heap_paths.add(hash_path) # adding the path to the heap_paths set
+
+        while heap_paths:
+            (cost, path1) = heappop(heap_sorted_paths) # extracting the next best path from the heap
+            hash_path = tuple(path1)
+            heap_paths.remove(hash_path)
+            yield path1
+            listA.append(path1)
+            prev_path = path1
+
+            exclude_vertices = []
+            exclude_edges = []
+            for i in range(1, len(prev_path)): # deviating from the previous path to find the candidate paths
+                root = prev_path[:i] # root part of the previous path
+                root_length = length_func(root)
+                for path in listA:
+                    if path[:i] == root:
+                        if self.is_directed():
+                            exclude_edges.append((path[i - 1], path[i]))
+                        else:
+                            exclude_edges.append((path[i - 1], path[i]))
+                            exclude_edges.append((path[i], path[i - 1]))
+                try:
+                    if by_weight is True:
+                        # finding the spur part of the path after excluding certain vertices and edges
+                        spur = shortest_path_func(root[-1], target,
+                                                  exclude_vertices=exclude_vertices,
+                                                  exclude_edges=exclude_edges,
+                                                  weight_function=weight_function)
+                    else:
+                        spur = shortest_path_func(root[-1], target,
+                                                  exclude_vertices=exclude_vertices,
+                                                  exclude_edges=exclude_edges)
+                    length = length_func(spur)
+                    if(not spur):
+                        continue
+                    path = root[:-1] + spur # concatenating the root and the spur paths
+                    # push operation
+                    hash_path = tuple(path)
+                    if hash_path not in heap_paths: # if this path is not already present inside the heap
+                        heappush(heap_sorted_paths, (root_length + length, path))
+                        heap_paths.add(hash_path)
+                except Exception:
+                    pass
+                exclude_vertices.append(root[-1])
 
     def triangles_count(self, algorithm=None):
         r"""

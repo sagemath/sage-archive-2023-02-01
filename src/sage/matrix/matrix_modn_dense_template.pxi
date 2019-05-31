@@ -98,8 +98,6 @@ from sage.libs.linbox.fflas cimport FFLAS_TRANSPOSE, FflasNoTrans, FflasTrans, \
     FflasRight, vector, list as std_list  #, pfgemm, pfgemv
 
 from sage.parallel.parallelism import Parallelism
-#from cython cimport parallel
-from libc.stdio cimport printf
 
 cimport sage.rings.fast_arith
 cdef sage.rings.fast_arith.arith_int ArithIntObj
@@ -176,6 +174,7 @@ cdef inline linbox_echelonize(celement modulus, celement* entries, Py_ssize_t nr
     """
     Return the reduced row echelon form of this matrix.
     """
+
     if linbox_is_zero(modulus, entries, nrows, ncols):
         return 0,[]
 
@@ -187,7 +186,7 @@ cdef inline linbox_echelonize(celement modulus, celement* entries, Py_ssize_t nr
     cdef Py_ssize_t r
     cpdef size_t nbthreads
     nbthreads = Parallelism().get('linbox')
-    printf(">>>>>>>>>>>>>>>>>>>>>>>>>>")
+
     if nrows*ncols > 1000: sig_on()
     if nbthreads > 1 :
         r = pReducedRowEchelonForm(F[0], nrows, ncols, <ModField.Element*>entries, ncols, P, Q)

@@ -1139,14 +1139,14 @@ If this all works, you can then make calls like:
 
             sage: t = walltime()
             sage: try:
-            ....:    singular._expect_expr('25', timeout=0.5)
+            ....:    singular._expect_expr('25', timeout=float(0.4))
             ....: except Exception:
             ....:    print('Did not get expression')
             Did not get expression
 
         A quick consistency check on the time that the above took::
 
-            sage: w = walltime(t); w > 0.4 and w < 10
+            sage: w = walltime(t); 0.3 < w < 2
             True
 
         We tell Singular to print abc, which equals 25.

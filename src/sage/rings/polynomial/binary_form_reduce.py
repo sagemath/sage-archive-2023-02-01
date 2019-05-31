@@ -480,6 +480,7 @@ def smallest_poly(F, prec=53, norm_type='norm', emb=None):
 
     ::
 
+        sage: from sage.rings.polynomial.binary_form_reduce import smallest_poly, get_bound_poly
         sage: R.<x,y> = QQ[]
         sage: F = -2*x^3 + 2*x^2*y + 3*x*y^2 + 127*y^3
         sage: smallest_poly(F)
@@ -487,13 +488,18 @@ def smallest_poly(F, prec=53, norm_type='norm', emb=None):
                                                [1 4]
         -2*x^3 - 22*x^2*y - 77*x*y^2 + 43*y^3, [0 1]
         ]
-        sage: smallest_poly(F, norm_type='height')
-        [
+        sage: F0, M = smallest_poly(F, norm_type='height')
+        sage: F0, M  # random
+        (
                                                 [5 4]
         -58*x^3 - 47*x^2*y + 52*x*y^2 + 43*y^3, [1 1]
-        ]
+        )
+        sage: M in SL2Z, F0 == R.hom(M * vector([x, y]))(F)
+        (True, True)
+        sage: get_bound_poly(F0, norm_type='height')  # tol 1e-12
+        23.3402702199809
 
-    an example with a multiple root::
+    An example with a multiple root::
 
         sage: R.<x,y> = QQ[]
         sage: F = -16*x^7 - 114*x^6*y - 345*x^5*y^2 - 599*x^4*y^3 - 666*x^3*y^4\

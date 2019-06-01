@@ -63,6 +63,14 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
             True
             sage: A1(a) in A2
             True
+
+        Check that :trac:`26958` is fixed::
+
+            sage: from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            sage: class Foo(MPolynomialRing_libsingular):
+            ....:     pass
+            sage: Foo(QQ, 2, ['x','y'], 'degrevlex')
+            Multivariate Polynomial Ring in x, y over Rational Field
         """
         if base_ring not in _CommutativeRings:
             raise TypeError("The base ring %s is not a commutative ring" % base_ring)
@@ -84,6 +92,9 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
             category = categories.rings.Rings().Finite()
         else:
             category = polynomial_default_category(base_ring.category(), n)
+
+        # Avoid calling __init_extra__ of Algebras(...).parent_class
+        self._no_generic_basering_coercion = True
 
         sage.rings.ring.Ring.__init__(self, base_ring, names, category=category)
 
@@ -548,30 +559,6 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
             return 'PolynomialRing(%s,[%s])'%(gap(self.base_ring()).name(),','.join(L))
         return 'PolynomialRing(%s,[%s])'%(self.base_ring()._gap_init_(),','.join(L))
 
-    def is_finite(self):
-        r"""
-        Test whether this multivariate polynomial ring is finite.
-
-        .. TODO::
-
-            This should be handled by categories but ``sage.rings.Ring`` does
-            implement a ``is_finite`` method that overrides that category
-            implementation.
-
-        EXAMPLES::
-
-            sage: PolynomialRing(QQ, names=[]).is_finite()
-            False
-            sage: PolynomialRing(GF(5), names=[]).is_finite()
-            True
-            sage: PolynomialRing(GF(5),names=['x']).is_finite()
-            False
-            sage: PolynomialRing(Zmod(1), names=['x','y']).is_finite()
-            True
-        """
-        category = self.category()
-        return category is category.Finite()
-
     def is_field(self, proof = True):
         """
         Test whether this multivariate polynomial ring is a field.
@@ -587,6 +574,8 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
             True
             sage: PolynomialRing(ZZ, 'x', 0).is_field()
             False
+            sage: PolynomialRing(Zmod(1), names=['x','y']).is_finite()
+            True
         """
         if not self.ngens():
             return self.base_ring().is_field(proof)
@@ -1151,14 +1140,11 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
 
         REFERENCES:
 
-        .. [CLO] \D. Cox, J. Little, D. O'Shea. Using Algebraic Geometry.
-                 Springer, 2005.
+        - [CLO2005]_
 
-        .. [Can] \J. Canny. Generalised characteristic polynomials.
-                 J. Symbolic Comput. Vol. 9, No. 3, 1990, 241--250.
+        - [Can1990]_
 
-        .. [Mac] \F.S. Macaulay. The algebraic theory of modular systems
-                 Cambridge university press, 1916.
+        - [Mac1916]_
 
         AUTHORS:
 
@@ -1211,7 +1197,7 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
             ...
             TypeError: not all inputs are polynomials in the calling ring
 
-        The following example recreates Proposition 2.10 in Ch.3 in [CLO]::
+        The following example recreates Proposition 2.10 in Ch.3 in [CLO2005]::
 
             sage: K.<x,y> = PolynomialRing(ZZ, 2)
             sage: flist,R = K._macaulay_resultant_universal_polynomials([1,1,2])

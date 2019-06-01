@@ -22,15 +22,15 @@ TESTS::
 """
 from __future__ import absolute_import
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.categories.all        import ModularAbelianVarieties
 from sage.structure.sequence    import Sequence, Sequence_generic
@@ -862,6 +862,13 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         Return the intersection of self and other inside a common ambient
         Jacobian product.
 
+        When ``other`` is a modular abelian variety, the output will be a tuple
+        ``(G, A)``, where ``G`` is a finite subgroup that surjects onto the
+        component group and ``A`` is the identity component. So in particular,
+        the intersection is the variety ``G+A``. Note that ``G`` is not chosen
+        in any canonical way. When ``other`` is a finite group, the
+        intersection will be returned as a finite group.
+
         INPUT:
 
 
@@ -875,7 +882,9 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         -  ``G`` - finite subgroup of self
 
         -  ``A`` - abelian variety (identity component of
-           intersection) If other is a finite group:
+           intersection)
+
+        If other is a finite group:
 
         -  ``G`` - a finite group
 
@@ -915,6 +924,24 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             ]
             sage: (D[0] + D[1]).intersection(D[1] + D[2])
             (Finite subgroup with invariants [5, 10] over QQbar of Abelian subvariety of dimension 3 of J0(67), Abelian subvariety of dimension 2 of J0(67))
+
+        When the intersection is infinite, the output is ``(G, A)``, where
+        ``G`` surjects onto the component group. This choice of ``G`` is not
+        canonical (see :trac:`26189`). In this following example, ``B`` is a
+        subvariety of ``J``::
+
+            sage: d1 = J0(11).degeneracy_map(22, 1)
+            sage: d2 = J0(11).degeneracy_map(22, 2)
+            sage: B = (d1-d2).image()
+            sage: J = J0(22)
+            sage: J.intersection(B)
+            (Finite subgroup with invariants [] over QQbar of Abelian variety J0(22) of dimension 2,
+             Abelian subvariety of dimension 1 of J0(22))
+            sage: G, B = B.intersection(J); G, B
+            (Finite subgroup with invariants [2] over QQbar of Abelian subvariety of dimension 1 of J0(22),
+             Abelian subvariety of dimension 1 of J0(22))
+            sage: G.is_subgroup(B)
+            True
         """
         # First check whether we are intersecting an abelian variety
         # with a finite subgroup.  If so, call the intersection method
@@ -2214,10 +2241,10 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: (J0(11) * J1(13))._ambient_hecke_matrix_on_modular_symbols(2)
             [-2  0  0  0  0  0]
             [ 0 -2  0  0  0  0]
-            [ 0  0 -2  0 -1  1]
-            [ 0  0  1 -1  0 -1]
-            [ 0  0  1  1 -2  0]
-            [ 0  0  0  1 -1 -1]
+            [ 0  0 -1 -1 -1  1]
+            [ 0  0  1 -2 -1  0]
+            [ 0  0  0  0 -2  1]
+            [ 0  0  0  0 -1 -1]
         """
         if not self.is_ambient():
             return self.ambient_variety()._ambient_hecke_matrix_on_modular_symbols(n)
@@ -2501,10 +2528,10 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: H.hecke_operator(2).matrix()
             [-2  0  0  0  0  0]
             [ 0 -2  0  0  0  0]
-            [ 0  0 -2  0 -1  1]
-            [ 0  0  1 -1  0 -1]
-            [ 0  0  1  1 -2  0]
-            [ 0  0  0  1 -1 -1]
+            [ 0  0 -1 -1 -1  1]
+            [ 0  0  1 -2 -1  0]
+            [ 0  0  0  0 -2  1]
+            [ 0  0  0  0 -1 -1]
         """
         return self.homology(ZZ)
 
@@ -3094,8 +3121,6 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         if field_of_definition is None:
             field_of_definition = QQbar
-        else:
-            field_of_definition = field_of_definition
 
         return FiniteSubgroup_lattice(
             self, X, field_of_definition=field_of_definition, check=check)

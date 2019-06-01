@@ -1099,7 +1099,7 @@ class NumberFieldIdeal(Ideal_generic):
         ``proof=True`` (this is the default setting) to prove the correctness
         of the output.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: K = QuadraticField(-119,'a')
             sage: P = K.factor(2)[1][0]
@@ -1420,7 +1420,7 @@ class NumberFieldIdeal(Ideal_generic):
         EXAMPLES::
 
             sage: QuadraticField(-23, 'w').primes_above(7)[0].decomposition_group()
-            Subgroup [(), (1,2)] of Galois group of Number Field in w with defining polynomial x^2 + 23
+            Subgroup [(), (1,2)] of Galois group of Number Field in w with defining polynomial x^2 + 23 with w = 4.795831523312720?*I
         """
         return self.number_field().galois_group().decomposition_group(self)
 
@@ -1436,9 +1436,9 @@ class NumberFieldIdeal(Ideal_generic):
         EXAMPLES::
 
             sage: QuadraticField(-23, 'w').primes_above(23)[0].ramification_group(0)
-            Subgroup [(), (1,2)] of Galois group of Number Field in w with defining polynomial x^2 + 23
+            Subgroup [(), (1,2)] of Galois group of Number Field in w with defining polynomial x^2 + 23 with w = 4.795831523312720?*I
             sage: QuadraticField(-23, 'w').primes_above(23)[0].ramification_group(1)
-            Subgroup [()] of Galois group of Number Field in w with defining polynomial x^2 + 23
+            Subgroup [()] of Galois group of Number Field in w with defining polynomial x^2 + 23 with w = 4.795831523312720?*I
         """
 
         return self.number_field().galois_group().ramification_group(self, v)
@@ -1454,7 +1454,7 @@ class NumberFieldIdeal(Ideal_generic):
         EXAMPLES::
 
             sage: QuadraticField(-23, 'w').primes_above(23)[0].inertia_group()
-            Subgroup [(), (1,2)] of Galois group of Number Field in w with defining polynomial x^2 + 23
+            Subgroup [(), (1,2)] of Galois group of Number Field in w with defining polynomial x^2 + 23 with w = 4.795831523312720?*I
         """
         return self.ramification_group(0)
 
@@ -1656,8 +1656,7 @@ class NumberFieldIdeal(Ideal_generic):
 
         REFERENCES:
 
-        .. [Cohen] Henri Cohen, A Course in Computational Algebraic
-           Number Theory. Section 5.2.
+        - [Coh1993]_
         """
         K = self.number_field()
         if K.degree() == 2:

@@ -30,7 +30,8 @@ AUTHORS:
 
 TESTS::
 
-    sage: ohlc = sage.finance.stock.OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
+    sage: from sage.finance.stock import OHLC
+    sage: ohlc = OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
     sage: loads(dumps(ohlc)) == ohlc
     True
 
@@ -62,12 +63,16 @@ class OHLC:
 
         EXAMPLES::
 
-            sage: sage.finance.stock.OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
+            sage: from sage.finance.stock import OHLC
+            sage: OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
              18-Aug-04 100.01 104.06 95.96 100.34   22353092
         """
         self.timestamp = timestamp
-        self.open=float(open); self.high=float(high); self.low=float(low); self.close=float(close)
-        self.volume=int(volume)
+        self.open = float(open)
+        self.high = float(high)
+        self.low = float(low)
+        self.close = float(close)
+        self.volume = int(volume)
 
     def __repr__(self):
         """
@@ -75,10 +80,11 @@ class OHLC:
 
         EXAMPLES::
 
-            sage: sage.finance.stock.OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092).__repr__()
+            sage: from sage.finance.stock import OHLC
+            sage: OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092).__repr__()
             ' 18-Aug-04 100.01 104.06 95.96 100.34   22353092'
         """
-        return '%10s %4.2f %4.2f %4.2f %4.2f %10d'%(self.timestamp, self.open, self.high,
+        return '%10s %4.2f %4.2f %4.2f %4.2f %10d' % (self.timestamp, self.open, self.high,
                    self.low, self.close, self.volume)
 
     def __eq__(self, other):
@@ -87,8 +93,9 @@ class OHLC:
 
         EXAMPLES::
 
-            sage: ohlc = sage.finance.stock.OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
-            sage: ohlc2 = sage.finance.stock.OHLC('18-Aug-04', 101.01, 104.06, 95.96, 100.34, 22353092)
+            sage: from sage.finance.stock import OHLC
+            sage: ohlc = OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
+            sage: ohlc2 = OHLC('18-Aug-04', 101.01, 104.06, 95.96, 100.34, 22353092)
             sage: ohlc == ohlc2
             False
         """
@@ -107,7 +114,8 @@ class OHLC:
 
         EXAMPLES::
 
-            sage: ohlc = sage.finance.stock.OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
+            sage: from sage.finance.stock import OHLC
+            sage: ohlc = OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
             sage: H = hash(ohlc)
         """
         return hash((self.timestamp,
@@ -123,8 +131,9 @@ class OHLC:
 
         EXAMPLES::
 
-            sage: ohlc = sage.finance.stock.OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
-            sage: ohlc2 = sage.finance.stock.OHLC('18-Aug-04', 101.01, 104.06, 95.96, 100.34, 22353092)
+            sage: from sage.finance.stock import OHLC
+            sage: ohlc = OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
+            sage: ohlc2 = OHLC('18-Aug-04', 101.01, 104.06, 95.96, 100.34, 22353092)
             sage: ohlc != ohlc2
             True
         """
@@ -506,7 +515,7 @@ class Stock:
 
         from .time_series import TimeSeries
 
-        if len(args) != 0:
+        if args:
             return TimeSeries([x.close for x in self.history(*args, **kwds)])
 
         try:
@@ -596,7 +605,7 @@ class Stock:
         for x in reversed(R[1:]):
             try:
                 timestamp, opn, high, low, close, volume = x.split(',')
-                ohlc = OHLC(timestamp, opn,high,low,close,volume)
+                ohlc = OHLC(timestamp, opn, high, low, close, volume)
                 hist_data.append(ohlc)
             except ValueError:
                 pass

@@ -13,8 +13,8 @@ Compute with harmonic cocycles and `p`-adic automorphic forms, including
 overconvergent `p`-adic automorphic forms.
 
 For a discussion of nearly rigid analytic modular forms and
-the rigid analytic Shimura-Maass operator, see [F]_. It is worth also
-looking at [FM]_ for information on how these are implemented in this code.
+the rigid analytic Shimura-Maass operator, see [Fra2011]_. It is worth also
+looking at [FM2014]_ for information on how these are implemented in this code.
 
 EXAMPLES:
 
@@ -38,12 +38,6 @@ This can then be lifted to an overconvergent `p`-adic modular form::
 
     sage: A.lift(a) # long time
     p-adic automorphic form of cohomological weight 0
-
-REFERENCES:
-
-.. [F] Nearly rigid analytic modular forms and their values at CM points
-   Cameron Franc
-   Ph.D. thesis, McGill University, 2011.
 """
 from __future__ import print_function, division
 
@@ -404,11 +398,11 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
             sage: X = BruhatTitsQuotient(3,17)
             sage: H = X.harmonic_cocycles(2,prec=10)
             sage: H.basis()[0]._compute_element()
-            (1 + O(3^10), O(3^10), 0)
+            (1 + O(3^10), 0, 0)
             sage: H.basis()[1]._compute_element()
             (0, 1 + O(3^10), 0)
             sage: H.basis()[2]._compute_element()
-            (0, O(3^10), 1 + O(3^10))
+            (0, 0, 1 + O(3^10))
         """
         R = self._R
         A = self.parent().basis_matrix().transpose()
@@ -954,7 +948,7 @@ class BruhatTitsHarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         A harmonic cocycle in self.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: X = BruhatTitsQuotient(5,23)
             sage: H = X.harmonic_cocycles(2,prec=10)
@@ -1531,7 +1525,7 @@ class pAdicAutomorphicFormElement(ModuleElement):
     automorphic form on a definite quaternion algebra over `\QQ`. These
     are required in order to compute moments of measures associated to
     harmonic cocycles on the Bruhat-Tits tree using the overconvergent modules
-    of Darmon-Pollack and Matt Greenberg. See Greenberg's thesis [G]_ for
+    of Darmon-Pollack and Matt Greenberg. See Greenberg's thesis [Gr2006]_ for
     more details.
 
     INPUT:
@@ -1547,12 +1541,6 @@ class pAdicAutomorphicFormElement(ModuleElement):
         sage: a = HH(h)
         sage: a
         p-adic automorphic form of cohomological weight 0
-
-    REFERENCES:
-
-    .. [G] Heegner points and rigid analytic modular forms
-       Matthew Greenberg
-       Ph.D. Thesis, McGill University, 2006.
 
     AUTHORS:
 
@@ -1727,7 +1715,7 @@ class pAdicAutomorphicFormElement(ModuleElement):
         X = self.parent()._source
         p = self.parent().prime()
         u = DoubleCosetReduction(X, e1)
-        tmp = ((u.t(self.parent()._U.base_ring().precision_cap())) * p ** (u.power)).adjoint()
+        tmp = ((u.t(self.parent()._U.base_ring().precision_cap())) * p ** (u.power)).adjugate()
         S0 = self.parent()._Sigma0
         return S0(tmp, check=False) * self._value[u.label]
         # Warning! Should remove check=False...
@@ -1822,7 +1810,7 @@ class pAdicAutomorphicFormElement(ModuleElement):
 
         REFERENCES:
 
-        For details see [G]_. Alternatively, one can look at
+        For details see [Gr2006]_. Alternatively, one can look at
         [DP]_ for the analogous algorithm in the case of modular symbols.
 
         AUTHORS:
@@ -2626,7 +2614,7 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
                 m = M[ii]
                 for v in Si:
                     s += 1
-                    g = self._Sigma0(m.adjoint() * self._source.embed_quaternion(v[0], prec=self._prec).adjoint() * m,check = False)
+                    g = self._Sigma0(m.adjugate() * self._source.embed_quaternion(v[0], prec=self._prec).adjugate() * m,check = False)
                     newFi += g * x
                 newF.append((QQ(1) / s) * newFi)
             else:
@@ -2671,7 +2659,7 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
             for gg, edge_list in HeckeData:
                 u = edge_list[jj]
                 tprec = 2 * (prec_cap + u.power) + 1
-                r = S0(self._p ** -u.power * (u.t(tprec) * gg).adjoint(),check=False)
+                r = S0(self._p ** -u.power * (u.t(tprec) * gg).adjugate(),check=False)
                 tmp += r * f._value[u.label]
             tmp *= factor
             for ii in range(self._n + 1):

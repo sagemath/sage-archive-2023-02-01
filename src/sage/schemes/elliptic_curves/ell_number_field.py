@@ -75,7 +75,7 @@ REFERENCE:
 """
 from __future__ import absolute_import
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #                          William Stein <wstein@gmail.com>
 #
@@ -83,8 +83,8 @@ from __future__ import absolute_import
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from .ell_field import EllipticCurve_field
 from .ell_generic import is_EllipticCurve
@@ -93,6 +93,7 @@ from .constructor import EllipticCurve
 from sage.rings.all import PolynomialRing, ZZ, QQ, RealField, Integer
 from sage.misc.all import cached_method, verbose, prod, union, flatten
 from six import reraise as raise_
+
 
 class EllipticCurve_number_field(EllipticCurve_field):
     r"""
@@ -134,7 +135,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E = EllipticCurve('11a3')
             sage: K = QuadraticField(-5, 'a')
             sage: E.base_extend(K)
-            Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 over Number Field in a with defining polynomial x^2 + 5
+            Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 over Number Field in a with defining polynomial x^2 + 5 with a = 2.236067977499790?*I
 
         Check that non-torsion points are remembered when extending
         the base field (see :trac:`16034`)::
@@ -880,10 +881,12 @@ class EllipticCurve_number_field(EllipticCurve_field):
         K = self.base_ring()
         ZK = K.maximal_order()
         try:
-            (a1, a2, a3, a4, a6) = [ZK(a) for a in self.a_invariants()]
+            a1, a2, a3, a4, a6 = (ZK(a) for a in self.a_invariants())
         except TypeError:
             import sys
-            raise_(TypeError, "_reduce_model() requires an integral model.", sys.exc_info()[2])
+            raise_(TypeError,
+                   TypeError("_reduce_model() requires an integral model."),
+                   sys.exc_info()[2])
 
         # N.B. Must define s, r, t in the right order.
         if ZK.absolute_degree() == 1:
@@ -2132,7 +2135,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K.<i> = QuadraticField(-1)
             sage: EK = EllipticCurve([0,0,0,i,i+3])
             sage: EK.torsion_subgroup ()
-            Torsion Subgroup isomorphic to Trivial group associated to the Elliptic Curve defined by y^2  = x^3 + i*x + (i+3) over Number Field in i with defining polynomial x^2 + 1
+            Torsion Subgroup isomorphic to Trivial group associated to the Elliptic Curve defined by y^2 = x^3 + i*x + (i+3) over Number Field in i with defining polynomial x^2 + 1 with i = 1*I
         """
         from .ell_torsion import EllipticCurveTorsionSubgroup
         return EllipticCurveTorsionSubgroup(self)
@@ -2639,7 +2642,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K.<i> = QuadraticField(-1)
             sage: E = EllipticCurve(K, [0,0,0,0,1])
             sage: C = E.isogeny_class(); C
-            Isogeny class of Elliptic Curve defined by y^2 = x^3 + 1 over Number Field in i with defining polynomial x^2 + 1
+            Isogeny class of Elliptic Curve defined by y^2 = x^3 + 1 over Number Field in i with defining polynomial x^2 + 1 with i = 1*I
 
         The curves in the class (sorted)::
 
@@ -2693,7 +2696,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K.<i> = QuadraticField(-1)
             sage: E = EllipticCurve([1+i, -i, i, 1, 0])
             sage: C = E.isogeny_class(); C
-            Isogeny class of Elliptic Curve defined by y^2 + (i+1)*x*y + i*y = x^3 + (-i)*x^2 + x over Number Field in i with defining polynomial x^2 + 1
+            Isogeny class of Elliptic Curve defined by y^2 + (i+1)*x*y + i*y = x^3 + (-i)*x^2 + x over Number Field in i with defining polynomial x^2 + 1 with i = 1*I
             sage: len(C)
             6
             sage: C.matrix()
@@ -3350,7 +3353,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             [2, 3]
             sage: E.reducible_primes()
             [2, 3]
-            sage: E = EllipticCurve_from_j(K(2268945/128)).global_minimal_model() # c.f. [Sutherland12]
+            sage: E = EllipticCurve_from_j(K(2268945/128)).global_minimal_model() # c.f. [Sut2012]
             sage: rho = E.galois_representation()
             sage: rho.isogeny_bound() # ... but there is no 7-isogeny ...
             [7]
@@ -3669,7 +3672,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.has_rational_cm(QuadraticField(-20))
             Traceback (most recent call last):
             ...
-            ValueError: Error in has_rational_cm: Number Field in a with defining polynomial x^2 + 20 is not an extension field of Number Field in a with defining polynomial x^2 - 5
+            ValueError: Error in has_rational_cm: Number Field in a with defining polynomial x^2 + 20 with a = 4.472135954999579?*I is not an extension field of Number Field in a with defining polynomial x^2 - 5 with a = 2.236067977499790?
 
             sage: K.<a> = NumberField(x^3 - 2)
             sage: E = EllipticCurve(j=31710790944000*a^2 + 39953093016000*a + 50337742902000)
@@ -3834,6 +3837,14 @@ class EllipticCurve_number_field(EllipticCurve_field):
             ([(-3/4 : -15/8 : 1), (159965/16129 : -67536260/2048383 : 1)],
             45,
             0.152460177943144)
+
+        See :trac:`27387`::
+
+            sage: K.<a> = NumberField(x^2-x-26)
+            sage: E = EllipticCurve([a,1-a,0,93-16*a, 3150-560*a])
+            sage: P = E([65-35*a/3, (959*a-5377)/9])
+            sage: E.saturation([P],one_prime=2)
+            ([(-1/4*a + 3/4 : 59/8*a - 317/8 : 1)], 2, 0.344624259712631)
         """
         full_saturation = (max_prime == 0) and (one_prime == 0)
         Plist = [self(P) for P in points]

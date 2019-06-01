@@ -992,7 +992,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             x^-40 - 4*x^-29 + 6*x^-18 - 4*x^-7 + x^4
         """
         cdef LaurentPolynomial_univariate self = _self
-        cdef long right = long(r)
+        cdef long right = r
         if right != r:
             raise ValueError("exponent must be an integer")
         return self._parent.element_class(self._parent, self.__u**right, self.__n*right)
@@ -2253,8 +2253,8 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
             sage: P.<x,y> = LaurentPolynomialRing(QQ)
             sage: f = (y^2 - x^9 - 7*x*y^3 + 5*x*y)*x^-3
-            sage: list(f) # indirect doctest
-            [(-1, x^6), (1, x^-3*y^2), (5, x^-2*y), (-7, x^-2*y^3)]
+            sage: sorted(f) # indirect doctest
+            [(-7, x^-2*y^3), (-1, x^6), (1, x^-3*y^2), (5, x^-2*y)]
         """
         if self._prod is None:
             self._compute_polydict()
@@ -2276,8 +2276,8 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
             sage: P.<x,y> = LaurentPolynomialRing(QQ)
             sage: f = (y^2 - x^9 - 7*x*y^3 + 5*x*y)*x^-3
-            sage: f.monomials()
-            [x^6, x^-3*y^2, x^-2*y, x^-2*y^3]
+            sage: sorted(f.monomials())
+            [x^-3*y^2, x^-2*y, x^-2*y^3, x^6]
         """
         cdef list L = []
         if self._prod is None:

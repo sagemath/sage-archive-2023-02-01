@@ -254,7 +254,7 @@ class UnitGroup(AbelianGroupWithValues_class):
 
             sage: K.<a> = QuadraticField(-3)
             sage: UK = K.unit_group(); UK
-            Unit group with structure C6 of Number Field in a with defining polynomial x^2 + 3
+            Unit group with structure C6 of Number Field in a with defining polynomial x^2 + 3 with a = 1.732050807568878?*I
             sage: UK.gens()
             (u,)
             sage: UK.gens_values()
@@ -581,9 +581,9 @@ class UnitGroup(AbelianGroupWithValues_class):
         EXAMPLES::
 
             sage: U = UnitGroup(QuadraticField(-23, 'w')); U
-            Unit group with structure C2 of Number Field in w with defining polynomial x^2 + 23
+            Unit group with structure C2 of Number Field in w with defining polynomial x^2 + 23 with w = 4.795831523312720?*I
             sage: U.number_field()
-            Number Field in w with defining polynomial x^2 + 23
+            Number Field in w with defining polynomial x^2 + 23 with w = 4.795831523312720?*I
         """
         return self.__number_field
 
@@ -598,7 +598,7 @@ class UnitGroup(AbelianGroupWithValues_class):
             sage: S = tuple(K.ideal(3).prime_factors()); S
             (Fractional ideal (3, 1/2*a - 1/2), Fractional ideal (3, 1/2*a + 1/2))
             sage: U = UnitGroup(K,S=tuple(S)); U
-            S-unit group with structure C2 x Z x Z of Number Field in a with defining polynomial x^2 + 23 with S = (Fractional ideal (3, 1/2*a - 1/2), Fractional ideal (3, 1/2*a + 1/2))
+            S-unit group with structure C2 x Z x Z of Number Field in a with defining polynomial x^2 + 23 with a = 4.795831523312720?*I with S = (Fractional ideal (3, 1/2*a - 1/2), Fractional ideal (3, 1/2*a + 1/2))
             sage: U.primes() == S
             True
         """

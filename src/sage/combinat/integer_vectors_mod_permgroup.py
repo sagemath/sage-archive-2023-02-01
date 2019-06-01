@@ -583,8 +583,8 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
 
     Here is the enumeration of unlabeled graphs over 5 vertices::
 
-        sage: G = IntegerVectorsModPermutationGroup(TransitiveGroup(10,12), max_part=1) # optional - database_gap
-        sage: G.cardinality()  # optional - database_gap
+        sage: G = IntegerVectorsModPermutationGroup(TransitiveGroup(10,12), max_part=1)
+        sage: G.cardinality()
         34
 
     TESTS::

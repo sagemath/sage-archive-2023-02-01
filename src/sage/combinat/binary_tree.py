@@ -15,14 +15,14 @@ AUTHORS:
 - Florent Hivert (2010-2011): initial implementation.
 - Adrien Boussicault (2015): Hook statistics.
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010 Florent Hivert <Florent.Hivert@univ-rouen.fr>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 # python3
 from __future__ import division, absolute_import
 from six import add_metaclass
@@ -1314,11 +1314,11 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             [[[[]], [[]]], [[]], []]
         """
         close_root = False
-        if(root is None):
+        if root is None:
             from sage.combinat.ordered_tree import OrderedTree
             root = OrderedTree().clone()
             close_root = True
-        if(self):
+        if self:
             left, right = self[0], self[1]
             if bijection == "left":
                 root = left._to_ordered_tree(bijection=bijection, root=root)
@@ -4040,7 +4040,7 @@ def from_tamari_sorting_tuple(key):
 
     - ``key`` -- a tuple of integers
 
-    EXEMPLES::
+    EXAMPLES::
 
         sage: from sage.combinat.binary_tree import from_tamari_sorting_tuple
         sage: t = BinaryTrees(60).random_element()
@@ -4386,6 +4386,7 @@ class FullBinaryTrees_all(DisjointUnionEnumeratedSets, BinaryTrees):
 # Enumerated set of full binary trees of a given size
 #################################################################
 
+
 def _full_construction(n):
     """
     Helper function for the disjoint union construction.
@@ -4404,7 +4405,8 @@ def _full_construction(n):
     """
     if n == 0:
         return FullBinaryTrees_size(0)
-    return FullBinaryTrees_size(2*n-1)
+    return FullBinaryTrees_size(2 * n - 1)
+
 
 class FullBinaryTrees_size(BinaryTrees):
     """
@@ -4483,7 +4485,7 @@ class FullBinaryTrees_size(BinaryTrees):
         if self._size == 0:
             return Integer(1)
         from sage.combinat.combinat import catalan_number
-        return catalan_number((self._size-1) // 2)
+        return catalan_number((self._size - 1) // 2)
 
     def random_element(self):
         r"""
@@ -4506,13 +4508,13 @@ class FullBinaryTrees_size(BinaryTrees):
         TESTS::
 
             sage: B = BinaryTrees(19, full=True)
-            sage: all([B.random_element() in B for i in range(20)])
+            sage: all(B.random_element() in B for i in range(20))
             True
         """
         from sage.combinat.dyck_word import CompleteDyckWords_size
         if self._size == 0:
             return BinaryTree(None)
-        return CompleteDyckWords_size((self._size-1) // 2).random_element().to_binary_tree().to_full()
+        return CompleteDyckWords_size((self._size - 1) // 2).random_element().to_binary_tree().to_full()
 
     def __iter__(self):
         """
@@ -4538,10 +4540,10 @@ class FullBinaryTrees_size(BinaryTrees):
         if self._size == 1:
             yield self._element_constructor_("[.,.]")
         else:
-            k = (self._size - 1) // 2 # number of internal nodes
+            k = (self._size - 1) // 2  # number of internal nodes
             for i in range(k):
-                for lft in FullBinaryTrees_size(2*i+1):
-                    for rgt in FullBinaryTrees_size(2*(k-1-i)+1):
+                for lft in FullBinaryTrees_size(2 * i + 1):
+                    for rgt in FullBinaryTrees_size(2 * (k - 1 - i) + 1):
                         yield self._element_constructor_([lft, rgt])
 
     def _element_constructor_(self, *args, **keywords):

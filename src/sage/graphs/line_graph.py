@@ -466,12 +466,12 @@ def root_graph(g, verbose=False):
         sage: from sage.graphs.line_graph import root_graph
         sage: root_graph(graphs.CompleteGraph(3))
         (Complete bipartite graph of order 1+3: Graph on 4 vertices, {0: (0, 1), 1: (0, 2), 2: (0, 3)})
-        sage: root_graph(graphs.OctahedralGraph())
-        (Complete graph: Graph on 4 vertices, {0: (0, 1), 1: (0, 2), 2: (0, 3), 3: (1, 2), 4: (1, 3), 5: (2, 3)})
-        sage: root_graph(graphs.DiamondGraph())
-        (Graph on 4 vertices, {0: (0, 3), 1: (0, 1), 2: (0, 2), 3: (1, 2)})
-        sage: root_graph(graphs.WheelGraph(5))
-        (Diamond Graph: Graph on 4 vertices, {0: (1, 2), 1: (0, 1), 2: (0, 2), 3: (2, 3), 4: (1, 3)})
+        sage: G, D = root_graph(graphs.OctahedralGraph()); G
+        Complete graph: Graph on 4 vertices
+        sage: G, D = root_graph(graphs.DiamondGraph()); G
+        Graph on 4 vertices
+        sage: G, D = root_graph(graphs.WheelGraph(5)); G
+        Diamond Graph: Graph on 4 vertices
     """
     from sage.graphs.digraph import DiGraph
 

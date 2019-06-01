@@ -59,6 +59,15 @@ def TorsionQuadraticForm(q):
         Finite quadratic module over Integer Ring with invariants (12,)
         Gram matrix of the quadratic form with values in Q/Z:
         [7/12]
+
+    TESTS::
+
+        sage: TorsionQuadraticForm(matrix.diagonal([3/8,3/8,3/4]))
+        Finite quadratic module over Integer Ring with invariants (4, 8, 8)
+        Gram matrix of the quadratic form with values in Q/2Z:
+        [3/4   0   0]
+        [  0 3/8   0]
+        [  0   0 3/8]
     """
     q = matrix(QQ, q)
     if q.nrows() != q.ncols():
@@ -72,7 +81,7 @@ def TorsionQuadraticForm(q):
     Q = FreeQuadraticModule(ZZ, q.ncols(), inner_product_matrix=d**2 * q)
     denoms = [D[i,i].denominator() for i in range(D.ncols())]
     rels = Q.span(diagonal_matrix(ZZ, denoms) * U)
-    return TorsionQuadraticModule((1/d)*Q, (1/d)*rels)
+    return TorsionQuadraticModule((1/d)*Q, (1/d)*rels, modulus=1)
 
 class TorsionQuadraticModuleElement(FGP_Element):
     r"""
@@ -509,6 +518,209 @@ class TorsionQuadraticModule(FGP_Module_class):
             return self.smith_form_gens()
         return self._gens_user
 
+    def genus(self, signature_pair):
+        r"""
+        Return the genus defined by ``self`` and the ``signature_pair``.
+
+        If no such genus exists, raise a ``ValueError``.
+
+        REFERENCES:
+
+        [Nik1977]_ Corollary 1.9.4 and 1.16.3.
+
+        EXAMPLES::
+
+            sage: L = IntegralLattice("D4").direct_sum(IntegralLattice("A2"))
+            sage: D = L.discriminant_group()
+            sage: genus = D.genus(L.signature_pair())
+            sage: genus
+            Genus of
+            None
+            Signature:  (6, 0)
+            Genus symbol at 2:    1^4:2^-2
+            Genus symbol at 3:     1^-5 3^-1
+            sage: genus == L.genus()
+            True
+
+        Let `H` be an even unimodular lattice of signature `(9, 1)`.
+        Then `L = D_4 + A_2` is primitively embedded in `H`. We compute the discriminant
+        form of the orthogonal complement of `L` in `H`::
+
+            sage: DK = D.twist(-1)
+            sage: DK
+            Finite quadratic module over Integer Ring with invariants (2, 6)
+            Gram matrix of the quadratic form with values in Q/2Z:
+            [  1 1/2]
+            [1/2 1/3]
+
+        We know that  `K` has signature `(5, 1)` and thus we can compute
+        the genus of `K` as::
+
+            sage: DK.genus((3,1))
+            Genus of
+            None
+            Signature:  (3, 1)
+            Genus symbol at 2:    1^2:2^-2
+            Genus symbol at 3:     1^-3 3^1
+
+        We can also compute the genus of an odd lattice
+        from its discriminant form::
+
+            sage: L = IntegralLattice(matrix.diagonal(range(1,5)))
+            sage: D = L.discriminant_group()
+            sage: D.genus((4,0))
+            Genus of
+            None
+            Signature:  (4, 0)
+            Genus symbol at 2:    [1^-2 2^1 4^1]_6
+            Genus symbol at 3:     1^-3 3^1
+
+        TESTS::
+
+            sage: L.genus() == D.genus((4,0))
+            True
+            sage: D.genus((1,0))
+            Traceback (most recent call last):
+            ...
+            ValueError: this discriminant form and signature do not define a genus
+
+        A systematic test of lattices of small ranks and determinants::
+
+            sage: from sage.quadratic_forms.genera.genus import genera
+            sage: signatures = [(1,0),(1,1),(1,2),(3,0),(0,4)]
+            sage: dets = range(1,33)
+            sage: genera = flatten([genera(s, d, even=False) for d in dets for s in signatures])    # long time
+            sage: all(g == g.discriminant_form().genus(g.signature_pair()) for g in genera)  # long time
+            True
+            """
+        from sage.quadratic_forms.genera.genus import (Genus_Symbol_p_adic_ring,
+                                                       GenusSymbol_global_ring,
+                                                       p_adic_symbol,
+                                                       is_GlobalGenus,
+                                                       _blocks)
+        from sage.misc.misc_c import prod
+        s_plus = signature_pair[0]
+        s_minus = signature_pair[1]
+        rank = s_plus + s_minus
+        if len(self.invariants()) > rank:
+            raise ValueError("this discriminant form and " +
+                             "signature do not define a genus")
+        disc = self.cardinality()
+        determinant = (-1)**s_minus * disc
+        local_symbols = []
+        for p in (2*disc).prime_divisors():
+            D = self.primary_part(p)
+            if len(D.invariants()) != 0:
+                G_p = D.gram_matrix_quadratic().inverse()
+                # get rid of denominators without changing the local equivalence class
+                G_p *= G_p.denominator()**2
+                G_p = G_p.change_ring(ZZ)
+                local_symbol = p_adic_symbol(G_p, p, D.invariants()[-1].valuation(p))
+            else:
+                local_symbol = []
+
+            rk = rank - len(D.invariants())
+            if rk > 0:
+                if p == 2:
+                    det = determinant.prime_to_m_part(2)
+                    det *= prod([di[2] for di in local_symbol])
+                    det = det % 8
+                    local_symbol.append([ZZ(0), rk, det, ZZ(0), ZZ(0)])
+                else:
+                    det = legendre_symbol(determinant.prime_to_m_part(p),p)
+                    det = (det * prod([di[2] for di in local_symbol]))
+                    local_symbol.append([ZZ(0), rk, det])
+            local_symbol.sort()
+            local_symbol = Genus_Symbol_p_adic_ring(p, local_symbol)
+            local_symbols.append(local_symbol)
+
+        # This genus has the right discriminant group
+        # but it may be empty
+        genus = GenusSymbol_global_ring(signature_pair, local_symbols)
+        sym2 = local_symbols[0].symbol_tuple_list()
+
+        if sym2[0][0] != 0:
+            sym2 = [[ZZ(0), ZZ(0), ZZ(1), ZZ(0), ZZ(0)]] + sym2
+        if len(sym2) <= 1 or sym2[1][0] != 1:
+            sym2 = sym2[:1] + [[ZZ(1), ZZ(0), ZZ(1) , ZZ(0), ZZ(0)]] + sym2[1:]
+        if len(sym2) <= 2 or sym2[2][0] != 2:
+            sym2 = sym2[:2] + [[ZZ(2), ZZ(0), ZZ(1) , ZZ(0), ZZ(0)]] + sym2[2:]
+
+        if self.value_module_qf().n == 1:
+            # in this case the blocks of scales 1, 2, 4 are under determined
+            # make sure the first 3 symbols are of scales 1, 2, 4
+            # i.e. their valuations are 0, 1, 2
+
+            # the form is odd
+            block0 = [b for b in _blocks(sym2[0]) if b[3] == 1]
+
+            o = sym2[1][3]
+            # no restrictions on determinant and
+            # oddity beyond existence
+            # but we know if even or odd
+            block1 = [b for b in _blocks(sym2[1]) if b[3] == o]
+
+
+            d = sym2[2][2]
+            o = sym2[2][3]
+            t = sym2[2][4]
+            # if the jordan block of scale 2 is even we know it
+            if o == 0:
+                block2 = [sym2[2]]
+            # if it is odd we know det and oddity mod 4 at least
+            else:
+                block2 = [b for b in _blocks(sym2[2])
+                          if b[3] == o
+                          and (b[2] - d) % 4 == 0
+                          and (b[4] - t) % 4 == 0
+                          and (b[2] - d) % 8 == (b[4] - t) % 8 # if the oddity is altered by 4 then so is the determinant
+                         ]
+        elif self.value_module_qf().n == 2:
+            # the form is even
+            block0 = [b for b in _blocks(sym2[0]) if b[3] == 0]
+
+            # if the jordan block of scale 2 is even we know it
+            d = sym2[1][2]
+            o = sym2[1][3]
+            t = sym2[1][4]
+            if o == 0:
+                block1 = [sym2[1]]
+            else:
+                # the block is odd and we know det and oddity mod 4
+                block1 = [b for b in _blocks(sym2[1])
+                          if b[3] == o
+                          and (b[2] - d) % 4 == 0
+                          and (b[4] - t) % 4 == 0
+                          and (b[2] - d) % 8 == (b[4] - t) % 8 # if the oddity is altered by 4 then so is the determinant
+                         ]
+            # this is completely determined
+            block2 = [sym2[2]]
+        else:
+            raise ValueError("this is not a discriminant form")
+
+        # figure out which symbol defines a genus and return that
+        for b0 in block0:
+            for b1 in block1:
+                for b2 in block2:
+                    sym2[:3] = [b0, b1, b2]
+                    local_symbols[0] = Genus_Symbol_p_adic_ring(2, sym2)
+                    genus = GenusSymbol_global_ring(signature_pair, local_symbols)
+                    if is_GlobalGenus(genus):
+                        # make the symbol sparse again.
+                        i = 0
+                        k = 0
+                        while i < 3:
+                            if sym2[k][1] == 0:
+                                sym2.pop(k)
+                            else:
+                                k = k + 1
+                            i = i + 1
+                        local_symbols[0] = Genus_Symbol_p_adic_ring(2, sym2)
+                        genus = GenusSymbol_global_ring(signature_pair, local_symbols)
+                        return genus
+        raise ValueError("this discriminant form and signature do not define a genus")
+
+
     def is_genus(self, signature_pair, even=True):
         r"""
         Return ``True`` if there is a lattice with this signature and discriminant form.
@@ -557,7 +769,7 @@ class TorsionQuadraticModule(FGP_Module_class):
             raise NotImplementedError("at the moment sage knows how to do this only for even genera. " +
                                       " Help us to implement this for odd genera.")
         for p in D.prime_divisors():
-            # check the determinat conditions
+            # check the determinant conditions
             Q_p = self.primary_part(p)
             gram_p = Q_p.gram_matrix_quadratic()
             length_p = len(Q_p.invariants())

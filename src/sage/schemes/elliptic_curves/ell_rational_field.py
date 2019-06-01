@@ -73,7 +73,6 @@ from sage.lfunctions.zero_sums import LFunctionZeroSum_EllipticCurve
 
 import sage.modular.modform.constructor
 import sage.modular.modform.element
-import sage.libs.eclib.all as mwrank
 import sage.databases.cremona
 
 import sage.arith.all as arith
@@ -791,8 +790,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             return self.__mwrank_curve
         except AttributeError:
             pass
-        self.__mwrank_curve = mwrank.mwrank_EllipticCurve(
-            list(self.ainvs()), verbose=verbose)
+        from sage.libs.eclib.all import mwrank_EllipticCurve
+        self.__mwrank_curve = mwrank_EllipticCurve(self.ainvs(), verbose=verbose)
         return self.__mwrank_curve
 
     def two_descent(self, verbose=True,
@@ -1554,7 +1553,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         by ``max_Delta``. This computation can be run on curves with very large
         conductor (so long as the conductor is known or quickly computable)
         when `\Delta` is not too large (see below).
-        Uses Bober's rank bounding method as described in [Bob13]_.
+        Uses Bober's rank bounding method as described in [Bob2013]_.
 
         INPUT:
 
@@ -1734,12 +1733,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.analytic_rank_upper_bound(max_Delta=2.37,adaptive=False, # long time
             ....: N=N,root_number=1,bad_primes=bad_primes,ncpus=2)           # long time
             32
-
-        REFERENCES:
-
-        .. [Bob13] \J.W. Bober. Conditionally bounding analytic ranks of elliptic curves.
-           ANTS 10. http://msp.org/obs/2013/1-1/obs-v1-n1-p07-s.pdf
-
         """
         Z = LFunctionZeroSum_EllipticCurve(self, N)
         bound = Z.analytic_rank_upper_bound(max_Delta=max_Delta,
@@ -2599,7 +2592,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             v.append((x*d, y*d, d))
 
         c = Emin.mwrank_curve()
-        mw = mwrank.mwrank_MordellWeil(c, verbose)
+        from sage.libs.eclib.all import mwrank_MordellWeil
+        mw = mwrank_MordellWeil(c, verbose)
         mw.process(v)
         repeat_until_saturated = False
         if max_prime == 0:
@@ -2664,7 +2658,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         IMPLEMENTATION:
 
         Call the corresponding mwrank C++ library function.  Note that
-        the formula in the [CPS]_ paper is given for number fields.  It is
+        the formula in the [CPS2006]_ paper is given for number fields.  It is
         only the implementation in Sage that restricts to the rational
         field.
         """
@@ -3360,7 +3354,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         on the class group of `K`, one gets `L_K(E,\chi,s) = \sum_{A} \chi(A) L(E,A,s)`
         where `A` runs through the class group of `K`.
 
-        For the exact definition see section IV of [GrossZagier]_.
+        For the exact definition see section IV of [GZ1986]_.
 
         EXAMPLES::
 
@@ -3381,11 +3375,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             0.502803417587467
             sage: E.lseries()(2) * E.quadratic_twist(-40).lseries()(2)
             0.502803417587467
-
-        REFERENCES:
-
-        .. [GrossZagier] \B. Gross and D. Zagier, *Heegner points and
-           derivatives of L-series.* Invent. Math. 84 (1986), no. 2, 225-320.
         """
         try:
             return self.__lseries_gross_zagier[A]
@@ -5355,55 +5344,55 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: e.ordinary_primes(1)
             []
         """
-        v = self.aplist(max(B, 3) )
-        P = rings.prime_range(max(B,3) +1)
-        return [P[i] for i in [0,1] if P[i] <= B and v[i]%P[i]!=0] +\
-               [P[i] for i in range(2,len(v)) if v[i] != 0]
+        v = self.aplist(max(B, 3))
+        P = rings.prime_range(max(B, 3) + 1)
+        result = [P[i] for i in [0, 1] if P[i] <= B and v[i] % P[i]]
+        result += [P[i] for i in range(2, len(v)) if v[i] != 0]
+        return result
 
-    def eval_modular_form(self, points, prec):
+    def eval_modular_form(self, points, order):
         r"""
         Evaluate the modular form of this elliptic curve at points in `\CC`.
 
         INPUT:
 
+        -  ``points`` -- a list of points in the upper half-plane
 
-        -  ``points`` - a list of points in the half-plane of
-           convergence
+        -  ``order`` -- a nonnegative integer
 
-        -  ``prec`` - precision
+        The ``order`` parameter is the number of terms used in the summation.
 
-
-        OUTPUT: A list of values L(E,s) for s in points
-
-        .. note::
-
-           Better examples are welcome.
+        OUTPUT: A list of values for `s` in ``points``
 
         EXAMPLES::
 
             sage: E = EllipticCurve('37a1')
-            sage: E.eval_modular_form([1.5+I,2.0+I,2.5+I],0.000001)
-            [0, 0, 0]
+            sage: E.eval_modular_form([1.5+I,2.0+I,2.5+I],100) # abs tol 1e-20
+            [-0.0018743978548152085771342944989052703431,
+             0.0018604485340371083710285594393397945456,
+            -0.0018743978548152085771342944989052703431]
+
+            sage: E.eval_modular_form(2.1+I, 100) # abs tol 1e-20
+            [0.00150864362757267079 + 0.00109100341113449845*I]
         """
         if not isinstance(points, list):
             try:
                 points = list(points)
             except TypeError:
-                return self.eval_modular_form([points], prec)
-        an = self.pari_mincurve().ellan(prec)
+                return self.eval_modular_form([points], order)
+        an = self.pari_mincurve().ellan(order)
         s = 0
         c = pari('2 * Pi * I')
         ans = []
         for z in points:
             s = pari(0)
-            r0 = (c*z).exp()
+            r0 = (c * z).exp()
             r = r0
-            for n in range(1, prec):
-                s += an[n-1]*r
+            for n in range(1, order + 1):
+                s += an[n - 1] * r
                 r *= r0
             ans.append(s.sage())
         return ans
-
 
     ########################################################################
     # The Tate-Shafarevich group
@@ -6188,7 +6177,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: [len(e.S_integral_points([2], both_signs=False)) for e in cremona_curves([11..100])] # long time (17s on sage.math, 2011)
             [2, 0, 2, 3, 3, 1, 3, 1, 3, 5, 3, 5, 4, 1, 1, 2, 2, 2, 3, 1, 2, 1, 0, 1, 3, 3, 1, 1, 5, 3, 4, 2, 1, 1, 5, 3, 2, 2, 1, 1, 1, 0, 1, 3, 0, 1, 0, 1, 1, 3, 7, 1, 3, 3, 3, 1, 1, 2, 3, 1, 2, 3, 1, 2, 1, 3, 3, 1, 1, 1, 0, 1, 3, 3, 1, 1, 7, 1, 0, 1, 1, 0, 1, 2, 0, 3, 1, 2, 1, 3, 1, 2, 2, 4, 5, 3, 2, 1, 1, 6, 1, 0, 1, 3, 1, 3, 3, 1, 1, 1, 1, 1, 3, 1, 5, 1, 2, 4, 1, 1, 1, 1, 1, 0, 1, 0, 2, 2, 0, 0, 1, 0, 1, 1, 6, 1, 0, 1, 1, 0, 4, 3, 1, 2, 1, 2, 3, 1, 1, 1, 1, 8, 3, 1, 2, 1, 2, 0, 8, 2, 0, 6, 2, 3, 1, 1, 1, 3, 1, 3, 2, 1, 3, 1, 2, 1, 6, 9, 3, 3, 1, 1, 2, 3, 1, 1, 5, 5, 1, 1, 0, 1, 1, 2, 3, 1, 1, 2, 3, 1, 3, 1, 1, 1, 1, 0, 0, 1, 3, 3, 1, 3, 1, 1, 2, 2, 0, 0, 6, 1, 0, 1, 1, 1, 1, 3, 1, 2, 6, 3, 1, 2, 2, 1, 1, 1, 1, 7, 5, 4, 3, 3, 1, 1, 1, 1, 1, 1, 8, 5, 1, 1, 3, 3, 1, 1, 3, 3, 1, 1, 2, 3, 6, 1, 1, 7, 3, 3, 4, 5, 9, 6, 1, 0, 7, 1, 1, 3, 1, 1, 2, 3, 1, 2, 1, 1, 1, 1, 1, 1, 1, 7, 8, 2, 3, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1]
 
-        An example from [PZGH]_::
+        An example from [PZGH1999]_::
 
             sage: E = EllipticCurve([0,0,0,-172,505])
             sage: E.rank(), len(E.S_integral_points([3,5,7]))  # long time (5s on sage.math, 2011)
@@ -6208,12 +6197,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             (2711 : 139828 : 1),
             (7323 : 623052 : 1),
             (17687 : 2343476 : 1)]
-
-        REFERENCES:
-
-        .. [PZGH] Petho A., Zimmer H.G., Gebel J. and Herrmann E.,
-           Computing all S-integral points on elliptic curves
-           Math. Proc. Camb. Phil. Soc. (1999), 127, 383-402
 
         - Some parts of this implementation are partially based on the
           function integral_points()

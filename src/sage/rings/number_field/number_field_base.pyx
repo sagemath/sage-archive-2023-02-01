@@ -36,6 +36,15 @@ from sage.rings.ring cimport Field
 cdef class NumberField(Field):
     r"""
     Base class for all number fields.
+
+    TESTS::
+
+        sage: z = polygen(QQ)
+        sage: K.<theta, beta> = NumberField([z^3 - 3, z^2 + 1])
+        sage: K.is_finite()
+        False
+        sage: K.order()
+        +Infinity
     """
     # This token docstring is mostly there to prevent Sphinx from pasting in
     # the docstring of the __init__ method inherited from IntegralDomain, which
@@ -52,12 +61,12 @@ cdef class NumberField(Field):
             sage: cm.explain(K,L,operator.add)
             Coercion on left operand via
                 Generic morphism:
-                  From: Number Field in a with defining polynomial x^2 - 3
+                  From: Number Field in a with defining polynomial x^2 - 3 with a = 1.732050807568878?
                   To:   Algebraic Real Field
                   Defn: a -> 1.732050807568878?
             Coercion on right operand via
                 Generic morphism:
-                  From: Number Field in b with defining polynomial x^2 - 2
+                  From: Number Field in b with defining polynomial x^2 - 2 with b = 1.414213562373095?
                   To:   Algebraic Real Field
                   Defn: b -> 1.414213562373095?
             Arithmetic performed after coercions.
@@ -119,21 +128,6 @@ cdef class NumberField(Field):
             Maximal Order in Number Field in b with defining polynomial x^3 - 2
         """
         raise NotImplementedError
-
-    def is_finite(self):
-        """
-        Return False since number fields are not finite.
-
-        EXAMPLES::
-
-            sage: z = polygen(QQ)
-            sage: K.<theta, beta> = NumberField([z^3 - 3, z^2 + 1])
-            sage: K.is_finite()
-            False
-            sage: K.order()
-            +Infinity
-        """
-        return False
 
     def is_absolute(self):
         """

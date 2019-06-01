@@ -146,6 +146,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             def next_level(wt):
                 return [wt + la for la in fw if self.level(wt + la) <= k]
             B = list(RecursivelyEnumeratedSet([self._space.zero()], next_level))
+            B = [self._space.from_vector_notation(wt, style=style) for wt in B]
         else:
             B = self._space
 
@@ -194,7 +195,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             sage: A2.lift_on_basis(v)
             2*a2(1,1,1) + a2(1,2,0) + a2(1,0,2) + a2(2,1,0) + a2(2,0,1) + a2(0,1,2) + a2(0,2,1)
 
-        This is consistent with the analoguous calculation with symmetric
+        This is consistent with the analogous calculation with symmetric
         Schur functions::
 
             sage: s = SymmetricFunctions(QQ).s()
@@ -1220,16 +1221,20 @@ class WeylCharacterRing(CombinatorialFreeModule):
                        for k in d)
 
         def highest_weight(self):
-            """
-            This method is only available for basis elements. Returns the
-            parametrizing dominant weight of an irreducible character or
-            simple element of a FusionRing.
+            r"""
+            Return the parametrizing dominant weight of an irreducible
+            character or simple element of a FusionRing.
 
-            Examples::
+            This method is only available for basis elements.
 
-                 sage: G2 = WeylCharacterRing("G2",style="coroots")
-                 sage: [x.highest_weight() for x in [G2(1,0),G2(0,1)]]
-                 [(1, 0, -1), (2, -1, -1)]
+            EXAMPLES::
+
+                sage: G2 = WeylCharacterRing("G2", style="coroots")
+                sage: [x.highest_weight() for x in [G2(1,0),G2(0,1)]]
+                [(1, 0, -1), (2, -1, -1)]
+                sage: A21 = FusionRing("A2",1)
+                sage: [x.highest_weight() for x in A21.basis()]
+                [(0, 0, 0), (1/3, 1/3, -2/3), (2/3, -1/3, -1/3)]
             """
             if len(self.monomial_coefficients()) != 1:
                 raise ValueError("fusion weight is valid for basis elements only")

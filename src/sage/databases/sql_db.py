@@ -949,7 +949,7 @@ class SQLDatabase(SageObject):
             sage: for i in range(2, 5):
             ....:     labels[i] = []
             ....:     for g in all_labeled_graphs(i):
-            ....:         g = g.canonical_label()
+            ....:         g = g.canonical_label(algorithm='sage')
             ....:         if g not in labels[i]:
             ....:             labels[i].append(g)
             ....:             D.add_row('simon', (g.graph6_string(), g.order(), g.size()))

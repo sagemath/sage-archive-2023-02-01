@@ -210,7 +210,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
         """
         cat = None
         if self._implementation == 'NTL' and R == QQ:
-            # Want to use DefaultConvertMap
+            # Want to use DefaultConvertMap_unique
             return None
         if isinstance(R, pAdicExtensionGeneric) and R.prime() == self.prime() and R.defining_polynomial(exact=True) == self.defining_polynomial(exact=True):
             if R.is_field() and not self.is_field():

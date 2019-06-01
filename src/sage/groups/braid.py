@@ -51,7 +51,8 @@ AUTHORS:
 - Robert Lipshitz
 - Thierry Monteil: add a ``__hash__`` method consistent with the word
   problem to ensure correct Cayley graph computations.
-- Sebastian Oehms (July 2018): add other versions for burau_matrix (unitary + wikipedia)
+- Sebastian Oehms (July and Nov 2018): add other versions for
+  burau_matrix (unitary + simple, see :trac:`25760` and :trac:`26657`)
 """
 
 ##############################################################################
@@ -230,18 +231,18 @@ class Braid(FiniteTypeArtinGroupElement):
 
             sage: M, Madj, H = b.burau_matrix(reduced='unitary')
             sage: M
-            [  1 - t^2 -t^-1 + t      -t^2]  
-            [     t^-1 -t^-2 + 1        -t]
-            [     t^-2     -t^-3         0]
-            sage: Madj
             [-t^-2 + 1         t       t^2]
             [ t^-1 - t   1 - t^2      -t^3]
             [    -t^-2     -t^-1         0]
+            sage: Madj
+            [  1 - t^2 -t^-1 + t      -t^2]
+            [     t^-1 -t^-2 + 1        -t]
+            [     t^-2     -t^-3         0]
             sage: H
             [t^-1 + t       -1        0]
             [      -1 t^-1 + t       -1]
             [       0       -1 t^-1 + t]
-            sage: Madj * H * M == H
+            sage: M * H * Madj == H
             True
 
         REFERENCES:
@@ -316,11 +317,16 @@ class Braid(FiniteTypeArtinGroupElement):
                 raise ValueError("invalid reduced type")
 
             if reduced == "unitary":
+                # note: the roles of Madj and M are exchanged with respect
+                # to the Squier paper in order to match the convention in
+                # sage for instance in :meth:`_check_matrix` of
+                # :class:`UnitaryMatrixGroup_generic`
+
                 t_sq = R.hom([t**2], codomain=R)
-                M = matrix(R, n-1, n-1, lambda i, j: t**(j-i) * t_sq(M[i,j]))
+                Madj = matrix(R, n-1, n-1, lambda i, j: t**(j-i) * t_sq(M[i,j]))
 
                 t_inv = R.hom([t**(-1)], codomain=R)
-                Madj = matrix(R, n-1, n-1, lambda i, j: t_inv(M[j,i]))
+                M = matrix(R, n-1, n-1, lambda i, j: t_inv(Madj[j,i]))
 
                 # We see if the hermitian form has been cached
                 #   in the parent
@@ -917,7 +923,7 @@ class Braid(FiniteTypeArtinGroupElement):
         If ``skein_normalization`` if ``False``, this returns an element
         in the symbolic ring as the Jones polynomial of the closure might
         have fractional powers when the closure of the braid is not a knot.
-        Otherwise the result is a Laurant polynomial in ``variab``.
+        Otherwise the result is a Laurent polynomial in ``variab``.
 
         EXAMPLES:
 
@@ -2333,7 +2339,7 @@ class MappingClassGroupAction(Action):
         """
         t = x.Tietze()
         for j in b.Tietze():
-            s=[]
+            s = []
             for i in t:
                 if j==i and i>0:
                     s += [i, i+1, -i]
@@ -2355,4 +2361,3 @@ class MappingClassGroupAction(Action):
                     s += [i]
             t = s
         return self.codomain()(t)
-

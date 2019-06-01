@@ -16,7 +16,7 @@ AUTHORS:
     Smooth triangles using vertex normals
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #      Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -28,11 +28,12 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import
 
 from textwrap import dedent
+from sage.misc.superseded import deprecation
 
 from libc.math cimport isfinite, INFINITY
 from libc.string cimport memset, memcpy
@@ -382,8 +383,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             for j in range(face.n):
                 v = face.vertices[j]
                 if point_map[v] == -1:
-                    pt = &self.vs[v]
-                    if isfinite(pt.x) and isfinite(pt.y) and isfinite(pt.z):
+                    if point_c_isfinite(self.vs[v]):
                         point_map[v] = nv
                         nv += 1
                     else:
@@ -864,7 +864,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             try:
                 count = part_counts[part]
             except KeyError:
-                part_counts[part] = count = [0,0]
+                part_counts[part] = count = [0, 0]
             count[0] += 1
             count[1] += face.n
         all = {}
@@ -997,7 +997,7 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         if self.global_texture:
             color_str = '"#{}"'.format(self.texture.hex_rgb())
-            return ['{{"vertices":{}, "faces":{}, "color":{}, "opacity":{}}}'.format(
+            json = ['{{"vertices":{}, "faces":{}, "color":{}, "opacity":{}}}'.format(
                     vertices_str, faces_str, color_str, opacity)]
         else:
             color_str = "[{}]".format(",".join(['"{}"'.format(
@@ -1005,8 +1005,13 @@ cdef class IndexFaceSet(PrimitiveObject):
                           self._faces[i].color.g,
                           self._faces[i].color.b).html_color())
                                             for i from 0 <= i < self.fcount]))
-            return ['{{"vertices":{}, "faces":{}, "face_colors":{}, "opacity":{}}}'.format(
+            json = ['{{"vertices":{}, "faces":{}, "face_colors":{}, "opacity":{}}}'.format(
                     vertices_str, faces_str, color_str, opacity)]
+
+        if self._extra_kwds.get('threejs_flat_shading', False):
+            json[0] = json[0][:-1] + ', "useFlatShading": true}'
+
+        return json
 
     def obj_repr(self, render_params):
         """
@@ -1317,7 +1322,7 @@ cdef class EdgeIter:
                         return ((P.x, P.y, P.z), (Q.x, Q.y, Q.z))
                 else:
                     if point_c_cmp(P, Q) > 0:
-                        P,Q = Q,P
+                        P, Q = Q, P
                     edge = ((P.x, P.y, P.z), (Q.x, Q.y, Q.z))
                     if not edge in self.seen:
                         self.seen[edge] = edge
@@ -1355,12 +1360,18 @@ def len3d(v):
     """
     Return the norm of a vector in three dimensions.
 
+    This is deprecated since :trac:`27450` .
+
     EXAMPLES::
 
         sage: from sage.plot.plot3d.index_face_set import len3d
         sage: len3d((1,2,3))
+        doctest:warning...:
+        DeprecationWarning: len3d is deprecated, use point_c_len instead
+        See https://trac.sagemath.org/27450 for details.
         3.7416573867739413
     """
+    deprecation(27450, "len3d is deprecated, use point_c_len instead")
     return sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2])
 
 

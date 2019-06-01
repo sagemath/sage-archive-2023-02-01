@@ -76,14 +76,14 @@ AUTHORS:
 
 """
 
-#***********************************************************************
+# **********************************************************************
 #       Copyright (C) 2017 Karim Van Aelst <karim.van-aelst@obspm.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#***********************************************************************
+#                  https://www.gnu.org/licenses/
+# **********************************************************************
 
 from __future__ import print_function
 from sage.symbolic.expression import Expression
@@ -1339,8 +1339,8 @@ class IntegratedCurve(DifferentiableCurve):
                              "of the chart domain; a curve with a " +
                              "smaller maximal value of the curve " +
                              "parameter, or a smaller initial tangent "+
-                             "vector might be considered. You can also try"+
-                             "'solve_across_charts' in order to not be"+
+                             "vector, might be considered. You can also try "+
+                             "'solve_across_charts' in order not to be "+
                              "confined to a single chart")
         else:
             self._solutions[solution_key] = coords_sol
@@ -1715,7 +1715,7 @@ class IntegratedCurve(DifferentiableCurve):
                             # unfortunately building the tangent space is too
                             # slow, so we have to cheat a little and apply the
                             # change of frame manually (with a precompiled
-                            # fonction)
+                            # function)
 
                             new_vel = self._fast_changes_of_frame[(new_chart.frame().restrict(inter),
                                chart.frame().restrict(inter))](last_pts, last_vel)
@@ -2612,11 +2612,11 @@ class IntegratedCurve(DifferentiableCurve):
                     transf = {}
                     required_coords = set()
                     for pc in ambient_coords:
-                        j = chart[:].index(pc)
+                        jpc = chart[:].index(pc)
                         AUX = mapping._coord_expression[chart_pair]
                         # 'AUX' used only for the lines of source code
                         # to be shorter
-                        transf[pc] = AUX.expr()[j]
+                        transf[pc] = AUX.expr()[jpc]
                         AUX2 = transf[pc].variables() # idem
                         required_coords=required_coords.union(AUX2)
                     break
@@ -2949,7 +2949,7 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
         d(Dph)/dt = -Dph*Dth*cos(th)/sin(th)
         <BLANKLINE>
 
-    Set a dictionnary providing the parameter range and the initial
+    Set a dictionary providing the parameter range and the initial
     conditions for a line of latitude and a line of longitude::
 
         sage: dict_params={'latit':{tmin:0,tmax:3,th0:pi/4,ph0:0.1,v_th0:0,v_ph0:1},
@@ -2964,7 +2964,7 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
          (S^2, (xi, ze))
 
     Ask for the identity map in terms of these charts in order to add
-    this coordinate change to its dictionnary of expressions. This is
+    this coordinate change to its dictionary of expressions. This is
     required to plot the curve with respect to the Mercator chart::
 
         sage: identity = S2.identity_map()
@@ -3221,12 +3221,12 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
         ....:                                             name='c_loxo')
 
     Ask for the expression of the loxodrome in terms of the Mercator
-    chart in order to add it to its dictionnary of expressions.
+    chart in order to add it to its dictionary of expressions.
     It is a particularly long expression, and there is no particular
     need to diplay it, which is why it may simply be affected to an
     arbitrary variable ``expr_mercator``, which will never be used
     again.
-    But adding the expression to the dictionnary is required to plot the
+    But adding the expression to the dictionary is required to plot the
     curve with respect to the Mercator chart::
 
         sage: expr_mercator = c_loxo.expression(chart2=mercator)
@@ -3680,7 +3680,7 @@ class IntegratedGeodesic(IntegratedAutoparallelCurve):
         d(Dph)/dt = -2*Dph*Dth*cos(th)/sin(th)
         <BLANKLINE>
 
-    Set a dictionnary providing the parameter range and the initial
+    Set a dictionary providing the parameter range and the initial
     conditions for various geodesics::
 
         sage: dict_params={'equat':{tmin:0,tmax:3,th0:pi/2,ph0:0.1,v_th0:0,v_ph0:1},

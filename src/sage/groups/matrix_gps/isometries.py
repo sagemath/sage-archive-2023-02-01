@@ -30,16 +30,15 @@ AUTHORS:
 - Simon Brandhorst (2018-02): First created
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2018 Simon Brandhorst <sbrandhorst@web.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from sage.misc.cachefunc import cached_method
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGroup_gap
 from sage.categories.action import Action
 
@@ -237,7 +236,7 @@ class GroupOfIsometries(FinitelyGeneratedMatrixGroup_gap):
             if is_FGP_Module(S):
                 if S.is_submodule(T):
                     V = S.V()
-                    if all([V==V*f.matrix() for f in self.gens()]):
+                    if all(V == V * f.matrix() for f in self.gens()):
                         return GroupActionOnQuotientModule(self, S)
         return None
 

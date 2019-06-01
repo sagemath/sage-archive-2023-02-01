@@ -16080,18 +16080,18 @@ class GenericGraph(GenericGraph_pyx):
             listA.append(path1)
             prev_path = path1
 
-            exclude_vertices = []
-            exclude_edges = []
+            exclude_vertices = set()
+            exclude_edges = set()
             for i in range(1, len(prev_path)): # deviating from the previous path to find the candidate paths
                 root = prev_path[:i] # root part of the previous path
                 root_length = length_func(root)
                 for path in listA:
                     if path[:i] == root:
                         if self.is_directed():
-                            exclude_edges.append((path[i - 1], path[i]))
+                            exclude_edges.add((path[i - 1], path[i]))
                         else:
-                            exclude_edges.append((path[i - 1], path[i]))
-                            exclude_edges.append((path[i], path[i - 1]))
+                            exclude_edges.add((path[i - 1], path[i]))
+                            exclude_edges.add((path[i], path[i - 1]))
                 try:
                     if by_weight is True:
                         # finding the spur part of the path after excluding certain vertices and edges
@@ -16114,7 +16114,7 @@ class GenericGraph(GenericGraph_pyx):
                         heap_paths.add(hash_path)
                 except Exception:
                     pass
-                exclude_vertices.append(root[-1])
+                exclude_vertices.add(root[-1])
 
     def triangles_count(self, algorithm=None):
         r"""

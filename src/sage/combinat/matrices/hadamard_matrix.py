@@ -67,6 +67,7 @@ from sage.matrix.constructor import identity_matrix as I
 from sage.matrix.constructor import ones_matrix     as J
 from sage.misc.unknown import Unknown
 
+
 def normalise_hadamard(H):
     """
     Return the normalised Hadamard matrix corresponding to ``H``.
@@ -76,15 +77,16 @@ def normalise_hadamard(H):
 
     EXAMPLES::
 
-        sage: H = sage.combinat.matrices.hadamard_matrix.normalise_hadamard(hadamard_matrix(4))
+        sage: from sage.combinat.matrices.hadamard_matrix import normalise_hadamard
+        sage: H = normalise_hadamard(hadamard_matrix(4))
         sage: H == hadamard_matrix(4)
         True
     """
     for i in range(H.ncols()):
-        if H[0,i] < 0:
+        if H[0, i] < 0:
             H.rescale_col(i, -1)
     for i in range(H.nrows()):
-        if H[i,0] < 0:
+        if H[i, 0] < 0:
             H.rescale_row(i, -1)
     return H
 

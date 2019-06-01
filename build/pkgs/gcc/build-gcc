@@ -58,6 +58,15 @@ if [ -n "$LD" -a "$LD" != "ld" ]; then
     CONFIGURE_LD="--with-ld=$LD"
 fi
 
+# Trac #27907: Find location of crti.o
+CRTI=$(${CC:-gcc} -print-file-name=crti.o 2>/dev/null || true)
+if [ -n "$CRTI" ]; then
+    CRTI_DIR=$(dirname -- "$CRTI")
+    if [ -n "$CRTI_DIR" -a "$CRTI_DIR" != "." ]; then
+        export LIBRARY_PATH="$CRTI_DIR:$LIBRARY_PATH"
+    fi
+fi
+
 ../src/configure \
     --prefix="$SAGE_LOCAL" \
     --with-local-prefix="$SAGE_LOCAL" \

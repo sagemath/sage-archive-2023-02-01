@@ -15999,6 +15999,21 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(g.yen_k_shortest_simple_paths(1, 6))
             [[1, 6], [1, 2, 5, 6], [1, 3, 5, 6], [1, 4, 5, 6]]
 
+        TESTS::
+
+            sage: g = Graph([(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 2), (5, 6, 100), (4, 7, 3), (7, 6, 4), (3, 8, 5), (8, 9, 2), (9, 6, 2), (9, 10, 7), (9, 11, 10), (11, 6, 8), (10, 6, 2)])
+            sage: list(g.yen_k_shortest_simple_paths(1, 6, by_weight=True))
+            [[1, 2, 3, 4, 7, 6],
+             [1, 2, 3, 8, 9, 6],
+             [1, 2, 3, 8, 9, 10, 6],
+             [1, 2, 3, 8, 9, 11, 6],
+             [1, 2, 3, 4, 5, 6]]
+            sage: list(g.yen_k_shortest_simple_paths(1, 6))
+            [[1, 2, 3, 4, 5, 6],
+             [1, 2, 3, 4, 7, 6],
+             [1, 2, 3, 8, 9, 6],
+             [1, 2, 3, 8, 9, 10, 6],
+             [1, 2, 3, 8, 9, 11, 6]]
         """
         if source not in self:
             raise ValueError("vertex '{}' is not in the graph".format(source))
@@ -16089,7 +16104,7 @@ class GenericGraph(GenericGraph_pyx):
                                                   exclude_vertices=exclude_vertices,
                                                   exclude_edges=exclude_edges)
                     length = length_func(spur)
-                    if(not spur):
+                    if not spur:
                         continue
                     path = root[:-1] + spur # concatenating the root and the spur paths
                     # push operation

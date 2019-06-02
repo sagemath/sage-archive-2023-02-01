@@ -890,6 +890,12 @@ class PermutationGroup_generic(FiniteGroup):
             (1,9,7,6)(2,10)(3,11)(4,5,8,12)
             sage: P1(g1*g2)
             (1,4,13,11)(2,5,14,18)(3,15,8,16)(6,7)(9,20,19,12)(10,17)
+
+        Another check for :trac:`5583`::
+
+            sage: G = PermutationGroup([(), (1,3)])
+            sage: G.has_coerce_map_from( PermutationGroup([(), (1,2)]))
+            False
         """
         if isinstance(G, PermutationGroup_subgroup):
             if G._ambient_group is self:

@@ -2070,7 +2070,7 @@ def _greedy_flip_algorithm(Q, w):
     extended_root_conf_indices_list = [R]
     flip_to_ancestors = [-1]
     next_index = 0
-    while flip_to_ancestors != []:
+    while flip_to_ancestors:
         has_new_child = False
         for i in sorted(F):
             if (not has_new_child) and (i >= next_index):

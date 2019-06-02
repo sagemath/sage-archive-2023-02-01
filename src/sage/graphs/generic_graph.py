@@ -16014,6 +16014,14 @@ class GenericGraph(GenericGraph_pyx):
              [1, 2, 3, 8, 9, 6],
              [1, 2, 3, 8, 9, 10, 6],
              [1, 2, 3, 8, 9, 11, 6]]
+            sage: g = DiGraph([(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 1), (1, 7, 1), (7, 8, 1), (8, 5, 1), (1, 6, 1), (6, 9, 1), (9, 5, 1), (4, 2, 1), (9, 3, 1), (9, 10, 1), (10, 5, 1), (9, 11, 1), (11, 10, 1)])
+            sage: list(g.yen_k_shortest_simple_paths(1, 5))
+            [[1, 6, 9, 5],
+             [1, 7, 8, 5],
+             [1, 2, 3, 4, 5],
+             [1, 6, 9, 10, 5],
+             [1, 6, 9, 3, 4, 5],
+             [1, 6, 9, 11, 10, 5]]
         """
         if source not in self:
             raise ValueError("vertex '{}' is not in the graph".format(source))

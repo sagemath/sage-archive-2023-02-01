@@ -1261,6 +1261,25 @@ class LazyPowerSeries(AlgebraElement):
             ao_base = base.get_aorder()  # update this so that while above is faster
             yield current.coefficient(n) * ic0
 
+    def _div_(self, other):
+        """
+        Divide this power series by ``other``.
+
+        EXAMPLES::
+
+            sage: L = LazyPowerSeriesRing(QQ)
+            sage: x = L.gen()
+
+        Fibonacci numbers::
+
+            sage: b = x / (1-x-x^2); b.compute_coefficients(10); b
+            x + x^2 + 2*x^3 + 3*x^4 + 5*x^5 + 8*x^6
+            + 13*x^7 + 21*x^8 + 34*x^9 + 55*x^10 + O(x^11)
+        """
+        return self * ~other
+
+    div = _div_
+
     def __call__(self, y):
         """
         Return the composition of this power series and the power series y.

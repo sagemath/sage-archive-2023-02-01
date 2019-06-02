@@ -1204,14 +1204,23 @@ class LazyPowerSeries(AlgebraElement):
 
             sage: L = LazyPowerSeriesRing(QQ)
             sage: x = L.gen()
+
+        Geometric series::
+
             sage: a = ~(1-x); a.compute_coefficients(10); a
+            1 + x + x^2 + x^3 + x^4 + x^5 + x^6 + x^7 + x^8 + x^9 + x^10 + O(x^11)
+
+        (Shifted) Fibonacci numbers::
+
             sage: b = ~(1-x-x^2); b.compute_coefficients(10); b
+            1 + x + 2*x^2 + 3*x^3 + 5*x^4 + 8*x^5
+            + 13*x^6 + 21*x^7 + 34*x^8 + 55*x^9 + 89*x^10 + O(x^11)
         """
         if self.get_aorder() > 0:
             raise ZeroDivisionError(
                 'cannot invert {} because '
                 'constant coefficient is 0'.format(self))
-        return self._new(self._invert_gen, lambda a: inf, self)
+        return self._new(self._invert_gen, lambda a: 0, self)
 
     invert = __invert__
 

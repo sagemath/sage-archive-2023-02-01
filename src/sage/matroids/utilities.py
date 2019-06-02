@@ -540,10 +540,14 @@ def lift_cross_ratios(A, lift_map=None):
         [6 1 0 0 1]
         [0 6 3 6 0]
         sage: Z = lift_cross_ratios(A, to_sixth_root_of_unity)
-        sage: Z
+        sage: Z # py2
         [ 1  0  1  1  1]
         [ 1  1  0  0  z]
         [ 0  1 -z -1  0]
+        sage: Z # py3
+        [ 1  0  1  1  1]
+        [ 1  1  0  0  z]
+        [ 0 -1  z  1  0]
         sage: M = LinearMatroid(reduced_matrix = A)
         sage: sorted(M.cross_ratios())
         [3, 5]

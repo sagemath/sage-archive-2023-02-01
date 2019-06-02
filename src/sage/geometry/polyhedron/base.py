@@ -5357,6 +5357,17 @@ class Polyhedron_base(Element):
             +Infinity
             sage: P.volume(measure='induced_rational',engine='latte')  # optional - latte_int
             +Infinity
+
+        The volume in `0`-dimensional space is taken by counting measure::
+
+            sage: P = Polyhedron(vertices=[[]]); P
+            A 0-dimensional polyhedron in ZZ^0 defined as the convex hull of 1 vertex
+            sage: P.volume()
+            1
+            sage: P = Polyhedron(vertices=[]); P
+            The empty polyhedron in ZZ^0
+            sage: P.volume()
+            0
         """
         from sage.features import FeatureNotPresentError, PythonModule
         if measure == 'induced_rational' and engine not in ['auto', 'latte', 'normaliz']:
@@ -5392,6 +5403,8 @@ class Polyhedron_base(Element):
         if measure == 'ambient':
             if self.dim() < self.ambient_dim():
                 return self.base_ring().zero()
+            elif self.dim() == 0:
+                return 1
             # if the polyhedron is unbounded, return infinity
             if not self.is_compact():
                 from sage.rings.infinity import infinity

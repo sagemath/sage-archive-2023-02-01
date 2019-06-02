@@ -1231,9 +1231,10 @@ class LazyPowerSeries(AlgebraElement):
         TESTS::
 
             sage: L = LazyPowerSeriesRing(QQ)
-            sage: f = L([1, -1])
-            sage: g = f._times_gen(f, 0)
-            sage: [next(g) for i in range(5)]
+            sage: f = L([1, -1, 0])
+            sage: g = f._invert_gen(0)
+            sage: [next(g) for i in range(10)]
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         """
         from itertools import count
 
@@ -1245,17 +1246,20 @@ class LazyPowerSeries(AlgebraElement):
             return
 
         one = self.parent()(1)
-        base = (self * ic0) - 1
+        base = one - ic0 * self
+        base.coefficient(0)
         ao_base = base.get_aorder()
         assert ao_base >= 1
 
-        current = base
+        current = one + base
         k = 1
         for n in count(1):
             while ao_base*k < n:
-                current = base * (one + current)
+                current = one + base * current
                 k += 1
-            yield current._stream[n] * ic0
+                current.coefficient(n)  # make sure new current is initialized
+            ao_base = base.get_aorder()  # update this so that while above is faster
+            yield current.coefficient(n) * ic0
 
     def __call__(self, y):
         """

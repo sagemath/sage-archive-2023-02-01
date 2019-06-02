@@ -2640,7 +2640,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         getindex = self._translation_to_numeric().__getitem__
         simplex = Simplex(sorted(face, key=getindex))
         facets = self.facets()
-        if all([not simplex.is_face(F) for F in facets]):
+        if all(not simplex.is_face(F) for F in facets):
             # face is not in self
             if check:
                 raise ValueError('trying to remove a face which is not in the simplicial complex')

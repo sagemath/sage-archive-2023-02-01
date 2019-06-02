@@ -1232,8 +1232,9 @@ class MapFunctionFieldToVectorSpace(FunctionFieldVectorSpaceIsomorphism):
         for k in fields:
             ret = chain.from_iterable([y.list() for y in ret])
         ret = list(ret)
-        assert all([t.parent() is self._V.base_field() for t in ret])
+        assert all(t.parent() is self._V.base_field() for t in ret)
         return self._V(ret)
+
 
 class FunctionFieldMorphism(RingHomomorphism):
     """

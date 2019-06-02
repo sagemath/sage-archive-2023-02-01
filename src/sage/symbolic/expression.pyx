@@ -2030,8 +2030,9 @@ cdef class Expression(CommutativeRingElement):
             sage: (exp(x) + exp(-x)).is_rational_expression()
             False
         """
-        return all([all([part.is_polynomial(v) for v in part.variables()])
-                    for part in (self.numerator(), self.denominator())])
+        return all(part.is_polynomial(v)
+                   for part in (self.numerator(), self.denominator())
+                   for v in part.variables())
 
     def is_real(self):
         """
@@ -6350,7 +6351,7 @@ cdef class Expression(CommutativeRingElement):
 
             sage: p = (17/3*a)*x^(3/2) + x*y + 1/x + 2*x^x + 5*x^y
             sage: rset = set([(1, -1), (y, 1), (17/3*a, 3/2), (2, x), (5, y)])
-            sage: all([(pair[0],pair[1]) in rset for pair in p.coefficients(x)])
+            sage: all((pair[0],pair[1]) in rset for pair in p.coefficients(x))
             True
             sage: p.coefficients(x, sparse=False)
             Traceback (most recent call last):

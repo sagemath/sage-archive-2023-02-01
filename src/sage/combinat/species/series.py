@@ -1196,6 +1196,58 @@ class LazyPowerSeries(AlgebraElement):
             raise ValueError("n must be a nonnegative integer")
         return prod([self]*n, self.parent().identity_element())
 
+    def __invert__(self):
+        """
+        Return 1 over this power series, i.e. invert this power series.
+
+        EXAMPLES::
+
+            sage: L = LazyPowerSeriesRing(QQ)
+            sage: x = L.gen()
+            sage: a = ~(1-x); a.compute_coefficients(10); a
+            sage: b = ~(1-x-x^2); b.compute_coefficients(10); b
+        """
+        if self.get_aorder() > 0:
+            raise ZeroDivisionError(
+                'cannot invert {} because '
+                'constant coefficient is 0'.format(self))
+        return self._new(self._invert_gen, lambda a: inf, self)
+
+    invert = __invert__
+
+    def _invert_gen(self, ao):
+        r"""
+        Return an iterator for the coefficients of 1 over this power series.
+
+        TESTS::
+
+            sage: L = LazyPowerSeriesRing(QQ)
+            sage: f = L([1, -1])
+            sage: g = f._times_gen(f, 0)
+            sage: [next(g) for i in range(5)]
+        """
+        from itertools import count
+
+        assert ao == 0
+
+        ic0 = ~self.coefficient(0)
+        yield ic0
+        if self.order == 0:
+            return
+
+        one = self.parent()(1)
+        base = (self * ic0) - 1
+        ao_base = base.get_aorder()
+        assert ao_base >= 1
+
+        current = base
+        k = 1
+        for n in count(1):
+            while ao_base*k < n:
+                current = base * (one + current)
+                k += 1
+            yield current._stream[n] * ic0
+
     def __call__(self, y):
         """
         Return the composition of this power series and the power series y.

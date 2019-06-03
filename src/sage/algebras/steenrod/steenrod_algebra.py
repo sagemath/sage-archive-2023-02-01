@@ -728,11 +728,11 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
         profile = self._profile
         trunc = self._truncation_type
         if not self._generic:
-            return ((len(profile) and profile[0] < Infinity)
+            return ((profile and profile[0] < Infinity)
                     or (trunc < Infinity))
         return ((profile != ((), ()) and
-                 ((len(profile[0]) and profile[0][0] < Infinity)
-                  or (len(profile[1]) and min(profile[1]) == 1)))
+                 ((profile[0] and profile[0][0] < Infinity)
+                  or (profile[1] and min(profile[1]) == 1)))
                 or (trunc < Infinity))
 
     def _repr_(self):

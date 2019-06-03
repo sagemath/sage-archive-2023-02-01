@@ -80,7 +80,7 @@ from cpython.object cimport (PyObject, PyTypeObject,
         Py_EQ, Py_NE, Py_LT, Py_LE, Py_GT, Py_GE)
 from cpython.weakref cimport PyWeakref_GET_OBJECT, PyWeakref_NewRef
 from libc.string cimport strncmp
-import gmpy2
+cimport gmpy2
 
 cdef add, mul, truediv
 from operator import add, mul, truediv
@@ -346,6 +346,7 @@ cpdef bint parent_is_integers(P) except -1:
         False
 
     Ensure (:trac:`27893`) is fixed::
+
         sage: K.<f> = QQ[]
         sage: gmpy2.mpz(2) * f
         2*f

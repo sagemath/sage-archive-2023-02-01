@@ -338,6 +338,17 @@ cpdef bint parent_is_integers(P) except -1:
         True
         sage: parent_is_integers(numpy.float)
         False
+
+        sage: import gmpy2
+        sage: parent_is_integers(gmpy2.mpz)
+        True
+        sage: parent_is_integers(gmpy2.mpq)
+        False
+
+    Ensure (:trac:`27893`) is fixed::
+        sage: K.<f> = QQ[]
+        sage: gmpy2.mpz(2) * f
+        2*f
     """
     if isinstance(P, type):
         if issubclass(P, int) or issubclass(P, long):
@@ -345,6 +356,8 @@ cpdef bint parent_is_integers(P) except -1:
         elif is_numpy_type(P):
             from numpy import integer
             return issubclass(P, integer)
+        elif issubclass(P, gmpy2.mpz):
+            return True
         else:
             return False
     else:

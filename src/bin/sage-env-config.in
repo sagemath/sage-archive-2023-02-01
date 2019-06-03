@@ -68,6 +68,9 @@ if [ -n "$SAGE_MPC_PREFIX" ]; then
     export SAGE_CONFIGURE_MPC="--with-mpc=$SAGE_MPC_PREFIX"
 fi
 
+# Location of system crti.o, in case we build our own gcc
+export SAGE_CRTI_DIR="@SAGE_CRTI_DIR@"
+
 # This is usually blank if the system NTL is used, or $SAGE_LOCAL otherwise
 export SAGE_NTL_PREFIX="@SAGE_NTL_PREFIX@"
 if [ -n "$SAGE_NTL_PREFIX" ]; then

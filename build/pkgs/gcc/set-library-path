@@ -3,10 +3,6 @@
 # Trac #27907: Find location of crti.o, add it to LIBRARY_PATH.
 # We add it to the end because we want $SAGE_LOCAL/lib to take precedence
 # over system directories.
-CRTI=$(${CC:-gcc} -print-file-name=crti.o 2>/dev/null || true)
-if [ -n "$CRTI" ]; then
-    CRTI_DIR=$(dirname -- "$CRTI")
-    if [ -n "$CRTI_DIR" -a "$CRTI_DIR" != "." ]; then
-        export LIBRARY_PATH="$LIBRARY_PATH:$CRTI_DIR"
-    fi
+if [ -n "$SAGE_CRTI_DIR" ]; then
+    export LIBRARY_PATH="$LIBRARY_PATH:$SAGE_CRTI_DIR"
 fi

@@ -1420,7 +1420,7 @@ class GenericGraph(GenericGraph_pyx):
         Return a new ``NetworkX`` graph from the Sage graph.
 
         INPUT:
-        
+
         - ``weight_function`` -- function (default: ``None``); a function that
           takes as input an edge ``(u, v, l)`` and outputs its weight.
 
@@ -4721,7 +4721,7 @@ class GenericGraph(GenericGraph_pyx):
         if self.is_directed():
             raise NotImplementedError("not implemented for directed graphs")
         self._scream_if_not_simple()
-        
+
         if weight_function is not None:
             by_weight = True
         if weight_function is None and by_weight:
@@ -5855,6 +5855,21 @@ class GenericGraph(GenericGraph_pyx):
             ...
             NotImplementedError: the graph must be 3-vertex-connected
 
+        This also keeps track of edge labels::
+
+            sage: label_dict = {('000', '001'): 1, ('001', '101'): 2, ('101', '100'): 3, ('100', '000'): 4}
+            sage: g = graphs.CubeGraph(3)
+            sage: for e in label_dict:
+            ....:     g.set_edge_label(e[0], e[1], label_dict[e])
+            ....:
+            sage: gd = g.planar_dual()
+            sage: incident_labels = []
+            sage: for v in gd:
+            ....:     incident_labels.append(sorted([l for _, _, l in gd.edges_incident(v) if l]))
+            ....:
+            sage: sorted(incident_labels)
+            [[], [1], [1, 2, 3, 4], [2], [3], [4]]
+
         .. TODO::
 
             Implement the method for graphs that are not 3-vertex-connected,
@@ -5867,7 +5882,15 @@ class GenericGraph(GenericGraph_pyx):
             raise NotImplementedError("the graph must be 3-vertex-connected")
 
         from sage.graphs.graph import Graph
-        return Graph([[tuple(_) for _ in self.faces()], lambda f, g: not set([tuple(reversed(e)) for e in f]).isdisjoint(g)], loops=False)
+        from itertools import combinations
+        verts = [tuple(f) for f in self.faces()]
+        edges = []
+        for v1, v2 in combinations(verts, 2):
+            e = set([tuple(reversed(e)) for e in v1]).intersection(v2)
+            if e:
+                e = e.pop() # just one edge since self and its dual are simple
+                edges.append([v1, v2, self.edge_label(e[0], e[1])])
+        return Graph([verts, edges])
 
 
     ### Connectivity
@@ -9660,8 +9683,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = graphs.CycleGraph(4)
             sage: G.pagerank(algorithm="Networkx")
             {0: 0.25, 1: 0.25, 2: 0.25, 3: 0.25}
-            sage: G.pagerank(alpha=0.50, algorithm="igraph")  # optional - python_igraph
-            {0: 0.25, 1: 0.25, 2: 0.24999999999999997, 3: 0.24999999999999997}
+            sage: G.pagerank(alpha=0.50, algorithm="igraph")  # optional - python_igraph # abs tol 1e-9
+            {0: 0.25, 1: 0.25, 2: 0.25, 3: 0.25}
             sage: G = Graph([(1, 2, 40), (2, 3, 50), (3, 4, 60), (1, 4, 70), (4, 5, 80), (5, 6, 20)])
             sage: G.pagerank(algorithm="NetworkX") # abs tol 1e-9
             {1: 0.16112205885619568,
@@ -15753,7 +15776,7 @@ class GenericGraph(GenericGraph_pyx):
           along with its edge labels are used to represent the path.
 
         EXAMPLES::
-        
+
             sage: eg1 = Graph({0:[1,2], 1:[4], 2:[3,4], 4:[5], 5:[6]})
             sage: eg1.all_paths(0,6)
             [[0, 1, 4, 5, 6], [0, 2, 4, 5, 6]]
@@ -15823,7 +15846,7 @@ class GenericGraph(GenericGraph_pyx):
             [[0, 1, 2]]
             sage: g.all_paths(0, 2, use_multiedges=True, report_edges=False, labels=True)
             [[0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]
-    
+
         TESTS:
 
         Starting and ending at the same vertex (see :trac:`13006`)::
@@ -15878,7 +15901,7 @@ class GenericGraph(GenericGraph_pyx):
             [[(0, 3), (3, 5)]]
             sage: G.all_paths(0, 5, report_edges=True, use_multiedges=True)
             [[(0, 3), (3, 5)], [(0, 3), (3, 5)]]
-            
+
         """
         if start not in self:
             raise LookupError("start vertex ({0}) is not a vertex of the graph".format(start))
@@ -15933,7 +15956,7 @@ class GenericGraph(GenericGraph_pyx):
                     act_path_iter.pop()
                 if not act_path:                 # there is no other vertex ...
                     done = True                  # ... so we are done
-        
+
         if report_edges and labels:
             path_with_labels = []
             for p in all_paths:
@@ -16897,6 +16920,10 @@ class GenericGraph(GenericGraph_pyx):
             Floyd-Warshall algorithm. Works also with weighted graphs, even with
             negative weights (but no negative cycle is allowed).
 
+          - ``'Floyd-Warshall_Boost'``: the Boost implementation of the
+            Floyd-Warshall algorithm. Works also with weighted graphs, even with
+            negative weights (but no negative cycle is allowed).
+
           - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
             NetworkX. It works with weighted graphs, but no negative weight is
             allowed.
@@ -16909,7 +16936,7 @@ class GenericGraph(GenericGraph_pyx):
 
           - ``None`` (default): Sage chooses the best algorithm: ``'BFS'`` if
             ``by_weight`` is ``False``, ``'Dijkstra_Boost'`` if all weights are
-            positive, ``'Floyd-Warshall-Cython'`` otherwise.
+            positive, ``'Floyd-Warshall_Boost'`` otherwise.
 
         - ``weight_function`` -- function (default: ``None``); a function that
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
@@ -16926,8 +16953,7 @@ class GenericGraph(GenericGraph_pyx):
         indicates the length ``dist[u][v]`` of the shortest weighted path from
         `u` to `v`. The second is a compact representation of all the paths - it
         indicates the predecessor ``pred[u][v]`` of `v` in the shortest path
-        from `u` to `v`. If the algorithm used is ``Johnson_Boost``,
-        predecessors are not computed.
+        from `u` to `v`.
 
         .. NOTE::
 
@@ -17001,7 +17027,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: d4, _ = g.shortest_path_all_pairs(algorithm="Dijkstra_NetworkX")
             sage: d5, _ = g.shortest_path_all_pairs(algorithm="Dijkstra_Boost")
             sage: d6, _ = g.shortest_path_all_pairs(algorithm="Johnson_Boost")
-            sage: d1 == d2 == d3 == d4 == d5 == d6
+            sage: d7, _ = g.shortest_path_all_pairs(algorithm="Floyd-Warshall_Boost")
+            sage: d1 == d2 == d3 == d4 == d5 == d6 == d7
             True
 
         Checking that distances are equal regardless of the algorithm used::
@@ -17013,7 +17040,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: d4, _ = g.shortest_path_all_pairs(algorithm="Dijkstra_NetworkX")
             sage: d5, _ = g.shortest_path_all_pairs(algorithm="Dijkstra_Boost")
             sage: d6, _ = g.shortest_path_all_pairs(algorithm="Johnson_Boost")
-            sage: d1 == d2 == d3 == d4 == d5 == d6
+            sage: d7, _ = g.shortest_path_all_pairs(algorithm="Floyd-Warshall_Boost")
+            sage: d1 == d2 == d3 == d4 == d5 == d6 == d7
             True
 
         Checking that weighted distances are equal regardless of the algorithm
@@ -17027,7 +17055,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: d2, _ = g.shortest_path_all_pairs(algorithm="Dijkstra_NetworkX")
             sage: d3, _ = g.shortest_path_all_pairs(algorithm="Dijkstra_Boost")
             sage: d4, _ = g.shortest_path_all_pairs(algorithm="Johnson_Boost")
-            sage: d1 == d2 == d3 == d4
+            sage: d5, _ = g.shortest_path_all_pairs(algorithm="Floyd-Warshall_Boost")
+            sage: d1 == d2 == d3 == d4 == d5
             True
 
         Checking a random path is valid::
@@ -17123,7 +17152,7 @@ class GenericGraph(GenericGraph_pyx):
                 for e in self.edge_iterator():
                     try:
                         if weight_function(e) < 0:
-                            algorithm = "Floyd-Warshall-Python"
+                            algorithm = "Floyd-Warshall_Boost"
                             break
                     except (ValueError, TypeError):
                         raise ValueError("the weight function cannot find the"
@@ -17145,12 +17174,19 @@ class GenericGraph(GenericGraph_pyx):
             from sage.graphs.distances_all_pairs import floyd_warshall
             return floyd_warshall(self, distances=True)
 
+        elif algorithm == "Floyd-Warshall_Boost":
+            if not by_weight:
+                def weight_function(e):
+                    return 1
+            from sage.graphs.base.boost_graph import floyd_warshall_shortest_paths
+            return floyd_warshall_shortest_paths(self, weight_function, distances=True, predecessors=True)
+
         elif algorithm == "Johnson_Boost":
             if not by_weight:
                 def weight_function(e):
                     return 1
             from sage.graphs.base.boost_graph import johnson_shortest_paths
-            return [johnson_shortest_paths(self, weight_function), None]
+            return johnson_shortest_paths(self, weight_function, distances=True, predecessors=True)
 
         elif algorithm == "Dijkstra_Boost":
             from sage.graphs.base.boost_graph import shortest_paths
@@ -17503,7 +17539,7 @@ class GenericGraph(GenericGraph_pyx):
           reports pairs ``(vertex, distance)`` where ``distance`` is the
           distance from the ``start`` nodes. If ``False`` only the vertices are
           reported.
-        
+
         - ``edges`` -- boolean (default ``False``); whether to return the edges
           of the BFS tree in the order of visit or the vertices (default).
           Edges are directed in root to leaf orientation of the tree.

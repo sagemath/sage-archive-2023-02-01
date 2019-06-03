@@ -659,7 +659,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         Check that :trac:`19999` is resolved::
 
-            sage: A.<x> = AsymptoticRing('(QQ_+)^x * x^QQ * U^x', QQ)
+            sage: A.<x> = AsymptoticRing('(QQ_+)^x * x^QQ * UU^x', QQ)
             sage: 1 + (-1)^x + 2^x + (-2)^x
             2^x + 2^x*(-1)^x + (-1)^x + 1
 
@@ -991,7 +991,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         else:
             f = repr
         s = ' + '.join(f(elem) for elem in
-                       self.summands.elements_topological(reverse=True))
+                       self.summands.elements_topological(reverse=True,
+                                                          key=repr))
         s = s.replace('+ -', '- ')
         if not s:
             return '0'
@@ -1560,7 +1561,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: 2^(x + 1/x)
             2^x + log(2)*2^x*x^(-1) + 1/2*log(2)^2*2^x*x^(-2) + ... + O(2^x*x^(-20))
             sage: _.parent()
-            Asymptotic Ring <QQ^x * x^SR * log(x)^QQ * S^x> over Symbolic Ring
+            Asymptotic Ring <QQ^x * x^SR * log(x)^QQ * Signs^x> over Symbolic Ring
 
         ::
 
@@ -1569,12 +1570,12 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             3^c + 1/3*3^c*c^(-1) + 1/18*3^c*c^(-2) - 4/81*3^c*c^(-3)
             - 35/1944*3^c*c^(-4) + O(3^c*c^(-5))
             sage: _.parent()
-            Asymptotic Ring <QQ^c * c^QQ * S^c> over Rational Field
+            Asymptotic Ring <QQ^c * c^QQ * Signs^c> over Rational Field
             sage: (2 + (1/3)^c)^c
             2^c + 1/2*(2/3)^c*c + 1/8*(2/9)^c*c^2 - 1/8*(2/9)^c*c
             + 1/48*(2/27)^c*c^3 + O((2/27)^c*c^2)
             sage: _.parent()
-            Asymptotic Ring <QQ^c * c^QQ * S^c> over Rational Field
+            Asymptotic Ring <QQ^c * c^QQ * Signs^c> over Rational Field
 
         TESTS:
 
@@ -1629,11 +1630,11 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: e = 2^n; e
             2^n
             sage: e.parent()
-            Asymptotic Ring <SR^n * n^QQ * S^n> over Symbolic Ring
+            Asymptotic Ring <SR^n * n^QQ * Signs^n> over Symbolic Ring
             sage: e = A(e); e
             2^n
             sage: e.parent()
-            Asymptotic Ring <QQ^n * n^QQ * S^n> over Symbolic Ring
+            Asymptotic Ring <QQ^n * n^QQ * Signs^n> over Symbolic Ring
             sage: forget()
 
         :trac:`22120`::
@@ -1798,7 +1799,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             - 11/24*2^s*s^(-4) + 11/120*2^s*s^(-5)
             + 271/720*2^s*s^(-6) + O(2^s*s^(-7))
             sage: _.parent()
-            Asymptotic Ring <QQ^s * s^QQ * S^s> over Rational Field
+            Asymptotic Ring <QQ^s * s^QQ * Signs^s> over Rational Field
 
             sage: S.<s> = AsymptoticRing(growth_group='(QQ_+)^s * s^ZZ', coefficient_ring=QQ)
             sage: (2 + 2/s^2).__pow_number__(s, precision=7)
@@ -1939,12 +1940,12 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: AR(0).O()
             Traceback (most recent call last):
             ...
-            NotImplementedOZero: The error term in the result is O(0)
-            which means 0 for sufficiently large x.
+            NotImplementedOZero: got O(0)
+            The error term O(0) means 0 for sufficiently large x.
         """
         if not self.summands:
             from .misc import NotImplementedOZero
-            raise NotImplementedOZero(self.parent())
+            raise NotImplementedOZero(self.parent(), exact_part=self.parent().zero())
         return sum(self.parent().create_summand('O', growth=element)
                    for element in self.summands.maximal_elements())
 
@@ -2619,6 +2620,13 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             ValueError: Cannot substitute in u: duplicate key u.
+
+        ::
+
+            sage: B(0).subs({'_zero_': None}) is None
+            True
+            sage: B(1).subs({'_one_': AA(1)}).parent() is AA
+            True
         """
         # check if nothing to do
         if not rules and not kwds:
@@ -2653,7 +2661,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         # check if all keys are generators
         gens_str = tuple(str(g) for g in gens)
         for k in locals:
-            if str(k) not in gens_str:
+            sk = str(k)
+            if sk not in gens_str and not sk.startswith('_'):
                 raise ValueError('Cannot substitute %s in %s '
                                  'since it is not a generator of %s.' %
                                  (k, self, self.parent()))
@@ -3279,7 +3288,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: (1/T)._singularity_analysis_('n', 1)
             Traceback (most recent call last):
             ...
-            NotImplementedOZero: T^(-1)
+            NotImplementedOZero: got O(0)
+            The error term O(0) means 0 for sufficiently large n.
         """
         from .misc import NotImplementedOZero
         OZeroEncountered = False
@@ -3293,14 +3303,15 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                 contribution = s._singularity_analysis_(
                     var=var, zeta=zeta,
                     precision=precision)
-            except NotImplementedOZero:
+            except NotImplementedOZero as ozero:
                 OZeroEncountered = True
+                result += ozero.exact_part
             else:
                 result += contribution
 
         if OZeroEncountered and (isinstance(result, int) and result == 0
                                  or result.is_exact()):
-            raise NotImplementedOZero(self)
+            raise NotImplementedOZero(var=var, exact_part=result)
         return result
 
     def limit(self):
@@ -4344,7 +4355,8 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
 
     def coefficients_of_generating_function(self, function, singularities, precision=None,
-                             return_singular_expansions=False):
+                                            return_singular_expansions=False,
+                                            error_term=None):
         r"""
         Return the asymptotic growth of the coefficients of some
         generating function by means of Singularity Analysis.
@@ -4360,6 +4372,11 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
         - ``return_singular_expansions`` -- (default: ``False``) a boolean.
           If set, the singular expansions are also returned.
+
+        - ``error_term`` -- (default: ``None``) an asymptotic expansion.
+          If ``None``, then this is interpreted as zero.
+          The contributions of the coefficients are added to ``error_term``
+          during Singularity Analysis.
 
         OUTPUT:
 
@@ -4420,15 +4437,24 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             ``return_singular_expansions`` will change to return singular
             expansions around the singularities.
 
-        TESTS::
+        In the following example, the result is an exact asymptotic expression
+        for sufficiently large `n` (i.e., there might be finitely many
+        exceptional values). This is encoded by an `O(0)` error term::
 
             sage: def f(z):
             ....:     return z/(1-z)
             sage: B.coefficients_of_generating_function(f, (1,), precision=3)
             Traceback (most recent call last):
             ...
-            NotImplementedOZero: The error term in the result is O(0)
-            which means 0 for sufficiently large n.
+            NotImplementedOZero: got 1 + O(0)
+            The error term O(0) means 0 for sufficiently large n.
+
+        In this case, we can manually intervene by adding an an error term
+        that suits us::
+
+            sage: B.coefficients_of_generating_function(f, (1,), precision=3,
+            ....:                                       error_term=O(n^-100))
+            1 + O(n^(-100))
         """
         from sage.symbolic.ring import SR
         from .misc import NotImplementedOZero
@@ -4441,7 +4467,10 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
                            default_prec=precision)
         T = A.gen()
 
-        result = self.zero()
+        if error_term is None:
+            result = self.zero()
+        else:
+            result = error_term
         for singularity in singularities:
             singular_expansion = A(function((1-1/T)*singularity))
             singular_expansions[singularity] = singular_expansion
@@ -4450,13 +4479,14 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
                 contribution = singular_expansion._singularity_analysis_(
                         var='Z', zeta=singularity,
                         precision=precision).subs(Z=self.gen())
-            except NotImplementedOZero:
+            except NotImplementedOZero as ozero:
                 OZeroEncountered = True
+                result += ozero.exact_part.subs(Z=self.gen())
             else:
                 result += contribution
 
         if OZeroEncountered and result.is_exact():
-            raise NotImplementedOZero(self)
+            raise NotImplementedOZero(self, exact_part=result)
 
         if return_singular_expansions:
             from collections import namedtuple
@@ -4595,7 +4625,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
             sage: A = AsymptoticRing(growth_group='x^ZZ * QQ^y', coefficient_ring=QQ)
             sage: A.construction()
-            (AsymptoticRing<x^ZZ * QQ^y * S^y>, Rational Field)
+            (AsymptoticRing<x^ZZ * QQ^y * Signs^y>, Rational Field)
 
         .. SEEALSO::
 

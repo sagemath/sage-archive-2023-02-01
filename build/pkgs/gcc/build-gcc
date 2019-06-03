@@ -61,7 +61,7 @@ fi
 ../src/configure \
     --prefix="$SAGE_LOCAL" \
     --with-local-prefix="$SAGE_LOCAL" \
-    $SAGE_CONFIGURE_GMP --with-mpfr="$SAGE_LOCAL" --with-mpc="$SAGE_LOCAL" \
+    $SAGE_CONFIGURE_GMP $SAGE_CONFIGURE_MPFR $SAGE_CONFIGURE_MPC \
     --with-system-zlib \
     --disable-multilib \
     --disable-nls \

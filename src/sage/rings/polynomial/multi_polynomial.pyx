@@ -16,8 +16,6 @@ from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
 from sage.structure.coerce cimport coercion_model
 from sage.misc.derivative import multi_derivative
-from sage.rings.infinity import infinity
-from sage.structure.element cimport Element
 
 from sage.misc.all import prod
 
@@ -26,10 +24,8 @@ def is_MPolynomial(x):
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.categories.map cimport Map
-from sage.categories.morphism cimport Morphism
 from sage.modules.free_module_element import vector
 from sage.rings.rational_field import QQ
-from sage.arith.misc import gcd
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.real_mpfr import RealField_class,RealField
 
@@ -297,8 +293,10 @@ cdef class MPolynomial(CommutativeRingElement):
         monomial at a time, with no sharing of repeated computations and
         with useless additions of 0 and multiplications by 1::
 
-            sage: list(ff) # random
-            ['push 0.0', 'push 12.0', 'load 1', 'load 2', 'dup', 'mul', 'mul', 'mul', 'add', 'push 4.0', 'load 0', 'load 1', 'mul', 'mul', 'add', 'push 42.0', 'add', 'push 1.0', 'load 0', 'dup', 'mul', 'mul', 'add', 'push 9.0', 'load 2', 'dup', 'mul', 'dup', 'mul', 'mul', 'add', 'push 6.0', 'load 0', 'load 2', 'dup', 'mul', 'mul', 'mul', 'add', 'push 4.0', 'load 1', 'dup', 'mul', 'mul', 'add']
+            sage: g = (x*y**2*z)._fast_float_()
+            sage: list(g)
+            ['push 0.0', 'push 1.0', 'load 0', 'load 1', 'dup', 'mul',
+             'mul', 'load 2', 'mul', 'mul', 'add']
 
         TESTS::
 
@@ -1946,7 +1944,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: x.gcd(x)
             Traceback (most recent call last):
             ...
-            NotImplementedError: GCD is not implemented for multivariate polynomials over Gaussian Integers in Number Field in I with defining polynomial x^2 + 1
+            NotImplementedError: GCD is not implemented for multivariate polynomials over Gaussian Integers in Number Field in I with defining polynomial x^2 + 1 with I = 1*I
 
         TESTS::
 

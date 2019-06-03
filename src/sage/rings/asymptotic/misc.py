@@ -57,7 +57,7 @@ def repr_short_to_parent(s):
         Symbolic Ring
         sage: repr_short_to_parent('NN')
         Non negative integer semiring
-        sage: repr_short_to_parent('U')
+        sage: repr_short_to_parent('UU')
         Group of Roots of Unity
 
     TESTS::
@@ -782,42 +782,60 @@ class NotImplementedOZero(NotImplementedError):
     which is raised when the result is O(0) which means 0
     for sufficiently large values of the variable.
     """
-    def __init__(self, data=None, var=None):
+    def __init__(self, asymptotic_ring=None, var=None, exact_part=0):
         r"""
         INPUT:
 
-        - ``data`` -- (default: ``None``) an :class:`AsymptoticRing` or a string.
+        - ``asymptotic_ring`` -- (default: ``None``) an :class:`AsymptoticRing` or ``None``.
 
         - ``var`` -- (default: ``None``) a string.
 
-        TESTS::
+        Either ``asymptotic_ring`` or ``var`` has to be specified.
+
+        - ``exact_part`` -- (default: ``0``) asymptotic expansion
+
+        EXAMPLES::
 
             sage: A = AsymptoticRing('n^ZZ', ZZ)
             sage: from sage.rings.asymptotic.misc import NotImplementedOZero
+
             sage: raise NotImplementedOZero(A)
             Traceback (most recent call last):
             ...
-            NotImplementedOZero: The error term in the result is O(0)
-            which means 0 for sufficiently large n.
-            sage: raise NotImplementedOZero('something')
-            Traceback (most recent call last):
-            ...
-            NotImplementedOZero: something
+            NotImplementedOZero: got O(0)
+            The error term O(0) means 0 for sufficiently large n.
+
             sage: raise NotImplementedOZero(var='m')
             Traceback (most recent call last):
             ...
-            NotImplementedOZero: The error term in the result is O(0)
-            which means 0 for sufficiently large m.
+            NotImplementedOZero: got O(0)
+            The error term O(0) means 0 for sufficiently large m.
+
+        TESTS::
+
+            sage: raise NotImplementedOZero(A, var='m')
+            Traceback (most recent call last):
+            ...
+            ValueError: specify either 'asymptotic_ring' or 'var'
+            sage: raise NotImplementedOZero()
+            Traceback (most recent call last):
+            ...
+            ValueError: specify either 'asymptotic_ring' or 'var'
         """
-        from .asymptotic_ring import AsymptoticRing
-        if isinstance(data, AsymptoticRing) or var is not None:
-            if var is None:
-                var = ', '.join(str(g) for g in data.gens())
-            message = ('The error term in the result is O(0) '
-                       'which means 0 for sufficiently '
-                       'large {}.'.format(var))
-        else:
-            message = data
+        if (asymptotic_ring is None) == (var is None):
+            raise ValueError("specify either 'asymptotic_ring' or 'var'")
+
+        if var is None:
+            var = ', '.join(str(g) for g in asymptotic_ring.gens())
+        message = ('got {}\n'.format(('{} + '.format(exact_part) if exact_part else '')
+                                     + 'O(0)') +
+                   'The error term O(0) '
+                   'means 0 for sufficiently large {}.'.format(var))
+
+        if asymptotic_ring is not None and isinstance(exact_part, int) and exact_part == 0:
+            exact_part = asymptotic_ring.zero()
+        self.exact_part = exact_part
+
         super(NotImplementedOZero, self).__init__(message)
 
 

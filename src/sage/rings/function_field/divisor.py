@@ -50,6 +50,7 @@ from __future__ import absolute_import
 import random
 
 from sage.misc.cachefunc import cached_method
+from sage.misc.latex import latex
 
 from sage.arith.all import lcm
 
@@ -155,23 +156,54 @@ class FunctionFieldDivisor(ModuleElement):
         ModuleElement.__init__(self, parent)
         self._data = data
 
-    def __hash__(self):
+    def _format(self, formatter, mul, cr):
         """
-        Return the hash of the divisor.
+        Return a string representation of the divisor, used by both
+        `_repr_` and `_latex_`.
 
-        EXAMPLES::
+        INPUT:
 
-            sage: K.<x> = FunctionField(GF(2)); R.<t> = K[]
-            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
-            sage: f = x/(y+1)
-            sage: d = f.divisor()
-            sage: {d: 1}
-            {Place (1/x, 1/x^4*y^2 + 1/x^2*y + 1)
-              + Place (1/x, 1/x^2*y + 1)
-              + 3*Place (x, (1/(x^3 + x^2 + x))*y^2)
-              - 6*Place (x + 1, y + 1): 1}
+        - ``formatter`` -- either `repr` or `latex`
+
+        - ``mul`` -- the string inserted between multiplicity and place
+
+        - ``cr`` -- the string inserted between places
+
+        TESTS::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: x.divisor()                # indirect doctest
+            - Place (1/x) + Place (x)
+            sage: latex(x.divisor())         # indirect doctest
+            - \left(\frac{1}{x}\right) + \left(x\right)
         """
-        return hash(tuple(sorted(self._data.items())))
+        plus = ' + '
+        minus = ' - '
+
+        places = sorted(self._data)
+
+        if len(places) == 0:
+            return '0'
+
+        p = places.pop(0)
+        m = self._data[p]
+        if m == 1:
+            r = formatter(p)
+        elif m == -1:
+            r = '- ' + formatter(p) # seems more readable than `-`
+        else: # nonzero
+            r = formatter(m) + mul + formatter(p)
+        for p in places:
+            m = self._data[p]
+            if m == 1:
+                r += cr + plus + formatter(p)
+            elif m == -1:
+                r += cr + minus + formatter(p)
+            elif m > 0:
+                r += cr + plus + formatter(m) + mul + formatter(p)
+            elif m < 0:
+                r += cr + minus + formatter(-m) + mul + formatter(p)
+        return r
 
     def _repr_(self, split=True):
         """
@@ -191,39 +223,25 @@ class FunctionFieldDivisor(ModuleElement):
             'Place (1/x, 1/x^4*y^2 + 1/x^2*y + 1) + Place (1/x, 1/x^2*y + 1)
             + 3*Place (x, (1/(x^3 + x^2 + x))*y^2) - 6*Place (x + 1, y + 1)'
         """
-        mul = '*'
-        plus = ' + '
-        minus = ' - '
+        return self._format(repr, '*', '\n' if split else '')
 
-        if split:
-            cr = '\n'
-        else:
-            cr = ''
+    def _latex_(self):
+        """
+        Return the LaTeX representation of the divisor.
 
-        places = sorted(self._data)
+        EXAMPLES::
 
-        if len(places) == 0:
-            return '0'
-
-        p = places.pop(0)
-        m = self._data[p]
-        if m == 1:
-            r = repr(p)
-        elif m == -1:
-            r = '- ' + repr(p) # seems more readable than `-`
-        else: # nonzero
-            r = repr(m) + mul + repr(p)
-        for p in places:
-            m = self._data[p]
-            if m == 1:
-                r += cr + plus + repr(p)
-            elif m == -1:
-                r += cr + minus + repr(p)
-            elif m > 0:
-                r += cr + plus + repr(m) + mul + repr(p)
-            elif m < 0:
-                r += cr + minus + repr(-m) + mul + repr(p)
-        return r
+            sage: K.<x> = FunctionField(GF(2)); R.<t> = PolynomialRing(K)
+            sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)
+            sage: f = x/(y+1)
+            sage: d = f.divisor()
+            sage: d._latex_()
+            \left(\frac{1}{x}, \frac{1}{x^{4}} y^{2} + \frac{1}{x^{2}} y + 1\right)
+             + \left(\frac{1}{x}, \frac{1}{x^{2}} y + 1\right)
+             + 3 \left(x, \left(\frac{1}{x^{3} + x^{2} + x}\right) y^{2}\right)
+             - 6 \left(x + 1, y + 1\right)
+        """
+        return self._format(latex, '', '')
 
     def _richcmp_(self, other, op):
         """

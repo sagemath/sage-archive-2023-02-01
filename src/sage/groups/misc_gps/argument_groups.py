@@ -663,13 +663,13 @@ class UnitCircleGroup(AbstractArgumentGroup):
 
             sage: from sage.groups.misc_gps.argument_groups import UnitCircleGroup
             sage: UnitCircleGroup(RR)._repr_short_()
-            'U_RR'
+            'UU_RR'
         """
         from sage.rings.asymptotic.misc import parent_to_repr_short
         s = parent_to_repr_short(self.base())
         if ' ' in s:
             s = '({})'.format(s)
-        return 'U_{}'.format(s)
+        return 'UU_{}'.format(s)
 
     def _element_constructor_(self, data, exponent=None, **kwds):
         r"""
@@ -1047,9 +1047,9 @@ class RootsOfUnityGroup(UnitCircleGroup):
 
             sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
             sage: RootsOfUnityGroup()._repr_short_()
-            'U'
+            'UU'
         """
-        return 'U'
+        return 'UU'
 
 
 class ArgumentByElement(AbstractArgument):
@@ -1668,9 +1668,9 @@ class SignGroup(AbstractArgumentGroup):
             sage: from sage.groups.misc_gps.argument_groups import SignGroup
             sage: S = SignGroup()
             sage: S._repr_short_()
-            'S'
+            'Signs'
         """
-        return 'S'
+        return 'Signs'
 
     def _an_element_(self):
         r"""
@@ -1735,11 +1735,13 @@ class ArgumentGroupFactory(UniqueFactory):
 
       The following is possible:
 
-      - ``'U'`` give the :class:`RootsOfUnityGroup`,
+      - ``'Signs'`` give the :class:`SignGroup`
 
-      - ``'U_P'``, where ``'P'`` is
+      - ``'UU'`` give the :class:`RootsOfUnityGroup`
+
+      - ``'UU_P'``, where ``'P'`` is
         a string representing a SageMath parent which is interpreted as
-        ``exponents``.
+        ``exponents``
 
       - ``'Arg_P'``, where ``'P'`` is
         a string representing a SageMath parent which is interpreted as
@@ -1762,14 +1764,14 @@ class ArgumentGroupFactory(UniqueFactory):
 
         sage: from sage.groups.misc_gps.argument_groups import ArgumentGroup
 
-        sage: ArgumentGroup('U')
+        sage: ArgumentGroup('UU')
         Group of Roots of Unity
 
         sage: ArgumentGroup(ZZ)
         Sign Group
         sage: ArgumentGroup(QQ)
         Sign Group
-        sage: ArgumentGroup('U_QQ')
+        sage: ArgumentGroup('UU_QQ')
         Group of Roots of Unity
         sage: ArgumentGroup(AA)
         Sign Group
@@ -1815,9 +1817,9 @@ class ArgumentGroupFactory(UniqueFactory):
 
             sage: from sage.groups.misc_gps.argument_groups import ArgumentGroup
 
-            sage: ArgumentGroup(specification='U')
+            sage: ArgumentGroup(specification='UU')
             Group of Roots of Unity
-            sage: ArgumentGroup('U') is ArgumentGroup(exponents=QQ)  # indirect doctest
+            sage: ArgumentGroup('UU') is ArgumentGroup(exponents=QQ)  # indirect doctest
             True
             sage: ArgumentGroup('Arg_CC') is ArgumentGroup(exponents=RR)  # indirect doctest
             True
@@ -1854,13 +1856,13 @@ class ArgumentGroupFactory(UniqueFactory):
                 domain = data
 
         if specification is not None:
-            if specification == 'U':
+            if specification == 'UU':
                 return (RootsOfUnityGroup, ()), kwds
-            if specification == 'S':
+            if specification == 'Signs':
                 return (SignGroup, ()), kwds
-            elif specification.startswith('U_'):
+            elif specification.startswith('UU_'):
                 from sage.rings.asymptotic.misc import repr_short_to_parent
-                exponents = repr_short_to_parent(specification[2:])
+                exponents = repr_short_to_parent(specification[3:])
             elif specification.startswith('Arg_') or specification.startswith('arg_'):
                 from sage.rings.asymptotic.misc import repr_short_to_parent
                 domain = repr_short_to_parent(specification[4:])
@@ -1895,7 +1897,7 @@ class ArgumentGroupFactory(UniqueFactory):
         TESTS::
 
             sage: from sage.groups.misc_gps.argument_groups import ArgumentGroup
-            sage: ArgumentGroup('U')  # indirect doctest
+            sage: ArgumentGroup('UU')  # indirect doctest
             Group of Roots of Unity
         """
         cls, args = key

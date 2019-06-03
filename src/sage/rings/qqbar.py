@@ -167,7 +167,7 @@ However, implicit coercion from `\QQ[I]` is not allowed::
     sage: QQbar(1) + im
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for +: 'Algebraic Field' and 'Number Field in I with defining polynomial x^2 + 1'
+    TypeError: unsupported operand parent(s) for +: 'Algebraic Field' and 'Number Field in I with defining polynomial x^2 + 1 with I = 1*I'
 
 We can implicitly coerce from algebraic reals to algebraic numbers::
 
@@ -2133,18 +2133,18 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
         1.259921049894873?
         sage: res[2]
         Ring morphism:
-          From: Number Field in a with defining polynomial y^3 - 2
+          From: Number Field in a with defining polynomial y^3 - 2 with a = 1.259921049894873?
           To:   Algebraic Real Field
           Defn: a |--> 1.259921049894873?
 
         sage: nf,nums,hom = number_field_elements_from_algebraics([2^(1/3),3^(1/5)],embedded=True)
         sage: nf
-        Number Field in a with defining polynomial y^15 - 9*y^10 + 21*y^5 - 3
+        Number Field in a with defining polynomial y^15 - 9*y^10 + 21*y^5 - 3 with a = 0.6866813218928813?
         sage: nums
         [a^10 - 5*a^5 + 2, -a^8 + 4*a^3]
         sage: hom
         Ring morphism:
-          From: Number Field in a with defining polynomial y^15 - 9*y^10 + 21*y^5 - 3
+          From: Number Field in a with defining polynomial y^15 - 9*y^10 + 21*y^5 - 3 with a = 0.6866813218928813?
           To:   Algebraic Real Field
           Defn: a |--> 0.6866813218928813?
 
@@ -2211,7 +2211,7 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
                          sqrt(2), AA.polynomial_root(x^3-3, RIF(0,3)), 11/9, 1]
         sage: res = number_field_elements_from_algebraics(my_nums, embedded=True)
         sage: res[0]
-        Number Field in a with defining polynomial y^24 - 107010*y^22 - 24*y^21 + ... + 250678447193040618624307096815048024318853254384
+        Number Field in a with defining polynomial y^24 - 107010*y^22 - 24*y^21 + ... + 250678447193040618624307096815048024318853254384 with a = -95.5053039433554?
     """
     gen = qq_generator
 
@@ -3760,7 +3760,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: (nf, elt, hom) = rt.as_number_field_element(embedded=True)
             sage: nf.coerce_embedding()
             Generic morphism:
-              From: Number Field in a with defining polynomial y^3 - 2*y^2 - 31*y - 50
+              From: Number Field in a with defining polynomial y^3 - 2*y^2 - 31*y - 50 with a = 7.237653139801104?
               To:   Algebraic Real Field
               Defn: a -> 7.237653139801104?
             sage: elt
@@ -7911,7 +7911,7 @@ def _init_qqbar():
     EXAMPLES::
 
         sage: sage.rings.qqbar.QQbar_I_generator # indirect doctest
-        Number Field in I with defining polynomial x^2 + 1 with a in 1*I
+        Number Field in I with defining polynomial x^2 + 1 with I = 1*I with a in 1*I
     """
     global ZZX_x, AA_0, QQbar_I, AA_hash_offset, QQbar_hash_offset, QQbar_I_generator, QQbar_I_nf
     global QQ_0, QQ_1, QQ_1_2, QQ_1_4, RR_1_10

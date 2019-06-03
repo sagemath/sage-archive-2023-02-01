@@ -377,12 +377,12 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
             sage: L.<a> = QuadraticField(5)
             sage: Conic(L, [1, 2, 3]).local_obstructions()
             [Ring morphism:
-              From: Number Field in a with defining polynomial x^2 - 5
-              To:   Algebraic Real Field
-              Defn: a |--> -2.236067977499790?, Ring morphism:
-              From: Number Field in a with defining polynomial x^2 - 5
-              To:   Algebraic Real Field
-              Defn: a |--> 2.236067977499790?]
+               From: Number Field in a with defining polynomial x^2 - 5 with a = 2.236067977499790?
+               To:   Algebraic Real Field
+               Defn: a |--> -2.236067977499790?, Ring morphism:
+               From: Number Field in a with defining polynomial x^2 - 5 with a = 2.236067977499790?
+               To:   Algebraic Real Field
+               Defn: a |--> 2.236067977499790?]
         """
         obs0 = []
         obs1 = []

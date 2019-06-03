@@ -68,7 +68,7 @@ Another colored example::
 
         S = ParametricSurface(f=lambda xy: (xy[0],xy[1],0), domain=(range(10),range(10)))
 """
-#*****************************************************************************
+# ****************************************************************************
 #      Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -80,8 +80,8 @@ Another colored example::
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from cysignals.memory cimport sig_malloc, sig_free
 from cysignals.signals cimport sig_check
@@ -101,7 +101,7 @@ include "point_c.pxi"
 cdef inline bint smash_edge(point_c* vs, face_c* f, int a, int b):
     if point_c_eq(vs[f.vertices[a]], vs[f.vertices[b]]):
         f.vertices[b] = f.vertices[a]
-        f.n = 3
+        f.n -= 1
         return 1
     else:
         return 0
@@ -418,7 +418,7 @@ cdef class ParametricSurface(IndexFaceSet):
         urange, vrange = self.get_grid(ds)
         urange = [float(u) for u in urange]
         vrange = [float(v) for v in vrange]
-        if self.render_grid == (urange, vrange) and self.fcount != 0:
+        if self.render_grid == (urange, vrange) and self.fcount:
             # Already triangulated at on this grid.
             return
 
@@ -442,7 +442,6 @@ cdef class ParametricSurface(IndexFaceSet):
         #   3 - 2
 
         cdef face_c *face
-        cdef face_c *last_face
 
         for i in range(n):
             for j in range(m):
@@ -475,22 +474,37 @@ cdef class ParametricSurface(IndexFaceSet):
 
                 # This is the newly-seen vertex, identify if it's a triangle
                 face.vertices[2] = (i+1)*(m+1)+j+1
-                smash_edge(self.vs, face, 1, 2) or smash_edge(self.vs, face, 3, 2)
+                smash_edge(self.vs, face, 1, 2)
+                smash_edge(self.vs, face, 3, 2)
 
         # Now we see if it wraps around or is otherwise enclosed
         self.enclosed = True
 
         cdef face_c *first
         cdef face_c *last
+        cdef point_c first_v0
+        cdef point_c first_v1
+        cdef point_c first_v3
+        cdef point_c last_v1
+        cdef point_c last_v2
+        cdef point_c last_v3
         for j in range(m):
             sig_check()
             first = &self._faces[j]
-            last  = &self._faces[(n-1)*m+j]
-            if point_c_eq(self.vs[first.vertices[0]], self.vs[last.vertices[3]]):
+            first_v0 = self.vs[first.vertices[0]]
+            first_v1 = self.vs[first.vertices[1]]
+            if not (point_c_isfinite(first_v0) and point_c_isfinite(first_v1)):
+                continue
+            last = &self._faces[(n-1)*m+j]
+            last_v3 = self.vs[last.vertices[3]]
+            last_v2 = self.vs[last.vertices[2]]
+            if not (point_c_isfinite(last_v3) and point_c_isfinite(last_v2)):
+                continue
+            if point_c_eq(first_v0, last_v3):
                 last.vertices[3] = first.vertices[0]
             elif first.vertices[0] != first.vertices[1] or last.vertices[3] != last.vertices[2]:
                 self.enclosed = False
-            if point_c_eq(self.vs[first.vertices[1]], self.vs[last.vertices[2]]):
+            if point_c_eq(first_v1, last_v2):
                 last.vertices[2] = first.vertices[1]
             elif first.vertices[0] != first.vertices[1] or last.vertices[3] != last.vertices[2]:
                 self.enclosed = False
@@ -498,17 +512,26 @@ cdef class ParametricSurface(IndexFaceSet):
         for i in range(n):
             sig_check()
             first = &self._faces[i*m]
-            last  = &self._faces[i*m + m-1]
-            if point_c_eq(self.vs[first.vertices[0]], self.vs[last.vertices[1]]):
+            first_v0 = self.vs[first.vertices[0]]
+            first_v3 = self.vs[first.vertices[3]]
+            if not (point_c_isfinite(first_v0) and point_c_isfinite(first_v3)):
+                continue
+            last = &self._faces[i*m + m-1]
+            last_v1 = self.vs[last.vertices[1]]
+            last_v2 = self.vs[last.vertices[2]]
+            if not (point_c_isfinite(last_v1) and point_c_isfinite(last_v2)):
+                continue
+            if point_c_eq(first_v0, last_v1):
                 last.vertices[1] = first.vertices[0]
             elif first.vertices[0] != first.vertices[3] or last.vertices[1] != last.vertices[2]:
                 self.enclosed = False
-            if point_c_eq(self.vs[first.vertices[3]], self.vs[last.vertices[2]]):
+            if point_c_eq(first_v3, last_v2):
                 last.vertices[2] = first.vertices[3]
             elif first.vertices[0] != first.vertices[3] or last.vertices[1] != last.vertices[2]:
                 self.enclosed = False
 
         # make sure we deleted the correct point from the triangles
+        # so that the correct vertices are the first 3 ones
         for ix in range(n * m):
             sig_check()
             face = &self._faces[ix]
@@ -803,4 +826,3 @@ cdef double* to_double_array(py_list) except NULL:
         c_list[i] = a
         i += 1
     return c_list
-

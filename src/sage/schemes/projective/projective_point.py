@@ -1544,7 +1544,7 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
             sage: S = Q._number_field_from_algebraics(); S
             (1/2*a^3 + a^2 - 1/2*a : 1)
             sage: S.codomain()
-            Projective Space of dimension 1 over Number Field in a with defining polynomial y^4 + 1
+            Projective Space of dimension 1 over Number Field in a with defining polynomial y^4 + 1 with a = 0.7071067811865475? + 0.7071067811865475?*I
 
         The following was fixed in :trac:`23808`::
 

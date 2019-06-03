@@ -678,21 +678,21 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         q = F.cardinality()
         gens = self.gens()
         n = self.degree()
-        MS = MatrixSpace(F,n,n)
-        mats = [] # initializing list of mats by which the gens act on self
+        MS = MatrixSpace(F, n, n)
+        mats = []  # initializing list of mats by which the gens act on self
         for g in gens:
             p = MS(g.matrix())
             m = p.rows()
             mats.append(m)
-        mats_str = str(gap([[list(r) for r in m] for m in mats]))
+        mats_str = str(gap([[list(r) for r in ma] for ma in mats]))
         gap.eval("M:=GModuleByMats("+mats_str+", GF("+str(q)+"))")
         gap.eval("MCFs := MTX.CompositionFactors( M )")
         N = eval(gap.eval("Length(MCFs)"))
         if algorithm == "verbose":
             print(gap.eval('MCFs') + "\n")
         L = []
-        for i in range(1,N+1):
-            gap.eval("MCF := MCFs[%s]"%i)
+        for i in range(1, N + 1):
+            gap.eval("MCF := MCFs[%s]" % i)
             L.append(tuple([sage_eval(gap.eval("MCF.field")),
                             eval(gap.eval("MCF.dimension")),
                             sage_eval(gap.eval("MCF.IsIrreducible")) ]))
@@ -782,23 +782,24 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
 
         ## Setting Singular's variable names
         ## We need to make sure that field generator and variables get different names.
-        if str(F.gen())[0]=='x':
+        if str(F.gen())[0] == 'x':
             VarStr = 'y'
         else:
             VarStr = 'x'
-        VarNames='('+','.join((VarStr+str(i+1) for i in range(n)))+')'
-        R=singular.ring(FieldStr,VarNames,'dp') # this does have a side-effect
-        if hasattr(F,'polynomial') and F.gen()!=1: # we have to define minpoly
+        VarNames = '(' + ','.join((VarStr+str(i) for i in range(1, n+1)))+')'
+        R = singular.ring(FieldStr, VarNames, 'dp') # this does have a side-effect
+        if hasattr(F, 'polynomial') and F.gen() != 1:
+            # we have to define minpoly
             singular.eval('minpoly = '+str(F.polynomial()).replace('x',str(F.gen())))
         A = [singular.matrix(n,n,str((x.matrix()).list())) for x in gens]
         Lgens = ','.join((x.name() for x in A))
-        PR = PolynomialRing(F,n,[VarStr+str(i) for i in range(1,n+1)])
+        PR = PolynomialRing(F, n, [VarStr+str(i) for i in range(1,n+1)])
 
-        if q == 0 or (q > 0 and self.cardinality()%q != 0):
+        if q == 0 or (q > 0 and self.cardinality() % q):
             from sage.all import Matrix
             try:
-                elements = [ g.matrix() for g in self.list() ]
-            except (TypeError,ValueError):
+                elements = [g.matrix() for g in self.list()]
+            except (TypeError, ValueError):
                 elements
             if elements is not None:
                 ReyName = 't'+singular._next_var_name()

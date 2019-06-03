@@ -1,8 +1,8 @@
 """
 Differentials of function fields
 
-Sage provides basic arithmetic and advanced computations with differentials on
-global function fields.
+Sage provides basic arithmetic with differentials of function fields. Advanced
+computations with differentials are available for global function fields.
 
 EXAMPLES:
 
@@ -74,55 +74,37 @@ from .function_field import FunctionField
 class FunctionFieldDifferential(ModuleElement):
     """
     Base class for differentials on function fields.
-    """
-    pass
-
-class FunctionFieldDifferential_global(FunctionFieldDifferential):
-    """
-    Differentials on global function fields.
 
     INPUT:
 
     - ``f`` -- element of the function field
 
-    - ``t`` -- element of the function field; if `t` is not specified, `t`
-      is the base differential of the differential space
+    - ``t`` -- element of the function field; if `t` is not specified, the generator
+      of the base differential is assumed
 
     EXAMPLES::
 
-        sage: F.<x>=FunctionField(GF(7))
+        sage: F.<x>=FunctionField(QQ)
         sage: f = x/(x^2 + x + 1)
         sage: f.differential()
-        ((6*x^2 + 1)/(x^4 + 2*x^3 + 3*x^2 + 2*x + 1)) d(x)
+        ((-x^2 + 1)/(x^4 + 2*x^3 + 3*x^2 + 2*x + 1)) d(x)
 
-        sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+    ::
+
+        sage: K.<x> = FunctionField(QQ); _.<Y> = K[]
         sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
-        sage: y.differential()
-        (x*y^2 + 1/x*y) d(x)
-
-    If the base rational function field's differential is not a separating
-    element, and thus maps to zero, a different base differential is used::
-
-        sage: K.<x> = FunctionField(GF(5))
-        sage: R.<y> = K[]
-        sage: L.<y> = K.extension(y^5 - 1/x)
-
         sage: L(x).differential()
-        0
+        d(x)
         sage: y.differential()
-        d(y)
-        sage: (y^2).differential()
-        (2*y) d(y)
+        ((21/4*x/(x^7 + 27/4))*y^2 + ((3/2*x^7 + 9/4)/(x^8 + 27/4*x))*y + 7/2*x^4/(x^7 + 27/4)) d(x)
     """
     def __init__(self, parent, f, t=None):
         """
         Initialize the differential `fdt`.
 
-        If `t` is not specified, the base differential is assumed.
-
         TESTS::
 
-            sage: F.<x>=FunctionField(GF(7))
+            sage: F.<x> = FunctionField(GF(7))
             sage: f = x/(x^2 + x + 1)
             sage: w = f.differential()
             sage: TestSuite(w).run()
@@ -130,8 +112,7 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
         ModuleElement.__init__(self, parent)
 
         if t is not None:
-            der = parent.function_field().derivation()
-            f *= der(t) / der(parent._base_differential)
+            f *= parent._derivation(t) * parent._gen_derivative_inv
 
         self._f = f
 
@@ -154,7 +135,7 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
         if self._f.is_zero(): # zero differential
             return '0'
 
-        r =  'd({})'.format(self.parent()._base_differential)
+        r =  'd({})'.format(self.parent()._gen_base_differential)
 
         if self._f.is_one():
             return r
@@ -176,7 +157,7 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
         if self._f.is_zero(): # zero differential
             return '0'
 
-        r =  'd{}'.format(self.parent()._base_differential)
+        r =  'd{}'.format(self.parent()._gen_base_differential)
 
         if self._f.is_one():
             return r
@@ -245,6 +226,36 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
         """
         W = self.parent()
         return W.element_class(W, self._f + other._f)
+
+    def _div_(self, other):
+        """
+        Return the quotient of ``self`` and ``other``
+
+        INPUT:
+
+        - ``other`` -- differential
+
+        OUTPUT: an element of the function field
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(4)); _.<Y>=K[]
+            sage: L.<y> = K.extension(Y^3+x+x^3*Y)
+            sage: w1 = y.differential()
+            sage: w2 = (1/y).differential()
+            sage: w1 / w2
+            y^2
+
+            sage: F.<x> = FunctionField(QQ)
+            sage: w1 = (1/x).differential()
+            sage: w2 = (x^2+1).differential()
+            sage: w1 / w2
+            -1/2/x^3
+        """
+        if other._f.is_zero():
+            raise ZeroDivisionError("division by zero differential")
+
+        return self._f / other._f
 
     def _neg_(self):
         """
@@ -319,8 +330,45 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
         """
         F = self.parent().function_field()
         x = F.base_field().gen()
-        return self._f.divisor() + (-2) * F(x).divisor_of_poles() + F.different()
+        return self._f.divisor() + (-2)*F(x).divisor_of_poles() + F.different()
 
+    def valuation(self, place):
+        """
+        Return the valuation of the differential at the ``place``.
+
+        INPUT:
+
+        - ``place`` -- place of the function field
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(5)); _.<Y>=K[]
+            sage: L.<y> = K.extension(Y^3+x+x^3*Y)
+            sage: w = (1/y) * y.differential()
+            sage: [w.valuation(p) for p in L.places()]
+            [-1, -1, -1, 0, 1, 0]
+        """
+        F = self.parent().function_field()
+        x = F.base_field().gen()
+        return (self._f.valuation(place) + 2*min(F(x).valuation(place), 0)
+                + F.different().valuation(place))
+
+class FunctionFieldDifferential_global(FunctionFieldDifferential):
+    """
+    Differentials on global function fields.
+
+    EXAMPLES::
+
+        sage: F.<x>=FunctionField(GF(7))
+        sage: f = x/(x^2 + x + 1)
+        sage: f.differential()
+        ((6*x^2 + 1)/(x^4 + 2*x^3 + 3*x^2 + 2*x + 1)) d(x)
+
+        sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+        sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
+        sage: y.differential()
+        (x*y^2 + 1/x*y) d(x)
+    """
     def residue(self, place):
         """
         Return the residue of the differential at the place.
@@ -378,7 +426,7 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
             return to_R(c)
 
     def cartier(self):
-        """
+        r"""
         Return the image of the differential by the Cartier operator.
 
         The Cartier operator operates on differentials. Let `x` be a separating
@@ -627,8 +675,25 @@ class DifferentialsSpace(UniqueRepresentation, Parent):
         sage: L.<y>=K.extension(Y^3+x+x^3*Y)
         sage: L.space_of_differentials()
         Space of differentials of Function field in y defined by y^3 + x^3*y + x
+
+    The space of differentials is a one-dimensional module over the function
+    field. So a base differential is chosen to represent differentials.
+    Usually the generator of the base rational function field is a seprating
+    element and used to generate the base differential. Otherwise a separating
+    element is automatically found and used to generate the base differential
+    relative which other differentials are denoted::
+
+        sage: K.<x> = FunctionField(GF(5))
+        sage: R.<y> = K[]
+        sage: L.<y> = K.extension(y^5 - 1/x)
+        sage: L(x).differential()
+        0
+        sage: y.differential()
+        d(y)
+        sage: (y^2).differential()
+        (2*y) d(y)
     """
-    Element = FunctionFieldDifferential_global
+    Element = FunctionFieldDifferential
 
     def __init__(self, field, category=None):
         """
@@ -644,14 +709,17 @@ class DifferentialsSpace(UniqueRepresentation, Parent):
         Parent.__init__(self, base=field, category=Modules(field).FiniteDimensional().WithBasis().or_subcategory(category))
 
         # Starting from the base rational function field, find the first
-        # generator that doesn't map to zero and use it as our
-        # base differential.
+        # generator x of an intermediate function field that doesn't map to zero
+        # by the derivation map and use dx as our base differential.
 
         der = field.derivation()
         for F in reversed(field._intermediate_fields(field.rational_function_field())):
             if der(F.gen()) != 0:
-                self._base_differential = F.gen()
-                return
+                break
+
+        self._derivation = der
+        self._gen_base_differential = F.gen()
+        self._gen_derivative_inv = ~der(F.gen())  # used for fast computation
 
     def _repr_(self):
         """
@@ -772,4 +840,21 @@ class DifferentialsSpace(UniqueRepresentation, Parent):
             Family (d(x),)
         """
         return Family([self.element_class(self, self.base().one())])
+
+class DifferentialsSpace_global(DifferentialsSpace):
+    """
+    Space of differentials of a global function field.
+
+    INPUT:
+
+    - ``field`` -- function field
+
+    EXAMPLES::
+
+        sage: K.<x>=FunctionField(GF(4)); _.<Y>=K[]
+        sage: L.<y>=K.extension(Y^3+x+x^3*Y)
+        sage: L.space_of_differentials()
+        Space of differentials of Function field in y defined by y^3 + x^3*y + x
+    """
+    Element = FunctionFieldDifferential_global
 

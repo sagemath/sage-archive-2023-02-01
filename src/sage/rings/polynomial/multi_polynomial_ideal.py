@@ -742,7 +742,7 @@ class MPolynomialIdeal_singular_repr(
 
         .. NOTE::
 
-            See [BW93]_ for an introduction to primary decomposition.
+            See [BW1993]_ for an introduction to primary decomposition.
 
         TESTS:
 
@@ -2498,6 +2498,16 @@ class MPolynomialIdeal_singular_repr(
             sage: hs = Minors.hilbert_series()
             sage: list(P(hs.numerator()) / P(hs.denominator())) == [hp(t = k) for k in range(50)]
             True
+
+        TESTS:
+
+        Check that :trac:`27483` is fixed::
+
+            sage: P.<x,y,z> = PolynomialRing(QQ)
+            sage: I = Ideal([x^3, x*y^2, y^4, x^2*y*z, y^3*z, x^2*z^2, x*y*z^2, x*z^3])
+            sage: I.hilbert_polynomial(algorithm='singular')
+            3
+
         """
         if not self.is_homogeneous():
             raise TypeError("ideal must be homogeneous")
@@ -2514,7 +2524,7 @@ class MPolynomialIdeal_singular_repr(
                 return t.parent().zero()
             denom = ZZ(s-1).factorial()
             out = sum(c / denom * prod(s - 1 - n - nu + t for nu in range(s-1))
-                      for n,c in enumerate(second_hilbert))
+                      for n,c in enumerate(second_hilbert)) + t.parent().zero()
             assert out.leading_coefficient() >= 0
             return out
         elif algorithm == 'singular':
@@ -2975,6 +2985,37 @@ class NCPolynomialIdeal(MPolynomialIdeal_singular_repr, Ideal_nc):
         if self.side()  == 'twosided':
             return self.twostd()
         return self.ring().ideal( self.__call_singular('std'), side=self.side())
+#        return self.__call_singular('std')
+
+    def elimination_ideal(self, variables):
+        r"""
+        Return the elimination ideal of this ideal with respect to the
+        variables given in "variables".
+
+        EXAMPLES::
+
+            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
+            sage: H = A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
+            sage: H.inject_variables()
+            Defining x, y, z
+            sage: I = H.ideal([y^2, x^2, z^2-H.one()],coerce=False)
+            sage: I.elimination_ideal([x, z])
+            Left Ideal (y^2) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {...}
+            sage: J = I.twostd()
+            sage: J
+            Twosided Ideal (z^2 - 1, y*z - y, x*z + x, y^2, 2*x*y - z - 1, x^2) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {...}
+            sage: J.elimination_ideal([x, z])
+            Twosided Ideal (y^2) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {...}
+
+
+        ALGORITHM: Uses Singular's eliminate command
+        """
+        from sage.misc.misc_c import prod
+        if self.side() == 'twosided':
+            J = self.twostd()
+        else:
+            J = self
+        return J.ring().ideal(J.__call_singular('eliminate', prod(variables)), side=self.side())
 #        return self.__call_singular('std')
 
     @cached_method
@@ -3837,9 +3878,44 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         Uses Singular, Magma (if available), Macaulay2 (if available),
         Giac (if available), or a toy implementation.
+
+        TESTS:
+
+        Check :trac:`27445`::
+
+            sage: P = PolynomialRing(QQ, 't', 0)
+            sage: P.ideal([P(2)]).groebner_basis()
+            [1]
+            sage: P.ideal([]).groebner_basis()
+            [0]
+            sage: P.ideal([0]).groebner_basis()
+            [0]
+            sage: P.ideal([3, 4, 0, 5]).groebner_basis()
+            [1]
+
+            sage: P = PolynomialRing(ZZ, 't', 0)
+            sage: P.ideal([P(2)]).groebner_basis()
+            [2]
+            sage: P.ideal([]).groebner_basis()
+            [0]
+            sage: P.ideal([0]).groebner_basis()
+            [0]
+            sage: P.ideal([2, 4, 6]).groebner_basis()
+            [2]
+
+            sage: P = PolynomialRing(Zmod(8), 't', 0)
+            sage: P.ideal([P(2)]).groebner_basis()
+            [2]
+            sage: P.ideal([]).groebner_basis()
+            [0]
+            sage: P.ideal([0]).groebner_basis()
+            [0]
+            sage: P.ideal([P(3)]).groebner_basis()
+            [1]
         """
         from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
         from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
         if algorithm.lower() == "magma":
             algorithm = "magma:GroebnerBasis"
@@ -3861,23 +3937,39 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                 try:
                     gb = self._groebner_basis_singular("groebner", deg_bound=deg_bound, mult_bound=mult_bound, *args, **kwds)
                 except (TypeError, NameError, NotImplementedError): # conversion to Singular not supported
-                    if self.ring().term_order().is_global() and is_IntegerModRing(self.ring().base_ring()) and not self.ring().base_ring().is_field():
+                    R = self.ring()
+                    B = R.base_ring()
+                    if R.ngens() == 0:
+                        if R.base_ring().is_field():
+                            if any(g != 0 for g in self.gens()):
+                                gb = [R.one()]
+                            else:
+                                gb = [R.zero()]
+                        else:
+                            # To deal with this degenerated case,
+                            # we take a detour to a polynomial ring
+                            # with one variable and then go back.
+                            Rt = PolynomialRing(B, 't', 1)
+                            It = Rt.ideal([Rt(g) for g in self.gens()])
+                            gb = [R(g) for g in It.groebner_basis(
+                                algorithm=algorithm,
+                                deg_bound=deg_bound, mult_bound=mult_bound,
+                                prot=prot, *args, **kwds)]
+                    elif (R.term_order().is_global()
+                          and is_IntegerModRing(B)
+                          and not B.is_field()):
                         verbose("Warning: falling back to very slow toy implementation.", level=0)
 
-                        ch = self.ring().base_ring().characteristic()
-                        R = self.ring().change_ring(ZZ)
-                        I = R.ideal([R(f) for f in self.gens()] + [R(ch)])
-
-                        gb = toy_d_basis.d_basis(I, *args, **kwds)
-
-                        R = self.ring()
-                        gb = [r for r in (R(f) for f in gb) if r]
+                        ch = B.characteristic()
+                        R_ZZ = R.change_ring(ZZ)
+                        I = R_ZZ.ideal([R_ZZ(f) for f in self.gens()] + [R_ZZ(ch)])
+                        gb_ZZ = toy_d_basis.d_basis(I, *args, **kwds)
+                        gb = [r for r in (R(f) for f in gb_ZZ) if r]
+                    elif R.term_order().is_global():
+                        verbose("Warning: falling back to very slow toy implementation.", level=0)
+                        gb = toy_buchberger.buchberger_improved(self, *args, **kwds)
                     else:
-                        if self.ring().term_order().is_global():
-                            verbose("Warning: falling back to very slow toy implementation.", level=0)
-                            gb = toy_buchberger.buchberger_improved(self, *args, **kwds)
-                        else:
-                            raise TypeError("Local/unknown orderings not supported by 'toy_buchberger' implementation.")
+                        raise TypeError("Local/unknown orderings not supported by 'toy_buchberger' implementation.")
 
         elif algorithm.startswith('singular:'):
             gb = self._groebner_basis_singular(algorithm[9:], deg_bound=deg_bound, mult_bound=mult_bound, prot=prot, *args, **kwds)
@@ -4263,16 +4355,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             It is unknown whether semi-regular sequences
             exist. However, it is expected that random systems are
             semi-regular sequences. For more details about
-            semi-regular sequences see [BFS04]_.
-
-        REFERENCES:
-
-        .. [BFS04] Magali Bardet, Jean-Charles Faugère, and Bruno
-           Salvy, On the complexity of Groebner basis computation of
-           semi-regular overdetermined algebraic equations.
-           Proc. International Conference on Polynomial System Solving
-           (ICPSS), pp. 71-75, 2004.
-
+            semi-regular sequences see [BFS2004]_.
         """
         degs = [f.degree() for f in self.gens() if f!=0] # we ignore zeroes
         m, n = self.ngens(), len(set(sum([f.variables() for f in self.gens()],())))
@@ -4604,14 +4687,12 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             (1 : 2 : 1)
 
             sage: I = E.defining_ideal(); I
-            Ideal (-x^3 - 2*x^2*z + x*y*z + y^2*z - 4*x*z^2 + 3*y*z^2 - 5*z^3)
-            of Multivariate Polynomial Ring in x, y, z over Number Field in a with defining polynomial x^2 - 1/3
+            Ideal (-x^3 - 2*x^2*z + x*y*z + y^2*z - 4*x*z^2 + 3*y*z^2 - 5*z^3) of Multivariate Polynomial Ring in x, y, z over Number Field in a with defining polynomial x^2 - 1/3 with a = 0.5773502691896258?
 
         Of course, the point ``p`` is a root of all generators of ``I``::
 
             sage: I.subs(x=1,y=2,z=1)
-            Ideal (0) of Multivariate Polynomial Ring in x, y, z over
-            Number Field in a with defining polynomial x^2 - 1/3
+            Ideal (0) of Multivariate Polynomial Ring in x, y, z over Number Field in a with defining polynomial x^2 - 1/3 with a = 0.5773502691896258?
 
         ``I`` is also radical::
 

@@ -735,7 +735,7 @@ class ComputeMinimalPolynomials(SageObject):
             verbose 1 (...: compute_J_ideal.py, current_nu)
             Generators with (p^t)-generating property:
             verbose 1 (...: compute_J_ideal.py, current_nu)
-            [x^3 + 7*x^2 + 6*x, x^3 + 3*x^2 + 2*x]
+            ...
             verbose 1 (...: compute_J_ideal.py, current_nu)
             [x^3 + 3*x^2 + 2*x]
             verbose 1 (...: compute_J_ideal.py, p_minimal_polynomials)

@@ -34,7 +34,7 @@ EXAMPLES::
 """
 
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2017 Alejandra Alvarado <aalvarado2 at eiu.edu>
 #                          Angelos Koutsianas <koutsis.jr at gmail.com>
 #                          Beth Malmskog <beth.malmskog at gmail.com>
@@ -46,8 +46,8 @@ EXAMPLES::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from __future__ import absolute_import
 
@@ -72,6 +72,7 @@ from sage.arith.all import gcd, lcm, CRT
 from copy import copy
 import itertools
 from six.moves import range, zip
+
 
 def column_Log(SUK, iota, U, prec=106):
     r"""
@@ -107,6 +108,7 @@ def column_Log(SUK, iota, U, prec=106):
     R = RealField(prec)
 
     return [ R(SUK.number_field().abs_val(v, iota, prec)).log() for v in U]
+
 
 def c3_func(SUK, prec=106):
     r"""
@@ -156,6 +158,7 @@ def c3_func(SUK, prec=106):
             poss_c1 = C.inverse().apply_map(abs).norm(Infinity)
             c1 = R(max(poss_c1, c1))
     return R(0.9999999) / (c1*SUK.rank())
+
 
 def c4_func(SUK, v, A, prec=106):
     r"""
@@ -973,7 +976,7 @@ def log_p(a, prime, prec):
     - ``prime`` -- a prime ideal of the number field `K`
     - ``prec`` -- a positive integer
 
-    OUPUT:
+    OUTPUT:
 
     An element of `K` which is congruent to the ``prime``-adic logarithm of ``a`` with respect to ``prime`` modulo ``p^prec``, where ``p`` is the rational prime below ``prime``
 
@@ -1012,7 +1015,7 @@ def log_p(a, prime, prec):
 
     #In order to get an approximation with small coefficients we have to take into account the other primes above p
     #with negative valuation.  For example, say prime2 is another (principal ideal) prime above p, and a=(unit)(prime2)^(-k) for some unit and k
-    #a postive integer, and let tilde(a):=a(prime2)^k.  Then log_p(a)=log_p(tilde(a))-k(log_p(prime2)), where the series representations
+    #a positive integer, and let tilde(a):=a(prime2)^k.  Then log_p(a)=log_p(tilde(a))-k(log_p(prime2)), where the series representations
     #of these two logs will have smaller coefficients.
 
     primes = [(-(a.valuation(pr)),pr) for pr in K.primes_above(p) if a.valuation(pr) < 0]
@@ -1028,6 +1031,7 @@ def log_p(a, prime, prec):
 
     return log_p_series_part(a*prod(local_terms), prime, prec) - sum([log_p_series_part(b, prime, prec) for b in local_terms])
 
+
 def log_p_series_part(a, prime, prec):
     r"""
     INPUT:
@@ -1036,7 +1040,7 @@ def log_p_series_part(a, prime, prec):
     - ``prime`` -- a prime ideal of the number field `K`
     - ``prec`` -- a positive integer
 
-    OUPUT:
+    OUTPUT:
 
     The ``prime``-adic logarithm of ``a`` and accuracy ``p^prec``, where ``p`` is the rational prime below ``prime``
 
@@ -1600,11 +1604,12 @@ def clean_rfv_dict(rfv_dictionary):
         if 1 in val:
             rfv_dictionary.pop(a)
 
+
 def construct_rfv_to_ev(rfv_dictionary, q, d, verbose=False):
     r"""
-    Returns a reverse lookup dictionary, to find the exponent vectors associated to a given residue field vector.
+    Return a reverse lookup dictionary, to find the exponent vectors associated to a given residue field vector.
 
-    INPUTS:
+    INPUT:
 
     - ``rfv_dictionary`` -- a dictionary whose keys are exponent vectors and whose values are the associated residue field vectors
     - ``q`` -- a prime (assumed to split completely in the relevant number field)

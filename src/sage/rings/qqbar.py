@@ -167,7 +167,7 @@ However, implicit coercion from `\QQ[I]` is not allowed::
     sage: QQbar(1) + im
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for +: 'Algebraic Field' and 'Number Field in I with defining polynomial x^2 + 1'
+    TypeError: unsupported operand parent(s) for +: 'Algebraic Field' and 'Number Field in I with defining polynomial x^2 + 1 with I = 1*I'
 
 We can implicitly coerce from algebraic reals to algebraic numbers::
 
@@ -1959,14 +1959,33 @@ def conjugate_shrink(v):
         return v.real()
     return v
 
-
-def number_field_elements_from_algebraics(numbers, minimal=False, same_field=False):
+def number_field_elements_from_algebraics(numbers, minimal=False, same_field=False, embedded=False, prec=53):
     r"""
     Given a sequence of elements of either ``AA`` or ``QQbar``
     (or a mixture), computes a number field containing all of these
     elements, these elements as members of that number field, and a
     homomorphism from the number field back to ``AA`` or
     ``QQbar``.
+
+    INPUT:
+
+    - ``numbers`` -- a number or list of numbers.
+
+    - ``minimal`` -- Boolean (default: ``False``). Whether to minimize the
+      degree of the extension.
+
+    - ``same_field`` -- Boolean (default: ``False``). See below.
+
+    - ``embedded`` -- Boolean (default: ``False``). Whether to make the
+      NumberField embedded.
+
+    - ``prec`` -- integer (default: ``53``). The number of bit of precision
+      to guarantee finding real roots.
+
+    OUTPUT:
+
+    A tuple with the NumberField, the numbers inside the NumberField,
+    and a homomorphism from the number field back to ``AA`` or ``QQbar``.
 
     This may not return the smallest such number field, unless
     ``minimal=True`` is specified.
@@ -2105,6 +2124,30 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
         sage: [hom(n) for n in nums] == [rt2, rt3, qqI, z3]
         True
 
+    It is also possible to have an embedded Number Field::
+
+        sage: x = polygen(ZZ)
+        sage: my_num = AA.polynomial_root(x^3-2, RIF(0,3))
+        sage: res = number_field_elements_from_algebraics(my_num,embedded=True)
+        sage: res[0].gen_embedding()
+        1.259921049894873?
+        sage: res[2]
+        Ring morphism:
+          From: Number Field in a with defining polynomial y^3 - 2 with a = 1.259921049894873?
+          To:   Algebraic Real Field
+          Defn: a |--> 1.259921049894873?
+
+        sage: nf,nums,hom = number_field_elements_from_algebraics([2^(1/3),3^(1/5)],embedded=True)
+        sage: nf
+        Number Field in a with defining polynomial y^15 - 9*y^10 + 21*y^5 - 3 with a = 0.6866813218928813?
+        sage: nums
+        [a^10 - 5*a^5 + 2, -a^8 + 4*a^3]
+        sage: hom
+        Ring morphism:
+          From: Number Field in a with defining polynomial y^15 - 9*y^10 + 21*y^5 - 3 with a = 0.6866813218928813?
+          To:   Algebraic Real Field
+          Defn: a |--> 0.6866813218928813?
+
     TESTS::
 
         sage: number_field_elements_from_algebraics(rt3)
@@ -2119,30 +2162,56 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
             Defn: a |--> 0.7071067811865475? + 0.7071067811865475?*I)
 
     Note that for the first example, where \sage does not realize that
-    the number is real, we get a homomorphism to ``QQbar``; but with
-    ``minimal=True``, we get a homomorphism to ``AA``.  If we specify
-    both ``minimal=True`` and ``same_field=True``, we get a second
-    degree extension (minimal) that maps back to ``QQbar``.
+    the number is real, we get a homomorphism to ``QQbar``::
 
-    Also note that the exact answer depends on a Pari function that
-    gives different answers for 32-bit and 64-bit machines::
-
-        sage: number_field_elements_from_algebraics(rt2c)
+        sage: number_field_elements_from_algebraics(rt2c)   # random
         (Number Field in a with defining polynomial y^4 + 2*y^2 + 4, 1/2*a^3, Ring morphism:
             From: Number Field in a with defining polynomial y^4 + 2*y^2 + 4
             To:   Algebraic Field
             Defn: a |--> -0.7071067811865475? - 1.224744871391589?*I)
+
+    But with ``minimal=True``, we get a homomorphism to ``AA``::
+
         sage: number_field_elements_from_algebraics(rt2c, minimal=True)
         (Number Field in a with defining polynomial y^2 - 2, a, Ring morphism:
             From: Number Field in a with defining polynomial y^2 - 2
             To:   Algebraic Real Field
             Defn: a |--> 1.414213562373095?)
+
+    If we specify both ``minimal=True`` and ``same_field=True``, we get a second
+    degree extension (minimal) that maps back to ``QQbar``::
+
         sage: number_field_elements_from_algebraics(rt2c, minimal=True, same_field=True)
         (Number Field in a with defining polynomial y^2 - 2, a, Ring morphism:
             From: Number Field in a with defining polynomial y^2 - 2
             To:   Algebraic Field
             Defn: a |--> 1.414213562373095?)
 
+    Tests trivial cases::
+
+        sage: number_field_elements_from_algebraics([], embedded=True)
+        (Rational Field, [], Ring morphism:
+           From: Rational Field
+           To:   Algebraic Real Field
+           Defn: 1 |--> 1)
+        sage: number_field_elements_from_algebraics([1], embedded=True)
+        (Rational Field, [1], Ring morphism:
+           From: Rational Field
+           To:   Algebraic Real Field
+           Defn: 1 |--> 1)
+
+    Tests more complicated combinations::
+
+        sage: UCF = UniversalCyclotomicField()
+        sage: E = UCF.gen(5)
+        sage: L.<b> = NumberField(x^2-189*x+16, embedding=200)
+        sage: x = polygen(ZZ)
+        sage: my_nums = [-52*E - 136*E^2 - 136*E^3 - 52*E^4, \
+                         L.gen()._algebraic_(AA), \
+                         sqrt(2), AA.polynomial_root(x^3-3, RIF(0,3)), 11/9, 1]
+        sage: res = number_field_elements_from_algebraics(my_nums, embedded=True)
+        sage: res[0]
+        Number Field in a with defining polynomial y^24 - 107010*y^22 - 24*y^21 + ... + 250678447193040618624307096815048024318853254384 with a = -95.5053039433554?
     """
     gen = qq_generator
 
@@ -2164,24 +2233,62 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
             return x
         return QQbar(x)
 
+    # Try to cast into AA
+    try:
+        aa_numbers = [AA(_) for _ in numbers]
+        numbers = aa_numbers
+        real_case = True
+    except:
+        real_case = False
+        if embedded:
+            raise NotImplementedError
+    # Make the numbers algebraic
     numbers = [mk_algebraic(_) for _ in numbers]
 
+    # Make the numbers have a real exact underlying field
+    real_numbers = []
+    for v in numbers:
+        if v._exact_field().is_complex() and real_case:
+            # the number comes from a complex algebraic number field
+            embedded_rt = v.interval_fast(RealIntervalField(prec))
+            root = ANRoot(v.minpoly(), embedded_rt)
+            real_nf = NumberField(v.minpoly(),'a')
+            new_ef = AlgebraicGenerator(real_nf, root)
+            real_numbers += [new_ef.root_as_algebraic()]
+        else:
+            real_numbers += [v]
+    numbers = real_numbers
+
+    # Get the union of the exact fields
     for v in numbers:
         if minimal:
             v.simplify()
         gen = gen.union(v._exact_field())
 
     fld = gen._field
-
     nums = [gen(v._exact_value()) for v in numbers]
+
+    hom = fld.hom([gen.root_as_algebraic()])
+
+    if fld is not QQ and embedded:
+        # creates the embedded field
+        assert real_case
+        exact_generator = hom(fld.gen(0))
+        embedded_field = NumberField(fld.defining_polynomial(),fld.variable_name(),embedding=exact_generator)
+
+        # embeds the numbers
+        inter_hom = fld.hom([embedded_field.gen(0)])
+        nums = [inter_hom(n) for n in nums]
+
+        # get the field and homomorphism
+        hom = embedded_field.hom([gen.root_as_algebraic()])
+        fld = embedded_field
 
     if single_number:
         nums = nums[0]
 
     if same_field:
         hom = fld.hom([gen.root_as_algebraic()], codomain=algebraic_field)
-    else:
-        hom = fld.hom([gen.root_as_algebraic()])
 
     return (fld, nums, hom)
 
@@ -3596,11 +3703,22 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
                 zlist.append(root)
             return zlist
 
-    def as_number_field_element(self, minimal=False):
+    def as_number_field_element(self, minimal=False, embedded=False, prec=53):
         r"""
         Return a number field containing this value, a representation of
         this value as an element of that number field, and a homomorphism
         from the number field back to ``AA`` or ``QQbar``.
+
+        INPUT:
+
+        - ``minimal`` -- Boolean (default: ``False``). Whether to minimize the
+          degree of the extension.
+
+        - ``embedded`` -- Boolean (default: ``False``). Whether to make the
+          NumberField embedded.
+
+        - ``prec`` -- integer (default: ``53``). The number of bit of precision
+          to guarantee finding real roots.
 
         This may not return the smallest such number field, unless
         ``minimal=True`` is specified.
@@ -3616,18 +3734,49 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
                 From: Number Field in a with defining polynomial y^2 - 2
                 To:   Algebraic Real Field
                 Defn: a |--> 1.414213562373095?)
+
             sage: x = polygen(ZZ)
             sage: p = x^3 + x^2 + x + 17
             sage: (rt,) = p.roots(ring=AA, multiplicities=False); rt
             -2.804642726932742?
+
             sage: (nf, elt, hom) = rt.as_number_field_element()
             sage: nf, elt, hom
             (Number Field in a with defining polynomial y^3 - 2*y^2 - 31*y - 50, a^2 - 5*a - 19, Ring morphism:
               From: Number Field in a with defining polynomial y^3 - 2*y^2 - 31*y - 50
               To:   Algebraic Real Field
               Defn: a |--> 7.237653139801104?)
+            sage: elt == rt
+            False
+            sage: AA(elt)
+            Traceback (most recent call last):
+            ...
+            ValueError: need a real or complex embedding to convert a non rational element of a number field into an algebraic number
             sage: hom(elt) == rt
             True
+
+        Creating an element of an embedded number field::
+
+            sage: (nf, elt, hom) = rt.as_number_field_element(embedded=True)
+            sage: nf.coerce_embedding()
+            Generic morphism:
+              From: Number Field in a with defining polynomial y^3 - 2*y^2 - 31*y - 50 with a = 7.237653139801104?
+              To:   Algebraic Real Field
+              Defn: a -> 7.237653139801104?
+            sage: elt
+            a^2 - 5*a - 19
+            sage: elt.parent() == nf
+            True
+            sage: hom(elt).parent()
+            Algebraic Real Field
+            sage: hom(elt) == rt
+            True
+            sage: elt == rt
+            True
+            sage: AA(elt)
+            -2.804642726932742?
+            sage: RR(elt)
+            -2.80464272693274
 
         We see an example where we do not get the minimal number field unless
         we specify ``minimal=True``::
@@ -3646,7 +3795,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
                 To:   Algebraic Real Field
                 Defn: a |--> 1.732050807568878?)
         """
-        return number_field_elements_from_algebraics(self, minimal=minimal)
+        return number_field_elements_from_algebraics(self, minimal=minimal, embedded=embedded, prec=prec)
 
     def exactify(self):
         """
@@ -7762,7 +7911,7 @@ def _init_qqbar():
     EXAMPLES::
 
         sage: sage.rings.qqbar.QQbar_I_generator # indirect doctest
-        Number Field in I with defining polynomial x^2 + 1 with a in 1*I
+        Number Field in I with defining polynomial x^2 + 1 with I = 1*I with a in 1*I
     """
     global ZZX_x, AA_0, QQbar_I, AA_hash_offset, QQbar_hash_offset, QQbar_I_generator, QQbar_I_nf
     global QQ_0, QQ_1, QQ_1_2, QQ_1_4, RR_1_10

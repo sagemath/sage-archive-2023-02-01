@@ -862,6 +862,13 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         Return the intersection of self and other inside a common ambient
         Jacobian product.
 
+        When ``other`` is a modular abelian variety, the output will be a tuple
+        ``(G, A)``, where ``G`` is a finite subgroup that surjects onto the
+        component group and ``A`` is the identity component. So in particular,
+        the intersection is the variety ``G+A``. Note that ``G`` is not chosen
+        in any canonical way. When ``other`` is a finite group, the
+        intersection will be returned as a finite group.
+
         INPUT:
 
 
@@ -875,7 +882,9 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         -  ``G`` - finite subgroup of self
 
         -  ``A`` - abelian variety (identity component of
-           intersection) If other is a finite group:
+           intersection)
+
+        If other is a finite group:
 
         -  ``G`` - a finite group
 
@@ -915,6 +924,24 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             ]
             sage: (D[0] + D[1]).intersection(D[1] + D[2])
             (Finite subgroup with invariants [5, 10] over QQbar of Abelian subvariety of dimension 3 of J0(67), Abelian subvariety of dimension 2 of J0(67))
+
+        When the intersection is infinite, the output is ``(G, A)``, where
+        ``G`` surjects onto the component group. This choice of ``G`` is not
+        canonical (see :trac:`26189`). In this following example, ``B`` is a
+        subvariety of ``J``::
+
+            sage: d1 = J0(11).degeneracy_map(22, 1)
+            sage: d2 = J0(11).degeneracy_map(22, 2)
+            sage: B = (d1-d2).image()
+            sage: J = J0(22)
+            sage: J.intersection(B)
+            (Finite subgroup with invariants [] over QQbar of Abelian variety J0(22) of dimension 2,
+             Abelian subvariety of dimension 1 of J0(22))
+            sage: G, B = B.intersection(J); G, B
+            (Finite subgroup with invariants [2] over QQbar of Abelian subvariety of dimension 1 of J0(22),
+             Abelian subvariety of dimension 1 of J0(22))
+            sage: G.is_subgroup(B)
+            True
         """
         # First check whether we are intersecting an abelian variety
         # with a finite subgroup.  If so, call the intersection method

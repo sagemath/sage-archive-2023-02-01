@@ -12,31 +12,8 @@ positive reals. More specifically, it computes arbitrary terms of the
 asymptotic expansion for `F_{r \alpha}` when the asymptotics are controlled by
 a strictly minimal multiple point of the algebraic variety `H = 0`.
 
-The algorithms and formulas implemented here come from [RaWi2008a]_
-and [RaWi2012]_. For a general reference take a look in the book [PeWi2013].
-
-.. [AiYu1983] \I.A. Aizenberg and A.P. Yuzhakov.
-   *Integral representations and residues in multidimensional complex analysis*.
-   Translations of Mathematical Monographs, **58**. American Mathematical
-   Society, Providence, RI. (1983). x+283 pp. ISBN: 0-8218-4511-X.
-
-.. [Raic2012] Alexander Raichev.
-   *Leinartas's partial fraction decomposition*.
-   :arxiv:`1206.4740`.
-
-.. [RaWi2008a] Alexander Raichev and Mark C. Wilson. *Asymptotics of
-   coefficients of multivariate generating functions: improvements for
-   smooth points*, Electronic Journal of Combinatorics, Vol. 15 (2008).
-   R89 :arxiv:`0803.2914`.
-
-.. [RaWi2012] Alexander Raichev and Mark C. Wilson. *Asymptotics of
-   coefficients of multivariate generating functions: improvements for
-   smooth points*. Online Journal of Analytic Combinatorics.
-   Issue 6, (2011). :arxiv:`1009.5715`.
-
-.. [PeWi2013] Robin Pemantle and Mark C. Wilson.
-   *Analytic Combinatorics in Several Variables*.
-   Cambridge University Press, 2013.
+The algorithms and formulas implemented here come from [RW2008]_
+and [RW2012]_. For a general reference take a look in the book [PW2013]_.
 
 
 Introductory Examples
@@ -82,7 +59,7 @@ A univariate smooth point example::
      ((8,), 105.8425656, [105.8425656], [4.399565380e-11]),
      ((16,), 355.3119534, [355.3119534], [0.0000000000])]
 
-Another smooth point example (Example 5.4 of [RaWi2008a]_)::
+Another smooth point example (Example 5.4 of [RW2008]_)::
 
     sage: R.<x,y> = PolynomialRing(QQ)
     sage: FFPD = FractionWithFactoredDenominatorRing(R)
@@ -125,7 +102,7 @@ Another smooth point example (Example 5.4 of [RaWi2008a]_)::
      ((32, 8), 0.09739671811, [0.09768973377...], [-0.0030084757...]),
      ((64, 16), 0.07744253816, [0.07753639308...], [-0.0012119297...])]
 
-A multiple point example (Example 6.5 of [RaWi2012]_)::
+A multiple point example (Example 6.5 of [RW2012]_)::
 
     sage: R.<x,y> = PolynomialRing(QQ)
     sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
@@ -912,7 +889,7 @@ class FractionWithFactoredDenominator(RingElement):
         unique factorization of `q` in `K[X]` into irreducible factors and
         let `V_i` be the algebraic variety `\{x \in L^d \mid q_i(x) = 0\}`
         of `q_i` over the algebraic closure `L` of `K`.
-        By [Raic2012]_, `f` can be written as
+        By [Rai2012]_, `f` can be written as
 
         .. MATH::
 
@@ -926,7 +903,7 @@ class FractionWithFactoredDenominator(RingElement):
         We call `(*)` a *Nullstellensatz decomposition* of `f`.
         Nullstellensatz decompositions are not unique.
 
-        The algorithm used comes from [Raic2012]_.
+        The algorithm used comes from [Rai2012]_.
 
         .. NOTE::
 
@@ -1093,7 +1070,7 @@ class FractionWithFactoredDenominator(RingElement):
         unique factorization of `q` in `K[X]` into irreducible factors and
         let `V_i` be the algebraic variety `\{x \in L^d \mid q_i(x) = 0\}`
         of `q_i` over the algebraic closure `L` of `K`.
-        By [Raic2012]_, `f` can be written as
+        By [Rai2012]_, `f` can be written as
 
         .. MATH::
 
@@ -1108,7 +1085,7 @@ class FractionWithFactoredDenominator(RingElement):
         We call `(*)` an *algebraic dependence decomposition* of `f`.
         Algebraic dependence decompositions are not unique.
 
-        The algorithm used comes from [Raic2012]_.
+        The algorithm used comes from [Rai2012]_.
 
         OUTPUT:
 
@@ -1209,7 +1186,7 @@ class FractionWithFactoredDenominator(RingElement):
         unique factorization of `q` in `K[X]` into irreducible factors and
         let `V_i` be the algebraic variety
         `\{x\in L^d \mid q_i(x) = 0\}` of `q_i` over the algebraic closure
-        `L` of `K`. By [Raic2012]_, `f` can be written as
+        `L` of `K`. By [Rai2012]_, `f` can be written as
 
         .. MATH::
 
@@ -1231,7 +1208,7 @@ class FractionWithFactoredDenominator(RingElement):
         We call `(*)` a *Leinartas decomposition* of `f`.
         Leinartas decompositions are not unique.
 
-        The algorithm used comes from [Raic2012]_.
+        The algorithm used comes from [Rai2012]_.
 
         OUTPUT:
 
@@ -1337,7 +1314,7 @@ class FractionWithFactoredDenominator(RingElement):
         no repeated irreducible factors.
 
         The algorithm used here comes from the proof of Theorem 17.4 of
-        [AiYu1983]_.
+        [AY1983]_.
 
         OUTPUT:
 
@@ -1554,7 +1531,7 @@ class FractionWithFactoredDenominator(RingElement):
           with all nonzero coordinates that is critical and nondegenerate
           for ``alpha``.
 
-        The algorithms used here come from [RaWi2008a]_ and [RaWi2012]_.
+        The algorithms used here come from [RW2008]_ and [RW2012]_.
 
         INPUT:
 
@@ -1689,9 +1666,9 @@ class FractionWithFactoredDenominator(RingElement):
         case of a convenient smooth point.
 
         The formulas used for computing the asymptotic expansions are
-        Theorems 3.2 and 3.3 [RaWi2008a]_ with the exponent of `H`
+        Theorems 3.2 and 3.3 [RW2008]_ with the exponent of `H`
         equal to 1. Theorem 3.2 is a specialization of Theorem 3.4
-        of [RaWi2012]_ with `n = 1`.
+        of [RW2012]_ with `n = 1`.
 
         INPUT:
 
@@ -1895,7 +1872,7 @@ class FractionWithFactoredDenominator(RingElement):
             if any(u for u in Uderivs.values()):
                 all_zero = False
             if all_zero:
-                # Then, using a proposition at the end of [RaWi2012], we can
+                # Then, using a proposition at the end of [RW2012], we can
                 # conclude that all higher derivatives of U are zero.
                 for l in range(k + 1, 2 * N + 1):
                     for s in combinations_with_replacement(X, l):
@@ -2068,7 +2045,7 @@ class FractionWithFactoredDenominator(RingElement):
         ``p.values()`` are not symbolic variables.
 
         The formulas used for computing the asymptotic expansion are
-        Theorem 3.4 and Theorem 3.7 of [RaWi2012]_.
+        Theorem 3.4 and Theorem 3.7 of [RW2012]_.
 
         INPUT:
 
@@ -2601,7 +2578,7 @@ class FractionWithFactoredDenominator(RingElement):
         In case ``p`` is not, ``verdict = False`` and ``comment`` is a string
         explaining why ``p`` fails to be a convenient multiple point.
 
-        See [RaWi2012]_ for more details.
+        See [RW2012]_ for more details.
 
         INPUT:
 
@@ -2722,7 +2699,7 @@ class FractionWithFactoredDenominator(RingElement):
         If the variety `V` of `H` has no smooth points, then return the ideal
         in `R` of `V`.
 
-        See [RaWi2012]_ for more details.
+        See [RW2012]_ for more details.
 
         INPUT:
 

@@ -108,14 +108,14 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, division, absolute_import
 
 import math
@@ -601,7 +601,6 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         """
         if self.is_zero():
             return plot.text("$\\infty$", (-3, 3), **args)
-
         else:
             return plot.point((self[0], self[1]), **args)
 
@@ -1478,7 +1477,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
         ALGORITHM:
 
-            Double-and-add. See also [Mil04]_.
+            Double-and-add. See also [Mil2004]_.
 
         AUTHORS:
 
@@ -1580,16 +1579,11 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
         ALGORITHM:
 
-        Implemented using Proposition 8 in [Mil04]_.  The value 1 is
+        Implemented using Proposition 8 in [Mil2004]_.  The value 1 is
         returned for linearly dependent input points.  This condition
         is caught via a DivisionByZeroError, since the use of a
         discrete logarithm test for linear dependence, is much too slow
         for large `n`.
-
-        REFERENCES:
-
-        .. [Mil04] Victor S. Miller, "The Weil pairing, and its
-           efficient calculation", J. Cryptol., 17(4):235-261, 2004
 
         AUTHOR:
 
@@ -1881,7 +1875,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             True
 
         Using the same data, we show that the ate pairing is a power of the
-        Tate pairing (see [HSV]_ end of section 3.1)::
+        Tate pairing (see [HSV2006]_ end of section 3.1)::
 
             sage: c = (k*p^(k-1)).mod(n); T = t - 1
             sage: N = gcd(T^k - 1, p^k - 1)
@@ -1952,16 +1946,11 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
         NOTES:
 
-        First defined in the paper of [HSV]_, the ate pairing can be
+        First defined in the paper of [HSV2006]_, the ate pairing can be
         computationally effective in those cases when the trace of the curve
         over the base field is significantly smaller than the expected
         value. This implementation is simply Miller's algorithm followed by a
         naive exponentiation, and makes no claims towards efficiency.
-
-        REFERENCES:
-
-        .. [HSV] Hess, Smart, Vercauteren, "The Eta Pairing Revisited",
-           IEEE Trans. Information Theory, 52(10): 4595-4602, 2006.
 
         AUTHORS:
 
@@ -2452,22 +2441,9 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         There are two normalisations used in the literature, one of
         which is double the other. We use the larger of the two, which
         is the one appropriate for the BSD conjecture. This is
-        consistent with [Cre]_ and double that of [SilBook]_.
+        consistent with [Cre1997]_ and double that of [Sil2009]_.
 
         See :wikipedia:`Néron-Tate height`
-
-        REFERENCES:
-
-        .. [Cre] John Cremona, Algorithms for Modular Elliptic Curves.
-           Cambridge University Press, 1997.
-
-        .. [Sil1988] Joseph H. Silverman, Computing heights on
-           elliptic curves. Mathematics of Computation, Vol. 51,
-           No. 183 (Jul., 1988), pp. 339-358.
-
-        .. [SilBook] Joseph H. Silverman, The Arithmetic of Elliptic
-           Curves. Second edition. Graduate Texts in Mathematics, 106.
-           Springer, 2009.
 
         EXAMPLES::
 
@@ -2733,7 +2709,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
             sage: K.<a> = QuadraticField(-2)
             sage: E = EllipticCurve(K, [0,-1,1,0,0]); E
-            Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 over Number Field in a with defining polynomial x^2 + 2
+            Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 over Number Field in a with defining polynomial x^2 + 2 with a = 1.414213562373095?*I
             sage: P = E.lift_x(2+a); P
             (a + 2 : 2*a + 1 : 1)
             sage: P.archimedean_local_height(K.places(prec=170)[0]) / 2

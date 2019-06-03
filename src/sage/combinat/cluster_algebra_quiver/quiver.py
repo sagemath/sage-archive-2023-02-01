@@ -1076,7 +1076,7 @@ class ClusterQuiver(SageObject):
 
             sage: Q = ClusterQuiver(DiGraph([['a', 'b'], ['c', 'b'], ['c', 'd'], ['e', 'd']]),
             ....:                   frozen=['b', 'd'])
-            sage: Q.frozen_vertices()
+            sage: sorted(Q.frozen_vertices())
             ['b', 'd']
         """
         return self._mlist
@@ -1650,21 +1650,11 @@ class ClusterQuiver(SageObject):
             Quiver on 3 vertices of type ['A', 3]
 
             sage: it = Q.mutation_class_iter(return_paths=True,up_to_equivalence=False)
-            sage: for T in it: print(T)
+            sage: mutation_class = list(it)
+            sage: len(mutation_class)
+            14
+            sage: mutation_class[0]
             (Quiver on 3 vertices of type ['A', 3], [])
-            (Quiver on 3 vertices of type ['A', 3], [2])
-            (Quiver on 3 vertices of type ['A', 3], [1])
-            (Quiver on 3 vertices of type ['A', 3], [0])
-            (Quiver on 3 vertices of type ['A', 3], [2, 1])
-            (Quiver on 3 vertices of type ['A', 3], [0, 1])
-            (Quiver on 3 vertices of type ['A', 3], [0, 1, 2])
-            (Quiver on 3 vertices of type ['A', 3], [0, 1, 0])
-            (Quiver on 3 vertices of type ['A', 3], [2, 1, 2])
-            (Quiver on 3 vertices of type ['A', 3], [2, 1, 0])
-            (Quiver on 3 vertices of type ['A', 3], [2, 1, 0, 2])
-            (Quiver on 3 vertices of type ['A', 3], [2, 1, 0, 1])
-            (Quiver on 3 vertices of type ['A', 3], [2, 1, 2, 1])
-            (Quiver on 3 vertices of type ['A', 3], [2, 1, 2, 0])
 
             sage: Q = ClusterQuiver(['A',3])
             sage: it = Q.mutation_class_iter(data_type='path')
@@ -1797,21 +1787,10 @@ class ClusterQuiver(SageObject):
             Quiver on 3 vertices of type ['A', 3]
 
             sage: Ts = Q.mutation_class(return_paths=True,up_to_equivalence=False)
-            sage: for T in Ts: print(T)
+            sage: len(Ts)
+            14
+            sage: Ts[0]
             (Quiver on 3 vertices of type ['A', 3], [])
-            (Quiver on 3 vertices of type ['A', 3], [2])
-            (Quiver on 3 vertices of type ['A', 3], [1])
-            (Quiver on 3 vertices of type ['A', 3], [0])
-            (Quiver on 3 vertices of type ['A', 3], [2, 1])
-            (Quiver on 3 vertices of type ['A', 3], [0, 1])
-            (Quiver on 3 vertices of type ['A', 3], [0, 1, 2])
-            (Quiver on 3 vertices of type ['A', 3], [0, 1, 0])
-            (Quiver on 3 vertices of type ['A', 3], [2, 1, 2])
-            (Quiver on 3 vertices of type ['A', 3], [2, 1, 0])
-            (Quiver on 3 vertices of type ['A', 3], [2, 1, 0, 2])
-            (Quiver on 3 vertices of type ['A', 3], [2, 1, 0, 1])
-            (Quiver on 3 vertices of type ['A', 3], [2, 1, 2, 1])
-            (Quiver on 3 vertices of type ['A', 3], [2, 1, 2, 0])
 
             sage: Ts = Q.mutation_class(show_depth=True)
             Depth: 0     found: 1          Time: ... s

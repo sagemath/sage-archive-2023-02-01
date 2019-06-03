@@ -75,9 +75,9 @@ data sent.  We can now retrieve the description from the database::
 
 and check the references::
 
-    sage: s.references()                                                        # optional -- internet, random
+    sage: s.references()                                                        # optional -- internet
     0: [1]  de Médicis, A., Viennot, X. G. Moments des $q$-polynômes de Laguerre et la bijection de Foata-Zeilberger [[MathSciNet:1288802]]
-    1: [2]  Simion, R., Stanton, D. Octabasic Laguerre polynomials and permutation statistics [[MathSciNet:1418763]]
+    1: [2]  Simion, R., Stanton, D. Octabasic Laguerre polynomials and permutation statistics [[MathSciNet:1418763]]...
 
 If you prefer, you can look at this information also in your browser::
 
@@ -394,11 +394,11 @@ class FindStat(SageObject):
     A particular statistic can be retrieved by its St-identifier or
     number::
 
-        sage: findstat('St000041')                                              # optional -- internet, random
+        sage: findstat('St000041')                                              # optional -- internet
         St000041: The number of nestings of a perfect matching.
 
-        sage: findstat(51)                                                      # optional -- internet, random
-        St000051: The size of the left subtree.
+        sage: findstat(51)                                                      # optional -- internet
+        St000051: The size of the left subtree of a binary tree.
 
     The database can be searched by providing a list of pairs::
 
@@ -419,15 +419,14 @@ class FindStat(SageObject):
     this case, the function is applied to the first few objects of
     the collection::
 
-        sage: findstat("Permutations", lambda pi: pi.length(), depth=0)         # optional -- internet, random
+        sage: findstat("Permutations", lambda pi: pi.length(), depth=0)         # optional -- internet
         0: (St000018: The number of inversions of a permutation., [], 1000)
 
     To search for a distribution, send a list of lists, or a single pair::
 
-        sage: S = PerfectMatchings(10); findstat((S, [pi.number_of_nestings() for pi in S]), depth=0) # optional -- internet, random
+        sage: S = PerfectMatchings(10); findstat((S, [pi.number_of_nestings() for pi in S]), depth=0) # optional -- internet
         0: (St000041: The number of nestings of a perfect matching., [], 945)
-        1: (St000042: The number of crossings of a perfect matching., [], 945)
-        ...
+        1: (St000042: The number of crossings of a perfect matching., [], 945)...
 
     Note that there is a limit, ``FINDSTAT_MAX_DEPTH``, on the number
     of elements that may be submitted to FindStat, which is currently
@@ -475,7 +474,7 @@ class FindStat(SageObject):
         EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatCollection
-            sage: findstat(FindStatCollection("Permutations"), lambda pi: pi.length(), depth=0)    # optional -- internet, random
+            sage: findstat(FindStatCollection("Permutations"), lambda pi: pi.length(), depth=0)    # optional -- internet
             0: (St000018: The number of inversions of a permutation., [], 1000)
 
         TESTS::
@@ -510,6 +509,12 @@ class FindStat(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: FindStat expects that every object occurs at most once.
+
+        Check that values which can be converted to integers are supported::
+
+            sage: findstat([(la, la[0]/1) for la in Partitions(10)], depth=0)   # optional -- internet
+            0: (St000147: The largest part of an integer partition., [], 42)
+
         """
         try:
             depth = int(depth)
@@ -545,18 +550,22 @@ class FindStat(SageObject):
                                      depth=depth)._find_by_values(max_values=max_values)
 
         def query_by_iterable(query, collection=None):
-            # either a pair (objects, values)
-            # or an iterable of such or (object, integer) pairs
-
+            """
+            Perform a query given either a pair `(objects, values)` or an
+            iterable of such or `(object, integer)`  pairs.
+            """
             # we must convert to lists because we want to allow
             # iterables for the values
             query = list(query)
             if len(query) == 2:
+                # either a pure distribution query or a query with a
+                # list of two distributions - exactly in the first
+                # case the second element is a list of integer-like
+                # objects
                 try:
                     query[1] = list(map(Integer, query[1]))
-                except TypeError:
+                except (TypeError, IndexError):
                     pass
-                # just a single pair, i.e., a pure distribution query
                 else:
                     collection, to_str = get_collection(collection, query[0][0])
                     data = [(query[0], list(map(to_str, query[0])), query[1])]
@@ -569,25 +578,31 @@ class FindStat(SageObject):
                                              collection=collection,
                                              depth=depth)._find_by_values(max_values=max_values)
 
+            # query is a list, each element being either a pair
+            # `(object, integer)` or a pair `(objects, integers)`
             key, value = query[0]
             try:
-                query[0][1] = list(value)
-                collection, to_str = get_collection(collection, key[0])
-            except TypeError:
+                Integer(value)
                 collection, to_str = get_collection(collection, key)
+            except TypeError:
+                collection, to_str = get_collection(collection, key[0])
 
             data = []
             is_statistic = True
             for key, value in query:
                 try:
-                    value = list(map(Integer, value))
-                    if len(key) != len(value):
-                        raise ValueError("FindStat expects the same number of objects as values.")
-                    if len(value) != 1:
-                        is_statistic = False
-                    data += [(key, list(map(to_str, key)), value)]
+                    v = [Integer(value)]
+                    k = [key]
                 except TypeError:
-                    data += [([key], [to_str(key)], [Integer(value)])]
+                    v = list(map(Integer, value))
+                    k = key
+
+                if len(k) != len(v):
+                    raise ValueError("FindStat expects the same number of objects as values.")
+
+                data += [(k, list(map(to_str, k)), v)]
+                if len(v) != 1:
+                    is_statistic = False
 
             all_elements = [e for (elements, elements_str, value) in data for e in elements_str]
             if len(set(all_elements)) != len(all_elements):
@@ -833,6 +848,8 @@ class FindStatStatistic(SageObject):
             sage: findstat([(pi, pi(1)) for pi in Permutations(4)], depth=0)    # optional -- internet
             0: (St000054: ...
 
+            sage: findstat(914)                                                 # optional -- internet
+            St000914: The sum of the values of the Möbius function of a poset.
         """
         if self._query == "ID":
             if self._modified:
@@ -967,9 +984,14 @@ class FindStatStatistic(SageObject):
             else:
                 raise
 
-        self._description           = self._raw[FINDSTAT_STATISTIC_DESCRIPTION]
-        self._name                  = self._raw[FINDSTAT_STATISTIC_NAME]
-        self._references            = self._raw[FINDSTAT_STATISTIC_REFERENCES]
+        self._description = self._raw[FINDSTAT_STATISTIC_DESCRIPTION]
+        self._name        = self._raw[FINDSTAT_STATISTIC_NAME]
+        self._references  = self._raw[FINDSTAT_STATISTIC_REFERENCES]
+        import sys
+        if sys.version_info[0] < 3:
+            self._name        = self._name.encode("utf-8")
+            self._references  = self._references.encode("utf-8")
+
         self._collection            = FindStatCollection(self._raw[FINDSTAT_STATISTIC_COLLECTION])
         self._code                  = self._raw[FINDSTAT_STATISTIC_CODE]
         self._sage_code             = self._raw[FINDSTAT_STATISTIC_SAGE_CODE]
@@ -1106,12 +1128,12 @@ class FindStatStatistic(SageObject):
         EXAMPLES::
 
             sage: l = [pi for n in range(7) for pi in Permutations(n)]
-            sage: q = findstat([(pi, pi.length()) for pi in l], depth=1); q     # optional -- internet, random
+            sage: q = findstat([(pi, pi.length()) for pi in l], depth=1); q     # optional -- internet
             0: (St000018: The number of inversions of a permutation., [], 873)
             1: (St000004: The major index of a permutation., [Mp00062: inversion-number to major-index bijection], 873)
             ...
 
-            sage: q[1]                                                          # optional -- internet, random
+            sage: q[1]                                                          # optional -- internet
             (St000004: The major index of a permutation., [Mp00062: inversion-number to major-index bijection], 873)
 
         """
@@ -1249,8 +1271,9 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: findstat(1).first_terms()                                     # optional -- internet, random
-            [([1], 1),
+            sage: findstat(1).first_terms()                                     # optional -- internet
+            [([], 1),
+             ([1], 1),
              ([1, 2], 1),
              ([2, 1], 1),
              ([1, 2, 3], 1),
@@ -1309,8 +1332,8 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: findstat(1).first_terms_str()[:10]                            # optional -- internet, random
-            '[1] => 1\r\n'
+            sage: findstat(1).first_terms_str()[:9]                             # optional -- internet
+            '[] => 1\r\n'
 
         """
         if self._first_terms is not None:
@@ -1390,14 +1413,14 @@ class FindStatStatistic(SageObject):
 
             sage: st = findstat(18)                                             # optional -- internet
 
-            sage: st.generating_functions()                                     # optional -- internet, random
+            sage: st.generating_functions()                                     # optional -- internet
             {2: q + 1,
              3: q^3 + 2*q^2 + 2*q + 1,
              4: q^6 + 3*q^5 + 5*q^4 + 6*q^3 + 5*q^2 + 3*q + 1,
              5: q^10 + 4*q^9 + 9*q^8 + 15*q^7 + 20*q^6 + 22*q^5 + 20*q^4 + 15*q^3 + 9*q^2 + 4*q + 1,
              6: q^15 + 5*q^14 + 14*q^13 + 29*q^12 + 49*q^11 + 71*q^10 + 90*q^9 + 101*q^8 + 101*q^7 + 90*q^6 + 71*q^5 + 49*q^4 + 29*q^3 + 14*q^2 + 5*q + 1}
 
-            sage: st.generating_functions(style="dictionary")                   # optional -- internet, random
+            sage: st.generating_functions(style="dictionary")                   # optional -- internet
             {2: {0: 1, 1: 1},
              3: {0: 1, 1: 2, 2: 2, 3: 1},
              4: {0: 1, 1: 3, 2: 5, 3: 6, 4: 5, 5: 3, 6: 1},
@@ -1419,7 +1442,7 @@ class FindStatStatistic(SageObject):
               14: 5,
               15: 1}}
 
-            sage: st.generating_functions(style="list")                         # optional -- internet, random
+            sage: st.generating_functions(style="list")                         # optional -- internet
             {2: [1, 1],
              3: [1, 2, 2, 1],
              4: [1, 3, 5, 6, 5, 3, 1],
@@ -1466,17 +1489,15 @@ class FindStatStatistic(SageObject):
 
             sage: st = findstat(18)                                             # optional -- internet
 
-            sage: st.oeis_search()                                              # optional -- internet, random
+            sage: st.oeis_search()                                              # optional -- internet
             Searching the OEIS for "1,1  1,2,2,1  1,3,5,6,5,3,1  1,4,9,15,20,22,20,15,9,4,1  1,5,14,29,49,71,90,101"
+            0: A008302: Triangle of Mahonian numbers T(n,k)...
 
-            0: A008302: Triangle of Mahonian numbers T(n,k): coefficients in expansion of Product_{i=0..n-1} (1 + x + ... + x^i), where k ranges from 0 to A000217(n-1).
-
-            sage: st.oeis_search(search_size=13)                                # optional -- internet, random
+            sage: st.oeis_search(search_size=13)                                # optional -- internet
             Searching the OEIS for "1,1  1,2,2,1  1,3,5,6,5,3,1"
-
-            0: A008302: Triangle of Mahonian numbers T(n,k): coefficients in expansion of Product_{i=0..n-1} (1 + x + ... + x^i), where k ranges from 0 to A000217(n-1).
-            1: A115570: Array read by rows: row n (n>= 1) gives the Betti numbers for the n-th element of the Weyl group of type A3 (in Goresky's standard ordering).
-            2: A187447: Array for all multiset choices (multiset repetition class representatives in Abramowitz-Stegun order).
+            0: A008302: Triangle of Mahonian numbers T(n,k)...
+            1: A115570: Array read by rows: row n (n>= 1) gives the Betti numbers...
+            2: A187447: Array for all multiset choices...
         """
         from sage.databases.oeis import oeis
 
@@ -1517,7 +1538,7 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: print(findstat(1).description())                              # optional -- internet, random
+            sage: print(findstat(1).description())                              # optional -- internet
             The number of ways to write a permutation as a minimal length product of simple transpositions.
             <BLANKLINE>
             That is, the number of reduced words for the permutation.  E.g., there are two reduced words for $[3,2,1] = (1,2)(2,3)(1,2) = (2,3)(1,2)(2,3)$.
@@ -1571,8 +1592,8 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: findstat(1).name()                                            # optional -- internet, random
-            u'The number of ways to write a permutation as a minimal length product of simple transpositions.'
+            sage: findstat(1).name()                                            # optional -- internet
+            'The number of ways to write a permutation as a minimal length product of simple transpositions.'
         """
         # this needs to be decided how to do properly
         if hasattr(self,"_name"):
@@ -1598,10 +1619,10 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: findstat(1).references()                                      # optional -- internet, random
-            0: P. Edelman and C. Greene, Balanced tableaux, Adv. in Math., 63 (1987), pp. 42-99.
-            1: [[OEIS:A005118]]
-            2: [[oeis:A246865]]
+            sage: findstat(1).references()                                      # optional -- internet
+            0: [1]  Edelman, P., Greene, C. Balanced tableaux [[MathSciNet:0871081]]
+            1: [2]  Number of simple allowable sequences on 1..n containing the permutation 12...n. [[OEIS:A005118]]
+            2: [3]  Total number of reduced decompositions for all permutations in S_n. [[OEIS:A246865]]
         """
         sp = self._references.split(FINDSTAT_SEPARATOR_REFERENCES)
         l = [ref.strip() for ref in sp]
@@ -1656,9 +1677,9 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: print(findstat(1).code())                                     # optional -- internet, random
+            sage: print(findstat(1).code())                                     # optional -- internet
             def statistic(x):
-                return len(x.reduced_words())
+                return sum(1 for _ in x.reduced_words_iterator())
 
             sage: print(findstat(118).code())                                   # optional -- internet, random
             (* in Mathematica *)
@@ -1714,9 +1735,9 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: print(findstat(1).code())                                     # optional -- internet, random
+            sage: print(findstat(1).code())                                     # optional -- internet
             def statistic(x):
-                return len(x.reduced_words())
+                return sum(1 for _ in x.reduced_words_iterator())
 
         """
         return self._sage_code
@@ -2300,7 +2321,7 @@ class FindStatCollections(Parent, UniqueRepresentation):
     EXAMPLES::
 
         sage: from sage.databases.findstat import FindStatCollections
-        sage: sorted(c for c in FindStatCollections())                          # optional -- internet, random
+        sage: sorted(c for c in FindStatCollections())                          # optional -- internet
         [Cc0001: Permutations,
          Cc0002: Integer partitions,
          Cc0005: Dyck paths,
@@ -2317,7 +2338,8 @@ class FindStatCollections(Parent, UniqueRepresentation):
          Cc0020: Graphs,
          Cc0021: Ordered trees,
          Cc0022: Finite Cartan types,
-         Cc0023: Parking functions]
+         Cc0023: Parking functions,
+         Cc0024: Binary words]
     """
 
     # we set up a dict of FindStat collections containing, with key
@@ -2527,7 +2549,8 @@ class FindStatCollections(Parent, UniqueRepresentation):
              Cc0020: Graphs,
              Cc0021: Ordered trees,
              Cc0022: Finite Cartan types,
-             Cc0023: Parking functions]
+             Cc0023: Parking functions,
+             Cc0024: Binary words]
 
             sage: FindStatCollection(Permutation([1,2,3]))                      # optional -- internet
             Cc0001: Permutations

@@ -7,7 +7,7 @@ special linear group. That is, we are dealing with polynomials of
 degree `d` in `n` variables. The special linear group `SL(n,\CC)` acts
 on the variables `(x_1,\dots, x_n)` linearly,
 
-.. MATH::
+. MATH::
 
     (x_1,\dots, x_n)^t \to A (x_1,\dots, x_n)^t
     ,\qquad
@@ -92,7 +92,7 @@ specify one less variable::
 
 REFERENCES:
 
-.. [WpInvariantTheory] :wikipedia:`Glossary_of_invariant_theory`
+- :wikipedia:`Glossary_of_invariant_theory`
 
 AUTHORS:
 
@@ -3221,10 +3221,8 @@ class TwoTernaryQuadratics(TwoAlgebraicForms):
 
     REFERENCES:
 
-    ..  [Salmon2]
-        G. Salmon: A Treatise on Conic Sections,
-        Section on "Invariants and Covariants of Systems of Conics",
-        Art. 388 (a).
+    - Section on "Invariants and Covariants of Systems of Conics",
+      Art. 388 (a) in [Sal1954]_
 
     TESTS::
 
@@ -3436,10 +3434,8 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
 
     REFERENCES:
 
-    ..  [Salmon]
-        G. Salmon: "A Treatise on the Analytic Geometry of Three
-        Dimensions", section on "Invariants and Covariants of
-        Systems of Quadrics".
+    -  section on "Invariants and Covariants of
+       Systems of Quadrics" in [Sal1958]_, [Sal1965]_
 
     TESTS::
 
@@ -4017,7 +4013,7 @@ can then be queried for invariant and covariants. For example,
 
         REFERENCES:
 
-        ..  [WpBinaryForm] :wikipedia:`Invariant_of_a_binary_form`
+        - :wikipedia:`Invariant_of_a_binary_form`
 
         EXAMPLES::
 
@@ -4217,7 +4213,7 @@ can then be queried for invariant and covariants. For example,
 
         REFERENCES:
 
-        .. [WpTernaryCubic] :wikipedia:`Ternary_cubic`
+        - :wikipedia:`Ternary_cubic`
 
         INPUT:
 
@@ -4312,7 +4308,7 @@ can then be queried for invariant and covariants. For example,
             sage: type(inv)
             <class 'sage.rings.invariants.invariant_theory.TwoQuaternaryQuadratics'>
 
-        Distance between two spheres [Salmon]_ ::
+        Distance between two spheres [Sal1958]_, [Sal1965]_ ::
 
             sage: R.<x,y,z, a,b,c, r1,r2> = QQ[]
             sage: S1 = -r1^2 + x^2 + y^2 + z^2

@@ -432,7 +432,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             return self.imag()
         raise IndexError("i must be between 0 and 1.")
 
-    def __reduce__( self ):
+    def __reduce__(self):
         """
         Pickling support
 
@@ -1117,11 +1117,11 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         EXAMPLES::
 
             sage: a = ComplexNumber(2,1)
-            sage: long(a)
+            sage: long(a)   # py2
             Traceback (most recent call last):
             ...
             TypeError: can't convert complex to long; use long(abs(z))
-            sage: a.__long__()
+            sage: a.__long__()   # py2
             Traceback (most recent call last):
             ...
             TypeError: can't convert complex to long; use long(abs(z))
@@ -2090,7 +2090,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         return self._parent(self.__pari__().incgam(t, precision=self.prec()))
 
-    def log(self,base=None):
+    def log(self, base=None):
         r"""
         Complex logarithm of `z` with branch chosen as follows: Write
         `z = \rho e^{i \theta}` with `-\pi < \theta <= pi`. Then
@@ -2114,7 +2114,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         ::
 
             sage: b = ComplexNumber(float(exp(42)),0)
-            sage: b.log()
+            sage: b.log()  # abs tol 1e-12
             41.99999999999971
 
         ::

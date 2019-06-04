@@ -9881,7 +9881,6 @@ class GenericGraph(GenericGraph_pyx):
             output.intersection_update(vertices2)
         return list(output)
 
-
     def set_vertices(self, vertex_dict):
         """
         Associate arbitrary objects with each vertex, via an association
@@ -10111,8 +10110,7 @@ class GenericGraph(GenericGraph_pyx):
 
         for u in self._backend.iterator_nbrs(vertex):
             yield u
-    
-    
+
     def vertices(self, sort=True, key=None):
         r"""
         Return a list of the vertices.

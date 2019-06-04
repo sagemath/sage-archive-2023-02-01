@@ -735,11 +735,12 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
                 def succ(seed):
                     w, w_len = seed
+                    w_len -= 1
                     resu = []
                     for t in R:
                         u = w * t
-                        if u.reflection_length() + 1 == w_len:
-                            resu.append((u, w_len - 1))
+                        if u.reflection_length(in_unitary_group=True) == w_len:
+                            resu.append((u, w_len))
                     return resu
                 step = RecursivelyEnumeratedSet(seeds, succ, structure='graded')
                 return (x[0] for x in step)

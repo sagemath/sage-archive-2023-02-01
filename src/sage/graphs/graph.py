@@ -5639,9 +5639,9 @@ class Graph(GenericGraph):
     ### Domination
 
     @doc_index("Basic methods")
-    def is_dominating(self, p_dominating, p_dominated=None):
+    def is_dominating(self, dominating, focus=None):
         r"""
-        Return whether the first set dominates the second one.
+        Check if a set is a dominating set.
 
         We say that as set `D` of vertices of a graph `G` dominates a
         set `S` if every vertex of `S` belongs to `D` or is adjacent to
@@ -5650,16 +5650,18 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``p_dominating`` -- an iterable of vertices of ``self``
+        - ``dominating`` -- an iterable of vertices of ``self``; the
+          the vertices of the supposed dominating set.
 
-        - ``vertex_subset`` -- (default: ``None``) an iterable of
+        - ``focus`` -- (default: ``None``) an iterable of
           vertices of ``self``; the vertices that we want to dominate.
 
         OUTPUT:
 
-        Return whether ``p_dominating`` dominates ``p_dominated``.
-        If ``p_dominated`` is set to ``None``, return whether
-        ``p_dominating`` dominates ``self``.
+        Check whether ``dominating`` is a dominating set of ``self``.
+
+        When ``focus`` is specified, check instead if ``dominating``
+        dominates the vertices in ``focus``.
 
         EXAMPLES::
 
@@ -5671,12 +5673,12 @@ class Graph(GenericGraph):
             False
         """
 
-        if p_dominated is None:
+        if focus is None:
             to_dom = set(self)
         else:
-            to_dom = set(p_dominated)
+            to_dom = set(focus)
 
-        for v in p_dominating:
+        for v in dominating:
             if not to_dom:
                 return True
             to_dom.difference_update(self.neighbor_iterator(v, closed=True))

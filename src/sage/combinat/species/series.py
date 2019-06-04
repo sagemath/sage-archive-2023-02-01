@@ -67,8 +67,13 @@ class LazyPowerSeriesRing(Algebra):
         #Take care of the names
         if names is None:
             names = 'x'
-        else:
+        elif isinstance(names, (list, tuple)):
+            if len(names) != 1:
+                raise NotImplementedError(
+                    'only univariate lazy power series rings are supported')
             names = names[0]
+        else:
+            names = str(names)
 
         self._element_class = element_class if element_class is not None else LazyPowerSeries
         self._order = None

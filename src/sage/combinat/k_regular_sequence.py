@@ -379,3 +379,638 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         n = ZZ(n)
         W = self.indices()
         return W(n.digits(self.k))
+
+
+    def _parse_recursions_(self, equations, function, var):
+        """Parse recursion equations as admissible in :meth:`~.recursions`.
+
+        INPUT:
+
+        - ``equations`` -- A list of equations where the elements have the form
+
+          - ``f(k^M * n + r) == sum(f(k^m * n + k) k in srange(l, u + 1))``
+            for some integers ``0 <= r < k^M`` and ``M > m >= 0`` and some
+            ``l <= 0 <= u`` -- valid for all non-negative integers ``n`` -- and
+            for all ``r`` there is an equation of this form
+
+          or the form
+
+          - ``f(k) == t`` for some integer ``k`` and some ``t``.
+
+        - ``function`` -- see :meth:`~Recursion`.
+
+        - ``var`` -- see :meth:`~Recursion`.
+
+        OUTPUT:
+
+        A namedtuple.
+
+        EXAMPLES::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: var('n')
+            n
+            sage: function('f')
+            f
+            sage: Seq2._parse_recursions_([f(4*n) == 1*f(2*n) + 2*f(2*n + 1)
+            ....: + 3*f(2*n - 2), f(4*n + 1) == 4*f(2*n) + 5*f(2*n + 1)
+            ....: + 6*f(2*n - 2), f(4*n + 2) == 7*f(2*n) + 8*f(2*n + 1)
+            ....: + 9*f(2*n - 2), f(4*n + 3) == 10*f(2*n) + 11*f(2*n + 1)
+            ....: + 12*f(2*n - 2), f(0) == 1, f(1) == 2, f(2) == 1], f, n)
+            recursion_rules(M=2, m=1, l=-2, u=1, ll=-6, uu=3, dim=11,
+            coeffs={(0, 1): 2, (0, 0): 1, (3, 1): 11, (3, 0): 10, (2, -2): 9,
+            (2, 1): 8, (2, 0): 7, (3, -2): 12, (0, -2): 3, (1, 0): 4, (1, -2): 6,
+            (1, 1): 5}, start_values={0: 1, 1: 2, 2: 1})
+
+        Stern--Brocot Sequence::
+
+            sage: Seq2._parse_recursions_([f(2*n) == f(n),
+            ....: f(2*n + 1) == f(n) + f(n + 1), f(0) == 0, f(1) == 1], f, n)
+            recursion_rules(M=1, m=0, l=0, u=1, ll=0, uu=2, dim=3,
+            coeffs={(1, 0): 1, (0, 0): 1, (1, 1): 1}, start_values={0: 0, 1: 1})
+
+        TESTS:
+
+            The following tests check that the equations are well-formed::
+
+                sage: Seq2._parse_recursions_([], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: List of recursion equations is empty.
+
+            ::
+
+                sage: Seq2._parse_recursions_([f(4*n + 1)], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: f(4*n + 1) is not an equation with ==.
+
+            ::
+
+                sage: Seq2._parse_recursions_([f(2*n) + 1 == f(n)], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: f(2*n) + 1 is not an evaluation of f.
+
+            ::
+
+                sage: Seq2._parse_recursions_([f(2*n, 5) == 3], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: f(2*n, 5) does not have one argument.
+
+            ::
+
+                sage: Seq2._parse_recursions_([f(1/n + 1) == f(n)], f, n)
+                Traceback (most recent call last):
+                ....:
+                ValueError: 1/n + 1 is not a polynomial in n.
+
+            ::
+
+                sage: Seq2._parse_recursions_([f(4*n^2) == f(2*n^2)], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: 4*n^2 is not a polynomial of degree smaller 2.
+
+            ::
+
+                sage: Seq2._parse_recursions_([f(3*n + 1) == f(n)], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: 3 is not a power of 2.
+
+            ::
+
+                sage: Seq2._parse_recursions_([f(n + 1) == f(n)], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: 1 is less than 2.
+
+            ::
+
+                sage: Seq2._parse_recursions_([f(2*n) == f(n), f(2*n) == 0], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: There are more than one recursions for f(2*n).
+
+            ::
+
+                sage: Seq2._parse_recursions_([f(2*n + 2) == f(n)], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: 2 is not smaller than 2.
+
+            ::
+
+                sage: Seq2._parse_recursions_([f(2*n - 1) == f(n)], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: -1 is smaller than 0.
+
+            ::
+
+                sage: Seq2._parse_recursions_([f(2*n) == 2*n], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: 2*n does not contain f.
+
+            ::
+
+                sage: Seq2._parse_recursions_([f(2*n) == 1/2*f(n)], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: 1/2 is not a valid coefficient.
+
+            ::
+
+                sage: Seq2._parse_recursions_([f(2*n) == 1/f(n)], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: 1/f(n) is not a valid right hand side.
+
+            ::
+
+                sage: Seq2._parse_recursions_([f(2*n) == 1/f(n) + 2*f(n)], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: 1/f(n) is not a valid summand.
+
+            ::
+
+                sage: Seq2._parse_recursions_([f(2*n) == f(n + 1/2)], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: n + 1/2 does not have integer coefficients.
+
+            ::
+
+                sage: Seq2._parse_recursions_([f(2*n) == f(1/2*n)], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: 1/2*n does not have integer coefficients.
+
+            ::
+
+                sage: Seq2._parse_recursions_([f(2*n) == f(n^2 + 1)], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: n^2 + 1 does not have degree 1.
+
+            ::
+
+                sage: Seq2._parse_recursions_([f(2*n) == f(1)], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: 1 does not have degree 1.
+
+            ::
+
+                sage: Seq2._parse_recursions_([f(4*n) == f(2*n) + f(n)], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: 1 does not equal 2.
+
+            ::
+
+                sage: Seq2._parse_recursions_([f(4*n) == f(2*n), f(4*n + 1) == f(n)], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: 1 does not equal 2.
+
+            ::
+
+                sage: Seq2._parse_recursions_([f(4*n) == f(3*n)], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: 3 is not a power of 2.
+
+            ::
+
+                sage: Seq2._parse_recursions_([f(2*n) == f(4*n)], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: 4 is not smaller than 2.
+
+            ::
+
+                sage: Seq2._parse_recursions_([f(2*n) == f(2*n)], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: 2 is not smaller than 2.
+
+            ::
+
+                sage: Seq2._parse_recursions_([f(2*n) == f(n)], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: Recursions for [f(2*n + 1)] are missing.
+
+            ::
+
+                sage: Seq2._parse_recursions_([f(4*n) == f(n), f(4*n + 3) == 0], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: Recursions for [f(4*n + 1), f(4*n + 2)] are missing.
+
+            ::
+
+                sage: Seq2._parse_recursions_([f(2*n) == 0, f(2*n + 1) == 0], f, n)
+                recursion_rules(M=1, m=0, l=0, u=0, ll=0, uu=0, dim=1,
+                coeffs={}, start_values={})
+
+        """
+        from collections import namedtuple
+
+        from sage.arith.srange import srange
+        from sage.functions.log import log
+        from sage.functions.other import ceil, floor
+        from sage.rings.integer_ring import ZZ
+        from sage.symbolic.operators import add_vararg, mul_vararg, operator
+
+        k = self.k
+        base_ring = self.base()
+        indices_right = [0]
+        coeffs = {}
+        start_values = {}
+        remainders = []
+
+        def _parse_multiplication_(op):
+            if op.operator() != mul_vararg or len(op.operands()) != 2:
+                raise ValueError("")
+            operands = op.operands()
+            if operands[1].operator() == function:
+                return [operands[0], operands[1]]
+            elif operands[0].operator() == function:
+                return [operands[1], operands[0]]
+            else:
+                raise ValueError('%s does not contain %s.' % (op, function))
+
+        def _parse_one_summand_(summand):
+            if summand.operator() == mul_vararg:
+                coeff, op = _parse_multiplication_(summand)
+            elif summand.operator() == function:
+                coeff, op = 1, summand
+            else:
+                raise ValueError('%s is not a valid summand.' % (summand,))
+            try:
+                poly = ZZ[var](op.operands()[0])
+            except TypeError:
+                raise ValueError('%s does not have integer coefficients.'
+                                 % (op.operands()[0],))
+            if poly.degree() != 1:
+                raise ValueError("%s does not have degree 1."
+                                 % (poly,))
+            d, base_power_m = list(poly)
+            m = log(base_power_m, base=k)
+            return [coeff, m, d]
+
+        if not equations:
+            raise ValueError("List of recursion equations is empty.")
+
+        for eq in equations:
+            if eq.operator() != operator.eq:
+                raise ValueError("%s is not an equation with ==."  % eq)
+            left_side, right_side = eq.operands()
+            if left_side.operator() != function:
+                raise ValueError("%s is not an evaluation of %s."
+                                 % (left_side, function))
+            if  len(left_side.operands()) != 1:
+                raise ValueError("%s does not have one argument." %
+                                 (left_side,))
+            try:
+                polynomial_left = base_ring[var](left_side.operands()[0])
+            except Exception:
+                raise ValueError("%s is not a polynomial "
+                                 "in %s." % (left_side.operands()[0], var))
+            if polynomial_left.degree()  > 1:
+                raise ValueError("%s is not a polynomial of degree smaller 2."
+                                 % (polynomial_left,))
+            if polynomial_left in base_ring and right_side in base_ring:
+                start_values.update({polynomial_left: right_side})
+            else:
+                poly_left = ZZ[var](left_side.operands()[0])
+                [r, base_power_M] = list(poly_left)
+                M_new = log(base_power_M, base=k)
+                try:
+                    if M != log(base_power_M, base=k):
+                        raise ValueError("%s does not equal %s."
+                                         % (base_power_M, k^M))
+                except NameError:
+                    M = M_new
+                    if M not in ZZ:
+                        raise ValueError("%s is not a power of %s."
+                                         % (base_power_M, k))
+                    if M < 1:
+                        raise ValueError("%s is less than %s."
+                                         % (base_power_M, k))
+                if r in remainders:
+                    raise ValueError("There are more than one recursions for %s."
+                                     % (left_side,))
+                if r not in ZZ:
+                    raise ValueError("%s is not an integer." % (r,))
+                if r >= k**M:
+                    raise ValueError("%s is not smaller than %s." % (r, k**M))
+                if r < 0:
+                    raise ValueError("%s is smaller than 0." % (r,))
+                remainders.append(r)
+
+                if right_side != 0:
+                    if (len(right_side.operands()) == 1 and right_side.operator() == function
+                        or right_side.operator() == mul_vararg and len(right_side.operands()) == 2):
+                        summands = [right_side]
+                    elif right_side.operator() == add_vararg:
+                        summands = right_side.operands()
+                    else: # check this again
+                        raise ValueError("%s is not a valid right hand side."
+                                         % (right_side,))
+                    for summand in summands:
+                        coeff, new_m, d = _parse_one_summand_(summand)
+                        if coeff not in base_ring:
+                            raise ValueError("%s is not a valid coefficient."
+                                             % (coeff,))
+                        try:
+                            if m != new_m:
+                                raise ValueError("%s does not equal %s."
+                                                 % (k**new_m, k**m))
+                        except NameError:
+                            m = new_m
+                            if m not in ZZ:
+                                raise ValueError("%s is not a power of %s."
+                                                 % (k**m, k))
+                            if M <= m:
+                                raise ValueError("%s is not smaller than %s."
+                                                 % (k**m, k**M))
+
+                        indices_right.append(d)
+                        coeffs.update({(r, d): coeff})
+
+        remainders.sort()
+        if remainders != srange(k**M):
+            missing_equations = [function(k**M*var + r)
+                                 for r in srange(k**M)
+                                 if r not in remainders]
+            raise ValueError("Recursions for %s are missing."
+                             % missing_equations)
+
+        l = min(indices_right)
+        u = max(indices_right)
+
+        if not coeffs:
+            m = M - 1
+
+        ll = (floor((l*k**(M-m) - k**M + 1)/(k**(M-m) - 1)) + 1)*(l < 0)
+        uu = max([ceil((u*k**(M-m) + k**M - k**m)/(k**(M-m) - 1)) - 1, k**m - 1])
+        dim = (k**M - 1)/(k - 1) + (M - m)*(uu - ll - k**m + 1)
+
+        recursion_rules = namedtuple('recursion_rules',
+                                     ['M', 'm', 'l', 'u',
+                                      'll', 'uu', 'dim',
+                                      'coeffs', 'start_values'])
+
+        return recursion_rules(M=M, m=m, l=l, u=u, ll=ll, uu=uu, dim=dim,
+                              coeffs=coeffs, start_values=start_values)
+
+
+    def _get_matrix_(self, RecursionRuleShifts, rem):
+        """Construct the matrix for remainder ``rem`` of the linear
+        representation of the sequence defined by ``RecursionRuleShifts``.
+
+        INPUT:
+
+        - ``base`` -- see :meth:`~Recursion`.
+
+        - ``RecursionRuleShifts`` -- see :meth:`~Recursion`.
+
+        - ``rem`` -- An integer between ``0`` and ``base - 1``.
+
+        OUTPUT:
+
+        A matrix.
+
+        EXAMPLES::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: var('n')
+            n
+            sage: function('f')
+            f
+            sage: rule = Seq2._parse_recursions_([f(8*n) == 1*f(2*n) + 2*f(2*n + 1)
+            ....: + 3*f(2*n + 2),
+            ....: f(8*n + 1) == 4*f(2*n) + 5*f(2*n + 1) + 6*f(2*n + 2),
+            ....: f(8*n + 2) == 7*f(2*n) + 8*f(2*n + 1) + 9*f(2*n + 2),
+            ....: f(8*n + 3) == 10*f(2*n) + 11*f(2*n + 1) + 12*f(2*n + 2),
+            ....: f(8*n + 4) == 13*f(2*n) + 14*f(2*n + 1) + 15*f(2*n + 2),
+            ....: f(8*n + 5) == 16*f(2*n) + 17*f(2*n + 1) + 18*f(2*n + 2),
+            ....: f(8*n + 6) == 19*f(2*n) + 20*f(2*n + 1) + 21*f(2*n + 2),
+            ....: f(8*n + 7) == 22*f(2*n) + 23*f(2*n + 1) + 24*f(2*n + 2),],
+            ....: f, n)
+            sage: Seq2._get_matrix_(rule, 0)
+            [ 0  1  0  0  0  0  0  0  0  0  0  0  0]
+            [ 0  0  0  0  0  0  1  0  0  0  0  0  0]
+            [ 0  0  0  0  0  0  0  1  0  0  0  0  0]
+            [ 0  0  0  0  0  0  0  0  1  0  0  0  0]
+            [ 0  0  0  0  0  0  0  0  0  1  0  0  0]
+            [ 0  0  0  0  0  0  0  0  0  0  1  0  0]
+            [ 0  1  2  3  0  0  0  0  0  0  0  0  0]
+            [ 0  4  5  6  0  0  0  0  0  0  0  0  0]
+            [ 0  7  8  9  0  0  0  0  0  0  0  0  0]
+            [ 0 10 11 12  0  0  0  0  0  0  0  0  0]
+            [ 0 13 14 15  0  0  0  0  0  0  0  0  0]
+            [ 0 16 17 18  0  0  0  0  0  0  0  0  0]
+            [ 0 19 20 21  0  0  0  0  0  0  0  0  0]
+            sage: Seq2._get_matrix_(rule, 1)
+            [ 0  0  1  0  0  0  0  0  0  0  0  0  0]
+            [ 0  0  0  0  0  0  0  0  1  0  0  0  0]
+            [ 0  0  0  0  0  0  0  0  0  1  0  0  0]
+            [ 0  0  0  0  0  0  0  0  0  0  1  0  0]
+            [ 0  0  0  0  0  0  0  0  0  0  0  1  0]
+            [ 0  0  0  0  0  0  0  0  0  0  0  0  1]
+            [ 0 13 14 15  0  0  0  0  0  0  0  0  0]
+            [ 0 16 17 18  0  0  0  0  0  0  0  0  0]
+            [ 0 19 20 21  0  0  0  0  0  0  0  0  0]
+            [ 0 22 23 24  0  0  0  0  0  0  0  0  0]
+            [ 0  0  0  1  2  3  0  0  0  0  0  0  0]
+            [ 0  0  0  4  5  6  0  0  0  0  0  0  0]
+            [ 0  0  0  7  8  9  0  0  0  0  0  0  0]
+
+        Stern--Brocot Sequence::
+
+            sage: SB_rule = Seq2._parse_recursions_([f(2*n) == f(n),
+            ....: f(2*n + 1) == f(n) + f(n + 1), f(0) == 0, f(1) == 1],
+            ....: f, n)
+            sage: Seq2._get_matrix_(SB_rule, 0)
+            [1 0 0]
+            [1 1 0]
+            [0 1 0]
+            sage: Seq2._get_matrix_(SB_rule, 1)
+            [1 1 0]
+            [0 1 0]
+            [0 1 1]
+        """
+        from sage.arith.srange import srange
+        from sage.matrix.constructor import Matrix
+
+        k = self.k
+        M = RecursionRuleShifts.M
+        m = RecursionRuleShifts.m
+        l = RecursionRuleShifts.l
+        u = RecursionRuleShifts.u
+        ll = RecursionRuleShifts.ll
+        uu = RecursionRuleShifts.uu
+        dim = RecursionRuleShifts.dim
+        coeffs = RecursionRuleShifts.coeffs
+
+        mat = []
+        current_shift = 0
+
+        for base_power in srange(m - 1):
+            current_shift += k**base_power
+            for d in srange(k**base_power):
+                row = dim*[0]
+                dd = k**base_power*rem + d
+                index = current_shift + dd
+                row[index] = 1
+                mat.append(row)
+
+        if m > 0:
+            current_shift += k**(m-1)
+            final_shift = current_shift - ll
+            for d in srange(k**(m-1)):
+                row = dim*[0]
+                dd = k**(m-1)*rem + d
+                index = current_shift + dd - ll
+                row[index] = 1
+                mat.append(row)
+        else:
+            final_shift = -ll
+
+        for base_power in srange(m, M - 1):
+            current_shift += k**base_power - k**m + uu - 2*ll + 1
+            for d in srange(ll, k**base_power - k**m + uu + 1):
+                row = dim*[0]
+                dd = k**base_power*rem + d
+                index = current_shift + dd
+                row[index] = 1
+                mat.append(row)
+
+        for d in srange(ll, k**(M-1) - k**m + uu + 1):
+            dd, r = d.quo_rem(k**M)
+            rr = k**(M-1)*rem + r
+            row = dim*[0]
+            if rr < k**M:
+                for i in range(l, u + 1):
+                    try:
+                        row[k**m*dd + i + final_shift] = coeffs[(rr, i)]
+                    except KeyError:
+                        pass
+            else:
+                for i in srange(l, u + 1):
+                    try:
+                        row[(dd + 1)*k**m + i + final_shift] = coeffs[(rr - k**M, i)]
+                    except KeyError:
+                        pass
+            mat.append(row)
+
+        return Matrix(mat)
+
+
+    def _get_left_(self, dim):
+        """
+        """
+        from sage.modules.free_module_element import vector
+
+        return vector([1] + (dim - 1)*[0])
+
+
+    def _get_right_(self, rule, function):
+        """
+        """
+        from sage.arith.srange import srange
+        from sage.modules.free_module_element import vector
+
+        M = rule.M
+        m = rule.m
+        ll = rule.ll
+        uu = rule.uu
+        start_values = rule.start_values
+        base = 2
+        right = []
+
+        for i in srange(m):
+            for d in srange(base**i):
+                try:
+                    right.append(start_values[d])
+                except KeyError:
+                    raise ValueError('Start value %s is missing.'
+                                     % (function(d),))
+
+        for j in srange(m, M):
+            for d in srange(ll, base**j - base**m + uu + 1):
+                try:
+                    right.append(start_values[d])
+                except KeyError:
+                    raise ValueError('Start value %s is missing.'
+                                     % (function(d),))
+
+        return vector(right)
+
+
+
+    def recursions(self, equations, func, var):
+        r"""
+        Construct a `k`-regular sequence that fulfills the recursions
+        given in ``equations``.
+
+        INPUT:
+
+        - ``equations`` -- A list of equations where the elements have
+          either the form
+
+          - `f(k^M * n + r) == \sum_{l \leq k \leq u}f(k^m * n + k)`
+            for some integers ``0 <= r < k^M`` and ``M > m >= 0`` and
+            some ``l <= 0 <= u`` -- valid for all non-negative
+            integers ``n`` -- and for all ``r`` there is an equation
+            of this form
+
+          or the form
+
+          - ``f(k) == t`` for some integer ``k`` and some ``t``.
+
+          ``f`` is a function and ``n`` is a variable.
+
+        #- ``func`` -- The function that is used in ``equations``.
+
+        #- ``var`` -- The variable that is used in ``equations``.
+
+        OUTPUT:
+
+        A :class:`kRegularSequence`.
+
+        EXAMPLES:
+
+        Binary sum of digits::
+
+            sage: @cached_function
+            ....: def s(n):
+            ....:     if n == 0:
+            ....:         return 0
+            ....:     return s(n//2) + ZZ(is_odd(n))
+            sage: all(s(n) == sum(n.digits(2)) for n in srange(10))
+            True
+            sage: [s(n) for n in srange(10)]
+            [0, 1, 1, 2, 1, 2, 2, 3, 1, 2]
+
+        """
+        from sage.arith.srange import srange
+
+        k = self.k
+        mu = []
+
+        recursion_rules = self._parse_recursions_(equations, function, var)
+
+        for rem in srange(k):
+            mu.append(self._get_matrix_(recursion_rules, rem))
+
+        return self(mu, self._get_left_(recursion_rules.dim),
+                    self._get_right_(recursion_rules, function))

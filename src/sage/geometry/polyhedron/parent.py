@@ -981,3 +981,23 @@ class Polyhedra_field(Polyhedra_base):
         Hrep = [polyhedron.inequality_generator(), polyhedron.equation_generator()]
         return self._element_constructor_(Vrep, Hrep,
                                           Vrep_minimal=True, Hrep_minimal=True, **kwds)
+
+def test_backend(base_ring, backend):
+    r"""
+    Return true, if ``backend`` can handle ``base_ring``.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.polyhedron.parent import test_backend
+        sage: test_backend(QQ, 'ppl')
+        True
+        sage: test_backend(QQ[sqrt(5)], 'ppl')
+        False
+        sage: test_backend(QQ[sqrt(5)], 'field')
+        True
+    """
+    try:
+        Polyhedra(base_ring, 0, backend)
+    except ValueError:
+        return False
+    return True

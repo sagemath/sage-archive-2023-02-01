@@ -403,10 +403,18 @@ cdef class Graphics3d(SageObject):
                 lines.append('{{"points":{}, "color":"{}", "opacity":{}, "linewidth":{}}}'.format(
                              json.dumps(p.points), color, opacity, thickness))
             if hasattr(p, '_trans'):
+                m = p.get_transformation().get_matrix()
+                t = (m[0,3], m[1,3], m[2,3])
+                if hasattr(p.all[0], 'points'):
+                    translated = [[sum(x) for x in zip(t,u)] for u in p.all[0].points]
+                    color = Color(p.all[0].texture.color).html_color()
+                    opacity = float(p.all[0].texture.opacity)
+                    thickness = float(p.all[0].thickness)
+                    lines.append('{{"points":{}, "color":"{}", "opacity":{}, "linewidth":{}}}'.format(
+                                 translated, color, opacity, thickness))
                 if hasattr(p.all[0], 'string'):
-                    m = p.get_transformation().get_matrix()
                     texts.append('{{"text":"{}", "x":{}, "y":{}, "z":{}}}'.format(
-                                 p.all[0].string, m[0,3], m[1,3], m[2,3]))
+                                 p.all[0].string, t[0], t[1], t[2]))
 
         points = '[' + ','.join(points) + ']'
         lines = '[' + ','.join(lines) + ']'

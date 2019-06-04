@@ -44,7 +44,7 @@ from sage.structure.element import Element, parent, AlgebraElement
 
 
 class LazyPowerSeriesRing(Algebra):
-    def __init__(self, R, element_class=None, names=None):
+    def __init__(self, R, names=None, element_class=None):
         """
         TESTS::
 

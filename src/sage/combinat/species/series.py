@@ -59,6 +59,16 @@ class LazyPowerSeriesRing(Algebra):
             Failure in ...
             The following tests failed: _test_additive_associativity, _test_associativity, _test_distributivity, _test_elements, _test_one, _test_prod, _test_zero
 
+        ::
+
+            sage: LazyPowerSeriesRing(QQ, 'z').gen()
+            z
+            sage: LazyPowerSeriesRing(QQ, ['z']).gen()
+            z
+            sage: LazyPowerSeriesRing(QQ, ['x', 'z'])
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: only univariate lazy power series rings are supported
         """
         #Make sure R is a ring with unit element
         if R not in Rings():

@@ -4,7 +4,7 @@ Enumeration of minimal dominating sets
 Implementation of the algorithm described in [BDHPR2019]_ to enumerate
 the minimal dominating sets of a graph.
 
-EXAMPLES::
+Some examples:
 
 We enumerate the minimal dominating sets of the 5-star graph::
 
@@ -47,7 +47,7 @@ from copy import copy
 
 
 def _parent(G, dom, V_prev):
-    r'''
+    r"""
     Return an subset of dom that is irredundant in ``V_prev``.
 
     For internal use.
@@ -75,7 +75,7 @@ def _parent(G, dom, V_prev):
         [4, 5]
         sage: _parent(G, [0, 2, 4, 5], [1, 3])
         [2]
-    '''
+    """
 
     # The list where we search vertices
     D_start = sorted(dom, reverse=True)
@@ -102,7 +102,7 @@ def _parent(G, dom, V_prev):
 
 
 def _peel(G, A):
-    r'''
+    r"""
     Return a peeling of a vertex iterable of a graph.
 
     For internal use.
@@ -143,7 +143,7 @@ def _peel(G, A):
         (2, {2, 4, 6, 8}),
         (0, {0, 2, 4, 6, 8})]
 
-    '''
+    """
     Acomp = set(G)
     Acomp.difference_update(A)  # Acomp  = V - A
 
@@ -163,7 +163,7 @@ def _peel(G, A):
 
 
 def _cand_ext_enum(G, to_dom, u_next):
-    r'''
+    r"""
     Return the minimal dominating sets of ``to_dom``.
 
     For internal use.
@@ -180,7 +180,7 @@ def _cand_ext_enum(G, to_dom, u_next):
     OUTPUT:
 
     An iterator over the minimal dominating sets of ``to_dom``.
-    '''
+    """
 
     def _aux_with_rep(H, to_dom, u_next):
         # Auxilliary routine.
@@ -254,7 +254,7 @@ def _cand_ext_enum(G, to_dom, u_next):
 
 
 def minimal_dominating_sets(G, to_dominate=None, work_on_copy=True):
-    r'''
+    r"""
     Return an iterator over the minimal dominating sets of a graph.
 
     INPUT:
@@ -264,7 +264,7 @@ def minimal_dominating_sets(G, to_dominate=None, work_on_copy=True):
     - ``to_dominate`` -- vertex iterable or ``None`` (default: ``None``)
 
     - ``work_on_copy`` -- boolean (default: ``True``)
-
+    
     OUTPUT:
 
     An iterator over the inclusion-minimal sets of vertices of ``G``
@@ -329,7 +329,7 @@ def minimal_dominating_sets(G, to_dominate=None, work_on_copy=True):
         sage: len(pp) == len(pp) and all(x in pp for x in ll) and all(x in ll for x in pp)
         True
 
-    TESTS::
+    TESTS:
 
     The empty graph is handled correctly::
 
@@ -368,17 +368,20 @@ def minimal_dominating_sets(G, to_dominate=None, work_on_copy=True):
         ....:     return True
         sage: check_uniqueness(graphs.RandomGNP(9, 0.5))
         True
-    '''
+    """
 
     def tree_search(H, plng, dom, i):
-        r'''
+        r"""
         Enumerate minimal dominating sets recursively.
 
         INPUT:
 
         - ``H`` -- a graph
+
         - ``plng`` -- a peeling of H (result of :func:`_peel`)
+
         - ``dom`` -- a minimal dominating set of ``plng[i][1]``
+
         - ``i`` -- an integer, the current position in ``plng``
 
         OUTPUT:
@@ -394,7 +397,7 @@ def minimal_dominating_sets(G, to_dominate=None, work_on_copy=True):
         recursively on each. The fact that we iterate over children
         (with respect to the `parent` function) ensures that we do not
         have repeated outputs.
-        '''
+        """
 
         if i == len(plng) - 1:
             # we reached a leaf, i.e. dom is a minimal dominating set

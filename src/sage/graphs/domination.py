@@ -259,20 +259,21 @@ def minimal_dominating_sets(G, to_dominate=None, work_on_copy=True):
 
     INPUT:
 
-    - ``G`` -- a graph
+    - ``G`` -- a graph.
 
-    - ``to_dominate`` -- vertex iterable or ``None`` (default: ``None``)
+    - ``to_dominate`` -- vertex iterable or ``None`` (default: ``None``);
+      the set of vertices to be dominated.
 
-    - ``work_on_copy`` -- boolean (default: ``True``)
+    - ``work_on_copy`` -- boolean (default: ``True``); whether or not to
+      work on a of the input graph; if set to ``False``, the input graph
+      will be modified (relabeled).
     
     OUTPUT:
 
-    An iterator over the inclusion-minimal sets of vertices of ``G``
-    that dominate ``to_dominate``. When ``to_dominate`` is ``None``
-    (default), the output is an iterator over the the minimal
-    dominating sets of ``G``. When ``work_on_copy`` is ``True``
-    (default), work on a copy of ``G``. Otherwise, the vertices of ``G``
-    will be relabeled.
+    An iterator over the inclusion-minimal sets of vertices of ``G``.
+    If ``to_dominate`` is provided, return an iterator over the
+    inclusion-minimal sets of vertices that dominate the vertices
+    of ``to_dominate``.
 
     ALGORITHM:
 

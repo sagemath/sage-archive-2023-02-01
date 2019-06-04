@@ -16,6 +16,7 @@ from sage.misc.all import prod
 from sage.misc.cachefunc import cached_method
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.coxeter_groups import CoxeterGroups
+from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 
 
 class FiniteComplexReflectionGroups(CategoryWithAxiom):
@@ -703,7 +704,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
                 - ``c`` -- (default: ``None``) if an element ``c`` is given, it
                   is used as the maximal element in the interval; if a list is
-                  given, the union of the various maximal elements is computed
+                  given, the union of the intervals is computed
 
                 EXAMPLES::
 
@@ -717,23 +718,31 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
                     sage: sorted( w.reduced_word() for w in W.elements_below_coxeter_element(W.from_reduced_word([2])) )    # optional - gap3
                     [[], [2]]
+
+                    sage: W = CoxeterGroup(['A', 3])
+                    sage: len(list(W.elements_below_coxeter_element()))
+                    14
                 """
                 if c in self:
                     cs = [c]
                 elif c is None:
                     cs = [self.coxeter_element()]
                 else:
-                    cs = list(c)
-                l = cs[0].reflection_length(in_unitary_group=True)
+                    cs = list(c)  # could be deprecated ?
 
-                def f(pi):
-                    return any(pi.reflection_length(in_unitary_group=True)
-                               + (c * pi**-1).reflection_length(in_unitary_group=True) == l
-                               for c in cs)
-                # first computing the conjugacy classes only needed if the
-                #   interaction with gap3 is slow due to a bug
-                # self.conjugacy_classes()
-                return filter(f, self)
+                seeds = [(c, self.rank()) for c in cs]
+                R = self.reflections()
+
+                def succ(seed):
+                    w, w_len = seed
+                    resu = []
+                    for t in R:
+                        u = w * t
+                        if u.reflection_length() + 1 == w_len:
+                            resu.append((u, w_len - 1))
+                    return resu
+                step = RecursivelyEnumeratedSet(seeds, succ, structure='graded')
+                return (x[0] for x in step)
 
             # TODO: have a cached and an uncached version
             @cached_method
@@ -1127,7 +1136,9 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                     if polynomial:
                         f = q_int
                     else:
-                        f = lambda n: n
+
+                        def f(n):
+                            return n
 
                     num = prod(f(p + (p * (deg - 1)) % h)
                                for deg in self.degrees())

@@ -1215,6 +1215,13 @@ class LazyPowerSeries(AlgebraElement):
             sage: b = ~(1-x-x^2); b.compute_coefficients(10); b
             1 + x + 2*x^2 + 3*x^3 + 5*x^4 + 8*x^5
             + 13*x^6 + 21*x^7 + 34*x^8 + 55*x^9 + 89*x^10 + O(x^11)
+
+        Series whose constant coefficient is `0` cannot be inverted::
+
+            sage: ~x
+            Traceback (most recent call last):
+            ....
+            ZeroDivisionError: cannot invert x because constant coefficient is 0
         """
         if self.get_aorder() > 0:
             raise ZeroDivisionError(

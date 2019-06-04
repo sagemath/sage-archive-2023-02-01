@@ -36,6 +36,7 @@ from sage.rings.all import Integer
 from sage.misc.all import prod
 from functools import partial
 from sage.misc.misc import repr_lincomb, is_iterator
+from sage.misc.cachefunc import cached_method
 
 from sage.algebras.algebra import Algebra
 import sage.structure.parent_base
@@ -256,6 +257,7 @@ class LazyPowerSeriesRing(Algebra):
 
         raise TypeError("do not know how to coerce %s into self" % x)
 
+    @cached_method
     def zero(self):
         """
         Return the zero power series.
@@ -266,7 +268,7 @@ class LazyPowerSeriesRing(Algebra):
             sage: L.zero()
             0
         """
-        return self(self.base_ring().zero())
+        return self.term(self.base_ring().zero(), 0)
 
     def identity_element(self):
         """
@@ -534,7 +536,6 @@ class LazyPowerSeries(AlgebraElement):
             self.order = inf
         self.aorder_changed = aorder_changed
         self.is_initialized = is_initialized
-        self._zero = A.base_ring().zero()
         self._name = name
 
     def compute_aorder(*args, **kwargs):
@@ -945,7 +946,7 @@ class LazyPowerSeries(AlgebraElement):
         # The following line must not be written n < self.get_aorder()
         # because comparison of Integer and OnfinityOrder is not implemented.
         if self.get_aorder() > n:
-            return self._zero
+            return self.parent().base_ring().zero()
 
         assert self.is_initialized
 
@@ -1504,7 +1505,7 @@ class LazyPowerSeries(AlgebraElement):
             [0, 0, 1/2, 0, 0]
         """
         for n in range(ao):
-            yield self._zero
+            yield self.parent().zero()
         n = ao
         while True:
             #Check to see if the stream is finite
@@ -1532,10 +1533,10 @@ class LazyPowerSeries(AlgebraElement):
         assert ao != unk
 
         if ao == inf:
-            yield self._zero
+            yield self.parent().base_ring().zero()
         else:
             for _ in range(ao-1):
-                yield self._zero
+                yield self.parent().base_ring().zero()
 
             n = max(1, ao)
             while True:

@@ -69,8 +69,6 @@ from sage.categories.modules import Modules
 from sage.categories.morphism import Morphism
 from sage.categories.action import Action
 
-from .function_field import FunctionField
-
 class FunctionFieldDifferential(ModuleElement):
     """
     Base class for differentials on function fields.
@@ -636,6 +634,7 @@ class DifferentialMultiplicationAction(Action):
             Left action by Rational function field in x over Finite Field in z2 of size 2^2
                on Space of differentials of Function field in y defined by y^3 + x^3*y + x
         """
+        from .function_field import FunctionField
         if not isinstance(G, FunctionField):
             raise TypeError("(%s) must be a FunctionField" % repr(G))
         if not isinstance(S, DifferentialsSpace):
@@ -772,6 +771,7 @@ class DifferentialsSpace(UniqueRepresentation, Parent):
             sage: y * x.differential()
             (y) d(x)
         """
+        from .function_field import FunctionField
         if op is operator.mul and G is not self.function_field() and isinstance(G, FunctionField):
             if G.space_of_differentials().has_coerce_map_from(self):
                 return DifferentialMultiplicationAction(G, self)

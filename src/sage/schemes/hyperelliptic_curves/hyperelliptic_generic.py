@@ -287,11 +287,11 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
 
             sage: K2 = QuadraticField(-2, 'a')
             sage: Hp2 = H.change_ring(K2).odd_degree_model(); Hp2
-            Hyperelliptic Curve over Number Field in a with defining polynomial x^2 + 2 defined by y^2 = 6*a*x^5 - 29*x^4 - 20*x^2 + 6*a*x + 1
+            Hyperelliptic Curve over Number Field in a with defining polynomial x^2 + 2 with a = 1.414213562373095?*I defined by y^2 = 6*a*x^5 - 29*x^4 - 20*x^2 + 6*a*x + 1
 
             sage: K3 = QuadraticField(-3, 'b')
             sage: Hp3 = H.change_ring(QuadraticField(-3, 'b')).odd_degree_model(); Hp3
-            Hyperelliptic Curve over Number Field in b with defining polynomial x^2 + 3 defined by y^2 = -4*b*x^5 - 14*x^4 - 20*b*x^3 - 35*x^2 + 6*b*x + 1
+            Hyperelliptic Curve over Number Field in b with defining polynomial x^2 + 3 with b = 1.732050807568878?*I defined by y^2 = -4*b*x^5 - 14*x^4 - 20*b*x^3 - 35*x^2 + 6*b*x + 1
 
             Of course, Hp2 and Hp3 are isomorphic over the composite
             extension.  One consequence of this is that odd degree models

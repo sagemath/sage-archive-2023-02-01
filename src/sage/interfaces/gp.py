@@ -894,7 +894,7 @@ class GpElement(ExpectElement):
             sage: gp(I).sage()
             i
             sage: gp(I).sage().parent()
-            Number Field in i with defining polynomial x^2 + 1
+            Number Field in i with defining polynomial x^2 + 1 with i = 1*I
 
         ::
 

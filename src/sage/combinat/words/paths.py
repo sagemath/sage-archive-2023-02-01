@@ -600,11 +600,11 @@ of alphabet (=%s) or half the size of alphabet."%(len(steps),alphabet.cardinalit
             sage: WordPaths('abcd',steps='square_grid').vector_space()
             Ambient free module of rank 2 over the principal ideal domain Integer Ring
             sage: WordPaths('abcdef',steps='hexagonal_grid').vector_space()
-            Vector space of dimension 2 over Number Field in sqrt3 with defining polynomial x^2 - 3
+            Vector space of dimension 2 over Number Field in sqrt3 with defining polynomial x^2 - 3 with sqrt3 = 1.732050807568878?
             sage: WordPaths('abcdef',steps='cube_grid').vector_space()
             Ambient free module of rank 3 over the principal ideal domain Integer Ring
             sage: WordPaths('abcdef',steps='triangle_grid').vector_space()
-            Vector space of dimension 2 over Number Field in sqrt3 with defining polynomial x^2 - 3
+            Vector space of dimension 2 over Number Field in sqrt3 with defining polynomial x^2 - 3 with sqrt3 = 1.732050807568878?
 
         """
         return self._vector_space

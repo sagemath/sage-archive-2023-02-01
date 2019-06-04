@@ -18,7 +18,7 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.all import ZZ, QQ, RDF, CommutativeRing
 from sage.categories.fields import Fields
 
-from sage.geometry.polyhedron.base import Polyhedron_base, is_Polyhedron
+from sage.geometry.polyhedron.base import is_Polyhedron
 from .representation import Inequality, Equation, Vertex, Ray, Line
 
 
@@ -408,7 +408,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             'QQ^3'
             sage: K.<sqrt3> = NumberField(x^2 - 3, embedding=AA(3).sqrt())
             sage: Polyhedra(K, 4)._repr_ambient_module()
-            '(Number Field in sqrt3 with defining polynomial x^2 - 3)^4'
+            '(Number Field in sqrt3 with defining polynomial x^2 - 3 with sqrt3 = 1.732050807568878?)^4'
         """
         from sage.rings.qqbar import AA
         if self.base_ring() is ZZ:
@@ -931,7 +931,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
 
 from sage.geometry.polyhedron.backend_cdd import Polyhedron_QQ_cdd, Polyhedron_RDF_cdd
 from sage.geometry.polyhedron.backend_ppl import Polyhedron_ZZ_ppl, Polyhedron_QQ_ppl
-from sage.geometry.polyhedron.backend_normaliz import Polyhedron_ZZ_normaliz, Polyhedron_QQ_normaliz
+from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz, Polyhedron_ZZ_normaliz, Polyhedron_QQ_normaliz
 from sage.geometry.polyhedron.backend_polymake import Polyhedron_polymake
 from sage.geometry.polyhedron.backend_field import Polyhedron_field
 
@@ -952,6 +952,9 @@ class Polyhedra_QQ_cdd(Polyhedra_base):
 
 class Polyhedra_RDF_cdd(Polyhedra_base):
     Element = Polyhedron_RDF_cdd
+
+class Polyhedra_normaliz(Polyhedra_base):
+    Element = Polyhedron_normaliz
 
 class Polyhedra_polymake(Polyhedra_base):
     Element = Polyhedron_polymake

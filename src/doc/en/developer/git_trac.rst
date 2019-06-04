@@ -1,5 +1,6 @@
-.. _chapter-git_trac:
+.. highlight:: shell-session
 
+.. _chapter-git_trac:
 
 =======================================
 Collaborative Development with Git-Trac
@@ -311,7 +312,9 @@ reviewed by somebody else before they can be included in the next
 version of Sage. To mark your ticket as ready for review, you should
 set it to ``needs_review`` on the trac server. Also, add yourself as
 the (or one of the) author(s) for that ticket by inserting the
-following as the first line::
+following as the first line:
+
+.. CODE-BLOCK:: text
 
     Authors: Your Real Name
 
@@ -440,7 +443,9 @@ Conflict Resolution
 Merge conflicts happen if there are overlapping edits, and they are an
 unavoidable consequence of distributed development. Fortunately,
 resolving them is common and easy with git. As a hypothetical example,
-consider the following code snippet::
+consider the following code snippet:
+
+.. CODE-BLOCK:: python
 
     def fibonacci(i):
         """
@@ -450,7 +455,9 @@ consider the following code snippet::
 
 This is clearly wrong; Two developers, namely Alice and Bob, decide to
 fix it. First, in a cabin in the woods far away from any internet
-connection, Alice corrects the seed values::
+connection, Alice corrects the seed values:
+
+.. CODE-BLOCK:: python
 
     def fibonacci(i):
        """
@@ -468,7 +475,9 @@ and turns those changes into a new commit::
 However, not having an internet connection, she cannot immediately
 send her changes to the trac server. Meanwhile, Bob changes the
 multiplication to an addition since that is the correct recursion
-formula::
+formula:
+
+.. CODE-BLOCK:: python
 
     def fibonacci(i):
         """
@@ -492,9 +501,11 @@ own local branch::
     CONFLICT (content): Merge conflict in fibonacci.py
     Automatic merge failed; fix conflicts and then commit the result.
 
+The file now looks like this:
+
 .. skip    # doctester confuses >>> with input marker
 
-The file now looks like this::
+.. CODE-BLOCK:: python
 
     def fibonacci(i):
         """
@@ -515,7 +526,9 @@ number after the second conflict marker is the SHA1 hash of the most
 recent common parent of both.
 
 It is now Alice's job to resolve the conflict by reconciling their
-changes, for example by editing the file. Her result is::
+changes, for example by editing the file. Her result is:
+
+.. CODE-BLOCK:: python
 
     def fibonacci(i):
         """

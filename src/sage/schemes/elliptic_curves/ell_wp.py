@@ -27,7 +27,7 @@ EXAMPLES::
 
 REFERENCES:
 
-- [BMSS] Boston, Morain, Salvy, Schost, "Fast Algorithms for Isogenies."
+- [BMSS2006]_
 
 AUTHORS:
 
@@ -209,10 +209,7 @@ def compute_wp_quadratic(k, A, B, prec):
     A Laurent series aproximating the Weierstrass `\wp`-function to precision ``prec``.
 
     ALGORITHM:
-    This function uses the algorithm described in section 3.2 of [BMSS].
-
-    REFERENCES:
-    [BMSS] Boston, Morain, Salvy, Schost, "Fast Algorithms for Isogenies."
+    This function uses the algorithm described in section 3.2 of [BMSS2006]_.
 
     EXAMPLES::
 
@@ -251,7 +248,7 @@ def compute_wp_quadratic(k, A, B, prec):
 
 def compute_wp_fast(k, A, B, m):
     r"""
-    Computes the Weierstrass function of an elliptic curve defined by short Weierstrass model: `y^2 = x^3 + Ax + B`. It does this with as fast as polynomial of degree `m` can be multiplied together in the base ring, i.e. `O(M(n))` in the notation of [BMSS].
+    Computes the Weierstrass function of an elliptic curve defined by short Weierstrass model: `y^2 = x^3 + Ax + B`. It does this with as fast as polynomial of degree `m` can be multiplied together in the base ring, i.e. `O(M(n))` in the notation of [BMSS2006]_.
 
     Let `p` be the characteristic of the underlying field: Then we must have either `p=0`, or `p > m + 3`.
 
@@ -269,7 +266,7 @@ def compute_wp_fast(k, A, B, m):
     ALGORITHM:
 
     This function uses the algorithm described in section 3.3 of
-    [BMSS].
+    [BMSS2006]_.
 
     EXAMPLES::
 

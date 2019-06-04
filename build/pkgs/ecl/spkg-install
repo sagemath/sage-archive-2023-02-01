@@ -37,7 +37,7 @@ echo ""
 # Use newer version of config.guess and config.sub (see Trac #19732)
 cp "$SAGE_ROOT"/config/config.* src
 
-sdh_configure --with-gmp-prefix=$SAGE_LOCAL --disable-threads \
+sdh_configure $SAGE_CONFIGURE_GMP --disable-threads \
               --enable-unicode=yes $ECL_CONFIGURE
 
 # Before running make we touch build/TAGS so its building process is never triggered

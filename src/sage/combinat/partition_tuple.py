@@ -251,7 +251,7 @@ subgroup::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 
@@ -268,14 +268,12 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.interfaces.all import gp
 from sage.misc.cachefunc import cached_method
-from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.rings.all import NN, ZZ, IntegerModRing
 from sage.rings.integer import Integer
 from sage.sets.positive_integers import PositiveIntegers
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.cachefunc import cached_method
+
 
 #--------------------------------------------------
 # Partition tuple - element class
@@ -1626,7 +1624,7 @@ class PartitionTuple(CombinatorialElement):
         INPUT:
 
         - ``e`` -- an  integer `e > 1`
-        - ``muticharge`` -- an `l`-tuple of integers, where `l` is
+        - ``multicharge`` -- an `l`-tuple of integers, where `l` is
           the :meth:`level` of ``self``
 
         OUTPUT:
@@ -1663,7 +1661,7 @@ class PartitionTuple(CombinatorialElement):
 
         INPUT:
 
-        - ``e`` -- the quantum characteritic
+        - ``e`` -- the quantum characteristic
 
         - ``multicharge`` -- the multicharge (default `(0,)`)
 
@@ -1735,7 +1733,7 @@ class PartitionTuple(CombinatorialElement):
 
         INPUT:
 
-        - ``e`` -- the quantum characteritic
+        - ``e`` -- the quantum characteristic
 
         - ``multicharge`` -- the multicharge (default `(0,)`)
 

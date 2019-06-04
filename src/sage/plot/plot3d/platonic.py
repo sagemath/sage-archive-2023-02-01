@@ -149,6 +149,7 @@ def prep(G, center, size, kwds):
         G = G.scale(size)
     if center != (0, 0, 0):
         G = G.translate(center)
+    kwds['threejs_flat_shading'] = True
     G._set_extra_kwds(kwds)
     return G
 

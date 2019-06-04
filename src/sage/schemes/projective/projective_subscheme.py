@@ -1036,14 +1036,9 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         the ambient projective space of `X`. The elimination ideal `I = J' \cap K[u_{ij}]`
         is a principal ideal, let `R` be its generator. The Chow form is obtained by
         writing `R` as a polynomial in Plucker coordinates (i.e. bracket polynomials).
-        [DalbecSturmfels]_.
+        [DS1994]_.
 
         OUTPUT: a homogeneous polynomial.
-
-        REFERENCES:
-
-        .. [DalbecSturmfels] J. Dalbec and B. Sturmfels. Invariant methods in discrete and computational geometry,
-           chapter Introduction to Chow forms, pages 37-58. Springer Netherlands, 1994.
 
         EXAMPLES::
 

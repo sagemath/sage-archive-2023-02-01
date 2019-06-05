@@ -18,7 +18,6 @@ from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.coxeter_groups import CoxeterGroups
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 
-
 class FiniteComplexReflectionGroups(CategoryWithAxiom):
     r"""
     The category of finite complex reflection groups.
@@ -682,7 +681,9 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 return (self.number_of_reflection_hyperplanes()
                         + self.number_of_reflections()) // self.rank()
 
-            def elements_below_coxeter_element(self, c=None):
+            def reflection_order_ideal(self, gens=None,
+                                       in_unitary_group=True,
+                                       return_lengths=False):
                 r"""
                 Return all elements in ``self`` in the interval `[1,c]` in the
                 absolute order of ``self``.
@@ -723,14 +724,13 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                     sage: len(list(W.elements_below_coxeter_element()))
                     14
                 """
-                if c in self:
-                    cs = [c]
-                elif c is None:
-                    cs = [self.coxeter_element()]
+                if gens is None:
+                    seeds = [(self.coxeter_element(), self.rank())]
                 else:
-                    cs = list(c)  # could be deprecated ?
+                    if gens in self:
+                        gens = [gens]
+                    seeds = [(gen, gen.reflection_length(in_unitary_group=in_unitary_group)) for gen in gens]
 
-                seeds = [(c, self.rank()) for c in cs]
                 R = self.reflections()
 
                 def succ(seed):
@@ -739,16 +739,25 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                     resu = []
                     for t in R:
                         u = w * t
-                        if u.reflection_length(in_unitary_group=True) == w_len:
+                        if u.reflection_length(in_unitary_group=in_unitary_group) == w_len:
                             resu.append((u, w_len))
                     return resu
                 step = RecursivelyEnumeratedSet(seeds, succ, structure='graded')
-                return (x[0] for x in step)
+                if return_lengths:
+                    f = lambda x:x
+                else:
+                    f = lambda x:x[0]
+                return (f(x) for x in step)
+
+            def elements_below_coxeter_element(c=None):
+                from sage.misc.superseded import deprecation
+                deprecation(27924, "The method elements_below_coxeter_element is deprecated. Please use reflection_order_ideal instead.")
+                return reflection_order_ideal(gens=c)
 
             # TODO: have a cached and an uncached version
             @cached_method
             def noncrossing_partition_lattice(self, c=None, L=None,
-                                              in_unitary_group=False):
+                                              in_unitary_group=True):
                 r"""
                 Return the interval `[1,c]` in the absolute order of
                 ``self`` as a finite lattice.
@@ -793,39 +802,34 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                     [[], [2]]
                 """
                 from sage.combinat.posets.all import Poset, LatticePoset
-                if c is None:
-                    c = self.coxeter_element()
+                # if c is None:
+                    # c = self.coxeter_element()
+                    # smart_covers = in_unitary_group = True
+                # elif self.is_real() or (hasattr(c,"is_coxeter_element") and c.is_coxeter_element()):
+                    # smart_covers = in_unitary_group = True
 
                 smart_covers = not in_unitary_group
 
-                if self.is_real():
-                    smart_covers = in_unitary_group = True
-
                 R = self.reflections()
                 if L is None:
-                    L = list(self.elements_below_coxeter_element(c=c))
-                    try:
-                        if c.is_coxeter_element():
-                            smart_covers = in_unitary_group = True
-                    except AttributeError:
-                        pass
+                    L = list(self.reflection_order_ideal(gens=c,
+                                                         in_unitary_group=in_unitary_group,
+                                                         return_lengths=True))
                 rels = []
-                ref_lens = {w: w.reflection_length(in_unitary_group=in_unitary_group)
-                            for w in L}
-                if smart_covers:
-                    for pi in L:
-                        for t in R:
-                            tau = pi * t
-                            if tau in L and ref_lens[pi] + 1 == ref_lens[tau]:
-                                rels.append((pi, tau))
-                else:
-                    rels = [(pi, tau) for pi in L for tau in L
-                            if ref_lens[pi] + ref_lens[pi.inverse() * tau] == ref_lens[tau]]
-                P = Poset((L, rels), cover_relations=smart_covers, facade=True)
+                ref_lens = {pi:l for (pi, l) in L}
+                # if smart_covers:
+                for (pi, l) in L:
+                    for t in R:
+                        tau = pi * t
+                        if tau in ref_lens and l+1 == ref_lens[tau]:
+                            rels.append((pi, tau))
+                # else:
+                    # rels = [(pi, tau) for pi in L for tau in L
+                            # if ref_lens[pi] + ref_lens[pi.inverse() * tau] == ref_lens[tau]]
+                P = Poset(([], rels), cover_relations=True, facade=True)
                 if P.is_lattice():
-                    return LatticePoset(P)
-                else:
-                    return P
+                    P = LatticePoset(P)
+                return P
 
             def generalized_noncrossing_partitions(self, m, c=None, positive=False):
                 r"""

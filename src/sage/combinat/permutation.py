@@ -6735,10 +6735,23 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
                 [1, 2]
                 sage: [i for i in P.index_set() if x.has_left_descent(i)]
                 [1, 2]
+
+            TESTS::
+
+                sage: P = Permutations(4)
+                sage: x = P([3, 2, 4, 1])
+                sage: x.has_left_descent(2, mult='l2r')
+                doctest:warning
+                ...
+                DeprecationWarning: The mult option is deprecated and ignored.
+                See https://trac.sagemath.org/27467 for details.
+                True
+                sage: x.has_left_descent(2, mult='r2l')
+                True
             """
             if mult is not None:
                 from sage.misc.superseded import deprecation
-                deprecation(27467, "The mult option is deprecated.")
+                deprecation(27467, "The mult option is deprecated and ignored.")
             for val in self._list:
                 if val == i:
                     return False
@@ -6776,10 +6789,23 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
                 [1, 3]
                 sage: [i for i in P.index_set() if x.has_right_descent(i)]
                 [1, 3]
+
+            TESTS::
+
+                sage: P = Permutations(4)
+                sage: x = P([3, 2, 4, 1])
+                sage: x.has_right_descent(3, mult='l2r')
+                doctest:warning
+                ...
+                DeprecationWarning: The mult option is deprecated and ignored.
+                See https://trac.sagemath.org/27467 for details.
+                True
+                sage: x.has_right_descent(3, mult='r2l')
+                True
             """
             if mult is not None:
                 from sage.misc.superseded import deprecation
-                deprecation(27467, "The mult option is deprecated.")
+                deprecation(27467, "The mult option is deprecated and ignored.")
             return self[i-1] > self[i]
 
         def __mul__(self, other):
@@ -6880,7 +6906,7 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             Return ``self`` multiplied by the simple reflection ``s[i]``
             on the right.
 
-            This acts by switching the entries equal `i` and `i+1`.
+            This acts by switching the entries `i` and `i+1`.
 
             .. WARNING::
 

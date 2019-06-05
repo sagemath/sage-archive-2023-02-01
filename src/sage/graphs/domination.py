@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 r"""
 Enumeration of minimal dominating sets
 
 Implementation of the algorithm described in [BDHPR2019]_ to enumerate
 the minimal dominating sets of a graph.
 
-Some examples:
+EXAMPLES:
 
 We enumerate the minimal dominating sets of the 5-star graph::
 

@@ -9,23 +9,23 @@ Some examples:
 We enumerate the minimal dominating sets of the 5-star graph::
 
     sage: g = graphs.StarGraph(5)
-    sage: list(minimal_dominating_sets(g))
+    sage: list(g.minimal_dominating_sets())
     [{0}, {1, 2, 3, 4, 5}]
 
 Now only those that dominate the middle vertex::
 
-    sage: list(minimal_dominating_sets(g, [0]))
+    sage: list(g.minimal_dominating_sets([0]))
     [{0}, {1}, {2}, {3}, {4}, {5}]
 
 Now the minimal dominating sets of the 5-path graph::
 
     sage: g = graphs.PathGraph(5)
-    sage: list(minimal_dominating_sets(g))
+    sage: list(g.minimal_dominating_sets())
     [{0, 2, 4}, {1, 4}, {0, 3}, {1, 3}]
 
 We count the minimal dominating sets of the Petersen graph::
 
-    sage: sum(1 for _ in minimal_dominating_sets(graphs.PetersenGraph()))
+    sage: sum(1 for _ in graphs.PetersenGraph().minimal_dominating_sets())
     27
 
 AUTHORS:
@@ -180,6 +180,14 @@ def _cand_ext_enum(G, to_dom, u_next):
     OUTPUT:
 
     An iterator over the minimal dominating sets of ``to_dom``.
+
+    TESTS:
+
+        sage: from sage.graphs.domination import _cand_ext_enum
+        sage: g = graphs.DiamondGraph()
+        sage: l = list(_cand_ext_enum(g, {0, 2, 3}, 1,))
+        sage: len(l) == 3 and {1} in l and {2} in l and {0, 3} in l
+        True
     """
 
     def _aux_with_rep(H, to_dom, u_next):
@@ -199,7 +207,7 @@ def _cand_ext_enum(G, to_dom, u_next):
 
             cand_ext_index = 0
 
-            for ext in minimal_dominating_sets(H, to_dom):
+            for ext in H.minimal_dominating_sets(to_dom):
                 yield (ext, cand_ext_index)
                 cand_ext_index += 1
 
@@ -228,7 +236,7 @@ def _cand_ext_enum(G, to_dom, u_next):
                     H.neighbor_iterator(w, closed=True))
                 # Here again we recurse on a smaller instance at it
                 # excludes u_next (and w)
-                for Q in minimal_dominating_sets(H, remains_to_dom):
+                for Q in H.minimal_dominating_sets(remains_to_dom):
                     ext = set(Q)
                     ext.add(w)
                     # By construction w dominates u_next and Q dominates
@@ -282,24 +290,24 @@ def minimal_dominating_sets(G, to_dominate=None, work_on_copy=True):
     EXAMPLES::
 
         sage: G = graphs.ButterflyGraph()
-        sage: ll = list(minimal_dominating_sets(G))
+        sage: ll = list(G.minimal_dominating_sets())
         sage: pp = [{0, 1}, {1, 3}, {0, 2}, {2, 3}, {4}]
         sage: len(pp) == len(pp) and all(x in pp for x in ll) and all(x in ll for x in pp)
         True
 
-        sage: ll = list(minimal_dominating_sets(G, [0,3]))
+        sage: ll = list(G.minimal_dominating_sets([0,3]))
         sage: pp = [{0}, {3}, {4}]
         sage: len(pp) == len(pp) and all(x in pp for x in ll) and all(x in ll for x in pp)
         True
 
-        sage: ll = list(minimal_dominating_sets(G, [4]))
+        sage: ll = list(G.minimal_dominating_sets([4]))
         sage: pp = [{4}, {0}, {1}, {2}, {3}]
         sage: len(pp) == len(pp) and all(x in pp for x in ll) and all(x in ll for x in pp)
         True
 
     ::
 
-        sage: ll = list(minimal_dominating_sets(graphs.PetersenGraph()))
+        sage: ll = list(graphs.PetersenGraph().minimal_dominating_sets())
         sage: pp = [{0, 2, 6},
         ....: {0, 9, 3},
         ....: {0, 8, 7},
@@ -334,7 +342,7 @@ def minimal_dominating_sets(G, to_dominate=None, work_on_copy=True):
 
     The empty graph is handled correctly::
 
-        sage: list(minimal_dominating_sets(Graph()))
+        sage: list(Graph().minimal_dominating_sets())
         [set()]
 
     Test on all graphs on 6 vertices::
@@ -345,7 +353,7 @@ def minimal_dominating_sets(G, to_dominate=None, work_on_copy=True):
         ....:             if not(G.is_redundant(S)) and G.is_dominating(S))
         sage: def big_check(n):
         ....:     for G in graphs(n):
-        ....:         ll = list(minimal_dominating_sets(G))
+        ....:         ll = list(G.minimal_dominating_sets())
         ....:         pp = list(minimal_dominating_sets_naive(G))
         ....:         if len(pp) != len(pp) or any(x not in pp for x in ll) or any(x not in ll for x in pp):
         ....:             return False
@@ -357,10 +365,10 @@ def minimal_dominating_sets(G, to_dominate=None, work_on_copy=True):
 
         sage: def check_uniqueness(g):
         ....:     counter_1 = 0
-        ....:     for dom_1 in minimal_dominating_sets(g):
+        ....:     for dom_1 in g.minimal_dominating_sets():
         ....:         counter_1 += 1
         ....:         counter_2 = 0
-        ....:         for dom_2 in minimal_dominating_sets(g):
+        ....:         for dom_2 in g.minimal_dominating_sets():
         ....:             counter_2 += 1
         ....:             if counter_2 >= counter_1:
         ....:                 break

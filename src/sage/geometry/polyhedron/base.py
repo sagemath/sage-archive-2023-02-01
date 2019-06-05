@@ -3276,8 +3276,14 @@ class Polyhedron_base(Element):
         new_vertices = [x.vector()+displacement for x in self.vertex_generator()]
         new_rays = self.rays()
         new_lines = self.lines()
+
         new_ring = self.parent()._coerce_base_ring(displacement)
-        return Polyhedron(vertices=new_vertices, rays=new_rays, lines=new_lines, base_ring=new_ring, backend=self.backend())
+        from .parent import test_backend
+        new_backend = None
+        if test_backend(new_ring, self.backend()):
+            new_backend = self.backend()
+
+        return Polyhedron(vertices=new_vertices, rays=new_rays, lines=new_lines, base_ring=new_ring, backend=new_backend)
 
     def product(self, other):
         """

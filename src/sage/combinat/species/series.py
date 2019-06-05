@@ -89,6 +89,7 @@ class LazyPowerSeriesRing(Algebra):
         self._element_class = element_class if element_class is not None else LazyPowerSeries
         self._order = None
         self._name = names
+        self._zero_base_ring = R.zero()
         sage.structure.parent_base.ParentWithBase.__init__(self, R, category=Rings())
 
     def ngens(self):
@@ -268,7 +269,7 @@ class LazyPowerSeriesRing(Algebra):
             sage: L.zero()
             0
         """
-        return self.term(self.base_ring().zero(), 0)
+        return self.term(self.parent()._zero_base_ring, 0)
 
     def identity_element(self):
         """
@@ -946,7 +947,7 @@ class LazyPowerSeries(AlgebraElement):
         # The following line must not be written n < self.get_aorder()
         # because comparison of Integer and OnfinityOrder is not implemented.
         if self.get_aorder() > n:
-            return self.parent().base_ring().zero()
+            return self.parent()._zero_base_ring
 
         assert self.is_initialized
 
@@ -1533,10 +1534,10 @@ class LazyPowerSeries(AlgebraElement):
         assert ao != unk
 
         if ao == inf:
-            yield self.parent().base_ring().zero()
+            yield self.parent()._zero_base_ring
         else:
             for _ in range(ao-1):
-                yield self.parent().base_ring().zero()
+                yield self.parent()._zero_base_ring
 
             n = max(1, ao)
             while True:

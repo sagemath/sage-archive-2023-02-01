@@ -265,8 +265,8 @@ def minimal_dominating_sets(G, to_dominate=None, work_on_copy=True):
       the set of vertices to be dominated.
 
     - ``work_on_copy`` -- boolean (default: ``True``); whether or not to
-      work on a of the input graph; if set to ``False``, the input graph
-      will be modified (relabeled).
+      work on a copy of the input graph; if set to ``False``, the input
+      graph will be modified (relabeled).
     
     OUTPUT:
 

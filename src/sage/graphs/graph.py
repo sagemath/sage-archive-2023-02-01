@@ -5638,7 +5638,7 @@ class Graph(GenericGraph):
 
     ### Domination
 
-    @doc_index("Basic methods")
+    @doc_index("Domination")
     def is_dominating(self, dom, focus=None):
         r"""
         Check if a set is a dominating set.
@@ -5685,7 +5685,7 @@ class Graph(GenericGraph):
 
         return to_dom == set()
 
-    @doc_index("Basic methods")
+    @doc_index("Domination")
     def is_redundant(self, dom, focus=None):
         r"""
         Return whether a vertex iterable has redundant vertices.
@@ -5766,7 +5766,7 @@ class Graph(GenericGraph):
         # equivalent to checking with_private != set(dom)
         return len(with_private) != len(dom)
 
-    @doc_index("Basic methods")
+    @doc_index("Domination")
     def private_neighbors(self, vertex, dom):
         r"""
         Return the private neighbors of a vertex with repect to other vertices.
@@ -8927,7 +8927,8 @@ _additional_categories = {
     "random_orientation"        : "Connectivity, orientations, trees",
     "bridges"                   : "Connectivity, orientations, trees",
     "cleave"                    : "Connectivity, orientations, trees",
-    "spqr_tree"                 : "Connectivity, orientations, trees"
+    "spqr_tree"                 : "Connectivity, orientations, trees",
+    "minimal_dominating_sets"   : "Domination"
     }
 
 __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))

@@ -681,7 +681,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 return (self.number_of_reflection_hyperplanes()
                         + self.number_of_reflections()) // self.rank()
 
-            def reflection_order_ideal(self, gens=None,
+            def absolute_order_ideal(self, gens=None,
                                        in_unitary_group=True,
                                        return_lengths=False):
                 r"""
@@ -696,33 +696,65 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                     \ell_R(\omega^{-1} \tau) = \ell_R(\tau),
 
                 where `\ell_R` denotes the reflection length.
+                This is, if ``in_unitary_group`` is ``False``, then
+
+                .. MATH::
+
+                    \ell_R(w) = \min\{ \ell: w = r_1\cdots r_\ell, r_i \in R \},
+
+                and otherwise
+
+                .. MATH::
+
+                    \ell_R(w) = \dim\operatorname{im}(w - 1).
 
                 .. NOTE::
 
-                    ``self`` is assumed to be well-generated.
+                    If ``gens`` are not given, ``self`` is assumed to be
+                    well-generated.
 
                 INPUT:
 
-                - ``c`` -- (default: ``None``) if an element ``c`` is given, it
-                  is used as the maximal element in the interval; if a list is
-                  given, the union of the intervals is computed
+                - ``gens`` -- (default: ``None``) if one or more elements
+                  are given, the order ideal in the absolute order generated
+                  by ``gens`` is given.
+                  Otherwise, the standard Coxeter element is used as unique
+                  maximal element.
+
+                - ``in_unitary_group`` (default:``True``) determines the used
+                  length function to compute the order.
+                  For real groups, both possible orders coincide, and for
+                  complex non-real groups, the order in the unitary group
+                  is much faster to compute.
+
+                - ``return_lengths`` (default:``False``) whether or not
+                  to also return the lengths of the elements.
 
                 EXAMPLES::
 
                     sage: W = ReflectionGroup((1,1,3))                          # optional - gap3
 
-                    sage: sorted( w.reduced_word() for w in W.reflection_order_ideal() )    # optional - gap3
+                    sage: sorted( w.reduced_word() for w in W.absolute_order_ideal() )    # optional - gap3
                     [[], [1], [1, 2], [1, 2, 1], [2]]
 
-                    sage: sorted( w.reduced_word() for w in W.reflection_order_ideal(W.from_reduced_word([2,1])) )  # optional - gap3
+                    sage: sorted( w.reduced_word() for w in W.absolute_order_ideal(W.from_reduced_word([2,1])) )  # optional - gap3
                     [[], [1], [1, 2, 1], [2], [2, 1]]
 
-                    sage: sorted( w.reduced_word() for w in W.reflection_order_ideal(W.from_reduced_word([2])) )    # optional - gap3
+                    sage: sorted( w.reduced_word() for w in W.absolute_order_ideal(W.from_reduced_word([2])) )    # optional - gap3
                     [[], [2]]
 
                     sage: W = CoxeterGroup(['A', 3])
-                    sage: len(list(W.reflection_order_ideal()))
+                    sage: len(list(W.absolute_order_ideal()))
                     14
+
+                    sage: W = CoxeterGroup(['A', 2])
+                    sage: for (w, l) in W.absolute_order_ideal(return_lengths=True):
+                    ....:     print(w.reduced_word(), l)
+                    [1, 2] 2
+                    [1] 1
+                    [2] 1
+                    [1, 2, 1] 1
+                    [] 0
                 """
                 if gens is None:
                     seeds = [(self.coxeter_element(), self.rank())]
@@ -752,9 +784,20 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 return (f(x) for x in step)
 
             def elements_below_coxeter_element(self, c=None):
+                r"""
+                Deprecated version superseeded by absolute_order_ideal.
+
+                TESTS::
+
+                    sage: W = CoxeterGroup(['A', 3])
+                    sage: len(list(W.elements_below_coxeter_element()))
+                    doctest:...: DeprecationWarning: The method elements_below_coxeter_element is deprecated. Please use absolute_order_ideal instead.
+                    See https://trac.sagemath.org/27924 for details.
+                    14
+                """
                 from sage.misc.superseded import deprecation
-                deprecation(27924, "The method elements_below_coxeter_element is deprecated. Please use reflection_order_ideal instead.")
-                return self.reflection_order_ideal(gens=c)
+                deprecation(27924, "The method elements_below_coxeter_element is deprecated. Please use absolute_order_ideal instead.")
+                return self.absolute_order_ideal(gens=c)
 
             # TODO: have a cached and an uncached version
             @cached_method
@@ -773,7 +816,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
                 - ``L`` -- (default: ``None``) if a subset ``L`` (must be hashable!)
                   of ``self`` is given, it is used as the underlying set (only
-                  cover relations are checked)
+                  cover relations are checked).
 
                 - ``in_unitary_group`` -- (default: ``False``) if ``False``, the
                   relation is given by `\sigma \leq \tau` if
@@ -781,6 +824,10 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                   if ``True``, the relation is given by `\sigma \leq \tau` if
                   `\dim(\mathrm{Fix}(\sigma)) + \dim(\mathrm{Fix}(\sigma^{-1}\tau))
                   = \dim(\mathrm{Fix}(\tau))`
+
+                .. NOTE::
+
+                    If ``L`` is given, the parameter ``c`` is ignored.
 
                 EXAMPLES::
 
@@ -804,30 +851,20 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                     [[], [2]]
                 """
                 from sage.combinat.posets.all import Poset, LatticePoset
-                # if c is None:
-                    # c = self.coxeter_element()
-                    # smart_covers = in_unitary_group = True
-                # elif self.is_real() or (hasattr(c,"is_coxeter_element") and c.is_coxeter_element()):
-                    # smart_covers = in_unitary_group = True
-
-                smart_covers = not in_unitary_group
 
                 R = self.reflections()
                 if L is None:
-                    L = list(self.reflection_order_ideal(gens=c,
-                                                         in_unitary_group=in_unitary_group,
-                                                         return_lengths=True))
+                    L = list(self.absolute_order_ideal(gens=c,
+                                                       in_unitary_group=in_unitary_group,
+                                                       return_lengths=True))
                 rels = []
                 ref_lens = {pi:l for (pi, l) in L}
-                # if smart_covers:
                 for (pi, l) in L:
                     for t in R:
                         tau = pi * t
                         if tau in ref_lens and l+1 == ref_lens[tau]:
                             rels.append((pi, tau))
-                # else:
-                    # rels = [(pi, tau) for pi in L for tau in L
-                            # if ref_lens[pi] + ref_lens[pi.inverse() * tau] == ref_lens[tau]]
+
                 P = Poset(([], rels), cover_relations=True, facade=True)
                 if P.is_lattice():
                     P = LatticePoset(P)

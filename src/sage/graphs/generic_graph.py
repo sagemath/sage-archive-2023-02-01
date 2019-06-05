@@ -16054,7 +16054,7 @@ class GenericGraph(GenericGraph_pyx):
                 return 1
         from heapq import heappush, heappop
 
-        if by_weight is False:
+        if not by_weight:
             length_func = len
             shortest_path_func = self._backend.shortest_path # shortest path function for unweighted graph
         else:
@@ -16101,7 +16101,7 @@ class GenericGraph(GenericGraph_pyx):
                             exclude_edges.add((path[i - 1], path[i]))
                             exclude_edges.add((path[i], path[i - 1]))
                 try:
-                    if by_weight is True:
+                    if by_weight:
                         # finding the spur part of the path after excluding certain vertices and edges
                         spur = shortest_path_func(root[-1], target,
                                                   exclude_vertices=exclude_vertices,

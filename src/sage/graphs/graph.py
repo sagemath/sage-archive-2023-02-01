@@ -86,7 +86,7 @@ AUTHORS:
 - Amanda Francis, Caitlin Lienkaemper, Kate Collins, Rajat Mittal (2019-03-19):
   most_common_neighbors and common_neighbors_matrix added.
 
-- Jean-Florent Raymond (2019-04): is_redundant, is_dominating
+- Jean-Florent Raymond (2019-04): is_redundant, is_dominating,
    private_neighbors
 
 Graph Format
@@ -5639,26 +5639,26 @@ class Graph(GenericGraph):
     ### Domination
 
     @doc_index("Basic methods")
-    def is_dominating(self, dominating, focus=None):
+    def is_dominating(self, dom, focus=None):
         r"""
         Check if a set is a dominating set.
 
         We say that as set `D` of vertices of a graph `G` dominates a
-        set `S` if every vertex of `S` belongs to `D` or is adjacent to
-        a vertex of `D`.  Also, `D` is a dominating set of `G` if it
-        dominates `V(G)`.
+        set `S` if every vertex of `S` either belongs to `D` or is
+        adjacent to a vertex of `D`.  Also, `D` is a dominating set of
+        `G` if it dominates `V(G)`.
 
         INPUT:
 
-        - ``dominating`` -- an iterable of vertices of ``self``; the
-          the vertices of the supposed dominating set.
+        - ``dom`` -- an iterable of vertices of ``self``; the
+          vertices of the supposed dominating set.
 
         - ``focus`` -- (default: ``None``) an iterable of
           vertices of ``self``; the vertices that we want to dominate.
 
         OUTPUT:
 
-        Check whether ``dominating`` is a dominating set of ``self``.
+        Check whether ``dom`` is a dominating set of ``self``.
 
         When ``focus`` is specified, check instead if ``dominating``
         dominates the vertices in ``focus``.
@@ -5678,7 +5678,7 @@ class Graph(GenericGraph):
         else:
             to_dom = set(focus)
 
-        for v in dominating:
+        for v in dom:
             if not to_dom:
                 return True
             to_dom.difference_update(self.neighbor_iterator(v, closed=True))
@@ -5690,26 +5690,26 @@ class Graph(GenericGraph):
         r"""
         Return whether a vertex iterable has redundant vertices.
 
-        For a graph ``G`` and sets ``D`` and ``S`` of vertices, we say
-        that a vertex ``v`` of ``D`` is redundant in ``S`` if ``v``
-        has no private neighbor with repect to ``D`` in ``S``.
-        In other words, there is no vertex in ``S`` that is dominated
-        by ``v`` but not by ``D \ {v}``.
+        For a graph `G` and sets `D` and `S` of vertices, we say
+        that a vertex `v` of `D` is redundant in `S` if `v`
+        has no private neighbor with repect to `D` in `S`.
+        In other words, there is no vertex in `S` that is dominated
+        by `v` but not by `D \setminus \{v\}`.
 
         INPUT:
 
         - ``dom`` -- an iterable of vertices of ``self``; where we
-          look for redundant vertices
+          look for redundant vertices.
 
         - ``focus`` -- (default: ``None``) an iterable of vertices of
-          ``self``; where we look for private neighbors
+          ``self``; where we look for private neighbors.
 
         OUTPUT:
 
-        Return whether ``dom`` has a redundant vertex in ``focus``.
-        When ``focus`` has the (default) value ``None``, return wether
-        ``dom`` has a redundant vertex in the set of vertices of
-        ``self``.
+        Return whether ``dom`` has a redundant vertex in ``self``.
+
+        When ``focus`` is specified, check instead whether ``dom`` has
+        a redundant vertex in ``focus``.
 
         EXAMPLES::
 
@@ -5759,20 +5759,25 @@ class Graph(GenericGraph):
 
 
     @doc_index("Basic methods")
-    def private_neighbors(self, vertex, vertex_subset):
+    def private_neighbors(self, vertex, dom):
         r"""
-        Return the private neighbors of a vertex with repect to an iterable.
+        Return the private neighbors of a vertex with repect to other vertices.
+
+        A private neighbor of a vertex `v` with respect to a vertex
+        subset `D` is a closed neighbor of `v` that is not dominated by
+        a vertex of `D \setminus \{v\}`.
 
         INPUT:
 
-        - ``vertex`` -- a vertex of ``self``
+        - ``vertex`` -- a vertex of ``self``.
 
-        - ``vertex_subset`` -- an iterable of vertices of self
+        - ``dom`` -- an iterable of vertices of ``self``; the vertices
+          possibly stealing private neighbors from ``vertex``.
 
         OUTPUT:
 
         Return the closed neighbors of ``vertex`` that are not closed
-        neighbors of any other vertex of ``vertex_subset``.
+        neighbors of any other vertex of ``dom``.
 
         EXAMPLES::
 
@@ -5789,7 +5794,7 @@ class Graph(GenericGraph):
 
         # The set of all vertices that are dominated by vertex_subset - vertex:
         closed_neighborhood_vs = set()
-        for u in vertex_subset:
+        for u in dom:
             if u != vertex:
                 closed_neighborhood_vs.update(
                     self.neighbor_iterator(u, closed=True))

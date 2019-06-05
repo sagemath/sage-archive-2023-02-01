@@ -3611,7 +3611,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             3
         """
         sig_on()
-        cdef unsigned long r = linbox_fmpz_mat_rank(self._matrix)
+        cdef size_t r = linbox_fmpz_mat_rank(self._matrix)
         sig_off()
         return Integer(r)
 

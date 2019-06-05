@@ -409,10 +409,10 @@ cdef class Graphics3d(SageObject):
                 t = (m[0,3], m[1,3], m[2,3])
                 if hasattr(p.all[0], 'points'):
                     translated = [[sum(x) for x in zip(t,u)] for u in p.all[0].points]
-                    thickness = .5 * p.all[0].thickness
+                    width = .5 * p.all[0].thickness
                     color = p.all[0].texture.color
                     opacity = p.all[0].texture.opacity
-                    self += arrow3d(translated[0], translated[1], width=thickness, color=color, opacity=opacity)
+                    self += arrow3d(translated[0], translated[1], width=width, color=color, opacity=opacity)
                 if hasattr(p.all[0], 'string'):
                     texts.append('{{"text":"{}", "x":{}, "y":{}, "z":{}}}'.format(
                                  p.all[0].string, t[0], t[1], t[2]))

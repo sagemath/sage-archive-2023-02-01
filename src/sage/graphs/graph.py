@@ -5711,6 +5711,11 @@ class Graph(GenericGraph):
         When ``focus`` is specified, check instead whether ``dom`` has
         a redundant vertex in ``focus``.
 
+        .. WARNING::
+
+            The assumption is made that ``focus`` (if provided) does not
+            contain repeated vertices.
+
         EXAMPLES::
 
             sage: G = graphs.CubeGraph(3)
@@ -5720,8 +5725,11 @@ class Graph(GenericGraph):
             False
         """
 
+        dom = list(dom)
         if focus is None:
-            focus = self.vertices()
+            focus = list(self)
+        else:
+            focus = list(focus)
 
         # dominator[v] (for v in focus) will be equal to:
         #  - (0, None) if v has no neighbor in dom
@@ -5731,11 +5739,7 @@ class Graph(GenericGraph):
         for v in focus:
             dominator[v] = (0, None)  # Initialization
 
-        # has_private[x] will store whether x (in dom) has a private
-        # neighbor in focus
-        has_private = dict()
         for x in dom:
-            has_private[x] = False      # Initialization
             for v in self.neighbor_iterator(x, closed=True):
                 if v in focus:
                     # remember about x only if we never encountered
@@ -5745,7 +5749,9 @@ class Graph(GenericGraph):
                     elif dominator[v][0] == 1:
                         dominator[v] = (2, None)
 
-        # Now we can compute has_private[]:
+        # Now we can compute with_private, the set of vertices of dom
+        # that have a private neighbor in focus
+        with_private = set()
         for v in focus:
             # Here we do care neither about vertices dominated by more
             # than one vertex of dom (they are not private neighbor of
@@ -5753,10 +5759,12 @@ class Graph(GenericGraph):
             if dominator[v][0] == 1:
                 # If v is dominated only by one vertex x,
                 # then v is a private neighbor of x
-                has_private[dominator[v][1]] = True
-                
-        return any(not has_private[x] for x in dom)
+                with_private.add(dominator[v][1])
 
+        # By construction with_private is a subset of dom and we assume
+        # the elements of dom to be unique, so the following is
+        # equivalent to checking with_private != set(dom)
+        return len(with_private) != len(dom)
 
     @doc_index("Basic methods")
     def private_neighbors(self, vertex, dom):

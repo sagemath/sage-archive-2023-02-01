@@ -250,7 +250,17 @@ class Rule(UniqueRepresentation):
 
     def forward_rule(self, obj1, obj2, check_standard=False):
         r"""
-        Return the default insertion(RSK) of the pair ``[obj1, obj2]``.
+        Returns a pair of tableau from forward insertion of the pair ``[obj1, obj2]``.
+        
+        Input:  ``obj1, obj2`` -- Can be one of the following:
+
+          - A word in an ordered alphabet
+          - An integer matrix
+          - Two lists of equal length representing a generalized permutation
+          - Any object which has a method ``_rsk_iter()`` which returns an
+            iterator over the object represented as generalized permutation or
+            a pair of lists.
+
         """
         from sage.combinat.tableau import SemistandardTableau, StandardTableau
         
@@ -286,21 +296,6 @@ class RuleRSK(Rule):
         sage: RSK_inverse(p, q, insertion=RSK.rules.RSK)
         [[1, 2, 3, 3], [2, 1, 2, 2]]
     """
-    def forward_rule(self, obj1, obj2, check_standard=False):
-        r"""
-        Return the RSK insertion of the pair ``[obj1, obj2]``.
-        
-        Input:  ``obj1, obj2`` -- Can be one of the following:
-
-          - A word in an ordered alphabet
-          - An integer matrix
-          - Two lists of equal length representing a generalized permutation
-          - Any object which has a method ``_rsk_iter()`` which returns an
-            iterator over the object represented as generalized permutation or
-            a pair of lists.
-
-        """
-        return super(RuleRSK, self).forward_rule(obj1, obj2, check_standard)
 
     def backward_rule(self, p, q, output):
         r"""
@@ -425,24 +420,9 @@ class RuleEG(Rule):
         sage: RSK(RSK_inverse(*pq, insertion=RSK.rules.EG, output='matrix'), insertion=RSK.rules.EG)
         [[[1, 2, 3], [2, 3]], [[1, 3, 4], [2, 5]]]
         sage: RSK_inverse(*pq, insertion=RSK.rules.EG)
-        [2, 1, 2, 3, 2]
+        [[1, 2, 3, 4, 5], [2, 1, 2, 3, 2]]
 
     """
-    def forward_rule(self, obj1, obj2, check_standard=False):
-        r"""
-        Return the EG insertion of the pair ``[obj1, obj2]``.
-
-         Input:  ``obj1, obj2`` -- Can be one of the following:
-
-          - A word in an ordered alphabet
-          - An integer matrix
-          - Two lists of equal length representing a generalized permutation
-          - Any object which has a method ``_rsk_iter()`` which returns an
-            iterator over the object represented as generalized permutation or
-            a pair of lists.
-
-        """
-        return super(RuleEG, self).forward_rule(obj1, obj2, check_standard)
 
     def backward_rule(self, p, q, output):
         r"""
@@ -452,6 +432,7 @@ class RuleEG(Rule):
 
           - ``'array'`` -- as a two-line array (i.e. generalized permutation or
             biword)
+          - ``'permutation'`` -- as a permutation
           -  ``'matrix'`` -- as an integer matrix
         """
         from bisect import bisect_left
@@ -477,10 +458,16 @@ class RuleEG(Rule):
                         # switch x and y
                         x, row[y_pos] = row[y_pos], x
                 rev_word.append(x)
+                
+            if output == 'permutation':
+                return list(reversed(rev_word))
+            if output == 'word':
+                from sage.combinat.words.word import Word
+                return Word(reversed(rev_word))
             if output == 'matrix':
                 return to_matrix(list(range(1, len(rev_word)+1)), list(reversed(rev_word)))
-            else:
-                return list(reversed(rev_word))
+            if output == 'array':
+                return [list(range(1, len(rev_word)+1)), list(reversed(rev_word))]
 
         else:
             raise NotImplementedError("only RuleRSK is implemented for non-standard q")
@@ -1017,7 +1004,7 @@ def RSK_inverse(p, q, output='array', insertion=InsertionRules.RSK):
     can be obtained using the ``reduced_word()`` method from permutations)::
 
         sage: g = lambda w: RSK_inverse(*RSK(w, insertion=RSK.rules.EG), insertion=RSK.rules.EG, output='permutation')
-        sage: all(p.reduced_word() == g(p.reduced_word()) for n in range(7) for p in Permutations(n))
+        sage: all(p == Permutations(n).from_reduced_word(g(p.reduced_word())) for n in range(7) for p in Permutations(n))
         True
 
         sage: n = ZZ.random_element(200)

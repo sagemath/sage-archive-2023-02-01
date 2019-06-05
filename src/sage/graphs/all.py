@@ -19,7 +19,6 @@ lazy_import("sage.graphs.cliquer", ['all_max_clique', 'max_clique',
             deprecation=26200)
 from .graph_database import graph_db_info
 lazy_import("sage.graphs.graph_editor", "graph_editor")
-lazy_import("sage.graphs.domination", "minimal_dominating_sets")
 
 from sage.graphs.isgci import graph_classes
 

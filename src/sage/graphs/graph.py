@@ -8901,6 +8901,7 @@ class Graph(GenericGraph):
     from sage.graphs.partial_cube import is_partial_cube
     from sage.graphs.orientations import strong_orientations_iterator, random_orientation
     from sage.graphs.connectivity import bridges, cleave, spqr_tree
+    from sage.graphs.domination import minimal_dominating_sets
 
 
 _additional_categories = {

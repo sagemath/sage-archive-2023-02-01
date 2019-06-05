@@ -269,7 +269,7 @@ class LazyPowerSeriesRing(Algebra):
             sage: L.zero()
             0
         """
-        return self.term(self.parent()._zero_base_ring, 0)
+        return self.term(self._zero_base_ring, 0)
 
     def identity_element(self):
         """

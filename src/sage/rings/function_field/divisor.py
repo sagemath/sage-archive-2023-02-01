@@ -156,18 +156,37 @@ class FunctionFieldDivisor(ModuleElement):
         ModuleElement.__init__(self, parent)
         self._data = data
 
-    def _format(self, formatter, mul, cr):
+    def __hash__(self):
         """
-        Return a string representation of the divisor, used by both
-        `_repr_` and `_latex_`.
+        Return the hash of the divisor.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); R.<t> = K[]
+            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
+            sage: f = x/(y+1)
+            sage: d = f.divisor()
+            sage: {d: 1}
+            {Place (1/x, 1/x^4*y^2 + 1/x^2*y + 1)
+              + Place (1/x, 1/x^2*y + 1)
+              + 3*Place (x, (1/(x^3 + x^2 + x))*y^2)
+              - 6*Place (x + 1, y + 1): 1}
+        """
+        return hash(tuple(sorted(self._data.items())))
+
+    def _format(self, formatter, mul, cr):
+        r"""
+        Return a string representation of ``self``.
+
+        This is used by both ``_repr_`` and ``_latex_`` methods.
 
         INPUT:
 
-        - ``formatter`` -- either `repr` or `latex`
+        - ``formatter`` -- either ``repr`` or ``latex``
 
-        - ``mul`` -- the string inserted between multiplicity and place
+        - ``mul`` -- string inserted between multiplicity and place
 
-        - ``cr`` -- the string inserted between places
+        - ``cr`` -- string inserted between places
 
         TESTS::
 
@@ -226,7 +245,7 @@ class FunctionFieldDivisor(ModuleElement):
         return self._format(repr, '*', '\n' if split else '')
 
     def _latex_(self):
-        """
+        r"""
         Return the LaTeX representation of the divisor.
 
         EXAMPLES::

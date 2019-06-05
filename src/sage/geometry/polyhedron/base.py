@@ -2672,6 +2672,10 @@ class Polyhedron_base(Element):
             sage: q = Polyhedron([[1,1,1],[-1,1,1],[1,-1,1],[-1,-1,1],[1,1,-1]])
             sage: q.is_simplicial()
             False
+            sage: P = polytopes.simplex(); P
+            A 3-dimensional polyhedron in ZZ^4 defined as the convex hull of 4 vertices
+            sage: P.is_simplicial()
+            True
 
         The method is not implemented for unbounded polyhedra::
 
@@ -2684,8 +2688,9 @@ class Polyhedron_base(Element):
         if not(self.is_compact()):
             raise NotImplementedError("this function is implemented for polytopes only")
         d = self.dim()
-        return all(len([vertex for vertex in face.incident()]) == d
-                   for face in self.Hrepresentation())
+        return all(len([vertex for vertex in facet.incident()]) == d
+                   for facet in self.Hrepresentation()
+                   if not facet.is_equation())
 
     def hyperplane_arrangement(self):
         """

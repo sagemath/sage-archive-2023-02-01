@@ -18,6 +18,7 @@ from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.coxeter_groups import CoxeterGroups
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 
+
 class FiniteComplexReflectionGroups(CategoryWithAxiom):
     r"""
     The category of finite complex reflection groups.
@@ -685,7 +686,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                                      in_unitary_group=True,
                                      return_lengths=False):
                 r"""
-                Return all elements in ``self`` in the interval `[1,c]` in the
+                Return all elements in ``self`` below given elements in the
                 absolute order of ``self``.
 
                 This order is defined by
@@ -696,6 +697,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                     \ell_R(\omega^{-1} \tau) = \ell_R(\tau),
 
                 where `\ell_R` denotes the reflection length.
+
                 This is, if ``in_unitary_group`` is ``False``, then
 
                 .. MATH::
@@ -717,12 +719,12 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
                 - ``gens`` -- (default: ``None``) if one or more elements
                   are given, the order ideal in the absolute order generated
-                  by ``gens`` is given.
+                  by ``gens`` is returned.
                   Otherwise, the standard Coxeter element is used as unique
                   maximal element.
 
-                - ``in_unitary_group`` (default:``True``) determines the used
-                  length function to compute the order.
+                - ``in_unitary_group`` (default:``True``) determines the
+                  length function used to compute the order.
                   For real groups, both possible orders coincide, and for
                   complex non-real groups, the order in the unitary group
                   is much faster to compute.
@@ -778,14 +780,15 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                                                 structure='graded',
                                                 enumeration='breadth')
                 if return_lengths:
-                    f = lambda x:x
+                    return (x for x in step)
                 else:
-                    f = lambda x:x[0]
-                return (f(x) for x in step)
+                    return (x[0] for x in step)
 
             def elements_below_coxeter_element(self, c=None):
                 r"""
-                Deprecated version superseeded by absolute_order_ideal.
+                Deprecated method.
+
+                Superseded by :meth:`absolute_order_ideal`
 
                 TESTS::
 
@@ -807,7 +810,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 Return the interval `[1,c]` in the absolute order of
                 ``self`` as a finite lattice.
 
-                .. SEEALSO:: :meth:`elements_below_coxeter_element`
+                .. SEEALSO:: :meth:`absolute_order_ideal`
 
                 INPUT:
 

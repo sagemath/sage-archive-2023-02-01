@@ -404,11 +404,11 @@ REFERENCES:
                *Enumerating minimal dominating sets in* `K_t`-*free graphs
                and variants*.
                :arxiv:`1810.00789`
-           
+
 .. [BDLV2006] \S. Brlek, S. Dulucq, A. Ladouceur, L. Vuillon, Combinatorial
               properties of smooth infinite words, Theoret. Comput. Sci. 352
               (2006) 306--317.
-   
+
 .. [BDP2013] Thomas Brüstle, Grégoire Dupont, Matthieu Pérotin
    *On Maximal Green Sequences*
    :arxiv:`1205.2050`

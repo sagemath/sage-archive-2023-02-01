@@ -99,5 +99,5 @@ Libraries of algorithms
    sage/graphs/orientations
    sage/graphs/connectivity
    sage/graphs/domination
-   
+
 .. include:: ../footer.txt

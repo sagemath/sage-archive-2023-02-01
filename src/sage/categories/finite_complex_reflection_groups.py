@@ -711,17 +711,17 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
                     sage: W = ReflectionGroup((1,1,3))                          # optional - gap3
 
-                    sage: sorted( w.reduced_word() for w in W.elements_below_coxeter_element() )    # optional - gap3
+                    sage: sorted( w.reduced_word() for w in W.reflection_order_ideal() )    # optional - gap3
                     [[], [1], [1, 2], [1, 2, 1], [2]]
 
-                    sage: sorted( w.reduced_word() for w in W.elements_below_coxeter_element(W.from_reduced_word([2,1])) )  # optional - gap3
+                    sage: sorted( w.reduced_word() for w in W.reflection_order_ideal(W.from_reduced_word([2,1])) )  # optional - gap3
                     [[], [1], [1, 2, 1], [2], [2, 1]]
 
-                    sage: sorted( w.reduced_word() for w in W.elements_below_coxeter_element(W.from_reduced_word([2])) )    # optional - gap3
+                    sage: sorted( w.reduced_word() for w in W.reflection_order_ideal(W.from_reduced_word([2])) )    # optional - gap3
                     [[], [2]]
 
                     sage: W = CoxeterGroup(['A', 3])
-                    sage: len(list(W.elements_below_coxeter_element()))
+                    sage: len(list(W.reflection_order_ideal()))
                     14
                 """
                 if gens is None:
@@ -742,17 +742,19 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                         if u.reflection_length(in_unitary_group=in_unitary_group) == w_len:
                             resu.append((u, w_len))
                     return resu
-                step = RecursivelyEnumeratedSet(seeds, succ, structure='graded')
+                step = RecursivelyEnumeratedSet(seeds, succ,
+                                                structure='graded',
+                                                enumeration='breadth')
                 if return_lengths:
                     f = lambda x:x
                 else:
                     f = lambda x:x[0]
                 return (f(x) for x in step)
 
-            def elements_below_coxeter_element(c=None):
+            def elements_below_coxeter_element(self, c=None):
                 from sage.misc.superseded import deprecation
                 deprecation(27924, "The method elements_below_coxeter_element is deprecated. Please use reflection_order_ideal instead.")
-                return reflection_order_ideal(gens=c)
+                return self.reflection_order_ideal(gens=c)
 
             # TODO: have a cached and an uncached version
             @cached_method

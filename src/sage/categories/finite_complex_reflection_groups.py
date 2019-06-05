@@ -682,8 +682,8 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                         + self.number_of_reflections()) // self.rank()
 
             def absolute_order_ideal(self, gens=None,
-                                       in_unitary_group=True,
-                                       return_lengths=False):
+                                     in_unitary_group=True,
+                                     return_lengths=False):
                 r"""
                 Return all elements in ``self`` in the interval `[1,c]` in the
                 absolute order of ``self``.

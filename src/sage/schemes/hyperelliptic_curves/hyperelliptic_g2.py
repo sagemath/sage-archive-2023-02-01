@@ -74,7 +74,7 @@ class HyperellipticCurve_g2(hyperelliptic_generic.HyperellipticCurve_generic):
 
     def clebsch_invariants(self):
         r"""
-        Return the Clebsch invariants `(A, B, C, D)` of Mestre, p 317, [MJ1991]_.
+        Return the Clebsch invariants `(A, B, C, D)` of Mestre, p 317, [Mes1991]_.
 
         .. SEEALSO::
 
@@ -182,7 +182,7 @@ class HyperellipticCurve_g2(hyperelliptic_generic.HyperellipticCurve_generic):
 
     def clebsch_invariants(self):
         r"""
-        Return the Clebsch invariants `(A, B, C, D)` of Mestre, p 317, [MJ1991]_.
+        Return the Clebsch invariants `(A, B, C, D)` of Mestre, p 317, [Mes1991]_.
 
         .. SEEALSO::
 

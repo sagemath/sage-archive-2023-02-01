@@ -399,13 +399,7 @@ def compute_codomain_kohel(E, kernel, degree):
 
     .. NOTE::
 
-       This function uses the formulas of Section 2.4 of [K96]_.
-
-    REFERENCES:
-
-    .. [K96] Kohel, "Endomorphism Rings of Elliptic Curves over Finite
-       Fields", UC Berkeley PhD thesis 1996.
-
+       This function uses the formulas of Section 2.4 of [Koh1996]_.
     """
     # First set up the polynomial ring
 
@@ -3669,19 +3663,13 @@ def compute_isogeny_starks(E1, E2, ell):
     ALGORITHM:
 
     This function uses Starks Algorithm as presented in section 6.2 of
-    [BMSS]_.
+    [BMSS2006]_.
 
     .. NOTE::
 
-       As published in [BMSS]_, the algorithm is incorrect, and a
+       As published in [BMSS2006]_, the algorithm is incorrect, and a
        correct version (with slightly different notation) can be found
-       in [M09]_.  The algorithm originates in [S72]_.
-
-    REFERENCES:
-
-    .. [BMSS] Boston, Morain, Salvy, Schost, "Fast Algorithms for Isogenies."
-    .. [M09] Moody, "The Diffie-Hellman Problem and Generalization of Verheul's Theorem"
-    .. [S72] Stark, "Class-numbers of complex quadratic fields."
+       in [Mo2009]_.  The algorithm originates in [Sta1973]_.
 
     EXAMPLES::
 
@@ -3717,7 +3705,7 @@ def compute_isogeny_starks(E1, E2, ell):
     R = PolynomialRing(K, 'x')
     x = R.gen()
 
-    wp1 = E1.weierstrass_p(prec=4*ell+4)  #BMSS claim 2*ell is enough, but it is not M09
+    wp1 = E1.weierstrass_p(prec=4*ell+4)  #BMSS2006 claim 2*ell is enough, but it is not M09
     wp2 = E2.weierstrass_p(prec=4*ell+4)
 
     # viewed them as power series in Z = z^2

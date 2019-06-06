@@ -26,8 +26,6 @@ from __future__ import absolute_import, print_function
 
 from sage.structure.element import Element
 
-from sage.rings.all import ZZ, QQ
-
 from .base import Polyhedron_base
 from .base_QQ import Polyhedron_QQ
 from .base_ZZ import Polyhedron_ZZ

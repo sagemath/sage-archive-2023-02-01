@@ -21,7 +21,7 @@ one can query it through :meth:`designs.best_known_covering_design_from_LJCR
 
     sage: C = designs.best_known_covering_design_from_LJCR(7, 3, 2)   # optional - internet
     sage: C                            # optional - internet
-    (7,3,2)-covering design of size 7
+    (7, 3, 2)-covering design of size 7
     Lower bound: 7
     Method: lex covering
     Submitted on: 1996-12-01 00:00:00

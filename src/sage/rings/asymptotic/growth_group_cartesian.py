@@ -61,12 +61,12 @@ TESTS::
 ::
 
     sage: assume(SR.an_element() > 0)
-    sage: F = GrowthGroup('(SR_+)^n * n^ZZ * U^n'); F
-    Growth Group SR^n * n^ZZ * U^n
+    sage: F = GrowthGroup('(SR_+)^n * n^ZZ * UU^n'); F
+    Growth Group SR^n * n^ZZ * UU^n
     sage: G = GrowthGroup('QQ^n * n^QQ'); G
-    Growth Group QQ^n * n^QQ * S^n
+    Growth Group QQ^n * n^QQ * Signs^n
     sage: cm.common_parent(F, G)
-    Growth Group SR^n * n^QQ * U^n
+    Growth Group SR^n * n^QQ * UU^n
     sage: forget()
 
 ::
@@ -559,7 +559,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
         ::
 
-            sage: G = GrowthGroup('(QQ_+)^n * n^ZZ * U^n')
+            sage: G = GrowthGroup('(QQ_+)^n * n^ZZ * UU^n')
             sage: n = SR.var('n')
             sage: G((-2)^n)
             2^n*(-1)^n
@@ -736,9 +736,9 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
         ::
 
-            sage: cm.common_parent(GrowthGroup('n^ZZ * log(n)^ZZ * U^n'),
-            ....:                  GrowthGroup('n^QQ * U^n'))
-            Growth Group n^QQ * log(n)^ZZ * U^n
+            sage: cm.common_parent(GrowthGroup('n^ZZ * log(n)^ZZ * UU^n'),
+            ....:                  GrowthGroup('n^QQ * UU^n'))
+            Growth Group n^QQ * log(n)^ZZ * UU^n
         """
         from .growth_group import GenericGrowthGroup, AbstractGrowthGroupFunctor
         from .misc import bidirectional_merge_sorted
@@ -1317,8 +1317,8 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                 sage: G(1)._singularity_analysis_('n', 2, precision=3)
                 Traceback (most recent call last):
                 ...
-                NotImplementedOZero: The error term in the result is O(0)
-                which means 0 for sufficiently large n.
+                NotImplementedOZero: got O(0)
+                The error term O(0) means 0 for sufficiently large n.
                 sage: G('exp(x)')._singularity_analysis_('n', 2, precision=3)
                 Traceback (most recent call last):
                 ...
@@ -1329,7 +1329,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             if len(factors) == 0:
                 from .asymptotic_expansion_generators import asymptotic_expansions
                 from .misc import NotImplementedOZero
-                raise NotImplementedOZero(var=var)
+                raise NotImplementedOZero(var=var, exact_part=0)
             elif len(factors) == 1:
                 return factors[0]._singularity_analysis_(
                     var=var, zeta=zeta, precision=precision)

@@ -299,13 +299,13 @@ class LinearExtensionOfPoset(ClonableArray):
             True
         """
         P = self.poset()
-        a = self[i-1]
-        b = self[i  ]
-        if P.lt(a,b) or P.lt(b,a):
+        a = self[i - 1]
+        b = self[i]
+        if P.lt(a, b) or P.lt(b, a):
             return self
         with self.clone() as q:
-                q[i-1] = b
-                q[i  ] = a
+            q[i - 1] = b
+            q[i] = a
         return q
 
     def promotion(self, i=1):
@@ -592,7 +592,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
                 ct += Jup[j]
             Jup[m] = ct
         return ct
-    
+
     def __iter__(self):
         r"""
         Iterates through the linear extensions of the underlying poset.
@@ -812,7 +812,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
                     M[(L.index(p),i)] += x[j]
         for i in range(l):
             M[(i,i)] += -sum(M[(j,i)] for j in range(l))
-        return matrix(l,l,lambda x,y : M[(x,y)])
+        return matrix(l, l, lambda x, y: M[(x, y)])
 
     def _element_constructor_(self, lst, check=True):
         r"""

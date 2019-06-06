@@ -56,7 +56,7 @@ class LocalOptions:
 
     :class:`LocalOptions` should be used as follow.
 
-    INPUTS:
+    INPUT:
 
     - ``name`` -- The name of the LocalOptions
 
@@ -199,7 +199,7 @@ class LocalOptions:
         options. It also checks that the supplied options are valid and changes
         any alias to its generic value.
 
-        INPUTS:
+        INPUT:
 
         - ``key`` -- An option.
 
@@ -268,7 +268,7 @@ class LocalOptions:
         r"""
         Get or set value of the option ``option``.
 
-        INPUTS:
+        INPUT:
 
         - ``get_values`` -- The options to be printed.
 
@@ -604,7 +604,7 @@ class _drawing_tool:
         r"""
         Construct a drawing tools to produce some TIKZ drawing.
 
-        INPUTS:
+        INPUT:
 
         - ``options`` -- drawing options
 
@@ -677,7 +677,7 @@ class _drawing_tool:
             r"""
             Translate a position with a vector.
 
-            INPUTS:
+            INPUT:
 
             - ``pos`` -- The position to translate.
 
@@ -710,7 +710,7 @@ class _drawing_tool:
             r"""
             Return the mirror of a position according to a given axe.
 
-            INPUTS:
+            INPUT:
 
             - ``pos`` -- The position to mirror.
 

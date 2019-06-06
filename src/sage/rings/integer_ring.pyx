@@ -406,11 +406,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: ZZ['x,y']
             Multivariate Polynomial Ring in x, y over Integer Ring
             sage: R = ZZ[sqrt(5) + 1]; R
-            Order in Number Field in a with defining polynomial x^2 - 2*x - 4
+            Order in Number Field in a with defining polynomial x^2 - 2*x - 4 with a = 3.236067977499790?
             sage: R.is_maximal()
             False
             sage: R = ZZ[(1+sqrt(5))/2]; R
-            Order in Number Field in a with defining polynomial x^2 - x - 1
+            Order in Number Field in a with defining polynomial x^2 - x - 1 with a = 1.618033988749895?
             sage: R.is_maximal()
             True
         """

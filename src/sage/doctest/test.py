@@ -229,7 +229,7 @@ doesn't hurt::
     sage: subprocess.call(["sage", "-tp", "1000000", "--timeout=120",  # long time
     ....:      "--warn-long", "0", "99seconds.rst", "interrupt_diehard.rst"], **kwds2)
     Running doctests...
-    Doctesting 2 files using 1000000 threads.
+    Doctesting 2 files using 1000000 threads...
     Killing test 99seconds.rst
     Killing test interrupt_diehard.rst
     ----------------------------------------------------------------------

@@ -424,8 +424,10 @@ class MultiGraphics(WithEqualityById, SageObject):
         EXAMPLES::
 
             sage: A = graphics_array([plot(sin), plot(cos)])
-            sage: A._latex_()[:40]
+            sage: A._latex_()[:40]  # not tested (see comment below)
             '%% Creator: Matplotlib, PGF backend\n%%\n%'
+
+        The above doctest fails on macOS due to the following Matplotlib issue: https://github.com/matplotlib/matplotlib/issues/10307
 
         """
         tmpfilename = tmp_filename(ext='.pgf')
@@ -642,7 +644,12 @@ class GraphicsArray(MultiGraphics):
 
     Note that with respect to the square-bracket operator, ``G`` is considered
     as a flattened list of graphics objects, not as an array. For instance,
-    ``G[0, 1]`` will throw an error.
+    ``G[0, 1]`` throws an error::
+
+        sage: G[0, 1]
+        Traceback (most recent call last):
+        ...
+        TypeError: list indices must be integers or slices, not tuple
 
     ``G[:]`` returns the full (flattened) list of graphics objects composing
     ``G``::

@@ -395,9 +395,9 @@ class Polyhedron_base(Element):
 
         - ``backend`` -- the new backend, see
           :func:`~sage.geometry.polyhedron.constructor.Polyhedron`.
-          If ``None`` (the default), use the same defaulting behavior
-          as described there; it is not attempted to keep the same
-          backend.
+          If ``None`` (the default), attempt to keep the same backend.
+          Otherwise, use the same defaulting behavior
+          as described there.
 
         OUTPUT:
 
@@ -436,10 +436,10 @@ class Polyhedron_base(Element):
         - ``base_ring`` -- the new base ring
 
         - ``backend`` -- the new backend or ``None`` (default), see
-            :func:`~sage.geometry.polyhedron.constructor.Polyhedron`.
-            If ``None`` (the default), use the same defaulting behavior
-            as described there; it is not attempted to keep the same
-            backend.
+          :func:`~sage.geometry.polyhedron.constructor.Polyhedron`.
+          If ``None`` (the default), attempt to keep the same backend.
+          Otherwise, use the same defaulting behavior
+          as described there.
 
         EXAMPLES::
 
@@ -494,13 +494,6 @@ class Polyhedron_base(Element):
         if base_ring not in Rings:
             raise ValueError("invalid base ring")
 
-        if not base_ring.is_exact():
-            if base_ring is RR:
-                base_ring = RDF
-            elif base_ring is not RDF:
-                raise ValueError("the only allowed inexact ring is 'RDF' with backend 'cdd'")
-
-        x = None
         try:
             vertices = [[base_ring(x) for x in vertex] for vertex in self.vertices_list()]
             rays = [[base_ring(x) for x in ray] for ray in self.rays_list()]
@@ -3277,13 +3270,8 @@ class Polyhedron_base(Element):
         new_rays = self.rays()
         new_lines = self.lines()
 
-        new_ring = self.parent()._coerce_base_ring(displacement)
-        from .parent import test_backend
-        new_backend = None
-        if test_backend(new_ring, self.backend()):
-            new_backend = self.backend()
-
-        return Polyhedron(vertices=new_vertices, rays=new_rays, lines=new_lines, base_ring=new_ring, backend=new_backend)
+        parent = self.parent().base_extend(displacement)
+        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
     def product(self, other):
         """
@@ -3355,17 +3343,8 @@ class Polyhedron_base(Element):
         new_lines.extend( [ [0]*self.ambient_dim()+l
                             for l in other.line_generator() ] )
 
-        from .parent import test_backend
-        new_backend = None
-        if test_backend(new_ring, self.backend()):
-            new_backend = self.backend()
-        elif test_backend(new_ring, other.backend()):
-            new_backend = other.backend()
-
-        return Polyhedron(vertices=new_vertices,
-                          rays=new_rays, lines=new_lines,
-                          base_ring=new_ring,
-                          backend=new_backend)
+        parent = self.parent().change_ring(new_ring, ambient_dim=self.ambient_dim() + other.ambient_dim())
+        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
     _mul_ = product
 
@@ -3436,17 +3415,8 @@ class Polyhedron_base(Element):
         new_lines.extend( [ [0]*dim_self+l+[1]
                             for l in other.line_generator() ] )
 
-        from .parent import test_backend
-        new_backend = None
-        if test_backend(new_ring, self.backend()):
-            new_backend = self.backend()
-        elif test_backend(new_ring, other.backend()):
-            new_backend = other.backend()
-
-        return Polyhedron(vertices=new_vertices,
-                          rays=new_rays, lines=new_lines,
-                          base_ring=new_ring,
-                          backend=new_backend)
+        parent = self.parent().change_ring(new_ring, ambient_dim=self.ambient_dim() + other.ambient_dim() + 1)
+        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
     def subdirect_sum(self, other):
         """
@@ -3509,17 +3479,8 @@ class Polyhedron_base(Element):
         new_lines.extend( [ [0]*dim_self+l
                             for l in other.line_generator() ] )
 
-        from .parent import test_backend
-        new_backend = None
-        if test_backend(new_ring, self.backend()):
-            new_backend = self.backend()
-        elif test_backend(new_ring, other.backend()):
-            new_backend = other.backend()
-
-        return Polyhedron(vertices=new_vertices,
-                          rays=new_rays, lines=new_lines,
-                          base_ring=new_ring,
-                          backend=new_backend)
+        parent = self.parent().change_ring(new_ring, ambient_dim=self.ambient_dim() + other.ambient_dim())
+        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
     def direct_sum(self, other):
         """
@@ -3582,17 +3543,8 @@ class Polyhedron_base(Element):
         new_lines.extend( [ [0]*dim_self + l
                             for l in other.line_generator() ] )
 
-        from .parent import test_backend
-        new_backend = None
-        if test_backend(new_ring, self.backend()):
-            new_backend = self.backend()
-        elif test_backend(new_ring, other.backend()):
-            new_backend = other.backend()
-
-        return Polyhedron(vertices=new_vertices,
-                          rays=new_rays, lines=new_lines,
-                          base_ring=new_ring,
-                          backend=new_backend)
+        parent = self.parent().change_ring(new_ring, ambient_dim=self.ambient_dim() + other.ambient_dim())
+        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
     def dilation(self, scalar):
         """
@@ -3657,17 +3609,8 @@ class Polyhedron_base(Element):
             new_rays = []
             new_lines = []
 
-        new_ring = self.parent()._coerce_base_ring(scalar)
-        from .parent import test_backend
-        new_backend = None
-        if test_backend(new_ring, self.backend()):
-            new_backend = self.backend()
-
-        return Polyhedron(vertices=new_vertices,
-                          rays=new_rays, lines=new_lines,
-                          base_ring=new_ring,
-                          ambient_dim=self.ambient_dim(),
-                          backend=new_backend)
+        parent = self.parent().base_extend(scalar)
+        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
     def _acted_upon_(self, actor, self_on_left):
         """
@@ -3879,16 +3822,8 @@ class Polyhedron_base(Element):
         new_rays = self.rays()
         new_lines = self.lines()
 
-        new_ring = self.parent()._coerce_base_ring(cut_frac)
-        from .parent import test_backend
-        new_backend = None
-        if test_backend(new_ring, self.backend()):
-            new_backend = self.backend()
-
-        return Polyhedron(vertices=new_vertices, rays=new_rays,
-                          lines=new_lines,
-                          base_ring=new_ring,
-                          backend=new_backend)
+        parent = self.parent().base_extend(cut_frac)
+        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
     def face_truncation(self, face, linear_coefficients=None, cut_frac=None):
         r"""
@@ -4051,15 +3986,8 @@ class Polyhedron_base(Element):
         new_ieqs = self.inequalities_list() + [ineq_vector]
         new_eqns = self.equations_list()
 
-        new_ring = self.parent()._coerce_base_ring(cut_frac)
-        from .parent import test_backend
-        new_backend = None
-        if test_backend(new_ring, self.backend()):
-            new_backend = self.backend()
-
-        return Polyhedron(ieqs=new_ieqs, eqns=new_eqns,
-                          base_ring=new_ring,
-                          backend=new_backend)
+        parent = self.parent().base_extend(cut_frac)
+        return parent.element_class(parent, None, [new_ieqs, new_eqns])
 
     def stack(self, face, position=None):
         r"""
@@ -4182,10 +4110,8 @@ class Polyhedron_base(Element):
         if not locus_polyhedron.contains(new_vertex):
             raise ValueError("the chosen position is too large")
 
-        return Polyhedron(vertices=self.vertices() + (new_vertex,),
-                          rays=self.rays(),
-                          lines=self.lines(),
-                          backend=self.backend())
+        parent = self.parent().base_extend(new_vertex)
+        return parent.element_class(parent, [self.vertices() + (new_vertex,), self.rays(), self.lines()], None)
 
     def lawrence_extension(self, v):
         """
@@ -4231,7 +4157,8 @@ class Polyhedron_base(Element):
             raise ValueError("{} must not be a vertex or outside self".format(v))
 
         lambda_V = [u + [0] for u in V if u != v] + [v+[1]] + [v+[2]]
-        return Polyhedron(lambda_V, backend=self.backend())
+        parent = self.parent().change_ring(self.base_ring(), ambient_dim = self.ambient_dim() +  1)
+        return parent.element_class(parent, [lambda_V, None, None], None)
 
     def lawrence_polytope(self):
         r"""
@@ -4287,7 +4214,8 @@ class Polyhedron_base(Element):
         n = self.n_vertices()
         I_n = matrix.identity(n)
         lambda_V = block_matrix([[V, I_n], [V, 2*I_n]])
-        return Polyhedron(lambda_V, backend=self.backend())
+        parent = self.parent().change_ring(self.base_ring(), ambient_dim = self.ambient_dim() +  n)
+        return parent.element_class(parent, [lambda_V, None, None], None)
 
     def is_lawrence_polytope(self):
         """
@@ -4909,9 +4837,8 @@ class Polyhedron_base(Element):
         assert self.is_compact(), "Not a polytope."
 
         verts = [list(self.center() - v.vector()) for v in self.vertex_generator()]
-        base_ring = self.parent()._coerce_base_ring(self.center().parent())
-        return Polyhedron(ieqs=[[1] + list(v) for v in verts], base_ring=base_ring,
-                          backend=self.backend())
+        parent = self.parent().base_extend(self.center().parent())
+        return parent.element_class(parent, None, [[[1] + list(v) for v in verts], []])
 
     def pyramid(self):
         """
@@ -4937,10 +4864,14 @@ class Polyhedron_base(Element):
             sage: polytopes.simplex(backend='cdd').pyramid().backend()
             'cdd'
         """
+        assert self.is_compact(), "Not a polytope."
+
         new_verts = \
             [[0] + x for x in self.Vrep_generator()] + \
             [[1] + list(self.center())]
-        return Polyhedron(vertices=new_verts, backend=self.backend())
+
+        parent = self.parent().base_extend(self.center().parent(), ambient_dim=self.ambient_dim()+1)
+        return parent.element_class(parent, [new_verts, [], []], None)
 
     def bipyramid(self):
         """
@@ -4980,8 +4911,9 @@ class Polyhedron_base(Element):
             [[-1] + list(self.center())]
         new_rays = [[0] + r for r in self.rays()]
         new_lines = [[0] + list(l) for l in self.lines()]
-        return Polyhedron(vertices=new_verts, rays=new_rays, lines=new_lines,
-                          backend=self.backend())
+
+        parent = self.parent().base_extend(self.center().parent(), ambient_dim=self.ambient_dim()+1)
+        return parent.element_class(parent, [new_verts, new_rays, new_lines], None)
 
     def prism(self):
         """
@@ -5007,9 +4939,9 @@ class Polyhedron_base(Element):
         new_verts.extend( [ [1] + v for v in self.vertices()] )
         new_rays =        [ [0] + r for r in self.rays()]
         new_lines =       [ [0] + l for l in self.lines()]
-        return Polyhedron(vertices=new_verts, rays=new_rays, lines=new_lines,
-                          base_ring=self.base_ring(),
-                          backend=self.backend())
+
+        parent = self.parent().change_ring(self.base_ring(), ambient_dim=self.ambient_dim()+1)
+        return parent.element_class(parent, [new_verts, new_rays, new_lines], None)
 
     def one_point_suspension(self, vertex):
         """
@@ -5108,8 +5040,8 @@ class Polyhedron_base(Element):
         new_lines = []
         new_lines.extend( [ l + [0] for l in self.line_generator() ] )
 
-        return Polyhedron(vertices=new_vertices,
-                          rays=new_rays, lines=new_lines, backend=self.backend())
+        parent = self.parent().change_ring(self.base_ring(), ambient_dim=self.ambient_dim()+1)
+        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
     def projection(self):
         """

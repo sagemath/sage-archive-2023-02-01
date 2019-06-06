@@ -284,22 +284,10 @@ class Rule(UniqueRepresentation):
             return [P, Q]
         return [SemistandardTableau(p), SemistandardTableau(q)]
 
-class RuleRSK(Rule):
-    r"""
-    A rule modeling Robinson-Schensted-Knuth insertion.
-
-    EXAMPLES::
-
-        sage: RSK([1, 2, 2, 2], [2, 1, 1, 2], insertion=RSK.rules.RSK)
-        [[[1, 1, 2], [2]], [[1, 2, 2], [2]]]
-        sage: p = Tableau([[1,2,2],[2]]); q = Tableau([[1,3,3],[2]])
-        sage: RSK_inverse(p, q, insertion=RSK.rules.RSK)
-        [[1, 2, 3, 3], [2, 1, 2, 2]]
-    """
-
     def backward_rule(self, p, q, output):
         r"""
-        Return the reverse RSK insertion of ``(p, q)``.
+        Returns a two-array generalized permutaion from the reverse insertion 
+        of a pair of tableaux ``(p, q)``.
 
         Input:  ``output`` -- (Default: ``'array'``) if ``q`` is semi-standard:
 
@@ -316,7 +304,6 @@ class RuleRSK(Rule):
           - ``'permutation'`` -- as a permutation 
         """
         from sage.combinat.tableau import SemistandardTableaux
-        from bisect import bisect_left
         # Make a copy of p since this is destructive to it
         p_copy = [list(row) for row in p]
 
@@ -327,13 +314,7 @@ class RuleRSK(Rule):
             # number of the row of q containing k.
 
             for key in sorted(d, reverse=True): # Delete last entry from i-th row of p_copy
-                i = d[key]
-                x = p_copy[i].pop() # Always the right-most entry
-                for row in reversed(p_copy[:i]):
-                    y_pos = bisect_left(row,x) - 1
-                    # switch x and y
-                    x, row[y_pos] = row[y_pos], x
-                rev_word.append(x)
+                self.rev_insertion(d[key], p_copy, rev_word, True)
 
             if output == 'word':
                 from sage.combinat.words.word import Word
@@ -342,12 +323,17 @@ class RuleRSK(Rule):
                 return to_matrix(list(range(1, len(rev_word)+1)), list(reversed(rev_word)))
             if output == 'array':
                 return [list(range(1, len(rev_word)+1)), list(reversed(rev_word))]
+            # if output == 'permutation':
+            #     if not p.is_standard():
+            #         raise TypeError("p must be standard to have a valid permutation as output")
+            #     from sage.combinat.permutation import Permutation
+            #     return Permutation(reversed(rev_word))
+            # raise ValueError("invalid output option")
             if output == 'permutation':
-                if not p.is_standard():
-                    raise TypeError("p must be standard to have a valid permutation as output")
-                from sage.combinat.permutation import Permutation
-                return Permutation(reversed(rev_word))
-            raise ValueError("invalid output option")
+                return list(reversed(rev_word))
+
+        ## ToDo: EG for Semistandard q
+        ## It wass raise NotImplementedError("only RuleRSK is implemented for non-standard q") earlier
 
         if q not in SemistandardTableaux():
             raise ValueError("q(=%s) must be a semistandard tableau"%q)
@@ -368,13 +354,8 @@ class RuleRSK(Rule):
         #q is filled with k.
         for value, row_dict in sorted(d.items(), reverse=True, key=lambda x: x[0]):
             for key in sorted(row_dict, reverse=True):
-                i = row_dict[key]
-                x = p_copy[i].pop() # Always the right-most entry
-                for row in reversed(p_copy[:i]):
-                    y = bisect_left(row,x) - 1
-                    x, row[y] = row[y], x
+                self.rev_insertion(row_dict[key], p_copy, lower_row, False)
                 upper_row.append(value)
-                lower_row.append(x)
 
         if output == 'matrix':
             return to_matrix(list(reversed(upper_row)), list(reversed(lower_row)))
@@ -383,6 +364,20 @@ class RuleRSK(Rule):
         if output in ['permutation', 'word']:
             raise TypeError("q must be standard to have a %s as valid output"%output)
         raise ValueError("invalid output option")
+        
+
+class RuleRSK(Rule):
+    r"""
+    A rule modeling Robinson-Schensted-Knuth insertion.
+
+    EXAMPLES::
+
+        sage: RSK([1, 2, 2, 2], [2, 1, 1, 2], insertion=RSK.rules.RSK)
+        [[[1, 1, 2], [2]], [[1, 2, 2], [2]]]
+        sage: p = Tableau([[1,2,2],[2]]); q = Tableau([[1,3,3],[2]])
+        sage: RSK_inverse(p, q, insertion=RSK.rules.RSK)
+        [[1, 2, 3, 3], [2, 1, 2, 2]]
+    """
 
     def insertion(self, i, j, p, q):
         r"""
@@ -407,6 +402,24 @@ class RuleRSK(Rule):
         r.append(j)
         qr.append(i) # Values are always inserted to the right
 
+    def rev_insertion(self, i, p_copy, rev_word, q_is_standard):
+        from bisect import bisect_left
+        if q_is_standard:
+            x = p_copy[i].pop() # Always the right-most entry
+            for row in reversed(p_copy[:i]):
+                y_pos = bisect_left(row,x) - 1
+                # switch x and y
+                x, row[y_pos] = row[y_pos], x
+            rev_word.append(x)
+        else:
+            x = p_copy[i].pop() # Always the right-most entry
+            for row in reversed(p_copy[:i]):
+                y = bisect_left(row,x) - 1
+                x, row[y] = row[y], x
+            rev_word.append(x)
+
+
+
 class RuleEG(Rule):
     r"""
     A rule modeling Edelman-Greene insertion.
@@ -423,54 +436,6 @@ class RuleEG(Rule):
         [[1, 2, 3, 4, 5], [2, 1, 2, 3, 2]]
 
     """
-
-    def backward_rule(self, p, q, output):
-        r"""
-        Return the reverse EG insertion of ``(p, q)``.
-
-        Input:  ``output`` -- (Default: ``'array'``):
-
-          - ``'array'`` -- as a two-line array (i.e. generalized permutation or
-            biword)
-          - ``'permutation'`` -- as a permutation
-          -  ``'matrix'`` -- as an integer matrix
-        """
-        from bisect import bisect_left
-        # Make a copy of p since this is destructive to it
-        p_copy = [list(row) for row in p]
-
-        if q.is_standard():
-            rev_word = [] # This will be our word in reverse
-            d = dict((qij,i) for i, Li in enumerate(q) for qij in Li)
-            # d is now a dictionary which assigns to each integer k the
-            # number of the row of q containing k.
-
-            for key in sorted(d, reverse=True): # Delete last entry from i-th row of p_copy
-                i = d[key]
-                x = p_copy[i].pop() # Always the right-most entry
-                for row in reversed(p_copy[:i]):
-                    y_pos = bisect_left(row,x) - 1
-                    if row[y_pos] == x - 1 and y_pos < len(row)-1 and row[y_pos+1] == x:
-                        # Nothing to do except decrement x by 1.
-                        # (Case 1 on p. 74 of Edelman-Greene [EG1987]_.)
-                        x -= 1
-                    else:
-                        # switch x and y
-                        x, row[y_pos] = row[y_pos], x
-                rev_word.append(x)
-                
-            if output == 'permutation':
-                return list(reversed(rev_word))
-            if output == 'word':
-                from sage.combinat.words.word import Word
-                return Word(reversed(rev_word))
-            if output == 'matrix':
-                return to_matrix(list(range(1, len(rev_word)+1)), list(reversed(rev_word)))
-            if output == 'array':
-                return [list(range(1, len(rev_word)+1)), list(reversed(rev_word))]
-
-        else:
-            raise NotImplementedError("only RuleRSK is implemented for non-standard q")
 
     def insertion(self, i, j, p, q):
         r"""
@@ -498,6 +463,24 @@ class RuleEG(Rule):
             qr = []; q.append(qr)
         r.append(j)
         qr.append(i) # Values are always inserted to the right
+
+    def rev_insertion(self, i, p_copy, rev_word, q_is_standard):
+        from bisect import bisect_left
+        if q_is_standard:
+            x = p_copy[i].pop() # Always the right-most entry
+            for row in reversed(p_copy[:i]):
+                y_pos = bisect_left(row,x) - 1
+                if row[y_pos] == x - 1 and y_pos < len(row)-1 and row[y_pos+1] == x:
+                    # Nothing to do except decrement x by 1.
+                    # (Case 1 on p. 74 of Edelman-Greene [EG1987]_.)
+                    x -= 1
+                else:
+                    # switch x and y
+                    x, row[y_pos] = row[y_pos], x
+            rev_word.append(x)
+        else:
+            raise NotImplementedError("only RuleRSK is implemented for non-standard q")
+
 
 class RuleHecke(Rule):
     r"""
@@ -567,7 +550,6 @@ class RuleHecke(Rule):
         if p not in SemistandardTableaux():
             raise ValueError("p(=%s) must be a semistandard tableau"%p)
 
-        from bisect import bisect_left
         # Make a copy of p and q since this is destructive to it
         p_copy = [list(row) for row in p]
         q_copy = [[list(v) for v in row] for row in q]
@@ -595,25 +577,8 @@ class RuleHecke(Rule):
                 # These are always the right-most entry
                 should_be_value = q_copy[i][-1].pop()
                 assert value == should_be_value
-                if not q_copy[i][-1]:
-                    # That is, if value was alone in cell q_copy[i][-1].
-                    q_copy[i].pop()
-                    x = p_copy[i].pop()
-                else:
-                    x = p_copy[i][-1]
-                while i > 0:
-                    i -= 1
-                    row = p_copy[i]
-                    y_pos = bisect_left(row,x) - 1
-                    y = row[y_pos]
-                    # Check to see if we can swap x for y
-                    if ((y_pos == len(row) - 1 or x < row[y_pos+1])
-                        and (i == len(p_copy) - 1 or len(p_copy[i+1]) <= y_pos
-                             or x < p_copy[i+1][y_pos])):
-                        row[y_pos] = x
-                    x = y
+                self.rev_insertion(i, p_copy, q_copy, lower_row)
                 upper_row.append(value)
-                lower_row.append(x)
 
         if output == 'array':
             return [list(reversed(upper_row)), list(reversed(lower_row))]
@@ -665,6 +630,26 @@ class RuleHecke(Rule):
             p.append([j])
             q.append([(i,)])
 
+    def rev_insertion(self, i, p_copy, q_copy, rev_word):
+        from bisect import bisect_left
+        if not q_copy[i][-1]:
+            # That is, if value was alone in cell q_copy[i][-1].
+            q_copy[i].pop()
+            x = p_copy[i].pop()
+        else:
+            x = p_copy[i][-1]
+        while i > 0:
+            i -= 1
+            row = p_copy[i]
+            y_pos = bisect_left(row,x) - 1
+            y = row[y_pos]
+            # Check to see if we can swap x for y
+            if ((y_pos == len(row) - 1 or x < row[y_pos+1])
+                and (i == len(p_copy) - 1 or len(p_copy[i+1]) <= y_pos
+                     or x < p_copy[i+1][y_pos])):
+                row[y_pos] = x
+            x = y
+        rev_word.append(x)
 
 class InsertionRules(object):
     r"""

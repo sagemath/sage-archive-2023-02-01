@@ -8,7 +8,7 @@ Suffix Tries and Suffix Trees
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from six.moves import range
 from six import iteritems
@@ -1286,7 +1286,7 @@ class ImplicitSuffixTree(SageObject):
 
         The *Lempel-Ziv decomposition* is the factorisation `u_1...u_k` of a
         word `w=x_1...x_n` such that `u_i` is the longest prefix of `u_i...u_k`
-        that has an occurence starting before `u_i` or a letter if this prefix
+        that has an occurrence starting before `u_i` or a letter if this prefix
         is empty.
 
         OUTPUT:

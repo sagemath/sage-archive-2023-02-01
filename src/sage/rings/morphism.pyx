@@ -502,7 +502,7 @@ cdef class RingMap_lift(RingMap):
             sage: RingMap_lift(GF9, ZZ)
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion from Number Field in I with defining polynomial x^2 + 1 to Integer Ring
+            TypeError: no canonical coercion from Number Field in I with defining polynomial x^2 + 1 with I = 1*I to Integer Ring
         """
         self.S = <Parent?>S
         x = <Element?>R(0).lift()

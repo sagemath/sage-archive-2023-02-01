@@ -87,7 +87,7 @@ from . import structure
 
 from sage.misc.latex import latex
 from sage.misc.cachefunc import cached_method
-
+from sage.structure.factorization import Factorization
 import sage.rings.polynomial.polynomial_element as polynomial_element
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
@@ -2370,6 +2370,28 @@ class NumberField_relative(NumberField_generic):
         if base_bnf.rnfisfree(self.pari_relative_polynomial()) == 1:
             return True
         return False
+
+    def _factor_univariate_polynomial(self, poly, **kwargs):
+        """
+        Factorisation of univariate polynomials over relative number fields.
+
+        This is called by the ``factor`` method of univariate polynomials.
+
+        EXAMPLES::
+
+            sage: K.<i> = NumberField(x**2+1)
+            sage: L.<sqrt2> = K.extension(x*x-2)
+            sage: x = polygen(L,'x')
+            sage: factor(x**2+8)  # indirect doctest
+            (x + 2*i*sqrt2) * (x - 2*i*sqrt2)
+        """
+        M = self.absolute_field('a')
+        from_M, to_M = M.structure()
+        g = M['x']([to_M(x) for x in poly.list()])
+        F = g.factor()
+        S = poly.parent()
+        v = [(S([from_M(x) for x in f.list()]), e) for f, e in F]
+        return Factorization(v, from_M(F.unit()))
 
     def lift_to_base(self, element):
         """

@@ -818,6 +818,13 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
         sage: a.display(c_spher.frame(), c_spher)
         a = 1/sin(th) d/dr/\d/dth/\d/dph
 
+    As a shortcut of the above command, on can pass just the chart ``c_spher``
+    to ``display``, the vector frame being then assumed to be the coordinate
+    frame associated with the chart::
+
+        sage: a.display(c_spher)
+        a = 1/sin(th) d/dr/\d/dth/\d/dph
+
     The exterior product of two multivector fields is performed via the method
     :meth:`~sage.tensor.modules.alternating_contr_tensor.AlternatingContrTensor.wedge`::
 

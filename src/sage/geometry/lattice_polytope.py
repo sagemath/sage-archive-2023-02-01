@@ -92,15 +92,15 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007-2013 Andrey Novoseltsev <novoselt@gmail.com>
 #       Copyright (C) 2007-2013 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import range
 from six import StringIO
@@ -3413,7 +3413,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         -  ``vertex_color`` - (default:(1,0,0))
 
         -  ``show_points`` - (default:True) whether to draw
-           other poits as balls
+           other points as balls
 
         -  ``point_size`` - (default:10)
 

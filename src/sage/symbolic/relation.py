@@ -825,7 +825,7 @@ def solve(f, *args, **kwds):
     https://sourceforge.net/p/maxima/bugs/3276/::
 
         sage: solve(Q*sqrt(Q^2 + 2) - 1, Q, to_poly_solve=True)
-        [Q == -sqrt(-sqrt(2) - 1)]
+        [Q == -sqrt(-sqrt(2) - 1), Q == sqrt(sqrt(2) + 1)*(sqrt(2) - 1)]
 
     An effort is made to only return solutions that satisfy
     the current assumptions::
@@ -1145,6 +1145,7 @@ def solve(f, *args, **kwds):
     else:
         return sol_list
 
+
 def _solve_expression(f, x, explicit_solutions, multiplicities,
                      to_poly_solve, solution_dict, algorithm, domain):
     """
@@ -1152,7 +1153,7 @@ def _solve_expression(f, x, explicit_solutions, multiplicities,
 
     .. NOTE::
 
-        This is an auxillery function only meant to be called
+        This is an auxiliary function only meant to be called
         from :func:`solve`.
 
     TESTS:
@@ -1747,7 +1748,7 @@ def solve_ineq(ineq, vars=None):
     - ``ineq`` - one inequality or a list of inequalities
 
       Case1: If ``ineq`` is one equality, then it should be rational
-      expression in one varible. This input is passed to
+      expression in one variable. This input is passed to
       sage.symbolic.relation.solve_ineq_univar function.
 
       Case2: If ``ineq`` is a list involving one or more

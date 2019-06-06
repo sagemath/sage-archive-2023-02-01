@@ -3385,21 +3385,11 @@ class ClusterSeed(SageObject):
         A finite type example with shortest paths returned::
 
             sage: it = S.mutation_class_iter(return_paths=True)
-            sage: for T in it: print(T)
+            sage: mutation_class = list(it)
+            sage: len(mutation_class)
+            14
+            sage: mutation_class[0]
             (A seed for a cluster algebra of rank 3 of type ['A', 3], [])
-            (A seed for a cluster algebra of rank 3 of type ['A', 3], [2])
-            (A seed for a cluster algebra of rank 3 of type ['A', 3], [1])
-            (A seed for a cluster algebra of rank 3 of type ['A', 3], [0])
-            (A seed for a cluster algebra of rank 3 of type ['A', 3], [2, 1])
-            (A seed for a cluster algebra of rank 3 of type ['A', 3], [0, 2])
-            (A seed for a cluster algebra of rank 3 of type ['A', 3], [0, 1])
-            (A seed for a cluster algebra of rank 3 of type ['A', 3], [1, 2])
-            (A seed for a cluster algebra of rank 3 of type ['A', 3], [1, 0])
-            (A seed for a cluster algebra of rank 3 of type ['A', 3], [0, 2, 1])
-            (A seed for a cluster algebra of rank 3 of type ['A', 3], [0, 1, 2])
-            (A seed for a cluster algebra of rank 3 of type ['A', 3], [2, 1, 0])
-            (A seed for a cluster algebra of rank 3 of type ['A', 3], [1, 0, 2])
-            (A seed for a cluster algebra of rank 3 of type ['A', 3], [0, 1, 2, 0])
 
         Finite type examples not considered up to equivalence::
 
@@ -3408,17 +3398,11 @@ class ClusterSeed(SageObject):
             84
 
             sage: it = ClusterSeed(['A',2]).mutation_class_iter(return_paths=True,up_to_equivalence=False)
-            sage: for T in it: print(T)
+            sage: mutation_class = list(it)
+            sage: len(mutation_class)
+            10
+            sage: mutation_class[0]
             (A seed for a cluster algebra of rank 2 of type ['A', 2], [])
-            (A seed for a cluster algebra of rank 2 of type ['A', 2], [1])
-            (A seed for a cluster algebra of rank 2 of type ['A', 2], [0])
-            (A seed for a cluster algebra of rank 2 of type ['A', 2], [0, 1])
-            (A seed for a cluster algebra of rank 2 of type ['A', 2], [1, 0])
-            (A seed for a cluster algebra of rank 2 of type ['A', 2], [1, 0, 1])
-            (A seed for a cluster algebra of rank 2 of type ['A', 2], [0, 1, 0])
-            (A seed for a cluster algebra of rank 2 of type ['A', 2], [1, 0, 1, 0])
-            (A seed for a cluster algebra of rank 2 of type ['A', 2], [0, 1, 0, 1])
-            (A seed for a cluster algebra of rank 2 of type ['A', 2], [1, 0, 1, 0, 1])
 
         Check that :trac:`14638` is fixed::
 
@@ -3590,21 +3574,11 @@ class ClusterSeed(SageObject):
 
             sage: S = ClusterSeed(['A',3])
             sage: it = S.cluster_class_iter()
-            sage: for T in it: print(T)
+            sage: cluster_class = list(it)
+            sage: len(cluster_class)
+            14
+            sage: cluster_class[0]
             [x0, x1, x2]
-            [x0, x1, (x1 + 1)/x2]
-            [x0, (x0*x2 + 1)/x1, x2]
-            [(x1 + 1)/x0, x1, x2]
-            [x0, (x0*x2 + x1 + 1)/(x1*x2), (x1 + 1)/x2]
-            [(x1 + 1)/x0, x1, (x1 + 1)/x2]
-            [(x1 + 1)/x0, (x0*x2 + x1 + 1)/(x0*x1), x2]
-            [x0, (x0*x2 + 1)/x1, (x0*x2 + x1 + 1)/(x1*x2)]
-            [(x0*x2 + x1 + 1)/(x0*x1), (x0*x2 + 1)/x1, x2]
-            [(x1 + 1)/x0, (x1^2 + x0*x2 + 2*x1 + 1)/(x0*x1*x2), (x1 + 1)/x2]
-            [(x1 + 1)/x0, (x0*x2 + x1 + 1)/(x0*x1), (x1^2 + x0*x2 + 2*x1 + 1)/(x0*x1*x2)]
-            [(x1^2 + x0*x2 + 2*x1 + 1)/(x0*x1*x2), (x0*x2 + x1 + 1)/(x1*x2), (x1 + 1)/x2]
-            [(x0*x2 + x1 + 1)/(x0*x1), (x0*x2 + 1)/x1, (x0*x2 + x1 + 1)/(x1*x2)]
-            [(x0*x2 + x1 + 1)/(x1*x2), (x0*x2 + x1 + 1)/(x0*x1), (x1^2 + x0*x2 + 2*x1 + 1)/(x0*x1*x2)]
 
         A finite type example with given depth::
 
@@ -3618,25 +3592,11 @@ class ClusterSeed(SageObject):
         A finite type example where the depth is returned while computing::
 
             sage: it = S.cluster_class_iter(show_depth=True)
-            sage: for T in it: print(T)
-            [x0, x1, x2]
+            sage: _ = list(it)
             Depth: 0     found: 1          Time: ... s
-            [x0, x1, (x1 + 1)/x2]
-            [x0, (x0*x2 + 1)/x1, x2]
-            [(x1 + 1)/x0, x1, x2]
             Depth: 1     found: 4          Time: ... s
-            [x0, (x0*x2 + x1 + 1)/(x1*x2), (x1 + 1)/x2]
-            [(x1 + 1)/x0, x1, (x1 + 1)/x2]
-            [(x1 + 1)/x0, (x0*x2 + x1 + 1)/(x0*x1), x2]
-            [x0, (x0*x2 + 1)/x1, (x0*x2 + x1 + 1)/(x1*x2)]
-            [(x0*x2 + x1 + 1)/(x0*x1), (x0*x2 + 1)/x1, x2]
             Depth: 2     found: 9          Time: ... s
-            [(x1 + 1)/x0, (x1^2 + x0*x2 + 2*x1 + 1)/(x0*x1*x2), (x1 + 1)/x2]
-            [(x1 + 1)/x0, (x0*x2 + x1 + 1)/(x0*x1), (x1^2 + x0*x2 + 2*x1 + 1)/(x0*x1*x2)]
-            [(x1^2 + x0*x2 + 2*x1 + 1)/(x0*x1*x2), (x0*x2 + x1 + 1)/(x1*x2), (x1 + 1)/x2]
-            [(x0*x2 + x1 + 1)/(x0*x1), (x0*x2 + 1)/x1, (x0*x2 + x1 + 1)/(x1*x2)]
             Depth: 3     found: 13         Time: ... s
-            [(x0*x2 + x1 + 1)/(x1*x2), (x0*x2 + x1 + 1)/(x0*x1), (x1^2 + x0*x2 + 2*x1 + 1)/(x0*x1*x2)]
             Depth: 4     found: 14         Time: ... s
 
         Finite type examples not considered up to equivalence::
@@ -3646,16 +3606,12 @@ class ClusterSeed(SageObject):
             84
 
             sage: it = ClusterSeed(['A',2]).cluster_class_iter(up_to_equivalence=False)
-            sage: for T in it: print(T)
+            sage: cluster_class = list(it)
+            sage: len(cluster_class)
+            10
+            sage: cluster_class[0]
             [x0, x1]
-            [x0, (x0 + 1)/x1]
-            [(x1 + 1)/x0, x1]
-            [(x1 + 1)/x0, (x0 + x1 + 1)/(x0*x1)]
-            [(x0 + x1 + 1)/(x0*x1), (x0 + 1)/x1]
-            [(x0 + x1 + 1)/(x0*x1), (x1 + 1)/x0]
-            [(x0 + 1)/x1, (x0 + x1 + 1)/(x0*x1)]
-            [x1, (x1 + 1)/x0]
-            [(x0 + 1)/x1, x0]
+            sage: cluster_class[-1]
             [x1, x0]
 
         Infinite type examples::
@@ -3691,21 +3647,8 @@ class ClusterSeed(SageObject):
             [[a, c], [a, (b + 1)/c], [(b + 1)/a, c], [(b + 1)/a, (b + 1)/c]]
 
             sage: S2 = ClusterSeed(dg, frozen=[])
-            sage: S2.cluster_class()
-            [[a, b, c],
-            [a, b, (b + 1)/c],
-            [a, (a + c)/b, c],
-            [(b + 1)/a, b, c],
-            [a, (a + c)/b, (a*b + a + c)/(b*c)],
-            [(b*c + a + c)/(a*b), (a + c)/b, c],
-            [a, (a*b + a + c)/(b*c), (b + 1)/c],
-            [(b + 1)/a, b, (b + 1)/c],
-            [(b + 1)/a, (b*c + a + c)/(a*b), c],
-            [(a*b + b*c + a + c)/(a*b*c), (a*b + a + c)/(b*c), (b + 1)/c],
-            [(b + 1)/a, (a*b + b*c + a + c)/(a*b*c), (b + 1)/c],
-            [(b + 1)/a, (b*c + a + c)/(a*b), (a*b + b*c + a + c)/(a*b*c)],
-            [(b*c + a + c)/(a*b), (a + c)/b, (a*b + b*c + a + c)/(a*b*c)],
-            [(a*b + b*c + a + c)/(a*b*c), (a + c)/b, (a*b + a + c)/(b*c)]]
+            sage: S2.cluster_class()[0]
+            [a, b, c]
         """
         mc_iter = self.mutation_class_iter( depth=depth, show_depth=show_depth, up_to_equivalence=up_to_equivalence )
         for c in mc_iter:
@@ -3796,49 +3739,13 @@ class ClusterSeed(SageObject):
 
             sage: S = ClusterSeed(['A',3])
             sage: it = S.b_matrix_class_iter(up_to_equivalence=False)
-            sage: for T in it: print(T)
+            sage: b_matrix_class = list(it)
+            sage: len(b_matrix_class)
+            14
+            sage: b_matrix_class[0]
             [ 0  1  0]
             [-1  0 -1]
             [ 0  1  0]
-            [ 0  1  0]
-            [-1  0  1]
-            [ 0 -1  0]
-            [ 0 -1  0]
-            [ 1  0  1]
-            [ 0 -1  0]
-            [ 0 -1  0]
-            [ 1  0 -1]
-            [ 0  1  0]
-            [ 0 -1  1]
-            [ 1  0 -1]
-            [-1  1  0]
-            [ 0  1 -1]
-            [-1  0  1]
-            [ 1 -1  0]
-            [ 0  0  1]
-            [ 0  0 -1]
-            [-1  1  0]
-            [ 0 -1  1]
-            [ 1  0  0]
-            [-1  0  0]
-            [ 0  0 -1]
-            [ 0  0  1]
-            [ 1 -1  0]
-            [ 0  1 -1]
-            [-1  0  0]
-            [ 1  0  0]
-            [ 0  1  1]
-            [-1  0  0]
-            [-1  0  0]
-            [ 0 -1 -1]
-            [ 1  0  0]
-            [ 1  0  0]
-            [ 0  0 -1]
-            [ 0  0 -1]
-            [ 1  1  0]
-            [ 0  0  1]
-            [ 0  0  1]
-            [-1 -1  0]
 
         Infinite (but finite mutation) type example::
 

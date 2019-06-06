@@ -139,6 +139,20 @@ class FunctionFieldPlace(Element):
         gens_str = ', '.join(repr(g) for g in gens)
         return "Place ({})".format(gens_str)
 
+    def _latex_(self):
+        r"""
+        Return the LaTeX representation of the place.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3+x+x^3*Y)
+            sage: p = L.places_finite()[0]
+            sage: latex(p)
+            \left(y\right)
+        """
+        return self._prime._latex_()
+
     def _richcmp_(self, other, op):
         """
         Compare the place with ``other`` place.
@@ -182,6 +196,22 @@ class FunctionFieldPlace(Element):
         if self_on_left:
             raise TypeError("only left multiplication by integers is allowed")
         return other * self.divisor()
+
+    def _neg_(self):
+        """
+        Return the negative of the prime divisor of this place.
+
+        EXAMPLES::
+
+            sage: K.<x>=FunctionField(GF(2)); _.<Y>=K[]
+            sage: L.<y>=K.extension(Y^3+x+x^3*Y)
+            sage: p1, p2, p3 = L.places()[:3]
+            sage: -p1 + p2
+            - Place (1/x, 1/x^3*y^2 + 1/x)
+             + Place (1/x, 1/x^3*y^2 + 1/x^2*y + 1)
+        """
+        from .divisor import divisor
+        return divisor(self.function_field(), {self: -1})
 
     def _add_(self, other):
         """
@@ -253,7 +283,7 @@ class FunctionFieldPlace(Element):
             sage: L.<y>=K.extension(Y^3+x+x^3*Y)
             sage: p = L.places()[0]
             sage: p.prime_ideal()
-            Ideal (1/x,1/x^3*y^2 + 1/x) of Maximal infinite order of Function field
+            Ideal (1/x^3*y^2 + 1/x) of Maximal infinite order of Function field
             in y defined by y^3 + x^3*y + x
         """
         return self._prime

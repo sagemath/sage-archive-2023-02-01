@@ -1624,7 +1624,7 @@ class PartitionTuple(CombinatorialElement):
         INPUT:
 
         - ``e`` -- an  integer `e > 1`
-        - ``muticharge`` -- an `l`-tuple of integers, where `l` is
+        - ``multicharge`` -- an `l`-tuple of integers, where `l` is
           the :meth:`level` of ``self``
 
         OUTPUT:
@@ -1661,7 +1661,7 @@ class PartitionTuple(CombinatorialElement):
 
         INPUT:
 
-        - ``e`` -- the quantum characteritic
+        - ``e`` -- the quantum characteristic
 
         - ``multicharge`` -- the multicharge (default `(0,)`)
 
@@ -1733,7 +1733,7 @@ class PartitionTuple(CombinatorialElement):
 
         INPUT:
 
-        - ``e`` -- the quantum characteritic
+        - ``e`` -- the quantum characteristic
 
         - ``multicharge`` -- the multicharge (default `(0,)`)
 

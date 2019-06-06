@@ -102,7 +102,7 @@ def covariant_z0(F, z0_cov=False, prec=53, emb=None, error_limit=0.000001):
     ::
 
         sage: R.<x,y> = QQ[]
-        sage: covariant_z0(x^2*y - x*y^2, prec=100)
+        sage: covariant_z0(x^2*y - x*y^2, prec=100) # tol 1e-28
          (0.50000000000000000000000000003 + 0.86602540378443864676372317076*I,
          1.5396007178390020386910634147)
 
@@ -291,7 +291,7 @@ def epsinv(F, target, prec=53, target_tol=0.001, z=None, emb=None):
 
         sage: from sage.rings.polynomial.binary_form_reduce import epsinv
         sage: R.<x,y> = QQ[]
-        sage: epsinv(-2*x^3 + 2*x^2*y + 3*x*y^2 + 127*y^3, 31.5022020249597)
+        sage: epsinv(-2*x^3 + 2*x^2*y + 3*x*y^2 + 127*y^3, 31.5022020249597) # tol 1e-12
         4.02520895942207       
     """
     def coshdelta(z):
@@ -411,9 +411,9 @@ def get_bound_poly(F, prec=53, norm_type='norm', emb=None):
         sage: from sage.rings.polynomial.binary_form_reduce import get_bound_poly
         sage: R.<x,y> = QQ[]
         sage: F = -2*x^3 + 2*x^2*y + 3*x*y^2 + 127*y^3
-        sage: get_bound_poly(F)
+        sage: get_bound_poly(F) # tol 1e-12
         28.0049336543295
-        sage: get_bound_poly(F, norm_type='height')
+        sage: get_bound_poly(F, norm_type='height') # tol 1e-11
         111.890642019092
     """
     def coshdelta(z):

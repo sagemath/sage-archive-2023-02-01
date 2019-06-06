@@ -1298,7 +1298,7 @@ class TableauTuple(CombinatorialElement):
             \Lambda = \sum_{i=1}^l \Lambda_{a_i}
 
         of the affine special linear group. In the combinatorics, the
-        muticharge simply offsets the contents in each component so that
+        multicharge simply offsets the contents in each component so that
         the cell `(k, r, c)` has content `a_k + c - r`.
 
         INPUT:

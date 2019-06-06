@@ -501,7 +501,7 @@ class ComplexIntervalField_class(Field):
               To:   Complex Interval Field with 53 bits of precision
             sage: CIF.coerce_map_from(GaussianIntegers())
             Conversion via _complex_mpfi_ method map:
-              From: Gaussian Integers in Number Field in I with defining polynomial x^2 + 1
+              From: Gaussian Integers in Number Field in I with defining polynomial x^2 + 1 with I = 1*I
               To:   Complex Interval Field with 53 bits of precision
             sage: CIF.coerce_map_from(QQbar)
             Conversion via _complex_mpfi_ method map:

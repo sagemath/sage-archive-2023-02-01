@@ -606,7 +606,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
         if ambient_dim is None:
             ambient_dim = self.ambient_dim()
 
-        if (self.base_ring == base_ring) and (backend == self.backend()
+        if ((self.base_ring == base_ring) and (backend == self.backend())
             and (self.ambient_dim() == ambient_dim)):
             return self
         else:

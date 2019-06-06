@@ -1011,5 +1011,10 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         for rem in srange(k):
             mu.append(self._get_matrix_from_recursions_(recursion_rules, rem))
 
-        return self(mu, self._get_left_from_recursions_(recursion_rules.dim),
-                    self._get_right_from_recursions_(recursion_rules, function))
+        seq = self(mu, self._get_left_from_recursions_(recursion_rules.dim),
+                   self._get_right_from_recursions_(recursion_rules, function))
+
+        if minimize:
+            return seq.minimized()
+        else:
+            return seq

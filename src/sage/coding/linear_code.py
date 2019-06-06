@@ -548,6 +548,21 @@ class AbstractLinearCode(Module):
         self.Element = type(facade_for.an_element()) #for when we made this a non-facade parent
         Parent.__init__(self, base=base_field, facade=facade_for, category=cat)
 
+    def __getstate__(self):
+        """
+        Used for pickling codes.
+
+        TESTS::
+
+            sage: C = codes.HammingCode(GF(2), 3)
+            sage: '_registered_encoders' in C.__getstate__()
+            True
+        """
+        d = super(AbstractLinearCode, self).__getstate__()
+        d['_registered_encoders'] = self._registered_encoders
+        d['_registered_decoders'] = self._registered_decoders
+        return d
+
     def _repr_(self):
         r"""
         Return an error message requiring to override ``_repr_`` in ``self``.

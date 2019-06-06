@@ -914,7 +914,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
 
     def _get_left_from_recursions_(self, dim):
-        """
+        r"""
         """
         from sage.modules.free_module_element import vector
 
@@ -922,7 +922,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
 
     def _get_right_from_recursions_(self, recursion_rules, function):
-        """
+        r"""
         """
         from sage.arith.srange import srange
         from sage.modules.free_module_element import vector
@@ -989,6 +989,17 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         EXAMPLES:
 
+        Stern--Brocot Sequence::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: var('n')
+            n
+            sage: function('f')
+            f
+            sage: Seq2.recursions([
+            ....:     f(2*n) == f(n), f(2*n + 1) == f(n) + f(n + 1),
+            ....:     f(0) == 0, f(1) == 1, f(2) == 1], f, n)
+            2-regular sequence 0, 1, 1, 2, 1, 3, 2, 3, 1, 4, ...
         """
         from sage.arith.srange import srange
 

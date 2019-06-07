@@ -661,8 +661,9 @@ class GaloisGroup_subgroup(GaloisGroup_v2):
 
             sage: H = G.subgroup([G.identity()])
             sage: H.fixed_field()
-            (Number Field in a0 with defining polynomial x^4 + 1, Ring morphism:
-               From: Number Field in a0 with defining polynomial x^4 + 1
+            (Number Field in a0 with defining polynomial x^4 + 1 with a0 = a,
+             Ring morphism:
+               From: Number Field in a0 with defining polynomial x^4 + 1 with a0 = a
                To:   Number Field in a with defining polynomial x^4 + 1
                Defn: a0 |--> a)
         """

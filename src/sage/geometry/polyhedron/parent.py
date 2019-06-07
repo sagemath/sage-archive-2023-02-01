@@ -561,8 +561,8 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             Polyhedra in QQ^3
             sage: Polyhedra(ZZ,3).an_element().base_extend(QQ)
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 4 vertices
-
-
+            sage: Polyhedra(QQ, 2).base_extend(ZZ)
+            Polyhedra in QQ^2
 
         TESTS:
 
@@ -571,14 +571,12 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             sage: P = Polyhedra(ZZ,3).base_extend(QQ, backend='field')
             sage: P.backend()
             'field'
-
         """
-        if (self.base_ring().has_coerce_map_from(base_ring)
-            and (backend is None or self.backend() == backend)
-            and (ambient_dim is None or self.ambient_dim() == ambient_dim)):
-            return self
+        if self.base_ring().has_coerce_map_from(base_ring):
+            new_ring = self.base_ring()
+        else:
+            new_ring = self._coerce_base_ring(base_ring)
 
-        new_ring = self._coerce_base_ring(base_ring)
         return self.change_ring(new_ring, backend=backend, ambient_dim=ambient_dim)
 
     def change_ring(self, base_ring, backend=None, ambient_dim=None):
@@ -599,18 +597,27 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             Polyhedra in QQ^3
             sage: Polyhedra(ZZ,3).an_element().change_ring(QQ)
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 4 vertices
-            """
-        if backend is None and does_backend_handle_base_ring(base_ring, self.backend()):
-            # Preserve backend if possible.
-            backend = self.backend()
+
+            sage: Polyhedra(RDF, 3).change_ring(QQ).backend()
+            'cdd'
+            sage: Polyhedra(QQ, 3).change_ring(ZZ, ambient_dim=4)
+            Polyhedra in ZZ^4
+            sage: Polyhedra(QQ, 3, backend='cdd').change_ring(QQ, ambient_dim=4).backend()
+            'cdd'
+        """
         if ambient_dim is None:
             ambient_dim = self.ambient_dim()
 
-        if ((self.base_ring == base_ring) and (backend == self.backend())
-            and (self.ambient_dim() == ambient_dim)):
+        if base_ring == self.base_ring() and \
+                ambient_dim == self.ambient_dim() and \
+                (backend is None or backend == self.backend()):
             return self
-        else:
-            return Polyhedra(base_ring, ambient_dim, backend=backend)
+
+        # if not specified try the same backend
+        if backend is None and does_backend_handle_base_ring(base_ring, self.backend()):
+            return Polyhedra(base_ring, ambient_dim, backend=self.backend())
+
+        return Polyhedra(base_ring, ambient_dim, backend=backend)
 
     def _coerce_base_ring(self, other):
         r"""

@@ -11,11 +11,6 @@ rounding/overflow problems occur.
 AUTHORS:
 
 - Dmitrii V. (Dima) Pasechnik (2012-10): initial implementation. Minor fixes (2015)
-
-REFERENCES:
-
-.. [De73] \P. Delsarte, An algebraic approach to the association schemes of coding theory,
-    Philips Res. Rep., Suppl., vol. 10, 1973.
 """
 #*****************************************************************************
 #       Copyright (C) 2012 Dima Pasechnik <dimpase@gmail.com>

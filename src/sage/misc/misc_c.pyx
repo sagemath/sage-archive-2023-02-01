@@ -592,6 +592,8 @@ cpdef list normalize_index(object key, int size):
         index_tuple = key
     elif type(key) is list:
         index_tuple = PyList_AsTuple(key)
+    elif type(key) is range:
+        index_tuple = tuple(key)
     else:
         raise TypeError("index must be an integer or slice or a tuple/list of integers and slices")
 

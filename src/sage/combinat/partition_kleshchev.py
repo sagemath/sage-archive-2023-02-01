@@ -36,7 +36,7 @@ representation of `L(\Lambda_0)` of `U_q(\widehat{\mathfrak{sl}}_p)`
 and their celebrated *LLT conjecture* said that decomposition matrices of
 the :class:`sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra` of
 the symmetric group should be computable using the canonical basis of
-`L(\Lambda_0)`. This was proved and generalised to all cyclolotimc Hecke
+`L(\Lambda_0)`. This was proved and generalised to all cyclotomic Hecke
 algebras of type `A` by Ariki [Ariki1996]_ and then further generalized
 to the graded setting by Brundan and Kleshchev [BK2009]_.
 
@@ -85,7 +85,7 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.rings.all import NN, ZZ, IntegerModRing
-from sage.cpython.getattr import raw_getattr
+from sage.cpython.getattr import getattr_from_other_class
 
 from collections import defaultdict
 
@@ -1441,7 +1441,7 @@ class KleshchevPartitions_all(KleshchevPartitions):
         self._level = len(multicharge)
         if self._level == 1:
             self.Element = KleshchevPartitionCrystal
-            self._element_constructor_ = raw_getattr(Partitions, '_element_constructor_')
+            self._element_constructor_ = getattr_from_other_class(self, Partitions, '_element_constructor_')
         else:
             self.Element = KleshchevPartitionTupleCrystal
 
@@ -1521,22 +1521,52 @@ class KleshchevPartitions_all(KleshchevPartitions):
 
             sage: it = iter(KleshchevPartitions(2, [0,1], convention='LS'))
             sage: [next(it) for _ in range(10)]
-            [([], []), ([1], []), ([], [1]), ([1], [1]), ([], [1, 1]),
-             ([1], [1, 1]), ([1, 1], [1]), ([], [2, 1]),
-             ([], [1, 1, 1]), ([1], [1, 1, 1])]
+            [([], []),
+             ([1], []),
+             ([], [1]),
+             ([1], [1]),
+             ([], [1, 1]),
+             ([1, 1], [1]),
+             ([1], [1, 1]),
+             ([], [2, 1]),
+             ([], [1, 1, 1]),
+             ([2, 1], [1])]
             sage: it = iter(KleshchevPartitions(2, [0,1], convention='RS'))
             sage: [next(it) for _ in range(10)]
-            [([], []), ([1], []), ([], [1]), ([1, 1], []), ([1], [1]),
-             ([1, 1, 1], []), ([2, 1], []), ([1], [1, 1]),
-             ([1, 1], [1]), ([1, 1, 1, 1], [])]
+            [([], []),
+             ([1], []),
+             ([], [1]),
+             ([1, 1], []),
+             ([1], [1]),
+             ([2, 1], []),
+             ([1, 1, 1], []),
+             ([1, 1], [1]),
+             ([1], [1, 1]),
+             ([2, 1, 1], [])]
             sage: it = iter(KleshchevPartitions(2, [0,1], convention='LG'))
             sage: [next(it) for _ in range(10)]
-            [([], []), ([1], []), ([], [1]), ([2], []), ([1], [1]),
-             ([3], []), ([2, 1], []), ([1], [2]), ([2], [1]), ([4], [])]
+            [([], []),
+             ([1], []),
+             ([], [1]),
+             ([2], []),
+             ([1], [1]),
+             ([3], []),
+             ([2, 1], []),
+             ([2], [1]),
+             ([1], [2]),
+             ([4], [])]
             sage: it = iter(KleshchevPartitions(2, [0,1], convention='RG'))
             sage: [next(it) for _ in range(10)]
-            [([], []), ([1], []), ([], [1]), ([1], [1]), ([], [2]),
-             ([1], [2]), ([2], [1]), ([], [2, 1]), ([], [3]), ([1], [3])]
+            [([], []),
+             ([1], []),
+             ([], [1]),
+             ([1], [1]),
+             ([], [2]),
+             ([2], [1]),
+             ([1], [2]),
+             ([], [3]),
+             ([], [2, 1]),
+             ([2, 1], [1])]
 
             sage: it = iter(KleshchevPartitions(3, [0,1,2]))
             sage: [next(it) for _ in range(10)]
@@ -1563,9 +1593,9 @@ class KleshchevPartitions_all(KleshchevPartitions):
                 for mu in cur:
                     yield mu
                     mu_list = mu.to_list()
-                    for cell in mu.cogood_cells().values():
+                    for cell in sorted(mu.cogood_cells().values()):
                         data = [list(p) for p in mu_list]
-                        k,r,c = cell
+                        k, r, c = cell
                         if c == 0:
                             data[k].append(1)
                         else:
@@ -1589,6 +1619,7 @@ class KleshchevPartitions_all(KleshchevPartitions):
             ([1], [1], [1], [1])
         """
         return self[12]
+
 
 class KleshchevPartitions_size(KleshchevPartitions):
     """
@@ -1638,7 +1669,7 @@ class KleshchevPartitions_size(KleshchevPartitions):
         self._level = len(multicharge)
         if self._level == 1:
             self.Element = KleshchevPartition
-            self._element_constructor_ = raw_getattr(Partitions, '_element_constructor_')
+            self._element_constructor_ = getattr_from_other_class(self, Partitions, '_element_constructor_')
         else:
             self.Element = KleshchevPartitionTuple
         super(KleshchevPartitions_size, self).__init__(category=FiniteEnumeratedSets())

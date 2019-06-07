@@ -37,9 +37,9 @@ Basic Rings and Fields
 
 * :doc:`Integers and Rational Numbers <rings_standard/index>`
 * :doc:`Real and Complex Numbers <rings_numerical/index>`
-* :doc:`Finite Rings and Fields <finite_rings/index>`
 * :doc:`Polynomials <polynomial_rings/index>`
-* :doc:`Formal Power Series <power_series/index>`
+* :doc:`Power Series and Laurent Series <power_series/index>`
+* :doc:`Finite Rings and Fields <finite_rings/index>`
 * :doc:`p-Adic Numbers <padics/index>`
 * :doc:`Quaternion Algebras <quat_algebras/index>`
 

@@ -477,7 +477,7 @@ def span(gens, base_ring=None, check=True, already_echelonized=False):
         [ 0  1  4]
 
         sage: span([V.gen(0)], QuadraticField(-7,'a'))
-        Vector space of degree 3 and dimension 1 over Number Field in a with defining polynomial x^2 + 7
+        Vector space of degree 3 and dimension 1 over Number Field in a with defining polynomial x^2 + 7 with a = 2.645751311064591?*I
         Basis matrix:
         [ 1  0 -3]
 
@@ -1055,7 +1055,7 @@ done from the right side.""")
             doctest:warning
             ...
             DeprecationWarning: The default order on free modules has changed. The old ordering is in sage.modules.free_module.EchelonMatrixKey
-            See http://trac.sagemath.org/23878 for details.
+            See http://trac.sagemath.org/23978 for details.
             False
             sage: CC^3 <= QQ^3
             False
@@ -1269,7 +1269,7 @@ done from the right side.""")
             return self._eq(other)
         if op == op_NE:
             return not self._eq(other)
-        deprecation(23878,"The default order on free modules has changed. "
+        deprecation(23978,"The default order on free modules has changed. "
                     "The old ordering is in sage.modules.free_module.EchelonMatrixKey")
         if op == op_LE:
             return self.is_submodule(other)
@@ -2044,7 +2044,7 @@ done from the right side.""")
             sage: (QQ^3).gen(4/3)
             Traceback (most recent call last):
             ...
-            TypeError: rational is not an integer
+            TypeError: unable to convert rational 4/3 to an integer
         """
         if i < 0 or i >= self.rank():
             raise ValueError("Generator %s not defined." % i)
@@ -4587,6 +4587,21 @@ class FreeModule_ambient(FreeModule_generic):
 
             sage: FreeModule(ZZ, 4)
             Ambient free module of rank 4 over the principal ideal domain Integer Ring
+
+        TESTS:
+
+        We check that the creation of a submodule does not trigger
+        the construction of a basis of the ambient space. See :trac:`15953`::
+
+            sage: F.<a> = GF(4)
+            sage: V = VectorSpace(F, 1)
+            sage: v = V.random_element()
+            sage: _ = V.subspace([v])
+            sage: hasattr(V, '_FreeModule_ambient__basis')
+            False
+            sage: _ = V.basis()
+            sage: hasattr(V, '_FreeModule_ambient__basis')
+            True
         """
         FreeModule_generic.__init__(self, base_ring, rank=rank,
                 degree=rank, sparse=sparse, coordinate_ring=coordinate_ring)
@@ -5184,7 +5199,7 @@ class FreeModule_ambient(FreeModule_generic):
             sage: (QQ^3).gen(4/3)
             Traceback (most recent call last):
             ...
-            TypeError: rational is not an integer
+            TypeError: unable to convert rational 4/3 to an integer
 
         Check that :trac:`10262` and :trac:`13304` are fixed
         (coercions involving :class:`FreeModule_ambient` used to take

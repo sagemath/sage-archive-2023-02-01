@@ -2,17 +2,17 @@
 r"""
 Finite Permutation Groups
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2010 Nicolas M. Thiery <nthiery at users.sf.net>
 #                     Nicolas Borie <Nicolas.Borie at u-pusd.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 
 from sage.categories.magmas import Magmas
 from sage.categories.category_with_axiom import CategoryWithAxiom
-from sage.categories.permutation_groups import PermutationGroups
+
 
 class FinitePermutationGroups(CategoryWithAxiom):
     r"""
@@ -169,7 +169,7 @@ class FinitePermutationGroups(CategoryWithAxiom):
                 sage: 60 * AlternatingGroup(5).cycle_index()
                 p[1, 1, 1, 1, 1] + 15*p[2, 2, 1] + 20*p[3, 1, 1] + 24*p[5]
 
-                sage: for G in TransitiveGroups(5):               # optional - database_gap # long time
+                sage: for G in TransitiveGroups(5):               # long time
                 ....:     G.cardinality() * G.cycle_index()
                 p[1, 1, 1, 1, 1] + 4*p[5]
                 p[1, 1, 1, 1, 1] + 5*p[2, 2, 1] + 4*p[5]

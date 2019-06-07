@@ -7,7 +7,7 @@ which is essentially defined as the evaluation of the eigensymbol at the
 path `0 \rightarrow \infty`. The resulting distribution on `\ZZ_p` can be restricted
 to `\ZZ_p^\times`, thus giving the measure attached to the sought `p`-adic `L`-series.
 
-All this is carefully explained in [PS]_.
+All this is carefully explained in [PS2011]_.
 
 """
 # ****************************************************************************
@@ -344,7 +344,7 @@ class pAdicLseries(SageObject):
         r"""
         Return `\int_{a+pZ_p} (z-{a})^j d\Phi(0-infty)`.
 
-        See formula in section 9.2 of [PS]_
+        See formula in section 9.2 of [PS2011]_
 
         INPUT:
 

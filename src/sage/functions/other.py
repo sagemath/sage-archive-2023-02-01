@@ -26,7 +26,6 @@ from sage.symbolic.expression import Expression
 from sage.libs.pynac.pynac import (register_symbol, symbol_table, I)
 from sage.symbolic.all import SR
 from sage.rings.all import Integer, Rational, RealField, ZZ, ComplexField
-from sage.rings.complex_number import is_ComplexNumber
 from sage.misc.latex import latex
 import math
 
@@ -35,11 +34,7 @@ from sage.structure.element import coercion_model
 # avoid name conflicts with `parent` as a function parameter
 from sage.structure.all import parent as s_parent
 
-from sage.symbolic.constants import pi
-from sage.functions.log import exp
 from sage.functions.trig import arctan2
-from sage.functions.exp_integral import Ei
-from sage.libs.mpmath import utils as mpmath_utils
 from sage.arith.all import binomial as arith_binomial
 
 one_half = SR.one() / SR(2)
@@ -120,11 +115,15 @@ class Function_abs(GinacFunction):
             abs(x)*e^2
             sage: abs((pi+e)*x)
             (pi + e)*abs(x)
+
+            sage: fricas(abs(x)).sage().derivative()  # optional - fricas
+            1/2*(x + conjugate(x))/abs(x)
         """
         GinacFunction.__init__(self, "abs", latex_name=r"\mathrm{abs}",
                                conversions=dict(sympy='Abs',
                                                 mathematica='Abs',
-                                                giac='abs'))
+                                                giac='abs',
+                                                fricas='abs'))
 
 abs = abs_symbolic = Function_abs()
 
@@ -1860,11 +1859,11 @@ class Function_limit(BuiltinFunction):
 
             sage: t = var('t')
             sage: latex(limit(exp_integral_e(1/2, I*t - I*x)*sqrt(-t + x),t=x,dir='-'))
-            \lim_{t \to x^-}\, \sqrt{-t + x} exp_integral_e\left(\frac{1}{2}, i \, t - i \, x\right)
+            \lim_{t \to x^-}\, \sqrt{-t + x} E_{\frac{1}{2}}\left(i \, t - i \, x\right)
             sage: latex(limit(exp_integral_e(1/2, I*t - I*x)*sqrt(-t + x),t=x,dir='+'))
-            \lim_{t \to x^+}\, \sqrt{-t + x} exp_integral_e\left(\frac{1}{2}, i \, t - i \, x\right)
+            \lim_{t \to x^+}\, \sqrt{-t + x} E_{\frac{1}{2}}\left(i \, t - i \, x\right)
             sage: latex(limit(exp_integral_e(1/2, I*t - I*x)*sqrt(-t + x),t=x))
-            \lim_{t \to x}\, \sqrt{-t + x} exp_integral_e\left(\frac{1}{2}, i \, t - i \, x\right)
+            \lim_{t \to x}\, \sqrt{-t + x} E_{\frac{1}{2}}\left(i \, t - i \, x\right)
         """
         if repr(direction) == 'minus':
             dir_str = '^-'

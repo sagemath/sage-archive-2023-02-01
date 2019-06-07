@@ -1,5 +1,4 @@
 *.pyc
-/.BUILDSTART
 /dist
 /local
 /logs

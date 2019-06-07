@@ -1016,9 +1016,3 @@ class CrystalOfTableaux(CrystalOfWords):
 
     class Element(CrystalOfTableauxElement):
         pass
-
-# deprecations from trac:18555
-from sage.misc.superseded import deprecated_function_alias
-TensorProductOfCrystals.global_options=deprecated_function_alias(18555, TensorProductOfCrystals.options)
-TensorProductOfCrystalsOptions=deprecated_function_alias(18555, TensorProductOfCrystals.options)
-

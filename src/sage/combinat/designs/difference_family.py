@@ -55,7 +55,7 @@ import six
 from six import itervalues
 from six.moves import range
 
-from sage.misc.cachefunc import cached_method
+from sage.misc.cachefunc import cached_function
 
 from sage.categories.sets_cat import EmptySetError
 import sage.arith.all as arith
@@ -1146,7 +1146,7 @@ def are_hadamard_difference_set_parameters(v, k, lmbda):
     N2 = N*N
     return v == 4*N2 and k == 2*N2 - N and lmbda == N2 - N
 
-@cached_method
+@cached_function
 def hadamard_difference_set_product_parameters(N):
     r"""
     Check whether a product construction is available for Hadamard difference
@@ -1587,7 +1587,7 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         else:
             K = G = GF(v,'a',modulus=poly)
 
-        B = map(K,B)
+        B = [K(b) for b in B]
         e = k*(k-1)//2
         xe = G.multiplicative_generator()**e
         df = [[xe**j*b for b in B] for j in range((v-1)//(2*e))]

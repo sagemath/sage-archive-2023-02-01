@@ -681,7 +681,7 @@ cdef class DenseGraphBackend(CGraphBackend):
     something like the following example, which creates a Sage Graph instance
     which wraps a ``DenseGraph`` object::
 
-        sage: G = Graph(30, implementation="c_graph", sparse=False)
+        sage: G = Graph(30, sparse=False)
         sage: G.add_edges([(0, 1), (0, 3), (4, 5), (9, 23)])
         sage: G.edges(labels=False)
         [(0, 1), (0, 3), (4, 5), (9, 23)]
@@ -691,7 +691,8 @@ cdef class DenseGraphBackend(CGraphBackend):
     objects::
 
         sage: G.add_vertex((0, 1, 2))
-        sage: G.vertices()
+        sage: sorted(list(G),
+        ....:        key=lambda x: (isinstance(x, tuple), x))
         [0,
         ...
          29,

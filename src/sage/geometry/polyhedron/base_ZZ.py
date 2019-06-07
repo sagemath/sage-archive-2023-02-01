@@ -20,7 +20,6 @@ from .base_QQ import Polyhedron_QQ
 from sage.arith.all import gcd
 from .constructor import Polyhedron
 from .base import Polyhedron_base
-from sage.misc.superseded import deprecated_function_alias
 
 
 #########################################################################
@@ -515,14 +514,6 @@ class Polyhedron_ZZ(Polyhedron_QQ):
            [1, 2, 5, 8, 13, 18]
            sage: [ ceil((i^2+2*i-1)/2)+1 for i in range(10) ]
            [1, 2, 5, 8, 13, 18, 25, 32, 41, 50]
-
-        TESTS::
-
-            sage: Q = Polyhedron(vertices=[(4,0), (6,0), (0,3), (4,3)])
-            sage: D = Q.Minkowski_decompositions()
-            doctest:warning...:
-            DeprecationWarning: Minkowski_decompositions is deprecated. Please use minkowski_decompositions instead.
-            See http://trac.sagemath.org/23685 for details.
         """
         if self.dim() > 2 or not self.is_compact():
             raise NotImplementedError('only implemented for bounded polygons')
@@ -544,6 +535,3 @@ class Polyhedron_ZZ(Polyhedron_QQ):
             decompositions.append((X, Y))
             summands += [X, Y]
         return tuple(decompositions)
-
-    Minkowski_decompositions = deprecated_function_alias(23685,
-                                                         minkowski_decompositions)

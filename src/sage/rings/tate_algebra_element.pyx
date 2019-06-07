@@ -17,11 +17,12 @@ AUTHOR:
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 2 of the License, or
 #    (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # ***************************************************************************
 
+from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
+from sage.structure.richcmp cimport rich_to_bool_sgn
 from sage.structure.element import coerce_binop
-from sage.structure.richcmp import op_EQ, op_NE, op_LT, op_GT, op_LE, op_GE
 
 from sage.structure.element cimport Element
 from sage.structure.element cimport MonoidElement
@@ -50,7 +51,7 @@ def _pushout_family(elements, initial=ZZ):
 
     - ``initial`` -- a parent
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.rings.tate_algebra_element import _pushout_family
 
@@ -347,7 +348,7 @@ cdef class TateAlgebraTerm(MonoidElement):
     #    """
     #    raise NotImplementedError("fraction fields of Tate algebras are not implemented; try inverse_of_unit()")
 
-    cdef int _cmp_c(self, TateAlgebraTerm other):
+    cdef long _cmp_c(self, TateAlgebraTerm other):
         r"""
         Compare the Tate algebra term with ``other``.
 
@@ -366,7 +367,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             True
 
         """
-        cdef int c = other._valuation_c() - self._valuation_c()
+        cdef long c = other._valuation_c() - self._valuation_c()
         if not c:
             skey = self._parent._sortkey
             ks = skey(self._exponent)
@@ -426,21 +427,14 @@ cdef class TateAlgebraTerm(MonoidElement):
             False
 
         """
-        if op == op_EQ:
+        if op == Py_EQ:
             return ((<TateAlgebraTerm>self)._coeff == (<TateAlgebraTerm>other)._coeff
                 and (<TateAlgebraTerm>self)._exponent == (<TateAlgebraTerm>other)._exponent)
-        if op == op_NE:
+        if op == Py_NE:
             return ((<TateAlgebraTerm>self)._coeff != (<TateAlgebraTerm>other)._coeff
                  or (<TateAlgebraTerm>self)._exponent != (<TateAlgebraTerm>other)._exponent)
         c = (<TateAlgebraTerm>self)._cmp_c(<TateAlgebraTerm>other)
-        if op == op_LT:
-            return c < 0
-        if op == op_LE:
-            return c <= 0
-        if op == op_GT:
-            return c > 0
-        if op == op_GE:
-            return c >= 0
+        return rich_to_bool_sgn(op, c)
 
     cpdef TateAlgebraTerm monomial(self):
         r"""
@@ -976,8 +970,7 @@ cdef class TateAlgebraTerm(MonoidElement):
                 return False
         return True
 
-    @coerce_binop
-    def __floordiv__(self, other):
+    cpdef _floordiv_(self, other):
         r"""
         Return the result of the exact division of this term by ``other``.
 
@@ -1538,7 +1531,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         - ``modulus`` -- discarded
 
-        EXEMPLES::
+        EXAMPLES::
 
             sage: R = Zp(3, prec=4, print_mode="digits")
             sage: A.<x,y> = TateAlgebra(R)
@@ -1830,9 +1823,9 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         c = None
         if diff.is_zero():
             c = 0
-        if op == op_EQ:
+        if op == Py_EQ:
             return c is not None
-        if op == op_NE:
+        if op == Py_NE:
             return c is None
         if c is None:
             ts = self.terms()
@@ -1842,14 +1835,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
                 if c: break
             else:
                 c = len(ts) - len(to)
-        if op == op_LT:
-            return c < 0
-        if op == op_LE:
-            return c <= 0
-        if op == op_GT:
-            return c > 0
-        if op == op_GE:
-            return c >= 0
+        return rich_to_bool_sgn(op, c)
 
     def __call__(self, *args):
         """
@@ -2080,7 +2066,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
     def is_zero(self, prec=None):
         r"""
-        Return ``True`` if this series is indistiguishable from zero.
+        Return ``True`` if this series is indistinguishable from zero.
 
         INPUT:
 

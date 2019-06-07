@@ -4,7 +4,7 @@ Basic objects such as Sphere, Box, Cone, etc.
 AUTHORS:
 
 - Robert Bradshaw 2007-02: initial version
-- Robert Bradshaw 2007-08: obj/tachon rendering, much updating
+- Robert Bradshaw 2007-08: obj/tachyon rendering, much updating
 - Robert Bradshaw 2007-08: cythonization
 
 EXAMPLES::

@@ -1975,7 +1975,6 @@ def plot(funcs, *args, **kwds):
             xmin = kwds.pop('xmin', -1)
             xmax = kwds.pop('xmax', 1)
             G = _plot(funcs, (xmin, xmax), *args, **kwds)
-            pass
         else:
             sage.misc.misc.verbose("there were %s extra arguments (besides %s)" % (n, funcs), level=0)
 
@@ -2202,7 +2201,7 @@ def _plot(funcs, xrange, parametric=False,
             elif isinstance(legend_label_temp, (list, tuple)):
                 if i < len(legend_label_temp):
                     legend_label_entry = legend_label_temp[i]
-            elif legend_label_temp is not 'automatic':
+            elif legend_label_temp != 'automatic':
                 # assume it is None or str.
                 legend_label_entry = legend_label_temp
 
@@ -3513,7 +3512,7 @@ def graphics_array(array, nrows=None, ncols=None):
 
 def minmax_data(xdata, ydata, dict=False):
     """
-    Return the minimums and maximums of xdata and ydata.
+    Return the minimums and maximums of ``xdata`` and ``ydata``.
 
     If dict is False, then minmax_data returns the tuple (xmin, xmax,
     ymin, ymax); otherwise, it returns a dictionary whose keys are
@@ -3527,19 +3526,25 @@ def minmax_data(xdata, ydata, dict=False):
         (-1, 1, -1, 1)
         sage: minmax_data([-1, 2], [4, -3])
         (-1, 2, -3, 4)
+        sage: minmax_data([1, 2], [4, -3])
+        (1, 2, -3, 4)
         sage: d = minmax_data([-1, 2], [4, -3], dict=True)
         sage: list(sorted(d.items()))
         [('xmax', 2), ('xmin', -1), ('ymax', 4), ('ymin', -3)]
+        sage: d = minmax_data([1, 2], [3, 4], dict=True)
+        sage: list(sorted(d.items()))
+        [('xmax', 2), ('xmin', 1), ('ymax', 4), ('ymin', 3)]
     """
-    xmin = min(xdata) if len(xdata) > 0 else -1
-    xmax = max(xdata) if len(xdata) > 0 else 1
-    ymin = min(ydata) if len(ydata) > 0 else -1
-    ymax = max(ydata) if len(ydata) > 0 else 1
+    xmin = min(xdata) if len(xdata) else -1
+    xmax = max(xdata) if len(xdata) else 1
+    ymin = min(ydata) if len(ydata) else -1
+    ymax = max(ydata) if len(ydata) else 1
     if dict:
-        return {'xmin':xmin, 'xmax':xmax,
-                'ymin':ymin, 'ymax':ymax}
+        return {'xmin': xmin, 'xmax': xmax,
+                'ymin': ymin, 'ymax': ymax}
     else:
         return xmin, xmax, ymin, ymax
+
 
 def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5, level=0):
     r"""

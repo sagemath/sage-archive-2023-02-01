@@ -379,6 +379,7 @@ cdef class InverseAction(Action):
     def _repr_name_(self):
         return "inverse action"
 
+
 cdef class PrecomposedAction(Action):
     """
     A precomposed action first applies given maps, and then applying an action
@@ -398,8 +399,7 @@ cdef class PrecomposedAction(Action):
         sage: v = E.manin_symbol_rep()
         sage: c,x = v[0]
         sage: y = x.modular_symbol_rep()
-        sage: A = y.parent().get_action(QQ, self_on_left=False, op=operator.mul)
-        sage: A
+        sage: coercion_model.get_action(QQ, parent(y), op=operator.mul)
         Left scalar multiplication by Rational Field on Abelian Group of all Formal Finite Sums over Rational Field
         with precomposition on right by Coercion map:
           From: Abelian Group of all Formal Finite Sums over Integer Ring

@@ -1393,8 +1393,7 @@ def RandomTwoSphere(n):
     EXAMPLES::
 
         sage: G = simplicial_complexes.RandomTwoSphere(6); G
-        Simplicial complex with vertex set (0, 1, 2, 3, 'a', 'b')
-        and 8 facets
+        Simplicial complex with vertex set (0, 1, 2, 3, 4, 5) and 8 facets
         sage: G.homology()
         {0: 0, 1: 0, 2: Z}
         sage: G.is_pure()

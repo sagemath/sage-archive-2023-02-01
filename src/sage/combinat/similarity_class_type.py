@@ -160,7 +160,7 @@ AUTHOR:
   rings of length two
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 Amritanshu Prasad <amri@imsc.res.in>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -172,8 +172,8 @@ AUTHOR:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 from six.moves import range
 from six import add_metaclass
@@ -1099,7 +1099,7 @@ class SimilarityClassTypes(UniqueRepresentation, Parent):
             for PT in chain(PrimarySimilarityClassTypes(min.size(), min = min), *[PrimarySimilarityClassTypes(k) for k in range(min.size() + 1, n + 1)]): #choose first part
                 if PT.size() == n:
                     yield self.element_class(self, [PT])
-                else:# recursively find all possibilties for what remains of n
+                else:# recursively find all possibilities for what remains of n
                     for smaller_type in SimilarityClassTypes(n - PT.size(), min = PT):
                         yield self.element_class(self, [PT] + list(smaller_type))
 

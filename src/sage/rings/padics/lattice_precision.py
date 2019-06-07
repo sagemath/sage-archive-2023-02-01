@@ -780,7 +780,7 @@ class DifferentialPrecisionGeneric(SageObject):
         Return the dimension of the vector space in which the precision
         module/lattice lives.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: R = ZpLC(2, label='ambient_dim')
             sage: prec = R.precision()
@@ -1488,7 +1488,7 @@ class DifferentialPrecisionGeneric(SageObject):
           a dictionary
 
         Here are the meanings of the keywords above:
-        - ``add``: time spent in adding new colunmns to the precision matrix
+        - ``add``: time spent in adding new columns to the precision matrix
           (corresponding to the creation of new elements)
         - ``mark``: time spent in marking elements for deletion
         - ``del``: time spent in deleting columns of the precision matrix

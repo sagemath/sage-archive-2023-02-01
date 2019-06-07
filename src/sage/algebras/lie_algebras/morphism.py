@@ -6,13 +6,13 @@ AUTHORS:
 - Travis Scrimshaw (07-15-2013): Initial implementation
 - Eero Hakavuori (08-09-2018): Morphisms defined by a generating subset
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2013 Travis Scrimshaw <tscrim at ucdavis.edu>
 #                2018 Eero Hakavuori <eero.hakavuori at gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 
 from sage.misc.cachefunc import cached_method
 from sage.categories.morphism import Morphism
@@ -328,7 +328,7 @@ class LieAlgebraMorphism_from_generators(LieAlgebraHomomorphism_im_gens):
         sage: L.morphism({X:-X, Y:Y, Z:Z})
         Traceback (most recent call last):
         ...
-        ValueError: {X: -X, Y: Y, Z: Z} does not define a Lie algebra morphism;
+        ValueError: this does not define a Lie algebra morphism;
          contradictory values for brackets of length 2
 
     Checking for mistakes can be disabled, which can produce
@@ -493,9 +493,9 @@ class LieAlgebraMorphism_from_generators(LieAlgebraHomomorphism_im_gens):
             try:
                 im_gens = solve_linear_system(A, im_gens, check)
             except ValueError:
-                raise ValueError("%s does not define a Lie algebra morphism; "
+                raise ValueError("this does not define a Lie algebra morphism; "
                                  "contradictory values for brackets of length %d"
-                                 % (on_generators, bracketlength))
+                                 % bracketlength)
 
             spanning_set = list(sm.basis())
             if n == len(spanning_set):
@@ -554,5 +554,4 @@ class LieAlgebraMorphism_from_generators(LieAlgebraHomomorphism_im_gens):
             1/3*A - 1/3*B + 2/3*C
         """
         C = self.codomain()
-        return C.sum(c * self._im_gens[i] for i,c in x.to_vector().iteritems())
-
+        return C.sum(c * self._im_gens[i] for i, c in x.to_vector().iteritems())

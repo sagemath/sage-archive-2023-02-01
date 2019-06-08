@@ -1,28 +1,27 @@
 # -*- coding: utf-8 -*-
 r"""
-Generic structures for linear codes
+Linear codes
 
 Linear Codes
 ============
 
 Let `F = \GF{q}` be a finite field. A rank `k` linear subspace of the vector
-space `F^n` is called an `[n, k]`-linear code, `n` being the length of the
-code and `k` its dimension. Elements of a code `C` are called codewords.
+space `F^n` is called an `[n, k]`-linear code, `n` being the length of the code
+and `k` its dimension. Elements of a code `C` are called codewords.
 
 A linear map from `F^k` to an `[n,k]` code `C` is called an "encoding", and it
 can be represented as a `k \times n` matrix, called a generator matrix.
 Alternatively, `C` can be represented by its orthogonal complement in `F^n`,
 i.e. the `n-k`-dimensional vector space `C^\perp` such that the inner product
-of any element from `C` and any element from `C^\perp` is zero. `C^\perp`
-is called the dual code of `C`, and any generator matrix for `C^\perp` is called
-a parity check matrix for `C`.
+of any element from `C` and any element from `C^\perp` is zero. `C^\perp` is
+called the dual code of `C`, and any generator matrix for `C^\perp` is called a
+parity check matrix for `C`.
 
 We commonly endow `F^n` with the Hamming metric, i.e. the weight of a vector is
-the number of non-zero elements in it. The central operation of a linear code is
-then "decoding": given a linear code `C \subset F^n` and a "received word" `r
-\in F^n` , retrieve the codeword `c \in C` such that the Hamming distance
+the number of non-zero elements in it. The central operation of a linear code
+is then "decoding": given a linear code `C \subset F^n` and a "received word"
+`r \in F^n` , retrieve the codeword `c \in C` such that the Hamming distance
 between `r` and `c` is minimal.
-
 
 Families or Generic codes
 =========================
@@ -59,9 +58,9 @@ examples.
 ``LinearCode``
 --------------
 
-This class is used to represent arbitrary and unstructured linear codes.
-It mostly rely directly on generic methods provided by ``AbstractLinearCode``, which
-means that basic operations on the code (e.g. computation of the minimum
+This class is used to represent arbitrary and unstructured linear codes.  It
+mostly rely directly on generic methods provided by ``AbstractLinearCode``,
+which means that basic operations on the code (e.g. computation of the minimum
 distance) will use slow algorithms.
 
 A ``LinearCode`` is instantiated by providing a generator matrix::
@@ -100,7 +99,8 @@ A ``LinearCode`` is instantiated by providing a generator matrix::
 Further references
 ------------------
 
-If you want to get started on Sage's linear codes library, see https://doc.sagemath.org/html/en/thematic_tutorials/coding_theory.html
+If you want to get started on Sage's linear codes library, see
+https://doc.sagemath.org/html/en/thematic_tutorials/coding_theory.html
 
 If you want to learn more on the design of this library, see
 https://doc.sagemath.org/html/en/thematic_tutorials/structures_in_coding_theory.html
@@ -173,10 +173,11 @@ AUTHORS:
 - David Joyner (2009-05): removed dependence on Guava, allowing it to be an
   option. Fixed errors in some docstrings.
 
-- Kwankyu Lee (2010-01): added methods generator_matrix_systematic, information_set, and
-  magma interface for linear codes.
+- Kwankyu Lee (2010-01): added methods generator_matrix_systematic,
+  information_set, and magma interface for linear codes.
 
-- Niles Johnson (2010-08): :trac:`3893`: ``random_element()`` should pass on ``*args`` and ``**kwds``.
+- Niles Johnson (2010-08): :trac:`3893`: ``random_element()`` should pass on
+  ``*args`` and ``**kwds``.
 
 - Thomas Feulner (2012-11): :trac:`13723`: deprecation of ``hamming_weight()``
 
@@ -191,7 +192,6 @@ TESTS::
     sage: C == loads(dumps(C))
     True
 """
-
 #******************************************************************************
 #       Copyright (C) 2005 David Joyner <wdjoyner@gmail.com>
 #                     2006 William Stein <wstein@gmail.com>
@@ -201,50 +201,56 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-# python3
 from __future__ import division, print_function, absolute_import
 
 import inspect
+import random
 
 from six.moves import range
 from six import iteritems
 
-from sage.modules.module import Module
-from sage.categories.modules import Modules
 from copy import copy
 from sage.interfaces.all import gap
-from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
-from sage.groups.perm_gps.permgroup import PermutationGroup
-from sage.matrix.matrix_space import MatrixSpace
-from sage.matrix.constructor import Matrix
-from sage.modules.free_module_element import vector
-from sage.arith.all import GCD, rising_factorial, binomial
-from sage.groups.all import SymmetricGroup
-from sage.misc.all import prod
-from sage.misc.functional import is_even
-from sage.rings.rational_field import QQ
-from sage.rings.integer_ring import ZZ
-from sage.structure.parent import Parent
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.integer import Integer
-from sage.modules.free_module import VectorSpace
-from sage.misc.cachefunc import cached_method
-from sage.misc.sageinspect import sage_getargspec
-from sage.misc.superseded import deprecation, deprecated_function_alias
-from sage.misc.randstate import current_randstate
-from sage.features.gap import GapPackage
-from .encoder import Encoder
-from .decoder import Decoder, DecodingError
-from sage.combinat.subset import Subsets
-from sage.categories.cartesian_product import cartesian_product
-# import compatible with py2 and py3
 
+from sage.categories.modules import Modules
+from sage.categories.cartesian_product import cartesian_product
 from sage.categories.fields import Fields
 
+from sage.matrix.matrix_space import MatrixSpace
 
+from sage.modules.free_module_element import vector
+from sage.modules.free_module import VectorSpace
+from sage.modules.module import Module
 
-####################### coding theory functions ###############################
+from sage.arith.all import GCD, binomial
 
+from sage.groups.all import SymmetricGroup
+from sage.groups.perm_gps.permgroup import PermutationGroup
+
+from sage.rings.rational_field import QQ
+from sage.rings.integer_ring import ZZ
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.integer import Integer
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
+
+from sage.structure.parent import Parent
+
+from sage.misc.all import prod
+from sage.misc.functional import is_even
+from sage.misc.cachefunc import cached_method
+from sage.misc.sageinspect import sage_getargspec
+from sage.misc.randstate import current_randstate
+
+from sage.combinat.subset import Subsets
+
+from sage.features.gap import GapPackage
+
+from .encoder import Encoder
+from .decoder import Decoder
+
+#******************************************************************************
+# coding theory functions
+#******************************************************************************
 
 def _dump_code_in_leon_format(C):
     r"""
@@ -301,7 +307,9 @@ def _explain_constructor(cl):
         sage: from sage.coding.linear_code import _explain_constructor, LinearCodeSyndromeDecoder
         sage: cl = LinearCodeSyndromeDecoder
         sage: _explain_constructor(cl)
-        "The constructor requires no arguments.\nIt takes the optional arguments ['maximum_error_weight'].\nSee the documentation of sage.coding.linear_code.LinearCodeSyndromeDecoder for more details."
+        "The constructor requires no arguments.\nIt takes the optional
+        arguments ['maximum_error_weight'].\nSee the documentation of
+        sage.coding.linear_code.LinearCodeSyndromeDecoder for more details."
 
         sage: from sage.coding.information_set_decoder import LinearCodeInformationSetDecoder
         sage: cl = LinearCodeInformationSetDecoder
@@ -336,12 +344,11 @@ def _explain_constructor(cl):
 
 class AbstractLinearCode(Module):
     """
-    Abstract class for linear codes.
+    Abstract base class for linear codes.
 
-    This class contains all methods that can be used on Linear Codes
-    and on Linear Codes families.
-    So, every Linear Code-related class should inherit from this abstract
-    class.
+    This class contains all methods that can be used on Linear Codes and on
+    Linear Codes families.  So, every Linear Code-related class should inherit
+    from this abstract class.
 
     To implement a linear code, you need to:
 
@@ -466,7 +473,7 @@ class AbstractLinearCode(Module):
             sage: C = MyCodeFamily(GF(17), 10.0, 5, generator_matrix)
             Traceback (most recent call last):
             ...
-            ValueError: length must be a Python int or a Sage Integer
+            ValueError: length must be a positive integer
 
         If the length of the code is not a non-zero positive integer
         (See :trac:`21326`), it will raise an exception::
@@ -475,7 +482,7 @@ class AbstractLinearCode(Module):
             sage: C = MyCodeFamily(GF(17), 0, 1, empty_generator_matrix)
             Traceback (most recent call last):
             ...
-            ValueError: length must be a non-zero positive integer
+            ValueError: length must be a positive integer
 
         If the name of the default decoder is not known by the class, it will raise
         a exception::
@@ -493,7 +500,7 @@ class AbstractLinearCode(Module):
             sage: C = MyCodeFamily2(GF(17), 10, 5, generator_matrix)
             Traceback (most recent call last):
             ...
-            ValueError: You must set a valid decoder as default decoder for this code, by filling in the dictionary of registered decoders
+            ValueError: not a registered decoder
 
         If the name of the default encoder is not known by the class, it will raise
         an exception::
@@ -511,7 +518,7 @@ class AbstractLinearCode(Module):
             sage: C = MyCodeFamily3(GF(17), 10, 5, generator_matrix)
             Traceback (most recent call last):
             ...
-            ValueError: You must set a valid encoder as default encoder for this code, by filling in the dictionary of registered encoders
+            ValueError: not a registered encoder
 
         A ring instead of a field::
 
@@ -520,25 +527,23 @@ class AbstractLinearCode(Module):
             ...
             ValueError: 'generator' must be defined on a field (not a ring)
         """
-        ### Add here any generic encoder/decoder ###
-        #This allows any class which inherits from AbstractLinearCode
-        #to use generic decoders/encoders
-        self._registered_encoders["Systematic"] = LinearCodeSystematicEncoder
-        self._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
-        self._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder
         from sage.coding.information_set_decoder import LinearCodeInformationSetDecoder
-        self._registered_decoders["InformationSet"] = LinearCodeInformationSetDecoder
 
-        if not isinstance(length, (int, Integer)):
-            raise ValueError("length must be a Python int or a Sage Integer")
-        if length <= 0:
-            raise ValueError("length must be a non-zero positive integer")
+        # Add here any generic encoder or decoder. This allows any class which
+        # inherits from AbstractLinearCode to use generic decoders/encoders
+        self._registered_encoders['Systematic'] = LinearCodeSystematicEncoder
+        self._registered_decoders['Syndrome'] = LinearCodeSyndromeDecoder
+        self._registered_decoders['NearestNeighbor'] = LinearCodeNearestNeighborDecoder
+        self._registered_decoders['InformationSet'] = LinearCodeInformationSetDecoder
+
+        if not isinstance(length, (int, Integer)) or length <= 0:
+            raise ValueError("length must be a positive integer")
         if not base_field.is_field():
-            raise ValueError("'base_field' must be a field (and {} is not one)".format(base_field))
+            raise ValueError("{} is not a field".format(base_field))
         if not default_encoder_name in self._registered_encoders:
-            raise ValueError("You must set a valid encoder as default encoder for this code, by filling in the dictionary of registered encoders")
+            raise ValueError("not a registered encoder")
         if not default_decoder_name in self._registered_decoders:
-            raise ValueError("You must set a valid decoder as default decoder for this code, by filling in the dictionary of registered decoders")
+            raise ValueError("not a registered decoder")
 
         self._length = Integer(length)
         self._default_decoder_name = default_decoder_name
@@ -547,6 +552,21 @@ class AbstractLinearCode(Module):
         facade_for = VectorSpace(base_field, self._length)
         self.Element = type(facade_for.an_element()) #for when we made this a non-facade parent
         Parent.__init__(self, base=base_field, facade=facade_for, category=cat)
+
+    def __getstate__(self):
+        """
+        Used for pickling codes.
+
+        TESTS::
+
+            sage: C = codes.HammingCode(GF(2), 3)
+            sage: '_registered_encoders' in C.__getstate__()
+            True
+        """
+        d = super(AbstractLinearCode, self).__getstate__()
+        d['_registered_encoders'] = self._registered_encoders
+        d['_registered_decoders'] = self._registered_decoders
+        return d
 
     def _repr_(self):
         r"""
@@ -1576,7 +1596,6 @@ class AbstractLinearCode(Module):
             False
         """
         M = self.generator_matrix().transpose()
-        R = self.base_field()
 
         def projectivize(row):
             if not row.is_zero():
@@ -2284,7 +2303,6 @@ class AbstractLinearCode(Module):
         except ValueError:
             return False
 
-
     def is_permutation_automorphism(self,g):
         r"""
         Returns `1` if `g` is an element of `S_n` (`n` = length of self) and
@@ -2584,8 +2602,6 @@ class AbstractLinearCode(Module):
                                       "of size at most 256")
 
         G = self.generator_matrix()
-        n = self.length()
-        k = self.dimension()
         if (q == 2 or q == 3) and algorithm=="guava":
             gap.load_package("guava")
             C = gap(G).GeneratorMatCode(gap(F))
@@ -2631,7 +2647,6 @@ class AbstractLinearCode(Module):
 
         - David Joyner (11-2005)
         """
-        G = self.generator_matrix()
         n, k = self.length(), self.dimension()
         F = self.base_field()
         Gmat = self.generator_matrix()._gap_init_()
@@ -2802,7 +2817,6 @@ class AbstractLinearCode(Module):
         q = F.order()
         G = self.generator_matrix() if 2*self.dimension() <= self.length() else self.dual_code().generator_matrix()
         n = len(G.columns())
-        k = len(G.rows())
         if "gap" in algorithm:
             GapPackage("guava", spkg="gap_packages").require()
             gap.load_package('guava')
@@ -2985,6 +2999,66 @@ class AbstractLinearCode(Module):
         c.set_immutable()
         return c
 
+    def random_received_vector(self, distance):
+        """
+        Return a random received vector of Hamming distance ``distance`` from a
+        random codeword.
+
+        INPUT:
+
+        - ``distance`` -- positive integer
+
+        EXAMPLES::
+
+            sage: C = codes.random_linear_code(GF(4, 'a'), 7, 3)
+            sage: rv = C.random_received_vector(1)
+            sage: error_vector = C.decode_to_code(rv) - rv
+            sage: error_vector.hamming_weight()
+            1
+        """
+        return self.random_received_vector_and_codeword(distance)[0]
+
+    def random_received_vector_and_codeword(self, distance):
+        """
+        Return the pair of a received vector and a sent codeword.
+
+        The received vector is of Hamming distance ``distance`` from the sent
+        codeword.
+
+        INPUT:
+
+        - ``distance`` -- positive integer
+
+        EXAMPLES::
+
+            sage: C = codes.random_linear_code(GF(16, 'a'), 10, 4)
+            sage: rv, sv = C.random_received_vector_and_codeword(3)
+            sage: (rv - sv).hamming_weight()
+            3
+        """
+        n = self.length()
+        if distance < 0 or distance > n:
+            raise ValueError("distance must be >= 0 and <= {}".format(n))
+
+        A = self.base_ring() # alphabet
+
+        sent_codeword = self.random_element()
+        received_vector = list(sent_codeword)
+        pos = []
+        for i in range(distance):
+            while True:
+                p = random.randint(0, n-1)
+                if not p in pos:
+                    break
+            while True:
+                a = A.random_element()
+                if not a.is_zero():
+                    break
+            received_vector[p] += a
+            pos.append(p)
+
+        return vector(received_vector), sent_codeword
+
     def relative_distance(self):
         r"""
         Return the ratio of the minimum distance to the code length.
@@ -3053,7 +3127,6 @@ class AbstractLinearCode(Module):
         E = self.encoder("Systematic")
         G = E.generator_matrix()
         return G.delete_columns(E.systematic_positions())
-
 
     def shortened(self, L):
         r"""
@@ -3156,12 +3229,9 @@ class AbstractLinearCode(Module):
                 algorithm = "gap"
         F = self.base_ring()
         n = self.length()
-        G = self.generator_matrix()
         if algorithm=="gap":
             Gmat = self.generator_matrix()._gap_init_()
-            G = gap(Gmat)
             q = self.base_ring().order()
-            k = gap(self.base_ring())
             z = 'Z(%s)*%s'%(q, [0]*self.length())     # GAP zero vector as a string
             _ = gap.eval("w:=DistancesDistributionMatFFEVecFFE("+Gmat+", GF("+str(q)+"),"+z+")")
             v = [eval(gap.eval("w["+str(i)+"]")) for i in range(1,self.length()+2)] # because GAP returns vectors in compressed form
@@ -3183,7 +3253,6 @@ class AbstractLinearCode(Module):
             from six import StringIO
             # to use the already present output parser
             wts = [0] * (n + 1)
-            s = 0
             for L in StringIO(lines).readlines():
                 L = L.strip()
                 if L:
@@ -3523,9 +3592,6 @@ class AbstractLinearCode(Module):
         return P/((1-T)*(1-q*T))
 
 
-
-
-
 ############################ linear codes python class ########################
 
 class LinearCode(AbstractLinearCode):
@@ -3778,7 +3844,7 @@ class LinearCode(AbstractLinearCode):
             [1 2 1]
             [2 1 1]
         """
-        if encoder_name is None or encoder_name is 'GeneratorMatrix':
+        if encoder_name is None or encoder_name == 'GeneratorMatrix':
             g = self._generator_matrix
         else:
             g = super(LinearCode, self).generator_matrix(encoder_name, **kwargs)
@@ -3786,14 +3852,8 @@ class LinearCode(AbstractLinearCode):
         return g
 
 
-
-
-
-
-
-
-
 ####################### encoders ###############################
+
 class LinearCodeGeneratorMatrixEncoder(Encoder):
     r"""
     Encoder based on generator_matrix for Linear codes.
@@ -3880,21 +3940,6 @@ class LinearCodeGeneratorMatrixEncoder(Encoder):
         g = self.code().generator_matrix()
         g.set_immutable()
         return g
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 class LinearCodeSystematicEncoder(Encoder):
@@ -4230,16 +4275,8 @@ class LinearCodeSystematicEncoder(Encoder):
         return self._systematic_positions if self._systematic_positions else self.generator_matrix().pivots()
 
 
-
-
-
-
-
-
-
-
-
 ####################### decoders ###############################
+
 class LinearCodeSyndromeDecoder(Decoder):
     r"""
     Constructs a decoder for Linear Codes based on syndrome lookup table.
@@ -4790,10 +4827,6 @@ class LinearCodeNearestNeighborDecoder(Decoder):
             1
         """
         return (self.code().minimum_distance()-1) // 2
-
-
-
-
 
 
 ####################### registration ###############################

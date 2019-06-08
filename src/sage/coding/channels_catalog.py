@@ -1,5 +1,7 @@
 r"""
-Index of Channels: the information theoretic notion of transmission
+Index of channels
+
+Channels in Sage implement the information theoretic notion of transmission of messages.
 
 The ``channels`` object may be used to access the codes that Sage can build.
 

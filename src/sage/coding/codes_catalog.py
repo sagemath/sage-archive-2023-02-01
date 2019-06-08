@@ -26,16 +26,16 @@ TESTS::
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
-
-# Implementation note:
-#
-# This module is imported as "codes" in all.py so that codes.<tab> is available
-# in the global namespace.
+# This module is imported as "codes" in all.py so that codes.<tab> is
+# available in the global namespace.
 
 from __future__ import absolute_import
+
+import sys
+
 from sage.misc.lazy_import import lazy_import
 
-from sage.coding.linear_code import LinearCode
+from .linear_code import LinearCode
 
 lazy_import('sage.coding.code_constructions',
         ['DuadicCodeEvenPair', 'DuadicCodeOddPair',
@@ -44,19 +44,19 @@ lazy_import('sage.coding.code_constructions',
          'QuadraticResidueCodeOddPair', 'random_linear_code',
          'ToricCode', 'WalshCode'])
 
-lazy_import('sage.coding.bch', 'BCHCode')
-lazy_import('sage.coding.cyclic_code', 'CyclicCode')
-lazy_import('sage.coding.extended_code', 'ExtendedCode')
-lazy_import('sage.coding.golay_code', 'GolayCode')
-lazy_import('sage.coding.grs', ['GeneralizedReedSolomonCode', 'ReedSolomonCode'])
-lazy_import('sage.coding.guava', ['QuasiQuadraticResidueCode',
-                                    'RandomLinearCodeGuava'])
-lazy_import('sage.coding.hamming_code', 'HammingCode')
-lazy_import('sage.coding.parity_check_code', 'ParityCheckCode')
-lazy_import('sage.coding.punctured_code', 'PuncturedCode')
-lazy_import('sage.coding.reed_muller_code', ['BinaryReedMullerCode',
-                                              'ReedMullerCode'])
 lazy_import('sage.coding.subfield_subcode', 'SubfieldSubcode')
+lazy_import('sage.coding.extended_code', 'ExtendedCode')
+lazy_import('sage.coding.punctured_code', 'PuncturedCode')
+
+lazy_import('sage.coding.parity_check_code', 'ParityCheckCode')
+lazy_import('sage.coding.cyclic_code', 'CyclicCode')
+lazy_import('sage.coding.bch_code', 'BCHCode')
+lazy_import('sage.coding.grs_code', ['GeneralizedReedSolomonCode', 'ReedSolomonCode'])
+lazy_import('sage.coding.reed_muller_code', ['BinaryReedMullerCode', 'ReedMullerCode'])
+lazy_import('sage.coding.hamming_code', 'HammingCode')
+lazy_import('sage.coding.golay_code', 'GolayCode')
+
+lazy_import('sage.coding.guava', ['QuasiQuadraticResidueCode', 'RandomLinearCodeGuava'])
 
 from . import decoders_catalog as decoders
 from . import encoders_catalog as encoders
@@ -65,7 +65,6 @@ from . import bounds_catalog as bounds
 lazy_import('sage.coding','databases')
 
 from sage.misc.rest_index_of_methods import gen_rest_table_index
-import sys
 __doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(sys.modules[__name__], only_local_functions=False))
 
 # We don't want this to appear in tab completion

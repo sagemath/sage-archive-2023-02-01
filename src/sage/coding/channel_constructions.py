@@ -1,8 +1,8 @@
 r"""
-Base class for Channels and commonly used channels
+Channels
 
-Given an input space and an output space, a channel takes element from
-the input space (the message) and transforms it into an element of the output space
+Given an input space and an output space, a channel takes element from the
+input space (the message) and transforms it into an element of the output space
 (the transmitted message).
 
 In Sage, Channels simulate error-prone transmission over communication
@@ -273,22 +273,22 @@ class Channel(SageObject):
     @abstract_method
     def transmit_unsafe(self, message):
         r"""
-        Returns ``message``, modified accordingly with the algorithm of the channel it was
+        Return ``message``, modified accordingly with the algorithm of the channel it was
         transmitted through.
 
         This method does not check if ``message`` belongs to the input space of``self``.
 
         This is an abstract method which should be reimplemented in all the subclasses of
         Channel.
+
+        EXAMPLES::
+
+            sage: n_err = 2
+            sage: Chan = channels.StaticErrorRateChannel(GF(59)^6, n_err)
+            sage: v = Chan.input_space().random_element()
+            sage: Chan.transmit_unsafe(v)  # random
+            (1, 33, 46, 18, 20, 49)
         """
-
-
-
-
-
-
-
-
 
 
 class StaticErrorRateChannel(Channel):
@@ -649,14 +649,6 @@ class ErrorErasureChannel(Channel):
         return self._number_erasures
 
 
-
-
-
-
-
-
-
-
 class QarySymmetricChannel(Channel):
     r"""
     The q-ary symmetric, memoryless communication channel.
@@ -670,9 +662,9 @@ class QarySymmetricChannel(Channel):
 
     Though `\Sigma` is usually taken to be a finite field, this implementation
     allows any structure for which Sage can represent `\Sigma^n` and for which
-    `\Sigma` has a `random_element()` method. However, beware that if `\Sigma`
+    `\Sigma` has a ``random_element()`` method. However, beware that if `\Sigma`
     is infinite, errors will not be uniformly distributed (since
-    `random_element()` does not draw uniformly at random).
+    ``random_element()`` does not draw uniformly at random).
 
     The input space and the output space of this channel are the same:
     `\Sigma^n`.

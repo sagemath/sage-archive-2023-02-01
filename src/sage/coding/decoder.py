@@ -1,11 +1,12 @@
 r"""
-Base class for Decoders
+Decoders
 
 Representation of an error-correction algorithm for a code.
 
 AUTHORS:
 
 - David Joyner (2009-02-01): initial version
+
 - David Lucas (2015-06-29): abstract class version
 
 """
@@ -219,8 +220,6 @@ class Decoder(SageObject):
         """
         return not self == other
 
-
-
     def decode_to_code(self, r):
         r"""
         Corrects the errors in ``r`` and returns a codeword.
@@ -256,9 +255,14 @@ class Decoder(SageObject):
             word = self.decode_to_message(r)
             return self.connected_encoder().encode(word)
 
-    def connected_encoder(self):
+    def connected_encoder(self, *args, **kwargs):
         r"""
         Returns the connected encoder of ``self``.
+
+        INPUT:
+
+        - ``args``, ``kwargs`` -- all additional arguments are forwarded to the constructor of the encoder
+          this method will return.
 
         EXAMPLES::
 
@@ -268,7 +272,7 @@ class Decoder(SageObject):
             sage: D.connected_encoder()
             Generator matrix-based encoder for [7, 4] linear code over GF(2)
         """
-        return self.code().encoder(encoder_name=self._connected_encoder_name)
+        return self.code().encoder(self._connected_encoder_name, *args, **kwargs)
 
     def decode_to_message(self, r):
         r"""

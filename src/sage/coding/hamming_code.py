@@ -1,5 +1,5 @@
 r"""
-Hamming Code
+Hamming code
 
 Given an integer `r` and a field `F`, such that `F=GF(q)`,
 the `[n, k, d]` code with length `n=\frac{q^{r}-1}{q-1}`,

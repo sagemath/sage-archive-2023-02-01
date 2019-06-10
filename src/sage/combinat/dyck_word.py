@@ -2015,7 +2015,7 @@ class DyckWord_complete(DyckWord):
         for j in range(n):
             for i in range(area[j]):
                 pi = pi.apply_simple_reflection(j - i)
-        return ~pi
+        return pi
 
     @combinatorial_map(name='to non-crossing permutation')
     def to_noncrossing_permutation(self):

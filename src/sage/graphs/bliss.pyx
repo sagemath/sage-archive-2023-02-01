@@ -735,11 +735,10 @@ cpdef automorphism_group(G, partition=None, use_edge_labels=True):
                 edge_labels.append(lab)
             labels.append(labInd)
 
-    cdef list domain = list(int2vert)
     gens = automorphism_group_gens_from_edge_list(Vnr, Vout, Vin, Lnr, labels, int2vert, partition, directed)
 
     from sage.groups.perm_gps.permgroup import PermutationGroup
-    return PermutationGroup(gens, domain=domain)
+    return PermutationGroup(gens, domain=int2vert[:G.order()])
 
 
 #####################################################

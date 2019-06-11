@@ -207,7 +207,6 @@ class Rule(UniqueRepresentation):
     r"""
     Base class for common functionalities in insertion rules.
     """
-    #TO add common functionalities for all rules
     def to_pair(self, obj1=None, obj2=None):
         r"""
         Returns an iterable two-array in pair form for row insertion.
@@ -340,6 +339,26 @@ class Rule(UniqueRepresentation):
                 upper_row.append(value)
         return self.format_output(lower_row, upper_row, output, p.is_standard(), q.is_standard())
 
+    def format_output(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
+        if q_is_standard:
+            if output == 'word':
+                from sage.combinat.words.word import Word
+                return Word(reversed(lower_row))
+            if output == 'matrix':
+                return to_matrix(list(range(1, len(lower_row)+1)), list(reversed(lower_row)))
+            if output == 'array':
+                return [list(range(1, len(lower_row)+1)), list(reversed(lower_row))]
+            raise ValueError("invalid output option")
+
+        else:
+            if output == 'matrix':
+                return to_matrix(list(reversed(upper_row)), list(reversed(lower_row)))
+            if output == 'array':
+                return [list(reversed(upper_row)), list(reversed(lower_row))]
+            if output in ['permutation', 'word']:
+                raise TypeError("q must be standard to have a %s as valid output"%output)
+            raise ValueError("invalid output option")
+
 class RuleRSK(Rule):
     r"""
     A rule modeling Robinson-Schensted-Knuth insertion.
@@ -393,29 +412,14 @@ class RuleRSK(Rule):
             rev_word.append(x)
 
     def format_output(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
-        if q_is_standard:
-            if output == 'word':
-                from sage.combinat.words.word import Word
-                return Word(reversed(lower_row))
-            if output == 'matrix':
-                return to_matrix(list(range(1, len(lower_row)+1)), list(reversed(lower_row)))
-            if output == 'array':
-                return [list(range(1, len(lower_row)+1)), list(reversed(lower_row))]
-            if output == 'permutation':
-                if not p_is_standard:
-                    raise TypeError("p must be standard to have a valid permutation as output")
-                from sage.combinat.permutation import Permutation
-                return Permutation(reversed(lower_row))
-            raise ValueError("invalid output option")
-
+        if q_is_standard and output == 'permutation':
+            if not p_is_standard:
+                raise TypeError("p must be standard to have a valid permutation as output")
+            from sage.combinat.permutation import Permutation
+            return Permutation(reversed(lower_row))
         else:
-            if output == 'matrix':
-                return to_matrix(list(reversed(upper_row)), list(reversed(lower_row)))
-            if output == 'array':
-                return [list(reversed(upper_row)), list(reversed(lower_row))]
-            if output in ['permutation', 'word']:
-                raise TypeError("q must be standard to have a %s as valid output"%output)
-            raise ValueError("invalid output option")
+            return super(RuleRSK, self).format_output(lower_row, upper_row, output, p_is_standard, q_is_standard)
+
 
 class RuleEG(Rule):
     r"""
@@ -462,6 +466,18 @@ class RuleEG(Rule):
         qr.append(i) # Values are always inserted to the right
 
     def rev_insertion(self, i, p_copy, rev_word, q_is_standard):
+        r"""
+        TESTS:
+        
+        For non-standard p, q::
+
+            sage: RSK_inverse(*RSK([1, 2, 3, 2, 1], insertion='EG'), insertion='EG')
+            [[1, 2, 3, 4, 5], [1, 2, 3, 2, 1]]
+            sage: RSK_inverse(*RSK([1, 1, 1, 2], [1, 2, 3, 4], insertion=RSK.rules.EG), insertion=RSK.rules.EG)
+            [[1, 1, 1, 2], [1, 2, 3, 4]]
+            sage: RSK_inverse(*RSK([1, 2, 3, 3], [2, 1, 2, 2], insertion='EG'), insertion='EG')
+            [[1, 2, 3, 3], [2, 1, 2, 2]]
+        """
         from bisect import bisect_left
         if q_is_standard:
             x = p_copy[i].pop() # Always the right-most entry
@@ -476,27 +492,24 @@ class RuleEG(Rule):
                     x, row[y_pos] = row[y_pos], x
             rev_word.append(x)
         else:
-            raise NotImplementedError("only RuleRSK is implemented for non-standard q")
+            x = p_copy[i].pop() # Always the right-most entry
+            for row in reversed(p_copy[:i]):
+                y = bisect_left(row,x) - 1
+                if row[y] == x - 1 and y < len(row)-1 and row[y+1] == x:
+                    x-=1
+                else:
+                    x, row[y] = row[y], x
+            rev_word.append(x)
 
     def format_output(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
-        if q_is_standard:
-            if output == 'word':
-                from sage.combinat.words.word import Word
-                return Word(reversed(lower_row))
-            if output == 'matrix':
-                return to_matrix(list(range(1, len(lower_row)+1)), list(reversed(lower_row)))
-            if output == 'array':
-                return [list(range(1, len(lower_row)+1)), list(reversed(lower_row))]
-            if output == 'permutation':
-                n = 0
-                if list(lower_row):
-                    n = max(list(lower_row)) + 1
-                from sage.combinat.permutation import Permutations
-                return Permutations(n).from_reduced_word(list(reversed(lower_row)))
-            raise ValueError("invalid output option")
-
+        if q_is_standard and output == 'permutation':
+            n = 0
+            if list(lower_row):
+                n = max(list(lower_row)) + 1
+            from sage.combinat.permutation import Permutations
+            return Permutations(n).from_reduced_word(list(reversed(lower_row)))
         else:
-            raise NotImplementedError("only RuleRSK is implemented for non-standard q")
+            return super(RuleEG, self).format_output(lower_row, upper_row, output, p_is_standard, q_is_standard)
 
 
 class RuleHecke(Rule):

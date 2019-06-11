@@ -1022,9 +1022,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             ((c^6 - 9*c^4 + 25*c^2 - c - 21)/(c^2 - 3) : 1)
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
-            sage: H = Hom(P,P)
-            sage: f = H([x^2+3*y^2, 2*y^2,z^2])
-            sage: P(2, 7, 1).nth_iterate(f, -2)
+            sage: f = DynamicalSystem_projective([x^2+3*y^2, 2*y^2,z^2])
+            sage: f.nth_iterate(P(2, 7, 1), -2)
             Traceback (most recent call last):
             ...
             TypeError: must be a forward orbit
@@ -1221,11 +1220,11 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: f = DynamicalSystem_projective([x^2, 2*y^2], domain=P)
-            sage: P(2, 1).orbit(f,[-1, 4])
+            sage: f.orbit(P(2, 1),[-1, 4])
             Traceback (most recent call last):
             ...
             TypeError: orbit bounds must be non-negative
-            sage: P(2, 1).orbit(f, 0.1)
+            sage: f.orbit(P(2, 1), 0.1)
             Traceback (most recent call last):
             ...
             TypeError: Attempt to coerce non-integral RealNumber to Integer
@@ -1234,20 +1233,20 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: f = DynamicalSystem_projective([x^3, x*y^2], domain=P)
-            sage: P(0, 1).orbit(f, 3)
+            sage: f.orbit(P(0, 1), 3)
             Traceback (most recent call last):
             ...
             ValueError: [0, 0] does not define a valid point since all entries are 0
-            sage: P(0, 1).orbit(f, 3, check=False)
+            sage: f.orbit(P(0, 1), 3, check=False)
             [(0 : 1), (0 : 0), (0 : 0), (0 : 0)]
 
         ::
 
             sage: P.<x,y> = ProjectiveSpace(ZZ, 1)
             sage: f = DynamicalSystem_projective([x^3, x*y^2], domain=P)
-            sage: P(2,1).orbit(f, 3, normalize=False)
+            sage: f.orbit(P(2,1), 3, normalize=False)
             [(2 : 1), (8 : 2), (512 : 32), (134217728 : 524288)]
-            sage: P(2, 1).orbit(f, 3, normalize=True)
+            sage: f.orbit(P(2, 1), 3, normalize=True)
             [(2 : 1), (4 : 1), (16 : 1), (256 : 1)]
         """
         if not isinstance(N,(list,tuple)):
@@ -2680,7 +2679,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: c = 2^2*5^2*11^3
             sage: f = DynamicalSystem([x^3 - c^2*y^3, x*y^2])
             sage: MM = f.all_minimal_models(return_transformation=True, algorithm='BM')
-            sage: all([f.conjugate(m) == F for F,m in MM])
+            sage: all(f.conjugate(m) == F for F, m in MM)
             True
             sage: MM = f.all_minimal_models(return_transformation=True, algorithm='HS')
             sage: all(f.conjugate(m) == F for F,m in MM)

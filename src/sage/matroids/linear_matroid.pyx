@@ -564,6 +564,19 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             [1 1 1 0]
             [1 0 1 1]
             [1 1 0 1]
+
+            sage: from sage.matroids.advanced import lift_cross_ratios, lift_map, LinearMatroid
+            sage: R = GF(7)
+            sage: A = Matrix(R, [[1, 0, 6, 1, 2],[6, 1, 0, 0, 1],[0, 6, 3, 6, 0]])
+            sage: M = LinearMatroid(reduced_matrix = A)
+            sage: M.representation(lift_map=lift_map('sru')) # py2
+            [     1      0      0      1      0      1      1      1]
+            [     0      1      0 -z + 1      1      0      0      1]
+            [     0      0      1      0     -1      1 -z + 1      0]
+            sage: M.representation(lift_map=lift_map('sru')) # py3
+            [     1      0      0      1      0      1      1      1]
+            [     0      1      0 -z + 1      1      0      0      1]
+            [     0      0      1      0     -z      z      1      0]
         """
         cdef LeanMatrix A
         if order is None:

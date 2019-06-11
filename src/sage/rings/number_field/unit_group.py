@@ -60,7 +60,7 @@ vectors with respect to the generators::
     sage: u = UK.fundamental_units()[0]
     sage: [UK.log(u^k) == (0,k) for k in range(10)]
     [True, True, True, True, True, True, True, True, True, True]
-    sage: all([UK.log(u^k) == (0,k) for k in range(10)])
+    sage: all(UK.log(u^k) == (0,k) for k in range(10))
     True
 
     sage: K.<a> = NumberField(x^5-2,'a')
@@ -315,8 +315,8 @@ class UnitGroup(AbelianGroupWithValues_class):
                     S = tuple(K.ideal(P) for P in S)
                 except (NameError, TypeError, ValueError):
                     raise ValueError("Cannot make a set of primes from %s"%(S,))
-                if not all([P.is_prime() for P in S]):
-                    raise ValueError("Not all elements of %s are prime ideals"%(S,))
+                if not all(P.is_prime() for P in S):
+                    raise ValueError("Not all elements of %s are prime ideals" % (S,))
             self.__S = S
             self.__pS = pS = [P.pari_prime() for P in S]
 

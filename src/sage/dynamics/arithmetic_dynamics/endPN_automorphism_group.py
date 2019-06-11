@@ -530,8 +530,8 @@ def valid_automorphisms(automorphisms_CRT, rational_function, ht_bound, M,
                             for x in init_lift]
                 g = gcd(new_lift)
                 new_lift = [x // g for x in new_lift]
-                if  all([abs(x) <= ht_bound for x in new_lift]):
-                    a,b,c,d = new_lift
+                if  all(abs(x) <= ht_bound for x in new_lift):
+                    a, b, c, d = new_lift
                     f = (a*z + b) / (c*z + d)
                     if rational_function(f(z)) == f(rational_function(z)):
                         if return_functions:

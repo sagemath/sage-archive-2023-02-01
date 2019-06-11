@@ -769,7 +769,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                         # terminate in reasonable time.
                         factor = (ret**r)/(1+ret**r)
                         ret = factor * delta
-                        if all([other(ret) < 0 for other in others[:i+1]]):
+                        if all(other(ret) < 0 for other in others[:i+1]):
                             break
             return ret
 

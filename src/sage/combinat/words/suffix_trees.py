@@ -114,13 +114,12 @@ class SuffixTrie(SageObject):
         r = self._active_state
         # While r is not the auxiliary vertex, or
         # there is not transition from r along letter, ...
-        while r != -1 and \
-                (r,letter) not in self._transition_function:
+        while r != -1 and (r, letter) not in self._transition_function:
             # adjoin a new state s
             s = len(self._suffix_link)
             self._suffix_link.append(None)
             # create a transition from r to s along letter
-            self._transition_function[(r,letter)] = s
+            self._transition_function[(r, letter)] = s
             if r != self._active_state:
                 # update the suffix link
                 self._suffix_link[old_s] = s
@@ -130,7 +129,7 @@ class SuffixTrie(SageObject):
         if r == -1:
             self._suffix_link[old_s] = 0
         else:
-            self._suffix_link[old_s] = self._transition_function[(r,letter)]
+            self._suffix_link[old_s] = self._transition_function[(r, letter)]
         # update the active state
         self._active_state = \
                 self._transition_function[(self._active_state, letter)]

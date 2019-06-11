@@ -2075,7 +2075,7 @@ class AbstractLinearCode(Module):
             sage: C = random_matrix(GF(25,'a'), 2, 7).row_space()
             sage: C = LinearCode(C.basis_matrix())
             sage: Clist = C.list()
-            sage: all([C[i]==Clist[i] for i in range(len(C))])
+            sage: all(C[i] == Clist[i] for i in range(len(C)))
             True
 
         Check that only the indices less than the size of the code are

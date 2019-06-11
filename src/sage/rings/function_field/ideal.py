@@ -1658,29 +1658,10 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
 
     def gens_two(self):
         """
-        Return two generators of this fractional ideal.
+        Return at most two generators of this fractional ideal.
 
-        If the ideal is principal, one generator *may* be returned.
-
-        ALGORITHM:
-
-        At most two generators are required to generate ideals in
-        Dedekind domains.
-
-        Lemma 4.7.9, algorithm 4.7.10, and exercise 4.29 of [Coh1993]_
-        tell us that for an integral ideal `I` in a number field, if
-        we pick `a` such that `\gcd(N(I), N(a)/N(I)) = 1`, then `a`
-        and `N(I)` generate the ideal.  `N()` is the norm, and this
-        result (presumably) generalizes to function fields.
-
-        After computing `N(I)`, we search exhaustively to find `a`.
-
-        .. TODO::
-
-            Always return a single generator for a principal ideal.
-
-            Testing for principality is not trivial.  Algorithm 6.5.10
-            of [Coh1993]_ could probably be adapted for function fields.
+        If the ideal is principal, one generator of the ideal may be returned,
+        but this is not guaranteed.
 
         EXAMPLES::
 
@@ -1694,6 +1675,8 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
             sage: ~I  # indirect doctest
             Ideal ((1/(x^6 + x^4 + x^2))*y^2) of Maximal order of Function field
             in y defined by y^3 + x^6 + x^4 + x^2
+
+        ::
 
             sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
             sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
@@ -1711,8 +1694,8 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
 
     @cached_method
     def _gens_two(self):
-        """
-        Return a set of two generators of the integral ideal, that is
+        r"""
+        Return at most two generators of the integral ideal, that is
         the denominator times this fractional ideal.
 
         EXAMPLES::
@@ -1723,6 +1706,33 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
             sage: I = O.ideal(x^2,x*y,x+y)
             sage: I._gens_two()
             (x, y)
+
+        ::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: F.<y> = K.extension(Y)
+            sage: p, = F.places_infinite()
+            sage: p.prime_ideal().gens_two()
+            (1/x,)
+
+        ALGORITHM:
+
+        At most two generators are required to generate ideals in
+        Dedekind domains.
+
+        Lemma 4.7.9, Algorithm 4.7.10, and Exercise 4.29 of [Coh1993]_
+        tell us that for an integral ideal `I` in a number field, if
+        we pick `a` such that `\gcd(N(I), N(a)/N(I)) = 1`, then `a`
+        and `N(I)` generate the ideal.  `N()` is the norm, and this
+        result (presumably) generalizes to function fields.
+
+        After computing `N(I)`, we search exhaustively to find `a`.
+
+        .. TODO::
+
+            Provide a method to find a single generator for principal ideals.
+            Testing for principality is not trivial.  Algorithm 6.5.10 of
+            [Coh1993]_ could probably be adapted for function fields.
         """
         O = self.ring()
         F = O.fraction_field()
@@ -1731,7 +1741,10 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
             _g1, _g2 = self._kummer_form
             g1 = F(_g1)
             g2 = sum([c1*c2 for c1,c2 in zip(_g2, O.basis())])
-            return (g1,g2)
+            if g2:
+                return (g1, g2)
+            else:
+                return (g1,)
 
         ### start to search for two generators
 
@@ -1793,8 +1806,8 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
                 if check(alpha):
                     return (l, alpha)
 
-        # should not reach here
-        raise ValueError("no two generators found")
+        # should never reach here
+        raise ValueError("failed to find two generators")
 
     @cached_method
     def basis_matrix(self):

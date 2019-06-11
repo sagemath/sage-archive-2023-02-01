@@ -1389,21 +1389,22 @@ class FiniteWordPath_all(SageObject):
             TypeError: The dimension of the vector space (=2) must be 3 or 4
         """
         dimension = self.parent().vector_space().dimension()
-        if not dimension in (3, 4):
-            msg = "The dimension of the vector space (=%s) must be 3 or 4"%dimension
+        if dimension not in (3, 4):
+            msg = "The dimension of the vector space (=%s) must be 3 or 4" % dimension
             raise TypeError(msg)
         if letters is None:
             letters = self.parent().alphabet()
         if color is None:
             from sage.plot.all import hue
             A = self.parent().alphabet()
-            color = dict( (a, hue(A.rank(a)/float(A.cardinality()))) for a in A )
+            color = {a: hue(A.rank(a)/float(A.cardinality())) for a in A}
         it = self.projected_point_iterator(v, ring=ring)
         if kind == 'right':
-            start = next(it)
+            next(it)
         elif kind != 'left':
-            raise ValueError('unknown value for kind (=%s)'%kind)
-        tout = [point([c], color=color[a], size=size) for a, c in zip(self, it) if a in letters]
+            raise ValueError('unknown value for kind (=%s)' % kind)
+        tout = [point([c], color=color[a], size=size)
+                for a, c in zip(self, it) if a in letters]
         return sum(tout)
 
     def projected_path(self, v=None, ring=None):

@@ -59,6 +59,7 @@ from six import iteritems, integer_types
 from sage.structure.element import CommutativeRingElement, coerce_binop
 from sage.misc.all import prod
 import sage.rings.integer
+from sage.rings.qqbar_decorators import handle_AA_and_QQbar
 from . import polydict
 from sage.structure.factorization import Factorization
 from sage.rings.polynomial.polynomial_singular_interface import Polynomial_singular_repr
@@ -1804,6 +1805,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         F = sorted(Factorization(v, unit=unit))
         return F
 
+    @handle_AA_and_QQbar
     def lift(self,I):
         """
         given an ideal I = (f_1,...,f_r) and some g (== self) in I, find
@@ -1821,6 +1823,17 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             [y^7, x^7*y^2 + x^8 + x^5*y^3 + x^6*y + x^3*y^4 + x^4*y^2 + x*y^5 + x^2*y^3 + y^4]
             sage: sum( map( mul , zip( M, I.gens() ) ) ) == f
             True
+
+        TESTS:
+
+        Check that this method works over QQbar (:trac:`25351`)::
+
+            sage: A.<x,y> = QQbar[]
+            sage: I = A.ideal([x^2 + y^2 - 1, x^2 - y^2])
+            sage: f = 2*x^2 - 1
+            sage: M = f.lift(I)
+            sage: sum( map( mul , zip( M, I.gens() ) ) ) == f
+            True
         """
         fs = self._singular_()
         Is = I._singular_()
@@ -1832,6 +1845,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         return Sequence(M.list(), P, check=False, immutable=True)
 
     @coerce_binop
+    @handle_AA_and_QQbar
     def quo_rem(self, right):
         """
         Returns quotient and remainder of self and right.
@@ -1856,6 +1870,15 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             TypeError: no conversion of this ring to a Singular ring defined
 
         ALGORITHM: Use Singular.
+
+        TESTS:
+
+        Check that this method works over QQbar (:trac:`25351`)::
+
+            sage: R.<x,y> = QQbar[]
+            sage: f = y*x^2 + x + 1
+            sage: f.quo_rem(x)
+            (x*y + 1, 1)
         """
         R = self.parent()
         try:
@@ -1872,6 +1895,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             X = self._singular_().division(right._singular_())
             return R(X[1][1,1]), R(X[2][1])
 
+    @handle_AA_and_QQbar
     def resultant(self, other, variable=None):
         """
         Compute the resultant of ``self`` and ``other`` with respect
@@ -1924,6 +1948,16 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: q = x*y
             sage: p.resultant(q)
             -y^2
+
+        Check that this method works over QQbar (:trac:`25351`)::
+
+            sage: P.<x,y> = QQbar[]
+            sage: a = x + y
+            sage: b = x^3 - y^3
+            sage: a.resultant(b)
+            (-2)*y^3
+            sage: a.resultant(b, y)
+            2*x^3
         """
         R = self.parent()
         if variable is None:

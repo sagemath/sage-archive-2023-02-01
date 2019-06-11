@@ -4,6 +4,7 @@ src/sage/arith/
 src/sage/calculus/
 src/sage/categories/
 src/sage/coding/
+src/sage/combinat/cluster_algebra_quiver/
 src/sage/combinat/designs/
 src/sage/combinat/posets/
 src/sage/combinat/rigged_configurations/
@@ -41,6 +42,7 @@ src/sage/rings/asymptotic/
 src/sage/rings/function_field/
 src/sage/rings/number_field/
 src/sage/rings/padics/
+src/sage/rings/valuation/
 src/sage/sandpiles/
 src/sage/sat/
 src/sage/schemes/

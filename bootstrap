@@ -28,6 +28,42 @@ MAKE="${MAKE:-make}"
 CONFVERSION=`cat $PKG/package-version.txt`
 
 
+install_config_rpath() {
+    # The file config.rpath which comes from gettext is supposed to be
+    # installed by automake, but due to a bug in most distros it is not;
+    # see https://trac.sagemath.org/ticket/27823#comment:17
+    #
+    # Here we need to determine where gettext stores its data files and
+    # copy config.rpath from there to config/
+    gettextize="$(command -v gettextize)"
+    if [ -z "$gettextize" ]; then
+        echo >&2 "gettext and the gettextize program must be installed and be in"
+        echo >&2 "your PATH. E.g. Homebrew installs them in /usr/local/opt/gettext/bin."
+        exit 1
+    fi
+    eval `sed -n '/^prefix=\(.*\)$/p' $gettextize`
+    eval `sed -n '/^datarootdir=\(.*\)$/p' $gettextize`
+    eval `sed -n '/gettext_datadir=\(.*\)$/p' $gettextize`
+
+    if [ -z "$gettext_datadir" ]; then
+        echo >&2 "Failed to read the gettext_datadir directory from $gettextize"
+        echo >&2 "The config.rpath file must manually be copied into config/"
+        echo >&2 "This file is installed with gettext typically in /usr/share/gettext"
+        exit 1
+    fi
+
+    config_rpath="$gettext_datadir/config.rpath"
+    if [ ! -f "$config_rpath" ]; then
+        echo >&2 "Missing $config_rpath file; this indicates a broken gettext install."
+        exit 1
+    fi
+
+    echo "bootstrap:$LINENO: installing 'config/config.rpath'"
+    cp "$config_rpath" config/
+}
+
+
+
 bootstrap () {
     rm -f m4/sage_spkg_configures.m4
     spkg_configures=""
@@ -40,6 +76,7 @@ SAGE_SPKG_CONFIGURE_$(echo ${pkgname} | tr '[a-z]' '[A-Z]')"
     echo "$spkg_configures" >> m4/sage_spkg_configures.m4
 
     aclocal -I m4 && \
+    install_config_rpath && \
     automake --add-missing --copy build/make/Makefile-auto && \
     autoconf
 

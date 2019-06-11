@@ -2975,7 +2975,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             172800
             sage: prod(e + 1 for p, e in factor(a))
             172800
-            sage: all([t.divides(a) for t in v])
+            sage: all(t.divides(a) for t in v)
             True
 
         ::

@@ -324,7 +324,9 @@ def Matroid(groundset=None, data=None, **kwds):
             sage: M = Matroid('abcd', circuits=['ab', 'acd'])
             sage: M.is_valid()
             True
-            sage: [sorted(C) for C in M.circuits()]
+            sage: [sorted(C) for C in M.circuits()] # py2
+            [['a']]
+            sage: [sorted(C) for C in M.circuits()] # py3 random
             [['a']]
 
 
@@ -604,7 +606,15 @@ def Matroid(groundset=None, data=None, **kwds):
             sage: N = Matroid(M, regular=True)
             sage: N
             Regular matroid of rank 3 on 6 elements with 16 bases
-            sage: Matrix(N)
+            sage: M == N
+            False
+            sage: M.is_isomorphic(N)
+            True
+            sage: Matrix(N) # py2
+            [1 0 0 1 1 0]
+            [0 1 0 1 1 1]
+            [0 0 1 0 1 1]
+            sage: Matrix(N) # py3 random
             [1 0 0 1 1 0]
             [0 1 0 1 1 1]
             [0 0 1 0 1 1]

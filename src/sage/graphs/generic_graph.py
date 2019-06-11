@@ -6110,7 +6110,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = digraphs.RandomDirectedGNP(28, .3) # reduced from 30 to 28, cf. #9584
             sage: k = Integer(g.edge_connectivity())
             sage: arborescences = g.edge_disjoint_spanning_trees(k)  # long time (up to 15s on sage.math, 2011)
-            sage: all([a.is_directed_acyclic() for a in arborescences])  # long time
+            sage: all(a.is_directed_acyclic() for a in arborescences)  # long time
             True
             sage: all(a.is_connected() for a in arborescences)  # long time
             True
@@ -14523,7 +14523,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = graphs.RandomGNP(20,.3)
             sage: distances = g.distance_all_pairs()
-            sage: all([g.distance(0,v) == distances[0][v] for v in g])
+            sage: all(g.distance(0,v) == distances[0][v] for v in g)
             True
 
         .. SEEALSO::
@@ -17875,7 +17875,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: v = g.lex_BFS()[-1]
             sage: peo, tree = g.lex_BFS(initial_vertex = v,  tree=True)
             sage: leaves = [v for v in tree if tree.in_degree(v) ==0]
-            sage: all([g.subgraph(g.neighbors(v)).is_clique() for v in leaves])
+            sage: all(g.subgraph(g.neighbors(v)).is_clique() for v in leaves)
             True
 
         TESTS:

@@ -204,7 +204,7 @@ class GraphicMatroid(Matroid):
 
         # Map vertices on input graph to vertices in self._G
         self._vertex_map = {v: v for v in G.vertex_iterator()}
-        comps = G.connected_components()
+        comps = G.connected_components(sort=False)
         while len(comps) > 1:
             comp = comps.pop()
             v1 = comps[-1][-1]
@@ -1112,7 +1112,19 @@ class GraphicMatroid(Matroid):
             M = self.regular_matroid()
             if isinstance(other, GraphicMatroid):
                 other = other.regular_matroid()
-            return M._is_isomorphic(other, certificate=certificate)
+            if certificate:
+                # iso0: isomorphism from M and self -- in this order,
+                # to prevent an infinite recursion.
+                iso0 = M._is_isomorphic(self, certificate=certificate)[1]
+                # Now invert iso0 to get iso1, an isomorphism from self to M.
+                iso1 = {iso0[e]: e for e in iso0}
+                # iso2: isomorphism from M and other.
+                isomorphic, iso2 = M._is_isomorphic(other, certificate=certificate)
+                if not isomorphic:
+                    return (False, None)
+                # Compose iso1 and iso2, to go from self to other.
+                return (True, {e: iso2[iso1[e]] for e in iso1})
+            return M._is_isomorphic(other)
 
     def _isomorphism(self, other):
         """
@@ -1147,8 +1159,9 @@ class GraphicMatroid(Matroid):
             sage: M._isomorphism(N)
             {'a': 2, 'b': 4, 'c': 5, 'd': 0, 'e': 1, 'f': 3}
             sage: O = Matroid(Graph(edgelist), regular=True)
-            sage: M._isomorphism(O)
-            {'a': 'a', 'b': 'c', 'c': 'b', 'd': 'e', 'e': 'd', 'f': 'f'}
+            sage: iso = M._isomorphism(O)
+            sage: M.is_isomorphism(O, iso)
+            True
         """
         return self.is_isomorphic(other, certificate=True)[1]
 
@@ -1218,16 +1231,16 @@ class GraphicMatroid(Matroid):
             [(0, 1, 0),
              (0, 2, 1),
              (1, 2, 2),
-             (2, 4, 3),
-             (2, 5, 4),
+             (1, 4, 3),
+             (1, 5, 4),
              (4, 5, 5),
-             (5, 7, 6),
-             (5, 8, 7),
+             (4, 7, 6),
+             (4, 8, 7),
              (7, 8, 8),
              (7, 8, 9),
              (8, 8, 10)]
             sage: M.vertex_map()
-            {0: 0, 1: 1, 2: 2, 3: 2, 4: 4, 5: 5, 6: 5, 7: 7, 8: 8}
+            {0: 0, 1: 1, 2: 2, 3: 1, 4: 4, 5: 5, 6: 4, 7: 7, 8: 8}
         """
         return copy(self._vertex_map)
 

@@ -16056,11 +16056,11 @@ class GenericGraph(GenericGraph_pyx):
 
         if not by_weight:
             length_func = len
-            shortest_path_func = self._backend.shortest_path # shortest path function for unweighted graph
+            shortest_path_func = self._backend.shortest_path_special # shortest path function for unweighted graph
         else:
             def length_func(path):
                 return sum(edge_wt[e] for e in zip(path, path[1:]))
-            shortest_path_func = self._backend.bidirectional_dijkstra # shortest path function for weighted graph
+            shortest_path_func = self._backend.bidirectional_dijkstra_special # shortest path function for weighted graph
 
         heap_paths = set() # a set to check if a path is already present in the heap or not
         heap_sorted_paths = list() # heap data structure containing the candidate paths
@@ -16123,6 +16123,268 @@ class GenericGraph(GenericGraph_pyx):
                 except Exception:
                     pass
                 exclude_vertices.add(root[-1])
+
+    def yen_k_shortest_simple_paths_directed(self, source, target, weight_function=None, by_weight=False):
+        r"""
+        Return an iterator over the simple paths between a pair of vertices in
+        increasing order of weights.
+
+        Works only for directed graphs.
+
+        For unweighted graphs paths are returned in order of increasing number
+        of edges.
+
+        In case of weighted graphs negative weights are not allowed.
+
+        If ``source`` is the same vertex as ``target``, then ``[[source]]`` is
+        returned -- a list containing the 1-vertex, 0-edge path "``source``"
+
+        INPUT:
+
+        - ``source`` -- a vertex of the graph, where to start
+
+        - ``target`` -- a vertex of the graph, where to end
+
+        - ``weight_function`` -- function (default: ``None``); a function that
+          takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+          ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+          and ``by_weight`` is ``True``, we use the edge label ``l`` as a
+          weight.
+
+        - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
+          in the graph are weighted, otherwise all edges have weight 1
+
+        EXAMPLES::
+
+            sage: g = DiGraph([(1, 2, 20), (1, 3, 10), (1, 4, 30), (2, 5, 20), (3, 5, 10), (4, 5, 30)])
+            sage: list(g.yen_k_shortest_simple_paths_directed(1, 5, by_weight=True))
+            [[1, 3, 5], [1, 2, 5], [1, 4, 5]]
+            sage: list(g.yen_k_shortest_simple_paths_directed(1, 5))
+            [[1, 4, 5], [1, 3, 5], [1, 2, 5]]
+            sage: list(g.yen_k_shortest_simple_paths_directed(1, 1))
+            [[1]]
+
+            sage: g = DiGraph([(1, 2, 20), (1, 3, 10), (1, 4, 30), (2, 5, 20), (3, 5, 10), (4, 5, 30), (1, 6, 100), (5, 6, 5)])
+            sage: list(g.yen_k_shortest_simple_paths_directed(1, 6, by_weight = True))
+            [[1, 3, 5, 6], [1, 2, 5, 6], [1, 4, 5, 6], [1, 6]]
+            sage: list(g.yen_k_shortest_simple_paths_directed(1, 6))
+            [[1, 6], [1, 4, 5, 6], [1, 3, 5, 6], [1, 2, 5, 6]]
+
+        TESTS::
+
+            sage: g = DiGraph([(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 2), (5, 6, 100), (4, 7, 3), (7, 6, 4), (3, 8, 5), (8, 9, 2), (9, 6, 2), (9, 10, 7), (9, 11, 10), (11, 6, 8), (10, 6, 2)])
+            sage: list(g.yen_k_shortest_simple_paths_directed(1, 6, by_weight=True))
+            [[1, 2, 3, 4, 7, 6],
+             [1, 2, 3, 8, 9, 6],
+             [1, 2, 3, 8, 9, 10, 6],
+             [1, 2, 3, 8, 9, 11, 6],
+             [1, 2, 3, 4, 5, 6]]
+            sage: list(g.yen_k_shortest_simple_paths_directed(1, 6))
+            [[1, 2, 3, 8, 9, 6],
+             [1, 2, 3, 4, 7, 6],
+             [1, 2, 3, 4, 5, 6],
+             [1, 2, 3, 8, 9, 11, 6],
+             [1, 2, 3, 8, 9, 10, 6]]
+            sage: g = DiGraph([(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 1), (1, 7, 1), (7, 8, 1), (8, 5, 1), (1, 6, 1), (6, 9, 1), (9, 5, 1), (4, 2, 1), (9, 3, 1), (9, 10, 1), (10, 5, 1), (9, 11, 1), (11, 10, 1)])
+            sage: list(g.yen_k_shortest_simple_paths_directed(1, 5))
+            [[1, 7, 8, 5],
+             [1, 6, 9, 5],
+             [1, 2, 3, 4, 5],
+             [1, 6, 9, 10, 5],
+             [1, 6, 9, 11, 10, 5],
+             [1, 6, 9, 3, 4, 5]]
+            sage: list(g.yen_k_shortest_simple_paths_directed(1, 5, by_weight=True))
+            [[1, 7, 8, 5],
+             [1, 6, 9, 5],
+             [1, 2, 3, 4, 5],
+             [1, 6, 9, 10, 5],
+             [1, 6, 9, 11, 10, 5],
+             [1, 6, 9, 3, 4, 5]]
+        """
+        if not self.is_directed():
+            raise ValueError("this algorithm works only for directed graphs")
+
+        if source not in self:
+            raise ValueError("vertex '{}' is not in the graph".format(source))
+
+        if target not in self:
+            raise ValueError("vertex '{}' is not in the graph".format(target))
+
+        if source == target:
+            yield [source]
+            return
+
+        if weight_function is not None:
+            by_weight = True
+
+        if weight_function is None and by_weight:
+            def weight_function(e):
+                return e[2]
+
+        parent = {}
+        color = {}
+        expressEdges = dict()
+        dic = {}
+        if by_weight:
+            self._check_weight_function(weight_function)
+            def reverse_weight_function(e):
+                e_ = (e[1], e[0], e[2])
+                return weight_function(e_)
+        else:
+            def weight_function(e):
+                return 1
+            def reverse_weight_function(e):
+                return 1
+
+        def getUpStreamNodes(v):
+            ver = list()
+            S = list()
+            S.append(v)
+            while(S):
+                u = S.pop(0)
+                if u in parent:
+                    for u_node in parent[u]:
+                        if color[u_node] == 0: # green
+                            S.append(u_node)
+                            ver.append(u_node)
+            return ver
+
+        def findExpressEdges(Y):
+            for v in Y:
+                for w in self.neighbors_out(v):
+                    if color[w] == 0: # green
+                        if w not in expressEdges:
+                            expressEdges[w] = []
+                        expressEdges[w].append((v, w, self.edge_label(v, w)))
+                        if w != target and not self.has_edge(w, target):
+                            self.add_edge(w, target, 0)
+                            dic[(w, target)] = 1
+                        include_vertices.add(w)
+                        reduced_cost[(w, target)] = 0
+
+        father = {} # father of the path
+        from heapq import heappush, heappop
+
+        reverse_graph = self.reverse()
+        from sage.graphs.base.boost_graph import shortest_paths
+        dist, successor = shortest_paths(reverse_graph, target, weight_function=reverse_weight_function, algorithm="Dijkstra_Boost")
+        # successor is a child node in the shortest path subtree
+        reduced_cost = {}
+        for e in self.edge_iterator():
+            if e[0] in dist and e[1] in dist:
+                reduced_cost[(e[0], e[1])] = weight_function(e) + dist[e[1]] - dist[e[0]]
+    
+        for key in successor:
+            if successor[key] and successor[key] not in parent:
+                parent[successor[key]] = [key]
+            elif successor[key]:
+                parent[successor[key]].append(key)
+
+        def length_func(path):
+            return sum(reduced_cost[e] for e in zip(path, path[1:]))
+        shortest_path_func = self._backend.bidirectional_dijkstra_special # shortest path function for weighted/unweighted graph using reduced weights
+
+        heap_paths = set() # a set to check if a path is already present in the heap or not
+        heap_sorted_paths = list() # heap data structure containing the candidate paths
+        listA = list() # list of previous paths already popped from the heap
+        prev_path = None
+
+        # compute the shortest path between the source and the target
+        
+        path = shortest_path_func(source, target, weight_function=weight_function, reduced_weight=reduced_cost)
+        length = length_func(path)
+    
+        if len(path) == 0: # corner case
+            yield path
+            return
+        father[frozenset(path)] = None
+        hash_path = tuple(path) # hashing the path to check the existence of a path in the heap
+        heappush(heap_sorted_paths, (length, path, 0)) # heap push operation
+        heap_paths.add(hash_path) # adding the path to the heap_paths set
+
+        while heap_paths:
+            (cost, path1, dev_idx) = heappop(heap_sorted_paths) # extracting the next best path from the heap
+            hash_path = tuple(path1)
+            heap_paths.remove(hash_path)
+            yield path1
+            listA.append(path1)
+            prev_path = path1
+
+            exclude_vertices = set()
+            exclude_edges = set()
+            include_vertices = set()
+            expressEdges = {}
+            dic = {}
+            for v in self:
+                color[v] = 0 # coloring all the nodes as green initially
+            allY = list()
+            for j in range(dev_idx+1):
+                color[prev_path[j]] = 1 # coloring red
+                Yv = getUpStreamNodes(prev_path[j])
+                allY += Yv
+                for y in Yv:
+                    color[y] = 2 # yellow color for upstream nodes
+                    include_vertices.add(y)
+            allY.append(prev_path[dev_idx]) # adding the deviation node to find the express edges
+            findExpressEdges(allY)
+            color[target] = 2
+            include_vertices.add(target)
+            for i in range(dev_idx + 1, len(prev_path)): # deviating from the previous path to find the candidate paths
+                root = prev_path[:i] # root part of the previous path
+                root_length = length_func(root)
+                if i == dev_idx + 1: # if its the deviation node
+                    p = father[frozenset(prev_path)]
+                    while(p and len(p) > dev_idx + 1 and p[dev_idx] == root[dev_idx]): # comparing the deviation nodes
+                        # using fatherly approach to filter the edges to be removed
+                        exclude_edges.add((p[i - 1], p[i]))
+                        p = father[frozenset(p)]
+                else:
+                    color[root[-1]] = 1 # coloring it red
+                    Yu = getUpStreamNodes(root[-1])
+                    for y in Yu:
+                        color[y] = 2 # coloring it as yellow
+                    Yu.append(root[-1])
+                    for n in Yu:
+                        if n in expressEdges and len(expressEdges[n]) > 0:
+                            # recover
+                            for e in expressEdges[n]:
+                                if (e[1], target) in dic:
+                                    self.delete_edge(e[1], target) # restoration
+                            expressEdges[n] = []  # resetting  
+                    findExpressEdges(Yu)
+                # removing only one edge from prev_path in both the cases
+                exclude_edges.add((prev_path[i - 1], prev_path[i]))
+                try:
+                    # finding the spur part of the path after excluding certain vertices and edges
+                    # finding an all yellow subpath
+                    spur = shortest_path_func(root[-1], target,
+                                              exclude_vertices=exclude_vertices,
+                                              exclude_edges=exclude_edges,
+                                              include_vertices=include_vertices,
+                                              weight_function=weight_function,
+                                              reduced_weight=reduced_cost)
+                    if spur and (spur[-2], target) in dic:
+                        spur.pop()
+                        st = spur[-1]
+                        while(st!=target):
+                            st = successor[st]
+                            spur.append(st)
+
+                    length = length_func(spur)
+                    if not spur:
+                        continue
+                    path = root[:-1] + spur # concatenating the root and the spur paths
+                    # push operation
+                    hash_path = tuple(path)
+                    if hash_path not in heap_paths: # if this path is not already present inside the heap
+                        father[frozenset(path)] = prev_path
+                        heappush(heap_sorted_paths, (root_length + length, path, len(root) - 1))
+                        heap_paths.add(hash_path)
+                except Exception:
+                    pass
+                exclude_vertices.add(root[-1])
+            for e in dic: # restoring the original graph here
+                self.delete_edge(e)
 
     def triangles_count(self, algorithm=None):
         r"""

@@ -16,7 +16,7 @@ then type in the following commands in a terminal:
 * Enter the new environment: ``conda activate sage``
 * Start SageMath: ``sage``
 
-.. note:: The dependicies resolution process of conda is slow; a faster experimental resolver
+.. note:: The dependency resolution process of conda is slow; a faster experimental resolver
    we tried with success is `mamba <https://github.com/QuantStack/mamba>`_. It can be used as follows.
 
    .. code-block:: shell

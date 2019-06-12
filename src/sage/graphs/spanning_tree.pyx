@@ -697,7 +697,7 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
     If the input graph is a tree, then return its edges::
 
         sage: T = graphs.RandomTree(randint(1, 10))
-        sage: T.edges() == sorted(boruvka(T, check=True))
+        sage: list(T.edges(sort=True)) == sorted(boruvka(T, check=True))
         True
 
     Check if the weight of MST returned by Prim's and Boruvka's is the same::

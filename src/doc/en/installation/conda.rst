@@ -24,7 +24,7 @@ then type in the following commands in a terminal:
       conda install mamba -c conda-forge # installs mamba
       mamba create -n sage sage -c conda-forge # replaces "conda create..."
 
-.. note:: At the time of this edit (|today|) the newest SageMath available on conda-forge
+.. note:: At the time of this edit (2019/06/12) the newest SageMath available on conda-forge
    is 8.3, and it needs to be installed with the correct dependencies, as follows:
 
    .. code-block:: shell

@@ -6,57 +6,55 @@ from sage.modules.free_module_element import vector
 from sage.coding.all import codes
 
 def _columnize(element):
-    v = vector(element) 
+    v = vector(element)
     return v.column()
 
 class GoppaCode(AbstractLinearCode):
-    """Implementation of Goppa codes, a generalization of BCH codes.
-    
+    """Implementation of Goppa codes, a generalization of narrow-sense BCH codes.
+
     INPUTS:
-    
-    -field -- finite filed F_q over which the code is defined
-    q must be a prime number
-    
-    -length -- length of code
-    
-    -generating_pol -- a monic polynomial with coefficients in F_q^m 
-    
-    -defining_set -- a set of elements of F_q^m that are not roots of g, 
-    its cardinality must equal 'length'
-    
+
+    -generating_pol -- a monic polynomial with coefficients in a finite field F_p^m,
+    the code is defined over F_p, p must be a prime number
+
+    -defining_set -- a set of elements of F_p^m that are not roots of g,
+    its cardinality is the length of the code
+
     EXAMPLES::
-        
+
         sage: from sage.coding.goppa import GoppaCode
         sage: F8=GF(2**6)
         sage: RR.<xx> = F8[]
         sage: g = xx^9+1
         sage: L = [a for a in F8.list() if g(a)!=0]
-        sage: len(L)
-        55
-        sage: n = 55
-        sage: C = GoppaCode(GF(2), n, g, L)
+        sage: C = GoppaCode(g, L)
         sage: C
-        [55, 16] Goppa code 
+        [55, 16] Goppa code
     """
 
     _registered_encoders = {}
     _registered_decoders = {}
 
-    def __init__(self, field, length, generating_pol, defining_set):
-        super(GoppaCode, self).__init__(field, length, "GoppaEncoder", "Syndrome")
-        self._length = length
+    def __init__(self, generating_pol, defining_set):
+
+        self._field = generating_pol.base_ring()
+        self._length = len(defining_set)
         self._generating_pol = generating_pol
         self._defining_set = defining_set
-        
-        F = generating_pol.base_ring()
+
+        super(GoppaCode, self).__init__(field, length, "GoppaEncoder", "Syndrome")
+
+        if not g.is_monic():
+            raise ValueError("generating_pol must be monic")
+        F = self._field
         if (not F.is_field() or not F.is_finite()):
             raise ValueError("generating_pol must be defined over a finite field")
         for a in defining_set:
             if generating_pol(a) == 0:
                 raise ValueError("Defining elements cannot be roots of generating polynomial")
-                
-        
-    
+
+
+
     def _repr_(self):
         """Representation of a Goppa code.
 
@@ -67,12 +65,10 @@ class GoppaCode(AbstractLinearCode):
             sage: RR.<xx> = F8[]
             sage: g = xx^2+xx+1
             sage: L = [a for a in F8.list() if g(a)!=0]
-            sage: len(L)
-            8
-            sage: n = 8
-            sage: C = GoppaCode(GF(2), n, g, L)
+            sage: C = GoppaCode(g, L)
             sage: C._repr_()
             '[8, 2] Goppa code'
+
         """
         return "[%s, %s] Goppa code" %(self.length(), self.dimension())
 
@@ -86,15 +82,12 @@ class GoppaCode(AbstractLinearCode):
             sage: RR.<xx> = F8[]
             sage: g = xx^2+xx+1
             sage: L = [a for a in F8.list() if g(a)!=0]
-            sage: len(L)
-            8
-            sage: n = 8
-            sage: C = GoppaCode(GF(2), n, g, L)
+            sage: C = GoppaCode(g, L)
             sage: C._latex_()
             '\\textnormal{Goppa code of length } 8'
 
-        """ 
-    
+        """
+
         return ("\\textnormal{Goppa code of length } %s" % self.length())
 
     def __eq__(self, other):
@@ -107,11 +100,8 @@ class GoppaCode(AbstractLinearCode):
             sage: RR.<xx> = F8[]
             sage: g = xx^2+xx+1
             sage: L = [a for a in F8.list() if g(a)!=0]
-            sage: len(L)
-            8
-            sage: n = 8
-            sage: C = GoppaCode(GF(2), n, g, L)
-            sage: D = GoppaCode(GF(2), n, g, L)
+            sage: C = GoppaCode(g, L)
+            sage: D = GoppaCode(g, L)
             sage: D.__eq__(C)
             True
 
@@ -122,15 +112,15 @@ class GoppaCode(AbstractLinearCode):
            and self._defining_set == other._defining_set)
 
     def parity_check_matrix(self):
-        """Returns a parity check matrix for 'self'. 
+        """Returns a parity check matrix for 'self'.
 
         The element in row t, column i is h[i]*(D[i]**t), where:
 
         -h[i] is the inverse of g(D[i])
         -D[i] is the ith element of the defining set
 
-        In the resulting b * n matrix we interpret each entry as an m-column vector
-        annd return a bm * n matrix.
+        In the resulting d * n matrix we interpret each entry as an m-column vector
+        and return a dm * n matrix.
 
 
         EXAMPLES::
@@ -140,10 +130,7 @@ class GoppaCode(AbstractLinearCode):
             sage: RR.<xx> = F8[]
             sage: g = xx^2+xx+1
             sage: L = [a for a in F8.list() if g(a)!=0]
-            sage: len(L)
-            8
-            sage: n = 8
-            sage: C = GoppaCode(GF(2), n, g, L)
+            sage: C = GoppaCode(g, L)
             sage: C
             [8, 2] Goppa code
             sage: C.parity_check_matrix()
@@ -166,7 +153,7 @@ class GoppaCode(AbstractLinearCode):
         D = self._defining_set
         h = [(g(D[i]).inverse_of_unit()) for i in range(n)]
 
-        #assemble top row  
+        #assemble top row
         M = _columnize(alpha)
         for i in range(n):
             v = _columnize(h[i])
@@ -175,7 +162,7 @@ class GoppaCode(AbstractLinearCode):
         old = M
 
         for t in range(1,d):
-            #assemble row 
+            #assemble row
             M = _columnize(alpha)
             for i in range(n):
                 v = _columnize(h[i]*(D[i]**t))
@@ -185,11 +172,11 @@ class GoppaCode(AbstractLinearCode):
             old = old.stack(new)
 
         return old
-    
-    def distance_bound(self):
-        """Estimates a lower bound for the minimun distance of the code using the degree of g.
-        Min distance is guarenteed to be larger or equal to this bound.
-        
+
+    def _parity_check_matrix_Vandermonde(self):
+        """Alternative way to generate parity check matrix for Goppa codes using
+        Vandermonde matrix.
+
         EXAMPLES::
 
             sage: from sage.coding.goppa import GoppaCode
@@ -197,20 +184,55 @@ class GoppaCode(AbstractLinearCode):
             sage: RR.<xx> = F8[]
             sage: g = xx^2+xx+1
             sage: L = [a for a in F8.list() if g(a)!=0]
-            sage: len(L)
-            8
-            sage: n = 8
-            sage: C = GoppaCode(GF(2), n, g, L)
+            sage: C = GoppaCode(g, L)
+            sage: C
+            [8, 2] Goppa code
+            sage: m = C._parity_check_matrix_Vandermonde()
+            sage: m == C.parity_check_matrix()
+            True
+
+        """
+        L = self.defining_set
+        g = self.generating_pol
+        t = g.degree()
+
+        V = matrix.vandermonde(L)
+        V = V.transpose()
+        GL = [g(i) for i in L]
+        GLI = [j.inverse_of_unit() for j in GL]
+        D = diagonal_matrix(GLI)
+        VF = matrix([V.row(i) for i in range(t)])
+        H = VF*D
+
+        matrices = [matrix([vector(i) for i in H.row(j)]) for j in range(t)]
+        matrices = [m.transpose() for m in matrices]
+
+        m = block_matrix(t, 1, matrices)
+        return m
+
+    def distance_bound(self):
+        """Estimates a lower bound for the minimun distance of the code using the degree of g.
+        Min distance is guarenteed to be larger or equal to this bound.
+
+        EXAMPLES::
+
+            sage: from sage.coding.goppa import GoppaCode
+            sage: F8=GF(2**3)
+            sage: RR.<xx> = F8[]
+            sage: g = xx^2+xx+1
+            sage: L = [a for a in F8.list() if g(a)!=0]
+            sage: C = GoppaCode(g, L)
             sage: C
             [8, 2] Goppa code
             sage: C.distance_bound()
             3
             sage: C.minimum_distance()
-            5 
+            5
+            
         """
         return 1 + (self._generating_pol).degree()
-    
-    
+
+
 class GoppaCodeEncoder(Encoder):
 
     def __init__(self, code):
@@ -225,17 +247,11 @@ class GoppaCodeEncoder(Encoder):
     def __eq__(self, other):
         return (isinstance(other, GoppaCodeEncoder)
            and self.code() == other.code())
-    
+
     def generator_matrix(self):
-        """Returns a parity check matrix for 'self'. 
+        """Returns a generator matrix for 'self'.
 
-        The element in row t, column i is h[i]*(D[i]**t), where:
-
-        -h[i] is the inverse of g(D[i])
-        -D[i] is the ith element of the defining set
-
-        In the resulting b * n matrix we interpret each entry as an m-column vector
-        annd return a bm * n matrix.
+        Dimension of resulting matrix is d * n?
 
 
         EXAMPLES::
@@ -245,10 +261,7 @@ class GoppaCodeEncoder(Encoder):
             sage: RR.<xx> = F8[]
             sage: g = xx^2+xx+1
             sage: L = [a for a in F8.list() if g(a)!=0]
-            sage: len(L)
-            8
-            sage: n = 8
-            sage: C = GoppaCode(GF(2), n, g, L)
+            sage: C = GoppaCode(g, L)
             sage: C
             [8, 2] Goppa code
             sage: C.generator_matrix()

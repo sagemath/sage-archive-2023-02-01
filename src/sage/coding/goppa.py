@@ -42,9 +42,9 @@ class GoppaCode(AbstractLinearCode):
         self._generating_pol = generating_pol
         self._defining_set = defining_set
 
-        super(GoppaCode, self).__init__(field, length, "GoppaEncoder", "Syndrome")
+        super(GoppaCode, self).__init__(self._field, self._length, "GoppaEncoder", "Syndrome")
 
-        if not g.is_monic():
+        if not generating_pol.is_monic():
             raise ValueError("generating_pol must be monic")
         F = self._field
         if (not F.is_field() or not F.is_finite()):
@@ -187,14 +187,15 @@ class GoppaCode(AbstractLinearCode):
             sage: C = GoppaCode(g, L)
             sage: C
             [8, 2] Goppa code
-            sage: m = C._parity_check_matrix_Vandermonde()
-            sage: m == C.parity_check_matrix()
+            sage: C._parity_check_matrix_Vandermonde() == C.parity_check_matrix()
             True
 
         """
-        L = self.defining_set
-        g = self.generating_pol
+        L = self._defining_set
+        g = self._generating_pol
         t = g.degree()
+
+        from sage.matrix.constructor import vandermonde, matrix, diagonal_matrix, block_matrix
 
         V = matrix.vandermonde(L)
         V = V.transpose()
@@ -228,7 +229,7 @@ class GoppaCode(AbstractLinearCode):
             3
             sage: C.minimum_distance()
             5
-            
+
         """
         return 1 + (self._generating_pol).degree()
 

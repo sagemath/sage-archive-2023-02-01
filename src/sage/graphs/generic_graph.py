@@ -16170,6 +16170,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(g.yen_k_shortest_simple_paths_directed(1, 6))
             [[1, 6], [1, 4, 5, 6], [1, 3, 5, 6], [1, 2, 5, 6]]
 
+            sage: g = DiGraph([(1, 2, 5), (2, 3, 0), (1, 4, 2), (4, 5, 1), (5, 3, 0)])
+            sage: list(g.yen_k_shortest_simple_paths_directed(1, 3, by_weight=True))
+            [[1, 4, 5, 3], [1, 2, 3]]
+            sage: list(g.yen_k_shortest_simple_paths_directed(1, 3))
+            [[1, 2, 3], [1, 4, 5, 3]]
+
         TESTS::
 
             sage: g = DiGraph([(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 2), (5, 6, 100), (4, 7, 3), (7, 6, 4), (3, 8, 5), (8, 9, 2), (9, 6, 2), (9, 10, 7), (9, 11, 10), (11, 6, 8), (10, 6, 2)])
@@ -16221,10 +16227,12 @@ class GenericGraph(GenericGraph_pyx):
             def weight_function(e):
                 return e[2]
 
-        parent = {}
-        color = {}
+        parent = {} # dictionary of parent node in the shortest path tree of the target vertex
+        color = {} # assign color to each vertex as green, red and yellow
+        # express edges are the edges with head node as green and tail node as yellow or tail node is a deviation node
         expressEdges = dict()
-        dic = {}
+        dic = {} # a dictionary of the new edges added to the graph used for restoring the graph after the iteration
+        father = {} # father of the path
         if by_weight:
             self._check_weight_function(weight_function)
             def reverse_weight_function(e):
@@ -16236,6 +16244,8 @@ class GenericGraph(GenericGraph_pyx):
             def reverse_weight_function(e):
                 return 1
 
+        # if there exist a path in shortest path subtree of target node from u to v
+        # then u is said to be an upstream node of v 
         def getUpStreamNodes(v):
             ver = list()
             S = list()
@@ -16249,6 +16259,8 @@ class GenericGraph(GenericGraph_pyx):
                             ver.append(u_node)
             return ver
 
+        # finding the express edges whose tail nodes belong to a set Y
+        # and update the head node of each express edge
         def findExpressEdges(Y):
             for v in Y:
                 for w in self.neighbors_out(v):
@@ -16262,8 +16274,8 @@ class GenericGraph(GenericGraph_pyx):
                         include_vertices.add(w)
                         reduced_cost[(w, target)] = 0
 
-        father = {} # father of the path
         from heapq import heappush, heappop
+        from sage.rings.infinity import Infinity
 
         reverse_graph = self.reverse()
         from sage.graphs.base.boost_graph import shortest_paths
@@ -16273,7 +16285,7 @@ class GenericGraph(GenericGraph_pyx):
         for e in self.edge_iterator():
             if e[0] in dist and e[1] in dist:
                 reduced_cost[(e[0], e[1])] = weight_function(e) + dist[e[1]] - dist[e[0]]
-    
+        # finding the parent information from successor
         for key in successor:
             if successor[key] and successor[key] not in parent:
                 parent[successor[key]] = [key]
@@ -16290,10 +16302,9 @@ class GenericGraph(GenericGraph_pyx):
         prev_path = None
 
         # compute the shortest path between the source and the target
-        
         path = shortest_path_func(source, target, weight_function=weight_function, reduced_weight=reduced_cost)
         length = length_func(path)
-    
+
         if len(path) == 0: # corner case
             yield path
             return
@@ -16317,7 +16328,7 @@ class GenericGraph(GenericGraph_pyx):
             dic = {}
             for v in self:
                 color[v] = 0 # coloring all the nodes as green initially
-            allY = list()
+            allY = list() # list of yellow nodes
             for j in range(dev_idx+1):
                 color[prev_path[j]] = 1 # coloring red
                 Yv = getUpStreamNodes(prev_path[j])
@@ -16342,27 +16353,28 @@ class GenericGraph(GenericGraph_pyx):
                     color[root[-1]] = 1 # coloring it red
                     Yu = getUpStreamNodes(root[-1])
                     for y in Yu:
-                        color[y] = 2 # coloring it as yellow
+                        color[y] = 2 # coloring upstream nodes as yellow
                     Yu.append(root[-1])
                     for n in Yu:
                         if n in expressEdges and len(expressEdges[n]) > 0:
-                            # recover
+                            # recovering the express edges incident to a node n
                             for e in expressEdges[n]:
                                 if (e[1], target) in dic:
-                                    self.delete_edge(e[1], target) # restoration
-                            expressEdges[n] = []  # resetting  
+                                    self.delete_edge(e[1], target) # restoration of edges in the original grpah
+                            expressEdges[n] = []  # resetting the expressEdges for node n 
                     findExpressEdges(Yu)
-                # removing only one edge from prev_path in both the cases
+                # removing the edge in the previous shortest path to find a new candidate path
                 exclude_edges.add((prev_path[i - 1], prev_path[i]))
                 try:
-                    # finding the spur part of the path after excluding certain vertices and edges
-                    # finding an all yellow subpath
+                    # finding the spur part of the path after excluding certain vertice and edges
+                    # this spur path is an all yellow subpath so the shortest path algorithm is applied only on the yellow node subtree
                     spur = shortest_path_func(root[-1], target,
                                               exclude_vertices=exclude_vertices,
                                               exclude_edges=exclude_edges,
                                               include_vertices=include_vertices,
                                               weight_function=weight_function,
                                               reduced_weight=reduced_cost)
+                    # finding the spur path in the original graph
                     if spur and (spur[-2], target) in dic:
                         spur.pop()
                         st = spur[-1]
@@ -16373,7 +16385,7 @@ class GenericGraph(GenericGraph_pyx):
                     length = length_func(spur)
                     if not spur:
                         continue
-                    path = root[:-1] + spur # concatenating the root and the spur paths
+                    path = root[:-1] + spur # concatenating the root and the spur path
                     # push operation
                     hash_path = tuple(path)
                     if hash_path not in heap_paths: # if this path is not already present inside the heap

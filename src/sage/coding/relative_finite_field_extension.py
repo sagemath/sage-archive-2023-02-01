@@ -34,13 +34,12 @@ as `F_q`-elements.
 # ****************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.rings.integer import Integer
-from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.structure.sage_object import SageObject
 from sage.categories.homset import Hom
 from sage.matrix.constructor import column_matrix
 from sage.modules.free_module_element import vector
 from sage.misc.superseded import experimental
+
 
 class RelativeFiniteFieldExtension(SageObject):
     r"""
@@ -299,7 +298,6 @@ class RelativeFiniteFieldExtension(SageObject):
         betas = self.absolute_field_basis()
         phi = self.embedding()
         b = self.absolute_field().zero()
-        F = self.prime_field()
         flattened_relative_field_rep_list = []
         for i in a:
             tmp = vector(i).list()

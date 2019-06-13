@@ -8,18 +8,16 @@ AUTHORS:
 Introduction
 ============
 
-The Robinson-Schensted-Knuth (RSK) correspondence (also known
-as the RSK algorithm) is most naturally stated as a bijection
-between generalized permutations (also known as two-line arrays,
-biwords, ...) and pairs of semi-standard Young tableaux `(P, Q)`
-of identical shape. The tableau `P` is known as the insertion
-tableau, and `Q` is known as the recording tableau.
+The Robinson-Schensted-Knuth (RSK) correspondence is most naturally 
+stated as a bijection between generalized permutations (also known 
+as two-line arrays, biwords, ...) and pairs of semi-standard Young 
+tableaux `(P, Q)` of identical shape.
 
-The basic operation is known as row insertion `P \leftarrow k`
-(where `P` is a given semi-standard Young tableau, and `k` is an
-integer). Different row insertion algorithms leads to different 
-bijections. Some row insertion algorithms are already implemented 
-which you can specify using the optional argument ``insertion``.
+The basic operation in the RSK correspondence is a row insertion 
+`P \leftarrow k`(where `P` is a given semi-standard Young tableau, 
+and `k` is an integer). Different insertion algorithms have been 
+implemented for the RSK correspondence which can be specify in 
+the function.
 
 EXAMPLES:
 
@@ -43,8 +41,8 @@ We can perform RSK and the inverse on a variety of objects::
 
 Insertions currently available
 ------------------------------
-We have implemented the following insertion algorithms for the 
-Robinson-Schensted-Knuth correspondence:
+The following insertion algorithms for RSK correspondence are currently 
+available:
 
 - RSK (:class:`~sage.combinat.rsk.RuleRSK`)
 - Edelman-Greene insertion (:class:`~sage.combinat.rsk.RuleEG`), an algorithm 
@@ -60,24 +58,24 @@ Background
 Edelman-Greene insertion (:class:`~sage.combinat.rsk.RuleEG`)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If the input is a reduced word of a permutation (i.e., an element of a 
-type-`A` Coxeter group), one can set ``insertion`` to ``'RuleEG'``, which 
-gives Edelman-Greene insertion, an algorithm defined in [EG1987]_ 
-Definition 6.20 (where it is referred to as Coxeter-Knuth insertion). 
-The Edelman-Greene insertion is similar to the standard row insertion 
-except that if `k_i` and `k_i + 1` both exist in row `i`, we *only* set 
-`k_{i+1} = k_i + 1` and continue.
+For a reduced word of a permutation (i.e., an element of a type-`A` 
+Coxeter group), one can use Edelman-Greene insertion, an algorithm 
+defined in [EG1987]_ Definition 6.20 (where it is referred to as 
+Coxeter-Knuth insertion). The Edelman-Greene insertion is similar to the 
+standard row insertion except that if `k_i` and `k_i + 1` both exist in row 
+`i`, we *only* set `k_{i+1} = k_i + 1` and continue.
 
 Hecke RSK algorithm (:class:`~sage.combinat.rsk.RuleHecke`)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-One can also perform a "Hecke RSK algorithm", defined using the
-Hecke insertion studied in [BKSTY06]_ (but using rows instead of
-columns). The algorithm proceeds similarly to the classical RSK
-algorithm. However, it is not clear in what generality it works;
-thus, following [BKSTY06]_, we shall assume that our biword `p`
-has top line `(1, 2, \ldots, n)` (or, at least, has its top line
-strictly increasing). The Hecke RSK algorithm returns a pair of
-an increasing tableau and a set-valued standard tableau. If
+The Hecke RSK algorithm defined using the Hecke insertion studied in 
+[BKSTY06]_ (but using rows instead of columns) proceeds similarly to 
+the classical RSK algorithm. However, it is not clear in what generality 
+it works; thus, following [BKSTY06]_, we shall assume that our biword 
+`p` has top line `(1, 2, \ldots, n)` (or, at least, has its top line 
+strictly increasing).
+
+The Hecke RSK algorithm returns a pair of an increasing tableau and a 
+set-valued standard tableau. If 
 `p = ((j_0, k_0), (j_1, k_1), \ldots, (j_{\ell-1}, k_{\ell-1}))`,
 then the algorithm recursively constructs pairs
 `(P_0, Q_0), (P_1, Q_1), \ldots, (P_\ell, Q_\ell)` of tableaux.
@@ -111,14 +109,14 @@ Implementing your own insertion rule
 The functions RSK() and RSK_inverse() are written so that it is easy to
 implement insertion algorithms you come across in your research.
 
-To implement our own insertion algorithm, we first need to import the 
+To implement your own insertion algorithm, you first need to import the 
 base class for a rule::
 
     sage: from sage.combinat.rsk import Rule
 
-Next, we implement the forward rule and backward rule for RSK() and 
-RSK_inverse respectively. For more information, 
-see :class:`~sage.combinat.rsk.Rule`.
+Next, you need to implement the forward rule and backward rule for RSK() 
+and RSK_inverse respectively. For more information, see 
+:class:`~sage.combinat.rsk.Rule`.
 
 TESTS:
 
@@ -285,7 +283,7 @@ class Rule(UniqueRepresentation):
 
     def backward_rule(self, p, q, output):
         r"""
-        Returns a two-array generalized permutaion from the reverse insertion 
+        Returns the generalized permutaion from the reverse insertion 
         of a pair of tableaux ``(p, q)``.
 
         Input:  ``output`` -- (Default: ``'array'``) if ``q`` is semi-standard:
@@ -314,7 +312,7 @@ class Rule(UniqueRepresentation):
 
             for key in sorted(d, reverse=True): # Delete last entry from i-th row of p_copy
                 self.rev_insertion(d[key], p_copy, rev_word, True)
-            return self.format_output(rev_word, None, output, p.is_standard(), q.is_standard())
+            return self._format_output(rev_word, None, output, p.is_standard(), q.is_standard())
 
         if q not in SemistandardTableaux():
             raise ValueError("q(=%s) must be a semistandard tableau"%q)
@@ -337,9 +335,9 @@ class Rule(UniqueRepresentation):
             for key in sorted(row_dict, reverse=True):
                 self.rev_insertion(row_dict[key], p_copy, lower_row, False)
                 upper_row.append(value)
-        return self.format_output(lower_row, upper_row, output, p.is_standard(), q.is_standard())
+        return self._format_output(lower_row, upper_row, output, p.is_standard(), q.is_standard())
 
-    def format_output(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
+    def _format_output(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
         if q_is_standard:
             if output == 'word':
                 from sage.combinat.words.word import Word
@@ -374,7 +372,8 @@ class RuleRSK(Rule):
 
     def insertion(self, i, j, p, q):
         r"""
-        The algorithm for inserting the letter (i,j) from the bi-word to the current tableaux p and q.
+        The algorithm for inserting the letter (i,j) from the bi-word to the 
+        current tableaux p and q.
         """
         from bisect import bisect_right
         for r, qr in zip(p,q):
@@ -396,6 +395,10 @@ class RuleRSK(Rule):
         qr.append(i) # Values are always inserted to the right
 
     def rev_insertion(self, i, p_copy, rev_word, q_is_standard):
+        r"""
+        The algorithm for removing a letter from the ith row of the 
+        current tableaux p and q.
+        """
         from bisect import bisect_left
         if q_is_standard:
             x = p_copy[i].pop() # Always the right-most entry
@@ -411,14 +414,14 @@ class RuleRSK(Rule):
                 x, row[y] = row[y], x
             rev_word.append(x)
 
-    def format_output(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
+    def _format_output(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
         if q_is_standard and output == 'permutation':
             if not p_is_standard:
                 raise TypeError("p must be standard to have a valid permutation as output")
             from sage.combinat.permutation import Permutation
             return Permutation(reversed(lower_row))
         else:
-            return super(RuleRSK, self).format_output(lower_row, upper_row, output, p_is_standard, q_is_standard)
+            return super(RuleRSK, self)._format_output(lower_row, upper_row, output, p_is_standard, q_is_standard)
 
 
 class RuleEG(Rule):
@@ -440,7 +443,8 @@ class RuleEG(Rule):
 
     def insertion(self, i, j, p, q):
         r"""
-        The algorithm for inserting the letter (i,j) from the bi-word to the current tableaux p and q.
+        The algorithm for inserting the letter (i,j) from the bi-word to the 
+        current tableaux p and q.
         """
         from bisect import bisect_right
         for r, qr in zip(p,q):
@@ -467,6 +471,9 @@ class RuleEG(Rule):
 
     def rev_insertion(self, i, p_copy, rev_word, q_is_standard):
         r"""
+        The algorithm for removing a letter from the ith row of the 
+        current tableaux p and q.
+        
         TESTS:
         
         For non-standard p, q::
@@ -501,7 +508,7 @@ class RuleEG(Rule):
                     x, row[y] = row[y], x
             rev_word.append(x)
 
-    def format_output(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
+    def _format_output(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
         if q_is_standard and output == 'permutation':
             n = 0
             if list(lower_row):
@@ -509,7 +516,7 @@ class RuleEG(Rule):
             from sage.combinat.permutation import Permutations
             return Permutations(n).from_reduced_word(list(reversed(lower_row)))
         else:
-            return super(RuleEG, self).format_output(lower_row, upper_row, output, p_is_standard, q_is_standard)
+            return super(RuleEG, self)._format_output(lower_row, upper_row, output, p_is_standard, q_is_standard)
 
 
 class RuleHecke(Rule):
@@ -609,11 +616,12 @@ class RuleHecke(Rule):
                 assert value == should_be_value
                 self.rev_insertion(i, p_copy, q_copy, lower_row)
                 upper_row.append(value)
-        return self.format_output(lower_row, upper_row, output)
+        return self._format_output(lower_row, upper_row, output)
 
     def insertion(self, i, j, p, q):
         r"""
-        The algorithm for inserting the letter (i,j) from the bi-word to the current tableaux p and q.
+        The algorithm for inserting the letter (i,j) from the bi-word to the 
+        current tableaux p and q.
         """
         from bisect import bisect_right
         for ir,r in enumerate(p):
@@ -648,6 +656,11 @@ class RuleHecke(Rule):
             q.append([(i,)])
 
     def rev_insertion(self, i, p_copy, q_copy, rev_word):
+        r"""
+        The algorithm for removing a letter from the ith row of the 
+        current tableaux p and q.
+        """
+        
         from bisect import bisect_left
         if not q_copy[i][-1]:
             # That is, if value was alone in cell q_copy[i][-1].
@@ -668,7 +681,7 @@ class RuleHecke(Rule):
             x = y
         rev_word.append(x)
 
-    def format_output(self, lower_row=None, upper_row=None, output='array'):
+    def _format_output(self, lower_row=None, upper_row=None, output='array'):
         if output == 'array':
             return [list(reversed(upper_row)), list(reversed(lower_row))]
         is_standard = (upper_row == list(range(len(upper_row), 0, -1)))

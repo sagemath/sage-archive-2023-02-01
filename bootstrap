@@ -11,6 +11,8 @@
 # extract the files from a local configure tarball, downloading it if
 # needed. If -D is given, don't try to bootstrap and always extract or
 # download.
+# If optional argument -u <URL>, where URL is an URL for the configure
+# tarball, is given, download it to upstream/. Implies -D.
 ########################################################################
 
 # Set SAGE_ROOT to the path to this file and then cd into it
@@ -94,7 +96,7 @@ save () {
     mkdir -p upstream
     tar zcf "$CONFBALL" configure config/* build/make/Makefile-auto.in
     
-    # Update version number
+    # Update version
     echo "$CONFVERSION" >$PKG/package-version.txt
     
     # Compute checksum
@@ -103,7 +105,7 @@ save () {
 
 
 usage () {
-    echo >&2 "Usage: $0 [-d|-D|-s] [-h]"
+    echo >&2 "Usage: $0 [-d|-D|-s] [-u <URL>] [-h]"
 }
 
 
@@ -111,12 +113,14 @@ usage () {
 SAVE=no
 DOWNLOAD=no
 ALWAYSDOWNLOAD=no
-while getopts "Ddsih" OPTION
+CONFTARBALL_URL=""
+while getopts "Ddshu:" OPTION
 do
      case "$OPTION" in
          D) ALWAYSDOWNLOAD=yes; DOWNLOAD=yes;;
          d) DOWNLOAD=yes;;
          s) SAVE=yes;;
+         u) CONFTARBALL_URL="$OPTARG"; ALWAYSDOWNLOAD=yes; DOWNLOAD=yes;;
          h) usage; exit 0;;
          ?) usage; exit 2;;
      esac
@@ -140,6 +144,14 @@ source src/bin/sage-env 2>/dev/null
 
 
 if [ $ALWAYSDOWNLOAD = yes ]; then
+    if [ $CONFTARBALL_URL != "" ]; then
+        sage-download-file "$CONFTARBALL_URL" upstream/configure-$CONFVERSION.tar.gz
+        if [ $? -ne 0 ]; then
+            echo >&2 "Error: downloading configure-$CONFVERSION.tar.gz from $CONFTARBALL_URL failed"
+            exit 1
+        fi
+        echo >&2 "Downloaded configure-$CONFVERSION.tar.gz from $CONFTARBALL_URL "
+    fi
     bootstrap-download || exit $?
 else
     bootstrap

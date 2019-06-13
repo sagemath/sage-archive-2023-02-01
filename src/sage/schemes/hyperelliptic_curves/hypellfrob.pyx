@@ -119,15 +119,15 @@ def interval_products(M0, M1, target):
         (<ntl_ZZ_pContext_factory>ZZ_pContext_factory).make_c(
         ntl_ZZ(M0.base_ring().characteristic()))
     cdef long dim = M0.nrows()
+    sig_on()
+    c.restore_c()
     set_ntl_matrix_modn_dense(mm0, c, M0)
     set_ntl_matrix_modn_dense(mm1, c, M1)
     for t in target:
         targ.push_back(ntl_ZZ(t).x)
     numintervals = len(target)/2
-    sig_on()
     out.SetDims(dim, dim*numintervals)
 
-    c.restore_c()
     interval_products_wrapper(out, mm0, mm1, targ, 1)
     sig_off()
 

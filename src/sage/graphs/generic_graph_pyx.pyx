@@ -1498,3 +1498,126 @@ def transitive_reduction_acyclic(G):
     binary_matrix_free(closure)
 
     return reduced
+
+def lex_BFS_fast(G, reverse=False, tree=False, initial_vertex=None):
+    r"""
+    Perform a Lex BFS on the graph.
+
+    INPUT:
+
+    - ``G`` -- a sage graph
+
+    - ``reverse`` -- boolean (default: ``False``); whether to return the
+      vertices in discovery order, or the reverse
+
+    - ``tree`` -- boolean (default: ``False``); whether to return the
+      discovery directed tree (each vertex being linked to the one that saw
+      it for the first time)
+
+    - ``initial_vertex`` -- (default: ``None``); the first vertex to
+      consider
+
+    ALGORITHM:
+
+    This algorithm maintains for each vertex left in the graph a code
+    corresponding to the vertices already removed. The vertex of maximal
+    code (according to the lexicographic order) is then removed, and the
+    codes are updated.
+
+    Time complexity is `O(n+m)` where n is the number of vertices and m is the
+    number of edges.
+
+    The implementation of the algorithm is described in
+    `this <http://www.cs.toronto.edu/~krueger/papers/unified.ps>`_ article
+    by Derek G. Corneil and Richard Krueger.
+
+    EXAMPLES:
+
+    A Lex BFS is obviously an ordering of the vertices::
+
+        sage: from sage.graphs.generic_graph_pyx import lex_BFS_fast
+        sage: g = graphs.CompleteGraph(6)
+        sage: len(lex_BFS_fast(g)) == g.order()
+        True
+
+    Lex BFS ordering of the 3-sun graph
+
+        sage: from sage.graphs.generic_graph_pyx import lex_BFS_fast
+        sage: g = Graph([(1, 2), (1, 3), (2, 3), (2, 4), (2, 5), (3, 5), (3, 6), (4, 5), (5, 6)])
+        sage: lex_BFS_fast(g)
+        [1, 2, 3, 5, 4, 6]
+
+    The method also works for directed graphs
+
+        sage: from sage.graphs.generic_graph_pyx import lex_BFS_fast
+        sage: G = DiGraph([(1, 2), (2, 3), (1, 3)])
+        sage: lex_BFS_fast(G, initial_vertex=2)
+        [2, 3, 1]
+
+    """
+    # Loops and multiple edges are not needed in Lex BFS
+    G.remove_multiple_edges()
+    G.remove_loops()
+
+    # Build adjacency list of G
+    cdef int nV = G.order()
+    cdef dict int_to_v = dict(enumerate(G))
+    cdef dict v_to_int = {vv: vi for vi, vv in enumerate(G)}
+    cdef vector[vector[int]] adjacency_list
+    cdef u_int, v_int
+
+    adjacency_list.resize(nV)
+
+    for u, v in G.edges(labels=False):
+        u_int = v_to_int[u]
+        v_int = v_to_int[v]
+        adjacency_list[u_int].push_back(v_int)
+        if not G.is_directed():
+            adjacency_list[v_int].push_back(u_int)
+
+    # Perform Lex BFS
+
+    if nV == 0:
+        if tree:
+            from sage.graphs.digraph import DiGraph
+            g = DiGraph(sparse=True)
+            return [], g
+        else:
+            return []
+
+    cdef list code = [[] for i in range(nV)]
+
+    def l(x):
+        return code[x]
+
+    cdef list value = []
+    cdef list pred = [-1] * nV
+    cdef set vertices = set(range(nV))
+
+    cdef int source = 0 if initial_vertex is None else v_to_int[initial_vertex]
+    code[source].append(nV + 1)
+
+    cdef int now = 1
+    while vertices:
+        v = max(vertices, key=l)
+        vertices.remove(v)
+        for int_neighbor in adjacency_list[v]:
+            if int_neighbor in vertices:
+                code[int_neighbor].append(nV - now)
+                pred[int_neighbor] = v
+        value.append(int_to_v[v])
+        now += 1
+
+    if reverse:
+        value.reverse()
+
+    if tree:
+        from sage.graphs.digraph import DiGraph
+        g = DiGraph(sparse=True)
+        g.add_vertices(list(v_to_int.keys()))
+        edges = [(int_to_v[i], int_to_v[pred[i]]) for i in range(nV) if pred[i] != -1]
+        g.add_edges(edges)
+        return value, g
+
+    else:
+        return value

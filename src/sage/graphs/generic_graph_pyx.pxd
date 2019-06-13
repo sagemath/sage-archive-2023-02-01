@@ -1,6 +1,9 @@
+# distutils: language = c++
 from sage.structure.sage_object cimport SageObject
 from sage.graphs.base.dense_graph cimport DenseGraph
 from sage.ext.memory_allocator cimport MemoryAllocator
+
+from libcpp.vector cimport vector
 
 ctypedef int * D_TWO
 ctypedef char * D_THREE

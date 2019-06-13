@@ -17138,16 +17138,18 @@ class GenericGraph(GenericGraph_pyx):
 
         ALGORITHM:
 
-        The algorithm used is described in
-        `this <http://www.cs.toronto.edu/~krueger/papers/unified.ps>`_ by
-        Derek G. Corneil and Richard Krueger.
+        This algorithm maintains for each vertex left in the graph a code
+        corresponding to the vertices already removed. The vertex of maximal
+        code (according to the lexicographic order) is then removed, and the
+        codes are updated.
 
-        This algorithm runs in time `O(n^2)` ( where `n` is the number of
-        vertices in the graph ), which is not optimal.  An optimal algorithm
-        would run in time `O(m)` ( where `m` is the number of edges in the graph
-        ), and require the use of a doubly-linked list which are not available
-        in python and can not really be written efficiently. This could be done
-        in Cython, though.
+        The implementation of the algorithm is described in
+        `this <http://www.cs.toronto.edu/~krueger/papers/unified.ps>`_ article
+        by Derek G. Corneil and Richard Krueger.
+
+        Since it is impossible to implement the linear time algorithm in Python
+        the actual implementation is located in `generic_graph_pyx.pyx' in
+        the method `lex_BFS_fast`
 
         EXAMPLES:
 
@@ -17175,6 +17177,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: all([g.subgraph(g.neighbors(v)).is_clique() for v in leaves])
             True
 
+        The method also works for directed graphs
+
+            sage: G = DiGraph([(1, 2), (2, 3), (1, 3)])
+            sage: G.lex_BFS()
+            [1, 2, 3]
+
         TESTS:
 
         There were some problems with the following call in the past
@@ -17184,153 +17192,8 @@ class GenericGraph(GenericGraph_pyx):
             ([0], Digraph on 1 vertex)
 
         """
-
-        nV = self.order()
-
-        if nV == 0:
-            if tree:
-                from sage.graphs.digraph import DiGraph
-                g = DiGraph(sparse=True)
-                return [], g
-            else:
-                return []
-
-        id_inv = list(self)
-        code = [[] for i in range(nV)]
-        m = self.am(vertices=id_inv)
-
-        l = lambda x: code[x]
-        vertices = set(range(nV))
-
-        value = []
-        pred = [-1] * nV
-
-        add_element = (lambda y: value.append(id_inv[y])) if not reverse else (lambda y: value.insert(0, id_inv[y]))
-
-        # Should we take care of the first vertex we pick ?
-        source = 0 if initial_vertex is None else id_inv.index(initial_vertex)
-        code[source].append(nV + 1)
-
-        now = 1
-        while vertices:
-            v = max(vertices, key=l)
-            vertices.remove(v)
-            vector = m.column(v)
-            for i in vertices:
-                if vector[i]:
-                    code[i].append(nV - now)
-                    pred[i] = v
-            add_element(v)
-            now += 1
-
-        if tree:
-            from sage.graphs.digraph import DiGraph
-            g = DiGraph(sparse=True)
-            g.add_vertices(id_inv)
-            edges = [(id_inv[i], id_inv[pred[i]]) for i in range(self.order()) if pred[i] != -1]
-            g.add_edges(edges)
-            return value, g
-
-        else:
-            return value
-
-    def lex_DFS(self, reverse=False, tree=False, initial_vertex=None):
-        r"""
-        Perform a Lex DFS on the graph.
-
-        INPUT:
-
-        - ``reverse`` -- boolean (default: ``False``); whether to return the
-          vertices in discovery order, or the reverse
-
-        - ``tree`` -- boolean (default: ``False``); whether to return the
-          discovery directed tree (each vertex being linked to the one that saw
-          it for the first time)
-
-        - ``initial_vertex`` -- (default: ``None``); the first vertex to
-          consider
-
-        ALGORITHM:
-
-        The algorithm used is described in
-        `this <http://www.cs.toronto.edu/~krueger/papers/unified.ps>`_ by
-        Derek G. Corneil and Richard Krueger.
-
-        This algorithm runs in time `O(n^2)` ( where `n` is the number of
-        vertices in the graph ), which is not optimal.  An optimal algorithm
-        would run in time `O(m)` ( where `m` is the number of edges in the graph
-        ), and require the use of a doubly-linked list which are not available
-        in python and can not really be written efficiently. This could be done
-        in Cython, though.
-
-        EXAMPLES:
-
-        A Lex DFS is obviously an ordering of the vertices::
-
-            sage: g = graphs.PetersenGraph()
-            sage: len(g.lex_DFS()) == g.order()
-            True
-
-        Lex DFS of the 3-Sun graph
-
-            sage: g = Graph([(1, 2), (1, 3), (2, 3), (2, 4), (2, 5), (3, 5), (3, 6), (4, 5), (5, 6)])
-            sage: g.lex_DFS()
-            [1, 2, 3, 5, 6, 4]
-
-        TESTS:
-
-            sage: Graph(1).lex_DFS(tree=True)
-            ([0], Digraph on 1 vertex)
-
-        """
-        nV = self.order()
-
-        if nV == 0:
-            if tree:
-                from sage.graphs.digraph import DiGraph
-                g = DiGraph(sparse=True)
-                return [], g
-            else:
-                return []
-
-        id_inv = list(self)
-        code = [[] for i in range(nV)]
-        m = self.am(vertices=id_inv)
-
-        l = lambda x: code[x]
-        vertices = set(range(nV))
-
-        value = []
-        pred = [-1] * nV
-
-        add_element = (lambda y: value.append(id_inv[y])) if not reverse else (lambda y: value.insert(0, id_inv[y]))
-
-        # Should we take care of the first vertex we pick ?
-        source = 0 if initial_vertex is None else id_inv.index(initial_vertex)
-        code[source].append(0)
-
-        now = 1
-        while vertices:
-            v = max(vertices, key=l)
-            vertices.remove(v)
-            vector = m.column(v)
-            for i in vertices:
-                if vector[i]:
-                    code[i].insert(0, now)
-                    pred[i] = v
-            add_element(v)
-            now += 1
-
-        if tree:
-            from sage.graphs.digraph import DiGraph
-            g = DiGraph(sparse=True)
-            g.add_vertices(id_inv)
-            edges = [(id_inv[i], id_inv[pred[i]]) for i in range(self.order()) if pred[i] != -1]
-            g.add_edges(edges)
-            return value, g
-
-        else:
-            return value
+        from sage.graphs.generic_graph_pyx import lex_BFS_fast
+        return lex_BFS_fast(self, reverse=reverse, tree=tree, initial_vertex=initial_vertex)
 
     ### Constructors
 

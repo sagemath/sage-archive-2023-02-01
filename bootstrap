@@ -43,7 +43,14 @@ install_config_rpath() {
     fi
     eval `sed -n '/^prefix=\(.*\)$/p' $gettextize`
     eval `sed -n '/^datarootdir=\(.*\)$/p' $gettextize`
-    eval `sed -n '/gettext_datadir=\(.*\)$/p' $gettextize`
+
+    eval `sed -n '/^gettext_dir=.*$/p' $gettextize`
+    if [ -z "$gettext_dir" ]; then
+        # In newer versions this is spelled gettext_datadir
+        # See https://github.com/autotools-mirror/gettext/commit/ff18897068486560e2bb421004cfbd42b7cdd0f8
+        eval `sed -n '/^: \${gettext_datadir=.*$/p' $gettextize`
+        gettext_dir="$gettext_datadir"
+    fi
 
     if [ -z "$gettext_datadir" ]; then
         echo >&2 "Failed to read the gettext_datadir directory from $gettextize"

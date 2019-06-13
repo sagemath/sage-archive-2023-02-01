@@ -36,6 +36,7 @@ from sage.rings.all import Integer
 from sage.misc.all import prod
 from functools import partial
 from sage.misc.misc import repr_lincomb, is_iterator
+from sage.misc.cachefunc import cached_method
 
 from sage.algebras.algebra import Algebra
 import sage.structure.parent_base
@@ -44,7 +45,7 @@ from sage.structure.element import Element, parent, AlgebraElement
 
 
 class LazyPowerSeriesRing(Algebra):
-    def __init__(self, R, element_class=None, names=None):
+    def __init__(self, R, names=None, element_class=None):
         """
         TESTS::
 
@@ -59,6 +60,16 @@ class LazyPowerSeriesRing(Algebra):
             Failure in ...
             The following tests failed: _test_additive_associativity, _test_associativity, _test_distributivity, _test_elements, _test_one, _test_prod, _test_zero
 
+        ::
+
+            sage: LazyPowerSeriesRing(QQ, 'z').gen()
+            z
+            sage: LazyPowerSeriesRing(QQ, ['z']).gen()
+            z
+            sage: LazyPowerSeriesRing(QQ, ['x', 'z'])
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: only univariate lazy power series rings are supported
         """
         #Make sure R is a ring with unit element
         if R not in Rings():
@@ -67,12 +78,18 @@ class LazyPowerSeriesRing(Algebra):
         #Take care of the names
         if names is None:
             names = 'x'
-        else:
+        elif isinstance(names, (list, tuple)):
+            if len(names) != 1:
+                raise NotImplementedError(
+                    'only univariate lazy power series rings are supported')
             names = names[0]
+        else:
+            names = str(names)
 
         self._element_class = element_class if element_class is not None else LazyPowerSeries
         self._order = None
         self._name = names
+        self._zero_base_ring = R.zero()
         sage.structure.parent_base.ParentWithBase.__init__(self, R, category=Rings())
 
     def ngens(self):
@@ -241,6 +258,7 @@ class LazyPowerSeriesRing(Algebra):
 
         raise TypeError("do not know how to coerce %s into self" % x)
 
+    @cached_method
     def zero(self):
         """
         Return the zero power series.
@@ -251,7 +269,7 @@ class LazyPowerSeriesRing(Algebra):
             sage: L.zero()
             0
         """
-        return self(self.base_ring().zero())
+        return self.term(self._zero_base_ring, 0)
 
     def identity_element(self):
         """
@@ -519,7 +537,6 @@ class LazyPowerSeries(AlgebraElement):
             self.order = inf
         self.aorder_changed = aorder_changed
         self.is_initialized = is_initialized
-        self._zero = A.base_ring().zero()
         self._name = name
 
     def compute_aorder(*args, **kwargs):
@@ -930,7 +947,7 @@ class LazyPowerSeries(AlgebraElement):
         # The following line must not be written n < self.get_aorder()
         # because comparison of Integer and OnfinityOrder is not implemented.
         if self.get_aorder() > n:
-            return self._zero
+            return self.parent()._zero_base_ring
 
         assert self.is_initialized
 
@@ -1489,7 +1506,7 @@ class LazyPowerSeries(AlgebraElement):
             [0, 0, 1/2, 0, 0]
         """
         for n in range(ao):
-            yield self._zero
+            yield self.parent().zero()
         n = ao
         while True:
             #Check to see if the stream is finite
@@ -1517,10 +1534,10 @@ class LazyPowerSeries(AlgebraElement):
         assert ao != unk
 
         if ao == inf:
-            yield self._zero
+            yield self.parent()._zero_base_ring
         else:
             for _ in range(ao-1):
-                yield self._zero
+                yield self.parent()._zero_base_ring
 
             n = max(1, ao)
             while True:

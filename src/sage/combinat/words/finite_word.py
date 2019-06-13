@@ -272,7 +272,7 @@ class FiniteWord_class(Word_class):
         if word_options['display'] == 'string':
             ls = word_options['letter_separator']
             letters = [str(_) for _ in self]
-            if all(len(a)==1 for a in letters):
+            if all(len(a) == 1 for a in letters):
                 return ''.join(letters)
             else:
                 return ls.join(letters)
@@ -2222,14 +2222,15 @@ class FiniteWord_class(Word_class):
             sage: Word('121132123').is_cadence([])
             True
         """
-        if len(seq) == 0:
+        if not seq:
             return True
         try:
             it = iter(self)
             s = next(islice(it, int(seq[0]), None))
             for i in range(1, len(seq)):
-                steps = seq[i] - seq[i-1]
-                for n in range(steps-1): next(it)
+                steps = seq[i] - seq[i - 1]
+                for n in range(steps - 1):
+                    next(it)
                 if next(it) != s:
                     return False
         except StopIteration:
@@ -4393,7 +4394,7 @@ class FiniteWord_class(Word_class):
         if not isinstance(sub, FiniteWord_class):
             try:
                 sub = self.parent()(sub)
-            except (ValueError,TypeError):
+            except (ValueError, TypeError):
                 return -1
         L = len(sub)
         start = max(0, int(start))
@@ -4402,7 +4403,8 @@ class FiniteWord_class(Word_class):
         else:
             i = min(end, len(self)) - L
         while i >= start:
-            if self[i:i+L] == sub: return i
+            if self[i:i + L] == sub:
+                return i
             i -= 1
         return -1
 
@@ -6683,7 +6685,7 @@ class FiniteWord_class(Word_class):
                                        isinstance(cm.__dict__[x], C)])
             import sage.misc.misc
             sage.misc.misc.verbose("The possible color maps include: %s"%possibilities, level=0)
-            raise RuntimeError("Color map %s not known"%cmap)
+            raise RuntimeError("Color map %s not known" % cmap)
 
         #Drawing the colored vector...
         from sage.plot.line import line
@@ -6700,8 +6702,8 @@ class FiniteWord_class(Word_class):
         rep = line(L, rgbcolor=(0,0,0), thickness=thickness)
 
         #The label
-        if not label is None:
-            hl = height/2.0 # height of the label rectangle
+        if label is not None:
+            hl = height/2.0  # height of the label rectangle
             ymax2 = ymax + hl
             rep += text(str(label), (x+width/2.0, ymax + hl/2.0), rgbcolor=(1,0,0))
             L = [(x,ymax), (x+width,ymax), (x+width,ymax2), (x,ymax2), (x,ymax)]

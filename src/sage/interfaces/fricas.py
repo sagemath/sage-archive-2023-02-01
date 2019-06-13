@@ -1509,6 +1509,11 @@ class FriCASElement(ExpectElement):
             sage: fricas("fresnelC(1.0)")                                       # optional - fricas
             0.7798934003_7682282947_42
 
+        Check that :trac:`17908` is fixed::
+
+            sage: fricas(abs(x)).sage().subs(x=-1783)                           # optional - fricas
+            1783
+
         """
         from sage.libs.pynac.pynac import register_symbol
         from sage.symbolic.all import I

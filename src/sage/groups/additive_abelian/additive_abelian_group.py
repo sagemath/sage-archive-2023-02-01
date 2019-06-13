@@ -108,13 +108,15 @@ def AdditiveAbelianGroup(invs, remember_generators = True):
         True
     """
     invs = [ZZ(x) for x in invs]
-    if not all( [x >= 0 for x in invs] ): raise ValueError("Invariants must be nonnegative")
+    if not all(x >= 0 for x in invs):
+        raise ValueError("Invariants must be nonnegative")
     A, B = cover_and_relations_from_invariants(invs)
     if remember_generators:
         G = AdditiveAbelianGroup_fixed_gens(A, B, A.gens())
     else:
         G = AdditiveAbelianGroup_class(A, B)
     return G
+
 
 def cover_and_relations_from_invariants(invs):
     r"""

@@ -11,11 +11,11 @@ variables::
     sage: env = {k:v for (k,v) in os.environ.items() if not k.startswith("SAGE_")}
     sage: import subprocess
     sage: cmd = "from sage.all import SAGE_ROOT; print(SAGE_ROOT)"
-    sage: res = subprocess.call(["python", "-c", cmd], env=env)  # long time
+    sage: res = subprocess.call([sys.executable, "-c", cmd], env=env)  # long time
     None
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 R. Andrew Ohana <andrew.ohana@gmail.com>
 #       Copyright (C) 2019 Jeroen Demeyer <J.Demeyer@UGent.be>
 #
@@ -24,7 +24,7 @@ variables::
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 
 from __future__ import absolute_import
 

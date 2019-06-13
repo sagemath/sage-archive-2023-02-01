@@ -25,14 +25,14 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 from __future__ import print_function, absolute_import, division
 
 from cpython cimport *
@@ -66,6 +66,7 @@ from sage.matrix.matrix_misc import permanental_minor_polynomial
 
 # used to deprecate only adjoint method
 from sage.misc.superseded import deprecated_function_alias
+
 
 cdef class Matrix(Matrix1):
     """
@@ -8539,7 +8540,7 @@ cdef class Matrix(Matrix1):
                 row_sums == col_sums and\
                 row_sums == len(row_sums) * [col_sums[0]] and\
                 ((not normalized) or col_sums[0] == self.base_ring()(1)) and\
-                all(entry>=0 for row in self for entry in row)
+                all(entry >= 0 for row in self for entry in row)
 
     def is_normal(self):
         r"""
@@ -10330,7 +10331,7 @@ cdef class Matrix(Matrix1):
             for eval,size in blocks:
                 # Find a block with the right size
                 for index,chain in enumerate(jordan_chains[eval]):
-                    if len(chain)==size:
+                    if len(chain) == size:
                         jordan_basis += jordan_chains[eval].pop(index)
                         break
 
@@ -11992,7 +11993,7 @@ cdef class Matrix(Matrix1):
             sage: M.is_immutable()
             True
             sage: P, L, U = A.LU(format='plu')
-            sage: all([A.is_mutable() for A in [P, L, U]])
+            sage: all(A.is_mutable() for A in [P, L, U])
             True
 
         Partial pivoting is based on the absolute values of entries
@@ -14983,8 +14984,8 @@ cdef class Matrix(Matrix1):
             sage: set_random_seed()
             sage: K1 = random_cone(max_ambient_dim=5)
             sage: K2 = random_cone(max_ambient_dim=5)
-            sage: all([ L.change_ring(SR).is_positive_operator_on(K1,K2)
-            ....:       for L in K1.positive_operators_gens(K2) ]) # long time
+            sage: all(L.change_ring(SR).is_positive_operator_on(K1, K2)
+            ....:     for L in K1.positive_operators_gens(K2))  # long time
             True
 
         Technically we could test this, but for now only closed convex cones
@@ -15025,14 +15026,14 @@ cdef class Matrix(Matrix1):
             # ``self*x`` is symbolic, polynomial, or otherwise
             # contains something unexpected. For example, ``e in
             # Cone([(1,)])`` is true, but returns ``False``.
-            return all([ self*x in K2 for x in K1 ])
+            return all(self * x in K2 for x in K1)
         else:
             # Fall back to inequality-checking when the entries of
             # this matrix might be symbolic, polynomial, or something
             # else weird.
-            return all([ s*(self*x) >= 0 for x in K1 for s in K2.dual() ])
+            return all(s * (self * x) >= 0 for x in K1 for s in K2.dual())
 
-    def is_cross_positive_on(self,K):
+    def is_cross_positive_on(self, K):
         r"""
         Determine if this matrix is cross-positive on a cone.
 
@@ -15126,8 +15127,8 @@ cdef class Matrix(Matrix1):
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=5)
-            sage: all([L.change_ring(SR).is_cross_positive_on(K)
-            ....:      for L in K.cross_positive_operators_gens()]) # long time
+            sage: all(L.change_ring(SR).is_cross_positive_on(K)
+            ....:     for L in K.cross_positive_operators_gens())  # long time
             True
 
         Technically we could test this, but for now only closed convex cones
@@ -15160,10 +15161,10 @@ cdef class Matrix(Matrix1):
             msg = 'The base ring of the matrix is neither symbolic nor exact.'
             raise ValueError(msg)
 
-        return all([ s*(self*x) >= 0
-                     for (x,s) in K.discrete_complementarity_set() ])
+        return all(s * (self * x) >= 0
+                   for (x, s) in K.discrete_complementarity_set())
 
-    def is_Z_operator_on(self,K):
+    def is_Z_operator_on(self, K):
         r"""
         Determine if this matrix is a Z-operator on a cone.
 
@@ -15258,8 +15259,8 @@ cdef class Matrix(Matrix1):
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=5)
-            sage: all([ L.change_ring(SR).is_Z_operator_on(K)
-            ....:       for L in K.Z_operators_gens() ]) # long time
+            sage: all(L.change_ring(SR).is_Z_operator_on(K)
+            ....:     for L in K.Z_operators_gens())  # long time
             True
 
         Technically we could test this, but for now only closed convex cones
@@ -15380,8 +15381,8 @@ cdef class Matrix(Matrix1):
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=5)
-            sage: all([ L.change_ring(SR).is_lyapunov_like_on(K)
-            ....:       for L in K.lyapunov_like_basis() ]) # long time
+            sage: all(L.change_ring(SR).is_lyapunov_like_on(K)
+            ....:     for L in K.lyapunov_like_basis())  # long time
             True
 
         Technically we could test this, but for now only closed convex cones
@@ -15432,8 +15433,8 @@ cdef class Matrix(Matrix1):
         # :meth:`is_cross_positive_on` twice: doing so checks twice as
         # many inequalities as the number of equalities that we're
         # about to check.
-        return all([ s*(self*x) == 0
-                     for (x,s) in K.discrete_complementarity_set() ])
+        return all(s * (self * x) == 0
+                   for (x, s) in K.discrete_complementarity_set())
 
     # A limited number of access-only properties are provided for matrices
     @property
@@ -15538,7 +15539,8 @@ def _smith_diag(d, transformation=True):
         for j in xrange(i+1,n):
             if dp[j,j] not in I:
                 t = R.ideal([dp[i,i], dp[j,j]]).gens_reduced()
-                if len(t) > 1: raise ArithmeticError
+                if len(t) > 1:
+                    raise ArithmeticError
                 t = t[0]
                 # find lambda, mu such that lambda*d[i,i] + mu*d[j,j] = t
                 lamb = R(dp[i,i]/t).inverse_mod( R.ideal(dp[j,j]/t))
@@ -15676,6 +15678,7 @@ def _generic_clear_column(m):
 
     return left_mat, a
 
+
 def _smith_onestep(m):
     r"""
     Carry out one step of Smith normal form for matrix m. Returns three matrices a,b,c over
@@ -15732,6 +15735,7 @@ def _smith_onestep(m):
 
     return left_mat, a, right_mat
 
+
 def decomp_seq(v):
     """
     This function is used internally be the decomposition matrix
@@ -15750,6 +15754,7 @@ def decomp_seq(v):
     """
     list.sort(v, key=lambda x: x[0].dimension())
     return Sequence(v, universe=tuple, check=False, cr=True)
+
 
 def _choose(Py_ssize_t n, Py_ssize_t t):
     """
@@ -15814,6 +15819,7 @@ def _choose(Py_ssize_t n, Py_ssize_t t):
 
     return x
 
+
 def _binomial(Py_ssize_t n, Py_ssize_t k):
     """
     Fast and unchecked implementation of binomial(n,k) This is only for
@@ -15846,6 +15852,7 @@ def _binomial(Py_ssize_t n, Py_ssize_t k):
         i, n, k = i + 1, n - 1, k - 1
     return result
 
+
 def _jordan_form_vector_in_difference(V, W):
     r"""
     Given two lists of vectors ``V`` and ``W`` over the same base field,
@@ -15865,15 +15872,16 @@ def _jordan_form_vector_in_difference(V, W):
         sage: sage.matrix.matrix2._jordan_form_vector_in_difference([v,w], [u])
         (1, 0, 0, 0)
     """
-    if len(V) == 0:
+    if not V:
         return None
-    if len(W) == 0:
+    if not W:
         return V[0]
     W_space = sage.all.span(W)
     for v in V:
         if v not in W_space:
             return v
     return None
+
 
 def _matrix_power_symbolic(A, n):
     r"""

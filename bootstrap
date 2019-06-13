@@ -98,7 +98,7 @@ save () {
     echo "$CONFVERSION" >$PKG/package-version.txt
     
     # Compute checksum
-    SAGE_ROOT=. src/bin/sage-fix-pkg-checksums "$CONFBALL"
+    sage --package fix-checksum configure
 }
 
 

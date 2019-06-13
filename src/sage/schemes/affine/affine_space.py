@@ -908,7 +908,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             if monic:
                 f = DynamicalSystem_affine([chebyshev_T(n, self.gen(0))], domain=self)
                 f = f.homogenize(1)
-                f = f.conjugate(matrix([[0.5, 0],[0, 1]]))
+                f = f.conjugate(matrix([[1/ZZ(2), 0],[0, 1]]))
                 f = f.dehomogenize(1)
                 return f
             return DynamicalSystem_affine([chebyshev_T(n, self.gen(0))], domain=self)
@@ -916,7 +916,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             if monic:
                 f = DynamicalSystem_affine([chebyshev_T(n, self.gen(0))], domain=self)
                 f = f.homogenize(1)
-                f = f.conjugate(matrix([[0.5, 0],[0, 1]]))
+                f = f.conjugate(matrix([[1/ZZ(2), 0],[0, 1]]))
                 f = f.dehomogenize(1)
                 return f
             return DynamicalSystem_affine([chebyshev_U(n, self.gen(0))], domain=self)

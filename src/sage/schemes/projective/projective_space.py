@@ -1174,7 +1174,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         f = A.chebyshev_polynomial(n, kind)
         if monic:
             f = f.homogenize(1)
-            return f.conjugate(matrix([[0.5, 0],[0, 1]]))
+            return f.conjugate(matrix([[1/ZZ(2), 0],[0, 1]]))
         return f.homogenize(1)
 
     def veronese_embedding(self, d, CS=None, order='lex'):

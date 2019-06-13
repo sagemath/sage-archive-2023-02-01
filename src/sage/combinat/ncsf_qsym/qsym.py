@@ -14,7 +14,7 @@ REFERENCES:
 .. [GriRei18]_
 
 .. [Mal1993] Claudia Malvenuto, *Produits et coproduits des fonctions
-   quasi-symetriques et de l'algebre des descentes*,
+   quasi-symétriques et de l'algèbre des descentes*,
    thesis, November 1993.
    http://www1.mat.uniroma1.it/people/malvenuto/Thesis.pdf
 

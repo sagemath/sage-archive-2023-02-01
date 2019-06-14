@@ -70,7 +70,7 @@ def interval_products(M0, M1, target):
 
     ALGORITHM:
 
-    Described in [Harv2006]_.
+    Described in [Harv2007]_.
     Based on the work of Bostan-Gaudry-Schost [BGS2007]_.
 
     EXAMPLES::
@@ -112,7 +112,7 @@ def interval_products(M0, M1, target):
 
     REFERENCES:
 
-    .. [Harv2006] David Harvey. *Kedlaya's algorithm in larger characteristic*,
+    .. [Harv2007] David Harvey. *Kedlaya's algorithm in larger characteristic*,
        :arxiv:`math/0610973`.
 
     .. [BGS2007] Alin Bostan, Pierrick Gaudry, and Eric Schost,

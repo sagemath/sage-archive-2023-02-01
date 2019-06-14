@@ -1057,19 +1057,9 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
               Defn: Defined on coordinates by sending (x : y) to
                     (1/4*x^4 + 1/2*x^2*y^2 + 1/4*y^4 : x^3*y - x*y^3)
 
-        TESTS::
-            sage: P.<x,y> = ProjectiveSpace(GF(37),1)
-            sage: E = EllipticCurve([1,1])
-            sage: P.Lattes_map(E,2)
-            Dynamical System of Projective Space of dimension 1 over Finite Field of size 37
-              Defn: Defined on coordinates by sending (x : y) to
-                    (-9*x^4 + 18*x^2*y^2 - 2*x*y^3 - 9*y^4 : x^3*y + x*y^3 + y^4)
-
         """
         if self.dimension_relative() != 1:
             raise TypeError("must be dimension 1")
-        if self.base_ring() != E.base_ring():
-            E = E.change_ring(self.base_ring())
 
         L = E.multiplication_by_m(m, x_only = True)
         F = [L.numerator(), L.denominator()]

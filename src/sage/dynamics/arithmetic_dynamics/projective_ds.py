@@ -5508,6 +5508,17 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             Dynamical System of Projective Space of dimension 1 over Finite Field in w3 of size 3^3
                   Defn: Defined on coordinates by sending (x : y) to
                         (x^3 + x^2*y + x*y^2 + (-w3)*y^3 : y^3)
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(GF(3),1)
+            sage: f = DynamicalSystem_projective([2*x**3 + x**2*y, y**3])
+            sage: g,m,psi = f.normal_form(return_conjugation=True); psi
+            Ring morphism:
+              From: Finite Field of size 3
+              To:   Finite Field in z2 of size 3^2
+              Defn: 1 |--> 1
+            
         """
         #defines the field of fixed points
         if self.codomain().dimension_relative() != 1:
@@ -5517,8 +5528,8 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             raise NotImplementedError("must be over an absolute number field or finite field")
         if K in FiniteFields():
             q = K.characteristic()
-            deg = K.degree()
             var = K.variable_name()
+            psi = K.hom([K.gen()])
         else:
             psi = K.hom([K.gen()]) #identity hom for return_embedding
         g = self
@@ -5569,8 +5580,8 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                     psi = phi * psi
                     K = L
                 elif K in FiniteFields():
-                    deg = deg * G.degree()
-                    K = GF(q**(deg), prefix=var)
+                    K, phi = K.extension(G.degree(), map=True)
+                    psi = phi * psi
                 else:
                     L = K.extension(u, 't'+str(i))
                     i += 1
@@ -5583,8 +5594,8 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                     K = L
                 #switch to the new field
                 if K in FiniteFields():
-                    G = G.change_ring(K)
-                    g = g.change_ring(K)
+                    G = G.change_ring(phi)
+                    g = g.change_ring(phi)
                 else:
                     G = G.change_ring(phi)
                     g = g.change_ring(phi)
@@ -5607,8 +5618,8 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         if d != 2 and u.is_irreducible():
             #we need to extend again
             if N in FiniteFields():
-                deg = deg*(d-1)
-                M = GF(q**(deg), prefix=var)
+                M, phi = N.extension(d-1, map=True)
+                psi = phi*psi
             else:
                 L = N.extension(u,'t'+str(i))
                 i += 1
@@ -5636,7 +5647,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         gccc = gcc.conjugate(mc2)
         if return_conjugation:
             if M in FiniteFields():
-                return gccc, m * mc * mc2
+                return gccc, m * mc * mc2, psi
             else:
                 return gccc, m * mc * mc2, psi
         return gccc

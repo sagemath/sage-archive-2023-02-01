@@ -8,7 +8,7 @@ AUTHOR:
 
 - David Harvey (2007-05)
 
-- David Harvey (2007-12): rewrote for hypellfrob version 2.0
+- David Harvey (2007-12): rewrote for ``hypellfrob`` version 2.0
 
 """
 
@@ -20,7 +20,7 @@ AUTHOR:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # *****************************************************************************
 
 from cysignals.signals cimport sig_on, sig_off
@@ -36,8 +36,8 @@ from sage.libs.ntl.ntl_ZZ_p cimport ntl_ZZ_p
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
 from sage.libs.ntl.ntl_mat_ZZ cimport ntl_mat_ZZ
-from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class, \
-    ntl_ZZ_pContext_factory
+from sage.libs.ntl.ntl_ZZ_pContext cimport (ntl_ZZ_pContext_class,
+                                            ntl_ZZ_pContext_factory)
 
 from sage.libs.ntl.conversion cimport set_ntl_matrix_modn_dense
 
@@ -61,7 +61,7 @@ def interval_products(M0, M1, target):
     ``\prod_{t = a_i + 1}^{b_i} M(t)``
     for `i = 0` to `n`.
 
-    This is a wrapper for code in the hypellfrob package.
+    This is a wrapper for code in the ``hypellfrob`` package.
 
     INPUT:
 
@@ -70,21 +70,20 @@ def interval_products(M0, M1, target):
 
     ALGORITHM:
 
-    Described in "Kedlaya's algorithm in larger characteristic" by David
-    Harvey. Based on the work of Bostan-Gaudry-Schost.
+    Described in [Harv2006]_.
+    Based on the work of Bostan-Gaudry-Schost [BGS2007]_.
 
     EXAMPLES::
 
-        sage: from sage.schemes.hyperelliptic_curves.hypellfrob import \
-                interval_products
-        sage: interval_products(Matrix(Integers(9), 2,2, [1,0,1,0]), \
-                Matrix(Integers(9), 2, 2, [1, 1, 0, 2]),[0,2,2,4])
+        sage: from sage.schemes.hyperelliptic_curves.hypellfrob import interval_products
+        sage: interval_products(Matrix(Integers(9), 2,2, [1,0,1,0]),
+        ....:   Matrix(Integers(9), 2, 2, [1, 1, 0, 2]),[0,2,2,4])
         [
         [7 8]  [5 4]
         [5 1], [2 7]
         ]
-        sage: [prod(Matrix(Integers(9), 2, 2, [t + 1, t, 1, 2*t]) for t in \
-            range(2*i + 1, 2*i + 1 + 2)) for i in range(2)]
+        sage: [prod(Matrix(Integers(9), 2, 2, [t + 1, t, 1, 2*t])
+        ....:  for t in range(2*i + 1, 2*i + 1 + 2)) for i in range(2)]
         [
         [7 8]  [5 4]
         [5 1], [2 7]
@@ -92,16 +91,16 @@ def interval_products(M0, M1, target):
 
     An example with larger modulus::
 
-        sage: interval_products(Matrix(Integers(3^8), 1, 1, [1]), \
-                Matrix(Integers(3^8), 1, 1, [1]), [2,4])
+        sage: interval_products(Matrix(Integers(3^8), 1, 1, [1]),
+        ....:   Matrix(Integers(3^8), 1, 1, [1]), [2,4])
         [[20]]
         sage: [prod(Matrix(Integers(3^8), 1, 1, [t + 1]) for t in range(3,5))]
         [[20]]
 
     An even larger modulus::
 
-        sage: interval_products(Matrix(Integers(3^18), 1, 1, [1]), \
-                Matrix(Integers(3^18), 1, 1, [1]), [2,4])
+        sage: interval_products(Matrix(Integers(3^18), 1, 1, [1]),
+        ....:   Matrix(Integers(3^18), 1, 1, [1]), [2,4])
         [[20]]
         sage: [prod(Matrix(Integers(3^18), 1, 1, [t + 1]) for t in range(3,5))]
         [[20]]
@@ -110,6 +109,16 @@ def interval_products(M0, M1, target):
 
     - David Harvey (2007-12): Original code
     - Alex J. Best (2018-02): Wrapper
+
+    REFERENCES:
+
+    .. [Harv2006] David Harvey. *Kedlaya's algorithm in larger characteristic*,
+       :arxiv:`math/0610973`.
+
+    .. [BGS2007] Alin Bostan, Pierrick Gaudry, and Eric Schost,
+       *Linear recurrences with polynomial coefficients and application
+       to integer factorization and Cartier-Manin operator*, SIAM
+       Journal on Computing 36 (2007), no. 6, 1777-1806
     """
     # Sage objects that wrap the NTL objects
     cdef mat_ZZ_p_c mm0, mm1
@@ -176,8 +185,7 @@ def hypellfrob(p, N, Q):
 
     EXAMPLES::
 
-        sage: from sage.schemes.hyperelliptic_curves.hypellfrob \
-        import hypellfrob
+        sage: from sage.schemes.hyperelliptic_curves.hypellfrob import hypellfrob
         sage: R.<x> = PolynomialRing(ZZ)
         sage: f = x^5 + 2*x^2 + x + 1; p = 101
         sage: M = hypellfrob(p, 4, f); M
@@ -187,7 +195,7 @@ def hypellfrob(p, N, Q):
         [ 58643832 + O(101^4)  81727988 + O(101^4)  85294589 + O(101^4)  70104432 + O(101^4)]
         sage: -M.trace()
         7 + O(101^4)
-        sage: sum([legendre_symbol(f(i), p) for i in range(p)])
+        sage: sum(legendre_symbol(f(i), p) for i in range(p))
         7
         sage: ZZ(M.det())
         10201
@@ -246,8 +254,8 @@ def hypellfrob(p, N, Q):
 
     R = Qp(p, N, print_mode="terse")
     prec = big_oh(p**N)
-    data = [[mm[j, i]._integer_() + prec for i from 0 <= i < 2*g]
-            for j from 0 <= j < 2*g]
+    data = [[mm[j, i]._integer_() + prec for i in range(2 * g)]
+            for j in range(2 * g)]
     return Matrix(R, data)
 
 # end of file

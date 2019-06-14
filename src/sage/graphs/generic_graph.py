@@ -16206,6 +16206,11 @@ class GenericGraph(GenericGraph_pyx):
              [1, 6, 9, 10, 5],
              [1, 6, 9, 11, 10, 5],
              [1, 6, 9, 3, 4, 5]]
+            sage: g = DiGraph([(1, 2, 5), (6, 3, 0), (2, 6, 6), (1, 4, 15), (4, 5, 1), (4, 3, 0), (7, 1, 2), (8, 7, 1)])
+            sage: list(g.yen_k_shortest_simple_paths_directed(1, 3))
+            [[1, 4, 3], [1, 2, 6, 3]]
+            sage: list(g.yen_k_shortest_simple_paths_directed(1, 3, by_weight=True))
+            [[1, 2, 6, 3], [1, 4, 3]]
         """
         if not self.is_directed():
             raise ValueError("this algorithm works only for directed graphs")
@@ -16275,16 +16280,17 @@ class GenericGraph(GenericGraph_pyx):
                         reduced_cost[(w, target)] = 0
 
         from heapq import heappush, heappop
-        from sage.rings.infinity import Infinity
+        from sage.graphs.base.boost_graph import shortest_paths
+        import copy
 
         reverse_graph = self.reverse()
-        from sage.graphs.base.boost_graph import shortest_paths
         dist, successor = shortest_paths(reverse_graph, target, weight_function=reverse_weight_function, algorithm="Dijkstra_Boost")
         # successor is a child node in the shortest path subtree
         reduced_cost = {}
         for e in self.edge_iterator():
             if e[0] in dist and e[1] in dist:
                 reduced_cost[(e[0], e[1])] = weight_function(e) + dist[e[1]] - dist[e[0]]
+        exclude_vert_set = set(self) - set(dist.keys())
         # finding the parent information from successor
         for key in successor:
             if successor[key] and successor[key] not in parent:
@@ -16302,7 +16308,8 @@ class GenericGraph(GenericGraph_pyx):
         prev_path = None
 
         # compute the shortest path between the source and the target
-        path = shortest_path_func(source, target, weight_function=weight_function, reduced_weight=reduced_cost)
+        path = shortest_path_func(source, target, exclude_vertices=exclude_vert_set,
+                                  weight_function=weight_function, reduced_weight=reduced_cost)
         length = length_func(path)
 
         if len(path) == 0: # corner case
@@ -16321,7 +16328,7 @@ class GenericGraph(GenericGraph_pyx):
             listA.append(path1)
             prev_path = path1
 
-            exclude_vertices = set()
+            exclude_vertices = copy.deepcopy(exclude_vert_set) # deep copy of the exclude vertices set
             exclude_edges = set()
             include_vertices = set()
             expressEdges = {}

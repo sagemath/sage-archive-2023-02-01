@@ -52,7 +52,7 @@ def is_AffineSpace(x):
     """
     return isinstance(x, AffineSpace_generic)
 
-def AffineSpace(n, R=None, names='x', ambient_projective_space=None,
+def AffineSpace(n, R=None, names=None, ambient_projective_space=None,
                 default_embedding_index=None):
     r"""
     Return affine space of dimension ``n`` over the ring ``R``.
@@ -87,21 +87,43 @@ def AffineSpace(n, R=None, names='x', ambient_projective_space=None,
         Affine Space of dimension 3 over Finite Field of size 7
         sage: A.coordinate_ring() is R
         True
+
+    TESTS::
+
+            sage: R.<w> = QQ[]
+            sage: A.<w> = AffineSpace(R)
+            sage: A.gens() == R.gens()
+            True
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: A.<z> = AffineSpace(R)
+            Traceback (most recent call last):
+            ...
+            NameError: variable names passed to AffineSpace conflict with names in ring
     """
     if (is_MPolynomialRing(n) or is_PolynomialRing(n)) and R is None:
         R = n
+        if names is not None:
+            # Check for the case that the user provided a variable name
+            # That does not match what we wanted to use from R
+            names = normalize_names(R.ngens(), names)
+            if n.variable_names() != names:
+                # The provided name doesn't match the name of R's variables
+                raise NameError("variable names passed to AffineSpace conflict with names in ring")
         A = AffineSpace(R.ngens(), R.base_ring(), R.variable_names())
         A._coordinate_ring = R
         return A
-    if isinstance(R, integer_types + (Integer,)):
-        n, R = R, n
-    if R is None:
-        R = ZZ  # default is the integers
     if names is None:
         if n == 0:
             names = ''
         else:
-            raise TypeError("you must specify the variables names of the coordinate ring")
+            names = 'x'
+    if isinstance(R, integer_types + (Integer,)):
+        n, R = R, n
+    if R is None:
+        R = ZZ  # default is the integers
     names = normalize_names(n, names)
     if default_embedding_index is not None and ambient_projective_space is None:
         from sage.schemes.projective.projective_space import ProjectiveSpace

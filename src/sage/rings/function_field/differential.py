@@ -55,8 +55,6 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import absolute_import
 
-import operator
-
 from sage.misc.latex import latex
 
 from sage.structure.unique_representation import UniqueRepresentation
@@ -67,7 +65,6 @@ from sage.sets.family import Family
 
 from sage.categories.modules import Modules
 from sage.categories.morphism import Morphism
-from sage.categories.action import Action
 
 class FunctionFieldDifferential(ModuleElement):
     """
@@ -161,6 +158,21 @@ class FunctionFieldDifferential(ModuleElement):
             return r
 
         return '\\left(' + latex(self._f) + '\\right)\\,' + r
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: K.<x>=FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y>=K.extension(Y^3 + x + x^3*Y)
+            sage: {x.differential(): 1}
+            {d(x): 1}
+            sage: {y.differential(): 1}
+            {(x*y^2 + 1/x*y) d(x): 1}
+        """
+        return hash((self.parent(), self._f))
 
     def _richcmp_(self, other, op):
         """
@@ -304,6 +316,47 @@ class FunctionFieldDifferential(ModuleElement):
         """
         W = self.parent()
         return W.element_class(W, f * self._f)
+
+    def _acted_upon_(self, f, self_on_left):
+        """
+        Define multiplication of ``self`` with an element ``f`` of a function
+        field, by coercing ``self`` to the space of differentials of the
+        function field.
+
+        INPUT:
+
+        - ``f`` -- an element of a function field
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(31)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 - x); _.<Z> = L[]
+            sage: M.<z> = L.extension(Z^2 - y)
+            sage: z.differential()
+            (8/x*z) d(x)
+            sage: 1/(2*z) * y.differential()
+            (8/x*z) d(x)
+
+            sage: z * x.differential()
+            (z) d(x)
+            sage: z * (y^2).differential()
+            (z) d(x)
+            sage: z * (z^4).differential()
+            (z) d(x)
+
+        ::
+
+            sage: K.<x>=FunctionField(GF(4)); _.<Y> = K[]
+            sage: L.<y>=K.extension(Y^3 + x + x^3*Y)
+            sage: y * x.differential()
+            (y) d(x)
+        """
+        F = f.parent()
+        if self.parent().function_field() is not F:
+            phi = F.space_of_differentials().coerce_map_from(self.parent())
+            if phi is not None:
+                return phi(self)._rmul_(f)
+        raise TypeError
 
     def divisor(self):
         """
@@ -477,188 +530,6 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
         """
         return {0: self._f}
 
-class DifferentialsSpaceMorphism(Morphism):
-    """
-    Base class for morphisms between differential spaces of function fields.
-
-    EXAMPLES::
-
-        sage: K.<x> = FunctionField(QQ); R.<y> = K[]
-        sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
-        sage: mor = L.space_of_differentials().coerce_map_from(K.space_of_differentials())
-        sage: isinstance(mor, sage.rings.function_field.differential.DifferentialsSpaceMorphism)
-        True
-
-    TESTS::
-
-        sage: K.<x> = FunctionField(QQ); R.<y> = K[]
-        sage: L.<y> = K.extension(y^2 - x*y + 5*x^3)
-        sage: mor2 = L.space_of_differentials().coerce_map_from(K.space_of_differentials())
-
-        sage: mor == mor2
-        False
-        sage: mor == mor
-        True
-    """
-
-    def _repr_(self):
-        """
-        Return the string representation of this morphism.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
-            sage: L.space_of_differentials().coerce_map_from(K.space_of_differentials())
-            Morphism of Differential Spaces:
-              From: Space of differentials of Rational function field in x over Rational Field
-              To:   Space of differentials of Function field in y defined by y^2 - x*y + 4*x^3
-
-        """
-        s = "Morphism of Differential Spaces:"
-        s += "\n  From: {}".format(self.domain())
-        s += "\n  To:   {}".format(self.codomain())
-        return s
-
-    def is_injective(self):
-        """
-        Return ``True``, since the morphism is injective.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
-            sage: L.space_of_differentials().coerce_map_from(K.space_of_differentials()).is_injective()
-            True
-        """
-        return True
-
-    def is_surjective(self):
-        """
-        Return ``False``, since the morphism is not surjective.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
-            sage: L.space_of_differentials().coerce_map_from(K.space_of_differentials()).is_surjective()
-            False
-        """
-        return False
-
-    def __hash__(self):
-        r"""
-        Return a hash value of this morphism.
-
-        .. TODO::
-
-            Make FunctionFieldDifferential hashable, so we can drop this
-            method and use Morphism's default __hash__() method instead.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(QQbar); R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
-            sage: mor = L.space_of_differentials().coerce_map_from(K.space_of_differentials())
-            sage: hash(mor)  # random
-
-        """
-        return hash((self.domain(), self.codomain()))
-
-    def _call_(self, v):
-        """
-        Map ``v`` to the codomain differential space.
-
-        INPUT:
-
-        - ``v`` -- a differential in the domain differential space
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(QQbar); R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
-            sage: mor = L.space_of_differentials().coerce_map_from(K.space_of_differentials())
-            sage: mor(x.differential()).parent()
-            Space of differentials of Function field in y defined by y^2 - x*y + 4*x^3
-
-        """
-        codomain = self.codomain()
-        return codomain.element_class(codomain, codomain.function_field()(v._f))
-
-class DifferentialMultiplicationAction(Action):
-    """
-    Implement multiplication of a differential by a function.
-
-    INPUT:
-
-    - ``G`` -- must be a function field
-
-    - ``S`` -- must be a space of differentials for a function field
-
-    EXAMPLES::
-
-        sage: K.<x> = FunctionField(QQ); R.<y> = K[]
-        sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
-        sage: mor = K.space_of_differentials().get_action(L)
-        sage: isinstance(mor, sage.rings.function_field.differential.DifferentialMultiplicationAction)
-        True
-
-    """
-    def __init__(self, G, S):
-        """
-        EXAMPLES::
-
-            sage: from sage.rings.function_field.differential import DifferentialMultiplicationAction
-            sage: K.<x>=FunctionField(GF(4)); _.<Y>=K[]
-            sage: L.<y>=K.extension(Y^3+x+x^3*Y)
-            sage: R.<x>=FunctionField(QQ);
-
-            sage: DifferentialMultiplicationAction(K, L)
-            Traceback (most recent call last):
-            ...
-            TypeError: (Function field in y defined by y^3 + x^3*y + x) must be a DifferentialsSpace
-
-
-            sage: DifferentialMultiplicationAction(K.space_of_differentials(), L.space_of_differentials())
-            Traceback (most recent call last):
-            ...
-            TypeError: (Space of differentials of Rational function field in x over Finite Field in z2 of size 2^2) must be a FunctionField
-
-            sage: DifferentialMultiplicationAction(R, L.space_of_differentials())
-            Traceback (most recent call last):
-            ...
-            TypeError: 'Rational function field in x over Rational Field'
-               and 'Space of differentials of Function field in y defined by y^3 + x^3*y + x' are not compatible
-
-            sage: DifferentialMultiplicationAction(K, L.space_of_differentials())
-            Left action by Rational function field in x over Finite Field in z2 of size 2^2
-               on Space of differentials of Function field in y defined by y^3 + x^3*y + x
-        """
-        from .function_field import FunctionField
-        if not isinstance(G, FunctionField):
-            raise TypeError("(%s) must be a FunctionField" % repr(G))
-        if not isinstance(S, DifferentialsSpace):
-            raise TypeError("(%s) must be a DifferentialsSpace" % repr(S))
-        if not G.space_of_differentials().has_coerce_map_from(S) \
-           and not S.has_coerce_map_from(G.space_of_differentials()):
-            raise TypeError("'%s' and '%s' are not compatible" % (repr(G), repr(S)))
-        Action.__init__(self, G, S, True, operator.pow)
-
-    def _act_(self, f, d):
-        r"""
-        Return the product ``f d``.
-
-        INPUT:
-
-        - ``f`` -- an element in a function field
-
-        - ``d`` -- a differential in a compatible function field
-        """
-        if f.parent().space_of_differentials().has_coerce_map_from(d.parent()):
-            return f * f.parent().space_of_differentials()(d)
-        if d.parent().function_field().has_coerce_map_from(f.parent()):
-            return d.parent().function_field()(f) * d
-        raise TypeError("unsupported operands for DifferentialMultiplicationAction")
 
 class DifferentialsSpace(UniqueRepresentation, Parent):
     """
@@ -759,23 +630,6 @@ class DifferentialsSpace(UniqueRepresentation, Parent):
 
         raise ValueError
 
-    def _get_action_(self, G, op, self_on_left):
-        """
-        EXAMPLES::
-
-            sage: K.<x>=FunctionField(GF(4)); _.<Y>=K[]
-            sage: L.<y>=K.extension(Y^3+x+x^3*Y)
-            sage: K.space_of_differentials().get_action(L)
-            Left action by Function field in y defined by y^3 + x^3*y + x
-               on Space of differentials of Rational function field in x over Finite Field in z2 of size 2^2
-            sage: y * x.differential()
-            (y) d(x)
-        """
-        from .function_field import FunctionField
-        if op is operator.mul and G is not self.function_field() and isinstance(G, FunctionField):
-            if G.space_of_differentials().has_coerce_map_from(self):
-                return DifferentialMultiplicationAction(G, self)
-
     def _coerce_map_from_(self, S):
         """
         Define coercions.
@@ -788,14 +642,13 @@ class DifferentialsSpace(UniqueRepresentation, Parent):
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
             sage: L.space_of_differentials().coerce_map_from(K.space_of_differentials())
-            Morphism of Differential Spaces:
+            Inclusion morphism:
               From: Space of differentials of Rational function field in x over Rational Field
               To:   Space of differentials of Function field in y defined by y^2 - x*y + 4*x^3
-
         """
         if isinstance(S, DifferentialsSpace):
             if self.function_field().has_coerce_map_from(S.function_field()):
-                return DifferentialsSpaceMorphism(S, self)
+                return DifferentialsSpaceInclusion(S, self)
 
     def function_field(self):
         """
@@ -841,6 +694,7 @@ class DifferentialsSpace(UniqueRepresentation, Parent):
         """
         return Family([self.element_class(self, self.base().one())])
 
+
 class DifferentialsSpace_global(DifferentialsSpace):
     """
     Space of differentials of a global function field.
@@ -857,4 +711,102 @@ class DifferentialsSpace_global(DifferentialsSpace):
         Space of differentials of Function field in y defined by y^3 + x^3*y + x
     """
     Element = FunctionFieldDifferential_global
+
+
+class DifferentialsSpaceInclusion(Morphism):
+    """
+    Inclusion morphisms for extensions of function fields.
+
+    EXAMPLES::
+
+        sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+        sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
+        sage: OK = K.space_of_differentials()
+        sage: OL = L.space_of_differentials()
+        sage: OL.coerce_map_from(OK)
+        Inclusion morphism:
+          From: Space of differentials of Rational function field in x over Rational Field
+          To:   Space of differentials of Function field in y defined by y^2 - x*y + 4*x^3
+    """
+
+    def _repr_(self):
+        """
+        Return the string representation of this morphism.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
+            sage: OK = K.space_of_differentials()
+            sage: OL = L.space_of_differentials()
+            sage: OL.coerce_map_from(OK)
+            Inclusion morphism:
+              From: Space of differentials of Rational function field in x over Rational Field
+              To:   Space of differentials of Function field in y defined by y^2 - x*y + 4*x^3
+        """
+        s = "Inclusion morphism:"
+        s += "\n  From: {}".format(self.domain())
+        s += "\n  To:   {}".format(self.codomain())
+        return s
+
+    def is_injective(self):
+        """
+        Return ``True``, since the inclusion morphism is injective.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
+            sage: OK = K.space_of_differentials()
+            sage: OL = L.space_of_differentials()
+            sage: OL.coerce_map_from(OK).is_injective()
+            True
+        """
+        return True
+
+    def is_surjective(self):
+        """
+        Return ``True`` if the inclusion morphism is surjective.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
+            sage: OK = K.space_of_differentials()
+            sage: OL = L.space_of_differentials()
+            sage: OL.coerce_map_from(OK).is_surjective()
+            False
+
+            sage: S.<z> = L[]
+            sage: M.<z> = L.extension(z - 1)
+            sage: OM = M.space_of_differentials()
+            sage: OM.coerce_map_from(OL).is_surjective()
+            True
+        """
+        K = self.domain().function_field()
+        L = self.codomain().function_field()
+        return L.degree(K) == 1
+
+    def _call_(self, v):
+        """
+        Map ``v`` to a differential in the codomain.
+
+        INPUT:
+
+        - ``v`` -- a differential in the domain
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQbar); R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
+            sage: OK = K.space_of_differentials()
+            sage: OL = L.space_of_differentials()
+            sage: mor = OL.coerce_map_from(OK)
+            sage: mor(x.differential()).parent()
+            Space of differentials of Function field in y defined by y^2 - x*y + 4*x^3
+        """
+        domain = self.domain()
+        F = self.codomain().function_field()
+        return F(v._f)*F(domain._gen_base_differential).differential()
+
 

@@ -1056,7 +1056,6 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             Dynamical System of Projective Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x : y) to
                     (1/4*x^4 + 1/2*x^2*y^2 + 1/4*y^4 : x^3*y - x*y^3)
-
         """
         if self.dimension_relative() != 1:
             raise TypeError("must be dimension 1")

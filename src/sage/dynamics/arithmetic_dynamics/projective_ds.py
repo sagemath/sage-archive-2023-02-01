@@ -2592,6 +2592,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             raise TypeError("the function is not a morphism")
         if self.degree() == 1:
             raise NotImplementedError("minimality is only for degree 2 or higher")
+        if prime_list != None and check_primes:
+            for prime in prime_list:
+                if not is_prime(prime):
+                    raise ValueError("prime_list contains " + str(prime) + " which is not prime")
 
         if algorithm == 'BM':
             from .endPN_minimal_model import affine_minimal
@@ -2605,12 +2609,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         R = f.domain().coordinate_ring()
         F = R(f[0].numerator())
         G = R(f[0].denominator())
-        
-        if prime_list != None and check_primes:
-            for prime in prime_list:
-                if not is_prime(prime):
-                    raise ValueError("prime_list contains " + str(prime) + " which is not prime")
-                
+               
         if G.degree() == 0 or F.degree() == 0:
             #can use BM for polynomial
             from .endPN_minimal_model import HS_minimal

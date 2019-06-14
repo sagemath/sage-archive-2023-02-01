@@ -899,6 +899,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
                     (x^7 - 7*x^5 + 14*x^3 - 7*x)
 
         ::
+
             sage: F.<t> = FunctionField(QQ)
             sage: A.<x> = AffineSpace(F,1)
             sage: A.chebyshev_polynomial(4, monic = True)

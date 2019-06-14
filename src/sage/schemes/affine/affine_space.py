@@ -897,6 +897,14 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             Dynamical System of Affine Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x) to
                     (x^7 - 7*x^5 + 14*x^3 - 7*x)
+
+        ::
+            sage: F.<t> = FunctionField(QQ)
+            sage: A.<x> = AffineSpace(F,1)
+            sage: A.chebyshev_polynomial(4, monic = True)
+            Dynamical System of Affine Space of dimension 1 over Rational function field in t over Rational Field
+              Defn: Defined on coordinates by sending (x) to
+                    (x^4 + (-4)*x^2 + 2)
         """
         if self.dimension_relative() != 1:
             raise TypeError("affine space must be of dimension 1")

@@ -1559,23 +1559,7 @@ def lex_BFS_fast(G, reverse=False, tree=False, initial_vertex=None):
     G.remove_multiple_edges()
     G.remove_loops()
 
-    # Build adjacency list of G
     cdef int nV = G.order()
-    cdef dict int_to_v = dict(enumerate(G))
-    cdef dict v_to_int = {vv: vi for vi, vv in enumerate(G)}
-    cdef vector[vector[int]] adjacency_list
-    cdef u_int, v_int
-
-    adjacency_list.resize(nV)
-
-    for u, v in G.edges(labels=False):
-        u_int = v_to_int[u]
-        v_int = v_to_int[v]
-        adjacency_list[u_int].push_back(v_int)
-        if not G.is_directed():
-            adjacency_list[v_int].push_back(u_int)
-
-    # Perform Lex BFS
 
     if nV == 0:
         if tree:
@@ -1585,23 +1569,37 @@ def lex_BFS_fast(G, reverse=False, tree=False, initial_vertex=None):
         else:
             return []
 
+    # Build adjacency list of G
+    cdef list int_to_v = list(G)
+
+    cdef short_digraph sd
+    init_short_digraph(sd, G, edge_labelled=False, vertex_list=int_to_v)
+
+    # Perform Lex BFS
+
     cdef list code = [[] for i in range(nV)]
 
     def l(x):
         return code[x]
 
     cdef list value = []
-    cdef list pred = [-1] * nV
+
+    # initialize the predecessors array
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef int *pred = <int *>mem.allocarray(nV, sizeof(int))
+    memset(pred, -1, nV * sizeof(int))
+
     cdef set vertices = set(range(nV))
 
-    cdef int source = 0 if initial_vertex is None else v_to_int[initial_vertex]
+    cdef int source = 0 if initial_vertex is None else int_to_v.index(initial_vertex)
     code[source].append(nV + 1)
 
-    cdef int now = 1
+    cdef int now = 1, v, int_neighbor
     while vertices:
         v = max(vertices, key=l)
         vertices.remove(v)
-        for int_neighbor in adjacency_list[v]:
+        for i in range (0, out_degree(sd, v)):
+            int_neighbor = sd.neighbors[v][i]
             if int_neighbor in vertices:
                 code[int_neighbor].append(nV - now)
                 pred[int_neighbor] = v
@@ -1614,7 +1612,7 @@ def lex_BFS_fast(G, reverse=False, tree=False, initial_vertex=None):
     if tree:
         from sage.graphs.digraph import DiGraph
         g = DiGraph(sparse=True)
-        g.add_vertices(list(v_to_int.keys()))
+        g.add_vertices(G.vertices())
         edges = [(int_to_v[i], int_to_v[pred[i]]) for i in range(nV) if pred[i] != -1]
         g.add_edges(edges)
         return value, g

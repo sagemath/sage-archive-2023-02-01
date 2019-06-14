@@ -5,6 +5,7 @@ from sage.ext.memory_allocator cimport MemoryAllocator
 
 from libcpp.vector cimport vector
 
+
 ctypedef int * D_TWO
 ctypedef char * D_THREE
 ctypedef fused dimension_t:

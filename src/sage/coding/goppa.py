@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Goppa code
 
@@ -19,19 +20,19 @@ class GoppaCode(AbstractLinearCode):
     Implementation of Goppa codes
 
     Goppa codes are a generalization of narrow-sense BCH codes.
-    These codes are defined by a generating polynomial `g over a finite field
-    `F_p^m`, and a defining set `L` of elements from `F_p^m`, which are not roots
+    These codes are defined by a generating polynomial `g` over a finite field
+    `F_{p^m}`, and a defining set `L` of elements from `F_{p^m}`, which are not roots
     of `g`. The number of defining elements determines the length of the code.
 
-    In binary cases, the minimum distance is `2*t + 1`, where `t` is the degree
+    In binary cases, the minimum distance is `2t + 1`, where `t` is the degree
     of `g`.
 
     INPUTS:
 
     - ``generating_pol`` -- a monic polynomial with coefficients in a finite
-      field `F_p^m`, the code is defined over `F_p`, `p` must be a prime number
+      field `F_{p^m}`, the code is defined over `F_p`, `p` must be a prime number
 
-    - ``defining_set`` -- a set of elements of `F_p^m` that are not roots
+    - ``defining_set`` -- a set of elements of `F_{p^m}` that are not roots
       of `g`, its cardinality is the length of the code
 
     EXAMPLES::
@@ -123,13 +124,13 @@ class GoppaCode(AbstractLinearCode):
         """
         Parity check matrix for ``self``.
 
-        The element in row `t`, column `i` is `h[i]*(D[i]**t)`, where:
+        The element in row `t`, column `i` is `h[i](D[i]^t)`, where:
 
-        -`h[i]` is the inverse of `g(D[i])`
-        -`D[i]` is the ith element of the defining set
+        - `h[i]` -- is the inverse of `g(D[i])`
+        - `D[i]` -- is the `i`-th element of the defining set
 
-        In the resulting `d * n` matrix we interpret each entry as an `m`-column
-        vector and return a `dm * n` matrix.
+        In the resulting `d \times n` matrix we interpret each entry as an
+        `m`-column vector and return a `dm \times n` matrix.
 
         EXAMPLES::
 
@@ -222,7 +223,7 @@ class GoppaCode(AbstractLinearCode):
         A lower bound for the minimum distance of the code.
 
         Computed using the degree of the generating polynomial of ``self``.
-        Min distance is guaranteed to be bigger than or equal to this bound.
+        The minimum distance is guaranteed to be bigger than or equal to this bound.
 
         EXAMPLES::
 
@@ -286,8 +287,8 @@ class GoppaCodeEncoder(Encoder):
         """
         A generator matrix for ``self``
 
-        Dimension of resulting matrix is `k * n`, where `k` is the dimension of
-        ``self`` and `n` is the length of ``self``.
+        Dimension of resulting matrix is `k \times n`, where `k` is
+        the dimension of ``self`` and `n` is the length of ``self``.
 
         EXAMPLES::
 

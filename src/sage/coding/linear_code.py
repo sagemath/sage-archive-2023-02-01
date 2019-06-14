@@ -1740,7 +1740,7 @@ class AbstractLinearCode(Module):
 
     def u_u_plus_v_code(self, other):
         """
-        The (u|u+v)-construction with ``self=u`` and ``other=v``
+        The `(u|u+v)`-construction with ``self=u`` and ``other=v``
 
         Returns the code obtained through `(u|u+v)`-construction with ``self`` as `u`
         and ``other`` as `v`. Note that `u` and `v` must have equal lengths.
@@ -1771,10 +1771,10 @@ class AbstractLinearCode(Module):
         """
         Combines ``self`` with ``other`` to give the tensor product code.
 
-        If ``self`` is a `[n1, k1, d1]`-code and ``other`` is a `[n2, k2, d2]`-code,
-        the product is a `[n1*n2, k1*k2, d1*d2]`-code.
+        If ``self`` is a `[n_1, k_1, d_1]`-code and ``other`` is
+        a `[n_2, k_2, d_2]`-code, the product is a `[n_1n_2, k_1k_2, d_1d_2]`-code.
 
-        The two codes have to be over the same field.
+        Note that the two codes have to be over the same field.
 
             EXAMPLES::
 
@@ -1802,15 +1802,16 @@ class AbstractLinearCode(Module):
 
     def construction_x(self, other, aux):
         """
-        Construction X applied to ``self=C1``, ``other=C2`` and ``aux=Ca``.
+        Construction X applied to ``self=C_1``, ``other=C_2`` and ``aux=C_a``.
 
         ``other`` must be a subcode of ``self``.
 
-        If `C1` is a `[n, k1, d1]` linear code and `C2` is a `[n, k2, d2]` linear code,
-        then `k1 > k2` and `d1 < d2`. `Ca` must be a `[na, ka, da]` linear code,
-        such that `ka + k2 == k1` and `da + d1 <= d2`.
+        If `C_1` is a `[n, k_1, d_1]` linear code and `C_2` is
+        a `[n, k_2, d_2]` linear code, then `k_1 > k_2` and `d_1 < d_2`. `C_a` must
+        be a `[n_a, k_a, d_a]` linear code, such that `k_a + k_2 = k_1`
+        and `d_a + d_1 \leq d_2`.
 
-        The method will then return a `[n+na, k1, da+d1]` linear code.
+        The method will then return a `[n+n_a, k_1, d_a+d_1]` linear code.
 
             EXAMPLES::
 

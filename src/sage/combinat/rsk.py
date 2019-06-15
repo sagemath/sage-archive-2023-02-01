@@ -203,7 +203,7 @@ from sage.matrix.all import matrix
 
 class Rule(UniqueRepresentation):
     r"""
-    Base class for common functionalities in insertion rules.
+    Generic base class for a insertion rule for RSK correspondence.
     """
     def to_pair(self, obj1=None, obj2=None):
         r"""
@@ -249,14 +249,19 @@ class Rule(UniqueRepresentation):
         r"""
         Returns a pair of tableau from forward insertion of the pair ``[obj1, obj2]``.
         
-        Input:  ``obj1, obj2`` -- Can be one of the following:
+        INPUT:
+          
+        - ``obj1, obj2`` -- Can be one of the following:
 
           - A word in an ordered alphabet
-          - An integer matrix
           - Two lists of equal length representing a generalized permutation
           - Any object which has a method ``_rsk_iter()`` which returns an
             iterator over the object represented as generalized permutation or
             a pair of lists.
+
+        -  ``check_standard`` -- (Default: ``False``) Check if either of the
+            resulting tableaux is a standard tableau, and if so, typecast it
+            as such
 
         """
         from sage.combinat.tableau import SemistandardTableau, StandardTableau
@@ -283,10 +288,14 @@ class Rule(UniqueRepresentation):
 
     def backward_rule(self, p, q, output):
         r"""
-        Returns the generalized permutaion from the reverse insertion 
+        Returns the generalized permutation from the reverse insertion 
         of a pair of tableaux ``(p, q)``.
 
-        Input:  ``output`` -- (Default: ``'array'``) if ``q`` is semi-standard:
+        INPUT:
+
+        - ``p``, ``q`` -- Two tableaux of the same shape.
+
+        - ``output`` -- (Default: ``'array'``) if ``q`` is semi-standard:
 
           - ``'array'`` -- as a two-line array (i.e. generalized permutation or
             biword)
@@ -359,7 +368,7 @@ class Rule(UniqueRepresentation):
 
 class RuleRSK(Rule):
     r"""
-    A rule modeling Robinson-Schensted-Knuth insertion.
+    A rule modeling the classical Robinson-Schensted-Knuth insertion.
 
     EXAMPLES::
 
@@ -372,8 +381,7 @@ class RuleRSK(Rule):
 
     def insertion(self, i, j, p, q):
         r"""
-        The algorithm for inserting the letter (i,j) from the bi-word to the 
-        current tableaux p and q.
+        Inserts the letter ``(i,j)`` from the bi-word to the current tableaux ``p`` and ``q``.
         """
         from bisect import bisect_right
         for r, qr in zip(p,q):
@@ -396,8 +404,9 @@ class RuleRSK(Rule):
 
     def rev_insertion(self, i, p_copy, rev_word, q_is_standard):
         r"""
-        The algorithm for removing a letter from the ith row of the 
-        current tableaux p and q.
+        Reverse bump the right-most letter from the `i^{th}` row of the 
+        current tableaux p_copy and appends the removed entry from ``p_copy``
+        to the list ``rev_word``.
         """
         from bisect import bisect_left
         if q_is_standard:
@@ -443,8 +452,7 @@ class RuleEG(Rule):
 
     def insertion(self, i, j, p, q):
         r"""
-        The algorithm for inserting the letter (i,j) from the bi-word to the 
-        current tableaux p and q.
+        Inserts the letter ``(i,j)`` from the bi-word to the current tableaux ``p`` and ``q``.
         """
         from bisect import bisect_right
         for r, qr in zip(p,q):
@@ -471,8 +479,9 @@ class RuleEG(Rule):
 
     def rev_insertion(self, i, p_copy, rev_word, q_is_standard):
         r"""
-        The algorithm for removing a letter from the ith row of the 
-        current tableaux p and q.
+        Reverse bump the right-most letter from the `i^{th}` row of the 
+        current tableaux p_copy and appends the removed entry from ``p_copy``
+        to the list ``rev_word``.
         
         TESTS:
         
@@ -514,14 +523,14 @@ class RuleEG(Rule):
             if list(lower_row):
                 n = max(list(lower_row)) + 1
             from sage.combinat.permutation import Permutations
-            return Permutations(n).from_reduced_word(list(reversed(lower_row)))
+            return Permutations(n).from_reduced_word(list(lower_row))
         else:
             return super(RuleEG, self)._format_output(lower_row, upper_row, output, p_is_standard, q_is_standard)
 
 
 class RuleHecke(Rule):
     r"""
-    A rule modeling Hecke insertion.
+    A rule modeling the Hecke insertion algorithm.
 
     EXAMPLES::
 
@@ -544,7 +553,9 @@ class RuleHecke(Rule):
         r"""
         Return the Hecke insertion of the pair ``[obj1, obj2]``.
         
-        Input:  ``obj1, obj2`` -- Can be one of the following:
+        INPUT:
+        
+        - ``obj1, obj2`` -- Can be one of the following:
 
           - A word in an ordered alphabet
           - An integer matrix
@@ -552,6 +563,10 @@ class RuleHecke(Rule):
           - Any object which has a method ``_rsk_iter()`` which returns an
             iterator over the object represented as generalized permutation or
             a pair of lists.
+
+        -  ``check_standard`` -- (Default: ``False``) Check if either of the
+            resulting tableaux is a standard tableau, and if so, typecast it
+            as such
 
         """
         from sage.combinat.tableau import SemistandardTableau, Tableau
@@ -571,7 +586,11 @@ class RuleHecke(Rule):
         r"""
         Return the reverse Hecke insertion of ``(p, q)``.
 
-        Input:  ``output`` -- (Default: ``'array'``) if ``q`` is semi-standard:
+        INPUT:  
+        
+        - ``p``, ``q`` -- Two tableaux of the same shape.
+
+        -  ``output`` -- (Default: ``'array'``) if ``q`` is semi-standard:
 
           - ``'array'`` -- as a two-line array (i.e. generalized permutation or
             biword)
@@ -620,8 +639,7 @@ class RuleHecke(Rule):
 
     def insertion(self, i, j, p, q):
         r"""
-        The algorithm for inserting the letter (i,j) from the bi-word to the 
-        current tableaux p and q.
+        Inserts the letter ``(i,j)`` from the bi-word to the current tableaux ``p`` and ``q``.
         """
         from bisect import bisect_right
         for ir,r in enumerate(p):
@@ -657,8 +675,9 @@ class RuleHecke(Rule):
 
     def rev_insertion(self, i, p_copy, q_copy, rev_word):
         r"""
-        The algorithm for removing a letter from the ith row of the 
-        current tableaux p and q.
+        Reverse bump the right-most letter from the `i^{th}` row of the 
+        current tableaux p_copy and appends the removed entry from ``p_copy``
+        to the list ``rev_word``.
         """
         
         from bisect import bisect_left
@@ -682,6 +701,7 @@ class RuleHecke(Rule):
         rev_word.append(x)
 
     def _format_output(self, lower_row=None, upper_row=None, output='array'):
+        
         if output == 'array':
             return [list(reversed(upper_row)), list(reversed(lower_row))]
         is_standard = (upper_row == list(range(len(upper_row), 0, -1)))
@@ -903,9 +923,9 @@ RSK.rules = InsertionRules
 
 def RSK_inverse(p, q, output='array', insertion=InsertionRules.RSK):
     r"""
-    Return the generalized permutation corresponding to the pair of
+    Returns the generalized permutation corresponding to the pair of
     tableaux `(p,q)` under the inverse of the Robinson-Schensted-Knuth
-    algorithm.
+    correspondence.
 
     For more information on the bijection, see :func:`RSK`.
 
@@ -1034,7 +1054,7 @@ def RSK_inverse(p, q, output='array', insertion=InsertionRules.RSK):
     can be obtained using the ``reduced_word()`` method from permutations)::
 
         sage: g = lambda w: RSK_inverse(*RSK(w, insertion=RSK.rules.EG), insertion=RSK.rules.EG, output='permutation')
-        sage: all(p == g(p.reduced_word()) for n in range(7) for p in Permutations(n))
+        sage: all(p.reduced_word() == g(p.reduced_word()).reduced_word() for n in range(7) for p in Permutations(n))
         True
 
         sage: n = ZZ.random_element(200)

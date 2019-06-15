@@ -1970,17 +1970,21 @@ cdef class CGraphBackend(GenericGraphBackend):
         r"""
         Return the shortest path or distance from ``x`` to ``y``.
 
+        This method is an extension of shortest_path method enabling to exclude
+        vertices and/or edges from the search for the shortest path between x
+        and y.
+
         INPUT:
 
         - ``x`` -- the starting vertex in the shortest path from ``x`` to ``y``
 
         - ``y`` -- the end vertex in the shortest path from ``x`` to ``y``
 
-        - ``exclude_vertices`` -- iterable contatiner (default: ``None``);
+        - ``exclude_vertices`` -- iterable container (default: ``None``);
           iterable of vertices to exclude from the graph while calculating the
           shortest path from ``x`` to ``y``
 
-        - ``exclude_edges`` -- iterable contatiner (default: ``None``); iterable
+        - ``exclude_edges`` -- iterable container (default: ``None``); iterable
           of edges to exclude from the graph while calculating the shortest path
           from ``x`` to ``y``
 
@@ -2010,7 +2014,10 @@ cdef class CGraphBackend(GenericGraphBackend):
             elif y_excluded:
                 raise LookupError("no path to an excluded vertex %s" % (y))
         if x == y:
-            return 0
+            if distance_flag:
+                return 0
+            else:
+                return [x]
 
         # The function being mostly symmetric in x and y, their roles are
         # reversed at the end of each loop. For this reason is defined, for
@@ -2029,8 +2036,8 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef int v = 0
         cdef int w = 0
 
-        cdef set exclude_vertices_int
-        cdef set exclude_edges_int
+        cdef set exclude_vertices_int = None
+        cdef set exclude_edges_int = None
         
         if exclude_v:
             exclude_vertices_int = {self.get_vertex(u) for u in exclude_vertices}
@@ -2078,9 +2085,9 @@ cdef class CGraphBackend(GenericGraphBackend):
             for u in next_current:
                 if out == 1:
                     nbr = self._cg.out_neighbors(u)
-                elif self._cg_rev is not None: # Sparse
+                elif self._cg_rev is not None:  # Sparse
                     nbr = self._cg_rev.out_neighbors(u)
-                else: # Dense
+                else:  # Dense
                     nbr = self._cg.in_neighbors(u)
 
                 if not exclude_e and not exclude_v:
@@ -2172,7 +2179,10 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         """
         if x == y:
-            return 0
+            if distance_flag:
+                return 0
+            else:
+                return [x]
 
         # The function being mostly symmetric in x and y, their roles are
         # reversed at the end of each loop. For this reason is defined, for
@@ -2290,22 +2300,30 @@ cdef class CGraphBackend(GenericGraphBackend):
         Return the shortest path or distance from ``x`` to ``y`` using a
         bidirectional version of Dijkstra's algorithm.
 
+        This method is an extension of bidirectional_dijkstra method enabling to
+        exclude vertices and/or edges from the search for the shortest path
+        between x and y.
+
+        This method also has include_vertices option enabling to include the
+        vertices which will be used to search for the shortest path between
+        x and y.
+
         INPUT:
 
         - ``x`` -- the starting vertex in the shortest path from ``x`` to ``y``
 
         - ``y`` -- the end vertex in the shortest path from ``x`` to ``y``
 
-        - ``exclude_vertices`` -- iterable contatiner (default: ``None``);
+        - ``exclude_vertices`` -- iterable conatiner (default: ``None``);
           iterable of vertices to exclude from the graph while calculating the
           shortest path from ``x`` to ``y``
 
-        - ``exclude_edges`` -- iterable contatiner (default: ``None``); iterable
+        - ``exclude_edges`` -- iterable conatiner (default: ``None``); iterable
           of edges to exclude from the graph while calculating the shortest path
           from ``x`` to ``y``
 
-        - ``include_vertices`` -- iterable contatiner (default: ``None``);
-          iterable of vertices to include in the graph while calculating the
+        - ``include_vertices`` -- iterable conatiner (default: ``None``);
+          iterable of vertices to consider in the graph while calculating the
           shortest path from ``x`` to ``y``
 
         - ``weight_function`` -- function (default: ``None``); a function that
@@ -2342,9 +2360,11 @@ cdef class CGraphBackend(GenericGraphBackend):
             elif y_excluded:
                 raise LookupError("no path to an excluded vertex %s" % (y))
         if x == y:
-            return 0
+            if distance_flag:
+                return 0
+            else:
+                return [x]
 
-        cdef priority_queue[pair[pair[int, int], pair[int, int]]] pq
         # As for shortest_path, the roles of x and y are symmetric, hence we
         # define dictionaries like pred_current and pred_other, which
         # represent alternatively pred_x or pred_y according to the side
@@ -2356,8 +2376,8 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef int w = 0
         cdef int pred
         cdef int side
-        cdef set exclude_vertices_int
-        cdef set exclude_edges_int
+        cdef set exclude_vertices_int = None
+        cdef set exclude_edges_int = None
         
         if exclude_v:
             exclude_vertices_int = {self.get_vertex(u) for u in exclude_vertices}
@@ -2382,6 +2402,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         # as pairs of pair and pair: ((distance, side), (predecessor, name)).
         # 1 indicates x's side, -1 indicates y's, the distance being
         # defined relatively.
+        cdef priority_queue[pair[pair[int, int], pair[int, int]]] pq
         pq.push(((0, 1), (x_int, x_int)))
         pq.push(((0, -1), (y_int, y_int)))
         cdef list neighbors
@@ -2427,9 +2448,9 @@ cdef class CGraphBackend(GenericGraphBackend):
                         shortest_path_length = f_tmp
                 if side == 1:
                     nbr = self._cg.out_neighbors(v)
-                elif self._cg_rev is not None: # Sparse
+                elif self._cg_rev is not None:  # Sparse
                     nbr = self._cg_rev.out_neighbors(v)
-                else: # Dense
+                else:  # Dense
                     nbr = self._cg.in_neighbors(v)
 
                 if not exclude_e and not exclude_v:
@@ -2557,9 +2578,11 @@ cdef class CGraphBackend(GenericGraphBackend):
             3
         """
         if x == y:
-            return 0
+            if distance_flag:
+                return 0
+            else:
+                return [x]
 
-        cdef priority_queue[pair[pair[int, int], pair[int, int]]] pq
         # As for shortest_path, the roles of x and y are symmetric, hence we
         # define dictionaries like pred_current and pred_other, which
         # represent alternatively pred_x or pred_y according to the side
@@ -2588,6 +2611,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         # as pairs of pair and pair: ((distance, side), (predecessor, name)).
         # 1 indicates x's side, -1 indicates y's, the distance being
         # defined relatively.
+        cdef priority_queue[pair[pair[int, int], pair[int, int]]] pq
         pq.push(((0, 1), (x_int, x_int)))
         pq.push(((0, -1), (y_int, y_int)))
         cdef list neighbors
@@ -2633,9 +2657,9 @@ cdef class CGraphBackend(GenericGraphBackend):
 
                 if side == 1:
                     neighbors = self._cg.out_neighbors(v)
-                elif self._cg_rev is not None: # Sparse
+                elif self._cg_rev is not None:  # Sparse
                     neighbors = self._cg_rev.out_neighbors(v)
-                else: # Dense
+                else:  # Dense
                     neighbors = self._cg.in_neighbors(v)
                 for w in neighbors:
                     # If the neighbor is new, adds its non-found neighbors to

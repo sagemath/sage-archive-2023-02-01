@@ -718,7 +718,7 @@ def RSHCD_324(e):
         sage: from sage.combinat.matrices.hadamard_matrix import RSHCD_324, is_hadamard_matrix
         sage: for e in [1,-1]:  # long time
         ....:     M = RSHCD_324(e)
-        ....:     print("{} {} {}".format(M==M.T,is_hadamard_matrix(M),all([M[i,i]==1 for i in range(324)])))
+        ....:     print("{} {} {}".format(M==M.T,is_hadamard_matrix(M),all(M[i,i]==1 for i in range(324))))
         ....:     print(list(set(sum(x) for x in M)))
         True True True
         [18]

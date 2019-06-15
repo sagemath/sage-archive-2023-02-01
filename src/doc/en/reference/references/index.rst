@@ -3343,13 +3343,17 @@ REFERENCES:
              Annals of Mathematics, Second Series, Volume 34,
              Issue 3 (Jul., 1933), 480-508.
 
-.. [Or2016] \M. Orlitzky.
-            Positive and Z-operators on closed convex cones.
-            http://www.optimization-online.org/DB_HTML/2016/09/5650.html
-
 .. [Or2017] \M. Orlitzky. The Lyapunov rank of an improper cone.
             Optimization Methods and Software, 32(1):109-125, 2017,
             :doi:`10.1080/10556788.2016.1202246`.
+
+.. [Or2018a] \M. Orlitzky. Lyapunov rank of polyhedral positive operators.
+             Linear and Multilinear Algebra, 66(5):992-1000, 2018,
+             :doi:`10.1080/03081087.2017.1331998`.
+
+.. [Or2018b] \M. Orlitzky. Positive and Z-operators on closed convex cones.
+             Electronic Journal of Linear Algebra, 34:444-458, 2018,
+             :doi:`10.13001/1081-3810.3782`.
 
 .. [OS2018] Se-jin Oh and Travis Scrimshaw. *Categorical relations between
             Langlands dual quantum affine algebras: Exceptional cases*.

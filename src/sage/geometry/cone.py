@@ -5194,7 +5194,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         - [BG1972]_
         - [BP1994]_
-        - [Or2016]_
+        - [Or2018b]_
 
         EXAMPLES:
 
@@ -5251,7 +5251,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             ]
 
         A non-obvious application is to find the positive operators on the
-        right half-plane [Or2016]_::
+        right half-plane [Or2018b]_::
 
             sage: K = Cone([(1,0),(0,1),(0,-1)])
             sage: K.positive_operators_gens()
@@ -5281,7 +5281,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         The lineality space of the dual of the positive operators
         can be computed from the lineality spaces of the cone and
-        its dual [Or2016]_::
+        its dual [Or2018b]_::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=3)
@@ -5302,7 +5302,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
 
         The lineality of the dual of the positive operators is known
-        from its lineality space [Or2016]_::
+        from its lineality space [Or2018b]_::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=3)
@@ -5320,7 +5320,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
 
         The dimension of the positive operators on a cone depends on the
-        dimension and lineality of that cone [Or2016]_::
+        dimension and lineality of that cone [Or2018b]_::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=3)
@@ -5338,7 +5338,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
 
         The trivial cone, full space, and half-plane all give rise to the
-        expected dimensions [Or2016]_::
+        expected dimensions [Or2018b]_::
 
             sage: n = ZZ.random_element(5)
             sage: K = Cone([[0] * n], ToricLattice(n))
@@ -5370,7 +5370,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
 
         The lineality of the positive operators follows from the
-        description of its generators [Or2016]_::
+        description of its generators [Or2018b]_::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=3)
@@ -5386,7 +5386,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
 
         The trivial cone, full space, and half-plane all give rise to
-        the expected linealities [Or2016]_::
+        the expected linealities [Or2018b]_::
 
             sage: n = ZZ.random_element(5)
             sage: K = Cone([[0] * n], ToricLattice(n))
@@ -5417,7 +5417,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
 
         A cone is proper if and only if its positive operators form a
-        proper cone [Or2016]_::
+        proper cone [Or2018b]_::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=3)
@@ -5478,7 +5478,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
 
         The Lyapunov rank of the positive operators is the product of
-        the Lyapunov ranks of the associated cones if both are proper::
+        the Lyapunov ranks of the associated cones if both are proper
+        [Or2018a]_::
 
             sage: set_random_seed()
             sage: K1 = random_cone(max_ambient_dim=3,
@@ -5499,7 +5500,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         Lyapunov-like operators on a proper polyhedral positive operator
         cone can be computed from the Lyapunov-like operators on the cones
-        with respect to which the operators are positive::
+        with respect to which the operators are positive [Or2018a]_::
 
             sage: set_random_seed()
             sage: K1 = random_cone(max_ambient_dim=3,
@@ -5610,7 +5611,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         REFERENCES:
 
         - [SV1970]_
-        - [Or2016]_
+        - [Or2018b]_
 
         EXAMPLES:
 
@@ -5657,7 +5658,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             ]
 
         A non-obvious application is to find the cross-positive
-        operators on the right half-plane [Or2016]_::
+        operators on the right half-plane [Or2018b]_::
 
             sage: K = Cone([(1,0),(0,1),(0,-1)])
             sage: K.cross_positive_operators_gens()
@@ -5691,7 +5692,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
 
         The lineality space of the cone of cross-positive operators is
-        the space of Lyapunov-like operators [Or2016]_::
+        the space of Lyapunov-like operators [Or2018b]_::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=3)
@@ -5709,7 +5710,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         The lineality spaces of the duals of the positive and cross-
         positive operator cones are equal. From this it follows that
         the dimensions of the cross-positive operator cone and positive
-        operator cone are equal [Or2016]_::
+        operator cone are equal [Or2018b]_::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=3)
@@ -5730,7 +5731,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
 
         The trivial cone, full space, and half-plane all give rise to
-        the expected dimensions [Or2016]_::
+        the expected dimensions [Or2018b]_::
 
             sage: n = ZZ.random_element(5)
             sage: K = Cone([[0] * n], ToricLattice(n))
@@ -5780,7 +5781,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
 
         An operator is cross-positive on a cone if and only if its
-        adjoint is cross-positive on the dual of that cone [Or2016]_::
+        adjoint is cross-positive on the dual of that cone [Or2018b]_::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=3)
@@ -5874,7 +5875,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         REFERENCES:
 
         - [BP1994]_
-        - [Or2016]_
+        - [Or2018b]_
 
         TESTS:
 

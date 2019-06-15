@@ -667,7 +667,7 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         from sage.rings.valuation.gauss_valuation import GaussValuation
 
-        if not all([self(c) >= 0 for c in G.coefficients()]):
+        if not all(self(c) >= 0 for c in G.coefficients()):
             raise ValueError("G must be integral")
 
         if require_maximal_degree:
@@ -989,7 +989,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             raise ValueError("G must be defined over the domain of this valuation")
         if not G.is_monic():
             raise ValueError("G must be monic")
-        if not all([self(c)>=0 for c in G.coefficients()]):
+        if not all(self(c) >= 0 for c in G.coefficients()):
             raise ValueError("G must be integral")
 
         # W contains approximate factors of G

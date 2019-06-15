@@ -769,9 +769,9 @@ def integral_closure(x):
         Rational Field
         sage: K.<a> = QuadraticField(5)
         sage: O2 = K.order(2*a); O2
-        Order in Number Field in a with defining polynomial x^2 - 5
+        Order in Number Field in a with defining polynomial x^2 - 5 with a = 2.236067977499790?
         sage: integral_closure(O2)
-        Maximal Order in Number Field in a with defining polynomial x^2 - 5
+        Maximal Order in Number Field in a with defining polynomial x^2 - 5 with a = 2.236067977499790?
     """
     return x.integral_closure()
 

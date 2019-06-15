@@ -2709,7 +2709,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
             sage: K.<a> = QuadraticField(-2)
             sage: E = EllipticCurve(K, [0,-1,1,0,0]); E
-            Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 over Number Field in a with defining polynomial x^2 + 2
+            Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 over Number Field in a with defining polynomial x^2 + 2 with a = 1.414213562373095?*I
             sage: P = E.lift_x(2+a); P
             (a + 2 : 2*a + 1 : 1)
             sage: P.archimedean_local_height(K.places(prec=170)[0]) / 2

@@ -393,10 +393,10 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         sage: K.<sqrt3> = QuadraticField(3)
         sage: u = vector(K, (1/2, sqrt3/2) )
         sage: vector(u).base_ring()
-        Number Field in sqrt3 with defining polynomial x^2 - 3
+        Number Field in sqrt3 with defining polynomial x^2 - 3 with sqrt3 = 1.732050807568878?
         sage: v = vector(K, (0, 1) )
         sage: vector(v).base_ring()
-        Number Field in sqrt3 with defining polynomial x^2 - 3
+        Number Field in sqrt3 with defining polynomial x^2 - 3 with sqrt3 = 1.732050807568878?
 
     Constructing a vector from a numpy array behaves as expected::
 

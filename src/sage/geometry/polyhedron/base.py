@@ -168,10 +168,10 @@ class Polyhedron_base(Element):
 
             sage: P = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]], backend='ppl')
             sage: sage_input(P)
-            Polyhedron(backend='ppl', base_ring=ZZ, rays=[(1, 1)], vertices=[(0, 1), (1, 0)])
+            Polyhedron(backend='ppl', base_ring=QQ, rays=[(QQ(1), QQ(1))], vertices=[(QQ(0), QQ(1)), (QQ(1), QQ(0))])
             sage: P = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]], backend='normaliz') # optional - pynormaliz
             sage: sage_input(P)                                                                    # optional - pynormaliz
-            Polyhedron(backend='normaliz', base_ring=ZZ, rays=[(1, 1)], vertices=[(0, 1), (1, 0)])
+            Polyhedron(backend='normaliz', base_ring=QQ, rays=[(QQ(1), QQ(1))], vertices=[(QQ(0), QQ(1)), (QQ(1), QQ(0))])
             sage: P = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]], backend='polymake') # optional - polymake
             sage: sage_input(P)                                                                    # optional - polymake
             Polyhedron(backend='polymake', base_ring=QQ, rays=[(QQ(1), QQ(1))], vertices=[(QQ(1), QQ(0)), (QQ(0), QQ(1))])
@@ -586,8 +586,8 @@ class Polyhedron_base(Element):
             True
         """
         return all(other_H.contains(self_V)
-                    for other_H in other.Hrepresentation()
-                    for self_V in self.Vrepresentation())
+                   for other_H in other.Hrepresentation()
+                   for self_V in self.Vrepresentation())
 
     @cached_method
     def vertex_facet_graph(self, labels=True):
@@ -2672,6 +2672,10 @@ class Polyhedron_base(Element):
             sage: q = Polyhedron([[1,1,1],[-1,1,1],[1,-1,1],[-1,-1,1],[1,1,-1]])
             sage: q.is_simplicial()
             False
+            sage: P = polytopes.simplex(); P
+            A 3-dimensional polyhedron in ZZ^4 defined as the convex hull of 4 vertices
+            sage: P.is_simplicial()
+            True
 
         The method is not implemented for unbounded polyhedra::
 
@@ -2684,8 +2688,9 @@ class Polyhedron_base(Element):
         if not(self.is_compact()):
             raise NotImplementedError("this function is implemented for polytopes only")
         d = self.dim()
-        return all(len([vertex for vertex in face.incident()]) == d
-                   for face in self.Hrepresentation())
+        return all(len([vertex for vertex in facet.incident()]) == d
+                   for facet in self.Hrepresentation()
+                   if not facet.is_equation())
 
     def hyperplane_arrangement(self):
         """
@@ -3725,8 +3730,7 @@ class Polyhedron_base(Element):
             sage: P = Polyhedron([[0,0],[0,a],[1,1]])
             sage: Q = Polyhedron(ieqs=[[-1,a,1]])
             sage: P.intersection(Q)
-            A 2-dimensional polyhedron in (Number Field in a with defining
-            polynomial x^2 - 5)^2 defined as the convex hull of 4 vertices
+            A 2-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5 with a = 2.236067977499790?)^2 defined as the convex hull of 4 vertices
         """
         new_ieqs = self.inequalities() + other.inequalities()
         new_eqns = self.equations() + other.equations()
@@ -3908,8 +3912,8 @@ class Polyhedron_base(Element):
         normal_vectors = []
 
         for facet in self.Hrepresentation():
-            if all(facet.contains(x) and not facet.interior_contains(x) for x
-                    in face_vertices):
+            if all(facet.contains(x) and not facet.interior_contains(x)
+                   for x in face_vertices):
                 # The facet contains the face
                 normal_vectors.append(facet.A())
 
@@ -4029,8 +4033,8 @@ class Polyhedron_base(Element):
         if face.dim() == self.dim() - 1:
             face_star = set([face.ambient_Hrepresentation()[0]])
         else:
-            face_star = set([facet for facet in self.Hrepresentation()
-                             if all(facet.contains(x) and not facet.interior_contains(x) for x in face_vertices)])
+            face_star = set(facet for facet in self.Hrepresentation()
+                            if all(facet.contains(x) and not facet.interior_contains(x) for x in face_vertices))
 
         neighboring_facets = set()
         for facet in face_star:
@@ -4172,13 +4176,10 @@ class Polyhedron_base(Element):
             facet_vertices = facet.nonzero_positions()
             if len(facet_vertices) == n-1 or len(facet_vertices) == n-2:
                 facet_non_vertices = [i for i in range(n) if i not in facet_vertices]
-                if all([vertex in vertices for vertex in facet_non_vertices]):
+                if all(vertex in vertices for vertex in facet_non_vertices):
                     for vertex in facet_non_vertices:
                         vertices.remove(vertex)
-        if vertices == []:
-            return True
-        else:
-            return False
+        return not vertices
 
     def barycentric_subdivision(self, subdivision_frac=None):
         r"""
@@ -5358,6 +5359,17 @@ class Polyhedron_base(Element):
             +Infinity
             sage: P.volume(measure='induced_rational',engine='latte')  # optional - latte_int
             +Infinity
+
+        The volume in `0`-dimensional space is taken by counting measure::
+
+            sage: P = Polyhedron(vertices=[[]]); P
+            A 0-dimensional polyhedron in ZZ^0 defined as the convex hull of 1 vertex
+            sage: P.volume()
+            1
+            sage: P = Polyhedron(vertices=[]); P
+            The empty polyhedron in ZZ^0
+            sage: P.volume()
+            0
         """
         from sage.features import FeatureNotPresentError, PythonModule
         if measure == 'induced_rational' and engine not in ['auto', 'latte', 'normaliz']:
@@ -5393,6 +5405,8 @@ class Polyhedron_base(Element):
         if measure == 'ambient':
             if self.dim() < self.ambient_dim():
                 return self.base_ring().zero()
+            elif self.dim() == 0:
+                return 1
             # if the polyhedron is unbounded, return infinity
             if not self.is_compact():
                 from sage.rings.infinity import infinity
@@ -5819,11 +5833,9 @@ class Polyhedron_base(Element):
             sage: cube.is_neighborly()
             False
 
-        Cyclic polytopes are neighborly:
+        Cyclic polytopes are neighborly::
 
-        ::
-
-            sage: all([polytopes.cyclic_polytope(i, i + 1 + j).is_neighborly() for i in range(5) for j in range(3)])
+            sage: all(polytopes.cyclic_polytope(i, i + 1 + j).is_neighborly() for i in range(5) for j in range(3))
             True
 
         The neighborliness of a polyhedron equals floor of dimension half
@@ -5836,8 +5848,9 @@ class Polyhedron_base(Element):
 
         """
         if k is None:
-            k = floor(self.dim()/2)
-        return all(len(self.faces(i)) == binomial(self.n_vertices(), i + 1) for i in range(1, k))
+            k = self.dim() // 2
+        return all(len(self.faces(i)) == binomial(self.n_vertices(), i + 1)
+                   for i in range(1, k))
 
     @cached_method
     def is_lattice_polytope(self):
@@ -6669,7 +6682,7 @@ class Polyhedron_base(Element):
         complete implementation of matrix groups::
 
             sage: P = polytopes.dodecahedron(); P
-            A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^3 defined as the convex hull of 20 vertices
+            A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?)^3 defined as the convex hull of 20 vertices
             sage: G = P.restricted_automorphism_group(output="matrixlist")
             sage: len(G)
             120
@@ -7084,23 +7097,23 @@ class Polyhedron_base(Element):
             sage: D = polytopes.dodecahedron()
             sage: F = D.faces(2)[0].as_polyhedron()
             sage: F.affine_hull(orthogonal=True)
-            A 2-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^2 defined as the convex hull of 5 vertices
+            A 2-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?)^2 defined as the convex hull of 5 vertices
             sage: F.affine_hull(orthonormal=True, extend=True)
             A 2-dimensional polyhedron in AA^2 defined as the convex hull of 5 vertices
             sage: K.<sqrt2> = QuadraticField(2)
             sage: P = Polyhedron([2*[K.zero()],2*[sqrt2]])
             sage: K.<sqrt2> = QuadraticField(2)
             sage: P = Polyhedron([2*[K.zero()],2*[sqrt2]]); P
-            A 1-dimensional polyhedron in (Number Field in sqrt2 with defining polynomial x^2 - 2)^2 defined as the convex hull of 2 vertices
+            A 1-dimensional polyhedron in (Number Field in sqrt2 with defining polynomial x^2 - 2 with sqrt2 = 1.414213562373095?)^2 defined as the convex hull of 2 vertices
             sage: P.vertices()
             (A vertex at (0, 0), A vertex at (sqrt2, sqrt2))
             sage: A = P.affine_hull(orthonormal=True); A
-            A 1-dimensional polyhedron in (Number Field in sqrt2 with defining polynomial x^2 - 2)^1 defined as the convex hull of 2 vertices
+            A 1-dimensional polyhedron in (Number Field in sqrt2 with defining polynomial x^2 - 2 with sqrt2 = 1.414213562373095?)^1 defined as the convex hull of 2 vertices
             sage: A.vertices()
             (A vertex at (0), A vertex at (2))
             sage: K.<sqrt3> = QuadraticField(3)
             sage: P = Polyhedron([2*[K.zero()],2*[sqrt3]]); P
-            A 1-dimensional polyhedron in (Number Field in sqrt3 with defining polynomial x^2 - 3)^2 defined as the convex hull of 2 vertices
+            A 1-dimensional polyhedron in (Number Field in sqrt3 with defining polynomial x^2 - 3 with sqrt3 = 1.732050807568878?)^2 defined as the convex hull of 2 vertices
             sage: P.vertices()
             (A vertex at (0, 0), A vertex at (sqrt3, sqrt3))
             sage: A = P.affine_hull(orthonormal=True)
@@ -7347,7 +7360,7 @@ class Polyhedron_base(Element):
         Algebraic polyhedron::
 
             sage: P = polytopes.dodecahedron(); P
-            A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^3 defined as the convex hull of 20 vertices
+            A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?)^3 defined as the convex hull of 20 vertices
             sage: print("There may be a recompilation warning"); PP = polymake(P); PP # optional - polymake
             There may be a recompilation warning...
             Polytope<QuadraticExtension<Rational>>[...]

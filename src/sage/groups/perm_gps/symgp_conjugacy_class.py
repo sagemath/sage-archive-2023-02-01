@@ -343,7 +343,7 @@ def conjugacy_class_iterator(part, S=None):
 
         sage: it = conjugacy_class_iterator([2,2,2], 'abcdef')
         sage: next(it) # py2
-        [('a', 'c'), ('b', 'e'), ('d', 'f')]
+        [('a', 'b'), ('c', 'd'), ('e', 'f')]
         sage: next(it) # py2
         [('a', 'f'), ('c', 'b'), ('e', 'd')]
         sage: sorted(flatten(next(it)))

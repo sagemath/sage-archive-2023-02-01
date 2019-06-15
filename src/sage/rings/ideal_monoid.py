@@ -54,7 +54,7 @@ class IdealMonoid_c(Parent):
 
             sage: R = QuadraticField(-23, 'a')
             sage: M = sage.rings.ideal_monoid.IdealMonoid(R); M # indirect doctest
-            Monoid of ideals of Number Field in a with defining polynomial x^2 + 23
+            Monoid of ideals of Number Field in a with defining polynomial x^2 + 23 with a = 4.795831523312720?*I
 
             sage: id = QQ.ideal(6)
             sage: id.parent().category()
@@ -80,7 +80,7 @@ class IdealMonoid_c(Parent):
 
             sage: R = QuadraticField(-23, 'a')
             sage: M = sage.rings.ideal_monoid.IdealMonoid(R); M._repr_()
-            'Monoid of ideals of Number Field in a with defining polynomial x^2 + 23'
+            'Monoid of ideals of Number Field in a with defining polynomial x^2 + 23 with a = 4.795831523312720?*I'
         """
         return "Monoid of ideals of %s" % self.__R
 

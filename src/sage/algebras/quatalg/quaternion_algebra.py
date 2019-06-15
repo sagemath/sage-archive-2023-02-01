@@ -104,7 +104,7 @@ class QuaternionAlgebraFactory(UniqueFactory):
         sage: QuaternionAlgebra(2, GF(5)(3))
         Quaternion Algebra (2, 3) with base ring Finite Field of size 5
         sage: QuaternionAlgebra(QQ[sqrt(2)](-1), -5)
-        Quaternion Algebra (-1, -5) with base ring Number Field in sqrt2 with defining polynomial x^2 - 2
+        Quaternion Algebra (-1, -5) with base ring Number Field in sqrt2 with defining polynomial x^2 - 2 with sqrt2 = 1.414213562373095?
         sage: QuaternionAlgebra(sqrt(-1), sqrt(-3))
         Quaternion Algebra (I, sqrt(-3)) with base ring Symbolic Ring
         sage: QuaternionAlgebra(1r,1)
@@ -140,7 +140,7 @@ class QuaternionAlgebraFactory(UniqueFactory):
         sage: QuaternionAlgebra(QQ, -7, -21)
         Quaternion Algebra (-7, -21) with base ring Rational Field
         sage: QuaternionAlgebra(QQ[sqrt(2)], -2,-3)
-        Quaternion Algebra (-2, -3) with base ring Number Field in sqrt2 with defining polynomial x^2 - 2
+        Quaternion Algebra (-2, -3) with base ring Number Field in sqrt2 with defining polynomial x^2 - 2 with sqrt2 = 1.414213562373095?
 
     ``QuaternionAlgebra(D)`` - ``D`` is a squarefree integer; returns a
     rational quaternion algebra of discriminant ``D``::
@@ -1034,7 +1034,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         A more complicated example involving a quaternion algebra over a number field::
 
             sage: K.<a> = QQ[sqrt(2)]; Q = QuaternionAlgebra(K,-1,a); Q
-            Quaternion Algebra (-1, sqrt2) with base ring Number Field in sqrt2 with defining polynomial x^2 - 2
+            Quaternion Algebra (-1, sqrt2) with base ring Number Field in sqrt2 with defining polynomial x^2 - 2 with sqrt2 = 1.414213562373095?
             sage: magma(Q)                                              # optional - magma
             Quaternion Algebra with base ring Number Field with defining polynomial x^2 - 2 over the Rational Field, defined by i^2 = -1, j^2 = sqrt2
             sage: Q._magma_init_(magma)                                 # optional - magma
@@ -1312,7 +1312,7 @@ class QuaternionOrder(Algebra):
             sage: K = QuadraticField(10)
             sage: A.<i,j,k> = QuaternionAlgebra(K,-1,-1)
             sage: A.quaternion_order([1,i,j,k])
-            Order of Quaternion Algebra (-1, -1) with base ring Number Field in a with defining polynomial x^2 - 10 with basis (1, i, j, k)
+            Order of Quaternion Algebra (-1, -1) with base ring Number Field in a with defining polynomial x^2 - 10 with a = 3.162277660168380? with basis (1, i, j, k)
             sage: A.quaternion_order([1,i/2,j,k])
             Traceback (most recent call last):
             ...

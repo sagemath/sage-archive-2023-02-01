@@ -1773,13 +1773,13 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: K.<a>=NumberField(x^3+x^2+1,embedding=1)
             sage: K.coerce_embedding()
             Generic morphism:
-              From: Number Field in a with defining polynomial x^3 + x^2 + 1
+              From: Number Field in a with defining polynomial x^3 + x^2 + 1 with a = -1.465571231876768?
               To:   Real Lazy Field
               Defn: a -> -1.465571231876768?
             sage: K.<a>=NumberField(x^3+x^2+1,embedding=CC.gen())
             sage: K.coerce_embedding()
             Generic morphism:
-              From: Number Field in a with defining polynomial x^3 + x^2 + 1
+              From: Number Field in a with defining polynomial x^3 + x^2 + 1 with a = 0.2327856159383841? + 0.7925519925154479?*I
               To:   Complex Lazy Field
               Defn: a -> 0.2327856159383841? + 0.7925519925154479?*I
         """
@@ -2226,28 +2226,28 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: L = NumberField(x^2+2, 'b', embedding=1/a)
             sage: PolynomialRing(L, 'x').coerce_map_from(L)
             Polynomial base injection morphism:
-              From: Number Field in b with defining polynomial x^2 + 2
-              To:   Univariate Polynomial Ring in x over Number Field in b with defining polynomial x^2 + 2
+              From: Number Field in b with defining polynomial x^2 + 2 with b = -2*a
+              To:   Univariate Polynomial Ring in x over Number Field in b with defining polynomial x^2 + 2 with b = -2*a
             sage: PolynomialRing(K, 'x').coerce_map_from(L)
             Composite map:
-              From: Number Field in b with defining polynomial x^2 + 2
-              To:   Univariate Polynomial Ring in x over Number Field in a with defining polynomial x^2 + 1/2
+              From: Number Field in b with defining polynomial x^2 + 2 with b = -2*a
+              To:   Univariate Polynomial Ring in x over Number Field in a with defining polynomial x^2 + 1/2 with a = 0.7071067811865475?*I
               Defn:   Generic morphism:
-                      From: Number Field in b with defining polynomial x^2 + 2
-                      To:   Number Field in a with defining polynomial x^2 + 1/2
+                      From: Number Field in b with defining polynomial x^2 + 2 with b = -2*a
+                      To:   Number Field in a with defining polynomial x^2 + 1/2 with a = 0.7071067811865475?*I
                       Defn: b -> -2*a
                     then
                       Polynomial base injection morphism:
-                      From: Number Field in a with defining polynomial x^2 + 1/2
-                      To:   Univariate Polynomial Ring in x over Number Field in a with defining polynomial x^2 + 1/2
+                      From: Number Field in a with defining polynomial x^2 + 1/2 with a = 0.7071067811865475?*I
+                      To:   Univariate Polynomial Ring in x over Number Field in a with defining polynomial x^2 + 1/2 with a = 0.7071067811865475?*I
             sage: MatrixSpace(L, 2, 2).coerce_map_from(L)
             Coercion map:
-              From: Number Field in b with defining polynomial x^2 + 2
-              To:   Full MatrixSpace of 2 by 2 dense matrices over Number Field in b with defining polynomial x^2 + 2
+              From: Number Field in b with defining polynomial x^2 + 2 with b = -2*a
+              To:   Full MatrixSpace of 2 by 2 dense matrices over Number Field in b with defining polynomial x^2 + 2 with b = -2*a
             sage: PowerSeriesRing(L, 'x').coerce_map_from(L)
             Coercion map:
-              From: Number Field in b with defining polynomial x^2 + 2
-              To:   Power Series Ring in x over Number Field in b with defining polynomial x^2 + 2
+              From: Number Field in b with defining polynomial x^2 + 2 with b = -2*a
+              To:   Power Series Ring in x over Number Field in b with defining polynomial x^2 + 2 with b = -2*a
         """
         if isinstance(S, Parent) and (<Parent>S)._embedding is not None:
             if (<Parent>S)._embedding.codomain() is self:

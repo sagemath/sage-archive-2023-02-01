@@ -7281,7 +7281,7 @@ class RowStandardTableaux_size(RowStandardTableaux, DisjointUnionEnumeratedSets)
         10
         sage: ns = [1,2,3,4,5,6]
         sage: sts = [RowStandardTableaux(n) for n in ns]
-        sage: all([st.cardinality() == len(st.list()) for st in sts])
+        sage: all(st.cardinality() == len(st.list()) for st in sts)
         True
         sage: RowStandardTableaux(40).cardinality()  # long time
         2063837185739279909309355007659204891024472174278
@@ -7321,7 +7321,7 @@ class RowStandardTableaux_size(RowStandardTableaux, DisjointUnionEnumeratedSets)
         TESTS::
 
             sage: ST3 = RowStandardTableaux(3)
-            sage: all([st in ST3 for st in ST3])
+            sage: all(st in ST3 for st in ST3)
             True
             sage: ST4 = RowStandardTableaux(4)
             sage: [x for x in ST4 if x in ST3]
@@ -7375,7 +7375,7 @@ class RowStandardTableaux_shape(RowStandardTableaux):
         EXAMPLES::
 
             sage: ST = RowStandardTableaux([2,1,1])
-            sage: all([st in ST for st in ST])
+            sage: all(st in ST for st in ST)
             True
             sage: len([x for x in RowStandardTableaux(4) if x in ST])
             12

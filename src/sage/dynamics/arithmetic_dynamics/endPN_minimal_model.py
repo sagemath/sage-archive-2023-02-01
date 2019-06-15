@@ -534,7 +534,7 @@ def BM_all_minimal(vp, return_transformation=False, D=None):
         sage: f = DynamicalSystem([x^3 - 4^2*y^3, x*y^2])
         sage: from sage.dynamics.arithmetic_dynamics.endPN_minimal_model import BM_all_minimal
         sage: cl = BM_all_minimal(f, return_transformation=True)
-        sage: all([f.conjugate(m) == g for g,m in cl])
+        sage: all(f.conjugate(m) == g for g, m in cl)
         True
     """
     mp = copy(vp)
@@ -757,7 +757,7 @@ def HS_all_minimal_p(p, f, m=None, return_transformation=False):
            Defn: Defined on coordinates by sending (x : y) to
                  (4*x^5 - 162*y^5 : x^2*y^3)]
         sage: cl = HS_all_minimal_p(2, f, return_transformation=True)
-        sage: all([f.conjugate(m) == g for g,m in cl])
+        sage: all(f.conjugate(m) == g for g, m in cl)
         True
     """
     count = 0
@@ -874,7 +874,7 @@ def HS_all_minimal(f, return_transformation=False, D=None):
         sage: f = DynamicalSystem([x^3 - 6^2*y^3, x*y^2])
         sage: from sage.dynamics.arithmetic_dynamics.endPN_minimal_model import HS_all_minimal
         sage: cl = HS_all_minimal(f, return_transformation=True)
-        sage: all([f.conjugate(m) == g for g,m in cl])
+        sage: all(f.conjugate(m) == g for g, m in cl)
         True
     """
     MS = MatrixSpace(ZZ, 2)

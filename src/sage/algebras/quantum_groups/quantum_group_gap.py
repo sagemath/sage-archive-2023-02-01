@@ -10,7 +10,7 @@ Willem Adriaan de Graaf, can be found at
 https://www.gap-system.org/Packages/quagroup.html.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2017 Travis Scrimshaw <tcscrims at gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -18,7 +18,7 @@ https://www.gap-system.org/Packages/quagroup.html.
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
@@ -45,6 +45,7 @@ from sage.categories.rings import Rings
 
 from copy import copy
 import re
+
 
 class QuaGroupModuleElement(Element):
     """
@@ -867,7 +868,7 @@ class QuantumGroup(UniqueRepresentation, Parent):
                 \overline{F_i} = F_i, \qquad\qquad
                 \overline{K_i} = K_i^{-1}.
 
-            EXMAPLES::
+            EXAMPLES::
 
                 sage: Q = QuantumGroup(['A',2])        # optional - gap_packages
                 sage: [gen.bar() for gen in Q.gens()]  # optional - gap_packages
@@ -895,7 +896,7 @@ class QuantumGroup(UniqueRepresentation, Parent):
                 \omega(F_i) = E_i, \qquad\qquad
                 \omega(K_i) = K_i^{-1}.
 
-            EXMAPLES::
+            EXAMPLES::
 
                 sage: Q = QuantumGroup(['A',2])          # optional - gap_packages
                 sage: [gen.omega() for gen in Q.gens()]  # optional - gap_packages
@@ -925,7 +926,7 @@ class QuantumGroup(UniqueRepresentation, Parent):
                 \tau(F_i) = F_i, \qquad\qquad
                 \tau(K_i) = K_i^{-1}.
 
-            EXMAPLES::
+            EXAMPLES::
 
                 sage: Q = QuantumGroup(['A',2])        # optional - gap_packages
                 sage: [gen.tau() for gen in Q.gens()]  # optional - gap_packages

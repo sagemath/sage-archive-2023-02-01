@@ -42,6 +42,7 @@ from sage.misc.cachefunc import cached_method
 from .polynomial_ring_constructor import PolynomialRing
 from .polynomial_ring import is_PolynomialRing
 from .multi_polynomial_ring_base import is_MPolynomialRing
+from sage.rings.fraction_field import is_FractionField
 
 class FlatteningMorphism(Morphism):
     r"""
@@ -466,6 +467,8 @@ class SpecializationMorphism(Morphism):
         """
         if not is_PolynomialRing(domain) and not is_MPolynomialRing(domain):
             raise TypeError("domain should be a polynomial ring")
+        
+        self._sub_specialization = None
 
         # We use this composition where "flat" is a flattened
         # polynomial ring.
@@ -488,7 +491,23 @@ class SpecializationMorphism(Morphism):
         # Construct unflattened codomain R
         new_vars = []
         R = domain
-        while is_PolynomialRing(R) or is_MPolynomialRing(R):
+        while is_PolynomialRing(R) or is_MPolynomialRing(R) or is_FractionField(R):
+            if is_FractionField(R):
+                field_over = R.base()
+                applicable_vars = {key: val for key,val in D.items() if key not in flat.gens()}
+                if len(applicable_vars) != 0:
+                    # Coerce the generators to be in the right ring
+                    tmp = {}
+                    for var, val in applicable_vars.items():
+                        for gen in field_over.gens():
+                            if str(var) == str(gen):
+                                tmp[gen] = val
+                                break
+                        else:
+                            raise NameError("argument " + str(var) + " is not a generator")
+                    applicable_vars = tmp
+                    self._sub_specialization = SpecializationMorphism(field_over, applicable_vars)
+                break
             old = R.gens()
             new = [t for t in old if t not in D]
             force_multivariate = ((len(old) == 1) and is_MPolynomialRing(R))
@@ -501,7 +520,6 @@ class SpecializationMorphism(Morphism):
         for new, force_multivariate in reversed(new_vars):
             if not new:
                 continue
-            # Pass in the names of the variables
             var_names = [str(var) for var in new]
             if force_multivariate:
                 R = PolynomialRing(R, var_names, len(var_names))
@@ -537,4 +555,13 @@ class SpecializationMorphism(Morphism):
             sage: xi(a*x + b*y + c*z)
             x + 2*y + 3*z
         """
-        return self._eval_morph(self._flattening_morph(p))
+        flat = self._flattening_morph(p)
+        if self._sub_specialization is not None:
+            tmp = {}
+            for exponent, coefficient in flat.dict().items():
+                # Coefficient should be a fraction
+                numerator = self._sub_specialization._call_(coefficient.numerator())
+                denominator = self._sub_specialization._call_(coefficient.denominator())
+                tmp[exponent] = numerator / denominator
+            flat = flat.parent()(tmp)
+        return self._eval_morph(flat)

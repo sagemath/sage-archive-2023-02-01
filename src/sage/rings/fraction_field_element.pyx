@@ -1076,6 +1076,14 @@ cdef class FractionFieldElement(FieldElement):
 
         raise NotImplementedError
 
+    def specialization(self, D=None, phi=None):
+        """
+        Returns the specialization of a fraction element of a polynomial ring
+        """
+        R = self.parent()
+        numerator = self.numerator().specialization(D, phi)
+        denominator = self.denominator().specialization(D, phi)
+        return FractionFieldElement(R, numerator, denominator)
 
 cdef class FractionFieldElement_1poly_field(FractionFieldElement):
     """

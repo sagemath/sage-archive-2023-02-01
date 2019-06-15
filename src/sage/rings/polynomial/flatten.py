@@ -43,6 +43,8 @@ from .polynomial_ring_constructor import PolynomialRing
 from .polynomial_ring import is_PolynomialRing
 from .multi_polynomial_ring_base import is_MPolynomialRing
 from sage.rings.fraction_field import is_FractionField
+from sage.rings.fraction_field_element import FractionFieldElement
+from sage.rings.polynomial.polydict import ETuple
 
 class FlatteningMorphism(Morphism):
     r"""
@@ -468,6 +470,10 @@ class SpecializationMorphism(Morphism):
         if not is_PolynomialRing(domain) and not is_MPolynomialRing(domain):
             raise TypeError("domain should be a polynomial ring")
         
+        # _sub_specialization is a specialization morphism (recursive)
+        # which is applied to the base Fraction field, or None if it's
+        # any other base ring
+
         self._sub_specialization = None
 
         # We use this composition where "flat" is a flattened
@@ -493,31 +499,48 @@ class SpecializationMorphism(Morphism):
         R = domain
         while is_PolynomialRing(R) or is_MPolynomialRing(R) or is_FractionField(R):
             if is_FractionField(R):
+                # We've hit base_ring, so set _sub_specialization and exit the loop
                 field_over = R.base()
                 applicable_vars = {key: val for key,val in D.items() if key not in flat.gens()}
+                # If there are any variables in D to set in _sub_specialization
                 if len(applicable_vars) != 0:
                     # Coerce the generators to be in the right ring
+                    # This un-does changing the domain of D to be in the flat base ring
                     tmp = {}
                     for var, val in applicable_vars.items():
-                        for gen in field_over.gens():
-                            if str(var) == str(gen):
+                        for gstr, gen in field_over.gens_dict_recursive().items():
+                            if str(var) == gstr:
                                 tmp[gen] = val
                                 break
                         else:
-                            raise NameError("argument " + str(var) + " is not a generator")
+                            raise NameError("argument " + str(var) + " is not a generator anywhere in the polynomial tower")
                     applicable_vars = tmp
-                    self._sub_specialization = SpecializationMorphism(field_over, applicable_vars)
+                    self._sub_specialization = FractionalSpecializationMorphism(R, applicable_vars)
                 break
+            # We're still in the polynomials, so keep track of the tower
             old = R.gens()
             new = [t for t in old if t not in D]
             force_multivariate = ((len(old) == 1) and is_MPolynomialRing(R))
-            new_vars.append((new, force_multivariate))
+            new_vars.append((new, force_multivariate, old))
             R = R.base_ring()
+        
+        if self._sub_specialization:
+            # The sub_specialization range will be different
+            # if it applied some variables from D
+            R = self._sub_specialization.codomain().fraction_field()
 
         # Construct unflattening map psi (only defined on the variables
         # of "flat" which are not involved in D)
         psi = dict()
-        for new, force_multivariate in reversed(new_vars):
+        # Reconstruct the proper domain of this morphism
+        # based on the sub_specialization domains
+        new_domain = R
+        for new, force_multivariate, old in reversed(new_vars):
+            if self._sub_specialization:
+                if force_multivariate:
+                    new_domain = PolynomialRing(new_domain, old, len(old))
+                else:
+                    new_domain = PolynomialRing(new_domain, old)
             if not new:
                 continue
             var_names = [str(var) for var in new]
@@ -528,13 +551,27 @@ class SpecializationMorphism(Morphism):
             # Map variables in "new" to R
             psi.update(zip([phi(w) for w in new], R.gens()))
 
+        # Fix domain of eval_morph
+        # (note: phi's domain is correct)
+        if self._sub_specialization:
+            phi_prime = FlatteningMorphism(new_domain)
+            flat_old = flat
+            flat = phi_prime.codomain()
+            base_prime = flat.base_ring()
+            D = {phi(k): base_prime(D[k]) for k in D}
+        else:
+            # The bottom of our tower hasn't changed
+            flat_old = lambda x: x
+
         # Compose D with psi
         vals = []
         for t in flat.gens():
             if t in D:
                 vals.append(R.coerce(D[t]))
             else:
-                vals.append(psi[t])
+                # Make sure keys are in the old domain
+                # or else they won't match exactly
+                vals.append(psi[flat_old(t)])
 
         self._flattening_morph = phi
         self._eval_morph = flat.hom(vals, R)
@@ -557,11 +594,46 @@ class SpecializationMorphism(Morphism):
         """
         flat = self._flattening_morph(p)
         if self._sub_specialization is not None:
+            # The base_ring should be a fraction field, so
+            # apply _sub_specialization to each coefficient
+            # in the flattened polynomial
             tmp = {}
             for exponent, coefficient in flat.dict().items():
+                # Fix the type of exponent from (a,) to a
+                #     (necessary for R(tmp) later)
+                if isinstance(exponent, ETuple) and len(exponent) == 1:
+                    exponent = exponent[0]
                 # Coefficient should be a fraction
-                numerator = self._sub_specialization._call_(coefficient.numerator())
-                denominator = self._sub_specialization._call_(coefficient.denominator())
-                tmp[exponent] = numerator / denominator
-            flat = flat.parent()(tmp)
+                tmp[exponent] = self._sub_specialization._call_(coefficient)
+            # tmp's parent should be the same construction as flat
+            # but over _sub_specialization's codomain
+            ring_constructor = flat.parent().construction()[0]
+            fraction_type = self._sub_specialization.codomain()
+            R = ring_constructor(fraction_type)
+            flat = R(tmp)
         return self._eval_morph(flat)
+
+class FractionalSpecializationMorphism(Morphism):
+    """
+    A specialization morphism for fraction fields over (stacked) polynomial rings
+    """
+    def __init__(self, domain, D):
+        """
+        Initialize the morphism with a domain and dictionary of specializations
+        """
+        if not is_FractionField(domain):
+            raise TypeError("domain must be a fractional field")
+        self._specialization = SpecializationMorphism(domain.base(), D)
+        self._repr_type_str = 'Fractional Specialization'
+        Morphism.__init__(self, domain, self._specialization.codomain().fraction_field())
+    
+    def _call_(self, p):
+        """
+        Call the morphism 
+        """
+        if not isinstance(p, FractionFieldElement):
+            raise TypeError("p must be a fractional field element")
+        numerator = self._specialization._call_(p.numerator())
+        denominator = self._specialization._call_(p.denominator())
+        return numerator / denominator
+        

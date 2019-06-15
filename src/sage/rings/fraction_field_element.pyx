@@ -23,6 +23,7 @@ from __future__ import absolute_import
 
 from sage.structure.element cimport FieldElement, parent
 from sage.structure.richcmp cimport richcmp
+# from sage.rings.polynomial.flatten import SpecializationMorphism
 
 from . import integer_ring
 from .integer_ring import ZZ
@@ -1080,10 +1081,9 @@ cdef class FractionFieldElement(FieldElement):
         """
         Returns the specialization of a fraction element of a polynomial ring
         """
-        R = self.parent()
         numerator = self.numerator().specialization(D, phi)
         denominator = self.denominator().specialization(D, phi)
-        return FractionFieldElement(R, numerator, denominator)
+        return numerator / denominator
 
 cdef class FractionFieldElement_1poly_field(FractionFieldElement):
     """

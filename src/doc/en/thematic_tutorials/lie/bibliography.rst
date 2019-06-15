@@ -70,7 +70,7 @@ Bibliography
 .. [JayneMisra2014] \R. Jayne and K. Misra,
    On multiplicities of maximal weights of
    `\widehat{sl}(n)`-modules. Algebr. Represent. Theory 17 (2014), no. 4,
-   1303–1321. (arXiv:1309.4969)
+   1303–1321. :arXiv:`1309.4969`.
 
 .. [Jimbo1986] \M. A. Jimbo. `q`-analogue of `U(\mathfrak{gl}(N+1))`,
    Hecke algebra, and the Yang-Baxter equation.

@@ -122,8 +122,8 @@ REFERENCES:
 .. [AK1994] \S. Ariki and K. Koike.
             *A Hecke algebra of* `(\mathbb{Z}/r\mathbb{Z})\wr\mathfrak{S}_n`
             *and construction of its irreducible representations.*
-            Adv. Math. **106** (1994), 216–243.
-            mathscinet:`MR1279219`
+            Adv. Math. **106** (1994), 216–243,
+            :mathscinet:`MR1279219`
 
 .. [AKMMMP2002] Sang Yook An, Seog Young Kim, David C. Marshall,
                 Susan H. Marshall, William G. McCallum,
@@ -2645,8 +2645,7 @@ REFERENCES:
 .. [KSV2011] Ian Kiming, Matthias Schuett and Helena Verrill, "Lifts
              of projective congruence groups", J. London
              Math. Soc. (2011) 83 (1): 96-120,
-             :doi:`10.1112/jlms/jdq062`. Arxiv version:
-             :arxiv:`0905.4798`.
+             :doi:`10.1112/jlms/jdq062`, :arxiv:`0905.4798`.
 
 .. [KT1986] \N. Kerzman and M. R. Trummer. "Numerical Conformal
             Mapping via the Szego kernel". Journal of Computational

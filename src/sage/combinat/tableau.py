@@ -2804,7 +2804,7 @@ class Tableau(ClonableList):
 
         .. [Sg2011] Bruce E. Sagan,
            *The cyclic sieving phenomenon: a survey*,
-           :arXiv:`1008.0790v3`
+           :arxiv:`1008.0790v3`
 
         EXAMPLES::
 
@@ -3780,7 +3780,7 @@ class Tableau(ClonableList):
 
         .. [S14] \B. Salisbury.
            The flush statistic on semistandard Young tableaux.
-           :arXiv:`1401.1185`
+           :arxiv:`1401.1185`
 
         EXAMPLES::
 

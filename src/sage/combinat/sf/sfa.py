@@ -3419,7 +3419,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             True
 
         Let us check (on examples) Proposition 5.2 of Gelfand, Krob, Lascoux, Leclerc,
-        Retakh, Thibon, "Noncommutative symmetric functions", :arXiv:`hep-th/9407124`, for
+        Retakh, Thibon, "Noncommutative symmetric functions", :arxiv:`hep-th/9407124`, for
         `r = 2`::
 
             sage: e = SymmetricFunctions(FiniteField(29)).e()
@@ -3440,7 +3440,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             True
 
         Some examples from Briand, Orellana, Rosas, "The stability of the Kronecker
-        products of Schur functions." :arXiv:`0907.4652`::
+        products of Schur functions." :arxiv:`0907.4652`::
 
             sage: s = SymmetricFunctions(ZZ).s()
             sage: s[2,2].itensor(s[2,2])
@@ -3502,7 +3502,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: s(1).itensor(s(1))
             s[]
 
-        Theorem 2.1 in Bessenrodt, van Willigenburg, :arXiv:`1105.3170v2`::
+        Theorem 2.1 in Bessenrodt, van Willigenburg, :arxiv:`1105.3170v2`::
 
             sage: s = SymmetricFunctions(ZZ).s()
             sage: all( all( max( r[0] for r in s(p).itensor(s(q)).monomial_coefficients().keys() )

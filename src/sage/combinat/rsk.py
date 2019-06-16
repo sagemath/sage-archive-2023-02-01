@@ -377,6 +377,11 @@ class RuleRSK(Rule):
         sage: p = Tableau([[1,2,2],[2]]); q = Tableau([[1,3,3],[2]])
         sage: RSK_inverse(p, q, insertion=RSK.rules.RSK)
         [[1, 2, 3, 3], [2, 1, 2, 2]]
+
+    For ``RSK`` and ``RSK_inverse``, ``RuleRSK`` behaves same as 
+    :class:`~sage.combinat.rsk.Rule`. It is worth noting that in case of 
+    ``RSK_inverse`` with ``output = 'permutation'`` ``RuleRSK`` returns 
+    an object of class :class:`~sage.combinat.permutation.Permutation`.
     """
 
     def insertion(self, i, j, p, q):
@@ -448,6 +453,15 @@ class RuleEG(Rule):
         sage: RSK_inverse(*pq, insertion=RSK.rules.EG)
         [[1, 2, 3, 4, 5], [2, 1, 2, 3, 2]]
 
+    For ``RSK``, ``RuleEG`` provides a bijection from reduced words of 
+    permutations/elements of a type-`A` Coxeter group to a pair of 
+    semi-standard tableaux tableaux ([EG1987]_ Definition 2.1) of the same shape.
+
+    For ``RSK_inverse``, ``RuleEG`` provides a bijection from a pair of 
+    same shaped tableaux to reduced words of a generalized permutation. For 
+    ``output = 'permutation'`` RuleEG returns the smallest permutation satisfying 
+    the resulting reduced word.
+
     """
 
     def insertion(self, i, j, p, q):
@@ -493,6 +507,14 @@ class RuleEG(Rule):
             [[1, 1, 1, 2], [1, 2, 3, 4]]
             sage: RSK_inverse(*RSK([1, 2, 3, 3], [2, 1, 2, 2], insertion='EG'), insertion='EG')
             [[1, 2, 3, 3], [2, 1, 2, 2]]
+            
+        Since the column reading of the insertion tableau from Edelman-Greene insertion 
+        gives one of reduced words for the original permutation, we can also check for that
+
+            sage: f = lambda p: reversed([x for row in reversed(p) for x in row])
+            sage: g = lambda p: RSK(p.reduced_word(), insertion=RSK.rules.EG)[0]
+            sage: all(p == Permutations(n).from_reduced_word(f(g(p))) for n in range(8) for p in Permutations(n))
+            True
         """
         from bisect import bisect_left
         if q_is_standard:
@@ -791,15 +813,19 @@ def RSK(obj1=None, obj2=None, insertion=InsertionRules.RSK, check_standard=False
     - ``insertion`` -- (Default: ``RSK``) The following types of insertion
       are currently supported:
 
-      - ``RSK`` -- Robinson-Schensted-Knuth
+      - ``RSK`` -- Robinson-Schensted-Knuth (:class:`~sage.combinat.rsk.RuleRSK`)
       - ``EG`` -- Edelman-Greene (only for reduced words of
         permutations/elements of a type-`A` Coxeter group)
+        (:class:`~sage.combinat.rsk.RuleEG`)
       - ``Hecke`` -- Hecke insertion (only guaranteed for
         generalized permutations whose top row is strictly increasing)
+        (:class:`~sage.combinat.rsk.RuleHecke`)
 
     - ``check_standard`` -- (Default: ``False``) Check if either of the
       resulting tableaux is a standard tableau, and if so, typecast it
       as such
+
+    For precise information see the particular Rule class.
 
     EXAMPLES:
 
@@ -953,10 +979,12 @@ def RSK_inverse(p, q, output='array', insertion=InsertionRules.RSK):
     - ``insertion`` -- (Default: ``RSK``) The insertion algorithm used in the
       bijection. Currently the following are supported:
 
-      - ``RSK`` -- Robinson-Schensted-Knuth insertion
-      - ``EG`` -- Edelman-Greene insertion
-      - ``Hecke`` -- Hecke insertion
+      - ``RSK`` -- Robinson-Schensted-Knuth insertion (:class:`~sage.combinat.rsk.RuleRSK`)
+      - ``EG`` -- Edelman-Greene insertion (:class:`~sage.combinat.rsk.RuleEG`)
+      - ``Hecke`` -- Hecke insertion (:class:`~sage.combinat.rsk.RuleHecke`)
 
+    For precise information see the particular Rule class.
+    
     .. NOTE::
 
         In the case of Hecke insertion, the input variable ``q`` should

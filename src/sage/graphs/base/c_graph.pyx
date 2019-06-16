@@ -1998,6 +1998,20 @@ cdef class CGraphBackend(GenericGraphBackend):
           distance from ``x`` to ``y`` is returned depending upon the value of
           parameter ``distance_flag``
 
+        EXAMPLES::
+
+            sage: G = Graph([(1, 2), (2, 3), (3, 4), (1, 5), (5, 6), (6, 7), (7, 4)])
+            sage: G._backend.shortest_path_special(1, 4)
+            [1, 2, 3, 4]
+            sage: G._backend.shortest_path_special(1, 4, exclude_vertices=[5,7])
+            [1, 2, 3, 4]
+            sage: G._backend.shortest_path_special(1, 4, exclude_vertices=[2, 3])
+            [1, 5, 6, 7, 4]
+            sage: G._backend.shortest_path_special(1, 4, exclude_vertices=[2], exclude_edges=[(5, 6)])
+            []
+            sage: G._backend.shortest_path_special(1, 4, exclude_vertices=[2], exclude_edges=[(2, 3)])
+            [1, 5, 6, 7, 4]
+
         """
         cdef bint exclude_v = exclude_vertices
         cdef bint exclude_e = exclude_edges
@@ -2343,6 +2357,20 @@ cdef class CGraphBackend(GenericGraphBackend):
           distance from ``x`` to ``y`` is returned depending upon the value of
           parameter ``distance_flag``
 
+        EXAMPLES::
+
+            sage: G = Graph([(1, 2, 20), (2, 3, 10), (3, 4, 30), (1, 5, 20), (5, 6, 10), (6, 4, 50), (4, 7, 5)])
+            sage: G._backend.bidirectional_dijkstra_special(1, 4, weight_function=lambda e:e[2])
+            [1, 2, 3, 4]
+            sage: G._backend.bidirectional_dijkstra_special(1, 4, weight_function=lambda e:e[2], exclude_vertices=[2], exclude_edges=[(3, 4)])
+            [1, 5, 6, 4]
+            sage: G._backend.bidirectional_dijkstra_special(1, 4, weight_function=lambda e:e[2], exclude_vertices=[2, 7])
+            [1, 5, 6, 4]
+            sage: G._backend.bidirectional_dijkstra_special(1, 4, weight_function=lambda e:e[2],  exclude_edges=[(5, 6)])
+            [1, 2, 3, 4]
+            sage: G._backend.bidirectional_dijkstra_special(1, 4, weight_function=lambda e:e[2],  include_vertices=[1, 5, 6, 4])
+            [1, 5, 6, 4]
+
         """
         cdef bint exclude_v = exclude_vertices
         cdef bint exclude_e = exclude_edges
@@ -2549,13 +2577,13 @@ cdef class CGraphBackend(GenericGraphBackend):
         EXAMPLES::
 
             sage: G = Graph(graphs.PetersenGraph())
-            sage: for (u,v) in G.edges(labels=None):
-            ....:    G.set_edge_label(u,v,1)
+            sage: for (u, v) in G.edges(labels=None):
+            ....:    G.set_edge_label(u, v, 1)
             sage: G.shortest_path(0, 1, by_weight=True)
             [0, 1]
             sage: G.shortest_path_length(0, 1, by_weight=True)
             1
-            sage: G = DiGraph([(1,2,{'weight':1}), (1,3,{'weight':5}), (2,3,{'weight':1})])
+            sage: G = DiGraph([(1, 2, {'weight':1}), (1, 3, {'weight':5}), (2, 3, {'weight':1})])
             sage: G.shortest_path(1, 3, weight_function=lambda e:e[2]['weight'])
             [1, 2, 3]
             sage: G.shortest_path_length(1, 3, weight_function=lambda e:e[2]['weight'])
@@ -2565,16 +2593,16 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         Bugfix from :trac:`7673` ::
 
-            sage: G = Graph([(0,1,9),(0,2,8),(1,2,7)])
-            sage: G.shortest_path_length(0,1,by_weight=True)
+            sage: G = Graph([(0, 1, 9),(0, 2, 8),(1, 2, 7)])
+            sage: G.shortest_path_length(0, 1, by_weight=True)
             9
 
         Bugfix from :trac:`27464` ::
 
-            sage: G = DiGraph({0:[1,2], 1:[4], 2:[3,4], 4:[5],5:[6]},multiedges=True)
-            sage: for (u,v) in G.edges(labels=None):
-            ....:    G.set_edge_label(u,v,1)
-            sage: G.distance(0,5,by_weight=true)
+            sage: G = DiGraph({0: [1, 2], 1: [4], 2: [3, 4], 4: [5], 5: [6]}, multiedges=True)
+            sage: for (u, v) in G.edges(labels=None):
+            ....:    G.set_edge_label(u, v, 1)
+            sage: G.distance(0, 5, by_weight=true)
             3
         """
         if x == y:

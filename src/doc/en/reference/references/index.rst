@@ -410,7 +410,7 @@ REFERENCES:
                  A. Schilling, M. Yip. *A minimaj-preserving crystal on ordered
                  multiset partitions*.
                  Advances in Applied Math. 95 (2018) 96-115,
-                 :doi:`10.1016/j.aam.2017.11.006`. :arXiv:`1707.08709v2`.
+                 :doi:`10.1016/j.aam.2017.11.006`. :arxiv:`1707.08709v2`.
 
 .. [BCJ2007] Gregory V. Bard, and Nicolas T. Courtois, and Chris
              Jefferson.  *Efficient Methods for Conversion and
@@ -421,7 +421,7 @@ REFERENCES:
 
 .. [BCM15] Michele Borassi, Pierluigi Crescenzi, and Andrea Marino,
            Fast and Simple Computation of Top-k Closeness Centralities.
-           :arXiv:`1507.01490`.
+           :arxiv:`1507.01490`.
 
 .. [BCN1989] Andries E. Brouwer, Arjeh M. Cohen, and Arnold Neumaier.
              *Distance-Regular Graphs*, Springer, 1989.
@@ -459,7 +459,7 @@ REFERENCES:
 
 .. [BdVO2012] Christopher Bowman, Maud De Visscher, Rosa Orellana.
               *The partition algebra and the Kronecker coefficients*.
-              :arXiv:`1210.5579v6`.
+              :arxiv:`1210.5579v6`.
 
 .. [Bec1992] Bernhard Beckermann. "A reliable method for computing M-Padé
              approximants on arbitrary staircases". J. Comput. Appl. Math.,
@@ -558,7 +558,7 @@ REFERENCES:
 .. [BH2017] Georgia Benkart and Tom Halverson. *Partition algebras*
             `\mathsf{P}_k(n)` *with* `2k > n` *and the fundamental theorems
             of invariant theory for the symmetric group* `\mathsf{S}_n`.
-            Preprint (2017). :arXiv:`1707.1410`
+            Preprint (2017). :arxiv:`1707.1410`
 
 .. [BHS2008] Robert Bradshaw, David Harvey and William
              Stein. strassen_window_multiply_c. strassen.pyx, Sage
@@ -796,7 +796,7 @@ REFERENCES:
 .. [Bre1993] Richard P. Brent.
              *On computing factors of cyclotomic polynomials*.
              Mathematics of Computation. **61** (1993). No. 203. pp 131--149.
-             :arXiv:`1004.5466v1`. http://www.jstor.org/stable/2152941
+             :arxiv:`1004.5466v1`. http://www.jstor.org/stable/2152941
 
 .. [Bre1997] \T. Breuer "Integral bases for subfields of cyclotomic
              fields" AAECC 8, 279--289 (1997).
@@ -1543,7 +1543,7 @@ REFERENCES:
 .. [EGHLSVY] Pavel Etingof, Oleg Golberg, Sebastian Hensel, Tiankai
              Liu, Alex Schwendner, Dmitry Vaintrob, Elena Yudovina,
              "Introduction to representation theory",
-             :arXiv:`0901.0827v5`.
+             :arxiv:`0901.0827v5`.
 
 .. [EKLP1992] \N. Elkies, G. Kuperberg, M. Larsen, J. Propp,
               *Alternating-Sign Matrices and Domino Tilings*, Journal of Algebraic
@@ -1633,7 +1633,7 @@ REFERENCES:
 
 .. [Feingold2004] Alex J. Feingold. *Fusion rules for affine Kac-Moody algebras*.
                   Contemp. Math., **343** (2004), pp. 53-96.
-                  :arXiv:`math/0212387`
+                  :arxiv:`math/0212387`
 
 .. [Feu2009] \T. Feulner. The Automorphism Groups of Linear Codes and
              Canonical Representatives of Their Semilinear Isometry
@@ -1734,7 +1734,7 @@ REFERENCES:
 
 .. [Fuchs1994] \J. Fuchs. *Fusion Rules for Conformal Field Theory*.
                Fortsch. Phys. **42** (1994), no. 1, pp. 1-48.
-               :doi:`10.1002/prop.2190420102`, :arXiv:`hep-th/9306162`.
+               :doi:`10.1002/prop.2190420102`, :arxiv:`hep-th/9306162`.
 
 .. [Ful1989] \W. Fulton. Algebraic curves: an introduction to algebraic geometry. Addison-Wesley,
              Redwood City CA (1989).
@@ -2844,7 +2844,7 @@ REFERENCES:
 
 .. [LNSSS2013] \C. Lenart, S. Naito, D. Sagaki, A. Schilling, M. Shimozono,
                *A uniform model for Kirillov-Reshetikhin crystals. Extended abstract.*
-               DMTCS proc, to appear ( :arXiv:`1211.6019` )
+               DMTCS proc, to appear ( :arxiv:`1211.6019` )
 
 .. [Lod1995] Jean-Louis Loday. *Cup-product for Leibniz cohomology and
              dual Leibniz algebras*. Math. Scand., pp. 189--196
@@ -2899,7 +2899,7 @@ REFERENCES:
 .. [LR0102066] Jean-Louis Loday and Maria O. Ronco.
                Order structure on the algebra of permutations
                and of planar binary trees.
-               :arXiv:`math/0102066v1`.
+               :arxiv:`math/0102066v1`.
 
 .. [LS] \A. Lum, W. Stein. Verification of the Birch and
         Swinnerton-Dyer Conjecture for Elliptic Curves with Complex
@@ -2916,7 +2916,7 @@ REFERENCES:
 
 .. [LS2012] \K.-H. Lee and B. Salisbury.
             Young tableaux, canonical bases, and the Gindikin-Karpelevich formula.
-            :arXiv:`1205.6006`.
+            :arxiv:`1205.6006`.
 
 .. [LS2017] Xuan Liu and Travis Scrimshaw. *A uniform approach to soliton
             cellular automata using rigged configurations*.
@@ -3653,7 +3653,7 @@ REFERENCES:
 
 .. [RSW2011] Victor Reiner, Franco Saliola, Volkmar Welker.
              *Spectra of Symmetrized Shuffling Operators*.
-             :arXiv:`1102.2460v2`.
+             :arxiv:`1102.2460v2`.
 
 .. [Rub1991] \K. Rubin. The "main conjectures" of Iwasawa theory for
              imaginary quadratic fields. Invent. Math. 103 (1991),
@@ -3998,7 +3998,7 @@ REFERENCES:
 
 .. [Stu2008] \C. Stump -- More bijective Catalan combinatorics on
              permutations and on colored permutations, Preprint.
-             :arXiv:`0808.2822`.
+             :arxiv:`0808.2822`.
 
 .. [STW2013] \J. Schejbal, E. Tews, and J. Wälde,
              *Reverse engineering of chiasmus from gstool*; in

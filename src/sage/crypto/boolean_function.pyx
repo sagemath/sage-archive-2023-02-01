@@ -918,8 +918,10 @@ cdef class BooleanFunction(SageObject):
 
     def absolute_indicator(self):
         """
-        Return the absolut indicator of the function. Ths is the maximal absolut
-        value of the autocorrelation.
+        Return the absolute indicator of the function.
+
+        The absolute indicator is defined as the maximal absolute value of
+        the autocorrelation.
 
         EXAMPLES::
 

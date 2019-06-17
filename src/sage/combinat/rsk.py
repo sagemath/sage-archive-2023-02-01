@@ -264,8 +264,6 @@ class Rule(UniqueRepresentation):
             as such
 
         """
-        from sage.combinat.tableau import SemistandardTableau, StandardTableau
-        
         itr = self.to_pair(obj1, obj2)
         p = []       #the "insertion" tableau
         q = []       #the "recording" tableau
@@ -273,18 +271,7 @@ class Rule(UniqueRepresentation):
         lb = 0
         for i, j in itr:
             self.insertion(i, j, p, q)
-
-        if check_standard:
-            try:
-                P = StandardTableau(p)
-            except ValueError:
-                P = SemistandardTableau(p)
-            try:
-                Q = StandardTableau(q)
-            except ValueError:
-                Q = SemistandardTableau(q)
-            return [P, Q]
-        return [SemistandardTableau(p), SemistandardTableau(q)]
+        return self._forward_formatOutput(p, q, check_standard)
 
     def backward_rule(self, p, q, output):
         r"""
@@ -321,7 +308,7 @@ class Rule(UniqueRepresentation):
 
             for key in sorted(d, reverse=True): # Delete last entry from i-th row of p_copy
                 self.rev_insertion(d[key], p_copy, rev_word, True)
-            return self._format_output(rev_word, None, output, p.is_standard(), q.is_standard())
+            return self._backward_formatOutput(rev_word, None, output, p.is_standard(), q.is_standard())
 
         if q not in SemistandardTableaux():
             raise ValueError("q(=%s) must be a semistandard tableau"%q)
@@ -344,9 +331,24 @@ class Rule(UniqueRepresentation):
             for key in sorted(row_dict, reverse=True):
                 self.rev_insertion(row_dict[key], p_copy, lower_row, False)
                 upper_row.append(value)
-        return self._format_output(lower_row, upper_row, output, p.is_standard(), q.is_standard())
+        return self._backward_formatOutput(lower_row, upper_row, output, p.is_standard(), q.is_standard())
 
-    def _format_output(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
+    def _forward_formatOutput(self, p=None, q=None, check_standard=False):
+        from sage.combinat.tableau import SemistandardTableau, StandardTableau
+
+        if check_standard:
+            try:
+                P = StandardTableau(p)
+            except ValueError:
+                P = SemistandardTableau(p)
+            try:
+                Q = StandardTableau(q)
+            except ValueError:
+                Q = SemistandardTableau(q)
+            return [P, Q]
+        return [SemistandardTableau(p), SemistandardTableau(q)]
+    
+    def _backward_formatOutput(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
         if q_is_standard:
             if output == 'word':
                 from sage.combinat.words.word import Word
@@ -428,14 +430,14 @@ class RuleRSK(Rule):
                 x, row[y] = row[y], x
             rev_word.append(x)
 
-    def _format_output(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
+    def _backward_formatOutput(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
         if q_is_standard and output == 'permutation':
             if not p_is_standard:
                 raise TypeError("p must be standard to have a valid permutation as output")
             from sage.combinat.permutation import Permutation
             return Permutation(reversed(lower_row))
         else:
-            return super(RuleRSK, self)._format_output(lower_row, upper_row, output, p_is_standard, q_is_standard)
+            return super(RuleRSK, self)._backward_formatOutput(lower_row, upper_row, output, p_is_standard, q_is_standard)
 
 
 class RuleEG(Rule):
@@ -539,7 +541,7 @@ class RuleEG(Rule):
                     x, row[y] = row[y], x
             rev_word.append(x)
 
-    def _format_output(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
+    def _backward_formatOutput(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
         if q_is_standard and output == 'permutation':
             n = 0
             if list(lower_row):
@@ -547,7 +549,7 @@ class RuleEG(Rule):
             from sage.combinat.permutation import Permutations
             return Permutations(n).from_reduced_word(list(lower_row))
         else:
-            return super(RuleEG, self)._format_output(lower_row, upper_row, output, p_is_standard, q_is_standard)
+            return super(RuleEG, self)._backward_formatOutput(lower_row, upper_row, output, p_is_standard, q_is_standard)
 
 
 class RuleHecke(Rule):
@@ -657,7 +659,7 @@ class RuleHecke(Rule):
                 assert value == should_be_value
                 self.rev_insertion(i, p_copy, q_copy, lower_row)
                 upper_row.append(value)
-        return self._format_output(lower_row, upper_row, output)
+        return self._backward_formatOutput(lower_row, upper_row, output)
 
     def insertion(self, i, j, p, q):
         r"""
@@ -722,7 +724,7 @@ class RuleHecke(Rule):
             x = y
         rev_word.append(x)
 
-    def _format_output(self, lower_row=None, upper_row=None, output='array'):
+    def _backward_formatOutput(self, lower_row=None, upper_row=None, output='array'):
         
         if output == 'array':
             return [list(reversed(upper_row)), list(reversed(lower_row))]

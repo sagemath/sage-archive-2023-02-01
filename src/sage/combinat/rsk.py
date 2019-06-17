@@ -264,8 +264,7 @@ class Rule(UniqueRepresentation):
             as such
 
         """
-        from sage.combinat.tableau import SemistandardTableau, StandardTableau
-        
+        self._forward_verify_input(obj1, obj2)
         itr = self.to_pair(obj1, obj2)
         p = []       #the "insertion" tableau
         q = []       #the "recording" tableau
@@ -273,18 +272,7 @@ class Rule(UniqueRepresentation):
         lb = 0
         for i, j in itr:
             self.insertion(i, j, p, q)
-
-        if check_standard:
-            try:
-                P = StandardTableau(p)
-            except ValueError:
-                P = SemistandardTableau(p)
-            try:
-                Q = StandardTableau(q)
-            except ValueError:
-                Q = SemistandardTableau(q)
-            return [P, Q]
-        return [SemistandardTableau(p), SemistandardTableau(q)]
+        return self._forward_formatOutput(p, q, check_standard)
 
     def backward_rule(self, p, q, output):
         r"""
@@ -310,6 +298,7 @@ class Rule(UniqueRepresentation):
           - ``'permutation'`` -- as a permutation 
         """
         from sage.combinat.tableau import SemistandardTableaux
+        self._backward_verify_input(p, q)
         # Make a copy of p since this is destructive to it
         p_copy = [list(row) for row in p]
 
@@ -321,10 +310,7 @@ class Rule(UniqueRepresentation):
 
             for key in sorted(d, reverse=True): # Delete last entry from i-th row of p_copy
                 self.rev_insertion(d[key], p_copy, rev_word, True)
-            return self._format_output(rev_word, None, output, p.is_standard(), q.is_standard())
-
-        if q not in SemistandardTableaux():
-            raise ValueError("q(=%s) must be a semistandard tableau"%q)
+            return self._backward_formatOutput(rev_word, None, output, p.is_standard(), q.is_standard())
 
         upper_row = []
         lower_row = []
@@ -344,9 +330,24 @@ class Rule(UniqueRepresentation):
             for key in sorted(row_dict, reverse=True):
                 self.rev_insertion(row_dict[key], p_copy, lower_row, False)
                 upper_row.append(value)
-        return self._format_output(lower_row, upper_row, output, p.is_standard(), q.is_standard())
+        return self._backward_formatOutput(lower_row, upper_row, output, p.is_standard(), q.is_standard())
 
-    def _format_output(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
+    def _forward_formatOutput(self, p=None, q=None, check_standard=False):
+        from sage.combinat.tableau import SemistandardTableau, StandardTableau
+
+        if check_standard:
+            try:
+                P = StandardTableau(p)
+            except ValueError:
+                P = SemistandardTableau(p)
+            try:
+                Q = StandardTableau(q)
+            except ValueError:
+                Q = SemistandardTableau(q)
+            return [P, Q]
+        return [SemistandardTableau(p), SemistandardTableau(q)]
+    
+    def _backward_formatOutput(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
         if q_is_standard:
             if output == 'word':
                 from sage.combinat.words.word import Word
@@ -365,6 +366,18 @@ class Rule(UniqueRepresentation):
             if output in ['permutation', 'word']:
                 raise TypeError("q must be standard to have a %s as valid output"%output)
             raise ValueError("invalid output option")
+
+    def _forward_verify_input(self, obj1, obj2):
+        pass
+    
+    def _backward_verify_input(self, p, q):
+        from sage.combinat.tableau import SemistandardTableaux
+
+        if p not in SemistandardTableaux():
+            raise ValueError("p(=%s) must be a semistandard tableau"%p)
+
+        if q not in SemistandardTableaux() and not q.is_standard():
+            raise ValueError("q(=%s) must be a semistandard tableau"%q)
 
 class RuleRSK(Rule):
     r"""
@@ -428,14 +441,14 @@ class RuleRSK(Rule):
                 x, row[y] = row[y], x
             rev_word.append(x)
 
-    def _format_output(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
+    def _backward_formatOutput(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
         if q_is_standard and output == 'permutation':
             if not p_is_standard:
                 raise TypeError("p must be standard to have a valid permutation as output")
             from sage.combinat.permutation import Permutation
             return Permutation(reversed(lower_row))
         else:
-            return super(RuleRSK, self)._format_output(lower_row, upper_row, output, p_is_standard, q_is_standard)
+            return super(RuleRSK, self)._backward_formatOutput(lower_row, upper_row, output, p_is_standard, q_is_standard)
 
 
 class RuleEG(Rule):
@@ -539,7 +552,7 @@ class RuleEG(Rule):
                     x, row[y] = row[y], x
             rev_word.append(x)
 
-    def _format_output(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
+    def _backward_formatOutput(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
         if q_is_standard and output == 'permutation':
             n = 0
             if list(lower_row):
@@ -547,7 +560,7 @@ class RuleEG(Rule):
             from sage.combinat.permutation import Permutations
             return Permutations(n).from_reduced_word(list(lower_row))
         else:
-            return super(RuleEG, self)._format_output(lower_row, upper_row, output, p_is_standard, q_is_standard)
+            return super(RuleEG, self)._backward_formatOutput(lower_row, upper_row, output, p_is_standard, q_is_standard)
 
 
 class RuleHecke(Rule):
@@ -657,7 +670,7 @@ class RuleHecke(Rule):
                 assert value == should_be_value
                 self.rev_insertion(i, p_copy, q_copy, lower_row)
                 upper_row.append(value)
-        return self._format_output(lower_row, upper_row, output)
+        return self._backward_formatOutput(lower_row, upper_row, output)
 
     def insertion(self, i, j, p, q):
         r"""
@@ -722,7 +735,7 @@ class RuleHecke(Rule):
             x = y
         rev_word.append(x)
 
-    def _format_output(self, lower_row=None, upper_row=None, output='array'):
+    def _backward_formatOutput(self, lower_row=None, upper_row=None, output='array'):
         
         if output == 'array':
             return [list(reversed(upper_row)), list(reversed(lower_row))]
@@ -744,10 +757,13 @@ class RuleDualRSK(Rule):
     """
     def to_pair(self, obj1=None, obj2=None):
         if obj2 is None:
-            for i, row in enumerate(obj1):
-                for j, mult in enumerate(row):
-                    if mult > 1:
-                        raise ValueError("the matrix is not a {0, 1}-matrix")
+            try:
+                for i, row in enumerate(obj1):
+                    for j, mult in enumerate(row):
+                        if mult > 1:
+                            raise ValueError("the matrix is not a {0, 1}-matrix")
+            except TypeError:
+                return super(RuleDualRSK, self).to_pair(obj1, obj2)
         else:
             lt = 0
             lb = 0
@@ -758,8 +774,6 @@ class RuleDualRSK(Rule):
                 lb = b
 
         return super(RuleDualRSK, self).to_pair(obj1, obj2)
-        
-    def forward_rule(self, obj1, obj2, check_standard=False):
         
     def insertion(self, i, j, p, q):
         from bisect import bisect_left
@@ -781,6 +795,58 @@ class RuleDualRSK(Rule):
         r.append(j)
         qr.append(i) # Values are always inserted to the right
 
+    def rev_insertion(self, i, p_copy, rev_word, q_is_standard):
+        r"""
+        Reverse bump the right-most letter from the `i^{th}` row of the 
+        current tableaux p_copy and appends the removed entry from ``p_copy``
+        to the list ``rev_word``.
+        """
+        from bisect import bisect_right
+        if q_is_standard:
+            x = p_copy[i].pop() # Always the right-most entry
+            for row in reversed(p_copy[:i]):
+                y_pos = bisect_right(row,x) - 1
+                # switch x and y
+                x, row[y_pos] = row[y_pos], x
+            rev_word.append(x)
+        else:
+            x = p_copy[i].pop() # Always the right-most entry
+            for row in reversed(p_copy[:i]):
+                y = bisect_right(row,x) - 1
+                x, row[y] = row[y], x
+            rev_word.append(x)
+
+    def _backward_formatOutput(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
+        if q_is_standard and output == 'permutation':
+            if not p_is_standard:
+                raise TypeError("p must be standard to have a valid permutation as output")
+            from sage.combinat.permutation import Permutation
+            return Permutation(reversed(lower_row))
+        else:
+            return super(RuleDualRSK, self)._backward_formatOutput(lower_row, upper_row, output, p_is_standard, q_is_standard)
+
+    def _forward_formatOutput(self, p=None, q=None, check_standard=False):
+        from sage.combinat.tableau import Tableau, StandardTableau
+
+        if check_standard:
+            try:
+                P = StandardTableau(p)
+            except ValueError:
+                P = Tableau(p)
+            try:
+                Q = StandardTableau(q)
+            except ValueError:
+                Q = Tableau(q)
+            return [P, Q]
+        return [Tableau(p), Tableau(q)]
+
+    def _backward_verify_input(self, p, q):
+        from sage.combinat.tableau import SemistandardTableaux
+
+        if q not in SemistandardTableaux() and not q.is_standard():
+            raise ValueError("q(=%s) must be a semistandard tableau"%q)
+
+
 class InsertionRules(object):
     r"""
     Catalog of rules for growth diagrams.
@@ -788,6 +854,7 @@ class InsertionRules(object):
     RSK = RuleRSK
     EG = RuleEG
     Hecke = RuleHecke
+    dualRSK = RuleDualRSK
 
 #####################################################################
 
@@ -913,6 +980,39 @@ def RSK(obj1=None, obj2=None, insertion=InsertionRules.RSK, check_standard=False
           [(6,)],
           [(8, 10)]]]
 
+    Using dual RSK insertion, where given only one line,
+    we treat the top line as being `(1, 2, \ldots, n)`::
+
+        sage: RSK([3,3,2,4,1], insertion=RSK.rules.dualRSK)
+        [[[1, 4], [2], [3], [3]], [[1, 4], [2], [3], [5]]]
+        sage: RSK(Word([3,3,2,4,1]), insertion=RSK.rules.dualRSK)
+        [[[1, 4], [2], [3], [3]], [[1, 4], [2], [3], [5]]]
+        sage: RSK(Word([2,3,3,2,1,3,2,3]), insertion=RSK.rules.dualRSK)
+        [[[1, 2, 3], [2, 3], [2, 3], [3]], [[1, 2, 8], [3, 6], [4, 7], [5]]]
+
+    Using dual RSK insertion with a strict biword::
+
+        sage: RSK([1,1,2,4,4,5],[2,4,1,1,3,2], insertion=RSK.rules.dualRSK)
+        [[[1, 2], [1, 3], [2, 4]], [[1, 1], [2, 4], [4, 5]]]
+        sage: RSK([1,1,2,3,3,4,5],[1,3,2,1,3,3,2], insertion=RSK.rules.dualRSK)
+        [[[1, 2, 3], [1, 2], [3], [3]], [[1, 1, 3], [2, 4], [3], [5]]]
+        sage: RSK([1, 2, 2, 2], [2, 1, 2, 4], insertion=RSK.rules.dualRSK)
+        [[[1, 2, 4], [2]], [[1, 2, 2], [2]]]
+        sage: RSK(Word([1,1,3,4,4]), [1,4,2,1,3], insertion=RSK.rules.dualRSK)
+        [[[1, 2, 3], [1], [4]], [[1, 1, 4], [3], [4]]]
+        sage: RSK([1,3,3,4,4], Word([6,1,2,1,7]), insertion=RSK.rules.dualRSK)
+        [[[1, 2, 7], [1], [6]], [[1, 3, 4], [3], [4]]]
+
+    Using dual RSK insertion with a `\{0, 1\}`-matrix::
+
+        sage: RSK(matrix([[0,1],[1,1]]), insertion=RSK.rules.dualRSK)
+        [[[1, 2], [2]], [[1, 2], [2]]]
+
+    We can also give it something looking like a matrix::
+
+        sage: RSK([[0,1],[1,1]], insertion=RSK.rules.dualRSK)
+        [[[1, 2], [2]], [[1, 2], [2]]]
+
     There is also :func:`~sage.combinat.rsk.RSK_inverse` which performs
     the inverse of the bijection on a pair of semistandard tableaux. We
     note that the inverse function takes 2 separate tableaux as inputs, so
@@ -924,6 +1024,13 @@ def RSK(obj1=None, obj2=None, insertion=InsertionRules.RSK, check_standard=False
         sage: P,Q = RSK([1, 2, 2, 2], [2, 1, 1, 2])
         sage: RSK_inverse(P, Q)
         [[1, 2, 2, 2], [2, 1, 1, 2]]
+
+        sage: RSK_inverse(*RSK([1, 2, 2, 2], [2, 1, 2, 3], 
+        ....:           insertion=RSK.rules.dualRSK), insertion=RSK.rules.dualRSK)
+        [[1, 2, 2, 2], [2, 1, 2, 3]]
+        sage: P,Q = RSK([1, 2, 2, 2], [2, 1, 2, 3], insertion=RSK.rules.dualRSK)
+        sage: RSK_inverse(P, Q, insertion=RSK.rules.dualRSK)
+        [[1, 2, 2, 2], [2, 1, 2, 3]]
 
     TESTS:
 
@@ -942,6 +1049,19 @@ def RSK(obj1=None, obj2=None, insertion=InsertionRules.RSK, check_standard=False
         sage: RSK(Word([]), insertion=RSK.rules.EG)
         [[], []]
         sage: RSK(Word([]), insertion=RSK.rules.Hecke)
+        [[], []]
+
+    Empty objects for dual RSK::
+
+        sage: RSK(Permutation([]), insertion=RSK.rules.dualRSK)
+        [[], []]
+        sage: RSK(Word([]), insertion=RSK.rules.dualRSK)
+        [[], []]
+        sage: RSK(matrix([[]]), insertion=RSK.rules.dualRSK)
+        [[], []]
+        sage: RSK([], [], insertion=RSK.rules.dualRSK)
+        [[], []]
+        sage: RSK([[]], insertion=RSK.rules.dualRSK)
         [[], []]
     """
     from sage.combinat.tableau import SemistandardTableau, StandardTableau, Tableau 
@@ -1078,6 +1198,48 @@ def RSK_inverse(p, q, output='array', insertion=InsertionRules.RSK):
         [1 0]
         [0 2]
 
+    If both ``p`` and ``q`` are standard, the dual RSK insertion
+    behaves identically to the usual RSK insertion::
+
+        sage: t1 = Tableau([[1, 2, 5], [3], [4]])
+        sage: t2 = Tableau([[1, 2, 3], [4], [5]])
+        sage: RSK_inverse(t1, t2, insertion=RSK.rules.dualRSK)
+        [[1, 2, 3, 4, 5], [1, 4, 5, 3, 2]]
+        sage: RSK_inverse(t1, t2, 'word', insertion=RSK.rules.dualRSK)
+        word: 14532
+        sage: RSK_inverse(t1, t2, 'matrix', insertion=RSK.rules.dualRSK)
+        [1 0 0 0 0]
+        [0 0 0 1 0]
+        [0 0 0 0 1]
+        [0 0 1 0 0]
+        [0 1 0 0 0]
+        sage: RSK_inverse(t1, t2, 'permutation', insertion=RSK.rules.dualRSK)
+        [1, 4, 5, 3, 2]
+        sage: RSK_inverse(t1, t1, 'permutation', insertion=RSK.rules.dualRSK)
+        [1, 4, 3, 2, 5]
+        sage: RSK_inverse(t2, t2, 'permutation', insertion=RSK.rules.dualRSK)
+        [1, 2, 5, 4, 3]
+        sage: RSK_inverse(t2, t1, 'permutation', insertion=RSK.rules.dualRSK)
+        [1, 5, 4, 2, 3]
+
+    For dual RSK, the first tableau is merely transpose semistandard::
+
+        sage: p = Tableau([[1,2,2],[1]]); q = Tableau([[1,2,4],[3]])
+        sage: ret = RSK_inverse(p, q, insertion=RSK.rules.dualRSK); ret
+        [[1, 2, 3, 4], [1, 2, 1, 2]]
+        sage: RSK_inverse(p, q, 'word', insertion=RSK.rules.dualRSK)
+        word: 1212
+
+    In general for dual RSK::
+
+        sage: p = Tableau([[1,1,2],[1]]); q = Tableau([[1,3,3],[2]])
+        sage: RSK_inverse(p, q, insertion=RSK.rules.dualRSK)
+        [[1, 2, 3, 3], [1, 1, 1, 2]]
+        sage: RSK_inverse(p, q, 'matrix', insertion=RSK.rules.dualRSK)
+        [1 0]
+        [1 0]
+        [1 1]
+
     Using Hecke insertion::
 
         sage: w = [5, 4, 1, 3, 4, 2, 5, 1, 2, 1, 4, 2, 4]
@@ -1101,6 +1263,8 @@ def RSK_inverse(p, q, output='array', insertion=InsertionRules.RSK):
     From empty tableaux::
 
         sage: RSK_inverse(Tableau([]), Tableau([]))
+        [[], []]
+        sage: RSK_inverse(Tableau([]), Tableau([]), insertion=RSK.rules.dualRSK)
         [[], []]
 
     Check that :func:`RSK_inverse` is the inverse of :func:`RSK` on the
@@ -1133,9 +1297,35 @@ def RSK_inverse(p, q, output='array', insertion=InsertionRules.RSK):
         sage: is_fine = True if p == f(p) else p ; is_fine
         True
 
+    Same for dual RSK::
+
+        sage: f = lambda p: RSK_inverse(*RSK(p, insertion=RSK.rules.dualRSK),
+        ....:                           output='permutation', insertion=RSK.rules.dualRSK)
+        sage: all(p == f(p) for n in range(7) for p in Permutations(n))
+        True
+        sage: all(RSK_inverse(*RSK(w, insertion=RSK.rules.dualRSK),
+        ....:                 output='word', insertion=RSK.rules.dualRSK) == w
+        ....:     for n in range(4) for w in Words(5, n))
+        True
+        sage: from sage.combinat.integer_matrices import IntegerMatrices
+        sage: M = IntegerMatrices([1,2,2,1], [3,1,1,1]) # this is probably wrong
+        sage: all(RSK_inverse(*RSK(m, insertion=RSK.rules.dualRSK), output='matrix',
+        ....:                 insertion=RSK.rules.dualRSK) == m
+        ....:     for m in M if all(x in [0, 1] for x in m))
+        True
+
+        sage: n = ZZ.random_element(200)
+        sage: p = Permutations(n).random_element()
+        sage: True if p == f(p) else p
+        True
+
     Both tableaux must be of the same shape::
 
         sage: RSK_inverse(Tableau([[1,2,3]]), Tableau([[1,2]]))
+        Traceback (most recent call last):
+        ...
+        ValueError: p(=[[1, 2, 3]]) and q(=[[1, 2]]) must have the same shape
+        sage: RSK_inverse(Tableau([[1,2,3]]), Tableau([[1,2]]), insertion=RSK.rules.dualRSK)
         Traceback (most recent call last):
         ...
         ValueError: p(=[[1, 2, 3]]) and q(=[[1, 2]]) must have the same shape
@@ -1168,8 +1358,6 @@ def RSK_inverse(p, q, output='array', insertion=InsertionRules.RSK):
     if p.shape() != q.shape():
         raise ValueError("p(=%s) and q(=%s) must have the same shape"%(p, q))
     from sage.combinat.tableau import SemistandardTableaux
-    if p not in SemistandardTableaux():
-        raise ValueError("p(=%s) must be a semistandard tableau"%p)
 
     answer = rule.backward_rule(p, q, output)
     return answer

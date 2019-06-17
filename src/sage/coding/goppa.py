@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""
 Goppa code
 
@@ -121,7 +120,7 @@ class GoppaCode(AbstractLinearCode):
            and self._defining_set == other._defining_set)
 
     def parity_check_matrix(self):
-        """
+        r"""
         Parity check matrix for ``self``.
 
         The element in row `t`, column `i` is `h[i](D[i]^t)`, where:
@@ -284,7 +283,7 @@ class GoppaCodeEncoder(Encoder):
            and self.code() == other.code())
 
     def generator_matrix(self):
-        """
+        r"""
         A generator matrix for ``self``
 
         Dimension of resulting matrix is `k \times n`, where `k` is

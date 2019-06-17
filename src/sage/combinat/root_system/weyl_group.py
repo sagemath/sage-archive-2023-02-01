@@ -764,10 +764,11 @@ class WeylGroupElement(MatrixGroupElement_gap):
             return MatrixGroupElement_gap._latex_(self)
         else:
             redword = self.reduced_word()
-            if len(redword) == 0:
+            if not redword:
                 return "1"
             else:
-                return "".join(["%s_{%d}"%(self._parent._prefix, i) for i in redword])
+                return "".join("%s_{%d}" % (self._parent._prefix, i)
+                               for i in redword)
 
     def __eq__(self, other):
         """
@@ -785,9 +786,9 @@ class WeylGroupElement(MatrixGroupElement_gap):
         subclasses overriding __cmp__ with something slow for specific
         purposes.
         """
-        return self.__class__ == other.__class__ and \
-               self._parent   == other._parent   and \
-               self.matrix()  == other.matrix()
+        return (self.__class__ == other.__class__ and
+                self._parent   == other._parent and
+                self.matrix()  == other.matrix())
 
     def _richcmp_(self, other, op):
         """

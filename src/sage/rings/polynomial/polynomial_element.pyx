@@ -6115,8 +6115,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # Get a reference to Magma version of parent.
         R = magma(self._parent)
         # Get list of coefficients.
-        v = ','.join([a._magma_init_(magma) for a in self.list()])
-        return '%s![%s]'%(R.name(), v)
+        v = ','.join(a._magma_init_(magma) for a in self.list())
+        return '%s![%s]' % (R.name(), v)
 
     def _gap_(self, gap):
         """

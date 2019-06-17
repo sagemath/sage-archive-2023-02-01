@@ -697,7 +697,7 @@ class Partition(CombinatorialElement):
             sage: print(Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_list())
             [7, 7, 7, 3, 3, 2, 1, 1, 1, 1, 1, 1, 1]
         """
-        return '[%s]' % ', '.join('%s'%m for m in self)
+        return '[%s]' % ', '.join('%s' % m for m in self)
 
     def _repr_exp_low(self):
         """
@@ -974,7 +974,7 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: mu=Partition([5,5,2,1])
+            sage: mu = Partition([5,5,2,1])
             sage: Partitions.options(diagram_str='*', convention="english")
             sage: print(mu.ferrers_diagram())
             *****
@@ -1004,13 +1004,13 @@ class Partition(CombinatorialElement):
         if not self._list:
             return '-' if diag_str != '-' else "(/)"
         if self.parent().options.convention == "English":
-            return '\n'.join([diag_str * p for p in self])
+            return '\n'.join(diag_str * p for p in self)
         else:
-            return '\n'.join([diag_str * p for p in reversed(self)])
+            return '\n'.join(diag_str * p for p in reversed(self))
 
     def pp(self):
         r"""
-        Prints the Ferrers diagram.
+        Print the Ferrers diagram.
 
         See :meth:`ferrers_diagram` for more on the Ferrers diagram.
 

@@ -139,8 +139,8 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
         elif is_Gamma1(G):
             group = 'G1'
         elif is_GammaH(G):
-            group = 'GH[' + ','.join([str(z) for z in G._generators_for_H()]) + ']'
-        return '%s%s%s'%(self.level(), cremona_letter_code(self.factor_number()), group)
+            group = 'GH[' + ','.join(str(z) for z in G._generators_for_H()) + ']'
+        return '%s%s%s' % (self.level(), cremona_letter_code(self.factor_number()), group)
 
     def factor_number(self):
         """

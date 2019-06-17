@@ -1162,6 +1162,7 @@ cdef class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet_generic):
              (1, 1), (1, 2), (2, 0), (2, 1), (3, 0)]
         """
         cdef list next_level
+        cdef set set_next_level
         cdef int depth
         if max_depth is None:
             max_depth = self._max_depth
@@ -1169,12 +1170,15 @@ cdef class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet_generic):
         depth = 0
         while current_level and depth <= max_depth:
             next_level = list()
+            set_next_level = set()
+
             for x in current_level:
                 yield x
                 for y in self.successors(x):
-                    if y is None or y in next_level:
+                    if y is None or y in set_next_level:
                         continue
                     next_level.append(y)
+                    set_next_level.add(y)
             current_level = next_level
             depth += 1
 

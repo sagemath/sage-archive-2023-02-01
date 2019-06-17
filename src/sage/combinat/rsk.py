@@ -9,19 +9,19 @@ Introduction
 ============
 
 The Robinson-Schensted-Knuth (RSK) correspondence is most naturally 
-stated as a bijection between generalized permutations (also known 
+stated as a bijection between generalized permutation (also known 
 as two-line arrays, biwords, ...) and pairs of semi-standard Young 
 tableaux `(P, Q)` of identical shape.
 
 The basic operation in the RSK correspondence is a row insertion 
-`P \leftarrow k`(where `P` is a given semi-standard Young tableau, 
+`P \leftarrow k` (where `P` is a given semi-standard Young tableau, 
 and `k` is an integer). Different insertion algorithms have been 
 implemented for the RSK correspondence which can be specify in 
-the function.
+the function call.
 
 EXAMPLES:
 
-We can perform RSK and the inverse on a variety of objects::
+We can perform RSK and the RSK_inverse on a variety of objects::
 
     sage: p = Tableau([[1,2,2],[2]]); q = Tableau([[1,3,3],[2]])
     sage: gp = RSK_inverse(p, q); gp
@@ -114,9 +114,13 @@ base class for a rule::
 
     sage: from sage.combinat.rsk import Rule
 
-Next, you need to implement the forward rule and backward rule for RSK() 
-and RSK_inverse respectively. For more information, see 
-:class:`~sage.combinat.rsk.Rule`.
+Using the ``Rule`` class as parent class for your insertion rule, 
+first implement the insertion and the reverse insertion algorithm 
+for RSK() and RSK_inverse respectively. If your insertion algorithm uses same 
+forward and backward rule as ``RuleRSK`` you can directly use it, else you need 
+to implement your own forward and backward rules. 
+
+For more information, see :class:`~sage.combinat.rsk.Rule`.
 
 TESTS:
 
@@ -203,7 +207,7 @@ from sage.matrix.all import matrix
 
 class Rule(UniqueRepresentation):
     r"""
-    Generic base class for a insertion rule for RSK correspondence.
+    Generic base class for an insertion rule for RSK correspondence.
     """
     def to_pair(self, obj1=None, obj2=None):
         r"""
@@ -247,7 +251,7 @@ class Rule(UniqueRepresentation):
 
     def forward_rule(self, obj1, obj2, check_standard=False):
         r"""
-        Returns a pair of tableau from forward insertion of the pair ``[obj1, obj2]``.
+        Returns a pair of tableaux from forward insertion of the pair ``[obj1, obj2]``.
         
         INPUT:
           
@@ -380,7 +384,7 @@ class RuleRSK(Rule):
         sage: RSK_inverse(p, q, insertion=RSK.rules.RSK)
         [[1, 2, 3, 3], [2, 1, 2, 2]]
 
-    For ``RSK`` and ``RSK_inverse``, ``RuleRSK`` behaves same as 
+    For ``RSK()`` and ``RSK_inverse()``, ``RuleRSK`` behaves same as 
     :class:`~sage.combinat.rsk.Rule`. It is worth noting that in case of 
     ``RSK_inverse`` with ``output = 'permutation'`` ``RuleRSK`` returns 
     an object of class :class:`~sage.combinat.permutation.Permutation`.
@@ -455,12 +459,12 @@ class RuleEG(Rule):
         sage: RSK_inverse(*pq, insertion=RSK.rules.EG)
         [[1, 2, 3, 4, 5], [2, 1, 2, 3, 2]]
 
-    For ``RSK``, ``RuleEG`` provides a bijection from reduced words of 
+    For ``RSK()``, ``RuleEG`` provides a bijection from reduced words of 
     permutations/elements of a type-`A` Coxeter group to a pair of 
     semi-standard tableaux tableaux ([EG1987]_ Definition 2.1) of the same shape.
 
-    For ``RSK_inverse``, ``RuleEG`` provides a bijection from a pair of 
-    same shaped tableaux to reduced words of a generalized permutation. For 
+    For ``RSK_inverse()``, ``RuleEG`` provides a bijection from a pair of 
+    same shaped tableaux to reduced words of a generalized permutation. Note that, for 
     ``output = 'permutation'`` RuleEG returns the smallest permutation satisfying 
     the resulting reduced word.
 
@@ -827,7 +831,7 @@ def RSK(obj1=None, obj2=None, insertion=InsertionRules.RSK, check_standard=False
       resulting tableaux is a standard tableau, and if so, typecast it
       as such
 
-    For precise information see the particular Rule class.
+    For precise information about I/O constrains, see the particular Rule class.
 
     EXAMPLES:
 
@@ -985,7 +989,7 @@ def RSK_inverse(p, q, output='array', insertion=InsertionRules.RSK):
       - ``EG`` -- Edelman-Greene insertion (:class:`~sage.combinat.rsk.RuleEG`)
       - ``Hecke`` -- Hecke insertion (:class:`~sage.combinat.rsk.RuleHecke`)
 
-    For precise information see the particular Rule class.
+    For precise information about I/O constrains, see the particular Rule class.
     
     .. NOTE::
 

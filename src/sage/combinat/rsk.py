@@ -738,6 +738,49 @@ class RuleHecke(Rule):
             return list(reversed(lower_row))
         raise ValueError("invalid output option")
 
+class RuleDualRSK(Rule):
+    r"""
+    A rule modeling the dual RSK insertion algorithm
+    """
+    def to_pair(self, obj1=None, obj2=None):
+        if obj2 is None:
+            for i, row in enumerate(obj1):
+                for j, mult in enumerate(row):
+                    if mult > 1:
+                        raise ValueError("the matrix is not a {0, 1}-matrix")
+        else:
+            lt = 0
+            lb = 0
+            for t,b in zip(obj1, obj2):
+                if lt == t and b == lb:
+                    raise ValueError("invalid strict biword")
+                lt = t
+                lb = b
+
+        return super(RuleDualRSK, self).to_pair(obj1, obj2)
+        
+    def forward_rule(self, obj1, obj2, check_standard=False):
+        
+    def insertion(self, i, j, p, q):
+        from bisect import bisect_left
+        for r, qr in zip(p,q):
+            if r[-1] >= j:
+                #Figure out where to insert j into the row r.  The
+                #bisect command returns the position of the least
+                #element of r greater than j.  We will call it y.
+                y_pos = bisect_left(r, j)
+                #Switch j and y
+                j, r[y_pos] = r[y_pos], j
+            else:
+                break
+        else:
+            #We made through all of the rows of p without breaking
+            #so we need to add a new row to p and q.
+            r = []; p.append(r)
+            qr = []; q.append(qr)
+        r.append(j)
+        qr.append(i) # Values are always inserted to the right
+
 class InsertionRules(object):
     r"""
     Catalog of rules for growth diagrams.

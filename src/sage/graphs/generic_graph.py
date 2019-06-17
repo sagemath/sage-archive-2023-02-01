@@ -16100,20 +16100,21 @@ class GenericGraph(GenericGraph_pyx):
             yield path
             return
         hash_path = tuple(path) # hashing the path to check the existence of a path in the heap
-        heappush(heap_sorted_paths, (length, path)) # heap push operation
+        heappush(heap_sorted_paths, (length, path, 0)) # heap push operation
         heap_paths.add(hash_path) # adding the path to the heap_paths set
 
         while heap_paths:
-            (cost, path1) = heappop(heap_sorted_paths) # extracting the next best path from the heap
+            (cost, path1, dev_idx) = heappop(heap_sorted_paths) # extracting the next best path from the heap
             hash_path = tuple(path1)
             heap_paths.remove(hash_path)
             yield path1
             listA.append(path1)
             prev_path = path1
-
             exclude_vertices = set()
             exclude_edges = set()
-            for i in range(1, len(prev_path)): # deviating from the previous path to find the candidate paths
+            for i in range(dev_idx):
+                exclude_vertices.add(prev_path[i])
+            for i in range(dev_idx + 1, len(prev_path)): # deviating from the previous path to find the candidate paths
                 root = prev_path[:i] # root part of the previous path
                 root_length = length_func(root)
                 for path in listA:
@@ -16141,7 +16142,7 @@ class GenericGraph(GenericGraph_pyx):
                     # push operation
                     hash_path = tuple(path)
                     if hash_path not in heap_paths: # if this path is not already present inside the heap
-                        heappush(heap_sorted_paths, (root_length + length, path))
+                        heappush(heap_sorted_paths, (root_length + length, path, len(root) - 1))
                         heap_paths.add(hash_path)
                 except Exception:
                     pass

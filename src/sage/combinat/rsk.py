@@ -333,6 +333,9 @@ class Rule(UniqueRepresentation):
         return self._backward_formatOutput(lower_row, upper_row, output, p.is_standard(), q.is_standard())
 
     def _forward_formatOutput(self, p=None, q=None, check_standard=False):
+        r"""
+        Return final output as per additional parameters for forward rule.
+        """
         from sage.combinat.tableau import SemistandardTableau, StandardTableau
 
         if check_standard:
@@ -348,6 +351,9 @@ class Rule(UniqueRepresentation):
         return [SemistandardTableau(p), SemistandardTableau(q)]
     
     def _backward_formatOutput(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
+        r"""
+        Return final output as per additional parameters for backward rule.
+        """
         if q_is_standard:
             if output == 'word':
                 from sage.combinat.words.word import Word
@@ -368,9 +374,15 @@ class Rule(UniqueRepresentation):
             raise ValueError("invalid output option")
 
     def _forward_verify_input(self, obj1, obj2):
+        r"""
+        Return exception for invalid input in forward rule.
+        """
         pass
     
     def _backward_verify_input(self, p, q):
+        r"""
+        Return exception for invalid input in backward rule.
+        """
         from sage.combinat.tableau import SemistandardTableaux
 
         if p not in SemistandardTableaux():
@@ -442,6 +454,9 @@ class RuleRSK(Rule):
             rev_word.append(x)
 
     def _backward_formatOutput(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
+        r"""
+        Return final output as per additional parameters for backward rule.
+        """
         if q_is_standard and output == 'permutation':
             if not p_is_standard:
                 raise TypeError("p must be standard to have a valid permutation as output")
@@ -553,6 +568,9 @@ class RuleEG(Rule):
             rev_word.append(x)
 
     def _backward_formatOutput(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
+        r"""
+        Return final output as per additional parameters for backward rule.
+        """
         if q_is_standard and output == 'permutation':
             n = 0
             if list(lower_row):
@@ -736,7 +754,9 @@ class RuleHecke(Rule):
         rev_word.append(x)
 
     def _backward_formatOutput(self, lower_row=None, upper_row=None, output='array'):
-        
+        r"""
+        Return final output as per additional parameters for backward rule.
+        """
         if output == 'array':
             return [list(reversed(upper_row)), list(reversed(lower_row))]
         is_standard = (upper_row == list(range(len(upper_row), 0, -1)))
@@ -753,7 +773,7 @@ class RuleHecke(Rule):
 
 class RuleDualRSK(Rule):
     r"""
-    A rule modeling the dual RSK insertion algorithm
+    A rule modeling the dual RSK insertion algorithm.
     """
     def to_pair(self, obj1=None, obj2=None):
         if obj2 is None:
@@ -776,6 +796,9 @@ class RuleDualRSK(Rule):
         return super(RuleDualRSK, self).to_pair(obj1, obj2)
         
     def insertion(self, i, j, p, q):
+        r"""
+        Inserts the letter ``(i,j)`` from the bi-word to the current tableaux ``p`` and ``q``.
+        """
         from bisect import bisect_left
         for r, qr in zip(p,q):
             if r[-1] >= j:
@@ -817,6 +840,9 @@ class RuleDualRSK(Rule):
             rev_word.append(x)
 
     def _backward_formatOutput(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
+        r"""
+        Return final output as per additional parameters for backward rule.
+        """
         if q_is_standard and output == 'permutation':
             if not p_is_standard:
                 raise TypeError("p must be standard to have a valid permutation as output")
@@ -826,6 +852,9 @@ class RuleDualRSK(Rule):
             return super(RuleDualRSK, self)._backward_formatOutput(lower_row, upper_row, output, p_is_standard, q_is_standard)
 
     def _forward_formatOutput(self, p=None, q=None, check_standard=False):
+        r"""
+        Return final output as per additional parameters for forward rule.
+        """
         from sage.combinat.tableau import Tableau, StandardTableau
 
         if check_standard:
@@ -841,6 +870,9 @@ class RuleDualRSK(Rule):
         return [Tableau(p), Tableau(q)]
 
     def _backward_verify_input(self, p, q):
+        r"""
+        Return exception for invalid input in backward rule.
+        """
         from sage.combinat.tableau import SemistandardTableaux
 
         if q not in SemistandardTableaux() and not q.is_standard():

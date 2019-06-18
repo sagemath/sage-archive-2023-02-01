@@ -2,7 +2,7 @@ SAGE_SPKG_CONFIGURE([libgd], [
     AC_REQUIRE([SAGE_SPKG_CONFIGURE_LIBPNG])
     AC_REQUIRE([SAGE_SPKG_CONFIGURE_FREETYPE])
     AC_MSG_CHECKING([Installing freetype? ])
-    if test x$sage_spkg_install_freetype= xyes; then
+    if test x$sage_spkg_install_freetype = xyes; then
       AC_MSG_RESULT([Yes. Install libgd as well.])
       sage_spkg_install_libgd=yes
     else

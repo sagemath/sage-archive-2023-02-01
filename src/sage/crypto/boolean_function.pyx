@@ -929,6 +929,15 @@ cdef class BooleanFunction(SageObject):
             sage: B = BooleanFunction("7969817CC5893BA6AC326E47619F5AD0")
             sage: B.absolute_indicator()
             32
+
+        The old method's name contained a typo, it is deprecated::
+
+            sage: B.absolut_indicator()
+            doctest:warning
+            ...
+            DeprecationWarning: absolut_indicator is deprecated. Please use absolute_indicator instead.
+            See https://trac.sagemath.org/28001 for details.
+            32
         """
         if self._absolute_indicator is None:
             D = self.autocorrelation()

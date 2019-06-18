@@ -27,6 +27,7 @@ from cpython.list cimport *
 from sage.libs.gmp.mpz cimport *
 from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
 from sage.rings.padics.misc import trim_zeros
+from sage.misc.latex import latex_variable_name
 
 import sys
 
@@ -416,14 +417,26 @@ cdef class pAdicPrinter_class(SageObject):
             self.ram_name = ring._uniformizer_print()
         else:
             self.ram_name = ram_name
+        if self.ram_name is None:
+            self.latex_ram_name = None
+        else:
+            self.latex_ram_name = latex_variable_name(self.ram_name)
         if unram_name is None:
             self.unram_name = ring._unram_print()
         else:
             self.unram_name = unram_name
+        if self.unram_name is None:
+            self.latex_unram_name = None
+        else:
+            self.latex_unram_name = latex_variable_name(self.unram_name)
         if var_name is None:
             self.var_name = ring.variable_name()
         else:
             self.var_name = var_name
+        if self.var_name is None:
+            self.latex_var_name = None
+        else:
+            self.latex_var_name = latex_variable_name(self.var_name)
         if sep is None:
             self.sep = _printer_defaults._sep
         else:
@@ -867,9 +880,14 @@ cdef class pAdicPrinter_class(SageObject):
         else:
             _pos = pos
         if ram_name is None:
-            pprint = self.ram_name
+            if do_latex:
+                pprint = self.latex_ram_name
+            else:
+                pprint = self.ram_name
         else:
             pprint = str(ram_name)
+            if do_latex:
+                pprint = latex_variable_name(pprint)
         return self._repr_gen(elt, do_latex, _pos, _mode, pprint)
 
     cdef _repr_gen(self, pAdicGenericElement elt, bint do_latex, bint pos, int mode, ram_name):
@@ -1046,6 +1064,7 @@ cdef class pAdicPrinter_class(SageObject):
         #cdef bint ellipsis = 0
         cdef ellipsis_unram
         cdef bint integral
+        var_name = self.latex_var_name if do_latex else self.var_name
         if self.base:
             if mode == terse:
                 v = elt.valuation()
@@ -1114,16 +1133,16 @@ cdef class pAdicPrinter_class(SageObject):
                             else:
                                 s = '-'
                             if a[1:] == '1':
-                                s += self._var(self.var_name, i, do_latex)
+                                s += self._var(var_name, i, do_latex)
                             else:
-                                s += a[1:] + self._dot_var(self.var_name, i, do_latex)
+                                s += a[1:] + self._dot_var(var_name, i, do_latex)
                         else:
                             if s:
                                 s += ' + '
                             if a == '1':
-                                s += self._var(self.var_name, i, do_latex)
+                                s += self._var(var_name, i, do_latex)
                             else:
-                                s += a + self._dot_var(self.var_name, i, do_latex)
+                                s += a + self._dot_var(var_name, i, do_latex)
                     if ellipsis:
                         s += self._plus_ellipsis(do_latex)
                     if paren and ' ' in s:
@@ -1172,17 +1191,17 @@ cdef class pAdicPrinter_class(SageObject):
                                     arep = self._terse_frac(a, v, u, ram_name, do_latex)
                                 if s == "":
                                     s = "-%s"%(arep)
-                                    s += self._dot_var(self.var_name, i, do_latex)
+                                    s += self._dot_var(var_name, i, do_latex)
                                 elif a == 1:
                                     s += " - "
-                                    s += self._var(self.var_name, i, do_latex)
+                                    s += self._var(var_name, i, do_latex)
                                 else:
                                     s += " - %s"%(arep)
-                                    s += self._dot_var(self.var_name, i, do_latex)
+                                    s += self._dot_var(var_name, i, do_latex)
                             elif a == pk:
                                 if s != "":
                                     s += " + "
-                                s += self._var(self.var_name, i, do_latex)
+                                s += self._var(var_name, i, do_latex)
                             else:
                                 a = a / pk
                                 v, u = a.val_unit(self.prime_pow.prime)
@@ -1191,7 +1210,7 @@ cdef class pAdicPrinter_class(SageObject):
                                     s = "%s"%arep
                                 else:
                                     s += " + %s"%arep
-                                s += self._dot_var(self.var_name, i, do_latex)
+                                s += self._dot_var(var_name, i, do_latex)
                     if ellipsis:
                         s += self._plus_ellipsis(do_latex)
             else: # series
@@ -1208,7 +1227,8 @@ cdef class pAdicPrinter_class(SageObject):
                         raise RuntimeError("need to have specified a name for the unramified variable")
                     L, ellipsis = self._truncate_list(L, self.max_ram_terms, [])
                     for i from 0 <= i < len(L):
-                        term = self._print_unram_term(L[i], do_latex, self.unram_name, self.max_unram_terms, 0, 0)
+                        unram_name = self.latex_unram_name if do_latex else self.unram_name
+                        term = self._print_unram_term(L[i], do_latex, unram_name, self.max_unram_terms, 0, 0)
                         if len(term) > 0:
                             exp = i + val
                             if (not do_latex and term.find(" ") != -1) or (do_latex and (term.find(" + ") != -1 or term.find(" - ") != -1)):

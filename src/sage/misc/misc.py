@@ -35,7 +35,7 @@ Check the fix from :trac:`8323`::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import range
@@ -61,7 +61,7 @@ LOCAL_IDENTIFIER = '%s.%s' % (HOSTNAME, os.getpid())
 #################################################################
 
 
-def sage_makedirs(dir):
+def sage_makedirs(dirname):
     """
     Python version of ``mkdir -p``: try to create a directory, and also
     create all intermediate directories as necessary.  Succeed silently
@@ -74,18 +74,18 @@ def sage_makedirs(dir):
         sage: sage_makedirs(DOT_SAGE) # no output
 
     The following fails because we are trying to create a directory in
-    place of an ordinary file (the main Sage executable)::
+    place of an ordinary file::
 
-        sage: sage_executable = os.path.join(SAGE_ROOT, 'sage')
-        sage: sage_makedirs(sage_executable)
+        sage: filename = tmp_filename()
+        sage: sage_makedirs(filename)
         Traceback (most recent call last):
         ...
-        OSError: ...
+        OSError: [Errno ...] File exists: ...
     """
     try:
-        os.makedirs(dir)
+        os.makedirs(dirname)
     except OSError:
-        if not os.path.isdir(dir):
+        if not os.path.isdir(dirname):
             raise
 
 
@@ -115,6 +115,7 @@ if hasattr(os, 'chmod'):
         if os.stat(DOT_SAGE)[stat.ST_MODE] == _desired_mode:
             print("Setting permissions of DOT_SAGE directory so only you "
                   "can read and write it.")
+
 
 def try_read(obj, splitlines=False):
     r"""
@@ -215,10 +216,10 @@ def try_read(obj, splitlines=False):
     return data
 
 
-
 #################################################
 # Next we create the Sage temporary directory.
 #################################################
+
 
 @lazy_string
 def SAGE_TMP():
@@ -598,7 +599,7 @@ def set_verbose(level, files='all'):
 
     INPUT:
 
-    - ``level`` - an integer between 0 and 2, inclusive.
+    - ``level`` -- an integer between 0 and 2, inclusive.
 
     - ``files`` (default: 'all'): list of files to make verbose, or
        'all' to make ALL files verbose (the default).
@@ -617,6 +618,8 @@ def set_verbose(level, files='all'):
         [no output]
         sage: set_verbose(0)
     """
+    if level is None:
+        level = -1
     if isinstance(level, str):
         set_verbose_files([level])
     global LEVEL
@@ -674,19 +677,6 @@ def get_verbose():
     return LEVEL
 
 
-def cmp_props(left, right, props):
-    from sage.misc.superseded import deprecation
-    deprecation(23149, "cmp_props is deprecated")
-    for a in props:
-        lx = left.__getattribute__(a)()
-        rx = right.__getattribute__(a)()
-        if lx < rx:
-            return -1
-        elif lx > rx:
-            return 1
-    return 0
-
-
 def union(x, y=None):
     """
     Return the union of x and y, as a list. The resulting list need not
@@ -725,14 +715,83 @@ def uniq(x):
 
     EXAMPLES::
 
-        sage: v = uniq([1,1,8,-5,3,-5,'a','x','a'])
-        sage: v            # potentially random ordering of output
-        ['a', 'x', -5, 1, 3, 8]
-        sage: set(v) == set(['a', 'x', -5, 1, 3, 8])
+        sage: uniq([1, 1, 8, -5, 3, -5, -13, 13, -13])
+        doctest:...: DeprecationWarning: the output of uniq(X) being sorted is deprecated; use sorted(set(X)) instead if you want sorted output
+        See https://trac.sagemath.org/27014 for details.
+        [-13, -5, 1, 3, 8, 13]
+    """
+    # After deprecation period, rename _stable_uniq -> uniq
+    from sage.misc.superseded import deprecation
+    deprecation(27014, "the output of uniq(X) being sorted is deprecated; use sorted(set(X)) instead if you want sorted output")
+    return sorted(set(x))
+
+
+def _stable_uniq(L):
+    """
+    Iterate over the elements of ``L``, yielding every element at most
+    once: keep only the first occurance of any item.
+
+    The items must be hashable.
+
+    INPUT:
+
+    - ``L`` -- iterable
+
+    EXAMPLES::
+
+        sage: from sage.misc.misc import _stable_uniq
+        sage: L = [1, 1, 8, -5, 3, -5, 'a', 'x', 'a']
+        sage: it = _stable_uniq(L)
+        sage: it
+        <generator object _stable_uniq at ...>
+        sage: list(it)
+        [1, 8, -5, 3, 'a', 'x']
+    """
+    seen = set()
+    for x in L:
+        if x in seen:
+            continue
+        yield x
+        seen.add(x)
+
+
+def exactly_one_is_true(iterable):
+    r"""
+    Return whether exactly one element of ``iterable`` evaluates ``True``.
+
+    INPUT:
+
+    - ``iterable`` -- an iterable object
+
+    OUTPUT:
+
+    A boolean.
+
+    .. NOTE::
+
+        The implementation is suggested by
+        `stackoverflow entry <https://stackoverflow.com/a/16801605/1052778>`_.
+
+    EXAMPLES::
+
+        sage: from sage.misc.misc import exactly_one_is_true
+        sage: exactly_one_is_true([])
+        False
+        sage: exactly_one_is_true([True])
+        True
+        sage: exactly_one_is_true([False])
+        False
+        sage: exactly_one_is_true([True, True])
+        False
+        sage: exactly_one_is_true([False, True])
+        True
+        sage: exactly_one_is_true([True, False, True])
+        False
+        sage: exactly_one_is_true([False, True, False])
         True
     """
-    v = sorted(set(x))
-    return v
+    it = iter(iterable)
+    return any(it) and not any(it)
 
 
 def coeff_repr(c, is_latex=False):
@@ -864,7 +923,7 @@ def repr_lincomb(terms, is_latex=False, scalar_mult="*", strip_one=False,
             try:
                 if c < 0:
                     negative = True
-            except NotImplementedError:
+            except (NotImplementedError, TypeError):
                 # comparisons may not be implemented for some coefficients
                 pass
             if negative:
@@ -1251,7 +1310,7 @@ def some_tuples(elements, repeat, bound, max_samples=None):
     if max_samples is None:
         from itertools import islice, product
         P = elements if repeat is None else product(elements, repeat=repeat)
-        return islice(P, bound)
+        return islice(P, int(bound))
     else:
         if not (hasattr(elements, '__len__') and hasattr(elements, '__getitem__')):
             elements = list(elements)
@@ -1340,7 +1399,7 @@ def powerset(X):
     pairs = []
     for x in X:
         pairs.append((2**len(pairs), x))
-        for w in range(2**(len(pairs)-1), 2**(len(pairs))):
+        for w in range(2**(len(pairs) - 1), 2**(len(pairs))):
             yield [x for m, x in pairs if m & w]
 
 
@@ -1561,7 +1620,7 @@ class AttrCallObject(object):
             sage: series(sin(x), 4)
             1*x + (-1/6)*x^3 + Order(x^4)
         """
-        return getattr(x, self.name)(*(self.args+args), **self.kwds)
+        return getattr(x, self.name)(*(self.args + args), **self.kwds)
 
     def __repr__(self):
         """
@@ -1650,7 +1709,7 @@ class AttrCallObject(object):
         unique representation of parents taking ``attrcall`` objects
         as input; see :trac:`8911`.
         """
-        return hash((self.args, tuple(self.kwds.items())))
+        return hash((self.args, tuple(sorted(self.kwds.items()))))
 
 
 def attrcall(name, *args, **kwds):
@@ -1722,8 +1781,8 @@ def is_in_string(line, pos):
         # which is the case if the previous character isn't
         # a backslash, or it is but both previous characters
         # are backslashes.
-        if line[i-1:i] != '\\' or line[i-2:i] == '\\\\':
-            if line[i:i+3] in ['"""', "'''"]:
+        if line[i - 1: i] != '\\' or line[i - 2: i] == '\\\\':
+            if line[i: i + 3] in ['"""', "'''"]:
                 if not in_quote():
                     in_triple_quote = True
                 elif in_triple_quote:

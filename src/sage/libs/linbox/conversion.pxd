@@ -24,20 +24,62 @@ in the module ``linbox_flint_interface``.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from .givaro cimport Modular_int64
-from .linbox cimport SparseMatrix_Modular_int64
+
+from libcpp.vector cimport vector as cppvector
+
+from sage.libs.gmp.mpz cimport mpz_set
+
+from .givaro cimport Modular_uint64, ZRing, Integer
+from .linbox cimport SparseMatrix_Modular_uint64, SparseMatrix_integer, DenseVector_integer
 
 from sage.matrix.matrix_modn_sparse cimport Matrix_modn_sparse
+from sage.matrix.matrix_integer_sparse cimport Matrix_integer_sparse
 
 from sage.modules.vector_modn_sparse cimport c_vector_modint
+from sage.modules.vector_integer_dense cimport Vector_integer_dense
+from sage.modules.vector_integer_sparse cimport mpz_vector,  mpz_vector_get_entry, mpz_vector_set_entry
+
+########################################
+# algorithm for solving linear systems #
+########################################
+
+ctypedef enum linbox_specifier:
+    METHOD_DEFAULT              # no specification
+    METHOD_BLAS_ELIMINATION     # BlasElimination
+    METHOD_SPARSE_ELIMINATION   # SparseElimination
+    METHOD_BLACKBOX             # Blackbox
+    METHOD_WIEDEMANN            # Wiedeman
+    ERROR
+
+cdef inline linbox_specifier get_method(str algo) except ERROR:
+    if algo is None or algo == "default":
+        return METHOD_DEFAULT
+    elif algo == "blas_elimination" or \
+         algo == "linbox_blas_elimination" or \
+         algo == "LinBox::BlasElimination":
+        return METHOD_BLAS_ELIMINATION
+    elif algo == "sparse_elimination" or \
+         algo == "linbox_sparse_elimination" or \
+         algo == "LinBox::SparseElimination":
+        return METHOD_SPARSE_ELIMINATION
+    elif algo == "blackbox" or \
+         algo == "linbox_blackbox" or \
+         algo == "LinBox::Blackbox":
+        return METHOD_BLACKBOX
+    elif algo == 'wiedemann' or \
+         algo == "linbox_wiedemann" or \
+         algo == "LinBox::Wiedeman":
+        return METHOD_WIEDEMANN
+    else:
+        raise ValueError("unknown algorithm")
 
 ################################################
 # matrix_modn_sparse (sparse matrix over Z/nZ) #
 ################################################
 
-cdef inline void set_linbox_matrix_modn_sparse(SparseMatrix_Modular_int64& A, Matrix_modn_sparse m):
+cdef inline void set_linbox_matrix_modn_sparse(SparseMatrix_Modular_uint64& A, Matrix_modn_sparse m):
     r"""
-    set the entries of a LinBox matrix from a Sage matrix.
+    Set the entries of a LinBox matrix from a Sage matrix.
 
     INPUT:
 
@@ -46,12 +88,12 @@ cdef inline void set_linbox_matrix_modn_sparse(SparseMatrix_Modular_int64& A, Ma
     """
     cdef c_vector_modint * row
     cdef size_t i, j
-    for i in range(m._nrows):
+    for i in range(<size_t> m._nrows):
         row = m.rows + i
-        for j in range(row.num_nonzero):
+        for j in range(<size_t> row.num_nonzero):
             A.setEntry(i, row.positions[j], row.entries[j])
 
-cdef inline SparseMatrix_Modular_int64 * new_linbox_matrix_modn_sparse(Modular_int64 &F, Matrix_modn_sparse m):
+cdef inline SparseMatrix_Modular_uint64 * new_linbox_matrix_modn_sparse(Modular_uint64 &F, Matrix_modn_sparse m):
     r"""
     Return a new LinBox matrix from a Sage matrix.
 
@@ -62,8 +104,82 @@ cdef inline SparseMatrix_Modular_int64 * new_linbox_matrix_modn_sparse(Modular_i
     - F -- LinBox field
     - m -- Sage matrix
     """
-    cdef SparseMatrix_Modular_int64 * A = new SparseMatrix_Modular_int64(F, m._nrows, m._ncols)
+    cdef SparseMatrix_Modular_uint64 * A = new SparseMatrix_Modular_uint64(F, <size_t> m._nrows, <size_t> m._ncols)
     set_linbox_matrix_modn_sparse(A[0], m)
     return A
 
+#########################
+# matrix_integer_sparse #
+#########################
 
+cdef inline void set_linbox_matrix_integer_sparse(SparseMatrix_integer& A, Matrix_integer_sparse m):
+    r"""
+    Set the entries of a LinBox matrix from a Sage matrix.
+
+    INPUT:
+
+    - A -- LinBox matrix
+    - m -- Sage matrix
+    """
+    cdef size_t i, j, k
+    cdef mpz_vector * v
+    cdef Integer t
+    for i in range(<size_t> m._nrows):
+        v = m._matrix + i
+        for k in range(<size_t> v.num_nonzero):
+            j = v.positions[k]
+            mpz_set(t.get_mpz(), v.entries[k])
+            A.setEntry(i, j, t)
+
+cdef inline SparseMatrix_integer * new_linbox_matrix_integer_sparse(ZRing &ZZ, Matrix_integer_sparse m):
+    r"""
+    Return a new LinBox matrix from a Sage matrix.
+
+    Suc matrix has to be deallocated with a "del" statement.
+
+    INPUT:
+
+    - m -- Sage matrix
+    """
+    cdef SparseMatrix_integer * A = new SparseMatrix_integer(ZZ, <size_t> m._nrows, <size_t> m._ncols)
+    set_linbox_matrix_integer_sparse(A[0], m)
+    return A
+
+########################
+# vector integer dense #
+########################
+
+cdef inline DenseVector_integer * new_linbox_vector_integer_dense(ZRing &ZZ, Vector_integer_dense v):
+    r"""
+    Return a new linbox vector from a sage one.
+
+    INPUT:
+
+    - v -- a Sage dense integer vector
+    """
+    cdef cppvector[Integer] * vec = new cppvector[Integer](<size_t> v._degree)
+    cdef size_t i
+    for i in range(<size_t> v._degree):
+        mpz_set(vec[0][i].get_mpz(), v._entries[i])
+
+    cdef DenseVector_integer * V = new DenseVector_integer(ZZ, vec[0])
+    del vec
+
+    return V
+
+cdef inline Vector_integer_dense new_sage_vector_integer_dense(P, DenseVector_integer &v):
+    r"""
+    Return a new Sage vector from a LinBox one.
+
+    INPUT:
+
+    - P -- parent for the Sage vector
+    - v -- linbox vector
+    """
+    cdef Vector_integer_dense res = P()
+    cdef cppvector[Integer] * vec = &v.refRep()
+    cdef size_t i
+    for i in range(<size_t> res._degree):
+        mpz_set(res._entries[i], vec[0][i].get_mpz_const())
+
+    return res

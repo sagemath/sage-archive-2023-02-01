@@ -116,7 +116,7 @@ from cpython.object cimport Py_EQ, Py_NE
 from sage.structure.richcmp cimport rich_to_bool
 from sage.matroids.matroid cimport Matroid
 from sage.matroids.basis_exchange_matroid cimport BasisExchangeMatroid
-from .lean_matrix cimport LeanMatrix, GenericMatrix, BinaryMatrix, TernaryMatrix, QuaternaryMatrix, IntegerMatrix, generic_identity
+from .lean_matrix cimport LeanMatrix, GenericMatrix, BinaryMatrix, TernaryMatrix, QuaternaryMatrix, PlusMinusOneMatrix, generic_identity
 from .set_system cimport SetSystem
 from .utilities import newlabel, spanning_stars, spanning_forest, lift_cross_ratios
 from sage.graphs.spanning_tree import kruskal
@@ -564,6 +564,19 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             [1 1 1 0]
             [1 0 1 1]
             [1 1 0 1]
+
+            sage: from sage.matroids.advanced import lift_cross_ratios, lift_map, LinearMatroid
+            sage: R = GF(7)
+            sage: A = Matrix(R, [[1, 0, 6, 1, 2],[6, 1, 0, 0, 1],[0, 6, 3, 6, 0]])
+            sage: M = LinearMatroid(reduced_matrix = A)
+            sage: M.representation(lift_map=lift_map('sru')) # py2
+            [     1      0      0      1      0      1      1      1]
+            [     0      1      0 -z + 1      1      0      0      1]
+            [     0      0      1      0     -1      1 -z + 1      0]
+            sage: M.representation(lift_map=lift_map('sru')) # py3
+            [     1      0      0      1      0      1      1      1]
+            [     0      1      0 -z + 1      1      0      0      1]
+            [     0      0      1      0     -z      z      1      0]
         """
         cdef LeanMatrix A
         if order is None:
@@ -2751,18 +2764,16 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         n = len(X)
         m = len(Y)
 
-        sol=False
+        sol = False
         T = spanning_stars(M)
 
-        for (x1,y1) in T:
+        for (x1, y1) in T:
             # The whiting out
             B = copy(M)
-            for (x,y) in product(range(n),range(m)):
-                if (x1!=x and y1!=y):
-                    if(M[x1,y]!=0 and
-                       M[x,y1]!=0 and
-                       M[x,y]!=0):
-                        B[x,y]=0
+            for (x, y) in product(range(n), range(m)):
+                if (x1 != x and y1 != y):
+                    if (M[x1, y] != 0 and M[x, y1] != 0 and M[x, y] != 0):
+                        B[x, y] = 0
 
             # remove row x1 and y1
             Xp = list(xrange(n))
@@ -2784,7 +2795,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
                 Q_rows = []
                 Q_cols = []
                 # make sure the matrix has rank 2
-                if(M.matrix_from_rows_and_columns(P_rows,P_cols).rank()==2):
+                if M.matrix_from_rows_and_columns(P_rows,P_cols).rank() == 2:
                     sol,cert_pair = M2.shifting_all(P_rows, P_cols, Q_rows, Q_cols, 3)
                     if sol:
                         break
@@ -5692,25 +5703,25 @@ cdef class RegularMatroid(LinearMatroid):
 
         Return the displayed basis.
         """
-        cdef IntegerMatrix A
+        cdef PlusMinusOneMatrix A
         cdef long r, c
         cdef list P
         if matrix is not None:
             reduced = False
-            if not isinstance(matrix, IntegerMatrix):
-                A = IntegerMatrix(matrix.nrows(), matrix.ncols(), M=matrix)
+            if not isinstance(matrix, PlusMinusOneMatrix):
+                A = PlusMinusOneMatrix(matrix.nrows(), matrix.ncols(), M=matrix)
             else:
-                A = (<IntegerMatrix>matrix).copy()   # Deprecated Sage matrix operation
+                A = (<PlusMinusOneMatrix>matrix).copy()   # Deprecated Sage matrix operation
             if keep_initial_representation:
                 self._representation = A.copy()   # Deprecated Sage matrix operation
             P = gauss_jordan_reduce(A, xrange(A.ncols()))
             self._A = A.matrix_from_rows_and_columns(range(len(P)), [c for c in xrange(matrix.ncols()) if not c in P])
         else:
             reduced = True
-            if not isinstance(reduced_matrix, IntegerMatrix):
-                self._A = IntegerMatrix(reduced_matrix.nrows(), reduced_matrix.ncols(), M=reduced_matrix)
+            if not isinstance(reduced_matrix, PlusMinusOneMatrix):
+                self._A = PlusMinusOneMatrix(reduced_matrix.nrows(), reduced_matrix.ncols(), M=reduced_matrix)
             else:
-                self._A = (<IntegerMatrix>reduced_matrix).copy()   # Deprecated Sage matrix operation
+                self._A = (<PlusMinusOneMatrix>reduced_matrix).copy()   # Deprecated Sage matrix operation
             P = list(xrange(self._A.nrows()))
         self._prow = <long* > sig_malloc((self._A.nrows() + self._A.ncols()) * sizeof(long))
         if matrix is not None:
@@ -5758,7 +5769,7 @@ cdef class RegularMatroid(LinearMatroid):
         r"""
         Check if ``self.basis() - x + y`` is again a basis. Internal method.
         """
-        return (<IntegerMatrix>self._A).is_nonzero(self._prow[x], self._prow[y])
+        return (<PlusMinusOneMatrix>self._A).is_nonzero(self._prow[x], self._prow[y])
 
     cdef int __exchange(self, long x, long y) except -1:
         """
@@ -5772,15 +5783,15 @@ cdef class RegularMatroid(LinearMatroid):
         cdef int a, piv, pivi
         px = self._prow[x]
         py = self._prow[y]
-        piv = (<IntegerMatrix>self._A).get(px, py)   # Not a Sage matrix operation
+        piv = (<PlusMinusOneMatrix>self._A).get(px, py)   # Not a Sage matrix operation
         pivi = piv  # NOTE: 1 and -1 are their own inverses.
-        (<IntegerMatrix>self._A).rescale_row_c(px, pivi, 0)
-        (<IntegerMatrix>self._A).set(px, py, pivi + 1)       # pivoting without column scaling. Add extra so column does not need adjusting   # Not a Sage matrix operation
+        (<PlusMinusOneMatrix>self._A).rescale_row_c(px, pivi, 0)
+        (<PlusMinusOneMatrix>self._A).set(px, py, pivi + 1)       # pivoting without column scaling. Add extra so column does not need adjusting   # Not a Sage matrix operation
         for r in xrange(self._A.nrows()):                 # if A and A' are the matrices before and after pivoting, then
-            a = (<IntegerMatrix>self._A).get(r, py)       # ker[I A] equals ker[I A'] except for the labelling of the columns   # Not a Sage matrix operation
+            a = (<PlusMinusOneMatrix>self._A).get(r, py)       # ker[I A] equals ker[I A'] except for the labelling of the columns   # Not a Sage matrix operation
             if a and r != px:
-                (<IntegerMatrix>self._A).add_multiple_of_row_c(r, px, -a, 0)
-        (<IntegerMatrix>self._A).set(px, py, pivi)   # Not a Sage matrix operation
+                (<PlusMinusOneMatrix>self._A).add_multiple_of_row_c(r, px, -a, 0)
+        (<PlusMinusOneMatrix>self._A).set(px, py, pivi)   # Not a Sage matrix operation
         self._prow[y] = px
         self._prow[x] = py
         BasisExchangeMatroid.__exchange(self, x, y)
@@ -5796,7 +5807,7 @@ cdef class RegularMatroid(LinearMatroid):
             advantage is that cross ratio tests will return rational numbers
             rather than unwarranted zeroes.
         """
-        return (<IntegerMatrix>self._A).get_unsafe(self._prow[x], self._prow[y])
+        return (<PlusMinusOneMatrix>self._A).get_unsafe(self._prow[x], self._prow[y])
 
     def _repr_(self):
         """
@@ -5869,7 +5880,7 @@ cdef class RegularMatroid(LinearMatroid):
         """
         if self._r_projection is None:
             R = self._basic_representation()._matrix_()
-            self._r_projection = R.transpose() * (R * R.transpose()).adjoint() * R
+            self._r_projection = R.transpose() * (R * R.transpose()).adjugate() * R
         return self._r_projection
 
     cpdef _invariant(self):

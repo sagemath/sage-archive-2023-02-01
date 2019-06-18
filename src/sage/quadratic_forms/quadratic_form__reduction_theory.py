@@ -225,7 +225,7 @@ def minkowski_reduction(self):
     from sage.quadratic_forms.quadratic_form import QuadraticForm
     from sage.quadratic_forms.quadratic_form import matrix
     if not self.is_positive_definite():
-        raise TypeError("Minkowksi reduction only works for positive definite forms")
+        raise TypeError("Minkowski reduction only works for positive definite forms")
     if self.dim() > 4:
         raise NotImplementedError("This algorithm is only for dimensions less than 5")
 

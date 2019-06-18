@@ -388,7 +388,7 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
 
             sage: W = CoxeterGroup(['B',3])
             sage: W.base_ring()
-            Number Field in a with defining polynomial x^2 - 2
+            Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095?
             sage: g = W.an_element()
             sage: ~g
             [-1  1  0]
@@ -399,7 +399,7 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
         cdef Matrix M = self._matrix
         # We have a special method for dense matrices over ZZ
         if M.base_ring() is ZZ and M.is_dense():
-            M = M._invert_unit()
+            M = M.inverse_of_unit()
         else:
             M = ~M
             if M.base_ring() is not parent.base_ring():

@@ -254,6 +254,7 @@ class Gp(ExtraTabCompletion, Expect):
         self._eval_line('default(help, "gphelp -detex");')
         # logfile disabled since Expect already logs
         self._eval_line('default(log,0);')
+        self._eval_line("default(nbthreads,1);")
         # set random seed
         self.set_seed(self._seed)
 
@@ -893,7 +894,7 @@ class GpElement(ExpectElement):
             sage: gp(I).sage()
             i
             sage: gp(I).sage().parent()
-            Number Field in i with defining polynomial x^2 + 1
+            Number Field in i with defining polynomial x^2 + 1 with i = 1*I
 
         ::
 

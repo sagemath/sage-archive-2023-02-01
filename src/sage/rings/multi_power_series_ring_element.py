@@ -148,13 +148,12 @@ AUTHORS:
 - Simon King (08/2012): Use category and coercion framework, :trac:`13412`
 
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010 Niles Johnson <nilesj@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from six import iteritems, integer_types
 
 from sage.structure.richcmp import richcmp
@@ -578,7 +577,7 @@ class MPowerSeries(PowerSeries):
             -t0^4*t1^3*t2^4 - 2*t0*t1^4*t2^7 + 2*t1*t2^12 + 2*t0^7*t1^5*t2^2
             + O(t0, t1, t2)^15
             sage: f._latex_()
-            '- t_{0}^{4} t_{1}^{3} t_{2}^{4} + 3 t_{0} t_{1}^{4} t_{2}^{7} +
+            '-t_{0}^{4} t_{1}^{3} t_{2}^{4} + 3 t_{0} t_{1}^{4} t_{2}^{7} +
             2 t_{1} t_{2}^{12} + 2 t_{0}^{7} t_{1}^{5} t_{2}^{2}
             + O(t_{0}, t_{1}, t_{2})^{15}'
 
@@ -1183,11 +1182,11 @@ class MPowerSeries(PowerSeries):
             sage: R.<a,b,c> = PowerSeriesRing(ZZ); R
             Multivariate Power Series Ring in a, b, c over Integer Ring
             sage: f = 1 + a + b - a*b - b*c - a*c + R.O(4)
-            sage: f.monomials()
-            [1, b*c, b, a, a*c, a*b]
+            sage: sorted(f.monomials())
+            [b*c, a*c, a*b, b, a, 1]
             sage: f = 1 + 2*a + 7*b - 2*a*b - 4*b*c - 13*a*c + R.O(4)
-            sage: f.monomials()
-            [1, b*c, b, a, a*c, a*b]
+            sage: sorted(f.monomials())
+            [b*c, a*c, a*b, b, a, 1]
             sage: f = R.zero()
             sage: f.monomials()
             []

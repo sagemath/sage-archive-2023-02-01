@@ -151,7 +151,7 @@ class OptimalSolver:
         self.child.sendline(self.format_cube(facets))
         self.child.expect(r"([LRUDBF'2 ]+)\s+\((\d+)q\*?, (\d+)f\*?\)")
         self.child.sendline(chr(3)) # send ctrl-c
-        return self.child.match.groups()[0].strip()
+        return bytes_to_str(self.child.match.groups()[0]).strip()
 
     def format_cube(self, facets):
         L = []

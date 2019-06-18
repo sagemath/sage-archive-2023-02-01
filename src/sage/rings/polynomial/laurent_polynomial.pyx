@@ -2,13 +2,13 @@ r"""
 Elements of Laurent polynomial rings
 """
 
-#*****************************************************************************
+# ****************************************************************************
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 
 from sage.rings.integer cimport Integer
@@ -560,9 +560,6 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             sage: hash(R.zero()) == hash(t - t)
             True
         """
-        if self.__n == 0:
-            return hash(self.__u)
-
         # we reimplement below the hash of polynomials to handle negative
         # degrees
         cdef long result = 0
@@ -573,10 +570,11 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             result_mon = hash(self.__u[i])
             if result_mon:
                 j = i + self.__n
-                result_mon = (1000003 * result_mon) ^ var_hash_name
                 if j > 0:
+                    result_mon = (1000003 * result_mon) ^ var_hash_name
                     result_mon = (1000003 * result_mon) ^ j
                 elif j < 0:
+                    result_mon = (1000003 * result_mon) ^ var_hash_name
                     result_mon = (700005 * result_mon) ^ j
                 result += result_mon
         return result
@@ -992,7 +990,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             x^-40 - 4*x^-29 + 6*x^-18 - 4*x^-7 + x^4
         """
         cdef LaurentPolynomial_univariate self = _self
-        cdef long right = long(r)
+        cdef long right = r
         if right != r:
             raise ValueError("exponent must be an integer")
         return self._parent.element_class(self._parent, self.__u**right, self.__n*right)
@@ -1905,7 +1903,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
         r"""
         TESTS:
 
-        Test that the hash is non-constant::
+        Test that the hash is non-constant (see also :trac:`27914`)::
 
             sage: L.<w,z> = LaurentPolynomialRing(QQ)
             sage: len({hash(w^i*z^j) for i in [-2..2] for j in [-2..2]})
@@ -1941,6 +1939,18 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             True
             sage: hash(1 - 7*x0 + x1*x2) == hash(L(1 - 7*x0 + x1*x2))
             True
+
+        Check that :trac:`27914` is fixed::
+
+            sage: L.<w,z> = LaurentPolynomialRing(QQ)
+            sage: Lw = LaurentPolynomialRing(QQ, 'w')
+            sage: Lz = LaurentPolynomialRing(QQ, 'z')
+            sage: all(hash(w^k) == hash(Lw(w^k))
+            ....:     and hash(z^k) == hash(Lz(z^k)) for k in (-5..5))
+            True
+            sage: p = w^-1 + 2 + w
+            sage: hash(p) == hash(Lw(p))
+            True
         """
         # we reimplement the hash from multipolynomial to handle negative exponents
         # (see multi_polynomial.pyx)
@@ -1955,10 +1965,12 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             if c_hash != 0:
                 for p in range(n):
                     exponent = m[p] + self._mon[p]
-                    if not exponent:
-                        continue
-                    c_hash = (1000003 * c_hash) ^ var_name_hash[p]
-                    c_hash = (1000003 * c_hash) ^ exponent
+                    if exponent > 0:
+                        c_hash = (1000003 * c_hash) ^ var_name_hash[p]
+                        c_hash = (1000003 * c_hash) ^ exponent
+                    elif exponent < 0:
+                        c_hash = (1000003 * c_hash) ^ var_name_hash[p]
+                        c_hash = (700005 * c_hash) ^ exponent
                 result += c_hash
 
         return result
@@ -2253,8 +2265,8 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
             sage: P.<x,y> = LaurentPolynomialRing(QQ)
             sage: f = (y^2 - x^9 - 7*x*y^3 + 5*x*y)*x^-3
-            sage: list(f) # indirect doctest
-            [(-1, x^6), (1, x^-3*y^2), (5, x^-2*y), (-7, x^-2*y^3)]
+            sage: sorted(f) # indirect doctest
+            [(-7, x^-2*y^3), (-1, x^6), (1, x^-3*y^2), (5, x^-2*y)]
         """
         if self._prod is None:
             self._compute_polydict()
@@ -2276,8 +2288,8 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
             sage: P.<x,y> = LaurentPolynomialRing(QQ)
             sage: f = (y^2 - x^9 - 7*x*y^3 + 5*x*y)*x^-3
-            sage: f.monomials()
-            [x^6, x^-3*y^2, x^-2*y, x^-2*y^3]
+            sage: sorted(f.monomials())
+            [x^-3*y^2, x^-2*y, x^-2*y^3, x^6]
         """
         cdef list L = []
         if self._prod is None:
@@ -2754,6 +2766,10 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
     cpdef _richcmp_(self, right, int op):
         """
+        Compare two polynomials in a `LaurentPolynomialRing` based on the term
+        order from the parent ring.  If the parent ring does not specify a term
+        order then only comparison by equality is supported.
+
         EXAMPLES::
 
             sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
@@ -2770,7 +2786,14 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             self._compute_polydict()
         if (<LaurentPolynomial_mpair> right)._prod is None:
             (<LaurentPolynomial_mpair> right)._compute_polydict()
-        return richcmp(self._prod, (<LaurentPolynomial_mpair>right)._prod, op)
+
+        try:
+            sortkey = self.parent().term_order().sortkey
+        except AttributeError:
+            sortkey = None
+
+        return self._prod.rich_compare((<LaurentPolynomial_mpair>right)._prod,
+                                       op, sortkey)
 
     def exponents(self):
         """

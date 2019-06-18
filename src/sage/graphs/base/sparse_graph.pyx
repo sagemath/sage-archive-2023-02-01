@@ -55,7 +55,7 @@ You can begin working with unlabeled arcs right away as follows::
     sage: S.all_arcs(7,3)
     Traceback (most recent call last):
     ...
-    LookupError: Vertex (7) is not a vertex of the graph.
+    LookupError: vertex (7) is not a vertex of the graph
 
 Sparse graphs support multiple edges and labeled edges, but requires that the
 labels be positive integers (the case label = 0 is treated as no label).
@@ -354,7 +354,7 @@ cdef class SparseGraph(CGraph):
             sage: S.add_vertex(40)
             Traceback (most recent call last):
             ...
-            RuntimeError: Requested vertex is past twice the allocated range: use realloc.
+            RuntimeError: requested vertex is past twice the allocated range: use realloc
             sage: S.realloc(50)
             sage: S.add_vertex(40)
             40
@@ -456,7 +456,7 @@ cdef class SparseGraph(CGraph):
             sage: G.add_arc(4,7)
             Traceback (most recent call last):
             ...
-            LookupError: Vertex (7) is not a vertex of the graph.
+            LookupError: vertex (7) is not a vertex of the graph
             sage: G.has_arc(1,0)
             False
             sage: G.has_arc(0,1)
@@ -989,7 +989,7 @@ cdef class SparseGraph(CGraph):
             sage: G.add_arc_label(4,7)
             Traceback (most recent call last):
             ...
-            LookupError: Vertex (7) is not a vertex of the graph.
+            LookupError: vertex (7) is not a vertex of the graph
             sage: G.has_arc(1,0)
             False
             sage: G.has_arc(0,1)
@@ -1374,7 +1374,7 @@ cdef class SparseGraphBackend(CGraphBackend):
     something like the following example, which creates a Sage Graph instance
     which wraps a SparseGraph object::
 
-        sage: G = Graph(30, implementation="c_graph", sparse=True)
+        sage: G = Graph(30, sparse=True)
         sage: G.add_edges([(0,1), (0,3), (4,5), (9, 23)])
         sage: G.edges(labels=False)
         [(0, 1), (0, 3), (4, 5), (9, 23)]
@@ -1384,7 +1384,7 @@ cdef class SparseGraphBackend(CGraphBackend):
     objects::
 
         sage: G.add_vertex((0,1,2))
-        sage: sorted(G.vertices(),
+        sage: sorted(list(G),
         ....:        key=lambda x: (isinstance(x, tuple), x))
         [0,
         ...
@@ -1403,7 +1403,7 @@ cdef class SparseGraphBackend(CGraphBackend):
         """
         Initialize a sparse graph with n vertices.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
             sage: D.add_edge(0,1,None,False)
@@ -1456,7 +1456,7 @@ cdef class SparseGraphBackend(CGraphBackend):
 
         TESTS::
 
-            sage: D = DiGraph(implementation='c_graph', sparse=True)
+            sage: D = DiGraph(sparse=True)
             sage: D.add_edge(0,1,2)
             sage: D.add_edge(0,1,3)
             sage: D.edges()
@@ -1565,13 +1565,13 @@ cdef class SparseGraphBackend(CGraphBackend):
 
         TESTS::
 
-            sage: G = Graph(implementation='c_graph', sparse=True)
+            sage: G = Graph(sparse=True)
             sage: G.add_edge(0,1,2)
             sage: G.delete_edge(0,1)
             sage: G.edges()
             []
 
-            sage: G = Graph(multiedges=True, implementation='c_graph', sparse=True)
+            sage: G = Graph(multiedges=True, sparse=True)
             sage: G.add_edge(0,1,2)
             sage: G.add_edge(0,1,None)
             sage: G.delete_edge(0,1)
@@ -1580,7 +1580,7 @@ cdef class SparseGraphBackend(CGraphBackend):
 
         Do we remove loops correctly? (:trac:`12135`)::
 
-            sage: g=Graph({0:[0,0,0]}, implementation='c_graph', sparse=True)
+            sage: g=Graph({0:[0,0,0]}, sparse=True)
             sage: g.edges(labels=False)
             [(0, 0), (0, 0), (0, 0)]
             sage: g.delete_edge(0,0); g.edges(labels=False)
@@ -1681,13 +1681,19 @@ cdef class SparseGraphBackend(CGraphBackend):
 
     def iterator_edges(self, object vertices, bint labels):
         """
-        Iterate over the edges incident to a sequence of vertices. Edges are
-        assumed to be undirected.
+        Iterate over the edges incident to a sequence of vertices.
+
+        Edges are assumed to be undirected.
+
+        .. WARNING::
+
+            This will try to sort the two ends of every edge.
 
         INPUT:
 
-        - ``vertices`` - a list of vertex labels
-        - ``labels`` - boolean, whether to return labels as well
+        - ``vertices`` -- a list of vertex labels
+
+        - ``labels`` -- boolean, whether to return labels as well
 
         EXAMPLES::
 
@@ -1710,6 +1716,53 @@ cdef class SparseGraphBackend(CGraphBackend):
              (2, 3, None),
              (2, 7, None)]
         """
+        if labels:
+            for (u, v, l) in self.iterator_unsorted_edges(vertices, labels):
+                try:
+                    if v <= u:
+                        v, u = u, v
+                except TypeError:
+                    pass
+                yield (u, v, l)
+        else:
+            for u, v in self.iterator_unsorted_edges(vertices, labels):
+                try:
+                    if v <= u:
+                        v, u = u, v
+                except TypeError:
+                    pass
+                yield (u, v)
+
+    def iterator_unsorted_edges(self, object vertices, bint labels):
+        """
+        Iterate over the edges incident to a sequence of vertices.
+
+        Edges are assumed to be undirected.
+
+        This does not sort the ends of each edge.
+
+        INPUT:
+
+        - ``vertices`` -- a list of vertex labels
+
+        - ``labels`` -- boolean, whether to return labels as well
+
+        EXAMPLES::
+
+            sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
+            sage: G.add_edge(1,2,3,False)
+            sage: list(G.iterator_unsorted_edges(range(9), False))
+            [(2, 1)]
+            sage: list(G.iterator_unsorted_edges(range(9), True))
+            [(2, 1, 3)]
+
+        TESTS::
+
+            sage: G = Graph(sparse=True)
+            sage: G.add_edge((1,'a'))
+            sage: list(G._backend.iterator_unsorted_edges([1, 'a'],False))
+            [(1, 'a')]
+        """
         cdef object u, v, l
         cdef int u_int, v_int, l_int
         cdef FrozenBitset b_vertices
@@ -1723,7 +1776,7 @@ cdef class SparseGraphBackend(CGraphBackend):
                         if u_int >= v_int:
                             u = self.vertex_label(u_int)
                             l = self.edge_labels[l_int] if l_int else None
-                            yield (v, u, l) if v<=u else (u, v, l)
+                            yield (u, v, l)
 
             else:
                 for v in self.iterator_verts():
@@ -1731,7 +1784,7 @@ cdef class SparseGraphBackend(CGraphBackend):
                     for u_int in (<SparseGraph> self._cg).out_arcs_unsafe(v_int, False):
                         if u_int >= v_int:
                             u = self.vertex_label(u_int)
-                            yield (v, u) if v <= u else (u, v)
+                            yield (u, v)
 
         # One vertex
         elif len(vertices) == 1:
@@ -1742,11 +1795,11 @@ cdef class SparseGraphBackend(CGraphBackend):
                 for u_int, l_int in (<SparseGraph> self._cg).out_arcs_unsafe(v_int, True):
                     u = self.vertex_label(u_int)
                     l = self.edge_labels[l_int] if l_int else None
-                    yield (v, u, l) if v<=u else (u, v, l)
+                    yield (u, v, l)
             else:
                 for u_int in (<SparseGraph> self._cg).out_arcs_unsafe(v_int, False):
                     u = self.vertex_label(u_int)
-                    yield (v, u) if v <= u else (u, v)
+                    yield (u, v)
 
         # Several vertices (nonempty list)
         elif vertices:
@@ -1759,14 +1812,14 @@ cdef class SparseGraphBackend(CGraphBackend):
                         if u_int >= v_int or u_int not in b_vertices:
                             u = self.vertex_label(u_int)
                             l = self.edge_labels[l_int] if l_int else None
-                            yield (v, u, l) if v<=u else (u, v, l)
+                            yield (u, v, l)
             else:
                 for v in vertices:
                     v_int = self.get_vertex(v)
                     for u_int in (<SparseGraph> self._cg).out_arcs_unsafe(v_int, False):
                         if u_int >= v_int or u_int not in b_vertices:
                             u = self.vertex_label(u_int)
-                            yield (v, u) if v <= u else (u, v)
+                            yield (u, v)
 
     def iterator_in_edges(self, object vertices, bint labels):
         """

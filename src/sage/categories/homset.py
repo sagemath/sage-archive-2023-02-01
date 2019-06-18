@@ -70,9 +70,7 @@ from sage.structure.parent import Parent, Set_generic
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.dynamic_class import dynamic_class
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.misc.constant_function import ConstantFunction
 from sage.misc.lazy_attribute import lazy_attribute
-import types
 
 ###################################
 # Use the weak "triple" dictionary
@@ -571,16 +569,15 @@ class Homset(Set_generic):
 
     Conversely, homsets of non-unique parents are non-unique::
 
-        sage: H = End(ProjectiveSpace(2, names='x,y,z'))
-        sage: loads(dumps(ProjectiveSpace(2, names='x,y,z'))) is ProjectiveSpace(2, names='x,y,z')
+        sage: H = End(ProductProjectiveSpaces(QQ, [1, 1]))
+        sage: loads(dumps(ProductProjectiveSpaces(QQ, [1, 1]))) is ProductProjectiveSpaces(QQ, [1, 1])
         False
-        sage: loads(dumps(ProjectiveSpace(2, names='x,y,z'))) == ProjectiveSpace(2, names='x,y,z')
+        sage: loads(dumps(ProductProjectiveSpaces(QQ, [1, 1]))) == ProductProjectiveSpaces(QQ, [1, 1])
         True
         sage: loads(dumps(H)) is H
         False
         sage: loads(dumps(H)) == H
         True
-
     """
     def __init__(self, X, Y, category=None, base = None, check=True):
         r"""
@@ -997,7 +994,7 @@ class Homset(Set_generic):
             sage: H.category()
             Category of homsets of unital magmas
             sage: cls = H._abstract_element_class; cls
-            <class 'sage.categories.homsets.Homset_with_category._abstract_element_class'>
+            <class 'sage.categories.homsets.GroupHomset_libgap_with_category._abstract_element_class'>
             sage: cls.__bases__ == (H.category().element_class, H.homset_category().morphism_class)
             True
 
@@ -1170,7 +1167,7 @@ class Homset(Set_generic):
 
             sage: K = GaussianIntegers()
             sage: End(K).one()
-            Identity endomorphism of Gaussian Integers in Number Field in I with defining polynomial x^2 + 1
+            Identity endomorphism of Gaussian Integers in Number Field in I with defining polynomial x^2 + 1 with I = 1*I
         """
         return self.identity()
 

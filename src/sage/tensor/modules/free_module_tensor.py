@@ -197,7 +197,12 @@ from sage.structure.element import ModuleElement
 from sage.tensor.modules.comp import (Components, CompWithSym, CompFullySym,
                                       CompFullyAntiSym)
 from sage.tensor.modules.tensor_with_indices import TensorWithIndices
+from sage.parallel.decorate import parallel
+from sage.parallel.parallelism import Parallelism
+from sage.manifolds.chart import Chart
 
+# TODO: remove the import of Chart after _preparse_display has been redefined
+# in tensor fields
 
 class FreeModuleTensor(ModuleElement):
     r"""
@@ -550,6 +555,38 @@ class FreeModuleTensor(ModuleElement):
 
     #### End of simple accessors #####
 
+    def _preparse_display(self, basis=None, format_spec=None):
+        r"""
+        Helper function for display (to be used in the derived classes
+        FreeModuleAltForm and AlternatingContrTensor as well)
+
+        TESTS::
+
+            sage: M = FiniteRankFreeModule(ZZ, 2, name='M')
+            sage: e = M.basis('e')
+            sage: f = M.basis('f')
+            sage: v = M([1,-2])
+            sage: v._preparse_display()
+            (Basis (e_0,e_1) on the Rank-2 free module M over the Integer Ring, None)
+            sage: v._preparse_display(f)
+            (Basis (f_0,f_1) on the Rank-2 free module M over the Integer Ring, None)
+            sage: v._preparse_display(e, 10)
+            (Basis (e_0,e_1) on the Rank-2 free module M over the Integer Ring, 10)
+            sage: v._preparse_display(format_spec=10)
+            (Basis (e_0,e_1) on the Rank-2 free module M over the Integer Ring, 10)
+
+        """
+        if basis is None:
+            basis = self._fmodule._def_basis
+        elif isinstance(basis, Chart):
+             # a coordinate chart has been passed instead of a basis;
+             # the basis is then assumed to be the coordinate frame
+             # associated to the chart:
+            if format_spec is None:
+                format_spec = basis
+            basis = basis.frame()
+        return (basis, format_spec)
+
     def display(self, basis=None, format_spec=None):
         r"""
         Display ``self`` in terms of its expansion w.r.t. a given module basis.
@@ -626,6 +663,16 @@ class FreeModuleTensor(ModuleElement):
             sage: t.display(f)
             v*w = -6 f_1*f^1 - 20/3 f_1*f^2 + 27/8 f_2*f^1 + 15/4 f_2*f^2
 
+        Parallel computation::
+
+            sage: Parallelism().set('tensor', nproc=2)
+            sage: t2 = v*w
+            sage: t2.display(f)
+            v*w = -6 f_1*f^1 - 20/3 f_1*f^2 + 27/8 f_2*f^1 + 15/4 f_2*f^2
+            sage: t2[f,:] == t[f,:]  # check of the parallel computation
+            True
+            sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
+
         The output format can be set via the argument ``output_formatter``
         passed at the module construction::
 
@@ -654,10 +701,10 @@ class FreeModuleTensor(ModuleElement):
 
         """
         from sage.misc.latex import latex
-        from sage.tensor.modules.format_utilities import is_atomic, \
-                                                         FormattedExpansion
-        if basis is None:
-            basis = self._fmodule._def_basis
+        from sage.tensor.modules.format_utilities import (is_atomic,
+                                                          FormattedExpansion)
+        basis, format_spec = self._preparse_display(basis=basis,
+                                                    format_spec=format_spec)
         cobasis = basis.dual_basis()
         comp = self.comp(basis)
         terms_txt = []
@@ -1056,6 +1103,7 @@ class FreeModuleTensor(ModuleElement):
                 raise ValueError("the tensor components are not known in " +
                                  "the {}".format(from_basis))
             (n_con, n_cov) = self._tensor_type
+            pp = None
             if n_cov > 0:
                 if (from_basis, basis) not in fmodule._basis_changes:
                     raise ValueError("the change-of-basis matrix from the " +
@@ -1064,6 +1112,7 @@ class FreeModuleTensor(ModuleElement):
                 pp = \
                   fmodule._basis_changes[(from_basis, basis)].comp(from_basis)
                 # pp not used if n_cov = 0 (pure contravariant tensor)
+            ppinv = None
             if n_con > 0:
                 if (basis, from_basis) not in fmodule._basis_changes:
                     raise ValueError("the change-of-basis matrix from the " +
@@ -1076,18 +1125,53 @@ class FreeModuleTensor(ModuleElement):
             new_comp = self._new_comp(basis)
             rank = self._tensor_rank
             # loop on the new components:
-            for ind_new in new_comp.non_redundant_index_generator():
-                # Summation on the old components multiplied by the proper
-                # change-of-basis matrix elements (tensor formula):
-                res = 0
-                for ind_old in old_comp.index_generator():
-                    t = old_comp[[ind_old]]
-                    for i in range(n_con): # loop on contravariant indices
-                        t *= ppinv[[ind_new[i], ind_old[i]]]
-                    for i in range(n_con,rank):  # loop on covariant indices
-                        t *= pp[[ind_old[i], ind_new[i]]]
-                    res += t
-                new_comp[ind_new] = res
+            nproc = Parallelism().get('tensor')
+
+            if nproc != 1 :
+                # Parallel computation
+                lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
+                ind_list = [ind for ind in new_comp.non_redundant_index_generator()]
+                ind_step = max(1, int(len(ind_list)/nproc/2))
+                local_list = lol(ind_list, ind_step)
+                # list of input parameters
+                listParalInput = [(old_comp, ppinv, pp, n_con, rank, ii) for ii in local_list]
+                @parallel(p_iter='multiprocessing', ncpus=nproc)
+                def paral_newcomp(old_comp, ppinv, pp, n_con, rank, local_list_ind):
+                    partial = []
+                    for ind in local_list_ind:
+                        res = 0
+                        # Summation on the old components multiplied by the proper
+                        # change-of-basis matrix elements (tensor formula):
+                        for ind_old in old_comp.index_generator():
+                            t = old_comp[[ind_old]]
+                            for i in range(n_con): # loop on contravariant indices
+                                t *= ppinv[[ind[i], ind_old[i]]]
+                            for i in range(n_con,rank):  # loop on covariant indices
+                                t *= pp[[ind_old[i], ind[i]]]
+                            res += t
+                        partial.append([ind,res])
+                    return partial
+
+                for ii,val in paral_newcomp(listParalInput):
+                    for jj in val:
+                        new_comp[[jj[0]]] = jj[1]
+
+
+            else:
+                # Sequential computation
+                for ind_new in new_comp.non_redundant_index_generator():
+                    # Summation on the old components multiplied by the proper
+                    # change-of-basis matrix elements (tensor formula):
+                    res = 0
+                    for ind_old in old_comp.index_generator():
+                        t = old_comp[[ind_old]]
+                        for i in range(n_con): # loop on contravariant indices
+                            t *= ppinv[[ind_new[i], ind_old[i]]]
+                        for i in range(n_con,rank):  # loop on covariant indices
+                            t *= pp[[ind_old[i], ind_new[i]]]
+                        res += t
+                    new_comp[ind_new] = res
+
             self._components[basis] = new_comp
             # end of case where the computation was necessary
         return self._components[basis]

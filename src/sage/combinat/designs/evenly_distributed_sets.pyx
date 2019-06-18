@@ -413,9 +413,9 @@ cdef class EvenlyDistributedSetsBacktracker:
 
         - ``False`` if ``self.B`` is not minimal
 
-        - the list of evenly distributed sets isomorphs to ``self.B`` given as a
-          list of tuples if ``self.up_to_isom=0`` or list containing only
-          ``self.B`` as a tuple if ``self.up_to_isom=1``.
+        - the list of evenly distributed sets isomorphic to ``self.B``
+          given as a list of tuples if ``self.up_to_isom=0`` or list
+          containing only ``self.B`` as a tuple if ``self.up_to_isom=1``.
 
         TESTS::
 

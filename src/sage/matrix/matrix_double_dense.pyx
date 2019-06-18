@@ -36,14 +36,14 @@ TESTS::
     sage: TestSuite(a).run()
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2004,2005,2006 Joshua Kantor <kantor.jm@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import
 
 import math
@@ -606,6 +606,9 @@ cdef class Matrix_double_dense(Matrix_dense):
             [ 3.0 + 9.0*I 4.0 + 16.0*I 5.0 + 25.0*I]
             [6.0 + 36.0*I 7.0 + 49.0*I 8.0 + 64.0*I]
             sage: B.condition()
+            doctest:warning
+            ...
+            ...ComplexWarning: Casting complex values to real discards the imaginary part
             203.851798...
             sage: B.condition(p='frob')
             203.851798...
@@ -654,9 +657,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             True
             sage: B = A.change_ring(CDF)
             sage: B.condition()
-            Traceback (most recent call last):
-            ...
-            LinAlgError: Singular matrix
+            +Infinity
 
         Improper values of ``p`` are caught.  ::
 
@@ -992,7 +993,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             [35.13996365902..., 2.27661020871472..., 0.0, 0.0]
             sage: set_verbose(0)
 
-            sage: all([s in RDF for s in sv])
+            sage: all(s in RDF for s in sv)
             True
 
         TESTS:
@@ -2077,7 +2078,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: S.round(4)
             [ 9.508    0.0    0.0]
             [   0.0 0.7729    0.0]
-            sage: [round(sqrt(abs(x)),4) for x in (S*S.transpose()).eigenvalues()]
+            sage: [N(sqrt(abs(x)), digits=4) for x in (S*S.transpose()).eigenvalues()]
             [9.508, 0.7729]
 
         U and V are orthogonal matrices::
@@ -2519,7 +2520,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: P.is_unitary(algorithm='orthonormal')
             Traceback (most recent call last):
             ...
-            ValueError: failed to create intent(cache|hide)|optional array-- must have defined dimensions but got (0,)
+            error: ((lwork==-1)||(lwork >= MAX(1,2*n))) failed for 3rd keyword lwork: zgees:lwork=0
 
         TESTS::
 
@@ -3045,7 +3046,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             [               0.0 0.9999999999999996                0.0                0.0]
             [               0.0                0.0 0.9999999999999992                0.0]
             [               0.0                0.0                0.0 0.9999999999999999]
-            sage: all([T.zero_at(1.0e-12)[i,j] == 0 for i in range(4) for j in range(i)])
+            sage: all(T.zero_at(1.0e-12)[i,j] == 0 for i in range(4) for j in range(i))
             True
             sage: (Q*T*Q.conjugate().transpose()-A).zero_at(1.0e-11)
             [0.0 0.0 0.0 0.0]
@@ -3072,7 +3073,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             [               0.0                0.0                0.0 1.0000000000000007]
             sage: T.parent()
             Full MatrixSpace of 4 by 4 dense matrices over Complex Double Field
-            sage: all([T.zero_at(1.0e-12)[i,j] == 0 for i in range(4) for j in range(i)])
+            sage: all(T.zero_at(1.0e-12)[i,j] == 0 for i in range(4) for j in range(i))
             True
             sage: (Q*T*Q.conjugate().transpose()-A).zero_at(1.0e-11)
             [0.0 0.0 0.0 0.0]
@@ -3097,9 +3098,9 @@ cdef class Matrix_double_dense(Matrix_dense):
             [               0.0 1.0000000000000013                0.0                0.0]
             [               0.0                0.0 1.0000000000000004                0.0]
             [               0.0                0.0                0.0 1.0000000000000016]
-            sage: all([T.zero_at(1.0e-12)[i,j] == 0 for i in range(4) for j in range(i)])
+            sage: all(T.zero_at(1.0e-12)[i,j] == 0 for i in range(4) for j in range(i))
             False
-            sage: all([T.zero_at(1.0e-12)[i,j] == 0 for i in range(4) for j in range(i-1)])
+            sage: all(T.zero_at(1.0e-12)[i,j] == 0 for i in range(4) for j in range(i-1))
             True
             sage: (Q*T*Q.conjugate().transpose()-A).zero_at(1.0e-11)
             [0.0 0.0 0.0 0.0]
@@ -3209,7 +3210,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A = matrix(RDF, 2, 2, [[0, -1], [1, 0]])
             sage: Qr, Tr = A.schur(base_ring=RDF)
             sage: Qc, Tc = A.schur(base_ring=CDF)
-            sage: all([M.is_immutable() for M in [Qr, Tr, Qc, Tc]])
+            sage: all(M.is_immutable() for M in [Qr, Tr, Qc, Tc])
             True
             sage: Tr.round(6) != Tc.round(6)
             True
@@ -3635,8 +3636,8 @@ cdef class Matrix_double_dense(Matrix_dense):
             [0.0 1.0 2.0]
             [3.0 4.0 5.0]
             sage: m.numpy()
-            array([[ 0.,  1.,  2.],
-                   [ 3.,  4.,  5.]])
+            array([[0., 1., 2.],
+                   [3., 4., 5.]])
 
         Alternatively, numpy automatically calls this function (via
         the magic :meth:`__array__` method) to convert Sage matrices
@@ -3647,16 +3648,16 @@ cdef class Matrix_double_dense(Matrix_dense):
             [0.0 1.0 2.0]
             [3.0 4.0 5.0]
             sage: numpy.array(m)
-            array([[ 0.,  1.,  2.],
-                   [ 3.,  4.,  5.]])
+            array([[0., 1., 2.],
+                   [3., 4., 5.]])
             sage: numpy.array(m).dtype
             dtype('float64')
             sage: m = matrix(CDF, 2, range(6)); m
             [0.0 1.0 2.0]
             [3.0 4.0 5.0]
             sage: numpy.array(m)
-            array([[ 0.+0.j,  1.+0.j,  2.+0.j],
-                   [ 3.+0.j,  4.+0.j,  5.+0.j]])
+            array([[0.+0.j, 1.+0.j, 2.+0.j],
+                   [3.+0.j, 4.+0.j, 5.+0.j]])
             sage: numpy.array(m).dtype
             dtype('complex128')
 

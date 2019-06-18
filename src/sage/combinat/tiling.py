@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Tiling Solver
 
@@ -27,9 +28,9 @@ the Tiling Solver and allows to solve the 3d Quantumino puzzle.
 
 AUTHOR:
 
-    - Sebastien Labbe, June 2011, initial version
-    - Sebastien Labbe, July 2015, count solutions up to rotations
-    - Sebastien Labbe, April 2017, tiling a polyomino, not only a rectangular box
+- Sébastien Labbé, June 2011, initial version
+- Sébastien Labbé, July 2015, count solutions up to rotations
+- Sébastien Labbé, April 2017, tiling a polyomino, not only a rectangular box
 
 EXAMPLES:
 
@@ -56,14 +57,14 @@ solutions::
     sage: T.number_of_solutions()
     2
 
-Scott's pentomino problem
+Scott's pentamino problem
 -------------------------
 
-As mentionned in the introduction of [Knuth1]_, Scott's pentomino problem
+As mentionned in the introduction of [Knuth1]_, Scott's pentamino problem
 consists in tiling a chessboard leaving the center four squares vacant with
-the 12 distinct pentominoes.
+the 12 distinct pentaminoes.
 
-The 12 pentominoes::
+The 12 pentaminoes::
 
     sage: from sage.combinat.tiling import Polyomino
     sage: I = Polyomino([(0,0),(1,0),(2,0),(3,0),(4,0)], color='brown')
@@ -325,21 +326,21 @@ def ncube_isometry_group(n, orientation_preserving=True):
 
         sage: ncube_isometry_group(3)
         [
-        [1 0 0]  [ 1  0  0]  [-1  0  0]  [-1  0  0]  [0 0 1]  [ 0  0 -1]
-        [0 1 0]  [ 0 -1  0]  [ 0  1  0]  [ 0 -1  0]  [1 0 0]  [ 1  0  0]
-        [0 0 1], [ 0  0 -1], [ 0  0 -1], [ 0  0  1], [0 1 0], [ 0 -1  0],
+        [1 0 0]  [ 1  0  0]  [ 0  1  0]  [ 0  0 -1]  [ 1  0  0]  [ 0  1  0]
+        [0 1 0]  [ 0  0  1]  [ 0  0 -1]  [ 0 -1  0]  [ 0  0 -1]  [-1  0  0]
+        [0 0 1], [ 0 -1  0], [-1  0  0], [-1  0  0], [ 0  1  0], [ 0  0  1],
         <BLANKLINE>
-        [ 0  0 -1]  [ 0  0  1]  [0 1 0]  [ 0 -1  0]  [ 0  1  0]  [ 0 -1  0]
-        [-1  0  0]  [-1  0  0]  [0 0 1]  [ 0  0 -1]  [ 0  0 -1]  [ 0  0  1]
-        [ 0  1  0], [ 0 -1  0], [1 0 0], [ 1  0  0], [-1  0  0], [-1  0  0],
+        [ 1  0  0]  [ 0  0  1]  [0 1 0]  [ 0  0  1]  [ 0  0 -1]  [ 0 -1  0]
+        [ 0 -1  0]  [-1  0  0]  [0 0 1]  [ 0 -1  0]  [-1  0  0]  [-1  0  0]
+        [ 0  0 -1], [ 0 -1  0], [1 0 0], [ 1  0  0], [ 0  1  0], [ 0  0 -1],
         <BLANKLINE>
-        [ 0  1  0]  [ 0 -1  0]  [ 0  1  0]  [ 0 -1  0]  [ 1  0  0]  [ 1  0  0]
-        [ 1  0  0]  [ 1  0  0]  [-1  0  0]  [-1  0  0]  [ 0  0 -1]  [ 0  0  1]
-        [ 0  0 -1], [ 0  0  1], [ 0  0  1], [ 0  0 -1], [ 0  1  0], [ 0 -1  0],
+        [ 0  1  0]  [ 0  0  1]  [ 0  0 -1]  [ 0 -1  0]  [0 0 1]  [ 0 -1  0]
+        [ 1  0  0]  [ 0  1  0]  [ 1  0  0]  [ 0  0  1]  [1 0 0]  [ 1  0  0]
+        [ 0  0 -1], [-1  0  0], [ 0 -1  0], [-1  0  0], [0 1 0], [ 0  0  1],
         <BLANKLINE>
-        [-1  0  0]  [-1  0  0]  [ 0  0 -1]  [ 0  0  1]  [ 0  0  1]  [ 0  0 -1]
-        [ 0  0  1]  [ 0  0 -1]  [ 0  1  0]  [ 0 -1  0]  [ 0  1  0]  [ 0 -1  0]
-        [ 0  1  0], [ 0 -1  0], [ 1  0  0], [ 1  0  0], [-1  0  0], [-1  0  0]
+        [-1  0  0]  [-1  0  0]  [ 0  0 -1]  [-1  0  0]  [ 0 -1  0]  [-1  0  0]
+        [ 0  1  0]  [ 0  0 -1]  [ 0  1  0]  [ 0  0  1]  [ 0  0 -1]  [ 0 -1  0]
+        [ 0  0 -1], [ 0 -1  0], [ 1  0  0], [ 0  1  0], [ 1  0  0], [ 0  0  1]
         ]
 
     TESTS::
@@ -947,7 +948,7 @@ class Polyomino(SageObject):
             Polyomino: [(3, 4, 0), (4, 4, 0), (4, 5, 0), (4, 5, 1), (4, 6, 0)], Color: deeppink
             Polyomino: [(3, 5, 0), (4, 5, 0), (4, 6, 0), (4, 6, 1), (4, 7, 0)], Color: deeppink
 
-        This method is independant of the translation of the polyomino::
+        This method is independent of the translation of the polyomino::
 
             sage: q = Polyomino([(0,0,0), (1,0,0)])
             sage: list(q.translated_copies((2,2,1)))

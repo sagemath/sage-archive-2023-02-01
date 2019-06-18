@@ -27,7 +27,6 @@ from sage.ext.stdsage cimport HAS_DICTIONARY
 from sage.arith.power cimport generic_power
 from sage.sets.pythonclass cimport Set_PythonType
 from sage.misc.constant_function import ConstantFunction
-from sage.misc.superseded import deprecated_function_alias
 from sage.structure.element cimport parent
 from cpython.object cimport PyObject_RichCompare
 
@@ -198,7 +197,7 @@ cdef class Map(Element):
             sage: Q = QuadraticField(-5)
             sage: phi = CDF._internal_convert_map_from(Q)
             sage: print(phi.parent())
-            Set of field embeddings from Number Field in a with defining polynomial x^2 + 5 to Complex Double Field
+            Set of field embeddings from Number Field in a with defining polynomial x^2 + 5 with a = 2.236067977499790?*I to Complex Double Field
 
         We now demonstrate that the reference to the coercion map `\phi` does
         not prevent `Q` from being garbage collected::
@@ -217,12 +216,12 @@ cdef class Map(Element):
             sage: Q = QuadraticField(-5)
             sage: phi = CDF.convert_map_from(Q)
             sage: print(phi.parent())
-            Set of field embeddings from Number Field in a with defining polynomial x^2 + 5 to Complex Double Field
+            Set of field embeddings from Number Field in a with defining polynomial x^2 + 5 with a = 2.236067977499790?*I to Complex Double Field
             sage: import gc
             sage: del Q
             sage: _ = gc.collect()
             sage: phi.parent()
-            Set of field embeddings from Number Field in a with defining polynomial x^2 + 5 to Complex Double Field
+            Set of field embeddings from Number Field in a with defining polynomial x^2 + 5 with a = 2.236067977499790?*I to Complex Double Field
         """
         if self._parent is None:
             D = self.domain()
@@ -260,7 +259,7 @@ cdef class Map(Element):
             <weakref at ...; to 'NumberField_quadratic_with_category' at ...>
             sage: phi._make_strong_references()
             sage: print(phi.domain)
-            The constant function (...) -> Number Field in a with defining polynomial x^2 + 5
+            The constant function (...) -> Number Field in a with defining polynomial x^2 + 5 with a = 2.236067977499790?*I
 
         Now, as there is a strong reference, `Q` cannot be garbage collected::
 
@@ -279,7 +278,7 @@ cdef class Map(Element):
         if one really knows what one is doing::
 
             sage: phi._make_weak_references()
-            sage: del x
+            sage: del x # py2
             sage: _ = gc.collect()
             sage: numberQuadFields == len([x for x in gc.get_objects() if isinstance(x, C)]) + 1
             True
@@ -322,7 +321,7 @@ cdef class Map(Element):
             <weakref at ...; to 'NumberField_quadratic_with_category' at ...>
             sage: phi._make_strong_references()
             sage: print(phi.domain)
-            The constant function (...) -> Number Field in a with defining polynomial x^2 + 5
+            The constant function (...) -> Number Field in a with defining polynomial x^2 + 5 with a = 2.236067977499790?*I
 
         Now, as there is a strong reference, `Q` cannot be garbage collected::
 
@@ -341,7 +340,7 @@ cdef class Map(Element):
         if one really knows what one is doing::
 
             sage: phi._make_weak_references()
-            sage: del x
+            sage: del x # py2
             sage: _ = gc.collect()
             sage: numberQuadFields == len([x for x in gc.get_objects() if isinstance(x, C)]) + 1
             True
@@ -549,7 +548,7 @@ cdef class Map(Element):
             sage: phi = CDF._internal_coerce_map_from(Q); phi
             (map internal to coercion system -- copy before use)
             Composite map:
-              From: Number Field in a with defining polynomial x^2 + 5
+              From: Number Field in a with defining polynomial x^2 + 5 with a = 2.236067977499790?*I
               To:   Complex Double Field
             sage: del Q
             sage: import gc
@@ -1825,10 +1824,9 @@ cdef class FormalCompositeMap(Map):
             sage: (f*g).then() == f
             True
         """
-        if len(self.__list) == 2: return self.__list[1]
+        if len(self.__list) == 2:
+            return self.__list[1]
         return FormalCompositeMap(self.__list[1:])
-
-    second = deprecated_function_alias(16291, then)
 
     def is_injective(self):
         """

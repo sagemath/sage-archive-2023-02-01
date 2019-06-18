@@ -92,15 +92,15 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007-2013 Andrey Novoseltsev <novoselt@gmail.com>
 #       Copyright (C) 2007-2013 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import range
 from six import StringIO
@@ -117,7 +117,7 @@ from sage.geometry.point_collection import PointCollection,\
 from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice
 from sage.graphs.graph import DiGraph, Graph
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
-from sage.libs.ppl import (C_Polyhedron, Generator_System, Linear_Expression,
+from ppl import (C_Polyhedron, Generator_System, Linear_Expression,
                            point as PPL_point)
 from sage.matrix.constructor import matrix
 from sage.structure.element import is_Matrix
@@ -523,7 +523,6 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             if compute_vertices:
                 P = C_Polyhedron(Generator_System(
                     [PPL_point(Linear_Expression(p, 0)) for p in points]))
-                P.set_immutable()
                 self._PPL.set_cache(P)
                 vertices = P.minimized_generators()
                 if len(vertices) != len(points):
@@ -736,10 +735,10 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         constants = []
         for c in self._PPL().minimized_constraints():
             if c.is_inequality():
-                n = N.element_class(N, c.coefficients())
+                n = N.element_class(N, [Integer(mpz) for mpz in c.coefficients()])
                 n.set_immutable()
                 normals.append(n)
-                constants.append(c.inhomogeneous_term())
+                constants.append(Integer(c.inhomogeneous_term()))
         # Sort normals if facets are vertices
         if (self.dim() == 1
             and normals[0] * self.vertex(0) + constants[0] != 0):
@@ -823,7 +822,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         need_strict = region.endswith("interior")
         N = self.dual_lattice()
         for c in self._PPL().minimized_constraints():
-            pr = N(c.coefficients()) * point + c.inhomogeneous_term()
+            pr = N([Integer(mpz) for mpz in c.coefficients()]) * point + Integer(c.inhomogeneous_term())
             if c.is_equality():
                 if pr != 0:
                     return False
@@ -968,7 +967,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         OUTPUT:
 
-        - :class:`~sage.libs.ppl.C_Polyhedron`
+        - :class:`~ppl.polyhedron.C_Polyhedron`
 
         EXAMPLES::
 
@@ -995,7 +994,6 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         P = C_Polyhedron(Generator_System(
             [PPL_point(Linear_Expression(v, 0)) for v in self.vertices()]))
-        P.set_immutable()
         return P
 
     def _pullback(self, data):
@@ -1683,7 +1681,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         if len(point) == 1:
            point = point[0]
         return self._contains(point)
-        
+
     @cached_method
     def dim(self):
         r"""
@@ -2790,7 +2788,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         Return the normal form of vertices of ``self``.
 
         Two full-dimensional lattice polytopes are in the same
-        ``GL(\mathbb{Z})``-orbit if and only if their normal forms are the
+        ``GL(\ZZ)``-orbit if and only if their normal forms are the
         same. Normal form is not defined and thus cannot be used for polytopes
         whose dimension is smaller than the dimension of the ambient space.
 
@@ -3415,7 +3413,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         -  ``vertex_color`` - (default:(1,0,0))
 
         -  ``show_points`` - (default:True) whether to draw
-           other poits as balls
+           other points as balls
 
         -  ``point_size`` - (default:10)
 
@@ -3922,7 +3920,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         Needed for plot3d function of polytopes.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: p = lattice_polytope.cross_polytope(2).polar()
             sage: p.traverse_boundary()
@@ -5039,7 +5037,7 @@ def _palp_canonical_order(V, PM_max, permutations):
             p_c = PermutationGroupElement((1 + i, 1 + k))*p_c
     # Create array of possible NFs.
     permutations = [p_c * l[1] for l in permutations.values()]
-    Vs = [(V.column_matrix().with_permuted_columns(sig).hermite_form(), sig) 
+    Vs = [(V.column_matrix().with_permuted_columns(sig).hermite_form(), sig)
           for sig in permutations]
     Vmin = min(Vs, key=lambda x:x[0])
     vertices = [V.module()(_) for _ in Vmin[0].columns()]
@@ -5128,26 +5126,28 @@ def _read_nef_x_partitions(data):
     if line == "":
         raise ValueError("Empty file!")
     partitions = []
-    while len(line) > 0 and line.find("np=") == -1:
+    while line and line.find("np=") == -1:
         if line.find("V:") == -1:
             line = data.readline()
             continue
         start = line.find("V:") + 2
         end = line.find("  ", start)  # Find DOUBLE space
-        partitions.append(Sequence(line[start:end].split(),int))
+        partitions.append(Sequence(line[start:end].split(), int))
         line = data.readline()
     # Compare the number of found partitions with np in data.
     start = line.find("np=")
     if start != -1:
-        start += 3
-        end = line.find(" ", start)
-        np = int(line[start:end])
-        if False and np != len(partitions):
-            raise ValueError("Found %d partitions, expected %d!" %
-                                 (len(partitions), np))
+        # start += 3
+        # end = line.find(" ", start)
+        # np = int(line[start:end])
+        # if False and np != len(partitions):
+        #     raise ValueError("Found %d partitions, expected %d!" %
+        #                          (len(partitions), np))
+        pass
     else:
         raise ValueError("Wrong data format, cannot find \"np=\"!")
     return partitions
+
 
 def _read_poly_x_incidences(data, dim):
     r"""
@@ -5197,11 +5197,13 @@ def _read_poly_x_incidences(data, dim):
         line.pop(0)
         subr = []
         for e in line:
-            f = Sequence([j for j in range(n) if e[n-1-j] == '1'], int, check=False)
+            f = Sequence([j for j in range(n) if e[n-1-j] == '1'],
+                         int, check=False)
             f.set_immutable()
             subr.append(f)
         result.append(subr)
     return result
+
 
 def all_cached_data(polytopes):
     r"""
@@ -5285,6 +5287,7 @@ def all_nef_partitions(polytopes, keep_symmetric=False):
     result.close()
     os.remove(result_name)
 
+
 def all_points(polytopes):
     r"""
     Compute lattice points for all given ``polytopes``.
@@ -5333,6 +5336,7 @@ def all_points(polytopes):
                 p._points = PointCollection(points, M)
     result.close()
     os.remove(result_name)
+
 
 def all_polars(polytopes):
     r"""
@@ -5396,7 +5400,7 @@ def convex_hull(points):
         return []
     vpoints = []
     for p in points:
-        v = vector(ZZ,p)
+        v = vector(ZZ, p)
         if not v in vpoints:
             vpoints.append(v)
     p0 = vpoints[0]

@@ -8,7 +8,7 @@ Suffix Tries and Suffix Trees
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from six.moves import range
 from six import iteritems
@@ -114,13 +114,12 @@ class SuffixTrie(SageObject):
         r = self._active_state
         # While r is not the auxiliary vertex, or
         # there is not transition from r along letter, ...
-        while r != -1 and \
-                (r,letter) not in self._transition_function:
+        while r != -1 and (r, letter) not in self._transition_function:
             # adjoin a new state s
             s = len(self._suffix_link)
             self._suffix_link.append(None)
             # create a transition from r to s along letter
-            self._transition_function[(r,letter)] = s
+            self._transition_function[(r, letter)] = s
             if r != self._active_state:
                 # update the suffix link
                 self._suffix_link[old_s] = s
@@ -130,7 +129,7 @@ class SuffixTrie(SageObject):
         if r == -1:
             self._suffix_link[old_s] = 0
         else:
-            self._suffix_link[old_s] = self._transition_function[(r,letter)]
+            self._suffix_link[old_s] = self._transition_function[(r, letter)]
         # update the active state
         self._active_state = \
                 self._transition_function[(self._active_state, letter)]
@@ -1286,7 +1285,7 @@ class ImplicitSuffixTree(SageObject):
 
         The *Lempel-Ziv decomposition* is the factorisation `u_1...u_k` of a
         word `w=x_1...x_n` such that `u_i` is the longest prefix of `u_i...u_k`
-        that has an occurence starting before `u_i` or a letter if this prefix
+        that has an occurrence starting before `u_i` or a letter if this prefix
         is empty.
 
         OUTPUT:

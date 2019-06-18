@@ -85,10 +85,10 @@ class OperationTable(SageObject):
         *  a b c d e f
          +------------
         a| a b c d e f
-        b| b c a f d e
-        c| c a b e f d
-        d| d e f a b c
-        e| e f d c a b
+        b| b a d c f e
+        c| c e a f b d
+        d| d f b e a c
+        e| e c f a d b
         f| f d e b c a
 
     With two operations present, we can specify which operation we
@@ -116,33 +116,33 @@ class OperationTable(SageObject):
          *  aa ab ac ad ae af ag ah ai aj ak al am an ao ap aq ar as at au av aw ax ay az ba bb
           +------------------------------------------------------------------------------------
         aa| aa ab ac ad ae af ag ah ai aj ak al am an ao ap aq ar as at au av aw ax ay az ba bb
-        ab| ab ac ad ae af ag aa ai aj ak al am an ah au ao ap aq ar as at bb av aw ax ay az ba
-        ac| ac ad ae af ag aa ab aj ak al am an ah ai at au ao ap aq ar as ba bb av aw ax ay az
-        ad| ad ae af ag aa ab ac ak al am an ah ai aj as at au ao ap aq ar az ba bb av aw ax ay
-        ae| ae af ag aa ab ac ad al am an ah ai aj ak ar as at au ao ap aq ay az ba bb av aw ax
-        af| af ag aa ab ac ad ae am an ah ai aj ak al aq ar as at au ao ap ax ay az ba bb av aw
-        ag| ag aa ab ac ad ae af an ah ai aj ak al am ap aq ar as at au ao aw ax ay az ba bb av
-        ah| ah ai aj ak al am an ab ac ad ae af ag aa bb av aw ax ay az ba ao ap aq ar as at au
-        ai| ai aj ak al am an ah ac ad ae af ag aa ab ba bb av aw ax ay az au ao ap aq ar as at
-        aj| aj ak al am an ah ai ad ae af ag aa ab ac az ba bb av aw ax ay at au ao ap aq ar as
-        ak| ak al am an ah ai aj ae af ag aa ab ac ad ay az ba bb av aw ax as at au ao ap aq ar
-        al| al am an ah ai aj ak af ag aa ab ac ad ae ax ay az ba bb av aw ar as at au ao ap aq
-        am| am an ah ai aj ak al ag aa ab ac ad ae af aw ax ay az ba bb av aq ar as at au ao ap
-        an| an ah ai aj ak al am aa ab ac ad ae af ag av aw ax ay az ba bb ap aq ar as at au ao
-        ao| ao ap aq ar as at au av aw ax ay az ba bb aa ab ac ad ae af ag ah ai aj ak al am an
-        ap| ap aq ar as at au ao aw ax ay az ba bb av ag aa ab ac ad ae af an ah ai aj ak al am
-        aq| aq ar as at au ao ap ax ay az ba bb av aw af ag aa ab ac ad ae am an ah ai aj ak al
-        ar| ar as at au ao ap aq ay az ba bb av aw ax ae af ag aa ab ac ad al am an ah ai aj ak
-        as| as at au ao ap aq ar az ba bb av aw ax ay ad ae af ag aa ab ac ak al am an ah ai aj
-        at| at au ao ap aq ar as ba bb av aw ax ay az ac ad ae af ag aa ab aj ak al am an ah ai
-        au| au ao ap aq ar as at bb av aw ax ay az ba ab ac ad ae af ag aa ai aj ak al am an ah
-        av| av aw ax ay az ba bb ap aq ar as at au ao an ah ai aj ak al am aa ab ac ad ae af ag
-        aw| aw ax ay az ba bb av aq ar as at au ao ap am an ah ai aj ak al ag aa ab ac ad ae af
-        ax| ax ay az ba bb av aw ar as at au ao ap aq al am an ah ai aj ak af ag aa ab ac ad ae
-        ay| ay az ba bb av aw ax as at au ao ap aq ar ak al am an ah ai aj ae af ag aa ab ac ad
-        az| az ba bb av aw ax ay at au ao ap aq ar as aj ak al am an ah ai ad ae af ag aa ab ac
-        ba| ba bb av aw ax ay az au ao ap aq ar as at ai aj ak al am an ah ac ad ae af ag aa ab
-        bb| bb av aw ax ay az ba ao ap aq ar as at au ah ai aj ak al am an ab ac ad ae af ag aa
+        ab| ab aa ad ac af ae ah ag aj ai al ak an am ap ao ar aq at as av au ax aw az ay bb ba
+        ac| ac ba aa ae ad ag af ai ah ak aj am al ao an aq ap as ar au at aw av ay ax bb ab az
+        ad| ad bb ab af ac ah ae aj ag al ai an ak ap am ar ao at aq av as ax au az aw ba aa ay
+        ae| ae az ba ag aa ai ad ak af am ah ao aj aq al as an au ap aw ar ay at bb av ab ac ax
+        af| af ay bb ah ab aj ac al ae an ag ap ai ar ak at am av ao ax aq az as ba au aa ad aw
+        ag| ag ax az ai ba ak aa am ad ao af aq ah as aj au al aw an ay ap bb ar ab at ac ae av
+        ah| ah aw ay aj bb al ab an ac ap ae ar ag at ai av ak ax am az ao ba aq aa as ad af au
+        ai| ai av ax ak az am ba ao aa aq ad as af au ah aw aj ay al bb an ab ap ac ar ae ag at
+        aj| aj au aw al ay an bb ap ab ar ac at ae av ag ax ai az ak ba am aa ao ad aq af ah as
+        ak| ak at av am ax ao az aq ba as aa au ad aw af ay ah bb aj ab al ac an ae ap ag ai ar
+        al| al as au an aw ap ay ar bb at ab av ac ax ae az ag ba ai aa ak ad am af ao ah aj aq
+        am| am ar at ao av aq ax as az au ba aw aa ay ad bb af ab ah ac aj ae al ag an ai ak ap
+        an| an aq as ap au ar aw at ay av bb ax ab az ac ba ae aa ag ad ai af ak ah am aj al ao
+        ao| ao ap ar aq at as av au ax aw az ay ba bb aa ab ad ac af ae ah ag aj ai al ak am an
+        ap| ap ao aq ar as at au av aw ax ay az bb ba ab aa ac ad ae af ag ah ai aj ak al an am
+        aq| aq an ap as ar au at aw av ay ax bb az ab ba ac aa ae ad ag af ai ah ak aj am ao al
+        ar| ar am ao at aq av as ax au az aw ba ay aa bb ad ab af ac ah ae aj ag al ai an ap ak
+        as| as al an au ap aw ar ay at bb av ab ax ac az ae ba ag aa ai ad ak af am ah ao aq aj
+        at| at ak am av ao ax aq az as ba au aa aw ad ay af bb ah ab aj ac al ae an ag ap ar ai
+        au| au aj al aw an ay ap bb ar ab at ac av ae ax ag az ai ba ak aa am ad ao af aq as ah
+        av| av ai ak ax am az ao ba aq aa as ad au af aw ah ay aj bb al ab an ac ap ae ar at ag
+        aw| aw ah aj ay al bb an ab ap ac ar ae at ag av ai ax ak az am ba ao aa aq ad as au af
+        ax| ax ag ai az ak ba am aa ao ad aq af as ah au aj aw al ay an bb ap ab ar ac at av ae
+        ay| ay af ah bb aj ab al ac an ae ap ag ar ai at ak av am ax ao az aq ba as aa au aw ad
+        az| az ae ag ba ai aa ak ad am af ao ah aq aj as al au an aw ap ay ar bb at ab av ax ac
+        ba| ba ac ae aa ag ad ai af ak ah am aj ao al aq an as ap au ar aw at ay av bb ax az ab
+        bb| bb ad af ab ah ac aj ae al ag an ai ap ak ar am at ao av aq ax as az au ba aw ay aa
 
     Another symbol set is base 10 digits, padded with leading
     zeros to make a common width. ::
@@ -153,17 +153,17 @@ class OperationTable(SageObject):
          *  00 01 02 03 04 05 06 07 08 09 10 11
           +------------------------------------
         00| 00 01 02 03 04 05 06 07 08 09 10 11
-        01| 01 00 03 02 06 07 04 05 11 10 09 08
-        02| 02 03 00 01 07 06 05 04 09 08 11 10
-        03| 03 02 01 00 05 04 07 06 10 11 08 09
-        04| 04 05 06 07 08 09 10 11 00 01 02 03
-        05| 05 04 07 06 10 11 08 09 03 02 01 00
-        06| 06 07 04 05 11 10 09 08 01 00 03 02
-        07| 07 06 05 04 09 08 11 10 02 03 00 01
-        08| 08 09 10 11 00 01 02 03 04 05 06 07
-        09| 09 08 11 10 02 03 00 01 07 06 05 04
-        10| 10 11 08 09 03 02 01 00 05 04 07 06
-        11| 11 10 09 08 01 00 03 02 06 07 04 05
+        01| 01 02 00 05 03 04 07 08 06 11 09 10
+        02| 02 00 01 04 05 03 08 06 07 10 11 09
+        03| 03 06 09 00 07 10 01 04 11 02 05 08
+        04| 04 08 10 02 06 11 00 05 09 01 03 07
+        05| 05 07 11 01 08 09 02 03 10 00 04 06
+        06| 06 09 03 10 00 07 04 11 01 08 02 05
+        07| 07 11 05 09 01 08 03 10 02 06 00 04
+        08| 08 10 04 11 02 06 05 09 00 07 01 03
+        09| 09 03 06 07 10 00 11 01 04 05 08 02
+        10| 10 04 08 06 11 02 09 00 05 03 07 01
+        11| 11 05 07 08 09 01 10 02 03 04 06 00
 
     If the group's elements are not too cumbersome,
     or the group is small, then the string representation
@@ -172,12 +172,11 @@ class OperationTable(SageObject):
         sage: from sage.matrix.operation_table import OperationTable
         sage: G=AlternatingGroup(3)
         sage: OperationTable(G, operator.mul, names='elements')
-              *       () (1,3,2) (1,2,3)
+              *       () (1,2,3) (1,3,2)
                +------------------------
-             ()|      () (1,3,2) (1,2,3)
-        (1,3,2)| (1,3,2) (1,2,3)      ()
-        (1,2,3)| (1,2,3)      () (1,3,2)
-
+             ()|      () (1,2,3) (1,3,2)
+        (1,2,3)| (1,2,3) (1,3,2)      ()
+        (1,3,2)| (1,3,2)      () (1,2,3)
 
     You can give the elements any names you like, but they need to be ordered
     in the same order as returned by the
@@ -185,33 +184,33 @@ class OperationTable(SageObject):
     method.  ::
 
         sage: from sage.matrix.operation_table import OperationTable
-        sage: G=QuaternionGroup()
-        sage: T=OperationTable(G, operator.mul)
+        sage: G = QuaternionGroup()
+        sage: T = OperationTable(G, operator.mul)
         sage: T.column_keys()
-        ((), (1,3)(2,4)(5,7)(6,8), ..., (1,6,3,8)(2,5,4,7))
-        sage: names=['1', 'I', 'J', '-1', '-K', 'K', '-I', '-J']
+        ((), (1,2,3,4)(5,6,7,8), ..., (1,8,3,6)(2,7,4,5))
+        sage: names=['1', 'I', '-1', '-I', 'J', '-K', '-J', 'K']
         sage: T.change_names(names=names)
         sage: sorted(T.translation().items())
-        [('-1', (1,2,3,4)(5,6,7,8)),..., ('K', (1,5,3,7)(2,8,4,6))]
+        [('-1', (1,3)(2,4)(5,7)(6,8)), ..., ('K', (1,8,3,6)(2,7,4,5))]
         sage: T
-         *   1  I  J -1 -K  K -I -J
+         *   1  I -1 -I  J -K -J  K
           +------------------------
-         1|  1  I  J -1 -K  K -I -J
-         I|  I  1 -1  J  K -K -J -I
-         J|  J -1  I  1 -I -J  K -K
-        -1| -1  J  1  I -J -I -K  K
-        -K| -K  K -J -I  I  1  J -1
-         K|  K -K -I -J  1  I -1  J
-        -I| -I -J -K  K -1  J  I  1
-        -J| -J -I  K -K  J -1  1  I
+         1|  1  I -1 -I  J -K -J  K
+         I|  I -1 -I  1  K  J -K -J
+        -1| -1 -I  1  I -J  K  J -K
+        -I| -I  1  I -1 -K -J  K  J
+         J|  J -K -J  K -1 -I  1  I
+        -K| -K -J  K  J  I -1 -I  1
+        -J| -J  K  J -K  1  I -1 -I
+         K|  K  J -K -J -I  1  I -1
 
     With the right functions and a list comprehension, custom
     names can be easier.  A multiplication table for hex digits
     (without carries)::
 
         sage: from sage.matrix.operation_table import OperationTable
-        sage: R=Integers(16)
-        sage: names=[hex(Integer(a)) for a in R]
+        sage: R = Integers(16)
+        sage: names=['{:x}'.format(Integer(a)) for a in R]
         sage: OperationTable(R, operation=operator.mul, names=names)
         *  0 1 2 3 4 5 6 7 8 9 a b c d e f
          +--------------------------------
@@ -382,7 +381,10 @@ class OperationTable(SageObject):
                 if not(S.is_finite()):
                     raise ValueError('%s is infinite' % S)
             try:
-                elems = tuple(S)
+                try:
+                    elems = sorted(S)
+                except TypeError:
+                    elems = list(S)
             except Exception:
                 raise ValueError('unable to determine elements of %s' % S)
         else:
@@ -394,7 +396,7 @@ class OperationTable(SageObject):
                         elems.append(coerced)
             except Exception:
                 raise TypeError('unable to coerce %s into %s' % (e, S))
-        self._elts = elems
+        self._elts = tuple(elems)
         self._n = len(self._elts)
         self._name_dict = {}
 
@@ -573,7 +575,7 @@ class OperationTable(SageObject):
             sage: G=DiCyclicGroup(3)
             sage: T=OperationTable(G, operator.mul)
             sage: T.column_keys()
-            ((), (5,6,7), ..., (1,3,2,4)(5,7))
+            ((), (5,6,7), ..., (1,4,2,3)(5,7))
             sage: T[G('(1,2)(3,4)(5,6,7)'), G('(1,3,2,4)(5,7)')]
             (1,4,2,3)(5,6)
 
@@ -743,7 +745,7 @@ class OperationTable(SageObject):
             sage: G=AlternatingGroup(3)
             sage: T=OperationTable(G, operator.mul)
             sage: T.column_keys()
-            ((), (1,3,2), (1,2,3))
+            ((), (1,2,3), (1,3,2))
         """
         return self._elts
 
@@ -768,8 +770,8 @@ class OperationTable(SageObject):
             sage: from sage.matrix.operation_table import OperationTable
             sage: G=AlternatingGroup(3)
             sage: T=OperationTable(G, operator.mul, names=['p','q','r'])
-            sage: sorted(T.translation().items())
-            [('p', ()), ('q', (1,3,2)), ('r', (1,2,3))]
+            sage: T.translation()
+            {'p': (), 'q': (1,2,3), 'r': (1,3,2)}
         """
         return self._name_dict
 
@@ -886,16 +888,16 @@ class OperationTable(SageObject):
         ``cayley_table()`` method for permutation groups. ::
 
             sage: from sage.matrix.operation_table import OperationTable
-            sage: G=PermutationGroup(['(1,2,3)', '(2,3)'])
-            sage: T=OperationTable(G, operator.mul)
+            sage: G = PermutationGroup(['(1,2,3)', '(2,3)'])
+            sage: T = OperationTable(G, operator.mul)
             sage: T.matrix_of_variables()
             [x0 x1 x2 x3 x4 x5]
-            [x1 x2 x0 x5 x3 x4]
-            [x2 x0 x1 x4 x5 x3]
-            [x3 x4 x5 x0 x1 x2]
-            [x4 x5 x3 x2 x0 x1]
+            [x1 x0 x3 x2 x5 x4]
+            [x2 x4 x0 x5 x1 x3]
+            [x3 x5 x1 x4 x0 x2]
+            [x4 x2 x5 x0 x3 x1]
             [x5 x3 x4 x1 x2 x0]
-            sage: T.column_keys()[3]*T.column_keys()[3] == T.column_keys()[0]
+            sage: T.column_keys()[2]*T.column_keys()[2] == T.column_keys()[0]
             True
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing

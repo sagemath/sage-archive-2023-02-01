@@ -358,7 +358,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         try:
             return f.map_coefficients(self._base_valuation.reduce, self._base_valuation.residue_field())
         except Exception:
-            if check and not all([v>=0 for v in self.valuations(f)]):
+            if check and not all(v >= 0 for v in self.valuations(f)):
                 raise ValueError("reduction not defined for non-integral elements and %r is not integral over %r"%(f, self))
             raise
 
@@ -412,7 +412,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         A polynomial `f` in the domain of this valuation which is a key
         polynomial for this valuation and which, for a suitable equivalence
-        unit `R`, satifies that the reduction of `Rf` is ``F``
+        unit `R`, satisfies that the reduction of `Rf` is ``F``
 
         EXAMPLES::
 

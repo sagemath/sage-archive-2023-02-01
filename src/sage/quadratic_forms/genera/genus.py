@@ -6,6 +6,7 @@ AUTHORS:
 
 - David Kohel & Gabriele Nebe (2007): First created
 - Simon Brandhorst (2018): various bugfixes and printing
+- Simon Brandhorst (2018): enumeration of genera
 """
 #*****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
@@ -22,20 +23,305 @@ from sage.misc.all import prod
 from sage.arith.all import LCM
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
-from sage.rings.integer_ring import IntegerRing
+from sage.rings.integer_ring import IntegerRing, ZZ
 from sage.rings.rational_field import RationalField, QQ
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
+from copy import copy, deepcopy
 from sage.misc.misc import verbose
-import copy
 
-def Genus(A):
+def genera(sig_pair, determinant, max_scale=None, even=False):
+    r"""
+    Return a list of all global genera with the given conditions.
+
+    Here a genus is called global if it is non-empty.
+
+    INPUT:
+
+    - ``sig_pair`` -- a pair of non-negative integers giving the signature
+
+    - ``determinant`` -- an integer; the sign is ignored
+
+    - ``max_scale`` -- (default: ``None``) an integer; the maximum scale of a
+      jordan block
+
+    - ``even`` -- boolean (default: ``False``)
+
+    OUTPUT:
+
+    A list of all (non-empty) global genera with the given conditions.
+
+    EXAMPLES::
+
+        sage: QuadraticForm.genera((4,0), 125, even=True)
+        [Genus of
+        None
+        Signature:  (4, 0)
+        Genus symbol at 2:    1^-4
+        Genus symbol at 5:     1^1 5^3, Genus of
+        None
+        Signature:  (4, 0)
+        Genus symbol at 2:    1^-4
+        Genus symbol at 5:     1^-2 5^1 25^-1, Genus of
+        None
+        Signature:  (4, 0)
+        Genus symbol at 2:    1^-4
+        Genus symbol at 5:     1^2 5^1 25^1, Genus of
+        None
+        Signature:  (4, 0)
+        Genus symbol at 2:    1^-4
+        Genus symbol at 5:     1^3 125^1]
+    """
+    from sage.misc.mrange import mrange_iter
+    # input checks
+    ZZ = IntegerRing()
+    determinant = ZZ(determinant)
+    sig_pair = (ZZ(sig_pair[0]), ZZ(sig_pair[1]))
+    even = bool(even)
+    if not all(s >= 0 for s in sig_pair):
+        raise ValueError("the signature vector must be a pair of non negative integers.")
+    if max_scale is None:
+        max_scale = determinant
+    else:
+        max_scale = ZZ(max_scale)
+    rank = sig_pair[0] + sig_pair[1]
+    genera = []
+    local_symbols = []
+    # every global genus has a 2-adic symbol
+    if determinant % 2 != 0:
+        local_symbols.append(_local_genera(2, rank, 0, 0, even=even))
+    # collect the p-adic symbols
+    for pn in determinant.factor():
+        p = pn[0]
+        det_val = pn[1]
+        mscale_p = max_scale.valuation(p)
+        local_symbol_p = _local_genera(p, rank, det_val, mscale_p, even)
+        local_symbols.append(local_symbol_p)
+    # take the cartesian product of the collection of all possible
+    # local genus symbols one for each prime
+    # and check which combinations produce a global genus
+    # TODO:
+    # we are overcounting. Find a more
+    # clever way to directly match the symbols for different primes.
+    for g in mrange_iter(local_symbols):
+        # create a Genus from a list of local symbols
+        G = GenusSymbol_global_ring(sig_pair, g, representative=None, check=True)
+        # discard the empty genera
+        if is_GlobalGenus(G):
+            genera.append(G)
+    # render the output deterministic for testing
+    genera.sort(key=lambda x: [s.symbol_tuple_list() for s in x.local_symbols()])
+    return(genera)
+
+def _local_genera(p, rank, det_val, max_scale, even):
+    r"""
+    Return all `p`-adic genera with the given conditions.
+
+    This is a helper function for :meth:`genera`.
+    No input checks are done.
+
+    INPUT:
+
+    - ``p`` -- a prime number
+
+    - ``rank`` -- the rank of this genus
+
+    - ``det_val`` -- valuation of the determinant at p
+
+    - ``max_scale`` -- an integer the maximal scale of a jordan block
+
+    - ``even`` -- ``bool``; is igored if `p` is not `2`
+
+    EXAMPLES::
+
+        sage: from sage.quadratic_forms.genera.genus import _local_genera
+        sage: _local_genera(2,3,1,2,False)
+        [Genus symbol at 2:    1^-2 [2^1]_1,
+         Genus symbol at 2:    1^2 [2^1]_1,
+         Genus symbol at 2:    1^2 [2^1]_7,
+         Genus symbol at 2:    [1^2 2^1]_3,
+         Genus symbol at 2:    1^-2 [2^1]_7,
+         Genus symbol at 2:    [1^-2 2^1]_7,
+         Genus symbol at 2:    [1^-2 2^1]_1,
+         Genus symbol at 2:    [1^2 2^1]_7,
+         Genus symbol at 2:    [1^2 2^1]_5,
+         Genus symbol at 2:    [1^-2 2^1]_3,
+         Genus symbol at 2:    [1^-2 2^1]_5,
+         Genus symbol at 2:    [1^2 2^1]_1]
+
+    Setting a maximum scale::
+
+        sage: _local_genera(5, 2, 2, 1, True)
+        [Genus symbol at 5:     5^-2, Genus symbol at 5:     5^2]
+        sage: _local_genera(5, 2, 2, 2, True)
+        [Genus symbol at 5:     1^-1 25^-1,
+         Genus symbol at 5:     1^1 25^-1,
+         Genus symbol at 5:     1^-1 25^1,
+         Genus symbol at 5:     1^1 25^1,
+         Genus symbol at 5:     5^-2,
+         Genus symbol at 5:     5^2]
+    """
+    from sage.misc.mrange import cantor_product
+    from sage.combinat.integer_lists.invlex import IntegerListsLex
+    scales_rks = [] # contains possibilities for scales and ranks
+    for rkseq in IntegerListsLex(rank, length=max_scale+1):   # rank sequences
+        # sum(rkseq) = rank
+        # len(rkseq) = max_scale + 1
+        # now assure that we get the right determinant
+        d = 0
+        pgensymbol = []
+        for i in range(max_scale + 1):
+            d += i * rkseq[i]
+            # blocks of rank 0 are omitted
+            if rkseq[i] != 0:
+                pgensymbol.append([i, rkseq[i], 0])
+        if d == det_val:
+            scales_rks.append(pgensymbol)
+    # add possible determinant square classes
+    symbols = []
+    if p != 2:
+        for g in scales_rks:
+            n = len(g)
+            for v in cantor_product([-1, 1], repeat=n):
+                g1 = deepcopy(g)
+                for k in range(n):
+                    g1[k][2] = v[k]
+                g1 = Genus_Symbol_p_adic_ring(p, g1)
+                symbols.append(g1)
+    # for p == 2 we have to include determinant, even/odd, oddity
+    # further restrictions apply and are defered to _blocks
+    # (brute force sieving is too slow)
+    # TODO: If this is too slow, enumerate only the canonical symbols.
+    # as a drawback one has to reconstruct the symbol from the canonical symbol
+    # this is more work for the programmer
+    if p == 2:
+        for g in scales_rks:
+            n = len(g)
+            poss_blocks = []
+            for b in g:
+                b += [0, 0]
+                poss_blocks.append(_blocks(b, even_only=(even and b[0]==0)))
+            for g1 in cantor_product(*poss_blocks):
+                g1 = list(g1)
+                if is_2_adic_genus(g1):
+                    g1 = Genus_Symbol_p_adic_ring(p, g1)
+                    # some of our symbols have the same canonical symbol
+                    # thus they are equivalent - we want only one in
+                    # each equivalence class
+                    if not g1 in symbols:
+                        symbols.append(g1)
+    return(symbols)
+
+
+def _blocks(b, even_only=False):
+    r"""
+    Return all viable `2`-adic jordan blocks with rank and scale given by ``b``
+
+    This is a helper function for :meth:`_local_genera`.
+    It is based on the existence conditions for a modular `2`-adic genus symbol.
+
+    INPUT:
+
+    - ``b`` -- a list of `5` non-negative integers the first two are kept
+      and all possibilities for the remaining `3` are enumerated
+
+    - ``even_only`` -- bool (default: ``True``) if set, the blocks are even
+
+    EXAMPLES::
+
+        sage: from sage.quadratic_forms.genera.genus import _blocks
+        sage: _blocks([15, 2, 0, 0, 0])
+        [[15, 2, 3, 0, 0],
+         [15, 2, 7, 0, 0],
+         [15, 2, 1, 1, 2],
+         [15, 2, 5, 1, 6],
+         [15, 2, 1, 1, 6],
+         [15, 2, 5, 1, 2],
+         [15, 2, 7, 1, 0],
+         [15, 2, 3, 1, 4]]
+    """
+    blocks = []
+    rk = b[1]
+    # recall: 2-genus_symbol is [scale, rank, det, even/odd, oddity]
+    if rk == 0:
+        assert b[2] == 1
+        assert b[3] == 0
+        assert b[4] == 0
+        blocks.append(copy(b))
+    elif rk == 1 and not even_only:
+        for det in [1, 3, 5, 7]:
+            b1 = copy(b)
+            b1[2] = det
+            b1[3] = 1
+            b1[4] = det
+            blocks.append(b1)
+    elif rk == 2:
+        b1 = copy(b)
+        # even case
+        b1[3] = 0
+        b1[4] = 0
+        b1[2] = 3
+        blocks.append(b1)
+        b1 = copy(b1)
+        b1[2] = 7
+        blocks.append(b1)
+        # odd case
+        if not even_only:
+            # format (det, oddity)
+            for s in [(1,2), (5,6), (1,6), (5,2), (7,0), (3,4)]:
+                b1 = copy(b)
+                b1[2] = s[0]
+                b1[3] = 1
+                b1[4] = s[1]
+                blocks.append(b1)
+    elif rk % 2 == 0:
+        # the even case has even rank
+        b1 = copy(b)
+        b1[3] = 0
+        b1[4] = 0
+        d = (-1)**(rk//2) % 8
+        for det in [d, d * (-3) % 8]:
+            b1 = copy(b1)
+            b1[2] = det
+            blocks.append(b1)
+        # odd case
+        if not even_only:
+            for s in [(1,2), (5,6), (1,6), (5,2), (7,0), (3,4)]:
+                b1 = copy(b)
+                b1[2] = s[0]*(-1)**(rk//2 -1) % 8
+                b1[3] = 1
+                b1[4] = s[1]
+                blocks.append(b1)
+            for s in [(1,4), (5,0)]:
+                b1 = copy(b)
+                b1[2] = s[0]*(-1)**(rk//2 - 2) % 8
+                b1[3] = 1
+                b1[4] = s[1]
+                blocks.append(b1)
+    elif rk % 2 == 1 and not even_only:
+        # odd case
+        for t in [1, 3, 5, 7]:
+            d = (-1)**(rk//2)*t % 8
+            for det in [d, -3*d % 8]:
+                b1 = copy(b)
+                b1[2] = det
+                b1[3] = 1
+                b1[4] = t
+                blocks.append(b1)
+    # convert ints to integers
+    return [[ZZ(i) for i in bl] for bl in blocks]
+
+
+def Genus(A, factored_determinant=None):
     r"""
     Given a nonsingular symmetric matrix `A`, return the genus of `A`.
 
     INPUT:
 
-    - ``A`` -- a symmetric matrix with coefficients in `\ZZ`
+    - ``A`` -- a symmetric matrix with integer coefficients
+
+    - ``factored_determinant`` -- (default: ``None``) a factorization object
+      the factored determinant of ``A``
 
     OUTPUT:
 
@@ -51,9 +337,31 @@ def Genus(A):
         [1 2]
         Signature:  (2, 0)
         Genus symbol at 2:    [1^2]_2
-    """
-    return GenusSymbol_global_ring(A)
 
+        sage: A = Matrix(ZZ, 2, 2, [2,1,1,2])
+        sage: Genus(A, A.det().factor())
+        Genus of
+        [2 1]
+        [1 2]
+        Signature:  (2, 0)
+        Genus symbol at 2:    1^-2
+        Genus symbol at 3:     1^-1 3^-1
+    """
+    if factored_determinant is None:
+        D = A.determinant()
+        D = 2*D
+        D = D.factor()
+    else:
+        D = factored_determinant * 2
+    sig_pair = signature_pair_of_matrix(A)
+    local_symbols = []
+    for f in D:
+        p = f[0]
+        val = f[1]
+        symbol = p_adic_symbol(A, p, val = val)
+        G = Genus_Symbol_p_adic_ring(p, symbol)
+        local_symbols.append(G)
+    return GenusSymbol_global_ring(sig_pair, local_symbols, representative=A)
 
 def LocalGenusSymbol(A, p):
     r"""
@@ -105,7 +413,6 @@ def is_GlobalGenus(G):
     EXAMPLES::
 
         sage: from sage.quadratic_forms.genera.genus import is_GlobalGenus
-
         sage: A = Matrix(ZZ, 2, 2, [1,1,1,2])
         sage: G = Genus(A)
         sage: is_GlobalGenus(G)
@@ -438,7 +745,7 @@ def canonical_2_adic_reduction(genus_symbol_quintuple_list):
         Add an example where sign walking occurs!
     """
     # Protect the input from unwanted modification
-    genus_symbol_quintuple_list = copy.deepcopy(genus_symbol_quintuple_list)
+    genus_symbol_quintuple_list = deepcopy(genus_symbol_quintuple_list)
     canonical_symbol = genus_symbol_quintuple_list
     # Canonical determinants:
     for i in range(len(genus_symbol_quintuple_list)):
@@ -1377,7 +1684,7 @@ class Genus_Symbol_p_adic_ring(object):
             sage: type(G2.symbol_tuple_list())
             <... 'list'>
         """
-        return copy.deepcopy(self._symbol)
+        return deepcopy(self._symbol)
 
     def number_of_blocks(self):
         r"""
@@ -1622,15 +1929,22 @@ class GenusSymbol_global_ring(object):
 
     INPUT:
 
-    - ``A`` -- a symmetric matrix with integer coefficients
-    - ``max_elem_divisors`` -- the input precision for the valuation of a
-      maximal p-elementary divisor. (OPTIONAL)
+    - ``signature_pair`` -- a tuple of two non-negative integers
+
+    - ``local_symbols`` -- a list of :class:`Genus_Symbol_p_adic_ring`` instances
+      sorted by their primes
+
+    - ``representative`` -- (default: ``None``) integer symmetric matrix;
+      the gram matrix of a representative of this genus
+
+    - ``check`` -- (default: ``True``) a boolean; checks the input
 
     EXAMPLES::
 
-        sage: from sage.quadratic_forms.genera.genus import GenusSymbol_global_ring
-        sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
-        sage: G = GenusSymbol_global_ring(A); G
+        sage: from sage.quadratic_forms.genera.genus import GenusSymbol_global_ring, LocalGenusSymbol
+        sage: A = matrix.diagonal(ZZ, [2,4,6,8])
+        sage: local_symbols = [LocalGenusSymbol(A, p) for p in (2*A.det()).prime_divisors()]
+        sage: G = GenusSymbol_global_ring((4,0),local_symbols, representative=A);G
         Genus of
         [2 0 0 0]
         [0 4 0 0]
@@ -1639,36 +1953,45 @@ class GenusSymbol_global_ring(object):
         Signature:  (4, 0)
         Genus symbol at 2:    [2^-2 4^1 8^1]_6
         Genus symbol at 3:     1^3 3^-1
+
+    .. SEEALSO::
+
+        :func:`Genus` to create a :class:`GenusSymbol_global_ring` from the gram matrix directly.
     """
 
-    def __init__(self, A, max_elem_divisors=None):
+    def __init__(self, signature_pair, local_symbols, representative=None, check=True):
         r"""
-        Initialize a global genus symbol from a non-degenerate
-        integral gram matrix (and possibly information about its
-        largest elementary divisors).
-
+        Initialize a global genus symbol.
 
         EXAMPLES::
 
-            sage: from sage.quadratic_forms.genera.genus import GenusSymbol_global_ring
+            sage: from sage.quadratic_forms.genera.genus import Genus
 
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
-            sage: G = GenusSymbol_global_ring(A)
+            sage: G = Genus(A)
             sage: G == loads(dumps(G))
             True
         """
-        D = A.determinant()
-        D = 2*D
-        prms = [ p[0] for p in D.factor() ]
-        self._representative = A
-        self._signature = signature_pair_of_matrix(A)
-        self._local_symbols = []
-        for p in prms:
-            if max_elem_divisors is None:
-                val = D.valuation(p)
-            symbol = p_adic_symbol(A, p, val = val)
-            G = Genus_Symbol_p_adic_ring(p, symbol)
-            self._local_symbols.append(G)
+        if check:
+            if not all(isinstance(sym, Genus_Symbol_p_adic_ring) for sym in local_symbols):
+                raise TypeError("local symbols must be a list of local genus symbols")
+            n = signature_pair[0] + signature_pair[1]
+            if not all(sym.dimension()==n for sym in local_symbols):
+                raise TypeError("all local symbols must be of the same dimension")
+            if representative is not None:
+                if not representative.is_symmetric():
+                    raise ValueError("the representative must be a symmetric matrix")
+            # check the symbols are sorted increasing by their prime
+            if any(local_symbols[i].prime() >= local_symbols[i+1].prime()
+                   for i in range(len(local_symbols)-1)):
+                raise ValueError("the local symbols must be sorted by their primes")
+            if local_symbols[0].prime() != 2:
+                raise ValueError("the first symbol must be 2-adic")
+
+
+        self._representative = representative
+        self._signature = signature_pair
+        self._local_symbols = local_symbols
 
 
     def __repr__(self):
@@ -1681,9 +2004,9 @@ class GenusSymbol_global_ring(object):
 
         EXAMPLES::
 
-            sage: from sage.quadratic_forms.genera.genus import GenusSymbol_global_ring
+            sage: from sage.quadratic_forms.genera.genus import Genus
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
-            sage: GS = GenusSymbol_global_ring(A)
+            sage: GS = Genus(A)
             sage: GS
             Genus of
             [2 0 0 0]
@@ -1695,7 +2018,7 @@ class GenusSymbol_global_ring(object):
             Genus symbol at 3:     1^3 3^-1
 
             sage: A2 = Matrix(ZZ,2,2,[2,-1,-1,2])
-            sage: GenusSymbol_global_ring(A2)
+            sage: Genus(A2)
             Genus of
             [ 2 -1]
             [-1  2]
@@ -1753,12 +2076,12 @@ class GenusSymbol_global_ring(object):
 
         EXAMPLES::
 
-            sage: from sage.quadratic_forms.genera.genus import GenusSymbol_global_ring
+            sage: from sage.quadratic_forms.genera.genus import Genus
 
             sage: A1 = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
-            sage: GS1 = GenusSymbol_global_ring(A1)
+            sage: GS1 = Genus(A1)
             sage: A2 = DiagonalQuadraticForm(ZZ, [1,2,3,5]).Hessian_matrix()
-            sage: GS2 = GenusSymbol_global_ring(A2)
+            sage: GS2 = Genus(A2)
 
             sage: GS1 == GS2
             False
@@ -1809,12 +2132,12 @@ class GenusSymbol_global_ring(object):
 
         EXAMPLES::
 
-            sage: from sage.quadratic_forms.genera.genus import GenusSymbol_global_ring
+            sage: from sage.quadratic_forms.genera.genus import Genus
 
             sage: A1 = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
-            sage: GS1 = GenusSymbol_global_ring(A1)
+            sage: GS1 = Genus(A1)
             sage: A2 = DiagonalQuadraticForm(ZZ, [1,2,3,5]).Hessian_matrix()
-            sage: GS2 = GenusSymbol_global_ring(A2)
+            sage: GS2 = Genus(A2)
 
             sage: GS1 != GS2
             True
@@ -1966,7 +2289,7 @@ class GenusSymbol_global_ring(object):
             [Genus symbol at 2:    [2^-2 4^1 8^1]_4,
              Genus symbol at 3:     1^-3 3^-1]
         """
-        return copy.deepcopy(self._local_symbols)
+        return deepcopy(self._local_symbols)
 
 
 def _gram_from_jordan_block(p, block, discr_form=False):

@@ -223,7 +223,7 @@ author, which contains more than 190000 sequences of integers::
 
     sage: oeis([1,1,2,5,14])                            # optional -- internet
     0: A000108: Catalan numbers: C(n) = binomial(2n,n)/(n+1) = (2n)!/(n!(n+1)!). Also called Segner numbers.
-    1: A120588: G.f. satisfies: 3*A(x) = 2 + x + A(x)^2, with a(0) = 1.
+    1: ...
     2: ...
 
 The result suggests that the trees are counted by one of the most famous
@@ -659,7 +659,7 @@ which is roughly `2\cdot 10^{19728}`::
 
 or ask for its `237102124`-th element::
 
-    sage: S.unrank(237102123)
+    sage: S.unrank(237102123) # random print output
     {{{2, 4}, {1, 4}, {}, {1, 3, 4}, {1, 2, 4}, {4}, {2, 3}, {1, 3}, {2}},
       {{1, 3}, {2, 4}, {1, 2, 4}, {}, {3, 4}}}
 
@@ -673,10 +673,15 @@ result of ``len`` be an integer of type ``int``; this could cause
 overflows, and would not permit the return of {Infinity} for infinite
 sets::
 
-    sage: len(S)
+    sage: len(S)  #py2
     Traceback (most recent call last):
     ...
     OverflowError: Python int too large to convert to C long
+
+    sage: len(S)  #py3
+    Traceback (most recent call last):
+    ...
+    OverflowError: cannot fit 'int' into an index-sized integer
 
 Partitions of integers
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -832,7 +837,7 @@ Permutations::
 Set partitions::
 
     sage: C = SetPartitions(["a", "b", "c"])
-    sage: C
+    sage: C # random print output
     Set partitions of {'a', 'c', 'b'}
     sage: C.cardinality()
     5
@@ -1264,7 +1269,7 @@ or select only the elements in positions 2, 3, and 4 (analogue of
 ``l[1:4]``)::
 
     sage: import itertools
-    sage: list(itertools.islice(Permutations(3), 1, 4))
+    sage: list(itertools.islice(Permutations(3), int(1), int(4)))
     [[1, 3, 2], [2, 1, 3], [2, 3, 1]]
 
 The itertools methods ``imap`` and ``ifilter`` have been renamed to

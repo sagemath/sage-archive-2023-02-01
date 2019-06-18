@@ -282,8 +282,7 @@ in the Maxima package "orthopoly" and was written by Barton
 Willis of the University of Nebraska at Kearney.
 
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #                     2006 David Joyner <wdj@usna.edu>
 #                     2010 Stefan Reiterer <maldun.finsterschreck@gmail.com>
@@ -297,27 +296,24 @@ Willis of the University of Nebraska at Kearney.
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from six.moves import range
 
 import warnings
 
 from sage.misc.latex import latex
-from sage.misc.sage_eval import sage_eval
 from sage.rings.all import ZZ, QQ, RR, CC
-from sage.rings.polynomial.polynomial_element import Polynomial
-from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.real_mpfr import is_RealField
 from sage.rings.complex_field import is_ComplexField
 
-
-from sage.symbolic.ring import SR, is_SymbolicVariable
 from sage.symbolic.function import BuiltinFunction, GinacFunction
 from sage.symbolic.expression import Expression
+from sage.symbolic.all import SR
 from sage.functions.other import factorial, binomial
 from sage.structure.all import parent
+
 
 class OrthogonalFunction(BuiltinFunction):
     """
@@ -602,7 +598,7 @@ class Func_chebyshev_T(ChebyshevFunction):
         Values known for special values of x.
         For details see [AS1964]_ 22.4 (p. 777)
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: var('n')
             n
@@ -810,12 +806,12 @@ class Func_chebyshev_T(ChebyshevFunction):
             sage: z2 = numpy.array([[1,2],[1,2]])
             sage: z3 = numpy.array([1,2,3.])
             sage: chebyshev_T(1,z)
-            array([ 1.,  2.])
+            array([1., 2.])
             sage: chebyshev_T(1,z2)
-            array([[ 1.,  2.],
-                   [ 1.,  2.]])
+            array([[1., 2.],
+                   [1., 2.]])
             sage: chebyshev_T(1,z3)
-            array([ 1.,  2.,  3.])
+            array([1., 2., 3.])
             sage: chebyshev_T(z,0.1)
             array([ 0.1 , -0.98])
         """
@@ -1095,12 +1091,12 @@ class Func_chebyshev_U(ChebyshevFunction):
             sage: z2 = numpy.array([[1,2],[1,2]])
             sage: z3 = numpy.array([1,2,3.])
             sage: chebyshev_U(1,z)
-            array([ 2.,  4.])
+            array([2., 4.])
             sage: chebyshev_U(1,z2)
-            array([[ 2.,  4.],
-                   [ 2.,  4.]])
+            array([[2., 4.],
+                   [2., 4.]])
             sage: chebyshev_U(1,z3)
-            array([ 2.,  4.,  6.])
+            array([2., 4., 6.])
             sage: chebyshev_U(z,0.1)
             array([ 0.2 , -0.96])
         """

@@ -21,7 +21,6 @@ from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.categories.map import Map
 from sage.categories.fields import Fields
 _Fields = Fields()
-from sage.categories.homset import End
 from sage.categories.number_fields import NumberFields
 from sage.misc.all import latex
 from sage.structure.category_object import normalize_names
@@ -53,7 +52,8 @@ def is_AffineSpace(x):
     """
     return isinstance(x, AffineSpace_generic)
 
-def AffineSpace(n, R=None, names='x'):
+def AffineSpace(n, R=None, names='x', ambient_projective_space=None,
+                default_embedding_index=None):
     r"""
     Return affine space of dimension ``n`` over the ring ``R``.
 
@@ -103,12 +103,17 @@ def AffineSpace(n, R=None, names='x'):
         else:
             raise TypeError("you must specify the variables names of the coordinate ring")
     names = normalize_names(n, names)
+    if default_embedding_index is not None and ambient_projective_space is None:
+        from sage.schemes.projective.projective_space import ProjectiveSpace
+        ambient_projective_space = ProjectiveSpace(n, R)
     if R in _Fields:
         if is_FiniteField(R):
-            return AffineSpace_finite_field(n, R, names)
+            return AffineSpace_finite_field(n, R, names,
+                                            ambient_projective_space, default_embedding_index)
         else:
-            return AffineSpace_field(n, R, names)
-    return AffineSpace_generic(n, R, names)
+            return AffineSpace_field(n, R, names,
+                                     ambient_projective_space, default_embedding_index)
+    return AffineSpace_generic(n, R, names, ambient_projective_space, default_embedding_index)
 
 
 class AffineSpace_generic(AmbientSpace, AffineScheme):
@@ -151,7 +156,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         sage: AffineSpace(0)
         Affine Space of dimension 0 over Integer Ring
     """
-    def __init__(self, n, R, names):
+    def __init__(self, n, R, names, ambient_projective_space, default_embedding_index):
         """
         EXAMPLES::
 
@@ -161,6 +166,13 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         AmbientSpace.__init__(self, n, R)
         self._assign_names(names)
         AffineScheme.__init__(self, self.coordinate_ring(), R)
+
+        index = default_embedding_index
+        if index is not None:
+            index = int(index)
+
+        self._default_embedding_index = index
+        self._ambient_projective_space = ambient_projective_space
 
     def __iter__(self):
         """
@@ -308,7 +320,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         TESTS::
 
             sage: AffineSpace(3, Zp(5), 'y')._latex_()
-            '\\mathbf{A}_{\\ZZ_{5}}^3'
+            '\\mathbf{A}_{\\Bold{Z}_{5}}^3'
         """
         return "\\mathbf{A}_{%s}^%s"%(latex(self.base_ring()), self.dimension_relative())
 
@@ -431,7 +443,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
 
             sage: A.<x, y> = AffineSpace(2, ZZ)
             sage: A._latex_generic_point([y-x^2])
-            '\\left(- x^{2} + y\\right)'
+            '\\left(-x^{2} + y\\right)'
             sage: A._latex_generic_point()
             '\\left(x, y\\right)'
         """
@@ -713,9 +725,9 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         """
         n = self.dimension_relative()
         if i is None:
-            try:
+            if self._default_embedding_index is not None:
                 i = self._default_embedding_index
-            except AttributeError:
+            else:
                 i = int(n)
         else:
             i = int(i)
@@ -733,8 +745,11 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
 
         #if no i-th embedding exists, we may still be here with PP==None
         if PP is None:
-            from sage.schemes.projective.projective_space import ProjectiveSpace
-            PP = ProjectiveSpace(n, self.base_ring())
+            if self._ambient_projective_space is not None:
+                PP = self._ambient_projective_space
+            else:
+                from sage.schemes.projective.projective_space import ProjectiveSpace
+                PP = ProjectiveSpace(n, self.base_ring())
         elif PP.dimension_relative() != n:
             raise ValueError("projective Space must be of dimension %s"%(n))
 
@@ -749,7 +764,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         PP.affine_patch(i,self)
         return phi
 
-    def subscheme(self, X):
+    def subscheme(self, X, **kwds):
         """
         Return the closed subscheme defined by ``X``.
 
@@ -792,7 +807,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             0
         """
         from sage.schemes.affine.affine_subscheme import AlgebraicScheme_subscheme_affine
-        return AlgebraicScheme_subscheme_affine(self, X)
+        return AlgebraicScheme_subscheme_affine(self, X, **kwds)
 
     def _an_element_(self):
         r"""
@@ -924,7 +939,7 @@ class AffineSpace_field(AffineSpace_generic):
         Bound check  is strict for the rational field.
         Requires this space to be affine space over a number field. Uses the
         Doyle-Krumm algorithm 4 (algorithm 5 for imaginary quadratic) for
-        computing algebraic numbers up to a given height [Doyle-Krumm]_.
+        computing algebraic numbers up to a given height [DK2013]_.
 
         The algorithm requires floating point arithmetic, so the user is
         allowed to specify the precision for such calculations.

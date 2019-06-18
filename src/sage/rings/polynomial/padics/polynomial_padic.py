@@ -28,6 +28,7 @@ import re
 
 from sage.rings.padics.precision_error import PrecisionError
 from sage.rings.polynomial.polynomial_element import Polynomial
+from sage.structure.factorization import Factorization
 
 
 class Polynomial_padic(Polynomial):
@@ -193,6 +194,12 @@ class Polynomial_padic(Polynomial):
             ...
             PrecisionError: p-adic factorization not well-defined since the discriminant is zero up to the requestion p-adic precision
 
+        An example of factoring a constant polynomial (see :trac:`26669`)::
+
+            sage: R.<x> = Qp(5)[]
+            sage: R(2).factor()
+            2 + O(5^20)
+
         More examples over `\ZZ_p`::
 
             sage: R.<w> = PolynomialRing(Zp(5, prec=6, type = 'capped-abs', print_mode = 'val-unit'))
@@ -220,9 +227,19 @@ class Polynomial_padic(Polynomial):
             sage: f = 1926*T^2 + 312*T + 387
             sage: f.factor()
             (3^2 + 2*3^3 + 2*3^4 + 3^5 + 2*3^6 + O(3^22)) * ((1 + O(3^19))*T + 2*3^-1 + 3 + 3^2 + 2*3^5 + 2*3^6 + 2*3^7 + 3^8 + 3^9 + 2*3^11 + 3^15 + 3^17 + O(3^19)) * ((1 + O(3^20))*T + 2*3 + 3^2 + 3^3 + 3^5 + 2*3^6 + 2*3^7 + 3^8 + 3^10 + 3^11 + 2*3^12 + 2*3^14 + 2*3^15 + 2*3^17 + 2*3^18 + O(3^20))
+
+        Check that :trac:`24065` is fixed::
+
+            sage: R = Zp(2, type='fixed-mod', prec=3)
+            sage: P.<x> = R[]
+            sage: ((1 + 2)*x + (1 + 2)*x^2).factor()
+            (1 + 2) * (x + 1) * x
         """
         if self == 0:
             raise ArithmeticError("factorization of {!r} is not defined".format(self))
+        elif self.is_constant():
+            return Factorization((), self.constant_coefficient())
+
         # Scale self such that 0 is the lowest valuation
         # amongst the coefficients
         try:
@@ -337,5 +354,4 @@ def _pari_padic_factorization_to_sage(G, R, leading_coeff):
             pols.append(R(p))
             exps.append(c)
 
-    from sage.structure.factorization import Factorization
     return Factorization(zip(pols, exps), leading_coeff)

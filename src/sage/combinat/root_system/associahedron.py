@@ -38,8 +38,8 @@ def Associahedron(cartan_type):
     The associahedron of type `A_n` is one way to realize the classical
     associahedron as defined in the :wikipedia:`Associahedron`.
 
-    A polytopal realization of the associahedron can be found in [CFZ]_. The
-    implementation is based on [CFZ]_, Theorem 1.5, Remark 1.6, and Corollary
+    A polytopal realization of the associahedron can be found in [CFZ2002]_. The
+    implementation is based on [CFZ2002]_, Theorem 1.5, Remark 1.6, and Corollary
     1.9.
 
     EXAMPLES::
@@ -61,7 +61,7 @@ def Associahedron(cartan_type):
         sage: polytopes.associahedron(['B',2])
         Generalized associahedron of type ['B', 2] with 6 vertices
 
-    The two pictures of [CFZ]_ can be recovered with::
+    The two pictures of [CFZ2002]_ can be recovered with::
 
         sage: Asso = polytopes.associahedron(['A',3]); Asso
         Generalized associahedron of type ['A', 3] with 14 vertices

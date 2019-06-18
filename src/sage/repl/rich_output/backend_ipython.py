@@ -411,9 +411,9 @@ class BackendIPythonCommandline(BackendIPython):
             sage: backend.threejs_offline_scripts()
             '...<script ...</script>...'
         """
-        from sage.env import SAGE_SHARE
+        from sage.env import THREEJS_DIR
 
-        scripts = [os.path.join(SAGE_SHARE, 'threejs', script)
+        scripts = [os.path.join(THREEJS_DIR, script)
                    for script in ['three.min.js', 'OrbitControls.js']]
 
         if sys.platform == 'cygwin':

@@ -209,10 +209,21 @@ class SkewTableau(ClonableList):
             Traceback (most recent call last):
             ...
             TypeError: a skew tableau cannot have an empty list for a row
+
+            sage: s = SkewTableau([[1, None, None],[2, None],[3]])
+            Traceback (most recent call last):
+            ...
+            TypeError: not a valid skew tableau
         """
         for row in self:
             if not row:
                 raise TypeError("a skew tableau cannot have an empty list for a row")
+            inside = False
+            for x in row:
+                if x is not None:
+                    inside = True
+                elif inside:
+                    raise TypeError('not a valid skew tableau')
 
     def _repr_(self):
         """

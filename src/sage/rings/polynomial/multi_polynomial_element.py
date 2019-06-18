@@ -926,7 +926,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         if self.is_unit():
             if len(k) != 1:
                 raise NotImplementedError
-            return ~d[k[0]]
+            return d[k[0]].inverse_of_unit()
         raise ArithmeticError("is not a unit")
 
     def is_homogeneous(self):

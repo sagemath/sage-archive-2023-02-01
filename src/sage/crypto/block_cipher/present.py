@@ -36,6 +36,15 @@ Have a look at the used round keys::
       ...
      '6dab31744f41d700']
 
+Tweak around with the cipher::
+
+    sage: from sage.crypto.sbox import SBox
+    sage: cipher = PRESENT(rounds=1, doLastLinearLayer=False)
+    sage: cipher.sbox = SBox(range(16))
+    sage: cipher.keySchedule = lambda x: [0, 0]  # return the 0 keys as round keys
+    sage: cipher.encrypt(plaintext=0x1234, key=0x0).hex()
+    '1234'
+
 AUTHORS:
 
 - Lukas Stennes (2019-02-01): initial version

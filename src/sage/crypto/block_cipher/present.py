@@ -52,9 +52,12 @@ AUTHORS:
 # ****************************************************************************
 from sage.structure.sage_object import SageObject
 from sage.rings.integer_ring import ZZ
+from sage.rings.integer import Integer
 from sage.modules.free_module_element import vector
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.crypto.sboxes import PRESENT as PRESENTSBOX
+from sage.modules.vector_mod2_dense import Vector_mod2_dense
+from six import integer_types
 
 
 def _smallscale_present_linearlayer(nsboxes=16):
@@ -445,8 +448,12 @@ class PRESENT(SageObject):
         | P(i) | 12 | 28 | 44 | 60 | 13 | 29 | 45 | 61 | 14 | 30 | 46 | 62 | 15 | 31 | 47 | 63 |
         +------+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
         """
-        state, inputType = _convert_to_vector(P, 64)
-        K, _ = _convert_to_vector(K, self._keySchedule._keysize)
+        if isinstance(P, (list, tuple, Vector_mod2_dense)):
+            inputType = 'vector'
+        elif isinstance(P, integer_types + (Integer,)):
+            inputType = 'integer'
+        state = _convert_to_vector(P, 64)
+        K = _convert_to_vector(K, self._keySchedule._keysize)
         roundKeys = self._keySchedule(K)
         for r, K in enumerate(roundKeys[:self._rounds]):
             state = state + K
@@ -502,8 +509,12 @@ class PRESENT(SageObject):
             sage: present.decrypt(c4, k4) == p4
             True
        """
-        state, inputType = _convert_to_vector(C, 64)
-        K, _ = _convert_to_vector(K, self._keySchedule._keysize)
+        if isinstance(C, (list, tuple, Vector_mod2_dense)):
+            inputType = 'vector'
+        elif isinstance(C, integer_types + (Integer,)):
+            inputType = 'integer'
+        state = _convert_to_vector(C, 64)
+        K = _convert_to_vector(K, self._keySchedule._keysize)
         roundKeys = self._keySchedule(K)
         state = state + roundKeys[self._rounds]
         for r, K in enumerate(roundKeys[:self._rounds][::-1]):
@@ -677,7 +688,11 @@ class PRESENT_KS(SageObject):
             pass a ``master_key`` value on initialisation. Otherwise you can
             omit ``master_key`` and pass a key when you call the object.
         """
-        K, inputType = _convert_to_vector(K, self._keysize)
+        if isinstance(K, (list, tuple, Vector_mod2_dense)):
+            inputType = 'vector'
+        elif isinstance(K, integer_types + (Integer,)):
+            inputType = 'integer'
+        K = _convert_to_vector(K, self._keysize)
         roundKeys = []
         if self._keysize == 80:
             for i in range(1, self._rounds+1):
@@ -786,26 +801,24 @@ def _convert_to_vector(I, L):
 
     - ``L`` -- integer; the desired bit length of the ouput
 
-    OUTPUT: a tuple of
+    OUTPUT:
 
     - the ``L``-bit vector representation of ``I``
-
-    - a flag indicating the input type. Either ``'integer'`` or ``'vector'``.
 
     EXAMPLES::
 
         sage: from sage.crypto.block_cipher.present import _convert_to_vector
         sage: _convert_to_vector(0x1F, 8)
-        ((1, 1, 1, 1, 1, 0, 0, 0), 'integer')
+        (1, 1, 1, 1, 1, 0, 0, 0)
         sage: v = vector(GF(2), 4, [1,0,1,0])
         sage: _convert_to_vector(v, 4)
-        ((1, 0, 1, 0), 'vector')
+        (1, 0, 1, 0)
     """
     try:
         state = vector(GF(2), L, ZZ(I).digits(2, padto=L))
-        return state, 'integer'
+        return state
     except TypeError:
         # ignore the error and try list-like types
         pass
     state = vector(GF(2), L, ZZ(list(I), 2).digits(2, padto=L))
-    return state, 'vector'
+    return state

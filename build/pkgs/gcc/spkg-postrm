@@ -1,1 +1,3 @@
-spkg-postinst
+# -*- mode: shell-script -*-
+
+. ./postinst-postrm

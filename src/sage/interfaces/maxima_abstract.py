@@ -1226,12 +1226,19 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
             [  1   y y^2]
             [  1 1/2 1/4]
 
+        TESTS:
+
         Check if :trac:`7661` is fixed::
 
             sage: var('delta')
             delta
             sage: (2*delta).simplify()
             2*delta
+
+        Check conversion of Booleans (:trac:`28705`)::
+
+            sage: maxima('true')._sage_(), maxima('false')._sage_()
+            (True, False)
         """
         import sage.calculus.calculus as calculus
         return calculus.symbolic_expression_from_maxima_string(self.name(),

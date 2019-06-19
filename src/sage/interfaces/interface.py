@@ -268,6 +268,14 @@ class Interface(WithEqualityById, ParentWithBase):
             sage: a = gp(2); gp(a) is a
             True
 
+        TESTS:
+
+        Check conversion of Booleans (:trac:`28705`)::
+
+            sage: giac(True)
+            true
+            sage: maxima(True)
+            true
         """
         cls = self._object_class()
 
@@ -325,7 +333,9 @@ class Interface(WithEqualityById, ParentWithBase):
             return self(x._interface_init_())
 
     def _coerce_impl(self, x, use_special=True):
-        if isinstance(x, integer_types):
+        if isinstance(x, bool):
+            return self(self._true_symbol() if x else self._false_symbol())
+        elif isinstance(x, integer_types):
             import sage.rings.all
             return self(sage.rings.all.Integer(x))
         elif isinstance(x, float):

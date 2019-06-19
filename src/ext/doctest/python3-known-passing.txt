@@ -4,6 +4,7 @@ src/sage/arith/
 src/sage/calculus/
 src/sage/categories/
 src/sage/coding/
+src/sage/combinat/cluster_algebra_quiver/
 src/sage/combinat/designs/
 src/sage/combinat/posets/
 src/sage/combinat/rigged_configurations/
@@ -13,12 +14,13 @@ src/sage/combinat/words/
 src/sage/data_structures/
 src/sage/databases/
 src/sage/docs/
+src/sage/dynamics/
 src/sage/features/
 src/sage/finance/
+src/sage/functions/
 src/sage/game_theory/
 src/sage/games/
-src/sage/groups/lie_gps/
-src/sage/groups/matrix_gps/
+src/sage/groups/
 src/sage/homology/
 src/sage/interacts/
 src/sage/knots/
@@ -40,6 +42,7 @@ src/sage/rings/asymptotic/
 src/sage/rings/function_field/
 src/sage/rings/number_field/
 src/sage/rings/padics/
+src/sage/rings/valuation/
 src/sage/sandpiles/
 src/sage/sat/
 src/sage/schemes/

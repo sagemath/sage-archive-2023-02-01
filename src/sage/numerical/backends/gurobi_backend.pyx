@@ -751,7 +751,7 @@ cdef class GurobiBackend(GenericBackend):
 
         check(self.env,GRBgetdblattr(self.model, "ObjVal", <double* >p_value))
 
-        return p_value[0] + self.obj_constant_term
+        return p_value[0] + <double>self.obj_constant_term
 
     cpdef get_variable_value(self, int variable):
         """

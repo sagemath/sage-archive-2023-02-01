@@ -511,7 +511,7 @@ class RingClassField(SageObject):
 
             sage: E = EllipticCurve('389a'); K = E.heegner_point(-7,5).ring_class_field()
             sage: K.quadratic_field()
-            Number Field in sqrt_minus_7 with defining polynomial x^2 + 7
+            Number Field in sqrt_minus_7 with defining polynomial x^2 + 7 with sqrt_minus_7 = 2.645751311064591?*I
         """
         D   = self.__D
         var = 'sqrt_minus_%s'%(-D)
@@ -772,11 +772,11 @@ class GaloisGroup(SageObject):
             sage: Kc.absolute_degree()
             12
             sage: G = Kc.galois_group(K); G
-            Galois group of Ring class field extension of QQ[sqrt(-7)] of conductor 5 over Number Field in sqrt_minus_7 with defining polynomial x^2 + 7
+            Galois group of Ring class field extension of QQ[sqrt(-7)] of conductor 5 over Number Field in sqrt_minus_7 with defining polynomial x^2 + 7 with sqrt_minus_7 = 2.645751311064591?*I
             sage: G.cardinality()
             6
             sage: G.base_field()
-            Number Field in sqrt_minus_7 with defining polynomial x^2 + 7
+            Number Field in sqrt_minus_7 with defining polynomial x^2 + 7 with sqrt_minus_7 = 2.645751311064591?*I
             sage: G = Kc.galois_group(Kc); G
             Galois group of Ring class field extension of QQ[sqrt(-7)] of conductor 5 over Ring class field extension of QQ[sqrt(-7)] of conductor 5
             sage: G.cardinality()
@@ -1855,12 +1855,12 @@ class HeegnerPoint(SageObject):
 
             sage: x = heegner_point(37,-7,5)
             sage: x.quadratic_field()
-            Number Field in sqrt_minus_7 with defining polynomial x^2 + 7
+            Number Field in sqrt_minus_7 with defining polynomial x^2 + 7 with sqrt_minus_7 = 2.645751311064591?*I
 
 
             sage: E = EllipticCurve('37a'); P = E.heegner_point(-40)
             sage: P.quadratic_field()
-            Number Field in sqrt_minus_40 with defining polynomial x^2 + 40
+            Number Field in sqrt_minus_40 with defining polynomial x^2 + 40 with sqrt_minus_40 = 6.324555320336759?*I
             sage: P.quadratic_field() is P.quadratic_field()
             True
             sage: type(P.quadratic_field())
@@ -1877,13 +1877,13 @@ class HeegnerPoint(SageObject):
         EXAMPLES::
 
             sage: heegner_point(389,-7,5).quadratic_order()
-            Order in Number Field in sqrt_minus_7 with defining polynomial x^2 + 7
+            Order in Number Field in sqrt_minus_7 with defining polynomial x^2 + 7 with sqrt_minus_7 = 2.645751311064591?*I
             sage: heegner_point(389,-7,5).quadratic_order().basis()
             [1, 5*sqrt_minus_7]
 
             sage: E = EllipticCurve('37a'); P = E.heegner_point(-40,11)
             sage: P.quadratic_order()
-            Order in Number Field in sqrt_minus_40 with defining polynomial x^2 + 40
+            Order in Number Field in sqrt_minus_40 with defining polynomial x^2 + 40 with sqrt_minus_40 = 6.324555320336759?*I
             sage: P.quadratic_order().basis()
             [1, 11*sqrt_minus_40]
 
@@ -2103,7 +2103,7 @@ class HeegnerPoints_level_disc(HeegnerPoints):
         sage: H.discriminant()
         -7
         sage: H.quadratic_field()
-        Number Field in sqrt_minus_7 with defining polynomial x^2 + 7
+        Number Field in sqrt_minus_7 with defining polynomial x^2 + 7 with sqrt_minus_7 = 2.645751311064591?*I
         sage: H.kolyvagin_conductors()
         [1, 3, 5, 13, 15, 17, 19, 31, 39, 41]
 
@@ -2192,7 +2192,7 @@ class HeegnerPoints_level_disc(HeegnerPoints):
 
             sage: E = EllipticCurve('389a'); K = E.heegner_point(-7,5).ring_class_field()
             sage: K.quadratic_field()
-            Number Field in sqrt_minus_7 with defining polynomial x^2 + 7
+            Number Field in sqrt_minus_7 with defining polynomial x^2 + 7 with sqrt_minus_7 = 2.645751311064591?*I
         """
         D   = self.__D
         var = 'sqrt_minus_%s'%(-D)
@@ -2341,7 +2341,7 @@ class HeegnerPoints_level_disc_cond(HeegnerPoints_level, HeegnerPoints_level_dis
         (147, 631)
 
         sage: H.quadratic_field()
-        Number Field in sqrt_minus_7 with defining polynomial x^2 + 7
+        Number Field in sqrt_minus_7 with defining polynomial x^2 + 7 with sqrt_minus_7 = 2.645751311064591?*I
         sage: H.ring_class_field()
         Ring class field extension of QQ[sqrt(-7)] of conductor 5
 
@@ -2631,11 +2631,11 @@ class HeegnerPointOnX0N(HeegnerPoint):
         sage: x.discriminant()
         -7
         sage: x.quadratic_field()
-        Number Field in sqrt_minus_7 with defining polynomial x^2 + 7
+        Number Field in sqrt_minus_7 with defining polynomial x^2 + 7 with sqrt_minus_7 = 2.645751311064591?*I
         sage: x.quadratic_form()
         37*x^2 + 11*x*y + 2*y^2
         sage: x.quadratic_order()
-        Order in Number Field in sqrt_minus_7 with defining polynomial x^2 + 7
+        Order in Number Field in sqrt_minus_7 with defining polynomial x^2 + 7 with sqrt_minus_7 = 2.645751311064591?*I
         sage: x.tau()
         5/74*sqrt_minus_7 - 11/74
         sage: loads(dumps(x)) == x
@@ -5162,7 +5162,7 @@ class HeegnerQuatAlg(SageObject):
             sage: N = 37; D = -7; ell = 17; c = 41; p = 3
             sage: H = heegner_points(N).reduce_mod(ell)
             sage: H.galois_group_over_quadratic_field(D, c)
-            Galois group of Ring class field extension of QQ[sqrt(-7)] of conductor 41 over Number Field in sqrt_minus_7 with defining polynomial x^2 + 7
+            Galois group of Ring class field extension of QQ[sqrt(-7)] of conductor 41 over Number Field in sqrt_minus_7 with defining polynomial x^2 + 7 with sqrt_minus_7 = 2.645751311064591?*I
 
         """
         Kc = heegner_points(self.level(), D, c).ring_class_field()
@@ -5186,7 +5186,7 @@ class HeegnerQuatAlg(SageObject):
 
             sage: H = heegner_points(389).reduce_mod(5)
             sage: H.quadratic_field(-7)
-            Number Field in sqrt_minus_7 with defining polynomial x^2 + 7
+            Number Field in sqrt_minus_7 with defining polynomial x^2 + 7 with sqrt_minus_7 = 2.645751311064591?*I
         """
         Kc = heegner_points(self.level(), D, 1).ring_class_field()
         return Kc.quadratic_field()
@@ -5917,7 +5917,7 @@ class HeegnerQuatAlgEmbedding(SageObject):
 
             sage: H = heegner_points(11).reduce_mod(3); R = H.left_orders()[0]
             sage: H.optimal_embeddings(-7, 2, R)[0].domain()
-            Order in Number Field in a with defining polynomial x^2 + 7
+            Order in Number Field in a with defining polynomial x^2 + 7 with a = 2.645751311064591?*I
         """
         R, a = quadratic_order(self.__D, self.__c)
 
@@ -6046,9 +6046,11 @@ def quadratic_order(D, c, names='a'):
     EXAMPLES::
 
         sage: sage.schemes.elliptic_curves.heegner.quadratic_order(-7,3)
-        (Order in Number Field in a with defining polynomial x^2 + 7, 3*a)
+        (Order in Number Field in a with defining polynomial x^2 + 7 with a = 2.645751311064591?*I,
+         3*a)
         sage: sage.schemes.elliptic_curves.heegner.quadratic_order(-7,3,'alpha')
-        (Order in Number Field in alpha with defining polynomial x^2 + 7, 3*alpha)
+        (Order in Number Field in alpha with defining polynomial x^2 + 7 with alpha = 2.645751311064591?*I,
+         3*alpha)
     """
     K = QuadraticField(D, names)
     sqrtD = K.gen(0)

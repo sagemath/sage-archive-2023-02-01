@@ -1040,6 +1040,17 @@ cdef get_predecessors(BoostWeightedGraph g, result, int_to_v, directed, weight_t
     
     A dictionary of dictionaries ``pred`` such that ``pred[u][v]`` indicates 
     the predecessor  of `v` in the shortest path from `u` to `v`.
+
+    TESTS::
+
+        sage: from sage.graphs.base.boost_graph import johnson_shortest_paths
+        sage: g = Graph([(0,1,1),(1,2,2),(1,3,4),(2,3,1)], weighted=True)
+        sage: expected = {0: {0: None, 1: 0, 2: 1, 3: 2},
+        ....:             1: {0: 1, 1: None, 2: 1, 3: 2},
+        ....:             2: {0: 1, 1: 2, 2: None, 3: 2},
+        ....:             3: {0: 1, 1: 2, 2: 3, 3: None}}
+        sage: johnson_shortest_paths(g, distances=False, predecessors=True) == expected
+        True
     """
     cdef vector[pair[int, pair[int, double]]] edges
     sig_on()
@@ -1110,12 +1121,12 @@ cpdef johnson_shortest_paths(g, weight_function=None, distances=True, predecesso
          1: {0: 1, 1: 0, 2: 2, 3: 3},
          2: {0: 3, 1: 2, 2: 0, 3: 1},
          3: {0: 4, 1: 3, 2: 1, 3: 0}}
-        sage: g = graphs.Grid2dGraph(2,2)
-        sage: johnson_shortest_paths(g, distances=False, predecessors=True)
-        {(0, 0): {(0, 0): None, (0, 1): (0, 0), (1, 0): (0, 0), (1, 1): (1, 0)},
-         (0, 1): {(0, 0): (0, 1), (0, 1): None, (1, 0): (0, 0), (1, 1): (0, 1)},
-         (1, 0): {(0, 0): (1, 0), (0, 1): (0, 0), (1, 0): None, (1, 1): (1, 0)},
-         (1, 1): {(0, 0): (1, 0), (0, 1): (1, 1), (1, 0): (1, 1), (1, 1): None}}
+        sage: expected = {0: {0: None, 1: 0, 2: 1, 3: 2},
+        ....:             1: {0: 1, 1: None, 2: 1, 3: 2},
+        ....:             2: {0: 1, 1: 2, 2: None, 3: 2},
+        ....:             3: {0: 1, 1: 2, 2: 3, 3: None}}
+        sage: johnson_shortest_paths(g, distances=False, predecessors=True) == expected
+        True
 
     Directed graphs::
 
@@ -1265,12 +1276,12 @@ cpdef floyd_warshall_shortest_paths(g, weight_function=None, distances=True, pre
          1: {0: 1, 1: 0, 2: 2, 3: 3},
          2: {0: 3, 1: 2, 2: 0, 3: 1},
          3: {0: 4, 1: 3, 2: 1, 3: 0}}
-        sage: g = graphs.Grid2dGraph(2,2)
-        sage: floyd_warshall_shortest_paths(g, distances=False, predecessors=True)
-        {(0, 0): {(0, 0): None, (0, 1): (0, 0), (1, 0): (0, 0), (1, 1): (1, 0)},
-         (0, 1): {(0, 0): (0, 1), (0, 1): None, (1, 0): (0, 0), (1, 1): (0, 1)},
-         (1, 0): {(0, 0): (1, 0), (0, 1): (0, 0), (1, 0): None, (1, 1): (1, 0)},
-         (1, 1): {(0, 0): (1, 0), (0, 1): (1, 1), (1, 0): (1, 1), (1, 1): None}}
+        sage: expected = {0: {0: None, 1: 0, 2: 1, 3: 2},
+        ....:             1: {0: 1, 1: None, 2: 1, 3: 2},
+        ....:             2: {0: 1, 1: 2, 2: None, 3: 2},
+        ....:             3: {0: 1, 1: 2, 2: 3, 3: None}}
+        sage: floyd_warshall_shortest_paths(g, distances=False, predecessors=True) == expected
+        True
 
     Directed graphs::
 

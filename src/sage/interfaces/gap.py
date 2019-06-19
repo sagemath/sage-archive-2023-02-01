@@ -514,8 +514,8 @@ class Gap_generic(ExtraTabCompletion, Expect):
             RuntimeError: Error loading Gap package chevie. You may want to install gap_packages SPKG.
         """
         if verbose:
-            print("Loading GAP package {}" % pkg)
-        x = self.eval('LoadPackage("%s")'%pkg)
+            print("Loading GAP package {}".format(pkg))
+        x = self.eval('LoadPackage("{}")'.format(pkg))
         if x == 'fail':
             raise RuntimeError("Error loading Gap package "+str(pkg)+". "+
                                "You may want to install gap_packages SPKG.")

@@ -1420,7 +1420,7 @@ class GenericGraph(GenericGraph_pyx):
         Return a new ``NetworkX`` graph from the Sage graph.
 
         INPUT:
-        
+
         - ``weight_function`` -- function (default: ``None``); a function that
           takes as input an edge ``(u, v, l)`` and outputs its weight.
 
@@ -4721,7 +4721,7 @@ class GenericGraph(GenericGraph_pyx):
         if self.is_directed():
             raise NotImplementedError("not implemented for directed graphs")
         self._scream_if_not_simple()
-        
+
         if weight_function is not None:
             by_weight = True
         if weight_function is None and by_weight:
@@ -5855,6 +5855,21 @@ class GenericGraph(GenericGraph_pyx):
             ...
             NotImplementedError: the graph must be 3-vertex-connected
 
+        This also keeps track of edge labels::
+
+            sage: label_dict = {('000', '001'): 1, ('001', '101'): 2, ('101', '100'): 3, ('100', '000'): 4}
+            sage: g = graphs.CubeGraph(3)
+            sage: for e in label_dict:
+            ....:     g.set_edge_label(e[0], e[1], label_dict[e])
+            ....:
+            sage: gd = g.planar_dual()
+            sage: incident_labels = []
+            sage: for v in gd:
+            ....:     incident_labels.append(sorted([l for _, _, l in gd.edges_incident(v) if l]))
+            ....:
+            sage: sorted(incident_labels)
+            [[], [1], [1, 2, 3, 4], [2], [3], [4]]
+
         .. TODO::
 
             Implement the method for graphs that are not 3-vertex-connected,
@@ -5867,7 +5882,15 @@ class GenericGraph(GenericGraph_pyx):
             raise NotImplementedError("the graph must be 3-vertex-connected")
 
         from sage.graphs.graph import Graph
-        return Graph([[tuple(_) for _ in self.faces()], lambda f, g: not set([tuple(reversed(e)) for e in f]).isdisjoint(g)], loops=False)
+        from itertools import combinations
+        verts = [tuple(f) for f in self.faces()]
+        edges = []
+        for v1, v2 in combinations(verts, 2):
+            e = set([tuple(reversed(e)) for e in v1]).intersection(v2)
+            if e:
+                e = e.pop() # just one edge since self and its dual are simple
+                edges.append([v1, v2, self.edge_label(e[0], e[1])])
+        return Graph([verts, edges])
 
 
     ### Connectivity
@@ -6087,7 +6110,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = digraphs.RandomDirectedGNP(28, .3) # reduced from 30 to 28, cf. #9584
             sage: k = Integer(g.edge_connectivity())
             sage: arborescences = g.edge_disjoint_spanning_trees(k)  # long time (up to 15s on sage.math, 2011)
-            sage: all([a.is_directed_acyclic() for a in arborescences])  # long time
+            sage: all(a.is_directed_acyclic() for a in arborescences)  # long time
             True
             sage: all(a.is_connected() for a in arborescences)  # long time
             True
@@ -14500,7 +14523,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = graphs.RandomGNP(20,.3)
             sage: distances = g.distance_all_pairs()
-            sage: all([g.distance(0,v) == distances[0][v] for v in g])
+            sage: all(g.distance(0,v) == distances[0][v] for v in g)
             True
 
         .. SEEALSO::
@@ -15753,7 +15776,7 @@ class GenericGraph(GenericGraph_pyx):
           along with its edge labels are used to represent the path.
 
         EXAMPLES::
-        
+
             sage: eg1 = Graph({0:[1,2], 1:[4], 2:[3,4], 4:[5], 5:[6]})
             sage: eg1.all_paths(0,6)
             [[0, 1, 4, 5, 6], [0, 2, 4, 5, 6]]
@@ -15823,7 +15846,7 @@ class GenericGraph(GenericGraph_pyx):
             [[0, 1, 2]]
             sage: g.all_paths(0, 2, use_multiedges=True, report_edges=False, labels=True)
             [[0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]
-    
+
         TESTS:
 
         Starting and ending at the same vertex (see :trac:`13006`)::
@@ -15878,7 +15901,7 @@ class GenericGraph(GenericGraph_pyx):
             [[(0, 3), (3, 5)]]
             sage: G.all_paths(0, 5, report_edges=True, use_multiedges=True)
             [[(0, 3), (3, 5)], [(0, 3), (3, 5)]]
-            
+
         """
         if start not in self:
             raise LookupError("start vertex ({0}) is not a vertex of the graph".format(start))
@@ -15933,7 +15956,7 @@ class GenericGraph(GenericGraph_pyx):
                     act_path_iter.pop()
                 if not act_path:                 # there is no other vertex ...
                     done = True                  # ... so we are done
-        
+
         if report_edges and labels:
             path_with_labels = []
             for p in all_paths:
@@ -17516,7 +17539,7 @@ class GenericGraph(GenericGraph_pyx):
           reports pairs ``(vertex, distance)`` where ``distance`` is the
           distance from the ``start`` nodes. If ``False`` only the vertices are
           reported.
-        
+
         - ``edges`` -- boolean (default ``False``); whether to return the edges
           of the BFS tree in the order of visit or the vertices (default).
           Edges are directed in root to leaf orientation of the tree.
@@ -17852,7 +17875,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: v = g.lex_BFS()[-1]
             sage: peo, tree = g.lex_BFS(initial_vertex = v,  tree=True)
             sage: leaves = [v for v in tree if tree.in_degree(v) ==0]
-            sage: all([g.subgraph(g.neighbors(v)).is_clique() for v in leaves])
+            sage: all(g.subgraph(g.neighbors(v)).is_clique() for v in leaves)
             True
 
         TESTS:

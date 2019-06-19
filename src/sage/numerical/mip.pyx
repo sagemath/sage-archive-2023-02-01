@@ -679,7 +679,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: d = polytopes.dodecahedron()
             sage: p = MixedIntegerLinearProgram(base_ring=d.base_ring())
             sage: p.base_ring()
-            Number Field in sqrt5 with defining polynomial x^2 - 5
+            Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
         """
         return self._backend.base_ring()
 

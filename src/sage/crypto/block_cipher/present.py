@@ -236,14 +236,16 @@ class PRESENT(SageObject):
             :class:`PRESENT_KS`
         """
         if keySchedule == 80:
-            self._keySchedule = PRESENT_KS()
+            self.keySchedule = PRESENT_KS()
+            self._keysize = 80
         elif keySchedule == 128:
-            self._keySchedule = PRESENT_KS(128)
+            self.keySchedule = PRESENT_KS(128)
+            self._keysize = 128
         else:
-            self._keySchedule = keySchedule
+            self.keySchedule = keySchedule
         if rounds is None:
-            self._rounds = self._keySchedule._rounds
-        elif rounds <= self._keySchedule._rounds:
+            self._rounds = self.keySchedule._rounds
+        elif rounds <= self.keySchedule._rounds:
             self._rounds = rounds
         else:
             raise ValueError('number of rounds must be less or equal to the '
@@ -335,7 +337,7 @@ class PRESENT(SageObject):
         return ('PRESENT block cipher with %s rounds, %s linear layer in last '
                 'round and the following key schedule:\n%s'
                 % (self._rounds, 'activated' if self._doLastLinearLayer else
-                   'deactivated', self._keySchedule.__repr__()))
+                   'deactivated', self.keySchedule.__repr__()))
 
     def encrypt(self, plaintext, key):
         r"""
@@ -413,8 +415,8 @@ class PRESENT(SageObject):
         elif isinstance(plaintext, integer_types + (Integer,)):
             inputType = 'integer'
         state = _convert_to_vector(plaintext, 64)
-        key = _convert_to_vector(key, self._keySchedule._keysize)
-        roundKeys = self._keySchedule(key)
+        key = _convert_to_vector(key, self._keysize)
+        roundKeys = self.keySchedule(key)
         for r, K in enumerate(roundKeys[:self._rounds]):
             state = self.round(state, r, K)
         state = state + roundKeys[self._rounds]
@@ -469,8 +471,8 @@ class PRESENT(SageObject):
         elif isinstance(ciphertext, integer_types + (Integer,)):
             inputType = 'integer'
         state = _convert_to_vector(ciphertext, 64)
-        key = _convert_to_vector(key, self._keySchedule._keysize)
-        roundKeys = self._keySchedule(key)
+        key = _convert_to_vector(key, self._keysize)
+        roundKeys = self.keySchedule(key)
         state = state + roundKeys[self._rounds]
         for r, K in enumerate(roundKeys[:self._rounds][::-1]):
             state = self.round(state, r, K, inverse=True)

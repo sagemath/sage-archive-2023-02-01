@@ -102,6 +102,7 @@ def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', param
     and obtains random sampling points using the default gsl's random number generator.
 
     INPUT:
+
     - ``func`` -- The function to integrate
     - ``params`` -- used to pass parameters to your function
     - ``xl`` -- list of lower limits
@@ -116,11 +117,34 @@ def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', param
 
     EXAMPLES::
 
+        sage: from sage.calculus.integration import monte_carlo_integration
+
         sage: x, y = SR.var('x,y')
-        sage: monte_carlo_integration(x*y, [0,0], [2,2], 10000)   # abs tol 0e-5
+        sage: monte_carlo_integration(x*y, [0,0], [2,2], 10000)   # abs tol 0.1
         (4.0, 0.0)
         sage: integral(integral(x*y, (x,0,2)), (y,0,2))
         4
+
+    An example with a parameter::
+
+        sage: x, y, z = SR.var('x,y,z')
+        sage: monte_carlo_integration(x*y*z, [0,0], [2,2], 10000, params=[1.2])   # abs tol 0.1
+        (4.8, 0.0)
+
+    Integral of a constant::
+
+        sage: monte_carlo_integration(3, [0,0], [2,2], 10000)   # abs tol 0.1
+        (12, 0.0)
+
+    Test different algorithms::
+
+        sage: x, y, z = SR.var('x,y,z')
+        sage: f(x,y,z) = exp(z) * cos(x + sin(y))
+        sage: for algo in ['plain', 'miser', 'vegas']:  # abs tol 0.01
+        ....:   monte_carlo_integration(f, [0,0,-1], [2,2,1], 10^6, algorithm=algo)
+        (-1.06, 0.01)
+        (-1.06, 0.01)
+        (-1.06, 0.01)
     """
     cdef double result
     cdef double abs_err
@@ -163,23 +187,15 @@ def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', param
         # constant
         v = float(1)
         for i in range(dim):
-            v *= _xl[i] * _xu[i]
-        return v * <double?> func
+            v *= _xu[i] - _xl[i]
+        return (v * <double?> func, 0.0)
 
-    # copy paste from numerical_integral
-    if not isinstance(func, Wrapper):
+    elif not isinstance(func, Wrapper):
         try:
             if hasattr(func, 'arguments'):
                 vars = func.arguments()
             else:
                 vars = func.variables()
-
-            if len(vars) == 0:
-                # constant case
-                v = <double> 1.0
-                for i in range(dim):
-                    v *= _xl[i] * _xu[i]
-                return v * <double> func()
 
             if len(vars) != dim + len(params):
                 raise ValueError(("The function to be integrated depends on "
@@ -203,28 +219,29 @@ def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', param
         F.f = c_monte_ff
         F.params = <void *>func
 
-    elif not isinstance(func, compiled_integrand): # TODO and to understand.
-        wrapper = PyMonteWrapper()
-        if not func is None:
-            wrapper.the_function = func
-        else:
-            raise ValueError("No integrand defined")
-        try:
-            if params == [] and len(sage_getargspec(wrapper.the_function)[0]) == 1:
-                wrapper.the_parameters = []
-            elif params == [] and len(sage_getargspec(wrapper.the_function)[0]) > 1:
-                raise ValueError("Integrand has parameters but no parameters specified")
-            elif params != []:
-                wrapper.the_parameters = params
-        except TypeError:
-            wrapper.the_function = eval("lambda x: func(x)", {'func': func})
-            wrapper.the_parameters = []
-
-        F.f = c_monte_f
-        F.params = <void *> wrapper
-
     else:
-        raise ValueError
+        # TODO
+        raise NotImplementedError("only works with fast callable")
+
+#    elif not isinstance(func, compiled_integrand): # TODO and to understand.
+#        wrapper = PyMonteWrapper()
+#        if not func is None:
+#            wrapper.the_function = func
+#        else:
+#            raise ValueError("No integrand defined")
+#        try:
+#            if params == [] and len(sage_getargspec(wrapper.the_function)[0]) == 1:
+#                wrapper.the_parameters = []
+#            elif params == [] and len(sage_getargspec(wrapper.the_function)[0]) > 1:
+#                raise ValueError("Integrand has parameters but no parameters specified")
+#            elif params != []:
+#                wrapper.the_parameters = params
+#        except TypeError:
+#            wrapper.the_function = eval("lambda x: func(x)", {'func': func})
+#            wrapper.the_parameters = []
+#
+#        F.f = c_monte_f
+#        F.params = <void *> wrapper
 
     try:
         if algorithm == 'plain':

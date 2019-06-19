@@ -1116,7 +1116,7 @@ class Polytopes():
             sage: bb.f_vector()                                 # optional - pynormaliz
             (1, 60, 90, 32, 1)
             sage: bb.base_ring()                                # optional - pynormaliz
-            Number Field in sqrt5 with defining polynomial x^2 - 5
+            Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
 
         """
         return self.icosahedron(exact=exact, base_ring=base_ring, backend=backend).truncation()
@@ -1151,7 +1151,7 @@ class Polytopes():
             sage: id.f_vector()                                         # optional - pynormaliz
             (1, 30, 60, 32, 1)
             sage: id.base_ring()                                        # optional - pynormaliz
-            Number Field in sqrt5 with defining polynomial x^2 - 5
+            Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
         """
         from sage.rings.number_field.number_field import QuadraticField
         from itertools import product
@@ -1223,7 +1223,7 @@ class Polytopes():
             sage: id.f_vector()                                            # optional - pynormaliz
             (1, 30, 60, 32, 1)
             sage: id.base_ring()                                           # optional - pynormaliz
-            Number Field in sqrt5 with defining polynomial x^2 - 5
+            Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
 
         """
         if base_ring is None and exact:
@@ -1301,7 +1301,7 @@ class Polytopes():
             sage: td.f_vector()                                              # optional - pynormaliz
             (1, 60, 90, 32, 1)
             sage: td.base_ring()                                             # optional - pynormaliz
-            Number Field in sqrt5 with defining polynomial x^2 - 5
+            Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
 
         """
         if base_ring is None and exact:
@@ -1461,7 +1461,7 @@ class Polytopes():
             sage: rid.f_vector()                                              # optional - pynormaliz
             (1, 60, 120, 62, 1)
             sage: rid.base_ring()                                             # optional - pynormaliz
-            Number Field in sqrt5 with defining polynomial x^2 - 5
+            Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
 
         """
         if base_ring is None and exact:
@@ -1538,7 +1538,7 @@ class Polytopes():
             sage: ti.f_vector()                                                   # optional - pynormaliz
             (1, 120, 180, 62, 1)
             sage: ti.base_ring()                                                  # optional - pynormaliz
-            Number Field in sqrt5 with defining polynomial x^2 - 5
+            Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
 
         """
         if base_ring is None and exact:
@@ -1785,7 +1785,7 @@ class Polytopes():
 
             sage: gap = polytopes.grand_antiprism(exact=True, backend='normaliz')  # optional - pynormaliz
             sage: gap                                                              # optional - pynormaliz
-            A 4-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^4 defined as the convex hull of 100 vertices
+            A 4-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?)^4 defined as the convex hull of 100 vertices
         """
         from itertools import product
 

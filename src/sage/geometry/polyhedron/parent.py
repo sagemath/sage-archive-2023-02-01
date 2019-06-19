@@ -85,7 +85,7 @@ def Polyhedra(base_ring, ambient_dim, backend=None):
         sage: Polyhedra(QQ[I], 2)
         Traceback (most recent call last):
         ...
-        ValueError: invalid base ring: Number Field in I with defining polynomial x^2 + 1 cannot be coerced to a real field
+        ValueError: invalid base ring: Number Field in I with defining polynomial x^2 + 1 with I = 1*I cannot be coerced to a real field
 
     """
     if backend is None:

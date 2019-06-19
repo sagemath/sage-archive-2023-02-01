@@ -185,7 +185,7 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         sage: P = polytopes.icosahedron(exact=True, backend='normaliz')     # optional - pynormaliz
         sage: P                                                             # optional - pynormaliz
-        A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^3 defined as the convex hull of 12 vertices
+        A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?)^3 defined as the convex hull of 12 vertices
 
         sage: x = polygen(ZZ); P = Polyhedron(vertices=[[sqrt(2)], [AA.polynomial_root(x^3-2, RIF(0,3))]], backend='normaliz', verbose=True)   # optional - pynormaliz
         # ----8<---- Equivalent Normaliz input file ----8<----
@@ -651,7 +651,8 @@ class Polyhedron_normaliz(Polyhedron_base):
             (([[1000]], [[500]]), Rational Field)
             sage: p._compute_nmz_data_lists_and_field([[[AA(sqrt(2))]], [[1/2]]],       # optional - pynormaliz
             ....:                                     convert_QQ, convert_NF)
-            ([[[a]], [[1/2]]], Number Field in a with defining polynomial y^2 - 2)
+            ([[[a]], [[1/2]]],
+             Number Field in a with defining polynomial y^2 - 2 with a = 1.414213562373095?)
 
         TESTS::
 

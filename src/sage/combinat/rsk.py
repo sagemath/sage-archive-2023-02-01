@@ -457,6 +457,18 @@ class RuleRSK(Rule):
     def insertion(self, i, j, p, q):
         r"""
         Inserts the letter ``(i,j)`` from the bi-word to the current tableaux ``p`` and ``q``.
+        
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleRSK
+            sage: p, q = RSK([1,2,3,4,5],[3,3,2,4,1], insertion=RSK.rules.RSK)
+            sage: p1, q1 = RSK([1,2,3,4],[3,3,2,4], insertion=RSK.rules.RSK)
+            sage: p1 = [list(row) for row in p1]
+            sage: q1 = [list(row) for row in q1]
+            sage: RuleRSK().insertion(5,1,p1,q1)
+            sage: p == Tableau(p1) and q == Tableau(q1)
+            True
+
         """
         from bisect import bisect_right
         for r, qr in zip(p,q):
@@ -482,6 +494,19 @@ class RuleRSK(Rule):
         Reverse bump the right-most letter from the `i^{th}` row of the 
         current tableaux p_copy and appends the removed entry from ``p_copy``
         to the list ``rev_word``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleRSK
+            sage: p, q = RSK([1,2,3,4,5],[3,3,2,4,1], insertion=RSK.rules.RSK); p
+            [[1, 3, 4], [2], [3]]
+            sage: p1, q1 = RSK([1,2,3,4],[3,3,2,4], insertion=RSK.rules.RSK); p1
+            [[2, 3, 4], [3]]
+            sage: p_copy = [list(row) for row in p]
+            sage: rev_word = []
+            sage: RuleRSK().rev_insertion(2 , p_copy, rev_word, True); p_copy
+            [[2, 3, 4], [3], []]
+
         """
         from bisect import bisect_left
         if q_is_standard:
@@ -552,6 +577,18 @@ class RuleEG(Rule):
     def insertion(self, i, j, p, q):
         r"""
         Inserts the letter ``(i,j)`` from the bi-word to the current tableaux ``p`` and ``q``.
+        
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleEG
+            sage: p, q = RSK([1,2,3,4,5],[3,3,2,4,1], insertion=RSK.rules.EG)
+            sage: p1, q1 = RSK([1,2,3,4],[3,3,2,4], insertion=RSK.rules.EG)
+            sage: p1 = [list(row) for row in p1]
+            sage: q1 = [list(row) for row in q1]
+            sage: RuleEG().insertion(5,1,p1,q1)
+            sage: p == Tableau(p1) and q == Tableau(q1)
+            True
+
         """
         from bisect import bisect_right
         for r, qr in zip(p,q):
@@ -789,6 +826,18 @@ class RuleHecke(Rule):
     def insertion(self, i, j, p, q):
         r"""
         Inserts the letter ``(i,j)`` from the bi-word to the current tableaux ``p`` and ``q``.
+        
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleHecke
+            sage: p, q = RSK([1,2,3,4,5],[5, 4, 1, 3, 4], insertion=RSK.rules.Hecke)
+            sage: p1, q1 = RSK([1,2,3,4],[5,4,1,3], insertion=RSK.rules.Hecke)
+            sage: p1 = [list(row) for row in p1]
+            sage: q1 = [list(row) for row in q1]
+            sage: RuleHecke().insertion(5,4,p1,q1)
+            sage: p == Tableau(p1) and q == Tableau(q1)
+            True
+
         """
         from bisect import bisect_right
         for ir,r in enumerate(p):
@@ -827,6 +876,20 @@ class RuleHecke(Rule):
         Reverse bump the right-most letter from the `i^{th}` row of the 
         current tableaux p_copy and appends the removed entry from ``p_copy``
         to the list ``rev_word``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleHecke
+            sage: p, q = RSK([1,2,3,4],[4,6,7,9], insertion=RSK.rules.Hecke); p
+            [[4, 6, 7, 9]]
+            sage: p1, q1 = RSK([1,2,3],[4,6,7], insertion=RSK.rules.Hecke); p1
+            [[4, 6, 7]]
+            sage: p_copy = [list(row) for row in p]
+            sage: q_copy = [list(row) for row in q]
+            sage: rev_word = []
+            sage: RuleHecke().rev_insertion(0 , p_copy, q_copy, rev_word); rev_word
+            [9]
+
         """
         from bisect import bisect_left
         if not q_copy[i][-1]:

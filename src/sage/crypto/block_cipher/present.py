@@ -8,9 +8,8 @@ schedule as described in [BKLPPRSV2007]_. PRESENT is an example of an
 SP-network and consists of 31 rounds. The block length is 64 bits and two key
 lengths of 80 and 128 bits are supported.
 
-Note that since this is Sage the implementation is neither meant to be
-particular secure nor super fast but to be easy to use for research purposes.
-
+Note, this implementation is ment for experimental and educational usage only,
+do not use it in production code!
 
 EXAMPLES:
 
@@ -39,7 +38,7 @@ Have a look at the used round keys::
 Tweak around with the cipher::
 
     sage: from sage.crypto.sbox import SBox
-    sage: cipher = PRESENT(rounds=1, doLastLinearLayer=False)
+    sage: cipher = PRESENT(rounds=1, doFinalRound=False)
     sage: cipher.sbox = SBox(range(16))
     sage: cipher.keySchedule = lambda x: [0, 0]  # return the 0 keys as round keys
     sage: cipher.encrypt(plaintext=0x1234, key=0x0).hex()
@@ -173,7 +172,7 @@ class PRESENT(SageObject):
     .. automethod:: __call__
     """
 
-    def __init__(self, keySchedule=80, rounds=None, doLastLinearLayer=False):
+    def __init__(self, keySchedule=80, rounds=None, doFinalRound=False):
         r"""
         Construct an instance of PRESENT.
 
@@ -186,7 +185,7 @@ class PRESENT(SageObject):
         - ``rounds``  -- integer (default: ``None``); the number of rounds. If
           ``None`` the number of rounds of the key schedule is used.
 
-        - ``doLastLinearLayer`` -- boolean (default: ``False``); flag to
+        - ``doFinalRound`` -- boolean (default: ``False``); flag to
           control wether the linear layer in the last round should take place
           or not. Since the last linear layer does not add any security, it
           usually does not take place in real world implementations for
@@ -226,7 +225,7 @@ class PRESENT(SageObject):
         By default the linear layer operation in the last round is omitted but
         of course you can enable it::
 
-            sage: PRESENT(doLastLinearLayer=True) # indirect doctest
+            sage: PRESENT(doFinalRound=True) # indirect doctest
             PRESENT block cipher with 31 rounds, activated linear layer in
             last round and the following key schedule:
             Original PRESENT key schedule with 80-bit keys and 31 rounds
@@ -264,7 +263,7 @@ class PRESENT(SageObject):
         self.inverseSbox = self.sbox.inverse()
         self._permutationMatrix = _smallscale_present_linearlayer()
         self._inversePermutationMatrix = self._permutationMatrix.inverse()
-        self._doLastLinearLayer = doLastLinearLayer
+        self._doFinalRound = doFinalRound
 
     def __call__(self, block, key, algorithm='encrypt'):
         r"""
@@ -292,7 +291,7 @@ class PRESENT(SageObject):
         EXAMPLES::
 
             sage: from sage.crypto.block_cipher.present import PRESENT
-            sage: present = PRESENT(doLastLinearLayer=True)
+            sage: present = PRESENT(doFinalRound=True)
             sage: P = 0xFFFFFFFFFFFFFFFF
             sage: K = 0x0
             sage: present(P, K, 'encrypt').hex()
@@ -345,7 +344,7 @@ class PRESENT(SageObject):
         """
         return ('PRESENT block cipher with %s rounds, %s linear layer in last '
                 'round and the following key schedule:\n%s'
-                % (self._rounds, 'activated' if self._doLastLinearLayer else
+                % (self._rounds, 'activated' if self._doFinalRound else
                    'deactivated', self.keySchedule.__repr__()))
 
     def encrypt(self, plaintext, key):
@@ -371,7 +370,7 @@ class PRESENT(SageObject):
         The test vectors from [BKLPPRSV2007]_ are checked here::
 
             sage: from sage.crypto.block_cipher.present import PRESENT
-            sage: present = PRESENT(doLastLinearLayer=True)
+            sage: present = PRESENT(doFinalRound=True)
             sage: p1 = 0x0
             sage: k1 = 0x0
             sage: c1 = 0x5579C1387B228445
@@ -453,7 +452,7 @@ class PRESENT(SageObject):
         The test vectors from [BKLPPRSV2007]_ are checked here::
 
             sage: from sage.crypto.block_cipher.present import PRESENT
-            sage: present = PRESENT(doLastLinearLayer=True)
+            sage: present = PRESENT(doFinalRound=True)
             sage: p1 = 0x0
             sage: k1 = 0x0
             sage: c1 = 0x5579C1387B228445
@@ -495,10 +494,10 @@ class PRESENT(SageObject):
         if not inverse:
             out = out + round_key
             out = self.sbox_layer(out)
-            if self._doLastLinearLayer or round_counter != self._rounds - 1:
+            if self._doFinalRound or round_counter != self._rounds - 1:
                 out = self.linear_layer(out)
         else:
-            if self._doLastLinearLayer or round_counter != 0:
+            if self._doFinalRound or round_counter != 0:
                 out = self.linear_layer(out, inverse=True)
             out = self.sbox_layer(out, inverse=True)
             out = out + round_key
@@ -699,7 +698,8 @@ class PRESENT_KS(SageObject):
         - ``rounds`` -- integer (default: ``31``); the number of rounds
           ``self`` can create keys for
 
-        - ``master_key`` -- integer of bit list-like; the key that will be used
+        - ``master_key`` -- integer or bit list-like (default: ``None``); the
+          key that will be used
 
         EXAMPLES::
 
@@ -821,7 +821,7 @@ class PRESENT_KS(SageObject):
 
         - ``r`` integer; the round for which the sub key is computed
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.crypto.block_cipher.present import PRESENT_KS
             sage: ks = PRESENT_KS(master_key=0x0)

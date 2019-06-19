@@ -18,12 +18,12 @@ Encrypt a message::
 
     sage: from sage.crypto.block_cipher.present import PRESENT
     sage: present = PRESENT()
-    sage: present.encrypt(P=0, K=0).hex()
+    sage: present.encrypt(plaintext=0, key=0).hex()
     '2844b365c06992a3'
 
 And decrypt it again::
 
-    sage: present.decrypt(C=0x2844b365c06992a3, K=0)
+    sage: present.decrypt(ciphertext=0x2844b365c06992a3, key=0)
     0
 
 Have a look at the used round keys::
@@ -255,15 +255,15 @@ class PRESENT(SageObject):
         self._inversePermutationMatrix = self._permutationMatrix.inverse()
         self._doLastLinearLayer = doLastLinearLayer
 
-    def __call__(self, B, K, algorithm='encrypt'):
+    def __call__(self, block, key, algorithm='encrypt'):
         r"""
-        Apply PRESENT encryption or decryption on ``B`` using the key ``K``.
+        Apply PRESENT encryption or decryption on ``block`` using ``key``.
         The flag ``algorithm`` controls what action is to be performed on
-        ``B``.
+        ``block``.
 
         INPUT:
 
-        - ``B`` -- integer or bit list-like; the plaintext or ciphertext
+        - ``block`` -- integer or bit list-like; the plaintext or ciphertext
 
         - ``K`` -- integer or bit list-like; the key
 
@@ -274,9 +274,9 @@ class PRESENT(SageObject):
 
         OUTPUT:
 
-        - The plaintext or ciphertext corresponding to ``B``, obtained using
-          the key ``K``. If ``B`` is an integer the output will be too. If
-          ``B`` is list-like the output will be a bit vector.
+        - The plaintext or ciphertext corresponding to ``block``, obtained using
+          the ``key``. If ``block`` is an integer the output will be too. If
+          ``block`` is list-like the output will be a bit vector.
 
         EXAMPLES::
 
@@ -288,9 +288,9 @@ class PRESENT(SageObject):
             'a112ffc72f68417b'
         """
         if algorithm == 'encrypt':
-            return self.encrypt(B, K)
+            return self.encrypt(block, key)
         elif algorithm == 'decrypt':
-            return self.decrypt(B, K)
+            return self.decrypt(block, key)
         else:
             raise ValueError('Algorithm must be \'encrypt\' or \'decrypt\' and'
                              ' not \'%s\'' % algorithm)
@@ -337,23 +337,23 @@ class PRESENT(SageObject):
                 % (self._rounds, 'activated' if self._doLastLinearLayer else
                    'deactivated', self._keySchedule.__repr__()))
 
-    def encrypt(self, P, K):
+    def encrypt(self, plaintext, key):
         r"""
-        Return the ciphertext corresponding to the plaintext ``P``,
-        using PRESENT encryption with key ``K``.
+        Return the ciphertext corresponding to ``plaintext``, using PRESENT
+        encryption with ``key``.
 
         INPUT:
 
-        - ``P`` -- integer or bit list-like; the plaintext that will be
+        - ``plaintext`` -- integer or bit list-like; the plaintext that will be
           encrypted.
 
-        - ``K`` -- integer or bit list-like; the key
+        - ``key`` -- integer or bit list-like; the key
 
         OUTPUT:
 
-        - The ciphertext corresponding to ``P``, obtained using the key
-          ``K``. If ``P`` is an integer the output will be too. If ``P`` is
-          list-like the output will be a bit vector.
+        - The ciphertext corresponding to ``plaintext``, obtained using the
+          ``key``. If ``plaintext`` is an integer the output will be too. If
+          ``plaintext`` is list-like the output will be a bit vector.
 
         EXAMPLES:
 
@@ -408,35 +408,34 @@ class PRESENT(SageObject):
         \leq 32` and current STATE `b_{63} \dots b_0`, addRoundkey consists of
         the operation for `0 \leq j \leq 63`, `b_j = b_j \oplus \kappa^i_j`.
         """
-        if isinstance(P, (list, tuple, Vector_mod2_dense)):
+        if isinstance(plaintext, (list, tuple, Vector_mod2_dense)):
             inputType = 'vector'
-        elif isinstance(P, integer_types + (Integer,)):
+        elif isinstance(plaintext, integer_types + (Integer,)):
             inputType = 'integer'
-        state = _convert_to_vector(P, 64)
-        K = _convert_to_vector(K, self._keySchedule._keysize)
-        roundKeys = self._keySchedule(K)
+        state = _convert_to_vector(plaintext, 64)
+        key = _convert_to_vector(key, self._keySchedule._keysize)
+        roundKeys = self._keySchedule(key)
         for r, K in enumerate(roundKeys[:self._rounds]):
             state = self.round(state, r, K)
         state = state + roundKeys[self._rounds]
         return state if inputType == 'vector' else ZZ(list(state), 2)
 
-    def decrypt(self, C, K):
+    def decrypt(self, ciphertext, key):
         r"""
-        Return the plaintext corresponding to the ciphertext ``C``,
-        using PRESENT decryption with key ``K``.
+        Return the plaintext corresponding to the ``ciphertext``, using PRESENT decryption with ``key``.
 
         INPUT:
 
-        - ``C`` -- integer or bit list-like; the ciphertext that will be
-          decrypted
+        - ``ciphertext`` -- integer or bit list-like; the ciphertext that will
+          be decrypted
 
-        - ``K`` -- integer or bit list-like; the key
+        - ``key`` -- integer or bit list-like; the key
 
         OUTPUT:
 
-        - The plaintext corresponding to ``C``, obtained using the key
-          ``K``. If ``C`` is an integer the output will be too. If ``C`` is
-          list-like the output will be a bit vector.
+        - The plaintext corresponding to ``ciphertext``, obtained using the
+          ``key``. If ``ciphertext`` is an integer the output will be too. If
+          ``ciphertext`` is list-like the output will be a bit vector.
 
         EXAMPLES:
 
@@ -465,13 +464,13 @@ class PRESENT(SageObject):
             sage: present.decrypt(c4, k4) == p4
             True
        """
-        if isinstance(C, (list, tuple, Vector_mod2_dense)):
+        if isinstance(ciphertext, (list, tuple, Vector_mod2_dense)):
             inputType = 'vector'
-        elif isinstance(C, integer_types + (Integer,)):
+        elif isinstance(ciphertext, integer_types + (Integer,)):
             inputType = 'integer'
-        state = _convert_to_vector(C, 64)
-        K = _convert_to_vector(K, self._keySchedule._keysize)
-        roundKeys = self._keySchedule(K)
+        state = _convert_to_vector(ciphertext, 64)
+        key = _convert_to_vector(key, self._keySchedule._keysize)
+        roundKeys = self._keySchedule(key)
         state = state + roundKeys[self._rounds]
         for r, K in enumerate(roundKeys[:self._rounds][::-1]):
             state = self.round(state, r, K, inverse=True)

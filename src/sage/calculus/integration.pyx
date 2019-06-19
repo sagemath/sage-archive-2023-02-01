@@ -26,6 +26,7 @@ AUTHORS:
 from __future__ import print_function, absolute_import
 
 from cysignals.signals cimport sig_on, sig_off
+from sage.rings.real_double import RDF
 
 from sage.libs.gsl.all cimport *
 from sage.misc.sageinspect import sage_getargspec
@@ -89,16 +90,12 @@ cdef double c_ff(double t, void *params):
 cdef double c_monte_ff(double *x, size_t dim, void *params):
     cdef double result
     lx = list()
-    print(dim)
     for i in range(dim):
-        print(x[i])
-        lx.append(float(x[i]))
-    result = <double> (<Wrapper>params)(lx)
-    print("res")
-    print(result)
+        lx.append(x[i])
+    result = <double> (<Wrapper>params)(*lx)
     return result
 
-def monte_carlo_integration(func, xl, xu, dim, calls, algorithm='plain', params=[]):
+def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', params=None):
     """
     Integrate ``func`` over the dim-dimensional hypercubic region defined by the lower and upper
     limits in the arrays xl and xu, each of size dim. The integration uses a fixed number of function calls calls,
@@ -107,9 +104,8 @@ def monte_carlo_integration(func, xl, xu, dim, calls, algorithm='plain', params=
     INPUT:
     - ``func`` -- The function to integrate
     - ``params`` -- used to pass parameters to your function
-    - ``xl`` -- lower limits
-    - ``xu`` -- upper limits
-    - ``dim`` -- Number of dimension
+    - ``xl`` -- list of lower limits
+    - ``xu`` -- list of upper limits
     - ``calls`` -- Number of functions calls used.
     - ``algorithm`` -- valid choices are:
 
@@ -117,38 +113,58 @@ def monte_carlo_integration(func, xl, xu, dim, calls, algorithm='plain', params=
          region to estimate the integral and its error.
       * 'miser' -- The MISER algorithm of Press and Farrar is based on recursive stratified sampling
       * 'vegas' -- The VEGAS algorithm of Lepage is based on importance sampling.
+
+    EXAMPLES::
+
+        sage: x, y = SR.var('x,y')
+        sage: monte_carlo_integration(x*y, [0,0], [2,2], 10000)   # abs tol 0e-5
+        (4.0, 0.0)
+        sage: integral(integral(x*y, (x,0,2)), (y,0,2))
+        4
     """
     cdef double result
     cdef double abs_err
     cdef gsl_monte_function F
     cdef PyMonteWrapper wrapper  # struct to pass information into GSL Monte C function
-    cdef size_t _dim, _calls
     cdef gsl_monte_plain_state* state_monte = NULL
     cdef gsl_monte_miser_state* state_miser = NULL
     cdef gsl_monte_vegas_state* state_vegas = NULL
     cdef gsl_rng_type *type_rng
     cdef gsl_rng *_rng
-    cdef double *_xl = <double *> PyMem_Malloc(dim * sizeof(double))
-    cdef double *_xu = <double *> PyMem_Malloc(dim * sizeof(double))
+    cdef size_t dim
+    cdef double *_xl
+    cdef double *_xu
 
-    # Initialize hypercubic region's lower and upper limits.
+    if not isinstance(xl, (tuple, list)) or \
+       not isinstance(xu, (tuple, list)) or \
+       len(xl) != len(xu):
+        raise TypeError("xl and xu must be lists of floating point values of identical lengths")
+
+    dim = len(xl)
+    if not dim:
+        return float(0)
+
+    if params is None:
+        params = []
+
+    # Initialize hypercubic region's lower and upper limits
+    _xl = <double *> PyMem_Malloc(dim * sizeof(double))
+    _xu = <double *> PyMem_Malloc(dim * sizeof(double))
     for i in range(dim):
         _xl[i] = <double> xl[i]
         _xu[i] = <double> xu[i]
 
-    # Initialize dimension and calls values
-    _dim = dim
-    _calls = calls
-    F.dim = _dim
-
-    # Initialize the random number generator
+        # Initialize the random number generator
     gsl_rng_env_setup()
     type_rng = gsl_rng_default
     _rng = gsl_rng_alloc(type_rng)
 
-    # if not callable(func):
-    #     # handle the constant case
-    #     return ((xu, 0.0)
+    if not callable(func):
+        # constant
+        v = float(1)
+        for i in range(dim):
+            v *= _xl[i] * _xu[i]
+        return v * <double?> func
 
     # copy paste from numerical_integral
     if not isinstance(func, Wrapper):
@@ -157,25 +173,33 @@ def monte_carlo_integration(func, xl, xu, dim, calls, algorithm='plain', params=
                 vars = func.arguments()
             else:
                 vars = func.variables()
-            if len(vars) == 0:
-               # handle the constant case
-               # return (((<double>b - <double>a) * <double>func), 0.0)
-                pass
-            if len(vars) != 1:
-                if len(params) + 1 != len(vars):
-                   raise ValueError(("The function to be integrated depends on "
-                                     "{} variables {}, and so cannot be "
-                                     "integrated in one dimension. Please fix "
-                                     "additional variables with the 'params' "
-                                     "argument").format(len(vars),tuple(vars)))
 
-                to_sub = dict(zip(vars[1:], params))
+            if len(vars) == 0:
+                # constant case
+                v = <double> 1.0
+                for i in range(dim):
+                    v *= _xl[i] * _xu[i]
+                return v * <double> func()
+
+            if len(vars) != dim + len(params):
+                raise ValueError(("The function to be integrated depends on "
+                                  "{} variables {}, and so cannot be "
+                                  "integrated in one dimension. Please fix "
+                                  "additional variables with the 'params' "
+                                  "argument").format(len(vars),tuple(vars)))
+
+            if params:
+                to_sub = dict(zip(vars[-len(params):], params))
                 func = func.subs(to_sub)
-            func = fast_callable(func, vars=str(vars[0])) # ne devrais pas fonctionner a n vars/dim
+                vars = vars[:dim]
+
+            func = fast_callable(func, domain=RDF, vars=vars)
+
         except (AttributeError):
-            pass
+            raise ValueError('fast_callable failed')
 
     if isinstance(func, Wrapper):
+        F.dim = dim
         F.f = c_monte_ff
         F.params = <void *>func
 
@@ -199,24 +223,27 @@ def monte_carlo_integration(func, xl, xu, dim, calls, algorithm='plain', params=
         F.f = c_monte_f
         F.params = <void *> wrapper
 
+    else:
+        raise ValueError
+
     try:
         if algorithm == 'plain':
             # workspace for plain Monte Carlo integration
-            state_monte = <gsl_monte_plain_state*> gsl_monte_plain_alloc(_dim)
+            state_monte = <gsl_monte_plain_state*> gsl_monte_plain_alloc(dim)
             sig_on()
-            gsl_monte_plain_integrate(&F, _xl, _xu, _dim, _calls, _rng,
+            gsl_monte_plain_integrate(&F, _xl, _xu, dim, calls, _rng,
                                       state_monte, &result, &abs_err)
             sig_off()
         elif algorithm == 'miser':
-            state_miser = <gsl_monte_miser_state*> gsl_monte_miser_alloc(_dim)
+            state_miser = <gsl_monte_miser_state*> gsl_monte_miser_alloc(dim)
             sig_on()
-            gsl_monte_miser_integrate(&F, _xl, _xu, _dim, _calls, _rng,
+            gsl_monte_miser_integrate(&F, _xl, _xu, dim, calls, _rng,
                                       state_miser, &result, &abs_err)
             sig_off()
         elif algorithm == 'vegas':
-            state_vegas = <gsl_monte_vegas_state*> gsl_monte_vegas_alloc(_dim)
+            state_vegas = <gsl_monte_vegas_state*> gsl_monte_vegas_alloc(dim)
             sig_on()
-            gsl_monte_vegas_integrate(&F, _xl, _xu, _dim, _calls, _rng,
+            gsl_monte_vegas_integrate(&F, _xl, _xu, dim, calls, _rng,
                                       state_vegas, &result, &abs_err)
             sig_off()
         else:

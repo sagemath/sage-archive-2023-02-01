@@ -249,8 +249,8 @@ class PRESENT(SageObject):
             raise ValueError('number of rounds must be less or equal to the '
                              'number of rounds of the key schedule')
         self._blocksize = 64
-        self._sbox = SBox(PRESENTSBOX._S, big_endian=False)
-        self._inverseSbox = self._sbox.inverse()
+        self.sbox = SBox(PRESENTSBOX._S, big_endian=False)
+        self.inverseSbox = self.sbox.inverse()
         self._permutationMatrix = _smallscale_present_linearlayer()
         self._inversePermutationMatrix = self._permutationMatrix.inverse()
         self._doLastLinearLayer = doLastLinearLayer
@@ -311,7 +311,7 @@ class PRESENT(SageObject):
             sage: PRESENT(80) == 80 # indirect doctest
             False
             sage: present = PRESENT()
-            sage: present._inverseSbox = present._sbox
+            sage: present.inverseSbox = present.sbox
             sage: present == PRESENT() # indirect doctest
             False
         """
@@ -543,7 +543,7 @@ class PRESENT(SageObject):
             1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1,
             0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1)
         """
-        sbox = self._sbox if not inverse else self._inverseSbox
+        sbox = self.sbox if not inverse else self.inverseSbox
         out = vector(GF(2), 64)
         for nibble in [slice(4*j, 4*j+4) for j in range(16)]:
             out[nibble] = sbox(state[nibble])
@@ -680,7 +680,7 @@ class PRESENT_KS(SageObject):
                              % keysize)
         self._keysize = keysize
         self._rounds = rounds
-        self._sbox = SBox(PRESENTSBOX._S, big_endian=False)
+        self.sbox = SBox(PRESENTSBOX._S, big_endian=False)
         self._master_key = master_key
 
     def __call__(self, K):
@@ -722,7 +722,7 @@ class PRESENT_KS(SageObject):
             for i in range(1, self._rounds+1):
                 roundKeys.append(K[16:])
                 K[0:] = list(K[19:]) + list(K[:19])
-                K[76:] = self._sbox(K[76:])
+                K[76:] = self.sbox(K[76:])
                 rc = vector(GF(2), ZZ(i).digits(2, padto=5))
                 K[15:20] = K[15:20] + rc
             roundKeys.append(K[16:])
@@ -730,8 +730,8 @@ class PRESENT_KS(SageObject):
             for i in range(1, self._rounds+1):
                 roundKeys.append(K[64:])
                 K[0:] = list(K[67:]) + list(K[:67])
-                K[124:] = self._sbox(K[124:])
-                K[120:124] = self._sbox(K[120:124])
+                K[124:] = self.sbox(K[124:])
+                K[120:124] = self.sbox(K[120:124])
                 rc = vector(GF(2), ZZ(i).digits(2, padto=5))
                 K[62:67] = K[62:67] + rc
             roundKeys.append(K[64:])

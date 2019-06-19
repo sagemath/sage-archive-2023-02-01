@@ -400,14 +400,13 @@ class PRESENT(SageObject):
         key `K_i` for `1 \leq i \leq 32`, where `K_{32}` is used for
         post-whitening, a linear bitwise permutation and a non-linear
         substitution layer. The non-linear layer uses a single 4-bit S-box
-        which is applied 16 times in parallel in each round. Each stage is now
-        specified in turn.
+        which is applied 16 times in parallel in each round. Each stage but
+        addRoundkey is specified in its corresponding function.
 
         **addRoundkey:**
         Given round key `K_i = \kappa^i_{63} \dots \kappa^i_0` for `1 \leq i
         \leq 32` and current STATE `b_{63} \dots b_0`, addRoundkey consists of
         the operation for `0 \leq j \leq 63`, `b_j = b_j \oplus \kappa^i_j`.
-
         """
         if isinstance(P, (list, tuple, Vector_mod2_dense)):
             inputType = 'vector'
@@ -417,10 +416,7 @@ class PRESENT(SageObject):
         K = _convert_to_vector(K, self._keySchedule._keysize)
         roundKeys = self._keySchedule(K)
         for r, K in enumerate(roundKeys[:self._rounds]):
-            state = state + K
-            state = self.sbox_layer(state)
-            if self._doLastLinearLayer or r != self._rounds - 1:
-                state = self.linear_layer(state)
+            state = self.round(state, r, K)
         state = state + roundKeys[self._rounds]
         return state if inputType == 'vector' else ZZ(list(state), 2)
 
@@ -478,11 +474,25 @@ class PRESENT(SageObject):
         roundKeys = self._keySchedule(K)
         state = state + roundKeys[self._rounds]
         for r, K in enumerate(roundKeys[:self._rounds][::-1]):
-            if self._doLastLinearLayer or r != 0:
-                state = self.linear_layer(state, inverse=True)
-            state = self.sbox_layer(state, inverse=True)
-            state = state + K
+            state = self.round(state, r, K, inverse=True)
         return state if inputType == 'vector' else ZZ(list(state), 2)
+
+    def round(self, state, round_counter, round_key, inverse=False):
+        """
+        Apply one round of PRESENT to ``state`` and return the result.
+        """
+        out = state[:]
+        if not inverse:
+            out = out + round_key
+            out = self.sbox_layer(out)
+            if self._doLastLinearLayer or round_counter != self._rounds - 1:
+                out = self.linear_layer(out)
+        else:
+            if self._doLastLinearLayer or round_counter != 0:
+                out = self.linear_layer(out, inverse=True)
+            out = self.sbox_layer(out, inverse=True)
+            out = out + round_key
+        return out
 
     def sbox_layer(self, state, inverse=False):
         """

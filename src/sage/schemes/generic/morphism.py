@@ -1515,14 +1515,26 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             x^6 + x^5*y + 4*x^4*y^2 + 3*x^3*y^3 + 7*x^2*y^4 + 4*x*y^5 + 5*y^6
             sage: g == f.specialization({c:1}).dynatomic_polynomial(3)
             True
+        
+        ::
+
+            sage: R1.<alpha, beta> = QQ[]
+            sage: A.<x> = AffineSpace(Frac(R1),1)
+            sage: f = DynamicalSystem_affine([alpha/(x^2 + 1/alpha)/(x - 1/beta^2)])
+            sage: f.specialization({alpha:5,beta:10})
+            Dynamical System of Affine Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x) to
+                      (5/(x^3 - 1/100*x^2 + 1/5*x - 1/500))
+            sage: f.specialization({alpha:5}).specialization({beta:10}) == f.specialization({alpha:5,beta:10})
+            True
         """
         if D is None:
             if phi is None:
                 raise ValueError("either the dictionary or the specialization must be provided")
         else:
             if is_FractionField(self[0].parent()):
-                from sage.rings.polynomial.flatten import FractionalSpecializationMorphism
-                phi = FractionalSpecializationMorphism(self[0].parent(), D)
+                from sage.rings.polynomial.flatten import FractionSpecializationMorphism
+                phi = FractionSpecializationMorphism(self[0].parent(), D)
             else:
                 from sage.rings.polynomial.flatten import SpecializationMorphism
                 phi = SpecializationMorphism(self[0].parent(), D)

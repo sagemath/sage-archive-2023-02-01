@@ -515,7 +515,7 @@ class SpecializationMorphism(Morphism):
                         else:
                             raise NameError("argument " + str(var) + " is not a generator anywhere in the polynomial tower")
                     applicable_vars = tmp
-                    self._sub_specialization = FractionalSpecializationMorphism(R, applicable_vars)
+                    self._sub_specialization = FractionSpecializationMorphism(R, applicable_vars)
                 break
             # We're still in the polynomials, so keep track of the tower
             old = R.gens()
@@ -613,13 +613,24 @@ class SpecializationMorphism(Morphism):
             flat = R(tmp)
         return self._eval_morph(flat)
 
-class FractionalSpecializationMorphism(Morphism):
+class FractionSpecializationMorphism(Morphism):
     """
     A specialization morphism for fraction fields over (stacked) polynomial rings
     """
     def __init__(self, domain, D):
         """
         Initialize the morphism with a domain and dictionary of specializations
+
+        EXAMPLES::
+
+            sage: R.<a,c> = QQ[]
+            sage: S.<x,y> = R[]
+            sage: from sage.rings.polynomial.flatten import FractionSpecializationMorphism
+            sage: phi = FractionSpecializationMorphism(Frac(S), {c:3})
+            sage: phi
+            Fractional Specialization morphism:
+                From: Fraction Field of Multivariate Polynomial Ring in x, y over Multivariate Polynomial Ring in a, c over Rational Field
+                To:   Fraction Field of Multivariate Polynomial Ring in x, y over Univariate Polynomial Ring in a over Rational Field
         """
         if not is_FractionField(domain):
             raise TypeError("domain must be a fractional field")
@@ -629,7 +640,20 @@ class FractionalSpecializationMorphism(Morphism):
     
     def _call_(self, p):
         """
-        Call the morphism 
+        Evaluate a fractional specialization morphism
+
+        EXAMPLES::
+
+            sage: R.<a,b,c> = QQ[]
+            sage: S.<x,y,z> = R[]
+            sage: from sage.rings.polynomial.flatten import FractionSpecializationMorphism
+            sage: phi = FractionSpecializationMorphism(Frac(S), {a:3, b:2, c:-2})
+            sage: spec = phi((a*x + b*y) / (c*z))
+            sage: spec
+            (3*x + 2*y)/(-2*z)
+            sage: spec.parent()
+            Fraction Field of Multivariate Polynomial Ring in x, y, z over Rational Field
+
         """
         if not isinstance(p, FractionFieldElement):
             raise TypeError("p must be a fractional field element")

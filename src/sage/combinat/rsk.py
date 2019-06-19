@@ -267,6 +267,16 @@ class Rule(UniqueRepresentation):
             resulting tableaux is a standard tableau, and if so, typecast it
             as such
 
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleRSK
+            sage: RuleRSK().forward_rule([3,3,2,4,1], None)
+            [[[1, 3, 4], [2], [3]], [[1, 2, 4], [3], [5]]]
+            sage: RuleRSK().forward_rule([1, 1, 1, 3, 7], None)
+            [[[1, 1, 1, 3, 7]], [[1, 2, 3, 4, 5]]]
+            sage: RuleRSK().forward_rule([7, 6, 3, 3, 1], None)
+            [[[1, 3], [3], [6], [7]], [[1, 4], [2], [3], [5]]]
+
         """
         itr = self.to_pair(obj1, obj2)
         p = []       #the "insertion" tableau
@@ -298,7 +308,24 @@ class Rule(UniqueRepresentation):
 
           and additionally if ``p`` is standard, we can also have the output:
 
-          - ``'permutation'`` -- as a permutation 
+          - ``'permutation'`` -- as a permutation
+
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleRSK
+            sage: t1 = Tableau([[1, 3, 4], [2], [3]])
+            sage: t2 = Tableau([[1, 2, 4], [3], [5]])
+            sage: RuleRSK().backward_rule(t1, t2, 'array')
+            [[1, 2, 3, 4, 5], [3, 3, 2, 4, 1]]
+            sage: t1 = Tableau([[1, 1, 1, 3, 7]])
+            sage: t2 = Tableau([[1, 2, 3, 4, 5]])
+            sage: RuleRSK().backward_rule(t1, t2, 'array')
+            [[1, 2, 3, 4, 5], [1, 1, 1, 3, 7]]
+            sage: t1 = Tableau([[1, 3], [3], [6], [7]])
+            sage: t2 = Tableau([[1, 4], [2], [3], [5]])
+            sage: RuleRSK().backward_rule(t1, t2, 'array')
+            [[1, 2, 3, 4, 5], [7, 6, 3, 3, 1]]
+
         """
         from sage.combinat.tableau import SemistandardTableaux
         # Make a copy of p since this is destructive to it
@@ -338,6 +365,21 @@ class Rule(UniqueRepresentation):
         return self._backward_formatOutput(lower_row, upper_row, output, p.is_standard(), q.is_standard())
 
     def _forward_formatOutput(self, p=None, q=None, check_standard=False):
+        r"""
+        Returns final output of the ``RSK`` correspondence from the output of the 
+        corresponding ``forward_rule``. 
+
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleRSK
+            sage: isinstance(RuleRSK()._forward_formatOutput([[1, 2, 3, 4, 5]], [[1, 2, 3, 4, 5]], True)[0], StandardTableau)
+            True
+            sage: isinstance(RuleRSK()._forward_formatOutput([[1, 2, 3, 4, 5]], [[1, 2, 3, 4, 5]], False)[0], SemistandardTableau)
+            True
+            sage: isinstance(RuleRSK()._forward_formatOutput([[1, 1, 1, 3, 7]], [[1, 2, 3, 4, 5]], True)[0], SemistandardTableau)
+            True
+
+        """
         from sage.combinat.tableau import SemistandardTableau, StandardTableau
 
         if check_standard:
@@ -353,6 +395,28 @@ class Rule(UniqueRepresentation):
         return [SemistandardTableau(p), SemistandardTableau(q)]
     
     def _backward_formatOutput(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
+        r"""
+        Returns final output of the ``inverse_RSK`` correspondence from the output of the 
+        corresponding ``backward_rule``. 
+
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleRSK
+            sage: RuleRSK()._backward_formatOutput([1, 2, 3, 4], None)
+            [[1, 2, 3, 4], [4, 3, 2, 1]]
+            sage: RuleRSK()._backward_formatOutput([1, 2, 3, 4], None, 'matrix')
+            [0 0 0 1]
+            [0 0 1 0]
+            [0 1 0 0]
+            [1 0 0 0]
+            sage: RuleRSK()._backward_formatOutput([1, 2, 3, 4], None, 'word')
+            word: 4321
+            sage: RuleRSK()._backward_formatOutput([1, 2, 3, 4], None, 'random_type')
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid output option
+
+        """
         if q_is_standard:
             if output == 'word':
                 from sage.combinat.words.word import Word
@@ -435,6 +499,21 @@ class RuleRSK(Rule):
             rev_word.append(x)
 
     def _backward_formatOutput(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
+        r"""
+        Returns final output of the ``inverse_RSK`` correspondence from the output of the 
+        corresponding ``backward_rule``. 
+
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleRSK
+            sage: RuleRSK()._backward_formatOutput([1, 2, 3, 4], None, 'permutation', True, True)
+            [4, 3, 2, 1]
+            sage: RuleRSK()._backward_formatOutput([1, 2, 3, 4], None, 'permutation', False, True)
+            Traceback (most recent call last):
+            ...
+            TypeError: p must be standard to have a valid permutation as output
+
+        """
         if q_is_standard and output == 'permutation':
             if not p_is_standard:
                 raise TypeError("p must be standard to have a valid permutation as output")
@@ -546,6 +625,21 @@ class RuleEG(Rule):
             rev_word.append(x)
 
     def _backward_formatOutput(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
+        r"""
+        Returns final output of the ``inverse_RSK`` correspondence from the output of the 
+        corresponding ``backward_rule``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleEG
+            sage: RuleEG()._backward_formatOutput([1, 2, 3, 4], None, 'permutation', True, True)
+            [5, 1, 2, 3, 4]
+            sage: RuleEG()._backward_formatOutput([1, 2, 3, 4], None, 'permutation', True, False)
+            Traceback (most recent call last):
+            ...
+            TypeError: q must be standard to have a permutation as valid output
+
+        """
         if q_is_standard and output == 'permutation':
             n = 0
             if list(lower_row):
@@ -596,6 +690,17 @@ class RuleHecke(Rule):
             resulting tableaux is a standard tableau, and if so, typecast it
             as such
 
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleHecke
+            sage: p, q = RuleHecke().forward_rule([3,3,2,4,1], None);p
+            [[1, 4], [2], [3]]
+            sage: q
+            [[(1, 2), (4,)], [(3,)], [(5,)]]
+            sage: isinstance(p, SemistandardTableau)
+            True
+            sage: isinstance(q, Tableau)
+            True
         """
         from sage.combinat.tableau import SemistandardTableau, Tableau
         if obj2 is None:    
@@ -627,6 +732,22 @@ class RuleHecke(Rule):
 
           - ``'word'`` -- as a word
           - ``list`` -- as a list
+
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleHecke
+            sage: t1 = Tableau([[1, 4], [2], [3]])
+            sage: t2 = Tableau([[(1, 2), (4,)], [(3,)], [(5,)]])
+            sage: RuleHecke().backward_rule(t1, t2, 'array')
+            [[1, 2, 3, 4, 5], [3, 3, 2, 4, 1]]
+            sage: t1 = Tableau([[1, 4], [2, 3]])
+            sage: t2 = Tableau([[(1, 2), (4,)], [(3,)], [(5,)]])
+            sage: RuleHecke().backward_rule(t1, t2, 'array')
+            Traceback (most recent call last):
+            ...
+            ValueError: p(=[[1, 4], [2, 3]]) and q(=[[(1, 2), (4,)], [(3,)], [(5,)]]) 
+            must have the same shape
+
         """
         if p.shape() != q.shape():
             raise ValueError("p(=%s) and q(=%s) must have the same shape"%(p, q))
@@ -707,7 +828,6 @@ class RuleHecke(Rule):
         current tableaux p_copy and appends the removed entry from ``p_copy``
         to the list ``rev_word``.
         """
-        
         from bisect import bisect_left
         if not q_copy[i][-1]:
             # That is, if value was alone in cell q_copy[i][-1].
@@ -729,7 +849,33 @@ class RuleHecke(Rule):
         rev_word.append(x)
 
     def _backward_formatOutput(self, lower_row=None, upper_row=None, output='array'):
-        
+        r"""
+        Returns final output of the ``inverse_RSK`` correspondence from the output of the 
+        corresponding ``backward_rule``. 
+
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleHecke
+            sage: RuleHecke()._backward_formatOutput([1, 1, 3, 9], [1, 2, 3, 4])
+            [[4, 3, 2, 1], [9, 3, 1, 1]]
+            sage: RuleHecke()._backward_formatOutput([1, 1, 3, 9], [1, 2, 3, 4], 'word')
+            Traceback (most recent call last):
+            ...
+            TypeError: q must be standard to have a word as valid output
+            sage: RuleHecke()._backward_formatOutput([1, 1, 3, 9], [4, 3, 2, 1], 'word')
+            word: 9311
+            sage: RuleHecke()._backward_formatOutput([1, 1, 3, 9], [1, 2, 3, 4], 'list')
+            Traceback (most recent call last):
+            ...
+            TypeError: q must be standard to have a list as valid output
+            sage: RuleHecke()._backward_formatOutput([1, 1, 3, 9], [4, 3, 2, 1], 'list')
+            [9, 3, 1, 1]
+            sage: RuleHecke()._backward_formatOutput([1, 1, 3, 9], [1, 2, 3, 4], 'random_type')
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid output option
+
+        """
         if output == 'array':
             return [list(reversed(upper_row)), list(reversed(lower_row))]
         is_standard = (upper_row == list(range(len(upper_row), 0, -1)))

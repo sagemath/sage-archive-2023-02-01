@@ -407,22 +407,6 @@ class PRESENT(SageObject):
         \leq 32` and current STATE `b_{63} \dots b_0`, addRoundkey consists of
         the operation for `0 \leq j \leq 63`, `b_j = b_j \oplus \kappa^i_j`.
 
-        **sBoxLayer:**
-        The S-box used in PRESENT is a 4-bit to 4-bit S-box. The action of this
-        box in hexadecimal notation is given by the following table.
-
-        +------+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
-        | x    | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | A | B | C | D | E | F |
-        +------+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
-        | S[x] | C | 5 | 6 | B | 9 | 0 | A | D | 3 | E | F | 8 | 4 | 7 | 1 | 2 |
-        +------+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
-
-        For sBoxLayer the current STATE `b_{63} \dots b_0` is considered as
-        sixteen 4-bit words `w_{15} \dots w_0` where `w_i =
-        b_{4i+3}|b_{4i+2}|b_{4i+1}|b_{4i}` for `0 \leq i \leq 15` and the
-        output nibble S[`w_i`] provides the updated state values in the obvious
-        way.
-
         **pLayer:**
         The bit permutation used in PRESENT is given by the following
         table. Bit `i` of STATE is moved to bit position `P(i)`.
@@ -457,8 +441,7 @@ class PRESENT(SageObject):
         roundKeys = self._keySchedule(K)
         for r, K in enumerate(roundKeys[:self._rounds]):
             state = state + K
-            for nibble in [slice(4*j, 4*j+4) for j in range(16)]:
-                state[nibble] = self._sbox(state[nibble][::-1])[::-1]
+            state = self.sbox_layer(state)
             if self._doLastLinearLayer or r != self._rounds - 1:
                 state[0:] = self._permutationMatrix * state
         state = state + roundKeys[self._rounds]
@@ -520,10 +503,45 @@ class PRESENT(SageObject):
         for r, K in enumerate(roundKeys[:self._rounds][::-1]):
             if self._doLastLinearLayer or r != 0:
                 state[0:] = self._inversePermutationMatrix * state
-            for nibble in [slice(4*j, 4*j+4) for j in range(16)]:
-                state[nibble] = self._inverseSbox(state[nibble][::-1])[::-1]
+            state = self.sbox_layer(state, inverse=True)
             state = state + K
         return state if inputType == 'vector' else ZZ(list(state), 2)
+
+    def sbox_layer(self, state, inverse=False):
+        """
+        Apply the sBoxLayer of PRESENT to the bit vector ``state`` and return
+        the result.
+
+        The S-box used in PRESENT is a 4-bit to 4-bit S-box. The action of this
+        box in hexadecimal notation is given by the following table.
+
+        +------+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
+        | x    | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | A | B | C | D | E | F |
+        +------+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
+        | S[x] | C | 5 | 6 | B | 9 | 0 | A | D | 3 | E | F | 8 | 4 | 7 | 1 | 2 |
+        +------+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
+
+        For sBoxLayer the current STATE `b_{63} \dots b_0` is considered as
+        sixteen 4-bit words `w_{15} \dots w_0` where `w_i =
+        b_{4i+3}|b_{4i+2}|b_{4i+1}|b_{4i}` for `0 \leq i \leq 15` and the
+        output nibble S[`w_i`] provides the updated state values in the obvious
+        way.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.present import PRESENT
+            sage: present = PRESENT()
+            sage: state = vector(GF(2), 64, [0]*64)
+            sage: present.sbox_layer(state)
+            (0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0,
+            1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1,
+            0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1)
+        """
+        sbox = self._sbox if not inverse else self._inverseSbox
+        out = vector(GF(2), 64)
+        for nibble in [slice(4*j, 4*j+4) for j in range(16)]:
+            out[nibble] = sbox(state[nibble][::-1])[::-1]
+        return out
 
 
 class PRESENT_KS(SageObject):

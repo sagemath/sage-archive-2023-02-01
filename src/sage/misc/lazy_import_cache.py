@@ -32,8 +32,6 @@ def get_cache_file():
         True
         sage: sage.misc.lazy_import_cache.DOT_SAGE = OLD
     """
-    mangled = os.path.realpath(SAGE_LIB).replace(os.sep, '_')
-    if len(mangled) > 255 - 25:
-        mangled = hashlib.sha256(mangled.encode('utf-8')).hexdigest()
+    mangled = hashlib.sha256(os.path.realpath(SAGE_LIB).encode('utf-8')).hexdigest() 
     return os.path.join(DOT_SAGE, 'cache',
                         "%s-lazy_import_cache.pickle" % mangled)

@@ -1274,6 +1274,34 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         - A new :class:`SchemeMorphism_polynomial` which is this map coerced to ``R``.
 
+        TESTS::
+
+            sage: R.<t>=QQ[]
+            sage: K.<v>=QuadraticField(2)
+            sage: K2.<w>=NumberField(t**4-2)
+            sage: P.<x,y>=ProjectiveSpace(QQ,1)
+            sage: phi=K.embeddings(K2)[0]
+            sage: f=DynamicalSystem_projective([x**2+3*y**2,y**2])
+            sage: f.change_ring(phi)
+            Dynamical System of Projective Space of dimension 1 over Number Field in w with defining polynomial t^4 - 2
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^2 + 3*y^2 : y^2)
+
+        ::
+
+            sage: R.<t>=QQ[]
+            sage: K.<u>=QuadraticField(2)
+            sage: K1.<v>=NumberField(t^4-2)
+            sage: K2.<w>=NumberField(t^8-2)
+            sage: P.<x,y>=ProjectiveSpace(K,1)
+            sage: phi=K1.embeddings(K2)[0]
+            sage: f=DynamicalSystem_projective([x^2+3*y^2,y^2])
+            sage: f.change_ring(phi)
+            Traceback (most recent call last):
+            ...
+            ValueError: no canonical coercion of base ring of morphism to domain of embedding
+
+
         EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(ZZ, 1)
@@ -1422,8 +1450,8 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             H = Hom(T, S)
 
         if isinstance(R, Map):
+            from sage.structure.coerce_maps import CallableConvertMap
             if R.domain() == self.base_ring():
-                from sage.structure.coerce_maps import CallableConvertMap
                 S = self.domain().ambient_space().coordinate_ring()
                 T = T.ambient_space().coordinate_ring()
                 phi = CallableConvertMap(S, T, lambda self, g:T(g.map_coefficients(R)))
@@ -1433,6 +1461,20 @@ class SchemeMorphism_polynomial(SchemeMorphism):
                         G.append(phi(f.numerator())/phi(f.denominator()))
                     else:
                         G.append(phi(f))
+            elif R.domain().coerce_map_from(self.base_ring()) is not None:
+                R = R*R.domain().coerce_map_from(self.base_ring())
+                S = self.domain().ambient_space().coordinate_ring()
+                T = T.ambient_space().coordinate_ring()
+                phi = CallableConvertMap(S, T, lambda self, g:T(g.map_coefficients(R)))
+                G = []
+                for f in self:
+                    if isinstance(f, FractionFieldElement):
+                        G.append(phi(f.numerator())/phi(f.denominator()))
+                    else:
+                        G.append(phi(f))
+            else:
+                raise ValueError("no canonical coercion of base ring of morphism to domain of embedding")
+
         else:
             G = []
             for f in self:

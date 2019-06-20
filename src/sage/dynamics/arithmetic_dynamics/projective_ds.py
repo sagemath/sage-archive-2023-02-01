@@ -1298,11 +1298,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             P = self.domain()(P)
         except TypeError:
             raise TypeError("unable to convert %s to an element of %s"%(P, self.domain()))
-
         Q = P
         check = kwds.pop("check",True)
         normalize = kwds.pop("normalize",False)
-
         if normalize:
             Q.normalize_coordinates()
         for i in range(1, N[0]+1):

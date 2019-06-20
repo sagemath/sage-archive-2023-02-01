@@ -461,11 +461,11 @@ class RuleRSK(Rule):
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleRSK
-            sage: p, q = RSK([1,2,3,4,5],[3,3,2,4,1], insertion=RSK.rules.RSK)
-            sage: p1, q1 = RSK([1,2,3,4],[3,3,2,4], insertion=RSK.rules.RSK)
+            sage: p, q = RSK([1,2,3,4,5], [3,3,2,4,1], insertion=RSK.rules.RSK)
+            sage: p1, q1 = RSK([1,2,3,4], [3,3,2,4], insertion=RSK.rules.RSK)
             sage: p1 = [list(row) for row in p1]
             sage: q1 = [list(row) for row in q1]
-            sage: RuleRSK().insertion(5,1,p1,q1)
+            sage: RuleRSK().insertion(5, 1, p1, q1)
             sage: p == Tableau(p1) and q == Tableau(q1)
             True
 
@@ -498,13 +498,13 @@ class RuleRSK(Rule):
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleRSK
-            sage: p, q = RSK([1,2,3,4,5],[3,3,2,4,1], insertion=RSK.rules.RSK); p
+            sage: p, q = RSK([1,2,3,4,5], [3,3,2,4,1], insertion=RSK.rules.RSK); p
             [[1, 3, 4], [2], [3]]
-            sage: p1, q1 = RSK([1,2,3,4],[3,3,2,4], insertion=RSK.rules.RSK); p1
+            sage: p1, q1 = RSK([1,2,3,4], [3,3,2,4], insertion=RSK.rules.RSK); p1
             [[2, 3, 4], [3]]
             sage: p_copy = [list(row) for row in p]
             sage: rev_word = []
-            sage: RuleRSK().rev_insertion(2 , p_copy, rev_word, True); p_copy
+            sage: RuleRSK().rev_insertion(2, p_copy, rev_word, True); p_copy
             [[2, 3, 4], [3], []]
 
         """
@@ -581,11 +581,11 @@ class RuleEG(Rule):
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleEG
-            sage: p, q = RSK([1,2,3,4,5],[3,3,2,4,1], insertion=RSK.rules.EG)
-            sage: p1, q1 = RSK([1,2,3,4],[3,3,2,4], insertion=RSK.rules.EG)
+            sage: p, q = RSK([1,2,3,4,5], [3,3,2,4,1], insertion=RSK.rules.EG)
+            sage: p1, q1 = RSK([1,2,3,4], [3,3,2,4], insertion=RSK.rules.EG)
             sage: p1 = [list(row) for row in p1]
             sage: q1 = [list(row) for row in q1]
-            sage: RuleEG().insertion(5,1,p1,q1)
+            sage: RuleEG().insertion(5, 1, p1, q1)
             sage: p == Tableau(p1) and q == Tableau(q1)
             True
 
@@ -619,24 +619,18 @@ class RuleEG(Rule):
         current tableaux p_copy and appends the removed entry from ``p_copy``
         to the list ``rev_word``.
         
-        TESTS:
-        
-        For non-standard p, q::
+        Examples::
 
-            sage: RSK_inverse(*RSK([1, 2, 3, 2, 1], insertion='EG'), insertion='EG')
-            [[1, 2, 3, 4, 5], [1, 2, 3, 2, 1]]
-            sage: RSK_inverse(*RSK([1, 1, 1, 2], [1, 2, 3, 4], insertion=RSK.rules.EG), insertion=RSK.rules.EG)
-            [[1, 1, 1, 2], [1, 2, 3, 4]]
-            sage: RSK_inverse(*RSK([1, 2, 3, 3], [2, 1, 2, 2], insertion='EG'), insertion='EG')
-            [[1, 2, 3, 3], [2, 1, 2, 2]]
-            
-        Since the column reading of the insertion tableau from Edelman-Greene insertion 
-        gives one of reduced words for the original permutation, we can also check for that
+            sage: from sage.combinat.rsk import RuleEG
+            sage: p, q = RSK([1,2,3,4,5,6], [2,3,2,1,2,3], insertion=RSK.rules.EG); p
+            [[1, 2, 3], [2, 3], [3]]
+            sage: p1, q1 = RSK([1,2,3,4,5], [2,3,2,1,2], insertion=RSK.rules.EG); p1
+            [[1, 2], [2, 3], [3]]
+            sage: p_copy = [list(row) for row in p]
+            sage: rev_word = []
+            sage: RuleEG().rev_insertion(0, p_copy, rev_word, True); p_copy
+            [[1, 2], [2, 3], [3]]
 
-            sage: f = lambda p: reversed([x for row in reversed(p) for x in row])
-            sage: g = lambda p: RSK(p.reduced_word(), insertion=RSK.rules.EG)[0]
-            sage: all(p == Permutations(n).from_reduced_word(f(g(p))) for n in range(8) for p in Permutations(n))
-            True
         """
         from bisect import bisect_left
         if q_is_standard:
@@ -830,11 +824,11 @@ class RuleHecke(Rule):
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleHecke
-            sage: p, q = RSK([1,2,3,4,5],[5, 4, 1, 3, 4], insertion=RSK.rules.Hecke)
-            sage: p1, q1 = RSK([1,2,3,4],[5,4,1,3], insertion=RSK.rules.Hecke)
+            sage: p, q = RSK([1,2,3,4,5], [5,4,1,3,4], insertion=RSK.rules.Hecke)
+            sage: p1, q1 = RSK([1,2,3,4], [5,4,1,3], insertion=RSK.rules.Hecke)
             sage: p1 = [list(row) for row in p1]
             sage: q1 = [list(row) for row in q1]
-            sage: RuleHecke().insertion(5,4,p1,q1)
+            sage: RuleHecke().insertion(5, 4, p1, q1)
             sage: p == Tableau(p1) and q == Tableau(q1)
             True
 
@@ -880,14 +874,14 @@ class RuleHecke(Rule):
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleHecke
-            sage: p, q = RSK([1,2,3,4],[4,6,7,9], insertion=RSK.rules.Hecke); p
+            sage: p, q = RSK([1,2,3,4], [4,6,7,9], insertion=RSK.rules.Hecke); p
             [[4, 6, 7, 9]]
-            sage: p1, q1 = RSK([1,2,3],[4,6,7], insertion=RSK.rules.Hecke); p1
+            sage: p1, q1 = RSK([1,2,3], [4,6,7], insertion=RSK.rules.Hecke); p1
             [[4, 6, 7]]
             sage: p_copy = [list(row) for row in p]
             sage: q_copy = [list(row) for row in q]
             sage: rev_word = []
-            sage: RuleHecke().rev_insertion(0 , p_copy, q_copy, rev_word); rev_word
+            sage: RuleHecke().rev_insertion(0, p_copy, q_copy, rev_word); rev_word
             [9]
 
         """
@@ -1311,6 +1305,23 @@ def RSK_inverse(p, q, output='array', insertion=InsertionRules.RSK):
         Traceback (most recent call last):
         ...
         ValueError: p(=[[1, 2, 3]]) and q(=[[1, 2]]) must have the same shape
+
+    For Edelman-Greene, in case of non-standard p,q::
+
+        sage: RSK_inverse(*RSK([1, 2, 3, 2, 1], insertion='EG'), insertion='EG')
+        [[1, 2, 3, 4, 5], [1, 2, 3, 2, 1]]
+        sage: RSK_inverse(*RSK([1, 1, 1, 2], [1, 2, 3, 4], insertion=RSK.rules.EG), insertion=RSK.rules.EG)
+        [[1, 1, 1, 2], [1, 2, 3, 4]]
+        sage: RSK_inverse(*RSK([1, 2, 3, 3], [2, 1, 2, 2], insertion='EG'), insertion='EG')
+        [[1, 2, 3, 3], [2, 1, 2, 2]]
+
+    Since the column reading of the insertion tableau from Edelman-Greene insertion 
+    gives one of reduced words for the original permutation, we can also check for that
+
+        sage: f = lambda p: reversed([x for row in reversed(p) for x in row])
+        sage: g = lambda p: RSK(p.reduced_word(), insertion=RSK.rules.EG)[0]
+        sage: all(p == Permutations(n).from_reduced_word(f(g(p))) for n in range(8) for p in Permutations(n))
+        True    
 
     Check that :trac:`20430` is fixed::
 

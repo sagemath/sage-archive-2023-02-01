@@ -254,6 +254,15 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         Dynamical System of Product of projective spaces P^2 x P^1 over Rational Field
           Defn: Defined by sending (x : y : z , w : u) to
                 (x^2*u : y^2*w : z^2*u , w^2 : u^2).
+
+    ::
+
+        sage: K.<v> = QuadraticField(-7)
+        sage: P.<x,y> = ProjectiveSpace(K, 1)
+        sage: f = DynamicalSystem([x^3 + v*x*y^2, y^3])
+        sage: fbar = f.change_ring(QQbar)
+        sage: fbar.is_postcritically_finite()
+        False
     """
 
     @staticmethod
@@ -1870,9 +1879,12 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 elif f.base_ring() == QQ:
                     f = f.change_ring(K)
                 else:
-                    K, phi, psi, b = K.composite_fields(f.base_ring(), both_maps=True)[0]
-                    Q = Q.change_ring(K, embedding=phi)
-                    f = f.change_ring(K, embedding=psi)
+                    #make variable names match
+                    L = K.change_names('a')
+                    phi2 = L.structure()[1]
+                    K, phi, psi, b = L.composite_fields(f.base_ring(), both_maps=True)[0]
+                    Q = Q.change_ring(phi*phi2)
+                    f = f.change_ring(psi)
         else:
             if not K.is_absolute():
                 raise TypeError("must be an absolute field")

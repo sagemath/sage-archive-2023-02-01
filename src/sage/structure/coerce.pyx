@@ -1,5 +1,5 @@
 r"""
-Coercion model
+The coercion model
 
 The coercion model manages how elements of one parent get related to elements
 of another. For example, the integer 2 can canonically be viewed as an element

@@ -333,14 +333,14 @@ Methods to implement
   `R = \QQ`, `S = \QQ[x]` or `R = {\rm Gal}(S/\QQ)`
   where `S`  is a number field. There are several ways to implement this:
 
-  1. If `R` is the base of `S` (as in the first example), simply
+  * If `R` is the base of `S` (as in the first example), simply
     implement ``_rmul_`` and/or ``_lmul_`` on the Elements of `S`.
     In this case ``r * s`` gets handled as ``s._rmul_(r)`` and
     ``s * r`` as ``s._lmul_(r)``. The argument to ``_rmul_``
     and ``_lmul_`` are *guaranteed* to be Elements of the base of
     `S` (with coercion happening beforehand if necessary).
 
-  2. If `R` acts on `S` multiplicatively, one can define the methods
+  * If `R` acts on `S`, one can define the methods
     ``_act_on_`` on Elements of `R` or ``_acted_upon_`` on Elements of `S`. In
     this case ``r * s`` gets handled as ``r._act_on_(s, True)`` or
     ``s._acted_upon_(r, False)`` and ``s * r`` as ``r._act_on_(s, False)`` or
@@ -349,15 +349,15 @@ Methods to implement
     if the wrong kind of object is passed in to indicate the action is not
     appropriate here.
 
-  3. If either `R` acts on `S` *or* `S` acts on `R`, one may implement
-     ``R._get_action_`` to return an actual
-     :class:`~sage.categories.action.Action` object to be used. This is how
-     non-multiplicative actions must be implemented, and is the most powerful
-     and complete way to do things.
+  * If either `R` acts on `S` *or* `S` acts on `R`, one may implement
+    ``R._get_action_`` to return an actual
+    :class:`~sage.categories.action.Action` object to be used. This is how
+    non-multiplicative actions must be implemented, and is the most powerful
+    and complete way to do things.
 
   It should be noted that for the first way to work, elements of `S` are
-  required to be ModuleElements. This requirement is likely to be removed in
-  the future.
+  required to be ModuleElements. This requirement is likely to be lifted in the
+  future.
 
 * Element conversion/construction for Parents: use ``_element_constructor_`` **not** ``__call__``
 

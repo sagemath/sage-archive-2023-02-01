@@ -41,10 +41,10 @@ cdef class PyFunctionWrapper:
    cdef object the_function
    cdef object the_parameters
 
-#cdef class PyMonteWrapper:
-#    cdef object the_function
-#    cdef object the_dim
-#    cdef object the_parameters
+cdef class PyMonteWrapper:
+   cdef object the_function
+   cdef object the_parameters
+   cdef list lx
 
 cdef class compiled_integrand:
    cdef int c_f(self,double t):  #void *params):
@@ -65,25 +65,24 @@ cdef double c_f(double t,void *params):
 
    return value
 
-# cdef double c_monte_f(double *t, size_t dim, void *params):
-#    cdef double value
-#    cdef PyMonteWrapper wrapper
-#    wrapper = <PyMonteWrapper> params
-# 
-#    lx = list()
-#    for i in range(dim):
-#        lx.append(t[i])
-# 
-#    try:
-#       if len(wrapper.the_parameters)!=0:
-#          value=wrapper.the_function(lx, dim, wrapper.the_parameters)
-#       else:
-#          value=wrapper.the_function(lx, dim)
-#    except Exception as msg:
-#       print(msg)
-#       return 0
-# 
-#    return value
+cdef double c_monte_f(double *t, size_t dim, void *params):
+    cdef double value
+    cdef PyMonteWrapper wrapper
+    wrapper = <PyMonteWrapper> params
+
+    for i in range(dim):
+       wrapper.lx[i] = t[i]
+
+    try:
+        if len(wrapper.the_parameters)!=0:
+            value=wrapper.the_function(*wrapper.lx, *wrapper.the_parameters)
+        else:
+            value=wrapper.the_function(*wrapper.lx)
+    except Exception as msg:
+        print(msg)
+        return 0
+
+    return value
 
 cdef double c_ff(double t, void *params):
     return (<FastDoubleFunc>params)._call_c(&t)
@@ -143,11 +142,19 @@ def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', param
         (-1.06, 0.01)
         (-1.06, 0.01)
         (-1.06, 0.01)
+
+    Tests with python functions::
+
+        sage: def f(u, v): return u * v
+        sage: monte_carlo_integration(f, [0,0], [2,2], 10000)  # abs tol 0.1
+        (4.0, 0.0)
+        sage: monte_carlo_integration(lambda u,v: u*v, [0,0], [2,2], 10000)  # abs tol 0.1
+        (4.0, 0.0)
     """
     cdef double result
     cdef double abs_err
     cdef gsl_monte_function F
-    cdef PyFunctionWrapper wrapper  # struct to pass information into GSL Monte C function
+    cdef PyMonteWrapper wrapper  # struct to pass information into GSL Monte C function
     cdef gsl_monte_plain_state* state_monte = NULL
     cdef gsl_monte_miser_state* state_miser = NULL
     cdef gsl_monte_vegas_state* state_vegas = NULL
@@ -176,7 +183,7 @@ def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', param
         _xl[i] = <double> xl[i]
         _xu[i] = <double> xu[i]
 
-        # Initialize the random number generator
+    # Initialize the random number generator
     gsl_rng_env_setup()
     type_rng = gsl_rng_default
     _rng = gsl_rng_alloc(type_rng)
@@ -210,35 +217,30 @@ def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', param
             func = fast_callable(func, domain=RDF, vars=vars)
 
         except (AttributeError):
-            raise ValueError('fast_callable failed')
+            pass
 
     if isinstance(func, Wrapper_rdf):
+        F.dim = dim
         F.f = c_monte_ff
         F.params = <void *>func
+    elif not isinstance(func, compiled_integrand): # TODO understand "compiled_integrand" case
+        wrapper = PyMonteWrapper()
+        if not func is None:
+            wrapper.the_function = func
+        else:
+            raise ValueError("No integrand defined")
+        try:
+            if params == [] and len(sage_getargspec(wrapper.the_function)[0]) == dim:
+                wrapper.the_parameters = []
+            elif params == [] and len(sage_getargspec(wrapper.the_function)[0]) > dim:
+                raise ValueError("Integrand has parameters but no parameters specified")
+            elif params != []:
+                wrapper.the_parameters = params
+        wrapper.lx = [None] * dim
 
-    else:
-        # TODO
-        raise NotImplementedError("only works with fast callable")
-
-#    elif not isinstance(func, compiled_integrand): # TODO and to understand.
-#        wrapper = PyMonteWrapper()
-#        if not func is None:
-#            wrapper.the_function = func
-#        else:
-#            raise ValueError("No integrand defined")
-#        try:
-#            if params == [] and len(sage_getargspec(wrapper.the_function)[0]) == 1:
-#                wrapper.the_parameters = []
-#            elif params == [] and len(sage_getargspec(wrapper.the_function)[0]) > 1:
-#                raise ValueError("Integrand has parameters but no parameters specified")
-#            elif params != []:
-#                wrapper.the_parameters = params
-#        except TypeError:
-#            wrapper.the_function = eval("lambda x: func(x)", {'func': func})
-#            wrapper.the_parameters = []
-#
-#        F.f = c_monte_f
-#        F.params = <void *> wrapper
+        F.dim = dim
+        F.f = c_monte_f
+        F.params = <void *> wrapper
 
     try:
         if algorithm == 'plain':

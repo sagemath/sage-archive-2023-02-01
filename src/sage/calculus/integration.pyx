@@ -32,6 +32,7 @@ from sage.libs.gsl.all cimport *
 from sage.misc.sageinspect import sage_getargspec
 from sage.ext.fast_eval cimport FastDoubleFunc
 from sage.ext.fast_callable cimport Wrapper
+from sage.ext.interpreters.wrapper_rdf cimport Wrapper_rdf
 from sage.ext.fast_callable import fast_callable
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 
@@ -40,10 +41,10 @@ cdef class PyFunctionWrapper:
    cdef object the_function
    cdef object the_parameters
 
-cdef class PyMonteWrapper:
-    cdef object the_function
-    cdef object the_dim
-    cdef object the_parameters
+#cdef class PyMonteWrapper:
+#    cdef object the_function
+#    cdef object the_dim
+#    cdef object the_parameters
 
 cdef class compiled_integrand:
    cdef int c_f(self,double t):  #void *params):
@@ -64,35 +65,32 @@ cdef double c_f(double t,void *params):
 
    return value
 
-cdef double c_monte_f(double *t, size_t dim, void *params):
-   cdef double value
-   cdef PyMonteWrapper wrapper
-   wrapper = <PyMonteWrapper> params
-
-   lx = list()
-   for i in range(dim):
-       lx.append(t[i])
-
-   try:
-      if len(wrapper.the_parameters)!=0:
-         value=wrapper.the_function(lx, dim, wrapper.the_parameters)
-      else:
-         value=wrapper.the_function(lx, dim)
-   except Exception as msg:
-      print(msg)
-      return 0
-
-   return value
+# cdef double c_monte_f(double *t, size_t dim, void *params):
+#    cdef double value
+#    cdef PyMonteWrapper wrapper
+#    wrapper = <PyMonteWrapper> params
+# 
+#    lx = list()
+#    for i in range(dim):
+#        lx.append(t[i])
+# 
+#    try:
+#       if len(wrapper.the_parameters)!=0:
+#          value=wrapper.the_function(lx, dim, wrapper.the_parameters)
+#       else:
+#          value=wrapper.the_function(lx, dim)
+#    except Exception as msg:
+#       print(msg)
+#       return 0
+# 
+#    return value
 
 cdef double c_ff(double t, void *params):
     return (<FastDoubleFunc>params)._call_c(&t)
 
 cdef double c_monte_ff(double *x, size_t dim, void *params):
     cdef double result
-    lx = list()
-    for i in range(dim):
-        lx.append(x[i])
-    result = <double> (<Wrapper>params)(*lx)
+    (<Wrapper_rdf> params).call_c(x, &result)
     return result
 
 def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', params=None):
@@ -149,7 +147,7 @@ def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', param
     cdef double result
     cdef double abs_err
     cdef gsl_monte_function F
-    cdef PyMonteWrapper wrapper  # struct to pass information into GSL Monte C function
+    cdef PyFunctionWrapper wrapper  # struct to pass information into GSL Monte C function
     cdef gsl_monte_plain_state* state_monte = NULL
     cdef gsl_monte_miser_state* state_miser = NULL
     cdef gsl_monte_vegas_state* state_vegas = NULL
@@ -214,8 +212,7 @@ def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', param
         except (AttributeError):
             raise ValueError('fast_callable failed')
 
-    if isinstance(func, Wrapper):
-        F.dim = dim
+    if isinstance(func, Wrapper_rdf):
         F.f = c_monte_ff
         F.params = <void *>func
 
@@ -245,7 +242,6 @@ def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', param
 
     try:
         if algorithm == 'plain':
-            # workspace for plain Monte Carlo integration
             state_monte = <gsl_monte_plain_state*> gsl_monte_plain_alloc(dim)
             sig_on()
             gsl_monte_plain_integrate(&F, _xl, _xu, dim, calls, _rng,

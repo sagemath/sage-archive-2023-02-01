@@ -3,11 +3,11 @@
 # #27907: Symlink crt1.o and friends where gcc can find it.
 if [ -n "$SAGE_CRTI_DIR" ]; then
    LIBGCC=$(dirname -- $("$SAGE_LOCAL"/bin/gcc -print-libgcc-file-name))
-   echo "# Remove symlinks created by spkg-postinst" >> $INSTALLED_SCRIPTS_DEST/spkg-postinst
+   echo "# Remove symlinks created by spkg-postinst" >> $INSTALLED_SCRIPTS_DEST/spkg-postrm
    for f in "$SAGE_CRTI_DIR"/*crt?.o; do
        if [ -r $f -a ! -r "$LIBGCC"/$f ]; then
           ln -s $f "$LIBGCC"
-          echo "rm -f \"$LIBGCC\"/$f " >> $INSTALLED_SCRIPTS_DEST/spkg-postinst
+          echo "rm -f \"$LIBGCC\"/$f " >> $INSTALLED_SCRIPTS_DEST/spkg-postrm
        fi
    done
 fi

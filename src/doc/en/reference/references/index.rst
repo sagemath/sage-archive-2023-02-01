@@ -311,7 +311,7 @@ REFERENCES:
             (1997). No. 3,
             445-470. www.math.ou.edu/~nbrady/papers/morse.ps.
 
-.. [BB2005] \A. Bjorner, F. Brenti. *Combinatorics of Coxeter
+.. [BB2005] \A. Björner, F. Brenti. *Combinatorics of Coxeter
             groups*. New York: Springer, 2005.
 
 .. [BB2009] Tomas J. Boothby and Robert W. Bradshaw. *Bitslicing and
@@ -338,8 +338,8 @@ REFERENCES:
                *Fides: Lightweight authenticated cipher with side-channel resistance
                for constrained hardware*; in CHES, (2013), pp. 142-158.
 
-.. [BBLSW1999] Babson, Bjorner, Linusson, Shareshian, and Welker,
-               "Complexes of not i-connected graphs," Topology 38
+.. [BBLSW1999] Babson, Björner, Linusson, Shareshian, and Welker,
+               *Complexes of not i-connected graphs*, Topology 38
                (1999), 271-299
 
 .. [BBMF2008] \N. Bonichon, M. Bousquet-Mélou, E. Fusy.
@@ -596,6 +596,10 @@ REFERENCES:
             *Shellable and Cohen-Macaulay partially ordered sets*,
             Trans. Amer. Math. Soc. 260 (1980), 159-183,
             :doi:`10.1090/S0002-9947-1980-0570784-2`
+
+.. [BjWe2005] \A. Björner and V. Welker, *Segre and Rees products of posets,
+              with ring-theoretic applications*, J. Pure Appl. Algebra
+              198 (2005), 43-55
 
 .. [BJKLMPSSS2016] \C. Beierle, J. Jean, S. Kölbl, G. Leander, A. Moradi,
                    \T. Peyrin, Y. Sasaki, P. Sasdrich, and S. M. Sim,
@@ -902,7 +906,7 @@ REFERENCES:
              1982
              http://oai.cwi.nl/oai/asset/304/0304A.pdf
 
-.. [BW1988] Anders Bjoerner, Michelle L. Wachs,
+.. [BW1988] Anders Björner, Michelle L. Wachs,
             *Generalized quotients in Coxeter groups*.
             Transactions of the American Mathematical Society,
             vol. 308, no. 1, July 1988.
@@ -917,7 +921,7 @@ REFERENCES:
             available at
             http://www.hpl.hp.com/techreports/Compaq-DEC/SRC-RR-124.html
 
-.. [BW1996] Anders Bjorner and Michelle L. Wachs. *Shellable nonpure
+.. [BW1996] Anders Björner and Michelle L. Wachs. *Shellable nonpure
             complexes and posets. I*. Trans. of
             Amer. Math. Soc. **348** No. 4. (1996)
 
@@ -1925,7 +1929,7 @@ REFERENCES:
              group", preprint :arxiv:`0901.1340`
 
 .. [GP2012] Eddy Godelle and Luis Paris.
-            *Basic questions on Artin-Tits groups*. A. Bjorner et al. (eds)
+            *Basic questions on Artin-Tits groups*. A. Björner et al. (eds)
             Configuration spaces, CRM series. (2012) pp. 299--311.
             Edizioni della Normale, Pisa.
             :doi:`10.1007/978-88-7642-431-1_13`
@@ -2923,6 +2927,10 @@ REFERENCES:
             cellular automata using rigged configurations*.
             Preprint (2017) :arxiv:`1706.02443`
 
+.. [LSW2012] Svante Linusson, John Shareshian and Michelle L. Wachs,
+             *Rees products and lexicographic shellability*,
+             J. Comb. 3 (2012), no. 3, 243-276.
+
 .. [LT1998] \B. Leclerc, J.-Y. Thibon, Littlewood-Richardson
             coefficients and Kazhdan-Lusztig polynomials,
             http://front.math.ucdavis.edu/9809.5122
@@ -3075,6 +3083,9 @@ REFERENCES:
 
 .. [Maz1978b] \B. Mazur.  Rational Isogenies of Prime Degree.
               *Inventiones mathematicae* 44, 129-162 (1978).
+
+.. [MBRe2011] Patricia Muldoon Brown and Margaret A. Readdy,
+              *The Rees product of posets*, J. Comb. 2 (2011), no. 2, 165-191
 
 .. [McC1978] \K. McCrimmon. *Jordan algebras and their
              applications*. Bull. Amer. Math. Soc. **84** 1978.

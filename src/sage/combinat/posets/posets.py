@@ -105,6 +105,7 @@ List of Poset methods
     :meth:`~FinitePoset.ordinal_sum` | Return the ordinal sum of the poset with other poset.
     :meth:`~FinitePoset.product` | Return the Cartesian product of the poset with other poset.
     :meth:`~FinitePoset.ordinal_product` | Return the ordinal product of the poset with other poset.
+    :meth:`~FinitePoset.rees_product` | Return the Rees product of the poset with other poset.
     :meth:`~FinitePoset.lexicographic_sum` | Return the lexicographic sum of posets.
     :meth:`~FinitePoset.star_product` | Return the star product of the poset with other poset.
     :meth:`~FinitePoset.with_bounds` | Return the poset with bottom and top element adjoined.
@@ -4594,6 +4595,56 @@ class FinitePoset(UniqueRepresentation, Parent):
         return constructor(self.hasse_diagram().cartesian_product(other.hasse_diagram()))
 
     _mul_ = product
+
+    def rees_product(self, other):
+        r"""
+        Return the Rees product of ``self`` and ``other``.
+
+        This is only defined if both posets are graded.
+
+        The underlying set is the set of pairs `(p,q)` in the Cartesian
+        product such that `\operatorname{rk}(p) \geq \operatorname{rk}(q)`.
+
+        This operation was defined by Björner and Welker in [BjWe2005]_.
+        Other references are [MBRe2011]_ and [LSW2012]_.
+
+        EXAMPLES::
+
+            sage: B3 = posets.BooleanLattice(3)
+            sage: B3t = B3.subposet(list(range(1,8)))
+            sage: C3 = posets.ChainPoset(3)
+            sage: D = B3t.rees_product(C3); D
+            Finite poset containing 12 elements
+            sage: len(D.minimal_elements())
+            3
+            sage: len(D.maximal_elements())
+            3
+
+        .. SEEALSO::
+
+            :meth:`product`, :meth:`ordinal_product`, :meth:`star_product`
+
+        TESTS::
+
+            sage: T = posets.TamariLattice(3)
+            sage: T.rees_product(T)
+            Traceback (most recent call last):
+            ...
+            TypeError: the Rees product is defined for graded posets
+        """
+        if not(self.is_graded() and other.is_graded()):
+            raise TypeError('the Rees product is defined for graded posets')
+
+        rk0 = self.rank_function()
+        rk1 = other.rank_function()
+        rees_set = [(p, q) for p in self for q in other if rk0(p) >= rk1(q)]
+
+        def compare(pq, ppqq):
+            p, q = pq
+            pp, qq = ppqq
+            return (self.le(p, pp) and other.le(q, qq) and
+                    rk0(p) - rk0(pp) <= rk1(q) - rk1(qq))
+        return Poset([rees_set, compare])
 
     def factor(self):
         """

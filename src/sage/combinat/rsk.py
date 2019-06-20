@@ -9,19 +9,19 @@ Introduction
 ============
 
 The Robinson-Schensted-Knuth (RSK) correspondence is most naturally 
-stated as a bijection between generalized permutations (also known 
+stated as a bijection between generalized permutation (also known 
 as two-line arrays, biwords, ...) and pairs of semi-standard Young 
 tableaux `(P, Q)` of identical shape.
 
 The basic operation in the RSK correspondence is a row insertion 
-`P \leftarrow k`(where `P` is a given semi-standard Young tableau, 
+`P \leftarrow k` (where `P` is a given semi-standard Young tableau, 
 and `k` is an integer). Different insertion algorithms have been 
 implemented for the RSK correspondence which can be specify in 
-the function.
+the function call.
 
 EXAMPLES:
 
-We can perform RSK and the inverse on a variety of objects::
+We can perform RSK and the RSK_inverse on a variety of objects::
 
     sage: p = Tableau([[1,2,2],[2]]); q = Tableau([[1,3,3],[2]])
     sage: gp = RSK_inverse(p, q); gp
@@ -114,9 +114,13 @@ base class for a rule::
 
     sage: from sage.combinat.rsk import Rule
 
-Next, you need to implement the forward rule and backward rule for RSK() 
-and RSK_inverse respectively. For more information, see 
-:class:`~sage.combinat.rsk.Rule`.
+Using the ``Rule`` class as parent class for your insertion rule, 
+first implement the insertion and the reverse insertion algorithm 
+for RSK() and RSK_inverse respectively. If your insertion algorithm uses same 
+forward and backward rule as ``RuleRSK`` you can directly use it, else you need 
+to implement your own forward and backward rules. 
+
+For more information, see :class:`~sage.combinat.rsk.Rule`.
 
 TESTS:
 
@@ -203,7 +207,7 @@ from sage.matrix.all import matrix
 
 class Rule(UniqueRepresentation):
     r"""
-    Generic base class for a insertion rule for RSK correspondence.
+    Generic base class for an insertion rule for RSK correspondence.
     """
     def to_pair(self, obj1=None, obj2=None):
         r"""
@@ -247,7 +251,7 @@ class Rule(UniqueRepresentation):
 
     def forward_rule(self, obj1, obj2, check_standard=False):
         r"""
-        Returns a pair of tableau from forward insertion of the pair ``[obj1, obj2]``.
+        Returns a pair of tableaux from forward insertion of the pair ``[obj1, obj2]``.
         
         INPUT:
           
@@ -262,6 +266,16 @@ class Rule(UniqueRepresentation):
         -  ``check_standard`` -- (Default: ``False``) Check if either of the
             resulting tableaux is a standard tableau, and if so, typecast it
             as such
+
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleRSK
+            sage: RuleRSK().forward_rule([3,3,2,4,1], None)
+            [[[1, 3, 4], [2], [3]], [[1, 2, 4], [3], [5]]]
+            sage: RuleRSK().forward_rule([1, 1, 1, 3, 7], None)
+            [[[1, 1, 1, 3, 7]], [[1, 2, 3, 4, 5]]]
+            sage: RuleRSK().forward_rule([7, 6, 3, 3, 1], None)
+            [[[1, 3], [3], [6], [7]], [[1, 4], [2], [3], [5]]]
 
         """
         self._forward_verify_input(obj1, obj2)
@@ -295,7 +309,24 @@ class Rule(UniqueRepresentation):
 
           and additionally if ``p`` is standard, we can also have the output:
 
-          - ``'permutation'`` -- as a permutation 
+          - ``'permutation'`` -- as a permutation
+
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleRSK
+            sage: t1 = Tableau([[1, 3, 4], [2], [3]])
+            sage: t2 = Tableau([[1, 2, 4], [3], [5]])
+            sage: RuleRSK().backward_rule(t1, t2, 'array')
+            [[1, 2, 3, 4, 5], [3, 3, 2, 4, 1]]
+            sage: t1 = Tableau([[1, 1, 1, 3, 7]])
+            sage: t2 = Tableau([[1, 2, 3, 4, 5]])
+            sage: RuleRSK().backward_rule(t1, t2, 'array')
+            [[1, 2, 3, 4, 5], [1, 1, 1, 3, 7]]
+            sage: t1 = Tableau([[1, 3], [3], [6], [7]])
+            sage: t2 = Tableau([[1, 4], [2], [3], [5]])
+            sage: RuleRSK().backward_rule(t1, t2, 'array')
+            [[1, 2, 3, 4, 5], [7, 6, 3, 3, 1]]
+
         """
         from sage.combinat.tableau import SemistandardTableaux
         self._backward_verify_input(p, q)
@@ -334,7 +365,19 @@ class Rule(UniqueRepresentation):
 
     def _forward_formatOutput(self, p=None, q=None, check_standard=False):
         r"""
-        Return final output as per additional parameters for forward rule.
+        Returns final output of the ``RSK`` correspondence from the output of the 
+        corresponding ``forward_rule``. 
+
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleRSK
+            sage: isinstance(RuleRSK()._forward_formatOutput([[1, 2, 3, 4, 5]], [[1, 2, 3, 4, 5]], True)[0], StandardTableau)
+            True
+            sage: isinstance(RuleRSK()._forward_formatOutput([[1, 2, 3, 4, 5]], [[1, 2, 3, 4, 5]], False)[0], SemistandardTableau)
+            True
+            sage: isinstance(RuleRSK()._forward_formatOutput([[1, 1, 1, 3, 7]], [[1, 2, 3, 4, 5]], True)[0], SemistandardTableau)
+            True
+
         """
         from sage.combinat.tableau import SemistandardTableau, StandardTableau
 
@@ -352,7 +395,26 @@ class Rule(UniqueRepresentation):
     
     def _backward_formatOutput(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
         r"""
-        Return final output as per additional parameters for backward rule.
+        Returns final output of the ``inverse_RSK`` correspondence from the output of the 
+        corresponding ``backward_rule``. 
+
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleRSK
+            sage: RuleRSK()._backward_formatOutput([1, 2, 3, 4], None)
+            [[1, 2, 3, 4], [4, 3, 2, 1]]
+            sage: RuleRSK()._backward_formatOutput([1, 2, 3, 4], None, 'matrix')
+            [0 0 0 1]
+            [0 0 1 0]
+            [0 1 0 0]
+            [1 0 0 0]
+            sage: RuleRSK()._backward_formatOutput([1, 2, 3, 4], None, 'word')
+            word: 4321
+            sage: RuleRSK()._backward_formatOutput([1, 2, 3, 4], None, 'random_type')
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid output option
+
         """
         if q_is_standard:
             if output == 'word':
@@ -403,7 +465,7 @@ class RuleRSK(Rule):
         sage: RSK_inverse(p, q, insertion=RSK.rules.RSK)
         [[1, 2, 3, 3], [2, 1, 2, 2]]
 
-    For ``RSK`` and ``RSK_inverse``, ``RuleRSK`` behaves same as 
+    For ``RSK()`` and ``RSK_inverse()``, ``RuleRSK`` behaves same as 
     :class:`~sage.combinat.rsk.Rule`. It is worth noting that in case of 
     ``RSK_inverse`` with ``output = 'permutation'`` ``RuleRSK`` returns 
     an object of class :class:`~sage.combinat.permutation.Permutation`.
@@ -412,6 +474,18 @@ class RuleRSK(Rule):
     def insertion(self, i, j, p, q):
         r"""
         Inserts the letter ``(i,j)`` from the bi-word to the current tableaux ``p`` and ``q``.
+        
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleRSK
+            sage: p, q = RSK([1,2,3,4,5], [3,3,2,4,1], insertion=RSK.rules.RSK)
+            sage: p1, q1 = RSK([1,2,3,4], [3,3,2,4], insertion=RSK.rules.RSK)
+            sage: p1 = [list(row) for row in p1]
+            sage: q1 = [list(row) for row in q1]
+            sage: RuleRSK().insertion(5, 1, p1, q1)
+            sage: p == Tableau(p1) and q == Tableau(q1)
+            True
+
         """
         from bisect import bisect_right
         for r, qr in zip(p,q):
@@ -437,6 +511,19 @@ class RuleRSK(Rule):
         Reverse bump the right-most letter from the `i^{th}` row of the 
         current tableaux p_copy and appends the removed entry from ``p_copy``
         to the list ``rev_word``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleRSK
+            sage: p, q = RSK([1,2,3,4,5], [3,3,2,4,1], insertion=RSK.rules.RSK); p
+            [[1, 3, 4], [2], [3]]
+            sage: p1, q1 = RSK([1,2,3,4], [3,3,2,4], insertion=RSK.rules.RSK); p1
+            [[2, 3, 4], [3]]
+            sage: p_copy = [list(row) for row in p]
+            sage: rev_word = []
+            sage: RuleRSK().rev_insertion(2, p_copy, rev_word, True); p_copy
+            [[2, 3, 4], [3], []]
+
         """
         from bisect import bisect_left
         if q_is_standard:
@@ -455,7 +542,19 @@ class RuleRSK(Rule):
 
     def _backward_formatOutput(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
         r"""
-        Return final output as per additional parameters for backward rule.
+        Returns final output of the ``inverse_RSK`` correspondence from the output of the 
+        corresponding ``backward_rule``. 
+
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleRSK
+            sage: RuleRSK()._backward_formatOutput([1, 2, 3, 4], None, 'permutation', True, True)
+            [4, 3, 2, 1]
+            sage: RuleRSK()._backward_formatOutput([1, 2, 3, 4], None, 'permutation', False, True)
+            Traceback (most recent call last):
+            ...
+            TypeError: p must be standard to have a valid permutation as output
+
         """
         if q_is_standard and output == 'permutation':
             if not p_is_standard:
@@ -481,12 +580,12 @@ class RuleEG(Rule):
         sage: RSK_inverse(*pq, insertion=RSK.rules.EG)
         [[1, 2, 3, 4, 5], [2, 1, 2, 3, 2]]
 
-    For ``RSK``, ``RuleEG`` provides a bijection from reduced words of 
+    For ``RSK()``, ``RuleEG`` provides a bijection from reduced words of 
     permutations/elements of a type-`A` Coxeter group to a pair of 
     semi-standard tableaux tableaux ([EG1987]_ Definition 2.1) of the same shape.
 
-    For ``RSK_inverse``, ``RuleEG`` provides a bijection from a pair of 
-    same shaped tableaux to reduced words of a generalized permutation. For 
+    For ``RSK_inverse()``, ``RuleEG`` provides a bijection from a pair of 
+    same shaped tableaux to reduced words of a generalized permutation. Note that, for 
     ``output = 'permutation'`` RuleEG returns the smallest permutation satisfying 
     the resulting reduced word.
 
@@ -495,6 +594,18 @@ class RuleEG(Rule):
     def insertion(self, i, j, p, q):
         r"""
         Inserts the letter ``(i,j)`` from the bi-word to the current tableaux ``p`` and ``q``.
+        
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleEG
+            sage: p, q = RSK([1,2,3,4,5], [3,3,2,4,1], insertion=RSK.rules.EG)
+            sage: p1, q1 = RSK([1,2,3,4], [3,3,2,4], insertion=RSK.rules.EG)
+            sage: p1 = [list(row) for row in p1]
+            sage: q1 = [list(row) for row in q1]
+            sage: RuleEG().insertion(5, 1, p1, q1)
+            sage: p == Tableau(p1) and q == Tableau(q1)
+            True
+
         """
         from bisect import bisect_right
         for r, qr in zip(p,q):
@@ -525,24 +636,18 @@ class RuleEG(Rule):
         current tableaux p_copy and appends the removed entry from ``p_copy``
         to the list ``rev_word``.
         
-        TESTS:
-        
-        For non-standard p, q::
+        Examples::
 
-            sage: RSK_inverse(*RSK([1, 2, 3, 2, 1], insertion='EG'), insertion='EG')
-            [[1, 2, 3, 4, 5], [1, 2, 3, 2, 1]]
-            sage: RSK_inverse(*RSK([1, 1, 1, 2], [1, 2, 3, 4], insertion=RSK.rules.EG), insertion=RSK.rules.EG)
-            [[1, 1, 1, 2], [1, 2, 3, 4]]
-            sage: RSK_inverse(*RSK([1, 2, 3, 3], [2, 1, 2, 2], insertion='EG'), insertion='EG')
-            [[1, 2, 3, 3], [2, 1, 2, 2]]
-            
-        Since the column reading of the insertion tableau from Edelman-Greene insertion 
-        gives one of reduced words for the original permutation, we can also check for that
+            sage: from sage.combinat.rsk import RuleEG
+            sage: p, q = RSK([1,2,3,4,5,6], [2,3,2,1,2,3], insertion=RSK.rules.EG); p
+            [[1, 2, 3], [2, 3], [3]]
+            sage: p1, q1 = RSK([1,2,3,4,5], [2,3,2,1,2], insertion=RSK.rules.EG); p1
+            [[1, 2], [2, 3], [3]]
+            sage: p_copy = [list(row) for row in p]
+            sage: rev_word = []
+            sage: RuleEG().rev_insertion(0, p_copy, rev_word, True); p_copy
+            [[1, 2], [2, 3], [3]]
 
-            sage: f = lambda p: reversed([x for row in reversed(p) for x in row])
-            sage: g = lambda p: RSK(p.reduced_word(), insertion=RSK.rules.EG)[0]
-            sage: all(p == Permutations(n).from_reduced_word(f(g(p))) for n in range(8) for p in Permutations(n))
-            True
         """
         from bisect import bisect_left
         if q_is_standard:
@@ -569,7 +674,19 @@ class RuleEG(Rule):
 
     def _backward_formatOutput(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
         r"""
-        Return final output as per additional parameters for backward rule.
+        Returns final output of the ``inverse_RSK`` correspondence from the output of the 
+        corresponding ``backward_rule``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleEG
+            sage: RuleEG()._backward_formatOutput([1, 2, 3, 4], None, 'permutation', True, True)
+            [5, 1, 2, 3, 4]
+            sage: RuleEG()._backward_formatOutput([1, 2, 3, 4], None, 'permutation', True, False)
+            Traceback (most recent call last):
+            ...
+            TypeError: q must be standard to have a permutation as valid output
+
         """
         if q_is_standard and output == 'permutation':
             n = 0
@@ -621,6 +738,17 @@ class RuleHecke(Rule):
             resulting tableaux is a standard tableau, and if so, typecast it
             as such
 
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleHecke
+            sage: p, q = RuleHecke().forward_rule([3,3,2,4,1], None);p
+            [[1, 4], [2], [3]]
+            sage: q
+            [[(1, 2), (4,)], [(3,)], [(5,)]]
+            sage: isinstance(p, SemistandardTableau)
+            True
+            sage: isinstance(q, Tableau)
+            True
         """
         from sage.combinat.tableau import SemistandardTableau, Tableau
         if obj2 is None:    
@@ -652,6 +780,22 @@ class RuleHecke(Rule):
 
           - ``'word'`` -- as a word
           - ``list`` -- as a list
+
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleHecke
+            sage: t1 = Tableau([[1, 4], [2], [3]])
+            sage: t2 = Tableau([[(1, 2), (4,)], [(3,)], [(5,)]])
+            sage: RuleHecke().backward_rule(t1, t2, 'array')
+            [[1, 2, 3, 4, 5], [3, 3, 2, 4, 1]]
+            sage: t1 = Tableau([[1, 4], [2, 3]])
+            sage: t2 = Tableau([[(1, 2), (4,)], [(3,)], [(5,)]])
+            sage: RuleHecke().backward_rule(t1, t2, 'array')
+            Traceback (most recent call last):
+            ...
+            ValueError: p(=[[1, 4], [2, 3]]) and q(=[[(1, 2), (4,)], [(3,)], [(5,)]]) 
+            must have the same shape
+
         """
         if p.shape() != q.shape():
             raise ValueError("p(=%s) and q(=%s) must have the same shape"%(p, q))
@@ -693,6 +837,18 @@ class RuleHecke(Rule):
     def insertion(self, i, j, p, q):
         r"""
         Inserts the letter ``(i,j)`` from the bi-word to the current tableaux ``p`` and ``q``.
+        
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleHecke
+            sage: p, q = RSK([1,2,3,4,5], [5,4,1,3,4], insertion=RSK.rules.Hecke)
+            sage: p1, q1 = RSK([1,2,3,4], [5,4,1,3], insertion=RSK.rules.Hecke)
+            sage: p1 = [list(row) for row in p1]
+            sage: q1 = [list(row) for row in q1]
+            sage: RuleHecke().insertion(5, 4, p1, q1)
+            sage: p == Tableau(p1) and q == Tableau(q1)
+            True
+
         """
         from bisect import bisect_right
         for ir,r in enumerate(p):
@@ -731,8 +887,21 @@ class RuleHecke(Rule):
         Reverse bump the right-most letter from the `i^{th}` row of the 
         current tableaux p_copy and appends the removed entry from ``p_copy``
         to the list ``rev_word``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleHecke
+            sage: p, q = RSK([1,2,3,4], [4,6,7,9], insertion=RSK.rules.Hecke); p
+            [[4, 6, 7, 9]]
+            sage: p1, q1 = RSK([1,2,3], [4,6,7], insertion=RSK.rules.Hecke); p1
+            [[4, 6, 7]]
+            sage: p_copy = [list(row) for row in p]
+            sage: q_copy = [list(row) for row in q]
+            sage: rev_word = []
+            sage: RuleHecke().rev_insertion(0, p_copy, q_copy, rev_word); rev_word
+            [9]
+
         """
-        
         from bisect import bisect_left
         if not q_copy[i][-1]:
             # That is, if value was alone in cell q_copy[i][-1].
@@ -755,7 +924,31 @@ class RuleHecke(Rule):
 
     def _backward_formatOutput(self, lower_row=None, upper_row=None, output='array'):
         r"""
-        Return final output as per additional parameters for backward rule.
+        Returns final output of the ``inverse_RSK`` correspondence from the output of the 
+        corresponding ``backward_rule``. 
+
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleHecke
+            sage: RuleHecke()._backward_formatOutput([1, 1, 3, 9], [1, 2, 3, 4])
+            [[4, 3, 2, 1], [9, 3, 1, 1]]
+            sage: RuleHecke()._backward_formatOutput([1, 1, 3, 9], [1, 2, 3, 4], 'word')
+            Traceback (most recent call last):
+            ...
+            TypeError: q must be standard to have a word as valid output
+            sage: RuleHecke()._backward_formatOutput([1, 1, 3, 9], [4, 3, 2, 1], 'word')
+            word: 9311
+            sage: RuleHecke()._backward_formatOutput([1, 1, 3, 9], [1, 2, 3, 4], 'list')
+            Traceback (most recent call last):
+            ...
+            TypeError: q must be standard to have a list as valid output
+            sage: RuleHecke()._backward_formatOutput([1, 1, 3, 9], [4, 3, 2, 1], 'list')
+            [9, 3, 1, 1]
+            sage: RuleHecke()._backward_formatOutput([1, 1, 3, 9], [1, 2, 3, 4], 'random_type')
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid output option
+
         """
         if output == 'array':
             return [list(reversed(upper_row)), list(reversed(lower_row))]
@@ -967,7 +1160,7 @@ def RSK(obj1=None, obj2=None, insertion=InsertionRules.RSK, check_standard=False
       resulting tableaux is a standard tableau, and if so, typecast it
       as such
 
-    For precise information see the particular Rule class.
+    For precise information about I/O constrains, see the particular Rule class.
 
     EXAMPLES:
 
@@ -1178,7 +1371,7 @@ def RSK_inverse(p, q, output='array', insertion=InsertionRules.RSK):
       - ``EG`` -- Edelman-Greene insertion (:class:`~sage.combinat.rsk.RuleEG`)
       - ``Hecke`` -- Hecke insertion (:class:`~sage.combinat.rsk.RuleHecke`)
 
-    For precise information see the particular Rule class.
+    For precise information about I/O constrains, see the particular Rule class.
     
     .. NOTE::
 
@@ -1361,6 +1554,23 @@ def RSK_inverse(p, q, output='array', insertion=InsertionRules.RSK):
         Traceback (most recent call last):
         ...
         ValueError: p(=[[1, 2, 3]]) and q(=[[1, 2]]) must have the same shape
+
+    For Edelman-Greene, in case of non-standard p,q::
+
+        sage: RSK_inverse(*RSK([1, 2, 3, 2, 1], insertion='EG'), insertion='EG')
+        [[1, 2, 3, 4, 5], [1, 2, 3, 2, 1]]
+        sage: RSK_inverse(*RSK([1, 1, 1, 2], [1, 2, 3, 4], insertion=RSK.rules.EG), insertion=RSK.rules.EG)
+        [[1, 1, 1, 2], [1, 2, 3, 4]]
+        sage: RSK_inverse(*RSK([1, 2, 3, 3], [2, 1, 2, 2], insertion='EG'), insertion='EG')
+        [[1, 2, 3, 3], [2, 1, 2, 2]]
+
+    Since the column reading of the insertion tableau from Edelman-Greene insertion 
+    gives one of reduced words for the original permutation, we can also check for that
+
+        sage: f = lambda p: reversed([x for row in reversed(p) for x in row])
+        sage: g = lambda p: RSK(p.reduced_word(), insertion=RSK.rules.EG)[0]
+        sage: all(p == Permutations(n).from_reduced_word(f(g(p))) for n in range(8) for p in Permutations(n))
+        True    
 
     Check that :trac:`20430` is fixed::
 

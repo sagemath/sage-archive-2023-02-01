@@ -12,4 +12,5 @@ if [ -n "$SAGE_CRTI_DIR" ]; then
    done
 fi
 
-. ./postinst-postrm
+# Force re-installation of gmp etc., and force re-configuration.
+. ./spkg-postrm

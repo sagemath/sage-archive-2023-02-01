@@ -3081,10 +3081,20 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             Traceback (most recent call last):
             ...
             TypeError: map must be post-critically finite
+
+        ::
+
+            sage: R.<t> = QQ[]
+            sage: K.<v> = NumberField(t^3 + 2*t^2 + t + 1)
+            sage: phi = K.embeddings(QQbar)[0]
+            sage: P.<x, y> = ProjectiveSpace(K, 1)
+            sage: f = DynamicalSystem_projective([x^2 + v*y^2, y^2])
+            sage: f.critical_point_portrait(embedding=phi)
+            Looped digraph on 4 vertices
         """
         #input checking done in is_postcritically_finite
         if check:
-            if not self.is_postcritically_finite():
+            if not self.is_postcritically_finite(embedding=embedding):
                 raise TypeError("map must be post-critically finite")
         if embedding is None:
             F = self.change_ring(QQbar)

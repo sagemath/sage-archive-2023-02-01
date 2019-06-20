@@ -893,7 +893,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         ::
 
             sage: A.<x> = AffineSpace(QQ, 1)
-            sage: A.chebyshev_polynomial(7, monic = True)
+            sage: A.chebyshev_polynomial(7, monic=True)
             Dynamical System of Affine Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x) to
                     (x^7 - 7*x^5 + 14*x^3 - 7*x)
@@ -902,7 +902,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
 
             sage: F.<t> = FunctionField(QQ)
             sage: A.<x> = AffineSpace(F,1)
-            sage: A.chebyshev_polynomial(4, monic = True)
+            sage: A.chebyshev_polynomial(4, monic=True)
             Dynamical System of Affine Space of dimension 1 over Rational function field in t over Rational Field
               Defn: Defined on coordinates by sending (x) to
                     (x^4 + (-4)*x^2 + 2)

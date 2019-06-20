@@ -6,7 +6,7 @@
 from .givaro cimport Modular_double, Modular_float, Dense, Sparse
 from .givaro cimport givvector, Poly1Dom
 from libcpp.vector cimport vector
-
+from libcpp cimport bool
 ctypedef Poly1Dom[Modular_double, Dense] PolynomialRing_Modular_double
 ctypedef Poly1Dom[Modular_float, Dense] PolynomialRing_Modular_float
 
@@ -38,7 +38,6 @@ cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFLAS":
              Modular_double.Element beta, Modular_double.Element* C,
              size_t C_stride)
 
-
     # float
     Modular_float.Element* fgemv (Modular_float F, FFLAS_TRANSPOSE transA,
              size_t nrows, size_t ncols,
@@ -69,13 +68,16 @@ cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFPACK":
     Modular_double.Element Det (Modular_double F, Modular_double.Element& d, size_t n,
                                 Modular_double.Element* A, size_t A_stride)
 
+    Modular_double.Element pDet (Modular_double F, Modular_double.Element& d, size_t n,
+                                Modular_double.Element* A, size_t A_stride, size_t numthreads)
+
     int Rank (Modular_double,
               size_t nrows, size_t ncols,
               Modular_double.Element *A, size_t lda)
 
     int pRank (Modular_double,
               size_t nrows, size_t ncols,
-              Modular_double.Element *A, size_t lda)
+              Modular_double.Element *A, size_t lda, size_t numthreads)
 
     size_t ReducedRowEchelonForm (Modular_double F, size_t a, size_t b,
                                   Modular_double.Element* matrix,
@@ -83,7 +85,17 @@ cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFPACK":
 
     size_t pReducedRowEchelonForm (Modular_double F, size_t a, size_t b,
                                   Modular_double.Element* matrix,
-                                  size_t s, size_t* P, size_t* Q)
+                                  size_t s, size_t* P, size_t* Q, bool transform, size_t numthreads)
+
+    Modular_double.Element* Solve (Modular_double F, size_t M,
+           Modular_double.Element*  A, size_t lda,
+           Modular_double.Element*  x, int incx,
+           Modular_double.Element*  b, int incb)
+
+    Modular_double.Element* pSolve (Modular_double F, size_t M,
+           Modular_double.Element*  A, size_t lda,
+           Modular_double.Element*  x, int incx,
+           Modular_double.Element*  b, int incb, size_t numthreads)
 
     void applyP (Modular_double F,
                  FFLAS_SIDE s, FFLAS_TRANSPOSE tr,
@@ -110,13 +122,16 @@ cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFPACK":
     Modular_float.Element Det (Modular_float F, Modular_float.Element& d, size_t n,
                                Modular_float.Element* A, size_t A_stride)
 
+    Modular_float.Element pDet (Modular_float F, Modular_float.Element& d, size_t n,
+                               Modular_float.Element* A, size_t A_stride, size_t numthreads)
+
     int Rank (Modular_float,
               size_t nrows, size_t ncols,
               Modular_float.Element *A, size_t lda)
 
     int pRank (Modular_float,
               size_t nrows, size_t ncols,
-              Modular_float.Element *A, size_t lda)
+              Modular_float.Element *A, size_t lda, size_t numthreads)
 
     size_t ReducedRowEchelonForm (Modular_float F, size_t a, size_t b,
                                   Modular_float.Element* matrix,
@@ -124,7 +139,17 @@ cdef extern from "fflas-ffpack/fflas-ffpack.h" namespace "FFPACK":
 
     size_t pReducedRowEchelonForm (Modular_float F, size_t a, size_t b,
                                   Modular_float.Element* matrix,
-                                  size_t s, size_t* P, size_t* Q)
+                                  size_t s, size_t* P, size_t* Q, bool transform, size_t numthreads)
+
+    Modular_float.Element* Solve (Modular_float F, size_t M,
+           Modular_float.Element*  A, size_t lda,
+           Modular_float.Element*  x, int incx,
+           Modular_float.Element*  b, int incb)
+
+    Modular_float.Element* pSolve (Modular_float F, size_t M,
+           Modular_float.Element*  A, size_t lda,
+           Modular_float.Element*  x, int incx,
+           Modular_float.Element*  b, int incb, size_t numthreads)
 
     void applyP (Modular_float F,
                  FFLAS_SIDE s, FFLAS_TRANSPOSE tr,

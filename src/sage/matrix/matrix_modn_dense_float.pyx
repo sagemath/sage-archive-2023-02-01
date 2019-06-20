@@ -27,7 +27,7 @@ from sage.libs.linbox.linbox cimport \
     reducedRowEchelonize
 
 from sage.libs.linbox.fflas cimport \
-    fgemm, fgemv, Det, Rank, pRank, ReducedRowEchelonForm, pReducedRowEchelonForm, applyP, \
+    fgemm, fgemv, Det, pDet, Rank, pRank, ReducedRowEchelonForm, pReducedRowEchelonForm, applyP, \
     MinPoly, CharPoly, MinPoly, \
     ModFloatDensePolynomial as ModDensePoly
 

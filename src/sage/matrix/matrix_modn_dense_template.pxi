@@ -95,8 +95,8 @@ from cysignals.signals cimport sig_check, sig_on, sig_off
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.linbox.fflas cimport FFLAS_TRANSPOSE, FflasNoTrans, FflasTrans, \
-    FflasRight, vector, list as std_list  #, pfgemm, pfgemv
-
+    FflasRight, vector, list as std_list
+from libcpp cimport bool
 from sage.parallel.parallelism import Parallelism
 
 cimport sage.rings.fast_arith
@@ -186,10 +186,10 @@ cdef inline linbox_echelonize(celement modulus, celement* entries, Py_ssize_t nr
     cdef Py_ssize_t r
     cpdef size_t nbthreads
     nbthreads = Parallelism().get('linbox')
-
+    cdef bool transform = False
     if nrows*ncols > 1000: sig_on()
     if nbthreads > 1 :
-        r = pReducedRowEchelonForm(F[0], nrows, ncols, <ModField.Element*>entries, ncols, P, Q)
+        r = pReducedRowEchelonForm(F[0], nrows, ncols, <ModField.Element*>entries, ncols, P, Q, transform, nbthreads)
     else : 
         r = ReducedRowEchelonForm(F[0], nrows, ncols, <ModField.Element*>entries, ncols, P, Q)
     if nrows*ncols > 1000: sig_off()
@@ -255,10 +255,9 @@ cdef inline int linbox_rank(celement modulus, celement* entries, Py_ssize_t nrow
     cpdef Py_ssize_t r
     cpdef size_t nbthreads
     nbthreads = Parallelism().get('linbox')
-
     if nrows*ncols > 1000: sig_on()
     if nbthreads > 1:
-        r = pRank(F[0], nrows, ncols, <ModField.Element*>cpy, ncols)
+        r = pRank(F[0], nrows, ncols, <ModField.Element*>cpy, ncols, nbthreads)
     else:
         r = Rank(F[0], nrows, ncols, <ModField.Element*>cpy, ncols)
     if nrows*ncols > 1000: sig_off()
@@ -272,9 +271,16 @@ cdef inline celement linbox_det(celement modulus, celement* entries, Py_ssize_t 
     """
     cdef ModField *F = new ModField(<long>modulus)
     cdef celement *cpy = linbox_copy(modulus, entries, n, n)
-    if n*n > 1000: sig_on()
+
     cdef celement d
-    Det(F[0], d, n, <ModField.Element*>cpy, n)
+    cpdef size_t nbthreads
+    nbthreads = Parallelism().get('linbox')
+
+    if n*n > 1000: sig_on()
+    if nbthreads > 1 :
+        pDet(F[0], d, n, <ModField.Element*>cpy, n, nbthreads)
+    else :
+        Det(F[0], d, n, <ModField.Element*>cpy, n)
     if n*n > 1000: sig_off()
     sig_free(cpy)
     del F

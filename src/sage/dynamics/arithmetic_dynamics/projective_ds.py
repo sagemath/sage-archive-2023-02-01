@@ -5529,9 +5529,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         if K in FiniteFields():
             q = K.characteristic()
             var = K.variable_name()
-            psi = K.hom([K.gen()])
-        else:
-            psi = K.hom([K.gen()]) #identity hom for return_embedding
+        psi = K.hom([K.gen()]) #identity hom for return_embedding
         g = self
         G = self.dehomogenize(1).dynatomic_polynomial(1)
         done = False
@@ -5577,11 +5575,9 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                     L = NumberField(u, 't'+str(i))
                     i += 1
                     phi = K.embeddings(L)[0]
-                    psi = phi * psi
                     K = L
                 elif K in FiniteFields():
                     K, phi = K.extension(G.degree(), map=True)
-                    psi = phi * psi
                 else:
                     L = K.extension(u, 't'+str(i))
                     i += 1
@@ -5590,15 +5586,11 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                     L = K.absolute_field('t'+str(i))
                     i += 1
                     phi = K.embeddings(L)[0]*phi1
-                    psi = phi * psi
                     K = L
+                psi = phi * psi
                 #switch to the new field
-                if K in FiniteFields():
-                    G = G.change_ring(phi)
-                    g = g.change_ring(phi)
-                else:
-                    G = G.change_ring(phi)
-                    g = g.change_ring(phi)
+                G = G.change_ring(phi)
+                g = g.change_ring(phi)
         if bad:
             raise NotImplementedError("map is not a polynomial")
         #conjugate to normal form
@@ -5619,14 +5611,13 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             #we need to extend again
             if N in FiniteFields():
                 M, phi = N.extension(d-1, map=True)
-                psi = phi*psi
             else:
                 L = N.extension(u,'t'+str(i))
                 i += 1
                 phi1 = N.embeddings(L)[0]
                 M = L.absolute_field('t'+str(i))
                 phi = L.embeddings(M)[0]*phi1
-                psi = phi*psi
+            psi = phi*psi
             if M in FiniteFields():
                 gc = gc.change_ring(M)
             else:
@@ -5646,10 +5637,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             mc2 = mc.parent().one()
         gccc = gcc.conjugate(mc2)
         if return_conjugation:
-            if M in FiniteFields():
-                return gccc, m * mc * mc2, psi
-            else:
-                return gccc, m * mc * mc2, psi
+            return gccc, m * mc * mc2, psi
         return gccc
 
 class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,

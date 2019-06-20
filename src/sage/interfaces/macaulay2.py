@@ -105,6 +105,7 @@ from sage.interfaces.interface import AsciiArtString
 from sage.misc.multireplace import multiple_replace
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.docs.instancedoc import instancedoc
+from sage.cpython.string import bytes_to_str
 
 
 def remove_output_labels(s):
@@ -139,7 +140,7 @@ def remove_output_labels(s):
     label = re.compile("^o[0-9]+ (=|:) |^ *")
     lines = s.split("\n")
     matches = [label.match(l) for l in lines if l != ""]
-    if len(matches) == 0:
+    if not matches:
         return s
     else:
         n = min(m.end() - m.start() for m in matches)
@@ -325,10 +326,10 @@ class Macaulay2(ExtraTabCompletion, Expect):
             sage: macaulay2.get("a")       # optional - macaulay2
             2
         """
-        cmd = '%s=%s;'%(var,value)
+        cmd = '%s=%s;' % (var,value)
         ans = Expect.eval(self, cmd)
         if ans.find("stdio:") != -1:
-            raise RuntimeError("Error evaluating Macaulay2 code.\nIN:%s\nOUT:%s"%(cmd, ans))
+            raise RuntimeError("Error evaluating Macaulay2 code.\nIN:%s\nOUT:%s" % (cmd, ans))
 
     def _object_class(self):
         """
@@ -1229,7 +1230,7 @@ class Macaulay2Function(ExpectFunction):
         E.expect(self._parent._prompt)
         s = E.before
         self._parent.eval("2+2")
-        return s
+        return bytes_to_str(s)
 
 def is_Macaulay2Element(x):
     """

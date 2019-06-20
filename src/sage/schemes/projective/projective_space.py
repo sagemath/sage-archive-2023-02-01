@@ -1094,7 +1094,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         from sage.schemes.product_projective.space import ProductProjectiveSpaces
         return ProductProjectiveSpaces([self, other])
 
-    def chebyshev_polynomial(self, n, kind='first'):
+    def chebyshev_polynomial(self, n, kind='first', monic=False):
         """
         Generates an endomorphism of this projective line by a Chebyshev polynomial.
 
@@ -1110,6 +1110,9 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
 
         - ``kind`` -- ``first`` or ``second`` specifying which kind of chebyshev the user would like
           to generate. Defaults to ``first``.
+
+        - ``monic`` -- ``True`` or ``False`` specifying if the polynomial defining the system 
+          should be monic or not. Defaults to ``False``.
 
         OUTPUT: :class:`DynamicalSystem_projective`
 
@@ -1152,6 +1155,23 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             Traceback (most recent call last):
             ...
             TypeError: projective space must be of dimension 1
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P.chebyshev_polynomial(3, monic = True)
+            Dynamical System of Projective Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^3 - 3*x*y^2 : y^3)
+
+        ::
+
+            sage: F.<t> = FunctionField(QQ)
+            sage: P.<y,z> = ProjectiveSpace(F,1)
+            sage: P.chebyshev_polynomial(4,monic = True)
+            Dynamical System of Projective Space of dimension 1 over Rational function field in t over Rational Field
+              Defn: Defined on coordinates by sending (y : z) to
+                    (y^4 + (-4)*y^2*z^2 + 2*z^4 : z^4)
         """
         if self.dimension_relative() != 1:
             raise TypeError("projective space must be of dimension 1")
@@ -1161,6 +1181,9 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         #use the affine version and then homogenize.
         A = self.affine_patch(1)
         f = A.chebyshev_polynomial(n, kind)
+        if monic:
+            f = f.homogenize(1)
+            return f.conjugate(matrix([[1/ZZ(2), 0],[0, 1]]))
         return f.homogenize(1)
 
     def veronese_embedding(self, d, CS=None, order='lex'):

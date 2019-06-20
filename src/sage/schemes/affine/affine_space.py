@@ -914,7 +914,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             raise ValueError("first parameter 'n' must be a non-negative integer")
         from sage.dynamics.arithmetic_dynamics.affine_ds import DynamicalSystem_affine
         if kind == 'first':
-            if monic:
+            if monic and self.base().characteristic() != 2:
                 f = DynamicalSystem_affine([chebyshev_T(n, self.gen(0))], domain=self)
                 f = f.homogenize(1)
                 f = f.conjugate(matrix([[1/ZZ(2), 0],[0, 1]]))
@@ -922,7 +922,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
                 return f
             return DynamicalSystem_affine([chebyshev_T(n, self.gen(0))], domain=self)
         elif kind == 'second':
-            if monic:
+            if monic and self.base().characteristic() != 2:
                 f = DynamicalSystem_affine([chebyshev_T(n, self.gen(0))], domain=self)
                 f = f.homogenize(1)
                 f = f.conjugate(matrix([[1/ZZ(2), 0],[0, 1]]))

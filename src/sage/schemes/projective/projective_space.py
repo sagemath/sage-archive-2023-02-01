@@ -1181,7 +1181,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         #use the affine version and then homogenize.
         A = self.affine_patch(1)
         f = A.chebyshev_polynomial(n, kind)
-        if monic:
+        if monic and self.base().characteristic() != 2:
             f = f.homogenize(1)
             return f.conjugate(matrix([[1/ZZ(2), 0],[0, 1]]))
         return f.homogenize(1)

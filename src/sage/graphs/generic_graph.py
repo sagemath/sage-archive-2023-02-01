@@ -16045,6 +16045,26 @@ class GenericGraph(GenericGraph_pyx):
             [[1, 3, 5, 6], [1, 2, 5, 6], [1, 4, 5, 6], [1, 6]]
             sage: list(g.yen_k_shortest_simple_paths(1, 6))
             [[1, 6], [1, 2, 5, 6], [1, 3, 5, 6], [1, 4, 5, 6]]
+            sage: list(g.yen_k_shortest_simple_paths(1, 6, report_edges=True, report_weight=True, labels=True))
+            [(1, [(1, 6, 100)]),
+             (3, [(1, 2, 20), (2, 5, 20), (5, 6, 5)]),
+             (3, [(1, 3, 10), (3, 5, 10), (5, 6, 5)]),
+             (3, [(1, 4, 30), (4, 5, 30), (5, 6, 5)])]
+            sage: list(g.yen_k_shortest_simple_paths(1, 6, report_edges=True, report_weight=True, labels=True, by_weight=True))
+            [(25, [(1, 3, 10), (3, 5, 10), (5, 6, 5)]),
+             (45, [(1, 2, 20), (2, 5, 20), (5, 6, 5)]),
+             (65, [(1, 4, 30), (4, 5, 30), (5, 6, 5)]),
+             (100, [(1, 6, 100)])]
+            sage: list(g.yen_k_shortest_simple_paths(1, 6, report_edges=True, labels=True, by_weight=True))
+            [[(1, 3, 10), (3, 5, 10), (5, 6, 5)],
+             [(1, 2, 20), (2, 5, 20), (5, 6, 5)],
+             [(1, 4, 30), (4, 5, 30), (5, 6, 5)],
+             [(1, 6, 100)]]
+            sage: list(g.yen_k_shortest_simple_paths(1, 6, report_edges=True, labels=True))
+            [[(1, 6, 100)],
+             [(1, 2, 20), (2, 5, 20), (5, 6, 5)],
+             [(1, 3, 10), (3, 5, 10), (5, 6, 5)],
+             [(1, 4, 30), (4, 5, 30), (5, 6, 5)]]
 
         TESTS::
 
@@ -16253,18 +16273,44 @@ class GenericGraph(GenericGraph_pyx):
             [[1, 4, 5], [1, 3, 5], [1, 2, 5]]
             sage: list(g.yen_k_shortest_simple_paths_directed(1, 1))
             [[1]]
+            sage: list(g.yen_k_shortest_simple_paths(1, 5, report_edges=True, labels=True))
+            [[(1, 2, 20), (2, 5, 20)], [(1, 3, 10), (3, 5, 10)], [(1, 4, 30), (4, 5, 30)]]
+            sage: list(g.yen_k_shortest_simple_paths(1, 5, report_edges=True, labels=True, by_weight=True))
+            [[(1, 3, 10), (3, 5, 10)], [(1, 2, 20), (2, 5, 20)], [(1, 4, 30), (4, 5, 30)]]
+            sage: list(g.yen_k_shortest_simple_paths(1, 5, report_edges=True, labels=True, by_weight=True, report_weight=True))
+            [(20, [(1, 3, 10), (3, 5, 10)]),
+             (40, [(1, 2, 20), (2, 5, 20)]),
+             (60, [(1, 4, 30), (4, 5, 30)])]
 
             sage: g = DiGraph([(1, 2, 20), (1, 3, 10), (1, 4, 30), (2, 5, 20), (3, 5, 10), (4, 5, 30), (1, 6, 100), (5, 6, 5)])
             sage: list(g.yen_k_shortest_simple_paths_directed(1, 6, by_weight = True))
             [[1, 3, 5, 6], [1, 2, 5, 6], [1, 4, 5, 6], [1, 6]]
             sage: list(g.yen_k_shortest_simple_paths_directed(1, 6))
             [[1, 6], [1, 4, 5, 6], [1, 3, 5, 6], [1, 2, 5, 6]]
+            sage: list(g.yen_k_shortest_simple_paths(1, 6, report_edges=True, labels=True, by_weight=True, report_weight=True))
+            [(25, [(1, 3, 10), (3, 5, 10), (5, 6, 5)]),
+             (45, [(1, 2, 20), (2, 5, 20), (5, 6, 5)]),
+             (65, [(1, 4, 30), (4, 5, 30), (5, 6, 5)]),
+             (100, [(1, 6, 100)])]
+            sage: list(g.yen_k_shortest_simple_paths(1, 6, report_edges=True, labels=True, report_weight=True))
+            [(1, [(1, 6, 100)]),
+             (3, [(1, 2, 20), (2, 5, 20), (5, 6, 5)]),
+             (3, [(1, 3, 10), (3, 5, 10), (5, 6, 5)]),
+             (3, [(1, 4, 30), (4, 5, 30), (5, 6, 5)])]
 
             sage: g = DiGraph([(1, 2, 5), (2, 3, 0), (1, 4, 2), (4, 5, 1), (5, 3, 0)])
             sage: list(g.yen_k_shortest_simple_paths_directed(1, 3, by_weight=True))
             [[1, 4, 5, 3], [1, 2, 3]]
             sage: list(g.yen_k_shortest_simple_paths_directed(1, 3))
             [[1, 2, 3], [1, 4, 5, 3]]
+            sage: list(g.yen_k_shortest_simple_paths(1, 3, report_weight=True))
+            [(2, [1, 2, 3]), (3, [1, 4, 5, 3])]
+            sage: list(g.yen_k_shortest_simple_paths(1, 3, report_weight=True, report_edges=True))
+            [(2, [(1, 2), (2, 3)]), (3, [(1, 4), (4, 5), (5, 3)])]
+            sage: list(g.yen_k_shortest_simple_paths(1, 3, report_weight=True, report_edges=True, by_weight=True))
+            [(3, [(1, 4), (4, 5), (5, 3)]), (5, [(1, 2), (2, 3)])]
+            sage: list(g.yen_k_shortest_simple_paths(1, 3, report_weight=True, report_edges=True, by_weight=True, labels=True))
+            [(3, [(1, 4, 2), (4, 5, 1), (5, 3, 0)]), (5, [(1, 2, 5), (2, 3, 0)])]
 
         TESTS::
 

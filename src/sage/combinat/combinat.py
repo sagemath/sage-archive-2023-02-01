@@ -863,7 +863,6 @@ def polygonal_number(s, n):
       returns a 3-gonal (triangular) number. `s` must be greater than 1.
 
     - ``n`` -- integer; the index of the `s`-gonal number to output.
-      `n` must be nonnegative.
 
     OUTPUT:
 
@@ -875,14 +874,12 @@ def polygonal_number(s, n):
         [0, 1, 3, 6, 10, 15, 21, 28, 36, 45]
         sage: [polygonal_number(4, n) for n in range(10)]
         [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+        sage: [polygonal_number(3, n) for n in [-9..0]]
+        [36, 28, 21, 15, 10, 6, 3, 1, 0, 0]
         sage: polygonal_number(1, 4)
         Traceback (most recent call last):
         ...
         ValueError: s (=1) must be greater than 1
-        sage: polygonal_number(5, -1)
-        Traceback (most recent call last):
-        ...
-        ValueError: n (=-1) must be a nonnegative integer
 
     REFERENCES:
 
@@ -894,8 +891,6 @@ def polygonal_number(s, n):
     n = ZZ(n)
     if s < 2:
         raise ValueError("s (=%s) must be greater than 1" % s)
-    if n < 0:
-        raise ValueError("n (=%s) must be a nonnegative integer" % n)
     return (((n**2) * (s-2)) - (n * (s-4))) / 2
 
 

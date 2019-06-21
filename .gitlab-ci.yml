@@ -107,7 +107,7 @@ build-from-latest: &build
 # disk space for this to work. If a build fails with "no space left on device",
 # you could just retry it and hope to be scheduled on a machine with more disk
 # space, or provision your own runner.
-build-from-clean:
+build-from-clean: &build_from_clean
   << : *build
   variables:
     ARTIFACT_BASE: "source-clean"
@@ -125,19 +125,19 @@ build-from-clean:
   # So let's try three times before we give up.
   retry: 2
 
-test-dev:
+test-dev: &test_dev
   stage: test
   script:
     - . .ci/pull-gitlab.sh sagemath-dev
     - sh .ci/test-dev.sh "$DOCKER_IMAGE"
 
-test-cli:
+test-cli: &test_cli
   stage: test
   script:
     - . .ci/pull-gitlab.sh sagemath
     - sh .ci/test-cli.sh "$DOCKER_IMAGE"
 
-test-jupyter:
+test-jupyter: &test_jupyter
   stage: test
   script:
     - . .ci/pull-gitlab.sh sagemath
@@ -145,7 +145,7 @@ test-jupyter:
 
 # Pushes the built images to Docker Hub if the Settings -> CI/CD -> Secret
 # variables DOCKER_USER and SECRET_DOCKER_PASS have been set up.
-push-dockerhub:
+push-dockerhub: &push_dockerhub
   stage: release
   only:
     refs:
@@ -178,6 +178,26 @@ push-dockerhub-dev: &push_dockerhub_dev
 
 build-from-latest-py3:
   <<: *build
+  <<: *py3
+
+build-from-clean-py3:
+  <<: *build_from_clean
+  <<: *py3
+
+test-dev-py3:
+  <<: *test_dev
+  <<: *py3
+
+test-cli-py3:
+  <<: *test_cli
+  <<: *py3
+
+test-jupyter-py3:
+  <<: *test_jupyter
+  <<: *py3
+
+push-dockerhub-py3:
+  <<: *push_dockerhub
   <<: *py3
 
 push-dockerhub-dev-py3:

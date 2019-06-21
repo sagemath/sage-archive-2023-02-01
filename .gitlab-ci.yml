@@ -175,6 +175,7 @@ push-dockerhub-dev: &push_dockerhub_dev
 .py3: &py3
   variables:
     WITH_PYTHON: 3
+    DOCKER_TAG_SUFFIX: "-py3"
 
 build-from-latest-py3:
   <<: *build

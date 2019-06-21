@@ -176,6 +176,10 @@ push-dockerhub-dev: &push_dockerhub_dev
   variables:
     WITH_PYTHON: 3
 
+build-from-latest-py3:
+  <<: *build
+  <<: *py3
+
 push-dockerhub-dev-py3:
   <<: *push_dockerhub_dev
   <<: *py3

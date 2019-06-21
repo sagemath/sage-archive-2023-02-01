@@ -15978,7 +15978,7 @@ class GenericGraph(GenericGraph_pyx):
             return [list(zip(p[:-1], p[1:])) for p in all_paths]
         return all_paths
 
-    def yen_k_shortest_simple_paths(self, source, target, weight_function=None, by_weight=False):
+    def yen_k_shortest_simple_paths(self, source, target, weight_function=None, by_weight=False, report_edges=False, labels=False):
         r"""
         Return an iterator over the simple paths between a pair of vertices in
         increasing order of weights.
@@ -16005,6 +16005,14 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
           in the graph are weighted, otherwise all edges have weight 1
+        
+        - ``report_edges`` -- boolean (default: ``False``); whether to report
+          paths as list of vertices (default) or list of edges, if ``False``
+          then ``labels`` parameter is ignored
+
+        - ``labels`` -- boolean (default: ``False``); if ``False``, each edge
+          is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
+          along with its edge labels are used to represent the path.
 
         EXAMPLES::
 
@@ -16075,6 +16083,16 @@ class GenericGraph(GenericGraph_pyx):
         else:
             def weight_function(e):
                 return 1
+
+        if report_edges and labels:
+            edge_labels = {}
+            for e in self.edge_iterator():
+                if (e[0], e[1]) not in edge_labels:
+                    edge_labels[(e[0], e[1])] = [e]
+            if not self.is_directed():
+                for u, v in list(edge_labels):
+                    edge_labels[v, u] = edge_labels[u, v]
+
         from heapq import heappush, heappop
 
         if not by_weight:
@@ -16097,7 +16115,12 @@ class GenericGraph(GenericGraph_pyx):
             path = shortest_path_func(source, target)
         length = length_func(path)
         if length == 0: # corner case
-            yield path
+            if report_edges and labels:
+                yield list(cartesian_product([edge_labels[e] for e in zip(path[:-1], path[1:])])[0])
+            elif report_edges:
+                yield list(zip(path[:-1], path[1:]))
+            else:
+                yield path
             return
         hash_path = tuple(path) # hashing the path to check the existence of a path in the heap
         heappush(heap_sorted_paths, (length, path, 0)) # heap push operation
@@ -16107,7 +16130,12 @@ class GenericGraph(GenericGraph_pyx):
             (cost, path1, dev_idx) = heappop(heap_sorted_paths) # extracting the next best path from the heap
             hash_path = tuple(path1)
             heap_paths.remove(hash_path)
-            yield path1
+            if report_edges and labels:
+                yield list(cartesian_product([edge_labels[e] for e in zip(path1[:-1], path1[1:])])[0])
+            elif report_edges:
+                yield list(zip(path1[:-1], path1[1:]))
+            else:
+                yield path1
             listA.append(path1)
             prev_path = path1
             exclude_vertices = set()
@@ -16148,7 +16176,7 @@ class GenericGraph(GenericGraph_pyx):
                     pass
                 exclude_vertices.add(root[-1])
 
-    def yen_k_shortest_simple_paths_directed(self, source, target, weight_function=None, by_weight=False):
+    def yen_k_shortest_simple_paths_directed(self, source, target, weight_function=None, by_weight=False, report_edges=False, labels=False):
         r"""
         Return an iterator over the simple paths between a pair of vertices in
         increasing order of weights.
@@ -16177,6 +16205,14 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
           in the graph are weighted, otherwise all edges have weight 1
+
+        - ``report_edges`` -- boolean (default: ``False``); whether to report
+          paths as list of vertices (default) or list of edges, if ``False``
+          then ``labels`` parameter is ignored
+
+        - ``labels`` -- boolean (default: ``False``); if ``False``, each edge
+          is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
+          along with its edge labels are used to represent the path.
 
         EXAMPLES::
 
@@ -16273,6 +16309,15 @@ class GenericGraph(GenericGraph_pyx):
             def reverse_weight_function(e):
                 return 1
 
+        if report_edges and labels:
+            edge_labels = {}
+            for e in self.edge_iterator():
+                if (e[0], e[1]) not in edge_labels:
+                    edge_labels[(e[0], e[1])] = [e]
+            if not self.is_directed():
+                for u, v in list(edge_labels):
+                    edge_labels[v, u] = edge_labels[u, v]    
+
         # if there exist a path in shortest path subtree of target node from u to v
         # then u is said to be an upstream node of v 
         def getUpStreamNodes(v):
@@ -16337,7 +16382,12 @@ class GenericGraph(GenericGraph_pyx):
         length = length_func(path)
 
         if len(path) == 0: # corner case
-            yield path
+            if report_edges and labels:
+                yield list(cartesian_product([edge_labels[e] for e in zip(path[:-1], path[1:])])[0])
+            elif report_edges:
+                yield list(zip(path[:-1], path[1:]))
+            else:
+                yield path
             return
         father[frozenset(path)] = None
         hash_path = tuple(path) # hashing the path to check the existence of a path in the heap
@@ -16348,7 +16398,12 @@ class GenericGraph(GenericGraph_pyx):
             (cost, path1, dev_idx) = heappop(heap_sorted_paths) # extracting the next best path from the heap
             hash_path = tuple(path1)
             heap_paths.remove(hash_path)
-            yield path1
+            if report_edges and labels:
+                yield list(cartesian_product([edge_labels[e] for e in zip(path1[:-1], path1[1:])])[0])
+            elif report_edges:
+                yield list(zip(path1[:-1], path1[1:]))
+            else:
+                yield path1
             listA.append(path1)
             prev_path = path1
 

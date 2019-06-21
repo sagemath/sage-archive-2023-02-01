@@ -4615,10 +4615,12 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: C3 = posets.ChainPoset(3)
             sage: D = B3t.rees_product(C3); D
             Finite poset containing 12 elements
-            sage: len(D.minimal_elements())
-            3
-            sage: len(D.maximal_elements())
-            3
+            sage: sorted(D.minimal_elements())
+            [(1, 0), (2, 0), (4, 0)]
+            sage: sorted(D.maximal_elements())
+            [(7, 0), (7, 1), (7, 2)]
+            sage: D.with_bounds().moebius_function('bottom','top')
+            2
 
         .. SEEALSO::
 
@@ -4630,21 +4632,21 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: T.rees_product(T)
             Traceback (most recent call last):
             ...
-            TypeError: the Rees product is defined for graded posets
+            TypeError: the Rees product is defined only for graded posets
         """
         if not(self.is_graded() and other.is_graded()):
-            raise TypeError('the Rees product is defined for graded posets')
+            raise TypeError('the Rees product is defined only for graded posets')
 
         rk0 = self.rank_function()
         rk1 = other.rank_function()
         rees_set = [(p, q) for p in self for q in other if rk0(p) >= rk1(q)]
 
-        def compare(pq, ppqq):
+        def covers(pq, ppqq):
             p, q = pq
             pp, qq = ppqq
-            return (self.le(p, pp) and other.le(q, qq) and
-                    rk0(p) - rk0(pp) <= rk1(q) - rk1(qq))
-        return Poset([rees_set, compare])
+            return self.covers(p, pp) and (q == qq or other.covers(q, qq))
+
+        return Poset((rees_set, covers), cover_relations=True)
 
     def factor(self):
         """

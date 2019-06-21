@@ -15978,7 +15978,7 @@ class GenericGraph(GenericGraph_pyx):
             return [list(zip(p[:-1], p[1:])) for p in all_paths]
         return all_paths
 
-    def yen_k_shortest_simple_paths(self, source, target, weight_function=None, by_weight=False, report_edges=False, labels=False):
+    def yen_k_shortest_simple_paths(self, source, target, weight_function=None, by_weight=False, report_edges=False, labels=False, report_weight=False):
         r"""
         Return an iterator over the simple paths between a pair of vertices in
         increasing order of weights.
@@ -16014,6 +16014,10 @@ class GenericGraph(GenericGraph_pyx):
           is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
           along with its edge labels are used to represent the path.
 
+        - ``report_weight`` -- boolean (default: ``False``); if ``False``, just
+          the path between ``source`` and ``target`` is returned. Otherwise a
+          tuple of path length and path is returned.
+
         EXAMPLES::
 
             sage: g = DiGraph([(1, 2, 20), (1, 3, 10), (1, 4, 30), (2, 5, 20), (3, 5, 10), (4, 5, 30)])
@@ -16023,6 +16027,18 @@ class GenericGraph(GenericGraph_pyx):
             [[1, 2, 5], [1, 3, 5], [1, 4, 5]]
             sage: list(g.yen_k_shortest_simple_paths(1, 1))
             [[1]]
+            sage: list(g.yen_k_shortest_simple_paths(1, 5, by_weight=True, report_edges=True, report_weight=True, labels=True))
+            [(20, [(1, 3, 10), (3, 5, 10)]),
+             (40, [(1, 2, 20), (2, 5, 20)]),
+             (60, [(1, 4, 30), (4, 5, 30)])]
+            sage: list(g.yen_k_shortest_simple_paths(1, 5, by_weight=True, report_edges=True, report_weight=True))
+            [(20, [(1, 3), (3, 5)]), (40, [(1, 2), (2, 5)]), (60, [(1, 4), (4, 5)])]
+            sage: list(g.yen_k_shortest_simple_paths(1, 5, report_edges=True, report_weight=True))
+            [(2, [(1, 2), (2, 5)]), (2, [(1, 3), (3, 5)]), (2, [(1, 4), (4, 5)])]
+            sage: list(g.yen_k_shortest_simple_paths(1, 5, by_weight=True, report_edges=True))
+            [[(1, 3), (3, 5)], [(1, 2), (2, 5)], [(1, 4), (4, 5)]]
+            sage: list(g.yen_k_shortest_simple_paths(1, 5, by_weight=True, report_edges=True, labels=True))
+            [[(1, 3, 10), (3, 5, 10)], [(1, 2, 20), (2, 5, 20)], [(1, 4, 30), (4, 5, 30)]]
 
             sage: g = Graph([(1, 2, 20), (1, 3, 10), (1, 4, 30), (2, 5, 20), (3, 5, 10), (4, 5, 30), (1, 6, 100), (5, 6, 5)])
             sage: list(g.yen_k_shortest_simple_paths(1, 6, by_weight = True))
@@ -16114,14 +16130,15 @@ class GenericGraph(GenericGraph_pyx):
         else:
             path = shortest_path_func(source, target)
         length = length_func(path)
-        if length == 0: # corner case
-            if report_edges and labels:
-                yield list(cartesian_product([edge_labels[e] for e in zip(path[:-1], path[1:])])[0])
-            elif report_edges:
-                yield list(zip(path[:-1], path[1:]))
+        if not by_weight:
+            length = length - 1
+        if len(path) == 0: # corner case
+            if report_weight:
+                yield (0, path)
+                return
             else:
                 yield path
-            return
+                return
         hash_path = tuple(path) # hashing the path to check the existence of a path in the heap
         heappush(heap_sorted_paths, (length, path, 0)) # heap push operation
         heap_paths.add(hash_path) # adding the path to the heap_paths set
@@ -16130,12 +16147,20 @@ class GenericGraph(GenericGraph_pyx):
             (cost, path1, dev_idx) = heappop(heap_sorted_paths) # extracting the next best path from the heap
             hash_path = tuple(path1)
             heap_paths.remove(hash_path)
-            if report_edges and labels:
-                yield list(cartesian_product([edge_labels[e] for e in zip(path1[:-1], path1[1:])])[0])
-            elif report_edges:
-                yield list(zip(path1[:-1], path1[1:]))
+            if report_weight:
+                if report_edges and labels:
+                    yield (cost, list(cartesian_product([edge_labels[e] for e in zip(path1[:-1], path1[1:])])[0]))
+                elif report_edges:
+                    yield (cost, list(zip(path1[:-1], path1[1:])))
+                else:
+                    yield (cost, path1)
             else:
-                yield path1
+                if report_edges and labels:
+                    yield list(cartesian_product([edge_labels[e] for e in zip(path1[:-1], path1[1:])])[0])
+                elif report_edges:
+                    yield list(zip(path1[:-1], path1[1:]))
+                else:
+                    yield path1
             listA.append(path1)
             prev_path = path1
             exclude_vertices = set()
@@ -16144,7 +16169,6 @@ class GenericGraph(GenericGraph_pyx):
                 exclude_vertices.add(prev_path[i])
             for i in range(dev_idx + 1, len(prev_path)): # deviating from the previous path to find the candidate paths
                 root = prev_path[:i] # root part of the previous path
-                root_length = length_func(root)
                 for path in listA:
                     if path[:i] == root:
                         if self.is_directed():
@@ -16163,20 +16187,22 @@ class GenericGraph(GenericGraph_pyx):
                         spur = shortest_path_func(root[-1], target,
                                                   exclude_vertices=exclude_vertices,
                                                   exclude_edges=exclude_edges)
-                    length = length_func(spur)
                     if not spur:
                         continue
                     path = root[:-1] + spur # concatenating the root and the spur paths
+                    length = length_func(path)
+                    if not by_weight:
+                        length = length - 1
                     # push operation
                     hash_path = tuple(path)
                     if hash_path not in heap_paths: # if this path is not already present inside the heap
-                        heappush(heap_sorted_paths, (root_length + length, path, len(root) - 1))
+                        heappush(heap_sorted_paths, (length, path, len(root) - 1))
                         heap_paths.add(hash_path)
                 except Exception:
                     pass
                 exclude_vertices.add(root[-1])
 
-    def yen_k_shortest_simple_paths_directed(self, source, target, weight_function=None, by_weight=False, report_edges=False, labels=False):
+    def yen_k_shortest_simple_paths_directed(self, source, target, weight_function=None, by_weight=False, report_edges=False, labels=False, report_weight=False):
         r"""
         Return an iterator over the simple paths between a pair of vertices in
         increasing order of weights.
@@ -16213,6 +16239,10 @@ class GenericGraph(GenericGraph_pyx):
         - ``labels`` -- boolean (default: ``False``); if ``False``, each edge
           is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
           along with its edge labels are used to represent the path.
+
+        - ``report_weight`` -- boolean (default: ``False``); if ``False``, just
+          the path between ``source`` and ``target`` is returned. Otherwise a
+          tuple of path length and path is returned.
 
         EXAMPLES::
 
@@ -16354,6 +16384,7 @@ class GenericGraph(GenericGraph_pyx):
 
         reverse_graph = self.reverse()
         dist, successor = shortest_paths(reverse_graph, target, weight_function=reverse_weight_function, algorithm="Dijkstra_Boost")
+
         # successor is a child node in the shortest path subtree
         reduced_cost = {}
         for e in self.edge_iterator():
@@ -16382,10 +16413,8 @@ class GenericGraph(GenericGraph_pyx):
         length = length_func(path)
 
         if len(path) == 0: # corner case
-            if report_edges and labels:
-                yield list(cartesian_product([edge_labels[e] for e in zip(path[:-1], path[1:])])[0])
-            elif report_edges:
-                yield list(zip(path[:-1], path[1:]))
+            if report_weight:
+                yield (0, path)
             else:
                 yield path
             return
@@ -16393,17 +16422,25 @@ class GenericGraph(GenericGraph_pyx):
         hash_path = tuple(path) # hashing the path to check the existence of a path in the heap
         heappush(heap_sorted_paths, (length, path, 0)) # heap push operation
         heap_paths.add(hash_path) # adding the path to the heap_paths set
-
+        shortest_path_len = dist[source]
         while heap_paths:
             (cost, path1, dev_idx) = heappop(heap_sorted_paths) # extracting the next best path from the heap
             hash_path = tuple(path1)
             heap_paths.remove(hash_path)
-            if report_edges and labels:
-                yield list(cartesian_product([edge_labels[e] for e in zip(path1[:-1], path1[1:])])[0])
-            elif report_edges:
-                yield list(zip(path1[:-1], path1[1:]))
+            if report_weight:
+                if report_edges and labels:
+                    yield (cost + shortest_path_len, list(cartesian_product([edge_labels[e] for e in zip(path1[:-1], path1[1:])])[0]))
+                elif report_edges:
+                    yield (cost + shortest_path_len, list(zip(path1[:-1], path1[1:])))
+                else:
+                    yield (cost + shortest_path_len, path1)
             else:
-                yield path1
+                if report_edges and labels:
+                    yield list(cartesian_product([edge_labels[e] for e in zip(path1[:-1], path1[1:])])[0])
+                elif report_edges:
+                    yield list(zip(path1[:-1], path1[1:]))
+                else:
+                    yield path1
             listA.append(path1)
             prev_path = path1
 
@@ -16428,7 +16465,6 @@ class GenericGraph(GenericGraph_pyx):
             include_vertices.add(target)
             for i in range(dev_idx + 1, len(prev_path)): # deviating from the previous path to find the candidate paths
                 root = prev_path[:i] # root part of the previous path
-                root_length = length_func(root)
                 if i == dev_idx + 1: # if its the deviation node
                     p = father[frozenset(prev_path)]
                     while(p and len(p) > dev_idx + 1 and p[dev_idx] == root[dev_idx]): # comparing the deviation nodes
@@ -16468,15 +16504,15 @@ class GenericGraph(GenericGraph_pyx):
                             st = successor[st]
                             spur.append(st)
 
-                    length = length_func(spur)
                     if not spur:
                         continue
                     path = root[:-1] + spur # concatenating the root and the spur path
+                    length = length_func(path)
                     # push operation
                     hash_path = tuple(path)
                     if hash_path not in heap_paths: # if this path is not already present inside the heap
                         father[frozenset(path)] = prev_path
-                        heappush(heap_sorted_paths, (root_length + length, path, len(root) - 1))
+                        heappush(heap_sorted_paths, (length, path, len(root) - 1))
                         heap_paths.add(hash_path)
                 except Exception:
                     pass

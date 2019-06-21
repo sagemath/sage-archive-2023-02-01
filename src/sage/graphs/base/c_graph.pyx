@@ -2054,9 +2054,9 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef set exclude_edges_int = None
         
         if exclude_v:
-            exclude_vertices_int = {self.get_vertex(u) for u in exclude_vertices}
+            exclude_vertices_int = {self.get_vertex(v1) for v1 in exclude_vertices}
         if exclude_e:
-            exclude_edges_int = {(self.get_vertex(u), self.get_vertex(v)) for u, v in exclude_edges}
+            exclude_edges_int = {(self.get_vertex(v1), self.get_vertex(v2)) for v1, v2 in exclude_edges}
  
         # Each vertex knows its predecessors in the search, for each side
         cdef dict pred_x = {}
@@ -2408,11 +2408,11 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef set exclude_edges_int = None
         
         if exclude_v:
-            exclude_vertices_int = {self.get_vertex(u) for u in exclude_vertices}
+            exclude_vertices_int = {self.get_vertex(v1) for v1 in exclude_vertices}
         if exclude_e:
-            exclude_edges_int = {(self.get_vertex(u), self.get_vertex(v)) for u, v in exclude_edges}
+            exclude_edges_int = {(self.get_vertex(v1), self.get_vertex(v2)) for v1, v2 in exclude_edges}
         if include_v:
-            include_vertices_int = {self.get_vertex(u) for u in include_vertices}
+            include_vertices_int = {self.get_vertex(v1) for v1 in include_vertices}
 
         # Each vertex knows its predecessors in the search, for each side
         cdef dict pred_x = {}

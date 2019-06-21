@@ -159,7 +159,7 @@ push-dockerhub:
 
 # Pushes the built dev images to Docker Hub if the Settings -> CI/CD -> Secret
 # variables DOCKER_USER and SECRET_DOCKER_PASS have been set up.
-push-dockerhub-dev:
+push-dockerhub-dev: &push_dockerhub_dev
   stage: release
   only:
     refs:
@@ -171,3 +171,11 @@ push-dockerhub-dev:
   script:
     - . .ci/pull-gitlab.sh sagemath-dev
     - sh .ci/push-dockerhub.sh sagemath-dev
+
+.py3: &py3
+  variables:
+    WITH_PYTHON: 3
+
+push-dockerhub-dev-py3:
+  <<: *push_dockerhub_dev
+  <<: *py3

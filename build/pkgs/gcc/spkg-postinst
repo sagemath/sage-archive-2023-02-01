@@ -2,6 +2,7 @@
 
 # #27907: Symlink crt1.o and friends where gcc can find it.
 if [ -n "$SAGE_CRTI_DIR" ]; then
+   INSTALLED_SCRIPTS_DEST="$SAGE_SPKG_SCRIPTS/$PKG_BASE"
    LIBGCC=$(dirname -- $("$SAGE_LOCAL"/bin/gcc -print-libgcc-file-name))
    echo "Installing symlinks to crt files."
    echo "# Remove symlinks created by spkg-postinst" >> "$INSTALLED_SCRIPTS_DEST"/spkg-postrm

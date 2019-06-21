@@ -9,7 +9,8 @@ if [ -n "$SAGE_CRTI_DIR" ]; then
    for f in "$SAGE_CRTI_DIR"/*crt?.o; do
        if [ -r $f -a ! -r "$LIBGCC"/$f ]; then
           ln -s $f "$LIBGCC"
-          echo "rm -f \"$LIBGCC\"/$f " >> "$INSTALLED_SCRIPTS_DEST"/spkg-postrm
+          fb=`basename $f`
+          echo "rm -f \"$LIBGCC\"/$fb" >> "$INSTALLED_SCRIPTS_DEST"/spkg-postrm
        fi
    done
 fi

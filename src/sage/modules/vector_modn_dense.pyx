@@ -92,8 +92,10 @@ Test that :trac:`28042` is fixed::
     102041
     sage: vector([a,b]) * vector([c,d]) - e
     102041
-    sage: type(vector([a,b]) * vector([c,d]))
+    sage: type(vector([a,b]) * vector([c,d])) # py3
     <class 'sage.rings.finite_rings.integer_mod.IntegerMod_int64'>
+    sage: type(vector([a,b]) * vector([c,d])) # py2
+    <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int64'>
 
 AUTHOR:
 

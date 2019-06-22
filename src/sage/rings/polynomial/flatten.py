@@ -469,6 +469,12 @@ class SpecializationMorphism(Morphism):
         """
         if not is_PolynomialRing(domain) and not is_MPolynomialRing(domain):
             raise TypeError("domain should be a polynomial ring")
+
+        # Verify that all the passed generators are in the stack
+        all_gens = domain.gens_dict_recursive()
+        for gen in D:
+            if str(gen) not in all_gens:
+                raise NameError("argument " + str(gen) + " is not a generator anywhere in the polynomial tower")
         
         # _sub_specialization is a specialization morphism (recursive)
         # which is applied to the base Fraction field, or None if it's
@@ -513,6 +519,7 @@ class SpecializationMorphism(Morphism):
                                 tmp[gen] = val
                                 break
                         else:
+                            # Should have been caught earlier
                             raise NameError("argument " + str(var) + " is not a generator anywhere in the polynomial tower")
                     applicable_vars = tmp
                     self._sub_specialization = FractionSpecializationMorphism(R, applicable_vars)

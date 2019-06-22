@@ -52,58 +52,6 @@ available:
   using the Hecke insertion studied in [BKSTY06]_ (but using rows instead 
   of columns).
 
-Background
-----------
-
-Edelman-Greene insertion (:class:`~sage.combinat.rsk.RuleEG`)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-For a reduced word of a permutation (i.e., an element of a type `A` 
-Coxeter group), one can use Edelman-Greene insertion, an algorithm 
-defined in [EG1987]_ Definition 6.20 (where it is referred to as 
-Coxeter-Knuth insertion). The Edelman-Greene insertion is similar to the 
-standard row insertion except that if `k_i` and `k_i + 1` both exist in row 
-`i`, we *only* set `k_{i+1} = k_i + 1` and continue.
-
-Hecke RSK algorithm (:class:`~sage.combinat.rsk.RuleHecke`)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-The Hecke RSK algorithm defined using the Hecke insertion studied in 
-[BKSTY06]_ (but using rows instead of columns) proceeds similarly to 
-the classical RSK algorithm. However, it is not clear in what generality 
-it works; thus, following [BKSTY06]_, we shall assume that our biword 
-`p` has top line `(1, 2, \ldots, n)` (or, at least, has its top line 
-strictly increasing).
-
-The Hecke RSK algorithm returns a pair of an increasing tableau and a 
-set-valued standard tableau. If 
-`p = ((j_0, k_0), (j_1, k_1), \ldots, (j_{\ell-1}, k_{\ell-1}))`,
-then the algorithm recursively constructs pairs
-`(P_0, Q_0), (P_1, Q_1), \ldots, (P_\ell, Q_\ell)` of tableaux.
-The construction of `P_{t+1}` and `Q_{t+1}` from `P_t`, `Q_t`,
-`j_t` and `k_t` proceeds as follows: Set `i = j_t`, `x = k_t`,
-`P = P_t` and `Q = Q_t`. We are going to insert `x` into the
-increasing tableau `P` and update the set-valued "recording
-tableau" `Q` accordingly. As in the classical RSK algorithm, we
-first insert `x` into row `1` of `P`, then into row `2` of the
-resulting tableau, and so on, until the construction terminates.
-The details are different: Suppose we are inserting `x` into
-row `R` of `P`. If (Case 1) there exists an entry `y` in row `R`
-such that `x < y`, then let `y` be the minimal such entry. We
-replace this entry `y` with `x` if the result is still an
-increasing tableau; in either subcase, we then continue
-recursively, inserting `y` into the next row of `P`.
-If, on the other hand, (Case 2) no such `y` exists, then we
-append `x` to the end of `R` if the result is an increasing
-tableau (Subcase 2.1), and otherwise (Subcase 2.2) do nothing.
-Furthermore, in Subcase 2.1, we add the box that we have just
-filled with `x` in `P` to the shape of `Q`, and fill it with
-the one-element set `\{i\}`. In Subcase 2.2, we find the
-bottommost box of the column containing the rightmost box of
-row `R`, and add `i` to the entry of `Q` in this box (this
-entry is a set, since `Q` is a set-valued). In either
-subcase, we terminate the recursion, and set
-`P_{t+1} = P` and `Q_{t+1} = Q`.
-
 Implementing your own insertion rule
 ------------------------------------
 The functions RSK() and RSK_inverse() are written so that it is easy to
@@ -118,7 +66,7 @@ Using the ``Rule`` class as parent class for your insertion rule,
 first implement the insertion and the reverse insertion algorithm 
 for RSK() and RSK_inverse respectively. If your insertion algorithm uses same 
 forward and backward rule as ``RuleRSK`` you can directly use it, else you 
-need to implement your own forward and backward rules. 
+need to implement your own forward and backward rules.
 
 For more information, see :class:`~sage.combinat.rsk.Rule`.
 
@@ -285,7 +233,7 @@ class Rule(UniqueRepresentation):
         q = []       #the "recording" tableau
         for i, j in itr:
             for r, qr in zip(p,q):
-                i, j = self.insertion(i, j, r, qr)
+                i, j = self.insertion(i, j, qr, r)
 
                 if j is None or i is None:
                     break
@@ -433,7 +381,7 @@ class Rule(UniqueRepresentation):
             sage: RuleRSK()._backward_format_output([1, 2, 3, 4], None, 'word')
             word: 4321
             sage: RuleRSK()._backward_format_output([1, 2, 3, 4], None,
-                                                     'random_type')
+            ....:                                     'random_type')
             Traceback (most recent call last):
             ...
             ValueError: invalid output option
@@ -476,20 +424,23 @@ class RuleRSK(Rule):
     an object of class :class:`~sage.combinat.permutation.Permutation`.
     """
 
-    def insertion(self, i, j, r, qr):
+    def insertion(self, i, j, qr, r):
         r"""
-        Insert the letter ``(i,j)`` from the bi-word to the current 
-        tableaux ``p`` and ``q``.
+        Insert the letter ``(i,j)`` from the bi-word to the respective rows 
+        ``(qr, r)`` of the insertion and recording tableaux.
         
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleRSK
-            sage: p, q = RSK([1,2,3,4,5], [3,3,2,4,1], insertion=RSK.rules.RSK)
-            sage: p1, q1 = RSK([1,2,3,4], [3,3,2,4], insertion=RSK.rules.RSK)
-            sage: p1 = [list(row) for row in p1]
-            sage: q1 = [list(row) for row in q1]
-            sage: RuleRSK().insertion(5, 1, p1, q1)
-            sage: p == Tableau(p1) and q == Tableau(q1)
+            sage: qr, r =  [1,2,3,4,5], [3,3,2,4,8]
+            sage: i, j = RuleRSK().insertion(5, 9, qr, r); r
+            [3, 3, 2, 4, 8, 9]
+            sage: i == None and j == None
+            True
+            sage: qr, r =  [1,2,3,4,5], [3,3,2,4,8]
+            sage: i, j = RuleRSK().insertion(5, 3, qr, r); r
+            [3, 3, 2, 3, 8]
+            sage: i == 5 and j == 4
             True
 
         """
@@ -509,24 +460,17 @@ class RuleRSK(Rule):
 
     def reverse_insertion(self, x, row):
         r"""
-        Reverse bump the right-most letter from the `i^{th}` row of the 
-        current tableaux p_copy and appends the removed entry from ``p_copy``
-        to the list ``rev_word``.
+        Reverse bump the row ``row`` of the current insertion tableaux 
+        with the number ``x``.
 
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleRSK
-            sage: p, q = RSK([1,2,3,4,5], [3,3,2,4,1], 
-            ....:            insertion=RSK.rules.RSK); p
-            [[1, 3, 4], [2], [3]]
-            sage: p1, q1 = RSK([1,2,3,4], [3,3,2,4], 
-            ....:               insertion=RSK.rules.RSK); p1
-            [[2, 3, 4], [3]]
-            sage: p_copy = [list(row) for row in p]
-            sage: rev_word = []
-            sage: RuleRSK().reverse_insertion(2, p_copy, rev_word, 
-            ....:                             True); p_copy
-            [[2, 3, 4], [3], []]
+            sage: r =  [2,3,3,4,8]
+            sage: x = RuleRSK().reverse_insertion(4, r); r
+            [2, 3, 4, 4, 8]
+            sage: x
+            3
 
         """
         y_pos = bisect_left(row,x) - 1
@@ -565,6 +509,13 @@ class RuleEG(Rule):
     r"""
     A rule modeling Edelman-Greene insertion.
 
+    For a reduced word of a permutation (i.e., an element of a type `A` 
+    Coxeter group), one can use Edelman-Greene insertion, an algorithm 
+    defined in [EG1987]_ Definition 6.20 (where it is referred to as 
+    Coxeter-Knuth insertion). The Edelman-Greene insertion is similar to the 
+    standard row insertion except that if `k_i` and `k_i + 1` both exist in row 
+    `i`, we *only* set `k_{i+1} = k_i + 1` and continue.
+
     EXAMPLES::
 
         sage: RSK([2,3,2,1,2,3], insertion=RSK.rules.EG)
@@ -589,20 +540,69 @@ class RuleEG(Rule):
 
     """
 
-    def insertion(self, i, j, r, qr):
+    def insertion(self, i, j, qr, r):
         r"""
-        Insert the letter ``(i,j)`` from the bi-word to the current tableaux 
-        ``p`` and ``q``.
+        Insert the letter ``(i,j)`` from the bi-word to the respective rows 
+        ``(qr, r)`` of the insertion and recording tableaux.
         
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleEG
-            sage: p, q = RSK([1,2,3,4,5], [3,3,2,4,1], insertion=RSK.rules.EG)
-            sage: p1, q1 = RSK([1,2,3,4], [3,3,2,4], insertion=RSK.rules.EG)
-            sage: p1 = [list(row) for row in p1]
-            sage: q1 = [list(row) for row in q1]
-            sage: RuleEG().insertion(5, 1, p1, q1)
-            sage: p == Tableau(p1) and q == Tableau(q1)
+            sage: qr, r =  [1,2,3,4,5], [3,3,2,4,8]
+            sage: i, j = RuleEG().insertion(5, 9, qr, r); r
+            [3, 3, 2, 4, 8, 9]
+            sage: i == None and j == None
+            True
+            sage: qr, r =  [1,2,3,4,5], [2,3,4,5,8]
+            sage: i, j = RuleEG().insertion(5, 3, qr, r); r
+            [2, 3, 4, 5, 8]
+            sage: i == 5 and j == 4
+            True
+            sage: qr, r =  [1,2,3,4,5], [2,3,5,5,8]
+            sage: i, j = RuleEG().insertion(5, 3, qr, r); r
+            [2, 3, 3, 5, 8]
+            sage: i == 5 and j == 5
+            True
+
+        TEST::
+
+            Check that :func:`RSK_inverse` is the inverse of :func:`RSK` on the
+            different types of inputs/outputs::
+            
+            First we can check on the reduced words (that can be obtained using
+             the ``reduced_word()`` method from permutations)::
+
+            sage: f = lambda p: RSK_inverse(*RSK(p), output='permutation')
+            sage: g = lambda w: RSK_inverse(*RSK(w, insertion=RSK.rules.EG), 
+            ....:                 insertion=RSK.rules.EG, output='permutation')
+            sage: all(p.reduced_word() == g(p.reduced_word()).reduced_word() 
+            ....:                   for n in range(7) for p in Permutations(n))
+            True
+            sage: n = ZZ.random_element(200)
+            sage: p = Permutations(n).random_element()
+            sage: is_fine = True if p == f(p) else p ; is_fine
+            True
+
+            In case of non-standard p,q::
+
+            sage: RSK_inverse(*RSK([1, 2, 3, 2, 1], insertion='EG'), 
+            ....:                   insertion='EG')
+            [[1, 2, 3, 4, 5], [1, 2, 3, 2, 1]]
+            sage: RSK_inverse(*RSK([1, 1, 1, 2], [1, 2, 3, 4],
+            ....:              insertion=RSK.rules.EG), insertion=RSK.rules.EG)
+            [[1, 1, 1, 2], [1, 2, 3, 4]]
+            sage: RSK_inverse(*RSK([1, 2, 3, 3], [2, 1, 2, 2], insertion='EG'),
+            ....:              insertion='EG')
+            [[1, 2, 3, 3], [2, 1, 2, 2]]
+
+            Since the column reading of the insertion tableau from 
+            Edelman-Greene insertion gives one of reduced words for the 
+            original permutation, we can also check for that
+
+            sage: f = lambda p: reversed([x for row in reversed(p) for x in row])
+            sage: g = lambda p: RSK(p.reduced_word(), insertion=RSK.rules.EG)[0]
+            sage: all(p == Permutations(n).from_reduced_word(f(g(p))) for n in 
+            ....:                               range(8) for p in Permutations(n))
             True
 
         """
@@ -626,23 +626,17 @@ class RuleEG(Rule):
 
     def reverse_insertion(self, x, row):
         r"""
-        Reverse bump the right-most letter from the `i^{th}` row of the 
-        current tableaux p_copy and appends the removed entry from ``p_copy``
-        to the list ``rev_word``.
+        Reverse bump the row ``row`` of the current insertion tableaux 
+        with the number ``x``.
         
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleEG
-            sage: p, q = RSK([1,2,3,4,5,6], [2,3,2,1,2,3], 
-            ....:            insertion=RSK.rules.EG); p
-            [[1, 2, 3], [2, 3], [3]]
-            sage: p1, q1 = RSK([1,2,3,4,5], [2,3,2,1,2],
-            ....:               insertion=RSK.rules.EG); p1
-            [[1, 2], [2, 3], [3]]
-            sage: p_copy = [list(row) for row in p]
-            sage: rev_word = []
-            sage: RuleEG().reverse_insertion(0, p_copy, rev_word, True); p_copy
-            [[1, 2], [2, 3], [3]]
+            sage: r =  [1,1,1,2,3,3]
+            sage: x = RuleEG().reverse_insertion(3, r); r
+            [1, 1, 1, 2, 3, 3]
+            sage: x
+            2
 
         """
         y_pos = bisect_left(row,x) - 1
@@ -686,6 +680,43 @@ class RuleEG(Rule):
 class RuleHecke(Rule):
     r"""
     A rule modeling the Hecke insertion algorithm.
+
+    The Hecke RSK algorithm defined using the Hecke insertion studied in 
+    [BKSTY06]_ (but using rows instead of columns) proceeds similarly to 
+    the classical RSK algorithm. However, it is not clear in what generality 
+    it works; thus, following [BKSTY06]_, we shall assume that our biword 
+    `p` has top line `(1, 2, \ldots, n)` (or, at least, has its top line 
+    strictly increasing).
+
+    The Hecke RSK algorithm returns a pair of an increasing tableau and a 
+    set-valued standard tableau. If 
+    `p = ((j_0, k_0), (j_1, k_1), \ldots, (j_{\ell-1}, k_{\ell-1}))`,
+    then the algorithm recursively constructs pairs
+    `(P_0, Q_0), (P_1, Q_1), \ldots, (P_\ell, Q_\ell)` of tableaux.
+    The construction of `P_{t+1}` and `Q_{t+1}` from `P_t`, `Q_t`,
+    `j_t` and `k_t` proceeds as follows: Set `i = j_t`, `x = k_t`,
+    `P = P_t` and `Q = Q_t`. We are going to insert `x` into the
+    increasing tableau `P` and update the set-valued "recording
+    tableau" `Q` accordingly. As in the classical RSK algorithm, we
+    first insert `x` into row `1` of `P`, then into row `2` of the
+    resulting tableau, and so on, until the construction terminates.
+    The details are different: Suppose we are inserting `x` into
+    row `R` of `P`. If (Case 1) there exists an entry `y` in row `R`
+    such that `x < y`, then let `y` be the minimal such entry. We
+    replace this entry `y` with `x` if the result is still an
+    increasing tableau; in either subcase, we then continue
+    recursively, inserting `y` into the next row of `P`.
+    If, on the other hand, (Case 2) no such `y` exists, then we
+    append `x` to the end of `R` if the result is an increasing
+    tableau (Subcase 2.1), and otherwise (Subcase 2.2) do nothing.
+    Furthermore, in Subcase 2.1, we add the box that we have just
+    filled with `x` in `P` to the shape of `Q`, and fill it with
+    the one-element set `\{i\}`. In Subcase 2.2, we find the
+    bottommost box of the column containing the rightmost box of
+    row `R`, and add `i` to the entry of `Q` in this box (this
+    entry is a set, since `Q` is a set-valued). In either
+    subcase, we terminate the recursion, and set
+    `P_{t+1} = P` and `Q_{t+1} = Q`.
 
     EXAMPLES::
 
@@ -840,19 +871,17 @@ class RuleHecke(Rule):
 
     def insertion(self, i, j, ir, r, p, q):
         r"""
-        Insert the letter ``(i,j)`` from the bi-word to the current 
-        tableaux ``p`` and ``q``.
+        Insert the letter ``(i,j)`` from the bi-word to the respective rows 
+        ``(ir, r)`` of the insertion and recording tableaux ``(p, q)``.
         
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleHecke
-            sage: p, q = RSK([1,2,3,4,5], [5,4,1,3,4],
-            ....:            insertion=RSK.rules.Hecke)
-            sage: p1, q1 = RSK([1,2,3,4], [5,4,1,3], insertion=RSK.rules.Hecke)
-            sage: p1 = [list(row) for row in p1]
-            sage: q1 = [list(row) for row in q1]
-            sage: RuleHecke().insertion(5, 4, p1, q1)
-            sage: p == Tableau(p1) and q == Tableau(q1)
+            sage: from bisect import bisect_right
+            sage: p, q, r =  [], [], [3,3,8,8,8,9]
+            sage: i, j, ir = 1, 8, 1
+            sage: i1, j1 = RuleHecke().insertion(i, j, ir, r, p, q)
+            sage: j1 == r[bisect_right(r, j)]
             True
 
         """
@@ -885,24 +914,18 @@ class RuleHecke(Rule):
 
     def reverse_insertion(self, i, x, row, p):
         r"""
-        Reverse bump the right-most letter from the `i^{th}` row of the 
-        current tableaux p and appends the removed entry from ``p``
-        to the list ``rev_word``.
+        Reverse bump the row ``row`` of the current insertion tableaux 
+        ``p`` with the number ``x``.
 
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleHecke
-            sage: p, q = RSK([1,2,3,4], [4,6,7,9],
-            ....:            insertion=RSK.rules.Hecke); p
-            [[4, 6, 7, 9]]
-            sage: p1, q1 = RSK([1,2,3], [4,6,7], insertion=RSK.rules.Hecke); p1
-            [[4, 6, 7]]
-            sage: p = [list(row) for row in p]
-            sage: q_copy = [list(row) for row in q]
-            sage: rev_word = []
-            sage: RuleHecke().reverse_insertion(0, p, q_copy,
-            ....:                                rev_word); rev_word
-            [9]
+            sage: from bisect import bisect_left
+            sage: r =  [2,3,3,4,8,9]
+            sage: x, i, p = 9, 1, [1, 2]
+            sage: x1 = RuleHecke().reverse_insertion(i, x, r, p)
+            sage: x1 == r[bisect_left(r,x) - 1]
+            True
 
         """
         y_pos = bisect_left(row,x) - 1
@@ -1309,47 +1332,12 @@ def RSK_inverse(p, q, output='array', insertion=InsertionRules.RSK):
         sage: is_fine = True if p == f(p) else p ; is_fine
         True
 
-    Same for Edelman-Greene (but we are checking only the reduced words that
-    can be obtained using the ``reduced_word()`` method from permutations)::
-
-        sage: g = lambda w: RSK_inverse(*RSK(w, insertion=RSK.rules.EG), 
-        ....:                 insertion=RSK.rules.EG, output='permutation')
-        sage: all(p.reduced_word() == g(p.reduced_word()).reduced_word() 
-        ....:                   for n in range(7) for p in Permutations(n))
-        True
-
-        sage: n = ZZ.random_element(200)
-        sage: p = Permutations(n).random_element()
-        sage: is_fine = True if p == f(p) else p ; is_fine
-        True
-
     Both tableaux must be of the same shape::
 
         sage: RSK_inverse(Tableau([[1,2,3]]), Tableau([[1,2]]))
         Traceback (most recent call last):
         ...
         ValueError: p(=[[1, 2, 3]]) and q(=[[1, 2]]) must have the same shape
-
-    For Edelman-Greene, in case of non-standard p,q::
-
-        sage: RSK_inverse(*RSK([1, 2, 3, 2, 1], insertion='EG'), insertion='EG')
-        [[1, 2, 3, 4, 5], [1, 2, 3, 2, 1]]
-        sage: RSK_inverse(*RSK([1, 1, 1, 2], [1, 2, 3, 4],
-        ....:              insertion=RSK.rules.EG), insertion=RSK.rules.EG)
-        [[1, 1, 1, 2], [1, 2, 3, 4]]
-        sage: RSK_inverse(*RSK([1, 2, 3, 3], [2, 1, 2, 2], insertion='EG'),
-        ....:              insertion='EG')
-        [[1, 2, 3, 3], [2, 1, 2, 2]]
-
-    Since the column reading of the insertion tableau from Edelman-Greene 
-    insertion gives one of reduced words for the original permutation, 
-    we can also check for that
-
-        sage: f = lambda p: reversed([x for row in reversed(p) for x in row])
-        sage: g = lambda p: RSK(p.reduced_word(), insertion=RSK.rules.EG)[0]
-        sage: all(p == Permutations(n).from_reduced_word(f(g(p))) for n in 
-        ....:                               range(8) for p in Permutations(n))
-        True    
 
     Check that :trac:`20430` is fixed::
 

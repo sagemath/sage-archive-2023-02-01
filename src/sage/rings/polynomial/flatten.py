@@ -628,19 +628,19 @@ class FractionSpecializationMorphism(Morphism):
             sage: from sage.rings.polynomial.flatten import FractionSpecializationMorphism
             sage: phi = FractionSpecializationMorphism(Frac(S), {c:3})
             sage: phi
-            Fractional Specialization morphism:
+            Fraction Specialization morphism:
                 From: Fraction Field of Multivariate Polynomial Ring in x, y over Multivariate Polynomial Ring in a, c over Rational Field
                 To:   Fraction Field of Multivariate Polynomial Ring in x, y over Univariate Polynomial Ring in a over Rational Field
         """
         if not is_FractionField(domain):
-            raise TypeError("domain must be a fractional field")
+            raise TypeError("domain must be a fraction field")
         self._specialization = SpecializationMorphism(domain.base(), D)
-        self._repr_type_str = 'Fractional Specialization'
+        self._repr_type_str = 'Fraction Specialization'
         Morphism.__init__(self, domain, self._specialization.codomain().fraction_field())
     
     def _call_(self, p):
         """
-        Evaluate a fractional specialization morphism
+        Evaluate a fraction specialization morphism
 
         EXAMPLES::
 
@@ -656,7 +656,7 @@ class FractionSpecializationMorphism(Morphism):
 
         """
         if not isinstance(p, FractionFieldElement):
-            raise TypeError("p must be a fractional field element")
+            raise TypeError("p must be a fraction field element")
         numerator = self._specialization._call_(p.numerator())
         denominator = self._specialization._call_(p.denominator())
         return numerator / denominator

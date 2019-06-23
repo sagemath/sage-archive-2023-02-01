@@ -15978,7 +15978,9 @@ class GenericGraph(GenericGraph_pyx):
             return [list(zip(p[:-1], p[1:])) for p in all_paths]
         return all_paths
 
-    def yen_k_shortest_simple_paths(self, source, target, weight_function=None, by_weight=False, report_edges=False, labels=False, report_weight=False):
+    def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
+                                    by_weight=False, report_edges=False,
+                                    labels=False, report_weight=False):
         r"""
         Return an iterator over the simple paths between a pair of vertices in
         increasing order of weights.
@@ -16075,6 +16077,18 @@ class GenericGraph(GenericGraph_pyx):
              [1, 2, 3, 8, 9, 10, 6],
              [1, 2, 3, 8, 9, 11, 6],
              [1, 2, 3, 4, 5, 6]]
+            sage: list(g.yen_k_shortest_simple_paths(1, 6, report_edges=True, labels=True, by_weight=True))
+            [[(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 7, 3), (6, 7, 4)],
+             [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (6, 9, 2)],
+             [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (9, 10, 7), (6, 10, 2)],
+             [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (9, 11, 10), (6, 11, 8)],
+             [(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 2), (5, 6, 100)]]
+            sage: list(g.yen_k_shortest_simple_paths(1, 6, report_edges=True, labels=True, by_weight=True, report_weight=True))
+            [(10, [(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 7, 3), (6, 7, 4)]),
+             (11, [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (6, 9, 2)]),
+             (18, [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (9, 10, 7), (6, 10, 2)]),
+             (27, [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (9, 11, 10), (6, 11, 8)]),
+             (105, [(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 2), (5, 6, 100)])]
             sage: list(g.yen_k_shortest_simple_paths(1, 6))
             [[1, 2, 3, 4, 5, 6],
              [1, 2, 3, 4, 7, 6],
@@ -16222,7 +16236,9 @@ class GenericGraph(GenericGraph_pyx):
                     pass
                 exclude_vertices.add(root[-1])
 
-    def yen_k_shortest_simple_paths_directed(self, source, target, weight_function=None, by_weight=False, report_edges=False, labels=False, report_weight=False):
+    def yen_k_shortest_simple_paths_directed(self, source, target, weight_function=None,
+                                             by_weight=False, report_edges=False,
+                                             labels=False, report_weight=False):
         r"""
         Return an iterator over the simple paths between a pair of vertices in
         increasing order of weights.
@@ -16321,6 +16337,24 @@ class GenericGraph(GenericGraph_pyx):
              [1, 2, 3, 8, 9, 10, 6],
              [1, 2, 3, 8, 9, 11, 6],
              [1, 2, 3, 4, 5, 6]]
+            sage: list(g.yen_k_shortest_simple_paths_directed(1, 6, by_weight=True, report_edges=True))
+            [[(1, 2), (2, 3), (3, 4), (4, 7), (7, 6)],
+             [(1, 2), (2, 3), (3, 8), (8, 9), (9, 6)],
+             [(1, 2), (2, 3), (3, 8), (8, 9), (9, 10), (10, 6)],
+             [(1, 2), (2, 3), (3, 8), (8, 9), (9, 11), (11, 6)],
+             [(1, 2), (2, 3), (3, 4), (4, 5), (5, 6)]]
+            sage: list(g.yen_k_shortest_simple_paths_directed(1, 6, by_weight=True, report_edges=True, report_weight=True))
+            [(10, [(1, 2), (2, 3), (3, 4), (4, 7), (7, 6)]),
+             (11, [(1, 2), (2, 3), (3, 8), (8, 9), (9, 6)]),
+             (18, [(1, 2), (2, 3), (3, 8), (8, 9), (9, 10), (10, 6)]),
+             (27, [(1, 2), (2, 3), (3, 8), (8, 9), (9, 11), (11, 6)]),
+             (105, [(1, 2), (2, 3), (3, 4), (4, 5), (5, 6)])]
+            sage: list(g.yen_k_shortest_simple_paths_directed(1, 6, by_weight=True, report_edges=True, report_weight=True, labels=True))
+            [(10, [(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 7, 3), (7, 6, 4)]),
+             (11, [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (9, 6, 2)]),
+             (18, [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (9, 10, 7), (10, 6, 2)]),
+             (27, [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (9, 11, 10), (11, 6, 8)]),
+             (105, [(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 2), (5, 6, 100)])]
             sage: list(g.yen_k_shortest_simple_paths_directed(1, 6))
             [[1, 2, 3, 8, 9, 6],
              [1, 2, 3, 4, 7, 6],
@@ -16345,6 +16379,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = DiGraph([(1, 2, 5), (6, 3, 0), (2, 6, 6), (1, 4, 15), (4, 5, 1), (4, 3, 0), (7, 1, 2), (8, 7, 1)])
             sage: list(g.yen_k_shortest_simple_paths_directed(1, 3))
             [[1, 4, 3], [1, 2, 6, 3]]
+            sage: list(g.yen_k_shortest_simple_paths_directed(1, 3, by_weight=True, report_edges=True, report_weight=True, labels=True))
+            [(11, [(1, 2, 5), (2, 6, 6), (6, 3, 0)]), (15, [(1, 4, 15), (4, 3, 0)])]
             sage: list(g.yen_k_shortest_simple_paths_directed(1, 3, by_weight=True))
             [[1, 2, 6, 3], [1, 4, 3]]
         """

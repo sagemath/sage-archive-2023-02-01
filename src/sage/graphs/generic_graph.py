@@ -16478,6 +16478,9 @@ class GenericGraph(GenericGraph_pyx):
         for e in self.edge_iterator():
             try:
                 float(weight_function(e))
+                if isinstance(weight_function(e), str):
+                    raise ValueError("the weight function cannot find the "
+                                 "weight of " + str(e))
             except Exception:
                 raise ValueError("the weight function cannot find the "
                                  "weight of " + str(e))

@@ -4256,7 +4256,7 @@ can then be queried for invariant and covariants. For example,
         """
         Construct binary form from invariant values.
 
-        Constructs a binary form based on the given variants. For a more
+        Constructs a binary form based on the given invariants. For a more
         detailed description, see :mod:`~sage.rings.invariant_theory.reconstruction`
 
         INPUT:

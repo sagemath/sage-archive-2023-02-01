@@ -16477,23 +16477,22 @@ class GenericGraph(GenericGraph_pyx):
         
         Numeric string as a weight in weight_function::
 
-            sage: G = digraphs.DeBruijn(2, 3)
+            sage: G = Graph({0: {1: '123'}})
             sage: weight_function=lambda e:e[2]
             sage: G._check_weight_function(weight_function)
             Traceback (most recent call last):
             ...
-            ValueError: the weight function cannot find the weight of ('010', '100', '0')
+            ValueError: the weight function cannot find the weight of (0, 1, '123')
         """
         for e in self.edge_iterator():
             try:
-                float(weight_function(e))
-                if isinstance(weight_function(e), str):
-                    raise ValueError("the weight function cannot find the "
-                                 "weight of " + str(e))
+                temp = weight_function(e)
+                float(temp)
+                if isinstance(temp, (str, bytes)):
+                    raise ValueError()
             except Exception:
                 raise ValueError("the weight function cannot find the "
                                  "weight of " + str(e))
-
 
     def shortest_paths(self, u, by_weight=False, algorithm=None,
                        weight_function=None, check_weight=True, cutoff=None):

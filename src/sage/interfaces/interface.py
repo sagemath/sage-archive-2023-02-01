@@ -1294,7 +1294,7 @@ class InterfaceElement(Element):
 
     def __bool__(self):
         """
-        Return whether this element is equal to ``True``.
+        Return whether this element is not ``False``.
 
         .. NOTE::
 
@@ -1308,11 +1308,19 @@ class InterfaceElement(Element):
             False
             sage: bool(maxima(1))
             True
+
+        TESTS:
+
+        By default this returns ``True`` for elements that are considered to be
+        not ``False`` by the interface (:trac:`28705`)::
+
+            sage: bool(giac('"a"'))
+            True
         """
         P = self._check_valid()
-        t = P._true_symbol()
-        cmd = '%s %s %s'%(self._name, P._equality_symbol(), t)
-        return P.eval(cmd) == t
+        cmd = '%s %s %s' % (self._name, P._equality_symbol(),
+                            P._false_symbol())
+        return P.eval(cmd) != P._true_symbol()
 
     __nonzero__ = __bool__
 

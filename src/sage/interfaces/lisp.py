@@ -427,8 +427,12 @@ class LispElement(RingElement, ExpectElement):
             False
             sage: bool(lisp(2))
             True
+            sage: bool(lisp('T'))
+            True
+            sage: bool(lisp('NIL'))
+            False
         """
-        return self != 0
+        return self != 0 and repr(self) != 'NIL'
 
     __nonzero__ = __bool__
 

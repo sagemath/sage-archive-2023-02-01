@@ -1133,9 +1133,16 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
             False
             sage: bool(maxima(1))
             True
+            sage: bool(maxima('false'))
+            False
+            sage: bool(maxima('true'))
+            True
         """
         P = self._check_valid()
-        return P.eval('is(%s = 0);'%self.name()) == P._false_symbol() # but be careful, since for relations things like is(equal(a,b)) are what Maxima needs
+        return (P.eval('is({0} = 0 or {0} = false);'.format(self.name()))
+                != P._true_symbol())
+        # but be careful, since for relations things like is(equal(a,b)) are
+        # what Maxima needs
 
     __nonzero__ = __bool__
 

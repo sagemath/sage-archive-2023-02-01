@@ -1678,7 +1678,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
                 # We consider x as a polynomial in the standard
                 # generator of the PARI number field, and convert it
                 # to a polynomial in the Sage generator.
-                if x.poldegree() > 0:
+                if any(x.poldegree(v) > 0 for v in x.variables()):
                     var = self.absolute_polynomial().variable_name()
                     if check and self.pari_polynomial(var) != self.absolute_polynomial().monic():
                         from warnings import warn

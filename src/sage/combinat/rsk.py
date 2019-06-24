@@ -233,15 +233,16 @@ class Rule(UniqueRepresentation):
         q = []       #the "recording" tableau
         for i, j in itr:
             for r, qr in zip(p,q):
-                i, j = self.insertion(i, j, qr, r)
-
-                if j is None or i is None:
+                i, j, insertion_completed = self.insertion(i, j, r)
+                if insertion_completed:
+                    r.append(j)
+                    qr.append(i) # Values are always inserted to the right
                     break
             else:
             #We made through all of the rows of p without breaking
             #so we need to add a new row to p and q.
-                r = [j]; p.append(r)
-                qr = [i]; q.append(qr)
+                p.append([j])
+                q.append([i])
         return self._forward_format_output(p, q, check_standard)
 
     def backward_rule(self, p, q, output):
@@ -290,7 +291,7 @@ class Rule(UniqueRepresentation):
 
         if q.is_standard():
             rev_word = [] # This will be our word in reverse
-            d = dict((qij,i) for i, Li in enumerate(q) for qij in Li)
+            d = {qij: i for i, Li in enumerate(q) for qij in Li}
             # d is now a dictionary which assigns to each integer k the
             # number of the row of q containing k.
 
@@ -424,7 +425,7 @@ class RuleRSK(Rule):
     an object of class :class:`~sage.combinat.permutation.Permutation`.
     """
 
-    def insertion(self, i, j, qr, r):
+    def insertion(self, i, j, r):
         r"""
         Insert the letter ``(i,j)`` from the bi-word to the respective rows 
         ``(qr, r)`` of the insertion and recording tableaux.
@@ -433,17 +434,18 @@ class RuleRSK(Rule):
 
             sage: from sage.combinat.rsk import RuleRSK
             sage: qr, r =  [1,2,3,4,5], [3,3,2,4,8]
-            sage: i, j = RuleRSK().insertion(5, 9, qr, r); r
-            [3, 3, 2, 4, 8, 9]
-            sage: i == None and j == None
+            sage: i, j, insert_complete = RuleRSK().insertion(5, 9, r)
+            sage: insert_complete
             True
             sage: qr, r =  [1,2,3,4,5], [3,3,2,4,8]
-            sage: i, j = RuleRSK().insertion(5, 3, qr, r); r
-            [3, 3, 2, 3, 8]
+            sage: i, j, insert_complete = RuleRSK().insertion(5, 3, r)
+            sage: insert_complete
+            False
             sage: i == 5 and j == 4
             True
 
         """
+        insertion_completed = False
         if r[-1] > j:
             #Figure out where to insert j into the row r.  The
             #bisect command returns the position of the least
@@ -452,11 +454,9 @@ class RuleRSK(Rule):
             #Switch j and y
             j, r[y_pos] = r[y_pos], j
         else:
-            r.append(j)
-            qr.append(i) # Values are always inserted to the right
-            j = None
-            i = None # Bumping is completed 
-        return i, j
+            insertion_completed = True #Bumping is completed
+
+        return i, j, insertion_completed
 
     def reverse_insertion(self, x, row):
         r"""
@@ -540,7 +540,7 @@ class RuleEG(Rule):
 
     """
 
-    def insertion(self, i, j, qr, r):
+    def insertion(self, i, j, r):
         r"""
         Insert the letter ``(i,j)`` from the bi-word to the respective rows 
         ``(qr, r)`` of the insertion and recording tableaux.
@@ -549,18 +549,21 @@ class RuleEG(Rule):
 
             sage: from sage.combinat.rsk import RuleEG
             sage: qr, r =  [1,2,3,4,5], [3,3,2,4,8]
-            sage: i, j = RuleEG().insertion(5, 9, qr, r); r
-            [3, 3, 2, 4, 8, 9]
-            sage: i == None and j == None
+            sage: i, j, insert_complete = RuleEG().insertion(5, 9, r)
+            sage: insert_complete
             True
             sage: qr, r =  [1,2,3,4,5], [2,3,4,5,8]
-            sage: i, j = RuleEG().insertion(5, 3, qr, r); r
+            sage: i, j, insert_complete = RuleEG().insertion(5, 3, r); r
             [2, 3, 4, 5, 8]
+            sage: insert_complete
+            False
             sage: i == 5 and j == 4
             True
             sage: qr, r =  [1,2,3,4,5], [2,3,5,5,8]
-            sage: i, j = RuleEG().insertion(5, 3, qr, r); r
+            sage: i, j, insert_complete = RuleEG().insertion(5, 3, r); r
             [2, 3, 3, 5, 8]
+            sage: insert_complete
+            False
             sage: i == 5 and j == 5
             True
 
@@ -606,6 +609,7 @@ class RuleEG(Rule):
             True
 
         """
+        insertion_completed = False
         if r[-1] > j:
             #Figure out where to insert j into the row r.  The
             #bisect command returns the position of the least
@@ -618,11 +622,9 @@ class RuleEG(Rule):
                 #Switch j and y
                 j, r[y_pos] = r[y_pos], j
         else:
-            r.append(j)
-            qr.append(i) # Values are always inserted to the right
-            j = None
-            i = None # Bumping is completed
-        return i, j
+            insertion_completed = True
+
+        return i, j, insertion_completed
 
     def reverse_insertion(self, x, row):
         r"""
@@ -777,9 +779,21 @@ class RuleHecke(Rule):
 
         for i, j in zip(obj1, obj2):
             for ir,r in enumerate(p):
-                i, j = self.insertion(i, j, ir, r, p, q)
+                i, j, insertion_completed = self.insertion(i, j, ir, r, p)
 
-                if j is None or i is None:
+                if insertion_completed:
+                    # We must have len(p[ir-1]) > len(r), since j is coming
+                    # from the previous row.
+                    if r[-1] < j and (ir == 0 or p[ir-1][len(r)] < j):
+                        # We can add a boj to the row
+                        r.append(j)
+                        q[ir].append((i,)) # Values are always inserted to the right
+                    else:
+                        # We must append i to the bottom of this column
+                        l = len(r) - 1
+                        while ir < len(q) and len(q[ir]) > l:
+                            ir += 1
+                        q[ir-1][-1] = q[ir-1][-1] + (i,)
                     break
             else:
                 #We made through all of the rows of p without breaking
@@ -869,7 +883,7 @@ class RuleHecke(Rule):
                 upper_row.append(value)
         return self._backward_format_output(lower_row, upper_row, output)
 
-    def insertion(self, i, j, ir, r, p, q):
+    def insertion(self, i, j, ir, r, p):
         r"""
         Insert the letter ``(i,j)`` from the bi-word to the respective rows 
         ``(ir, r)`` of the insertion and recording tableaux ``(p, q)``.
@@ -880,11 +894,13 @@ class RuleHecke(Rule):
             sage: from bisect import bisect_right
             sage: p, q, r =  [], [], [3,3,8,8,8,9]
             sage: i, j, ir = 1, 8, 1
-            sage: i1, j1 = RuleHecke().insertion(i, j, ir, r, p, q)
+            sage: i1, j1, insert_complete = RuleHecke().insertion(i, j, 
+            ....:                                                  ir, r, p)
             sage: j1 == r[bisect_right(r, j)]
             True
 
         """
+        insertion_completed = False
         if r[-1] > j:
             #Figure out where to insert j into the row r.  The
             #bisect command returns the position of the least
@@ -896,21 +912,9 @@ class RuleHecke(Rule):
                 r[y_pos] = j
             j = y
         else:
-            # We must have len(p[ir-1]) > len(r), since j is coming
-            # from the previous row.
-            if r[-1] < j and (ir == 0 or p[ir-1][len(r)] < j):
-                # We can add a boj to the row
-                r.append(j)
-                q[ir].append((i,)) # Values are always inserted to the right
-            else:
-                # We must append i to the bottom of this column
-                l = len(r) - 1
-                while ir < len(q) and len(q[ir]) > l:
-                    ir += 1
-                q[ir-1][-1] = q[ir-1][-1] + (i,)
-            i = None
-            j = None
-        return i, j
+            insertion_completed = True #Bumping is completed
+
+        return i, j, insertion_completed
 
     def reverse_insertion(self, i, x, row, p):
         r"""

@@ -1629,7 +1629,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: L.<z24> = CyclotomicField(24); L
             Cyclotomic Field of order 24 and degree 8
             sage: K = L.subfield(z24^3, 'z8')[0]; K
-            Number Field in z8 with defining polynomial x^4 + 1
+            Number Field in z8 with defining polynomial x^4 + 1 with z8 = 0.7071067811865475? + 0.7071067811865475?*I
             sage: flag, c = K(-7).is_norm(K, element=True)
             sage: flag
             True

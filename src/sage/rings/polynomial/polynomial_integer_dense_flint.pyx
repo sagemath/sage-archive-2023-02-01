@@ -730,7 +730,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         sig_off()
         return qq, rr
 
-    cpdef bint is_zero(self):
+    cpdef bint is_zero(self) except -1:
         """
         Returns True if self is equal to zero.
 
@@ -746,7 +746,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         """
         return (fmpz_poly_degree(self.__poly) == -1)
 
-    cpdef bint is_one(self):
+    cpdef bint is_one(self) except -1:
         """
         Returns True if self is equal to one.
 

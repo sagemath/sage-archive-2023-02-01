@@ -919,9 +919,11 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
             sage: R = QQ['x']
             sage: macaulay2(R) # optional - macaulay2
-            QQ[x, Degrees => {1}, Heft => {1}, MonomialOrder => {MonomialSize => 32}, DegreeRank => 1]
+            QQ[x, Degrees => {1}, Heft => {1}, MonomialOrder => {MonomialSize => 32},
                                                                 {GRevLex => {1}    }
                                                                 {Position => Up    }
+            --------------------------------------------------------------------------------
+            DegreeRank => 1]
         """
         if m2 is None:
             import sage.interfaces.macaulay2

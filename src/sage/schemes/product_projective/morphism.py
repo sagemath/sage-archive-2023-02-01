@@ -419,65 +419,6 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
         from sage.dynamics.arithmetic_dynamics.product_projective_ds import DynamicalSystem_product_projective
         return DynamicalSystem_product_projective(list(self), self.domain())
 
-    def nth_iterate(self, P, n, normalize=False):
-        """
-        Return the nth iterate of the point.
-
-        EXAMPLES::
-
-            sage: Z.<a,b,x,y,z> = ProductProjectiveSpaces([1, 2], QQ)
-            sage: H = End(Z)
-            sage: f = H([a^3, b^3 + a*b^2, x^2, y^2 - z^2, z*y])
-            sage: P = Z([1, 1, 1, 1, 1])
-            sage: f.nth_iterate(P, 3)
-            doctest:warning
-            ...
-            (1/1872 : 1 , 1 : 1 : 0)
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.green_function instead")
-        return self.as_dynamical_system().nth_iterate(P, n, normalize)
-
-    def orbit(self, P, N, **kwds):
-        """
-        Return the orbit of this point.
-
-        EXAMPLES::
-
-            sage: Z.<a,b,x,y,z> = ProductProjectiveSpaces([1, 2], QQ)
-            sage: H = End(Z)
-            sage: f = H([a^3, b^3 + a*b^2, x^2, y^2 - z^2, z*y])
-            sage: P = Z([1, 1, 1, 1, 1])
-            sage: f.orbit(P, 3)
-            doctest:warning
-            ...
-            [(1 : 1 , 1 : 1 : 1), (1/2 : 1 , 1 : 0 : 1), (1/12 : 1 , -1 : 1 : 0), (1/1872 : 1 , 1 : 1 : 0)]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.green_function instead")
-        return self.as_dynamical_system().orbit(P, N, **kwds)
-
-    def nth_iterate_map(self, n):
-        """
-        Return the nth iterate of this map.
-
-        EXAMPLES::
-
-            sage: Z.<a,b,x,y,z> = ProductProjectiveSpaces([1 , 2], QQ)
-            sage: H = End(Z)
-            sage: f = H([a^3, b^3, x^2, y^2, z^2])
-            sage: f.nth_iterate_map(3)
-            doctest:warning
-            ...
-            Dynamical System of Product of projective spaces P^1 x P^2 over
-            Rational Field
-              Defn: Defined by sending (a : b , x : y : z) to
-                    (a^27 : b^27 , x^8 : y^8 : z^8).
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.green_function instead")
-        return self.as_dynamical_system().nth_iterate_map(n)
-
     def global_height(self, prec=None):
         r"""
         Returns the maximum of the absolute logarithmic heights of the coefficients

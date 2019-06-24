@@ -6081,13 +6081,13 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: C.order_ideal_plot([])
             Graphics object consisting of 10 graphics primitives
         """
-        order_ideal = self.order_ideal(elements)    
+        order_ideal = self.order_ideal(elements)
         order_filer = self.order_filter(self.order_ideal_complement_generators(order_ideal))
         order_ideal_color_dictionary = {}
         order_ideal_color_dictionary['green'] = order_ideal
         order_ideal_color_dictionary['red']= order_filer
-        return self.plot(element_colors = order_ideal_color_dictionary)  
-  
+        return self.plot(element_colors = order_ideal_color_dictionary)
+
     def interval(self, x, y):
         r"""
         Return a list of the elements `z` such that `x \le z \le y`.

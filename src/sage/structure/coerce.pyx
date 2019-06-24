@@ -80,7 +80,7 @@ from cpython.object cimport (PyObject, PyTypeObject,
         Py_EQ, Py_NE, Py_LT, Py_LE, Py_GT, Py_GE)
 from cpython.weakref cimport PyWeakref_GET_OBJECT, PyWeakref_NewRef
 from libc.string cimport strncmp
-import gmpy2
+cimport gmpy2
 
 cdef add, mul, truediv
 from operator import add, mul, truediv
@@ -338,6 +338,18 @@ cpdef bint parent_is_integers(P) except -1:
         True
         sage: parent_is_integers(numpy.float)
         False
+
+        sage: import gmpy2
+        sage: parent_is_integers(gmpy2.mpz)
+        True
+        sage: parent_is_integers(gmpy2.mpq)
+        False
+
+    Ensure (:trac:`27893`) is fixed::
+
+        sage: K.<f> = QQ[]
+        sage: gmpy2.mpz(2) * f
+        2*f
     """
     if isinstance(P, type):
         if issubclass(P, int) or issubclass(P, long):
@@ -345,6 +357,8 @@ cpdef bint parent_is_integers(P) except -1:
         elif is_numpy_type(P):
             from numpy import integer
             return issubclass(P, integer)
+        elif issubclass(P, gmpy2.mpz):
+            return True
         else:
             return False
     else:

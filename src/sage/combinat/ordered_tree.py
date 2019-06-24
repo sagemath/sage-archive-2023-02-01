@@ -5,16 +5,16 @@ Ordered Rooted Trees
 AUTHORS:
 
 - Florent Hivert (2010-2011): initial revision
-- Frederic Chapoton (2010): contributed some methods
+- Frédéric Chapoton (2010): contributed some methods
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010 Florent Hivert <Florent.Hivert@univ-rouen.fr>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 #python 3 support
 from __future__ import division, absolute_import, print_function, unicode_literals

@@ -1409,7 +1409,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             right.append(label)
             return right
 
-    def tamari_sorting_tuple(self):
+    def tamari_sorting_tuple(self, reverse=False):
         r"""
         Return the Tamari sorting tuple of ``self`` and the
         size of ``self``.
@@ -1420,6 +1420,12 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         descendants of the right child of the `i`-th node
         of ``self``. Here, the nodes of ``self`` are numbered
         from left to right.
+
+        INPUT:
+
+        - ``reverse`` -- boolean (default ``False``) if ``True``,
+          return instead the result for the left-right symmetric of the
+          binary tree
 
         OUTPUT:
 
@@ -1441,15 +1447,23 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
              ((1, 0, 0), 3),
              ((0, 0, 0), 3)]
 
+            sage: t = BinaryTrees(10).random_element()
+            sage: u = t.left_right_symmetry()
+            sage: t.tamari_sorting_tuple(True) == u.tamari_sorting_tuple()
+            True
+
         REFERENCES:
 
         - [HT1972]_
         """
         if not self:
             return tuple(), 0
-        t1, t2 = self
-        u1, n1 = t1.tamari_sorting_tuple()
-        u2, n2 = t2.tamari_sorting_tuple()
+        if not reverse:
+            t1, t2 = self
+        else:
+            t2, t1 = self
+        u1, n1 = t1.tamari_sorting_tuple(reverse=reverse)
+        u2, n2 = t2.tamari_sorting_tuple(reverse=reverse)
         return (u1 + (n2,) + u2, n1 + 1 + n2)
 
     @combinatorial_map(name="To 312 avoiding permutation")
@@ -1822,9 +1836,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         """
         if not self:
             return BinaryTree()
-        tree = [self[1].left_right_symmetry(), self[0].left_right_symmetry()]
         if self not in LabelledBinaryTrees():
-            return BinaryTree(tree)
+            a = self.tamari_sorting_tuple(reverse=True)[0]
+            return from_tamari_sorting_tuple(a)
+        tree = [self[1].left_right_symmetry(), self[0].left_right_symmetry()]
         return LabelledBinaryTree(tree, label=self.label())
 
     @combinatorial_map(order=2, name="Left border symmetry")

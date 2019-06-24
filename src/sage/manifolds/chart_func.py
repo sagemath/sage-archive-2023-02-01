@@ -2352,7 +2352,7 @@ class ChartFunction(AlgebraElement):
             sage: f = X.function(sqrt(x^2-2*x+1)); f
             sqrt(x**2 - 2*x + 1)
             sage: f.simplify()
-            -x + 1
+            1 - x
 
         Power series expansion with respect to a small parameter `t` (at
         the moment, this is implemented only for the ``SR`` calculus backend,

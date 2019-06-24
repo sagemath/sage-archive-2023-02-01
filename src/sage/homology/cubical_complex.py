@@ -198,9 +198,9 @@ class Cube(SageObject):
 
         t = self.tuple()
         u = other.tuple()
-        embed = len(u)
-        if len(t) == embed: # these must be equal for self to be a face of other
-            return all([is_subinterval(t[i], u[i]) for i in range(embed)])
+        if len(t) == len(u):
+            # these must be equal for self to be a face of other
+            return all(is_subinterval(ti, ui) for ti, ui in zip(t, u))
         else:
             return False
 
@@ -797,7 +797,7 @@ class CubicalComplex(GenericCellComplex):
 
         sage: S2 = simplicial_complexes.Sphere(2)
         sage: C2 = CubicalComplex(S2)
-        sage: all([C2.homology(n) == S2.homology(n) for n in range(3)])
+        sage: all(C2.homology(n) == S2.homology(n) for n in range(3))
         True
 
     You can get the set of maximal cells or a dictionary of all cells::

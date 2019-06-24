@@ -1,8 +1,11 @@
 cd src/
 
+if [ -n "$SAGE_GMP_PREFIX" ]; then
+   GMP_CONFIGURE="--with-extra-includes=$SAGE_GMP_PREFIX/include --with-extra-libs=$SAGE_GMP_PREFIX/lib"
+fi
+
 sdh_configure --with-arithmetic=gmp \
-              --with-extra-includes="$SAGE_LOCAL/include" \
-              --with-extra-libs="$SAGE_LOCAL/lib" \
+              $GMP_CONFIGURE \
               --enable-shared=yes --enable-static=no
 sdh_make
 sdh_make_install

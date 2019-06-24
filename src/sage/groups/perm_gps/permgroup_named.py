@@ -1202,7 +1202,7 @@ class GeneralDihedralGroup(PermutationGroup_generic):
         True
         sage: G.is_abelian()
         False
-        sage: all([x.order() != 6 for x in G])
+        sage: all(x.order() != 6 for x in G)
         True
 
     If all of the direct factors are `C_2`, then the action turning

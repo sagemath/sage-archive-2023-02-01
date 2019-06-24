@@ -20,8 +20,8 @@ To list the packages available, either use in a terminal one of ``sage
 command inside Sage::
 
     sage: from sage.misc.package import list_packages
-    sage: pkgs = list_packages(local=True)
-    sage: sorted(pkgs.keys())  # random
+    sage: pkgs = list_packages(local=True)  # optional - build
+    sage: sorted(pkgs.keys())  # optional - build, random
     ['4ti2',
      'alabaster',
      'arb',
@@ -43,7 +43,7 @@ Functions
 # ****************************************************************************
 from __future__ import print_function
 
-from sage.env import SAGE_PKGS
+import sage.env
 
 import json
 import os
@@ -184,8 +184,8 @@ def list_packages(*pkg_types, **opts):
     EXAMPLES::
 
         sage: from sage.misc.package import list_packages
-        sage: L = list_packages('standard')
-        sage: sorted(L.keys())  # random
+        sage: L = list_packages('standard')  # optional - build
+        sage: sorted(L.keys())  # optional - build, random
         ['alabaster',
          'arb',
          'babel',
@@ -199,7 +199,7 @@ def list_packages(*pkg_types, **opts):
          'type': 'standard'}
 
         sage: L = list_packages('pip', local=True)  # optional - build
-        sage: L['beautifulsoup']
+        sage: L['beautifulsoup']                    # optional - build
         {'installed': ...,
          'installed_version': ...,
          'remote_version': None,
@@ -232,6 +232,7 @@ def list_packages(*pkg_types, **opts):
     installed = installed_packages(exclude_pip)
 
     pkgs = {}
+    SAGE_PKGS = sage.env.SAGE_PKGS
     for p in os.listdir(SAGE_PKGS):
         try:
             f = open(os.path.join(SAGE_PKGS, p, "type"))
@@ -286,12 +287,12 @@ def installed_packages(exclude_pip=True):
 
         :func:`sage.misc.package.list_packages`
     """
-    from sage.env import SAGE_SPKG_INST
     installed = {}
     if not exclude_pip:
         installed.update(pip_installed_packages())
     # Sage packages should override pip packages (Trac #23997)
-    installed.update(pkgname_split(pkgname) for pkgname in os.listdir(SAGE_SPKG_INST))
+    installed.update(pkgname_split(pkgname)
+                     for pkgname in os.listdir(sage.env.SAGE_SPKG_INST))
     return installed
 
 
@@ -365,7 +366,7 @@ def package_versions(package_type, local=False):
         sage: std = package_versions('standard', local=True)  # optional - build
         sage: 'gap' in std  # optional - build
         True
-        sage: std['zn_poly']  # random
+        sage: std['zn_poly']  # optional - build, random
         ('0.9.p12', '0.9.p12')
     """
     return {pkg['name']: (pkg['installed_version'], pkg['remote_version']) for pkg in list_packages(package_type, local=local).values()}
@@ -494,7 +495,7 @@ def package_manifest(package):
         KeyError: 'dummy-package'
     """
     version = installed_packages()[package]
-    stamp_file = os.path.join(os.environ['SAGE_SPKG_INST'],
+    stamp_file = os.path.join(sage.env.SAGE_SPKG_INST,
                               '{}-{}'.format(package, version))
     with open(stamp_file) as f:
         spkg_meta = json.load(f)

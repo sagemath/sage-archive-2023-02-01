@@ -310,7 +310,7 @@ if [ "$1" = '-patchbot' -o "$1" = "--patchbot" ]; then
     # We set PYTHONPATH to that directory such that the system Python
     # should also find the sage_patchbot package.
     cmd='import sage_patchbot as p; import os; print(os.path.dirname(p.__path__[0]))'
-    export PYTHONPATH=`"$SAGE_ROOT/sage" --python -c "$cmd"`
+    export PYTHONPATH=`"$SAGE_ROOT/sage" --python3 -c "$cmd"`
     if [ -z "$PYTHONPATH" ]; then
         # Something went wrong, assume that the patchbot is not installed
         echo >&2 "Error: cannot find installation path for sage_patchbot"
@@ -318,13 +318,10 @@ if [ "$1" = '-patchbot' -o "$1" = "--patchbot" ]; then
         exit 1
     fi
 
-    # Try "python2.7", then "python2", then "python"
     shopt -s execfail  # Do not exit if "exec" fails
-    exec python2.7 -m sage_patchbot.patchbot "$@"
-    exec python2 -m sage_patchbot.patchbot "$@"
-    exec python -m sage_patchbot.patchbot "$@"
-    echo >&2 "Error: cannot find a suitable Python program."
-    echo >&2 "The SageMath patchbot requires a system Python installation."
+    exec python3 -m sage_patchbot.patchbot "$@"
+    echo >&2 "Error: cannot find a suitable Python 3 program."
+    echo >&2 "The SageMath patchbot requires a system Python 3 installation."
     exit 127
 fi
 
@@ -391,6 +388,10 @@ if [ "$1" = '-i' ]; then
         fi
         $MAKE SAGE_SPKG="sage-spkg $INSTALL_OPTIONS" "$PKG"
     done
+
+    echo "New packages may have been installed."
+    echo "Re-running configure and make in case any dependent packages need updating."
+    touch "$SAGE_ROOT/configure" && $MAKE all-build
     exit 0
 fi
 
@@ -593,6 +594,11 @@ fi
 if [ "$1" = '-pip' -o "$1" = '--pip' ]; then
     shift
     exec sage-python23 -m pip "$@"
+fi
+
+if [ "$1" = '--pip3' ]; then
+    shift
+    exec python3 -m pip "$@"
 fi
 
 if [ "$1" = '-fix-pkg-checksums' -o "$1" = '--fix-pkg-checksums' ]; then

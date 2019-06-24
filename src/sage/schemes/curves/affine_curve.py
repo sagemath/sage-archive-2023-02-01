@@ -443,48 +443,35 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             sage: C = Curve([y^2 - a*x^5, x - z], A)
             sage: B = C.blowup()
             sage: B[0]
-            (Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by s2 - 1,
-            2*x^3 + (-a)*s1^2,
-             Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by s0 - s2,
-             2*y^3*s2^5 + (-a),
-             Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by s0 - 1,
-             2*z^3 + (-a)*s1^2)
+            (Affine Curve over Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095? defined by s2 - 1, 2*x^3 + (-a)*s1^2,
+             Affine Curve over Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095? defined by s0 - s2, 2*y^3*s2^5 + (-a),
+             Affine Curve over Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095? defined by s0 - 1, 2*z^3 + (-a)*s1^2)
             sage: B[1][0][2]
             Scheme morphism:
-            From: Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by s2 - 1,
-            2*x^3 + (-a)*s1^2
-            To:   Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by s0 - 1,
-            2*z^3 + (-a)*s1^2
-            Defn: Defined on coordinates by sending (x, s1, s2) to
-                  (x*s2, 1/s2, s1/s2)
+              From: Affine Curve over Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095? defined by s2 - 1, 2*x^3 + (-a)*s1^2
+              To:   Affine Curve over Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095? defined by s0 - 1, 2*z^3 + (-a)*s1^2
+              Defn: Defined on coordinates by sending (x, s1, s2) to
+                    (x*s2, 1/s2, s1/s2)
             sage: B[1][2][0]
             Scheme morphism:
-            From: Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by s0 - 1,
-            2*z^3 + (-a)*s1^2
-            To:   Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by s2 - 1,
-            2*x^3 + (-a)*s1^2
-            Defn: Defined on coordinates by sending (z, s0, s1) to
-                  (z*s0, s1/s0, 1/s0)
+              From: Affine Curve over Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095? defined by s0 - 1, 2*z^3 + (-a)*s1^2
+              To:   Affine Curve over Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095? defined by s2 - 1, 2*x^3 + (-a)*s1^2
+              Defn: Defined on coordinates by sending (z, s0, s1) to
+                    (z*s0, s1/s0, 1/s0)
             sage: B[2]
             (Scheme morphism:
-            From: Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by
-            s2 - 1, 2*x^3 + (-a)*s1^2
-            To:   Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by
-            (-a)*x^5 + y^2, x - z
-            Defn: Defined on coordinates by sending (x, s1, s2) to
-                  (x, x*s1, x*s2), Scheme morphism:
-            From: Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by
-            s0 - s2, 2*y^3*s2^5 + (-a)
-            To:   Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by
-            (-a)*x^5 + y^2, x - z
-            Defn: Defined on coordinates by sending (y, s0, s2) to
-                  (y*s0, y, y*s2), Scheme morphism:
-            From: Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by
-            s0 - 1, 2*z^3 + (-a)*s1^2
-            To:   Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by
-            (-a)*x^5 + y^2, x - z
-            Defn: Defined on coordinates by sending (z, s0, s1) to
-                  (z*s0, z*s1, z))
+               From: Affine Curve over Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095? defined by s2 - 1, 2*x^3 + (-a)*s1^2
+               To:   Affine Curve over Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095? defined by (-a)*x^5 + y^2, x - z
+               Defn: Defined on coordinates by sending (x, s1, s2) to
+                     (x, x*s1, x*s2), Scheme morphism:
+               From: Affine Curve over Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095? defined by s0 - s2, 2*y^3*s2^5 + (-a)
+               To:   Affine Curve over Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095? defined by (-a)*x^5 + y^2, x - z
+               Defn: Defined on coordinates by sending (y, s0, s2) to
+                     (y*s0, y, y*s2), Scheme morphism:
+               From: Affine Curve over Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095? defined by s0 - 1, 2*z^3 + (-a)*s1^2
+               To:   Affine Curve over Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095? defined by (-a)*x^5 + y^2, x - z
+               Defn: Defined on coordinates by sending (z, s0, s1) to
+                     (z*s0, z*s1, z))
 
         ::
 
@@ -1011,16 +998,16 @@ class AffinePlaneCurve(AffineCurve):
                 yt = lcs[1]
                 xt = lcs[0]
                 ldg = degree_lowest_rational_function(r(xt, yt), t)
-                if ldg[0] != 0:
-                    divf.append([ldg[0], pt0])
+                if ldg != 0:
+                    divf.append([ldg, pt0])
         return divf
 
     def local_coordinates(self, pt, n):
         r"""
         Return local coordinates to precision n at the given point.
 
-            Behaviour is flaky - some choices of `n` are worst that
-            others.
+        Behaviour is flaky - some choices of `n` are worst that
+        others.
 
 
         INPUT:

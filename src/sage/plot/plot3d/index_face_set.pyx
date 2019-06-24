@@ -997,7 +997,7 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         if self.global_texture:
             color_str = '"#{}"'.format(self.texture.hex_rgb())
-            return ['{{"vertices":{}, "faces":{}, "color":{}, "opacity":{}}}'.format(
+            json = ['{{"vertices":{}, "faces":{}, "color":{}, "opacity":{}}}'.format(
                     vertices_str, faces_str, color_str, opacity)]
         else:
             color_str = "[{}]".format(",".join(['"{}"'.format(
@@ -1005,8 +1005,13 @@ cdef class IndexFaceSet(PrimitiveObject):
                           self._faces[i].color.g,
                           self._faces[i].color.b).html_color())
                                             for i from 0 <= i < self.fcount]))
-            return ['{{"vertices":{}, "faces":{}, "face_colors":{}, "opacity":{}}}'.format(
+            json = ['{{"vertices":{}, "faces":{}, "face_colors":{}, "opacity":{}}}'.format(
                     vertices_str, faces_str, color_str, opacity)]
+
+        if self._extra_kwds.get('threejs_flat_shading', False):
+            json[0] = json[0][:-1] + ', "useFlatShading": true}'
+
+        return json
 
     def obj_repr(self, render_params):
         """

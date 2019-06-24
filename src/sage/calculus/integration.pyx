@@ -31,10 +31,9 @@ from sage.rings.real_double import RDF
 from sage.libs.gsl.all cimport *
 from sage.misc.sageinspect import sage_getargspec
 from sage.ext.fast_eval cimport FastDoubleFunc
-from sage.ext.fast_callable cimport Wrapper
 from sage.ext.interpreters.wrapper_rdf cimport Wrapper_rdf
 from sage.ext.fast_callable import fast_callable
-from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
+from sage.ext.memory_allocator cimport MemoryAllocator
 
 
 cdef class PyFunctionWrapper:
@@ -401,6 +400,7 @@ cdef double c_monte_ff(double *x, size_t dim, void *params):
 
 def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', params=None):
     """
+    Integrate ``func``.
     Integrate ``func`` over the dim-dimensional hypercubic region defined by the lower and upper
     limits in the arrays xl and xu, each of size dim. The integration uses a fixed number of function calls calls,
     and obtains random sampling points using the default gsl's random number generator.
@@ -420,8 +420,6 @@ def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', param
       * 'vegas' -- The VEGAS algorithm of Lepage is based on importance sampling.
 
     EXAMPLES::
-
-        sage: from sage.calculus.integration import monte_carlo_integration
 
         sage: x, y = SR.var('x,y')
         sage: monte_carlo_integration(x*y, [0,0], [2,2], 10000)   # abs tol 0.1
@@ -460,6 +458,17 @@ def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', param
         sage: def f(x1,x2,x3,x4): return x1*x2*x3*x4
         sage: monte_carlo_integration(f, [0,0], [2,2], 1000, params=[0.6,2])  # abs tol 0.2
         (4.8, 0.0)
+
+    TESTS::
+
+        sage: monte_carlo_integration(f, [0,0,0], [2,2], 10)
+        Traceback (most recent call last):
+        ...
+        TypeError: xl and xu must be lists of floating point values of identical lengths
+        sage: monte_carlo_integration(f, [0,0], [2,2], 1, algorithm='unicorn')
+        Traceback (most recent call last):
+        ...
+        ValueError: 'unicorn' is an invalid value for algorithm
     """
     cdef double result
     cdef double abs_err
@@ -473,11 +482,15 @@ def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', param
     cdef size_t dim
     cdef double *_xl
     cdef double *_xu
+    cdef MemoryAllocator mem = MemoryAllocator()
 
     if not isinstance(xl, (tuple, list)) or \
        not isinstance(xu, (tuple, list)) or \
        len(xl) != len(xu):
         raise TypeError("xl and xu must be lists of floating point values of identical lengths")
+
+    if not algorithm in ('plain', 'miser', 'vegas'):
+        raise ValueError("'{}' is an invalid value for algorithm".format(algorithm))
 
     dim = len(xl)
     if not dim:
@@ -487,8 +500,8 @@ def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', param
         params = []
 
     # Initialize hypercubic region's lower and upper limits
-    _xl = <double *> PyMem_Malloc(dim * sizeof(double))
-    _xu = <double *> PyMem_Malloc(dim * sizeof(double))
+    _xl = <double *> mem.malloc(dim * sizeof(double))
+    _xu = <double *> mem.malloc(dim * sizeof(double))
     for i in range(dim):
         _xl[i] = <double> xl[i]
         _xu[i] = <double> xu[i]
@@ -505,7 +518,7 @@ def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', param
             v *= _xu[i] - _xl[i]
         return (v * <double?> func, 0.0)
 
-    elif not isinstance(func, Wrapper):
+    elif not isinstance(func, Wrapper_rdf):
         try:
             if hasattr(func, 'arguments'):
                 vars = func.arguments()
@@ -571,11 +584,7 @@ def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', param
             gsl_monte_vegas_integrate(&F, _xl, _xu, dim, calls, _rng,
                                       state_vegas, &result, &abs_err)
             sig_off()
-        else:
-            print('TODO: Implement the case where the algo param is wrong')
     finally:
-        PyMem_Free(_xl)
-        PyMem_Free(_xu)
         gsl_rng_free(_rng)
 
         if state_monte != NULL:

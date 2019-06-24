@@ -1164,7 +1164,7 @@ class AsymptoticExpansionGenerators(SageObject):
         for k in srange(2, precision-1):
             coef = z_expansion.monomial_coefficient((1/Z)**((k+1) * one_half))
             current_var = SR('d{k}'.format(k=k))
-            solution_dict[current_var] = coef.subs(solution_dict).solve(current_var)[0].rhs()
+            solution_dict[current_var] = coef.subs(solution_dict).simplify_rational().solve(current_var)[0].rhs()
 
         return A(tau) + ansatz(prec=precision-1).map_coefficients(lambda term: term.subs(solution_dict).simplify_rational())
 

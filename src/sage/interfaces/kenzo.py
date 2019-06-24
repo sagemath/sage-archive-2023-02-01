@@ -334,7 +334,7 @@ class KenzoChainComplex(KenzoObject):
         """
         return basis_aux1(self._kenzo, dim).python()
 
-    def dffr(self, dim, comb):
+    def differential(self, dim, comb):
         r"""
         Return the differential of a combination.
 
@@ -352,7 +352,9 @@ class KenzoChainComplex(KenzoObject):
 
         OUTPUT:
 
-        - A Kenzo combination representing the differential of the formal combination represented by ``comb`` in the chain complex ``self`` in dimension ``dim``.
+        - A Kenzo combination representing the differential of the formal
+        combination represented by ``comb`` in the chain complex ``self`` in
+        dimension ``dim``.
 
         EXAMPLES::
 
@@ -366,7 +368,7 @@ class KenzoChainComplex(KenzoObject):
             [K... Chain-Complex]
             sage: kenzo_chcm.basis(4)                                             # optional - kenzo
             ['G4G0', 'G4G1']
-            sage: kenzo_chcm.dffr(4, [1, 'G4G0'])                                 # optional - kenzo
+            sage: kenzo_chcm.differential(4, [1, 'G4G0'])                                 # optional - kenzo
             <BLANKLINE>
             ----------------------------------------------------------------------{CMBN 3}
             <1 * G3G0>
@@ -375,7 +377,7 @@ class KenzoChainComplex(KenzoObject):
             <BLANKLINE>
             sage: kenzo_chcm.basis(5)                                             # optional - kenzo
             ['G5G0', 'G5G1', 'G5G2']
-            sage: kenzo_chcm.dffr(5, [1, 'G5G0', 2, 'G5G2'])                      # optional - kenzo
+            sage: kenzo_chcm.differential(5, [1, 'G5G0', 2, 'G5G2'])                      # optional - kenzo
             <BLANKLINE>
             ----------------------------------------------------------------------{CMBN 4}
             <6 * G4G0>
@@ -557,14 +559,14 @@ def pairing(slist):
     return rslt
 
 
-def KChainComplex(schcm):
+def KChainComplex(chain_complex):
     r"""
     Construct a KenzoChainComplex from a ChainComplex of degree = -1 in
     Sage.
 
     INPUT:
 
-    - ``schcm`` - A ChainComplex of degree = -1
+    - ``chain_complex`` - A ChainComplex of degree = -1
 
     OUTPUT:
 
@@ -583,19 +585,20 @@ def KChainComplex(schcm):
         sage: kenzo_chcm.homology(5)                                          # optional - kenzo
         Z x Z
     """
-    chcm = s2k_dictmat(schcm.differential())
-    str_orgn = str(schcm.differential())[1:-1].replace(":", " ").replace(" ", ".").replace("\n", "").replace(",", "")
+    d = chain_complex.differential()
+    chcm = s2k_dictmat(d)
+    str_orgn = str(d)[1:-1].replace(":", " ").replace(" ", ".").replace("\n", "").replace(",", "")
     return KenzoChainComplex(kchaincomplex_aux1(chcm, str_orgn))
 
 
-def SChainComplex(kchcm, start=0, end=15):
+def SChainComplex(kchaincomplex, start=0, end=15):
     r"""
     Convert the KenzoChainComplex ``kchcm`` (between dimensions ``start`` and
     ``end``) to a ChainComplex.
 
     INPUT:
 
-    - ``kchcm``- A KenzoChainComplex
+    - ``kchaincomplex``- A KenzoChainComplex
 
     - ``start``- An integer number (optional, default 0)
 
@@ -618,20 +621,20 @@ def SChainComplex(kchcm, start=0, end=15):
 
     matrices = {}
     for i in range(start, end):
-        dffr_i = chcm_mat2(kchcm._kenzo, i)
+        dffr_i = chcm_mat2(kchaincomplex._kenzo, i)
         if ((nlig(dffr_i).python() != 0) and (ncol(dffr_i).python() != 0)):
             matrices[i] = k2s_matrix(convertmatrice(dffr_i))
     return ChainComplex(matrices, degree=-1)
 
 
-def SAbstractSimplex(KAbSm, dim):
+def SAbstractSimplex(simplex, dim):
     r"""
     Convert an abstract simplex of Kenzo to an AbstractSimplex.
     INPUT:
 
-    - ``KAbSm``- An abstract simplex of Kenzo.
+    - ``simplex``- An abstract simplex of Kenzo.
 
-    - ``dim``- The dimension of ``KAbSm``.
+    - ``dim``- The dimension of ``simplex``.
 
     OUTPUT:
 
@@ -651,21 +654,21 @@ def SAbstractSimplex(KAbSm, dim):
         sage: SAbSm2.dimension()                                                 # optional - kenzo
         11
     """
-    degeneracies = dgop_int_ext(dgop(KAbSm._kenzo)).python()
+    degeneracies = dgop_int_ext(dgop(simplex._kenzo)).python()
     if degeneracies is None:
         degeneracies = []
     else:
         degeneracies = tuple(degeneracies)
-    name = gmsm(KAbSm._kenzo).python()
+    name = gmsm(simplex._kenzo).python()
     return AbstractSimplex(dim, degeneracies, name=name)
 
 
-def KAbstractSimplex(SAbSm):
+def KAbstractSimplex(simplex):
     r"""
     Convert an AbstractSimplex in Sage to an abstract simplex of Kenzo.
     INPUT:
 
-    - ``SAbSm``- An AbstractSimplex.
+    - ``simplex``- An AbstractSimplex.
 
     OUTPUT:
 
@@ -673,16 +676,17 @@ def KAbstractSimplex(SAbSm):
 
     EXAMPLES::
 
-        sage: from sage.interfaces.kenzo import AbstractSimplex, KAbstractSimplex, SAbstractSimplex    # optional - kenzo
-        sage: SAbSm = AbstractSimplex(1, (2,0,3,2,1), name = 'SAbSm')                                  # optional - kenzo
-        sage: KAbSm = KAbstractSimplex(SAbSm)                                                          # optional - kenzo
-        sage: SAbSm2 = SAbstractSimplex(KAbSm, 1)                                                      # optional - kenzo
-        sage: SAbSm.degeneracies() == SAbSm2.degeneracies()                                            # optional - kenzo
+        sage: from sage.homology.simplicial_set import AbstractSimplex
+        sage: from sage.interfaces.kenzo import KAbstractSimplex, SAbstractSimplex    # optional - kenzo
+        sage: SAbSm = AbstractSimplex(1, (2,0,3,2,1), name = 'SAbSm')                 # optional - kenzo
+        sage: KAbSm = KAbstractSimplex(SAbSm)                                         # optional - kenzo
+        sage: SAbSm2 = SAbstractSimplex(KAbSm, 1)                                     # optional - kenzo
+        sage: SAbSm.degeneracies() == SAbSm2.degeneracies()                           # optional - kenzo
         True
-        sage: SAbSm.dimension() == SAbSm2.dimension()                                                  # optional - kenzo
+        sage: SAbSm.dimension() == SAbSm2.dimension()                                 # optional - kenzo
         True
     """
-    return KenzoObject(kabstractsimplex_aux1(SAbSm.degeneracies(), str(SAbSm)))
+    return KenzoObject(kabstractsimplex_aux1(simplex.degeneracies(), 's'+str(hash(simplex))))
 
 
 def KFiniteSimplicialSet(ssimpset):
@@ -718,23 +722,26 @@ def KFiniteSimplicialSet(ssimpset):
         sage: KS1vS3.homology(3)                                        # optional - kenzo
         Z
     """
-
-    if hasattr(ssimpset, 'factors') and str(ssimpset)[0:5] != 'Wedge':
-        return KFiniteSimplicialSet(ssimpset.factor(0)).cartesian_product(KFiniteSimplicialSet(ssimpset.factor(1)))
+    from sage.homology.simplicial_set_constructions import ProductOfSimplicialSets
+    if isinstance(ssimpset, ProductOfSimplicialSets):
+        f0 = KFiniteSimplicialSet(ssimpset.factor(0))
+        for f1 in ssimpset.factors()[1:]:
+            f0 = f0.cartesian_product(KFiniteSimplicialSet(f1))
+        return f0
     else:
         dim = ssimpset.dimension()
-        list_rslt = [str(i) for i in ssimpset.n_cells(0)]
+        list_rslt = ['s'+str(hash(i)) for i in ssimpset.n_cells(0)]
         if (dim > 0):
             for k in range(1, dim + 1):
                 k_cells = ssimpset.n_cells(k)
-                if (len(k_cells) > 0):
+                if k_cells:
                     list_rslt.append(k)
                     for x in k_cells:
-                        list_rslt.append(str(x))
+                        list_rslt.append('s'+str(hash(x)))
                         auxiliar_list = []
                         for z in ssimpset.faces(x):
                             degen_z = z.degeneracies()
-                            name = str(z.nondegenerate())
+                            name = 's'+str(hash(z.nondegenerate()))
                             degen_z.append(name)
                             auxiliar_list.append(degen_z)
                         list_rslt.append(auxiliar_list)

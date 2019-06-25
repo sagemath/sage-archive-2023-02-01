@@ -403,6 +403,9 @@ cpdef _from_sage(elem):
     Currently just used for unpickling; eqivalent to calling ``libgap(elem)``
     to convert a Sage object to a `GapElement` where possible.
     """
+    if isinstance(elem, str):
+        return libgap.eval(elem)
+
     return libgap(elem)
 
 
@@ -599,7 +602,39 @@ cdef class GapElement(RingElement):
         return self.deepcopy(0)
 
     def __reduce__(self):
-        return (_from_sage, (self.sage(),))
+        """
+        Attempt to pickle GAP elements from libgap.
+
+        This is inspired in part by
+        ``sage.interfaces.interface.Interface._reduce``, though for a fallback
+        we use ``str(self)`` instead of ``repr(self)``, since the former is
+        equivalent in the libgap interace to the latter in the pexpect
+        interface.
+
+        TESTS:
+
+        This workaround was motivated in particular by this example from the
+        permutation groups implementation::
+
+            sage: CC = libgap.eval('ConjugacyClass(SymmetricGroup([ 1 .. 5 ]), (1,2)(3,4))')
+            sage: CC.sage()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: cannot construct equivalent Sage object
+            sage: libgap.eval(str(CC))
+            (1,2)(3,4)^G
+            sage: loads(dumps(CC))
+            (1,2)(3,4)^G
+        """
+
+        if self.is_string():
+            elem = repr(self.sage())
+        try:
+            elem = self.sage()
+        except NotImplementedError:
+            elem = str(self)
+
+        return (_from_sage, (elem,))
 
     def __contains__(self, other):
         r"""

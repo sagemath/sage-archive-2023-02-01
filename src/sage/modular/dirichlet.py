@@ -749,7 +749,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: a = a.primitive_character()
             sage: L = a.lfunction(algorithm='lcalc'); L
             L-function with complex Dirichlet coefficients
-            sage: L.value(4)
+            sage: L.value(4)  # abs tol 1e-14
             0.988944551741105 - 5.16608739123418e-18*I
         """
         if algorithm is None:

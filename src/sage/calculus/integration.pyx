@@ -36,6 +36,7 @@ from sage.ext.fast_eval cimport FastDoubleFunc
 from sage.ext.interpreters.wrapper_rdf cimport Wrapper_rdf
 from sage.ext.fast_callable import fast_callable
 from sage.ext.memory_allocator cimport MemoryAllocator
+import inspect
 
 
 cdef class PyFunctionWrapper:
@@ -475,6 +476,31 @@ def monte_carlo_integral(func, xl, xu, size_t calls, algorithm='plain', params=N
         Traceback (most recent call last):
         ...
         NotImplementedError: 0 dimensional integration not available
+        sage: monte_carlo_integral(x*y, [0,0,0], [2,2,2], 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: The function to be integrated depends on 2 variables (x, y),
+        and so cannot be integrated in 3 dimensions. Please fix additional
+        variables with the 'params' argument
+        sage: def f(x,y): return x*y
+        sage: monte_carlo_integral(f, [0,0,0], [2,2,2], 100)
+        Traceback (most recent call last):
+        ...
+        ValueError: The function to be integrated depends on 2 variables ('x', 'y'),
+        and so cannot be integrated in 3 dimensions. Please fix additional
+        variables with the 'params' argument
+        sage: monte_carlo_integral(x*y, [0], [2], 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: The function to be integrated depends on 2 variables (x, y),
+        and so cannot be integrated in 1 dimensions. Please addmore items in
+        upper and lower limits
+        sage: monte_carlo_integral(f, [0], [2], 100)
+        Traceback (most recent call last):
+        ...
+        ValueError: The function to be integrated depends on 2 variables ('x', 'y'),
+        and so cannot be integrated in 1 dimensions. Please addmore items in
+        upper and lower limits
 
     AUTHORS:
 
@@ -531,28 +557,35 @@ def monte_carlo_integral(func, xl, xu, size_t calls, algorithm='plain', params=N
         return (v * <double?> func, 0.0)
 
     elif not isinstance(func, Wrapper_rdf):
-        try:
-            if hasattr(func, 'arguments'):
-                vars = func.arguments()
-            else:
-                vars = func.variables()
+        if inspect.isfunction(func):
+            vars = sage_getargspec(func)[0]
+        elif hasattr(func, 'arguments'):
+            vars = func.arguments()
+        else:
+            vars = func.variables()
 
-            if len(vars) != dim + len(params):
-                raise ValueError(("The function to be integrated depends on "
-                                  "{} variables {}, and so cannot be "
-                                  "integrated in one dimension. Please fix "
-                                  "additional variables with the 'params' "
-                                  "argument").format(len(vars), tuple(vars)))
+        target_dim = dim + len(params)
+        if len(vars) < target_dim:
+            raise ValueError(("The function to be integrated depends on "
+                              "{} variables {}, and so cannot be "
+                                 "integrated in {} dimensions. Please fix "
+                              "additional variables with the 'params' "
+                              "argument").format(len(vars), tuple(vars),
+                                                 target_dim))
+        elif len(vars) > target_dim:
+            raise ValueError(("The function to be integrated depends on "
+                              "{} variables {}, and so cannot be "
+                              "integrated in {} dimensions. Please add"
+                              "more items in upper and lower limits"
+                             ).format(len(vars), tuple(vars), target_dim))
 
+        if not inspect.isfunction(func):
             if params:
                 to_sub = dict(zip(vars[-len(params):], params))
                 func = func.subs(to_sub)
                 vars = vars[:dim]
 
             func = fast_callable(func, domain=RDF, vars=vars)
-
-        except (AttributeError):
-            pass
 
     if isinstance(func, Wrapper_rdf):
         F.dim = dim

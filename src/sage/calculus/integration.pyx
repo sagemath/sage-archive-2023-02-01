@@ -17,6 +17,8 @@ AUTHORS:
 #*****************************************************************************
 #       Copyright (C) 2004,2005,2006,2007 Joshua Kantor <kantor.jm@gmail.com>
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
+#       Copyright (C) 2019 Vincent Klein <vinklein@gmail.com>
+#       Copyright (C) 2019 Vincent Delecroix <20100.delecroix@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -37,10 +39,6 @@ from sage.ext.memory_allocator cimport MemoryAllocator
 
 
 cdef class PyFunctionWrapper:
-   cdef object the_function
-   cdef object the_parameters
-
-cdef class PyMonteWrapper:
    cdef object the_function
    cdef object the_parameters
    cdef list lx
@@ -374,10 +372,10 @@ def numerical_integral(func, a, b=None,
 
    return result, abs_err
 
-cdef double c_monte_f(double *t, size_t dim, void *params):
+cdef double c_monte_carlo_f(double *t, size_t dim, void *params):
     cdef double value
-    cdef PyMonteWrapper wrapper
-    wrapper = <PyMonteWrapper> params
+    cdef PyFunctionWrapper wrapper
+    wrapper = <PyFunctionWrapper> params
 
     for i in range(dim):
        wrapper.lx[i] = t[i]
@@ -393,7 +391,7 @@ cdef double c_monte_f(double *t, size_t dim, void *params):
 
     return value
 
-cdef double c_monte_ff(double *x, size_t dim, void *params):
+cdef double c_monte_carlo_ff(double *x, size_t dim, void *params):
     cdef double result
     (<Wrapper_rdf> params).call_c(x, &result)
     return result
@@ -469,12 +467,17 @@ def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', param
         Traceback (most recent call last):
         ...
         ValueError: 'unicorn' is an invalid value for algorithm
+
+    AUTHORS:
+
+    - Vincent Delecroix
+    - Vincent Klein
     """
     cdef double result
     cdef double abs_err
     cdef gsl_monte_function F
-    cdef PyMonteWrapper wrapper  # struct to pass information into GSL Monte C function
-    cdef gsl_monte_plain_state* state_monte = NULL
+    cdef PyFunctionWrapper wrapper  # struct to pass information into GSL Monte C function
+    cdef gsl_monte_plain_state* state_plain = NULL
     cdef gsl_monte_miser_state* state_miser = NULL
     cdef gsl_monte_vegas_state* state_vegas = NULL
     cdef gsl_rng_type *type_rng
@@ -544,10 +547,10 @@ def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', param
 
     if isinstance(func, Wrapper_rdf):
         F.dim = dim
-        F.f = c_monte_ff
+        F.f = c_monte_carlo_ff
         F.params = <void *>func
     else:
-        wrapper = PyMonteWrapper()
+        wrapper = PyFunctionWrapper()
         if not func is None:
             wrapper.the_function = func
         else:
@@ -562,15 +565,15 @@ def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', param
         wrapper.lx = [None] * dim
 
         F.dim = dim
-        F.f = c_monte_f
+        F.f = c_monte_carlo_f
         F.params = <void *> wrapper
 
     try:
         if algorithm == 'plain':
-            state_monte = <gsl_monte_plain_state*> gsl_monte_plain_alloc(dim)
+            state_plain = <gsl_monte_plain_state*> gsl_monte_plain_alloc(dim)
             sig_on()
             gsl_monte_plain_integrate(&F, _xl, _xu, dim, calls, _rng,
-                                      state_monte, &result, &abs_err)
+                                      state_plain, &result, &abs_err)
             sig_off()
         elif algorithm == 'miser':
             state_miser = <gsl_monte_miser_state*> gsl_monte_miser_alloc(dim)
@@ -587,8 +590,8 @@ def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', param
     finally:
         gsl_rng_free(_rng)
 
-        if state_monte != NULL:
-            gsl_monte_plain_free(state_monte)
+        if state_plain != NULL:
+            gsl_monte_plain_free(state_plain)
         elif state_miser != NULL:
             gsl_monte_miser_free(state_miser)
         elif state_vegas != NULL:

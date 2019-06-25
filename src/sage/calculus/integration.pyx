@@ -44,18 +44,18 @@ cdef class PyFunctionWrapper:
    cdef list lx
 
 cdef class compiled_integrand:
-   cdef int c_f(self,double t):  #void *params):
+   cdef int c_f(self, double t):  #void *params):
       return 0
 
-cdef double c_f(double t,void *params):
+cdef double c_f(double t, void *params):
    cdef double value
    cdef PyFunctionWrapper wrapper
    wrapper = <PyFunctionWrapper> params
    try:
-      if len(wrapper.the_parameters)!=0:
-         value=wrapper.the_function(t,wrapper.the_parameters)
+      if len(wrapper.the_parameters) != 0:
+         value = wrapper.the_function(t, wrapper.the_parameters)
       else:
-         value=wrapper.the_function(t)
+         value = wrapper.the_function(t)
    except Exception as msg:
       print(msg)
       return 0
@@ -279,7 +279,7 @@ def numerical_integral(func, a, b=None,
                                      "{} variables {}, and so cannot be "
                                      "integrated in one dimension. Please fix "
                                      "additional variables with the 'params' "
-                                     "argument").format(len(vars),tuple(vars)))
+                                     "argument").format(len(vars), tuple(vars)))
 
                 to_sub = dict(zip(vars[1:], params))
                 func = func.subs(to_sub)
@@ -298,9 +298,9 @@ def numerical_integral(func, a, b=None,
       else:
          raise ValueError("No integrand defined")
       try:
-         if params==[] and len(sage_getargspec(wrapper.the_function)[0])==1:
+         if params == [] and len(sage_getargspec(wrapper.the_function)[0]) == 1:
             wrapper.the_parameters=[]
-         elif params==[] and len(sage_getargspec(wrapper.the_function)[0])>1:
+         elif params == [] and len(sage_getargspec(wrapper.the_function)[0]) > 1:
             raise ValueError("Integrand has parameters but no parameters specified")
          elif params!=[]:
             wrapper.the_parameters = params
@@ -308,47 +308,47 @@ def numerical_integral(func, a, b=None,
          wrapper.the_function = eval("lambda x: func(x)", {'func':func})
          wrapper.the_parameters = []
 
-      F.function=c_f
-      F.params=<void *> wrapper
+      F.function = c_f
+      F.params = <void *> wrapper
 
 
    cdef size_t n
-   n=max_points
+   n = max_points
 
    gsl_set_error_handler_off()
 
-   if algorithm=="qng":
+   if algorithm == "qng":
       _a=a
       _b=b
       sig_on()
-      gsl_integration_qng(&F,_a,_b,eps_abs,eps_rel,&result,&abs_err,&n)
+      gsl_integration_qng(&F, _a, _b, eps_abs, eps_rel, &result, &abs_err, &n)
       sig_off()
 
-   elif algorithm=="qag":
+   elif algorithm == "qag":
       from sage.rings.infinity import Infinity
       if a is -Infinity and b is +Infinity:
-         W=<gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
+         W = <gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
          sig_on()
-         gsl_integration_qagi(&F,eps_abs,eps_rel,n,W,&result,&abs_err)
+         gsl_integration_qagi(&F, eps_abs, eps_rel, n, W, &result, &abs_err)
          sig_off()
 
       elif a is -Infinity:
-         _b=b
-         W=<gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
+         _b = b
+         W = <gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
          sig_on()
-         gsl_integration_qagil(&F,_b,eps_abs,eps_rel,n,W,&result,&abs_err)
+         gsl_integration_qagil(&F, _b, eps_abs, eps_rel, n, W, &result, &abs_err)
          sig_off()
 
       elif b is +Infinity:
-         _a=a
-         W=<gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
+         _a = a
+         W = <gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
          sig_on()
-         gsl_integration_qagiu(&F,_a,eps_abs,eps_rel,n,W,&result,&abs_err)
+         gsl_integration_qagiu(&F, _a, eps_abs, eps_rel, n, W, &result, &abs_err)
          sig_off()
 
       else:
-         _a=a
-         _b=b
+         _a = a
+         _b = b
          W = <gsl_integration_workspace*> gsl_integration_workspace_alloc(n)
          sig_on()
          gsl_integration_qag(&F,_a,_b,eps_abs,eps_rel,n,rule,W,&result,&abs_err)
@@ -357,11 +357,11 @@ def numerical_integral(func, a, b=None,
 
    elif algorithm == "qags":
 
-        W=<gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
+        W = <gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
         sig_on()
-        _a=a
-        _b=b
-        gsl_integration_qags(&F,_a,_b,eps_abs,eps_rel,n,W,&result,&abs_err)
+        _a = a
+        _b = b
+        gsl_integration_qags(&F, _a, _b, eps_abs, eps_rel, n, W, &result, &abs_err)
         sig_off()
 
    else:
@@ -381,10 +381,10 @@ cdef double c_monte_carlo_f(double *t, size_t dim, void *params):
        wrapper.lx[i] = t[i]
 
     try:
-        if len(wrapper.the_parameters)!=0:
-            value=wrapper.the_function(*wrapper.lx, *wrapper.the_parameters)
+        if len(wrapper.the_parameters) != 0:
+            value = wrapper.the_function(*wrapper.lx, *wrapper.the_parameters)
         else:
-            value=wrapper.the_function(*wrapper.lx)
+            value = wrapper.the_function(*wrapper.lx)
     except Exception as msg:
         print(msg)
         return 0
@@ -399,9 +399,11 @@ cdef double c_monte_carlo_ff(double *x, size_t dim, void *params):
 def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', params=None):
     """
     Integrate ``func``.
-    Integrate ``func`` over the dim-dimensional hypercubic region defined by the lower and upper
-    limits in the arrays xl and xu, each of size dim. The integration uses a fixed number of function calls calls,
-    and obtains random sampling points using the default gsl's random number generator.
+
+    Integrate ``func`` over the dim-dimensional hypercubic region defined by
+    the lower and upper limits in the arrays xl and xu, each of size dim.
+    The integration uses a fixed number of function calls calls and obtains
+    random sampling points using the default gsl's random number generator.
 
     INPUT:
 
@@ -412,10 +414,12 @@ def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', param
     - ``calls`` -- Number of functions calls used.
     - ``algorithm`` -- valid choices are:
 
-      * 'plain' -- The plain Monte Carlo algorithm samples points randomly from the integration
-         region to estimate the integral and its error.
-      * 'miser' -- The MISER algorithm of Press and Farrar is based on recursive stratified sampling
-      * 'vegas' -- The VEGAS algorithm of Lepage is based on importance sampling.
+      * 'plain' -- The plain Monte Carlo algorithm samples points randomly
+         from the integration region to estimate the integral and its error.
+      * 'miser' -- The MISER algorithm of Press and Farrar is based on
+         recursive stratified sampling
+      * 'vegas' -- The VEGAS algorithm of Lepage is based on importance
+         sampling.
 
     EXAMPLES::
 
@@ -490,7 +494,8 @@ def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', param
     if not isinstance(xl, (tuple, list)) or \
        not isinstance(xu, (tuple, list)) or \
        len(xl) != len(xu):
-        raise TypeError("xl and xu must be lists of floating point values of identical lengths")
+        raise TypeError("xl and xu must be lists of floating point values of"
+                        " identical lengths")
 
     if not algorithm in ('plain', 'miser', 'vegas'):
         raise ValueError("'{}' is an invalid value for algorithm".format(algorithm))
@@ -533,7 +538,7 @@ def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', param
                                   "{} variables {}, and so cannot be "
                                   "integrated in one dimension. Please fix "
                                   "additional variables with the 'params' "
-                                  "argument").format(len(vars),tuple(vars)))
+                                  "argument").format(len(vars), tuple(vars)))
 
             if params:
                 to_sub = dict(zip(vars[-len(params):], params))

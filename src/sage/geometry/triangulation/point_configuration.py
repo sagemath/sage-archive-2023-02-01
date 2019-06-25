@@ -393,10 +393,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         if engine not in ['auto', 'topcom', 'internal']:
             raise ValueError('Unknown value for "engine": '+str(engine))
 
-        have_TOPCOM = PointConfiguration._have_TOPCOM()
-        PointConfiguration._use_TOPCOM = \
-            (engine == 'topcom') or (engine == 'auto' and have_TOPCOM)
-
+        PointConfiguration._use_TOPCOM = (engine == 'topcom')
 
     def star_center(self):
         r"""

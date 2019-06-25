@@ -68,6 +68,9 @@ def ClassFunction(group, values):
     except AttributeError:
         pass
 
+    if isinstance(values, LibGapElement):
+        return ClassFunction_libgap(group, values)
+
     return ClassFunction_gap(group, values)
 
 

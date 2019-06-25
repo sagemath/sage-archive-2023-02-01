@@ -396,7 +396,7 @@ cdef double c_monte_carlo_ff(double *x, size_t dim, void *params):
     (<Wrapper_rdf> params).call_c(x, &result)
     return result
 
-def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', params=None):
+def monte_carlo_integral(func, xl, xu, size_t calls, algorithm='plain', params=None):
     """
     Integrate ``func``.
 
@@ -424,7 +424,7 @@ def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', param
     EXAMPLES::
 
         sage: x, y = SR.var('x,y')
-        sage: monte_carlo_integration(x*y, [0,0], [2,2], 10000)   # abs tol 0.1
+        sage: monte_carlo_integral(x*y, [0,0], [2,2], 10000)   # abs tol 0.1
         (4.0, 0.0)
         sage: integral(integral(x*y, (x,0,2)), (y,0,2))
         4
@@ -432,12 +432,12 @@ def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', param
     An example with a parameter::
 
         sage: x, y, z = SR.var('x,y,z')
-        sage: monte_carlo_integration(x*y*z, [0,0], [2,2], 10000, params=[1.2])   # abs tol 0.1
+        sage: monte_carlo_integral(x*y*z, [0,0], [2,2], 10000, params=[1.2])   # abs tol 0.1
         (4.8, 0.0)
 
     Integral of a constant::
 
-        sage: monte_carlo_integration(3, [0,0], [2,2], 10000)   # abs tol 0.1
+        sage: monte_carlo_integral(3, [0,0], [2,2], 10000)   # abs tol 0.1
         (12, 0.0)
 
     Test different algorithms::
@@ -445,32 +445,36 @@ def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', param
         sage: x, y, z = SR.var('x,y,z')
         sage: f(x,y,z) = exp(z) * cos(x + sin(y))
         sage: for algo in ['plain', 'miser', 'vegas']:  # abs tol 0.01
-        ....:   monte_carlo_integration(f, [0,0,-1], [2,2,1], 10^6, algorithm=algo)
+        ....:   monte_carlo_integral(f, [0,0,-1], [2,2,1], 10^6, algorithm=algo)
         (-1.06, 0.01)
         (-1.06, 0.01)
         (-1.06, 0.01)
 
-    Tests with python functions::
+    Tests with Python functions::
 
         sage: def f(u, v): return u * v
-        sage: monte_carlo_integration(f, [0,0], [2,2], 10000)  # abs tol 0.1
+        sage: monte_carlo_integral(f, [0,0], [2,2], 10000)  # abs tol 0.1
         (4.0, 0.0)
-        sage: monte_carlo_integration(lambda u,v: u*v, [0,0], [2,2], 10000)  # abs tol 0.1
+        sage: monte_carlo_integral(lambda u,v: u*v, [0,0], [2,2], 10000)  # abs tol 0.1
         (4.0, 0.0)
         sage: def f(x1,x2,x3,x4): return x1*x2*x3*x4
-        sage: monte_carlo_integration(f, [0,0], [2,2], 1000, params=[0.6,2])  # abs tol 0.2
+        sage: monte_carlo_integral(f, [0,0], [2,2], 1000, params=[0.6,2])  # abs tol 0.2
         (4.8, 0.0)
 
     TESTS::
 
-        sage: monte_carlo_integration(f, [0,0,0], [2,2], 10)
+        sage: monte_carlo_integral(f, [0,0,0], [2,2], 10)
         Traceback (most recent call last):
         ...
         TypeError: xl and xu must be lists of floating point values of identical lengths
-        sage: monte_carlo_integration(f, [0,0], [2,2], 1, algorithm='unicorn')
+        sage: monte_carlo_integral(f, [0,0], [2,2], 1, algorithm='unicorn')
         Traceback (most recent call last):
         ...
         ValueError: 'unicorn' is an invalid value for algorithm
+        sage: monte_carlo_integral(lambda x,y: y*x, [], [], 1)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: 0 dimensional integration not available
 
     AUTHORS:
 
@@ -502,14 +506,14 @@ def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', param
 
     dim = len(xl)
     if not dim:
-        return float(0)
+        raise NotImplementedError("0 dimensional integration not available")
 
     if params is None:
         params = []
 
     # Initialize hypercubic region's lower and upper limits
-    _xl = <double *> mem.malloc(dim * sizeof(double))
-    _xu = <double *> mem.malloc(dim * sizeof(double))
+    _xl = <double *> mem.calloc(dim, sizeof(double))
+    _xu = <double *> mem.calloc(dim, sizeof(double))
     for i in range(dim):
         _xl[i] = <double> xl[i]
         _xu[i] = <double> xu[i]
@@ -556,10 +560,7 @@ def monte_carlo_integration(func, xl, xu, size_t calls, algorithm='plain', param
         F.params = <void *>func
     else:
         wrapper = PyFunctionWrapper()
-        if not func is None:
-            wrapper.the_function = func
-        else:
-            raise ValueError("No integrand defined")
+        wrapper.the_function = func
 
         if params == [] and len(sage_getargspec(wrapper.the_function)[0]) == dim:
             wrapper.the_parameters = []

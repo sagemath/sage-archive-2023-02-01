@@ -223,7 +223,8 @@ def numerical_integral(func, a, b=None,
     - Robert Bradshaw
     - Jeroen Demeyer
 
-    ALGORITHM: Uses calls to the GSL (GNU Scientific Library) C library [GSL]_.
+    ALGORITHM: Uses calls to the GSL (GNU Scientific Library) C library.
+    Documentation can be found in [GSL]_ chapter "Numerical Integration".
 
     TESTS:
 
@@ -405,6 +406,9 @@ def monte_carlo_integral(func, xl, xu, size_t calls, algorithm='plain', params=N
     the lower and upper limits in the arrays xl and xu, each of size dim.
     The integration uses a fixed number of function calls calls and obtains
     random sampling points using the default gsl's random number generator.
+
+    ALGORITHM: Uses calls to the GSL (GNU Scientific Library) C library.
+    Documentation can be found in [GSL]_ chapter "Monte Carlo Integration".
 
     INPUT:
 

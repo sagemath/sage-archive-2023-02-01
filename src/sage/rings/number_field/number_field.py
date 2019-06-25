@@ -1913,7 +1913,9 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             True
         """
         if not is_NumberFieldHomsetCodomain(codomain):
-            raise TypeError("{} is not suitable as codomain for homomorphisms from {}".format(codomain, self))
+            # Using LazyFormat fixes #28036 - infinite loop
+            from sage.misc.lazy_format import LazyFormat
+            raise TypeError(LazyFormat("%s is not suitable as codomain for homomorphisms from %s") % (codomain, self))
         from .morphism import NumberFieldHomset
         return NumberFieldHomset(self, codomain, category)
 

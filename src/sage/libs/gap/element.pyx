@@ -398,6 +398,14 @@ cdef GapElement make_GapElement(parent, Obj obj):
     return r
 
 
+cpdef _from_sage(elem):
+    """
+    Currently just used for unpickling; eqivalent to calling ``libgap(elem)``
+    to convert a Sage object to a `GapElement` where possible.
+    """
+    return libgap(elem)
+
+
 cdef class GapElement(RingElement):
     r"""
     Wrapper for all Gap objects.
@@ -589,6 +597,9 @@ cdef class GapElement(RingElement):
             [ [ 0, 1 ], [ 2 ] ]
         """
         return self.deepcopy(0)
+
+    def __reduce__(self):
+        return (_from_sage, (self.sage(),))
 
     def __contains__(self, other):
         r"""
@@ -1344,6 +1355,11 @@ cdef class GapElement(RingElement):
                 R = PolynomialRing(base_ring, var)
                 x = R.gen()
                 return x**val * R(num) / R(den)
+
+        elif self.IsList():
+            # May be a list-like collection of some other type of GapElements
+            # that we can convert
+            return [item.sage() for item in self.AsList()]
 
         raise NotImplementedError('cannot construct equivalent Sage object')
 

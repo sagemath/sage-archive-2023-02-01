@@ -391,7 +391,7 @@ cdef GapElement make_GapElement(parent, Obj obj):
         sage: libgap(None)
         Traceback (most recent call last):
         ...
-        AttributeError: 'NoneType' object has no attribute '_gap_init_'
+        AttributeError: 'NoneType' object has no attribute '_libgap_init_'
     """
     cdef GapElement r = GapElement.__new__(GapElement)
     r._initialize(parent, obj)

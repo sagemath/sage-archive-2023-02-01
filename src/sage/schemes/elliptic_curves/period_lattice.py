@@ -461,6 +461,11 @@ class PeriodLattice_ell(PeriodLattice):
         - ``prec`` (default: ``None``) -- precision in bits (default
           precision if ``None``).
 
+        - ``algorithm`` (string, default 'sage') -- choice of
+          implementation (for real embeddings only) between 'sage'
+          (native Sage implementation) or 'pari' (use the PARI
+          library: only available for real embeddings).
+
         OUTPUT:
 
         (tuple of Complex) `(\omega_1,\omega_2)` where the lattice is

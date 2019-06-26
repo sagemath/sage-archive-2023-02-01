@@ -235,7 +235,7 @@ class Rule(UniqueRepresentation):
         q = []       #the "recording" tableau
         for i, j in itr:
             for r, qr in zip(p,q):
-                i, j, insertion_completed = self.insertion(i, j, r)
+                j, insertion_completed = self.insertion(j, r)
                 if insertion_completed:
                     r.append(j)
                     qr.append(i) # Values are always inserted to the right
@@ -454,23 +454,23 @@ class RuleRSK(Rule):
     an object of class :class:`~sage.combinat.permutation.Permutation`.
     """
 
-    def insertion(self, i, j, r):
+    def insertion(self, j, r):
         r"""
-        Insert the letter ``(i,j)`` from the bi-word to the respective rows 
-        ``(qr, r)`` of the insertion and recording tableaux.
+        Insert the letter ``j`` from the second row of bi-word to the 
+        row ``r`` of the insertion tableau.
         
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleRSK
             sage: qr, r =  [1,2,3,4,5], [3,3,2,4,8]
-            sage: i, j, insert_complete = RuleRSK().insertion(5, 9, r)
+            sage: j, insert_complete = RuleRSK().insertion(9, r)
             sage: insert_complete
             True
             sage: qr, r =  [1,2,3,4,5], [3,3,2,4,8]
-            sage: i, j, insert_complete = RuleRSK().insertion(5, 3, r)
+            sage: j, insert_complete = RuleRSK().insertion(3, r)
             sage: insert_complete
             False
-            sage: i == 5 and j == 4
+            sage: j == 4
             True
 
         """
@@ -485,7 +485,7 @@ class RuleRSK(Rule):
         else:
             insertion_completed = True #Bumping is completed
 
-        return i, j, insertion_completed
+        return j, insertion_completed
 
     def reverse_insertion(self, x, row):
         r"""
@@ -567,74 +567,74 @@ class RuleEG(Rule):
     Note that, for ``output = 'permutation'`` RuleEG returns the smallest 
     permutation satisfying the resulting reduced word.
 
+    TEST::
+
+        Check that :func:`RSK_inverse` is the inverse of :func:`RSK` on the
+        different types of inputs/outputs::
+            
+        First we can check on the reduced words (that can be obtained using
+         the ``reduced_word()`` method from permutations)::
+
+        sage: f = lambda p: RSK_inverse(*RSK(p), output='permutation')
+        sage: g = lambda w: RSK_inverse(*RSK(w, insertion=RSK.rules.EG), 
+        ....:                 insertion=RSK.rules.EG, output='permutation')
+        sage: all(p.reduced_word() == g(p.reduced_word()).reduced_word() 
+        ....:                   for n in range(7) for p in Permutations(n))
+        True
+        sage: n = ZZ.random_element(200)
+        sage: p = Permutations(n).random_element()
+        sage: is_fine = True if p == f(p) else p ; is_fine
+        True
+
+        In case of non-standard p,q::
+
+        sage: RSK_inverse(*RSK([1, 2, 3, 2, 1], insertion='EG'), 
+        ....:                   insertion='EG')
+        [[1, 2, 3, 4, 5], [1, 2, 3, 2, 1]]
+        sage: RSK_inverse(*RSK([1, 1, 1, 2], [1, 2, 3, 4],
+        ....:              insertion=RSK.rules.EG), insertion=RSK.rules.EG)
+        [[1, 1, 1, 2], [1, 2, 3, 4]]
+        sage: RSK_inverse(*RSK([1, 2, 3, 3], [2, 1, 2, 2], insertion='EG'),
+        ....:              insertion='EG')
+        [[1, 2, 3, 3], [2, 1, 2, 2]]
+
+        Since the column reading of the insertion tableau from 
+        Edelman-Greene insertion gives one of reduced words for the 
+        original permutation, we can also check for that
+
+        sage: f = lambda p: reversed([x for row in reversed(p) for x in row])
+        sage: g = lambda p: RSK(p.reduced_word(), insertion=RSK.rules.EG)[0]
+        sage: all(p == Permutations(n).from_reduced_word(f(g(p))) for n in 
+        ....:                               range(8) for p in Permutations(n))
+        True
+
     """
 
-    def insertion(self, i, j, r):
+    def insertion(self, j, r):
         r"""
-        Insert the letter ``(i,j)`` from the bi-word to the respective rows 
-        ``(qr, r)`` of the insertion and recording tableaux.
+        Insert the letter ``j`` from the second row of bi-word to the 
+        row ``r`` of the insertion tableau.
         
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleEG
             sage: qr, r =  [1,2,3,4,5], [3,3,2,4,8]
-            sage: i, j, insert_complete = RuleEG().insertion(5, 9, r)
+            sage: j, insert_complete = RuleEG().insertion(9, r)
             sage: insert_complete
             True
             sage: qr, r =  [1,2,3,4,5], [2,3,4,5,8]
-            sage: i, j, insert_complete = RuleEG().insertion(5, 3, r); r
+            sage: j, insert_complete = RuleEG().insertion(3, r); r
             [2, 3, 4, 5, 8]
             sage: insert_complete
             False
-            sage: i == 5 and j == 4
+            sage: j == 4
             True
             sage: qr, r =  [1,2,3,4,5], [2,3,5,5,8]
-            sage: i, j, insert_complete = RuleEG().insertion(5, 3, r); r
+            sage: j, insert_complete = RuleEG().insertion(3, r); r
             [2, 3, 3, 5, 8]
             sage: insert_complete
             False
-            sage: i == 5 and j == 5
-            True
-
-        TEST::
-
-            Check that :func:`RSK_inverse` is the inverse of :func:`RSK` on the
-            different types of inputs/outputs::
-            
-            First we can check on the reduced words (that can be obtained using
-             the ``reduced_word()`` method from permutations)::
-
-            sage: f = lambda p: RSK_inverse(*RSK(p), output='permutation')
-            sage: g = lambda w: RSK_inverse(*RSK(w, insertion=RSK.rules.EG), 
-            ....:                 insertion=RSK.rules.EG, output='permutation')
-            sage: all(p.reduced_word() == g(p.reduced_word()).reduced_word() 
-            ....:                   for n in range(7) for p in Permutations(n))
-            True
-            sage: n = ZZ.random_element(200)
-            sage: p = Permutations(n).random_element()
-            sage: is_fine = True if p == f(p) else p ; is_fine
-            True
-
-            In case of non-standard p,q::
-
-            sage: RSK_inverse(*RSK([1, 2, 3, 2, 1], insertion='EG'), 
-            ....:                   insertion='EG')
-            [[1, 2, 3, 4, 5], [1, 2, 3, 2, 1]]
-            sage: RSK_inverse(*RSK([1, 1, 1, 2], [1, 2, 3, 4],
-            ....:              insertion=RSK.rules.EG), insertion=RSK.rules.EG)
-            [[1, 1, 1, 2], [1, 2, 3, 4]]
-            sage: RSK_inverse(*RSK([1, 2, 3, 3], [2, 1, 2, 2], insertion='EG'),
-            ....:              insertion='EG')
-            [[1, 2, 3, 3], [2, 1, 2, 2]]
-
-            Since the column reading of the insertion tableau from 
-            Edelman-Greene insertion gives one of reduced words for the 
-            original permutation, we can also check for that
-
-            sage: f = lambda p: reversed([x for row in reversed(p) for x in row])
-            sage: g = lambda p: RSK(p.reduced_word(), insertion=RSK.rules.EG)[0]
-            sage: all(p == Permutations(n).from_reduced_word(f(g(p))) for n in 
-            ....:                               range(8) for p in Permutations(n))
+            sage: j == 5
             True
 
         """
@@ -653,7 +653,7 @@ class RuleEG(Rule):
         else:
             insertion_completed = True
 
-        return i, j, insertion_completed
+        return j, insertion_completed
 
     def reverse_insertion(self, x, row):
         r"""
@@ -808,7 +808,7 @@ class RuleHecke(Rule):
 
         for i, j in zip(obj1, obj2):
             for ir,r in enumerate(p):
-                i, j, insertion_completed = self.insertion(i, j, ir, r, p)
+                j, insertion_completed = self.insertion(j, ir, r, p)
 
                 if insertion_completed:
                     # We must have len(p[ir-1]) > len(r), since j is coming
@@ -912,19 +912,18 @@ class RuleHecke(Rule):
                 upper_row.append(value)
         return self._backward_format_output(lower_row, upper_row, output)
 
-    def insertion(self, i, j, ir, r, p):
+    def insertion(self, j, ir, r, p):
         r"""
-        Insert the letter ``(i,j)`` from the bi-word to the respective rows 
-        ``(ir, r)`` of the insertion and recording tableaux ``(p, q)``.
+        Insert the letter ``j`` from the second row of bi-word to the 
+        row ``r`` of the insertion tableau ``p``.
         
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleHecke
             sage: from bisect import bisect_right
             sage: p, q, r =  [], [], [3,3,8,8,8,9]
-            sage: i, j, ir = 1, 8, 1
-            sage: i1, j1, insert_complete = RuleHecke().insertion(i, j, 
-            ....:                                                  ir, r, p)
+            sage: j, ir = 8, 1
+            sage: j1, insert_complete = RuleHecke().insertion(j, ir, r, p)
             sage: j1 == r[bisect_right(r, j)]
             True
 
@@ -943,7 +942,7 @@ class RuleHecke(Rule):
         else:
             insertion_completed = True #Bumping is completed
 
-        return i, j, insertion_completed
+        return j, insertion_completed
 
     def reverse_insertion(self, i, x, row, p):
         r"""

@@ -3166,7 +3166,7 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
     Supplying ``G`` and ``L`` (constructed from the automorphism group of ``G``). ::
 
         sage: G = graphs.PaleyGraph(9)
-        sage: a = G.automorphism_group()
+        sage: a = G.automorphism_group(partition=[sorted(G)])
         sage: it = (x for x in a.normal_subgroups() if x.order() == 9)
         sage: subg = next(iter(it))
         sage: r = [matrix(libgap.PermutationMat(libgap(z), 9).sage())
@@ -3184,7 +3184,7 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
         [-4 -3 -2  2  3  4 -1  0  1]
         [-2 -4 -3  4  2  3  1 -1  0]
 
-        sage: G.relabel()
+        sage: G.relabel(range(9))
         sage: G3x3=graphs.MathonPseudocyclicStronglyRegularGraph(2,G=G,L=L)
         sage: G3x3.is_strongly_regular(parameters=True)
         (441, 220, 109, 110)
@@ -3228,7 +3228,7 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
     if G is None:
         from sage.graphs.strongly_regular_db import strongly_regular_graph as SRG
         G = SRG(p, 2*t, t-1)
-        G.relabel()
+        G.relabel(range(p))
     if L is None:
         from sage.matrix.constructor import circulant
         L = circulant(list(range(2 * t + 1))+list(range(-2 * t, 0)))

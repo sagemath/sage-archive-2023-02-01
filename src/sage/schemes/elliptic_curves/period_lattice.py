@@ -447,9 +447,12 @@ class PeriodLattice_ell(PeriodLattice):
             return self._compute_periods_complex(prec=prec)
 
     @cached_method
-    def gens(self, prec=None):
+    def gens(self, prec=None, algorithm='sage'):
         r"""
-        Return a basis for this period lattice as a 2-tuple.
+        Return a basis for this period lattice as a 2-tuple. 
+
+        This is an alias for the method ``basis``. See the docstring 
+        for ``basis`` for a more in-depth explanation and further examples.
 
         INPUT:
 
@@ -477,7 +480,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: E.period_lattice().gens(prec = 100)
             (2.9934586462319596298320099794, 2.4513893819867900608542248319*I)
         """
-        return tuple(self.basis(prec = prec))
+        return tuple(self.basis(prec = prec, algorithm = algorithm))
 
     @cached_method
     def normalised_basis(self, prec=None, algorithm='sage'):

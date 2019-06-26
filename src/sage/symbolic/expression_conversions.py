@@ -12,7 +12,7 @@ overridden by subclasses.
 #
 #  Distributed under the terms of the GNU General Public License (GPL),
 #  version 2 or any later version.  The full text of the GPL is available at:
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ###############################################################################
 from __future__ import print_function
 
@@ -1515,19 +1515,14 @@ class FastFloatConverter(Converter):
             4.1780638977...
 
         Using ``_fast_float_`` without specifying the variable names is
-        deprecated::
+        no longer possible::
 
             sage: f = x._fast_float_()
-            doctest:...: DeprecationWarning: Substitution using
-            function-call syntax and unnamed arguments is deprecated
-            and will be removed from a future release of Sage; you
-            can use named arguments instead, like EXPR(x=..., y=...)
-            See http://trac.sagemath.org/5930 for details.
-            sage: f(1.2)
-            1.2
+            Traceback (most recent call last):
+            ...
+            ValueError: please specify the variable names
 
         Using ``_fast_float_`` on a function which is the identity is
-        Using _fast_float_ on a function which is the identity is
         now supported (see :trac:`10246`)::
 
             sage: f = symbolic_expression(x).function(x)
@@ -1538,16 +1533,14 @@ class FastFloatConverter(Converter):
         """
         self.ex = ex
 
-        if vars == ():
+        if not vars:
             try:
                 vars = ex.arguments()
             except AttributeError:
                 vars = ex.variables()
 
             if vars:
-                from sage.misc.superseded import deprecation
-                deprecation(5930, "Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)")
-
+                raise ValueError('please specify the variable names')
 
         self.vars = vars
 

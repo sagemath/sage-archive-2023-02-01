@@ -6,16 +6,63 @@ over any metric (Hamming, rank).
 
 Any class inheriting from AbstractCode can use the encode/decode framework.
 """
+#TODO: imports
+from sage.modules.module import Module
 
 #TODO: credits?
-#TODO: is module the correct thing?
-class AbstractCode(module):
+#TODO: is Module the correct thing?
 
-    def __init__(self, base_field, length, default_encoder_name, \
-            default_decoder_name, metric='Hamming'):
+def _explain_constructor(cl):
+    r"""
+    Internal function for use error messages when constructing encoders and decoders.
 
+    EXAMPLES::
+
+        sage: from sage.coding.linear_code import _explain_constructor, LinearCodeSyndromeDecoder
+        sage: cl = LinearCodeSyndromeDecoder
+        sage: _explain_constructor(cl)
+        "The constructor requires no arguments.\nIt takes the optional arguments ['maximum_error_weight'].\nSee the documentation of sage.coding.linear_code.LinearCodeSyndromeDecoder for more details."
+
+        sage: from sage.coding.information_set_decoder import LinearCodeInformationSetDecoder
+        sage: cl = LinearCodeInformationSetDecoder
+        sage: _explain_constructor(cl)
+        "The constructor requires the arguments ['number_errors'].\nIt takes the optional arguments ['algorithm'].\nIt accepts unspecified arguments as well.\nSee the documentation of sage.coding.information_set_decoder.LinearCodeInformationSetDecoder for more details."
+    """
+    if inspect.isclass(cl):
+        argspec = sage_getargspec(cl.__init__)
+        skip = 2 # skip the self and code arguments
+    else:
+        # Not a class, assume it's a factory function posing as a class
+        argspec = sage_getargspec(cl)
+        skip = 1 # skip code argument
+    if argspec.defaults:
+        args = argspec.args[skip:-len(argspec.defaults)]
+        kwargs = argspec.args[-len(argspec.defaults):]
+        opts = "It takes the optional arguments {}.".format(kwargs)
+    else:
+        args = argspec.args[skip:]
+        opts = "It takes no optional arguments."
+    if args:
+        reqs = "The constructor requires the arguments {}.".format(args)
+    else:
+        reqs = "The constructor requires no arguments."
+    if argspec.varargs or argspec.keywords:
+        var = "It accepts unspecified arguments as well.\n"
+    else:
+        var = ""
+    return("{}\n{}\n{}See the documentation of {}.{} for more details."\
+            .format(reqs, opts, var, cl.__module__, cl.__name__))
+
+
+class AbstractCode(Module):
+
+    def __init__(self, default_encoder_name, default_decoder_name, metric='Hamming'):
         """
         """
+        _registered_encoders = {}
+        _registered_decoders = {}
+
+        self._metric = metric
 
     def __getstate__(self):
         """
@@ -122,31 +169,6 @@ class AbstractCode(module):
         """
         raise RuntimeError("Please override _latex_ in the implementation of {}".format(self.parent()))
 
-    def base_field(self):
-        r"""
-        Return the base field of ``self``.
-
-        EXAMPLES::
-
-            sage: G  = Matrix(GF(2), [[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
-            sage: C  = LinearCode(G)
-            sage: C.base_field()
-            Finite Field of size 2
-        """
-        return self.base_ring()
-
-    def length(self):
-        r"""
-        Returns the length of this code.
-
-        EXAMPLES::
-
-            sage: C = codes.HammingCode(GF(2), 3)
-            sage: C.length()
-            7
-        """
-        return self._length
-
     def list(self):
         r"""
         Return a list of all elements of this linear code.
@@ -173,7 +195,8 @@ class AbstractCode(module):
         """
         return self._metric
 
-    #Encoding/decoding stuff
+###################### Encoding-Decoding #######################################
+
     def add_decoder(self, name, decoder):
         r"""
         Adds an decoder to the list of registered decoders of ``self``.

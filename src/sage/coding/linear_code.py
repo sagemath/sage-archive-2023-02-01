@@ -704,6 +704,19 @@ class AbstractLinearCode(AbstractCode):
             return ans
         return 0
 
+    def base_field(self):
+        r"""
+        Return the base field of ``self``.
+
+        EXAMPLES::
+
+            sage: G  = Matrix(GF(2), [[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
+            sage: C  = LinearCode(G)
+            sage: C.base_field()
+            Finite Field of size 2
+        """
+        return self.base_ring()
+
     def basis(self):
         r"""
         Returns a basis of `self`.
@@ -1874,6 +1887,18 @@ class AbstractLinearCode(AbstractCode):
 
     __len__ = cardinality
 
+    def length(self):
+        r"""
+        Returns the length of this code.
+
+        EXAMPLES::
+
+            sage: C = codes.HammingCode(GF(2), 3)
+            sage: C.length()
+            7
+        """
+        return self._length
+        
     def _magma_init_(self, magma):
         r"""
         Retun a string representation in Magma of this linear code.

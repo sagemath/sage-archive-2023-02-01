@@ -333,6 +333,7 @@ def symbolic_expression_from_mathematica_string(mexpr):
                     break
     return symbolic_expression_from_string(expr, lsymbols, accept_sequence=True)
 
+
 def fricas_integrator(expression, v, a=None, b=None, noPole=True):
     """
     Integration using FriCAS
@@ -355,6 +356,13 @@ def fricas_integrator(expression, v, a=None, b=None, noPole=True):
 
         sage: integral(sqrt(1-cos(x)), x, 0, 2*pi, algorithm="fricas")          # optional - fricas
         4*sqrt(2)
+
+    Check that in case of failure one gets unevaluated integral::
+
+        sage: integral(cos(ln(cos(x))), x, 0, pi/8, algorithm='fricas')
+        integrate(cos(log(cos(x))), x, 0, 1/8*pi)
+        sage: integral(cos(ln(cos(x))), x, algorithm='fricas')
+        integral(cos(log(cos(x))), x)
     """
     if not isinstance(expression, Expression):
         expression = SR(expression)
@@ -372,11 +380,16 @@ def fricas_integrator(expression, v, a=None, b=None, noPole=True):
         else:
             result = ex.integrate(seg)
 
-    if str(result) == "potentialPole":
+    result = result.sage()
+
+    if result == "failed":
+        return expression.integrate(v, a, b, hold=True)
+
+    if result == "potentialPole":
         raise ValueError("The integrand has a potential pole"
                          " in the integration interval")
 
-    return result.sage()
+    return result
 
 
 def giac_integrator(expression, v, a=None, b=None):

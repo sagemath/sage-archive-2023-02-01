@@ -1174,7 +1174,7 @@ class RuleDualRSK(Rule):
     """
     def to_pair(self, obj1=None, obj2=None):
         r"""
-        Returns an iterable two-array in pair form for row insertion.
+        Return an iterable two-array in pair form for row insertion.
 
         EXAMPLES::
 
@@ -1214,24 +1214,24 @@ class RuleDualRSK(Rule):
 
         return super(RuleDualRSK, self).to_pair(obj1, obj2)
         
-    def insertion(self, i, j, r):
+    def insertion(self, j, r):
         r"""
-        Inserts the letter ``(i,j)`` from the bi-word to the 
-        current tableaux ``p`` and ``q``.
+        Insert the letter ``j`` from the second row of bi-word to the 
+        row ``r`` of the insertion tableau.
 
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleDualRSK
             sage: qr, r = [1,1,2,4,4], [2,4,1,1,3]
-            sage: i, j, insert_complete = RuleDualRSK().insertion(5, 4, r)
+            sage: j, insert_complete = RuleDualRSK().insertion(4, r)
             sage: insert_complete
             True
             sage: qr, r = [1,1,2,4,4], [2,4,1,1,3]
-            sage: i, j, insert_complete = RuleDualRSK().insertion(5, 3, r)
+            sage: j, insert_complete = RuleDualRSK().insertion(3, r)
             sage: insert_complete
             False
-            sage: i == 5 and j == 3
-            True
+            sage: j
+            3
 
         """
         insertion_completed = False
@@ -1244,7 +1244,7 @@ class RuleDualRSK(Rule):
             j, r[y_pos] = r[y_pos], j
         else:
             insertion_completed = True #Bumping is completed
-        return i, j, insertion_completed
+        return j, insertion_completed
 
     def reverse_insertion(self, x, row):
         r"""
@@ -1269,7 +1269,7 @@ class RuleDualRSK(Rule):
 
     def _backward_format_output(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
         r"""
-        Returns final output of the ``inverse_RSK`` correspondence from the 
+        Return final output of the ``inverse_RSK`` correspondence from the 
         output of the corresponding ``backward_rule``. 
 
         EXAMPLES::
@@ -1295,7 +1295,7 @@ class RuleDualRSK(Rule):
 
     def _forward_format_output(self, p=None, q=None, check_standard=False):
         r"""
-        Returns final output of the ``RSK`` correspondence from the output of the 
+        Return final output of the ``RSK`` correspondence from the output of the 
         corresponding ``forward_rule``. 
 
         EXAMPLES::

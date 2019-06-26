@@ -1238,11 +1238,13 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: X = P.subscheme([x^2 - z^2])
             sage: H = End(X)
-            sage: f= H([x^2-z^2, y^2, z^2-x^2])
+            sage: f = H([x^2-z^2, y^2, z^2-x^2])
             sage: f.rational_preimages(X([0, 1, 0]))
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: subschemes as preimages not implemented
+            Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+            x^2 - z^2,
+            -x^2 + z^2,
+            0,
+            -x^2 + z^2
 
         ::
 
@@ -1299,7 +1301,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                         I.append(P[i]*self[j] - P[j]*self[i])
                 X = PS.subscheme(I)
                 if X.dimension() > 0:
-                    raise NotImplementedError("subschemes as preimages not implemented")
+                    return X
                 preimages = []
                 for T in X.rational_points():
                     if not all(g(tuple(T)) == 0 for g in self):

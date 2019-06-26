@@ -20,8 +20,6 @@ TESTS::
     sage: loads(dumps(A)) == A
     True
 """
-from __future__ import absolute_import
-
 # ****************************************************************************
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
 #
@@ -31,6 +29,8 @@ from __future__ import absolute_import
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
+from __future__ import absolute_import
+from sage.misc.lazy_import import lazy_import
 
 from sage.categories.all        import ModularAbelianVarieties
 from sage.structure.sequence    import Sequence, Sequence_generic
@@ -53,10 +53,10 @@ from sage.modular.modsym.space  import ModularSymbolsSpace
 from sage.modular.modform.constructor  import Newform
 from sage.matrix.all            import matrix, block_diagonal_matrix, identity_matrix
 from sage.modules.all           import vector
-from sage.databases.cremona     import cremona_letter_code
 from sage.misc.all              import prod
 from sage.arith.misc            import is_prime
-from sage.databases.cremona     import CremonaDatabase
+lazy_import('sage.databases.cremona',
+            ['cremona_letter_code', 'CremonaDatabase'])
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
 from sage.sets.primes           import Primes
 
@@ -65,6 +65,7 @@ from copy import copy
 
 from . import homspace
 from . import lseries
+
 
 def is_ModularAbelianVariety(x):
     """

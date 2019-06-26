@@ -451,8 +451,10 @@ class PeriodLattice_ell(PeriodLattice):
         r"""
         Return a basis for this period lattice as a 2-tuple. 
 
-        This is an alias for the method ``basis``. See the docstring 
-        for ``basis`` for a more in-depth explanation and further examples.
+        This is an alias for
+        :meth:`~sage.schemes.elliptic_curves.period_lattice.PeriodLattice_ell.basis`.
+        See the docstring there for a more in-depth explanation and further
+        examples.
 
         INPUT:
 

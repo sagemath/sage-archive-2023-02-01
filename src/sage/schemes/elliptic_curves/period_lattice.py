@@ -449,7 +449,7 @@ class PeriodLattice_ell(PeriodLattice):
     @cached_method
     def gens(self, prec=None, algorithm='sage'):
         r"""
-        Return a basis for this period lattice as a 2-tuple. 
+        Return a basis for this period lattice as a 2-tuple.
 
         This is an alias for
         :meth:`~sage.schemes.elliptic_curves.period_lattice.PeriodLattice_ell.basis`.
@@ -487,7 +487,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: E.period_lattice().gens(prec = 100)
             (2.9934586462319596298320099794, 2.4513893819867900608542248319*I)
         """
-        return tuple(self.basis(prec = prec, algorithm = algorithm))
+        return tuple(self.basis(prec=prec, algorithm=algorithm))
 
     @cached_method
     def normalised_basis(self, prec=None, algorithm='sage'):

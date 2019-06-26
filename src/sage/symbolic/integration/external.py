@@ -359,9 +359,9 @@ def fricas_integrator(expression, v, a=None, b=None, noPole=True):
 
     Check that in case of failure one gets unevaluated integral::
 
-        sage: integral(cos(ln(cos(x))), x, 0, pi/8, algorithm='fricas')
+        sage: integral(cos(ln(cos(x))), x, 0, pi/8, algorithm='fricas')   # optional - fricas
         integrate(cos(log(cos(x))), x, 0, 1/8*pi)
-        sage: integral(cos(ln(cos(x))), x, algorithm='fricas')
+        sage: integral(cos(ln(cos(x))), x, algorithm='fricas')   # optional - fricas
         integral(cos(log(cos(x))), x)
     """
     if not isinstance(expression, Expression):

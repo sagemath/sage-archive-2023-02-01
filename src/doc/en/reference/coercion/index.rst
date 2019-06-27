@@ -7,7 +7,8 @@ Preliminaries
 What is coercion all about?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-*The primary goal of coercion is to be able to transparently do arithmetic, comparisons, etc. between elements of distinct sets.*
+*The primary goal of coercion is to be able to transparently do arithmetic,
+comparisons, etc. between elements of distinct sets.*
 
 As a concrete example, when one writes `1 + 1/2` one wants to perform
 arithmetic on the operands as rational numbers, despite the left being
@@ -326,7 +327,7 @@ Methods to implement
   ``R._element_constructor_`` will be created) or an actual
   :class:`Morphism` object with S as the domain and R as the codomain.
 
-* Actions for Parents: ``_get_action_`` or ``_rmul_``, ``_lmul_``
+* Actions for Parents: ``_get_action_`` or ``_rmul_``, ``_lmul_``, ``_act_on_``, ``_acted_upon_``
 
   Suppose one wants R to act on S. Some examples of this could be
   `R = \QQ`, `S = \QQ[x]` or `R = {\rm Gal}(S/\QQ)`
@@ -335,18 +336,30 @@ Methods to implement
   * If `R` is the base of `S` (as in the first example), simply
     implement ``_rmul_`` and/or ``_lmul_`` on the Elements of `S`.
     In this case ``r * s`` gets handled as ``s._rmul_(r)`` and
-    ``s * r`` as ``s._lmul_(r)``.  The argument to ``_rmul_``
+    ``s * r`` as ``s._lmul_(r)``. The argument to ``_rmul_``
     and ``_lmul_`` are *guaranteed* to be Elements of the base of
     `S` (with coercion happening beforehand if necessary).
 
+  * If `R` acts on `S`, one can define the methods
+    ``_act_on_`` on Elements of `R` or ``_acted_upon_`` on Elements of `S`. In
+    this case ``r * s`` gets handled as ``r._act_on_(s, True)`` or
+    ``s._acted_upon_(r, False)`` and ``s * r`` as ``r._act_on_(s, False)`` or
+    ``s._acted_upon_(r, True)``. There is no constraint on the type or parents
+    of objects passed to these methods; raise a ``TypeError`` or ``ValueError``
+    if the wrong kind of object is passed in to indicate the action is not
+    appropriate here.
+
   * If either `R` acts on `S` *or* `S` acts on `R`, one may implement
     ``R._get_action_`` to return an actual
-    :class:`~sage.categories.action.Action` object to be used.  This
-    is how non-multiplicative actions must be implemented, and is the
-    most powerful (and completed) way to do things.
+    :class:`~sage.categories.action.Action` object to be used. This is how
+    non-multiplicative actions must be implemented, and is the most powerful
+    and complete way to do things.
 
-* Element conversion/construction for Parents: use
-  ``_element_constructor_`` **not** ``__call__``
+  It should be noted that for the first way to work, elements of `S` are
+  required to be ModuleElements. This requirement is likely to be lifted in the
+  future.
+
+* Element conversion/construction for Parents: use ``_element_constructor_`` **not** ``__call__``
 
   The :meth:`Parent.__call__` method dispatches to
   ``_element_constructor_``. When someone writes ``R(x, ...)``, this is
@@ -582,9 +595,8 @@ Provided Methods
 
 * ``get_action``
 
-  This will unwind all the
-  ``_rmul_, _lmul_, ...`` methods to provide
-  an actual ``Action`` object, if one exists.
+  This will unwind all the ``_get_action_, _rmul_, _lmul_, _act_on_, _acted_upon_, ...``
+  methods to provide an actual ``Action`` object, if one exists.
 
 
 Discovering new parents
@@ -625,7 +637,7 @@ These are accessed via the :meth:`construction` method, which returns a
      (AlgebraicClosureFunctor, Real Double Field),
      (Completion[+Infinity, prec=53], Rational Field),
      (FractionField, Integer Ring)]
-    
+
 Given Parents R and S, such that there is no coercion either from R to
 S or from S to R, one can find a common Z with coercions
 `R \rightarrow Z` and `S \rightarrow Z` by considering the sequence of

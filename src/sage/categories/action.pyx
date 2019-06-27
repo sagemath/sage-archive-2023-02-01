@@ -1,5 +1,5 @@
 r"""
-Group, ring, etc. actions on objects.
+Group, ring, etc. actions on objects
 
 The terminology and notation used is suggestive of groups acting on sets,
 but this framework can be used for modules, algebras, etc.

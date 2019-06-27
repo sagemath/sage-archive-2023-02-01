@@ -56,12 +56,15 @@ def _explain_constructor(cl):
 
 class AbstractCode(Module):
 
-    def __init__(self, default_encoder_name, default_decoder_name, metric='Hamming'):
+    def __init__(self, base_ring, length, default_encoder_name,
+                 default_decoder_name, metric='Hamming'):
         """
         """
         _registered_encoders = {}
         _registered_decoders = {}
 
+        self._base_ring = base_ring
+        self._length = length
         self._metric = metric
 
     def __getstate__(self):
@@ -182,6 +185,31 @@ class AbstractCode(Module):
             True
         """
         return [x for x in self]
+
+    def base_ring(self):
+        r"""
+        Return the base ring of ``self``.
+
+        EXAMPLES::
+
+            sage: G  = Matrix(GF(2), [[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
+            sage: C  = LinearCode(G)
+            sage: C.base_field()
+            Finite Field of size 2
+        """
+        return self.base_ring()
+
+    def length(self):
+        r"""
+        Returns the length of this code.
+
+        EXAMPLES::
+
+            sage: C = codes.HammingCode(GF(2), 3)
+            sage: C.length()
+            7
+        """
+        return self._length
 
     def metric(self):
         """

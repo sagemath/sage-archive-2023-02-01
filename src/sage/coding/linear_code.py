@@ -240,7 +240,7 @@ from sage.categories.cartesian_product import cartesian_product
 # import compatible with py2 and py3
 
 from sage.categories.fields import Fields
-from sage.coding.abstract_code import AbstractCode
+from sage.coding.abstract_code import *
 
 
 
@@ -1898,7 +1898,7 @@ class AbstractLinearCode(AbstractCode):
             7
         """
         return self._length
-        
+
     def _magma_init_(self, magma):
         r"""
         Retun a string representation in Magma of this linear code.

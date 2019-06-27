@@ -2851,6 +2851,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             return self.conjugating_set(self)
         if self.base_ring() != QQ  and self.base_ring != ZZ:
             return self.conjugating_set(self)
+        self.normalize_coordinates()
+        if (self.degree() == 1) or (self.degree() == 0):
+            raise NotImplementedError("Rational function of degree 1 not implemented.")
         f = self.dehomogenize(1)
         R = PolynomialRing(f.base_ring(),'x')
         if is_FractionFieldElement(f[0]):
@@ -5920,6 +5923,9 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
         else:
             f = self.dehomogenize(1)
             z = f[0].parent().gen()
+        self.normalize_coordinates()
+        if (self.degree() == 1) or (self.degree() == 0):
+            raise NotImplementedError("Rational function of degree 1 not implemented.")
         if f[0].denominator() != 1:
             F = f[0].numerator().polynomial(z) / f[0].denominator().polynomial(z)
         else:

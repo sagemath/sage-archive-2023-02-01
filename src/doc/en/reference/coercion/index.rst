@@ -326,7 +326,7 @@ Methods to implement
   ``R._element_constructor_`` will be created) or an actual
   :class:`Morphism` object with S as the domain and R as the codomain.
 
-* Actions for Parents: ``_get_action_`` or ``_rmul_``, ``_lmul_``, ``_r_action_``, ``_l_action_``
+* Actions for Parents: ``_get_action_`` or ``_rmul_``, ``_lmul_``
 
   Suppose one wants R to act on S. Some examples of this could be
   `R = \QQ`, `S = \QQ[x]` or `R = {\rm Gal}(S/\QQ)`
@@ -338,13 +338,6 @@ Methods to implement
     ``s * r`` as ``s._lmul_(r)``.  The argument to ``_rmul_``
     and ``_lmul_`` are *guaranteed* to be Elements of the base of
     `S` (with coercion happening beforehand if necessary).
-
-  * If `R` acts on `S`, one can alternatively define the methods
-    ``_r_action_`` and/or ``_l_action_`` on the Elements of `R`.
-    There is no constraint on the type or parents of objects passed to
-    these methods; raise a ``TypeError`` or ``ValueError`` if the
-    wrong kind of object is passed in to indicate the action is not
-    appropriate here.
 
   * If either `R` acts on `S` *or* `S` acts on `R`, one may implement
     ``R._get_action_`` to return an actual
@@ -590,7 +583,7 @@ Provided Methods
 * ``get_action``
 
   This will unwind all the
-  ``_rmul_, _lmul_, _r_action_, _l_action_, ...`` methods to provide
+  ``_rmul_, _lmul_, ...`` methods to provide
   an actual ``Action`` object, if one exists.
 
 

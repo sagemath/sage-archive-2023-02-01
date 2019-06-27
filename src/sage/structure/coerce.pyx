@@ -954,9 +954,6 @@ cdef class CoercionModel:
         elif type(yp) is type:
             all.append("Right operand is not Sage element, will try _sage_.")
 
-        if op is mul:
-            all.append("Will try _r_action and _l_action")
-
         return all, None
 
     def common_parent(self, *args):

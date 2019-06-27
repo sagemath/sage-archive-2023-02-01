@@ -3409,7 +3409,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                                     break
                         return points
                 else:
-                    raise NotImplementedError("ring must a number field or finite field")
+                    raise NotImplementedError("ring must be a number field or finite field")
             else: #a higher dimensional scheme
                 raise TypeError("use return_scheme=True")
         else:
@@ -5292,6 +5292,8 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         else:
             f = self.change_ring(R)
             g = other.change_ring(R)
+        if not (R in NumberFields() or R is QQbar or R in FiniteFields()):
+            raise NotImplementedError("ring must be a number field or finite field")
         try:
             f.normalize_coordinates()
             g.normalize_coordinates()

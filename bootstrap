@@ -39,7 +39,7 @@ install_config_rpath() {
     if [ -z "$gettextize" ]; then
         echo >&2 "gettext and the gettextize program must be installed and be in"
         echo >&2 "your PATH. E.g. Homebrew installs them in /usr/local/opt/gettext/bin."
-        return 779
+        return 179
     fi
     eval `sed -n '/^prefix=.*$/p' $gettextize`
     eval `sed -n '/^datarootdir=.*$/p' $gettextize`
@@ -56,13 +56,13 @@ install_config_rpath() {
         echo >&2 "Failed to read the gettext_datadir directory from $gettextize"
         echo >&2 "The config.rpath file must manually be copied into config/"
         echo >&2 "This file is installed with gettext typically in /usr/share/gettext"
-        return 779
+        return 179
     fi
 
     config_rpath="$gettext_datadir/config.rpath"
     if [ ! -f "$config_rpath" ]; then
         echo >&2 "Missing $config_rpath file; this indicates a broken gettext install."
-        return 779
+        return 179
     fi
 
     echo "bootstrap:$LINENO: installing 'config/config.rpath'"
@@ -91,7 +91,7 @@ SAGE_SPKG_CONFIGURE_$(echo ${pkgname} | tr '[a-z]' '[A-Z]')"
     case $st in
         0) true;; # Success
 
-        11|16|63|127)  # install_config_rpath failed|no m4 for pkg-config|autotools not installed|or version too old
+        179|16|63|127)  # install_config_rpath failed|no m4 for pkg-config|autotools not installed|or version too old
             if [ $DOWNLOAD = yes ]; then
                 echo >&2 "Bootstrap failed, downloading required files instead."
                 bootstrap-download || exit $?

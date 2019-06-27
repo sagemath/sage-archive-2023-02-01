@@ -503,7 +503,7 @@ class AbstractLinearCode(AbstractCode):
         #self._length = Integer(length)
         self._default_decoder_name = default_decoder_name
         self._default_encoder_name = default_encoder_name
-        super(AbstractLinearCode, self).__init__(base_field, length)
+        super(AbstractLinearCode, self).__init__(base_field, length, default_encoder_name, default_decoder_name)
         cat = Modules(base_field).FiniteDimensional().WithBasis().Finite()
         facade_for = VectorSpace(base_field, self._length)
         self.Element = type(facade_for.an_element()) #for when we made this a non-facade parent

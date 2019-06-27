@@ -71,7 +71,8 @@ def _explain_constructor(cl):
 
 class AbstractCode(Module):
 
-    def __init__(self, base_ring, length, metric='Hamming'):
+    def __init__(self, base_ring, length, default_encoder_name=None,
+                 default_decoder_name=None, metric='Hamming'):
         """
         """
         _registered_encoders = {}

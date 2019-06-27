@@ -1424,3 +1424,13 @@ class BooleanFormula(object):
         while i < len(str) - 1 and str[i] != '&' and str[i] != '|':
             i += 1
         return str[i]
+    def TautologicallyImplies(self,other):
+
+        tableSelf = self.truthtable().get_table_list()
+        tableOther = other.truthtable().get_table_list()
+       
+        for i in range(1,len(tableSelf)):
+            if tableSelf[i][-1] and not tableOther[i][-1]:
+                return False
+        return True
+

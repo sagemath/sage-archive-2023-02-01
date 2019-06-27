@@ -78,7 +78,6 @@ from sage.rings.fraction_field import (FractionField, is_FractionField)
 from sage.rings.fraction_field_element import is_FractionFieldElement, FractionFieldElement
 from sage.rings.integer_ring import ZZ
 from sage.rings.morphism import RingHomomorphism_im_gens
-from sage.rings.number_field.number_field_base import is_NumberField
 from sage.rings.number_field.number_field_ideal import NumberFieldFractionalIdeal
 from sage.rings.padics.all import Qp
 from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
@@ -5320,7 +5319,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 return m1.is_similar(m2)
             else:
                 return False
-        if (is_FiniteField(R) or is_NumberField(R)) and f.sigma_invariants(1) != g.sigma_invariants(1): # sigma invariants are invariant under conjugacy
+        if (R in NumberFields() or R in FiniteFields()) and f.sigma_invariants(1) != g.sigma_invariants(1): # sigma invariants are invariant under conjugacy
             return False
         n = f.domain().dimension_relative()
         L = Set(f.periodic_points(1))

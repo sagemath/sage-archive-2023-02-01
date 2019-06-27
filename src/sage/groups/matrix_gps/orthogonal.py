@@ -198,7 +198,8 @@ def _OG(n, R, special, e=0, var='a', invariant_form=None):
             ltx  = r'\text{{{0}O}}_{{{1}}}({2})'.format(ltx_prefix, degree, latex(ring))
     else:
         if invariant_form is not None:
-            raise NotImplementedError("invariant_form for finite groups is fixed by GAP")
+            if is_FiniteField(ring):
+                raise NotImplementedError("invariant_form for finite groups is fixed by GAP")
         name = '{0} Orthogonal Group of degree {1} and form parameter {2} over {3}'.format(prefix, degree, e, ring)
         ltx  = r'\text{{{0}O}}_{{{1}}}({2}, {3})'.format(ltx_prefix, degree,
                                                          latex(ring),

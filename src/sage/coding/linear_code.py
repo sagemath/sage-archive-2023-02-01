@@ -500,13 +500,17 @@ class AbstractLinearCode(AbstractCode):
         if not default_decoder_name in self._registered_decoders:
             raise ValueError("You must set a valid decoder as default decoder for this code, by filling in the dictionary of registered decoders")
 
-        self._length = Integer(length)
+        #self._length = Integer(length)
         self._default_decoder_name = default_decoder_name
         self._default_encoder_name = default_encoder_name
+        super(AbstractLinearCode, self).__init__(base_field, length)
         cat = Modules(base_field).FiniteDimensional().WithBasis().Finite()
         facade_for = VectorSpace(base_field, self._length)
         self.Element = type(facade_for.an_element()) #for when we made this a non-facade parent
         Parent.__init__(self, base=base_field, facade=facade_for, category=cat)
+
+
+
 
     def _an_element_(self):
         r"""

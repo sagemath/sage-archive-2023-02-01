@@ -1879,11 +1879,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 elif f.base_ring() == QQ:
                     f = f.change_ring(K)
                 else:
-                    #make variable names match
-                    L = K.change_names('a')
-                    phi2 = L.structure()[1]
-                    K, phi, psi, b = L.composite_fields(f.base_ring(), both_maps=True)[0]
-                    Q = Q.change_ring(phi*phi2)
+                    K, phi, psi, b = K.composite_fields(f.base_ring(), both_maps=True)[0]
+                    Q = Q.change_ring(phi)
                     f = f.change_ring(psi)
         else:
             if not K.is_absolute():

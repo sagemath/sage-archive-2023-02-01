@@ -2595,7 +2595,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         if prime_list and check_primes:
             for p in prime_list:
                 if not p.is_prime():
-                    raise ValueError("prime_list contains " + str(prime) + " which is not prime")
+                    raise ValueError("prime_list contains " + str(p) + " which is not prime")
 
         if algorithm == 'BM':
             from .endPN_minimal_model import affine_minimal

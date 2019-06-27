@@ -82,8 +82,8 @@ SAGE_SPKG_CONFIGURE_$(echo ${pkgname} | tr '[a-z]' '[A-Z]')"
     done
     echo "$spkg_configures" >> m4/sage_spkg_configures.m4
 
-    aclocal -I m4 && \
     install_config_rpath && \
+    aclocal -I m4 && \
     automake --add-missing --copy build/make/Makefile-auto && \
     autoconf
 
@@ -91,7 +91,7 @@ SAGE_SPKG_CONFIGURE_$(echo ${pkgname} | tr '[a-z]' '[A-Z]')"
     case $st in
         0) true;; # Success
 
-        779|16|63|127)  # install_config_rpath failed|no m4 for pkg-config|autotools not installed|or version too old
+        11|16|63|127)  # install_config_rpath failed|no m4 for pkg-config|autotools not installed|or version too old
             if [ $DOWNLOAD = yes ]; then
                 echo >&2 "Bootstrap failed, downloading required files instead."
                 bootstrap-download || exit $?

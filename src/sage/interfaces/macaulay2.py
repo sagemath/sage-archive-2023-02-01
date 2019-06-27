@@ -96,6 +96,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six import string_types
 
 import os
 import re
@@ -294,6 +295,31 @@ class Macaulay2(ExtraTabCompletion, Expect):
         # parasitic output
         self.eval("restart")
 
+    def set_seed(self, seed=None):
+        r"""
+        Set the seed for Macaulay2 interpreter.
+
+        INPUT:
+
+        - ``seed`` -- number (default: ``None``). If ``None``, it
+          is set to a random number.
+
+        OUTPUT: the new seed
+
+        EXAMPLES::
+
+            sage: m = Macaulay2()                     # optional - macaulay2
+            sage: m.set_seed(123456)                  # optional - macaulay2
+            123456
+            sage: [m.random(100) for _ in range(11)]  # optional - macaulay2
+            [8, 29, 5, 22, 4, 32, 35, 57, 3, 95, 36]
+        """
+        if seed is None:
+            seed = self.rand_seed()
+        self.eval('setRandomSeed(%d)' % seed)
+        self._seed = seed
+        return seed
+
     def get(self, var):
         """
         Get the value of the variable var.
@@ -330,6 +356,19 @@ class Macaulay2(ExtraTabCompletion, Expect):
         ans = Expect.eval(self, cmd)
         if ans.find("stdio:") != -1:
             raise RuntimeError("Error evaluating Macaulay2 code.\nIN:%s\nOUT:%s" % (cmd, ans))
+
+    def _contains(self, v1, v2):
+        """
+        EXAMPLES::
+
+            sage: a = macaulay2([3,4,5])  # optional - macaulay2
+            sage: 0 in a, 2 in a, 3 in a  # optional - macaulay2, indirect doctest
+            (True, True, False)
+            sage: b = macaulay2('hashTable {"x" => 1, "y" => 2}')  # optional - macaulay2
+            sage: 'x' in b, '"x"' in b    # optional - macaulay2, indirect doctest
+            (False, True)
+        """
+        return self.eval("%s#?%s" % (v2, v1)) == self._true_symbol()
 
     def _object_class(self):
         """
@@ -516,12 +555,15 @@ class Macaulay2(ExtraTabCompletion, Expect):
             QQ[x..y, Degrees => {2:1}, Heft => {1}, MonomialOrder => {MonomialSize => 16}, DegreeRank => 1]
                                                                      {Lex => 2          }
                                                                      {Position => Up    }
+
+        TESTS::
+
+            sage: macaulay2.ring('QQ', '[a_0..a_2,b..<d,f]').vars()     # optional - macaulay2
+            | a_0 a_1 a_2 b c f |
         """
         varstr = str(vars)[1:-1]
-        if ".." in varstr:
-            varstr = "symbol " + varstr[0] + ".." + "symbol " + varstr[-1]
-        else:
-            varstr = ", ".join(["symbol " + v for v in varstr.split(", ")])
+        r = re.compile("(?<=,)|(?<=\.\.<)|(?<=\.\.)(?!<)")
+        varstr = "symbol " + r.sub("symbol ", varstr)
         return self.new('%s[%s, MonomialSize=>16, MonomialOrder=>%s]'%(base_ring, varstr, order))
 
     def help(self, s):
@@ -564,7 +606,7 @@ class Macaulay2(ExtraTabCompletion, Expect):
         # o1, o2, etc. and automatic Sage variable names sage0, sage1, etc.
         # It is faster to get it back as a string.
         r = macaulay2.eval(r"""
-            toString select(
+            print toString select(
                 apply(apropos "^[[:alnum:]]+$", toString),
                 s -> not match("^(o|sage)[0-9]+$", s))
             """)
@@ -633,7 +675,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             | 1 2 |
             | 3 4 |
             sage: latex(m) # optional - macaulay2
-            \begin{pmatrix} 1&2\\ 3&4\end{pmatrix}
+            \begin{pmatrix}...1...2...3...4...\end{pmatrix}
         """
         s = self.tex().external_string().strip('"').strip('$').replace('\\\\','\\')
         s = s.replace(r"\bgroup","").replace(r"\egroup","")
@@ -692,6 +734,61 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
 
         s = multiple_replace({'\r':'', '\n':' '}, X)
         return s
+
+    def name(self, new_name=None):
+        """
+        Get or change the name of this Macaulay2 element.
+
+        INPUT:
+
+        - ``new_name`` -- string (default: ``None``). If ``None``, return the
+          name of this element; else return a new object identical to ``self``
+          whose name is ``new_name``.
+
+        Note that this can overwrite existing variables in the system.
+
+        EXAMPLES::
+
+            sage: S = macaulay2(QQ['x,y'])          # optional - macaulay2
+            sage: S.name()                          # optional - macaulay2
+            'sage...'
+            sage: R = S.name("R")                   # optional - macaulay2
+            sage: R.name()                          # optional - macaulay2
+            'R'
+            sage: R.vars().cokernel().resolution()  # optional - macaulay2
+             1      2      1
+            R  <-- R  <-- R  <-- 0
+            <BLANKLINE>
+            0      1      2      3
+
+        The name can also be given at definition::
+
+            sage: A = macaulay2(ZZ['x,y,z'], name='A')  # optional - macaulay2
+            sage: A.name()                              # optional - macaulay2
+            'A'
+            sage: A^1                                   # optional - macaulay2
+             1
+            A
+        """
+        if new_name is None:
+            return self._name
+        if not isinstance(new_name, string_types):
+            raise TypeError("new_name must be a string")
+
+        P = self.parent()
+        # First release self, so that new_name becomes the initial reference to
+        # its value.  This is needed to change the name of a PolynomialRing.
+        # NOTE: This does not work if self._name is not the initial reference.
+        cmd = """(() -> (
+            m := lookup(GlobalReleaseHook, class {0});
+            if m =!= null then m(symbol {0}, {0});
+            {1} = {0};
+            ))()""".format(self._name, new_name)
+        ans = P.eval(cmd)
+        if ans.find("stdio:") != -1:
+            raise RuntimeError("Error evaluating Macaulay2 code.\n"
+                               "IN:%s\nOUT:%s" % (cmd, ans))
+        return P._object_class()(P, new_name, is_name=True)
 
     def __len__(self):
         """
@@ -910,20 +1007,27 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
 
         TESTS::
 
-            sage: a = macaulay2("QQ[x,y]")   # optional - macaulay2
-            sage: traits = a._tab_completion()   # optional - macaulay2
-            sage: "generators" in traits     # optional - macaulay2
+            sage: a = macaulay2("QQ[x,y]")      # optional - macaulay2
+            sage: traits = a._tab_completion()  # optional - macaulay2
+            sage: "generators" in traits        # optional - macaulay2
             True
+
+        The implementation of this function does not set or change global
+        variables::
+
+            sage: a.dictionary()._operator('#?', '"r"')  # optional - macaulay2
+            false
         """
         # It is possible, that these are not all possible methods, but
         # there are still plenty and at least there are no definitely
         # wrong ones...
         r = self.parent().eval(
-            """currentClass = class %s;
-            total = {};
+            """(() -> (
+            currentClass := class %s;
+            total := {};
             while true do (
                 -- Select methods with first argument of the given class
-                r = select(methods currentClass, s -> s_1 === currentClass);
+                r := select(methods currentClass, s -> s_1 === currentClass);
                 -- Get their names as strings
                 r = apply(r, s -> toString s_0);
                 -- Keep only alpha-numeric ones
@@ -932,8 +1036,9 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
                 total = total | select(r, s -> not any(total, e -> e == s));
                 if parent currentClass === currentClass then break;
                 currentClass = parent currentClass;
-                )
-            print toString total""" % self.name())
+                );
+            print toString total
+            ))()""" % self.name())
         r = sorted(r[1:-1].split(", "))
         return r
 

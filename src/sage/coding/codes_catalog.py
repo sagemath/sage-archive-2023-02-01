@@ -23,7 +23,7 @@ TESTS::
 #  Distributed under the terms of the GNU General Public License (GPL),
 #  version 2 or later (at your preference).
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 
@@ -35,28 +35,20 @@ TESTS::
 from __future__ import absolute_import
 from sage.misc.lazy_import import lazy_import
 
-from .linear_code import LinearCode
 from sage.coding.linear_code import LinearCode
 
 lazy_import('sage.coding.code_constructions',
-        ['BCHCode', 'BinaryGolayCode', 'CyclicCodeFromGeneratingPolynomial',
-         'CyclicCode', 'CyclicCodeFromCheckPolynomial', 'DuadicCodeEvenPair',
-         'DuadicCodeOddPair', 'ExtendedBinaryGolayCode',
-         'ExtendedQuadraticResidueCode', 'ExtendedTernaryGolayCode',
-         'from_parity_check_matrix',
-         'LinearCodeFromCheckMatrix', #deprecated
+        ['DuadicCodeEvenPair', 'DuadicCodeOddPair',
+         'ExtendedQuadraticResidueCode', 'from_parity_check_matrix',
          'QuadraticResidueCode', 'QuadraticResidueCodeEvenPair',
-         'QuadraticResidueCodeOddPair',
-         'random_linear_code',
-         'RandomLinearCode', #deprecated
-         'ReedSolomonCode', 'TernaryGolayCode',
+         'QuadraticResidueCodeOddPair', 'random_linear_code',
          'ToricCode', 'WalshCode'])
 
 lazy_import('sage.coding.bch', 'BCHCode')
 lazy_import('sage.coding.cyclic_code', 'CyclicCode')
 lazy_import('sage.coding.extended_code', 'ExtendedCode')
 lazy_import('sage.coding.golay_code', 'GolayCode')
-lazy_import('sage.coding.grs', 'GeneralizedReedSolomonCode')
+lazy_import('sage.coding.grs', ['GeneralizedReedSolomonCode', 'ReedSolomonCode'])
 lazy_import('sage.coding.guava', ['QuasiQuadraticResidueCode',
                                     'RandomLinearCodeGuava'])
 lazy_import('sage.coding.hamming_code', 'HammingCode')

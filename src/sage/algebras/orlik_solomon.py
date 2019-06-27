@@ -193,7 +193,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
 
     @cached_method
     def algebra_generators(self):
-        """
+        r"""
         Return the algebra generators of ``self``.
 
         These form a family indexed by the ground set `X` of `M`. For
@@ -221,7 +221,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
 
     @cached_method
     def product_on_basis(self, a, b):
-        """
+        r"""
         Return the product in ``self`` of the basis elements
         indexed by ``a`` and ``b``.
 

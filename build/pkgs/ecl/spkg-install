@@ -1,28 +1,18 @@
 cd src
 
-if [ -z "$CFLAG64" ] ; then
-    CFLAG64=-m64
-fi
-
-if [ -z "$CXXFLAG64" ] ; then
-    CXXFLAG64=-m64
-fi
-
-
-# Compile for 64-bit if SAGE64 is set to 'yes'
-if [ "x$SAGE64" = "xyes" ]  ; then
-    echo "Building a 64-bit version of ECL"
-    CFLAGS="$CFLAGS $CFLAG64"
-    CXXFLAGS="$CXXFLAGS $CXXFLAG64"
-    LDFLAGS="$LDFLAGS $CFLAG64"
-fi
-
 if [ "x$SAGE_DEBUG" = "xyes" ] ; then
     CFLAGS="-g -O0 $CFLAGS"
     CXXFLAGS="-g -O0 $CXXFLAGS"
 else
     CFLAGS="-g -O2 $CFLAGS"
     CXXFLAGS="-g -O2 $CXXFLAGS"
+fi
+
+if [ "$UNAME" = "CYGWIN" ]; then
+    # Some of ECL's sources rely on GNU-isms that are allowed by default on
+    # most glibcs, but not in newlib; https://trac.sagemath.org/ticket/25057
+    CFLAGS="$CFLAGS -D_GNU_SOURCE"
+    CXXFLAGS="$CXXFLAGS -D_GNU_SOURCE"
 fi
 
 export CFLAGS
@@ -44,20 +34,10 @@ echo "configure scripts and/or makefiles might override these later"
 echo ""
 
 
-if [ "`uname -sm`" = "SunOS i86pc" ] && [ "x$SAGE64" = xyes ]; then
-    # Need to add --with-dffi=no to disable assembly code on OpenSolaris x64.
-    # and Solaris 10 on x64.
-    # The option is only given if all the following are true
-    # 1) Solaris, Solaris Express or OpenSolaris (SunOS)
-    # 2) Intel or AMD CPU
-    # 3) 64-bit build
-    ECL_CONFIGURE="--with-dffi=no $ECL_CONFIGURE"
-fi
-
 # Use newer version of config.guess and config.sub (see Trac #19732)
 cp "$SAGE_ROOT"/config/config.* src
 
-sdh_configure --with-gmp-prefix=$SAGE_LOCAL --disable-threads \
+sdh_configure $SAGE_CONFIGURE_GMP --disable-threads \
               --enable-unicode=yes $ECL_CONFIGURE
 
 # Before running make we touch build/TAGS so its building process is never triggered
@@ -68,14 +48,6 @@ touch build/TAGS
 exec </dev/null
 
 sdh_make
-
-# Remove old install of ECL, if any.
-rm -rf "$SAGE_LOCAL/lib/ecl-"*
-if [ $? -ne 0 ]; then
-    echo >&2 "Error - Failed to remove old ECL install ... exiting"
-    exit 1
-fi
-
 sdh_make_install
 
 # Create symbolic link to lib/ecl-version directory.

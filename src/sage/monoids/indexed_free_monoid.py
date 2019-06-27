@@ -6,13 +6,13 @@ AUTHORS:
 - Travis Scrimshaw (2013-10-15)
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2013 Travis Scrimshaw <tscrim at ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from six import integer_types
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from six import integer_types, iteritems
 
 from copy import copy
 from sage.misc.abstract_method import abstract_method
@@ -30,9 +30,8 @@ from sage.categories.sets_cat import Sets
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
 from sage.rings.all import ZZ
-from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.sets.family import Family
-from six import iteritems
+
 
 class IndexedMonoidElement(MonoidElement):
     """
@@ -510,12 +509,10 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
         TESTS::
 
             sage: F = FreeAbelianMonoid(index_set=ZZ)
-            sage: hash( F([(0,1), (2,2)]) )
-            8087055352805725849 # 64-bit
-            250091161           # 32-bit
-            sage: hash( F([(2,1)]) )
-            5118585357534560720 # 64-bit
-            1683816912          # 32-bit
+            sage: H1 = hash( F([(0,1), (2,2)]) )
+            sage: H2 = hash( F([(2,1)]) )
+            sage: H1 == H2
+            False
         """
         return hash(frozenset(self._monomial.items()))
 
@@ -587,12 +584,13 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
         for k, v in iteritems(elt._monomial):
             if k not in d:
                 raise ValueError("invalid cancellation")
-            d[k] -= v
-        for k,v in d.items():
-            if v < 0:
+            diff = d[k] - v
+            if diff < 0:
                 raise ValueError("invalid cancellation")
-            if v == 0:
+            elif diff == 0:
                 del d[k]
+            else:
+                d[k] = diff
         return self.__class__(self.parent(), d)
 
     def __len__(self):

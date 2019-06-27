@@ -38,10 +38,10 @@ from __future__ import absolute_import
 #
 #                  http://www.gnu.org/licenses/
 #########################################################################
-from six.moves import range
-from sage.rings.all import Integer
-from sage.misc.all import verbose
-from sage.matrix.all import Matrix
+from six.moves          import range
+from sage.rings.all     import QQ, Integer
+from sage.misc.all      import verbose, cached_method
+from sage.matrix.all    import Matrix, identity_matrix
 
 from .submodule import ModularFormsSubmodule
 from . import vm_basis
@@ -129,6 +129,7 @@ class CuspidalSubmodule(ModularFormsSubmodule):
         """
         return True
 
+    @cached_method
     def modular_symbols(self, sign=0):
         """
         Return the corresponding space of modular symbols with the given sign.
@@ -167,16 +168,8 @@ class CuspidalSubmodule(ModularFormsSubmodule):
             sage: S.modular_symbols(sign=-1)
             Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 1 and level 13, weight 2, character [zeta6], sign -1, over Cyclotomic Field of order 6 and degree 2
         """
-        try:
-            return self.__modular_symbols[sign]
-        except AttributeError:
-            self.__modular_symbols = {}
-        except KeyError:
-            pass
         A = self.ambient_module()
-        S = A.modular_symbols(sign).cuspidal_submodule()
-        self.__modular_symbols[sign] = S
-        return S
+        return A.modular_symbols(sign).cuspidal_submodule()
 
 
     def change_ring(self, R):
@@ -338,12 +331,195 @@ class CuspidalSubmodule_wt1_eps(CuspidalSubmodule):
             ]
         """
         if prec is None:
-            prec = self.group().sturm_bound(2)
+            prec = self.prec()
         else:
             prec = Integer(prec)
         chi = self.character()
-        return [weight1.modular_ratio_to_prec(chi, f, prec) for f in 
+        return [weight1.modular_ratio_to_prec(chi, f, prec) for f in
             weight1.hecke_stable_subspace(chi)]
+
+class CuspidalSubmodule_wt1_gH(CuspidalSubmodule):
+    r"""
+    Space of cusp forms of weight 1 for a GammaH group.
+    """
+
+    def _compute_q_expansion_basis(self, prec=None):
+        r"""
+        Compute q-expansion basis using Schaeffer's algorithm.
+
+        EXAMPLES::
+
+            sage: CuspForms(GammaH(31, [7]), 1).q_expansion_basis() # indirect doctest
+            [
+            q - q^2 - q^5 + O(q^6)
+            ]
+
+        A more elaborate example (two Galois-conjugate characters each giving a
+        2-dimensional space)::
+
+            sage: CuspForms(GammaH(124, [85]), 1).q_expansion_basis()
+            [
+            q - q^4 - q^6 + O(q^7),
+            q^2 + O(q^7),
+            q^3 + O(q^7),
+            q^5 - q^6 + O(q^7)
+            ]
+        """
+        if prec is None:
+            prec = self.prec()
+        else:
+            prec = Integer(prec)
+
+        chars=self.group().characters_mod_H(sign=-1, galois_orbits=True)
+
+        B = []
+        dim = 0
+        for c in chars:
+            chi = c.minimize_base_ring()
+            Bchi = [weight1.modular_ratio_to_prec(chi, f, prec)
+                for f in weight1.hecke_stable_subspace(chi) ]
+            if Bchi == []:
+                continue
+            if chi.base_ring() == QQ:
+                B += [f.padded_list(prec) for f in Bchi]
+                dim += len(Bchi)
+            else:
+                d = chi.base_ring().degree()
+                dim += d * len(Bchi)
+                for f in Bchi:
+                    w = f.padded_list(prec)
+                    for i in range(d):
+                        B.append([x[i] for x in w])
+
+        basis_mat = Matrix(QQ, B)
+        if basis_mat.is_zero():
+            return []
+        # Daft thing: "transformation=True" parameter to echelonize
+        # is ignored for rational matrices!
+        big_mat = basis_mat.augment(identity_matrix(dim))
+        big_mat.echelonize()
+        c = big_mat.pivots()[-1]
+
+        echelon_basis_mat = big_mat[:, :prec]
+
+        R = self._q_expansion_ring()
+
+        if c >= prec:
+            verbose("Precision %s insufficient to determine basis" % prec, level=1)
+        else:
+            verbose("Minimal precision for basis: %s" % (c+1), level=1)
+            t = big_mat[:, prec:]
+            assert echelon_basis_mat == t * basis_mat
+            self.__transformation_matrix = t
+            self._char_basis = [R(f.list(), c+1) for f in basis_mat.rows()]
+
+        return [R(f.list(), prec) for f in echelon_basis_mat.rows() if f != 0]
+
+    def _transformation_matrix(self):
+        r"""
+        Return the transformation matrix between a basis of Galois orbits of
+        forms with character, and the echelon-form basis.
+
+        EXAMPLES::
+
+            sage: CuspForms(GammaH(31, [7]), 1)._transformation_matrix()
+            [1]
+            sage: CuspForms(GammaH(124, [33]), 1)._transformation_matrix() # long time
+            [ 1  1  0  0  0  0  1]
+            [ 0  0  0  0  0  1  0]
+            [ 1  0  1  1 -1 -1  1]
+            [ 0  0  0  0  0  0  1]
+            [ 0  1  0  0  0  0  0]
+            [ 1  0  0  0 -1  0  1]
+            [ 0  0  1  0  0 -1  0]
+        """
+        self.q_expansion_basis() # triggers iterative computation
+        return self.__transformation_matrix
+
+    def _compute_diamond_matrix(self, d):
+        r"""
+        EXAMPLES::
+
+            sage: CuspForms(GammaH(31, [7]), 1).diamond_bracket_matrix(3)
+            [-1]
+
+            sage: C = CuspForms(GammaH(124, [33]), 1)   # long time
+            sage: D = C.diamond_bracket_matrix(3); D    # long time
+            [ 0  0  0 -1  1  0  0]
+            [ 0 -1  0  0  0  0  0]
+            [ 2  1  1 -2 -1 -2 -1]
+            [ 0  0  0 -1  0  0  0]
+            [-1  0  0  1  1  0  0]
+            [ 2  0  0 -2 -1 -1  0]
+            [ 0  2  1  0  0 -1  0]
+            sage: t = C._transformation_matrix(); ~t * D * t   # long time
+            [ 1  1  0  0  0  0  0]
+            [-1  0  0  0  0  0  0]
+            [ 0  0  1  1  0  0  0]
+            [ 0  0 -1  0  0  0  0]
+            [ 0  0  0  0 -1  0  0]
+            [ 0  0  0  0  0 -1  0]
+            [ 0  0  0  0  0  0 -1]
+        """
+        chars=self.group().characters_mod_H(sign=-1, galois_orbits=True)
+        A = Matrix(QQ, 0, 0)
+        for c in chars:
+            chi = c.minimize_base_ring()
+            dim = weight1.dimension_wt1_cusp_forms(chi)
+            if chi.base_ring() == QQ:
+                m = Matrix(QQ, 1, 1, [chi(d)])
+            else:
+                m = chi(d).matrix().transpose()
+            for i in range(dim):
+                A = A.block_sum(m)
+        t = self._transformation_matrix()
+        return t * A * ~t
+
+    def _compute_hecke_matrix(self, n):
+        r"""
+        EXAMPLES::
+
+            sage: CuspForms(GammaH(31, [7]), 1).hecke_matrix(7)
+            [-1]
+            sage: C = CuspForms(GammaH(124, [33]), 1) # long time
+            sage: C.hecke_matrix(2) # long time
+            [ 0  0 -1 -1  0  1  0]
+            [ 1  0  0 -1 -1 -1  0]
+            [ 0  0  0 -1  1  1 -1]
+            [ 0  1  0 -1  0  0  0]
+            [ 0  0 -1  0  0  1  1]
+            [ 0  0  0 -1  0  0 -1]
+            [ 0  0  0  0  0  1  0]
+            sage: C.hecke_matrix(7) # long time
+            [ 0  1  0 -1  0  0  1]
+            [ 0 -1  0  0  0  0  0]
+            [ 0  1 -1  0  0  0  1]
+            [ 0  0  0 -1  0  0  0]
+            [ 0  1  1  0  0 -1  0]
+            [ 1  0 -1 -1 -1  0  1]
+            [ 0  1  0  0  1  0  0]
+            sage: C.hecke_matrix(23) == 0 # long time
+            True
+
+        """
+        chars=self.group().characters_mod_H(sign=-1, galois_orbits=True)
+        A = Matrix(QQ, 0, 0)
+        for c in chars:
+            chi = c.minimize_base_ring()
+            d = weight1.dimension_wt1_cusp_forms(chi)
+            e = chi.base_ring().degree()
+            H = Matrix(QQ, d*e, d*e)
+            from .constructor import CuspForms
+            M = CuspForms(chi, 1).hecke_matrix(n)
+            if e == 1:
+                H = M
+            else:
+                for i in range(d):
+                    for j in range(d):
+                        H[e*i:e*(i+1), e*j:e*(j+1)] = M[i,j].matrix().transpose()
+            A = A.block_sum(H)
+        t = self._transformation_matrix()
+        return t * A * ~t
 
 class CuspidalSubmodule_g0_Q(CuspidalSubmodule_modsym_qexp):
     r"""
@@ -352,7 +528,7 @@ class CuspidalSubmodule_g0_Q(CuspidalSubmodule_modsym_qexp):
 
 class CuspidalSubmodule_gH_Q(CuspidalSubmodule_modsym_qexp):
     r"""
-    Space of cusp forms for `\Gamma_1(N)` over `\QQ`.
+    Space of cusp forms for `\Gamma_H(N)` over `\QQ`.
     """
 
     def _compute_hecke_matrix(self, n):
@@ -394,7 +570,6 @@ class CuspidalSubmodule_gH_Q(CuspidalSubmodule_modsym_qexp):
         symbs = self.modular_symbols(sign=1)
         return _convert_matrix_from_modsyms(symbs, symbs.diamond_bracket_matrix(d))[0]
 
-
 class CuspidalSubmodule_g1_Q(CuspidalSubmodule_gH_Q):
     r"""
     Space of cusp forms for `\Gamma_1(N)` over `\QQ`.
@@ -426,10 +601,6 @@ class CuspidalSubmodule_eps(CuspidalSubmodule_modsym_qexp):
         O(q^1)
     """
     pass
-
-    #def _repr_(self):
-    #    A = self.ambient_module()
-    #    return "Cuspidal subspace of dimension %s of Modular Forms space with character %s and weight %s over %s"%(self.dimension(), self.character(), self.weight(), self.base_ring())
 
 def _convert_matrix_from_modsyms(symbs, T):
     r"""

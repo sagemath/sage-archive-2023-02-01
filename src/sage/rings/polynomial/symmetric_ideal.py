@@ -108,14 +108,6 @@ class SymmetricIdeal( Ideal_generic ):
     monomial orderings -- we do, however, not guarantee termination of
     the Buchberger algorithm in these cases.
 
-    .. [AB2007] \M. Aschenbrenner, C. Hillar,
-       *Finite generation of symmetric ideals*.
-       Trans. Amer. Math. Soc. 359 (2007), no. 11, 5171--5192.
-
-    .. [AB2008] \M. Aschenbrenner, C. Hillar,
-       *An Algorithm for Finding Symmetric Groebner Bases in Infinite
-       Dimensional Rings*. :arxiv:`0801.4439`.
-
     EXAMPLES::
 
         sage: X.<x,y> = InfinitePolynomialRing(QQ)
@@ -363,7 +355,7 @@ class SymmetricIdeal( Ideal_generic ):
         return set(V) == set(self.ring().variable_names())
 
     def reduce(self, I, tailreduce=False):
-        """
+        r"""
         Symmetric reduction of self by another Symmetric Ideal or list of Infinite Polynomials,
         or symmetric reduction of a given Infinite Polynomial by self.
 

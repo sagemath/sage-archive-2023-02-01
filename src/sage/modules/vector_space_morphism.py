@@ -80,8 +80,8 @@ A homomorphism may also be created via a method on the domain.  ::
     Vector space morphism represented by the matrix:
     [  sqrt3       1]
     [2*sqrt3       2]
-    Domain: Vector space of dimension 2 over Number Field in sqrt3 with defining polynomial x^2 - 3
-    Codomain: Vector space of dimension 2 over Number Field in sqrt3 with defining polynomial x^2 - 3
+    Domain: Vector space of dimension 2 over Number Field in sqrt3 with defining polynomial x^2 - 3 with sqrt3 = 1.732050807568878?
+    Codomain: Vector space of dimension 2 over Number Field in sqrt3 with defining polynomial x^2 - 3 with sqrt3 = 1.732050807568878?
     sage: psi([1, 4])
     (9*sqrt3, 9)
 
@@ -931,7 +931,6 @@ class VectorSpaceMorphism(free_module_morphism.FreeModuleMorphism):
             '}\n\\left(\\begin{array}{rr}\n0', '&', '1',
             '\\\\\n2', '&', '3', '\\\\\n4', '&', '5\n\\end{array}\\right)']
         """
-        from sage.misc.latex import latex
         s = ('\\text{vector space morphism from }\n', self.domain()._latex_(),
              '\\text{ to }\n', self.codomain()._latex_(),
              '\\text{ represented by the matrix }\n', self.matrix()._latex_())

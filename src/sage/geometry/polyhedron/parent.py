@@ -18,12 +18,12 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.all import ZZ, QQ, RDF, CommutativeRing
 from sage.categories.fields import Fields
 
-from sage.geometry.polyhedron.base import Polyhedron_base, is_Polyhedron
+from sage.geometry.polyhedron.base import is_Polyhedron
 from .representation import Inequality, Equation, Vertex, Ray, Line
 
 
 def Polyhedra(base_ring, ambient_dim, backend=None):
-    """
+    r"""
     Construct a suitable parent class for polyhedra
 
     INPUT:
@@ -408,7 +408,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             'QQ^3'
             sage: K.<sqrt3> = NumberField(x^2 - 3, embedding=AA(3).sqrt())
             sage: Polyhedra(K, 4)._repr_ambient_module()
-            '(Number Field in sqrt3 with defining polynomial x^2 - 3)^4'
+            '(Number Field in sqrt3 with defining polynomial x^2 - 3 with sqrt3 = 1.732050807568878?)^4'
         """
         from sage.rings.qqbar import AA
         if self.base_ring() is ZZ:
@@ -517,13 +517,31 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             return self.element_class(self, Vrep, Hrep, **kwds)
         if nargs == 1 and is_Polyhedron(args[0]):
             polyhedron = args[0]
-            Hrep = [polyhedron.inequality_generator(), polyhedron.equation_generator()]
-            if self.base_ring() == RDF:
-                Hrep = [convert_base_ring_Hrep(_) for _ in Hrep]
-            return self.element_class(self, None, Hrep, **kwds)
+            return self._element_constructor_polyhedron(polyhedron, **kwds)
         if nargs == 1 and args[0] == 0:
             return self.zero()
         raise ValueError('Cannot convert to polyhedron object.')
+
+    def _element_constructor_polyhedron(self, polyhedron, **kwds):
+        """
+        The element (polyhedron) constructor for the case of 1 argument, a polyhedron.
+
+        This version of the method sets up the element using the H-representation only.
+        The element will have to recompute the V-representation.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.parent import Polyhedra
+            sage: P = Polyhedra(QQ, 3)
+            sage: p = Polyhedron(vertices=[(0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1)])
+            sage: p
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 4 vertices
+            sage: P(p)
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 4 vertices
+        """
+        Vrep = None
+        Hrep = [polyhedron.inequality_generator(), polyhedron.equation_generator()]
+        return self._element_constructor_(Vrep, Hrep, **kwds)
 
     def base_extend(self, base_ring, backend=None):
         """
@@ -541,14 +559,43 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             Polyhedra in QQ^3
             sage: Polyhedra(ZZ,3).an_element().base_extend(QQ)
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 4 vertices
+
+        TESTS:
+
+        Test that :trac:`22575` is fixed::
+
+            sage: P = Polyhedra(ZZ,3).base_extend(QQ, backend='field')
+            sage: P.backend()
+            'field'
+
         """
-        if self.base_ring().has_coerce_map_from(base_ring):
+        if (self.base_ring().has_coerce_map_from(base_ring)
+            and (backend is None or self.backend() == backend)):
             return self
         elif base_ring.has_coerce_map_from(self.base_ring()):
-            return Polyhedra(base_ring, self.ambient_dim())
+            return Polyhedra(base_ring, self.ambient_dim(), backend=backend)
+
+    def change_ring(self, base_ring, backend=None):
+        """
+        Return the parent with the new base ring.
+
+        INPUT:
+
+        - ``base_ring``, ``backend`` -- see
+          :func:`~sage.geometry.polyhedron.constructor.Polyhedron`.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.parent import Polyhedra
+            sage: Polyhedra(ZZ,3).change_ring(QQ)
+            Polyhedra in QQ^3
+            sage: Polyhedra(ZZ,3).an_element().change_ring(QQ)
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 4 vertices
+            """
+        return Polyhedra(base_ring, self.ambient_dim(), backend=backend)
 
     def _coerce_base_ring(self, other):
-        """
+        r"""
         Return the common base rincg for both ``self`` and ``other``.
 
         This method is not part of the coercion framework, but only a
@@ -884,7 +931,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
 
 from sage.geometry.polyhedron.backend_cdd import Polyhedron_QQ_cdd, Polyhedron_RDF_cdd
 from sage.geometry.polyhedron.backend_ppl import Polyhedron_ZZ_ppl, Polyhedron_QQ_ppl
-from sage.geometry.polyhedron.backend_normaliz import Polyhedron_ZZ_normaliz, Polyhedron_QQ_normaliz
+from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz, Polyhedron_ZZ_normaliz, Polyhedron_QQ_normaliz
 from sage.geometry.polyhedron.backend_polymake import Polyhedron_polymake
 from sage.geometry.polyhedron.backend_field import Polyhedron_field
 
@@ -906,8 +953,31 @@ class Polyhedra_QQ_cdd(Polyhedra_base):
 class Polyhedra_RDF_cdd(Polyhedra_base):
     Element = Polyhedron_RDF_cdd
 
+class Polyhedra_normaliz(Polyhedra_base):
+    Element = Polyhedron_normaliz
+
 class Polyhedra_polymake(Polyhedra_base):
     Element = Polyhedron_polymake
 
 class Polyhedra_field(Polyhedra_base):
     Element = Polyhedron_field
+
+    def _element_constructor_polyhedron(self, polyhedron, **kwds):
+        """
+        The element (polyhedron) constructor for the case of 1 argument, a polyhedron.
+
+        This version of the method sets up the element using both representations.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.parent import Polyhedra
+            sage: P = Polyhedra(AA, 3, backend='field')
+            sage: p = Polyhedron(vertices=[(0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1)])
+            sage: P(p)
+            A 3-dimensional polyhedron in AA^3 defined as the convex hull of 4 vertices
+        """
+        Vrep = [polyhedron.vertex_generator(), polyhedron.ray_generator(),
+                polyhedron.line_generator()]
+        Hrep = [polyhedron.inequality_generator(), polyhedron.equation_generator()]
+        return self._element_constructor_(Vrep, Hrep,
+                                          Vrep_minimal=True, Hrep_minimal=True, **kwds)

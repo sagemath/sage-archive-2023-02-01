@@ -160,7 +160,7 @@ AUTHOR:
   rings of length two
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 Amritanshu Prasad <amri@imsc.res.in>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -172,8 +172,8 @@ AUTHOR:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 from six.moves import range
 from six import add_metaclass
@@ -195,9 +195,10 @@ from sage.misc.cachefunc import cached_in_parent_method, cached_function
 from sage.combinat.misc import IterableFunctionCall
 from functools import reduce
 
+
 @cached_function
 def fq(n, q = None):
-    """
+    r"""
     Return `(1-q^{-1}) (1-q^{-2}) \cdots (1-q^{-n})`.
 
     INPUT:
@@ -669,7 +670,7 @@ class PrimarySimilarityClassTypes(UniqueRepresentation, Parent):
                 yield self.element_class(self, d, par)
 
     def size(self):
-        """
+        r"""
         Return size of elements of ``self``.
 
         The size of a primary similarity class type `(d, \lambda)` is
@@ -774,7 +775,7 @@ class SimilarityClassType(CombinatorialElement):
         return sum([PT.centralizer_algebra_dim() for PT in self])
 
     def centralizer_group_card(self, q = None):
-        """
+        r"""
         Return the cardinality of the group of matrices in `GL_n(\GF{q})`
         which commute with a matrix of type ``self``.
 
@@ -1098,7 +1099,7 @@ class SimilarityClassTypes(UniqueRepresentation, Parent):
             for PT in chain(PrimarySimilarityClassTypes(min.size(), min = min), *[PrimarySimilarityClassTypes(k) for k in range(min.size() + 1, n + 1)]): #choose first part
                 if PT.size() == n:
                     yield self.element_class(self, [PT])
-                else:# recursively find all possibilties for what remains of n
+                else:# recursively find all possibilities for what remains of n
                     for smaller_type in SimilarityClassTypes(n - PT.size(), min = PT):
                         yield self.element_class(self, [PT] + list(smaller_type))
 
@@ -1288,28 +1289,22 @@ def input_parsing(data):
     """
     if isinstance(data, SimilarityClassType):
         case = 'sim'
-        output = data
     elif isinstance(data, PrimarySimilarityClassType):
         case = 'pri'
-        output = data
     elif isinstance(data, Partition):
         case = 'par'
-        output = data
     else:
         try:
             data = Partition(data)
             case = 'par'
-            output = data
         except(TypeError, ValueError):
             try:
                 data = SimilarityClassType(data)
                 case = 'sim'
-                output = data
             except(TypeError, ValueError):
                 try:
                     data = PrimarySimilarityClassType(*data)
                     case = 'pri'
-                    output = data
                 except(TypeError, ValueError):
                     raise ValueError("Expected a Partition, a SimilarityClassType or a PrimarySimilarityClassType, got a %s" % type(data))
     return case, data

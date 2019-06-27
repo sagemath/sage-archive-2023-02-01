@@ -9,7 +9,7 @@ Testing Arithmetic subgroup
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #
 ################################################################################
 from __future__ import print_function, absolute_import
@@ -21,6 +21,7 @@ from sage.rings.finite_rings.integer_mod_ring import Zmod
 
 import sage.misc.prandom as prandom
 from sage.misc.misc import cputime
+
 
 def random_even_arithgroup(index,nu2_max=None,nu3_max=None):
     r"""
@@ -223,7 +224,7 @@ class Test:
 
     def test_relabel(self):
         r"""
-        Try the function canonic labels for a random even modular subgroup.
+        Try the function canonical labels for a random even modular subgroup.
 
         EXAMPLES::
 
@@ -385,7 +386,7 @@ class Test:
             sage: Test().test_todd_coxeter() #random
         """
         from .all import SL2Z
-        from .arithgroup_perm import S2m,S3m,Lm,Rm
+        from .arithgroup_perm import S2m,S3m,Lm
 
         G = random_even_arithgroup(self.index)
 

@@ -45,14 +45,14 @@ EXAMPLES::
         sage: v._test_category()
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2016-2017 Julian Rüth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import
 
 from sage.categories.homset import Homset
@@ -60,6 +60,8 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.abstract_method import abstract_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
+from sage.categories.action import Action
+
 
 class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
     r"""
@@ -159,7 +161,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             Right action by Integer Ring on Discrete pseudo-valuations on Rational Field
 
         """
-        from operator import mul, div
+        from operator import mul
         from sage.rings.all import QQ, InfinityRing, ZZ
         if op == mul and (S is InfinityRing or S is QQ or S is ZZ):
             return ScaleAction(S, self, not self_on_left, op)
@@ -474,7 +476,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 1024
 
             """
-            from sage.rings.all import QQ, ZZ, infinity
+            from sage.rings.all import QQ, ZZ
             s = QQ.coerce(s)
             if s not in self.value_semigroup():
                 raise ValueError("s must be in the value semigroup of this valuation but %r is not in %r"%(s, self.value_semigroup()))
@@ -767,7 +769,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                         # terminate in reasonable time.
                         factor = (ret**r)/(1+ret**r)
                         ret = factor * delta
-                        if all([other(ret) < 0 for other in others[:i+1]]):
+                        if all(other(ret) < 0 for other in others[:i+1]):
                             break
             return ret
 
@@ -794,7 +796,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 2/3
 
             """
-            from sage.rings.all import ZZ, NN, infinity
+            from sage.rings.all import infinity
 
             numerator = self._weakly_separating_element(other)
             n = self(numerator)
@@ -810,8 +812,9 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             assert(dd > 0)
             assert(d is not infinity)
             if d < 0:
-                # The following may fail if denominator is not inverible in the domain,
-                # but we don't have a better option this generically.
+                # The following may fail if denominator is not
+                # invertible in the domain, but we don't have a better
+                # option this generically.
                 return self.domain()(~denominator)
 
             # We need non-negative integers a and b such that
@@ -890,7 +893,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             power of the uniformizer `\pi`.
 
             For negative ``s``, it does the same but when not over a field, it
-            drops coefficients in the `\pi`-adic expension which have negative
+            drops coefficients in the `\pi`-adic expansion which have negative
             valuation.
 
             EXAMPLES::
@@ -1029,17 +1032,14 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 1/2
 
             """
-            try:
-                return x.inverse_of_unit()
-            except:
-                raise NotImplementedError("can not compute approximate inverse with respect to this valuation")
+            return x.inverse_of_unit()
 
         def _relative_size(self, x):
             r"""
             Return an estimate on the coefficient size of ``x``.
 
             The number returned is an estimate on the factor between the number of
-            Bits used by ``x`` and the minimal number of bits used by an element
+            bits used by ``x`` and the minimal number of bits used by an element
             congruent to ``x``.
 
             This is used by :meth:`simplify` to decide whether simplification of
@@ -1115,7 +1115,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             tester = self._tester(**options)
 
             try:
-                k = self.residue_ring()
+                self.residue_ring()
                 has_residue_ring = True
             except NotImplementedError:
                 # over non-fields (and especially polynomial rings over
@@ -1411,7 +1411,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             tester = self._tester(**options)
 
             try:
-                k = self.residue_ring()
+                self.residue_ring()
             except NotImplementedError:
                 # over non-fields (and especially polynomial rings over
                 # non-fields) computation of the residue ring is often
@@ -1450,7 +1450,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             tester = self._tester(**options)
 
             try:
-                k = self.residue_ring()
+                self.residue_ring()
             except NotImplementedError:
                 # over non-fields (and especially polynomial rings over
                 # non-fields) computation of the residue ring is often
@@ -1544,7 +1544,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             tester = self._tester(**options)
             try:
-                k = self.residue_field()
+                self.residue_field()
             except ValueError:
                 from sage.categories.fields import Fields
                 # a discrete valuation on a field has a residue field
@@ -1558,6 +1558,18 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 if self.domain() not in Fields():
                     return
                 raise
+
+            try:
+                r = self.residue_ring()
+            except Exception:
+                # If the residue ring can not be constructed for some reason
+                # then we do not check its relation to the residue field.
+                # _test_residue_ring() is responsible for checking whether the
+                # residue ring should be constructible or not.
+                pass
+            else:
+                # the residue ring must coerce into the residue field
+                tester.assertTrue(self.residue_field().has_coerce_map_from(r))
 
             c = self.residue_field().characteristic()
             if c != 0:
@@ -1622,7 +1634,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 for prec in (0, 1, 42, infinity):
                     try:
                         y = self.inverse(x, prec)
-                    except NotImplementedError:
+                    except ArithmeticError:  # Inverse does not exist
                         continue
                     except ValueError:
                         if prec is not infinity:
@@ -1635,7 +1647,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                         tester.assertGreaterEqual(self(x*y - 1), prec)
 
 
-from sage.categories.action import Action
 class ScaleAction(Action):
     r"""
     Action of integers, rationals and the infinity ring on valuations by
@@ -1647,20 +1658,15 @@ class ScaleAction(Action):
         sage: from operator import mul
         sage: v.parent().get_action(ZZ, mul, self_on_left=False)
         Left action by Integer Ring on Discrete pseudo-valuations on Rational Field
-
     """
-    def _call_(self, s, v):
+    def _act_(self, s, v):
         r"""
         Let ``s`` act on ``v``.
 
         EXAMPLES::
 
             sage: v = QQ.valuation(5)
-            sage: 3*v # indirect doctest
+            sage: 3 * v  # indirect doctest
             3 * 5-adic valuation
-            
         """
-        if not self.is_left():
-            # for a right action, the parameters are swapped
-            s,v = v,s
         return v.scale(s)

@@ -15,4 +15,3 @@ cdef class RealDoubleElement(FieldElement):
     cdef _log_base(self, double log_of_base)
 
 cdef double_repr(double x)
-cdef double_str(double x)

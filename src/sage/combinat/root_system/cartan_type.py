@@ -451,6 +451,8 @@ this data.
 - :ref:`sage.combinat.root_system.type_G`
 - :ref:`sage.combinat.root_system.type_H`
 - :ref:`sage.combinat.root_system.type_I`
+- :ref:`sage.combinat.root_system.type_super_A`
+- :ref:`sage.combinat.root_system.type_Q`
 - :ref:`sage.combinat.root_system.type_A_affine`
 - :ref:`sage.combinat.root_system.type_B_affine`
 - :ref:`sage.combinat.root_system.type_C_affine`
@@ -671,6 +673,10 @@ class CartanTypeFactory(SageObject):
                     if n >= 1:
                         from . import type_I
                         return type_I.CartanType(n)
+                if letter == "Q":
+                    if n >= 1:
+                        from . import type_Q
+                        return type_Q.CartanType(n)
 
             if len(t) == 3:
                 if t[2] == 1: # Untwisted affine
@@ -1023,7 +1029,7 @@ class CartanType_abstract(object):
             <class 'sage.combinat.root_system.type_A_affine.CartanType_with_superclass_with_superclass'>
             sage: C.__class__.__bases__
             (<class 'sage.combinat.root_system.type_A_affine.CartanType_with_superclass'>,
-             <class __main__.MyCartanType at ...>)
+             <class ...__main__.MyCartanType...>)
             sage: C.my_method()
             'I am here!'
 
@@ -1506,7 +1512,7 @@ class CartanType_abstract(object):
         return CartanTypeFolded(self, folding_of, sigma)
 
     def _default_folded_cartan_type(self):
-        """
+        r"""
         Return the default folded Cartan type.
 
         In general, this just returns ``self`` in ``self`` with `\sigma` as
@@ -2524,7 +2530,6 @@ class CartanType_standard_finite(CartanType_standard, CartanType_finite):
             True
 
         """
-        from .cartan_type import CartanType
         return (CartanType, (self.letter, self.n))
 
     def __hash__(self):
@@ -2540,7 +2545,7 @@ class CartanType_standard_finite(CartanType_standard, CartanType_finite):
     # mathematical methods
 
     def index_set(self):
-        """
+        r"""
         Implements :meth:`CartanType_abstract.index_set`.
 
         The index set for all standard finite Cartan types is of the form
@@ -2719,11 +2724,11 @@ class CartanType_standard_affine(CartanType_standard, CartanType_affine):
                 letter = 'A'
                 n *= 2
             if compact:
-                return '%s%s^%s'%(letter, n, aff)
+                return '%s%s^%s' % (letter, n, aff)
         if compact:
-            return '%s%s~'%(letter, n)
+            return '%s%s~' % (letter, n)
         else:
-            return "['%s', %s, %s]"%(letter, n, aff)
+            return "['%s', %s, %s]" % (letter, n, aff)
 
     def __reduce__(self):
         """
@@ -2736,7 +2741,6 @@ class CartanType_standard_affine(CartanType_standard, CartanType_affine):
             True
 
         """
-        from sage.combinat.root_system.cartan_type import CartanType
         return (CartanType, (self.letter, self.n, self.affine))
 
     def __getitem__(self, i):
@@ -3082,9 +3086,3 @@ class CartanType_simple_finite(object):
         T = CartanType([dict['letter'], dict['n']])
         self.__class__ = T.__class__
         self.__dict__ = T.__dict__
-
-# deprecations from trac:18555
-from sage.misc.superseded import deprecated_function_alias
-CartanTypeFactory.global_options = deprecated_function_alias(18555, CartanTypeFactory.options)
-CartanTypeOptions = deprecated_function_alias(18555, CartanType.options)
-CartanType_abstract.global_options = deprecated_function_alias(18555, CartanType.options)

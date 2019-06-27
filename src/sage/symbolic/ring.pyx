@@ -2,7 +2,7 @@
 The symbolic ring
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
 #       Copyright (C) 2008 Burcin Erocal <burcin@erocal.org>
 #
@@ -10,8 +10,8 @@ The symbolic ring
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import
 
 from sage.ext.cplusplus cimport ccrepr
@@ -24,14 +24,21 @@ from sage.rings.real_mpfr cimport RealNumber
 from sage.symbolic.expression cimport Expression, new_Expression_from_GEx, new_Expression_from_pyobject, is_Expression
 
 from sage.misc.latex import latex_variable_name
-from sage.cpython.string cimport str_to_bytes, char_to_str
+from sage.cpython.string cimport str_to_bytes, bytes_to_str, char_to_str
 from sage.structure.element cimport RingElement, Element, Matrix
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
 
 from sage.rings.all import RR, CC, ZZ
 
+import keyword
 import operator
+import parser
+
+# Do not allow any of these keywords as identifiers for symbolic variables
+KEYWORDS = set(keyword.kwlist).union(['exec', 'print', 'None', 'True',
+                                      'False', 'nonlocal'])
+
 
 cdef class SymbolicRing(CommutativeRing):
     """
@@ -50,7 +57,7 @@ cdef class SymbolicRing(CommutativeRing):
 
             sage: isinstance(SR, sage.symbolic.ring.SymbolicRing)
             True
-            sage: TestSuite(SR).run()
+            sage: TestSuite(SR).run(skip=['_test_divides'])
 
         """
         if base_ring is None:
@@ -305,7 +312,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: r^(1/2)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert R Interpreter to a symbolic expression
+            TypeError: unsupported operand type(s) for ** or pow(): 'R' and 'sage.rings.rational.Rational'
 
         Check that :trac:`22068` is fixed::
 
@@ -336,7 +343,7 @@ cdef class SymbolicRing(CommutativeRing):
                 return x
             else:
                 return new_Expression_from_GEx(self, (<Expression>x)._gobj)
-        elif hasattr(x, '_symbolic_'):
+        if hasattr(x, '_symbolic_'):
             return x._symbolic_(self)
         elif isinstance(x, str):
             try:
@@ -344,7 +351,8 @@ cdef class SymbolicRing(CommutativeRing):
                 return self(symbolic_expression_from_string(x))
             except SyntaxError as err:
                 msg, s, pos = err.args
-                raise TypeError("%s: %s !!! %s" % (msg, s[:pos], s[pos:]))
+                raise TypeError("%s: %s !!! %s" %
+                        (msg, bytes_to_str(s[:pos]), bytes_to_str(s[pos:])))
 
         from sage.rings.infinity import (infinity, minus_infinity,
                                          unsigned_infinity)
@@ -360,7 +368,7 @@ cdef class SymbolicRing(CommutativeRing):
                 from sage.symbolic.constants import NaN
                 return NaN
             exp = x
-        elif isinstance(x, (Integer, long)):
+        elif isinstance(x, long):
             exp = x
         elif isinstance(x, int):
             exp = GEx(<long>x)
@@ -825,10 +833,10 @@ cdef class SymbolicRing(CommutativeRing):
         """
         if is_Expression(name):
             return name
-        if not isinstance(name, (basestring,list,tuple)):
+        if not isinstance(name, (basestring, list, tuple)):
             name = repr(name)
 
-        if isinstance(name, (list,tuple)):
+        if isinstance(name, (list, tuple)):
             names_list = [s.strip() for s in name]
         elif ',' in name:
             names_list = [s.strip() for s in name.split(',' )]
@@ -839,7 +847,7 @@ cdef class SymbolicRing(CommutativeRing):
 
         for s in names_list:
             if not isidentifier(s):
-                raise ValueError('The name "'+s+'" is not a valid Python identifier.')
+                raise ValueError(f'The name "{s}" is not a valid Python identifier.')
 
         formatted_latex_name = None
         if latex_name is not None and n is None:
@@ -849,7 +857,7 @@ cdef class SymbolicRing(CommutativeRing):
             except TypeError:
                 formatted_latex_name = '{{{0}}}'.format(latex_name)
 
-        if len(names_list) == 0:
+        if not names_list:
             raise ValueError('You need to specify the name of the new variable.')
         if len(names_list) == 1:
             if n is not None:
@@ -960,7 +968,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: f(z=2)
             Gamma(2, w)
         """
-        if len(args) == 0:
+        if not args:
             d = None
         elif len(args) == 1 and isinstance(args[0], dict):
             d = args[0]
@@ -1072,7 +1080,20 @@ cdef class SymbolicRing(CommutativeRing):
         from .subring import SymbolicSubring
         return SymbolicSubring(*args, **kwds)
 
+    def _fricas_init_(self):
+        """
+        Return a FriCAS representation of ``self``.
+
+        EXAMPLES::
+
+            sage: fricas(SR)          # indirect doctest, optional - fricas
+            Expression(Integer)
+        """
+        return 'Expression Integer'
+
+
 SR = SymbolicRing()
+
 
 cdef unsigned sage_domain_to_ginac_domain(object domain) except? 3474701533:
     """
@@ -1135,7 +1156,7 @@ cdef class NumpyToSRMorphism(Morphism):
         sage: cos(numpy.int('2'))
         cos(2)
         sage: numpy.cos(numpy.int('2'))
-        -0.41614683654714241
+        -0.4161468365471424
     """
     cdef _intermediate_ring
 
@@ -1219,7 +1240,7 @@ cdef class UnderscoreSageMorphism(Morphism):
             Symbolic Ring
         """
         import sage.categories.homset
-        from sage.structure.parent import Set_PythonType
+        from sage.sets.pythonclass import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(t), R))
 
     cpdef Element _call_(self, a):
@@ -1298,9 +1319,10 @@ def var(name, **kwds):
     """
     return SR.var(name, **kwds)
 
+
 def is_SymbolicVariable(x):
     """
-    Returns True if x is a variable.
+    Return ``True`` if ``x`` is a variable.
 
     EXAMPLES::
 
@@ -1317,20 +1339,22 @@ def is_SymbolicVariable(x):
     """
     return is_Expression(x) and is_a_symbol((<Expression>x)._gobj)
 
+
 def isidentifier(x):
     """
     Return whether ``x`` is a valid identifier.
 
-    When we switch to Python 3 this function can be replaced by the
-    official Python function of the same name.
-
     INPUT:
 
-    - ``x`` -- a string.
+    - ``x`` -- a string
 
     OUTPUT:
 
     Boolean. Whether the string ``x`` can be used as a variable name.
+
+    This function should return ``False`` for keywords, so we can not
+    just use the ``isidentifier`` method of strings (in Python 3),
+    because, for example, it returns ``True`` for "def" and for "None".
 
     EXAMPLES::
 
@@ -1349,10 +1373,24 @@ def isidentifier(x):
         True
         sage: isidentifier('lambda s:s+1')
         False
+        sage: isidentifier('None')
+        False
+        sage: isidentifier('lambda')
+        False
+        sage: isidentifier('def')
+        False
     """
-    import parser
+    if x in KEYWORDS:
+        return False
+    try:
+        if not x.isidentifier():  # py3
+            return False
+    except AttributeError:
+        pass  # py2
+
     try:
         code = parser.expr(x).compile()
-    except (MemoryError, OverflowError, SyntaxError, SystemError, parser.ParserError), msg:
+    except (MemoryError, OverflowError, SyntaxError,
+            SystemError, parser.ParserError):
         return False
     return len(code.co_names) == 1 and code.co_names[0] == x

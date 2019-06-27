@@ -55,7 +55,7 @@ import six
 from six import itervalues
 from six.moves import range
 
-from sage.misc.cachefunc import cached_method
+from sage.misc.cachefunc import cached_function
 
 from sage.categories.sets_cat import EmptySetError
 import sage.arith.all as arith
@@ -805,7 +805,7 @@ def one_radical_difference_family(K, k):
     from sage.groups.generic import discrete_log
     logA = [discrete_log(a,x)%c for a in A]
 
-    # if two elments of A are equal modulo c then no tiling is possible
+    # if two elements of A are equal modulo c then no tiling is possible
     if len(set(logA)) != m:
         return None
 
@@ -1146,7 +1146,7 @@ def are_hadamard_difference_set_parameters(v, k, lmbda):
     N2 = N*N
     return v == 4*N2 and k == 2*N2 - N and lmbda == N2 - N
 
-@cached_method
+@cached_function
 def hadamard_difference_set_product_parameters(N):
     r"""
     Check whether a product construction is available for Hadamard difference
@@ -1354,7 +1354,7 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
 
         sage: from itertools import islice
         sage: l6 = {True:[], False: [], Unknown: []}
-        sage: for q in islice(prime_power_mod(1,30), 60):
+        sage: for q in islice(prime_power_mod(1,30), int(60)):
         ....:     l6[designs.difference_family(q,6,existence=True)].append(q)
         sage: l6[True]
         [31, 121, 151, 181, 211, ...,  3061, 3121, 3181]
@@ -1364,7 +1364,7 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         []
 
         sage: l7 = {True: [], False: [], Unknown: []}
-        sage: for q in islice(prime_power_mod(1,42), 60):
+        sage: for q in islice(prime_power_mod(1,42), int(60)):
         ....:     l7[designs.difference_family(q,7,existence=True)].append(q)
         sage: l7[True]
         [169, 337, 379, 421, 463, 547, 631, 673, 757, 841, 883, 967, ...,  4621, 4957, 5167]
@@ -1587,7 +1587,7 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         else:
             K = G = GF(v,'a',modulus=poly)
 
-        B = map(K,B)
+        B = [K(b) for b in B]
         e = k*(k-1)//2
         xe = G.multiplicative_generator()**e
         df = [[xe**j*b for b in B] for j in range((v-1)//(2*e))]

@@ -240,7 +240,7 @@ class CartesianProduct_iters(EnumeratedSetFromIterator):
         return "Cartesian product of " + ", ".join(map(str, self.iters))
 
     def cardinality(self):
-        """
+        r"""
         Returns the number of elements in the Cartesian product of
         everything in \*iters.
 
@@ -317,7 +317,7 @@ class CartesianProduct_iters(EnumeratedSetFromIterator):
         return [e for e in self]
 
     def __iterate__(self):
-        """
+        r"""
         An iterator for the elements in the Cartesian product of the
         iterables \*iters.
 
@@ -404,7 +404,7 @@ class CartesianProduct_iters(EnumeratedSetFromIterator):
         return [unrank(L, i) for L,i in zip(self.iters, positions)]
 
     def random_element(self):
-        """
+        r"""
         Returns a random element from the Cartesian product of \*iters.
 
         EXAMPLES::

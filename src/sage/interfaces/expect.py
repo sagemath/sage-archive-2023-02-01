@@ -29,19 +29,22 @@ AUTHORS:
   pexpect 4.0.1 + patches, see :trac:`10295`.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import
 from six import string_types
+from six import reraise as raise_
 
+import io
 import os
+import re
 import signal
 import sys
 import weakref
@@ -55,7 +58,7 @@ import pexpect
 from pexpect import ExceptionPexpect
 from sage.interfaces.sagespawn import SageSpawn
 from sage.interfaces.interface import (Interface, InterfaceElement,
-        InterfaceFunction, InterfaceFunctionElement, AsciiArtString)
+            InterfaceFunction, InterfaceFunctionElement)
 
 from sage.structure.element import RingElement
 
@@ -64,7 +67,7 @@ from sage.env import SAGE_EXTCODE, LOCAL_IDENTIFIER
 from sage.misc.object_multiplexer import Multiplex
 from sage.docs.instancedoc import instancedoc
 
-from six import reraise as raise_
+from sage.cpython.string import str_to_bytes, bytes_to_str
 
 BAD_SESSION = -2
 
@@ -135,8 +138,7 @@ class Expect(Interface):
         Interface.__init__(self, name)
 
         # Read environment variables
-        env_name = 'SAGE_%s_{}'%self.name().upper()
-        import os
+        env_name = 'SAGE_%s_{}' % self.name().upper()
         if server is None:
             server = os.getenv(env_name.format('SERVER'))
         if server_tmpdir is None:
@@ -153,7 +155,7 @@ class Expect(Interface):
         self.set_server_and_command(server, command, server_tmpdir, ulimit)
         self._env = env
         self.__do_cleaner = do_cleaner
-        self._prompt = prompt
+        self._change_prompt(prompt)
         self._restart_on_ctrlc = restart_on_ctrlc
         if path is not None:
             self.__path = os.path.abspath(path)
@@ -253,14 +255,18 @@ class Expect(Interface):
             if alternate_prompt is None:
                 E.expect(self._prompt, timeout=wait)
             else:
-                E.expect(alternate_prompt, timeout=wait)
+                E.expect(str_to_bytes(alternate_prompt), timeout=wait)
         except pexpect.TIMEOUT:
-            return False, E.before
+            # TODO: In case an unexpected error occurred it's possible that the
+            # contents of E.before, if consisting of multi-byte encoded text,
+            # may be incomplete and contain errors, so merely calling
+            # bytes_to_str here is probably not sufficient.
+            return False, self._before()
         except pexpect.EOF:
-            return True, E.before
+            return True, self._before()
         except Exception:   # weird major problem!
-            return True, E.before
-        return True, E.before
+            return True, self._before()
+        return True, self._before()
 
     def _send(self, cmd):
         if self._expect is None:
@@ -313,6 +319,12 @@ class Expect(Interface):
         return self.__path
 
     def _change_prompt(self, prompt):
+        if isinstance(prompt, str):
+            prompt = str_to_bytes(prompt)
+        elif (isinstance(prompt, type(re.compile(''))) and
+                isinstance(prompt.pattern, str)):
+            prompt = re.compile(str_to_bytes(prompt.pattern),
+                                prompt.flags & ~re.U)
         self._prompt = prompt
 
     def path(self):
@@ -445,9 +457,12 @@ If this all works, you can then make calls like:
                 logs = os.path.join(DOT_SAGE, 'pexpect_logs')
                 sage_makedirs(logs)
 
-                self.__logfilename = '%s/%s-%s-%s-%s.log'%(logs, self.name(), os.getpid(), id(self), self._session_number)
+                filename = '{name}-{pid}-{id}-{session}'.format(
+                        name=self.name(), pid=os.getpid(), id=id(self),
+                        session=self._session_number)
+                self.__logfilename = os.path.join(logs, filename)
             if self.__logfilename is not None:
-                self.__logfile = open(self.__logfilename, 'w')
+                self.__logfile = open(self.__logfilename, 'wb')
 
         cmd = self.__command
 
@@ -456,7 +471,7 @@ If this all works, you can then make calls like:
             print("Starting %s" % cmd.split()[0])
 
         if self.__remote_cleaner and self._server:
-            c = 'sage-native-execute  ssh %s "nohup sage -cleaner"  &'%self._server
+            c = 'sage-native-execute  ssh %s "nohup sage -cleaner"  &' % self._server
             os.system(c)
 
         # Unset some environment variables for the children to
@@ -502,10 +517,10 @@ If this all works, you can then make calls like:
 
         try:
             self._expect.expect(self._prompt)
-        except (pexpect.TIMEOUT, pexpect.EOF):
+        except (pexpect.TIMEOUT, pexpect.EOF) as msg:
             self._expect = None
             self._session_number = BAD_SESSION
-            raise RuntimeError("unable to start %s" % self.name())
+            raise RuntimeError("unable to start %s: %s" % (self.name(), msg))
         self._expect.timeout = None
 
         with gc_disabled():
@@ -774,7 +789,7 @@ If this all works, you can then make calls like:
             tmp_to_use = self._remote_tmpfile()
         try:
             s = self._eval_line(self._read_in_file_command(tmp_to_use), allow_use_file=False, restart_if_needed=False)
-        except pexpect.EOF as msg:
+        except pexpect.EOF:
             if self._quit_string() in line:
                 # we expect to get an EOF if we're quitting.
                 return ''
@@ -783,10 +798,10 @@ If this all works, you can then make calls like:
                     self._synchronize()
                     return self._post_process_from_file(self._eval_line_using_file(line, restart_if_needed=False))
                 except RuntimeError as msg:
-                    raise RuntimeError('%s terminated unexpectedly while reading in a large line:\n%s'%(self,msg[0]))
+                    raise RuntimeError('%s terminated unexpectedly while reading in a large line:\n%s' % (self, msg.args[0]))
                 except TypeError:
                     pass
-            raise RuntimeError('%s terminated unexpectedly while reading in a large line'%self)
+            raise RuntimeError('%s terminated unexpectedly while reading in a large line' % self)
         except RuntimeError as msg:
             if self._quit_string() in line:
                 if self._expect is None or not self._expect.isalive():
@@ -798,11 +813,12 @@ If this all works, you can then make calls like:
                     return self._post_process_from_file(self._eval_line_using_file(line, restart_if_needed=False))
                 except TypeError:
                     pass
-                except RuntimeError as msg:
-                    raise RuntimeError('%s terminated unexpectedly while reading in a large line'%self)
-            if "Input/output error" in msg[0]: # This occurs on non-linux machines
-                raise RuntimeError('%s terminated unexpectedly while reading in a large line'%self)
-            raise RuntimeError('%s terminated unexpectedly while reading in a large line:\n%s'%(self,msg[0]))
+                except RuntimeError:
+                    raise RuntimeError('%s terminated unexpectedly while reading in a large line' % self)
+            if "Input/output error" in msg.args[0]:
+                # This occurs on non-linux machines
+                raise RuntimeError('%s terminated unexpectedly while reading in a large line' % self)
+            raise RuntimeError('%s terminated unexpectedly while reading in a large line:\n%s' % (self, msg.args[0]))
         return self._post_process_from_file(s)
 
     def _post_process_from_file(self, s):
@@ -902,7 +918,7 @@ If this all works, you can then make calls like:
             E = self._expect
             try:
                 if len(line) >= 4096:
-                    raise RuntimeError("Sending more than 4096 characters with %s on a line may cause a hang and you're sending %s characters"%(self, len(line)))
+                    raise RuntimeError("Sending more than 4096 characters with %s on a line may cause a hang and you're sending %s characters" % (self, len(line)))
                 E.sendline(line)
                 if not wait_for_prompt:
                     return ''
@@ -927,12 +943,12 @@ If this all works, you can then make calls like:
                         except (TypeError, RuntimeError):
                             pass
                         return self._eval_line(line,allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt, restart_if_needed=False)
-                raise_(RuntimeError, "%s\nError evaluating %s in %s"%(msg, line, self), sys.exc_info()[2])
+                raise_(RuntimeError, RuntimeError("%s\nError evaluating %s in %s" % (msg, line, self)), sys.exc_info()[2])
 
-            if len(line)>0:
+            if line:
                 try:
                     if isinstance(wait_for_prompt, string_types):
-                        E.expect(wait_for_prompt)
+                        E.expect(str_to_bytes(wait_for_prompt))
                     else:
                         E.expect(self._prompt)
                 except pexpect.EOF as msg:
@@ -956,9 +972,9 @@ If this all works, you can then make calls like:
                             pass
                     raise RuntimeError("%s\n%s crashed executing %s"%(msg,self, line))
                 if self._terminal_echo:
-                    out = E.before
+                    out = self._before()
                 else:
-                    out = E.before.rstrip('\n\r')
+                    out = self._before().rstrip('\n\r')
             else:
                 if self._terminal_echo:
                     out = '\n\r'
@@ -966,7 +982,7 @@ If this all works, you can then make calls like:
                     out = ''
         except KeyboardInterrupt:
             self._keyboard_interrupt()
-            raise KeyboardInterrupt("Ctrl-c pressed while running %s"%self)
+            raise KeyboardInterrupt("Ctrl-c pressed while running %s" % self)
         if self._terminal_echo:
             i = out.find("\n")
             j = out.rfind("\r")
@@ -982,12 +998,12 @@ If this all works, you can then make calls like:
             except pexpect.ExceptionPexpect as msg:
                 raise pexpect.ExceptionPexpect( "THIS IS A BUG -- PLEASE REPORT. This should never happen.\n" + msg)
             self._start()
-            raise KeyboardInterrupt("Restarting %s (WARNING: all variables defined in previous session are now invalid)"%self)
+            raise KeyboardInterrupt("Restarting %s (WARNING: all variables defined in previous session are now invalid)" % self)
         else:
             self._expect.sendline(chr(3))  # send ctrl-c
             self._expect.expect(self._prompt)
             self._expect.expect(self._prompt)
-            raise KeyboardInterrupt("Ctrl-c pressed while running %s"%self)
+            raise KeyboardInterrupt("Ctrl-c pressed while running %s" % self)
 
     def interrupt(self, tries=5, timeout=2.0, quit_on_fail=True):
         E = self._expect
@@ -1013,9 +1029,14 @@ If this all works, you can then make calls like:
     # BEGIN Synchronization code.
     ###########################################################################
 
-    def _before(self):
+    def _before(self, encoding=None, errors=None):
         r"""
         Return the previous string that was sent through the interface.
+
+        Returns ``str`` objects on both Python 2 and Python 3.
+
+        The ``encoding`` and ``errors`` arguments are passed to
+        :func:`sage.misc.cpython.bytes_to_str`.
 
         EXAMPLES::
 
@@ -1024,7 +1045,49 @@ If this all works, you can then make calls like:
             sage: singular._before()
             '5\r\n'
         """
-        return self._expect.before
+        return bytes_to_str(self._expect.before, encoding, errors)
+
+    def _after(self, encoding=None, errors=None):
+        r"""
+        Return trailing data in the buffer after the text matched by the expect
+        interface.
+
+        When the ``spawn.after`` attribute contains bytes, this returns ``str``
+        objects on both Python 2 and Python 3.  There are also cases (such as
+        exceptions) where the ``.after`` attribute contains either an exception
+        type or ``None``, in which case those values are returned.
+
+        The ``encoding`` and ``errors`` arguments are passed to
+        :func:`sage.misc.cpython.bytes_to_str`.
+
+        EXAMPLES::
+
+            sage: singular('2+3')
+            5
+            sage: singular._after()
+            '> '
+        """
+        after = self._expect.after
+        if isinstance(after, bytes):
+            return bytes_to_str(after, encoding, errors)
+
+        return after
+
+    def _readline(self, size=-1, encoding=None, errors=None):
+        r"""
+        Wraps ``spawn.readline`` to pass the return values through
+        ``bytes_to_str``, like `Expect._before` and `Expect._after`.
+
+        EXAMPLES::
+
+            sage: a = singular(1)
+            sage: singular._expect.sendline('1+1;')
+            5
+            sage: singular._readline()
+            '2\r\n'
+        """
+
+        return bytes_to_str(self._expect.readline(size=size), encoding, errors)
 
     def _interrupt(self):
         for i in range(15):
@@ -1059,10 +1122,15 @@ If this all works, you can then make calls like:
 
         EXAMPLES:
 
-        We test all of this using the R interface. First we put
+        We test all of this using the Singular interface. First we put
         10 + 15 in the input stream::
 
-            sage: r._sendstr('abc <- 10 +15;\n')
+            sage: singular._sendstr('def abc = 10 + 15;\n')
+
+        Then we tell singular to print 10, which is an arbitrary number
+        different from the expected result 35.
+
+            sage: singular._sendstr('10;\n')
 
         Here an exception is raised because 25 hasn't appeared yet in the
         output stream. The key thing is that this doesn't lock, but instead
@@ -1072,34 +1140,34 @@ If this all works, you can then make calls like:
 
             sage: t = walltime()
             sage: try:
-            ....:    r._expect_expr('25', timeout=0.5)
+            ....:    singular._expect_expr('25', timeout=float(0.4))
             ....: except Exception:
             ....:    print('Did not get expression')
             Did not get expression
 
         A quick consistency check on the time that the above took::
 
-            sage: w = walltime(t); w > 0.4 and w < 10
+            sage: w = walltime(t); 0.3 < w < 2
             True
 
-        We tell R to print abc, which equals 25.
+        We tell Singular to print abc, which equals 25.
 
         ::
 
-            sage: r._sendstr('abc;\n')
+            sage: singular._sendstr('abc;\n')
 
         Now 25 is in the output stream, so we can wait for it.
 
         ::
 
-            sage: r._expect_expr('25')
+            sage: singular._expect_expr('25')
 
-        This gives us everything before the 25.
+        This gives us everything before the 25, including the 10 we printed earlier.
 
         ::
 
-            sage: r._expect.before
-            '...abc;\r\n[1] '
+            sage: singular._expect.before.decode('ascii')
+            u'...10\r\n> '
 
         We test interrupting ``_expect_expr`` using the GP interface,
         see :trac:`6661`.  Unfortunately, this test doesn't work reliably using
@@ -1108,7 +1176,7 @@ If this all works, you can then make calls like:
         running, so a timeout of 1 second should be sufficient. ::
 
             sage: print(sage0.eval("dummy=gp.eval('0'); alarm(1); gp._expect_expr('1')"))  # long time
-            Control-C pressed.  Interrupting PARI/GP interpreter. Please wait a few seconds...
+            ...Interrupting PARI/GP interpreter. Please wait a few seconds...
             ...
             AlarmInterrupt:
         """
@@ -1123,11 +1191,11 @@ If this all works, you can then make calls like:
             else:
                 i = self._expect.expect(expr)
             if i > 0:
-                v = self._expect.before
+                v = self._before()
                 self.quit()
-                raise ValueError("%s\nComputation failed due to a bug in %s -- NOTE: Had to restart."%(v, self))
+                raise ValueError("%s\nComputation failed due to a bug in %s -- NOTE: Had to restart." % (v, self))
         except KeyboardInterrupt:
-            print("Control-C pressed. Interrupting %s. Please wait a few seconds..."%self)
+            print("Control-C pressed. Interrupting %s. Please wait a few seconds..." % self)
             self.interrupt()
             raise
 
@@ -1140,14 +1208,7 @@ If this all works, you can then make calls like:
 
         -  ``string`` -- a string
 
-        EXAMPLES: We illustrate this function using the R interface::
-
-            sage: r._synchronize()
-            sage: r._sendstr('a <- 10;\n')
-            sage: r.eval('a')
-            '[1] 10'
-
-        We illustrate using the singular interface::
+        EXAMPLES: We illustrate this function using the Singular interface::
 
             sage: singular._synchronize()
             sage: singular._sendstr('int i = 5;')
@@ -1157,7 +1218,7 @@ If this all works, you can then make calls like:
         if self._expect is None:
             self._start()
         try:
-            os.write(self._expect.child_fd, string)
+            os.write(self._expect.child_fd, str_to_bytes(string))
         except OSError:
             self._crash_msg()
             self.quit()
@@ -1197,7 +1258,7 @@ If this all works, you can then make calls like:
 
         EXAMPLES: We observe nothing, just as it should be::
 
-            sage: r._synchronize()
+            sage: singular._synchronize()
 
         TESTS:
 
@@ -1221,8 +1282,8 @@ If this all works, you can then make calls like:
         self._sendstr(cmd)
         try:
             self._expect_expr(timeout=0.5)
-            if not s in self._expect.before:
-                self._expect_expr(s,timeout=0.5)
+            if not s in self._before():
+                self._expect_expr(s, timeout=0.5)
                 self._expect_expr(timeout=0.5)
         except pexpect.TIMEOUT:
             self._interrupt()
@@ -1379,7 +1440,7 @@ class ExpectElement(InterfaceElement):
             # coercion to work properly.
             except (RuntimeError, ValueError) as x:
                 self._session_number = -1
-                raise_(TypeError, x, sys.exc_info()[2])
+                raise_(TypeError, TypeError(*x.args), sys.exc_info()[2])
             except BaseException:
                 self._session_number = -1
                 raise
@@ -1415,7 +1476,7 @@ class ExpectElement(InterfaceElement):
         except ValueError:
             return
         try:
-            if hasattr(self,'_name'):
+            if hasattr(self, '_name'):
                 P = self.parent()
                 if P is not None:
                     P.clear(self._name)
@@ -1471,10 +1532,16 @@ class StdOutContext:
         if self.interface._expect is None:
             self.interface._start()
         self._logfile_backup = self.interface._expect.logfile
-        if self.interface._expect.logfile:
-            self.interface._expect.logfile = Multiplex(self.interface._expect.logfile, self.stdout)
+
+        if isinstance(self.stdout, io.TextIOWrapper):
+            stdout = self.stdout.buffer
         else:
-            self.interface._expect.logfile = Multiplex(self.stdout)
+            stdout = self.stdout
+
+        if self.interface._expect.logfile:
+            self.interface._expect.logfile = Multiplex(self.interface._expect.logfile, stdout)
+        else:
+            self.interface._expect.logfile = Multiplex(stdout)
         return self.interface
 
     def __exit__(self, typ, value, tb):

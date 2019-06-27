@@ -21,8 +21,8 @@ from sage.rings.rational_field import QQ
 from sage.symbolic.all import I, SR
 from sage.functions.all import exp
 from sage.symbolic.operators import arithmetic_operators, relation_operators, FDerivativeOperator, add_vararg, mul_vararg
-from sage.functions.piecewise import piecewise
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
+from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
 from functools import reduce
 GaussianField = I.pyobject().parent()
 
@@ -183,7 +183,7 @@ class Converter(object):
             Traceback (most recent call last):
             ...
             NotImplementedError: composition
-            sage: c(function('f', x).diff(x))
+            sage: c(function('f')(x).diff(x))
             Traceback (most recent call last):
             ...
             NotImplementedError: derivative
@@ -347,7 +347,7 @@ class Converter(object):
         TESTS::
 
             sage: from sage.symbolic.expression_conversions import Converter
-            sage: a = function('f', x).diff(x); a
+            sage: a = function('f')(x).diff(x); a
             diff(f(x), x)
             sage: Converter().derivative(a, a.operator())
             Traceback (most recent call last):
@@ -522,7 +522,7 @@ class InterfaceInit(Converter):
 
         ::
 
-            sage: f = function('f', x)
+            sage: f = function('f')(x)
             sage: df = f.diff(x); df
             diff(f(x), x)
             sage: maxima(df)
@@ -795,6 +795,37 @@ class SympyConverter(Converter):
         else:
             return sympy.Function(str(f))(*g, evaluate=False)
 
+    def tuple(self, ex):
+        """
+        Conversion of tuples.
+
+        EXAMPLES::
+
+            sage: t = SR._force_pyobject((3, 4, e^x))
+            sage: t._sympy_()
+            (3, 4, e^x)
+            sage: t = SR._force_pyobject((cos(x),))
+            sage: t._sympy_()
+            (cos(x),)
+
+        TESTS::
+
+            sage: from sage.symbolic.expression_conversions import sympy_converter
+            sage: F = hypergeometric([1/3,2/3],[1,1],x)
+            sage: F._sympy_()
+            hyper((1/3, 2/3), (1, 1), x)
+
+            sage: F = hypergeometric([1/3,2/3],[1],x)
+            sage: F._sympy_()
+            hyper((1/3, 2/3), (1,), x)
+
+            sage: var('a,b,c,d')
+            (a, b, c, d)
+            sage: hypergeometric((a,b,),(c,),d)._sympy_()
+            hyper((a, b), (c,), d)
+        """
+        return tuple(ex.operands())
+
     def derivative(self, ex, operator):
         """
         Convert the derivative of ``self`` in sympy.
@@ -816,17 +847,17 @@ class SympyConverter(Converter):
             sage: df_sage = f_sage.diff(x, 2, y, 1); df_sage
             diff(f_sage(x, y), x, x, y)
             sage: df_sympy = df_sage._sympy_(); df_sympy
-            Derivative(f_sage(x, y), x, x, y)
+            Derivative(f_sage(x, y), (x, 2), y)
             sage: df_sympy == f_sympy.diff(x, 2, y, 1)
             True
         """
         import sympy
 
-        # retrive derivated function
+        # retrieve derivated function
         f = operator.function()
         f_sympy = self.composition(ex, f)
 
-        # retrive order
+        # retrieve order
         order = operator._parameter_set
         # arguments
         _args = ex.arguments()
@@ -842,6 +873,79 @@ class SympyConverter(Converter):
 
 
 sympy_converter = SympyConverter()
+
+##########
+# FriCAS #
+##########
+class FriCASConverter(InterfaceInit):
+    """
+    Converts any expression to FriCAS.
+
+    EXAMPLES::
+
+        sage: var('x,y')
+        (x, y)
+        sage: f = exp(x^2) - arcsin(pi+x)/y
+        sage: f._fricas_()                                                      # optional - fricas
+             2
+            x
+        y %e   - asin(x + %pi)
+        ----------------------
+                   y
+
+    """
+    def __init__(self):
+        import sage.interfaces.fricas
+        super(FriCASConverter, self).__init__(sage.interfaces.fricas.fricas)
+
+    def derivative(self, ex, operator):
+        """
+        Convert the derivative of ``self`` in FriCAS.
+
+        INPUT:
+
+        - ``ex`` -- a symbolic expression
+
+        - ``operator`` -- operator
+
+        EXAMPLES::
+
+            sage: var('x,y,z')
+            (x, y, z)
+            sage: f = function("F")
+            sage: f(x)._fricas_()                                               # optional - fricas
+            F(x)
+            sage: diff(f(x,y,z), x, z, x)._fricas_()                            # optional - fricas
+            F      (x,y,z)
+             ,1,1,3
+
+        Check that :trac:`25838` is fixed::
+
+            sage: var('x')
+            x
+            sage: F = function('F')
+            sage: integrate(F(x), x, algorithm="fricas")                        # optional - fricas
+            integral(F(x), x)
+
+            sage: integrate(diff(F(x), x)*sin(F(x)), x, algorithm="fricas")     # optional - fricas
+            -cos(F(x))
+        """
+        from sage.symbolic.ring import is_SymbolicVariable
+        args = ex.operands()
+        if (not all(is_SymbolicVariable(v) for v in args) or
+            len(args) != len(set(args))):
+            raise NotImplementedError
+        else:
+            f = operator.function()(*args)
+            params = operator.parameter_set()
+            params_set = set(params)
+            vars = "[" + ",".join(args[i]._fricas_init_() for i in params_set) + "]"
+            mult = "[" + ",".join(str(params.count(i)) for i in params_set) + "]"
+            outstr = "D(%s, %s, %s)"%(f._fricas_init_(), vars, mult)
+
+        return outstr
+
+fricas_converter = FriCASConverter()
 
 #############
 # Algebraic #
@@ -956,41 +1060,69 @@ class AlgebraicConverter(Converter):
             sage: a.composition(exp(pi*I*RR(1), hold=True), exp)
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion from Real Field with 53 bits of precision to Rational Field
+            TypeError: unable to convert e^(1.00000000000000*I*pi) to Algebraic Field
             sage: a.composition(exp(pi*CC.gen(), hold=True), exp)
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion from Real Field with 53 bits of precision to Rational Field
+            TypeError: unable to convert e^(1.00000000000000*I*pi) to Algebraic Field
             sage: bool(sin(pi*RR("0.7000000000000002")) > 0)
             True
+
+        Check that :trac:`24440` is fixed::
+
+            sage: QQbar(tanh(pi + 0.1))
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to represent as an algebraic number
+            sage: QQbar(sin(I*pi/7))
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to represent as an algebraic number
+            sage: QQbar(sin(I*pi/7, hold=True))
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to represent as an algebraic number
         """
         func = operator
         operand, = ex.operands()
 
-        QQbar = self.field.algebraic_closure()
+        if isinstance(self.field, UniversalCyclotomicField):
+            QQbar = self.field
+            hold = True
+        else:
+            QQbar = self.field.algebraic_closure()
+            hold = False
+        zeta = QQbar.zeta
         # Note that comparing functions themselves goes via maxima, and is SLOW
         func_name = repr(func)
         if func_name == 'exp':
-            if operand.real():
+            if operand.is_trivial_zero():
+                return self.field.one()
+            if not (SR(-1).sqrt()*operand).is_real():
                 raise ValueError("unable to represent as an algebraic number")
             # Coerce (not convert, see #22571) arg to a rational
             arg = operand.imag()/(2*ex.parent().pi())
-            rat_arg = QQ.coerce(arg.pyobject())
-            res = QQbar.zeta(rat_arg.denom())**rat_arg.numer()
+            try:
+                rat_arg = QQ.coerce(arg.pyobject())
+            except TypeError:
+                raise TypeError("unable to convert %r to %s"%(ex, self.field))
+            res = zeta(rat_arg.denom())**rat_arg.numer()
         elif func_name in ['sin', 'cos', 'tan']:
-            exp_ia = exp(SR(-1).sqrt()*operand)._algebraic_(QQbar)
+            exp_ia = exp(SR(-1).sqrt()*operand, hold=hold)._algebraic_(QQbar)
             if func_name == 'sin':
-                res = (exp_ia - ~exp_ia)/(2*QQbar.zeta(4))
+                res = (exp_ia - ~exp_ia) / (2 * zeta(4))
             elif func_name == 'cos':
-                res = (exp_ia + ~exp_ia)/2
+                res = (exp_ia + ~exp_ia) / 2
             else:
-                res = -QQbar.zeta(4)*(exp_ia - ~exp_ia)/(exp_ia + ~exp_ia)
+                res = -zeta(4) * (exp_ia - ~exp_ia) / (exp_ia + ~exp_ia)
         elif func_name in ['sinh', 'cosh', 'tanh']:
-            exp_a = exp(operand)._algebraic_(QQbar)
+            if not (SR(-1).sqrt()*operand).is_real():
+                raise ValueError("unable to represent as an algebraic number")
+            exp_a = exp(operand, hold=hold)._algebraic_(QQbar)
             if func_name == 'sinh':
-                res = (exp_a - ~exp_a)/2
+                res = (exp_a - ~exp_a) / 2
             elif func_name == 'cosh':
-                res = (exp_a + ~exp_a)/2
+                res = (exp_a + ~exp_a) / 2
             else:
                 res = (exp_a - ~exp_a) / (exp_a + ~exp_a)
         elif func_name in self.reciprocal_trig_functions:
@@ -1779,8 +1911,9 @@ class RingConverter(Converter):
 
     def symbol(self, ex):
         """
-        All symbols appearing in the expression must appear in *subs_dict*
-        in order for the conversion to be successful.
+        All symbols appearing in the expression must either appear in *subs_dict*
+        or be convertable by the ring's element constructor in order for the
+        conversion to be successful.
 
         EXAMPLES::
 
@@ -1793,12 +1926,18 @@ class RingConverter(Converter):
             sage: R(x+pi)
             Traceback (most recent call last):
             ...
-            TypeError
+            TypeError: unable to simplify to a real interval approximation
+
+            sage: R = RingConverter(QQ['x'])
+            sage: R(x^2+x)
+            x^2 + x
+            sage: R(x^2+x).parent()
+            Univariate Polynomial Ring in x over Rational Field
         """
         try:
             return self.ring(self.subs_dict[ex])
         except KeyError:
-            raise TypeError
+            return self.ring(ex)
 
     def pyobject(self, ex, obj):
         """

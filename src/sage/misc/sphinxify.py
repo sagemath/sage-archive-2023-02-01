@@ -14,7 +14,11 @@ AUTHORS:
 #*****************************************************************************
 #       Copyright (C) 2009 Tim Dumol <tim@timdumol.com>
 #
-# Distributed under the terms of the BSD License
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import, print_function
 
@@ -47,11 +51,11 @@ def sphinxify(docstring, format='html'):
 
         sage: from sage.misc.sphinxify import sphinxify
         sage: sphinxify('A test')
-        '...<div class="docstring">\n    \n  <p>A test</p>\n\n\n</div>'
+        '<div class="docstring">\n    \n  <p>A test</p>\n\n\n</div>'
         sage: sphinxify('**Testing**\n`monospace`')
-        '...<div class="docstring"...<strong>Testing</strong>\n<span class="math"...</p>\n\n\n</div>'
+        '<div class="docstring"...<strong>Testing</strong>\n<span class="math...</p>\n\n\n</div>'
         sage: sphinxify('`x=y`')
-        '...<div class="docstring">\n    \n  <p><span class="math">x=y</span></p>\n\n\n</div>'
+        '<div class="docstring">\n    \n  <p><span class="math notranslate nohighlight">x=y</span></p>\n\n\n</div>'
         sage: sphinxify('`x=y`', format='text')
         'x=y\n'
         sage: sphinxify(':math:`x=y`', format='text')
@@ -64,20 +68,20 @@ def sphinxify(docstring, format='html'):
         sage: assert n == len(sys.path)
     """
     srcdir = mkdtemp()
-    base_name = os.path.join(srcdir, 'docstring')
-    rst_name = base_name + '.rst'
+    outdir = mkdtemp()
+    src_base_name = os.path.join(srcdir, 'docstring')
+    out_base_name = os.path.join(outdir, 'docstring')
+    rst_name = src_base_name + '.rst'
 
     if format == 'html':
         suffix = '.html'
     else:
         suffix = '.txt'
-    output_name = base_name + suffix
+    output_name = out_base_name + suffix
 
     with open(rst_name, 'w') as filed:
         filed.write(docstring)
 
-    # Sphinx constructor: Sphinx(srcdir, confdir, outdir, doctreedir,
-    # buildername, confoverrides, status, warning, freshenv).
     confdir = os.path.join(SAGE_DOC_SRC, 'en', 'introspect')
 
     open(os.path.join(srcdir, 'docutils.conf'), 'w').write(r"""
@@ -89,7 +93,9 @@ smart_quotes = no
 
     import sys
     old_sys_path = list(sys.path)  # Sphinx modifies sys.path
-    sphinx_app = Sphinx(srcdir, confdir, srcdir, doctreedir, format,
+    # Sphinx constructor: Sphinx(srcdir, confdir, outdir, doctreedir,
+    # buildername, confoverrides, status, warning, freshenv).
+    sphinx_app = Sphinx(srcdir, confdir, outdir, doctreedir, format,
                         confoverrides, None, None, True)
     sphinx_app.build(None, [rst_name])
     sys.path = old_sys_path
@@ -108,19 +114,21 @@ smart_quotes = no
         #    "/media/...path.../blah.png"
         # to
         #    "/doc/static/reference/media/...path.../blah.png"
-        output = re.sub("""src=['"](/?\.\.)*/?media/([^"']*)['"]""",
-                          'src="/doc/static/reference/media/\\2"',
-                          output)
+        output = re.sub(r"""src=['"](/?\.\.)*/?media/([^"']*)['"]""",
+                        'src="/doc/static/reference/media/\\2"',
+                        output)
         # Remove spurious \(, \), \[, \].
         output = output.replace('\\(', '').replace('\\)', '').replace('\\[', '').replace('\\]', '')
     else:
-        print("BUG -- Sphinx error")
+        from warnings import warn
+        warn("Sphinx did not produce any output", Warning)
         if format == 'html':
             output = '<pre class="introspection">%s</pre>' % docstring
         else:
             output = docstring
 
     shutil.rmtree(srcdir, ignore_errors=True)
+    shutil.rmtree(outdir, ignore_errors=True)
 
     return output
 

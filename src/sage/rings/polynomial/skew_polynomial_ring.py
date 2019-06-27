@@ -105,7 +105,7 @@ def _minimal_vanishing_polynomial(R, eval_pts):
 
     The minimal vanishing polynomial.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.rings.polynomial.skew_polynomial_ring import _minimal_vanishing_polynomial
         sage: k.<t> = GF(5^3)
@@ -206,7 +206,7 @@ def _lagrange_polynomial(R, eval_pts, values):
 
 
 class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
-    """
+    r"""
     A general implementation of univariate skew polynomialring over a commutative ring.
 
     Let `R` be a commutative ring, and let `\sigma` be an automorphism of
@@ -219,7 +219,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
         X*a = \sigma(a) X.
 
     This means that `R[X, \sigma]` is a non-commutative ring. Skew polynomials
-    were first introduced by Ore [Ore33]_.
+    were first introduced by Ore [Ore1933]_.
 
     EXAMPLES::
 
@@ -284,13 +284,6 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
 
         :meth:`sage.rings.polynomial.skew_polynomial_ring_constructor.SkewPolynomialRing`
         :mod:`sage.rings.polynomial.skew_polynomial_element`
-
-    REFERENCES:
-
-    .. [Ore33] Oystein Ore.
-       *Theory of Non-Commutative Polynomials*
-       Annals of Mathematics, Second Series, Volume 34,
-       Issue 3 (Jul., 1933), 480-508.
     """
     @staticmethod
     def __classcall__(cls, base_ring, twist_map=None, name=None, sparse=False,
@@ -738,7 +731,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
             Since sparse skew polynomials are not yet implemented, this
             function always returns ``False``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: R.<t> = RR[]
             sage: sigma = R.hom([t+1])
@@ -902,12 +895,12 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
         return _minimal_vanishing_polynomial(_base_ring_to_fraction_field(self), eval_pts)
 
     def lagrange_polynomial(self, points):
-        """
+        r"""
         Return the minimal-degree polynomial which interpolates the given
         points.
 
         More precisely, given `n` pairs `(x_1, y_1), ..., (x_n, y_n) \in R^2`,
-        where `R` is ``self.base_ring()``, compute a skew polymial `p(x)` such
+        where `R` is ``self.base_ring()``, compute a skew polynomial `p(x)` such
         that `p(x_i) = y_i` for each `i`, under the condition that the `x_i` are
         linearly independent over the fixed field of ``self.twist_map()``.
 

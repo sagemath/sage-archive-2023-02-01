@@ -68,7 +68,7 @@ Another colored example::
 
         S = ParametricSurface(f=lambda xy: (xy[0],xy[1],0), domain=(range(10),range(10)))
 """
-#*****************************************************************************
+# ****************************************************************************
 #      Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -80,15 +80,16 @@ Another colored example::
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from cysignals.memory cimport sig_malloc, sig_free
-from cysignals.signals cimport sig_on, sig_off
+from cysignals.signals cimport sig_check
 
 from math import cos, sin
 from sage.rings.all import RDF
 
+from sage.plot.colors import check_color_data
 from .base import RenderParams
 from .transform cimport point_c, face_c
 from sage.ext.fast_eval cimport FastDoubleFunc
@@ -100,7 +101,7 @@ include "point_c.pxi"
 cdef inline bint smash_edge(point_c* vs, face_c* f, int a, int b):
     if point_c_eq(vs[f.vertices[a]], vs[f.vertices[b]]):
         f.vertices[b] = f.vertices[a]
-        f.n = 3
+        f.n -= 1
         return 1
     else:
         return 0
@@ -195,8 +196,9 @@ cdef class ParametricSurface(IndexFaceSet):
             IndexFaceSet.__init__(self, [], [], **kwds)
         else:
             # case of a color depending on parameters
-            self.color_function = color_data[0]
-            self.colormap = color_data[1]
+            cf, cm = check_color_data(color_data)
+            self.color_function = cf
+            self.colormap = cm
             IndexFaceSet.__init__(self, [], [], texture_list=[], **kwds)
 
     def default_render_params(self):
@@ -416,7 +418,7 @@ cdef class ParametricSurface(IndexFaceSet):
         urange, vrange = self.get_grid(ds)
         urange = [float(u) for u in urange]
         vrange = [float(v) for v in vrange]
-        if self.render_grid == (urange, vrange) and self.fcount != 0:
+        if self.render_grid == (urange, vrange) and self.fcount:
             # Already triangulated at on this grid.
             return
 
@@ -425,12 +427,10 @@ cdef class ParametricSurface(IndexFaceSet):
         cdef Py_ssize_t m = len(vrange) - 1
         cdef Py_ssize_t ix = 0
 
-        sig_on()
         try:
             self.realloc((m+1)*(n+1), m*n, 4*m*n)
             self.eval_grid(urange, vrange)
         except BaseException:
-            sig_off()
             self.fcount = self.vcount = 0
             self.render_grid = None
             raise
@@ -442,11 +442,11 @@ cdef class ParametricSurface(IndexFaceSet):
         #   3 - 2
 
         cdef face_c *face
-        cdef face_c *last_face
 
-        for i from 0 <= i < n:
-            for j from 0 <= j < m:
-                ix = i*m+j
+        for i in range(n):
+            for j in range(m):
+                sig_check()
+                ix = i*m + j
                 face = &self._faces[ix]
                 face.n = 4
                 face.vertices = &self.face_indices[4*ix]
@@ -474,41 +474,66 @@ cdef class ParametricSurface(IndexFaceSet):
 
                 # This is the newly-seen vertex, identify if it's a triangle
                 face.vertices[2] = (i+1)*(m+1)+j+1
-                smash_edge(self.vs, face, 1, 2) or smash_edge(self.vs, face, 3, 2)
+                smash_edge(self.vs, face, 1, 2)
+                smash_edge(self.vs, face, 3, 2)
 
         # Now we see if it wraps around or is otherwise enclosed
-        cdef bint enclosed = 1
+        self.enclosed = True
 
         cdef face_c *first
         cdef face_c *last
-        for j from 0 <= j < m:
+        cdef point_c first_v0
+        cdef point_c first_v1
+        cdef point_c first_v3
+        cdef point_c last_v1
+        cdef point_c last_v2
+        cdef point_c last_v3
+        for j in range(m):
+            sig_check()
             first = &self._faces[j]
-            last  = &self._faces[(n-1)*m+j]
-            if point_c_eq(self.vs[first.vertices[0]], self.vs[last.vertices[3]]):
+            first_v0 = self.vs[first.vertices[0]]
+            first_v1 = self.vs[first.vertices[1]]
+            if not (point_c_isfinite(first_v0) and point_c_isfinite(first_v1)):
+                continue
+            last = &self._faces[(n-1)*m+j]
+            last_v3 = self.vs[last.vertices[3]]
+            last_v2 = self.vs[last.vertices[2]]
+            if not (point_c_isfinite(last_v3) and point_c_isfinite(last_v2)):
+                continue
+            if point_c_eq(first_v0, last_v3):
                 last.vertices[3] = first.vertices[0]
             elif first.vertices[0] != first.vertices[1] or last.vertices[3] != last.vertices[2]:
-                enclosed = 0
-            if point_c_eq(self.vs[first.vertices[1]], self.vs[last.vertices[2]]):
+                self.enclosed = False
+            if point_c_eq(first_v1, last_v2):
                 last.vertices[2] = first.vertices[1]
             elif first.vertices[0] != first.vertices[1] or last.vertices[3] != last.vertices[2]:
-                enclosed = 0
+                self.enclosed = False
 
-        for i from 0 <= i < n:
+        for i in range(n):
+            sig_check()
             first = &self._faces[i*m]
-            last  = &self._faces[i*m + m-1]
-            if point_c_eq(self.vs[first.vertices[0]], self.vs[last.vertices[1]]):
+            first_v0 = self.vs[first.vertices[0]]
+            first_v3 = self.vs[first.vertices[3]]
+            if not (point_c_isfinite(first_v0) and point_c_isfinite(first_v3)):
+                continue
+            last = &self._faces[i*m + m-1]
+            last_v1 = self.vs[last.vertices[1]]
+            last_v2 = self.vs[last.vertices[2]]
+            if not (point_c_isfinite(last_v1) and point_c_isfinite(last_v2)):
+                continue
+            if point_c_eq(first_v0, last_v1):
                 last.vertices[1] = first.vertices[0]
             elif first.vertices[0] != first.vertices[3] or last.vertices[1] != last.vertices[2]:
-                enclosed = 0
-            if point_c_eq(self.vs[first.vertices[3]], self.vs[last.vertices[2]]):
+                self.enclosed = False
+            if point_c_eq(first_v3, last_v2):
                 last.vertices[2] = first.vertices[3]
             elif first.vertices[0] != first.vertices[3] or last.vertices[1] != last.vertices[2]:
-                enclosed = 0
-
-        self.enclosed = enclosed
+                self.enclosed = False
 
         # make sure we deleted the correct point from the triangles
-        for ix from 0 <= ix < n*m:
+        # so that the correct vertices are the first 3 ones
+        for ix in range(n * m):
+            sig_check()
             face = &self._faces[ix]
             if face.n == 3:
                 if face.vertices[3] == face.vertices[2] or face.vertices[3] == face.vertices[0]:
@@ -516,14 +541,8 @@ cdef class ParametricSurface(IndexFaceSet):
                 else:
                     if face.vertices[0] == face.vertices[1]:
                         face.vertices[1] = face.vertices[2]
-                    # face.vertices[1] == face.vertices[2]
                     face.vertices[2] = face.vertices[3]
 
-        sig_off()
-
-        self.vcount = (n+1)*(m+1)
-        self.fcount = n*m
-        self.icount = 4*n*m
         self._clean_point_list()
 
         self.render_grid = urange, vrange
@@ -560,106 +579,116 @@ cdef class ParametricSurface(IndexFaceSet):
         In addition, branches are taken for efficient calling of FastDoubleFunc
         (including whether to iterate over python or c doubles).
         """
-        cdef Py_ssize_t i, j, m, n
+        cdef Py_ssize_t i, j
+        cdef Py_ssize_t m = len(urange)
+        cdef Py_ssize_t n = len(vrange)
         cdef double u, v
         cdef double uv[2]
         cdef point_c *res
-        cdef double* ulist
-        cdef double* vlist
+        cdef double* ulist = NULL
+        cdef double* vlist = NULL
         cdef bint fast_x, fast_y, fast_z
 
         if self.f is None:
-
-            m, n = len(urange), len(vrange)
             ulist = to_double_array(urange)
             vlist = to_double_array(vrange)
 
-            for i from 0 <= i < m:
+            res = self.vs
+            for i in range(m):
                 u = ulist[i]
-                for j from 0 <= j < n:
+                for j in range(n):
+                    sig_check()
                     v = vlist[j]
-                    self.eval_c(&self.vs[i*n+j], u, v)
-
-            sig_free(ulist)
-            sig_free(vlist)
-
+                    self.eval_c(res, u, v)
+                    res += 1
         elif isinstance(self.f, tuple):
+            fx, fy, fz = self.f
 
-                fx, fy, fz = self.f
-                fast_x = isinstance(fx, FastDoubleFunc) or isinstance(fx, Wrapper_rdf)
-                fast_y = isinstance(fy, FastDoubleFunc) or isinstance(fx, Wrapper_rdf)
-                fast_z = isinstance(fz, FastDoubleFunc) or isinstance(fx, Wrapper_rdf)
+            # First, deal with the fast functions (if any)
+            fast_x = isinstance(fx, (FastDoubleFunc, Wrapper_rdf))
+            fast_y = isinstance(fy, (FastDoubleFunc, Wrapper_rdf))
+            fast_z = isinstance(fz, (FastDoubleFunc, Wrapper_rdf))
+            if fast_x or fast_y or fast_z:
+                ulist = to_double_array(urange)
+                vlist = to_double_array(vrange)
 
-                if fast_x or fast_y or fast_z:
+                res = self.vs
+                if isinstance(fx, FastDoubleFunc):
+                    for i in range(m):
+                        uv[0] = ulist[i]
+                        for j in range(n):
+                            sig_check()
+                            uv[1] = vlist[j]
+                            res.x = (<FastDoubleFunc>fx)._call_c(uv)
+                            res += 1
+                elif fast_x: # must be Wrapper_rdf
+                    for i in range(m):
+                        uv[0] = ulist[i]
+                        for j in range(n):
+                            sig_check()
+                            uv[1] = vlist[j]
+                            (<Wrapper_rdf>fx).call_c(uv, &res.x)
+                            res += 1
 
-                    m, n = len(urange), len(vrange)
-                    ulist = to_double_array(urange)
-                    vlist = to_double_array(vrange)
+                res = self.vs
+                if isinstance(fy, FastDoubleFunc):
+                    for i in range(m):
+                        uv[0] = ulist[i]
+                        for j in range(n):
+                            sig_check()
+                            uv[1] = vlist[j]
+                            res.y = (<FastDoubleFunc>fy)._call_c(uv)
+                            res += 1
+                elif fast_y: # must be Wrapper_rdf
+                    for i from 0 <= i < m:
+                        uv[0] = ulist[i]
+                        for j from 0 <= j < n:
+                            sig_check()
+                            uv[1] = vlist[j]
+                            (<Wrapper_rdf>fy).call_c(uv, &res.y)
+                            res += 1
 
-                    if isinstance(fx, FastDoubleFunc):
-                        for i from 0 <= i < m:
-                            uv[0] = ulist[i]
-                            for j from 0 <= j < n:
-                                uv[1] = vlist[j]
-                                self.vs[i*n+j].x = (<FastDoubleFunc>fx)._call_c(uv)
-                    elif fast_x: # must be Wrapper_rdf
-                        for i from 0 <= i < m:
-                            uv[0] = ulist[i]
-                            for j from 0 <= j < n:
-                                uv[1] = vlist[j]
-                                (<Wrapper_rdf>fx).call_c(uv, &self.vs[i*n+j].x)
+                res = self.vs
+                if isinstance(fz, FastDoubleFunc):
+                    for i in range(m):
+                        uv[0] = ulist[i]
+                        for j in range(n):
+                            sig_check()
+                            uv[1] = vlist[j]
+                            res.z = (<FastDoubleFunc>fz)._call_c(uv)
+                            res += 1
+                elif fast_z: # must be Wrapper_rdf
+                    for i in range(m):
+                        uv[0] = ulist[i]
+                        for j in range(n):
+                            sig_check()
+                            uv[1] = vlist[j]
+                            (<Wrapper_rdf>fz).call_c(uv, &res.z)
+                            res += 1
 
-
-                    if isinstance(fy, FastDoubleFunc):
-                        for i from 0 <= i < m:
-                            uv[0] = ulist[i]
-                            for j from 0 <= j < n:
-                                uv[1] = vlist[j]
-                                self.vs[i*n+j].y = (<FastDoubleFunc>fy)._call_c(uv)
-                    elif fast_y: # must be Wrapper_rdf
-                        for i from 0 <= i < m:
-                            uv[0] = ulist[i]
-                            for j from 0 <= j < n:
-                                uv[1] = vlist[j]
-                                (<Wrapper_rdf>fy).call_c(uv, &self.vs[i*n+j].y)
-
-                    if isinstance(fz, FastDoubleFunc):
-                        for i from 0 <= i < m:
-                            uv[0] = ulist[i]
-                            for j from 0 <= j < n:
-                                uv[1] = vlist[j]
-                                self.vs[i*n+j].z = (<FastDoubleFunc>fz)._call_c(uv)
-                    elif fast_z: # must be Wrapper_rdf
-                        for i from 0 <= i < m:
-                            uv[0] = ulist[i]
-                            for j from 0 <= j < n:
-                                uv[1] = vlist[j]
-                                (<Wrapper_rdf>fz).call_c(uv, &self.vs[i*n+j].z)
-
-
-                    sig_free(ulist)
-                    sig_free(vlist)
-
-                if not (fast_x and fast_y and fast_z):
-                    ix = 0
-                    for uu in urange:
-                        for vv in vrange:
-                            res = &self.vs[ix]
-                            if not fast_x:
-                                res.x = fx(uu, vv)
-                            if not fast_y:
-                                res.y = fy(uu, vv)
-                            if not fast_z:
-                                res.z = fz(uu, vv)
-                            ix += 1
-
+            # Finally, deal with the slow functions (if any)
+            if (not fast_x) or (not fast_y) or (not fast_z):
+                res = self.vs
+                for uu in urange:
+                    for vv in vrange:
+                        sig_check()
+                        if not fast_x:
+                            res.x = fx(uu, vv)
+                        if not fast_y:
+                            res.y = fy(uu, vv)
+                        if not fast_z:
+                            res.z = fz(uu, vv)
+                        res += 1
         else:
-            ix = 0
+            res = self.vs
             for uu in urange:
                 for vv in vrange:
-                    res = &self.vs[ix]
+                    sig_check()
                     res.x, res.y, res.z = self.f(uu, vv)
-                    ix += 1
+                    res += 1
+
+        sig_free(ulist)
+        sig_free(vlist)
 
     # One of the following two methods should be overridden in
     # derived classes.
@@ -797,4 +826,3 @@ cdef double* to_double_array(py_list) except NULL:
         c_list[i] = a
         i += 1
     return c_list
-

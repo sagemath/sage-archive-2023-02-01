@@ -13,8 +13,8 @@ Compute with harmonic cocycles and `p`-adic automorphic forms, including
 overconvergent `p`-adic automorphic forms.
 
 For a discussion of nearly rigid analytic modular forms and
-the rigid analytic Shimura-Maass operator, see [F]_. It is worth also
-looking at [FM]_ for information on how these are implemented in this code.
+the rigid analytic Shimura-Maass operator, see [Fra2011]_. It is worth also
+looking at [FM2014]_ for information on how these are implemented in this code.
 
 EXAMPLES:
 
@@ -38,16 +38,10 @@ This can then be lifted to an overconvergent `p`-adic modular form::
 
     sage: A.lift(a) # long time
     p-adic automorphic form of cohomological weight 0
-
-REFERENCES:
-
-.. [F] Nearly rigid analytic modular forms and their values at CM points
-   Cameron Franc
-   Ph.D. thesis, McGill University, 2011.
 """
 from __future__ import print_function, division
 
-from builtins import zip
+from six.moves import zip, filter
 
 from sage.modular.btquotients.btquotient import DoubleCosetReduction
 from sage.structure.unique_representation import UniqueRepresentation
@@ -404,11 +398,11 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
             sage: X = BruhatTitsQuotient(3,17)
             sage: H = X.harmonic_cocycles(2,prec=10)
             sage: H.basis()[0]._compute_element()
-            (1 + O(3^9), O(3^9), 0)
+            (1 + O(3^10), 0, 0)
             sage: H.basis()[1]._compute_element()
-            (0, 1 + O(3^9), 0)
+            (0, 1 + O(3^10), 0)
             sage: H.basis()[2]._compute_element()
-            (0, O(3^9), 1 + O(3^10))
+            (0, 0, 1 + O(3^10))
         """
         R = self._R
         A = self.parent().basis_matrix().transpose()
@@ -556,13 +550,13 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
             sage: b = H.basis()[0]
             sage: R.<a> = Qq(9,prec=10)
             sage: x1 = b.modular_form(a,level = 0); x1
-            a + (2*a + 1)*3 + (a + 1)*3^2 + (a + 1)*3^3 + 3^4 + (a + 2)*3^5 + O(3^7)
+            a + (2*a + 1)*3 + (a + 1)*3^2 + (a + 1)*3^3 + 3^4 + (a + 2)*3^5 + a*3^7 + O(3^8)
             sage: x2 = b.modular_form(a,level = 1); x2
-            a + (a + 2)*3 + (2*a + 1)*3^3 + (2*a + 1)*3^4 + 3^5 + (a + 2)*3^6 + O(3^7)
+            a + (a + 2)*3 + (2*a + 1)*3^3 + (2*a + 1)*3^4 + 3^5 + (a + 2)*3^6 + a*3^7 + O(3^8)
             sage: x3 = b.modular_form(a,level = 2); x3
-            a + (a + 2)*3 + (2*a + 2)*3^2 + 2*a*3^4 + (a + 1)*3^5 + 3^6 + O(3^7)
+            a + (a + 2)*3 + (2*a + 2)*3^2 + 2*a*3^4 + (a + 1)*3^5 + 3^6 + O(3^8)
             sage: x4 = b.modular_form(a,level = 3);x4
-            a + (a + 2)*3 + (2*a + 2)*3^2 + (2*a + 2)*3^3 + 2*a*3^5 + a*3^6 + O(3^7)
+            a + (a + 2)*3 + (2*a + 2)*3^2 + (2*a + 2)*3^3 + 2*a*3^5 + a*3^6 + (a + 2)*3^7 + O(3^8)
             sage: (x4-x3).valuation()
             3
 
@@ -628,9 +622,9 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
             sage: b.modular_form(a,level=0) == b.derivative(a,level=0,order=0)
             True
             sage: b.derivative(a,level=1,order=1)
-            (2*a + 2)*3 + (a + 2)*3^2 + 2*a*3^3 + O(3^4)
+            (2*a + 2)*3 + (a + 2)*3^2 + 2*a*3^3 + 2*3^4 + O(3^5)
             sage: b.derivative(a,level=2,order=1)
-            (2*a + 2)*3 + 2*a*3^2 + 3^3 + O(3^4)
+            (2*a + 2)*3 + 2*a*3^2 + 3^3 + a*3^4 + O(3^5)
 
         """
         def F(z):
@@ -940,7 +934,7 @@ class BruhatTitsHarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
             sage: X = BruhatTitsQuotient(5,23)
             sage: H = X.harmonic_cocycles(2,prec=10)
             sage: latex(H) # indirect doctest
-            \text{Space of harmonic cocycles of weight } 2 \text{ on } X(5 \cdot 23,1)\otimes_{\mathbb{Z}} \mathbb{F}_{5}
+            \text{Space of harmonic cocycles of weight } 2 \text{ on } X(5 \cdot 23,1)\otimes_{\Bold{Z}} \Bold{F}_{5}
         """
         s = '\\text{Space of harmonic cocycles of weight } '
         s += (self._k)._latex_() + ' \\text{ on } ' + self._X._latex_()
@@ -954,7 +948,7 @@ class BruhatTitsHarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         A harmonic cocycle in self.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: X = BruhatTitsQuotient(5,23)
             sage: H = X.harmonic_cocycles(2,prec=10)
@@ -1037,6 +1031,20 @@ class BruhatTitsHarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
             False
         """
         return not self.__eq__(other)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: X = BruhatTitsQuotient(5,7)
+            sage: H1 = X.harmonic_cocycles(2,prec=10)
+            sage: H2 = X.harmonic_cocycles(2,prec=10)
+            sage: hash(H1) == hash(H2)
+            True
+        """
+        return hash((self.base_ring(), self._X, self._k))
 
     def _element_constructor_(self, x):
         r"""
@@ -1194,11 +1202,11 @@ class BruhatTitsHarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
         d = self._k - 1
         for e in self._E:
             try:
-                g = filter(lambda g: g[2], S[e.label])[0]
+                g = next(filter(lambda g: g[2], S[e.label]))
                 C = self._U.acting_matrix(self._Sigma0(self.embed_quaternion(g[0])), d).transpose()  # Warning - Need to allow the check = True
                 C -= self._U.acting_matrix(self._Sigma0(Matrix(QQ, 2, 2, p ** g[1])), d).transpose()  # Warning - Need to allow the check = True
                 stab_conds.append([e.label, C])
-            except IndexError:
+            except StopIteration:
                 pass
 
         n_stab_conds = len(stab_conds)
@@ -1517,7 +1525,7 @@ class pAdicAutomorphicFormElement(ModuleElement):
     automorphic form on a definite quaternion algebra over `\QQ`. These
     are required in order to compute moments of measures associated to
     harmonic cocycles on the Bruhat-Tits tree using the overconvergent modules
-    of Darmon-Pollack and Matt Greenberg. See Greenberg's thesis [G]_ for
+    of Darmon-Pollack and Matt Greenberg. See Greenberg's thesis [Gr2006]_ for
     more details.
 
     INPUT:
@@ -1533,12 +1541,6 @@ class pAdicAutomorphicFormElement(ModuleElement):
         sage: a = HH(h)
         sage: a
         p-adic automorphic form of cohomological weight 0
-
-    REFERENCES:
-
-    .. [G] Heegner points and rigid analytic modular forms
-       Matthew Greenberg
-       Ph.D. Thesis, McGill University, 2006.
 
     AUTHORS:
 
@@ -1713,7 +1715,7 @@ class pAdicAutomorphicFormElement(ModuleElement):
         X = self.parent()._source
         p = self.parent().prime()
         u = DoubleCosetReduction(X, e1)
-        tmp = ((u.t(self.parent()._U.base_ring().precision_cap())) * p ** (u.power)).adjoint()
+        tmp = ((u.t(self.parent()._U.base_ring().precision_cap())) * p ** (u.power)).adjugate()
         S0 = self.parent()._Sigma0
         return S0(tmp, check=False) * self._value[u.label]
         # Warning! Should remove check=False...
@@ -1808,7 +1810,7 @@ class pAdicAutomorphicFormElement(ModuleElement):
 
         REFERENCES:
 
-        For details see [G]_. Alternatively, one can look at
+        For details see [Gr2006]_. Alternatively, one can look at
         [DP]_ for the analogous algorithm in the case of modular symbols.
 
         AUTHORS:
@@ -1819,7 +1821,6 @@ class pAdicAutomorphicFormElement(ModuleElement):
         """
         MMM = self.parent()
         U = MMM._U
-        S0 = MMM._Sigma0
 
         h1 = MMM([o.lift(M=MMM.precision_cap()) for o in self._value])
         h2 = MMM._apply_Up_operator(h1, True)
@@ -2147,7 +2148,6 @@ class pAdicAutomorphicFormElement(ModuleElement):
         R = PolynomialRing(K, 'x')
         x = R.gen()
         R1 = LaurentSeriesRing(K, 'r1', default_prec=self.parent()._U.base_ring().precision_cap())
-        r1 = R1.gen()
         if E is None:
             E = self.parent()._source._BT.find_covering(t1, t2)
             # print('Got ', len(E), ' open balls.')
@@ -2393,6 +2393,20 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
         """
         return not self.__eq__(other)
 
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: X = BruhatTitsQuotient(5,7)
+            sage: H1 = X.padic_automorphic_forms(2,prec = 10)
+            sage: H2 = X.padic_automorphic_forms(2,prec = 10)
+            sage: hash(H1) == hash(H2)
+            True
+        """
+        return hash((self.base_ring(), self._source, self._U))
+
     def _repr_(self):
         r"""
         Return the representation of self as a string.
@@ -2600,7 +2614,7 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
                 m = M[ii]
                 for v in Si:
                     s += 1
-                    g = self._Sigma0(m.adjoint() * self._source.embed_quaternion(v[0], prec=self._prec).adjoint() * m,check = False)
+                    g = self._Sigma0(m.adjugate() * self._source.embed_quaternion(v[0], prec=self._prec).adjugate() * m,check = False)
                     newFi += g * x
                 newF.append((QQ(1) / s) * newFi)
             else:
@@ -2645,7 +2659,7 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
             for gg, edge_list in HeckeData:
                 u = edge_list[jj]
                 tprec = 2 * (prec_cap + u.power) + 1
-                r = S0(self._p ** -u.power * (u.t(tprec) * gg).adjoint(),check=False)
+                r = S0(self._p ** -u.power * (u.t(tprec) * gg).adjugate(),check=False)
                 tmp += r * f._value[u.label]
             tmp *= factor
             for ii in range(self._n + 1):

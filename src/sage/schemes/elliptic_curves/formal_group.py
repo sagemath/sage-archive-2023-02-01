@@ -112,7 +112,7 @@ class EllipticCurveFormalGroup(SageObject):
 
 
         to precision `O(t^{prec})` of Proposition IV.1.1 of
-        [SilBook]_. This is the formal expansion of
+        [Sil2009]_. This is the formal expansion of
         `w = -1/y` about the formal parameter `t = -x/y` at `\infty`.
 
         The result is cached, and a cached version is returned if
@@ -252,7 +252,7 @@ class EllipticCurveFormalGroup(SageObject):
                 x(t) = t^{-2} - a_1 t^{-1} - a_2 - a_3 t - \cdots
 
 
-        to precision `O(t^{prec})` of page 113 of [SilBook]_.
+        to precision `O(t^{prec})` of page 113 of [Sil2009]_.
 
         .. warning::
 
@@ -290,7 +290,7 @@ class EllipticCurveFormalGroup(SageObject):
                 y(t) = - t^{-3} + a_1 t^{-2} + a_2 t + a_3 + \cdots
 
 
-        to precision `O(t^{prec})` of page 113 of [SilBook]_.
+        to precision `O(t^{prec})` of page 113 of [Sil2009]_.
 
         The result is cached, and a cached version is returned if
         possible.
@@ -342,7 +342,7 @@ class EllipticCurveFormalGroup(SageObject):
                 f(t) = 1 + a_1 t + ({a_1}^2 + a_2) t^2 + \cdots
 
 
-        to precision `O(t^{prec})` of page 113 of [SilBook]_.
+        to precision `O(t^{prec})` of page 113 of [Sil2009]_.
 
         The result is cached, and a cached version is returned if
         possible.
@@ -427,7 +427,7 @@ class EllipticCurveFormalGroup(SageObject):
                 i(t) = - t + a_1 t^2 + \cdots
 
 
-        to precision `O(t^{prec})` of page 114 of [SilBook]_.
+        to precision `O(t^{prec})` of page 114 of [Sil2009]_.
 
         The result is cached, and a cached version is returned if
         possible.
@@ -484,7 +484,7 @@ class EllipticCurveFormalGroup(SageObject):
            F(t_1, t_2) = t_1 + t_2 - a_1 t_1 t_2 - \cdots
 
 
-        to precision `O(t1,t2)^{prec}` of page 115 of [SilBook]_.
+        to precision `O(t1,t2)^{prec}` of page 115 of [Sil2009]_.
 
         The result is cached, and a cached version is returned if possible.
 
@@ -582,7 +582,7 @@ class EllipticCurveFormalGroup(SageObject):
         return F
 
     def mult_by_n(self, n, prec=10):
-        """
+        r"""
         Return the formal 'multiplication by n' endomorphism `[n]`.
 
         INPUT:
@@ -600,7 +600,7 @@ class EllipticCurveFormalGroup(SageObject):
                                 [n](t) = n t + \cdots
 
 
-        to precision `O(t^{prec})` of Proposition 2.3 of [SilBook]_.
+        to precision `O(t^{prec})` of Proposition 2.3 of [Sil2009]_.
 
         .. warning::
 
@@ -665,8 +665,6 @@ class EllipticCurveFormalGroup(SageObject):
             sage: E = EllipticCurve(QQ, [1,2,3,4,6])
             sage: E.formal().mult_by_n(2,prec=5)
             2*t - t^2 - 4*t^3 - 19*t^4 + O(t^5)
-
-
         """
         if self.curve().base_ring().is_field() and self.curve().base_ring().characteristic() == 0 and n != 0:
             # The following algorithm only works over a field of

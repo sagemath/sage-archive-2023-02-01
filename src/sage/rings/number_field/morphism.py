@@ -57,15 +57,15 @@ class NumberFieldHomset(RingHomset_generic):
             sage: H = Hom(QuadraticField(-1, 'a'), QuadraticField(-1, 'b'))
             sage: phi = H([H.domain().gen()]); phi # indirect doctest
             Ring morphism:
-            From: Number Field in a with defining polynomial x^2 + 1
-            To:   Number Field in b with defining polynomial x^2 + 1
-            Defn: a |--> b
+              From: Number Field in a with defining polynomial x^2 + 1 with a = 1*I
+              To:   Number Field in b with defining polynomial x^2 + 1 with b = 1*I
+              Defn: a |--> b
         """
         if isinstance(im_gens, NumberFieldHomomorphism_im_gens):
             return self._coerce_impl(im_gens)
         try:
             return NumberFieldHomomorphism_im_gens(self, im_gens, check=check)
-        except (NotImplementedError, ValueError) as err:
+        except (NotImplementedError, ValueError):
             try:
                 return self._coerce_impl(im_gens)
             except TypeError:
@@ -81,7 +81,7 @@ class NumberFieldHomset(RingHomset_generic):
 
             sage: H1 = End(QuadraticField(-1, 'a'))
             sage: H1.coerce(loads(dumps(H1[1]))) # indirect doctest
-            Ring endomorphism of Number Field in a with defining polynomial x^2 + 1
+            Ring endomorphism of Number Field in a with defining polynomial x^2 + 1 with a = 1*I
               Defn: a |--> -a
 
         TESTS:
@@ -120,17 +120,15 @@ class NumberFieldHomset(RingHomset_generic):
             sage: H = Hom(QuadraticField(-1, 'a'), QuadraticField(-1, 'b'))
             sage: H.an_element() # indirect doctest
             Ring morphism:
-            From: Number Field in a with defining polynomial x^2 + 1
-            To:   Number Field in b with defining polynomial x^2 + 1
-            Defn: a |--> b
+              From: Number Field in a with defining polynomial x^2 + 1 with a = 1*I
+              To:   Number Field in b with defining polynomial x^2 + 1 with b = 1*I
+              Defn: a |--> b
 
             sage: H = Hom(QuadraticField(-1, 'a'), QuadraticField(-2, 'b'))
             sage: H.an_element()
             Traceback (most recent call last):
             ...
-            EmptySetError: There is no morphism from Number Field in a with
-            defining polynomial x^2 + 1 to Number Field in b with defining
-            polynomial x^2 + 2
+            EmptySetError: There is no morphism from Number Field in a with defining polynomial x^2 + 1 with a = 1*I to Number Field in b with defining polynomial x^2 + 2 with b = 1.414213562373095?*I
         """
         L = self.list()
         if len(L) != 0:
@@ -147,9 +145,9 @@ class NumberFieldHomset(RingHomset_generic):
         EXAMPLES::
 
             sage: repr(Hom(QuadraticField(-1, 'a'), QuadraticField(-1, 'b'))) # indirect doctest
-            'Set of field embeddings from Number Field in a with defining polynomial x^2 + 1 to Number Field in b with defining polynomial x^2 + 1'
+            'Set of field embeddings from Number Field in a with defining polynomial x^2 + 1 with a = 1*I to Number Field in b with defining polynomial x^2 + 1 with b = 1*I'
             sage: repr(Hom(QuadraticField(-1, 'a'), QuadraticField(-1, 'a'))) # indirect doctest
-            'Automorphism group of Number Field in a with defining polynomial x^2 + 1'
+            'Automorphism group of Number Field in a with defining polynomial x^2 + 1 with a = 1*I'
         """
         D = self.domain()
         C = self.codomain()
@@ -301,8 +299,10 @@ class NumberFieldHomomorphism_im_gens(RingHomomorphism_im_gens):
             raise TypeError("Can only invert isomorphisms")
         V, V_into_K, _ = K.vector_space()
         _, _, L_into_W = L.vector_space()
-        linear_inverse = ~V.hom([(L_into_W*self*V_into_K)(_) for _ in V.basis()])
-        return L.hom([(V_into_K*linear_inverse*L_into_W)(_) for _ in [L.gen()]])
+        linear_inverse = ~V.hom([(L_into_W * self * V_into_K)(b)
+                                 for b in V.basis()])
+        return L.hom([(V_into_K * linear_inverse * L_into_W)(b)
+                      for b in [L.gen()]])
 
     def preimage(self, y):
         r"""
@@ -729,7 +729,7 @@ class CyclotomicFieldHomset(NumberFieldHomset):
             return self._coerce_impl(im_gens)
         try:
             return CyclotomicFieldHomomorphism_im_gens(self, im_gens, check=check)
-        except (NotImplementedError, ValueError) as err:
+        except (NotImplementedError, ValueError):
             try:
                 return self._coerce_impl(im_gens)
             except TypeError:

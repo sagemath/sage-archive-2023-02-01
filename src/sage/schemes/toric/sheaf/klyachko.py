@@ -1,10 +1,10 @@
 """
-Klyachko Bundles and Sheaves.
+Klyachko bundles and sheaves
 
 Klyachko bundles are torus-equivariant bundles on toric
 varieties. That is, the action of the maximal torus on the toric
 variety lifts to an action on the bundle. There is an equivalence of
-categories between [Klyachko]_ bundles and multiple filtrations (one for
+categories between Klyachko bundles [Kly1990]_ and multiple filtrations (one for
 each ray of the fan) of a vector space. The multi-filtrations are
 implemented in :mod:`sage.modules.multi_filtered_vector_space`.
 
@@ -31,18 +31,9 @@ EXAMPLES::
 
 REFERENCES:
 
-..  [Klyachko]
-    Klyachko, Aleksandr Anatolevich:
-    Equivariant Bundles on Toral Varieties,
-    Math USSR Izv. 35 (1990), 337-375.
-    http://iopscience.iop.org/0025-5726/35/2/A04/pdf/0025-5726_35_2_A04.pdf
+- [Kly1990]_
 
-..  [BirknerIltenPetersen]
-    Rene Birkner, Nathan Owen Ilten, and Lars Petersen:
-    Computations with equivariant toric vector bundles,
-    The Journal of Software for Algebra and Geometry: Macaulay2.
-    http://msp.org/jsag/2010/2-1/p03.xhtml
-    http://www.math.uiuc.edu/Macaulay2/doc/Macaulay2-1.8.2/share/doc/Macaulay2/ToricVectorBundles/html/
+- [BIP]_
 """
 
 #*****************************************************************************
@@ -57,12 +48,10 @@ from __future__ import print_function
 
 from sage.structure.all import SageObject
 from sage.structure.richcmp import richcmp_method, richcmp, richcmp_not_equal
-from sage.rings.all import QQ, ZZ
-from sage.misc.all import uniq, cached_method
-from sage.matrix.constructor import vector, matrix, block_matrix, zero_matrix
-from sage.geometry.cone import is_Cone, IntegralRayCollection
-
-from sage.modules.filtered_vector_space import FilteredVectorSpace, is_FilteredVectorSpace
+from sage.rings.all import ZZ
+from sage.misc.all import cached_method
+from sage.matrix.constructor import vector, block_matrix, zero_matrix
+from sage.geometry.cone import is_Cone
 from sage.modules.multi_filtered_vector_space import MultiFilteredVectorSpace
 
 
@@ -443,7 +432,7 @@ class KlyachkoBundle_class(SageObject):
         r"""
         Return the vector subspace ``E^\sigma(m)``.
 
-        See [Klyachko]_, equation 4.1.
+        See [Kly1990]_, equation 4.1.
 
         INPUT:
 
@@ -486,7 +475,7 @@ class KlyachkoBundle_class(SageObject):
         r"""
         Return the vector space quotient `E_\sigma(m)`.
 
-        See [Klyachko]_, equation 4.1.
+        See [Kly1990]_, equation 4.1.
 
         INPUT:
 
@@ -603,7 +592,7 @@ class KlyachkoBundle_class(SageObject):
         r"""
         Return the "cohomology complex" `C^*(m)`
 
-        See [Klyachko]_, equation 4.2.
+        See [Kly1990]_, equation 4.2.
 
         INPUT:
 
@@ -773,8 +762,8 @@ class KlyachkoBundle_class(SageObject):
         lx = self.variety()
         rx = other.variety()
         if lx != rx:
-            return richcmp_not_equal(lr, rx, op)
-        
+            return richcmp_not_equal(lx, rx, op)
+
         return richcmp(self._filt, other._filt, op)
 
     def is_isomorphic(self, other):
@@ -864,7 +853,7 @@ class KlyachkoBundle_class(SageObject):
     __mul__ = tensor_product
 
     def exterior_power(self, n):
-        """
+        r"""
         Return the `n`-th exterior power.
 
         INPUT:

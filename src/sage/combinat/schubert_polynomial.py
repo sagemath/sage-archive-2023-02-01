@@ -25,7 +25,6 @@ from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.combinat.permutation import Permutations, Permutation
 import sage.libs.symmetrica.all as symmetrica
 
-from sage.combinat.permutation import Permutations
 
 def SchubertPolynomialRing(R):
     """

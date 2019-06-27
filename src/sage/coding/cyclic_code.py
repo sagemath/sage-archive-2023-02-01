@@ -2,7 +2,7 @@ r"""
 Cyclic Code
 
 Let `F` be a field. A `[n, k]` code `C` over `F` is called cyclic if every
-cyclic shift of a codeword is also a codeword [R06]_:
+cyclic shift of a codeword is also a codeword [Rot2006]_:
 
     .. MATH::
 
@@ -20,13 +20,6 @@ This polynomial is called the generator polynomial of `C`.
 
 For now, only single-root cyclic codes (i.e. whose length `n` and field order
 `q` are coprimes) are implemented.
-
-
-REFERENCES:
-
-    .. [R06] Ron Roth, Introduction to Coding Theory,
-       Cambridge University Press, 2006
-
 
 TESTS:
 
@@ -222,9 +215,10 @@ def bch_bound(n, D, arithmetic=False):
         one_len, offset = longest_streak(1)
         return (one_len + 1, (1, offset))
     else:
+        n = Integer(n)
         longest_streak_list = [(longest_streak(step), step)
-                               for step in range(1, n // 2 + 1)
-                               if gcd(step, n) == 1]
+                               for step in n.coprime_integers(n // 2 + 1)
+                               if step >= 1]
         (max_len, offset), step = max(longest_streak_list)
         return (max_len + 1, (step, offset))
 

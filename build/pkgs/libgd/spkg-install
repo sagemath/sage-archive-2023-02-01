@@ -5,14 +5,7 @@ rm "$SAGE_LOCAL"/lib/libgd.*
 
 cd src
 
-if [ "$SAGE64" = "yes" ]; then
-   CFLAGS=" -m64 -g $CFLAGS"
-   LDFLAGS="-m64 $LDFLAGS"
-else
-   CFLAGS="-g $CFLAGS"
-fi
-
-export CFLAGS LDFLAGS
+export CFLAGS="-g $CFLAGS"
 
 # We explicitly disable X and fontconfig support, since (1) X is not a SAGE dependency,
 # and (2) the gd build fails on a lot of OS X PPC machines when X is enabled.

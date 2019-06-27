@@ -316,12 +316,12 @@ class ResidueFieldFactory(UniqueFactory):
             elif not (is_NumberFieldIdeal(p) or p.ring() is ZZ):
                 raise NotImplementedError
         if isinstance(names, tuple):
-            if len(names) > 0:
+            if names:
                 names = str(names[0])
             else:
                 names = None
         if names is None and p.ring() is not ZZ:
-            names = '%sbar'%(p.ring().fraction_field().variable_name())
+            names = '%sbar' % p.ring().fraction_field().variable_name()
         key = (p, names, impl)
         return key, kwds
 
@@ -658,10 +658,10 @@ class ResidueField_generic(Field):
             Residue field of Fractional ideal (a)
             sage: pi = k.reduction_map(); pi
             Partially defined reduction map:
-              From: Number Field in a with defining polynomial x^3 - 2
+              From: Number Field in a with defining polynomial x^3 - 2 with a = 1.259921049894873?
               To:   Residue field of Fractional ideal (a)
             sage: pi.domain()
-            Number Field in a with defining polynomial x^3 - 2
+            Number Field in a with defining polynomial x^3 - 2 with a = 1.259921049894873?
             sage: pi.codomain()
             Residue field of Fractional ideal (a)
 
@@ -698,11 +698,11 @@ class ResidueField_generic(Field):
             sage: f = k.lift_map(); f
             Lifting map:
               From: Residue field of Fractional ideal (-a + 2)
-              To:   Maximal Order in Number Field in a with defining polynomial x^3 - 3
+              To:   Maximal Order in Number Field in a with defining polynomial x^3 - 3 with a = 1.442249570307409?
             sage: f.domain()
             Residue field of Fractional ideal (-a + 2)
             sage: f.codomain()
-            Maximal Order in Number Field in a with defining polynomial x^3 - 3
+            Maximal Order in Number Field in a with defining polynomial x^3 - 3 with a = 1.442249570307409?
             sage: f(k.0)
             1
 
@@ -787,7 +787,7 @@ cdef class ReductionMap(Map):
         Residue field in sqrt17bar of Fractional ideal (5)
         sage: R = k.reduction_map(); R
         Partially defined reduction map:
-          From: Number Field in sqrt17 with defining polynomial x^2 - 17
+          From: Number Field in sqrt17 with defining polynomial x^2 - 17 with sqrt17 = 4.123105625617660?
           To:   Residue field in sqrt17bar of Fractional ideal (5)
 
         sage: R.<t> = GF(next_prime(2^20))[]; P = R.ideal(t^2 + t + 1)
@@ -1613,11 +1613,12 @@ class ResidueFiniteField_pari_ffelt(ResidueField_generic, FiniteField_pari_ffelt
         sage: k(1/t)
         3*a^11 + a^10 + 3*a^9 + 2*a^8 + 2*a^7 + a^6 + 4*a^5 + a^3 + 2*a^2 + a
     """
+
     def __init__(self, p, characteristic, name, modulus, to_vs, to_order, PB):
         """
         Initialize ``self``.
 
-        EXAMPLES::
+        EXAMPLES:
 
         We create a residue field with implementation ``pari_ffelt``::
 
@@ -1669,9 +1670,10 @@ class ResidueFiniteField_pari_ffelt(ResidueField_generic, FiniteField_pari_ffelt
             2*a^11 + a^10 + 4*a^8 + 3*a^7 + 2*a^6 + a^5 + 4*a^3 + 3*a^2 + 2*a + 1
         """
         try:
-            return FiniteField_pari_ffelt._element_constructor_(self, x)
+            return self.element_class(self, x)
         except TypeError:
             return ResidueField_generic._element_constructor_(self, x)
+
 
 class ResidueFiniteField_givaro(ResidueField_generic, FiniteField_givaro):
     """

@@ -22,13 +22,13 @@ EXAMPLES::
     sage: S = CoordinatePatch((u, v)); S
     Open subset of R^2 with coordinates u, v
 
-TODO:
+.. TODO::
 
-- Add functionality for metric tensors
+    Add functionality for metric tensors
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #    Copyright (C) 2010 Joris Vankerschaver <joris.vankerschaver@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -40,11 +40,10 @@ TODO:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from sage.structure.parent import Parent
+
 
 class CoordinatePatch(Parent):
     """
@@ -104,11 +103,10 @@ class CoordinatePatch(Parent):
         deprecation(24444, 'Use Manifold instead.')
 
         if not all(is_SymbolicVariable(c) for c in coordinates):
-            raise TypeError("%s is not a valid vector of coordinates." % \
-                coordinates)
+            raise TypeError("%s is not a valid vector of coordinates." %
+                            coordinates)
 
         self._coordinates = tuple(coordinates)
-        dim = len(self._coordinates)
 
         if metric is not None:
             raise NotImplementedError("Metric geometry not supported yet.")
@@ -276,6 +274,4 @@ class CoordinatePatch(Parent):
             sage: latex(S) == S._latex_()
             True
         """
-        return "\\mathbb{\RR}^%s" % self.dim()
-
-
+        return "\\mathbb{\\RR}^%s" % self.dim()

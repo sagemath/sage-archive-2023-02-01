@@ -5,16 +5,15 @@ AUTHORS:
 
 - Travis Scrimshaw (2013-05-03): Initial version
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013-2017 Travis Scrimshaw <tcscrims at gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.misc.cachefunc import cached_method
 from sage.categories.lie_algebras import LieAlgebras
@@ -27,6 +26,7 @@ from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElement
 from sage.algebras.lie_algebras.lie_algebra import (InfinitelyGeneratedLieAlgebra,
                                                     FinitelyGeneratedLieAlgebra)
 from sage.combinat.free_module import CombinatorialFreeModule
+
 
 class LieAlgebraRegularVectorFields(InfinitelyGeneratedLieAlgebra, IndexedGenerators):
     r"""
@@ -142,6 +142,7 @@ class LieAlgebraRegularVectorFields(InfinitelyGeneratedLieAlgebra, IndexedGenera
     class Element(LieAlgebraElement):
         pass
 
+
 class WittLieAlgebra_charp(FinitelyGeneratedLieAlgebra, IndexedGenerators):
     r"""
     The `p`-Witt Lie algebra over a ring `R` in which
@@ -179,8 +180,10 @@ class WittLieAlgebra_charp(FinitelyGeneratedLieAlgebra, IndexedGenerators):
         if R(p) != 0:
             raise ValueError("{} is not 0 in {}".format(p, R))
         cat = LieAlgebras(R).FiniteDimensional().WithBasis()
-        FinitelyGeneratedLieAlgebra.__init__(self, R, index_set=range(p), category=cat)
-        IndexedGenerators.__init__(self, range(p), prefix='d', bracket='[')
+        FinitelyGeneratedLieAlgebra.__init__(self, R, index_set=list(range(p)),
+                                             category=cat)
+        IndexedGenerators.__init__(self, list(range(p)), prefix='d',
+                                   bracket='[')
         self._p = p
 
     def _repr_(self):
@@ -327,6 +330,22 @@ class VirasoroAlgebra(InfinitelyGeneratedLieAlgebra, IndexedGenerators):
         InfinitelyGeneratedLieAlgebra.__init__(self, R, index_set=ZZ, category=cat)
         IndexedGenerators.__init__(self, ZZ, prefix='d', bracket='[',
                                    sorting_key=_basis_key)
+
+    def _basis_key(self, m):
+        """
+        Return a key for sorting for the index ``m``.
+
+        TESTS::
+
+            sage: d = lie_algebras.VirasoroAlgebra(QQ)
+            sage: d._basis_key(3)
+            3
+            sage: d._basis_key('c')
+            +Infinity
+            sage: d._basis_key(4) < d._basis_key('c')
+            True
+        """
+        return _basis_key(m)
 
     def _repr_term(self, m):
         """
@@ -512,7 +531,7 @@ class VirasoroAlgebra(InfinitelyGeneratedLieAlgebra, IndexedGenerators):
 
             sage: L = lie_algebras.VirasoroAlgebra(QQ)
             sage: L.verma_module(3, 2)
-            Verma module with charge 3 and confromal weight 2 of
+            Verma module with charge 3 and conformal weight 2 of
              The Virasoro algebra over Rational Field
         """
         return VermaModule(self, c, h)
@@ -686,8 +705,9 @@ class ChargelessRepresentation(CombinatorialFreeModule):
 
         _rmul_ = _lmul_ = _acted_upon_
 
+
 class VermaModule(CombinatorialFreeModule):
-    """
+    r"""
     A Verma module of the Virasoro algebra.
 
     The Virasoro algebra admits a triangular decomposition
@@ -848,10 +868,10 @@ class VermaModule(CombinatorialFreeModule):
             sage: L = lie_algebras.VirasoroAlgebra(QQ)
             sage: M = L.verma_module(3, 0)
             sage: M
-            Verma module with charge 3 and confromal weight 0 of
+            Verma module with charge 3 and conformal weight 0 of
              The Virasoro algebra over Rational Field
         """
-        return "Verma module with charge {} and confromal weight {} of {}".format(
+        return "Verma module with charge {} and conformal weight {} of {}".format(
                     self._c, self._h, self._V)
 
     def _monomial(self, index):
@@ -1013,4 +1033,3 @@ class VermaModule(CombinatorialFreeModule):
             return CombinatorialFreeModule.Element._acted_upon_(self, scalar, self_on_left)
 
         _rmul_ = _lmul_ = _acted_upon_
-

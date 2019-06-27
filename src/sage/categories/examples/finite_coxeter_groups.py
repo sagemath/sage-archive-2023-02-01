@@ -19,7 +19,7 @@ from sage.combinat.root_system.coxeter_matrix import CoxeterMatrix
 
 
 class DihedralGroup(UniqueRepresentation, Parent):
-    """
+    r"""
     An example of finite Coxeter group: the `n`-th dihedral group of order `2n`.
 
     The purpose of this class is to provide a minimal template for

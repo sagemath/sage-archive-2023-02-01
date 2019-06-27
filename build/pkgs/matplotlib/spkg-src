@@ -7,7 +7,7 @@ set -e
 
 
 # Set the version and its download URL.
-VERSION=2.1.0
+VERSION=2.2.2
 DOWNLOAD_URL="https://github.com/matplotlib/matplotlib/archive/v${VERSION}.tar.gz"
 
 # fetch and unpack latest version

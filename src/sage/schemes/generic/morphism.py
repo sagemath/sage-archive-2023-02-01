@@ -77,25 +77,12 @@ AUTHORS:
 from __future__ import absolute_import, print_function
 
 import operator
-from sage.structure.element import (AdditiveGroupElement, RingElement,
-        Element, parent, coercion_model)
+from sage.structure.element import Element, parent, coercion_model
 from sage.arith.power import generic_power
 from sage.structure.richcmp import richcmp
 from sage.structure.sequence import Sequence
 from sage.categories.homset import Homset, Hom, End
-from sage.categories.number_fields import NumberFields
-from sage.categories.fields import Fields
-from sage.rings.all import Integer, CIF
-from sage.rings.fraction_field import FractionField
 from sage.rings.fraction_field_element import FractionFieldElement
-from .point import is_SchemeTopologicalPoint
-from sage.rings.infinity import infinity
-from . import scheme
-
-from sage.categories.gcd_domains import GcdDomains
-from sage.rings.qqbar import QQbar
-from sage.rings.quotient_ring import QuotientRing_generic
-from sage.rings.rational_field import QQ
 from sage.categories.map import FormalCompositeMap, Map
 from sage.misc.constant_function import ConstantFunction
 from sage.categories.morphism import SetMorphism
@@ -1427,13 +1414,12 @@ class SchemeMorphism_polynomial(SchemeMorphism):
               Defn: Defined on coordinates by sending (x, y) to
                     (x/y, y)
         """
-        K = self.codomain().base_ring()
         T = self.domain().change_ring(R)
         if self.is_endomorphism():
             H = End(T)
         else:
             S = self.codomain().change_ring(R)
-            H = Hom(T,S)
+            H = Hom(T, S)
 
         if isinstance(R, Map):
             if R.domain() == self.base_ring():
@@ -1485,7 +1471,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
                   Defn: Defined on coordinates by sending (x : y) to
                         (x^2 + y^2 : y^2)
 
-            ::
+        ::
 
             sage: R.<a,b> = PolynomialRing(QQ)
             sage: P.<x,y> = ProjectiveSpace(R, 1)
@@ -1500,7 +1486,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             sage: g = H([x^2 + a*y^2,y^2])
             sage: G = g.specialization(phi=phi)
             sage: G.parent() is F.parent()
-            False
+            True
             sage: G = g.specialization(phi=phi, homset=F.parent())
             sage: G.parent() is F.parent()
             True
@@ -1949,7 +1935,7 @@ class SchemeMorphism_point(SchemeMorphism):
             sage: Q2 = P([a,1])
             sage: T2 = Q2.specialization(phi=phi)
             sage: T2.codomain() is T.codomain()
-            False
+            True
             sage: T3 = Q2.specialization(phi=phi, ambient=T.codomain())
             sage: T3.codomain() is T.codomain()
             True

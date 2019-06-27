@@ -207,7 +207,6 @@ AUTHORS:
 from sage.rings.ring import CommutativeRing
 from sage.rings.polynomial.all import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.power_series_ring import PowerSeriesRing, PowerSeriesRing_generic, is_PowerSeriesRing
@@ -222,6 +221,7 @@ _CommutativeRings = CommutativeRings()
 from sage.categories.integral_domains import IntegralDomains
 _IntegralDomains = IntegralDomains()
 
+
 def is_MPowerSeriesRing(x):
     """
     Return true if input is a multivariate power series ring.
@@ -230,7 +230,7 @@ def is_MPowerSeriesRing(x):
 
         sage: from sage.rings.power_series_ring import is_PowerSeriesRing
         sage: from sage.rings.multi_power_series_ring import is_MPowerSeriesRing
-        sage: M = PowerSeriesRing(ZZ,4,'v');
+        sage: M = PowerSeriesRing(ZZ,4,'v')
         sage: is_PowerSeriesRing(M)
         False
         sage: is_MPowerSeriesRing(M)
@@ -441,13 +441,13 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
 
         EXAMPLES::
 
-            sage: M.<x,y,z> = PowerSeriesRing(ZZ,3);
+            sage: M.<x,y,z> = PowerSeriesRing(ZZ,3)
             sage: M.term_order()
             Negative degree lexicographic term order
             sage: m = y*z^12 - y^6*z^8 - x^7*y^5*z^2 + x*y^2*z + M.O(15); m
             x*y^2*z + y*z^12 - x^7*y^5*z^2 - y^6*z^8 + O(x, y, z)^15
 
-            sage: N = PowerSeriesRing(ZZ,3,'x,y,z', order="deglex");
+            sage: N = PowerSeriesRing(ZZ,3,'x,y,z', order="deglex")
             sage: N.term_order()
             Degree lexicographic term order
             sage: N(m)
@@ -640,7 +640,7 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
             sage: R.<a,b,c> = PowerSeriesRing(Zmod(8)); R
             Multivariate Power Series Ring in a, b, c over Ring of integers
             modulo 8
-            sage: M = PowerSeriesRing(ZZ,3,'x,y,z');
+            sage: M = PowerSeriesRing(ZZ,3,'x,y,z')
             sage: M._is_valid_homomorphism_(R,[a,c,b])
             True
 
@@ -723,7 +723,7 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
 
         TESTS::
 
-            sage: M = PowerSeriesRing(ZZ,3,'x,y,z');
+            sage: M = PowerSeriesRing(ZZ,3,'x,y,z')
             sage: M._coerce_map_from_(M)
             True
             sage: M._coerce_map_from_(M.remove_var(x))
@@ -768,8 +768,8 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
         """
         TESTS::
 
-            sage: M = PowerSeriesRing(ZZ,5,'t');
-            sage: t = M.gens();
+            sage: M = PowerSeriesRing(ZZ,5,'t')
+            sage: t = M.gens()
             sage: m = -2*t[0]*t[3]^6*t[4] - 12*t[0]^2*t[3]*t[4]^6 + t[1]*t[2]*t[3]^4*t[4]^3 + M.O(10)
             sage: M._element_constructor_(m)
             -2*t0*t3^6*t4 - 12*t0^2*t3*t4^6 + t1*t2*t3^4*t4^3 +
@@ -798,7 +798,7 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
 
         TESTS::
 
-            sage: M = PowerSeriesRing(ZZ,3,'x,y,z');
+            sage: M = PowerSeriesRing(ZZ,3,'x,y,z')
             sage: M.laurent_series_ring()
             Traceback (most recent call last):
             ...
@@ -900,7 +900,7 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
 
         EXAMPLES::
 
-            sage: M = PowerSeriesRing(ZZ,10,'v');
+            sage: M = PowerSeriesRing(ZZ,10,'v')
             sage: M.gen(6)
             v6
         """
@@ -915,7 +915,7 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
 
         EXAMPLES::
 
-            sage: M = PowerSeriesRing(ZZ,10,'v');
+            sage: M = PowerSeriesRing(ZZ,10,'v')
             sage: M.ngens()
             10
         """

@@ -18,18 +18,15 @@ from six import integer_types
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.functions.gamma',
-    ('gamma', 'log_gamma', 'gamma_inc', 'incomplete_gamma',
-      'gamma_inc_lower', 'psi', 'beta'), deprecation=24411)
+            ('gamma', 'log_gamma', 'gamma_inc',
+             'gamma_inc_lower', 'psi', 'beta'), deprecation=24411)
 
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.expression import Expression
-from sage.libs.pynac.pynac import (register_symbol, symbol_table,
-        py_factorial_py, I)
+from sage.libs.pynac.pynac import (register_symbol, symbol_table, I)
 from sage.symbolic.all import SR
 from sage.rings.all import Integer, Rational, RealField, ZZ, ComplexField
-from sage.rings.complex_number import is_ComplexNumber
 from sage.misc.latex import latex
-from sage.misc.decorators import rename_keyword
 import math
 
 from sage.structure.element import coercion_model
@@ -37,11 +34,7 @@ from sage.structure.element import coercion_model
 # avoid name conflicts with `parent` as a function parameter
 from sage.structure.all import parent as s_parent
 
-from sage.symbolic.constants import pi
-from sage.functions.log import exp
 from sage.functions.trig import arctan2
-from sage.functions.exp_integral import Ei
-from sage.libs.mpmath import utils as mpmath_utils
 from sage.arith.all import binomial as arith_binomial
 
 one_half = SR.one() / SR(2)
@@ -122,16 +115,19 @@ class Function_abs(GinacFunction):
             abs(x)*e^2
             sage: abs((pi+e)*x)
             (pi + e)*abs(x)
+
+            sage: fricas(abs(x)).sage().derivative()  # optional - fricas
+            1/2*(x + conjugate(x))/abs(x)
         """
         GinacFunction.__init__(self, "abs", latex_name=r"\mathrm{abs}",
                                conversions=dict(sympy='Abs',
                                                 mathematica='Abs',
-                                                giac='abs'))
+                                                giac='abs',
+                                                fricas='abs'))
 
 abs = abs_symbolic = Function_abs()
 
 
-@rename_keyword(deprecation=22079, maximum_bits="bits")
 def _eval_floor_ceil(self, x, method, bits=0, **kwds):
     """
     Helper function to compute ``floor(x)`` or ``ceil(x)``.
@@ -171,7 +167,7 @@ def _eval_floor_ceil(self, x, method, bits=0, **kwds):
         sage: ceil(f, bits=10000)
         0
 
-    These don't work but fail gracefully::
+    These do not work but fail gracefully::
 
         sage: ceil(Infinity)
         Traceback (most recent call last):
@@ -181,13 +177,6 @@ def _eval_floor_ceil(self, x, method, bits=0, **kwds):
         Traceback (most recent call last):
         ...
         ValueError: Calling ceil() on infinity or NaN
-
-    TESTS::
-
-        sage: floor(pi, maximum_bits=0)
-        doctest:...: DeprecationWarning: use the option 'bits' instead of 'maximum_bits'
-        See http://trac.sagemath.org/22079 for details.
-        3
     """
     # First, some obvious things...
     try:
@@ -390,7 +379,7 @@ class Function_ceil(BuiltinFunction):
             sage: import numpy
             sage: a = numpy.linspace(0,2,6)
             sage: ceil(a)
-            array([ 0.,  1.,  1.,  2.,  2.,  2.])
+            array([0., 1., 1., 2., 2., 2.])
 
         Test pickling::
 
@@ -439,7 +428,22 @@ class Function_ceil(BuiltinFunction):
             8
             sage: ceil(x)
             ceil(x)
+
+            sage: var('x',domain='integer')
+            x
+            sage: ceil(x)
+            x
+            sage: ceil(factorial(x) + binomial(x^2, x))
+            binomial(x^2, x) + factorial(x)
+            sage: ceil(gamma(abs(2*x)+1) * real(x))
+            x*gamma(2*abs(x) + 1)
+            sage: forget()
         """
+        try:
+            if SR(x).variables() and x.is_integer():
+                return x
+        except TypeError:
+            pass
         try:
             return x.ceil()
         except AttributeError:
@@ -539,7 +543,7 @@ class Function_floor(BuiltinFunction):
             sage: import numpy
             sage: a = numpy.linspace(0,2,6)
             sage: floor(a)
-            array([ 0.,  0.,  0.,  1.,  1.,  2.])
+            array([0., 0., 0., 1., 1., 2.])
             sage: floor(x)._sympy_()
             floor(x)
 
@@ -588,7 +592,22 @@ class Function_floor(BuiltinFunction):
             7
             sage: floor(x)
             floor(x)
+
+            sage: var('x',domain='integer')
+            x
+            sage: floor(x)
+            x
+            sage: floor(factorial(x) + binomial(x^2, x))
+            binomial(x^2, x) + factorial(x)
+            sage: floor(gamma(abs(2*x)+1) * real(x))
+            x*gamma(2*abs(x) + 1)
+            sage: forget()
         """
+        try:
+            if SR(x).variables() and x.is_integer():
+                return x
+        except TypeError:
+            pass
         try:
             return x.floor()
         except AttributeError:
@@ -840,7 +859,7 @@ def sqrt(x, *args, **kwds):
             sage: import numpy
             sage: a = numpy.arange(2,5)
             sage: sqrt(a)
-            array([ 1.41421356,  1.73205081,  2.        ])
+            array([1.41421356, 1.73205081, 2.        ])
         """
         if isinstance(x, float):
             return math.sqrt(x)
@@ -1260,7 +1279,7 @@ class Function_factorial(GinacFunction):
 
         INPUT:
 
-        -  ``n`` - any complex argument (except negative
+        -  ``n`` - a non-negative integer, a complex number (except negative
            integers) or any symbolic expression
 
 
@@ -1268,7 +1287,6 @@ class Function_factorial(GinacFunction):
 
         EXAMPLES::
 
-            sage: x = var('x')
             sage: factorial(0)
             1
             sage: factorial(4)
@@ -1277,6 +1295,8 @@ class Function_factorial(GinacFunction):
             3628800
             sage: factorial(6) == 6*5*4*3*2
             True
+
+            sage: x = SR.var('x')
             sage: f = factorial(x + factorial(x)); f
             factorial(x + factorial(x))
             sage: f(x=3)
@@ -1286,13 +1306,13 @@ class Function_factorial(GinacFunction):
 
         To prevent automatic evaluation use the ``hold`` argument::
 
-            sage: factorial(5,hold=True)
+            sage: factorial(5, hold=True)
             factorial(5)
 
         To then evaluate again, we currently must use Maxima via
         :meth:`sage.symbolic.expression.Expression.simplify`::
 
-            sage: factorial(5,hold=True).simplify()
+            sage: factorial(5, hold=True).simplify()
             120
 
         We can also give input other than nonnegative integers.  For
@@ -1311,7 +1331,14 @@ class Function_factorial(GinacFunction):
             sage: factorial(-32)
             Traceback (most recent call last):
             ...
-            ValueError: factorial -- self = (-32) must be nonnegative
+            ValueError: factorial only defined for non-negative integers
+
+        And very large integers remain unevaluated::
+
+            sage: factorial(2**64)
+            factorial(18446744073709551616)
+            sage: SR(2**64).factorial()
+            factorial(18446744073709551616)
 
         TESTS:
 
@@ -1364,7 +1391,7 @@ class Function_factorial(GinacFunction):
 
         Check that :trac:`16166` is fixed::
 
-            sage: RBF=RealBallField(53)
+            sage: RBF = RealBallField(53)
             sage: factorial(RBF(4.2))
             [32.5780960503313 +/- 6.72e-14]
 
@@ -1403,14 +1430,24 @@ class Function_factorial(GinacFunction):
             factorial(3245908723049857203948572398475)
             sage: SR(3245908723049857203948572398475).factorial()
             factorial(3245908723049857203948572398475)
-        """
-        from sage.functions.gamma import gamma
-        if isinstance(x, Rational):
-            return gamma(x+1)
-        elif isinstance(x, (Integer, int)) or self._is_numerical(x):
-            return py_factorial_py(x)
 
-        return None
+        TESTS:
+
+        Check that :trac:`25421` is fixed::
+
+            sage: factorial(RBF(2)**64)
+            [+/- 2.30e+347382171326740403407]
+        """
+        if isinstance(x, Integer):
+            try:
+                return x.factorial()
+            except OverflowError:
+                return
+        elif isinstance(x, Rational):
+            from sage.functions.gamma import gamma
+            return gamma(x + 1)
+        elif self._is_numerical(x):
+            return (x + 1).gamma()
 
 factorial = Function_factorial()
 
@@ -1653,6 +1690,26 @@ class Function_sum(BuiltinFunction):
         return r"{{\sum_{{{}={}}}^{{{}}} {}}}".format(latex(var), latex(a),
                                                       latex(b), latex(x))
 
+    def _sympy_(self, term, k, a, n):
+        """
+        Convert to sympy Sum.
+
+        EXAMPLES::
+
+            sage: var('k, n')
+            (k, n)
+            sage: s = sum(k, k, 1, n, hold=True)
+            sage: s
+            sum(k, k, 1, n)
+            sage: s._sympy_() # indirect test
+            Sum(k, (k, 1, n))
+            sage: s._sympy_().doit()
+            n**2/2 + n/2
+
+        """
+        import sympy
+        return sympy.Sum(term, (k, a, n))
+
 symbolic_sum = Function_sum()
 
 
@@ -1700,6 +1757,21 @@ class Function_prod(BuiltinFunction):
         """
         return r"{{\prod_{{{}={}}}^{{{}}} {}}}".format(latex(var), latex(a),
                                                        latex(b), latex(x))
+
+    def _sympy_(self, term, k, a, n):
+        """
+        Convert to sympy Product.
+
+        EXAMPLES::
+
+            sage: var('k, n')
+            (k, n)
+            sage: p = product(k^2+k+1,k,1,n, hold=True)
+            sage: p._sympy_() # indirect test
+            Product(k**2 + k + 1, (k, 1, n))
+        """
+        import sympy
+        return sympy.Product(term, (k, a, n))
 
 symbolic_product = Function_prod()
 
@@ -1787,11 +1859,11 @@ class Function_limit(BuiltinFunction):
 
             sage: t = var('t')
             sage: latex(limit(exp_integral_e(1/2, I*t - I*x)*sqrt(-t + x),t=x,dir='-'))
-            \lim_{t \to x^-}\, \sqrt{-t + x} exp_integral_e\left(\frac{1}{2}, i \, t - i \, x\right)
+            \lim_{t \to x^-}\, \sqrt{-t + x} E_{\frac{1}{2}}\left(i \, t - i \, x\right)
             sage: latex(limit(exp_integral_e(1/2, I*t - I*x)*sqrt(-t + x),t=x,dir='+'))
-            \lim_{t \to x^+}\, \sqrt{-t + x} exp_integral_e\left(\frac{1}{2}, i \, t - i \, x\right)
+            \lim_{t \to x^+}\, \sqrt{-t + x} E_{\frac{1}{2}}\left(i \, t - i \, x\right)
             sage: latex(limit(exp_integral_e(1/2, I*t - I*x)*sqrt(-t + x),t=x))
-            \lim_{t \to x}\, \sqrt{-t + x} exp_integral_e\left(\frac{1}{2}, i \, t - i \, x\right)
+            \lim_{t \to x}\, \sqrt{-t + x} E_{\frac{1}{2}}\left(i \, t - i \, x\right)
         """
         if repr(direction) == 'minus':
             dir_str = '^-'
@@ -1859,11 +1931,15 @@ class Function_cases(GinacFunction):
 
         TESTS::
 
-            sage: cases()
+            sage: cases()  # py2
             Traceback (most recent call last):
             ...
             TypeError: __call__() takes exactly 2 arguments (1 given)
-            
+            sage: cases()  # py3
+            Traceback (most recent call last):
+            ...
+            TypeError: __call__() missing 1 required positional argument: 'l'
+
             sage: cases(x)
             Traceback (most recent call last):
             ...

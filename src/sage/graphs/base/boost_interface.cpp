@@ -12,8 +12,15 @@
 #include <boost/graph/bellman_ford_shortest_paths.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <boost/graph/johnson_all_pairs_shortest.hpp>
+#include <boost/graph/floyd_warshall_shortest.hpp>
+#include <boost/graph/biconnected_components.hpp>
+#include <boost/graph/properties.hpp>
+#include <boost/tuple/tuple.hpp>
+#include <boost/graph/edge_list.hpp>
 
+#include <map>
 #include <iostream>
+#include <utility>
 
 typedef int v_index;
 typedef long e_index;
@@ -38,7 +45,6 @@ typedef struct {
     std::vector<v_index> predecessors; // For each vertex v, the first vertex in a shortest
                                   // path from the starting vertex to v.
 } result_distances;
-
 
 template <class OutEdgeListS, // How neighbors are stored
           class VertexListS,  // How vertices are stored
@@ -71,6 +77,13 @@ private:
     typedef typename std::vector<edge_descriptor> edge_container;
     typedef typename boost::property_map<adjacency_list, boost::vertex_index_t>::type vertex_to_int_map;
 
+    // This struct is used for biconnected_components function
+    struct order_edges {
+        bool operator()(const edge_descriptor& x, const edge_descriptor& y) const { return x.get_property() < y.get_property(); }
+    };
+    // This map is a parameter/output for biconnected_components function
+    typedef typename std::map<edge_descriptor, int, order_edges> edge_map;
+
 public:
     adjacency_list graph;
     std::vector<vertex_descriptor> vertices;
@@ -97,6 +110,17 @@ public:
 
     void add_edge(v_index u, v_index v, double weight) {
         boost::add_edge(vertices[u], vertices[v], weight, graph);
+    }
+
+    std::vector<std::pair<v_index, std::pair<v_index, double>>> edge_list() {
+        std::vector<std::pair<v_index, std::pair<v_index, double>>> to_return;
+        typename boost::graph_traits<adjacency_list>::edge_iterator ei, ei_end;
+        for (boost::tie(ei, ei_end) = boost::edges(graph); ei != ei_end; ++ei) {
+            to_return.push_back({index[boost::source(*ei, graph)],
+                                 {index[boost::target(*ei, graph)],
+                                  get(boost::edge_weight, graph, *ei)}});
+        }
+        return to_return;
     }
 
     result_ec edge_connectivity() {
@@ -190,6 +214,24 @@ public:
         return to_return;
     }
 
+    // This function returns the biconnected components of the graph.
+    std::vector<std::vector<v_index>> blocks_and_cut_vertices() {
+        edge_map bicmp_map;
+        boost::associative_property_map<edge_map> bimap(bicmp_map);
+        std::size_t num_comps = biconnected_components(graph, bimap);
+
+        // We iterate over every edge and add the vertices of block i into to_return[i].
+        // to_return[i] could contain repetitions.
+        std::vector<std::vector<v_index>> to_return(num_comps, std::vector<v_index>(0));
+        typename boost::graph_traits<adjacency_list>::edge_iterator ei, ei_end;
+        for (boost::tie(ei, ei_end) = edges(graph); ei != ei_end; ++ei) {
+            to_return[bimap[*ei]].push_back(index[source(*ei, graph)]);
+            to_return[bimap[*ei]].push_back(index[target(*ei, graph)]);
+        }
+
+        return to_return;
+    }
+
     result_distances dijkstra_shortest_paths(v_index s) {
          v_index N = num_verts();
          result_distances to_return;
@@ -236,7 +278,16 @@ public:
          }
          return to_return;
      }
+     std::vector<std::vector<double> > floyd_warshall_shortest_paths() {
+         v_index N = num_verts();
 
+         std::vector<std::vector<double> > D(N, std::vector<double>(N));
+         if (floyd_warshall_all_pairs_shortest_paths(graph, D)) {
+             return D;
+         } else {
+             return std::vector<std::vector<double> >();
+         }
+     }
      std::vector<std::vector<double> > johnson_shortest_paths() {
          v_index N = num_verts();
 

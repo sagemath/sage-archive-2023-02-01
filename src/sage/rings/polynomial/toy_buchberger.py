@@ -1,9 +1,9 @@
 """
 Educational Versions of Groebner Basis Algorithms.
 
-Following [BW93]_ the original Buchberger algorithm (c.f. algorithm
-GROEBNER in [BW93]_) and an improved version of Buchberger's algorithm
-(c.g. algorithm GROEBNERNEW2 in [BW93]_) are implemented.
+Following [BW1993]_ the original Buchberger algorithm (c.f. algorithm
+GROEBNER in [BW1993]_) and an improved version of Buchberger's algorithm
+(c.g. algorithm GROEBNERNEW2 in [BW1993]_) are implemented.
 
 No attempt was made to optimize either algorithm as the emphasis of
 these implementations is a clean and easy presentation. To compute a
@@ -14,12 +14,12 @@ method on multivariate polynomial objects.
 
 .. note::
 
-   The notion of 'term' and 'monomial' in [BW93]_ is swapped from the
+   The notion of 'term' and 'monomial' in [BW1993]_ is swapped from the
    notion of those words in Sage (or the other way around, however you
    prefer it). In Sage a term is a monomial multiplied by a
-   coefficient, while in [BW93]_ a monomial is a term multiplied by a
+   coefficient, while in [BW1993]_ a monomial is a term multiplied by a
    coefficient. Also, what is called LM (the leading monomial) in
-   Sage is called HT (the head term) in [BW93]_.
+   Sage is called HT (the head term) in [BW1993]_.
 
 EXAMPLES:
 
@@ -130,12 +130,6 @@ The 'improved' Buchberger algorithm in contrast only performs 3 reductions to ze
     1 reductions to zero.
     [a + 2*b + 2*c - 1, b^2 - 26*c^2 - 51*b + 51*c, c^3 + 22*c^2 - 55*b + 49*c, b*c + 52*c^2 + 38*b + 25*c]
 
-REFERENCES:
-
-.. [BW93] Thomas Becker and Volker Weispfenning. *Groebner Bases - A
-  Computational Approach To Commutative Algebra*. Springer, New York
-  1993.
-
 AUTHOR:
 
 - Martin Albrecht (2007-05-24): initial version
@@ -144,11 +138,10 @@ AUTHOR:
 from __future__ import print_function
 
 from sage.misc.misc import get_verbose
-from sage.arith.all import LCM
 from sage.structure.sequence import Sequence
 
 #some aliases that conform to Becker and Weispfenning's notation:
-LCM = lambda f,g: f.parent().monomial_lcm(f,g)
+LCM = lambda f, g: f.parent().monomial_lcm(f, g)
 LM = lambda f: f.lm()
 LT = lambda f: f.lt()
 
@@ -171,14 +164,14 @@ def spol(f,g):
         sage: spol(x^2 - z - 1, z^2 - y - 1)
         x^2*y - z^3 + x^2 - z^2
     """
-    fg_lcm = LCM(LM(f),LM(g))
+    fg_lcm = LCM(LM(f), LM(g))
     return fg_lcm//LT(f)*f - fg_lcm//LT(g)*g
 
 
 def buchberger(F):
     """
     The original version of Buchberger's algorithm as presented in
-    [BW93]_, page 214.
+    [BW1993]_, page 214.
 
     INPUT:
 
@@ -232,7 +225,7 @@ def buchberger(F):
 def buchberger_improved(F):
     """
     An improved version of Buchberger's algorithm as presented in
-    [BW93]_, page 232.
+    [BW1993]_, page 232.
 
     This variant uses the Gebauer-Moeller Installation to apply
     Buchberger's first and second criterion to avoid useless pairs.
@@ -293,7 +286,7 @@ def buchberger_improved(F):
 def update(G,B,h):
     """
     Update ``G`` using the list of critical pairs ``B`` and the
-    polynomial ``h`` as presented in [BW93]_, page 230. For this,
+    polynomial ``h`` as presented in [BW1993]_, page 230. For this,
     Buchberger's first and second criterion are tested.
 
     This function implements the Gebauer-Moeller Installation.
@@ -393,7 +386,7 @@ def select(P):
 
 
 def inter_reduction(Q):
-    """
+    r"""
     If ``Q`` is the set `(f_1, ..., f_n)` this method
     returns `(g_1, ..., g_s)` such that:
 

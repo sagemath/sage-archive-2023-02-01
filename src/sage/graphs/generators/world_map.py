@@ -45,6 +45,11 @@ def AfricaMap(continental=False, year=2018):
         48
         sage: 'Madagaskar' in cont_Africa
         False
+
+    TESTS::
+
+        sage: Africa.plot()
+        Graphics object consisting of 159 graphics primitives
     """
     if year != 2018:
         raise ValueError("currently only year 2018 is implemented")
@@ -82,7 +87,7 @@ def AfricaMap(continental=False, year=2018):
      'Zambia': ['Malawi', 'Mozambique', 'Namibia', 'Zimbabwe']
      }
 
-    no_land_border = ['Cape Verde', 'Seychelles', 'Mauritius', 'S\xc3\xa3o Tom\xc3\xa9 and Pr\xc3\xadncipe', 'Madagascar', 'Comoros']
+    no_land_border = ['Cape Verde', 'Seychelles', 'Mauritius', u'São Tomé and Príncipe', 'Madagascar', 'Comoros']
 
     G = Graph(common_border, format='dict_of_lists')
 
@@ -94,6 +99,7 @@ def AfricaMap(continental=False, year=2018):
         G.name(new="Africa Map")
 
     return G
+
 
 def EuropeMap(continental=False, year=2018):
     """
@@ -157,6 +163,96 @@ def EuropeMap(continental=False, year=2018):
         G.add_vertices(no_land_border)
         G.name(new="Europe Map")
 
+    return G
+
+
+def USAMap(continental=False):
+    """
+    Return states of USA as a graph of common border.
+
+    The graph has an edge between those states that have
+    common *land* border line or point. Hence for example
+    Colorado and Arizona are marked as neighbors, but
+    Michigan and Minnesota are not.
+
+    INPUT:
+
+    - ``continental``, a Boolean -- if set, exclude Alaska
+      and Hawaii
+
+    EXAMPLES:
+
+    How many states are neighbor's neighbor for Pennsylvania::
+
+        sage: USA = graphs.USAMap()
+        sage: len([n2 for n2 in USA if USA.distance('Pennsylvania', n2) == 2])
+        7
+
+    Diameter for continental USA::
+
+        sage: USAcont = graphs.USAMap(continental=True)
+        sage: USAcont.diameter()
+        11
+    """
+    states = {
+    "Alabama": ["Florida", "Georgia", "Mississippi", "Tennessee"],
+    "Arizona": ["California", "Colorado", "Nevada", "New Mexico", "Utah"],
+    "Arkansas": ["Louisiana", "Mississippi", "Missouri", "Oklahoma", "Tennessee", "Texas"],
+    "California": ["Arizona", "Nevada", "Oregon"],
+    "Colorado": ["Arizona", "Kansas", "Nebraska", "New Mexico", "Oklahoma", "Utah", "Wyoming"],
+    "Connecticut": ["Massachusetts", "New York", "Rhode Island"],
+    "Delaware": ["Maryland", "New Jersey", "Pennsylvania"],
+    "Florida": ["Alabama", "Georgia"],
+    "Georgia": ["Alabama", "Florida", "North Carolina", "South Carolina", "Tennessee"],
+    "Idaho": ["Montana", "Nevada", "Oregon", "Utah", "Washington", "Wyoming"],
+    "Illinois": ["Indiana", "Iowa", "Michigan", "Kentucky", "Missouri", "Wisconsin"],
+    "Indiana": ["Illinois", "Kentucky", "Michigan", "Ohio"],
+    "Iowa": ["Illinois", "Minnesota", "Missouri", "Nebraska", "South Dakota", "Wisconsin"],
+    "Kansas": ["Colorado", "Missouri", "Nebraska", "Oklahoma"],
+    "Kentucky": ["Illinois", "Indiana", "Missouri", "Ohio", "Tennessee", "Virginia", "West Virginia"],
+    "Louisiana": ["Arkansas", "Mississippi", "Texas"],
+    "Maine": ["New Hampshire"],
+    "Maryland": ["Delaware", "Pennsylvania", "Virginia", "West Virginia"],
+    "Massachusetts": ["Connecticut", "New Hampshire", "New York", "Rhode Island", "Vermont"],
+    "Michigan": ["Illinois", "Indiana", "Ohio", "Wisconsin"],
+    "Minnesota": ["Iowa", "North Dakota", "South Dakota", "Wisconsin"],
+    "Mississippi": ["Alabama", "Arkansas", "Louisiana", "Tennessee"],
+    "Missouri": ["Arkansas", "Illinois", "Iowa", "Kansas", "Kentucky", "Nebraska", "Oklahoma", "Tennessee"],
+    "Montana": ["Idaho", "North Dakota", "South Dakota", "Wyoming"],
+    "Nebraska": ["Colorado", "Iowa", "Kansas", "Missouri", "South Dakota", "Wyoming"],
+    "Nevada": ["Arizona", "California", "Idaho", "Oregon", "Utah"],
+    "New Hampshire": ["Maine", "Massachusetts", "Vermont"],
+    "New Jersey": ["Delaware", "New York", "Pennsylvania"],
+    "New Mexico": ["Arizona", "Colorado", "Oklahoma", "Texas", "Utah"],
+    "New York": ["Connecticut", "Massachusetts", "New Jersey", "Pennsylvania", "Vermont"],
+    "North Carolina": ["Georgia", "South Carolina", "Tennessee", "Virginia"],
+    "North Dakota": ["Minnesota", "Montana", "South Dakota"],
+    "Ohio": ["Indiana", "Kentucky", "Michigan", "Pennsylvania", "West Virginia"],
+    "Oklahoma": ["Arkansas", "Colorado", "Kansas", "Missouri", "New Mexico", "Texas"],
+    "Oregon": ["California", "Idaho", "Nevada", "Washington"],
+    "Pennsylvania": ["Delaware", "Maryland", "New Jersey", "New York", "Ohio", "West Virginia"],
+    "Rhode Island": ["Connecticut", "Massachusetts"],
+    "South Carolina": ["Georgia", "North Carolina"],
+    "South Dakota": ["Iowa", "Minnesota", "Montana", "Nebraska", "North Dakota", "Wyoming"],
+    "Tennessee": ["Alabama", "Arkansas", "Georgia", "Kentucky", "Mississippi", "Missouri", "North Carolina", "Virginia"],
+    "Texas": ["Arkansas", "Louisiana", "New Mexico", "Oklahoma"],
+    "Utah": ["Arizona", "Colorado", "Idaho", "Nevada", "New Mexico", "Wyoming"],
+    "Vermont": ["Massachusetts", "New Hampshire", "New York"],
+    "Virginia": ["Kentucky", "Maryland", "North Carolina", "Tennessee", "West Virginia"],
+    "Washington": ["Idaho", "Oregon"],
+    "West Virginia": ["Kentucky", "Maryland", "Ohio", "Pennsylvania", "Virginia"],
+    "Wisconsin": ["Illinois", "Iowa", "Michigan", "Minnesota"],
+    "Wyoming": ["Colorado", "Idaho", "Montana", "Nebraska", "South Dakota", "Utah"]
+    }
+    if not continental:
+        states['Alaska'] = []
+        states['Hawaii'] = []
+        G = Graph(states, format='dict_of_lists')
+        G.name(new="USA Map")
+        return G
+
+    G = Graph(states, format='dict_of_lists')
+    G.name(new="Continental USA Map")
     return G
 
 def WorldMap():

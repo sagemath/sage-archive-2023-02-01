@@ -14,15 +14,15 @@ Both produce the same extension of `\QQ`. However, they should not be
 identical because `M` carries additional information::
 
     sage: L.structure()
-    (Identity endomorphism of Number Field in a with defining polynomial x^2 - 2,
-     Identity endomorphism of Number Field in a with defining polynomial x^2 - 2)
+    (Identity endomorphism of Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095?,
+     Identity endomorphism of Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095?)
     sage: M.structure()
     (Isomorphism given by variable name change map:
-      From: Number Field in a with defining polynomial x^2 - 2
-      To:   Number Field in a with defining polynomial x^2 - 2,
+       From: Number Field in a with defining polynomial x^2 - 2
+       To:   Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095?,
      Isomorphism given by variable name change map:
-      From: Number Field in a with defining polynomial x^2 - 2
-      To:   Number Field in a with defining polynomial x^2 - 2)
+       From: Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095?
+       To:   Number Field in a with defining polynomial x^2 - 2)
 
 This used to cause trouble with caching and made (absolute) number fields not
 unique when they should have been. The underlying technical problem is that the
@@ -152,6 +152,15 @@ class NameChange(NumberFieldStructure):
         sage: NameChange(K)
         <sage.rings.number_field.structure.NameChange object at 0x...>
 
+    Check for memory leaks:
+
+        sage: u=id(NumberField(x^2-5,'a').absolute_field('b'))
+        sage: import gc
+        sage: gc.collect() #random
+        10
+        sage: [id(v) for v in gc.get_objects() if id(v) == u]
+        []
+
     """
     def create_structure(self, field):
         r"""
@@ -261,13 +270,13 @@ class RelativeFromAbsolute(NumberFieldStructure):
             sage: M.<b,a_> = K.relativize(-a)
             sage: M.structure() # indirect doctest
             (Relative number field morphism:
-             From: Number Field in b with defining polynomial x + a_ over its base field
-             To:   Number Field in a with defining polynomial x^2 - 2
-             Defn: -a_ |--> a
-                   a_ |--> -a, Ring morphism:
-             From: Number Field in a with defining polynomial x^2 - 2
-             To:   Number Field in b with defining polynomial x + a_ over its base field
-             Defn: a |--> -a_)
+               From: Number Field in b with defining polynomial x + a_ over its base field
+               To:   Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095?
+               Defn: -a_ |--> a
+                     a_ |--> -a, Ring morphism:
+               From: Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095?
+               To:   Number Field in b with defining polynomial x + a_ over its base field
+               Defn: a |--> -a_)
 
         """
         # other     field

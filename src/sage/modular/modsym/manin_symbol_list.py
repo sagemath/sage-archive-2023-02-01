@@ -40,7 +40,7 @@ import sage.modular.modsym.g1list as g1list
 import sage.modular.modsym.ghlist as ghlist
 from sage.rings.all import Integer
 from sage.structure.parent import Parent
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 from sage.structure.richcmp import richcmp_method, richcmp
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
@@ -277,7 +277,7 @@ class ManinSymbolList(Parent):
             sage: m.index(m.symbol_list()[2])
             2
             sage: S = m.symbol_list()
-            sage: all([i == m.index(S[i]) for i in range(len(S))])
+            sage: all(i == m.index(S[i]) for i in range(len(S)))
             True
         """
         if x in self._index:
@@ -799,7 +799,7 @@ class ManinSymbolList_gamma1(ManinSymbolList_group):
         True
     """
     def __init__(self, level, weight):
-        """
+        r"""
         Constructor for a ModularSymbolList for `\Gamma_0(N)`.
 
         EXAMPLES::

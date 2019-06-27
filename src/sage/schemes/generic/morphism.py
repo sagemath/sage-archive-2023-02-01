@@ -1276,12 +1276,12 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         TESTS::
 
-            sage: R.<t>=QQ[]
-            sage: K.<v>=QuadraticField(2)
-            sage: K2.<w>=NumberField(t**4-2)
-            sage: P.<x,y>=ProjectiveSpace(QQ,1)
-            sage: phi=K.embeddings(K2)[0]
-            sage: f=DynamicalSystem_projective([x**2+3*y**2,y**2])
+            sage: R.<t> = QQ[]
+            sage: K.<v> = QuadraticField(2)
+            sage: K2.<w> = NumberField(t**4-2)
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: phi = K.embeddings(K2)[0]
+            sage: f = DynamicalSystem_projective([x**2+3*y**2,y**2])
             sage: f.change_ring(phi)
             Dynamical System of Projective Space of dimension 1 over Number Field in w with defining polynomial t^4 - 2
               Defn: Defined on coordinates by sending (x : y) to
@@ -1289,13 +1289,13 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         ::
 
-            sage: R.<t>=QQ[]
-            sage: K.<u>=QuadraticField(2)
-            sage: K1.<v>=NumberField(t^4-2)
-            sage: K2.<w>=NumberField(t^8-2)
-            sage: P.<x,y>=ProjectiveSpace(K,1)
-            sage: phi=K1.embeddings(K2)[0]
-            sage: f=DynamicalSystem_projective([x^2+3*y^2,y^2])
+            sage: R.<t> = QQ[]
+            sage: K.<u> = QuadraticField(2)
+            sage: K1.<v> = NumberField(t^4-2)
+            sage: K2.<w> = NumberField(t^8-2)
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: phi = K1.embeddings(K2)[0]
+            sage: f = DynamicalSystem_projective([x^2+3*y^2,y^2])
             sage: f.change_ring(phi)
             Traceback (most recent call last):
             ...

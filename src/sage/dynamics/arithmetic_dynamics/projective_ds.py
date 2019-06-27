@@ -2592,9 +2592,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             raise TypeError("the function is not a morphism")
         if self.degree() == 1:
             raise NotImplementedError("minimality is only for degree 2 or higher")
-        if prime_list != None and check_primes:
-            for prime in prime_list:
-                if not is_prime(prime):
+        if prime_list and check_primes:
+            for p in prime_list:
+                if not p.is_prime():
                     raise ValueError("prime_list contains " + str(prime) + " which is not prime")
 
         if algorithm == 'BM':

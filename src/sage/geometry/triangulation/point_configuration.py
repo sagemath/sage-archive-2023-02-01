@@ -375,8 +375,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         - ``engine`` -- either 'auto' (default), 'internal', or
           'topcom'. The latter two instruct this package to always use
           its own triangulation algorithms or TOPCOM's algorithms,
-          respectively. By default ('auto'), TOPCOM is used if it is
-          available and internal routines otherwise.
+          respectively. By default ('auto'), internal routines are used.
 
         EXAMPLES::
 

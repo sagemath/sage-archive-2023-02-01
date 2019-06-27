@@ -6,10 +6,9 @@ over any metric (Hamming, rank).
 
 Any class inheriting from AbstractCode can use the encode/decode framework.
 """
-#TODO: imports
+
 from sage.modules.module import Module
-<<<<<<< HEAD
-=======
+
 from sage.categories.modules import Modules
 from sage.misc.cachefunc import cached_method
 from copy import copy
@@ -23,7 +22,6 @@ from sage.misc.sageinspect import sage_getargspec
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 
 from sage.structure.parent import Parent
->>>>>>> 4f44acd853... Fixed some dependencies. Category still set up wrong.
 
 #TODO: credits?
 
@@ -33,12 +31,9 @@ def _explain_constructor(cl):
 
     EXAMPLES::
 
-<<<<<<< HEAD
-        sage: from sage.coding.linear_code import _explain_constructor, LinearCodeSyndromeDecoder
-=======
+
         sage: from sage.coding.linear_code import LinearCodeSyndromeDecoder
         sage: from sage.coding.abstract_code import _explain_constructor
->>>>>>> 4f44acd853... Fixed some dependencies. Category still set up wrong.
         sage: cl = LinearCodeSyndromeDecoder
         sage: _explain_constructor(cl)
         "The constructor requires no arguments.\nIt takes the optional arguments ['maximum_error_weight'].\nSee the documentation of sage.coding.linear_code.LinearCodeSyndromeDecoder for more details."
@@ -72,30 +67,16 @@ def _explain_constructor(cl):
         var = ""
     return("{}\n{}\n{}See the documentation of {}.{} for more details."\
             .format(reqs, opts, var, cl.__module__, cl.__name__))
-<<<<<<< HEAD
 
-
-class AbstractCode(Module):
-
-    def __init__(self, base_ring, length, default_encoder_name,
-                 default_decoder_name, metric='Hamming'):
-=======
 
 class AbstractCode(Module):
 
     def __init__(self, base_ring, length, metric='Hamming'):
->>>>>>> 4f44acd853... Fixed some dependencies. Category still set up wrong.
         """
         """
         _registered_encoders = {}
         _registered_decoders = {}
 
-<<<<<<< HEAD
-        self._base_ring = base_ring
-        self._length = length
-        self._metric = metric
-
-=======
         if not isinstance(length, (int, Integer)):
             raise ValueError("length must be a Python int or a Sage Integer")
         if length <= 0:
@@ -112,7 +93,6 @@ class AbstractCode(Module):
         cat = Modules(base_ring).FiniteDimensional()
         Parent.__init__(self, base=base_ring, facade=True, category=cat)
 
->>>>>>> 4f44acd853... Fixed some dependencies. Category still set up wrong.
     def __getstate__(self):
         """
         Used for pickling codes.
@@ -232,27 +212,6 @@ class AbstractCode(Module):
         """
         return [x for x in self]
 
-<<<<<<< HEAD
-    def base_ring(self):
-        r"""
-        Return the base ring of ``self``.
-
-        EXAMPLES::
-
-            sage: G  = Matrix(GF(2), [[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
-            sage: C  = LinearCode(G)
-            sage: C.base_field()
-            Finite Field of size 2
-        """
-        return self.base_ring()
-=======
-    #def base_ring(self):
-    #    r"""
-    #    Return the base ring of ``self``.
-    #    """
-    #    return self.base_ring()
->>>>>>> 4f44acd853... Fixed some dependencies. Category still set up wrong.
-
     def length(self):
         r"""
         Returns the length of this code.
@@ -272,13 +231,8 @@ class AbstractCode(Module):
         EXAMPLES::
 
             sage: C = codes.HammingCode(GF(2), 3)
-<<<<<<< HEAD
-            sage: C.metric
-            Hamming
-=======
             sage: C.metric()
             'Hamming'
->>>>>>> 4f44acd853... Fixed some dependencies. Category still set up wrong.
         """
         return self._metric
 

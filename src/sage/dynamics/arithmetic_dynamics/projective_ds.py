@@ -5203,8 +5203,8 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
     def is_conjugate(self, other, R=None):
         r"""
         Return whether two dynamical systems are conjugate over their
-       base ring (by default) or over the ring R entered as an
-       optional parameter.
+        base ring (by default) or over the ring R entered as an
+        optional parameter.
 
         ALGORITHM:
 

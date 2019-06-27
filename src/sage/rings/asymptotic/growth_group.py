@@ -241,6 +241,7 @@ from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import (CachedRepresentation,
                                                   UniqueRepresentation)
 from sage.structure.richcmp import richcmp_by_eq_and_lt
+from .misc import WithLocals
 
 
 class Variable(CachedRepresentation, SageObject):
@@ -916,7 +917,7 @@ def _log_(self, base=None):
 
 # The following function is used in the classes GenericGrowthElement and
 # GenericProduct.Element as a method.
-def _log_factor_(self, base=None, log=None):
+def _log_factor_(self, base=None, locals=None):
     r"""
     Return the logarithm of the factorization of this
     element.
@@ -926,9 +927,10 @@ def _log_factor_(self, base=None, log=None):
     - ``base`` -- the base of the logarithm. If ``None``
       (default value) is used, the natural logarithm is taken.
 
-    - ``log`` -- a function. If ``None`` (default value)
-      is used, then the usual
-      :class:`log <sage.functions.log.Function_log>` is taken.
+    - ``locals`` -- a dictionary which may contain the following keys and values:
+
+      - ``'log'`` -- value: a function. If not used, then the usual
+        :class:`log <sage.functions.log.Function_log>` is taken.
 
     OUTPUT:
 
@@ -977,7 +979,7 @@ def _log_factor_(self, base=None, log=None):
         sage: (exp(x) * x).log_factor()  # indirect doctest
         ((x, 1), (log(x), 1))
     """
-    log_factor = self._log_factor_(base=base, log=log)
+    log_factor = self._log_factor_(base=base, locals=locals)
 
     for g, c in log_factor:
         if hasattr(g, 'parent') and \
@@ -1423,7 +1425,7 @@ class GenericGrowthElement(MultiplicativeGroupElement):
     log = _log_
     log_factor = _log_factor_
 
-    def _log_factor_(self, base=None, log=None):
+    def _log_factor_(self, base=None, locals=None):
         r"""
         Helper method for calculating the logarithm of the factorization
         of this element.
@@ -1433,9 +1435,10 @@ class GenericGrowthElement(MultiplicativeGroupElement):
         - ``base`` -- the base of the logarithm. If ``None``
           (default value) is used, the natural logarithm is taken.
 
-        - ``log`` -- a function. If ``None`` (default value)
-          is used, then the usual
-          :class:`log <sage.functions.log.Function_log>` is taken.
+        - ``locals`` -- a dictionary which may contain the following keys and values:
+
+          - ``'log'`` -- value: a function. If not used, then the usual
+            :class:`log <sage.functions.log.Function_log>` is taken.
 
         OUTPUT:
 
@@ -1610,7 +1613,7 @@ class GenericGrowthElement(MultiplicativeGroupElement):
                                   'not implemented '.format(self))
 
 
-class GenericGrowthGroup(UniqueRepresentation, Parent):
+class GenericGrowthGroup(UniqueRepresentation, Parent, WithLocals):
     r"""
     A basic implementation for growth groups.
 
@@ -3015,7 +3018,7 @@ class MonomialGrowthElement(GenericGrowthElement):
         return self.parent()._create_element_in_extension_(
             self.exponent * strip_symbolic(exponent))
 
-    def _log_factor_(self, base=None, log=None):
+    def _log_factor_(self, base=None, locals=None):
         r"""
         Helper method for calculating the logarithm of the factorization
         of this element.
@@ -3025,9 +3028,10 @@ class MonomialGrowthElement(GenericGrowthElement):
         - ``base`` -- the base of the logarithm. If ``None``
           (default value) is used, the natural logarithm is taken.
 
-        - ``log`` -- a function. If ``None`` (default value)
-          is used, then the usual
-          :class:`log <sage.functions.log.Function_log>` is taken.
+        - ``locals`` -- a dictionary which may contain the following keys and values:
+
+          - ``'log'`` -- value: a function. If not used, then the usual
+            :class:`log <sage.functions.log.Function_log>` is taken.
 
         OUTPUT:
 
@@ -3063,7 +3067,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: G(raw_element=log2)._log_factor_(base=2)
             (('log(x)', log2/log(2)),)
             sage: G(raw_element=log2)._log_factor_(base=2,
-            ....:       log=lambda z: log2 if z == 2 else log(z))
+            ....:       locals={'log': lambda z: log2 if z == 2 else log(z)})
             (('log(x)', 1),)
         """
         if self.is_one():
@@ -3087,12 +3091,11 @@ class MonomialGrowthElement(GenericGrowthElement):
             v = 'log(%s)' % (var,)
 
         if base is not None:
-            if log is None:
-                from sage.functions.log import log
+            log = self.parent().locals(locals)['log']
             coefficient = coefficient / log(base)
         return ((v, coefficient),)
 
-    def _rpow_element_(self, base):
+    def _rpow_element_(self, base, locals=None):
         r"""
         Return an element which is the power of ``base`` to this
         element.
@@ -3100,6 +3103,11 @@ class MonomialGrowthElement(GenericGrowthElement):
         INPUT:
 
         - ``base`` -- an element.
+
+        - ``locals`` -- a dictionary which may contain the following keys and values:
+
+          - ``'log'`` -- value: a function. If not used, then the usual
+            :class:`log <sage.functions.log.Function_log>` is taken.
 
         OUTPUT:
 
@@ -3155,7 +3163,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             M = MonomialGrowthGroup(ZZ, new_var)
             return M(raw_element=ZZ(1))
         else:
-            from sage.functions.log import log
+            log = self.parent().locals(locals)['log']
             new_exponent = log(base)
             M = MonomialGrowthGroup(new_exponent.parent(), new_var)
             return M(raw_element=new_exponent)
@@ -4090,7 +4098,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
         return self.parent()._create_element_in_extension_(
             self.base ** strip_symbolic(exponent))
 
-    def _log_factor_(self, base=None, log=None):
+    def _log_factor_(self, base=None, locals=None):
         r"""
         Helper method for calculating the logarithm of the factorization
         of this element.
@@ -4100,9 +4108,10 @@ class ExponentialGrowthElement(GenericGrowthElement):
         - ``base`` -- the base of the logarithm. If ``None``
           (default value) is used, the natural logarithm is taken.
 
-        - ``log`` -- a function. If ``None`` (default value)
-          is used, then the usual
-          :class:`log <sage.functions.log.Function_log>` is taken.
+        - ``locals`` -- a dictionary which may contain the following keys and values:
+
+          - ``'log'`` -- value: a function. If not used, then the usual
+            :class:`log <sage.functions.log.Function_log>` is taken.
 
         OUTPUT:
 
@@ -4128,7 +4137,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
             sage: G(raw_element=2)._log_factor_()
             (('x', log(2)),)
             sage: G(raw_element=2)._log_factor_(
-            ....:       log=lambda z, base: log2 if z == 2 else log(z))
+            ....:       locals={'log': lambda z, base: log2 if z == 2 else log(z)})
             (('x', log2),)
         """
         if self.is_one():
@@ -4140,8 +4149,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
         elif base is None and str(b) == 'e':
             coefficient = self.parent().base().one()
         else:
-            if log is None:
-                from sage.functions.log import log
+            log = self.parent().locals(locals)['log']
             coefficient = log(b, base=base)
 
         return ((str(self.parent()._var_), coefficient),)

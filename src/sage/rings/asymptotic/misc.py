@@ -30,6 +30,9 @@ Functions, Classes and Methods
 from __future__ import print_function, absolute_import
 from six.moves import range
 
+from sage.misc.cachefunc import cached_method
+from sage.structure.sage_object import SageObject
+
 
 def repr_short_to_parent(s):
     r"""
@@ -970,3 +973,182 @@ def transform_category(category,
                              (category, A))
 
     return result
+
+
+class Locals(dict):
+    r"""
+    A frozen dictionary-like class for storing locals
+    of an :class:`~sage.rings.asymptotic.asymptotic_ring.AsymptoticRing`.
+
+    EXAMPLES::
+
+        sage: from sage.rings.asymptotic.misc import Locals
+        sage: locals = Locals({'a': 42})
+        sage: locals['a']
+        42
+
+    The object contains default values (see :meth:`default_locals`)
+    for some keys::
+
+        sage: locals['log']
+        <function log at 0x...>
+    """
+    def __getitem__(self, key):
+        r"""
+        Return an item.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.misc import Locals
+            sage: locals = Locals()
+            sage: locals
+            {}
+            sage: locals['log']  # indirect doctest
+            <function log at 0x...>
+        """
+        try:
+            return super(Locals, self).__getitem__(key)
+        except KeyError as ke:
+            try:
+                return self.default_locals()[key]
+            except KeyError:
+                raise ke
+
+    def __setitem__(self, key, value):
+        r"""
+        Set an item.
+
+        This raises an error as the object is immutable.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.misc import Locals
+            sage: locals = Locals()
+            sage: locals['a'] = 4  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            TypeError: locals dictionary is frozen,
+            therefore does not support item assignment
+        """
+        raise TypeError('locals dictionary is frozen, therefore does not support item assignment')
+
+    @cached_method
+    def _data_(self):
+        r"""
+        Return stored data as tuple sorted by their keys.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.misc import Locals
+            sage: locals = Locals({'a': 2, 'b': 1})
+            sage: locals._data_()
+            (('a', 2), ('b', 1))
+        """
+        return tuple(sorted(self.items(), key=lambda k_v: k_v[0]))
+
+    def __hash__(self):
+        r"""
+        Return a hash value.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.misc import Locals
+            sage: locals = Locals({'a': 2, 'b': 1})
+            sage: hash(locals)  # random
+            -42
+        """
+        return hash(self._data_())
+
+    @cached_method
+    def default_locals(self):
+        r"""
+        Return the default locals used in
+        the :class:`~sage.rings.asymptotic.asymptotic_ring.AsymptoticRing`.
+
+        OUTPUT:
+
+        A dictionary.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.misc import Locals
+            sage: locals = Locals({'a': 2, 'b': 1})
+            sage: locals
+            {'a': 2, 'b': 1}
+            sage: locals.default_locals()
+            {'log': <function log at 0x...>}
+            sage: locals['log']
+            <function log at 0x...>
+        """
+        from sage.functions.log import log
+        return {
+            'log': log}
+
+
+class WithLocals(SageObject):
+    r"""
+    A class extensions for handling local values; see also
+    :class:`Locals`.
+
+    This is used in the
+    :class:`~sage.rings.asymptotic.asymptotic_ring.AsymptoticRing`.
+
+    EXAMPLES::
+
+        sage: A.<n> = AsymptoticRing('n^ZZ', QQ, locals={'a': 42})
+        sage: A.locals()
+        {'a': 42}
+    """
+    @staticmethod
+    def _convert_locals_(locals):
+        r"""
+        This helper method return data converted to :class:`Locals`.
+
+        TESTS::
+
+            sage: A.<n> = AsymptoticRing('n^ZZ', QQ)
+            sage: locals = A._convert_locals_({'a': 42}); locals
+            {'a': 42}
+            sage: type(locals)
+            <class 'sage.rings.asymptotic.misc.Locals'>
+        """
+        if locals is None:
+            return Locals()
+        else:
+            return Locals(locals)
+
+    def locals(self, locals=None):
+        r"""
+        Return the actual :class:`Locals` object to be used.
+
+        INPUT:
+
+        - ``locals`` -- an object
+
+          If ``locals`` is not ``None``, then a :class:`Locals` object
+          is created and returned.
+          If ``locals`` is ``None``, then a stored :class:`Locals` object,
+          if any, is returned. Otherwise, an empty (i.e. no values except
+          the default values)
+          :class:`Locals` object is created and returned.
+
+        OUTPUT:
+
+        A :class:`Locals` object.
+
+        TESTS::
+
+            sage: A.<n> = AsymptoticRing('n^ZZ', QQ, locals={'a': 42})
+            sage: A.locals()
+            {'a': 42}
+            sage: A.locals({'a': 41})
+            {'a': 41}
+            sage: A.locals({'b': -3})
+            {'b': -3}
+        """
+        if locals is None:
+            try:
+                locals = self._locals_
+            except AttributeError:
+                pass
+        return self._convert_locals_(locals)

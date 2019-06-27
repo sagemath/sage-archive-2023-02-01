@@ -680,7 +680,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = DynamicalSystem([w*x^2 + (1/5*w)*y^2, w*y^2])
             sage: f.normalize_coordinates();f
             Dynamical System of Projective Space of dimension 1 over Number Field in
-            w with defining polynomial x^2 - 5
+            w with defining polynomial x^2 - 5 with w = 2.236067977499790?
               Defn: Defined on coordinates by sending (x : y) to
                     (5*x^2 + y^2 : 5*y^2)
 

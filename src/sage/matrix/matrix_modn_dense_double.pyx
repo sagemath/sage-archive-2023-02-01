@@ -28,7 +28,7 @@ from sage.libs.linbox.linbox cimport \
     DenseMatrix_Modular_double as DenseMatrix
 
 from sage.libs.linbox.fflas cimport \
-    fgemm, fgemv, Det, pDet, Rank, pRank, ReducedRowEchelonForm, pReducedRowEchelonForm, applyP, \
+    fgemm, pfgemm, fgemv, Det, pDet, Rank, pRank, ReducedRowEchelonForm, pReducedRowEchelonForm, applyP, \
     MinPoly, CharPoly, MinPoly, \
     ModDoubleDensePolynomial as ModDensePoly
 

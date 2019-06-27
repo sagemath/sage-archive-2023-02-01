@@ -295,9 +295,16 @@ cdef inline celement linbox_matrix_matrix_multiply(celement modulus, celement* a
     F[0].init(one, <int>1)
     F[0].init(zero, <int>0)
 
-    if m*n*k > 100000: sig_on()
+    cpdef size_t nbthreads
+    nbthreads = Parallelism().get('linbox')
 
-    fgemm(F[0], FflasNoTrans, FflasNoTrans, m, n, k, one,
+    if m*n*k > 100000: sig_on()
+    if nbthreads > 1 :
+        pfgemm(F[0], FflasNoTrans, FflasNoTrans, m, n, k, one,
+               <ModField.Element*>A, k, <ModField.Element*>B, n, zero,
+               <ModField.Element*>ans, n, nbthreads)
+    else :
+        fgemm(F[0], FflasNoTrans, FflasNoTrans, m, n, k, one,
                <ModField.Element*>A, k, <ModField.Element*>B, n, zero,
                <ModField.Element*>ans, n)
 

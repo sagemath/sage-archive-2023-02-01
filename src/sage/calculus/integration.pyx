@@ -548,11 +548,6 @@ def monte_carlo_integral(func, xl, xu, size_t calls, algorithm='plain', params=N
         _xl[i] = <double> xl[i]
         _xu[i] = <double> xu[i]
 
-    # Initialize the random number generator
-    gsl_rng_env_setup()
-    type_rng = gsl_rng_default
-    _rng = gsl_rng_alloc(type_rng)
-
     if not callable(func):
         # constant
         v = float(1)
@@ -612,6 +607,11 @@ def monte_carlo_integral(func, xl, xu, size_t calls, algorithm='plain', params=N
         F.params = <void *> wrapper
 
     try:
+        # Initialize the random number generator
+        gsl_rng_env_setup()
+        type_rng = gsl_rng_default
+        _rng = gsl_rng_alloc(type_rng)
+
         if algorithm == 'plain':
             state_plain = <gsl_monte_plain_state*> gsl_monte_plain_alloc(dim)
             sig_on()

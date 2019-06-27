@@ -1425,7 +1425,9 @@ class BooleanFormula(object):
             i += 1
         return str[i]
     def TautologicallyImplies(self,other):
-
+        """
+        Checks if a formula tautologically implies the other
+        """
         tableSelf = self.truthtable().get_table_list()
         tableOther = other.truthtable().get_table_list()
        

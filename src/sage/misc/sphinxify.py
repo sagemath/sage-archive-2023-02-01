@@ -99,8 +99,7 @@ todo_include_todos = True""")
     templatesdir = os.path.join(confdir, 'templates')
     os.makedirs(templatesdir)
     with open(os.path.join(templatesdir, 'layout.html'), 'w') as filed:
-        filed.write(r"""
-<div class="docstring">
+        filed.write(r"""<div class="docstring">
     {% block body %} {% endblock %}
 </div>""")
     staticdir = os.path.join(confdir, 'static')

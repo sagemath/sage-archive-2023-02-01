@@ -171,11 +171,12 @@ def _OG(n, R, special, e=0, var='a', invariant_form=None):
     degree, ring = normalize_args_vectorspace(n, R, var=var)
     e = normalize_args_e(degree, ring, e)
 
+    if invariant_form is not None:
+        if is_FiniteField(ring):
+            raise NotImplementedError("invariant_form for finite groups is fixed by GAP")
+
     if e == 0:
         if invariant_form is not None:
-            if is_FiniteField(ring):
-                raise NotImplementedError("invariant_form for finite groups is fixed by GAP")
-
             invariant_form = normalize_args_invariant_form(ring, degree, invariant_form)
             if not invariant_form.is_symmetric():
                 raise ValueError("invariant_form must be symmetric")
@@ -197,9 +198,6 @@ def _OG(n, R, special, e=0, var='a', invariant_form=None):
             name = '{0} Orthogonal Group of degree {1} over {2}'.format(prefix, degree, ring)
             ltx  = r'\text{{{0}O}}_{{{1}}}({2})'.format(ltx_prefix, degree, latex(ring))
     else:
-        if invariant_form is not None:
-            if is_FiniteField(ring):
-                raise NotImplementedError("invariant_form for finite groups is fixed by GAP")
         name = '{0} Orthogonal Group of degree {1} and form parameter {2} over {3}'.format(prefix, degree, e, ring)
         ltx  = r'\text{{{0}O}}_{{{1}}}({2}, {3})'.format(ltx_prefix, degree,
                                                          latex(ring),

@@ -62,7 +62,7 @@ AUTHORS:
   that have been introduced in :trac:`14711`.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 Simon King <simon.king@uni-jena.de>
 #       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
 #       Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu.au>
@@ -71,8 +71,8 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from __future__ import absolute_import, print_function
 
@@ -114,7 +114,8 @@ def is_SchemeMorphism(f):
         True
     """
     from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field
-    return isinstance(f, (SchemeMorphism, EllipticCurvePoint_field));
+    return isinstance(f, (SchemeMorphism, EllipticCurvePoint_field))
+
 
 class SchemeMorphism(Element):
     """
@@ -1018,16 +1019,16 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             (0 : 0)
 
             sage: P.<x,y,z>=ProjectiveSpace(ZZ,2)
-            sage: X=P.subscheme(x^2-y^2);
+            sage: X=P.subscheme(x^2-y^2)
             sage: H=Hom(X,X)
-            sage: f=H([x^2,y^2,z^2]);
+            sage: f=H([x^2,y^2,z^2])
             sage: f([4,4,1])
             (16 : 16 : 1)
 
             sage: P.<x,y,z>=ProjectiveSpace(ZZ,2)
-            sage: X=P.subscheme(x^2-y^2);
+            sage: X=P.subscheme(x^2-y^2)
             sage: H=Hom(X,X)
-            sage: f=H([x^2,y^2,z^2]);
+            sage: f=H([x^2,y^2,z^2])
             sage: f(P([4,4,1]))
             (16 : 16 : 1)
         """
@@ -1098,9 +1099,9 @@ class SchemeMorphism_polynomial(SchemeMorphism):
         ::
 
             sage: P.<x,y,z>=ProjectiveSpace(ZZ,2)
-            sage: X=P.subscheme(x^2-y^2);
+            sage: X=P.subscheme(x^2-y^2)
             sage: H=Hom(X,X)
-            sage: f=H([x^2,y^2,z^2]);
+            sage: f=H([x^2,y^2,z^2])
             sage: f([4,4,1])
             (16 : 16 : 1)
 
@@ -1108,9 +1109,9 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
             sage: P.<x,y,z> = ProjectiveSpace(ZZ, 2)
             sage: P2.<u,v,w,t> = ProjectiveSpace(ZZ, 3)
-            sage: X = P.subscheme(x^2-y^2);
+            sage: X = P.subscheme(x^2-y^2)
             sage: H = Hom(X, X)
-            sage: f = H([x^2, y^2, z^2]);
+            sage: f = H([x^2, y^2, z^2])
             sage: f(P2([4,4,1,1]))
             Traceback (most recent call last):
             ...
@@ -1193,7 +1194,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
         ::
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
-            sage: X = P.subscheme(x^2 - y^2);
+            sage: X = P.subscheme(x^2 - y^2)
             sage: Q = X(23, 23, 46)
             sage: P = X(1, 1, 1)
             sage: P != Q
@@ -1280,9 +1281,9 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             sage: H = Hom(P,P)
             sage: f = H([3*x^2, y^2])
             sage: f.change_ring(GF(3))
-            Traceback (most recent call last):
-            ...
-            ValueError: polys (=[0, y^2]) must be of the same degree
+            Scheme endomorphism of Projective Space of dimension 1 over Finite Field of size 3
+              Defn: Defined on coordinates by sending (x : y) to
+                    (0 : y^2)
 
         ::
 

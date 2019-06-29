@@ -233,11 +233,13 @@ class Rule(UniqueRepresentation):
         q = []       # the "recording" tableau
         for i, j in itr:
             for r, qr in zip(p, q):
-                j, insertion_completed = self.insertion(j, r)
-                if insertion_completed:
+                j1 = self.insertion(j, r)
+                if j1 is None:
                     r.append(j)
                     qr.append(i)  # Values are always inserted to the right
                     break
+                else:
+                    j = j1
             else:
                 # We made through all of the rows of p without breaking
                 # so we need to add a new row to p and q.
@@ -434,17 +436,14 @@ class RuleRSK(Rule):
 
             sage: from sage.combinat.rsk import RuleRSK
             sage: qr, r =  [1,2,3,4,5], [3,3,2,4,8]
-            sage: j, insert_complete = RuleRSK().insertion(9, r)
-            sage: insert_complete
+            sage: j = RuleRSK().insertion(9, r)
+            sage: j is None
             True
             sage: qr, r =  [1,2,3,4,5], [3,3,2,4,8]
-            sage: j, insert_complete = RuleRSK().insertion(3, r)
-            sage: insert_complete
-            False
-            sage: j == 4
-            True
+            sage: j = RuleRSK().insertion(3, r)
+            sage: j
+            4
         """
-        insertion_completed = False
         if r[-1] > j:
             # Figure out where to insert j into the row r. The
             # bisect command returns the position of the least
@@ -452,10 +451,9 @@ class RuleRSK(Rule):
             y_pos = bisect_right(r, j)
             # Switch j and y
             j, r[y_pos] = r[y_pos], j
+            return j
         else:
-            insertion_completed = True  # Bumping is completed
-
-        return j, insertion_completed
+            return None  # Bumping is completed
 
     def reverse_insertion(self, x, row):
         r"""
@@ -586,23 +584,19 @@ class RuleEG(Rule):
 
             sage: from sage.combinat.rsk import RuleEG
             sage: qr, r =  [1,2,3,4,5], [3,3,2,4,8]
-            sage: j, insert_complete = RuleEG().insertion(9, r)
-            sage: insert_complete
+            sage: j = RuleEG().insertion(9, r)
+            sage: j is None
             True
             sage: qr, r =  [1,2,3,4,5], [2,3,4,5,8]
-            sage: j, insert_complete = RuleEG().insertion(3, r); r
+            sage: j = RuleEG().insertion(3, r); r
             [2, 3, 4, 5, 8]
-            sage: insert_complete
-            False
-            sage: j == 4
-            True
+            sage: j
+            4
             sage: qr, r =  [1,2,3,4,5], [2,3,5,5,8]
-            sage: j, insert_complete = RuleEG().insertion(3, r); r
+            sage: j = RuleEG().insertion(3, r); r
             [2, 3, 3, 5, 8]
-            sage: insert_complete
-            False
-            sage: j == 5
-            True
+            sage: j
+            5
         """
         insertion_completed = False
         if r[-1] > j:
@@ -616,10 +610,9 @@ class RuleEG(Rule):
             else:
                 # Switch j and y
                 j, r[y_pos] = r[y_pos], j
+            return j
         else:
-            insertion_completed = True
-
-        return j, insertion_completed
+            return None  # Bumping is completed
 
     def reverse_insertion(self, x, row):
         r"""
@@ -772,9 +765,9 @@ class RuleHecke(Rule):
 
         for i, j in zip(obj1, obj2):
             for ir, r in enumerate(p):
-                j, insertion_completed = self.insertion(j, ir, r, p)
+                j1 = self.insertion(j, ir, r, p)
 
-                if insertion_completed:
+                if j1 is None:
                     # We must have len(p[ir-1]) > len(r), since j is coming
                     # from the previous row.
                     if r[-1] < j and (ir == 0 or p[ir-1][len(r)] < j):
@@ -788,6 +781,8 @@ class RuleHecke(Rule):
                             ir += 1
                         q[ir-1][-1] = q[ir-1][-1] + (i,)
                     break
+                else:
+                    j = j1
             else:
                 # We made through all of the rows of p without breaking
                 # so we need to add a new row to p and q.
@@ -887,7 +882,7 @@ class RuleHecke(Rule):
             sage: from bisect import bisect_right
             sage: p, q, r =  [], [], [3,3,8,8,8,9]
             sage: j, ir = 8, 1
-            sage: j1, insert_complete = RuleHecke().insertion(j, ir, r, p)
+            sage: j1 = RuleHecke().insertion(j, ir, r, p)
             sage: j1 == r[bisect_right(r, j)]
             True
         """
@@ -902,10 +897,9 @@ class RuleHecke(Rule):
             if (y_pos == 0 or r[y_pos-1] < j) and (ir == 0 or p[ir-1][y_pos] < j):
                 r[y_pos] = j
             j = y
+            return j
         else:
-            insertion_completed = True  # Bumping is completed
-
-        return j, insertion_completed
+            return None  # Bumping is completed
 
     def reverse_insertion(self, i, x, row, p):
         r"""

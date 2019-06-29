@@ -413,7 +413,7 @@ class Rule(UniqueRepresentation):
         Returns exception for invalid input in forward rule.
         """
         pass
-    
+
     def _backward_verify_input(self, p, q):
         r"""
         Returns exception for invalid input in backward rule.
@@ -561,13 +561,13 @@ class RuleEG(Rule):
     Note that, for ``output = 'permutation'`` RuleEG returns the smallest
     permutation satisfying the resulting reduced word.
 
-    TEST:
+    TESTS:
 
-        Check that :func:`RSK_inverse` is the inverse of :func:`RSK` on the
-        different types of inputs/outputs::
+    Check that :func:`RSK_inverse` is the inverse of :func:`RSK` on the
+    different types of inputs/outputs::
 
-        First we can check on the reduced words (that can be obtained using
-         the ``reduced_word()`` method from permutations)::
+    First we can check on the reduced words (that can be obtained using
+     the ``reduced_word()`` method from permutations)::
 
         sage: f = lambda p: RSK_inverse(*RSK(p), output='permutation')
         sage: g = lambda w: RSK_inverse(*RSK(w, insertion=RSK.rules.EG),
@@ -580,7 +580,7 @@ class RuleEG(Rule):
         sage: is_fine = True if p == f(p) else p ; is_fine
         True
 
-        In case of non-standard p,q::
+    In case of non-standard p,q::
 
         sage: RSK_inverse(*RSK([1, 2, 3, 2, 1], insertion='EG'),
         ....:                   insertion='EG')
@@ -592,9 +592,9 @@ class RuleEG(Rule):
         ....:              insertion='EG')
         [[1, 2, 3, 3], [2, 1, 2, 2]]
 
-        Since the column reading of the insertion tableau from
-        Edelman-Greene insertion gives one of reduced words for the
-        original permutation, we can also check for that
+    Since the column reading of the insertion tableau from
+    Edelman-Greene insertion gives one of reduced words for the
+    original permutation, we can also check for that
 
         sage: f = lambda p: reversed([x for row in reversed(p) for x in row])
         sage: g = lambda p: RSK(p.reduced_word(), insertion=RSK.rules.EG)[0]
@@ -1007,16 +1007,16 @@ class RuleDualRSK(Rule):
     r"""
     A rule modeling the Dual RSK insertion.
 
-    For a `(0, 1)` matrix of finite support, one can use the Dual RSK 
-    algorithm, which can denoted by `A \rightarrow (P, Q)` where `A` is a 
-    `(0, 1)` matrix and `(P, Q)` is a pair of Tableaux. For the Dual RSK 
-    algorithm, first form the two-line array `w_A` from the `(0, 1)` matrix 
-    `A` and then proceed exactly like the classical RSK algorithm, except 
-    that an element `i` bumps the leftmost element `\geq i`, rather than 
-    the leftmost element `> i`. It follows that each row of `P` is strictly 
+    For a `(0, 1)` matrix of finite support, one can use the Dual RSK
+    algorithm, which can denoted by `A \rightarrow (P, Q)` where `A` is a
+    `(0, 1)` matrix and `(P, Q)` is a pair of Tableaux. For the Dual RSK
+    algorithm, first form the two-line array `w_A` from the `(0, 1)` matrix
+    `A` and then proceed exactly like the classical RSK algorithm, except
+    that an element `i` bumps the leftmost element `\geq i`, rather than
+    the leftmost element `> i`. It follows that each row of `P` is strictly
     increasing.
 
-    It can be observed that both RSK and Dual RSK agrees for permutation 
+    It can be observed that both RSK and Dual RSK agrees for permutation
     matrices.
 
     For more informatio, see Chapter 7, Section 14 in [Sta-EC2]_.
@@ -1031,7 +1031,7 @@ class RuleDualRSK(Rule):
         [[[1, 4], [2], [3], [3]], [[1, 4], [2], [3], [5]]]
         sage: RSK(Word([2,3,3,2,1,3,2,3]), insertion=RSK.rules.dualRSK)
         [[[1, 2, 3], [2, 3], [2, 3], [3]], [[1, 2, 8], [3, 6], [4, 7], [5]]]
-        
+
     Using dual RSK insertion with a strict biword::
 
         sage: RSK([1,1,2,4,4,5],[2,4,1,1,3,2], insertion=RSK.rules.dualRSK)
@@ -1057,7 +1057,7 @@ class RuleDualRSK(Rule):
 
     We can also use the inverse correspondence::
 
-        sage: RSK_inverse(*RSK([1, 2, 2, 2], [2, 1, 2, 3], 
+        sage: RSK_inverse(*RSK([1, 2, 2, 2], [2, 1, 2, 3],
         ....:         insertion=RSK.rules.dualRSK),insertion=RSK.rules.dualRSK)
         [[1, 2, 2, 2], [2, 1, 2, 3]]
         sage: P,Q = RSK([1, 2, 2, 2], [2, 1, 2, 3],insertion=RSK.rules.dualRSK)
@@ -1124,7 +1124,7 @@ class RuleDualRSK(Rule):
     Check that :func:`RSK_inverse` is the inverse of :func:`RSK` on the
     different types of inputs/outputs::
 
-        sage: RSK_inverse(Tableau([]), Tableau([]), 
+        sage: RSK_inverse(Tableau([]), Tableau([]),
         ....:                insertion=RSK.rules.dualRSK)
         [[], []]
         sage: f = lambda p: RSK_inverse(*RSK(p, insertion=RSK.rules.dualRSK),
@@ -1137,7 +1137,7 @@ class RuleDualRSK(Rule):
         True
         sage: from sage.combinat.integer_matrices import IntegerMatrices
         sage: M = IntegerMatrices([1,2,2,1], [3,1,1,1]) #this is probably wrong
-        sage: all(RSK_inverse(*RSK(m, insertion=RSK.rules.dualRSK), 
+        sage: all(RSK_inverse(*RSK(m, insertion=RSK.rules.dualRSK),
         ....:                output='matrix', insertion=RSK.rules.dualRSK) == m
         ....:     for m in M if all(x in [0, 1] for x in m))
         True
@@ -1146,15 +1146,14 @@ class RuleDualRSK(Rule):
         sage: p = Permutations(n).random_element()
         sage: True if p == f(p) else p
         True
-        
+
     Checking that tableaux should be of same shape::
 
-        sage: RSK_inverse(Tableau([[1,2,3]]), Tableau([[1,2]]), 
+        sage: RSK_inverse(Tableau([[1,2,3]]), Tableau([[1,2]]),
         ....:                          insertion=RSK.rules.dualRSK)
         Traceback (most recent call last):
         ...
         ValueError: p(=[[1, 2, 3]]) and q(=[[1, 2]]) must have the same shape
-
     """
     def to_pair(self, obj1=None, obj2=None):
         r"""
@@ -1177,7 +1176,6 @@ class RuleDualRSK(Rule):
             Traceback (most recent call last):
             ...
             ValueError: the matrix is not a {0, 1}-matrix
-
         """
         if obj2 is None:
             try:
@@ -1190,49 +1188,46 @@ class RuleDualRSK(Rule):
         else:
             lt = 0
             lb = 0
-            for t,b in zip(obj1, obj2):
+            for t, b in zip(obj1, obj2):
                 if lt == t and b == lb:
                     raise ValueError("invalid strict biword")
                 lt = t
                 lb = b
 
         return super(RuleDualRSK, self).to_pair(obj1, obj2)
-        
+
     def insertion(self, j, r):
         r"""
-        Insert the letter ``j`` from the second row of bi-word to the 
+        Insert the letter ``j`` from the second row of bi-word to the
         row ``r`` of the insertion tableau.
 
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleDualRSK
             sage: qr, r = [1,1,2,4,4], [2,4,1,1,3]
-            sage: j, insert_complete = RuleDualRSK().insertion(4, r)
-            sage: insert_complete
+            sage: j = RuleDualRSK().insertion(4, r)
+            sage: j is None
             True
             sage: qr, r = [1,1,2,4,4], [2,4,1,1,3]
-            sage: j, insert_complete = RuleDualRSK().insertion(3, r)
-            sage: insert_complete
-            False
+            sage: j = RuleDualRSK().insertion(3, r)
             sage: j
             3
-
         """
         insertion_completed = False
         if r[-1] >= j:
-            #Figure out where to insert j into the row r.  The
-            #bisect command returns the position of the least
-            #element of r greater than j.  We will call it y.
+            # Figure out where to insert j into the row r.  The
+            # bisect command returns the position of the least
+            # element of r greater than j.  We will call it y.
             y_pos = bisect_left(r, j)
-            #Switch j and y
+            # Switch j and y
             j, r[y_pos] = r[y_pos], j
+            return j
         else:
-            insertion_completed = True #Bumping is completed
-        return j, insertion_completed
+            return None  # Bumping is completed
 
     def reverse_insertion(self, x, row):
         r"""
-        Reverse bump the right-most letter from the `i^{th}` row of the 
+        Reverse bump the right-most letter from the `i^{th}` row of the
         current tableaux p_copy and appends the removed entry from ``p_copy``
         to the list ``rev_word``.
 
@@ -1244,30 +1239,28 @@ class RuleDualRSK(Rule):
             [1, 1, 6, 7, 7]
             sage: x
             5
-
         """
-        y_pos = bisect_right(row,x) - 1
+        y_pos = bisect_right(row, x) - 1
         # switch x and y
         x, row[y_pos] = row[y_pos], x
-        return x    
+        return x
 
     def _backward_format_output(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
         r"""
-        Return final output of the ``inverse_RSK`` correspondence from the 
-        output of the corresponding ``backward_rule``. 
+        Return final output of the ``inverse_RSK`` correspondence from the
+        output of the corresponding ``backward_rule``.
 
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleDualRSK
-            sage: RuleDualRSK()._backward_format_output([1, 2, 3, 4], None, 
+            sage: RuleDualRSK()._backward_format_output([1, 2, 3, 4], None,
             ....:                                    'permutation', True, True)
             [4, 3, 2, 1]
-            sage: RuleDualRSK()._backward_format_output([1, 2, 3, 4], None, 
+            sage: RuleDualRSK()._backward_format_output([1, 2, 3, 4], None,
             ....:                                   'permutation', False, True)
             Traceback (most recent call last):
             ...
             TypeError: p must be standard to have a valid permutation as output
-
         """
         if q_is_standard and output == 'permutation':
             if not p_is_standard:
@@ -1279,8 +1272,8 @@ class RuleDualRSK(Rule):
 
     def _forward_format_output(self, p=None, q=None, check_standard=False):
         r"""
-        Return final output of the ``RSK`` correspondence from the output of the 
-        corresponding ``forward_rule``. 
+        Return final output of the ``RSK`` correspondence from the output of the
+        corresponding ``forward_rule``.
 
         EXAMPLES::
 
@@ -1294,7 +1287,6 @@ class RuleDualRSK(Rule):
             sage: isinstance(RuleDualRSK()._forward_format_output([[1,1,1,3,7]],
             ....:                             [[1,2,3,4,5]], True)[0], Tableau)
             True
-
         """
         from sage.combinat.tableau import Tableau, StandardTableau
 
@@ -1323,14 +1315,13 @@ class RuleDualRSK(Rule):
             sage: RuleDualRSK()._backward_verify_input(p,p)
             Traceback (most recent call last):
             ...
-            ValueError: q(=[[3, 2, 1], [3, 2], [1]]) must be a 
+            ValueError: q(=[[3, 2, 1], [3, 2], [1]]) must be a
             semistandard tableau
-
         """
         from sage.combinat.tableau import SemistandardTableaux
 
         if q not in SemistandardTableaux() and not q.is_standard():
-            raise ValueError("q(=%s) must be a semistandard tableau"%q)
+            raise ValueError("q(=%s) must be a semistandard tableau" %q)
 
 
 class InsertionRules(object):
@@ -1688,7 +1679,7 @@ def RSK_inverse(p, q, output='array', insertion=InsertionRules.RSK):
         Traceback (most recent call last):
         ...
         ValueError: p(=[[1, 2, 3]]) and q(=[[1, 2]]) must have the same shape
-        
+
     Check that :trac:`20430` is fixed::
 
         sage: RSK([1,1,1,1,1,1,1,2,2,2,3], [1,1,1,1,1,1,3,2,2,2,1])

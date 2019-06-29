@@ -533,13 +533,13 @@ class RuleEG(Rule):
     Note that, for ``output = 'permutation'`` RuleEG returns the smallest
     permutation satisfying the resulting reduced word.
 
-    TEST:
+    TESTS:
 
-        Check that :func:`RSK_inverse` is the inverse of :func:`RSK` on the
-        different types of inputs/outputs::
+    Check that :func:`RSK_inverse` is the inverse of :func:`RSK` on the
+    different types of inputs/outputs::
 
-        First we can check on the reduced words (that can be obtained using
-         the ``reduced_word()`` method from permutations)::
+    First we can check on the reduced words (that can be obtained using
+    the ``reduced_word()`` method from permutations)::
 
         sage: f = lambda p: RSK_inverse(*RSK(p), output='permutation')
         sage: g = lambda w: RSK_inverse(*RSK(w, insertion=RSK.rules.EG),
@@ -564,9 +564,9 @@ class RuleEG(Rule):
         ....:              insertion='EG')
         [[1, 2, 3, 3], [2, 1, 2, 2]]
 
-        Since the column reading of the insertion tableau from
-        Edelman-Greene insertion gives one of reduced words for the
-        original permutation, we can also check for that
+    Since the column reading of the insertion tableau from
+    Edelman-Greene insertion gives one of reduced words for the
+    original permutation, we can also check for that
 
         sage: f = lambda p: reversed([x for row in reversed(p) for x in row])
         sage: g = lambda p: RSK(p.reduced_word(), insertion=RSK.rules.EG)[0]

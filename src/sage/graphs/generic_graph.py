@@ -16026,7 +16026,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(g.yen_k_shortest_simple_paths(1, 5, by_weight=True))
             [[1, 3, 5], [1, 2, 5], [1, 4, 5]]
             sage: list(g.yen_k_shortest_simple_paths(1, 5))
-            [[1, 2, 5], [1, 3, 5], [1, 4, 5]]
+            [[1, 4, 5], [1, 3, 5], [1, 2, 5]]
             sage: list(g.yen_k_shortest_simple_paths(1, 1))
             [[1]]
             sage: list(g.yen_k_shortest_simple_paths(1, 5, by_weight=True, report_edges=True, report_weight=True, labels=True))
@@ -16036,12 +16036,11 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(g.yen_k_shortest_simple_paths(1, 5, by_weight=True, report_edges=True, report_weight=True))
             [(20, [(1, 3), (3, 5)]), (40, [(1, 2), (2, 5)]), (60, [(1, 4), (4, 5)])]
             sage: list(g.yen_k_shortest_simple_paths(1, 5, report_edges=True, report_weight=True))
-            [(2, [(1, 2), (2, 5)]), (2, [(1, 3), (3, 5)]), (2, [(1, 4), (4, 5)])]
+            [(2, [(1, 4), (4, 5)]), (2, [(1, 3), (3, 5)]), (2, [(1, 2), (2, 5)])]
             sage: list(g.yen_k_shortest_simple_paths(1, 5, by_weight=True, report_edges=True))
             [[(1, 3), (3, 5)], [(1, 2), (2, 5)], [(1, 4), (4, 5)]]
             sage: list(g.yen_k_shortest_simple_paths(1, 5, by_weight=True, report_edges=True, labels=True))
             [[(1, 3, 10), (3, 5, 10)], [(1, 2, 20), (2, 5, 20)], [(1, 4, 30), (4, 5, 30)]]
-
             sage: g = Graph([(1, 2, 20), (1, 3, 10), (1, 4, 30), (2, 5, 20), (3, 5, 10), (4, 5, 30), (1, 6, 100), (5, 6, 5)])
             sage: list(g.yen_k_shortest_simple_paths(1, 6, by_weight = True))
             [[1, 3, 5, 6], [1, 2, 5, 6], [1, 4, 5, 6], [1, 6]]
@@ -16097,12 +16096,12 @@ class GenericGraph(GenericGraph_pyx):
              [1, 2, 3, 8, 9, 11, 6]]
             sage: g = DiGraph([(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 1), (1, 7, 1), (7, 8, 1), (8, 5, 1), (1, 6, 1), (6, 9, 1), (9, 5, 1), (4, 2, 1), (9, 3, 1), (9, 10, 1), (10, 5, 1), (9, 11, 1), (11, 10, 1)])
             sage: list(g.yen_k_shortest_simple_paths(1, 5))
-            [[1, 6, 9, 5],
-             [1, 7, 8, 5],
+            [[1, 7, 8, 5],
+             [1, 6, 9, 5],
              [1, 2, 3, 4, 5],
              [1, 6, 9, 10, 5],
-             [1, 6, 9, 3, 4, 5],
-             [1, 6, 9, 11, 10, 5]]
+             [1, 6, 9, 11, 10, 5],
+             [1, 6, 9, 3, 4, 5]]
         """
         if source not in self:
             raise ValueError("vertex '{}' is not in the graph".format(source))
@@ -16112,6 +16111,14 @@ class GenericGraph(GenericGraph_pyx):
 
         if source == target:
             yield [source]
+            return
+        # calling faster implementation of Yen's algorithm for directed graphs
+        if self.is_directed():
+            path = self.yen_k_shortest_simple_paths_directed_iterator(source=source, target=target, weight_function=weight_function,
+                                                                      by_weight=by_weight, report_edges=report_edges,
+                                                                      labels=labels, report_weight=report_weight)
+            for p in path:
+                yield p
             return
 
         if weight_function is not None:
@@ -16125,11 +16132,8 @@ class GenericGraph(GenericGraph_pyx):
             self._check_weight_function(weight_function)
             edge_wt = {}
             for e in self.edge_iterator():
-                if self.is_directed():
-                    edge_wt[(e[0], e[1])] = weight_function(e) # dictionary to get weight of the edges
-                else:
-                    edge_wt[(e[0], e[1])] = weight_function(e)
-                    edge_wt[(e[1], e[0])] = edge_wt[(e[0], e[1])]
+                edge_wt[(e[0], e[1])] = weight_function(e)
+                edge_wt[(e[1], e[0])] = edge_wt[(e[0], e[1])]
         else:
             def weight_function(e):
                 return 1
@@ -16139,9 +16143,8 @@ class GenericGraph(GenericGraph_pyx):
             for e in self.edge_iterator():
                 if (e[0], e[1]) not in edge_labels:
                     edge_labels[(e[0], e[1])] = [e]
-            if not self.is_directed():
-                for u, v in list(edge_labels):
-                    edge_labels[v, u] = edge_labels[u, v]
+            for u, v in list(edge_labels):
+                edge_labels[v, u] = edge_labels[u, v]
 
         from heapq import heappush, heappop
 
@@ -16205,9 +16208,6 @@ class GenericGraph(GenericGraph_pyx):
                 root = prev_path[:i] # root part of the previous path
                 for path in listA:
                     if path[:i] == root:
-                        if self.is_directed():
-                            exclude_edges.add((path[i - 1], path[i]))
-                        else:
                             exclude_edges.add((path[i - 1], path[i]))
                             exclude_edges.add((path[i], path[i - 1]))
                 try:
@@ -16236,7 +16236,7 @@ class GenericGraph(GenericGraph_pyx):
                     pass
                 exclude_vertices.add(root[-1])
 
-    def yen_k_shortest_simple_paths_directed(self, source, target, weight_function=None,
+    def yen_k_shortest_simple_paths_directed_iterator(self, source, target, weight_function=None,
                                              by_weight=False, report_edges=False,
                                              labels=False, report_weight=False):
         r"""
@@ -16283,93 +16283,92 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: g = DiGraph([(1, 2, 20), (1, 3, 10), (1, 4, 30), (2, 5, 20), (3, 5, 10), (4, 5, 30)])
-            sage: list(g.yen_k_shortest_simple_paths_directed(1, 5, by_weight=True))
+            sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 5, by_weight=True))
             [[1, 3, 5], [1, 2, 5], [1, 4, 5]]
-            sage: list(g.yen_k_shortest_simple_paths_directed(1, 5))
+            sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 5))
             [[1, 4, 5], [1, 3, 5], [1, 2, 5]]
-            sage: list(g.yen_k_shortest_simple_paths_directed(1, 1))
+            sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 1))
             [[1]]
-            sage: list(g.yen_k_shortest_simple_paths(1, 5, report_edges=True, labels=True))
-            [[(1, 2, 20), (2, 5, 20)], [(1, 3, 10), (3, 5, 10)], [(1, 4, 30), (4, 5, 30)]]
-            sage: list(g.yen_k_shortest_simple_paths(1, 5, report_edges=True, labels=True, by_weight=True))
+            sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 5, report_edges=True, labels=True))
+            [[(1, 4, 30), (4, 5, 30)], [(1, 3, 10), (3, 5, 10)], [(1, 2, 20), (2, 5, 20)]]
+            sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 5, report_edges=True, labels=True, by_weight=True))
             [[(1, 3, 10), (3, 5, 10)], [(1, 2, 20), (2, 5, 20)], [(1, 4, 30), (4, 5, 30)]]
-            sage: list(g.yen_k_shortest_simple_paths(1, 5, report_edges=True, labels=True, by_weight=True, report_weight=True))
+            sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 5, report_edges=True, labels=True, by_weight=True, report_weight=True))
             [(20, [(1, 3, 10), (3, 5, 10)]),
              (40, [(1, 2, 20), (2, 5, 20)]),
              (60, [(1, 4, 30), (4, 5, 30)])]
 
             sage: g = DiGraph([(1, 2, 20), (1, 3, 10), (1, 4, 30), (2, 5, 20), (3, 5, 10), (4, 5, 30), (1, 6, 100), (5, 6, 5)])
-            sage: list(g.yen_k_shortest_simple_paths_directed(1, 6, by_weight = True))
+            sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 6, by_weight = True))
             [[1, 3, 5, 6], [1, 2, 5, 6], [1, 4, 5, 6], [1, 6]]
-            sage: list(g.yen_k_shortest_simple_paths_directed(1, 6))
+            sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 6))
             [[1, 6], [1, 4, 5, 6], [1, 3, 5, 6], [1, 2, 5, 6]]
-            sage: list(g.yen_k_shortest_simple_paths(1, 6, report_edges=True, labels=True, by_weight=True, report_weight=True))
+            sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 6, report_edges=True, labels=True, by_weight=True, report_weight=True))
             [(25, [(1, 3, 10), (3, 5, 10), (5, 6, 5)]),
              (45, [(1, 2, 20), (2, 5, 20), (5, 6, 5)]),
              (65, [(1, 4, 30), (4, 5, 30), (5, 6, 5)]),
              (100, [(1, 6, 100)])]
-            sage: list(g.yen_k_shortest_simple_paths(1, 6, report_edges=True, labels=True, report_weight=True))
+            sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 6, report_edges=True, labels=True, report_weight=True))
             [(1, [(1, 6, 100)]),
-             (3, [(1, 2, 20), (2, 5, 20), (5, 6, 5)]),
+             (3, [(1, 4, 30), (4, 5, 30), (5, 6, 5)]),
              (3, [(1, 3, 10), (3, 5, 10), (5, 6, 5)]),
-             (3, [(1, 4, 30), (4, 5, 30), (5, 6, 5)])]
-
+             (3, [(1, 2, 20), (2, 5, 20), (5, 6, 5)])]
             sage: g = DiGraph([(1, 2, 5), (2, 3, 0), (1, 4, 2), (4, 5, 1), (5, 3, 0)])
-            sage: list(g.yen_k_shortest_simple_paths_directed(1, 3, by_weight=True))
+            sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 3, by_weight=True))
             [[1, 4, 5, 3], [1, 2, 3]]
-            sage: list(g.yen_k_shortest_simple_paths_directed(1, 3))
+            sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 3))
             [[1, 2, 3], [1, 4, 5, 3]]
-            sage: list(g.yen_k_shortest_simple_paths(1, 3, report_weight=True))
+            sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 3, report_weight=True))
             [(2, [1, 2, 3]), (3, [1, 4, 5, 3])]
-            sage: list(g.yen_k_shortest_simple_paths(1, 3, report_weight=True, report_edges=True))
+            sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 3, report_weight=True, report_edges=True))
             [(2, [(1, 2), (2, 3)]), (3, [(1, 4), (4, 5), (5, 3)])]
-            sage: list(g.yen_k_shortest_simple_paths(1, 3, report_weight=True, report_edges=True, by_weight=True))
+            sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 3, report_weight=True, report_edges=True, by_weight=True))
             [(3, [(1, 4), (4, 5), (5, 3)]), (5, [(1, 2), (2, 3)])]
-            sage: list(g.yen_k_shortest_simple_paths(1, 3, report_weight=True, report_edges=True, by_weight=True, labels=True))
+            sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 3, report_weight=True, report_edges=True, by_weight=True, labels=True))
             [(3, [(1, 4, 2), (4, 5, 1), (5, 3, 0)]), (5, [(1, 2, 5), (2, 3, 0)])]
 
         TESTS::
 
             sage: g = DiGraph([(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 2), (5, 6, 100), (4, 7, 3), (7, 6, 4), (3, 8, 5), (8, 9, 2), (9, 6, 2), (9, 10, 7), (9, 11, 10), (11, 6, 8), (10, 6, 2)])
-            sage: list(g.yen_k_shortest_simple_paths_directed(1, 6, by_weight=True))
+            sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 6, by_weight=True))
             [[1, 2, 3, 4, 7, 6],
              [1, 2, 3, 8, 9, 6],
              [1, 2, 3, 8, 9, 10, 6],
              [1, 2, 3, 8, 9, 11, 6],
              [1, 2, 3, 4, 5, 6]]
-            sage: list(g.yen_k_shortest_simple_paths_directed(1, 6, by_weight=True, report_edges=True))
+            sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 6, by_weight=True, report_edges=True))
             [[(1, 2), (2, 3), (3, 4), (4, 7), (7, 6)],
              [(1, 2), (2, 3), (3, 8), (8, 9), (9, 6)],
              [(1, 2), (2, 3), (3, 8), (8, 9), (9, 10), (10, 6)],
              [(1, 2), (2, 3), (3, 8), (8, 9), (9, 11), (11, 6)],
              [(1, 2), (2, 3), (3, 4), (4, 5), (5, 6)]]
-            sage: list(g.yen_k_shortest_simple_paths_directed(1, 6, by_weight=True, report_edges=True, report_weight=True))
+            sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 6, by_weight=True, report_edges=True, report_weight=True))
             [(10, [(1, 2), (2, 3), (3, 4), (4, 7), (7, 6)]),
              (11, [(1, 2), (2, 3), (3, 8), (8, 9), (9, 6)]),
              (18, [(1, 2), (2, 3), (3, 8), (8, 9), (9, 10), (10, 6)]),
              (27, [(1, 2), (2, 3), (3, 8), (8, 9), (9, 11), (11, 6)]),
              (105, [(1, 2), (2, 3), (3, 4), (4, 5), (5, 6)])]
-            sage: list(g.yen_k_shortest_simple_paths_directed(1, 6, by_weight=True, report_edges=True, report_weight=True, labels=True))
+            sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 6, by_weight=True, report_edges=True, report_weight=True, labels=True))
             [(10, [(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 7, 3), (7, 6, 4)]),
              (11, [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (9, 6, 2)]),
              (18, [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (9, 10, 7), (10, 6, 2)]),
              (27, [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (9, 11, 10), (11, 6, 8)]),
              (105, [(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 2), (5, 6, 100)])]
-            sage: list(g.yen_k_shortest_simple_paths_directed(1, 6))
+            sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 6))
             [[1, 2, 3, 8, 9, 6],
              [1, 2, 3, 4, 7, 6],
              [1, 2, 3, 4, 5, 6],
              [1, 2, 3, 8, 9, 11, 6],
              [1, 2, 3, 8, 9, 10, 6]]
             sage: g = DiGraph([(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 1), (1, 7, 1), (7, 8, 1), (8, 5, 1), (1, 6, 1), (6, 9, 1), (9, 5, 1), (4, 2, 1), (9, 3, 1), (9, 10, 1), (10, 5, 1), (9, 11, 1), (11, 10, 1)])
-            sage: list(g.yen_k_shortest_simple_paths_directed(1, 5))
+            sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 5))
             [[1, 7, 8, 5],
              [1, 6, 9, 5],
              [1, 2, 3, 4, 5],
              [1, 6, 9, 10, 5],
              [1, 6, 9, 11, 10, 5],
              [1, 6, 9, 3, 4, 5]]
-            sage: list(g.yen_k_shortest_simple_paths_directed(1, 5, by_weight=True))
+            sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 5, by_weight=True))
             [[1, 7, 8, 5],
              [1, 6, 9, 5],
              [1, 2, 3, 4, 5],
@@ -16377,11 +16376,11 @@ class GenericGraph(GenericGraph_pyx):
              [1, 6, 9, 11, 10, 5],
              [1, 6, 9, 3, 4, 5]]
             sage: g = DiGraph([(1, 2, 5), (6, 3, 0), (2, 6, 6), (1, 4, 15), (4, 5, 1), (4, 3, 0), (7, 1, 2), (8, 7, 1)])
-            sage: list(g.yen_k_shortest_simple_paths_directed(1, 3))
+            sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 3))
             [[1, 4, 3], [1, 2, 6, 3]]
-            sage: list(g.yen_k_shortest_simple_paths_directed(1, 3, by_weight=True, report_edges=True, report_weight=True, labels=True))
+            sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 3, by_weight=True, report_edges=True, report_weight=True, labels=True))
             [(11, [(1, 2, 5), (2, 6, 6), (6, 3, 0)]), (15, [(1, 4, 15), (4, 3, 0)])]
-            sage: list(g.yen_k_shortest_simple_paths_directed(1, 3, by_weight=True))
+            sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 3, by_weight=True))
             [[1, 2, 6, 3], [1, 4, 3]]
         """
         if not self.is_directed():
@@ -16486,7 +16485,6 @@ class GenericGraph(GenericGraph_pyx):
 
         heap_paths = set() # a set to check if a path is already present in the heap or not
         heap_sorted_paths = list() # heap data structure containing the candidate paths
-        listA = list() # list of previous paths already popped from the heap
         prev_path = None
 
         # compute the shortest path between the source and the target
@@ -16523,7 +16521,6 @@ class GenericGraph(GenericGraph_pyx):
                     yield list(zip(path1[:-1], path1[1:]))
                 else:
                     yield path1
-            listA.append(path1)
             prev_path = path1
 
             exclude_vertices = copy.deepcopy(exclude_vert_set) # deep copy of the exclude vertices set

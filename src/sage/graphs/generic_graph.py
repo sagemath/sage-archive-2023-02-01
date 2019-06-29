@@ -16405,7 +16405,7 @@ class GenericGraph(GenericGraph_pyx):
                 return e[2]
 
         parent = {} # dictionary of parent node in the shortest path tree of the target vertex
-        color = {} # assign color to each vertex as green, red and yellow
+        color = {} # assign color to each vertex as green, red or yellow
         # express edges are the edges with head node as green and tail node as yellow or tail node is a deviation node
         expressEdges = dict()
         dic = {} # a dictionary of the new edges added to the graph used for restoring the graph after the iteration
@@ -16500,7 +16500,7 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 yield path
             return
-        father[frozenset(path)] = None
+        father[tuple(path)] = None
         hash_path = tuple(path) # hashing the path to check the existence of a path in the heap
         heappush(heap_sorted_paths, (length, path, 0)) # heap push operation
         heap_paths.add(hash_path) # adding the path to the heap_paths set
@@ -16548,11 +16548,11 @@ class GenericGraph(GenericGraph_pyx):
             for i in range(dev_idx + 1, len(prev_path)): # deviating from the previous path to find the candidate paths
                 root = prev_path[:i] # root part of the previous path
                 if i == dev_idx + 1: # if its the deviation node
-                    p = father[frozenset(prev_path)]
+                    p = father[tuple(prev_path)]
                     while(p and len(p) > dev_idx + 1 and p[dev_idx] == root[dev_idx]): # comparing the deviation nodes
                         # using fatherly approach to filter the edges to be removed
                         exclude_edges.add((p[i - 1], p[i]))
-                        p = father[frozenset(p)]
+                        p = father[tuple(p)]
                 else:
                     color[root[-1]] = 1 # coloring it red
                     Yu = getUpStreamNodes(root[-1])
@@ -16593,7 +16593,7 @@ class GenericGraph(GenericGraph_pyx):
                     # push operation
                     hash_path = tuple(path)
                     if hash_path not in heap_paths: # if this path is not already present inside the heap
-                        father[frozenset(path)] = prev_path
+                        father[tuple(path)] = prev_path
                         heappush(heap_sorted_paths, (length, path, len(root) - 1))
                         heap_paths.add(hash_path)
                 except Exception:

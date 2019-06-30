@@ -1280,13 +1280,7 @@ class InterfaceElement(Element):
 
     def bool(self):
         """
-        Return whether this element is equal to ``True``.
-
-        NOTE:
-
-        This method needs to be overridden if the subprocess would
-        not return a string representation of a boolean value unless
-        an explicit print command is used.
+        Convert this element to a boolean.
 
         EXAMPLES::
 
@@ -1296,13 +1290,18 @@ class InterfaceElement(Element):
             True
 
         """
-        P = self._check_valid()
-        t = P._true_symbol()
-        cmd = '%s %s %s'%(self._name, P._equality_symbol(), t)
-        return P.eval(cmd) == t
+        return bool(self)
 
     def __bool__(self):
         """
+        Return whether this element is equal to ``True``.
+
+        .. NOTE::
+
+            This method needs to be overridden if the subprocess would
+            not return a string representation of a boolean value unless
+            an explicit print command is used.
+
         EXAMPLES::
 
             sage: bool(maxima(0))
@@ -1310,7 +1309,10 @@ class InterfaceElement(Element):
             sage: bool(maxima(1))
             True
         """
-        return self.bool()
+        P = self._check_valid()
+        t = P._true_symbol()
+        cmd = '%s %s %s'%(self._name, P._equality_symbol(), t)
+        return P.eval(cmd) == t
 
     __nonzero__ = __bool__
 

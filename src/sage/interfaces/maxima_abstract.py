@@ -1119,7 +1119,7 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
         """
         return self.display2d(onscreen=False)
 
-    def bool(self):
+    def __bool__(self):
         """
         Convert ``self`` into a boolean.
 
@@ -1129,13 +1129,15 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
 
         EXAMPLES::
 
-            sage: maxima(0).bool()
+            sage: bool(maxima(0))
             False
-            sage: maxima(1).bool()
+            sage: bool(maxima(1))
             True
         """
         P = self._check_valid()
         return P.eval('is(%s = 0);'%self.name()) == P._false_symbol() # but be careful, since for relations things like is(equal(a,b)) are what Maxima needs
+
+    __nonzero__ = __bool__
 
     def _richcmp_(self, other, op):
         """

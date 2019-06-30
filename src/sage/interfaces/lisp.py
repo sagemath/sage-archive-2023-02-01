@@ -417,7 +417,7 @@ class LispElement(RingElement, ExpectElement):
         else:
             return 1
 
-    def bool(self):
+    def __bool__(self):
         """
         EXAMPLES::
 
@@ -429,6 +429,8 @@ class LispElement(RingElement, ExpectElement):
             True
         """
         return self != 0
+
+    __nonzero__ = __bool__
 
     def _add_(self, right):
         """

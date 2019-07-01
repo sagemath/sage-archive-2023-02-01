@@ -17147,9 +17147,9 @@ class GenericGraph(GenericGraph_pyx):
         `this <http://www.cs.toronto.edu/~krueger/papers/unified.ps>`_ article
         by Derek G. Corneil and Richard Krueger.
 
-        Since it is impossible to implement the linear time algorithm in Python
-        the actual implementation is located in `generic_graph_pyx.pyx' in
-        the method `lex_BFS_fast`
+        Since it is impossible to implement the linear time algorithm
+        efficiently in Python the actual implementation is located
+        in `generic_graph_pyx.pyx' in the method `lex_BFS_fast`
 
         EXAMPLES:
 
@@ -17194,6 +17194,62 @@ class GenericGraph(GenericGraph_pyx):
         """
         from sage.graphs.generic_graph_pyx import lex_BFS_fast
         return lex_BFS_fast(self, reverse=reverse, tree=tree, initial_vertex=initial_vertex)
+
+    def lex_DFS(self, reverse=False, tree=False, initial_vertex=None):
+        r"""
+        Perform a Lex DFS on the graph.
+
+        INPUT:
+
+        - ``reverse`` -- boolean (default: ``False``); whether to return the
+          vertices in discovery order, or the reverse
+
+        - ``tree`` -- boolean (default: ``False``); whether to return the
+          discovery directed tree (each vertex being linked to the one that saw
+          it for the first time)
+
+        - ``initial_vertex`` -- (default: ``None``); the first vertex to
+          consider
+
+        ALGORITHM:
+
+        This algorithm maintains for each vertex left in the graph a code
+        corresponding to the vertices already removed. The vertex of maximal
+        code (according to the lexicographic order) is then removed, and the
+        codes are updated. Lex DFS differs from Lex BFS only in the way codes
+        are updated after each iteration.
+
+        The implementation of the algorithm is described in
+        `this <http://www.cs.toronto.edu/~krueger/papers/unified.ps>`_ article
+        by Derek G. Corneil and Richard Krueger.
+
+        Since it is impossible to implement the linear time algorithm
+        efficientlyin Python the actual implementation is located
+        in `generic_graph_pyx.pyx' in the method `lex_DFS_fast`
+
+        EXAMPLES:
+
+        A Lex DFS is obviously an ordering of the vertices::
+
+            sage: g = graphs.PetersenGraph()
+            sage: len(g.lex_DFS()) == g.order()
+            True
+
+        Lex DFS ordering of the 3-sun graph
+
+            sage: g = Graph([(1, 2), (1, 3), (2, 3), (2, 4), (2, 5), (3, 5), (3, 6), (4, 5), (5, 6)])
+            sage: g.lex_DFS()
+            [1, 2, 3, 5, 6, 4]
+
+        The method also works for directed graphs
+
+            sage: G = DiGraph([(1, 2), (2, 3), (1, 3)])
+            sage: G.lex_DFS()
+            [1, 2, 3]
+
+        """
+        from sage.graphs.generic_graph_pyx import lex_DFS_fast
+        return lex_DFS_fast(self, reverse=reverse, tree=tree, initial_vertex=initial_vertex)
 
     ### Constructors
 

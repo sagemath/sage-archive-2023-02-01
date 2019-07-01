@@ -181,12 +181,12 @@ class AffineWeylGroups(Category_singleton):
                 sage: w.affine_grassmannian_to_core()
                 Traceback (most recent call last):
                 ...
-                ValueError: Error! this only works on type 'A' affine Grassmannian elements
+                ValueError: this only works on type 'A' affine Grassmannian elements
             """
             from sage.combinat.partition import Partition
             from sage.combinat.core import Core
             if not self.is_affine_grassmannian() or not self.parent().cartan_type().letter == 'A':
-                raise ValueError("Error! this only works on type 'A' affine Grassmannian elements")
+                raise ValueError("this only works on type 'A' affine Grassmannian elements")
             out = Partition([])
             rword = self.reduced_word()
             kp1 = self.parent().n
@@ -209,7 +209,7 @@ class AffineWeylGroups(Category_singleton):
 
             - `k`-bounded partition
 
-            ..SEEALSO:: :meth:`affine_grassmannian_to_core`
+            .. SEEALSO:: :meth:`affine_grassmannian_to_core`
 
             EXAMPLES::
 

@@ -1493,7 +1493,9 @@ cdef class SparseGraphBackend(CGraphBackend):
                 return
             else:
                 self._cg.del_all_arcs(u_int, v_int)
-                if not directed:
+                if directed:
+                    self._cg_rev.del_all_arcs(v_int, u_int)
+                else:
                     self._cg.del_all_arcs(v_int, u_int)
         if directed:
             self._cg.add_arc_label(u_int, v_int, l_int)

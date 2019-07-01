@@ -7,9 +7,7 @@ over any metric (Hamming, rank).
 Any class inheriting from AbstractCode can use the encode/decode framework.
 """
 
-from sage.modules.module import Module
-
-from sage.categories.modules import Modules
+from sage.structure.parent import Parent
 from sage.misc.cachefunc import cached_method
 from copy import copy
 from .encoder import Encoder
@@ -21,7 +19,6 @@ from sage.misc.sageinspect import sage_getargspec
 
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 
-from sage.structure.parent import Parent
 
 #TODO: credits?
 
@@ -69,12 +66,153 @@ def _explain_constructor(cl):
             .format(reqs, opts, var, cl.__module__, cl.__name__))
 
 
-class AbstractCode(Module):
+class AbstractCode(Parent):
+    """
+    Abstract class for codes.
 
-    def __init__(self, base_ring, length, default_encoder_name=None,
+    This class contains all the methods that can be used on any code
+    and on any code family. As opposed to
+    :class:`sage.coding.linear_code.AbstractLinearCode`, this class makes no
+    assumptions about linearity, metric, finiteness or the number of alphabets.
+    The only assumption we kept is that the code is enumerable.
+
+    Every code-related class should inherit from this abstract
+    class.
+
+    To implement a code, you need to:
+
+    - inherit from AbstractCode
+
+    - call AbstractCode ``__init__`` method in the subclass constructor.
+      Example: ``super(SubclassName, self).__init__(length, "EncoderName",
+      "DecoderName", "metric")``. "EncoderName" and "DecoderName" are set to
+      ``None`` by default, a generic code class such as AbstractCode does
+      not necessarily have to have general encoders/decoders. However, if you
+      want to use the encoding/decoding methods, you have to add these.
+
+    - since this class does not specify any category, it is highly recommended
+      to set up the category framework in the subclass. To do this, use the
+      ``Parent.__init__(self, base, facade, category)`` function in the subclass
+      constructor. A good example is in
+      :class:`sage.coding.linear_code.AbstractLinearCode`.
+
+    - add the following two lines on the class level::
+
+          _registered_encoders = {}
+          _registered_decoders = {}
+
+
+    - fill the dictionary of its encoders in ``sage.coding.__init__.py`` file.
+      Example: I want to link the encoder ``MyEncoderClass`` to ``MyNewCodeClass``
+      under the name ``MyEncoderName``.
+      All I need to do is to write this line in the ``__init__.py`` file:
+      ``MyNewCodeClass._registered_encoders["NameOfMyEncoder"] = MyEncoderClass``
+      and all instances of ``MyNewCodeClass`` will be able to use instances of
+      ``MyEncoderClass``.
+
+    - fill the dictionary of its decoders in ``sage.coding.__init__`` file.
+      Example: I want to link the encoder ``MyDecoderClass`` to ``MyNewCodeClass``
+      under the name ``MyDecoderName``.
+      All I need to do is to write this line in the ``__init__.py`` file:
+      ``MyNewCodeClass._registered_decoders["NameOfMyDecoder"] = MyDecoderClass``
+      and all instances of ``MyNewCodeClass`` will be able to use instances of
+      ``MyDecoderClass``.
+
+
+    As AbstractCode is not designed to be implemented, it does not have any
+    representation methods. You should implement ``_repr_`` and ``_latex_``
+    methods in the subclass.
+    """
+
+    def __init__(self, length, default_encoder_name=None,
                  default_decoder_name=None, metric='Hamming'):
         """
+        Initializes mandatory parameters that any code shares.
+
+        This method only exists for inheritance purposes as it initializes
+        parameters that need to be known by every code. The class
+        :class:`sage.coding.abstract_code.AbstractCode` should never be
+        directly instantiated.
+
+        INPUT:
+
+        - ``length`` -- the length of ``self`` (a Python int or a Sage Integer,
+          must be > 0)
+
+        - ``default_encoder_name`` -- (default: ``None``) the name of
+          the default encoder of ``self``
+
+        - ``default_decoder_name`` -- (default: ``None``) the name of
+          the default decoder of ``self``
+
+        - ``metric`` -- (default: ``Hamming``) the name of the metric of ``self``
+
+        EXAMPLES:
+
+        The following example demonstrates how to use subclass `AbstractCode`
+        for representing a new family of codes. The example family is non-sensical::
+
+            sage: from sage.coding.abstract_code import AbstractCode
+            sage: class MyCodeFamily(AbstractCode):
+            ....:   def __init__(self, field, length, dimension, generator_matrix):
+            ....:       sage.coding.abstract_code.AbstractCode.__init__(self, length)
+            ....:       cat = Modules(field).FiniteDimensional().WithBasis().Finite()
+            ....:       Parent.__init__(self, base=field, facade=False, category=cat)
+            ....:       self._dimension = dimension
+            ....:       self._generator_matrix = generator_matrix
+            ....:       self._field = field
+            ....:   def field(self):
+            ....:       return self._field
+            ....:   def dimension(self):
+            ....:       return self._dimension
+            ....:   def generator_matrix(self):
+            ....:       return self._generator_matrix
+            ....:   def _repr_(self):
+            ....:       return "[%d, %d] dummy code over GF(%s)" % (self.length(), self.dimension(), self.field().cardinality())
+
+        We now instantiate a member of our newly made code family::
+
+            sage: generator_matrix = matrix(GF(17), 5, 10,
+            ....:                           {(i,i):1 for i in range(5)})
+            sage: C = MyCodeFamily(GF(17), 10, 5, generator_matrix)
+
+        We can check its existence and parameters::
+
+            sage: C
+            [10, 5] dummy code over GF(17)
+
+        We can check that it is truly a part of the framework category::
+
+            sage: C.parent()
+            <class '__main__.MyCodeFamily_with_category'>
+            sage: C.category()
+            Category of finite dimensional vector spaces with basis over Finite Field of size 17
+
+        And any method that works on linear codes works for our new dummy code::
+
+            sage: C.metric()
+            'Hamming'
+
+        TESTS:
+
+        If the length field is neither a Python int nor a Sage Integer, it will
+        raise a exception::
+
+            sage: C = MyCodeFamily(GF(17), 10.0, 5, generator_matrix)
+            Traceback (most recent call last):
+            ...
+            ValueError: length must be a Python int or a Sage Integer
+
+        If the length of the code is not a non-zero positive integer
+        (See :trac:`21326`), it will raise an exception::
+
+            sage: empty_generator_matrix = Matrix(GF(17),0,1)
+            sage: C = MyCodeFamily(GF(17), 0, 1, empty_generator_matrix)
+            Traceback (most recent call last):
+            ...
+            ValueError: length must be a non-zero positive integer
         """
+
         _registered_encoders = {}
         _registered_decoders = {}
 
@@ -82,17 +220,16 @@ class AbstractCode(Module):
             raise ValueError("length must be a Python int or a Sage Integer")
         if length <= 0:
             raise ValueError("length must be a non-zero positive integer")
-        if not base_ring.is_ring():
-            raise ValueError("'base_ring' must be a ring (and {} is not one)".format(base_ring))
 
         self._length = length
         self._metric = metric
 
-        #self._default_decoder_name = default_decoder_name
-        #self._default_encoder_name = default_encoder_name
-
-        cat = Modules(base_ring).FiniteDimensional()
-        Parent.__init__(self, base=base_ring, facade=True, category=cat)
+        self._default_decoder_name = default_decoder_name
+        self._default_encoder_name = default_encoder_name
+        if not self._default_decoder_name:
+            self._registered_encoders = {}
+        if not self._default_encoder_name:
+            self._registered_decoders = {}
 
     def __getstate__(self):
         """
@@ -113,25 +250,25 @@ class AbstractCode(Module):
         r"""
         Return an error message requiring to override ``_repr_`` in ``self``.
 
-        As one has to implement specific representation methods (`_repr_` and `_latex_`)
-        when writing a new code class which inherits from :class:`AbstractLinearCode`,
-        the generic call to `_repr_` has to fail.
+        As one has to implement specific representation methods (`_repr_` and
+        `_latex_`) when writing a new code class which inherits from
+        :class:`AbstractCode`, the generic call to `_repr_` has to fail.
 
         EXAMPLES:
 
-        This was taken from :trac:`20899` (and thus ensures this method fixes what was
-        described in this ticket).
+        This was taken from :trac:`20899` (and thus ensures this method fixes
+        what was described in this ticket).
 
         We create a new code class, its dedicated encoder
         and set appropriate parameters::
 
-            sage: from sage.coding.linear_code import AbstractLinearCode
+            sage: from sage.coding.abstract_code import AbstractCode
             sage: from sage.coding.encoder import Encoder
-            sage: class MyCode(AbstractLinearCode):
+            sage: class MyCode(AbstractCode):
             ....:    _registered_encoders = {}
             ....:    _registered_decoders = {}
             ....:    def __init__(self):
-            ....:        super(MyCode, self).__init__(GF(5), 10, "Monkey", "Syndrome")
+            ....:        super(MyCode, self).__init__(10, "Monkey", "Syndrome")
             ....:        self._dimension = 2
 
             sage: class MonkeyEncoder(Encoder):
@@ -150,7 +287,7 @@ class AbstractCode(Module):
             sage: C #random
             Traceback (most recent call last):
             ...
-            RuntimeError: Please override _repr_ in the implementation of <class '__main__.MyCode_with_category'>
+            RuntimeError: Please override _repr_ in the implementation of <class '__main__.MyCode'>
         """
         raise RuntimeError("Please override _repr_ in the implementation of {}".format(self.parent()))
 
@@ -158,25 +295,25 @@ class AbstractCode(Module):
         r"""
         Return an error message requiring to override ``_latex_`` in ``self``.
 
-        As one has to implement specific representation methods (`_repr_` and `_latex_`)
-        when writing a new code class which inherits from :class:`AbstractLinearCode`,
-        the generic call to `_latex_` has to fail.
+        As one has to implement specific representation methods (`_repr_` and
+        `_latex_`) when writing a new code class which inherits from
+        :class:`AbstractCode`, the generic call to `_latex_` has to fail.
 
         EXAMPLES:
 
-        This was taken from :trac:`20899` (and thus ensures this method fixes what was
-        described in this ticket).
+        This was taken from :trac:`20899` (and thus ensures this method fixes
+        what was described in this ticket).
 
         We create a new code class, its dedicated encoder
         and set appropriate parameters::
 
-            sage: from sage.coding.linear_code import AbstractLinearCode
+            sage: from sage.coding.abstract_code import AbstractCode
             sage: from sage.coding.encoder import Encoder
-            sage: class MyCode(AbstractLinearCode):
+            sage: class MyCode(AbstractCode):
             ....:    _registered_encoders = {}
             ....:    _registered_decoders = {}
             ....:    def __init__(self):
-            ....:        super(MyCode, self).__init__(GF(5), 10, "Monkey", "Syndrome")
+            ....:        super(MyCode, self).__init__(10, "Monkey", "Syndrome")
             ....:        self._dimension = 2
 
             sage: class MonkeyEncoder(Encoder):
@@ -195,13 +332,13 @@ class AbstractCode(Module):
             sage: latex(C)
             Traceback (most recent call last):
             ...
-            RuntimeError: Please override _latex_ in the implementation of <class '__main__.MyCode_with_category'>
+            RuntimeError: Please override _latex_ in the implementation of <class '__main__.MyCode'>
         """
         raise RuntimeError("Please override _latex_ in the implementation of {}".format(self.parent()))
 
     def list(self):
         r"""
-        Return a list of all elements of this linear code.
+        Return a list of all elements of this code.
 
         EXAMPLES::
 
@@ -247,7 +384,7 @@ class AbstractCode(Module):
 
             This method only adds ``decoder`` to ``self``, and not to any member of the class
             of ``self``. To know how to add an :class:`sage.coding.decoder.Decoder`, please refer
-            to the documentation of :class:`AbstractLinearCode`.
+            to the documentation of :class:`AbstractCode`.
 
         INPUT:
 
@@ -309,7 +446,7 @@ class AbstractCode(Module):
 
             This method only adds ``encoder`` to ``self``, and not to any member of the class
             of ``self``. To know how to add an :class:`sage.coding.encoder.Encoder`, please refer
-            to the documentation of :class:`AbstractLinearCode`.
+            to the documentation of :class:`AbstractCode`.
 
         INPUT:
 
@@ -466,6 +603,23 @@ class AbstractCode(Module):
             sage: C.decoder()
             Syndrome decoder for [7, 4] linear code over GF(2) handling errors of weight up to 1
 
+        If there is no decoder for the code, we return an error::
+
+            sage: from sage.coding.abstract_code import AbstractCode
+            sage: class MyCodeFamily(AbstractCode):
+            ....:   def __init__(self, length, field):
+            ....:       sage.coding.abstract_code.AbstractCode.__init__(self, length)
+            ....:       Parent.__init__(self, base=field, facade=False, category=Sets())
+            ....:       self._field = field
+            ....:   def field(self):
+            ....:       return self._field
+            ....:   def _repr_(self):
+            ....:       return "%d dummy code over GF(%s)" % (self.length(), self.field().cardinality())
+            sage: D = MyCodeFamily(5, GF(2))
+            sage: D.decoder()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Please add a decoder for this code.
 
         If the name of a decoder which is not known by ``self`` is passed,
         an exception will be raised::
@@ -490,6 +644,8 @@ class AbstractCode(Module):
             See the documentation of sage.coding.information_set_decoder.LinearCodeInformationSetDecoder for more details.
 
         """
+        if not self._default_decoder_name:
+            raise RuntimeError("Please add a decoder for this code.")
         if decoder_name is None:
             decoder_name = self._default_decoder_name
         if decoder_name in self._registered_decoders:
@@ -621,6 +777,24 @@ class AbstractCode(Module):
             sage: C.encoder()
             Generator matrix-based encoder for [7, 4] linear code over GF(2)
 
+        If there is no encoder for the code, we return an error::
+
+            sage: from sage.coding.abstract_code import AbstractCode
+            sage: class MyCodeFamily(AbstractCode):
+            ....:   def __init__(self, length, field):
+            ....:       sage.coding.abstract_code.AbstractCode.__init__(self, length)
+            ....:       Parent.__init__(self, base=field, facade=False, category=Sets())
+            ....:       self._field = field
+            ....:   def field(self):
+            ....:       return self._field
+            ....:   def _repr_(self):
+            ....:       return "%d dummy code over GF(%s)" % (self.length(), self.field().cardinality())
+            sage: D = MyCodeFamily(5, GF(2))
+            sage: D.encoder()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Please add an encoder for this code.
+
         We check that the returned encoder is cached::
 
             sage: C.encoder.is_in_cache()
@@ -647,6 +821,8 @@ class AbstractCode(Module):
             It takes the optional arguments ['systematic_positions'].
             See the documentation of sage.coding.linear_code.LinearCodeSystematicEncoder for more details.
         """
+        if not self._default_encoder_name:
+            raise RuntimeError("Please add an encoder for this code.")
         if encoder_name is None:
             encoder_name = self._default_encoder_name
         if encoder_name in self._registered_encoders:

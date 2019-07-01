@@ -3240,13 +3240,24 @@ class FunctionField_global_integral(FunctionField_global):
 
         The basis of the maximal order *always* starts with 1. This is assumed
         in some algorithms.
+
+        ALGORITHM:
+
+        Uses Singular's implementation of the normalization algorithm described in
+        G.-M.Greuel, S.Laplagne, F.Seelisch: Normalization of Rings (2009).
         """
         from sage.matrix.constructor import matrix
 
         from sage.libs.singular.function import singular_function, lib
-        from sage.env import SAGE_EXTCODE
-        lib(SAGE_EXTCODE + '/singular/function_field/core.lib')
-        normalize = singular_function('core_normalize')
+        lib('normal.lib')
+        normal = singular_function('normal')
+        execute = singular_function('execute')
+
+        try:
+            get_printlevel = singular_function('get_printlevel')
+        except NameError:
+            execute('proc get_printlevel {return (printlevel);}')
+            get_printlevel = singular_function('get_printlevel')
 
         k = self.constant_base_field()
         K = self.base_field() # rational function field
@@ -3259,23 +3270,16 @@ class FunctionField_global_integral(FunctionField_global):
         v = self.polynomial().list()
         g = sum([v[i].numerator().subs(x) * y**i for i in range(len(v))])
 
-        # Singular "normalP" algorithm assumes affine domain over
-        # a prime field. So we construct gflat lifting g as in
-        # k_prime[yy,xx,zz]/(k_poly) where k = k_prime[zz]/(k_poly)
-        R = PolynomialRing(k.prime_subfield(), names='yy,xx,zz')
-        gflat = R.zero()
-        for m in g.monomials():
-            c = g.monomial_coefficient(m).polynomial('zz')
-            gflat += R(c) * R(m) # R(m) is a monomial in yy and xx
+        # Call Singular.  Singular's "normal" function returns an
+        # integral basis as the generators of a k[x,y]-subalgebra of
+        # k(x,y)/(g).  The last polynomial in the returned list is a
+        # common denominator to divide all of them by.  It's fairly
+        # verbose unless printlevel is -1.
 
-        k_poly = R(k.polynomial('zz'))
-
-        # invoke Singular
-        pols_in_R = normalize(R.ideal([k_poly, gflat]))
-
-        # reconstruct polynomials in S
-        h = R.hom([y,x,k.gen()],S)
-        pols_in_S = [h(f) for f in pols_in_R]
+        saved_printlevel = get_printlevel()
+        execute('printlevel=-1')
+        pols_in_S = normal(S.ideal(g))[1][0]
+        execute('printlevel={}'.format(saved_printlevel))
 
         # reconstruct polynomials in the function field
         x = K.gen()

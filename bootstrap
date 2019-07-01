@@ -151,8 +151,9 @@ if [ $ALWAYSDOWNLOAD = yes ]; then
             exit 1
         fi
         echo >&2 "Downloaded configure-$CONFVERSION.tar.gz from $CONFTARBALL_URL "
+    else
+        bootstrap-download || exit $?
     fi
-    bootstrap-download || exit $?
 else
     bootstrap
 fi

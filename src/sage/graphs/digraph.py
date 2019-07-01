@@ -166,8 +166,6 @@ from sage.misc.superseded import deprecation
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.dot2tex_utils import have_dot2tex
-from sage.misc.misc_c import prod
-from sage.categories.cartesian_product import cartesian_product
 
 class DiGraph(GenericGraph):
     r"""
@@ -2263,103 +2261,11 @@ class DiGraph(GenericGraph):
             sage: [len(p) - 1 for p in pi]
             [0, 1, 1, 2, 2, 2, 3, 3, 3, 3]
         """
-        if ending_vertices is None:
-            ending_vertices = self
-        else:
-            ending_vertices = frozenset(ending_vertices)
-        if max_length is None:
-            from sage.rings.infinity import Infinity
-            max_length = Infinity
-        if max_length < 1:
-            return
-
-        if not data:
-            if report_edges and labels:
-                my_dict = {}
-                if use_multiedges:
-                    for e in self.edge_iterator():
-                        if (e[0], e[1]) in my_dict:
-                            my_dict[(e[0], e[1])].append(e)
-                        else:
-                            my_dict[(e[0], e[1])] = [e]
-                else:
-                    for e in self.edge_iterator():
-                        if (e[0], e[1]) not in my_dict:
-                            my_dict[(e[0], e[1])] = [e]
-            elif use_multiedges and self.has_multiple_edges():
-                from collections import Counter
-                edge_multiplicity = Counter(self.edge_iterator(labels=False))
-        else:
-            if report_edges and labels:
-                my_dict = data
-            elif use_multiedges and self.has_multiple_edges():
-                edge_multiplicity = data
-        # Start with the empty path; we will try all extensions of it
-        queue = []
-        path = [vertex]
-
-        if trivial and not report_edges and vertex in ending_vertices:
-            yield path
-        while True:
-            # Build next generation of paths, one arc longer; max_length refers
-            # to edges and not vertices, hence <= and not <
-            if len(path) <= max_length:
-
-                # We try all possible extensions
-                if simple:
-                    # We only keep simple extensions. An extension is simple iff
-                    # the new vertex being entered has not previously occurred
-                    # in the path, or has occurred but only been exited (i.e. is
-                    # the first vertex in the path). In this latter case we must
-                    # not exit the new vertex again, so we do not consider it
-                    # for further extension, but just yield it immediately. See
-                    # trac #12385.
-                    frozen_path = frozenset(path)
-                    for neighbor in self.neighbor_out_iterator(path[-1]):
-                        if neighbor not in frozen_path:
-                            queue.append(path + [neighbor])
-                        elif ( neighbor == path[0] and
-                               neighbor in ending_vertices ):
-                            newpath = path + [neighbor]
-                            if report_edges and labels:
-                                for p in cartesian_product([my_dict[e] for e in zip(newpath[:-1], newpath[1:])]):
-                                    yield list(p)
-                            elif use_multiedges and self.has_multiple_edges():
-                                m = prod(edge_multiplicity[e] for e in zip(newpath[:-1], newpath[1:]))
-                                if report_edges:
-                                    newpath = list(zip(newpath[:-1], newpath[1:]))
-                                for _ in range(m):
-                                    yield newpath
-                            elif report_edges:
-                                yield list(zip(newpath[:-1], newpath[1:]))
-                            else:
-                                yield newpath
-                else:
-                    # Non-simple paths requested: we add all of them
-                    for neighbor in self.neighbor_out_iterator(path[-1]):
-                        queue.append(path + [neighbor])
-
-            if not queue:
-                break
-            path = queue.pop(0)     # get the next path
-
-            if path[-1] in ending_vertices:
-                # yield good path
-                if report_edges and labels:
-                    for p in cartesian_product([my_dict[e] for e in zip(path[:-1], path[1:])]):
-                        yield list(p)
-                elif use_multiedges and self.has_multiple_edges():
-                    m = prod(edge_multiplicity[e] for e in zip(path[:-1], path[1:]))
-                    if report_edges:
-                        newpath = list(zip(path[:-1], path[1:]))
-                    else:
-                        newpath = path
-                    for _ in range(m):
-                        yield newpath
-                elif report_edges:
-                    yield list(zip(path[:-1], path[1:]))
-                else:
-                    yield path
+        from .path_enumeration import _all_paths_iterator
+        return _all_paths_iterator(self, vertex, ending_vertices=ending_vertices,
+                                   simple=simple, max_length=max_length, trivial=trivial,
+                                   use_multiedges=use_multiedges, report_edges=report_edges,
+                                   labels=labels, data=data)
 
     def all_paths_iterator(self, starting_vertices=None, ending_vertices=None,
                            simple=False, max_length=None, trivial=False,
@@ -2538,57 +2444,10 @@ class DiGraph(GenericGraph):
             sage: [len(p) - 1 for p in pi]
             [1, 1, 1, 1, 1, 2, 2, 2, 2, 3]
         """
-        if starting_vertices is None:
-            starting_vertices = self
-        data = {}
-        if report_edges and labels:
-            if use_multiedges:
-                for e in self.edge_iterator():
-                    if (e[0], e[1]) in data:
-                        data[(e[0], e[1])].append(e)
-                    else:
-                        data[(e[0], e[1])] = [e]
-            else:
-                for e in self.edge_iterator():
-                    if (e[0], e[1]) not in data:
-                        data[(e[0], e[1])] = [e]
-        elif use_multiedges and self.has_multiple_edges():
-            from collections import Counter
-            edge_multiplicity = Counter(self.edge_iterator(labels=False))
-            data = edge_multiplicity
-   
-        # We create one paths iterator per vertex
-        # This is necessary if we want to iterate over paths
-        # with increasing length
-        vertex_iterators = {v: self._all_paths_iterator(v, ending_vertices=ending_vertices,
-                                                            simple=simple, max_length=max_length,
-                                                            trivial=trivial, use_multiedges=use_multiedges,
-                                                            report_edges=report_edges, labels=labels, data=data)
-                                                            for v in starting_vertices}
-        paths = []
-        for vi in vertex_iterators.values():
-            try:
-                path = next(vi)
-                paths.append((len(path), path))
-            except(StopIteration):
-                pass
-        # Since we always extract a shortest path, using a heap
-        # can speed up the algorithm
-        from heapq import heapify, heappop, heappush
-        heapify(paths)
-        while paths:
-            # We choose the shortest available path
-            _, shortest_path = heappop(paths)
-            yield shortest_path
-            # We update the path iterator to its next available path if it exists
-            try:
-                if report_edges:
-                    path = next(vertex_iterators[shortest_path[0][0]])
-                else:
-                    path = next(vertex_iterators[shortest_path[0]])
-                heappush(paths, (len(path), path))
-            except(StopIteration):
-                pass
+        from .path_enumeration import all_paths_iterator
+        return all_paths_iterator(self, starting_vertices=starting_vertices, ending_vertices=ending_vertices,
+                                  simple=simple, max_length=max_length, trivial=trivial, use_multiedges=use_multiedges,
+                                  report_edges=report_edges, labels=labels)
 
     def all_simple_paths(self, starting_vertices=None, ending_vertices=None,
                          max_length=None, trivial=False, use_multiedges=False,

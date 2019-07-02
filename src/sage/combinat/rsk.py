@@ -567,11 +567,7 @@ class RuleEG(Rule):
     different types of inputs/outputs::
 
     First we can check on the reduced words (that can be obtained using
-<<<<<<< HEAD
-     the ``reduced_word()`` method from permutations)::
-=======
     the ``reduced_word()`` method from permutations)::
->>>>>>> 27852_refactorRSK
 
         sage: f = lambda p: RSK_inverse(*RSK(p), output='permutation')
         sage: g = lambda w: RSK_inverse(*RSK(w, insertion=RSK.rules.EG),

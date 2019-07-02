@@ -229,6 +229,7 @@ class Rule(UniqueRepresentation):
             sage: RuleRSK().forward_rule([7, 6, 3, 3, 1], None)
             [[[1, 3], [3], [6], [7]], [[1, 4], [2], [3], [5]]]
         """
+        from sage.combinat.tableau import StandardTableau
         self._forward_verify_input(obj1, obj2)
         itr = self.to_pair(obj1, obj2)
         p = []       # the "insertion" tableau
@@ -352,6 +353,9 @@ class Rule(UniqueRepresentation):
         """
         from sage.combinat.tableau import SemistandardTableau, StandardTableau
 
+        if len(p) == 0:
+            return [StandardTableau([]), StandardTableau([])]
+
         if check_standard:
             try:
                 P = StandardTableau(p)
@@ -412,7 +416,15 @@ class Rule(UniqueRepresentation):
         r"""
         Returns exception for invalid input in forward rule.
         """
-        pass
+        if obj2 is not None:
+            # Check it is a generalized permutation
+            lt = 0
+            lb = 0
+            for t, b in zip(obj1, obj2):
+                if t < lt or (lt == t and b < lb):
+                    raise ValueError("invalid generalized permutation")
+                lt = t
+                lb = b
 
     def _backward_verify_input(self, p, q):
         r"""
@@ -783,7 +795,12 @@ class RuleHecke(Rule):
             sage: isinstance(q, Tableau)
             True
         """
-        from sage.combinat.tableau import SemistandardTableau, Tableau
+        from sage.combinat.tableau import StandardTableau, SemistandardTableau, Tableau
+        self._forward_verify_input(obj1, obj2)
+
+        if len(obj1) == 0:
+            return [StandardTableau([]), StandardTableau([])]
+
         if obj2 is None:
             obj2 = obj1
             obj1 = list(range(1, len(obj1) + 1))
@@ -1290,6 +1307,9 @@ class RuleDualRSK(Rule):
         """
         from sage.combinat.tableau import Tableau, StandardTableau
 
+        if len(p) == 0:
+            return [StandardTableau([]), StandardTableau([])]
+
         if check_standard:
             try:
                 P = StandardTableau(p)
@@ -1324,6 +1344,48 @@ class RuleDualRSK(Rule):
             raise ValueError("q(=%s) must be a semistandard tableau" %q)
 
 
+class RuleCoRSK(RuleRSK):
+
+    def _forward_format_output(self, p=None, q=None, check_standard=False):
+        r"""
+        Return final output of the ``RSK`` correspondence from the
+        output of the corresponding ``forward_rule``.
+        """
+        from sage.combinat.tableau import Tableau, SemistandardTableau, StandardTableau
+        #
+        # Doubt -- what to return in case of empty input : standardTab. always
+        # or the same as returned in general case like [SemistandardTableau, Tableau] here
+        #  
+        if len(p) == 0:
+            return [StandardTableau([]), StandardTableau([])]
+
+        if check_standard:
+            try:
+                P = StandardTableau(p)
+            except ValueError:
+                P = SemistandardTableau(p)
+            try:
+                Q = StandardTableau(q)
+            except ValueError:
+                Q = Tableau(q)
+            return [P, Q]
+        return [SemistandardTableau(p), Tableau(q)]
+
+    def _forward_verify_input(self, obj1, obj2):
+        r"""
+        Returns exception for invalid input in forward rule.
+        """
+        if obj2 in not None:
+            # Check it is a strict cobiword
+            lt = 0
+            lb = 0
+            for t, b in zip(obj1, obj2):
+                if t < lt or (lt == t and b >= lb):
+                    raise ValueError("invalid strict cobiwod")
+                lt = t
+                lb = b
+
+
 class InsertionRules(object):
     r"""
     Catalog of rules for growth diagrams.
@@ -1332,6 +1394,7 @@ class InsertionRules(object):
     EG = RuleEG
     Hecke = RuleHecke
     dualRSK = RuleDualRSK
+    coRSK = RuleCoRSK
 
 #####################################################################
 
@@ -1500,8 +1563,10 @@ def RSK(obj1=None, obj2=None, insertion=InsertionRules.RSK, check_standard=False
             insertion = RSK.rules.EG
         elif insertion == 'hecke':
             insertion = RSK.rules.Hecke
-        elif insertion == 'dual':
+        elif insertion == 'dualRSK':
             insertion = RSK.rules.dualRSK
+        elif insertion == 'coRSK':
+            insertion = RSK.rules.coRSK
         else:
             raise ValueError("invalid input")
 
@@ -1517,20 +1582,10 @@ def RSK(obj1=None, obj2=None, insertion=InsertionRules.RSK, check_standard=False
 
     if is_Matrix(obj1):
         obj1 = obj1.rows()
-    if len(obj1) == 0:
-        return [StandardTableau([]), StandardTableau([])]
 
     if obj2 is not None:
         if len(obj1) != len(obj2):
             raise ValueError("the two arrays must be the same length")
-        # Check it is a generalized permutation
-        lt = 0
-        lb = 0
-        for t, b in zip(obj1, obj2):
-            if t < lt or (lt == t and b < lb):
-                raise ValueError("invalid generalized permutation")
-            lt = t
-            lb = b
 
     output = rule.forward_rule(obj1, obj2, check_standard)
     return output
@@ -1698,7 +1753,7 @@ def RSK_inverse(p, q, output='array', insertion=InsertionRules.RSK):
             insertion = RSK.rules.EG
         elif insertion == 'hecke':
             insertion = RSK.rules.Hecke
-        elif insertion == 'dual':
+        elif insertion == 'dualRSK':
             insertion = RSK.rules.dualRSK
         else:
             raise ValueError("invalid input")

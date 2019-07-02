@@ -68,6 +68,7 @@ constructions
     - SC2000_5 ([SYYTIYTT2002]_)
 
 4 bit to 4 bit
+    - Elephant ([BCDM2019]_)
     - DES_S1_1, ..., DES_S1_4, ..., DES_S8_4 ([U.S1999]_)
     - Lucifer_S0, Lucifer_S1 ([Sor1984]_)
     - GOST_1, ..., GOST_8 (http://www.cypherpunks.ru/pygost/)
@@ -1371,6 +1372,9 @@ SC2000_5 = SBox([
 
 # Bijective S-Boxes mapping 4 bits to 4
 # =====================================
+
+Elephant = SBox([0xE, 0xD, 0xB, 0x0, 0x2, 0x1, 0x4, 0xF, 0x7, 0xA, 0x8, 0x5,
+                 0x9, 0xC, 0x3, 0x6])
 
 # DES
 

@@ -322,6 +322,9 @@ REFERENCES:
             *Maps of toric varieties in Cox coordinates*,
             :arxiv:`1004.4924`
 
+.. [BCDM2019] \T. Beyne, Y. L. Chen, C. Dobraunig, B. Mennink. *Elephant v1* (2019)
+              https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/elephant-spec.pdf
+
 .. [BeBo2009] Olivier Bernardi and Nicolas Bonichon, *Intervals in Catalan
               lattices and realizers of triangulations*, JCTA 116 (2009)
 

@@ -9,14 +9,14 @@ Introduction
 ============
 
 The Robinson-Schensted-Knuth (RSK) correspondence is most naturally
-stated as a bijection between generalized permutation (also known
+stated as a bijection between generalized permutations (also known
 as two-line arrays, biwords, ...) and pairs of semi-standard Young
 tableaux `(P, Q)` of identical shape.
 
 The basic operation in the RSK correspondence is a row insertion
 `P \leftarrow k` (where `P` is a given semi-standard Young tableau,
 and `k` is an integer). Different insertion algorithms have been
-implemented for the RSK correspondence which can be specify in
+implemented for the RSK correspondence which can be specified in
 the function call.
 
 EXAMPLES:
@@ -579,7 +579,7 @@ class RuleEG(Rule):
     different types of inputs/outputs::
 
     First we can check on the reduced words (that can be obtained using
-     the ``reduced_word()`` method from permutations)::
+    the ``reduced_word()`` method from permutations)::
 
         sage: f = lambda p: RSK_inverse(*RSK(p), output='permutation')
         sage: g = lambda w: RSK_inverse(*RSK(w, insertion=RSK.rules.EG),

@@ -145,7 +145,8 @@ source src/bin/sage-env 2>/dev/null
 
 if [ $ALWAYSDOWNLOAD = yes ]; then
     if [ $CONFTARBALL_URL != "" ]; then
-        sage-download-file "$CONFTARBALL_URL" upstream/configure-$CONFVERSION.tar.gz
+        URL="$CONFTARBALL_URL"/configure-$(cat $PKG/package-version.txt).tar.gz
+        sage-download-file "$URL" upstream/configure-$CONFVERSION.tar.gz
         if [ $? -ne 0 ]; then
             echo >&2 "Error: downloading configure-$CONFVERSION.tar.gz from $CONFTARBALL_URL failed"
             exit 1

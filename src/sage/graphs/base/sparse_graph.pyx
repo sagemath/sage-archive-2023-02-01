@@ -1472,6 +1472,17 @@ cdef class SparseGraphBackend(CGraphBackend):
             sage: G = Graph(3, sparse=True, loops=True)
             sage: G.add_edge(0,0); G.edges()
             [(0, 0, None)]
+            
+        Remove edges correctly when multiedges are not allowed (:trac:`28077`)::
+        
+            sage: D = DiGraph(multiedges=False)
+            sage: D.add_edge(1, 2, 'A')
+            sage: D.add_edge(1, 2, 'B')
+            sage: D.delete_edge(1, 2)
+            sage: D.incoming_edges(2)
+            []
+            sage: D.shortest_path(1, 2)
+            []
         """
         if u is None: u = self.add_vertex(None)
         if v is None: v = self.add_vertex(None)

@@ -4433,6 +4433,9 @@ REFERENCES:
 .. [Zei2011] Doron Zeilberger. "The C-finite ansatz." The Ramanujan Journal
              (2011): 1-10.
 
+.. [Zha2019] Bin Zhang. "Fountain: A Lightweight Authenticated Cipher(v1)"
+             https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/fountain-spec.pdf
+
 .. [Zhedanov1991] \A.S. Zhedanov.
                   *"Hidden symmetry" of the Askey–Wilson polynomials*,
                   Theoret. and Math. Phys. **89** (1991), 1146--1157.

@@ -748,7 +748,7 @@ class DisplayManager(SageObject):
             import sage.env, re, os
             with open(os.path.join(sage.env.THREEJS_DIR, 'build', 'three.min.js')) as f:
                 text = f.read()
-            version = re.search("REVISION=\"(\d+)\"", text).group(1)
+            version = re.search(r'REVISION="(\d+)"', text).group(1)
             return """
 <script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r{0}/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r{0}/examples/js/controls/OrbitControls.js"></script>

@@ -16,7 +16,7 @@ cdef class VectorMatrixAction(MatrixMulAction):
     pass
 
 cdef class MatrixPolymapAction(MatrixMulAction):
-    pass
+    cpdef _call_(self, f, mat)
 
 cdef class PolymapMatrixAction(MatrixMulAction):
-    pass
+    cpdef _call_(self, f, mat)

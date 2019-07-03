@@ -11,8 +11,12 @@
 # extract the files from a local configure tarball, downloading it if
 # needed. If -D is given, don't try to bootstrap and always extract or
 # download.
-# If optional argument -u <URL>, where URL is an URL for the configure
-# tarball, is given, download it to upstream/. Implies -D.
+#
+# If optional argument -u <URL> is given download the configure
+# tarball from that base url. That is, "bootstrap -u http://host/path"
+# will download http://host/path/configure-$CONFVERSION.tar.gz to
+# upstream/configure-$CONFVERSION.tar.gz. This is used by the buildbot
+# to download tarballs that are not published.
 ########################################################################
 
 # Set SAGE_ROOT to the path to this file and then cd into it

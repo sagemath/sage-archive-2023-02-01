@@ -396,7 +396,8 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
         return
     # calling faster implementation of Yen's algorithm for directed graphs
     if self.is_directed():
-        path = yen_k_shortest_simple_paths_directed_iterator(self, source=source, target=target, weight_function=weight_function,
+        path = yen_k_shortest_simple_paths_directed_iterator(self, source=source, target=target,
+                                                             weight_function=weight_function,
                                                              by_weight=by_weight, report_edges=report_edges,
                                                              labels=labels, report_weight=report_weight)
         for p in path:
@@ -456,7 +457,8 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
     length = length_func(path)
     if not by_weight:
         length = length - 1
-    if len(path) == 0: # corner case
+    # corner case
+    if len(path) == 0:
         if report_weight:
             yield (0, path)
             return
@@ -701,9 +703,11 @@ def yen_k_shortest_simple_paths_directed_iterator(self, source, target, weight_f
     parent = {}
     # assign color to each vertex as green, red or yellow
     color = {}
-    # express edges are the edges with head node as green and tail node as yellow or tail node is a deviation node
+    # express edges are the edges with head node as green and tail node as
+    # yellow or tail node is a deviation node
     expressEdges = dict()
-    # a dictionary of the new edges added to the graph used for restoring the graph after the iteration
+    # a dictionary of the new edges added to the graph used for restoring the
+    # graph after the iteration
     dic = {}
     # father of the path
     father = {}
@@ -728,7 +732,7 @@ def yen_k_shortest_simple_paths_directed_iterator(self, source, target, weight_f
                 edge_labels[v, u] = edge_labels[u, v]    
 
     # if there exist a path in shortest path subtree of target node from u to v
-    # then u is said to be an upstream node of v 
+    # then u is said to be an upstream node of v
     def getUpStreamNodes(v):
         ver = list()
         S = list()
@@ -743,8 +747,8 @@ def yen_k_shortest_simple_paths_directed_iterator(self, source, target, weight_f
                         ver.append(u_node)
         return ver
 
-    # finding the express edges whose tail nodes belong to a set Y
-    # and update the head node of each express edge
+    # finding the express edges whose tail nodes belong to a set Y and update
+    # the head node of each express edge
     def findExpressEdges(Y):
         for v in Y:
             for w in self.neighbors_out(v):
@@ -793,8 +797,8 @@ def yen_k_shortest_simple_paths_directed_iterator(self, source, target, weight_f
     path = shortest_path_func(source, target, exclude_vertices=exclude_vert_set,
                                 weight_function=weight_function, reduced_weight=reduced_cost)
     length = length_func(path)
-
-    if len(path) == 0: # corner case
+    # corner case
+    if len(path) == 0:
         if report_weight:
             yield (0, path)
         else:
@@ -884,11 +888,14 @@ def yen_k_shortest_simple_paths_directed_iterator(self, source, target, weight_f
                         # resetting the expressEdges for node n
                         expressEdges[n] = []
                 findExpressEdges(Yu)
-            # removing the edge in the previous shortest path to find a new candidate path
+            # removing the edge in the previous shortest path to find a new
+            # candidate path
             exclude_edges.add((prev_path[i - 1], prev_path[i]))
             try:
-                # finding the spur part of the path after excluding certain vertice and edges
-                # this spur path is an all yellow subpath so the shortest path algorithm is applied only on the yellow node subtree
+                # finding the spur part of the path after excluding certain
+                # vertices and edges, this spur path is an all yellow subpath
+                # so the shortest path algorithm is applied only on the all
+                # yellow node subtree
                 spur = shortest_path_func(root[-1], target,
                                             exclude_vertices=exclude_vertices,
                                             exclude_edges=exclude_edges,

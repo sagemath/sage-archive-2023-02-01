@@ -618,7 +618,6 @@ def SChainComplex(kchaincomplex, start=0, end=15):
         sage: SChainComplex(KChainComplex(sage_chcm)) == sage_chcm             # optional - kenzo
         True
     """
-
     matrices = {}
     for i in range(start, end):
         dffr_i = chcm_mat2(kchaincomplex._kenzo, i)
@@ -689,13 +688,13 @@ def KAbstractSimplex(simplex):
     return KenzoObject(kabstractsimplex_aux1(simplex.degeneracies(), 's'+str(hash(simplex))))
 
 
-def KFiniteSimplicialSet(ssimpset):
+def KFiniteSimplicialSet(sset):
     r"""
     Convert a finite SimplicialSet in Sage to a finite simplicial set of Kenzo.
 
     INPUT:
 
-    - ``ssimpset``- A finite SimplicialSet.
+    - ``sset``- A finite SimplicialSet.
 
     OUTPUT:
 
@@ -716,6 +715,8 @@ def KFiniteSimplicialSet(ssimpset):
         sage: KTriangle = KFiniteSimplicialSet(Triangle)                # optional - kenzo
         sage: KTriangle.homology(1)                                     # optional - kenzo
         Z
+        sage: KTriangle.basis(1)                                        # optional - kenzo
+        ['CELL_1_0', 'CELL_1_1', 'CELL_1_2']
         sage: S1 = simplicial_sets.Sphere(1)
         sage: S3 = simplicial_sets.Sphere(3)
         sage: KS1vS3 = KFiniteSimplicialSet(S1.wedge(S3))               # optional - kenzo
@@ -723,25 +724,27 @@ def KFiniteSimplicialSet(ssimpset):
         Z
     """
     from sage.homology.simplicial_set_constructions import ProductOfSimplicialSets
-    if isinstance(ssimpset, ProductOfSimplicialSets):
-        f0 = KFiniteSimplicialSet(ssimpset.factor(0))
-        for f1 in ssimpset.factors()[1:]:
+    if isinstance(sset, ProductOfSimplicialSets):
+        f0 = KFiniteSimplicialSet(sset.factor(0))
+        for f1 in sset.factors()[1:]:
             f0 = f0.cartesian_product(KFiniteSimplicialSet(f1))
         return f0
     else:
-        dim = ssimpset.dimension()
-        list_rslt = ['s'+str(hash(i)) for i in ssimpset.n_cells(0)]
+        allcells = sset.cells()
+        namecells = {c:'cell_{}_{}'.format(d, allcells[d].index(c)) for d in allcells for c in allcells[d]}
+        dim = sset.dimension()
+        list_rslt = [namecells[i] for i in sset.n_cells(0)]
         if (dim > 0):
             for k in range(1, dim + 1):
-                k_cells = ssimpset.n_cells(k)
+                k_cells = sset.n_cells(k)
                 if k_cells:
                     list_rslt.append(k)
                     for x in k_cells:
-                        list_rslt.append('s'+str(hash(x)))
+                        list_rslt.append(namecells[x])
                         auxiliar_list = []
-                        for z in ssimpset.faces(x):
+                        for z in sset.faces(x):
                             degen_z = z.degeneracies()
-                            name = 's'+str(hash(z.nondegenerate()))
+                            name = namecells[z.nondegenerate()]
                             degen_z.append(name)
                             auxiliar_list.append(degen_z)
                         list_rslt.append(auxiliar_list)

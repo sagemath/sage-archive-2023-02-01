@@ -24,12 +24,12 @@ def all_paths(self, start, end, use_multiedges=False, report_edges=False, labels
     """
     Return the list of all paths between a pair of vertices.
 
-    If ``start`` is the same vertex as ``end``, then ``[[start]]`` is
-    returned -- a list containing the 1-vertex, 0-edge path "``start``".
+    If ``start`` is the same vertex as ``end``, then ``[[start]]`` is returned
+    -- a list containing the 1-vertex, 0-edge path "``start``".
 
-    If ``self`` has multiple edges, a path will be returned as many
-    times as the product of the multiplicity of the edges along that path
-    depending on the value of the flag ``use_multiedges``.
+    If ``self`` has multiple edges, a path will be returned as many times as the
+    product of the multiplicity of the edges along that path depending on the
+    value of the flag ``use_multiedges``.
 
     INPUT:
 
@@ -507,7 +507,8 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
                         exclude_edges.add((path[i], path[i - 1]))
             try:
                 if by_weight:
-                    # finding the spur part of the path after excluding certain vertices and edges
+                    # finding the spur part of the path after excluding certain
+                    # vertices and edges
                     spur = shortest_path_func(root[-1], target,
                                                 exclude_vertices=exclude_vertices,
                                                 exclude_edges=exclude_edges,

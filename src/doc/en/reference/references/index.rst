@@ -33,6 +33,10 @@ REFERENCES:
 
 **A**
 
+.. [AAGMRZ2019] \M. Aagaard, R. AlTawy, G. Gong, K. Mandal, R. Rohit, N. Zidaric
+                "WAGE: An Authenticated CipherSubmission to the NIST LWC Competition"
+                https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/wage-spec.pdf
+
 .. [Ab1995] Julian R. Abel,
             On the Existence of Balanced Incomplete Block Designs and Transversal Designs,
             PhD Thesis,

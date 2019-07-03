@@ -5926,4 +5926,19 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
             F = f[0].numerator().polynomial(z)
         from .endPN_automorphism_group import automorphism_group_FF
         return(automorphism_group_FF(F, absolute, iso_type, return_functions))
+        
+    def all_periodic_points(self):
+        periodic_points = []
+        elements = set(self.domain())
+        while elements:
+            number = elements.pop()
+            path = [number]
+            next_element = self(number)
+            while next_element in elements:
+                path.append(next_element)
+                elements.remove(next_element)
+                next_element = self(next_element)
+            if next_element in path:
+                periodic_points += path[path.index(next_element):]
+        return periodic_points
 

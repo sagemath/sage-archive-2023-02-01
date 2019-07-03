@@ -55,6 +55,7 @@ lazy_import('sage.coding.grs_code', ['GeneralizedReedSolomonCode', 'ReedSolomonC
 lazy_import('sage.coding.reed_muller_code', ['BinaryReedMullerCode', 'ReedMullerCode'])
 lazy_import('sage.coding.hamming_code', 'HammingCode')
 lazy_import('sage.coding.golay_code', 'GolayCode')
+lazy_import('sage.coding.goppa', 'GoppaCode')
 
 lazy_import('sage.coding.guava', ['QuasiQuadraticResidueCode', 'RandomLinearCodeGuava'])
 

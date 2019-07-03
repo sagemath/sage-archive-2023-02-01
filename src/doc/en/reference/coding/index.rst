@@ -47,6 +47,7 @@ computations for structural invariants are available.
    sage/coding/golay_code
    sage/coding/reed_muller_code
    sage/coding/grs_code
+   sage/coding/goppa
 
 In contrast, for some code families Sage can only construct their generator
 matrix and has no other a priori knowledge on them:

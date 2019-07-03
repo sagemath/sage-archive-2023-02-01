@@ -285,7 +285,7 @@ cpdef first_coloring(G, n=0, hex_colors=False):
             if hex_colors:
                 return C
             else:
-                return list(iter(C.values()))
+                return list(C.values())
 
 cpdef number_of_n_colorings(G, n):
     r"""

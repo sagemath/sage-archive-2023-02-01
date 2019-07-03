@@ -1,3 +1,5 @@
+# distutils: language = c++
+
 """
 Graph coloring
 
@@ -59,6 +61,8 @@ from copy import copy
 from sage.combinat.matrices.dlxcpp import DLXCPP
 from sage.plot.colors import rainbow
 from .graph_generators import GraphGenerators
+from libcpp.vector cimport vector
+from libcpp.pair cimport pair
 
 from sage.numerical.mip import MixedIntegerLinearProgram
 from sage.numerical.mip import MIPSolverException
@@ -186,7 +190,7 @@ def all_graph_colorings(G, n, count_only=False, hex_colors=False, vertex_color_d
     cdef int nV = G.order()
     cdef int nE = G.size()
 
-    cdef list ones = []
+    cdef vector[pair[int, vector[int]]] ones
     cdef dict Vd = {}
     cdef dict colormap = {}
     cdef int k = 0
@@ -194,7 +198,7 @@ def all_graph_colorings(G, n, count_only=False, hex_colors=False, vertex_color_d
         v = V[i]
         Vd[v] = i
         for c in range(n):
-            ones.append([k, [i]])
+            ones.push_back((k, [i]))
             colormap[k] = (v, c)
             k += 1
 
@@ -204,24 +208,24 @@ def all_graph_colorings(G, n, count_only=False, hex_colors=False, vertex_color_d
         v0 = n * Vd[e[0]]
         v1 = n * Vd[e[1]]
         for c in range(n):
-            ones[v0][1].append(kk + c)
-            ones[v1][1].append(kk + c)
+            ones[v0].second.push_back(kk + c)
+            ones[v1].second.push_back(kk + c)
             v0 += 1
             v1 += 1
         kk += n
 
     if n > 2:
         for i in range(n * nE):
-            ones.append([k + i, [nV + i]])
+            ones.push_back((k + i, [nV + i]))
 
     cdef list colors = rainbow(n)
     cdef dict color_dict = {col: i for i, col in enumerate(colors)}
 
-    for i in range(len(ones)): ones[i] = ones[i][1]
-    cdef dict coloring
+    cdef list ones_second = [ones[i].second for i in range(len(ones))]
+    cdef dict coloring = {}
 
     try:
-        for a in DLXCPP(ones):
+        for a in DLXCPP(ones_second):
             if count_only:
                 yield 1
                 continue

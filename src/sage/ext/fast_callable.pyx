@@ -244,7 +244,7 @@ AUTHOR:
     ``COND ? T : F`` expression or the Python ``T if COND else F``.
     This lets you define piecewise functions using :func:`fast_callable`. ::
 
-        sage: v4 = etb.choice(v3 >= etb.constant(0), v1, v2)
+        sage: v4 = etb.choice(v3 >= etb.constant(0), v1, v2)  # not tested
 
     The arguments are ``(COND, T, F)`` (the same order as in C), so the
     above means that if ``v3`` evaluates to a nonnegative number,

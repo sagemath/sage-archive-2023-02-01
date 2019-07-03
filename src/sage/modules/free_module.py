@@ -2547,7 +2547,7 @@ done from the right side.""")
         """
         if macaulay2 is None:
             from sage.interfaces.macaulay2 import macaulay2
-        if self._inner_product_matrix:
+        if hasattr(self, '_inner_product_matrix'):
             raise NotImplementedError
         else:
             return macaulay2(self.base_ring())**self.rank()

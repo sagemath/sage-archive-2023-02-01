@@ -23,12 +23,14 @@ src/sage/games/
 src/sage/groups/
 src/sage/homology/
 src/sage/interacts/
+src/sage/interfaces/
 src/sage/knots/
 src/sage/lfunctions/
 src/sage/libs/gsl/
 src/sage/logic/
 src/sage/manifolds/
 src/sage/matrix/
+src/sage/matroids/
 src/sage/media/
 src/sage/modular/
 src/sage/modules/

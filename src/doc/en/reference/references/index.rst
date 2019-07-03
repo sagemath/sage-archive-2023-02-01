@@ -3198,6 +3198,10 @@ REFERENCES:
 .. [MoPa1994] \P. Morton and P. Patel. The Galois theory of periodic points
               of polynomial maps. Proc. London Math. Soc., 68 (1994), 225-263.
 
+.. [MP2019] \M. Montes, D. Penazzi
+            "Yarara and Coral v1"
+            https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/yarara_and_coral-spec.pdf
+
 .. [MPP2008] Conrado Martinez, Alois Panholzer and Helmut Prodinger,
              *Generating random derangements*
              :doi:`10.1137/1.9781611972986.7`

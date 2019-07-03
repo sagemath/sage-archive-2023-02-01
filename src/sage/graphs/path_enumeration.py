@@ -396,9 +396,9 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
         return
     # calling faster implementation of Yen's algorithm for directed graphs
     if self.is_directed():
-        path = self.yen_k_shortest_simple_paths_directed_iterator(source=source, target=target, weight_function=weight_function,
-                                                                    by_weight=by_weight, report_edges=report_edges,
-                                                                    labels=labels, report_weight=report_weight)
+        path = yen_k_shortest_simple_paths_directed_iterator(self, source=source, target=target, weight_function=weight_function,
+                                                             by_weight=by_weight, report_edges=report_edges,
+                                                             labels=labels, report_weight=report_weight)
         for p in path:
             yield p
         return
@@ -432,15 +432,20 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
 
     if not by_weight:
         length_func = len
-        shortest_path_func = self._backend.shortest_path_special # shortest path function for unweighted graph
+        # shortest path function for unweighted graph
+        shortest_path_func = self._backend.shortest_path_special
     else:
         def length_func(path):
             return sum(edge_wt[e] for e in zip(path, path[1:]))
-        shortest_path_func = self._backend.bidirectional_dijkstra_special # shortest path function for weighted graph
+        # shortest path function for weighted graph
+        shortest_path_func = self._backend.bidirectional_dijkstra_special
 
-    heap_paths = set() # a set to check if a path is already present in the heap or not
-    heap_sorted_paths = list() # heap data structure containing the candidate paths
-    listA = list() # list of previous paths already popped from the heap
+    # a set to check if a path is already present in the heap or not
+    heap_paths = set()
+    # heap data structure containing the candidate paths
+    heap_sorted_paths = list()
+    # list of previous paths already popped from the heap
+    listA = list()
     prev_path = None
 
     # compute the shortest path between the source and the target
@@ -458,12 +463,16 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
         else:
             yield path
             return
-    hash_path = tuple(path) # hashing the path to check the existence of a path in the heap
-    heappush(heap_sorted_paths, (length, path, 0)) # heap push operation
-    heap_paths.add(hash_path) # adding the path to the heap_paths set
+    # hashing the path to check the existence of a path in the heap
+    hash_path = tuple(path)
+    # heap push operation
+    heappush(heap_sorted_paths, (length, path, 0))
+    # adding the path to the heap_paths set
+    heap_paths.add(hash_path)
 
     while heap_paths:
-        (cost, path1, dev_idx) = heappop(heap_sorted_paths) # extracting the next best path from the heap
+        # extracting the next best path from the heap
+        (cost, path1, dev_idx) = heappop(heap_sorted_paths)
         hash_path = tuple(path1)
         heap_paths.remove(hash_path)
         if report_weight:
@@ -486,8 +495,10 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
         exclude_edges = set()
         for i in range(dev_idx):
             exclude_vertices.add(prev_path[i])
-        for i in range(dev_idx + 1, len(prev_path)): # deviating from the previous path to find the candidate paths
-            root = prev_path[:i] # root part of the previous path
+        # deviating from the previous path to find the candidate paths
+        for i in range(dev_idx + 1, len(prev_path)):
+            # root part of the previous path
+            root = prev_path[:i]
             for path in listA:
                 if path[:i] == root:
                         exclude_edges.add((path[i - 1], path[i]))
@@ -505,13 +516,15 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
                                                 exclude_edges=exclude_edges)
                 if not spur:
                     continue
-                path = root[:-1] + spur # concatenating the root and the spur paths
+                # concatenating the root and the spur paths
+                path = root[:-1] + spur
                 length = length_func(path)
                 if not by_weight:
                     length = length - 1
                 # push operation
                 hash_path = tuple(path)
-                if hash_path not in heap_paths: # if this path is not already present inside the heap
+                # if this path is not already present inside the heap
+                if hash_path not in heap_paths:
                     heappush(heap_sorted_paths, (length, path, len(root) - 1))
                     heap_paths.add(hash_path)
             except Exception:
@@ -684,13 +697,16 @@ def yen_k_shortest_simple_paths_directed_iterator(self, source, target, weight_f
     if weight_function is None and by_weight:
         def weight_function(e):
             return e[2]
-
-    parent = {} # dictionary of parent node in the shortest path tree of the target vertex
-    color = {} # assign color to each vertex as green, red or yellow
+    # dictionary of parent node in the shortest path tree of the target vertex
+    parent = {}
+    # assign color to each vertex as green, red or yellow
+    color = {}
     # express edges are the edges with head node as green and tail node as yellow or tail node is a deviation node
     expressEdges = dict()
-    dic = {} # a dictionary of the new edges added to the graph used for restoring the graph after the iteration
-    father = {} # father of the path
+    # a dictionary of the new edges added to the graph used for restoring the graph after the iteration
+    dic = {}
+    # father of the path
+    father = {}
     if by_weight:
         self._check_weight_function(weight_function)
         def reverse_weight_function(e):
@@ -721,7 +737,8 @@ def yen_k_shortest_simple_paths_directed_iterator(self, source, target, weight_f
             u = S.pop(0)
             if u in parent:
                 for u_node in parent[u]:
-                    if color[u_node] == 0: # green
+                    # if node color is green
+                    if color[u_node] == 0:
                         S.append(u_node)
                         ver.append(u_node)
         return ver
@@ -731,7 +748,8 @@ def yen_k_shortest_simple_paths_directed_iterator(self, source, target, weight_f
     def findExpressEdges(Y):
         for v in Y:
             for w in self.neighbors_out(v):
-                if color[w] == 0: # green
+                # if node color is green
+                if color[w] == 0:
                     if w not in expressEdges:
                         expressEdges[w] = []
                     expressEdges[w].append((v, w, self.edge_label(v, w)))
@@ -763,10 +781,12 @@ def yen_k_shortest_simple_paths_directed_iterator(self, source, target, weight_f
 
     def length_func(path):
         return sum(reduced_cost[e] for e in zip(path, path[1:]))
-    shortest_path_func = self._backend.bidirectional_dijkstra_special # shortest path function for weighted/unweighted graph using reduced weights
-
-    heap_paths = set() # a set to check if a path is already present in the heap or not
-    heap_sorted_paths = list() # heap data structure containing the candidate paths
+    # shortest path function for weighted/unweighted graph using reduced weights
+    shortest_path_func = self._backend.bidirectional_dijkstra_special
+    # a set to check if a path is already present in the heap or not
+    heap_paths = set()
+    # heap data structure containing the candidate paths
+    heap_sorted_paths = list()
     prev_path = None
 
     # compute the shortest path between the source and the target
@@ -781,12 +801,16 @@ def yen_k_shortest_simple_paths_directed_iterator(self, source, target, weight_f
             yield path
         return
     father[tuple(path)] = None
-    hash_path = tuple(path) # hashing the path to check the existence of a path in the heap
-    heappush(heap_sorted_paths, (length, path, 0)) # heap push operation
-    heap_paths.add(hash_path) # adding the path to the heap_paths set
+    # hashing the path to check the existence of a path in the heap
+    hash_path = tuple(path)
+    # heap push operation
+    heappush(heap_sorted_paths, (length, path, 0))
+    # adding the path to the heap_paths set
+    heap_paths.add(hash_path)
     shortest_path_len = dist[source]
     while heap_paths:
-        (cost, path1, dev_idx) = heappop(heap_sorted_paths) # extracting the next best path from the heap
+        # extracting the next best path from the heap
+        (cost, path1, dev_idx) = heappop(heap_sorted_paths)
         hash_path = tuple(path1)
         heap_paths.remove(hash_path)
         if report_weight:
@@ -804,47 +828,61 @@ def yen_k_shortest_simple_paths_directed_iterator(self, source, target, weight_f
             else:
                 yield path1
         prev_path = path1
-
-        exclude_vertices = copy.deepcopy(exclude_vert_set) # deep copy of the exclude vertices set
+        
+        # deep copy of the exclude vertices set
+        exclude_vertices = copy.deepcopy(exclude_vert_set)
         exclude_edges = set()
         include_vertices = set()
         expressEdges = {}
         dic = {}
         for v in self:
-            color[v] = 0 # coloring all the nodes as green initially
-        allY = list() # list of yellow nodes
+            # coloring all the nodes as green initially
+            color[v] = 0
+        # list of yellow nodes
+        allY = list()
         for j in range(dev_idx+1):
-            color[prev_path[j]] = 1 # coloring red
+            # coloring red
+            color[prev_path[j]] = 1
             Yv = getUpStreamNodes(prev_path[j])
             allY += Yv
             for y in Yv:
-                color[y] = 2 # yellow color for upstream nodes
+                # color yellow for upstream nodes
+                color[y] = 2
                 include_vertices.add(y)
-        allY.append(prev_path[dev_idx]) # adding the deviation node to find the express edges
+        # adding the deviation node to find the express edges
+        allY.append(prev_path[dev_idx])
         findExpressEdges(allY)
         color[target] = 2
         include_vertices.add(target)
-        for i in range(dev_idx + 1, len(prev_path)): # deviating from the previous path to find the candidate paths
-            root = prev_path[:i] # root part of the previous path
-            if i == dev_idx + 1: # if its the deviation node
+        # deviating from the previous path to find the candidate paths
+        for i in range(dev_idx + 1, len(prev_path)):
+            # root part of the previous path
+            root = prev_path[:i]
+            # if it is the deviation node
+            if i == dev_idx + 1:
                 p = father[tuple(prev_path)]
-                while(p and len(p) > dev_idx + 1 and p[dev_idx] == root[dev_idx]): # comparing the deviation nodes
+                # comparing the deviation nodes
+                while(p and len(p) > dev_idx + 1 and p[dev_idx] == root[dev_idx]):
                     # using fatherly approach to filter the edges to be removed
                     exclude_edges.add((p[i - 1], p[i]))
                     p = father[tuple(p)]
             else:
-                color[root[-1]] = 1 # coloring it red
+                # coloring it red
+                color[root[-1]] = 1
                 Yu = getUpStreamNodes(root[-1])
                 for y in Yu:
-                    color[y] = 2 # coloring upstream nodes as yellow
+                    # coloring upstream nodes as yellow
+                    color[y] = 2
                 Yu.append(root[-1])
                 for n in Yu:
                     if n in expressEdges and len(expressEdges[n]) > 0:
                         # recovering the express edges incident to a node n
                         for e in expressEdges[n]:
                             if (e[1], target) in dic:
-                                self.delete_edge(e[1], target) # restoration of edges in the original grpah
-                        expressEdges[n] = []  # resetting the expressEdges for node n 
+                                # restoration of edges in the original graph
+                                self.delete_edge(e[1], target)
+                        # resetting the expressEdges for node n
+                        expressEdges[n] = []
                 findExpressEdges(Yu)
             # removing the edge in the previous shortest path to find a new candidate path
             exclude_edges.add((prev_path[i - 1], prev_path[i]))
@@ -867,18 +905,21 @@ def yen_k_shortest_simple_paths_directed_iterator(self, source, target, weight_f
 
                 if not spur:
                     continue
-                path = root[:-1] + spur # concatenating the root and the spur path
+                # concatenating the root and the spur path
+                path = root[:-1] + spur
                 length = length_func(path)
                 # push operation
                 hash_path = tuple(path)
-                if hash_path not in heap_paths: # if this path is not already present inside the heap
+                # if this path is not already present inside the heap
+                if hash_path not in heap_paths:
                     father[tuple(path)] = prev_path
                     heappush(heap_sorted_paths, (length, path, len(root) - 1))
                     heap_paths.add(hash_path)
             except Exception:
                 pass
             exclude_vertices.add(root[-1])
-        for e in dic: # restoring the original graph here
+        # restoring the original graph here
+        for e in dic:
             self.delete_edge(e)
 
 def _all_paths_iterator(self, vertex, ending_vertices=None,

@@ -2642,6 +2642,11 @@ REFERENCES:
             algebra of type* `A`. Proc. Amer. Math. Soc. **138** (2010), no. 11,
             3877--3889.
 
+.. [KS2019] \J. Kliem and C. Stump.
+            *A face iterator for polyhedra and more general finite locally
+            branched lattices*.
+            Preprint (2019): :arxiv:`1905.01945`.
+
 .. [KSV2011] Ian Kiming, Matthias Schuett and Helena Verrill, "Lifts
              of projective congruence groups", J. London
              Math. Soc. (2011) 83 (1): 96-120,

@@ -95,13 +95,15 @@ save () {
         exit 63
     fi
 
+    NEWCONFVERSION=`git rev-parse HEAD`
+    NEWCONFBALL="upstream/configure-$NEWCONFVERSION.tar.gz"
+    
     # Create configure tarball
-    echo "Creating $CONFBALL..."
+    echo "Creating $NEWCONFBALL..."
     mkdir -p upstream
-    tar zcf "$CONFBALL" configure config/* build/make/Makefile-auto.in
+    tar zcf "$NEWCONFBALL" configure config/* build/make/Makefile-auto.in
     
     # Update version
-    NEWCONFVERSION=`git rev-parse HEAD`
     echo "$NEWCONFVERSION" >$PKG/package-version.txt
     
     # Compute checksum

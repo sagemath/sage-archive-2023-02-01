@@ -354,6 +354,10 @@ REFERENCES:
               *Baxter permutations and plane bipolar orientations*.
               Séminaire Lotharingien de combinatoire 61A, article B61Ah, 2008.
 
+.. [BCDGNPY2019] \Z. Bao, A. Chakraborti, N. Datta, J. Guo, M. Nandi, T. Peyrin, K. Yasuda.
+                 "PHOTON-BeetleAuthenticated Encryption and Hash Family"
+                 https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/PHOTON-Beetle-spec.pdf
+
 .. [BPPSST2017] Banik, Pandey, Peyrin, Sasaki, Sim, and Todo,
                 GIFT : A Small Present Towards Reaching the Limit of Lightweight
                 Encryption. *Cryptographic Hardware and Embedded Systems - CHES 2017*,

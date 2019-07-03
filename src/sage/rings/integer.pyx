@@ -3587,12 +3587,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             -920384
             sage: hash(int(n))
             -920384
-            sage: n = -920390823904823094890238490238484; n.__hash__()
-            -873977844            # 32-bit
-            6874330978542788722   # 64-bit
-            sage: hash(long(n))
-            -873977844            # 32-bit
-            6874330978542788722   # 64-bit
+            sage: n = -920390823904823094890238490238484
+            sage: n.__hash__()    # random
+            -43547310504077801
+            sage: n.__hash__() == hash(long(n))
+            True
 
         TESTS::
 
@@ -3620,15 +3619,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         These tests come from :trac:`4957`::
 
             sage: n = 2^31 + 2^13
-            sage: hash(n)
-            -2147475456               # 32-bit
-            2147491840                # 64-bit
+            sage: hash(n)             # random
+            2147491840
             sage: hash(n) == hash(int(n))
             True
             sage: n = 2^63 + 2^13
-            sage: hash(n)
-            -2147475456               # 32-bit
-            -9223372036854767616      # 64-bit
+            sage: hash(n)             # random
+            8196
             sage: hash(n) == hash(int(n))
             True
         """
@@ -7094,8 +7091,11 @@ cdef class int_to_Z(Morphism):
 
     EXAMPLES::
 
-        sage: f = ZZ.coerce_map_from(int); type(f)
+        sage: f = ZZ.coerce_map_from(int)
+        sage: type(f)  # py2
         <type 'sage.rings.integer.int_to_Z'>
+        sage: type(f)  # py3
+        <class 'sage.rings.integer.long_to_Z'>
         sage: f(5r)
         5
         sage: type(f(5r))
@@ -7172,9 +7172,14 @@ cdef class long_to_Z(Morphism):
     """
     EXAMPLES::
 
-        sage: f = ZZ.coerce_map_from(long); f
+        sage: f = ZZ.coerce_map_from(long)
+        sage: f  # py2
         Native morphism:
           From: Set of Python objects of class 'long'
+          To:   Integer Ring
+        sage: f  # py3
+        Native morphism:
+          From: Set of Python objects of class 'int'
           To:   Integer Ring
         sage: f(1rL)
         1

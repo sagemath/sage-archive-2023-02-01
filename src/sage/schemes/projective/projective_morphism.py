@@ -943,8 +943,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             Scheme morphism:
               From: Affine Space of dimension 2 over Rational Field
               To:   Affine Space of dimension 1 over Rational Field
-              Defn: Defined on coordinates by sending (x0, x1) to
-                    (x0^2/x1^2)
+              Defn: Defined on coordinates by sending (u, v) to
+                    (u^2/v^2)
         """
         #the dehomogenizations are stored for future use.
         try:

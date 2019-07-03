@@ -980,6 +980,10 @@ REFERENCES:
              pp. 373-393; Springer-Verlag 2015; available at
              http://eprint.iacr.org/2015/711.pdf
 
+.. [CDLNPPS2019] \A. Canteaut, S. Duval, G. Leurent, M. Naya-Plasencia, L. Perrin, T. Pornin, A. Schrottenloher.
+                 "Saturnin: a suite of lightweight symmetricalgorithms for post-quantum security"
+                 https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/SATURNIN-spec.pdf
+
 .. [CE2001] Raul Cordovil and Gwihen Etienne. *A note on the
             Orlik-Solomon algebra*. Europ. J. Combinatorics. **22**
             (2001). pp. 165-170. http://www.math.ist.utl.pt/~rcordov/Ce.pdf

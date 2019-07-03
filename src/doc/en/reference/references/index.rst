@@ -54,6 +54,11 @@ REFERENCES:
 .. [ABBR2012] \A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924.
               *ACM Transactions on Mathematical Software*, **39** no. 1 (2012), 1-28.
 
+.. [ABCFHLLMRT2019] \A. Abdomnicai, T. P. Berger, C. Clavier, J. Francq, P. Huynh, V. Lallemand, K. Le
+                    Gouguec, M. Minier, L. Reynaud, G. Thomas.
+                    "Lilliput-AE: a New Lightweight Tweakable BlockCipher for Authenticated Encryption with AssociatedData"
+                    https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/LILLIPUT-AE-spec.pdf
+
 .. [AC1994] \R.J.R. Abel and Y.W. Cheng,
             Some new MOLS of order 2np for p a prime power,
             The Australasian Journal of Combinatorics, vol 10 (1994)

@@ -196,6 +196,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.breadth_first_search` | Return an iterator over the vertices in a breadth-first ordering.
     :meth:`~GenericGraph.depth_first_search` | Return an iterator over the vertices in a depth-first ordering.
     :meth:`~GenericGraph.lex_BFS` | Perform a Lex BFS on the graph.
+    :meth:`~GenericGraph.lex_DFS` | Perform a Lex DFS on the graph.
 
 **Distances:**
 
@@ -17149,7 +17150,7 @@ class GenericGraph(GenericGraph_pyx):
 
         Since it is impossible to implement the linear time algorithm
         efficiently in Python the actual implementation is located
-        in `generic_graph_pyx.pyx' in the method `lex_BFS_fast`
+        in `traversals.pyx' in the method `lex_BFS`
 
         EXAMPLES:
 
@@ -17192,8 +17193,8 @@ class GenericGraph(GenericGraph_pyx):
             ([0], Digraph on 1 vertex)
 
         """
-        from sage.graphs.generic_graph_pyx import lex_BFS_fast
-        return lex_BFS_fast(self, reverse=reverse, tree=tree, initial_vertex=initial_vertex)
+        from sage.graphs.traversals import lex_BFS
+        return lex_BFS(self, reverse=reverse, tree=tree, initial_vertex=initial_vertex)
 
     def lex_DFS(self, reverse=False, tree=False, initial_vertex=None):
         r"""
@@ -17225,7 +17226,7 @@ class GenericGraph(GenericGraph_pyx):
 
         Since it is impossible to implement the linear time algorithm
         efficientlyin Python the actual implementation is located
-        in `generic_graph_pyx.pyx' in the method `lex_DFS_fast`
+        in `traversals.pyx' in the method `lex_DFS`
 
         EXAMPLES:
 
@@ -17248,8 +17249,8 @@ class GenericGraph(GenericGraph_pyx):
             [1, 2, 3]
 
         """
-        from sage.graphs.generic_graph_pyx import lex_DFS_fast
-        return lex_DFS_fast(self, reverse=reverse, tree=tree, initial_vertex=initial_vertex)
+        from sage.graphs.traversals import lex_DFS
+        return lex_DFS(self, reverse=reverse, tree=tree, initial_vertex=initial_vertex)
 
     ### Constructors
 

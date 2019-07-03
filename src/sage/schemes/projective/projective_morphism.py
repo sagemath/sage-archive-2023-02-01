@@ -214,7 +214,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                 polys = [f.lift() for f in polys]
             if not all(f.is_homogeneous() for f in polys):
                 raise  ValueError("polys (=%s) must be homogeneous" % polys)
-            degs = [f.degree() for f in polys]
+            degs = [f.degree() for f in polys if f]
             if not all(d == degs[0] for d in degs[1:]):
                 raise ValueError("polys (=%s) must be of the same degree" % polys)
         self._is_prime_finite_field = is_PrimeFiniteField(polys[0].base_ring())

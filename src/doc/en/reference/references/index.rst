@@ -3449,6 +3449,9 @@ REFERENCES:
               Ann. Sci. Math. Québec, 19 (1): 79--90.
               http://www.lacim.uqam.ca/~christo/Publi%C3%A9s/1995/Alg%C3%A8bres%20de%20Hopf%20de%20tableaux.pdf
 
+.. [PM2019] \D. Penazzi, M. Montes. "Shamash (and Shamashash)"
+            https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/ShamashAndShamashash-spec.pdf
+
 .. [Pol2003] Robert Pollack, *On the `p`-adic `L`-function of a modular form
             at a supersingular prime*, Duke Math. J. 118 (2003), no. 3, 523-558.
 

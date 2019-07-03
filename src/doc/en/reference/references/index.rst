@@ -4430,6 +4430,10 @@ REFERENCES:
              constrained optimization. ACM Transactions on
              Mathematical Software, Vol 23, Num. 4, pp.550--560, 1997.
 
+.. [ZDYBXJZ2019] \W. Zhang, T. Ding, B. Yang, Z. Bao, Z. Xiang, F. Ji, X. Zhao.
+                 "KNOT: Algorithm Speci cationsand Supporting Document"
+                 https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/KNOT-spec.pdf
+
 .. [Zei2011] Doron Zeilberger. "The C-finite ansatz." The Ramanujan Journal
              (2011): 1-10.
 

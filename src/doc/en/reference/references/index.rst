@@ -327,6 +327,12 @@ REFERENCES:
             *Maps of toric varieties in Cox coordinates*,
             :arxiv:`1004.4924`
 
+.. [BBBCDGLLLMPPSW2019] \D. Bellizia, F. Berti, O. Bronchain, G. Cassiers,
+                        S. Duval, C. Guo, G. Leander, G. Leurent, I. Levi,
+                        C. Momin, O. Pereira, T. Peters, F. Standeart, F. Wiemer.
+                        "Spook:  Sponge-Based Leakage-Resilient AuthenticatedEncryption with a Masked Tweakable Block Cipher"
+                        https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/Spook-spec.pdf
+
 .. [BCDM2019] \T. Beyne, Y. L. Chen, C. Dobraunig, B. Mennink. *Elephant v1* (2019)
               https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/elephant-spec.pdf
 
@@ -3864,6 +3870,10 @@ REFERENCES:
 .. [SMMK2013] \T. Suzaki, K. Minematsu, S. Morioka, and E. Kobayashi,
               *TWINE: A lightweight block cipher for multiple platforms*; in
               SAC, (2012), pp. 338-354.
+
+.. [SMS2019] \S. Sarkar, K. Mandal, D. Saha
+             "Sycon v1.0 Submission to LightweightCryptographic Standards"
+             https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/sycon-spec.pdf
 
 .. [Sor1984] \A. Sorkin, *LUCIFER: a cryptographic algorithm*;
              in Cryptologia, 8(1), pp. 22–35, 1984.

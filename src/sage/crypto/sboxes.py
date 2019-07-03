@@ -68,6 +68,7 @@ constructions
     - Fides_5 ([BBKMW2013]_)
     - SC2000_5 ([SYYTIYTT2002]_)
     - Shamash ([PM2019])
+    - SYCON ([SMS2019]_)
 
 4 bit to 4 bit
     - Elephant ([BCDM2019]_)
@@ -75,6 +76,7 @@ constructions
     - PHOTON (ORANGE) ([BCDGNPY2019]_)
     - Pyjamask_4 ([GJKPRSS2019]_)
     - SATURNIN_0, SATURNIN_1 ([CDLNPPS2019]_)
+    - Spook ([BBBCDGLLLMPPSW2019]_)
     - DES_S1_1, ..., DES_S1_4, ..., DES_S8_4 ([U.S1999]_)
     - Lucifer_S0, Lucifer_S1 ([Sor1984]_)
     - GOST_1, ..., GOST_8 (http://www.cypherpunks.ru/pygost/)
@@ -1406,6 +1408,9 @@ SC2000_5 = SBox([
 Shamash  = SBox([16, 14, 13, 2, 11, 17, 21, 30, 7, 24, 18, 28, 26, 1, 12, 6,
                  31, 25, 0, 23, 20, 22, 8, 27, 4, 3, 19, 5, 9, 10, 29, 15])
 
+SYCON = SBox([8, 19, 30, 7, 6, 25, 16, 13, 22, 15, 3, 24, 17, 12, 4, 27, 11, 0,
+              29, 20, 1, 14, 23, 26, 28, 21, 9, 2, 31, 18, 10, 5])
+
 # Bijective S-Boxes mapping 4 bits to 4
 # =====================================
 
@@ -1419,7 +1424,8 @@ SATURNIN_0 = SBox([0x0, 0x6, 0xE, 0x1, 0xF, 0x4, 0x7, 0xD, 0x9, 0x8, 0xC, 0x5,
                    0x2, 0xA, 0x3, 0xB])
 SATURNIN_1 = SBox([0x0, 0x9, 0xD, 0x2, 0xF, 0x1, 0xB, 0x7, 0x6, 0x4, 0x5, 0x3,
                    0x8, 0xC, 0xA, 0xE])
-
+Spook = SBox([0x0, 0x8, 0x1, 0xF, 0x2, 0xA, 0x7, 0x9, 0x4, 0xD, 0x5, 0x6, 0xE,
+              0x3, 0xB, 0xC])
 
 # DES
 

@@ -1375,7 +1375,7 @@ class RuleCoRSK(RuleRSK):
         r"""
         Returns exception for invalid input in forward rule.
         """
-        if obj2 in not None:
+        if obj2 is not None:
             # Check it is a strict cobiword
             lt = 0
             lb = 0
@@ -1385,6 +1385,91 @@ class RuleCoRSK(RuleRSK):
                 lt = t
                 lb = b
 
+    def backward_rule(self, p, q, output):
+        r"""
+        Return the generalized permutation from the reverse insertion
+        of a pair of tableaux ``(p, q)``.
+
+        INPUT:
+
+        - ``p``, ``q`` -- two tableaux of the same shape.
+
+        - ``output`` -- (Default: ``'array'``) if ``q`` is semi-standard:
+
+          - ``'array'`` -- as a two-line array (i.e. generalized permutation
+            or biword)
+          -  ``'matrix'`` -- as an integer matrix
+
+          and if ``q`` is standard, we can have the output:
+
+          - ``'word'`` -- as a word
+
+          and additionally if ``p`` is standard, we can also have the output:
+
+          - ``'permutation'`` -- as a permutation
+
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleCoRSK
+            sage: t1 = Tableau([[1, 1, 2], [2, 3], [4]])
+            sage: t2 = Tableau([[1, 4, 5], [1, 4], [2]])
+            sage: RuleCoRSK().backward_rule(t1, t2, 'array')
+            [[1, 1, 2, 4, 4, 5], [4, 2, 1, 3, 1, 2]]
+        """
+        from sage.combinat.tableau import SemistandardTableaux
+        self._backward_verify_input(p, q)
+        # Make a copy of p since this is destructive to it
+        p_copy = [list(row) for row in p]
+
+        if q.is_standard():
+            rev_word = []  # This will be our word in reverse
+            d = {qij: i for i, Li in enumerate(q) for qij in Li}
+            # d is now a dictionary which assigns to each integer k the
+            # number of the row of q containing k.
+
+            for key in sorted(d, reverse=True):
+                # Delete last entry from i-th row of p_copy
+                i = d[key]
+                x = p_copy[i].pop()  # Always the right-most entry
+                for row in reversed(p_copy[:i]):
+                    x = self.reverse_insertion(x, row)
+                rev_word.append(x)
+            return self._backward_format_output(rev_word, None, output, p.is_standard(), q.is_standard())
+
+        upper_row = []
+        lower_row = []
+        # upper_row and lower_row will be the upper and lower rows of the
+        # generalized permutation we get as a result, but both reversed.
+        d = {}
+        for row, Li in enumerate(q):
+            for val in Li:
+                if val in d:
+                    d[val].append(row)
+                else:
+                    d[val] = [row]
+        # d is now a dictionary which assigns to each integer k the
+        # list of the rows of q containing k.
+        for value, row_list in sorted(d.items(), reverse=True, key=lambda x: x[0]):
+            for i in sorted(row_list, reverse=True):
+                x = p_copy[i].pop()  # Always the right-most entry
+                for row in reversed(p_copy[:i]):
+                    x = self.reverse_insertion(x, row)
+                lower_row.append(x)
+                upper_row.append(value)
+        return self._backward_format_output(lower_row, upper_row, output, p.is_standard(), q.is_standard())
+
+    def _backward_verify_input(self, p, q):
+        r"""
+        Returns exception for invalid input in backward rule.
+        """
+        from sage.combinat.tableau import SemistandardTableaux
+
+        if p not in SemistandardTableaux():
+            raise ValueError("p(=%s) must be a semistandard tableau" %p)
+
+        if  not (q.is_row_strict() and q.is_column_increasing(weak=True)):
+            raise ValueError("""q(=%s) must be a row strictly and column 
+                                weakly increasing tableau""" %q)
 
 class InsertionRules(object):
     r"""
@@ -1755,6 +1840,8 @@ def RSK_inverse(p, q, output='array', insertion=InsertionRules.RSK):
             insertion = RSK.rules.Hecke
         elif insertion == 'dualRSK':
             insertion = RSK.rules.dualRSK
+        elif insertion == 'coRSK':
+            insertion = RSK.rules.coRSK
         else:
             raise ValueError("invalid input")
 

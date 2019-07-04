@@ -343,140 +343,140 @@ class FullyPackedLoop(Element):
         ....:     PerfectMatching(rotated_ncp)
         True
 
-    More examples::
+    More examples:
 
-        We can initiate a fully packed loop using an alternating sign matrix::
+    We can initiate a fully packed loop using an alternating sign matrix::
 
-            sage: A = AlternatingSignMatrix([[0, 0, 1], [0, 1, 0], [1, 0, 0]])
-            sage: fpl = FullyPackedLoop(A)
-            sage: fpl
-                |         |
-                |         |
-                + -- +    +
-                     |    |
-                     |    |
-             -- +    +    + --
-                |    |
-                |    |
-                +    + -- +
-                |         |
-                |         |
-            sage: FullyPackedLoops(3)(A) == fpl
-            True
+        sage: A = AlternatingSignMatrix([[0, 0, 1], [0, 1, 0], [1, 0, 0]])
+        sage: fpl = FullyPackedLoop(A)
+        sage: fpl
+            |         |
+            |         |
+            + -- +    +
+                 |    |
+                 |    |
+         -- +    +    + --
+            |    |
+            |    |
+            +    + -- +
+            |         |
+            |         |
+        sage: FullyPackedLoops(3)(A) == fpl
+        True
 
-        We can also input a matrix::
+    We can also input a matrix::
 
-            sage: FullyPackedLoop([[0, 0, 1], [0, 1, 0], [1, 0, 0]])
-                |         |
-                |         |
-                + -- +    +
-                     |    |
-                     |    |
-             -- +    +    + --
-                |    |
-                |    |
-                +    + -- +
-                |         |
-                |         |
-            sage: FullyPackedLoop([[0, 0, 1], [0, 1, 0], [1, 0, 0]]) ==\
-            ....: FullyPackedLoops(3)([[0, 0, 1], [0, 1, 0], [1, 0, 0]])
-            True
+        sage: FullyPackedLoop([[0, 0, 1], [0, 1, 0], [1, 0, 0]])
+            |         |
+            |         |
+            + -- +    +
+                 |    |
+                 |    |
+         -- +    +    + --
+            |    |
+            |    |
+            +    + -- +
+            |         |
+            |         |
+        sage: FullyPackedLoop([[0, 0, 1], [0, 1, 0], [1, 0, 0]]) ==\
+        ....: FullyPackedLoops(3)([[0, 0, 1], [0, 1, 0], [1, 0, 0]])
+        True
 
-        Otherwise we initiate a fully packed loop using a six vertex model::
+    Otherwise we initiate a fully packed loop using a six vertex model::
 
-            sage: S = SixVertexModel(3, boundary_conditions='ice').from_alternating_sign_matrix(A)
-            sage: fpl = FullyPackedLoop(S)
-            sage: fpl
-                |         |
-                |         |
-                + -- +    +
-                     |    |
-                     |    |
-             -- +    +    + --
-                |    |
-                |    |
-                +    + -- +
-                |         |
-                |         |
+        sage: S = SixVertexModel(3, boundary_conditions='ice').from_alternating_sign_matrix(A)
+        sage: fpl = FullyPackedLoop(S)
+        sage: fpl
+            |         |
+            |         |
+            + -- +    +
+                 |    |
+                 |    |
+         -- +    +    + --
+            |    |
+            |    |
+            +    + -- +
+            |         |
+            |         |
 
-            sage: FullyPackedLoops(3)(S) == FullyPackedLoop(S)
-            True
+        sage: FullyPackedLoops(3)(S) == FullyPackedLoop(S)
+        True
 
-            sage: fpl.six_vertex_model().to_alternating_sign_matrix()
-            [0 0 1]
-            [0 1 0]
-            [1 0 0]
+        sage: fpl.six_vertex_model().to_alternating_sign_matrix()
+        [0 0 1]
+        [0 1 0]
+        [1 0 0]
 
-        We can also input the matrix associated to a six vertex model::
+    We can also input the matrix associated to a six vertex model::
 
-            sage: SixVertexModel(2)([[3,1],[5,3]])
-                ^    ^
-                |    |
-            --> # <- # <--
-                |    ^
-                V    |
-            --> # -> # <--
-                |    |
-                V    V
+        sage: SixVertexModel(2)([[3,1],[5,3]])
+            ^    ^
+            |    |
+        --> # <- # <--
+            |    ^
+            V    |
+        --> # -> # <--
+            |    |
+            V    V
 
-            sage: FullyPackedLoop([[3,1],[5,3]])
-                |
-                |
-                +    + --
-                |    |
-                |    |
-             -- +    +
-                     |
-                     |
+        sage: FullyPackedLoop([[3,1],[5,3]])
+            |
+            |
+            +    + --
+            |    |
+            |    |
+         -- +    +
+                 |
+                 |
 
-            sage: FullyPackedLoops(2)([[3,1],[5,3]]) == FullyPackedLoop([[3,1],[5,3]])
-            True
+        sage: FullyPackedLoops(2)([[3,1],[5,3]]) == FullyPackedLoop([[3,1],[5,3]])
+        True
 
-        Note that the matrix corresponding to a six vertex model without
-        the ice boundary condition is not allowed::
+    Note that the matrix corresponding to a six vertex model without
+    the ice boundary condition is not allowed::
 
-            sage: SixVertexModel(2)([[3,1],[5,5]])
-                ^    ^
-                |    |
-            --> # <- # <--
-                |    ^
-                V    V
-            --> # -> # -->
-                |    |
-                V    V
+        sage: SixVertexModel(2)([[3,1],[5,5]])
+            ^    ^
+            |    |
+        --> # <- # <--
+            |    ^
+            V    V
+        --> # -> # -->
+            |    |
+            V    V
 
-            sage: FullyPackedLoop([[3,1],[5,5]])
-            Traceback (most recent call last):
-            ...
-            ValueError: invalid alternating sign matrix
+        sage: FullyPackedLoop([[3,1],[5,5]])
+        Traceback (most recent call last):
+        ...
+        ValueError: invalid alternating sign matrix
 
-            sage: FullyPackedLoops(2)([[3,1],[5,5]])
-            Traceback (most recent call last):
-            ...
-            ValueError: invalid alternating sign matrix
+        sage: FullyPackedLoops(2)([[3,1],[5,5]])
+        Traceback (most recent call last):
+        ...
+        ValueError: invalid alternating sign matrix
 
-        Note that if anything else is used to generate the fully packed loop an error will occur::
+    Note that if anything else is used to generate the fully packed loop an error will occur::
 
-            sage: fpl = FullyPackedLoop(5)
-            Traceback (most recent call last):
-            ...
-            ValueError: invalid alternating sign matrix
+        sage: fpl = FullyPackedLoop(5)
+        Traceback (most recent call last):
+        ...
+        ValueError: invalid alternating sign matrix
 
-            sage: fpl = FullyPackedLoop((1, 2, 3))
-            Traceback (most recent call last):
-            ...
-            ValueError: The alternating sign matrices must be square
+        sage: fpl = FullyPackedLoop((1, 2, 3))
+        Traceback (most recent call last):
+        ...
+        ValueError: The alternating sign matrices must be square
 
-            sage: SVM = SixVertexModel(3)[0]
-            sage: FullyPackedLoop(SVM)
-            Traceback (most recent call last):
-            ...
-            ValueError: invalid alternating sign matrix
+        sage: SVM = SixVertexModel(3)[0]
+        sage: FullyPackedLoop(SVM)
+        Traceback (most recent call last):
+        ...
+        ValueError: invalid alternating sign matrix
 
-        REFERENCES:
+    REFERENCES:
 
-        - [Pro2001]_
-        - [Str2015]_
+    - [Pro2001]_
+    - [Str2015]_
     """
     @staticmethod
     def __classcall_private__(cls, generator):

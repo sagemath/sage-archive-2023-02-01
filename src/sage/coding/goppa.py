@@ -5,10 +5,10 @@ This module implements Goppa codes and an encoder for them.
 
 EXAMPLES::
 
-    sage: F8 = GF(2^6)
-    sage: R.<x> = F8[]
-    sage: g = x^9+1
-    sage: L = [a for a in F8.list() if g(a)!=0]
+    sage: F = GF(2^6)
+    sage: R.<x> = F[]
+    sage: g = x^9 + 1
+    sage: L = [a for a in F.list() if g(a) != 0]
     sage: C = codes.GoppaCode(g, L)
     sage: C
     [55, 16] Goppa code
@@ -29,7 +29,7 @@ def _columnize(element):
     TESTS::
 
         sage: from sage.coding.goppa import _columnize
-        sage: F8.<a> = GF(2^6)
+        sage: F.<a> = GF(2^6)
         sage: _columnize(a)
         [0]
         [1]
@@ -50,7 +50,7 @@ def _columnize(element):
 
 class GoppaCode(AbstractLinearCode):
     """
-    Implementation of Goppa codes
+    Implementation of Goppa codes.
 
     Goppa codes are a generalization of narrow-sense BCH codes.
     These codes are defined by a generating polynomial `g` over a finite field
@@ -70,10 +70,10 @@ class GoppaCode(AbstractLinearCode):
 
     EXAMPLES::
 
-        sage: F8 = GF(2^6)
-        sage: R.<x> = F8[]
-        sage: g = x^9+1
-        sage: L = [a for a in F8.list() if g(a)!=0]
+        sage: F = GF(2^6)
+        sage: R.<x> = F[]
+        sage: g = x^9 + 1
+        sage: L = [a for a in F.list() if g(a) != 0]
         sage: C = codes.GoppaCode(g, L)
         sage: C
         [55, 16] Goppa code
@@ -87,10 +87,10 @@ class GoppaCode(AbstractLinearCode):
 
         TESTS::
 
-            sage: F8 = GF(2^6)
-            sage: R.<x> = F8[]
-            sage: g = x^9+1
-            sage: L = [a for a in F8.list() if g(a) != 0]
+            sage: F = GF(2^6)
+            sage: R.<x> = F[]
+            sage: g = x^9 + 1
+            sage: L = [a for a in F.list() if g(a) != 0]
             sage: C = codes.GoppaCode(g, L)
             sage: TestSuite(C).run()
         """
@@ -116,10 +116,10 @@ class GoppaCode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: F8  = GF(2^3)
-            sage: R.<x> = F8[]
+            sage: F  = GF(2^3)
+            sage: R.<x> = F[]
             sage: g = x^2 + x+ 1
-            sage: L = [a for a in F8.list() if g(a) != 0]
+            sage: L = [a for a in F.list() if g(a) != 0]
             sage: C = codes.GoppaCode(g, L)
             sage: C
             [8, 2] Goppa code
@@ -128,14 +128,14 @@ class GoppaCode(AbstractLinearCode):
 
     def _latex_(self):
         r"""
-        latex representation of ``self``.
+        Return a latex representation of ``self``.
 
         EXAMPLES::
 
-            sage: F8  = GF(2^3)
-            sage: R.<x> = F8[]
+            sage: F  = GF(2^3)
+            sage: R.<x> = F[]
             sage: g = x^2 + x+ 1
-            sage: L = [a for a in F8.list() if g(a) != 0]
+            sage: L = [a for a in F.list() if g(a) != 0]
             sage: C = codes.GoppaCode(g, L)
             sage: latex(C)
             [8, 2]\text{ Goppa code}
@@ -144,14 +144,14 @@ class GoppaCode(AbstractLinearCode):
 
     def __eq__(self, other):
         """
-        Equality check between GoppaCode objects
+        Test equality with ``other``.
 
         EXAMPLES::
 
-            sage: F8  = GF(2^3)
-            sage: R.<x> = F8[]
+            sage: F  = GF(2^3)
+            sage: R.<x> = F[]
             sage: g = x^2 + x+ 1
-            sage: L = [a for a in F8.list() if g(a) != 0]
+            sage: L = [a for a in F.list() if g(a) != 0]
             sage: C = codes.GoppaCode(g, L)
             sage: D = codes.GoppaCode(g, L)
             sage: C == D
@@ -176,10 +176,10 @@ class GoppaCode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: F8  = GF(2^3)
-            sage: R.<x> = F8[]
+            sage: F  = GF(2^3)
+            sage: R.<x> = F[]
             sage: g = x^2 + x+ 1
-            sage: L = [a for a in F8.list() if g(a) != 0]
+            sage: L = [a for a in F.list() if g(a) != 0]
             sage: C = codes.GoppaCode(g, L)
             sage: C
             [8, 2] Goppa code
@@ -226,10 +226,10 @@ class GoppaCode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: F8  = GF(2^3)
-            sage: R.<x> = F8[]
+            sage: F  = GF(2^3)
+            sage: R.<x> = F[]
             sage: g = x^2 + x+ 1
-            sage: L = [a for a in F8.list() if g(a) != 0]
+            sage: L = [a for a in F.list() if g(a) != 0]
             sage: C = codes.GoppaCode(g, L)
             sage: C
             [8, 2] Goppa code
@@ -271,10 +271,10 @@ class GoppaCode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: F8 = GF(2^3)
-            sage: R.<x> = F8[]
+            sage: F = GF(2^3)
+            sage: R.<x> = F[]
             sage: g = x^2 + x + 1
-            sage: L = [a for a in F8.list() if g(a) != 0]
+            sage: L = [a for a in F.list() if g(a) != 0]
             sage: C = codes.GoppaCode(g, L)
             sage: C
             [8, 2] Goppa code
@@ -297,10 +297,10 @@ class GoppaCodeEncoder(Encoder):
 
     EXAMPLES::
 
-        sage: F8 = GF(2^3)
-        sage: R.<x> = F8[]
+        sage: F = GF(2^3)
+        sage: R.<x> = F[]
         sage: g = x^2 + x + 1
-        sage: L = [a for a in F8.list() if g(a) != 0]
+        sage: L = [a for a in F.list() if g(a) != 0]
         sage: C = codes.GoppaCode(g, L)
         sage: C
         [8, 2] Goppa code
@@ -320,10 +320,10 @@ class GoppaCodeEncoder(Encoder):
 
         TESTS::
 
-            sage: F8 = GF(2^3)
-            sage: R.<x> = F8[]
+            sage: F = GF(2^3)
+            sage: R.<x> = F[]
             sage: g = x^2 + x + 1
-            sage: L = [a for a in F8.list() if g(a) != 0]
+            sage: L = [a for a in F.list() if g(a) != 0]
             sage: C = codes.GoppaCode(g, L)
             sage: E = codes.encoders.GoppaCodeEncoder(C)
             sage: TestSuite(E).run()
@@ -336,10 +336,10 @@ class GoppaCodeEncoder(Encoder):
 
         EXAMPLES::
 
-            sage: F8 = GF(2^3)
-            sage: R.<x> = F8[]
+            sage: F = GF(2^3)
+            sage: R.<x> = F[]
             sage: g = (x^2 + x + 1)^2
-            sage: L = [a for a in F8.list() if g(a) != 0]
+            sage: L = [a for a in F.list() if g(a) != 0]
             sage: C = codes.GoppaCode(g, L)
             sage: E = codes.encoders.GoppaCodeEncoder(C)
             sage: E
@@ -353,10 +353,10 @@ class GoppaCodeEncoder(Encoder):
 
         EXAMPLES::
 
-            sage: F8 = GF(2^3)
-            sage: R.<x> = F8[]
+            sage: F = GF(2^3)
+            sage: R.<x> = F[]
             sage: g = (x^2 + x + 1)^2
-            sage: L = [a for a in F8.list() if g(a) != 0]
+            sage: L = [a for a in F.list() if g(a) != 0]
             sage: C = codes.GoppaCode(g, L)
             sage: E = codes.encoders.GoppaCodeEncoder(C)
             sage: latex(E)
@@ -370,10 +370,10 @@ class GoppaCodeEncoder(Encoder):
 
         EXAMPLES::
 
-            sage: F8 = GF(2^3)
-            sage: R.<x> = F8[]
+            sage: F = GF(2^3)
+            sage: R.<x> = F[]
             sage: g = (x^2 + x + 1)^2
-            sage: L = [a for a in F8.list() if g(a) != 0]
+            sage: L = [a for a in F.list() if g(a) != 0]
             sage: C = codes.GoppaCode(g, L)
             sage: E1 = codes.encoders.GoppaCodeEncoder(C)
             sage: E2 = codes.encoders.GoppaCodeEncoder(C)
@@ -392,10 +392,10 @@ class GoppaCodeEncoder(Encoder):
 
         EXAMPLES::
 
-            sage: F8 = GF(2^3)
-            sage: R.<x> = F8[]
+            sage: F = GF(2^3)
+            sage: R.<x> = F[]
             sage: g = (x^2 + x + 1)^2
-            sage: L = [a for a in F8.list() if g(a) != 0]
+            sage: L = [a for a in F.list() if g(a) != 0]
             sage: C = codes.GoppaCode(g, L)
             sage: C
             [8, 2] Goppa code

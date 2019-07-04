@@ -31,7 +31,7 @@ from cysignals.memory cimport check_calloc, sig_free
 
 from collections import Iterator, Sequence
 
-from cpython.int cimport PyInt_FromLong
+from cpython.int cimport PyInt_FromSize_t
 
 from sage.ext.stdsage cimport PY_NEW
 from sage.ext.mod_int cimport *
@@ -647,13 +647,13 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
         cdef givaro.ZRing givZZ
         cdef linbox.SparseMatrix_integer * M = new_linbox_matrix_integer_sparse(givZZ, self)
-        cdef unsigned long r = 0
+        cdef size_t r = 0
 
         linbox.rank(r, M[0])
 
         del M
 
-        return PyInt_FromLong(r)
+        return PyInt_FromSize_t(r)
 
     def _det_linbox(self):
         r"""

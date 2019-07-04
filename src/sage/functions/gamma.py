@@ -82,6 +82,17 @@ class Function_gamma(GinacFunction):
             sage: plot(gamma1(x),(x,1,5))
             Graphics object consisting of 1 graphics primitive
 
+        We are also able to compute the Laurent expansion of the
+        Gamma function (as well as of functions containing
+        the Gamma function)::
+
+            sage: gamma(x).series(x==0, 2)
+            1*x^(-1) + (-euler_gamma)
+            + (1/2*euler_gamma^2 + 1/12*pi^2)*x + Order(x^2)
+            sage: (gamma(x)^2).series(x==0, 1)
+            1*x^(-2) + (-2*euler_gamma)*x^(-1)
+            + (2*euler_gamma^2 + 1/6*pi^2) + Order(x)
+
         To prevent automatic evaluation use the ``hold`` argument::
 
             sage: gamma1(1/2,hold=True)

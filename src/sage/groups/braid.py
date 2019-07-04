@@ -2140,7 +2140,6 @@ class BraidGroup_class(FiniteTypeArtinGroup):
             Result lives in Free Group on generators {f0, f1, f2, f3}
             Free Group on generators {f0, f1, f2, f3}
             sage: cm.explain(b1, f1, operator.mul)
-            Will try _r_action and _l_action
             Unknown result parent.
         """
         import operator

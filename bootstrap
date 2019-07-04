@@ -11,8 +11,12 @@
 # extract the files from a local configure tarball, downloading it if
 # needed. If -D is given, don't try to bootstrap and always extract or
 # download.
-# If optional argument -u <URL>, where URL is an URL for the configure
-# tarball, is given, download it to upstream/. Implies -D.
+#
+# If optional argument -u <URL> is given download the configure
+# tarball from that base url. That is, "bootstrap -u http://host/path"
+# will download http://host/path/configure-$CONFVERSION.tar.gz to
+# upstream/configure-$CONFVERSION.tar.gz. This is used by the buildbot
+# to download tarballs that are not published.
 ########################################################################
 
 # Set SAGE_ROOT to the path to this file and then cd into it
@@ -23,7 +27,7 @@ export PATH="$SAGE_ROOT/build/bin:$PATH"
 
 PKG=build/pkgs/configure
 MAKE="${MAKE:-make}"
-CONFVERSION=`git rev-parse HEAD`
+CONFVERSION=$(cat $PKG/package-version.txt)
 
 bootstrap () {
     rm -f m4/sage_spkg_configures.m4
@@ -91,13 +95,16 @@ save () {
         exit 63
     fi
 
+    NEWCONFVERSION=`git rev-parse HEAD`
+    NEWCONFBALL="upstream/configure-$NEWCONFVERSION.tar.gz"
+    
     # Create configure tarball
-    echo "Creating $CONFBALL..."
+    echo "Creating $NEWCONFBALL..."
     mkdir -p upstream
-    tar zcf "$CONFBALL" configure config/* build/make/Makefile-auto.in
+    tar zcf "$NEWCONFBALL" configure config/* build/make/Makefile-auto.in
     
     # Update version
-    echo "$CONFVERSION" >$PKG/package-version.txt
+    echo "$NEWCONFVERSION" >$PKG/package-version.txt
     
     # Compute checksum
     sage --package fix-checksum configure
@@ -144,8 +151,8 @@ source src/bin/sage-env 2>/dev/null
 
 
 if [ $ALWAYSDOWNLOAD = yes ]; then
-    if [ $CONFTARBALL_URL != "" ]; then
-        URL="$CONFTARBALL_URL"/configure-$(cat $PKG/package-version.txt).tar.gz
+    if [ -n "$CONFTARBALL_URL" ]; then
+        URL="$CONFTARBALL_URL"/configure-$CONFVERSION.tar.gz
         sage-download-file "$URL" upstream/configure-$CONFVERSION.tar.gz
         if [ $? -ne 0 ]; then
             echo >&2 "Error: downloading configure-$CONFVERSION.tar.gz from $CONFTARBALL_URL failed"

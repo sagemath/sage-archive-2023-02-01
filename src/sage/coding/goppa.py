@@ -16,7 +16,20 @@ EXAMPLES::
     sage: E
     Encoder for [55, 16] Goppa code
 
+AUTHORS:
+
+- Filip Ion, Marketa Slukova (2019-06): initial version
+
 """
+#*****************************************************************************
+#       Copyright (C) 2019 Filip Ion <filip.alexandru.ion@gmail.com>,
+#                          Marketa Slukova <em.slukova@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 from sage.coding.linear_code import AbstractLinearCode
 from sage.coding.encoder import Encoder
 from sage.modules.free_module_element import vector
@@ -54,7 +67,7 @@ class GoppaCode(AbstractLinearCode):
 
     Goppa codes are a generalization of narrow-sense BCH codes.
     These codes are defined by a generating polynomial `g` over a finite field
-    `F_{p^m}`, and a defining set `L` of elements from `F_{p^m}`, which are not roots
+    `\GF{p^m}`, and a defining set `L` of elements from `\GF{p^m}`, which are not roots
     of `g`. The number of defining elements determines the length of the code.
 
     In binary cases, the minimum distance is `2t + 1`, where `t` is the degree
@@ -63,9 +76,9 @@ class GoppaCode(AbstractLinearCode):
     INPUTS:
 
     - ``generating_pol`` -- a monic polynomial with coefficients in a finite
-      field `F_{p^m}`, the code is defined over `F_p`, `p` must be a prime number
+      field `\GF{p^m}`, the code is defined over `\GF{p}`, `p` must be a prime number
 
-    - ``defining_set`` -- a set of elements of `F_{p^m}` that are not roots
+    - ``defining_set`` -- a set of elements of `\GF{p^m}` that are not roots
       of `g`, its cardinality is the length of the code
 
     EXAMPLES::
@@ -291,9 +304,9 @@ class GoppaCodeEncoder(Encoder):
     Encoder for Goppa codes
 
     Encodes words represented as vectors of length `k`, where `k` is
-    the dimension of ``self``, with entries from `F_p`, the prime field of
+    the dimension of ``self``, with entries from `\GF{p}`, the prime field of
     the base field of the generating polynomial of ``self``, into codewords
-    of length `n`, with entries from `F_p`.
+    of length `n`, with entries from `\GF{p}`.
 
     EXAMPLES::
 

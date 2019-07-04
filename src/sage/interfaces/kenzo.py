@@ -93,6 +93,9 @@ dffr_aux1 = EclObject("dffr_aux1")
 kabstractsimplex_aux1 = EclObject("kabstractsimplex_aux1")
 kchaincomplex_aux1 = EclObject("kchaincomplex_aux1")
 sfinitesimplicialset_aux1 = EclObject("sfinitesimplicialset_aux1")
+spectral_sequence_group = EclObject("spectral-sequence-group")
+spectral_sequence_differential_matrix = EclObject("spectral-sequence-differential-matrix")
+eilenberg_moore_spectral_sequence = EclObject("eilenberg-moore-spectral-sequence")
 
 
 def Sphere(n):
@@ -239,6 +242,91 @@ class KenzoObject(SageObject):
         """
         kenzo_string = repr(self._kenzo)
         return kenzo_string[6:-1]
+
+class KenzoSpectralSequence(KenzoObject):
+    r"""
+    Wrapper around Kenzo spectral sequences
+    """
+    def group(self, p, i, j):
+        r"""
+        Return the ``i,j``'th group of the ``p`` page.
+
+        INPUT:
+
+        - ``p`` -- the page to take the group from.
+
+        - ``i`` -- the column where the group is taken from.
+
+        - ``j`` -- the row where the group is taken from.
+
+        EXAMPLES::
+
+            sage: from sage.interfaces.kenzo import Sphere
+            sage: S2 = Sphere(2)
+            sage: EMS = S2.em_spectral_sequence()
+            sage: EMS.group(0, -1, 2)
+            Additive abelian group isomorphic to Z
+            sage: EMS.group(0, -1, 3)
+            Trivial group
+        """
+        invs = spectral_sequence_group(self._kenzo, p, i ,j).python()
+        if not invs:
+            invs = []
+        return AdditiveAbelianGroup(invs)
+    def matrix(self, p, i, j):
+        r"""
+        Return the matrix that determines the differential from the
+        ``i,j``'th group of the ``p``'th page.
+
+        INPUT:
+
+        - ``p`` -- the page.
+
+        - ``i`` -- the column of the differential domain.
+
+        - ``j`` -- the row of the differential domain.
+        """
+        return spectral_sequence_differential_matrix(self._kenzo, p, j, j)
+    def table(self, p, i1, i2, j1, j2):
+        r"""
+        Return a table printing the groups in the ``p`` page.
+
+        INPUT:
+
+        - ``p`` -- the page to print.
+
+        -- ``i1`` -- the first column to print.
+
+        -- ``i2`` -- the last column to print.
+
+        -- ``j1`` -- the first row to print.
+
+        -- ``j2`` -- the last row to print.
+
+        EXAMPLES::
+
+            sage: from sage.interfaces.kenzo import Sphere
+            sage: S2 = Sphere(2)
+            sage: EMS = S2.em_spectral_sequence()
+            sage: EMS.table(0, -2, 2, -2, 2)
+              0   Z   0   0   0
+              0   0   0   0   0
+              0   0   Z   0   0
+              0   0   0   0   0
+              0   0   0   0   0
+        """
+        from sage.misc.table import table
+        groups = []
+        for j in range(j2-j1+1):
+            row = []
+            for i in range(i1, i2+1):
+                group = self.group(p,i,j2-j)
+                if group.invariants():
+                    row.append(group.short_name())
+                else:
+                    row.append('0')
+            groups.append(row)
+        return table(groups)
 
 
 class KenzoChainComplex(KenzoObject):
@@ -489,6 +577,13 @@ class KenzoSimplicialSet(KenzoChainComplex):
             return AbelianGroup(trgens)
         else:
             return AbelianGroup([])
+    def em_spectral_sequence(self):
+        r"""
+        Return the Eilenberg-Moore spectral sequence of self
+        """
+        if self.homology(1).invariants():
+            raise ValueError("Eilenberg-Moore spectral sequence can only be computed from 1-reduced simplicial sets")
+        return KenzoSpectralSequence(eilenberg_moore_spectral_sequence(self._kenzo))
 
 
 class KenzoSimplicialGroup(KenzoSimplicialSet):

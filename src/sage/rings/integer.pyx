@@ -3590,7 +3590,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n = -920390823904823094890238490238484
             sage: n.__hash__()    # random
             -43547310504077801
-            sage: n.__hash__() == hash(long(n))
+            sage: n.__hash__() == hash(int(n))
             True
 
         TESTS::
@@ -3598,22 +3598,22 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: hash(-1), hash(0), hash(1)
             (-2, 0, 1)
             sage: n = 2^31 + 2^63 + 2^95 + 2^127 + 2^128*(2^32-2)
-            sage: hash(n) == hash(long(n))
+            sage: hash(n) == hash(int(n))
             True
-            sage: hash(n-1) == hash(long(n-1))
+            sage: hash(n-1) == hash(int(n-1))
             True
-            sage: hash(-n) == hash(long(-n))
+            sage: hash(-n) == hash(int(-n))
             True
-            sage: hash(1-n) == hash(long(1-n))
+            sage: hash(1-n) == hash(int(1-n))
             True
             sage: n = 2^63 + 2^127 + 2^191 + 2^255 + 2^256*(2^64-2)
-            sage: hash(n) == hash(long(n))
+            sage: hash(n) == hash(int(n))
             True
-            sage: hash(n-1) == hash(long(n-1))
+            sage: hash(n-1) == hash(int(n-1))
             True
-            sage: hash(-n) == hash(long(-n))
+            sage: hash(-n) == hash(int(-n))
             True
-            sage: hash(1-n) == hash(long(1-n))
+            sage: hash(1-n) == hash(int(1-n))
             True
 
         These tests come from :trac:`4957`::
@@ -7172,7 +7172,8 @@ cdef class long_to_Z(Morphism):
     """
     EXAMPLES::
 
-        sage: f = ZZ.coerce_map_from(long)
+        sage: f = ZZ.coerce_map_from(long)  # py2
+        sage: f = ZZ.coerce_map_from(int)   # py3
         sage: f  # py2
         Native morphism:
           From: Set of Python objects of class 'long'

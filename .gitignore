@@ -70,9 +70,6 @@ $RECYCLE.BIN/
 # SublimeText
 *.sublime-workspace
 
-# VSCode
-.vscode
-
 #################
 # SageMathCloud #
 #################

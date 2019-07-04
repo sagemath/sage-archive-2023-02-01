@@ -12,7 +12,7 @@ constructions
     - Welch ([Dob1999b]_)
 
 9 bit to 9 bit
-    - DryGASCON256 [Rio2019_]
+    - DryGASCON256 ([Rio2019]_)
 
 8 bit to 8 bit
     - AES (FlexAEAD) ([DR2002]_)

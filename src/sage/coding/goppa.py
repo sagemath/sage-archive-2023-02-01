@@ -5,8 +5,6 @@ Goppa code
 
 from sage.coding.linear_code import AbstractLinearCode
 from sage.coding.encoder import Encoder
-from sage.coding.decoder import Decoder
-from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.modules.free_module_element import vector
 from sage.coding.all import codes
 
@@ -150,7 +148,6 @@ class GoppaCode(AbstractLinearCode):
         """
         g = self._generating_pol
         F = g.base_ring()
-        m = self.base_field().degree()
         n = self._length
         d = g.degree()
         alpha = F.primitive_element()
@@ -201,7 +198,7 @@ class GoppaCode(AbstractLinearCode):
         g = self._generating_pol
         t = g.degree()
 
-        from sage.matrix.constructor import vandermonde, matrix, diagonal_matrix, block_matrix
+        from sage.matrix.constructor import matrix, diagonal_matrix, block_matrix
 
         V = matrix.vandermonde(L)
         V = V.transpose()

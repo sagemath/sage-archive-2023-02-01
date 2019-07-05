@@ -677,10 +677,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             # TODO: bug in linbox (gives segfault)
             return 0, self.base_ring().one()
 
-        # NOTE: the rank would more naturally be size_t but it is unsigned long
-        # in LinBox
-        # see https://github.com/linbox-team/linbox/issues/144
-        cdef unsigned long A_rank = 0
+        cdef size_t A_rank = 0
         cdef uint64_t A_det = 0
 
         if not is_prime(self.p):
@@ -696,9 +693,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         if A.rowdim() >= <size_t> UINT_MAX or A.coldim() >= <size_t> UINT_MAX:
             raise ValueError("row/column size unsupported in LinBox")
 
-        dom.InPlaceLinearPivoting(A_rank, A_det, A[0],
-                <unsigned long> A.rowdim(),
-                <unsigned long> A.coldim())
+        dom.InPlaceLinearPivoting(A_rank, A_det, A[0], A.rowdim(), A.coldim())
 
         del A
         del F

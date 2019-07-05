@@ -209,6 +209,7 @@ import inspect
 from six.moves import range
 from six import iteritems
 
+from sage.cpython.string import bytes_to_str
 from sage.modules.module import Module
 from sage.categories.modules import Modules
 from copy import copy
@@ -3355,7 +3356,7 @@ class AbstractLinearCode(Module):
             # to use the already present output parser
             wts = [0] * (n + 1)
             s = 0
-            for L in StringIO(lines).readlines():
+            for L in StringIO(bytes_to_str(lines)).readlines():
                 L = L.strip()
                 if L:
                     o = ord(L[0])

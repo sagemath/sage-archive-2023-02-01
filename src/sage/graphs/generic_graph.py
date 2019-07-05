@@ -4738,7 +4738,7 @@ class GenericGraph(GenericGraph_pyx):
             import networkx
             G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
             return networkx.minimum_cycle_basis(G, weight='weight')
-        elif algorithm == None:
+        elif algorithm is None:
             from sage.graphs.base.boost_graph import min_cycle_basis
             if self.is_connected():
                 CC = [self]

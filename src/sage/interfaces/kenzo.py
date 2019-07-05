@@ -32,6 +32,7 @@ from sage.rings.integer_ring import ZZ
 from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.categories.commutative_additive_groups import CommutativeAdditiveGroups
+from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
 
 from sage.matrix.all import matrix
 from sage.homology.chain_complex import ChainComplex
@@ -247,6 +248,7 @@ class KenzoSpectralSequence(KenzoObject):
     r"""
     Wrapper around Kenzo spectral sequences
     """
+
     def group(self, p, i, j):
         r"""
         Return the ``i,j``'th group of the ``p`` page.
@@ -261,18 +263,19 @@ class KenzoSpectralSequence(KenzoObject):
 
         EXAMPLES::
 
-            sage: from sage.interfaces.kenzo import Sphere
-            sage: S2 = Sphere(2)
-            sage: EMS = S2.em_spectral_sequence()
-            sage: EMS.group(0, -1, 2)
+            sage: from sage.interfaces.kenzo import Sphere # optional -- kenzo
+            sage: S2 = Sphere(2)                           # optional -- kenzo
+            sage: EMS = S2.em_spectral_sequence()          # optional -- kenzo
+            sage: EMS.group(0, -1, 2)                      # optional -- kenzo
             Additive abelian group isomorphic to Z
-            sage: EMS.group(0, -1, 3)
+            sage: EMS.group(0, -1, 3)                      # optional -- kenzo
             Trivial group
         """
         invs = spectral_sequence_group(self._kenzo, p, i ,j).python()
         if not invs:
             invs = []
         return AdditiveAbelianGroup(invs)
+
     def matrix(self, p, i, j):
         r"""
         Return the matrix that determines the differential from the
@@ -285,8 +288,67 @@ class KenzoSpectralSequence(KenzoObject):
         - ``i`` -- the column of the differential domain.
 
         - ``j`` -- the row of the differential domain.
+        
+        EXAMPLES::
+        
+            sage: from sage.interfaces.kenzo import Sphere   # optional -- kenzo
+            sage: S3 = Sphere(3)                             # optional -- kenzo
+            sage: L = S3.loop_space()                        # optional -- kenzo
+            sage: EMS = L.em_spectral_sequence()             # optional -- kenzo
+            sage: EMS.table(1, -5, -2, 5, 8)                 # optional -- kenzo
+              0   Z   Z + Z + Z   Z + Z + Z
+              0   0   0           0
+              0   0   Z           Z + Z
+              0   0   0           0
+            sage: EMS.matrix(1, -2 ,8)                       # optional -- kenzo
+            [ 3  3  0]
+            [-2  0  2]
+            [ 0 -3 -3]            
         """
-        return spectral_sequence_differential_matrix(self._kenzo, p, j, j)
+        klist = spectral_sequence_differential_matrix(self._kenzo, p, i, j)
+        plist = klist.python()
+        if plist is None or plist==[None]:
+            i = len(self.group(p, i, j).invariants())
+            j = len(self.group(p, i-p, j+p-1).invariants())
+            return matrix(i,j)
+        return matrix(plist)
+    
+    def differential(self, p, i, j):
+        r"""
+        Return the ``(p, i, j)`` differential morphism of the spectral sequence.
+
+        INPUT:
+
+        - ``p`` -- the page.
+
+        - ``i`` -- the column of the differential domain.
+
+        - ``j`` -- the row of the differential domain.
+        
+        EXAMPLES::
+        
+            sage: from sage.interfaces.kenzo import Sphere   # optional -- kenzo
+            sage: S3 = Sphere(3)                             # optional -- kenzo
+            sage: L = S3.loop_space()                        # optional -- kenzo
+            sage: EMS = L.em_spectral_sequence()             # optional -- kenzo
+            sage: EMS.table(1,-5,-2,5,8)                     # optional -- kenzo
+              0   Z   Z + Z + Z   Z + Z + Z
+              0   0   0           0
+              0   0   Z           Z + Z
+              0   0   0           0
+            sage: EMS.matrix(1, -3, 8)                       # optional -- kenzo
+            [ 2]
+            [-2]
+            [ 2]
+            sage: EMS.differential(1, -3, 8)                 # optional -- kenzo
+            Morphism from module over Integer Ring with invariants (0, 0, 0) to module with invariants (0,) that sends the generators to [(2), (-2), (2)]
+        """
+        domain = self.group(p, i, j)
+        codomain = self.group(p, i-p, j+p-1)
+        M = self.matrix(p, i, j)
+        images = [codomain(r) for r in M.rows()]
+        return domain.hom(images, codomain=codomain)
+
     def table(self, p, i1, i2, j1, j2):
         r"""
         Return a table printing the groups in the ``p`` page.
@@ -305,10 +367,10 @@ class KenzoSpectralSequence(KenzoObject):
 
         EXAMPLES::
 
-            sage: from sage.interfaces.kenzo import Sphere
-            sage: S2 = Sphere(2)
-            sage: EMS = S2.em_spectral_sequence()
-            sage: EMS.table(0, -2, 2, -2, 2)
+            sage: from sage.interfaces.kenzo import Sphere # optional -- kenzo
+            sage: S2 = Sphere(2)                           # optional -- kenzo
+            sage: EMS = S2.em_spectral_sequence()          # optional -- kenzo
+            sage: EMS.table(0, -2, 2, -2, 2)               # optional -- kenzo
               0   Z   0   0   0
               0   0   0   0   0
               0   0   Z   0   0
@@ -577,12 +639,25 @@ class KenzoSimplicialSet(KenzoChainComplex):
             return AbelianGroup(trgens)
         else:
             return AbelianGroup([])
+        
     def em_spectral_sequence(self):
         r"""
         Return the Eilenberg-Moore spectral sequence of self
+        
+        EXAMPLES::
+
+            sage: from sage.interfaces.kenzo import Sphere # optional -- kenzo
+            sage: S2 = Sphere(2)                           # optional -- kenzo
+            sage: EMS = S2.em_spectral_sequence()          # optional -- kenzo
+            sage: EMS.table(0, -2, 2, -2, 2)               # optional -- kenzo
+              0   Z   0   0   0
+              0   0   0   0   0
+              0   0   Z   0   0
+              0   0   0   0   0
+              0   0   0   0   0
         """
         if self.homology(1).invariants():
-            raise ValueError("Eilenberg-Moore spectral sequence can only be computed from 1-reduced simplicial sets")
+            raise ValueError("Eilenberg-Moore spectral sequence implemented only for 1-reduced simplicial sets")
         return KenzoSpectralSequence(eilenberg_moore_spectral_sequence(self._kenzo))
 
 
@@ -863,8 +938,7 @@ def SFiniteSimplicialSet(ksimpset, limit):
     EXAMPLES::
 
         sage: from sage.homology.simplicial_set import SimplicialSet
-        sage: from sage.interfaces.kenzo import AbstractSimplex, \
-        ....: KFiniteSimplicialSet, SFiniteSimplicialSet, Sphere    # optional - kenzo
+        sage: from sage.interfaces.kenzo import AbstractSimplex, KFiniteSimplicialSet, SFiniteSimplicialSet, Sphere    # optional - kenzo
         sage: s0 = AbstractSimplex(0, name='s0')                    # optional - kenzo
         sage: s1 = AbstractSimplex(0, name='s1')                    # optional - kenzo
         sage: s2 = AbstractSimplex(0, name='s2')                    # optional - kenzo
@@ -872,13 +946,13 @@ def SFiniteSimplicialSet(ksimpset, limit):
         sage: s02 = AbstractSimplex(1, name='s02')                  # optional - kenzo
         sage: s12 = AbstractSimplex(1, name='s12')                  # optional - kenzo
         sage: s012 = AbstractSimplex(2, name='s012')                # optional - kenzo
-        sage: Triangle = SimplicialSet({s01: (s1, s0), s02: (s2, s0), s12: (s2, s1)}, base_point = s0)
+        sage: Triangle = SimplicialSet({s01: (s1, s0), s02: (s2, s0), s12: (s2, s1)}, base_point = s0) # optional - kenzo
         sage: KTriangle = KFiniteSimplicialSet(Triangle)            # optional - kenzo
         sage: STriangle = SFiniteSimplicialSet(KTriangle, 1)        # optional - kenzo
         sage: STriangle.homology()                                  # optional - kenzo
         {0: 0, 1: Z}
-        sage: S1 = simplicial_sets.Sphere(1)
-        sage: S3 = simplicial_sets.Sphere(3)
+        sage: S1 = simplicial_sets.Sphere(1)                        # optional - kenzo
+        sage: S3 = simplicial_sets.Sphere(3)                        # optional - kenzo
         sage: KS1vS3 = KFiniteSimplicialSet(S1.wedge(S3))           # optional - kenzo
         sage: SS1vS3 = SFiniteSimplicialSet(KS1vS3, 3)              # optional - kenzo
         sage: SS1vS3.homology()                                     # optional - kenzo

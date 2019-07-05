@@ -41,6 +41,30 @@ REFERENCES:
    Space of Diagonal Harmonics:
    With an Appendix on the Combinatorics of Macdonald Polynomials*.
    University of Pennsylvania, Philadelphia -- AMS, 2008, 167 pp.
+
+.. [BK2001] \J. Bandlow, K. Killpatrick -- *An area-to_inv bijection
+   between Dyck paths and 312-avoiding permutations*, Electronic
+   Journal of Combinatorics, Volume 8, Issue 1 (2001).
+
+.. [EP2004] \S. Elizalde, I. Pak. *Bijections for refined restricted
+   permutations**. JCTA 105(2) 2004.
+
+.. [CK2008] \A. Claesson, S. Kitaev. *Classification of bijections
+   between `321`- and `132`- avoiding permutations*. Séminaire
+   Lotharingien de Combinatoire **60** 2008. :arxiv:`0805.1325`.
+
+.. [Knu1973] \D. Knuth. *The Art of Computer Programming, Vol. III*.
+   Addison-Wesley. Reading, MA. 1973.
+
+.. [Kra2001] \C. Krattenthaler -- *Permutations with restricted
+   patterns and Dyck paths*, Adv. Appl. Math. 27 (2001), 510--530.
+
+.. [Cha2005] \F. Chapoton, *Une Base Symétrique de l'algèbre des
+   Coinvariants Quasi-Symétriques*, Electronic Journal of
+   Combinatorics Vol 12(1) (2005) N16.
+
+.. [DS1992] \A. Denise, R. Simion, *Two combinatorial statistics on
+   Dyck paths*, Discrete Math 137 (1992), 155--176.
 """
 
 # ****************************************************************************
@@ -1982,12 +2006,6 @@ class DyckWord_complete(DyckWord):
         Bandlow and Killpatrick in [BK2001]_.  Sends the area to the
         inversion number.
 
-        REFERENCES:
-
-        .. [BK2001] \J. Bandlow, K. Killpatrick -- *An area-to_inv bijection
-           between Dyck paths and 312-avoiding permutations*, Electronic
-           Journal of Combinatorics, Volume 8, Issue 1 (2001).
-
         EXAMPLES::
 
             sage: DyckWord([1,1,0,0]).to_312_avoiding_permutation()
@@ -2074,16 +2092,6 @@ class DyckWord_complete(DyckWord):
         number of excedences, and the semilength plus the height of the middle
         point to 2 times the length of the longest increasing subsequence.
 
-        REFERENCES:
-
-        .. [EP2004] \S. Elizalde, I. Pak. *Bijections for refined restricted
-           permutations**. JCTA 105(2) 2004.
-        .. [CK2008] \A. Claesson, S. Kitaev. *Classification of bijections
-           between `321`- and `132`- avoiding permutations*. Séminaire
-           Lotharingien de Combinatoire **60** 2008. :arxiv:`0805.1325`.
-        .. [Knu1973] \D. Knuth. *The Art of Computer Programming, Vol. III*.
-           Addison-Wesley. Reading, MA. 1973.
-
         EXAMPLES::
 
             sage: DyckWord([1,0,1,0]).to_321_avoiding_permutation()
@@ -2133,11 +2141,6 @@ class DyckWord_complete(DyckWord):
         r"""
         Use the bijection by C. Krattenthaler in [Kra2001]_ to send ``self``
         to a `132`-avoiding permutation.
-
-        REFERENCES:
-
-        .. [Kra2001] \C. Krattenthaler -- *Permutations with restricted
-           patterns and Dyck paths*, Adv. Appl. Math. 27 (2001), 510--530.
 
         EXAMPLES::
 
@@ -2421,9 +2424,7 @@ class DyckWord_complete(DyckWord):
 
         REFERENCES:
 
-        .. [Cha2005] \F. Chapoton, *Une Base Symétrique de l'algèbre des
-           Coinvariants Quasi-Symétriques*, Electronic Journal of
-           Combinatorics Vol 12(1) (2005) N16.
+        - [Cha2005]_
         """
         n = self.number_of_open_symbols()
         l = list(range(n + 2))  # from 0 to n + 1
@@ -2549,11 +2550,6 @@ class DyckWord_complete(DyckWord):
             3
             sage: DyckWord([1,1,0,1,0,0]).pyramid_weight()
             2
-
-        REFERENCES:
-
-        .. [DS1992] \A. Denise, R. Simion, *Two combinatorial statistics on
-           Dyck paths*, Discrete Math 137 (1992), 155--176.
         """
         aseq = self.to_area_sequence() + [0]
         bseq = self.reverse().to_area_sequence() + [0]

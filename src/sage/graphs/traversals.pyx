@@ -89,6 +89,31 @@ def lex_BFS(G, reverse=False, tree=False, initial_vertex=None):
         sage: lex_BFS(G, initial_vertex=2)
         [2, 3, 1]
 
+    For a Chordal Graph, a reversed Lex BFS is a Perfect Elimination Order::
+
+        sage: g = graphs.PathGraph(3).lexicographic_product(graphs.CompleteGraph(2))
+        sage: g.lex_BFS(reverse=True)  # py2
+        [(2, 0), (2, 1), (1, 1), (1, 0), (0, 0), (0, 1)]
+        sage: g.lex_BFS(reverse=True)  # py3
+        [(2, 1), (2, 0), (1, 1), (1, 0), (0, 1), (0, 0)]
+
+    And the vertices at the end of the tree of discovery are, for chordal
+    graphs, simplicial vertices (their neighborhood is a complete graph)::
+
+        sage: g = graphs.ClawGraph().lexicographic_product(graphs.CompleteGraph(2))
+        sage: v = g.lex_BFS()[-1]
+        sage: peo, tree = g.lex_BFS(initial_vertex = v,  tree=True)
+        sage: leaves = [v for v in tree if tree.in_degree(v) ==0]
+        sage: all(g.subgraph(g.neighbors(v)).is_clique() for v in leaves)
+        True
+
+    TESTS:
+
+    There were some problems with the following call in the past (:trac:`10899`)
+    -- now it should be fine::
+
+        sage: Graph(1).lex_BFS(tree=True)
+        ([0], Digraph on 1 vertex)
     """
     # Loops and multiple edges are not needed in Lex BFS
     if G.allows_loops() or G.allows_multiple_edges():

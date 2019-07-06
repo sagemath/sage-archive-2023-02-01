@@ -33,6 +33,7 @@ from sage.schemes.affine.affine_morphism import (SchemeMorphism_polynomial_affin
 from sage.schemes.affine.affine_point import (SchemeMorphism_point_affine,
                                               SchemeMorphism_point_affine_field,
                                               SchemeMorphism_point_affine_finite_field)
+from sage.matrix.constructor import matrix
 
 
 
@@ -827,7 +828,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         R = self.base_ring()
         return self([(5 - i) * R.an_element() for i in range(n)])
 
-    def chebyshev_polynomial(self, n, kind='first'):
+    def chebyshev_polynomial(self, n, kind='first', monic=False):
         """
         Generates an endomorphism of this affine line by a Chebyshev polynomial.
 
@@ -843,6 +844,9 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
 
         - ``kind`` -- ``first`` or ``second`` specifying which kind of chebyshev the user would like
           to generate. Defaults to ``first``.
+
+        - ``monic`` -- ``True`` or ``False`` specifying if the polynomial defining the system 
+          should be monic or not. Defaults to ``False``.
 
         OUTPUT: :class:`DynamicalSystem_affine`
 
@@ -885,6 +889,23 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             Traceback (most recent call last):
             ...
             TypeError: affine space must be of dimension 1
+
+        ::
+
+            sage: A.<x> = AffineSpace(QQ, 1)
+            sage: A.chebyshev_polynomial(7, monic=True)
+            Dynamical System of Affine Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x) to
+                    (x^7 - 7*x^5 + 14*x^3 - 7*x)
+
+        ::
+
+            sage: F.<t> = FunctionField(QQ)
+            sage: A.<x> = AffineSpace(F,1)
+            sage: A.chebyshev_polynomial(4, monic=True)
+            Dynamical System of Affine Space of dimension 1 over Rational function field in t over Rational Field
+              Defn: Defined on coordinates by sending (x) to
+                    (x^4 + (-4)*x^2 + 2)
         """
         if self.dimension_relative() != 1:
             raise TypeError("affine space must be of dimension 1")
@@ -893,8 +914,20 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             raise ValueError("first parameter 'n' must be a non-negative integer")
         from sage.dynamics.arithmetic_dynamics.affine_ds import DynamicalSystem_affine
         if kind == 'first':
+            if monic and self.base().characteristic() != 2:
+                f = DynamicalSystem_affine([chebyshev_T(n, self.gen(0))], domain=self)
+                f = f.homogenize(1)
+                f = f.conjugate(matrix([[1/ZZ(2), 0],[0, 1]]))
+                f = f.dehomogenize(1)
+                return f
             return DynamicalSystem_affine([chebyshev_T(n, self.gen(0))], domain=self)
         elif kind == 'second':
+            if monic and self.base().characteristic() != 2:
+                f = DynamicalSystem_affine([chebyshev_T(n, self.gen(0))], domain=self)
+                f = f.homogenize(1)
+                f = f.conjugate(matrix([[1/ZZ(2), 0],[0, 1]]))
+                f = f.dehomogenize(1)
+                return f
             return DynamicalSystem_affine([chebyshev_U(n, self.gen(0))], domain=self)
         else:
             raise ValueError("keyword 'kind' must have a value of either 'first' or 'second'")

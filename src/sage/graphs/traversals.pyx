@@ -17,8 +17,8 @@ Methods
 -------
 """
 # ****************************************************************************
-#       Copyright (C) 2019 Georgios Giapitzakis Tzintanos <EMAIL>
-#                          David Coudert <david.coudert@inria.fr>
+# Copyright (C) 2019 Georgios Giapitzakis Tzintanos <giorgosgiapis@mail.com>
+#                    David Coudert <david.coudert@inria.fr>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

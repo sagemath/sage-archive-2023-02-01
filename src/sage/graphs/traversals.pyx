@@ -75,14 +75,14 @@ def lex_BFS(G, reverse=False, tree=False, initial_vertex=None):
         sage: len(lex_BFS(g)) == g.order()
         True
 
-    Lex BFS ordering of the 3-sun graph
+    Lex BFS ordering of the 3-sun graph::
 
         sage: from sage.graphs.traversals import lex_BFS
         sage: g = Graph([(1, 2), (1, 3), (2, 3), (2, 4), (2, 5), (3, 5), (3, 6), (4, 5), (5, 6)])
         sage: lex_BFS(g)
         [1, 2, 3, 5, 4, 6]
 
-    The method also works for directed graphs
+    The method also works for directed graphs::
 
         sage: from sage.graphs.traversals import lex_BFS
         sage: G = DiGraph([(1, 2), (2, 3), (1, 3)])
@@ -222,14 +222,14 @@ def lex_DFS(G, reverse=False, tree=False, initial_vertex=None):
         sage: len(lex_DFS(g)) == g.order()
         True
 
-    Lex DFS ordering of the 3-sun graph
+    Lex DFS ordering of the 3-sun graph::
 
         sage: from sage.graphs.traversals import lex_DFS
         sage: g = Graph([(1, 2), (1, 3), (2, 3), (2, 4), (2, 5), (3, 5), (3, 6), (4, 5), (5, 6)])
         sage: lex_DFS(g)
         [1, 2, 3, 5, 6, 4]
 
-    The method also works for directed graphs
+    The method also works for directed graphs::
 
         sage: from sage.graphs.traversals import lex_DFS
         sage: G = DiGraph([(1, 2), (2, 3), (1, 3)])

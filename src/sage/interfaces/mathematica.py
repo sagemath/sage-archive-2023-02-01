@@ -426,13 +426,13 @@ class Mathematica(ExtraTabCompletion, Expect):
         else:
             command = 'sh -c "stty -echo; {}"'.format(command)
         Expect.__init__(self,
-                        name = 'mathematica',
-                        command = command,
-                        prompt = 'In[[0-9]+]:=',
-                        server = server,
-                        server_tmpdir = server_tmpdir,
-                        script_subdirectory = script_subdirectory,
-                        verbose_start = verbose_start,
+                        name='mathematica',
+                        command=command,
+                        prompt=r'In\[[0-9]+\]:=',
+                        server=server,
+                        server_tmpdir=server_tmpdir,
+                        script_subdirectory=script_subdirectory,
+                        verbose_start=verbose_start,
                         logfile=logfile,
                         eval_using_file_cutoff=eval_using_file_cutoff)
 
@@ -842,7 +842,7 @@ class MathematicaElement(ExpectElement):
         AUTHORS:
         - Felix Lawrence (2009-08-21)
         """
-        return self.Length()
+        return int(self.Length())
 
     @cached_method
     def _is_graphics(self):

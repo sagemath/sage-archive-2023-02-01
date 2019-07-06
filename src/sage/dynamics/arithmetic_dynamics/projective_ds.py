@@ -2445,7 +2445,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         from .endPN_minimal_model import affine_minimal
         return affine_minimal(self, return_transformation=False, D=prime_list, quick=True)
 
-    def minimal_model(self, return_transformation=False, prime_list=None, algorithm=None):
+    def minimal_model(self, return_transformation=False, prime_list=None, algorithm=None, check_primes=True):
         r"""
         Determine if this dynamical system is minimal.
 
@@ -2464,6 +2464,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
           only wants to determine minimality at those specific primes
 
         - ``algorithm`` -- (optional) string; can be one of the following:
+
+        - ``check_primes`` -- (optional) boolean: this signals whether to
+            check whether each element in prime_list is a prime
 
           * ``'BM'`` - the Bruin-Molnar algorithm [BM2012]_
           * ``'HS'`` - the Hutz-Stoll algorithm [HS2018]_
@@ -2568,6 +2571,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             ...
             TypeError: affine minimality is only considered for maps not of the form f or 1/f for a polynomial f
 
+        ::
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: f = DynamicalSystem([2*x^2, y^2])
+            sage: f.minimal_model(prime_list=[0])
+            Traceback (most recent call last):
+            ...
+            ValueError: prime_list contains 0 which is not prime
+
         REFERENCES:
 
         - [BM2012]_
@@ -2580,6 +2591,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             raise TypeError("the function is not a morphism")
         if self.degree() == 1:
             raise NotImplementedError("minimality is only for degree 2 or higher")
+        if prime_list and check_primes:
+            for p in prime_list:
+                if not p.is_prime():
+                    raise ValueError("prime_list contains " + str(p) + " which is not prime")
 
         if algorithm == 'BM':
             from .endPN_minimal_model import affine_minimal
@@ -2593,6 +2608,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         R = f.domain().coordinate_ring()
         F = R(f[0].numerator())
         G = R(f[0].denominator())
+               
         if G.degree() == 0 or F.degree() == 0:
             #can use BM for polynomial
             from .endPN_minimal_model import HS_minimal

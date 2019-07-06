@@ -52,6 +52,7 @@ available:
   using the Hecke insertion studied in [BKSTY06]_ (but using rows instead
   of columns).
 - Dual RSK (:class:`~sage.combinat.rsk.RuleDualRSK`)
+- CoRSK (:class:`~sage.combinat.rsk.RuleCoRSK`), defined in [GR2018]_.
 
 Implementing your own insertion rule
 ------------------------------------
@@ -131,6 +132,11 @@ REFERENCES:
    *Stable Grothendieck polynomials and* `K`-*theoretic factor sequences*.
    Math. Ann. **340** Issue 2, (2008), pp. 359--382.
    :arxiv:`math/0601514v1`.
+
+.. [GR2018] Darij Grinberg, Victor Reiner.
+   *Hopf Algebras In Combinatorics*.
+   Solutions for Version 5 (2018), pp. 492--495.
+   :arXiv:`1409.8356`.
 """
 # *****************************************************************************
 #       Copyright (C) 2012 Travis Scrimshaw <tscrim@ucdavis.edu>
@@ -259,7 +265,7 @@ class Rule(UniqueRepresentation):
 
         - ``p``, ``q`` -- two tableaux of the same shape.
 
-        - ``output`` -- (Default: ``'array'``) if ``q`` is semi-standard:
+        - ``output`` -- (default: ``'array'``) if ``q`` is semi-standard:
 
           - ``'array'`` -- as a two-line array (i.e. generalized permutation
             or biword)
@@ -779,7 +785,7 @@ class RuleHecke(Rule):
             iterator over the object represented as generalized permutation or
             a pair of lists.
 
-        -  ``check_standard`` -- (Default: ``False``) check if either of the
+        -  ``check_standard`` -- (default: ``False``) check if either of the
             resulting tableaux is a standard tableau, and if so, typecast it
             as such
 
@@ -1345,11 +1351,191 @@ class RuleDualRSK(Rule):
 
 
 class RuleCoRSK(RuleRSK):
+    r"""
+    A rule modeling the CoRSK insertion.
 
+    The CoRSK algorithm defined in [GR2018]_ proceeds with the same insertion 
+    algorithm as the classical RSK algorithm i.e. the Schensted algorithm 
+    however, it is defined as a bijection between a `\textit{strict cobiword}` 
+    and a `\textit{tableau-cotableau pair}`.
+
+    For defining a strict cobiword, first we will define the 
+    `\textit{antilexicographic order} $\leq_{alex}$` to be the total order on 
+    the set of all biletters as 
+    
+    .. MATH::
+        (i_1,j_1) \leq_{alex} (i_2,j_2) \Leftrightarrow (i_1 \leq i_2, 
+        \text{and if } i_1 = i_2, \text{then } j_1 \geq j_2)
+
+    So a strict cobiword will mean an array `(i, j)` = `(i_0,j_0),\ldots,
+    (i_{\ell-1}, j_{\ell-1})` in which the biletter satisfy `(i_0,j_0) 
+    <_{alex} \ldots <_{alex} (i_{\ell-1}, j_{\ell-1})` (that is, the 
+    biletters are distinct and ordered).
+
+    A tableau-cotableau pair is a pair `(P, Q)` such that `P` is a 
+    column-strict tableau, `Q` is a row-strict tableau, and `P` and `Q` both 
+    have same shape.
+
+    Now the coRSK algorithm applied to a strict cobiword `p` = `((i_0, j_0), 
+    (i_1, j_1), \ldots, (i_{\ell-1}, j_{\ell-1}))` starts by  starts by
+    initializing two tableaux `P_0` and `Q_0` as empty tableaux. For each 
+    nonnegative integer `t` starting at `0`, take the pair `(i_t, j_t)` from 
+    `p` and set `P_{t+1} = P_t \leftarrow j_t`, where `P_t \leftarrow j_t` is 
+    the Schensted insertion of `j_t` in `P_t` and define `Q_{t+1}` by adding 
+    a new box filled with `i_t` to the tableau `Q_t` at the same location the 
+    row insertion on `P_t` ended (that is to say, adding a new box with entry 
+    `i_t` such that `P_{t+1}` and `Q_{t+1}` have the same shape). The 
+    iterative process stops when `t` reaches the size of `p`, and the pair 
+    `(P_t, Q_t)` at this point is the image of `p` under the coRSK algorithm.
+
+    EXAMPLES::
+
+        sage: RSK([1,2,5,3,1], insertion = RSK.rules.coRSK)
+        [[[1, 1, 3], [2], [5]], [[1, 2, 3], [4], [5]]]
+        sage: RSK(Word([2,3,3,2,1,3,2,3]), insertion = RSK.rules.coRSK)
+        [[[1, 2, 2, 3, 3], [2, 3], [3]], [[1, 2, 3, 6, 8], [4, 7], [5]]]
+        sage: RSK(Word([3,3,2,4,1]), insertion = RSK.rules.coRSK)
+        [[[1, 3, 4], [2], [3]], [[1, 2, 4], [3], [5]]]
+        sage: from sage.combinat.rsk import to_matrix
+        sage: RSK(to_matrix([1, 1, 3, 3, 4], [2, 3, 2, 1, 3]), insertion = RSK.rules.coRSK)
+        [[[1, 2, 3], [2, 3]], [[1, 1, 4], [3, 3]]]
+
+    Using coRSK insertion with a `\{0, 1\}`-matrix::
+
+        sage: RSK(matrix([[0,1],[1,0]]), insertion = RSK.rules.coRSK)
+        [[[1], [2]], [[1], [2]]]
+
+    We can also give it something looking like a matrix::
+
+        sage: RSK([[0,1],[1,0]], insertion = RSK.rules.coRSK)
+        [[[1], [2]], [[1], [2]]]
+
+    We can also use the inverse correspondence::
+
+        sage: RSK_inverse(*RSK([1, 2, 2, 2], [2, 3, 2, 1],
+        ....:         insertion=RSK.rules.coRSK),insertion=RSK.rules.coRSK)
+        [[1, 2, 2, 2], [2, 3, 2, 1]]
+        sage: P,Q = RSK([1, 2, 2, 2], [2, 3, 2, 1],insertion=RSK.rules.coRSK)
+        sage: RSK_inverse(P, Q, insertion=RSK.rules.coRSK)
+        [[1, 2, 2, 2], [2, 3, 2, 1]]
+
+    If both ``p`` and ``q`` are standard, the co RSK insertion
+    behaves identically to the usual RSK insertion::
+
+        sage: t1 = Tableau([[1, 2, 5], [3], [4]])
+        sage: t2 = Tableau([[1, 2, 3], [4], [5]])
+        sage: RSK_inverse(t1, t2, insertion=RSK.rules.coRSK)
+        [[1, 2, 3, 4, 5], [1, 4, 5, 3, 2]]
+        sage: RSK_inverse(t1, t2, 'word', insertion=RSK.rules.coRSK)
+        word: 14532
+        sage: RSK_inverse(t1, t2, 'matrix', insertion=RSK.rules.coRSK)
+        [1 0 0 0 0]
+        [0 0 0 1 0]
+        [0 0 0 0 1]
+        [0 0 1 0 0]
+        [0 1 0 0 0]
+        sage: RSK_inverse(t1, t2, 'permutation', insertion=RSK.rules.coRSK)
+        [1, 4, 5, 3, 2]
+        sage: RSK_inverse(t1, t1, 'permutation', insertion=RSK.rules.coRSK)
+        [1, 4, 3, 2, 5]
+        sage: RSK_inverse(t2, t2, 'permutation', insertion=RSK.rules.coRSK)
+        [1, 2, 5, 4, 3]
+        sage: RSK_inverse(t2, t1, 'permutation', insertion=RSK.rules.coRSK)
+        [1, 5, 4, 2, 3]
+
+    For coRSK, the first tableau is merely semistandard while the second tableau 
+    is transpose semistandard::
+
+        sage: p = Tableau([[1,2,2],[5]]); q = Tableau([[1,2,4],[3]])
+        sage: ret = RSK_inverse(p, q, insertion=RSK.rules.coRSK); ret
+        [[1, 2, 3, 4], [1, 5, 2, 2]]
+        sage: RSK_inverse(p, q, 'word', insertion=RSK.rules.coRSK)
+        word: 1522
+
+    TESTS:
+
+    Empty objects::
+
+        sage: RSK(Permutation([]), insertion=RSK.rules.coRSK)
+        [[], []]
+        sage: RSK(Word([]), insertion=RSK.rules.coRSK)
+        [[], []]
+        sage: RSK(matrix([[]]), insertion=RSK.rules.coRSK)
+        [[], []]
+        sage: RSK([], [], insertion=RSK.rules.coRSK)
+        [[], []]
+        sage: RSK([[]], insertion=RSK.rules.coRSK)
+        [[], []]
+
+    Check that :func:`RSK_inverse` is the inverse of :func:`RSK` on the
+    different types of inputs/outputs::
+
+        sage: RSK_inverse(Tableau([]), Tableau([]),
+        ....:                insertion=RSK.rules.coRSK)
+        [[], []]
+        sage: f = lambda p: RSK_inverse(*RSK(p, insertion=RSK.rules.coRSK),
+        ....:                output='permutation', insertion=RSK.rules.coRSK)
+        sage: all(p == f(p) for n in range(7) for p in Permutations(n))
+        True
+        sage: all(RSK_inverse(*RSK(w, insertion=RSK.rules.coRSK),
+        ....:                 output='word', insertion=RSK.rules.coRSK) == w
+        ....:     for n in range(4) for w in Words(5, n))
+        True
+        sage: from sage.combinat.integer_matrices import IntegerMatrices
+        sage: M = IntegerMatrices([1,2,2,1], [3,1,1,1])
+        sage: all(RSK_inverse(*RSK(m, insertion=RSK.rules.coRSK),
+        ....:                output='matrix', insertion=RSK.rules.coRSK) == m
+        ....:     for m in M if all(x in [0, 1] for x in m))
+        True
+
+        sage: n = ZZ.random_element(200)
+        sage: p = Permutations(n).random_element()
+        sage: True if p == f(p) else p
+        True
+
+    Checking that tableaux should be of same shape::
+
+        sage: RSK_inverse(Tableau([[1,2,3]]), Tableau([[1,2]]),
+        ....:                          insertion=RSK.rules.dualRSK)
+        Traceback (most recent call last):
+        ...
+        ValueError: p(=[[1, 2, 3]]) and q(=[[1, 2]]) must have the same shape
+
+    Checking that biword is strict cobiword::
+
+        sage: RSK([1,2,4,3], [1,2,3,4], insertion=RSK.rules.coRSK)
+        Traceback (most recent call last):
+        ...
+        ValueError: Invalid strict cobiword
+        sage: RSK([1,2,3,3], [1,2,3,4], insertion=RSK.rules.coRSK)
+        Traceback (most recent call last):
+        ...
+        ValueError: Invalid strict cobiword
+        sage: RSK([1,2,3,3], [1,2,3,3], insertion=RSK.rules.coRSK)
+        Traceback (most recent call last):
+        ...
+        ValueError: Invalid strict cobiword
+    """
     def _forward_format_output(self, p=None, q=None, check_standard=False):
         r"""
         Return final output of the ``RSK`` correspondence from the
         output of the corresponding ``forward_rule``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleCoRSK
+            sage: isinstance(RuleCoRSK()._forward_format_output([[1,2,3,4,5]],
+            ....:                    [[1,2,3,4,5]], True)[0], StandardTableau)
+            True
+            sage: isinstance(RuleCoRSK()._forward_format_output([[1,2,3,4,5]],
+            ....:                            [[1,2,3,4,5]], False)[0], SemistandardTableau)
+            True
+            sage: isinstance(RuleCoRSK()._forward_format_output([[1,1,1,3,7]],
+            ....:                             [[1,2,3,4,5]], True)[1], Tableau)
+            True
+            sage: isinstance(RuleCoRSK()._forward_format_output([[1,1,1,3,7]],
+            ....:                             [[1,2,3,4,5]], False)[1], Tableau)
+            True
         """
         from sage.combinat.tableau import Tableau, SemistandardTableau, StandardTableau
         #
@@ -1374,6 +1560,18 @@ class RuleCoRSK(RuleRSK):
     def _forward_verify_input(self, obj1, obj2):
         r"""
         Returns exception for invalid input in forward rule.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleCoRSK
+            sage: RuleCoRSK()._forward_verify_input([1,2,4,3], [1,2,3,4])
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid strict cobiword
+            sage: RuleCoRSK()._forward_verify_input([1,2,3,3], [1,2,3,3])
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid strict cobiword
         """
         if obj2 is not None:
             # Check it is a strict cobiword
@@ -1381,7 +1579,7 @@ class RuleCoRSK(RuleRSK):
             lb = 0
             for t, b in zip(obj1, obj2):
                 if t < lt or (lt == t and b >= lb):
-                    raise ValueError("invalid strict cobiwod")
+                    raise ValueError("Invalid strict cobiword")
                 lt = t
                 lb = b
 
@@ -1394,10 +1592,9 @@ class RuleCoRSK(RuleRSK):
 
         - ``p``, ``q`` -- two tableaux of the same shape.
 
-        - ``output`` -- (Default: ``'array'``) if ``q`` is semi-standard:
+        - ``output`` -- (default: ``'array'``) if ``q`` is semi-standard:
 
-          - ``'array'`` -- as a two-line array (i.e. generalized permutation
-            or biword)
+          - ``'array'`` -- as a two-line array (i.e. strict cobiword)
           -  ``'matrix'`` -- as an integer matrix
 
           and if ``q`` is standard, we can have the output:
@@ -1461,6 +1658,22 @@ class RuleCoRSK(RuleRSK):
     def _backward_verify_input(self, p, q):
         r"""
         Returns exception for invalid input in backward rule.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleCoRSK
+            sage: p = Tableau([[1,2,3],[1,3],[3]])
+            sage: RuleCoRSK()._backward_verify_input(p, p)
+            Traceback (most recent call last):
+            ...
+            ValueError: p(=[[1, 2, 3], [1, 3], [3]]) must be a semistandard 
+            tableau
+            sage: p = Tableau([[1,2,2],[2,3],[3]])
+            sage: RuleCoRSK()._backward_verify_input(p, p)
+            Traceback (most recent call last):
+            ...
+            ValueError: q(=[[1, 2, 2], [2, 3], [3]]) must be a row strictly 
+            and column weakly increasing tableau
         """
         from sage.combinat.tableau import SemistandardTableaux
 

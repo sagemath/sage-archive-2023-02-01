@@ -13,6 +13,7 @@ This module is meant for all functions related to path enumeration in graphs.
     :func:`yen_k_shortest_simple_paths_directed_iterator` | Return an iterator over the simple paths between a pair of vertices in increasing order of weights.
     :func:`_all_paths_iterator` | Return an iterator over the paths of ``self`` starting with the given vertex.
     :func:`all_paths_iterator` | Return an iterator over the paths of ``self``.
+    :func:`all_simple_paths` | Return a list of all the simple paths of ``self`` starting with one of the given vertices.
 
 Functions
 ---------
@@ -581,92 +582,92 @@ def yen_k_shortest_simple_paths_directed_iterator(self, source, target, weight_f
     EXAMPLES::
 
         sage: g = DiGraph([(1, 2, 20), (1, 3, 10), (1, 4, 30), (2, 5, 20), (3, 5, 10), (4, 5, 30)])
-        sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 5, by_weight=True))
+        sage: list(g.yen_k_shortest_simple_paths(1, 5, by_weight=True))
         [[1, 3, 5], [1, 2, 5], [1, 4, 5]]
-        sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 5))
+        sage: list(g.yen_k_shortest_simple_paths(1, 5))
         [[1, 4, 5], [1, 3, 5], [1, 2, 5]]
-        sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 1))
+        sage: list(g.yen_k_shortest_simple_paths(1, 1))
         [[1]]
-        sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 5, report_edges=True, labels=True))
+        sage: list(g.yen_k_shortest_simple_paths(1, 5, report_edges=True, labels=True))
         [[(1, 4, 30), (4, 5, 30)], [(1, 3, 10), (3, 5, 10)], [(1, 2, 20), (2, 5, 20)]]
-        sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 5, report_edges=True, labels=True, by_weight=True))
+        sage: list(g.yen_k_shortest_simple_paths(1, 5, report_edges=True, labels=True, by_weight=True))
         [[(1, 3, 10), (3, 5, 10)], [(1, 2, 20), (2, 5, 20)], [(1, 4, 30), (4, 5, 30)]]
-        sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 5, report_edges=True, labels=True, by_weight=True, report_weight=True))
+        sage: list(g.yen_k_shortest_simple_paths(1, 5, report_edges=True, labels=True, by_weight=True, report_weight=True))
         [(20, [(1, 3, 10), (3, 5, 10)]),
          (40, [(1, 2, 20), (2, 5, 20)]),
          (60, [(1, 4, 30), (4, 5, 30)])]
 
         sage: g = DiGraph([(1, 2, 20), (1, 3, 10), (1, 4, 30), (2, 5, 20), (3, 5, 10), (4, 5, 30), (1, 6, 100), (5, 6, 5)])
-        sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 6, by_weight = True))
+        sage: list(g.yen_k_shortest_simple_paths(1, 6, by_weight = True))
         [[1, 3, 5, 6], [1, 2, 5, 6], [1, 4, 5, 6], [1, 6]]
-        sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 6))
+        sage: list(g.yen_k_shortest_simple_paths(1, 6))
         [[1, 6], [1, 4, 5, 6], [1, 3, 5, 6], [1, 2, 5, 6]]
-        sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 6, report_edges=True, labels=True, by_weight=True, report_weight=True))
+        sage: list(g.yen_k_shortest_simple_paths(1, 6, report_edges=True, labels=True, by_weight=True, report_weight=True))
         [(25, [(1, 3, 10), (3, 5, 10), (5, 6, 5)]),
          (45, [(1, 2, 20), (2, 5, 20), (5, 6, 5)]),
          (65, [(1, 4, 30), (4, 5, 30), (5, 6, 5)]),
          (100, [(1, 6, 100)])]
-        sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 6, report_edges=True, labels=True, report_weight=True))
+        sage: list(g.yen_k_shortest_simple_paths(1, 6, report_edges=True, labels=True, report_weight=True))
         [(1, [(1, 6, 100)]),
          (3, [(1, 4, 30), (4, 5, 30), (5, 6, 5)]),
          (3, [(1, 3, 10), (3, 5, 10), (5, 6, 5)]),
          (3, [(1, 2, 20), (2, 5, 20), (5, 6, 5)])]
         sage: g = DiGraph([(1, 2, 5), (2, 3, 0), (1, 4, 2), (4, 5, 1), (5, 3, 0)])
-        sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 3, by_weight=True))
+        sage: list(g.yen_k_shortest_simple_paths(1, 3, by_weight=True))
         [[1, 4, 5, 3], [1, 2, 3]]
-        sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 3))
+        sage: list(g.yen_k_shortest_simple_paths(1, 3))
         [[1, 2, 3], [1, 4, 5, 3]]
-        sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 3, report_weight=True))
+        sage: list(g.yen_k_shortest_simple_paths(1, 3, report_weight=True))
         [(2, [1, 2, 3]), (3, [1, 4, 5, 3])]
-        sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 3, report_weight=True, report_edges=True))
+        sage: list(g.yen_k_shortest_simple_paths(1, 3, report_weight=True, report_edges=True))
         [(2, [(1, 2), (2, 3)]), (3, [(1, 4), (4, 5), (5, 3)])]
-        sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 3, report_weight=True, report_edges=True, by_weight=True))
+        sage: list(g.yen_k_shortest_simple_paths(1, 3, report_weight=True, report_edges=True, by_weight=True))
         [(3, [(1, 4), (4, 5), (5, 3)]), (5, [(1, 2), (2, 3)])]
-        sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 3, report_weight=True, report_edges=True, by_weight=True, labels=True))
+        sage: list(g.yen_k_shortest_simple_paths(1, 3, report_weight=True, report_edges=True, by_weight=True, labels=True))
         [(3, [(1, 4, 2), (4, 5, 1), (5, 3, 0)]), (5, [(1, 2, 5), (2, 3, 0)])]
 
     TESTS::
 
         sage: g = DiGraph([(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 2), (5, 6, 100), (4, 7, 3), (7, 6, 4), (3, 8, 5), (8, 9, 2), (9, 6, 2), (9, 10, 7), (9, 11, 10), (11, 6, 8), (10, 6, 2)])
-        sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 6, by_weight=True))
+        sage: list(g.yen_k_shortest_simple_paths(1, 6, by_weight=True))
         [[1, 2, 3, 4, 7, 6],
          [1, 2, 3, 8, 9, 6],
          [1, 2, 3, 8, 9, 10, 6],
          [1, 2, 3, 8, 9, 11, 6],
          [1, 2, 3, 4, 5, 6]]
-        sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 6, by_weight=True, report_edges=True))
+        sage: list(g.yen_k_shortest_simple_paths(1, 6, by_weight=True, report_edges=True))
         [[(1, 2), (2, 3), (3, 4), (4, 7), (7, 6)],
          [(1, 2), (2, 3), (3, 8), (8, 9), (9, 6)],
          [(1, 2), (2, 3), (3, 8), (8, 9), (9, 10), (10, 6)],
          [(1, 2), (2, 3), (3, 8), (8, 9), (9, 11), (11, 6)],
          [(1, 2), (2, 3), (3, 4), (4, 5), (5, 6)]]
-        sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 6, by_weight=True, report_edges=True, report_weight=True))
+        sage: list(g.yen_k_shortest_simple_paths(1, 6, by_weight=True, report_edges=True, report_weight=True))
         [(10, [(1, 2), (2, 3), (3, 4), (4, 7), (7, 6)]),
          (11, [(1, 2), (2, 3), (3, 8), (8, 9), (9, 6)]),
          (18, [(1, 2), (2, 3), (3, 8), (8, 9), (9, 10), (10, 6)]),
          (27, [(1, 2), (2, 3), (3, 8), (8, 9), (9, 11), (11, 6)]),
          (105, [(1, 2), (2, 3), (3, 4), (4, 5), (5, 6)])]
-        sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 6, by_weight=True, report_edges=True, report_weight=True, labels=True))
+        sage: list(g.yen_k_shortest_simple_paths(1, 6, by_weight=True, report_edges=True, report_weight=True, labels=True))
         [(10, [(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 7, 3), (7, 6, 4)]),
          (11, [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (9, 6, 2)]),
          (18, [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (9, 10, 7), (10, 6, 2)]),
          (27, [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (9, 11, 10), (11, 6, 8)]),
          (105, [(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 2), (5, 6, 100)])]
-        sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 6))
+        sage: list(g.yen_k_shortest_simple_paths(1, 6))
         [[1, 2, 3, 8, 9, 6],
          [1, 2, 3, 4, 7, 6],
          [1, 2, 3, 4, 5, 6],
          [1, 2, 3, 8, 9, 11, 6],
          [1, 2, 3, 8, 9, 10, 6]]
         sage: g = DiGraph([(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 1), (1, 7, 1), (7, 8, 1), (8, 5, 1), (1, 6, 1), (6, 9, 1), (9, 5, 1), (4, 2, 1), (9, 3, 1), (9, 10, 1), (10, 5, 1), (9, 11, 1), (11, 10, 1)])
-        sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 5))
+        sage: list(g.yen_k_shortest_simple_paths(1, 5))
         [[1, 7, 8, 5],
          [1, 6, 9, 5],
          [1, 2, 3, 4, 5],
          [1, 6, 9, 10, 5],
          [1, 6, 9, 11, 10, 5],
          [1, 6, 9, 3, 4, 5]]
-        sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 5, by_weight=True))
+        sage: list(g.yen_k_shortest_simple_paths(1, 5, by_weight=True))
         [[1, 7, 8, 5],
          [1, 6, 9, 5],
          [1, 2, 3, 4, 5],
@@ -674,11 +675,11 @@ def yen_k_shortest_simple_paths_directed_iterator(self, source, target, weight_f
          [1, 6, 9, 11, 10, 5],
          [1, 6, 9, 3, 4, 5]]
         sage: g = DiGraph([(1, 2, 5), (6, 3, 0), (2, 6, 6), (1, 4, 15), (4, 5, 1), (4, 3, 0), (7, 1, 2), (8, 7, 1)])
-        sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 3))
+        sage: list(g.yen_k_shortest_simple_paths(1, 3))
         [[1, 4, 3], [1, 2, 6, 3]]
-        sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 3, by_weight=True, report_edges=True, report_weight=True, labels=True))
+        sage: list(g.yen_k_shortest_simple_paths(1, 3, by_weight=True, report_edges=True, report_weight=True, labels=True))
         [(11, [(1, 2, 5), (2, 6, 6), (6, 3, 0)]), (15, [(1, 4, 15), (4, 3, 0)])]
-        sage: list(g.yen_k_shortest_simple_paths_directed_iterator(1, 3, by_weight=True))
+        sage: list(g.yen_k_shortest_simple_paths(1, 3, by_weight=True))
         [[1, 2, 6, 3], [1, 4, 3]]
     """
     if not self.is_directed():
@@ -1425,3 +1426,120 @@ def all_paths_iterator(self, starting_vertices=None, ending_vertices=None,
         except(StopIteration):
             pass
 
+def all_simple_paths(self, starting_vertices=None, ending_vertices=None,
+                     max_length=None, trivial=False, use_multiedges=False,
+                     report_edges=False, labels=False):
+    r"""
+    Return a list of all the simple paths of ``self`` starting with one of
+    the given vertices.
+
+    Simple paths are paths in which no two arcs share a head or share a
+    tail, i.e. every vertex in the path is entered at most once and exited
+    at most once.
+
+    INPUT:
+
+    - ``starting_vertices`` -- list (default: ``None``); vertices from which
+        the paths must start. If ``None``, then all vertices of the graph can
+        be starting points.
+
+    - ``ending_vertices`` -- iterable (default: ``None``); allowed ending
+        vertices of the paths. If ``None``, then all vertices are allowed.
+
+    - ``max_length`` -- non negative integer (default: ``None``); the
+        maximum length of the enumerated paths. If set to ``None``, then all
+        lengths are allowed.
+
+    - ``trivial`` - boolean (default: ``False``); if set to ``True``, then
+        the empty paths are also enumerated.
+
+    - ``use_multiedges`` -- boolean (default: ``False``); this parameter is
+        used only if the graph has multiple edges.
+
+        - If ``False``, the graph is considered as simple and an edge label
+        is arbitrarily selected for each edge as in
+        :meth:`~GenericGraph.to_simple` if ``report_edges`` is ``True``
+
+        - If ``True``, a path will be reported as many times as the edges
+        multiplicities along that path (when ``report_edges = False`` or
+        ``labels = False``), or with all possible combinations of edge
+        labels (when ``report_edges = True`` and ``labels = True``)
+
+    - ``report_edges`` -- boolean (default: ``False``); whether to report
+        paths as list of vertices (default) or list of edges, if ``False``
+        then ``labels`` parameter is ignored
+
+    - ``labels`` -- boolean (default: ``False``); if ``False``, each edge
+        is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
+        along with its edge labels are used to represent the path.
+
+    OUTPUT:
+
+        list
+
+    .. NOTE::
+
+        Although the number of simple paths of a finite graph is always
+        finite, computing all its paths may take a very long time.
+
+    EXAMPLES::
+
+        sage: g = DiGraph({'a': ['a', 'b'], 'b': ['c'], 'c': ['d'], 'd': ['c']}, loops=True)
+        sage: g.all_simple_paths()
+        [['a', 'a'], ['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'c'],
+         ['a', 'b', 'c'], ['b', 'c', 'd'], ['c', 'd', 'c'],
+         ['d', 'c', 'd'], ['a', 'b', 'c', 'd']]
+
+        sage: g = DiGraph([(0, 1, 'a'), (0, 1, 'b'), (1, 2,'c'), (1, 2,'d')], multiedges=True)
+        sage: g.all_simple_paths(starting_vertices=[0], ending_vertices=[2], use_multiedges=False)
+        [[0, 1, 2]]
+        sage: g.all_simple_paths(starting_vertices=[0], ending_vertices=[2], use_multiedges=True)
+        [[0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]
+        sage: g.all_simple_paths(starting_vertices=[0], ending_vertices=[2], use_multiedges=True, report_edges=True)
+        [[(0, 1), (1, 2)], [(0, 1), (1, 2)], [(0, 1), (1, 2)], [(0, 1), (1, 2)]]
+        sage: g.all_simple_paths(starting_vertices=[0], ending_vertices=[2], use_multiedges=True, report_edges=True, labels=True)
+        [[(0, 1, 'b'), (1, 2, 'd')],
+         [(0, 1, 'b'), (1, 2, 'c')],
+         [(0, 1, 'a'), (1, 2, 'd')],
+         [(0, 1, 'a'), (1, 2, 'c')]]
+        sage: g.all_simple_paths(starting_vertices=[0, 1], ending_vertices=[2], use_multiedges=False, report_edges=True, labels=True)
+        [[(1, 2, 'd')], [(0, 1, 'b'), (1, 2, 'd')]]
+        sage: g.all_simple_paths(starting_vertices=[0, 1], ending_vertices=[2], use_multiedges=False, report_edges=False, labels=True)
+        [[1, 2], [0, 1, 2]]
+        sage: g.all_simple_paths(use_multiedges=True, report_edges=False, labels=True)
+        [[0, 1], [0, 1], [1, 2], [1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]
+        sage: g.all_simple_paths(starting_vertices=[0, 1], ending_vertices=[2], use_multiedges=False, report_edges=True, labels=True, trivial=True)
+        [[(1, 2, 'd')], [(0, 1, 'b'), (1, 2, 'd')]]
+
+    One may compute all paths having specific starting and/or ending
+    vertices::
+
+        sage: g = DiGraph({'a': ['a', 'b'], 'b': ['c'], 'c': ['d'], 'd': ['c']}, loops=True)
+        sage: g.all_simple_paths(starting_vertices=['a'])
+        [['a', 'a'], ['a', 'b'], ['a', 'b', 'c'], ['a', 'b', 'c', 'd']]
+        sage: g.all_simple_paths(starting_vertices=['a'], ending_vertices=['c'])
+        [['a', 'b', 'c']]
+        sage: g.all_simple_paths(starting_vertices=['a'], ending_vertices=['b', 'c'])
+        [['a', 'b'], ['a', 'b', 'c']]
+
+    It is also possible to bound the length of the paths::
+
+        sage: g.all_simple_paths(max_length=2)
+        [['a', 'a'], ['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'c'],
+         ['a', 'b', 'c'], ['b', 'c', 'd'], ['c', 'd', 'c'],
+         ['d', 'c', 'd']]
+
+    By default, empty paths are not enumerated, but this can be
+    parametrized::
+
+        sage: g.all_simple_paths(starting_vertices=['a'], trivial=True)
+        [['a'], ['a', 'a'], ['a', 'b'], ['a', 'b', 'c'],
+         ['a', 'b', 'c', 'd']]
+        sage: g.all_simple_paths(starting_vertices=['a'], trivial=False)
+        [['a', 'a'], ['a', 'b'], ['a', 'b', 'c'], ['a', 'b', 'c', 'd']]
+    """
+    return list(self.all_paths_iterator(starting_vertices=starting_vertices,
+                                        ending_vertices=ending_vertices,
+                                        simple=True, max_length=max_length,
+                                        trivial=trivial, use_multiedges=use_multiedges,
+                                        report_edges=report_edges, labels=labels))

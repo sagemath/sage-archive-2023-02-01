@@ -199,6 +199,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.breadth_first_search` | Return an iterator over the vertices in a breadth-first ordering.
     :meth:`~GenericGraph.depth_first_search` | Return an iterator over the vertices in a depth-first ordering.
     :meth:`~GenericGraph.lex_BFS` | Perform a Lex BFS on the graph.
+    :meth:`~GenericGraph.lex_DFS` | Perform a Lex DFS on the graph.
 
 **Distances:**
 
@@ -17856,12 +17857,13 @@ class GenericGraph(GenericGraph_pyx):
         code (according to the lexicographic order) is then removed, and the
         codes are updated.
 
-        This algorithm runs in time `O(n^2)` ( where `n` is the number of
-        vertices in the graph ), which is not optimal.  An optimal algorithm
-        would run in time `O(m)` ( where `m` is the number of edges in the graph
-        ), and require the use of a doubly-linked list which are not available
-        in python and can not really be written efficiently. This could be done
-        in Cython, though.
+        The implementation of the algorithm is described in
+        `this <http://www.cs.toronto.edu/~krueger/papers/unified.ps>`_ article
+        by Derek G. Corneil and Richard Krueger.
+
+        Since it is impossible to implement the linear time algorithm
+        efficiently in Python the actual implementation is located
+        in `traversals.pyx' in the method `lex_BFS`
 
         EXAMPLES:
 
@@ -17889,6 +17891,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: all(g.subgraph(g.neighbors(v)).is_clique() for v in leaves)
             True
 
+        The method also works for directed graphs
+
+            sage: G = DiGraph([(1, 2), (2, 3), (1, 3)])
+            sage: G.lex_BFS()
+            [1, 2, 3]
+
         TESTS:
 
         There were some problems with the following call in the past
@@ -17898,47 +17906,64 @@ class GenericGraph(GenericGraph_pyx):
             ([0], Digraph on 1 vertex)
 
         """
-        id_inv = list(self)
-        code = [[] for i in range(self.order())]
-        m = self.am(vertices=id_inv)
+        from sage.graphs.traversals import lex_BFS
+        return lex_BFS(self, reverse=reverse, tree=tree, initial_vertex=initial_vertex)
 
-        l = lambda x: code[x]
-        vertices = set(range(self.order()))
+    def lex_DFS(self, reverse=False, tree=False, initial_vertex=None):
+        r"""
+        Perform a Lex DFS on the graph.
 
-        value = []
-        pred = [-1] * self.order()
+        INPUT:
 
-        add_element = (lambda y: value.append(id_inv[y])) if not reverse else (lambda y: value.insert(0, id_inv[y]))
+        - ``reverse`` -- boolean (default: ``False``); whether to return the
+          vertices in discovery order, or the reverse
 
-        # Should we take care of the first vertex we pick ?
-        first = True if initial_vertex is not None else False
+        - ``tree`` -- boolean (default: ``False``); whether to return the
+          discovery directed tree (each vertex being linked to the one that saw
+          it for the first time)
 
-        while vertices:
+        - ``initial_vertex`` -- (default: ``None``); the first vertex to
+          consider
 
-            if not first:
-                v = max(vertices, key=l)
-            else:
-                v = id_inv.index(initial_vertex)
-                first = False
+        ALGORITHM:
 
-            vertices.remove(v)
-            vector = m.column(v)
-            for i in vertices:
-                code[i].append(vector[i])
-                if vector[i]:
-                    pred[i] = v
-            add_element(v)
+        This algorithm maintains for each vertex left in the graph a code
+        corresponding to the vertices already removed. The vertex of maximal
+        code (according to the lexicographic order) is then removed, and the
+        codes are updated. Lex DFS differs from Lex BFS only in the way codes
+        are updated after each iteration.
 
-        if tree:
-            from sage.graphs.digraph import DiGraph
-            g = DiGraph(sparse=True)
-            g.add_vertices(id_inv)
-            edges = [(id_inv[i], id_inv[pred[i]]) for i in range(self.order()) if pred[i] != -1]
-            g.add_edges(edges)
-            return value, g
+        The implementation of the algorithm is described in
+        `this <http://www.cs.toronto.edu/~krueger/papers/unified.ps>`_ article
+        by Derek G. Corneil and Richard Krueger.
 
-        else:
-            return value
+        Since it is impossible to implement the linear time algorithm
+        efficientlyin Python the actual implementation is located
+        in `traversals.pyx' in the method `lex_DFS`
+
+        EXAMPLES:
+
+        A Lex DFS is obviously an ordering of the vertices::
+
+            sage: g = graphs.PetersenGraph()
+            sage: len(g.lex_DFS()) == g.order()
+            True
+
+        Lex DFS ordering of the 3-sun graph
+
+            sage: g = Graph([(1, 2), (1, 3), (2, 3), (2, 4), (2, 5), (3, 5), (3, 6), (4, 5), (5, 6)])
+            sage: g.lex_DFS()
+            [1, 2, 3, 5, 6, 4]
+
+        The method also works for directed graphs
+
+            sage: G = DiGraph([(1, 2), (2, 3), (1, 3)])
+            sage: G.lex_DFS()
+            [1, 2, 3]
+
+        """
+        from sage.graphs.traversals import lex_DFS
+        return lex_DFS(self, reverse=reverse, tree=tree, initial_vertex=initial_vertex)
 
     ### Constructors
 

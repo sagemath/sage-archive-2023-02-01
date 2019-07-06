@@ -1643,10 +1643,10 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: L(gap(tau)^3)     # indirect doctest
             2
 
-        Check that :trac:`22202` is fixed::
+        Check that :trac:`22202` and :trac:`27765` are fixed::
 
             sage: y = QQ['y'].gen()
-            sage: R = QQ.extension(y^2-2,'a')['x']
+            sage: R = QQ.extension(y^2-1/2,'a')['x']
             sage: R("a*x").factor()
             (a) * x
         """
@@ -1675,17 +1675,19 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             if x.type() in ["t_INT", "t_FRAC"]:
                 pass
             elif x.type() == "t_POL":
-                var = self.absolute_polynomial().variable_name()
-                if check and self.pari_polynomial(var) != self.absolute_polynomial().monic():
-                    from warnings import warn
-                    warn("interpreting PARI polynomial %s relative to the defining polynomial %s of the PARI number field"
-                         % (x, self.pari_polynomial()))
                 # We consider x as a polynomial in the standard
                 # generator of the PARI number field, and convert it
                 # to a polynomial in the Sage generator.
-                if x.poldegree() > 0:
+                if any(x.poldegree(v) > 0 for v in x.variables()):
+                    var = self.absolute_polynomial().variable_name()
+                    if check and self.pari_polynomial(var) != self.absolute_polynomial().monic():
+                        from warnings import warn
+                        warn("interpreting PARI polynomial %s relative to the defining polynomial %s of the PARI number field"
+                             % (x, self.pari_polynomial()))
                     beta = self._pari_absolute_structure()[2]
                     x = x(beta).lift()
+                else: # constant polynomial
+                    x = x[0]
             else:
                 raise TypeError("%s has unsupported PARI type %s" % (x, x.type()))
             x = self.absolute_polynomial().parent()(x)

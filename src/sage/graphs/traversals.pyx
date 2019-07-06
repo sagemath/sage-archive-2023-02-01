@@ -1,14 +1,35 @@
 # -*- coding: utf-8 -*-
+# cython: binding=True
+r"""
+Graph traversals.
+
+**This module implements the following graph traversals**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~lex_BFS` | Perform a lexicographic breadth first search (LexBFS) on the graph.
+    :meth:`~lex_DFS` | Perform a lexicographic depth first search (LexDFS) on the graph.
+
+Methods
+-------
 """
-GenericGraph traversals implemented in Cython for efficiency.
-"""
+# ****************************************************************************
+#       Copyright (C) 2019 Georgios Giapitzakis Tzintanos <EMAIL>
+#                          David Coudert <david.coudert@inria.fr>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import collections
 
-import cython
-
 from libc.string cimport memset
-
 from sage.ext.memory_allocator cimport MemoryAllocator
 from sage.graphs.base.static_sparse_graph cimport short_digraph
 from sage.graphs.base.static_sparse_graph cimport init_short_digraph
@@ -17,7 +38,7 @@ from sage.graphs.base.static_sparse_graph cimport out_degree, has_edge
 
 def lex_BFS(G, reverse=False, tree=False, initial_vertex=None):
     r"""
-    Perform a Lex BFS on the graph.
+    Perform a lexicographic breadth first search (LexBFS) on the graph.
 
     INPUT:
 
@@ -40,12 +61,10 @@ def lex_BFS(G, reverse=False, tree=False, initial_vertex=None):
     code (according to the lexicographic order) is then removed, and the
     codes are updated.
 
-    Time complexity is `O(n+m)` where n is the number of vertices and m is the
-    number of edges.
+    Time complexity is `O(n+m)` where `n` is the number of vertices and `m` is
+    the number of edges.
 
-    The implementation of the algorithm is described in
-    `this <http://www.cs.toronto.edu/~krueger/papers/unified.ps>`_ article
-    by Derek G. Corneil and Richard Krueger.
+    See [CK2008]_ for more details on the algorithm.
 
     EXAMPLES:
 
@@ -72,12 +91,12 @@ def lex_BFS(G, reverse=False, tree=False, initial_vertex=None):
 
     """
     # Loops and multiple edges are not needed in Lex BFS
-    G.remove_multiple_edges()
-    G.remove_loops()
+    if G.allows_loops() or G.allows_multiple_edges():
+        G = G.to_simple(immutable=False)
 
     cdef int nV = G.order()
 
-    if nV == 0:
+    if not nV:
         if tree:
             from sage.graphs.digraph import DiGraph
             g = DiGraph(sparse=True)
@@ -95,12 +114,12 @@ def lex_BFS(G, reverse=False, tree=False, initial_vertex=None):
 
     cdef list code = [[] for i in range(nV)]
 
-    def l(x):
+    def l_func(x):
         return code[x]
 
     cdef list value = []
 
-    # initialize the predecessors array
+    # Initialize the predecessors array
     cdef MemoryAllocator mem = MemoryAllocator()
     cdef int *pred = <int *>mem.allocarray(nV, sizeof(int))
     memset(pred, -1, nV * sizeof(int))
@@ -112,9 +131,9 @@ def lex_BFS(G, reverse=False, tree=False, initial_vertex=None):
 
     cdef int now = 1, v, int_neighbor
     while vertices:
-        v = max(vertices, key=l)
+        v = max(vertices, key=l_func)
         vertices.remove(v)
-        for i in range (0, out_degree(sd, v)):
+        for i in range(0, out_degree(sd, v)):
             int_neighbor = sd.neighbors[v][i]
             if int_neighbor in vertices:
                 code[int_neighbor].append(nV - now)
@@ -122,13 +141,15 @@ def lex_BFS(G, reverse=False, tree=False, initial_vertex=None):
         value.append(int_to_v[v])
         now += 1
 
+    free_short_digraph(sd)
+
     if reverse:
         value.reverse()
 
     if tree:
         from sage.graphs.digraph import DiGraph
         g = DiGraph(sparse=True)
-        g.add_vertices(G.vertices())
+        g.add_vertices(G)
         edges = [(int_to_v[i], int_to_v[pred[i]]) for i in range(nV) if pred[i] != -1]
         g.add_edges(edges)
         return value, g
@@ -138,7 +159,7 @@ def lex_BFS(G, reverse=False, tree=False, initial_vertex=None):
 
 def lex_DFS(G, reverse=False, tree=False, initial_vertex=None):
     r"""
-    Perform a Lex DFS on the graph.
+    Perform a lexicographic depth first search (LexDFS) on the graph.
 
     INPUT:
 
@@ -162,12 +183,10 @@ def lex_DFS(G, reverse=False, tree=False, initial_vertex=None):
     codes are updated. Lex DFS differs from Lex BFS only in the way codes are
     updated after each iteration.
 
-    Time complexity is `O(n+m)` where n is the number of vertices and m is the
-    number of edges.
+    Time complexity is `O(n+m)` where `n` is the number of vertices and `m` is
+    the number of edges.
 
-    The implementation of the algorithm is described in
-    `this <http://www.cs.toronto.edu/~krueger/papers/unified.ps>`_ article
-    by Derek G. Corneil and Richard Krueger.
+    See [CK2008]_ for more details on the algorithm.
 
     EXAMPLES:
 
@@ -194,12 +213,12 @@ def lex_DFS(G, reverse=False, tree=False, initial_vertex=None):
 
     """
     # Loops and multiple edges are not needed in Lex DFS
-    G.remove_multiple_edges()
-    G.remove_loops()
+    if G.allows_loops() or G.allows_multiple_edges():
+        G = G.to_simple(immutable=False)
 
     cdef int nV = G.order()
 
-    if nV == 0:
+    if not nV:
         if tree:
             from sage.graphs.digraph import DiGraph
             g = DiGraph(sparse=True)
@@ -218,7 +237,7 @@ def lex_DFS(G, reverse=False, tree=False, initial_vertex=None):
     # We are using deque in order to prepend items in list efficiently
     cdef list code = [collections.deque([]) for i in range(nV)]
 
-    def l(x):
+    def l_func(x):
         return code[x]
 
     cdef list value = []
@@ -235,7 +254,7 @@ def lex_DFS(G, reverse=False, tree=False, initial_vertex=None):
 
     cdef int now = 1, v, int_neighbor
     while vertices:
-        v = max(vertices, key=l)
+        v = max(vertices, key=l_func)
         vertices.remove(v)
         for i in range (0, out_degree(sd, v)):
             int_neighbor = sd.neighbors[v][i]
@@ -245,13 +264,15 @@ def lex_DFS(G, reverse=False, tree=False, initial_vertex=None):
         value.append(int_to_v[v])
         now += 1
 
+    free_short_digraph(sd)
+
     if reverse:
         value.reverse()
 
     if tree:
         from sage.graphs.digraph import DiGraph
         g = DiGraph(sparse=True)
-        g.add_vertices(G.vertices())
+        g.add_vertices(G)
         edges = [(int_to_v[i], int_to_v[pred[i]]) for i in range(nV) if pred[i] != -1]
         g.add_edges(edges)
         return value, g

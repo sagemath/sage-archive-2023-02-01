@@ -21,7 +21,6 @@ AUTHORS:
 #*****************************************************************************
 
 from __future__ import absolute_import, print_function
-import collections
 
 from cysignals.memory cimport check_allocarray, check_calloc, sig_free
 from cysignals.signals cimport sig_on, sig_off

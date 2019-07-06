@@ -198,8 +198,8 @@ can be applied on both. Here is what it can do:
 
     :meth:`~GenericGraph.breadth_first_search` | Return an iterator over the vertices in a breadth-first ordering.
     :meth:`~GenericGraph.depth_first_search` | Return an iterator over the vertices in a depth-first ordering.
-    :meth:`~GenericGraph.lex_BFS` | Perform a Lex BFS on the graph.
-    :meth:`~GenericGraph.lex_DFS` | Perform a Lex DFS on the graph.
+    :meth:`~GenericGraph.lex_BFS` | Perform a lexicographic breadth first search (LexBFS) on the graph.
+    :meth:`~GenericGraph.lex_DFS` | Perform a lexicographic depth first search (LexDFS) on the graph.
 
 **Distances:**
 
@@ -17830,141 +17830,6 @@ class GenericGraph(GenericGraph_pyx):
                             if w not in seen:
                                 queue.append((w, d + 1))
 
-    def lex_BFS(self, reverse=False, tree=False, initial_vertex=None):
-        r"""
-        Perform a Lex BFS on the graph.
-
-        A Lex BFS ( or Lexicographic Breadth-First Search ) is a Breadth First
-        Search used for the recognition of Chordal Graphs. For more information,
-        see the :wikipedia:`Lexicographic_breadth-first_search`.
-
-        INPUT:
-
-        - ``reverse`` -- boolean (default: ``False``); whether to return the
-          vertices in discovery order, or the reverse
-
-        - ``tree`` -- boolean (default: ``False``); whether to return the
-          discovery directed tree (each vertex being linked to the one that saw
-          it for the first time)
-
-        - ``initial_vertex`` -- (default: ``None``); the first vertex to
-          consider
-
-        ALGORITHM:
-
-        This algorithm maintains for each vertex left in the graph a code
-        corresponding to the vertices already removed. The vertex of maximal
-        code (according to the lexicographic order) is then removed, and the
-        codes are updated.
-
-        The implementation of the algorithm is described in
-        `this <http://www.cs.toronto.edu/~krueger/papers/unified.ps>`_ article
-        by Derek G. Corneil and Richard Krueger.
-
-        Since it is impossible to implement the linear time algorithm
-        efficiently in Python the actual implementation is located
-        in `traversals.pyx' in the method `lex_BFS`
-
-        EXAMPLES:
-
-        A Lex BFS is obviously an ordering of the vertices::
-
-            sage: g = graphs.PetersenGraph()
-            sage: len(g.lex_BFS()) == g.order()
-            True
-
-        For a Chordal Graph, a reversed Lex BFS is a Perfect Elimination Order::
-
-            sage: g = graphs.PathGraph(3).lexicographic_product(graphs.CompleteGraph(2))
-            sage: g.lex_BFS(reverse=True)  # py2
-            [(2, 0), (2, 1), (1, 1), (1, 0), (0, 0), (0, 1)]
-            sage: g.lex_BFS(reverse=True)  # py3
-            [(2, 1), (2, 0), (1, 1), (1, 0), (0, 1), (0, 0)]
-
-        And the vertices at the end of the tree of discovery are, for chordal
-        graphs, simplicial vertices (their neighborhood is a complete graph)::
-
-            sage: g = graphs.ClawGraph().lexicographic_product(graphs.CompleteGraph(2))
-            sage: v = g.lex_BFS()[-1]
-            sage: peo, tree = g.lex_BFS(initial_vertex = v,  tree=True)
-            sage: leaves = [v for v in tree if tree.in_degree(v) ==0]
-            sage: all(g.subgraph(g.neighbors(v)).is_clique() for v in leaves)
-            True
-
-        The method also works for directed graphs
-
-            sage: G = DiGraph([(1, 2), (2, 3), (1, 3)])
-            sage: G.lex_BFS()
-            [1, 2, 3]
-
-        TESTS:
-
-        There were some problems with the following call in the past
-        (:trac:`10899`) -- now it should be fine::
-
-            sage: Graph(1).lex_BFS(tree=True)
-            ([0], Digraph on 1 vertex)
-
-        """
-        from sage.graphs.traversals import lex_BFS
-        return lex_BFS(self, reverse=reverse, tree=tree, initial_vertex=initial_vertex)
-
-    def lex_DFS(self, reverse=False, tree=False, initial_vertex=None):
-        r"""
-        Perform a Lex DFS on the graph.
-
-        INPUT:
-
-        - ``reverse`` -- boolean (default: ``False``); whether to return the
-          vertices in discovery order, or the reverse
-
-        - ``tree`` -- boolean (default: ``False``); whether to return the
-          discovery directed tree (each vertex being linked to the one that saw
-          it for the first time)
-
-        - ``initial_vertex`` -- (default: ``None``); the first vertex to
-          consider
-
-        ALGORITHM:
-
-        This algorithm maintains for each vertex left in the graph a code
-        corresponding to the vertices already removed. The vertex of maximal
-        code (according to the lexicographic order) is then removed, and the
-        codes are updated. Lex DFS differs from Lex BFS only in the way codes
-        are updated after each iteration.
-
-        The implementation of the algorithm is described in
-        `this <http://www.cs.toronto.edu/~krueger/papers/unified.ps>`_ article
-        by Derek G. Corneil and Richard Krueger.
-
-        Since it is impossible to implement the linear time algorithm
-        efficientlyin Python the actual implementation is located
-        in `traversals.pyx' in the method `lex_DFS`
-
-        EXAMPLES:
-
-        A Lex DFS is obviously an ordering of the vertices::
-
-            sage: g = graphs.PetersenGraph()
-            sage: len(g.lex_DFS()) == g.order()
-            True
-
-        Lex DFS ordering of the 3-sun graph
-
-            sage: g = Graph([(1, 2), (1, 3), (2, 3), (2, 4), (2, 5), (3, 5), (3, 6), (4, 5), (5, 6)])
-            sage: g.lex_DFS()
-            [1, 2, 3, 5, 6, 4]
-
-        The method also works for directed graphs
-
-            sage: G = DiGraph([(1, 2), (2, 3), (1, 3)])
-            sage: G.lex_DFS()
-            [1, 2, 3]
-
-        """
-        from sage.graphs.traversals import lex_DFS
-        return lex_DFS(self, reverse=reverse, tree=tree, initial_vertex=initial_vertex)
-
     ### Constructors
 
     def add_clique(self, vertices, loops=False):
@@ -23508,6 +23373,8 @@ class GenericGraph(GenericGraph_pyx):
     from sage.graphs.connectivity import edge_connectivity
     from sage.graphs.connectivity import vertex_connectivity
     from sage.graphs.base.static_dense_graph import connected_subgraph_iterator
+    from sage.graphs.traversals import lex_BFS
+    from sage.graphs.traversals import lex_DFS
 
     def katz_matrix(self, alpha, nonedgesonly=False, vertices=None):
         r"""

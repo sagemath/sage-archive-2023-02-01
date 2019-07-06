@@ -1062,6 +1062,11 @@ REFERENCES:
             and Monographs*. American Mathematical Society,
             Providence, RI, 1999.
 
+.. [CK2008] Derek G. Corneil and Richard M. Krueger, *A Unified View
+            of Graph Searching*, SIAM Jounal on Discrete Mathematics,
+            22(4), 1259–-1276, 2008.
+            :doi:`10.1137/050623498`
+
 .. [CK2001] \M. Casella and W. Kühnel, "A triangulated K3 surface with
             the minimum number of vertices", Topology 40 (2001),
             753--772.

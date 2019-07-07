@@ -18,6 +18,7 @@ This module is meant for all functions related to path enumeration in graphs.
 Functions
 ---------
 """
+from __future__ import absolute_import
 from sage.categories.cartesian_product import cartesian_product
 from sage.misc.misc_c import prod
 
@@ -60,11 +61,11 @@ def all_paths(self, start, end, use_multiedges=False, report_edges=False, labels
 
     EXAMPLES::
 
-        sage: eg1 = Graph({0:[1,2], 1:[4], 2:[3,4], 4:[5], 5:[6]})
-        sage: eg1.all_paths(0,6)
+        sage: eg1 = Graph({0:[1, 2], 1:[4], 2:[3, 4], 4:[5], 5:[6]})
+        sage: eg1.all_paths(0, 6)
         [[0, 1, 4, 5, 6], [0, 2, 4, 5, 6]]
         sage: eg2 = graphs.PetersenGraph()
-        sage: sorted(eg2.all_paths(1,4))
+        sage: sorted(eg2.all_paths(1, 4))
         [[1, 0, 4],
          [1, 0, 5, 7, 2, 3, 4],
          [1, 0, 5, 7, 2, 3, 8, 6, 9, 4],
@@ -96,11 +97,11 @@ def all_paths(self, start, end, use_multiedges=False, report_edges=False, labels
          [1, 6, 9, 7, 2, 3, 8, 5, 0, 4],
          [1, 6, 9, 7, 5, 0, 4],
          [1, 6, 9, 7, 5, 8, 3, 4]]
-        sage: dg = DiGraph({0:[1,3], 1:[3], 2:[0,3]})
-        sage: sorted(dg.all_paths(0,3))
+        sage: dg = DiGraph({0:[1, 3], 1:[3], 2:[0, 3]})
+        sage: sorted(dg.all_paths(0, 3))
         [[0, 1, 3], [0, 3]]
         sage: ug = dg.to_undirected()
-        sage: sorted(ug.all_paths(0,3))
+        sage: sorted(ug.all_paths(0, 3))
         [[0, 1, 3], [0, 2, 3], [0, 3]]
 
         sage: g = Graph([(0, 1), (0, 1), (1, 2), (1, 2)], multiedges=True)
@@ -111,7 +112,7 @@ def all_paths(self, start, end, use_multiedges=False, report_edges=False, labels
         sage: dg.all_paths(3, 1, use_multiedges=True)
         [[3, 0, 1], [3, 0, 1], [3, 0, 1], [3, 0, 1]]
 
-        sage: g = Graph([(0, 1, 'a'), (0, 1, 'b'), (1, 2,'c'), (1, 2,'d')], multiedges=True)
+        sage: g = Graph([(0, 1, 'a'), (0, 1, 'b'), (1, 2, 'c'), (1, 2, 'd')], multiedges=True)
         sage: g.all_paths(0, 2, use_multiedges=False)
         [[0, 1, 2]]
         sage: g.all_paths(0, 2, use_multiedges=True)

@@ -1406,6 +1406,11 @@ def vertex_connectivity(G, value_only=True, sets=False, k=None, solver=None, ver
             if G.blocks_and_cut_vertices()[1]:
                 return 1 if k is None else (k == 1)
 
+            if not G.is_triconnected():
+                return 2 if k is None else (k == 2)
+            elif k == 3:
+                return True
+
         if k == 1:
             # We know that the (di)graph is (strongly) connected
             return True

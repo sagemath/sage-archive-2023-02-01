@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+# cython: binding=True
 r"""
 Path Enumeration
 
@@ -11,25 +13,35 @@ This module is meant for all functions related to path enumeration in graphs.
     :func:`all_paths` | Return the list of all paths between a pair of vertices.
     :func:`yen_k_shortest_simple_paths` | Return an iterator over the simple paths between a pair of vertices in increasing order of weights.
     :func:`yen_k_shortest_simple_paths_directed_iterator` | Return an iterator over the simple paths between a pair of vertices in increasing order of weights.
-    :func:`_all_paths_iterator` | Return an iterator over the paths of ``self`` starting with the given vertex.
     :func:`all_paths_iterator` | Return an iterator over the paths of ``self``.
     :func:`all_simple_paths` | Return a list of all the simple paths of ``self`` starting with one of the given vertices.
 
 Functions
 ---------
 """
+# ****************************************************************************
+# Copyright (C) 2019 Rajat Mittal <rajat.mttl@gmail.com>
+#                    David Coudert <david.coudert@inria.fr>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+
 from __future__ import absolute_import
 from sage.categories.cartesian_product import cartesian_product
 from sage.misc.misc_c import prod
 
-def all_paths(self, start, end, use_multiedges=False, report_edges=False, labels=False):
+def all_paths(G, start, end, use_multiedges=False, report_edges=False, labels=False):
     """
     Return the list of all paths between a pair of vertices.
 
     If ``start`` is the same vertex as ``end``, then ``[[start]]`` is returned
     -- a list containing the 1-vertex, 0-edge path "``start``".
 
-    If ``self`` has multiple edges, a path will be returned as many times as the
+    If ``G`` has multiple edges, a path will be returned as many times as the
     product of the multiplicity of the edges along that path depending on the
     value of the flag ``use_multiedges``.
 
@@ -187,34 +199,34 @@ def all_paths(self, start, end, use_multiedges=False, report_edges=False, labels
         [[(0, 3), (3, 5)], [(0, 3), (3, 5)]]
 
     """
-    if start not in self:
+    if start not in G:
         raise LookupError("start vertex ({0}) is not a vertex of the graph".format(start))
-    if end not in self:
+    if end not in G:
         raise LookupError("end vertex ({0}) is not a vertex of the graph".format(end))
 
-    if self.is_directed():
-        iterator = self.neighbor_out_iterator
+    if G.is_directed():
+        iterator = G.neighbor_out_iterator
     else:
-        iterator = self.neighbor_iterator
+        iterator = G.neighbor_iterator
 
     if report_edges and labels:
         edge_labels = {}
         if use_multiedges:
-            for e in self.edge_iterator():
+            for e in G.edge_iterator():
                 if (e[0], e[1]) in edge_labels:
                     edge_labels[(e[0], e[1])].append(e)
                 else:
                     edge_labels[(e[0], e[1])] = [e]
         else:
-            for e in self.edge_iterator():
+            for e in G.edge_iterator():
                 if (e[0], e[1]) not in edge_labels:
                     edge_labels[(e[0], e[1])] = [e]
-        if not self.is_directed():
+        if not G.is_directed():
             for u, v in list(edge_labels):
                 edge_labels[v, u] = edge_labels[u, v]
-    elif use_multiedges and self.has_multiple_edges():
+    elif use_multiedges and G.has_multiple_edges():
         from collections import Counter
-        edge_multiplicity = Counter(self.edge_iterator(labels=False))
+        edge_multiplicity = Counter(G.edge_iterator(labels=False))
 
     if start == end:
         return [[start]]
@@ -246,7 +258,7 @@ def all_paths(self, start, end, use_multiedges=False, report_edges=False, labels
         for p in all_paths:
             path_with_labels.extend(cartesian_product([edge_labels[e] for e in zip(p[:-1], p[1:])]))
         return path_with_labels
-    elif use_multiedges and self.has_multiple_edges():
+    elif use_multiedges and G.has_multiple_edges():
         multiple_all_paths = []
         for p in all_paths:
             m = prod(edge_multiplicity[e] for e in zip(p[:-1], p[1:]))

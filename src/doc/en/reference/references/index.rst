@@ -1795,7 +1795,7 @@ REFERENCES:
             TR-737-05, (2005).
             ftp://ftp.cs.princeton.edu/reports/2005/737.pdf
 
-.. [GF2014] Feng, G. (2014). Findingkshortest simple paths in directed
+.. [GF2014] Feng, G. (2014). Finding k shortest simple paths in directed
             graphs: A node classification algorithm. Networks, 64(1),
             6–17. doi:10.1002/net.21552
 

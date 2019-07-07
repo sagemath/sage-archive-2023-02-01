@@ -1795,6 +1795,10 @@ REFERENCES:
             TR-737-05, (2005).
             ftp://ftp.cs.princeton.edu/reports/2005/737.pdf
 
+.. [GF2014] Feng, G. (2014). Finding k shortest simple paths in directed
+            graphs: A node classification algorithm. Networks, 64(1),
+            6–17. doi:10.1002/net.21552
+
 .. [GG2012] Jim Geelen and Bert Gerards, Characterizing graphic
             matroids by a system of linear equations,
             submitted, 2012. Preprint:
@@ -4381,6 +4385,10 @@ REFERENCES:
 .. [Yamada2007] Daisuke Yamada. *Scattering rule in soliton cellular automaton
                 associated with crystal base of* `U_q(D_4^{(3)})`.
                 \J. Math. Phys., **48** (4):043509, 28, (2007).
+
+.. [Yen1970] Yen, Jin Y. (1970). *An algorithm for finding shortest routes from
+             all source nodes to a given destination in general networks*.
+             Quarterly of Applied Mathematics. 27 (4): 526–530.
 
 .. [Yoc2005] Jean-Christophe Yoccoz "Echange d'Intervalles", Cours au
              collège de France

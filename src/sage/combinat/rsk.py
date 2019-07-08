@@ -511,16 +511,15 @@ class RuleRSK(Rule):
             sage: j
             4
         """
-        if r[-1] > j:
-            # Figure out where to insert j into the row r. The
-            # bisect command returns the position of the least
-            # element of r greater than j.  We will call it y.
-            y_pos = bisect_right(r, j)
-            # Switch j and y
-            j, r[y_pos] = r[y_pos], j
-            return j
-        else:
+        if r[-1] <= j:
             return None  # j needs to be added at the end of the row.
+        # Figure out where to insert j into the row r. The
+        # bisect command returns the position of the least
+        # element of r greater than j.  We will call it y.
+        y_pos = bisect_right(r, j)
+        # Switch j and y
+        j, r[y_pos] = r[y_pos], j
+        return j
 
     def reverse_insertion(self, x, row):
         r"""
@@ -1002,19 +1001,18 @@ class RuleHecke(Rule):
             sage: j1 == r[bisect_right(r, j)]
             True
         """
-        if r[-1] > j:
-            # Figure out where to insert j into the row r.  The
-            # bisect command returns the position of the least
-            # element of r greater than j.  We will call it y.
-            y_pos = bisect_right(r, j)
-            y = r[y_pos]
-            # Check to see if we can swap j for y
-            if (y_pos == 0 or r[y_pos-1] < j) and (ir == 0 or p[ir-1][y_pos] < j):
-                r[y_pos] = j
-            j = y
-            return j
-        else:
+        if r[-1] <= j:
             return None  # j needs to be added at the end of the row.
+        # Figure out where to insert j into the row r.  The
+        # bisect command returns the position of the least
+        # element of r greater than j.  We will call it y.
+        y_pos = bisect_right(r, j)
+        y = r[y_pos]
+        # Check to see if we can swap j for y
+        if (y_pos == 0 or r[y_pos-1] < j) and (ir == 0 or p[ir-1][y_pos] < j):
+            r[y_pos] = j
+        j = y
+        return j
 
     def reverse_insertion(self, i, x, row, p):
         r"""
@@ -1131,8 +1129,7 @@ def RSK(obj1=None, obj2=None, insertion=InsertionRules.RSK, check_standard=False
     replacing the first integer greater than `k_i` in the row by `k_i`
     and defines `k_{i+1}` as the integer that has been replaced. If no
     integer greater than `k_i` exists in the `i`-th row, then `k_i` is
-    simply appended to the row and the algorithm terminates at this
-    point.
+    simply appended to the row and the algorithm terminates at this point.
 
     Now the RSK algorithm, applied to a generalized permutation
     `p = ((j_0, k_0), (j_1, k_1), \ldots, (j_{\ell-1}, k_{\ell-1}))`
@@ -1461,7 +1458,6 @@ def RSK_inverse(p, q, output='array', insertion=InsertionRules.RSK):
         [[1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3],
          [1, 1, 1, 1, 1, 1, 3, 2, 2, 2, 1]]
     """
-
     if isinstance(insertion, str):
         if insertion == 'RSK':
             insertion = RSK.rules.RSK

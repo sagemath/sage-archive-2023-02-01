@@ -67,9 +67,12 @@ base class for a rule::
 
 Using the ``Rule`` class as parent class for your insertion rule,
 first implement the insertion and the reverse insertion algorithm
-for RSK() and RSK_inverse() respectively. If your insertion algorithm uses
-same forward and backward rule as ``RuleRSK`` you can directly use it; else
-you need to implement your own forward and backward rules.
+for RSK() and RSK_inverse() respectively (as methods
+``forward_rule`` and ``backward_rule``). If your insertion algorithm
+uses the same forward and backward rules as ``RuleRSK``, differing
+only in how an entry is inserted into a row, then this is not
+necessary, and it suffices to merely implement the
+``insertion`` and ``reverse_insertion`` methods.
 
 For more information, see :class:`~sage.combinat.rsk.Rule`.
 
@@ -412,9 +415,10 @@ class Rule(UniqueRepresentation):
 
         .. NOTE::
 
-            The default implementation of ``backward_rule`` produces
-            output in the order in which the reverse bumping happens,
-            which is *opposite* to the order of the output.
+            The default implementation of ``backward_rule`` lists
+            bumped-out entries in the order in which the reverse
+            bumping happens, which is *opposite* to the order of the
+            final output.
 
         EXAMPLES::
 
@@ -551,9 +555,10 @@ class RuleRSK(Rule):
 
         .. NOTE::
 
-            The default implementation of ``backward_rule`` produces
-            output in the order in which the reverse bumping happens,
-            which is *opposite* to the order of the output.
+            The default implementation of ``backward_rule`` lists
+            bumped-out entries in the order in which the reverse
+            bumping happens, which is *opposite* to the order of the
+            final output.
 
         EXAMPLES::
 
@@ -734,9 +739,10 @@ class RuleEG(Rule):
 
         .. NOTE::
 
-            The default implementation of ``backward_rule`` produces
-            output in the order in which the reverse bumping happens,
-            which is *opposite* to the order of the output.
+            The default implementation of ``backward_rule`` lists
+            bumped-out entries in the order in which the reverse
+            bumping happens, which is *opposite* to the order of the
+            final output.
 
         EXAMPLES::
 
@@ -1051,9 +1057,10 @@ class RuleHecke(Rule):
 
         .. NOTE::
 
-            The default implementation of ``backward_rule`` produces
-            output in the order in which the reverse bumping happens,
-            which is *opposite* to the order of the output.
+            The default implementation of ``backward_rule`` lists
+            bumped-out entries in the order in which the reverse
+            bumping happens, which is *opposite* to the order of the
+            final output.
 
         EXAMPLES::
 

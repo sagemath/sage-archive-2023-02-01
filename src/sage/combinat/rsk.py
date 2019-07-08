@@ -42,6 +42,7 @@ We can perform RSK and its inverse map on a variety of objects::
 
 Insertions currently available
 ------------------------------
+
 The following insertion algorithms for RSK correspondence are currently
 available:
 
@@ -55,8 +56,9 @@ available:
 
 Implementing your own insertion rule
 ------------------------------------
-The functions RSK() and RSK_inverse() are written so that it is easy to
-implement insertion algorithms you come across in your research.
+
+The functions :func:`RSK()` and :func:`RSK_inverse()` are written so that it
+is easy to implement insertion algorithms you come across in your research.
 
 To implement your own insertion algorithm, you first need to import the
 base class for a rule::
@@ -65,9 +67,9 @@ base class for a rule::
 
 Using the ``Rule`` class as parent class for your insertion rule,
 first implement the insertion and the reverse insertion algorithm
-for RSK() and RSK_inverse() respectively. If your insertion algorithm uses same
-forward and backward rule as ``RuleRSK`` you can directly use it; else you
-need to implement your own forward and backward rules.
+for RSK() and RSK_inverse() respectively. If your insertion algorithm uses
+same forward and backward rule as ``RuleRSK`` you can directly use it; else
+you need to implement your own forward and backward rules.
 
 For more information, see :class:`~sage.combinat.rsk.Rule`.
 
@@ -132,8 +134,9 @@ REFERENCES:
    Math. Ann. **340** Issue 2, (2008), pp. 359--382.
    :arxiv:`math/0601514v1`.
 """
+
 # *****************************************************************************
-#       Copyright (C) 2012 Travis Scrimshaw <tscrim@ucdavis.edu>
+#       Copyright (C) 2012,2019 Travis Scrimshaw <tcscrims gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -147,7 +150,6 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 # *****************************************************************************
 
-from builtins import zip
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.sage_object import SageObject
 
@@ -407,12 +409,12 @@ class Rule(UniqueRepresentation):
         r"""
         Return the final output of the ``RSK_inverse`` correspondence
         from the output of the corresponding ``backward_rule``.
-        (NB: Unless you override the ``backward_rule`` method, it
-        produces its output in the order in which the reverse
-        bumping happens -- which is opposite to the order in which
-        the forward bumping happens. Thus, at least for the usual
-        RSK-like algorithms, the output should be reversed in the
-        implementation of this algorithm.)
+
+        .. NOTE::
+
+            The default implementation of ``backward_rule`` produces
+            output in the order in which the reverse bumping happens,
+            which is *opposite* to the order of the output.
 
         EXAMPLES::
 
@@ -500,11 +502,11 @@ class RuleRSK(Rule):
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleRSK
-            sage: qr, r =  [1,2,3,4,5], [3,3,2,4,8]
+            sage: qr, r = [1,2,3,4,5], [3,3,2,4,8]
             sage: j = RuleRSK().insertion(9, r)
             sage: j is None
             True
-            sage: qr, r =  [1,2,3,4,5], [3,3,2,4,8]
+            sage: qr, r = [1,2,3,4,5], [3,3,2,4,8]
             sage: j = RuleRSK().insertion(3, r)
             sage: j
             4
@@ -547,12 +549,12 @@ class RuleRSK(Rule):
         r"""
         Return the final output of the ``RSK_inverse`` correspondence
         from the output of the corresponding ``backward_rule``.
-        (NB: Unless you override the ``backward_rule`` method, it
-        produces its output in the order in which the reverse
-        bumping happens -- which is opposite to the order in which
-        the forward bumping happens. Thus, at least for the usual
-        RSK-like algorithms, the output should be reversed in the
-        implementation of this algorithm.)
+
+        .. NOTE::
+
+            The default implementation of ``backward_rule`` produces
+            output in the order in which the reverse bumping happens,
+            which is *opposite* to the order of the output.
 
         EXAMPLES::
 
@@ -623,28 +625,33 @@ class RuleEG(Rule):
     be obtained using the ``reduced_word()`` method from permutations)::
 
         sage: g = lambda w: RSK_inverse(*RSK(w, insertion=RSK.rules.EG),
-        ....:                 insertion=RSK.rules.EG, output='word')
-        sage: all(p.reduced_word() == g(p.reduced_word()) for n in range(7) for p in Permutations(n))
+        ....:                           insertion=RSK.rules.EG, output='word')
+        sage: all(p.reduced_word() == list(g(p.reduced_word()))
+        ....:     for n in range(7) for p in Permutations(n))
         True
 
     In case of non-standard tableaux `P, Q`::
 
         sage: RSK_inverse(*RSK([1, 2, 3, 2, 1], insertion='EG'),
-        ....:                   insertion='EG')
+        ....:             insertion='EG')
         [[1, 2, 3, 4, 5], [1, 2, 3, 2, 1]]
         sage: RSK_inverse(*RSK([1, 1, 1, 2], [1, 2, 3, 4],
-        ....:              insertion=RSK.rules.EG), insertion=RSK.rules.EG)
+        ....:             insertion=RSK.rules.EG), insertion=RSK.rules.EG)
         [[1, 1, 1, 2], [1, 2, 3, 4]]
         sage: RSK_inverse(*RSK([1, 2, 3, 3], [2, 1, 2, 2], insertion='EG'),
-        ....:              insertion='EG')
+        ....:             insertion='EG')
         [[1, 2, 3, 3], [2, 1, 2, 2]]
 
     Since the column reading of the insertion tableau from
     Edelman-Greene insertion gives one of reduced words for the
     original permutation, we can also check for that::
 
-        sage: f = lambda p: reversed([x for row in reversed(p) for x in row])
-        sage: g = lambda p: RSK(p.reduced_word(), insertion=RSK.rules.EG)[1]
+        sage: f = lambda p: [x for row in reversed(p) for x in row]
+        sage: g = lambda wd: RSK(wd, insertion=RSK.rules.EG)[0]
+        sage: all(p == Permutations(n).from_reduced_word(f(g(wd)))
+        ....:     for n in range(6) for p in Permutations(n)
+        ....:     for wd in p.reduced_words())
+        True
     """
     def insertion(self, j, r):
         r"""
@@ -668,31 +675,30 @@ class RuleEG(Rule):
             sage: j = RuleEG().insertion(9, r)
             sage: j is None
             True
-            sage: qr, r =  [1,2,3,4,5], [2,3,4,5,8]
+            sage: qr, r = [1,2,3,4,5], [2,3,4,5,8]
             sage: j = RuleEG().insertion(3, r); r
             [2, 3, 4, 5, 8]
             sage: j
             4
-            sage: qr, r =  [1,2,3,4,5], [2,3,5,5,8]
+            sage: qr, r = [1,2,3,4,5], [2,3,5,5,8]
             sage: j = RuleEG().insertion(3, r); r
             [2, 3, 3, 5, 8]
             sage: j
             5
         """
-        if r[-1] > j:
-            # Figure out where to insert j into the row r. The
-            # bisect command returns the position of the least
-            # element of r greater than j.  We will call it y.
-            y_pos = bisect_right(r, j)
-            if r[y_pos] == j + 1 and y_pos > 0 and j == r[y_pos - 1]:
-                # Special bump: Nothing to do except increment j by 1
-                j += 1
-            else:
-                # Switch j and y
-                j, r[y_pos] = r[y_pos], j
-            return j
+        if r[-1] <= j:
+            return None  # j needs to be added at the end of the row
+        # Figure out where to insert j into the row r. The
+        # bisect command returns the position of the least
+        # element of r greater than j.  We will call it y.
+        y_pos = bisect_right(r, j)
+        if r[y_pos] == j + 1 and y_pos > 0 and j == r[y_pos - 1]:
+            # Special bump: Nothing to do except increment j by 1
+            j += 1
         else:
-            return None  # j needs to be added at the end of the row.
+            # Switch j and y
+            j, r[y_pos] = r[y_pos], j
+        return j
 
     def reverse_insertion(self, x, row):
         r"""
@@ -726,12 +732,12 @@ class RuleEG(Rule):
         r"""
         Return the final output of the ``RSK_inverse`` correspondence
         from the output of the corresponding ``backward_rule``.
-        (NB: Unless you override the ``backward_rule`` method, it
-        produces its output in the order in which the reverse
-        bumping happens -- which is opposite to the order in which
-        the forward bumping happens. Thus, at least for the usual
-        RSK-like algorithms, the output should be reversed in the
-        implementation of this algorithm.)
+
+        .. NOTE::
+
+            The default implementation of ``backward_rule`` produces
+            output in the order in which the reverse bumping happens,
+            which is *opposite* to the order of the output.
 
         EXAMPLES::
 
@@ -742,8 +748,7 @@ class RuleEG(Rule):
             ...
             TypeError: q must be standard to have a permutation as valid output
         """
-        if False: # formerly: if q_is_standard and output == 'permutation':
-                  # if you fix this, reinsert the doctests removed
+        if q_is_standard and output == 'permutation':
             n = 0
             if list(lower_row):
                 n = max(list(lower_row)) + 1
@@ -800,7 +805,7 @@ class RuleHecke(Rule):
     entries are tuples of positive integers; each such tuple is strictly
     increasing and encodes a set (namely, the set of its entries).
 
-    EXAMPLES::
+    EXAMPLES:
 
     As an example of Hecke insertion, we reproduce
     Example 2.1 in :arxiv:`0801.1319v2`::
@@ -901,8 +906,8 @@ class RuleHecke(Rule):
 
         -  ``output`` -- (default: ``'array'``) if ``q`` is semi-standard:
 
-          - ``'array'`` -- as a two-line array (i.e. generalized permutation or
-            biword)
+          - ``'array'`` -- as a two-line array (i.e. generalized permutation
+            or biword)
 
           and if ``q`` is standard set-valued, we can have the output:
 
@@ -922,11 +927,10 @@ class RuleHecke(Rule):
             Traceback (most recent call last):
             ...
             ValueError: p(=[[1, 4], [2, 3]]) and
-            q(=[[(1, 2), (4,)], [(3,)], [(5,)]]) must have the same shape
+             q(=[[(1, 2), (4,)], [(3,)], [(5,)]]) must have the same shape
         """
         if p.shape() != q.shape():
-            raise ValueError(
-                "p(=%s) and q(=%s) must have the same shape" % (p, q))
+            raise ValueError("p(=%s) and q(=%s) must have the same shape" % (p, q))
         from sage.combinat.tableau import SemistandardTableaux
         if p not in SemistandardTableaux():
             raise ValueError("p(=%s) must be a semistandard tableau" % p)
@@ -1046,12 +1050,12 @@ class RuleHecke(Rule):
         r"""
         Return the final output of the ``RSK_inverse`` correspondence
         from the output of the corresponding ``backward_rule``.
-        (NB: Unless you override the ``backward_rule`` method, it
-        produces its output in the order in which the reverse
-        bumping happens -- which is opposite to the order in which
-        the forward bumping happens. Thus, at least for the usual
-        RSK-like algorithms, the output should be reversed in the
-        implementation of this algorithm.)
+
+        .. NOTE::
+
+            The default implementation of ``backward_rule`` produces
+            output in the order in which the reverse bumping happens,
+            which is *opposite* to the order of the output.
 
         EXAMPLES::
 
@@ -1490,7 +1494,6 @@ def to_matrix(t, b):
     INPUT:
 
     - ``t`` -- the top row of the array
-
     - ``b`` -- the bottom row of the array
 
     OUTPUT:
@@ -1510,7 +1513,7 @@ def to_matrix(t, b):
     """
     n = len(b)
     if len(t) != n:
-        raise ValueError("The two arrays must be the same length")
+        raise ValueError("the two arrays must be the same length")
 
     # Build the dictionary of entries since the matrix
     #   is typically (very) sparse
@@ -1521,3 +1524,4 @@ def to_matrix(t, b):
         else:
             entries[(t[i]-1, b[i]-1)] = 1
     return matrix(entries, sparse=True)
+

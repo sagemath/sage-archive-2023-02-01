@@ -3492,7 +3492,7 @@ class ParallelogramPolyomino(ClonableList):
 
         INPUT:
 
-        - ``directions`` -- direction(s) \(0\) and/or \(1\) of the bounce paths.
+        - ``directions`` -- direction(s) `0` and/or `1` of the bounce paths.
 
         """
         G = Graphics()

@@ -48,6 +48,7 @@ from sage.functions.other import sqrt
 from sage.plot.graphics import Graphics
 from sage.plot.line import line
 from sage.plot.text import text
+from sage.plot.point import point
 
 import pprint
 
@@ -3553,8 +3554,8 @@ class ParallelogramPolyomino(ClonableList):
         Return a plot of the nodes of the tree.
         """
         G = Graphics()
-        G += point(points=((v+.5,-u-.5) for u,v in self.get_BS_nodes()))
-        G += point([.5, -.5])
+        G += point(points=((v+.5,-u-.5) for u,v in self.get_BS_nodes()),size=20)
+        G += point([.5, -.5],size=20)
         return G
 
     def plot(self):

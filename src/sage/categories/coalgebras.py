@@ -12,6 +12,7 @@ from __future__ import absolute_import
 
 from .category_types import Category_over_base_ring
 from sage.categories.all import Modules
+from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.tensor import TensorProductsCategory
 from sage.categories.dual import DualObjectsCategory
 from sage.categories.super_modules import SuperModulesCategory
@@ -130,6 +131,43 @@ class Coalgebras(Category_over_base_ring):
                 (B[(1,3)], 1)
             """
             return self.parent().counit(self)
+
+    class SubcategoryMethods:
+        @cached_method
+        def Cocommutative(self):
+            r"""
+            Return the full subcategory of the cocommutative objects
+            of ``self``.
+
+            A coalgebra `C` is said to be *cocommutative* if
+
+            .. MATH::
+
+                \Delta(c) = \sum_{(c)} c_{(1)} \otimes c_{(2)}
+                = \sum_{(c)} c_{(2)} \otimes c_{(1)}
+
+            in Sweedler's notation for all `c \in C`.
+
+            EXAMPLES::
+
+                sage: C1 = Coalgebras(ZZ).Cocommutative().WithBasis(); C1
+                Category of cocommutative coalgebras with basis over Integer Ring
+                sage: C2 = Coalgebras(ZZ).WithBasis().Cocommutative()
+                sage: C1 is C2
+                True
+                sage: BialgebrasWithBasis(QQ).Cocommutative()
+                Category of cocommutative bialgebras with basis over Rational Field
+
+            TESTS::
+
+                sage: TestSuite(Coalgebras(ZZ).Cocommutative()).run()
+            """
+            return self._with_axiom("Cocommutative")
+
+    class Cocommutative(CategoryWithAxiom_over_base_ring):
+        """
+        Category of cocommutative coalgebras.
+        """
 
     class TensorProducts(TensorProductsCategory):
 

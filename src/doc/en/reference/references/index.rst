@@ -690,6 +690,9 @@ REFERENCES:
 .. [BM1977] \R. S. Boyer, J. S. Moore, A fast string searching
             algorithm, Communications of the ACM 20 (1977) 762--772.
 
+.. [BM1983] Buer, B., and Mohring, R. H.  A fast algorithm for decomposition of
+            graphs and posets, Math. Oper. Res., Vol 8 (1983): 170-184.
+
 .. [BM2008] John Adrian Bondy and U.S.R. Murty, "Graph theory", Volume
             244 of Graduate Texts in Mathematics, 2nd edition, Springer, 2008.
 
@@ -2123,9 +2126,15 @@ REFERENCES:
                 pp. 216--221.
                 :doi:`10.1016/0097-3165(76)90065-0`
 
+.. [HM1979]  M. Habib, and M.C. Maurer
+          On the X-join decomposition for undirected graphs
+          Discrete Applied Mathematics
+          vol 1, issue 3, pages 201-207
+
 .. [HK2002] *Introduction to Quantum Groups and Crystal Bases.*
             Jin Hong and Seok-Jin Kang. 2002. Volume 42.
             Graduate Studies in Mathematics. American Mathematical Society.
+
 
 .. [HN2006] Florent Hivert and Janvier Nzeutchap. *Dual Graded Graphs
             in Combinatorial Hopf Algebras*.
@@ -2141,6 +2150,12 @@ REFERENCES:
 .. [HP2016] \S. Hopkins, D. Perkinson. "Bigraphical
             Arrangements". Transactions of the American Mathematical
             Society 368 (2016), 709-725. :arxiv:`1212.4398`
+
+.. [HP2010]  Michel Habib and Christophe Paul
+          A survey of the algorithmic aspects of modular decomposition
+          Computer Science Review
+          vol 4, number 1, pages 41--59, 2010
+          http://www.lirmm.fr/~paul/md-survey.pdf
 
 .. [HPS2008] \J. Hoffstein, J. Pipher, and J.H. Silverman. *An
              Introduction to Mathematical
@@ -4131,6 +4146,10 @@ REFERENCES:
 
 .. [TB1997] Lloyd N. Trefethen and David Bau III, *Numerical Linear
             Algebra*, SIAM, Philadelphia, 1997.
+
+.. [TCHP2008] Marc Tedder, Derek Corneil, Michel Habib and
+          Christophe Paul
+          :arxiv:`0710.3901`
 
 .. [Tee1997] Tee, Garry J. "Continuous branches of inverses of the 12
              Jacobi elliptic functions for real

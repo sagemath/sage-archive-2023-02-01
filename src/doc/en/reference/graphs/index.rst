@@ -85,6 +85,7 @@ Libraries of algorithms
    sage/graphs/graph_decompositions/bandwidth
    sage/graphs/graph_decompositions/cutwidth
    sage/graphs/graph_decompositions/graph_products
+   sage/graphs/graph_decompositions/modular_decomposition
    sage/graphs/convexity_properties
    sage/graphs/weakly_chordal
    sage/graphs/distances_all_pairs

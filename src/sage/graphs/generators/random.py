@@ -85,7 +85,7 @@ def RandomGNP(n, p, seed=None, fast=True, algorithm='Sage'):
         ....:     for m in range(3):
         ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
         ....:     j.append(n)
-        sage: G = sage.plot.graphics.GraphicsArray(j)
+        sage: G = graphics_array(j)
         sage: G.show() # long time
         sage: graphs.RandomGNP(4,1)
         Complete graph: Graph on 4 vertices
@@ -100,7 +100,7 @@ def RandomGNP(n, p, seed=None, fast=True, algorithm='Sage'):
         sage: graphs.RandomGNP(50,.2, algorithm="Sage").size()
         243
         sage: graphs.RandomGNP(50,.2, algorithm="networkx").size()
-        260     # 32-bit 
+        260     # 32-bit
         245     # 64-bit
     """
     if n < 0:
@@ -173,7 +173,7 @@ def RandomBarabasiAlbert(n, m, seed=None):
         ....:     for m in range(3):
         ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
         ....:     j.append(n)
-        sage: G = sage.plot.graphics.GraphicsArray(j)
+        sage: G = graphics_array(j)
         sage: G.show()  # long time
 
     When `m = 1`, the generated graph is a tree::
@@ -270,10 +270,10 @@ def RandomRegularBipartite(n1, n2, d1, set_position=False):
 
     The bipartite graph has `n1 * d1` edges. Hence, `n2` must divide `n1 * d1`.
     Each vertex of the set of cardinality `n1` has degree `d1` (which can be at
-    most `n2`) and each vertex in the set of cardinality `n2` has degree 
+    most `n2`) and each vertex in the set of cardinality `n2` has degree
     `(n1 * d1) / n2`. The bipartite graph has no multiple edges.
 
-    This generator implements an algorithm inspired by that of [MW1990]_ for 
+    This generator implements an algorithm inspired by that of [MW1990]_ for
     the uniform generation of random regular bipartite graphs. It performs well
     when `d1 = o(n2^{1/3})` or (`n2 - d1 = o(n2^{1/3})`). In other cases, the
     running time can be huge. Note that the currently implemented algorithm
@@ -286,7 +286,7 @@ def RandomRegularBipartite(n1, n2, d1, set_position=False):
     - ``d1`` -- degree of the vertices in the set of cardinality `n1`.
 
     - ``set_position`` -- boolean (default ``False``); if set to ``True``, we
-      assign positions to the vertices so that the set of cardinality `n1` is 
+      assign positions to the vertices so that the set of cardinality `n1` is
       on the line `y=1` and the set of cardinality `n2` is on the line `y=0`.
 
     EXAMPLES::
@@ -434,7 +434,7 @@ def RandomBlockGraph(m, k, kmax=None, incidence_structure=False):
         - :meth:`~sage.graphs.graph.Graph.is_block_graph` -- test if a graph is a block graph
         - :meth:`~sage.graphs.generic_graph.GenericGraph.blocks_and_cut_vertices`
         - :meth:`~sage.graphs.generic_graph.GenericGraph.blocks_and_cuts_tree`
-        - :meth:`~sage.combinat.designs.incidence_structures.IncidenceStructure` 
+        - :meth:`~sage.combinat.designs.incidence_structures.IncidenceStructure`
 
     INPUT:
 
@@ -541,7 +541,7 @@ def RandomBlockGraph(m, k, kmax=None, incidence_structure=False):
     if m == 1:
         # A block graph with a single block is a clique
         IS = [ list(range(randint(k, kmax))) ]
-        
+
     elif kmax == 2:
         # A block graph with blocks of order 2 is a tree
         IS = [ list(e) for e in RandomTree(m+1).edges(labels=False) ]
@@ -567,7 +567,7 @@ def RandomBlockGraph(m, k, kmax=None, incidence_structure=False):
 
     if incidence_structure:
         return IS
-    
+
     # We finally build the block graph
     if k == kmax:
         BG = Graph(name = "Random Block Graph with {} blocks of order {}".format(m, k))
@@ -663,7 +663,7 @@ def RandomGNM(n, m, dense=False, seed=None):
         ....:     for m in range(3):
         ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
         ....:     j.append(n)
-        sage: G = sage.plot.graphics.GraphicsArray(j)
+        sage: G = graphics_array(j)
         sage: G.show()  # long time
     """
     if seed is None:

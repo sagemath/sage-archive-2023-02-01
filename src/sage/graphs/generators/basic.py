@@ -184,7 +184,7 @@ def CircularLadderGraph(n):
         ....:    for m in range(3):
         ....:        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
         ....:    j.append(n)
-        sage: G = sage.plot.graphics.GraphicsArray(j)
+        sage: G = graphics_array(j)
         sage: G.show() # long time
     """
     G = Graph(2 * n, name="Circular Ladder graph")
@@ -267,7 +267,7 @@ def CycleGraph(n):
         ....:     for m in range(3):
         ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
         ....:     j.append(n)
-        sage: G = sage.plot.graphics.GraphicsArray(j)
+        sage: G = graphics_array(j)
         sage: G.show() # long time
 
     Compare to plotting with the spring-layout algorithm::
@@ -283,7 +283,7 @@ def CycleGraph(n):
         ....:     for m in range(3):
         ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
         ....:     j.append(n)
-        sage: G = sage.plot.graphics.GraphicsArray(j)
+        sage: G = graphics_array(j)
         sage: G.show() # long time
 
     TESTS:
@@ -341,7 +341,7 @@ def CompleteGraph(n):
         ....:     for m in range(3):
         ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
         ....:     j.append(n)
-        sage: G = sage.plot.graphics.GraphicsArray(j)
+        sage: G = graphics_array(j)
         sage: G.show() # long time
 
     We compare to plotting with the spring-layout algorithm::
@@ -358,7 +358,7 @@ def CompleteGraph(n):
         ....:     for m in range(3):
         ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
         ....:     j.append(n)
-        sage: G = sage.plot.graphics.GraphicsArray(j)
+        sage: G = graphics_array(j)
         sage: G.show() # long time
 
     Compare the constructors (results will vary)
@@ -465,7 +465,7 @@ def CompleteBipartiteGraph(n1, n2, set_position=True):
         ....:     for m in range(3):
         ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
         ....:     j.append(n)
-        sage: G = sage.plot.graphics.GraphicsArray(j)
+        sage: G = graphics_array(j)
         sage: G.show() # long time
 
     We compare to plotting with the spring-layout algorithm::
@@ -481,7 +481,7 @@ def CompleteBipartiteGraph(n1, n2, set_position=True):
         ....:     for m in range(3):
         ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
         ....:     j.append(n)
-        sage: G = sage.plot.graphics.GraphicsArray(j)
+        sage: G = graphics_array(j)
         sage: G.show() # long time
 
     :trac:`12155`::
@@ -553,10 +553,10 @@ def CompleteMultipartiteGraph(l):
 
         This is done by calculating the vertices of an r-gon then
         calculating the slope between adjacent vertices. We then 'walk'
-        around the r-gon placing graph vertices in regular intervals between 
+        around the r-gon placing graph vertices in regular intervals between
         adjacent vertices of the r-gon.
 
-        Makes a nicely organized graph like in this picture: 
+        Makes a nicely organized graph like in this picture:
         https://commons.wikimedia.org/wiki/File:Turan_13-4.svg
         '''
 
@@ -759,7 +759,7 @@ def Grid2dGraph(n1, n2, set_positions=True):
 
     - ``set_positions`` -- (default: ``True``) boolean use to prevent setting
       the position of the nodes.
-    
+
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, nodes are
     labelled in (row, column) pairs with `(0, 0)` in the top left corner.
@@ -1012,7 +1012,7 @@ def LadderGraph(n):
         ....:     for m in range(3):
         ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
         ....:     j.append(n)
-        sage: G = sage.plot.graphics.GraphicsArray(j)
+        sage: G = graphics_array(j)
         sage: G.show() # long time
     """
     pos_dict = {}
@@ -1031,7 +1031,7 @@ def LadderGraph(n):
 
 def PathGraph(n, pos=None):
     r"""
-    Return a path graph with `n` nodes. 
+    Return a path graph with `n` nodes.
 
     A path graph is a graph where all inner nodes are connected to their two
     neighbors and the two end-nodes are connected to their one inner
@@ -1176,7 +1176,7 @@ def StarGraph(n):
         ....:     for m in range(3):
         ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
         ....:     j.append(n)
-        sage: G = sage.plot.graphics.GraphicsArray(j)
+        sage: G = graphics_array(j)
         sage: G.show() # long time
 
     Compared to plotting with the spring-layout algorithm
@@ -1194,7 +1194,7 @@ def StarGraph(n):
         ....:     for m in range(3):
         ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
         ....:     j.append(n)
-        sage: G = sage.plot.graphics.GraphicsArray(j)
+        sage: G = graphics_array(j)
         sage: G.show() # long time
     """
     G = Graph({0: list(range(1, n + 1))}, name="Star graph")

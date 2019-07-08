@@ -1979,8 +1979,8 @@ REFERENCES:
             *Group characters, symmetric functions, and the Hecke algebras*.
             AMS 1993.
 
-.. [GSL] GNU numerical integration.
-         https://www.gnu.org/software/gsl/manual/html_node/Numerical-Integration.html
+.. [GSL] GNU Scientific Library.
+         https://www.gnu.org/software/gsl/doc/html/
 
 .. [GT1996] \P. Gianni and B. Trager. "Square-free algorithms in
             positive characteristic". Applicable Algebra in Engineering,

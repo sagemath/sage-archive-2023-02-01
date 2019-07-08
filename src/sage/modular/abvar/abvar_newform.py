@@ -7,16 +7,15 @@ TESTS::
     sage: loads(dumps(A)) == A
     True
 """
-from __future__ import absolute_import
-
-
 ###########################################################################
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>               #
 #  Distributed under the terms of the GNU General Public License (GPL)    #
-#                  http://www.gnu.org/licenses/                           #
+#                  https://www.gnu.org/licenses/                           #
 ###########################################################################
+from __future__ import absolute_import
+from sage.misc.lazy_import import lazy_import
 
-from sage.databases.cremona import cremona_letter_code
+lazy_import('sage.databases.cremona', 'cremona_letter_code')
 
 from sage.rings.all  import QQ, ZZ
 
@@ -26,6 +25,7 @@ from sage.modular.arithgroup.all import is_Gamma0, is_Gamma1, is_GammaH
 
 from .abvar import ModularAbelianVariety_modsym_abstract
 from . import homspace
+
 
 class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
     """

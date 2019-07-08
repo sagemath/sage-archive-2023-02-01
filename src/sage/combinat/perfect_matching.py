@@ -504,13 +504,14 @@ class PerfectMatching(SetPartition):
     is_non_nesting = deprecated_function_alias(23982, SetPartition.is_nonnesting)
     conjugate_by_permutation = deprecated_function_alias(23982, SetPartition.apply_permutation)
 
+
 class PerfectMatchings(SetPartitions_set):
     r"""
     Perfect matchings of a ground set.
 
     INPUT:
 
-    - ``s`` -- an itegerable of hashable objects or an integer
+    - ``s`` -- an iterable of hashable objects or an integer
 
     EXAMPLES:
 

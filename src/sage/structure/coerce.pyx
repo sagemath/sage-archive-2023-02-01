@@ -1,5 +1,5 @@
 r"""
-The Coercion Model
+The coercion model
 
 The coercion model manages how elements of one parent get related to elements
 of another. For example, the integer 2 can canonically be viewed as an element
@@ -80,9 +80,7 @@ from cpython.object cimport (PyObject, PyTypeObject,
         Py_EQ, Py_NE, Py_LT, Py_LE, Py_GT, Py_GE)
 from cpython.weakref cimport PyWeakref_GET_OBJECT, PyWeakref_NewRef
 from libc.string cimport strncmp
-
-IF HAVE_GMPY2:
-    import gmpy2
+cimport gmpy2
 
 cdef add, mul, truediv
 from operator import add, mul, truediv
@@ -144,15 +142,15 @@ cpdef py_scalar_parent(py_type):
 
         sage: py_scalar_parent(numpy.complex)
         Complex Double Field
-        
-        sage: import gmpy2                  # optional - gmpy2
-        sage: py_scalar_parent(gmpy2.mpz)   # optional - gmpy2
+
+        sage: import gmpy2
+        sage: py_scalar_parent(gmpy2.mpz)
         Integer Ring
-        sage: py_scalar_parent(gmpy2.mpq)   # optional - gmpy2
+        sage: py_scalar_parent(gmpy2.mpq)
         Rational Field
-        sage: py_scalar_parent(gmpy2.mpfr)  # optional - gmpy2
+        sage: py_scalar_parent(gmpy2.mpfr)
         Real Double Field
-        sage: py_scalar_parent(gmpy2.mpc)   # optional - gmpy2
+        sage: py_scalar_parent(gmpy2.mpc)
         Complex Double Field
     """
     if issubclass(py_type, int) or issubclass(py_type, long):
@@ -180,16 +178,16 @@ cpdef py_scalar_parent(py_type):
             return sage.rings.complex_double.CDF
         else:
             return None
-    elif HAVE_GMPY2 and issubclass(py_type, gmpy2.mpz):
+    elif issubclass(py_type, gmpy2.mpz):
         import sage.rings.integer_ring
         return sage.rings.integer_ring.ZZ
-    elif HAVE_GMPY2 and issubclass(py_type, gmpy2.mpq):
+    elif issubclass(py_type, gmpy2.mpq):
         import sage.rings.rational_field
         return sage.rings.rational_field.QQ
-    elif HAVE_GMPY2 and issubclass(py_type, gmpy2.mpfr):
+    elif issubclass(py_type, gmpy2.mpfr):
         import sage.rings.real_double
         return sage.rings.real_double.RDF
-    elif HAVE_GMPY2 and issubclass(py_type, gmpy2.mpc):
+    elif issubclass(py_type, gmpy2.mpc):
         import sage.rings.complex_double
         return sage.rings.complex_double.CDF
     else:
@@ -235,18 +233,18 @@ cpdef py_scalar_to_element(x):
 
     Test gmpy2's types::
 
-        sage: import gmpy2                               # optional - gmpy2 
-        sage: x = py_scalar_to_element(gmpy2.mpz(42))    # optional - gmpy2
-        sage: x, parent(x)                               # optional - gmpy2
+        sage: import gmpy2
+        sage: x = py_scalar_to_element(gmpy2.mpz(42))
+        sage: x, parent(x)
         (42, Integer Ring)
-        sage: x = py_scalar_to_element(gmpy2.mpq('3/4')) # optional - gmpy2
-        sage: x, parent(x)                               # optional - gmpy2
-        (3/4, Rational Field) 
-        sage: x = py_scalar_to_element(gmpy2.mpfr(42.57))# optional - gmpy2
-        sage: x, parent(x)                               # optional - gmpy2
+        sage: x = py_scalar_to_element(gmpy2.mpq('3/4'))
+        sage: x, parent(x)
+        (3/4, Rational Field)
+        sage: x = py_scalar_to_element(gmpy2.mpfr(42.57))
+        sage: x, parent(x)
         (42.57, Real Double Field)
-        sage: x = py_scalar_to_element(gmpy2.mpc(int(42), int(42))) # optional - gmpy2
-        sage: x, parent(x)                               # optional - gmpy2
+        sage: x = py_scalar_to_element(gmpy2.mpc(int(42), int(42)))
+        sage: x, parent(x)
         (42.0 + 42.0*I, Complex Double Field)
 
     Test compatibility with :func:`py_scalar_parent`::
@@ -266,10 +264,10 @@ cpdef py_scalar_to_element(x):
         ....:         numpy.complex128(-2+I)]
         sage: for x in elt:
         ....:     assert py_scalar_parent(type(x)) == py_scalar_to_element(x).parent()
-        
-        sage: elt = [gmpy2.mpz(42), gmpy2.mpq('3/4'),               # optional - gmpy2
+
+        sage: elt = [gmpy2.mpz(42), gmpy2.mpq('3/4'),
         ....:        gmpy2.mpfr(42.57), gmpy2.mpc(int(42), int(42))]
-        sage: for x in elt:                                         # optional - gmpy2
+        sage: for x in elt:
         ....:     assert py_scalar_parent(type(x)) == py_scalar_to_element(x).parent()
     """
     if isinstance(x, Element):
@@ -299,16 +297,16 @@ cpdef py_scalar_to_element(x):
             return CDF(x)
         else:
             return x
-    elif HAVE_GMPY2 and type(x) is gmpy2.mpz:
+    elif type(x) is gmpy2.mpz:
             from sage.rings.integer import Integer
             return Integer(x)
-    elif HAVE_GMPY2 and type(x) is gmpy2.mpq:
+    elif type(x) is gmpy2.mpq:
         from sage.rings.rational import Rational
         return Rational(x)
-    elif HAVE_GMPY2 and type(x) is gmpy2.mpfr:
+    elif type(x) is gmpy2.mpfr:
         from sage.rings.real_double import RDF
         return RDF(x)
-    elif HAVE_GMPY2 and type(x) is gmpy2.mpc:
+    elif type(x) is gmpy2.mpc:
         from sage.rings.complex_double import CDF
         return CDF(x)
     else:
@@ -340,6 +338,18 @@ cpdef bint parent_is_integers(P) except -1:
         True
         sage: parent_is_integers(numpy.float)
         False
+
+        sage: import gmpy2
+        sage: parent_is_integers(gmpy2.mpz)
+        True
+        sage: parent_is_integers(gmpy2.mpq)
+        False
+
+    Ensure (:trac:`27893`) is fixed::
+
+        sage: K.<f> = QQ[]
+        sage: gmpy2.mpz(2) * f
+        2*f
     """
     if isinstance(P, type):
         if issubclass(P, int) or issubclass(P, long):
@@ -347,6 +357,8 @@ cpdef bint parent_is_integers(P) except -1:
         elif is_numpy_type(P):
             from numpy import integer
             return issubclass(P, integer)
+        elif issubclass(P, gmpy2.mpz):
+            return True
         else:
             return False
     else:
@@ -492,7 +504,7 @@ cdef class CoercionModel:
 
     - Robert Bradshaw
     """
-    def __init__(self, *args, **kwds):
+    def __init__(self):
         """
         EXAMPLES::
 
@@ -502,18 +514,10 @@ cdef class CoercionModel:
             sage: A = cm.get_action(ZZ, K, operator.mul)
             sage: f, g = cm.coercion_maps(QQ, int)
             sage: f, g = cm.coercion_maps(ZZ, int)
-
-        TESTS::
-
-            sage: cm = CoercionModel(4, .95)
-            doctest:...: DeprecationWarning: the 'lookup_dict_size' argument is deprecated
-            See http://trac.sagemath.org/24135 for details.
-            doctest:...: DeprecationWarning: the 'lookup_dict_threshold' argument is deprecated
-            See http://trac.sagemath.org/24135 for details.
         """
-        self.reset_cache(*args, **kwds)
+        self.reset_cache()
 
-    def reset_cache(self, lookup_dict_size=None, lookup_dict_threshold=None):
+    def reset_cache(self):
         """
         Clear the coercion cache.
 
@@ -531,12 +535,6 @@ cdef class CoercionModel:
             sage: cm.get_cache()
             ({}, {})
         """
-        if lookup_dict_size is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(24135, "the 'lookup_dict_size' argument is deprecated")
-        if lookup_dict_threshold is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(24135, "the 'lookup_dict_threshold' argument is deprecated")
         # This MUST be a mapping of tuples, where each
         # tuple contains at least two elements that are either
         # None or of type Map.
@@ -955,9 +953,6 @@ cdef class CoercionModel:
             all.append("Right operand is numeric, will attempt coercion in both directions.")
         elif type(yp) is type:
             all.append("Right operand is not Sage element, will try _sage_.")
-
-        if op is mul:
-            all.append("Will try _r_action and _l_action")
 
         return all, None
 

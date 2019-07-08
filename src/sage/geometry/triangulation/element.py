@@ -766,7 +766,7 @@ class Triangulation(Element):
         """
         if not self.point_configuration().base_ring().is_subring(QQ):
             raise NotImplementedError('Only base rings ZZ and QQ are supported')
-        from sage.libs.ppl import Constraint_System, Linear_Expression, C_Polyhedron
+        from ppl import Constraint_System, Linear_Expression, C_Polyhedron
         from sage.matrix.constructor import matrix
         from sage.arith.all import lcm
         pc = self.point_configuration()

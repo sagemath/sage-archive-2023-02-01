@@ -197,9 +197,8 @@ from sage.structure.richcmp cimport rich_to_bool_sgn
 
 from . import integer_ring
 
-IF HAVE_GMPY2:
-    cimport gmpy2
-    gmpy2.import_gmpy2()
+cimport gmpy2
+gmpy2.import_gmpy2()
 
 
 cdef extern from *:
@@ -476,8 +475,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     Conversion from gmpy2::
 
-        sage: from gmpy2 import mpz  # optional - gmpy2
-        sage: Integer(mpz(3))        # optional - gmpy2
+        sage: from gmpy2 import mpz
+        sage: Integer(mpz(3))
         3
 
     .. automethod:: __pow__
@@ -536,8 +535,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             0
             sage: ZZ('+10')
             10
-            sage: from gmpy2 import mpz  # optional - gmpy2
-            sage: ZZ(mpz(42))            # optional - gmpy2
+            sage: from gmpy2 import mpz
+            sage: ZZ(mpz(42))
             42
 
         ::
@@ -738,7 +737,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                         mpz_set_pylong(self.value, long(x))
                         return
 
-                elif HAVE_GMPY2 and type(x) is gmpy2.mpz:
+                elif type(x) is gmpy2.mpz:
                     mpz_set(self.value, (<gmpy2.mpz>x).z)
                     return
 
@@ -1072,10 +1071,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         EXAMPLES::
 
             sage: a = 5
-            sage: a.__mpz__()            # optional - gmpy2
+            sage: a.__mpz__()
             mpz(5)
-            sage: from gmpy2 import mpz  # optional - gmpy2
-            sage: mpz(a)                 # optional - gmpy2
+            sage: from gmpy2 import mpz
+            sage: mpz(a)
             mpz(5)
 
         TESTS::
@@ -1085,10 +1084,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ...
             NotImplementedError: gmpy2 is not installed
         """
-        IF HAVE_GMPY2:
-            return gmpy2.GMPy_MPZ_From_mpz(self.value)
-        ELSE:
-            raise NotImplementedError("gmpy2 is not installed")
+        return gmpy2.GMPy_MPZ_From_mpz(self.value)
 
     def str(self, int base=10):
         r"""
@@ -2979,7 +2975,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             172800
             sage: prod(e + 1 for p, e in factor(a))
             172800
-            sage: all([t.divides(a) for t in v])
+            sage: all(t.divides(a) for t in v)
             True
 
         ::

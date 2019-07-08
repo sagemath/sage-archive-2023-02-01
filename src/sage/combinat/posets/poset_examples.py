@@ -666,9 +666,8 @@ class Posets(object):
             return LatticePoset(facade=facade)
         from sage.categories.cartesian_product import cartesian_product
         elements = cartesian_product([range(i) for i in l])
-        compare = lambda a,b : all(x <= y for x, y in zip(a ,b))
+        compare = lambda a, b: all(x <= y for x, y in zip(a, b))
         return LatticePoset([elements, compare], facade=facade)
-
 
     @staticmethod
     def RandomPoset(n, p):
@@ -1464,29 +1463,17 @@ class Posets(object):
              [[2], [2, 1]],
              [[2, 1], [2, 2]]]
         """
-        from sage.misc.flatten import flatten
-        from sage.combinat.partition import Partition
+        ideal = {}
+        level = [lam]
+        while level:
+            new_level = set()
+            for mu in level:
+                down = mu.down_list()
+                ideal[mu] = down
+                new_level.update(down)
+            level = new_level
 
-        def lower_covers(l):
-            """
-            Nested function returning those partitions obtained
-            from the partition `l` by removing
-            a single cell.
-            """
-            return [l.remove_cell(c[0], c[1]) for c in l.removable_cells()]
-
-        def contained_partitions(l):
-            """
-            Nested function returning those partitions contained in
-            the partition `l`
-            """
-            if l == Partition([]):
-                return l
-            return flatten([l, [contained_partitions(m)
-                                for m in lower_covers(l)]])
-
-        ideal = list(set(contained_partitions(lam)))
-        H = DiGraph(dict([[p, lower_covers(p)] for p in ideal]))
+        H = DiGraph(ideal)
         return LatticePoset(H.reverse())
 
     @staticmethod
@@ -1644,8 +1631,9 @@ class Posets(object):
         bottom = P(bottom)
         if not top.has_pattern(bottom):
             raise ValueError("{} doesn't contain {} as a pattern".format(top, bottom))
-        elem = [[top]] # Make a list of lists of elements in the interval divided by rank.
-                       # List will be flattened at the end
+        # Make a list of lists of elements in the interval divided by rank.
+        # List will be flattened at the end
+        elem = [[top]]
         level = 0    # Consider the top element to be level 0, and then go down from there.
         rel = []     # List of covering relations to be fed into poset constructor.
         while len(top) - len(bottom) >= level + 1:
@@ -1654,7 +1642,7 @@ class Posets(object):
                 # Run through all permutations on current level
                 #   and find relations for which it is upper cover
                 upper_perm = P(upper)
-                for i in range(len(top)-level):
+                for i in range(len(top) - level):
                     # Try and remove the ith element from the permutation
                     lower = list(upper)
                     j = lower.pop(i)

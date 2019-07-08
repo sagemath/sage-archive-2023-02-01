@@ -1288,7 +1288,7 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
         chi = self.character()
         if chi is not None:
             dec = [u for u in chi.decomposition() if chi.modulus().divides(d)]
-            if not all([(u**2).is_trivial() for u in dec]):
+            if not all((u**2).is_trivial() for u in dec):
                 raise ValueError("Atkin-Lehner W_d only defined when d-primary part of character is trivial or quadratic")
 
         if self.sign() != 0:

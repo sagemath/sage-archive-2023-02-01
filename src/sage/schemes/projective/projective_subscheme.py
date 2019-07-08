@@ -11,14 +11,14 @@ AUTHORS:
 """
 
 #*****************************************************************************
-# Copyright (C) 2005 William Stein <wstein@gmail.com>
-# Copyright (C) 2013 Ben Hutz <bn4941@gmail.com>
-
+#       Copyright (C) 2005 William Stein <wstein@gmail.com>
+#       Copyright (C) 2013 Ben Hutz <bn4941@gmail.com>
 #
-# Distributed under the terms of the GNU General Public License (GPL)
-# as published by the Free Software Foundation; either version 2 of
-# the License, or (at your option) any later version.
-# http://www.gnu.org/licenses/
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.arith.misc import binomial
@@ -1036,14 +1036,9 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         the ambient projective space of `X`. The elimination ideal `I = J' \cap K[u_{ij}]`
         is a principal ideal, let `R` be its generator. The Chow form is obtained by
         writing `R` as a polynomial in Plucker coordinates (i.e. bracket polynomials).
-        [DalbecSturmfels]_.
+        [DS1994]_.
 
         OUTPUT: a homogeneous polynomial.
-
-        REFERENCES:
-
-        .. [DalbecSturmfels] J. Dalbec and B. Sturmfels. Invariant methods in discrete and computational geometry,
-           chapter Introduction to Chow forms, pages 37-58. Springer Netherlands, 1994.
 
         EXAMPLES::
 

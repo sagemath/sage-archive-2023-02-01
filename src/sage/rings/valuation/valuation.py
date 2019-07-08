@@ -418,7 +418,7 @@ class DiscreteValuation(DiscretePseudoValuation):
           (with respect to the partial order on valuations defined by comparing
           them pointwise.)
 
-        - ``require_maximal_degree`` -- a boolean (deault: ``False``); whether
+        - ``require_maximal_degree`` -- a boolean (default: ``False``); whether
           to require the last key polynomial of the returned valuation to have
           maximal degree. This is most relevant when using this algorithm to
           compute approximate factorizations of ``G``, when set to ``True``,
@@ -667,7 +667,7 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         from sage.rings.valuation.gauss_valuation import GaussValuation
 
-        if not all([self(c) >= 0 for c in G.coefficients()]):
+        if not all(self(c) >= 0 for c in G.coefficients()):
             raise ValueError("G must be integral")
 
         if require_maximal_degree:
@@ -989,7 +989,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             raise ValueError("G must be defined over the domain of this valuation")
         if not G.is_monic():
             raise ValueError("G must be monic")
-        if not all([self(c)>=0 for c in G.coefficients()]):
+        if not all(self(c) >= 0 for c in G.coefficients()):
             raise ValueError("G must be integral")
 
         # W contains approximate factors of G

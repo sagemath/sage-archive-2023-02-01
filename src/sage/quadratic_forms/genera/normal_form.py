@@ -77,15 +77,15 @@ AUTHORS:
 - Simon Brandhorst (2018-01): initial version
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2018 Simon Branhdorst <sbrandhorst@web.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.rings.all import Zp, ZZ, GF
 from sage.matrix.constructor import Matrix
@@ -253,10 +253,10 @@ def p_adic_normal_form(G, p, precision=None, partial=False, debug=False):
 
     # continue with the non-degenerate part
     G = nondeg * G * nondeg.T * p**d
-    if precision == None:
+    if precision is None:
         # in Zp(2) we have to calculate at least mod 8 for things to make sense.
         precision = G.det().valuation(p) + 4
-    R = Zp(p, prec = precision, type = 'fixed-mod')
+    R = Zp(p, prec=precision, type='fixed-mod')
     G = G.change_ring(R)
     G.set_immutable() # is not changed during computation
     D = copy(G)    # is transformed into jordan form
@@ -932,7 +932,7 @@ def _normalize_2x2(G):
         # Find a point of norm 2
         # solve: 2 == D[1,1]*x^2 + 2*D[1,0]*x + D[0,0]
         pol = (D[1,1]*x**2 + 2*D[1,0]*x + D[0,0]-2) // 2
-        # somehow else pari can get a hickup see `trac`:#24065
+        # somehow else pari can get a hickup see trac #24065
         pol = pol // pol.leading_coefficient()
         sol = pol.roots()[0][0]
         B[0, 1] = sol
@@ -945,7 +945,7 @@ def _normalize_2x2(G):
         if D[1, 1] != 2:
             v = vector([x, -2*x + 1])
             pol = (v*D*v - 2) // 2
-            # somehow else pari can get a hickup `trac`:#24065
+            # somehow else pari can get a hickup see trac #24065
             pol = pol // pol.leading_coefficient()
             sol = pol.roots()[0][0]
             B[1, :] = sol * B[0,:] + (-2*sol + 1)*B[1, :]
@@ -959,7 +959,7 @@ def _normalize_2x2(G):
         # Find a point representing 0
         # solve: 0 == D[1,1]*x^2 + 2*D[1,0]*x + D[0,0]
         pol = (D[1,1]*x**2 + 2*D[1,0]*x + D[0,0])//2
-        # somehow else pari can get a hickup, see  `trac`:#24065
+        # somehow else pari can get a hickup, see trac #24065
         pol = pol // pol.leading_coefficient()
         sol = pol.roots()[0][0]
         B[0,:] += sol*B[1, :]
@@ -973,6 +973,7 @@ def _normalize_2x2(G):
         # check the result
         assert D == Matrix(G.parent(), 2, 2, [0, 1, 1, 0]), "D2 \n %r" %D
     return B
+
 
 def _normalize_odd_2x2(G):
     r"""
@@ -1121,7 +1122,7 @@ def _relations(G,n):
     OUTPUT:
 
     - square matrix ``B`` such that ``B * G * B.T`` is the right side of the
-      relation which consits of blocks of types `U`, `V`, `W` again
+      relation which consists of blocks of types `U`, `V`, `W` again
 
     EXAMPLES::
 

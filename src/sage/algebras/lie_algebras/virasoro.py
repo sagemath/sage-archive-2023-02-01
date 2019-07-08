@@ -331,6 +331,22 @@ class VirasoroAlgebra(InfinitelyGeneratedLieAlgebra, IndexedGenerators):
         IndexedGenerators.__init__(self, ZZ, prefix='d', bracket='[',
                                    sorting_key=_basis_key)
 
+    def _basis_key(self, m):
+        """
+        Return a key for sorting for the index ``m``.
+
+        TESTS::
+
+            sage: d = lie_algebras.VirasoroAlgebra(QQ)
+            sage: d._basis_key(3)
+            3
+            sage: d._basis_key('c')
+            +Infinity
+            sage: d._basis_key(4) < d._basis_key('c')
+            True
+        """
+        return _basis_key(m)
+
     def _repr_term(self, m):
         """
         Return a string representation of the term indexed by ``m``.
@@ -515,7 +531,7 @@ class VirasoroAlgebra(InfinitelyGeneratedLieAlgebra, IndexedGenerators):
 
             sage: L = lie_algebras.VirasoroAlgebra(QQ)
             sage: L.verma_module(3, 2)
-            Verma module with charge 3 and confromal weight 2 of
+            Verma module with charge 3 and conformal weight 2 of
              The Virasoro algebra over Rational Field
         """
         return VermaModule(self, c, h)
@@ -852,10 +868,10 @@ class VermaModule(CombinatorialFreeModule):
             sage: L = lie_algebras.VirasoroAlgebra(QQ)
             sage: M = L.verma_module(3, 0)
             sage: M
-            Verma module with charge 3 and confromal weight 0 of
+            Verma module with charge 3 and conformal weight 0 of
              The Virasoro algebra over Rational Field
         """
-        return "Verma module with charge {} and confromal weight {} of {}".format(
+        return "Verma module with charge {} and conformal weight {} of {}".format(
                     self._c, self._h, self._V)
 
     def _monomial(self, index):

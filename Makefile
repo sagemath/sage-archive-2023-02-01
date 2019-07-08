@@ -53,11 +53,10 @@ build/make/Makefile: configure build/make/deps build/make/Makefile.in build/pkgs
 		fi; )
 
 # This is used to monitor progress towards Python 3 and prevent
-# regressions. The target "build" should be upgraded to reflect the
-# level of Python 3 support that is known to work.
+# regressions.
 buildbot-python3: configure
 	./configure --with-python=3
-	$(MAKE) build
+	$(MAKE)
 
 # Preemptively download all standard upstream source tarballs.
 download:
@@ -150,7 +149,7 @@ PTEST_PYTHON3 = cat src/ext/doctest/python3-known-passing.txt | xargs ./sage -t 
 # By default, include all tests marked 'dochtml' -- see
 # https://trac.sagemath.org/ticket/25345 and
 # https://trac.sagemath.org/ticket/26110.
-TESTALL_FLAGS = --optional=sage,dochtml,optional,external
+TESTALL_FLAGS = --optional=sage,dochtml,optional,external,build
 
 test: all
 	$(TESTALL) --logfile=logs/test.log

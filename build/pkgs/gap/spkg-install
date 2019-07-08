@@ -17,14 +17,11 @@ else
     export CFLAGS="-O2 -g $CFLAGS"
 fi
 
-sdh_configure --with-gmp="$SAGE_LOCAL"
+sdh_configure $SAGE_CONFIGURE_GMP
 sdh_make -j1
 
-# GAP's "make install" does not do everything correctly; in particular it
-# mistakenly installs libtool's wrapper scripts rather than the actual gap
-# binary
-#
-# Installing the headers and libgap works
+# GAP's "make install" is work in progress; we use bits and pieces of it
+# but we install many things manually.
 sdh_make install-headers install-libgap
 
 # Install config.h, which is not currently handled by `make install-headers`

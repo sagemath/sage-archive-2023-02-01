@@ -985,7 +985,15 @@ if [ "$SAGE_CHECK" = "yes" ]; then
     fi
 fi
 
-FILE_LIST="$(echo "$FILE_LIST" | sed 's/^\(.\+\)$/"\1"/; 2,$s/^/        /; $!s/$/,/')"
+# For each line in $FILE_LIST, enclose in double quotes:
+NEW_LIST=""
+for f in $FILE_LIST; do
+         NEW_LIST+="\"$f\"
+"
+done
+# Now remove the last line (it's blank), indent each line (skipping
+# the first) and append a comma (skipping the last).
+FILE_LIST="$(echo "$NEW_LIST" | sed '$d' | sed '2,$s/^/        /; $!s/$/,/')"
 
 # Mark that the new package has been installed (and tested, if
 # applicable).

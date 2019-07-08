@@ -327,6 +327,22 @@ class FriCAS(ExtraTabCompletion, Expect):
         for line in FRICAS_HELPER_CODE:
             self.eval(line, reformat=False)
 
+    def _install_hints(self):
+        """
+        Hints for installing FriCAS on your computer.
+
+        EXAMPLES::
+
+            sage: print(fricas._install_hints())
+            In order...
+        """
+        return r"""
+In order to use the FriCAS interface you need to have FriCAS installed.
+You can either run 'sage -i fricas' to install FriCAS as an optional
+package within SageMath, or install FriCAS separately, see
+http://fricas.sourceforge.net.
+"""
+
     def _quit_string(self):
         """
         Returns the string used to quit FriCAS.
@@ -1330,7 +1346,7 @@ class FriCASElement(ExpectElement):
 
     @staticmethod
     def _sage_expression(fricas_InputForm):
-        """
+        r"""
         Convert an expression to an element of the Symbolic Ring.
 
         INPUT:
@@ -1492,6 +1508,11 @@ class FriCASElement(ExpectElement):
             fresnelC(1)
             sage: fricas("fresnelC(1.0)")                                       # optional - fricas
             0.7798934003_7682282947_42
+
+        Check that :trac:`17908` is fixed::
+
+            sage: fricas(abs(x)).sage().subs(x=-1783)                           # optional - fricas
+            1783
 
         """
         from sage.libs.pynac.pynac import register_symbol

@@ -479,7 +479,9 @@ cdef class Matrix_integer_dense(Matrix_dense):
         Return space separated string of the entries in this matrix, in the
         given base. This is optimized for speed.
 
-        INPUT: base -an integer = 36; (default: 10)
+        INPUT:
+
+        - base -- an integer <= 36; (default: 10)
 
         EXAMPLES::
 
@@ -4105,8 +4107,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
             ...
             ZeroDivisionError: Matrix is singular
         """
-        A,d = self._invert_flint()
-        return A/d
+        A, d = self._invert_flint()
+        return A / d
 
     def _invert_unit(self):
         r"""
@@ -4145,7 +4147,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             ...
             ArithmeticError: non-invertible matrix
         """
-        A,d = self._invert_flint()
+        A, d = self._invert_flint()
         if not d.is_one():
             raise ArithmeticError("non-invertible matrix")
         return A
@@ -4249,7 +4251,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             True
 
         """
-        t = verbose('starting %s solve_right...'%algorithm)
+        t = verbose('starting %s solve_right...' % algorithm)
 
         # It would probably be much better to rewrite linbox so it
         # throws an error instead of ** going into an infinite loop **
@@ -5021,8 +5023,17 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
 
         -  ``matrix`` - the Hermite normal form of self.
+
+        A ValueError is raised if the matrix is not square, fixing :trac:`5548`::
+
+            sage: random_matrix(ZZ,16,4)._hnf_mod(100)
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is not square
         """
         t = verbose('hermite mod %s'%D, caller_name='matrix_integer_dense')
+        if self._nrows != self._ncols:
+            raise ValueError("matrix is not square")
         cdef Matrix_integer_dense res = self._new(self._nrows,self._ncols)
         self._hnf_modn(res, D)
         verbose('finished hnf mod', t, caller_name='matrix_integer_dense')

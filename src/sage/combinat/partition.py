@@ -283,7 +283,7 @@ from __future__ import print_function, absolute_import
 
 from copy import copy
 import six
-from six.moves import range
+from six.moves import range, zip
 
 from sage.libs.all import pari
 from sage.libs.flint.arith import number_of_partitions as flint_number_of_partitions
@@ -311,11 +311,10 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
 
-from .combinat import CombinatorialClass, CombinatorialElement
+from .combinat import CombinatorialElement
 from . import tableau
 from . import permutation
 from . import composition
-from sage.combinat.composition import Composition
 from sage.combinat.partitions import number_of_partitions as bober_number_of_partitions
 from sage.combinat.partitions import ZS1_iterator, ZS1_iterator_nk
 from sage.combinat.integer_vector import IntegerVectors
@@ -325,7 +324,6 @@ from sage.combinat.combinatorial_map import combinatorial_map
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.graphs.dot2tex_utils import have_dot2tex
 from sage.functions.other import binomial
-
 
 class Partition(CombinatorialElement):
     r"""
@@ -524,6 +522,9 @@ class Partition(CombinatorialElement):
         """
         Initialize ``self``.
 
+        We assume that ``mu`` is a weakly decreasing list of
+        non-negative elements in ``ZZ``.
+
         EXAMPLES::
 
             sage: p = Partition([3,1])
@@ -537,28 +538,18 @@ class Partition(CombinatorialElement):
             Traceback (most recent call last):
             ...
             ValueError: [3, 1, 7] is not an element of Partitions
+
         """
         if isinstance(mu, Partition):
-            # Since we are (suppose to be) immutable, we can share the underlying data
+            # since we are (suppose to be) immutable, we can share the underlying data
             CombinatorialElement.__init__(self, parent, mu._list)
-            return
-
-        elif not mu:
-            CombinatorialElement.__init__(self, parent, mu)
-
-        elif (all(mu[i] in NN and mu[i] >= mu[i+1] for i in range(len(mu)-1))
-                and mu[-1] in NN):
-            if mu[-1] == 0: # From the above checks, the last value must be == 0 or > 0
-                # strip all trailing zeros
-                temp = len(mu) - 1
-                while temp > 0 and mu[temp-1] == 0:
-                    temp -= 1
-                CombinatorialElement.__init__(self, parent, mu[:temp])
-            else:
-                CombinatorialElement.__init__(self, parent, mu)
-
         else:
-            raise ValueError("%s is not a valid partition"%repr(mu))
+            if mu and not mu[-1]:
+                # direct callers might assume that mu is not modified
+                mu = mu[:-1]
+                while mu and not mu[-1]:
+                    mu.pop()
+            CombinatorialElement.__init__(self, parent, mu)
 
     @cached_method
     def __hash__(self):
@@ -1765,14 +1756,14 @@ class Partition(CombinatorialElement):
 
     def up(self):
         r"""
-        Returns a generator for partitions that can be obtained from ``self``
+        Return a generator for partitions that can be obtained from ``self``
         by adding a cell.
 
         EXAMPLES::
 
-            sage: [p for p in Partition([2,1,1]).up()]
+            sage: list(Partition([2,1,1]).up())
             [[3, 1, 1], [2, 2, 1], [2, 1, 1, 1]]
-            sage: [p for p in Partition([3,2]).up()]
+            sage: list(Partition([3,2]).up())
             [[4, 2], [3, 3], [3, 2, 1]]
             sage: [p for p in Partition([]).up()]
             [[1]]
@@ -1781,10 +1772,9 @@ class Partition(CombinatorialElement):
         previous = p.get_part(0) + 1
         for i, current in enumerate(p):
             if current < previous:
-                yield Partition(p[:i] + [ p[i] + 1 ] + p[i+1:])
+                yield Partition(p[:i] + [current + 1] + p[i + 1:])
             previous = current
-        else:
-            yield Partition(p + [1])
+        yield Partition(p + [1])
 
     def up_list(self):
         """
@@ -1800,7 +1790,7 @@ class Partition(CombinatorialElement):
             sage: Partition([]).up_list()
             [[1]]
         """
-        return [p for p in self.up()]
+        return list(self.up())
 
     def down(self):
         r"""
@@ -3824,7 +3814,7 @@ class Partition(CombinatorialElement):
 
         INPUT:
 
-        - ``e`` -- the quantum characteritic
+        - ``e`` -- the quantum characteristic
 
         - ``multicharge`` -- the multicharge (default `(0,)`)
 
@@ -5739,7 +5729,7 @@ class Partitions(UniqueRepresentation, Parent):
             if (len(kwargs) > 1 and
                 ('parts_in' in kwargs or
                  'starting' in kwargs or
-                 'ending'   in kwargs)):
+                 'ending' in kwargs)):
                 raise ValueError("The parameters 'parts_in', 'starting' and "+
                                  "'ending' cannot be combined with anything else.")
 
@@ -5935,18 +5925,31 @@ class Partitions(UniqueRepresentation, Parent):
             ([4, 4, 2, 2, 1])
             sage: P(elt)
             [4, 4, 2, 2, 1]
+
+        TESTS::
+
+            sage: Partition([3/2])
+            Traceback (most recent call last):
+            ...
+            ValueError: all parts of [3/2] should be nonnegative integers
+
         """
         if isinstance(lst, PartitionTuple):
             if lst.level() != 1:
-                raise ValueError('%s is not an element of %s'%(lst, self))
+                raise ValueError('%s is not an element of %s' % (lst, self))
             lst = lst[0]
             if lst.parent() is self:
                 return lst
+        try:
+            lst = list(map(ZZ, lst))
+        except TypeError:
+            raise ValueError('all parts of %s should be nonnegative integers' % repr(lst))
+
         if lst in self:
-            # Trailing zeros are removed in the element constructor
+            # trailing zeros are removed in Partition.__init__
             return self.element_class(self, lst)
 
-        raise ValueError('%s is not an element of %s'%(lst, self))
+        raise ValueError('%s is not an element of %s' % (lst, self))
 
     def __contains__(self, x):
         """
@@ -5975,12 +5978,23 @@ class Partitions(UniqueRepresentation, Parent):
             True
             sage: Partition([3/1, 2]) in P
             True
+
+        Check that non-integers and non-lists are excluded::
+
+            sage: P = Partitions()
+            sage: [2,1.5] in P
+            False
+
+            sage: 0 in P
+            False
+
         """
         if isinstance(x, Partition):
             return True
         if isinstance(x, (list, tuple)):
-            return len(x) == 0 or (x[-1] in NN and
-                                   all(x[i] in NN and x[i] >= x[i+1] for i in range(len(x)-1)))
+            return not x or (all((a in ZZ) and (a >= b) for a, b in zip(x, x[1:]))
+                             and (x[-1] in ZZ) and (x[-1] >= 0))
+        return False
 
     def subset(self, *args, **kwargs):
         r"""
@@ -6303,7 +6317,7 @@ class Partitions_all_bounded(Partitions):
             sage: [] in P
             True
         """
-        return len(x) == 0 or (x[0] <= self.k and Partitions.__contains__(self, x))
+        return not x or (x[0] <= self.k and x in _Partitions)
 
     def _repr_(self):
         """
@@ -6585,9 +6599,10 @@ class Partitions_n(Partitions):
             for j in range(1, n+1):
                 d = 1
                 r = n-j        # n - d*j
-                while  r >= 0:
+                while r >= 0:
                     rand -= d * cached_number_of_partitions(r)
-                    if rand < 0: break
+                    if rand < 0:
+                        break
                     d +=1
                     r -= j
                 else:

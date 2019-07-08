@@ -112,22 +112,23 @@ import operator
 from copy import copy
 
 from sage.cpython.type cimport can_assign_class
-from .coerce cimport coercion_model
-from sage.structure.element cimport parent
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
-from .category_object import CategoryObject
-from .coerce cimport parent_is_integers
-from .coerce_exceptions import CoercionException
 from sage.structure.debug_options cimport debug
 from sage.structure.richcmp cimport rich_to_bool
 from sage.structure.sage_object cimport SageObject
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.sets_cat import Sets, EmptySetError
 from sage.misc.lazy_format import LazyFormat
+from sage.misc.lazy_string cimport _LazyString
+from sage.sets.pythonclass cimport Set_PythonType_class, Set_PythonType
+from .category_object import CategoryObject
+from .coerce cimport coercion_model
+from .coerce cimport parent_is_integers
+from .coerce_exceptions import CoercionException
 from .coerce_maps cimport (NamedConvertMap, DefaultConvertMap,
         DefaultConvertMap_unique, CallableConvertMap)
-from sage.sets.pythonclass cimport Set_PythonType_class, Set_PythonType
+from .element cimport parent, Element
 
 
 cdef _record_exception():
@@ -900,7 +901,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             else:
                 return mor._call_with_args(x, args, kwds)
 
-        raise TypeError("No conversion defined from %s to %s"%(R, self))
+        raise TypeError(_LazyString(_lazy_format, ("No conversion defined from %s to %s", R, self), {}))
 
     def __mul__(self,x):
         """
@@ -1130,14 +1131,17 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: V.coerce(0)
             (0, 0, 0, 0, 0, 0, 0)
         """
-        mor = self._internal_coerce_map_from(parent(x))
+        cdef R = parent(x)
+        if R is self:
+            return x
+        mor = self._internal_coerce_map_from(R)
         if mor is None:
             if is_Integer(x) and not x:
                 try:
                     return self(0)
                 except Exception:
                     _record_exception()
-            raise TypeError("no canonical coercion from %s to %s" % (parent(x), self))
+            raise TypeError(_LazyString(_lazy_format, ("no canonical coercion from %s to %s", parent(x), self), {}))
         else:
             return (<map.Map>mor)._call_(x)
 
@@ -1387,14 +1391,12 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         self.init_coerce(False)
 
         if not unpickling:
-            if element_constructor is None:
-                try:
-                    element_constructor = self._element_constructor_
-                except AttributeError:
-                    raise RuntimeError("an _element_constructor_ method must be defined")
-            else:
-                from sage.misc.superseded import deprecation
-                deprecation(24363, "the 'element_constructor' keyword of _populate_coercion_lists_ is deprecated: override the _element_constructor_ method or define an Element attribute instead")
+            if element_constructor is not None:
+                raise ValueError("element_constructor can only be given when unpickling is True")
+            try:
+                element_constructor = self._element_constructor_
+            except AttributeError:
+                raise RuntimeError("an _element_constructor_ method must be defined")
         self._element_constructor = element_constructor
         self._element_init_pass_parent = guess_pass_parent(self, element_constructor)
 
@@ -1452,24 +1454,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         self._embedding = None
         self._unset_coercions_used()
 
-    def is_coercion_cached(self, domain):
-        """
-        Deprecated method
-
-        TESTS::
-
-            sage: Parent().is_coercion_cached(QQ)
-            doctest:warning
-            ...
-            DeprecationWarning: is_coercion_cached is deprecated use _is_coercion_cached instead
-            See http://trac.sagemath.org/24254 for details.
-            False
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(24254, "is_coercion_cached is deprecated use _is_coercion_cached instead")
-        return self._is_coercion_cached(domain)
-
-    cpdef bint _is_coercion_cached(self, domain):
+    def _is_coercion_cached(self, domain):
         r"""
         Test whether the coercion from ``domain`` is already cached.
 
@@ -1484,24 +1469,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         """
         return domain in self._coerce_from_hash
 
-    def is_conversion_cached(self, domain):
-        """
-        Deprecated method
-
-        TESTS::
-
-            sage: Parent().is_conversion_cached(QQ)
-            doctest:warning
-            ...
-            DeprecationWarning: is_conversion_cached is deprecated use _is_conversion_cached instead
-            See http://trac.sagemath.org/24254 for details.
-            False
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(24254, "is_conversion_cached is deprecated use _is_conversion_cached instead")
-        return self._is_conversion_cached(domain)
-
-    cpdef bint _is_conversion_cached(self, domain):
+    def _is_conversion_cached(self, domain):
         r"""
         Test whether the conversion from ``domain`` is already set.
 
@@ -1805,13 +1773,13 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: K.<a>=NumberField(x^3+x^2+1,embedding=1)
             sage: K.coerce_embedding()
             Generic morphism:
-              From: Number Field in a with defining polynomial x^3 + x^2 + 1
+              From: Number Field in a with defining polynomial x^3 + x^2 + 1 with a = -1.465571231876768?
               To:   Real Lazy Field
               Defn: a -> -1.465571231876768?
             sage: K.<a>=NumberField(x^3+x^2+1,embedding=CC.gen())
             sage: K.coerce_embedding()
             Generic morphism:
-              From: Number Field in a with defining polynomial x^3 + x^2 + 1
+              From: Number Field in a with defining polynomial x^3 + x^2 + 1 with a = 0.2327856159383841? + 0.7925519925154479?*I
               To:   Complex Lazy Field
               Defn: a -> 0.2327856159383841? + 0.7925519925154479?*I
         """
@@ -2258,28 +2226,28 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: L = NumberField(x^2+2, 'b', embedding=1/a)
             sage: PolynomialRing(L, 'x').coerce_map_from(L)
             Polynomial base injection morphism:
-              From: Number Field in b with defining polynomial x^2 + 2
-              To:   Univariate Polynomial Ring in x over Number Field in b with defining polynomial x^2 + 2
+              From: Number Field in b with defining polynomial x^2 + 2 with b = -2*a
+              To:   Univariate Polynomial Ring in x over Number Field in b with defining polynomial x^2 + 2 with b = -2*a
             sage: PolynomialRing(K, 'x').coerce_map_from(L)
             Composite map:
-              From: Number Field in b with defining polynomial x^2 + 2
-              To:   Univariate Polynomial Ring in x over Number Field in a with defining polynomial x^2 + 1/2
+              From: Number Field in b with defining polynomial x^2 + 2 with b = -2*a
+              To:   Univariate Polynomial Ring in x over Number Field in a with defining polynomial x^2 + 1/2 with a = 0.7071067811865475?*I
               Defn:   Generic morphism:
-                      From: Number Field in b with defining polynomial x^2 + 2
-                      To:   Number Field in a with defining polynomial x^2 + 1/2
+                      From: Number Field in b with defining polynomial x^2 + 2 with b = -2*a
+                      To:   Number Field in a with defining polynomial x^2 + 1/2 with a = 0.7071067811865475?*I
                       Defn: b -> -2*a
                     then
                       Polynomial base injection morphism:
-                      From: Number Field in a with defining polynomial x^2 + 1/2
-                      To:   Univariate Polynomial Ring in x over Number Field in a with defining polynomial x^2 + 1/2
+                      From: Number Field in a with defining polynomial x^2 + 1/2 with a = 0.7071067811865475?*I
+                      To:   Univariate Polynomial Ring in x over Number Field in a with defining polynomial x^2 + 1/2 with a = 0.7071067811865475?*I
             sage: MatrixSpace(L, 2, 2).coerce_map_from(L)
             Coercion map:
-              From: Number Field in b with defining polynomial x^2 + 2
-              To:   Full MatrixSpace of 2 by 2 dense matrices over Number Field in b with defining polynomial x^2 + 2
+              From: Number Field in b with defining polynomial x^2 + 2 with b = -2*a
+              To:   Full MatrixSpace of 2 by 2 dense matrices over Number Field in b with defining polynomial x^2 + 2 with b = -2*a
             sage: PowerSeriesRing(L, 'x').coerce_map_from(L)
             Coercion map:
-              From: Number Field in b with defining polynomial x^2 + 2
-              To:   Power Series Ring in x over Number Field in b with defining polynomial x^2 + 2
+              From: Number Field in b with defining polynomial x^2 + 2 with b = -2*a
+              To:   Power Series Ring in x over Number Field in b with defining polynomial x^2 + 2 with b = -2*a
         """
         if isinstance(S, Parent) and (<Parent>S)._embedding is not None:
             if (<Parent>S)._embedding.codomain() is self:
@@ -2529,6 +2497,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         from sage.categories.homset import Hom
         from .coerce_actions import LeftModuleAction, RightModuleAction
         cdef Parent R
+
         for action in self._action_list:
             if isinstance(action, Action) and action.operation() is op:
                 if self_on_left:
@@ -2537,29 +2506,8 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
                 else:
                     if action.right_domain() is not self: continue
                     R = action.left_domain()
-            elif op is operator.mul and isinstance(action, Parent):
-                try:
-                    R = action
-                    _register_pair(self, R, "action") # to kill circular recursion
-                    if self_on_left:
-                        action = LeftModuleAction(R, self, a=S_el, g=self_el) # self is acted on from right
-                    else:
-                        action = RightModuleAction(R, self, a=S_el, g=self_el) # self is acted on from left
-                    ## The following two lines are disabled to prevent the following from working:
-                    ## sage: x, y = var('x,y')
-                    ## sage: parent(ZZ[x][y](1)*vector(QQ[y],[1,2]))
-                    ## sage: parent(ZZ[x](1)*vector(QQ[y],[1,2]))
-                    ## We will hopefully come up with a way to reinsert them, because they increase the scope
-                    ## of discovered actions.
-                    #i = self._action_list.index(R)
-                    #self._action_list[i] = action
-                except CoercionException:
-                    _record_exception()
-                    continue
-                finally:
-                    _unregister_pair(self, R, "action")
             else:
-                continue # only try mul if not specified
+                continue
             if R is S:
                 return action
             else:
@@ -2570,15 +2518,9 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
                     else:
                         return PrecomposedAction(action, connecting, None)
 
-        # We didn't find an action in the list, but maybe the elements
-        # define special action methods
-        if op is operator.mul:
-            # TODO: if _xmul_/_x_action_ code does stuff like
-            # if self == 0:
-            #    return self
-            # then an_element() == 0 could be very bad.
+        if op is operator.mul: # elements define special action methods.
             try:
-                _register_pair(self, S, "action") # this is to avoid possible infinite loops
+                _register_pair(self, S, "action") # avoid possible infinite loops
 
                 # detect actions defined by _rmul_, _lmul_, _act_on_, and _acted_upon_ methods
                 from .coerce_actions import detect_element_action
@@ -2868,3 +2810,6 @@ cdef bint _unregister_pair(x, y, tag) except -1:
         _coerce_test_dict.pop(EltPair(x,y,tag), None)
     except (ValueError, CoercionException):
         pass
+
+def _lazy_format(msg, *args):
+    return msg % args

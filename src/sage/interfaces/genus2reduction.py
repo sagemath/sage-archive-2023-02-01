@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Conductor and reduction types for genus 2 curves
 
@@ -139,8 +140,8 @@ class ReductionData(SageObject):
        `\QQ_p`. The fact is that the minimal discriminant
        may change after unramified extension. One can show however that,
        at worst, the change will stabilize after a quadratic unramified
-       extension (Q. Liu : "Modeles entiers de courbes hyperelliptiques
-       sur un corps de valuation discrete", Trans. AMS 348 (1996),
+       extension (Q. Liu : "Modèles entiers de courbes hyperelliptiques
+       sur un corps de valuation discrète", Trans. AMS 348 (1996),
        4577-4610, Section 7.2, Proposition 4).
     """
     def __init__(self, pari_result, P, Q, minimal_equation, minimal_disc,

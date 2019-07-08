@@ -11,11 +11,11 @@ variables::
     sage: env = {k:v for (k,v) in os.environ.items() if not k.startswith("SAGE_")}
     sage: import subprocess
     sage: cmd = "from sage.all import SAGE_ROOT; print(SAGE_ROOT)"
-    sage: res = subprocess.call(["python", "-c", cmd], env=env)  # long time
+    sage: res = subprocess.call([sys.executable, "-c", cmd], env=env)  # long time
     None
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 R. Andrew Ohana <andrew.ohana@gmail.com>
 #       Copyright (C) 2019 Jeroen Demeyer <J.Demeyer@UGent.be>
 #
@@ -24,7 +24,7 @@ variables::
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 
 from __future__ import absolute_import
 
@@ -183,6 +183,7 @@ var('JMOL_DIR',                      join(SAGE_SHARE, 'jmol'))
 var('JSMOL_DIR',                     join(SAGE_SHARE, 'jsmol'))
 var('MATHJAX_DIR',                   join(SAGE_SHARE, 'mathjax'))
 var('THREEJS_DIR',                   join(SAGE_SHARE, 'threejs'))
+var('PPLPY_DOCS',                    join(SAGE_SHARE, 'doc', 'pplpy'))
 var('MAXIMA_FAS')
 
 # misc
@@ -269,6 +270,10 @@ def _get_shared_lib_filename(libname, *additional_libnames):
 SINGULAR_SO = _get_shared_lib_filename('Singular', 'singular-Singular')
 var('SINGULAR_SO', SINGULAR_SO)
 
+# locate libgap shared object
+GAP_SO= _get_shared_lib_filename('gap','')
+var('GAP_SO', GAP_SO)
+
 # post process
 if ' ' in DOT_SAGE:
     if UNAME[:6] == 'CYGWIN':
@@ -320,6 +325,18 @@ def sage_include_directories(use_sources=False):
         '.../python.../site-packages/sage/ext',
         '.../include/python...',
         '.../python.../numpy/core/include']
+
+    To check that C/C++ files are correctly found, we verify that we can
+    always find the include file ``sage/cpython/cython_metaclass.h``,
+    with both values for ``use_sources``::
+
+        sage: file = os.path.join("sage", "cpython", "cython_metaclass.h")
+        sage: dirs = sage.env.sage_include_directories(use_sources=True)
+        sage: any(os.path.isfile(os.path.join(d, file)) for d in dirs)
+        True
+        sage: dirs = sage.env.sage_include_directories(use_sources=False)
+        sage: any(os.path.isfile(os.path.join(d, file)) for d in dirs)
+        True
     """
     import numpy
     import distutils.sysconfig
@@ -327,6 +344,7 @@ def sage_include_directories(use_sources=False):
     TOP = SAGE_SRC if use_sources else SAGE_LIB
 
     return [SAGE_INC,
+            TOP,
             os.path.join(TOP, 'sage', 'ext'),
             distutils.sysconfig.get_python_inc(),
             numpy.get_include()]

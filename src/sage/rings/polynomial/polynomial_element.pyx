@@ -300,7 +300,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     cpdef _neg_(self):
         return self._new_generic([-x for x in self.list(copy=False)])
 
-    cpdef bint is_zero(self):
+    cpdef bint is_zero(self) except -1:
         r"""
         Test whether this polynomial is zero.
 
@@ -316,7 +316,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return self.degree() < 0
 
-    cpdef bint is_one(self):
+    cpdef bint is_one(self) except -1:
         r"""
         Test whether this polynomial is 1.
 
@@ -1623,15 +1623,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: R.<x> = ZZ[]
             sage: f = x - 902384
-            sage: long(f)
+            sage: long(f) # py2
             Traceback (most recent call last):
             ...
             TypeError: cannot coerce nonconstant polynomial to long
-            sage: long(R(939392920202))
+            sage: long(R(939392920202)) # py2
+            doctest:...: DeprecationWarning: converting polynomials to longs is deprecated, since long() will no longer be supported in Python 3
+            See https://trac.sagemath.org/27675 for details.
             939392920202L
         """
         if self.degree() > 0:
             raise TypeError("cannot coerce nonconstant polynomial to long")
+        deprecation(27675, "converting polynomials to longs is deprecated, since long() will no longer be supported in Python 3")
         return long(self.get_coeff_c(0))
 
     cpdef _mul_(self, right):
@@ -2514,11 +2517,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         TESTS:
 
         We verify that :trac:`23020` has been resolved. (There are no elements
-        in the Sage library yet that do not implement ``__nonzero__``, so we
-        have to create one artificially.)::
+        in the Sage library yet that do not implement ``__nonzero__``
+        and ``__bool__``, so we have to create one artificially.)::
 
             sage: class PatchedAlgebraicNumber(sage.rings.qqbar.AlgebraicNumber):
             ....:     def __nonzero__(self): raise NotImplementedError()
+            ....:     def __bool__(self): raise NotImplementedError()
             sage: R.<x> = QQbar[]
             sage: R([PatchedAlgebraicNumber(0), 1])
             x + 0
@@ -4258,8 +4262,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if not (ch == 0 or is_prime(ch)):
             raise NotImplementedError("factorization of polynomials over rings with composite characteristic is not implemented")
 
-        from sage.rings.number_field.number_field_base import is_NumberField
-        from sage.rings.number_field.number_field_rel import is_RelativeNumberField
         from sage.rings.number_field.all import NumberField
         from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 
@@ -4271,41 +4273,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             except PariError:
                 raise NotImplementedError
 
-        elif is_RelativeNumberField(R):
-
-            M = R.absolute_field('a')
-            from_M, to_M = M.structure()
-            g = M['x']([to_M(x) for x in self.list()])
-            F = g.factor()
-            S = self._parent
-            v = [(S([from_M(x) for x in f.list()]), e) for f, e in F]
-            return Factorization(v, from_M(F.unit()))
-
         elif is_FiniteField(R):
             v = [x.__pari__("a") for x in self.list()]
             f = pari(v).Polrev()
             G = list(f.factor())
-
-        elif is_NumberField(R):
-            if R.degree() == 1:
-                factors = self.change_ring(QQ).factor()
-                return Factorization([(self._parent(p), e) for p, e in factors], R(factors.unit()))
-
-            # Convert the polynomial we want to factor to PARI
-            f = self._pari_with_name()
-            try:
-                # Try to compute the PARI nf structure with important=False.
-                # This will raise RuntimeError if the computation is too
-                # difficult.
-                Rpari = R.pari_nf(important=False)
-            except RuntimeError:
-                # Cannot easily compute the nf structure, use the defining
-                # polynomial instead.
-                Rpari = R.pari_polynomial("y")
-            G = list(Rpari.nffactor(f))
-            # PARI's nffactor() ignores the unit, _factor_pari_helper()
-            # adds back the unit of the factorization.
-            return self._factor_pari_helper(G)
 
         if G is None:
             # See if we can do this as a singular polynomial as a fallback
@@ -4679,7 +4650,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: p.gcd(q)
             Traceback (most recent call last):
             ...
-            NotImplementedError: Order in Number Field in a with defining polynomial x^2 - 5 does not provide a gcd implementation for univariate polynomials
+            NotImplementedError: Order in Number Field in a with defining polynomial x^2 - 5 with a = -2.236067977499790? does not provide a gcd implementation for univariate polynomials
             sage: S.<x> = O.number_field()[]
             sage: O._gcd_univariate_polynomial = lambda f,g : R(S(f).gcd(S(g)))
             sage: p.gcd(q)
@@ -4954,7 +4925,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return len(self.exponents()) == 1 and self.leading_coefficient() == 1
 
-    cpdef bint is_term(self):
+    cpdef bint is_term(self) except -1:
         """
         Return ``True`` if this polynomial is a nonzero element of the
         base ring times a power of the variable.
@@ -5890,11 +5861,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         ALGORITHM:
 
-        See Section 4 of Man & Wright [ManWright1994]_.
-
-        .. [ManWright1994] Yiu-Kwong Man and Francis J. Wright.
-           *Fast Polynomial Dispersion Computation and its Application to
-           Indefinite Summation*. ISSAC 1994.
+        See Section 4 of Man & Wright [MW1994]_.
 
         .. SEEALSO:: :meth:`dispersion`
 
@@ -6306,13 +6273,20 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: A.<a,b,c> = Frac(PolynomialRing(QQ,'a,b,c'))
             sage: B.<d,e,f> = PolynomialRing(A,'d,e,f')
-            sage: R.<x>= PolynomialRing(B,'x')
+            sage: R.<x> = PolynomialRing(B,'x')
             sage: S.<y> = PolynomialRing(R,'y')
             sage: p = ((1/b^2*d^2+1/a)*x*y^2+a*b/c*y+e+x^2)
             sage: q = -4*c^2*y^3+1
             sage: p.resultant(q)
             16*c^4*x^6 + 48*c^4*e*x^4 + (1/b^6*d^6 + 3/(a*b^4)*d^4 + ((-12*a^3*b*c + 3)/(a^2*b^2))*d^2 + (-12*a^3*b*c + 1)/a^3)*x^3 + 48*c^4*e^2*x^2 + (((-12*a*c)/b)*d^2*e + (-12*b*c)*e)*x + 16*c^4*e^3 + 4*a^3*b^3/c
 
+        Test for :trac:`10978`::
+
+            sage: R.<x> = PolynomialRing(CDF)
+            sage: f = R(1 - I*x + (0.5)*x^2 + (1.7)*x^3)
+            sage: g = f.derivative()
+            sage: f.resultant(g)
+            133.92599999999996 + 37.56999999999999*I
         """
         variable = self.variable_name()
         try:
@@ -6362,14 +6336,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         The computation is straightforward using resultants. Indeed for the
         composed sum it would be `Res_y(p1(x-y), p2(y))`. However, the method
-        from [BFSS]_ using series expansions is asymptotically much faster.
+        from [BFSS2006]_ using series expansions is asymptotically much faster.
 
         Note that the algorithm ``BFSS`` with polynomials with coefficients in
         `\ZZ` needs to perform operations over `\QQ`.
 
         .. TODO::
 
-           - The [BFSS]_ algorithm has been implemented here only in the case of
+           - The [BFSS2006]_ algorithm has been implemented here only in the case of
              polynomials over rationals. For other rings of zero characteristic
              (or if the characteristic is larger than the product of the degrees),
              one needs to implement a generic method ``_exp_series``. In the
@@ -6377,7 +6351,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
              algorithm in the same paper.
 
            - The Newton series computation can be done much more efficiently!
-             See [BFSS]_.
+             See [BFSS2006]_.
 
         EXAMPLES::
 
@@ -6447,12 +6421,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             ....:         pr = p1.composed_op(p2, op, "resultant", monic=monic)
             ....:         pb = p1.composed_op(p2, op, "BFSS", monic=monic)
             ....:         assert ((pr == pb) or ((not monic) and pr == -pb) and (parent(pr) is parent(pb)))
-
-        REFERENCES:
-
-        .. [BFSS] \A. Bostan, P. Flajolet, B. Salvy and E. Schost,
-           *Fast Computation of special resultants*,
-           Journal of Symbolic Computation 41 (2006), 1-29
         """
         cdef long j
         cdef long prec
@@ -7139,7 +7107,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.roots(SR, multiplicities=False)
             [-I*sqrt(2), I*sqrt(2)]
 
-        The roots of some polynomials can't be described using radical
+        The roots of some polynomials cannot be described using radical
         expressions::
 
             sage: (x^5 - x + 1).roots(SR)
@@ -7147,7 +7115,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         For some other polynomials, no roots can be found at the moment
         due to the way roots are computed. :trac:`17516` addresses
-        these defecits. Until that gets implemented, one such example
+        these defects. Until that gets implemented, one such example
         is the following::
 
             sage: f = x^6-300*x^5+30361*x^4-1061610*x^3+1141893*x^2-915320*x+101724
@@ -9273,7 +9241,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         ALGORITHM:
 
         The native algorithm implemented in Sage uses the first
-        algorithm of [BD89]_. The algorithm in pari (using
+        algorithm of [BD1989]_. The algorithm in pari (using
         :pari:`poliscyclo`) is more subtle since it does compute the
         inverse of the Euler `\phi` function to determine the `n` such
         that the polynomial is the `n`-th cyclotomic polynomial.
@@ -9358,12 +9326,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: x = polygen(QQ)
             sage: (x-1).is_cyclotomic(certificate=True)
             1
-
-        REFERENCES:
-
-        .. [BD89] \R. J. Bradford and J. H. Davenport, Effective tests
-           for cyclotomic polynomials, Symbolic and Algebraic Computation (1989)
-           pp. 244 -- 251, :doi:`10.1007/3-540-51084-2_22`
         """
         S = self.base_ring()
         if S.characteristic() != 0:
@@ -10655,7 +10617,7 @@ cdef class Polynomial_generic_dense(Polynomial):
     def __nonzero__(self):
         return bool(self.__coeffs)
 
-    cpdef bint is_term(self):
+    cpdef bint is_term(self) except -1:
         """
         Return ``True`` if this polynomial is a nonzero element of the
         base ring times a power of the variable.

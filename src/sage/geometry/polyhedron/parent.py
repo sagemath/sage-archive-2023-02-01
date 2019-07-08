@@ -14,11 +14,11 @@ from sage.structure.parent import Parent
 from sage.structure.element import get_coercion_model
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.modules.free_module import is_FreeModule
-from sage.misc.cachefunc import cached_method
+from sage.misc.cachefunc import cached_method, cached_function
 from sage.rings.all import ZZ, QQ, RDF, CommutativeRing
 from sage.categories.fields import Fields
 
-from sage.geometry.polyhedron.base import Polyhedron_base, is_Polyhedron
+from sage.geometry.polyhedron.base import is_Polyhedron
 from .representation import Inequality, Equation, Vertex, Ray, Line
 
 
@@ -408,7 +408,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             'QQ^3'
             sage: K.<sqrt3> = NumberField(x^2 - 3, embedding=AA(3).sqrt())
             sage: Polyhedra(K, 4)._repr_ambient_module()
-            '(Number Field in sqrt3 with defining polynomial x^2 - 3)^4'
+            '(Number Field in sqrt3 with defining polynomial x^2 - 3 with sqrt3 = 1.732050807568878?)^4'
         """
         from sage.rings.qqbar import AA
         if self.base_ring() is ZZ:
@@ -543,7 +543,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
         Hrep = [polyhedron.inequality_generator(), polyhedron.equation_generator()]
         return self._element_constructor_(Vrep, Hrep, **kwds)
 
-    def base_extend(self, base_ring, backend=None):
+    def base_extend(self, base_ring, backend=None, ambient_dim=None):
         """
         Return the base extended parent.
 
@@ -551,6 +551,8 @@ class Polyhedra_base(UniqueRepresentation, Parent):
 
         - ``base_ring``, ``backend`` -- see
           :func:`~sage.geometry.polyhedron.constructor.Polyhedron`.
+        - ``ambient_dim`` -- if not ``None`` change ambient dimension
+          accordingly.
 
         EXAMPLES::
 
@@ -559,6 +561,8 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             Polyhedra in QQ^3
             sage: Polyhedra(ZZ,3).an_element().base_extend(QQ)
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 4 vertices
+            sage: Polyhedra(QQ, 2).base_extend(ZZ)
+            Polyhedra in QQ^2
 
         TESTS:
 
@@ -567,13 +571,53 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             sage: P = Polyhedra(ZZ,3).base_extend(QQ, backend='field')
             sage: P.backend()
             'field'
-
         """
-        if (self.base_ring().has_coerce_map_from(base_ring)
-            and (backend is None or self.backend() == backend)):
+        if self.base_ring().has_coerce_map_from(base_ring):
+            new_ring = self.base_ring()
+        else:
+            new_ring = self._coerce_base_ring(base_ring)
+
+        return self.change_ring(new_ring, backend=backend, ambient_dim=ambient_dim)
+
+    def change_ring(self, base_ring, backend=None, ambient_dim=None):
+        """
+        Return the parent with the new base ring.
+
+        INPUT:
+
+        - ``base_ring``, ``backend`` -- see
+          :func:`~sage.geometry.polyhedron.constructor.Polyhedron`.
+        - ``ambient_dim`` -- if not ``None`` change ambient dimension
+          accordingly.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.parent import Polyhedra
+            sage: Polyhedra(ZZ,3).change_ring(QQ)
+            Polyhedra in QQ^3
+            sage: Polyhedra(ZZ,3).an_element().change_ring(QQ)
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 4 vertices
+
+            sage: Polyhedra(RDF, 3).change_ring(QQ).backend()
+            'cdd'
+            sage: Polyhedra(QQ, 3).change_ring(ZZ, ambient_dim=4)
+            Polyhedra in ZZ^4
+            sage: Polyhedra(QQ, 3, backend='cdd').change_ring(QQ, ambient_dim=4).backend()
+            'cdd'
+        """
+        if ambient_dim is None:
+            ambient_dim = self.ambient_dim()
+
+        if base_ring == self.base_ring() and \
+                ambient_dim == self.ambient_dim() and \
+                (backend is None or backend == self.backend()):
             return self
-        elif base_ring.has_coerce_map_from(self.base_ring()):
-            return Polyhedra(base_ring, self.ambient_dim(), backend=backend)
+
+        # if not specified try the same backend
+        if backend is None and does_backend_handle_base_ring(base_ring, self.backend()):
+            return Polyhedra(base_ring, ambient_dim, backend=self.backend())
+
+        return Polyhedra(base_ring, ambient_dim, backend=backend)
 
     def _coerce_base_ring(self, other):
         r"""
@@ -912,7 +956,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
 
 from sage.geometry.polyhedron.backend_cdd import Polyhedron_QQ_cdd, Polyhedron_RDF_cdd
 from sage.geometry.polyhedron.backend_ppl import Polyhedron_ZZ_ppl, Polyhedron_QQ_ppl
-from sage.geometry.polyhedron.backend_normaliz import Polyhedron_ZZ_normaliz, Polyhedron_QQ_normaliz
+from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz, Polyhedron_ZZ_normaliz, Polyhedron_QQ_normaliz
 from sage.geometry.polyhedron.backend_polymake import Polyhedron_polymake
 from sage.geometry.polyhedron.backend_field import Polyhedron_field
 
@@ -933,6 +977,9 @@ class Polyhedra_QQ_cdd(Polyhedra_base):
 
 class Polyhedra_RDF_cdd(Polyhedra_base):
     Element = Polyhedron_RDF_cdd
+
+class Polyhedra_normaliz(Polyhedra_base):
+    Element = Polyhedron_normaliz
 
 class Polyhedra_polymake(Polyhedra_base):
     Element = Polyhedron_polymake
@@ -959,3 +1006,24 @@ class Polyhedra_field(Polyhedra_base):
         Hrep = [polyhedron.inequality_generator(), polyhedron.equation_generator()]
         return self._element_constructor_(Vrep, Hrep,
                                           Vrep_minimal=True, Hrep_minimal=True, **kwds)
+
+@cached_function
+def does_backend_handle_base_ring(base_ring, backend):
+    r"""
+    Return true, if ``backend`` can handle ``base_ring``.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.polyhedron.parent import does_backend_handle_base_ring
+        sage: does_backend_handle_base_ring(QQ, 'ppl')
+        True
+        sage: does_backend_handle_base_ring(QQ[sqrt(5)], 'ppl')
+        False
+        sage: does_backend_handle_base_ring(QQ[sqrt(5)], 'field')
+        True
+    """
+    try:
+        Polyhedra(base_ring, 0, backend)
+    except ValueError:
+        return False
+    return True

@@ -174,7 +174,7 @@ cimport sage.symbolic.comparison
 from sage.rings.rational import Rational
 from sage.misc.derivative import multi_derivative
 from sage.misc.decorators import sage_wraps
-from sage.misc.superseded import deprecated_function_alias, deprecation
+from sage.misc.superseded import deprecation
 from sage.rings.infinity import AnInfinity, infinity, minus_infinity, unsigned_infinity
 from sage.misc.decorators import rename_keyword
 from sage.structure.dynamic_class import dynamic_class
@@ -1662,8 +1662,8 @@ cdef class Expression(CommutativeRingElement):
             False
             sage: (x - 1 < 0) in [x - 2 < 0]
             False
-            sage: Set([-x + y < 0, x - y < 0])
-            {-x + y < 0, x - y < 0}
+            sage: len(Set([-x + y < 0, x - y < 0]))
+            2
             sage: (x < y) == (x > y)
             False
             sage: (x < 0) < (x < 1)
@@ -2005,6 +2005,34 @@ cdef class Expression(CommutativeRingElement):
         except (TypeError, ValueError, NotImplementedError):
             return False
         return True
+
+    def is_rational_expression(self):
+        """
+        Return True if this expression if a rational expression, i.e.,
+        a quotient of polynomials.
+
+        EXAMPLES::
+
+            sage: var('x y z')
+            (x, y, z)
+            sage: ((x + y + z)/(1 + x^2)).is_rational_expression()
+            True
+            sage: ((1 + x + y)^10).is_rational_expression()
+            True
+            sage: ((1/x + z)^5 - 1).is_rational_expression()
+            True
+            sage: (1/(x + y)).is_rational_expression()
+            True
+            sage: (exp(x) + 1).is_rational_expression()
+            False
+            sage: (sin(x*y) + z^3).is_rational_expression()
+            False
+            sage: (exp(x) + exp(-x)).is_rational_expression()
+            False
+        """
+        return all(part.is_polynomial(v)
+                   for part in (self.numerator(), self.denominator())
+                   for v in part.variables())
 
     def is_real(self):
         """
@@ -2690,9 +2718,9 @@ cdef class Expression(CommutativeRingElement):
 
             sage: x = var('x')
             sage: forget()
-            sage: SR(0).__nonzero__()
+            sage: bool(SR(0))
             False
-            sage: SR(1).__nonzero__()
+            sage: bool(SR(1))
             True
             sage: assert(abs(x))
             sage: assert(not x/x - 1)
@@ -2892,6 +2920,7 @@ cdef class Expression(CommutativeRingElement):
             return False
         else:
             return not bool(self == self._parent.zero())
+
 
     def test_relation(self, int ntests=20, domain=None, proof=True):
         """
@@ -3986,7 +4015,8 @@ cdef class Expression(CommutativeRingElement):
 
         Check that :trac:`23921` is resolved::
 
-            sage: A.<n> = AsymptoticRing('SR^n * n^SR', SR)
+            sage: assume(SR.an_element() > 0)
+            sage: A.<n> = AsymptoticRing('(SR_+)^n * n^SR', SR)
             sage: elem = SR(2)^n
             sage: (elem, elem.parent())
             (2^n, Asymptotic Ring <SR^n * n^SR> over Symbolic Ring)
@@ -4103,7 +4133,7 @@ cdef class Expression(CommutativeRingElement):
             sage: g = derivative(f, x); g # this is a complex expression
             -1/2*((x^2 + 1)*x/(x^2 - 1)^2 - x/(x^2 - 1))/((x^2 + 1)/(x^2 - 1))^(3/4)
             sage: g.factor()
-            -x/((x + 1)^2*(x - 1)^2*((x^2 + 1)/((x + 1)*(x - 1)))^(3/4))
+            -x/((x + 1)^2*(x - 1)^2*((x^2 + 1)/(x^2 - 1))^(3/4))
 
         ::
 
@@ -5232,28 +5262,24 @@ cdef class Expression(CommutativeRingElement):
             sage: u.subs(x=-1)
             Infinity
 
-        Check that the deprecated method ``subs_expr`` works as expected (see
-        :trac:`12834`)::
+        More checks for ``subs``::
 
             sage: var('x,y,z'); f = x^3 + y^2 + z
             (x, y, z)
-            sage: f.subs_expr(x^3 == y^2, z == 1)
-            doctest:...: DeprecationWarning: subs_expr is deprecated. Please use
-            substitute instead.
-            See http://trac.sagemath.org/12834 for details.
+            sage: f.subs(x^3 == y^2, z == 1)
             2*y^2 + 1
-            sage: f.subs_expr({x^3:y^2, z:1})
+            sage: f.subs({x^3:y^2, z:1})
             2*y^2 + 1
             sage: f = x^2 + x^4
-            sage: f.subs_expr(x^2 == x)
+            sage: f.subs(x^2 == x)
             x^4 + x
             sage: f = cos(x^2) + sin(x^2)
-            sage: f.subs_expr(x^2 == x)
+            sage: f.subs(x^2 == x)
             cos(x) + sin(x)
             sage: f(x,y,t) = cos(x) + sin(y) + x^2 + y^2 + t
-            sage: f.subs_expr(y^2 == t)
+            sage: f.subs(y^2 == t)
             (x, y, t) |--> x^2 + 2*t + cos(x) + sin(y)
-            sage: f.subs_expr(x^2 + y^2 == t)
+            sage: f.subs(x^2 + y^2 == t)
             (x, y, t) |--> x^2 + y^2 + t + cos(x) + sin(y)
 
         Check that inverses in sums are recognized::
@@ -5343,9 +5369,6 @@ cdef class Expression(CommutativeRingElement):
         finally:
             sig_off()
         return new_Expression_from_GEx(self._parent, res)
-
-    substitute_expression = deprecated_function_alias(12834, substitute)
-    subs_expr = deprecated_function_alias(12834, subs)
 
     def substitute_function(self, original, new):
         """
@@ -5808,10 +5831,14 @@ cdef class Expression(CommutativeRingElement):
 
         Indexing directly with ``t[1]`` causes problems with numpy types.
 
-            sage: t[1]
+            sage: t[1] # py2
             Traceback (most recent call last):
             ...
             TypeError: 'sage.symbolic.expression.Expression' object does not support indexing
+            sage: t[1] # py3
+            Traceback (most recent call last):
+            ...
+            TypeError: 'sage.symbolic.expression.Expression' object is not subscriptable
         """
         if (is_a_symbol(self._gobj) or is_a_constant(self._gobj) or
             is_a_numeric(self._gobj)):
@@ -6233,13 +6260,6 @@ cdef class Expression(CommutativeRingElement):
             ...
             TypeError: n != 1 only allowed for s being a variable
 
-        Using ``coeff()`` is now deprecated (:trac:`17438`)::
-
-            sage: x.coeff(x)
-            doctest:...: DeprecationWarning: coeff is deprecated. Please use coefficient instead.
-            See http://trac.sagemath.org/17438 for details.
-            1
-
         Check that :trac:`19996` is fixed::
 
             sage: (x^(1/2)).coefficient(x, QQ(1)/3)
@@ -6265,8 +6285,6 @@ cdef class Expression(CommutativeRingElement):
         finally:
             sig_off()
         return new_Expression_from_GEx(self._parent, r)
-
-    coeff = deprecated_function_alias(17438, coefficient)
 
     def coefficients(self, x=None, sparse=True):
         r"""
@@ -6317,19 +6335,12 @@ cdef class Expression(CommutativeRingElement):
 
             sage: p = (17/3*a)*x^(3/2) + x*y + 1/x + 2*x^x + 5*x^y
             sage: rset = set([(1, -1), (y, 1), (17/3*a, 3/2), (2, x), (5, y)])
-            sage: all([(pair[0],pair[1]) in rset for pair in p.coefficients(x)])
+            sage: all((pair[0],pair[1]) in rset for pair in p.coefficients(x))
             True
             sage: p.coefficients(x, sparse=False)
             Traceback (most recent call last):
             ...
             ValueError: Cannot return dense coefficient list with noninteger exponents.
-
-        Using ``coeffs()`` is now deprecated (:trac:`17438`)::
-
-            sage: x.coeffs()
-            doctest:...: DeprecationWarning: coeffs is deprecated. Please use coefficients instead.
-            See http://trac.sagemath.org/17438 for details.
-            [[1, 1]]
 
         Series coefficients are now handled correctly (:trac:`17399`)::
 
@@ -6402,8 +6413,6 @@ cdef class Expression(CommutativeRingElement):
             for c in l:
                 ret[c[1]] = c[0]
             return ret
-
-    coeffs = deprecated_function_alias(17438, coefficients)
 
     def list(self, x=None):
         r"""
@@ -8111,7 +8120,6 @@ cdef class Expression(CommutativeRingElement):
             sage: cos(SR(RealField(150)(1)))
             0.54030230586813971740093660744297660373231042
 
-
         In order to get a numeric approximation use .n()::
 
             sage: SR(RR(1)).cos().n()
@@ -8403,7 +8411,7 @@ cdef class Expression(CommutativeRingElement):
             sage: float(SR(0.7).arctan2(0.6))
             0.8621700546672264
             sage: maxima('atan2(0.7,0.6)')
-            0.8621700546672264
+            0.862170054667226...
             sage: float(SR(0.7).arctan2(-0.6))
             2.279422598922567
             sage: maxima('atan2(0.7,-0.6)')
@@ -8411,7 +8419,7 @@ cdef class Expression(CommutativeRingElement):
             sage: float(SR(-0.7).arctan2(0.6))
             -0.8621700546672264
             sage: maxima('atan2(-0.7,0.6)')
-            -0.8621700546672264
+            -0.862170054667226...
             sage: float(SR(-0.7).arctan2(-0.6))
             -2.279422598922567
             sage: maxima('atan2(-0.7,-0.6)')
@@ -10644,43 +10652,11 @@ cdef class Expression(CommutativeRingElement):
             a^2 + b^2
             sage: imag(A.canonicalize_radical())
             0
-
-        Ensure that deprecation warnings are thrown for the old
-        "simplify" aliases::
-
-            sage: x.simplify_radical()
-            doctest...: DeprecationWarning: simplify_radical is deprecated. Please use canonicalize_radical instead.
-            See http://trac.sagemath.org/11912 for details.
-            x
-            sage: x.radical_simplify()
-            doctest...: DeprecationWarning: radical_simplify is deprecated. Please use canonicalize_radical instead.
-            See http://trac.sagemath.org/11912 for details.
-            x
-            sage: x.simplify_exp()
-            doctest...: DeprecationWarning: simplify_exp is deprecated. Please use canonicalize_radical instead.
-            See http://trac.sagemath.org/11912 for details.
-            x
-            sage: x.exp_simplify()
-            doctest...: DeprecationWarning: exp_simplify is deprecated. Please use canonicalize_radical instead.
-            See http://trac.sagemath.org/11912 for details.
-            x
-
         """
         from sage.calculus.calculus import maxima
-        res = self.parent()(self._maxima_().radcan())
-        return res
+        return self.parent()(self._maxima_().radcan())
 
-    # Repeat the deprecated_function_alias() call so that each use of
-    # an alias below will throw a new warning. If we set
-    # e.g. radical_simplify = simplify_radical, we'd only get one
-    # warning from a use of simplify_radical followed by a use of
-    # radical_simplify.
-    simplify_radical = deprecated_function_alias(11912, canonicalize_radical)
-    radical_simplify = deprecated_function_alias(11912, canonicalize_radical)
-    simplify_exp = deprecated_function_alias(11912, canonicalize_radical)
-    exp_simplify = deprecated_function_alias(11912, canonicalize_radical)
-
-    def simplify_log(self,algorithm=None):
+    def simplify_log(self, algorithm=None):
         r"""
         Simplify a (real) symbolic expression that contains logarithms.
 
@@ -11116,11 +11092,22 @@ cdef class Expression(CommutativeRingElement):
             sage: f(x) = function('f')(x)
             sage: (f(x).diff(x)^2-1).factor()
             (diff(f(x), x) + 1)*(diff(f(x), x) - 1)
+
+        Check that :trac:`27304` is fixed::
+
+            sage: factor(2*exp(x) + exp(-x))
+            (2*e^(2*x) + 1)*e^(-x)
+            sage: factor(x*exp(-x) + exp(-x))
+            (x + 1)*e^(-x)
+            sage: factor(x + sqrt(x))
+            x + sqrt(x)
+            sage: factor((x + sqrt(x))/(x - sqrt(x)))
+            (x + sqrt(x))/(x - sqrt(x))
         """
         from sage.calculus.calculus import symbolic_expression_from_maxima_string
         cdef GEx x
         cdef bint b
-        if dontfactor:
+        if dontfactor or not self.is_rational_expression():
             m = self._maxima_()
             name = m.name()
             varstr = ','.join(['_SAGE_VAR_' + str(v) for v in dontfactor])

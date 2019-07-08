@@ -114,7 +114,7 @@ Make sure we don't have a new field for every new literal::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from __future__ import absolute_import, print_function
@@ -168,9 +168,8 @@ from sage.structure.parent_gens cimport ParentWithGens
 from sage.arith.numerical_approx cimport digits_to_bits
 from sage.arith.constants cimport M_LN2_LN10
 
-IF HAVE_GMPY2:
-    cimport gmpy2
-    gmpy2.import_gmpy2()
+cimport gmpy2
+gmpy2.import_gmpy2()
 
 
 #*****************************************************************************
@@ -1379,12 +1378,12 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         Conversion from gmpy2 numbers::
 
-            sage: from gmpy2 import *  # optional - gmpy2
-            sage: RR(mpz(5))           # optional - gmpy2
+            sage: from gmpy2 import *
+            sage: RR(mpz(5))
             5.00000000000000
-            sage: RR(mpq(1/2))         # optional - gmpy2
+            sage: RR(mpq(1/2))
             0.500000000000000
-            sage: RR(mpfr('42.1'))     # optional - gmpy2
+            sage: RR(mpfr('42.1'))
             42.1000000000000
 
         .. NOTE::
@@ -1477,11 +1476,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
             mpfr_set_d(self.value, x.real, parent.rnd)
         elif isinstance(x, RealDoubleElement):
             mpfr_set_d(self.value, (<RealDoubleElement>x)._value, parent.rnd)
-        elif HAVE_GMPY2 and type(x) is gmpy2.mpfr:
+        elif type(x) is gmpy2.mpfr:
             mpfr_set(self.value, (<gmpy2.mpfr>x).f, parent.rnd)
-        elif HAVE_GMPY2 and type(x) is gmpy2.mpq:
+        elif type(x) is gmpy2.mpq:
             mpfr_set_q(self.value, (<gmpy2.mpq>x).q, parent.rnd)
-        elif HAVE_GMPY2 and type(x) is gmpy2.mpz:
+        elif type(x) is gmpy2.mpz:
             mpfr_set_z(self.value, (<gmpy2.mpz>x).z, parent.rnd)
         else:
             s = str(x).replace(' ','')
@@ -3790,40 +3789,30 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES::
 
             sage: r = RR(4.12)
-            sage: r.__mpfr__()            # optional - gmpy2
+            sage: r.__mpfr__()
             mpfr('4.1200000000000001')
-            sage: from gmpy2 import mpfr  # optional - gmpy2
-            sage: mpfr(RR(4.5))           # optional - gmpy2
+            sage: from gmpy2 import mpfr
+            sage: mpfr(RR(4.5))
             mpfr('4.5')
             sage: R = RealField(127)
-            sage: mpfr(R.pi()).precision  # optional - gmpy2
+            sage: mpfr(R.pi()).precision
             127
             sage: R = RealField(42)
-            sage: mpfr(R.pi()).precision  # optional - gmpy2
+            sage: mpfr(R.pi()).precision
             42
             sage: R = RealField(256)
-            sage: x = mpfr(R.pi())        # optional - gmpy2
-            sage: x.precision             # optional - gmpy2
+            sage: x = mpfr(R.pi())
+            sage: x.precision
             256
-            sage: y = R(x)                # optional - gmpy2
-            sage: mpfr(y) == x            # optional - gmpy2
+            sage: y = R(x)
+            sage: mpfr(y) == x
             True
-            sage: x = mpfr('2.567e42', precision=128)   # optional - gmpy2
-            sage: y = RealField(128)(x)   # optional - gmpy2
-            sage: mpfr(y) == x            # optional - gmpy2
+            sage: x = mpfr('2.567e42', precision=128)
+            sage: y = RealField(128)(x)
+            sage: mpfr(y) == x
             True
-
-        TESTS::
-
-            sage: r.__mpfr__(); raise NotImplementedError("gmpy2 is not installed")
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: gmpy2 is not installed
         """
-        IF HAVE_GMPY2:
-            return gmpy2.GMPy_MPFR_From_mpfr(self.value)
-        ELSE:
-            raise NotImplementedError("gmpy2 is not installed")
+        return gmpy2.GMPy_MPFR_From_mpfr(self.value)
 
     ###########################################
     # Comparisons: ==, !=, <, <=, >, >=
@@ -5621,7 +5610,7 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
 
     - ``base`` -- an integer between 2 and 62
 
-    - ``pad`` -- an integer = 0.
+    - ``pad`` -- an integer >= 0.
 
     - ``rnd`` -- rounding mode:
 
@@ -5732,7 +5721,7 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
         else:
             bits = int(math.log(base,2)*1.00001*sigfigs)+1
 
-        R = RealField(prec=max(bits+pad, min_prec), rnd=rnd)
+        R = RealField(prec=max(bits + pad, min_prec), rnd=rnd)
 
     return RealLiteral(R, s, base)
 

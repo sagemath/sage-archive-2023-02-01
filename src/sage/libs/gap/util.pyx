@@ -14,19 +14,16 @@ Utility functions for GAP
 
 from __future__ import print_function, absolute_import
 
-import os
-import signal
-import warnings
-
-from libc.string cimport strcpy, strlen
+from libc.signal cimport signal, SIGCHLD, SIG_DFL
+from posix.dlfcn cimport dlopen, dlclose, RTLD_NOW, RTLD_GLOBAL
 
 from cpython.exc cimport PyErr_Fetch, PyErr_Restore
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 from cpython.ref cimport PyObject, Py_XINCREF, Py_XDECREF
-from cysignals.memory cimport sig_malloc
-from cysignals.pysignals import containsignals
-from cysignals.signals cimport sig_on, sig_off, sig_error
+from cysignals.signals cimport sig_on, sig_off
 
+import os
+import warnings
 import sage.env
 
 from .gap_includes cimport *
@@ -105,7 +102,7 @@ cdef class ObjWrapper(object):
             sage: hash(x)
             0
         """
-        return <int>(self.value)
+        return <Py_hash_t>(self.value)
 
 
 cdef ObjWrapper wrap_obj(Obj obj):
@@ -197,7 +194,6 @@ def gap_root():
 
 # To ensure that we call initialize_libgap only once.
 cdef bint _gap_is_initialized = False
-cdef extern char **environ
 
 
 cdef char* _reset_error_output_cmd = """\
@@ -216,33 +212,6 @@ MakeImmutable(libgap_errout);
 """
 
 
-cdef char** copy_environ(char** env):
-    """
-    Make a copy of the environment block given by ``env``.
-
-    Returns a pointer to the copy, which is the caller's responsibility to
-    free.
-    """
-
-    cdef char** env_copy
-    cdef int envc = 0;
-    cdef int idx
-    cdef size_t size
-
-    while env[envc]:
-        envc += 1
-
-    env_copy = <char**>sig_malloc((envc + 1) * sizeof(char*))
-
-    for idx in range(envc):
-        size = strlen(env[idx]) + 1
-        env_copy[idx] = <char*>sig_malloc(size)
-        strcpy(env_copy[idx], env[idx])
-
-    env_copy[envc] = NULL
-    return env_copy
-
-
 cdef initialize():
     """
     Initialize the GAP library, if it hasn't already been
@@ -253,13 +222,24 @@ cdef initialize():
         sage: libgap(123)   # indirect doctest
         123
     """
-    global _gap_is_initialized, environ
+    global _gap_is_initialized
     if _gap_is_initialized: return
+    # Hack to ensure that all symbols provided by libgap are loaded into the
+    # global symbol table
+    # Note: we could use RTLD_NOLOAD and avoid the subsequent dlclose() but
+    # this isn't portable
+    cdef void* handle
+    libgapname = str_to_bytes(sage.env.GAP_SO)
+    handle = dlopen(libgapname, RTLD_NOW | RTLD_GLOBAL)
+    if handle is NULL:
+        raise RuntimeError(
+                "Could not dlopen() libgap even though it should already "
+                "be loaded!")
+    dlclose(handle)
 
-    # Define argv and environ variables, which we will pass in to
+    # Define argv variable, which we will pass in to
     # initialize GAP. Note that we must pass define the memory pool
     # size!
-    cdef char** env
     cdef char* argv[18]
     argv[0] = "sage"
     argv[1] = "-l"
@@ -306,21 +286,15 @@ cdef initialize():
 
     argv[argc] = NULL
 
-    env = copy_environ(environ)
+    sig_on()
+    # Initialize GAP but disable their SIGINT handler
+    GAP_Initialize(argc, argv, gasman_callback, error_handler,
+                   handleSignals=False)
+    sig_off()
 
-    # Need to save/restore current SIGINT handling since GAP_Initialize
-    # currently clobbers it; it doesn't matter what we set SIGINT to
-    # temporarily.
-    with containsignals():
-        sig_on()
-        try:
-            # Initialize GAP and capture any error messages. The
-            # initialization just prints any errors and does not
-            # use the error handler.
-            GAP_Initialize(argc, argv, env, &gasman_callback,
-                           &error_handler)
-        finally:
-            sig_off()
+    # Disable GAP's SIGCHLD handler ChildStatusChanged(), which calls
+    # waitpid() on random child processes.
+    signal(SIGCHLD, SIG_DFL)
 
     # Set the ERROR_OUTPUT global in GAP to an output stream in which to
     # receive error output

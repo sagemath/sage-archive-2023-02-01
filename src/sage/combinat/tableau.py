@@ -3638,7 +3638,15 @@ class Tableau(ClonableList):
             True
             sage: t.right_key_tableau() == t
             True
+
+        We check that the empty tableau, which is a key tableau, yields itself::
+
+            sage: Tableau([]).right_key_tableau()
+            []
+
         """
+        if not self:
+            return self
         cols_list = self.conjugate()
         key = [[] for row in cols_list]
 
@@ -3699,7 +3707,15 @@ class Tableau(ClonableList):
             True
             sage: t.left_key_tableau() == t
             True
+
+        We check that the empty tableau, which is a key tableau, yields itself::
+
+            sage: Tableau([]).left_key_tableau()
+            []
+
         """
+        if not self:
+            return self
         cols_list = self.conjugate()
         key = [[] for row in cols_list]
         key[0] = list(cols_list[0])
@@ -7265,7 +7281,7 @@ class RowStandardTableaux_size(RowStandardTableaux, DisjointUnionEnumeratedSets)
         10
         sage: ns = [1,2,3,4,5,6]
         sage: sts = [RowStandardTableaux(n) for n in ns]
-        sage: all([st.cardinality() == len(st.list()) for st in sts])
+        sage: all(st.cardinality() == len(st.list()) for st in sts)
         True
         sage: RowStandardTableaux(40).cardinality()  # long time
         2063837185739279909309355007659204891024472174278
@@ -7305,7 +7321,7 @@ class RowStandardTableaux_size(RowStandardTableaux, DisjointUnionEnumeratedSets)
         TESTS::
 
             sage: ST3 = RowStandardTableaux(3)
-            sage: all([st in ST3 for st in ST3])
+            sage: all(st in ST3 for st in ST3)
             True
             sage: ST4 = RowStandardTableaux(4)
             sage: [x for x in ST4 if x in ST3]
@@ -7359,7 +7375,7 @@ class RowStandardTableaux_shape(RowStandardTableaux):
         EXAMPLES::
 
             sage: ST = RowStandardTableaux([2,1,1])
-            sage: all([st in ST for st in ST])
+            sage: all(st in ST for st in ST)
             True
             sage: len([x for x in RowStandardTableaux(4) if x in ST])
             12
@@ -9406,9 +9422,3 @@ register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_n',  S
 register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_p',  SemistandardTableaux_shape)
 register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_nmu',  SemistandardTableaux_size_weight)
 register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_pmu',  SemistandardTableaux_shape_weight)
-
-
-# Deprecations from trac:18555. July 2016
-from sage.misc.superseded import deprecated_function_alias
-Tableaux.global_options=deprecated_function_alias(18555, Tableaux.options)
-

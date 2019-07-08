@@ -50,7 +50,7 @@ Here is what the module can do:
 
     :meth:`bridges` | Returns a list of the bridges (or cut edges) of given undirected graph.
     :meth:`cleave` | Return the connected subgraphs separated by the input vertex cut.
-    :meth:`is_triconnected` | Check whether the ``Graph`` is triconnected.
+    :meth:`is_triconnected` | Check whether the graph is triconnected.
     :meth:`spqr_tree` | Return a SPQR-tree representing the triconnected components of the graph.
     :meth:`spqr_tree_to_graph` | Return the graph represented by the SPQR-tree `T`.
 
@@ -4176,7 +4176,7 @@ cdef class TriconnectivitySPQR:
 
 def is_triconnected(G):
     r"""
-    Check whether the ``Graph`` is triconnected.
+    Check whether the graph is triconnected.
 
     A triconnected graph is a connected graph on 3 or more vertices that is not
     broken into disconnected pieces by deleting any pair of vertices.
@@ -4232,7 +4232,7 @@ def is_triconnected(G):
 
     try:
         T = G.spqr_tree()
-    except:
+    except ValueError:
         # The graph is not biconnected
         return False
 

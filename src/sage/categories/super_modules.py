@@ -21,6 +21,7 @@ from sage.categories.modules import Modules
 axiom_whitelist = frozenset(["Facade", "Finite", "Infinite",
                              "FiniteDimensional", "Connected", "WithBasis",
                              # "Commutative",
+                             "Supercommutative",
                              "Associative", "Inverse", "Unital", "Division",
                              "AdditiveCommutative", "AdditiveAssociative",
                              "AdditiveInverse", "AdditiveUnital",

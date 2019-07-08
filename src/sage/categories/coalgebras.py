@@ -48,6 +48,7 @@ class Coalgebras(Category_over_base_ring):
         return [Modules(self.base_ring())]
 
     WithBasis = LazyImport('sage.categories.coalgebras_with_basis',  'CoalgebrasWithBasis')
+    Graded = LazyImport('sage.categories.graded_coalgebras', 'GradedCoalgebras')
 
     class ParentMethods:
         #def __init_add__(self): # The analogue of initDomainAdd
@@ -57,7 +58,7 @@ class Coalgebras(Category_over_base_ring):
         @abstract_method
         def counit(self, x):
             """
-            Returns the counit of x.
+            Return the counit of ``x``.
 
             Eventually, there will be a default implementation,
             delegating to the overloading mechanism and forcing the
@@ -66,7 +67,8 @@ class Coalgebras(Category_over_base_ring):
             EXAMPLES::
 
                 sage: A = HopfAlgebrasWithBasis(QQ).example(); A
-                An example of Hopf algebra with basis: the group algebra of the Dihedral group of order 6 as a permutation group over Rational Field
+                An example of Hopf algebra with basis:
+                 the group algebra of the Dihedral group of order 6 as a permutation group over Rational Field
                 sage: [a,b] = A.algebra_generators()
                 sage: a, A.counit(a)
                 (B[(1,2,3)], 1)
@@ -81,7 +83,7 @@ class Coalgebras(Category_over_base_ring):
         @abstract_method
         def coproduct(self, x):
             """
-            Returns the coproduct of x.
+            Return the coproduct of ``x``.
 
             Eventually, there will be a default implementation,
             delegating to the overloading mechanism and forcing the
@@ -90,7 +92,8 @@ class Coalgebras(Category_over_base_ring):
             EXAMPLES::
 
                 sage: A = HopfAlgebrasWithBasis(QQ).example(); A
-                An example of Hopf algebra with basis: the group algebra of the Dihedral group of order 6 as a permutation group over Rational Field
+                An example of Hopf algebra with basis:
+                 the group algebra of the Dihedral group of order 6 as a permutation group over Rational Field
                 sage: [a,b] = A.algebra_generators()
                 sage: a, A.coproduct(a)
                 (B[(1,2,3)], B[(1,2,3)] # B[(1,2,3)])
@@ -102,12 +105,13 @@ class Coalgebras(Category_over_base_ring):
     class ElementMethods:
         def coproduct(self):
             """
-            Returns the coproduct of ``self``
+            Return the coproduct of ``self``.
 
             EXAMPLES::
 
                 sage: A = HopfAlgebrasWithBasis(QQ).example(); A
-                An example of Hopf algebra with basis: the group algebra of the Dihedral group of order 6 as a permutation group over Rational Field
+                An example of Hopf algebra with basis:
+                 the group algebra of the Dihedral group of order 6 as a permutation group over Rational Field
                 sage: [a,b] = A.algebra_generators()
                 sage: a, a.coproduct()
                 (B[(1,2,3)], B[(1,2,3)] # B[(1,2,3)])
@@ -118,12 +122,13 @@ class Coalgebras(Category_over_base_ring):
 
         def counit(self):
             """
-            Returns the counit of ``self``
+            Return the counit of ``self``.
 
             EXAMPLES::
 
                 sage: A = HopfAlgebrasWithBasis(QQ).example(); A
-                An example of Hopf algebra with basis: the group algebra of the Dihedral group of order 6 as a permutation group over Rational Field
+                An example of Hopf algebra with basis:
+                 the group algebra of the Dihedral group of order 6 as a permutation group over Rational Field
                 sage: [a,b] = A.algebra_generators()
                 sage: a, a.counit()
                 (B[(1,2,3)], 1)
@@ -170,7 +175,6 @@ class Coalgebras(Category_over_base_ring):
         """
 
     class TensorProducts(TensorProductsCategory):
-
         @cached_method
         def extra_super_categories(self):
             """
@@ -210,7 +214,8 @@ class Coalgebras(Category_over_base_ring):
                 sage: C.dual()
                 Category of duals of coalgebras over Rational Field
                 sage: C.dual().super_categories() # indirect doctest
-                [Category of algebras over Rational Field, Category of duals of vector spaces over Rational Field]
+                [Category of algebras over Rational Field,
+                 Category of duals of vector spaces over Rational Field]
 
             .. WARNING::
 
@@ -226,11 +231,10 @@ class Coalgebras(Category_over_base_ring):
             EXAMPLES::
 
                 sage: Coalgebras(ZZ).Super().extra_super_categories()
-                [Join of Category of graded modules over Integer Ring
-                    and Category of coalgebras over Integer Ring]
+                [Category of graded coalgebras over Integer Ring]
                 sage: Coalgebras(ZZ).Super().super_categories()
-                [Category of super modules over Integer Ring,
-                 Category of coalgebras over Integer Ring]
+                [Category of graded coalgebras over Integer Ring,
+                 Category of super modules over Integer Ring]
 
             Compare this with the situation for bialgebras::
 
@@ -251,7 +255,7 @@ class Coalgebras(Category_over_base_ring):
 
             def coproduct(self, x):
                 r"""
-                Returns the coproduct of ``x``.
+                Return the coproduct of ``x``.
 
                 EXAMPLES::
 

@@ -16,8 +16,7 @@ def GradedCoalgebrasWithBasis(base_ring):
     EXAMPLES::
 
         sage: C = GradedCoalgebrasWithBasis(QQ); C
-        Join of Category of graded modules with basis over Rational Field
-            and Category of coalgebras with basis over Rational Field
+        Category of graded coalgebras with basis over Rational Field
         sage: C is Coalgebras(QQ).WithBasis().Graded()
         True
 
@@ -27,3 +26,4 @@ def GradedCoalgebrasWithBasis(base_ring):
     """
     from sage.categories.all import CoalgebrasWithBasis
     return CoalgebrasWithBasis(base_ring).Graded()
+

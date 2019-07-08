@@ -10,8 +10,9 @@ from .category_types import(
 
 from sage.categories.simplicial_complexes import SimplicialComplexes
 
-from .tensor     import tensor
-from .cartesian_product import cartesian_product
+from sage.categories.tensor import tensor
+from sage.categories.signed_tensor import signed_tensor
+from sage.categories.cartesian_product import cartesian_product
 
 from .functor  import (ForgetfulFunctor,
                       IdentityFunctor)

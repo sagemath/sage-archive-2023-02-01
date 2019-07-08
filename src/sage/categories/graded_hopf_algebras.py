@@ -18,6 +18,7 @@ def GradedHopfAlgebras(base_ring):
         sage: C = GradedHopfAlgebras(QQ); C
         Join of Category of hopf algebras over Rational Field
             and Category of graded algebras over Rational Field
+            and Category of graded coalgebras over Rational Field
         sage: C is HopfAlgebras(QQ).Graded()
         True
 

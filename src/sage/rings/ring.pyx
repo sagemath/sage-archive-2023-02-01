@@ -148,7 +148,7 @@ cdef class Ring(ParentWithGens):
         Category of infinite algebras over (finite dimensional algebras with basis over
         (number fields and quotient fields and metric spaces) and infinite sets)
         sage: PolynomialRing(SteenrodAlgebra(2),'x').category()
-        Category of infinite algebras over graded hopf algebras with basis over Finite Field of size 2
+        Category of infinite algebras over super hopf algebras with basis over Finite Field of size 2
 
     TESTS::
 

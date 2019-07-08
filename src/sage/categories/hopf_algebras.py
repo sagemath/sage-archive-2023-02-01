@@ -107,7 +107,33 @@ class HopfAlgebras(Category_over_base_ring):
         pass
 
     class Super(SuperModulesCategory):
-        pass
+        def dual(self):
+            """
+            Return the dual category.
+
+            EXAMPLES:
+
+            The category of super Hopf algebras over any field is self dual::
+
+                sage: C = HopfAlgebras(QQ).Super()
+                sage: C.dual()
+                Category of super hopf algebras over Rational Field
+            """
+            return self
+
+        class ElementMethods:
+            def antipode(self):
+                """
+                Return the antipode of ``self``.
+
+                EXAMPLES::
+
+                    sage: A = SteenrodAlgebra(3)
+                    sage: a = A.an_element()
+                    sage: a, a.antipode()
+                    (2 Q_1 Q_3 P(2,1), Q_1 Q_3 P(2,1))
+                """
+                return self.parent().antipode(self)
 
     class TensorProducts(TensorProductsCategory):
         """

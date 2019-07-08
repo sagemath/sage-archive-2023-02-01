@@ -10,10 +10,13 @@ Coalgebras with basis
 #******************************************************************************
 
 from sage.misc.abstract_method import abstract_method
+from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.all import ModulesWithBasis, tensor, Hom
 from sage.categories.super_modules import SuperModulesCategory
+from sage.categories.graded_modules import GradedModulesCategory
+from sage.categories.signed_tensor import SignedTensorProductsCategory
 
 class CoalgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     """
@@ -197,3 +200,24 @@ class CoalgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
     class Super(SuperModulesCategory):
         pass
+
+    class Graded(GradedModulesCategory):
+        class SignedTensorProducts(SignedTensorProductsCategory):
+            """
+            The category of coalgebras with basis constructed by signed tensor
+            product of coalgebras with basis.
+            """
+            @cached_method
+            def extra_super_categories(self):
+                """
+                EXAMPLES::
+
+                    sage: Cat = CoalgebrasWithBasis(QQ).Graded()
+                    sage: Cat.SignedTensorProducts().extra_super_categories()
+                    [Category of graded coalgebras with basis over Rational Field]
+                    sage: Cat.SignedTensorProducts().super_categories()
+                    [Category of graded coalgebras with basis over Rational Field,
+                     Category of signed tensor products of graded coalgebras over Rational Field]
+                """
+                return [self.base_category()]
+

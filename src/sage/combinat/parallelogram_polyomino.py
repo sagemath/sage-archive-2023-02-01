@@ -44,6 +44,11 @@ from sage.combinat.combinat import catalan_number
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.functions.trig import cos, sin
 from sage.functions.other import sqrt
+
+from sage.plot.graphics import Graphics
+from sage.plot.line import line
+from sage.plot.text import text
+
 import pprint
 
 
@@ -494,10 +499,10 @@ ParallelogramPolyominoesOptions = LocalOptions(
         )
     ),
     drawing_components=dict(
-        default=dict(diagram=True, tree=False, bounce_0=False, bounce_1=False),
+        default=dict(diagram=True, tree=False, bounce_0=False, bounce_1=False, bounce_values=False),
         description='Different tree-like tableaux components to draw',
         checker=lambda x: Set(x.keys()).issubset(
-            Set(['diagram', 'tree', 'bounce_0', 'bounce_1', ])
+            Set(['diagram', 'tree', 'bounce_0', 'bounce_1', 'bounce_values', ])
         )
     ),
     display=dict(
@@ -529,7 +534,8 @@ The available options are :
   you can ask to draw some elements of the following list :
   - the diagram,
   - the tree inside the parallelogram polyomino,
-  - the bounce paths inside the parallelogram polyomino.
+  - the bounce paths inside the parallelogram polyomino,
+  - the value of the bounce on each square of a bounce path.
 
 - display : this option is used to configurate the ASCII display.
   The available options are :
@@ -1539,7 +1545,7 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp.get_options()
             Current options for ParallelogramPolyominoes_size
               - display:            u'list'
-              - drawing_components: {'bounce_0': False, 'bounce_1': False, 'diagram': True, 'tree': False}
+              - drawing_components: {'bounce_0': False, 'bounce_1': False, 'bounce_values': False, 'diagram': True, tree': False}
               - latex:              u'drawing'
               - tikz_options:       {'color_bounce_0': u'red',
                 'color_bounce_1': u'blue', 'color_line': u'black', 'color_point': u'black',
@@ -3447,6 +3453,141 @@ class ParallelogramPolyomino(ClonableList):
             [0, 1]
         """
         return [self.height(), self.width()]
+
+    def _plot_diagram(self):
+        r"""
+        Return a plot of the diagram representing ``self``.
+        """
+        G = Graphics()
+        G += line([(0,0),(1,0)],rgbcolor=(0,0,0),thickness=2)
+        for i,u,v in zip(range(self.height()), self.upper_widths(), self.lower_widths()):
+            G += line([(u,-i-1),(v,-i-1)],rgbcolor=(0,0,0))
+        for i,u,v in zip(range(self.width()), self.upper_heights(), self.lower_heights()):
+            G += line([(i+1,-u),(i+1,-v)],rgbcolor=(0,0,0))
+        a,b = (1,0)
+        for x in self.upper_path()[1:]:
+            u,v = a+x,b+1-x
+            G += line([(a,-b),(u,-v)],rgbcolor=(0,0,0),thickness=2)
+            a,b = u,v
+        a,b = (0,0)
+        for x in self.lower_path():
+            u,v = a+x,b+1-x
+            G += line([(a,-b),(u,-v)],rgbcolor=(0,0,0),thickness=2)
+            a,b = u,v
+        return G
+
+    def _plot_bounce(self, directions=[0,1]):
+        r"""
+        Return a plot of the bounce paths of ``self``.
+
+        INPUT:
+
+        - ``directions`` -- direction(s) \(0\) and/or \(1\) of the bounce paths.
+
+        """
+        G = Graphics()
+        if 0 in directions:
+            a,b = (1,0)
+            for bounce,u in enumerate(self.bounce_path(direction=0)):
+                if bounce & 1:
+                    u,v = a+u,b
+                else:
+                    u,v = a,b+u
+                G += line([(a-.1,-b),(u-.1,-v)], rgbcolor=(1,0,0), thickness=1.5)
+                a,b = u,v
+        if 1 in directions:
+            a,b = (0,1)
+            for bounce,u in enumerate(self.bounce_path(direction=1)):
+                if bounce & 1:
+                    u,v = a,b+u
+                else:
+                    u,v = a+u,b
+                G += line([(a,-b+.1),(u,-v+.1)], rgbcolor=(0,0,1), thickness=1.5)
+                a,b = u,v
+        return G
+
+    def _plot_bounce_values(self,bounce=0):
+        r"""
+        Return a plot containing the value of bounce along the specified bounce path.
+        """
+        G = Graphics()
+
+        if bounce == 0:
+            a,b = (0,-1)
+            for bounce,u in enumerate(self.bounce_path(direction=0)):
+                if bounce & 1:
+                    u,v = a+u,b
+                else:
+                    u,v = a,b+u
+                for i in range(a,u+1):
+                    for j in range(b,v+1):
+                        if (i,j) != (a,b):
+                            G += text(str(bounce//2 + 1), (i+.5,-j-.5),rgbcolor=(0,0,0))
+                a,b = u,v
+        else:
+            a,b = (-1,0)
+            for bounce,u in enumerate(self.bounce_path(direction=1)):
+                if bounce & 1:
+                    u,v = a,b+u
+                else:
+                    u,v = a+u,b
+                for i in range(a,u+1):
+                    for j in range(b,v+1):
+                        if (i,j) != (a,b):
+                            G += text(str(bounce//2 + 1), (i+.5,-j-.5),rgbcolor=(0,0,0))
+                a,b = u,v
+        return G
+
+    def _plot_tree(self):
+        r"""
+        Return a plot of the nodes of the tree.
+        """
+        G = Graphics()
+        G += point(points=((v+.5,-u-.5) for u,v in self.get_BS_nodes()))
+        G += point([.5, -.5])
+        return G
+
+    def plot(self):
+        r"""
+        Return a plot of ``self``.
+
+        EXAMPLES::
+
+            sage: pp = ParallelogramPolyomino([[0,1],[1,0]])
+            sage: pp.plot()
+            Graphics object consisting of 6 graphics primitives
+            sage: pp.set_options(
+            ....:     drawing_components=dict(
+            ....:         diagram = True
+            ....:         , bounce_0 = True
+            ....:         , bounce_1 = True
+            ....:         , bounce_values = 0
+            ....:     )
+            ....: )
+            sage: pp.plot()
+            Graphics object consisting of 9 graphics primitives
+
+        """
+        G = Graphics()
+
+        drawing_components = self.get_options()['drawing_components']
+        if 'diagram' in drawing_components and drawing_components["diagram"]:
+            G += self._plot_diagram()
+        directions = []
+        if 'bounce_0' in drawing_components and drawing_components["bounce_0"]:
+            directions.append(0)
+        if 'bounce_1' in drawing_components and drawing_components["bounce_1"]:
+            directions.append(1)
+        if len(directions) != 0:
+            G += self._plot_bounce(directions)
+        if 'bounce_values' in drawing_components and drawing_components["bounce_values"] is not False:
+            G += self._plot_bounce_values()
+        if 'tree' in drawing_components and drawing_components["tree"]:
+            G += self._plot_tree()
+
+        G.set_aspect_ratio(1)
+        G.axes(False)
+        return G
 
     def size(self):
         r"""

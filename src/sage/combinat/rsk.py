@@ -370,7 +370,7 @@ class Rule(UniqueRepresentation):
                 upper_row.append(value)
         return self._backward_format_output(lower_row, upper_row, output, p.is_standard(), False)
 
-    def _forward_format_output(self, p=None, q=None, check_standard=False):
+    def _forward_format_output(self, p, q, check_standard):
         r"""
         Return final output of the ``RSK`` correspondence from the
         output of the corresponding ``forward_rule``.
@@ -402,8 +402,8 @@ class Rule(UniqueRepresentation):
             return [P, Q]
         return [SemistandardTableau(p), SemistandardTableau(q)]
 
-    def _backward_format_output(self, lower_row=None, upper_row=None, output='array',
-                                p_is_standard=False, q_is_standard=False):
+    def _backward_format_output(self, lower_row, upper_row, output,
+                                p_is_standard, q_is_standard):
         r"""
         Return the final output of the ``RSK_inverse`` correspondence
         from the output of the corresponding ``backward_rule``.
@@ -417,28 +417,28 @@ class Rule(UniqueRepresentation):
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleRSK
-            sage: RuleRSK()._backward_format_output([1, 2, 3, 4], None, q_is_standard=True)
+            sage: RuleRSK()._backward_format_output([1, 2, 3, 4], None, 'array', False, True)
             [[1, 2, 3, 4], [4, 3, 2, 1]]
             sage: RuleRSK()._backward_format_output([1, 2, 3, 4], None,
-            ....:                                   'matrix', q_is_standard=True)
+            ....:                                   'matrix', False, True)
             [0 0 0 1]
             [0 0 1 0]
             [0 1 0 0]
             [1 0 0 0]
-            sage: RuleRSK()._backward_format_output([1, 2, 3, 4], None, 'word', q_is_standard=True)
+            sage: RuleRSK()._backward_format_output([1, 2, 3, 4], None, 'word', False, True)
             word: 4321
-            sage: RuleRSK()._backward_format_output([3, 2, 1, 1], [2, 1, 1, 1], q_is_standard=False)
+            sage: RuleRSK()._backward_format_output([3, 2, 1, 1], [2, 1, 1, 1], 'array', False, False)
             [[1, 1, 1, 2], [1, 1, 2, 3]]
             sage: RuleRSK()._backward_format_output([3, 2, 1, 1], [2, 1, 1, 1],
-            ....:                                   'matrix', q_is_standard=False)
+            ....:                                   'matrix', False, False)
             [2 1 0]
             [0 0 1]
-            sage: RuleRSK()._backward_format_output([1, 2, 3, 4], None, 'word', q_is_standard=False)
+            sage: RuleRSK()._backward_format_output([1, 2, 3, 4], None, 'word', False, False)
             Traceback (most recent call last):
             ...
             TypeError: q must be standard to have a word as valid output
             sage: RuleRSK()._backward_format_output([1, 2, 3, 4], None,
-            ....:                                     'random_type')
+            ....:                                     'random_type', False, False)
             Traceback (most recent call last):
             ...
             ValueError: invalid output option
@@ -482,7 +482,6 @@ class RuleRSK(Rule):
     ``output = 'permutation'`` ``RuleRSK`` returns an object of class
     :class:`~sage.combinat.permutation.Permutation`.
     """
-
     def insertion(self, j, r):
         r"""
         Insert the letter ``j`` from the second row of the biword
@@ -543,8 +542,8 @@ class RuleRSK(Rule):
         x, row[y_pos] = row[y_pos], x
         return x
 
-    def _backward_format_output(self, lower_row=None, upper_row=None, output='array',
-                                p_is_standard=False, q_is_standard=False):
+    def _backward_format_output(self, lower_row, upper_row, output,
+                                p_is_standard, q_is_standard):
         r"""
         Return the final output of the ``RSK_inverse`` correspondence
         from the output of the corresponding ``backward_rule``.
@@ -624,7 +623,7 @@ class RuleEG(Rule):
     be obtained using the ``reduced_word()`` method from permutations)::
 
         sage: g = lambda w: RSK_inverse(*RSK(w, insertion=RSK.rules.EG),
-        ....:                 insertion=RSK.rules.EG, output='permutation')
+        ....:                 insertion=RSK.rules.EG, output='word')
         sage: all(p.reduced_word() == g(p.reduced_word()) for n in range(7) for p in Permutations(n))
         True
 
@@ -722,8 +721,8 @@ class RuleEG(Rule):
             x, row[y_pos] = row[y_pos], x
         return x
 
-    def _backward_format_output(self, lower_row=None, upper_row=None, output='array',
-                                p_is_standard=False, q_is_standard=False):
+    def _backward_format_output(self, lower_row, upper_row, output,
+                                p_is_standard, q_is_standard):
         r"""
         Return the final output of the ``RSK_inverse`` correspondence
         from the output of the corresponding ``backward_rule``.
@@ -971,7 +970,7 @@ class RuleHecke(Rule):
                     x = self.reverse_insertion(i, x, row, p_copy)
                 lower_row.append(x)
                 upper_row.append(value)
-        return self._backward_format_output(lower_row, upper_row, output)
+        return self._backward_format_output(lower_row, upper_row, output, False, False)
 
     def insertion(self, j, ir, r, p):
         r"""
@@ -1042,8 +1041,8 @@ class RuleHecke(Rule):
         x = y
         return x
 
-    def _backward_format_output(self, lower_row=None, upper_row=None, output='array',
-                                p_is_standard=False, q_is_standard=False):
+    def _backward_format_output(self, lower_row, upper_row, output,
+                                p_is_standard, q_is_standard):
         r"""
         Return the final output of the ``RSK_inverse`` correspondence
         from the output of the corresponding ``backward_rule``.
@@ -1057,27 +1056,27 @@ class RuleHecke(Rule):
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleHecke
-            sage: RuleHecke()._backward_format_output([1, 1, 3, 9],
-            ....:                                      [1, 2, 3, 4])
+            sage: RuleHecke()._backward_format_output([1, 1, 3, 9], [1, 2, 3, 4],
+            ....:                                     'array', False, False)
             [[4, 3, 2, 1], [9, 3, 1, 1]]
-            sage: RuleHecke()._backward_format_output([1, 1, 3, 9],
-            ....:                                     [1, 2, 3, 4], 'word')
+            sage: RuleHecke()._backward_format_output([1, 1, 3, 9], [1, 2, 3, 4],
+            ....:                                     'word', False, False)
             Traceback (most recent call last):
             ...
             TypeError: q must be standard to have a word as valid output
-            sage: RuleHecke()._backward_format_output([1, 1, 3, 9],
-            ....:                                     [4, 3, 2, 1], 'word')
+            sage: RuleHecke()._backward_format_output([1, 1, 3, 9], [4, 3, 2, 1],
+            ....:                                     'word', False, False)
             word: 9311
-            sage: RuleHecke()._backward_format_output([1, 1, 3, 9],
-            ....:                                     [1, 2, 3, 4], 'list')
+            sage: RuleHecke()._backward_format_output([1, 1, 3, 9], [1, 2, 3, 4],
+            ....:                                     'list', False, False)
             Traceback (most recent call last):
             ...
             TypeError: q must be standard to have a list as valid output
-            sage: RuleHecke()._backward_format_output([1, 1, 3, 9],
-            ....:                                     [4, 3, 2, 1], 'list')
+            sage: RuleHecke()._backward_format_output([1, 1, 3, 9], [4, 3, 2, 1],
+            ....:                                     'list', False, False)
             [9, 3, 1, 1]
-            sage: RuleHecke()._backward_format_output([1, 1, 3, 9],
-            ....:                                  [1, 2, 3, 4], 'random_type')
+            sage: RuleHecke()._backward_format_output([1, 1, 3, 9], [1, 2, 3, 4],
+            ....:                                     'random_type', False, False)
             Traceback (most recent call last):
             ...
             ValueError: invalid output option

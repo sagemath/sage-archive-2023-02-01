@@ -1605,10 +1605,10 @@ class Polytopes():
 
         The cdd backend with floating point arithmetic fails for this polytope::
 
-            sage: sd = polytopes.snub_dodecahedron()
-            sage: sd.f_vector() # not tested
+            sage: sd = polytopes.snub_dodecahedron()        # not tested
+            sage: sd.f_vector()                             # not tested
             (1, 60, 150, 92, 1)
-            sage: sd.base_ring() # not tested
+            sage: sd.base_ring()                            # not tested
             Real Double Field
 
         """

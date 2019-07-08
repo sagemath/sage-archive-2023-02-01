@@ -1544,13 +1544,23 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp = ParallelogramPolyomino([[0, 1], [1, 0]])
             sage: pp.get_options()
             Current options for ParallelogramPolyominoes_size
-              - display:            u'list'
-              - drawing_components: {'bounce_0': False, 'bounce_1': False, 'bounce_values': False, 'diagram': True, tree': False}
-              - latex:              u'drawing'
-              - tikz_options:       {'color_bounce_0': u'red',
-                'color_bounce_1': u'blue', 'color_line': u'black', 'color_point': u'black',
-                'line_size': 1, 'mirror': None, 'point_size': 3.5,
-                'rotation': 0, 'scale': 1, 'translation': [0, 0]}
+              - display:            'list'
+              - drawing_components: {'bounce_0': False,
+             'bounce_1': False,
+             'bounce_values': False,
+             'diagram': True,
+             'tree': False}
+              - latex:              'drawing'
+              - tikz_options:       {'color_bounce_0': 'red',
+             'color_bounce_1': 'blue',
+             'color_line': 'black',
+             'color_point': 'black',
+             'line_size': 1,
+             'mirror': None,
+             'point_size': 3.5,
+             'rotation': 0,
+             'scale': 1,
+             'translation': [0, 0]}
         """
         if self._options is None:
             return self.parent().get_options()

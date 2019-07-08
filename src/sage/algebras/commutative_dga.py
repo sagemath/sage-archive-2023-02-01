@@ -1927,6 +1927,7 @@ class DifferentialGCAlgebra(GCAlgebra):
                            I=A.defining_ideal())
         self._differential = Differential(self, differential._dic_)
         self._minimalmodels = {}
+        self._numerical_invariants = {}
 
     def graded_commutative_algebra(self):
         """
@@ -2276,7 +2277,7 @@ class DifferentialGCAlgebra(GCAlgebra):
     def minimal_model(self, i=3, max_iterations=3):
         """
         Try to compute a map from a ``i``-minimal gcda that is a
-        ``i``-quasi-isomorphism up to degree ``max_degree``.
+        ``i``-quasi-isomorphism to self.
 
         INPUT:
 
@@ -2467,6 +2468,7 @@ class DifferentialGCAlgebra(GCAlgebra):
                     imagesphico.append(CS(VS(g.basis_coefficients())))
             phico = CB.hom(imagesphico, codomain=CS)
             QI = CS.quotient(phico.image())
+            self._numerical_invariants[degree] = [QI.dimension()]
             if QI.dimension() > 0:
                 nnames = ['x{}_{}'.format(degree, j) for j in
                           range(QI.dimension())]
@@ -2499,6 +2501,7 @@ class DifferentialGCAlgebra(GCAlgebra):
                         imagesphico.append(CS(VS(g.basis_coefficients())))
                 phico = CB.hom(imagesphico, codomain=CS)
                 K = phico.kernel()
+                self._numerical_invariants[degree-1].append(K.dimension())
                 if K.dimension() == 0:
                     return phi
                 if iteration == max_iterations-1:
@@ -2524,10 +2527,12 @@ class DifferentialGCAlgebra(GCAlgebra):
         if not self._minimalmodels:
             degnzero = 1
             while self.cohomology(degnzero).dimension() == 0:
+                self._numerical_invariants[degnzero] = [0]
                 degnzero += 1
                 if degnzero > max_degree:
                     raise ValueError("cohomology is trivial up to max_degree")
             gens = [g.representative() for g in self.cohomology(degnzero).basis().keys()]
+            self._numerical_invariants[degnzero] = [len(gens)]
             names = ['x{}_{}'.format(degnzero, j) for j in range(len(gens))]
             A = GradedCommutativeAlgebra(self.base_ring(), names, degrees=[degnzero for j in names])
             B = A.cdg_algebra(A.differential({}))
@@ -2608,6 +2613,108 @@ class DifferentialGCAlgebra(GCAlgebra):
                 newrel = sum(g[i]*B1[i] for i in range(len(B1)))
                 rels.append(newrel)
         return A.quotient(A.ideal(rels)).cdg_algebra({})
+
+    def numerical_invariants(self, max_degree=3, max_iterations=3):
+        r"""
+        Return the numerical invariants of the algebra, up to degree ``d``.
+
+        The numerical invariants are the dimensions of the subsequent Hirsch
+        extensions used at each degree to compute the minimal model.
+
+        INPUT:
+
+        - ``max_degree`` -- integer (default: `3`); the degree up to which the
+        numerical invariants are computed.
+
+        - ``max_iterations`` -- integer (default: `3`); the maximum number of iterations
+        used to compute the minimal model, if it is not already cached.
+
+        EXAMPLES::
+
+            sage: A.<e1,e2,e3> = GradedCommutativeAlgebra(QQ)
+            sage: B = A.cdg_algebra({e3:e1*e2})
+            sage: B.minimal_model(4)
+            Commutative Differential Graded Algebra morphism:
+            From: Commutative Differential Graded Algebra with generators ('x1_0', 'x1_1', 'y1_0') in degrees (1, 1, 1) over Rational Field with differential:
+            x1_0 --> 0
+            x1_1 --> 0
+            y1_0 --> x1_0*x1_1
+            To:   Commutative Differential Graded Algebra with generators ('e1', 'e2', 'e3') in degrees (1, 1, 1) over Rational Field with differential:
+            e1 --> 0
+            e2 --> 0
+            e3 --> e1*e2
+            Defn: (x1_0, x1_1, y1_0) --> (e1, e2, e3)
+            sage: B.numerical_invariants(2)
+            {1: [2, 1, 0], 2: [0, 0]}
+
+        .. WARNING::
+
+            The method is not granted to finish (it can't, since the minimal
+            model could be infinitely generated in some degrees).
+            The parameter ``max_iterations`` controls how many iterations of
+            the method are attempted at each degree. In case they are not
+            enough, an exception is raised. If you think that the result will
+            be finitely generated, you can try to run it again with a higher
+            value for ``max_iterations``.
+
+        """
+        M = self.minimal_model(max_degree, max_iterations)
+        return {i:self._numerical_invariants[i] for i in range(1,max_degree+1)}
+
+    def is_formal(self, i, max_iterations=3):
+        r"""
+        Check if the algebra is ``i``-formal. That is, if it is ``i``-quasi-isomorphic
+        to its cohomology algebra.
+
+        INPUT:
+
+        - ``i`` -- integer; the degree up to which the formality is checked.
+
+        - ``max_iterations`` -- integer (default: `3`); the maximum number of
+        iterations used in the computation of the minimal model.
+
+        .. WARNING::
+
+            The method is not granted to finish (it can't, since the minimal
+            model could be infinitely generated in some degrees).
+            The parameter ``max_iterations`` controls how many iterations of
+            the method are attempted at each degree. In case they are not
+            enough, an exception is raised. If you think that the result will
+            be finitely generated, you can try to run it again with a higher
+            value for ``max_iterations``.
+
+            Moreover, the method uses criteria that are often enough to conclude
+            that the algebra is either formal or non-formal. However, it could
+            happen that the used criteria can not determine the formality. In
+            that case, an error is raised.
+
+        EXAMPLES::
+
+            sage: A.<e1,e2,e3,e4,e5> = GradedCommutativeAlgebra(QQ)
+            sage: B = A.cdg_algebra({e5:e1*e2+e3*e4})
+            sage: B.is_formal(1)
+            True
+            sage: B.is_formal(2)
+            False
+        """
+        from sage.misc.flatten import flatten
+        phi = self.minimal_model(i, max_iterations)
+        M = phi.domain()
+        H = M.cohomology_algebra(i+1)
+        try:
+            MH = H.minimal_model(i, max_iterations)
+        except ValueError:  # If we could compute the minimal model in max_iterations
+            return False    # but not for the cohomology, the invariants are distinct
+        N1 = M.numerical_invariants(i, max_iterations)
+        N2 = H.numerical_invariants(i, max_iterations)
+        if any([N1[n]!=N2[n] for n in range(1, i+1)]):
+            return False    # numerical invariants don't match
+        cogen = M.cohomology_generators(i)
+        cogen = flatten([cogen[i] for i in sorted(cogen.keys())])
+        chi = M.hom([H.gen(cogen.index(x)) if x in cogen else 0 for x in M.gens()])
+        if all([chi(y.differential()).is_zero() for y in M.gens()]):
+            return True     # the morphism xi->[xi], yi->0 is i-quasi-iso
+        raise NotImplementedError("The implemented criteria cannot determine formality")
 
     class Element(GCAlgebra.Element):
         def differential(self):

@@ -67,7 +67,7 @@ base class for a rule::
 
 Using the ``Rule`` class as parent class for your insertion rule,
 first implement the insertion and the reverse insertion algorithm
-for RSK() and RSK_inverse() respectively (as methods
+for :func:`RSK()` and :func:`RSK_inverse()` respectively (as methods
 ``forward_rule`` and ``backward_rule``). If your insertion algorithm
 uses the same forward and backward rules as ``RuleRSK``, differing
 only in how an entry is inserted into a row, then this is not
@@ -603,7 +603,8 @@ class RuleEG(Rule):
 
     Some more examples::
 
-        sage: pq = RSK([2,1,2,3,2], insertion=RSK.rules.EG); pq
+        sage: a = [2, 1, 2, 3, 2]
+        sage: pq = RSK(a, insertion=RSK.rules.EG); pq
         [[[1, 2, 3], [2, 3]], [[1, 3, 4], [2, 5]]]
         sage: RSK(RSK_inverse(*pq, insertion=RSK.rules.EG, output='matrix'),
         ....:     insertion=RSK.rules.EG)
@@ -611,15 +612,22 @@ class RuleEG(Rule):
         sage: RSK_inverse(*pq, insertion=RSK.rules.EG)
         [[1, 2, 3, 4, 5], [2, 1, 2, 3, 2]]
 
-    For ``RSK()``, ``RuleEG`` provides a bijection from reduced words of
-    permutations/elements of a type `A` Coxeter group to pairs of
-    semi-standard tableaux tableaux ([EG1987]_ Definition 2.1) of the
-    same shape.
+    The RSK algorithm (:func:`RSK`) built using the Edelman-Greene
+    insertion rule ``RuleEG`` is a bijection from reduced words of
+    permutations/elements of a type `A` Coxeter group to pairs
+    consisting of an increasing tableau and a standard tableau
+    of the same shape (see [EG1987]_ Theorem 6.25).
+    The inverse of this bijection is obtained using :func:`RSK_inverse`.
+    If the optional parameter ``output = 'permutation'`` is set in
+    :func:`RSK_inverse`, then the function returns not the
+    reduced word itself but the permutation (of smallest possible
+    size) whose reduced word it is (although the order of the
+    letters is reverse to the usual Sage convention)::
 
-    For ``RSK_inverse()``, ``RuleEG`` provides a bijection from pairs of
-    same-shaped tableaux to reduced words of a permutation.
-    Note that, for ``output = 'permutation'`` RuleEG returns the smallest
-    permutation satisfying the resulting reduced word.
+        sage: w = RSK_inverse(*pq, insertion=RSK.rules.EG, output='permutation'); w
+        [4, 3, 1, 2]
+        sage: list(reversed(a)) in w.reduced_words()
+        True
 
     TESTS:
 

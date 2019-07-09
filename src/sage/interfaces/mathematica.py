@@ -402,6 +402,14 @@ class Mathematica(ExtraTabCompletion, Expect):
     """
     def __init__(self, maxread=None, script_subdirectory=None, logfile=None, server=None,
                  server_tmpdir=None, command=None, verbose_start=False):
+        r"""
+        TESTS:
+
+        Test that :trac:`28075` is fixed::
+
+            sage: repr(mathematica.eval("Print[1]; Print[2]; Print[3]"))  # optional - mathematica
+            '1\n2\n3'
+        """
         # We use -rawterm to get a raw text interface in Mathematica 9 or later.
         # This works around the following issues of Mathematica 9 or later
         # (tested with Mathematica 11.0.1 for Mac OS X x86 (64-bit))
@@ -427,8 +435,9 @@ class Mathematica(ExtraTabCompletion, Expect):
             command = 'sh -c "stty -echo; {}"'.format(command)
         Expect.__init__(self,
                         name='mathematica',
+                        terminal_echo=False,
                         command=command,
-                        prompt=r'In\[[0-9]+\]:=',
+                        prompt=r'In\[[0-9]+\]:= ',
                         server=server,
                         server_tmpdir=server_tmpdir,
                         script_subdirectory=script_subdirectory,

@@ -194,8 +194,7 @@ def all_graph_colorings(G, n, count_only=False, hex_colors=False, vertex_color_d
     cdef dict Vd = {}
     cdef dict colormap = {}
     cdef int k = 0
-    for i in range(nV):
-        v = V[i]
+    for i, v in enumerate(V):
         Vd[v] = i
         for c in range(n):
             ones.push_back((k, [i]))

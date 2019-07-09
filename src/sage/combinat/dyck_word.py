@@ -1572,6 +1572,43 @@ class DyckWord(CombinatorialElement):
         from sage.combinat.tableau import StandardTableau
         return StandardTableau([x for x in [open_positions, close_positions] if x != []])
 
+    def to_tamari_sorting_tuple(self):
+        """
+        Convert a Dyck word to a Tamari sorting tuple.
+
+        The result is a list of integers, one for every up-step from
+        left to right. To each up-step is associated
+        the distance to the corresponding down step in the Dyck word.
+
+        This is useful for a faster conversion to binary trees.
+
+        EXAMPLES::
+
+            sage: DyckWord([]).to_tamari_sorting_tuple()
+            []
+            sage: DyckWord([1, 0]).to_tamari_sorting_tuple()
+            [0]
+            sage: DyckWord([1, 1, 0, 0]).to_tamari_sorting_tuple()
+            [1, 0]
+            sage: DyckWord([1, 0, 1, 0]).to_tamari_sorting_tuple()
+            [0, 0]
+            sage: DyckWord([1, 1, 0, 1, 0, 0]).to_tamari_sorting_tuple()
+            [2, 0, 0]
+
+        .. SEEALSO:: :meth:`to_Catalan_code`
+        """
+        position = 0
+        resu = [-i - 1 for i in range(len(self) // 2)]
+        indices_of_active_ups = []
+        for letter in self:
+            if letter == open_symbol:
+                indices_of_active_ups.append(position)
+                position += 1
+            else:
+                previous = indices_of_active_ups.pop()
+                resu[previous] += position
+        return resu
+
     @combinatorial_map(name="to binary trees: up step, left tree, down step, right tree")
     def to_binary_tree(self, usemap="1L0R"):
         r"""
@@ -1663,7 +1700,10 @@ class DyckWord(CombinatorialElement):
             sage: DyckWord([1,0,1,0,1,0]).to_binary_tree_tamari()
             [[[., .], .], .]
         """
-        return self.to_binary_tree("L1R0")
+        # return self.to_binary_tree("L1R0")  # slower and recursive
+        from sage.combinat.binary_tree import from_tamari_sorting_tuple
+        tup = self.to_tamari_sorting_tuple()
+        return from_tamari_sorting_tuple(tup)
 
     def tamari_interval(self, other):
         r"""
@@ -2330,6 +2370,8 @@ class DyckWord_complete(DyckWord):
             ....:     DyckWords().from_Catalan_code(dw.to_Catalan_code())
             ....:     for i in range(6) for dw in DyckWords(i))
             True
+
+        .. SEEALSO:: :meth:`to_tamari_sorting_tuple`
         """
         if not self:
             return []

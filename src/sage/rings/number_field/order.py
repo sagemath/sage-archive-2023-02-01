@@ -526,7 +526,7 @@ class Order(IntegralDomain):
         r"""
         Return the free `\ZZ`-module contained in the vector space
         associated to the ambient number field, that corresponds
-        to this ideal.
+        to this order.
 
         EXAMPLES::
 

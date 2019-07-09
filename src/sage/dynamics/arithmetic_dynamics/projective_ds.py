@@ -3696,6 +3696,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([x^2 - 5/4*y^2, y^2])
             sage: f.sigma_invariants(4, formal=False, type='cycle')
             [170, 5195, 172700, 968615, 1439066, 638125, 0]
+
+        TESTS:
+
+            sage: F.<t> = FunctionField(GF(5))
+            sage: P.<x,y> = ProjectiveSpace(F,1)
+            sage: f = DynamicalSystem_projective([x^2 + (t/(t^2+1))*y^2, y^2], P)
+            sage: f.sigma_invariants(1)
+            [2, 4*t/(t^2 + 1), 0]
         """
         n = ZZ(n)
         if n < 1:
@@ -3716,9 +3724,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         base_ring = dom.base_ring()
         if is_FractionField(base_ring):
             base_ring = base_ring.ring()
-        if (is_PolynomialRing(base_ring) or is_MPolynomialRing(base_ring)
-            or base_ring in FunctionFields()):
+        if (is_PolynomialRing(base_ring) or is_MPolynomialRing(base_ring)):
             base_ring = base_ring.base_ring()
+        elif base_ring in FunctionFields():
+            base_ring = base_ring.constant_base_field()
         from sage.rings.number_field.order import is_NumberFieldOrder
         if not (base_ring in NumberFields() or is_NumberFieldOrder(base_ring)
                 or (base_ring in FiniteFields())):

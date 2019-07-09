@@ -112,7 +112,7 @@ from .ideal import (
     FunctionFieldIdeal_global,
     FunctionFieldIdealInfinite_module,
     FunctionFieldIdealInfinite_rational,
-    FunctionFieldIdealInfinite_global)
+    FunctionFieldIdealInfinite_polymod)
 
 class FunctionFieldOrder_base(CachedRepresentation, Parent):
     """
@@ -2146,7 +2146,7 @@ class FunctionFieldMaximalOrderInfinite_global(FunctionFieldMaximalOrderInfinite
             sage: O = F.maximal_order_infinite()
             sage: TestSuite(O).run()
         """
-        FunctionFieldOrderInfinite.__init__(self, field, ideal_class=FunctionFieldIdealInfinite_global)
+        FunctionFieldOrderInfinite.__init__(self, field, ideal_class=FunctionFieldIdealInfinite_polymod)
 
         M, from_M, to_M = field._inversion_isomorphism()
         basis = [from_M(g) for g in M.maximal_order().basis()]

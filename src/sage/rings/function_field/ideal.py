@@ -2575,9 +2575,9 @@ class FunctionFieldIdealInfinite_module(FunctionFieldIdealInfinite, Ideal_generi
         return self._module
 
 
-class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
+class FunctionFieldIdealInfinite_polymod(FunctionFieldIdealInfinite):
     """
-    Ideals of the infinite maximal order.
+    Ideals of the infinite maximal order of an algebraic function field.
 
     INPUT:
 
@@ -2682,7 +2682,7 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
             Ideal (1/x) of Maximal infinite order of Function field in y
             defined by y^2 + y + (x^2 + 1)/x
         """
-        return FunctionFieldIdealInfinite_global(self._ring, self._ideal + other._ideal)
+        return FunctionFieldIdealInfinite_polymod(self._ring, self._ideal + other._ideal)
 
     def _mul_(self, other):
         """
@@ -2712,7 +2712,7 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
             Ideal (1/x^4*y) of Maximal infinite order of Function field in y
             defined by y^2 + y + (x^2 + 1)/x
         """
-        return FunctionFieldIdealInfinite_global(self._ring, self._ideal * other._ideal)
+        return FunctionFieldIdealInfinite_polymod(self._ring, self._ideal * other._ideal)
 
     def __pow__(self, n):
         """
@@ -2728,7 +2728,7 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
             Ideal (1/x^3) of Maximal infinite order of Function field
             in y defined by y^3 + y^2 + 2*x^4
         """
-        return FunctionFieldIdealInfinite_global(self._ring, self._ideal ** n)
+        return FunctionFieldIdealInfinite_polymod(self._ring, self._ideal ** n)
 
     def __invert__(self):
         """
@@ -2758,7 +2758,7 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
             Ideal (1) of Maximal infinite order of Function field in y
             defined by y^2 + y + (x^2 + 1)/x
         """
-        return FunctionFieldIdealInfinite_global(self._ring, ~ self._ideal)
+        return FunctionFieldIdealInfinite_polymod(self._ring, ~ self._ideal)
 
     def _richcmp_(self, other, op):
         """
@@ -3017,7 +3017,7 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
         O = self.ring()
         factors = []
         for iprime, exp in O._to_iF(self).factor():
-            prime = FunctionFieldIdealInfinite_global(O, iprime)
+            prime = FunctionFieldIdealInfinite_polymod(O, iprime)
             factors.append((prime, exp))
         return factors
 

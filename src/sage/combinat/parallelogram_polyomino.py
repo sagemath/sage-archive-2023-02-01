@@ -3470,21 +3470,32 @@ class ParallelogramPolyomino(ClonableList):
         Return a plot of the diagram representing ``self``.
         """
         G = Graphics()
-        G += line([(0,0),(1,0)],rgbcolor=(0,0,0),thickness=2)
-        for i,u,v in zip(range(self.height()), self.upper_widths(), self.lower_widths()):
+
+        # Draw the inner grid
+        for i,u,v in zip(range(self.height()-1), self.upper_widths()[1:], self.lower_widths()):
             G += line([(u,-i-1),(v,-i-1)],rgbcolor=(0,0,0))
-        for i,u,v in zip(range(self.width()), self.upper_heights(), self.lower_heights()):
+        for i,u,v in zip(range(self.width()-1), self.upper_heights()[1:], self.lower_heights()):
             G += line([(i+1,-u),(i+1,-v)],rgbcolor=(0,0,0))
-        a,b = (1,0)
-        for x in self.upper_path()[1:]:
-            u,v = a+x,b+1-x
-            G += line([(a,-b),(u,-v)],rgbcolor=(0,0,0),thickness=2)
-            a,b = u,v
-        a,b = (0,0)
-        for x in self.lower_path():
-            u,v = a+x,b+1-x
-            G += line([(a,-b),(u,-v)],rgbcolor=(0,0,0),thickness=2)
-            a,b = u,v
+
+        # Draw the outer border
+        lower_heights = [0] + self.lower_heights()
+        for i in range(self.width()):
+            if lower_heights[i] != lower_heights[i+1]:
+                G += line([(i,-lower_heights[i]),(i,-lower_heights[i+1])],rgbcolor=(0,0,0),thickness=2)
+        upper_heights = self.upper_heights() + [self.height()]
+        for i in range(self.width()):
+            if upper_heights[i] != upper_heights[i+1]:
+                G += line([(i+1,-upper_heights[i]),(i+1,-upper_heights[i+1])],rgbcolor=(0,0,0),thickness=2)
+
+        lower_widths = self.lower_widths() + [self.width()]
+        for i in range(self.height()):
+            if lower_widths[i] != lower_widths[i+1]:
+                G += line([(lower_widths[i],-i-1),(lower_widths[i+1],-i-1)],rgbcolor=(0,0,0),thickness=2)
+        upper_widths = [0] + self.upper_widths()
+        for i in range(self.height()):
+            if upper_widths[i] != upper_widths[i+1]:
+                G += line([(upper_widths[i],-i),(upper_widths[i+1],-i)],rgbcolor=(0,0,0),thickness=2)
+
         return G
 
     def _plot_bounce(self, directions=[0,1]):
@@ -3523,6 +3534,7 @@ class ParallelogramPolyomino(ClonableList):
         """
         G = Graphics()
 
+        # Bounce path from the top
         if bounce == 0:
             a,b = (0,-1)
             for bounce,u in enumerate(self.bounce_path(direction=0)):
@@ -3535,6 +3547,7 @@ class ParallelogramPolyomino(ClonableList):
                         if (i,j) != (a,b):
                             G += text(str(bounce//2 + 1), (i+.5,-j-.5),rgbcolor=(0,0,0))
                 a,b = u,v
+        #Bounce path from the left
         else:
             a,b = (-1,0)
             for bounce,u in enumerate(self.bounce_path(direction=1)):
@@ -3566,7 +3579,7 @@ class ParallelogramPolyomino(ClonableList):
 
             sage: pp = ParallelogramPolyomino([[0,1],[1,0]])
             sage: pp.plot()
-            Graphics object consisting of 6 graphics primitives
+            Graphics object consisting of 4 graphics primitives
             sage: pp.set_options(
             ....:     drawing_components=dict(
             ....:         diagram = True
@@ -3576,7 +3589,7 @@ class ParallelogramPolyomino(ClonableList):
             ....:     )
             ....: )
             sage: pp.plot()
-            Graphics object consisting of 9 graphics primitives
+            Graphics object consisting of 7 graphics primitives
 
         """
         G = Graphics()

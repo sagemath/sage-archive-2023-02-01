@@ -4765,7 +4765,7 @@ cdef class PolynomialConstruct:
             # So, it is just a conversion. [Simon King]
             return (<BooleanPolynomialRing>ring)._element_constructor_(x)
 
-        raise TypeError("Cannot generate Boolean polynomial from %s , %s%" %
+        raise TypeError("Cannot generate Boolean polynomial from %s , %s" %
                         (type(x), type(ring)))
 
 

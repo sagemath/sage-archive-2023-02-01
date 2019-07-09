@@ -93,6 +93,9 @@ from sage.misc.cachefunc import cached_method
 from sage.modules.free_module_element import vector
 from sage.arith.all import lcm, gcd
 
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.algebras.all import FiniteDimensionalAlgebra
+
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import CachedRepresentation, UniqueRepresentation
 
@@ -1601,6 +1604,128 @@ class FunctionFieldMaximalOrder_polymod(FunctionFieldMaximalOrder):
             rows.append(row)
         T = matrix(rows)
         return T
+
+    @cached_method
+    def decomposition(self, ideal):
+        """
+        Return the decomposition of the prime ideal.
+
+        INPUT:
+
+        - ``ideal`` -- prime ideal of the base maximal order
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); R.<t> = K[]
+            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
+            sage: o = K.maximal_order()
+            sage: O = F.maximal_order()
+            sage: p = o.ideal(x+1)
+            sage: O.decomposition(p)
+            [(Ideal (x + 1, y + 1) of Maximal order
+             of Function field in y defined by y^3 + x^6 + x^4 + x^2, 1, 1),
+             (Ideal (x + 1, (1/(x^3 + x^2 + x))*y^2 + y + 1) of Maximal order
+             of Function field in y defined by y^3 + x^6 + x^4 + x^2, 2, 1)]
+        """
+
+        F = self.function_field()
+        n = F.degree()
+
+        # We expect o to be the maximal order of the base polynomial ring
+        # and p to be an irreducible polynomial
+        o = ideal.ring()
+        p = ideal.gen().numerator()
+
+        # Using the o we just computed doesn't work too well (yet),
+        # so instead let's do something isomorphic
+        K = self.function_field().base_field()
+        o = PolynomialRing(K.constant_field(), K.gen())
+        prime = o(p)
+
+        # These matrices show how to multiply by the basis elements,
+        # and when reduced modulo a prime (prime in o), will be used
+        # to form the algebra O mod p.
+
+        algebra_matrices = [matrix([self.coordinate_vector(b1*b2) for b1 in self.basis()]).change_ring(o) for b2 in self.basis()]
+
+        factors = []
+        field = o.quo(prime)
+        algebra_matrices_reduced = map(lambda M: M.mod(prime), algebra_matrices)
+        A = FiniteDimensionalAlgebra(field, algebra_matrices_reduced)
+
+        for q in A.maximal_ideals():
+            if q == A.ideal():
+                # The zero ideal is the (only) maximal ideal, so A is
+                # a field, and the ideal is prime w/out any factorization
+                I = self.ideal(prime)
+
+                I.is_prime.set_cache(True)
+                I._prime_below = ideal
+                I._relative_degree = n
+                I._ramification_index = 1
+                I._beta = [1] + [0]*(n-1)
+            else:
+                # I'd like qq = q.basis_matrix().change_ring(K.constant_field()),
+                # but that produces exceptions like "TypeError: unable to convert 1 to a rational"
+                qqq = matrix([[e.lift() for e in r] for r in q.basis_matrix()])
+                I = self.ideal(*((prime,) + tuple((matrix(self.basis()) * qqq.transpose())[0])))
+
+                # Compute an element beta in O (self: the maximal
+                # order), but not in pO (p: ideal's underlying prime),
+                # and with betaI in pO.
+
+                # How to find beta is explained in Section 4.8.3 of
+                # [Coh1993]. We keep beta as a vector over k[x] with
+                # respect to the basis of O.  beta is used when
+                # computing the valuation.
+
+                # Since beta is in O (a k[x]-module), we keep beta as
+                # a vector in k[x] w.r.t. the basis of O.  As long as
+                # at least one element in this vector isn't divisible
+                # by `prime`, beta will not be in pO.  To ensure that
+                # betaI is in pO, multiplying beta by each of I's
+                # generators must produce a vector whose elements are
+                # multiples of `prime`.  We can ensure that all this
+                # occurs by constructing a matrix in `field` (which is
+                # modulo `prime`), and finding a non-zero vector in
+                # the matrix's kernel.
+
+                # A moment ago, when we constructed the ideal I, its
+                # HNF matrix was computed, but that matrix is w.r.t.
+                # the equation order (I think), and we need something
+                # w.r.t the maximal order basis.
+
+                m =[]
+                for g in q.basis_matrix():
+                    for i in range(n):
+                        m.extend(list(matrix([g * algebra_matrices_reduced[i] for  i in range(n)]).transpose()))
+                beta  = [c.lift() for c in matrix(m).right_kernel().basis()[0]]
+
+                qq = q
+                index = 1
+                while True:
+                    qqq = qq*q
+                    if qqq == qq:
+                        break
+                    qq = qqq
+                    index = index + 1
+
+                I._q = q
+                I.is_prime.set_cache(True)
+                I._prime_below = ideal
+                #I._relative_degree = degree
+                #I._ramification_index = index
+                I._relative_degree = q.basis_matrix().right_nullity()
+                I._ramification_index = index
+                I._beta = beta
+
+            # This doesn't work because is_prime() just calls this
+            # routine to try to factor the ideal!
+            # assert I.is_prime()
+
+            factors.append((I, I._relative_degree, I._ramification_index))
+
+        return factors
 
 class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder_polymod):
     """

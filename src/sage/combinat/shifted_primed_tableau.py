@@ -984,7 +984,7 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
             # f_0 acts as zero if tableau cotnains no entries equal to 1
             if len(ones) == 0:
                 return None
-            # otherwise, f_0 changes last 1 in first row to 2'
+            # otherwise, f_0 changes last 1 in first row to 2' (if off diagonal) or 2 (if on diagonal)
             else:
                 r, c = ones[-1]
                 assert r == 0
@@ -1083,8 +1083,93 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
                   3  4
             sage: t == s.f(2)
             True
+
+            sage: SPT = ShiftedPrimedTableaux([2,1])
+            sage: t = SPT([[2,'3p'],[3]])
+            sage: t.e(0).pp()
+            1  3'
+               3
+            sage: t.e(1).pp()
+            1  3'
+               3
+            sage: t.e(2).pp()
+            2  2
+               3
+
+            sage: r = SPT([[2, 2],[3]])
+            sage: r.e(0).pp()
+            1  2
+               3
+            sage: r.e(1).pp()
+            1  2
+               3
+            sage: r.e(2) is None
+            True
+
+            sage: r = SPT([[1,'3p'],[3]])
+            sage: r.e(0) is None
+            True
+            sage: r.e(1) is None
+            True
+            sage: r.e(2).pp()
+            1  2'
+               3
+            sage: r = SPT([[1,'2p'],[3]])
+            sage: r.e(0).pp()
+            1  1
+               3
+            sage: r.e(1) is None
+            True
+            sage: r.e(2).pp()
+            1  2'
+               2
+            sage: t = SPT([[2,'3p'],[3]])
+            sage: t.e(0).e(2).e(2).e(0) == t.e(2).e(1).e(1).e(2)
+            True
+            sage: t.e(0).e(2).e(2).e(0).pp()
+            1  1
+               2
+            sage: all(t.e(0).e(2).e(2).e(0).e(i) is None for i in {0, 1, 2})
+            True
+
+            sage: SPT = ShiftedPrimedTableaux([4])
+            sage: t = SPT([[2,2,2,2]])
+            sage: t.e(0).pp()
+            1  2  2  2
+            sage: t.e(1).pp()
+            1  2  2  2
+            sage: t.e(0).e(0) is None
+            True
+            sage: t.e(1).e(1).pp()
+            1  1  2  2
         """
         T = self._to_matrix()
+
+        # special logic for queer raising operator e_0
+        if ind == 0:
+            read_word = [num for num in self._reading_word_with_positions() if num[1] in {1, 2}]
+
+            two_primes = sorted(
+                [pos for pos, elt in read_word if elt == 2 and T[pos[0]][pos[1]].is_primed()],
+                key=lambda x: x[1]
+            )
+
+            # e_0 acts as zero if tableau contains no 2' and first diagonal entry is not 2
+            if len(two_primes) == 0:
+                if T[0][0] != PrimedEntry(2):
+                    return None
+                # if tableau has no 2' but first diagonal entry is 2, then e_0 changes this to 1
+                else:
+                    T[0][0] = PrimedEntry(1)
+            # if tableau has at least one 2', then e_0 changes the first 2' to 1
+            else:
+                r, c = two_primes[0]
+                assert r == 0
+                T[r][c] = PrimedEntry(1)
+
+            T = [tuple(elmt for elmt in row if elmt is not None) for row in T]
+            return type(self)(self.parent(), T, check=False, preprocessed=True)
+
         read_word = [num for num in self._reading_word_with_positions()
                      if num[1] == ind or num[1] == ind+1]
 

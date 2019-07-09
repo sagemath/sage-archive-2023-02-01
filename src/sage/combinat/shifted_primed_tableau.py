@@ -862,7 +862,7 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
     def f(self, ind):
         r"""
         Compute the action of the crystal operator `f_i` on a shifted primed
-        tableau using cases from the paper [HPS2017]_.
+        tableau using cases from the papers [HPS2017]_ and [AO2018]_.
 
         INPUT:
 
@@ -1058,7 +1058,7 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
     def e(self, ind):
         r"""
         Compute the action of the crystal operator `e_i` on a shifted primed
-        tableau using cases from the paper [HPS2017]_.
+        tableau using cases from the papers [HPS2017]_ and [AO2018]_.
 
         INPUT:
 
@@ -1942,7 +1942,7 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
     The list of module generators consists of all elements of the
     crystal with nonincreasing weight entries.
 
-    The crystal is constructed following operations described in [HPS2017]_.
+    The crystal is constructed following operations described in [HPS2017]_ and [AO2018]_.
 
     EXAMPLES::
 

@@ -133,7 +133,9 @@ cdef Py_hash_t mpz_pythonhash(mpz_srcptr z):
             # type
             if r > 2 * hash_bits - limb_bits:
                 y += (x >> (2 * hash_bits - r))
-            # This is safe, since y <= 2 * modulus < 2 ^ limb_bits.
+            # At this point, y <= 2 * modulus, so y did not overflow, but we
+            # need y <= modulus. We use > instead of >= on the line below
+            # because it generates more efficient code.
             if y > modulus:
                 y -= modulus
 

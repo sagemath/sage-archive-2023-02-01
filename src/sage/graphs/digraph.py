@@ -3910,6 +3910,52 @@ class DiGraph(GenericGraph):
         return not any(self.has_edge(u, v) == self.has_edge(v, u)
                            for u,v in itertools.combinations(self, 2))
 
+
+    def _girth_bfs(self, odd=False):
+        n = self.num_verts()
+        best = n + 1
+        seen = set()
+        for w in self:
+            seen.add(w)
+            span = set([w])
+            depth = 1
+            outList, inList = set([w]), set([w])
+            while 2 * depth <= best:
+                nextOutList, nextInList = set(), set()
+                for v in outList:
+                    for u in self.neighbor_out_iterator(v):
+                        if u in seen:
+                            continue
+                        if not u in span:
+                            span.add(u)
+                            nextOutList.add(u)
+                        elif u in inList:
+                            best = depth * 2 - 1
+                            break
+                    if best == 2 * depth - 1:
+                        break
+                for v in inList:
+                    for u in self.neighbor_in_iterator(v):
+                        if u in seen:
+                            continue
+                        if not u in span:
+                            span.add(u)
+                            nextInList.add(u)
+                        elif not odd and u in nextOutList:
+                            best = depth * 2
+                            break
+                    if best == 2 * depth:
+                        break
+                if best <= 2:
+                    break
+                outList = nextOutList
+                inList = nextInList
+                depth += 1
+        if best == n + 1:
+            from sage.rings.infinity import Infinity
+            return Infinity
+        return best
+
     # Aliases to functions defined in other modules
     from sage.graphs.comparability import is_transitive
     from sage.graphs.base.static_sparse_graph import tarjan_strongly_connected_components as strongly_connected_components

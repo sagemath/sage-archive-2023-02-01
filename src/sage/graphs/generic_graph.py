@@ -15246,37 +15246,83 @@ class GenericGraph(GenericGraph_pyx):
             if self.has_multiple_edges():
                 return 2
 
-        n = self.num_verts()
-        best = n + 1
-        seen = {}
-        for w in self:
-            seen[w] = None
-            span = set([w])
-            depth = 1
-            thisList = set([w])
-            while 2 * depth <= best and 3 < best:
-                nextList = set()
-                for v in thisList:
-                    for u in self.neighbor_iterator(v):
-                        if u in seen:
-                            continue
-                        if not u in span:
-                            span.add(u)
-                            nextList.add(u)
-                        else:
-                            if u in thisList:
-                                best = depth * 2 - 1
-                                break
-                            if u in nextList:
-                                best = depth * 2
-                    if best == 2 * depth - 1:
-                        break
-                thisList = nextList
-                depth += 1
-        if best == n + 1:
-            from sage.rings.infinity import Infinity
-            return Infinity
-        return best
+        return self._girth_bfs(odd=False)
+
+    def odd_girth(self, algorithm="bfs"):
+        r"""
+        Returns the odd girth of the graph.
+
+        The odd girth of a graph is defined as the smallest cycle of odd length.
+
+        OUTPUT:
+
+        The odd girth of ``self``.
+
+        EXAMPLES:
+
+        The McGee graph has girth 7 and therefore its odd girth is 7 as well::
+
+            sage: G = graphs.McGeeGraph()
+            sage: G.odd_girth()
+            7
+
+        Any complete graph on more than 2 vertices contains a triangle and has
+        thus odd girth 3::
+
+            sage: G = graphs.CompleteGraph(10)
+            sage: G.odd_girth()
+            3
+
+        Every bipartite graph has no odd cycles and consequently odd girth of
+        infinity::
+
+            sage: G = graphs.CompleteBipartiteGraph(100,100)
+            sage: G.odd_girth()
+            +Infinity
+
+        .. SEEALSO::
+
+            * :meth:`~sage.graphs.generic_graph.GenericGraph.girth` -- computes
+              the girth of a graph.
+
+        REFERENCES:
+
+        The property relating the odd girth to the coefficients of the
+        characteristic polynomial is an old result from algebraic graph theory
+        see
+
+        .. [Har62] Harary, F (1962). The determinant of the adjacency matrix of
+          a graph, SIAM Review 4, 202-210
+
+        .. [Biggs93] Biggs, N. L. Algebraic Graph Theory, 2nd ed. Cambridge,
+          England: Cambridge University Press, pp. 45, 1993.
+
+        TESTS::
+
+            sage: graphs.CycleGraph(5).odd_girth()
+            5
+            sage: graphs.CycleGraph(11).odd_girth()
+            11
+        """
+        # Case where odd girth is 1
+        if self.has_loops():
+            return 1
+
+        if not self.is_bipartite():
+            if algorithm == "bfs":
+                return self._girth_bfs(odd=True)
+
+            ch = self.am().charpoly(algorithm=algorithm) \
+                .coefficients(sparse=False)
+            n = self.order()
+
+            for i in range(n-1, -1, -2):
+                if ch[i]:
+                    return n-i
+
+        from sage.rings.infinity import Infinity
+
+        return Infinity
 
 
     def periphery(self, by_weight=False, algorithm=None, weight_function=None,

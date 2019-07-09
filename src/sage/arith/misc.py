@@ -4701,7 +4701,7 @@ def hilbert_conductor_inverse(d):
             dd = mo * d
         q = 1
         while hilbert_conductor(-q, dd) != d:
-            q+=1;
+            q += 1
         if dd%q == 0:
             dd /= q
         return (Z(-q), Z(dd))

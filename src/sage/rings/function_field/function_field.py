@@ -950,6 +950,25 @@ class FunctionField(Field):
         from .divisor import DivisorGroup
         return DivisorGroup(self)
 
+    def place_set(self):
+        """
+        Return the set of all places of the function field.
+
+        EXAMPLES::
+
+            sage: K.<t> = FunctionField(GF(7))
+            sage: K.place_set()
+            Set of places of Rational function field in t over Finite Field of size 7
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: L.place_set()
+            Set of places of Function field in y defined by y^2 + y + (x^2 + 1)/x
+        """
+        # set _place_class in initializer to specify the type of each function field's place
+        from .place import PlaceSet
+        return PlaceSet(self)
+
 class FunctionField_polymod(FunctionField):
     """
     Function fields defined by a univariate polynomial, as an extension of the
@@ -2718,20 +2737,6 @@ class FunctionField_global(FunctionField_polymod):
 
         return M, F2self*M2F, F2M*self2F
 
-    def place_set(self):
-        """
-        Return the set of all places of the function field.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: L.place_set()
-            Set of places of Function field in y defined by y^2 + y + (x^2 + 1)/x
-        """
-        from .place import PlaceSet
-        return PlaceSet(self)
-
     def residue_field(self, place, name=None):
         """
         Return the residue field associated with the place along with the maps
@@ -4002,19 +4007,6 @@ class RationalFunctionField(FunctionField):
 
         """
         return self._field
-
-    def place_set(self):
-        """
-        Return the set of all places of the function field.
-
-        EXAMPLES::
-
-            sage: K.<t> = FunctionField(GF(7))
-            sage: K.place_set()
-            Set of places of Rational function field in t over Finite Field of size 7
-        """
-        from .place import PlaceSet
-        return PlaceSet(self)
 
     @cached_method
     def maximal_order(self):

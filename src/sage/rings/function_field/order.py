@@ -108,6 +108,7 @@ from .ideal import (
     FunctionFieldIdeal,
     FunctionFieldIdeal_module,
     FunctionFieldIdeal_rational,
+    FunctionFieldIdeal_polymod,
     FunctionFieldIdeal_global,
     FunctionFieldIdealInfinite_module,
     FunctionFieldIdealInfinite_rational,
@@ -1112,22 +1113,12 @@ class FunctionFieldMaximalOrder_rational(FunctionFieldMaximalOrder):
 
         return self.ideal_monoid().element_class(self, gen)
 
-class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder):
+class FunctionFieldMaximalOrder_polymod(FunctionFieldMaximalOrder):
     """
-    Maximal orders of global function fields.
-
-    INPUT:
-
-    - ``field`` -- function field to which this maximal order belongs
-
-    EXAMPLES::
-
-        sage: K.<x> = FunctionField(GF(7)); R.<y> = K[]
-        sage: L.<y> = K.extension(y^4 + x*y + 4*x + 1)
-        sage: L.maximal_order()
-        Maximal order of Function field in y defined by y^4 + x*y + 4*x + 1
+    Maximal orders of algebraic function fields.
     """
-    def __init__(self, field):
+
+    def __init__(self, field, ideal_class=FunctionFieldIdeal_polymod):
         """
         Initialize.
 
@@ -1138,10 +1129,10 @@ class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder):
             sage: O = L.maximal_order()
             sage: TestSuite(O).run()
         """
-        FunctionFieldMaximalOrder.__init__(self, field, ideal_class=FunctionFieldIdeal_global)
+        FunctionFieldMaximalOrder.__init__(self, field, ideal_class)
 
-        from .function_field import FunctionField_global_integral
-        if isinstance(field, FunctionField_global_integral):
+        from .function_field import FunctionField_integral
+        if isinstance(field, FunctionField_integral):
             basis = field._maximal_order_basis()
         else:
             model, from_model, to_model = field.monic_integral_model('z')
@@ -1610,6 +1601,35 @@ class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder):
             rows.append(row)
         T = matrix(rows)
         return T
+
+class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder_polymod):
+    """
+    Maximal orders of global function fields.
+
+    INPUT:
+
+    - ``field`` -- function field to which this maximal order belongs
+
+    EXAMPLES::
+
+        sage: K.<x> = FunctionField(GF(7)); R.<y> = K[]
+        sage: L.<y> = K.extension(y^4 + x*y + 4*x + 1)
+        sage: L.maximal_order()
+        Maximal order of Function field in y defined by y^4 + x*y + 4*x + 1
+    """
+
+    def __init__(self, field):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: K.<x> = FunctionField(GF(7)); R.<y> = K[]
+            sage: L.<y> = K.extension(y^4 + x*y + 4*x + 1)
+            sage: O = L.maximal_order()
+            sage: TestSuite(O).run()
+        """
+        FunctionFieldMaximalOrder_polymod.__init__(self, field, ideal_class=FunctionFieldIdeal_global)
 
     @cached_method
     def p_radical(self, prime):

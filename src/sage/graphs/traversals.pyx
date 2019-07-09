@@ -109,11 +109,31 @@ def lex_BFS(G, reverse=False, tree=False, initial_vertex=None):
 
     TESTS:
 
-    There were some problems with the following call in the past (:trac:`10899`)
-    -- now it should be fine::
+    Lex BFS ordering of a graph on one vertex::
 
-        sage: Graph(1).lex_BFS(tree=True)
+        sage: from sage.graphs.traversals import lex_BFS
+        sage: lex_BFS(Graph(1), tree=True)
         ([0], Digraph on 1 vertex)
+
+    Lex BFS ordering of an empty (di)graph is an empty sequence::
+
+        sage: from sage.graphs.traversals import lex_BFS
+        sage: g = Graph()
+        sage: lex_BFS(g)
+        []
+
+    Lex BFS ordering of a symmetric digraph should be the same as the Lex BFS
+    ordering of the corresponding undirected graph::
+
+        sage: from sage.graphs.traversals import lex_BFS
+        sage: G = DiGraph()
+        sage: edges = [(1, 2), (1, 3), (2, 3), (2, 4), (2, 5), (3, 5), (3, 6), (4, 5), (5, 6)]
+        sage: for u, v in edges:
+        ....:     G.add_edge(u, v)
+        ....:     G.add_edge(v, u)
+        sage: lex_BFS(G.to_undirected()) == lex_BFS(G)
+        True
+
     """
     # Loops and multiple edges are not needed in Lex BFS
     if G.allows_loops() or G.allows_multiple_edges():
@@ -236,6 +256,33 @@ def lex_DFS(G, reverse=False, tree=False, initial_vertex=None):
         sage: lex_DFS(G, initial_vertex=2)
         [2, 3, 1]
 
+    TESTS:
+
+    Lex DFS ordering of a graph on one vertex::
+
+        sage: from sage.graphs.traversals import lex_DFS
+        sage: lex_DFS(Graph(1), tree=True)
+        ([0], Digraph on 1 vertex)
+
+    Lex DFS ordering of an empty (di)graph is an empty sequence::
+
+        sage: from sage.graphs.traversals import lex_DFS
+        sage: g = Graph()
+        sage: lex_DFS(g)
+        []
+
+    Lex DFS ordering of a symmetric digraph should be the same as the Lex DFS
+    ordering of the corresponding undirected graph::
+
+        sage: from sage.graphs.traversals import lex_DFS
+        sage: G = DiGraph()
+        sage: edges = [(1, 2), (1, 3), (2, 3), (2, 4), (2, 5), (3, 5), (3, 6), (4, 5), (5, 6)]
+        sage: for u, v in edges:
+        ....:     G.add_edge(u, v)
+        ....:     G.add_edge(v, u)
+        sage: lex_DFS(G.to_undirected()) == lex_DFS(G)
+        True
+
     """
     # Loops and multiple edges are not needed in Lex DFS
     if G.allows_loops() or G.allows_multiple_edges():
@@ -281,7 +328,7 @@ def lex_DFS(G, reverse=False, tree=False, initial_vertex=None):
     while vertices:
         v = max(vertices, key=l_func)
         vertices.remove(v)
-        for i in range (0, out_degree(sd, v)):
+        for i in range(0, out_degree(sd, v)):
             int_neighbor = sd.neighbors[v][i]
             if int_neighbor in vertices:
                 code[int_neighbor].appendleft(now)

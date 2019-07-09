@@ -895,8 +895,103 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
                2  3' 3  3
                   3  4
 
+            sage: SPT = ShiftedPrimedTableaux([2,1])
+            sage: t = SPT([[1,1],[2]])
+            sage: t.f(0).pp()
+            1  2'
+               2
+            sage: t.f(1).pp()
+            1  2'
+               2
+            sage: t.f(2).pp()
+            1  1
+               3
+
+            sage: r = SPT([[1,'2p'],[2]])
+            sage: r.f(0) is None
+            True
+            sage: r.f(1) is None
+            True
+            sage: r.f(2).pp()
+            1  2'
+               3
+
+            sage: r = SPT([[1,1],[3]])
+            sage: r.f(0).pp()
+            1  2'
+               3
+            sage: r.f(1).pp()
+            1  2
+               3
+            sage: r.f(2) is None
+            True
+
+            sage: r = SPT([[1,2],[3]])
+            sage: r.f(0).pp()
+            2  2
+               3
+            sage: r.f(1).pp()
+            2  2
+               3
+            sage: r.f(2) is None
+            True
+
+            sage: t = SPT([[1,1],[2]])
+            sage: t.f(0).f(2).f(2).f(0) == t.f(2).f(1).f(0).f(2)
+            True
+            sage: t.f(0).f(2).f(2).f(0).pp()
+            2  3'
+               3
+            sage: all(t.f(0).f(2).f(2).f(0).f(i) is None for i in {0, 1, 2})
+            True
+
+            sage: SPT = ShiftedPrimedTableaux([4])
+            sage: t = SPT([[1,1,1,1]])
+            sage: t.f(0).pp()
+            1  1  1  2'
+            sage: t.f(1).pp()
+            1  1  1  2
+            sage: t.f(0).f(0) is None
+            True
+            sage: t.f(1).f(0).pp()
+            1  1  2' 2
+            sage: t.f(1).f(1).pp()
+            1  1  2  2
+            sage: t.f(1).f(1).f(0).pp()
+            1  2' 2  2
+            sage: t.f(1).f(1).f(1).pp()
+            1  2  2  2
+            sage: t.f(1).f(1).f(1).f(0).pp()
+            2  2  2  2
+            sage: t.f(1).f(1).f(1).f(1).pp()
+            2  2  2  2
+            sage: t.f(1).f(1).f(1).f(1).f(0) is None
+            True
+
         """
         T = self._to_matrix()
+
+        # special logic for queer lowering operator f_0
+        if ind == 0:
+            read_word = [num for num in self._reading_word_with_positions() if num[1] in {1, 2}]
+
+            # f_0 acts as zero if tableau contains 2'
+            if any(elt == 2 and T[pos[0]][pos[1]].is_primed() for pos, elt in read_word):
+                return None
+
+            ones = sorted([pos for pos, elt in read_word if elt == 1], key=lambda x: x[1])
+
+            # f_0 acts as zero if tableau cotnains no entries equal to 1
+            if len(ones) == 0:
+                return None
+            # otherwise, f_0 changes last 1 in first row to 2'
+            else:
+                r, c = ones[-1]
+                assert r == 0
+                T[r][c] = PrimedEntry('2p') if r != c else PrimedEntry(2)
+                T = [tuple(elmt for elmt in row if elmt is not None) for row in T]
+                return type(self)(self.parent(), T, check=False, preprocessed=True)
+
         read_word = [num for num in self._reading_word_with_positions()
                      if num[1] == ind or num[1] == ind+1]
 

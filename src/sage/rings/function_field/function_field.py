@@ -3224,11 +3224,10 @@ class FunctionField_global(FunctionField_polymod):
 
         return n
 
-class FunctionField_global_integral(FunctionField_global):
+class FunctionField_integral(FunctionField_polymod):
     """
-    Global function fields defined by an irreducible and separable polynomial,
-    which is integral over the maximal order of the base rational function
-    field with a finite constant field.
+    Integral function fields defined by an irreducible and separable polynomial,
+    which is integral over the maximal order of the base rational function field.
     """
     def _maximal_order_basis(self):
         """
@@ -3395,6 +3394,14 @@ class FunctionField_global_integral(FunctionField_global):
         b = self.primitive_integal_element_infinite()
         basis = [b**i for i in range(self.degree())]
         return FunctionFieldOrderInfinite_basis(tuple(basis))
+
+class FunctionField_global_integral(FunctionField_global, FunctionField_integral):
+    """
+    Global function fields defined by an irreducible and separable polynomial,
+    which is integral over the maximal order of the base rational function
+    field with a finite constant field.
+    """
+    pass
 
 class RationalFunctionField(FunctionField):
     """

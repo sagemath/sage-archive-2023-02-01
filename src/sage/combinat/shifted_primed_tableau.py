@@ -2009,7 +2009,7 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
         # Determine the correct category
         if max_entry is None:
             if skew is None:
-                category = RegularSuperCrystals().Infinite()
+                category = RegularCrystals().Infinite()
                 self._cartan_type = CartanType(['A+oo'])
                 self.Element = CrystalElementShiftedPrimedTableau
             else:

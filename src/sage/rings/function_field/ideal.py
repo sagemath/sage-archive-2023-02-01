@@ -1155,9 +1155,9 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal, Ideal_generic):
         return inv
 
 
-class FunctionFieldIdeal_global(FunctionFieldIdeal):
+class FunctionFieldIdeal_polymod(FunctionFieldIdeal):
     """
-    Fractional ideals of canonical function fields
+    Fractional ideals of algebraic function fields
 
     INPUT:
 
@@ -1651,163 +1651,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
             sage: I.gens()
             (x^3 + 1, y + x)
         """
-        if self._gens_two.is_in_cache():
-            return self._gens_two.cache
-        else:
-            return self.gens_over_base()
-
-    def gens_two(self):
-        """
-        Return at most two generators of this fractional ideal.
-
-        If the ideal is principal, one generator of the ideal may be returned,
-        but this is not guaranteed.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(2)); _.<t> = K[]
-            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
-            sage: O = F.maximal_order()
-            sage: I = O.ideal(y)
-            sage: I  # indirect doctest
-            Ideal (y) of Maximal order of Function field
-            in y defined by y^3 + x^6 + x^4 + x^2
-            sage: ~I  # indirect doctest
-            Ideal ((1/(x^6 + x^4 + x^2))*y^2) of Maximal order of Function field
-            in y defined by y^3 + x^6 + x^4 + x^2
-
-        ::
-
-            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: O = L.maximal_order()
-            sage: I = O.ideal(y)
-            sage: I  # indirect doctest
-            Ideal (y) of Maximal order of Function field in y
-            defined by y^2 + y + (x^2 + 1)/x
-            sage: ~I  # indirect doctest
-            Ideal ((x/(x^2 + 1))*y + x/(x^2 + 1)) of Maximal order
-            of Function field in y defined by y^2 + y + (x^2 + 1)/x
-        """
-        d = self.denominator()
-        return tuple(e/d for e in self._gens_two())
-
-    @cached_method
-    def _gens_two(self):
-        r"""
-        Return at most two generators of the integral ideal, that is
-        the denominator times this fractional ideal.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
-            sage: F.<y> = K.extension(Y^3 + x^3*Y + x)
-            sage: O = F.maximal_order()
-            sage: I = O.ideal(x^2,x*y,x+y)
-            sage: I._gens_two()
-            (x, y)
-
-        ::
-
-            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
-            sage: F.<y> = K.extension(Y)
-            sage: p, = F.places_infinite()
-            sage: p.prime_ideal().gens_two()
-            (1/x,)
-
-        ALGORITHM:
-
-        At most two generators are required to generate ideals in
-        Dedekind domains.
-
-        Lemma 4.7.9, Algorithm 4.7.10, and Exercise 4.29 of [Coh1993]_
-        tell us that for an integral ideal `I` in a number field, if
-        we pick `a` such that `\gcd(N(I), N(a)/N(I)) = 1`, then `a`
-        and `N(I)` generate the ideal.  `N()` is the norm, and this
-        result (presumably) generalizes to function fields.
-
-        After computing `N(I)`, we search exhaustively to find `a`.
-
-        .. TODO::
-
-            Provide a method to find a single generator for principal ideals.
-            Testing for principality is not trivial.  Algorithm 6.5.10 of
-            [Coh1993]_ could probably be adapted for function fields.
-        """
-        O = self.ring()
-        F = O.fraction_field()
-
-        if self._kummer_form is not None: # prime ideal
-            _g1, _g2 = self._kummer_form
-            g1 = F(_g1)
-            g2 = sum([c1*c2 for c1,c2 in zip(_g2, O.basis())])
-            if g2:
-                return (g1, g2)
-            else:
-                return (g1,)
-
-        ### start to search for two generators
-
-        hnf = self._hnf
-
-        norm = 1
-        for e in hnf.diagonal():
-            norm *= e
-
-        if norm.is_constant(): # unit ideal
-            return (F(1),)
-
-        # one generator; see .ideal_below()
-        l = hnf[0][0]
-        p = l.degree()
-        l = F(l)
-
-        if self._hnf == O.ideal(l)._hnf: # principal ideal
-            return (l,)
-
-        R = hnf.base_ring()
-
-        basis = []
-        for row in hnf:
-            basis.append(sum([c1*c2 for c1,c2 in zip(row, O.basis())]))
-
-        n = len(basis)
-        alpha = None
-
-        def check(alpha):
-            alpha_norm = alpha.norm().numerator() # denominator is 1
-            return norm.gcd(alpha_norm // norm) == 1
-
-        # Trial 1: search for alpha among generators
-        for alpha in basis:
-            if check(alpha):
-                return (l, alpha)
-
-        # Trial 2: exhaustive search for alpha using only polynomials
-        # with coefficients 0 or 1
-        for d in range(p):
-            G = itertools.product(itertools.product([0,1],repeat=d+1), repeat=n)
-            for g in G:
-                alpha = sum([R(c1)*c2 for c1,c2 in zip(g, basis)])
-                if check(alpha):
-                    return (l, alpha)
-
-        # Trial 3: exhaustive search for alpha using all polynomials
-        for d in range(p):
-            G = itertools.product(R.polynomials(max_degree=d), repeat=n)
-            for g in G:
-                # discard duplicate cases
-                if max(c.degree() for c in g) != d: continue
-                for j in range(n):
-                    if g[j] != 0: break
-                if g[j].leading_coefficient() != 1: continue
-
-                alpha = sum([c1*c2 for c1,c2 in zip(g, basis)])
-                if check(alpha):
-                    return (l, alpha)
-
-        # should never reach here
-        raise ValueError("failed to find two generators")
+        return self.gens_over_base()
 
     @cached_method
     def basis_matrix(self):
@@ -2124,6 +1968,199 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
                 if exp != 0:
                     factors.append((q,exp))
         return factors
+
+class FunctionFieldIdeal_global(FunctionFieldIdeal_polymod):
+    """
+    Fractional ideals of canonical function fields
+
+    INPUT:
+
+    - ``ring`` -- order in a function field
+
+    - ``hnf`` -- matrix in hermite normal form
+
+    - ``denominator`` -- denominator
+
+    The rows of ``hnf`` is a basis of the ideal, which itself is
+    ``denominator`` times the fractional ideal.
+
+    EXAMPLES::
+
+        sage: K.<x> = FunctionField(GF(2)); R.<y> = K[]
+        sage: L.<y> = K.extension(y^2 - x^3*y - x)
+        sage: O = L.maximal_order()
+        sage: O.ideal(y)
+        Ideal (y) of Maximal order of Function field in y defined by y^2 + x^3*y + x
+    """
+    def __init__(self, ring, hnf, denominator=1):
+        FunctionFieldIdeal_polymod.__init__(self, ring, hnf, denominator)
+
+    def gens(self):
+        """
+        Return a set of generators of this ideal.
+
+        This provides whatever set of generators as quickly
+        as possible.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 - x^3*Y - x)
+            sage: O = L.maximal_order()
+            sage: I = O.ideal(x+y)
+            sage: I.gens()
+            (x^4 + x^2 + x, y + x)
+
+            sage: L.<y> = K.extension(Y^2 +Y + x + 1/x)
+            sage: O = L.maximal_order()
+            sage: I = O.ideal(x+y)
+            sage: I.gens()
+            (x^3 + 1, y + x)
+        """
+        if self._gens_two.is_in_cache():
+            return self._gens_two.cache
+        else:
+            return self.gens_over_base()
+
+    def gens_two(self):
+        """
+        Return two generators of this fractional ideal.
+
+        If the ideal is principal, one generator *may* be returned.
+
+        ALGORITHM::
+
+            At most two generators are required to generate ideals
+            in Dedekind domains.
+
+            Lemma 4.7.9, algorithm 4.7.10, and exercise 4.29 of [Coh1993]_
+            tell us that for an integral ideal $I$ in a number field,
+            if we pick $a$ such that $\gcd(N(I), N(a)/N(I)) = 1$, then
+            $a$ and $N(I)$ generate the ideal.  $N()$ is the norm, and
+            this result (presumably) generalizes to function fields.
+
+            After computing $N(I)$, we search exhaustively to find $a$.
+
+        .. TODO::
+
+            Always return a single generator for a principal ideal.
+
+            Testing for principality is not trivial.  Algorithm 6.5.10
+            of [Coh1993]_ could probably be adapted for function fields.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<t> = K[]
+            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
+            sage: O = F.maximal_order()
+            sage: I = O.ideal(y)
+            sage: I  # indirect doctest
+            Ideal (y) of Maximal order of Function field
+            in y defined by y^3 + x^6 + x^4 + x^2
+            sage: ~I  # indirect doctest
+            Ideal ((1/(x^6 + x^4 + x^2))*y^2) of Maximal order of Function field
+            in y defined by y^3 + x^6 + x^4 + x^2
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: O = L.maximal_order()
+            sage: I = O.ideal(y)
+            sage: I  # indirect doctest
+            Ideal (y) of Maximal order of Function field in y
+            defined by y^2 + y + (x^2 + 1)/x
+            sage: ~I  # indirect doctest
+            Ideal ((x/(x^2 + 1))*y + x/(x^2 + 1)) of Maximal order
+            of Function field in y defined by y^2 + y + (x^2 + 1)/x
+        """
+        d = self.denominator()
+        return tuple(e/d for e in self._gens_two())
+
+    @cached_method
+    def _gens_two(self):
+        """
+        Return a set of two generators of the integral ideal, that is
+        the denominator times this fractional ideal.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+            sage: F.<y> = K.extension(Y^3 + x^3*Y + x)
+            sage: O = F.maximal_order()
+            sage: I = O.ideal(x^2,x*y,x+y)
+            sage: I._gens_two()
+            (x, y)
+        """
+        O = self.ring()
+        F = O.fraction_field()
+
+        if self._kummer_form is not None: # prime ideal
+            _g1, _g2 = self._kummer_form
+            g1 = F(_g1)
+            g2 = sum([c1*c2 for c1,c2 in zip(_g2, O.basis())])
+            return (g1,g2)
+
+        ### start to search for two generators
+
+        hnf = self._hnf
+
+        norm = 1
+        for e in hnf.diagonal():
+            norm *= e
+
+        if norm.is_constant(): # unit ideal
+            return (F(1),)
+
+        # one generator; see .ideal_below()
+        l = hnf[0][0]
+        p = l.degree()
+        l = F(l)
+
+        if self._hnf == O.ideal(l)._hnf: # principal ideal
+            return (l,)
+
+        R = hnf.base_ring()
+
+        basis = []
+        for row in hnf:
+            basis.append(sum([c1*c2 for c1,c2 in zip(row, O.basis())]))
+
+        n = len(basis)
+        alpha = None
+
+        def check(alpha):
+            alpha_norm = alpha.norm().numerator() # denominator is 1
+            return norm.gcd(alpha_norm // norm) == 1
+
+        # Trial 1: search for alpha among generators
+        for alpha in basis:
+            if check(alpha):
+                return (l, alpha)
+
+        # Trial 2: exhaustive search for alpha using only polynomials
+        # with coefficients 0 or 1
+        for d in range(p):
+            G = itertools.product(itertools.product([0,1],repeat=d+1), repeat=n)
+            for g in G:
+                alpha = sum([R(c1)*c2 for c1,c2 in zip(g, basis)])
+                if check(alpha):
+                    return (l, alpha)
+
+        # Trial 3: exhaustive search for alpha using all polynomials
+        for d in range(p):
+            G = itertools.product(R.polynomials(max_degree=d), repeat=n)
+            for g in G:
+                # discard duplicate cases
+                if max(c.degree() for c in g) != d: continue
+                for j in range(n):
+                    if g[j] != 0: break
+                if g[j].leading_coefficient() != 1: continue
+
+                alpha = sum([c1*c2 for c1,c2 in zip(g, basis)])
+                if check(alpha):
+                    return (l, alpha)
+
+        # should not reach here
+        raise ValueError("no two generators found")
 
 
 class FunctionFieldIdealInfinite(FunctionFieldIdeal):

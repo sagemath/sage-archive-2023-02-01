@@ -271,10 +271,10 @@ class ModularForm_abstract(ModuleElement):
             sage: f._compute([])
             []
         """
-        if not isinstance(X, list) or len(X) == 0:
+        if not isinstance(X, list) or not X:
             return []
         bound = max(X)
-        q_exp = self.q_expansion(bound+1)
+        q_exp = self.q_expansion(bound + 1)
         return [q_exp[i] for i in X]
 
     def coefficients(self, X):
@@ -315,7 +315,7 @@ class ModularForm_abstract(ModuleElement):
             self.__coefficients = {}
         if isinstance(X, Integer):
             X = list(range(1, X + 1))
-        Y = [n for n in X   if  not (n in self.__coefficients.keys())]
+        Y = [n for n in X  if n not in self.__coefficients]
         v = self._compute(Y)
         for i in range(len(v)):
             self.__coefficients[Y[i]] = v[i]

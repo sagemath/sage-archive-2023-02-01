@@ -50,7 +50,8 @@ from sage.rings.integer import Integer
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class PathTableau():
-
+    r"""This is the abstract base class for path tableaux.
+    """
     @abstract_method(optional=False)
     def _local_rule(self,i):
         """

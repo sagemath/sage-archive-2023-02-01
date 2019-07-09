@@ -294,7 +294,7 @@ class CatalanTableau(ClonableArray,PathTableau):
         if self.is_skew():
             return SkewTableau([[None]*self[0]+top,bot])
         else:
-            return StandardTableau([[None]*self[0]+top,bot])
+            return StandardTableau([top,bot])
 
 class CatalanTableaux(PathTableaux):
 

@@ -37,6 +37,7 @@ from sage.structure.sage_object import SageObject
 
 from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.classical_crystals import ClassicalCrystals
+from sage.categories.regular_supercrystals import RegularSuperCrystals
 from sage.categories.sets_cat import Sets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -1997,19 +1998,26 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
 
             sage: SPT = ShiftedPrimedTableaux([4,2,1], max_entry=4)
             sage: TestSuite(SPT).run()  # long time
+            sage: SPT.cartan_type()
+            ['Q', 4]
+
+            sage: SPT = ShiftedPrimedTableaux([4,2,1])
+            sage: SPT.cartan_type()
+            ['A', NN]
+
         """
         # Determine the correct category
         if max_entry is None:
             if skew is None:
-                category = RegularCrystals().Infinite()
+                category = RegularSuperCrystals().Infinite()
                 self._cartan_type = CartanType(['A+oo'])
                 self.Element = CrystalElementShiftedPrimedTableau
             else:
                 category = Sets().Infinite()
         else:
             if skew is None:
-                category = ClassicalCrystals()
-                self._cartan_type = CartanType(['A', max_entry-1])
+                category = RegularSuperCrystals()
+                self._cartan_type = CartanType(['Q', max_entry])
                 self.Element = CrystalElementShiftedPrimedTableau
             else:
                 category = Sets().Finite()

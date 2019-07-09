@@ -6681,10 +6681,10 @@ class FiniteWord_class(Word_class):
             key_error = True
 
         if key_error or not isinstance(mpl_cmap, C):
-            possibilities = ', '.join([str(x) for x in cm.__dict__.keys() if \
-                                       isinstance(cm.__dict__[x], C)])
+            possibilities = ', '.join(str(x) for x, val in cm.__dict__.items()
+                                      if isinstance(val, C))
             import sage.misc.misc
-            sage.misc.misc.verbose("The possible color maps include: %s"%possibilities, level=0)
+            sage.misc.misc.verbose("The possible color maps include: %s" % possibilities, level=0)
             raise RuntimeError("Color map %s not known" % cmap)
 
         #Drawing the colored vector...

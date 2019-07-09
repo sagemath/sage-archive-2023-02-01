@@ -1643,7 +1643,6 @@ class RelativeOrder(Order):
             sage: O._repr_()
             'Relative Order in Number Field in a with defining polynomial x^2 + x + 1 over its base field'
         """
-        #", ".join([str(b) for b in self.basis()]),
         return "%sRelative Order in %r" % ("Maximal " if self._is_maximal else "", self._K)
 
     def absolute_order(self, names='z'):

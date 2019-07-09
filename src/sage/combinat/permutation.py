@@ -725,10 +725,10 @@ class Permutation(CombinatorialElement):
             '(1,2)(3)'
         """
         cycles = self.to_cycles(singletons=singletons)
-        if cycles == []:
+        if not cycles:
             return "()"
         else:
-            return "".join(["("+",".join([str(l) for l in x])+")" for x in cycles])
+            return "".join("("+",".join(str(l) for l in x)+")" for x in cycles)
 
     def __next__(self):
         r"""
@@ -1134,7 +1134,7 @@ class Permutation(CombinatorialElement):
         """
         cycles = self.to_cycles(singletons=False)
         grp = SymmetricGroup(len(self))
-        if cycles == []:
+        if not cycles:
             return PermutationGroupElement( '()', parent=grp )
         else:
             return PermutationGroupElement( cycles , parent=grp)

@@ -161,10 +161,6 @@ class FunctionFieldValuationRing(UniqueRepresentation, Parent):
         """
         return self._place
 
-class FunctionFieldValuationRing_global(FunctionFieldValuationRing):
-    """
-    Valuation rings of global function fields.
-    """
     @cached_method
     def residue_field(self, name=None):
         """
@@ -173,15 +169,15 @@ class FunctionFieldValuationRing_global(FunctionFieldValuationRing):
 
         INPUT:
 
-        - ``name`` -- string; name of the generator of the residue field
+        - ``name`` -- string; name of the generator of the field
 
         OUTPUT:
 
-        - a finite field isomorphic to the residue field
+        - a field isomorphic to the residue field
 
-        - a ring homomorphism from the valuation ring to the finite field
+        - a ring homomorphism from the valuation ring to the field
 
-        - a ring homomorphism from the finite field to the valuation ring
+        - a ring homomorphism from the field to the valuation ring
 
         EXAMPLES::
 

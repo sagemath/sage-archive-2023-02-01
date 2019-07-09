@@ -462,9 +462,9 @@ class FunctionFieldPlace_rational(FunctionFieldPlace):
             sage: p.valuation_ring()
             Valuation ring at Place (x, x*y)
         """
-        from .valuation_ring import FunctionFieldValuationRing_global
+        from .valuation_ring import FunctionFieldValuationRing
 
-        return FunctionFieldValuationRing_global(self.function_field(), self)
+        return FunctionFieldValuationRing(self.function_field(), self)
 
 class FunctionFieldPlace_global(FunctionFieldPlace):
     """
@@ -1010,9 +1010,9 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
             sage: p.valuation_ring()
             Valuation ring at Place (x, x*y)
         """
-        from .valuation_ring import FunctionFieldValuationRing_global
+        from .valuation_ring import FunctionFieldValuationRing
 
-        return FunctionFieldValuationRing_global(self.function_field(), self)
+        return FunctionFieldValuationRing(self.function_field(), self)
 
 class PlaceSet(UniqueRepresentation, Parent):
     """

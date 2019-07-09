@@ -2115,9 +2115,9 @@ class FunctionFieldMaximalOrderInfinite_rational(FunctionFieldMaximalOrderInfini
 
         return self.ideal_monoid().element_class(self, gen)
 
-class FunctionFieldMaximalOrderInfinite_global(FunctionFieldMaximalOrderInfinite):
+class FunctionFieldMaximalOrderInfinite_polymod(FunctionFieldMaximalOrderInfinite):
     """
-    Maximal infinite orders of global function fields.
+    Maximal infinite orders of function fields defined by algebraic extensions.
 
     INPUT:
 

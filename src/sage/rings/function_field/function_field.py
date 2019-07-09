@@ -1716,7 +1716,8 @@ class FunctionField_polymod(FunctionField):
             sage: L.<y> = K.extension(y^5 - (x^3 + 2*x*y + 1/x))
             sage: L.maximal_order()  # todo: not implemented
         """
-        raise NotImplementedError
+        from .order import FunctionFieldMaximalOrder_polymod
+        return FunctionFieldMaximalOrder_polymod(self)
 
     def maximal_order_infinite(self):
         """
@@ -1727,8 +1728,19 @@ class FunctionField_polymod(FunctionField):
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
             sage: L.<y> = K.extension(y^5 - (x^3 + 2*x*y + 1/x))
             sage: L.maximal_order_infinite()  # todo: not implemented
+
+            sage: K.<x> = FunctionField(GF(2)); _.<t> = K[]
+            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
+            sage: F.maximal_order_infinite()
+            Maximal infinite order of Function field in y defined by y^3 + x^6 + x^4 + x^2
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: L.maximal_order_infinite()
+            Maximal infinite order of Function field in y defined by y^2 + y + (x^2 + 1)/x
         """
-        raise NotImplementedError
+        from .order import FunctionFieldMaximalOrderInfinite_polymod
+        return FunctionFieldMaximalOrderInfinite_polymod(self)
 
     def equation_order(self):
         """
@@ -2652,25 +2664,6 @@ class FunctionField_global(FunctionField_polymod):
         """
         from .order import FunctionFieldMaximalOrder_global
         return FunctionFieldMaximalOrder_global(self)
-
-    def maximal_order_infinite(self):
-        """
-        Return the maximal infinite order of the function field.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(2)); _.<t> = K[]
-            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
-            sage: F.maximal_order_infinite()
-            Maximal infinite order of Function field in y defined by y^3 + x^6 + x^4 + x^2
-
-            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: L.maximal_order_infinite()
-            Maximal infinite order of Function field in y defined by y^2 + y + (x^2 + 1)/x
-        """
-        from .order import FunctionFieldMaximalOrderInfinite_global
-        return FunctionFieldMaximalOrderInfinite_global(self)
 
     @cached_method
     def _inversion_isomorphism(self):

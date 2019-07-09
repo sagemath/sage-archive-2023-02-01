@@ -1090,6 +1090,9 @@ class FunctionField_polymod(FunctionField):
         FunctionField.__init__(self, base_field, names=names,
                                category=FunctionFields().or_subcategory(category))
 
+        from .place import FunctionFieldPlace_polymod
+        self._place_class = FunctionFieldPlace_polymod
+
         self._hash = hash(polynomial)
         self._ring = self._polynomial.parent()
 
@@ -2632,11 +2635,7 @@ class FunctionField_global(FunctionField_polymod):
             sage: L.<y>=K.extension(Y^3-(x^3-1)/(x^3-2))
             sage: TestSuite(L).run()
         """
-        from .place import FunctionFieldPlace_global
-
         FunctionField_polymod.__init__(self, polynomial, names)
-
-        self._place_class = FunctionFieldPlace_global
 
     def maximal_order(self):
         """

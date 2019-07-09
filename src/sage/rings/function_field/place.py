@@ -466,9 +466,9 @@ class FunctionFieldPlace_rational(FunctionFieldPlace):
 
         return FunctionFieldValuationRing(self.function_field(), self)
 
-class FunctionFieldPlace_global(FunctionFieldPlace):
+class FunctionFieldPlace_polymod(FunctionFieldPlace):
     """
-    Places of function fields
+    Places of function fields defined by algebraic extensions.
     """
     def place_below(self):
         """

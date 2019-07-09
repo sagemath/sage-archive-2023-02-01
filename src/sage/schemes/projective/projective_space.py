@@ -142,7 +142,7 @@ def is_ProjectiveSpace(x):
     """
     return isinstance(x, ProjectiveSpace_ring)
 
-def ProjectiveSpace(n, R=None, names='x'):
+def ProjectiveSpace(n, R=None, names=None):
     r"""
     Return projective space of dimension ``n`` over the ring ``R``.
 
@@ -216,11 +216,35 @@ def ProjectiveSpace(n, R=None, names='x'):
         sage: R.<x> = QQ[]
         sage: ProjectiveSpace(R)
         Projective Space of dimension 0 over Rational Field
+
+    TESTS::
+
+        sage: R.<x,y>=QQ[]
+        sage: P.<z,w> = ProjectiveSpace(R)
+        Traceback (most recent call last):
+        ...
+        NameError: variable names passed to ProjectiveSpace conflict with names in ring
+
+    ::
+
+        sage: R.<x,y>=QQ[]
+        sage: P.<x,y> = ProjectiveSpace(R)
+        sage: P.gens() == R.gens()
+        True
     """
     if (is_MPolynomialRing(n) or is_PolynomialRing(n)) and R is None:
+        if names is not None:
+            # Check for the case that the user provided a variable name
+            # That does not match what we wanted to use from R
+            names = normalize_names(n.ngens(), names)
+            if n.variable_names() != names:
+                # The provided name doesn't match the name of R's variables
+                raise NameError("variable names passed to ProjectiveSpace conflict with names in ring")
         A = ProjectiveSpace(n.ngens()-1, n.base_ring(), names=n.variable_names())
         A._coordinate_ring = n
         return A
+    if names is None:
+        names = 'x'
     if isinstance(R, integer_types + (Integer,)):
         n, R = R, n
     if R is None:

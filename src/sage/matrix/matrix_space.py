@@ -881,7 +881,6 @@ class MatrixSpace(UniqueRepresentation, Parent):
         from sage.categories.pushout import MatrixFunctor
         return MatrixFunctor(self.__nrows, self.__ncols, is_sparse=self.is_sparse()), self.base_ring()
 
-<<<<<<< HEAD
     def _get_action_(self, S, op, self_on_left):
         r"""
         Return the action of S on ``self``.

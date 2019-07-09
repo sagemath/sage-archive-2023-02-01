@@ -968,11 +968,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             M = A_domain.dimension_relative()
             N = self.codomain().ambient_space().dimension_relative()
             R = A_domain.coordinate_ring()
-<<<<<<< HEAD
-            phi = R.hom([S.gen(j) for j in range(0, ind[0])] + [1] + [S.gen(j) for j in range(ind[0], N)], FS)
-=======
             phi = R.hom([S.gen(j) for j in range(0, ind[0])] + [1] + [S.gen(j) for j in range(ind[0], M)], S)
->>>>>>> 23813 Added examples, fixed dehomogenize again.
             F = []
             G = phi(self._polys[ind[1]])
             for i in range(0, N + 1):

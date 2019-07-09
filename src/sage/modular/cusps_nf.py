@@ -1,5 +1,5 @@
 r"""
-The set `\mathbb{P}^1(K)` of cusps of a number field K
+The set `\mathbb{P}^1(K)` of cusps of a number field `K`
 
 AUTHORS:
 

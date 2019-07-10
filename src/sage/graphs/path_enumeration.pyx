@@ -15,6 +15,7 @@ This module is meant for all functions related to path enumeration in graphs.
     :func:`yen_k_shortest_simple_paths_directed_iterator` | Return an iterator over the simple paths between a pair of vertices in increasing order of weights.
     :func:`all_paths_iterator` | Return an iterator over the paths of ``self``.
     :func:`all_simple_paths` | Return a list of all the simple paths of ``self`` starting with one of the given vertices.
+    :func:`shortest_simple_paths` | Return an iterator over the simple paths between a pair of vertices in increasing order of weights.
 
 Functions
 ---------
@@ -52,24 +53,24 @@ def all_paths(G, start, end, use_multiedges=False, report_edges=False, labels=Fa
     - ``end`` -- a vertex of a graph, where to end
 
     - ``use_multiedges`` -- boolean (default: ``False``); this parameter is
-        used only if the graph has multiple edges.
+      used only if the graph has multiple edges.
 
         - If ``False``, the graph is considered as simple and an edge label
-        is arbitrarily selected for each edge as in
-        :meth:`~GenericGraph.to_simple` if ``report_edges`` is ``True``
+          is arbitrarily selected for each edge as in
+          :meth:`~GenericGraph.to_simple` if ``report_edges`` is ``True``
 
         - If ``True``, a path will be reported as many times as the edges
-        multiplicities along that path (when ``report_edges = False`` or
-        ``labels = False``), or with all possible combinations of edge
-        labels (when ``report_edges = True`` and ``labels = True``)
+          multiplicities along that path (when ``report_edges = False`` or
+          ``labels = False``), or with all possible combinations of edge
+          labels (when ``report_edges = True`` and ``labels = True``)
 
     - ``report_edges`` -- boolean (default: ``False``); whether to report
-        paths as list of vertices (default) or list of edges, if ``False``
-        then ``labels`` parameter is ignored
+      paths as list of vertices (default) or list of edges, if ``False``
+      then ``labels`` parameter is ignored
 
     - ``labels`` -- boolean (default: ``False``); if ``False``, each edge
-        is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
-        along with its edge labels are used to represent the path.
+      is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
+      along with its edge labels are used to represent the path.
 
     EXAMPLES::
 
@@ -274,6 +275,175 @@ def all_paths(G, start, end, use_multiedges=False, report_edges=False, labels=Fa
         return [list(zip(p[:-1], p[1:])) for p in all_paths]
     return all_paths
 
+def shortest_simple_paths(self, source, target, weight_function=None,
+                          by_weight=False, algorithm=None, report_edges=False,
+                          labels=False, report_weight=False):
+    r"""
+    Return an iterator over the simple paths between a pair of vertices in
+    increasing order of weights.
+
+    For unweighted graphs paths are returned in order of increasing number
+    of edges.
+
+    In case of weighted graphs negative weights are not allowed.
+
+    If ``source`` is the same vertex as ``target``, then ``[[source]]`` is
+    returned -- a list containing the 1-vertex, 0-edge path "``source``"
+
+    By default ``Yen's`` algorithm is used for undirected graphs and ``Feng's``
+    algorithm is used for directed graphs.
+
+    INPUT:
+
+    - ``source`` -- a vertex of the graph, where to start
+
+    - ``target`` -- a vertex of the graph, where to end
+
+    - ``weight_function`` -- function (default: ``None``); a function that
+      takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+      ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+      and ``by_weight`` is ``True``, we use the edge label ``l`` as a
+      weight.
+
+    - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
+      in the graph are weighted, otherwise all edges have weight 1
+
+    - ``algorithm`` -- string (default: ``None``); the algorithm to use in
+      computing ``k`` shortest paths of ``self``. The following algorithms are
+      supported:
+
+        - ``"Yen"`` -- Yen's algorithm [Yen1970]_
+
+        - ``"Feng"`` -- a variant of Yen's algorithm that is much faster than
+          Yen's algorithm but works only for directed graphs [GF2014]_
+
+    - ``report_edges`` -- boolean (default: ``False``); whether to report paths
+      as list of vertices (default) or list of edges, if ``False`` then
+      ``labels`` parameter is ignored
+
+    - ``labels`` -- boolean (default: ``False``); if ``False``, each edge is
+      simply a pair ``(u, v)`` of vertices. Otherwise a list of edges along
+      with its edge labels are used to represent the path.
+
+    - ``report_weight`` -- boolean (default: ``False``); if ``False``, just the
+      path between ``source`` and ``target`` is returned. Otherwise a tuple of
+      path length and path is returned.
+
+    EXAMPLES::
+
+        sage: g = DiGraph([(1, 2, 20), (1, 3, 10), (1, 4, 30), (2, 5, 20), (3, 5, 10), (4, 5, 30)])
+        sage: list(g.shortest_simple_paths(1, 5, by_weight=True, algorithm="Yen"))
+        [[1, 3, 5], [1, 2, 5], [1, 4, 5]]
+        sage: list(g.shortest_simple_paths(1, 5, algorithm="Yen"))
+        [[1, 2, 5], [1, 3, 5], [1, 4, 5]]
+        sage: list(g.shortest_simple_paths(1, 1))
+        [[1]]
+        sage: list(g.shortest_simple_paths(1, 5, by_weight=True, report_edges=True, report_weight=True, labels=True))
+        [(20, [(1, 3, 10), (3, 5, 10)]),
+         (40, [(1, 2, 20), (2, 5, 20)]),
+         (60, [(1, 4, 30), (4, 5, 30)])]
+        sage: list(g.shortest_simple_paths(1, 5, by_weight=True, algorithm="Feng", report_edges=True, report_weight=True))
+        [(20, [(1, 3), (3, 5)]), (40, [(1, 2), (2, 5)]), (60, [(1, 4), (4, 5)])]
+        sage: list(g.shortest_simple_paths(1, 5, report_edges=True, report_weight=True))
+        [(2, [(1, 4), (4, 5)]), (2, [(1, 3), (3, 5)]), (2, [(1, 2), (2, 5)])]
+        sage: list(g.shortest_simple_paths(1, 5, by_weight=True, report_edges=True))
+        [[(1, 3), (3, 5)], [(1, 2), (2, 5)], [(1, 4), (4, 5)]]
+        sage: list(g.shortest_simple_paths(1, 5, by_weight=True, algorithm="Feng", report_edges=True, labels=True))
+        [[(1, 3, 10), (3, 5, 10)], [(1, 2, 20), (2, 5, 20)], [(1, 4, 30), (4, 5, 30)]]
+        sage: g = Graph([(1, 2, 20), (1, 3, 10), (1, 4, 30), (2, 5, 20), (3, 5, 10), (4, 5, 30), (1, 6, 100), (5, 6, 5)])
+        sage: list(g.shortest_simple_paths(1, 6, by_weight = True))
+        [[1, 3, 5, 6], [1, 2, 5, 6], [1, 4, 5, 6], [1, 6]]
+        sage: list(g.shortest_simple_paths(1, 6, algorithm="Yen"))
+        [[1, 6], [1, 2, 5, 6], [1, 3, 5, 6], [1, 4, 5, 6]]
+        sage: list(g.shortest_simple_paths(1, 6, report_edges=True, report_weight=True, labels=True))
+        [(1, [(1, 6, 100)]),
+         (3, [(1, 2, 20), (2, 5, 20), (5, 6, 5)]),
+         (3, [(1, 3, 10), (3, 5, 10), (5, 6, 5)]),
+         (3, [(1, 4, 30), (4, 5, 30), (5, 6, 5)])]
+        sage: list(g.shortest_simple_paths(1, 6, report_edges=True, report_weight=True, labels=True, by_weight=True))
+        [(25, [(1, 3, 10), (3, 5, 10), (5, 6, 5)]),
+         (45, [(1, 2, 20), (2, 5, 20), (5, 6, 5)]),
+         (65, [(1, 4, 30), (4, 5, 30), (5, 6, 5)]),
+         (100, [(1, 6, 100)])]
+        sage: list(g.shortest_simple_paths(1, 6, report_edges=True, labels=True, by_weight=True))
+        [[(1, 3, 10), (3, 5, 10), (5, 6, 5)],
+         [(1, 2, 20), (2, 5, 20), (5, 6, 5)],
+         [(1, 4, 30), (4, 5, 30), (5, 6, 5)],
+         [(1, 6, 100)]]
+        sage: list(g.shortest_simple_paths(1, 6, report_edges=True, labels=True))
+        [[(1, 6, 100)],
+         [(1, 2, 20), (2, 5, 20), (5, 6, 5)],
+         [(1, 3, 10), (3, 5, 10), (5, 6, 5)],
+         [(1, 4, 30), (4, 5, 30), (5, 6, 5)]]
+
+    TESTS::
+
+        sage: g = Graph([(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 2), (5, 6, 100), (4, 7, 3), (7, 6, 4), (3, 8, 5), (8, 9, 2), (9, 6, 2), (9, 10, 7), (9, 11, 10), (11, 6, 8), (10, 6, 2)])
+        sage: list(g.shortest_simple_paths(1, 6, algorithm="Yen", by_weight=True))
+        [[1, 2, 3, 4, 7, 6],
+         [1, 2, 3, 8, 9, 6],
+         [1, 2, 3, 8, 9, 10, 6],
+         [1, 2, 3, 8, 9, 11, 6],
+         [1, 2, 3, 4, 5, 6]]
+        sage: list(g.shortest_simple_paths(1, 6, report_edges=True, labels=True, by_weight=True))
+        [[(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 7, 3), (6, 7, 4)],
+         [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (6, 9, 2)],
+         [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (9, 10, 7), (6, 10, 2)],
+         [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (9, 11, 10), (6, 11, 8)],
+         [(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 2), (5, 6, 100)]]
+        sage: list(g.shortest_simple_paths(1, 6, report_edges=True, labels=True, by_weight=True, report_weight=True))
+        [(10, [(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 7, 3), (6, 7, 4)]),
+         (11, [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (6, 9, 2)]),
+         (18, [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (9, 10, 7), (6, 10, 2)]),
+         (27, [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (9, 11, 10), (6, 11, 8)]),
+         (105, [(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 2), (5, 6, 100)])]
+        sage: list(g.shortest_simple_paths(1, 6, algorithm="Yen"))
+        [[1, 2, 3, 4, 5, 6],
+         [1, 2, 3, 4, 7, 6],
+         [1, 2, 3, 8, 9, 6],
+         [1, 2, 3, 8, 9, 10, 6],
+         [1, 2, 3, 8, 9, 11, 6]]
+        sage: g = DiGraph([(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 1), (1, 7, 1), (7, 8, 1), (8, 5, 1), (1, 6, 1), (6, 9, 1), (9, 5, 1), (4, 2, 1), (9, 3, 1), (9, 10, 1), (10, 5, 1), (9, 11, 1), (11, 10, 1)])
+        sage: list(g.shortest_simple_paths(1, 5, algorithm="Feng"))
+        [[1, 7, 8, 5],
+         [1, 6, 9, 5],
+         [1, 2, 3, 4, 5],
+         [1, 6, 9, 10, 5],
+         [1, 6, 9, 11, 10, 5],
+         [1, 6, 9, 3, 4, 5]]
+    """
+    if source not in self:
+        raise ValueError("vertex '{}' is not in the graph".format(source))
+
+    if target not in self:
+        raise ValueError("vertex '{}' is not in the graph".format(target))
+
+    if source == target:
+        yield [source]
+        return
+
+    if not self.is_directed() and algorithm=="Feng":
+        raise ValueError("Feng's algorithm works only for directed graphs")
+
+    if algorithm=="Yen" or not self.is_directed():
+        path = yen_k_shortest_simple_paths(self, source=source, target=target,
+                                           weight_function=weight_function,
+                                           by_weight=by_weight, report_edges=report_edges,
+                                           labels=labels, report_weight=report_weight)
+        for p in path:
+            yield p
+        return
+
+    # calling faster implementation of Yen's algorithm for directed graphs
+    if self.is_directed():
+        path = yen_k_shortest_simple_paths_directed_iterator(self, source=source, target=target,
+                                                             weight_function=weight_function,
+                                                             by_weight=by_weight, report_edges=report_edges,
+                                                             labels=labels, report_weight=report_weight)
+        for p in path:
+            yield p
+        return
+
 def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
                                 by_weight=False, report_edges=False,
                                 labels=False, report_weight=False):
@@ -296,68 +466,70 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
     - ``target`` -- a vertex of the graph, where to end
 
     - ``weight_function`` -- function (default: ``None``); a function that
-        takes as input an edge ``(u, v, l)`` and outputs its weight. If not
-        ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
-        and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-        weight.
+      takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+      ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+      and ``by_weight`` is ``True``, we use the edge label ``l`` as a
+      weight.
 
     - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
-        in the graph are weighted, otherwise all edges have weight 1
+      in the graph are weighted, otherwise all edges have weight 1
     
     - ``report_edges`` -- boolean (default: ``False``); whether to report
-        paths as list of vertices (default) or list of edges, if ``False``
-        then ``labels`` parameter is ignored
+      paths as list of vertices (default) or list of edges, if ``False``
+      then ``labels`` parameter is ignored
 
     - ``labels`` -- boolean (default: ``False``); if ``False``, each edge
-        is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
-        along with its edge labels are used to represent the path.
+      is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
+      along with its edge labels are used to represent the path.
 
     - ``report_weight`` -- boolean (default: ``False``); if ``False``, just
-        the path between ``source`` and ``target`` is returned. Otherwise a
-        tuple of path length and path is returned.
+      the path between ``source`` and ``target`` is returned. Otherwise a
+      tuple of path length and path is returned.
 
     EXAMPLES::
-
+        
+        sage: from sage.graphs.path_enumeration import yen_k_shortest_simple_paths
         sage: g = DiGraph([(1, 2, 20), (1, 3, 10), (1, 4, 30), (2, 5, 20), (3, 5, 10), (4, 5, 30)])
-        sage: list(g.yen_k_shortest_simple_paths(1, 5, by_weight=True))
+        sage: list(yen_k_shortest_simple_paths(g, 1, 5, by_weight=True))
         [[1, 3, 5], [1, 2, 5], [1, 4, 5]]
-        sage: list(g.yen_k_shortest_simple_paths(1, 5))
-        [[1, 4, 5], [1, 3, 5], [1, 2, 5]]
-        sage: list(g.yen_k_shortest_simple_paths(1, 1))
+        sage: list(yen_k_shortest_simple_paths(g, 1, 5))
+        [[1, 2, 5], [1, 3, 5], [1, 4, 5]]
+        sage: list(yen_k_shortest_simple_paths(g, 1, 1))
         [[1]]
-        sage: list(g.yen_k_shortest_simple_paths(1, 5, by_weight=True, report_edges=True, report_weight=True, labels=True))
+        sage: list(yen_k_shortest_simple_paths(g, 1, 5, by_weight=True, report_edges=True, report_weight=True, labels=True))
         [(20, [(1, 3, 10), (3, 5, 10)]),
          (40, [(1, 2, 20), (2, 5, 20)]),
          (60, [(1, 4, 30), (4, 5, 30)])]
-        sage: list(g.yen_k_shortest_simple_paths(1, 5, by_weight=True, report_edges=True, report_weight=True))
+        sage: list(yen_k_shortest_simple_paths(g, 1, 5, by_weight=True, report_edges=True, report_weight=True))
         [(20, [(1, 3), (3, 5)]), (40, [(1, 2), (2, 5)]), (60, [(1, 4), (4, 5)])]
-        sage: list(g.yen_k_shortest_simple_paths(1, 5, report_edges=True, report_weight=True))
-        [(2, [(1, 4), (4, 5)]), (2, [(1, 3), (3, 5)]), (2, [(1, 2), (2, 5)])]
-        sage: list(g.yen_k_shortest_simple_paths(1, 5, by_weight=True, report_edges=True))
+        sage: list(yen_k_shortest_simple_paths(g, 1, 5, report_edges=True, report_weight=True))
+        [(2, [(1, 2), (2, 5)]), (2, [(1, 3), (3, 5)]), (2, [(1, 4), (4, 5)])]
+        sage: list(yen_k_shortest_simple_paths(g, 1, 5, by_weight=True, report_edges=True))
         [[(1, 3), (3, 5)], [(1, 2), (2, 5)], [(1, 4), (4, 5)]]
-        sage: list(g.yen_k_shortest_simple_paths(1, 5, by_weight=True, report_edges=True, labels=True))
+        sage: list(yen_k_shortest_simple_paths(g, 1, 5, by_weight=True, report_edges=True, labels=True))
         [[(1, 3, 10), (3, 5, 10)], [(1, 2, 20), (2, 5, 20)], [(1, 4, 30), (4, 5, 30)]]
+        sage: from sage.graphs.path_enumeration import yen_k_shortest_simple_paths
         sage: g = Graph([(1, 2, 20), (1, 3, 10), (1, 4, 30), (2, 5, 20), (3, 5, 10), (4, 5, 30), (1, 6, 100), (5, 6, 5)])
-        sage: list(g.yen_k_shortest_simple_paths(1, 6, by_weight = True))
+        sage: list(yen_k_shortest_simple_paths(g, 1, 6, by_weight = True))
         [[1, 3, 5, 6], [1, 2, 5, 6], [1, 4, 5, 6], [1, 6]]
-        sage: list(g.yen_k_shortest_simple_paths(1, 6))
+        sage: list(yen_k_shortest_simple_paths(g, 1, 6))
         [[1, 6], [1, 2, 5, 6], [1, 3, 5, 6], [1, 4, 5, 6]]
-        sage: list(g.yen_k_shortest_simple_paths(1, 6, report_edges=True, report_weight=True, labels=True))
+        sage: list(yen_k_shortest_simple_paths(g, 1, 6, report_edges=True, report_weight=True, labels=True))
         [(1, [(1, 6, 100)]),
          (3, [(1, 2, 20), (2, 5, 20), (5, 6, 5)]),
          (3, [(1, 3, 10), (3, 5, 10), (5, 6, 5)]),
          (3, [(1, 4, 30), (4, 5, 30), (5, 6, 5)])]
-        sage: list(g.yen_k_shortest_simple_paths(1, 6, report_edges=True, report_weight=True, labels=True, by_weight=True))
+        sage: list(yen_k_shortest_simple_paths(g, 1, 6, report_edges=True, report_weight=True, labels=True, by_weight=True))
         [(25, [(1, 3, 10), (3, 5, 10), (5, 6, 5)]),
          (45, [(1, 2, 20), (2, 5, 20), (5, 6, 5)]),
          (65, [(1, 4, 30), (4, 5, 30), (5, 6, 5)]),
          (100, [(1, 6, 100)])]
-        sage: list(g.yen_k_shortest_simple_paths(1, 6, report_edges=True, labels=True, by_weight=True))
+        sage: list(yen_k_shortest_simple_paths(g, 1, 6, report_edges=True, labels=True, by_weight=True))
         [[(1, 3, 10), (3, 5, 10), (5, 6, 5)],
          [(1, 2, 20), (2, 5, 20), (5, 6, 5)],
          [(1, 4, 30), (4, 5, 30), (5, 6, 5)],
          [(1, 6, 100)]]
-        sage: list(g.yen_k_shortest_simple_paths(1, 6, report_edges=True, labels=True))
+        sage: list(yen_k_shortest_simple_paths(g, 1, 6, report_edges=True, labels=True))
         [[(1, 6, 100)],
          [(1, 2, 20), (2, 5, 20), (5, 6, 5)],
          [(1, 3, 10), (3, 5, 10), (5, 6, 5)],
@@ -365,39 +537,41 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
 
     TESTS::
 
+        sage: from sage.graphs.path_enumeration import yen_k_shortest_simple_paths
         sage: g = Graph([(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 2), (5, 6, 100), (4, 7, 3), (7, 6, 4), (3, 8, 5), (8, 9, 2), (9, 6, 2), (9, 10, 7), (9, 11, 10), (11, 6, 8), (10, 6, 2)])
-        sage: list(g.yen_k_shortest_simple_paths(1, 6, by_weight=True))
+        sage: list(yen_k_shortest_simple_paths(g, 1, 6, by_weight=True))
         [[1, 2, 3, 4, 7, 6],
          [1, 2, 3, 8, 9, 6],
          [1, 2, 3, 8, 9, 10, 6],
          [1, 2, 3, 8, 9, 11, 6],
          [1, 2, 3, 4, 5, 6]]
-        sage: list(g.yen_k_shortest_simple_paths(1, 6, report_edges=True, labels=True, by_weight=True))
+        sage: list(yen_k_shortest_simple_paths(g, 1, 6, report_edges=True, labels=True, by_weight=True))
         [[(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 7, 3), (6, 7, 4)],
          [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (6, 9, 2)],
          [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (9, 10, 7), (6, 10, 2)],
          [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (9, 11, 10), (6, 11, 8)],
          [(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 2), (5, 6, 100)]]
-        sage: list(g.yen_k_shortest_simple_paths(1, 6, report_edges=True, labels=True, by_weight=True, report_weight=True))
+        sage: list(yen_k_shortest_simple_paths(g, 1, 6, report_edges=True, labels=True, by_weight=True, report_weight=True))
         [(10, [(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 7, 3), (6, 7, 4)]),
          (11, [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (6, 9, 2)]),
          (18, [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (9, 10, 7), (6, 10, 2)]),
          (27, [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (9, 11, 10), (6, 11, 8)]),
          (105, [(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 2), (5, 6, 100)])]
-        sage: list(g.yen_k_shortest_simple_paths(1, 6))
+        sage: list(yen_k_shortest_simple_paths(g, 1, 6))
         [[1, 2, 3, 4, 5, 6],
          [1, 2, 3, 4, 7, 6],
          [1, 2, 3, 8, 9, 6],
          [1, 2, 3, 8, 9, 10, 6],
          [1, 2, 3, 8, 9, 11, 6]]
+        sage: from sage.graphs.path_enumeration import yen_k_shortest_simple_paths
         sage: g = DiGraph([(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 1), (1, 7, 1), (7, 8, 1), (8, 5, 1), (1, 6, 1), (6, 9, 1), (9, 5, 1), (4, 2, 1), (9, 3, 1), (9, 10, 1), (10, 5, 1), (9, 11, 1), (11, 10, 1)])
-        sage: list(g.yen_k_shortest_simple_paths(1, 5))
-        [[1, 7, 8, 5],
-         [1, 6, 9, 5],
+        sage: list(yen_k_shortest_simple_paths(g, 1, 5))
+        [[1, 6, 9, 5],
+         [1, 7, 8, 5],
          [1, 2, 3, 4, 5],
          [1, 6, 9, 10, 5],
-         [1, 6, 9, 11, 10, 5],
-         [1, 6, 9, 3, 4, 5]]
+         [1, 6, 9, 3, 4, 5],
+         [1, 6, 9, 11, 10, 5]]
     """
     if source not in self:
         raise ValueError("vertex '{}' is not in the graph".format(source))
@@ -407,15 +581,6 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
 
     if source == target:
         yield [source]
-        return
-    # calling faster implementation of Yen's algorithm for directed graphs
-    if self.is_directed():
-        path = yen_k_shortest_simple_paths_directed_iterator(self, source=source, target=target,
-                                                             weight_function=weight_function,
-                                                             by_weight=by_weight, report_edges=report_edges,
-                                                             labels=labels, report_weight=report_weight)
-        for p in path:
-            yield p
         return
 
     if weight_function is not None:
@@ -429,8 +594,11 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
         self._check_weight_function(weight_function)
         edge_wt = {}
         for e in self.edge_iterator():
-            edge_wt[(e[0], e[1])] = weight_function(e)
-            edge_wt[(e[1], e[0])] = edge_wt[(e[0], e[1])]
+            if self.is_directed():
+                edge_wt[(e[0], e[1])] = weight_function(e) # dictionary to get weight of the edges
+            else:
+                edge_wt[(e[0], e[1])] = weight_function(e)
+                edge_wt[(e[1], e[0])] = edge_wt[(e[0], e[1])]
     else:
         def weight_function(e):
             return 1
@@ -440,6 +608,9 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
         for e in self.edge_iterator():
             if (e[0], e[1]) not in edge_labels:
                 edge_labels[(e[0], e[1])] = [e]
+        if not self.is_directed():
+            for u, v in list(edge_labels):
+                edge_labels[v, u] = edge_labels[u, v]
         for u, v in list(edge_labels):
             edge_labels[v, u] = edge_labels[u, v]
 
@@ -517,6 +688,9 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
             root = prev_path[:i]
             for path in listA:
                 if path[:i] == root:
+                    if self.is_directed():
+                        exclude_edges.add((path[i - 1], path[i]))
+                    else:
                         exclude_edges.add((path[i - 1], path[i]))
                         exclude_edges.add((path[i], path[i - 1]))
             try:
@@ -572,127 +746,133 @@ def yen_k_shortest_simple_paths_directed_iterator(self, source, target, weight_f
     - ``target`` -- a vertex of the graph, where to end
 
     - ``weight_function`` -- function (default: ``None``); a function that
-        takes as input an edge ``(u, v, l)`` and outputs its weight. If not
-        ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
-        and ``by_weight`` is ``True``, we use the edge label ``l`` as a
-        weight.
+      takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+      ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+      and ``by_weight`` is ``True``, we use the edge label ``l`` as a
+      weight.
 
     - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
-        in the graph are weighted, otherwise all edges have weight 1
+      in the graph are weighted, otherwise all edges have weight 1
 
     - ``report_edges`` -- boolean (default: ``False``); whether to report
-        paths as list of vertices (default) or list of edges, if ``False``
-        then ``labels`` parameter is ignored
+      paths as list of vertices (default) or list of edges, if ``False``
+      then ``labels`` parameter is ignored
 
     - ``labels`` -- boolean (default: ``False``); if ``False``, each edge
-        is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
-        along with its edge labels are used to represent the path.
+      is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
+      along with its edge labels are used to represent the path.
 
     - ``report_weight`` -- boolean (default: ``False``); if ``False``, just
-        the path between ``source`` and ``target`` is returned. Otherwise a
-        tuple of path length and path is returned.
+      the path between ``source`` and ``target`` is returned. Otherwise a
+      tuple of path length and path is returned.
 
     EXAMPLES::
 
+        sage: from sage.graphs.path_enumeration import yen_k_shortest_simple_paths_directed_iterator
         sage: g = DiGraph([(1, 2, 20), (1, 3, 10), (1, 4, 30), (2, 5, 20), (3, 5, 10), (4, 5, 30)])
-        sage: list(g.yen_k_shortest_simple_paths(1, 5, by_weight=True))
+        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 5, by_weight=True))
         [[1, 3, 5], [1, 2, 5], [1, 4, 5]]
-        sage: list(g.yen_k_shortest_simple_paths(1, 5))
+        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 5))
         [[1, 4, 5], [1, 3, 5], [1, 2, 5]]
-        sage: list(g.yen_k_shortest_simple_paths(1, 1))
+        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 1))
         [[1]]
-        sage: list(g.yen_k_shortest_simple_paths(1, 5, report_edges=True, labels=True))
+        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 5, report_edges=True, labels=True))
         [[(1, 4, 30), (4, 5, 30)], [(1, 3, 10), (3, 5, 10)], [(1, 2, 20), (2, 5, 20)]]
-        sage: list(g.yen_k_shortest_simple_paths(1, 5, report_edges=True, labels=True, by_weight=True))
+        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 5, report_edges=True, labels=True, by_weight=True))
         [[(1, 3, 10), (3, 5, 10)], [(1, 2, 20), (2, 5, 20)], [(1, 4, 30), (4, 5, 30)]]
-        sage: list(g.yen_k_shortest_simple_paths(1, 5, report_edges=True, labels=True, by_weight=True, report_weight=True))
+        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 5, report_edges=True, labels=True, by_weight=True, report_weight=True))
         [(20, [(1, 3, 10), (3, 5, 10)]),
          (40, [(1, 2, 20), (2, 5, 20)]),
          (60, [(1, 4, 30), (4, 5, 30)])]
 
+        sage: from sage.graphs.path_enumeration import yen_k_shortest_simple_paths_directed_iterator
         sage: g = DiGraph([(1, 2, 20), (1, 3, 10), (1, 4, 30), (2, 5, 20), (3, 5, 10), (4, 5, 30), (1, 6, 100), (5, 6, 5)])
-        sage: list(g.yen_k_shortest_simple_paths(1, 6, by_weight = True))
+        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 6, by_weight = True))
         [[1, 3, 5, 6], [1, 2, 5, 6], [1, 4, 5, 6], [1, 6]]
-        sage: list(g.yen_k_shortest_simple_paths(1, 6))
+        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 6))
         [[1, 6], [1, 4, 5, 6], [1, 3, 5, 6], [1, 2, 5, 6]]
-        sage: list(g.yen_k_shortest_simple_paths(1, 6, report_edges=True, labels=True, by_weight=True, report_weight=True))
+        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 6, report_edges=True, labels=True, by_weight=True, report_weight=True))
         [(25, [(1, 3, 10), (3, 5, 10), (5, 6, 5)]),
          (45, [(1, 2, 20), (2, 5, 20), (5, 6, 5)]),
          (65, [(1, 4, 30), (4, 5, 30), (5, 6, 5)]),
          (100, [(1, 6, 100)])]
-        sage: list(g.yen_k_shortest_simple_paths(1, 6, report_edges=True, labels=True, report_weight=True))
+        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 6, report_edges=True, labels=True, report_weight=True))
         [(1, [(1, 6, 100)]),
          (3, [(1, 4, 30), (4, 5, 30), (5, 6, 5)]),
          (3, [(1, 3, 10), (3, 5, 10), (5, 6, 5)]),
          (3, [(1, 2, 20), (2, 5, 20), (5, 6, 5)])]
+        sage: from sage.graphs.path_enumeration import yen_k_shortest_simple_paths_directed_iterator
         sage: g = DiGraph([(1, 2, 5), (2, 3, 0), (1, 4, 2), (4, 5, 1), (5, 3, 0)])
-        sage: list(g.yen_k_shortest_simple_paths(1, 3, by_weight=True))
+        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 3, by_weight=True))
         [[1, 4, 5, 3], [1, 2, 3]]
-        sage: list(g.yen_k_shortest_simple_paths(1, 3))
+        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 3))
         [[1, 2, 3], [1, 4, 5, 3]]
-        sage: list(g.yen_k_shortest_simple_paths(1, 3, report_weight=True))
+        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 3, report_weight=True))
         [(2, [1, 2, 3]), (3, [1, 4, 5, 3])]
-        sage: list(g.yen_k_shortest_simple_paths(1, 3, report_weight=True, report_edges=True))
+        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 3, report_weight=True, report_edges=True))
         [(2, [(1, 2), (2, 3)]), (3, [(1, 4), (4, 5), (5, 3)])]
-        sage: list(g.yen_k_shortest_simple_paths(1, 3, report_weight=True, report_edges=True, by_weight=True))
+        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 3, report_weight=True, report_edges=True, by_weight=True))
         [(3, [(1, 4), (4, 5), (5, 3)]), (5, [(1, 2), (2, 3)])]
-        sage: list(g.yen_k_shortest_simple_paths(1, 3, report_weight=True, report_edges=True, by_weight=True, labels=True))
+        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 3, report_weight=True, report_edges=True, by_weight=True, labels=True))
         [(3, [(1, 4, 2), (4, 5, 1), (5, 3, 0)]), (5, [(1, 2, 5), (2, 3, 0)])]
 
     TESTS::
 
+        sage: from sage.graphs.path_enumeration import yen_k_shortest_simple_paths_directed_iterator
         sage: g = DiGraph([(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 2), (5, 6, 100), (4, 7, 3), (7, 6, 4), (3, 8, 5), (8, 9, 2), (9, 6, 2), (9, 10, 7), (9, 11, 10), (11, 6, 8), (10, 6, 2)])
-        sage: list(g.yen_k_shortest_simple_paths(1, 6, by_weight=True))
+        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 6, by_weight=True))
         [[1, 2, 3, 4, 7, 6],
          [1, 2, 3, 8, 9, 6],
          [1, 2, 3, 8, 9, 10, 6],
          [1, 2, 3, 8, 9, 11, 6],
          [1, 2, 3, 4, 5, 6]]
-        sage: list(g.yen_k_shortest_simple_paths(1, 6, by_weight=True, report_edges=True))
+        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 6, by_weight=True, report_edges=True))
         [[(1, 2), (2, 3), (3, 4), (4, 7), (7, 6)],
          [(1, 2), (2, 3), (3, 8), (8, 9), (9, 6)],
          [(1, 2), (2, 3), (3, 8), (8, 9), (9, 10), (10, 6)],
          [(1, 2), (2, 3), (3, 8), (8, 9), (9, 11), (11, 6)],
          [(1, 2), (2, 3), (3, 4), (4, 5), (5, 6)]]
-        sage: list(g.yen_k_shortest_simple_paths(1, 6, by_weight=True, report_edges=True, report_weight=True))
+        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 6, by_weight=True, report_edges=True, report_weight=True))
         [(10, [(1, 2), (2, 3), (3, 4), (4, 7), (7, 6)]),
          (11, [(1, 2), (2, 3), (3, 8), (8, 9), (9, 6)]),
          (18, [(1, 2), (2, 3), (3, 8), (8, 9), (9, 10), (10, 6)]),
          (27, [(1, 2), (2, 3), (3, 8), (8, 9), (9, 11), (11, 6)]),
          (105, [(1, 2), (2, 3), (3, 4), (4, 5), (5, 6)])]
-        sage: list(g.yen_k_shortest_simple_paths(1, 6, by_weight=True, report_edges=True, report_weight=True, labels=True))
+        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 6, by_weight=True, report_edges=True, report_weight=True, labels=True))
         [(10, [(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 7, 3), (7, 6, 4)]),
          (11, [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (9, 6, 2)]),
          (18, [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (9, 10, 7), (10, 6, 2)]),
          (27, [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (9, 11, 10), (11, 6, 8)]),
          (105, [(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 2), (5, 6, 100)])]
-        sage: list(g.yen_k_shortest_simple_paths(1, 6))
+        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 6))
         [[1, 2, 3, 8, 9, 6],
          [1, 2, 3, 4, 7, 6],
          [1, 2, 3, 4, 5, 6],
          [1, 2, 3, 8, 9, 11, 6],
          [1, 2, 3, 8, 9, 10, 6]]
+        sage: from sage.graphs.path_enumeration import yen_k_shortest_simple_paths_directed_iterator
         sage: g = DiGraph([(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 1), (1, 7, 1), (7, 8, 1), (8, 5, 1), (1, 6, 1), (6, 9, 1), (9, 5, 1), (4, 2, 1), (9, 3, 1), (9, 10, 1), (10, 5, 1), (9, 11, 1), (11, 10, 1)])
-        sage: list(g.yen_k_shortest_simple_paths(1, 5))
+        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 5))
         [[1, 7, 8, 5],
          [1, 6, 9, 5],
          [1, 2, 3, 4, 5],
          [1, 6, 9, 10, 5],
          [1, 6, 9, 11, 10, 5],
          [1, 6, 9, 3, 4, 5]]
-        sage: list(g.yen_k_shortest_simple_paths(1, 5, by_weight=True))
+        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 5, by_weight=True))
         [[1, 7, 8, 5],
          [1, 6, 9, 5],
          [1, 2, 3, 4, 5],
          [1, 6, 9, 10, 5],
          [1, 6, 9, 11, 10, 5],
          [1, 6, 9, 3, 4, 5]]
+        sage: from sage.graphs.path_enumeration import yen_k_shortest_simple_paths_directed_iterator
         sage: g = DiGraph([(1, 2, 5), (6, 3, 0), (2, 6, 6), (1, 4, 15), (4, 5, 1), (4, 3, 0), (7, 1, 2), (8, 7, 1)])
-        sage: list(g.yen_k_shortest_simple_paths(1, 3))
+        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 3))
         [[1, 4, 3], [1, 2, 6, 3]]
-        sage: list(g.yen_k_shortest_simple_paths(1, 3, by_weight=True, report_edges=True, report_weight=True, labels=True))
+        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 3, by_weight=True, report_edges=True, report_weight=True, labels=True))
         [(11, [(1, 2, 5), (2, 6, 6), (6, 3, 0)]), (15, [(1, 4, 15), (4, 3, 0)])]
-        sage: list(g.yen_k_shortest_simple_paths(1, 3, by_weight=True))
+        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 3, by_weight=True))
         [[1, 2, 6, 3], [1, 4, 3]]
     """
     if not self.is_directed():
@@ -957,43 +1137,43 @@ def _all_paths_iterator(self, vertex, ending_vertices=None,
     - ``vertex`` -- the starting vertex of the paths
 
     - ``ending_vertices`` -- iterable (default: ``None``); allowed ending
-        vertices of the paths. If ``None``, then all vertices are allowed.
+      vertices of the paths. If ``None``, then all vertices are allowed.
 
     - ``simple`` -- boolean (default: ``False``); if set to ``True``, then
-        only simple paths are considered. Simple paths are paths in which no
-        two arcs share a head or share a tail, i.e. every vertex in the path
-        is entered at most once and exited at most once.
+      only simple paths are considered. Simple paths are paths in which no
+      two arcs share a head or share a tail, i.e. every vertex in the path
+      is entered at most once and exited at most once.
 
     - ``max_length`` -- non negative integer (default: ``None``); the
-        maximum length of the enumerated paths. If set to ``None``, then all
-        lengths are allowed.
+      maximum length of the enumerated paths. If set to ``None``, then all
+      lengths are allowed.
 
     - ``trivial`` - boolean (default: ``False``); if set to ``True``, then
-        the empty paths are also enumerated.
+      the empty paths are also enumerated.
 
     - ``use_multiedges`` -- boolean (default: ``False``); this parameter is
-        used only if the graph has multiple edges.
+      used only if the graph has multiple edges.
 
         - If ``False``, the graph is considered as simple and an edge label
-        is arbitrarily selected for each edge as in
-        :meth:`~GenericGraph.to_simple` if ``report_edges`` is ``True``
+          is arbitrarily selected for each edge as in
+          :meth:`~GenericGraph.to_simple` if ``report_edges`` is ``True``
 
         - If ``True``, a path will be reported as many times as the edges
-        multiplicities along that path (when ``report_edges = False`` or
-        ``labels = False``), or with all possible combinations of edge
-        labels (when ``report_edges = True`` and ``labels = True``)
+          multiplicities along that path (when ``report_edges = False`` or
+          ``labels = False``), or with all possible combinations of edge
+          labels (when ``report_edges = True`` and ``labels = True``)
 
     - ``report_edges`` -- boolean (default: ``False``); whether to report
-        paths as list of vertices (default) or list of edges, if ``False``
-        then ``labels`` parameter is ignored
+      paths as list of vertices (default) or list of edges, if ``False``
+      then ``labels`` parameter is ignored
 
     - ``labels`` -- boolean (default: ``False``); if ``False``, each edge
-        is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
-        along with its edge labels are used to represent the path.  
+      is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
+      along with its edge labels are used to represent the path.  
 
     - ``data`` -- dictionary (default: ``None``); optional parameter to
-        pass information about edge multiplicities of the graph, if ``None``
-        edge multiplicity values are computed inside the method.
+      pass information about edge multiplicities of the graph, if ``None``
+      edge multiplicity values are computed inside the method.
 
     OUTPUT:
 
@@ -1221,43 +1401,43 @@ def all_paths_iterator(self, starting_vertices=None, ending_vertices=None,
     INPUT:
 
     - ``starting_vertices`` -- iterable (default: ``None``); vertices from
-        which the paths must start. If ``None``, then all vertices of the
-        graph can be starting points.
+      which the paths must start. If ``None``, then all vertices of the
+      graph can be starting points.
 
     - ``ending_vertices`` -- iterable (default: ``None``); allowed ending
-        vertices of the paths. If ``None``, then all vertices are allowed.
+      vertices of the paths. If ``None``, then all vertices are allowed.
 
     - ``simple`` -- boolean (default: ``False``); if set to ``True``, then
-        only simple paths are considered. Simple paths are paths in which no
-        two arcs share a head or share a tail, i.e. every vertex in the path
-        is entered at most once and exited at most once.
+      only simple paths are considered. Simple paths are paths in which no
+      two arcs share a head or share a tail, i.e. every vertex in the path
+      is entered at most once and exited at most once.
 
     - ``max_length`` -- non negative integer (default: ``None``); the
-        maximum length of the enumerated paths. If set to ``None``, then all
-        lengths are allowed.
+      maximum length of the enumerated paths. If set to ``None``, then all
+      lengths are allowed.
 
     - ``trivial`` - boolean (default: ``False``); if set to ``True``, then
-        the empty paths are also enumerated.
+      the empty paths are also enumerated.
 
     - ``use_multiedges`` -- boolean (default: ``False``); this parameter is
-        used only if the graph has multiple edges.
+      used only if the graph has multiple edges.
 
         - If ``False``, the graph is considered as simple and an edge label
-        is arbitrarily selected for each edge as in
-        :meth:`~GenericGraph.to_simple` if ``report_edges`` is ``True``
+          is arbitrarily selected for each edge as in
+          :meth:`~GenericGraph.to_simple` if ``report_edges`` is ``True``
 
         - If ``True``, a path will be reported as many times as the edges
-        multiplicities along that path (when ``report_edges = False`` or
-        ``labels = False``), or with all possible combinations of edge
-        labels (when ``report_edges = True`` and ``labels = True``)
+          multiplicities along that path (when ``report_edges = False`` or
+          ``labels = False``), or with all possible combinations of edge
+          labels (when ``report_edges = True`` and ``labels = True``)
 
     - ``report_edges`` -- boolean (default: ``False``); whether to report
-        paths as list of vertices (default) or list of edges, if ``False``
-        then ``labels`` parameter is ignored
+      paths as list of vertices (default) or list of edges, if ``False``
+      then ``labels`` parameter is ignored
 
     - ``labels`` -- boolean (default: ``False``); if ``False``, each edge
-        is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
-        along with its edge labels are used to represent the path.
+      is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
+      along with its edge labels are used to represent the path.
 
     OUTPUT:
 
@@ -1453,38 +1633,38 @@ def all_simple_paths(self, starting_vertices=None, ending_vertices=None,
     INPUT:
 
     - ``starting_vertices`` -- list (default: ``None``); vertices from which
-        the paths must start. If ``None``, then all vertices of the graph can
-        be starting points.
+      the paths must start. If ``None``, then all vertices of the graph can
+      be starting points.
 
     - ``ending_vertices`` -- iterable (default: ``None``); allowed ending
-        vertices of the paths. If ``None``, then all vertices are allowed.
+      vertices of the paths. If ``None``, then all vertices are allowed.
 
     - ``max_length`` -- non negative integer (default: ``None``); the
-        maximum length of the enumerated paths. If set to ``None``, then all
-        lengths are allowed.
+      maximum length of the enumerated paths. If set to ``None``, then all
+      lengths are allowed.
 
     - ``trivial`` - boolean (default: ``False``); if set to ``True``, then
-        the empty paths are also enumerated.
+      the empty paths are also enumerated.
 
     - ``use_multiedges`` -- boolean (default: ``False``); this parameter is
-        used only if the graph has multiple edges.
+      used only if the graph has multiple edges.
 
         - If ``False``, the graph is considered as simple and an edge label
-        is arbitrarily selected for each edge as in
-        :meth:`~GenericGraph.to_simple` if ``report_edges`` is ``True``
+          is arbitrarily selected for each edge as in
+          :meth:`~GenericGraph.to_simple` if ``report_edges`` is ``True``
 
         - If ``True``, a path will be reported as many times as the edges
-        multiplicities along that path (when ``report_edges = False`` or
-        ``labels = False``), or with all possible combinations of edge
-        labels (when ``report_edges = True`` and ``labels = True``)
+          multiplicities along that path (when ``report_edges = False`` or
+          ``labels = False``), or with all possible combinations of edge
+          labels (when ``report_edges = True`` and ``labels = True``)
 
     - ``report_edges`` -- boolean (default: ``False``); whether to report
-        paths as list of vertices (default) or list of edges, if ``False``
-        then ``labels`` parameter is ignored
+      paths as list of vertices (default) or list of edges, if ``False``
+      then ``labels`` parameter is ignored
 
     - ``labels`` -- boolean (default: ``False``); if ``False``, each edge
-        is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
-        along with its edge labels are used to represent the path.
+      is simply a pair ``(u, v)`` of vertices. Otherwise a list of edges
+      along with its edge labels are used to represent the path.
 
     OUTPUT:
 

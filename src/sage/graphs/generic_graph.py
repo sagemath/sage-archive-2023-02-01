@@ -124,6 +124,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.cycle_basis` | Return a list of cycles which form a basis of the cycle space of ``self``.
     :meth:`~GenericGraph.all_paths` | Return a list of all paths (also lists) between a pair of vertices in the (di)graph.
     :meth:`~GenericGraph.triangles_count` | Return the number of triangles in the (di)graph.
+    :meth:`~GenericGraph.shortest_simple_paths` | Return an iterator over the simple paths between a pair of vertices in increasing order of weights.
 
 **Linear algebra:**
 
@@ -23220,7 +23221,6 @@ class GenericGraph(GenericGraph_pyx):
 
         return self.is_isomorphic(self.complement())
 
-
     # Aliases to functions defined in other modules
     from sage.graphs.distances_all_pairs import distances_distribution
     from sage.graphs.base.boost_graph import dominator_tree
@@ -23239,7 +23239,7 @@ class GenericGraph(GenericGraph_pyx):
     from sage.graphs.connectivity import edge_connectivity
     from sage.graphs.connectivity import vertex_connectivity
     from sage.graphs.base.static_dense_graph import connected_subgraph_iterator
-    from sage.graphs.path_enumeration import yen_k_shortest_simple_paths
+    from sage.graphs.path_enumeration import shortest_simple_paths
     from sage.graphs.path_enumeration import all_paths
 
     def katz_matrix(self, alpha, nonedgesonly=False, vertices=None):

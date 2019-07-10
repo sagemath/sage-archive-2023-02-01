@@ -3697,7 +3697,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.sigma_invariants(4, formal=False, type='cycle')
             [170, 5195, 172700, 968615, 1439066, 638125, 0]
 
-        TESTS:
+        TESTS::
 
             sage: F.<t> = FunctionField(GF(5))
             sage: P.<x,y> = ProjectiveSpace(F,1)

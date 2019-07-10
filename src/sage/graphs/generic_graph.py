@@ -24031,17 +24031,11 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
     # Should we pay attention to edge labels ?
     if ignore_edge_labels:
 
-        # If there are no multiple edges, we can just say that all edges are
-        # equivalent to each other without any further consideration.
-        if not g_has_multiple_edges:
-            edge_partition = [el[1] for el in edge_partition]
-            edge_partition = [list(chain(*edge_partition))]
-
-        # An edge between u and v with label l and multiplicity k being encoded
-        # as an uv edge with label [l,k], we must not assume that an edge with
-        # multiplicity 2 is equivalent to a simple edge !
-        # Hence, we still distinguish edges with different multiplicity
         if g_has_multiple_edges:
+            # An edge between u and v with label l and multiplicity k being
+            # encoded as an uv edge with label [l,k], we must not assume that an
+            # edge with multiplicity 2 is equivalent to a simple edge !
+            # Hence, we still distinguish edges with different multiplicity
 
             # Gather the partitions of edges with same multiplicity
             tmp = {}
@@ -24060,6 +24054,12 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
 
             # Now the edges are partitionned according to the multiplicity they
             # represent, and edge labels are forgotten.
+
+        else:
+            # If there are no multiple edges, we can just say that all edges are
+            # equivalent to each other without any further consideration.
+            edge_partition = [el[1] for el in edge_partition]
+            edge_partition = [list(chain(*edge_partition))]
 
     else:
         # Flatten edge_partition to [list of edges, list of edges, ...]

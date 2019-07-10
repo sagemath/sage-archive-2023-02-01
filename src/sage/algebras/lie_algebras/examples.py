@@ -452,7 +452,7 @@ def su(R, n, representation='matrix'):
     The Lie algebra `\mathfrak{su}_n`.
 
     The Lie algebra `\mathfrak{su}_n` is the compact real form of the
-    type `A_{n-1}` Lie algebra and is finite dimensional. As a matrix
+    type `A_{n-1}` Lie algebra and is finite-dimensional. As a matrix
     Lie algebra, it is given by the set of all `n \times n` skew-Hermitian
     matrices with trace 0.
 
@@ -481,7 +481,7 @@ def su(R, n, representation='matrix'):
         True
 
     Since `\mathfrak{su}_n` is the same as the type `A_{n-1}` Lie algebra,
-    the bracket is the same as :func:`sl`.
+    the bracket is the same as :func:`sl`::
 
         sage: su2 = lie_algebras.su(QQ, 2, representation='bracket')
         sage: su2 is lie_algebras.sl(QQ, 2, representation='bracket')

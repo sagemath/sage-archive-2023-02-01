@@ -935,7 +935,7 @@ class MatrixCompactRealForm(FinitelyGeneratedLieAlgebra):
     `X^T \in L` for all `X \in L`). Then we can perform the
     *Cartan decomposition* of `L` by `L = K \oplus S`, where `K`
     (resp. `S`) is the set of skew-symmetric (resp. symmetric) matrices
-    in `L`. Then the Lie algebra `U = K \oplus i S` is a `\RR` subspace
+    in `L`. Then the Lie algebra `U = K \oplus i S` is an `\RR`-subspace
     of the complexification of `L` that is closed under commutators and
     has skew-hermitian matrices. Hence, the Killing form is negative
     definitive (i.e., `U` is a compact Lie algebra), and thus `U` is
@@ -1173,7 +1173,7 @@ class MatrixCompactRealForm(FinitelyGeneratedLieAlgebra):
                 sage: all(b for b in L.basis() if b != 0)
                 True
                 sage: bool(L.zero())
-                False         
+                False
             """
             return bool(self._real) or bool(self._imag)
 

@@ -15171,7 +15171,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def girth(self):
         """
-        Return the girth of the graph,
+        Return the girth of the graph.
 
         The girth is the length of the shortest cycle in the graph
         (directed cycle if the graph is directed). Graphs without
@@ -15271,11 +15271,11 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``algorithm`` -- string specifying the algorithm to use:
-          ``"bfs"`` (default) for the BFS-based algorithm,
-          or any algorithm accepted by
+        - ``algorithm`` -- string (default: ``"bfs"``) specifying the algorithm to use:
+          ``"bfs"`` for the BFS-based algorithm, or any algorithm accepted by
           :meth:`~sage.matrix.matrix_integer_dense.Matrix_integer_dense.charpoly`
           for computation from the characteristic polynomial
+          (see [Har1962]_ and [Big1993]_, p. 45)
 
         EXAMPLES:
 
@@ -15302,18 +15302,6 @@ class GenericGraph(GenericGraph_pyx):
         .. SEEALSO::
 
             * :meth:`~GenericGraph.girth` -- return the girth of the graph.
-
-        REFERENCES:
-
-        The property relating the odd girth to the coefficients of the
-        characteristic polynomial is an old result from algebraic graph theory
-        see
-
-        .. [Har62] Harary, F (1962). The determinant of the adjacency matrix of
-          a graph, SIAM Review 4, 202-210
-
-        .. [Biggs93] Biggs, N. L. Algebraic Graph Theory, 2nd ed. Cambridge,
-          England: Cambridge University Press, pp. 45, 1993.
 
         TESTS::
 

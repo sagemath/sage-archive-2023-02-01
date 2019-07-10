@@ -3919,7 +3919,7 @@ class DiGraph(GenericGraph):
 
         INPUT:
 
-        - ``odd`` -- whether to compute the odd girth (default: ``False``).
+        - ``odd`` -- boolean (default: ``False``); whether to compute the odd girth
 
         EXAMPLES:
 

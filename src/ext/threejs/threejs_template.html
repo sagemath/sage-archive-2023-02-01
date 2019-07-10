@@ -164,7 +164,7 @@ SAGE_SCRIPTS
         } else if ( camera.isOrthographicCamera ) {
             // Fit the camera frustum to the bounding box's diagonal so that the entire plot fits
             // within at the default zoom level and camera position.
-            if ( aspect > 1) { // Wide window
+            if ( aspect > 1 ) { // Wide window
                 camera.top = midToCorner;
                 camera.right = midToCorner * aspect;
             } else { // Tall or square window
@@ -341,7 +341,7 @@ SAGE_SCRIPTS
                 if ( scene.children[i].type === 'Sprite' ) {
                     var sprite = scene.children[i];
                     var adjust = scratch.addVectors( sprite.position, scene.position )
-                                .sub( camera.position ).length() / 5;
+                                    .sub( camera.position ).length() / 5;
                     sprite.scale.set( adjust, .25*adjust ); // ratio of canvas width to height
                 }
             }

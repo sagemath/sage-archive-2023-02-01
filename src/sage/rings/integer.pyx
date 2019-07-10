@@ -4186,15 +4186,15 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def p_primary_part(self, p):
         """
-        Return the p-primary part of self.
+        Return the p-primary part of ``self``.
 
         INPUT:
 
-        -  ``p`` - a prime integer.
+        -  ``p`` -- a prime integer.
 
         OUTPUT:
 
-        - Largest power of ``p`` dividing self
+        - Largest power of ``p`` dividing ``self``.
 
         EXAMPLES::
 
@@ -4210,9 +4210,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ...
             ValueError: 6 is not a prime number
         """
+        p = smallInteger(p)
         if not p.is_prime():
             raise ValueError("{} is not a prime number".format(p))
-        return p**self.valuation(p)
+        return p**self._valuation(p)
 
     def val_unit(self, p):
         r"""

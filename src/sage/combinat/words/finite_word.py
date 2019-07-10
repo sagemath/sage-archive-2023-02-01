@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*- 
 r"""
 Finite word
 
@@ -3848,7 +3848,8 @@ class FiniteWord_class(Word_class):
         """
         Returns the possible complementaries ``other`` minus ``self`` if
         ``self`` is a subword of ``other`` (empty list otherwise).
-        The complementary is made of all the letters that are in ``other`` once        we removed the letters of ``self``.
+        The complementary is made of all the letters that are in ``other`` once
+        we removed the letters of ``self``.
         There can be more than one.
 
         To check wether ``self`` is a subword of ``other` (without knowing its
@@ -3856,24 +3857,27 @@ class FiniteWord_class(Word_class):
         number of occurrences of ``self`` in ``other``, use
         ``self.nb_subword_occurrences_in(other)``.
     
-        INPUT :
+        INPUT:
+
         - ``other`` -- finite word
     
-        OUTPUT :
+        OUTPUT:
+
         - list of all the complementary subwords of ``self`` in ``other``.
     
-        EXAMPLES:
-        sage: Word('tamtam').subword_complementaries(Word('ta'))
-        []
+        EXAMPLES::
+
+            sage: Word('tamtam').subword_complementaries(Word('ta'))
+            []
     
-        sage: Word('mta').subword_complementaries(Word('tamtam'))
-        [word: tam]
+            sage: Word('mta').subword_complementaries(Word('tamtam'))
+            [word: tam]
     
-        sage: Word('ta').subword_complementaries(Word('tamtam'))
-        [word: mtam, word: amtm, word: tamm]
+            sage: Word('ta').subword_complementaries(Word('tamtam'))
+            [word: mtam, word: amtm, word: tamm]
     
-        sage: Word('a').subword_complementaries(Word('a'))
-        [word: ]
+            sage: Word('a').subword_complementaries(Word('a'))
+            [word: ]
     
         """
     
@@ -3911,10 +3915,8 @@ class FiniteWord_class(Word_class):
         # Create the list of the complementaries of `self`
         from sage.combinat.words.word import Word
         comp_words = []
-        for sp in selfpos:  # tuple containing the positions of one occurrence of `self`
-            comp_pos = list(range(lo))
-            for g in sp:
-                comp_pos.remove(g)
+        for sp in selfpos:  # list with positions of one occurrence of `self`
+            comp_pos = [i for i in range(lo) if not i in set(sp)]
             comp_words.append(Word([other[i] for i in comp_pos]))
         return comp_words
 

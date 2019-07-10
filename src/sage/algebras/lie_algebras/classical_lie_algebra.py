@@ -927,22 +927,38 @@ class g2(ExceptionalMatrixLieAlgebra):
 ## Compact real form
 
 class MatrixCompactRealForm(FinitelyGeneratedLieAlgebra):
-    """
+    r"""
     The compact real form of a matrix Lie algebra.
+
+    Let `L` be a classical (i.e., type `ABCD`) Lie algebra over `\RR`
+    given as matrices that is invariant under matrix tranposes (i.e.,
+    `X^T \in L` for all `X \in L`). Then we can perform the
+    *Cartan decomposition* of `L` by `L = K \oplus S`, where `K`
+    (resp. `S`) is the set of skew-symmetric (resp. symmetric) matrices
+    in `L`. Then the Lie algebra `U = K \oplus i S` is a `\RR` subspace
+    of the complexification of `L` that is closed under commutators and
+    has skew-hermitian matrices. Hence, the Killing form is negative
+    definitive (i.e., `U` is a compact Lie algebra), and thus `U` is
+    the complex real form of the complexification of `L`.
 
     EXAMPLES::
 
-        sage: L = LieAlgebra(QQ, cartan_type=['A',1], representation="compact real")
-        sage: list(L.basis())
+        sage: U = LieAlgebra(QQ, cartan_type=['A',1], representation="compact real")
+        sage: list(U.basis())
         [
         [ 0  1]  [ i  0]  [0 i]
         [-1  0], [ 0 -i], [i 0]
         ]
+        sage: U.killing_form_matrix()
+        [-8  0  0]
+        [ 0 -8  0]
+        [ 0  0 -8]
 
-    Computations are only possible if this is defined over a field::
+    Computations are only (currently) possible if this is defined
+    over a field::
 
-        sage: L = LieAlgebra(ZZ, cartan_type=['A',1], representation="compact real")
-        sage: list(L.basis())
+        sage: U = LieAlgebra(ZZ, cartan_type=['A',1], representation="compact real")
+        sage: list(U.basis())
         Traceback (most recent call last):
         ...
         TypeError: no conversion of this rational to integer
@@ -1020,15 +1036,16 @@ class MatrixCompactRealForm(FinitelyGeneratedLieAlgebra):
 
         EXAMPLES::
 
-            sage: L = LieAlgebra(QQ, cartan_type=['G',2], representation="compact real")
+            sage: L = LieAlgebra(QQ, cartan_type=['D',4], representation="compact real")
             sage: L.zero()
-            [0 0 0 0 0 0 0]
-            [0 0 0 0 0 0 0]
-            [0 0 0 0 0 0 0]
-            [0 0 0 0 0 0 0]
-            [0 0 0 0 0 0 0]
-            [0 0 0 0 0 0 0]
-            [0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0]
         """
         return self.element_class(self, self._MS.zero(), self._MS.zero())
 
@@ -1100,6 +1117,7 @@ class MatrixCompactRealForm(FinitelyGeneratedLieAlgebra):
             self._imag = imag
             self._real.set_immutable()
             self._imag.set_immutable()
+            self._mc = None
 
         def _repr_(self):
             """
@@ -1309,27 +1327,30 @@ class MatrixCompactRealForm(FinitelyGeneratedLieAlgebra):
             P = self.parent()
             return P.element_class(P, x*self._real, x*self._imag)
 
-        @cached_method
-        def monomial_coefficients(self):
+        def monomial_coefficients(self, copy=False):
             """
             Return the monomial coefficients of ``self``.
 
             EXAMPLES::
 
-                sage: L = LieAlgebra(QQ, cartan_type=['G',2], representation="compact real")
+                sage: L = LieAlgebra(QQ, cartan_type=['C',3], representation="compact real")
                 sage: B = L.basis()
                 sage: x = L.sum(i*B[i] for i in range(len(B)))
                 sage: x.monomial_coefficients() == {i: i for i in range(1,len(B))}
                 True
             """
-            P = self.parent()
-            B = [b._real.list() + b._imag.list() for b in P.basis()]
-            B.append(self._real.list() + self._imag.list())
-            R = self.base_ring()
-            F = FreeModule(R, len(B[0]))
-            dep = list(F.linear_dependence([F(b) for b in B])[0])
-            last = dep.pop()
-            return {i: R(-val / last) for i,val in enumerate(dep) if val != 0}
+            if self._mc is None:
+                P = self.parent()
+                B = [b._real.list() + b._imag.list() for b in P.basis()]
+                B.append(self._real.list() + self._imag.list())
+                R = self.base_ring()
+                F = FreeModule(R, len(B[0]))
+                dep = list(F.linear_dependence([F(b) for b in B])[0])
+                last = dep.pop()
+                self._mc = {i: R(-val / last) for i,val in enumerate(dep) if val != 0}
+            if copy:
+                return dict(self._mc)
+            return self._mc
 
 
 #######################################

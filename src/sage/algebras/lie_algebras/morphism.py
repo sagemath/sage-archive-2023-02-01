@@ -169,8 +169,8 @@ class LieAlgebraHomomorphism_im_gens(Morphism):
             z |--> z
         """
         D = self.domain()
-        ig = self._im_gens
-        return '\n'.join(['%s |--> %s'%(x, ig[i]) for i, x in enumerate(D.gens())])
+        return '\n'.join('%s |--> %s' % (x, gen)
+                         for gen, x in zip(self._im_gens, D.gens()))
 
     def _call_(self, x):
         """

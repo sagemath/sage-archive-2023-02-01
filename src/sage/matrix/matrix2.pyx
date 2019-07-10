@@ -12752,7 +12752,7 @@ cdef class Matrix(Matrix1):
 
     def principal_square_root(self, check_positivity=True):
         r"""
-        Return the principal square root of a positive definte matrix.
+        Return the principal square root of a positive definite matrix.
 
         A positive definite matrix `A` has a unique positive definite
         matrix `M` such that `M^2 = A`.

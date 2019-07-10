@@ -50,7 +50,7 @@ which is anyway set to raise an error::
     ...
     RuntimeError: Maxima interface in library mode can only be instantiated once
 
-Changed besselexpand to true in init_code -- automatically simplify bessel functions to trig functions when appropriate when true. Examples:
+Changed besselexpand to true in init_code -- automatically simplify Bessel functions to trig functions when appropriate when true. Examples:
 
 For some infinite sums, a closed expression can be found. By default, "maxima" is used for that::
 

@@ -19,7 +19,7 @@ for which the quantity
 goes to infinity when the multi-index `(i_1,\dots,i_n)` goes to infinity.
 
 These series converge on the closed disc defined by the inequalities
-`\val(x_i) \geq -v_i` for all `i \in \{1,\dots,n\}`. The `v_i`'s are
+`\operatorname{val}(x_i) \geq -v_i` for all `i \in \{1,\dots,n\}`. The `v_i`'s are
 then the logarithms of the radii of convergence of the series in the
 above Tate algebra; the will be called the log radii of convergence.
 
@@ -163,7 +163,7 @@ class TateAlgebraFactory(UniqueFactory):
 
     .. MATH::
 
-        `\text{val}(a_{i_1,\dots,i_n}) - (i_1 v_1 + \cdots + i_n v_n)`
+        \operatorname{val}(a_{i_1,\dots,i_n}) - (i_1 v_1 + \cdots + i_n v_n)
 
     tends to infinity as `i_1,\dots,i_n` go towards infinity.
 

@@ -70,23 +70,20 @@ def lex_BFS(G, reverse=False, tree=False, initial_vertex=None):
 
     A Lex BFS is obviously an ordering of the vertices::
 
-        sage: from sage.graphs.traversals import lex_BFS
         sage: g = graphs.CompleteGraph(6)
-        sage: len(lex_BFS(g)) == g.order()
+        sage: len(g.lex_BFS()) == g.order()
         True
 
     Lex BFS ordering of the 3-sun graph::
 
-        sage: from sage.graphs.traversals import lex_BFS
         sage: g = Graph([(1, 2), (1, 3), (2, 3), (2, 4), (2, 5), (3, 5), (3, 6), (4, 5), (5, 6)])
-        sage: lex_BFS(g)
+        sage: g.lex_BFS()
         [1, 2, 3, 5, 4, 6]
 
     The method also works for directed graphs::
 
-        sage: from sage.graphs.traversals import lex_BFS
         sage: G = DiGraph([(1, 2), (2, 3), (1, 3)])
-        sage: lex_BFS(G, initial_vertex=2)
+        sage: G.lex_BFS(initial_vertex=2)
         [2, 3, 1]
 
     For a Chordal Graph, a reversed Lex BFS is a Perfect Elimination Order::
@@ -111,27 +108,21 @@ def lex_BFS(G, reverse=False, tree=False, initial_vertex=None):
 
     Lex BFS ordering of a graph on one vertex::
 
-        sage: from sage.graphs.traversals import lex_BFS
-        sage: lex_BFS(Graph(1), tree=True)
+        sage: Graph(1).lex_BFS(tree=True)
         ([0], Digraph on 1 vertex)
 
     Lex BFS ordering of an empty (di)graph is an empty sequence::
 
-        sage: from sage.graphs.traversals import lex_BFS
         sage: g = Graph()
-        sage: lex_BFS(g)
+        sage: g.lex_BFS()
         []
 
     Lex BFS ordering of a symmetric digraph should be the same as the Lex BFS
     ordering of the corresponding undirected graph::
 
-        sage: from sage.graphs.traversals import lex_BFS
-        sage: G = DiGraph()
-        sage: edges = [(1, 2), (1, 3), (2, 3), (2, 4), (2, 5), (3, 5), (3, 6), (4, 5), (5, 6)]
-        sage: for u, v in edges:
-        ....:     G.add_edge(u, v)
-        ....:     G.add_edge(v, u)
-        sage: lex_BFS(G.to_undirected()) == lex_BFS(G)
+        sage: G = Graph([(1, 2), (1, 3), (2, 3), (2, 4), (2, 5), (3, 5), (3, 6), (4, 5), (5, 6)])
+        sage: H = DiGraph(G)
+        sage: G.lex_BFS() == H.lex_BFS()
         True
 
     """
@@ -237,50 +228,41 @@ def lex_DFS(G, reverse=False, tree=False, initial_vertex=None):
 
     A Lex DFS is obviously an ordering of the vertices::
 
-        sage: from sage.graphs.traversals import lex_DFS
         sage: g = graphs.CompleteGraph(6)
-        sage: len(lex_DFS(g)) == g.order()
+        sage: len(g.lex_DFS()) == g.order()
         True
 
     Lex DFS ordering of the 3-sun graph::
 
-        sage: from sage.graphs.traversals import lex_DFS
         sage: g = Graph([(1, 2), (1, 3), (2, 3), (2, 4), (2, 5), (3, 5), (3, 6), (4, 5), (5, 6)])
-        sage: lex_DFS(g)
+        sage: g.lex_DFS()
         [1, 2, 3, 5, 6, 4]
 
     The method also works for directed graphs::
 
-        sage: from sage.graphs.traversals import lex_DFS
         sage: G = DiGraph([(1, 2), (2, 3), (1, 3)])
-        sage: lex_DFS(G, initial_vertex=2)
+        sage: G.lex_DFS(initial_vertex=2)
         [2, 3, 1]
 
     TESTS:
 
     Lex DFS ordering of a graph on one vertex::
 
-        sage: from sage.graphs.traversals import lex_DFS
-        sage: lex_DFS(Graph(1), tree=True)
+        sage: Graph(1).lex_DFS(tree=True)
         ([0], Digraph on 1 vertex)
 
     Lex DFS ordering of an empty (di)graph is an empty sequence::
 
-        sage: from sage.graphs.traversals import lex_DFS
         sage: g = Graph()
-        sage: lex_DFS(g)
+        sage: g.lex_DFS()
         []
 
     Lex DFS ordering of a symmetric digraph should be the same as the Lex DFS
     ordering of the corresponding undirected graph::
 
-        sage: from sage.graphs.traversals import lex_DFS
-        sage: G = DiGraph()
-        sage: edges = [(1, 2), (1, 3), (2, 3), (2, 4), (2, 5), (3, 5), (3, 6), (4, 5), (5, 6)]
-        sage: for u, v in edges:
-        ....:     G.add_edge(u, v)
-        ....:     G.add_edge(v, u)
-        sage: lex_DFS(G.to_undirected()) == lex_DFS(G)
+        sage: G = Graph([(1, 2), (1, 3), (2, 3), (2, 4), (2, 5), (3, 5), (3, 6), (4, 5), (5, 6)])
+        sage: H = DiGraph(G)
+        sage: G.lex_DFS() == H.lex_DFS()
         True
 
     """

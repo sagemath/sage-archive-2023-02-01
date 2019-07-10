@@ -3911,7 +3911,7 @@ class DiGraph(GenericGraph):
                            for u,v in itertools.combinations(self, 2))
 
 
-    def _girth_bfs(self, odd=False):
+    def _girth_bfs(self, odd=False, certificate=False):
         r"""
         Return the girth of the digraph using breadth-first search.
 
@@ -3921,13 +3921,19 @@ class DiGraph(GenericGraph):
 
         - ``odd`` -- boolean (default: ``False``); whether to compute the odd girth
 
+        - ``certificate`` -- boolean (default: ``False``); whether to return
+          ``(g, c)``, where ``g`` is the (odd) girth and ``c`` is a list
+          of vertices of a directed cycle of length ``g`` in the graph,
+          thus providing a certificate that the (odd) girth is at most ``g``,
+          or ``None`` if ``g``  infinite
+
         EXAMPLES:
 
         A digraph with girth 4 and odd girth 5::
 
             sage: G = DiGraph([(0, 1), (1, 2), (1, 3), (2, 3), (3, 4), (4, 0)])
-            sage: G._girth_bfs()
-            4
+            sage: G._girth_bfs(certificate=True)  # random
+            (4, [1, 3, 4, 0])
             sage: G._girth_bfs(odd=True)
             5
 
@@ -3941,7 +3947,7 @@ class DiGraph(GenericGraph):
         seen = set()
         for w in self:
             seen.add(w)
-            inSpan, outSpan = set([w]), set([w])
+            inSpan, outSpan = {w: None}, {w: None}
             depth = 1
             outList, inList = set([w]), set([w])
             while 2 * depth <= best:
@@ -3951,10 +3957,12 @@ class DiGraph(GenericGraph):
                         if u in seen:
                             continue
                         if not u in outSpan:
-                            outSpan.add(u)
+                            outSpan[u] = v
                             nextOutList.add(u)
                         if u in inList:
                             best = depth * 2 - 1
+                            ends = (v, u)
+                            bestSpans = (outSpan, inSpan)
                             break
                     if best == 2 * depth - 1:
                         break
@@ -3964,11 +3972,13 @@ class DiGraph(GenericGraph):
                     for u in self.neighbor_in_iterator(v):
                         if u in seen:
                             continue
-                        if not u in inSpan:
-                            inSpan.add(u)
+                        if u not in inSpan:
+                            inSpan[u] = v
                             nextInList.add(u)
                         if not odd and u in nextOutList:
                             best = depth * 2
+                            ends = (u, v)
+                            bestSpans = (outSpan, inSpan)
                             break
                     if best == 2 * depth:
                         break
@@ -3979,7 +3989,18 @@ class DiGraph(GenericGraph):
                 depth += 1
         if best == n + 1:
             from sage.rings.infinity import Infinity
-            return Infinity
+            return (Infinity, None) if certificate else Infinity
+        if certificate:
+            cycles = {}
+            for x, span in zip(ends, bestSpans):
+                cycles[x] = []
+                y = x
+                while span[y] is not None:
+                    cycles[x].append(y)
+                    y = span[y]
+            cycles[x].append(y)
+            u, v = ends
+            return (best, list(reversed(cycles[u])) + cycles[v])
         return best
 
     # Aliases to functions defined in other modules

@@ -15169,7 +15169,7 @@ class GenericGraph(GenericGraph_pyx):
                     D.add_edge(u, v)
         return D
 
-    def girth(self):
+    def girth(self, certificate=False):
         """
         Return the girth of the graph.
 
@@ -15177,14 +15177,22 @@ class GenericGraph(GenericGraph_pyx):
         (directed cycle if the graph is directed). Graphs without
         (directed) cycles have infinite girth.
 
+        INPUT:
+
+        - ``certificate`` -- boolean (default: ``False``); whether to return
+          ``(g, c)``, where ``g`` is the girth and ``c`` is a list
+          of vertices of a (directed) cycle of length ``g`` in the graph,
+          thus providing a certificate that the girth is at most ``g``,
+          or ``None`` if ``g``  infinite
+
         EXAMPLES::
 
             sage: graphs.TetrahedralGraph().girth()
             3
             sage: graphs.CubeGraph(3).girth()
             4
-            sage: graphs.PetersenGraph().girth()
-            5
+            sage: graphs.PetersenGraph().girth(certificate=True)  # random
+            (5, [4, 3, 2, 1, 0])
             sage: graphs.HeawoodGraph().girth()
             6
             sage: next(graphs.trees(9)).girth()
@@ -15251,17 +15259,30 @@ class GenericGraph(GenericGraph_pyx):
         """
         # Cases where girth <= 2
         if self.has_loops():
-            return 1
+            return (1, next([u] for u in self if self.has_edge(u, u))) \
+                if certificate else 1
         if self.is_directed():
-            if any(self.has_edge(v, u) for u, v in self.edge_iterator(labels=False)):
-                return 2
+            try:
+                pair = next([u, v] for u, v
+                            in self.edge_iterator(labels=False)
+                            if self.has_edge(v, u))
+                return (2, pair) if certificate else 2
+            except StopIteration:
+                pass
         else:
             if self.has_multiple_edges():
-                return 2
+                edges = set()
+                if certificate:
+                    for e in self.edge_iterator(labels=False):
+                        if e in edges:
+                            return (2, list(e))
+                        edges.add(e)
+                else:
+                    return 2
 
-        return self._girth_bfs(odd=False)
+        return self._girth_bfs(odd=False, certificate=certificate)
 
-    def odd_girth(self, algorithm="bfs"):
+    def odd_girth(self, algorithm="bfs", certificate=False):
         r"""
         Return the odd girth of the graph.
 
@@ -15277,6 +15298,12 @@ class GenericGraph(GenericGraph_pyx):
           for computation from the characteristic polynomial
           (see [Har1962]_ and [Big1993]_, p. 45)
 
+        - ``certificate`` -- boolean (default: ``False``); whether to return
+          ``(g, c)``, where ``g`` is the odd girth and ``c`` is a list
+          of vertices of a (directed) cycle of length ``g`` in the graph,
+          thus providing a certificate that the odd girth is at most ``g``,
+          or ``None`` if ``g``  infinite
+
         EXAMPLES:
 
         The McGee graph has girth 7 and therefore its odd girth is 7 as well::
@@ -15289,8 +15316,8 @@ class GenericGraph(GenericGraph_pyx):
         thus odd girth 3::
 
             sage: G = graphs.CompleteGraph(10)
-            sage: G.odd_girth()
-            3
+            sage: G.odd_girth(certificate=True)  # random
+            (3, [2, 1, 0])
 
         Every bipartite graph has no odd cycles and consequently odd girth of
         infinity::
@@ -15326,11 +15353,15 @@ class GenericGraph(GenericGraph_pyx):
         """
         # Case where odd girth is 1
         if self.has_loops():
-            return 1
+            return (1, next([u] for u in self if self.has_edge(u, u))) \
+                if certificate else 1
 
         if not self.is_bipartite():
             if algorithm == "bfs":
-                return self._girth_bfs(odd=True)
+                return self._girth_bfs(odd=True, certificate=certificate)
+
+            if certificate:
+                raise ValueError("Certificate is only supported with algorithm='bfs'")
 
             ch = self.am().charpoly(algorithm=algorithm) \
                 .coefficients(sparse=False)
@@ -15342,10 +15373,10 @@ class GenericGraph(GenericGraph_pyx):
 
         from sage.rings.infinity import Infinity
 
-        return Infinity
+        return (Infinity, None) if certificate else Infinity
 
 
-    def _girth_bfs(self, odd=False):
+    def _girth_bfs(self, odd=False, certificate=False):
         r"""
         Return the girth of the graph using breadth-first search.
 
@@ -15356,13 +15387,19 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``odd`` -- boolean (default: ``False``); whether to compute the odd girth
 
+        - ``certificate`` -- boolean (default: ``False``); whether to return
+          ``(g, c)``, where ``g`` is the (odd) girth and ``c`` is a list
+          of vertices of a cycle of length ``g`` in the graph,
+          thus providing a certificate that the (odd) girth is at most ``g``,
+          or ``None`` if ``g``  infinite
+
         EXAMPLES:
 
         The 5-prism has girth 4 and odd girth 5::
 
             sage: G = graphs.CycleGraph(5).cartesian_product(graphs.CompleteGraph(2))
-            sage: G._girth_bfs()
-            4
+            sage: G._girth_bfs(certificate=True)  # random
+            (4, [(2, 0), (1, 0), (1, 1), (2, 1)])
             sage: G._girth_bfs(odd=True)
             5
 
@@ -15376,7 +15413,7 @@ class GenericGraph(GenericGraph_pyx):
         seen = set()
         for w in self:
             seen.add(w)
-            span = set([w])
+            span = {w: None}
             depth = 1
             thisList = set([w])
             while 2 * depth <= best:
@@ -15385,15 +15422,19 @@ class GenericGraph(GenericGraph_pyx):
                     for u in self.neighbor_iterator(v):
                         if u in seen:
                             continue
-                        if not u in span:
-                            span.add(u)
+                        if u not in span:
+                            span[u] = v
                             nextList.add(u)
                         else:
                             if u in thisList:
                                 best = depth * 2 - 1
+                                ends = (u, v)
+                                bestSpan = span
                                 break
                             if not odd and u in nextList:
                                 best = depth * 2
+                                ends = (u, v)
+                                bestSpan = span
                     if best == 2 * depth - 1:
                         break
                 if best <= 3:
@@ -15402,8 +15443,20 @@ class GenericGraph(GenericGraph_pyx):
                 depth += 1
         if best == n + 1:
             from sage.rings.infinity import Infinity
-            return Infinity
-        return best
+            return (Infinity, None) if certificate else Infinity
+        if certificate:
+            cycles = {}
+            for x in ends:
+                cycles[x] = []
+                y = x
+                while bestSpan[y] is not None:
+                    cycles[x].append(y)
+                    y = bestSpan[y]
+            cycles[x].append(y)
+            u, v = ends
+            return (best, list(reversed(cycles[u])) + cycles[v])
+        else:
+            return best
 
 
     def periphery(self, by_weight=False, algorithm=None, weight_function=None,

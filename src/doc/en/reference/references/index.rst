@@ -228,6 +228,10 @@ REFERENCES:
             Math. Theor. Comput. Sci. Proc., AJ, Assoc. Discrete
             Math. Theor. Comput. Sci., (2008). :arxiv:`0804.1587v1`
 
+.. [AO2018] Sami Assaf and Ezgi Kantarci Oguz. *A local characterization
+            of crystals for the quantum queer superalgebra*.
+            Preprint (2018). :arxiv:`1803.06317`
+
 .. [As2008b] Sami Assaf. *Dual equivalence graphs and a
              combinatorial proof of LLT and Macdonald positivity*.
              (2008). :arxiv:`1005.3759v5`.

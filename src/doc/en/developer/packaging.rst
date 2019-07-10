@@ -476,7 +476,7 @@ When to patch, when to repackage, when to autoconfiscate
   Don't use patching for that.  Makefile variables can be overridden
   from the command-line.  Just use the following in ``spkg-install``:
 
-  .. CODE-BLOCK: bash
+  .. CODE-BLOCK:: bash
 
       $(MAKE) DESTDIR="$SAGE_ROOT/local"
 

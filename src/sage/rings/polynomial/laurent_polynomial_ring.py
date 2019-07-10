@@ -691,8 +691,8 @@ class LaurentPolynomialRing_generic(CommutativeRing, Parent):
             sage: latex(LaurentPolynomialRing(QQ,2,'x'))
             \Bold{Q}[x_{0}^{\pm 1}, x_{1}^{\pm 1}]
         """
-        vars = ', '.join([a + r'^{\pm 1}' for a in self.latex_variable_names()])
-        return "%s[%s]"%(latex(self.base_ring()), vars)
+        vars = ', '.join(a + r'^{\pm 1}' for a in self.latex_variable_names())
+        return "%s[%s]" % (latex(self.base_ring()), vars)
 
     def _ideal_class_(self, n=0):
         """

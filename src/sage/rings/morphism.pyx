@@ -922,7 +922,12 @@ cdef class RingHomomorphism_coercion(RingHomomorphism):
 
             sage: from sage.rings.morphism import RingHomomorphism_coercion
             sage: parent = Hom(ZZ,ZZ)
-            sage: f = parent.__make_element_class__(RingHomomorphism_coercion)(parent)
+            sage: f = parent.__make_element_class__(RingHomomorphism_coercion)(parent) # py2
+            sage: f = parent.__make_element_class__(RingHomomorphism_coercion)(parent) # py3
+            doctest:warning
+            ...
+            DeprecationWarning: Set the category of your morphism to a subcategory of Rings instead.
+            See http://trac.sagemath.org/23204 for details.
             sage: isinstance(f, RingHomomorphism_coercion)
             True
 

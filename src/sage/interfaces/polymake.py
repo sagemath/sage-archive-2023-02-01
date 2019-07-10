@@ -1410,9 +1410,9 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
         T1, T2 = self.typeof()
         name = self._name
         if T2 == 'ARRAY':
-            return int(P.eval('print scalar @{+%s};'%name))
+            return int(P.eval('print scalar @{+%s};' % name))
         if T2 == 'HASH':
-            return int(P.eval('print scalar keys %{+%s};'%name))
+            return int(P.eval('print scalar keys %' + ('{+%s};' % name)))
         if T1:
             raise TypeError("Don't know how to compute the length of {} object".format(T1))
         return int(P.eval('print scalar {};'.format(name)))

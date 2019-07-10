@@ -567,7 +567,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             raise TypeError("point must be in projective space of dimension 2")
         AS = self.ambient_space()
         ASC = AS.coordinate_ring()
-        PSY = AS[0];
+        PSY = AS[0]
         PSYC = PSY.coordinate_ring()
         p = ASC.hom(list(PSY.gens()) + [b[0], b[1], b[2]], PSYC)
         return (p(self.L))
@@ -812,7 +812,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         """
         PP = self.ambient_space()
         R = PP.coordinate_ring()
-        PSX = PP[0];
+        PSX = PP[0]
         vars = list(PSX.gens())
         K = FractionField(PSX.base_ring())
         R0 = PolynomialRing(K, 3, vars)

@@ -1006,8 +1006,7 @@ class TamariIntervalPoset(Element):
 
         REFERENCES:
 
-        .. [Combe2019] Camille Combe, *Réalisation cubique du poset des
-           intervalles de Tamari*, preprint :arxiv:`1904.00658`
+        - [Com2019]_
         """
         tup = [0] * (self.size() - 1)
         for i, j in self._poset.relations_iterator(strict=True):

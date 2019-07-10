@@ -926,7 +926,7 @@ class OEISSequence(SageObject):
         ::
 
             sage: av = oeis('A087778') ; av             # optional -- internet
-            A087778: Decimal expansion of Avogadro's ...
+            A087778: Decimal expansion ... Avogadro...
 
             sage: av.natural_object()                   # optional -- internet
             6.022141000000000?e23

@@ -1966,6 +1966,18 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
         [(1, 1, 1), (2, 2)]
         sage: SPTC.cardinality()
         24
+
+    We compare this implementation with the `q(n)`-crystal on (tensor products) of letters::
+
+        sage: tableau_crystal = crystals.ShiftedPrimedTableaux([4,1], 3)
+        sage: tableau_digraph = tableau_crystal.digraph()
+        sage: c = crystals.Letters(['Q', 3])
+        sage: tensor_crystal = tensor([c]*5)
+        sage: u = tensor_crystal(c(1), c(1), c(1), c(2), c(1))
+        sage: subcrystal = tensor_crystal.subcrystal(generators=[u], index_set=[1,2,-1])
+        sage: tensor_digraph = subcrystal.digraph()
+        sage: tensor_digraph.is_isomorphic(tableau_digraph, edge_labels=True)
+        True
     """
     @staticmethod
     def __classcall_private__(cls, shape, max_entry=None, skew=None):

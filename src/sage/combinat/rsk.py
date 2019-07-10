@@ -1684,6 +1684,203 @@ class RuleCoRSK(RuleRSK):
             raise ValueError("""q(=%s) must be a row strictly and column 
                                 weakly increasing tableau""" %q)
 
+class RuleSuperRSK(RuleRSK):
+    r"""
+
+    EXAMPLES::
+
+        sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
+        sage: RSK([PrimedEntry(1)], [PrimedEntry(1)], insertion='superRSK')
+        [[[1]], [[1]]]
+        sage: RSK([PrimedEntry(1), PrimedEntry(2)], [PrimedEntry(1), 
+        ....:                           PrimedEntry(3)], insertion='superRSK')
+        [[[1, 3]], [[1, 2]]]
+        sage: RSK([PrimedEntry(1), PrimedEntry(2), PrimedEntry(3)], 
+        ....:       [PrimedEntry(1), PrimedEntry(3), PrimedEntry("3p")],
+        ....:                                        insertion='superRSK')
+        [[[1, 3], [3']], [[1, 2], [3]]]
+        sage: RSK([PrimedEntry(1), PrimedEntry(3), PrimedEntry("3p"), 
+        ....:                       PrimedEntry("2p")], insertion='superRSK')
+        [[[1, 3'], [2', 3]], [[1, 2], [3, 4]]]
+        sage: RSK([PrimedEntry("1p"), PrimedEntry("2p"), PrimedEntry(2), 
+        ....:       PrimedEntry(2), PrimedEntry("3p"), PrimedEntry("3p"), 
+        ....:       PrimedEntry(3), PrimedEntry(3)], [PrimedEntry("1p"), 
+        ....:       PrimedEntry(1), PrimedEntry("2p"), PrimedEntry(2), 
+        ....:       PrimedEntry("3p"), PrimedEntry("3p"), PrimedEntry("3p"), 
+        ....:       PrimedEntry(3)], insertion='superRSK')
+        [[[1', 2, 3', 3], [1, 3'], [2'], [3']], [[1', 2, 3', 3], [2', 3'], [2], [3]]]
+
+    TESTS:
+
+    Super RSK Example 5.1::
+
+        sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
+        sage: RSK([PrimedEntry("1p"), PrimedEntry("2p"), PrimedEntry(2), 
+        ....:       PrimedEntry(2), PrimedEntry("3p"), PrimedEntry("3p"), 
+        ....:       PrimedEntry(3), PrimedEntry(3)], [PrimedEntry("3p"), 
+        ....:       PrimedEntry(1), PrimedEntry(2), PrimedEntry(3), 
+        ....:       PrimedEntry("3p"), PrimedEntry("3p"), PrimedEntry("2p"), 
+        ....:       PrimedEntry("1p")], insertion='superRSK')
+        [[[1', 2', 3', 3], [1, 2, 3'], [3']], [[1', 2, 2, 3'], [2', 3, 3], [3']]]
+
+    Super RSK Example 6.1::
+
+        sage: RSK([PrimedEntry("1p"), PrimedEntry("2p"), PrimedEntry(2), 
+        ....:       PrimedEntry(2), PrimedEntry("3p"), PrimedEntry("3p"), 
+        ....:       PrimedEntry(3), PrimedEntry(3)], [PrimedEntry("3p"), 
+        ....:       PrimedEntry(1), PrimedEntry(2), PrimedEntry(3), 
+        ....:       PrimedEntry("3p"), PrimedEntry("3p"), PrimedEntry("2p"), 
+        ....:       PrimedEntry("1p")], insertion='superRSK')
+        [[[1', 2', 3', 3], [1, 2, 3'], [3']], [[1', 2, 2, 3'], [2', 3, 3], [3']]]
+
+        sage: RSK([PrimedEntry("1p"), PrimedEntry(1), PrimedEntry("2p"), 
+        ....:       PrimedEntry(2), PrimedEntry("3p"), PrimedEntry("3p"), 
+        ....:       PrimedEntry("3p"), PrimedEntry(3)], [PrimedEntry(3), 
+        ....:       PrimedEntry("2p"), PrimedEntry(3), PrimedEntry(2), 
+        ....:       PrimedEntry("3p"), PrimedEntry("3p"), PrimedEntry("1p"), 
+        ....:       PrimedEntry(2)], insertion='superRSK')
+        [[[1', 2, 2, 3'], [2', 3, 3], [3']], [[1', 2', 3', 3], [1, 2, 3'], [3']]]
+    """
+    def _forward_verify_input(self, obj1, obj2):
+        r"""
+        Returns exception for invalid input in forward rule.
+        """
+        from sage.combinat.shifted_primed_tableau import PrimedEntry
+        if obj2 is not None:
+            mixed_parity = []
+            # Check it is a restricted superbiword
+            for t, b in zip(obj1, obj2):
+                if not (isinstance(t, PrimedEntry) and isinstance(b, PrimedEntry)):
+                    raise ValueError("invalid entry, elements should be PrimedEntry")
+                if t.is_primed() != b.is_primed():
+                    if (t, b) in mixed_parity:
+                        raise ValueError("invalid restricted superbiword")
+                    else:
+                        mixed_parity.append((t,b))
+
+    def to_pair(self, obj1=None, obj2=None):
+        r"""
+
+        """
+        from sage.combinat.shifted_primed_tableau import PrimedEntry
+        if obj2 is None:
+            try:
+                itr = obj1._rsk_iter()
+            except AttributeError:
+                # make recording list default to [1, 2, ...]
+                rec = []
+                for i in range(len(obj1)):
+                    rec.append(PrimedEntry(i+1))
+                itr = zip(rec, obj1)
+        else:
+            itr = zip(obj1, obj2)
+        return itr
+
+    def _get_col(self, t, col_index):
+        # t is the tableau (list of lists)
+        # compute how many rows will contribute to the col
+        num_rows_long_enough = 0
+        for row in t:
+            if len(row) > col_index:
+                num_rows_long_enough += 1
+            else:
+                break
+        # create the col
+        col = [t[row_index][col_index] for row_index in range(num_rows_long_enough)]
+        return col
+
+    def _set_col(self, t, col_index, col):
+        # overwrite a column in tableau t (list of lists) with col
+        for row_index, val in enumerate(col):
+            # add a box/node if necessary
+            if row_index == len(t):
+                t.append([])
+            if col_index == len(t[row_index]):
+                t[row_index].append(None)
+            # set value
+            t[row_index][col_index] = val
+    
+    def forward_rule(self, obj1, obj2, check_standard=False):
+        r"""
+
+        """
+        from sage.combinat.tableau import Tableau
+        self._forward_verify_input(obj1, obj2)
+        itr = self.to_pair(obj1, obj2)
+        p = []       # the "insertion" tableau
+        q = []       # the "recording" tableau
+        for i, j in itr:
+            # loop
+            row_index = -1
+            col_index = -1
+            epsilon = 1 if i.is_primed() else 0
+            while True:
+                if i.is_primed() == j.is_primed():
+                    # row insertion
+                    row_index += 1
+                    if row_index == len(p):
+                        p.append([j])
+                        q.append([i])
+                        break
+                    else:
+                        # retrieve row
+                        r = p[row_index]
+                        qr = q[row_index]
+                        j1, col_index = self.insertion(j, r, epsilon=epsilon)
+                        if j1 is None:
+                            r.append(j)
+                            qr.append(i)
+                            break
+                        else:
+                            j = j1
+
+                else:
+                    # column insertion
+                    col_index += 1
+                    if len(p) == 0:
+                        # empty case
+                        p.append([])
+                        q.append([])
+                    if col_index == len(p[0]):
+                        p[0].append(j)
+                        q[0].append(i)
+                        break
+                    else:
+                        # retrieve column
+                        c = self._get_col(p, col_index)
+                        qc = self._get_col(q, col_index)
+                        j1, row_index = self.insertion(j, c, epsilon=epsilon)
+                        if j1 is None:
+                            c.append(j)
+                            qc.append(i)
+                            self._set_col(p, col_index, c)
+                            self._set_col(q, col_index, qc)
+                            break
+                        else:
+                            j = j1
+                        self._set_col(p, col_index, c)
+                        self._set_col(q, col_index, qc)
+        return [(p), (q)]
+
+
+    def insertion(self, j, r, epsilon=0):
+        r"""
+
+        """
+        bisect = bisect_right if epsilon == 0 else bisect_left
+        if (epsilon == 1 and j <= r[-1]) or (j < r[-1]):
+            # Figure out where to insert j into the row r. The
+            # bisect command returns the position of the least
+            # element of r greater than j.  We will call it y.
+            y_pos = bisect(r, j)
+            # Switch j and y
+            j, r[y_pos] = r[y_pos], j
+            return j, y_pos
+        else:
+            return None, None  # Bumping is completed
+
+
+
 class InsertionRules(object):
     r"""
     Catalog of rules for growth diagrams.
@@ -1693,6 +1890,7 @@ class InsertionRules(object):
     Hecke = RuleHecke
     dualRSK = RuleDualRSK
     coRSK = RuleCoRSK
+    superRSK = RuleSuperRSK
 
 #####################################################################
 
@@ -1865,6 +2063,8 @@ def RSK(obj1=None, obj2=None, insertion=InsertionRules.RSK, check_standard=False
             insertion = RSK.rules.dualRSK
         elif insertion == 'coRSK':
             insertion = RSK.rules.coRSK
+        elif insertion == 'superRSK':
+            insertion = RSK.rules.superRSK
         else:
             raise ValueError("invalid input")
 

@@ -15357,6 +15357,67 @@ class GenericGraph(GenericGraph_pyx):
         return Infinity
 
 
+    def _girth_bfs(self, odd=False):
+        r"""
+        Return the girth of the graph using breadth-first search.
+
+        Loops and parallel edges are ignored,
+        so the returned value is at least 3.
+
+        INPUT:
+
+        - ``odd`` -- boolean (default: ``False``); whether to compute the odd girth
+
+        EXAMPLES:
+
+        The 5-prism has girth 4 and odd girth 5::
+
+            sage: G = graphs.CycleGraph(5).cartesian_product(graphs.CompleteGraph(2))
+            sage: G._girth_bfs()
+            4
+            sage: G._girth_bfs(odd=True)
+            5
+
+        .. SEEALSO::
+
+            * :meth:`~GenericGraph.girth` -- return the girth of the graph.
+            * :meth:`~GenericGraph.odd_girth` -- return the odd girth of the graph.
+        """
+        n = self.num_verts()
+        best = n + 1
+        seen = set()
+        for w in self:
+            seen.add(w)
+            span = set([w])
+            depth = 1
+            thisList = set([w])
+            while 2 * depth <= best:
+                nextList = set()
+                for v in thisList:
+                    for u in self.neighbor_iterator(v):
+                        if u in seen:
+                            continue
+                        if not u in span:
+                            span.add(u)
+                            nextList.add(u)
+                        else:
+                            if u in thisList:
+                                best = depth * 2 - 1
+                                break
+                            if not odd and u in nextList:
+                                best = depth * 2
+                    if best == 2 * depth - 1:
+                        break
+                if best <= 3:
+                    break
+                thisList = nextList
+                depth += 1
+        if best == n + 1:
+            from sage.rings.infinity import Infinity
+            return Infinity
+        return best
+
+
     def periphery(self, by_weight=False, algorithm=None, weight_function=None,
                   check_weight=True):
         r"""

@@ -3912,12 +3912,36 @@ class DiGraph(GenericGraph):
 
 
     def _girth_bfs(self, odd=False):
+        r"""
+        Return the girth of the digraph using breadth-first search.
+
+        Loops are ignored, so the returned value is at least 2.
+
+        INPUT:
+
+        - ``odd`` -- whether to compute the odd girth (default: ``False``).
+
+        EXAMPLES:
+
+        A digraph with girth 4 and odd girth 5::
+
+            sage: G = DiGraph([(0, 1), (1, 2), (1, 3), (2, 3), (3, 4), (4, 0)])
+            sage: G._girth_bfs()
+            4
+            sage: G._girth_bfs(odd=True)
+            5
+
+        .. SEEALSO::
+
+            * :meth:`~sage.graphs.GenericGraph.girth` -- return the girth of the graph.
+            * :meth:`~sage.graphs.GenericGraph.odd_girth` -- return the odd girth of the graph.
+        """
         n = self.num_verts()
         best = n + 1
         seen = set()
         for w in self:
             seen.add(w)
-            span = set([w])
+            inSpan, outSpan = set([w]), set([w])
             depth = 1
             outList, inList = set([w]), set([w])
             while 2 * depth <= best:
@@ -3926,22 +3950,24 @@ class DiGraph(GenericGraph):
                     for u in self.neighbor_out_iterator(v):
                         if u in seen:
                             continue
-                        if not u in span:
-                            span.add(u)
+                        if not u in outSpan:
+                            outSpan.add(u)
                             nextOutList.add(u)
-                        elif u in inList:
+                        if u in inList:
                             best = depth * 2 - 1
                             break
                     if best == 2 * depth - 1:
                         break
+                if best == 2 * depth - 1:
+                    break
                 for v in inList:
                     for u in self.neighbor_in_iterator(v):
                         if u in seen:
                             continue
-                        if not u in span:
-                            span.add(u)
+                        if not u in inSpan:
+                            inSpan.add(u)
                             nextInList.add(u)
-                        elif not odd and u in nextOutList:
+                        if not odd and u in nextOutList:
                             best = depth * 2
                             break
                     if best == 2 * depth:

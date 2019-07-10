@@ -218,6 +218,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.diameter` | Return the largest distance between any two vertices.
     :meth:`~GenericGraph.distance_graph` | Return the graph on the same vertex set as the original graph but vertices are adjacent in the returned graph if and only if they are at specified distances in the original graph.
     :meth:`~GenericGraph.girth` | Compute the girth of the graph.
+    :meth:`~GenericGraph.odd_girth` | Compute the odd girth of the graph.
     :meth:`~GenericGraph.periphery` | Return the set of vertices in the periphery
     :meth:`~GenericGraph.shortest_path` | Return a list of vertices representing some shortest path from `u` to `v`
     :meth:`~GenericGraph.shortest_path_length` | Return the minimal length of paths from u to v
@@ -15170,13 +15171,11 @@ class GenericGraph(GenericGraph_pyx):
 
     def girth(self):
         """
-        Return the girth of the graph.
+        Return the girth of the graph,
 
-        For directed graphs, computes the girth of the undirected graph,
-        i.e. ``Graph(self)``.
-
-        The girth is the length of the shortest cycle in the graph. Graphs
-        without cycles have infinite girth.
+        The girth is the length of the shortest cycle in the graph
+        (directed cycle if the graph is directed). Graphs without
+        (directed) cycles have infinite girth.
 
         EXAMPLES::
 
@@ -15193,8 +15192,8 @@ class GenericGraph(GenericGraph_pyx):
 
         .. SEEALSO::
 
-            * :meth:`~sage.graphs.graph.Graph.odd_girth` -- computes
-              the odd girth of a graph.
+            * :meth:`~GenericGraph.odd_girth` -- return the odd girth
+              of the graph.
 
         TESTS:
 
@@ -15217,24 +15216,38 @@ class GenericGraph(GenericGraph_pyx):
 
         Girth < 3 (see :trac:`12355`)::
 
-           sage: g = graphs.PetersenGraph()
-           sage: g.allow_multiple_edges(True)
-           sage: g.allow_loops(True)
-           sage: g.girth()
-           5
-           sage: g.add_edge(0,0)
-           sage: g.girth()
-           1
-           sage: g.delete_edge(0,0)
-           sage: g.add_edge(0,1)
-           sage: g.girth()
-           2
-           sage: g.delete_edge(0,1)
-           sage: g.girth()
-           5
-           sage: g = DiGraph(g)
-           sage: g.girth()
-           2
+            sage: g = graphs.PetersenGraph()
+            sage: g.allow_multiple_edges(True)
+            sage: g.allow_loops(True)
+            sage: g.girth()
+            5
+            sage: g.add_edge(0,0)
+            sage: g.girth()
+            1
+            sage: g.delete_edge(0,0)
+            sage: g.add_edge(0,1)
+            sage: g.girth()
+            2
+            sage: g.delete_edge(0,1)
+            sage: g.girth()
+            5
+            sage: g = DiGraph(g)
+            sage: g.girth()
+            2
+
+        Directed graphs (see :trac:`28142`)::
+
+            sage: g = digraphs.Circuit(6)
+            sage: g.girth()
+            6
+            sage: g = digraphs.RandomDirectedGNC(10)
+            sage: g.girth()
+            +Infinity
+            sage: g = DiGraph([(0, 1), (1, 2), (1, 3), (2, 3), (3, 4), (4, 0)])
+            sage: g.girth()
+            4
+            sage: Graph(g).girth()
+            3
         """
         # Cases where girth <= 2
         if self.has_loops():
@@ -15250,13 +15263,19 @@ class GenericGraph(GenericGraph_pyx):
 
     def odd_girth(self, algorithm="bfs"):
         r"""
-        Returns the odd girth of the graph.
+        Return the odd girth of the graph.
 
-        The odd girth of a graph is defined as the smallest cycle of odd length.
+        The odd girth is the length of the shortest cycle of odd length
+        in the graph (directed cycle if the graph is directed).
+        Bipartite graphs have infinite odd girth.
 
-        OUTPUT:
+        INPUT:
 
-        The odd girth of ``self``.
+        - ``algorithm`` -- string specifying the algorithm to use:
+          ``"bfs"`` (default) for the BFS-based algorithm,
+          or any algorithm accepted by
+          :meth:`~sage.matrix.matrix_integer_dense.Matrix_integer_dense.charpoly`
+          for computation from the characteristic polynomial
 
         EXAMPLES:
 
@@ -15282,8 +15301,7 @@ class GenericGraph(GenericGraph_pyx):
 
         .. SEEALSO::
 
-            * :meth:`~sage.graphs.generic_graph.GenericGraph.girth` -- computes
-              the girth of a graph.
+            * :meth:`~GenericGraph.girth` -- return the girth of the graph.
 
         REFERENCES:
 
@@ -15303,6 +15321,20 @@ class GenericGraph(GenericGraph_pyx):
             5
             sage: graphs.CycleGraph(11).odd_girth()
             11
+
+        Directed graphs (see :trac:`28142`)::
+
+            sage: g = digraphs.Circuit(7)
+            sage: g.odd_girth()
+            7
+            sage: g = graphs.CompleteBipartiteGraph(10, 10).random_orientation()
+            sage: g.odd_girth()
+            +Infinity
+            sage: g = DiGraph([(0, 1), (1, 2), (1, 3), (2, 3), (3, 4), (4, 0)])
+            sage: g.odd_girth()
+            5
+            sage: Graph(g).odd_girth()
+            3
         """
         # Case where odd girth is 1
         if self.has_loops():

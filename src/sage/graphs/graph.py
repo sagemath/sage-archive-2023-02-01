@@ -3072,6 +3072,31 @@ class Graph(GenericGraph):
 
 
     def _girth_bfs(self, odd=False):
+        r"""
+        Return the girth of the graph using breadth-first search.
+
+        Loops and parallel edges are ignored,
+        so the returned value is at least 3.
+
+        INPUT:
+
+        - ``odd`` -- whether to compute the odd girth (default: ``False``).
+
+        EXAMPLES:
+
+        The 5-prism has girth 4 and odd girth 5::
+
+            sage: G = graphs.CycleGraph(5).cartesian_product(graphs.CompleteGraph(2))
+            sage: G._girth_bfs()
+            4
+            sage: G._girth_bfs(odd=True)
+            5
+
+        .. SEEALSO::
+
+            * :meth:`~sage.graphs.GenericGraph.girth` -- return the girth of the graph.
+            * :meth:`~sage.graphs.GenericGraph.odd_girth` -- return the odd girth of the graph.
+        """
         n = self.num_verts()
         best = n + 1
         seen = set()

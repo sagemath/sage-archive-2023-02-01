@@ -195,6 +195,10 @@ class DiscreteDynamicalSystem(SageObject):
         Non negative integer semiring
         sage: D.evolution()(5)
         7
+        sage: D.evolution_power(7)(5)
+        19
+        sage: D.evolution_power(0)(5)
+        5
 
     The necessity of ``create_tuple=True``::
 
@@ -219,6 +223,12 @@ class DiscreteDynamicalSystem(SageObject):
         3
         sage: D.evolution()(3)
         5
+        sage: D.evolution_power(2)(5)
+        3
+        sage: D.evolution_power(3)(5)
+        5
+        sage: D.evolution_power(-2)(5)
+        1
         sage: D.inverse_evolution()(4)
         2
         sage: D.orbit(3)
@@ -412,6 +422,42 @@ class DiscreteDynamicalSystem(SageObject):
             3
         """
         return self._phi
+
+    def evolution_power(self, n):
+        r"""
+        Return the `n`-th power (with respect to composition)
+        of the evolution of ``self``.
+
+        This requires `n` to be a nonnegative integer.
+
+        EXAMPLES::
+
+            sage: D = DiscreteDynamicalSystem(range(10), lambda x : (x + 3) % 10, create_tuple=True)
+            sage: ev3 = D.evolution_power(3)
+            sage: ev3(1)
+            0
+            sage: ev3(2)
+            1
+            sage: ev0 = D.evolution_power(0)
+            sage: ev0(1)
+            1
+            sage: ev0(2)
+            2
+            sage: D.evolution_power(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: the n-th power of evolution is only defined for nonnegative integers n
+        """
+        from sage.rings.semirings.non_negative_integer_semiring import NN
+        if n not in NN:
+            raise ValueError("the n-th power of evolution is only defined for nonnegative integers n")
+        ev = self.evolution()
+        def evn(x):
+            y = x
+            for _ in range(n):
+                y = ev(y)
+            return y
+        return evn
 
     def __iter__(self):
         r"""
@@ -717,6 +763,52 @@ class InvertibleDiscreteDynamicalSystem(DiscreteDynamicalSystem):
         else:
             self._inverse = inverse
         self._cache_orbits = cache_orbits
+
+    def evolution_power(self, n):
+        r"""
+        Return the `n`-th power (with respect to composition)
+        of the evolution of ``self``.
+
+        This requires `n` to be an integer.
+
+        EXAMPLES::
+
+            sage: D = DiscreteDynamicalSystem(range(10), lambda x : (x + 3) % 10, create_tuple=True, inverse=True)
+            sage: ev3 = D.evolution_power(3)
+            sage: ev3(1)
+            0
+            sage: ev3(2)
+            1
+            sage: ev0 = D.evolution_power(0)
+            sage: ev0(1)
+            1
+            sage: ev0(2)
+            2
+            sage: evm1 = D.evolution_power(-1)
+            sage: evm1(1)
+            8
+            sage: evm1(2)
+            9
+            sage: evm2 = D.evolution_power(-2)
+            sage: evm2(1)
+            5
+            sage: evm2(2)
+            6
+        """
+        from sage.rings.integer_ring import ZZ
+        if n not in ZZ:
+            raise ValueError("the n-th power of evolution is only defined for integers n")
+        if n >= 0:
+            ev = self.evolution()
+        else:
+            ev = self.inverse_evolution()
+            n = -n
+        def evn(x):
+            y = x
+            for _ in range(n):
+                y = ev(y)
+            return y
+        return evn
 
     def _repr_(self):
         r"""
@@ -1045,6 +1137,10 @@ class InvertibleFiniteDynamicalSystem(InvertibleDiscreteDynamicalSystem, FiniteD
         0
         sage: D.inverse_evolution()(1)
         4
+        sage: D.evolution_power(-1)(1)
+        4
+        sage: D.evolution_power(-2)(1)
+        2
 
         sage: X = cartesian_product([[0, 1]]*8)
         sage: Y = [s for s in X if sum(s) == 4]

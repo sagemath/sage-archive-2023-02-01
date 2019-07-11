@@ -618,8 +618,7 @@ class DiscreteDynamicalSystem(SageObject):
 
         Now, let us check homomesy restricted to specific cycles::
 
-            sage: import sage.dynamics.finite_dynamical_system_catalog as finite_dynamical_system_catalog
-            sage: F = finite_dynamical_system_catalog.bitstring_rotation(7)
+            sage: F = finite_dynamical_systems.bitstring_rotation(7)
             sage: descents = lambda x: sum(1 for i in range(6) if x[i] > x[i+1])
             sage: F.is_homomesic(descents)
             False
@@ -634,8 +633,7 @@ class DiscreteDynamicalSystem(SageObject):
 
         And here is a non-invertible finite dynamical system::
 
-            sage: import sage.dynamics.finite_dynamical_system_catalog as finite_dynamical_system_catalog
-            sage: F = finite_dynamical_system_catalog.one_line([9, 1, 1, 6, 5, 4, 5, 5, 1])
+            sage: F = finite_dynamical_systems.one_line([9, 1, 1, 6, 5, 4, 5, 5, 1])
             sage: F.is_homomesic(lambda i: i)
             True
             sage: F.is_homomesic(lambda i: i % 2)
@@ -1030,8 +1028,7 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
 
         Invariants and non-invariants of a permutation::
 
-            sage: import sage.dynamics.finite_dynamical_system_catalog as finite_dynamical_system_catalog
-            sage: F = finite_dynamical_system_catalog.permutation([3, 4, 5, 6, 1, 2])
+            sage: F = finite_dynamical_systems.permutation([3, 4, 5, 6, 1, 2])
             sage: F.is_invariant(lambda i: i % 2)
             True
             sage: F.is_invariant(lambda i: i % 3)
@@ -1063,8 +1060,7 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
 
         EXAMPLES::
 
-            sage: import sage.dynamics.finite_dynamical_system_catalog as finite_dynamical_system_catalog
-            sage: BS = finite_dynamical_system_catalog.bulgarian_solitaire
+            sage: BS = finite_dynamical_systems.bulgarian_solitaire
             sage: BS(8).cycles()
             [[[4, 3, 1], [3, 3, 2], [3, 2, 2, 1], [4, 2, 1, 1]],
              [[4, 2, 2], [3, 3, 1, 1]]]
@@ -1081,8 +1077,7 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
             sage: D.cycles()
             [[10, 0], [8], [4]]
 
-            sage: import sage.dynamics.finite_dynamical_system_catalog as finite_dynamical_system_catalog
-            sage: F = finite_dynamical_system_catalog.one_line([4, 7, 2, 6, 2, 10, 9, 11, 5, 6, 12, 12, 12, 6])
+            sage: F = finite_dynamical_systems.one_line([4, 7, 2, 6, 2, 10, 9, 11, 5, 6, 12, 12, 12, 6])
             sage: F.cycles()
             [[6, 10], [12], [9, 5, 2, 7]]
         """

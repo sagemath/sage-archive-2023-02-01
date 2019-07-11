@@ -4,8 +4,9 @@ Catalog of discrete dynamical systems
 This module contains constructors for several specific discrete
 dynamical systems.
 These are accessible
-through :mod:`sage.dynamics. <sage.dynamics.finite_dynamical_system_catalog>`
-(type this in Sage and hit ``tab`` for a list).
+through :mod:`sage.dynamics.finite_dynamical_system_catalog. <sage.dynamics.finite_dynamical_system_catalog>`
+or just through `finite_dynamical_systems.`
+(type either of these in Sage and hit ``tab`` for a list).
 
 AUTHORS:
 
@@ -45,8 +46,7 @@ def permutation(pi, invertible=True):
 
     EXAMPLES::
 
-        sage: import sage.dynamics.finite_dynamical_system_catalog as finite_dynamical_system_catalog
-        sage: F = finite_dynamical_system_catalog.permutation([3, 5, 4, 1, 2])
+        sage: F = finite_dynamical_systems.permutation([3, 5, 4, 1, 2])
         sage: F.verify_inverse_evolution()
         True
         sage: sorted(F.orbit_lengths())
@@ -74,8 +74,7 @@ def one_line(xs):
 
     EXAMPLES::
 
-        sage: import sage.dynamics.finite_dynamical_system_catalog as finite_dynamical_system_catalog
-        sage: F = finite_dynamical_system_catalog.one_line([2, 2, 1, 2, 3])
+        sage: F = finite_dynamical_systems.one_line([2, 2, 1, 2, 3])
         sage: F.orbit(3)
         [3, 1, 2]
         sage: F.orbit(5)
@@ -103,8 +102,7 @@ def bitstring_rotation(n, ones=None):
 
     EXAMPLES::
 
-        sage: import sage.dynamics.finite_dynamical_system_catalog as finite_dynamical_system_catalog
-        sage: F = finite_dynamical_system_catalog.bitstring_rotation(5)
+        sage: F = finite_dynamical_systems.bitstring_rotation(5)
         sage: sorted(F.orbit_lengths())
         [1, 1, 5, 5, 5, 5, 5, 5]
         sage: F.orbit((0, 1, 1, 0, 1))
@@ -117,7 +115,7 @@ def bitstring_rotation(n, ones=None):
         False
         sage: F.is_homomesic(lambda x: x[0])
         False
-        sage: F = finite_dynamical_system_catalog.bitstring_rotation(5, ones=3)
+        sage: F = finite_dynamical_systems.bitstring_rotation(5, ones=3)
         sage: F.verify_inverse_evolution()
         True
         sage: sorted(F.orbit_lengths())
@@ -199,8 +197,7 @@ def striker_sweep(E, predicate, elements, lazy=False):
 
     EXAMPLES::
 
-        sage: import sage.dynamics.finite_dynamical_system_catalog as finite_dynamical_system_catalog
-        sage: StS = finite_dynamical_system_catalog.striker_sweep
+        sage: StS = finite_dynamical_systems.striker_sweep
         sage: E = range(1, 5)
         sage: lac = lambda S: all(s + 1 not in S for s in S) # lacunarity predicate
         sage: F = StS(E, lac, [1, 2, 3, 4])
@@ -256,14 +253,13 @@ def syt_promotion(lam):
 
     EXAMPLES::
 
-        sage: import sage.dynamics.finite_dynamical_system_catalog as finite_dynamical_system_catalog
-        sage: F = finite_dynamical_system_catalog.syt_promotion([4, 4, 4])
+        sage: F = finite_dynamical_systems.syt_promotion([4, 4, 4])
         sage: sorted(F.orbit_lengths())
         [3, 3, 4, 4, 4, 6, 6, 6, 6, 12, 12, 12, 12, 12, 12,
         12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
         12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
         12, 12, 12, 12, 12]
-        sage: G = finite_dynamical_system_catalog.syt_promotion([4, 3, 1])
+        sage: G = finite_dynamical_systems.syt_promotion([4, 3, 1])
         sage: sorted(G.orbit_lengths())
         [16, 22, 32]
         sage: G.verify_inverse_evolution()
@@ -284,8 +280,7 @@ def order_ideal_rowmotion(P):
     EXAMPLES::
 
         sage: P = RootSystem(["A", 6]).root_poset()
-        sage: import sage.dynamics.finite_dynamical_system_catalog as finite_dynamical_system_catalog
-        sage: F = finite_dynamical_system_catalog.order_ideal_rowmotion(P)
+        sage: F = finite_dynamical_systems.order_ideal_rowmotion(P)
         sage: sorted(F.orbit_lengths())
         [2, 7, 7, 7, 7, 7, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14,
         14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14]
@@ -295,7 +290,7 @@ def order_ideal_rowmotion(P):
         True
 
         sage: P = RootSystem(["A", 3]).root_poset()
-        sage: F = finite_dynamical_system_catalog.order_ideal_rowmotion(P)
+        sage: F = finite_dynamical_systems.order_ideal_rowmotion(P)
         sage: F.verify_inverse_evolution()
         True
     """
@@ -334,8 +329,7 @@ def bulgarian_solitaire(n):
 
     EXAMPLES::
 
-        sage: import sage.dynamics.finite_dynamical_system_catalog as finite_dynamical_system_catalog
-        sage: BS = finite_dynamical_system_catalog.bulgarian_solitaire
+        sage: BS = finite_dynamical_systems.bulgarian_solitaire
         sage: BS(3).evolution()(Partition([3]))
         [2, 1]
         sage: BS(3).evolution()(Partition([2, 1]))

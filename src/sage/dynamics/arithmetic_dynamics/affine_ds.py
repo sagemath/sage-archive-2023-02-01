@@ -811,12 +811,12 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
 
         Examples::
 
-            sage: A.<x> = AffineSpace(QQ, 1)
-            sage: f = DynamicalSystem_affine([x^2+1])
+            sage: A.<t> = AffineSpace(QQ, 1)
+            sage: f = DynamicalSystem_affine([t^2+1])
             sage: f.conjugate(matrix([[1,2], [0,1]]))
             Dynamical System of Affine Space of dimension 1 over Rational Field
-              Defn: Defined on coordinates by sending (x) to
-                    (x^2 + 4*x + 3)
+              Defn: Defined on coordinates by sending (t) to
+                    (t^2 + 4*t + 3)
 
         ::
 

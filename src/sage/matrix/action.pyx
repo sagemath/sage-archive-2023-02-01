@@ -476,7 +476,7 @@ cdef class PolymapMatrixAction(MatrixMulAction):
             return End(self.underlying_set().domain().change_ring(base))
         return Hom(self.underlying_set().domain().change_ring(base), self.underlying_set().codomain().change_ring(base))
 
-    cpdef _act_(self, f, mat):
+    cpdef _act_(self, mat, f):
         """
         Call the action.
 
@@ -489,9 +489,9 @@ cdef class PolymapMatrixAction(MatrixMulAction):
             sage: f = H([x^2 + y^2, y^2])
             sage: A = PolymapMatrixAction(M, H)
             sage: m = matrix([[1,1], [0,1]])
-            sage: A._act_(f, m)
+            sage: A._act_(m, f)
             Scheme endomorphism of Projective Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x : y) to
                     (x^2 + 2*x*y + 2*y^2 : y^2)
         """
-        return mat._polymap_times_matrix_(f, self._codomain)
+        return f._polymap_times_matrix_(mat, self._codomain)

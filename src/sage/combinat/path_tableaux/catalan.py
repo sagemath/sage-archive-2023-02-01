@@ -1,24 +1,3 @@
-
-#*****************************************************************************
-#       Copyright (C) 2018 Bruce Westbury <bruce.westbury@gmail.com>,
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 2 of the License, or
-# (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
-from sage.structure.list_clone import ClonableArray
-from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux, CylindricalDiagram
-from sage.combinat.combinatorial_map import combinatorial_map
-from sage.combinat.dyck_word import DyckWord
-from sage.combinat.perfect_matching import PerfectMatching
-from sage.combinat.skew_tableau import SkewTableau
-from sage.combinat.tableau import Tableau, StandardTableau
-from sage.rings.integer import Integer
-
-###############################################################################
 r"""
 Catalan Tableaux
 
@@ -72,7 +51,28 @@ EXAMPLES::
     sage: TestSuite(t).run()
 """
 
-class CatalanTableau(ClonableArray,PathTableau):
+#*****************************************************************************
+#       Copyright (C) 2018 Bruce Westbury <bruce.westbury@gmail.com>,
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+from sage.structure.list_clone import ClonableArray
+from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux
+from sage.combinat.combinatorial_map import combinatorial_map
+from sage.combinat.dyck_word import DyckWord
+from sage.combinat.perfect_matching import PerfectMatching
+from sage.combinat.skew_tableau import SkewTableau
+from sage.combinat.tableau import Tableau, StandardTableau
+from sage.rings.integer import Integer
+
+###############################################################################
+
+class CatalanTableau(PathTableau):
     """
     An instance is the sequence of nonnegative
     integers given by the heights of a Dyck word.
@@ -106,15 +106,18 @@ class CatalanTableau(ClonableArray,PathTableau):
 
     @staticmethod
     def __classcall_private__(cls, ot):
-        """This is the preprocessing for creating paths.
-
         """
+        This is the preprocessing for creating paths.
+        """
+        return CatalanTableaux()(ot)
+
+    def __init__(self, parent, ot, check=True):
         w = None
 
         if isinstance(ot, DyckWord):
             w = ot.heights()
 
-        if isinstance(ot, PerfectMatching):
+        elif isinstance(ot, PerfectMatching):
             if ot.is_noncrossing():
                 u = [1]*ot.size()
                 for a in ot.arcs():
@@ -123,7 +126,7 @@ class CatalanTableau(ClonableArray,PathTableau):
             else:
                 raise ValueError("the perfect matching must be non crossing")
 
-        if isinstance(ot, Tableau):
+        elif isinstance(ot, Tableau):
             if len(ot) <= 2:
                 if ot.is_standard():
                     u = [1] * ot.size()
@@ -135,7 +138,7 @@ class CatalanTableau(ClonableArray,PathTableau):
             else:
                 raise ValueError("the tableau must have at most two rows")
 
-        if isinstance(ot, SkewTableau):
+        elif isinstance(ot, SkewTableau):
             if len(ot) <= 2:
                 # The check that ot is standard is not implemented
                 u = [1] * ot.size()
@@ -146,7 +149,7 @@ class CatalanTableau(ClonableArray,PathTableau):
             else:
                 raise ValueError("the skew tableau must have at most two rows")
 
-        if isinstance(ot, (list,tuple)):
+        elif isinstance(ot, (list,tuple)):
             try:
                 w = tuple([Integer(a) for a in ot])
             except TypeError:
@@ -154,9 +157,9 @@ class CatalanTableau(ClonableArray,PathTableau):
 
         if w is None:
             raise ValueError("invalid input %s" % ot)
-
-        return CatalanTableaux()(w)
-
+        
+        ClonableArray.__init__(self, parent, w, check=check)
+        
     def check(self):
 
         n = len(self)

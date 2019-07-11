@@ -44,13 +44,15 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 #from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet_graded
 from sage.structure.sage_object import SageObject
+from sage.structure.list_clone import ClonableArray
 from sage.misc.latex import latex
 #from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 #from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
-class PathTableau():
-    r"""This is the abstract base class for path tableaux.
+class PathTableau(ClonableArray):
+    r"""
+    This is the abstract base class for path tableaux.
     """
     @abstract_method(optional=False)
     def _local_rule(self,i):

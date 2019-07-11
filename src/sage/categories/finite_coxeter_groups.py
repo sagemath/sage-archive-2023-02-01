@@ -541,7 +541,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             """
             Return the `m`-Cambrian lattice on `m`-delta sequences.
 
-            See :arxiv:`1503.00710` and :arXiv:`math/0611106`.
+            See :arxiv:`1503.00710` and :arxiv:`math/0611106`.
 
             The `m`-delta sequences are certain `m`-colored minimal
             factorizations of `c` into reflections.

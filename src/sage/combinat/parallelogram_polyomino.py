@@ -948,6 +948,49 @@ class ParallelogramPolyomino(ClonableList):
         """
         return ParallelogramPolyominoes()
 
+    def _unicode_art_(self):
+        """
+        TESTS::
+            sage: unicode_art(ParallelogramPolyomino([[0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0]]))
+            ┌┬┬┐
+            ├┼┼┼┐
+            └┼┼┼┤
+             └┼┼┼┐
+              └┼┼┤
+               └┼┤
+                └┘
+            sage: unicode_art(ParallelogramPolyomino([[0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1], [1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0]]))
+            ┌┬┐
+            ├┼┼┐
+            ├┼┼┤
+            ├┼┼┤
+            └┴┼┼┐
+              └┼┼┐
+               └┴┘
+        """
+        from sage.typeset.unicode_art import UnicodeArt
+
+        data = list(zip(self.lower_widths(), self.upper_widths()))
+
+        txt = [u'┌' + u'┬' * (data[0][1] - 1) + u'┐']
+        for i in range(1, len(data)):
+            x1, y1 = data[i-1]
+            x2, y2 = data[i]
+            line = [u' ' * x1]
+            if x1 == x2:
+                line += [u'├']
+            else:
+                line += [u'└' + u'┴' * (x2 - x1 - 1) + u'┼']
+            line += [u'┼' * (y1 - x2 - 1)]
+            if y1 == y2:
+                line += [u'┤']
+            else:
+                line += [u'┼' + u'┬' * (y2 - y1 - 1) + u'┐']
+            txt += [''.join(line)]
+        txt += [u' ' * data[-1][0] + u'└' + u'┴' * (data[-1][1] - data[-1][0] - 1) + u'┘']
+
+        return UnicodeArt(txt, baseline=0)
+
     def check(self):
         r"""
         This method raises an error if the internal data of the class does not

@@ -1333,6 +1333,77 @@ class ImplicitSuffixTree(SageObject):
             iB.append(i)
         return iB
 
+    def _count_and_skip(self, node, (i, j)):
+        r"""
+        Use count and skip trick to follow the path starting at ``node`` and
+        reading ``self.word()[i:j]``. We assume that reading
+        ``self.word()[i:j]`` is possible from ``node``
+
+        INPUT:
+
+        - ``node`` -- explicit node of ``self``
+        - ``(i, j)`` -- indices of factor ``T.word()[i:j]``
+
+        OUTPUT:
+
+        The node obtained by starting at ``node`` and following the edges
+        labeled by the letters of ``T.word()[i:j]``.
+        Return ``("explicit", end_node)`` if w ends at a "end_node",
+        and ``("implicit", edge, d)`` if it ends at a spot along an edge.
+
+        EXAMPLES::
+
+            sage: T = Word('00110111011').suffix_tree()
+            sage: T._count_and_skip(5,(2,5))
+            ('implicit', (9, 10), 2)
+            sage: T._count_and_skip(0, (1, 4))
+            ('explicit', 7)
+            sage: T._count_and_skip(0, (8, 10))
+            ('implicit', (2, 7), 1)
+        """
+        trans = self._find_transition(node, self._letters[i])
+        while (trans[0][1] != None and trans[0][1] - trans[0][0] + 1 <= j - i):
+            node = trans[1]
+            i += trans[0][1] - trans[0][0] + 1
+            if i == j:
+                return ('explicit', node)
+            else:
+                trans = self._find_transition(node, self._letters[i])
+        return ('implicit', (node, trans[1]), j - i)
+
+    def suffix_walk(self, (edge, l)):
+        r"""
+        Compute the suffix walk from the input state. If the input state is path
+        label "aw" with "a" a letter, the output is the state of "w".
+
+        INPUT:
+
+        - ``edge`` -- the edge containign the state
+        - ``l`` -- the string-depth of the state on edge (``l``>0)
+
+        OUTPUT:
+
+        Return ("explicit", ``end_node``) if the state of w is an explicit
+        state and ("implicit", ``edge``, ``d``) if the state of w is implicit
+        on ``edge``.
+
+        EXAMPLES::
+
+            sage: T = Word('00110111011').suffix_tree()
+            sage: T.suffix_walk(((0, 5), 1))
+            ('explicit', 0)
+            sage: T.suffix_walk(((7, 3), 1))
+            ('implicit', (9, 4), 1)
+        """
+        #If the state is implicit
+        parent = self.suffix_link(edge[0])
+        for (i, j) in self._transition_function[edge[0]]:
+            if self._transition_function[edge[0]][(i, j)] == edge[1]:
+                break
+        #(i - 1, j) is the label of edge
+        i -= 1
+        return self._count_and_skip(parent, (i, i + l))
+
     #####
     # Miscellaneous methods
     #####

@@ -1079,8 +1079,13 @@ class GraphDatabase(SQLDatabase):
         EXAMPLES::
 
             sage: D = GraphDatabase()
-            sage: D.interactive_query(display_cols=['graph6', 'num_vertices', 'degree_sequence'], num_edges=5, max_degree=3)
+            sage: D.interactive_query(display_cols=['graph6', 'num_vertices', 'degree_sequence'], num_edges=5, max_degree=3)  # py2
             <html>...</html>
+
+        .. WARNING::
+
+            Above doctest is known to fail with Python 3 due to ``sagenb``. See
+            :trac:`27435` for more details.
         """
         from sagenb.notebook.interact import interact
         print('<html><h1>Interactive Graph Query</h1></html>')

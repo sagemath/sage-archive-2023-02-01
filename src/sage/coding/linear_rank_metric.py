@@ -213,6 +213,98 @@ class AbstractLinearRankMetricCode(AbstractCode):
         """
         return self.ambient_space().zero()
 
+    def generator_matrix(self, encoder_name=None, **kwargs):
+        r"""
+        Returns a generator matrix of ``self``.
+
+        INPUT:
+
+        - ``encoder_name`` -- (default: ``None``) name of the encoder which will be
+          used to compute the generator matrix. The default encoder of ``self``
+          will be used if default value is kept.
+
+        - ``kwargs`` -- all additional arguments are forwarded to the construction of the
+          encoder that is used.
+        """
+        E = self.encoder(encoder_name, **kwargs)
+        return E.generator_matrix()
+
+    @cached_method
+    def parity_check_matrix(self):
+        r"""
+        Returns the parity check matrix of ``self``.
+
+        The parity check matrix of a linear rank metric code `C` corresponds to
+        the generator matrix of the dual code of `C`.
+        """
+        G = self.generator_matrix()
+        H = G.right_kernel()
+        M = H.basis_matrix()
+        M.set_immutable()
+        return M
+
+    def syndrome(self, r):
+        r"""
+        Returns the syndrome of ``r``.
+
+        The syndrome of ``r`` is the result of `H \times r` where `H` is
+        the parity check matrix of ``self``. If ``r`` belongs to ``self``,
+        its syndrome equals to the zero vector.
+
+        INPUT:
+
+        - ``r`` -- a vector of the same length as ``self``
+
+        OUTPUT:
+
+        - a column vector
+        """
+        return self.parity_check_matrix()*r
+
+    def __contains__(self, v):
+        r"""
+        Returns True if `v` can be coerced into `self`. Otherwise, returns False.
+        """
+        if not v in self.ambient_space() or len(v) != self.length():
+            return False
+        return self.syndrome(v) == 0
+
+    @cached_method
+    def information_set(self):
+        """
+        Return an information set of the code.
+
+        Return value of this method is cached.
+
+        A set of column positions of a generator matrix of a code
+        is called an information set if the corresponding columns
+        form a square matrix of full rank.
+
+        OUTPUT:
+
+        - Information set of a systematic generator matrix of the code.
+        """
+        return self.encoder("Systematic").systematic_positions()
+
+    def is_information_set(self, positions):
+        """
+        Return whether the given positions form an information set.
+
+        INPUT:
+
+        - A list of positions, i.e. integers in the range 0 to `n-1` where `n`
+          is the length of `self`.
+
+        OUTPUT:
+
+        - A boolean indicating whether the positions form an information set.
+        """
+        try:
+            self.encoder("Systematic", systematic_positions=tuple(positions))
+            return True
+        except ValueError:
+            return False
+
 
 class LinearRankMetricCode(AbstractLinearRankMetricCode):
     r"""
@@ -317,82 +409,6 @@ class LinearRankMetricCode(AbstractLinearRankMetricCode):
             g = super(LinearRankMetricCode, self).generator_matrix(encoder_name, **kwargs)
         g.set_immutable()
         return g
-
-    @cached_method
-    def parity_check_matrix(self):
-        r"""
-        Returns the parity check matrix of ``self``.
-
-        The parity check matrix of a linear rank metric code `C` corresponds to
-        the generator matrix of the dual code of `C`.
-        """
-        G = self.generator_matrix()
-        H = G.right_kernel()
-        M = H.basis_matrix()
-        M.set_immutable()
-        return M
-
-    def syndrome(self, r):
-        r"""
-        Returns the syndrome of ``r``.
-
-        The syndrome of ``r`` is the result of `H \times r` where `H` is
-        the parity check matrix of ``self``. If ``r`` belongs to ``self``,
-        its syndrome equals to the zero vector.
-
-        INPUT:
-
-        - ``r`` -- a vector of the same length as ``self``
-
-        OUTPUT:
-
-        - a column vector
-        """
-        return self.parity_check_matrix()*r
-
-    def __contains__(self, v):
-        r"""
-        Returns True if `v` can be coerced into `self`. Otherwise, returns False.
-        """
-        if not v in self.ambient_space() or len(v) != self.length():
-            return False
-        return self.syndrome(v) == 0
-
-    @cached_method
-    def information_set(self):
-        """
-        Return an information set of the code.
-
-        Return value of this method is cached.
-
-        A set of column positions of a generator matrix of a code
-        is called an information set if the corresponding columns
-        form a square matrix of full rank.
-
-        OUTPUT:
-
-        - Information set of a systematic generator matrix of the code.
-        """
-        return self.encoder("Systematic").systematic_positions()
-
-    def is_information_set(self, positions):
-        """
-        Return whether the given positions form an information set.
-
-        INPUT:
-
-        - A list of positions, i.e. integers in the range 0 to `n-1` where `n`
-          is the length of `self`.
-
-        OUTPUT:
-
-        - A boolean indicating whether the positions form an information set.
-        """
-        try:
-            self.encoder("Systematic", systematic_positions=tuple(positions))
-            return True
-        except ValueError:
-            return False
 
 ####################### encoders ###############################
 class LinearRankMetricCodeGeneratorMatrixEncoder(Encoder):

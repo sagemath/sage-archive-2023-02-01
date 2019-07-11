@@ -805,12 +805,12 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
 
         - ``M`` -- a square invertible matrix
 
-        OUTPUT: 
-        
+        OUTPUT:
+
         An affine dynamical system
-        
+
         Examples::
-        
+
             sage: A.<x> = AffineSpace(QQ, 1)
             sage: f = DynamicalSystem_affine([x^2+1])
             sage: f.conjugate(matrix([[1,2], [0,1]]))

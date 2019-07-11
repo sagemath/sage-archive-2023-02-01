@@ -1258,11 +1258,13 @@ class discrete_dynamical_systems():
             sage: F.is_homomesic(lambda x: x[0])
             True
         """
-        from sage.categories.cartesian_product import cartesian_product
-        X = cartesian_product([[0,1]] * n)
-        if ones is not None:
-            # Not the best method...
-            X = [x for x in X if sum(x) == ones]
+        if ones is None:
+            from sage.categories.cartesian_product import cartesian_product
+            X = cartesian_product([[0,1]] * n)
+        else:
+            from itertools import combinations
+            X = [tuple((1 if i in cs else 0) for i in range(n))
+                 for cs in combinations(range(n), ones)]
         if n == 0:
             phi = lambda x : x
             psi = phi

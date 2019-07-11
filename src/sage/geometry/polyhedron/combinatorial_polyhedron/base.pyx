@@ -221,7 +221,26 @@ cdef class CombinatorialPolyhedron(SageObject):
         sage: C.vertices()
         ()
 
-    TESTS::
+    TESTS:
+
+    Checking that #27987 is fixed::
+
+        sage: P1 = Polyhedron(vertices=[[0,1],[1,0]], rays=[[1,1]])
+        sage: P2 = Polyhedron(vertices=[[0,1],[1,0],[1,1]])
+        sage: P1.incidence_matrix() == P2.incidence_matrix()
+        True
+        sage: CombinatorialPolyhedron(P1).f_vector()
+        (1, 2, 3, 1)
+        sage: CombinatorialPolyhedron(P2).f_vector()
+        (1, 3, 3, 1)
+        sage: P1 = Polyhedron(vertices=[[0,1],[1,0]], rays=[[1,1]])
+        sage: P2 = Polyhedron(vertices=[[0,1],[1,0],[1,1]])
+        sage: CombinatorialPolyhedron(P1).f_vector()
+        (1, 2, 3, 1)
+        sage: CombinatorialPolyhedron(P2).f_vector()
+        (1, 3, 3, 1)
+
+    Some other tests regaring small polyhedra::
 
         sage: P = Polyhedron(rays=[[1,0],[0,1]])
         sage: C = CombinatorialPolyhedron(P)
@@ -252,6 +271,8 @@ cdef class CombinatorialPolyhedron(SageObject):
         (A vertex at (0, 0),)
         sage: CombinatorialPolyhedron(3r)
         A 3-dimensional combinatorial polyhedron with 0 facets
+
+
     """
     def __init__(self, data, Vrepr=None, facets=None, unbounded=False, far_face=None):
         r"""

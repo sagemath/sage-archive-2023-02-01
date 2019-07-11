@@ -2711,6 +2711,10 @@ class FiniteWord_class(Word_class):
         EXAMPLES::
 
             sage: Word().lengths_lps()
+            doctest:warning
+            ...
+            DeprecationWarning: This method is deprecated. Use lps_lengths
+            See http://trac.sagemath.org/19154 for details.
             []
             sage: Word('a').lengths_lps()
             [1]
@@ -2731,7 +2735,9 @@ class FiniteWord_class(Word_class):
             sage: Word([5,8,5,5,8,8,5,5,8,8,5,8,5]).lengths_lps(f)
             [0, 2, 2, 0, 2, 4, 6, 4, 6, 8, 10, 12, 4]
         """
-        return self.palindromic_lacunas_study(f=f)[0]
+        from sage.misc.superseded import deprecation
+        deprecation(19154, 'This method is deprecated. Use lps_lengths')
+        return self.lps_lengths(f)[1:]
 
     def lacunas(self, f=None):
         r"""
@@ -2791,7 +2797,7 @@ class FiniteWord_class(Word_class):
             sage: w.lengths_unioccurrent_lps()
             [1, 1, 2, 1, 1, 1, 1, None, 1, None]
             sage: f = words.FibonacciWord()[:20]
-            sage: f.lengths_unioccurrent_lps() == f.lengths_lps()
+            sage: f.lengths_unioccurrent_lps() == f.lps_lengths()[1:]
             True
             sage: t = words.ThueMorseWord()
             sage: t[:20].lengths_unioccurrent_lps()
@@ -2800,7 +2806,7 @@ class FiniteWord_class(Word_class):
             sage: t[:15].lengths_unioccurrent_lps(f)
             [None, 2, None, 2, None, 4, 6, 8, 4, 6, 4, 6, None, 4, 6]
         """
-        l = self.lengths_lps(f=f)
+        l = self.lps_lengths(f=f)[1:]
         for i in self.lacunas(f=f):
             l[i] = None
         return l
@@ -3070,7 +3076,7 @@ class FiniteWord_class(Word_class):
             sage: [w.palindromic_complexity(i) for i in range(20)]
             [1, 2, 2, 2, 2, 0, 4, 0, 4, 0, 4, 0, 4, 0, 2, 0, 2, 0, 4, 0]
         """
-        return len([x for x in self.palindromes() if len(x)==n])    
+        return len([x for x in self.palindromes() if len(x)==n])
 
     def palindrome_prefixes(self):
         r"""

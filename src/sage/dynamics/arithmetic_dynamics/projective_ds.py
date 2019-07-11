@@ -4490,7 +4490,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: f = DynamicalSystem_projective([x^2-3/4*y^2, y^2])
-            sage: sorted(f.rational_periodic_points(prime_bound=20, lifting_prime=7)) # long time
+            sage: sorted(f.all_periodic_points(prime_bound=20, lifting_prime=7)) # long time
             [(-1/2 : 1), (1 : 0), (3/2 : 1)]
 
         ::
@@ -4498,7 +4498,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
             sage: f = DynamicalSystem_projective([2*x^3 - 50*x*z^2 + 24*z^3,
             ....:                                 5*y^3 - 53*y*z^2 + 24*z^3, 24*z^3])
-            sage: sorted(f.rational_periodic_points(prime_bound=[1,20])) # long time
+            sage: sorted(f.all_periodic_points(prime_bound=[1,20])) # long time
             [(-3 : -1 : 1), (-3 : 0 : 1), (-3 : 1 : 1), (-3 : 3 : 1), (-1 : -1 : 1),
              (-1 : 0 : 1), (-1 : 1 : 1), (-1 : 3 : 1), (0 : 1 : 0), (1 : -1 : 1),
              (1 : 0 : 0), (1 : 0 : 1), (1 : 1 : 1), (1 : 3 : 1), (3 : -1 : 1),
@@ -4509,7 +4509,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: f = DynamicalSystem_projective([-5*x^2 + 4*y^2, 4*x*y])
-            sage: sorted(f.rational_periodic_points()) # long time
+            sage: sorted(f.all_periodic_points()) # long time
             [(-2 : 1), (-2/3 : 1), (2/3 : 1), (1 : 0), (2 : 1)]
 
         ::
@@ -4518,7 +4518,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: K.<w> = NumberField(x^2-x+1)
             sage: P.<u,v> = ProjectiveSpace(K,1)
             sage: f = DynamicalSystem_projective([u^2 + v^2,v^2])
-            sage: f.rational_periodic_points()
+            sage: f.all_periodic_points()
             [(w : 1), (1 : 0), (-w + 1 : 1)]
 
         ::
@@ -4527,7 +4527,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: K.<w> = NumberField(x^2-x+1)
             sage: P.<u,v> = ProjectiveSpace(K,1)
             sage: f = DynamicalSystem_projective([u^2+v^2,u*v])
-            sage: f.rational_periodic_points()
+            sage: f.all_periodic_points()
             Traceback (most recent call last):
             ...
             NotImplementedError: rational periodic points for number fields only implemented for polynomials
@@ -4563,7 +4563,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 G = g.weil_restriction()
                 F = G.homogenize(d)
                 #find the QQ rational periodic points for the weil restriction
-                Fper = F.rational_periodic_points(**kwds)
+                Fper = F.all_periodic_points(**kwds)
                 for P in Fper:
                     #take the 'good' points in the weil restriction and find the
                     #associated number field points.
@@ -4685,11 +4685,13 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: P.<u,v> = ProjectiveSpace(K,1)
             sage: f = DynamicalSystem_projective([u^2 + v^2,v^2])
             sage: f.rational_periodic_points()
+            doctest:warning
+            ...
             [(w : 1), (1 : 0), (-w + 1 : 1)]
         """
         from sage.misc.superseded import deprecation
         deprecation(28109, "use sage.dynamics.arithmetic_dynamics.projective_ds.all_periodic_points instead")
-        return self.all_periodic_points(self, **kwds)
+        return self.all_periodic_points(**kwds)
 
     def all_rational_preimages(self, points):
         r"""
@@ -4926,7 +4928,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             else:
                 p = kwds.pop("lifting_prime", 23)
                 #find the rational preperiodic points
-                T = self.rational_periodic_points(prime_bound=primebound, lifting_prime=p,
+                T = self.all_periodic_points(prime_bound=primebound, lifting_prime=p,
                                                   periods=periods, bad_primes=badprimes,
                                                   ncpus=num_cpus)
                 preper = self.all_rational_preimages(T) #find the preperiodic points

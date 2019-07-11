@@ -1381,8 +1381,8 @@ class ImplicitSuffixTree(SageObject):
     def suffix_walk(self, (edge, l)):
         r"""
         Compute the suffix walk from the input state. If the input state
-        ``(edge, l)`` is path label "aw" with "a" a letter, the output is
-        the state of "w".
+        ``(edge, l)`` is path labeled "aw" with "a" a letter, the output is
+        the state which is path labeled "w".
 
         INPUT:
 
@@ -1392,8 +1392,8 @@ class ImplicitSuffixTree(SageObject):
         OUTPUT:
 
         Return ("explicit", ``end_node``) if the state of w is an explicit
-        state and ("implicit", ``edge``, ``d``) if the state of w is implicit
-        on ``edge``.
+        state and ("implicit", ``edge``, ``d``) is obtained by reading ``d``
+        letters on ``edge``.
 
         EXAMPLES::
 
@@ -1403,13 +1403,13 @@ class ImplicitSuffixTree(SageObject):
             sage: T.suffix_walk(((7, 3), 1))
             ('implicit', (9, 4), 1)
         """
-        # If the state is implicit
-        parent = self.suffix_link(edge[0])
+        # Select the transition that corresponds to edge
         for (i, j) in self._transition_function[edge[0]]:
             if self._transition_function[edge[0]][(i, j)] == edge[1]:
                 break
-        # (i - 1, j) is the label of edge
+        # self.word()[i-1:j] is the word on the edges
         i -= 1
+        parent = self.suffix_link(edge[0])
         return self._count_and_skip(parent, (i, i + l))
 
     #####

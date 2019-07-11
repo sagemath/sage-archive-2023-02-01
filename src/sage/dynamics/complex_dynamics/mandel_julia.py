@@ -1,16 +1,17 @@
 r"""
 Mandelbrot and Julia sets
 
-Plots the Mandelbrot and Julia sets for the map `Q_c(z)=z^2+c` in the complex
+Plots the Mandelbrot and Julia sets for general polynomial maps in the complex
 plane.
 
-The Mandelbrot set is the set of complex numbers `c` for which the function
-`Q_c(z)=z^2+c` does not diverge when iterated from `z = 0`. This set of complex
+The Mandelbrot set is the set of complex numbers `c` for which the map
+`f_c(z)` does not diverge when iterated from `z = 0`. This set of complex
 numbers can be visualized by plotting each value for `c` in the complex plane.
-The Mandelbrot set is an example of a fractal when plotted in the complex plane.
+The Mandelbrot set is often an example of a fractal when plotted in the complex
+plane.
 
-The Julia set for a given `c` is the set of complex numbers for which the
-function `Q_c(z)=z^2+c` is bounded under iteration.
+The Julia set for a given parameter `c` is the set of complex numbers for which
+the function `f_c(z)` is bounded under iteration.
 
 AUTHORS:
 
@@ -34,6 +35,7 @@ from sage.dynamics.complex_dynamics.mandel_julia_helper import (fast_mandelbrot_
                                                                 convert_to_pixels,
                                                                 get_line,
                                                                 fast_julia_plot,
+                                                                polynomial_mandelbrot,
                                                                 julia_helper)
 from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem
 from sage.plot.colors import Color
@@ -43,33 +45,14 @@ from sage.rings.all import QQ, CC
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.misc.prandom import randint
-
+from sage.calculus.var import var
 
 EPS = 0.00001
 
 
-def mandelbrot_plot(x_center=-1.0,
-                    y_center=0.0,
-                    image_width=4.0,
-                    max_iteration=500,
-                    pixel_count=500,
-                    base_color='steelblue',
-                    iteration_level=1,
-                    number_of_colors=30,
-                    interact=False):
+def mandelbrot_plot(f=None, **kwds):
     r"""
-    Interactive plot of the Mandelbrot set for the map `Q_c(z) = z^2 + c`.
-
-    ALGORITHM:
-
-    Let each pixel in the image be a point `c \in \mathbb{C}` and define the
-    map `Q_c(z) = z^2 + c`. If `|Q_{c}^{k}(c)| > 2` for some `k \geq 0`, it
-    follows that `Q_{c}^{n}(c) \to \infty`. Let `N` be the maximum number of
-    iterations. Compute the first `N` points on the orbit of `0` under `Q_c`.
-    If for any `k < N`, `|Q_{c}^{k}(0)| > 2`, we stop the iteration and assign
-    a color to the point `c` based on how quickly `0` escaped to infinity under
-    iteration of `Q_c`. If `|Q_{c}^{i}(0)| \leq 2` for all `i \leq N`, we assume
-    `c` is in the Mandelbrot set and assign the point `c` the color black.
+    Plot of the Mandelbrot set for a general polynomial map `f_c(z)`.
 
     REFERENCE:
 
@@ -77,32 +60,39 @@ def mandelbrot_plot(x_center=-1.0,
 
     INPUT:
 
-    - ``x_center`` -- double (optional - default: ``-1.0``), Real part
-      of center point.
 
-    - ``y_center`` -- double (optional - default: ``0.0``), Imaginary part
-      of center point.
+    - ``f`` -- map (optional - default: ``z^2 + c``), polynomial map used to
+    plot the Mandelbrot set.
 
-    - ``image_width`` -- double (optional - default: ``4.0``), width of
-      image in the complex plane.
+    - ``parameter`` -- variable (optional - default: ``c``), parameter variable
+    used to plot the Mandelbrot set.
 
-    - ``max_iteration`` -- long (optional - default: ``500``), maximum number
-      of iterations the map ``Q_c(z)``.
+    - ``x_center`` -- double (optional - default: ``-1.0``), Real part of center
+    point.
 
-    - ``pixel_count`` -- long (optional - default: ``500``), side length
-      of image in number of pixels.
+    - ``y_center`` -- double (optional - default: ``0.0``), Imaginary part of
+    center point.
 
-    - ``base_color`` -- RGB color (optional - default: ``'steelblue'``) color
-      used to determine the coloring of set (any valid input for Color).
+    - ``image_width`` -- double (optional - default: ``4.0``), width of image
+    in the complex plane.
+
+    - ``max_iteration`` -- long (optional - default: ``500``), maximum number of
+    iterations the map ``Q_c(z)``.
+
+    - ``pixel_count`` -- long (optional - default: ``500``), side length of
+    image in number of pixels.
+
+    - ``base_color`` -- RGB color (optional - default: ``[40, 40, 40]``) color
+    used to determine the coloring of set.
 
     - ``iteration_level`` -- long (optional - default: 1) number of iterations
-      between each color level.
+    between each color level.
 
     - ``number_of_colors`` -- long (optional - default: 30) number of colors
-      used to plot image.
+    used to plot image.
 
-    - ``interact`` -- boolean (optional - default: ``False``), controls
-      whether plot will have interactive functionality.
+    - ``interact`` -- boolean (optional - default: ``False``), controls whether
+    plot will have interactive functionality.
 
     OUTPUT:
 
@@ -122,12 +112,12 @@ def mandelbrot_plot(x_center=-1.0,
 
     ::
 
-        sage: mandelbrot_plot(x_center=-1.11, y_center=0.2283, image_width=1/128,
+        sage: mandelbrot_plot(x_center=-1.11, y_center=0.2283, image_width=1/128, # long time
         ....: max_iteration=2000, number_of_colors=500, base_color=[40, 100, 100])
         500x500px 24-bit RGB image
 
-    To display an interactive plot of the Mandelbrot set in the Jupyter
-    Notebook, set ``interact`` to ``True``::
+    To display an interactive plot of the Mandelbrot in the Notebook, set
+    ``interact`` to ``True``. (This is only implemented for ``z^2 + c``)::
 
         sage: mandelbrot_plot(interact=True)
         interactive(children=(FloatSlider(value=-1.0, description=u'Real center'...
@@ -135,38 +125,132 @@ def mandelbrot_plot(x_center=-1.0,
     ::
 
         sage: mandelbrot_plot(interact=True, x_center=-0.75, y_center=0.25,
-        ....:     image_width=1/2, number_of_colors=75)
-        interactive(children=(FloatSlider(value=-0.75, description=u'Real center'...
+        ....: image_width=1/2, number_of_colors=75)
+        <html>...</html>
+
+    Polynomial maps can be defined over a multivariate polynomial ring or a
+    univariate polynomial ring tower::
+
+        sage: R.<z,c> = CC[]
+        sage: f = z^2 + c
+        sage: mandelbrot_plot(f)  # not tested
+        500x500px 24-bit RGB image
+
+    ::
+
+        sage: B.<z> = CC[]
+        sage: R.<c> = B[]
+        sage: f = z^5 + c
+        sage: mandelbrot_plot(f) # not tested
+        500x500px 24-bit RGB image
+
+    When the polynomial is defined over a multivariate polynomial ring it is
+    necessary to specify the parameter variable (default parameter is ``c``)::
+
+        sage: R.<a,b> = CC[]
+        sage: f = a^2 + b^3
+        sage: mandelbrot_plot(f, parameter=b) # not tested
+        500x500px 24-bit RGB image
+
+    Interact functionality is not implemented for general polynomial maps::
+
+        sage: R.<z,c> = CC[]
+        sage: f = z^3 + c
+        sage: mandelbrot_plot(f, interact=True) # not tested
+        NotImplementedError: Interact only implemented for z^2 + c
     """
-    base_color = Color(base_color)
+    parameter = kwds.pop("parameter", None)
+    x_center = kwds.pop("x_center", 0.0)
+    y_center = kwds.pop("y_center", 0.0)
+    image_width = kwds.pop("image_width", 4.0)
+    max_iteration = kwds.pop("max_iteration", None)
+    pixel_count = kwds.pop("pixel_count", 500)
+    base_color = kwds.pop("base_color", [40, 40, 40])
+    iteration_level = kwds.pop("iteration_level", 1)
+    number_of_colors = kwds.pop("number_of_colors", 30)
+    interacts = kwds.pop("interact", False)
 
-    if interact:
-        from ipywidgets.widgets import FloatSlider, IntSlider, ColorPicker, interact
-        widgets = dict(
-            x_center = FloatSlider(min=-1.0, max=1.0, step=EPS,
-                                   value=x_center, description="Real center"),
-            y_center = FloatSlider(min=-1.0, max=1.0, step=EPS,
-                                   value=y_center, description="Imag center"),
-            image_width = FloatSlider(min=EPS, max=4.0, step=EPS,
-                                      value=image_width, description="Image width"),
-            max_iteration = IntSlider(min=0, max=600,
-                                      value=max_iteration, description="Iterations"),
-            pixel_count = IntSlider(min=10, max=600,
-                                    value=pixel_count, description="Pixels"),
-            level_sep = IntSlider(min=1, max=20,
-                                  value=iteration_level, description="Color sep"),
-            color_num = IntSlider(min=1, max=100,
-                                  value=number_of_colors, description="# Colors"),
-            base_color = ColorPicker(value=base_color.html_color(),
-                                     description="Base color"),
-        )
-        return interact(**widgets).widget(fast_mandelbrot_plot)
+    # Check if user specified maximum number of iterations
+    given_iterations = True
+    if max_iteration is None:
+        # Set default to 500 for z^2 + c map
+        max_iteration = 500
+        given_iterations = False
 
-    return fast_mandelbrot_plot(x_center, y_center, image_width,
-                                max_iteration,
-                                pixel_count, iteration_level,
-                                number_of_colors, base_color)
 
+    if f is None:
+        # Quadratic map f = z^2 + c
+        if interacts:
+            @interact(layout={'bottom':[['real_center'], ['im_center'], ['width']],
+             'top':[['iterations'], ['level_sep'], ['color_num'], ['image_color']]})
+            def _(real_center=input_box(x_center, 'Real'),
+                im_center=input_box(y_center, 'Imaginary'),
+                width=input_box(image_width, 'Width of Image'),
+                iterations=input_box(max_iteration, 'Max Number of Iterations'),
+                level_sep=input_box(iteration_level, 'Iterations between Colors'),
+                color_num=input_box(number_of_colors, 'Number of Colors'),
+                image_color=color_selector(default=Color([j/255 for j in base_color]),
+                 label="Image Color", hide_box=True)):
+                return fast_mandelbrot_plot(real_center, im_center, width,
+                 iterations, pixel_count, level_sep, color_num, image_color).show()
+
+        else:
+            return fast_mandelbrot_plot(x_center, y_center, image_width,
+             max_iteration, pixel_count, iteration_level, number_of_colors,
+             base_color)
+
+    else:
+        if parameter is None:
+            c = var('c')
+            parameter = c
+
+        P = f.parent()
+
+        if P.base_ring() is CC or P.base_ring() is CDF:
+            gen_list = list(P.gens())
+            parameter = gen_list.pop(gen_list.index(parameter))
+            variable = gen_list.pop()
+
+        elif P.base_ring().base_ring() is CC or P.base_ring().base_ring() is CDF:
+            parameter = P.gen()
+            variable = P.base().gen()
+
+        else:
+            raise ValueError("Base ring must be a complex field")
+
+        if f == variable**2 + parameter:
+            # Quadratic map f = z^2 + c
+            if interacts:
+                @interact(layout={'bottom':[['real_center'], ['im_center'], ['width']],
+                 'top':[['iterations'], ['level_sep'], ['color_num'], ['image_color']]})
+                def _(real_center=input_box(x_center, 'Real'),
+                    im_center=input_box(y_center, 'Imaginary'),
+                    width=input_box(image_width, 'Width of Image'),
+                    iterations=input_box(max_iteration, 'Max Number of Iterations'),
+                    level_sep=input_box(iteration_level, 'Iterations between Colors'),
+                    color_num=input_box(number_of_colors, 'Number of Colors'),
+                    image_color=color_selector(default=Color([j/255 for j in base_color]),
+                     label="Image Color", hide_box=True)):
+                    return fast_mandelbrot_plot(real_center, im_center, width,
+                     iterations, pixel_count, level_sep, color_num, image_color).show()
+
+            else:
+                return fast_mandelbrot_plot(x_center, y_center, image_width,
+                 max_iteration, pixel_count, iteration_level, number_of_colors,
+                 base_color)
+        else:
+            if interacts:
+                raise NotImplementedError("Interact only implemented for z^2 + c")
+            else:
+                # Set default of max_iteration to 50 for general polynomial maps
+                # This prevents the function from being very slow by default
+                if not given_iterations:
+                    max_iteration = 50
+
+                # Mandelbrot of General Polynomial Map
+                return polynomial_mandelbrot(f, parameter, x_center, y_center, \
+                 image_width, max_iteration, pixel_count, iteration_level, \
+                 number_of_colors, base_color)
 
 def external_ray(theta, **kwds):
     r"""
@@ -186,29 +270,27 @@ def external_ray(theta, **kwds):
     kwds:
 
     - ``image`` -- 24-bit RGB image (optional - default: None) user specified
-      image of Mandelbrot set.
+     image of Mandelbrot set.
 
     - ``D`` -- long (optional - default: ``25``) depth of the approximation.
-      As ``D`` increases, the external ray gets closer to the boundary of
-      the Mandelbrot set. If the ray doesn't reach the boundary of
-      the Mandelbrot set, increase ``D``.
+     As ``D`` increases, the external ray gets closer to the boundary of the
+     Mandelbrot set. If the ray doesn't reach the boundary of the Mandelbrot
+     set, increase ``D``.
 
-    - ``S`` -- long (optional - default: ``10``) sharpness of the
-      approximation. Adjusts the number of points used to approximate
-      the external ray (number of points is equal to ``S*D``). If ray looks
-      jagged, increase ``S``.
+    - ``S`` -- long (optional - default: ``10``) sharpness of the approximation.
+     Adjusts the number of points used to approximate the external ray (number
+     of points is equal to ``S*D``). If ray looks jagged, increase ``S``.
 
-    - ``R`` -- long (optional - default: ``100``) radial parameter.
-      If ``R`` is large, the external ray reaches sufficiently close to
-      infinity. If ``R`` is too small, Newton's method may not converge
-      to the correct ray.
+    - ``R`` -- long (optional - default: ``100``) radial parameter. If ``R`` is
+     large, the external ray reaches sufficiently close to infinity. If ``R`` is
+     too small, Newton's method may not converge to the correct ray.
 
-    - ``prec`` -- long (optional - default: ``300``) specifies the bits
-      of precision used by the Complex Field when using Newton's method to
-      compute points on the external ray.
+    - ``prec`` -- long (optional - default: ``300``) specifies the bits of
+     precision used by the Complex Field when using Newton's method to compute
+     points on the external ray.
 
-    - ``ray_color`` -- RGB color (optional - default: ``[255, 255, 255]``)
-      color of the external ray(s).
+    - ``ray_color`` -- RGB color (optional - default: ``[255, 255, 255]``) color
+     of the external ray(s).
 
     OUTPUT:
 
@@ -263,15 +345,11 @@ def external_ray(theta, **kwds):
     sharpness = kwds.get("S", 10)
     radial_parameter = kwds.get("R", 100)
     precision = kwds.get("prec", 300)
+    precision = max(precision, -logb(pixel_width * 0.001, 2).round() + 10)
     ray_color = kwds.get("ray_color", [255] * 3)
     image = kwds.get("image", None)
     if image is None:
-        image = mandelbrot_plot(x_center=x_0,
-                                y_center=y_0,
-                                image_width=plot_width,
-                                pixel_count=pixel_width)
-
-    precision = max(precision, -logb(pixel_width * 0.001, 2).round() + 10)
+        image = mandelbrot_plot(x_center=x_0, **kwds)
 
     # Make a copy of the bitmap image.
     # M = copy(image)

@@ -169,7 +169,6 @@ class DiscreteDynamicalSystem(SageObject):
 
     EXAMPLES::
 
-        sage: from sage.dynamics.finite_dynamical_system import DiscreteDynamicalSystem
         sage: D = DiscreteDynamicalSystem(NN, lambda x : x + 2)
         sage: D.ground_set()
         Non negative integer semiring
@@ -235,7 +234,6 @@ class DiscreteDynamicalSystem(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.dynamics.finite_dynamical_system import DiscreteDynamicalSystem
             sage: D = DiscreteDynamicalSystem([1, 3, 4], lambda x : (3 if x == 4 else 1), create_tuple=True)
             sage: D.ground_set()
             (1, 3, 4)
@@ -248,7 +246,6 @@ class DiscreteDynamicalSystem(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.dynamics.finite_dynamical_system import DiscreteDynamicalSystem
             sage: D = DiscreteDynamicalSystem([1, 3, 4], lambda x : (3 if x == 4 else 1), create_tuple=True)
             sage: ev = D.evolution()
             sage: ev(1)
@@ -267,7 +264,6 @@ class DiscreteDynamicalSystem(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.dynamics.finite_dynamical_system import DiscreteDynamicalSystem
             sage: D = DiscreteDynamicalSystem(NN, lambda x : x + 2)
             sage: D[:3]
             [0, 1, 2]
@@ -297,7 +293,6 @@ class DiscreteDynamicalSystem(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.dynamics.finite_dynamical_system import DiscreteDynamicalSystem
             sage: D = DiscreteDynamicalSystem(NN, lambda x : x + 2)
             sage: D # indirect doctest
             A discrete dynamical system with ground set
@@ -402,6 +397,7 @@ class DiscreteDynamicalSystem(SageObject):
         EXAMPLES::
 
             sage: W = Words(2, 5)
+            sage: from sage.dynamics.finite_dynamical_system import InvertibleFiniteDynamicalSystem
             sage: F = InvertibleFiniteDynamicalSystem(W, lambda x : x[1:] + Word([x[0]]))
             sage: F.is_homomesic(lambda w: sum(w))
             False
@@ -527,7 +523,7 @@ class InvertibleDiscreteDynamicalSystem(DiscreteDynamicalSystem):
 
     EXAMPLES::
 
-        sage: from sage.dynamics.finite_dynamical_system import DiscreteDynamicalSystem
+        sage: from sage.dynamics.finite_dynamical_system import InvertibleDiscreteDynamicalSystem
         sage: D = InvertibleDiscreteDynamicalSystem(NN, lambda x : (x + 2 if x % 4 < 2 else x - 2))
         sage: D.ground_set()
         Non negative integer semiring
@@ -571,6 +567,7 @@ class InvertibleDiscreteDynamicalSystem(DiscreteDynamicalSystem):
 
         EXAMPLES::
 
+            sage: from sage.dynamics.finite_dynamical_system import InvertibleDiscreteDynamicalSystem
             sage: D = InvertibleDiscreteDynamicalSystem(NN, lambda x : (x + 2 if x % 4 < 2 else x - 2))
             sage: D # indirect doctest
             An invertible discrete dynamical system with ground set
@@ -591,6 +588,7 @@ class InvertibleDiscreteDynamicalSystem(DiscreteDynamicalSystem):
 
         EXAMPLES::
 
+            sage: from sage.dynamics.finite_dynamical_system import InvertibleDiscreteDynamicalSystem
             sage: D = InvertibleDiscreteDynamicalSystem(tuple(range(8)), lambda x : (x + 2) % 8)
             sage: D.inverse_evolution()(1)
             7
@@ -615,6 +613,7 @@ class InvertibleDiscreteDynamicalSystem(DiscreteDynamicalSystem):
 
         EXAMPLES::
 
+            sage: from sage.dynamics.finite_dynamical_system import InvertibleDiscreteDynamicalSystem
             sage: D = InvertibleDiscreteDynamicalSystem(tuple(range(8)), lambda x : (x + 2) % 8)
             sage: D.verify_inverse_evolution()
             True
@@ -659,7 +658,7 @@ class InvertibleDiscreteDynamicalSystem(DiscreteDynamicalSystem):
 
         EXAMPLES::
 
-            sage: from sage.dynamics.finite_dynamical_system import DiscreteDynamicalSystem
+            sage: from sage.dynamics.finite_dynamical_system import InvertibleDiscreteDynamicalSystem
             sage: D = InvertibleDiscreteDynamicalSystem(tuple(range(8)), lambda x : (x + 2) % 8)
             sage: D.ground_set()
             (0, 1, 2, 3, 4, 5, 6, 7)
@@ -690,6 +689,7 @@ class InvertibleDiscreteDynamicalSystem(DiscreteDynamicalSystem):
 
         EXAMPLES::
 
+            sage: from sage.dynamics.finite_dynamical_system import InvertibleDiscreteDynamicalSystem
             sage: D = InvertibleDiscreteDynamicalSystem(tuple(range(8)), lambda x : (x + 2) % 8)
             sage: D.inverse_evolution_default(1)
             7
@@ -712,6 +712,7 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
 
     EXAMPLES::
 
+        sage: from sage.dynamics.finite_dynamical_system import FiniteDynamicalSystem
         sage: D = FiniteDynamicalSystem(tuple(range(11)), lambda x : (x**2) % 11)
         sage: D.ground_set()
         (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
@@ -737,6 +738,7 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
 
         EXAMPLES::
 
+            sage: from sage.dynamics.finite_dynamical_system import FiniteDynamicalSystem
             sage: D = FiniteDynamicalSystem(tuple(range(11)), lambda x : (x**2) % 11)
             sage: D
             A finite discrete dynamical system with ground set
@@ -756,6 +758,7 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
 
         EXAMPLES::
 
+            sage: from sage.dynamics.finite_dynamical_system import FiniteDynamicalSystem
             sage: W = Words(2, 5)
             sage: F = FiniteDynamicalSystem(W, lambda x : x[1:] + Word([x[0]]))
             sage: F.is_invariant(lambda w: sum(w))
@@ -810,6 +813,7 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
             sage: BS(6).cycles()
             [[[3, 2, 1]]]
 
+            sage: from sage.dynamics.finite_dynamical_system import FiniteDynamicalSystem
             sage: D = FiniteDynamicalSystem(tuple(range(6)), lambda x : (x + 2) % 6)
             sage: D.cycles()
             [[5, 1, 3], [4, 0, 2]]
@@ -864,6 +868,7 @@ class InvertibleFiniteDynamicalSystem(InvertibleDiscreteDynamicalSystem, FiniteD
 
     EXAMPLES::
 
+        sage: from sage.dynamics.finite_dynamical_system import InvertibleFiniteDynamicalSystem
         sage: D = InvertibleFiniteDynamicalSystem(tuple(range(5)), lambda x : (x + 2) % 5)
         sage: D.ground_set()
         (0, 1, 2, 3, 4)
@@ -893,6 +898,7 @@ class InvertibleFiniteDynamicalSystem(InvertibleDiscreteDynamicalSystem, FiniteD
 
         EXAMPLES::
 
+            sage: from sage.dynamics.finite_dynamical_system import InvertibleFiniteDynamicalSystem
             sage: D = InvertibleFiniteDynamicalSystem(tuple(range(5)), lambda x : (x + 2) % 5)
             sage: D
             An invertible finite discrete dynamical system with ground set
@@ -908,6 +914,7 @@ class InvertibleFiniteDynamicalSystem(InvertibleDiscreteDynamicalSystem, FiniteD
 
         EXAMPLES::
 
+            sage: from sage.dynamics.finite_dynamical_system import InvertibleFiniteDynamicalSystem
             sage: D = InvertibleFiniteDynamicalSystem(tuple(range(6)), lambda x : (x + 2) % 6)
             sage: D.orbits()
             [[5, 1, 3], [4, 0, 2]]
@@ -948,6 +955,7 @@ class InvertibleFiniteDynamicalSystem(InvertibleDiscreteDynamicalSystem, FiniteD
 
         EXAMPLES::
 
+            sage: from sage.dynamics.finite_dynamical_system import InvertibleFiniteDynamicalSystem
             sage: D = InvertibleFiniteDynamicalSystem(tuple(range(6)), lambda x : (x + 2) % 6)
             sage: D.cycles()
             [[5, 1, 3], [4, 0, 2]]
@@ -964,6 +972,7 @@ class InvertibleFiniteDynamicalSystem(InvertibleDiscreteDynamicalSystem, FiniteD
 
         EXAMPLES::
 
+            sage: from sage.dynamics.finite_dynamical_system import InvertibleFiniteDynamicalSystem
             sage: D = InvertibleFiniteDynamicalSystem(tuple(range(6)), lambda x : (x + 2) % 6)
             sage: D.orbit_lengths()
             [3, 3]

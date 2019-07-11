@@ -301,34 +301,25 @@ class DynamicalSystem_product_projective_finite_field(DynamicalSystem_product_pr
         EXAMPLES::
 
             sage: P.<a,b,c,d> = ProductProjectiveSpaces(GF(3), [1,1])
-            sage: f = DynamicalSystem_projective([a^2,b^2,c^2,d^2], P)
+            sage: f = DynamicalSystem_projective([a^2,b^2,c^2,d^2], domain=P)
             sage: f.cyclegraph()
             Looped digraph on 16 vertices
 
         ::
 
             sage: P.<a,b,c,d> = ProductProjectiveSpaces(GF(5), [1,1])
-            sage: f = DynamicalSystem_projective([a^2,b^2,c,d], P)
+            sage: f = DynamicalSystem_projective([a^2,b^2,c,d], domain=P)
             sage: f.cyclegraph()
             Looped digraph on 36 vertices
 
         ::
 
             sage: P.<a,b,c,d,e> = ProductProjectiveSpaces(GF(2), [1,2])
-            sage: f = DynamicalSystem_projective([a^2,b^2,c,d,e], P)
+            sage: f = DynamicalSystem_projective([a^2,b^2,c,d,e], domain=P)
             sage: f.cyclegraph()
             Looped digraph on 21 vertices
 
-        ::
-
-            sage: P.<a, b, c, d, e, f> = ProductProjectiveSpaces(GF(17), [1,1,1])
-            sage: f=DynamicalSystem_projective([a^3+b^3, a^3-b^3, c*d^2+d^3, c^2*d-c^3, e^2*f-f^3, f^2*e+e^3], P)
-            sage: f.cyclegraph()
-            Looped digraph on 5832 vertices
-
-        .. TODO::
-
-            - Implement cyclegraph for subschemes
+        .. TODO:: Implement cyclegraph for subschemes
         """
         V = []
         E = []

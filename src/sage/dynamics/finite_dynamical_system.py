@@ -65,7 +65,8 @@ dynamical systems:
     - Further functionality for non-invertible DDSes:
       is_recurrent, recurrent_entries, idempotent_power, etc.
 
-    - Wrap (some of) the cyclic_sieving_phenomenon.py methods.
+    - Wrap (some of) the cyclic_sieving_phenomenon.py methods
+      (:mod:`sage.combinat.cyclic_sieving_phenomenon`).
 
     - Interact with sage.dynamics. This requires someone who
       knows the latter part of the Sage library well.
@@ -141,33 +142,33 @@ class DiscreteDynamicalSystem(SageObject):
 
     INPUT:
 
-    - ``X`` (set, list, tuple, or another iterable, or
-      ``None``) -- the ground set for the DDS; this can be
-      ``None`` (in which case Sage will not know the ground
-      set, but can still apply evolution to any elements
-      that are provided to it).
+    - ``X`` -- set, list, tuple, or another iterable, or
+      ``None`` (default: ``None``); the ground set for the DDS.
+      Tthis can be ``None`` (in which case Sage will not know
+      the ground set, but can still apply evolution to any
+      elements that are provided to it).
       Make sure to set the ``create_tuple`` argument to
       ``True`` if the ``X`` you provide is an iterator or
       a list, as otherwise your ``X`` would be exposed
       (and thus subject to mutation or exhaustion).
 
-    - ``phi`` (function, or callable that acts like a
-      function) -- the evolution of the DDS.
+    - ``phi`` -- function, or callable that acts like a
+      function; the evolution of the DDS.
 
-    - ``cache_orbits`` (boolean) -- (default: ``False``)
+    - ``cache_orbits`` -- boolean (default: ``False``);
       whether or not the orbits should be cached once they
       are computed.
       This currently does nothing, as we are not caching
       orbits yet.
 
-    - ``create_tuple`` (boolean) -- (default: ``False``)
+    - ``create_tuple`` -- boolean (default: ``False``);
       whether or not the input ``X`` should be translated
       into a tuple. Set this to ``True`` to prevent
       mutation if ``X`` is a list, and to prevent
       exhaustion if ``X`` is an iterator.
 
-    - ``inverse`` (function, or callable that acts like a
-      function, or boolean or ``None``) -- (default: ``None``)
+    - ``inverse`` -- function, or callable that acts like a
+      function, or boolean or ``None`` (default: ``None``);
       the inverse evolution of the DDS, if the DDS is
       invertible. Set this to ``None`` or ``False``
       if the DDS is not invertible (or you don't want Sage
@@ -178,7 +179,7 @@ class DiscreteDynamicalSystem(SageObject):
       Sage will compute the inverse, assuming the orbits
       to be finite.)
 
-    - ``is_finite`` (boolean or ``None``) -- (default: ``None``)
+    - ``is_finite`` -- boolean or ``None`` (default: ``None``);
       whether the DDS is finite. The default option ``None``
       leaves this to Sage to decide.
       Only set this to ``True`` if you provide the ground
@@ -189,7 +190,7 @@ class DiscreteDynamicalSystem(SageObject):
     The following discrete dynamical system is neither
     finite nor invertible::
 
-        sage: D = DiscreteDynamicalSystem(NN, lambda x : x + 2)
+        sage: D = DiscreteDynamicalSystem(NN, lambda x: x + 2)
         sage: D.ground_set()
         Non negative integer semiring
         sage: D.evolution()(5)
@@ -202,8 +203,8 @@ class DiscreteDynamicalSystem(SageObject):
     The necessity of ``create_tuple=True``::
 
         sage: X = [0, 1, 2, 3, 4]
-        sage: D_wrong = DiscreteDynamicalSystem(X, lambda x : (x**3) % 5)
-        sage: D_right = DiscreteDynamicalSystem(X, lambda x : (x**3) % 5, create_tuple=True)
+        sage: D_wrong = DiscreteDynamicalSystem(X, lambda x: (x**3) % 5)
+        sage: D_right = DiscreteDynamicalSystem(X, lambda x: (x**3) % 5, create_tuple=True)
         sage: X[4] = 666 # evil
         sage: D_wrong.ground_set()
         [0, 1, 2, 3, 666]
@@ -213,7 +214,7 @@ class DiscreteDynamicalSystem(SageObject):
     Here is an invertible (but infinite) discrete dynamical
     system whose orbits are finite::
 
-        sage: D = DiscreteDynamicalSystem(NN, lambda x : (x + 2 if x % 6 < 4 else x - 4), inverse=True)
+        sage: D = DiscreteDynamicalSystem(NN, lambda x: (x + 2 if x % 6 < 4 else x - 4), inverse=True)
         sage: D.ground_set()
         Non negative integer semiring
         sage: D.evolution()(5)
@@ -237,7 +238,7 @@ class DiscreteDynamicalSystem(SageObject):
     would give the same system without the functionality that
     relies on invertibility::
 
-        sage: D = DiscreteDynamicalSystem(NN, lambda x : (x + 2 if x % 6 < 4 else x - 4), inverse=False)
+        sage: D = DiscreteDynamicalSystem(NN, lambda x: (x + 2 if x % 6 < 4 else x - 4), inverse=False)
         sage: D.ground_set()
         Non negative integer semiring
         sage: D.evolution()(5)
@@ -249,7 +250,7 @@ class DiscreteDynamicalSystem(SageObject):
         sage: D.orbit(3)
         [3, 5, 1]
 
-        sage: D = DiscreteDynamicalSystem(NN, lambda x : (x + 2 if x % 6 < 4 else x - 4), inverse=None)
+        sage: D = DiscreteDynamicalSystem(NN, lambda x: (x + 2 if x % 6 < 4 else x - 4), inverse=None)
         sage: D.ground_set()
         Non negative integer semiring
         sage: D.evolution()(5)
@@ -263,7 +264,7 @@ class DiscreteDynamicalSystem(SageObject):
 
     Next, let us try out a finite non-invertible DDS::
 
-        sage: D = DiscreteDynamicalSystem(tuple(range(13)), lambda x : (x**2) % 13)
+        sage: D = DiscreteDynamicalSystem(tuple(range(13)), lambda x: (x**2) % 13)
         sage: D.ground_set()
         (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
         sage: D.evolution()(4)
@@ -312,11 +313,11 @@ class DiscreteDynamicalSystem(SageObject):
 
         EXAMPLES::
 
-            sage: D = DiscreteDynamicalSystem(NN, lambda x : x + 1)
+            sage: D = DiscreteDynamicalSystem(NN, lambda x: x + 1)
             sage: parent(D)
             <class 'sage.dynamics.finite_dynamical_system.DiscreteDynamicalSystem'>
 
-            sage: f1 = lambda x : (x + 2 if x % 6 < 4 else x - 4)
+            sage: f1 = lambda x: (x + 2 if x % 6 < 4 else x - 4)
 
             sage: D = DiscreteDynamicalSystem(NN, f1, inverse=False)
             sage: parent(D)
@@ -330,12 +331,12 @@ class DiscreteDynamicalSystem(SageObject):
             sage: parent(D)
             <class 'sage.dynamics.finite_dynamical_system.InvertibleDiscreteDynamicalSystem'>
 
-            sage: D = DiscreteDynamicalSystem(NN, lambda x : x + 1, is_finite=False)
+            sage: D = DiscreteDynamicalSystem(NN, lambda x: x + 1, is_finite=False)
             sage: parent(D)
             <class 'sage.dynamics.finite_dynamical_system.DiscreteDynamicalSystem'>
 
-            sage: f2 = lambda x : (x + 1 if x < 3 else 1)
-            sage: f3 = lambda x : (x - 1 if x > 3 else 3)
+            sage: f2 = lambda x: (x + 1 if x < 3 else 1)
+            sage: f3 = lambda x: (x - 1 if x > 3 else 3)
 
             sage: D = DiscreteDynamicalSystem([1, 2, 3], f2)
             sage: parent(D)
@@ -375,6 +376,19 @@ class DiscreteDynamicalSystem(SageObject):
     def __init__(self, X, phi, cache_orbits=False, create_tuple=False):
         r"""
         Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: D = DiscreteDynamicalSystem([1, 3, 4], lambda x: (3 if x == 4 else 1), create_tuple=True)
+            sage: TestSuite(D).run(skip ="_test_pickling") # indirect doctest
+            sage: D = DiscreteDynamicalSystem([1, 3, 4], lambda x: (3 if x == 4 else 1), create_tuple=True, is_finite=False)
+            sage: TestSuite(D).run(skip ="_test_pickling") # indirect doctest
+            sage: D = DiscreteDynamicalSystem(NN, lambda x: (3 if x == 4 else 1))
+            sage: TestSuite(D).run(skip ="_test_pickling") # indirect doctest
+            sage: D = DiscreteDynamicalSystem(None, lambda x: (3 if x == 4 else 1))
+            sage: TestSuite(D).run(skip ="_test_pickling") # indirect doctest
+            sage: D = DiscreteDynamicalSystem([1, 3, 4], lambda x: x, create_tuple=True)
+            sage: TestSuite(D).run(skip ="_test_pickling") # indirect doctest
         """
         if create_tuple:
             X = tuple(X)
@@ -401,7 +415,7 @@ class DiscreteDynamicalSystem(SageObject):
 
         EXAMPLES::
 
-            sage: D = DiscreteDynamicalSystem([1, 3, 4], lambda x : (3 if x == 4 else 1), create_tuple=True)
+            sage: D = DiscreteDynamicalSystem([1, 3, 4], lambda x: (3 if x == 4 else 1), create_tuple=True)
             sage: D.ground_set()
             (1, 3, 4)
         """
@@ -413,7 +427,7 @@ class DiscreteDynamicalSystem(SageObject):
 
         EXAMPLES::
 
-            sage: D = DiscreteDynamicalSystem([1, 3, 4], lambda x : (3 if x == 4 else 1), create_tuple=True)
+            sage: D = DiscreteDynamicalSystem([1, 3, 4], lambda x: (3 if x == 4 else 1), create_tuple=True)
             sage: ev = D.evolution()
             sage: ev(1)
             1
@@ -431,7 +445,7 @@ class DiscreteDynamicalSystem(SageObject):
 
         EXAMPLES::
 
-            sage: D = DiscreteDynamicalSystem(range(10), lambda x : (x + 3) % 10, create_tuple=True)
+            sage: D = DiscreteDynamicalSystem(range(10), lambda x: (x + 3) % 10, create_tuple=True)
             sage: ev3 = D.evolution_power(3)
             sage: ev3(1)
             0
@@ -467,7 +481,7 @@ class DiscreteDynamicalSystem(SageObject):
 
         EXAMPLES::
 
-            sage: D = DiscreteDynamicalSystem(NN, lambda x : x + 2)
+            sage: D = DiscreteDynamicalSystem(NN, lambda x: x + 2)
             sage: D[:3]
             [0, 1, 2]
         """
@@ -482,7 +496,7 @@ class DiscreteDynamicalSystem(SageObject):
         EXAMPLES::
 
             sage: X = (5, 6, 7, 8)
-            sage: D = DiscreteDynamicalSystem(X, lambda x : (x**3) % 4 + 5)
+            sage: D = DiscreteDynamicalSystem(X, lambda x: (x**3) % 4 + 5)
             sage: X[3]
             8
             sage: X[2]
@@ -496,11 +510,11 @@ class DiscreteDynamicalSystem(SageObject):
 
         EXAMPLES::
 
-            sage: D = DiscreteDynamicalSystem(NN, lambda x : x + 2)
+            sage: D = DiscreteDynamicalSystem(NN, lambda x: x + 2)
             sage: D # indirect doctest
             A discrete dynamical system with ground set
              Non negative integer semiring
-            sage: D = DiscreteDynamicalSystem(None, lambda x : x + 2)
+            sage: D = DiscreteDynamicalSystem(None, lambda x: x + 2)
             sage: D # indirect doctest
             A discrete dynamical system with unspecified ground set
         """
@@ -532,7 +546,7 @@ class DiscreteDynamicalSystem(SageObject):
 
         EXAMPLES::
 
-            sage: D = DiscreteDynamicalSystem(tuple(range(11)), lambda x : (x ** 2) % 11)
+            sage: D = DiscreteDynamicalSystem(tuple(range(11)), lambda x: (x ** 2) % 11)
             sage: D.orbit(6)
             [6, 3, 9, 4, 5]
             sage: D.orbit(6, preperiod=True)
@@ -600,7 +614,7 @@ class DiscreteDynamicalSystem(SageObject):
         EXAMPLES::
 
             sage: W = Words(2, 5)
-            sage: F = DiscreteDynamicalSystem(W, lambda x : x[1:] + Word([x[0]]), is_finite=True, inverse=True)
+            sage: F = DiscreteDynamicalSystem(W, lambda x: x[1:] + Word([x[0]]), is_finite=True, inverse=True)
             sage: F.is_homomesic(lambda w: sum(w))
             False
             sage: F.is_homomesic(lambda w: 1, average=1)
@@ -694,8 +708,8 @@ class InvertibleDiscreteDynamicalSystem(DiscreteDynamicalSystem):
 
     INPUT:
 
-    - ``X`` (set, list, tuple, or another iterable, or
-      ``None``) -- the ground set for the DDS; this can be
+    - ``X`` -- set, list, tuple, or another iterable, or
+      ``None``; the ground set for the DDS. This can be
       ``None`` in case of a
       :class:`DiscreteDynamicalSystem` or a
       :class:`InvertibleDiscreteDynamicalSystem`.
@@ -703,20 +717,20 @@ class InvertibleDiscreteDynamicalSystem(DiscreteDynamicalSystem):
       ``True`` if you provide an iterator or a list for
       ``X``, as otherwise the input would be exposed.
 
-    - ``phi`` (function, or callable that acts like a
-      function) -- the evolution of the DDS.
+    - ``phi`` -- function, or callable that acts like a
+      function; the evolution of the DDS.
 
-    - ``inverse`` (function, or callable that acts like a
-      function) -- the inverse evolution
-      of the DDS. (A default implementation is implemented
-      when this argument is not provided; but it assumes
-      the orbits to be finite.)
+    - ``inverse`` -- function, or callable that acts like a
+      function; the inverse evolution of the DDS. (A
+      default implementation is implemented when this
+      argument is not provided; but it assumes the orbits
+      to be finite.)
 
-    - ``cache_orbits`` (boolean) -- (default: ``False``)
+    - ``cache_orbits`` -- boolean (default: ``False``);
       whether or not the orbits should be cached once they
       are computed.
 
-    - ``create_tuple`` (boolean) -- (default: ``False``)
+    - ``create_tuple`` -- boolean (default: ``False``);
       whether or not the input ``X`` should be translated
       into a tuple (set this to ``True`` to prevent
       mutation if ``X`` is a list, and to prevent
@@ -725,7 +739,7 @@ class InvertibleDiscreteDynamicalSystem(DiscreteDynamicalSystem):
     EXAMPLES::
 
         sage: from sage.dynamics.finite_dynamical_system import InvertibleDiscreteDynamicalSystem
-        sage: D = InvertibleDiscreteDynamicalSystem(NN, lambda x : (x + 2 if x % 4 < 2 else x - 2))
+        sage: D = InvertibleDiscreteDynamicalSystem(NN, lambda x: (x + 2 if x % 4 < 2 else x - 2))
         sage: D.ground_set()
         Non negative integer semiring
         sage: D.evolution()(5)
@@ -740,8 +754,8 @@ class InvertibleDiscreteDynamicalSystem(DiscreteDynamicalSystem):
     The necessity of ``create_tuple=True``::
 
         sage: X = [0, 1, 2, 3, 4]
-        sage: D_wrong = InvertibleDiscreteDynamicalSystem(X, lambda x : (x**3) % 5)
-        sage: D_right = InvertibleDiscreteDynamicalSystem(X, lambda x : (x**3) % 5, create_tuple=True)
+        sage: D_wrong = InvertibleDiscreteDynamicalSystem(X, lambda x: (x**3) % 5)
+        sage: D_right = InvertibleDiscreteDynamicalSystem(X, lambda x: (x**3) % 5, create_tuple=True)
         sage: X[4] = 666 # evil
         sage: D_wrong.ground_set()
         [0, 1, 2, 3, 666]
@@ -751,6 +765,17 @@ class InvertibleDiscreteDynamicalSystem(DiscreteDynamicalSystem):
     def __init__(self, X, phi, inverse=None, cache_orbits=False, create_tuple=False):
         r"""
         Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: D = DiscreteDynamicalSystem([1, 3, 4], lambda x: x, create_tuple=True, inverse=True)
+            sage: TestSuite(D).run(skip ="_test_pickling") # indirect doctest
+            sage: D = DiscreteDynamicalSystem([1, 3, 4], lambda x: x, create_tuple=True, is_finite=False, inverse=True)
+            sage: TestSuite(D).run(skip ="_test_pickling") # indirect doctest
+            sage: D = DiscreteDynamicalSystem(NN, lambda x: x, inverse=True)
+            sage: TestSuite(D).run(skip ="_test_pickling") # indirect doctest
+            sage: D = DiscreteDynamicalSystem(None, lambda x: x, inverse=True)
+            sage: TestSuite(D).run(skip ="_test_pickling") # indirect doctest
         """
         if create_tuple:
             X = tuple(X)
@@ -771,7 +796,7 @@ class InvertibleDiscreteDynamicalSystem(DiscreteDynamicalSystem):
 
         EXAMPLES::
 
-            sage: D = DiscreteDynamicalSystem(range(10), lambda x : (x + 3) % 10, create_tuple=True, inverse=True)
+            sage: D = DiscreteDynamicalSystem(range(10), lambda x: (x + 3) % 10, create_tuple=True, inverse=True)
             sage: ev3 = D.evolution_power(3)
             sage: ev3(1)
             0
@@ -814,11 +839,11 @@ class InvertibleDiscreteDynamicalSystem(DiscreteDynamicalSystem):
 
         EXAMPLES::
 
-            sage: D = DiscreteDynamicalSystem(NN, lambda x : (x + 2 if x % 4 < 2 else x - 2), inverse=True)
+            sage: D = DiscreteDynamicalSystem(NN, lambda x: (x + 2 if x % 4 < 2 else x - 2), inverse=True)
             sage: D # indirect doctest
             An invertible discrete dynamical system with ground set
              Non negative integer semiring
-            sage: D = DiscreteDynamicalSystem(None, lambda x : x + 2, inverse=True)
+            sage: D = DiscreteDynamicalSystem(None, lambda x: x + 2, inverse=True)
             sage: D # indirect doctest
             An invertible discrete dynamical system with unspecified ground set
         """
@@ -834,13 +859,13 @@ class InvertibleDiscreteDynamicalSystem(DiscreteDynamicalSystem):
 
         EXAMPLES::
 
-            sage: D = DiscreteDynamicalSystem(tuple(range(8)), lambda x : (x + 2) % 8, inverse=True)
+            sage: D = DiscreteDynamicalSystem(tuple(range(8)), lambda x: (x + 2) % 8, inverse=True)
             sage: D.inverse_evolution()(1)
             7
             sage: D.inverse_evolution()(3)
             1
 
-            sage: D = DiscreteDynamicalSystem(ZZ, lambda x : (x + 2) % 8, inverse=True)
+            sage: D = DiscreteDynamicalSystem(ZZ, lambda x: (x + 2) % 8, inverse=True)
             sage: D.inverse_evolution()(1)
             7
             sage: D.inverse_evolution()(3)
@@ -864,13 +889,13 @@ class InvertibleDiscreteDynamicalSystem(DiscreteDynamicalSystem):
 
         EXAMPLES::
 
-            sage: D = DiscreteDynamicalSystem(tuple(range(8)), lambda x : (x + 2) % 8, inverse=True)
+            sage: D = DiscreteDynamicalSystem(tuple(range(8)), lambda x: (x + 2) % 8, inverse=True)
             sage: D.verify_inverse_evolution()
             True
             sage: D.verify_inverse_evolution(3)
             True
-            sage: fake_inverse = lambda x : x
-            sage: D = DiscreteDynamicalSystem(tuple(range(8)), lambda x : (x + 2) % 8, inverse=fake_inverse)
+            sage: fake_inverse = lambda x: x
+            sage: D = DiscreteDynamicalSystem(tuple(range(8)), lambda x: (x + 2) % 8, inverse=fake_inverse)
             sage: D.verify_inverse_evolution()
             False
             sage: D.verify_inverse_evolution(3)
@@ -908,7 +933,7 @@ class InvertibleDiscreteDynamicalSystem(DiscreteDynamicalSystem):
 
         EXAMPLES::
 
-            sage: D = DiscreteDynamicalSystem(tuple(range(8)), lambda x : (x + 2) % 8, inverse=True)
+            sage: D = DiscreteDynamicalSystem(tuple(range(8)), lambda x: (x + 2) % 8, inverse=True)
             sage: D.ground_set()
             (0, 1, 2, 3, 4, 5, 6, 7)
             sage: D.orbit(2)
@@ -918,7 +943,7 @@ class InvertibleDiscreteDynamicalSystem(DiscreteDynamicalSystem):
             sage: D.orbit(5, preperiod=True)
             ([5, 7, 1, 3], 0)
 
-            sage: D = DiscreteDynamicalSystem(ZZ, lambda x : (x + 2) % 8, inverse=True)
+            sage: D = DiscreteDynamicalSystem(ZZ, lambda x: (x + 2) % 8, inverse=True)
             sage: D.ground_set()
             Integer Ring
             sage: D.orbit(2)
@@ -948,7 +973,7 @@ class InvertibleDiscreteDynamicalSystem(DiscreteDynamicalSystem):
 
         EXAMPLES::
 
-            sage: D = DiscreteDynamicalSystem(tuple(range(8)), lambda x : (x + 2) % 8, inverse=True)
+            sage: D = DiscreteDynamicalSystem(tuple(range(8)), lambda x: (x + 2) % 8, inverse=True)
             sage: D.inverse_evolution_default(1)
             7
             sage: D.inverse_evolution_default(3)
@@ -971,7 +996,7 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
     EXAMPLES::
 
         sage: from sage.dynamics.finite_dynamical_system import FiniteDynamicalSystem
-        sage: D = FiniteDynamicalSystem(tuple(range(11)), lambda x : (x**2) % 11)
+        sage: D = FiniteDynamicalSystem(tuple(range(11)), lambda x: (x**2) % 11)
         sage: D.ground_set()
         (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
         sage: D.evolution()(4)
@@ -996,7 +1021,7 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
 
         EXAMPLES::
 
-            sage: D = DiscreteDynamicalSystem(tuple(range(11)), lambda x : (x**2) % 11)
+            sage: D = DiscreteDynamicalSystem(tuple(range(11)), lambda x: (x**2) % 11)
             sage: D
             A finite discrete dynamical system with ground set
             (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
@@ -1016,7 +1041,7 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
         EXAMPLES::
 
             sage: W = Words(2, 5)
-            sage: F = DiscreteDynamicalSystem(W, lambda x : x[1:] + Word([x[0]]), is_finite=True)
+            sage: F = DiscreteDynamicalSystem(W, lambda x: x[1:] + Word([x[0]]), is_finite=True)
             sage: F.is_invariant(lambda w: sum(w))
             True
             sage: F.is_invariant(lambda w: 1)
@@ -1039,10 +1064,7 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
             True
         """
         phi = self._phi
-        for i in self._X:
-            if f(phi(i)) != f(i):
-                return False
-        return True
+        return all(f(phi(i)) == f(i) for i in self._X)
 
     def cycles(self):
         r"""
@@ -1067,13 +1089,13 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
             sage: BS(6).cycles()
             [[[3, 2, 1]]]
 
-            sage: D = DiscreteDynamicalSystem(tuple(range(6)), lambda x : (x + 2) % 6)
+            sage: D = DiscreteDynamicalSystem(tuple(range(6)), lambda x: (x + 2) % 6)
             sage: D.cycles()
             [[5, 1, 3], [4, 0, 2]]
-            sage: D = DiscreteDynamicalSystem(tuple(range(6)), lambda x : (x ** 2) % 6)
+            sage: D = DiscreteDynamicalSystem(tuple(range(6)), lambda x: (x ** 2) % 6)
             sage: D.cycles()
             [[1], [4], [3], [0]]
-            sage: D = DiscreteDynamicalSystem(tuple(range(11)), lambda x : (x ** 2 - 1) % 11)
+            sage: D = DiscreteDynamicalSystem(tuple(range(11)), lambda x: (x ** 2 - 1) % 11)
             sage: D.cycles()
             [[10, 0], [8], [4]]
 
@@ -1121,7 +1143,7 @@ class InvertibleFiniteDynamicalSystem(InvertibleDiscreteDynamicalSystem, FiniteD
     EXAMPLES::
 
         sage: from sage.dynamics.finite_dynamical_system import InvertibleFiniteDynamicalSystem
-        sage: D = InvertibleFiniteDynamicalSystem(tuple(range(5)), lambda x : (x + 2) % 5)
+        sage: D = InvertibleFiniteDynamicalSystem(tuple(range(5)), lambda x: (x + 2) % 5)
         sage: D.ground_set()
         (0, 1, 2, 3, 4)
         sage: D.evolution()(4)
@@ -1154,7 +1176,7 @@ class InvertibleFiniteDynamicalSystem(InvertibleDiscreteDynamicalSystem, FiniteD
 
         EXAMPLES::
 
-            sage: D = DiscreteDynamicalSystem(tuple(range(5)), lambda x : (x + 2) % 5, inverse=True)
+            sage: D = DiscreteDynamicalSystem(tuple(range(5)), lambda x: (x + 2) % 5, inverse=True)
             sage: D
             An invertible finite discrete dynamical system with ground set
             (0, 1, 2, 3, 4)
@@ -1169,10 +1191,10 @@ class InvertibleFiniteDynamicalSystem(InvertibleDiscreteDynamicalSystem, FiniteD
 
         EXAMPLES::
 
-            sage: D = DiscreteDynamicalSystem(tuple(range(6)), lambda x : (x + 2) % 6, inverse=True)
+            sage: D = DiscreteDynamicalSystem(tuple(range(6)), lambda x: (x + 2) % 6, inverse=True)
             sage: D.orbits()
             [[5, 1, 3], [4, 0, 2]]
-            sage: D = DiscreteDynamicalSystem(tuple(range(6)), lambda x : (x + 3) % 6, inverse=True)
+            sage: D = DiscreteDynamicalSystem(tuple(range(6)), lambda x: (x + 3) % 6, inverse=True)
             sage: D.orbits()
             [[5, 2], [4, 1], [3, 0]]
         """
@@ -1209,10 +1231,10 @@ class InvertibleFiniteDynamicalSystem(InvertibleDiscreteDynamicalSystem, FiniteD
 
         EXAMPLES::
 
-            sage: D = DiscreteDynamicalSystem(tuple(range(6)), lambda x : (x + 2) % 6, inverse=True)
+            sage: D = DiscreteDynamicalSystem(tuple(range(6)), lambda x: (x + 2) % 6, inverse=True)
             sage: D.cycles()
             [[5, 1, 3], [4, 0, 2]]
-            sage: D = DiscreteDynamicalSystem(tuple(range(6)), lambda x : (x + 3) % 6, inverse=True)
+            sage: D = DiscreteDynamicalSystem(tuple(range(6)), lambda x: (x + 3) % 6, inverse=True)
             sage: D.cycles()
             [[5, 2], [4, 1], [3, 0]]
         """
@@ -1225,10 +1247,10 @@ class InvertibleFiniteDynamicalSystem(InvertibleDiscreteDynamicalSystem, FiniteD
 
         EXAMPLES::
 
-            sage: D = DiscreteDynamicalSystem(tuple(range(6)), lambda x : (x + 2) % 6, inverse=True)
+            sage: D = DiscreteDynamicalSystem(tuple(range(6)), lambda x: (x + 2) % 6, inverse=True)
             sage: D.orbit_lengths()
             [3, 3]
-            sage: D = DiscreteDynamicalSystem(tuple(range(6)), lambda x : (x + 3) % 6, inverse=True)
+            sage: D = DiscreteDynamicalSystem(tuple(range(6)), lambda x: (x + 3) % 6, inverse=True)
             sage: D.orbit_lengths()
             [2, 2, 2]
         """

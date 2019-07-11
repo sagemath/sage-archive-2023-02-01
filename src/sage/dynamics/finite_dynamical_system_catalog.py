@@ -3,8 +3,8 @@ Catalog of discrete dynamical systems
 
 This module contains constructors for several specific discrete
 dynamical systems.
-These are accessible
-through :mod:`sage.dynamics.finite_dynamical_system_catalog. <sage.dynamics.finite_dynamical_system_catalog>`
+These are accessible through
+:mod:`sage.dynamics.finite_dynamical_system_catalog. <sage.dynamics.finite_dynamical_system_catalog>`
 or just through `finite_dynamical_systems.`
 (type either of these in Sage and hit ``tab`` for a list).
 
@@ -139,11 +139,11 @@ def bitstring_rotation(n, ones=None):
         X = [tuple((1 if i in cs else 0) for i in range(n))
              for cs in combinations(range(n), ones)]
     if n == 0:
-        phi = lambda x : x
+        phi = lambda x: x
         psi = phi
     else:
-        phi = lambda x : x[1:] + (x[0],)
-        psi = lambda x : (x[-1],) + x[:-1]
+        phi = lambda x: x[1:] + (x[0],)
+        psi = lambda x: (x[-1],) + x[:-1]
     return InvertibleFiniteDynamicalSystem(X, phi, inverse=psi)
 
 def striker_sweep(E, predicate, elements, lazy=False):
@@ -256,9 +256,9 @@ def syt_promotion(lam):
         sage: F = finite_dynamical_systems.syt_promotion([4, 4, 4])
         sage: sorted(F.orbit_lengths())
         [3, 3, 4, 4, 4, 6, 6, 6, 6, 12, 12, 12, 12, 12, 12,
-        12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
-        12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
-        12, 12, 12, 12, 12]
+         12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+         12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+         12, 12, 12, 12, 12]
         sage: G = finite_dynamical_systems.syt_promotion([4, 3, 1])
         sage: sorted(G.orbit_lengths())
         [16, 22, 32]
@@ -283,7 +283,7 @@ def order_ideal_rowmotion(P):
         sage: F = finite_dynamical_systems.order_ideal_rowmotion(P)
         sage: sorted(F.orbit_lengths())
         [2, 7, 7, 7, 7, 7, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14,
-        14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14]
+         14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14]
         sage: F.is_homomesic(lambda I: len(I))
         False
         sage: F.is_homomesic(lambda I: sum((-1)**(P.rank(i)) for i in I))
@@ -361,7 +361,7 @@ def bulgarian_solitaire(n):
     X = Partitions(n)
     def phi(lam):
         mu = [p - 1 for p in lam if p > 0]
-        nu = list(reversed(sorted(mu + [len(lam)])))
+        nu = sorted(mu + [len(lam)], reverse=True)
         return Partition(nu)
     return FiniteDynamicalSystem(X, phi)
 

@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
 r"""
 Finite word
 
@@ -3070,7 +3070,7 @@ class FiniteWord_class(Word_class):
             sage: [w.palindromic_complexity(i) for i in range(20)]
             [1, 2, 2, 2, 2, 0, 4, 0, 4, 0, 4, 0, 4, 0, 2, 0, 2, 0, 4, 0]
         """
-        return len([x for x in self.palindromes() if len(x)==n])    
+        return len([x for x in self.palindromes() if len(x)==n])
 
     def palindrome_prefixes(self):
         r"""
@@ -3856,38 +3856,38 @@ class FiniteWord_class(Word_class):
         complementaries), use ``self.is_subword_of(other)``, and to count the
         number of occurrences of ``self`` in ``other``, use
         ``self.nb_subword_occurrences_in(other)``.
-    
+
         INPUT:
 
         - ``other`` -- finite word
-    
+
         OUTPUT:
 
         - list of all the complementary subwords of ``self`` in ``other``.
-    
+
         EXAMPLES::
 
             sage: Word('tamtam').subword_complementaries(Word('ta'))
             []
-    
+
             sage: Word('mta').subword_complementaries(Word('tamtam'))
             [word: tam]
-    
+
             sage: Word('ta').subword_complementaries(Word('tamtam'))
             [word: mtam, word: amtm, word: tamm]
-    
+
             sage: Word('a').subword_complementaries(Word('a'))
             [word: ]
-    
+
         """
-    
+
         ls = self.length()
         lo = other.length()
-    
+
         # Create a matrix to declare when letters in ``self`` and ``other`` are
         # equal or not
         Eq = [[self[i] == other[j] for j in range(lo)] for i in range(ls)]
-    
+
         # Create a matrix that tells the positions of subwords of the suffixes
         Mpos = [[[] for j in range(lo)] for i in range(ls)]
         for j in range(lo):
@@ -3906,12 +3906,12 @@ class FiniteWord_class(Word_class):
                                 for sw in m:
                                     temp.append([j]+sw)
                     Mpos[i][j] = temp
-    
+
         # Create the list of positions for occurrences of `self` as a subword
         selfpos = []
         for j in range(lo):
             selfpos.extend(Mpos[0][j])
-    
+
         # Create the list of the complementaries of `self`
         from sage.combinat.words.word import Word
         comp_words = []

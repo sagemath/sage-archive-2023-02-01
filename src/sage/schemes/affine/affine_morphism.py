@@ -765,6 +765,10 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
               Defn: Defined on coordinates by sending (x) to
                     (3*x^2 + 2, x^2 + 1)
         """
+        if not mat.is_square():
+            raise ValueError("matrix must be square")
+        if mat.ncols() != self.codomain().ngens() + 1:
+            raise ValueError("the size of the matrix must be n + 1, where n is the dimension of the codomain")
         if self.is_endomorphism():
             d = self.domain().ngens()
         else:
@@ -819,6 +823,10 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
               Defn: Defined on coordinates by sending (x0, x1, x2) to
                     (x0^2 + x1^2 + x2^2 + 1, x0^2 + x1^2 + 1)
         """
+        if not mat.is_square():
+            raise ValueError("matrix must be square")
+        if mat.nrows() != self.domain().ngens() + 1:
+            raise ValueError("the size of the matrix must be n + 1, where n is the dimension of the domain")
         if self.is_endomorphism():
             d = self.domain().ngens()
         else:

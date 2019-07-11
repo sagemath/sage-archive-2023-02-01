@@ -948,6 +948,33 @@ class ParallelogramPolyomino(ClonableList):
         """
         return ParallelogramPolyominoes()
 
+    def _ascii_art_(self):
+        """
+        TESTS::
+            sage: ascii_art(ParallelogramPolyomino([[0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0]]))
+            ***
+            ****
+             ***
+              ***
+               **
+                *
+            sage: ascii_art(ParallelogramPolyomino([[0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1], [1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0]]))
+            **
+            ***
+            ***
+            ***
+              **
+               **
+        """
+        from sage.typeset.ascii_art import AsciiArt
+
+        data = zip(self.lower_widths(), self.upper_widths())
+        txt = []
+        for x,y in data:
+            txt += [' ' * x + '*' * (y - x)]
+
+        return AsciiArt(txt)
+
     def _unicode_art_(self):
         """
         TESTS::

@@ -4435,7 +4435,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         return(good_points)
 
-    def rational_periodic_points(self, **kwds):
+    def all_periodic_points(self, **kwds):
         r"""
         Determine the set of rational periodic points
         for this dynamical system.
@@ -4626,6 +4626,70 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 return list(periodic)
         else:
             raise TypeError("base field must be an absolute number field")
+
+    def rational_periodic_points(self, **kwds):
+        r"""
+        Determine the set of rational periodic points
+        for this dynamical system.
+
+        The map must be defined over `\QQ` and be an endomorphism of
+        projective space. If the map is a polynomial endomorphism of
+        `\mathbb{P}^1`, i.e. has a totally ramified fixed point, then
+        the base ring can be an absolute number field.
+        This is done by passing to the Weil restriction.
+
+        The default parameter values are typically good choices for
+        `\mathbb{P}^1`. If you are having trouble getting a particular
+        map to finish, try first computing the possible periods, then
+        try various different ``lifting_prime`` values.
+
+        ALGORITHM:
+
+        Modulo each prime of good reduction `p` determine the set of
+        periodic points modulo `p`. For each cycle modulo `p` compute
+        the set of possible periods (`mrp^e`). Take the intersection
+        of the list of possible periods modulo several primes of good
+        reduction to get a possible list of minimal periods of rational
+        periodic points. Take each point modulo `p` associated to each
+        of these possible periods and try to lift it to a rational point
+        with a combination of `p`-adic approximation and the LLL basis
+        reduction algorithm.
+
+        See [Hutz2015]_.
+
+        INPUT:
+
+        kwds:
+
+        - ``prime_bound`` -- (default: ``[1,20]``) a pair (list or tuple)
+          of positive integers that represent the limits of primes to use
+          in the reduction step or an integer that represents the upper bound
+
+        - ``lifting_prime`` -- (default: 23) a prime integer; argument that
+          specifies modulo which prime to try and perform the lifting
+
+        - ``periods`` -- (optional) a list of positive integers that is
+          the list of possible periods
+
+        - ``bad_primes`` -- (optional) a list or tuple of integer primes;
+          the primes of bad reduction
+
+        - ``ncpus`` -- (default: all cpus) number of cpus to use in parallel
+
+        OUTPUT: a list of rational points in projective space
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: K.<w> = NumberField(x^2-x+1)
+            sage: P.<u,v> = ProjectiveSpace(K,1)
+            sage: f = DynamicalSystem_projective([u^2 + v^2,v^2])
+            sage: f.rational_periodic_points()
+            [(w : 1), (1 : 0), (-w + 1 : 1)]
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(28109, "use sage.dynamics.arithmetic_dynamics.projective_ds.all_periodic_points instead")
+        return self.all_periodic_points(self, **kwds)
 
     def all_rational_preimages(self, points):
         r"""
@@ -5929,5 +5993,30 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
         
            
     def all_periodic_points(self):
+        r"""
+        Returns a list of all periodic points over a finite field.
+
+        OUTPUT: a list of elements which are periodic
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(GF(5^2),1)
+            sage: f = DynamicalSystem_projective([x^2+y^2, x*y])
+            sage: f.all_periodic_points()
+            [(1 : 0), (z2 + 2 : 1), (4*z2 + 3 : 1)]
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(5),2)
+            sage: f = DynamicalSystem_projective([x^2+y^2+z^2, x*y+x*z, z^2])
+            sage: f.all_periodic_points()
+            [(1 : 0 : 0),
+            (0 : 0 : 1),
+            (1 : 0 : 1),
+            (2 : 1 : 1),
+            (1 : 4 : 1),
+            (3 : 0 : 1),
+            (0 : 3 : 1)]
+        """
         return _all_periodic_points(self)
 

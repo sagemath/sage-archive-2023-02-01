@@ -38,13 +38,13 @@ AUTHORS:
 
 from six import add_metaclass
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
 from sage.categories.sets_cat import Sets
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 #from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet_graded
-from sage.rings.integer import Integer
+from sage.structure.sage_object import SageObject
+from sage.misc.latex import latex
 #from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 #from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
@@ -68,7 +68,7 @@ class PathTableau():
             sage: t._local_rule(3)
             [0, 1, 2, 1, 2, 1, 0]
         """
-        
+
 ################################# Book Keeping ################################
 
     def size(self):
@@ -242,37 +242,6 @@ class PathTableau():
 
 ########################### Visualisation and checking ########################
 
-    def cylindrical_diagram(self):
-        """
-        Return the cylindrical growth diagram associated to ``self``.
-
-        This provides a visual summary of several operations simultaneously.
-        The operations which can be read off directly from this diagram
-        are the powers of the promotion operator (which form the rows)
-        and the cactus group operators `s_{1,j}` (which form the
-        first half of the columns).
-
-        EXAMPLES::
-
-            sage: t = CatalanTableau([0,1,2,3,2,1,0])
-            sage: SkewTableau(t.cylindrical_diagram()).pp()
-            0  1  2  3  2  1  0
-            .  0  1  2  1  0  1  0
-            .  .  0  1  0  1  2  1  0
-            .  .  .  0  1  2  3  2  1  0
-            .  .  .  .  0  1  2  1  0  1  0
-            .  .  .  .  .  0  1  0  1  2  1  0
-            .  .  .  .  .  .  0  1  2  3  2  1  0
-        """
-        n = len(self)
-        result = [[None]*(2*n-1)]*n
-        T = self
-        for i in range(n):
-            result[i] = [None]*i + list(T)
-            T = T.promotion()
-
-        return result
-
     def _test_involution_rule(self, **options):
         """
         Check that the local rule gives an involution.
@@ -442,5 +411,98 @@ class PathTableaux(UniqueRepresentation,Parent):
     def __init(self):
         Parent.__init__(self, category=Sets())
 
-    def _element_constructor_(self, *args, **keywords):
-        return self.element_class(self, *args, **keywords)
+    def _element_constructor_(self, *args, **kwds):
+        return self.element_class(self, *args, **kwds)
+
+
+
+class CylindricalDiagram(SageObject):
+    """
+    A class for cylindrical growth diagrams.
+
+    EXAMPLE::
+
+        sage: t = CatalanTableau([0,1,2,3,2,1,0])
+        sage: CylindricalDiagram(t)
+        A cylindrical growth diagram.
+    """
+
+    def __init__(self,T):
+        n = len(T)
+        result = [[None]*(2*n-1)]*n
+        for i in range(n):
+            result[i] = [""]*i + list(T)
+            T = T.promotion()
+
+        self.diagram = result
+
+    def __repr__(self):
+        return "A cylindrical growth diagram."
+
+    def __str__(self):
+        """
+        Returns a string representation of ``self``
+        
+        EXAMPLE::
+            
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: print(CylindricalDiagram(t))
+            The cylindrical growth diagram:
+            [0, 1, 2, 3, 2, 1, 0]
+            ['', 0, 1, 2, 1, 0, 1, 0]
+            ['', '', 0, 1, 0, 1, 2, 1, 0]
+            ['', '', '', 0, 1, 2, 3, 2, 1, 0]
+            ['', '', '', '', 0, 1, 2, 1, 0, 1, 0]
+            ['', '', '', '', '', 0, 1, 0, 1, 2, 1, 0]
+            ['', '', '', '', '', '', 0, 1, 2, 3, 2, 1, 0]
+        """
+        
+        return "The cylindrical growth diagram:\n" + "\n".join( str(a) for a in self.diagram )
+
+    def _latex_(self):
+        """
+        Returns a `\LaTeX` representation of ``self``
+        
+        EXAMPLE::
+            
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: latex(CylindricalDiagram(t))
+            \begin{array}{ccccccccccccc}
+            0 & 1 & 2 & 3 & 2 & 1 & 0\\ 
+             & 0 & 1 & 2 & 1 & 0 & 1 & 0\\ 
+             &  & 0 & 1 & 0 & 1 & 2 & 1 & 0\\ 
+             &  &  & 0 & 1 & 2 & 3 & 2 & 1 & 0\\ 
+             &  &  &  & 0 & 1 & 2 & 1 & 0 & 1 & 0\\ 
+             &  &  &  &  & 0 & 1 & 0 & 1 & 2 & 1 & 0\\ 
+             &  &  &  &  &  & 0 & 1 & 2 & 3 & 2 & 1 & 0
+             \end{array}
+             
+        """
+
+        D = self.diagram
+        m = len(D[-1])
+        result = "\\begin{array}{"+"c"*m + "}\n"
+        result += "\\\\ \n".join( " & ".join(latex(a) for a in x) for x in D )
+        result += "\n \\end{array}\n"
+        return result
+
+
+    def pp(self):
+        """
+        A pretty print utility method.
+        
+        EXAMPLES::
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: c = CylindricalDiagram(t)
+            sage: c.pp()
+            0 1 2 3 2 1 0
+              0 1 2 1 0 1 0
+                0 1 0 1 2 1 0
+                  0 1 2 3 2 1 0
+                    0 1 2 1 0 1 0
+                      0 1 0 1 2 1 0
+                        0 1 2 3 2 1 0
+
+        """
+        m = max( max( len(str(a)) for a in x ) for x in self.diagram)
+        print "\n".join(" ".join("{:<{}}".format(a, m) for a in x)  for x in self.diagram )

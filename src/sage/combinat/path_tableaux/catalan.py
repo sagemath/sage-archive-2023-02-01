@@ -1,3 +1,24 @@
+
+#*****************************************************************************
+#       Copyright (C) 2018 Bruce Westbury <bruce.westbury@gmail.com>,
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+from sage.structure.list_clone import ClonableArray
+from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux, CylindricalDiagram
+from sage.combinat.combinatorial_map import combinatorial_map
+from sage.combinat.dyck_word import DyckWord
+from sage.combinat.perfect_matching import PerfectMatching
+from sage.combinat.skew_tableau import SkewTableau
+from sage.combinat.tableau import Tableau, StandardTableau
+from sage.rings.integer import Integer
+
+###############################################################################
 r"""
 Catalan Tableaux
 
@@ -15,32 +36,7 @@ and end at height zero are in bijection with noncrossing perfect matchings.
 AUTHORS:
 
 - Bruce Westbury (2018): initial version
-"""
-#*****************************************************************************
-#       Copyright (C) 2018 Bruce Westbury <bruce.westbury@gmail.com>,
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 2 of the License, or
-# (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
 
-
-from six import add_metaclass
-from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.structure.list_clone import ClonableArray
-from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux
-from sage.combinat.combinatorial_map import combinatorial_map
-from sage.combinat.dyck_word import DyckWord
-from sage.combinat.perfect_matching import PerfectMatching
-from sage.combinat.skew_tableau import SkewTableau
-from sage.combinat.tableau import Tableau, StandardTableau
-from sage.rings.integer import Integer
-
-###############################################################################
-
-"""
 Here we illustrate the slogan that promotion = rotation.
 
 EXAMPLES::
@@ -64,19 +60,18 @@ EXAMPLES::
 EXAMPLES::
 
     sage: t = CatalanTableau([0,1,2,3,2,1,0])
-    sage: SkewTableau(t.cylindrical_diagram()).pp()
-      0  1  2  3  2  1  0
-      .  0  1  2  1  0  1  0
-      .  .  0  1  0  1  2  1  0
-      .  .  .  0  1  2  3  2  1  0
-      .  .  .  .  0  1  2  1  0  1  0
-      .  .  .  .  .  0  1  0  1  2  1  0
-      .  .  .  .  .  .  0  1  2  3  2  1  0
+    sage: print(CylindricalDiagram(t))
+    The cylindrical growth diagram:
+    [0, 1, 2, 3, 2, 1, 0]
+    ['', 0, 1, 2, 1, 0, 1, 0]
+    ['', '', 0, 1, 0, 1, 2, 1, 0]
+    ['', '', '', 0, 1, 2, 3, 2, 1, 0]
+    ['', '', '', '', 0, 1, 2, 1, 0, 1, 0]
+    ['', '', '', '', '', 0, 1, 0, 1, 2, 1, 0]
+    ['', '', '', '', '', '', 0, 1, 2, 3, 2, 1, 0]
     sage: TestSuite(t).run()
 """
 
-
-@add_metaclass(InheritComparisonClasscallMetaclass)
 class CatalanTableau(ClonableArray,PathTableau):
     """
     An instance is the sequence of nonnegative
@@ -297,6 +292,8 @@ class CatalanTableau(ClonableArray,PathTableau):
             return StandardTableau([top,bot])
 
 class CatalanTableaux(PathTableaux):
-
+    """
+    The parent class for CatalanTableau
+    """
     Element = CatalanTableau
 

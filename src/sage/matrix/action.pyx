@@ -494,4 +494,4 @@ cdef class PolymapMatrixAction(MatrixMulAction):
               Defn: Defined on coordinates by sending (x : y) to
                     (x^2 + 2*x*y + 2*y^2 : y^2)
         """
-        return f._polymap_times_matrix_(mat, self._codomain)
+        return mat._polymap_times_matrix_(f, self._codomain)

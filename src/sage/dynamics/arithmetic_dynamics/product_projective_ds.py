@@ -285,3 +285,70 @@ class DynamicalSystem_product_projective(DynamicalSystem,
                 F = [poly(*F) for poly in F] #'square'
             D >>= 1
         return DynamicalSystem_projective(PHI, domain=self.domain())
+
+class DynamicalSystem_product_projective_field(DynamicalSystem_product_projective):
+
+    pass
+
+class DynamicalSystem_product_projective_finite_field(DynamicalSystem_product_projective_field):
+
+    def cyclegraph(self):
+        r"""
+        Return the digraph of all orbits of this morphism mod `p`.
+
+        OUTPUT: a digraph
+
+        EXAMPLES::
+
+            sage: P.<a,b,c,d> = ProductProjectiveSpaces(GF(3), [1,1])
+            sage: f = DynamicalSystem_projective([a^2,b^2,c^2,d^2], P)
+            sage: f.cyclegraph()
+            Looped digraph on 16 vertices
+
+        ::
+
+            sage: P.<a,b,c,d> = ProductProjectiveSpaces(GF(5), [1,1])
+            sage: f = DynamicalSystem_projective([a^2,b^2,c,d], P)
+            sage: f.cyclegraph()
+            Looped digraph on 36 vertices
+
+        ::
+
+            sage: P.<a,b,c,d,e> = ProductProjectiveSpaces(GF(2), [1,2])
+            sage: f = DynamicalSystem_projective([a^2,b^2,c,d,e], P)
+            sage: f.cyclegraph()
+            Looped digraph on 21 vertices
+
+        ::
+
+            sage: P.<a, b, c, d, e, f> = ProductProjectiveSpaces(GF(17), [1,1,1])
+            sage: f=DynamicalSystem_projective([a^3+b^3, a^3-b^3, c*d^2+d^3, c^2*d-c^3, e^2*f-f^3, f^2*e+e^3], P)
+            sage: f.cyclegraph()
+            Looped digraph on 5832 vertices
+
+        .. TODO::
+
+            - Implement cyclegraph for subschemes
+        """
+        V = []
+        E = []
+        from sage.schemes.product_projective.space import is_ProductProjectiveSpaces
+        if is_ProductProjectiveSpaces(self.domain()) == True:
+            for P in self.domain():
+                V.append(str(P))
+                Q = self(P)
+                E.append([str(Q)])
+        else:
+            raise NotImplementedError("Cyclegraph for product projective spaces not implemented for subschemes")
+            '''X = self.domain()
+            for P in X.ambient_space():
+                try:
+                    XP = X.point(P)
+                    V.append(str(XP))
+                    Q = self(XP)
+                    E.append([str(Q)])
+                except TypeError:  # not on the scheme
+                    pass'''
+        from sage.graphs.digraph import DiGraph
+        g = DiGraph(dict(zip(V, E)), loops=True)
+        return g

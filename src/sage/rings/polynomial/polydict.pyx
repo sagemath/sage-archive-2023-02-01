@@ -1406,10 +1406,20 @@ cdef class ETuple:
         TESTS::
 
             sage: from sage.rings.polynomial.polydict import ETuple
+            sage: ETuple((0,))
+            (0,)
+            sage: ETuple((1,))
+            (1,)
             sage: ETuple((0,1,2))
             (0, 1, 2)
         """
-        return '(' + ', '.join(map(str, self)) + ')'
+        if self._length == 1:
+            if self._nonzero:
+                return '(%d,)' % self._data[1]
+            else:
+                return '(0,)'
+        else:
+            return '(' + ', '.join(map(str, self)) + ')'
 
     def __reduce__(ETuple self):
         """

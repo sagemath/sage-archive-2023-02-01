@@ -1417,19 +1417,19 @@ class ImplicitSuffixTree(SageObject):
 
     def leftmost_covering_set(self):
         r"""
-        Compute the  leftmost covering set  of square pairs  in ``self.word()``.
+        Compute the  leftmost covering set of square pairs in ``self.word()``.
         Return square as pair ``(i,l)`` specifying factor
         ``self.word()[i:i+l]``.
 
-        A  leftmost covering  set is  a set  such that  the leftmost  occurrence
-        ``(j,l)`` of of a square  in ``self.word()`` is covered  by a pair
+        A  leftmost covering set is a set such that the leftmost occurrence
+        ``(j,l)`` of a square in ``self.word()`` is covered by a pair
         ``(i,l)`` in the set for all types  of squares. We say that ``(j,l)`` is
-        covered by ``(i,l)``  if ``(i,l)``, ``(i+1,l)``, ...,  ``(j,l)`` are all
+        covered by ``(i,l)`` if ``(i,l)``, ``(i+1,l)``, ..., ``(j,l)`` are all
         squares.
 
-        The  set is  return in  the  form of  a  list ``P``  such that  ``P[i]``
-        contains all the length of square starting at ``i`` in the set. The list
-        ``P[i]`` are sorted in decreasing order.
+        The  set is returned in the form of a list ``P`` such that ``P[i]``
+        contains all the lengths of squares starting at ``i`` in the set. The
+        lists ``P[i]`` are sorted in decreasing order.
 
         EXAMPLES::
 
@@ -1448,37 +1448,38 @@ class ImplicitSuffixTree(SageObject):
         finding and representing all the tandem  repeats in a string. Journal of
         Computer and System Sciences, 69(4), 525-546.
         """
+
         def condition1_square_pairs(i):
             r"""
-            Computes the squares that have their  center (the last letter of the
-            first  occurrence of  ``w``  in ``ww``)  in the  i-th  block of  the
-            LZ-decomposition and  that start in  the i-th  block and end  in the
-            (i+1)-th
+            Computes the squares that have their center (the last letter of the
+            first  occurrence of  ``w``  in ``ww``) in the i-th block of the
+            LZ-decomposition and that start in the i-th block and end in the
+            (i+1)-st.
             """
-            for k in range(1,B[i+1]-B[i]+1):
+            for k in range(1, B[i+1]-B[i]+1):
                 q = B[i+1]-k
                 k1 = w.longest_forward_extension(B[i+1],q) if B[i+1] < len(w) else 0
                 k2 = w.longest_backward_extension(B[i+1]-1,q-1)
-                start = max(q-k2,q-k+1)
+                start = max(q-k2, q-k+1)
                 if k1+k2 >= k and k1 > 0 and start >= B[i]:
-                    yield (start,2*k)
+                    yield (start, 2*k)
 
         def condition2_square_pairs(i):
             r"""
-            Compute the squares  that have their center (the last  letter of the
-            first  occurrence of  ``w``  in ``ww``)  in the  i-th  block of  the
-            LZ-decomposition and  that starts in  the (i-1)-th block  or before.
-            Their end is either in the i-th or the (i+1)-th block
+            Compute the squares that have their center (the last letter of the
+            first  occurrence of ``w``  in ``ww``)  in the  i-th  block of  the
+            LZ-decomposition and  that starts in  the (i-1)-st block or before.
+            Their end is either in the i-th or the (i+1)-st block.
             """
             if i+2 < len(B):
                 end = B[i+2]-B[i]+1
             else:
                 end = B[i+1]-B[i]+1
-            for k in range(2,end):
+            for k in range(2, end):
                 q = B[i]+k
-                k1 = w.longest_forward_extension(B[i],q) if q < len(w) else 0
-                k2 = w.longest_backward_extension(B[i]-1,q-1)
-                start = max(B[i]-k2,B[i]-k+1)
+                k1 = w.longest_forward_extension(B[i], q) if q < len(w) else 0
+                k2 = w.longest_backward_extension(B[i]-1, q-1)
+                start = max(B[i]-k2, B[i]-k+1)
                 if k1+k2 >= k and k1 > 0 and start+k <= B[i+1] and k2 > 0:
                     yield (start,2*k)
 
@@ -1570,12 +1571,12 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
 
     def __init__(self, w):
         r"""
-        Constructs the decorated suffix tree of a word
+        Constructs the decorated suffix tree of a word.
 
         A decorated suffix tree of ``w`` is the suffix tree of ``w`` marked with
         the end point of all squares in the w.
 
-        The symbol ``"$"`` is appended to ``w`` to ensure de that each final
+        The symbol ``"$"`` is appended to ``w`` to ensure that each final
         state is a leaf of the suffix tree.
 
 
@@ -1617,7 +1618,7 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
 
     def _partial_labeling(self):
         r"""
-        Make a depth first search in the suffix tree and mark some squares of a
+        Make a depth-first search in the suffix tree and mark some squares of a
         leftmost covering set of the tree. Used by ``self._complete_labeling``.
 
         EXAMPLES::
@@ -1628,37 +1629,38 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
             sage: T._partial_labeling()
             {(3, 4): [1], (5, 1): [3], (5, 6): [1], (11, 17): [1], (13, 8): [1], (15, 10): [2]}
         """
+
         def node_processing(node,parent,(i,pos)):
             r"""
-            Marks point along the edge ``(parent, node)`` if the string depth of
-            parent is smaller than the length of the square at the head of
+            Marks points along the edge ``(parent, node)`` if the string depth
+            of parent is smaller than the length of the square at the head of
             ``P(node)``.
             Make it for all such square pairs and remove them from ``P(node)``.
 
-            P(node)=P[i][pos:]
-
             INPUT:
             - ``node`` -- a node of T
-            - ``parent`` -- the parent of node in T
-            - ``(i, pos)`` -- the pair that represent the head of the list P(node)
+            - ``parent`` -- the parent of a node in T
+            - ``(i, pos)`` -- the pair that represents the head of the list
+               P(node)
 
             OUTPUT: ``(i, pos)``, the new head of P(node)
             """
+
             while pos < len(P[i]) and P[i][pos] > string_depth[parent]:
                 label = P[i][pos] - string_depth[parent]
                 if (parent, node) in labeling:
-                    labeling[(parent,node)].append(label)
+                    labeling[(parent, node)].append(label)
                 else:
-                    labeling[(parent,node)] = [label]
+                    labeling[(parent, node)] = [label]
                 pos += 1
             return (i, pos)
 
         def treat_node(current_node,parent):
             r"""
-            Proceed to a depth first search in ``self``, counting the
+            Proceed to a depth-first search in ``self``, counting the
             string_depth of each node and processing each node for marking.
 
-            To initiate de depth first search call ``self.treat_node(0,None)``
+            To initiate the depth first search call ``self.treat_node(0,None)``
 
             INPUT:
 
@@ -1667,10 +1669,11 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
 
             OUTPUT:
 
-                The resulting list P(current_node) avec current_node have been
-                process by node_processing. The ouput is a pair (i,pos) such
+                The resulting list P(current_node) with current_node have been
+                processed by node_processing. The ouput is a pair (i,pos) such
                 that P[i][pos:] is the list of current_node.
             """
+
             # Call recursively on children of current_node
             if D.has_key(current_node):
                 node_list = (n, 0)
@@ -1684,7 +1687,7 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
                         node_list = child_list
             else:  # The node is a child
                 node_list = (n - string_depth[current_node], 0)
-            # Make teatement on current node hear
+            # Make treatement on current node hear
             return node_processing(current_node, parent, node_list)
 
         P = self.leftmost_covering_set()
@@ -1697,7 +1700,7 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
 
     def _complete_labeling(self):
         r"""
-        Returns a dictionary of edges of ``self``, with marked point for the end
+        Returns a dictionary of edges of ``self``, with marked points for the end
         of each distinct squares that can be found in ``self.word()``.
 
         EXAMPLES::
@@ -1708,17 +1711,17 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
             {(2, 7): [1], (5, 4): [1]}
         """
 
-        def walk_chain(u,v,l,start):
+        def walk_chain(u, v, l, start):
             r"""
-            Execute a  chain of suffix walk  until a walk is  unsuccessful or it
-            got to  a point  already register in  ``QP``. Registers  all visited
+            Execute a  chain of suffix walk until a walk is unsuccessful or it
+            got to a point already registered in ``QP``. Registers all visited
             point in ``Q``.
 
             INPUTS:
 
-            - ``(u,v)`` -- edge on wich the point is registered
+            - ``(u, v)`` -- edge on which the point is registered
             - ``l`` -- depth of the registered point on (u,v)
-            - ``start`` -- beginning  of the squares registered by the label
+            - ``start`` -- beginning of the squares registered by the label
             ``(u, v), l``
             """
             # Mark the point in labeling
@@ -1752,24 +1755,25 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
                 else:
                     walk_chain(parent, child, depth, start+1)
 
-        def treat_node(current_node,(i,j)):
+        def treat_node(current_node, (i, j)):
             r"""
-            Execute a depht first search on self and start a suffix walk for
-            labeled points on each edges of T. The fonction is reccursive, call
-            treat_node(0,(0,0)) to initiate the search
+            Execute a depht-first search on self and start a suffix walk for
+            labeled points on each edges of T. The fonction is recursive, call
+            treat_node(0,(0,0)) to initiate the search.
 
             INPUTS:
 
             - ``current_node`` - The node to treat
-            - ``(i,j)`` - Pair of index such that the path from 0 to
+            - ``(i, j)`` - Pair of index such that the path from 0 to
             ``current_node`` reads ``self.word()[i:j]``
             """
+
             if D.has_key(current_node):
                 for child in D[current_node].iterkeys():
-                    edge = (current_node,child)
+                    edge = (current_node, child)
                     edge_label = D[edge[0]][edge[1]]
-                    treat_node(child,(edge_label[0]-(j-i),edge_label[1]))
-                    if prelabeling.has_key((current_node,child)):
+                    treat_node(child,(edge_label[0]-(j-i), edge_label[1]))
+                    if prelabeling.has_key((current_node, child)):
                         for l in prelabeling[edge]:
                             square_start = edge_label[0]-(j-i)
                             walk_chain(current_node, child, l, square_start)
@@ -1801,12 +1805,12 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
             sage: DecoratedSuffixTree(w).square_vocabulary(output="word")
             [word: , word: 01100110, word: 00110011, word: 00, word: 11, word: 1010]
         """
-        def treat_node(current_node,(i,j)):
+        def treat_node(current_node, (i, j)):
             if D.has_key(current_node):
                 for child in D[current_node].iterkeys():
-                    edge = (current_node,child)
+                    edge = (current_node, child)
                     edge_label = (D[edge[0]][edge[1]])
-                    treat_node(child,(edge_label[0]-(j-i),edge_label[1]))
+                    treat_node(child, (edge_label[0]-(j-i), edge_label[1]))
                     if Q.has_key((current_node, child)):
                         for l in Q[(current_node, child)]:
                             square_start = edge_label[0]-(j-i)

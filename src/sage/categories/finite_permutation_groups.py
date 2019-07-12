@@ -12,6 +12,7 @@ Finite Permutation Groups
 
 from sage.categories.magmas import Magmas
 from sage.categories.category_with_axiom import CategoryWithAxiom
+from sage.misc.cachefunc import cached_method
 
 
 class FinitePermutationGroups(CategoryWithAxiom):
@@ -230,6 +231,80 @@ class FinitePermutationGroups(CategoryWithAxiom):
             return parent.sum_of_terms([C.an_element().cycle_type(), base_ring(C.cardinality())]
                                        for C in self.conjugacy_classes()
                                       ) / self.cardinality()
+    
+        @cached_method
+        def profile_polynomial(self, variable='z'):
+            r"""
+            Return the generating polynomial of the (finite) profile of the group.
+            
+            OUTPUT:
+            
+            * A polynomial (in z by default) with nonnegative integer coefficients
+            
+            EXAMPLES::
+            
+                sage: C5 = CyclicPermutationGroup(5)
+                sage: C5.profile_polynomial()
+                z^5 + z^4 + 2*z^3 + 2*z^2 + z + 1
+                sage: C5.profile_polynomial('y')
+                y^5 + y^4 + 2*y^3 + 2*y^2 + y + 1
+            
+            """
+            from sage.rings.integer_ring import ZZ
+
+            z = ZZ[variable].gen()
+            cycle_poly = self.cycle_index()
+            return cycle_poly.expand(2).subs(x0 = 1, x1 = z)
+
+        def profile_series(self, variable='z'):
+            r"""
+            Return the generating polynomial of the (finite) profile of the group.
+            
+            OUTPUT:
+            
+            * A polynomial (in z by default) with nonnegative integer coefficients
+
+            .. NOTE::
+                
+                Same as profile_polynomial in this case (finite group); alias was avoided 
+                in order to prevent issues arising from eventual later dependencies.
+            
+            EXAMPLES::
+            
+                sage: C5 = CyclicPermutationGroup(5)
+                sage: C5.profile_series()
+                z^5 + z^4 + 2*z^3 + 2*z^2 + z + 1
+                sage: C5.profile_series(variable='y')
+                y^5 + y^4 + 2*y^3 + 2*y^2 + y + 1
+            
+            """
+            return self.profile_polynomial(variable)
+        
+        def profile(self, n, variable='z'):
+            r"""
+            Return the value in ``n`` of the profile of the group ``self``.
+
+            INPUT:
+
+            * ``n`` - a nonnegative integer
+            
+            OUTPUT: 
+            
+            * A nonnegative integer that is the number of orbits of ``n``-subsets
+              under the action induced by ``self`` on the subsets of its domain
+              (i.e. the value of the profile of ``self`` in ``n``)
+            
+            EXAMPLES::
+            
+                sage: C5 = CyclicPermutationGroup(5)
+                sage: C5.profile(2)
+                2
+                sage: C5.profile(4)
+                1
+            
+            """
+            
+            return self.profile_polynomial(variable)[n]
 
     class ElementMethods:
         # TODO: put abstract_methods for

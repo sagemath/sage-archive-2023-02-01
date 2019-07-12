@@ -1670,7 +1670,7 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
                 process by node_processing. The ouput is a pair (i,pos) such
                 that P[i][pos:] is the list of current_node.
             """
-            #Call recursively on children of current_node
+            # Call recursively on children of current_node
             if D.has_key(current_node):
                 node_list = (n, 0)
                 for child in D[current_node].iterkeys():
@@ -1681,9 +1681,9 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
                     child_list = treat_node(child,current_node)
                     if child_list[0] < node_list[0]:
                         node_list = child_list
-            else: #The node is a child
+            else:  # The node is a child
                 node_list = (n - string_depth[current_node], 0)
-            #Make teatement on current node hear
+            # Make teatement on current node hear
             return node_processing(current_node, parent, node_list)
 
         P = self.leftmost_covering_set()

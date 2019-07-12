@@ -96,7 +96,8 @@ class SuperAlgebras(SuperModulesCategory):
             Return the full subcategory of the supercommutative objects
             of ``self``.
 
-            A super algebra `M` is *supercommutative* if, for all `x,y\in M`,
+            A super algebra `M` is *supercommutative* if, for all
+            homogeneous `x,y\in M`,
 
             .. MATH::
 

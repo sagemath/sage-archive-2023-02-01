@@ -555,12 +555,13 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             sage: TestSuite(SteenrodAlgebra(basis='woody')).run() # long time
             sage: A3 = SteenrodAlgebra(3)
             sage: A3.category()
-            Category of super hopf algebras with basis over Finite Field of size 3
+            Category of supercocommutative super hopf algebras
+             with basis over Finite Field of size 3
             sage: TestSuite(A3).run()  # long time
             sage: TestSuite(SteenrodAlgebra(basis='adem', p=3)).run()
             sage: TestSuite(SteenrodAlgebra(basis='pst_llex', p=7)).run()  # long time
             sage: TestSuite(SteenrodAlgebra(basis='comm_deg', p=5)).run()  # long time
-            sage: TestSuite(SteenrodAlgebra(p=2,generic=True)).run()  # long time
+            sage: TestSuite(SteenrodAlgebra(p=2, generic=True)).run()  # long time
 
         Two Steenrod algebras are equal iff their associated primes,
         bases, and profile functions (if present) are equal.  Because
@@ -624,12 +625,13 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                                   truncation_type=truncation_type,
                                   generic=self._generic)
 
+        cat = SuperHopfAlgebrasWithBasis(base_ring).Supercocommutative()
         CombinatorialFreeModule.__init__(self,
                                          base_ring,
                                          basis_set,
                                          prefix=self._basis_name,
                                          element_class=self.Element,
-                                         category=SuperHopfAlgebrasWithBasis(base_ring),
+                                         category=cat,
                                          scalar_mult=' ')
 
     def _basis_key_iterator(self):
@@ -3813,7 +3815,8 @@ def SteenrodAlgebra(p=2, basis='milnor', generic='auto', **kwds):
         sage: A.is_division_algebra()
         False
         sage: A.category()
-        Category of super hopf algebras with basis over Finite Field of size 2
+        Category of supercocommutative super hopf algebras
+         with basis over Finite Field of size 2
 
     There are methods for constructing elements of the Steenrod
     algebra::

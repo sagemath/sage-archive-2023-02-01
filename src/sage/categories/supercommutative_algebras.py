@@ -6,7 +6,7 @@ Supercommutative Algebras
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
-#******************************************************************************
+#*****************************************************************************
 
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.super_algebras import SuperAlgebras
@@ -24,10 +24,10 @@ class SupercommutativeAlgebras(CategoryWithAxiom_over_base_ring):
     .. MATH::
 
         x_0 x'_0 = x'_0 x_0, \qquad
-        x_1 x'_1 = x'_1 x_1, \qquad
-        x_0 x_1 = -x_1 x_0,
+        x_1 x'_1 = -x'_1 x_1, \qquad
+        x_0 x_1 = x_1 x_0,
 
-    for all `x_0, x'_0 \in A_0` and `x_1 \in A_1`.
+    for all `x_0, x'_0 \in A_0` and `x_1, x'_1 \in A_1`.
 
     EXAMPLES::
 
@@ -92,7 +92,7 @@ class SupercommutativeAlgebras(CategoryWithAxiom_over_base_ring):
                 tester = self._tester(**options)
                 from sage.misc.misc import some_tuples
                 for x,y in some_tuples(elements, 2, tester._max_runs):
-                    tester.assertEquals((x * y),
-                                        (-1)**(x.is_even_odd() * y.is_even_odd())
-                                        * (y * x))
+                    tester.assertEqual((x * y),
+                                       (-1)**(x.is_even_odd() * y.is_even_odd())
+                                       * (y * x))
 

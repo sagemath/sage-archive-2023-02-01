@@ -1469,13 +1469,13 @@ class ExteriorAlgebra(CliffordAlgebra):
 
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
             sage: E.category()
-            Category of finite dimensional supercommutative super hopf
-             algebras with basis over Rational Field
+            Category of finite dimensional supercommutative supercocommutative
+             super hopf algebras with basis over Rational Field
             sage: TestSuite(E).run()
 
             sage: TestSuite(ExteriorAlgebra(GF(3), ['a', 'b'])).run()
         """
-        cat = HopfAlgebrasWithBasis(R).FiniteDimensional().Supercommutative()
+        cat = HopfAlgebrasWithBasis(R).FiniteDimensional().Supercommutative().Supercocommutative()
         CliffordAlgebra.__init__(self, QuadraticForm(R, len(names)), names, category=cat)
 
     def _repr_(self):

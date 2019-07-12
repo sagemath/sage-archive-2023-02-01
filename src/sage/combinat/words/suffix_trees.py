@@ -1427,9 +1427,10 @@ class ImplicitSuffixTree(SageObject):
         covered by ``(i,l)`` if ``(i,l)``, ``(i+1,l)``, ..., ``(j,l)`` are all
         squares.
 
-        The  set is returned in the form of a list ``P`` such that ``P[i]``
-        contains all the lengths of squares starting at ``i`` in the set. The
-        lists ``P[i]`` are sorted in decreasing order.
+        The leftmost covering set is described by a list of list ``P``. ``P`` is
+        such that ``P[i]``  contains all the lengths of squares  in the leftmost
+        covering  set that starts at ``i``.  The lists ``P[i]``  are sorted  in
+        decreasing order.
 
         EXAMPLES::
 
@@ -1788,12 +1789,12 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
         r"""
         Returns the list of distinct squares of ``self.word``.
 
-        Return a list of pairs if ``output="pair"`` and the explicit words if
-        ``output="word"``
+        Return a list of pairs if ``output == "pair"`` and the explicit words if
+        ``output == "word"``
 
         INPUT:
 
-            output - "pair" or "word"
+        - ``output`` -- "pair" or "word"
 
         EXAMPLES::
 

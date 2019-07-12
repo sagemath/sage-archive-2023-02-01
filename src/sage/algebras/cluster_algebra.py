@@ -1253,12 +1253,12 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
         # Coefficient matrix
         if kwargs.pop('principal_coefficients', False):
-            M = identity_matrix(n)
+            M0 = identity_matrix(n)
         else:
-            M = Q.b_matrix()[n:, :]
-        m = M.nrows()
+            M0 = Q.b_matrix()[n:, :]
+        m = M0.nrows()
 
-        B = block_matrix([[B],[M]])
+        B = block_matrix([[B],[M0]])
         B.set_immutable()
 
         # Determine the names of the initial cluster variables
@@ -1319,8 +1319,8 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         # Rank
         self._n = B.ncols()
 
-        M = B[self._n:, :]
-        m = M.nrows()
+        M0 = B[self._n:, :]
+        m = M0.nrows()
 
         # Ambient space for F-polynomials
         # NOTE: for speed purposes we need to have QQ here instead of the more
@@ -1339,7 +1339,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         base = LaurentPolynomialRing(kwargs['scalars'], kwargs['coefficient_names']) if m > 0 else kwargs['scalars']
 
         # Have we got principal coefficients?
-        self.Element = PrincipalClusterAlgebraElement if M == identity_matrix(self._n) else ClusterAlgebraElement
+        self.Element = PrincipalClusterAlgebraElement if M0 == identity_matrix(self._n) else ClusterAlgebraElement
 
         # Setup Parent and ambient
         names = kwargs['cluster_variable_names'] + kwargs['coefficient_names']
@@ -1349,7 +1349,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         # Data to compute cluster variables using separation of additions
         # NOTE: storing both _B0 as rectangular matrix and _yhat is redundant.
         # We keep both around for speed purposes.
-        self._y = {self._U.gen(j): prod(self._base.gen(i) ** M[i, j] for i in range(m))
+        self._y = {self._U.gen(j): prod(self._base.gen(i) ** M0[i, j] for i in range(m))
                    for j in range(self._n)}
         self._yhat = {self._U.gen(j): prod(self._ambient.gen(i) ** self._B0[i, j]
                                            for i in range(self._n + m))
@@ -1461,9 +1461,9 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
                 if f is not None:
                     perm = Permutation([gen_s.index(self(f(v))) + 1 for v in gen_o])
                     n = self.rank()
-                    M = self._B0[n:, :]
-                    m = M.nrows()
-                    B = block_matrix([[self.b_matrix(), -M.transpose()], [M, matrix(m)]])
+                    M0 = self._B0[n:, :]
+                    m = M0.nrows()
+                    B = block_matrix([[self.b_matrix(), -M0.transpose()], [M0, matrix(m)]])
                     B.permute_rows_and_columns(perm, perm)
                     return B[:, :other.rank()] == other._B0
 
@@ -2354,7 +2354,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         A.set_current_seed(S)
 
         # recompute F-polynomials
-        # We use forward mutatino of F-polynomials because it is much faster
+        # We use forward mutation of F-polynomials because it is much faster
         # than backward mutation. Moreover the number of needed mutation is
         # linear in len(seq) rather than quadratic.
         if kwargs.get('mutating_F', True):

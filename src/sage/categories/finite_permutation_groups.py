@@ -236,46 +236,69 @@ class FinitePermutationGroups(CategoryWithAxiom):
         def profile_polynomial(self, variable='z'):
             r"""
             Return the generating polynomial of the (finite) profile of the group.
+
+            INPUT:
+    
+            - ``variable`` -- a variable, or variable name as a string (default: `'z'`)
             
             OUTPUT:
             
-            * A polynomial (in z by default) with nonnegative integer coefficients
+            - A polynomial in ``variable`` with nonnegative integer coefficients.
+              By default, a polynomial in z over ZZ.
             
             EXAMPLES::
             
                 sage: C5 = CyclicPermutationGroup(5)
-                sage: C5.profile_polynomial()
+                sage: poly_C5 = C5.profile_polynomial()
+                sage: poly_C5
                 z^5 + z^4 + 2*z^3 + 2*z^2 + z + 1
-                sage: C5.profile_polynomial('y')
+                sage: poly_C5.parent()
+                Univariate Polynomial Ring in z over Rational Field
+                sage: C5.profile_polynomial(variable='y')
                 y^5 + y^4 + 2*y^3 + 2*y^2 + y + 1
+                sage: u = var('u')
+                sage: C5.profile_polynomial(u).parent()
+                Symbolic Ring
             
             """
             from sage.rings.integer_ring import ZZ
 
-            z = ZZ[variable].gen()
+            if isinstance(variable, str):
+                variable = ZZ[variable].gen()
             cycle_poly = self.cycle_index()
-            return cycle_poly.expand(2).subs(x0 = 1, x1 = z)
+            return cycle_poly.expand(2).subs(x0 = 1, x1 = variable)
 
         def profile_series(self, variable='z'):
             r"""
             Return the generating polynomial of the (finite) profile of the group.
+
+            INPUT:
+    
+            - ``variable`` -- a variable, or variable name as a string (default: `'z'`)
             
             OUTPUT:
             
-            * A polynomial (in z by default) with nonnegative integer coefficients
+            - A polynomial in ``variable`` with nonnegative integer coefficients.
+              By default, a polynomial in z over ZZ.
 
             .. NOTE::
                 
                 Same as profile_polynomial in this case (finite group); alias was avoided 
-                in order to prevent issues arising from eventual later dependencies.
+                in order to prevent issues caused by later dependencies.
             
             EXAMPLES::
             
                 sage: C5 = CyclicPermutationGroup(5)
-                sage: C5.profile_series()
+                sage: poly_C5 = C5.profile_series()
+                sage: poly_C5
                 z^5 + z^4 + 2*z^3 + 2*z^2 + z + 1
+                sage: poly_C5.parent()
+                Univariate Polynomial Ring in z over Rational Field
                 sage: C5.profile_series(variable='y')
                 y^5 + y^4 + 2*y^3 + 2*y^2 + y + 1
+                sage: u = var('u')
+                sage: C5.profile_series(u).parent()
+                Symbolic Ring
             
             """
             return self.profile_polynomial(variable)
@@ -286,11 +309,11 @@ class FinitePermutationGroups(CategoryWithAxiom):
 
             INPUT:
 
-            * ``n`` - a nonnegative integer
+            - ``n`` -- a nonnegative integer
             
             OUTPUT: 
             
-            * A nonnegative integer that is the number of orbits of ``n``-subsets
+            - A nonnegative integer that is the number of orbits of ``n``-subsets
               under the action induced by ``self`` on the subsets of its domain
               (i.e. the value of the profile of ``self`` in ``n``)
             

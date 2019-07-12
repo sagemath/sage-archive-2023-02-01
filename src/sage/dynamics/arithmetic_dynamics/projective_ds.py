@@ -4468,7 +4468,10 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         INPUT:
 
         kwds:
-
+        
+        - ``ring`` -- (default: domain of dynamical system) the base ring
+          over which the periodic points of the dynamical system are found
+        
         - ``prime_bound`` -- (default: ``[1,20]``) a pair (list or tuple)
           of positive integers that represent the limits of primes to use
           in the reduction step or an integer that represents the upper bound
@@ -4532,7 +4535,13 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             ...
             NotImplementedError: rational periodic points for number fields only implemented for polynomials
         """
-        PS = self.domain()
+        
+        ring = kwds.pop("ring", None)
+        if not ring is None:
+            DS = self.change_ring(ring)
+        else:
+            DS = self
+        PS = DS.domain()
         K = PS.base_ring()
         if K in NumberFields():
             if not K.is_absolute():
@@ -4547,11 +4556,11 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 #separately. We also check here that we are working with a polynomial. If the map
                 #is not a polynomial, the Weil restriction will not be a morphism and we cannot
                 #apply this algorithm.
-                g = self.dehomogenize(1)
+                g = DS.dehomogenize(1)
                 inf = PS([1,0])
                 k = 1
                 if isinstance(g[0], FractionFieldElement):
-                    g = self.dehomogenize(0)
+                    g = DS.dehomogenize(0)
                     inf = PS([0,1])
                     k = 0
                     if isinstance(g[0], FractionFieldElement):
@@ -4575,10 +4584,10 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                         if not Q in periodic_points:
                             #check periodic not preperiodic and add all points in cycle
                             orb = set([Q])
-                            Q2 = self(Q)
+                            Q2 = DS(Q)
                             while Q2 not in orb:
                                 orb.add(Q2)
-                                Q2 = self(Q2)
+                                Q2 = DS(Q2)
                             if Q2 == Q:
                                 periodic_points = periodic_points.union(orb)
                 return list(periodic_points)
@@ -4588,6 +4597,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 periods = kwds.pop("periods", None)
                 badprimes = kwds.pop("bad_primes", None)
                 num_cpus = kwds.pop("ncpus", ncpus())
+                alg = kwds.pop("alg", True)
 
                 if not isinstance(primebound, (list, tuple)):
                     try:
@@ -4602,27 +4612,36 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                         raise TypeError("prime bounds must be integers")
 
                 if badprimes is None:
-                    badprimes = self.primes_of_bad_reduction()
+                    badprimes = DS.primes_of_bad_reduction()
                 if periods is None:
-                    periods = self.possible_periods(prime_bound=primebound, bad_primes=badprimes, ncpus=num_cpus)
-                PS = self.domain()
+                    periods = DS.possible_periods(prime_bound=primebound, bad_primes=badprimes, ncpus=num_cpus)
+                    
+                print(periods)
+                PS = DS.domain()
                 periodic = set()
+                if not alg:
+                    for i in periods:
+                        periodic.update(DS.periodic_points(i))
+                    return list(periodic)
                 while p in badprimes:
                     p = next_prime(p + 1)
-                B = e ** self.height_difference_bound()
-
-                f = self.change_ring(GF(p))
+                B = e ** DS.height_difference_bound()
+                
+                
+                
+                
+                f = DS.change_ring(GF(p))
                 all_points = f.possible_periods(True) #return the list of points and their periods.
                 pos_points = []
                 for i in range(len(all_points)):
                     if all_points[i][1] in periods and not (all_points[i] in pos_points):  #check period, remove duplicates
                         pos_points.append(all_points[i])
-                periodic_points = self.lift_to_rational_periodic(pos_points,B)
+                periodic_points = DS.lift_to_rational_periodic(pos_points,B)
                 for p,n in periodic_points:
                     for k in range(n):
                         p.normalize_coordinates()
                         periodic.add(p)
-                        p = self(p)
+                        p = DS(p)
                 return list(periodic)
         else:
             raise TypeError("base field must be an absolute number field")
@@ -5994,9 +6013,16 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
         return(automorphism_group_FF(F, absolute, iso_type, return_functions))
         
            
-    def all_periodic_points(self):
+    def all_periodic_points(self, **kwds):
         r"""
         Returns a list of all periodic points over a finite field.
+        
+        INPUT: 
+        
+        kwds:
+        
+        - ``ring`` -- (default: domain of dynamical system) the base ring
+          over which the periodic points of the dynamical system are found
 
         OUTPUT: a list of elements which are periodic
 
@@ -6020,5 +6046,11 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
             (3 : 0 : 1),
             (0 : 3 : 1)]
         """
-        return _all_periodic_points(self)
+        ring = kwds.pop("ring", None)
+        if ring is None:
+            DS = self
+        else:
+            DS = self.change_ring(ring)
+        
+        return _all_periodic_points(DS)
 

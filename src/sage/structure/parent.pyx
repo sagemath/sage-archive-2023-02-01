@@ -112,13 +112,8 @@ import operator
 from copy import copy
 
 from sage.cpython.type cimport can_assign_class
-from .coerce cimport coercion_model
-from sage.structure.element cimport parent
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
-from .category_object import CategoryObject
-from .coerce cimport parent_is_integers
-from .coerce_exceptions import CoercionException
 from sage.structure.debug_options cimport debug
 from sage.structure.richcmp cimport rich_to_bool
 from sage.structure.sage_object cimport SageObject
@@ -126,9 +121,14 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.sets_cat import Sets, EmptySetError
 from sage.misc.lazy_format import LazyFormat
 from sage.misc.lazy_string cimport _LazyString
+from sage.sets.pythonclass cimport Set_PythonType_class, Set_PythonType
+from .category_object import CategoryObject
+from .coerce cimport coercion_model
+from .coerce cimport parent_is_integers
+from .coerce_exceptions import CoercionException
 from .coerce_maps cimport (NamedConvertMap, DefaultConvertMap,
         DefaultConvertMap_unique, CallableConvertMap)
-from sage.sets.pythonclass cimport Set_PythonType_class, Set_PythonType
+from .element cimport parent, Element
 
 
 cdef _record_exception():
@@ -2497,6 +2497,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         from sage.categories.homset import Hom
         from .coerce_actions import LeftModuleAction, RightModuleAction
         cdef Parent R
+
         for action in self._action_list:
             if isinstance(action, Action) and action.operation() is op:
                 if self_on_left:
@@ -2505,29 +2506,8 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
                 else:
                     if action.right_domain() is not self: continue
                     R = action.left_domain()
-            elif op is operator.mul and isinstance(action, Parent):
-                try:
-                    R = action
-                    _register_pair(self, R, "action") # to kill circular recursion
-                    if self_on_left:
-                        action = LeftModuleAction(R, self, a=S_el, g=self_el) # self is acted on from right
-                    else:
-                        action = RightModuleAction(R, self, a=S_el, g=self_el) # self is acted on from left
-                    ## The following two lines are disabled to prevent the following from working:
-                    ## sage: x, y = var('x,y')
-                    ## sage: parent(ZZ[x][y](1)*vector(QQ[y],[1,2]))
-                    ## sage: parent(ZZ[x](1)*vector(QQ[y],[1,2]))
-                    ## We will hopefully come up with a way to reinsert them, because they increase the scope
-                    ## of discovered actions.
-                    #i = self._action_list.index(R)
-                    #self._action_list[i] = action
-                except CoercionException:
-                    _record_exception()
-                    continue
-                finally:
-                    _unregister_pair(self, R, "action")
             else:
-                continue # only try mul if not specified
+                continue
             if R is S:
                 return action
             else:
@@ -2538,15 +2518,9 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
                     else:
                         return PrecomposedAction(action, connecting, None)
 
-        # We didn't find an action in the list, but maybe the elements
-        # define special action methods
-        if op is operator.mul:
-            # TODO: if _xmul_/_x_action_ code does stuff like
-            # if self == 0:
-            #    return self
-            # then an_element() == 0 could be very bad.
+        if op is operator.mul: # elements define special action methods.
             try:
-                _register_pair(self, S, "action") # this is to avoid possible infinite loops
+                _register_pair(self, S, "action") # avoid possible infinite loops
 
                 # detect actions defined by _rmul_, _lmul_, _act_on_, and _acted_upon_ methods
                 from .coerce_actions import detect_element_action

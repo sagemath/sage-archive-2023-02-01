@@ -287,13 +287,20 @@ class Interface(WithEqualityById, ParentWithBase):
         if isinstance(x, string_types):
             return cls(self, x, name=name)
         try:
-            return self._coerce_from_special_method(x)
+            # Special methods do not and should not have an option to
+            # set the name directly, as the identifier assigned by the
+            # interface should stay consistent. An identifier with a
+            # user-assigned name might change its value, so we return a
+            # new element.
+            result = self._coerce_from_special_method(x)
+            return result if name is None else result.name(new_name=name)
         except TypeError:
             raise
         except AttributeError:
             pass
         try:
-            return self._coerce_impl(x, use_special=False)
+            result = self._coerce_impl(x, use_special=False)
+            return result if name is None else result.name(new_name=name)
         except TypeError as msg:
             try:
                 return cls(self, str(x), name=name)

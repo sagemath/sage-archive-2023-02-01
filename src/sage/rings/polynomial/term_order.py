@@ -767,7 +767,7 @@ class TermOrder(SageObject):
 
             self._length = len(weights)
             self._name = name
-            self._singular_str = singular_name_mapping.get(name,name) + '(' + ','.join([str(w) for w in weights]) + ')'
+            self._singular_str = singular_name_mapping.get(name,name) + '(' + ','.join(str(w) for w in weights) + ')'
             self._macaulay2_str = ""
             self._magma_str = ""
             self._weights = weights # defined only for weighted degree orders
@@ -778,11 +778,11 @@ class TermOrder(SageObject):
             if n*n != len(name):
                 raise ValueError("{} does not specify a square matrix".format(name))
 
-            int_str = ','.join([str(int(e)) for e in name])
+            int_str = ','.join(str(int(e)) for e in name)
 
             self._length = n
             self._name = "matrix"
-            self._singular_str = "M(%s)"%(int_str,)
+            self._singular_str = "M(%s)" % (int_str,)
             self._macaulay2_str = "" # Macaulay2 does not support matrix term order directly
             self._magma_str = '"weight",[%s]'%(int_str,)
 

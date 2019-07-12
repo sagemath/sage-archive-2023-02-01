@@ -750,8 +750,8 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             \Bold{Q}[x_{\ast}, y_{\ast}]
         """
         from sage.misc.latex import latex
-        vars = ', '.join([latex(X) for X in self.gens()])
-        return "%s[%s]"%(latex(self.base_ring()), vars)
+        vars = ', '.join(latex(X) for X in self.gens())
+        return "%s[%s]" % (latex(self.base_ring()), vars)
 
     @cached_method
     def _an_element_(self):

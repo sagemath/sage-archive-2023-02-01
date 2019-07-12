@@ -514,10 +514,11 @@ run it may have increased. Try increasing the limit. ::
 
     sage: from platform import system
     sage: ok = True
+    sage: from sage.cpython.string import bytes_to_str
     sage: if system() == "Linux":
     ....:     P = subprocess.Popen(["sage", "-t", "--warn-long", "0", "--memlimit=2000", "memlimit.rst"], stdout=subprocess.PIPE, **kwds)
     ....:     out, err = P.communicate()
-    ....:     ok = ("MemoryError: failed to allocate" in out)
+    ....:     ok = ("MemoryError: failed to allocate" in bytes_to_str(out))
     sage: ok or out
     True
 """

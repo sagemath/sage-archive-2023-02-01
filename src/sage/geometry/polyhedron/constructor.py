@@ -206,12 +206,12 @@ triangle, that would be::
 .. WARNING::
 
     Be careful when you construct polyhedra with floating point numbers. The only
-    available backend for such computation is `cdd` which uses machine floating
+    available backend for such computation is ``cdd`` which uses machine floating
     point numbers which have have limited precision. If the input consists of
-    floating point numbers and the `base_ring` is not specified, the base ring is
-    set to be the `RealField` with the precision given by the minimal bit precision
+    floating point numbers and the ``base_ring`` is not specified, the base ring is
+    set to be the ``RealField`` with the precision given by the minimal bit precision
     of the input. Then, if the obtained minimum is 53 bits of precision, the
-    constructor converts automatically the base ring to `RDF`. Otherwise,
+    constructor converts automatically the base ring to ``RDF``. Otherwise,
     it returns an error::
 
         sage: Polyhedron(vertices = [[1.12345678901234, 2.12345678901234]])
@@ -224,7 +224,7 @@ triangle, that would be::
         ValueError: the only allowed inexact ring is 'RDF' with backend 'cdd'
 
     The strongly suggested method to input floating point numbers is to specify the
-    `base_ring` to be `RDF`::
+    ``base_ring`` to be ``RDF``::
 
         sage: Polyhedron(vertices = [[1.123456789012345, 2.123456789012345]], base_ring=RDF)
         A 0-dimensional polyhedron in RDF^2 defined as the convex hull of 1 vertex

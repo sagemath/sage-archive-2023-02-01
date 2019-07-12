@@ -1645,9 +1645,9 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
             """
             while pos < len(P[i]) and P[i][pos] > string_depth[parent]:
                 label = P[i][pos] - string_depth[parent]
-                try:
+                if (parent, node) in labeling:
                     labeling[(parent,node)].append(label)
-                except KeyError:
+                else:
                     labeling[(parent,node)] = [label]
                 pos += 1
             return (i, pos)
@@ -1721,9 +1721,9 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
             ``(u, v), l``
             """
             # Mark the point in labeling
-            try:
+            if (u, v) in labeling:
                 labeling[(u, v)].append(l)
-            except KeyError:
+            else:
                 labeling[(u, v)] = [l]
             # Make the walk
             final_state = self.suffix_walk(((u, v), l))
@@ -1745,10 +1745,10 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
                     depth += 1
             # If needed start a new walk
             if successful:
-                try:
+                if (parent, child) in prelabeling:
                     if depth not in prelabeling[(parent, child)]:
                         walk_chain(parent, child, depth, start+1)
-                except KeyError:
+                else:
                     walk_chain(parent, child, depth, start+1)
 
         def treat_node(current_node,(i,j)):

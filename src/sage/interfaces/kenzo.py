@@ -98,6 +98,7 @@ spectral_sequence_group = EclObject("spectral-sequence-group")
 spectral_sequence_differential_matrix = EclObject("spectral-sequence-differential-matrix")
 eilenberg_moore_spectral_sequence = EclObject("eilenberg-moore-spectral-sequence")
 serre_whitehead_spectral_sequence = EclObject("serre-whitehead-spectral-sequence")
+serre_spectral_sequence_product = EclObject("serre-spectral-sequence-product")
 
 
 def Sphere(n):
@@ -668,17 +669,36 @@ class KenzoSimplicialSet(KenzoChainComplex):
         EXAMPLES::
 
             sage: from sage.interfaces.kenzo import Sphere
-            sage: S3 = Sphere(3)                              # optional -- kenzo
-            sage: E = S3.sw_spectral_sequence()               # optional -- kenzo
-            sage: T = E.table(0,0,4,0,4)                      # optional -- kenzo
-            sage: T                                           # optional -- kenzo
-            Z   0   0   Z   0
-            0   0   0   0   0
-            Z   0   0   Z   0
-            0   0   0   0   0
-            Z   0   0   Z   0
+            sage: S3 = Sphere(3)                            # optional -- kenzo
+            sage: E = S3.sw_spectral_sequence()             # optional -- kenzo
+            sage: T = E.table(0, 0, 4, 0, 4)                # optional -- kenzo
+            sage: T                                         # optional -- kenzo
+              Z   0   0   Z   0
+              0   0   0   0   0
+              Z   0   0   Z   0
+              0   0   0   0   0
+              Z   0   0   Z   0
         """
         return KenzoSpectralSequence(serre_whitehead_spectral_sequence(self._kenzo))
+
+    def serre_spectral_sequence(self):
+        r"""
+        Return the spectral sequence of self.
+
+        The object self must be created as a cartesian product (twisted or not).
+
+            sage: from sage.interfaces.kenzo import Sphere
+            sage: S2 = Sphere(2)                            # optional -- kenzo
+            sage: S3 = Sphere(3)                            # optional -- kenzo
+            sage: P = S2.cartesian_product(S3)              # optional -- kenzo
+            sage: E = P.serre_spectral_sequence()           # optional -- kenzo
+            sage: E.table(0, 0, 2, 0, 3)                    # optional -- kenzo
+              Z   0   Z
+              0   0   0
+              0   0   0
+              Z   0   Z
+        """
+        return KenzoSpectralSequence(serre_spectral_sequence_product(self._kenzo))
 
 
 class KenzoSimplicialGroup(KenzoSimplicialSet):

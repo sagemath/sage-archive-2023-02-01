@@ -97,6 +97,7 @@ sfinitesimplicialset_aux1 = EclObject("sfinitesimplicialset_aux1")
 spectral_sequence_group = EclObject("spectral-sequence-group")
 spectral_sequence_differential_matrix = EclObject("spectral-sequence-differential-matrix")
 eilenberg_moore_spectral_sequence = EclObject("eilenberg-moore-spectral-sequence")
+serre_whitehead_spectral_sequence = EclObject("serre-whitehead-spectral-sequence")
 
 
 def Sphere(n):
@@ -288,9 +289,9 @@ class KenzoSpectralSequence(KenzoObject):
         - ``i`` -- the column of the differential domain.
 
         - ``j`` -- the row of the differential domain.
-        
+
         EXAMPLES::
-        
+
             sage: from sage.interfaces.kenzo import Sphere   # optional -- kenzo
             sage: S3 = Sphere(3)                             # optional -- kenzo
             sage: L = S3.loop_space()                        # optional -- kenzo
@@ -303,7 +304,7 @@ class KenzoSpectralSequence(KenzoObject):
             sage: EMS.matrix(1, -2 ,8)                       # optional -- kenzo
             [ 3  3  0]
             [-2  0  2]
-            [ 0 -3 -3]            
+            [ 0 -3 -3]
         """
         klist = spectral_sequence_differential_matrix(self._kenzo, p, i, j)
         plist = klist.python()
@@ -312,7 +313,7 @@ class KenzoSpectralSequence(KenzoObject):
             j = len(self.group(p, i-p, j+p-1).invariants())
             return matrix(i,j)
         return matrix(plist)
-    
+
     def differential(self, p, i, j):
         r"""
         Return the ``(p, i, j)`` differential morphism of the spectral sequence.
@@ -324,9 +325,9 @@ class KenzoSpectralSequence(KenzoObject):
         - ``i`` -- the column of the differential domain.
 
         - ``j`` -- the row of the differential domain.
-        
+
         EXAMPLES::
-        
+
             sage: from sage.interfaces.kenzo import Sphere   # optional -- kenzo
             sage: S3 = Sphere(3)                             # optional -- kenzo
             sage: L = S3.loop_space()                        # optional -- kenzo
@@ -471,7 +472,7 @@ class KenzoChainComplex(KenzoObject):
             sage: sage_chcm = ChainComplex({1: m1, 4: m4, 5: m5}, degree = -1)         # optional - kenzo
             sage: kenzo_chcm = KChainComplex(sage_chcm)                                # optional - kenzo
             sage: kenzo_chcm                                                           # optional - kenzo
-            [K589 Chain-Complex]
+            [K... Chain-Complex]
             sage: for i in range(6):                                                   # optional - kenzo
             ....:     print("Basis in dimension %i: %s" % (i, kenzo_chcm.basis(i)))    # optional - kenzo
             Basis in dimension 0: ['G0G0', 'G0G1', 'G0G2']
@@ -639,11 +640,11 @@ class KenzoSimplicialSet(KenzoChainComplex):
             return AbelianGroup(trgens)
         else:
             return AbelianGroup([])
-        
+
     def em_spectral_sequence(self):
         r"""
         Return the Eilenberg-Moore spectral sequence of self
-        
+
         EXAMPLES::
 
             sage: from sage.interfaces.kenzo import Sphere # optional -- kenzo
@@ -659,6 +660,25 @@ class KenzoSimplicialSet(KenzoChainComplex):
         if self.homology(1).invariants():
             raise ValueError("Eilenberg-Moore spectral sequence implemented only for 1-reduced simplicial sets")
         return KenzoSpectralSequence(eilenberg_moore_spectral_sequence(self._kenzo))
+
+    def sw_spectral_sequence(self):
+        r"""
+        Return the Serre sequence of the first step of the Whitehead tower.
+
+        EXAMPLES::
+
+            sage: from sage.interfaces.kenzo import Sphere
+            sage: S3 = Sphere(3)                              # optional -- kenzo
+            sage: E = S3.sw_spectral_sequence()               # optional -- kenzo
+            sage: T = E.table(0,0,4,0,4)                      # optional -- kenzo
+            sage: T                                           # optional -- kenzo
+            Z   0   0   Z   0
+            0   0   0   0   0
+            Z   0   0   Z   0
+            0   0   0   0   0
+            Z   0   0   Z   0
+        """
+        return KenzoSpectralSequence(serre_whitehead_spectral_sequence(self._kenzo))
 
 
 class KenzoSimplicialGroup(KenzoSimplicialSet):

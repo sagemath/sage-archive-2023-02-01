@@ -1135,6 +1135,14 @@ class ClusterAlgebraSeed(SageObject):
             sage: S.mutate(0)
             sage: S._mutated_F(0, (1, 0))
             u0 + 1
+
+        Check that :trac:`28176` is fixed::
+
+            sage: A = ClusterAlgebra(matrix([[0,2],[-2,0]]))
+            sage: S = A.initial_seed()
+            sage: S.mutate([1, 0, 1])
+            sage: parent(S._mutated_F(1, (0, -1)))
+            Multivariate Polynomial Ring in u0, u1 over Rational Field
         """
         alg = self.parent()
         pos = alg._U(1)
@@ -1148,7 +1156,7 @@ class ClusterAlgebraSeed(SageObject):
                 pos *= self.F_polynomial(j) ** self._B[j, k]
             elif self._B[j, k] < 0:
                 neg *= self.F_polynomial(j) ** (-self._B[j, k])
-        return (pos + neg) / alg.F_polynomial(old_g_vector)
+        return (pos + neg) // alg.F_polynomial(old_g_vector)
 
 ##############################################################################
 # Cluster algebras
@@ -2190,17 +2198,15 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         cones = [Cone(S.g_vectors()) for S in seeds]
         return Fan(cones)
 
-    def mutate_initial(self, direction):
+    def mutate_initial(self, direction, **kwargs):
         r"""
         Return the cluster algebra obtained by mutating ``self`` at
         the initial seed.
 
         .. WARNING::
 
-        Because of the polynomial manipulations involved in the algorithm, this
-        method is significantly slower than :meth:`ClusterAlgebraSeed.mutate`.
+        This method is significantly slower than :meth:`ClusterAlgebraSeed.mutate`.
         It is therefore advisable to use the latter for exploration purposes.
-
 
         INPUT:
 
@@ -2209,6 +2215,17 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
           * an integer in ``range(self.rank())`` to mutate in one direction only
           * an iterable of such integers to mutate along a sequence
           * a string "sinks" or "sources" to mutate at all sinks or sources simultaneously
+
+        - ``mutating_F`` -- bool (default ``True``); whether to compute
+          F-polynomials while mutating
+
+        .. NOTE::
+
+            While knowing F-polynomials is essential to computing
+            cluster variables, the process of mutating them is quite slow.
+            If you care only about combinatorial data like g-vectors and
+            c-vectors, setting ``mutating_F=False`` yields significant
+            benefits in terms of speed.
 
         ALGORITHM:
 
@@ -2236,14 +2253,20 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A.mutate_initial(0) is A
             False
 
+        A faster example without recomputing F-polynomials
+
+            sage: A = ClusterAlgebra(matrix([[0,5],[-5,0]]))
+            sage: A.mutate_initial([0,1]*10, mutating_F=False)
+            A Cluster Algebra with cluster variables x20, x21 and no coefficients over Integer Ring
+
         Check that :trac:`28176` is fixed::
 
             sage: A = ClusterAlgebra( matrix(5,[0,1,-1,1,-1]), cluster_variable_names=['p13'], coefficient_names=['p12','p23','p34','p41']); A
-			A Cluster Algebra with cluster variable p13 and coefficients p12, p23, p34, p41 over Integer Ring
-			sage: A.mutate_initial(0)
-			A Cluster Algebra with cluster variable x0 and coefficients p12, p23, p34, p41 over Integer Ring
+            A Cluster Algebra with cluster variable p13 and coefficients p12, p23, p34, p41 over Integer Ring
+            sage: A.mutate_initial(0)
+            A Cluster Algebra with cluster variable x0 and coefficients p12, p23, p34, p41 over Integer Ring
 
-			sage: A1 = ClusterAlgebra(['A',[2,1],1])
+            sage: A1 = ClusterAlgebra(['A',[2,1],1])
             sage: A2 = A1.mutate_initial([0,1,0])
             sage: len(A2.g_vectors_so_far()) == len(A2.F_polynomials_so_far())
             True
@@ -2269,8 +2292,6 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
                 seq = iter((direction, ))
 
         # setup
-        Ugen = self._U.gens()
-        F_poly_dict = copy(self._F_poly_dict)
         path_dict = copy(self._path_dict)
         path_to_current = copy(self.current_seed().path_from_initial_seed())
         B0 = copy(self._B0)
@@ -2286,13 +2307,9 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
             # clear storage
             tmp_path_dict = {}
-            tmp_F_poly_dict = {}
 
             # mutate B-matrix
             B0.mutate(k)
-
-            # here we have \mp B0 rather then \pm B0 because we want the k-th row of the old B0
-            F_subs = [Ugen[k] ** (-1) if j == k else Ugen[j] * Ugen[k] ** max(B0[k, j], 0) * (1 + Ugen[k]) ** (-B0[k, j]) for j in range(n)]
 
             for old_g_vect in path_dict:
                 # compute new g-vector
@@ -2312,21 +2329,10 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
                     new_path = ([k] + new_path[:1] if new_path[:1] != [k] else []) + new_path[1:]
                     tmp_path_dict[new_g_vect] = new_path
 
-                # compute new F-polynomial
-                if old_g_vect in F_poly_dict:
-                    if new_g_vect in initial_g_vectors:
-                        tmp_F_poly_dict[new_g_vect] = self._U(1)
-                    else:
-                        h = -min(0, old_g_vect[k])
-                        new_F_poly = F_poly_dict[old_g_vect](F_subs) * Ugen[k] ** h * (Ugen[k] + 1) ** old_g_vect[k]
-                        tmp_F_poly_dict[new_g_vect] = self._U(new_F_poly)
-
             # update storage
             initial_g = (0,)*(k)+(1,)+(0,)*(n-k-1)
             tmp_path_dict[initial_g] = []
             path_dict = tmp_path_dict
-            tmp_F_poly_dict[initial_g] = self._U(1)
-            F_poly_dict = tmp_F_poly_dict
             path_to_current = ([k] + path_to_current[:1] if path_to_current[:1] != [k] else []) + path_to_current[1:]
 
             # name the new cluster variable
@@ -2340,13 +2346,20 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
                            coefficient_names=coeff_names, scalars=scalars)
 
         # store computed data
-        A._F_poly_dict.update(F_poly_dict)
         A._path_dict.update(path_dict)
 
         # reset self.current_seed() to the previous location
         S = A.initial_seed()
         S.mutate(path_to_current, mutating_F=False)
         A.set_current_seed(S)
+
+        # recompute F-polynomials
+        # We use forward mutatino of F-polynomials because it is much faster
+        # than backward mutation. Moreover the number of needed mutation is
+        # linear in len(seq) rather than quadratic.
+        if kwargs.get('mutating_F', True):
+            for p in A._path_dict.values():
+                A.initial_seed().mutate(p)
 
         return A
 

@@ -1940,16 +1940,19 @@ class WQSymBases(Category_realization_of_parent):
             sage: bases.super_categories()
             [Category of realizations of Word Quasi-symmetric functions over Integer Ring,
              Join of Category of realizations of hopf algebras over Integer Ring
-                 and Category of graded algebras over Integer Ring,
+                 and Category of graded algebras over Integer Ring
+                 and Category of graded coalgebras over Integer Ring,
              Category of graded connected hopf algebras with basis over Integer Ring]
 
             sage: bases = WQSymBases(WQSym, False)
             sage: bases.super_categories()
             [Category of realizations of Word Quasi-symmetric functions over Integer Ring,
              Join of Category of realizations of hopf algebras over Integer Ring
-                 and Category of graded algebras over Integer Ring,
+                 and Category of graded algebras over Integer Ring
+                 and Category of graded coalgebras over Integer Ring,
              Join of Category of filtered connected hopf algebras with basis over Integer Ring
-                 and Category of graded algebras over Integer Ring]
+                 and Category of graded algebras over Integer Ring
+                 and Category of graded coalgebras over Integer Ring]
         """
         R = self.base().base_ring()
         cat = HopfAlgebras(R).Graded().WithBasis()

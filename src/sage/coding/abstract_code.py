@@ -96,6 +96,10 @@ class AbstractCode(Parent):
       constructor. A good example is in
       :class:`sage.coding.linear_code.AbstractLinearCode`.
 
+    - to use the encoder/decoder framework, one has to set up the category and
+      related functions ``__iter__`` and ``__contains__``. A good example is in
+      :class:`sage.coding.linear_code.AbstractLinearCode`.
+
     - add the following two lines on the class level::
 
           _registered_encoders = {}
@@ -155,7 +159,7 @@ class AbstractCode(Parent):
             sage: from sage.coding.abstract_code import AbstractCode
             sage: class MyCodeFamily(AbstractCode):
             ....:   def __init__(self, field, length, dimension, generator_matrix):
-            ....:       sage.coding.abstract_code.AbstractCode.__init__(self, length)
+            ....:       super(MyCodeFamily, self).__init__(length)
             ....:       cat = Modules(field).FiniteDimensional().WithBasis().Finite()
             ....:       Parent.__init__(self, base=field, facade=False, category=cat)
             ....:       self._dimension = dimension
@@ -245,6 +249,62 @@ class AbstractCode(Parent):
         d['_registered_encoders'] = self._registered_encoders
         d['_registered_decoders'] = self._registered_decoders
         return d
+
+    def __iter__(self):
+        r"""
+        Return an error message requiring to override ``__iter__`` in ``self``.
+
+        As one has to implement specific category related methods (`__iter__` and
+        `__contains__`) when writing a new code class which inherits from
+        :class:`AbstractCode`, the generic call to `__iter__` has to fail.
+
+        EXAMPLES:
+
+        We create a new code class::
+
+            sage: from sage.coding.abstract_code import AbstractCode
+            sage: class MyCode(AbstractCode):
+            ....:    def __init__(self):
+            ....:        super(MyCode, self).__init__(10)
+
+        We check we get a sensible error message while asking for an
+        iterator over the elements of our new class:
+
+            sage: C = MyCode()
+            sage: list(C)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Please override __iter__ in the implementation of <class '__main__.MyCode'>
+        """
+        raise RuntimeError("Please override __iter__ in the implementation of {}".format(self.parent()))
+
+    def __contains__(self, c):
+        r"""
+        Return an error message requiring to override ``__contains__`` in ``self``.
+
+        As one has to implement specific category related methods (`__iter__` and
+        `__contains__`) when writing a new code class which inherits from
+        :class:`AbstractCode`, the generic call to `__contains__` has to fail.
+
+        EXAMPLES:
+
+        We create a new code class::
+
+            sage: from sage.coding.abstract_code import AbstractCode
+            sage: class MyCode(AbstractCode):
+            ....:    def __init__(self):
+            ....:        super(MyCode, self).__init__(10)
+
+        We check we get a sensible error message while asking if an element is
+        in our new class:
+
+            sage: C = MyCode()
+            sage: vector((1, 0, 0, 0, 0, 1, 1)) in C
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Please override __contains__ in the implementation of <class '__main__.MyCode'>
+        """
+        raise RuntimeError("Please override __contains__ in the implementation of {}".format(self.parent()))
 
     def _repr_(self):
         r"""

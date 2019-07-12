@@ -1240,7 +1240,12 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A2 = ClusterAlgebra(['A',2], cluster_variable_prefix='x')
             sage: A1 is A2
             True
-
+            sage: A3 = ClusterAlgebra(Matrix([[0,1],[-1,0]]))
+            sage: A1 is A3
+            True
+            sage: A4 = ClusterAlgebra([[0,1]]) # built from a digraph
+            sage: A1 is A4
+            True
         """
         # Use ClusterQuiver to parse the input; eventually we may want to avoid this
         Q = ClusterQuiver(data)
@@ -1249,7 +1254,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         n = Q.n()
 
         # Exchange matrix
-        B = Q.b_matrix()[:n, :]
+        B0 = Q.b_matrix()[:n, :]
 
         # Coefficient matrix
         if kwargs.pop('principal_coefficients', False):
@@ -1258,8 +1263,8 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             M0 = Q.b_matrix()[n:, :]
         m = M0.nrows()
 
-        B = block_matrix([[B],[M0]])
-        B.set_immutable()
+        B0 = block_matrix([[B0],[M0]])
+        B0.set_immutable()
 
         # Determine the names of the initial cluster variables
         kwargs.setdefault('cluster_variable_prefix', 'x')
@@ -1285,7 +1290,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         # Determine scalars
         kwargs.setdefault('scalars', ZZ)
 
-        return super(ClusterAlgebra, self).__classcall__(self, B, **kwargs)
+        return super(ClusterAlgebra, self).__classcall__(self, B0, **kwargs)
 
     def __init__(self, B, **kwargs):
         """

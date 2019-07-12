@@ -1939,6 +1939,29 @@ cdef class RealBall(RingElement):
 
     # Precision and accuracy
 
+    def nbits(self):
+        r"""
+        Return the minimum precision sufficient to represent this ball exactly.
+
+        In other words, return the number of bits needed to represent the
+        absolute value of the mantissa of the midpoint of this ball. The result
+        is 0 if the midpoint is a special value.
+
+        EXAMPLES::
+
+            sage: RBF(1/3).nbits()
+            53
+            sage: RBF(1023, .1).nbits()
+            10
+            sage: RBF(1024, .1).nbits()
+            1
+            sage: RBF(0).nbits()
+            0
+            sage: RBF(infinity).nbits()
+            0
+        """
+        return arb_bits(self.value)
+
     def round(self):
         """
         Return a copy of this ball with center rounded to the precision of the

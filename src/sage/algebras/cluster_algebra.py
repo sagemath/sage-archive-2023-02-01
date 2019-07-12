@@ -2205,8 +2205,8 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
         .. WARNING::
 
-        This method is significantly slower than :meth:`ClusterAlgebraSeed.mutate`.
-        It is therefore advisable to use the latter for exploration purposes.
+            This method is significantly slower than :meth:`ClusterAlgebraSeed.mutate`.
+            It is therefore advisable to use the latter for exploration purposes.
 
         INPUT:
 
@@ -2253,7 +2253,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A.mutate_initial(0) is A
             False
 
-        A faster example without recomputing F-polynomials
+        A faster example without recomputing F-polynomials::
 
             sage: A = ClusterAlgebra(matrix([[0,5],[-5,0]]))
             sage: A.mutate_initial([0,1]*10, mutating_F=False)

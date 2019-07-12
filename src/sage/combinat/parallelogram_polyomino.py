@@ -951,6 +951,7 @@ class ParallelogramPolyomino(ClonableList):
     def _ascii_art_(self):
         """
         TESTS::
+
             sage: ascii_art(ParallelogramPolyomino([[0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0]]))
             ***
             ****
@@ -978,6 +979,7 @@ class ParallelogramPolyomino(ClonableList):
     def _unicode_art_(self):
         """
         TESTS::
+
             sage: unicode_art(ParallelogramPolyomino([[0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0]]))
             ┌┬┬┐
             ├┼┼┼┐
@@ -3537,7 +3539,22 @@ class ParallelogramPolyomino(ClonableList):
 
     def _plot_diagram(self):
         r"""
-        Return a plot of the diagram representing ``self``.
+        Return a plot of the diagram representing ``self``
+
+        TESTS::
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[0, 1, 1, 1, 1], [1, 1, 1, 1, 0]]
+            ....: )
+            sage: pp._plot_diagram()
+            Graphics object consisting of 7 graphics primitives
+
+            sage: pp = ParallelogramPolyomino([
+            ....:     [0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+            ....:     [1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0]
+            ....: ])
+            sage: pp._plot_diagram()
+            Graphics object consisting of 25 graphics primitives
         """
         G = Graphics()
 
@@ -3576,6 +3593,21 @@ class ParallelogramPolyomino(ClonableList):
 
         - ``directions`` -- direction(s) `0` and/or `1` of the bounce paths.
 
+        TESTS::
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[0, 1, 1, 1, 1], [1, 1, 1, 1, 0]]
+            ....: )
+            sage: pp._plot_bounce(directions=[1])
+            Graphics object consisting of 1 graphics primitive
+
+            sage: pp = ParallelogramPolyomino([
+            ....:     [0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+            ....:     [1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0]
+            ....: ])
+            sage: pp._plot_bounce(directions=[0,1])
+            Graphics object consisting of 9 graphics primitives
+
         """
         G = Graphics()
         if 0 in directions:
@@ -3601,6 +3633,21 @@ class ParallelogramPolyomino(ClonableList):
     def _plot_bounce_values(self,bounce=0):
         r"""
         Return a plot containing the value of bounce along the specified bounce path.
+
+        TESTS::
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[0, 1, 1, 1, 1], [1, 1, 1, 1, 0]]
+            ....: )
+            sage: pp._plot_bounce_values()
+            Graphics object consisting of 4 graphics primitives
+
+            sage: pp = ParallelogramPolyomino([
+            ....:     [0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+            ....:     [1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0]
+            ....: ])
+            sage: pp._plot_bounce_values(bounce=1)
+            Graphics object consisting of 10 graphics primitives
         """
         G = Graphics()
 
@@ -3635,6 +3682,21 @@ class ParallelogramPolyomino(ClonableList):
     def _plot_tree(self):
         r"""
         Return a plot of the nodes of the tree.
+
+        TESTS::
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[0, 1, 1, 1, 1], [1, 1, 1, 1, 0]]
+            ....: )
+            sage: pp._plot_tree()
+            Graphics object consisting of 2 graphics primitives
+
+            sage: pp = ParallelogramPolyomino([
+            ....:     [0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+            ....:     [1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0]
+            ....: ])
+            sage: pp._plot_tree()
+            Graphics object consisting of 2 graphics primitives
         """
         G = Graphics()
         G += point(points=((v+.5,-u-.5) for u,v in self.get_BS_nodes()),size=20)

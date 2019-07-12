@@ -1435,56 +1435,22 @@ def BinaryQF_reduced_representatives(D, primitive_only=False, proper=True):
     TESTS::
 
         sage: BinaryQF_reduced_representatives(73)
-        [-6*x^2 + 5*x*y + 2*y^2,
-        -6*x^2 + 7*x*y + y^2,
-        -4*x^2 + 3*x*y + 4*y^2,
-        -4*x^2 + 3*x*y + 4*y^2,
-        -4*x^2 + 5*x*y + 3*y^2,
-        -3*x^2 + 5*x*y + 4*y^2,
-        -3*x^2 + 7*x*y + 2*y^2,
-        -2*x^2 + 5*x*y + 6*y^2,
-        -2*x^2 + 7*x*y + 3*y^2,
-        -x^2 + 7*x*y + 6*y^2,
-        x^2 + 7*x*y - 6*y^2,
-        2*x^2 + 5*x*y - 6*y^2,
-        2*x^2 + 7*x*y - 3*y^2,
-        3*x^2 + 5*x*y - 4*y^2,
-        3*x^2 + 7*x*y - 2*y^2,
-        4*x^2 + 3*x*y - 4*y^2,
-        4*x^2 + 3*x*y - 4*y^2,
-        4*x^2 + 5*x*y - 3*y^2,
-        6*x^2 + 5*x*y - 2*y^2,
-        6*x^2 + 7*x*y - y^2]
+        [-4*x^2 + 3*x*y + 4*y^2,
+         4*x^2 + 3*x*y - 4*y^2]
         sage: BinaryQF_reduced_representatives(76, primitive_only=True)
-        [-5*x^2 + 4*x*y + 3*y^2,
-        -5*x^2 + 6*x*y + 2*y^2,
-         -3*x^2 + 4*x*y + 5*y^2,
-         -3*x^2 + 8*x*y + y^2,
-         -2*x^2 + 6*x*y + 5*y^2,
-         -x^2 + 8*x*y + 3*y^2,
-         x^2 + 8*x*y - 3*y^2,
-         2*x^2 + 6*x*y - 5*y^2,
-         3*x^2 + 4*x*y - 5*y^2,
-         3*x^2 + 8*x*y - y^2,
-         5*x^2 + 4*x*y - 3*y^2,
-         5*x^2 + 6*x*y - 2*y^2]
+        [-3*x^2 + 4*x*y + 5*y^2,
+         3*x^2 + 4*x*y - 5*y^2]
 
     Check that the primitive_only keyword does something::
 
         sage: BinaryQF_reduced_representatives(4*5, primitive_only=True)
         [-x^2 + 4*x*y + y^2,
-        -x^2 + 4*x*y + y^2,
-        x^2 + 4*x*y - y^2,
-        x^2 + 4*x*y - y^2]
+         x^2 + 4*x*y - y^2]
         sage: BinaryQF_reduced_representatives(4*5, primitive_only=False)
         [-2*x^2 + 2*x*y + 2*y^2,
-        -2*x^2 + 2*x*y + 2*y^2,
-        -x^2 + 4*x*y + y^2,
-        -x^2 + 4*x*y + y^2,
-        x^2 + 4*x*y - y^2,
-        x^2 + 4*x*y - y^2,
-        2*x^2 + 2*x*y - 2*y^2,
-        2*x^2 + 2*x*y - 2*y^2]
+         -x^2 + 4*x*y + y^2,
+         x^2 + 4*x*y - y^2,
+         2*x^2 + 2*x*y - 2*y^2]
     """
     D = ZZ(D)
 
@@ -1550,7 +1516,7 @@ def BinaryQF_reduced_representatives(D, primitive_only=False, proper=True):
                             form_list.append(BinaryQF([a,-b,c]))
                         form_list.append(BinaryQF([a,b,c]))
     if not proper or D > 0:
-	# TODO: 
+        # TODO:
         # instead of filtering, enumerate only improper classes to start with
         # filter for equivalence classes
         form_list_new = []

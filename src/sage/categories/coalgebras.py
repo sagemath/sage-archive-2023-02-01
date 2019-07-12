@@ -249,6 +249,34 @@ class Coalgebras(Category_over_base_ring):
             """
             return [self.base_category().Graded()]
 
+        class SubcategoryMethods:
+            @cached_method
+            def Supercocommutative(self):
+                r"""
+                Return the full subcategory of the supercocommutative
+                objects of ``self``.
+
+                EXAMPLES::
+
+                    sage: Coalgebras(ZZ).WithBasis().Super().Supercocommutative()
+                    Category of supercocommutative super coalgebras with basis over Integer Ring
+                    sage: BialgebrasWithBasis(QQ).Super().Supercocommutative()
+                    Join of Category of super algebras with basis over Rational Field
+                     and Category of super bialgebras over Rational Field
+                     and Category of super coalgebras with basis over Rational Field
+                     and Category of supercocommutative super coalgebras over Rational Field
+
+                TESTS::
+
+                    sage: TestSuite(HopfAlgebras(ZZ).Super().Supercocommutative()).run()
+                """
+                return self._with_axiom("Supercocommutative")
+
+        class Supercocommutative(CategoryWithAxiom_over_base_ring):
+            """
+            Category of supercocommutative coalgebras.
+            """
+
     class WithRealizations(WithRealizationsCategory):
 
         class ParentMethods:

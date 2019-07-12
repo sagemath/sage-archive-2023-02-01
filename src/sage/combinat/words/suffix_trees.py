@@ -17,7 +17,8 @@ from itertools import chain
 from sage.structure.sage_object import SageObject
 from sage.graphs.digraph import DiGraph
 from sage.sets.set import Set
-from sage.combinat.words.words import Words
+from sage.combinat.words.words import Words, FiniteWords
+from sage.combinat.words.word import Word
 from sage.rings.integer import Integer
 
 ################################################################################
@@ -1554,3 +1555,259 @@ class ImplicitSuffixTree(SageObject):
                     d[new_node,w[-1:]] = v
                     new_node += 1
         return d
+
+################################################################################
+# Decorated Suffix Tree
+################################################################################
+
+
+class DecoratedSuffixTree(ImplicitSuffixTree):
+
+    def __init__(self, w):
+        r"""
+        Construct the decorated suffix tree of a word
+
+        A decorated suffix tree of w is the suffix tree of w  marked with the
+        end point of all squares in the w.
+
+        The symbol "$" is append to w to ensure de that each final state is a
+        leaf of the suffix tree.
+
+        When using pair as output, all the algorithm are linear in the length of
+        the word w
+
+        INPUT:
+
+            w - word
+
+        EXAMPLES:
+
+            sage: from sage.combinat.words.suffix_trees import DecoratedSuffixTree
+            sage: w=Word('0011001')
+            sage: DecoratedSuffixTree(w)
+            Decorated suffix tree of : 0011001$
+
+        REFERENCE:
+
+          * [1] Gusfield, D., & Stoye, J. (2004). Linear time algorithms for
+          finding and representing all the tandem repeats in a string. Journal
+          of Computer and System Sciences, 69(4), 525-546.
+        """
+        if "$" in w:
+            raise ValueError("The symbol '$' is reserved for this class ")
+        end_symbol = "$"
+        w = Word(str(w)+"$")
+        ImplicitSuffixTree.__init__(self, w)
+        self.labeling=self._complete_labeling()
+
+    def __repr__(self):
+        w = self.word()
+        if len(w) > 40:
+            w = str(w[:40])+'...'
+        return "Decorated suffix tree of : %s" %w
+
+    def _partial_labeling(self):
+        r"""
+        Make a depth first search in the suffix tree and mark some squares of a
+        leftmost covering set of the tree. Used by _complete_labeling.
+
+        EXAMPLES:
+
+            sage: from sage.combinat.words.suffix_trees import DecoratedSuffixTree
+            sage: w=Word('abaababbabba')
+            sage: T=DecoratedSuffixTree(w)
+            sage: T._partial_labeling()
+            {(3, 4): [1], (5, 1): [3], (5, 6): [1], (11, 17): [1], (13, 8): [1], (15, 10): [2]}
+        """
+        def node_processing(node,parent,(i,pos)):
+            r"""
+            Mark point along the edge (parent,node) if the string depht of parent is
+            smaller than the lenght of the tamdem repeat at the head of P(node).
+            Make it for all such squares pairs and remove them from P(node).
+            P(node)=P[i][pos:]
+            INPUTS:
+                node - a node of T
+                parent - the parent of node in T
+                (i,pos) - the pair that represent the head of the list P(node)
+            OUTPUT:
+                (i,pos) - the new head of P(node)
+            """
+            while pos < len(P[i]) and P[i][pos] > string_depth[parent]:
+                label = P[i][pos] - string_depth[parent]
+                try:
+                    labeling[(parent,node)].append(label)
+                except KeyError:
+                    labeling[(parent,node)] = [label]
+                pos += 1
+            return (i, pos)
+
+        def treat_node(current_node,parent):
+            r"""
+            Proceed to a depth first search in T, couting the string_depth of
+            each node a processing each node for marking
+
+            To initiate de depth first search call treat_node(0,None)
+
+            INPUTS:
+
+                current_node - A node
+                parent - Parent of current_node in T
+
+            OUTPUT:
+
+                The resulting list P(current_node) avec current_node have been
+                process by node_processing. The ouput is a pair (i,pos) such
+                that P[i][pos:] is the list of current_node.
+            """
+            #Call recursively on children of current_node
+            if D.has_key(current_node):
+                node_list = (n, 0)
+                for child in D[current_node].iterkeys():
+                    (i, j) = D[current_node][child]
+                    if j == None:
+                        j = n
+                    string_depth[child] = string_depth[current_node]+j-i
+                    child_list = treat_node(child,current_node)
+                    if child_list[0] < node_list[0]:
+                        node_list = child_list
+            else: #The node is a child
+                node_list = (n - string_depth[current_node], 0)
+            #Make teatement on current node hear
+            return node_processing(current_node, parent, node_list)
+
+        P = self.leftmost_covering_set()
+        D = self.transition_function_dictionary()
+        string_depth = dict([(0, 0)])
+        n = len(self.word())
+        labeling = dict()
+        treat_node(0, None)
+        return labeling
+
+    def _complete_labeling(self):
+        r"""
+        Returns a dictionnary of edges of self, with markpoint for the end of
+        each square types of T.word()
+
+        INPUT:
+
+            self - Suffix tree
+
+        EXAMPLES:
+            sage: from sage.combinat.words.suffix_trees import DecoratedSuffixTree
+            sage: w=Word('aabbaaba')
+            sage: DecoratedSuffixTree(w)._complete_labeling()
+            {(2, 7): [1], (5, 4): [1]}
+        """
+
+        def walk_chain(u,v,l,start):
+            r"""
+            Execute a chain of suffix walk until a walk is unsuccesful or it got
+            to a point already register in QP. Register all visited point in Q.
+
+            INPUTS:
+
+                (u,v) - edge on wich the point is registered
+                l - depth of the registered point on (u,v)
+                start - start of the squares registered by the label (u,v),l
+            """
+            #Mark the point in labeling
+            try:
+                labeling[(u, v)].append(l)
+            except KeyError:
+                labeling[(u, v)] = [l]
+            #Make the walk
+            final_state = self.suffix_walk(((u, v), l))
+            successful = False
+            if final_state[0] == 'explicit':
+                parent = final_state[1]
+                transition = self._find_transition(parent,self._letters[start])
+                if transition != None:
+                    child = transition[1]
+                    successful = True
+                    depth = 1
+            else:
+                parent = final_state[1][0]
+                child = final_state[1][1]
+                depth = final_state[2]
+                next_letter = self._letters[D[parent][child][0]+depth]
+                if next_letter == self._letters[start]:
+                    successful = True
+                    depth += 1
+            #If needed start a new walk
+            if successful:
+                try:
+                    if depth not in prelabeling[(parent, child)]:
+                        walk_chain(parent, child, depth, start+1)
+                except KeyError:
+                    walk_chain(parent, child, depth, start+1)
+
+        def treat_node(current_node,(i,j)):
+            r"""
+            Execute a depht first search on self and start a suffix walk for
+            labeled points on each edges of T. The fonction is reccursive, call
+            treat_node(0,(0,0)) to initiate the search
+
+            INPUTS:
+
+                current_node - The node that is to treat
+                (i,j) - Pair of index such that the path from 0 to current_node
+                reads T.word()[i:j]
+            """
+            if D.has_key(current_node):
+                for child in D[current_node].iterkeys():
+                    edge = (current_node,child)
+                    edge_label = D[edge[0]][edge[1]]
+                    treat_node(child,(edge_label[0]-(j-i),edge_label[1]))
+                    if prelabeling.has_key((current_node,child)):
+                        for l in prelabeling[edge]:
+                            square_start = edge_label[0]-(j-i)
+                            walk_chain(current_node, child, l, square_start)
+
+        prelabeling = self._partial_labeling()
+        labeling = dict()
+        D = self.transition_function_dictionary()
+        treat_node(0,(0,0))
+        return labeling
+
+    def square_vocabulary(self,output="pair"):
+        r"""
+        Return the list of squares in the squares vocabulary of self.word.
+        Return a list of pair in output="pair" and the explicit word if
+        output="word"
+
+        INPUTS:
+
+            output - "pair" or "word"
+
+        EXAMPLES:
+
+            sage: from sage.combinat.words.suffix_trees import DecoratedSuffixTree
+            sage: w=Word('aabb')
+            sage: DecoratedSuffixTree(w).square_vocabulary()
+            [(0, 0), (0, 2), (2, 2)]
+            sage: w=Word('00110011010')
+            sage: DecoratedSuffixTree(w).square_vocabulary(output="word")
+            [word: , word: 01100110, word: 00110011, word: 00, word: 11, word: 1010]
+        """
+        def treat_node(current_node,(i,j)):
+            if D.has_key(current_node):
+                for child in D[current_node].iterkeys():
+                    edge = (current_node,child)
+                    edge_label = (D[edge[0]][edge[1]])
+                    treat_node(child,(edge_label[0]-(j-i),edge_label[1]))
+                    if Q.has_key((current_node, child)):
+                        for l in Q[(current_node, child)]:
+                            square_start = edge_label[0]-(j-i)
+                            pair=(square_start, edge_label[0]+l-square_start)
+                            squares.append(pair)
+
+        if not(output=="pair" or output=="word"):
+            raise ValueError("output should be 'pair' or 'word'; got %s" %output)
+        D=self.transition_function_dictionary()
+        Q=self.labeling
+        squares=[(0, 0)]
+        treat_node(0, (0, 0))
+        if output=="pair":
+            return squares
+        else:
+            return [self.word()[i:i+l] for (i, l) in squares]

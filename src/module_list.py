@@ -354,6 +354,9 @@ ext_modules = [
     Extension('sage.graphs.generic_graph_pyx',
               sources = ['sage/graphs/generic_graph_pyx.pyx']),
 
+    Extension('sage.graphs.traversals',
+              sources = ['sage/graphs/traversals.pyx']),
+
     Extension('sage.graphs.graph_generators_pyx',
               sources = ['sage/graphs/graph_generators_pyx.pyx']),
 

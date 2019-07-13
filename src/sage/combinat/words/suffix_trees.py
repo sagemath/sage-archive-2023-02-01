@@ -1416,13 +1416,13 @@ class ImplicitSuffixTree(SageObject):
 
     def leftmost_covering_set(self):
         r"""
-        Compute the  leftmost covering set of square pairs in ``self.word()``.
-        Return square as pair ``(i,l)`` specifying factor
+        Compute the leftmost covering set of square pairs in ``self.word()``.
+        Return a square as a pair ``(i,l)`` designating factor
         ``self.word()[i:i+l]``.
 
         A  leftmost covering set is a set such that the leftmost occurrence
         ``(j,l)`` of a square in ``self.word()`` is covered by a pair
-        ``(i,l)`` in the set for all types  of squares. We say that ``(j,l)`` is
+        ``(i,l)`` in the set for all types of squares. We say that ``(j,l)`` is
         covered by ``(i,l)`` if ``(i,l)``, ``(i+1,l)``, ..., ``(j,l)`` are all
         squares.
 
@@ -1451,7 +1451,7 @@ class ImplicitSuffixTree(SageObject):
         def condition1_square_pairs(i):
             r"""
             Computes the squares that have their center (the last letter of the
-            first  occurrence of  ``w``  in ``ww``) in the i-th block of the
+            first  occurrence of ``w`` in ``ww``) in the i-th block of the
             LZ-decomposition and that start in the i-th block and end in the
             (i+1)-st.
             """
@@ -1486,7 +1486,7 @@ class ImplicitSuffixTree(SageObject):
         B = self.LZ_decomposition()
         P = [[] for _ in w]
         for i in range(len(B)-1):
-            squares = list(chain(condition2_square_pairs(i),
+	    squares = list(chain(condition2_square_pairs(i),
                                  condition1_square_pairs(i)))
             for (i,l) in squares:
                 P[i].append(l)
@@ -1712,7 +1712,7 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
 
         def walk_chain(u, v, l, start):
             r"""
-            Execute a  chain of suffix walk until a walk is unsuccessful or it
+            Execute a chain of suffix walk until a walk is unsuccessful or it
             got to a point already registered in ``QP``. Registers all visited
             point in ``Q``.
 

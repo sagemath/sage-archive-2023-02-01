@@ -876,7 +876,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: M(range(9)) ** -1
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Matrix is singular
+            ZeroDivisionError: matrix must be nonsingular
 
         TESTS::
 
@@ -4068,7 +4068,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         sig_off()
         fmpz_clear(fden)
         if res == 0:
-            raise ZeroDivisionError('Matrix is singular')
+            raise ZeroDivisionError('matrix must be nonsingular')
         if den < 0:
             return -M, -den
         else:
@@ -4105,7 +4105,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: ~M.zero_matrix()
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Matrix is singular
+            ZeroDivisionError: matrix must be nonsingular
         """
         A, d = self._invert_flint()
         return A / d

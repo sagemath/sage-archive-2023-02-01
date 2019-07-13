@@ -40,6 +40,8 @@ from sage.structure.element cimport ModuleElement, Element, RingElement, Vector
 from sage.structure.mutability cimport Mutability
 from sage.misc.misc_c cimport normalize_index
 
+from sage.categories.fields import Fields
+
 from sage.rings.ring cimport CommutativeRing
 from sage.rings.ring import is_Ring
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
@@ -48,6 +50,7 @@ import sage.modules.free_module
 
 from .matrix_misc import row_iterator
 
+_Fields = Fields()
 
 cdef class Matrix(sage.structure.element.Matrix):
     r"""
@@ -5357,60 +5360,51 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: (N*M).norm()
             0.9999999999999999
         """
-        if not self.base_ring().is_field():
-            try:
-                return ~self.matrix_over_field()
-            except TypeError:
-                # There is one easy special case -- the integers modulo N.
-                if is_IntegerModRing(self.base_ring()):
-                    # This is "easy" in that we either get an error or
-                    # the right answer.  Note that of course there
-                    # could be a much faster algorithm, e.g., using
-                    # CRT or p-adic lifting.
-                    try:
-                        return (~self.lift()).change_ring(self.base_ring())
-                    except (TypeError, ZeroDivisionError):
-                        raise ZeroDivisionError("input matrix must be nonsingular")
-                raise
-
         if not self.is_square():
             raise ArithmeticError("self must be a square matrix")
-        if self.nrows() == 0:
+        if not self.nrows():
             return self
 
-        A = self.augment(self.parent().identity_matrix())
-        A.echelonize()
-
-        # Now we want to make sure that B is of the form [I|X], in
-        # which case X is the inverse of self. We can simply look at
-        # the lower right entry of the left half of B, and make sure
-        # that it's 1.
-        #
-        # However, doing this naively causes trouble over inexact
-        # fields -- see trac #2256. The *right* thing to do would
-        # probably be to make sure that self.det() is nonzero. That
-        # doesn't work here, because our det over an arbitrary field
-        # just does expansion by minors and is unusable for even 10x10
-        # matrices over CC. Instead, we choose a different band-aid:
-        # we check to make sure that the lower right entry isn't
-        # 0. Since we're over a field, we know that it *should* be
-        # either 1 or 0. This can still cause trouble, but it's
-        # significantly better than it was before.
-        #
-        # Over exact rings, of course, we still want the old
-        # behavior.
-
-        if self.base_ring().is_exact():
-            if A[self._nrows-1, self._ncols-1] != 1:
-                raise ZeroDivisionError("input matrix must be nonsingular")
+        R = self.base_ring()
+        if R not in _Fields:
+            if R.is_integral_domain(proof=False):
+                return ~self.matrix_over_field()
+            else:
+                return self.inverse_of_unit()
         else:
-            if not A[self._nrows-1, self._ncols-1]:
-                raise ZeroDivisionError("input matrix must be nonsingular")
+            A = self.augment(self.parent().identity_matrix())
+            A.echelonize()
 
-        if self.is_sparse():
-            return self.build_inverse_from_augmented_sparse(A)
+            # Now we want to make sure that B is of the form [I|X], in
+            # which case X is the inverse of self. We can simply look at
+            # the lower right entry of the left half of B, and make sure
+            # that it's 1.
+            #
+            # However, doing this naively causes trouble over inexact
+            # fields -- see trac #2256. The *right* thing to do would
+            # probably be to make sure that self.det() is nonzero. That
+            # doesn't work here, because our det over an arbitrary field
+            # just does expansion by minors and is unusable for even 10x10
+            # matrices over CC. Instead, we choose a different band-aid:
+            # we check to make sure that the lower right entry isn't
+            # 0. Since we're over a field, we know that it *should* be
+            # either 1 or 0. This can still cause trouble, but it's
+            # significantly better than it was before.
+            #
+            # Over exact rings, of course, we still want the old
+            # behavior.
 
-        return A.matrix_from_columns(list(xrange(self._ncols, 2 * self._ncols)))
+            if R.is_exact():
+                if A[self._nrows-1, self._ncols-1] != 1:
+                    raise ZeroDivisionError("input matrix must be nonsingular")
+            else:
+                if not A[self._nrows-1, self._ncols-1]:
+                    raise ZeroDivisionError("input matrix must be nonsingular")
+
+            if self.is_sparse():
+                return self.build_inverse_from_augmented_sparse(A)
+
+            return A.matrix_from_columns(list(xrange(self._ncols, 2 * self._ncols)))
 
     cdef build_inverse_from_augmented_sparse(self, A):
         # We can directly use the dict entries of A
@@ -5422,6 +5416,78 @@ cdef class Matrix(sage.structure.element.Matrix):
             del data[i,i]
         data = {(r,c-nrows): data[r,c] for (r,c) in data}
         return self._parent(data)
+
+    def inverse_of_unit(self, algorithm=None):
+        r"""
+        Return the inverse of this matrix in the same matrix space.
+
+        The matrix must be invertible on the base ring. Otherwise, an
+        ``ArithmeticError`` is raised.
+
+        The computation goes through the matrix of cofactors and avoids
+        division. In particular the base ring does not need to have a
+        fraction field.
+
+        INPUT:
+
+        - ``algorithm`` -- (default: ``None``) either ``None`` or ``"df"`` (for
+          division free)
+
+        EXAMPLES::
+
+            sage: R.<a,b,c,d> = ZZ[]
+            sage: RR = R.quotient(a*d-b*c-1)
+            sage: a,b,c,d = RR.gens()
+            sage: m = matrix(2, [a,b,c,d])
+            sage: n = m.inverse_of_unit()
+            sage: m * n
+            [1 0]
+            [0 1]
+
+            sage: matrix(RR, 2, 1, [a,b]).inverse_of_unit()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: self must be a square matrix
+            sage: matrix(RR, 1, 1, [2]).inverse_of_unit()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+
+            sage: R = ZZ.cartesian_product(ZZ)
+            sage: m = matrix(R, 2, [R((2,1)), R((1,1)), R((1,1)), R((1,2))])
+            sage: m * m.inverse_of_unit()
+            [(1, 1) (0, 0)]
+            [(0, 0) (1, 1)]
+        """
+        n = self.nrows()
+        if n != self.ncols():
+            raise ArithmeticError("self must be a square matrix")
+
+        R = self.base_ring()
+        if algorithm is None and R in _Fields:
+            return ~self
+        elif algorithm is None and is_IntegerModRing(R):
+            # This is "easy" in that we either get an error or
+            # the right answer. Note that of course there
+            # could be a much faster algorithm, e.g., using
+            # CRT or p-adic lifting.
+            N = R.characteristic()
+            m, D = self.lift_centered()._invert_flint()
+            if not D.gcd(N).is_one():
+                raise ZeroDivisionError("input matrix must be nonsingular")
+            return D.inverse_mod(N) * m.change_ring(R)
+        elif algorithm is None or algorithm == "df":
+            d = self.det()
+            if d.is_one():
+                dinv = d
+            elif not d.is_unit():
+                raise ArithmeticError("non-invertible matrix")
+            else:
+                dinv = d.inverse_of_unit()
+
+            return dinv * self.adjugate()
+        else:
+            raise ValueError('algorithm can only be "df"')
 
     def __pos__(self):
         """

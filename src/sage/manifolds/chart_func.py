@@ -2645,7 +2645,7 @@ class ChartFunctionRing(Parent, UniqueRepresentation):
         """
         return "Ring of chart functions on {}".format(self._chart)
 
-    def is_integral_domain(self):
+    def is_integral_domain(self, proof=True):
         """
         Return ``False`` as ``self`` is not an integral domain.
 

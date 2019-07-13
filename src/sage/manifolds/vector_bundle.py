@@ -27,12 +27,13 @@ AUTHORS:
 
 from sage.structure.category_object import CategoryObject
 from sage.categories.vector_bundles import VectorBundles
+from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import CC
 from sage.rings.real_mpfr import RR, RealField_class
 from sage.rings.complex_field import ComplexField_class
 from sage.rings.integer import Integer
 
-class TopolVectorBundle(CategoryObject):
+class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
     r"""
     An instance of this class is a topological vector bundle `E \to B` over a
     topological field `K`.
@@ -85,8 +86,8 @@ class TopolVectorBundle(CategoryObject):
         TESTS::
 
             sage: M = Manifold(2, 'M', structure='top')
-            sage: from sage.manifolds.vector_bundle import TopolVectorBundle
-            sage: TopolVectorBundle(2, 'E', M)
+            sage: from sage.manifolds.vector_bundle import TopologicalVectorBundle
+            sage: TopologicalVectorBundle(2, 'E', M)
             Topological real vector bundle E -> M of rank 2 over the base space
              2-dimensional topological manifold M
 
@@ -127,10 +128,10 @@ class TopolVectorBundle(CategoryObject):
             self._latex_name = self._name
         else:
             self._latex_name = latex_name
-        # Not the trivialization comes into play:
+        # Now, the trivializations come into play:
         self._atlas = []  # list of trivializations defined
-        self._coord_changes = {} # dictionary of transition maps (key: pair of
-                                 # of trivializations)
+        self._transitions = {} # dictionary of transition maps (key: pair of
+                               # of trivializations)
 
     def base_space(self):
         r"""
@@ -201,7 +202,19 @@ class TopolVectorBundle(CategoryObject):
         """
         return self._rank
 
-    def _pre_repr_(self):
+    def _repr_object_name(self):
+        r"""
+        String name of the object without structure.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: E = M.vector_bundle(1, 'E')
+            sage: E._repr_object_name()
+            'real vector bundle E -> M of rank 1 over the base space
+             2-dimensional topological manifold M'
+
+        """
         description = self.base_field_type() + " "
         description += "vector bundle "
         description += self._name + " -> " + self.base_space()._name + " "
@@ -223,7 +236,7 @@ class TopolVectorBundle(CategoryObject):
 
         """
         description = "Topological "
-        description += self._pre_repr_()
+        description += self._repr_object_name()
         return description
 
     def _latex_(self):
@@ -244,11 +257,20 @@ class TopolVectorBundle(CategoryObject):
         return latex
 
     def trivialization(self, domain):
+        r"""
+
+        """
         if not (domain.is_open() and domain.manifold() is self._base_space):
             raise ValueError("domain must be an open subset "
                              "of {}".format(self._base_space))
         from .trivialization import Trivialization
         return Trivialization(self, domain)
+
+    def transitions(self):
+        r"""
+
+        """
+        return self._transitions
 
     def atlas(self):
         r"""

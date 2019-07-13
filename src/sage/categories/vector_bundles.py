@@ -18,7 +18,7 @@ class VectorBundles(Category_over_base_ring):
     r"""
     The category of vector bundles over any base space and base field.
 
-    .. SEEALSO:: :class:`~sage.manifolds.differentiable.vector_bundle`
+    .. SEEALSO:: :class:`~sage.manifolds.vector_bundle.TopologicalVectorBundle`
 
     EXAMPLES::
 
@@ -126,7 +126,16 @@ class VectorBundles(Category_over_base_ring):
         """
         The category of differentiable vector bundles.
 
-        A differentiable vector bundle is a differentiable space with
+        A differentiable vector bundle is a differentiable manifold with
         differentiable surjective projection on a differentiable base space.
+
+        """
+
+    class Smooth(CategoryWithAxiom_over_base_ring):
+        """
+        The category of smooth vector bundles.
+
+        A smooth vector bundle is a smooth manifold with
+        smooth surjective projection on a smooth base space.
 
         """

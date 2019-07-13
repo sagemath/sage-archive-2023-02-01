@@ -57,10 +57,9 @@ class Trivialization(UniqueRepresentation, SageObject):
 
         """
         from sage.misc.latex import latex
-        latex = r'{}|_{{{}}} \to {} \times {}^{}'.format(self._vbundle._name,
-                                        self._domain._name, latex(self._domain),
-                                        latex(self._base_field),
-                                        self._bdl_rank)
+        latex = r'{} |_{{{}}} \to {} \times {}^{}'.format(self._vbundle._latex_name,
+                                        latex(self._domain), latex(self._domain),
+                                        latex(self._base_field), self._bdl_rank)
         return latex
 
     def domain(self):
@@ -79,11 +78,11 @@ class Trivialization(UniqueRepresentation, SageObject):
         """
         return self._base_space
 
-    def transition_map(self, other, matrix_trafo):
+    def transition_map(self, other, trafo_matrix):
         r"""
 
         """
-        return CoordChange(self, other, matrix_trafo)
+        return TransitionMap(self, other, trafo_matrix)
 
     def vector_bundle(self):
         r"""
@@ -94,11 +93,11 @@ class Trivialization(UniqueRepresentation, SageObject):
 
 # *****************************************************************************
 
-class CoordChange(SageObject):
+class TransitionMap(SageObject):
     r"""
 
     """
-    def __init__(self, triv1, triv2, matrix_trafo):
+    def __init__(self, triv1, triv2, matrix):
         r"""
 
         """
@@ -128,23 +127,23 @@ class CoordChange(SageObject):
         scal_field_alg = dom.scalar_field_algebra()
         from sage.matrix.matrix_space import MatrixSpace
         matrix_space = MatrixSpace(scal_field_alg, self._bdl_rank)
-        if matrix_trafo not in matrix_space:
-            raise ValueError("matrix transformation must be an element "
-                             "of {}".format(matrix_space))
+        self._matrix = matrix_space(matrix)
         self._domain = dom
-
         self._triv1 = triv1
         self._triv2 = triv2
-        self._matrix_trafo = matrix_trafo
         self._inverse = None
-        self._vbundle._coord_changes[(triv1, triv2)] = self
+        self._vbundle._transitions[(triv1, triv2)] = self
 
     def _repr_(self):
         r"""
 
         """
-        description = "Transformation from {} " \
-                      "to {}".format(self._triv1, self._triv2)
+        dom1 = self._triv1.domain()
+        dom2 = self._triv2.domain()
+        dom = self._domain
+        description = "({}|_{}, g_{}{})".format(self._vbundle._latex_name,
+                                                dom._name, dom1._name,
+                                                dom2._name)
         return description
 
     def _latex_(self):
@@ -155,12 +154,19 @@ class CoordChange(SageObject):
         dom2 = self._triv2.domain()
         dom = self._domain
         from sage.misc.latex import latex
-        latex = r'(E|_{{{}}}, g_{{{}{}}})'.format(latex(dom), latex(dom1),
-                                                  latex (dom2))
+        latex = r'({}, g_{{{}{}}})'.format(latex(dom), latex(dom1), latex(dom2))
         return latex
     
     def transformation_matrix(self):
         r"""
 
         """
-        return self._matrix_trafo
+        return self._matrix
+
+    def inverse(self):
+        r"""
+
+        """
+        matrix_inv = ~self._matrix.determinant() * self._matrix.adjugate()
+        self._inverse = type(self)(self._triv2, self._triv1, matrix_inv)
+        return self._inverse

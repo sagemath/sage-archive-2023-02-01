@@ -616,3 +616,20 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         return self.element_class(self,
                                   coord_expression=coord_express,
                                   name='1', latex_name='1')
+
+    def is_integral_domain(self, proof=True):
+        """
+        Return ``False`` as ``self`` is not an integral domain.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: A = M.scalar_field_algebra()
+            sage: A.is_integral_domain()
+            False
+            sage: A.is_field()
+            False
+        """
+        return False
+
+    is_field = is_integral_domain

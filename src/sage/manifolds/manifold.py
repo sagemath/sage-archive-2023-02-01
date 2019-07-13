@@ -1576,7 +1576,7 @@ class TopologicalManifold(ManifoldSubset):
         OUTPUT:
 
         - a topological vector bundle as an instance of
-          :class:`~sage.manifolds.vector_bundle.TopolVectorBundle`
+          :class:`~sage.manifolds.vector_bundle.TopologicalVectorBundle`
 
         EXAMPLES::
 
@@ -1586,9 +1586,9 @@ class TopologicalManifold(ManifoldSubset):
              2-dimensional topological manifold M
 
         """
-        from sage.manifolds.vector_bundle import TopolVectorBundle
-        return TopolVectorBundle(rank, name, self, field=field,
-                                 latex_name=latex_name)
+        from sage.manifolds.vector_bundle import TopologicalVectorBundle
+        return TopologicalVectorBundle(rank, name, self, field=field,
+                                       latex_name=latex_name)
 
     def scalar_field_algebra(self):
         r"""

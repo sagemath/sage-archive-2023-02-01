@@ -1467,12 +1467,23 @@ cdef class LaurentSeries(AlgebraElement):
             sage: f = 2*t/x + (3*t^2 + 6*t)*x + O(x^2)
             sage: f._derivative(t)
             2*x^-1 + (6*t + 6)*x + O(x^2)
+
+        TESTS::
+
+            sage: y = var('y')
+            sage: f.derivative(y)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot differentiate with respect to y
         """
-        if var is not None and var is not self._parent.gen():
-            # call _derivative() recursively on coefficients
-            u = [coeff._derivative(var) for coeff in self.__u.list()]
-            u = self._parent._power_series_ring(u, self.__u.prec())
-            return type(self)(self._parent, u, self.__n)
+        if var is not None and var != self._parent.gen():
+            try:
+                # call _derivative() recursively on coefficients
+                u = [coeff._derivative(var) for coeff in self.__u.list()]
+                u = self._parent._power_series_ring(u, self.__u.prec())
+                return type(self)(self._parent, u, self.__n)
+            except AttributeError:
+                raise ValueError("cannot differentiate with respect to {}".format(var))
 
         # compute formal derivative with respect to generator
         if self.is_zero():

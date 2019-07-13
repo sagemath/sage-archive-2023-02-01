@@ -365,8 +365,7 @@ class Modules(Category_module):
                 Category of filtered modules over Integer Ring
 
                 sage: Coalgebras(QQ).Filtered()
-                Join of Category of filtered modules over Rational Field
-                 and Category of coalgebras over Rational Field
+                Category of filtered coalgebras over Rational Field
 
                 sage: AlgebrasWithBasis(QQ).Filtered()
                 Category of filtered algebras with basis over Rational Field

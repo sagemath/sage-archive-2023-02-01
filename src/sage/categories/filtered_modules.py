@@ -143,8 +143,7 @@ class FilteredModules(FilteredModulesCategory):
                 sage: Modules(ZZ).Filtered().Connected()
                 Category of filtered connected modules over Integer Ring
                 sage: Coalgebras(QQ).Filtered().Connected()
-                Join of Category of filtered connected modules over Rational Field
-                    and Category of coalgebras over Rational Field
+                Category of filtered connected coalgebras over Rational Field
                 sage: AlgebrasWithBasis(QQ).Filtered().Connected()
                 Category of filtered connected algebras with basis over Rational Field
 

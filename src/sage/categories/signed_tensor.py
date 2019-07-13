@@ -41,12 +41,12 @@ class SignedTensorProductFunctor(CovariantFunctorialConstruction):
 
     EXAMPLES::
 
-        sage: signed_tensor
+        sage: tensor_signed
         The signed tensor functorial construction
 
     TESTS::
 
-        sage: TestSuite(signed_tensor).run()
+        sage: TestSuite(tensor_signed).run()
     """
     _functor_name = "tensor"
     _functor_category = "SignedTensorProducts"
@@ -56,7 +56,7 @@ class SignedTensorProductFunctor(CovariantFunctorialConstruction):
         """
         EXAMPLES::
 
-            sage: signed_tensor
+            sage: tensor_signed
             The signed tensor functorial construction
         """
         # We need this to distinguish it from tensor(), but we want

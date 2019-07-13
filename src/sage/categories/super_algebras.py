@@ -11,7 +11,7 @@ Super Algebras
 from sage.categories.super_modules import SuperModulesCategory
 from sage.categories.algebras import Algebras
 from sage.categories.modules import Modules
-from sage.categories.signed_tensor import SignedTensorProductsCategory, signed_tensor
+from sage.categories.signed_tensor import SignedTensorProductsCategory, tensor_signed
 from sage.misc.lazy_import import LazyImport
 from sage.misc.cachefunc import cached_method
 
@@ -85,7 +85,7 @@ class SuperAlgebras(SuperModulesCategory):
                 False
                 sage: A.rename(None)
             """
-            constructor = kwargs.pop('constructor', signed_tensor)
+            constructor = kwargs.pop('constructor', tensor_signed)
             cat = constructor.category_from_parents(parents)
             return parents[0].__class__.Tensor(parents, category=cat)
 

@@ -1282,6 +1282,10 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             raise ValueError("coefficient_names should be an iterable of %d valid variable names" % m)
 
         # Compute the next free index for new named variables
+        # This is the first integer nfi such that for any j >= nfi
+        # kwargs['cluster_variable_prefix']+str(j) is not the name of an
+        # initial cluster variable nor a coefficient. This will be used in
+        # mutate_initial to name new cluster variables.
         splitnames = map(lambda w: w.partition(kwargs['cluster_variable_prefix']),
                 kwargs['cluster_variable_names'] + kwargs['coefficient_names'])
         nfi = 1 + max( [-1] + [int(v) for u,_,v in splitnames if u == '' and v.isdigit()] )

@@ -1201,8 +1201,8 @@ class MatrixCompactRealForm(FinitelyGeneratedLieAlgebra):
                 sage: L = LieAlgebra(QQ, cartan_type=['A',1], representation="compact real")
                 sage: sorted(L.basis())
                 [
-                [ i  0]  [0 i]  [ 0  1]
-                [ 0 -i], [i 0], [-1  0]
+                [0 i]  [ i  0]  [ 0  1]
+                [i 0], [ 0 -i], [-1  0]
                 ]
             """
             return richcmp((self._real, self._imag), (other._real, other._imag), op)

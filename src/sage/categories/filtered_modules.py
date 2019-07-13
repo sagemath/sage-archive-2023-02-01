@@ -46,7 +46,7 @@ class FilteredModulesCategory(RegressiveCovariantConstructionCategory, Category_
             Category of algebras over Rational Field
             sage: sorted(C.super_categories(), key=str)
             [Category of algebras over Rational Field,
-             Category of filtered modules over Rational Field]
+             Category of filtered vector spaces over Rational Field]
 
             sage: AlgebrasWithBasis(QQ).Filtered().base_ring()
             Rational Field
@@ -99,8 +99,8 @@ class FilteredModules(FilteredModulesCategory):
 
         EXAMPLES::
 
-            sage: Modules(QQ).Filtered().extra_super_categories()
-            [Category of vector spaces over Rational Field]
+            sage: Modules(QQ).Filtered().is_subcategory(VectorSpaces(QQ))
+            True
             sage: Modules(ZZ).Filtered().extra_super_categories()
             []
 
@@ -109,7 +109,7 @@ class FilteredModules(FilteredModulesCategory):
         an instance of this class and of ``VectorSpaces(QQ)``::
 
             sage: type(Modules(QQ).Filtered())
-            <class 'sage.categories.filtered_modules.FilteredModules_with_category'>
+            <class 'sage.categories.vector_spaces.VectorSpaces.Filtered_with_category'>
 
         .. TODO::
 

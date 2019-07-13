@@ -25,6 +25,15 @@ def GradedHopfAlgebras(base_ring):
     TESTS::
 
         sage: TestSuite(C).run()
+
+    .. NOTE::
+
+        This is not a graded Hopf algebra as is typically defined
+        in algebraic topology as the product in the tensor square
+        `(x \otimes y) (a \otimes b) = (xa) \otimes (yb)` does
+        not carry an additional sign. For this, instead use
+        :class:`super Hopf algebras
+        <sage.categories.hopf_algebras.HopfAlgebras.Super>`.
     """
     from sage.categories.all import HopfAlgebras
     return HopfAlgebras(base_ring).Graded()

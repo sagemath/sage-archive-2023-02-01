@@ -21,7 +21,7 @@ from sage.misc.cachefunc import cached_method
 
 class HopfAlgebras(Category_over_base_ring):
     """
-    The category of Hopf algebras
+    The category of Hopf algebras.
 
     EXAMPLES::
 
@@ -34,7 +34,6 @@ class HopfAlgebras(Category_over_base_ring):
 
         sage: TestSuite(HopfAlgebras(ZZ)).run()
     """
-
     def super_categories(self):
         """
         EXAMPLES::
@@ -102,11 +101,20 @@ class HopfAlgebras(Category_over_base_ring):
 
     class Morphism(Category):
         """
-        The category of Hopf algebra morphisms
+        The category of Hopf algebra morphisms.
         """
         pass
 
     class Super(SuperModulesCategory):
+        r"""
+        The category of super Hopf algebras.
+
+        .. NOTE::
+
+            A super Hopf algebra is *not* simply a Hopf
+            algebra with a `\ZZ/2\ZZ` grading due to the
+            signed bialgebra compatibility conditions.
+        """
         def dual(self):
             """
             Return the dual category.

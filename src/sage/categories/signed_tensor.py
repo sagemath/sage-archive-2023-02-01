@@ -39,6 +39,11 @@ class SignedTensorProductFunctor(CovariantFunctorialConstruction):
     of ``Algebras(QQ).Graded()``. This nested class is itself a subclass of
     :class:`~sage.categories.signed_tensor.SignedTensorProductsCategory`.
 
+    EXAMPLES::
+
+        sage: signed_tensor
+        The signed tensor functorial construction
+
     TESTS::
 
         sage: TestSuite(signed_tensor).run()
@@ -59,18 +64,7 @@ class SignedTensorProductFunctor(CovariantFunctorialConstruction):
         #   default _repr_
         return "The signed tensor functorial construction"
 
-signed_tensor = SignedTensorProductFunctor()
-"""
-The signed tensor product functorial construction.
-
-See :class:`~sage.categories.signed_tensor.SignedTensorProductFunctor`
-for more information.
-
-EXAMPLES::
-
-    sage: signed_tensor
-    The signed tensor functorial construction
-"""
+tensor_signed = SignedTensorProductFunctor()
 
 class SignedTensorProductsCategory(CovariantConstructionCategory):
     r"""

@@ -10,7 +10,7 @@ Graded algebras with basis
 #******************************************************************************
 
 from sage.categories.graded_modules import GradedModulesCategory
-from sage.categories.signed_tensor import SignedTensorProductsCategory, signed_tensor
+from sage.categories.signed_tensor import SignedTensorProductsCategory, tensor_signed
 from sage.misc.cachefunc import cached_method
 
 class GradedAlgebrasWithBasis(GradedModulesCategory):
@@ -157,7 +157,7 @@ class GradedAlgebrasWithBasis(GradedModulesCategory):
 
                 TODO: optimize this implementation!
                 """
-                basic = signed_tensor((module.monomial(x0) * module.monomial(x1)
+                basic = tensor_signed((module.monomial(x0) * module.monomial(x1)
                                       for (module, x0, x1) in zip(self._sets, t0, t1)))
                 n = len(self._sets)
                 parity0 = [self._sets[idx].degree_on_basis(x0)

@@ -15,6 +15,7 @@ from sage.categories.all import Modules
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.tensor import TensorProductsCategory
 from sage.categories.dual import DualObjectsCategory
+from sage.categories.filtered_modules import FilteredModulesCategory
 from sage.categories.super_modules import SuperModulesCategory
 from sage.categories.realizations import RealizationsCategory
 from sage.categories.with_realizations import WithRealizationsCategory
@@ -276,6 +277,11 @@ class Coalgebras(Category_over_base_ring):
             """
             Category of supercocommutative coalgebras.
             """
+
+    class Filtered(FilteredModulesCategory):
+        """
+        Category of filtered coalgebras.
+        """
 
     class WithRealizations(WithRealizationsCategory):
 

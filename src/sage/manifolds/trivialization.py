@@ -157,16 +157,25 @@ class TransitionMap(SageObject):
         latex = r'({}, g_{{{}{}}})'.format(latex(dom), latex(dom1), latex(dom2))
         return latex
     
-    def transformation_matrix(self):
+    def transformation_matrix(self, chart=None):
         r"""
 
         """
-        return self._matrix
+        if chart is None:
+            return self._matrix
+        else:
+            m_list = []
+            for row in self._matrix:
+                for entry in row:
+                    m_list.append(entry.expr(chart))
+        from sage.matrix.matrix_space import MatrixSpace
+        parent = m_list[0].parent()
+        matrix_space = MatrixSpace(parent, self._bdl_rank)
+        return matrix_space(m_list)
 
     def inverse(self):
         r"""
 
         """
-        matrix_inv = ~self._matrix.determinant() * self._matrix.adjugate()
-        self._inverse = type(self)(self._triv2, self._triv1, matrix_inv)
+        self._inverse = type(self)(self._triv2, self._triv1, ~self._matrix)
         return self._inverse

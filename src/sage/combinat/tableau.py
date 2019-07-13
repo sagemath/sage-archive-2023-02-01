@@ -4970,6 +4970,54 @@ class StandardTableau(SemistandardTableau):
             n = self.size() - 1
         return StandardTableau(Tableau(self[:]).promotion(n))
 
+class PrimedTableau(Tableau):
+
+    def __init__(self, parent, t):
+        super(PrimedTableau, self).__init__(self, parent, check=False)
+        # Check the entries of t are Primed Entries
+        from sage.combinat.shifted_primed_tableau import PrimedEntry
+        for row in t:
+            if not all(isinstance(c, PrimedEntry) for c in row):
+                raise ValueError("the entries of a primed tableau must be PrimedEntry")
+
+
+class SemistandardSuperTableau(PrimedTableau):
+    r"""
+    The rules on semistandard supertableaux are:
+    a) It's alphabet is the primed entries (hence a PrimedTableau)
+    a) Always weakly increasing along rows and down columns
+    b) Even letters strictly increase down columns (verified in __init__)
+    c) Odd letters strictly increase along rows (verified in __init__)
+    """
+
+    @staticmethod
+    def __classcall_private__(self, t):
+        r"""
+        """
+        if isinstance(t, SemistandardSuperTableau):
+            return t
+        #TODO
+
+    def __init__(self, parent, t):
+        super(SemistandardSuperTableau, self).__init__(parent, t)
+        # Check that the entries of t are weakly increasing along rows
+        for row in t:
+            if not all(row[c] <= row[c+1] for c in range(len(row)-1)):
+                raise ValueError("the entries in each row must be weakly increasing")
+        # Check that primed letters are row strict
+        for row in t:
+            if not all(row[c] < row[c+1] for c in range(len(row)-1) if (row[c].is_primed() or row[c+1].is_primed())):
+                raise ValueError("the primed entries in each row must be strictly increasing")
+        # Check that the entries of t are weakly increasing down columns
+        if t:
+            for row, next_ in zip(t, t[1:]):
+                if not all(row[c] <= next_[c] for c in range(len(next_))):
+                    raise ValueError("the entries of each column must be weakly increasing")
+        # Check that unprimed letters are column strict
+        if t:
+            for row, next_ in zip(t, t[1:]):
+                if not all(row[c] < next_[c] for c in range(len(next_)) if (row[c].is_unprimed() or next_[c].is_unprimed())):
+                    raise ValueError("the unprimed entries of each column must be strictly increasing")
 
 def from_chain(chain):
     """

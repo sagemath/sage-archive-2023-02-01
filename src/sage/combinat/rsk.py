@@ -1860,8 +1860,7 @@ class RuleSuperRSK(RuleRSK):
                             j = j1
                         self._set_col(p, col_index, c)
                         self._set_col(q, col_index, qc)
-        return [(p), (q)]
-
+        return self._forward_format_output(p, q, check_standard=check_standard)
 
     def insertion(self, j, r, epsilon=0):
         r"""
@@ -1879,7 +1878,81 @@ class RuleSuperRSK(RuleRSK):
         else:
             return None, None  # Bumping is completed
 
+    def _forward_format_output(self, p=None, q=None, check_standard=False):
+        """
+        """
+        from  sage.combinat.tableau import SemistandardSuperTableau
 
+        # return [SemistandardSuperTableau(p), SemistandardSuperTableau(q)]
+        return [(p), (q)]
+
+    def backward_rule(self, p, q, output):
+        r"""
+        """
+        self._backward_verify_input(p, q)
+        p_copy = [list(row) for row in p]
+
+        # introduce if standardSuperTableau
+
+        upper_row = []
+        lower_row = []
+        # upper_row and lower_row will be the upper and lower rows of the
+        # generalized permutation we get as a result, but both reversed.
+        d = {}
+        for row, Li in enumerate(q):
+            for col, val in enumerate(Li):
+                if val in d:
+                    d[val][col] = row
+                else:
+                    d[val] = {col: row}
+        # d is now a double family such that for every integers k and j,
+        # the value d[k][j] is the row i such that the (i, j)-th cell of
+        # q is filled with k.
+        for value, iter_dict in sorted(d.items(), reverse=True, key=lambda x: x[0]):
+            epsilon = 1 if value.is_primed() else 0
+            if epsilon == 1:
+                iter_dict = {v: k for k, v in iter_dict.iteritems()}
+            for key in sorted(iter_dict, reverse=True):
+                
+                i = iter_dict[key]
+                if epsilon == 1:
+                    x = p_copy[key].pop() # Always the right-most entry
+                else:
+                    x = p_copy[i].pop() # Always the right-most entry
+
+                while True:
+                    if value.is_primed() == x.is_primed():
+                        # row bumping
+
+
+                    else:
+                        # column bumping
+                    
+                    # for row in reversed(p_copy[:i]):
+                    #     x = self.reverse_insertion(x, row)
+                    
+
+            else:
+
+        return self._backward_format_output(lower_row, upper_row, output, p.is_standard(), q.is_standard())
+
+    def reverse_insertion(self, x, row):
+        
+        y_pos = bisect_left(row, x) - 1
+        y = row[y_pos]
+        # Check to see if we can swap x for y
+        if ((y_pos == len(row) - 1 or x < row[y_pos+1])
+            and (i == len(p) - 1 or len(p[i+1]) <= y_pos
+                 or x < p[i+1][y_pos])):
+            row[y_pos] = x
+        x = y
+        return x
+
+    def _backward_format_output(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
+        pass
+
+    def _backward_verify_input(self, p, q):
+        pass
 
 class InsertionRules(object):
     r"""

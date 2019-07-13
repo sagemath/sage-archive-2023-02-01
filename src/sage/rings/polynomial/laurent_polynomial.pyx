@@ -1576,16 +1576,31 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             sage: f = 2*t/x + (3*t^2 + 6*t)*x
             sage: f._derivative(t)
             2*x^-1 + (6*t + 6)*x
+
+        Check that :trac:`28187` is fixed::
+
+            sage: R.<x> = LaurentPolynomialRing(ZZ)
+            sage: p = 1/x + 1 + x
+            sage: x,y = var("x, y")
+            sage: p._derivative(x)
+            -x^-2 + 1
+            sage: p._derivative(y)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot differentiate with respect to y
         """
         cdef LaurentPolynomial_univariate ret
-        if var is not None and var is not self._parent.gen():
-            # call _derivative() recursively on coefficients
-            u = [coeff._derivative(var) for coeff in self.__u.list(copy=False)]
-            ret = <LaurentPolynomial_univariate> self._new_c()
-            ret.__u = <ModuleElement> self._parent._R(u)
-            ret.__n = self.__n
-            ret.__normalize()
-            return ret
+        if var is not None and var != self._parent.gen():
+            try:
+                # call _derivative() recursively on coefficients
+                u = [coeff._derivative(var) for coeff in self.__u.list(copy=False)]
+                ret = <LaurentPolynomial_univariate> self._new_c()
+                ret.__u = <ModuleElement> self._parent._R(u)
+                ret.__n = self.__n
+                ret.__normalize()
+                return ret
+            except AttributeError:
+                raise ValueError('cannot differentiate with respect to {}'.format(var))
 
         # compute formal derivative with respect to generator
         if self.is_zero():

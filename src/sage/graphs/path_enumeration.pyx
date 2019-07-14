@@ -486,6 +486,19 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
       the path between ``source`` and ``target`` is returned. Otherwise a
       tuple of path length and path is returned.
 
+    ALGORITHM:
+
+    This algorithm can be divided into two parts. Firstly, it determines the
+    first k-shortest path and then determine all the other k-shortest paths.
+    The algorithm finds the deviations of previous shortest paths to determine
+    the next shortest paths.
+
+    Time complexity is `O(kn(m+nlogn))` where `n` is the number of vertices and
+    `m` is the number of edges and `k` is the number of shortest paths needed to
+    find.
+
+    See [Yen1970]_ for more details on the algorithm.
+
     EXAMPLES::
         
         sage: from sage.graphs.path_enumeration import yen_k_shortest_simple_paths
@@ -592,10 +605,11 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
 
     if by_weight:
         self._check_weight_function(weight_function)
+        # dictionary to get weight of the edges
         edge_wt = {}
         for e in self.edge_iterator():
             if self.is_directed():
-                edge_wt[(e[0], e[1])] = weight_function(e) # dictionary to get weight of the edges
+                edge_wt[(e[0], e[1])] = weight_function(e)
             else:
                 edge_wt[(e[0], e[1])] = weight_function(e)
                 edge_wt[(e[1], e[0])] = edge_wt[(e[0], e[1])]
@@ -765,6 +779,19 @@ def yen_k_shortest_simple_paths_directed_iterator(self, source, target, weight_f
     - ``report_weight`` -- boolean (default: ``False``); if ``False``, just
       the path between ``source`` and ``target`` is returned. Otherwise a
       tuple of path length and path is returned.
+
+    ALGORITHM:
+
+    This algorithm can be divided into two parts. Firstly, it determines the
+    first k-shortest path and then determine all the other k-shortest paths.
+    The algorithm finds the deviations of previous shortest paths to determine
+    the next shortest paths.
+
+    Time complexity is `O(kn(m+nlogn))` where `n` is the number of vertices and
+    `m` is the number of edges and `k` is the number of shortest paths needed to
+    find.
+
+    See [GF2014]_ for more details on the algorithm.
 
     EXAMPLES::
 

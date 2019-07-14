@@ -618,7 +618,7 @@ class AsymptoticExpansionGenerators(SageObject):
 
         - ``zeta`` -- (default: `1`) the location of the singularity.
 
-        - ``alpha`` -- (default: `0`) the pole order of the singularty.
+        - ``alpha`` -- (default: `0`) the pole order of the singularity.
 
         - ``beta`` -- (default: `0`) the order of the logarithmic singularity.
 

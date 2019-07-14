@@ -3919,13 +3919,14 @@ class DiGraph(GenericGraph):
 
         INPUT:
 
-        - ``odd`` -- boolean (default: ``False``); whether to compute the odd girth
+        - ``odd`` -- boolean (default: ``False``); whether to compute the odd
+          girth
 
         - ``certificate`` -- boolean (default: ``False``); whether to return
           ``(g, c)``, where ``g`` is the (odd) girth and ``c`` is a list
           of vertices of a directed cycle of length ``g`` in the graph,
           thus providing a certificate that the (odd) girth is at most ``g``,
-          or ``None`` if ``g``  infinite
+          or ``None`` if ``g`` is infinite
 
         EXAMPLES:
 
@@ -3939,8 +3940,10 @@ class DiGraph(GenericGraph):
 
         .. SEEALSO::
 
-            * :meth:`~sage.graphs.GenericGraph.girth` -- return the girth of the graph.
-            * :meth:`~sage.graphs.GenericGraph.odd_girth` -- return the odd girth of the graph.
+            * :meth:`~sage.graphs.GenericGraph.girth` -- return the girth of the
+              graph
+            * :meth:`~sage.graphs.GenericGraph.odd_girth` -- return the odd
+              girth of the graph
         """
         n = self.num_verts()
         best = n + 1
@@ -3956,7 +3959,7 @@ class DiGraph(GenericGraph):
                     for u in self.neighbor_out_iterator(v):
                         if u in seen:
                             continue
-                        if not u in outSpan:
+                        if u not in outSpan:
                             outSpan[u] = v
                             nextOutList.add(u)
                         if u in inList:

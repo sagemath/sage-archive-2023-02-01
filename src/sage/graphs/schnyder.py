@@ -34,7 +34,8 @@ def _triangulate(g, comb_emb):
 
     Given a connected graph g with at least 3 vertices and a planar combinatorial
     embedding comb_emb of g, modify g in place to form a graph whose faces are
-    all triangles, and return the set of newly created edges.
+    all triangles, and return the set of newly created edges. Also comb_emb
+    is updated in place.
 
     The simple way to triangulate a face is to just pick a vertex and draw
     an edge from that vertex to every other vertex in the face. Think that this
@@ -103,9 +104,12 @@ def _triangulate(g, comb_emb):
         if len(face) == 3:
             continue  # This face is already triangulated
         elif len(face) == 4:  # In this special case just add diagonal edge to square
-            new_face = (face[1][1], face[0][0])
-            if g.has_edge(new_face):
-                new_face = (face[2][1], face[1][0])
+            u, v, w, x = (e[0] for e in face)
+            if g.has_edge(w,u):
+                u, v, w, x = v, w, x, u
+            new_face = (w, u)
+            comb_emb[w].insert(comb_emb[w].index(x),u)
+            comb_emb[u].insert(comb_emb[u].index(v),w)
             g.add_edge(new_face)
             edges_added.append(new_face)
         else:
@@ -122,6 +126,8 @@ def _triangulate(g, comb_emb):
 
                 g.add_edge(new_edge)
                 edges_added.append(new_edge)
+                comb_emb[new_edge[0]].insert(comb_emb[new_edge[0]].index(face[(i+2) % N][1]),new_edge[1])
+                comb_emb[new_edge[1]].insert(comb_emb[new_edge[1]].index(face[i][1]),new_edge[0])
                 new_face.append((new_edge[1], new_edge[0]))
                 i += 2
             if i != N:
@@ -179,6 +185,8 @@ def _normal_label(g, comb_emb, external_face):
 
     labels = {}
 
+    # For now we will not take the order of the outer face into account.
+    # We will correct this in the end of this function.
     external_vertices = sorted([external_face[0][0],
                                 external_face[1][0],
                                 external_face[2][0]])
@@ -325,6 +333,20 @@ def _normal_label(g, comb_emb, external_face):
 
         for w in new_neighbors:
             g.add_edge((v, w))
+
+    # Up to this point we did not take the order of the external face into account.
+    # Since the combinatorial embedding of a triangulated is only unique up to
+    # the choice of the outer face and reflection, this might lead to a reflection
+    # of the Schnyder drawing resulting from this labeling which is not conformal
+    # with comb_emb any longer. Therefore, we might have to swap the labels 1 and 2.
+    if (v1, v2) in external_face:
+        for u in labels:
+            for (v,w) in labels[u]:
+                if labels[u][(v,w)] == 1:
+                    labels[u][(v,w)] = 2
+                elif labels[u][(v,w)] == 2:
+                    labels[u][(v,w)] = 1
+        v1, v2 = v2, v1
 
     return labels, (v1, v2, v3)
 

@@ -5248,13 +5248,14 @@ class GenericGraph(GenericGraph_pyx):
 
         # Optional error-checking
         if test:
-            G.is_planar(set_embedding=True) # to get new embedding
+            if G._check_embedding_validity():
+                if not G.is_planar(on_embedding=G._embedding):
+                    raise ValueError('%s has nonplanar _embedding attribute. Try putting set_embedding=True' % self)
             test_faces = G.faces(G._embedding)
             for face in test_faces:
                 if len(face) != 3:
                     raise RuntimeError('BUG: Triangulation returned face: %s'%face)
 
-        G.is_planar(set_embedding=True)
         faces = G.faces(G._embedding)
         # Assign a normal label to the graph
         label = _normal_label(G, G._embedding, faces[0])

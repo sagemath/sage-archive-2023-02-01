@@ -360,22 +360,6 @@ cdef class EdgesView:
         else:
             return sum(1 for _ in self)
 
-    def __bool__(self):
-        """
-        Check whether ``self`` is empty.
-
-        EXAMPLES::
-
-            sage: from sage.graphs.views import EdgesView
-            sage: E = EdgesView(Graph())
-            sage: bool(E)
-            False
-            sage: E = EdgesView(graphs.HouseGraph())
-            sage: bool(E)
-            True
-        """
-        return len(self) > 0
-
     def __repr__(self):
         """
         Return a string representation of ``self``.
@@ -436,6 +420,35 @@ cdef class EdgesView:
             yield from sorted(self._iter_unsorted(vertices), key=self._sort_edges_key)
         else:
             yield from self._iter_unsorted(vertices)
+
+    def __bool__(self):
+        """
+        Check whether ``self`` is empty.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.views import EdgesView
+            sage: E = EdgesView(Graph())
+            sage: bool(E)
+            False
+            sage: E = EdgesView(graphs.HouseGraph())
+            sage: bool(E)
+            True
+        """
+        if self._vertices is None:
+            vertices = self._graph
+        else:
+            vertices = self._vertices
+        if self._graph._directed:
+            for _ in self._graph._backend.iterator_out_edges(vertices, False):
+                return True
+            if self._ignore_direction:
+                for _ in self._graph._backend.iterator_in_edges(vertices, False):
+                    return True
+        else:
+            for _ in self._graph._backend.iterator_edges(vertices, False):
+                return True
+        return False
 
     def __eq__(self, right):
         """

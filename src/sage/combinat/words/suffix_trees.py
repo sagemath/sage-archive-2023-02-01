@@ -1488,8 +1488,8 @@ class ImplicitSuffixTree(SageObject):
         B = self.LZ_decomposition()
         P = [[] for _ in w]
         for i in range(len(B)-1):
-	    squares = list(chain(condition2_square_pairs(i),
-                                 condition1_square_pairs(i)))
+            squares = list(chain(condition2_square_pairs(i),
+                          condition1_square_pairs(i)))
             for (i,l) in squares:
                 P[i].append(l)
         for l in P:
@@ -1731,7 +1731,7 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
             else:
                 labeling[(u, v)] = [l]
             # Make the walk
-            final_state = self.suffix_walk(((u, v), l))
+            final_state = self.suffix_walk((u, v), l)
             successful = False
             if final_state[0] == 'explicit':
                 parent = final_state[1]

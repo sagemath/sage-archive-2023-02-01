@@ -339,7 +339,7 @@ class Cube(SageObject):
         :param upper: if True, return the "upper" nth primary face;
           otherwise, return the "lower" nth primary face.
         :type upper: boolean; optional, default=True
-        :return: the cube obtained by replacing the nth non-degenrate
+        :return: the cube obtained by replacing the nth non-degenerate
           interval with either its upper or lower endpoint.
 
         EXAMPLES::

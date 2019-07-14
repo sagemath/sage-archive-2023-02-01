@@ -442,7 +442,7 @@ cdef class Matrix(Matrix0):
             | x+1 y+1 |
         """
         base_ring = macaulay2(self.base_ring())
-        entries = map(list, self)
+        entries = list(map(list, self))
         return macaulay2(entries).matrix()
 
 

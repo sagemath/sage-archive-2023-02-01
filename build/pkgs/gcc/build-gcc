@@ -63,6 +63,7 @@ fi
     --with-local-prefix="$SAGE_LOCAL" \
     $SAGE_CONFIGURE_GMP $SAGE_CONFIGURE_MPFR $SAGE_CONFIGURE_MPC \
     --with-system-zlib \
+    --without-isl \
     --disable-multilib \
     --disable-nls \
     --disable-libitm \

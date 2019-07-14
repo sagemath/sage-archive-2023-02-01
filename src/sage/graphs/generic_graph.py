@@ -4738,7 +4738,7 @@ class GenericGraph(GenericGraph_pyx):
             import networkx
             G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
             return networkx.minimum_cycle_basis(G, weight='weight')
-        elif algorithm == None:
+        elif algorithm is None:
             from sage.graphs.base.boost_graph import min_cycle_basis
             if self.is_connected():
                 CC = [self]
@@ -13604,7 +13604,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: [sum(1 for g in graphs(i) if g.is_interval()) for i in range(8)]  # long time
             [1, 1, 2, 4, 10, 27, 92, 369]
 
-        Test certicate on a larger graph by re-doing isomorphic graph::
+        Test certificate on a larger graph by re-doing isomorphic graph::
 
             sage: g = Graph(':S__@_@A_@AB_@AC_@ACD_@ACDE_ACDEF_ACDEFG_ACDEGH_ACDEGHI_ACDEGHIJ_ACDEGIJK_ACDEGIJKL_ACDEGIJKLMaCEGIJKNaCEGIJKNaCGIJKNPaCIP', loops=False, multiedges=False)
             sage: d = g.is_interval(certificate=True)[1]
@@ -16119,7 +16119,7 @@ class GenericGraph(GenericGraph_pyx):
           - ``'BFS'``: performs a BFS from ``u``. Does not work with edge
             weights.
 
-          - ``'BFS_Bid``: performs a BFS from ``u`` and from ``v``. Does not
+          - ``'BFS_Bid'``: performs a BFS from ``u`` and from ``v``. Does not
             work with edge weights.
 
           - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
@@ -16216,6 +16216,20 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: vertex '6' is not in the (di)graph
+            
+        If no path exists from ``u`` to ``v`` (:trac:`28098`)::
+        
+            sage: G = Graph()
+            sage: G.add_vertices([1, 2])
+            sage: for alg in ['BFS', 'BFS_Bid', 'Dijkstra_NetworkX', 'Dijkstra_Bid_NetworkX', 
+            ....:             'Dijkstra_Bid', 'Bellman-Ford_Boost']:
+            ....:     G.shortest_path(1, 2, algorithm=alg)
+            []
+            []
+            []
+            []
+            []
+            []
         """ #         TODO- multiple edges??
         if not self.has_vertex(u):
             raise ValueError("vertex '{}' is not in the (di)graph".format(u))
@@ -16229,7 +16243,10 @@ class GenericGraph(GenericGraph_pyx):
             algorithm = 'Dijkstra_Bid' if by_weight else 'BFS_Bid'
 
         if algorithm in ['BFS', 'Dijkstra_NetworkX', 'Bellman-Ford_Boost']:
-            return self.shortest_paths(u, by_weight, algorithm, weight_function, check_weight)[v]
+            all_paths = self.shortest_paths(u, by_weight, algorithm, weight_function, check_weight)
+            if v in all_paths:
+                return all_paths[v]
+            return []
 
         if weight_function is None and by_weight:
             def weight_function(e):
@@ -16257,7 +16274,10 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
             G.add_nodes_from(self)
-            return networkx.bidirectional_dijkstra(G, u, v)[1]
+            try:
+                return networkx.bidirectional_dijkstra(G, u, v)[1]
+            except networkx.NetworkXNoPath:
+                return []
         elif algorithm == "BFS_Bid":
             return self._backend.shortest_path(u, v)
         else:
@@ -16287,7 +16307,7 @@ class GenericGraph(GenericGraph_pyx):
           - ``'BFS'``: performs a BFS from ``u``. Does not work with edge
             weights.
 
-          - ``'BFS_Bid``: performs a BFS from ``u`` and from ``v``. Does not
+          - ``'BFS_Bid'``: performs a BFS from ``u`` and from ``v``. Does not
             work with edge weights.
 
           - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
@@ -16388,6 +16408,20 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: vertex '6' is not in the (di)graph
+            
+        If no path exists from ``u`` to ``v`` (:trac:`28098`)::
+        
+            sage: G = Graph()
+            sage: G.add_vertices([1, 2])
+            sage: for alg in ['BFS', 'BFS_Bid', 'Dijkstra_NetworkX', 'Dijkstra_Bid_NetworkX',
+            ....:             'Dijkstra_Bid', 'Bellman-Ford_Boost']:
+            ....:     G.shortest_path_length(1, 2, algorithm=alg)
+            +Infinity
+            +Infinity
+            +Infinity
+            +Infinity
+            +Infinity
+            +Infinity
         """
         if not self.has_vertex(u):
             raise ValueError("vertex '{}' is not in the (di)graph".format(u))
@@ -16408,7 +16442,11 @@ class GenericGraph(GenericGraph_pyx):
                 return e[2]
 
         if algorithm in ['BFS', 'Dijkstra_NetworkX', 'Bellman-Ford_Boost']:
-            return self.shortest_path_lengths(u, by_weight, algorithm, weight_function, check_weight)[v]
+            all_path_lengths = self.shortest_path_lengths(u, by_weight, algorithm, weight_function, check_weight)
+            if v in all_path_lengths:
+                return all_path_lengths[v]
+            from sage.rings.infinity import Infinity
+            return Infinity
 
         if by_weight:
             if algorithm == 'BFS_Bid':
@@ -16429,7 +16467,11 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 G = networkx.Graph([(e[0], e[1], {'weight': weight_function(e)}) for e in self.edge_iterator()])
             G.add_nodes_from(self)
-            return networkx.bidirectional_dijkstra(G, u, v)[0]
+            try:
+                return networkx.bidirectional_dijkstra(G, u, v)[0]
+            except networkx.NetworkXNoPath:
+                from sage.rings.infinity import Infinity
+                return Infinity
         elif algorithm == "BFS_Bid":
             return self._backend.shortest_path(u, v, distance_flag=True)
         else:
@@ -16453,7 +16495,7 @@ class GenericGraph(GenericGraph_pyx):
 
         The standard weight function outputs labels::
 
-            sage: G = Graph([(0,1,1), (1,2,3), (2,3,2)])
+            sage: G = Graph([(0, 1, 1), (1, 2, 3), (2, 3, 2)])
             sage: weight_function=lambda e:e[2]
             sage: G._check_weight_function(weight_function)
             sage: [weight_function(e) for e in G.edges()]
@@ -16461,7 +16503,7 @@ class GenericGraph(GenericGraph_pyx):
 
         However, it might be more complicated::
 
-            sage: G = Graph([(0,1,{'name':'a', 'weight':1}), (1,2,{'name':'b', 'weight':3}), (2,3,{'name':'c', 'weight':2})])
+            sage: G = Graph([(0, 1, {'name':'a', 'weight':1}), (1, 2, {'name': 'b', 'weight': 3}), (2, 3, {'name': 'c', 'weight': 2})])
             sage: weight_function=lambda e:e[2]['weight']
             sage: G._check_weight_function(weight_function)
             sage: [weight_function(e) for e in G.edges()]
@@ -16469,19 +16511,30 @@ class GenericGraph(GenericGraph_pyx):
 
         A weight function that does not match labels::
 
-            sage: G.add_edge((0,3,{'name':'d', 'weight':'d'}))
+            sage: G.add_edge((0, 3, {'name': 'd', 'weight': 'd'}))
             sage: G._check_weight_function(weight_function)
             Traceback (most recent call last):
             ...
             ValueError: the weight function cannot find the weight of (0, 3, {'name': 'd', 'weight': 'd'})
+        
+        Numeric string as a weight in weight_function::
+
+            sage: G = Graph({0: {1: '123'}})
+            sage: weight_function=lambda e:e[2]
+            sage: G._check_weight_function(weight_function)
+            Traceback (most recent call last):
+            ...
+            ValueError: the weight function cannot find the weight of (0, 1, '123')
         """
         for e in self.edge_iterator():
             try:
-                float(weight_function(e))
+                temp = weight_function(e)
+                float(temp)
+                if isinstance(temp, (str, bytes)):
+                    raise ValueError()
             except Exception:
                 raise ValueError("the weight function cannot find the "
                                  "weight of " + str(e))
-
 
     def shortest_paths(self, u, by_weight=False, algorithm=None,
                        weight_function=None, check_weight=True, cutoff=None):
@@ -22370,6 +22423,24 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.subgroups()
             [Subgroup generated by [()] of (Permutation Group with generators [(0,7)(1,4)(2,3)(6,8)]),
              Subgroup generated by [(0,7)(1,4)(2,3)(6,8)] of (Permutation Group with generators [(0,7)(1,4)(2,3)(6,8)])]
+
+        We check that the representations of the groups returned with ``'sage'``
+        and ``'bliss'`` are the same (:trac:`27571`)::
+
+            sage: G = graphs.PaleyGraph(9)
+            sage: a1 = G.automorphism_group(algorithm='sage')
+            sage: V = sorted(G, reverse=True)
+            sage: a2 = G.automorphism_group(algorithm='sage', partition=[V])
+            sage: a1.is_isomorphic(a2)
+            True
+            sage: str(a1) == str(a2)
+            False
+            sage: b1 = G.automorphism_group(algorithm='bliss')  # optional - bliss
+            sage: str(a1) == str(b1)                            # optional - bliss
+            True
+            sage: b2 = G.automorphism_group(algorithm='bliss', partition=[V])  # optional - bliss
+            sage: str(a2) == str(b2)                                           # optional - bliss
+            True
         """
         from sage.features.bliss import Bliss
         have_bliss = Bliss().is_present()
@@ -22412,6 +22483,8 @@ class GenericGraph(GenericGraph_pyx):
 
         from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
         from sage.groups.perm_gps.permgroup import PermutationGroup
+        from sage.graphs.all import Graph, DiGraph
+        from itertools import chain
         dig = (self._directed or self.has_loops())
 
         if partition is None:
@@ -22419,9 +22492,8 @@ class GenericGraph(GenericGraph_pyx):
 
         if edge_labels or self.has_multiple_edges():
             G, partition, relabeling = graph_isom_equivalent_non_edge_labeled_graph(self, partition, return_relabeling=True, ignore_edge_labels=(not edge_labels))
-            G_vertices = sum(partition, [])
+            G_vertices = list(chain(*partition))
             G_to = {u: i for i,u in enumerate(G_vertices)}
-            from sage.graphs.all import Graph, DiGraph
             DoDG = DiGraph if self._directed else Graph
             H = DoDG(len(G_vertices), loops=G.allows_loops())
             HB = H._backend
@@ -22461,9 +22533,8 @@ class GenericGraph(GenericGraph_pyx):
             a = real_aut_gp
             b = translation_d
         else:
-            G_vertices = sum(partition, [])
+            G_vertices = list(chain(*partition))
             G_to = {u: i for i,u in enumerate(G_vertices)}
-            from sage.graphs.all import Graph, DiGraph
             DoDG = DiGraph if self._directed else Graph
             H = DoDG(len(G_vertices), loops=self.allows_loops())
             HB = H._backend
@@ -22677,13 +22748,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: E.relabel(gamma)
             sage: a,b = D.is_isomorphic(E, certificate=True); a
             True
-            sage: from sage.plot.graphics import GraphicsArray
             sage: from sage.graphs.generic_graph_pyx import spring_layout_fast
             sage: position_D = spring_layout_fast(D)
             sage: position_E = {}
             sage: for vert in position_D:
             ....:  position_E[b[vert]] = position_D[vert]
-            sage: GraphicsArray([D.plot(pos=position_D), E.plot(pos=position_E)]).show() # long time
+            sage: graphics_array([D.plot(pos=position_D), E.plot(pos=position_E)]).show() # long time
 
         ::
 
@@ -23006,7 +23076,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: g, c = g1.canonical_label(algorithm='sage', certificate=True)
             sage: g
             Grid Graph for [2, 3]: Graph on 6 vertices
-            sage: c
+            sage: c  # py2
+            {(0, 0): 2, (0, 1): 4, (0, 2): 3, (1, 0): 1, (1, 1): 5, (1, 2): 0}
+            sage: c  # py3
             {(0, 0): 3, (0, 1): 4, (0, 2): 2, (1, 0): 0, (1, 1): 5, (1, 2): 1}
 
         Multigraphs and directed graphs work too::
@@ -23059,9 +23131,11 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS::
 
-            sage: G = Graph({'a': ['b']})
+            sage: G = Graph([['a', 'b'], [('a', 'b')]])
             sage: G.canonical_label(algorithm='sage', certificate=True)
             (Graph on 2 vertices, {'a': 0, 'b': 1})
+            sage: G.canonical_label(algorithm='bliss', certificate=True)  # optional - bliss
+            (Graph on 2 vertices, {'a': 1, 'b': 0})
 
         Check for immutable graphs (:trac:`16602`)::
 
@@ -23129,17 +23203,16 @@ class GenericGraph(GenericGraph_pyx):
 
         # algorithm == 'sage':
         from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
+        from sage.graphs.all import Graph, DiGraph
+        from itertools import chain
 
         dig = (self.has_loops() or self._directed)
         if partition is None:
-            partition = [self.vertices()]
+            partition = [list(self)]
         if edge_labels or self.has_multiple_edges():
             G, partition, relabeling = graph_isom_equivalent_non_edge_labeled_graph(self, partition, return_relabeling=True)
-            G_vertices = sum(partition, [])
-            G_to = {}
-            for i,u in enumerate(G_vertices):
-                G_to[u] = i
-            from sage.graphs.all import Graph, DiGraph
+            G_vertices = list(chain(*partition))
+            G_to = {u: i for i,u in enumerate(G_vertices)}
             DoDG = DiGraph if self._directed else Graph
             H = DoDG(len(G_vertices), loops=G.allows_loops())
             HB = H._backend
@@ -23150,31 +23223,20 @@ class GenericGraph(GenericGraph_pyx):
             a,b,c = search_tree(GC, partition, certificate=True, dig=dig)
             # c is a permutation to the canonical label of G, which depends only on isomorphism class of self.
             H = copy(self)
-            c_new = {}
-            for v in self.vertices():
-                c_new[v] = c[G_to[relabeling[v]]]
-            H.relabel(c_new)
-            if certificate:
-                return H, c_new
-            else:
-                return H
-        G_vertices = sum(partition, [])
-        G_to = {}
-        for i,u in enumerate(G_vertices):
-            G_to[u] = i
-        from sage.graphs.all import Graph, DiGraph
-        DoDG = DiGraph if self._directed else Graph
-        H = DoDG(len(G_vertices), loops=self.allows_loops())
-        HB = H._backend
-        for u,v in self.edge_iterator(labels=False):
-            HB.add_edge(G_to[u], G_to[v], None, self._directed)
-        GC = HB.c_graph()[0]
-        partition = [[G_to[vv] for vv in cell] for cell in partition]
-        a,b,c = search_tree(GC, partition, certificate=True, dig=dig)
-        H = copy(self)
-        c_new = {}
-        for v in G_to:
-            c_new[v] = c[G_to[v]]
+            c_new = {v: c[G_to[relabeling[v]]] for v in self}
+        else:
+            G_vertices = list(chain(*partition))
+            G_to = {u: i for i,u in enumerate(G_vertices)}
+            DoDG = DiGraph if self._directed else Graph
+            H = DoDG(len(G_vertices), loops=self.allows_loops())
+            HB = H._backend
+            for u, v in self.edge_iterator(labels=False):
+                HB.add_edge(G_to[u], G_to[v], None, self._directed)
+            GC = HB.c_graph()[0]
+            partition = [[G_to[vv] for vv in cell] for cell in partition]
+            a,b,c = search_tree(GC, partition, certificate=True, dig=dig)
+            H = copy(self)
+            c_new = {v: c[G_to[v]] for v in G_to}
         H.relabel(c_new)
         if certificate:
             return H, c_new

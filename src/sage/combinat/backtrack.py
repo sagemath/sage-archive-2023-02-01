@@ -214,7 +214,7 @@ def search_forest_iterator(roots, children, algorithm='depth'):
     # Little trick: the same implementation handles both depth and
     # breadth first search. Setting position to -1 makes a depth search
     # (you ask the children for the last node you met). Setting
-    # position on 0 makes a breadth search (enumarate all the
+    # position on 0 makes a breadth search (enumerate all the
     # descendants of a node before going on to the next father)
     if algorithm == 'depth':
         position = -1

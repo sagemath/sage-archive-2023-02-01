@@ -125,6 +125,15 @@ class Function_zeta(GinacFunction):
             sage: (zeta(x) * 1/(1 - exp(-x))).residue(x==2*pi*I)
             zeta(2*I*pi)
 
+        Check that :trac:`20102` is fixed::
+
+            sage: (zeta(x)^2).series(x==1, 1)
+            1*(x - 1)^(-2) + (2*euler_gamma)*(x - 1)^(-1)
+            + (euler_gamma^2 - 2*stieltjes(1)) + Order(x - 1)
+            sage: (zeta(x)^4).residue(x==1)
+            4/3*euler_gamma*(3*euler_gamma^2 - 2*stieltjes(1))
+            - 28/3*euler_gamma*stieltjes(1) + 2*stieltjes(2)
+
         Check that the right infinities are returned (:trac:`19439`)::
 
             sage: zeta(1.0)

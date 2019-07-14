@@ -3273,7 +3273,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             Full MatrixSpace of 3 by 4 dense matrices over Rational Field
 
         The more general :meth:`sage.matrix.matrix2.tensor_product` is an
-        operation on a pair of matrices.  If we construe a pair of vectors
+        operation on a pair of matrices.  If we construct a pair of vectors
         as a column vector and a row vector, then an outer product and a
         tensor product are identical.  Thus `tensor_product` is a synonym
         for this method.  ::

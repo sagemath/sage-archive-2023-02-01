@@ -4275,7 +4275,8 @@ class BinaryTrees_size(BinaryTrees):
             True
         """
         from sage.combinat.dyck_word import CompleteDyckWords_size
-        return CompleteDyckWords_size(self._size).random_element().to_binary_tree()
+        dw = CompleteDyckWords_size(self._size).random_element()
+        return dw.to_binary_tree_tamari()
 
     def __iter__(self):
         """
@@ -4295,7 +4296,7 @@ class BinaryTrees_size(BinaryTrees):
         if self._size == 0:
             yield self._element_constructor_()
         else:
-            for i in range(0, self._size):
+            for i in range(self._size):
                 for lft in self.__class__(i):
                     for rgt in self.__class__(self._size - 1 - i):
                         yield self._element_constructor_([lft, rgt])
@@ -4529,7 +4530,8 @@ class FullBinaryTrees_size(BinaryTrees):
         from sage.combinat.dyck_word import CompleteDyckWords_size
         if self._size == 0:
             return BinaryTree(None)
-        return CompleteDyckWords_size((self._size - 1) // 2).random_element().to_binary_tree().to_full()
+        dw = CompleteDyckWords_size((self._size - 1) // 2).random_element()
+        return dw.to_binary_tree_tamari().to_full()
 
     def __iter__(self):
         """

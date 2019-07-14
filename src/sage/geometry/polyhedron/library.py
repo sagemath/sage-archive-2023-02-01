@@ -1489,7 +1489,12 @@ class Polytopes():
         Unfortunately, no polyhedra backend supports the construction of the
         snub dodecahedron at the moment::
 
-            sage: sd = polytopes.snub_dodecahedron()
+            sage: sd = polytopes.snub_dodecahedron() # py2
+            sage: sd = polytopes.snub_dodecahedron() # py3
+            doctest:warning
+            ...
+            UserWarning: This polyhedron data is numerically complicated; cdd could not convert between the inexact V and H representation without loss of data. The resulting object might show inconsistencies.
+
             sage: sd.f_vector() # not tested
             (1, 60, 150, 92, 1)
             sage: sd.base_ring() # not tested

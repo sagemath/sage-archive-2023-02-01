@@ -360,7 +360,7 @@ Sage example in ./domaines.tex, line 1496::
 
 Sage example in ./domaines.tex, line 1509::
 
-  sage: prod( (a-b) for (a,b) in Subsets([x1,x2,x3,x4],2) )
+  sage: P = prod( (a-b) for (a,b) in Subsets([x1,x2,x3,x4],2) ); P * P.lc()
   x1^3*x2^2*x3 - x1^2*x2^3*x3 - x1^3*x2*x3^2 + x1*x2^3*x3^2
   + x1^2*x2*x3^3 - x1*x2^2*x3^3 - x1^3*x2^2*x4 + x1^2*x2^3*x4
   + x1^3*x3^2*x4 - x2^3*x3^2*x4 - x1^2*x3^3*x4 + x2^2*x3^3*x4

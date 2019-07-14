@@ -15258,27 +15258,20 @@ class GenericGraph(GenericGraph_pyx):
             3
         """
         # Cases where girth <= 2
-        if self.has_loops():
-            return (1, next([u] for u in self if self.has_edge(u, u))) \
-                if certificate else 1
+        if self.allows_loops():
+            for u in self:
+                if self.has_edge(u, u):
+                    return (1, [u]) if certificate else 1
         if self.is_directed():
-            try:
-                pair = next([u, v] for u, v
-                            in self.edge_iterator(labels=False)
-                            if self.has_edge(v, u))
-                return (2, pair) if certificate else 2
-            except StopIteration:
-                pass
-        else:
-            if self.has_multiple_edges():
-                edges = set()
-                if certificate:
-                    for e in self.edge_iterator(labels=False):
-                        if e in edges:
-                            return (2, list(e))
-                        edges.add(e)
-                else:
-                    return 2
+            for u, v in self.edge_iterator(labels=False):
+                if self.has_edge(v, u):
+                    return (2, [u, v]) if certificate else 2
+        elif self.allows_multiple_edges():
+            edges = set()
+            for e in self.edge_iterator(labels=False):
+                if e in edges:
+                    return (2, list(e)) if certificate else 2
+                edges.add(e)
 
         return self._girth_bfs(odd=False, certificate=certificate)
 
@@ -15331,7 +15324,7 @@ class GenericGraph(GenericGraph_pyx):
         Bipartite graphs have no odd cycle and consequently have
         infinite odd girth::
 
-            sage: G = graphs.graphs.RandomBipartite(6, 6, .5)
+            sage: G = graphs.RandomBipartite(6, 6, .5)
             sage: G.odd_girth()
             +Infinity
             sage: G = graphs.Grid2dGraph(3, 4)

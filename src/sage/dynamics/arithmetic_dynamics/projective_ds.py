@@ -472,8 +472,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
     def _number_field_from_algebraics(self):
         r"""
-        Returns a dynamical system after scheme morphism is inherited.
-        
+        Returns a dynamical system defined over the number field of its coefficients.
+
+        OTUPUT: dynamical system.
+
         EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(QQbar,1)

@@ -57,7 +57,8 @@ def all_paths(G, start, end, use_multiedges=False, report_edges=False, labels=Fa
 
         - If ``False``, the graph is considered as simple and an edge label
           is arbitrarily selected for each edge as in
-          :meth:`~GenericGraph.to_simple` if ``report_edges`` is ``True``
+          :meth:`sage.graphs.generic_graph.GenericGraph.to_simple` if
+          ``report_edges`` is ``True``
 
         - If ``True``, a path will be reported as many times as the edges
           multiplicities along that path (when ``report_edges = False`` or
@@ -1194,7 +1195,8 @@ def _all_paths_iterator(self, vertex, ending_vertices=None,
 
         - If ``False``, the graph is considered as simple and an edge label
           is arbitrarily selected for each edge as in
-          :meth:`~GenericGraph.to_simple` if ``report_edges`` is ``True``
+          :meth:`sage.graphs.generic_graph.GenericGraph.to_simple` if
+          ``report_edges`` is ``True``
 
         - If ``True``, a path will be reported as many times as the edges
           multiplicities along that path (when ``report_edges = False`` or
@@ -1462,7 +1464,8 @@ def all_paths_iterator(self, starting_vertices=None, ending_vertices=None,
 
         - If ``False``, the graph is considered as simple and an edge label
           is arbitrarily selected for each edge as in
-          :meth:`~GenericGraph.to_simple` if ``report_edges`` is ``True``
+          :meth:`sage.graphs.generic_graph.GenericGraph.to_simple` if
+          ``report_edges`` is ``True``
 
         - If ``True``, a path will be reported as many times as the edges
           multiplicities along that path (when ``report_edges = False`` or
@@ -1689,7 +1692,8 @@ def all_simple_paths(self, starting_vertices=None, ending_vertices=None,
 
         - If ``False``, the graph is considered as simple and an edge label
           is arbitrarily selected for each edge as in
-          :meth:`~GenericGraph.to_simple` if ``report_edges`` is ``True``
+          :meth:`sage.graphs.generic_graph.GenericGraph.to_simple` if
+          ``report_edges`` is ``True``
 
         - If ``True``, a path will be reported as many times as the edges
           multiplicities along that path (when ``report_edges = False`` or

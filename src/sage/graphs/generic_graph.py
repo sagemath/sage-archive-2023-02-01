@@ -124,7 +124,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.cycle_basis` | Return a list of cycles which form a basis of the cycle space of ``self``.
     :meth:`~GenericGraph.all_paths` | Return a list of all paths (also lists) between a pair of vertices in the (di)graph.
     :meth:`~GenericGraph.triangles_count` | Return the number of triangles in the (di)graph.
-    :meth:`~GenericGraph.shortest_simple_paths` | Return an iterator over the simple paths between a pair of vertices in increasing order of weights.
+    :meth:`~GenericGraph.shortest_simple_paths` | Return an iterator over the simple paths between a pair of vertices.
 
 **Linear algebra:**
 

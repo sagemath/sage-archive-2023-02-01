@@ -12,10 +12,10 @@ This module is meant for all functions related to path enumeration in graphs.
 
     :func:`all_paths` | Return the list of all paths between a pair of vertices.
     :func:`yen_k_shortest_simple_paths` | Return an iterator over the simple paths between a pair of vertices in increasing order of weights.
-    :func:`yen_k_shortest_simple_paths_directed_iterator` | Return an iterator over the simple paths between a pair of vertices in increasing order of weights.
+    :func:`feng_k_shortest_simple_paths` | Return an iterator over the simple paths between a pair of vertices in increasing order of weights.
     :func:`all_paths_iterator` | Return an iterator over the paths of ``self``.
     :func:`all_simple_paths` | Return a list of all the simple paths of ``self`` starting with one of the given vertices.
-    :func:`shortest_simple_paths` | Return an iterator over the simple paths between a pair of vertices in increasing order of weights.
+    :func:`shortest_simple_paths` | Return an iterator over the simple paths between a pair of vertices.
 
 Functions
 ---------
@@ -280,19 +280,20 @@ def shortest_simple_paths(self, source, target, weight_function=None,
                           by_weight=False, algorithm=None, report_edges=False,
                           labels=False, report_weight=False):
     r"""
-    Return an iterator over the simple paths between a pair of vertices in
-    increasing order of weights.
+    Return an iterator over the simple paths between a pair of vertices.
 
-    For unweighted graphs paths are returned in order of increasing number
-    of edges.
+    This method returns an iterator over the simple paths (i.e., without
+    repetition) from ``source`` to ``target``. By default (``by_weight`` is
+    ``False``), the paths are reported by increasing number of edges. When
+    ``by_weight`` is ``True``, the paths are reported by increasing weights.
 
     In case of weighted graphs negative weights are not allowed.
 
     If ``source`` is the same vertex as ``target``, then ``[[source]]`` is
-    returned -- a list containing the 1-vertex, 0-edge path "``source``"
+    returned -- a list containing the 1-vertex, 0-edge path ``source``.
 
-    By default ``Yen's`` algorithm is used for undirected graphs and ``Feng's``
-    algorithm is used for directed graphs.
+    By default ``Yen's`` algorithm [Yen1970]_ is used for undirected graphs and
+    ``Feng's`` algorithm is used for directed graphs [Feng2014]_.
 
     INPUT:
 
@@ -313,14 +314,14 @@ def shortest_simple_paths(self, source, target, weight_function=None,
       computing ``k`` shortest paths of ``self``. The following algorithms are
       supported:
 
-        - ``"Yen"`` -- Yen's algorithm [Yen1970]_
+      - ``"Yen"`` -- Yen's algorithm [Yen1970]_
 
-        - ``"Feng"`` -- a variant of Yen's algorithm that is much faster than
-          Yen's algorithm but works only for directed graphs [Feng2014]_
+      - ``"Feng"`` -- an improved version of Yen's algorithm but that works only
+        for directed graphs [Feng2014]_
 
     - ``report_edges`` -- boolean (default: ``False``); whether to report paths
-      as list of vertices (default) or list of edges, if ``False`` then
-      ``labels`` parameter is ignored
+      as list of vertices (default) or list of edges. When set to ``False``, the
+      ``labels`` parameter is ignored.
 
     - ``labels`` -- boolean (default: ``False``); if ``False``, each edge is
       simply a pair ``(u, v)`` of vertices. Otherwise a list of edges along
@@ -412,6 +413,20 @@ def shortest_simple_paths(self, source, target, weight_function=None,
          [1, 6, 9, 10, 5],
          [1, 6, 9, 11, 10, 5],
          [1, 6, 9, 3, 4, 5]]
+
+    Feng's algorithm cannot be used on undirected graphs::
+
+        sage: list(graphs.PathGraph(2).shortest_simple_paths(0, 1, algorithm='Feng'))
+        Traceback (most recent call last):
+        ...
+        ValueError: Feng's algorithm works only for directed graphs
+
+    If the algorithm is not implemented::
+
+        sage: list(g.shortest_simple_paths(1, 5, algorithm='tip top'))
+        Traceback (most recent call last):
+        ...
+        ValueError: unknown algorithm "tip top"
     """
     if source not in self:
         raise ValueError("vertex '{}' is not in the graph".format(source))
@@ -423,27 +438,26 @@ def shortest_simple_paths(self, source, target, weight_function=None,
         yield [source]
         return
 
-    if not self.is_directed() and algorithm=="Feng":
-        raise ValueError("Feng's algorithm works only for directed graphs")
+    if algorithm is None:
+        algorithm = "Feng" if self.is_directed() else "Yen"
 
-    if algorithm=="Yen" or not self.is_directed():
-        path = yen_k_shortest_simple_paths(self, source=source, target=target,
-                                           weight_function=weight_function,
-                                           by_weight=by_weight, report_edges=report_edges,
-                                           labels=labels, report_weight=report_weight)
-        for p in path:
-            yield p
-        return
+    if algorithm == "Feng":
+        if not self.is_directed():
+            raise ValueError("Feng's algorithm works only for directed graphs")
 
-    # calling faster implementation of Yen's algorithm for directed graphs
-    if self.is_directed():
-        path = yen_k_shortest_simple_paths_directed_iterator(self, source=source, target=target,
-                                                             weight_function=weight_function,
-                                                             by_weight=by_weight, report_edges=report_edges,
-                                                             labels=labels, report_weight=report_weight)
-        for p in path:
-            yield p
-        return
+        yield from feng_k_shortest_simple_paths(self, source=source, target=target,
+                                                weight_function=weight_function,
+                                                by_weight=by_weight, report_edges=report_edges,
+                                                labels=labels, report_weight=report_weight)
+
+    elif algorithm == "Yen":
+        yield from yen_k_shortest_simple_paths(self, source=source, target=target,
+                                               weight_function=weight_function,
+                                               by_weight=by_weight, report_edges=report_edges,
+                                               labels=labels, report_weight=report_weight)
+
+    else:
+        raise ValueError('unknown algorithm "{}"'.format(algorithm))
 
 def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
                                 by_weight=False, report_edges=False,
@@ -458,7 +472,7 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
     In case of weighted graphs negative weights are not allowed.
 
     If ``source`` is the same vertex as ``target``, then ``[[source]]`` is
-    returned -- a list containing the 1-vertex, 0-edge path "``source``"
+    returned -- a list containing the 1-vertex, 0-edge path ``source``.
 
     INPUT:
 
@@ -489,16 +503,17 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
 
     ALGORITHM:
 
-    This algorithm can be divided into two parts. Firstly, it determines the
-    first k-shortest path and then determine all the other k-shortest paths.
-    This algorithm finds the deviations of previous shortest paths to determine
-    the next shortest paths.
+    This algorithm can be divided into two parts. Firstly, it determines a
+    shortest path from ``source`` to ``target``. Then, it determines all the
+    other `k`-shortest paths.  This algorithm finds the deviations of previous
+    shortest paths to determine the next shortest paths.
 
     Time complexity is `O(kn(m+nlogn))` where `n` is the number of vertices and
     `m` is the number of edges and `k` is the number of shortest paths needed to
     find.
 
-    See [Yen1970]_ for more details on the algorithm.
+    See [Yen1970]_ and the :wikipedia:`Yen's_algorithm` for more details on the
+    algorithm.
 
     EXAMPLES::
         
@@ -656,14 +671,14 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
         path = shortest_path_func(source, target)
     length = length_func(path)
     if not by_weight:
-        length = length - 1
+        length -= 1
     # corner case
-    if len(path) == 0:
+    if not path:
         if report_weight:
-            yield (0, path)
+            yield (0, [])
             return
         else:
-            yield path
+            yield []
             return
     # hashing the path to check the existence of a path in the heap
     hash_path = tuple(path)
@@ -737,9 +752,9 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
                 pass
             exclude_vertices.add(root[-1])
 
-def yen_k_shortest_simple_paths_directed_iterator(self, source, target, weight_function=None,
-                                                  by_weight=False, report_edges=False,
-                                                  labels=False, report_weight=False):
+def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
+                                 by_weight=False, report_edges=False,
+                                 labels=False, report_weight=False):
     r"""
     Return an iterator over the simple paths between a pair of vertices in
     increasing order of weights.
@@ -752,7 +767,7 @@ def yen_k_shortest_simple_paths_directed_iterator(self, source, target, weight_f
     In case of weighted graphs negative weights are not allowed.
 
     If ``source`` is the same vertex as ``target``, then ``[[source]]`` is
-    returned -- a list containing the 1-vertex, 0-edge path "``source``"
+    returned -- a list containing the 1-vertex, 0-edge path ``source``.
 
     INPUT:
 
@@ -784,134 +799,135 @@ def yen_k_shortest_simple_paths_directed_iterator(self, source, target, weight_f
     ALGORITHM:
 
     This algorithm can be divided into two parts. Firstly, it determines the
-    first k-shortest path and then determine all the other k-shortest paths.
-    This algorithm finds the deviations of previous shortest paths to determine
-    the next shortest paths. This algorithm finds the candidate paths more
-    efficiently using a node classification technique. At first the candidate
-    path is separated by its devitation node as prefix and suffix. Then the
-    algorithm classify the nodes as red, yellow and green. A node on the prefix
-    is assigned a red color, a node that can reach t (the destination node)
-    through a shortest path without visiting a red node is assigned a green
-    color, and all other nodes are assigned a yellow color. When searching for
-    the suffix of a candidate path, all green nodes are bypassed, and
-    ``Dijkstra’s algorithm`` is applied to find an all-yellow-node subpath.
-    Since on average the number of yellow nodes is much smaller than n, this
-    algorithm has a much lower average-case running time.
+    shortest path from ``source`` to ``target``. Then, it determines all the
+    other `k`-shortest paths. This algorithm finds the deviations of previous
+    shortest paths to determine the next shortest paths. This algorithm finds
+    the candidate paths more efficiently using a node classification
+    technique. At first the candidate path is separated by its devitation node
+    as prefix and suffix. Then the algorithm classify the nodes as red, yellow
+    and green. A node on the prefix is assigned a red color, a node that can
+    reach t (the destination node) through a shortest path without visiting a
+    red node is assigned a green color, and all other nodes are assigned a
+    yellow color. When searching for the suffix of a candidate path, all green
+    nodes are bypassed, and ``Dijkstra’s algorithm`` is applied to find an
+    all-yellow-node subpath.  Since on average the number of yellow nodes is
+    much smaller than n, this algorithm has a much lower average-case running
+    time.
 
     Time complexity is `O(kn(m+nlogn))` where `n` is the number of vertices and
     `m` is the number of edges and `k` is the number of shortest paths needed to
     find. Its average running time is much smaller as compared to `Yen's`
     algorithm.
 
-    See [Feng2014]_ for more details on the algorithm.
+    See [Feng2014]_ for more details on this algorithm.
 
     EXAMPLES::
 
-        sage: from sage.graphs.path_enumeration import yen_k_shortest_simple_paths_directed_iterator
+        sage: from sage.graphs.path_enumeration import feng_k_shortest_simple_paths
         sage: g = DiGraph([(1, 2, 20), (1, 3, 10), (1, 4, 30), (2, 5, 20), (3, 5, 10), (4, 5, 30)])
-        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 5, by_weight=True))
+        sage: list(feng_k_shortest_simple_paths(g, 1, 5, by_weight=True))
         [[1, 3, 5], [1, 2, 5], [1, 4, 5]]
-        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 5))
+        sage: list(feng_k_shortest_simple_paths(g, 1, 5))
         [[1, 4, 5], [1, 3, 5], [1, 2, 5]]
-        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 1))
+        sage: list(feng_k_shortest_simple_paths(g, 1, 1))
         [[1]]
-        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 5, report_edges=True, labels=True))
+        sage: list(feng_k_shortest_simple_paths(g, 1, 5, report_edges=True, labels=True))
         [[(1, 4, 30), (4, 5, 30)], [(1, 3, 10), (3, 5, 10)], [(1, 2, 20), (2, 5, 20)]]
-        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 5, report_edges=True, labels=True, by_weight=True))
+        sage: list(feng_k_shortest_simple_paths(g, 1, 5, report_edges=True, labels=True, by_weight=True))
         [[(1, 3, 10), (3, 5, 10)], [(1, 2, 20), (2, 5, 20)], [(1, 4, 30), (4, 5, 30)]]
-        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 5, report_edges=True, labels=True, by_weight=True, report_weight=True))
+        sage: list(feng_k_shortest_simple_paths(g, 1, 5, report_edges=True, labels=True, by_weight=True, report_weight=True))
         [(20, [(1, 3, 10), (3, 5, 10)]),
          (40, [(1, 2, 20), (2, 5, 20)]),
          (60, [(1, 4, 30), (4, 5, 30)])]
 
-        sage: from sage.graphs.path_enumeration import yen_k_shortest_simple_paths_directed_iterator
+        sage: from sage.graphs.path_enumeration import feng_k_shortest_simple_paths
         sage: g = DiGraph([(1, 2, 20), (1, 3, 10), (1, 4, 30), (2, 5, 20), (3, 5, 10), (4, 5, 30), (1, 6, 100), (5, 6, 5)])
-        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 6, by_weight = True))
+        sage: list(feng_k_shortest_simple_paths(g, 1, 6, by_weight = True))
         [[1, 3, 5, 6], [1, 2, 5, 6], [1, 4, 5, 6], [1, 6]]
-        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 6))
+        sage: list(feng_k_shortest_simple_paths(g, 1, 6))
         [[1, 6], [1, 4, 5, 6], [1, 3, 5, 6], [1, 2, 5, 6]]
-        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 6, report_edges=True, labels=True, by_weight=True, report_weight=True))
+        sage: list(feng_k_shortest_simple_paths(g, 1, 6, report_edges=True, labels=True, by_weight=True, report_weight=True))
         [(25, [(1, 3, 10), (3, 5, 10), (5, 6, 5)]),
          (45, [(1, 2, 20), (2, 5, 20), (5, 6, 5)]),
          (65, [(1, 4, 30), (4, 5, 30), (5, 6, 5)]),
          (100, [(1, 6, 100)])]
-        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 6, report_edges=True, labels=True, report_weight=True))
+        sage: list(feng_k_shortest_simple_paths(g, 1, 6, report_edges=True, labels=True, report_weight=True))
         [(1, [(1, 6, 100)]),
          (3, [(1, 4, 30), (4, 5, 30), (5, 6, 5)]),
          (3, [(1, 3, 10), (3, 5, 10), (5, 6, 5)]),
          (3, [(1, 2, 20), (2, 5, 20), (5, 6, 5)])]
-        sage: from sage.graphs.path_enumeration import yen_k_shortest_simple_paths_directed_iterator
+        sage: from sage.graphs.path_enumeration import feng_k_shortest_simple_paths
         sage: g = DiGraph([(1, 2, 5), (2, 3, 0), (1, 4, 2), (4, 5, 1), (5, 3, 0)])
-        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 3, by_weight=True))
+        sage: list(feng_k_shortest_simple_paths(g, 1, 3, by_weight=True))
         [[1, 4, 5, 3], [1, 2, 3]]
-        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 3))
+        sage: list(feng_k_shortest_simple_paths(g, 1, 3))
         [[1, 2, 3], [1, 4, 5, 3]]
-        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 3, report_weight=True))
+        sage: list(feng_k_shortest_simple_paths(g, 1, 3, report_weight=True))
         [(2, [1, 2, 3]), (3, [1, 4, 5, 3])]
-        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 3, report_weight=True, report_edges=True))
+        sage: list(feng_k_shortest_simple_paths(g, 1, 3, report_weight=True, report_edges=True))
         [(2, [(1, 2), (2, 3)]), (3, [(1, 4), (4, 5), (5, 3)])]
-        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 3, report_weight=True, report_edges=True, by_weight=True))
+        sage: list(feng_k_shortest_simple_paths(g, 1, 3, report_weight=True, report_edges=True, by_weight=True))
         [(3, [(1, 4), (4, 5), (5, 3)]), (5, [(1, 2), (2, 3)])]
-        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 3, report_weight=True, report_edges=True, by_weight=True, labels=True))
+        sage: list(feng_k_shortest_simple_paths(g, 1, 3, report_weight=True, report_edges=True, by_weight=True, labels=True))
         [(3, [(1, 4, 2), (4, 5, 1), (5, 3, 0)]), (5, [(1, 2, 5), (2, 3, 0)])]
 
     TESTS::
 
-        sage: from sage.graphs.path_enumeration import yen_k_shortest_simple_paths_directed_iterator
+        sage: from sage.graphs.path_enumeration import feng_k_shortest_simple_paths
         sage: g = DiGraph([(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 2), (5, 6, 100), (4, 7, 3), (7, 6, 4), (3, 8, 5), (8, 9, 2), (9, 6, 2), (9, 10, 7), (9, 11, 10), (11, 6, 8), (10, 6, 2)])
-        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 6, by_weight=True))
+        sage: list(feng_k_shortest_simple_paths(g, 1, 6, by_weight=True))
         [[1, 2, 3, 4, 7, 6],
          [1, 2, 3, 8, 9, 6],
          [1, 2, 3, 8, 9, 10, 6],
          [1, 2, 3, 8, 9, 11, 6],
          [1, 2, 3, 4, 5, 6]]
-        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 6, by_weight=True, report_edges=True))
+        sage: list(feng_k_shortest_simple_paths(g, 1, 6, by_weight=True, report_edges=True))
         [[(1, 2), (2, 3), (3, 4), (4, 7), (7, 6)],
          [(1, 2), (2, 3), (3, 8), (8, 9), (9, 6)],
          [(1, 2), (2, 3), (3, 8), (8, 9), (9, 10), (10, 6)],
          [(1, 2), (2, 3), (3, 8), (8, 9), (9, 11), (11, 6)],
          [(1, 2), (2, 3), (3, 4), (4, 5), (5, 6)]]
-        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 6, by_weight=True, report_edges=True, report_weight=True))
+        sage: list(feng_k_shortest_simple_paths(g, 1, 6, by_weight=True, report_edges=True, report_weight=True))
         [(10, [(1, 2), (2, 3), (3, 4), (4, 7), (7, 6)]),
          (11, [(1, 2), (2, 3), (3, 8), (8, 9), (9, 6)]),
          (18, [(1, 2), (2, 3), (3, 8), (8, 9), (9, 10), (10, 6)]),
          (27, [(1, 2), (2, 3), (3, 8), (8, 9), (9, 11), (11, 6)]),
          (105, [(1, 2), (2, 3), (3, 4), (4, 5), (5, 6)])]
-        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 6, by_weight=True, report_edges=True, report_weight=True, labels=True))
+        sage: list(feng_k_shortest_simple_paths(g, 1, 6, by_weight=True, report_edges=True, report_weight=True, labels=True))
         [(10, [(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 7, 3), (7, 6, 4)]),
          (11, [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (9, 6, 2)]),
          (18, [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (9, 10, 7), (10, 6, 2)]),
          (27, [(1, 2, 1), (2, 3, 1), (3, 8, 5), (8, 9, 2), (9, 11, 10), (11, 6, 8)]),
          (105, [(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 2), (5, 6, 100)])]
-        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 6))
+        sage: list(feng_k_shortest_simple_paths(g, 1, 6))
         [[1, 2, 3, 8, 9, 6],
          [1, 2, 3, 4, 7, 6],
          [1, 2, 3, 4, 5, 6],
          [1, 2, 3, 8, 9, 11, 6],
          [1, 2, 3, 8, 9, 10, 6]]
-        sage: from sage.graphs.path_enumeration import yen_k_shortest_simple_paths_directed_iterator
+        sage: from sage.graphs.path_enumeration import feng_k_shortest_simple_paths
         sage: g = DiGraph([(1, 2, 1), (2, 3, 1), (3, 4, 1), (4, 5, 1), (1, 7, 1), (7, 8, 1), (8, 5, 1), (1, 6, 1), (6, 9, 1), (9, 5, 1), (4, 2, 1), (9, 3, 1), (9, 10, 1), (10, 5, 1), (9, 11, 1), (11, 10, 1)])
-        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 5))
+        sage: list(feng_k_shortest_simple_paths(g, 1, 5))
         [[1, 7, 8, 5],
          [1, 6, 9, 5],
          [1, 2, 3, 4, 5],
          [1, 6, 9, 10, 5],
          [1, 6, 9, 11, 10, 5],
          [1, 6, 9, 3, 4, 5]]
-        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 5, by_weight=True))
+        sage: list(feng_k_shortest_simple_paths(g, 1, 5, by_weight=True))
         [[1, 7, 8, 5],
          [1, 6, 9, 5],
          [1, 2, 3, 4, 5],
          [1, 6, 9, 10, 5],
          [1, 6, 9, 11, 10, 5],
          [1, 6, 9, 3, 4, 5]]
-        sage: from sage.graphs.path_enumeration import yen_k_shortest_simple_paths_directed_iterator
+        sage: from sage.graphs.path_enumeration import feng_k_shortest_simple_paths
         sage: g = DiGraph([(1, 2, 5), (6, 3, 0), (2, 6, 6), (1, 4, 15), (4, 5, 1), (4, 3, 0), (7, 1, 2), (8, 7, 1)])
-        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 3))
+        sage: list(feng_k_shortest_simple_paths(g, 1, 3))
         [[1, 4, 3], [1, 2, 6, 3]]
-        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 3, by_weight=True, report_edges=True, report_weight=True, labels=True))
+        sage: list(feng_k_shortest_simple_paths(g, 1, 3, by_weight=True, report_edges=True, report_weight=True, labels=True))
         [(11, [(1, 2, 5), (2, 6, 6), (6, 3, 0)]), (15, [(1, 4, 15), (4, 3, 0)])]
-        sage: list(yen_k_shortest_simple_paths_directed_iterator(g, 1, 3, by_weight=True))
+        sage: list(feng_k_shortest_simple_paths(g, 1, 3, by_weight=True))
         [[1, 2, 6, 3], [1, 4, 3]]
     """
     if not self.is_directed():
@@ -1032,12 +1048,13 @@ def yen_k_shortest_simple_paths_directed_iterator(self, source, target, weight_f
                                 weight_function=weight_function, reduced_weight=reduced_cost)
     length = length_func(path)
     # corner case
-    if len(path) == 0:
+    if not path:
         if report_weight:
-            yield (0, path)
+            yield (0, [])
         else:
-            yield path
+            yield []
         return
+
     father[tuple(path)] = None
     # hashing the path to check the existence of a path in the heap
     hash_path = tuple(path)
@@ -1140,7 +1157,7 @@ def yen_k_shortest_simple_paths_directed_iterator(self, source, target, weight_f
                 if spur and (spur[-2], target) in dic:
                     spur.pop()
                     st = spur[-1]
-                    while(st!=target):
+                    while st != target:
                         st = successor[st]
                         spur.append(st)
 
@@ -1162,6 +1179,7 @@ def yen_k_shortest_simple_paths_directed_iterator(self, source, target, weight_f
         # restoring the original graph here
         for e in dic:
             self.delete_edge(e)
+
 
 def _all_paths_iterator(self, vertex, ending_vertices=None,
                         simple=False, max_length=None, trivial=False,

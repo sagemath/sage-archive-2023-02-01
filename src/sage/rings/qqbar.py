@@ -5960,7 +5960,7 @@ class AlgebraicPolynomialTracker(SageObject):
             raise ValueError("Trying to create AlgebraicPolynomialTracker on non-Polynomial")
         B = poly.base_ring()
 
-        if B is QQ:
+        if B is ZZ or B is QQ:
             poly = QQy(poly)
             complex = False
         elif isinstance(B, AlgebraicField_common):
@@ -6216,9 +6216,10 @@ class ANRoot(ANDescr):
 
         EXAMPLES::
 
-            sage: x=polygen(QQ); v = (x^2 - x - 1).roots(ring=AA, multiplicities=False)[1]
+            sage: x = polygen(QQ)
+            sage: v = (x^2 - x - 1).roots(ring=AA, multiplicities=False)[1]
             sage: v._descr._repr_()
-            'Root 1.618033988749894849? of x^2 - x - 1'
+            'Root 1.618033988749894849? of y^2 - y - 1'
         """
         return 'Root %s of %s' % (self._interval, self._poly)
 

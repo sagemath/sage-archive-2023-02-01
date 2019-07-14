@@ -293,6 +293,28 @@ ext_modules = [
                          'sage/geometry/triangulation/triangulations.h'],
               language="c++"),
 
+    Extension('sage.geometry.polyhedron.combinatorial_polyhedron.base',
+              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/base.pyx']),
+
+    Extension('sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces',
+              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/list_of_faces.pyx']),
+
+    Extension('sage.geometry.polyhedron.combinatorial_polyhedron.bit_vector_operations.cc',
+              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc'],
+              extra_compile_args=['-std=c++11']),
+
+    Extension('sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator',
+              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/face_iterator.pyx']),
+
+    Extension('sage.geometry.polyhedron.combinatorial_polyhedron.polyhedron_face_lattice',
+              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/polyhedron_face_lattice.pyx']),
+
+    Extension('sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face',
+              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/combinatorial_face.pyx']),
+
+    Extension('sage.geometry.polyhedron.combinatorial_polyhedron.conversions',
+              sources = ['sage/geometry/polyhedron/combinatorial_polyhedron/conversions.pyx']),
+
     ################################
     ##
     ## sage.graphs

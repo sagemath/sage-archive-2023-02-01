@@ -509,6 +509,15 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
             sage: F = DynamicalSystem_affine([1/2*x^2 + CC(sqrt(3))])
             sage: F.dynatomic_polynomial([1,1])
             (0.125000000000000*x^4 + 0.366025403784439*x^2 + 1.50000000000000)/(0.500000000000000*x^2 - x + 1.73205080756888)
+
+        TESTS::
+
+            sage: R.<c> = QQ[]
+            sage: Pc.<x,y> = ProjectiveSpace(R, 1)
+            sage: G = DynamicalSystem_projective([(1/2*c + 1/2)*x^2 + (-2*c)*x*y + 2*c*y^2 , \
+                  (1/4*c + 1/2)*x^2 + (-c - 1)*x*y + (c + 1)*y^2])
+            sage: G.dehomogenize(1).dynatomic_polynomial(2)
+            (1/4*c + 1/4)*x^2 + (-c - 1/2)*x + c + 1
         """
         from sage.schemes.affine.affine_space import is_AffineSpace
         if not is_AffineSpace(self.domain()):

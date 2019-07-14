@@ -77,3 +77,4 @@ if [ -n "$SAGE_NTL_PREFIX" ]; then
     # SAGE_LOCAL it is useful to pass it.
     export SAGE_CONFIGURE_NTL="--with-ntl=$SAGE_NTL_PREFIX"
 fi
+export SAGE_FREETYPE_PREFIX="@SAGE_FREETYPE_PREFIX@"

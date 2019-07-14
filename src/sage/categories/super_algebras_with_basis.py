@@ -9,8 +9,6 @@ Super algebras with basis
 #******************************************************************************
 
 from sage.categories.super_modules import SuperModulesCategory
-from sage.categories.algebras import Algebras
-from sage.categories.modules import Modules
 from sage.categories.signed_tensor import SignedTensorProductsCategory
 from sage.misc.cachefunc import cached_method
 

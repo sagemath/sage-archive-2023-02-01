@@ -9,8 +9,6 @@ Super Algebras
 #******************************************************************************
 
 from sage.categories.super_modules import SuperModulesCategory
-from sage.categories.algebras import Algebras
-from sage.categories.modules import Modules
 from sage.categories.signed_tensor import SignedTensorProductsCategory, tensor_signed
 from sage.misc.lazy_import import LazyImport
 from sage.misc.cachefunc import cached_method

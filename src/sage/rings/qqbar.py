@@ -3875,7 +3875,6 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: (QQbar(7)^(3/5))._exact_field()
             Number Field in a with defining polynomial y^5 - 2*y^4 - 18*y^3 + 38*y^2 + 82*y - 181 with a in 2.554256611698490?
         """
-
         sd = self._descr
         if isinstance(sd, (ANRational, ANExtensionElement)):
             return sd.generator()
@@ -5959,7 +5958,12 @@ class AlgebraicPolynomialTracker(SageObject):
         """
         if not is_Polynomial(poly):
             raise ValueError("Trying to create AlgebraicPolynomialTracker on non-Polynomial")
-        if isinstance(poly.base_ring(), AlgebraicField_common):
+        B = poly.base_ring()
+
+        if B is QQ:
+            poly = QQy(poly)
+            complex = False
+        elif isinstance(B, AlgebraicField_common):
             complex = is_AlgebraicField(poly.base_ring())
         else:
             try:
@@ -6113,26 +6117,29 @@ class AlgebraicPolynomialTracker(SageObject):
 
         self._exact = True
 
-        gen = qq_generator
-
-        for c in self._poly.list():
-            c.exactify()
-            gen = gen.union(c._exact_field())
-
-        self._gen = gen
-
-        coeffs = [gen(c._exact_value()) for c in self._poly.list()]
-
-        if gen.is_trivial():
-            qp = QQy(coeffs)
-            self._factors = [fac_exp[0] for fac_exp in qp.factor()]
+        if self._poly.base_ring() is QQ:
+            self._factors = [fac_exp[0] for fac_exp in self._poly.factor()]
+            self._gen = qq_generator
         else:
-            fld = gen.field()
-            fld_poly = fld['x']
+            gen = qq_generator
+            for c in self._poly.list():
+                c.exactify()
+                gen = gen.union(c._exact_field())
 
-            fp = fld_poly(coeffs)
+            self._gen = gen
 
-            self._factors = [fac_exp[0] for fac_exp in fp.factor()]
+            coeffs = [gen(c._exact_value()) for c in self._poly.list()]
+
+            if gen.is_trivial():
+                self._poly = QQy(self._poly)
+                self._factors = [fac_exp[0] for fac_exp in self._poly.factor()]
+            else:
+                fld = gen.field()
+                fld_poly = fld['y']
+
+                fp = fld_poly(coeffs)
+
+                self._factors = [fac_exp[0] for fac_exp in fp.factor()]
 
     def factors(self):
         r"""
@@ -6380,20 +6387,26 @@ class ANRoot(ANDescr):
         poly_ring = field['x']
 
         # interval_p = poly_ring(p)
-        coeffs = [c._interval_fast(prec) for c in p.list()]
-        interval_p = poly_ring(coeffs)
+        if p.base_ring() is QQ:
+            interval_p = p.change_ring(field)
+        else:
+            coeffs = [c._interval_fast(prec) for c in p.list()]
+            interval_p = poly_ring(coeffs)
 
         # This special case is important: this is the only way we could
         # refine "infinitely deep" (we could get an interval of diameter
         # about 2^{-2^31}, and then hit floating-point underflow); avoiding
         # this case here means we do not have to worry about iterating too
         # many times later
-        if coeffs[0].is_zero() and interval.contains_zero():
+        if interval_p[0].is_zero() and interval.contains_zero():
             return zero
 
         # interval_dp = poly_ring(dp)
-        dcoeffs = [c.interval_fast(field) for c in dp.list()]
-        interval_dp = poly_ring(dcoeffs)
+        if p.base_ring() is QQ:
+            interval_dp = p.derivative().change_ring(field)
+        else:
+            dcoeffs = [c.interval_fast(field) for c in dp.list()]
+            interval_dp = poly_ring(dcoeffs)
 
         l = interval.lower()
         pl = interval_p(field(l))
@@ -6530,20 +6543,26 @@ class ANRoot(ANDescr):
         poly_ring = field['x']
 
         # interval_p = poly_ring(p)
-        coeffs = [c.interval_fast(field) for c in p.list()]
-        interval_p = poly_ring(coeffs)
+        if p.base_ring() is QQ:
+            interval_p = p.change_ring(field)
+        else:
+            coeffs = [c.interval_fast(field) for c in p.list()]
+            interval_p = poly_ring(coeffs)
 
         # This special case is important: this is the only way we could
         # refine "infinitely deep" (we could get an interval of diameter
         # about 2^{-2^31}, and then hit floating-point underflow); avoiding
         # this case here means we do not have to worry about iterating too
         # many times later
-        if coeffs[0].is_zero() and zero in interval:
+        if interval_p[0].is_zero() and zero in interval:
             return zero
 
         # interval_dp = poly_ring(dp)
-        dcoeffs = [c.interval_fast(field) for c in dp.list()]
-        interval_dp = poly_ring(dcoeffs)
+        if p.base_ring() is QQ:
+            interval_dp = p.derivative().change_ring(field)
+        else:
+            dcoeffs = [c.interval_fast(field) for c in dp.list()]
+            interval_dp = poly_ring(dcoeffs)
 
         while True:
             center = field(interval.center())

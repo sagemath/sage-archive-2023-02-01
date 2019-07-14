@@ -9,6 +9,7 @@ parallelogram polyominoes.
 # *****************************************************************************
 #  Copyright (C) 2014,2015 Adrien Boussicault (boussica@labri.fr),
 #  Copyright (C) 2016 Patxi Laborde-Zubieta (plaborde@labri.fr),
+#  Copyright (C) 2019 Henri Derycke (henri.derycke@ens-lyon.org),
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of

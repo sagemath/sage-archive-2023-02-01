@@ -126,8 +126,8 @@ def _triangulate(g, comb_emb):
 
                 g.add_edge(new_edge)
                 edges_added.append(new_edge)
-                comb_emb[new_edge[0]].insert(comb_emb[new_edge[0]].index(face[(i+2) % N][1]),new_edge[1])
-                comb_emb[new_edge[1]].insert(comb_emb[new_edge[1]].index(face[i][1]),new_edge[0])
+                comb_emb[new_edge[0]].insert(comb_emb[new_edge[0]].index((face + new_face)[i + 2][1]), new_edge[1])
+                comb_emb[new_edge[1]].insert(comb_emb[new_edge[1]].index(face[i][1]), new_edge[0])
                 new_face.append((new_edge[1], new_edge[0]))
                 i += 2
             if i != N:
@@ -178,7 +178,7 @@ def _normal_label(g, comb_emb, external_face):
         sage: tn = _normal_label(g, g._embedding, faces[0])
         sage: _realizer(g, tn)
         ({0: [<sage.graphs.schnyder.TreeNode object at ...>]},
-         (0, 1, 2))
+         (1, 0, 2))
     """
     contracted = []
     contractible = []
@@ -401,7 +401,7 @@ def _realizer(g, x, example=False):
         sage: tn = _normal_label(g, g._embedding, faces[0])
         sage: _realizer(g, tn)
         ({0: [<sage.graphs.schnyder.TreeNode object at ...>]},
-         (0, 1, 2))
+         (1, 0, 2))
 
     """
     normal_labeling, (v1, v2, v3) = x
@@ -489,7 +489,7 @@ def _compute_coordinates(g, x):
         sage: r = _realizer(g, tn)
         sage: _compute_coordinates(g,r)
         sage: g.get_pos()
-        {0: [5, 1], 1: [0, 5], 2: [1, 0], 3: [1, 3], 4: [2, 1], 5: [2, 2], 6: [3, 2]}
+        {0: [0, 5], 1: [5, 1], 2: [1, 0], 3: [4, 1], 4: [1, 1], 5: [2, 2], 6: [1, 4]}
     """
 
     tree_nodes, (v1, v2, v3) = x

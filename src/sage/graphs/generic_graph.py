@@ -5189,6 +5189,21 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: Complete graph is not a planar graph
+
+        TESTS::
+
+            Check the dependence of the computed position on the given
+            combinatorial embedding (:trac:`28152`).
+
+            sage: G = Graph([[0, 1, 2, 3], [[0, 1], [0, 2], [0, 3]]])
+            sage: G.set_embedding({0: [1, 2, 3], 1: [0], 2: [0], 3: [0]})
+            sage: pos1 = G.layout('planar', save_pos=True)
+            sage: G._check_embedding_validity()
+            True
+            sage: G.set_embedding({0: [3, 2, 1], 1: [0], 2: [0], 3: [0]})
+            sage: pos2 = G.layout('planar', save_pos=True)
+            sage: pos1 == pos2
+            False
         """
         from sage.graphs.graph import Graph
         from sage.graphs.schnyder import _triangulate, _normal_label, _realizer, _compute_coordinates
@@ -5202,7 +5217,7 @@ class GenericGraph(GenericGraph_pyx):
         if set_embedding:
             if not G.is_planar(set_embedding=True):
                 raise ValueError('%s is not a planar graph'%self)
-            embedding_copy = G._embedding
+            embedding_copy = {v: neighbors[:] for v, neighbors in G._embedding.items()}
         else:
             if on_embedding is not None:
                 G._check_embedding_validity(on_embedding,boolean=False)
@@ -5213,7 +5228,7 @@ class GenericGraph(GenericGraph_pyx):
                     if G._check_embedding_validity():
                         if not G.is_planar(on_embedding=G._embedding):
                             raise ValueError('%s has nonplanar _embedding attribute.  Try putting set_embedding=True'%self)
-                        embedding_copy = G._embedding
+                        embedding_copy = {v: neighbors[:] for v, neighbors in G._embedding.items()}
                     else:
                         raise ValueError('provided embedding is not a valid embedding for %s. Try putting set_embedding=True'%self)
                 else:

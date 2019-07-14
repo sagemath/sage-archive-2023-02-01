@@ -15292,50 +15292,75 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``algorithm`` -- string (default: ``"bfs"``) specifying the algorithm to use:
-          ``"bfs"`` for the BFS-based algorithm, or any algorithm accepted by
-          :meth:`~sage.matrix.matrix_integer_dense.Matrix_integer_dense.charpoly`
-          for computation from the characteristic polynomial
-          (see [Har1962]_ and [Big1993]_, p. 45)
+        - ``algorithm`` -- string (default: ``"bfs"``); the algorithm to use:
+
+          - ``"bfs"`` -- BFS-based algorithm
+
+          - any algorithm accepted by
+            :meth:`~sage.matrix.matrix_integer_dense.Matrix_integer_dense.charpoly`
+            for computation from the characteristic polynomial (see
+            [Har1962]_ and [Big1993]_, p. 45)
 
         - ``certificate`` -- boolean (default: ``False``); whether to return
-          ``(g, c)``, where ``g`` is the odd girth and ``c`` is a list
-          of vertices of a (directed) cycle of length ``g`` in the graph,
-          thus providing a certificate that the odd girth is at most ``g``,
-          or ``None`` if ``g``  infinite
+          ``(g, c)``, where ``g`` is the odd girth and ``c`` is a list of
+          vertices of a (directed) cycle of length ``g`` in the graph, thus
+          providing a certificate that the odd girth is at most ``g``, or
+          ``None`` if ``g`` is infinite. So far, this parameter is accepted only
+          when ``algorithm = "bfs"``.
 
         EXAMPLES:
 
         The McGee graph has girth 7 and therefore its odd girth is 7 as well::
 
             sage: G = graphs.McGeeGraph()
+            sage: G.girth()
+            7
             sage: G.odd_girth()
             7
 
-        Any complete graph on more than 2 vertices contains a triangle and has
-        thus odd girth 3::
+        Any complete (directed) graph on more than 2 vertices contains
+        a (directed) triangle and has thus odd girth 3::
 
-            sage: G = graphs.CompleteGraph(10)
+            sage: G = graphs.CompleteGraph(5)
             sage: G.odd_girth(certificate=True)  # random
             (3, [2, 1, 0])
+            sage: G = digraphs.Complete(5)
+            sage: G.odd_girth(certificate=True)  # random
+            (3, [1, 2, 0])
 
-        Every bipartite graph has no odd cycles and consequently odd girth of
-        infinity::
+        Bipartite graphs have no odd cycle and consequently have
+        infinite odd girth::
 
-            sage: G = graphs.CompleteBipartiteGraph(100,100)
+            sage: G = graphs.graphs.RandomBipartite(6, 6, .5)
             sage: G.odd_girth()
             +Infinity
+            sage: G = graphs.Grid2dGraph(3, 4)
+            sage: G.odd_girth()
+            +Infinity
+
+        The odd girth of a (directed) graph with loops is 1::
+
+            sage: G = graphs.RandomGNP(10, .5)
+            sage: G.allow_loops(True)
+            sage: G.add_edge(0, 0)
+            sage: G.odd_girth()
+            1
+            sage: G = digraphs.RandomDirectedGNP(10, .5)
+            sage: G.allow_loops(True)
+            sage: G.add_edge(0, 0)
+            sage: G.odd_girth()
+            1
 
         .. SEEALSO::
 
             * :meth:`~GenericGraph.girth` -- return the girth of the graph.
 
-        TESTS::
+        TESTS:
 
-            sage: graphs.CycleGraph(5).odd_girth()
-            5
-            sage: graphs.CycleGraph(11).odd_girth()
-            11
+        Odd girth of odd cycles::
+
+            sage: [graphs.CycleGraph(i).odd_girth() for i in range(3, 12, 2)]
+            [3, 5, 7, 9, 11]
 
         Directed graphs (see :trac:`28142`)::
 
@@ -15350,31 +15375,36 @@ class GenericGraph(GenericGraph_pyx):
             5
             sage: Graph(g).odd_girth()
             3
+
+        Small cases::
+
+            sage: [graphs.CompleteGraph(i).odd_girth() for i in range(5)]
+            [+Infinity, +Infinity, +Infinity, 3, 3]
+            sage: [digraphs.Complete(i).odd_girth() for i in range(5)]
+            [+Infinity, +Infinity, +Infinity, 3, 3]
         """
         # Case where odd girth is 1
-        if self.has_loops():
-            return (1, next([u] for u in self if self.has_edge(u, u))) \
-                if certificate else 1
+        if self.allows_loops():
+            for u in self:
+                if self.has_edge(u, u):
+                    return (1, [u]) if certificate else 1
 
-        if not self.is_bipartite():
-            if algorithm == "bfs":
-                return self._girth_bfs(odd=True, certificate=certificate)
+        if self.is_bipartite():
+            from sage.rings.infinity import Infinity
+            return (Infinity, None) if certificate else Infinity
 
-            if certificate:
-                raise ValueError("Certificate is only supported with algorithm='bfs'")
+        if algorithm == "bfs":
+            return self._girth_bfs(odd=True, certificate=certificate)
 
-            ch = self.am().charpoly(algorithm=algorithm) \
-                .coefficients(sparse=False)
-            n = self.order()
+        if certificate:
+            raise ValueError("certificate is only supported with algorithm='bfs'")
 
-            for i in range(n-1, -1, -2):
-                if ch[i]:
-                    return n-i
+        ch = self.am().charpoly(algorithm=algorithm).coefficients(sparse=False)
 
-        from sage.rings.infinity import Infinity
-
-        return (Infinity, None) if certificate else Infinity
-
+        n = self.order()
+        for i in range(n-1, -1, -2):
+            if ch[i]:
+                return n - i
 
     def _girth_bfs(self, odd=False, certificate=False):
         r"""
@@ -15385,7 +15415,8 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``odd`` -- boolean (default: ``False``); whether to compute the odd girth
+        - ``odd`` -- boolean (default: ``False``); whether to compute the odd
+          girth instead instead of the girth
 
         - ``certificate`` -- boolean (default: ``False``); whether to return
           ``(g, c)``, where ``g`` is the (odd) girth and ``c`` is a list

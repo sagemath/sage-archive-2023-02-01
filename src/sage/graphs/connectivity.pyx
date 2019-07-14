@@ -2261,7 +2261,7 @@ def spqr_tree(G, algorithm="Hopcroft_Tarjan", solver=None, verbose=0):
         sage: T = G.spqr_tree(algorithm="cleave")
         sage: Counter(u[0] for u in T)
         Counter({'R': 1})
-        sage: for u,v in G.edges(labels=False, sort=False):
+        sage: for u,v in list(G.edges(labels=False, sort=False)):
         ....:     G.add_path([u, G.add_vertex(), G.add_vertex(), v])
         sage: T = G.spqr_tree(algorithm="Hopcroft_Tarjan")
         sage: sorted(Counter(u[0] for u in T).items())
@@ -2269,7 +2269,7 @@ def spqr_tree(G, algorithm="Hopcroft_Tarjan", solver=None, verbose=0):
         sage: T = G.spqr_tree(algorithm="cleave")
         sage: sorted(Counter(u[0] for u in T).items())
         [('P', 15), ('R', 1), ('S', 15)]
-        sage: for u,v in G.edges(labels=False, sort=False):
+        sage: for u,v in list(G.edges(labels=False, sort=False)):
         ....:     G.add_path([u, G.add_vertex(), G.add_vertex(), v])
         sage: T = G.spqr_tree(algorithm="Hopcroft_Tarjan")
         sage: sorted(Counter(u[0] for u in T).items())

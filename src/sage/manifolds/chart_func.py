@@ -855,6 +855,26 @@ class ChartFunction(AlgebraElement):
         curr = self._calc_method._current
         return self._calc_method.is_trivial_zero(self.expr(curr))
 
+    def is_unit(self):
+        r"""
+        Return ``True`` iff ``self`` is not identically zero since most chart
+        functions are invertible and an actual computation would take too much
+        time.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(x^2+3*y+1)
+            sage: f.is_unit()
+            True
+            sage: zero = X.function(0)
+            sage: zero.is_unit()
+            False
+
+        """
+        return not self.is_zero()
+
     def copy(self):
         r"""
         Return an exact copy of the object.
@@ -2352,7 +2372,7 @@ class ChartFunction(AlgebraElement):
             sage: f = X.function(sqrt(x^2-2*x+1)); f
             sqrt(x**2 - 2*x + 1)
             sage: f.simplify()
-            1 - x
+            -x + 1
 
         Power series expansion with respect to a small parameter `t` (at
         the moment, this is implemented only for the ``SR`` calculus backend,

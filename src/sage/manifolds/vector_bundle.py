@@ -7,8 +7,8 @@ Let `K` be a topological field. A *vector bundle* of rank `n` over the field
 `\pi: E \to B` such that for every point `x \in B`
 - the set `E_x=\pi^{-1}(x)` has the vector space structure of `K^n`,
 - there is a neighborhood `U \subset B` of `x` and a homeomorphism
-  `\varphi: U \times K^n \to \pi^{-1}(x)` such that
-  `v \mapsto \varphi(y,v)` is a linear isomorphism for any `y \in U`.
+  `\varphi: \pi^{-1}(x) \to U \times K^n` such that
+  `v \mapsto \varphi^{-1}(y,v)` is a linear isomorphism for any `y \in U`.
 
 AUTHORS:
 
@@ -32,6 +32,7 @@ from sage.rings.all import CC
 from sage.rings.real_mpfr import RR, RealField_class
 from sage.rings.complex_field import ComplexField_class
 from sage.rings.integer import Integer
+from sage.manifolds.vector_bundle_fiber import VectorBundleFiber
 
 class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
     r"""
@@ -215,12 +216,12 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
              2-dimensional topological manifold M'
 
         """
-        description = self.base_field_type() + " "
-        description += "vector bundle "
-        description += self._name + " -> " + self.base_space()._name + " "
-        description += "of rank {} ".format(self._rank)
-        description += "over the base space {}".format(self.base_space())
-        return description
+        desc = self.base_field_type() + " "
+        desc += "vector bundle "
+        desc += self._name + " -> " + self.base_space()._name + " "
+        desc += "of rank {} ".format(self._rank)
+        desc += "over the base space {}".format(self.base_space())
+        return desc
 
     def _repr_(self):
         r"""
@@ -235,9 +236,9 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
              2-dimensional topological manifold M'
 
         """
-        description = "Topological "
-        description += self._repr_object_name()
-        return description
+        desc = "Topological "
+        desc += self._repr_object_name()
+        return desc
 
     def _latex_(self):
         r"""
@@ -256,15 +257,24 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         latex += self.base_space()._latex_()
         return latex
 
-    def trivialization(self, domain):
+    def trivialization(self, domain, name=None, latex_name=None):
         r"""
+        Return a trivialization of ``self`` over the domain ``domain``.
+
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M')
+            sage: U = M.open_subset('U')
+            sage: E = M.vector_bundle(2, 'E')
+            sage: phi = E.trivialization(U, name='phi'); phi
+            Trivialization (phi:E|_U -> U)
 
         """
         if not (domain.is_open() and domain.manifold() is self._base_space):
             raise ValueError("domain must be an open subset "
                              "of {}".format(self._base_space))
         from .trivialization import Trivialization
-        return Trivialization(self, domain)
+        return Trivialization(self, domain, name=name, latex_name=latex_name)
 
     def transitions(self):
         r"""
@@ -274,9 +284,73 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
     def atlas(self):
         r"""
+        Return the atlas of ``self``.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: E = M.vector_bundle(1, 'E')
+            sage: U = M.open_subset('U')
+            sage: triv_U = E.trivialization(U); triv_U
+            Trivialization (E|_U -> U)
+            sage: V = M.open_subset('V')
+            sage: triv_V = E.trivialization(V); triv_V
+            Trivialization (E|_V -> V)
+            sage: triv_M E.trivialization(M); triv_M
+            sage: E.atlas()
+            [Trivialization (E|_U -> U),
+             Trivialization (E|_V -> V),
+             Trivialization (E|_M -> M)]
 
         """
         return list(self._atlas) # Make a (shallow) copy
+
+    def is_certainly_trivial(self):
+        r"""
+        Return ``True`` if ``self`` is certainly a trivial bundle, i.e. there
+        exists a trivialization defined on the whole base space.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: E = M.vector_bundle(1, 'E')
+            sage: U = M.open_subset('U')
+            sage: triv_U = E.trivialization(U); triv_U
+            Trivialization (E|_U -> U)
+            sage: V = M.open_subset('V')
+            sage: triv_V = E.trivialization(V); triv_V
+            Trivialization (E|_V -> V)
+            sage: E.is_certainly_trivial()
+            False
+            sage: E.trivialization(M)
+            Trivialization (E|_M -> M)
+            sage: E.is_certainly_trivial()
+            True
+
+        """
+        for triv in self._atlas:
+            if triv.domain() is self._base_space:
+                return True
+        return False
+
+    def fiber(self, point):
+        r"""
+        Return the vector bundle fiber at ``point``.
+
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M', structure='top')
+            sage: X.<x,y,z> = M.chart()
+            sage: p = M((0,2,1), name='p'); p
+            Point p on the 3-dimensional topological manifold M
+            sage: E = M.vector_bundle(2, 'E'); E
+            Topological real vector bundle E -> M of rank 2 over the base space
+             3-dimensional topological manifold M
+            sage: E.fiber(p)
+            Fiber of E at Point p on the 3-dimensional topological manifold M
+
+        """
+        return VectorBundleFiber(self, point)
 
     def section(self):
         pass

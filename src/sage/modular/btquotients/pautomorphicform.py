@@ -4,7 +4,7 @@
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #########################################################################
 r"""
 Spaces of `p`-adic automorphic forms
@@ -63,7 +63,6 @@ from sage.misc.misc import verbose
 from sage.rings.real_mpfr import RR
 from sage.modular.pollack_stevens.sigma0 import Sigma0ActionAdjuster
 from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
-from sage.misc.superseded import deprecated_function_alias
 
 # Need this to be pickleable
 
@@ -2341,8 +2340,6 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
            True
         """
         return self.element_class(self, [self._U(0) for o in self._list])
-
-    zero_element = deprecated_function_alias(24203, zero)
 
     def __eq__(self, other):
         r"""

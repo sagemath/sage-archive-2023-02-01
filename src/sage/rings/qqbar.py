@@ -309,8 +309,8 @@ and we get a way to produce the number directly::
     sage: n == 109*rt2 + 89*rt3
     True
     sage: sage_input(n)
-    R.<x> = AA[]
-    v = AA.polynomial_root(AA.common_polynomial(x^4 - 4*x^2 + 1), RIF(RR(0.51763809020504148), RR(0.51763809020504159)))
+    R.<y> = QQ[]
+    v = AA.polynomial_root(AA.common_polynomial(y^4 - 4*y^2 + 1), RIF(RR(0.51763809020504148), RR(0.51763809020504159)))
     -109*v^3 - 89*v^2 + 327*v + 178
 
 We can also see that some computations (basically, those which are
@@ -321,8 +321,8 @@ the computation tree::
     sage: z4_4 = QQbar.zeta(4) * 4
     sage: z5_5 = QQbar.zeta(5) * 5
     sage: sage_input(z3_3 * z4_4 * z5_5)
-    R.<x> = AA[]
-    3*QQbar.polynomial_root(AA.common_polynomial(x^2 + x + 1), CIF(RIF(-RR(0.50000000000000011), -RR(0.49999999999999994)), RIF(RR(0.8660254037844386), RR(0.86602540378443871))))*QQbar(4*I)*(5*QQbar.polynomial_root(AA.common_polynomial(x^4 + x^3 + x^2 + x + 1), CIF(RIF(RR(0.3090169943749474), RR(0.30901699437494745)), RIF(RR(0.95105651629515353), RR(0.95105651629515364)))))
+    R.<y> = QQ[]
+    3*QQbar.polynomial_root(AA.common_polynomial(y^2 + y + 1), CIF(RIF(-RR(0.50000000000000011), -RR(0.49999999999999994)), RIF(RR(0.8660254037844386), RR(0.86602540378443871))))*QQbar(4*I)*(5*QQbar.polynomial_root(AA.common_polynomial(y^4 + y^3 + y^2 + y + 1), CIF(RIF(RR(0.3090169943749474), RR(0.30901699437494745)), RIF(RR(0.95105651629515353), RR(0.95105651629515364)))))
 
 Note that the ``verify=True`` argument to ``sage_input`` will always trigger
 exact computation, so running ``sage_input`` twice in a row on the same number
@@ -358,12 +358,10 @@ algorithms in :trac:`10255`::
     1.000000000000000?
     sage: sage_input(one, verify=True)
     # Verified
-    R1 = QQbar['x']
-    x1 = R1.gen()
-    R2 = AA['x']
-    x2 = R2.gen()
-    v = AA.polynomial_root(AA.common_polynomial(x2^4 - 4*x2^2 + 1), RIF(RR(0.51763809020504148), RR(0.51763809020504159)))
-    AA.polynomial_root(AA.common_polynomial(x1^4 + QQbar(v^3 - 3*v - 1)*x1^3 + QQbar(-v^3 + 3*v - 3)*x1^2 + QQbar(-3*v^3 + 9*v + 3)*x1 + QQbar(3*v^3 - 9*v)), RIF(RR(0.99999999999999989), RR(1.0000000000000002)))
+    R1.<x> = QQbar[]
+    R2.<y> = QQ[]
+    v = AA.polynomial_root(AA.common_polynomial(y^4 - 4*y^2 + 1), RIF(RR(0.51763809020504148), RR(0.51763809020504159)))
+    AA.polynomial_root(AA.common_polynomial(x^4 + QQbar(v^3 - 3*v - 1)*x^3 + QQbar(-v^3 + 3*v - 3)*x^2 + QQbar(-3*v^3 + 9*v + 3)*x + QQbar(3*v^3 - 9*v)), RIF(RR(0.99999999999999989), RR(1.0000000000000002)))
     sage: one
     1
 
@@ -2035,9 +2033,9 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
 
         sage: number_field_elements_from_algebraics(rt2)
         (Number Field in a with defining polynomial y^2 - 2, a, Ring morphism:
-            From: Number Field in a with defining polynomial y^2 - 2
-            To:   Algebraic Real Field
-            Defn: a |--> 1.414213562373095?)
+           From: Number Field in a with defining polynomial y^2 - 2
+           To:   Algebraic Real Field
+           Defn: a |--> 1.414213562373095?)
 
         sage: number_field_elements_from_algebraics((rt2,rt3))
         (Number Field in a with defining polynomial y^4 - 4*y^2 + 1, [-a^3 + 3*a, -a^2 + 2], Ring morphism:
@@ -3199,8 +3197,8 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: sage_input(22/7*QQbar.zeta(4))
             QQbar(22/7*I)
             sage: sage_input(QQbar.zeta(5)^3)
-            R.<x> = AA[]
-            QQbar.polynomial_root(AA.common_polynomial(x^4 + x^3 + x^2 + x + 1), CIF(RIF(RR(0.3090169943749474), RR(0.30901699437494745)), RIF(RR(0.95105651629515353), RR(0.95105651629515364))))^3
+            R.<y> = QQ[]
+            QQbar.polynomial_root(AA.common_polynomial(y^4 + y^3 + y^2 + y + 1), CIF(RIF(RR(0.3090169943749474), RR(0.30901699437494745)), RIF(RR(0.95105651629515353), RR(0.95105651629515364))))^3
             sage: sage_input((AA(3)^(1/2))^(1/3))
             R.<x> = AA[]
             AA.polynomial_root(AA.common_polynomial(x^3 - AA.polynomial_root(AA.common_polynomial(x^2 - 3), RIF(RR(1.7320508075688772), RR(1.7320508075688774)))), RIF(RR(1.2009369551760025), RR(1.2009369551760027)))
@@ -3220,10 +3218,10 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             -12*x^3 + 1/2*x^2 - 1/95*x - 1/2
             sage: rts = p.roots(ring=QQbar, multiplicities=False); rts
             [-0.3325236940280402?, 0.1870951803473535? - 0.3004991638609601?*I, 0.1870951803473535? + 0.3004991638609601?*I]
-            sage: sage_input(rts, verify=True)  # long time (2s on sage.math, 2013)
+            sage: sage_input(rts, verify=True)
             # Verified
-            R.<x> = AA[]
-            cp = AA.common_polynomial(-12*x^3 + 1/2*x^2 - 1/95*x - 1/2)
+            R.<y> = QQ[]
+            cp = AA.common_polynomial(-12*y^3 + 1/2*y^2 - 1/95*y - 1/2)
             [QQbar.polynomial_root(cp, CIF(RIF(-RR(0.33252369402804022), -RR(0.33252369402804016)), RIF(RR(0)))), QQbar.polynomial_root(cp, CIF(RIF(RR(0.18709518034735342), RR(0.18709518034735345)), RIF(-RR(0.30049916386096009), -RR(0.30049916386096004)))), QQbar.polynomial_root(cp, CIF(RIF(RR(0.18709518034735342), RR(0.18709518034735345)), RIF(RR(0.30049916386096004), RR(0.30049916386096009))))]
 
             sage: from sage.misc.sage_input import SageInputBuilder
@@ -3742,10 +3740,12 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
             sage: (nf, elt, hom) = rt.as_number_field_element()
             sage: nf, elt, hom
-            (Number Field in a with defining polynomial y^3 - 2*y^2 - 31*y - 50, a^2 - 5*a - 19, Ring morphism:
-              From: Number Field in a with defining polynomial y^3 - 2*y^2 - 31*y - 50
-              To:   Algebraic Real Field
-              Defn: a |--> 7.237653139801104?)
+            (Number Field in a with defining polynomial y^3 - 2*y^2 - 31*y - 50,
+             a^2 - 5*a - 19,
+             Ring morphism:
+               From: Number Field in a with defining polynomial y^3 - 2*y^2 - 31*y - 50
+               To:   Algebraic Real Field
+               Defn: a |--> 7.237653139801104?)
             sage: elt == rt
             False
             sage: AA(elt)
@@ -3791,9 +3791,9 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
                 Defn: a |--> 0.5176380902050415?)
             sage: rt3b.as_number_field_element(minimal=True)
             (Number Field in a with defining polynomial y^2 - 3, a, Ring morphism:
-                From: Number Field in a with defining polynomial y^2 - 3
-                To:   Algebraic Real Field
-                Defn: a |--> 1.732050807568878?)
+               From: Number Field in a with defining polynomial y^2 - 3
+               To:   Algebraic Real Field
+               Defn: a |--> 1.732050807568878?)
         """
         return number_field_elements_from_algebraics(self, minimal=minimal, embedded=embedded, prec=prec)
 
@@ -6000,8 +6000,8 @@ class AlgebraicPolynomialTracker(SageObject):
 
             sage: x = polygen(QQ)
             sage: sage_input(AA.common_polynomial(x^3 - 7))
-            R.<x> = AA[]
-            AA.common_polynomial(x^3 - 7)
+            R.<y> = QQ[]
+            AA.common_polynomial(y^3 - 7)
             sage: x = polygen(AA)
             sage: p = sqrt(AA(2)) * x^2 - sqrt(AA(3))
             sage: cp = AA.common_polynomial(p)
@@ -6029,7 +6029,7 @@ class AlgebraicPolynomialTracker(SageObject):
 
             sage: x = polygen(QQ)
             sage: AA.common_polynomial(x^3 - 7)._repr_()
-            'x^3 - 7'
+            'y^3 - 7'
         """
         return repr(self._poly)
 
@@ -6039,10 +6039,11 @@ class AlgebraicPolynomialTracker(SageObject):
 
         EXAMPLES::
 
-            sage: x = polygen(QQ); f = x^3 - 7
+            sage: x = polygen(QQ)
+            sage: f = x^3 - 7
             sage: g = AA.common_polynomial(f)
-            sage: g.poly() == f
-            True
+            sage: g.poly()
+            y^3 - 7
         """
         return self._poly
 
@@ -6145,7 +6146,8 @@ class AlgebraicPolynomialTracker(SageObject):
         r"""
         EXAMPLES::
 
-            sage: x=polygen(QQ); f=QQbar.common_polynomial(x^4 + 4)
+            sage: x = polygen(QQ)
+            sage: f = QQbar.common_polynomial(x^4 + 4)
             sage: f.factors()
             [y^2 - 2*y + 2, y^2 + 2*y + 2]
         """
@@ -6255,18 +6257,19 @@ class ANRoot(ANDescr):
             sage: x = polygen(QQ)
             sage: sage_input(AA.polynomial_root(x^2-x-1, RIF(1, 2)), verify=True)
             # Verified
-            R.<x> = AA[]
-            AA.polynomial_root(AA.common_polynomial(x^2 - x - 1), RIF(RR(1.6180339887498947), RR(1.6180339887498949)))
+            R.<y> = QQ[]
+            AA.polynomial_root(AA.common_polynomial(y^2 - y - 1), RIF(RR(1.6180339887498947), RR(1.6180339887498949)))
             sage: sage_input(QQbar.polynomial_root(x^3-5, CIF(RIF(-3, 0), RIF(0, 3))), verify=True)
             # Verified
-            R.<x> = AA[]
-            QQbar.polynomial_root(AA.common_polynomial(x^3 - 5), CIF(RIF(-RR(0.85498797333834853), -RR(0.85498797333834842)), RIF(RR(1.4808826096823642), RR(1.4808826096823644))))
+            R.<y> = QQ[]
+            QQbar.polynomial_root(AA.common_polynomial(y^3 - 5), CIF(RIF(-RR(0.85498797333834853), -RR(0.85498797333834842)), RIF(RR(1.4808826096823642), RR(1.4808826096823644))))
             sage: from sage.rings.qqbar import *
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: rt = ANRoot(x^3 - 2, RIF(0, 4))
             sage: rt.handle_sage_input(sib, False, True)
-            ({call: {getattr: {atomic:QQbar}.polynomial_root}({call: {getattr: {atomic:AA}.common_polynomial}({binop:- {binop:** {gen:x {constr_parent: {subscr: {atomic:AA}[{atomic:'x'}]} with gens: ('x',)}} {atomic:3}} {atomic:2}})}, {call: {atomic:RIF}({call: {atomic:RR}({atomic:1.259921049894873})}, {call: {atomic:RR}({atomic:1.2599210498948732})})})}, True)
+            ({call: {getattr: {atomic:QQbar}.polynomial_root}({call: {getattr: {atomic:AA}.common_polynomial}({binop:- {binop:** {gen:y {constr_parent: {subscr: {atomic:QQ}[{atomic:'y'}]} with gens: ('y',)}} {atomic:3}} {atomic:2}})}, {call: {atomic:RIF}({call: {atomic:RR}({atomic:1.259921049894873})}, {call: {atomic:RR}({atomic:1.2599210498948732})})})},
+             True)
         """
         parent = sib.name('QQbar' if is_qqbar else 'AA')
         poly = sib(self._poly)
@@ -6912,19 +6915,19 @@ class ANExtensionElement(ANDescr):
             True
             sage: sage_input(vector(QQbar, (4-3*I, QQbar.zeta(7))), verify=True)
             # Verified
-            R.<x> = AA[]
-            vector(QQbar, [4 - 3*I, QQbar.polynomial_root(AA.common_polynomial(x^6 + x^5 + x^4 + x^3 + x^2 + x + 1), CIF(RIF(RR(0.62348980185873348), RR(0.62348980185873359)), RIF(RR(0.7818314824680298), RR(0.78183148246802991))))])
+            R.<y> = QQ[]
+            vector(QQbar, [4 - 3*I, QQbar.polynomial_root(AA.common_polynomial(y^6 + y^5 + y^4 + y^3 + y^2 + y + 1), CIF(RIF(RR(0.62348980185873348), RR(0.62348980185873359)), RIF(RR(0.7818314824680298), RR(0.78183148246802991))))])
             sage: sage_input(v, verify=True)
             # Verified
-            R.<x> = AA[]
-            v = QQbar.polynomial_root(AA.common_polynomial(x^8 - x^7 + x^5 - x^4 + x^3 - x + 1), CIF(RIF(RR(0.91354545764260087), RR(0.91354545764260098)), RIF(RR(0.40673664307580015), RR(0.40673664307580021))))
+            R.<y> = QQ[]
+            v = QQbar.polynomial_root(AA.common_polynomial(y^8 - y^7 + y^5 - y^4 + y^3 - y + 1), CIF(RIF(RR(0.91354545764260087), RR(0.91354545764260098)), RIF(RR(0.40673664307580015), RR(0.40673664307580021))))
             v^5 + v^3
             sage: v = QQbar(sqrt(AA(2)))
             sage: v.exactify()
             sage: sage_input(v, verify=True)
             # Verified
-            R.<x> = AA[]
-            QQbar(AA.polynomial_root(AA.common_polynomial(x^2 - 2), RIF(RR(1.4142135623730949), RR(1.4142135623730951))))
+            R.<y> = QQ[]
+            QQbar(AA.polynomial_root(AA.common_polynomial(y^2 - 2), RIF(RR(1.4142135623730949), RR(1.4142135623730951))))
             sage: from sage.rings.qqbar import *
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
@@ -7324,12 +7327,12 @@ class ANUnaryExpr(ANDescr):
             QQbar.polynomial_root(AA.common_polynomial(x^2 + 3), CIF(RIF(RR(0)), RIF(RR(1.7320508075688772), RR(1.7320508075688774)))).conjugate()
             sage: sage_input(QQbar.zeta(3).real(), verify=True)
             # Verified
-            R.<x> = AA[]
-            QQbar.polynomial_root(AA.common_polynomial(x^2 + x + 1), CIF(RIF(-RR(0.50000000000000011), -RR(0.49999999999999994)), RIF(RR(0.8660254037844386), RR(0.86602540378443871)))).real()
+            R.<y> = QQ[]
+            QQbar.polynomial_root(AA.common_polynomial(y^2 + y + 1), CIF(RIF(-RR(0.50000000000000011), -RR(0.49999999999999994)), RIF(RR(0.8660254037844386), RR(0.86602540378443871)))).real()
             sage: sage_input(QQbar.zeta(3).imag(), verify=True)
             # Verified
-            R.<x> = AA[]
-            QQbar.polynomial_root(AA.common_polynomial(x^2 + x + 1), CIF(RIF(-RR(0.50000000000000011), -RR(0.49999999999999994)), RIF(RR(0.8660254037844386), RR(0.86602540378443871)))).imag()
+            R.<y> = QQ[]
+            QQbar.polynomial_root(AA.common_polynomial(y^2 + y + 1), CIF(RIF(-RR(0.50000000000000011), -RR(0.49999999999999994)), RIF(RR(0.8660254037844386), RR(0.86602540378443871)))).imag()
             sage: sage_input(abs(sqrt(QQbar(-3))), verify=True)
             # Verified
             R.<x> = QQbar[]
@@ -7340,8 +7343,8 @@ class ANUnaryExpr(ANDescr):
             QQbar.polynomial_root(AA.common_polynomial(x^2 + 3), CIF(RIF(RR(0)), RIF(RR(1.7320508075688772), RR(1.7320508075688774)))).norm()
             sage: sage_input(QQbar(QQbar.zeta(3).real()), verify=True)
             # Verified
-            R.<x> = AA[]
-            QQbar(QQbar.polynomial_root(AA.common_polynomial(x^2 + x + 1), CIF(RIF(-RR(0.50000000000000011), -RR(0.49999999999999994)), RIF(RR(0.8660254037844386), RR(0.86602540378443871)))).real())
+            R.<y> = QQ[]
+            QQbar(QQbar.polynomial_root(AA.common_polynomial(y^2 + y + 1), CIF(RIF(-RR(0.50000000000000011), -RR(0.49999999999999994)), RIF(RR(0.8660254037844386), RR(0.86602540378443871)))).real())
             sage: from sage.rings.qqbar import *
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()

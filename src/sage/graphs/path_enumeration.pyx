@@ -316,7 +316,7 @@ def shortest_simple_paths(self, source, target, weight_function=None,
         - ``"Yen"`` -- Yen's algorithm [Yen1970]_
 
         - ``"Feng"`` -- a variant of Yen's algorithm that is much faster than
-          Yen's algorithm but works only for directed graphs [GF2014]_
+          Yen's algorithm but works only for directed graphs [Feng2014]_
 
     - ``report_edges`` -- boolean (default: ``False``); whether to report paths
       as list of vertices (default) or list of edges, if ``False`` then
@@ -803,7 +803,7 @@ def yen_k_shortest_simple_paths_directed_iterator(self, source, target, weight_f
     find. Its average running time is much smaller as compared to `Yen's`
     algorithm.
 
-    See [GF2014]_ for more details on the algorithm.
+    See [Feng2014]_ for more details on the algorithm.
 
     EXAMPLES::
 

@@ -376,6 +376,9 @@ ext_modules = [
     Extension('sage.graphs.base.static_sparse_backend',
               sources = ['sage/graphs/base/static_sparse_backend.pyx']),
 
+    Extension('sage.graphs.graph_coloring',
+              sources = ['sage/graphs/graph_coloring.pyx']),
+
     Extension('sage.graphs.weakly_chordal',
               sources = ['sage/graphs/weakly_chordal.pyx']),
 

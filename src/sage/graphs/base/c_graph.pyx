@@ -1970,9 +1970,9 @@ cdef class CGraphBackend(GenericGraphBackend):
         r"""
         Return the shortest path or distance from ``x`` to ``y``.
 
-        This method is an extension of shortest_path method enabling to exclude
-        vertices and/or edges from the search for the shortest path between x
-        and y.
+        This method is an extension of :meth:`shortest_path` method enabling to
+        exclude vertices and/or edges from the search for the shortest path
+        between ``x`` and ``y``.
 
         INPUT:
 
@@ -2314,13 +2314,13 @@ cdef class CGraphBackend(GenericGraphBackend):
         Return the shortest path or distance from ``x`` to ``y`` using a
         bidirectional version of Dijkstra's algorithm.
 
-        This method is an extension of bidirectional_dijkstra method enabling to
-        exclude vertices and/or edges from the search for the shortest path
-        between x and y.
+        This method is an extension of :meth:`bidirectional_dijkstra` method
+        enabling to exclude vertices and/or edges from the search for the
+        shortest path between ``x`` and ``y``.
 
-        This method also has include_vertices option enabling to include the
+        This method also has ``include_vertices`` option enabling to include the
         vertices which will be used to search for the shortest path between
-        x and y.
+        ``x`` and ``y``.
 
         INPUT:
 

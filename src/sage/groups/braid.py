@@ -81,7 +81,6 @@ from sage.groups.finitely_presented import FinitelyPresentedGroup
 from sage.groups.artin import FiniteTypeArtinGroup, FiniteTypeArtinGroupElement
 from sage.misc.package import PackageNotFoundError
 from sage.structure.richcmp import richcmp, rich_to_bool
-from sage.misc.superseded import deprecated_function_alias
 
 
 class Braid(FiniteTypeArtinGroupElement):
@@ -1697,7 +1696,7 @@ class BraidGroup_class(FiniteTypeArtinGroup):
             [0 0 1]
         """
         n = self.strands()
-        if len(braid)>1:
+        if len(braid) > 1:
             A = self._LKB_matrix_(braid[:1], variab)
             for i in braid[1:]:
                 A = A*self._LKB_matrix_((i,), variab)
@@ -1706,7 +1705,7 @@ class BraidGroup_class(FiniteTypeArtinGroup):
         R = LaurentPolynomialRing(IntegerRing(), variab)
         q = R.gens()[0]
         t = R.gens()[1]
-        if len(braid)==0:
+        if not braid:
             return identity_matrix(R, len(l), sparse=True)
         A = matrix(R, len(l), sparse=True)
         if braid[0]>0:
@@ -2153,8 +2152,6 @@ class BraidGroup_class(FiniteTypeArtinGroup):
         if is_FreeGroup(S) and op == operator.mul and not self_on_left:
             return self.mapping_class_action(S)
         return None
-
-    Delta = deprecated_function_alias(24664, FiniteTypeArtinGroup.delta)
 
     def _element_from_libbraiding(self, nf):
         """

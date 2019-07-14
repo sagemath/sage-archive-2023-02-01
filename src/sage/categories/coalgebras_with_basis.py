@@ -206,5 +206,15 @@ class CoalgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             return self.coproduct().apply_multilinear_morphism(split)
 
     class Super(SuperModulesCategory):
-        pass
+        def extra_super_categories(self):
+            """
+            EXAMPLES::
+
+                sage: C = Coalgebras(ZZ).WithBasis().Super()
+                sage: sorted(C.super_categories(), key=str)  # indirect doctest
+                [Category of graded coalgebras with basis over Integer Ring,
+                 Category of super coalgebras over Integer Ring,
+                 Category of super modules with basis over Integer Ring]
+            """
+            return [self.base_category().Graded()]
 

@@ -1427,91 +1427,12 @@ class ImplicitSuffixTree(SageObject):
         covered by ``(i,l)`` if ``(i,l)``, ``(i+1,l)``, ..., ``(j,l)`` are all
         squares.
 
-        The leftmost covering set is described by a list of list ``P``. ``P`` is
-        such that ``P[i]``  contains all the lengths of squares  in the leftmost
-        covering  set that starts at ``i``.  The lists ``P[i]``  are sorted  in
-        decreasing order.
-
-        EXAMPLES::
-
-            sage: w = Word('abaabaabbaaabaaba')
-            sage: T = w.suffix_tree()
-            sage: T.leftmost_covering_set()
-            [[6], [6], [2], [], [], [], [], [2], [], [], [6, 2], [], [], [], [], [], []]
-            sage: w = Word('abaca')
-            sage: T = w.suffix_tree()
-            sage: T.leftmost_covering_set()
-            [[], [], [], [], []]
-
-        REFERENCES:
-
-        *  [1] Gusfield,  D., &  Stoye, J.  (2004). Linear  time algorithms  for
-        finding and representing all the tandem  repeats in a string. Journal of
-        Computer and System Sciences, 69(4), 525-546.
-        """
-
-        def condition1_square_pairs(i):
-            r"""
-            Computes the squares that have their center (the last letter of the
-            first  occurrence of ``w`` in ``ww``) in the i-th block of the
-            LZ-decomposition and that start in the i-th block and end in the
-            (i+1)-st.
-            """
-            for k in range(1, B[i+1]-B[i]+1):
-                q = B[i+1]-k
-                k1 = w.longest_forward_extension(B[i+1],q) if B[i+1] < len(w) else 0
-                k2 = w.longest_backward_extension(B[i+1]-1,q-1)
-                start = max(q-k2, q-k+1)
-                if k1+k2 >= k and k1 > 0 and start >= B[i]:
-                    yield (start, 2*k)
-
-        def condition2_square_pairs(i):
-            r"""
-            Compute the squares that have their center (the last letter of the
-            first  occurrence of ``w``  in ``ww``)  in the  i-th  block of  the
-            LZ-decomposition and  that starts in  the (i-1)-st block or before.
-            Their end is either in the i-th or the (i+1)-st block.
-            """
-            if i+2 < len(B):
-                end = B[i+2]-B[i]+1
-            else:
-                end = B[i+1]-B[i]+1
-            for k in range(2, end):
-                q = B[i]+k
-                k1 = w.longest_forward_extension(B[i], q) if q < len(w) else 0
-                k2 = w.longest_backward_extension(B[i]-1, q-1)
-                start = max(B[i]-k2, B[i]-k+1)
-                if k1+k2 >= k and k1 > 0 and start+k <= B[i+1] and k2 > 0:
-                    yield (start,2*k)
-
-        w = self.word()
-        B = self.LZ_decomposition()
-        P = [[] for _ in w]
-        for i in range(len(B)-1):
-            squares = list(chain(condition2_square_pairs(i),
-                          condition1_square_pairs(i)))
-            for (i,l) in squares:
-                P[i].append(l)
-        for l in P:
-            l.reverse()
-        return P
-
-    def leftmost_covering_set(self):
-        r"""
-        Compute the leftmost covering set of square pairs in ``self.word()``.
-        Return a square as a pair ``(i,l)`` designating factor
-        ``self.word()[i:i+l]``.
-
-        A  leftmost covering set is a set such that the leftmost occurrence
-        ``(j,l)`` of a square in ``self.word()`` is covered by a pair
-        ``(i,l)`` in the set for all types of squares. We say that ``(j,l)`` is
-        covered by ``(i,l)`` if ``(i,l)``, ``(i+1,l)``, ..., ``(j,l)`` are all
-        squares.
-
         The  set is returned in the form of a list ``P`` such that ``P[i]``
         contains all the lengths of squares starting at ``i`` in the set. The
         lists ``P[i]`` are sorted in decreasing order.
 
+        The algorithm used is described in [DS2004]_
+
         EXAMPLES::
 
             sage: w = Word('abaabaabbaaabaaba')
@@ -1522,12 +1443,6 @@ class ImplicitSuffixTree(SageObject):
             sage: T = w.suffix_tree()
             sage: T.leftmost_covering_set()
             [[], [], [], [], []]
-
-        REFERENCES:
-
-        *  [1] Gusfield,  D., &  Stoye, J.  (2004). Linear  time algorithms  for
-        finding and representing all the tandem  repeats in a string. Journal of
-        Computer and System Sciences, 69(4), 525-546.
         """
 
         def condition1_square_pairs(i):
@@ -1677,12 +1592,9 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
 
         ALGORITHM:
 
-            When using ``'pair'`` as output, the squares are retrieved in linear
-            time. The algorithm is an implementation of the one proposed in [1].
-
-            * [1] Gusfield, D., & Stoye, J. (2004). Linear time algorithms for
-            finding and representing all the tandem repeats in a string. Journal
-            of Computer and System Sciences, 69(4), 525-546.
+        When using ``'pair'`` as output, the squares are retrieved in linear
+        time. The algorithm is an implementation of the one proposed in
+        [DS2004]_.
         """
         if "$" in w:
             raise ValueError("The symbol '$' is reserved for this class.")

@@ -1741,23 +1741,6 @@ class RuleSuperRSK(RuleRSK):
         ....:       PrimedEntry(2)], insertion='superRSK')
         [[[1', 2, 2, 3'], [2', 3, 3], [3']], [[1', 2', 3', 3], [1, 2, 3'], [3']]]
     """
-    def _forward_verify_input(self, obj1, obj2):
-        r"""
-        Returns exception for invalid input in forward rule.
-        """
-        from sage.combinat.shifted_primed_tableau import PrimedEntry
-        if obj2 is not None:
-            mixed_parity = []
-            # Check it is a restricted superbiword
-            for t, b in zip(obj1, obj2):
-                if not (isinstance(t, PrimedEntry) and isinstance(b, PrimedEntry)):
-                    raise ValueError("invalid entry, elements should be PrimedEntry")
-                if t.is_primed() != b.is_primed():
-                    if (t, b) in mixed_parity:
-                        raise ValueError("invalid restricted superbiword")
-                    else:
-                        mixed_parity.append((t,b))
-
     def to_pair(self, obj1=None, obj2=None):
         r"""
 
@@ -1804,7 +1787,6 @@ class RuleSuperRSK(RuleRSK):
         r"""
 
         """
-        from sage.combinat.tableau import Tableau
         self._forward_verify_input(obj1, obj2)
         itr = self.to_pair(obj1, obj2)
         p = []       # the "insertion" tableau
@@ -1878,22 +1860,37 @@ class RuleSuperRSK(RuleRSK):
         else:
             return None, None  # Bumping is completed
 
-    def _forward_format_output(self, p=None, q=None, check_standard=False):
+    def _forward_verify_input(self, obj1, obj2):
+        r"""
+        Returns exception for invalid input in forward rule.
         """
-        """
-        from  sage.combinat.tableau import SemistandardSuperTableau
+        from sage.combinat.shifted_primed_tableau import PrimedEntry
+        if obj2 is not None:
+            mixed_parity = []
+            # Check it is a restricted superbiword
+            for t, b in zip(obj1, obj2):
+                if not (isinstance(t, PrimedEntry) and isinstance(b, PrimedEntry)):
+                    raise ValueError("invalid entry, elements should be PrimedEntry")
+                if t.is_primed() != b.is_primed():
+                    if (t, b) in mixed_parity:
+                        raise ValueError("invalid restricted superbiword")
+                    else:
+                        mixed_parity.append((t,b))
 
-        # return [SemistandardSuperTableau(p), SemistandardSuperTableau(q)]
-        return [(p), (q)]
+    def _forward_format_output(self, p=None, q=None, check_standard=False):
+        r"""
+        """
+        from sage.combinat.tableau import SemistandardSuperTableau, StandardTableau
+
+        if len(p) == 0:
+            return [StandardTableau([]), StandardTableau([])]
+        return [SemistandardSuperTableau(p), SemistandardSuperTableau(q)]
 
     def backward_rule(self, p, q, output):
         r"""
         """
         self._backward_verify_input(p, q)
         p_copy = [list(row) for row in p]
-
-        # introduce if standardSuperTableau
-
         upper_row = []
         lower_row = []
         # upper_row and lower_row will be the upper and lower rows of the
@@ -1917,42 +1914,60 @@ class RuleSuperRSK(RuleRSK):
                 i = iter_dict[key]
                 if epsilon == 1:
                     x = p_copy[key].pop() # Always the right-most entry
+                    row_index = key
+                    col_index = i
                 else:
                     x = p_copy[i].pop() # Always the right-most entry
-
+                    row_index = i
+                    col_index = key
                 while True:
                     if value.is_primed() == x.is_primed():
                         # row bumping
-
-
+                        row_index -= 1
+                        if row_index < 0:
+                            upper_row.append(value)
+                            lower_row.append(x)
+                            break
+                        else:
+                            x, col_index = self.reverse_insertion(x, p_copy[row_index], epsilon=epsilon)
+                    
                     else:
                         # column bumping
-                    
-                    # for row in reversed(p_copy[:i]):
-                    #     x = self.reverse_insertion(x, row)
-                    
-
-            else:
-
+                        col_index -= 1
+                        if col_index < 0:
+                            upper_row.append(value)
+                            lower_row.append(x)
+                            break
+                        else:
+                            c = self._get_col(p_copy, col_index)
+                            x, row_index = self.reverse_insertion(x, c, epsilon=epsilon)
+                            self._set_col(p_copy, col_index, c)
         return self._backward_format_output(lower_row, upper_row, output, p.is_standard(), q.is_standard())
 
-    def reverse_insertion(self, x, row):
-        
-        y_pos = bisect_left(row, x) - 1
-        y = row[y_pos]
-        # Check to see if we can swap x for y
-        if ((y_pos == len(row) - 1 or x < row[y_pos+1])
-            and (i == len(p) - 1 or len(p[i+1]) <= y_pos
-                 or x < p[i+1][y_pos])):
-            row[y_pos] = x
-        x = y
-        return x
+    def reverse_insertion(self, x, row, epsilon=0):
+        r"""
+
+        """
+        bisect = bisect_left if epsilon == 0 else bisect_right
+        y_pos = bisect(row, x) - 1
+        # switch x and y
+        x, row[y_pos] = row[y_pos], x
+        return x, y_pos
 
     def _backward_format_output(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
-        pass
+        if output == 'matrix':
+            return to_matrix(list(reversed(upper_row)), list(reversed(lower_row)))
+        if output == 'array':
+            return [list(reversed(upper_row)), list(reversed(lower_row))]
 
     def _backward_verify_input(self, p, q):
-        pass
+        from sage.combinat.tableau import SemistandardSuperTableau
+
+        if p not in SemistandardSuperTableau():
+            raise ValueError("p(=%s) must be a semistandard super tableau"%p)
+
+        if q not in SemistandardSuperTableau() and not q.is_standard():
+            raise ValueError("q(=%s) must be a semistandard super tableau"%q)
 
 class InsertionRules(object):
     r"""
@@ -2328,6 +2343,8 @@ def RSK_inverse(p, q, output='array', insertion=InsertionRules.RSK):
             insertion = RSK.rules.dualRSK
         elif insertion == 'coRSK':
             insertion = RSK.rules.coRSK
+        elif insertion == 'superRSK':
+            insertion = RSK.rules.superRSK
         else:
             raise ValueError("invalid input")
 

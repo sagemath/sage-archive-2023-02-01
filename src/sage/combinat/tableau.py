@@ -4973,13 +4973,12 @@ class StandardTableau(SemistandardTableau):
 class PrimedTableau(Tableau):
 
     def __init__(self, parent, t):
-        super(PrimedTableau, self).__init__(self, parent, check=False)
         # Check the entries of t are Primed Entries
         from sage.combinat.shifted_primed_tableau import PrimedEntry
         for row in t:
             if not all(isinstance(c, PrimedEntry) for c in row):
                 raise ValueError("the entries of a primed tableau must be PrimedEntry")
-
+        return super(PrimedTableau, self).__init__(self, parent, t)
 
 class SemistandardSuperTableau(PrimedTableau):
     r"""
@@ -4989,14 +4988,21 @@ class SemistandardSuperTableau(PrimedTableau):
     b) Even letters strictly increase down columns (verified in __init__)
     c) Odd letters strictly increase along rows (verified in __init__)
     """
-
     @staticmethod
-    def __classcall_private__(self, t):
+    def __classcall_private__(cls, t):
         r"""
         """
-        if isinstance(t, SemistandardSuperTableau):
+        if isinstance(t, cls):
             return t
-        #TODO
+
+        # We must verify ``t`` is a list of iterables, and also
+        # normalize it to be a list of tuples.
+        try:
+            t = [tuple(_) for _ in t]
+        except TypeError:
+            raise ValueError("A tableau must be a list of iterables.")
+
+        return Tableaux_all().element_class(Tableaux_all(), t)
 
     def __init__(self, parent, t):
         super(SemistandardSuperTableau, self).__init__(parent, t)

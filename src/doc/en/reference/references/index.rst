@@ -585,8 +585,9 @@ REFERENCES:
              related to the Connectivity Set of Coxeter Groups*.
              :arxiv:`math/0509271v3`
 
-.. [Big1993] \N. L. Biggs. *Algebraic Graph Theory*, 2nd ed.
+.. [Big1993] Norman Linstead Biggs. *Algebraic Graph Theory*, 2nd ed.
              Cambridge University Press, 1993.
+             :doi:`10.1017/CBO9780511608704`
 
 .. [Big1999] Stephen J. Bigelow. The Burau representation is not
              faithful for `n = 5`. Geom. Topol., 3:397--404, 1999.
@@ -2079,8 +2080,9 @@ REFERENCES:
              1960
              http://cms.math.ca/cjm/v12/cjm1960v12.0145-0157.pdf
 
-.. [Har1962] Frank Harary. The determinant of the adjacency matrix of a graph.
+.. [Har1962] Frank Harary. *The determinant of the adjacency matrix of a graph*.
              SIAM Review 4 (1962), pp. 202-210.
+             :doi:`10.1137/1004057`
 
 .. [Har1977] \R. Hartshorne. Algebraic Geometry. Springer-Verlag, New York, 1977.
 

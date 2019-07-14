@@ -842,6 +842,46 @@ class BipartiteGraph(Graph):
         if new is True:
             raise ValueError("loops are not allowed in bipartite graphs")
 
+    def is_bipartite(self, certificate=False):
+        r"""
+        Check whether the graph is bipartite.
+
+        This method always returns ``True`` as first value, plus a certificate
+        when ``certificate == True``.
+
+        INPUT:
+
+        - ``certificate`` -- boolean (default: ``False``); whether to return a
+          certificate. If set to ``True``, the certificate returned is a proper
+          2-coloring of the vertices.
+
+        .. SEEALSO:: :meth:`~GenericGraph.is_bipartite`
+
+        EXAMPLES::
+
+            sage: g = BipartiteGraph(graphs.RandomBipartite(3, 3, .5))
+            sage: g.is_bipartite()
+            True
+            sage: g.is_bipartite(certificate=True)  # random
+            (True, {(0, 0): 0, (0, 1): 0, (0, 2): 0, (1, 0): 1, (1, 1): 1, (1, 2): 1})
+
+        TESTS::
+
+            sage: BipartiteGraph().is_bipartite()
+            True
+            sage: BipartiteGraph().is_bipartite(certificate=True)
+            (True, {})
+        """
+        if not hasattr(self, 'left') or not hasattr(self, 'right'):
+            # This case may occur during the initialization (i.e., in __init__)
+            return GenericGraph.is_bipartite(self, certificate=certificate)
+        if certificate:
+            color = {u: 0 for u in self.left}
+            color.update({u: 1 for u in self.right})
+            return True, color
+        else:
+            return True
+
     def complement(self):
         """
         Return a complement of this graph.

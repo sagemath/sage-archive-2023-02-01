@@ -490,7 +490,7 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
 
     This algorithm can be divided into two parts. Firstly, it determines the
     first k-shortest path and then determine all the other k-shortest paths.
-    The algorithm finds the deviations of previous shortest paths to determine
+    This algorithm finds the deviations of previous shortest paths to determine
     the next shortest paths.
 
     Time complexity is `O(kn(m+nlogn))` where `n` is the number of vertices and
@@ -784,12 +784,23 @@ def yen_k_shortest_simple_paths_directed_iterator(self, source, target, weight_f
 
     This algorithm can be divided into two parts. Firstly, it determines the
     first k-shortest path and then determine all the other k-shortest paths.
-    The algorithm finds the deviations of previous shortest paths to determine
-    the next shortest paths.
+    This algorithm finds the deviations of previous shortest paths to determine
+    the next shortest paths. This algorithm finds the candidate paths more
+    efficiently using a node classification technique. At first the candidate
+    path is separated by its devitation node as prefix and suffix. Then the
+    algorithm classify the nodes as red, yellow and green. A node on the prefix
+    is assigned a red color, a node that can reach t (the destination node)
+    through a shortest path without visiting a red node is assigned a green
+    color, and all other nodes are assigned a yellow color. When searching for
+    the suffix of a candidate path, all green nodes are bypassed, and
+    ``Dijkstra’s algorithm`` is applied to find an all-yellow-node subpath.
+    Since on average the number of yellow nodes is much smaller than n, this
+    algorithm has a much lower average-case running time.
 
     Time complexity is `O(kn(m+nlogn))` where `n` is the number of vertices and
     `m` is the number of edges and `k` is the number of shortest paths needed to
-    find.
+    find. Its average running time is much smaller as compared to `Yen's`
+    algorithm.
 
     See [GF2014]_ for more details on the algorithm.
 

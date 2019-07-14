@@ -32,9 +32,11 @@ from sage.rings.complex_field import is_ComplexField
 
 class lfun_generic(object):
     r"""
-    Create a PARI `L`-function (:pari:`lfun` instance) with
+    Create a PARI `L`-function (:pari:`lfun` instance).
 
-    ``lfun_generic(conductor, gammaV, weight, eps, poles, residues, init)``
+    The arguments are::
+
+        lfun_generic(conductor, gammaV, weight, eps, poles, residues, init)
 
     where
 
@@ -97,8 +99,8 @@ class lfun_generic(object):
             sage: from sage.lfunctions.pari import lfun_generic, LFunction
             sage: lf = lfun_generic(conductor=1, gammaV=[0], weight=1, eps=1, poles=[1], residues=[1])
         """
-        # status flag: before of after entering the coefficients
-        self.__init = False
+        # before entering the coefficients, this attribute is None
+        self._L = None
 
         self.conductor = conductor
         self.gammaV = gammaV
@@ -193,8 +195,6 @@ class lfun_generic(object):
                                        self.conductor, self.eps,
                                        self.poles[0]])
 
-        self.__init = True
-
     def __pari__(self):
         """
         Return the PARI L-function object.
@@ -213,7 +213,7 @@ class lfun_generic(object):
             sage: X.type()
             't_VEC'
         """
-        if not self.__init:
+        if self._L is None:
             raise ValueError("call init_coeffs on the L-function first")
         return self._L
 
@@ -244,6 +244,14 @@ def lfun_character(chi):
         sage: L = LFunction(lfun_character(DirichletGroup(6).gen()))
         sage: L(4)
         1.08232323371114
+
+    With complex arguments::
+
+        sage: from sage.lfunctions.pari import lfun_character, LFunction
+        sage: chi = DirichletGroup(6, CC).gen().primitive_character()
+        sage: L = LFunction(lfun_character(chi))
+        sage: L(3)
+        1.20205690315959
     """
     if not chi.is_primitive():
         chi = chi.primitive_character()
@@ -262,8 +270,8 @@ def lfun_character(chi):
     if is_ComplexField(P.base_ring()):
         zeta = P.zeta()
         zeta_argument = zeta.argument()
-        v = [int(round(x.argument() / zeta_argument))
-             for x in values_on_gens()]
+        v = [int(x.argument() / zeta_argument)
+             for x in values_on_gens]
     else:
         dlog = P._zeta_dlog
         v = [dlog[x] for x in values_on_gens]
@@ -739,30 +747,11 @@ class LFunction(SageObject):
 
     def check_functional_equation(self):
         r"""
-        Verify how well numerically the functional equation is satisfied,
-        and also determines the residues if ``self.poles !=
-        []`` and residues='automatic'.
+        Verify how well numerically the functional equation is satisfied.
 
-        More specifically: for `T>1` (default 1.2),
-        ``self.check_functional_equation(T)`` should ideally
-        return 0 (to the current precision).
-
-        -  if what this function returns does not look like 0 at all,
-           probably the functional equation is wrong (i.e. some of the
-           parameters gammaV, conductor etc., or the coefficients are wrong),
-
-        -  if checkfeq(T) is to be used, more coefficients have to be
-           generated (approximately T times more), e.g. call cflength(1.3),
-           initLdata("a(k)",1.3), checkfeq(1.3)
-
-        -  T=1 always (!) returns 0, so T has to be away from 1
-
-        -  default value `T=1.2` seems to give a reasonable
-           balance
-
-        -  if you do not have to verify the functional equation or the
-           L-values, call num_coeffs(1) and initLdata("a(k)",1), you need
-           slightly less coefficients.
+        If what this function returns does not look like 0 at all,
+        probably the functional equation is wrong, i.e. some of the
+        parameters gammaV, conductor, etc., or the coefficients are wrong.
 
         EXAMPLES::
 

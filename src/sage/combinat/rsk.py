@@ -53,8 +53,8 @@ available:
 - Hecke RSK algorithm (:class:`~sage.combinat.rsk.RuleHecke`) , defined
   using the Hecke insertion studied in [BKSTY06]_ (but using rows instead
   of columns).
-- Dual RSK (:class:`~sage.combinat.rsk.RuleDualRSK`).
-- CoRSK (:class:`~sage.combinat.rsk.RuleCoRSK`), defined in [GR2018v5sol]_.
+- Dual RSK insertion (:class:`~sage.combinat.rsk.RuleDualRSK`).
+- CoRSK insertion (:class:`~sage.combinat.rsk.RuleCoRSK`), defined in [GR2018v5sol]_.
 
 Implementing your own insertion rule
 ------------------------------------

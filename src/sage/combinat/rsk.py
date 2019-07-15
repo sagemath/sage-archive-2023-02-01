@@ -1877,7 +1877,7 @@ class RuleSuperRSK(RuleRSK):
                     else:
                         mixed_parity.append((t,b))
 
-    def _forward_format_output(self, p=None, q=None, check_standard=False):
+    def _forward_format_output(self, p, q, check_standard):
         r"""
         """
         from sage.combinat.tableau import SemistandardSuperTableau, StandardTableau
@@ -1886,7 +1886,7 @@ class RuleSuperRSK(RuleRSK):
             return [StandardTableau([]), StandardTableau([])]
         return [SemistandardSuperTableau(p), SemistandardSuperTableau(q)]
 
-    def backward_rule(self, p, q, output):
+    def backward_rule(self, p, q, output='array'):
         r"""
         """
         self._backward_verify_input(p, q)
@@ -1954,7 +1954,7 @@ class RuleSuperRSK(RuleRSK):
         x, row[y_pos] = row[y_pos], x
         return x, y_pos
 
-    def _backward_format_output(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
+    def _backward_format_output(self, lower_row, upper_row, output, p_is_standard, q_is_standard):
         if output == 'matrix':
             return to_matrix(list(reversed(upper_row)), list(reversed(lower_row)))
         if output == 'array':

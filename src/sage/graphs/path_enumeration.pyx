@@ -427,6 +427,18 @@ def shortest_simple_paths(self, source, target, weight_function=None,
         Traceback (most recent call last):
         ...
         ValueError: unknown algorithm "tip top"
+
+    Check for consistency of results of Yen's and Feng's::
+
+        sage: G = digraphs.DeBruijn(2, 4)
+        sage: s = set()
+        sage: for p in G.shortest_simple_paths('0000', '1111', by_weight=False, algorithm='Yen'):
+        ....:     s.add(tuple(p))
+        sage: k = set()
+        sage: for p in G.shortest_simple_paths('0000', '1111', by_weight=False, algorithm='Feng'):
+        ....:     k.add(tuple(p)) 
+        sage: k == s
+        True
     """
     if source not in self:
         raise ValueError("vertex '{}' is not in the graph".format(source))

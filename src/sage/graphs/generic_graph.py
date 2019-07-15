@@ -217,8 +217,8 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.center` | Return the set of vertices in the center of the graph
     :meth:`~GenericGraph.diameter` | Return the largest distance between any two vertices.
     :meth:`~GenericGraph.distance_graph` | Return the graph on the same vertex set as the original graph but vertices are adjacent in the returned graph if and only if they are at specified distances in the original graph.
-    :meth:`~GenericGraph.girth` | Compute the girth of the graph.
-    :meth:`~GenericGraph.odd_girth` | Compute the odd girth of the graph.
+    :meth:`~GenericGraph.girth` | Return the girth of the graph.
+    :meth:`~GenericGraph.odd_girth` | Return the odd girth of the graph.
     :meth:`~GenericGraph.periphery` | Return the set of vertices in the periphery
     :meth:`~GenericGraph.shortest_path` | Return a list of vertices representing some shortest path from `u` to `v`
     :meth:`~GenericGraph.shortest_path_length` | Return the minimal length of paths from u to v

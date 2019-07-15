@@ -11,6 +11,7 @@ Graph traversals.
     :delim: |
 
     :meth:`~lex_BFS` | Perform a lexicographic breadth first search (LexBFS) on the graph.
+    :meth:`~lex_UP` | Perform a lexicographic UP (LexUP) on the graph.
     :meth:`~lex_DFS` | Perform a lexicographic depth first search (LexDFS) on the graph.
 
 Methods
@@ -224,17 +225,17 @@ def lex_UP(G, reverse=False, tree=False, initial_vertex=None):
 
     EXAMPLES:
 
-    A Lex BFS is obviously an ordering of the vertices::
+    A Lex UP is obviously an ordering of the vertices::
 
         sage: g = graphs.CompleteGraph(6)
-        sage: len(g.lex_BFS()) == g.order()
+        sage: len(g.lex_UP()) == g.order()
         True
 
-    Lex BFS ordering of the 3-sun graph::
+    Lex UP ordering of the 3-sun graph::
 
         sage: g = Graph([(1, 2), (1, 3), (2, 3), (2, 4), (2, 5), (3, 5), (3, 6), (4, 5), (5, 6)])
-        sage: g.lex_BFS()
-        [1, 2, 3, 5, 4, 6]
+        sage: g.lex_UP()
+        [1, 2, 4, 5, 6, 3]
 
     The method also works for directed graphs::
 
@@ -242,47 +243,29 @@ def lex_UP(G, reverse=False, tree=False, initial_vertex=None):
         sage: G.lex_BFS(initial_vertex=2)
         [2, 3, 1]
 
-    For a Chordal Graph, a reversed Lex BFS is a Perfect Elimination Order::
-
-        sage: g = graphs.PathGraph(3).lexicographic_product(graphs.CompleteGraph(2))
-        sage: g.lex_BFS(reverse=True)  # py2
-        [(2, 0), (2, 1), (1, 1), (1, 0), (0, 0), (0, 1)]
-        sage: g.lex_BFS(reverse=True)  # py3
-        [(2, 1), (2, 0), (1, 1), (1, 0), (0, 1), (0, 0)]
-
-    And the vertices at the end of the tree of discovery are, for chordal
-    graphs, simplicial vertices (their neighborhood is a complete graph)::
-
-        sage: g = graphs.ClawGraph().lexicographic_product(graphs.CompleteGraph(2))
-        sage: v = g.lex_BFS()[-1]
-        sage: peo, tree = g.lex_BFS(initial_vertex = v,  tree=True)
-        sage: leaves = [v for v in tree if tree.in_degree(v) ==0]
-        sage: all(g.subgraph(g.neighbors(v)).is_clique() for v in leaves)
-        True
-
     TESTS:
 
-    Lex BFS ordering of a graph on one vertex::
+    Lex UP ordering of a graph on one vertex::
 
-        sage: Graph(1).lex_BFS(tree=True)
+        sage: Graph(1).lex_UP(tree=True)
         ([0], Digraph on 1 vertex)
 
-    Lex BFS ordering of an empty (di)graph is an empty sequence::
+    Lex UP ordering of an empty (di)graph is an empty sequence::
 
         sage: g = Graph()
-        sage: g.lex_BFS()
+        sage: g.lex_UP()
         []
 
-    Lex BFS ordering of a symmetric digraph should be the same as the Lex BFS
+    Lex UP ordering of a symmetric digraph should be the same as the Lex UP
     ordering of the corresponding undirected graph::
 
         sage: G = Graph([(1, 2), (1, 3), (2, 3), (2, 4), (2, 5), (3, 5), (3, 6), (4, 5), (5, 6)])
         sage: H = DiGraph(G)
-        sage: G.lex_BFS() == H.lex_BFS()
+        sage: G.lex_UP() == H.lex_UP()
         True
 
     """
-    # Loops and multiple edges are not needed in Lex BFS
+    # Loops and multiple edges are not needed in Lex UP
     if G.allows_loops() or G.allows_multiple_edges():
         G = G.to_simple(immutable=False)
 

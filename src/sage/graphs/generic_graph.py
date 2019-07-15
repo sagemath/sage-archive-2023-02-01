@@ -5190,7 +5190,7 @@ class GenericGraph(GenericGraph_pyx):
             ...
             ValueError: Complete graph is not a planar graph
 
-        TESTS::
+        TESTS:
 
         Check the dependence of the computed position on the given combinatorial
         embedding (:trac:`28152`).

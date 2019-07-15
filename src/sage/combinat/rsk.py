@@ -1477,7 +1477,8 @@ class RuleDualRSK(Rule):
         x, row[y_pos] = row[y_pos], x
         return x
 
-    def _backward_format_output(self, lower_row=None, upper_row=None, output='array', p_is_standard=True, q_is_standard=True):
+    def _backward_format_output(self, lower_row, upper_row, output, 
+                                p_is_standard, q_is_standard):
         r"""
         Return the final output of the ``RSK_inverse`` correspondence
         from the output of the corresponding ``backward_rule``.
@@ -1510,7 +1511,7 @@ class RuleDualRSK(Rule):
             return super(RuleDualRSK, self)._backward_format_output(lower_row, upper_row, output,
                                                                     p_is_standard, q_is_standard)
 
-    def _forward_format_output(self, p=None, q=None, check_standard=False):
+    def _forward_format_output(self, p, q, check_standard):
         r"""
         Return final output of the ``RSK`` (here, dual RSK)
         correspondence from the output of the corresponding
@@ -1793,7 +1794,7 @@ class RuleCoRSK(RuleRSK):
             itr = zip(obj1, obj2)
         return itr
 
-    def _forward_format_output(self, p=None, q=None, check_standard=False):
+    def _forward_format_output(self, p, q, check_standard):
         r"""
         Return final output of the ``RSK`` correspondence from the
         output of the corresponding ``forward_rule``.

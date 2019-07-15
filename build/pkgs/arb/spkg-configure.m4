@@ -8,12 +8,10 @@ SAGE_SPKG_CONFIGURE([arb], [
     else
         AC_CHECK_HEADER(arb.h, [
         dnl below function added in version 2.16 of arb
-            AC_SEARCH_LIBS([acb_mat_eig_simple], [arb], [
-	      ],[dnl in Debian the name of dylib is different.
-              AC_SEARCH_LIBS([acb_mat_eig_simple], [flint-arb], [
-                  SAGE_ARB_LIBRARY="flint-arb"
-	        ], [sage_spkg_install_arb=yes])
-	    ])
+            AC_CHECK_LIB([arb], [acb_mat_eig_simple], [],
+	      [dnl in Debian the name of dylib is different.
+               AC_CHECK_LIB([flint-arb], [acb_mat_eig_simple],
+                [SAGE_ARB_LIBRARY="flint-arb"], [sage_spkg_install_arb=yes])])
         ], [sage_spkg_install_arb=yes])
     fi
     AC_SUBST(ARB_LIBRARY,[$SAGE_ARB_LIBRARY])

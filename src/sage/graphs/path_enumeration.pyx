@@ -741,7 +741,7 @@ def yen_k_shortest_simple_paths(self, source, target, weight_function=None,
                 path = root[:-1] + spur
                 length = length_func(path)
                 if not by_weight:
-                    length = length - 1
+                    length -= 1
                 # push operation
                 hash_path = tuple(path)
                 # if this path is not already present inside the heap
@@ -1083,7 +1083,7 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
             else:
                 yield path1
         prev_path = path1
-        
+
         # deep copy of the exclude vertices set
         exclude_vertices = copy.deepcopy(exclude_vert_set)
         exclude_edges = set()
@@ -1128,6 +1128,7 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
                 for y in Yu:
                     # coloring upstream nodes as yellow
                     color[y] = 2
+                    include_vertices.add(y)
                 Yu.append(root[-1])
                 for n in Yu:
                     if n in expressEdges and len(expressEdges[n]) > 0:
@@ -1179,7 +1180,6 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
         # restoring the original graph here
         for e in dic:
             self.delete_edge(e)
-
 
 def _all_paths_iterator(self, vertex, ending_vertices=None,
                         simple=False, max_length=None, trivial=False,

@@ -5193,7 +5193,7 @@ class GenericGraph(GenericGraph_pyx):
         TESTS:
 
         Check the dependence of the computed position on the given combinatorial
-        embedding (:trac:`28152`).
+        embedding (:trac:`28152`)::
 
             sage: G = Graph([[0, 1, 2, 3], [[0, 1], [0, 2], [0, 3]]])
             sage: G.set_embedding({0: [1, 2, 3], 1: [0], 2: [0], 3: [0]})

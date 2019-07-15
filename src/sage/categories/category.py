@@ -803,7 +803,7 @@ class Category(UniqueRepresentation, SageObject):
              sage: G = C.category_graph()
              sage: G.is_directed_acyclic()
              True
-             sage: G.girth()
+             sage: Graph(G).girth()
              4
          """
          return category_graph([self])

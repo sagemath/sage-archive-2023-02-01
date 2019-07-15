@@ -13,7 +13,7 @@ rm -f "$SAGE_LOCAL"/lib/libmtx.*
 
 # This is the place where arithmetic tables and some other input files
 # are searched by default.
-export MTXLIB="$DOT_SAGE"/meataxe
+export MTXLIB="$SAGE_SHARE"/meataxe
 
 # Directory where executables are installed.
 export MTXBIN="$SAGE_LOCAL"/bin

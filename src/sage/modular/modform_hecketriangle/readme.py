@@ -61,7 +61,7 @@ Hecke triangle groups and elements:
       sage: G.U().parent()
       Hecke triangle group for n = 6
       sage: G.U().matrix().parent()
-      Full MatrixSpace of 2 by 2 dense matrices over Maximal Order in Number Field in lam with defining polynomial x^2 - 3
+      Full MatrixSpace of 2 by 2 dense matrices over Maximal Order in Number Field in lam with defining polynomial x^2 - 3 with lam = 1.732050807568878?
 
 
 - **Decomposition into product of generators:**

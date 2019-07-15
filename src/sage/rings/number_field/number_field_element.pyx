@@ -1941,7 +1941,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: R(1).gcd(R(4*i))
             Traceback (most recent call last):
             ...
-            NotImplementedError: gcd() for Order in Number Field in i with defining polynomial x^2 + 1 is not implemented
+            NotImplementedError: gcd() for Order in Number Field in i with defining polynomial x^2 + 1 with i = 1*I is not implemented
 
         The following field has class number 3, but if the ideal
         ``(self, other)`` happens to be principal, this still works::
@@ -2229,7 +2229,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: a = K(0)^0; a
             1
             sage: a.parent()
-            Number Field in sqrt2 with defining polynomial x^2 - 2
+            Number Field in sqrt2 with defining polynomial x^2 - 2 with sqrt2 = 1.414213562373095?
 
         TESTS::
 

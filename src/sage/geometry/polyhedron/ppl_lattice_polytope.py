@@ -49,7 +49,7 @@ only differ by a lattice automorphism::
     sage: fibers = [ f.vertices() for f in square.fibration_generator(1) ];  fibers
     [((1, 0), (-1, 0)), ((0, 1), (0, -1)), ((-1, -1), (1, 1)), ((-1, 1), (1, -1))]
     sage: square.pointsets_mod_automorphism(fibers)
-    (frozenset({(0, -1), (0, 1)}), frozenset({(-1, -1), (1, 1)}))
+    (frozenset({(-1, -1), (1, 1)}), frozenset({(-1, 0), (1, 0)}))
 
 AUTHORS:
 
@@ -648,38 +648,42 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             sage: square = LatticePolytope_PPL((-1,-1),(-1,1),(1,-1),(1,1))
             sage: fibers = [ f.vertices() for f in square.fibration_generator(1) ]
             sage: square.pointsets_mod_automorphism(fibers)
-            (frozenset({(0, -1), (0, 1)}), frozenset({(-1, -1), (1, 1)}))
+            (frozenset({(-1, -1), (1, 1)}), frozenset({(-1, 0), (1, 0)}))
 
             sage: cell24 = LatticePolytope_PPL(
             ....: (1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,0,1),(1,-1,-1,1),(0,0,-1,1),
             ....: (0,-1,0,1),(-1,0,0,1),(1,0,0,-1),(0,1,0,-1),(0,0,1,-1),(-1,1,1,-1),
             ....: (1,-1,-1,0),(0,0,-1,0),(0,-1,0,0),(-1,0,0,0),(1,-1,0,0),(1,0,-1,0),
             ....: (0,1,1,-1),(-1,1,1,0),(-1,1,0,0),(-1,0,1,0),(0,-1,-1,1),(0,0,0,-1))
-            sage: fibers = [ f.vertices() for f in cell24.fibration_generator(2) ]
+            sage: fibers = [f.vertices() for f in cell24.fibration_generator(2)]
             sage: cell24.pointsets_mod_automorphism(fibers)   # long time
-            (frozenset({(-1, 0, 1, 0), (0, -1, -1, 1), (0, 1, 1, -1), (1, 0, -1, 0)}),
-             frozenset({(-1, 0, 0, 0),
+            (frozenset({(-1, 0, 0, 0),
                         (-1, 0, 0, 1),
                         (0, 0, 0, -1),
                         (0, 0, 0, 1),
                         (1, 0, 0, -1),
-                        (1, 0, 0, 0)}))
+                        (1, 0, 0, 0)}),
+             frozenset({(-1, 0, 0, 0), (-1, 1, 1, 0), (1, -1, -1, 0), (1, 0, 0, 0)}))
         """
         points = set()
         for ps in pointsets:
             points.update(ps)
-        points = tuple(points)
+        points = tuple(sorted(points))
         Aut = self.lattice_automorphism_group(points,
                                               point_labels=tuple(range(len(points))))
-        indexsets = set([ frozenset([points.index(p) for p in ps]) for ps in pointsets ])
+        indexsets = set(frozenset(points.index(p) for p in ps)
+                        for ps in pointsets)
         orbits = []
         while indexsets:
             idx = indexsets.pop()
-            orbits.append(frozenset([points[i] for i in idx]))
+            min_orb = idx
             for g in Aut:
-                g_idx = frozenset([g(i) for i in idx])
+                g_idx = frozenset(g(i) for i in idx)
+                if sorted(g_idx) < sorted(min_orb):
+                    min_orb = g_idx
                 indexsets.difference_update([g_idx])
-        return tuple(orbits)
+            orbits.append(frozenset(points[i] for i in min_orb))
+        return tuple(sorted(orbits, key=sorted))
 
     @cached_method
     def ambient_space(self):

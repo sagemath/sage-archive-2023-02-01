@@ -50,6 +50,7 @@ allowing specialised implementations of e.g. decoding or computation of properti
    sage/coding/reed_muller_code
    sage/coding/cyclic_code
    sage/coding/bch
+   sage/coding/goppa
 
 In contrast, for some code families Sage can only construct their generator
 matrix and has no other a priori knowledge on them:

@@ -122,8 +122,15 @@ cdef Obj make_gap_matrix(sage_list, gap_ring) except NULL:
     return l.value
 
 
-cdef char *crepr(Obj obj):
-    cdef Obj s, stream, output_text_string, view_obj
+cdef char *capture_stdout(Obj func, Obj obj):
+    """
+    Call a single-argument GAP function ``func`` with the argument ``obj``
+    and return the stdout from that function call.
+
+    This can be used to capture the output of GAP functions that are used to
+    print objects such as ``Print()`` and ``ViewObj()``.
+    """
+    cdef Obj s, stream, output_text_string
     cdef UInt res
     # The only way to get a string representation of an object that is truly
     # consistent with how it would be represented at the GAP REPL is to call
@@ -144,12 +151,38 @@ cdef char *crepr(Obj obj):
             raise GAPError("failed to open output capture stream for "
                            "representing GAP object")
 
-        viewobj = GAP_ValueGlobalVariable("ViewObj")
-        CALL_1ARGS(viewobj, obj)
+        CALL_1ARGS(func, obj)
         CloseOutput()
         return CSTR_STRING(s)
     finally:
         GAP_Leave()
+
+
+cdef char *gap_element_repr(Obj obj):
+    """
+    Implement ``repr()`` of ``GapElement``s using the ``ViewObj()`` function,
+    which is by default closest to what you get when displaying an object in
+    GAP on the command-line (i.e. when evaluating an expression that returns
+    that object.
+    """
+
+    cdef Obj func = GAP_ValueGlobalVariable("ViewObj")
+    return capture_stdout(func, obj)
+
+
+cdef char *gap_element_str(Obj obj):
+    """
+    Implement ``str()`` of ``GapElement``s using the ``Print()`` function.
+
+    This mirrors somewhat how Python uses ``str()`` on an object when passing
+    it to the ``print()`` function.  This is also how the GAP pexpect interface
+    has traditionally repr'd objects; for the libgap interface we take a
+    slightly different approach more closesly mirroring Python's str/repr
+    difference (though this does not map perfectly onto GAP).
+    """
+
+    cdef Obj func = GAP_ValueGlobalVariable("Print")
+    return capture_stdout(func, obj)
 
 
 cdef Obj make_gap_record(sage_dict) except NULL:
@@ -664,6 +697,29 @@ cdef class GapElement(RingElement):
             raise AttributeError(f"'{name}' does not define a GAP function")
         return proxy
 
+    def __str__(self):
+        r"""
+        Return a string representation of ``self`` for printing.
+
+        EXAMPLES::
+
+            sage: libgap(0)
+            0
+            sage: print(libgap.eval(''))
+            None
+            sage: print(libgap('a'))
+            a
+            sage: print(libgap.eval('SymmetricGroup(3)'))
+            SymmetricGroup( [ 1 .. 3 ] )
+            sage: libgap(0).__str__()
+            '0'
+        """
+        if  self.value == NULL:
+            return 'NULL'
+
+        s = char_to_str(gap_element_str(self.value))
+        return s.strip()
+
     def _repr_(self):
         r"""
         Return a string representation of ``self``.
@@ -673,15 +729,17 @@ cdef class GapElement(RingElement):
             sage: libgap(0)
             0
             sage: libgap.eval('')
-            sage: libgap(0)
-            0
+            sage: libgap('a')
+            "a"
+            sage: libgap.eval('SymmetricGroup(3)')
+            Sym( [ 1 .. 3 ] )
             sage: libgap(0)._repr_()
             '0'
         """
         if  self.value == NULL:
             return 'NULL'
 
-        s = char_to_str(crepr(self.value))
+        s = char_to_str(gap_element_repr(self.value))
         return s.strip()
 
     cpdef _set_compare_by_id(self):

@@ -92,7 +92,7 @@ and some rays.
 
     sage: P1 = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]])
     sage: P1
-    A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices and 1 ray
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices and 1 ray
 
 .. end of output
 
@@ -133,7 +133,7 @@ Indeed, Sage finds an appropriate ring to define the object.
 ::
 
     sage: P1.parent()
-    Polyhedra in ZZ^2
+    Polyhedra in QQ^2
     sage: P2.parent()
     Polyhedra in QQ^3
 
@@ -164,7 +164,7 @@ The following example demonstrates the limitations of :code:`RDF`.
 
     sage: D = polytopes.dodecahedron()
     sage: D
-    A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^3 defined as the convex hull of 20 vertices
+    A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?)^3 defined as the convex hull of 20 vertices
     sage: D_RDF = Polyhedron(vertices = [n(v.vector(),digits=6) for v in D.vertices()], base_ring=RDF)
     Traceback (most recent call last):
     ...
@@ -216,7 +216,7 @@ If the base ring is known it may be a good option to use the proper :meth:`sage.
     sage: timeit('Polyhedron(vertices = [[J(a), 0], [0, J(b)]])')  # random
     25 loops, best of 3: 9.8 ms per loop
     sage: P5_comp = Polyhedron(vertices = [[J(a), 0], [0, J(b)]]); P5_comp
-    A 1-dimensional polyhedron in (Number Field in ab with defining polynomial x^6 - 6*x^4 - 4*x^3 + 12*x^2 - 24*x - 4)^2 defined as the convex hull of 2 vertices
+    A 1-dimensional polyhedron in (Number Field in ab with defining polynomial x^6 - 6*x^4 - 4*x^3 + 12*x^2 - 24*x - 4 with ab = -0.1542925124782219?)^2 defined as the convex hull of 2 vertices
 
 .. end of output
 
@@ -534,7 +534,7 @@ backend :code:`cdd`. We can also check the backend and the parent using
     sage: type(P1_cdd)
     <class 'sage.geometry.polyhedron.parent.Polyhedra_QQ_cdd_with_category.element_class'>
     sage: type(P1)
-    <class 'sage.geometry.polyhedron.parent.Polyhedra_ZZ_ppl_with_category.element_class'>
+    <class 'sage.geometry.polyhedron.parent.Polyhedra_QQ_ppl_with_category.element_class'>
 
 .. end of output
 
@@ -610,7 +610,7 @@ The default backend for polyhedron objects is :code:`ppl`.
 ::
 
     sage: type(P1)
-    <class 'sage.geometry.polyhedron.parent.Polyhedra_ZZ_ppl_with_category.element_class'>
+    <class 'sage.geometry.polyhedron.parent.Polyhedra_QQ_ppl_with_category.element_class'>
     sage: type(P2)
     <class 'sage.geometry.polyhedron.parent.Polyhedra_QQ_ppl_with_category.element_class'>
     sage: type(P3)  # has entries like 0.5
@@ -691,7 +691,7 @@ The fourth backend is :code:`normaliz` and is an optional Sage package.
 
     sage: P1_normaliz = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]], backend='normaliz')  # optional - pynormaliz
     sage: type(P1_normaliz)                                                                           # optional - pynormaliz
-    <class 'sage.geometry.polyhedron.parent.Polyhedra_ZZ_normaliz_with_category.element_class'>
+    <class 'sage.geometry.polyhedron.parent.Polyhedra_QQ_normaliz_with_category.element_class'>
     sage: P2_normaliz = Polyhedron(vertices = [[1/2, 0, 0], [0, 1/2, 0]],                             # optional - pynormaliz
     ....:                 rays = [[1, 1, 0]],
     ....:                 lines = [[0, 0, 1]], backend='normaliz')
@@ -732,7 +732,7 @@ The backend :code:`normaliz` provides other methods such as
     sage: P6.plot(color='blue')+IH.plot(color='red')                                              # optional - pynormaliz
     Graphics object consisting of 12 graphics primitives
     sage: P1_normaliz.integral_hull()                                                             # optional - pynormaliz
-    A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices and 1 ray
+    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices and 1 ray
 
 .. end of output
 
@@ -762,7 +762,7 @@ polytope is already defined!
 ::
 
     sage: A = polytopes.buckyball(); A  # can take long
-    A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^3 defined as the convex hull of 60 vertices
+    A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?)^3 defined as the convex hull of 60 vertices
     sage: B = polytopes.cross_polytope(4); B
     A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 8 vertices
     sage: C = polytopes.cyclic_polytope(3,10); C

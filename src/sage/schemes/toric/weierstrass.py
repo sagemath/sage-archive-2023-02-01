@@ -4,7 +4,7 @@ Weierstrass form of a toric elliptic curve
 There are 16 reflexive polygons in the plane, see
 :func:`~sage.geometry.lattice_polytope.ReflexivePolytopes`. Each of
 them defines a toric Fano variety. And each of them has a unique
-crepant resolution to a smooth toric surface [CLSsurfaces]_ by
+crepant resolution to a smooth toric surface (Section 10.4 in [CLS2011]_) by
 subdividing the face fan. An anticanonical hypersurface defines an
 elliptic curve in this ambient space, which we call a toric elliptic
 curve. The purpose of this module is to write an anticanonical
@@ -20,7 +20,7 @@ Technically, this module computes the Weierstrass form of the Jacobian
 of the elliptic curve. This is why you will never have to specify the
 origin (or zero section) in the following.
 
-It turns out [VolkerBraun]_ that the anticanonical hypersurface
+It turns out [Bra2011]_ that the anticanonical hypersurface
 equation of any one of the above 16 toric surfaces is a specialization
 (that is, set one or more of the coefficients to zero) of the
 following three cases. In inhomogeneous coordinates, they are
@@ -123,28 +123,10 @@ TESTS::
 
 REFERENCES:
 
-..  [VolkerBraun]
-    Volker Braun:
-    Toric Elliptic Fibrations and F-Theory Compactifications
-    :arxiv:`1110.4883`
-
-..  [Duistermaat]
-    J. J. Duistermaat,
-    Discrete integrable systems. QRT maps and elliptic surfaces.
-    Springer Monographs in Mathematics. Berlin: Springer. xxii, 627 p., 2010
-
-..  [ArtinVillegasTate]
-    Michael Artin, Fernando Rodriguez-Villegas, John Tate,
-    On the Jacobians of plane cubics,
-    Advances in Mathematics 198 (2005) 1, pp. 366--382
-    :doi:`10.1016/j.aim.2005.06.004`
-    http://www.math.utexas.edu/users/villegas/publications/jacobian-cubics.pdf
-
-..  [CLSsurfaces]
-    Section 10.4 in
-    David A. Cox, John B. Little,  Hal Schenck,
-    "Toric Varieties", Graduate Studies in Mathematics,
-    Amer. Math. Soc., Providence, RI, 2011
+- [Bra2011]_
+- [Du2010]_
+- [ARVT2005]_
+- [CLS2011]_
 """
 
 ########################################################################

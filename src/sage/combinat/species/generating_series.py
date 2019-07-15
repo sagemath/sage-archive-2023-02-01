@@ -129,7 +129,7 @@ class OrdinaryGeneratingSeriesRing_class(LazyPowerSeriesRing):
             sage: R == loads(dumps(R))
             True
         """
-        LazyPowerSeriesRing.__init__(self, R, OrdinaryGeneratingSeries)
+        LazyPowerSeriesRing.__init__(self, R, element_class=OrdinaryGeneratingSeries)
 
 
 class OrdinaryGeneratingSeries(LazyPowerSeries):
@@ -204,7 +204,7 @@ class ExponentialGeneratingSeriesRing_class(LazyPowerSeriesRing):
             sage: R == loads(dumps(R))
             True
         """
-        LazyPowerSeriesRing.__init__(self, R, ExponentialGeneratingSeries)
+        LazyPowerSeriesRing.__init__(self, R, element_class=ExponentialGeneratingSeries)
 
 class ExponentialGeneratingSeries(LazyPowerSeries):
     def count(self, n):
@@ -374,7 +374,7 @@ class CycleIndexSeriesRing_class(LazyPowerSeriesRing):
             True
         """
         R = SymmetricFunctions(R).power()
-        LazyPowerSeriesRing.__init__(self, R, CycleIndexSeries)
+        LazyPowerSeriesRing.__init__(self, R, element_class=CycleIndexSeries)
 
     def __repr__(self):
         """

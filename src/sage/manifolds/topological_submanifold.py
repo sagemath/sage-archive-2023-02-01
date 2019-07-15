@@ -225,7 +225,7 @@ class TopologicalSubmanifold(TopologicalManifold):
         registered at the same time. If the immersion depends on parameters,
         they must also be declared here.
 
-        INPUTS:
+        INPUT:
 
         - ``phi`` -- continuous map `\phi` from self to self._ambient
         - ``inverse`` -- (default: ``None``) inverse of `\phi` onto its image,
@@ -343,7 +343,7 @@ class TopologicalSubmanifold(TopologicalManifold):
         onto its image. A *differentiable embedding* is a topological embedding
         that is also a differentiable immersion.
 
-        INPUTS:
+        INPUT:
 
         - ``phi`` -- continuous map `\phi` from self to self._ambient
         - ``inverse`` -- (default: ``None``) inverse of `\phi` onto its image,

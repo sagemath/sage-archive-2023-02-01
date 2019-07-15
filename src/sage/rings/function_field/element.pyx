@@ -356,6 +356,23 @@ cdef class FunctionFieldElement(FieldElement):
             sage: L.<y> = K.extension(Y^2 + Y + x +1/x)
             sage: (y^3 + x).differential()
             (((x^2 + 1)/x^2)*y + (x^4 + x^3 + 1)/x^3) d(x)
+
+        TESTS:
+
+        Verify that :trac:`27712` is resolved::
+
+            sage: K.<x> = FunctionField(GF(31))
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x)
+            sage: R.<z> = L[]
+            sage: M.<z> = L.extension(z^2 - y)
+
+            sage: x.differential()
+            d(x)
+            sage: y.differential()
+            (16/x*y) d(x)
+            sage: z.differential()
+            (8/x*z) d(x)
         """
         F = self.parent()
         W = F.space_of_differentials()
@@ -383,6 +400,119 @@ cdef class FunctionFieldElement(FieldElement):
         D = self.parent().derivation()
         return D(self)
 
+    @cached_method
+    def divisor(self):
+        """
+        Return the divisor of the element.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: f = 1/(x^3 + x^2 + x)
+            sage: f.divisor()
+            3*Place (1/x)
+             - Place (x)
+             - Place (x^2 + x + 1)
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: y.divisor()
+            - Place (1/x, 1/x*y)
+             - Place (x, x*y)
+             + 2*Place (x + 1, x*y)
+        """
+        if self.is_zero():
+            raise ValueError("divisor not defined for zero")
+
+        F = self.parent()
+        I = F.maximal_order().ideal(self)
+        J = F.maximal_order_infinite().ideal(self)
+        return I.divisor() + J.divisor()
+
+    def divisor_of_zeros(self):
+        """
+        Return the divisor of zeros for the element.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: f = 1/(x^3 + x^2 + x)
+            sage: f.divisor_of_zeros()
+            3*Place (1/x)
+
+            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: (x/y).divisor_of_zeros()
+            3*Place (x, x*y)
+        """
+        if self.is_zero():
+            raise ValueError("divisor of zeros not defined for zero")
+
+        F = self.parent()
+        I = F.maximal_order().ideal(self)
+        J = F.maximal_order_infinite().ideal(self)
+        return I.divisor_of_zeros() + J.divisor_of_zeros()
+
+    def divisor_of_poles(self):
+        """
+        Return the divisor of poles for the element.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: f = 1/(x^3 + x^2 + x)
+            sage: f.divisor_of_poles()
+            Place (x)
+             + Place (x^2 + x + 1)
+
+            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: (x/y).divisor_of_poles()
+            Place (1/x, 1/x*y) + 2*Place (x + 1, x*y)
+        """
+        if self.is_zero():
+            raise ValueError("divisor of poles not defined for zero")
+
+        F = self.parent()
+        I = F.maximal_order().ideal(self)
+        J = F.maximal_order_infinite().ideal(self)
+        return I.divisor_of_poles() + J.divisor_of_poles()
+
+    def zeros(self):
+        """
+        Return the list of the zeros of the element.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: f = 1/(x^3 + x^2 + x)
+            sage: f.zeros()
+            [Place (1/x)]
+
+            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: (x/y).zeros()
+            [Place (x, x*y)]
+        """
+        return self.divisor_of_zeros().support()
+
+    def poles(self):
+        """
+        Return the list of the poles of the element.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: f = 1/(x^3 + x^2 + x)
+            sage: f.poles()
+            [Place (x), Place (x^2 + x + 1)]
+
+            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: (x/y).poles()
+            [Place (1/x, 1/x*y), Place (x + 1, x*y)]
+        """
+        return self.divisor_of_poles().support()
 
 cdef class FunctionFieldElement_polymod(FunctionFieldElement):
     """
@@ -985,93 +1115,6 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         assert self._x.denominator() == 1
         return self.parent()(self._x.numerator().inverse_mod(f.numerator()))
 
-    @cached_method
-    def divisor(self):
-        """
-        Return the divisor of the element.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(2))
-            sage: f = 1/(x^3 + x^2 + x)
-            sage: f.divisor()
-            3*Place (1/x)
-             - Place (x)
-             - Place (x^2 + x + 1)
-        """
-        if self.is_zero():
-            raise ValueError("divisor not defined for zero")
-
-        F = self.parent()
-        I = F.maximal_order().ideal(self)
-        J = F.maximal_order_infinite().ideal(self)
-        return I.divisor() + J.divisor()
-
-    def divisor_of_zeros(self):
-        """
-        Return the divisor of zeros for the element.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(2))
-            sage: f = 1/(x^3 + x^2 + x)
-            sage: f.divisor_of_zeros()
-            3*Place (1/x)
-        """
-        if self.is_zero():
-            raise ValueError("divisor of zeros not defined for zero")
-
-        F = self.parent()
-        I = F.maximal_order().ideal(self)
-        J = F.maximal_order_infinite().ideal(self)
-        return I.divisor_of_zeros() + J.divisor_of_zeros()
-
-    def divisor_of_poles(self):
-        """
-        Return the divisor of poles for the element.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(2))
-            sage: f = 1/(x^3 + x^2 + x)
-            sage: f.divisor_of_poles()
-            Place (x)
-             + Place (x^2 + x + 1)
-        """
-        if self.is_zero():
-            raise ValueError("divisor of poles not defined for zero")
-
-        F = self.parent()
-        I = F.maximal_order().ideal(self)
-        J = F.maximal_order_infinite().ideal(self)
-        return I.divisor_of_poles() + J.divisor_of_poles()
-
-    def zeros(self):
-        """
-        Return the list of the zeros of the element.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(2))
-            sage: f = 1/(x^3 + x^2 + x)
-            sage: f.zeros()
-            [Place (1/x)]
-        """
-        return self.divisor_of_zeros().support()
-
-    def poles(self):
-        """
-        Return the list of the poles of the element.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(2))
-            sage: f = 1/(x^3 + x^2 + x)
-            sage: f.poles()
-            [Place (x), Place (x^2 + x + 1)]
-        """
-        return self.divisor_of_poles().support()
-
     def higher_derivative(self, i, separating_element=None):
         """
         Return the `i`-th derivative of the element with respect to the
@@ -1150,92 +1193,6 @@ cdef class FunctionFieldElement_global(FunctionFieldElement_polymod):
         prime = place.prime_ideal()
         ideal = prime.ring().ideal(self)
         return prime.valuation(ideal)
-
-    @cached_method
-    def divisor(self):
-        """
-        Return the divisor for the element.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: y.divisor()
-            - Place (1/x, 1/x*y)
-             - Place (x, x*y)
-             + 2*Place (x + 1, x*y)
-        """
-        if self.is_zero():
-            raise ValueError("not defined for zero")
-
-        F = self.parent()
-        I = F.maximal_order().ideal(self)
-        J = F.maximal_order_infinite().ideal(self)
-        return I.divisor() + J.divisor()
-
-    def divisor_of_zeros(self):
-        """
-        Return divisor of zeros for the element.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: (x/y).divisor_of_zeros()
-            3*Place (x, x*y)
-        """
-        if self.is_zero():
-            raise ValueError("divisor of zeros not defined for zero")
-
-        F = self.parent()
-        I = F.maximal_order().ideal(self)
-        J = F.maximal_order_infinite().ideal(self)
-        return I.divisor_of_zeros() + J.divisor_of_zeros()
-
-    def divisor_of_poles(self):
-        """
-        Return the divisor of poles for the element.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: (x/y).divisor_of_poles()
-            Place (1/x, 1/x*y) + 2*Place (x + 1, x*y)
-        """
-        if self.is_zero():
-            raise ValueError("divisor of poles not defined for zero")
-
-        F = self.parent()
-        I = F.maximal_order().ideal(self)
-        J = F.maximal_order_infinite().ideal(self)
-        return I.divisor_of_poles() + J.divisor_of_poles()
-
-    def zeros(self):
-        """
-        Return the list of the zeros of the element.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: (x/y).zeros()
-            [Place (x, x*y)]
-        """
-        return self.divisor_of_zeros().support()
-
-    def poles(self):
-        """
-        Return the list of the poles of the element.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: (x/y).poles()
-            [Place (1/x, 1/x*y), Place (x + 1, x*y)]
-        """
-        return self.divisor_of_poles().support()
 
     def higher_derivative(self, i, separating_element=None):
         """

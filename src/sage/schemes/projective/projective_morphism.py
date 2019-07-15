@@ -45,9 +45,11 @@ from sage.misc.all import prod
 from sage.misc.cachefunc import cached_method
 from sage.rings.all import Integer
 from sage.arith.all import gcd, lcm
+from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField_generic
 from sage.rings.complex_field import ComplexField_class
 from sage.rings.complex_interval_field import ComplexIntervalField_class
 from sage.rings.finite_rings.finite_field_constructor import is_PrimeFiniteField
+from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.fraction_field import FractionField
 from sage.rings.integer_ring import ZZ
 from sage.rings.number_field.order import is_NumberFieldOrder
@@ -68,6 +70,8 @@ _NumberFields = NumberFields()
 from sage.categories.fields import Fields
 _Fields = Fields()
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
+from sage.categories.finite_fields import FiniteFields
+
 
 
 class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
@@ -1326,24 +1330,28 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: H = End(P)
             sage: f = H([QQbar(3^(1/3))*x^2 + QQbar(sqrt(-2))*y^2, y^2])
             sage: f._number_field_from_algebraics()
-            Scheme endomorphism of Projective Space of dimension 1 over Number Field in a with defining polynomial y^6 + 6*y^4 - 6*y^3 + 12*y^2 + 36*y + 17 with a = 1.442249570307409? + 1.414213562373095?*I
-              Defn: Defined on coordinates by sending (z0 : z1) to
-                    ((-48/269*a^5 + 27/269*a^4 - 320/269*a^3 + 468/269*a^2 - 772/269*a - 1092/269)*z0^2 + (48/269*a^5 - 27/269*a^4 + 320/269*a^3 - 468/269*a^2 + 1041/269*a + 1092/269)*z1^2 : z1^2)
+            Scheme endomorphism of Projective Space of dimension 1 over Number
+            Field in a with defining polynomial y^6 + 6*y^4 - 6*y^3 + 12*y^2 + 36*y + 17
+            with a = 1.442249570307409? + 1.414213562373095?*I
+              Defn: Defined on coordinates by sending (x : y) to
+                    ((-48/269*a^5 + 27/269*a^4 - 320/269*a^3 + 468/269*a^2 - 772/269*a
+                    - 1092/269)*x^2 + (48/269*a^5 - 27/269*a^4 + 320/269*a^3 - 468/269*a^2
+                    + 1041/269*a + 1092/269)*y^2 : y^2)
 
         ::
 
-            sage: R.<x> = PolynomialRing(QQ)
-            sage: K.<a> = NumberField(x^3-x+1)
             sage: P.<x,y> = ProjectiveSpace(QQbar,1)
             sage: P2.<u,v,w> = ProjectiveSpace(QQbar,2)
             sage: H = Hom(P, P2)
             sage: f = H([x^2 + QQbar(I)*x*y + 3*y^2, y^2, QQbar(sqrt(5))*x*y])
             sage: f._number_field_from_algebraics()
             Scheme morphism:
-              From: Projective Space of dimension 1 over Number Field in a with defining polynomial y^4 + 3*y^2 + 1 with a = 0.?e-113 + 0.618033988749895?*I
-              To:   Projective Space of dimension 2 over Number Field in a with defining polynomial y^4 + 3*y^2 + 1 with a = 0.?e-113 + 0.618033988749895?*I
-              Defn: Defined on coordinates by sending (z0 : z1) to
-                    (z0^2 + (a^3 + 2*a)*z0*z1 + 3*z1^2 : z1^2 : (2*a^2 + 3)*z0*z1)
+              From: Projective Space of dimension 1 over Number Field in a with
+              defining polynomial y^4 + 3*y^2 + 1 with a = 0.?e-113 + 0.618033988749895?*I
+              To:   Projective Space of dimension 2 over Number Field in a with
+              defining polynomial y^4 + 3*y^2 + 1 with a = 0.?e-113 + 0.618033988749895?*I
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^2 + (a^3 + 2*a)*x*y + 3*y^2 : y^2 : (2*a^2 + 3)*x*y)
 
         The following was fixed in :trac:`23808`::
 
@@ -1359,15 +1367,21 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: f_alg = f._number_field_from_algebraics()
             sage: f_alg.change_ring(QQbar) # Used to fail
             Scheme endomorphism of Projective Space of dimension 1 over Algebraic Field
-              Defn: Defined on coordinates by sending (z0 : z1) to
-                    ((-0.6823278038280193?)*z0^3 + (-13)*z1^3 : (-14)*z1^3)
-
+              Defn: Defined on coordinates by sending (x : y) to
+                    ((-0.6823278038280193?)*x^3 + (-13)*y^3 : (-14)*y^3)
         """
         from sage.schemes.projective.projective_space import is_ProjectiveSpace
         if not (is_ProjectiveSpace(self.domain()) and is_ProjectiveSpace(self.domain())):
             raise NotImplementedError("not implemented for subschemes")
 
-        K_pre,C,phi = number_field_elements_from_algebraics([c for f in self for c in f.coefficients()])
+        K_pre,C,phi = number_field_elements_from_algebraics([c for f in self \
+            for c in f.coefficients()], minimal=True)
+        # check if the same field
+        if K_pre is QQ:
+            if K_pre is self.base_ring():
+                return self
+        elif self.base_ring() != QQbar and K_pre.is_isomorphic(self.base_ring()):
+            return self
         # Trac 23808: The field K_pre returned above does not have its embedding set to be phi
         # and phi is forgotten, so we redefine K_pre to be a field K with phi as the specified
         # embedding:
@@ -1380,11 +1394,12 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             C = [ psi(c) for c in C ] # The elements of C were in K_pre, move them to K
         from sage.schemes.projective.projective_space import ProjectiveSpace
         N = self.domain().dimension_relative()
-        PS = ProjectiveSpace(K,N,'z')
+        PS = ProjectiveSpace(K,N,self.domain().variable_names())
         if self.is_endomorphism():
             H = End(PS)
         else:
-            PS2 = ProjectiveSpace(K,self.codomain().dimension_relative(),'w')
+            PS2 = ProjectiveSpace(K,self.codomain().dimension_relative(),\
+                self.codomain().variable_names())
             H = Hom(PS,PS2)
         R = PS.coordinate_ring()
         exps = [f.exponents() for f in self]
@@ -1396,7 +1411,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                 G += C[j]*prod([R.gen(i)**e[i] for i in range(N+1)])
                 j += 1
             F.append(G)
-        return(H(F))
+        return H(F)
 
     def indeterminacy_locus(self):
         r"""
@@ -1575,6 +1590,172 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         # Other error checking is in indeterminacy_locus
         indPoints = indScheme.rational_points()
         return indPoints
+
+    def reduce_base_field(self):
+        """
+        Return this map defined over the field of definition of the coefficients.
+
+        The base field of the map could be strictly larger than
+        the field where all of the coefficients are defined. This function
+        reduces the base field to the minimal possible. This can be done when
+        the base ring is a number field, QQbar, a finite field, or algebraic
+        closure of a finite field.
+
+        OUTPUT: A scheme morphism.
+
+        EXAMPLES::
+
+            sage: K.<t> = GF(3^4)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
+            sage: P2.<a,b,c> = ProjectiveSpace(K, 2)
+            sage: H = End(P)
+            sage: H2 = Hom(P,P2)
+            sage: H3 = Hom(P2,P)
+            sage: f = H([x^2 + (2*t^3 + 2*t^2 + 1)*y^2, y^2])
+            sage: f.reduce_base_field()
+            Scheme endomorphism of Projective Space of dimension 1 over Finite Field in t2 of size 3^2
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^2 + (t2)*y^2 : y^2)
+            sage: f2 = H2([x^2 + 5*y^2,y^2, 2*x*y])
+            sage: f2.reduce_base_field()
+            Scheme morphism:
+              From: Projective Space of dimension 1 over Finite Field of size 3
+              To:   Projective Space of dimension 2 over Finite Field of size 3
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^2 - y^2 : y^2 : -x*y)
+            sage: f3 = H3([a^2 + t*b^2, c^2])
+            sage: f3.reduce_base_field()
+            Scheme morphism:
+              From: Projective Space of dimension 2 over Finite Field in t of size 3^4
+              To:   Projective Space of dimension 1 over Finite Field in t of size 3^4
+              Defn: Defined on coordinates by sending (a : b : c) to
+                    (a^2 + (t)*b^2 : c^2)
+
+        ::
+
+            sage: K.<v> = CyclotomicField(4)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
+            sage: H = End(P)
+            sage: f = H([x^2 + 2*y^2, y^2])
+            sage: f.reduce_base_field()
+            Scheme endomorphism of Projective Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^2 + 2*y^2 : y^2)
+
+        ::
+
+            sage: K.<v> = GF(5)
+            sage: L = K.algebraic_closure()
+            sage: P.<x,y> = ProjectiveSpace(L, 1)
+            sage: H = End(P)
+            sage: f = H([(L.gen(2))*x^2 + L.gen(4)*y^2, x*y])
+            sage: f.reduce_base_field()
+            Scheme endomorphism of Projective Space of dimension 1 over Finite Field in z4 of size 5^4
+              Defn: Defined on coordinates by sending (x : y) to
+                    ((z4^3 + z4^2 + z4 - 2)*x^2 + (z4)*y^2 : x*y)
+            sage: f=DynamicalSystem_projective([L.gen(3)*x^2 + L.gen(2)*y^2, x*y])
+            sage: f.reduce_base_field()
+            Dynamical System of Projective Space of dimension 1 over Finite Field in z6 of size 5^6
+              Defn: Defined on coordinates by sending (x : y) to
+                    ((-z6^5 + z6^4 - z6^3 - z6^2 - 2*z6 - 2)*x^2 + (z6^5 - 2*z6^4 + z6^2 - z6 + 1)*y^2 : x*y)
+        """
+        K = self.base_ring()
+        if K in NumberFields() or K is QQbar:
+            return self._number_field_from_algebraics()
+        if K in FiniteFields():
+            CR = self.domain().coordinate_ring()
+            #find the degree of the extension containing the coefficients
+            c = [v for g in self for v in g.coefficients()]
+            d = max([a.minpoly().degree() for a in c])
+            if d == 1:
+                return self.change_ring(GF(K.characteristic()))
+            if d == K.degree():
+                return self
+            # otherwise we are not in the prime subfield so coercsion to it doesn't work
+            L = GF(K.characteristic()**d,'s')
+            for L,phi in K.subfields():
+                #find the right subfield and it's embedding
+                if L.degree() == d:
+                    break
+            # we need to rewrite each of the coefficients in terms of the generator
+            # of L. To do this, we'll set-up an ideal and use elimination
+            R = PolynomialRing(K.prime_subfield(), 2, 'a')
+            a,b = R.gens()
+            from sage.schemes.projective.projective_space import ProjectiveSpace
+            new_domain = ProjectiveSpace(L, self.domain().dimension_relative(),\
+                self.domain().variable_names())
+            new_R = new_domain.coordinate_ring()
+            u = phi(L.gen()) # gen of L in terms of gen of K
+            g = R(str(u).replace(K.variable_name(),R.variable_names()[0])) #converted to R
+            new_f = []
+            for fi in self:
+                mon = fi.monomials()
+                mon_deg = [m.degrees() for m in mon]
+                coef = fi.coefficients()
+                new_c = []
+                for c in coef:
+                    # for each coefficient do the elimination
+                    w = R(str(c).replace(K.variable_name(), R.variable_names()[0]))
+                    I = R.ideal([b-g, w])
+                    v = I.elimination_ideal([a]).gen(0)
+                    # elimination can change scale the result, so correct the leading coefficient
+                    # and convert back to L
+                    if v.subs({b:g}).lc() == w.lc():
+                        new_c.append(L(str(v).replace(R.variable_names()[1], L.variable_name())))
+                    else:
+                        new_c.append(L(str(w.lc()*v).replace(R.variable_names()[1], L.variable_name())))
+                # reconstruct as a poly in the new domain
+                new_f.append(sum([new_c[i]*prod([new_R.gen(j)**mon_deg[i][j] \
+                                for j in range(new_R.ngens())]) for i in range(len(mon))]))
+            # return the correct type of map
+            if self.is_endomorphism():
+                H = Hom(new_domain, new_domain)
+            else:
+                new_codomain = ProjectiveSpace(L, self.codomain().dimension_relative(), self.codomain().variable_names())
+                H = Hom(new_domain, new_codomain)
+            return H(new_f)
+        elif isinstance(K, AlgebraicClosureFiniteField_generic):
+            CR = self.domain().coordinate_ring()
+            #find the degree of the extension containing the coefficients
+            c = [v for g in self for v in g.coefficients()]
+            d = lcm([a.minpoly().degree() for a in c])
+            if d == 1:
+                return self.change_ring(GF(K.characteristic()))
+            #else get the appropriate subfield
+            L, L_to_K = K.subfield(d)
+            from sage.schemes.projective.projective_space import ProjectiveSpace
+            new_domain = ProjectiveSpace(L, self.domain().dimension_relative(),\
+                self.domain().variable_names())
+            new_R = new_domain.coordinate_ring()
+            # we need to rewrite each of the coefficients in terms of the generator
+            # of L. To do this, we'll set-up an ideal and use elimination
+            new_f = []
+            for fi in self:
+                mon = fi.monomials()
+                mon_deg = [m.degrees() for m in mon]
+                coef = fi.coefficients()
+                new_c = []
+                for c in coef:
+                    # for each coefficient do the elimination
+                    da = c.minpoly().degree()
+                    for M,M_to_L in L.subfields():
+                        #find the right subfield and it's embedding
+                        if M.degree() == da:
+                            break
+                    c = M((str(c).replace(c.as_finite_field_element()[0].variable_name(),\
+                          M.variable_name())))
+                    new_c.append(M_to_L(c))
+                # reconstruct as a poly in the new domain
+                new_f.append(sum([new_c[i]*prod([new_R.gen(j)**mon_deg[i][j] \
+                                for j in range(new_R.ngens())]) for i in range(len(mon))]))
+            # return the correct type of map
+            if self.is_endomorphism():
+                H = Hom(new_domain, new_domain)
+            else:
+                new_codomain = ProjectiveSpace(L, self.codomain().dimension_relative(), self.codomain().variable_names())
+                H = Hom(new_domain, new_codomain)
+            return H(new_f)
+        raise NotImplementedError("only implemented for number fields and finite fields")
 
 class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_polynomial_projective_space_field):
 

@@ -4190,11 +4190,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         INPUT:
 
-        -  ``p`` -- a prime integer.
+        - ``p`` -- a prime integer.
 
-        OUTPUT:
-
-        - Largest power of ``p`` dividing ``self``.
+        OUTPUT: Largest power of ``p`` dividing ``self``.
 
         EXAMPLES::
 

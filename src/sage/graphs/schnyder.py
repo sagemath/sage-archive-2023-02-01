@@ -67,8 +67,9 @@ def _triangulate(g, comb_emb):
         sage: g = graphs.PathGraph(3)
         sage: g.is_planar(set_embedding=True)
         True
-        sage: _triangulate(g, g._embedding)
-        [(0, 2)]
+        sage: new_edges = _triangulate(g, g._embedding)
+        sage: [sorted(e) for e in new_edges]
+        [[0, 2]]
     """
     # first make sure that the graph has at least 3 vertices, and that it is connected
     if g.order() < 3:
@@ -76,20 +77,8 @@ def _triangulate(g, comb_emb):
     if not g.is_connected():
         raise NotImplementedError("_triangulate() only knows how to handle connected graphs.")
 
-    if g.order() == 3 and len(g.edges()) == 2:             # if g is o--o--o
-        vertex_list = g.vertices()
-        if len(g.neighbors(vertex_list[0])) == 2:          # figure out which of the vertices already has two neighbors
-            new_edge = (vertex_list[1], vertex_list[2])    # and connect the other two together.
-        elif len(g.neighbors(vertex_list[1])) == 2:
-            new_edge = (vertex_list[0], vertex_list[2])
-        else:
-            new_edge = (vertex_list[0], vertex_list[1])
-
-        g.add_edge(new_edge)
-        return [new_edge]
-
-    # At this point we know that the graph is connected, has at least 3 vertices, and
-    # that it is not the graph o--o--o. This is where the real work starts.
+    # At this point we know that the graph is connected, has at least 3
+    # vertices. This is where the real work starts.
 
     faces = g.faces(comb_emb)
     # We start by finding all of the faces of this embedding.
@@ -105,7 +94,7 @@ def _triangulate(g, comb_emb):
             continue  # This face is already triangulated
         elif len(face) == 4:  # In this special case just add diagonal edge to square
             u, v, w, x = (e[0] for e in face)
-            if g.has_edge(w,u):
+            if w == u or g.has_edge(w,u):
                 u, v, w, x = v, w, x, u
             new_face = (w, u)
             comb_emb[w].insert(comb_emb[w].index(x), u)

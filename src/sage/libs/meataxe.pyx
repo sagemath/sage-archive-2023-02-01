@@ -82,7 +82,10 @@ cdef inline meataxe_init():
     ## Assign to a variable that enables MeatAxe to find
     ## its multiplication tables.
     global MtxLibDir
-    mtxdir = str_to_bytes(os.environ['MTXLIB'])
+    from sage import env
+    mtxdir = str_to_bytes(env.MTXLIB)
+    if env.MTXLIB != os.environ.get('MTXLIB'):
+        os.environ['MTXLIB'] = env.MTXLIB
     if len(mtxdir) >= 1024:
         raise RuntimeError(f"the path for the meataxe library {mtxdir!r} is too long, it needs to be of length < 1024")
     MtxLibDir[:len(mtxdir)] = mtxdir

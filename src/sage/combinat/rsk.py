@@ -1958,25 +1958,82 @@ class RuleSuperRSK(RuleRSK):
         ....:       PrimedEntry(2)], insertion='superRSK')
         [[[1', 2, 2, 3'], [2', 3, 3], [3']], [[1', 2', 3', 3], [1, 2, 3'], [3']]]
     """
-    def to_pair(self, obj1=None, obj2=None):
+    def to_pairs(self, obj1=None, obj2=None, check=True):
         r"""
+        Given a valid input for the super RSK algorithm, such as
+        two `n`-tuples ``obj1`` `= [a_1, a_2, \ldots, a_n]`
+        and ``obj2`` `= [b_1, b_2, \ldots, b_n]` forming a restricted
+        super biword (i.e., entries with even and odd parity and no 
+        repeatition of corresponding pairs with mixed parity entries) 
+        return the array `[(a_1, b_1), (a_2, b_2), \ldots, (a_n, b_n)]`.
+
+        INPUT:
+
+        - ``obj1, obj2`` -- anything representing a restricted super biword
+          (see the doc of :meth:`forward_rule` for the
+          encodings accepted).
+
+        - ``check`` -- (default: ``True``) whether to check
+          that ``obj1`` and ``obj2`` actually define a valid
+          restricted super biword.
+
+        EXAMPLES::
 
         """
         from sage.combinat.shifted_primed_tableau import PrimedEntry
         if obj2 is None:
+            if check:
+                # Check it is a restricted superbiword, in this case
+                # checking only primed entry is sufficient since top 
+                # has unique elements so there will be not repeatition 
+                # of mixed-parity biletters (any biletter actually)
+                for b in obj1:
+                    if not isinstance(b, PrimedEntry):
+                        raise ValueError("invalid entry, elements should be PrimedEntry")
             try:
                 itr = obj1._rsk_iter()
             except AttributeError:
                 # make recording list default to [1, 2, ...]
+                # try:
+                    # t = []
+                    # b = []
+                    # for i, row in enumerate(obj1):
+                    #     for j, mult in enumerate(row):
+                    #         if mult > 0:
+                    #             t.extend([PrimedEntry(i+1)]*mult)
+                    #             b.extend([PrimedEntry(j+1)]*mult)
                 rec = []
                 for i in range(len(obj1)):
                     rec.append(PrimedEntry(i+1))
                 itr = zip(rec, obj1)
         else:
+            if check:
+                if len(obj1) != len(obj2):
+                    raise ValueError("the two arrays must be the same length")
+                mixed_parity = []
+                # Check it is a restricted superbiword: that is,
+                # the entries can have even or odd parity, but repeatition of 
+                # the pairs of corresponding entries of obj1
+                # and obj2 with mixed-parity is not allowed
+                for t, b in zip(obj1, obj2):
+                    if not (isinstance(t, PrimedEntry) and isinstance(b, PrimedEntry)):
+                        raise ValueError("invalid entry, elements should be PrimedEntry")
+                    if t.is_primed() != b.is_primed():
+                        if (t, b) in mixed_parity:
+                            raise ValueError("invalid restricted superbiword")
+                        else:
+                            mixed_parity.append((t, b))
             itr = zip(obj1, obj2)
         return itr
 
     def _get_col(self, t, col_index):
+        r"""
+        Return the column as a list of a given tableau ``t`` (list of lists) 
+        at index ``col_index`` (Indexing  starting from zero).
+        
+        EXAMPLES::
+
+        """
         # t is the tableau (list of lists)
         # compute how many rows will contribute to the col
         num_rows_long_enough = 0
@@ -1990,6 +2047,14 @@ class RuleSuperRSK(RuleRSK):
         return col
 
     def _set_col(self, t, col_index, col):
+        r"""
+        Set the column of a given tableau ``t`` (list of lists) 
+        at index ``col_index`` (Indexing  starting from zero) as 
+        ``col``.
+        
+        EXAMPLES::
+
+        """
         # overwrite a column in tableau t (list of lists) with col
         for row_index, val in enumerate(col):
             # add a box/node if necessary
@@ -2002,10 +2067,45 @@ class RuleSuperRSK(RuleRSK):
     
     def forward_rule(self, obj1, obj2, check_standard=False):
         r"""
+        Return a pair of tableaux obtained by applying forward
+        insertion to the restricted super biword ``[obj1, obj2]``.
 
+        INPUT:
+
+        - ``obj1, obj2`` -- can be one of the following ways to
+          represent a generalized permutation (or, equivalently,
+          biword):
+
+          - two lists ``obj1`` and ``obj2`` of equal length,
+            to be interpreted as the top row and the bottom row of
+            the biword;
+
+        #   - a matrix ``obj1`` of nonnegative integers, to be
+        #     interpreted as the generalized permutation in matrix
+        #     form (in this case, ``obj2`` is ``None``);
+
+          - a word ``obj1`` in an ordered alphabet, to be
+            interpreted as the bottom row of the biword (in this
+            case, ``obj2`` is ``None``; the top row of the biword
+            is understood to be `(1, 2, \ldots, n)` by default);
+
+          - any object ``obj1`` which has a method ``_rsk_iter()``,
+            as long as this method returns an iterator yielding
+            pairs of numbers, which then are interperted as top
+            entries and bottom entries in the biword (in this case,
+            ``obj2`` is ``None``).
+
+        # - ``check_standard`` -- (default: ``False``) check if either of the
+        #   resulting tableaux is a standard tableau, and if so, typecast it
+        #   as such
+
+        - ``check`` -- (default: ``True``) whether to check
+          that ``obj1`` and ``obj2`` actually define a valid
+          restricted super biword.
+
+        EXAMPLES::
         """
-        self._forward_verify_input(obj1, obj2)
-        itr = self.to_pair(obj1, obj2)
+        itr = self.to_pairs(obj1, obj2)
         p = []       # the "insertion" tableau
         q = []       # the "recording" tableau
         for i, j in itr:
@@ -2063,39 +2163,42 @@ class RuleSuperRSK(RuleRSK):
 
     def insertion(self, j, r, epsilon=0):
         r"""
+        Insert the letter ``j`` from the second row of the biword
+        into the row `r` using dual RSK insertion or classical 
+        Schensted insertion depending on the value of `epsilon`, 
+        if there is bumping to be done.
+
+        The row `r` is modified in place. The bumped-out entry,
+        if it exists, is returned along with the bumped position.
+
+        .. WARNING::
+
+            This method only changes `r` if bumping occurs.
+            Appending `j` to the end of the row should be done
+            by the caller.
+
+        EXAMPLES::
 
         """
         bisect = bisect_right if epsilon == 0 else bisect_left
-        if (epsilon == 1 and j <= r[-1]) or (j < r[-1]):
-            # Figure out where to insert j into the row r. The
-            # bisect command returns the position of the least
-            # element of r greater than j.  We will call it y.
-            y_pos = bisect(r, j)
-            # Switch j and y
-            j, r[y_pos] = r[y_pos], j
-            return j, y_pos
-        else:
-            return None, None  # Bumping is completed
 
-    def _forward_verify_input(self, obj1, obj2):
-        r"""
-        Returns exception for invalid input in forward rule.
-        """
-        from sage.combinat.shifted_primed_tableau import PrimedEntry
-        if obj2 is not None:
-            mixed_parity = []
-            # Check it is a restricted superbiword
-            for t, b in zip(obj1, obj2):
-                if not (isinstance(t, PrimedEntry) and isinstance(b, PrimedEntry)):
-                    raise ValueError("invalid entry, elements should be PrimedEntry")
-                if t.is_primed() != b.is_primed():
-                    if (t, b) in mixed_parity:
-                        raise ValueError("invalid restricted superbiword")
-                    else:
-                        mixed_parity.append((t,b))
+        if (r[-1] < j) or (r[-1] == j and epsilon == 0):
+            return None, None # j needs to be added at the end of the list r.
+        # Figure out where to insert j into the list r. The
+        # bisect command returns the position of the least
+        # element of r greater than j.  We will call it y.
+        y_pos = bisect(r, j)
+        # Switch j and y
+        j, r[y_pos] = r[y_pos], j
+        return j, y_pos
 
     def _forward_format_output(self, p, q, check_standard):
         r"""
+        Return final output of the ``RSK`` (here, super RSK)
+        correspondence from the output of the corresponding
+        ``forward_rule``.
+
+        EXAMPLES::
         """
         from sage.combinat.tableau import SemistandardSuperTableau, StandardTableau
 
@@ -2105,8 +2208,25 @@ class RuleSuperRSK(RuleRSK):
 
     def backward_rule(self, p, q, output='array'):
         r"""
+        Return the restricted super biword obtained by applying reverse
+        coRSK insertion to a pair of tableaux ``(p, q)``.
+
+        INPUT:
+
+        - ``p``, ``q`` -- two tableaux of the same shape.
+
+        - ``output`` -- (default: ``'array'``) if ``q`` is row-strict:
+
+          - ``'array'`` -- as a two-line array (i.e. restricted super biword)
+        #   - ``'matrix'`` -- as a `\{0, 1\}`-matrix
+
+          and if ``q`` is standard, we can have the output:
+
+          - ``'word'`` -- as a word
+
+        EXAMPLES::
+
         """
-        self._backward_verify_input(p, q)
         p_copy = [list(row) for row in p]
         upper_row = []
         lower_row = []
@@ -2163,6 +2283,14 @@ class RuleSuperRSK(RuleRSK):
 
     def reverse_insertion(self, x, row, epsilon=0):
         r"""
+        Reverse bump the row ``row`` of the current insertion tableau
+        with the number ``x`` using dual RSK insertion or classical 
+        Schensted insertion depending on the value of `epsilon`.
+
+        The row ``row`` is modified in place. The bumped-out entry
+        is returned along with the bumped position.
+
+        EXAMPLES::
 
         """
         bisect = bisect_left if epsilon == 0 else bisect_right
@@ -2172,19 +2300,24 @@ class RuleSuperRSK(RuleRSK):
         return x, y_pos
 
     def _backward_format_output(self, lower_row, upper_row, output, p_is_standard, q_is_standard):
-        if output == 'matrix':
-            return to_matrix(list(reversed(upper_row)), list(reversed(lower_row)))
+        r"""
+        Return the final output of the ``RSK_inverse`` correspondence
+        from the output of the corresponding ``backward_rule``.
+
+        .. NOTE::
+
+            The default implementation of ``backward_rule`` lists
+            bumped-out entries in the order in which the reverse
+            bumping happens, which is *opposite* to the order of the
+            final output.
+
+        EXAMPLES::
+
+        """
+        # if output == 'matrix':
+        #     return to_matrix(list(reversed(upper_row)), list(reversed(lower_row)))
         if output == 'array':
             return [list(reversed(upper_row)), list(reversed(lower_row))]
-
-    def _backward_verify_input(self, p, q):
-        from sage.combinat.tableau import SemistandardSuperTableau
-
-        if p not in SemistandardSuperTableau():
-            raise ValueError("p(=%s) must be a semistandard super tableau"%p)
-
-        if q not in SemistandardSuperTableau() and not q.is_standard():
-            raise ValueError("q(=%s) must be a semistandard super tableau"%q)
 
 class InsertionRules(object):
     r"""

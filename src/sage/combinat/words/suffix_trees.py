@@ -1673,7 +1673,7 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
             # Call recursively on children of current_node
             if D.has_key(current_node):
                 node_list = (n, 0)
-                for child in D[current_node].iterkeys():
+                for child in D[current_node].keys():
                     (i, j) = D[current_node][child]
                     if j == None:
                         j = n
@@ -1765,7 +1765,7 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
             """
 
             if D.has_key(current_node):
-                for child in D[current_node].iterkeys():
+                for child in D[current_node].keys():
                     edge = (current_node, child)
                     edge_label = D[edge[0]][edge[1]]
                     treat_node(child,(edge_label[0]-(j-i), edge_label[1]))
@@ -1805,7 +1805,7 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
         """
         def treat_node(current_node, (i, j)):
             if D.has_key(current_node):
-                for child in D[current_node].iterkeys():
+                for child in D[current_node].keys():
                     edge = (current_node, child)
                     edge_label = (D[edge[0]][edge[1]])
                     treat_node(child, (edge_label[0]-(j-i), edge_label[1]))

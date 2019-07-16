@@ -1979,6 +1979,27 @@ class RuleSuperRSK(RuleRSK):
 
         EXAMPLES::
 
+            sage: from sage.combinat.rsk import RuleSuperRSK
+            sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
+            sage: list(RuleSuperRSK().to_pairs([PrimedEntry(2), 
+            ....:       PrimedEntry('1p'), PrimedEntry(1)],[PrimedEntry(1), 
+            ....:       PrimedEntry(1), PrimedEntry('1p')]))
+            [(2, 1), (1', 1), (1, 1')]
+            sage: list(RuleSuperRSK().to_pairs([PrimedEntry(1), 
+            ....:       PrimedEntry('1p'), PrimedEntry('2p')]))
+            [(1, 1), (2, 1'), (3, 2')]
+            sage: list(RuleSuperRSK().to_pairs([PrimedEntry(1), 
+            ....:       PrimedEntry(1)], [PrimedEntry('1p'), 
+            ....:       PrimedEntry('1p')]))
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid restricted superbiword
+            sage: m = Matrix(ZZ, 2, 2, [PrimedEntry(0), PrimedEntry('1p'), 
+            ....:       PrimedEntry('1p'), PrimedEntry(1)]) ; m
+            [0 1']
+            [1' 1]
+            sage: list(RuleSuperRSK().to_pairs(m))
+
         """
         from sage.combinat.shifted_primed_tableau import PrimedEntry
         if obj2 is None:
@@ -2033,6 +2054,12 @@ class RuleSuperRSK(RuleRSK):
         
         EXAMPLES::
 
+            sage: from sage.combinat.rsk import RuleSuperRSK
+            sage: t = [[1,2,3,4], [5,6,7,8], [9,10]];
+            sage: RuleSuperRSK()._get_col(t, 0)
+            [1, 5, 9]
+            sage: RuleSuperRSK()._get_col(t, 2)
+            [3, 7]
         """
         # t is the tableau (list of lists)
         # compute how many rows will contribute to the col
@@ -2051,9 +2078,27 @@ class RuleSuperRSK(RuleRSK):
         Set the column of a given tableau ``t`` (list of lists) 
         at index ``col_index`` (Indexing  starting from zero) as 
         ``col``.
+
+        ..NOTE::
+
+            If ``length(col)`` is greater than the corresponding column in 
+            tableau ``t`` then only those rows of ``t`` will be set which 
+            have ``length(row) <= col_index``. Similarly if ``length(col)`` 
+            is less than the corresponding column in tableau ``t`` then only 
+            those entries of the corresponding column in ``t`` which have row 
+            index less than ``length(col)`` will be set, rest will remain 
+            unchanged. 
         
         EXAMPLES::
 
+            sage: from sage.combinat.rsk import RuleSuperRSK
+            sage: t = [[1,2,3,4], [5,6,7,8], [9,10]];
+            sage: col = [1, 2, 3, 4]
+            sage: RuleSuperRSK()._set_col(t, 0, col); t
+            [[1, 2, 3, 4], [2, 6, 7, 8], [3, 10], [4]]
+            sage: col = [1]
+            sage: RuleSuperRSK()._set_col(t, 2, col); t
+            [[1, 2, 1, 4], [2, 6, 7, 8], [3, 10], [4]]
         """
         # overwrite a column in tableau t (list of lists) with col
         for row_index, val in enumerate(col):
@@ -2104,6 +2149,19 @@ class RuleSuperRSK(RuleRSK):
           restricted super biword.
 
         EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleSuperRSK
+            sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
+            sage: from sage.combinat.tableau import SemistandardSuperTableau
+            sage: p, q = RuleSuperRSK().forward_rule([PrimedEntry(1), 
+            ....:       PrimedEntry(2)], [PrimedEntry(1), PrimedEntry(3)]); p
+            [[1, 3]]
+            sage: q
+            [[1, 2]]
+            sage: isinstance(p, SemistandardSuperTableau)
+            True
+            sage: isinstance(q, SemistandardSuperTableau)
+            True
         """
         itr = self.to_pairs(obj1, obj2)
         p = []       # the "insertion" tableau
@@ -2179,6 +2237,27 @@ class RuleSuperRSK(RuleRSK):
 
         EXAMPLES::
 
+            sage: from sage.combinat.rsk import RuleSuperRSK
+            sage: from bisect import bisect_left, bisect_right
+            sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
+            sage: r = [PrimedEntry(1), PrimedEntry(3), PrimedEntry(3), 
+            ....:       PrimedEntry(3), PrimedEntry(4)]
+            sage: j = PrimedEntry(3)
+            sage: j, y_pos = RuleSuperRSK().insertion(j, r, epsilon=0); r
+            [1, 3, 3, 3, 3]
+            sage: j
+            4
+            sage: y_pos
+            4
+            sage: r = [PrimedEntry(1), PrimedEntry(3), PrimedEntry(3), 
+            ....:       PrimedEntry(3), PrimedEntry(4)]
+            sage: j = PrimedEntry(3)
+            sage: j, y_pos = RuleSuperRSK().insertion(j, r, epsilon=1); r
+            [1, 3, 3, 3, 4]
+            sage: j
+            3
+            sage: y_pos
+            1
         """
         bisect = bisect_right if epsilon == 0 else bisect_left
 
@@ -2199,6 +2278,25 @@ class RuleSuperRSK(RuleRSK):
         ``forward_rule``.
 
         EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleSuperRSK
+            sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
+            sage: from sage.combinat.tableau import SemistandardSuperTableau
+            sage: isinstance(RuleSuperRSK()._forward_format_output([[
+            ....:     PrimedEntry(1), PrimedEntry('2p'), PrimedEntry(3)]],
+            ....:     [[PrimedEntry(1), PrimedEntry(2), PrimedEntry(3)]], 
+            ....:     True)[0], StandardSuperTableau)
+            True
+            sage: isinstance(RuleSuperRSK()._forward_format_output([[
+            ....:     PrimedEntry(1), PrimedEntry('2p'), PrimedEntry(3)]],
+            ....:     [[PrimedEntry(1), PrimedEntry(2), PrimedEntry(3)]], 
+            ....:     False)[0], SemistandardSuperTableau)
+            True
+            sage: isinstance(RuleSuperRSK()._forward_format_output([[
+            ....:     PrimedEntry(1), PrimedEntry(1), PrimedEntry(3)]],
+            ....:     [[PrimedEntry(1), PrimedEntry(2), PrimedEntry(3)]], 
+            ....:     True)[0], SemistandardSuperTableau)
+            True
         """
         from sage.combinat.tableau import SemistandardSuperTableau, StandardTableau
 
@@ -2226,6 +2324,23 @@ class RuleSuperRSK(RuleRSK):
 
         EXAMPLES::
 
+            sage: from sage.combinat.rsk import RuleSuperRSK
+            sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
+            sage: from sage.combinat.tableau import SemistandardSuperTableau
+            sage: t1 = SemistandardSuperTableau([[PrimedEntry('1p'), 
+            ....:       PrimedEntry('3p'), PrimedEntry('4p')], [PrimedEntry(2)], 
+            ....:       [PrimedEntry(3)]])
+            sage: t2 = SemistandardSuperTableau([[PrimedEntry(1), 
+            ....:       PrimedEntry(2), PrimedEntry(4)], [PrimedEntry(3)], 
+            ....:       [PrimedEntry(5)]])
+            sage: RuleSuperRSK().backward_rule(t1, t2, 'array')
+            [[1, 2, 3, 4, 5], [4', 3, 3', 2, 1']]
+            sage: t1 = SemistandardSuperTableau([[PrimedEntry(1), 
+            ....:       PrimedEntry(3)], [PrimedEntry('3p')]])
+            sage: t2 = SemistandardSuperTableau([[PrimedEntry(1), 
+            ....:       PrimedEntry(2)], [PrimedEntry(3)]])
+            sage: RuleSuperRSK().backward_rule(t1, t2, 'array')
+            [[1, 2, 3], [1, 3, 3']]
         """
         p_copy = [list(row) for row in p]
         upper_row = []
@@ -2292,6 +2407,36 @@ class RuleSuperRSK(RuleRSK):
 
         EXAMPLES::
 
+            sage: from sage.combinat.rsk import RuleSuperRSK
+            sage: from bisect import bisect_left, bisect_right
+            sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
+            sage: r = [PrimedEntry(1), PrimedEntry(3), PrimedEntry(3), 
+            ....:       PrimedEntry(3), PrimedEntry(4)]
+            sage: j = PrimedEntry(2)
+            sage: j, y_pos = RuleSuperRSK().reverse_insertion(j, r, epsilon=0); r
+            [2, 3, 3, 3, 4]
+            sage: j
+            1
+            sage: y_pos
+            0
+            sage: r = [PrimedEntry(1), PrimedEntry(3), PrimedEntry(3), 
+            ....:       PrimedEntry(3), PrimedEntry(4)]
+            sage: j = PrimedEntry(3)
+            sage: j, y_pos = RuleSuperRSK().reverse_insertion(j, r, epsilon=0); r
+            [3, 3, 3, 3, 4]
+            sage: j
+            1
+            sage: y_pos
+            0
+            sage: r = [PrimedEntry(1), PrimedEntry(3), PrimedEntry(3), 
+            ....:       PrimedEntry(3), PrimedEntry(4)]
+            sage: j = PrimedEntry(3)
+            sage: j, y_pos = RuleSuperRSK().reverse_insertion(j, r, epsilon=1); r
+            [1, 3, 3, 3, 4]
+            sage: j
+            3
+            sage: y_pos
+            3
         """
         bisect = bisect_left if epsilon == 0 else bisect_right
         y_pos = bisect(row, x) - 1
@@ -2312,6 +2457,14 @@ class RuleSuperRSK(RuleRSK):
             final output.
 
         EXAMPLES::
+
+            sage: from sage.combinat.rsk import RuleSuperRSK
+            sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
+            sage: RuleSuperRSK()._backward_format_output([PrimedEntry('1p'), 
+            ....:       PrimedEntry(1), PrimedEntry('3p'), PrimedEntry(9)], 
+            ....:       [PrimedEntry(1), PrimedEntry('2p'), PrimedEntry('3p'), 
+            ....:       PrimedEntry(4)], 'array', False, False)
+            [[4, 3', 2', 1], [9, 3', 1, 1']]
 
         """
         # if output == 'matrix':

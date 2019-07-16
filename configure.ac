@@ -459,7 +459,6 @@ AC_SUBST_FILE([SAGE_MAKE_DEPS])
 dnl AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([build/make/Makefile-auto build/make/Makefile src/Makefile])
 AC_CONFIG_FILES([src/bin/sage-env-config])
-AC_CONFIG_FILES([src/sage/env.py])
 
 dnl Create basic directories needed for Sage
 AC_CONFIG_COMMANDS(mkdirs,

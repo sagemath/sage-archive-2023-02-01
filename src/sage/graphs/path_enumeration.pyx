@@ -1107,6 +1107,8 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
             color[v] = 0
         # list of yellow nodes
         allY = list()
+        for j in range(dev_idx):
+            exclude_vertices.add(prev_path[j])
         for j in range(dev_idx+1):
             # coloring red
             color[prev_path[j]] = 1

@@ -1626,7 +1626,7 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
             {(3, 4): [1], (5, 1): [3], (5, 6): [1], (11, 17): [1], (13, 8): [1], (15, 10): [2]}
         """
 
-        def node_processing(node,parent,(i,pos)):
+        def node_processing(node,parent,head):
             r"""
             Marks points along the edge ``(parent, node)`` if the string depth
             of parent is smaller than the length of the square at the head of
@@ -1634,14 +1634,14 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
             Make it for all such square pairs and remove them from ``P(node)``.
 
             INPUT:
-            - ``node`` -- a node of T
-            - ``parent`` -- the parent of a node in T
-            - ``(i, pos)`` -- the pair that represents the head of the list
+            - ``node`` -- a node of ``self``
+            - ``parent`` -- the parent of a node in ``self``
+            - ``head`` -- a tuple indicating the head of the list
                P(node)
 
             OUTPUT: ``(i, pos)``, the new head of P(node)
             """
-
+            i, pos = head
             while pos < len(P[i]) and P[i][pos] > string_depth[parent]:
                 label = P[i][pos] - string_depth[parent]
                 if (parent, node) in labeling:
@@ -1666,8 +1666,8 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
             OUTPUT:
 
                 The resulting list P(current_node) with current_node have been
-                processed by node_processing. The ouput is a pair (i,pos) such
-                that P[i][pos:] is the list of current_node.
+                processed by ``node_processing``. The ouput is a pair ``(i,
+                pos)`` such that ``P[i][pos:]`` is the list of current_node.
             """
 
             # Call recursively on children of current_node
@@ -1683,7 +1683,7 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
                         node_list = child_list
             else:  # The node is a child
                 node_list = (n - string_depth[current_node], 0)
-            # Make treatement on current node hear
+            # Make treatment on current node hear
             return node_processing(current_node, parent, node_list)
 
         P = self.leftmost_covering_set()

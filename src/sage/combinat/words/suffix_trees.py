@@ -1784,8 +1784,10 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
         r"""
         Returns the list of distinct squares of ``self.word``.
 
-        Return a list of pairs if ``output="pair"`` and the explicit words if
-        ``output="word"``
+        Two types of outputs are available `pair` and `word`. The algorithm is
+        only truly linear if `output` is set to `pair`. A pair is a tuple
+        `(i, l)` that indicates the factor `self.word()[i:i+l]`.
+        The option `word` return word objects.
 
         INPUT:
 

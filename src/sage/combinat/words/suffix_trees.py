@@ -1626,7 +1626,7 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
             {(3, 4): [1], (5, 1): [3], (5, 6): [1], (11, 17): [1], (13, 8): [1], (15, 10): [2]}
         """
 
-        def node_processing(node,parent,head):
+        def node_processing(node, parent, head):
             r"""
             Marks points along the edge ``(parent, node)`` if the string depth
             of parent is smaller than the length of the square at the head of
@@ -1651,7 +1651,7 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
                 pos += 1
             return (i, pos)
 
-        def treat_node(current_node,parent):
+        def treat_node(current_node, parent):
             r"""
             Proceed to a depth-first search in ``self``, counting the
             string_depth of each node and processing each node for marking.
@@ -1683,7 +1683,7 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
                         node_list = child_list
             else:  # The node is a child
                 node_list = (n - string_depth[current_node], 0)
-            # Make treatment on current node hear
+            # Make treatment on current node head
             return node_processing(current_node, parent, node_list)
 
         P = self.leftmost_covering_set()

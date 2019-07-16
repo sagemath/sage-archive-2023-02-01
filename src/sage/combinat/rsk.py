@@ -1903,6 +1903,30 @@ class RuleCoRSK(RuleRSK):
 
 class RuleSuperRSK(RuleRSK):
     r"""
+    A rule modeling the SuperRSK insertion.
+
+    SuperRSK is based on :math:`\epsilon`-insertion which itself is a 
+    combination of row and column classical RSK insertion.
+
+    Super RSK insertion differs from classical RSK insertion in the
+    following ways:
+
+    * The input (in terms of biwords) is no longer an arbitrary biword,
+      but rather a restricted super biword (i.e., a pair of two lists
+      `[a_1, a_2, \ldots, a_n]` and `[b_1, b_2, \ldots, b_n]` that
+      contains entries with even and odd parity and pairs with mixed 
+      parity entries do not repeat).
+
+    * The output still consists of two tableaux `(P, Q)` of equal
+      shapes, but rather than both of them being semistandard, now
+      they are semistandard super tableax.
+
+    * The main difference is in the way bumping works. Instead of having 
+      only row bumping SuperRSK is based on :math:`\epsilon`-insertion 
+      which is a combination of classical RSK bumping along the row and 
+      a Dual RSK like bumping (i.e. when a number `k_i` is inserted into 
+      the `i`-th row of `P`,it bumps out the first integer greater **or 
+      equal to** `k_i` in the column) along the column.
 
     EXAMPLES::
 
@@ -1957,6 +1981,70 @@ class RuleSuperRSK(RuleRSK):
         ....:       PrimedEntry("3p"), PrimedEntry("3p"), PrimedEntry("1p"), 
         ....:       PrimedEntry(2)], insertion='superRSK')
         [[[1', 2, 2, 3'], [2', 3, 3], [3']], [[1', 2', 3', 3], [1, 2, 3'], [3']]]
+
+    Let us now call the inverse correspondence::
+
+        sage: RSK_inverse(*RSK([PrimedEntry(1), PrimedEntry(2), PrimedEntry(2),
+        ....:    PrimedEntry(2)], [PrimedEntry(2), PrimedEntry(1), 
+        ....:    PrimedEntry(2), PrimedEntry(3)], insertion=RSK.rules.superRSK)
+        ....:    ,insertion=RSK.rules.superRSK)
+        [[1, 2, 2, 2], [2, 1, 2, 3]]
+        sage: P, Q = RSK([PrimedEntry(1), PrimedEntry(2), PrimedEntry(2),
+        ....:    PrimedEntry(2)], [PrimedEntry(2), PrimedEntry(1), 
+        ....:    PrimedEntry(2), PrimedEntry(3)], insertion=RSK.rules.superRSK)
+        sage: RSK_inverse(P, Q, insertion=RSK.rules.superRSK)
+        [[1, 2, 2, 2], [2, 1, 2, 3]]
+
+    When applied to two tableaux with only even parity elements, reverse super 
+    RSK insertion behaves identically to the usual reversel RSK insertion::
+
+        sage: t1 = Tableau([[1, 2, 5], [3], [4]])
+        sage: t2 = Tableau([[1, 2, 3], [4], [5]])
+        sage: RSK_inverse(t1, t2, insertion=RSK.rules.superRSK)
+        [[1, 2, 3, 4, 5], [1, 4, 5, 3, 2]]
+        sage: from sage.combinat.tableau import SemistandardSuperTableau
+        sage: t1 = SemistandardSuperTableau([[PrimedEntry(1), PrimedEntry(2), 
+        ....:       PrimedEntry(5)], [PrimedEntry(3)], [PrimedEntry(4)]])
+        sage: t2 = SemistandardSuperTableau([[PrimedEntry(1), PrimedEntry(2), 
+        ....:       PrimedEntry(3)], [PrimedEntry(4)], [PrimedEntry(5)]])
+        sage: RSK_inverse(t1, t2, insertion=RSK.rules.superRSK)
+        [[1, 2, 3, 4, 5], [1, 4, 5, 3, 2]]
+
+    TESTS:
+
+    Empty objects::
+
+        sage: RSK(Word([]), insertion=RSK.rules.superRSK)
+        [[], []]
+        sage: RSK([], [], insertion=RSK.rules.superRSK)
+        [[], []]
+        sage: RSK([[]], insertion=RSK.rules.superRSK)
+        [[], []]
+
+    Check that :func:`RSK_inverse` is the inverse of :func:`RSK` on the
+    different types of inputs/outputs::
+
+        sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
+        sage: RSK_inverse(Tableau([]), Tableau([]),
+        ....:                insertion=RSK.rules.superRSK)
+        [[], []]
+        sage: f = lambda p: RSK_inverse(*RSK(p, insertion=RSK.rules.superRSK),
+        ....:                insertion=RSK.rules.superRSK)
+        sage: def toPrimedEntry(p):
+        ....:    for i in range(len(p)):
+                     p[i] = PrimedEntry(p[i])
+        sage: all(toPrimedEntry(p) == f(toPrimedEntry(p)) for n in range(5) 
+        ....:                                        for p in Permutations(n))
+        True
+
+    Checking that tableaux should be of same shape::
+
+        sage: RSK_inverse(Tableau([[PrimedEntry(1), PrimedEntry(2), 
+        ....:       PrimedEntry(3)]]), Tableau([[PrimedEntry(1), 
+        ....:       PrimedEntry(2)]]), insertion=RSK.rules.superRSK)
+        Traceback (most recent call last):
+        ...
+        ValueError: p(=[[1, 2, 3]]) and q(=[[1, 2]]) must have the same shape
     """
     def to_pairs(self, obj1=None, obj2=None, check=True):
         r"""

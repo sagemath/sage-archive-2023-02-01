@@ -13,7 +13,7 @@
 
 import sys, os
 from sage.env import SAGE_DOC_SRC, SAGE_DOC
-from sage.docs.conf.conf import *
+from sage.docs.conf import *
 
 from six.moves import range
 

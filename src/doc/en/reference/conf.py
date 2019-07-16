@@ -13,7 +13,7 @@
 
 import sys, os
 from sage.env import SAGE_DOC_SRC, SAGE_DOC
-from sage.docs.conf.conf import *
+from sage.docs.conf import *
 
 ref_src = os.path.join(SAGE_DOC_SRC, 'en', 'reference')
 ref_out = os.path.join(SAGE_DOC, 'html', 'en', 'reference')

@@ -12,7 +12,7 @@
 # serve to show the default.
 
 import sys, os
-from sage.docs.conf.conf import *
+from sage.docs.conf import *
 
 # General information about the project.
 project = u'Sage Documentation'

@@ -1175,7 +1175,7 @@ class SingleFileBuilder(DocBuilder):
 
 import sys, os
 sys.path.append({!r})
-from sage.docs.conf.conf import *
+from sage.docs.conf import *
 project = u'Documentation for {}'
 release = 'unknown'
 name = {!r}

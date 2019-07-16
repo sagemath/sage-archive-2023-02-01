@@ -1767,9 +1767,9 @@ class Link(SageObject):
              (1 - \omega) V + (1 - \omega^{-1}) V^{t},
 
         where `V` is the :meth:`Seifert matrix <seifert_matrix>`,
-        as explained on page 122 of [Livi1993]_.
+        as explained on page 122 of [Liv1993]_.
 
-        According to [Conway2018]_, this is also known as the
+        According to [Con2018]_, this is also known as the
         Levine-Tristram signature, the equivariant signature or the
         Tristram-Levine signature.
 
@@ -1782,15 +1782,6 @@ class Link(SageObject):
             sage: omega = QQbar.zeta(3)
             sage: K.omega_signature(omega)
             -2
-
-        REFERENCES:
-
-        .. [Livi1993] Charles Livingston, *Knot Theory*, Carus Mathematical
-           Monographs, number 24.
-
-        .. [Conway2018] Anthony Conway, *Notes On The Levine-Tristram
-           Signature Function*, July 2018
-           http://www.unige.ch/math/folks/conway/Notes/LevineTristramSurvey.pdf
         """
         from sage.rings.qqbar import QQbar
         omega = QQbar(omega)
@@ -2284,7 +2275,7 @@ class Link(SageObject):
         If ``skein_normalization`` if ``False``, this returns an element
         in the symbolic ring as the Jones polynomial of the link might
         have fractional powers when the link is not a knot. Otherwise the
-        result is a Laurant polynomial in ``variab``.
+        result is a Laurent polynomial in ``variab``.
 
         EXAMPLES:
 
@@ -2395,7 +2386,7 @@ class Link(SageObject):
             poly = self._bracket()
             t = poly.parent().gens()[0]
             writhe = self.writhe()
-            jones = (poly * (-t)**(-3 * writhe))
+            jones = poly * (-t)**(-3 * writhe)
             # Switch to the variable A to have the result agree with the output
             # of the jonesrep algorithm
             A = LaurentPolynomialRing(ZZ, 'A').gen()
@@ -2746,7 +2737,7 @@ class Link(SageObject):
 
         - :wikipedia:`Fox_n-coloring`
 
-        - Chapter 3 of [Livi1993]_
+        - Chapter 3 of [Liv1993]_
 
         .. SEEALSO:: :meth:`colorings`
         """
@@ -2788,7 +2779,7 @@ class Link(SageObject):
 
         - :wikipedia:`Fox_n-coloring`
 
-        - Chapter 3 of [Livi1993]_
+        - Chapter 3 of [Liv1993]_
 
         .. SEEALSO:: :meth:`is_colorable`
         """

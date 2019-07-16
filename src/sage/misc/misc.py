@@ -755,6 +755,45 @@ def _stable_uniq(L):
         seen.add(x)
 
 
+def exactly_one_is_true(iterable):
+    r"""
+    Return whether exactly one element of ``iterable`` evaluates ``True``.
+
+    INPUT:
+
+    - ``iterable`` -- an iterable object
+
+    OUTPUT:
+
+    A boolean.
+
+    .. NOTE::
+
+        The implementation is suggested by
+        `stackoverflow entry <https://stackoverflow.com/a/16801605/1052778>`_.
+
+    EXAMPLES::
+
+        sage: from sage.misc.misc import exactly_one_is_true
+        sage: exactly_one_is_true([])
+        False
+        sage: exactly_one_is_true([True])
+        True
+        sage: exactly_one_is_true([False])
+        False
+        sage: exactly_one_is_true([True, True])
+        False
+        sage: exactly_one_is_true([False, True])
+        True
+        sage: exactly_one_is_true([True, False, True])
+        False
+        sage: exactly_one_is_true([False, True, False])
+        True
+    """
+    it = iter(iterable)
+    return any(it) and not any(it)
+
+
 def coeff_repr(c, is_latex=False):
     if not is_latex:
         try:

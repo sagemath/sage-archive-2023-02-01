@@ -10,13 +10,9 @@ elliptic curve case (not more general hyperelliptic curves).
 
 REFERENCES:
 
-.. [Ked2001] Kedlaya, K., *Counting points on hyperelliptic curves using
-   Monsky-Washnitzer cohomology*, J. Ramanujan Math. Soc. 16 (2001) no
-   4, 323-338
+- [Ked2001]_
 
-.. [Edix] Edixhoven, B., *Point counting after Kedlaya*, EIDMA-Stieltjes
-   graduate course, Leiden
-   (notes: https://www.math.leidenuniv.nl/~edix/oww/mathofcrypt/carls_edixhoven/kedlaya.pdf)
+- [Edix]_
 
 AUTHORS:
 

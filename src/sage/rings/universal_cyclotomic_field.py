@@ -1307,6 +1307,30 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
             of type <type 'sage.libs.gap.element.GapElement_List'> not valid
             to initialize an element of the universal cyclotomic field
 
+        Some conversions from symbolic functions are possible::
+
+            sage: UCF = UniversalCyclotomicField()
+            sage: [UCF(sin(pi/k, hold=True)) for k in range(1,10)]
+            [0,
+             1,
+             -1/2*E(12)^7 + 1/2*E(12)^11,
+             1/2*E(8) - 1/2*E(8)^3,
+             -1/2*E(20)^13 + 1/2*E(20)^17,
+             1/2,
+             -1/2*E(28)^19 + 1/2*E(28)^23,
+             1/2*E(16)^3 - 1/2*E(16)^5,
+             -1/2*E(36)^25 + 1/2*E(36)^29]
+            sage: [UCF(cos(pi/k, hold=True)) for k in range(1,10)]
+            [-1,
+             0,
+             1/2,
+             1/2*E(8) - 1/2*E(8)^3,
+             -1/2*E(5)^2 - 1/2*E(5)^3,
+             -1/2*E(12)^7 + 1/2*E(12)^11,
+             -1/2*E(7)^3 - 1/2*E(7)^4,
+             1/2*E(16) - 1/2*E(16)^7,
+             -1/2*E(9)^4 - 1/2*E(9)^5]
+
         .. TODO::
 
             Implement conversion from QQbar (and as a consequence from the
@@ -1342,8 +1366,11 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
             elt = CyclotomicField(n)(elt)
             return sum(c * self.gen(n, i)
                        for i, c in enumerate(elt._coefficients()))
-        else:
-            raise TypeError("{} of type {} not valid to initialize an element of the universal cyclotomic field".format(elt, type(elt)))
+
+        if hasattr(elt, '_algebraic_'):
+            return elt._algebraic_(self)
+
+        raise TypeError("{} of type {} not valid to initialize an element of the universal cyclotomic field".format(elt, type(elt)))
 
     def _coerce_map_from_(self, other):
         r"""

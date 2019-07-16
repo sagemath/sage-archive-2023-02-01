@@ -64,8 +64,6 @@ EXAMPLES::
 """
 from six import iteritems
 
-from functools import reduce
-
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.structure.unique_representation import UniqueRepresentation
 # Below we define a function Simplex to construct a simplex as a
@@ -74,7 +72,6 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.homology.simplicial_complex import Simplex as TrueSimplex
 from sage.sets.set import Set
 from sage.misc.functional import is_even
-from sage.misc.misc import union
 from sage.combinat.subset import Subsets
 import sage.misc.prandom as random
 
@@ -174,10 +171,11 @@ def matching(A, B):
     for v in A:
         for w in B:
             for M in matching(set(A).difference([v]), set(B).difference([w])):
-                new = M.union([(v,w)])
+                new = M.union([(v, w)])
                 if new not in answer:
                     answer.append(new)
     return answer
+
 
 class UniqueSimplicialComplex(SimplicialComplex, UniqueRepresentation):
     """
@@ -239,12 +237,10 @@ class UniqueSimplicialComplex(SimplicialComplex, UniqueRepresentation):
                     if not isinstance(maximal_faces, (list, tuple, Simplex)):
                         # Convert it into a list (in case it is an iterable)
                         maximal_faces = list(maximal_faces)
-                    if len(maximal_faces) != 0:
-                        vertex_set = reduce(union, maximal_faces)
             if C is not None:
                 maximal_faces = C.facets()
             # Now convert maximal_faces to a tuple of tuples, so that it is hashable.
-            maximal_faces = tuple([tuple(_) for _ in maximal_faces])
+            maximal_faces = tuple(tuple(mf) for mf in maximal_faces)
         return super(UniqueSimplicialComplex, self).__classcall__(self, maximal_faces,
                                                                   name=name,
                                                                   **kwds)

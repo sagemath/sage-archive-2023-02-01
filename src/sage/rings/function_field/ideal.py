@@ -42,13 +42,13 @@ Ideals in the maximal order of a global function field::
     sage: I^2
     Ideal (x) of Maximal order of Function field in y defined by y^2 + x^3*y + x
     sage: ~I
-    Ideal (1, 1/x*y) of Maximal order of Function field in y defined by y^2 + x^3*y + x
+    Ideal (1/x*y) of Maximal order of Function field in y defined by y^2 + x^3*y + x
     sage: ~I * I
     Ideal (1) of Maximal order of Function field in y defined by y^2 + x^3*y + x
 
     sage: J = O.ideal(x+y) * I
     sage: J.factor()
-    (Ideal (x, y) of Maximal order of Function field in y defined by y^2 + x^3*y + x)^2 *
+    (Ideal (y) of Maximal order of Function field in y defined by y^2 + x^3*y + x)^2 *
     (Ideal (x^3 + x + 1, y + x) of Maximal order of Function field in y defined by y^2 + x^3*y + x)
 
 Ideals in the maximal infinite order of a global function field::
@@ -60,13 +60,13 @@ Ideals in the maximal infinite order of a global function field::
     sage: I + I == I
     True
     sage: I^2
-    Ideal (1/x^3,1/x^4*y) of Maximal infinite order of Function field in y defined by y^3 + y^2 + 2*x^4
+    Ideal (1/x^4*y) of Maximal infinite order of Function field in y defined by y^3 + y^2 + 2*x^4
     sage: ~I
-    Ideal (x,y) of Maximal infinite order of Function field in y defined by y^3 + y^2 + 2*x^4
+    Ideal (y) of Maximal infinite order of Function field in y defined by y^3 + y^2 + 2*x^4
     sage: ~I * I
     Ideal (1) of Maximal infinite order of Function field in y defined by y^3 + y^2 + 2*x^4
     sage: I.factor()
-    (Ideal (1/x,1/x^3*y^2) of Maximal infinite order of Function field in y defined by y^3 + y^2 + 2*x^4)^4
+    (Ideal (1/x^3*y^2) of Maximal infinite order of Function field in y defined by y^3 + y^2 + 2*x^4)^4
 
 AUTHORS:
 
@@ -87,11 +87,12 @@ from __future__ import absolute_import
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-
 import itertools
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.latex import latex
+from sage.misc.misc import powerset
 
 from sage.structure.parent import Parent
 from sage.structure.element import Element
@@ -109,6 +110,7 @@ from sage.rings.ideal import Ideal_generic
 from sage.matrix.constructor import matrix
 
 from .divisor import divisor
+
 
 class FunctionFieldIdeal(Element):
     """
@@ -139,6 +141,95 @@ class FunctionFieldIdeal(Element):
         Element.__init__(self, ring.ideal_monoid())
         self._ring = ring
 
+    def _repr_short(self):
+        """
+        Return a string representation of this ideal that doesn't
+        include the name of the ambient ring.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(3^2)); R.<t> = K[]
+            sage: F.<y> = K.extension(t^3 + t^2 - x^4)
+            sage: Oinf = F.maximal_order_infinite()
+            sage: I = Oinf.ideal(1/y)
+            sage: I._repr_short()
+            '(1/x^4*y^2)'
+        """
+        if self.is_zero():
+            return "(0)"
+
+        return "(%s)" % (', '.join([repr(g) for g in self.gens_reduced()]), )
+
+    def _repr_(self):
+        """
+        Return a string representation of this ideal.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: O = K.maximal_order()
+            sage: I = O.ideal(x,1/(x+1)); I
+            Ideal (1/(x + 1)) of Maximal order of Rational function field in x over Rational Field
+
+            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x^3 - 1)
+            sage: O = L.equation_order()
+            sage: O.ideal(x^2 + 1)
+            Ideal (x^2 + 1) of Order in Function field in y defined by y^2 - x^3 - 1
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 - x^3*Y - x)
+            sage: O = L.maximal_order()
+            sage: I = O.ideal(y); I
+            Ideal (y) of Maximal order of Function field in y defined by y^2 + x^3*y + x
+
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: O = L.maximal_order()
+            sage: I = O.ideal(y); I
+            Ideal (y) of Maximal order of Function field in y
+            defined by y^2 + y + (x^2 + 1)/x
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: Oinf = K.maximal_order_infinite()
+            sage: I = Oinf.ideal(x/(x^2+1))
+            sage: I
+            Ideal (1/x) of Maximal infinite order of Rational function field
+            in x over Finite Field of size 2
+
+            sage: K.<x> = FunctionField(GF(3^2)); _.<t> = PolynomialRing(K)
+            sage: F.<y> = K.extension(t^3 + t^2 - x^4)
+            sage: Oinf = F.maximal_order_infinite()
+            sage: Oinf.ideal(1/y)
+            Ideal (1/x^4*y^2) of Maximal infinite order of Function field
+            in y defined by y^3 + y^2 + 2*x^4
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: Oinf = L.maximal_order_infinite()
+            sage: Oinf.ideal(1/y)
+            Ideal (1/x*y) of Maximal infinite order of Function field in y
+            defined by y^2 + y + (x^2 + 1)/x
+        """
+        if self.is_zero():
+            return "Zero ideal of %s" % (self._ring,)
+
+        return "Ideal %s of %s" % (self._repr_short(), self.ring())
+
+    def _latex_(self):
+        r"""
+        Return the LaTeX representation of the ideal.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 - x^3*Y - x)
+            sage: O = L.maximal_order()
+            sage: I = O.ideal(y)
+            sage: latex(I)
+            \left(y\right)
+        """
+        return '\\left(' + ', '.join(latex(g) for g in self.gens_reduced()) + '\\right)'
+
     def _div_(self, other):
         """
         Return the ideal divided by the ``other`` ideal.
@@ -162,7 +253,10 @@ class FunctionFieldIdeal(Element):
         r"""
         Return reduced generators.
 
-        This just returns the generators for now.
+        For now, this method just looks at the generators and sees if any
+        can be removed without changing the ideal.  It prefers principal
+        representations (a single generator) over all others, and otherwise
+        picks the generator set with the shortest print representation.
 
         This method is provided so that ideals in function fields have
         the method :meth:`gens_reduced()`, just like ideals of number
@@ -176,7 +270,15 @@ class FunctionFieldIdeal(Element):
             sage: I.gens_reduced()
             (x,)
         """
-        return self.gens()
+        gens = self.gens()
+        if len(gens) == 1:
+            return gens
+        candidate_gensets = []
+        for genset in powerset(gens):
+            if self.parent()(genset) == self:
+                candidate_gensets.append(genset)
+        candidate_gensets.sort(key=lambda item: (len(item), len(repr(item)), item))
+        return candidate_gensets[0]
 
     def ring(self):
         """
@@ -251,7 +353,7 @@ class FunctionFieldIdeal(Element):
             sage: Oinf = F.maximal_order_infinite()
             sage: I = Oinf.ideal(1/x)
             sage: I.factor()
-            (Ideal (1/x,1/x^3*y^2) of Maximal infinite order of Function field
+            (Ideal (1/x^3*y^2) of Maximal infinite order of Function field
             in y defined by y^3 + y^2 + 2*x^4)^3
             sage: J = I.factor()[0][0]
             sage: J.is_prime()
@@ -264,7 +366,7 @@ class FunctionFieldIdeal(Element):
             sage: Oinf = L.maximal_order_infinite()
             sage: I = Oinf.ideal(1/x)
             sage: I.factor()
-            (Ideal (1/x,1/x*y) of Maximal infinite order of Function field in y
+            (Ideal (1/x*y) of Maximal infinite order of Function field in y
             defined by y^2 + y + (x^2 + 1)/x)^2
             sage: J = I.factor()[0][0]
             sage: J.is_prime()
@@ -313,9 +415,9 @@ class FunctionFieldIdeal(Element):
             sage: f= 1/x
             sage: I = Oinf.ideal(f)
             sage: I.factor()
-            (Ideal (1/x,1/x^4*y^2 + 1/x^2*y + 1) of Maximal infinite order
+            (Ideal ((1/(x^4 + x^3 + x^2))*y^2 + 1/x^2*y + 1) of Maximal infinite order
             of Function field in y defined by y^3 + x^6 + x^4 + x^2) *
-            (Ideal (1/x,1/x^2*y + 1) of Maximal infinite order
+            (Ideal ((1/(x^4 + x^3 + x^2))*y^2 + 1) of Maximal infinite order
             of Function field in y defined by y^3 + x^6 + x^4 + x^2)
         """
         return Factorization(self._factor(), cr=True)
@@ -435,6 +537,7 @@ class FunctionFieldIdeal(Element):
         data = {prime.place(): - multiplicity for prime, multiplicity in self._factor() if multiplicity < 0}
         return divisor(F, data)
 
+
 class FunctionFieldIdeal_rational(FunctionFieldIdeal):
     """
     Fractional ideals of the maximal order of a rational function field.
@@ -478,19 +581,6 @@ class FunctionFieldIdeal_rational(FunctionFieldIdeal):
             sage: d = { I: 1, I^2: 2 }
         """
         return hash( (self._ring, self._gen) )
-
-    def _repr_(self):
-        """
-        Return the string representation of this ideal.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(QQ)
-            sage: O = K.maximal_order()
-            sage: I = O.ideal(x,1/(x+1)); I
-            Ideal (1/(x + 1)) of Maximal order of Rational function field in x over Rational Field
-        """
-        return "Ideal (%s) of %s" % (self._gen, self._ring)
 
     def __contains__(self, element):
         """
@@ -773,6 +863,7 @@ class FunctionFieldIdeal_rational(FunctionFieldIdeal):
              factors.append( (self.ring().ideal(f), m) )
         return factors
 
+
 class FunctionFieldIdeal_module(FunctionFieldIdeal, Ideal_generic):
     """
     A fractional ideal specified by a finitely generated module over
@@ -909,20 +1000,6 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal, Ideal_generic):
             True
         """
         return self._module
-
-    def __repr__(self):
-        """
-        Return a string representation of this ideal.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 - x^3 - 1)
-            sage: O = L.equation_order()
-            sage: O.ideal(x^2 + 1)
-            Ideal (x^2 + 1, (x^2 + 1)*y) of Order in Function field in y defined by y^2 - x^3 - 1
-        """
-        return "Ideal (%s) of %s" % (', '.join([repr(g) for g in self.gens()]), self.ring())
 
     def gens(self):
         """
@@ -1061,7 +1138,7 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal, Ideal_generic):
             sage: I^-1
             Ideal (-1, (1/(x^3 + 1))*y) of Order in Function field in y defined by y^2 - x^3 - 1
             sage: ~I * I
-            Ideal (1, y) of Order in Function field in y defined by y^2 - x^3 - 1
+            Ideal (1) of Order in Function field in y defined by y^2 - x^3 - 1
         """
         if len(self.gens()) == 0:
             raise ZeroDivisionError
@@ -1099,7 +1176,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
         sage: L.<y> = K.extension(y^2 - x^3*y - x)
         sage: O = L.maximal_order()
         sage: O.ideal(y)
-        Ideal (x, y) of Maximal order of Function field in y defined by y^2 + x^3*y + x
+        Ideal (y) of Maximal order of Function field in y defined by y^2 + x^3*y + x
     """
     def __init__(self, ring, hnf, denominator=1):
         """
@@ -1145,7 +1222,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
             sage: L.<y> = K.extension(y^2 - x^3*y - x)
             sage: O = L.maximal_order()
             sage: I = O.ideal(y); I
-            Ideal (x, y) of Maximal order of Function field in y defined by y^2 + x^3*y + x
+            Ideal (y) of Maximal order of Function field in y defined by y^2 + x^3*y + x
             sage: I.is_zero()
             False
             sage: J = 0*I; J
@@ -1157,7 +1234,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
             sage: L.<y>=K.extension(Y^2 + Y + x + 1/x)
             sage: O = L.maximal_order()
             sage: I = O.ideal(y); I
-            Ideal (x^2 + 1, y) of Maximal order of Function field in y
+            Ideal (y) of Maximal order of Function field in y
             defined by y^2 + y + (x^2 + 1)/x
             sage: I.is_zero()
             False
@@ -1201,7 +1278,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
             sage: L.<y> = K.extension(Y^2 - x^3 - 1)
             sage: O = L.maximal_order()
             sage: I = O.ideal([y]); I
-            Ideal (x^3 + 1, y) of Maximal order of Function field in y
+            Ideal (y) of Maximal order of Function field in y
             defined by y^2 + 6*x^3 + 6
             sage: x * y in I
             True
@@ -1214,7 +1291,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
             sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
             sage: O = L.maximal_order()
             sage: I = O.ideal([y]); I
-            Ideal (x^2 + 1, y) of Maximal order of Function field in y
+            Ideal (y) of Maximal order of Function field in y
             defined by y^2 + y + (x^2 + 1)/x
             sage: x * y in I
             True
@@ -1242,9 +1319,9 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
             sage: O = L.maximal_order()
             sage: I = O.ideal(y)
             sage: ~I
-            Ideal (1, (1/(x^3 + 1))*y) of Maximal order of Function field in y defined by y^2 + 6*x^3 + 6
+            Ideal ((1/(x^3 + 1))*y) of Maximal order of Function field in y defined by y^2 + 6*x^3 + 6
             sage: I^(-1)
-            Ideal (1, (1/(x^3 + 1))*y) of Maximal order of Function field in y defined by y^2 + 6*x^3 + 6
+            Ideal ((1/(x^3 + 1))*y) of Maximal order of Function field in y defined by y^2 + 6*x^3 + 6
             sage: ~I * I
             Ideal (1) of Maximal order of Function field in y defined by y^2 + 6*x^3 + 6
 
@@ -1253,10 +1330,10 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
             sage: O = L.maximal_order()
             sage: I = O.ideal(y)
             sage: ~I
-            Ideal (x, (x/(x^2 + 1))*y + x/(x^2 + 1)) of Maximal order
+            Ideal ((x/(x^2 + 1))*y + x/(x^2 + 1)) of Maximal order
             of Function field in y defined by y^2 + y + (x^2 + 1)/x
             sage: I^(-1)
-            Ideal (x, (x/(x^2 + 1))*y + x/(x^2 + 1)) of Maximal order
+            Ideal ((x/(x^2 + 1))*y + x/(x^2 + 1)) of Maximal order
             of Function field in y defined by y^2 + y + (x^2 + 1)/x
             sage: ~I * I
             Ideal (1) of Maximal order of Function field in y defined by y^2 + y + (x^2 + 1)/x
@@ -1303,30 +1380,6 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
         """
         return richcmp((self._denominator, self._hnf), (other._denominator, other._hnf), op)
 
-    def _repr_(self):
-        """
-        Return string representation.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 - x^3*Y - x)
-            sage: O = L.maximal_order()
-            sage: I = O.ideal(y); I
-            Ideal (x, y) of Maximal order of Function field in y defined by y^2 + x^3*y + x
-
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: O = L.maximal_order()
-            sage: I = O.ideal(y); I
-            Ideal (x^2 + 1, y) of Maximal order of Function field in y
-            defined by y^2 + y + (x^2 + 1)/x
-        """
-        if self.is_zero():
-            return "Zero ideal of %s" % (self._ring,)
-
-        s = ', '.join([repr(g) for g in self.gens_two()])
-        return "Ideal (%s) of %s" % (s, self._ring)
-
     def _add_(self, other):
         """
         Add with other ideal.
@@ -1339,7 +1392,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
             sage: I = O.ideal(y)
             sage: J = O.ideal(x+y)
             sage: I + J
-            Ideal (x, y) of Maximal order of Function field in y defined by y^2 + x^3*y + x
+            Ideal (y) of Maximal order of Function field in y defined by y^2 + x^3*y + x
 
             sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
             sage: O = L.maximal_order()
@@ -1366,7 +1419,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
             sage: I = O.ideal(y)
             sage: J = O.ideal(x+y)
             sage: I * J
-            Ideal (x^4 + x^2 + x, x*y + x^4 + x) of Maximal order
+            Ideal (x^4 + x^2 + x, x*y + x^2) of Maximal order
             of Function field in y defined by y^2 + x^3*y + x
 
             sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
@@ -1374,7 +1427,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
             sage: I = O.ideal(y)
             sage: J = O.ideal(x+y)
             sage: I * J
-            Ideal ((x^4 + x^3 + x + 1)/x, (x + 1)*y + (x^2 + 1)/x) of Maximal order
+            Ideal ((x + 1)*y + (x^2 + 1)/x) of Maximal order
             of Function field in y defined by y^2 + y + (x^2 + 1)/x
         """
         O = self._ring
@@ -1605,9 +1658,10 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
 
     def gens_two(self):
         """
-        Return two generators of this fractional ideal.
+        Return at most two generators of this fractional ideal.
 
-        If the ideal is principal, one generator may be returned.
+        If the ideal is principal, one generator of the ideal may be returned,
+        but this is not guaranteed.
 
         EXAMPLES::
 
@@ -1616,21 +1670,23 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
             sage: O = F.maximal_order()
             sage: I = O.ideal(y)
             sage: I  # indirect doctest
-            Ideal (x^3 + x^2 + x, y) of Maximal order of Function field
+            Ideal (y) of Maximal order of Function field
             in y defined by y^3 + x^6 + x^4 + x^2
             sage: ~I  # indirect doctest
-            Ideal (1, (1/(x^6 + x^4 + x^2))*y^2) of Maximal order of Function field
+            Ideal ((1/(x^6 + x^4 + x^2))*y^2) of Maximal order of Function field
             in y defined by y^3 + x^6 + x^4 + x^2
+
+        ::
 
             sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
             sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
             sage: O = L.maximal_order()
             sage: I = O.ideal(y)
             sage: I  # indirect doctest
-            Ideal (x^2 + 1, y) of Maximal order of Function field in y
+            Ideal (y) of Maximal order of Function field in y
             defined by y^2 + y + (x^2 + 1)/x
             sage: ~I  # indirect doctest
-            Ideal (x, (x/(x^2 + 1))*y + x/(x^2 + 1)) of Maximal order
+            Ideal ((x/(x^2 + 1))*y + x/(x^2 + 1)) of Maximal order
             of Function field in y defined by y^2 + y + (x^2 + 1)/x
         """
         d = self.denominator()
@@ -1638,8 +1694,8 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
 
     @cached_method
     def _gens_two(self):
-        """
-        Return a set of two generators of the integral ideal, that is
+        r"""
+        Return at most two generators of the integral ideal, that is
         the denominator times this fractional ideal.
 
         EXAMPLES::
@@ -1650,6 +1706,33 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
             sage: I = O.ideal(x^2,x*y,x+y)
             sage: I._gens_two()
             (x, y)
+
+        ::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: F.<y> = K.extension(Y)
+            sage: p, = F.places_infinite()
+            sage: p.prime_ideal().gens_two()
+            (1/x,)
+
+        ALGORITHM:
+
+        At most two generators are required to generate ideals in
+        Dedekind domains.
+
+        Lemma 4.7.9, Algorithm 4.7.10, and Exercise 4.29 of [Coh1993]_
+        tell us that for an integral ideal `I` in a number field, if
+        we pick `a` such that `\gcd(N(I), N(a)/N(I)) = 1`, then `a`
+        and `N(I)` generate the ideal.  `N()` is the norm, and this
+        result (presumably) generalizes to function fields.
+
+        After computing `N(I)`, we search exhaustively to find `a`.
+
+        .. TODO::
+
+            Provide a method to find a single generator for principal ideals.
+            Testing for principality is not trivial.  Algorithm 6.5.10 of
+            [Coh1993]_ could probably be adapted for function fields.
         """
         O = self.ring()
         F = O.fraction_field()
@@ -1658,7 +1741,10 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
             _g1, _g2 = self._kummer_form
             g1 = F(_g1)
             g2 = sum([c1*c2 for c1,c2 in zip(_g2, O.basis())])
-            return (g1,g2)
+            if g2:
+                return (g1, g2)
+            else:
+                return (g1,)
 
         ### start to search for two generators
 
@@ -1720,8 +1806,8 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
                 if check(alpha):
                     return (l, alpha)
 
-        # should not reach here
-        raise ValueError("no two generators found")
+        # should never reach here
+        raise ValueError("failed to find two generators")
 
     @cached_method
     def basis_matrix(self):
@@ -2039,6 +2125,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
                     factors.append((q,exp))
         return factors
 
+
 class FunctionFieldIdealInfinite(FunctionFieldIdeal):
     """
     Base class of ideals of maximal infinite orders
@@ -2093,6 +2180,30 @@ class FunctionFieldIdealInfinite_rational(FunctionFieldIdealInfinite):
         """
         return hash( (self.ring(), self._gen) )
 
+    def __contains__(self, element):
+        """
+        Test if ``element`` is in this ideal.
+
+        INPUT:
+
+        - ``element`` -- element of the function field
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: O = K.maximal_order_infinite()
+            sage: I = O.ideal(1/(x+1))
+            sage: x in I
+            False
+            sage: 1/x in I
+            True
+            sage: x/(x+1) in I
+            False
+            sage: 1/(x*(x+1)) in I
+            True
+        """
+        return (element / self._gen) in self._ring
+
     def _richcmp_(self, other, op):
         """
         Compare this ideal and ``other`` with respect to ``op``.
@@ -2107,21 +2218,6 @@ class FunctionFieldIdealInfinite_rational(FunctionFieldIdealInfinite):
             True
         """
         return richcmp(self._gen, other._gen, op)
-
-    def _repr_(self):
-        """
-        Return the string representation of this ideal.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(2))
-            sage: Oinf = K.maximal_order_infinite()
-            sage: I = Oinf.ideal(x/(x^2+1))
-            sage: I
-            Ideal (1/x) of Maximal infinite order of Rational function field
-            in x over Finite Field of size 2
-        """
-        return "Ideal (%s) of %s" % (self._gen, self._ring)
 
     def _add_(self, other):
         """
@@ -2302,6 +2398,7 @@ class FunctionFieldIdealInfinite_rational(FunctionFieldIdealInfinite):
         else:
             return [(self.ring().ideal(g), m)]
 
+
 class FunctionFieldIdealInfinite_module(FunctionFieldIdealInfinite, Ideal_generic):
     """
     A fractional ideal specified by a finitely generated module over
@@ -2359,7 +2456,7 @@ class FunctionFieldIdealInfinite_module(FunctionFieldIdealInfinite, Ideal_generi
             sage: L.<y> = K.extension(y^2 - x^3 - 1)
             sage: O = L.equation_order()
             sage: I = O.ideal_with_gens_over_base([1, y]);  I
-            Ideal (1, y) of Order in Function field in y defined by y^2 + 6*x^3 + 6
+            Ideal (1) of Order in Function field in y defined by y^2 + 6*x^3 + 6
             sage: y in I
             True
             sage: y/x in I
@@ -2411,60 +2508,6 @@ class FunctionFieldIdealInfinite_module(FunctionFieldIdealInfinite, Ideal_generi
         else:
             return False
 
-    def _repr_short(self):
-        """
-        Represent the list of generators.
-
-        EXAMPLES::
-
-            sage: P.<a,b,c> = QQ[]
-            sage: P*[a^2,a*b+c,c^3]
-            Ideal (a^2, a*b + c, c^3) of Multivariate Polynomial Ring in a, b, c over Rational Field
-            sage: (P*[a^2,a*b+c,c^3])._repr_short()
-            '(a^2, a*b + c, c^3)'
-
-        If the string representation of a generator contains a line break,
-        the generators are not represented from left to right but from
-        top to bottom. This is the case, e.g., for matrices::
-
-            sage: MS = MatrixSpace(QQ,2,2)
-            sage: MS*[MS.1,2]
-            Left Ideal
-            (
-              [0 1]
-              [0 0],
-            <BLANKLINE>
-              [2 0]
-              [0 2]
-            )
-             of Full MatrixSpace of 2 by 2 dense matrices over Rational Field
-
-
-        """
-        L = []
-        has_return = False
-        for x in self.gens():
-            s = repr(x)
-            if '\n' in s:
-                has_return = True
-                s = s.replace('\n','\n  ')
-            L.append(s)
-        if has_return:
-            return '\n(\n  %s\n)\n'%(',\n\n  '.join(L))
-        return '(%s)'%(', '.join(L))
-
-    def _repr_(self):
-        """
-        Return a string representation of this ideal.
-
-        EXAMPLES::
-
-            sage: P.<a,b,c> = QQ[]
-            sage: P*[a^2,a*b+c,c^3] # indirect doctest
-            Ideal (a^2, a*b + c, c^3) of Multivariate Polynomial Ring in a, b, c over Rational Field
-        """
-        return "Ideal %s of %s" % (self._repr_short(), self.ring())
-
     def module(self):
         """
         Return the module over the maximal order of the base field that
@@ -2511,7 +2554,7 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
         sage: F.<y> = K.extension(t^3+t^2-x^4)
         sage: Oinf = F.maximal_order_infinite()
         sage: Oinf.ideal(1/y)
-        Ideal (1/x^2,1/x^4*y^2) of Maximal infinite order of Function field
+        Ideal (1/x^4*y^2) of Maximal infinite order of Function field
         in y defined by y^3 + y^2 + 2*x^4
     """
     def __init__(self, ring, ideal):
@@ -2549,43 +2592,30 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
         """
         return hash((self.ring(), self._ideal))
 
-    def _repr_(self):
+    def __contains__(self, x):
         """
-        Return the string representation of this ideal.
+        Return ``True`` if ``x`` is in this ideal.
+
+        INPUT:
+
+        - ``x`` -- element of the function field
 
         EXAMPLES::
 
             sage: K.<x> = FunctionField(GF(3^2)); _.<t> = PolynomialRing(K)
             sage: F.<y> = K.extension(t^3 + t^2 - x^4)
             sage: Oinf = F.maximal_order_infinite()
-            sage: Oinf.ideal(1/y)
-            Ideal (1/x^2,1/x^4*y^2) of Maximal infinite order of Function field
-            in y defined by y^3 + y^2 + 2*x^4
-
-            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: Oinf = L.maximal_order_infinite()
-            sage: Oinf.ideal(1/y)
-            Ideal (1/x,1/x*y) of Maximal infinite order of Function field in y
-            defined by y^2 + y + (x^2 + 1)/x
-        """
-        return self._repr_short() + " of {}".format(self.ring())
-
-    def _repr_short(self):
-        """
-        Return the short string representation of this ideal.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(3^2)); R.<t> = K[]
-            sage: F.<y> = K.extension(t^3 + t^2 - x^4)
-            sage: Oinf = F.maximal_order_infinite()
             sage: I = Oinf.ideal(1/y)
-            sage: I._repr_short()
-            'Ideal (1/x^2,1/x^4*y^2)'
+            sage: 1/y in I
+            True
+            sage: 1/x in I
+            False
+            sage: 1/x^2 in I
+            True
         """
-        gens_str = ','.join([repr(g) for g in self.gens_two()])
-        return "Ideal ({})".format(gens_str)
+        F = self.ring().fraction_field()
+        iF,from_iF,to_iF = F._inversion_isomorphism()
+        return to_iF(x) in self._ideal
 
     def _add_(self, other):
         """
@@ -2633,7 +2663,7 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
             sage: I = Oinf.ideal(1/x^2*1/y)
             sage: J = Oinf.ideal(1/x)
             sage: I * J
-            Ideal (1/x^5,1/x^7*y^2) of Maximal infinite order of Function field
+            Ideal (1/x^7*y^2) of Maximal infinite order of Function field
             in y defined by y^3 + y^2 + 2*x^4
 
             sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
@@ -2642,7 +2672,7 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
             sage: I = Oinf.ideal(1/x^2*1/y)
             sage: J = Oinf.ideal(1/x)
             sage: I * J
-            Ideal (1/x^4,1/x^4*y) of Maximal infinite order of Function field in y
+            Ideal (1/x^4*y) of Maximal infinite order of Function field in y
             defined by y^2 + y + (x^2 + 1)/x
         """
         return FunctionFieldIdealInfinite_global(self._ring, self._ideal * other._ideal)
@@ -2674,7 +2704,7 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
             sage: Oinf = F.maximal_order_infinite()
             sage: J = Oinf.ideal(y)
             sage: ~J
-            Ideal (1/x^2,1/x^4*y^2) of Maximal infinite order
+            Ideal (1/x^4*y^2) of Maximal infinite order
             of Function field in y defined by y^3 + y^2 + 2*x^4
             sage: J * ~J
             Ideal (1) of Maximal infinite order of Function field
@@ -2685,7 +2715,7 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
             sage: Oinf = L.maximal_order_infinite()
             sage: J = Oinf.ideal(y)
             sage: ~J
-            Ideal (1/x,1/x*y) of Maximal infinite order of Function field in y
+            Ideal (1/x*y) of Maximal infinite order of Function field in y
             defined by y^2 + y + (x^2 + 1)/x
             sage: J * ~J
             Ideal (1) of Maximal infinite order of Function field in y
@@ -2840,7 +2870,7 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
             sage: Oinf = F.maximal_order_infinite()
             sage: I = Oinf.ideal(1/x)
             sage: I.factor()
-            (Ideal (1/x,1/x^3*y^2) of Maximal infinite order of Function field
+            (Ideal (1/x^3*y^2) of Maximal infinite order of Function field
             in y defined by y^3 + y^2 + 2*x^4)^3
             sage: I.is_prime()
             False
@@ -2853,7 +2883,7 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
             sage: Oinf = L.maximal_order_infinite()
             sage: I = Oinf.ideal(1/x)
             sage: I.factor()
-            (Ideal (1/x,1/x*y) of Maximal infinite order of Function field in y
+            (Ideal (1/x*y) of Maximal infinite order of Function field in y
             defined by y^2 + y + (x^2 + 1)/x)^2
             sage: I.is_prime()
             False
@@ -2875,7 +2905,7 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
             sage: Oinf = F.maximal_order_infinite()
             sage: I = Oinf.ideal(1/x)
             sage: I.factor()
-            (Ideal (1/x,1/x^3*y^2) of Maximal infinite order of Function field
+            (Ideal (1/x^3*y^2) of Maximal infinite order of Function field
             in y defined by y^3 + y^2 + 2*x^4)^3
             sage: J = I.factor()[0][0]
             sage: J.is_prime()
@@ -2889,7 +2919,7 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
             sage: Oinf = L.maximal_order_infinite()
             sage: I = Oinf.ideal(1/x)
             sage: I.factor()
-            (Ideal (1/x,1/x*y) of Maximal infinite order of Function field in y
+            (Ideal (1/x*y) of Maximal infinite order of Function field in y
             defined by y^2 + y + (x^2 + 1)/x)^2
             sage: J = I.factor()[0][0]
             sage: J.is_prime()
@@ -2939,9 +2969,9 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
             sage: f= 1/x
             sage: I = Oinf.ideal(f)
             sage: I._factor()
-            [(Ideal (1/x,1/x^4*y^2 + 1/x^2*y + 1) of Maximal infinite order of Function field in y
+            [(Ideal (1/x, 1/x^4*y^2 + 1/x^2*y + 1) of Maximal infinite order of Function field in y
             defined by y^3 + x^6 + x^4 + x^2, 1),
-             (Ideal (1/x,1/x^2*y + 1) of Maximal infinite order of Function field in y
+             (Ideal (1/x, 1/x^2*y + 1) of Maximal infinite order of Function field in y
              defined by y^3 + x^6 + x^4 + x^2, 1)]
         """
         if self._ideal.is_prime.is_in_cache() and self._ideal.is_prime():
@@ -2953,6 +2983,7 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
             prime = FunctionFieldIdealInfinite_global(O, iprime)
             factors.append((prime, exp))
         return factors
+
 
 class IdealMonoid(UniqueRepresentation, Parent):
     r"""

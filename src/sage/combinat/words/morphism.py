@@ -78,7 +78,7 @@ Many other functionalities...::
     sage: m.is_endomorphism()
     True
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 Sebastien Labbe <slabqc@gmail.com>
 #                     2018 Vincent Delecroix <20100.delecroix@gmail.com>
 #
@@ -86,10 +86,11 @@ Many other functionalities...::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 
+import six
 from six.moves import range
 import itertools
 from six.moves import filterfalse
@@ -97,6 +98,7 @@ from six.moves import filterfalse
 from sage.misc.callable_dict import CallableDict
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_list import lazy_list
 from sage.sets.set import Set
 from sage.rings.all import QQ
 from sage.rings.infinity import Infinity
@@ -106,7 +108,7 @@ from sage.modules.free_module_element import vector
 from sage.matrix.constructor import Matrix
 from sage.combinat.words.word import FiniteWord_class
 from sage.combinat.words.words import FiniteWords, FiniteOrInfiniteWords
-import six
+
 
 def get_cycles(f, domain=None):
     r"""
@@ -151,7 +153,6 @@ def get_cycles(f, domain=None):
 
     return cycles
 
-from sage.misc.lazy_list import lazy_list
 
 class PeriodicPointIterator(object):
     r"""
@@ -1432,7 +1433,9 @@ class WordMorphism(SageObject):
         if not self.is_involution():
             raise TypeError("self is not an involution")
 
-        A = set(); B = set(); C = set()
+        A = set()
+        B = set()
+        C = set()
         for a in self.domain().alphabet():
             if a == self(a)[0]:
                 C.add(a)
@@ -2940,7 +2943,7 @@ class WordMorphism(SageObject):
         elif isinstance(colormap, str):
             from matplotlib import cm
 
-            if not colormap in cm.datad:
+            if colormap not in cm.datad:
                 raise RuntimeError("Color map %s not known (type sorted(colors) for valid names)" % colormap)
 
             colormap = cm.__dict__[colormap]
@@ -3071,8 +3074,8 @@ class WordMorphism(SageObject):
         if letter is None:
             I = range(self.domain().alphabet().cardinality())
         else:
-            if not letter in self.domain().alphabet():
-                raise TypeError("letter (=%s) is not in the domain of self"%letter)
+            if letter not in self.domain().alphabet():
+                raise TypeError("letter (=%s) is not in the domain of self" % letter)
             I = [self.domain().alphabet().rank(letter)]
 
         last_coef = 0

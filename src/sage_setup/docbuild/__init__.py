@@ -53,7 +53,6 @@ import warnings
 
 logger = logging.getLogger(__name__)
 
-import sphinx.cmdline
 import sphinx.util.console
 import sphinx.ext.intersphinx
 
@@ -100,15 +99,14 @@ def builder_helper(type):
         ....:     raise BaseException("abort pool operation")
         sage: original_runsphinx, sage_setup.docbuild.sphinxbuild.runsphinx = sage_setup.docbuild.sphinxbuild.runsphinx, raiseBaseException
 
-        sage: from sage_setup.docbuild import builder_helper, build_many, build_ref_doc
+        sage: from sage_setup.docbuild import builder_helper, build_ref_doc
+        sage: from sage_setup.docbuild import _build_many as build_many
         sage: helper = builder_helper("html")
-        sage: build_many(build_ref_doc, [("docname", "en", "html", {})])
-        Traceback (most recent call last):
-        ...
-        Exception: ('Non-exception during docbuild: abort pool operation', BaseException('abort pool operation',))
-
-        sage: sage_setup.docbuild.sphinxbuild.runsphinx = original_runsphinx
-
+        sage: try:
+        ....:     build_many(build_ref_doc, [("docname", "en", "html", {})])
+        ....: except Exception as E:
+        ....:     "Non-exception during docbuild: abort pool operation" in str(E)
+        True
     """
     def f(self, *args, **kwds):
         output_dir = self._output_dir(type)
@@ -272,30 +270,32 @@ class DocBuilder(object):
     inventory = builder_helper('inventory')
 
 
+def _build_many(target, args):
+    # Pool() uses an actual fork() to run each new instance. This is
+    # important for performance reasons, i.e., don't use a forkserver when
+    # it becomes available with Python 3: Here, sage is already initialized
+    # which is quite costly, with a forkserver we would have to
+    # reinitialize it for every document we build. At the same time, don't
+    # serialize this by taking the pool (and thus the call to fork()) out
+    # completely: The call to Sphinx leaks memory, so we need to build each
+    # document in its own process to control the RAM usage.
+    from multiprocessing import Pool
+    pool = Pool(NUM_THREADS, maxtasksperchild=1)
+    # map_async handles KeyboardInterrupt correctly. Plain map and
+    # apply_async does not, so don't use it.
+    x = pool.map_async(target, args, 1)
+    try:
+        ret = x.get(99999)
+        pool.close()
+        pool.join()
+    except Exception:
+        pool.terminate()
+        if ABORT_ON_ERROR:
+            raise
+    return ret
+
 if not (CYGWIN_VERSION and CYGWIN_VERSION[0] < 3):
-    def build_many(target, args):
-        # Pool() uses an actual fork() to run each new instance. This is
-        # important for performance reasons, i.e., don't use a forkserver when
-        # it becomes available with Python 3: Here, sage is already initialized
-        # which is quite costly, with a forkserver we would have to
-        # reinitialize it for every document we build. At the same time, don't
-        # serialize this by taking the pool (and thus the call to fork()) out
-        # completely: The call to Sphinx leaks memory, so we need to build each
-        # document in its own process to control the RAM usage.
-        from multiprocessing import Pool
-        pool = Pool(NUM_THREADS, maxtasksperchild=1)
-        # map_async handles KeyboardInterrupt correctly. Plain map and
-        # apply_async does not, so don't use it.
-        x = pool.map_async(target, args, 1)
-        try:
-            ret = x.get(99999)
-            pool.close()
-            pool.join()
-        except Exception:
-            pool.terminate()
-            if ABORT_ON_ERROR:
-                raise
-        return ret
+    build_many = _build_many
 else:
     # Cygwin 64-bit < 3.0.0 has a bug with exception handling when exceptions
     # occur in pthreads, so it's dangerous to use multiprocessing.Pool, as
@@ -354,6 +354,7 @@ class AllBuilder(object):
             getattr(get_builder(document), 'inventory')(*args, **kwds)
 
         logger.warning("Building reference manual, second pass.\n")
+        sage_makedirs(os.path.join(SAGE_DOC, "html", "en", "reference", "_static"))
         for document in refs:
             getattr(get_builder(document), name)(*args, **kwds)
 
@@ -585,9 +586,8 @@ class ReferenceBuilder(AllBuilder):
                         pass
                 # Now modify website's index.html page and write it
                 # to output_dir.
-                f = open(os.path.join(website_dir, 'index.html'))
-                html = f.read().replace('Documentation', 'Reference')
-                f.close()
+                with open(os.path.join(website_dir, 'index.html')) as f:
+                    html = f.read().replace('Documentation', 'Reference')
                 html_output_dir = os.path.dirname(website_dir)
                 html = html.replace('http://www.sagemath.org',
                                     os.path.join(html_output_dir, 'index.html'))
@@ -596,9 +596,8 @@ class ReferenceBuilder(AllBuilder):
                 html_bottom = html.rfind('</table>') + len('</table>')
                 # For the content, we modify doc/en/reference/index.rst,
                 # which has two parts: the body and the table of contents.
-                f = open(os.path.join(SAGE_DOC_SRC, lang, 'reference', 'index.rst'))
-                rst = f.read()
-                f.close()
+                with open(os.path.join(SAGE_DOC_SRC, lang, 'reference', 'index.rst')) as f:
+                    rst = f.read()
                 # Replace rst links with html links.  There are two forms:
                 #
                 #   `blah`__    followed by __ LINK
@@ -636,16 +635,15 @@ class ReferenceBuilder(AllBuilder):
                 rst_toc = re.sub('\n([A-Z][a-zA-Z, ]*)\n-*\n',
                              '</ul>\n\n\n<h2>\\1</h2>\n\n<ul>\n', rst_toc)
                 # Now write the file.
-                new_index = open(os.path.join(output_dir, 'index.html'), 'w')
-                new_index.write(html[:html_end_preamble])
-                new_index.write('<h1>' + rst[:rst.find('\n')] +
-                                ' (PDF version)'+ '</h1>')
-                new_index.write(rst_body)
-                new_index.write('<h2>Table of Contents</h2>\n\n<ul>')
-                new_index.write(rst_toc)
-                new_index.write('</ul>\n\n')
-                new_index.write(html[html_bottom:])
-                new_index.close()
+                with open(os.path.join(output_dir, 'index.html'), 'w') as new_index:
+                    new_index.write(html[:html_end_preamble])
+                    new_index.write('<h1>' + rst[:rst.find('\n')] +
+                                    ' (PDF version)'+ '</h1>')
+                    new_index.write(rst_body)
+                    new_index.write('<h2>Table of Contents</h2>\n\n<ul>')
+                    new_index.write(rst_toc)
+                    new_index.write('</ul>\n\n')
+                    new_index.write(html[html_bottom:])
                 logger.warning('''
 PDF documents have been created in subdirectories of
 
@@ -782,16 +780,14 @@ class ReferenceSubBuilder(DocBuilder):
         if not os.path.exists(filename):
             return {}
         from six.moves import cPickle
-        file = open(self.cache_filename(), 'rb')
-        try:
-            cache = cPickle.load(file)
-        except Exception:
-            logger.debug("Cache file '%s' is corrupted; ignoring it..."% filename)
-            cache = {}
-        else:
-            logger.debug("Loaded the reference cache: %s", filename)
-        finally:
-            file.close()
+        with open(self.cache_filename(), 'rb') as file:
+            try:
+                cache = cPickle.load(file)
+            except Exception:
+                logger.debug("Cache file '%s' is corrupted; ignoring it..." % filename)
+                cache = {}
+            else:
+                logger.debug("Loaded the reference cache: %s", filename)
         return cache
 
     def save_cache(self):
@@ -800,9 +796,8 @@ class ReferenceSubBuilder(DocBuilder):
         """
         cache = self.get_cache()
         from six.moves import cPickle
-        file = open(self.cache_filename(), 'wb')
-        cPickle.dump(cache, file)
-        file.close()
+        with open(self.cache_filename(), 'wb') as file:
+            cPickle.dump(cache, file)
         logger.debug("Saved the reference cache: %s", self.cache_filename())
 
     def get_sphinx_environment(self):
@@ -853,17 +848,14 @@ class ReferenceSubBuilder(DocBuilder):
             # remove unpicklable attributes
             env.set_warnfunc(None)
             del env.config.values
-            picklefile = open(env_pickle, 'wb')
-            # remove potentially pickling-problematic values from config
-            for key, val in vars(env.config).items():
-                if key.startswith('_') or isinstance(val, (types.ModuleType,
-                                                           types.FunctionType,
-                                                           type)):
-                    del env.config[key]
-            try:
+            with open(env_pickle, 'wb') as picklefile:
+                # remove potentially pickling-problematic values from config
+                for key, val in vars(env.config).items():
+                    if key.startswith('_') or isinstance(val, (types.ModuleType,
+                                                               types.FunctionType,
+                                                               type)):
+                        del env.config[key]
                 cPickle.dump(env, picklefile, cPickle.HIGHEST_PROTOCOL)
-            finally:
-                picklefile.close()
 
             logger.debug("Saved Sphinx environment: %s", env_pickle)
 
@@ -994,14 +986,12 @@ class ReferenceSubBuilder(DocBuilder):
         Given a filename for a reST file, return an iterator for
         all of the autogenerated reST files that it includes.
         """
-        #Create the regular expression used to detect an autogenerated file
+        # Create the regular expression used to detect an autogenerated file
         auto_re = re.compile(r'^\s*(..\/)*(sage(nb)?\/[\w\/]*)\s*$')
 
-        #Read the lines
-        f = open(filename)
-        lines = f.readlines()
-        f.close()
-
+        # Read the lines
+        with open(filename) as f:
+            lines = f.readlines()
         for line in lines:
             match = auto_re.match(line)
             if match:
@@ -1052,25 +1042,24 @@ class ReferenceSubBuilder(DocBuilder):
         filename = self.auto_rest_filename(module_name)
         sage_makedirs(os.path.dirname(filename))
 
-        outfile = open(filename, 'w')
-
         title = self.get_module_docstring_title(module_name)
 
         if title == '':
             logger.error("Warning: Missing title for %s", module_name)
             title = "MISSING TITLE"
 
-        # Don't doctest the autogenerated file.
-        outfile.write(".. nodoctest\n\n")
-        # Now write the actual content.
-        outfile.write(".. _%s:\n\n"%(module_name.replace(".__init__","")))
-        outfile.write(title + '\n')
-        outfile.write('='*len(title) + "\n\n")
-        outfile.write('.. This file has been autogenerated.\n\n')
+        with open(filename, 'w') as outfile:
+            # Don't doctest the autogenerated file.
+            outfile.write(".. nodoctest\n\n")
+            # Now write the actual content.
+            outfile.write(".. _%s:\n\n"%(module_name.replace(".__init__","")))
+            outfile.write(title + '\n')
+            outfile.write('='*len(title) + "\n\n")
+            outfile.write('.. This file has been autogenerated.\n\n')
 
-        inherited = ':inherited-members:' if self._options.inherited else ''
+            inherited = ':inherited-members:' if self._options.inherited else ''
 
-        automodule = '''
+            automodule = '''
 .. automodule:: %s
    :members:
    :undoc-members:
@@ -1078,9 +1067,7 @@ class ReferenceSubBuilder(DocBuilder):
    %s
 
 '''
-        outfile.write(automodule % (module_name, inherited))
-
-        outfile.close()
+            outfile.write(automodule % (module_name, inherited))
 
     def clean_auto(self):
         """

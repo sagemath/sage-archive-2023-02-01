@@ -440,7 +440,12 @@ class PermutationGroup_generic(FiniteGroup):
             for x in gens:
                 for cycle in x:
                     domain = domain.union(cycle)
-            domain = sorted(domain)
+            try:
+                domain = sorted(domain)
+            except TypeError:
+                # Sorting the domain will sometimes fail with Python 3.
+                # Fallback (not ideal: find a better solution?)
+                domain = sorted(domain, key=str)
 
             #Here we need to check if all of the points are integers
             #to make the domain contain all integers up to the max.
@@ -498,6 +503,9 @@ class PermutationGroup_generic(FiniteGroup):
             ('a','b')
             sage: p = g1*g2; p
             (1,2)(3,4,5)('a','b')
+            sage: P = parent(p)
+            sage: P
+            Permutation Group with generators [('a','b'), (1,2), (1,2,3,4,5)]
         """
         gens = self.gens()
         if len(gens) == 1 and gens[0].is_one():
@@ -571,15 +579,15 @@ class PermutationGroup_generic(FiniteGroup):
 
         TESTS:
 
-        see that this method doesn't harm pickling:
+        see that this method does not harm pickling:
 
             sage: A4 = PermutationGroup([[(1,2,3)],[(2,3,4)]])
             sage: A4.gap()
             Group([ (2,3,4), (1,2,3) ])
             sage: TestSuite(A4).run()
 
-        the follwing test shows, that support for the ``self._libgap`` attribute
-        is needed in the constructor of the class:
+        the following test shows, that support for the ``self._libgap``
+        attribute is needed in the constructor of the class:
 
             sage: PG = PGU(6,2)
             sage: g, h = PG.gens()
@@ -847,11 +855,9 @@ class PermutationGroup_generic(FiniteGroup):
         We check consistency of coercion maps::
 
             sage: L = list(DihedralGroup(4).subgroups())
-            sage: out = sys.stdout.write
             sage: for G1 in L:
-            ....:    for G2 in L:
-            ....:        out("x" if G1.has_coerce_map_from(G2) else " ")
-            ....:    out("\n")
+            ....:     print("".join("x" if G1.has_coerce_map_from(G2) else " "
+            ....:                   for G2 in L))
             x
             xx
             x x
@@ -884,6 +890,12 @@ class PermutationGroup_generic(FiniteGroup):
             (1,9,7,6)(2,10)(3,11)(4,5,8,12)
             sage: P1(g1*g2)
             (1,4,13,11)(2,5,14,18)(3,15,8,16)(6,7)(9,20,19,12)(10,17)
+
+        Another check for :trac:`5583`::
+
+            sage: G = PermutationGroup([(), (1,3)])
+            sage: G.has_coerce_map_from( PermutationGroup([(), (1,2)]))
+            False
         """
         if isinstance(G, PermutationGroup_subgroup):
             if G._ambient_group is self:
@@ -1483,13 +1495,18 @@ class PermutationGroup_generic(FiniteGroup):
         Action of `S_4` on sets of disjoint sets::
 
             sage: S4 = groups.permutation.Symmetric(4)
-            sage: S4.orbit(((1,2),(3,4)), action = "OnSetsDisjointSets")
-            ({{1, 2}, {3, 4}}, {{2, 3}, {1, 4}}, {{1, 3}, {2, 4}})
+            sage: O = S4.orbit(((1,2),(3,4)), action = "OnSetsDisjointSets")
+            sage: {1, 2} in O[0] and {3, 4} in O[0]
+            True
+            sage: {1, 4} in O[1] and {2, 3} in O[1]
+            True
+            sage: all(set(union(*x)) == {1,2,3,4} for x in O)
+            True
 
         Action of `S_4` (on a nonstandard domain) on tuples of sets::
 
             sage: S4 = PermutationGroup([ [('c','d')], [('a','c')], [('a','b')] ])
-            sage: S4.orbit((('a','c'),('b','d')),"OnTuplesSets")
+            sage: S4.orbit((('a','c'),('b','d')),"OnTuplesSets") # py2
             (({'a', 'c'}, {'b', 'd'}),
              ({'a', 'd'}, {'c', 'b'}),
              ({'c', 'b'}, {'a', 'd'}),
@@ -1501,7 +1518,7 @@ class PermutationGroup_generic(FiniteGroup):
 
             sage: S4 = PermutationGroup([ [((11,(12,13)),'d')],
             ....:         [((12,(12,11)),(11,(12,13)))], [((12,(12,11)),'b')] ])
-            sage: S4.orbit((( (11,(12,13)), (12,(12,11))),('b','d')),"OnTuplesSets")
+            sage: S4.orbit((( (11,(12,13)), (12,(12,11))),('b','d')),"OnTuplesSets") # py2
             (({(11, (12, 13)), (12, (12, 11))}, {'b', 'd'}),
              ({'d', (12, (12, 11))}, {(11, (12, 13)), 'b'}),
              ({(11, (12, 13)), 'b'}, {'d', (12, (12, 11))}),
@@ -1938,6 +1955,7 @@ class PermutationGroup_generic(FiniteGroup):
 
             sage: [SymmetricGroup(n).stabilizer(1)._gap_().Size() for n in [4..10]]
             [6, 24, 120, 720, 5040, 40320, 362880]
+            sage: n = 10
             sage: special_gens = [
             ....:     [(3,4), (2,4)],
             ....:     [(4,5), (3,5), (2,5)],
@@ -2620,20 +2638,20 @@ class PermutationGroup_generic(FiniteGroup):
             if len(mapping[0]) != len(mapping[1]):
                 msg = 'the list of generators and the list of morphisms must be of equal length'
                 raise ValueError(msg)
-            if not all([a.is_endomorphism() for a in mapping[1]]):
+            if not all(a.is_endomorphism() for a in mapping[1]):
                 msg = 'an element of the automorphism list is not an endomorphism (and is therefore not an automorphism)'
                 raise ValueError(msg)
-            if not all([a.kernel().order() == 1 for a in mapping[1]]):
+            if not all(a.kernel().order() == 1 for a in mapping[1]):
                 msg = 'an element of the automorphism list is not an injection (and is therefore not an automorphism)'
                 raise ValueError(msg)
 
         # create a parallel list of the automorphisms of N in GAP
         gap.eval('N := Group(' + str(N.gens()) + ')')
-        gens_string = ",".join([str(x) for x in N.gens()])
+        gens_string = ",".join(str(x) for x in N.gens())
         homomorphism_cmd = 'alpha := GroupHomomorphismByImages(N, N, [{0}],[{1}])'
         gap.eval('morphisms := []')
         for alpha in mapping[1]:
-            images_string = ",".join([str(alpha(n)) for n in N.gens()])
+            images_string = ",".join(str(alpha(n)) for n in N.gens())
             gap.eval(homomorphism_cmd.format(gens_string, images_string))
             gap.eval('Add(morphisms, alpha)')
         # create the necessary homomorphism from self into the

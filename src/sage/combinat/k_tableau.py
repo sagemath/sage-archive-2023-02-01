@@ -1971,7 +1971,7 @@ class WeakTableau_factorized_permutation(WeakTableau_abstract):
             sage: t = WeakTableau([[2,0],[3,2]], 3, representation = 'factorized_permutation')
             Traceback (most recent call last):
             ...
-            ValueError: Error! this only works on type 'A' affine Grassmannian elements
+            ValueError: this only works on type 'A' affine Grassmannian elements
 
             sage: T = WeakTableaux(3, [4,1], [2,1], representation = 'factorized_permutation')
             sage: t = T([[2],[1],[0]])
@@ -4639,9 +4639,3 @@ def intermediate_shapes(t):
     for i in range(len(t.weight())+1):
         shapes += [ t.restrict(i).outer_shape()]
     return shapes
-
-# Deprecations from trac:18555. July 2016
-from sage.misc.superseded import deprecated_function_alias
-
-
-StrongTableaux.global_options = deprecated_function_alias(18555, StrongTableaux.options)

@@ -142,7 +142,7 @@ coordinates, as we can check from the metric components in it::
 
 The expression of the metric tensor in terms of polar coordinates is::
 
-    sage: g.display(polar.frame(), polar)
+    sage: g.display(polar)
     g = dr*dr + r^2 dph*dph
 
 A vector field on ``E``::
@@ -180,7 +180,72 @@ in the same vein, the default coordinates can be changed via the method
     sage: E.set_default_frame(E.cartesian_frame())  # revert to Cartesian frame
     sage: E.set_default_chart(cartesian)            # and chart
 
-The value of ``v`` at point ``p``::
+When defining a vector field from components relative to a vector frame
+different from the default one, the vector frame has to be specified
+explicitly::
+
+    sage: v = E.vector_field(1, 0, frame=polar_frame)
+    sage: v.display(polar_frame)
+    e_r
+    sage: v.display()
+    x/sqrt(x^2 + y^2) e_x + y/sqrt(x^2 + y^2) e_y
+
+The argument ``chart`` must be used to specify in which coordinate
+chart the components are expressed::
+
+    sage: v = E.vector_field(0, r, frame=polar_frame, chart=polar)
+    sage: v.display(polar_frame, polar)
+    r e_ph
+    sage: v.display()
+    -y e_x + x e_y
+
+It is also possible to pass the components as a dictionary, with
+a pair (vector frame, chart) as a key::
+
+    sage: v = E.vector_field({(polar_frame, polar): (0, r)})
+    sage: v.display(polar_frame, polar)
+    r e_ph
+
+The key can be reduced to the vector frame if the chart is the default
+one::
+
+    sage: v = E.vector_field({polar_frame: (0, 1)})
+    sage: v.display(polar_frame)
+    e_ph
+
+Finally, it is possible to construct the vector field without
+initializing any component::
+
+    sage: v = E.vector_field(); v
+    Vector field on the Euclidean plane E^2
+
+The components can then by set in a second stage, via the square
+bracket operator, the unset components being assumed to be zero::
+
+    sage: v[1] = -y
+    sage: v.display()  # v[2] is zero
+    -y e_x
+    sage: v[2] = x
+    sage: v.display()
+    -y e_x + x e_y
+
+The above is equivalent to::
+
+    sage: v[:] = -y, x
+    sage: v.display()
+    -y e_x + x e_y
+
+The square bracket operator can also be used to set components in a
+vector frame that is not the default one::
+
+    sage: v = E.vector_field(name='v')
+    sage: v[polar_frame, 2, polar] = r
+    sage: v.display(polar_frame, polar)
+    v = r e_ph
+    sage: v.display()
+    v = -y e_x + x e_y
+
+The value of the vector field ``v`` at point ``p``::
 
     sage: vp = v.at(p); vp
     Vector v at Point p on the Euclidean plane E^2
@@ -883,164 +948,6 @@ class EuclideanSpace(PseudoRiemannianManifold):
         # we simply return this frame:
         return self._cartesian_chart.frame()
 
-    def vector_field(self, *args, **kwargs):
-        r"""
-        Define a vector field on ``self``.
-
-        INPUT:
-
-        - ``args`` -- components of the vector field with respect to the
-          vector frame specified by the argument ``frame`` or a dictionary
-          of components (see examples below)
-        - ``frame`` -- (default: ``None``) vector frame in which the components
-          are given; if ``None``, the default vector frame on ``self`` is
-          assumed
-        - ``chart`` -- (default: ``None``) coordinate chart in which the
-          components are expressed; if ``None``, the default chart on ``self``
-          is assumed
-        - ``name`` -- (default: ``None``) name given to the vector field
-        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
-          vector field; if ``None``, the LaTeX symbol is set to
-          ``name``
-        - ``dest_map`` -- (default: ``None``) the destination map
-          `\Phi:\ E \rightarrow F`, where `E` is ``self`` and `F` is the
-          differentiable manifold where the vector field takes its values
-          (see
-          :class:`~sage.manifolds.differentiable.vectorfield.VectorField`
-          for details); if ``None``, it is assumed that `E = F` and that `\Phi`
-          is the identity map (case of a vector field *on* `E`), otherwise
-          ``dest_map`` must be a
-          :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
-
-        OUTPUT:
-
-        - an instance of
-          :class:`~sage.manifolds.differentiable.vectorfield.VectorFieldParal`
-          representing the defined vector field
-
-        EXAMPLES:
-
-        A vector field in the Euclidean plane::
-
-            sage: E.<x,y> = EuclideanSpace()
-            sage: v = E.vector_field(x*y, x+y)
-            sage: v.display()
-            x*y e_x + (x + y) e_y
-            sage: v[:]
-            [x*y, x + y]
-
-        A name can be provided; it is then used for displaying the vector
-        field::
-
-            sage: v = E.vector_field(x*y, x+y, name='v')
-            sage: v.display()
-            v = x*y e_x + (x + y) e_y
-
-        It is also possible to initialize a vector field from a vector of
-        symbolic expressions::
-
-            sage: v = E.vector_field(vector([x*y, x+y]))
-            sage: v.display()
-            x*y e_x + (x + y) e_y
-
-        If the components are relative to a vector frame different from the
-        default one (here the Cartesian frame `(e_x,e_y)`), the vector
-        frame has to be specified explicitly::
-
-            sage: polar_frame = E.polar_frame(); polar_frame
-            Vector frame (E^2, (e_r,e_ph))
-            sage: v = E.vector_field(1, 0, frame=polar_frame)
-            sage: v.display(polar_frame)
-            e_r
-            sage: v.display()
-            x/sqrt(x^2 + y^2) e_x + y/sqrt(x^2 + y^2) e_y
-
-        The argument ``chart`` must be used to specify in which coordinate
-        chart the components are expressed::
-
-            sage: polar.<r, ph> = E.polar_coordinates()
-            sage: v = E.vector_field(0, r, frame=polar_frame, chart=polar)
-            sage: v.display(polar_frame, polar)
-            r e_ph
-            sage: v.display()
-            -y e_x + x e_y
-
-        It is also possible to pass the components as a dictionary, with
-        a pair (vector frame, chart) as a key::
-
-            sage: v = E.vector_field({(polar_frame, polar): (0, r)})
-            sage: v.display(polar_frame, polar)
-            r e_ph
-
-        The key can be reduced to the vector frame if the chart is the default
-        one::
-
-            sage: v = E.vector_field({polar_frame: (0, 1)})
-            sage: v.display(polar_frame)
-            e_ph
-
-        Finally, it is possible to construct the vector field without
-        initializing any component::
-
-            sage: v = E.vector_field(); v
-            Vector field on the Euclidean plane E^2
-
-        The components can then by set in a second stage, via the square
-        bracket operator, the unset components being assumed to be zero::
-
-            sage: v[1] = x*y
-            sage: v.display()  # v[2] is zero
-            x*y e_x
-            sage: v[2] = x+y
-            sage: v.display()
-            x*y e_x + (x + y) e_y
-
-        The above is equivalent to::
-
-            sage: v[:] = x*y, x+y
-            sage: v.display()
-            x*y e_x + (x + y) e_y
-
-        The square bracket operator can also be used to set components in a
-        vector frame that is not the default one::
-
-            sage: v = E.vector_field(name='v')
-            sage: v[polar_frame, 1, polar] = r
-            sage: v.display(polar_frame, polar)
-            v = r e_r
-            sage: v.display()
-            v = x e_x + y e_y
-
-        """
-        name = kwargs.get('name')
-        latex_name = kwargs.get('latex_name')
-        dest_map = kwargs.get('dest_map')
-        resu = super(EuclideanSpace, self).vector_field(name=name,
-                                      latex_name=latex_name, dest_map=dest_map)
-        if args:
-            # Some components are to be initialized
-            args0 = args[0]
-            if isinstance(args0, dict):
-                for frame, components in args0.items():
-                    chart = None
-                    if isinstance(frame, tuple):
-                        # a pair (frame, chart) has been provided:
-                        frame, chart = frame
-                    resu.add_comp(frame)[:, chart] = components
-            else:
-                if hasattr(args0, '__getitem__') and len(args0) == self._dim:
-                    # args0 is a list/vector of components
-                    args = args0
-                elif len(args) != self._dim:
-                    raise ValueError("{} components must ".format(self._dim) +
-                                     "be provided")
-                    # args is the tuple of components in a specific frame
-                frame = kwargs.get('frame')
-                chart = kwargs.get('chart')
-                resu.add_comp(frame)[:, chart] = args
-        return resu
-
-
 ###############################################################################
 
 class EuclideanPlane(EuclideanSpace):
@@ -1548,8 +1455,7 @@ class EuclideanPlane(EuclideanSpace):
         \frac{\partial}{\partial\phi}\right)`::
 
             sage: for e in E.polar_frame():
-            ....:     e.display(E.polar_coordinates().frame(),
-            ....:               E.polar_coordinates())
+            ....:     e.display(E.polar_coordinates())
             e_r = d/dr
             e_ph = 1/r d/dph
 
@@ -2296,8 +2202,7 @@ class Euclidean3dimSpace(EuclideanSpace):
         \frac{\partial}{\partial\phi}\right)`::
 
             sage: for e in E.spherical_frame():
-            ....:     e.display(E.spherical_coordinates().frame(),
-            ....:               E.spherical_coordinates())
+            ....:     e.display(E.spherical_coordinates())
             e_r = d/dr
             e_th = 1/r d/dth
             e_ph = 1/(r*sin(th)) d/dph
@@ -2445,8 +2350,7 @@ class Euclidean3dimSpace(EuclideanSpace):
         \frac{\partial}{\partial z}\right)`::
 
             sage: for e in E.cylindrical_frame():
-            ....:     e.display(E.cylindrical_coordinates().frame(),
-            ....:               E.cylindrical_coordinates())
+            ....:     e.display(E.cylindrical_coordinates())
             e_rh = d/drh
             e_ph = 1/rh d/dph
             e_z = d/dz

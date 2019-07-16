@@ -209,10 +209,21 @@ class SkewTableau(ClonableList):
             Traceback (most recent call last):
             ...
             TypeError: a skew tableau cannot have an empty list for a row
+
+            sage: s = SkewTableau([[1, None, None],[2, None],[3]])
+            Traceback (most recent call last):
+            ...
+            TypeError: not a valid skew tableau
         """
         for row in self:
             if not row:
                 raise TypeError("a skew tableau cannot have an empty list for a row")
+            inside = False
+            for x in row:
+                if x is not None:
+                    inside = True
+                elif inside:
+                    raise TypeError('not a valid skew tableau')
 
     def _repr_(self):
         """
@@ -794,7 +805,7 @@ class SkewTableau(ClonableList):
         the output to be the pair ``(t, (i, j))`` where ``t`` is the new
         tableau and ``(i, j)`` are the coordinates of the vacated square.
 
-        See [Fulton97]_ p12-13.
+        See [Ful1997]_ p12-13.
 
         EXAMPLES::
 
@@ -872,7 +883,7 @@ class SkewTableau(ClonableList):
         or just :class:`Tableau` formed by applying the jeu de taquin
         process to ``self``.
 
-        See page 15 of [Fulton97]_.
+        See page 15 of [Ful1997]_.
 
         INPUT:
 
@@ -903,11 +914,6 @@ class SkewTableau(ClonableList):
             [[None, 1], [2, 3]]
             sage: T
             [[None, None, None, 4], [None, None, 1, 6], [None, None, 5], [2, 3]]
-
-        REFERENCES:
-
-        .. [Fulton97] William Fulton, *Young Tableaux*,
-           Cambridge University Press 1997.
         """
         mu_size = self.inner_shape().size()
 
@@ -2543,7 +2549,3 @@ register_unpickle_override('sage.combinat.skew_tableau', 'SemistandardSkewTablea
 # July 2013: But wait, there more!
 register_unpickle_override('sage.combinat.skew_tableau', 'StandardSkewTableaux_skewpartition',  StandardSkewTableaux_shape)
 register_unpickle_override('sage.combinat.skew_tableau', 'SkewTableau_class',  SkewTableau_class)
-
-# Deprecations from trac:18555. July 2016
-from sage.misc.superseded import deprecated_function_alias
-SkewTableaux.global_options=deprecated_function_alias(18555, SkewTableaux.options)

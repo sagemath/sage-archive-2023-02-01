@@ -245,7 +245,7 @@ class Giac(Expect):
     Type ``giac.[tab]?`` for Giac's help about a given function.
     Type ``giac(...)`` to create a new Giac object.
 
-    Full html documentation for giac is avaible from your giac installation at ``$PREFIX``/share/giac/doc/en/cascmd_en/index.html
+    Full html documentation for giac is available from your giac installation at ``$PREFIX``/share/giac/doc/en/cascmd_en/index.html
 
     EXAMPLES:
 
@@ -426,7 +426,7 @@ or a spkg ( for the spkg follow the sources link) from the homepage:
 Homepage http://www-fourier.ujf-grenoble.fr/~parisse/giac.html
 
 
-Full html documentation for giac is avaible from your giac installation at:
+Full html documentation for giac is available from your giac installation at:
 
     ``$PREFIX``/share/giac/doc/en/cascmd_en/index.html
 

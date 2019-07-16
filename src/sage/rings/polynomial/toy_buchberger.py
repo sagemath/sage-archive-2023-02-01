@@ -57,10 +57,7 @@ If ``get_verbose()`` is `>= 1` a protocol is provided::
     sage: I
     Ideal (a + 2*b + 2*c - 1, a^2 + 2*b^2 + 2*c^2 - a, 2*a*b + 2*b*c - b) of Multivariate Polynomial Ring in a, b, c over Finite Field of size 127
 
-The original Buchberger algorithm performs 15 useless reductions to
-zero for this example::
-
-    sage: buchberger(I)
+    sage: buchberger(I)  # random
     (a + 2*b + 2*c - 1, a^2 + 2*b^2 + 2*c^2 - a) => -2*b^2 - 6*b*c - 6*c^2 + b + 2*c
     G: set([a + 2*b + 2*c - 1, 2*a*b + 2*b*c - b, a^2 + 2*b^2 + 2*c^2 - a, -2*b^2 - 6*b*c - 6*c^2 + b + 2*c])
     <BLANKLINE>
@@ -118,17 +115,21 @@ zero for this example::
     15 reductions to zero.
     [a + 2*b + 2*c - 1, -22*c^3 + 24*c^2 - 60*b - 62*c, 2*a*b + 2*b*c - b, a^2 + 2*b^2 + 2*c^2 - a, -2*b^2 - 6*b*c - 6*c^2 + b + 2*c, -5*b*c - 6*c^2 - 63*b + 2*c]
 
-The 'improved' Buchberger algorithm in contrast only performs 3 reductions to zero::
+The original Buchberger algorithm performs 15 useless reductions to
+zero for this example::
 
-    sage: buchberger_improved(I)
-    (b^2 - 26*c^2 - 51*b + 51*c, b*c + 52*c^2 + 38*b + 25*c) => 11*c^3 - 12*c^2 + 30*b + 31*c
-    G: set([a + 2*b + 2*c - 1, b^2 - 26*c^2 - 51*b + 51*c, 11*c^3 - 12*c^2 + 30*b + 31*c, b*c + 52*c^2 + 38*b + 25*c])
-    <BLANKLINE>
-    (11*c^3 - 12*c^2 + 30*b + 31*c, b*c + 52*c^2 + 38*b + 25*c) => 0
-    G: set([a + 2*b + 2*c - 1, b^2 - 26*c^2 - 51*b + 51*c, 11*c^3 - 12*c^2 + 30*b + 31*c, b*c + 52*c^2 + 38*b + 25*c])
-    <BLANKLINE>
+    sage: gb = buchberger(I)
+    ...
+    15 reductions to zero.
+
+The 'improved' Buchberger algorithm in contrast only performs 1 reduction to
+zero::
+
+    sage: gb = buchberger_improved(I)
+    ...
     1 reductions to zero.
-    [a + 2*b + 2*c - 1, b^2 - 26*c^2 - 51*b + 51*c, c^3 + 22*c^2 - 55*b + 49*c, b*c + 52*c^2 + 38*b + 25*c]
+    sage: sorted(gb)
+    [a + 2*b + 2*c - 1, b*c + 52*c^2 + 38*b + 25*c, b^2 - 26*c^2 - 51*b + 51*c, c^3 + 22*c^2 - 55*b + 49*c]
 
 AUTHOR:
 
@@ -138,11 +139,10 @@ AUTHOR:
 from __future__ import print_function
 
 from sage.misc.misc import get_verbose
-from sage.arith.all import LCM
 from sage.structure.sequence import Sequence
 
 #some aliases that conform to Becker and Weispfenning's notation:
-LCM = lambda f,g: f.parent().monomial_lcm(f,g)
+LCM = lambda f, g: f.parent().monomial_lcm(f, g)
 LM = lambda f: f.lm()
 LT = lambda f: f.lt()
 
@@ -165,7 +165,7 @@ def spol(f,g):
         sage: spol(x^2 - z - 1, z^2 - y - 1)
         x^2*y - z^3 + x^2 - z^2
     """
-    fg_lcm = LCM(LM(f),LM(g))
+    fg_lcm = LCM(LM(f), LM(g))
     return fg_lcm//LT(f)*f - fg_lcm//LT(g)*g
 
 
@@ -192,10 +192,13 @@ def buchberger(F):
 
         sage: from sage.rings.polynomial.toy_buchberger import buchberger
         sage: R.<x,y,z> = PolynomialRing(QQ,3)
+        sage: I = R.ideal([x^2 - z - 1, z^2 - y - 1, x*y^2 - x - 1])
         sage: set_verbose(0)
-        sage: buchberger(R.ideal([x^2 - z - 1, z^2 - y - 1, x*y^2 - x - 1]))
-        [-y^3 + x*z - x + y, y^2*z + y^2 - x - z - 1, x*y^2 - x - 1, x^2 - z - 1, z^2 - y - 1]
-
+        sage: gb = buchberger(I)
+        sage: gb.is_groebner()
+        True
+        sage: gb.ideal() == I
+        True
     """
     G = set(F.gens())
     B = set((g1, g2) for g1 in G for g2 in G if g1 != g2)
@@ -250,7 +253,7 @@ def buchberger_improved(F):
         sage: from sage.rings.polynomial.toy_buchberger import buchberger_improved
         sage: R.<x,y,z> = PolynomialRing(QQ,3)
         sage: set_verbose(0)
-        sage: buchberger_improved(R.ideal([x^4-y-z,x*y*z-1]))
+        sage: sorted(buchberger_improved(R.ideal([x^4-y-z,x*y*z-1])))
         [x*y*z - 1, x^3 - y^2*z - y*z^2, y^3*z^2 + y^2*z^3 - x^2]
     """
     F = inter_reduction(F.gens())

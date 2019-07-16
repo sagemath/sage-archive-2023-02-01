@@ -138,7 +138,7 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
 
         All non-simply-laced rigged configurations have not been proven to
         give rise to aligned virtual crystals (i.e. have the correct crystal
-        structure or ismorphic as affine crystals to the tensor product of
+        structure or isomorphic as affine crystals to the tensor product of
         KR tableaux).
 
     INPUT:
@@ -867,9 +867,9 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
 
     def fermionic_formula(self, q=None, only_highest_weight=False, weight=None):
         r"""
-        Return the fermoinic formula associated to ``self``.
+        Return the fermionic formula associated to ``self``.
 
-        Given a set of rigged configurations `RC(\lambda, L)`, the fermonic
+        Given a set of rigged configurations `RC(\lambda, L)`, the fermionic
         formula is defined as:
 
         .. MATH::
@@ -1912,8 +1912,3 @@ class RCTypeA2Dual(RCTypeA2Even):
         return self.element_class(self, partitions)
 
     Element = KRRCTypeA2DualElement
-
-# deprecations from trac:18555
-from sage.misc.superseded import deprecated_function_alias
-RiggedConfigurations.global_options=deprecated_function_alias(18555, RiggedConfigurations.options)
-RiggedConfigurationOptions = deprecated_function_alias(18555, RiggedConfigurations.options)

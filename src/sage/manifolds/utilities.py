@@ -776,7 +776,7 @@ def simplify_chain_real_sympy(expr):
 
         sage: s = (sqrt(x^2-2*x+1))._sympy_()
         sage: simplify_chain_real_sympy(s)
-        -x + 1
+        1 - x
 
     Other simplifications::
 

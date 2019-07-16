@@ -300,6 +300,25 @@ class MPowerSeries(PowerSeries):
             - the foreground polynomial ring
             - a ring that coerces to one of the above two
 
+        EXAMPLES::
+
+            sage: R.<s,t> = PowerSeriesRing(ZZ); R
+            Multivariate Power Series Ring in s, t over Integer Ring
+            sage: f = 1 + t + s + s*t + R.O(3)
+            sage: g = (1/2) * f; g
+            1/2 + 1/2*s + 1/2*t + 1/2*s*t + O(s, t)^3
+            sage: g.parent()
+            Multivariate Power Series Ring in s, t over Rational Field
+            sage: g = (1/2)*f; g
+            1/2 + 1/2*s + 1/2*t + 1/2*s*t + O(s, t)^3
+            sage: g.parent()
+            Multivariate Power Series Ring in s, t over Rational Field
+
+            sage: K = NumberField(x-3,'a')
+            sage: g = K.random_element()*f
+            sage: g.parent()
+            Multivariate Power Series Ring in s, t over Number Field in a with defining polynomial x - 3
+
         TESTS::
 
             sage: S.<s,t> = PowerSeriesRing(ZZ)
@@ -1031,46 +1050,6 @@ class MPowerSeries(PowerSeries):
             raise ValueError("not divisible")
         else:
             return quo
-
-#    def _r_action_(self, c):
-#        # multivariate power series rings are assumed to be commutative
-#        return self._l_action_(c)
-
-    def _l_action_(self, c):
-        """
-        Multivariate power series support multiplication by any ring for
-        which there is a supported action on the base ring.
-
-        EXAMPLES::
-
-            sage: R.<s,t> = PowerSeriesRing(ZZ); R
-            Multivariate Power Series Ring in s, t over Integer Ring
-            sage: f = 1 + t + s + s*t + R.O(3)
-            sage: g = f._l_action_(1/2); g
-            1/2 + 1/2*s + 1/2*t + 1/2*s*t + O(s, t)^3
-            sage: g.parent()
-            Multivariate Power Series Ring in s, t over Rational Field
-            sage: g = (1/2)*f; g
-            1/2 + 1/2*s + 1/2*t + 1/2*s*t + O(s, t)^3
-            sage: g.parent()
-            Multivariate Power Series Ring in s, t over Rational Field
-
-            sage: K = NumberField(x-3,'a')
-            sage: g = K.random_element()*f
-            sage: g.parent()
-            Multivariate Power Series Ring in s, t over Number Field in a with defining polynomial x - 3
-
-        """
-        try:
-            f = c * self._bg_value
-            if f.parent() == self.parent()._bg_ps_ring():
-                return MPowerSeries(self.parent(), f, prec=f.prec())
-            else:
-                from sage.rings.all import PowerSeriesRing
-                new_parent = PowerSeriesRing(f.base_ring().base_ring(), num_gens = f.base_ring().ngens(), names = f.base_ring().gens())
-                return MPowerSeries(new_parent, f, prec=f.prec())
-        except (TypeError, AttributeError):
-            raise TypeError("Action not defined.")
 
     def __mod__(self, other):
         """

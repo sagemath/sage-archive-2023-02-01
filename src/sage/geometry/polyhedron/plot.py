@@ -872,7 +872,7 @@ class Projection(SageObject):
             sage: outline._objects[0]
             Line defined by 2 points
         """
-        wireframe = [];
+        wireframe = []
         for l in self.lines:
             l_coords = self.coordinates_of(l)
             wireframe.append( line2d(l_coords, **kwds) )

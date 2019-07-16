@@ -342,10 +342,14 @@ def conjugacy_class_iterator(part, S=None):
     It is also possible to specify any underlying set::
 
         sage: it = conjugacy_class_iterator([2,2,2], 'abcdef')
-        sage: next(it)
-        [('a', 'c'), ('b', 'e'), ('d', 'f')]
-        sage: next(it)
+        sage: next(it) # py2
+        [('a', 'b'), ('c', 'd'), ('e', 'f')]
+        sage: next(it) # py2
         [('a', 'f'), ('c', 'b'), ('e', 'd')]
+        sage: sorted(flatten(next(it)))
+        ['a', 'b', 'c', 'd', 'e', 'f']
+        sage: all(len(x) == 2 for x in next(it))
+        True
     """
     n = sum(part)
     if part not in _Partitions:

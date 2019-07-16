@@ -11,8 +11,9 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
+import os
 from sage.env import SAGE_DOC_SRC, SAGE_DOC
+from sage.docs.conf import release, latex_elements, exclude_patterns
 from sage.docs.conf import *
 
 ref_src = os.path.join(SAGE_DOC_SRC, 'en', 'reference')

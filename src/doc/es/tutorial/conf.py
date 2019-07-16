@@ -11,8 +11,7 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys
-import os
+from sage.docs.conf import release
 from sage.docs.conf import *
 
 # General information about the project.

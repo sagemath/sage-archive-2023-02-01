@@ -11,7 +11,7 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-from sage.docs.conf import release
+from sage.docs.conf import release, latex_elements
 from sage.docs.conf import *  # NOQA
 
 # General information about the project.

@@ -14,9 +14,7 @@
 # out serve to show the default.
 
 import sys, os
-from sage.env import SAGE_DOC_SRC
-sys.path.append(SAGE_DOC_SRC)
-from common.conf import *
+from sage.docs.conf.conf import *
 
 # General information about the project.
 project = u'A Sage bemutatása'

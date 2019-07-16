@@ -7,8 +7,8 @@ GROEBNERNEW2 in [BW1993]_) are implemented.
 
 No attempt was made to optimize either algorithm as the emphasis of these
 implementations is a clean and easy presentation. To compute a Groebner basis
-most efficiently in Sage, use the :meth:`groebner_basis()` method on
-multivariate polynomial objects instead.
+most efficiently in Sage, use the :meth:`.MPolynomialIdeal.groebner_basis`
+method on multivariate polynomial objects instead.
 
 .. NOTE::
 

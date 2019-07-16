@@ -489,6 +489,8 @@ fi
 export MAXIMA_PREFIX="$SAGE_LOCAL"
 export MAXIMA_USERDIR="$DOT_SAGE/maxima"
 
+export MTXLIB="$SAGE_SHARE/meataxe"
+
 PERL5LIB="$SAGE_LOCAL/lib/perl5:$PERL5LIB" && export PERL5LIB
 
 # Allow SAGE_BROWSER to override BROWSER (Trac #22449)

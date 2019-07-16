@@ -1,5 +1,5 @@
 r"""
-Educational Versions of Groebner Basis Algorithms: Triangular Factorization.
+Educational versions of Groebner basis algorithms: triangular factorization
 
 In this file is the implementation of two algorithms in [Laz1992]_.
 

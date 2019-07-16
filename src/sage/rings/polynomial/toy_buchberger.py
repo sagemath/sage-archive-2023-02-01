@@ -1,16 +1,14 @@
-"""
-Educational Versions of Groebner Basis Algorithms.
+r"""
+Educational versions of Groebner basis algorithms
 
-Following [BW1993]_ the original Buchberger algorithm (c.f. algorithm
-GROEBNER in [BW1993]_) and an improved version of Buchberger's algorithm
-(c.g. algorithm GROEBNERNEW2 in [BW1993]_) are implemented.
+Following [BW1993]_, the original Buchberger algorithm (algorithm GROEBNER in
+[BW1993]_) and an improved version of Buchberger's algorithm (algorithm
+GROEBNERNEW2 in [BW1993]_) are implemented.
 
-No attempt was made to optimize either algorithm as the emphasis of
-these implementations is a clean and easy presentation. To compute a
-Groebner basis in Sage efficiently use the
-:meth:`sage.rings.polynomial.multi_polynomial_ideal.MPolynomialIdeal.groebner_basis()`
-method on multivariate polynomial objects.
-
+No attempt was made to optimize either algorithm as the emphasis of these
+implementations is a clean and easy presentation. To compute a Groebner basis
+most efficiently in Sage, use the :meth:`groebner_basis()` method on
+multivariate polynomial objects instead.
 
 .. NOTE::
 
@@ -23,7 +21,7 @@ method on multivariate polynomial objects.
 
 EXAMPLES:
 
-Consider Katsura-6 w.r.t. a ``degrevlex`` ordering.::
+Consider Katsura-6 with respect to a ``degrevlex`` ordering. ::
 
     sage: from sage.rings.polynomial.toy_buchberger import *
     sage: P.<a,b,c,e,f,g,h,i,j,k> = PolynomialRing(GF(32003))
@@ -47,7 +45,7 @@ The results are correct::
     sage: Ideal(g1) == Ideal(g2) == Ideal(g3)
     True
 
-If ``get_verbose()`` is `>= 1`, a protocol is provided::
+If ``get_verbose()`` is `\ge 1`, a protocol is provided::
 
     sage: set_verbose(1)
     sage: P.<a,b,c> = PolynomialRing(GF(127))
@@ -131,10 +129,12 @@ zero::
     sage: sorted(gb)
     [a + 2*b + 2*c - 1, b*c + 52*c^2 + 38*b + 25*c, b^2 - 26*c^2 - 51*b + 51*c, c^3 + 22*c^2 - 55*b + 49*c]
 
-AUTHOR:
+AUTHORS:
 
 - Martin Albrecht (2007-05-24): initial version
+
 - Marshall Hampton (2009-07-08): some doctest additions
+
 """
 from __future__ import print_function
 
@@ -155,9 +155,7 @@ def spol(f, g):
 
     -  ``f, g`` -- polynomials
 
-    OUTPUT:
-
-    -  The S-polynomial of f and g.
+    OUTPUT: the S-polynomial of f and g
 
     EXAMPLES::
 
@@ -179,9 +177,7 @@ def buchberger(F):
 
     - ``F`` -- an ideal in a multivariate polynomial ring
 
-    OUTPUT:
-
-        a Groebner basis for F
+    OUTPUT: a Groebner basis for F
 
     .. NOTE::
 
@@ -240,9 +236,7 @@ def buchberger_improved(F):
 
     - ``F`` -- an ideal in a multivariate polynomial ring
 
-    OUTPUT:
-
-        a Groebner basis for F
+    OUTPUT: a Groebner basis for F
 
     .. NOTE::
 
@@ -255,7 +249,7 @@ def buchberger_improved(F):
         sage: from sage.rings.polynomial.toy_buchberger import buchberger_improved
         sage: R.<x,y,z> = PolynomialRing(QQ)
         sage: set_verbose(0)
-        sage: sorted(buchberger_improved(R.ideal([x^4-y-z, x*y*z-1])))
+        sage: sorted(buchberger_improved(R.ideal([x^4 - y - z, x*y*z - 1])))
         [x*y*z - 1, x^3 - y^2*z - y*z^2, y^3*z^2 + y^2*z^3 - x^2]
     """
     F = inter_reduction(F.gens())
@@ -302,13 +296,16 @@ def update(G, B, h):
     INPUT:
 
     - ``G`` -- an intermediate Groebner basis
+
     - ``B`` -- a set of critical pairs
+
     - ``h`` -- a polynomial
 
-    OUTPUT:
+    OUTPUT: a tuple of
 
-        a tuple of an intermediate Groebner basis and a set of
-        critical pairs
+    - an intermediate Groebner basis
+
+    - a set of critical pairs
 
     EXAMPLES::
 
@@ -317,8 +314,8 @@ def update(G, B, h):
         sage: set_verbose(0)
         sage: update(set(), set(), x*y*z)
         ({x*y*z}, set())
-        sage: G, B = update(set(), set(), x*y*z-1)
-        sage: G, B = update(G, B, x*y^2-1)
+        sage: G, B = update(set(), set(), x*y*z - 1)
+        sage: G, B = update(G, B, x*y^2 - 1)
         sage: G, B
         ({x*y*z - 1, x*y^2 - 1}, {(x*y^2 - 1, x*y*z - 1)})
     """
@@ -379,9 +376,7 @@ def select(P):
 
     - ``P`` -- a list of critical pairs
 
-    OUTPUT:
-
-        an element of P
+    OUTPUT: an element of P
 
     EXAMPLES::
 
@@ -400,18 +395,18 @@ def inter_reduction(Q):
     r"""
     Compute inter-reduced polynomials from a set of polynomials.
 
-    If ``Q`` is the set `(f_1, ..., f_n)`, this method
-    returns `(g_1, ..., g_s)` such that:
-
-    - `<f_1,...,f_n> = <g_1,...,g_s>`
-    - `LM(g_i) != LM(g_j)` for all `i != j`
-    - `LM(g_i)` does not divide `m` for all monomials `m` of
-      `\{g_1,...,g_{i-1}, g_{i+1},...,g_s\}`
-    - `LC(g_i) == 1` for all `i`.
-
     INPUT:
 
-    - ``Q`` - a set of polynomials
+    - ``Q`` -- a set of polynomials
+
+    OUTPUT: if ``Q`` is the set `(f_1, ..., f_n)`, this method returns `(g_1,
+    ..., g_s)` such that:
+
+    - `<f_1,...,f_n> = <g_1,...,g_s>`
+    - `LM(g_i) \neq LM(g_j)` for all `i \neq j`
+    - `LM(g_i)` does not divide `m` for all monomials `m` of
+      `\{g_1,...,g_{i-1}, g_{i+1},...,g_s\}`
+    - `LC(g_i) = 1` for all `i`.
 
     EXAMPLES::
 
@@ -422,10 +417,10 @@ def inter_reduction(Q):
     ::
 
         sage: P.<x,y> = QQ[]
-        sage: reduced = inter_reduction(set([x^2-5*y^2, x^3]))
+        sage: reduced = inter_reduction(set([x^2 - 5*y^2, x^3]))
         sage: reduced == set([x*y^2, x^2-5*y^2])
         True
-        sage: reduced == inter_reduction(set([2*(x^2-5*y^2), x^3]))
+        sage: reduced == inter_reduction(set([2*(x^2 - 5*y^2), x^3]))
         True
     """
     if not Q:
@@ -438,7 +433,7 @@ def inter_reduction(Q):
         for p in sorted(Qbar):
             Q.remove(p)
             h = p.reduce(Q)
-            if h != 0:
+            if not h.is_zero():
                 Q.add(h)
         if Qbar == Q:
             if base_ring.is_field():

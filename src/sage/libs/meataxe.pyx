@@ -68,7 +68,6 @@ cdef Matrix_t *rawMatrix(int Field, list entries) except NULL:
 
 from sage.cpython.string cimport str_to_bytes, char_to_str
 import os
-from sage.env import SAGE_SHARE
 
 cdef void sage_meataxe_error_handler(const MtxErrorRecord_t *err):
     sig_block()
@@ -84,8 +83,6 @@ cdef inline meataxe_init():
     global MtxLibDir
     from sage import env
     mtxdir = str_to_bytes(env.MTXLIB)
-    if env.MTXLIB != os.environ.get('MTXLIB'):
-        os.environ['MTXLIB'] = env.MTXLIB
     if len(mtxdir) >= 1024:
         raise RuntimeError(f"the path for the meataxe library {mtxdir!r} is too long, it needs to be of length < 1024")
     MtxLibDir[:len(mtxdir)] = mtxdir

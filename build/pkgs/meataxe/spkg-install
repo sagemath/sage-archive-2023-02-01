@@ -18,8 +18,13 @@ export MTXBIN="$SAGE_LOCAL"/bin
 export ZZZ=0
 
 # We create a directory for the multiplication tables
-mkdir -p $MTXLIB || \
+if [ "x$MTXLIB" = x ] ; then
+    mkdir -p $SAGE_SHARE/meataxe || \
     sdh_die "Error creating directory for multiplication tables"
+else
+    mkdir -p $MTXLIB || \
+    sdh_die "Error creating directory for multiplication tables"
+fi
 
 cd src
 sdh_configure

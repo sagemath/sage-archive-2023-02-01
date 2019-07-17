@@ -42,9 +42,24 @@ from __future__ import absolute_import
 from six import iteritems
 from six.moves import range
 
+from collections import defaultdict
+
 from .generic_graph import GenericGraph
 from .graph import Graph
 from sage.rings.integer import Integer
+
+def sets_from_colors(d):
+    r"""
+    TESTS::
+
+        sage: from sage.graphs.bipartite_graph import sets_from_colors
+        sage: sets_from_colors({0: 0, 1: 3, 2: 3, 3: 0, 4: 1, 5:2, 6: 0})
+        [{0, 3, 6}, {1, 2}, {4}, {5}]
+    """
+    ans = defaultdict(set)
+    for k,v in iteritems(d):
+        ans[v].add(k)
+    return list(ans.values())
 
 class BipartiteGraph(Graph):
     r"""
@@ -105,7 +120,7 @@ class BipartiteGraph(Graph):
         sage: B = BipartiteGraph(graphs.CycleGraph(5))
         Traceback (most recent call last):
         ...
-        TypeError: input graph is not bipartite
+        ValueError: input graph is not bipartite
         sage: G = Graph({0: [5, 6], 1: [4, 5], 2: [4, 6], 3: [4, 5, 6]})
         sage: B = BipartiteGraph(G)
         sage: B == G
@@ -393,10 +408,17 @@ class BipartiteGraph(Graph):
             self.left, self.right = left, right
         elif isinstance(data, GenericGraph):
             Graph.__init__(self, data, *args, **kwds)
-            try:
-                self.left, self.right = self.bipartite_sets()
-            except Exception:
-                raise TypeError("input graph is not bipartite")
+            ans, certif = GenericGraph.is_bipartite(self, certificate=True)
+            if not ans:
+                raise ValueError("input graph is not bipartite")
+            cols = sets_from_colors(certif)
+            if len(cols) == 2:
+                self.left, self.right = cols
+            elif len(cols) == 1:
+                self.left = cols[0]
+                self.right = set()
+            else:
+                self.left = self.right = set()
         else:
             import networkx
             Graph.__init__(self, data, *args, **kwds)
@@ -416,10 +438,17 @@ class BipartiteGraph(Graph):
                                 "assumption (is not 'Top' or 'Bottom')")
             # make sure we found a bipartition
             if not (hasattr(self, "left") and hasattr(self, "right")):
-                try:
-                    self.left, self.right = self.bipartite_sets()
-                except Exception:
-                    raise TypeError("input graph is not bipartite")
+                ans, certif = GenericGraph.is_bipartite(self, certificate=True)
+                if not ans:
+                    raise ValueError("input graph is not bipartite")
+                cols = sets_from_colors(certif)
+                if len(cols) == 2:
+                    self.left, self.right = cols
+                elif len(cols) == 1:
+                    self.left = cols[0]
+                    self.right = set()
+                else:
+                    self.left = self.right = set()
 
         # restore vertex partition checking
         del self.add_vertex
@@ -872,9 +901,6 @@ class BipartiteGraph(Graph):
             sage: BipartiteGraph().is_bipartite(certificate=True)
             (True, {})
         """
-        if not hasattr(self, 'left') or not hasattr(self, 'right'):
-            # This case may occur during the initialization (i.e., in __init__)
-            return GenericGraph.is_bipartite(self, certificate=certificate)
         if certificate:
             color = {u: 0 for u in self.left}
             color.update({u: 1 for u in self.right})

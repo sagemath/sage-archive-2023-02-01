@@ -47,26 +47,6 @@ from .generic_graph import GenericGraph
 from .graph import Graph
 from sage.rings.integer import Integer
 
-def sets_from_colors(d):
-    r"""
-    Return the list of sets of vertices of a coloring.
-
-    INPUT:
-
-    - ``d`` -- dictionary; a mapping from vertices to colors
-
-    TESTS::
-
-        sage: from sage.graphs.bipartite_graph import sets_from_colors
-        sage: s = sets_from_colors({0: 0, 1: 3, 2: 3, 3: 0, 4: 1, 5: 2, 6: 0})
-        sage: s == {0: {0, 3, 6}, 1: {4}, 2: {5}, 3: {1, 2}}
-        True
-    """
-    ans = defaultdict(set)
-    for k, v in iteritems(d):
-        ans[v].add(k)
-    return ans
-
 class BipartiteGraph(Graph):
     r"""
     Bipartite graph.
@@ -448,10 +428,34 @@ class BipartiteGraph(Graph):
         return
 
     def _upgrade_from_graph(self):
+        """
+        Set the left and right sets of vertices from the input graph.
+
+        TESTS::
+
+            sage: B = BipartiteGraph(Graph(1))
+            sage: B.left, B.right
+            ({0}, set())
+            sage: B = BipartiteGraph(Graph(2))
+            sage: B.left, B.right
+            ({0, 1}, set())
+            sage: B = BipartiteGraph(graphs.PathGraph(2))
+            sage: B.left, B.right
+            ({0}, {1})
+            sage: B = BipartiteGraph(graphs.PathGraph(3))
+            sage: B.left, B.right
+            ({0, 2}, {1})
+            sage: B = BipartiteGraph(graphs.CycleGraph(3))
+            Traceback (most recent call last):
+            ...
+            ValueError: input graph is not bipartite
+        """
         ans, certif = GenericGraph.is_bipartite(self, certificate=True)
         if not ans:
             raise ValueError("input graph is not bipartite")
-        cols = sets_from_colors(certif)
+        cols = defaultdict(set)
+        for k, v in iteritems(certif):
+            cols[v].add(k)
         self.left = cols[1]
         self.right = cols[0]
 

@@ -2000,7 +2000,7 @@ class RuleSuperRSK(RuleRSK):
 
         sage: t1 = Tableau([[1, 2, 5], [3], [4]])
         sage: t2 = Tableau([[1, 2, 3], [4], [5]])
-        sage: RSK_inverse(t1, t2, insertion=RSK.rules.superRSK)
+        sage: RSK_inverse(t1, t2, insertion=RSK.rules.RSK)
         [[1, 2, 3, 4, 5], [1, 4, 5, 3, 2]]
         sage: from sage.combinat.tableau import SemistandardSuperTableau
         sage: t1 = SemistandardSuperTableau([[PrimedEntry(1), PrimedEntry(2), 
@@ -2031,10 +2031,12 @@ class RuleSuperRSK(RuleRSK):
         sage: f = lambda p: RSK_inverse(*RSK(p, insertion=RSK.rules.superRSK),
         ....:                insertion=RSK.rules.superRSK)
         sage: def toPrimedEntry(p):
-        ....:    for i in range(len(p)):
-                     p[i] = PrimedEntry(p[i])
-        sage: all(toPrimedEntry(p) == f(toPrimedEntry(p)) for n in range(5) 
-        ....:                                        for p in Permutations(n))
+        ....:     p1 = list(p)
+        ....:     for i in range(len(p)):
+        ....:         p1[i] = PrimedEntry(p[i])
+        ....:     return p1
+        sage: all(toPrimedEntry(p) == f(toPrimedEntry(p))[1] for n in range(5) 
+        ....:                             for p in Permutations(n))
         True
 
     Checking that tableaux should be of same shape::
@@ -2082,12 +2084,6 @@ class RuleSuperRSK(RuleRSK):
             Traceback (most recent call last):
             ...
             ValueError: invalid restricted superbiword
-            sage: m = Matrix(ZZ, 2, 2, [PrimedEntry(0), PrimedEntry('1p'), 
-            ....:       PrimedEntry('1p'), PrimedEntry(1)]) ; m
-            [0 1']
-            [1' 1]
-            sage: list(RuleSuperRSK().to_pairs(m))
-
         """
         from sage.combinat.shifted_primed_tableau import PrimedEntry
         if obj2 is None:

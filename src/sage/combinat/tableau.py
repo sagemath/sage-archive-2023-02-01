@@ -4428,21 +4428,21 @@ class SemistandardTableau(Tableau):
         """
         if isinstance(t, SemistandardTableau):
             return t
-        elif t in SemistandardTableaux():
-            return SemistandardTableaux_all().element_class(SemistandardTableaux_all(), t)
+        # elif t in SemistandardTableaux():
+        return SemistandardTableaux_all().element_class(SemistandardTableaux_all(), t)
 
         # t is not a semistandard tableau so we give an appropriate error message
-        if t not in Tableaux():
-            raise ValueError('%s is not a tableau' % t)
+        # if t not in Tableaux():
+        #     raise ValueError('%s is not a tableau' % t)
 
-        if not all(isinstance(c, (int, Integer)) and c > 0 for row in t for c in row):
-            raise ValueError("entries must be positive integers"%t)
+        # if not all(isinstance(c, (int, Integer)) and c > 0 for row in t for c in row):
+        #     raise ValueError("entries must be positive integers"%t)
 
-        if any(row[c] > row[c+1] for row in t for c in range(len(row)-1)):
-            raise ValueError("The rows of %s are not weakly increasing"%t)
+        # if any(row[c] > row[c+1] for row in t for c in range(len(row)-1)):
+        #     raise ValueError("The rows of %s are not weakly increasing"%t)
 
-        # If we're still here ``t`` cannot be column strict
-        raise ValueError('%s is not a column strict tableau' % t)
+        # # If we're still here ``t`` cannot be column strict
+        # raise ValueError('%s is not a column strict tableau' % t)
 
     def check(self):
         """
@@ -5059,21 +5059,7 @@ class SemistandardSuperTableau(Tableau):
 
         if isinstance(t, SemistandardSuperTableau):
             return t
-        elif t in SemistandardSuperTableaux():
-            return SemistandardSuperTableaux_all().element_class(SemistandardSuperTableaux_all(), t)
-
-        # t is not a semistandard super tableau so we give an appropriate error message
-        if t not in Tableaux():
-            raise ValueError('%s is not a tableau' % t)
-
-        if not all(isinstance(c, (PrimedEntry)) and c > 0 for row in t for c in row):
-            raise ValueError("entries must be positive primed integers"%t)
-
-        if any(row[c] > row[c+1] for row in t for c in range(len(row)-1)):
-            raise ValueError("The rows of %s are not weakly increasing"%t)
-
-        # If we're still here ``t`` cannot be wekly increasing along the column 
-        raise ValueError('%s is not a column weak tableau' % t)
+        return SemistandardSuperTableaux_all().element_class(SemistandardSuperTableaux_all(), t)
 
     def check(self):
         """
@@ -5115,7 +5101,7 @@ class SemistandardSuperTableau(Tableau):
                 if any(row[c] > next[c] for c in range(len(next))):
                     raise ValueError("the entries of each column of a semistandard super tableau must be weakly increasing")
                 # Check that unprimed letters are column strict
-                if not all(row[c] < next_[c] for c in range(len(next_)) if (row[c].is_unprimed() or next_[c].is_unprimed())):
+                if not all(row[c] < next[c] for c in range(len(next)) if (row[c].is_unprimed() or next[c].is_unprimed())):
                     raise ValueError("the unprimed entries of each column must be strictly increasing")
 
             # Check that primed letters are row strict
@@ -9631,7 +9617,7 @@ class SemistandardSuperTableaux(Tableaux):
         else:
             return False
 
-class SemistandardSuperTableaux_all(SemistandardSuperTableaux, DisjointUnionEnumeratedSets):
+class SemistandardSuperTableaux_all(SemistandardSuperTableaux):
     """
     All semistandard super tableaux.
     """
@@ -9649,12 +9635,8 @@ class SemistandardSuperTableaux_all(SemistandardSuperTableaux, DisjointUnionEnum
             sage: ST = SemistandardSuperTableaux()
             sage: TestSuite(ST).run()
         """
+        Parent.__init__(self, category=InfiniteEnumeratedSets())
         SemistandardSuperTableaux.__init__(self)
-        #########################################################################
-        DisjointUnionEnumeratedSets.__init__(self,
-                                             Family(NonNegativeIntegers()),
-                                             facade=True, keepkey=False)
-        #########################################################################    
 
     def _repr_(self):
         """

@@ -65,7 +65,7 @@ def sets_from_colors(d):
     ans = defaultdict(set)
     for k, v in iteritems(d):
         ans[v].add(k)
-    return dict(ans)
+    return ans
 
 class BipartiteGraph(Graph):
     r"""
@@ -452,15 +452,8 @@ class BipartiteGraph(Graph):
         if not ans:
             raise ValueError("input graph is not bipartite")
         cols = sets_from_colors(certif)
-        if len(cols) == 2:
-            self.left = cols[1]
-            self.right = cols[0]
-        elif len(cols) == 1:
-            self.left = cols[1]
-            self.right = set()
-        else:
-            self.left = set()
-            self.right = set()
+        self.left = cols[1]
+        self.right = cols[0]
 
     def __repr__(self):
         r"""

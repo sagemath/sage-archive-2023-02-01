@@ -439,6 +439,16 @@ def shortest_simple_paths(self, source, target, weight_function=None,
         ....:     k.add(tuple(p)) 
         sage: k == s
         True
+
+        sage: G = DiGraph(graphs.Grid2dGraph(3, 3))
+        sage: s = set()
+        sage: for i, p in enumerate(G.shortest_simple_paths((0, 0), (0, 1), by_weight=False, algorithm='Feng')):
+        ....:     s.add(tuple(p))
+        sage: k = set()
+        sage: for i, p in enumerate(G.shortest_simple_paths((0, 0), (0, 1), by_weight=False, algorithm='Yen')):
+        ....:     k.add(tuple(p))     
+        sage: s==k
+        True
     """
     if source not in self:
         raise ValueError("vertex '{}' is not in the graph".format(source))

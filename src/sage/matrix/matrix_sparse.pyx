@@ -378,7 +378,7 @@ cdef class Matrix_sparse(matrix.Matrix):
 
             sage: M = matrix({(5,5): 2})
             sage: Mp = matrix({(5,5): 7, (3,1):-2})
-            sage: M < Mp
+            sage: M > Mp
             True
             sage: M == M.transpose()
             True

@@ -1,8 +1,97 @@
 #TODO: explain what rank metric is, how it works and what it is used for
-#TODO: add generator matrix encoder
-#TODO: add nearest neighbout decoder
-#TODO: add minimum distance method
+#TODO: add minimum distance method + covering radius
+# -*- coding: utf-8 -*-
+r"""
+Generic structures for linear codes over the rank metric
 
+Rank Metric
+===========
+- what is it - compare to Hamming metric
+- motivation
+
+Linear Rank Metric Codes
+========================
+- talk about representation of elements - vector vs. matrix
+- generic class
+- Gabidulin family (add this when Gabidulin is actually in)
+
+``AbstractLinearCode``
+----------------------
+
+This is a base class designed to contain methods, features and parameters
+shared by every linear rank metric code. For instance, generic algorithms for
+computing the minimum distance, the covering radius, etc. Many of these
+algorithms are slow, e.g. exponential in the code length. It also contains
+methods for swapping between vector and matrix representation of elements.
+For specific subfamilies, better algorithms or even closed formulas might be
+known, in which case the respective method should be overridden.
+
+``AbstractLinearCode`` is an abstract class for linear rank metric codes,
+so any linear code rank metric class should inherit from this class.
+Also ``AbstractLinearCode`` should never itself be instantiated.
+
+See :class:`sage.coding.linear_rank_metric.AbstractLinearRankMetricCode`
+for details and examples.
+
+``LinearCode``
+--------------
+
+This class is used to represent arbitrary and unstructured linear codes.
+It mostly rely directly on generic methods provided by ``AbstractLinearCode``, which
+means that basic operations on the code (e.g. computation of the minimum
+distance) will use slow algorithms.
+
+A ``LinearCode`` is instantiated by providing a generator matrix::
+
+    sage: M = matrix(GF(2), [[1, 0, 0, 1, 0],\
+                             [0, 1, 0, 1, 1],\
+                             [0, 0, 1, 1, 1]])
+    sage: C = codes.LinearCode(M)
+    sage: C
+    [5, 3] linear code over GF(2)
+    sage: C.generator_matrix()
+    [1 0 0 1 0]
+    [0 1 0 1 1]
+    [0 0 1 1 1]
+
+    sage: MS = MatrixSpace(GF(2),4,7)
+    sage: G = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
+    sage: C = LinearCode(G)
+    sage: C.basis()
+    [
+    (1, 1, 1, 0, 0, 0, 0),
+    (1, 0, 0, 1, 1, 0, 0),
+    (0, 1, 0, 1, 0, 1, 0),
+    (1, 1, 0, 1, 0, 0, 1)
+    ]
+    sage: c = C.basis()[1]
+    sage: c in C
+    True
+    sage: c.nonzero_positions()
+    [0, 3, 4]
+    sage: c.support()
+    [0, 3, 4]
+    sage: c.parent()
+    Vector space of dimension 7 over Finite Field of size 2
+
+Further references
+------------------
+
+REFERENCES:
+
+
+AUTHORS:
+
+- Marketa Slukova (2019-07): initial version
+
+TESTS::
+
+    sage: MS = MatrixSpace(GF(2),4,7)
+    sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
+    sage: C  = LinearCode(G)
+    sage: C == loads(dumps(C))
+    True
+"""
 from sage.coding.abstract_code import AbstractCode
 from sage.rings.integer import Integer
 from sage.coding.relative_finite_field_extension import *
@@ -67,7 +156,21 @@ class AbstractLinearRankMetricCode(AbstractCode):
 
     TODO: example of how to make a class of linear rank metric codes
     TODO: talk about representation
-    TODO: add experimental trigger
+
+        TESTS::
+
+        This class uses the following experimental feature:
+        :class:`sage.coding.relative_finite_field_extension.RelativeFiniteFieldExtension`.
+        This test block is here only to trigger the experimental warning so it does not
+        interferes with doctests::
+
+            sage: from sage.coding.relative_finite_field_extension import *
+            sage: Fqm.<aa> = GF(16)
+            sage: Fq.<a> = GF(4)
+            sage: RelativeFiniteFieldExtension(Fqm, Fq)
+            doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+            See http://trac.sagemath.org/20284 for details.
+            Relative field extension between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
     """
 
     _registered_encoders = {}

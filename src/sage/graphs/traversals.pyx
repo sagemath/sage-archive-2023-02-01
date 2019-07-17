@@ -217,11 +217,14 @@ def lex_UP(G, reverse=False, tree=False, initial_vertex=None):
     This algorithm maintains for each vertex left in the graph a code
     corresponding to the vertices already removed. The vertex of maximal
     code (according to the lexicographic order) is then removed, and the
-    codes are updated.
+    codes are updated. During the `i`-th iteration of the algorithm `i` is
+    appended to the codes of all neighbors of the selected vertex that left in
+    the graph
 
     Time complexity is `O(n+m)` where `n` is the number of vertices and `m` is
     the number of edges.
 
+    See [Mil2017]_ for more details on the algorithm.
 
     EXAMPLES:
 

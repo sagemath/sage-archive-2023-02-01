@@ -50,6 +50,12 @@ from sage.rings.integer import Integer
 
 def sets_from_colors(d):
     r"""
+    Return the list of sets of vertices of a coloring.
+
+    INPUT:
+
+    - ``d`` -- dictionary; a mapping from vertices to colors
+
     TESTS::
 
         sage: from sage.graphs.bipartite_graph import sets_from_colors
@@ -57,7 +63,7 @@ def sets_from_colors(d):
         [{0, 3, 6}, {1, 2}, {4}, {5}]
     """
     ans = defaultdict(set)
-    for k,v in iteritems(d):
+    for k, v in iteritems(d):
         ans[v].add(k)
     return list(ans.values())
 
@@ -418,7 +424,8 @@ class BipartiteGraph(Graph):
                 self.left = cols[0]
                 self.right = set()
             else:
-                self.left = self.right = set()
+                self.left = set()
+                self.right = set()
         else:
             import networkx
             Graph.__init__(self, data, *args, **kwds)
@@ -448,7 +455,8 @@ class BipartiteGraph(Graph):
                     self.left = cols[0]
                     self.right = set()
                 else:
-                    self.left = self.right = set()
+                    self.left = set()
+                    self.right = set()
 
         # restore vertex partition checking
         del self.add_vertex

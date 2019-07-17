@@ -931,7 +931,7 @@ class MatrixCompactRealForm(FinitelyGeneratedLieAlgebra):
     The compact real form of a matrix Lie algebra.
 
     Let `L` be a classical (i.e., type `ABCD`) Lie algebra over `\RR`
-    given as matrices that is invariant under matrix tranposes (i.e.,
+    given as matrices that is invariant under matrix transpose (i.e.,
     `X^T \in L` for all `X \in L`). Then we can perform the
     *Cartan decomposition* of `L` by `L = K \oplus S`, where `K`
     (resp. `S`) is the set of skew-symmetric (resp. symmetric) matrices
@@ -1136,7 +1136,6 @@ class MatrixCompactRealForm(FinitelyGeneratedLieAlgebra):
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             MS = self.parent()._MS
             R = PolynomialRing(MS.base_ring(), 'i')
-            MSi = MatrixSpace(R, MS.nrows(), MS.ncols())
             return repr(self._real + R.gen()*self._imag)
 
         def _latex_(self):
@@ -1160,7 +1159,6 @@ class MatrixCompactRealForm(FinitelyGeneratedLieAlgebra):
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             MS = self.parent()._MS
             R = PolynomialRing(MS.base_ring(), 'i')
-            MSi = MatrixSpace(R, MS.nrows(), MS.ncols())
             return latex(self._real + R.gen()*self._imag)
 
         def __bool__(self):

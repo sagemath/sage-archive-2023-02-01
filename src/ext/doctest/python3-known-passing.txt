@@ -21,7 +21,6 @@ src/sage/cpython/
 src/sage/data_structures/
 src/sage/databases/
 src/sage/docs/
-src/sage/doctest/tests/
 src/sage/dynamics/
 src/sage/ext/
 src/sage/features/

@@ -112,6 +112,7 @@ class SuffixTrie(SageObject):
             Suffix Trie of the word: ababbab
         """
         r = self._active_state
+        old_s = None
         # While r is not the auxiliary vertex, or
         # there is not transition from r along letter, ...
         while r != -1 and (r, letter) not in self._transition_function:

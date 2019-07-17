@@ -23836,7 +23836,7 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
 
     If the graph is a multigraph, it is translated to a non-multigraph,
     where each instance of multiple edges is converted to a single
-    edge labeled with a list ``[[label1, multiplicity], [label1,
+    edge labeled with a list ``[[label1, multiplicity], [label2,
     multiplicity], ...]`` describing how many edges of each label were
     originally there. Then in either case we are working on a graph
     without multiple edges. At this point, we create another

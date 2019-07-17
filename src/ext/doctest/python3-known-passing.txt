@@ -42,7 +42,6 @@ src/sage/lfunctions/
 src/sage/libs/arb/
 src/sage/libs/coxeter3/
 src/sage/libs/cremona/
-src/sage/libs/eclib/
 src/sage/libs/flint/
 src/sage/libs/gap/
 src/sage/libs/glpk/
@@ -67,7 +66,6 @@ src/sage/manifolds/
 src/sage/matrix/
 src/sage/matroids/
 src/sage/media/
-src/sage/misc/notes/
 src/sage/modular/
 src/sage/modules/
 src/sage/monoids/

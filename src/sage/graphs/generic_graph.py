@@ -23831,48 +23831,67 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
     Translates to a bipartite incidence-structure type graph appropriate for
     computing canonical labels of edge labeled and/or multi-edge graphs.
     Note that this is actually computationally equivalent to implementing a
-    change on an inner loop of the main algorithm- namely making the refinement
-    procedure sort for each label.
+    change on an inner loop of the main algorithm -- namely making the
+    refinement procedure sort for each label.
 
-    If the graph is a multigraph, it is translated to a non-multigraph, where
-    each edge is labeled with a list ``[[label1, multiplicity], [label1,
+    If the graph is a multigraph, it is translated to a non-multigraph,
+    where each instance of multiple edges is converted to a single
+    edge labeled with a list ``[[label1, multiplicity], [label1,
     multiplicity], ...]`` describing how many edges of each label were
-    originally there. Then in either case we are working on a graph without
-    multiple edges. At this point, we create another (bipartite) graph, whose
-    left vertices are the original vertices of the graph, and whose right
-    vertices represent the edges. We partition the left vertices as they were
-    originally, and the right vertices by common labels: only automorphisms
-    taking edges to like-labeled edges are allowed, and this additional
-    partition information enforces this on the bipartite graph.
+    originally there. Then in either case we are working on a graph
+    without multiple edges. At this point, we create another
+    (partially bipartite) graph, whose left vertices are the original
+    vertices of the graph, and whose right vertices represent the
+    labeled edges. Any unlabeled edges in the original graph are also
+    present in the new graph, and -- this is the bipartite aspect --
+    for every labeled edge `e` from `v` to `w` in the original graph,
+    there is an edge between the right vertex corresponding to `e` and
+    each of the left vertices corresponding to `v` and `w`. We
+    partition the left vertices as they were originally, and the right
+    vertices by common labels: only automorphisms taking edges to
+    like-labeled edges are allowed, and this additional partition
+    information enforces this on the new graph.
 
     INPUT:
 
     - ``g`` -- Graph or DiGraph
 
-    - ``partition`` -- list (default: ``None``); a partition of the vertices as
-      a list of lists of vertices. If given, the partition of the vertices is as
-      well relabeled
+    - ``partition`` -- list (default: ``None``); a partition of the
+      vertices as a list of lists of vertices. If given, the partition
+      of the vertices is as well relabeled
 
-    - ``standard_label`` -- (default: ``None``); the standard label is not
-      considered to be changed
+    - ``standard_label`` -- (default: ``None``); edges in ``g`` with
+      this label are preserved in the new graph
 
-    - ``return_relabeling`` -- boolean (default: ``False``); whether to return a
-      dictionary containing the relabeling
+    - ``return_relabeling`` -- boolean (default: ``False``); whether
+      to return a dictionary containing the relabeling
 
-    - ``return_edge_labels`` -- boolean (default: ``False``); whether the
-      different ``edge_labels`` are returned (useful if inplace is ``True``)
+    - ``return_edge_labels`` -- boolean (default: ``False``); whether
+      the different ``edge_labels`` are returned (useful if inplace is
+      ``True``)
 
-    - ``inplace`` -- boolean (default: ``False``); whether the input (di)graph
-      ``g`` is modified or the return a new (di)graph. Note that attributes of
-      ``g`` are *not* copied for speed issues, only edges and vertices.
+    - ``inplace`` -- boolean (default: ``False``); whether the input
+      (di)graph ``g`` is modified or the return a new (di)graph. Note
+      that attributes of ``g`` are *not* copied for speed issues, only
+      edges and vertices.
+
+    - ``ignore_edge_labels`` -- boolean (default: ``False``): if
+      ``True``, ignore edge labels, so when constructing the new
+      graph, only multiple edges are replaced with vertices. Labels on
+      multiple edges are ignored -- only the multiplicity is relevant,
+      so multiple edges with the same multiplicity in the original
+      graph correspond to right vertices in the same partition in the
+      new graph.
 
     OUTPUT:
 
-    - if ``inplace is False``: the unlabeled graph without multiple edges
+    - if ``inplace`` is ``False``: the unlabeled graph without
+      multiple edges
     - the partition of the vertices
-    - if ``return_relabeling is True``: a dictionary containing the relabeling
-    - if ``return_edge_labels is True``: the list of (former) edge labels is
-      returned
+    - if ``return_relabeling`` is ``True``: a dictionary containing
+      the relabeling
+    - if ``return_edge_labels`` is ``True``: the list of (former) edge
+      labels is returned
 
     EXAMPLES::
 
@@ -23906,6 +23925,27 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
         sage: G.edges(sort=True)
         [(0, 3, None), (1, 4, None), (2, 4, None), (2, 5, None), (3, 5, None)]
 
+        sage: G = Graph(multiedges=True,sparse=True)
+        sage: G.add_edges((0, 1) for i in range(10))
+        sage: G.add_edge(1, 2, 'a')
+        sage: G.add_edge(1, 3, 'b')
+        sage: G.add_edge(2, 3, 'b')
+        sage: graph_isom_equivalent_non_edge_labeled_graph(G)[0]
+        Graph on 8 vertices
+        sage: graph_isom_equivalent_non_edge_labeled_graph(G, ignore_edge_labels=True)[0]
+        Graph on 5 vertices
+
+        sage: G = Graph(multiedges=True,sparse=True)
+        sage: G.add_edges((0, 1, i) for i in range(5))
+        sage: G.add_edges((0, 2, i+10) for i in range(5))
+        sage: G.add_edges((0, 3) for i in range(4))
+        sage: g0 = graph_isom_equivalent_non_edge_labeled_graph(G)
+        sage: g1 = graph_isom_equivalent_non_edge_labeled_graph(G, ignore_edge_labels=True)
+        sage: g0
+        [Graph on 7 vertices, [[0, 1, 2, 3], [4], [5], [6]]]
+        sage: g1
+        [Graph on 7 vertices, [[0, 1, 2, 3], [6], [4, 5]]]
+
     TESTS:
 
     Ensure that :trac:`14108` is fixed::
@@ -23921,6 +23961,16 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
         sage: H.is_isomorphic(HH, edge_labels=True)
         False
 
+    Note that the new graph need not be bipartite::
+
+        sage: G = Graph(multiedges=True,sparse=True)
+        sage: G.add_edges((0, 1) for i in range(10))
+        sage: G.add_edge(1,2)
+        sage: G.add_edge(1,3)
+        sage: G.add_edge(2,3)
+        sage: g = graph_isom_equivalent_non_edge_labeled_graph(G)
+        sage: g[0].is_bipartite()
+        False
     """
     from sage.graphs.all import Graph, DiGraph
     from itertools import chain

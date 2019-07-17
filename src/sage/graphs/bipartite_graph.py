@@ -36,8 +36,7 @@ TESTS::
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 from six import iteritems
 from six.moves import range
@@ -59,13 +58,14 @@ def sets_from_colors(d):
     TESTS::
 
         sage: from sage.graphs.bipartite_graph import sets_from_colors
-        sage: sets_from_colors({0: 0, 1: 3, 2: 3, 3: 0, 4: 1, 5:2, 6: 0})
-        [{0, 3, 6}, {1, 2}, {4}, {5}]
+        sage: s = sets_from_colors({0: 0, 1: 3, 2: 3, 3: 0, 4: 1, 5: 2, 6: 0})
+        sage: s == {0: {0, 3, 6}, 1: {4}, 2: {5}, 3: {1, 2}}
+        True
     """
     ans = defaultdict(set)
     for k, v in iteritems(d):
         ans[v].add(k)
-    return list(ans.values())
+    return dict(ans)
 
 class BipartiteGraph(Graph):
     r"""
@@ -414,18 +414,7 @@ class BipartiteGraph(Graph):
             self.left, self.right = left, right
         elif isinstance(data, GenericGraph):
             Graph.__init__(self, data, *args, **kwds)
-            ans, certif = GenericGraph.is_bipartite(self, certificate=True)
-            if not ans:
-                raise ValueError("input graph is not bipartite")
-            cols = sets_from_colors(certif)
-            if len(cols) == 2:
-                self.left, self.right = cols
-            elif len(cols) == 1:
-                self.left = cols[0]
-                self.right = set()
-            else:
-                self.left = set()
-                self.right = set()
+            self._upgrade_from_graph()
         else:
             import networkx
             Graph.__init__(self, data, *args, **kwds)
@@ -445,18 +434,7 @@ class BipartiteGraph(Graph):
                                 "assumption (is not 'Top' or 'Bottom')")
             # make sure we found a bipartition
             if not (hasattr(self, "left") and hasattr(self, "right")):
-                ans, certif = GenericGraph.is_bipartite(self, certificate=True)
-                if not ans:
-                    raise ValueError("input graph is not bipartite")
-                cols = sets_from_colors(certif)
-                if len(cols) == 2:
-                    self.left, self.right = cols
-                elif len(cols) == 1:
-                    self.left = cols[0]
-                    self.right = set()
-                else:
-                    self.left = set()
-                    self.right = set()
+                self._upgrade_from_graph()
 
         # restore vertex partition checking
         del self.add_vertex
@@ -468,6 +446,21 @@ class BipartiteGraph(Graph):
             self.load_afile(data)
 
         return
+
+    def _upgrade_from_graph(self):
+        ans, certif = GenericGraph.is_bipartite(self, certificate=True)
+        if not ans:
+            raise ValueError("input graph is not bipartite")
+        cols = sets_from_colors(certif)
+        if len(cols) == 2:
+            self.left = cols[1]
+            self.right = cols[0]
+        elif len(cols) == 1:
+            self.left = cols[1]
+            self.right = set()
+        else:
+            self.left = set()
+            self.right = set()
 
     def __repr__(self):
         r"""

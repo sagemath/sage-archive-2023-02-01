@@ -10,6 +10,7 @@ Basic Coding Theory objects
 .. toctree::
    :maxdepth: 1
 
+   sage/coding/abstract_code
    sage/coding/linear_code
    sage/coding/channel_constructions
    sage/coding/decoder

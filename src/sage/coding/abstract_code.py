@@ -1,5 +1,5 @@
 r"""
-Generic structures for codes
+Base class for Codes
 
 Class supporting methods available for any type of code (linear, non-linear) and
 over any metric (Hamming, rank).
@@ -19,8 +19,6 @@ from sage.misc.sageinspect import sage_getargspec
 
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 
-
-#TODO: credits?
 
 def _explain_constructor(cl):
     r"""

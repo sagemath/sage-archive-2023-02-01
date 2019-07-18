@@ -142,7 +142,7 @@ REFERENCES:
 .. [GR2018v5sol] Darij Grinberg, Victor Reiner.
    *Hopf Algebras In Combinatorics*,
    :arXiv:`1409.8356v5`, available with solutions at
-   :url:`https://arxiv.org/src/1409.8356v5/anc/HopfComb-v73-with-solutions.pdf`.
+   https://arxiv.org/src/1409.8356v5/anc/HopfComb-v73-with-solutions.pdf
 """
 
 # *****************************************************************************
@@ -2002,6 +2002,10 @@ def RSK(obj1=None, obj2=None, insertion=InsertionRules.RSK, check_standard=False
       - ``RSK.rules.Hecke`` (or ``'hecke'``) -- Hecke insertion (only
         guaranteed for generalized permutations whose top row is strictly
         increasing) (:class:`~sage.combinat.rsk.RuleHecke`)
+      - ``RSK.rules.dualRSK`` (or ``'dualRSK'``) -- Dual RSK insertion 
+        (only for strict biwords) (:class:`~sage.combinat.rsk.RuleDualRSK`)
+      - ``RSK.rules.coRSK`` (or ``'coRSK'``) -- CoRSK insertion (only 
+        for strict cobiwords) (:class:`~sage.combinat.rsk.RuleCoRSK`)
 
     - ``check_standard`` -- (default: ``False``) check if either of the
       resulting tableaux is a standard tableau, and if so, typecast it
@@ -2150,6 +2154,10 @@ def RSK_inverse(p, q, output='array', insertion=InsertionRules.RSK):
       - ``RSK.rules.Hecke`` (or ``'hecke'``) -- Hecke insertion (only
         guaranteed for generalized permutations whose top row is strictly
         increasing) (:class:`~sage.combinat.rsk.RuleHecke`)
+      - ``RSK.rules.dualRSK`` (or ``'dualRSK'``) -- Dual RSK insertion 
+        (only for strict biwords) (:class:`~sage.combinat.rsk.RuleDualRSK`)
+      - ``RSK.rules.coRSK`` (or ``'coRSK'``) -- CoRSK insertion (only 
+        for strict cobiwords) (:class:`~sage.combinat.rsk.RuleCoRSK`)
 
     For precise information about constraints on the input and
     output, see the particular :class:`~sage.combinat.rsk.Rule` class.

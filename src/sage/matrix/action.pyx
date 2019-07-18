@@ -65,15 +65,9 @@ import operator
 
 from .matrix_space import MatrixSpace, is_MatrixSpace
 from sage.modules.free_module import FreeModule, is_FreeModule
-<<<<<<< HEAD
 from sage.structure.coerce cimport coercion_model
 from sage.categories.homset import Hom, End
-from sage.schemes.generic.homset import SchemeHomset_generic
-=======
-from sage.structure.element cimport coercion_model
-from sage.categories.homset import Hom, End 
 from sage.schemes.generic.homset import SchemeHomset_generic, SchemeHomset_points
->>>>>>> adfc69204b75d0ba2f5e3ebe6b50fb0b45d732d6
 
 
 cdef class MatrixMulAction(Action):

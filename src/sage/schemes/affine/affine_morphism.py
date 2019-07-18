@@ -713,6 +713,127 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         self.__jacobian = jacobian(list(self),self.domain().ambient_space().gens())
         return self.__jacobian
 
+    def multiplier(self, P, n, check=True):
+        """
+        Return the multiplier of the point.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: H = End(A)
+            sage: f = H([x^2, y^2])
+            sage: f.multiplier(A([1, 1]), 1)
+            doctest:warning
+            ...
+            [2 0]
+            [0 2]
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.affine_ds.multiplier instead")
+        return self.as_dynamical_system().multiplier(P, n, check)
+
+    def _matrix_times_polymap_(self, mat, h):
+        """
+        Multiplies the morphism on the left by a matrix ``mat``.
+
+        INPUT:
+
+        - ``mat`` -- a matrix
+
+        OUTPUT: a scheme morphism given by ``self*mat``
+
+        EXAMPLES::
+
+            sage: A.<x> = AffineSpace(ZZ, 1)
+            sage: H = Hom(A, A)
+            sage: f = H([x^2 + 1])
+            sage: matrix([[1,2], [0,1]]) * f
+            Scheme endomorphism of Affine Space of dimension 1 over Integer Ring
+              Defn: Defined on coordinates by sending (x) to
+                    (x^2 + 3)
+
+        ::
+
+            sage: A1 = AffineSpace(ZZ,1)
+            sage: A2 = AffineSpace(ZZ,2)
+            sage: H = Hom(A1, A2)
+            sage: f = H([x^2+1,x^2-1])
+            sage: matrix([[1,2,3], [0,1,2], [0,0,1]]) * f
+            Scheme morphism:
+              From: Affine Space of dimension 1 over Integer Ring
+              To:   Affine Space of dimension 2 over Integer Ring
+              Defn: Defined on coordinates by sending (x) to
+                    (3*x^2 + 2, x^2 + 1)
+        """
+        if not mat.is_square():
+            raise ValueError("matrix must be square")
+        if mat.ncols() != self.codomain().ngens() + 1:
+            raise ValueError("the size of the matrix must be n + 1, where n is the dimension of the codomain")
+        if self.is_endomorphism():
+            d = self.domain().ngens()
+        else:
+            d = (self.domain().ngens(),self.codomain().ngens())
+        f = mat*self.homogenize(d)
+        return f.dehomogenize(d)
+
+    def _polymap_times_matrix_(self, mat, h):
+        """
+        Multiplies the morphism on the right by a matrix ``mat``.
+
+        INPUT:
+
+        - ``mat`` -- a matrix
+
+        OUTPUT: a scheme morphism given by ``mat*self``
+
+        EXAMPLES::
+
+            sage: A.<x> = AffineSpace(ZZ, 1)
+            sage: H = Hom(A, A)
+            sage: f = H([x^2 + 1])
+            sage: f * matrix([[1,2], [0,1]])
+            Scheme endomorphism of Affine Space of dimension 1 over Integer Ring
+              Defn: Defined on coordinates by sending (x) to
+                    (x^2 + 4*x + 5)
+
+        ::
+
+            sage: A1 = AffineSpace(ZZ,1)
+            sage: A2 = AffineSpace(ZZ,2)
+            sage: H = Hom(A1, A2)
+            sage: f = H([x^2+1,x^2-1])
+            sage: f * matrix([[1,2], [0,1]])
+            Scheme morphism:
+              From: Affine Space of dimension 1 over Integer Ring
+              To:   Affine Space of dimension 2 over Integer Ring
+              Defn: Defined on coordinates by sending (x) to
+                    (x^2 + 4*x + 5, x^2 + 4*x + 3)
+
+        ::
+
+            sage: P.<x, y> = AffineSpace(QQ, 2)
+            sage: P2.<u,v,w> = AffineSpace(QQ,3)
+            sage: H = Hom(P2, P)
+            sage: f = H([u^2 + v^2, w^2])
+            sage: m = matrix([[1,1,1], [1,0,1],[0,0,1]])
+            sage: m*f
+            Scheme morphism:
+              From: Affine Space of dimension 3 over Rational Field
+              To:   Affine Space of dimension 2 over Rational Field
+              Defn: Defined on coordinates by sending (x0, x1, x2) to
+                    (x0^2 + x1^2 + x2^2 + 1, x0^2 + x1^2 + 1)
+        """
+        if not mat.is_square():
+            raise ValueError("matrix must be square")
+        if mat.nrows() != self.domain().ngens() + 1:
+            raise ValueError("the size of the matrix must be n + 1, where n is the dimension of the domain")
+        if self.is_endomorphism():
+            d = self.domain().ngens()
+        else:
+            d = (self.domain().ngens(),self.codomain().ngens())
+        f = self.homogenize(d)*mat
+        return f.dehomogenize(d)
+
 class SchemeMorphism_polynomial_affine_space_field(SchemeMorphism_polynomial_affine_space):
 
     @cached_method

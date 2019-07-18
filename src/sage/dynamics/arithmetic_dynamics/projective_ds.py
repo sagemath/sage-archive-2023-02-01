@@ -4469,7 +4469,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         kwds:
         
-        - ``ring`` -- (default: domain of dynamical system) the base ring
+        - ``R`` -- (default: domain of dynamical system) the base ring
           over which the periodic points of the dynamical system are found
         
         - ``prime_bound`` -- (default: ``[1,20]``) a pair (list or tuple)
@@ -4534,8 +4534,17 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             Traceback (most recent call last):
             ...
             NotImplementedError: rational periodic points for number fields only implemented for polynomials
+
+        ::
+
+            sage: P.<x,y>=ProjectiveSpace(QQ,1)
+            sage: K.<v>=QuadraticField(5)
+            sage: phi = QQ.embeddings(K)[0]
+            sage: f=DynamicalSystem_projective([x^2-y^2,y^2])
+            sage: f.all_periodic_points(R=phi)
+            [(0 : 1), (1/2*v + 1/2 : 1), (1 : 0), (-1 : 1), (-1/2*v + 1/2 : 1)]
         """
-        ring = kwds.pop("ring", None)
+        ring = kwds.pop("R", None)
         if not ring is None:
             DS = self.change_ring(ring)
         else:

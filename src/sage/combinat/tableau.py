@@ -4970,15 +4970,6 @@ class StandardTableau(SemistandardTableau):
             n = self.size() - 1
         return StandardTableau(Tableau(self[:]).promotion(n))
 
-class PrimedTableau(Tableau):
-
-    def __init__(self, parent, t):
-        # Check the entries of t are Primed Entries
-        from sage.combinat.shifted_primed_tableau import PrimedEntry
-        for row in t:
-            if not all(isinstance(c, PrimedEntry) for c in row):
-                raise ValueError("the entries of a primed tableau must be PrimedEntry")
-        return super(PrimedTableau, self).__init__(self, parent, t)
 
 class SemistandardSuperTableau(Tableau):
     """
@@ -5108,6 +5099,43 @@ class SemistandardSuperTableau(Tableau):
             for row in self:
                 if not all(row[c] < row[c+1] for c in range(len(row)-1) if (row[c].is_primed() or row[c+1].is_primed())):
                     raise ValueError("the primed entries in each row must be strictly increasing")
+
+
+class StandardSuperTableau(SemistandardSuperTableau):
+    r"""
+
+    """
+    @staticmethod
+    def __classcall_private__(self, t):
+        r"""
+        """
+        if isinstance(t, StandardSuperTableau):
+            return t
+
+        return StandardSuperTableaux_all().element_class(StandardSuperTableaux_all(), t)
+
+    def check(self):
+        r"""
+        """
+        from sage.combinat.shifted_primed_tableau import PrimedEntry
+        super(StandardSuperTableau, self).check()
+        # t is semistandard so we only need to check
+        # that its entries are in bijection with {1',1,2', 2, ..., n}
+        flattened_list = [i for row in self for i in row]
+        a = PrimedEntry('1p')
+        primed_list = []
+        for i in range(len(flattened_list)):
+            primed_list.append(a)
+            a = a.increase_half()
+        if sorted(flattened_list) != primed_list:
+            raise ValueError("the entries in a standard tableau must be in bijection with 1',1,2',2,...,n")
+
+    def is_standard(self):
+        """
+        Return ``True`` since ``self`` is a standard super tableau.
+        """
+        return True
+
 
 def from_chain(chain):
     """
@@ -9559,15 +9587,11 @@ class SemistandardSuperTableaux(Tableaux):
 
     INPUT:
 
-    - either a non-negative integer (possibly specified with the keyword
-      ``n``) or a partition
+    - A non-negative integer (possibly specified with the keyword ``n``)
 
     OUTPUT:
 
     - with no argument, the class of all semistandard super tableaux
-
-    - with a non-negative integer argument, ``n``, the class of all 
-      semistandard super tableaux of size ``n``
 
     A semistandard super tableau is a tableau whose entries are primed positive 
     integers, which are weakly increasing in rows and down columns as a whole 
@@ -9612,10 +9636,11 @@ class SemistandardSuperTableaux(Tableaux):
             for row, next in zip(x, x[1:]):
                 if any(row[c] > next[c] for c in range(len(next))):
                     return False
-                if not all(row[c] < next_[c] for c in range(len(next_)) if (row[c].is_unprimed() or next_[c].is_unprimed())):
+                if not all(row[c] < next[c] for c in range(len(next)) if (row[c].is_unprimed() or next[c].is_unprimed())):
                     return False
         else:
             return False
+
 
 class SemistandardSuperTableaux_all(SemistandardSuperTableaux):
     """
@@ -9647,6 +9672,96 @@ class SemistandardSuperTableaux_all(SemistandardSuperTableaux):
         """
         return "Semistandard super tableaux"
 
+
+################################
+# Standard Super tableaux #
+################################
+class StandardSuperTableaux(Tableaux):
+    r"""
+    A factory class for the various classes of standard super tableaux.
+
+    INPUT:
+
+    - A non-negative integer (possibly specified with the keyword ``n``)
+
+    OUTPUT:
+
+    - with no argument, the class of all standard super tableaux
+
+    A standard super tableau is a tableau whose entries are primed positive 
+    integers, which are strictly increasing in rows and down columns and 
+    contains each letters from 1',1,2'...n exactly once.
+
+    EXAMPLES::
+
+    """
+    @staticmethod
+    def __classcall_private__(cls, *args, **kwargs):
+        r"""
+
+        """
+        if args:
+            n = args[0]
+        elif 'n' in kwargs:
+            n = kwargs[n]
+        else:
+            n = None
+
+        if n is None:
+            return StandardSuperTableaux_all()
+
+    Element = StandardSuperTableau
+
+    def __contains__(self, x):
+        """
+        """
+        if isinstance(x, StandardSuperTableau):
+            return True
+        elif Tableaux.__contains__(self, x):
+            flattened_list = [i for row in x for i in row]
+            a = PrimedEntry('1p')
+            primed_list = []
+            for i in range(len(flattened_list)):
+                primed_list.append(a)
+                a = a.increase_half()
+            return sorted(flattened_list) == primed_list and (len(x)==0 or
+                     (all(row[i]<row[i+1] for row in x for i in range(len(row)-1)) and
+                       all(x[r][c]<x[r+1][c] for r in range(len(x)-1)
+                                              for c in range(len(x[r+1])) )
+                     ))
+        else:
+            return False
+
+
+class StandardSuperTableaux_all(StandardSuperTableaux):
+    """
+    All standard super tableaux.
+    """
+    def __init__(self):
+        r"""
+        Initializes the class of all standard super tableaux.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`StandardSuperTableaux` 
+            to ensure the options are properly parsed.
+
+        TESTS::
+
+            sage: ST = StandardSuperTableaux()
+            sage: TestSuite(ST).run()
+        """
+        Parent.__init__(self, category=InfiniteEnumeratedSets())
+        StandardSuperTableaux.__init__(self)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: repr(StandardSuperTableaux())    # indirect doctest
+            'Standard super tableaux'
+        """
+        return "Standard super tableaux"
 
 # October 2012: fixing outdated pickles which use classed being deprecated
 from sage.misc.persist import register_unpickle_override

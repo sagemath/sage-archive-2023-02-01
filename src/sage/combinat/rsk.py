@@ -2264,13 +2264,10 @@ class RuleSuperRSK(RuleRSK):
                         q.append([i])
                         break
                     else:
-                        # retrieve row
-                        r = p[row_index]
-                        qr = q[row_index]
-                        j1, col_index = self.insertion(j, r, epsilon=epsilon)
+                        j1, col_index = self.insertion(j, p[row_index], epsilon=epsilon)
                         if j1 is None:
-                            r.append(j)
-                            qr.append(i)
+                            p[row_index].append(j)
+                            q[row_index].append(i)
                             break
                         else:
                             j = j1
@@ -2278,29 +2275,24 @@ class RuleSuperRSK(RuleRSK):
                 else:
                     # column insertion
                     col_index += 1
-                    if len(p) == 0:
-                        # empty case
-                        p.append([])
-                        q.append([])
-                    if col_index == len(p[0]):
-                        p[0].append(j)
-                        q[0].append(i)
+                    if len(p) == 0 or col_index == len(p[0]):
+                        self._set_col(p, col_index, [j])
+                        self._set_col(q, col_index, [i])
                         break
                     else:
                         # retrieve column
                         c = self._get_col(p, col_index)
-                        qc = self._get_col(q, col_index)
                         j1, row_index = self.insertion(j, c, epsilon=epsilon)
                         if j1 is None:
                             c.append(j)
-                            qc.append(i)
                             self._set_col(p, col_index, c)
-                            self._set_col(q, col_index, qc)
+                            if col_index == 0:
+                                q.append([])
+                            q[row_index].append(i)
                             break
                         else:
                             j = j1
                         self._set_col(p, col_index, c)
-                        self._set_col(q, col_index, qc)
         return self._forward_format_output(p, q, check_standard=check_standard)
 
     def insertion(self, j, r, epsilon=0):
@@ -2346,7 +2338,7 @@ class RuleSuperRSK(RuleRSK):
         bisect = bisect_right if epsilon == 0 else bisect_left
 
         if (r[-1] < j) or (r[-1] == j and epsilon == 0):
-            return None, None # j needs to be added at the end of the list r.
+            return None, len(r) # j needs to be added at the end of the list r.
         # Figure out where to insert j into the list r. The
         # bisect command returns the position of the least
         # element of r greater than j.  We will call it y.
@@ -2365,10 +2357,10 @@ class RuleSuperRSK(RuleRSK):
 
             sage: from sage.combinat.rsk import RuleSuperRSK
             sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
-            sage: from sage.combinat.tableau import SemistandardSuperTableau
+            sage: from sage.combinat.tableau import SemistandardSuperTableau, StandardSuperTableau
             sage: isinstance(RuleSuperRSK()._forward_format_output([[
-            ....:     PrimedEntry(1), PrimedEntry('2p'), PrimedEntry(3)]],
-            ....:     [[PrimedEntry(1), PrimedEntry(2), PrimedEntry(3)]], 
+            ....:     PrimedEntry('1p'), PrimedEntry(1), PrimedEntry('2p')]],
+            ....:     [[PrimedEntry('1p'), PrimedEntry('1'), PrimedEntry('2p')]], 
             ....:     True)[0], StandardSuperTableau)
             True
             sage: isinstance(RuleSuperRSK()._forward_format_output([[
@@ -2382,10 +2374,20 @@ class RuleSuperRSK(RuleRSK):
             ....:     True)[0], SemistandardSuperTableau)
             True
         """
-        from sage.combinat.tableau import SemistandardSuperTableau, StandardTableau
+        from sage.combinat.tableau import SemistandardSuperTableau, StandardTableau, StandardSuperTableau
 
         if len(p) == 0:
             return [StandardTableau([]), StandardTableau([])]
+        if check_standard:
+            try:
+                P = StandardSuperTableau(p)
+            except ValueError:
+                P = SemistandardSuperTableau(p)
+            try:
+                Q = StandardSuperTableau(q)
+            except ValueError:
+                Q = SemistandardSuperTableau(q)
+            return [P, Q]
         return [SemistandardSuperTableau(p), SemistandardSuperTableau(q)]
 
     def backward_rule(self, p, q, output='array'):
@@ -2446,38 +2448,26 @@ class RuleSuperRSK(RuleRSK):
             if epsilon == 1:
                 iter_dict = {v: k for k, v in iter_dict.iteritems()}
             for key in sorted(iter_dict, reverse=True):
-                
-                i = iter_dict[key]
-                if epsilon == 1:
-                    x = p_copy[key].pop() # Always the right-most entry
-                    row_index = key
-                    col_index = i
-                else:
-                    x = p_copy[i].pop() # Always the right-most entry
-                    row_index = i
-                    col_index = key
+                row_index, col_index = (iter_dict[key], key) if epsilon == 0 else (key, iter_dict[key])
+                x = p_copy[row_index].pop() # Always the right-most entry
                 while True:
                     if value.is_primed() == x.is_primed():
                         # row bumping
                         row_index -= 1
                         if row_index < 0:
-                            upper_row.append(value)
-                            lower_row.append(x)
                             break
-                        else:
-                            x, col_index = self.reverse_insertion(x, p_copy[row_index], epsilon=epsilon)
+                        x, col_index = self.reverse_insertion(x, p_copy[row_index], epsilon=epsilon)
                     
                     else:
                         # column bumping
                         col_index -= 1
                         if col_index < 0:
-                            upper_row.append(value)
-                            lower_row.append(x)
                             break
-                        else:
-                            c = self._get_col(p_copy, col_index)
-                            x, row_index = self.reverse_insertion(x, c, epsilon=epsilon)
-                            self._set_col(p_copy, col_index, c)
+                        c = self._get_col(p_copy, col_index)
+                        x, row_index = self.reverse_insertion(x, c, epsilon=epsilon)
+                        self._set_col(p_copy, col_index, c)
+                upper_row.append(value)
+                lower_row.append(x)
         return self._backward_format_output(lower_row, upper_row, output, p.is_standard(), q.is_standard())
 
     def reverse_insertion(self, x, row, epsilon=0):

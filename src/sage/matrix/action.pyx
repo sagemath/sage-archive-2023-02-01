@@ -559,7 +559,7 @@ cdef class MatrixSchemePointAction(MatrixMulAction):
         amb = self.underlying_set().codomain()
         return amb.change_ring(base)(base)
 
-    cpdef _call_(self, mat, P):
+    cpdef _act_(self, mat, P):
         """
         Action of matrices on scheme points.
 
@@ -571,7 +571,7 @@ cdef class MatrixSchemePointAction(MatrixMulAction):
             sage: M = MatrixSpace(QQ, 2, 2)
             sage: A = MatrixSchemePointAction(M, Q.parent())
             sage: m = matrix([[1,1], [0,1]])
-            sage: A._call_(m, Q)
+            sage: A._act_(m, Q)
             (2 : 1)
         """
         return P._matrix_times_point_(mat, self._codomain)

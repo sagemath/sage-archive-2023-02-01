@@ -374,7 +374,7 @@ cdef class VectorMatrixAction(MatrixMulAction):
                 v = v.dense_vector()
         return (<Matrix>A)._vector_times_matrix_(v) # v * A
 
-cdef class MatrixPolymapAction(MatrixMulAction):"
+cdef class MatrixPolymapAction(MatrixMulAction):
     """
     Left action of a matrix on a scheme polynomial morphism
     """

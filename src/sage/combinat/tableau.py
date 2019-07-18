@@ -4428,21 +4428,8 @@ class SemistandardTableau(Tableau):
         """
         if isinstance(t, SemistandardTableau):
             return t
-        # elif t in SemistandardTableaux():
-        return SemistandardTableaux_all().element_class(SemistandardTableaux_all(), t)
-
-        # t is not a semistandard tableau so we give an appropriate error message
-        # if t not in Tableaux():
-        #     raise ValueError('%s is not a tableau' % t)
-
-        # if not all(isinstance(c, (int, Integer)) and c > 0 for row in t for c in row):
-        #     raise ValueError("entries must be positive integers"%t)
-
-        # if any(row[c] > row[c+1] for row in t for c in range(len(row)-1)):
-        #     raise ValueError("The rows of %s are not weakly increasing"%t)
-
-        # # If we're still here ``t`` cannot be column strict
-        # raise ValueError('%s is not a column strict tableau' % t)
+        elif t in SemistandardTableaux():
+            return SemistandardTableaux_all().element_class(SemistandardTableaux_all(), t)
 
     def check(self):
         """
@@ -5029,7 +5016,7 @@ class SemistandardSuperTableau(Tableau):
     #     Semistandard tableaux of size 3 and maximum entry 3
     """
     @staticmethod
-    def __classcall_private__(self, t):
+    def __classcall_private__(cls, t):
         r"""
         This ensures that a SemistandardSuperTableau is only ever constructed 
         as an element_class call of an appropriate parent.
@@ -5048,10 +5035,56 @@ class SemistandardSuperTableau(Tableau):
         """
         from sage.combinat.shifted_primed_tableau import PrimedEntry
 
-        if isinstance(t, SemistandardSuperTableau):
+        if isinstance(t, cls):
             return t
+
+        # We must verify ``t`` is a list of iterables, and also
+        # normalize it to be a list of tuples.
+        try:
+            t = [tuple(_) for _ in t]
+        except TypeError:
+            raise ValueError("A tableau must be a list of iterables.")
+
         return SemistandardSuperTableaux_all().element_class(SemistandardSuperTableaux_all(), t)
 
+    def __init__(self, parent, t, check=True, preprocessed=False):
+        r"""
+        """
+        if not preprocessed:
+            t = self._preprocess(t)
+        super(SemistandardSuperTableau, self).__init__(parent, t, check=check)
+
+    @staticmethod
+    def _preprocess(t):
+        """
+        Preprocessing list ``T`` to initialize the tableau.
+        The output is a list of rows as tuples, with entries being
+        ``PrimedEntry``s.
+
+        Trailing empty rows are removed.
+
+        TESTS::
+
+            sage: ShiftedPrimedTableau._preprocess([["2'", "3p", 3.5]],
+            ....: skew=[1])
+            [(None, 2', 3', 4')]
+            sage: ShiftedPrimedTableau._preprocess([[None]], skew=[1])
+            [(None,)]
+            sage: ShiftedPrimedTableau._preprocess([], skew=[2,1])
+            [(None, None), (None,)]
+            sage: ShiftedPrimedTableau._preprocess([], skew=[])
+            []
+        """
+        from sage.combinat.shifted_primed_tableau import PrimedEntry
+        if isinstance(t, SemistandardSuperTableau):
+            return t
+        # Preprocessing list t for primes and other symbols
+        t = [[PrimedEntry(entry) for entry in row if entry is not None]
+             for row in t]
+        while len(t) > 0 and len(t[-1]) == 0:
+            t = t[:-1]
+        return t
+    
     def check(self):
         """
         Check that ``self`` is a valid semistandard super tableau.
@@ -9606,19 +9639,11 @@ class SemistandardSuperTableaux(Tableaux):
 
     """
     @staticmethod
-    def __classcall_private__(cls, *args, **kwargs):
+    def __classcall_private__(cls):
         r"""
 
         """
-        if args:
-            n = args[0]
-        elif 'n' in kwargs:
-            n = kwargs[n]
-        else:
-            n = None
-
-        if n is None:
-            return SemistandardSuperTableaux_all()
+        return SemistandardSuperTableaux_all()
 
     Element = SemistandardSuperTableau
 

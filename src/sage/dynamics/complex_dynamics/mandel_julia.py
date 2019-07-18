@@ -38,6 +38,11 @@ from sage.dynamics.complex_dynamics.mandel_julia_helper import (fast_mandelbrot_
                                                                 polynomial_mandelbrot,
                                                                 julia_helper)
 from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem
+from sagenb.notebook.interact import (interact,
+                                      slider,
+                                      input_box,
+                                      color_selector,
+                                      checkbox)
 from sage.plot.colors import Color
 from sage.repl.image import Image
 from sage.functions.log import logb
@@ -77,15 +82,15 @@ def mandelbrot_plot(f=None, **kwds):
     in the complex plane.
 
     - ``max_iteration`` -- long (optional - default: ``500``), maximum number of
-    iterations the map ``Q_c(z)``.
+    iterations the map ``f_c(z)``.
 
     - ``pixel_count`` -- long (optional - default: ``500``), side length of
     image in number of pixels.
 
-    - ``base_color`` -- RGB color (optional - default: ``[40, 40, 40]``) color
+    - ``base_color`` -- Hex color (optional - default: ``tomato``) color
     used to determine the coloring of set.
 
-    - ``iteration_level`` -- long (optional - default: 1) number of iterations
+    - ``level_sep`` -- long (optional - default: 1) number of iterations
     between each color level.
 
     - ``number_of_colors`` -- long (optional - default: 30) number of colors
@@ -120,7 +125,7 @@ def mandelbrot_plot(f=None, **kwds):
     ``interact`` to ``True``. (This is only implemented for ``z^2 + c``)::
 
         sage: mandelbrot_plot(interact=True)
-        interactive(children=(FloatSlider(value=-1.0, description=u'Real center'...
+        <html>...</html>
 
     ::
 
@@ -165,11 +170,10 @@ def mandelbrot_plot(f=None, **kwds):
     image_width = kwds.pop("image_width", 4.0)
     max_iteration = kwds.pop("max_iteration", None)
     pixel_count = kwds.pop("pixel_count", 500)
-    base_color = kwds.pop("base_color", [40, 40, 40])
-    iteration_level = kwds.pop("iteration_level", 1)
+    level_sep = kwds.pop("level_sep", 1)
     number_of_colors = kwds.pop("number_of_colors", 30)
     interacts = kwds.pop("interact", False)
-
+    base_color = kwds.pop("base_color", Color('tomato'))
     # Check if user specified maximum number of iterations
     given_iterations = True
     if max_iteration is None:
@@ -177,26 +181,35 @@ def mandelbrot_plot(f=None, **kwds):
         max_iteration = 500
         given_iterations = False
 
-
+    from ipywidgets.widgets import FloatSlider, IntSlider, ColorPicker, interact
+    widgets = dict(
+                   x_center = FloatSlider(min=-1.0, max=1.0, step=EPS,
+                                          value=x_center, description="Real center"),
+                   y_center = FloatSlider(min=-1.0, max=1.0, step=EPS,
+                                          value=y_center, description="Imag center"),
+                   image_width = FloatSlider(min=EPS, max=4.0, step=EPS,
+                                             value=image_width, description="Zoom"),
+                   max_iteration = IntSlider(min=0, max=600,
+                                             value=max_iteration, description="Iterations"),
+                   pixel_count = IntSlider(min=10, max=600,
+                                           value=pixel_count, description="Pixels"),
+                   level_sep = IntSlider(min=1, max=20,
+                                         value=level_sep, description="Color sep"),
+                   color_num = IntSlider(min=1, max=100,
+                                         value=number_of_colors, description="# Colors"),
+                   base_color = ColorPicker(value=Color(base_color).html_color(),
+                                            description="Base color"),
+                   )
+            
     if f is None:
         # Quadratic map f = z^2 + c
+        
         if interacts:
-            @interact(layout={'bottom':[['real_center'], ['im_center'], ['width']],
-             'top':[['iterations'], ['level_sep'], ['color_num'], ['image_color']]})
-            def _(real_center=input_box(x_center, 'Real'),
-                im_center=input_box(y_center, 'Imaginary'),
-                width=input_box(image_width, 'Width of Image'),
-                iterations=input_box(max_iteration, 'Max Number of Iterations'),
-                level_sep=input_box(iteration_level, 'Iterations between Colors'),
-                color_num=input_box(number_of_colors, 'Number of Colors'),
-                image_color=color_selector(default=Color([j/255 for j in base_color]),
-                 label="Image Color", hide_box=True)):
-                return fast_mandelbrot_plot(real_center, im_center, width,
-                 iterations, pixel_count, level_sep, color_num, image_color).show()
-
+            return interact(**widgets).widget(fast_mandelbrot_plot)
+        
         else:
             return fast_mandelbrot_plot(x_center, y_center, image_width,
-             max_iteration, pixel_count, iteration_level, number_of_colors,
+             max_iteration, pixel_count, level_sep, number_of_colors,
              base_color)
 
     else:
@@ -221,22 +234,11 @@ def mandelbrot_plot(f=None, **kwds):
         if f == variable**2 + parameter:
             # Quadratic map f = z^2 + c
             if interacts:
-                @interact(layout={'bottom':[['real_center'], ['im_center'], ['width']],
-                 'top':[['iterations'], ['level_sep'], ['color_num'], ['image_color']]})
-                def _(real_center=input_box(x_center, 'Real'),
-                    im_center=input_box(y_center, 'Imaginary'),
-                    width=input_box(image_width, 'Width of Image'),
-                    iterations=input_box(max_iteration, 'Max Number of Iterations'),
-                    level_sep=input_box(iteration_level, 'Iterations between Colors'),
-                    color_num=input_box(number_of_colors, 'Number of Colors'),
-                    image_color=color_selector(default=Color([j/255 for j in base_color]),
-                     label="Image Color", hide_box=True)):
-                    return fast_mandelbrot_plot(real_center, im_center, width,
-                     iterations, pixel_count, level_sep, color_num, image_color).show()
+                return interact(**widgets).widget(fast_mandelbrot_plot)
 
             else:
                 return fast_mandelbrot_plot(x_center, y_center, image_width,
-                 max_iteration, pixel_count, iteration_level, number_of_colors,
+                 max_iteration, pixel_count, level_sep, number_of_colors,
                  base_color)
         else:
             if interacts:
@@ -249,7 +251,7 @@ def mandelbrot_plot(f=None, **kwds):
 
                 # Mandelbrot of General Polynomial Map
                 return polynomial_mandelbrot(f, parameter, x_center, y_center, \
-                 image_width, max_iteration, pixel_count, iteration_level, \
+                 image_width, max_iteration, pixel_count, level_sep, \
                  number_of_colors, base_color)
 
 def external_ray(theta, **kwds):
@@ -352,7 +354,6 @@ def external_ray(theta, **kwds):
         image = mandelbrot_plot(x_center=x_0, **kwds)
 
     # Make a copy of the bitmap image.
-    # M = copy(image)
     old_pixel = image.pixels()
     M = Image('RGB', (pixel_width, pixel_width))
     pixel = M.pixels()
@@ -407,7 +408,7 @@ def julia_plot(c=-1,
                max_iteration=500,
                pixel_count=500,
                base_color='steelblue',
-               iteration_level=1,
+               level_sep=1,
                number_of_colors=50,
                point_color='yellow',
                interact=False,
@@ -463,10 +464,10 @@ def julia_plot(c=-1,
     - ``pixel_count`` -- long (optional - default: ``500``), side length of
       image in number of pixels.
 
-    - ``base_color`` -- RGB color (optional - default: ``'steelblue'``), color
+    - ``base_color`` -- hex color (optional - default: ``'steelblue'``), color
       used to determine the coloring of set (any valid input for Color).
 
-    - ``iteration_level`` -- long (optional - default: 1), number of iterations
+    - ``level_sep`` -- long (optional - default: 1), number of iterations
       between each color level.
 
     - ``number_of_colors`` -- long (optional - default: 30), number of colors
@@ -540,13 +541,13 @@ def julia_plot(c=-1,
             y_center = FloatSlider(min=-1.0, max=1.0, step=EPS,
                                    value=y_center, description="Imag center"),
             image_width = FloatSlider(min=EPS, max=4.0, step=EPS,
-                                      value=image_width, description="Image width"),
+                                      value=image_width, description="Zoom"),
             max_iteration = IntSlider(min=0, max=600,
                                       value=max_iteration, description="Iterations"),
             pixel_count = IntSlider(min=10, max=600,
                                     value=pixel_count, description="Pixels"),
             level_sep = IntSlider(min=1, max=20,
-                                  value=iteration_level, description="Color sep"),
+                                  value=level_sep, description="Color sep"),
             color_num = IntSlider(min=1, max=100,
                                   value=number_of_colors, description="# Colors"),
             base_color = ColorPicker(value=base_color.html_color(),
@@ -562,11 +563,11 @@ def julia_plot(c=-1,
     if mandelbrot:
         return julia_helper(c_real, c_imag, x_center, y_center,
                             image_width, max_iteration, pixel_count,
-                            iteration_level,
+                            level_sep,
                             number_of_colors, base_color, point_color)
 
     else:
         return fast_julia_plot(c_real, c_imag, x_center, y_center,
                                image_width, max_iteration, pixel_count,
-                               iteration_level,
+                               level_sep,
                                number_of_colors, base_color)

@@ -621,7 +621,7 @@ cpdef julia_helper(double c_real, double c_imag, double x_center=0,
 
 cpdef polynomial_mandelbrot(f, parameter=None, double x_center=0,
  double y_center=0, image_width=4, int max_iteration=50, int pixel_count=500,
- int level_sep=1, int color_num=30, base_color=[50,50,50]):
+ int level_sep=1, int color_num=30, base_color='red'):
     r"""
     Plots the Mandelbrot set in the complex plane for a general polynomial map.
 

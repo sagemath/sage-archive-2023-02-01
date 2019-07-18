@@ -2019,7 +2019,9 @@ class RuleSuperRSK(RuleRSK):
         sage: RSK([], [], insertion=RSK.rules.superRSK)
         [[], []]
         sage: RSK([[]], insertion=RSK.rules.superRSK)
-        [[], []]
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: forward rule for matrices is not yet implemented
 
     Check that :func:`RSK_inverse` is the inverse of :func:`RSK` on the
     different types of inputs/outputs::
@@ -2093,14 +2095,15 @@ class RuleSuperRSK(RuleRSK):
                 # has unique elements so there will be not repeatition 
                 # of mixed-parity biletters (any biletter actually)
                 for b in obj1:
-                    if not isinstance(b, PrimedEntry):
+                    if b and not isinstance(b, PrimedEntry):
                         raise ValueError("invalid entry, elements should be PrimedEntry")
             try:
                 itr = obj1._rsk_iter()
             except AttributeError:
-                # make recording list default to [1', 1, 2', 2, ...]
+                # If this is (something which looks like) a matrix
                 if obj1 and hasattr(obj1[0], '__getitem__'):
                     raise NotImplementedError("forward rule for matrices is not yet implemented")
+                # set recording list to default value [1', 1, 2', 2, ...]
                 rec = []
                 a = PrimedEntry('1p')
                 for i in range(len(obj1)):

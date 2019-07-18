@@ -5150,28 +5150,39 @@ class GenericGraph(GenericGraph_pyx):
         else:
             return
 
-    def layout_planar(self, set_embedding=False, on_embedding=None, external_face=None, test=False, circular=False, **options):
+    def layout_planar(self, set_embedding=False, on_embedding=None,
+                      external_face=None, test=False, circular=False,
+                      **options):
         """
         Compute a planar layout of the graph using Schnyder's algorithm.
+
+        If ``set_embedding`` is set, a new combinatorial embedding is computed
+        for the layout. Otherwise: if ``on_embedding`` is provided, then that
+        combinatorial embedding is used for the layout. Otherwise: if a
+        combinatorial embedding is set to the instance field variable of the
+        graph (e.g. using
+        :meth:`~sage/graphs/generic_graph.GenericGraph.set_embedding`), then
+        that one is used, and if no combinatorial embedding is set, then one is
+        computed.
 
         If the graph is not planar, an error is raised.
 
         INPUT:
 
         - ``set_embedding`` -- boolean (default: ``False``); whether to set the
-           combinatorial embedding used (see
-           :meth:`~sage/graphs/generic_graph.GenericGraph.get_embedding`)
+          instance field variable that contains a combinatorial embedding to the
+          combinatorial embedding used for the planar layout (see
+          :meth:`~sage/graphs/generic_graph.GenericGraph.get_embedding`)
 
         - ``on_embedding`` -- dictionary (default: ``None``); provide a
-           combinatorial embedding
+          combinatorial embedding
 
         -  ``external_face`` -- ignored
 
         - ``test`` -- boolean (default: ``False``); whether to perform sanity
-           tests along the way
+          tests along the way
 
         -  ``circular`` -- ignored
-
 
         EXAMPLES::
 

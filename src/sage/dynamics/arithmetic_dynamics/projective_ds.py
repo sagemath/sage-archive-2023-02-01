@@ -1294,11 +1294,11 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         if N[0] > N[1]:
             return([])
         
-        try:
-            P = self.domain()(P)
-        except TypeError:
-            raise TypeError("unable to convert %s to an element of %s"%(P, self.domain()))
-        Q = P
+        R = self.domain()(P)
+        if R in self.domain(): #Check whether R is a zero-dimensional point
+            Q = R
+        else:
+            Q = P
         check = kwds.pop("check",True)
         normalize = kwds.pop("normalize",False)
         if normalize:

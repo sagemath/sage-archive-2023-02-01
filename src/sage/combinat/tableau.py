@@ -4974,20 +4974,21 @@ class SemistandardSuperTableau(Tableau):
     integers, with even and odd parity and are weakly increasing in rows 
     and strictly increasing down columns.
 
-    # EXAMPLES::
+    EXAMPLES::
 
-    #     sage: t = SemistandardTableau([[1,2,3],[2,3]]); t
-    #     [[1, 2, 3], [2, 3]]
-    #     sage: t.shape()
-    #     [3, 2]
-    #     sage: t.pp() # pretty printing
-    #     1 2 3
-    #     2 3
-    #     sage: t = Tableau([[1,2],[2]])
-    #     sage: s = SemistandardTableau(t); s
-    #     [[1, 2], [2]]
-    #     sage: SemistandardTableau([]) # The empty tableau
-    #     []
+        sage: from sage.combinat.tableau import SemistandardSuperTableau
+        sage: t = SemistandardSuperTableau([['1p',2,"3'"],[2,3]]); t
+        [[1', 2, 3'], [2, 3]]
+        sage: t.shape()
+        [3, 2]
+        sage: t.pp() # pretty printing
+        1' 2 3'
+        2 3
+        sage: t = Tableau([["1p",2],[2]])
+        sage: s = SemistandardSuperTableau(t); s
+        [[1', 2], [2]]
+        sage: SemistandardSuperTableau([]) # The empty tableau
+        []
 
     .. SEEALSO::
 
@@ -4997,23 +4998,26 @@ class SemistandardSuperTableau(Tableau):
         - :class:`StandardTableaux`
         - :class:`StandardTableau`
 
-    # TESTS::
+    TESTS::
 
-    #     sage: t = Tableaux()([[1,1],[2]])
-    #     sage: s = SemistandardTableaux(3)([[1,1],[2]])
-    #     sage: s == t
-    #     True
-    #     sage: s.parent()
-    #     Semistandard tableaux of size 3 and maximum entry 3
-    #     sage: r = SemistandardTableaux(3)(t); r.parent()
-    #     Semistandard tableaux of size 3 and maximum entry 3
-    #     sage: isinstance(r, Tableau)
-    #     True
-    #     sage: s2 = SemistandardTableaux(3)([(1,1),(2,)])
-    #     sage: s2 == s
-    #     True
-    #     sage: s2.parent()
-    #     Semistandard tableaux of size 3 and maximum entry 3
+        sage: from sage.combinat.tableau import SemistandardSuperTableaux
+        sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
+        sage: t = Tableaux()([[1,1],[2]])
+        sage: s = SemistandardSuperTableaux()([[PrimedEntry(1),PrimedEntry(1)],
+        ....:                                   [PrimedEntry(2)]])
+        sage: s == t
+        True
+        sage: s.parent()
+        Semistandard super tableaux
+        sage: r = SemistandardSuperTableaux()(t); r.parent()
+        Semistandard super tableaux
+        sage: isinstance(r, Tableau)
+        True
+        sage: s2 = SemistandardSuperTableaux()([(1,1),(2,)])
+        sage: s2 == s
+        True
+        sage: s2.parent()
+        Semistandard super tableaux
     """
     @staticmethod
     def __classcall_private__(cls, t):
@@ -5023,15 +5027,16 @@ class SemistandardSuperTableau(Tableau):
 
         TESTS::
 
-            # sage: t = SemistandardTableau([[1,1],[2]])
-            # sage: TestSuite(t).run()
+            sage: from sage.combinat.tableau import SemistandardSuperTableau, SemistandardSuperTableaux
+            sage: t = SemistandardSuperTableau([[1,1],[2]])
+            sage: TestSuite(t).run()
 
-            # sage: t.parent()
-            # Semistandard tableaux
-            # sage: t.category()
-            # Category of elements of Semistandard tableaux
-            # sage: type(t)
-            # <class 'sage.combinat.tableau.SemistandardTableaux_all_with_category.element_class'>
+            sage: t.parent()
+            Semistandard super tableaux
+            sage: t.category()
+            Category of elements of Semistandard super tableaux
+            sage: type(t)
+            <class 'sage.combinat.tableau.SemistandardSuperTableaux_all_with_category.element_class'>
         """
         from sage.combinat.shifted_primed_tableau import PrimedEntry
 
@@ -5049,6 +5054,23 @@ class SemistandardSuperTableau(Tableau):
 
     def __init__(self, parent, t, check=True, preprocessed=False):
         r"""
+        Initialize a semistandard super tableau
+
+        TESTS::
+
+            sage: from sage.combinat.tableau import SemistandardSuperTableau, SemistandardSuperTableaux
+            sage: s = SemistandardSuperTableau([[1,"2'","3'",3], [2,"3'"]])
+            sage: t = SemistandardSuperTableaux()([[1,"2p","3p",3], [2,"3p"]])
+            sage: s == t
+            True
+            sage: t.parent()
+            Semistandard super tableaux
+            sage: s.parent()
+            Semistandard super tableaux
+            sage: r = SemistandardSuperTableaux()(s); r.parent()
+            Semistandard super tableaux
+            sage: s is t  # identical Semistandard super tableaux are distinct objects
+            False
         """
         if not preprocessed:
             t = self._preprocess(t)
@@ -5065,14 +5087,12 @@ class SemistandardSuperTableau(Tableau):
 
         TESTS::
 
-            sage: ShiftedPrimedTableau._preprocess([["2'", "3p", 3.5]],
-            ....: skew=[1])
-            [(None, 2', 3', 4')]
-            sage: ShiftedPrimedTableau._preprocess([[None]], skew=[1])
-            [(None,)]
-            sage: ShiftedPrimedTableau._preprocess([], skew=[2,1])
-            [(None, None), (None,)]
-            sage: ShiftedPrimedTableau._preprocess([], skew=[])
+            sage: from sage.combinat.tableau import SemistandardSuperTableau
+            sage: SemistandardSuperTableau._preprocess([["2'", "3p", 3.5]])
+            [[2', 3', 4']]
+            sage: SemistandardSuperTableau._preprocess([[None]])
+            []
+            sage: SemistandardSuperTableau._preprocess([])
             []
         """
         from sage.combinat.shifted_primed_tableau import PrimedEntry
@@ -5091,20 +5111,20 @@ class SemistandardSuperTableau(Tableau):
 
         TESTS::
 
-            # sage: SemistandardTableau([[1,2,3],[1]])  # indirect doctest
-            # Traceback (most recent call last):
-            # ...
-            # ValueError: [[1, 2, 3], [1]] is not a column strict tableau
+            sage: SemistandardTableau([[1,2,3],[1]])  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: [[1, 2, 3], [1]] is not a column strict tableau
 
-            # sage: SemistandardTableau([[1,2,1]])  # indirect doctest
-            # Traceback (most recent call last):
-            # ...
-            # ValueError: The rows of [[1, 2, 1]] are not weakly increasing
+            sage: SemistandardTableau([[1,2,1]])  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: The rows of [[1, 2, 1]] are not weakly increasing
 
-            # sage: SemistandardTableau([[0,1]])  # indirect doctest
-            # Traceback (most recent call last):
-            # ...
-            # ValueError: entries must be positive integers
+            sage: SemistandardTableau([[0,1]])  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: entries must be positive integers
         """
         super(SemistandardSuperTableau, self).check()
 

@@ -938,13 +938,13 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P1.<x,y> = ProjectiveSpace(QQ,1)
             sage: P2.<u,v,w> = ProjectiveSpace(QQ,2)
             sage: H = Hom(P2,P1)
-            sage: f = H([u^2,v^2])
+            sage: f = H([u*w,v^2 + w^2])
             sage: f.dehomogenize((2,1))
             Scheme morphism:
               From: Affine Space of dimension 2 over Rational Field
               To:   Affine Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (u, v) to
-                    (u^2/v^2)
+                  (u/(v^2 + 1))
         """
         #the dehomogenizations are stored for future use.
         try:
@@ -965,13 +965,14 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         else:
             Aff_domain = PS_domain.affine_patch(ind[0])
             S = Aff_domain.ambient_space().coordinate_ring()
-            M = A_domain.dimension_relative()
-            N = self.codomain().ambient_space().dimension_relative()
+            N = A_domain.dimension_relative()
             R = A_domain.coordinate_ring()
-            phi = R.hom([S.gen(j) for j in range(0, ind[0])] + [1] + [S.gen(j) for j in range(ind[0], M)], S)
+            phi = R.hom([S.gen(j) for j in range(0, ind[0])] + [1] + [S.gen(j) for j in range(ind[0], N)], S)
             F = []
             G = phi(self._polys[ind[1]])
-            for i in range(0, N + 1):
+            # ind[1] is relative to codomain
+            M = self.codomain().ambient_space().dimension_relative()
+            for i in range(0, M + 1):
                 if i != ind[1]:
                     F.append(phi(self._polys[i]) / G)
             H = Hom(Aff_domain, self.codomain().affine_patch(ind[1]))

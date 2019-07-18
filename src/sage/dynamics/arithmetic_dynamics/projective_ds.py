@@ -4761,7 +4761,8 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: PS.<x,y> = ProjectiveSpace(1,QQ)
             sage: f = DynamicalSystem_projective([x^2 -y^2, 3*x*y])
             sage: sorted(f.rational_preperiodic_points())
-            DeprecationWarning
+            doctest:warning
+            ...
             [(-2 : 1), (-1 : 1), (-1/2 : 1), (0 : 1), (1/2 : 1), (1 : 0), (1 : 1),
             (2 : 1)]
         """
@@ -5003,7 +5004,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             Looped digraph on 5 vertices
         """
         #input checking done in .rational_preperiodic_points()
-        preper = self.rational_preperiodic_points(**kwds)
+        preper = self.all_preperiodic_points(**kwds)
         g = self._preperiodic_points_to_cyclegraph(preper)
         return g
 

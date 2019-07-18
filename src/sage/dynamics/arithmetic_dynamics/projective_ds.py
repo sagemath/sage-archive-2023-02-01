@@ -2233,6 +2233,66 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             Q = R
         return(l)
 
+    def nth_preimage_tree(self, Q, n, numerical=False, diplay_labels=True, display_complex=False):
+        r"""
+        Return the ``n``-th pre-image tree rooted at ``Q``
+
+        This map must be an endomorphism of the projective line defined
+        over a number field or finite field.
+
+        INPUT:
+
+        - ``Q`` -- a point on domain of this map
+
+        - ``n`` -- a positive integer, the depth of the pre-image tree
+
+        - ``numerical`` -- (default: ``False``) boolean; calculate pre-images numerically
+
+        - ``display_labels`` -- (default: ``True``) boolean; whether to display vertex labels
+
+        - ``display_complex`` -- (default: ``False``) boolean; display vertex labels as
+          complex numbers
+
+        OUTPUT:
+
+        A ``GraphPlot`` object representing the ``n``-th pre-image tree
+        """
+        if self.domain().dimension_relative() > 1:
+            raise NotImplementedError("only implemented for dimension 1")
+        base_ring = self.base_ring()
+        if not base_ring in NumberFields() or base_ring in FiniteFields():
+            raise NotImplementedError("Only implemented for number fields and finite fields")
+        fbar = self.change_ring(self.field_of_definition_preimage(Q,n))
+        V = __nth_preimage_tree_helper(fbar, Q, n, 1, numerical, display_complex)
+        G = DiGraph(V)
+        if display_complex:
+            Q = ProjectiveSpace(CC,1)(Q)
+        root = str(Q) + ", " + str(0)
+        options = {'layout':'tree', 'tree_orientation':'up', 'tree_root':root, 'vertex_labels':display_labels}
+        return GraphPlot(G, options)
+
+    def __nth_preimage_tree_helper(self, Q, n, m, numerical, display_complex):
+        D = {}
+        if numerical:
+            CR = self.domain().ambient_space().coordinate_ring()
+            fn = self.dehomogenize(1)
+            poly = (fn[0].numerator()*CR(Q[1]) - fn[0].denominator()*CR(Q[0])).univariate_polynomial()
+            pre = [ProjectiveSpace(QQbar,1)(r) for r in poly.roots(ring=QQbar)]
+        else:
+            pre = self.rational_preimages(Q,1)
+        for pt in pre:
+            if display_complex:
+                pt = ProjectiveSpace(CC,1)(pt)
+                Q = ProjectiveSpace(CC,1)(Q)
+            key = str(pt) + ", " + str(m)
+            D[key] = [str(Q)+ ", " + str(m-1)]
+        if n==1:
+            return D
+        else:
+            for pt in pre:
+                D.update(__nth_preimage_tree_helper(self, pt, n-1, m+1, numerical, display_complex))
+        return D
+
     def possible_periods(self, **kwds):
         r"""
         Return the set of possible periods for rational periodic points of

@@ -4615,8 +4615,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                     badprimes = DS.primes_of_bad_reduction()
                 if periods is None:
                     periods = DS.possible_periods(prime_bound=primebound, bad_primes=badprimes, ncpus=num_cpus)
-                    
-                print(periods)
+                
                 PS = DS.domain()
                 periodic = set()
                 if not alg:

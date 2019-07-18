@@ -899,8 +899,8 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             Scheme morphism:
               From: Affine Space of dimension 3 over Rational Field
               To:   Affine Space of dimension 2 over Rational Field
-              Defn: Defined on coordinates by sending (x0, x1, x2) to
-                    (x0^2 + x1^2 + x2^2 + 1, x0^2 + x1^2 + 1)
+              Defn: Defined on coordinates by sending (u, v, w) to
+                    (u^2 + v^2 + w^2 + 1, u^2 + v^2 + 1)
         """
         if self.is_endomorphism():
             d = self.domain().ngens()

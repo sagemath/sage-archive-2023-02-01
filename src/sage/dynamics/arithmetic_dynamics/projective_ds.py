@@ -1488,9 +1488,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         - ``M`` -- a square invertible matrix
 
-        - ``adjugate`` -- (default: ``False``) boolean, classical adjoint of a square matrix is the transpose of a cofactor matrix
+        - ``adjugate`` -- (default: ``False``) boolean, also classically called adjoint, takes a square matrix ``M`` and finds the transpose of its cofactor matrix. Used for conjugation in place of inverse when specified ``'True'``. Functionality is the same in projective space.
 
-        - ``normalize`` -- (default: ``False``) boolean, multiply by a factor to make the norm or some associated quantity equal to 1
+        - ``normalize`` -- (default: ``False``) boolean, if normalize is ``'True'``, then the function ``normalize_coordinates`` is called.
 
         OUTPUT: a dynamical system
 
@@ -1565,7 +1565,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         X = M * vector(self[0].parent().gens())
         F = vector(self._polys)
         F = F(list(X))
-        N = M.inverse()
         if adjugate:
             N = M.adjugate()
         else:

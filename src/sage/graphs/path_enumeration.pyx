@@ -447,7 +447,7 @@ def shortest_simple_paths(self, source, target, weight_function=None,
         sage: k = set()
         sage: for i, p in enumerate(G.shortest_simple_paths((0, 0), (0, 1), by_weight=False, algorithm='Yen')):
         ....:     k.add(tuple(p))     
-        sage: s==k
+        sage: s == k
         True
     """
     if source not in self:
@@ -1117,9 +1117,9 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
             color[v] = 0
         # list of yellow nodes
         allY = list()
-        for j in range(dev_idx+1):
-            if j != dev_idx:
-                exclude_vertices.add(prev_path[j])
+        for j in range(dev_idx):
+            exclude_vertices.add(prev_path[j])
+        for j in range(dev_idx + 1):
             # coloring red
             color[prev_path[j]] = 1
             Yv = getUpStreamNodes(prev_path[j])

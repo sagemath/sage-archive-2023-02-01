@@ -4605,7 +4605,6 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 periods = kwds.pop("periods", None)
                 badprimes = kwds.pop("bad_primes", None)
                 num_cpus = kwds.pop("ncpus", ncpus())
-                alg = kwds.pop("alg", True)
 
                 if not isinstance(primebound, (list, tuple)):
                     try:
@@ -4625,7 +4624,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                     periods = DS.possible_periods(prime_bound=primebound, bad_primes=badprimes, ncpus=num_cpus)
                 PS = DS.domain()
                 periodic = set()
-                if not alg:
+                if DS.degree() <= 4 and max(periods) <= 4:
                     for i in periods:
                         periodic.update(DS.periodic_points(i))
                     return list(periodic)

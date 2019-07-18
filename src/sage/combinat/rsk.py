@@ -1936,27 +1936,19 @@ class RuleSuperRSK(RuleRSK):
 
     EXAMPLES::
 
-        sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
-        sage: RSK([PrimedEntry(1)], [PrimedEntry(1)], insertion='superRSK')
+        sage: RSK([1], [1], insertion='superRSK')
         [[[1]], [[1]]]
-        sage: RSK([PrimedEntry(1), PrimedEntry(2)], [PrimedEntry(1), 
-        ....:                           PrimedEntry(3)], insertion='superRSK')
+        sage: RSK([1, 2], [1, 3], insertion='superRSK')
         [[[1, 3]], [[1, 2]]]
-        sage: RSK([PrimedEntry(1), PrimedEntry(2), PrimedEntry(3)], 
-        ....:       [PrimedEntry(1), PrimedEntry(3), PrimedEntry("3p")],
-        ....:                                        insertion='superRSK')
+        sage: RSK([1, 2, 3], [1, 3, "3p"], insertion='superRSK')
         [[[1, 3], [3']], [[1, 2], [3]]]
-        sage: RSK([PrimedEntry(1), PrimedEntry(3), PrimedEntry("3p"), 
-        ....:                       PrimedEntry("2p")], insertion='superRSK')
+        sage: RSK([1, 3, "3p", "2p"], insertion='superRSK')
         [[[1, 3', 3], [2']], [[1', 1, 2'], [2]]]
-        sage: RSK([PrimedEntry("1p"), PrimedEntry("2p"), PrimedEntry(2), 
-        ....:       PrimedEntry(2), PrimedEntry("3p"), PrimedEntry("3p"), 
-        ....:       PrimedEntry(3), PrimedEntry(3)], [PrimedEntry("1p"), 
-        ....:       PrimedEntry(1), PrimedEntry("2p"), PrimedEntry(2), 
-        ....:       PrimedEntry("3p"), PrimedEntry("3p"), PrimedEntry("3p"), 
-        ....:       PrimedEntry(3)], insertion='superRSK')
+        sage: RSK(["1p", "2p", 2, 2, "3p", "3p", 3, 3], 
+        ....:    ["1p", 1, "2p", 2, "3p", "3p", "3p", 3], insertion='superRSK')
         [[[1', 2, 3', 3], [1, 3'], [2'], [3']], [[1', 2, 3', 3], [2', 3'], [2], [3]]]
         sage: from sage.combinat.tableau import SemistandardSuperTableau
+        sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
         sage: P = SemistandardSuperTableau([[PrimedEntry(1), PrimedEntry('3p'),
         ....:                            PrimedEntry(3)], [PrimedEntry('2p')]])
         sage: Q = SemistandardSuperTableau([[PrimedEntry('1p'), PrimedEntry(1),
@@ -1968,43 +1960,27 @@ class RuleSuperRSK(RuleRSK):
 
     Let us try Super RSK on Example 5.1 in [RM2017]_::
 
-        sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
-        sage: RSK([PrimedEntry("1p"), PrimedEntry("2p"), PrimedEntry(2), 
-        ....:       PrimedEntry(2), PrimedEntry("3p"), PrimedEntry("3p"), 
-        ....:       PrimedEntry(3), PrimedEntry(3)], [PrimedEntry("3p"), 
-        ....:       PrimedEntry(1), PrimedEntry(2), PrimedEntry(3), 
-        ....:       PrimedEntry("3p"), PrimedEntry("3p"), PrimedEntry("2p"), 
-        ....:       PrimedEntry("1p")], insertion='superRSK')
+        sage: RSK(["1p", "2p", 2, 2, "3p", "3p", 3, 3], 
+        ....:   ["3p", 1, 2, 3, "3p", "3p", "2p", "1p"], insertion='superRSK')
         [[[1', 2', 3', 3], [1, 2, 3'], [3']], [[1', 2, 2, 3'], [2', 3, 3], [3']]]
 
     Similarly, Super RSK on Example 6.1 in [RM2017]_::
 
-        sage: RSK([PrimedEntry("1p"), PrimedEntry("2p"), PrimedEntry(2), 
-        ....:       PrimedEntry(2), PrimedEntry("3p"), PrimedEntry("3p"), 
-        ....:       PrimedEntry(3), PrimedEntry(3)], [PrimedEntry("3p"), 
-        ....:       PrimedEntry(1), PrimedEntry(2), PrimedEntry(3), 
-        ....:       PrimedEntry("3p"), PrimedEntry("3p"), PrimedEntry("2p"), 
-        ....:       PrimedEntry("1p")], insertion='superRSK')
+        sage: RSK(["1p", "2p", 2, 2, "3p", "3p", 3, 3], 
+        ....:   ["3p", 1, 2, 3, "3p", "3p", "2p", "1p"], insertion='superRSK')
         [[[1', 2', 3', 3], [1, 2, 3'], [3']], [[1', 2, 2, 3'], [2', 3, 3], [3']]]
 
-        sage: RSK([PrimedEntry("1p"), PrimedEntry(1), PrimedEntry("2p"), 
-        ....:       PrimedEntry(2), PrimedEntry("3p"), PrimedEntry("3p"), 
-        ....:       PrimedEntry("3p"), PrimedEntry(3)], [PrimedEntry(3), 
-        ....:       PrimedEntry("2p"), PrimedEntry(3), PrimedEntry(2), 
-        ....:       PrimedEntry("3p"), PrimedEntry("3p"), PrimedEntry("1p"), 
-        ....:       PrimedEntry(2)], insertion='superRSK')
+        sage: RSK(["1p", 1, "2p", 2, "3p", "3p", "3p", 3], 
+        ....:   [3, "2p", 3, 2, "3p", "3p", "1p", 2], insertion='superRSK')
         [[[1', 2, 2, 3'], [2', 3, 3], [3']], [[1', 2', 3', 3], [1, 2, 3'], [3']]]
 
     Let us now call the inverse correspondence::
 
-        sage: RSK_inverse(*RSK([PrimedEntry(1), PrimedEntry(2), PrimedEntry(2),
-        ....:    PrimedEntry(2)], [PrimedEntry(2), PrimedEntry(1), 
-        ....:    PrimedEntry(2), PrimedEntry(3)], insertion=RSK.rules.superRSK)
-        ....:    ,insertion=RSK.rules.superRSK)
+        sage: RSK_inverse(*RSK([1, 2, 2, 2], [2, 1, 2, 3], 
+        ....:   insertion=RSK.rules.superRSK) ,insertion=RSK.rules.superRSK)
         [[1, 2, 2, 2], [2, 1, 2, 3]]
-        sage: P, Q = RSK([PrimedEntry(1), PrimedEntry(2), PrimedEntry(2),
-        ....:    PrimedEntry(2)], [PrimedEntry(2), PrimedEntry(1), 
-        ....:    PrimedEntry(2), PrimedEntry(3)], insertion=RSK.rules.superRSK)
+        sage: P, Q = RSK([1, 2, 2, 2], [2, 1, 2, 3], 
+        ....:               insertion=RSK.rules.superRSK)
         sage: RSK_inverse(P, Q, insertion=RSK.rules.superRSK)
         [[1, 2, 2, 2], [2, 1, 2, 3]]
 
@@ -2048,7 +2024,7 @@ class RuleSuperRSK(RuleRSK):
         ....:     for i in range(len(p)):
         ....:         p1[i] = PrimedEntry(p[i])
         ....:     return p1
-        sage: all(toPrimedEntry(p) == f(toPrimedEntry(p))[1] for n in range(5) 
+        sage: all(toPrimedEntry(p) == f(list(p))[1] for n in range(5) 
         ....:                             for p in Permutations(n))
         True
 
@@ -2083,31 +2059,17 @@ class RuleSuperRSK(RuleRSK):
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleSuperRSK
-            sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
-            sage: list(RuleSuperRSK().to_pairs([PrimedEntry(2), 
-            ....:       PrimedEntry('1p'), PrimedEntry(1)],[PrimedEntry(1), 
-            ....:       PrimedEntry(1), PrimedEntry('1p')]))
+            sage: list(RuleSuperRSK().to_pairs([2, '1p', 1],[1, 1, '1p']))
             [(2, 1), (1', 1), (1, 1')]
-            sage: list(RuleSuperRSK().to_pairs([PrimedEntry(1), 
-            ....:       PrimedEntry('1p'), PrimedEntry('2p')]))
+            sage: list(RuleSuperRSK().to_pairs([1, '1p', '2p']))
             [(1', 1), (1, 1'), (2', 2')]
-            sage: list(RuleSuperRSK().to_pairs([PrimedEntry(1), 
-            ....:       PrimedEntry(1)], [PrimedEntry('1p'), 
-            ....:       PrimedEntry('1p')]))
+            sage: list(RuleSuperRSK().to_pairs([1, 1], ['1p', '1p']))
             Traceback (most recent call last):
             ...
             ValueError: invalid restricted superbiword
         """
         from sage.combinat.shifted_primed_tableau import PrimedEntry
         if obj2 is None:
-            if check:
-                # Check it is a restricted superbiword, in this case
-                # checking only primed entry is sufficient since top 
-                # has unique elements so there will be not repeatition 
-                # of mixed-parity biletters (any biletter actually)
-                for b in obj1:
-                    if b and not isinstance(b, PrimedEntry):
-                        raise ValueError("invalid entry, elements should be PrimedEntry")
             try:
                 itr = obj1._rsk_iter()
             except AttributeError:
@@ -2120,8 +2082,17 @@ class RuleSuperRSK(RuleRSK):
                 for i in range(len(obj1)):
                     rec.append(a)
                     a = a.increase_half()
+                # Converting entries of obj1 to PrimedEntry
+                for i in range(len(obj1)):
+                    obj1[i] = PrimedEntry(obj1[i])
                 itr = zip(rec, obj1)
         else:
+            # Converting entries of obj1 to PrimedEntry
+            for i in range(len(obj1)):
+                obj1[i] = PrimedEntry(obj1[i])
+            # Converting entries of obj2 to PrimedEntry
+            for i in range(len(obj2)):
+                obj2[i] = PrimedEntry(obj2[i])
             if check:
                 if len(obj1) != len(obj2):
                     raise ValueError("the two arrays must be the same length")
@@ -2131,8 +2102,6 @@ class RuleSuperRSK(RuleRSK):
                 # the pairs of corresponding entries of obj1
                 # and obj2 with mixed-parity is not allowed
                 for t, b in zip(obj1, obj2):
-                    if not (isinstance(t, PrimedEntry) and isinstance(b, PrimedEntry)):
-                        raise ValueError("invalid entry, elements should be PrimedEntry")
                     if t.is_primed() != b.is_primed():
                         if (t, b) in mixed_parity:
                             raise ValueError("invalid restricted superbiword")
@@ -2245,10 +2214,8 @@ class RuleSuperRSK(RuleRSK):
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleSuperRSK
-            sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
             sage: from sage.combinat.tableau import SemistandardSuperTableau
-            sage: p, q = RuleSuperRSK().forward_rule([PrimedEntry(1), 
-            ....:       PrimedEntry(2)], [PrimedEntry(1), PrimedEntry(3)]); p
+            sage: p, q = RuleSuperRSK().forward_rule([1, 2], [1, 3]); p
             [[1, 3]]
             sage: q
             [[1, 2]]
@@ -2324,19 +2291,16 @@ class RuleSuperRSK(RuleRSK):
 
             sage: from sage.combinat.rsk import RuleSuperRSK
             sage: from bisect import bisect_left, bisect_right
-            sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
-            sage: r = [PrimedEntry(1), PrimedEntry(3), PrimedEntry(3), 
-            ....:       PrimedEntry(3), PrimedEntry(4)]
-            sage: j = PrimedEntry(3)
+            sage: r = [1, 3, 3, 3, 4]
+            sage: j = 3
             sage: j, y_pos = RuleSuperRSK().insertion(j, r, epsilon=0); r
             [1, 3, 3, 3, 3]
             sage: j
             4
             sage: y_pos
             4
-            sage: r = [PrimedEntry(1), PrimedEntry(3), PrimedEntry(3), 
-            ....:       PrimedEntry(3), PrimedEntry(4)]
-            sage: j = PrimedEntry(3)
+            sage: r = [1, 3, 3, 3, 4]
+            sage: j = 3
             sage: j, y_pos = RuleSuperRSK().insertion(j, r, epsilon=1); r
             [1, 3, 3, 3, 4]
             sage: j
@@ -2491,28 +2455,24 @@ class RuleSuperRSK(RuleRSK):
 
             sage: from sage.combinat.rsk import RuleSuperRSK
             sage: from bisect import bisect_left, bisect_right
-            sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
-            sage: r = [PrimedEntry(1), PrimedEntry(3), PrimedEntry(3), 
-            ....:       PrimedEntry(3), PrimedEntry(4)]
-            sage: j = PrimedEntry(2)
+            sage: r = [1, 3, 3, 3, 4]
+            sage: j = 2
             sage: j, y_pos = RuleSuperRSK().reverse_insertion(j, r, epsilon=0); r
             [2, 3, 3, 3, 4]
             sage: j
             1
             sage: y_pos
             0
-            sage: r = [PrimedEntry(1), PrimedEntry(3), PrimedEntry(3), 
-            ....:       PrimedEntry(3), PrimedEntry(4)]
-            sage: j = PrimedEntry(3)
+            sage: r = [1, 3, 3, 3, 4]
+            sage: j = 3
             sage: j, y_pos = RuleSuperRSK().reverse_insertion(j, r, epsilon=0); r
             [3, 3, 3, 3, 4]
             sage: j
             1
             sage: y_pos
             0
-            sage: r = [PrimedEntry(1), PrimedEntry(3), PrimedEntry(3), 
-            ....:       PrimedEntry(3), PrimedEntry(4)]
-            sage: j = PrimedEntry(3)
+            sage: r = [1, 3, 3, 3, 4]
+            sage: j = (3)
             sage: j, y_pos = RuleSuperRSK().reverse_insertion(j, r, epsilon=1); r
             [1, 3, 3, 3, 4]
             sage: j

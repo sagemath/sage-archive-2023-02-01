@@ -46,7 +46,7 @@ Insertions currently available
 The following insertion algorithms for RSK correspondence are currently
 available:
 
-- RSK insertion (:class:`~sage.combinat.rsk.RuleRSK`)
+- RSK insertion (:class:`~sage.combinat.rsk.RuleRSK`).
 - Edelman-Greene insertion (:class:`~sage.combinat.rsk.RuleEG`), an algorithm
   defined in [EG1987]_ Definition 6.20 (where it is referred to as
   Coxeter-Knuth insertion).
@@ -55,6 +55,8 @@ available:
   of columns).
 - Dual RSK (:class:`~sage.combinat.rsk.RuleDualRSK`).
 - CoRSK (:class:`~sage.combinat.rsk.RuleCoRSK`), defined in [GR2018v5sol]_.
+- Super RSK (:class:`~sage.combinat.rsk.RuleSuperRSK`), a combiantion of row 
+  and column insertions defined in [RM2017]_.
 
 Implementing your own insertion rule
 ------------------------------------
@@ -142,7 +144,11 @@ REFERENCES:
 .. [GR2018v5sol] Darij Grinberg, Victor Reiner.
    *Hopf Algebras In Combinatorics*,
    :arXiv:`1409.8356v5`, available with solutions at
-   :url:`https://arxiv.org/src/1409.8356v5/anc/HopfComb-v73-with-solutions.pdf`.
+   https://arxiv.org/src/1409.8356v5/anc/HopfComb-v73-with-solutions.pdf
+
+.. [RM2017] Robert Muth.
+   *Super RSK correspondence with symmetry*.
+   :arXiv:`1711.00420v1`.
 """
 
 # *****************************************************************************
@@ -1950,10 +1956,17 @@ class RuleSuperRSK(RuleRSK):
         ....:       PrimedEntry("3p"), PrimedEntry("3p"), PrimedEntry("3p"), 
         ....:       PrimedEntry(3)], insertion='superRSK')
         [[[1', 2, 3', 3], [1, 3'], [2'], [3']], [[1', 2, 3', 3], [2', 3'], [2], [3]]]
+        sage: from sage.combinat.tableau import SemistandardSuperTableau
+        sage: P = SemistandardSuperTableau([[PrimedEntry(1), PrimedEntry('3p'),
+        ....:                            PrimedEntry(3)], [PrimedEntry('2p')]])
+        sage: Q = SemistandardSuperTableau([[PrimedEntry('1p'), PrimedEntry(1),
+        ....:                           PrimedEntry('2p')], [PrimedEntry(2)]])
+        sage: RSK_inverse(P, Q, insertion=RSK.rules.superRSK)
+        [[1', 1, 2', 2], [1, 3, 3', 2']]
 
     TESTS:
 
-    Super RSK Example 5.1::
+    Let us try Super RSK on Example 5.1 in [RM2017]_::
 
         sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
         sage: RSK([PrimedEntry("1p"), PrimedEntry("2p"), PrimedEntry(2), 
@@ -1964,7 +1977,7 @@ class RuleSuperRSK(RuleRSK):
         ....:       PrimedEntry("1p")], insertion='superRSK')
         [[[1', 2', 3', 3], [1, 2, 3'], [3']], [[1', 2, 2, 3'], [2', 3, 3], [3']]]
 
-    Super RSK Example 6.1::
+    Similarly, Super RSK on Example 6.1 in [RM2017]_::
 
         sage: RSK([PrimedEntry("1p"), PrimedEntry("2p"), PrimedEntry(2), 
         ....:       PrimedEntry(2), PrimedEntry("3p"), PrimedEntry("3p"), 
@@ -2009,8 +2022,6 @@ class RuleSuperRSK(RuleRSK):
         ....:       PrimedEntry(3)], [PrimedEntry(4)], [PrimedEntry(5)]])
         sage: RSK_inverse(t1, t2, insertion=RSK.rules.superRSK)
         [[1, 2, 3, 4, 5], [1, 4, 5, 3, 2]]
-
-    TESTS:
 
     Empty objects::
 
@@ -2296,17 +2307,17 @@ class RuleSuperRSK(RuleRSK):
     def insertion(self, j, r, epsilon=0):
         r"""
         Insert the letter ``j`` from the second row of the biword
-        into the row `r` using dual RSK insertion or classical 
-        Schensted insertion depending on the value of `epsilon`, 
+        into the row ``r`` using dual RSK insertion or classical 
+        Schensted insertion depending on the value of ``epsilon``, 
         if there is bumping to be done.
 
-        The row `r` is modified in place. The bumped-out entry,
+        The row ``r`` is modified in place. The bumped-out entry,
         if it exists, is returned along with the bumped position.
 
         .. WARNING::
 
-            This method only changes `r` if bumping occurs.
-            Appending `j` to the end of the row should be done
+            This method only changes ``r`` if bumping occurs.
+            Appending ``j`` to the end of the row should be done
             by the caller.
 
         EXAMPLES::
@@ -2670,6 +2681,12 @@ def RSK(obj1=None, obj2=None, insertion=InsertionRules.RSK, check_standard=False
       - ``RSK.rules.Hecke`` (or ``'hecke'``) -- Hecke insertion (only
         guaranteed for generalized permutations whose top row is strictly
         increasing) (:class:`~sage.combinat.rsk.RuleHecke`)
+      - ``RSK.rules.dualRSK`` (or ``'dualRSK'``) -- Dual RSK insertion 
+        (only for strict biwords) (:class:`~sage.combinat.rsk.RuleDualRSK`)
+      - ``RSK.rules.coRSK`` (or ``'coRSK'``) -- CoRSK insertion (only 
+        for strict cobiwords) (:class:`~sage.combinat.rsk.RuleCoRSK`)
+      - ``RSK.rules.superRSK`` (or ``'super'``) -- Super RSK insertion (only for
+        restricted super biwords) (:class:`~sage.combinat.rsk.RuleSuperRSK`)
 
     - ``check_standard`` -- (default: ``False``) check if either of the
       resulting tableaux is a standard tableau, and if so, typecast it
@@ -2820,6 +2837,12 @@ def RSK_inverse(p, q, output='array', insertion=InsertionRules.RSK):
       - ``RSK.rules.Hecke`` (or ``'hecke'``) -- Hecke insertion (only
         guaranteed for generalized permutations whose top row is strictly
         increasing) (:class:`~sage.combinat.rsk.RuleHecke`)
+      - ``RSK.rules.dualRSK`` (or ``'dualRSK'``) -- Dual RSK insertion 
+        (only for strict biwords) (:class:`~sage.combinat.rsk.RuleDualRSK`)
+      - ``RSK.rules.coRSK`` (or ``'coRSK'``) -- CoRSK insertion (only 
+        for strict cobiwords) (:class:`~sage.combinat.rsk.RuleCoRSK`)
+      - ``RSK.rules.superRSK`` (or ``'super'``) -- Super RSK insertion (only for
+        restricted super biwords) (:class:`~sage.combinat.rsk.RuleSuperRSK`)
 
     For precise information about constraints on the input and
     output, see the particular :class:`~sage.combinat.rsk.Rule` class.

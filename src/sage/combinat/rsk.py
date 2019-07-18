@@ -1942,7 +1942,7 @@ class RuleSuperRSK(RuleRSK):
         [[[1, 3], [3']], [[1, 2], [3]]]
         sage: RSK([PrimedEntry(1), PrimedEntry(3), PrimedEntry("3p"), 
         ....:                       PrimedEntry("2p")], insertion='superRSK')
-        [[[1, 3'], [2', 3]], [[1, 2], [3, 4]]]
+        [[[1, 3', 3], [2']], [[1', 1, 2'], [2]]]
         sage: RSK([PrimedEntry("1p"), PrimedEntry("2p"), PrimedEntry(2), 
         ....:       PrimedEntry(2), PrimedEntry("3p"), PrimedEntry("3p"), 
         ....:       PrimedEntry(3), PrimedEntry(3)], [PrimedEntry("1p"), 
@@ -2077,7 +2077,7 @@ class RuleSuperRSK(RuleRSK):
             [(2, 1), (1', 1), (1, 1')]
             sage: list(RuleSuperRSK().to_pairs([PrimedEntry(1), 
             ....:       PrimedEntry('1p'), PrimedEntry('2p')]))
-            [(1, 1), (2, 1'), (3, 2')]
+            [(1', 1), (1, 1'), (2', 2')]
             sage: list(RuleSuperRSK().to_pairs([PrimedEntry(1), 
             ....:       PrimedEntry(1)], [PrimedEntry('1p'), 
             ....:       PrimedEntry('1p')]))
@@ -2098,18 +2098,14 @@ class RuleSuperRSK(RuleRSK):
             try:
                 itr = obj1._rsk_iter()
             except AttributeError:
-                # make recording list default to [1, 2, ...]
-                # try:
-                    # t = []
-                    # b = []
-                    # for i, row in enumerate(obj1):
-                    #     for j, mult in enumerate(row):
-                    #         if mult > 0:
-                    #             t.extend([PrimedEntry(i+1)]*mult)
-                    #             b.extend([PrimedEntry(j+1)]*mult)
+                # make recording list default to [1', 1, 2', 2, ...]
+                if obj1 and hasattr(obj1[0], '__getitem__'):
+                    raise NotImplementedError("forward rule for matrices is not yet implemented")
                 rec = []
+                a = PrimedEntry('1p')
                 for i in range(len(obj1)):
-                    rec.append(PrimedEntry(i+1))
+                    rec.append(a)
+                    a = a.increase_half()
                 itr = zip(rec, obj1)
         else:
             if check:
@@ -2194,7 +2190,7 @@ class RuleSuperRSK(RuleRSK):
             # set value
             t[row_index][col_index] = val
     
-    def forward_rule(self, obj1, obj2, check_standard=False):
+    def forward_rule(self, obj1, obj2, check_standard=False, check=True):
         r"""
         Return a pair of tableaux obtained by applying forward
         insertion to the restricted super biword ``[obj1, obj2]``.
@@ -2209,9 +2205,9 @@ class RuleSuperRSK(RuleRSK):
             to be interpreted as the top row and the bottom row of
             the biword;
 
-        #   - a matrix ``obj1`` of nonnegative integers, to be
-        #     interpreted as the generalized permutation in matrix
-        #     form (in this case, ``obj2`` is ``None``);
+          - a matrix ``obj1`` of nonnegative integers, to be
+            interpreted as the generalized permutation in matrix
+            form (in this case, ``obj2`` is ``None``);
 
           - a word ``obj1`` in an ordered alphabet, to be
             interpreted as the bottom row of the biword (in this
@@ -2224,9 +2220,9 @@ class RuleSuperRSK(RuleRSK):
             entries and bottom entries in the biword (in this case,
             ``obj2`` is ``None``).
 
-        # - ``check_standard`` -- (default: ``False``) check if either of the
-        #   resulting tableaux is a standard tableau, and if so, typecast it
-        #   as such
+        - ``check_standard`` -- (default: ``False``) check if either of the
+          resulting tableaux is a standard super tableau, and if so, typecast it
+          as such
 
         - ``check`` -- (default: ``True``) whether to check
           that ``obj1`` and ``obj2`` actually define a valid
@@ -2247,7 +2243,7 @@ class RuleSuperRSK(RuleRSK):
             sage: isinstance(q, SemistandardSuperTableau)
             True
         """
-        itr = self.to_pairs(obj1, obj2)
+        itr = self.to_pairs(obj1, obj2, check=check)
         p = []       # the "insertion" tableau
         q = []       # the "recording" tableau
         for i, j in itr:
@@ -2271,11 +2267,10 @@ class RuleSuperRSK(RuleRSK):
                             break
                         else:
                             j = j1
-
                 else:
                     # column insertion
                     col_index += 1
-                    if len(p) == 0 or col_index == len(p[0]):
+                    if not p or col_index == len(p[0]):
                         self._set_col(p, col_index, [j])
                         self._set_col(q, col_index, [i])
                         break
@@ -2376,7 +2371,7 @@ class RuleSuperRSK(RuleRSK):
         """
         from sage.combinat.tableau import SemistandardSuperTableau, StandardTableau, StandardSuperTableau
 
-        if len(p) == 0:
+        if not p:
             return [StandardTableau([]), StandardTableau([])]
         if check_standard:
             try:
@@ -2402,7 +2397,7 @@ class RuleSuperRSK(RuleRSK):
         - ``output`` -- (default: ``'array'``) if ``q`` is row-strict:
 
           - ``'array'`` -- as a two-line array (i.e. restricted super biword)
-        #   - ``'matrix'`` -- as a `\{0, 1\}`-matrix
+          - ``'matrix'`` -- as a matrix
 
           and if ``q`` is standard, we can have the output:
 
@@ -2457,7 +2452,6 @@ class RuleSuperRSK(RuleRSK):
                         if row_index < 0:
                             break
                         x, col_index = self.reverse_insertion(x, p_copy[row_index], epsilon=epsilon)
-                    
                     else:
                         # column bumping
                         col_index -= 1
@@ -2468,7 +2462,7 @@ class RuleSuperRSK(RuleRSK):
                         self._set_col(p_copy, col_index, c)
                 upper_row.append(value)
                 lower_row.append(x)
-        return self._backward_format_output(lower_row, upper_row, output, p.is_standard(), q.is_standard())
+        return self._backward_format_output(lower_row, upper_row, output, q.is_standard())
 
     def reverse_insertion(self, x, row, epsilon=0):
         r"""
@@ -2518,7 +2512,8 @@ class RuleSuperRSK(RuleRSK):
         x, row[y_pos] = row[y_pos], x
         return x, y_pos
 
-    def _backward_format_output(self, lower_row, upper_row, output, p_is_standard, q_is_standard):
+    def _backward_format_output(self, lower_row, upper_row, output, 
+                                q_is_standard):
         r"""
         Return the final output of the ``RSK_inverse`` correspondence
         from the output of the corresponding ``backward_rule``.
@@ -2537,14 +2532,38 @@ class RuleSuperRSK(RuleRSK):
             sage: RuleSuperRSK()._backward_format_output([PrimedEntry('1p'), 
             ....:       PrimedEntry(1), PrimedEntry('3p'), PrimedEntry(9)], 
             ....:       [PrimedEntry(1), PrimedEntry('2p'), PrimedEntry('3p'), 
-            ....:       PrimedEntry(4)], 'array', False, False)
+            ....:       PrimedEntry(4)], 'array', False)
             [[4, 3', 2', 1], [9, 3', 1, 1']]
-
+            sage: RuleSuperRSK()._backward_format_output([PrimedEntry(1), 
+            ....:       PrimedEntry('2p'), PrimedEntry('3p'), PrimedEntry(4)], 
+            ....:       [PrimedEntry('1p'), PrimedEntry(1), PrimedEntry('2p'), 
+            ....:       PrimedEntry(2)], 'word', True)
+            word: 4,3',2',1
+            sage: RuleSuperRSK()._backward_format_output([PrimedEntry(1), 
+            ....:       PrimedEntry(2), PrimedEntry(3), PrimedEntry(4)], 
+            ....:       [PrimedEntry('1p'), PrimedEntry(1), PrimedEntry('2p'), 
+            ....:       PrimedEntry(2)], 'word', True)
+            word: 4321
+            sage: RuleSuperRSK()._backward_format_output([PrimedEntry('1p'), 
+            ....:       PrimedEntry(1), PrimedEntry('3p'), PrimedEntry(9)], 
+            ....:       [PrimedEntry(1), PrimedEntry('2p'), PrimedEntry('3p'), 
+            ....:       PrimedEntry(4)], 'matrix', True)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: backward rule for matrices is not yet implemented
         """
-        # if output == 'matrix':
-        #     return to_matrix(list(reversed(upper_row)), list(reversed(lower_row)))
+        if output == 'matrix':
+            raise NotImplementedError("backward rule for matrices is not yet implemented")
         if output == 'array':
             return [list(reversed(upper_row)), list(reversed(lower_row))]
+        if output == 'word':
+            if q_is_standard:
+                from sage.combinat.words.word import Word
+                return Word(reversed(lower_row))
+            else:
+                raise TypeError("q must be standard to have a %s as valid output" %output)
+        raise ValueError("invalid output option")
+
 
 class InsertionRules(object):
     r"""

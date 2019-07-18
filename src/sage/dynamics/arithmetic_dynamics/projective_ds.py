@@ -4535,7 +4535,6 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             ...
             NotImplementedError: rational periodic points for number fields only implemented for polynomials
         """
-        
         ring = kwds.pop("ring", None)
         if not ring is None:
             DS = self.change_ring(ring)
@@ -4615,7 +4614,6 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                     badprimes = DS.primes_of_bad_reduction()
                 if periods is None:
                     periods = DS.possible_periods(prime_bound=primebound, bad_primes=badprimes, ncpus=num_cpus)
-                
                 PS = DS.domain()
                 periodic = set()
                 if not alg:
@@ -4625,10 +4623,6 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 while p in badprimes:
                     p = next_prime(p + 1)
                 B = e ** DS.height_difference_bound()
-                
-                
-                
-                
                 f = DS.change_ring(GF(p))
                 all_points = f.possible_periods(True) #return the list of points and their periods.
                 pos_points = []

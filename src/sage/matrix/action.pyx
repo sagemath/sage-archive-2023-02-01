@@ -374,9 +374,14 @@ cdef class VectorMatrixAction(MatrixMulAction):
                 v = v.dense_vector()
         return (<Matrix>A)._vector_times_matrix_(v) # v * A
 
-cdef class MatrixPolymapAction(MatrixMulAction):
+cdef class MatrixPolymapAction(MatrixMulAction):"
+    """
+    Left action of a matrix on a scheme polynomial morphism
+    """
     def __init__(self, G, S):
         """
+        Initialize the action.
+
         EXAMPLES::
 
             sage: from sage.matrix.action import MatrixPolymapAction
@@ -416,6 +421,14 @@ cdef class MatrixPolymapAction(MatrixMulAction):
 
     cpdef _act_(self, mat, f):
         """
+        Call the action
+
+        INPUT:
+
+        - ``mat`` -- a matrix
+
+        - ``f`` -- a scheme homomorphism
+
         EXAMPLES::
 
             sage: from sage.matrix.action import MatrixPolymapAction
@@ -433,6 +446,9 @@ cdef class MatrixPolymapAction(MatrixMulAction):
         return f._matrix_times_polymap_(mat, self._codomain)
 
 cdef class PolymapMatrixAction(MatrixMulAction):
+    """
+    Right action of a matrix on a scheme polynomial morphism
+    """
     def __init__(self, G, S):
         """
         Initialize the action.
@@ -479,6 +495,12 @@ cdef class PolymapMatrixAction(MatrixMulAction):
     cpdef _act_(self, mat, f):
         """
         Call the action.
+
+        INPUT:
+
+        - ``mat`` -- a matrix
+
+        - ``f`` -- a scheme homomorphism
 
         EXAMPLES::
 

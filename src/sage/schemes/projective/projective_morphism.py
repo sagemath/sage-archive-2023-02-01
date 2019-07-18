@@ -541,9 +541,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         from sage.modules.free_module_element import vector
         from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem
         if not mat.is_square():
-            raise ValueError("matrix must be square")
+            raise TypeError("matrix must be square")
         if mat.ncols() != self.codomain().ngens():
-            raise ValueError("matrix size is incompatible")
+            raise TypeError("matrix size is incompatible")
         F = mat * vector(list(self))
         if isinstance(self, DynamicalSystem):
             return h(list(F)).as_dynamical_system()
@@ -965,9 +965,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         else:
             Aff_domain = PS_domain.affine_patch(ind[0])
             S = Aff_domain.ambient_space().coordinate_ring()
+            FS = FractionField(S)
             N = A_domain.dimension_relative()
             R = A_domain.coordinate_ring()
-            phi = R.hom([S.gen(j) for j in range(0, ind[0])] + [1] + [S.gen(j) for j in range(ind[0], N)], S)
+            phi = R.hom([S.gen(j) for j in range(0, ind[0])] + [1] + [S.gen(j) for j in range(ind[0], N)], FS)
             F = []
             G = phi(self._polys[ind[1]])
             # ind[1] is relative to codomain

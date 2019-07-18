@@ -713,25 +713,6 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         self.__jacobian = jacobian(list(self),self.domain().ambient_space().gens())
         return self.__jacobian
 
-    def multiplier(self, P, n, check=True):
-        """
-        Return the multiplier of the point.
-
-        EXAMPLES::
-
-            sage: A.<x,y> = AffineSpace(QQ, 2)
-            sage: H = End(A)
-            sage: f = H([x^2, y^2])
-            sage: f.multiplier(A([1, 1]), 1)
-            doctest:warning
-            ...
-            [2 0]
-            [0 2]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.affine_ds.multiplier instead")
-        return self.as_dynamical_system().multiplier(P, n, check)
-
     def _matrix_times_polymap_(self, mat, h):
         """
         Multiplies the morphism on the left by a matrix ``mat``.
@@ -766,9 +747,9 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
                     (3*x^2 + 2, x^2 + 1)
         """
         if not mat.is_square():
-            raise ValueError("matrix must be square")
+            raise TypeError("matrix must be square")
         if mat.ncols() != self.codomain().ngens() + 1:
-            raise ValueError("the size of the matrix must be n + 1, where n is the dimension of the codomain")
+            raise TypeError("the size of the matrix must be n + 1, where n is the dimension of the codomain")
         if self.is_endomorphism():
             d = self.domain().ngens()
         else:
@@ -820,8 +801,8 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             Scheme morphism:
               From: Affine Space of dimension 3 over Rational Field
               To:   Affine Space of dimension 2 over Rational Field
-              Defn: Defined on coordinates by sending (x0, x1, x2) to
-                    (x0^2 + x1^2 + x2^2 + 1, x0^2 + x1^2 + 1)
+              Defn: Defined on coordinates by sending (u, v, w) to
+                    (u^2 + v^2 + w^2 + 1, u^2 + v^2 + 1)
         """
         if not mat.is_square():
             raise ValueError("matrix must be square")

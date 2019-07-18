@@ -594,6 +594,94 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             return h(list(F)).as_dynamical_system()
         return h(list(F))
 
+    def _matrix_times_polymap_(self, mat, h):
+        """
+        Multiplies the morphism on the left by a matrix ``mat``.
+
+        INPUT:
+
+        - ``mat`` -- a matrix
+
+        OUTPUT: a scheme morphism given by ``self*mat``
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(ZZ, 1)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2 + y^2, y^2])
+            sage: matrix([[1,2], [0,1]]) * f
+            Scheme endomorphism of Projective Space of dimension 1 over Integer Ring
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^2 + 3*y^2 : y^2)
+
+        ::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: K.<i> = NumberField(x^2+1)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: H = Hom(P,P)
+            sage: f = H([1/3*x^2 + 1/2*y^2, y^2])
+            sage: matrix([[i,0], [0,i]]) * f
+            Scheme endomorphism of Projective Space of dimension 1 over Number Field in i with defining polynomial x^2 + 1
+              Defn: Defined on coordinates by sending (x : y) to
+                    ((1/3*i)*x^2 + (1/2*i)*y^2 : (i)*y^2)
+        """
+        from sage.modules.free_module_element import vector
+        from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem
+        if not mat.is_square():
+            raise ValueError("matrix must be square")
+        if mat.ncols() != self.codomain().ngens():
+            raise ValueError("matrix size is incompatible")
+        F = mat * vector(list(self))
+        if isinstance(self, DynamicalSystem):
+            return h(list(F)).as_dynamical_system()
+        return h(list(F))
+
+    def _polymap_times_matrix_(self, mat, h):
+        """
+        Multiplies the morphism on the right by a matrix ``mat``.
+
+        INPUT:
+
+        - ``mat`` -- a matrix
+
+        OUTPUT: a scheme morphism given by ``mat*self``
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(ZZ, 1)
+            sage: H = Hom(P, P)
+            sage: f = H([x^2 + y^2, y^2])
+            sage: f * matrix([[1,2], [0,1]])
+            Scheme endomorphism of Projective Space of dimension 1 over Integer Ring
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^2 + 4*x*y + 5*y^2 : y^2)
+
+        ::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: K.<i> = NumberField(x^2+1)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: H = Hom(P,P)
+            sage: f = H([1/3*x^2 + 1/2*y^2, y^2])
+            sage: f * matrix([[i,0], [0,i]])
+            Scheme endomorphism of Projective Space of dimension 1 over Number Field in i with defining polynomial x^2 + 1
+              Defn: Defined on coordinates by sending (x : y) to
+                    (-1/3*x^2 - 1/2*y^2 : -y^2)
+        """
+        from sage.modules.free_module_element import vector
+        from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem
+        if not mat.is_square():
+            raise ValueError("matrix must be square")
+        if mat.nrows() != self.domain().ngens():
+            raise ValueError("matrix size is incompatible")
+        X = mat * vector(self[0].parent().gens())
+        F = vector(self._polys)
+        F = F(list(X))
+        if isinstance(self, DynamicalSystem):
+            return h(list(F)).as_dynamical_system()
+        return h(list(F))
+
     def as_dynamical_system(self):
         """
         Return this endomorphism as a :class:`DynamicalSystem_projective`.

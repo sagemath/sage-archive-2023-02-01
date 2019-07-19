@@ -14,5 +14,10 @@ SAGE_SPKG_CONFIGURE([arb], [
                 [SAGE_ARB_LIBRARY="flint-arb"], [sage_spkg_install_arb=yes])])
         ], [sage_spkg_install_arb=yes])
     fi
-    AC_SUBST(SAGE_ARB_LIBRARY,[$SAGE_ARB_LIBRARY])
+], [], [], [
+    if test x$sage_spkg_install_arb = xyes; then
+        AC_SUBST(SAGE_ARB_LIBRARY,["arb"])
+    else
+        AC_SUBST(SAGE_ARB_LIBRARY,[$SAGE_ARB_LIBRARY])
+    fi
 ])

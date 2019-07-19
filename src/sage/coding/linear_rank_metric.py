@@ -17,19 +17,36 @@ interferes with doctests::
     See http://trac.sagemath.org/20284 for details.
     Relative field extension between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
 
+
 Rank Metric
 ===========
-- what is it - compare to Hamming metric
-- motivation
+In coding theory, the most common metric is the Hamming metric, where distance
+between two codewords is  given by the number of positions in which they differ.
+An alternative to this is the rank metric. Take two fields, `F_q` and `F_{q^m}`,
+and define a code `C` to be a set of vectors of length `n` with entries from
+`F_{q^m}`. Let `c` be a codeword. We can represent it as an `m \times n` matrix
+`M` over `F_q`.
 
-Linear Rank Metric Codes
-========================
-- talk about representation of elements - vector vs. matrix
-- generic class
+A detailed description on the relationship between the two representations can
+be found in :meth:class:`sage.coding.linear_rank_metric.to_matrix_representation`
+and :meth:class:`sage.coding.linear_rank_metric.from_matrix_representation`.
 
-Gabidulin Codes
-===============
-- Gabidulin family (add this when Gabidulin is actually in)
+We can define a metric using the rank of the matrix representation of the
+codewords. A distance between two codewords `a, b` is the rank of the matrix
+representation of `a - b`. A weight of a codeword `c` is the rank of the matrix
+representation of `c`.
+
+One of the main uses of rank metric is in the McEliece cryptosystems, where it
+significantly decreases the key sizes.
+
+
+Linear Rank Metric Code and Gabidulin Codes
+============================================
+The class :class:`sage.coding.linear_rank_metric.LinearRankMetricCode` is a
+representative of an unstructured generic example of linear rank metric codes.
+
+Gabidulin codes are the main family of structured linear rank metric codes
+studied at the moment. These codes are similar to Reed-Solomon codes.
 
 
 ``AbstractLinearCode``
@@ -39,9 +56,8 @@ This is a base class designed to contain methods, features and parameters
 shared by every linear rank metric code. For instance, generic algorithms for
 computing the minimum distance, etc. Many of these algorithms are slow,
 e.g. exponential in the code length. It also contains methods for swapping
-between vector and matrix representation of elements. For specific subfamilies,
-better algorithms or even closed formulas might be known, in which case the
-respective method should be overridden.
+between vector and matrix representation of elements. However, using the
+encoder/decoder framework requires the vector representation of codewords.
 
 ``AbstractLinearCode`` is an abstract class for linear rank metric codes,
 so any linear code rank metric class should inherit from this class.
@@ -49,6 +65,7 @@ Also ``AbstractLinearCode`` should never itself be instantiated.
 
 See :class:`sage.coding.linear_rank_metric.AbstractLinearRankMetricCode`
 for details and examples.
+
 
 ``LinearRankMetricCode``
 --------------
@@ -71,11 +88,9 @@ A ``LinearRankMetricCode`` is instantiated by providing a generator matrix::
     sage: c in C
     True
 
-
 Further references
 ------------------
-
-REFERENCES:
+Read more about rank metric and Gabidulin codes on https://en.wikipedia.org/wiki/Rank_error-correcting_code
 
 
 AUTHORS:

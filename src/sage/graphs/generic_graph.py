@@ -23375,8 +23375,9 @@ class GenericGraph(GenericGraph_pyx):
     from sage.graphs.connectivity import vertex_connectivity
     from sage.graphs.base.static_dense_graph import connected_subgraph_iterator
     from sage.graphs.traversals import lex_BFS
-    from sage.graphs.traversals import lex_UP
+    from sage.graphs.traversals import lex_Up
     from sage.graphs.traversals import lex_DFS
+    from sage.graphs.traversals import lex_Down
 
     def katz_matrix(self, alpha, nonedgesonly=False, vertices=None):
         r"""

@@ -58,6 +58,7 @@ lazy_import('sage.coding.reed_muller_code', ['BinaryReedMullerCode',
                                               'ReedMullerCode'])
 lazy_import('sage.coding.subfield_subcode', 'SubfieldSubcode')
 lazy_import('sage.coding.goppa', 'GoppaCode')
+lazy_import('sage.coding.linear_rank_metric', 'LinearRankMetricCode')
 
 from . import decoders_catalog as decoders
 from . import encoders_catalog as encoders

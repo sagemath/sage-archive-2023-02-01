@@ -1,8 +1,21 @@
-#TODO: explain what rank metric is, how it works and what it is used for
-#TODO: add minimum distance method + covering radius
 # -*- coding: utf-8 -*-
 r"""
 Generic structures for linear codes over the rank metric
+
+TESTS::
+
+This module uses the following experimental feature:
+:class:`sage.coding.relative_finite_field_extension.RelativeFiniteFieldExtension`.
+This test block is here only to trigger the experimental warning so it does not
+interferes with doctests::
+
+    sage: from sage.coding.relative_finite_field_extension import *
+    sage: Fqm.<aa> = GF(16)
+    sage: Fq.<a> = GF(4)
+    sage: RelativeFiniteFieldExtension(Fqm, Fq)
+    doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+    See http://trac.sagemath.org/20284 for details.
+    Relative field extension between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
 
 Rank Metric
 ===========
@@ -13,18 +26,22 @@ Linear Rank Metric Codes
 ========================
 - talk about representation of elements - vector vs. matrix
 - generic class
+
+Gabidulin Codes
+===============
 - Gabidulin family (add this when Gabidulin is actually in)
+
 
 ``AbstractLinearCode``
 ----------------------
 
 This is a base class designed to contain methods, features and parameters
 shared by every linear rank metric code. For instance, generic algorithms for
-computing the minimum distance, the covering radius, etc. Many of these
-algorithms are slow, e.g. exponential in the code length. It also contains
-methods for swapping between vector and matrix representation of elements.
-For specific subfamilies, better algorithms or even closed formulas might be
-known, in which case the respective method should be overridden.
+computing the minimum distance, etc. Many of these algorithms are slow,
+e.g. exponential in the code length. It also contains methods for swapping
+between vector and matrix representation of elements. For specific subfamilies,
+better algorithms or even closed formulas might be known, in which case the
+respective method should be overridden.
 
 ``AbstractLinearCode`` is an abstract class for linear rank metric codes,
 so any linear code rank metric class should inherit from this class.
@@ -43,36 +60,17 @@ codes. It mostly relies directly on generic methods provided by
 
 A ``LinearRankMetricCode`` is instantiated by providing a generator matrix::
 
-    sage: M = matrix(GF(2), [[1, 0, 0, 1, 0],\
-                             [0, 1, 0, 1, 1],\
-                             [0, 0, 1, 1, 1]])
-    sage: C = codes.LinearCode(M)
+    sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+    sage: C = codes.LinearRankMetricCode(GF(4), G)
     sage: C
-    [5, 3] linear code over GF(2)
+    [3, 2] linear rank metric code over GF(64)
     sage: C.generator_matrix()
-    [1 0 0 1 0]
-    [0 1 0 1 1]
-    [0 0 1 1 1]
-
-    sage: MS = MatrixSpace(GF(2),4,7)
-    sage: G = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
-    sage: C = LinearCode(G)
-    sage: C.basis()
-    [
-    (1, 1, 1, 0, 0, 0, 0),
-    (1, 0, 0, 1, 1, 0, 0),
-    (0, 1, 0, 1, 0, 1, 0),
-    (1, 1, 0, 1, 0, 0, 1)
-    ]
-    sage: c = C.basis()[1]
+    [1 1 0]
+    [0 0 1]
+    sage: c = vector(GF(64), (1, 1, 1))
     sage: c in C
     True
-    sage: c.nonzero_positions()
-    [0, 3, 4]
-    sage: c.support()
-    [0, 3, 4]
-    sage: c.parent()
-    Vector space of dimension 7 over Finite Field of size 2
+
 
 Further references
 ------------------
@@ -87,8 +85,8 @@ AUTHORS:
 TESTS::
 
     sage: MS = MatrixSpace(GF(2),4,7)
-    sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
-    sage: C  = LinearCode(G)
+    sage: G = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
+    sage: C = LinearCode(G)
     sage: C == loads(dumps(C))
     True
 """
@@ -105,6 +103,7 @@ from sage.matrix.constructor import Matrix
 from sage.modules.free_module import VectorSpace
 from copy import copy
 from sage.structure.element import is_Matrix
+from sage.rings.integer_ring import ZZ
 
 def to_matrix_representation(base_field, sub_field, v):
     r"""
@@ -119,6 +118,16 @@ def to_matrix_representation(base_field, sub_field, v):
     Given a vector ``v`` of length `n` with entries from ``base_field``, we can
     represent each entry as a vector of length `m`, yielding an `m \times n`
     matrix over ``sub_field``.
+
+    EXAMPLES::
+
+        sage: from sage.coding.linear_rank_metric import to_matrix_representation
+        sage: x = GF(64).gen()
+        sage: a = vector(GF(64), (x + 1, x + 1, 1))
+        sage: to_matrix_representation(GF(64), GF(4), a)
+        [1 1 1]
+        [1 1 0]
+        [0 0 0]
     """
     if not v.is_vector():
         raise TypeError("Input must be a vector")
@@ -128,25 +137,41 @@ def to_matrix_representation(base_field, sub_field, v):
     g = Matrix(sub_field, m, n, lambda i,j: FE.relative_field_representation(v[j])[i])
     return g
 
-def from_matrix_representation(base_field, sub_field, m):
-    """
-    Returns a vector representation of ``m`` over ``base_field``.
+def from_matrix_representation(base_field, sub_field, word):
+    r"""
+    Returns a vector representation of ``word`` over ``base_field``.
 
     Given an `m \times n` matrix over ``sub_field``, we can represent each of
     its columns as an element of ``base_field``, yielding a vector of length `n`
     over ``base_field``.
+
+
+    EXAMPLES::
+
+        sage: from sage.coding.linear_rank_metric import from_matrix_representation
+        sage: m = Matrix(GF(4), [[1, 1, 1], [1, 1, 0], [0, 0, 0]])
+        sage: from_matrix_representation(GF(64), GF(4), m)
+        (z6 + 1, z6 + 1, 1)
     """
-    if not is_Matrix(m):
+    if not is_Matrix(word):
         raise TypeError("Input must be a matrix")
     FE = RelativeFiniteFieldExtension(base_field, sub_field)
     v = []
-    for i in range(m.ncols()):
-        v.append(FE.absolute_field_representation(m.column(i)))
+    for i in range(word.ncols()):
+        v.append(FE.absolute_field_representation(word.column(i)))
     return vector(v)
 
 def rank_weight(base_field, sub_field, c):
     """
     Returns the rank of ``c`` as a matrix over ``sub_field``.
+
+    EXAMPLES::
+
+        sage: from sage.coding.linear_rank_metric import rank_weight
+        sage: x = GF(64).gen()
+        sage: a = vector(GF(64), (x + 1, x + 1, 1))
+        sage: rank_weight(GF(64), GF(4), a)
+        2
     """
     if c.is_vector():
         c = to_matrix_representation(base_field, sub_field, c)
@@ -155,6 +180,15 @@ def rank_weight(base_field, sub_field, c):
 def rank_distance(base_field, sub_field, a, b):
     """
     Returns the rank of ``a`` - ``b`` as a matrix over ``sub_field``.
+
+    EXAMPLES::
+
+        sage: from sage.coding.linear_rank_metric import rank_distance
+        sage: x = GF(64).gen()
+        sage: a = vector(GF(64), (x + 1, x + 1, 1))
+        sage: b = vector(GF(64), (1, 0, 0))
+        sage: rank_distance(GF(64), GF(4), a, b)
+        2
     """
     if a.is_vector():
         a = to_matrix_representation(base_field, sub_field, a)
@@ -188,22 +222,6 @@ class AbstractLinearRankMetricCode(AbstractCode):
     Instructions on how to make a new family of rank metric codes is analogous
     to making a new family of linear codes over the Hamming metric, instructions
     for which are in :class:`sage.coding.linear_code.AbstractLinearCode`.
-
-
-        TESTS::
-
-        This class uses the following experimental feature:
-        :class:`sage.coding.relative_finite_field_extension.RelativeFiniteFieldExtension`.
-        This test block is here only to trigger the experimental warning so it does not
-        interferes with doctests::
-
-            sage: from sage.coding.relative_finite_field_extension import *
-            sage: Fqm.<aa> = GF(16)
-            sage: Fq.<a> = GF(4)
-            sage: RelativeFiniteFieldExtension(Fqm, Fq)
-            doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
-            See http://trac.sagemath.org/20284 for details.
-            Relative field extension between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
     """
 
     _registered_encoders = {}
@@ -236,7 +254,6 @@ class AbstractLinearRankMetricCode(AbstractCode):
 
         - ``field_extension`` -- representation of the elements of the relative
           extension of `base_field` over `sub_field` (default: ``None``)
-
 
         EXAMPLES:
 
@@ -402,8 +419,8 @@ class AbstractLinearRankMetricCode(AbstractCode):
 
         EXAMPLES::
 
-            sage: G  = Matrix(GF(64), [[1,1,0], [0,0,1]])
-            sage: C  = codes.LinearRankMetricCode(GF(4), G)
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
             sage: C.base_field()
             Finite Field in z6 of size 2^6
         """
@@ -415,8 +432,8 @@ class AbstractLinearRankMetricCode(AbstractCode):
 
         EXAMPLES::
 
-            sage: G  = Matrix(GF(64), [[1,1,0], [0,0,1]])
-            sage: C  = codes.LinearRankMetricCode(GF(4), G)
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
             sage: C.sub_field()
             Finite Field in z2 of size 2^2
         """
@@ -428,8 +445,8 @@ class AbstractLinearRankMetricCode(AbstractCode):
 
         EXAMPLES::
 
-            sage: G  = Matrix(GF(64), [[1,1,0], [0,0,1]])
-            sage: C  = codes.LinearRankMetricCode(GF(4), G)
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
             sage: C.dimension()
             2
         """
@@ -441,8 +458,8 @@ class AbstractLinearRankMetricCode(AbstractCode):
 
         EXAMPLES::
 
-            sage: G  = Matrix(GF(64), [[1,1,0], [0,0,1]])
-            sage: C  = codes.LinearRankMetricCode(GF(4), G)
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
             sage: C.cardinality()
             4096
         """
@@ -456,8 +473,8 @@ class AbstractLinearRankMetricCode(AbstractCode):
 
         EXAMPLES::
 
-            sage: G  = Matrix(GF(64), [[1,1,0], [0,0,1]])
-            sage: C  = codes.LinearRankMetricCode(GF(4), G)
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
             sage: C.field_extension()
             Relative field extension between Finite Field in z6 of size 2^6 and Finite Field in z2 of size 2^2
         """
@@ -472,8 +489,8 @@ class AbstractLinearRankMetricCode(AbstractCode):
 
         EXAMPLES::
 
-            sage: G  = Matrix(GF(64), [[1,1,0], [0,0,1]])
-            sage: C  = codes.LinearRankMetricCode(GF(4), G)
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
             sage: C.extension_degree()
             3
         """
@@ -486,8 +503,8 @@ class AbstractLinearRankMetricCode(AbstractCode):
 
         EXAMPLES::
 
-            sage: G  = Matrix(GF(64), [[1,1,0], [0,0,1]])
-            sage: C  = codes.LinearRankMetricCode(GF(4), G)
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
             sage: x = GF(64).gen()
             sage: a = vector(GF(64), (x + 1, x + 1, 1))
             sage: b = vector(GF(64), (1, 0, 0))
@@ -505,8 +522,8 @@ class AbstractLinearRankMetricCode(AbstractCode):
 
         EXAMPLES::
 
-            sage: G  = Matrix(GF(64), [[1,1,0], [0,0,1]])
-            sage: C  = codes.LinearRankMetricCode(GF(4), G)
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
             sage: C.minimum_distance()
             1
         """
@@ -523,8 +540,8 @@ class AbstractLinearRankMetricCode(AbstractCode):
 
         EXAMPLES::
 
-            sage: G  = Matrix(GF(64), [[1,1,0], [0,0,1]])
-            sage: C  = codes.LinearRankMetricCode(GF(4), G)
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
             sage: x = GF(64).gen()
             sage: a = vector(GF(64), (x + 1, x + 1, 1))
             sage: C.weight(a)
@@ -538,8 +555,8 @@ class AbstractLinearRankMetricCode(AbstractCode):
 
         EXAMPLES::
 
-            sage: G  = Matrix(GF(64), [[1,1,0], [0,0,1]])
-            sage: C  = codes.LinearRankMetricCode(GF(4), G)
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
             sage: x = GF(64).gen()
             sage: a = vector(GF(64), (x + 1, x + 1, 1))
             sage: C.to_matrix(a)
@@ -555,10 +572,10 @@ class AbstractLinearRankMetricCode(AbstractCode):
 
         EXAMPLES::
 
-            sage: G  = Matrix(GF(64), [[1,1,0], [0,0,1]])
-            sage: C  = codes.LinearRankMetricCode(GF(4), G)
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
             sage: x = GF(64).gen()
-            sage: m = matrix(GF(4), [[1, 1, 1], [1, 1, 0], [0, 0, 0]])
+            sage: m = Matrix(GF(4), [[1, 1, 1], [1, 1, 0], [0, 0, 0]])
             sage: C.from_matrix(m)
             (z6 + 1, z6 + 1, 1)
         """
@@ -570,8 +587,8 @@ class AbstractLinearRankMetricCode(AbstractCode):
 
         EXAMPLES::
 
-            sage: G  = Matrix(GF(64), [[1,1,0], [0,0,1]])
-            sage: C  = codes.LinearRankMetricCode(GF(4), G)
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
             sage: C.ambient_space()
             Vector space of dimension 3 over Finite Field in z6 of size 2^6
         """
@@ -584,8 +601,8 @@ class AbstractLinearRankMetricCode(AbstractCode):
 
         EXAMPLES::
 
-            sage: G  = Matrix(GF(64), [[1,1,0], [0,0,1]])
-            sage: C  = codes.LinearRankMetricCode(GF(4), G)
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
             sage: C.zero()
             (0, 0, 0)
         """
@@ -606,8 +623,8 @@ class AbstractLinearRankMetricCode(AbstractCode):
 
         EXAMPLES::
 
-            sage: G  = Matrix(GF(64), [[1,1,0], [0,0,1]])
-            sage: C  = codes.LinearRankMetricCode(GF(4), G)
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
             sage: C.generator_matrix()
             [1 1 0]
             [0 0 1]
@@ -625,8 +642,8 @@ class AbstractLinearRankMetricCode(AbstractCode):
 
         EXAMPLES::
 
-            sage: G  = Matrix(GF(64), [[1,1,0], [0,0,1]])
-            sage: C  = codes.LinearRankMetricCode(GF(4), G)
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
             sage: C.parity_check_matrix()
             [1 1 0]
         """
@@ -654,8 +671,8 @@ class AbstractLinearRankMetricCode(AbstractCode):
 
         EXAMPLES::
 
-            sage: G  = Matrix(GF(64), [[1,1,0], [0,0,1]])
-            sage: C  = codes.LinearRankMetricCode(GF(4), G)
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
             sage: x = GF(64).gen()
             sage: a = vector(GF(64), (x + 1, x + 1, 1))
             sage: C.syndrome(a)
@@ -669,8 +686,8 @@ class AbstractLinearRankMetricCode(AbstractCode):
 
         EXAMPLES::
 
-            sage: G  = Matrix(GF(64), [[1,1,0], [0,0,1]])
-            sage: C  = codes.LinearRankMetricCode(GF(4), G)
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
             sage: x = GF(64).gen()
             sage: a = vector(GF(64), (x + 1, x + 1, 1))
             sage: a in C
@@ -695,8 +712,8 @@ class AbstractLinearRankMetricCode(AbstractCode):
 
         - Information set of a systematic generator matrix of the code.
 
-        See :class:`sage.coding.linear_code.AbstractLinearCode` for more
-        information.
+        See :meth:`sage.coding.linear_code.AbstractLinearCode.information_set`
+        for more information.
         """
         return self.encoder("Systematic").systematic_positions()
 
@@ -713,8 +730,8 @@ class AbstractLinearRankMetricCode(AbstractCode):
 
         - A boolean indicating whether the positions form an information set.
 
-        See :class:`sage.coding.linear_code.AbstractLinearCode` for more
-        information.
+        See :meth:`sage.coding.linear_code.AbstractLinearCode.is_information_set`
+        for more information.
         """
         try:
             self.encoder("Systematic", systematic_positions=tuple(positions))
@@ -736,11 +753,35 @@ class LinearRankMetricCode(AbstractLinearRankMetricCode):
     if the family has been implemented by investigating `codes.<tab>`. These
     more specific classes use properties particular to that family to allow
     faster algorithms, and could also have family-specific methods.
+
+    EXAMPLES::
+
+        sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+        sage: C = codes.LinearRankMetricCode(GF(4), G)
+        sage: C
+        [3, 2] linear rank metric code over GF(64)
+        sage: C.base_field()
+        Finite Field in z6 of size 2^6
+        sage: C.sub_field()
+        Finite Field in z2 of size 2^2
+        sage: C.length()
+        3
+        sage: C.dimension()
+        2
+        sage: C[2]
+        (z6, z6, 0)
     """
 
     def __init__(self, sub_field, generator, field_extension=None):
         r"""
         See the docstring for :meth:`LinearRankMetricCode`.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G) # indirect doctest
+            sage: C
+            [3, 2] linear rank metric code over GF(64)
 
         INPUT:
 
@@ -781,6 +822,13 @@ class LinearRankMetricCode(AbstractLinearRankMetricCode):
     def __iter__(self):
         """
         Return an iterator over the elements of this linear rank metric code.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(8), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(2), G)
+            sage: [list(c) for c in C if C.weight(c) < 2][:5]
+            [[0, 0, 0], [1, 1, 0], [z3, z3, 0], [z3 + 1, z3 + 1, 0], [z3^2, z3^2, 0]]
         """
         from sage.modules.finite_submodule_iter import \
                                                 FiniteFieldsubspace_iterator
@@ -789,6 +837,13 @@ class LinearRankMetricCode(AbstractLinearRankMetricCode):
     def _repr_(self):
         r"""
         Returns a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
+            sage: C
+            [3, 2] linear rank metric code over GF(64)
         """
         R = self.base_field()
         if R in Fields():
@@ -799,6 +854,13 @@ class LinearRankMetricCode(AbstractLinearRankMetricCode):
     def _latex_(self):
         r"""
         Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
+            sage: latex(C)
+            [3, 2]\textnormal{ Linear rank metric code over }\Bold{F}_{2^{6}}
         """
         return "[%s, %s]\\textnormal{ Linear rank metric code over }%s"\
                 % (self.length(), self.dimension(), self.base_field()._latex_())
@@ -806,6 +868,13 @@ class LinearRankMetricCode(AbstractLinearRankMetricCode):
     def __hash__(self):
         r"""
         Returns the hash value of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
+            sage: hash(C) #random
+            -2463654037231890597
         """
         Str = str(self)
         G = self.generator_matrix()
@@ -823,6 +892,14 @@ class LinearRankMetricCode(AbstractLinearRankMetricCode):
 
         - ``kwargs`` -- all additional arguments are forwarded to the construction of the
           encoder that is used.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
+            sage: C.generator_matrix()
+            [1 1 0]
+            [0 0 1]
         """
         if encoder_name is None or encoder_name is 'GeneratorMatrix':
             g = self._generator_matrix
@@ -831,27 +908,44 @@ class LinearRankMetricCode(AbstractLinearRankMetricCode):
         g.set_immutable()
         return g
 
+
 ####################### encoders ###############################
 class LinearRankMetricCodeGeneratorMatrixEncoder(Encoder):
     r"""
     Encoder based on generator_matrix for linear rank metric codes.
 
-    This is the default encoder of a generic linear rank metriccode, and should
+    This is the default encoder of a generic linear rank metric code, and should
     never be used for other codes than :class:`LinearRankMetricCode`.
-
-    INPUT:
-
-    - ``code`` -- The associated :class:`LinearRankMetricCode` of this encoder.
     """
 
     def __init__(self, code):
         r"""
+        INPUT:
+
+        - ``code`` -- The associated :class:`LinearRankMetricCode` of this encoder.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
+            sage: E = codes.encoders.LinearRankMetricCodeGeneratorMatrixEncoder(C)
+            sage: E
+            Generator matrix-based encoder for [3, 2] linear rank metric code over GF(64)
         """
         super(LinearRankMetricCodeGeneratorMatrixEncoder, self).__init__(code)
 
     def __eq__(self, other):
         r"""
         Tests equality between LinearRankMetricCodeGeneratorMatrixEncoder objects.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
+            sage: E1 = codes.encoders.LinearRankMetricCodeGeneratorMatrixEncoder(C)
+            sage: E2 = codes.encoders.LinearRankMetricCodeGeneratorMatrixEncoder(C)
+            sage: E1 == E2
+            True
         """
         return isinstance(other, LinearRankMetricCodeGeneratorMatrixEncoder)\
                 and self.code() == other.code()
@@ -859,12 +953,28 @@ class LinearRankMetricCodeGeneratorMatrixEncoder(Encoder):
     def _repr_(self):
         r"""
         Returns a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
+            sage: E = codes.encoders.LinearRankMetricCodeGeneratorMatrixEncoder(C)
+            sage: E
+            Generator matrix-based encoder for [3, 2] linear rank metric code over GF(64)
         """
         return "Generator matrix-based encoder for %s" % self.code()
 
     def _latex_(self):
         r"""
         Returns a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
+            sage: E = codes.encoders.LinearRankMetricCodeGeneratorMatrixEncoder(C)
+            sage: latex(E)
+            \textnormal{Generator matrix-based encoder for }[3, 2]\textnormal{ Linear rank metric code over }\Bold{F}_{2^{6}}
         """
         return "\\textnormal{Generator matrix-based encoder for }%s" % self.code()._latex_()
 
@@ -872,6 +982,15 @@ class LinearRankMetricCodeGeneratorMatrixEncoder(Encoder):
     def generator_matrix(self):
         r"""
         Returns a generator matrix of the associated code of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
+            sage: E = codes.encoders.LinearRankMetricCodeGeneratorMatrixEncoder(C)
+            sage: E.generator_matrix()
+            [1 1 0]
+            [0 0 1]
         """
         g = self.code().generator_matrix()
         g.set_immutable()
@@ -885,31 +1004,64 @@ class LinearRankMetricCodeSystematicEncoder(Encoder):
     generator matrix in systematic form. What is called systematic form here
     is the reduced row echelon form of a matrix, which is not necessarily
     `[I \vert H]`, where `I` is the identity block and `H` the parity block.
-    One can refer to :meth:`LinearCodeSystematicEncoder.generator_matrix`
+    One can refer to :meth:`sage.coding.linear_code.LinearCodeSystematicEncoder.generator_matrix`
     for a concrete example.
     Once such a matrix has been computed, it is used to encode any message
     into a codeword.
 
     This encoder can also serve as the default encoder of a code defined by a
-    parity check matrix: if the :class:`LinearCodeSystematicEncoder` detects
-    that it is the default encoder, it computes a generator matrix as the
+    parity check matrix: if the :class:`LinearRankMetricCodeSystematicEncoder`
+    detects that it is the default encoder, it computes a generator matrix as the
     reduced row echelon form of the right kernel of the parity check matrix.
 
-    INPUT:
+    For more information on how to use this encoder see
+    :meth:`sage.coding.linear_code.LinearCodeSystematicEncoder`
 
-    - ``code`` -- The associated code of this encoder.
+    EXAMPLES:
 
-    - ``systematic_positions`` -- (default: ``None``) the positions in codewords that
-      should correspond to the message symbols. A list of `k` distinct integers in
-      the range 0 to `n-1` where `n` is the length of the code and `k` its
-      dimension. The 0th symbol of a message will then be at position
-      ``systematic_positions[0]``, the 1st index at position
-      ``systematic_positions[1]``, etc. A ``ValueError`` is raised at
-      construction time if the supplied indices do not form an information set.
+    The following demonstrates the basic usage of :class:`LinearCodeSystematicEncoder`::
+
+            sage: G = Matrix(GF(256), [[1,1,1,0,0,0,0,0],\
+                                     [1,0,0,1,1,0,0,0],\
+                                     [0,1,0,1,0,1,0,0],\
+                                     [1,1,0,1,0,0,1,1]])
+            sage: C = codes.LinearRankMetricCode(GF(2), G)
+            sage: E = codes.encoders.LinearRankMetricCodeSystematicEncoder(C)
+            sage: E.generator_matrix()
+            [1 0 0 0 0 1 1 1]
+            [0 1 0 0 1 0 1 1]
+            [0 0 1 0 1 1 0 0]
+            [0 0 0 1 1 1 1 1]
+            sage: E2 = codes.encoders.LinearRankMetricCodeSystematicEncoder(C, systematic_positions=[5,4,3,2])
+            sage: E2.generator_matrix()
+            [1 0 0 0 0 1 1 1]
+            [0 1 0 0 1 0 1 1]
+            [1 1 0 1 0 0 1 1]
+            [1 1 1 0 0 0 0 0]
     """
 
     def __init__(self, code, systematic_positions=None):
         r"""
+
+        INPUT:
+
+        - ``code`` -- The associated code of this encoder.
+
+        - ``systematic_positions`` -- (default: ``None``) the positions in codewords that
+          should correspond to the message symbols. A list of `k` distinct integers in
+          the range 0 to `n-1` where `n` is the length of the code and `k` its
+          dimension. The 0th symbol of a message will then be at position
+          ``systematic_positions[0]``, the 1st index at position
+          ``systematic_positions[1]``, etc. A ``ValueError`` is raised at
+          construction time if the supplied indices do not form an information set.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
+            sage: E = codes.encoders.LinearRankMetricCodeSystematicEncoder(C)
+            sage: E
+            Systematic encoder for [3, 2] linear rank metric code over GF(64)
         """
         super(LinearRankMetricCodeSystematicEncoder, self).__init__(code)
         self._systematic_positions = tuple(systematic_positions) if systematic_positions else None
@@ -927,6 +1079,15 @@ class LinearRankMetricCodeSystematicEncoder(Encoder):
     def __eq__(self, other):
         r"""
         Tests equality between LinearCodeSystematicEncoder objects.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
+            sage: E1 = codes.encoders.LinearRankMetricCodeSystematicEncoder(C)
+            sage: E2 = codes.encoders.LinearRankMetricCodeSystematicEncoder(C)
+            sage: E1 == E2
+            True
         """
         return isinstance(other, LinearRankMetricCodeSystematicEncoder)\
                 and self.code() == other.code()\
@@ -935,12 +1096,28 @@ class LinearRankMetricCodeSystematicEncoder(Encoder):
     def _repr_(self):
         r"""
         Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
+            sage: E = codes.encoders.LinearRankMetricCodeSystematicEncoder(C)
+            sage: E
+            Systematic encoder for [3, 2] linear rank metric code over GF(64)
         """
         return "Systematic encoder for %s" % self.code()
 
     def _latex_(self):
         r"""
         Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
+            sage: E = codes.encoders.LinearRankMetricCodeSystematicEncoder(C)
+            sage: latex(E)
+            \textnormal{Systematic encoder for }[3, 2]\textnormal{ Linear rank metric code over }\Bold{F}_{2^{6}}
         """
         return "\\textnormal{Systematic encoder for }%s" % self.code()._latex_()
 
@@ -957,6 +1134,20 @@ class LinearRankMetricCodeSystematicEncoder(Encoder):
             The matrix returned by this method will not necessarily be `[I \vert H]`, where `I`
             is the identity block and `H` the parity block. If one wants to know which columns
             create the identity block, one can call :meth:`systematic_positions`
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(256), [[1,1,1,0,0,0,0],\
+                                     [1,0,0,1,1,0,0],\
+                                     [0,1,0,1,0,1,0],\
+                                     [1,1,0,1,0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(2), G)
+            sage: E = codes.encoders.LinearRankMetricCodeSystematicEncoder(C)
+            sage: E.generator_matrix()
+            [1 0 0 0 0 1 1]
+            [0 1 0 0 1 0 1]
+            [0 0 1 0 1 1 0]
+            [0 0 0 1 1 1 1]
         """
         C = self.code()
         # This if statement detects if this encoder is itself the default encoder.
@@ -990,6 +1181,16 @@ class LinearRankMetricCodeSystematicEncoder(Encoder):
     def systematic_permutation(self):
         r"""
         Returns a permutation which would take the systematic positions into [0,..,k-1]
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(256), [[1,0,0,0,1,1,0], [0,1,0,1,0,1,0], [0,0,0,0,0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(2), G)
+            sage: E = codes.encoders.LinearRankMetricCodeSystematicEncoder(C)
+            sage: E.systematic_positions()
+            (0, 1, 6)
+            sage: E.systematic_permutation()
+            [1, 2, 7, 3, 4, 5, 6]
         """
         n = self.code().length()
         systematic_positions = self.systematic_positions()
@@ -1010,21 +1211,44 @@ class LinearRankMetricCodeSystematicEncoder(Encoder):
         r"""
         Returns a tuple containing the indices of the columns which form an
         identity matrix when the generator matrix is in systematic form.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(256), [[1,1,1,0,0,0,0],\
+                                     [1,0,0,1,1,0,0],\
+                                     [0,1,0,1,0,1,0],\
+                                     [1,1,0,1,0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(2), G)
+            sage: E = codes.encoders.LinearRankMetricCodeSystematicEncoder(C)
+            sage: E.systematic_positions()
+            (0, 1, 2, 3)
         """
         return self._systematic_positions if self._systematic_positions else self.generator_matrix().pivots()
+
+
 
 ####################### decoders ###############################
 class LinearRankMetricCodeNearestNeighborDecoder(Decoder):
     r"""
-    Construct a decoder for Linear Rank Metric Codes. This decoder will decode
-    to the nearest codeword found.
+    Construct a decoder for Linear Rank Metric Codes.
+
+    This decoder will decode to the nearest codeword found.
     """
 
     def __init__(self, code):
         r"""
+
         INPUT:
 
         - ``code`` -- A code associated to this decoder
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
+            sage: D = codes.decoders.LinearRankMetricCodeNearestNeighborDecoder(C)
+            sage: D
+            Nearest neighbor decoder for [3, 2] linear rank metric code over GF(64)
         """
         super(LinearRankMetricCodeNearestNeighborDecoder, self).__init__(code, code.ambient_space(), \
                 code._default_encoder_name)
@@ -1032,6 +1256,15 @@ class LinearRankMetricCodeNearestNeighborDecoder(Decoder):
     def __eq__(self, other):
         r"""
         Tests equality between LinearRankMetricCodeNearestNeighborDecoder objects.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
+            sage: D1 = codes.decoders.LinearRankMetricCodeNearestNeighborDecoder(C)
+            sage: D2 = codes.decoders.LinearRankMetricCodeNearestNeighborDecoder(C)
+            sage: D1 == D2
+            True
         """
         return isinstance(other, LinearRankMetricCodeNearestNeighborDecoder)\
                 and self.code() == other.code()
@@ -1039,12 +1272,28 @@ class LinearRankMetricCodeNearestNeighborDecoder(Decoder):
     def _repr_(self):
         r"""
         Returns a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
+            sage: D = codes.decoders.LinearRankMetricCodeNearestNeighborDecoder(C)
+            sage: D
+            Nearest neighbor decoder for [3, 2] linear rank metric code over GF(64)
         """
         return "Nearest neighbor decoder for %s" % self.code()
 
     def _latex_(self):
         r"""
         Returns a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
+            sage: D = codes.decoders.LinearRankMetricCodeNearestNeighborDecoder(C)
+            sage: latex(D)
+            \textnormal{Nearest neighbor decoder for }[3, 2]\textnormal{ Linear rank metric code over }\Bold{F}_{2^{6}}
         """
         return "\\textnormal{Nearest neighbor decoder for }%s" % self.code()._latex_()
 
@@ -1068,3 +1317,17 @@ class LinearRankMetricCodeNearestNeighborDecoder(Decoder):
                 c_min = c
         c_min.set_immutable()
         return c_min
+
+    def decoding_radius(self):
+        r"""
+        Return maximal number of errors ``self`` can decode.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(64), [[1,1,0], [0,0,1]])
+            sage: C = codes.LinearRankMetricCode(GF(4), G)
+            sage: D = codes.decoders.LinearRankMetricCodeNearestNeighborDecoder(C)
+            sage: D.decoding_radius()
+            0
+        """
+        return (self.code().minimum_distance()-1) // 2

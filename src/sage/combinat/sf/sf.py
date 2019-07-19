@@ -73,6 +73,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         Join of Category of hopf algebras over Rational Field
             and Category of graded algebras over Rational Field
             and Category of monoids with realizations
+            and Category of graded coalgebras over Rational Field
             and Category of coalgebras over Rational Field with realizations
 
     Notice that ``Sym`` is an *abstract* algebra.  This reflects the fact that

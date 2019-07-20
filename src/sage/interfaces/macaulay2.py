@@ -176,6 +176,8 @@ class Macaulay2(ExtraTabCompletion, Expect):
 
             sage: macaulay2 == loads(dumps(macaulay2))
             True
+            sage: macaulay2.eval('sageDescribe(1..5)')  # optional - macaulay2
+            (1, 2, 3, 4, 5)
         """
         init_str = (
             # Prompt changing commands
@@ -184,7 +186,13 @@ class Macaulay2(ExtraTabCompletion, Expect):
             # Also prevent line wrapping in Macaulay2
             "printWidth = 0;" +
             # And make all output labels to be of the same width
-            "lineNumber = 10^9;")
+            "lineNumber = 10^9;"
+            # Convert a Macaulay2 element to Net for display in Sage.
+            'sageDescribe = method(Dispatch=>Thing);'
+            'sageDescribe(Thing) := net @@ describe;'
+            'sageDescribe(Sequence) := net;'
+            'sageDescribe(Matrix) := net;'
+            )
         Expect.__init__(self,
                         name = 'macaulay2',
                         prompt = PROMPT,
@@ -339,8 +347,7 @@ class Macaulay2(ExtraTabCompletion, Expect):
             | 1 2 |
             | 3 4 |
         """
-        return self.eval('(if instance({0}, Matrix) then net else describe)'
-                         ' {0}'.format(var), strip=True)
+        return self.eval('print(sageDescribe %s)' % var, strip=False)
 
     def set(self, var, value):
         """
@@ -499,9 +506,11 @@ class Macaulay2(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: R2 = macaulay2.ring('QQ', '[x, y]'); R2            # optional - macaulay2
-            QQ[x..y, Degrees => {2:1}, Heft => {1}, MonomialOrder => {MonomialSize => 16}, DegreeRank => 1]
+            QQ[x..y, Degrees => {2:1}, Heft => {1}, MonomialOrder => {MonomialSize => 16},
                                                                      {Lex => 2          }
                                                                      {Position => Up    }
+            --------------------------------------------------------------------------------
+            DegreeRank => 1]
             sage: I = macaulay2.ideal( ('y^2 - x^3', 'x - y') ); I   # optional - macaulay2
                       3    2
             ideal (- x  + y , x - y)
@@ -543,18 +552,22 @@ class Macaulay2(ExtraTabCompletion, Expect):
 
             sage: R1 = macaulay2.ring('ZZ/7', '[a..d]', 'GRevLex');  R1  # optional - macaulay2
             ZZ
-            --[a..d, Degrees => {4:1}, Heft => {1}, MonomialOrder => {MonomialSize => 16}, DegreeRank => 1]
+            --[a..d, Degrees => {4:1}, Heft => {1}, MonomialOrder => {MonomialSize => 16},
              7                                                       {GRevLex => {4:1}  }
                                                                      {Position => Up    }
+            --------------------------------------------------------------------------------
+            DegreeRank => 1]
             sage: R1.char()                                             # optional - macaulay2
             7
 
         This is a polynomial ring over the rational numbers::
 
             sage: R2 = macaulay2.ring('QQ', '[x, y]'); R2               # optional - macaulay2
-            QQ[x..y, Degrees => {2:1}, Heft => {1}, MonomialOrder => {MonomialSize => 16}, DegreeRank => 1]
+            QQ[x..y, Degrees => {2:1}, Heft => {1}, MonomialOrder => {MonomialSize => 16},
                                                                      {Lex => 2          }
                                                                      {Position => Up    }
+            --------------------------------------------------------------------------------
+            DegreeRank => 1]
 
         TESTS::
 
@@ -623,16 +636,11 @@ class Macaulay2(ExtraTabCompletion, Expect):
 
             sage: R = macaulay2("QQ[x,y]")                  # optional - macaulay2
             sage: P = macaulay2("ZZ/7[symbol x, symbol y]") # optional - macaulay2
-            sage: macaulay2("x").cls()                      # optional - macaulay2
-            ZZ
-            --[x..y, Degrees => {2:1}, Heft => {1}, MonomialOrder => {MonomialSize => 32}, DegreeRank => 1]
-             7                                                       {GRevLex => {2:1}  }
-                                                                     {Position => Up    }
+            sage: macaulay2("x").cls()._operator('===', P)  # optional - macaulay2
+            true
             sage: macaulay2.use(R)                          # optional - macaulay2
-            sage: macaulay2("x").cls()                      # optional - macaulay2
-            QQ[x..y, Degrees => {2:1}, Heft => {1}, MonomialOrder => {MonomialSize => 32}, DegreeRank => 1]
-                                                                     {GRevLex => {2:1}  }
-                                                                     {Position => Up    }
+            sage: macaulay2("x").cls()._operator('===', R)  # optional - macaulay2
+            true
         """
         R = self(R)
         self.eval("use %s"%R.name())
@@ -713,7 +721,22 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
         P = self._check_valid()
         return P.get(self._name)
 
-    repr = __str__
+    def _repr_(self):
+        """
+        EXAMPLES::
+
+            sage: repr(macaulay2('1..25'))  # optional - macaulay2
+            (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
+            --------------------------------------------------------------------------------
+            23, 24, 25)
+            sage: str(macaulay2('1..25'))  # optional - macaulay2
+            (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25)
+        """
+        from sage.typeset.ascii_art import empty_ascii_art
+        P = self.parent()
+        return P.eval('print(wrap(%d,"-",sageDescribe %s))'
+                      % (empty_ascii_art._terminal_width(), self._name),
+                      strip=False)
 
     def external_string(self):
         """
@@ -858,20 +881,12 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
 
         Now make the M2 version of R, so we can coerce elements of R to M2::
 
-            sage: macaulay2(R)                           # optional - macaulay2
-            ZZ
-            --[x..y, Degrees => {2:1}, Heft => {1}, MonomialOrder => {MonomialSize => 16}, DegreeRank => 1]
-             7                                                       {GRevLex => {2:1}  }
-                                                                     {Position => Up    }
-            sage: f = (x^3 + 2*y^2*x)^7; f
-            x^21 + 2*x^7*y^14
-            sage: h = macaulay2(f); h                    # optional - macaulay2
+            sage: _ = macaulay2(R)                       # optional - macaulay2
+            sage: h = macaulay2((x^3 + 2*y^2*x)^7); h    # optional - macaulay2
              21     7 14
             x   + 2x y
-            sage: f1 = (x^2 + 2*y*x)                     # optional - macaulay2
-            sage: h1 = macaulay2(f1)                     # optional - macaulay2
-            sage: f2 = (x^3 + 2*y*x)                     # optional - macaulay2
-            sage: h2 = macaulay2(f2)                     # optional - macaulay2
+            sage: h1 = macaulay2(x^2 + 2*y*x)            # optional - macaulay2
+            sage: h2 = macaulay2(x^3 + 2*y*x)            # optional - macaulay2
             sage: u = h // [h1,h2]                       # optional - macaulay2
             sage: h == u[0]*h1 + u[1]*h2 + (h % [h1,h2]) # optional - macaulay2
             True
@@ -893,20 +908,12 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
 
         Now make the M2 version of R, so we can coerce elements of R to M2::
 
-            sage: macaulay2(R)                              # optional - macaulay2
-            ZZ
-            --[x..y, Degrees => {2:1}, Heft => {1}, MonomialOrder => {MonomialSize => 16}, DegreeRank => 1]
-             7                                                       {GRevLex => {2:1}  }
-                                                                     {Position => Up    }
-            sage: f = (x^3 + 2*y^2*x)^7; f                  # optional - macaulay2
-            x^21 + 2*x^7*y^14
-            sage: h = macaulay2(f); print(h)                # optional - macaulay2
+            sage: _ = macaulay2(R)                          # optional - macaulay2
+            sage: h = macaulay2((x^3 + 2*y^2*x)^7); h       # optional - macaulay2
              21     7 14
             x   + 2x y
-            sage: f1 = (x^2 + 2*y*x)                        # optional - macaulay2
-            sage: h1 = macaulay2(f1)                        # optional - macaulay2
-            sage: f2 = (x^3 + 2*y*x)                        # optional - macaulay2
-            sage: h2 = macaulay2(f2)                        # optional - macaulay2
+            sage: h1 = macaulay2(x^2 + 2*y*x)               # optional - macaulay2
+            sage: h2 = macaulay2(x^3 + 2*y*x)               # optional - macaulay2
             sage: h % [h1,h2]                               # optional - macaulay2
             -3x*y
             sage: u = h // [h1,h2]                          # optional - macaulay2
@@ -1180,8 +1187,8 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
 
             sage: macaulay2("x = symbol x")           # optional - macaulay2
             x
-            sage: macaulay2("QQ[x_0..x_2]").sage()    # optional - macaulay2
-            Multivariate Polynomial Ring in x_0, x_1, x_2 over Rational Field
+            sage: macaulay2("QQ[x_0..x_25]").sage()    # optional - macaulay2
+            Multivariate Polynomial Ring in x_0, x_1,..., x_25 over Rational Field
 
             sage: X = R/I       # optional - macaulay2
             sage: X.sage()      # optional - macaulay2

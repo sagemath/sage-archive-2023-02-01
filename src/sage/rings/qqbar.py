@@ -6369,6 +6369,7 @@ class ANRoot(ANDescr):
             return interval
 
         p = self._poly.poly()
+
         dp = p.derivative()
         for i in range(self._multiplicity - 1):
             p = dp
@@ -6394,38 +6395,33 @@ class ANRoot(ANDescr):
         dcoeffs = [c.interval_fast(field) for c in dp.list()]
         interval_dp = poly_ring(dcoeffs)
 
-        linfo = {}
-        uinfo = {}
+        l = interval.lower()
+        pl = interval_p(field(l))
+        u = interval.upper()
+        pu = interval_p(field(u))
 
-        def update_info(info, x):
-            info['endpoint'] = x
-            val = interval_p(field(x))
-            info['value'] = val
-            # sign == 1 if val is bounded greater than 0
-            # sign == -1 if val is bounded less than 0
-            # sign == 0 if val might be 0
-            if val > zero:
-                info['sign'] = 1
-            elif val < zero:
-                info['sign'] = -1
-            else:
-                info['sign'] = 0
-
-        update_info(linfo, interval.lower())
-        update_info(uinfo, interval.upper())
-
-        newton_lower = True
-
-        while True:
-            if linfo['sign'] == 0 and uinfo['sign'] == 0:
-                # We take it on faith that there is a root in interval,
-                # even though we can't prove it at the current precision.
-                # We can't do any more refining...
+        if pl.contains_zero():
+            if pu.contains_zero():
                 return interval
-
-            if linfo['sign'] == uinfo['sign']:
+            else:
+                su = pu.unique_sign()
+                sl = -su
+        elif pu.contains_zero():
+            sl = pl.unique_sign()
+            su = -sl
+        else:
+            sl = pl.unique_sign()
+            su = pu.unique_sign()
+            if sl == su:
                 # Oops...
                 raise ValueError("Refining interval that does not bound unique root!")
+
+        while True:
+            assert l == interval.lower()
+            assert u == interval.upper()
+            assert pl.contains_zero() or \
+                   pu.contains_zero() or \
+                   pl.unique_sign() != pu.unique_sign()
 
             # Use a simple algorithm:
             # Try an interval Newton-Raphson step. If this does not add at
@@ -6436,29 +6432,16 @@ class ANRoot(ANDescr):
             # If all of these fail, then return the current interval.
 
             slope = interval_dp(interval)
-
-            newton_success = False
             diam = interval.diameter()
+            newton_lower = True
 
-            if not (zero in slope):
-                # OK, we try Newton-Raphson.
-                # I have no idea if it helps, but each time through the loop,
-                # we either do Newton-Raphson from the left endpoint or
-                # the right endpoint, alternating.
-
+            if not slope.contains_zero():
                 newton_lower = not newton_lower
+
                 if newton_lower:
-                    new_range = linfo['endpoint'] - linfo['value'] / slope
+                    interval = interval.intersection(l - pl/slope)
                 else:
-                    new_range = uinfo['endpoint'] - uinfo['value'] / slope
-
-                if new_range.lower() in interval:
-                    interval = field(new_range.lower(), interval.upper())
-                    update_info(linfo, interval.lower())
-                if new_range.upper() in interval:
-                    interval = field(interval.lower(), new_range.upper())
-                    update_info(uinfo, interval.upper())
-
+                    interval = interval.intersection(u - pu/slope)
                 new_diam = interval.diameter()
 
                 if new_diam == 0:
@@ -6469,47 +6452,37 @@ class ANRoot(ANDescr):
                     return interval
 
                 if (new_diam << 1) <= diam:
-                    # We got at least one bit.
-                    newton_success = True
+                    # We got at least one bit
+                    l = interval.lower()
+                    u = interval.upper()
+                    pl = interval_p(field(l))
+                    pu = interval_p(field(u))
+                    continue
 
-            if not newton_success:
-                center = interval.center()
+            # bisection
+            for i,j in [(2,2),(3,1),(1,3)]:
+                c = (i*l + j*u) / 4
+                pc = interval_p(field(c))
 
-                def try_bisection(mid):
-                    minfo = {}
-                    update_info(minfo, mid)
-                    if minfo['sign'] == 0:
-                        return interval, False
-                    # We check to make sure the new interval is actually
-                    # narrower; this might not be true if the interval
-                    # is less than 4 ulp's wide
-                    if minfo['sign'] == linfo['sign'] and mid > interval.lower():
-                        linfo['endpoint'] = minfo['endpoint']
-                        linfo['value'] = minfo['value']
-                        linfo['sign'] = minfo['sign']
-                        return field(mid, interval.upper()), True
-                    if minfo['sign'] == uinfo['sign'] and mid < interval.upper():
-                        uinfo['endpoint'] = minfo['endpoint']
-                        uinfo['value'] = minfo['value']
-                        uinfo['sign'] = minfo['sign']
-                        return field(interval.lower(), mid), True
-                    return interval, False
-
-                interval, bisect_success = try_bisection(center)
-
-                if not bisect_success:
-                    uq = (center + interval.upper()) / 2
-                    interval, bisect_success = try_bisection(uq)
-                if not bisect_success:
-                    lq = (center + interval.lower()) / 2
-                    interval, bisect_success = try_bisection(lq)
-
-                if not bisect_success:
-                    # OK, we've refined about as much as we can.
-                    # (We might be able to trim a little more off the edges,
-                    # but the interval is no more than twice as wide as the
-                    # narrowest possible.)
+                if c <= l or c >= u:
+                    # not enough precision
                     return interval
+
+                if pc.contains_zero():
+                    continue
+                elif pc.unique_sign() != sl:
+                    interval = field(l, c)
+                    u = c
+                    pu = pc
+                    break
+                else:
+                    interval = field(c, u)
+                    l = c
+                    pl = pc
+                    break
+            else:
+                # bisection failed
+                return interval
 
     def _complex_refine_interval(self, interval, prec):
         r"""

@@ -19,4 +19,4 @@ else
     echo "Using default flags: $MEMCHECK_FLAGS"
 fi
 
-valgrind --tool=memcheck $MEMCHECK_FLAGS python "$SAGE_LOCAL/bin/sage-ipython" "$@" -i
+valgrind --tool=memcheck $MEMCHECK_FLAGS sage-ipython "$@" -i

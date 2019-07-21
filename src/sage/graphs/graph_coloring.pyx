@@ -185,7 +185,6 @@ def all_graph_colorings(G, n, count_only=False, hex_colors=False, vertex_color_d
         raise ValueError("n must be non-negative")
 
     cdef list V = list(G)
-    cdef list E = G.edges(sort=False)
 
     cdef int nV = G.order()
     cdef int nE = G.size()
@@ -203,7 +202,7 @@ def all_graph_colorings(G, n, count_only=False, hex_colors=False, vertex_color_d
 
     cdef int kk = nV
     cdef int v0, v1
-    for e in E:
+    for e in G.edges(labels=False, sort=False):
         v0 = n * Vd[e[0]]
         v1 = n * Vd[e[1]]
         for c in range(n):

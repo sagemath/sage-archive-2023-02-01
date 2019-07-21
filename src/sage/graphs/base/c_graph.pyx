@@ -2135,38 +2135,44 @@ cdef class CGraphBackend(GenericGraphBackend):
         EXAMPLES::
 
             sage: G = Graph(graphs.PetersenGraph())
-            sage: for (u,v) in G.edges(labels=None):
-            ....:    G.set_edge_label(u,v,1)
+            sage: for (u, v) in G.edges(labels=None):
+            ....:    G.set_edge_label(u, v, 1)
             sage: G.shortest_path(0, 1, by_weight=True)
             [0, 1]
             sage: G.shortest_path_length(0, 1, by_weight=True)
-            1
-            sage: G = DiGraph([(1,2,{'weight':1}), (1,3,{'weight':5}), (2,3,{'weight':1})])
+            1.0
+            sage: G = DiGraph([(1, 2, {'weight':1}), (1, 3, {'weight':5}), (2, 3, {'weight':1})])
             sage: G.shortest_path(1, 3, weight_function=lambda e:e[2]['weight'])
             [1, 2, 3]
             sage: G.shortest_path_length(1, 3, weight_function=lambda e:e[2]['weight'])
-            2
+            2.0
 
         TESTS:
 
         Bugfix from :trac:`7673` ::
 
-            sage: G = Graph([(0,1,9),(0,2,8),(1,2,7)])
-            sage: G.shortest_path_length(0,1,by_weight=True)
-            9
+            sage: G = Graph([(0, 1, 9), (0, 2, 8), (1, 2, 7)])
+            sage: G.shortest_path_length(0, 1, by_weight=True)
+            9.0
+
+        Bugfix from :trac:`28221` ::
+
+            sage: G = Graph([(0, 1, 9.2), (0, 2, 4.5), (1, 2, 4.6)])
+            sage: G.shortest_path_length(0, 1, by_weight=True)
+            9.1
 
         Bugfix from :trac:`27464` ::
 
-            sage: G = DiGraph({0:[1,2], 1:[4], 2:[3,4], 4:[5],5:[6]},multiedges=True)
-            sage: for (u,v) in G.edges(labels=None):
-            ....:    G.set_edge_label(u,v,1)
-            sage: G.distance(0,5,by_weight=true)
-            3
+            sage: G = DiGraph({0:[1, 2], 1:[4], 2:[3, 4], 4:[5], 5:[6]}, multiedges=True)
+            sage: for (u, v) in G.edges(labels=None):
+            ....:    G.set_edge_label(u, v, 1)
+            sage: G.distance(0, 5,by_weight=true)
+            3.0
         """
         if x == y:
             return 0
 
-        cdef priority_queue[pair[pair[int, int], pair[int, int]]] pq
+        cdef priority_queue[pair[pair[double, int], pair[int, int]]] pq
         # As for shortest_path, the roles of x and y are symmetric, hence we
         # define dictionaries like pred_current and pred_other, which
         # represent alternatively pred_x or pred_y according to the side
@@ -2178,7 +2184,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef int w = 0
         cdef int pred
         cdef int side
-        cdef int distance
+        cdef double distance
 
         # Each vertex knows its predecessors in the search, for each side
         cdef dict pred_x = {}

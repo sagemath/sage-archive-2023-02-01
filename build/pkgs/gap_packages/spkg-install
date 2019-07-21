@@ -17,7 +17,7 @@ sdh_install \
     crime-* \
     cryst \
     crystcat \
-    design \
+    design-* \
     gbnp \
     Hap* \
     HAPcryst \
@@ -27,9 +27,10 @@ sdh_install \
     liering-* \
     loops-* \
     MapClass-* \
+    PackageManager-* \
     polymaking-* \
     qpa-* \
-    quagroup \
+    quagroup-* \
     radiroot-* \
     repsn-* \
     sla-* \

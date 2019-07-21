@@ -638,23 +638,24 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         prof("eval f")
         R = forms[0].base_ring()
         try:
-            prof("eval f %s"%R)
+            prof("eval f %s" % R)
             if PP is None:
-                L = [-f(R(QQ[0]), R(QQ[1])) for f in forms]  ##changed
+                L = [-ff(R(QQ[0]), R(QQ[1])) for ff in forms]  ##changed
             elif QQ is None:
-                L = [f(R(PP[0]), R(PP[1])) for f in forms]
+                L = [ff(R(PP[0]), R(PP[1])) for ff in forms]
             else:
-                L = [f(R(PP[0]), R(PP[1])) - f(R(QQ[0]), R(QQ[1])) for f in forms]
+                L = [ff(R(PP[0]), R(PP[1])) - ff(R(QQ[0]), R(QQ[1]))
+                     for ff in forms]
         except ValueError:
             prof("changing rings")
-            forms = [f.change_ring(self.base_ring()) for f in forms]
-            prof("eval f %s"%self.base_ring())
+            forms = [ff.change_ring(self.base_ring()) for ff in forms]
+            prof("eval f %s" % self.base_ring())
             if PP is None:
-                L = [-f(QQ[0], QQ[1]) for f in forms]  ##changed
+                L = [-ff(QQ[0], QQ[1]) for ff in forms]  ##changed
             elif QQ is None:
-                L = [f(PP[0], PP[1]) for f in forms]
+                L = [ff(PP[0], PP[1]) for ff in forms]
             else:
-                L = [f(PP[0], PP[1]) - f(QQ[0], QQ[1]) for f in forms]
+                L = [ff(PP[0], PP[1]) - ff(QQ[0], QQ[1]) for ff in forms]
         b = V(L)
         if PP is None:
             b -= TQ_to_Q
@@ -666,7 +667,6 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         M_sys = matrix(K, M_frob).transpose() - 1
         TP_to_TQ = M_sys**(-1) * b
         prof("done")
-#        print prof
         if algorithm == 'teichmuller':
             return P_to_TP + TP_to_TQ + TQ_to_Q
         else:

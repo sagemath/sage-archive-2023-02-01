@@ -192,7 +192,7 @@ class Debug(object):
         w = []
         for i in range(lineno-n, lineno+n+1):
             z = linecache.getline(filename, i, curframe.f_globals)
-            if z: w.append(('--> ' if i ==lineno else '    ') + '%-5s'%i + z)
+            if z: w.append(('--> ' if i == lineno else '    ') + '%-5s'%i + z)
         code = ''.join(w)
         if not code.strip():
             code = '(code not available)'
@@ -201,7 +201,7 @@ class Debug(object):
         # If the output of anything contains the string TRACEBACK then
         # it will get mangled.  So we replace TRACEBACK in our code block
         # by the harmless version with the colon missing.  This sucks.
-        from sagenb.notebook.cell import TRACEBACK
+        TRACEBACK = 'Traceback (most recent call last):'
         code = code.replace(TRACEBACK, TRACEBACK[:-1])
 
         # Create a hyperlink to the file, if possible.

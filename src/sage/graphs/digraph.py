@@ -500,8 +500,8 @@ class DiGraph(GenericGraph):
     _directed = True
 
     def __init__(self, data=None, pos=None, loops=None, format=None,
-                 weighted=None, implementation='c_graph',
-                 data_structure="sparse", vertex_labels=True, name=None,
+                 weighted=None, data_structure="sparse",
+                 vertex_labels=True, name=None,
                  multiedges=None, convert_empty_dict_labels_to_None=None,
                  sparse=True, immutable=False):
         """
@@ -603,6 +603,16 @@ class DiGraph(GenericGraph):
             Traceback (most recent call last):
             ...
             ValueError: a *directed* igraph graph was expected. To build an undirected graph, call the Graph constructor
+
+        Vertex labels are retained in the graph (:trac:`14708`)::
+
+            sage: g = DiGraph()
+            sage: g.add_vertex(0)
+            sage: g.set_vertex(0, 'foo')
+            sage: g.get_vertices()
+            {0: 'foo'}
+            sage: DiGraph(g).get_vertices()
+            {0: 'foo'}
         """
         msg = ''
         GenericGraph.__init__(self)
@@ -613,13 +623,6 @@ class DiGraph(GenericGraph):
                 raise ValueError("the 'sparse' argument is an alias for "
                                  "'data_structure', please do not define both")
             data_structure = "dense"
-
-        # Choice of the backend
-
-        if implementation != 'c_graph':
-            from sage.misc.superseded import deprecation
-            deprecation(18375,"The 'implementation' keyword is deprecated, "
-                        "and the graphs has been stored as a 'c_graph'")
 
         if multiedges or weighted:
             if data_structure == "dense":
@@ -758,6 +761,7 @@ class DiGraph(GenericGraph):
             if data.get_pos() is not None:
                 pos = data.get_pos()
             self.add_vertices(data.vertex_iterator())
+            self.set_vertices(data.get_vertices())
             self.add_edges(data.edge_iterator())
             self.name(data.name())
         elif format == 'rule':
@@ -1026,8 +1030,7 @@ class DiGraph(GenericGraph):
         """
         return self.copy()
 
-    def to_undirected(self, implementation='c_graph', data_structure=None,
-                      sparse=None):
+    def to_undirected(self, data_structure=None, sparse=None):
         """
         Return an undirected version of the graph.
 
@@ -1058,6 +1061,16 @@ class DiGraph(GenericGraph):
 
             sage: DiGraph([[1, 2]], immutable=True).to_undirected()._backend
             <sage.graphs.base.static_sparse_backend.StaticSparseBackend object at ...>
+
+        Vertex labels will be retained (:trac:`14708`)::
+
+            sage: D.set_vertex(0, 'foo')
+            sage: G = D.to_undirected()
+            sage: D.get_vertices()
+            {0: 'foo', 1: None, 2: None}
+            sage: G.get_vertices()
+            {0: 'foo', 1: None, 2: None}
+
         """
         if sparse is not None:
             if data_structure is not None:
@@ -1079,11 +1092,11 @@ class DiGraph(GenericGraph):
                   pos            = self._pos,
                   multiedges     = self.allows_multiple_edges(),
                   loops          = self.allows_loops(),
-                  implementation = implementation,
                   data_structure = (data_structure if data_structure!="static_sparse"
                                     else "sparse")) # we need a mutable copy first
 
         G.add_vertices(self.vertex_iterator())
+        G.set_vertices(self.get_vertices())
         G.add_edges(self.edge_iterator())
         if hasattr(self, '_embedding'):
             G._embedding = copy(self._embedding)
@@ -1661,7 +1674,7 @@ class DiGraph(GenericGraph):
             b = p.new_variable(binary=True)
 
             # Variables are binary, and their coefficient in the objective is
-            # the number of occurence of the corresponding edge, so 1 if the
+            # the number of occurrences of the corresponding edge, so 1 if the
             # graph is simple
             p.set_objective( p.sum(b[u,v] for u,v in self.edge_iterator(labels=False)))
 

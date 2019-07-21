@@ -45,14 +45,14 @@ EXAMPLES::
         sage: v._test_category()
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2016-2017 Julian Rüth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 from __future__ import absolute_import
 
 from sage.categories.homset import Homset
@@ -734,7 +734,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 if other.parent() is not self.parent():
                     raise ValueError("all valuations must be valuations on %r but %r is a valuation on %r"%(self.domain(), other, other.domain()))
                 if not other.is_discrete_valuation():
-                    raise ValueError("all valuationss must be discrete valuations but %r is not"%(other,))
+                    raise ValueError("all valuations must be discrete valuations but %r is not" % (other,))
                 if other.is_trivial():
                     raise ValueError("all valuations must be non-trivial but %r is not"%(other,))
 
@@ -769,7 +769,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                         # terminate in reasonable time.
                         factor = (ret**r)/(1+ret**r)
                         ret = factor * delta
-                        if all([other(ret) < 0 for other in others[:i+1]]):
+                        if all(other(ret) < 0 for other in others[:i+1]):
                             break
             return ret
 
@@ -812,8 +812,9 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             assert(dd > 0)
             assert(d is not infinity)
             if d < 0:
-                # The following may fail if denominator is not inverible in the domain,
-                # but we don't have a better option this generically.
+                # The following may fail if denominator is not
+                # invertible in the domain, but we don't have a better
+                # option this generically.
                 return self.domain()(~denominator)
 
             # We need non-negative integers a and b such that
@@ -1563,7 +1564,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             except Exception:
                 # If the residue ring can not be constructed for some reason
                 # then we do not check its relation to the residue field.
-                # _test_residue_ring() is responible for checking whether the
+                # _test_residue_ring() is responsible for checking whether the
                 # residue ring should be constructible or not.
                 pass
             else:

@@ -77,7 +77,7 @@ accessed via the standard tableaux classes::
     [([[5]], [[1, 2], [3, 4]]), ([[4]], [[1, 2], [3, 5]])]
 
 These residue sequences are particularly useful in the graded representation
-theory of the cyclotomic KLR algebrasand the cyclotomic Hecke algebras of type~A;
+theory of the cyclotomic KLR algebras and the cyclotomic Hecke algebras of type~A;
 see [DJM1998]_ and [BK2009]_.
 
 This module implements the following classes:
@@ -109,15 +109,15 @@ AUTHORS:
 - Andrew Mathas (2016-07-01): Initial version
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2012,2016 Andrew Mathas <andrew dot mathas at sydney dot edu dot au>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import, print_function
 from six import add_metaclass
 

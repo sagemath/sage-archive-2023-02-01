@@ -156,7 +156,7 @@ cdef class ActedUponAction(GenericAction):
 
 def detect_element_action(Parent X, Y, bint X_on_left, X_el=None, Y_el=None):
     r"""
-    Returns an action of X on Y or Y on X as defined by elements X, if any.
+    Return an action of X on Y as defined by elements of X, if any.
 
     EXAMPLES:
 
@@ -194,6 +194,8 @@ def detect_element_action(Parent X, Y, bint X_on_left, X_el=None, Y_el=None):
         RuntimeError: an_element() for <__main__.MyParent object at ...> returned None
     """
     cdef Element x
+
+    # sample elements x and y
     if X_el is None or (parent(X_el) is not X):
         x = an_element(X)
     else:
@@ -209,21 +211,24 @@ def detect_element_action(Parent X, Y, bint X_on_left, X_el=None, Y_el=None):
             raise RuntimeError("an_element() for %s returned None" % Y)
         else:
             return # don't know how to make elements of this type...
+
+    # element x defining _lmul_ or _rmul_
     if isinstance(x, ModuleElement) and isinstance(y, Element):
-        # Elements defining _lmul_ and _rmul_
         try:
             return (RightModuleAction if X_on_left else LeftModuleAction)(Y, X, y, x)
         except CoercionException as msg:
             _record_exception()
+
+    # element x defining _act_on_
     try:
-        # Elements defining _act_on_
         if x._act_on_(y, X_on_left) is not None:
             return ActOnAction(X, Y, X_on_left, False)
     except CoercionException:
         _record_exception()
+
+    # element x defining _acted_upon_
     if isinstance(Y, Parent):
         try:
-            # Elements defining _acted_upon_
             if x._acted_upon_(y, X_on_left) is not None:
                 return ActedUponAction(Y, X, not X_on_left, False)
         except CoercionException:
@@ -253,7 +258,7 @@ cdef class ModuleAction(Action):
     By default, the sample elements of ``S`` and ``G`` are obtained from
     :meth:`~sage.structure.parent.Parent.an_element`, which relies on the
     implementation of an ``_an_element_()`` method. This is not always
-    awailable. But usually, the action is only needed when one already
+    available. But usually, the action is only needed when one already
     *has* two elements. Hence, by :trac:`14249`, the coercion model will
     pass these two elements to the :class:`ModuleAction` constructor.
 

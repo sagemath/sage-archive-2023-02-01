@@ -38,7 +38,7 @@ from six import PY2, iteritems, itervalues, text_type, class_types, string_types
 import sphinx
 from sphinx.errors import ExtensionError
 from sphinx.ext.autodoc.importer import mock, import_object, get_object_members
-from sphinx.ext.autodoc.inspector import format_annotation, formatargspec
+from sphinx.ext.autodoc.inspector import format_annotation
 from sphinx.locale import _, __
 from sphinx.pycode import ModuleAnalyzer
 from sphinx.errors import ExtensionError, PycodeError
@@ -51,7 +51,8 @@ from sphinx.util.inspect import Signature, isdescriptor, safe_getmembers, \
 from sphinx.util.inspect import getargspec
 
 from sage.misc.sageinspect import (sage_getdoc_original,
-        sage_getargspec, isclassinstance)
+                                   sage_getargspec, isclassinstance,
+                                   sage_formatargspec)
 from sage.misc.lazy_import import LazyImport
 
 # This is used to filter objects of classes that inherit from
@@ -121,6 +122,16 @@ def bool_option(arg):
     directives.flag(), which returns None).
     """
     return True
+
+
+def formatargspec(function, args, varargs=None, varkw=None, defaults=None,
+                  kwonlyargs=(), kwonlydefaults={}, annotations={}):
+    """
+    Sphinx's version of formatargspec is deprecated, so use Sage's instead.
+    """
+    return sage_formatargspec(args, varargs=varargs, varkw=varkw, defaults=defaults,
+                              kwonlyargs=kwonlyargs, kwonlydefaults=kwonlydefaults,
+                              annotations=annotations)
 
 
 class AutodocReporter(object):

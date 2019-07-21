@@ -477,7 +477,7 @@ def span(gens, base_ring=None, check=True, already_echelonized=False):
         [ 0  1  4]
 
         sage: span([V.gen(0)], QuadraticField(-7,'a'))
-        Vector space of degree 3 and dimension 1 over Number Field in a with defining polynomial x^2 + 7
+        Vector space of degree 3 and dimension 1 over Number Field in a with defining polynomial x^2 + 7 with a = 2.645751311064591?*I
         Basis matrix:
         [ 1  0 -3]
 
@@ -2547,7 +2547,7 @@ done from the right side.""")
         """
         if macaulay2 is None:
             from sage.interfaces.macaulay2 import macaulay2
-        if self._inner_product_matrix:
+        if hasattr(self, '_inner_product_matrix'):
             raise NotImplementedError
         else:
             return macaulay2(self.base_ring())**self.rank()
@@ -4587,6 +4587,21 @@ class FreeModule_ambient(FreeModule_generic):
 
             sage: FreeModule(ZZ, 4)
             Ambient free module of rank 4 over the principal ideal domain Integer Ring
+
+        TESTS:
+
+        We check that the creation of a submodule does not trigger
+        the construction of a basis of the ambient space. See :trac:`15953`::
+
+            sage: F.<a> = GF(4)
+            sage: V = VectorSpace(F, 1)
+            sage: v = V.random_element()
+            sage: _ = V.subspace([v])
+            sage: hasattr(V, '_FreeModule_ambient__basis')
+            False
+            sage: _ = V.basis()
+            sage: hasattr(V, '_FreeModule_ambient__basis')
+            True
         """
         FreeModule_generic.__init__(self, base_ring, rank=rank,
                 degree=rank, sparse=sparse, coordinate_ring=coordinate_ring)

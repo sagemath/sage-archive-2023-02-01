@@ -639,7 +639,7 @@ class ScalarField(CommutativeAlgebraElement):
         on U: (x, y) |--> 1/(x**2 + y**2 + 1)
         on V: (u, v) |--> (u**2 + v**2)/(u**2 + v**2 + 1)
 
-    Defintion without any coordinate expression and subsequent completion::
+    Definition without any coordinate expression and subsequent completion::
 
         sage: f = M.scalar_field(name='f')
         sage: f.add_expr(1/(1+x^2+y^2), chart=c_xy)
@@ -2057,12 +2057,24 @@ class ScalarField(CommutativeAlgebraElement):
             sage: g._express
             {Chart (W, (u, v)): u + 1}
             sage: f.common_charts(g)
-            [Chart (W, (u, v)), Chart (W, (x, y))]
+            [Chart (W, (x, y)), Chart (W, (u, v))]
             sage: f._express # random (dictionary output)
             {Chart (W, (u, v)): 1/4*u^2 + 1/2*u*v + 1/4*v^2,
              Chart (W, (x, y)): x^2}
             sage: g._express # random (dictionary output)
             {Chart (W, (u, v)): u + 1, Chart (W, (x, y)): x + y + 1}
+
+        TESTS:
+
+        Check that :trac:`28072` has been fixed::
+
+            sage: c_ab.<a,b> = W.chart()
+            sage: xy_to_ab = c_xy_W.transition_map(c_ab, (3*y, x-y))
+            sage: h = W.scalar_field(a+b, chart=c_ab)
+            sage: f.common_charts(h)
+            [Chart (W, (x, y))]
+            sage: h.expr(c_xy_W)
+            x + 2*y
 
         """
         if not isinstance(other, ScalarField):
@@ -2097,11 +2109,11 @@ class ScalarField(CommutativeAlgebraElement):
                 for chart2 in known_expr2:
                     if chart2 not in resu:
                         if (chart1, chart2) in coord_changes:
-                            self.coord_function(chart2, from_chart=chart1)
-                            resu.append(chart2)
-                        if (chart2, chart1) in coord_changes:
                             other.coord_function(chart1, from_chart=chart2)
                             resu.append(chart1)
+                        if (chart2, chart1) in coord_changes:
+                            self.coord_function(chart2, from_chart=chart1)
+                            resu.append(chart2)
         if resu == []:
             return None
         else:

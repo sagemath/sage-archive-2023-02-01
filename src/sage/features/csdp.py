@@ -51,12 +51,12 @@ class CSDP(Executable):
             lines = subprocess.check_output(command, stderr=devnull)
         except subprocess.CalledProcessError as e:
             return FeatureTestResult(self, False,
-                reason = "Call to `{command}` failed with exit code {e.returncode}.".format(command=" ".join(command), e=e))
+                reason="Call to `{command}` failed with exit code {e.returncode}.".format(command=" ".join(command), e=e))
 
         result = lines.strip().split('\n')[-1]
         match = re.match("^The Lovasz Theta Number is (.*)$", result)
         if match is None:
             return FeatureTestResult(self, False,
-                reason = "Last line of the output of `{command}` did not have the expected format.".format(command=" ".join(command)))
+                reason="Last line of the output of `{command}` did not have the expected format.".format(command=" ".join(command)))
 
         return FeatureTestResult(self, True)

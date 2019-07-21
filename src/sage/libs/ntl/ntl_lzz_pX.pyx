@@ -183,7 +183,7 @@ cdef class ntl_zz_pX(object):
         """
         return str(self.list())
 
-    def __getitem__(self, i):
+    def __getitem__(self, long i):
         """
         Return the ith coefficient of f.
 
@@ -203,12 +203,10 @@ cdef class ntl_zz_pX(object):
         y = ntl_zz_p.__new__(ntl_zz_p)
         y.c = self.c
         self.c.restore_c()
-        if not isinstance(i, long):
-            i = long(i)
         y.x = zz_pX_GetCoeff(self.x, i)
         return y
 
-    def __setitem__(self, i, val):
+    def __setitem__(self, long i, val):
         """
         Set the ith coefficient of self to val. If
         i is out of range, raise an exception.
@@ -223,13 +221,8 @@ cdef class ntl_zz_pX(object):
             ...
             ValueError: index (=-1) is out of range
         """
-        cdef long zero = 0L
-        if not isinstance(i, long):
-            i = long(i)
-        if (i < zero):
+        if (i < 0):
             raise ValueError("index (=%s) is out of range" % i)
-        if not isinstance(val, long):
-            val = long(val)
         self.c.restore_c()
         zz_pX_SetCoeff_long(self.x, i, val)
         return

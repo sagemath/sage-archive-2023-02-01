@@ -1240,6 +1240,28 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         """
         return self.__is_sparse
 
+    def monomial(self, exponent):
+        """
+        Return the monomial with the ``exponent``.
+
+        INPUT:
+
+        - ``exponent`` -- nonnegative integer
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: R.monomial(5)
+            x^5
+            sage: e=(10,)
+            sage: R.monomial(*e)
+            x^10
+            sage: m = R.monomial(100)
+            sage: R.monomial(m.degree()) == m
+            True
+        """
+        return self({exponent:self.base_ring().one()})
+
     def krull_dimension(self):
         """
         Return the Krull dimension of this polynomial ring, which is one
@@ -1364,7 +1386,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             else:
                 raise ValueError("No polynomial of degree >= 0 has all coefficients zero")
 
-        # Pick a random degree 
+        # Pick a random degree
         d = randint(degree[0], degree[1])
 
         # If degree is -1, return the 0 polynomial

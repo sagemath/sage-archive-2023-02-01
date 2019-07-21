@@ -605,8 +605,8 @@ def _minimize_level(G):
 
     # now sanitize the generators (remove duplicates and copies of the identity)
     new_gens = [x.matrix() for x in G.gens() if x.matrix() != 1]
-    all([x.set_immutable() for x in new_gens])
+    all(x.set_immutable() for x in new_gens)
     new_gens = list(Set(new_gens))
-    if new_gens == []:
+    if not new_gens:
         return ZZ(N)
     return MatrixGroup(new_gens)

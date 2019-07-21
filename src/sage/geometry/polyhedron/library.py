@@ -1983,7 +1983,7 @@ class Polytopes():
         Computation with the backend ``'normaliz'`` is instantaneous::
 
             sage: gap_norm = polytopes.grand_antiprism(backend='normaliz')  # optional - pynormaliz
-            sage: gap_norm
+            sage: gap_norm                                                  # optional - pynormaliz
             A 4-dimensional polyhedron in (Number Field in sqrt5 with defining
             polynomial x^2 - 5 with sqrt5 = 2.236067977499790?)^4 defined as
             the convex hull of 100 vertices

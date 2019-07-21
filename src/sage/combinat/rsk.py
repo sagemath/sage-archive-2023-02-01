@@ -1172,8 +1172,8 @@ class RuleDualRSK(Rule):
       lexicographic order).
       In terms of matrices, this means that the input is not an
       arbitrary matrix with nonnegative integer entries, but rather
-      a `\{0, 1\}`-matrix (i.e., a matrix whose entries are `0`s
-      and `1`s).
+      a `\{0, 1\}`-matrix (i.e., a matrix whose entries are `0`'s
+      and `1`'s).
 
     * The output still consists of two tableaux `(P, Q)` of equal
       shapes, but rather than both of them being semistandard, now
@@ -1188,8 +1188,8 @@ class RuleDualRSK(Rule):
     The RSK and dual RSK algorithms agree for permutation matrices.
 
     For more information, see Chapter 7, Section 14 in [Sta-EC2]_
-    (where dual RSK is called RSK*) or the Third solution to
-    Exercise 2.7.12(a) in [GR2018v5sol]_.
+    (where dual RSK is called `\mathrm{RSK}^{\ast}`) or the third
+    solution to Exercise 2.7.12(a) in [GR2018v5sol]_.
 
     EXAMPLES::
 
@@ -1233,7 +1233,7 @@ class RuleDualRSK(Rule):
         [[1, 2, 2, 2], [2, 1, 2, 3]]
 
     When applied to two standard tableaux, reverse dual RSK
-    insertion behaves identically to the usual reversel RSK insertion::
+    insertion behaves identically to the usual reverse RSK insertion::
 
         sage: t1 = Tableau([[1, 2, 5], [3], [4]])
         sage: t2 = Tableau([[1, 2, 3], [4], [5]])
@@ -1316,7 +1316,7 @@ class RuleDualRSK(Rule):
         sage: True if p == f(p) else p
         True
 
-    Checking that tableaux should be of same shape::
+    Checking that the tableaux should be of same shape::
 
         sage: RSK_inverse(Tableau([[1,2,3]]), Tableau([[1,2]]),
         ....:                          insertion=RSK.rules.dualRSK)
@@ -1580,7 +1580,7 @@ class RuleCoRSK(RuleRSK):
     The RSK and CoRSK algorithms agree for permutation matrices.
 
     For more information, see Section A.4 in [Ful1997]_ (specifically,
-    construction (1d)) or the Second solution to Exercise 2.7.12(a) in
+    construction (1d)) or the second solution to Exercise 2.7.12(a) in
     [GR2018v5sol]_.
 
     EXAMPLES::
@@ -1614,8 +1614,8 @@ class RuleCoRSK(RuleRSK):
         sage: RSK_inverse(P, Q, insertion=RSK.rules.coRSK)
         [[1, 2, 2, 2], [2, 3, 2, 1]]
 
-    When applied to two standard tableaux, backwards CoRSK
-    insertion behaves identically to the usual bcakwards RSK
+    When applied to two standard tableaux, backwards coRSK
+    insertion behaves identically to the usual backwards RSK
     insertion::
 
         sage: t1 = Tableau([[1, 2, 5], [3], [4]])
@@ -1689,7 +1689,7 @@ class RuleCoRSK(RuleRSK):
         sage: True if p == f(p) else p
         True
 
-    Checking that tableaux should be of same shape::
+    Checking that the tableaux should be of same shape::
 
         sage: RSK_inverse(Tableau([[1,2,3]]), Tableau([[1,2]]),
         ....:                          insertion=RSK.rules.dualRSK)
@@ -1697,7 +1697,7 @@ class RuleCoRSK(RuleRSK):
         ...
         ValueError: p(=[[1, 2, 3]]) and q(=[[1, 2]]) must have the same shape
 
-    Checking that biword is strict cobiword::
+    Checking that the biword is a strict cobiword::
 
         sage: RSK([1,2,4,3], [1,2,3,4], insertion=RSK.rules.coRSK)
         Traceback (most recent call last):
@@ -1985,7 +1985,7 @@ def RSK(obj1=None, obj2=None, insertion=InsertionRules.RSK, check_standard=False
         (namely, the lists `(j_0, j_1, \ldots, j_{\ell-1})` and
         `(k_0, k_1, \ldots, k_{\ell-1})` represent the generalized
         permutation
-        ((j_0, k_0), (j_1, k_1), \ldots, (j_{\ell-1}, k_{\ell-1}))`)
+        `((j_0, k_0), (j_1, k_1), \ldots, (j_{\ell-1}, k_{\ell-1}))`)
       - any object which has a method ``_rsk_iter()`` which returns an
         iterator over the object represented as generalized permutation or
         a pair of lists (in this case, ``obj1`` is said object,

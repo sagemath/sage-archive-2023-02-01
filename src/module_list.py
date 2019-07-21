@@ -446,6 +446,9 @@ ext_modules = [
     Extension('sage.graphs.base.boost_graph',
               sources = ['sage/graphs/base/boost_graph.pyx']),
 
+    Extension('sage.graphs.views',
+              sources = ['sage/graphs/views.pyx']),
+
     ################################
     ##
     ## sage.groups

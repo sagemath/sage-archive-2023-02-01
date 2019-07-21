@@ -4,8 +4,8 @@
 # usage: sage_version [-v]
 #   -v    display the full version banner including release date
 sage_version() {
-    if [ -f "$SAGE_LOCAL/bin/sage-version.sh" ]; then
-        . "$SAGE_LOCAL/bin/sage-version.sh"
+    if [ -f "$0-version.sh" ]; then
+        . "$0-version.sh"
     else
         . "$SAGE_ROOT/src/bin/sage-version.sh"
     fi
@@ -1043,13 +1043,13 @@ if [ "$1" = '-gdb' -o "$1" = "--gdb" ]; then
     shift
     sage_setup
     if [ "$SAGE_DEBUG" = "no" ]; then
-        gdb -x "$SAGE_LOCAL/bin/sage-gdb-commands" \
-            -args python "$SAGE_LOCAL/bin/sage-ipython" "$@" -i
+        gdb -x "$0-gdb-commands" \
+            -args python "$0-ipython" "$@" -i
     else
         sage_dir=$(sage-python23 -c 'import os, sage; print(os.path.dirname(sage.__file__))')
         cygdb "$sage_dir" "$SAGE_SRC/sage" \
-            -- -x "$SAGE_LOCAL/bin/sage-gdb-commands" \
-            -args python "$SAGE_LOCAL/bin/sage-ipython" "$@" -i
+            -- -x "$0-gdb-commands" \
+            -args python "$0-ipython" "$@" -i
     fi
     exit $?
 fi

@@ -198,7 +198,8 @@ can be applied on both. Here is what it can do:
 
     :meth:`~GenericGraph.breadth_first_search` | Return an iterator over the vertices in a breadth-first ordering.
     :meth:`~GenericGraph.depth_first_search` | Return an iterator over the vertices in a depth-first ordering.
-    :meth:`~GenericGraph.lex_BFS` | Perform a Lex BFS on the graph.
+    :meth:`~GenericGraph.lex_BFS` | Perform a lexicographic breadth first search (LexBFS) on the graph.
+    :meth:`~GenericGraph.lex_DFS` | Perform a lexicographic depth first search (LexDFS) on the graph.
 
 **Distances:**
 
@@ -17898,117 +17899,6 @@ class GenericGraph(GenericGraph_pyx):
                             if w not in seen:
                                 queue.append((w, d + 1))
 
-    def lex_BFS(self, reverse=False, tree=False, initial_vertex=None):
-        r"""
-        Perform a Lex BFS on the graph.
-
-        A Lex BFS ( or Lexicographic Breadth-First Search ) is a Breadth First
-        Search used for the recognition of Chordal Graphs. For more information,
-        see the :wikipedia:`Lexicographic_breadth-first_search`.
-
-        INPUT:
-
-        - ``reverse`` -- boolean (default: ``False``); whether to return the
-          vertices in discovery order, or the reverse
-
-        - ``tree`` -- boolean (default: ``False``); whether to return the
-          discovery directed tree (each vertex being linked to the one that saw
-          it for the first time)
-
-        - ``initial_vertex`` -- (default: ``None``); the first vertex to
-          consider
-
-        ALGORITHM:
-
-        This algorithm maintains for each vertex left in the graph a code
-        corresponding to the vertices already removed. The vertex of maximal
-        code (according to the lexicographic order) is then removed, and the
-        codes are updated.
-
-        This algorithm runs in time `O(n^2)` ( where `n` is the number of
-        vertices in the graph ), which is not optimal.  An optimal algorithm
-        would run in time `O(m)` ( where `m` is the number of edges in the graph
-        ), and require the use of a doubly-linked list which are not available
-        in python and can not really be written efficiently. This could be done
-        in Cython, though.
-
-        EXAMPLES:
-
-        A Lex BFS is obviously an ordering of the vertices::
-
-            sage: g = graphs.PetersenGraph()
-            sage: len(g.lex_BFS()) == g.order()
-            True
-
-        For a Chordal Graph, a reversed Lex BFS is a Perfect Elimination Order::
-
-            sage: g = graphs.PathGraph(3).lexicographic_product(graphs.CompleteGraph(2))
-            sage: g.lex_BFS(reverse=True)  # py2
-            [(2, 0), (2, 1), (1, 1), (1, 0), (0, 0), (0, 1)]
-            sage: g.lex_BFS(reverse=True)  # py3
-            [(2, 1), (2, 0), (1, 1), (1, 0), (0, 1), (0, 0)]
-
-        And the vertices at the end of the tree of discovery are, for chordal
-        graphs, simplicial vertices (their neighborhood is a complete graph)::
-
-            sage: g = graphs.ClawGraph().lexicographic_product(graphs.CompleteGraph(2))
-            sage: v = g.lex_BFS()[-1]
-            sage: peo, tree = g.lex_BFS(initial_vertex = v,  tree=True)
-            sage: leaves = [v for v in tree if tree.in_degree(v) ==0]
-            sage: all(g.subgraph(g.neighbors(v)).is_clique() for v in leaves)
-            True
-
-        TESTS:
-
-        There were some problems with the following call in the past
-        (:trac:`10899`) -- now it should be fine::
-
-            sage: Graph(1).lex_BFS(tree=True)
-            ([0], Digraph on 1 vertex)
-
-        """
-        id_inv = list(self)
-        code = [[] for i in range(self.order())]
-        m = self.am(vertices=id_inv)
-
-        l = lambda x: code[x]
-        vertices = set(range(self.order()))
-
-        value = []
-        pred = [-1] * self.order()
-
-        add_element = (lambda y: value.append(id_inv[y])) if not reverse else (lambda y: value.insert(0, id_inv[y]))
-
-        # Should we take care of the first vertex we pick ?
-        first = True if initial_vertex is not None else False
-
-        while vertices:
-
-            if not first:
-                v = max(vertices, key=l)
-            else:
-                v = id_inv.index(initial_vertex)
-                first = False
-
-            vertices.remove(v)
-            vector = m.column(v)
-            for i in vertices:
-                code[i].append(vector[i])
-                if vector[i]:
-                    pred[i] = v
-            add_element(v)
-
-        if tree:
-            from sage.graphs.digraph import DiGraph
-            g = DiGraph(sparse=True)
-            g.add_vertices(id_inv)
-            edges = [(id_inv[i], id_inv[pred[i]]) for i in range(self.order()) if pred[i] != -1]
-            g.add_edges(edges)
-            return value, g
-
-        else:
-            return value
-
     ### Constructors
 
     def add_clique(self, vertices, loops=False):
@@ -23552,6 +23442,8 @@ class GenericGraph(GenericGraph_pyx):
     from sage.graphs.connectivity import edge_connectivity
     from sage.graphs.connectivity import vertex_connectivity
     from sage.graphs.base.static_dense_graph import connected_subgraph_iterator
+    from sage.graphs.traversals import lex_BFS
+    from sage.graphs.traversals import lex_DFS
 
     def katz_matrix(self, alpha, nonedgesonly=False, vertices=None):
         r"""

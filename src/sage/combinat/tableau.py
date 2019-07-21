@@ -2769,6 +2769,17 @@ class Tableau(ClonableList):
             operator" :meth:`promotion_inverse` for semistandard tableaux
             has never been proven in literature. Corrections are welcome.
 
+        REFERENCES:
+
+        .. [Hai1992] Mark D. Haiman,
+           *Dual equivalence with applications, including a conjecture of Proctor*,
+           Discrete Mathematics 99 (1992), 79-113,
+           http://www.sciencedirect.com/science/article/pii/0012365X9290368P
+
+        .. [Sg2011] Bruce E. Sagan,
+           *The cyclic sieving phenomenon: a survey*,
+           :arxiv:`1008.0790v3`
+
         EXAMPLES::
 
             sage: t = Tableau([[1,2],[3,3]])
@@ -3728,6 +3739,12 @@ class Tableau(ClonableList):
         row) to be a maximal consecutive sequence of `k`-boxes in the `i`-th
         row for any `i+1 \le k \le r+1`.  Denote the total number of
         `k`-segments in `T` by `\mathrm{seg}(T)`.
+
+        REFERENCES:
+
+        .. [S14] \B. Salisbury.
+           The flush statistic on semistandard Young tableaux.
+           :arxiv:`1401.1185`
 
         EXAMPLES::
 

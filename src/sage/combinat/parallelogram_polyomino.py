@@ -2969,11 +2969,11 @@ class ParallelogramPolyomino(ClonableList):
     def _get_number_of_nodes_in_the_bounding_path(self, box, direction):
         r"""
         When we draw the bounding path from ``box`` to the top-left cell of
-        ``self``, the path is corssing some cells containing some nodes
+        ``self``, the path is crossing some cells containing some nodes
         defined by the Boussicault-Socci bijection
         (see :meth:`_to_ordered_tree_Bou_Socci`).
 
-        This function return a list of number that represent the number of
+        This function returns a list of numbers that represent the number of
         nodes minus 1 that the path is crossing between each bounding.
         The starting box is excluded from the count of nodes.
 

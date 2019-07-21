@@ -2178,6 +2178,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef int w = 0
         cdef int pred
         cdef int side
+        cdef int distance
 
         # Each vertex knows its predecessors in the search, for each side
         cdef dict pred_x = {}

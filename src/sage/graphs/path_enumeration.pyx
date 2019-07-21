@@ -1673,10 +1673,10 @@ def all_paths_iterator(self, starting_vertices=None, ending_vertices=None,
     # This is necessary if we want to iterate over paths
     # with increasing length
     vertex_iterators = {v: self._all_paths_iterator(v, ending_vertices=ending_vertices,
-                                                        simple=simple, max_length=max_length,
-                                                        trivial=trivial, use_multiedges=use_multiedges,
-                                                        report_edges=report_edges, labels=labels, data=data)
-                                                        for v in starting_vertices}
+                                                       simple=simple, max_length=max_length,
+                                                       trivial=trivial, use_multiedges=use_multiedges,
+                                                       report_edges=report_edges, labels=labels, data=data)
+                                                       for v in starting_vertices}
     paths = []
     for vi in vertex_iterators.values():
         try:

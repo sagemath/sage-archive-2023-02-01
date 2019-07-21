@@ -150,9 +150,10 @@ def project_points(*points, **kwds):
         sage: project_points([1,2,3],[3,3,5])     # abs tol 1e-15
         [(-0.7071067811865475, -1.2247448713915892), (0.0, -1.6329931618554523)]
 
-    These projections are compatible with the restriction. More precisely, given
-    a vector `v`, the projection of `v` restricted to the first `i` coordinates
-    will be equal to the projection of the first `i+1` coordinates of `v`::
+    These projections are compatible with the restriction. More precisely,
+    given a vector `v`, the projection of `v` restricted to the first `i`
+    coordinates will be equal to the projection of the first `i+1` coordinates
+    of `v`::
 
         sage: project_points([1,2])    # abs tol 1e-15
         [(-0.7071067811865475)]
@@ -332,10 +333,11 @@ class Polytopes():
           integer.
 
         - ``project`` -- (boolean, default ``False``) if ``True``, the polytope
-          is (isometrically) projected to a vector space of dimension ``dim-1``.
-          This corresponds to the projection given by the matrix from
-          :func:`zero_sum_projection`.  By default, this operation turns the
-          coordinates into floating point approximations (see ``base_ring``).
+          is (isometrically) projected to a vector space of dimension
+          ``dim-1``.  This corresponds to the projection given by the matrix
+          from :func:`zero_sum_projection`.  By default, this operation turns
+          the coordinates into floating point approximations (see
+          ``base_ring``).
 
         - ``base_ring`` -- the base ring to use to create the polytope.
           If ``project`` is ``False``, this defaults to `\ZZ`.
@@ -532,8 +534,8 @@ class Polytopes():
 
         - ``base_ring`` -- the ring in which the coordinates will belong to. If
           it is not provided and ``exact=True`` it will be a the number field
-          `\QQ[\phi]` where `\phi` is the golden ratio and if ``exact=False`` it
-          will be the real double field.
+          `\QQ[\phi]` where `\phi` is the golden ratio and if ``exact=False``
+          it will be the real double field.
 
         - ``backend`` -- the backend to use to create the polytope.
 
@@ -556,8 +558,8 @@ class Polytopes():
 
             sage: sr = polytopes.small_rhombicuboctahedron(False)
             sage: sr
-            A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 24
-            vertices
+            A 3-dimensional polyhedron in RDF^3 defined as the convex hull of
+            24 vertices
             sage: sr.f_vector()
             (1, 24, 48, 26, 1)
 
@@ -602,8 +604,8 @@ class Polytopes():
 
         - ``base_ring`` -- the ring in which the coordinates will belong to. If
           it is not provided and ``exact=True`` it will be a the number field
-          `\QQ[\phi]` where `\phi` is the golden ratio and if ``exact=False`` it
-          will be the real double field.
+          `\QQ[\phi]` where `\phi` is the golden ratio and if ``exact=False``
+          it will be the real double field.
 
         - ``backend`` -- the backend to use to create the polytope.
 
@@ -688,7 +690,7 @@ class Polytopes():
             sage: TestSuite(rd_norm).run(skip='_test_pickling')                 # optional - pynormaliz
         """
         v = [[2,0,0],[-2,0,0],[0,2,0],[0,-2,0],[0,0,2],[0,0,-2]]
-        v.extend((itertools.product([1,-1], repeat=3)))
+        v.extend((itertools.product([1, -1], repeat=3)))
         return Polyhedron(vertices=v, base_ring=ZZ, backend=backend)
 
     def cuboctahedron(self, backend=None):
@@ -994,12 +996,12 @@ class Polytopes():
         - ``exact`` -- (boolean, default ``False``) if ``True`` use exact
           coordinates instead of floating point approximations
 
-        - ``base_ring`` -- the field to use. If ``None`` (the default), construct
-          the exact number field needed (if ``exact`` is ``True``) or default
-          to ``RDF`` (if ``exact`` is ``True``).
+        - ``base_ring`` -- the field to use. If ``None`` (the default),
+          construct the exact number field needed (if ``exact`` is ``True``) or
+          default to ``RDF`` (if ``exact`` is ``True``).
 
-        - ``backend`` -- the backend to use to create the polytope.  If ``None``
-          (the default), the backend will be selected automatically.
+        - ``backend`` -- the backend to use to create the polytope.  If
+          ``None`` (the default), the backend will be selected automatically.
 
         EXAMPLES::
 
@@ -1085,8 +1087,8 @@ class Polytopes():
         r"""
         Return the bucky ball.
 
-        The bucky ball, also known as the truncated icosahedron is an Archimedean solid.
-        It has 32 faces and 60 vertices.
+        The bucky ball, also known as the truncated icosahedron is an
+        Archimedean solid.  It has 32 faces and 60 vertices.
 
         .. SEEALSO::
 
@@ -1099,8 +1101,8 @@ class Polytopes():
 
         - ``base_ring`` -- the ring in which the coordinates will belong to. If
           it is not provided and ``exact=True`` it will be a the number field
-          `\QQ[\phi]` where `\phi` is the golden ratio and if ``exact=False`` it
-          will be the real double field.
+          `\QQ[\phi]` where `\phi` is the golden ratio and if ``exact=False``
+          it will be the real double field.
 
         - ``backend`` -- the backend to use to create the polytope.
 
@@ -1178,7 +1180,7 @@ class Polytopes():
         phi = (one+K.gen())/2
 
         gens = [((-1)**a*one/2, (-1)**b*phi/2, (-1)**c*(one+phi)/2)
-                  for a,b,c in product([0, 1],repeat=3)]
+                for a, b, c in product([0, 1], repeat=3)]
         gens.extend([(0, 0, phi), (0, 0, -phi)])
 
         verts = []
@@ -1186,7 +1188,7 @@ class Polytopes():
             verts.extend(p(x) for x in gens)
 
         if exact:
-            return Polyhedron(vertices=verts,base_ring=K,backend=backend)
+            return Polyhedron(vertices=verts, base_ring=K, backend=backend)
         else:
             verts = [(RR(x), RR(y), RR(z)) for x, y, z in verts]
             return Polyhedron(vertices=verts, backend=backend)
@@ -1204,10 +1206,10 @@ class Polytopes():
         - ``exact`` -- (boolean, default ``True``) If ``False`` use an
           approximate ring for the coordinates.
 
-        - ``base_ring`` -- the ring in which the coordinates will belong to. If
-          it is not provided and ``exact=True`` it will be a the number field
-          `\QQ[\phi]` where `\phi` is the golden ratio and if ``exact=False`` it
-          will be the real double field.
+        - ``base_ring`` -- the ring in which the coordinates will belong to.
+          If it is not provided and ``exact=True`` it will be a the number
+          field `\QQ[\phi]` where `\phi` is the golden ratio and if
+          ``exact=False`` it will be the real double field.
 
         - ``backend`` -- the backend to use to create the polytope.
 
@@ -1277,8 +1279,8 @@ class Polytopes():
 
         - ``base_ring`` -- the ring in which the coordinates will belong to. If
           it is not provided and ``exact=True`` it will be a the number field
-          `\QQ[\phi]` where `\phi` is the golden ratio and if ``exact=False`` it
-          will be the real double field.
+          `\QQ[\phi]` where `\phi` is the golden ratio and if ``exact=False``
+          it will be the real double field.
 
         - ``backend`` -- the backend to use to create the polytope.
 
@@ -1304,7 +1306,10 @@ class Polytopes():
             sage: td = polytopes.truncated_dodecahedron(exact=False) # random
             doctest:warning
             ...
-            UserWarning: This polyhedron data is numerically complicated; cdd could not convert between the inexact V and H representation without loss of data. The resulting object might show inconsistencies.
+            UserWarning: This polyhedron data is numerically complicated; cdd
+            could not convert between the inexact V and H representation
+            without loss of data. The resulting object might show
+            inconsistencies.
             sage: td.f_vector()
             Traceback (most recent call last):
             ...
@@ -1350,8 +1355,8 @@ class Polytopes():
 
         The pentakis dodecahedron (orkisdodecahedron) is a face-regular,
         vertex-uniform polytope dual to the truncated icosahedron.  It has 60
-        faces and 32 vertices. See the :wikipedia:`Pentakis_dodecahedron` for more
-        information.
+        faces and 32 vertices. See the :wikipedia:`Pentakis_dodecahedron` for
+        more information.
 
         INPUT:
 
@@ -1360,8 +1365,8 @@ class Polytopes():
 
         - ``base_ring`` -- the ring in which the coordinates will belong to. If
           it is not provided and ``exact=True`` it will be a the number field
-          `\QQ[\phi]` where `\phi` is the golden ratio and if ``exact=False`` it
-          will be the real double field.
+          `\QQ[\phi]` where `\phi` is the golden ratio and if ``exact=False``
+          it will be the real double field.
 
         - ``backend`` -- the backend to use to create the polytope.
 
@@ -1442,8 +1447,8 @@ class Polytopes():
 
         - ``base_ring`` -- the ring in which the coordinates will belong to. If
           it is not provided and ``exact=True`` it will be a the number field
-          `\QQ[\phi]` where `\phi` is the golden ratio and if ``exact=False`` it
-          will be the real double field.
+          `\QQ[\phi]` where `\phi` is the golden ratio and if ``exact=False``
+          it will be the real double field.
 
         - ``backend`` -- the backend to use to create the polytope.
 
@@ -1519,8 +1524,8 @@ class Polytopes():
 
         - ``base_ring`` -- the ring in which the coordinates will belong to. If
           it is not provided and ``exact=True`` it will be a the number field
-          `\QQ[\phi]` where `\phi` is the golden ratio and if ``exact=False`` it
-          will be the real double field.
+          `\QQ[\phi]` where `\phi` is the golden ratio and if ``exact=False``
+          it will be the real double field.
 
         - ``backend`` -- the backend to use to create the polytope.
 
@@ -1620,7 +1625,8 @@ class Polytopes():
 
         TESTS:
 
-        The cdd backend with floating point arithmetic fails for this polytope::
+        The cdd backend with floating point arithmetic fails for this
+        polytope::
 
             sage: sd = polytopes.snub_dodecahedron()        # not tested
             sage: sd.f_vector()                             # not tested
@@ -1792,9 +1798,9 @@ class Polytopes():
 
         .. WARNING::
 
-            The coordinates are inexact by default. The computation with inexact
-            coordinates (using the backend ``'cdd'``) issues a UserWarning
-            on inconsistencies.
+            The coordinates are inexact by default. The computation with
+            inexact coordinates (using the backend ``'cdd'``) issues a
+            UserWarning on inconsistencies.
 
         INPUT:
 
@@ -1832,8 +1838,8 @@ class Polytopes():
 
         .. WARNING::
 
-            The coordinates are not exact by default. The computation with exact
-            coordinates takes a huge amount of time.
+            The coordinates are not exact by default. The computation with
+            exact coordinates takes a huge amount of time.
 
         INPUT:
 
@@ -1893,8 +1899,8 @@ class Polytopes():
 
         .. WARNING::
 
-            The coordinates are not exact by default. The computation with exact
-            coordinates takes a huge amount of time.
+            The coordinates are not exact by default. The computation with
+            exact coordinates takes a huge amount of time.
 
         INPUT:
 
@@ -2019,17 +2025,17 @@ class Polytopes():
 
         verts.extend([z, s1 * q12, s2*g/2, s3/(2*g)] for (s1,s2,s3) in product([1,-1], repeat=3))
 
-        verts.extend([z, s1/(2*g), q12, g/2] for s1 in [1,-1])
-        verts.extend([z, s1/(2*g), -q12, -g/2] for s1 in [1,-1])
+        verts.extend([z, s1/(2*g), q12, g/2] for s1 in [1, -1])
+        verts.extend([z, s1/(2*g), -q12, -g/2] for s1 in [1, -1])
 
-        verts.extend([z, s1*g/2, 1/(2*g), q12] for s1 in [1,-1])
-        verts.extend([z, s1*g/2, -1/(2*g), -q12] for s1 in [1,-1])
+        verts.extend([z, s1*g/2, 1/(2*g), q12] for s1 in [1, -1])
+        verts.extend([z, s1*g/2, -1/(2*g), -q12] for s1 in [1, -1])
 
-        verts.extend([s1*g/2, z, q12, -1/(2*g)] for s1 in [1,-1])
-        verts.extend([s1*g/2, z, -q12, 1/(2*g)] for s1 in [1,-1])
+        verts.extend([s1*g/2, z, q12, -1/(2*g)] for s1 in [1, -1])
+        verts.extend([s1*g/2, z, -q12, 1/(2*g)] for s1 in [1, -1])
 
-        verts.extend([s1/(2*g), z, g/2, -q12] for s1 in [1,-1])
-        verts.extend([s1/(2*g), z, -g/2, q12] for s1 in [1,-1])
+        verts.extend([s1/(2*g), z, g/2, -q12] for s1 in [1, -1])
+        verts.extend([s1/(2*g), z, -g/2, q12] for s1 in [1, -1])
 
         return Polyhedron(vertices=verts, base_ring=base_ring, backend=backend, verbose=verbose)
 
@@ -2038,8 +2044,8 @@ class Polytopes():
         Return the Gosset `3_{21}` polytope.
 
         The Gosset `3_{21}` polytope is a uniform 7-polytope. It has 56
-        vertices, and 702 facets: `126` `3_{11}` and `576` `6`-simplex. For more
-        information, see the :wikipedia:`3_21_polytope`.
+        vertices, and 702 facets: `126` `3_{11}` and `576` `6`-simplex. For
+        more information, see the :wikipedia:`3_21_polytope`.
 
         INPUT:
 
@@ -2059,7 +2065,7 @@ class Polytopes():
         """
         from itertools import combinations
         verts = []
-        for i,j in combinations(range(8),2):
+        for i, j in combinations(range(8), 2):
             x = [1]*8
             x[i] = x[j] = -3
             verts.append(x)
@@ -2071,9 +2077,10 @@ class Polytopes():
         r"""
         Return a cyclic polytope.
 
-        A cyclic polytope of dimension ``dim`` with ``n`` vertices is the convex
-        hull of the points  ``(t,t^2,...,t^dim)`` with `t \in \{0,1,...,n-1\}` .
-        For more information, see the :wikipedia:`Cyclic_polytope`.
+        A cyclic polytope of dimension ``dim`` with ``n`` vertices is the
+        convex hull of the points  ``(t,t^2,...,t^dim)`` with `t \in
+        \{0,1,...,n-1\}` .  For more information, see the
+        :wikipedia:`Cyclic_polytope`.
 
         INPUT:
 
@@ -2119,8 +2126,8 @@ class Polytopes():
         - ``n`` -- the numbers ``(1,...,n)`` are permuted
 
         - ``project`` -- (boolean, default ``False``) if ``True``, the polytope
-          is (isometrically) projected to a vector space of dimension ``dim-1``.
-          This operation turns the coordinates into floating point
+          is (isometrically) projected to a vector space of dimension
+          ``dim-1``.  This operation turns the coordinates into floating point
           approximations and corresponds to the projection given by the matrix
           from :func:`zero_sum_projection`.
 
@@ -2166,8 +2173,8 @@ class Polytopes():
         - ``n`` -- integer
 
         - ``project`` -- (boolean, default ``False``) if ``True``, the polytope
-          is (isometrically) projected to a vector space of dimension ``dim-1``.
-          This operation turns the coordinates into floating point
+          is (isometrically) projected to a vector space of dimension
+          ``dim-1``.  This operation turns the coordinates into floating point
           approximations and corresponds to the projection given by the matrix
           from :func:`zero_sum_projection`.
 
@@ -2319,8 +2326,8 @@ class Polytopes():
             sage: perm_b3_reg_norm # optional - pynormaliz
             A 3-dimensional polyhedron in AA^3 defined as the convex hull of 48 vertices
 
-        The backend ``'normaliz'`` allows further faster computation in the non-rational
-        case::
+        The backend ``'normaliz'`` allows further faster computation in the
+        non-rational case::
 
             sage: perm_h3 = polytopes.generalized_permutahedron(['H',3],backend='normaliz')  # optional - pynormaliz
             sage: perm_h3                                                                    # optional - pynormaliz
@@ -2336,7 +2343,7 @@ class Polytopes():
 
         TESTS::
 
-            sage: TestSuite(perm_h3).run(skip='_test_pickling')             # optional - pynormaliz
+            sage: TestSuite(perm_h3).run(skip='_test_pickling')    # optional - pynormaliz
         """
         from sage.combinat.root_system.coxeter_group import CoxeterGroup
         try:
@@ -2349,7 +2356,7 @@ class Polytopes():
             point = [ZZ.one()] * n
         apex = sum(point[i-1] * weights[i] for i in weights.keys())
         # Try to rationalize the starting point
-        non_zero_index = list(apex).index([x for x in apex if x!=0][0])
+        non_zero_index = list(apex).index([x for x in apex if x != 0][0])
         apex = (QQ(1)/apex[non_zero_index]) * apex
         apex.set_immutable()
         vertices = set()
@@ -2369,10 +2376,10 @@ class Polytopes():
             # roots to have the correct angles
             bf = W.bilinear_form()
             transf_col = [[1] + [0]*(n-1)]
-            for i in range(1,n):
+            for i in range(1, n):
                 new_col = [0]*i + [1] + [0]*(n-i-1)
                 transf_col += [new_col]
-                m = matrix(AA,transf_col)
+                m = matrix(AA, transf_col)
                 col = bf.column(i)
                 rhs = vector(list(col[:i+1]))
                 adjusted_col = m.solve_right(rhs)
@@ -2434,9 +2441,9 @@ class Polytopes():
 
         .. WARNING::
 
-            The coordinates are inexact by default. The computation with inexact
-            coordinates (using the backend ``'cdd'``) issues a UserWarning
-            on inconsistencies.
+            The coordinates are inexact by default. The computation with
+            inexact coordinates (using the backend ``'cdd'``) issues a
+            UserWarning on inconsistencies.
 
         INPUT:
 
@@ -2501,9 +2508,9 @@ class Polytopes():
 
         .. WARNING::
 
-            The coordinates are inexact by default. The computation with inexact
-            coordinates (using the backend ``'cdd'``) issues a UserWarning
-            on inconsistencies.
+            The coordinates are inexact by default. The computation with
+            inexact coordinates (using the backend ``'cdd'``) issues a
+            UserWarning on inconsistencies.
 
         INPUT:
 
@@ -2515,9 +2522,10 @@ class Polytopes():
         EXAMPLES::
 
             sage: polytopes.runcinated_one_hundred_twenty_cell(exact=False) # not tested - very long time
-            doctest:warning
-            ...
-            UserWarning: This polyhedron data is numerically complicated; cdd could not convert between the inexact V and H representation without loss of data. The resulting object might show inconsistencies.
+            doctest:warning ...  UserWarning: This polyhedron data is
+            numerically complicated; cdd could not convert between the inexact
+            V and H representation without loss of data. The resulting object
+            might show inconsistencies.
             A 4-dimensional polyhedron in RDF^4 defined as the convex hull of 2400 vertices
 
         It is possible to use the backend ``'normaliz'`` to get an exact
@@ -2708,8 +2716,8 @@ class Polytopes():
         Return a cross-polytope in dimension ``dim``.
 
         A cross-polytope is a higher dimensional generalization of the
-        octahedron. It is the convex hull of the `2d` points `(\pm 1, 0, \ldots,
-        0)`, `(0, \pm 1, \ldots, 0)`, \ldots, `(0, 0, \ldots, \pm 1)`.
+        octahedron. It is the convex hull of the `2d` points `(\pm 1, 0,
+        \ldots, 0)`, `(0, \pm 1, \ldots, 0)`, \ldots, `(0, 0, \ldots, \pm 1)`.
         See the :wikipedia:`Cross-polytope` for more information.
 
         INPUT:
@@ -2758,8 +2766,9 @@ class Polytopes():
             sage: K = QuadraticField(2, 'sqrt2')
             sage: sqrt2 = K.gen()
             sage: polytopes.parallelotope([ (1,sqrt2), (1,-1) ])
-            A 2-dimensional polyhedron in (Number Field in sqrt2 with defining 
-            polynomial x^2 - 2 with sqrt2 = 1.414213562373095?)^2 defined as the convex hull of 4 vertices
+            A 2-dimensional polyhedron in (Number Field in sqrt2 with defining
+            polynomial x^2 - 2 with sqrt2 = 1.414213562373095?)^2 defined as
+            the convex hull of 4 vertices
         """
         from sage.modules.free_module_element import vector
         from sage.structure.sequence import Sequence

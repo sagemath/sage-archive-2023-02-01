@@ -1782,6 +1782,7 @@ class Polytopes():
           coordinates instead of floating point approximations.
 
         - ``backend`` -- the backend to use to create the polytope.
+
         EXAMPLES::
 
             sage: polytopes.runcinated_six_hundred_cell(exact=True,backend='normaliz') # not tested - very long time

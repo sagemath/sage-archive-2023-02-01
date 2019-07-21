@@ -406,8 +406,5 @@ def cython_aliases():
     # This is not a problem in practice since LinBox depends on
     # fflas-ffpack and fflas-ffpack does add such a C++11 flag.
     aliases["LINBOX_CFLAGS"].append("-std=gnu++11")
-    if os.environ.get('SAGE_ARB_LIBRARY'):
-        aliases["ARB_LIBRARY"] = os.environ['SAGE_ARB_LIBRARY']
-    else:
-        aliases["ARB_LIBRARY"] = 'arb'
+    aliases["ARB_LIBRARY"] = os.environ.get('SAGE_ARB_LIBRARY', 'arb')
     return aliases

@@ -440,7 +440,7 @@ if [ -f "$0-env" ]; then
 fi
 
 if [ -z "$DOT_SAGE" ]; then
-    DOT_SAGE="$HOME/.sage"
+    export DOT_SAGE="$HOME/.sage"
 fi
 
 # Prepare for running Sage, either interactively or non-interactively.

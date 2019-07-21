@@ -1728,8 +1728,9 @@ class Polytopes():
 
         EXAMPLES::
 
-            sage: polytopes.runcitruncated_six_hundred_cell(exact=True,backend='normaliz') # not tested - very long time
-            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 7200 vertices
+            sage: polytopes.runcitruncated_six_hundred_cell(backend='normaliz') # not tested - very long time
+            A 4-dimensional polyhedron in AA^4 defined as the convex hull of
+            7200 vertices
         """
         return self.generalized_permutahedron(['H', 4], point=[1, 1, 0, 1], exact=exact, backend=backend, regular=True)
 
@@ -1757,7 +1758,7 @@ class Polytopes():
         EXAMPLES::
 
             sage: polytopes.cantitruncated_six_hundred_cell(exact=True,backend='normaliz') # not tested - very long time
-            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 7200 vertices
+            A 4-dimensional polyhedron in AA^4 defined as the convex hull of 7200 vertices
         """
         return self.generalized_permutahedron(['H', 4], point=[1, 1, 1, 0], exact=exact, backend=backend, regular=True)
 
@@ -1784,7 +1785,7 @@ class Polytopes():
         EXAMPLES::
 
             sage: polytopes.runcinated_six_hundred_cell(exact=True,backend='normaliz') # not tested - very long time
-            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 3600 vertices
+            A 4-dimensional polyhedron in AA^4 defined as the convex hull of 3600 vertices
         """
         return self.generalized_permutahedron(['H', 4], point=[0, 1, 1, 0], exact=exact, backend=backend, regular=True)
 
@@ -1824,7 +1825,7 @@ class Polytopes():
         representation::
 
             sage: polytopes.cantellated_six_hundred_cell(exact=True,backend='normaliz') # not tested - long time
-            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 3600 vertices
+            A 4-dimensional polyhedron in AA^4 defined as the convex hull of 3600 vertices
         """
         return self.generalized_permutahedron(['H', 4], point=[1, 0, 1, 0], exact=exact, backend=backend, regular=True)
 
@@ -1857,7 +1858,7 @@ class Polytopes():
         representation::
 
             sage: polytopes.truncated_six_hundred_cell(exact=True,backend='normaliz') # not tested - long time ~16sec
-            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 1440 vertices
+            A 4-dimensional polyhedron in AA^4 defined as the convex hull of 1440 vertices
         """
         return self.generalized_permutahedron(['H', 4], point=[1, 1, 0, 0], exact=exact, backend=backend, regular=True)
 
@@ -1884,9 +1885,8 @@ class Polytopes():
 
         EXAMPLES::
 
-            sage:
-            polytopes.rectified_six_hundred_cell(exact=True,backend='normaliz') # not tested - long time ~14sec
-            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 720 vertices
+            sage: polytopes.rectified_six_hundred_cell(backend='normaliz') # not tested - long time ~14sec
+            A 4-dimensional polyhedron in AA^4 defined as the convex hull of 720 vertices
         """
         return self.generalized_permutahedron(['H', 4], point=[0, 1, 0, 0], exact=exact, backend=backend, regular=True)
 
@@ -1976,9 +1976,19 @@ class Polytopes():
 
             sage: gap = polytopes.grand_antiprism()  # not tested - very long time
             sage: gap                                # not tested - very long time
-            A 4-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^4 defined as the convex hull of 100 vertices
+            A 4-dimensional polyhedron in (Number Field in sqrt5 with defining
+            polynomial x^2 - 5 with sqrt5 = 2.236067977499790?)^4 defined as
+            the convex hull of 100 vertices
 
-        Computation with approximated coordinates is much faster::
+        Computation with the backend ``'normaliz'`` is instantaneous::
+
+            sage: gap_norm = polytopes.grand_antiprism(backend='normaliz')  # optional - pynormaliz
+            sage: gap_norm
+            A 4-dimensional polyhedron in (Number Field in sqrt5 with defining
+            polynomial x^2 - 5 with sqrt5 = 2.236067977499790?)^4 defined as
+            the convex hull of 100 vertices
+
+        Computation with approximated coordinates is also faster, but inexact::
 
             sage: gap = polytopes.grand_antiprism(exact=False) # random
             sage: gap
@@ -1987,12 +1997,6 @@ class Polytopes():
             (1, 100, 500, 720, 320, 1)
             sage: len(list(gap.bounded_edges()))
             500
-
-        TESTS::
-
-            sage: gap = polytopes.grand_antiprism(exact=True, backend='normaliz')  # optional - pynormaliz
-            sage: gap                                                              # optional - pynormaliz
-            A 4-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?)^4 defined as the convex hull of 100 vertices
         """
         from itertools import product
 
@@ -2422,7 +2426,7 @@ class Polytopes():
         EXAMPLES::
 
             sage: polytopes.omnitruncated_one_hundred_twenty_cell(backend='normaliz') # not tested - very long time ~10min
-            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 14400 vertices
+            A 4-dimensional polyhedron in AA^4 defined as the convex hull of 14400 vertices
         """
         if not exact:
             # cdd finds a numerical inconsistency.
@@ -2466,7 +2470,7 @@ class Polytopes():
         representation::
 
             sage: polytopes.runcitruncated_one_hundred_twenty_cell(exact=True,backend='normaliz') # not tested - very long time
-            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 7200 vertices
+            A 4-dimensional polyhedron in AA^4 defined as the convex hull of 7200 vertices
         """
         return self.generalized_permutahedron(['H', 4], point=[1, 0, 1, 1], exact=exact, backend=backend, regular=True)
 
@@ -2494,7 +2498,7 @@ class Polytopes():
         EXAMPLES::
 
             sage: polytopes.cantitruncated_one_hundred_twenty_cell(exact=True,backend='normaliz') # not tested - very long time
-            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 7200 vertices
+            A 4-dimensional polyhedron in AA^4 defined as the convex hull of 7200 vertices
         """
         return self.generalized_permutahedron(['H', 4], point=[0, 1, 1, 1], exact=exact, backend=backend, regular=True)
 
@@ -2532,7 +2536,7 @@ class Polytopes():
         representation::
 
             sage: polytopes.runcinated_one_hundred_twenty_cell(exact=True,backend='normaliz') # not tested - very long time
-            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 2400 vertices
+            A 4-dimensional polyhedron in AA^4 defined as the convex hull of 2400 vertices
         """
         return self.generalized_permutahedron(['H', 4], point=[1, 0, 0, 1], exact=exact, backend=backend, regular=True)
 
@@ -2559,8 +2563,8 @@ class Polytopes():
 
         EXAMPLES::
 
-            sage: polytopes.cantellated_one_hundred_twenty_cell(exact=True,backend='normaliz') # not tested - long time
-            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 3600 vertices
+            sage: polytopes.cantellated_one_hundred_twenty_cell(backend='normaliz') # not tested - long time
+            A 4-dimensional polyhedron in AA^4 defined as the convex hull of 3600 vertices
         """
         return self.generalized_permutahedron(['H', 4], point=[0, 1, 0, 1], exact=exact, backend=backend, regular=True)
 
@@ -2587,8 +2591,8 @@ class Polytopes():
 
         EXAMPLES::
 
-            sage: polytopes.truncated_one_hundred_twenty_cell(exact=True,backend='normaliz') # not tested - long time
-            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 2400 vertices
+            sage: polytopes.truncated_one_hundred_twenty_cell(backend='normaliz') # not tested - long time
+            A 4-dimensional polyhedron in AA^4 defined as the convex hull of 2400 vertices
         """
         return self.generalized_permutahedron(['H', 4], point=[0, 0, 1, 1], exact=exact, backend=backend, regular=True)
 
@@ -2615,8 +2619,8 @@ class Polytopes():
 
         EXAMPLES::
 
-            sage: polytopes.rectified_one_hundred_twenty_cell(exact=True,backend='normaliz') # not tested - long time
-            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 1200 vertices
+            sage: polytopes.rectified_one_hundred_twenty_cell(backend='normaliz') # not tested - long time
+            A 4-dimensional polyhedron in AA^4 defined as the convex hull of 1200 vertices
         """
         return self.generalized_permutahedron(['H', 4], point=[0, 0, 1, 0], exact=exact, backend=backend, regular=True)
 
@@ -2643,8 +2647,8 @@ class Polytopes():
 
         EXAMPLES::
 
-            sage: polytopes.one_hundred_twenty_cell(exact=True,backend='normaliz') # not tested - long time
-            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^4 defined as the convex hull of 600 vertices
+            sage: polytopes.one_hundred_twenty_cell(backend='normaliz') # not tested - long time
+            A 4-dimensional polyhedron in AA^4 defined as the convex hull of 600 vertices
         """
         return self.generalized_permutahedron(['H', 4], point=[0, 0, 0, 1], exact=exact, backend=backend, regular=True)
 

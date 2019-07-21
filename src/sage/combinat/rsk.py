@@ -1567,8 +1567,8 @@ class RuleCoRSK(RuleRSK):
       `v_1 > v_2`).
       In terms of matrices, this means that the input is not an
       arbitrary matrix with nonnegative integer entries, but rather
-      a `\{0, 1\}`-matrix (i.e., a matrix whose entries are `0`s
-      and `1`s).
+      a `\{0, 1\}`-matrix (i.e., a matrix whose entries are `0`'s
+      and `1`'s).
 
     * The output still consists of two tableaux `(P, Q)` of equal
       shapes, but rather than both of them being semistandard, now

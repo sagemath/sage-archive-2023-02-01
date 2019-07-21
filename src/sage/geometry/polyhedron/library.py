@@ -2309,7 +2309,7 @@ class Polytopes():
         It works also with types with non-rational coordinates::
 
             sage: perm_b3 = polytopes.generalized_permutahedron(['B',3]); perm_b3
-            A 3-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 2)^3 defined as the convex hull of 48 vertices
+            A 3-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095?)^3 defined as the convex hull of 48 vertices
             sage: perm_b3_reg = polytopes.generalized_permutahedron(['B',3],regular=True); perm_b3_reg # long time - 12sec.
             A 3-dimensional polyhedron in AA^3 defined as the convex hull of 48 vertices
 
@@ -2324,10 +2324,10 @@ class Polytopes():
 
             sage: perm_h3 = polytopes.generalized_permutahedron(['H',3],backend='normaliz')  # optional - pynormaliz
             sage: perm_h3                                                                    # optional - pynormaliz
-            A 3-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5)^3 defined as the convex hull of 120 vertices
+            A 3-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5 with a = 2.236067977499790?)^3 defined as the convex hull of 120 vertices
             sage: perm_f4 = polytopes.generalized_permutahedron(['F',4],backend='normaliz')  # optional - pynormaliz
             sage: perm_f4                                                                    # optional - pynormaliz
-            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 2)^4 defined as the convex hull of 1152 vertices
+            A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095?)^4 defined as the convex hull of 1152 vertices
 
         .. SEEALSO::
 
@@ -2349,7 +2349,7 @@ class Polytopes():
             point = [ZZ.one()] * n
         apex = sum(point[i-1] * weights[i] for i in weights.keys())
         # Try to rationalize the starting point
-        non_zero_index = list(apex).index(filter(lambda x: x!=0, apex)[0])
+        non_zero_index = list(apex).index([x for x in apex if x!=0][0])
         apex = (QQ(1)/apex[non_zero_index]) * apex
         apex.set_immutable()
         vertices = set()

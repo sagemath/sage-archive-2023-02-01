@@ -80,7 +80,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
     """
     def __init__(self, rank, name, base_space, field='real',
-                 latex_name=None, category=None):
+                 latex_name=None, category=None, unique_tag=None):
         r"""
         Construct a topological vector bundle.
 
@@ -252,9 +252,10 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
             'E\\to M'
 
         """
+        from sage.misc.latex import latex
         latex = self._latex_name
         latex += r'\to '
-        latex += self.base_space()._latex_()
+        latex += latex(self.base_space())
         return latex
 
     def trivialization(self, domain, name=None, latex_name=None):
@@ -305,9 +306,9 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         """
         return list(self._atlas) # Make a (shallow) copy
 
-    def is_certainly_trivial(self):
+    def is_manifestly_trivial(self):
         r"""
-        Return ``True`` if ``self`` is certainly a trivial bundle, i.e. there
+        Return ``True`` if ``self`` is manifestly a trivial bundle, i.e. there
         exists a trivialization defined on the whole base space.
 
         EXAMPLES::
@@ -320,11 +321,11 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
             sage: V = M.open_subset('V')
             sage: triv_V = E.trivialization(V); triv_V
             Trivialization (E|_V -> V)
-            sage: E.is_certainly_trivial()
+            sage: E.is_manifestly_trivial()
             False
             sage: E.trivialization(M)
             Trivialization (E|_M -> M)
-            sage: E.is_certainly_trivial()
+            sage: E.is_manifestly_trivial()
             True
 
         """
@@ -345,12 +346,70 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
             Point p on the 3-dimensional topological manifold M
             sage: E = M.vector_bundle(2, 'E'); E
             Topological real vector bundle E -> M of rank 2 over the base space
-             3-dimensional topological manifold M
+             3-dimensional topological manifold NoneM
             sage: E.fiber(p)
             Fiber of E at Point p on the 3-dimensional topological manifold M
 
         """
         return VectorBundleFiber(self, point)
 
-    def section(self):
+    def section(self, domain=None):
+        r"""
+        Return a section defined on ``domain``.
+
+        INPUT:
+
+        - ``domain`` -- (default: ````) domain on which the section shall be
+          defined; if ``None``, the base space is assumed
+
+        """
         pass
+
+    def whitney_sum(self, vector_bundle):
+        r"""
+        Return the Whitney sum ``self`` with ``vector_bundle``.
+
+        INPUT:
+
+        - ``vector_bundle`` --
+
+        OUTPUT:
+
+        -
+
+        """
+        pass
+
+    def tensor_product(self, vector_bundle):
+        r"""
+        Return the tensor product of ``self```with ``vector_bundle``.
+
+        INPUT:
+
+        - ``vector_bundle`` --
+
+        OUTPUT:
+
+        -
+
+        """
+        pass
+
+    def total_space(self):
+        r"""
+        Return .the total space of ``self``.
+
+        OUTPUT:
+
+        - the total space of ``self`` as an instance of :class:`~sage.manifolds.manifold.TopologicalManifold`
+
+        """
+        from sage.manifolds.manifold import Manifold
+        base_space = self._base_space
+        dim = base_space._dim * self._rank
+        sindex = base_space.start_index()
+        total_space = Manifold(dim, self._name, latex_name=self._latex_name,
+                               field=self._field, structure='topological',
+                               start_index=sindex)
+        # if self._atlas not empty, introduce charts
+        return total_space

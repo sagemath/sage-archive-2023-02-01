@@ -122,6 +122,28 @@ class VectorBundles(Category_over_base_ring):
             """
             return self._with_axiom('Differentiable')
 
+        @cached_method
+        def Smooth(self):
+            """
+            Return the subcategory of the smooth objects of ``self``.
+
+            EXAMPLES::
+
+                sage: M = Manifold(2, 'M')
+                sage: from sage.categories.vector_bundles import VectorBundles
+                sage: VectorBundles(M, RR).Smooth()
+                Category of smooth vector bundles over Real Field with 53 bits
+                 of precision with base space 2-dimensional differentiable
+                 manifold M
+
+            TESTS::
+
+                sage: TestSuite(VectorBundles(RR).Smooth()).run()
+                sage: VectorBundles(RR).Smooth.__module__
+                'sage.categories.manifolds'
+            """
+            return self._with_axiom('Smooth')
+
     class Differentiable(CategoryWithAxiom_over_base_ring):
         """
         The category of differentiable vector bundles.

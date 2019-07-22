@@ -97,8 +97,8 @@ class Trivialization(UniqueRepresentation, SageObject):
         if self._latex_name is not None:
             latex += self._latex_name + r':'
         latex += r'{} |_{{{}}} \to {} \times {}^{}'.format(self._vbundle._latex_name,
-                                    self._domain._latex_(), self._domain._latex_(),
-                                    self._base_field._latex_(), self._bdl_rank)
+                                    latex(self._domain), latex(self._domain),
+                                    latex(self._base_field), self._bdl_rank)
         return latex
 
     def domain(self):
@@ -208,7 +208,6 @@ class TransitionMap(SageObject):
             raise ValueError("for concrete implementation, manifold's base "
                              "field must be a subfield of the vector bundle's "
                              "base field")
-
         dom1 = triv1.domain()
         dom2 = triv2.domain()
         dom = dom1.intersection(dom2)
@@ -253,7 +252,7 @@ class TransitionMap(SageObject):
 
         INPUT:
 
-        - ``chart`` -- (default: None) chart given on the intersection of
+        - ``chart`` -- (default: ``None``) chart given on the intersection of
           the two trivializations in which the matrix entries shall be
           expressed; if ``None``, the entries are scalar fields on the
           intersection
@@ -268,11 +267,10 @@ class TransitionMap(SageObject):
         """
         if chart is None:
             return self._matrix
-        else:
-            m_list = []
-            for row in self._matrix:
-                for entry in row:
-                    m_list.append(entry.expr(chart))
+        m_list = []
+        for row in self._matrix:
+            for entry in row:
+                m_list.append(entry.expr(chart))
         from sage.matrix.matrix_space import MatrixSpace
         parent = m_list[0].parent()
         matrix_space = MatrixSpace(parent, self._bdl_rank)
@@ -283,4 +281,5 @@ class TransitionMap(SageObject):
 
         """
         self._inverse = type(self)(self._triv2, self._triv1, ~self._matrix)
+        self._inverse._inverse = self
         return self._inverse

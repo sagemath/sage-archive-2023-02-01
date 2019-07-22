@@ -747,6 +747,9 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
                 elements = D.topological_sort()
             except Exception:
                 raise ValueError("Hasse diagram contains cycles")
+        # Check for duplicate elements
+        elif len(elements) != len(set(elements)):
+            raise ValueError("Input contains duplicate elements")
     else:
         elements = None
     return FinitePoset(D, elements=elements, category=category, facade=facade, key=key)

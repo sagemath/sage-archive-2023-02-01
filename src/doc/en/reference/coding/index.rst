@@ -12,6 +12,7 @@ Basic Coding Theory objects
 
    sage/coding/abstract_code
    sage/coding/linear_code
+   sage/coding/linear_rank_metric
    sage/coding/channel_constructions
    sage/coding/decoder
    sage/coding/encoder

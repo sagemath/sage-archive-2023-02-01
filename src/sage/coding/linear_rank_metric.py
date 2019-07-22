@@ -28,8 +28,8 @@ and define a code `C` to be a set of vectors of length `n` with entries from
 `M` over `F_q`.
 
 A detailed description on the relationship between the two representations can
-be found in :meth:class:`sage.coding.linear_rank_metric.to_matrix_representation`
-and :meth:class:`sage.coding.linear_rank_metric.from_matrix_representation`.
+be found in :meth:`sage.coding.linear_rank_metric.to_matrix_representation`
+and :meth:`sage.coding.linear_rank_metric.from_matrix_representation`.
 
 We can define a metric using the rank of the matrix representation of the
 codewords. A distance between two codewords `a, b` is the rank of the matrix
@@ -125,8 +125,8 @@ def to_matrix_representation(base_field, sub_field, v):
     Returns a matrix representation of ``v`` over ``sub_field``.
 
     Let `(b_1, b_2, \ldots, b_m)`, `b_i \in GF(q^m)`, be a base of `GF(q^m)` as
-    a vector space over `GF(q)`. Take an element `x \in GF(q^m)`. We can write x
-    as `x = u_1 b_1 + u_2 b_2 + \ldots u_m b_m`, where `u_i \in GF(q)`.  This
+    a vector space over `GF(q)`. Take an element `x \in GF(q^m)`. We can write
+    `x` as `x = u_1 b_1 + u_2 b_2 + \ldots u_m b_m`, where `u_i \in GF(q)`. This
     way we can represent an element from `GF(q^m)` as a vector of length `m`
     over `GF(q)`.
 
@@ -231,8 +231,10 @@ class AbstractLinearRankMetricCode(AbstractCode):
     over `GF(q)`. The current implementation of linear rank metric codes
     supports only the vector representation. This means that to use the
     encoder/decoder framework, one has to work with vectors. However, one can
-    always get the matrix representation using the `to_matrix` method. To go
-    back to a vector, use the `from_matrix` method.
+    always get the matrix representation using the
+    :meth:`sage.coding.linear_rank_metric.AbstractLinearRankMetricCode.to_matrix` method. To go
+    back to a vector, use the
+    :meth:`sage.coding.linear_rank_metric.AbstractLinearRankMetricCode.from_matrix` method.
 
     Instructions on how to make a new family of rank metric codes is analogous
     to making a new family of linear codes over the Hamming metric, instructions
@@ -765,7 +767,7 @@ class LinearRankMetricCode(AbstractLinearRankMetricCode):
     of the minimum distance, will use generic, slow algorithms.
 
     If you are looking for constructing a code from a more specific family, see
-    if the family has been implemented by investigating `codes.<tab>`. These
+    if the family has been implemented by investigating ``codes.<tab>``. These
     more specific classes use properties particular to that family to allow
     faster algorithms, and could also have family-specific methods.
 

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Library of commonly used, famous, or interesting polytopes
 

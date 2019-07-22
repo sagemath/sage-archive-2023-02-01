@@ -690,7 +690,7 @@ def FaceFan(polytope, lattice=None):
                is_complete=is_complete)
 
 
-def NormalFan(polytope, lattice=None, direction='outer'):
+def NormalFan(polytope, lattice=None):
     r"""
     Construct the normal fan of the given rational ``polytope``.
 
@@ -706,10 +706,6 @@ def NormalFan(polytope, lattice=None, direction='outer'):
       other object that behaves like these. If not specified, an attempt will
       be made to determine an appropriate toric lattice automatically.
 
-    - ``direction`` -- either ``'outer'`` (default) or ``'inner'`` ; if 
-      set to ``'outer'``, use the outer normal vectors to span the cones of 
-      the fan, if set to ``'inner'``, use the inner normal vectors.
-
     OUTPUT:
 
     - :class:`rational polyhedral fan <RationalPolyhedralFan>`.
@@ -722,7 +718,7 @@ def NormalFan(polytope, lattice=None, direction='outer'):
     lines::
 
         sage: square = LatticePolytope([(1,1), (-1,1), (-1,-1), (1,-1)])
-        sage: P1xP1 = NormalFan(square, direction='inner')
+        sage: P1xP1 = NormalFan(square)
         sage: P1xP1.rays()
         N( 1,  0),
         N( 0,  1),
@@ -772,8 +768,6 @@ def NormalFan(polytope, lattice=None, direction='outer'):
         cones = [[ieq.index() for ieq in vertex.incident()]
                  for vertex in polytope.vertices()]
         rays = [ieq.A() for ieq in polytope.inequalities()]
-    if direction == 'outer':
-        rays = [-r for r in rays]
     return Fan(cones, rays, lattice=lattice, check=False, is_complete=True)
 
 

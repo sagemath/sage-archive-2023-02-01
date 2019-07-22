@@ -2615,7 +2615,7 @@ class Graph(GenericGraph):
             sage: g.is_split()
             True
 
-        Another caracterisation of split graph states that a graph is a split
+        Another characterisation of split graph states that a graph is a split
         graph if and only if does not contain the 4-cycle, 5-cycle or `2K_2` as
         an induced subgraph. Hence for the above graph we have::
 
@@ -8733,6 +8733,7 @@ class Graph(GenericGraph):
     from sage.graphs.partial_cube import is_partial_cube
     from sage.graphs.orientations import strong_orientations_iterator, random_orientation
     from sage.graphs.connectivity import bridges, cleave, spqr_tree
+    from sage.graphs.connectivity import is_triconnected
 
 
 _additional_categories = {
@@ -8758,7 +8759,8 @@ _additional_categories = {
     "random_orientation"        : "Connectivity, orientations, trees",
     "bridges"                   : "Connectivity, orientations, trees",
     "cleave"                    : "Connectivity, orientations, trees",
-    "spqr_tree"                 : "Connectivity, orientations, trees"
+    "spqr_tree"                 : "Connectivity, orientations, trees",
+    "is_triconnected"           : "Connectivity, orientations, trees"
     }
 
 __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))

@@ -642,6 +642,7 @@ from sage.matrix.constructor import vector
 from sage.misc.temporary_file import tmp_filename
 from sage.numerical.mip import MixedIntegerLinearProgram
 from sage.misc.package import PackageNotFoundError
+from sage.cpython.string import bytes_to_str
 
 try:
     from gambit import Game
@@ -1767,7 +1768,7 @@ class NormalFormGame(SageObject, MutableMapping):
             from sage.misc.package import PackageNotFoundError
             raise PackageNotFoundError("lrslib")
 
-        lrs_output = [row for row in process.stdout]
+        lrs_output = [bytes_to_str(row) for row in process.stdout]
         process.terminate()
 
         nasheq = Parser(lrs_output).format_lrs()

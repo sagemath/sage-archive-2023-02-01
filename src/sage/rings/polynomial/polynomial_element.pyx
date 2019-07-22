@@ -300,7 +300,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     cpdef _neg_(self):
         return self._new_generic([-x for x in self.list(copy=False)])
 
-    cpdef bint is_zero(self):
+    cpdef bint is_zero(self) except -1:
         r"""
         Test whether this polynomial is zero.
 
@@ -316,7 +316,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return self.degree() < 0
 
-    cpdef bint is_one(self):
+    cpdef bint is_one(self) except -1:
         r"""
         Test whether this polynomial is 1.
 
@@ -4925,7 +4925,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return len(self.exponents()) == 1 and self.leading_coefficient() == 1
 
-    cpdef bint is_term(self):
+    cpdef bint is_term(self) except -1:
         """
         Return ``True`` if this polynomial is a nonzero element of the
         base ring times a power of the variable.
@@ -6115,8 +6115,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # Get a reference to Magma version of parent.
         R = magma(self._parent)
         # Get list of coefficients.
-        v = ','.join([a._magma_init_(magma) for a in self.list()])
-        return '%s![%s]'%(R.name(), v)
+        v = ','.join(a._magma_init_(magma) for a in self.list())
+        return '%s![%s]' % (R.name(), v)
 
     def _gap_(self, gap):
         """
@@ -10085,8 +10085,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<c> = PolynomialRing(ZZ)
             sage: S.<z> = PolynomialRing(R)
             sage: F = c*z^2 + c^2
-            sage: F.specialization(dict({c:2}))
+            sage: F.specialization({c:2})
             2*z^2 + 4
+
+        ::
+
+            sage: A.<c> = QQ[]
+            sage: R.<x> = Frac(A)[]
+            sage: X = (1 + x/c).specialization({c:20})
+            sage: X
+            1/20*x + 1
+            sage: X.parent()
+            Univariate Polynomial Ring in x over Rational Field
         """
         if D is None:
             if phi is None:
@@ -10617,7 +10627,7 @@ cdef class Polynomial_generic_dense(Polynomial):
     def __nonzero__(self):
         return bool(self.__coeffs)
 
-    cpdef bint is_term(self):
+    cpdef bint is_term(self) except -1:
         """
         Return ``True`` if this polynomial is a nonzero element of the
         base ring times a power of the variable.

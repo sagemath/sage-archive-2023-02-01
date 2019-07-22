@@ -48,11 +48,11 @@ from .fpickle import pickle_function, unpickle_function
 
 from .dist import install_scripts
 
-from .package import (installed_packages, is_package_installed,
-        standard_packages, optional_packages, experimental_packages,
-        package_versions)
+lazy_import('sage.misc.package', ('installed_packages', 'is_package_installed',
+                                  'standard_packages', 'optional_packages',
+                                  'experimental_packages', 'package_versions'))
 
-from .pager import pager
+lazy_import('sage.misc.pager', 'pager')
 
 lazy_import('sage.misc.sagedoc', ['browse_sage_doc',
         'search_src', 'search_def', 'search_doc',

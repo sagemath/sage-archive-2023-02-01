@@ -50,6 +50,7 @@ from sage.rings.rational import Rational
 from sage.rings.infinity import unsigned_infinity
 from sage.libs.pynac.pynac import I
 
+from sage.rings.real_arb import RealBallField
 
 class Function_erf(BuiltinFunction):
     r"""
@@ -264,10 +265,21 @@ class Function_erf(BuiltinFunction):
             1629.99462260157*I
             sage: erf(33.0*I)
             1.51286977510409e471*I
+
+        Check that real ball evaluation is fixed :trac:`28061`::
+
+            sage: RealBallField(128)(erf(5))
+            [0.99999999999846254020557196514981165651 +/- 7.33e-39]
         """
         R = parent or s_parent(x)
-        import mpmath
-        return mpmath_utils.call(mpmath.erf, x, parent=R)
+        if isinstance(R, RealBallField):
+            # NOTE: erf exists on complex balls but not on real ones
+            C = R.complex_field()
+            return C(x).erf().real()
+        else:
+            import mpmath
+            y = mpmath_utils.call(mpmath.erf, x, parent=R)
+            return y
 
     def _derivative_(self, x, diff_param=None):
         """

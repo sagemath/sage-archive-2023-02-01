@@ -5,7 +5,7 @@ Hyperplane Arrangements
 Before talking about hyperplane arrangements, let us start with
 individual hyperplanes. This package uses certain linear expressions
 to represent hyperplanes, that is, a linear expression `3x + 3y - 5z - 7`
-stands for the hyperplane with the equation `x + 3y - 5z = 7`. To create it
+stands for the hyperplane with the equation `3x + 3y - 5z = 7`. To create it
 in Sage, you first have to create a :class:`HyperplaneArrangements`
 object to define the variables `x`, `y`, `z`::
 
@@ -116,8 +116,8 @@ New arrangements from old::
     sage: b == hyperplane_arrangements.coordinate(3)
     True
 
-A hyperplane arrangement is *essential* is the normals to its
-hyperplane span the ambient space.  Otherwise, it is *inessential*.
+A hyperplane arrangement is *essential* if the normals to its
+hyperplanes span the ambient space.  Otherwise, it is *inessential*.
 The essentialization is formed by intersecting the hyperplanes by this
 normal space (actually, it is a bit more complicated over finite
 fields)::

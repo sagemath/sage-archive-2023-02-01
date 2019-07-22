@@ -1247,7 +1247,7 @@ class Func_legendre_Q(BuiltinFunction):
         if n in ZZ:
             if n < 0:
                 from sage.rings.infinity import unsigned_infinity
-                return SR(unsigned_infinity);
+                return SR(unsigned_infinity)
             return self.eval_formula(n, x)
 
     def _eval_special_values_(self, n, x):

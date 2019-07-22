@@ -2418,30 +2418,8 @@ class FSMTransition(SageObject):
         """
         return deepcopy(self, memo)
 
-    def __hash__(self):
-        """
-        Since transitions are mutable, they should not be hashable, so
-        we return a type error.
-
-        INPUT:
-
-        Nothing.
-
-        OUTPUT:
-
-        The hash of this transition.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.finite_state_machine import FSMTransition
-            sage: hash(FSMTransition('A', 'B'))
-            Traceback (most recent call last):
-            ...
-            TypeError: Transitions are mutable, and thus not hashable.
-
-        """
-        raise TypeError("Transitions are mutable, and thus not hashable.")
-
+    __hash__ = None
+    # Since transitions are mutable, they should not be hashable
 
     def _repr_(self):
         """
@@ -11657,7 +11635,8 @@ class Automaton(FiniteStateMachine):
             ....:                ('B', 'C', 0), ('C', 'C', 1), ('C', 'C', 0)],
             ....:               initial_states=['A'], final_states=['C'])
             sage: B = A.minimization(algorithm='Brzozowski')
-            sage: B.transitions(B.states()[1])
+            sage: B_trans = B.transitions(B.states()[1])
+            sage: B_trans # random
             [Transition from frozenset({frozenset({'B', 'C'}),
                                         frozenset({'A', 'C'}),
                                         frozenset({'A', 'B', 'C'})})
@@ -11676,22 +11655,9 @@ class Automaton(FiniteStateMachine):
             sage: len(B.states())
             3
             sage: C = A.minimization(algorithm='Brzozowski')
-            sage: C.transitions(C.states()[1])
-            [Transition from frozenset({frozenset({'B', 'C'}),
-                                        frozenset({'A', 'C'}),
-                                        frozenset({'A', 'B', 'C'})})
-                        to frozenset({frozenset({'C'}),
-                                      frozenset({'B', 'C'}),
-                                      frozenset({'A', 'C'}),
-                                      frozenset({'A', 'B', 'C'})}):
-                        0|-,
-             Transition from frozenset({frozenset({'B', 'C'}),
-                                        frozenset({'A', 'C'}),
-                                        frozenset({'A', 'B', 'C'})})
-                        to frozenset({frozenset({'B', 'C'}),
-                                      frozenset({'A', 'C'}),
-                                      frozenset({'A', 'B', 'C'})}):
-                        1|-]
+            sage: C_trans = C.transitions(C.states()[1])
+            sage: B_trans == C_trans
+            True
             sage: len(C.states())
             3
 

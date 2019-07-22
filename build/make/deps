@@ -124,6 +124,7 @@ base: $(inst_patch) $(inst_pkgconf)
 # dependencies for Cython files (e.g. PARI, NTL, MP_LIBRARY).
 sagelib: \
 		$(inst_arb) \
+		$(inst_boost_cropped) \
 		$(inst_$(BLAS)) \
 		$(inst_brial) \
 		$(inst_cliquer) \

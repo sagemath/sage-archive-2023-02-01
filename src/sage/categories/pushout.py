@@ -1,5 +1,5 @@
 """
-Coercion via Construction Functors
+Coercion via construction functors
 """
 from __future__ import print_function, absolute_import
 from six.moves import range

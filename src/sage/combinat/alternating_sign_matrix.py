@@ -566,7 +566,7 @@ class AlternatingSignMatrix(Element):
         the matrix, first those for which the sum of the row and column indices
         is even, then for those for which it is odd, and increment or decrement
         the squares by 2 wherever possible such that the resulting matrix is
-        still a height function. Gyration was first defined in [Wieland00]_ as
+        still a height function. Gyration was first defined in [Wie2000]_ as
         an action on fully-packed loops.
 
         EXAMPLES::

@@ -100,8 +100,8 @@ def getattr_debug(obj, name, default=_no_default):
           type(obj) = <type 'list'>
           object does not have __dict__ slot
           found '__doc__' in dict of <type 'list'>
-          got "list() -> new empty list\nlist(iterable) -> ne~~~ (<type 'str'>)
-          returning "list() -> new empty list\nlist(iterable) -> ne~~~ (<type 'str'>)
+          got ... 'str'>)
+          returning ... 'str'>)
         sage: _ = getattr_debug(gp(1), "log")
         getattr_debug(obj=1, name='log'):
           type(obj) = <class 'sage.interfaces.gp.GpElement'>

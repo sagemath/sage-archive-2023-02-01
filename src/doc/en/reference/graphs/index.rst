@@ -78,6 +78,7 @@ Libraries of algorithms
    sage/graphs/linearextensions
    sage/graphs/schnyder
    sage/graphs/planarity
+   sage/graphs/traversals
    sage/graphs/graph_plot
    sage/graphs/graph_plot_js
    sage/graphs/graph_decompositions/vertex_separation

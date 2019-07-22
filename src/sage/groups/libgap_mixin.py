@@ -14,7 +14,6 @@ just raise ``NotImplementedError``.
 from sage.libs.all import libgap
 from sage.misc.cachefunc import cached_method
 from sage.groups.class_function import ClassFunction_libgap
-from sage.misc.superseded import deprecated_function_alias
 
 
 class GroupMixinLibGAP(object):
@@ -139,8 +138,6 @@ class GroupMixinLibGAP(object):
         G = self.gap()
         reps = [ cc.Representative() for cc in G.ConjugacyClasses() ]
         return tuple(self(g) for g in reps)
-
-    conjugacy_class_representatives = deprecated_function_alias(22783, conjugacy_classes_representatives)
 
     def conjugacy_classes(self):
         r"""

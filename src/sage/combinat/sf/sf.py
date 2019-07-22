@@ -791,7 +791,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         .. [FD06] Francois Descouens, Making research on symmetric functions using MuPAD-Combinat.
                  In Andres Iglesias and Nobuki Takayama, editors, 2nd International Congress on Mathematical Software (ICMS'06),
                  volume 4151 of LNCS, pages 407-418, Castro Urdiales, Spain, September 2006. Springer-Verlag.
-                 :arXiv:`0806.1873`
+                 :arxiv:`0806.1873`
 
         .. [HT04] Florent Hivert and Nicolas M. Thiery,
                  MuPAD-Combinat, an open-source package for research in algebraic combinatorics.

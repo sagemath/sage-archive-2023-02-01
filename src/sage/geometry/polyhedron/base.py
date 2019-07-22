@@ -2757,7 +2757,7 @@ class Polyhedron_base(Element):
         r"""
         Return the normal fan of a compact full-dimensional rational polyhedron.
 
-	This returns the inner normal fan of ``self``. For the outer normal fan, 
+        This returns the inner normal fan of ``self``. For the outer normal fan, 
         use ``direction='outer'``.
 
         INPUT:

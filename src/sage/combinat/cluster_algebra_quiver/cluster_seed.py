@@ -5030,13 +5030,13 @@ class ClusterVariable(FractionFieldElement):
             [(x0 + x1 + 1)/(x0*x1), (x1 + 1)/x0, (x0 + 1)/x1, x1, x0]
         """
         FractionFieldElement.__init__( self, parent, numerator, denominator, coerce=coerce, reduce=reduce )
-        self._n = xdim;
+        self._n = xdim
         self._mutation_type = mutation_type
         self._variable_type = variable_type
 
     def almost_positive_root( self ):
         r"""
-        Returns the *almost positive root* associated to ``self`` if ``self`` is of finite type.
+        Return the *almost positive root* associated to ``self`` if ``self`` is of finite type.
 
         EXAMPLES::
 

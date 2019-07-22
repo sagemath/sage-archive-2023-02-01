@@ -73,15 +73,15 @@ AUTHOR:
 - Jonathan Kliem (2019-04)
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2019 Jonathan Kliem <jonathan.kliem@fu-berlin.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from __future__                     import absolute_import, division, print_function
 import numbers
@@ -107,7 +107,7 @@ cdef extern from "Python.h":
 
 cdef class CombinatorialPolyhedron(SageObject):
     r"""
-    The class of the Combinatorial Type of a Polyehdron, a Polytope.
+    The class of the Combinatorial Type of a Polyhedron, a Polytope.
 
     INPUT:
 
@@ -121,7 +121,7 @@ cdef class CombinatorialPolyhedron(SageObject):
        * or list of facets, each facet given as
          a list of ``[vertices, rays, lines]`` if the polyhedron is unbounded,
          then rays and lines and the extra argument ``nr_lines`` are required
-         if the polyehdron contains no lines, the rays can be thought of
+         if the polyhedron contains no lines, the rays can be thought of
          as the vertices of the facets deleted from a bounded polyhedron see
          :class:`~sage.geometry.polyhedron.parent.Polyhedron_base` on how to use
          rays and lines.
@@ -924,8 +924,8 @@ cdef class CombinatorialPolyhedron(SageObject):
         r"""
         Return the edge graph.
 
-        If ``names`` is set to ``False``, the Vrepresenatives will carry names
-        according to the indexing of the Vrepresentation.
+        If ``names`` is set to ``False``, the Vrepresentatives will
+        carry names according to the indexing of the Vrepresentation.
 
         EXAMPLES::
 
@@ -934,8 +934,8 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C.edge_graph()
             Graph on 5 vertices
             sage: G = C.edge_graph()
-            sage: G.degree()
-            [4, 3, 4, 3, 4]
+            sage: sorted(G.degree())
+            [3, 3, 4, 4, 4]
         """
         return Graph(self.edges(names=names), format="list_of_edges")
 
@@ -946,7 +946,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         The ridges of a polyhedron are the faces
         contained in exactly two facets.
 
-        To obtain all faces of codimnesion 1 use
+        To obtain all faces of codimension 1 use
         :meth:`CombinatorialPolyhedron.face_iter` instead.
 
         The ridges will be given by the facets, they are contained in.

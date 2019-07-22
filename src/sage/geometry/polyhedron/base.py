@@ -2760,9 +2760,18 @@ class Polyhedron_base(Element):
         return A_ker.basis_matrix().transpose().rows()
 
     @cached_method
-    def normal_fan(self):
+    def normal_fan(self, direction='inner'):
         r"""
         Return the normal fan of a compact full-dimensional rational polyhedron.
+
+	This returns the inner normal fan of ``self``. For the outer normal fan, 
+        use ``direction='outer'``.
+
+        INPUT:
+
+        - ``direction`` -- either ``'inner'`` (default) or ``'outer'`` ; if 
+          set to ``'inner'``, use the inner normal vectors to span the cones of 
+          the fan, if set to ``'outer'``, use the outer normal vectors. 
 
         OUTPUT:
 
@@ -2811,7 +2820,8 @@ class Polyhedron_base(Element):
 
         if not QQ.has_coerce_map_from(self.base_ring()):
             raise NotImplementedError('normal fan handles only polytopes over the rationals')
-
+        if direction == 'outer':
+            return NormalFan(-self)
         return NormalFan(self)
 
     @cached_method

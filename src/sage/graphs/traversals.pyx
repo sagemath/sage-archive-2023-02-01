@@ -11,9 +11,9 @@ Graph traversals.
     :delim: |
 
     :meth:`~lex_BFS` | Perform a lexicographic breadth first search (LexBFS) on the graph.
-    :meth:`~lex_Up` | Perform a lexicographic up (LexUp) on the graph.
+    :meth:`~lex_UP` | Perform a lexicographic UP search (LexUP) on the graph.
     :meth:`~lex_DFS` | Perform a lexicographic depth first search (LexDFS) on the graph.
-    :meth:`~lex_Down` | Perform a lexicographic down (LexDown) on the graph.
+    :meth:`~lex_DOWN` | Perform a lexicographic DOWN search (LexDOWN) on the graph.
 
 Methods
 -------
@@ -195,9 +195,9 @@ def lex_BFS(G, reverse=False, tree=False, initial_vertex=None):
     else:
         return value
 
-def lex_Up(G, reverse=False, tree=False, initial_vertex=None):
+def lex_UP(G, reverse=False, tree=False, initial_vertex=None):
     r"""
-    Perform a lexicographic Up search (LexUp) on the graph.
+    Perform a lexicographic UP search (LexUP) on the graph.
 
     INPUT:
 
@@ -229,43 +229,43 @@ def lex_Up(G, reverse=False, tree=False, initial_vertex=None):
 
     EXAMPLES:
 
-    A Lex Up is obviously an ordering of the vertices::
+    A Lex UP is obviously an ordering of the vertices::
 
         sage: g = graphs.CompleteGraph(6)
-        sage: len(g.lex_Up()) == g.order()
+        sage: len(g.lex_UP()) == g.order()
         True
 
-    Lex Up ordering of the 3-sun graph::
+    Lex UP ordering of the 3-sun graph::
 
         sage: g = Graph([(1, 2), (1, 3), (2, 3), (2, 4), (2, 5), (3, 5), (3, 6), (4, 5), (5, 6)])
-        sage: g.lex_Up()
+        sage: g.lex_UP()
         [1, 2, 4, 5, 6, 3]
 
     The method also works for directed graphs::
 
         sage: G = DiGraph([(1, 2), (2, 3), (1, 3)])
-        sage: G.lex_Up(initial_vertex=2)
+        sage: G.lex_UP(initial_vertex=2)
         [2, 3, 1]
 
     TESTS:
 
-    Lex Up ordering of a graph on one vertex::
+    Lex UP ordering of a graph on one vertex::
 
-        sage: Graph(1).lex_Up(tree=True)
+        sage: Graph(1).lex_UP(tree=True)
         ([0], Digraph on 1 vertex)
 
-    Lex Up ordering of an empty (di)graph is an empty sequence::
+    Lex UP ordering of an empty (di)graph is an empty sequence::
 
         sage: g = Graph()
-        sage: g.lex_Up()
+        sage: g.lex_UP()
         []
 
-    Lex Up ordering of a symmetric digraph should be the same as the Lex Up
+    Lex UP ordering of a symmetric digraph should be the same as the Lex UP
     ordering of the corresponding undirected graph::
 
         sage: G = Graph([(1, 2), (1, 3), (2, 3), (2, 4), (2, 5), (3, 5), (3, 6), (4, 5), (5, 6)])
         sage: H = DiGraph(G)
-        sage: G.lex_Up() == H.lex_Up()
+        sage: G.lex_UP() == H.lex_UP()
         True
 
     """
@@ -289,7 +289,7 @@ def lex_Up(G, reverse=False, tree=False, initial_vertex=None):
     cdef short_digraph sd
     init_short_digraph(sd, G, edge_labelled=False, vertex_list=int_to_v)
 
-    # Perform Lex Up
+    # Perform Lex UP
 
     cdef list code = [[] for i in range(nV)]
 
@@ -477,9 +477,9 @@ def lex_DFS(G, reverse=False, tree=False, initial_vertex=None):
     else:
         return value
 
-def lex_Down(G, reverse=False, tree=False, initial_vertex=None):
+def lex_DOWN(G, reverse=False, tree=False, initial_vertex=None):
     r"""
-    Perform a lexicographic Down (LexDown) on the graph.
+    Perform a lexicographic DOWN search (LexDOWN) on the graph.
 
     INPUT:
 
@@ -511,43 +511,43 @@ def lex_Down(G, reverse=False, tree=False, initial_vertex=None):
 
     EXAMPLES:
 
-    A Lex Down is obviously an ordering of the vertices::
+    A Lex DOWN is obviously an ordering of the vertices::
 
         sage: g = graphs.CompleteGraph(6)
-        sage: len(g.lex_Down()) == g.order()
+        sage: len(g.lex_DOWN()) == g.order()
         True
 
-    Lex Down ordering of the 3-sun graph::
+    Lex DOWN ordering of the 3-sun graph::
 
         sage: g = Graph([(1, 2), (1, 3), (2, 3), (2, 4), (2, 5), (3, 5), (3, 6), (4, 5), (5, 6)])
-        sage: g.lex_Down()
+        sage: g.lex_DOWN()
         [1, 2, 3, 4, 6, 5]
 
     The method also works for directed graphs::
 
         sage: G = DiGraph([(1, 2), (2, 3), (1, 3)])
-        sage: G.lex_Down(initial_vertex=2)
+        sage: G.lex_DOWN(initial_vertex=2)
         [2, 3, 1]
 
     TESTS:
 
-    Lex Down ordering of a graph on one vertex::
+    Lex DOWN ordering of a graph on one vertex::
 
-        sage: Graph(1).lex_Down(tree=True)
+        sage: Graph(1).lex_DOWN(tree=True)
         ([0], Digraph on 1 vertex)
 
-    Lex Down ordering of an empty (di)graph is an empty sequence::
+    Lex DOWN ordering of an empty (di)graph is an empty sequence::
 
         sage: g = Graph()
-        sage: g.lex_Down()
+        sage: g.lex_DOWN()
         []
 
-    Lex Down ordering of a symmetric digraph should be the same as the Lex Down
+    Lex DOWN ordering of a symmetric digraph should be the same as the Lex DOWN
     ordering of the corresponding undirected graph::
 
         sage: G = Graph([(1, 2), (1, 3), (2, 3), (2, 4), (2, 5), (3, 5), (3, 6), (4, 5), (5, 6)])
         sage: H = DiGraph(G)
-        sage: G.lex_Down() == H.lex_Down()
+        sage: G.lex_DOWN() == H.lex_DOWN()
         True
 
     """

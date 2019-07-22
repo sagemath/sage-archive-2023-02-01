@@ -183,6 +183,7 @@ var('JMOL_DIR',                      join(SAGE_SHARE, 'jmol'))
 var('JSMOL_DIR',                     join(SAGE_SHARE, 'jsmol'))
 var('MATHJAX_DIR',                   join(SAGE_SHARE, 'mathjax'))
 var('THREEJS_DIR',                   join(SAGE_SHARE, 'threejs'))
+var('SINGULARPATH',                  join(SAGE_SHARE, 'singular'))
 var('PPLPY_DOCS',                    join(SAGE_SHARE, 'doc', 'pplpy'))
 var('MAXIMA_FAS')
 

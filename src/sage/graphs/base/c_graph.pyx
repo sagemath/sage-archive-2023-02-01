@@ -2140,12 +2140,12 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: G.shortest_path(0, 1, by_weight=True)
             [0, 1]
             sage: G.shortest_path_length(0, 1, by_weight=True)
-            1.0
+            1
             sage: G = DiGraph([(1, 2, {'weight':1}), (1, 3, {'weight':5}), (2, 3, {'weight':1})])
             sage: G.shortest_path(1, 3, weight_function=lambda e:e[2]['weight'])
             [1, 2, 3]
             sage: G.shortest_path_length(1, 3, weight_function=lambda e:e[2]['weight'])
-            2.0
+            2
 
         TESTS:
 
@@ -2153,7 +2153,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
             sage: G = Graph([(0, 1, 9), (0, 2, 8), (1, 2, 7)])
             sage: G.shortest_path_length(0, 1, by_weight=True)
-            9.0
+            9
 
         Bugfix from :trac:`28221` ::
 
@@ -2167,7 +2167,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: for (u, v) in G.edges(labels=None):
             ....:    G.set_edge_label(u, v, 1)
             sage: G.distance(0, 5,by_weight=true)
-            3.0
+            3
         """
         if x == y:
             return 0
@@ -2279,7 +2279,10 @@ cdef class CGraphBackend(GenericGraphBackend):
         else:
             # build the shortest path and returns it.
             if distance_flag:
-                return shortest_path_length
+                if shortest_path_length - int(shortest_path_length) == 0:
+                    return int(shortest_path_length)
+                else:
+                    return shortest_path_length
             w = meeting_vertex
 
             while w != x_int:

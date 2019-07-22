@@ -227,6 +227,11 @@ def lex_UP(G, reverse=False, tree=False, initial_vertex=None):
 
     See [Mil2017]_ for more details on the algorithm.
 
+    .. SEEALSO::
+
+        * :meth:`~sage.graphs.generic_graph.GenericGraph.Lex_BFS` -- perform a
+          lexicographic breadth first search (LexBFS) on the graph
+
     EXAMPLES:
 
     A Lex UP is obviously an ordering of the vertices::
@@ -508,6 +513,11 @@ def lex_DOWN(G, reverse=False, tree=False, initial_vertex=None):
     the number of edges.
 
     See [Mil2017]_ for more details on the algorithm.
+
+    .. SEEALSO::
+
+        * :meth:`~sage.graphs.generic_graph.GenericGraph.Lex_DFS` -- perform a
+          lexicographic breadth depth first search (LexDFS) on the graph
 
     EXAMPLES:
 

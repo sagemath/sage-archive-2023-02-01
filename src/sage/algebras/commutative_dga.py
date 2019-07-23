@@ -2750,15 +2750,14 @@ class DifferentialGCAlgebra(GCAlgebra):
             MH = H.minimal_model(i, max_iterations)
         except ValueError:  # If we could compute the minimal model in max_iterations
             return False    # but not for the cohomology, the invariants are distinct
-        N1 = M.numerical_invariants(i, max_iterations)
+        N1 = self.numerical_invariants(i, max_iterations)
         N2 = H.numerical_invariants(i, max_iterations)
         if any([N1[n] != N2[n] for n in range(1, i + 1)]):
             return False    # numerical invariants don't match
-        cogen = M.cohomology_generators(i)
-        cogen = flatten([cogen[i] for i in sorted(cogen.keys())])
-        chi = M.hom([H.gen(cogen.index(x)) if x in cogen else 0
-                     for x in M.gens()])
-        if all([chi(y.differential()).is_zero() for y in M.gens()]):
+        P = M._QuotientRing_nc__R
+        subsdict = {y.lift():0 for y in M.gens() if not y.differential().is_zero()}
+        tocheck = [M(g.differential().lift().subs(subsdict)) for g in M.gens()]
+        if all([c.is_coboundary() for c in tocheck]):
             return True     # the morphism xi->[xi], yi->0 is i-quasi-iso
         raise NotImplementedError("The implemented criteria cannot determine formality")
 

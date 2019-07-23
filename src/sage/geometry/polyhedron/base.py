@@ -2813,9 +2813,12 @@ class Polyhedron_base(Element):
 
         if not QQ.has_coerce_map_from(self.base_ring()):
             raise NotImplementedError('normal fan handles only polytopes over the rationals')
-        if direction == 'outer':
+        if direction == 'inner':
+            return NormalFan(self)
+        elif direction == 'outer':
             return NormalFan(-self)
-        return NormalFan(self)
+        else:
+            raise TypeError("the direction should be `inner` or `outer`")
 
     @cached_method
     def face_fan(self):

@@ -2,7 +2,7 @@ r"""
 Base class for polyhedra
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 Marshall Hampton <hamptonio@gmail.com>
 #       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
 #       Copyright (C) 2015 Jean-Philippe Labbe <labbe at math.huji.ac.il>
@@ -12,7 +12,7 @@ Base class for polyhedra
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# *****************************************************************************
 
 from __future__ import division, print_function, absolute_import
 
@@ -4936,7 +4936,7 @@ class Polyhedron_base(Element):
         A tuple of
         :class:`~sage.geometry.polyhedron.face.PolyhedronFace`. See
         :mod:`~sage.geometry.polyhedron.face` for details. The order
-        random but fixed.
+        is random but fixed.
 
         EXAMPLES:
 
@@ -5007,6 +5007,52 @@ class Polyhedron_base(Element):
         if index >= len(fl) or index < 1:
             return tuple()
         return tuple(fl[index])
+
+    def facets(self):
+        r"""
+        Return the facets of the polyhedron.
+
+        A facet of a `d`-dimensional polyhedron is a face of dimension
+        `d-1`.
+
+        OUTPUT:
+
+        A tuple of
+        :class:`~sage.geometry.polyhedron.face.PolyhedronFace`. See
+        :mod:`~sage.geometry.polyhedron.face` for details. The order
+        is random but fixed.
+
+        EXAMPLES:
+
+        Here we find the eight three-dimensional facets of the
+        four-dimensional hypercube::
+
+            sage: p = polytopes.hypercube(4)
+            sage: p.facets()
+            (A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices,
+             A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices,
+             A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices,
+             A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices,
+             A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices,
+             A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices,
+             A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices,
+             A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices)
+
+        This is the same result as explicitly finding the
+        three-dimensional faces::
+
+            sage: dim = p.dimension()
+            sage: p.faces(dim-1)
+            (A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices,
+             A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices,
+             A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices,
+             A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices,
+             A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices,
+             A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices,
+             A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices,
+             A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices)
+        """
+        return self.faces(self.dimension()-1)
 
     @cached_method
     def f_vector(self):

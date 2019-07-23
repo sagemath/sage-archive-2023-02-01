@@ -2761,7 +2761,7 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``direction`` -- either ``'inner'`` (default) or ``'outer'`` ; if 
+        - ``direction`` -- either ``'inner'`` (default) or ``'outer'``; if 
           set to ``'inner'``, use the inner normal vectors to span the cones of 
           the fan, if set to ``'outer'``, use the outer normal vectors. 
 

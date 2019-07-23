@@ -20,6 +20,7 @@ import itertools
 import six
 from sage.structure.element import Element, coerce_binop, is_Vector
 from sage.structure.richcmp import rich_to_bool, op_NE
+from sage.cpython.string import bytes_to_str
 
 from sage.misc.all import cached_method, prod
 from sage.misc.randstate import current_randstate
@@ -5179,7 +5180,6 @@ class Polyhedron_base(Element):
 
         from sage.misc.temporary_file import tmp_filename
         from subprocess import Popen, PIPE
-        from sage.cpython.string import bytes_to_str
 
         in_str = self.cdd_Vrepresentation()
         in_str += 'volume'

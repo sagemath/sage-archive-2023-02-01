@@ -4184,7 +4184,7 @@ class Polyhedron_base(Element):
         For more information, see Chapter 15 of [HoDaCG17]_.
         """
         if not self.is_compact():
-            raise NotImplementedError("polyhedron `self` must be a polytope")
+            raise ValueError("polyhedron `self` must be a polytope")
 
         if width == 0:
             raise ValueError("the width should be nonzero")

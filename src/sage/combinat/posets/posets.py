@@ -1618,6 +1618,20 @@ class FinitePoset(UniqueRepresentation, Parent):
         from .linear_extensions import LinearExtensionsOfPoset
         return LinearExtensionsOfPoset(self, facade = facade)
 
+    def spectrum(P,a):
+        '''
+        Input a pair (poset, element).
+        Outputs the a-spectrum in P.
+        '''
+        aspec=[]
+        for i in range(len(P)):
+            aspec.append(0)
+
+        for L in P.linear_extensions():
+            # Warning! If facade=False in the definition of your poset, this won't work!!
+            aspec[L.index(a)] = aspec[L.index(a)]+1
+        return aspec
+
     def is_linear_extension(self, l):
         """
         Returns whether ``l`` is a linear extension of ``self``

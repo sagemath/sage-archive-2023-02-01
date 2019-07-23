@@ -730,3 +730,55 @@ def combinatorial_face_to_polyhedral_face(polyhedron, combinatorial_face):
         raise NotImplementedError("unknown backend")
 
     return PolyhedronFace(polyhedron, V_indices, H_indices)
+
+    @cached_method
+    def normal_cone(self, direction='outer'):
+        """
+        Return the pointed polyhedral cone consisting of normal vectors to
+        hyperplanes supporting ``self``.
+
+        INPUT:
+
+        - ``direction`` -- string (default: ``'outer'``), the direction in
+          which to consider the normals. The other allowed option is
+          ``'inner'``.
+
+        OUTPUT:
+
+        A polyhedron.
+
+        EXAMPLES::
+
+            sage: p = Polyhedron(vertices = [[1,2],[2,1],[-2,2],[-2,-2],[2,-2]])
+            sage: for v in p.faces(0):
+            ....:     vect = v.vertices()[0].vector()
+            ....:     nc = v.normal_cone().rays_list()
+            ....:     print("{} has outer normal cone spanned by {}".format(vect,nc))
+            ....:
+            (-2, -2) has outer normal cone spanned by [[-1, 0], [0, -1]]
+            (-2, 2) has outer normal cone spanned by [[-1, 0], [0, 1]]
+            (1, 2) has outer normal cone spanned by [[0, 1], [1, 1]]
+            (2, -2) has outer normal cone spanned by [[0, -1], [1, 0]]
+            (2, 1) has outer normal cone spanned by [[1, 0], [1, 1]]
+
+            sage: for v in p.faces(0):
+            ....:     vect = v.vertices()[0].vector()
+            ....:     nc = v.normal_cone(direction='inner').rays_list()
+            ....:     print("{} has inner normal cone spanned by {}".format(vect,nc))
+            ....:
+            (-2, -2) has inner  normal cone spanned by [[0, 1], [1, 0]]
+            (-2, 2) has inner normal cone spanned by [[0, -1], [1, 0]]
+            (1, 2) has inner normal cone spanned by [[-1, -1], [0, -1]]
+            (2, -2) has inner normal cone spanned by [[-1, 0], [0, 1]]
+            (2, 1) has inner normal cone spanned by [[-1, -1], [-1, 0]]
+
+        """
+        if direction == 'outer':
+            normal_vectors = [-facet.A() for facet in self.ambient_Hrepresentation()]
+        elif direction == 'inner':
+            normal_vectors = [facet.A() for facet in self.ambient_Hrepresentation()]
+        else:
+            raise ValueError("the direction should be either 'outer' or 'inner'")
+        parent = self.polyhedron().parent()
+        origin = parent.zero().vertices()[0].vector()
+        return parent.element_class(parent,[[origin], normal_vectors, []], None)

@@ -4640,8 +4640,7 @@ class Polyhedron_base(Element):
 
         B = - normal_vector * (face_vertices[0].vector())
 
-        linear_evaluation = set(-normal_vector * (v.vector()) for v in
-            self.vertices())
+        linear_evaluation = set(-normal_vector * (v.vector()) for v in self.vertices())
 
         if B == max(linear_evaluation):
             C = max(linear_evaluation.difference(set([B])))

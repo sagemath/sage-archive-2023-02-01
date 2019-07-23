@@ -50,6 +50,7 @@ from sage.rings.integer cimport Integer
 from sage.arith.long cimport pyobject_to_long
 from libcpp.queue cimport priority_queue
 from libcpp.pair cimport pair
+from sage.rings.integer_ring import ZZ
 
 cdef class CGraph:
     """
@@ -2279,7 +2280,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         else:
             # build the shortest path and returns it.
             if distance_flag:
-                if shortest_path_length - int(shortest_path_length) == 0:
+                if shortest_path_length in ZZ:
                     return int(shortest_path_length)
                 else:
                     return shortest_path_length

@@ -489,7 +489,6 @@ class Polyhedron_base(Element):
        """
 
         from sage.categories.all import Rings
-        from sage.rings.all import RDF, RR
 
         if base_ring not in Rings:
             raise ValueError("invalid base ring")

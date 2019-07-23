@@ -110,6 +110,7 @@ List of Polyhedron methods
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.truncation` | truncates all vertices simultaneously
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.lawrence_extension` | returns the Lawrence extension of self on a given point
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.lawrence_polytope` | returns the Lawrence polytope of self
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.wedge` | returns the wedge over a face of self
 
 **Combinatorics**
 

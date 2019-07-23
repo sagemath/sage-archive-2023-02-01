@@ -2153,6 +2153,10 @@ REFERENCES:
             and Genocchi numbers <https://www.lri.fr/~hivert/PAPER/kshapes.pdf>`_,
             in FPSAC 2011, Reykjav´k, Iceland DMTCS proc. AO, 2011, 493-504.
 
+.. [HoDaCG17] Toth, Csaba D., Joseph O'Rourke, and Jacob E. Goodman.
+	      Handbook of Discrete and Computational Geometry (3rd Edition).
+	      Chapman and Hall/CRC, 2017.
+
 .. [Hoc] Winfried Hochstaettler, "About the Tic-Tac-Toe Matroid",
          preprint.
 
@@ -2555,7 +2559,7 @@ REFERENCES:
              Compositio Mathematica, **149** (2013), no. 10.
              :arxiv:`1111.3660`.
 
-.. [Kly1990] Klyachko, Aleksandr Anatolevich. 
+.. [Kly1990] Klyachko, Aleksandr Anatolevich.
              Equivariant Bundles on Toral Varieties,
              Math USSR Izv. 35 (1990), 337-375.
              http://iopscience.iop.org/0025-5726/35/2/A04/pdf/0025-5726_35_2_A04.pdf

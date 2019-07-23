@@ -4118,6 +4118,91 @@ class Polyhedron_base(Element):
         parent = self.parent().base_extend(new_vertex)
         return parent.element_class(parent, [self.vertices() + (new_vertex,), self.rays(), self.lines()], None)
 
+    def wedge(self, face, width=1):
+        r"""
+        Return the wedge over a ``face`` of ``self``. ``self`` must be a
+        polytope and ``width`` must be nonzero.
+
+        The wedge over a face `F` of a polytope `P` with width `w \not\eq 0`
+        is defined as:
+
+        .. MATH::
+
+            (P \times \mathbb{R}) \cap \{a^\top x + |w x_{d+1}| \leq b\}
+
+        where `a^\top x = b` is a supporting hyperplane for `F`.
+
+        INPUT:
+
+        - ``face`` -- a PolyhedronFace of ``self``, the face which we take
+          the wedge over
+        - ``width`` -- a nonzero number (default: ``1``), the width of the
+           resulting polytope
+
+        OUTPUT:
+
+        A (bounded) Polyhedron object
+
+        EXAMPLES::
+
+            sage: P = polytopes.regular_polygon(4)
+            sage: W1 = wedge(P, P.faces(1)[0]); W1
+            A 3-dimensional polyhedron in AA^3 defined as the convex hull of 6 vertices
+            sage: W1.is_simple()
+            True
+
+            sage: Q = polytopes.hypersimplex(4,2)
+            sage: W2 = wedge(Q, Q.faces(2)[0]); W2
+            A 4-dimensional polyhedron in QQ^5 defined as the convex hull of 9 vertices
+            sage: W2.vertices()
+            (A vertex at (0, 1, 0, 1, 0),
+             A vertex at (0, 0, 1, 1, 0),
+             A vertex at (1, 0, 0, 1, -1),
+             A vertex at (1, 0, 0, 1, 1),
+             A vertex at (1, 0, 1, 0, 1),
+             A vertex at (1, 1, 0, 0, -1),
+             A vertex at (0, 1, 1, 0, 0),
+             A vertex at (1, 0, 1, 0, -1),
+             A vertex at (1, 1, 0, 0, 1))
+
+            sage: W3 = wedge(Q, Q.faces(1)[0]); W3
+            A 4-dimensional polyhedron in QQ^5 defined as the convex hull of 10 vertices
+            sage: W3.vertices()
+            (A vertex at (0, 1, 0, 1, 0),
+             A vertex at (0, 0, 1, 1, 0),
+             A vertex at (1, 0, 0, 1, -1),
+             A vertex at (1, 0, 0, 1, 1),
+             A vertex at (1, 0, 1, 0, 2),
+             A vertex at (0, 1, 1, 0, 1),
+             A vertex at (1, 0, 1, 0, -2),
+             A vertex at (1, 1, 0, 0, 2),
+             A vertex at (0, 1, 1, 0, -1),
+             A vertex at (1, 1, 0, 0, -2))
+
+        REFERENCES:
+
+        For more information, see Chapter 15 of [HoDaCG17]_.
+        """
+        if not self.is_compact():
+            raise NotImplementedError("polyhedron `self` must be a polytope")
+
+        if width == 0:
+            raise ValueError("the width should be nonzero")
+
+        from sage.geometry.polyhedron.face import PolyhedronFace
+        if not isinstance(face, PolyhedronFace):
+            raise TypeError("{} should be a PolyhedronFace of {}".format(face, self))
+
+        F_Hrep = vector([0]*(self.ambient_dim()+1))
+        for facet in face.ambient_Hrepresentation():
+            if facet.is_inequality():
+                F_Hrep = F_Hrep + facet.vector()
+
+        L = Polyhedron(rays=[[1],[-1]])
+        Q = self.product(L)
+        H = Polyhedron(ieqs=[list(F_Hrep) + [width], list(F_Hrep) + [-width]])
+        return Q.intersection(H)
+
     def lawrence_extension(self, v):
         """
         Return the Lawrence extension of ``self`` on the point ``v``.

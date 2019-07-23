@@ -1947,7 +1947,7 @@ class RuleSuperRSK(RuleRSK):
         sage: RSK(["1p", "2p", 2, 2, "3p", "3p", 3, 3], 
         ....:    ["1p", 1, "2p", 2, "3p", "3p", "3p", 3], insertion='superRSK')
         [[[1', 2, 3', 3], [1, 3'], [2'], [3']], [[1', 2, 3', 3], [2', 3'], [2], [3]]]
-        sage: from sage.combinat.tableau import SemistandardSuperTableau
+        sage: from sage.combinat.super_tableau import SemistandardSuperTableau
         sage: P = SemistandardSuperTableau([[1, '3p', 3], ['2p']])
         sage: Q = SemistandardSuperTableau([['1p', 1, '2p'], [2]])
         sage: RSK_inverse(P, Q, insertion=RSK.rules.superRSK)
@@ -1988,7 +1988,7 @@ class RuleSuperRSK(RuleRSK):
         sage: t2 = Tableau([[1, 2, 3], [4], [5]])
         sage: RSK_inverse(t1, t2, insertion=RSK.rules.RSK)
         [[1, 2, 3, 4, 5], [1, 4, 5, 3, 2]]
-        sage: from sage.combinat.tableau import SemistandardSuperTableau
+        sage: from sage.combinat.super_tableau import SemistandardSuperTableau
         sage: t1 = SemistandardSuperTableau([[1, 2, 5], [3], [4]])
         sage: t2 = SemistandardSuperTableau([[1, 2, 3], [4], [5]])
         sage: RSK_inverse(t1, t2, insertion=RSK.rules.superRSK)
@@ -2209,7 +2209,7 @@ class RuleSuperRSK(RuleRSK):
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleSuperRSK
-            sage: from sage.combinat.tableau import SemistandardSuperTableau
+            sage: from sage.combinat.super_tableau import SemistandardSuperTableau
             sage: p, q = RuleSuperRSK().forward_rule([1, 2], [1, 3]); p
             [[1, 3]]
             sage: q
@@ -2324,7 +2324,7 @@ class RuleSuperRSK(RuleRSK):
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleSuperRSK
-            sage: from sage.combinat.tableau import SemistandardSuperTableau, StandardSuperTableau
+            sage: from sage.combinat.super_tableau import SemistandardSuperTableau, StandardSuperTableau
             sage: isinstance(RuleSuperRSK()._forward_format_output(
             ....:           [['1p', 1, '2p']], [['1p', '1', '2p']], True)[0], 
             ....:           StandardSuperTableau)
@@ -2375,7 +2375,7 @@ class RuleSuperRSK(RuleRSK):
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleSuperRSK
-            sage: from sage.combinat.tableau import SemistandardSuperTableau
+            sage: from sage.combinat.super_tableau import SemistandardSuperTableau
             sage: t1 = SemistandardSuperTableau([['1p', '3p', '4p'], [2], [3]])
             sage: t2 = SemistandardSuperTableau([[1, 2, 4], [3], [5]])
             sage: RuleSuperRSK().backward_rule(t1, t2, 'array')

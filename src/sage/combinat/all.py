@@ -150,7 +150,6 @@ lazy_import('sage.combinat.multiset_partition_into_sets_ordered', ['OrderedMulti
 from .subset import Subsets
 #from subsets_pairwise import PairwiseCompatibleSubsets
 from .necklace import Necklaces
-from .lyndon_word import LyndonWord, LyndonWords, StandardBracketedLyndonWords
 from .dyck_word import DyckWords, DyckWord
 from .sloane_functions import sloane
 from .superpartition import SuperPartition, SuperPartitions

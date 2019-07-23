@@ -1710,8 +1710,8 @@ class Polytopes():
         """
         Return the runcitruncated 600-cell.
 
-        The runcitruncated 600-cell is a 4-dimensional 4-uniform in the `H_4`
-        family. It has 7200 vertices. For more information see
+        The runcitruncated 600-cell is a 4-dimensional 4-uniform polytope in
+        the `H_4` family. It has 7200 vertices. For more information see
         :wikipedia:`Runcitruncated 600-cell`.
 
         .. WARNING::
@@ -1739,8 +1739,8 @@ class Polytopes():
         """
         Return the cantitruncated 600-cell.
 
-        The cantitruncated 600-cell is a 4-dimensional 4-uniform in the `H_4`
-        family. It has 7200 vertices. For more information see
+        The cantitruncated 600-cell is a 4-dimensional 4-uniform polytope in
+        the `H_4` family. It has 7200 vertices. For more information see
         :wikipedia:`Cantitruncated 600-cell`.
 
         .. WARNING::
@@ -1767,8 +1767,8 @@ class Polytopes():
         """
         Return the bitruncated 600-cell.
 
-        The bitruncated 600-cell is a 4-dimensional 4-uniform in the `H_4`
-        family. It has 3600 vertices. For more information see
+        The bitruncated 600-cell is a 4-dimensional 4-uniform polytope in the
+        `H_4` family. It has 3600 vertices. For more information see
         :wikipedia:`Bitruncated 600-cell`.
 
         .. WARNING::
@@ -1795,8 +1795,8 @@ class Polytopes():
         """
         Return the cantellated 600-cell.
 
-        The cantellated 600-cell is a 4-dimensional 4-uniform in the `H_4`
-        family. It has 3600 vertices. For more information see
+        The cantellated 600-cell is a 4-dimensional 4-uniform polytope in the
+        `H_4` family. It has 3600 vertices. For more information see
         :wikipedia:`Cantellated 600-cell`.
 
         .. WARNING::
@@ -1835,8 +1835,8 @@ class Polytopes():
         """
         Return the truncated 600-cell.
 
-        The truncated 600-cell is a 4-dimensional 4-uniform in the `H_4`
-        family. It has 1440 vertices. For more information see
+        The truncated 600-cell is a 4-dimensional 4-uniform polytope in the
+        `H_4` family. It has 1440 vertices. For more information see
         :wikipedia:`Truncated 600-cell`.
 
         .. WARNING::
@@ -1868,8 +1868,8 @@ class Polytopes():
         """
         Return the rectified 600-cell.
 
-        The rectified 600-cell is a 4-dimensional 4-uniform in the `H_4`
-        family. It has 720 vertices. For more information see
+        The rectified 600-cell is a 4-dimensional 4-uniform polytope in the
+        `H_4` family. It has 720 vertices. For more information see
         :wikipedia:`Rectified 600-cell`.
 
         .. WARNING::
@@ -2390,7 +2390,7 @@ class Polytopes():
                 rhs = vector(list(col[:i+1]))
                 adjusted_col = m.solve_right(rhs)
                 # Then scales the images so that the polytope is inscribed
-                c = 1 - sum([adjusted_col[j]**2 for j in range(n) if j != i])
+                c = 1 - sum(adjusted_col[j]**2 for j in range(n) if j != i)
                 c = c.sqrt()
                 adjusted_col[i] = c
                 transf_col[-1] = adjusted_col
@@ -2408,8 +2408,8 @@ class Polytopes():
         """
         Return the omnitruncated 120-cell.
 
-        The omnitruncated 120-cell is a 4-dimensional 4-uniform in the `H_4`
-        family. It has 14400 vertices. For more information see
+        The omnitruncated 120-cell is a 4-dimensional 4-uniform polytope in the
+        `H_4` family. It has 14400 vertices. For more information see
         :wikipedia:`Omnitruncated 120-cell`.
 
         .. WARNING::
@@ -2441,8 +2441,8 @@ class Polytopes():
         """
         Return the runcitruncated 120-cell.
 
-        The runcitruncated 120-cell is a 4-dimensional 4-uniform in the `H_4`
-        family. It has 7200 vertices. For more information see
+        The runcitruncated 120-cell is a 4-dimensional 4-uniform polytope in
+        the `H_4` family. It has 7200 vertices. For more information see
         :wikipedia:`Runcitruncated 120-cell`.
 
         .. WARNING::
@@ -2480,8 +2480,8 @@ class Polytopes():
         """
         Return the cantitruncated 120-cell.
 
-        The cantitruncated 120-cell is a 4-dimensional 4-uniform in the `H_4`
-        family. It has 7200 vertices. For more information see
+        The cantitruncated 120-cell is a 4-dimensional 4-uniform polytope in
+        the `H_4` family. It has 7200 vertices. For more information see
         :wikipedia:`Cantitruncated 120-cell`.
 
         .. WARNING::
@@ -2508,8 +2508,8 @@ class Polytopes():
         """
         Return the runcinated 120-cell.
 
-        The runcinated 120-cell is a 4-dimensional 4-uniform in the `H_4`
-        family. It has 2400 vertices. For more information see
+        The runcinated 120-cell is a 4-dimensional 4-uniform polytope in the
+        `H_4` family. It has 2400 vertices. For more information see
         :wikipedia:`Runcinated 120-cell`.
 
         .. WARNING::
@@ -2546,8 +2546,8 @@ class Polytopes():
         """
         Return the cantellated 120-cell.
 
-        The cantellated 120-cell is a 4-dimensional 4-uniform in the `H_4`
-        family. It has 3600 vertices. For more information see
+        The cantellated 120-cell is a 4-dimensional 4-uniform polytope in the
+        `H_4` family. It has 3600 vertices. For more information see
         :wikipedia:`Cantellated 120-cell`.
 
         .. WARNING::
@@ -2574,8 +2574,8 @@ class Polytopes():
         """
         Return the truncated 120-cell.
 
-        The truncated 120-cell is a 4-dimensional 4-uniform in the `H_4`
-        family. It has 2400 vertices. For more information see
+        The truncated 120-cell is a 4-dimensional 4-uniform polytope in the
+        `H_4` family. It has 2400 vertices. For more information see
         :wikipedia:`Truncated 120-cell`.
 
         .. WARNING::
@@ -2602,8 +2602,8 @@ class Polytopes():
         """
         Return the rectified 120-cell.
 
-        The rectified 120-cell is a 4-dimensional 4-uniform in the `H_4`
-        family. It has 1200 vertices. For more information see
+        The rectified 120-cell is a 4-dimensional 4-uniform polytope in the
+        `H_4` family. It has 1200 vertices. For more information see
         :wikipedia:`Rectified 120-cell`.
 
         .. WARNING::
@@ -2630,8 +2630,8 @@ class Polytopes():
         """
         Return the 120-cell.
 
-        The 120-cell is a 4-dimensional 4-uniform in the `H_4`
-        family. It has 600 vertices and 120 facets. For more information see
+        The 120-cell is a 4-dimensional 4-uniform polytope in the `H_4` family.
+        It has 600 vertices and 120 facets. For more information see
         :wikipedia:`120-cell`.
 
         .. WARNING::

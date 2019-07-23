@@ -105,6 +105,9 @@ lazy_import('sage.combinat.lr_tableau', ['LittlewoodRichardsonTableau',
 lazy_import('sage.combinat.shifted_primed_tableau', ['ShiftedPrimedTableaux',
                                                      'ShiftedPrimedTableau'])
 
+#SuperTableaux
+from .super_tableau import *
+
 #Words
 from .words.all import *
 

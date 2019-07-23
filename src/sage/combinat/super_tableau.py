@@ -209,9 +209,10 @@ class SemistandardSuperTableau(Tableau):
 class StandardSuperTableau(SemistandardSuperTableau):
     r"""
         A class to model a standard super tableau.
-INPUT:
 
-    - ``t`` -- a Tableau, a list of iterables, or an empty list
+    INPUT:
+
+      - ``t`` -- a Tableau, a list of iterables, or an empty list
 
     A standard super tableau is a semistandard super tableau whose entries 
     are in bijection with positive primed integers `1', 1, 2' \ldots n`.

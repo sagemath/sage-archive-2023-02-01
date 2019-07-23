@@ -2338,7 +2338,8 @@ class RuleSuperRSK(RuleRSK):
             ....:                       SemistandardSuperTableau)
             True
         """
-        from sage.combinat.tableau import SemistandardSuperTableau, StandardTableau, StandardSuperTableau
+        from sage.combinat.tableau import StandardTableau
+        from sage.combinat.super_tableau import SemistandardSuperTableau, StandardSuperTableau
 
         if not p:
             return [StandardTableau([]), StandardTableau([])]

@@ -2302,7 +2302,9 @@ class FusionRing(WeylCharacterRing):
         Note that the basis is stored as unsorted data, so to obtain
         consistent results, it should be sorted when applying
         labels. The argument ``key`` (default ``str``) specifies how
-        to sort the basis.
+        to sort the basis. If you call this with ``key=None``, then no
+        sorting is done. This may lead to random results, at least
+        with Python 3.
 
         EXAMPLES::
 

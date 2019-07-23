@@ -5179,6 +5179,8 @@ class Polyhedron_base(Element):
 
         from sage.misc.temporary_file import tmp_filename
         from subprocess import Popen, PIPE
+        from sage.cpython.string import bytes_to_str
+
         in_str = self.cdd_Vrepresentation()
         in_str += 'volume'
         in_filename = tmp_filename()
@@ -5190,6 +5192,8 @@ class Polyhedron_base(Element):
         lrs_procs = Popen(['lrs', in_filename],
                           stdin=PIPE, stdout=PIPE, stderr=PIPE)
         ans, err = lrs_procs.communicate()
+        ans = bytes_to_str(ans)
+        err = bytes_to_str(err)
         if verbose:
             print(ans)
         # FIXME: check err

@@ -2841,7 +2841,7 @@ class Polyhedron_base(Element):
         elif direction == 'outer':
             return NormalFan(-self)
         else:
-            raise TypeError("the direction should be `inner` or `outer`")
+            raise TypeError("the direction should be 'inner' or 'outer'")
 
     @cached_method
     def face_fan(self):

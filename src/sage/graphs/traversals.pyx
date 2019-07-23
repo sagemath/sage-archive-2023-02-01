@@ -68,6 +68,10 @@ def lex_BFS(G, reverse=False, tree=False, initial_vertex=None):
 
     See [CK2008]_ for more details on the algorithm.
 
+    .. SEEALSO::
+
+        * :wikipedia:`Lexicographic_breadth-first_search`
+
     EXAMPLES:
 
     A Lex BFS is obviously an ordering of the vertices::

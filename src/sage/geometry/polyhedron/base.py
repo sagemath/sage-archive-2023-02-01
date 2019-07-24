@@ -4355,7 +4355,7 @@ class Polyhedron_base(Element):
         EXAMPLES::
 
             sage: cube = polytopes.cube()
-            sage: square_face = cube.faces(2)[2]
+            sage: square_face = cube.facets()[2]
             sage: stacked_square = cube.stack(square_face)
             sage: stacked_square.f_vector()
             (1, 9, 16, 9, 1)
@@ -4938,6 +4938,8 @@ class Polyhedron_base(Element):
         :mod:`~sage.geometry.polyhedron.face` for details. The order
         is random but fixed.
 
+        .. SEEALSO:: :meth:`facets`
+
         EXAMPLES:
 
         Here we find the vertex and face indices of the eight three-dimensional
@@ -4992,7 +4994,7 @@ class Polyhedron_base(Element):
             ()
             sage: pr.faces(3)[0].ambient_V_indices()
             (0, 1, 2, 3)
-            sage: pr.faces(2)[0].ambient_V_indices()
+            sage: pr.facets()[0].ambient_V_indices()
             (0, 1, 2)
             sage: pr.faces(1)
             ()
@@ -5021,6 +5023,8 @@ class Polyhedron_base(Element):
         :class:`~sage.geometry.polyhedron.face.PolyhedronFace`. See
         :mod:`~sage.geometry.polyhedron.face` for details. The order
         is random but fixed.
+
+        .. SEEALSO:: :meth:`facets`
 
         EXAMPLES:
 

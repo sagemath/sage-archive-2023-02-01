@@ -209,12 +209,26 @@ cdef inline format_pmesh_face(face_c face, int has_color):
 def midpoint(pointa, pointb, w):
     """
     Return the weighted mean of two points in space.
+
+    INPUT:
+
+    - ``pointa``, ``pointb`` -- two points in 3-dimensional space
+
+    - ``w` -- a real weight between 0 and 1.
+
+    If the weight is zero, the result is ``pointa``. If the weight is
+    one, the result is ``pointb``.
+
+    EXAMPLES::
+
+        sage: from sage.plot.plot3d.index_face_set import midpoint
+        sage: midpoint((1,2,3),(4,4,4),0.8)
+        (3.40000000000000, 3.60000000000000, 3.80000000000000)
     """
     xa, ya, za = pointa
     xb, yb, zb = pointb
     v = 1 - w
-    return ((w * xa + v * xb), (w * ya + v * yb), (w * za + v * zb))
-
+    return ((v * xa + w * xb), (v * ya + w * yb), (v * za + w * zb))
 
 
 cdef class IndexFaceSet(PrimitiveObject):

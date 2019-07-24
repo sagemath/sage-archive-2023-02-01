@@ -2154,8 +2154,8 @@ REFERENCES:
             in FPSAC 2011, Reykjav´k, Iceland DMTCS proc. AO, 2011, 493-504.
 
 .. [HoDaCG17] Toth, Csaba D., Joseph O'Rourke, and Jacob E. Goodman.
-	      Handbook of Discrete and Computational Geometry (3rd Edition).
-	      Chapman and Hall/CRC, 2017.
+              Handbook of Discrete and Computational Geometry (3rd Edition).
+              Chapman and Hall/CRC, 2017.
 
 .. [Hoc] Winfried Hochstaettler, "About the Tic-Tac-Toe Matroid",
          preprint.

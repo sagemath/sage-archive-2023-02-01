@@ -1172,20 +1172,25 @@ class HyperplaneArrangementElement(Element):
         ambient space of the arrangement that lie on all of the
         hyperplanes.
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: A = hyperplane_arrangements.braid(3)
-            sage: A.center()
-            A 1-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex and 1 line
-
+        The empty hyperplane arrangement has the entire ambient space as its
+        center::
             sage: H.<x,y> = HyperplaneArrangements(QQ)
             sage: A = H()
             sage: A.center()
             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 lines
 
+        The Shi arrangement in dimension 3 has an empty center::
             sage: A = hyperplane_arrangements.Shi(3)
             sage: A.center()
             The empty polyhedron in QQ^3
+
+        The Braid arrangement in dimension 3 has a center that is neither
+        empty nor full-dimensional::
+            sage: A = hyperplane_arrangements.braid(3)
+            sage: A.center()
+            A 1-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex and 1 line
         """
         return self.is_central(certificate=True)[1]
 

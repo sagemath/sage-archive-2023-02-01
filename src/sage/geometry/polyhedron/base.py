@@ -2281,7 +2281,7 @@ class Polyhedron_base(Element):
             sage: c.boundary_complex()
             Traceback (most recent call last):
             ...
-            NotImplementedError: this function is implemented for simplicial polytopes only
+            NotImplementedError: this function is only implemented for simplicial polytopes
 
         TESTS::
 
@@ -2292,14 +2292,14 @@ class Polyhedron_base(Element):
             ValueError: self should be compact
         """
         from sage.homology.simplicial_complex import SimplicialComplex
-        try:
-            if self.is_simplicial():
-                facets = [f.ambient_V_indices() for f in self.facets()]
-                return SimplicialComplex(facets,maximality_check=False)
-            else:
-                raise NotImplementedError("this function is implemented for simplicial polytopes only")
-        except ValueError:
+        if not self.is_compact():
             raise ValueError("self should be compact")
+
+        if self.is_simplicial():
+            facets = [f.ambient_V_indices() for f in self.facets()]
+            return SimplicialComplex(facets,maximality_check=False)
+        else:
+            raise NotImplementedError("this function is only implemented for simplicial polytopes")
 
     @cached_method
     def facet_adjacency_matrix(self):

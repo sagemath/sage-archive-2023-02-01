@@ -1133,14 +1133,14 @@ class HyperplaneArrangementElement(Element):
             sage: a.is_central()
             True
         """
-        if certificate:
-            from sage.geometry.polyhedron.constructor import Polyhedron
         R = self.base_ring()
         # If there are no hyperplanes in the arrangement,
         # the center is the entire ambient space
         if self.n_hyperplanes() == 0:
             if certificate:
-                return (True, Polyhedron(base_ring=R, eqns=[[0]*(self.dimension()+1)]))
+                from sage.geometry.polyhedron.parent import Polyhedra
+                pp = Polyhedra(R, self.dimension())
+                return (True, pp.universe())
             else:
                 return True
         # The center is the set of points contained in all hyperplanes,
@@ -1152,12 +1152,15 @@ class HyperplaneArrangementElement(Element):
         except ValueError:
             # The solution set is empty, therefore the center is empty
             if certificate:
-                return (False, Polyhedron(base_ring=R, ambient_dim=self.dimension()))
+                from sage.geometry.polyhedron.parent import Polyhedra
+                pp = Polyhedra(R, self.dimension())
+                return (False, pp.empty())
             else:
                 return False
         # The center is the kernel of m translated by x.
         if certificate:
             Ker = m.right_kernel()
+            from sage.geometry.polyhedron.constructor import Polyhedron
             return (True, Polyhedron(base_ring=R, vertices=[x], lines=Ker.basis()))
         else:
             return True

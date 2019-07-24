@@ -214,7 +214,7 @@ def midpoint(pointa, pointb, w):
 
     - ``pointa``, ``pointb`` -- two points in 3-dimensional space
 
-    - ``w` -- a real weight between 0 and 1.
+    - ``w`` -- a real weight between 0 and 1.
 
     If the weight is zero, the result is ``pointa``. If the weight is
     one, the result is ``pointb``.

@@ -42,7 +42,7 @@ from sage.categories.fields import Fields
 from sage.rings.laurent_series_ring import (is_LaurentSeriesRing,
                                             LaurentSeriesRing)
 from sage.rings.laurent_series_ring_element import LaurentSeries
-from sage.rings.power_series_ring import is_PowerSeriesRing, PowerSeriesRing
+from sage.rings.power_series_ring import is_PowerSeriesRing
 from sage.rings.power_series_ring_element import PowerSeries
 
 puiseux_series = {}

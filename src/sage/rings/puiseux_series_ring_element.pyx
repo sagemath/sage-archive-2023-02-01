@@ -224,20 +224,8 @@ cdef class PuiseuxSeries(AlgebraElement):
             return repr(self.laurent_part())
         X = self.parent().variable_name()
 
-        # extract coefficients and exponents of the laurent part.
-        #
-        # NOTE: self.__l.coefficients() is bugged when the coefficients are in
-        # QQbar but coerced into SR. Therefore, we use self.__l.list() instead
-        # (which works) and manually extract the coefficients and exponents
-        lst = self.__l.list()
-        val = self.valuation()
-        coeff = []
-        exp = []
-        for n in range(len(lst)):
-            c = lst[n]
-            if not c.is_zero():
-                coeff.append(c)
-                exp.append(QQ(n) / self.__e + val)
+        coeff = self.coefficients()
+        exp   = self.exponents()
 
         # print each term
         s = ''
@@ -639,6 +627,16 @@ cdef class PuiseuxSeries(AlgebraElement):
             x^(-7/2) + O(1)
             sage: p.add_bigoh(-1)
             x^(-7/2) + O(x^-1)
+
+        NOTE::
+
+        The precision passed to the method is adapted to the common
+        ramification index:
+
+            sage: R.<x> = PuiseuxSeriesRing(ZZ)
+            sage: p = x**(-1/3) + 2*x**(1/5)
+            sage: p.add_bigoh(1/2)
+            x^(-1/3) + 2*x^(1/5) + O(x^(7/15))
         """
         if prec == infinity or prec >= self.prec():
             return self
@@ -732,40 +730,29 @@ cdef class PuiseuxSeries(AlgebraElement):
 
     def coefficients(self):
         """
-        Return coefficients and exponents of the Laurent part.
+        Return the list of coefficients.
 
-        .. NOTE::
+        EXAMPLES::
 
-            self.__l.coefficients() is bugged when the coefficients
-            are in QQbar but coerced into SR. Therefore, we use
-            self.__l.list() instead (which works) and manually extract
-            the coefficients and exponents
+            sage: R.<x> = PuiseuxSeriesRing(ZZ)
+            sage: p = x^(3/4) + 2*x^(4/5) + 3* x^(5/6)
+            sage: p.coefficients()
+            [1, 2, 3]
         """
-        lst = self.__l.list()
-        val = self.valuation()
-        coeff = []
-        for n in range(len(lst)):
-            c = lst[n]
-            if not c.is_zero():
-                coeff.append(c)
-        return coeff
+        return self.__l.coefficients()
 
     def exponents(self):
         """
-        Return exponents of the Laurent part.
+        Return the list of exponents.
 
-        NOTE: self.__l.coefficients() is bugged when the coefficients are in
-        QQbar but coerced into SR. Therefore, we use self.__l.list() instead
-        (which works) and manually extract the coefficients and exponents
+        EXAMPLES::
+
+            sage: R.<x> = PuiseuxSeriesRing(ZZ)
+            sage: p = x^(3/4) + 2*x^(4/5) + 3* x^(5/6)
+            sage: p.exponents()
+            [3/4, 4/5, 5/6]
         """
-        lst = self.__l.list()
-        val = self.valuation()
-        exp = []
-        for n in range(len(lst)):
-            c = lst[n]
-            if not c.is_zero():
-                exp.append(QQ(n) / self.__e + val)
-        return exp
+        return [QQ(n) /  self.__e for n in self.__l.exponents()]
 
     def __setitem__(self, n, value):
         raise IndexError('Puiseux series are immutable')

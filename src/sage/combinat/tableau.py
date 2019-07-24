@@ -2769,6 +2769,17 @@ class Tableau(ClonableList):
             operator" :meth:`promotion_inverse` for semistandard tableaux
             has never been proven in literature. Corrections are welcome.
 
+        REFERENCES:
+
+        .. [Hai1992] Mark D. Haiman,
+           *Dual equivalence with applications, including a conjecture of Proctor*,
+           Discrete Mathematics 99 (1992), 79-113,
+           http://www.sciencedirect.com/science/article/pii/0012365X9290368P
+
+        .. [Sg2011] Bruce E. Sagan,
+           *The cyclic sieving phenomenon: a survey*,
+           :arxiv:`1008.0790v3`
+
         EXAMPLES::
 
             sage: t = Tableau([[1,2],[3,3]])
@@ -3729,6 +3740,12 @@ class Tableau(ClonableList):
         row for any `i+1 \le k \le r+1`.  Denote the total number of
         `k`-segments in `T` by `\mathrm{seg}(T)`.
 
+        REFERENCES:
+
+        .. [S14] \B. Salisbury.
+           The flush statistic on semistandard Young tableaux.
+           :arxiv:`1401.1185`
+
         EXAMPLES::
 
             sage: t = Tableau([[1,1,2,3,5],[2,3,5,5],[3,4]])
@@ -4377,6 +4394,19 @@ class SemistandardTableau(Tableau):
             return t
         elif t in SemistandardTableaux():
             return SemistandardTableaux_all().element_class(SemistandardTableaux_all(), t)
+
+        # t is not a semistandard tableau so we give an appropriate error message
+        if t not in Tableaux():
+            raise ValueError('%s is not a tableau' % t)
+
+        if not all(isinstance(c, (int, Integer)) and c > 0 for row in t for c in row):
+            raise ValueError("entries must be positive integers"%t)
+
+        if any(row[c] > row[c+1] for row in t for c in range(len(row)-1)):
+            raise ValueError("The rows of %s are not weakly increasing"%t)
+
+        # If we're still here ``t`` cannot be column strict
+        raise ValueError('%s is not a column strict tableau' % t)
 
     def check(self):
         """
@@ -9344,6 +9374,7 @@ class IncreasingTableaux_size_weight(IncreasingTableaux):
         if shape not in _Partitions:
             return False
         return x in IncreasingTableaux_shape_weight(_Partitions(shape), self.weight)
+
 
 # October 2012: fixing outdated pickles which use classed being deprecated
 from sage.misc.persist import register_unpickle_override

@@ -9411,6 +9411,7 @@ class IncreasingTableaux_size_weight(IncreasingTableaux):
             return False
         return x in IncreasingTableaux_shape_weight(_Partitions(shape), self.weight)
 
+
 # October 2012: fixing outdated pickles which use classed being deprecated
 from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.tableau', 'Tableau_class',  Tableau_class)

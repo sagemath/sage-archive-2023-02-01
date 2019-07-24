@@ -460,6 +460,16 @@ def shortest_simple_paths(self, source, target, weight_function=None,
         sage: s == t
         True
 
+        sage: G = digraphs.Circulant(10, [2, 3])
+        sage: s = set()
+        sage: for i, p in enumerate(G.shortest_simple_paths(1, 7, by_weight=False, algorithm='Yen')):
+        ....:     s.add(tuple(p))
+        sage: t = set()
+        sage: for i, p in enumerate(G.shortest_simple_paths(1, 7, by_weight=False, algorithm='Feng')):
+        ....:     t.add(tuple(p))
+        sage: s == t
+        True
+
     """
     if source not in self:
         raise ValueError("vertex '{}' is not in the graph".format(source))
@@ -1110,20 +1120,21 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
         (cost, path1, dev_idx) = heappop(heap_sorted_paths)
         hash_path = tuple(path1)
         heap_paths.remove(hash_path)
-        if report_weight:
-            if report_edges and labels:
-                yield (cost + shortest_path_len, list(cartesian_product([edge_labels[e] for e in zip(path1[:-1], path1[1:])])[0]))
-            elif report_edges:
-                yield (cost + shortest_path_len, list(zip(path1[:-1], path1[1:])))
+        if len(set(path1)) == len(path1):
+            if report_weight:
+                if report_edges and labels:
+                    yield (cost + shortest_path_len, list(cartesian_product([edge_labels[e] for e in zip(path1[:-1], path1[1:])])[0]))
+                elif report_edges:
+                    yield (cost + shortest_path_len, list(zip(path1[:-1], path1[1:])))
+                else:
+                    yield (cost + shortest_path_len, path1)
             else:
-                yield (cost + shortest_path_len, path1)
-        else:
-            if report_edges and labels:
-                yield list(cartesian_product([edge_labels[e] for e in zip(path1[:-1], path1[1:])])[0])
-            elif report_edges:
-                yield list(zip(path1[:-1], path1[1:]))
-            else:
-                yield path1
+                if report_edges and labels:
+                    yield list(cartesian_product([edge_labels[e] for e in zip(path1[:-1], path1[1:])])[0])
+                elif report_edges:
+                    yield list(zip(path1[:-1], path1[1:]))
+                else:
+                    yield path1
         prev_path = path1
 
         # deep copy of the exclude vertices set

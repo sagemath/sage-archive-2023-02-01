@@ -647,22 +647,55 @@ int numeric::compare_same_type(const numeric& right) const {
         }
 }
 
+#if PY_MAJOR_VERSION < 3
+#define hash_bits (8 * sizeof(void*))
+#else
+#define hash_bits _PyHASH_BITS
+#endif
+#define limb_bits (8 * sizeof(mp_limb_t))
+
 /* By convention hashes of PyObjects must be identical
    with their Python hashes, this applies to our MPZ
-   and MPQ objects too. */
+   and MPQ objects too. This implementation is copied
+   from sage.libs.gmp.pylong.mpz_pythonhash. */
+static long _mpz_pythonhash_raw(mpz_t the_int)
+{
+    if (mpz_sgn(the_int) == 0)
+        return 0;
+
+    mp_limb_t modulus = ((((mp_limb_t)(1) << (hash_bits - 1)) - 1) * 2) + 1;
+    mp_limb_t h=0, x, y;
+    size_t n = mpz_size(the_int);
+    unsigned int r;
+    for (unsigned i=0; i<n; ++i) {
+        x = mpz_getlimbn(the_int, i);
+        if (limb_bits == hash_bits)
+            y = x;
+        else {
+            r = (limb_bits * i) % hash_bits;
+            y = (x << r) & modulus;
+            y += (x >> (hash_bits - r)) & modulus;
+            if (r > 2 * hash_bits - limb_bits)
+                y += (x >> (2 * hash_bits - r));
+            if (y > modulus)
+                y -= modulus;
+        }
+        if (h < modulus - y)
+            h = h + y;
+        else
+            h = h - (modulus - y);
+    }
+    if (limb_bits == hash_bits && h == 0)
+        h = -1;
+
+    if (mpz_sgn(the_int) < 0)
+        return -h;
+    return h;
+}
+
 static long _mpz_pythonhash(mpz_t the_int)
 {
-    mp_limb_t h1=0, h0;
-    size_t n = mpz_size(the_int);
-    for (unsigned i=0; i<n; ++i) {
-        h0 = h1;
-        h1 += mpz_getlimbn(the_int, i);
-        if (h1 < h0)
-            ++h1;
-        }
-    long h = h1;
-    if (mpz_sgn(the_int) < 0)
-        h = -h;
+    long h = _mpz_pythonhash_raw(the_int);
     if (h == -1)
         return -2;
     return h;
@@ -673,11 +706,13 @@ static long _mpq_pythonhash(mpq_t the_rat)
     mpq_t rat;
     mpq_init(rat);
     mpq_set(rat, the_rat);
-    long n = _mpz_pythonhash(mpq_numref(rat));
-    long d = _mpz_pythonhash(mpq_denref(rat));
+    long n = _mpz_pythonhash_raw(mpq_numref(rat));
+    long d = _mpz_pythonhash_raw(mpq_denref(rat));
     if (d != 1L)
         n = n + (d-1) * 7461864723258187525;
     mpq_clear(rat);
+    if (n == -1)
+        return -2;
     return n;
 }
 

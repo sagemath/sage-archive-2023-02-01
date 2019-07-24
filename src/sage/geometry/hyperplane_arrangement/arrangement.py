@@ -1148,6 +1148,33 @@ class HyperplaneArrangementElement(Element):
         else:
             return True
 
+    def center(self):
+        r"""
+        Return the center of the hyperplane arrangement.
+
+        OUTPUT:
+
+        The polyhedron defined to be the set of all points in the
+        ambient space of the arrangement that lie on all of the
+        hyperplanes.
+
+        EXAMPLES::
+
+            sage: A = hyperplane_arrangements.braid(3)
+            sage: A.center()
+            A 1-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex and 1 line
+
+            sage: H.<x,y> = HyperplaneArrangements(QQ)
+            sage: A = H()
+            sage: A.center()
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 lines
+
+            sage: A = hyperplane_arrangements.Shi(3)
+            sage: A.center()
+            The empty polyhedron in QQ^3
+        """
+        return self.is_central(certificate=True)[1]
+
     @cached_method
     def is_simplicial(self):
         r"""

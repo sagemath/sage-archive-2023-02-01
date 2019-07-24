@@ -987,11 +987,10 @@ class LaurentPolynomialRing_univariate(LaurentPolynomialRing_generic):
             # since the field of fraction of self is defined corresponding to the polynomial ring of self
             # the conversion of its elements back must be treated separately (:trac:`26425`).
             P = x.parent()
-            if P.ring() == self.polynomial_ring():
-                d = self(x.denominator())
-                if not d.is_unit():
-                     raise TypeError("fraction must have unit denominator")
-                return self(x.numerator()) * d.inverse_of_unit()
+            d = self(x.denominator())
+            if not d.is_unit():
+                raise TypeError("fraction must have unit denominator")
+            return self(x.numerator()) * d.inverse_of_unit()
 
         return self.element_class(self, x)
 

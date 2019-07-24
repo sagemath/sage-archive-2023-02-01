@@ -18,8 +18,7 @@ from __future__ import print_function, absolute_import
 from six import PY2
 
 from subprocess import Popen, PIPE
-from sage.rings.all import ZZ, QQ, RDF
-from sage.misc.all import SAGE_TMP, tmp_filename, union, cached_method, prod
+from sage.rings.all import ZZ
 from sage.matrix.constructor import matrix
 
 from .base import Polyhedron_base
@@ -296,7 +295,7 @@ class Polyhedron_cdd(Polyhedron_base):
 
         def parse_adjacency(intro, data, N, cdd_indices_to_sage_indices):
             ret = matrix(ZZ, N, N, 0)
-            cdd_vertex_count = int(data.pop(0)[0])
+            data.pop(0)[0]
             data.reverse()
             for adjacencies in data:
                 assert adjacencies[2] == ':', "Not a line of adjacency data"

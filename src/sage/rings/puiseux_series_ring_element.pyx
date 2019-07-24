@@ -544,10 +544,11 @@ cdef class PuiseuxSeries(AlgebraElement):
 
         EXAMPLES::
 
+            sage: from operator import xor
             sage: R.<x> = PuiseuxSeriesRing(QQ)
             sage: p = x^(-7/2) + 3 + 5*x^(1/2) - 7*x**3
-            sage: hash(p)  # indirect doctest
-            -15360174648385722
+            sage: hash(p) == xor(hash(p.laurent_part()), 2)  # indirect doctest
+            True
         """
         return hash(self.__l) ^ self.__e
 
@@ -642,17 +643,8 @@ cdef class PuiseuxSeries(AlgebraElement):
         if prec == infinity or prec >= self.prec():
             return self
 
-        # the following is here due to a bug in Sage: adding a bigoh of order
-        # less than the series precision raises an error due to attempting to
-        # build an underlying power series with negative precision. this fix
-        # makes sure that if the requested precision is less than that if the
-        # Laurent series it will just return a bigoh
         l_prec = int(prec * self.__e)
-        try:
-            l = self.__l.add_bigoh(l_prec)
-        except ValueError:
-            x = self.__l.parent().gen()
-            l = O(x ** l_prec)
+        l = self.__l.add_bigoh(l_prec)
         return PuiseuxSeries(self._parent, l, self.__e)
 
     def change_ring(self, R):

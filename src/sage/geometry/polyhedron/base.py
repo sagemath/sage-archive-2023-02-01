@@ -2808,7 +2808,7 @@ class Polyhedron_base(Element):
             sage: P.normal_fan(direction=None)
             Traceback (most recent call last):
             ...
-            TypeError: the direction should be `inner` or `outer`
+            TypeError: the direction should be 'inner' or 'outer'
 
             sage: inner_nf = P.normal_fan()
             sage: inner_nf.rays()

@@ -1107,11 +1107,24 @@ class HyperplaneArrangementElement(Element):
         r"""
         Test whether the intersection of all the hyperplanes is nonempty.
 
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) boolean; specifies whether
+        to include the center as a polyhedron (possibly empty) in the output.
+
         OUTPUT:
 
-        A boolean whether the hyperplane arrangement is such that the
+        If ``certificate`` is True, returns a tuple containing:
+
+        1. A boolean whether the hyperplane arrangement is such that the
         intersection of all the hyperplanes in the arrangement is
         nonempty.
+
+        2. The polyhedron defined to be the intersection of all the hyperplanes
+
+        If ``certificate`` is False:
+
+        - The boolean as described above.
 
         EXAMPLES::
 

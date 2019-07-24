@@ -2249,6 +2249,30 @@ class Polyhedron_base(Element):
 
     adjacency_matrix = vertex_adjacency_matrix
 
+    def boundary_complex(self):
+        """
+        Return the simplicial complex given by the boundary faces of ``self``,
+        if it is simplicial.
+
+        OUTPUT:
+
+        A (spherical) simplicial complex
+
+        EXAMPLES::
+
+
+        """
+        from sage.homology.simplicial_complex import SimplicialComplex
+        try:
+            if self.is_simplicial():
+                facets = [f.ambient_V_indices() for f in self.facets()]
+                return SimplicialComplex(facets,maximality_check=False)
+            else:
+                raise NotImplementedError("this function is implemented for
+                        simplicial polytopes only")
+        except:
+            raise ValueError("self should be compact")
+
     @cached_method
     def facet_adjacency_matrix(self):
         """

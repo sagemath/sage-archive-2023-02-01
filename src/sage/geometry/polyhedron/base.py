@@ -5101,7 +5101,7 @@ class Polyhedron_base(Element):
         :mod:`~sage.geometry.polyhedron.face` for details. The order
         is random but fixed.
 
-        .. SEEALSO:: :meth:`faces`
+        .. SEEALSO:: :meth:`facets`
 
         EXAMPLES:
 

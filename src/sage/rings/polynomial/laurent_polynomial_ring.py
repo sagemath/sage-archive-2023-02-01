@@ -951,7 +951,7 @@ class LaurentPolynomialRing_univariate(LaurentPolynomialRing_generic):
 
         TESTS:
 
-        Check that conversion back from fraction field does work (:trac:`26425`):
+        Check that conversion back from fraction field does work (:trac:`26425`)::
 
             sage: R.<t> = LaurentPolynomialRing(ZZ)
             sage: F = FractionField(R)

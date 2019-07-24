@@ -4188,6 +4188,22 @@ class Polyhedron_base(Element):
         REFERENCES:
 
         For more information, see Chapter 15 of [HoDaCG17]_.
+
+        TESTS::
+
+        The backend and the basering are preserved as long as the value of
+        ``width`` belongs to the basering of ``self``. This is the case when
+        ``width`` takes the default value ``1``
+
+            sage: P = polytopes.cyclic_polytope(3, 7, base_ring=QQ, backend='ppl')
+            sage: P.wedge(P.faces(2)[0]).backend()
+            'ppl'
+            sage: P.wedge(P.faces(2)[0]).base_ring()
+            Rational Field
+            sage: P.wedge(P.faces(2)[0], width=RDF(1)).backend()
+            'cdd'
+            sage: P.wedge(P.faces(2)[0], width=RDF(1)).base_ring()
+            Real Double Field
         """
         if not self.is_compact():
             raise ValueError("polyhedron 'self' must be a polytope")

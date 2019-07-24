@@ -567,9 +567,6 @@ class PlanePartition(ClonableArray):
             sage: PP = PlanePartition([[3,3,2],[3,3,2],[2,2,2]])
             sage: PP.is_SPP()
             True
-            sage: PP = PlanePartition([[1,2,0],[2]])
-            sage: PP.is_SPP()
-            True
             sage: PP = PlanePartition([[3,2,1],[2,0,0]])
             sage: PP.is_SPP()
             False
@@ -582,12 +579,7 @@ class PlanePartition(ClonableArray):
             sage: PP = PlanePartition([[3,2],[2,0],[0,0]])
             sage: PP.is_SPP()
             True
-            sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]])
-            sage: PP.is_SPP()
-            False
-            sage: PP = PlanePartition([[3,3,2],[3,3,2],[2,2,2]])
-            sage: PP.is_SPP()
-            True
+
 
         """
         Z = self.z_tableau()
@@ -683,9 +675,6 @@ class PlanePartition(ClonableArray):
             sage: PP = PlanePartition([[4,3,3,2],[3,2,2,1],[3,2,2,1],[2,1,1,0]])
             sage: PP.is_SSCPP()
             True
-            sage: PP = PlanePartition([[1,2,0],[2]])
-            sage: PP.is_SSCPP()
-            False
             sage: PP = PlanePartition([[2,1],[1,0]])
             sage: PP.is_SSCPP()
             True
@@ -695,9 +684,6 @@ class PlanePartition(ClonableArray):
             sage: PP = PlanePartition([[4,2,2,2],[2,2,2,2],[2,2,2,2],[2,2,2,0]])
             sage: PP.is_SSCPP()
             True
-            sage: PP = PlanePartition([[1,2,3,2],[1,2,3,2],[2,2,2,2],[2,2,2,0]])
-            sage: PP.is_SSCPP()
-            False
         """
         return self.is_SPP() and self.is_SCPP()
 

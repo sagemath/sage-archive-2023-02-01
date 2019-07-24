@@ -1207,6 +1207,7 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
                         spur.append(st)
 
                 if not spur:
+                    exclude_vertices.add(root[-1])
                     continue
                 # concatenating the root and the spur path
                 path = root[:-1] + spur

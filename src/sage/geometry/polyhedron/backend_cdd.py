@@ -295,7 +295,7 @@ class Polyhedron_cdd(Polyhedron_base):
 
         def parse_adjacency(intro, data, N, cdd_indices_to_sage_indices):
             ret = matrix(ZZ, N, N, 0)
-            data.pop(0)[0]
+            data.pop(0)
             data.reverse()
             for adjacencies in data:
                 assert adjacencies[2] == ':', "Not a line of adjacency data"

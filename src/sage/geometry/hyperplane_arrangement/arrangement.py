@@ -1132,6 +1132,18 @@ class HyperplaneArrangementElement(Element):
             sage: a = hyperplane_arrangements.braid(2)
             sage: a.is_central()
             True
+
+        The Catalan arrangement in dimension 3 is not central::
+            sage: b = hyperplane_arrangements.Catalan(3)
+            sage: b.is_central(certificate=True)
+            (False, The empty polyhedron in QQ^3)
+
+        The empty arrangement in dimension 5 is central::
+            sage: H = HyperplaneArrangements(QQ,names=tuple(['x'+str(i) for i in range(7)]))
+            sage: c = H()
+            sage: c.is_central(certificate=True)
+            (True, A 7-dimensional polyhedron in QQ^7 defined as the convex
+            hull of 1 vertex and 7 lines)
         """
         R = self.base_ring()
         # If there are no hyperplanes in the arrangement,

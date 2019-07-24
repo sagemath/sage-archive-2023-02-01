@@ -1103,7 +1103,7 @@ class HyperplaneArrangementElement(Element):
         return self.rank() == self.dimension()
 
     @cached_method
-    def is_central(self):
+    def is_central(self,certificate=False):
         r"""
         Test whether the intersection of all the hyperplanes is nonempty.
 
@@ -1119,14 +1119,34 @@ class HyperplaneArrangementElement(Element):
             sage: a.is_central()
             True
         """
+        if certificate:
+            from sage.geometry.polyhedron.constructor import Polyhedron
         R = self.base_ring()
+        # If there are no hyperplanes in the arrangement,
+        # the center is the entire ambient space
+        if self.n_hyperplanes() == 0:
+            if certificate:
+                return (True, Polyhedron(base_ring=R, eqns=[[0]*(self.dimension()+1)]))
+            else:
+                return True
+        # The center is the set of points contained in all hyperplanes,
+        # expressible as the solution set of m*x=b with m and b as follows:
         m = matrix(R, [h.normal() for h in self])
         b = vector(R, [h.b() for h in self])
         try:
-            m.solve_right(b)
-            return True
+            x = m.solve_right(b)
         except ValueError:
-            return False
+            # The solution set is empty, therefore the center is empty
+            if certificate:
+                return (False, Polyhedron(base_ring=R, ambient_dim=self.dimension()))
+            else:
+                return False
+        # The center is the kernel of m translated by x.
+        if certificate:
+            Ker = m.right_kernel()
+            return (True, Polyhedron(base_ring=R, vertices=[x], lines=Ker.basis()))
+        else:
+            return True
 
     @cached_method
     def is_simplicial(self):

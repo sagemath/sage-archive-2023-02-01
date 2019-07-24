@@ -4118,7 +4118,7 @@ class Polyhedron_base(Element):
         parent = self.parent().base_extend(new_vertex)
         return parent.element_class(parent, [self.vertices() + (new_vertex,), self.rays(), self.lines()], None)
 
-    def wedge(self, face, width=1):
+    def wedge(self, face, width=None):
         r"""
         Return the wedge over a ``face`` of the polytope ``self``.
 
@@ -4205,6 +4205,9 @@ class Polyhedron_base(Element):
             sage: P.wedge(P.faces(2)[0], width=RDF(1)).base_ring()
             Real Double Field
         """
+        if width is None:
+            width = ZZ.one()
+
         if not self.is_compact():
             raise ValueError("polyhedron 'self' must be a polytope")
 
@@ -4223,7 +4226,11 @@ class Polyhedron_base(Element):
 
         L = Polyhedron(lines=[[1]])
         Q = self.product(L)
-        H = Polyhedron(ieqs=[F_Hrep + [width], F_Hrep + [-width]])
+
+        parent = self.parent().base_extend(width, ambient_dim=self.ambient_dim()+1)
+        ieqs = [F_Hrep + [width], F_Hrep + [-width]]
+        H = parent.element_class(parent, None, [ieqs, None])
+#        H = Polyhedron(ieqs=[F_Hrep + [width], F_Hrep + [-width]])
         return Q.intersection(H)
 
     def lawrence_extension(self, v):

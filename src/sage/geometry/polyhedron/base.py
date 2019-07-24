@@ -4842,6 +4842,59 @@ class Polyhedron_base(Element):
         parent = self.parent().base_extend(self.center().parent())
         return parent.element_class(parent, None, [[[1] + list(v) for v in verts], []])
 
+    def is_self_dual(self):
+        r"""
+        Return whether the polytope is self-dual.
+
+        A polytope is self-dual if its face lattice is isomorphic to the face
+        lattice of its dual polytope.
+
+        EXAMPLES::
+
+            sage: polytopes.simplex().is_self_dual()
+            True
+            sage: polytopes.twenty_four_cell().is_self_dual()
+            True
+            sage: polytopes.cube().is_self_dual()
+            False
+            sage: polytopes.hypersimplex(5,2).is_self_dual()
+            False
+            sage: P = Polyhedron(vertices=[[1/2, 1/3]], rays=[[1, 1]]).is_self_dual()
+            Traceback (most recent call last):
+            ...
+            ValueError: polyhedron has to be compact
+
+        ALGORITHM:
+
+        Let P be a polytope and let G be its vertex-facet graph. Let V
+        (resp. F) be the nodes of G corresponding to the vertices (resp.
+        facets) of P. Now make two copies G_1 and G_2 of G. For G_1,
+        add a new node x and connect it by edges to the nodes of V. For
+        G_2, add a new node y and connect it by edges to the nodes of F.
+        Now P is self-dual if and only if the new graphs G_1 and G_2 are
+        isomorphic.
+        """
+        if not self.is_compact():
+            raise ValueError("polyhedron has to be compact")
+
+        IM = self.incidence_matrix()
+        if self.n_equations():
+            # Remove equations from the incidence matrix,
+            # such that this is the vertex-facet incidences matrix.
+            IM1 = IM.transpose()
+            IM2 = IM1[[i for i in range(self.n_Hrepresentation())
+                     if not self.Hrepresentation()[i].is_equation()]]
+            IM = IM2.transpose()
+
+        if not IM.is_square():
+            return False
+
+        n = self.n_vertices()
+        from sage.graphs.bipartite_graph import BipartiteGraph
+        G1 = BipartiteGraph(IM.insert_row(0, n*[ZZ.one()]))
+        G2 = BipartiteGraph(IM.transpose().insert_row(0, n*[ZZ.one()]))
+        return G1.is_isomorphic(G2)
+
     def pyramid(self):
         """
         Returns a polyhedron that is a pyramid over the original.

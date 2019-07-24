@@ -1103,28 +1103,29 @@ class HyperplaneArrangementElement(Element):
         return self.rank() == self.dimension()
 
     @cached_method
-    def is_central(self,certificate=False):
+    def is_central(self, certificate=False):
         r"""
         Test whether the intersection of all the hyperplanes is nonempty.
 
+        A hyperplane arrangement is central if the intersection of all the
+        hyperplanes in the arrangement is nonempty.
+
         INPUT:
 
-        - ``certificate`` -- (default: ``False``) boolean; specifies whether
-        to include the center as a polyhedron (possibly empty) in the output.
+        - ``certificate`` -- boolean (default: ``False``); specifies whether
+        to return the center as a polyhedron (possibly empty) as part of the 
+        output.
 
         OUTPUT:
 
         If ``certificate`` is True, returns a tuple containing:
 
-        1. A boolean whether the hyperplane arrangement is such that the
-        intersection of all the hyperplanes in the arrangement is
-        nonempty.
-
+        1. A boolean
         2. The polyhedron defined to be the intersection of all the hyperplanes
 
         If ``certificate`` is False:
 
-        - The boolean as described above.
+        - A boolean
 
         EXAMPLES::
 

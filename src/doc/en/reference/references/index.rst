@@ -988,6 +988,10 @@ REFERENCES:
             Michigan Math. J. 55 (2007), no. 2, 355-393.
             :arxiv:`math/0602146v1` [math.AG]
 
+.. [CDJN2019] \A. Chakraborti, N. Datta, A. Jha, M. Nandi
+              "HyENA"
+              https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/hyena-spec.pdf
+
 .. [CDL2015] \A. Canteaut, Sebastien Duval, Gaetan Leurent
              *Construction of Lightweight S-Boxes using Feistel and
              MISTY Structures*; in Proceedings of SAC 2015; LNCS 9566;

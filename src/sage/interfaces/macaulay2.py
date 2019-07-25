@@ -79,7 +79,7 @@ AUTHORS:
     Get rid of all numbers in output, e.g., in ideal function below.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 Kiran S. Kedlaya <kedlaya@mit.edu>
 #                          David Roe <roed@mit.edu>
 #                          William Stein <wstein@gmail.com>
@@ -93,8 +93,8 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 from six import string_types
 
@@ -1070,7 +1070,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
         """
         parent = self.parent()
         x = parent(x)
-        return parent("%s.%s"%(self.name(), x))
+        return parent("%s.%s" % (self.name(), x))
 
     def _operator(self, opstr, x):
         """
@@ -1151,6 +1151,12 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             [1 2]
             [3 4]
 
+            sage: D = macaulay2('hashTable {4 => 1, 2 => 3}')  # optional - macaulay2
+            sage: D.pairs()                    # optional - macaulay2
+            {(4, 1), (2, 3)}
+            sage: D.sage() == {4: 1, 2: 3}    # optional - macaulay2
+            True
+
             sage: macaulay2(QQ['x,y']).sage()       # optional - macaulay2
             Multivariate Polynomial Ring in x, y over Rational Field
             sage: macaulay2(QQ['x']).sage()         # optional - macaulay2
@@ -1209,6 +1215,8 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
                 base_ring = self.ring()._sage_()
                 entries = self.entries()._sage_()
                 return matrix(base_ring, entries)
+            elif cls_str == 'HashTable':
+                return {x._sage_(): y._sage_() for (x, y) in self.pairs()}
             elif cls_str == "Ideal":
                 parent = self.ring()._sage_()
                 gens = self.gens().entries().flatten()._sage_()

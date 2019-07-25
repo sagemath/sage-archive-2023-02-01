@@ -4118,7 +4118,7 @@ class Polyhedron_base(Element):
         parent = self.parent().base_extend(new_vertex)
         return parent.element_class(parent, [self.vertices() + (new_vertex,), self.rays(), self.lines()], None)
 
-    def wedge(self, face, width=None):
+    def wedge(self, face, width=1):
         r"""
         Return the wedge over a ``face`` of the polytope ``self``.
 
@@ -4218,9 +4218,6 @@ class Polyhedron_base(Element):
              A vertex at (6, 36, 216, 10),
              A vertex at (5, 25, 125, 5))
         """
-        if width is None:
-            width = ZZ.one()
-
         if not self.is_compact():
             raise ValueError("polyhedron 'self' must be a polytope")
 
@@ -4240,6 +4237,7 @@ class Polyhedron_base(Element):
         L = Polyhedron(lines=[[1]])
         Q = self.product(L)
 
+        width = width/ZZ.one()
         parent = self.parent().base_extend(width.base_ring().fraction_field(),\
                                            ambient_dim=self.ambient_dim()+1)
         ieqs = [F_Hrep + [width], F_Hrep + [-width]]

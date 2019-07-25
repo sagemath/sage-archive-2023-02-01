@@ -1095,12 +1095,19 @@ def feng_k_shortest_simple_paths(self, source, target, weight_function=None,
     heap_sorted_paths = list()
     prev_path = None
 
-    # compute the shortest path between the source and the target
-    path = shortest_path_func(source, target, exclude_vertices=exclude_vert_set,
-                                weight_function=weight_function, reduced_weight=reduced_cost)
-    length = length_func(path)
-    # corner case
-    if not path:
+    try:
+        # compute the shortest path between the source and the target
+        path = shortest_path_func(source, target, exclude_vertices=exclude_vert_set,
+                                    weight_function=weight_function, reduced_weight=reduced_cost)
+        length = length_func(path)
+        # corner case
+        if not path:
+            if report_weight:
+                yield (0, [])
+            else:
+                yield []
+            return
+    except Exception:
         if report_weight:
             yield (0, [])
         else:

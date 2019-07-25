@@ -3172,6 +3172,113 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             ch += F.canonical_height(P, **kwds)
         return ch
 
+        def preperiodic_points(self, n, m, **kwds):
+        r"""
+        Computes the preperiodic points of period ``m``,``n`` of this dynamical system
+        defined over the ring ``R`` or the base ring of the map.
+
+        This can be done either by finding the rational points on the variety
+        defining the points of period ``m``,``n``, or, for finite fields,
+        finding the cycle of appropriate length in the cyclegraph. For small
+        cardinality fields, the cyclegraph algorithm is effective for any
+        map and length cycle, but is slow when the cyclegraph is large.
+        The variety algorithm is good for small period, degree, and dimension,
+        but is slow as the defining equations of the variety get more
+        complicated.
+
+        For rational map, where there are potentially infinitely many periodic
+        points of a given period, you must use the ``return_scheme`` option.
+        Note that this scheme will include the indeterminacy locus.
+
+        INPUT:
+
+        - ``n`` - a positive integer
+
+        - ``m`` - a non negative integer
+
+        kwds:
+
+        - ``minimal`` -- (default: ``True``) boolean; ``True`` specifies to
+          find only the periodic points of minimal period ``n`` and ``False``
+          specifies to find all periodic points of period ``n``
+
+        - ``R`` -- (default: the base ring of the dynamical system) a 
+          commutative ring over which to find the preperiodic points
+
+        - ``return_scheme`` -- (default: ``False``) boolean; return a 
+          subscheme of the ambient space that defines the ``n`` th periodic points
+
+        OUTPUT:
+
+        A list of preperiodic points of this map or the subscheme defining
+        the preperiodic points.
+
+        EXAMPLES::
+
+            
+        """
+        if n <= 0:
+            raise ValueError("a positive integer period must be specified")
+        if m < 0:
+            raise ValueError("a non negative preperiod must be specified")
+        R = kwds.pop('R', None)
+        if R is None:
+            f = self
+            R = self.base_ring()
+        else:
+            f = self.change_ring(R)
+            R = f.base_ring()
+        CR = f.coordinate_ring()
+        dom = f.domain()
+        PS = f.codomain().ambient_space()
+        N = PS.dimension_relative() + 1
+        F = f.nth_iterate_map(n+m) - f.nth_iterate_map(m)
+        L = [F[i]*CR.gen(j) - F[j]*CR.gen(i) for i in range(0,N)
+                for j in range(i+1, N)]
+        L = [t for t in L if t != 0]
+        X = PS.subscheme(L + list(dom.defining_polynomials()))
+        minimal = kwds.pop('minimal',True)
+        return_scheme = kwds.pop('return_scheme',False)
+        if return_scheme:  # this includes the indeterminacy locus points!
+            if minimal and n != 1:
+                raise NotImplementedError("return_subscheme only implemented for minimal=False")
+            return X
+        if X.dimension() == 0:
+            if R in NumberFields() or R is QQbar or R in FiniteFields():
+                Z = f.indeterminacy_locus()
+                points = [dom(Q) for Q in X.rational_points()]
+                good_points = []
+                for Q in points:
+                    try:
+                        Z(list(Q))
+                    except TypeError:
+                        good_points.append(Q)
+                points = good_points
+
+                if not minimal:
+                    return points
+                else:
+                    #we want only the points with minimal period n
+                    #so we go through the list and remove any that
+                    #have smaller period by checking the iterates
+                    minimal_points = []
+                    for P in points:
+                        orbit = [dom(P)]
+                        Q = f(dom(P))
+                        n_plus_m = 1
+                        while not Q in orbit:
+                            Q = f(Q)
+                            n_plus_m += 1
+                        preperiod = orbit.index(Q)
+                        period = n_plus_m - preperiod
+                        if period == n and preperiod == m:
+                            minimal_points.append(P)
+                    return minimal_points
+            else:
+                raise NotImplementedError("ring must a number field or finite field")
+        else: #a higher dimensional scheme
+            raise TypeError("use return_scheme=True")
+
     def periodic_points(self, n, minimal=True, R=None, algorithm='variety',
                         return_scheme=False):
         r"""

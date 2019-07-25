@@ -1315,8 +1315,8 @@ class AffinePermutationTypeB(AffinePermutationTypeC):
                 raise ValueError("entries must have distinct residues")
             reslist.append(r)
         # Check that we have an even number of 'small' elements right of the zeroth entry.
-        s = sum(-i // self.N+1 for i in [self.value(j) for j in range(1,self.N+1)] if i < 0)
-        if s % 2 != 0:
+        s = sum(-i // self.N+1 for i in (self.value(j) for j in range(1,self.N+1)) if i < 0)
+        if s % 2:
             raise ValueError("type B affine permutations have an even number of "
                              "entries less than 0 to the right of the 0th position")
 
@@ -1479,13 +1479,13 @@ class AffinePermutationTypeD(AffinePermutationTypeC):
             reslist.append(r)
         # Check that we have an even number of 'big' elements left of the kth entry.
         s = sum(i // self.N + 1 - (i % self.N <= self.k)
-                for i in [self.value(j) for j in range(-self.k,self.k+1)] if i > self.k)
-        if s % 2 != 0:
+                for i in (self.value(j) for j in range(-self.k,self.k+1)) if i > self.k)
+        if s % 2:
             raise ValueError("type D affine permutations have an even number of entries"
                              " greater than x.k weakly to the left of the x.k position")
         # Check that we have an even number of 'small' elements right of the zeroth entry.
-        s = sum(-i // self.N+1 for i in [self.value(j) for j in range(1,self.N+1)] if i < 0)
-        if s % 2 != 0:
+        s = sum(-i // self.N+1 for i in (self.value(j) for j in range(1,self.N+1)) if i < 0)
+        if s % 2:
             raise ValueError("type D affine permutations have an even number of entries"
                              " less than 0 to the right of the 0th position")
 
@@ -1647,12 +1647,12 @@ class AffinePermutationTypeG(AffinePermutation):
             raise ValueError("length of list must be 6")
         #Check that we have an even number of 'big' elements left of the 7th entry.
         s = sum(i//6 - (i%6 == 0) for i in self if i > 6)
-        if s % 2 != 0:
+        if s % 2:
             raise ValueError("type G affine permutations have an even number of"
                              " entries greater than 6 to the left of the 7th position")
         #Check that we have an even number of 'small' elements right of the zeroth entry.
         s = sum(-i//6 + 1 for i in self if i <= 0)
-        if s % 2 != 0:
+        if s % 2:
             raise ValueError("type G affine permutations have an even number of"
                              " entries less than 0 to the right of the 0th position")
 

@@ -50,7 +50,9 @@ from .finite_subgroup import TorsionPoint
 
 class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
     """
-    A morphism between modular abelian varieties. EXAMPLES::
+    A morphism between modular abelian varieties.
+
+    EXAMPLES::
 
         sage: t = J0(11).hecke_operator(2)
         sage: from sage.modular.abvar.morphism import Morphism

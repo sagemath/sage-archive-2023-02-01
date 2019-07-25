@@ -38,6 +38,9 @@
 .idea
 .iml
 
+# VSCode
+.vscode
+
 # XCode
 xcuserdata/
 

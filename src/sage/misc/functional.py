@@ -1555,6 +1555,7 @@ def round(x, ndigits=0):
     """
     try:
         if ndigits:
+            x = float(x)
             return RealDoubleElement(builtins.round(x, ndigits))
         else:
             try:

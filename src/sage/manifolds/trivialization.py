@@ -33,7 +33,7 @@ class Trivialization(UniqueRepresentation, SageObject):
     EXAMPLES:
 
     """
-    def __init__(self, vbundle, domain, name=None, latex_name=None):
+    def __init__(self, vbundle, name=None, latex_name=None):
         r"""
         Construct a local trivialization of the vector bundle `vbundle`.
 
@@ -50,11 +50,10 @@ class Trivialization(UniqueRepresentation, SageObject):
             self._latex_name = self._name
         else:
             self._latex_name = latex_name
-        self._base_space = domain.manifold()
+        self._base_space = vbundle.base_space()
         self._vbundle = vbundle
         self._bdl_rank = vbundle.rank()
         self._base_field = vbundle.base_field()
-        self._domain = domain
         self._sindex = self._base_space.start_index()
         # Add this trivialization to the atlas of the vector bundle:
         vbundle._atlas.append(self)
@@ -76,8 +75,8 @@ class Trivialization(UniqueRepresentation, SageObject):
         if self._name is not None:
             desc += self._name + ":"
         desc += "{}|_{} -> {})".format(self._vbundle._name,
-                                               self._domain._name,
-                                               self._domain._name)
+                                               self._base_space._name,
+                                               self._base_space._name)
         return desc
 
     def _latex_(self):
@@ -96,26 +95,10 @@ class Trivialization(UniqueRepresentation, SageObject):
         latex = str()
         if self._latex_name is not None:
             latex += self._latex_name + r':'
-        latex += r'{} |_{{{}}} \to {} \times {}^{}'.format(self._vbundle._latex_name,
-                                    latex(self._domain), latex(self._domain),
-                                    latex(self._base_field), self._bdl_rank)
+        latex += r'{} |_{{{}}} \to {} \times {}^{}'.format(self._vbundle._latex_(),
+                            self._base_space._latex_(), self._base_space._latex_(),
+                            self._base_field._latex_(), self._bdl_rank)
         return latex
-
-    def domain(self):
-        r"""
-        Return the open subset on which the trivialization is defined.
-
-        EXAMPLES::
-
-            sage: M = Manifold(2, 'M', structure='top')
-            sage: U = M.open_subset('U')
-            sage: E = M.vector_bundle(2, 'E')
-            sage: phi_U = E.trivialization(U)
-            sage: phi_U.domain()
-            Open subset U of the 2-dimensional topological manifold M
-
-        """
-        return self._domain
 
     def base_space(self):
         r"""

@@ -33,6 +33,7 @@ from sage.rings.real_mpfr import RR, RealField_class
 from sage.rings.complex_field import ComplexField_class
 from sage.rings.integer import Integer
 from sage.manifolds.vector_bundle_fiber import VectorBundleFiber
+from sage.manifolds.section_module import SectionModule
 
 class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
     r"""
@@ -133,6 +134,20 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         self._atlas = []  # list of trivializations defined
         self._transitions = {} # dictionary of transition maps (key: pair of
                                # of trivializations)
+        self._frames = []  # list of local frames defined on subsets of self
+        # list of local frames defined on subsets of self that are
+        # not subframes of frames on larger subsets
+        self._top_frames = []
+        self._def_frame = None  # default frame
+        self._coframes = []  # list of local coframes defined on subsets of self
+        # List of local frames that individually cover self, i.e. whose
+        # domains are self (if non-empty, self is parallelizable):
+        self._covering_frames = []
+        self._trivial_parts = set() # trivial subsets contained in self
+        self._frame_changes = {} # dictionary of changes of frames
+        # Dictionary of vector field modules along self
+        # (keys = diff. map from self to an open set (possibly the identity map))
+        self._section_modules = {}
 
     def base_space(self):
         r"""
@@ -252,15 +267,19 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
             'E\\to M'
 
         """
-        from sage.misc.latex import latex
         latex = self._latex_name
         latex += r'\to '
-        latex += latex(self.base_space())
+        latex += self.base_space()._latex_name
         return latex
 
-    def trivialization(self, domain, name=None, latex_name=None):
+    def trivialization(self, name=None, latex_name=None):
         r"""
         Return a trivialization of ``self`` over the domain ``domain``.
+
+        OUTPUT:
+
+        - a :class:`~sage.manifolds.trivialization.Trivialization` representing
+          a trivialization of `E`
 
         EXAMPLES::
 
@@ -271,21 +290,58 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
             Trivialization (phi:E|_U -> U)
 
         """
-        if not (domain.is_open() and domain.manifold() is self._base_space):
-            raise ValueError("domain must be an open subset "
-                             "of {}".format(self._base_space))
         from .trivialization import Trivialization
-        return Trivialization(self, domain, name=name, latex_name=latex_name)
+        return Trivialization(self, name=name, latex_name=latex_name)
 
     def transitions(self):
         r"""
+        Return the transition maps defined over subsets of the manifold.
+
+        OUTPUT:
+
+        - dictionary of transition maps, with pairs of trivializations as keys
+
+        EXAMPLES::
+
+
 
         """
         return self._transitions
 
+    def transition(self, triv1, triv2):
+        r"""
+        Return the transition map between two trivializations defined over the
+        manifold.
+
+        The transition map must have been defined previously, for instance by
+        the method
+        :meth:`~sage.manifolds.trivialization.Trivialization.transition_map`.
+
+        INPUT:
+
+        - ``triv1`` -- trivialization 1
+        - ``triv2`` -- trivialization 2
+
+        OUTPUT:
+
+        - instance of :class:`~sage.manifolds.trivialization.TransitionMap`
+          representing the transition map from trivialization 1 to
+          trivialization 2
+
+        EXAMPLES::
+
+
+
+        """
+        if (triv1, triv2) not in self._transitions:
+            raise TypeError("the transition map from " +
+                            "{} to {}".format(triv1, triv2) + " has not " +
+                            "been defined on the {}".format(self))
+        return self._transitions[(triv1, triv2)]
+
     def atlas(self):
         r"""
-        Return the atlas of ``self``.
+        Return the list of trivializations that have been defined for ``self``.
 
         EXAMPLES::
 
@@ -305,6 +361,10 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
         """
         return list(self._atlas) # Make a (shallow) copy
+
+    def restrict(self, domain):
+        # TODO: Implement
+        pass
 
     def is_manifestly_trivial(self):
         r"""
@@ -334,6 +394,34 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
                 return True
         return False
 
+    def section_module(self, domain=None, force_free=False):
+        r"""
+        Return the section module of continuous section on ``self``.
+
+        See :class:`~sage.manifolds.section_module.SectionModule` for a complete
+        documentation.
+
+        INPUT:
+
+        - ``force_free`` -- (default: ``False``) if set to ``True``, force
+          the construction of a *free* module (this implies that `E` is trivial)
+
+        OUTPUT:
+
+        - a
+          :class:`~sage.manifolds.section_module.SectionModule`
+          (or if `E` is trivial, a
+          :class:`~sage.manifolds.section_module.SectionFreeModule`)
+          representing the module `\Gamma(E)` of continuous sections on
+          `M` taking values on `E`
+
+        """
+        from sage.manifolds.section_module import \
+                                            SectionModule, SectionFreeModule
+        if self.is_manifestly_trivial() or force_free:
+            return SectionFreeModule(self)
+        return SectionModule(self)
+
     def fiber(self, point):
         r"""
         Return the vector bundle fiber at ``point``.
@@ -353,16 +441,22 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         """
         return VectorBundleFiber(self, point)
 
-    def section(self, domain=None):
+    def section(self, name=None, latex_name=None):
         r"""
-        Return a section defined on ``domain``.
+        Return a continuous section of ``self``.
 
         INPUT:
 
         - ``domain`` -- (default: ````) domain on which the section shall be
           defined; if ``None``, the base space is assumed
 
+        OUTPUT:
+
+        - an instance of :class:`~sage.manifolds.section.Section` representing
+          a continuous section of `M` with values on `E`
+
         """
+        # TODO: Implement
         pass
 
     def whitney_sum(self, vector_bundle):
@@ -378,6 +472,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         -
 
         """
+        # TODO: Implement
         pass
 
     def tensor_product(self, vector_bundle):
@@ -393,11 +488,12 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         -
 
         """
+        # TODO: Implement
         pass
 
     def total_space(self):
         r"""
-        Return .the total space of ``self``.
+        Return the total space of ``self``.
 
         OUTPUT:
 
@@ -411,5 +507,5 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         total_space = Manifold(dim, self._name, latex_name=self._latex_name,
                                field=self._field, structure='topological',
                                start_index=sindex)
-        # if self._atlas not empty, introduce charts
+        # TODO: if self._atlas not empty, introduce charts
         return total_space

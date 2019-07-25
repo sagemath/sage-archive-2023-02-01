@@ -216,8 +216,8 @@ def midpoint(pointa, pointb, w):
 
     - ``w`` -- a real weight between 0 and 1.
 
-    If the weight is zero, the result is ``pointa``. If the weight is
-    one, the result is ``pointb``.
+    If the weight is zero, the result is ``pointb``. If the weight is
+    one, the result is ``pointa``.
 
     EXAMPLES::
 
@@ -228,7 +228,7 @@ def midpoint(pointa, pointb, w):
     xa, ya, za = pointa
     xb, yb, zb = pointb
     v = 1 - w
-    return ((v * xa + w * xb), (v * ya + w * yb), (v * za + w * zb))
+    return ((w * xa + v * xb), (w * ya + v * yb), (w * za + v * zb))
 
 
 cdef class IndexFaceSet(PrimitiveObject):

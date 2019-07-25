@@ -2402,7 +2402,7 @@ class RuleSuperRSK(RuleRSK):
         for value, iter_dict in sorted(d.items(), reverse=True, key=lambda x: x[0]):
             epsilon = 1 if value.is_primed() else 0
             if epsilon == 1:
-                iter_dict = {v: k for k, v in iter_dict.iteritems()}
+                iter_dict = {v: k for k, v in iter_dict.items()}
             for key in sorted(iter_dict, reverse=True):
                 row_index, col_index = (iter_dict[key], key) if epsilon == 0 else (key, iter_dict[key])
                 x = p_copy[row_index].pop() # Always the right-most entry

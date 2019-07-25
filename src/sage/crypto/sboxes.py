@@ -66,7 +66,7 @@ constructions
     - SC2000_6 ([SYYTIYTT2002]_)
 
 5 bit to 5 bit
-    - Ascon (ISAP) ([DEMS2016]_)
+    - Ascon (ISAP [DEMMMPU2019]_) ([DEMS2016]_)
     - DryGASCON128 ([Rio2019]_)
     - Fides_5 ([BBKMW2013]_)
     - SC2000_5 ([SYYTIYTT2002]_)

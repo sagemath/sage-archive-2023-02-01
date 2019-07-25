@@ -260,7 +260,6 @@ class PRESENT(SageObject):
                              'number of rounds of the key schedule')
         self._blocksize = 64
         self.sbox = SBox(PRESENTSBOX._S, big_endian=False)
-        self.inverseSbox = self.sbox.inverse()
         self._permutationMatrix = _smallscale_present_linearlayer()
         self._inversePermutationMatrix = self._permutationMatrix.inverse()
         self._doFinalRound = doFinalRound
@@ -321,7 +320,7 @@ class PRESENT(SageObject):
             sage: PRESENT(80) == 80 # indirect doctest
             False
             sage: present = PRESENT()
-            sage: present.inverseSbox = present.sbox
+            sage: present.sbox = present.sbox.inverse()
             sage: present == PRESENT() # indirect doctest
             False
         """
@@ -538,7 +537,7 @@ class PRESENT(SageObject):
             1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1,
             0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1)
         """
-        sbox = self.sbox if not inverse else self.inverseSbox
+        sbox = self.sbox if not inverse else self.sbox.inverse()
         out = vector(GF(2), 64)
         for nibble in [slice(4*j, 4*j+4) for j in range(16)]:
             out[nibble] = sbox(state[nibble])

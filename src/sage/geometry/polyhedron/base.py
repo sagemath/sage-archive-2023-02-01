@@ -4129,7 +4129,7 @@ class Polyhedron_base(Element):
 
             (P \times \mathbb{R}) \cap \{a^\top x + |w x_{d+1}| \leq b\}
 
-        where `a^\top x = b` is a supporting hyperplane for `F`.
+        where `\{x | a^\top x = b\}` is a supporting hyperplane defining `F`.
 
         INPUT:
 
@@ -4191,19 +4191,32 @@ class Polyhedron_base(Element):
 
         TESTS::
 
-        The backend and the basering are preserved as long as the value of
-        ``width`` belongs to the basering of ``self``. This is the case when
-        ``width`` takes the default value ``1``
+        The backend should be preserved as long as this is possible. The
+        base_ring will change to the field of fractions of the current
+        base_ring, if width takes the default value 1.
 
-            sage: P = polytopes.cyclic_polytope(3, 7, base_ring=QQ, backend='ppl')
-            sage: P.wedge(P.faces(2)[0]).backend()
-            'ppl'
-            sage: P.wedge(P.faces(2)[0]).base_ring()
+            sage: P = polytopes.cyclic_polytope(3,7, base_ring=ZZ, backend='normaliz')
+            sage: W1 = P.wedge(P.faces(2)[0]); W1.base_ring(); W1.backend()
             Rational Field
-            sage: P.wedge(P.faces(2)[0], width=RDF(1)).backend()
-            'cdd'
-            sage: P.wedge(P.faces(2)[0], width=RDF(1)).base_ring()
-            Real Double Field
+            'normaliz'
+            sage: W2 = P.wedge(P.faces(2)[0], width=5/2); W2.base_ring(); W2.backend()
+            Rational Field
+            'normaliz'
+            sage: W2 = P.wedge(P.faces(2)[0], width=4/2); W2.base_ring(); W2.backend()
+            Rational Field
+            'normaliz'
+            sage: W2.vertices()
+            (A vertex at (0, 0, 0, 0),
+             A vertex at (1, 1, 1, 0),
+             A vertex at (2, 4, 8, 0),
+             A vertex at (3, 9, 27, -3),
+             A vertex at (3, 9, 27, 3),
+             A vertex at (4, 16, 64, -12),
+             A vertex at (4, 16, 64, 12),
+             A vertex at (5, 25, 125, -30),
+             A vertex at (5, 25, 125, 30),
+             A vertex at (6, 36, 216, -60),
+             A vertex at (6, 36, 216, 60))
         """
         if width is None:
             width = ZZ.one()
@@ -4227,10 +4240,10 @@ class Polyhedron_base(Element):
         L = Polyhedron(lines=[[1]])
         Q = self.product(L)
 
-        parent = self.parent().base_extend(width, ambient_dim=self.ambient_dim()+1)
+        parent = self.parent().base_extend(width.base_ring().fraction_field(),\
+                                           ambient_dim=self.ambient_dim()+1)
         ieqs = [F_Hrep + [width], F_Hrep + [-width]]
-        H = parent.element_class(parent, None, [ieqs, None])
-#        H = Polyhedron(ieqs=[F_Hrep + [width], F_Hrep + [-width]])
+        H = parent.element_class(parent, None, [ieqs, []])
         return Q.intersection(H)
 
     def lawrence_extension(self, v):

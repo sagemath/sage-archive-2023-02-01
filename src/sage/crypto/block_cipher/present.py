@@ -488,6 +488,16 @@ class PRESENT(SageObject):
     def round(self, state, round_counter, round_key, inverse=False):
         """
         Apply one round of PRESENT to ``state`` and return the result.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.block_cipher.present import PRESENT
+            sage: from sage.crypto.block_cipher.present import _convert_to_vector
+            sage: present = PRESENT(128)
+            sage: k = _convert_to_vector(0x0011223344556677, 64)
+            sage: p = _convert_to_vector(0x0123456789abcdef, 64)
+            sage: ZZ(list(present.round(p, 0, k)), 2).hex()
+            'ad0ed4ca386b6559'
         """
         out = state[:]
         if not inverse:

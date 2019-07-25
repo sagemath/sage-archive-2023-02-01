@@ -99,7 +99,7 @@ constructions
     - Panda ([YWHWXSW2014]_)
     - PRESENT (CiliPadi, PHOTON, ORANGE) ([BKLPPRSV2007]_)
     - GIFT (Fountain_1, HYENA, TGIF) ([BPPSST2017]_)
-    - Fountain_1, Fountain_2, Fountain_3, Fountain_4 ([Zha2019])
+    - Fountain_1, Fountain_2, Fountain_3, Fountain_4 ([Zha2019]_)
     - Pride ([ADKLPY2014]_)
     - PRINCE ([BCGKKKLNPRRTY2012]_)
     - Prost ([KLLRSY2014]_)

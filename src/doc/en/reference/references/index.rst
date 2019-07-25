@@ -162,6 +162,10 @@ REFERENCES:
             the Adams operators on graded connected Hopf
             algebras*. Algebra Number Theory, v.9, 2015, n.3, 2015.
 
+.. [ALPRRV2019] \E. Andreeva, V. Lallemand, A. Purnal, R. Reyhanitabar, A. Roy, D. Vizar
+                "ForkAE v.1"
+                https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/forkae-spec.pdf
+
 .. [AM1969] \M. F. Atiyah and I. G. Macdonald, "Introduction to commutative
             algebra", Addison-Wesley, 1969.
 

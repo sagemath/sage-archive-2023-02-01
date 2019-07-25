@@ -1158,6 +1158,10 @@ REFERENCES:
              Mathematics of Computation. **73** (2003), no 247. pp. 1477--1498.
              https://www.win.tue.nl/~amc/pub/papers/cmt.pdf
 
+.. [CN2019] \B. Chakraborty, M. Nandi
+            "Orange"
+            https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/orange-spec.pdf
+
 .. [Co1984] \J. Conway, Hexacode and tetracode - MINIMOG and
             MOG. *Computational group theory*, ed. M. Atkinson,
             Academic Press, 1984.

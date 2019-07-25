@@ -96,7 +96,7 @@ constructions
     - Noekeon ([DPVAR2000]_)
     - Piccolo ([SIHMAS2011]_)
     - Panda ([YWHWXSW2014]_)
-    - PRESENT (CiliPadi [ZJRRS2019]_, PHOTON [BCDGNPY2019]_, ORANGE) ([BKLPPRSV2007]_)
+    - PRESENT (CiliPadi [ZJRRS2019]_, PHOTON [BCDGNPY2019]_, ORANGE [CN2019]_) ([BKLPPRSV2007]_)
     - GIFT (Fountain_1, HYENA [CDJN2019]_, TGIF) ([BPPSST2017]_)
     - Fountain_1, Fountain_2, Fountain_3, Fountain_4 ([Zha2019]_)
     - Pride ([ADKLPY2014]_)

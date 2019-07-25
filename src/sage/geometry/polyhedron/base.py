@@ -4195,28 +4195,28 @@ class Polyhedron_base(Element):
         base_ring will change to the field of fractions of the current
         base_ring, if width takes the default value 1.
 
-            sage: P = polytopes.cyclic_polytope(3,7, base_ring=ZZ, backend='normaliz')
+            sage: P = polytopes.cyclic_polytope(3,7, base_ring=ZZ, backend='field')
             sage: W1 = P.wedge(P.faces(2)[0]); W1.base_ring(); W1.backend()
             Rational Field
-            'normaliz'
+            'field'
             sage: W2 = P.wedge(P.faces(2)[0], width=5/2); W2.base_ring(); W2.backend()
             Rational Field
-            'normaliz'
+            'field'
             sage: W2 = P.wedge(P.faces(2)[0], width=4/2); W2.base_ring(); W2.backend()
             Rational Field
-            'normaliz'
+            'field'
             sage: W2.vertices()
-            (A vertex at (0, 0, 0, 0),
-             A vertex at (1, 1, 1, 0),
+            (A vertex at (3, 9, 27, -1/2),
+             A vertex at (4, 16, 64, -2),
+             A vertex at (6, 36, 216, -10),
+             A vertex at (5, 25, 125, -5),
              A vertex at (2, 4, 8, 0),
-             A vertex at (3, 9, 27, -3),
-             A vertex at (3, 9, 27, 3),
-             A vertex at (4, 16, 64, -12),
-             A vertex at (4, 16, 64, 12),
-             A vertex at (5, 25, 125, -30),
-             A vertex at (5, 25, 125, 30),
-             A vertex at (6, 36, 216, -60),
-             A vertex at (6, 36, 216, 60))
+             A vertex at (1, 1, 1, 0),
+             A vertex at (0, 0, 0, 0),
+             A vertex at (3, 9, 27, 1/2),
+             A vertex at (4, 16, 64, 2),
+             A vertex at (6, 36, 216, 10),
+             A vertex at (5, 25, 125, 5))
         """
         if width is None:
             width = ZZ.one()

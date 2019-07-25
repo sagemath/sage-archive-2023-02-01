@@ -421,8 +421,8 @@ class PRESENT(SageObject):
             inputType = 'vector'
         elif isinstance(plaintext, integer_types + (Integer,)):
             inputType = 'integer'
-        state = _convert_to_vector(plaintext, 64)
-        key = _convert_to_vector(key, self._keysize)
+        state = convert_to_vector(plaintext, 64)
+        key = convert_to_vector(key, self._keysize)
         roundKeys = self.keySchedule(key)
         for r, K in enumerate(roundKeys[:self._rounds]):
             state = self.round(state, r, K)
@@ -477,8 +477,8 @@ class PRESENT(SageObject):
             inputType = 'vector'
         elif isinstance(ciphertext, integer_types + (Integer,)):
             inputType = 'integer'
-        state = _convert_to_vector(ciphertext, 64)
-        key = _convert_to_vector(key, self._keysize)
+        state = convert_to_vector(ciphertext, 64)
+        key = convert_to_vector(key, self._keysize)
         roundKeys = self.keySchedule(key)
         state = state + roundKeys[self._rounds]
         for r, K in enumerate(roundKeys[:self._rounds][::-1]):
@@ -492,10 +492,10 @@ class PRESENT(SageObject):
         EXAMPLES::
 
             sage: from sage.crypto.block_cipher.present import PRESENT
-            sage: from sage.crypto.block_cipher.present import _convert_to_vector
+            sage: from sage.crypto.block_cipher.present import convert_to_vector
             sage: present = PRESENT(128)
-            sage: k = _convert_to_vector(0x0011223344556677, 64)
-            sage: p = _convert_to_vector(0x0123456789abcdef, 64)
+            sage: k = convert_to_vector(0x0011223344556677, 64)
+            sage: p = convert_to_vector(0x0123456789abcdef, 64)
             sage: ZZ(list(present.round(p, 0, k)), 2).hex()
             'ad0ed4ca386b6559'
         """
@@ -779,7 +779,7 @@ class PRESENT_KS(SageObject):
             inputType = 'vector'
         elif isinstance(K, integer_types + (Integer,)):
             inputType = 'integer'
-        K = _convert_to_vector(K, self._keysize)
+        K = convert_to_vector(K, self._keysize)
         roundKeys = []
         if self._keysize == 80:
             for i in range(1, self._rounds+1):
@@ -878,7 +878,7 @@ class PRESENT_KS(SageObject):
         return iter(self(self._master_key))
 
 
-def _convert_to_vector(I, L):
+def convert_to_vector(I, L):
     r"""
     Convert ``I`` to a bit vector of length ``L``.
 
@@ -894,11 +894,11 @@ def _convert_to_vector(I, L):
 
     EXAMPLES::
 
-        sage: from sage.crypto.block_cipher.present import _convert_to_vector
-        sage: _convert_to_vector(0x1F, 8)
+        sage: from sage.crypto.block_cipher.present import convert_to_vector
+        sage: convert_to_vector(0x1F, 8)
         (1, 1, 1, 1, 1, 0, 0, 0)
         sage: v = vector(GF(2), 4, [1,0,1,0])
-        sage: _convert_to_vector(v, 4)
+        sage: convert_to_vector(v, 4)
         (1, 0, 1, 0)
     """
     try:

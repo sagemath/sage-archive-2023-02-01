@@ -102,7 +102,7 @@ constructions
     - Pride ([ADKLPY2014]_)
     - PRINCE ([BCGKKKLNPRRTY2012]_)
     - Prost ([KLLRSY2014]_)
-    - Qarma_sigma0, Qarma_sigma1 (Qameleon), Qarma_sigma2 ([Ava2017]_)
+    - Qarma_sigma0, Qarma_sigma1 (Qameleon [ABBDHR2019]_), Qarma_sigma2 ([Ava2017]_)
     - REC_0 (earlier version of [ZBLRYV2015]_)
     - Rectangle ([ZBLRYV2015]_)
     - SC2000_4 ([SYYTIYTT2002]_)

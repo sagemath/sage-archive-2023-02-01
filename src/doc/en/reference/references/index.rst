@@ -51,6 +51,10 @@ REFERENCES:
             *An Algorithm for Finding Symmetric Groebner Bases in Infinite
             Dimensional Rings*. :arxiv:`0801.4439`.
 
+.. [ABBDHR2019] \R. Avanzi, S. Banik, A. Bogdanvo, O. Dunkelman, S. Huang, F. Regazzoni
+                "Qameleonv. 1.0"
+                https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/qameleon-spec.pdf
+
 .. [ABBR2011] \A. Abad, R. Barrio, F. Blesa, M. Rodriguez.
               "TIDES tutorial: Integrating ODEs by using the Taylor Series Method."
               http://www.unizar.es/acz/05Publicaciones/Monografias/MonografiasPublicadas/Monografia36/IndMonogr36.htm

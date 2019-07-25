@@ -4799,6 +4799,9 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         kwds:
 
+        - ``ring`` -- (default: domain of dynamical system) the base ring
+          over which the periodic points of the dynamical system are found
+
         - ``prime_bound`` -- (default: ``[1, 20]``) a pair (list or tuple)
           of positive integers that represent the limits of primes to use
           in the reduction step or an integer that represents the upper bound
@@ -4862,7 +4865,12 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
              (1/6*w + 1/4 : 1),
              (1/12*w + 1 : 1)]
         """
-        PS = self.domain()
+        ring = kwds.pop("ring",None)
+        if not ring is None:
+            DS = self.change_ring(ring)
+        else:
+            DS = self
+        PS = DS.domain()
         K = PS.base_ring()
         if K not in NumberFields() or not K.is_absolute():
             raise TypeError("base field must be an absolute field")
@@ -4876,11 +4884,11 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             #separately. We also check here that we are working with a polynomial. If the map
             #is not a polynomial, the Weil restriction will not be a morphism and we cannot
             #apply this algorithm.
-            g = self.dehomogenize(1)
+            g = DS.dehomogenize(1)
             inf = PS([1,0])
             k = 1
             if isinstance(g[0], FractionFieldElement):
-                g = self.dehomogenize(0)
+                g = DS.dehomogenize(0)
                 inf = PS([0,1])
                 k = 0
                 if isinstance(g[0], FractionFieldElement):
@@ -4902,7 +4910,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                     Q = PS(pt)
                     #for each preperiodic point get the entire connected component
                     if not Q in preper:
-                        for t in self.connected_rational_component(Q):
+                        for t in DS.connected_rational_component(Q):
                             preper.add(t)
             preper = list(preper)
         else:
@@ -4912,20 +4920,20 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             primebound = kwds.pop("prime_bound", [1, 20])
             num_cpus = kwds.pop("ncpus", ncpus())
             if badprimes is None:
-                badprimes = self.primes_of_bad_reduction()
+                badprimes = DS.primes_of_bad_reduction()
             if periods is None:
                 #determine the set of possible periods
-                periods = self.possible_periods(prime_bound=primebound,
+                periods = DS.possible_periods(prime_bound=primebound,
                                                 bad_primes=badprimes, ncpus=num_cpus)
             if periods == []:
                 return([]) #no rational preperiodic points
             else:
                 p = kwds.pop("lifting_prime", 23)
                 #find the rational preperiodic points
-                T = self.rational_periodic_points(prime_bound=primebound, lifting_prime=p,
+                T = DS.rational_periodic_points(prime_bound=primebound, lifting_prime=p,
                                                   periods=periods, bad_primes=badprimes,
                                                   ncpus=num_cpus)
-                preper = self.all_rational_preimages(T) #find the preperiodic points
+                preper = DS.all_rational_preimages(T) #find the preperiodic points
                 preper = list(preper)
         return preper
 

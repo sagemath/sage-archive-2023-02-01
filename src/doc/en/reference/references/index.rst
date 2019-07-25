@@ -4492,6 +4492,10 @@ REFERENCES:
 .. [Zie2007] \G. M. Ziegler. *Lectures on polytopes*, Volume
              152 of Graduate Texts in Mathematics, 7th printing of 1st edition, Springer, 2007.
 
+.. [ZJRRS2019] \M. R. Z'aba, N. Jamil, M. S. Rohmad, H. A. Rani, S. Shamsuddin
+           "TheCiliPadiFamily of LightweightAuthenticated Encryption"
+           https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/cilipadi-spec.pdf
+
 .. [Zor2008] \A. Zorich "Explicit Jenkins-Strebel representatives of
              all strata of Abelian and quadratic differentials",
              Journal of Modern Dynamics, vol. 2, no 1, 139-185 (2008)

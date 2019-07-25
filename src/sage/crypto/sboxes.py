@@ -76,7 +76,6 @@ constructions
 4 bit to 4 bit
     - Elephant ([BCDM2019]_)
     - KNOT ([ZDYBXJZ2019]_)
-    - PHOTON (ORANGE) ([BCDGNPY2019]_)
     - Pyjamask_4 ([GJKPRSS2019]_)
     - SATURNIN_0, SATURNIN_1 ([CDLNPPS2019]_)
     - Spook (Clyde, Shadow) ([BBBCDGLLLMPPSW2019]_)
@@ -97,7 +96,7 @@ constructions
     - Noekeon ([DPVAR2000]_)
     - Piccolo ([SIHMAS2011]_)
     - Panda ([YWHWXSW2014]_)
-    - PRESENT (CiliPadi, PHOTON, ORANGE) ([BKLPPRSV2007]_)
+    - PRESENT (CiliPadi [ZJRRS2019]_, PHOTON [BCDGNPY2019]_, ORANGE) ([BKLPPRSV2007]_)
     - GIFT (Fountain_1, HYENA, TGIF) ([BPPSST2017]_)
     - Fountain_1, Fountain_2, Fountain_3, Fountain_4 ([Zha2019]_)
     - Pride ([ADKLPY2014]_)

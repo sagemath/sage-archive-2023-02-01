@@ -259,7 +259,7 @@ class PRESENT(SageObject):
             raise ValueError('number of rounds must be less or equal to the '
                              'number of rounds of the key schedule')
         self._blocksize = 64
-        self.sbox = SBox(PRESENTSBOX._S, big_endian=False)
+        self.sbox = PRESENTSBOX
         self._permutationMatrix = _smallscale_present_linearlayer()
         self._inversePermutationMatrix = self._permutationMatrix.inverse()
         self._doFinalRound = doFinalRound
@@ -518,7 +518,7 @@ class PRESENT(SageObject):
 
         For sBoxLayer the current STATE `b_{63} \dots b_0` is considered as
         sixteen 4-bit words `w_{15} \dots w_0` where `w_i =
-        b_{4i+3}|b_{4i+2}|b_{4i+1}|b_{4i}` for `0 \leq i \leq 15` and the
+        b_{4i+3}||b_{4i+2}||b_{4i+1}||b_{4i}` for `0 \leq i \leq 15` and the
         output nibble S[`w_i`] provides the updated state values in the obvious
         way.
 
@@ -536,11 +536,19 @@ class PRESENT(SageObject):
             (1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0,
             1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1,
             0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1)
+
+        .. NOTE::
+
+            :mod:`sage.crypto.sbox` uses big endian by default whereas most of
+            Sage uses little endian. So to use the big endian PRESENT Sbox from
+            :mod:`sage.crypto.sboxes` :func:`sbox_layer` has to do some endian
+            conversion (i.e. reverse input and ouput of the Sbox). Keep this in
+            mind if you change the Sbox or :func:`sbox_layer`.
         """
         sbox = self.sbox if not inverse else self.sbox.inverse()
         out = vector(GF(2), 64)
         for nibble in [slice(4*j, 4*j+4) for j in range(16)]:
-            out[nibble] = sbox(state[nibble])
+            out[nibble] = sbox(state[nibble][::-1])[::-1]
         return out
 
     def linear_layer(self, state, inverse=False):
@@ -681,6 +689,14 @@ class PRESENT_KS(SageObject):
         :class:`PRESENT`
         :mod:`sage.crypto.sboxes`
 
+    .. NOTE::
+
+        :mod:`sage.crypto.sbox` uses big endian by default whereas most of Sage
+        uses little endian. So to use the big endian PRESENT Sbox from
+        :mod:`sage.crypto.sboxes` :class:`PRESENT_KS` has to do some endian
+        conversion (i.e. reverse input and ouput of the Sbox). Keep this in
+        mind if you change the Sbox or :func:`__call__`.
+
     .. automethod:: __init__
     .. automethod:: __call__
     """
@@ -717,7 +733,7 @@ class PRESENT_KS(SageObject):
                              % keysize)
         self._keysize = keysize
         self._rounds = rounds
-        self.sbox = SBox(PRESENTSBOX._S, big_endian=False)
+        self.sbox = PRESENTSBOX
         self._master_key = master_key
 
     def __call__(self, K):
@@ -759,7 +775,7 @@ class PRESENT_KS(SageObject):
             for i in range(1, self._rounds+1):
                 roundKeys.append(K[16:])
                 K[0:] = list(K[19:]) + list(K[:19])
-                K[76:] = self.sbox(K[76:])
+                K[76:] = self.sbox(K[76:][::-1])[::-1]
                 rc = vector(GF(2), ZZ(i).digits(2, padto=5))
                 K[15:20] = K[15:20] + rc
             roundKeys.append(K[16:])
@@ -767,8 +783,8 @@ class PRESENT_KS(SageObject):
             for i in range(1, self._rounds+1):
                 roundKeys.append(K[64:])
                 K[0:] = list(K[67:]) + list(K[:67])
-                K[124:] = self.sbox(K[124:])
-                K[120:124] = self.sbox(K[120:124])
+                K[124:] = self.sbox(K[124:][::-1])[::-1]
+                K[120:124] = self.sbox(K[120:124][::-1])[::-1]
                 rc = vector(GF(2), ZZ(i).digits(2, padto=5))
                 K[62:67] = K[62:67] + rc
             roundKeys.append(K[64:])

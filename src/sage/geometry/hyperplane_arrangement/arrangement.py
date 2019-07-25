@@ -1123,9 +1123,7 @@ class HyperplaneArrangementElement(Element):
         1. A boolean
         2. The polyhedron defined to be the intersection of all the hyperplanes
 
-        If ``certificate`` is False:
-
-        - A boolean
+        If ``certificate`` is False, returns a boolean.
 
         EXAMPLES::
 
@@ -1134,11 +1132,13 @@ class HyperplaneArrangementElement(Element):
             True
 
         The Catalan arrangement in dimension 3 is not central::
+
             sage: b = hyperplane_arrangements.Catalan(3)
             sage: b.is_central(certificate=True)
             (False, The empty polyhedron in QQ^3)
 
         The empty arrangement in dimension 5 is central::
+
             sage: H = HyperplaneArrangements(QQ,names=tuple(['x'+str(i) for i in range(7)]))
             sage: c = H()
             sage: c.is_central(certificate=True)
@@ -1181,28 +1181,33 @@ class HyperplaneArrangementElement(Element):
         r"""
         Return the center of the hyperplane arrangement.
 
-        OUTPUT:
-
         The polyhedron defined to be the set of all points in the
         ambient space of the arrangement that lie on all of the
         hyperplanes.
+
+        OUTPUT:
+
+        A polyhedron.
 
         EXAMPLES:
 
         The empty hyperplane arrangement has the entire ambient space as its
         center::
+
             sage: H.<x,y> = HyperplaneArrangements(QQ)
             sage: A = H()
             sage: A.center()
             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 lines
 
         The Shi arrangement in dimension 3 has an empty center::
+
             sage: A = hyperplane_arrangements.Shi(3)
             sage: A.center()
             The empty polyhedron in QQ^3
 
         The Braid arrangement in dimension 3 has a center that is neither
         empty nor full-dimensional::
+
             sage: A = hyperplane_arrangements.braid(3)
             sage: A.center()
             A 1-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex and 1 line

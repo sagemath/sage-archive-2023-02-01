@@ -3237,7 +3237,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
           find only the periodic points of minimal period ``n`` and ``False``
           specifies to find all periodic points of period ``n``
 
-        - ``R`` a commutative ring
+        - ``R`` - a commutative ring
 
         - ``algorithm`` -- (default: ``'variety'``) must be one of
           the following:
@@ -3381,6 +3381,13 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             Traceback (most recent call last):
             ...
             NotImplementedError: return_subscheme only implemented for minimal=False
+
+        ::
+
+            sage: P.<x,y>=ProjectiveSpace(GF(3), 1)
+            sage: f = DynamicalSystem_projective([x^2 - 2*y^2, y^2])
+            sage: f.periodic_points(2, R=GF(3^2,'t'))
+            [(t + 2 : 1), (2*t : 1)]
         """
         if n <= 0:
             raise ValueError("a positive integer period must be specified")
@@ -4585,10 +4592,10 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         ::
 
-            sage: P.<x,y>=ProjectiveSpace(QQ,1)
-            sage: K.<v>=QuadraticField(5)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: K.<v> = QuadraticField(5)
             sage: phi = QQ.embeddings(K)[0]
-            sage: f=DynamicalSystem_projective([x^2-y^2,y^2])
+            sage: f = DynamicalSystem_projective([x^2 - y^2, y^2])
             sage: f.all_periodic_points(R=phi)
             [(0 : 1), (1/2*v + 1/2 : 1), (1 : 0), (-1 : 1), (-1/2*v + 1/2 : 1)]
         """
@@ -6063,19 +6070,16 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
             F = f[0].numerator().polynomial(z)
         from .endPN_automorphism_group import automorphism_group_FF
         return(automorphism_group_FF(F, absolute, iso_type, return_functions))
-        
-    
-    
-    
+
     def all_periodic_points(self, **kwds):
         r"""
         Returns a list of all periodic points over a finite field.
-        
-        INPUT: 
-        
-        kwds:
-        
-        - ``R`` -- (default: domain of dynamical system) the base ring
+
+        INPUT:
+
+        keywords:
+
+        - ``R`` -- (default: base ring of dynamical system) the base ring
           over which the periodic points of the dynamical system are found
 
         OUTPUT: a list of elements which are periodic
@@ -6099,6 +6103,13 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
             (1 : 4 : 1),
             (3 : 0 : 1),
             (0 : 3 : 1)]
+
+        ::
+
+            sage: P.<x,y>=ProjectiveSpace(GF(3), 1)
+            sage: f = DynamicalSystem_projective([x^2 - y^2, y^2])
+            sage: f.all_periodic_points(R=GF(3^2, 't'))
+            [(1 : 0), (0 : 1), (2 : 1), (t : 1), (2*t + 1 : 1)]
         """
         R = kwds.pop("R", None)
         if R is None:
@@ -6106,6 +6117,4 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
         else:
             DS = self.change_ring(R)
             return DS.all_periodic_points(**kwds)
-        
         return _all_periodic_points(DS)
-

@@ -161,7 +161,6 @@ REFERENCES:
 # *****************************************************************************
 
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.sage_object import SageObject
 
 from bisect import bisect_left, bisect_right
 from sage.structure.element import is_Matrix
@@ -1859,7 +1858,6 @@ class RuleCoRSK(RuleRSK):
             sage: RuleCoRSK().backward_rule(t1, t2, 'array')
             [[1, 1, 2, 4, 4, 5], [4, 2, 1, 3, 1, 2]]
         """
-        from sage.combinat.tableau import SemistandardTableaux
         # Make a copy of p since this is destructive to it
         p_copy = [list(row) for row in p]
 
@@ -2078,8 +2076,6 @@ def RSK(obj1=None, obj2=None, insertion=InsertionRules.RSK, check_standard=False
         [[], []]
 
     """
-    from sage.combinat.tableau import StandardTableau
-
     if isinstance(insertion, str):
         if insertion == 'RSK':
             insertion = RSK.rules.RSK

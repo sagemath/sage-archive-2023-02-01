@@ -3351,6 +3351,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             R = self.base_ring()
         else:
             f = self.change_ring(R)
+            R = f.base_ring()
         CR = f.coordinate_ring()
         dom = f.domain()
         PS = f.codomain().ambient_space()

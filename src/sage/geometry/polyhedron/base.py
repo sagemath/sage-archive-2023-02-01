@@ -4864,35 +4864,17 @@ class Polyhedron_base(Element):
             ...
             ValueError: polyhedron has to be compact
 
-        ALGORITHM:
-
-        Let P be a polytope and let G be its vertex-facet graph. Let V
-        (resp. F) be the nodes of G corresponding to the vertices (resp.
-        facets) of P. Now make two copies G_1 and G_2 of G. For G_1,
-        add a new node x and connect it by edges to the nodes of V. For
-        G_2, add a new node y and connect it by edges to the nodes of F.
-        Now P is self-dual if and only if the new graphs G_1 and G_2 are
-        isomorphic.
         """
         if not self.is_compact():
             raise ValueError("polyhedron has to be compact")
 
-        IM = self.incidence_matrix()
-        if self.n_equations():
-            # Remove equations from the incidence matrix,
-            # such that this is the vertex-facet incidences matrix.
-            IM1 = IM.transpose()
-            IM2 = IM1[[i for i in range(self.n_Hrepresentation())
-                     if not self.Hrepresentation()[i].is_equation()]]
-            IM = IM2.transpose()
-
-        if not IM.is_square():
+        n = self.n_vertices()
+        m = self.n_facets()
+        if n != m:
             return False
 
-        n = self.n_vertices()
-        from sage.graphs.bipartite_graph import BipartiteGraph
-        G1 = BipartiteGraph(IM.insert_row(0, n*[ZZ.one()]))
-        G2 = BipartiteGraph(IM.transpose().insert_row(0, n*[ZZ.one()]))
+        G1 = self.vertex_facet_graph()
+        G2 = G1.reverse()
         return G1.is_isomorphic(G2)
 
     def pyramid(self):

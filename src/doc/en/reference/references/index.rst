@@ -2300,6 +2300,10 @@ REFERENCES:
             Journal of Combinatorial Designs, 11(3):208--217, 2003.
             :doi:`10.1002/jcd.10038`
 
+.. [IKMP2019] \T. Iwata, M. Khairallah, K. Minematsu, T. Peyrin
+              "Remus v1.0"
+              https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/Remus-spec.pdf
+
 .. [ILS2012] Giuseppe F. Italiano, Luigi Laura, and Federico
              Santaroni. *Finding strong bridges and strong
              articulation points in linear time*. Theoretical Computer

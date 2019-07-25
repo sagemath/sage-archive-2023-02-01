@@ -47,7 +47,7 @@ constructions
     - Safer ([Mas1994]_)
     - Scream ([CDL2015]_,[GLSVJGK2014]_)
     - SEED_S0, SEED_S1 ([LLYCL2005]_)
-    - SKINNY_8 (ForkSkinny_8 [ALPRRV2019]_, Remus_8, Romulus) ([BJKLMPSSS2016]_)
+    - SKINNY_8 (ForkSkinny_8 [ALPRRV2019]_, Remus_8 [IKMP2019]_, Romulus) ([BJKLMPSSS2016]_)
     - Skipjack ([U.S1998]_)
     - SNOW_3G_sq ([ETS2006a]_)
     - SMS4 ([Ltd06]_)
@@ -106,7 +106,7 @@ constructions
     - REC_0 (earlier version of [ZBLRYV2015]_)
     - Rectangle ([ZBLRYV2015]_)
     - SC2000_4 ([SYYTIYTT2002]_)
-    - SKINNY_4 (ForkSkinny_4 [ALPRRV2019]_, Remus_4) ([BJKLMPSSS2016]_)
+    - SKINNY_4 (ForkSkinny_4 [ALPRRV2019]_, Remus_4 [IKMP2019]_) ([BJKLMPSSS2016]_)
     - TWINE ([SMMK2013]_)
 
     - Luffa_v1 ([DCSW2008]_)

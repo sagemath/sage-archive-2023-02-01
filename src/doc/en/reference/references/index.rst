@@ -3343,6 +3343,10 @@ REFERENCES:
               *Polynomial realizations of some trialgebras*, FPSAC 2006.
               :arxiv:`math/0605061v1`.
 
+.. [NX2019] \E. M. d. Nascimento, J. A. M. Xexeo
+            "Name of Submission:FlexAEAD -A Lightweight Cipher withIntegrated Authentication"
+            https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/FlexAEAD-spec.pdf
+
 .. [NZ1997] \T. Nakashima and A. Zelevinsky.
             Polyhedral Realizations of Crystal Bases for Quantized Kac-Moody Algebras.
             Adv. Math. **131**, pp. 253--278, 1997.

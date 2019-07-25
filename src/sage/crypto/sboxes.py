@@ -15,7 +15,7 @@ constructions
     - DryGASCON256 ([Rio2019]_)
 
 8 bit to 8 bit
-    - AES (FlexAEAD) ([DR2002]_)
+    - AES (FlexAEAD [NX2019]_) ([DR2002]_)
     - Anubis ([BR2000a]_)
     - ARIA_s2 ([KKPSSSYYLLCHH2004]_)
     - BelT ([Bel2011]_)

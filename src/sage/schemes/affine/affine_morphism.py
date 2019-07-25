@@ -877,6 +877,17 @@ class SchemeMorphism_polynomial_affine_space_field(SchemeMorphism_polynomial_aff
             Scheme endomorphism of Affine Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x) to
                     (3*x^2 + x + 1)
+
+        ::
+
+            sage: K.<t> = GF(5^6)
+            sage: A.<x> = AffineSpace(K, 1)
+            sage: H = End(A)
+            sage: f = H([x^2 + x*(t^3 + 2*t^2 + 4*t) + (t^5 + 3*t^4 + t^2 + 4*t)])
+            sage: f.reduce_base_field()
+            Scheme endomorphism of Affine Space of dimension 1 over Finite Field in t of size 5^6
+              Defn: Defined on coordinates by sending (x) to
+                    (x^2 + (t^3 + 2*t^2 - t)*x + (t^5 - 2*t^4 + t^2 - t))
         """
         N = self.codomain().dimension_relative()
         g = self.homogenize(0).reduce_base_field().dehomogenize(0)

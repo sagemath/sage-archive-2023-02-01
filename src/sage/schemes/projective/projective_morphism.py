@@ -1681,13 +1681,12 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             CR = self.domain().coordinate_ring()
             #find the degree of the extension containing the coefficients
             c = [v for g in self for v in g.coefficients()]
-            d = max([a.minpoly().degree() for a in c])
+            d = lcm([a.minpoly().degree() for a in c])
             if d == 1:
                 return self.change_ring(GF(K.characteristic()))
             if d == K.degree():
                 return self
             # otherwise we are not in the prime subfield so coercsion to it doesn't work
-            L = GF(K.characteristic()**d,'s')
             for L,phi in K.subfields():
                 #find the right subfield and it's embedding
                 if L.degree() == d:
@@ -1751,7 +1750,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                 coef = fi.coefficients()
                 new_c = []
                 for c in coef:
-                    # for each coefficient do the elimination
+                    # for each coefficient move to the correct base field
                     da = c.minpoly().degree()
                     for M,M_to_L in L.subfields():
                         #find the right subfield and it's embedding

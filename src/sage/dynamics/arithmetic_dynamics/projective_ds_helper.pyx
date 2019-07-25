@@ -268,4 +268,23 @@ cpdef _normalize_coordinates(list point, int prime, int len_points):
 
     for coefficient in xrange(len_points):
         point[coefficient] = (point[coefficient] * mod_inverse) % prime
+   
+cpdef _all_periodic_points(self):
+    cdef list periodic_points, path
+    cdef set elements
+    
+    periodic_points = []
+    path = []
+    elements = set(self.domain())
+    while elements:
+        number = elements.pop()
+        path = [number]
+        next_element = self(number)
+        while next_element in elements:
+            path.append(next_element)
+            elements.remove(next_element)
+            next_element = self(next_element)
+        if next_element in path:
+            periodic_points += path[path.index(next_element):]
+    return periodic_points
 

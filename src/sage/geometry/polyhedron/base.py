@@ -4237,8 +4237,7 @@ class Polyhedron_base(Element):
         L = Polyhedron(lines=[[1]])
         Q = self.product(L)
 
-        width = width/ZZ.one()
-        parent = self.parent().base_extend(width.base_ring().fraction_field(),\
+        parent = self.parent().base_extend(ZZ.one()/width,\
                                            ambient_dim=self.ambient_dim()+1)
         ieqs = [F_Hrep + [width], F_Hrep + [-width]]
         H = parent(None, [ieqs, []], convert=True)

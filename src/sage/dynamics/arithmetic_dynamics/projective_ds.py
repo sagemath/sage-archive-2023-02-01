@@ -4548,6 +4548,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         ring = kwds.pop("R", None)
         if not ring is None:
             DS = self.change_ring(ring)
+            return DS.all_periodic_points(**kwds)
         else:
             DS = self
         PS = DS.domain()
@@ -6014,7 +6015,9 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
         from .endPN_automorphism_group import automorphism_group_FF
         return(automorphism_group_FF(F, absolute, iso_type, return_functions))
         
-           
+    
+    
+    
     def all_periodic_points(self, **kwds):
         r"""
         Returns a list of all periodic points over a finite field.
@@ -6023,7 +6026,7 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
         
         kwds:
         
-        - ``ring`` -- (default: domain of dynamical system) the base ring
+        - ``R`` -- (default: domain of dynamical system) the base ring
           over which the periodic points of the dynamical system are found
 
         OUTPUT: a list of elements which are periodic
@@ -6048,11 +6051,12 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
             (3 : 0 : 1),
             (0 : 3 : 1)]
         """
-        ring = kwds.pop("ring", None)
-        if ring is None:
+        R = kwds.pop("R", None)
+        if R is None:
             DS = self
         else:
-            DS = self.change_ring(ring)
+            DS = self.change_ring(R)
+            return DS.all_periodic_points(**kwds)
         
         return _all_periodic_points(DS)
 

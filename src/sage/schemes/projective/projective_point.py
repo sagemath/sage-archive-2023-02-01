@@ -662,9 +662,9 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
             sage: K = UniversalCyclotomicField()
             sage: P.<x,y,z> = ProjectiveSpace(K,2)
-            sage: Q = P.point([4, 4, 1/30])
+            sage: Q = P.point([K(4/3), K.gen(7), K.gen(5)])
             sage: Q.global_height()
-            4.78749174278205
+            1.38629436111989
         """
         K = self.codomain().base_ring()
         if K in _NumberFields or is_NumberFieldOrder(K):
@@ -672,7 +672,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         else:
             try:
                 P = self._number_field_from_algebraics()
-            except:
+            except TypeError:
                 raise TypeError("must be defined over an algebraic field")
         return(max([P[i].global_height(prec=prec) for i in range(self.codomain().ambient_space().dimension_relative()+1)]))
 

@@ -77,14 +77,12 @@ class CatalanTableau(PathTableau):
     An instance is the sequence of nonnegative
     integers given by the heights of a Dyck word.
 
-
-
     INPUT:
 
-        - a sequence of nonnegative integers
-        - a two row standard skew tableau
-        - a Dyck word
-        - a noncrossing perfect matching
+    - a sequence of nonnegative integers
+    - a two row standard skew tableau
+    - a Dyck word
+    - a noncrossing perfect matching
 
     EXAMPLES::
 
@@ -107,11 +105,14 @@ class CatalanTableau(PathTableau):
     @staticmethod
     def __classcall_private__(cls, ot):
         """
-        This is the preprocessing for creating paths.
+        This is the constructor for paths.
         """
         return CatalanTableaux()(ot)
 
     def __init__(self, parent, ot, check=True):
+        """
+        This is the preprocessing for creating paths.
+        """
         w = None
 
         if isinstance(ot, DyckWord):

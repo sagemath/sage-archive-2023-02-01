@@ -71,7 +71,7 @@ class PathTableau(ClonableArray):
             [0, 1, 2, 1, 2, 1, 0]
         """
 
-################################# Book Keeping ################################
+    ################################# Book Keeping ############################
 
     def size(self):
         """
@@ -109,7 +109,7 @@ class PathTableau(ClonableArray):
         """
         return self[-1]
 
-############################# Jeu de taquin ###################################
+    ############################# Jeu de taquin ###############################
 
     def promotion(self):
         """
@@ -242,7 +242,7 @@ class PathTableau(ClonableArray):
 
         return self.cactus(1,j).cactus(1,j-i+1).cactus(1,j)
 
-########################### Visualisation and checking ########################
+    ########################### Visualisation and checking ####################
 
     def _test_involution_rule(self, **options):
         """
@@ -255,8 +255,9 @@ class PathTableau(ClonableArray):
 
         """
         tester = self._tester(**options)
-        tester.assertTrue(all( self._local_rule(i+1)._local_rule(i+1) == self
-                               for i in range(self.size()-2) ))
+        for i in range(self.size()-2):
+            tester.assertTrue(self._local_rule(i+1)._local_rule(i+1) == self)
+                               
 
     def _test_involution_cactus(self, **options):
         """
@@ -268,9 +269,9 @@ class PathTableau(ClonableArray):
             sage: t._test_involution_cactus()
         """
         tester = self._tester(**options)
-        tester.assertTrue(all( self.cactus(1,i).cactus(1,i) == self
-                               for i in range(2,self.size()+1) ))
-
+        for i in range(2,self.size()+1):
+            tester.assertTrue(self.cactus(1,i).cactus(1,i) == self)
+                               
     def _test_promotion(self, **options):
         """
         Check that promotion can be expressed in terms of the cactus generators.
@@ -282,7 +283,7 @@ class PathTableau(ClonableArray):
         """
         tester = self._tester(**options)
         n = self.size()-1
-        tester.assertTrue( self.cactus(1,n-1).cactus(1,n).promotion() == self )
+        tester.assertTrue(self.cactus(1,n-1).cactus(1,n).promotion() == self)
 
     def _test_commutation(self, **options):
         """
@@ -422,7 +423,7 @@ class CylindricalDiagram(SageObject):
     """
     A class for cylindrical growth diagrams.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: t = CatalanTableau([0,1,2,3,2,1,0])
         sage: CylindricalDiagram(t)
@@ -438,34 +439,14 @@ class CylindricalDiagram(SageObject):
 
         self.diagram = result
 
-    def __repr__(self):
+    def _repr_(self):
         return "A cylindrical growth diagram."
 
-    def __str__(self):
-        """
-        Returns a string representation of ``self``
-        
-        EXAMPLE::
-            
-            sage: t = CatalanTableau([0,1,2,3,2,1,0])
-            sage: print(CylindricalDiagram(t))
-            The cylindrical growth diagram:
-            [0, 1, 2, 3, 2, 1, 0]
-            ['', 0, 1, 2, 1, 0, 1, 0]
-            ['', '', 0, 1, 0, 1, 2, 1, 0]
-            ['', '', '', 0, 1, 2, 3, 2, 1, 0]
-            ['', '', '', '', 0, 1, 2, 1, 0, 1, 0]
-            ['', '', '', '', '', 0, 1, 0, 1, 2, 1, 0]
-            ['', '', '', '', '', '', 0, 1, 2, 3, 2, 1, 0]
-        """
-        
-        return "The cylindrical growth diagram:\n" + "\n".join( str(a) for a in self.diagram )
-
     def _latex_(self):
-        """
+        r"""
         Returns a `\LaTeX` representation of ``self``
         
-        EXAMPLE::
+        EXAMPLES::
             
             sage: t = CatalanTableau([0,1,2,3,2,1,0])
             sage: latex(CylindricalDiagram(t))
@@ -488,7 +469,14 @@ class CylindricalDiagram(SageObject):
         result += "\n \\end{array}\n"
         return result
 
+    def _ascii_art_(self):
+        r"""
+        """
 
+    def _unicode_art_(self):
+        r"""
+        """
+        
     def pp(self):
         """
         A pretty print utility method.

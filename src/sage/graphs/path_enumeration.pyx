@@ -194,7 +194,7 @@ def all_paths(G, start, end, use_multiedges=False, report_edges=False, labels=Fa
     Added reporting of edges (see :trac:`27501`)::
 
         sage: G = DiGraph(multiedges=True)
-        sage: G.add_edges([(0,2), (0,3), (0,4), (1,2), (1,2), (1,5), (3,5), (3,5)])
+        sage: G.add_edges([(0, 2), (0, 3), (0, 4), (1, 2), (1, 2), (1, 5), (3, 5), (3, 5)])
         sage: G.all_paths(0, 5, report_edges=True)
         [[(0, 3), (3, 5)]]
         sage: G.all_paths(0, 5, report_edges=True, use_multiedges=True)

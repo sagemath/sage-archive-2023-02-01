@@ -70,6 +70,7 @@ from sage.modules.free_module_element import vector
 from sage.rings.all import Integer, CIF
 from sage.arith.all import gcd, lcm, next_prime, binomial, primes, moebius
 from sage.categories.finite_fields import FiniteFields
+from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField_generic
 from sage.rings.complex_field import ComplexField
 from sage.rings.finite_rings.finite_field_constructor import (is_FiniteField, GF,
                                                               is_PrimeFiniteField)
@@ -83,7 +84,7 @@ from sage.rings.padics.all import Qp
 from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-from sage.rings.qqbar import QQbar
+from sage.rings.qqbar import QQbar, AlgebraicField_common
 from sage.rings.quotient_ring import QuotientRing_generic
 from sage.rings.rational_field import QQ
 from sage.rings.real_double import RDF
@@ -3058,9 +3059,12 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         if not K in NumberFields() and not K is QQbar:
             raise NotImplementedError("must be over a number field or a number field order or QQbar")
 
-        if embedding is None:
-            embedding = self.field_of_definition_critical(return_embedding=True)[1]
-        F = self.change_ring(embedding)
+        if not isinstance(K,AlgebraicClosureFiniteField_generic) and not isinstance(K,AlgebraicField_common):
+            if embedding is None:
+                embedding = self.field_of_definition_critical(return_embedding=True)[1]
+            F = self.change_ring(embedding)
+        else:
+            F = self
         crit_points = F.critical_points()
         pcf = True
         i = 0

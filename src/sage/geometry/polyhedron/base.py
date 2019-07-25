@@ -4243,7 +4243,7 @@ class Polyhedron_base(Element):
         parent = self.parent().base_extend(width.base_ring().fraction_field(),\
                                            ambient_dim=self.ambient_dim()+1)
         ieqs = [F_Hrep + [width], F_Hrep + [-width]]
-        H = parent.element_class(parent, None, [ieqs, []])
+        H = parent(None, [ieqs, []], convert=True)
         return Q.intersection(H)
 
     def lawrence_extension(self, v):

@@ -140,7 +140,7 @@ product into irreducibles::
 The element `spin` of the WeylCharacterRing is the representation
 corresponding to the third highest weight representation, the
 eight-dimensional spin representation of `spin(7)`. We could
-just as easily construct it with the commmand::
+just as easily construct it with the command::
 
     sage: spin = B3(1/2,1/2,1/2)
 

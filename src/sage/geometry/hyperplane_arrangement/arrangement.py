@@ -721,7 +721,7 @@ class HyperplaneArrangementElement(Element):
             Finite poset containing 19 elements
             sage: sorted(L)
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
-            sage: map(sorted, L.level_sets())
+            sage: [sorted(level_set) for level_set in L.level_sets()]
             [[0], [1, 2, 3, 4, 5, 6], [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]]
 
         By passing the argument ``element_class="subset"``, each element of the

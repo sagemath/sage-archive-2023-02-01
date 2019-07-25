@@ -3172,7 +3172,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             ch += F.canonical_height(P, **kwds)
         return ch
 
-        def preperiodic_points(self, n, m, **kwds):
+    def preperiodic_points(self, m, n, **kwds):
         r"""
         Computes the preperiodic points of period ``m``,``n`` of this dynamical system
         defined over the ring ``R`` or the base ring of the map.
@@ -3215,13 +3215,17 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         EXAMPLES::
 
-            sage: set_verbose(None)
             sage: P.<x,y> = ProjectiveSpace(QQbar,1)
-            sage: f = DynamicalSystem_projective([x^2-x*y+y^2, x^2-y^2+x*y])
-            sage: f.periodic_points(1)
-            [(-0.500000000000000? - 0.866025403784439?*I : 1),
-             (-0.500000000000000? + 0.866025403784439?*I : 1),
-             (1 : 1)]            
+            sage: f = DynamicalSystem_projective([x^2-y^2, y^2])
+            sage: f.preperiodic_points(1)
+            [(1 : 1)]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: f = DynamicalSystem_projective([x^2-29/16*y^2, y^2])
+            sage: f.preperiodic_points(1,3)
+            [(-5/4 : 1), (1/4 : 1), (7/4 : 1)]
         """
         if n <= 0:
             raise ValueError("a positive integer period must be specified")
@@ -3238,8 +3242,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         dom = f.domain()
         PS = f.codomain().ambient_space()
         N = PS.dimension_relative() + 1
-        F = f.nth_iterate_map(n+m) - f.nth_iterate_map(m)
-        L = [F[i]*CR.gen(j) - F[j]*CR.gen(i) for i in range(0,N)
+        F_1 = f.nth_iterate_map(n+m) 
+        F_2 = f.nth_iterate_map(m)
+        L = [F_1[i]*F_2[j] - F_1[j]*F_2[i] for i in range(0,N)
                 for j in range(i+1, N)]
         L = [t for t in L if t != 0]
         X = PS.subscheme(L + list(dom.defining_polynomials()))
@@ -3273,6 +3278,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                         Q = f(dom(P))
                         n_plus_m = 1
                         while not Q in orbit:
+                            orbit.append(Q)
                             Q = f(Q)
                             n_plus_m += 1
                         preperiod = orbit.index(Q)

@@ -281,6 +281,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
 from sage.functions.other import floor
+from sage.functions.other import binomial
 from sage.categories.category import Category
 from sage.categories.sets_cat import Sets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -1618,19 +1619,221 @@ class FinitePoset(UniqueRepresentation, Parent):
         from .linear_extensions import LinearExtensionsOfPoset
         return LinearExtensionsOfPoset(self, facade = facade)
 
-    def spectrum(P,a):
+    def spectrum(self,a):
         '''
         Input a pair (poset, element).
         Outputs the a-spectrum in P.
         '''
         aspec=[]
-        for i in range(len(P)):
+        for i in range(len(self)):
             aspec.append(0)
 
-        for L in P.linear_extensions():
+        for L in self.linear_extensions():
             # Warning! If facade=False in the definition of your poset, this won't work!!
             aspec[L.index(a)] = aspec[L.index(a)]+1
         return aspec
+
+    @staticmethod
+    def _glue_together(aspec, bspec, orientation):
+        r"""
+        Input the a-spectrum and b-spectrum of posets P and Q, respectively,
+        together with an orientation: a < b or b < a.
+        Return the a-spectrum (or b-spectrum, depending on orientation) of
+        the poset which is a disjoint union of P and Q, together with a new
+        covering relation a < b.
+
+        INPUT:
+
+        - ``aspec`` -- list; the a-spectrum of a poset P.
+
+        - ``bspec`` -- list; the b-spectrum of a poset Q.
+
+        - ``orientation`` -- boolean; True if a < b, False otherwise.
+
+        OUTPUT: The a-spectrum (or b-spectrum, depending on orientation), returned
+                as a list, of the poset which is a disjoint union of P and Q,
+                together with the additional covering relation a < b.
+
+        EXAMPLES:
+
+            sage: Pdata = (0, 1, 2, 0)
+            sage: Qdata = (1, 1, 0)
+            sage: _glue_together(Pdata, Qdata, True)
+            [0, 20, 28, 18, 0, 0, 0]
+
+            sage: Pdata = (0, 0, 2)
+            sage: Qdata = (0, 1)
+            sage: _glue_together(Pdata, Qdata, False)
+            [0, 0, 0, 0, 8]
+
+        """
+        newaspec = []
+
+        if orientation is False:
+            aspec, bspec = bspec, aspec
+
+        p = len(aspec)
+        q = len(bspec)
+
+        for r in range(1, p+q+1):
+            newaspec.append(0)
+            for i in range(max(1, r-q), min(p, r) + 1):
+                kval = binomial(r-1, i-1) * binomial(p+q-r, p-i)
+                if orientation:
+                    inner_sum = sum(bspec[j-1] for j in range(r-i + 1, len(bspec) + 1))
+                else:
+                    inner_sum = sum(bspec[j-1] for j in range(1, r-i + 1))
+                newaspec[-1] = newaspec[-1] + (aspec[i-1] * kval * inner_sum)
+        return newaspec
+
+
+    def _split(self, a, b):
+        r"""
+        Deletes the edge a < b from a poset. Returns the two resulting connected
+        components.
+
+        INPUT:
+
+        - ``self`` -- a poset.
+
+        - ``a`` -- an element of the poset P.
+
+        - ``b`` -- an element of the poset P.
+
+        OUTPUT: A list [P', Q'] containing two posets P' and Q', which are the
+                connected components of the poset P after deleting the covering
+                relation a < b.
+
+        EXAMPLES:
+
+            sage: uc = [[1, 2], [], []]
+            sage: P = FinitePoset(DiGraph(dict([[i, uc[i]] for i in range(len(uc))])), facade = True)
+            sage: P._split(0, 1)
+            [Finite poset containing 2 elements, Finite poset containing 1 elements]
+
+            sage: uc = [[1, 2], [], []]
+            sage: P = FinitePoset(DiGraph(dict([[i, uc[i]] for i in range(len(uc))])), facade = True)
+            sage: P._split(0, 2)
+            [Finite poset containing 2 elements, Finite poset containing 1 elements]
+
+        """
+        covers = self.cover_relations()
+        covers.remove([a, b])
+        bothPPandQ = Poset((P.list(), covers), cover_relations = True)
+        com = bothPPandQ.connected_components()
+        if not len(com) == 2:
+            raise ValueError, "Wrong number of connected components after the covering relation is deleted!"
+        if a in com[0]:
+            return com
+        else:
+            return [com[1], com[0]]
+
+    def _spectrum(self, a):
+        r"""
+        Computes the a spectrum of a poset whose underlying graph is a tree.
+
+        INPUT:
+
+        - ``self`` -- a poset for which the underlying undirected graph is a tree.
+
+        - ``a`` -- an element of the poset.
+
+        OUTPUT: The a-spectrum, returned as a list, of the poset self.
+
+        EXAMPLES:
+
+            sage: uc = [[2], [2], [3, 4], [], []]
+            sage: P = FinitePoset(DiGraph(dict([[i, uc[i]] for i in range(len(uc))])), facade = True)
+            sage: P._spectrum(0)
+            [2, 2, 0, 0, 0]
+
+            sage: uc = [[2], [2], [3, 4], [], []]
+            sage: P = FinitePoset(DiGraph(dict([[i, uc[i]] for i in range(len(uc))])), facade = True)
+            sage: P._spectrum(2)
+            [0, 0, 4, 0, 0]
+
+            sage: uc = [[2], [2], [3, 4], [], []]
+            sage: P = FinitePoset(DiGraph(dict([[i, uc[i]] for i in range(len(uc))])), facade = True)
+            sage: P._spectrum(3)
+            [0, 0, 0, 2, 2]
+
+        """
+        UC = self.upper_covers(a)
+        LC = self.lower_covers(a)
+        if not UC and not LC:
+            return [1]
+        if UC:
+            b = UC[0]
+            orientation = True
+        else:
+            (a, b) = (self.lower_covers(a)[0], a)
+            orientation = False
+        PP, Q = _split(self, a, b)
+        aspec = PP._spectrum(a)
+        bspec = Q._spectrum(b)
+        return _glue_together(aspec, bspec, orientation)
+
+
+    def atkinson(self, a):
+        r"""
+        Compute the a-spectrum of a poset whose underlying graph is a forest.
+
+        INPUT:
+
+        - ``self`` -- a poset for which the underlying undirected graph is a forest.
+
+        - ``a`` -- an element of the poset.
+
+        OUTPUT: The a-spectrum, as a list, of the poset.
+
+        EXAMPLES:
+
+            sage: uc = [[2], [2], [3, 4], [], []]
+            sage: P = FinitePoset(DiGraph(dict([[i, uc[i]] for i in range(len(uc))])), facade = True)
+            sage: _spectrum(P, 0)
+            [2, 2, 0, 0, 0]
+
+            sage:uc = [[1], [2,3], [], [], [5,6], [], []]
+            sage: P = FinitePoset(DiGraph(dict([[i, uc[i]] for i in range(len(uc))])), facade = True)
+            sage: atkinson(P, 5)
+            [0, 10, 18, 24, 28, 30, 30]
+
+            sage: P=posets.AntichainPoset(10)
+            sage: atkinson(P, 0)
+            [362880,362880,362880,362880,362880,362880,362880,362880,362880,362880]
+
+        """
+        if a not in self:
+            raise ValueError, "Input element is not in poset!"
+
+        n = self.cardinality()
+        com = self.connected_components()
+        remainderposet = Poset()
+
+        for X in com:
+            if a in X:
+                main = X
+            else:
+                remainderposet = remainderposet.disjoint_union(X)
+
+        k = main.cardinality()
+        aspec = main._spectrum(a)
+
+        if remainderposet.cardinality() == 0:
+            return aspec
+
+        b = remainderposet.an_element()
+        bspec = remainderposet.atkinson(b)
+        nlinexts = sum(bspec)
+
+        newaspec = []
+
+        for r in range(1, n+1):
+            newaspec.append(0)
+            for i in range(max(1, r-n+k), min(r,k) + 1):
+                kval = binomial(r-1, i-1) * binomial(n - r, k - i)
+                newaspec[-1] += kval * aspec[i-1] * nlinexts
+        return newaspec
 
     def is_linear_extension(self, l):
         """

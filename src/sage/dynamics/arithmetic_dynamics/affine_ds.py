@@ -794,6 +794,33 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
             Q = R
         return l
 
+    def degree(self):
+        r"""
+        Returns the degree of the affine dynamical system.
+        
+        EXAMPLES::
+        
+            sage: R.<c>=QuadraticField(7)
+            sage: A.<x,y,z>=AffineSpace(R,3)
+            sage: f = DynamicalSystem_affine([x^2+y^5+c,x^11,z^19])
+            sage: f.degree()
+            19
+            
+        ::
+        
+            sage: R.<c>=QQ[]
+            sage: A.<x>=AffineSpace(R,1)
+            sage: f = DynamicalSystem_affine([x^4])
+            sage: f.degree()
+            4
+        """
+        polys = self._polys
+        max_degree = 0
+        for poly in polys:
+            if poly.degree() > max_degree:
+                max_degree = poly.degree()
+        return max_degree
+
 class DynamicalSystem_affine_field(DynamicalSystem_affine,
                                    SchemeMorphism_polynomial_affine_space_field):
     @cached_method

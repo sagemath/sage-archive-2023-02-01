@@ -807,6 +807,33 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.affine_ds.multiplier instead")
         return self.as_dynamical_system().multiplier(P, n, check)
 
+    def degree(self):
+        r"""
+        Returns the degree of the affine morphism.
+            
+        EXAMPLES::
+        
+            sage: R.<x> = AffineSpace(QQ, 1)
+            sage: H = Hom(R, R)
+            sage: f = H([x^7])
+            sage: f.degree()
+            7
+            
+        ::
+        
+            sage: R.<x,y,z> = AffineSpace(QQ, 3)
+            sage: H = Hom(R, R)
+            sage: f = H([x^3,y^2+5,z^4+y])
+            sage: f.degree()
+            4
+        """
+        polys = self._polys
+        max_degree = 0
+        for poly in polys:
+            if poly.degree() > max_degree:
+                max_degree = poly.degree()
+        return max_degree
+
 class SchemeMorphism_polynomial_affine_space_field(SchemeMorphism_polynomial_affine_space):
 
     @cached_method

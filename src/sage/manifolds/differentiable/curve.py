@@ -382,7 +382,7 @@ class DifferentiableCurve(DiffMap):
             sage: c.coord_expr()
             (cos(t), sin(t))
 
-        Cartesian expression of a cardiod::
+        Cartesian expression of a cardioid::
 
             sage: c = U.curve({c_spher: (2*(1+cos(t)), t)}, (t, 0, 2*pi), name='c')
             sage: c.coord_expr(c_cart)

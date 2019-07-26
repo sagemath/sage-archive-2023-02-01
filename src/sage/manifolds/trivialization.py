@@ -33,7 +33,7 @@ class Trivialization(UniqueRepresentation, SageObject):
     EXAMPLES:
 
     """
-    def __init__(self, vbundle, name=None, latex_name=None):
+    def __init__(self, vbundle, domain=None, name=None, latex_name=None):
         r"""
         Construct a local trivialization of the vector bundle `vbundle`.
 
@@ -45,6 +45,8 @@ class Trivialization(UniqueRepresentation, SageObject):
             sage: TestSuite(triv).run()
 
         """
+        if domain is None:
+            domain = vbundle.base_space()
         self._name = name
         if latex_name is None:
             self._latex_name = self._name
@@ -57,6 +59,7 @@ class Trivialization(UniqueRepresentation, SageObject):
         self._sindex = self._base_space.start_index()
         # Add this trivialization to the atlas of the vector bundle:
         vbundle._atlas.append(self)
+        vbundle._trivial_parts.add(domain)
 
     def _repr_(self):
         r"""

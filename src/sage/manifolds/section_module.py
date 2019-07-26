@@ -30,7 +30,7 @@ class SectionModule(UniqueRepresentation, Parent):
     """
     Element = Section
     
-    def __init__(self, vbundle):
+    def __init__(self, vbundle, domain=None):
         r"""
 
         """

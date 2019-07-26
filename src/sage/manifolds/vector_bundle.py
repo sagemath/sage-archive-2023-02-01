@@ -130,24 +130,16 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
             self._latex_name = self._name
         else:
             self._latex_name = latex_name
+        ###
         # Now, the trivializations come into play:
-        self._atlas = []  # list of trivializations defined
+        self._atlas = []  # list of trivializations defined on self
         self._transitions = {} # dictionary of transition maps (key: pair of
-                               # of trivializations)
-        self._frames = []  # list of local frames defined on subsets of self
-        # list of local frames defined on subsets of self that are
-        # not subframes of frames on larger subsets
-        self._top_frames = []
+                    # of trivializations)
+        self._frames = []  # list of local frames for self
         self._def_frame = None  # default frame
-        self._coframes = []  # list of local coframes defined on subsets of self
-        # List of local frames that individually cover self, i.e. whose
-        # domains are self (if non-empty, self is parallelizable):
-        self._covering_frames = []
-        self._trivial_parts = set() # trivial subsets contained in self
-        self._frame_changes = {} # dictionary of changes of frames
-        # Dictionary of vector field modules along self
-        # (keys = diff. map from self to an open set (possibly the identity map))
-        self._section_modules = {}
+        self._coframes = [] # list of local coframes for self
+        self._trivial_parts = set() # subsets of base space on which self is
+                    # trivial
 
     def base_space(self):
         r"""
@@ -272,7 +264,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         latex += self.base_space()._latex_name
         return latex
 
-    def trivialization(self, name=None, latex_name=None):
+    def trivialization(self, domain=None, name=None, latex_name=None):
         r"""
         Return a trivialization of ``self`` over the domain ``domain``.
 
@@ -291,7 +283,8 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
         """
         from .trivialization import Trivialization
-        return Trivialization(self, name=name, latex_name=latex_name)
+        return Trivialization(self, domain=domain, name=name,
+                              latex_name=latex_name)
 
     def transitions(self):
         r"""
@@ -362,10 +355,6 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         """
         return list(self._atlas) # Make a (shallow) copy
 
-    def restrict(self, domain):
-        # TODO: Implement
-        pass
-
     def is_manifestly_trivial(self):
         r"""
         Return ``True`` if ``self`` is manifestly a trivial bundle, i.e. there
@@ -389,10 +378,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
             True
 
         """
-        for triv in self._atlas:
-            if triv.domain() is self._base_space:
-                return True
-        return False
+        return self.base_space() in self._trivial_parts
 
     def section_module(self, domain=None, force_free=False):
         r"""
@@ -418,9 +404,15 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         """
         from sage.manifolds.section_module import \
                                             SectionModule, SectionFreeModule
-        if self.is_manifestly_trivial() or force_free:
-            return SectionFreeModule(self)
-        return SectionModule(self)
+        if domain is None:
+            domain = self._base_space
+        for triv in self._atlas:
+            if triv.domain() is domain:
+                return SectionFreeModule(domain)
+        for frame in self._frames:
+            if frame.domain() is domain:
+                return True
+        return False
 
     def fiber(self, point):
         r"""

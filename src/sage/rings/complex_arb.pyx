@@ -2021,6 +2021,25 @@ cdef class ComplexBall(RingElement):
 
     # Precision and accuracy
 
+    def nbits(self):
+        r"""
+        Return the minimum precision sufficient to represent this ball exactly.
+
+        More precisely, the output is the number of bits needed to represent
+        the absolute value of the mantissa of both the real and the imaginary
+        part of the midpoint.
+
+        EXAMPLES::
+
+            sage: CBF(17, 1023).nbits()
+            10
+            sage: CBF(1/3, NaN).nbits()
+            53
+            sage: CBF(NaN).nbits()
+            0
+        """
+        return acb_bits(self.value)
+
     def round(self):
         """
         Return a copy of this ball rounded to the precision of the parent.

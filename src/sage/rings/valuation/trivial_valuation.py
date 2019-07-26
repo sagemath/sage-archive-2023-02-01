@@ -124,7 +124,7 @@ class TrivialDiscretePseudoValuation_base(DiscretePseudoValuation):
 
     def is_negative_pseudo_valuation(self):
         r"""
-        Return whether this valuatios attains the value `-\infty`.
+        Return whether this valuation attains the value `-\infty`.
 
         EXAMPLES::
 

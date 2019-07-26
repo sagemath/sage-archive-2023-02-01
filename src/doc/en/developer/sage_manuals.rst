@@ -118,7 +118,7 @@ by Sage, you can link toward it without specifying its full path:
      - ``:wikipedia:`Sage_(mathematics_software)```
      - :wikipedia:`Sage_(mathematics_software)`
 
-   * - Arxiv
+   * - arXiv
      - ``:arxiv:`1202.1506```
      - :arxiv:`1202.1506`
 

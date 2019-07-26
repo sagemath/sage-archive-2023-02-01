@@ -4,7 +4,7 @@
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #########################################################################
 r"""
 Spaces of `p`-adic automorphic forms
@@ -63,7 +63,6 @@ from sage.misc.misc import verbose
 from sage.rings.real_mpfr import RR
 from sage.modular.pollack_stevens.sigma0 import Sigma0ActionAdjuster
 from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
-from sage.misc.superseded import deprecated_function_alias
 
 # Need this to be pickleable
 
@@ -2331,18 +2330,8 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
             sage: H1 = X.padic_automorphic_forms( 2, prec=10)
             sage: H1.zero() == 0
             True
-
-        TESTS::
-
-           sage: H1.zero_element() == 0
-           doctest:...:
-           DeprecationWarning: zero_element is deprecated. Please use zero instead.
-           See http://trac.sagemath.org/24203 for details.
-           True
         """
         return self.element_class(self, [self._U(0) for o in self._list])
-
-    zero_element = deprecated_function_alias(24203, zero)
 
     def __eq__(self, other):
         r"""
@@ -2651,11 +2640,11 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
         # Save original moments
         if original_moments is None:
             original_moments = [[fval._moments[ii] for ii in range(self._n + 1)]
-                            for fval in f._value]
+                                for fval in f._value]
 
         Tf = []
         for jj in range(len(self._list)):
-            tmp = self._U(0,normalize=False)
+            tmp = self._U(0, normalize=False)
             for gg, edge_list in HeckeData:
                 u = edge_list[jj]
                 tprec = 2 * (prec_cap + u.power) + 1

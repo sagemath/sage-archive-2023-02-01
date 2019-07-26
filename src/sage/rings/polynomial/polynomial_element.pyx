@@ -6115,8 +6115,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # Get a reference to Magma version of parent.
         R = magma(self._parent)
         # Get list of coefficients.
-        v = ','.join([a._magma_init_(magma) for a in self.list()])
-        return '%s![%s]'%(R.name(), v)
+        v = ','.join(a._magma_init_(magma) for a in self.list())
+        return '%s![%s]' % (R.name(), v)
 
     def _gap_(self, gap):
         """
@@ -10085,8 +10085,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<c> = PolynomialRing(ZZ)
             sage: S.<z> = PolynomialRing(R)
             sage: F = c*z^2 + c^2
-            sage: F.specialization(dict({c:2}))
+            sage: F.specialization({c:2})
             2*z^2 + 4
+
+        ::
+
+            sage: A.<c> = QQ[]
+            sage: R.<x> = Frac(A)[]
+            sage: X = (1 + x/c).specialization({c:20})
+            sage: X
+            1/20*x + 1
+            sage: X.parent()
+            Univariate Polynomial Ring in x over Rational Field
         """
         if D is None:
             if phi is None:

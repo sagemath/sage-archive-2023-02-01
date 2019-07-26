@@ -201,48 +201,39 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-from __future__ import division, print_function, absolute_import
-
-import inspect
-import random
+from __future__ import division, print_function
 
 from six.moves import range
 from six import iteritems
 
+import inspect
+import random
 from copy import copy
-from sage.interfaces.all import gap
 
+from sage.cpython.string import bytes_to_str
+from sage.interfaces.all import gap
 from sage.categories.modules import Modules
 from sage.categories.cartesian_product import cartesian_product
 from sage.categories.fields import Fields
-
 from sage.matrix.matrix_space import MatrixSpace
-
-from sage.modules.free_module_element import vector
 from sage.modules.free_module import VectorSpace
 from sage.modules.module import Module
-
+from sage.modules.free_module_element import vector
 from sage.arith.all import GCD, binomial
-
 from sage.groups.all import SymmetricGroup
 from sage.groups.perm_gps.permgroup import PermutationGroup
-
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
-
 from sage.structure.parent import Parent
-
 from sage.misc.all import prod
 from sage.misc.functional import is_even
 from sage.misc.cachefunc import cached_method
 from sage.misc.sageinspect import sage_getargspec
 from sage.misc.randstate import current_randstate
-
 from sage.combinat.subset import Subsets
-
 from sage.features.gap import GapPackage
 
 from .encoder import Encoder
@@ -1743,7 +1734,7 @@ class AbstractLinearCode(Module):
         return LinearCode(G)
 
     def u_u_plus_v_code(self, other):
-        """
+        r"""
         The `(u|u+v)`-construction with ``self=u`` and ``other=v``
 
         Returns the code obtained through `(u|u+v)`-construction with ``self`` as `u`
@@ -1805,7 +1796,7 @@ class AbstractLinearCode(Module):
         return LinearCode(G)
 
     def construction_x(self, other, aux):
-        """
+        r"""
         Construction X applied to ``self=C_1``, ``other=C_2`` and ``aux=C_a``.
 
         ``other`` must be a subcode of ``self``.
@@ -1845,7 +1836,7 @@ class AbstractLinearCode(Module):
             raise ValueError("%s is not a subcode of %s"%(self,other))
 
         G2 = self.generator_matrix()
-        left = G1 = other.generator_matrix()
+        left = other.generator_matrix()  # G1
         k = self.dimension()
 
         for r in G2.rows():
@@ -3409,7 +3400,7 @@ class AbstractLinearCode(Module):
             from six import StringIO
             # to use the already present output parser
             wts = [0] * (n + 1)
-            for L in StringIO(lines).readlines():
+            for L in StringIO(bytes_to_str(lines)).readlines():
                 L = L.strip()
                 if L:
                     o = ord(L[0])

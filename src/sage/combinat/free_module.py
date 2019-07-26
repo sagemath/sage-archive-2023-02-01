@@ -1338,7 +1338,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                     symb = tensor.symbol
             else:
                 symb = tensor.symbol
-            return symb.join(["%s"%module for module in self._sets])
+            return symb.join("%s" % module for module in self._sets)
             # TODO: make this overridable by setting _name
 
         def _ascii_art_(self, term):
@@ -1415,7 +1415,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             """
             from sage.misc.latex import latex
             symb = " \\otimes "
-            return symb.join(["%s"%latex(module) for module in self._sets])
+            return symb.join("%s" % latex(module) for module in self._sets)
 
         def _repr_term(self, term):
             """
@@ -1713,7 +1713,8 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
             F (+) F
         """
         from sage.categories.cartesian_product import cartesian_product
-        return cartesian_product.symbol.join(["%s"%module for module in self._sets])
+        return cartesian_product.symbol.join("%s" % module
+                                             for module in self._sets)
         # TODO: make this overridable by setting _name
 
     @cached_method

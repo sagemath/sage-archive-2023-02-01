@@ -23,15 +23,15 @@ as `F_q`-elements.
         Relative field extension between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2016 David Lucas <david.lucas@inria.fr>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object import SageObject
@@ -39,6 +39,7 @@ from sage.categories.homset import Hom
 from sage.matrix.constructor import column_matrix
 from sage.modules.free_module_element import vector
 from sage.misc.superseded import experimental
+
 
 class RelativeFiniteFieldExtension(SageObject):
     r"""
@@ -444,7 +445,7 @@ class RelativeFiniteFieldExtension(SageObject):
 
     def extension_degree(self):
         r"""
-        Return `m`, the extension degree of the absiolute field over
+        Return `m`, the extension degree of the absolute field over
         the relative field.
 
         EXAMPLES::

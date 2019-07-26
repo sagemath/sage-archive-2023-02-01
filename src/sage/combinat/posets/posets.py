@@ -1620,27 +1620,56 @@ class FinitePoset(UniqueRepresentation, Parent):
         return LinearExtensionsOfPoset(self, facade = facade)
 
     def spectrum(self,a):
-        '''
-        Input a pair (poset, element).
-        Outputs the a-spectrum in P.
-        '''
-        aspec=[]
+        r"""
+        Returns the a-spectrum of this poset.
+
+        The `a`-spectrum in this poset is the list of integers whose
+        i-th position contains the number of linear extensions of this poset
+        that have `a` in the i-th location.
+
+        INPUT:
+
+        - ``a`` -- an element of this poset.
+
+        OUTPUT: The a-spectrum, returned as a list, of this poset.
+
+        EXAMPLES:
+
+            sage: P = posets.ChainPoset(5)
+            sage: P.spectrum(2)
+            [0, 0, 1, 0, 0]
+
+            sage: P = posets.BooleanLattice(3)
+            sage: P.spectrum(5)
+            [0, 0, 0, 4, 12, 16, 16, 0]
+
+            sage: P = posets.AntichainPoset(4)
+            sage: P.spectrum(3)
+            [6, 6, 6, 6]
+
+        """
+        if a not in self:
+            raise ValueError, "Input element is not in poset!"
+            
+        aspec = []
         for i in range(len(self)):
             aspec.append(0)
 
         for L in self.linear_extensions():
-            # Warning! If facade=False in the definition of your poset, this won't work!!
-            aspec[L.index(a)] = aspec[L.index(a)]+1
+            aspec[L.index(a)] = aspec[L.index(a)] + 1
         return aspec
 
     @staticmethod
-    def _glue_together(aspec, bspec, orientation):
+    def _glue_spectra(aspec, bspec, orientation):
         r"""
-        Input the a-spectrum and b-spectrum of posets P and Q, respectively,
-        together with an orientation: a < b or b < a.
-        Return the a-spectrum (or b-spectrum, depending on orientation) of
-        the poset which is a disjoint union of P and Q, together with a new
-        covering relation a < b.
+        Returns the a-spectrum of a poset by merging `aspec` and `bspec`.
+
+        `aspec` and `bspec` are the a-spectrum and b-spectrum of two different
+        posets (see :meth:`atkinson` for the definition of a-spectrum).
+
+        The orientation determines whether a < b or b < a in the combined poset.
+
+        This is a helper method for :meth:`atkinson`.
 
         INPUT:
 
@@ -1650,20 +1679,22 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         - ``orientation`` -- boolean; True if a < b, False otherwise.
 
-        OUTPUT: The a-spectrum (or b-spectrum, depending on orientation), returned
-                as a list, of the poset which is a disjoint union of P and Q,
-                together with the additional covering relation a < b.
+        OUTPUT: The a-spectrum (or b-spectrum, depending on orientation),
+                returned as a list, of the poset which is a disjoint union
+                of P and Q, together with the additional
+                covering relation a < b.
 
         EXAMPLES:
 
-            sage: Pdata = (0, 1, 2, 0)
-            sage: Qdata = (1, 1, 0)
-            sage: _glue_together(Pdata, Qdata, True)
+            sage: from sage.combinat.posets.posets import FinitePoset
+            sage: Pdata = [0, 1, 2, 0]
+            sage: Qdata = [1, 1, 0]
+            sage: FinitePoset._glue_spectra(Pdata, Qdata, True)
             [0, 20, 28, 18, 0, 0, 0]
 
-            sage: Pdata = (0, 0, 2)
-            sage: Qdata = (0, 1)
-            sage: _glue_together(Pdata, Qdata, False)
+            sage: Pdata = [0, 0, 2]
+            sage: Qdata = [0, 1]
+            sage: FinitePoset._glue_spectra(Pdata, Qdata, False)
             [0, 0, 0, 0, 8]
 
         """
@@ -1686,11 +1717,12 @@ class FinitePoset(UniqueRepresentation, Parent):
                 newaspec[-1] = newaspec[-1] + (aspec[i-1] * kval * inner_sum)
         return newaspec
 
-
     def _split(self, a, b):
         r"""
         Deletes the edge a < b from a poset. Returns the two resulting connected
         components.
+
+        This is a helper method for :meth:`atkinson`.
 
         INPUT:
 
@@ -1706,20 +1738,18 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         EXAMPLES:
 
-            sage: uc = [[1, 2], [], []]
-            sage: P = FinitePoset(DiGraph(dict([[i, uc[i]] for i in range(len(uc))])), facade = True)
+            sage: P = Poset({0: [1,2], 1: [], 2: []})
             sage: P._split(0, 1)
             [Finite poset containing 2 elements, Finite poset containing 1 elements]
 
-            sage: uc = [[1, 2], [], []]
-            sage: P = FinitePoset(DiGraph(dict([[i, uc[i]] for i in range(len(uc))])), facade = True)
-            sage: P._split(0, 2)
-            [Finite poset containing 2 elements, Finite poset containing 1 elements]
+            sage: P = posets.ChainPoset(5)
+            sage: P._split(1, 2)
+            [Finite poset containing 2 elements, Finite poset containing 3 elements]
 
         """
         covers = self.cover_relations()
         covers.remove([a, b])
-        bothPPandQ = Poset((P.list(), covers), cover_relations = True)
+        bothPPandQ = Poset((self.list(), covers), cover_relations = True)
         com = bothPPandQ.connected_components()
         if not len(com) == 2:
             raise ValueError, "Wrong number of connected components after the covering relation is deleted!"
@@ -1728,9 +1758,11 @@ class FinitePoset(UniqueRepresentation, Parent):
         else:
             return [com[1], com[0]]
 
-    def _spectrum(self, a):
+    def _spectrum_of_tree(self, a):
         r"""
-        Computes the a spectrum of a poset whose underlying graph is a tree.
+        Computes the a-spectrum of a poset whose underlying graph is a tree.
+
+        This is a helper method for :meth:`atkinson`.
 
         INPUT:
 
@@ -1742,19 +1774,16 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         EXAMPLES:
 
-            sage: uc = [[2], [2], [3, 4], [], []]
-            sage: P = FinitePoset(DiGraph(dict([[i, uc[i]] for i in range(len(uc))])), facade = True)
-            sage: P._spectrum(0)
+            sage: P = Poset({0: [2], 1: [2], 2: [3, 4], 3: [], 4: []})
+            sage: P._spectrum_of_tree(0)
             [2, 2, 0, 0, 0]
 
-            sage: uc = [[2], [2], [3, 4], [], []]
-            sage: P = FinitePoset(DiGraph(dict([[i, uc[i]] for i in range(len(uc))])), facade = True)
-            sage: P._spectrum(2)
+            sage: P = Poset({0: [2], 1: [2], 2: [3, 4], 3: [], 4: []})
+            sage: P._spectrum_of_tree(2)
             [0, 0, 4, 0, 0]
 
-            sage: uc = [[2], [2], [3, 4], [], []]
-            sage: P = FinitePoset(DiGraph(dict([[i, uc[i]] for i in range(len(uc))])), facade = True)
-            sage: P._spectrum(3)
+            sage: P = Poset({0: [2], 1: [2], 2: [3, 4], 3: [], 4: []})
+            sage: P._spectrum_of_tree(3)
             [0, 0, 0, 2, 2]
 
         """
@@ -1768,15 +1797,21 @@ class FinitePoset(UniqueRepresentation, Parent):
         else:
             (a, b) = (self.lower_covers(a)[0], a)
             orientation = False
-        PP, Q = _split(self, a, b)
-        aspec = PP._spectrum(a)
-        bspec = Q._spectrum(b)
-        return _glue_together(aspec, bspec, orientation)
+        PP, Q = self._split(a, b)
+        aspec = PP._spectrum_of_tree(a)
+        bspec = Q._spectrum_of_tree(b)
+        return FinitePoset._glue_spectra(aspec, bspec, orientation)
 
 
     def atkinson(self, a):
         r"""
-        Compute the a-spectrum of a poset whose underlying graph is a forest.
+        Compute the a-spectrum of this poset, whose underlying undirected graph
+        is a forest.
+
+        This poset is expected to have its underlying undirected graph be a
+        forest. Given an element `a` in a poset `P`, the `a`-spectrum is
+        the list of integers whose i-th position contains the number of linear
+        extensions of `P` that have `a` in the i-th location.
 
         INPUT:
 
@@ -1788,25 +1823,32 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         EXAMPLES:
 
-            sage: uc = [[2], [2], [3, 4], [], []]
-            sage: P = FinitePoset(DiGraph(dict([[i, uc[i]] for i in range(len(uc))])), facade = True)
-            sage: _spectrum(P, 0)
+            sage: P = Poset({0: [2], 1: [2], 2: [3, 4], 3: [], 4: []})
+            sage: P.atkinson(0)
             [2, 2, 0, 0, 0]
 
-            sage:uc = [[1], [2,3], [], [], [5,6], [], []]
-            sage: P = FinitePoset(DiGraph(dict([[i, uc[i]] for i in range(len(uc))])), facade = True)
-            sage: atkinson(P, 5)
+            sage: P = Poset({0: [1], 1: [2, 3], 2: [], 3: [], 4: [5, 6], 5: [], 6: []})
+            sage: P.atkinson(5)
             [0, 10, 18, 24, 28, 30, 30]
 
-            sage: P=posets.AntichainPoset(10)
-            sage: atkinson(P, 0)
-            [362880,362880,362880,362880,362880,362880,362880,362880,362880,362880]
+            sage: P = posets.AntichainPoset(10)
+            sage: P.atkinson(0)
+            [362880, 362880, 362880, 362880, 362880, 362880, 362880, 362880, 362880, 362880]
+
+        .. NOTE::
+
+            This function is the implementation of the algorithm from [At1990]_.
 
         """
         if a not in self:
             raise ValueError, "Input element is not in poset!"
 
+        if not self.hasse_diagram().to_undirected().is_forest():
+            raise ValueError, "This poset is not a forest."
+
         n = self.cardinality()
+
+        # Compute the component of this poset containing `a` and its complement
         com = self.connected_components()
         remainderposet = Poset()
 
@@ -1816,8 +1858,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             else:
                 remainderposet = remainderposet.disjoint_union(X)
 
-        k = main.cardinality()
-        aspec = main._spectrum(a)
+        aspec = main._spectrum_of_tree(a)
 
         if remainderposet.cardinality() == 0:
             return aspec
@@ -1827,7 +1868,9 @@ class FinitePoset(UniqueRepresentation, Parent):
         nlinexts = sum(bspec)
 
         newaspec = []
+        k = main.cardinality()
 
+        # Compute number of shuffles of linear extensions of the two posets
         for r in range(1, n+1):
             newaspec.append(0)
             for i in range(max(1, r-n+k), min(r,k) + 1):

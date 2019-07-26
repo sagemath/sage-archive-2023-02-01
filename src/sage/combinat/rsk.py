@@ -2531,7 +2531,6 @@ class InsertionRules(object):
     Hecke = RuleHecke
     dualRSK = RuleDualRSK
     coRSK = RuleCoRSK
-    superRSK = RuleSuperRSK
 
 #####################################################################
 
@@ -2713,8 +2712,6 @@ def RSK(obj1=None, obj2=None, insertion=InsertionRules.RSK, check_standard=False
             insertion = RSK.rules.dualRSK
         elif insertion == 'coRSK':
             insertion = RSK.rules.coRSK
-        elif insertion == 'superRSK':
-            insertion = RSK.rules.superRSK
         else:
             raise ValueError("invalid input")
 
@@ -2910,8 +2907,6 @@ def RSK_inverse(p, q, output='array', insertion=InsertionRules.RSK):
             insertion = RSK.rules.dualRSK
         elif insertion == 'coRSK':
             insertion = RSK.rules.coRSK
-        elif insertion == 'superRSK':
-            insertion = RSK.rules.superRSK
         else:
             raise ValueError("invalid input")
 

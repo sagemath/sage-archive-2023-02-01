@@ -7,9 +7,7 @@ AUTHORS:
 """
 
 from __future__ import print_function, absolute_import
-from six import add_metaclass
 
-from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.structure.parent import Parent
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.shifted_primed_tableau import PrimedEntry

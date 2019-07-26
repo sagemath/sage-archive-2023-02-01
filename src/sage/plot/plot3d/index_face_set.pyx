@@ -208,7 +208,7 @@ cdef inline format_pmesh_face(face_c face, int has_color):
 
 def midpoint(pointa, pointb, w):
     """
-    Return the weighted mean of two points in space.
+    Return the weighted mean of two points in 3-space.
 
     INPUT:
 
@@ -223,7 +223,7 @@ def midpoint(pointa, pointb, w):
 
         sage: from sage.plot.plot3d.index_face_set import midpoint
         sage: midpoint((1,2,3),(4,4,4),0.8)
-        (3.40000000000000, 3.60000000000000, 3.80000000000000)
+        (1.60000000000000, 2.40000000000000, 3.20000000000000)
     """
     xa, ya, za = pointa
     xb, yb, zb = pointb
@@ -919,17 +919,25 @@ cdef class IndexFaceSet(PrimitiveObject):
         """
         Cut the surface according to the given condition.
 
+        This allows to take the intersection of the surface
+        with a domain in 3-space, in such a way that the result
+        has a smooth boundary.
+
         INPUT:
 
-        - ``condition`` -- boolean function on ambient space
+        - ``condition`` -- boolean function on ambient space, that
+          defines the domain
 
         - ``N`` -- number of steps (default: 40) used on the boundary
+          to cut the triangles that are not entirely within the domain
 
         For higher quality, meaning smoother boundary, use larger ``N``.
 
         OUTPUT:
 
         an ``IndexFaceSet``
+
+        This will contain both triangular and quadrilateral faces.
 
         EXAMPLES::
 
@@ -1001,6 +1009,11 @@ cdef class IndexFaceSet(PrimitiveObject):
             def cut(x,y,z):
                 return x*x+y*y < 1
             sphinx_plot(P.add_condition(cut))
+
+        .. TODO::
+
+            - Use a dichotomy to search for the place where to cut,
+            - Compute the cut only once for each edge.
         """
         index = 0
         self.triangulate()

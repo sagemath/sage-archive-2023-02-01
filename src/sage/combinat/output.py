@@ -299,7 +299,7 @@ def tex_from_skew_array(array, with_lines=False, align='b'):
     tex=r'\raisebox{-.6ex}{$\begin{array}[%s]{*{%s}c}'%(align,max(map(len,array)))
     tex+=end_line(0)+'\n'
     for r in range(len(array)):
-        tex+='&'.join('' if c is None else r'\lr{%s}'%c for c in array[r])
+        tex+='&'.join('' if c is None else r'\lr{%s}'%(c,) for c in array[r])
         tex+=end_line(r+1)+'\n'
     return tex+r'\end{array}$}'
 

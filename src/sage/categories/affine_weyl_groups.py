@@ -1,5 +1,5 @@
 r"""
-Affine Weyl Groups
+Affine Weyl groups
 """
 # *****************************************************************************
 #  Copyright (C) 2009    Nicolas M. Thiery <nthiery at users.sf.net>
@@ -12,6 +12,7 @@ from sage.misc.cachefunc import cached_method
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.weyl_groups import WeylGroups
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+
 
 
 class AffineWeylGroups(Category_singleton):

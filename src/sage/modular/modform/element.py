@@ -35,7 +35,6 @@ from sage.matrix.constructor import matrix
 from sage.misc.all import prod
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import verbose
-from sage.misc.superseded import deprecated_function_alias
 from sage.modular.dirichlet import DirichletGroup
 from sage.modular.modsym.modsym import ModularSymbols
 from sage.modular.modsym.p1list import lift_to_sl2z
@@ -719,8 +718,7 @@ class ModularForm_abstract(ModuleElement):
 
     def lseries(self, embedding=0, prec=53,
                          max_imaginary_part=0,
-                         max_asymp_coeffs=40,
-                         conjugate=None):
+                         max_asymp_coeffs=40):
         r"""
         Return the L-series of the weight k cusp form
         `f` on `\Gamma_0(N)`.
@@ -740,8 +738,6 @@ class ModularForm_abstract(ModuleElement):
         - ``max_imaginary_part`` - real number. Default: 0.
 
         - ``max_asymp_coeffs`` - integer. Default: 40.
-
-        - ``conjugate`` -- deprecated synonym for ``embedding``.
 
         For more information on the significance of the last three arguments,
         see :mod:`~sage.lfunctions.dokchitser`.
@@ -786,13 +782,6 @@ class ModularForm_abstract(ModuleElement):
             sage: L = f.lseries(embedding=1)
             sage: L(1)
             0.921328017272472
-
-        For backward-compatibility, ``conjugate`` is accepted as a synonym for ``embedding``::
-
-            sage: f.lseries(conjugate=1)
-            doctest:...: DeprecationWarning: The argument 'conjugate' for 'lseries' is deprecated -- use the synonym 'embedding'
-            See http://trac.sagemath.org/19668 for details.
-            L-series associated to the cusp form q + a1*q^2 - a1*q^3 + (-a1 + 2)*q^5 + O(q^6), a1=1.41421356237310
 
         An example with a non-real coefficient field (`\QQ(\zeta_3)`
         in this case)::
@@ -866,10 +855,6 @@ class ModularForm_abstract(ModuleElement):
 
         # compute the requested embedding
         C = ComplexField(prec)
-        if conjugate is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(19668, "The argument 'conjugate' for 'lseries' is deprecated -- use the synonym 'embedding'")
-            embedding=conjugate
         K = self.base_ring()
         if isinstance(embedding, RingHomomorphism):
             # Target of embedding might have precision less than desired, so
@@ -920,8 +905,6 @@ class ModularForm_abstract(ModuleElement):
             L.rename('L-series associated to the cusp form %s, %s=%s' \
                 % (self, K.variable_name(), emb(K.gen())))
         return L
-
-    cuspform_lseries = deprecated_function_alias(16917, lseries)
 
     def symsquare_lseries(self, chi=None, embedding=0, prec=53):
         r"""
@@ -2341,9 +2324,6 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
         newqexp = self.qexp(m) * other.qexp(m)
 
         return newparent.base_extend(newqexp.base_ring())(newqexp)
-
-    modform_lseries = deprecated_function_alias(16917,
-            ModularForm_abstract.lseries)
 
     def atkin_lehner_eigenvalue(self, d=None, embedding=None):
         """

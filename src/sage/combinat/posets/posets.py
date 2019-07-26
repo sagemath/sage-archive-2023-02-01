@@ -1650,7 +1650,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         if a not in self:
             raise ValueError, "Input element is not in poset!"
-            
+
         aspec = []
         for i in range(len(self)):
             aspec.append(0)
@@ -1738,7 +1738,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         EXAMPLES:
 
-            sage: P = Poset({0: [1,2], 1: [], 2: []})
+            sage: P = Poset({0: [1, 2], 1: [], 2: []})
             sage: P._split(0, 1)
             [Finite poset containing 2 elements, Finite poset containing 1 elements]
 

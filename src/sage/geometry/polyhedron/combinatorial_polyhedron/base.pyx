@@ -223,7 +223,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
     TESTS:
 
-    Checking that #27987 is fixed::
+    Checking that :trac:`27987` is fixed::
 
         sage: P1 = Polyhedron(vertices=[[0,1],[1,0]], rays=[[1,1]])
         sage: P2 = Polyhedron(vertices=[[0,1],[1,0],[1,1]])
@@ -328,7 +328,7 @@ cdef class CombinatorialPolyhedron(SageObject):
                          for facet in facets)
         else:
             # Input is different from ``Polyhedron`` and ``LatticePolytope``.
-            if unbounded is False:
+            if not unbounded:
                 # bounded polyhedron
                 self._unbounded = False
             elif not far_face:

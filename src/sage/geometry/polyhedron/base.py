@@ -489,7 +489,6 @@ class Polyhedron_base(Element):
        """
 
         from sage.categories.all import Rings
-        from sage.rings.all import RDF, RR
 
         if base_ring not in Rings:
             raise ValueError("invalid base ring")
@@ -2753,9 +2752,18 @@ class Polyhedron_base(Element):
         return A_ker.basis_matrix().transpose().rows()
 
     @cached_method
-    def normal_fan(self):
+    def normal_fan(self, direction='inner'):
         r"""
         Return the normal fan of a compact full-dimensional rational polyhedron.
+
+        This returns the inner normal fan of ``self``. For the outer normal fan, 
+        use ``direction='outer'``.
+
+        INPUT:
+
+        - ``direction`` -- either ``'inner'`` (default) or ``'outer'``; if 
+          set to ``'inner'``, use the inner normal vectors to span the cones of 
+          the fan, if set to ``'outer'``, use the outer normal vectors. 
 
         OUTPUT:
 
@@ -2796,6 +2804,30 @@ class Polyhedron_base(Element):
             ...
             NotImplementedError: normal fan handles only polytopes over the rationals
 
+            sage: P = Polyhedron(vertices=[[0,0],[2,0],[0,2],[2,1],[1,2]])
+            sage: P.normal_fan(direction=None)
+            Traceback (most recent call last):
+            ...
+            TypeError: the direction should be 'inner' or 'outer'
+
+            sage: inner_nf = P.normal_fan()
+            sage: inner_nf.rays()
+            N( 1,  0),
+            N( 0, -1),
+            N( 0,  1),
+            N(-1,  0),
+            N(-1, -1)
+            in 2-d lattice N
+
+            sage: outer_nf = P.normal_fan(direction='outer')
+            sage: outer_nf.rays()
+            N( 1,  0),
+            N( 1,  1),
+            N( 0,  1),
+            N(-1,  0),
+            N( 0, -1)
+            in 2-d lattice N
+
         REFERENCES:
 
         For more information, see Chapter 7 of [Zie2007]_.
@@ -2804,8 +2836,12 @@ class Polyhedron_base(Element):
 
         if not QQ.has_coerce_map_from(self.base_ring()):
             raise NotImplementedError('normal fan handles only polytopes over the rationals')
-
-        return NormalFan(self)
+        if direction == 'inner':
+            return NormalFan(self)
+        elif direction == 'outer':
+            return NormalFan(-self)
+        else:
+            raise TypeError("the direction should be 'inner' or 'outer'")
 
     @cached_method
     def face_fan(self):

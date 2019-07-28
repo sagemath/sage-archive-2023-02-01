@@ -4181,6 +4181,35 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     # Alias for valuation
     ord = valuation
 
+    def p_primary_part(self, p):
+        """
+        Return the p-primary part of ``self``.
+
+        INPUT:
+
+        - ``p`` -- a prime integer.
+
+        OUTPUT: Largest power of ``p`` dividing ``self``.
+
+        EXAMPLES::
+
+            sage: n = 40
+            sage: n.p_primary_part(2)
+            8
+            sage: n.p_primary_part(5)
+            5
+            sage: n.p_primary_part(7)
+            1
+            sage: n.p_primary_part(6)
+            Traceback (most recent call last):
+            ...
+            ValueError: 6 is not a prime number
+        """
+        p = smallInteger(p)
+        if not p.is_prime():
+            raise ValueError("{} is not a prime number".format(p))
+        return p**self._valuation(p)
+
     def val_unit(self, p):
         r"""
         Returns a pair: the p-adic valuation of self, and the p-adic unit

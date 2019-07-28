@@ -19,8 +19,6 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.shifted_primed_tableau import PrimedEntry
 from sage.combinat.tableau import Tableau, Tableaux, SemistandardTableaux
-from sage.categories.sets_cat import Sets
-from sage.structure.unique_representation import UniqueRepresentation
 
 
 class SemistandardSuperTableau(Tableau):
@@ -89,7 +87,6 @@ class SemistandardSuperTableau(Tableau):
             sage: from sage.combinat.super_tableau import SemistandardSuperTableau, SemistandardSuperTableaux
             sage: t = SemistandardSuperTableau([[1,1],[2]])
             sage: TestSuite(t).run()
-
             sage: t.parent()
             Semistandard super tableaux
             sage: t.category()
@@ -106,7 +103,6 @@ class SemistandardSuperTableau(Tableau):
             t = [tuple(_) for _ in t]
         except TypeError:
             raise ValueError("A tableau must be a list of iterables.")
-
         return SemistandardSuperTableaux_all().element_class(SemistandardSuperTableaux_all(), t)
 
     def __init__(self, parent, t, check=True, preprocessed=False):
@@ -193,24 +189,33 @@ class SemistandardSuperTableau(Tableau):
         # along rows
 
         for row in self:
-            if not all(isinstance(c, (PrimedEntry)) and c > 0 for c in row):
-                raise ValueError("the entries of a semistandard super tableau must be non-negative primed integers")
+            if not all(isinstance(c, PrimedEntry) and c > 0 for c in row):
+                raise ValueError("""the entries of a semistandard super tableau
+                                     must be non-negative primed integers""")
             if any(row[c] > row[c+1] for c in range(len(row)-1)):
-                raise ValueError("the entries in each row of a semistandard super tableau must be weakly increasing")
+                raise ValueError("""the entries in each row of a semistandard 
+                                    super tableau must be weakly increasing""")
 
         if self:
             for row, next in zip(self, self[1:]):
                 # Check that letters are weakly increasing down columns
                 if any(row[c] > next[c] for c in range(len(next))):
-                    raise ValueError("the entries of each column of a semistandard super tableau must be weakly increasing")
+                    raise ValueError("""the entries of each column of a 
+                       semistandard super tableau must be weakly increasing""")
                 # Check that unprimed letters are column strict
-                if not all(row[c] < next[c] for c in range(len(next)) if (row[c].is_unprimed() or next[c].is_unprimed())):
-                    raise ValueError("the unprimed entries of each column must be strictly increasing")
+                if not all(row[c] < next[c] 
+                        for c in range(len(next)) 
+                        if (row[c].is_unprimed() or next[c].is_unprimed())):
+                    raise ValueError("""the unprimed entries of each column 
+                                            must be strictly increasing""")
 
             # Check that primed letters are row strict
             for row in self:
-                if not all(row[c] < row[c+1] for c in range(len(row)-1) if (row[c].is_primed() or row[c+1].is_primed())):
-                    raise ValueError("the primed entries in each row must be strictly increasing")
+                if not all(row[c] < row[c+1] 
+                        for c in range(len(row)-1) 
+                        if (row[c].is_primed() or row[c+1].is_primed())):
+                    raise ValueError("""the primed entries in each row must be 
+                                        strictly increasing""")
 
 
 class StandardSuperTableau(SemistandardSuperTableau):
@@ -266,8 +271,8 @@ class StandardSuperTableau(SemistandardSuperTableau):
     @staticmethod
     def __classcall_private__(self, t):
         r"""
-        This ensures that a :class:`StandardSuperTableau` is only ever constructed
-        as an ``element_class`` call of an appropriate parent.
+        This ensures that a :class:`StandardSuperTableau` is only ever 
+        constructed as an ``element_class`` call of an appropriate parent.
 
         TESTS::
 
@@ -301,7 +306,8 @@ class StandardSuperTableau(SemistandardSuperTableau):
             sage: StandardSuperTableau([[1,3,2]])
             Traceback (most recent call last):
             ...
-            ValueError: the entries in each row of a semistandard super tableau must be weakly increasing
+            ValueError: the entries in each row of a semistandard super 
+            tableau must be weakly increasing
         """
         super(StandardSuperTableau, self).check()
         # t is semistandard so we only need to check
@@ -314,7 +320,8 @@ class StandardSuperTableau(SemistandardSuperTableau):
             a = a.increase_half()
 
         if sorted(flattened_list) != primed_list:
-            raise ValueError("%s the entries in a standard tableau must be in bijection with 1',1,2',2,...,n"%str(flattened_list))
+            raise ValueError("""the entries in a standard tableau must be in 
+                                bijection with 1',1,2',2,...,n""")
 
     def is_standard(self):
         """
@@ -334,7 +341,7 @@ class StandardSuperTableau(SemistandardSuperTableau):
 ################################
 class SemistandardSuperTableaux(SemistandardTableaux):
     r"""
-    A factory class for the various classes of semistandard super tableaux.
+    The set of semistandard super tableaux.
 
     OUTPUT:
 
@@ -407,12 +414,16 @@ class SemistandardSuperTableaux(SemistandardTableaux):
             for row in x:
                 if any(row[c] > row[c+1] for c in range(len(row)-1)):
                     return False
-                if not all(row[c] < row[c+1] for c in range(len(row)-1) if (row[c].is_primed() or row[c+1].is_primed())):
+                if not all(row[c] < row[c+1] 
+                        for c in range(len(row)-1) 
+                        if (row[c].is_primed() or row[c+1].is_primed())):
                     return False
             for row, next in zip(x, x[1:]):
                 if any(row[c] > next[c] for c in range(len(next))):
                     return False
-                if not all(row[c] < next[c] for c in range(len(next)) if (row[c].is_unprimed() or next[c].is_unprimed())):
+                if not all(row[c] < next[c] 
+                        for c in range(len(next)) 
+                        if (row[c].is_unprimed() or next[c].is_unprimed())):
                     return False
             return True
         else:
@@ -457,7 +468,7 @@ class SemistandardSuperTableaux_all(SemistandardSuperTableaux):
 ################################
 class StandardSuperTableaux(SemistandardSuperTableaux, Parent):
     r"""
-    A factory class for the various classes of standard super tableaux.
+    The set of standard super tableaux.
 
     INPUT:
 
@@ -506,14 +517,18 @@ class StandardSuperTableaux(SemistandardSuperTableaux, Parent):
         sage: SST.cardinality()
         5
         sage: SST.list()
-
+        [[[1', 2', 3'], [1, 2]],
+         [[1', 1, 3'], [2', 2]],
+         [[1', 2', 2], [1, 3']],
+         [[1', 1, 2], [2', 3']],
+         [[1', 1, 2'], [2, 3']]]
     """
     @staticmethod
     def __classcall_private__(cls, *args, **kwargs):
         r"""
-        This is a factory class which returns the appropriate parent based on
-        arguments.  See the documentation for :class:`StandardTableaux` for
-        more information.
+        This class returns the appropriate parent based on arguments. 
+        See the documentation for :class:`StandardTableaux` for more 
+        information.
 
         TESTS::
             sage: from sage.combinat.super_tableau import StandardSuperTableaux
@@ -553,7 +568,8 @@ class StandardSuperTableaux(SemistandardSuperTableaux, Parent):
                                         is not implemented yet""")
 
         if not isinstance(n, (int, Integer)) or n < 0:
-            raise ValueError("the argument must be a non-negative integer or a partition")
+            raise ValueError("""the argument must be a non-negative integer 
+                                or a partition""")
 
         return StandardSuperTableaux_size(n)
 
@@ -640,29 +656,29 @@ class StandardSuperTableaux_all(StandardSuperTableaux):
         return "Standard super tableaux"
 
 
-class StandardSuperTableaux_size(StandardSuperTableaux):
+class StandardSuperTableaux_size(StandardSuperTableaux, DisjointUnionEnumeratedSets):
     """
     Standard super tableaux of fixed size `n`.
 
     EXAMPLES::
 
         sage: [ t for t in StandardSuperTableaux(1) ]
-        [[[1]]]
+        [[[1']]]
         sage: [ t for t in StandardSuperTableaux(2) ]
-        [[[1, 2]], [[1], [2]]]
+        [[[1', 1]], [[1'], [1]]]
         sage: [ t for t in StandardSuperTableaux(3) ]
-        [[[1, 2, 3]], [[1, 3], [2]], [[1, 2], [3]], [[1], [2], [3]]]
+        [[[1', 1, 2']], [[1', 2'], [1]], [[1', 1], [2']], [[1'], [1], [2']]]
         sage: StandardSuperTableaux(4)[:]
-        [[[1, 2, 3, 4]],
-         [[1, 3, 4], [2]],
-         [[1, 2, 4], [3]],
-         [[1, 2, 3], [4]],
-         [[1, 3], [2, 4]],
-         [[1, 2], [3, 4]],
-         [[1, 4], [2], [3]],
-         [[1, 3], [2], [4]],
-         [[1, 2], [3], [4]],
-         [[1], [2], [3], [4]]]
+        [[[1', 1, 2', 2]],
+         [[1', 2', 2], [1]],
+         [[1', 1, 2], [2']],
+         [[1', 1, 2'], [2]],
+         [[1', 2'], [1, 2]],
+         [[1', 1], [2', 2]],
+         [[1', 2], [1], [2']],
+         [[1', 2'], [1], [2]],
+         [[1', 1], [2'], [2]],
+         [[1'], [1], [2'], [2]]]
     """
     def __init__(self, n):
         r"""
@@ -673,8 +689,12 @@ class StandardSuperTableaux_size(StandardSuperTableaux):
             Input is not checked; please use :class:`StandardSuperTableaux` to
             ensure the options are properly parsed.
         """
-        Parent.__init__(self, category=FiniteEnumeratedSets())
         StandardSuperTableaux.__init__(self)
+        from sage.combinat.partition import Partitions_n
+        DisjointUnionEnumeratedSets.__init__(self,
+                                             Family(Partitions_n(n), StandardSuperTableaux_shape),
+                                             category=FiniteEnumeratedSets(),
+                                             facade=True, keepkey=False)
         self.size = Integer(n)
 
     def _repr_(self):
@@ -736,7 +756,9 @@ class StandardSuperTableaux_size(StandardSuperTableaux):
             ....:     for p in Partitions(n):
             ....:         c += StandardSuperTableaux(p).cardinality()
             ....:     return c
-            sage: all(cardinality_using_hook_formula(i) == StandardSuperTableaux(i).cardinality() for i in range(10))
+            sage: all(cardinality_using_hook_formula(i) == 
+            ....:       StandardSuperTableaux(i).cardinality() 
+            ....:       for i in range(10))
             True
         """
         tableaux_number = self.size % 2  # identity involution
@@ -790,7 +812,7 @@ class StandardSuperTableaux_shape(StandardSuperTableaux):
         """
         TESTS::
 
-            sage: repr(StandardSuperTableaux([2,1,1]))    # indirect doctest
+            sage: repr(StandardSuperTableaux([2,1,1]))
             'Standard super tableaux of shape [2, 1, 1]'
         """
         return "Standard super tableaux of shape %s"%str(self.shape)
@@ -895,10 +917,9 @@ class StandardSuperTableaux_shape(StandardSuperTableaux):
                 col += 1
         
         primedTableau = copy.deepcopy(tableau)
-        for row in primedTableau:
-            for i in row:
-                i = PrimedEntry(i/2)
-        
+        for i, row in enumerate(primedTableau):
+            for j, val in enumerate(row):
+                primedTableau[i][j] = PrimedEntry(float(val)/2)
         yield self.element_class(self, primedTableau)
 
         # iterate until we reach the last tableau which is
@@ -964,9 +985,9 @@ class StandardSuperTableaux_shape(StandardSuperTableaux):
                 row_count[tableau_vector[i]] += 1
 
             primedTableau = copy.deepcopy(tableau)
-            for row in primedTableau:
-                for i in row:
-                    i = PrimedEntry(i/2)
+            for i, row in enumerate(primedTableau):
+                for j, val in enumerate(row):
+                    primedTableau[i][j] = PrimedEntry(float(val)/2)
             yield self.element_class(self, primedTableau)
 
         return

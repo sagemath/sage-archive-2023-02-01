@@ -3127,15 +3127,18 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([6*x^2+16*x*y+16*y^2, -3*x^2-4*x*y-4*y^2])
             sage: f.is_postcritically_finite()
             True
+
+        ::
+
+            sage: K = UniversalCyclotomicField()
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: F = DynamicalSystem_projective([x^2 - y^2, y^2], domain=P)
+            sage: F.is_postcritically_finite()
+            True
         """
         #iteration of subschemes not yet implemented
         if self.domain().dimension_relative() > 1:
             raise NotImplementedError("only implemented in dimension 1")
-
-        #Since is_preperiodic uses heights we need to be over a numberfield
-        K = FractionField(self.codomain().base_ring())
-        if not K in NumberFields() and not K is QQbar:
-            raise NotImplementedError("must be over a number field or a number field order or QQbar")
 
         if embedding is None:
             F = self.change_ring(QQbar)
@@ -4321,11 +4324,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             raise TypeError("must be a morphism")
         if not P.codomain() == self.domain():
             raise TypeError("point must be in domain of map")
-
-        K = FractionField(self.codomain().base_ring())
-        if not K in NumberFields() and not K is QQbar:
-            raise NotImplementedError("must be over a number field or"
-                                      " a number field order or QQbar")
 
         h = self.canonical_height(P, error_bound = err)
         # we know canonical height 0 if and only if preperiodic

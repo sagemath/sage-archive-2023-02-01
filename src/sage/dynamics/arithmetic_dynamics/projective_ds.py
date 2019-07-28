@@ -1073,6 +1073,21 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             (134217728 : 524288)
             sage: f.nth_iterate(P(2,1), 3, normalize=True)
             (256 : 1)
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: f = DynamicalSystem([x+y,y])
+            sage: Q = (3,1)
+            sage: f.nth_iterate(Q,0)
+            (3 : 1)
+
+        TESTS::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: f = DynamicalSystem([x^2+y^2,y^2])
+            sage: f.nth_iterate(0,0)
+            (0 : 1)
         """
         n = ZZ(n)
         if n < 0:
@@ -1274,6 +1289,27 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             [(2 : 1), (8 : 2), (512 : 32), (134217728 : 524288)]
             sage: f.orbit(P(2, 1), 3, normalize=True)
             [(2 : 1), (4 : 1), (16 : 1), (256 : 1)]
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: f = DynamicalSystem_projective([x^2, y^2, x*z])
+            sage: f.orbit((2/3,1/3), 3)
+            [(2/3 : 1/3 : 1), (2/3 : 1/6 : 1), (2/3 : 1/24 : 1), (2/3 : 1/384 : 1)]
+
+        TESTS::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: f = DynamicalSystem([x^2+y^2,y^2])
+            sage: f.orbit(0, 0)
+            [(0 : 1)]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: f = DynamicalSystem([x^2-y^2,y^2])
+            sage: f.orbit(0,2)
+            [(0 : 1), (-1 : 1), (0 : 1)]
         """
         if not isinstance(N,(list,tuple)):
             N = [0,N]
@@ -1284,10 +1320,13 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         if N[0] > N[1]:
             return([])
 
-        Q = P
+        R = self.domain()(P)
+        if R in self.domain(): #Check whether R is a zero-dimensional point
+            Q = R
+        else:
+            Q = P
         check = kwds.pop("check",True)
         normalize = kwds.pop("normalize",False)
-
         if normalize:
             Q.normalize_coordinates()
         for i in range(1, N[0]+1):

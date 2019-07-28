@@ -1332,6 +1332,8 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             0
             sage: AbelianGroup([1,3,1]).number_of_subgroups(order=2)
             0
+            sage: AbelianGroup([1,3,0,1]).number_of_subgroups(order=3)
+            1
             sage: AbelianGroup([1,3,1]).number_of_subgroups(order=-2)
             Traceback (most recent call last):
             ...
@@ -1348,7 +1350,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         from collections import defaultdict
         from sage.arith.misc import factor
         from sage.combinat.q_analogues import q_subgroups_of_abelian_group
-        from sage.combinat.partition import Partitions
+        from sage.combinat.integer_lists import IntegerListsLex
 
         # The group order is prod(p^e for (p,e) in primary_factors)
         primary_factors = list(chain.from_iterable(
@@ -1356,11 +1358,11 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         sylow_types = defaultdict(list)
         for p, e in primary_factors:
             sylow_types[p].append(e)
-        subgroups_orders_by_prime = dict()
+        subgroups_orders_kwds = dict()
 
         if order is None:
             for p, p_exps in six.iteritems(sylow_types):
-                subgroups_orders_by_prime[p] = range(sum(p_exps) + 1)
+                subgroups_orders_kwds[p] = dict(max_sum=sum(p_exps))
         else:
             order = Integer(order)
             if order < 1:
@@ -1372,16 +1374,20 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             for p in (set(sylow_types) - set(order_exps)):
                 del sylow_types[p]
             for p in sylow_types:
-                subgroups_orders_by_prime[p] = [order_exps[p]]
+                subgroups_orders_kwds[p] = dict(n=order_exps[p])
 
         result = Integer(1)
         for p, p_exps in six.iteritems(sylow_types):
-            p_result = Integer(0)
             p_exps.sort(reverse=True)
-            for i in subgroups_orders_by_prime[p]:
-                for mu in Partitions(i, outer=p_exps):
-                    p_result += q_subgroups_of_abelian_group(p_exps, mu, q=p)
-            result *= p_result
+            # The sum is over all partitions mu contained in p_exps whose size
+            # is determined by subgroups_orders_kwds.
+            result *= sum(q_subgroups_of_abelian_group(p_exps, mu, q=p)
+                          for mu in IntegerListsLex(max_slope=0,
+                                                    min_part=1,
+                                                    max_length=len(p_exps),
+                                                    ceiling=p_exps,
+                                                    element_constructor=list,
+                                                    **subgroups_orders_kwds[p]))
         return result
 
     def subgroups(self, check=False):

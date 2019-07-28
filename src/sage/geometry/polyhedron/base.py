@@ -2296,8 +2296,11 @@ class Polyhedron_base(Element):
             raise ValueError("self should be compact")
 
         if self.is_simplicial():
-            facets = [f.ambient_V_indices() for f in self.facets()]
-            return SimplicialComplex(facets,maximality_check=False)
+            inc_mat_cols = self.incidence_matrix().columns()
+            ineq_indices = [inc_mat_cols[i].nonzero_positions()
+                            for i in range(self.n_Hrepresentation())
+                            if self.Hrepresentation()[i].is_inequality()]
+            return SimplicialComplex(ineq_indices,maximality_check=False)
         else:
             raise NotImplementedError("this function is only implemented for simplicial polytopes")
 

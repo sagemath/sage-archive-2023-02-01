@@ -565,7 +565,7 @@ def lex_DOWN(G, reverse=False, tree=False, initial_vertex=None):
         True
 
     """
-    # Loops and multiple edges are not needed in Lex DFS
+    # Loops and multiple edges are not needed in Lex DOWN
     if G.allows_loops() or G.allows_multiple_edges():
         G = G.to_simple(immutable=False)
 
@@ -585,7 +585,7 @@ def lex_DOWN(G, reverse=False, tree=False, initial_vertex=None):
     cdef short_digraph sd
     init_short_digraph(sd, G, edge_labelled=False, vertex_list=int_to_v)
 
-    # Perform Lex Down
+    # Perform Lex DOWN
 
     # We are using deque in order to prepend items in list efficiently
     cdef list code = [collections.deque([]) for i in range(nV)]

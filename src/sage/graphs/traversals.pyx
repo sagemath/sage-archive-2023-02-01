@@ -632,3 +632,34 @@ def lex_DOWN(G, reverse=False, tree=False, initial_vertex=None):
 
     else:
         return value
+
+def lex_M(G, labels=True, tree=False, initial_vertex=None):
+    r"""
+    Perform a lexicographic M search (LexM) of the graph.
+
+    INPUT:
+
+    - ``G`` -- a sage graph
+
+    - ``labels`` -- boolean (default: ``True``); whether to return the
+      labels assigned to each vertex
+
+    - ``tree`` -- boolean (default: ``False``); whether to return the
+      discovery directed tree (each vertex being linked to the one that saw
+      it for the first time)
+
+    - ``initial_vertex`` -- (default: ``None``); the first vertex to
+      consider
+
+    ALGORITHM:
+
+    This algorithm maintains for each vertex left in the graph a set of
+    labels corresponding to the vertices already removed. The vertex of maximal
+    code (according to the lexicographic order) is then removed, and the
+    labels are updated. In the `i`-th iteration of the algorithm the
+    algorithm finds all vertices `v` such that there exists a chain
+    `C=u=w_1.w_2...w_{p+1}=v` (where `u` is the current vertex) with `w_j` non
+    deleted and the label of of each `w_j` lexicographically smaller than the
+    label of `v` and and appends `i` to their labels.
+
+    """

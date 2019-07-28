@@ -4879,6 +4879,41 @@ class Polyhedron_base(Element):
         parent = self.parent().base_extend(self.center().parent())
         return parent.element_class(parent, None, [[[1] + list(v) for v in verts], []])
 
+    def is_self_dual(self):
+        r"""
+        Return whether the polytope is self-dual.
+
+        A polytope is self-dual if its face lattice is isomorphic to the face
+        lattice of its dual polytope.
+
+        EXAMPLES::
+
+            sage: polytopes.simplex().is_self_dual()
+            True
+            sage: polytopes.twenty_four_cell().is_self_dual()
+            True
+            sage: polytopes.cube().is_self_dual()
+            False
+            sage: polytopes.hypersimplex(5,2).is_self_dual()
+            False
+            sage: P = Polyhedron(vertices=[[1/2, 1/3]], rays=[[1, 1]]).is_self_dual()
+            Traceback (most recent call last):
+            ...
+            ValueError: polyhedron has to be compact
+
+        """
+        if not self.is_compact():
+            raise ValueError("polyhedron has to be compact")
+
+        n = self.n_vertices()
+        m = self.n_facets()
+        if n != m:
+            return False
+
+        G1 = self.vertex_facet_graph()
+        G2 = G1.reverse()
+        return G1.is_isomorphic(G2)
+
     def pyramid(self):
         """
         Returns a polyhedron that is a pyramid over the original.

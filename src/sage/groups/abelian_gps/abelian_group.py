@@ -1289,11 +1289,11 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         INPUT:
 
         - ``order`` -- (default: ``None``) find the number of subgroups of this
-          order; if ``None``, this defaults to counting all subgroups.
+          order; if ``None``, this defaults to counting all subgroups
 
         ALGORITHM:
 
-        An infinite group has infinitly many subgroups. All finite subgroups of
+        An infinite group has infinitely many subgroups. All finite subgroups of
         any group are contained in the torsion subgroup, which for finitely
         generated abelian group is itself finite. Hence, we can assume the
         group is finite. A finite abelian group is isomorphic to a direct
@@ -1301,10 +1301,9 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         further to counting subgroups of finite abelian `p`-groups.
 
         Assume a Sylow subgroup is a `p`-group of type `\lambda`, and using
-        :meth:`q_subgroups_of_abelian_group
-        <sage.combinat.q_analogues.q_subgroups_of_abelian_group>` sum the
-        number of subgroups of type `\mu` in an abelian `p`-group of type
-        `\lambda` for all `\mu` contained in `\lambda`.
+        :func:`~sage.combinat.q_analogues.q_subgroups_of_abelian_group`
+        sum the number of subgroups of type `\mu` in an abelian `p`-group of
+        type `\lambda` for all `\mu` contained in `\lambda`.
 
         EXAMPLES::
 
@@ -1349,7 +1348,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         from collections import defaultdict
         from sage.arith.misc import factor
         from sage.combinat.q_analogues import q_subgroups_of_abelian_group
-        from sage.combinat.partition import Partition, Partitions
+        from sage.combinat.partition import Partitions
 
         # The group order is prod(p^e for (p,e) in primary_factors)
         primary_factors = list(chain.from_iterable(
@@ -1357,13 +1356,11 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         sylow_types = defaultdict(list)
         for p, e in primary_factors:
             sylow_types[p].append(e)
-        orders_by_prime = dict()
+        subgroups_orders_by_prime = dict()
 
         if order is None:
             for p, p_exps in six.iteritems(sylow_types):
-                p_exps.sort(reverse=True)
-                p_exps = Partition(p_exps)
-                orders_by_prime[p] = range(p_exps.size() + 1)
+                subgroups_orders_by_prime[p] = range(sum(p_exps) + 1)
         else:
             order = Integer(order)
             if order < 1:
@@ -1372,17 +1369,16 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
                 return Integer(0)
             order_exps = dict(factor(order))
 
-            for p in set(sylow_types) - set(order_exps):
+            for p in (set(sylow_types) - set(order_exps)):
                 del sylow_types[p]
-            for p, p_exps in six.iteritems(sylow_types):
-                p_exps.sort(reverse=True)
-                p_exps = Partition(p_exps)
-                orders_by_prime[p] = [order_exps[p]]
+            for p in sylow_types:
+                subgroups_orders_by_prime[p] = [order_exps[p]]
 
         result = Integer(1)
         for p, p_exps in six.iteritems(sylow_types):
             p_result = Integer(0)
-            for i in orders_by_prime[p]:
+            p_exps.sort(reverse=True)
+            for i in subgroups_orders_by_prime[p]:
                 for mu in Partitions(i, outer=p_exps):
                     p_result += q_subgroups_of_abelian_group(p_exps, mu, q=p)
             result *= p_result
@@ -1538,10 +1534,10 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             Multiplicative Abelian subgroup isomorphic to C2 x C3 generated
             by {f0, f3}
             sage: G = AbelianGroup([])
-            sage: G.subgroup([])
+            sage: G.torsion_subgroup()
             Trivial Abelian subgroup
             sage: G = AbelianGroup([0, 0])
-            sage: G.subgroup([])
+            sage: G.torsion_subgroup()
             Trivial Abelian subgroup
         """
         torsion_generators = [g for g in self.gens() if g.order() != infinity]

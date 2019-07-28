@@ -2323,7 +2323,7 @@ class Polytopes():
 
             sage: perm_b3 = polytopes.generalized_permutahedron(['B',3]); perm_b3
             A 3-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095?)^3 defined as the convex hull of 48 vertices
-            sage: perm_b3_reg = polytopes.generalized_permutahedron(['B',3],regular=True); perm_b3_reg # long time - 12sec.
+            sage: perm_b3_reg = polytopes.generalized_permutahedron(['B',3],regular=True); perm_b3_reg # not tested - long time (12sec on 64-bits).
             A 3-dimensional polyhedron in AA^3 defined as the convex hull of 48 vertices
 
         It is faster with the backend ``'normaliz'``::

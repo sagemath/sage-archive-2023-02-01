@@ -4,8 +4,13 @@ Super Tableaux
 AUTHORS:
 
 - Chaman Agrawal (2019-07-23): Initial version
-"""
 
+REFERENCES:
+
+.. [RM2017] Robert Muth.
+   *Super RSK correspondence with symmetry*.
+   :arXiv:`1711.00420v1`.
+"""
 from __future__ import print_function, absolute_import
 
 from sage.sets.non_negative_integers import NonNegativeIntegers
@@ -20,10 +25,9 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.shifted_primed_tableau import PrimedEntry
 from sage.combinat.tableau import Tableau, Tableaux, SemistandardTableaux
 
-
 class SemistandardSuperTableau(Tableau):
     """
-    A class to model a semistandard super tableau.
+    A class to model a semistandard super tableau defined in [RM2017].
 
     INPUT:
 
@@ -220,7 +224,7 @@ class SemistandardSuperTableau(Tableau):
 
 class StandardSuperTableau(SemistandardSuperTableau):
     r"""
-        A class to model a standard super tableau.
+        A class to model a standard super tableau defined in [RM2017].
 
     INPUT:
 

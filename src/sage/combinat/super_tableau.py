@@ -8,10 +8,19 @@ AUTHORS:
 
 from __future__ import print_function, absolute_import
 
+from sage.sets.non_negative_integers import NonNegativeIntegers
+from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
+from sage.sets.family import Family
 from sage.structure.parent import Parent
+from sage.arith.all import factorial
+from sage.rings.integer import Integer
+from sage.misc.all import prod
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.shifted_primed_tableau import PrimedEntry
 from sage.combinat.tableau import Tableau, Tableaux, SemistandardTableaux
+from sage.categories.sets_cat import Sets
+from sage.structure.unique_representation import UniqueRepresentation
 
 
 class SemistandardSuperTableau(Tableau):
@@ -303,8 +312,9 @@ class StandardSuperTableau(SemistandardSuperTableau):
         for i in range(len(flattened_list)):
             primed_list.append(a)
             a = a.increase_half()
+
         if sorted(flattened_list) != primed_list:
-            raise ValueError("the entries in a standard tableau must be in bijection with 1',1,2',2,...,n")
+            raise ValueError("%s the entries in a standard tableau must be in bijection with 1',1,2',2,...,n"%str(flattened_list))
 
     def is_standard(self):
         """
@@ -445,13 +455,24 @@ class SemistandardSuperTableaux_all(SemistandardSuperTableaux):
 ################################
 # Standard Super tableaux #
 ################################
-class StandardSuperTableaux(SemistandardSuperTableaux):
+class StandardSuperTableaux(SemistandardSuperTableaux, Parent):
     r"""
     A factory class for the various classes of standard super tableaux.
 
+    INPUT:
+
+    - Either a non-negative integer (possibly specified with the keyword ``n``)
+      or a partition.
+    
     OUTPUT:
 
     - The class of all standard super tableaux
+
+    - With a non-negative integer argument, ``n``, the class of all standard
+      super tableaux of size ``n``
+
+    - With a partition argument, the class of all standard super tableaux of 
+      that shape.
 
     A standard super tableau is a tableau whose entries are primed positive 
     integers, which are strictly increasing in rows and down columns and 
@@ -461,9 +482,34 @@ class StandardSuperTableaux(SemistandardSuperTableaux):
         sage: from sage.combinat.super_tableau import StandardSuperTableaux
         sage: SST = StandardSuperTableaux(); SST
         Standard super tableaux
+        sage: SST = StandardSuperTableaux(3); SST
+        Standard super tableaux of size 3
+        sage: SST.first()
+        [[1', 1, 2']]
+        sage: SST.last()
+        [[1'], [1], [2']]
+        sage: SST.cardinality()
+        4
+        sage: SST.list()
+        [[[1', 1, 2']], [[1', 2'], [1]], [[1', 1], [2']], [[1'], [1], [2']]]
+
+    TESTS::
+
+        sage: StandardSuperTableaux()([])
+        []
+        sage: SST = StandardSuperTableaux([3,2]); SST
+        Standard super tableaux of shape [3, 2]
+        sage: SST.first()
+        [[1', 2', 3'], [1, 2]]
+        sage: SST.last()
+        [[1', 1, 2'], [2, 3']]
+        sage: SST.cardinality()
+        5
+        sage: SST.list()
+
     """
     @staticmethod
-    def __classcall_private__(cls):
+    def __classcall_private__(cls, *args, **kwargs):
         r"""
         This is a factory class which returns the appropriate parent based on
         arguments.  See the documentation for :class:`StandardTableaux` for
@@ -473,8 +519,43 @@ class StandardSuperTableaux(SemistandardSuperTableaux):
             sage: from sage.combinat.super_tableau import StandardSuperTableaux
             sage: SST = StandardSuperTableaux(); SST
             Standard super tableaux
+            sage: StandardSuperTableaux(3)
+            Standard super tableaux of size 3
+            sage: StandardSuperTableaux([2,2])
+            Standard super tableaux of shape [2, 2]
+            sage: StandardSuperTableaux(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: the argument must be a non-negative integer or a partition
+            sage: StandardSuperTableaux([[1]])
+            Traceback (most recent call last):
+            ...
+            ValueError: the argument must be a non-negative integer or a partition
         """
-        return StandardSuperTableaux_all()
+        from sage.combinat.partition import _Partitions
+        from sage.combinat.skew_partition import SkewPartitions
+
+        if args:
+            n = args[0]
+        elif 'n' in kwargs:
+            n = kwargs['n']
+        else:
+            n = None
+
+        if n is None:
+            return StandardSuperTableaux_all()
+
+        elif n in _Partitions:
+            return StandardSuperTableaux_shape(_Partitions(n))
+
+        elif n in SkewPartitions():
+            raise NotImplementedError("""Standard super tableau for skew partitions 
+                                        is not implemented yet""")
+
+        if not isinstance(n, (int, Integer)) or n < 0:
+            raise ValueError("the argument must be a non-negative integer or a partition")
+
+        return StandardSuperTableaux_size(n)
 
     Element = StandardSuperTableau
 
@@ -557,3 +638,365 @@ class StandardSuperTableaux_all(StandardSuperTableaux):
             'Standard super tableaux'
         """
         return "Standard super tableaux"
+
+
+class StandardSuperTableaux_size(StandardSuperTableaux):
+    """
+    Standard super tableaux of fixed size `n`.
+
+    EXAMPLES::
+
+        sage: [ t for t in StandardSuperTableaux(1) ]
+        [[[1]]]
+        sage: [ t for t in StandardSuperTableaux(2) ]
+        [[[1, 2]], [[1], [2]]]
+        sage: [ t for t in StandardSuperTableaux(3) ]
+        [[[1, 2, 3]], [[1, 3], [2]], [[1, 2], [3]], [[1], [2], [3]]]
+        sage: StandardSuperTableaux(4)[:]
+        [[[1, 2, 3, 4]],
+         [[1, 3, 4], [2]],
+         [[1, 2, 4], [3]],
+         [[1, 2, 3], [4]],
+         [[1, 3], [2, 4]],
+         [[1, 2], [3, 4]],
+         [[1, 4], [2], [3]],
+         [[1, 3], [2], [4]],
+         [[1, 2], [3], [4]],
+         [[1], [2], [3], [4]]]
+    """
+    def __init__(self, n):
+        r"""
+        Initializes the class of all standard super tableaux of size ``n``.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`StandardSuperTableaux` to
+            ensure the options are properly parsed.
+        """
+        Parent.__init__(self, category=FiniteEnumeratedSets())
+        StandardSuperTableaux.__init__(self)
+        self.size = Integer(n)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: StandardSuperTableaux(3)
+            Standard super tableaux of size 3
+        """
+        return "Standard super tableaux of size %s" % self.size
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+            sage: SST3 = StandardSuperTableaux(3)
+            sage: all(st in SST3 for st in SST3)
+            True
+            sage: SST4 = StandardSuperTableaux(4)
+            sage: [x for x in SST4 if x in SST3]
+            []
+            sage: 1 in StandardSuperTableaux(4)
+            False
+        """
+        return StandardSuperTableaux.__contains__(self, x) and sum(map(len, x)) == self.size
+
+    def cardinality(self):
+        r"""
+        Return the number of all standard super tableaux of size ``n``.
+
+        The number of standard super tableaux of size `n` is equal to the
+        number of standard tableaux of size `n` which is equal to the number 
+        of involutions in the symmetric group `S_n`.
+
+        ALGORITHM:
+
+        The algorithm uses the fact that standard super tableaux are in 
+        bijection with standard tableaux of size ``n`` which themselves are 
+        in bijection with the involutions of size ``n``, (see page 41 in 
+        section 4.1 of [Ful1997]_).  For each number of fixed points, you 
+        count the number of ways to choose those fixed points multiplied 
+        by the number of perfect matchings on the remaining values.
+
+        EXAMPLES::
+
+            sage: StandardSuperTableaux(3).cardinality()
+            4
+            sage: ns = [1,2,3,4,5,6]
+            sage: sts = [StandardSuperTableaux(n) for n in ns]
+            sage: all(st.cardinality() == len(st.list()) for st in sts)
+            True
+            sage: StandardSuperTableaux(50).cardinality()  # long time
+            27886995605342342839104615869259776
+
+        TESTS::
+
+            sage: def cardinality_using_hook_formula(n):
+            ....:     c = 0
+            ....:     for p in Partitions(n):
+            ....:         c += StandardSuperTableaux(p).cardinality()
+            ....:     return c
+            sage: all(cardinality_using_hook_formula(i) == StandardSuperTableaux(i).cardinality() for i in range(10))
+            True
+        """
+        tableaux_number = self.size % 2  # identity involution
+        fixed_point_numbers = list(range(tableaux_number, self.size + 1 - tableaux_number, 2))
+
+        # number of involutions of size "size" (number of ways to
+        # choose "fixed_point_number" out of "size" elements *
+        # number of involutions without fixed point of size
+        # "size" - "fixed_point_number")
+        for fixed_point_number in fixed_point_numbers:
+            tableaux_number += (self.size.binomial(fixed_point_number) *
+                                prod(range(1, self.size - fixed_point_number, 2)))
+
+        return tableaux_number
+
+
+class StandardSuperTableaux_shape(StandardSuperTableaux):
+    """
+    Standard super tableaux of a fixed shape `p`.
+    """
+    def __init__(self, p):
+        r"""
+        Initializes the class of all standard super tableaux of a given shape.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`StandardSuperTableaux` to
+            ensure the options are properly parsed.
+        """
+        super(StandardSuperTableaux_shape, self).__init__(category=FiniteEnumeratedSets())
+        StandardSuperTableaux.__init__(self)
+        self.shape = p
+
+    def __contains__(self, x):
+        """
+        EXAMPLES::
+
+            sage: ST = StandardSuperTableaux([2,1,1])
+            sage: all(st in ST for st in ST)
+            True
+            sage: len([x for x in StandardSuperTableaux(4) if x in ST])
+            3
+            sage: ST.cardinality()
+            3
+            sage: 1 in StandardSuperTableaux([2,1,1])
+            False
+        """
+        return StandardSuperTableaux.__contains__(self, x) and [len(_) for _ in x] == self.shape
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: repr(StandardSuperTableaux([2,1,1]))    # indirect doctest
+            'Standard super tableaux of shape [2, 1, 1]'
+        """
+        return "Standard super tableaux of shape %s"%str(self.shape)
+
+    def cardinality(self):
+        r"""
+        Return the number of standard super tableaux of given shape.
+
+        This method uses the so-called *hook length formula*, a formula
+        for the number of Young tableaux associated with a given
+        partition. The formula says the following: Let `\lambda` be a
+        partition. For each cell `c` of the Young diagram of `\lambda`,
+        let the *hook length* of `c` be defined as `1` plus the number of
+        cells horizontally to the right of `c` plus the number of cells
+        vertically below `c`. The number of standard Young tableaux of
+        shape `\lambda` is then `n!` divided by the product of the hook
+        lengths of the shape of `\lambda`, where `n = |\lambda|`.
+
+        For example, consider the partition ``[3,2,1]`` of ``6`` with
+        Ferrers diagram::
+
+            # # #
+            # #
+            #
+
+        When we fill in the cells with their respective hook lengths, we
+        obtain::
+
+            5 3 1
+            3 1
+            1
+
+        The hook length formula returns
+
+        .. MATH::
+
+            \frac{6!}{5 \cdot 3 \cdot 1 \cdot 3 \cdot 1 \cdot 1} = 16.
+
+        EXAMPLES::
+
+            sage: StandardSuperTableaux([3,2,1]).cardinality()
+            16
+            sage: StandardSuperTableaux([2,2]).cardinality()
+            2
+            sage: StandardSuperTableaux([5]).cardinality()
+            1
+            sage: StandardSuperTableaux([6,5,5,3]).cardinality()
+            6651216
+            sage: StandardSuperTableaux([]).cardinality()
+            1
+
+        REFERENCES:
+
+        - http://mathworld.wolfram.com/HookLengthFormula.html
+        """
+        pi = self.shape
+
+        number = factorial(sum(pi))
+        hook = pi.hook_lengths()
+
+        for row in hook:
+            for col in row:
+                #Divide the hook length by the entry
+                number /= col
+
+        return Integer(number)
+
+    def __iter__(self):
+        r"""
+        An iterator for the standard super tableaux associated to the
+        shape `p` of ``self``.
+
+        EXAMPLES::
+
+            sage: [t for t in StandardSuperTableaux([2,2])]
+            [[[1', 2'], [1, 2]], [[1', 1], [2', 2]]]
+            sage: [t for t in StandardSuperTableaux([3,2])]
+            [[[1', 2', 3'], [1, 2]],
+             [[1', 1, 3'], [2', 2]],
+             [[1', 2', 2], [1, 3']],
+             [[1', 1, 2], [2', 3']],
+             [[1', 1, 2'], [2, 3']]]
+            sage: st = StandardSuperTableaux([2,1])
+            sage: st[0].parent() is st
+            True
+        """
+        import copy
+        pi = self.shape
+        #Set the initial tableau by filling it in going down the columns
+        tableau = [[None]*n for n in pi]
+        size = sum(pi)
+        row = 0
+        col = 0
+        for i in range(size):
+            tableau[row][col] = i+1
+            #If we can move down, then do it;
+            #otherwise, move to the next column over
+            if ( row + 1 < len(pi) and col < pi[row+1]):
+                row += 1
+            else:
+                row = 0
+                col += 1
+        
+        primedTableau = copy.deepcopy(tableau)
+        for row in primedTableau:
+            for i in row:
+                i = PrimedEntry(i/2)
+        
+        yield self.element_class(self, primedTableau)
+
+        # iterate until we reach the last tableau which is
+        # filled with the row indices.
+        last_tableau = sum([[row]*l for (row,l) in enumerate(pi)], [])
+
+        #Convert the tableau to "vector format"
+        #tableau_vector[i] is the row that number i
+        #is in
+        tableau_vector = [None]*size
+        for row in range(len(pi)):
+            for col in range(pi[row]):
+                tableau_vector[tableau[row][col]-1] = row
+
+        while tableau_vector!=last_tableau:
+            #Locate the smallest integer j such that j is not
+            #in the lowest corner of the subtableau T_j formed by
+            #1,...,j.  This happens to be first j such that
+            #tableau_vector[j]<tableau_vector[j-1].
+            #l will correspond to the shape of T_j
+            l = [0]*size
+            l[0] = 1
+            j = 0
+            for i in range(1,size):
+                l[tableau_vector[i]] += 1
+                if ( tableau_vector[i] < tableau_vector[i-1] ):
+                    j = i
+                    break
+
+            #Find the last nonzero row of l and store it in k
+            i = size - 1
+            while ( l[i] == 0 ):
+                i -= 1
+            k = i
+
+            #Find a new row for the letter j (next lowest corner)
+            t = l[ 1 + tableau_vector[j] ]
+            i = k
+            while ( l[i] != t ):
+                i -= 1
+
+            #Move the letter j to row i
+            tableau_vector[j] = i
+            l[i] -= 1
+
+            #Fill in the columns of T_j using 1,...,j-1 in increasing order
+            m = 0
+            while ( m < j ):
+                r = 0
+                while ( l[r] != 0 ):
+                    tableau_vector[m] = r
+                    l[r] -= 1
+                    m += 1
+                    r += 1
+
+            #Convert the tableau vector back to the regular tableau
+            #format
+            row_count= [0]*len(pi)
+            tableau = [[None]*n for n in pi]
+
+            for i in range(size):
+                tableau[tableau_vector[i]][row_count[tableau_vector[i]]] = i+1
+                row_count[tableau_vector[i]] += 1
+
+            primedTableau = copy.deepcopy(tableau)
+            for row in primedTableau:
+                for i in row:
+                    i = PrimedEntry(i/2)
+            yield self.element_class(self, primedTableau)
+
+        return
+
+    def list(self):
+        r"""
+        Return a list of the standard super tableaux of the specified shape.
+
+        EXAMPLES::
+
+            sage: StandardSuperTableaux([2,2]).list()
+            [[[1', 2'], [1, 2]], [[1', 1], [2', 2]]]
+            sage: StandardSuperTableaux([5]).list()
+            [[[1', 1, 2', 2, 3']]]
+            sage: StandardSuperTableaux([3,2,1]).list()
+            [[[1', 2, 3], [1, 3'], [2']],
+             [[1', 2', 3], [1, 3'], [2]],
+             [[1', 1, 3], [2', 3'], [2]],
+             [[1', 2', 3], [1, 2], [3']],
+             [[1', 1, 3], [2', 2], [3']],
+             [[1', 2, 3'], [1, 3], [2']],
+             [[1', 2', 3'], [1, 3], [2]],
+             [[1', 1, 3'], [2', 3], [2]],
+             [[1', 2', 2], [1, 3], [3']],
+             [[1', 1, 2], [2', 3], [3']],
+             [[1', 1, 2'], [2, 3], [3']],
+             [[1', 2', 3'], [1, 2], [3]],
+             [[1', 1, 3'], [2', 2], [3]],
+             [[1', 2', 2], [1, 3'], [3]],
+             [[1', 1, 2], [2', 3'], [3]],
+             [[1', 1, 2'], [2, 3'], [3]]]
+        """
+        return [y for y in self]

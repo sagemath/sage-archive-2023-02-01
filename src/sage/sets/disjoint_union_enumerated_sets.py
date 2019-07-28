@@ -285,7 +285,7 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
         self._facade  = facade
         if facade:
             if family in FiniteEnumeratedSets():
-                self._facade_for = tuple(family)
+                self._facade_for = family
             else:
                 # This allows the test suite to pass its tests by essentially
                 #   stating that this is a facade for any parent. Technically
@@ -576,7 +576,7 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
                 raise ValueError("cannot coerce `%s` in the parent `%s`"%(el[1], P))
 
         # Check first to see if the parent of el is in the family
-        if (isinstance(el, Element) and isinstance(self._facade_for, tuple)
+        if (isinstance(el, Element) and self._facade_for is not True
             and el.parent() in self._facade_for):
             return el
 

@@ -1382,8 +1382,9 @@ class ImplicitSuffixTree(SageObject):
 
     def suffix_walk(self, edge, l):
         r"""
-        Compute the suffix walk from the input state. If the input state
-        ``(edge, l)`` is path labeled "aw" with "a" a letter, the output is
+        Return the state of "w" if the input state is "aw".
+
+        If the input state ``(edge, l)`` is path labeled "aw" with "a" a letter, the output is
         the state which is path labeled "w".
 
         INPUT:
@@ -1393,8 +1394,8 @@ class ImplicitSuffixTree(SageObject):
 
         OUTPUT:
 
-        Return ("explicit", ``end_node``) if the state of w is an explicit
-        state and ("implicit", ``edge``, ``d``) is obtained by reading ``d``
+        Return ``("explicit", end_node)`` if the state of w is an explicit
+        state and ``("implicit", edge, d)`` is obtained by reading ``d``
         letters on ``edge``.
 
         EXAMPLES::

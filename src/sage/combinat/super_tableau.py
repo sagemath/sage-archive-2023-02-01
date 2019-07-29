@@ -29,7 +29,7 @@ from sage.misc.all import prod
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.shifted_primed_tableau import PrimedEntry
-from sage.combinat.tableau import Tableau, Tableaux, SemistandardTableaux
+from sage.combinat.tableau import Tableau, Tableaux, SemistandardTableaux, StandardTableaux
 
 class SemistandardSuperTableau(Tableau):
     """
@@ -690,18 +690,9 @@ class StandardSuperTableaux_size(StandardSuperTableaux, DisjointUnionEnumeratedS
         r"""
         Return the number of all standard super tableaux of size ``n``.
 
-        The number of standard super tableaux of size `n` is equal to the
-        number of standard tableaux of size `n` which is equal to the number 
-        of involutions in the symmetric group `S_n`.
-
-        ALGORITHM:
-
-        The algorithm uses the fact that standard super tableaux are in 
-        bijection with standard tableaux of size ``n`` which themselves are 
-        in bijection with the involutions of size ``n``, (see page 41 in 
-        section 4.1 of [Ful1997]_).  For each number of fixed points, you 
-        count the number of ways to choose those fixed points multiplied 
-        by the number of perfect matchings on the remaining values.
+        The standard super tableaux of size `n` are in bijection with the 
+        corresponding standard tableaux (under the alphabet relabeling). Refer 
+        :class:`sage.combinat.tableau.StandardTableaux_size` for more details.
 
         EXAMPLES::
 
@@ -726,19 +717,7 @@ class StandardSuperTableaux_size(StandardSuperTableaux, DisjointUnionEnumeratedS
             ....:       for i in range(10))
             True
         """
-        tableaux_number = self.size % 2  # identity involution
-        fixed_point_numbers = list(range(tableaux_number, self.size + 1 - tableaux_number, 2))
-
-        # number of involutions of size "size" (number of ways to
-        # choose "fixed_point_number" out of "size" elements *
-        # number of involutions without fixed point of size
-        # "size" - "fixed_point_number")
-        for fixed_point_number in fixed_point_numbers:
-            tableaux_number += (self.size.binomial(fixed_point_number) *
-                                prod(range(1, self.size - fixed_point_number, 2)))
-
-        return tableaux_number
-
+        return StandardTableaux(self.size).cardinality()
 
 class StandardSuperTableaux_shape(StandardSuperTableaux):
     """
@@ -785,35 +764,10 @@ class StandardSuperTableaux_shape(StandardSuperTableaux):
         r"""
         Return the number of standard super tableaux of given shape.
 
-        This method uses the so-called *hook length formula*, a formula
-        for the number of Young tableaux associated with a given
-        partition. The formula says the following: Let `\lambda` be a
-        partition. For each cell `c` of the Young diagram of `\lambda`,
-        let the *hook length* of `c` be defined as `1` plus the number of
-        cells horizontally to the right of `c` plus the number of cells
-        vertically below `c`. The number of standard Young tableaux of
-        shape `\lambda` is then `n!` divided by the product of the hook
-        lengths of the shape of `\lambda`, where `n = |\lambda|`.
-
-        For example, consider the partition ``[3,2,1]`` of ``6`` with
-        Ferrers diagram::
-
-            # # #
-            # #
-            #
-
-        When we fill in the cells with their respective hook lengths, we
-        obtain::
-
-            5 3 1
-            3 1
-            1
-
-        The hook length formula returns
-
-        .. MATH::
-
-            \frac{6!}{5 \cdot 3 \cdot 1 \cdot 3 \cdot 1 \cdot 1} = 16.
+        The standard super tableaux of a fixed shape `p` are in bijection with 
+        the corresponding standard tableaux (under the alphabet relabeling). 
+        Refer :class:`sage.combinat.tableau.StandardTableaux_shape` for more 
+        details.
 
         EXAMPLES::
 
@@ -833,16 +787,7 @@ class StandardSuperTableaux_shape(StandardSuperTableaux):
         - http://mathworld.wolfram.com/HookLengthFormula.html
         """
         pi = self.shape
-
-        number = factorial(sum(pi))
-        hook = pi.hook_lengths()
-
-        for row in hook:
-            for col in row:
-                #Divide the hook length by the entry
-                number /= col
-
-        return Integer(number)
+        return StandardTableaux(pi).cardinality()
 
     def __iter__(self):
         r"""
@@ -865,93 +810,12 @@ class StandardSuperTableaux_shape(StandardSuperTableaux):
         """
         import copy
         pi = self.shape
-        #Set the initial tableau by filling it in going down the columns
-        tableau = [[None]*n for n in pi]
-        size = sum(pi)
-        row = 0
-        col = 0
-        for i in range(size):
-            tableau[row][col] = i+1
-            #If we can move down, then do it;
-            #otherwise, move to the next column over
-            if ( row + 1 < len(pi) and col < pi[row+1]):
-                row += 1
-            else:
-                row = 0
-                col += 1
-        
-        primedTableau = copy.deepcopy(tableau)
-        for i, row in enumerate(primedTableau):
-            for j, val in enumerate(row):
-                primedTableau[i][j] = PrimedEntry(float(val)/2)
-        yield self.element_class(self, primedTableau)
 
-        # iterate until we reach the last tableau which is
-        # filled with the row indices.
-        last_tableau = sum([[row]*l for (row,l) in enumerate(pi)], [])
-
-        #Convert the tableau to "vector format"
-        #tableau_vector[i] is the row that number i
-        #is in
-        tableau_vector = [None]*size
-        for row in range(len(pi)):
-            for col in range(pi[row]):
-                tableau_vector[tableau[row][col]-1] = row
-
-        while tableau_vector!=last_tableau:
-            #Locate the smallest integer j such that j is not
-            #in the lowest corner of the subtableau T_j formed by
-            #1,...,j.  This happens to be first j such that
-            #tableau_vector[j]<tableau_vector[j-1].
-            #l will correspond to the shape of T_j
-            l = [0]*size
-            l[0] = 1
-            j = 0
-            for i in range(1,size):
-                l[tableau_vector[i]] += 1
-                if ( tableau_vector[i] < tableau_vector[i-1] ):
-                    j = i
-                    break
-
-            #Find the last nonzero row of l and store it in k
-            i = size - 1
-            while ( l[i] == 0 ):
-                i -= 1
-            k = i
-
-            #Find a new row for the letter j (next lowest corner)
-            t = l[ 1 + tableau_vector[j] ]
-            i = k
-            while ( l[i] != t ):
-                i -= 1
-
-            #Move the letter j to row i
-            tableau_vector[j] = i
-            l[i] -= 1
-
-            #Fill in the columns of T_j using 1,...,j-1 in increasing order
-            m = 0
-            while ( m < j ):
-                r = 0
-                while ( l[r] != 0 ):
-                    tableau_vector[m] = r
-                    l[r] -= 1
-                    m += 1
-                    r += 1
-
-            #Convert the tableau vector back to the regular tableau
-            #format
-            row_count= [0]*len(pi)
-            tableau = [[None]*n for n in pi]
-
-            for i in range(size):
-                tableau[tableau_vector[i]][row_count[tableau_vector[i]]] = i+1
-                row_count[tableau_vector[i]] += 1
-
-            primedTableau = copy.deepcopy(tableau)
-            for i, row in enumerate(primedTableau):
-                for j, val in enumerate(row):
-                    primedTableau[i][j] = PrimedEntry(float(val)/2)
+        for tableau in StandardTableaux(pi):
+            primedTableau = []
+            for row in tableau:
+                primedTableau.append([])
+                for val in row:
+                    primedTableau[-1].append(PrimedEntry(float(val)/2))
             yield self.element_class(self, primedTableau)
-
         return

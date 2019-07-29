@@ -1809,7 +1809,7 @@ def RandomTriangulation(n, set_position=False, k=3):
         sage: G.girth()
         3
         sage: G.plot(vertex_size=0, vertex_labels=False)
-        Launched png viewer for Graphics object consisting of 13 graphics primitives
+        Graphics object consisting of 13 graphics primitives
 
         sage: H = graphs.RandomTriangulation(7, k=5)
         sage: sorted(len(f) for f in H.faces())

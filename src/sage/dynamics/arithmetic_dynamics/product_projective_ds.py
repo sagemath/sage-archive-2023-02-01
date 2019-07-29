@@ -319,7 +319,8 @@ class DynamicalSystem_product_projective_finite_field(DynamicalSystem_product_pr
             sage: f.cyclegraph()
             Looped digraph on 21 vertices
 
-        .. TODO:: Implement cyclegraph for subschemes
+        .. TODO:: Dynamical systems for subschemes of product projective spaces needs work.
+                  Thus this is not implemented for subschemes.
         """
         V = []
         E = []
@@ -331,15 +332,6 @@ class DynamicalSystem_product_projective_finite_field(DynamicalSystem_product_pr
                 E.append([str(Q)])
         else:
             raise NotImplementedError("Cyclegraph for product projective spaces not implemented for subschemes")
-            '''X = self.domain()
-            for P in X.ambient_space():
-                try:
-                    XP = X.point(P)
-                    V.append(str(XP))
-                    Q = self(XP)
-                    E.append([str(Q)])
-                except TypeError:  # not on the scheme
-                    pass'''
         from sage.graphs.digraph import DiGraph
         g = DiGraph(dict(zip(V, E)), loops=True)
         return g

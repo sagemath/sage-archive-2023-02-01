@@ -1815,6 +1815,50 @@ cdef class NumberFieldElement(FieldElement):
         else:
             return R(R.complex_field()(self))
 
+    def _acb_(self, R):
+        r"""
+        Convert this number field element to a complex ball.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = QQ[]
+            sage: NF.<a> = NumberField(x^7 + 2, embedding=CC(0.99, 0.47))
+            sage: CBF(a)
+            [0.9947502791976272 +/- 1.09e-17] + [0.4790464865132800 +/- 1.46e-17]*I
+            sage: NF.<a> = NumberField(x^7 + 2, embedding=QQbar(-2)^(1/7))
+            sage: CBF(a)
+            [0.9947502791976272 +/- 1.09e-17] + [0.4790464865132800 +/- 1.46e-17]*I
+            sage: NF.<a> = NumberField(x^7 + 2)
+            sage: CBF(NF(3))
+            3.000000000000000
+            sage: CBF(a)
+            Traceback (most recent call last):
+            ...
+            TypeError: Unable to coerce a to a rational
+        """
+        from sage.rings.complex_arb import ComplexBallField
+        if self.parent().coerce_embedding() is None:
+            return R(self.base_ring()(self))
+        coef = self._coefficients()
+        if not coef:
+            return R.zero()
+        cdef int ini_prec = R.precision()
+        cdef int max_prec = ini_prec + max(mpz_sizeinbase(mpq_numref((<Rational> c).value), 2)
+                                           for c in coef)
+        cdef int prec = ini_prec + 2*len(coef)
+        gen = self._parent.gen_embedding()
+        while True:
+            C = ComplexBallField(prec)
+            g = C(gen)
+            val = C(coef[0])
+            p = C.one()
+            for c in coef[1:]:
+                p *= g
+                val += C(c)*p
+            if prec > max_prec or val.accuracy() >= ini_prec - 4:
+                return R(val)
+            prec *= 2
+
     def __float__(self):
         """
         EXAMPLES::

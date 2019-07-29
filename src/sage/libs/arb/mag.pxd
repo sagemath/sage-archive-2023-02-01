@@ -1,4 +1,4 @@
-# distutils: libraries = gmp flint arb
+# distutils: libraries = gmp flint ARB_LIBRARY
 # distutils: depends = mag.h
 
 from sage.libs.arb.types cimport *

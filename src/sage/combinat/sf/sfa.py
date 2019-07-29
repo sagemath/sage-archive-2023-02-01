@@ -352,7 +352,8 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             [Category of realizations of Symmetric Functions over Rational Field,
              Category of commutative hopf algebras with basis over Rational Field,
              Join of Category of realizations of hopf algebras over Rational Field
-                 and Category of graded algebras over Rational Field]
+                 and Category of graded algebras over Rational Field
+                 and Category of graded coalgebras over Rational Field]
         """
         # FIXME: The last one should also be commutative, but this triggers a
         #   KeyError when doing the C3 algorithm!!!

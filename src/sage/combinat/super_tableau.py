@@ -43,10 +43,6 @@ class SemistandardSuperTableau(Tableau):
 
     - ``t`` -- a tableau, a list of iterables, or an empty list
 
-    OUTPUT:
-
-    - a SemistandardSuperTableau object constructed from ``t``.
-
     EXAMPLES::
 
         sage: t = SemistandardSuperTableau([['1p',2,"3'"],[2,3]]); t
@@ -114,7 +110,7 @@ class SemistandardSuperTableau(Tableau):
 
     def __init__(self, parent, t, check=True, preprocessed=False):
         r"""
-        Initialize a semistandard super tableau.
+        Initialize a semistandard super tableau for given tableau ``t``.
 
         TESTS::
 
@@ -240,14 +236,6 @@ class StandardSuperTableau(SemistandardSuperTableau):
         True
         sage: StandardSuperTableau([]) # The empty tableau
         []
-
-    When using code that will generate a lot of tableaux, it is more
-    efficient to construct a StandardSuperTableau from the appropriate
-    :class:`Parent` object::
-
-        sage: ST = StandardSuperTableaux()
-        sage: ST([["1'",1,"2'",2,"3'"],[3,"4'"]])
-        [[1', 1, 2', 2, 3'], [3, 4']]
 
     TESTS::
 
@@ -455,22 +443,16 @@ class StandardSuperTableaux(SemistandardSuperTableaux, Parent):
     INPUT:
 
     - ``n`` -- a non-negative integer or a partition.
-    
-    OUTPUT:
-
-    - with no input, the class of all standard super tableaux
-
-    - with a non-negative integer argument, ``n``, the class of all standard
-      super tableaux of size ``n``
-
-    - with a partition argument, the class of all standard super tableaux of 
-      that shape.
 
     EXAMPLES::
 
-        sage: SST = StandardSuperTableaux(); SST
+        sage: SST = StandardSuperTableaux()
+        sage: SST  # set of all standard super tableaux
         Standard super tableaux
-        sage: SST = StandardSuperTableaux(3); SST
+        sage: SST([["1'",1,"2'",2,"3'"],[3,"4'"]])
+        [[1', 1, 2', 2, 3'], [3, 4']]
+        sage: SST = StandardSuperTableaux(3)
+        sage: SST # set of standard super tableaux of size 3
         Standard super tableaux of size 3
         sage: SST.first()
         [[1', 1, 2']]
@@ -480,6 +462,9 @@ class StandardSuperTableaux(SemistandardSuperTableaux, Parent):
         4
         sage: SST.list()
         [[[1', 1, 2']], [[1', 2'], [1]], [[1', 1], [2']], [[1'], [1], [2']]]
+        sage: SST = StandardSuperTableaux([3,2])
+        sage: SST # set of standard super tableaux of shape [3, 2]
+        Standard super tableaux of shape [3, 2]
 
     TESTS::
 
@@ -781,10 +766,6 @@ class StandardSuperTableaux_shape(StandardSuperTableaux):
             6651216
             sage: StandardSuperTableaux([]).cardinality()
             1
-
-        REFERENCES:
-
-        - http://mathworld.wolfram.com/HookLengthFormula.html
         """
         pi = self.shape
         return StandardTableaux(pi).cardinality()

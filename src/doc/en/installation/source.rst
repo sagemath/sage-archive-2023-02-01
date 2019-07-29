@@ -225,7 +225,7 @@ you would use
      # debian (Stretch or newer) / ubuntu
      $ sudo apt-get install binutils pixz gcc g++ gfortran make m4 perl tar \
        git patch openssl libssl-dev libz-dev bc libbz2-dev liblzma-dev libgmp-dev \
-       libffi-dev libgf2x-dev libcurl4-openssl-dev curl yasm
+       libffi-dev libgf2x-dev libcurl4-openssl-dev libzmq3-dev curl yasm
 
      # redhat / fedora / centos
      $ sudo yum install binutils xz gcc gcc-c++ gcc-gfortran make m4 perl \
@@ -238,7 +238,7 @@ your OS, cf. the growing list of such packages on :trac:`27330`, install::
 
      # debian / ubuntu
      $ sudo apt-get install libntl-dev libmpfr-dev libmpc-dev libflint-dev \
-       libpcre3-dev libgd-dev \
+       libpcre3-dev libgd-dev libflint-dev libflint-arb-dev \
        cmake libterm-readline-gnu-perl ninja-build librw-dev # not for standard Sage spkgs
 
      # redhat / fedora / centos

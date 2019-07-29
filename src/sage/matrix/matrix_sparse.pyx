@@ -19,11 +19,12 @@ from cysignals.signals cimport sig_check
 cimport sage.matrix.matrix as matrix
 cimport sage.matrix.matrix0 as matrix0
 from sage.structure.element cimport Element, RingElement, ModuleElement, Vector
-from sage.structure.richcmp cimport richcmp
+from sage.structure.richcmp cimport richcmp_item, rich_to_bool
 from sage.rings.ring import is_Ring
 from sage.misc.misc import verbose
 
 from cpython cimport *
+from cpython.object cimport Py_EQ, Py_NE
 
 import sage.matrix.matrix_space
 
@@ -370,7 +371,36 @@ cdef class Matrix_sparse(matrix.Matrix):
             raise RuntimeError("unknown matrix version (=%s)" % version)
 
     cpdef _richcmp_(self, right, int op):
-        return richcmp(self._dict(), right._dict(), op)
+        """
+        Rich comparison.
+
+        EXAMPLES::
+
+            sage: M = matrix({(5,5): 2})
+            sage: Mp = matrix({(5,5): 7, (3,1):-2})
+            sage: M > Mp
+            True
+            sage: M == M.transpose()
+            True
+            sage: M != Mp
+            True
+        """
+        other = <Matrix_sparse>right
+        if op == Py_EQ:
+            return self._dict() == other._dict()
+        if op == Py_NE:
+            return self._dict() != other._dict()
+        cdef Py_ssize_t i, j
+        # Parents are equal, so dimensions of self and other are equal
+        for i in range(self._nrows):
+            for j in range(self._ncols):
+                lij = self.get_unsafe(i, j)
+                rij = other.get_unsafe(i, j)
+                r = richcmp_item(lij, rij, op)
+                if r is not NotImplemented:
+                    return bool(r)
+        # Matrices are equal
+        return rich_to_bool(op, 0)
 
     def transpose(self):
         """

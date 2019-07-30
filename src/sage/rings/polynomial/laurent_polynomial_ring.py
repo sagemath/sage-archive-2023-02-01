@@ -948,8 +948,22 @@ class LaurentPolynomialRing_univariate(LaurentPolynomialRing_generic):
             sage: D.<d, e> = LaurentPolynomialRing(B)
             sage: B(D(b))
             b
+
+        TESTS:
+
+        Check that conversion back from fraction field does work (:trac:`26425`)::
+
+            sage: R.<t> = LaurentPolynomialRing(ZZ)
+            sage: F = FractionField(R)
+            sage: R(F(25/(5*t**2)))
+            5*t^-2
+            sage: R(F(1/(1+t**2)))
+            Traceback (most recent call last):
+            ...
+            TypeError: fraction must have unit denominator
         """
         from sage.symbolic.expression import Expression
+        from sage.rings.fraction_field_element import FractionFieldElement
         if isinstance(x, Expression):
             return x.laurent_polynomial(ring=self)
 
@@ -968,6 +982,15 @@ class LaurentPolynomialRing_univariate(LaurentPolynomialRing_generic):
                 return self(x.constant_coefficient())
             elif len(self.variable_names()) == len(P.variable_names()):
                 x = x.dict()
+
+        elif isinstance(x, FractionFieldElement):
+            # since the field of fraction of self is defined corresponding to the polynomial ring of self
+            # the conversion of its elements back must be treated separately (:trac:`26425`).
+            P = x.parent()
+            d = self(x.denominator())
+            if not d.is_unit():
+                raise TypeError("fraction must have unit denominator")
+            return self(x.numerator()) * d.inverse_of_unit()
 
         return self.element_class(self, x)
 

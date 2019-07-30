@@ -26,7 +26,7 @@ from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.morphism import SetMorphism
-from sage.categories.all import Category, Sets, ModulesWithBasis
+from sage.categories.all import Category, Sets, ModulesWithBasis, GradedAlgebrasWithBasis
 from sage.categories.tensor import tensor
 import sage.data_structures.blas_dict as blas
 from sage.typeset.ascii_art import AsciiArt
@@ -1571,11 +1571,12 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 sage: T(tensor((p,p)))
                 4*B[2] # B[2] + 4*B[2] # B[4] + 4*B[4] # B[2] + 4*B[4] # B[4]
             """
-            if R in ModulesWithBasis(self.base_ring()).TensorProducts() \
-                    and isinstance(R, CombinatorialFreeModule_Tensor) \
-                    and len(R._sets) == len(self._sets) \
-                    and all(self._sets[i].has_coerce_map_from(M)
-                            for i,M in enumerate(R._sets)):
+            if ((R in ModulesWithBasis(self.base_ring()).TensorProducts()
+                 or R in GradedAlgebrasWithBasis(self.base_ring()).SignedTensorProducts())
+                and isinstance(R, CombinatorialFreeModule_Tensor)
+                and len(R._sets) == len(self._sets)
+                and all(self._sets[i].has_coerce_map_from(M)
+                        for i,M in enumerate(R._sets))):
                 modules = R._sets
                 vector_map = [self._sets[i]._internal_coerce_map_from(M)
                               for i,M in enumerate(modules)]

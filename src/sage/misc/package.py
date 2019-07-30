@@ -281,7 +281,7 @@ def installed_packages(exclude_pip=True):
     EXAMPLES::
 
         sage: installed_packages()  # optional - build
-        {...'arb': ...'pynac': ...}
+        {...'brial': ...'pynac': ...}
 
     .. SEEALSO::
 

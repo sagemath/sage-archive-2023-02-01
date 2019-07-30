@@ -5645,18 +5645,18 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         r"""
         Returns whether ``self`` is conjugate to a map of the form `f(z) = z - \frac{p(z)}{p^\prime(z)}` after dehomogenization,
         where `p(z)` is a squarefree polynomial.
-        
+
         INPUT:
-        
-        - ``return_conjugation`` -- If the map is Newton, whether to return the conjugation that moves this map to
-        the above form. (default: False)
-        
+
+        - ``return_conjugation`` -- (default: False) If the map is Newton, whether to return the conjugation that moves this map to
+        the above form. The conjugation may be defined over an extension if the maps has fixed points not defined over the base field.
+
         OUTPUT:
-        
+
         A Boolean. If ``return_conjugation`` is ``True``, then this also returns the conjugation as a matrix.
-        
+
         EXAMPLES::
-        
+
             sage: A.<z> = AffineSpace(QQ, 1)
             sage: f = DynamicalSystem_affine([z - (z^2 + 1)/(2*z)])
             sage: F = f.homogenize(1)
@@ -5665,17 +5665,17 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             [1 0]
             True, [0 1]
             )
-        
+
         ::
-        
+
             sage: A.<z> = AffineSpace(QQ, 1)
             sage: f = DynamicalSystem_affine([z^2 + 1])
             sage: F = f.homogenize(1)
             sage: F.is_Newton()
             False
-        
+
         ::
-        
+
             sage: PP.<x,y> = ProjectiveSpace(QQ, 1)
             sage: F = DynamicalSystem_projective([-4*x^3 - 3*x*y^2, -2*y^3])
             sage: F.is_Newton(return_conjugation=True)
@@ -5683,10 +5683,19 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             [   0    1]
             True, [-4*a  2*a]
             )
-            
+
+        ::
+
+            sage: K.<zeta> = CyclotomicField(2*4)
+            sage: A.<z>=AffineSpace(K,1)
+            sage: f=DynamicalSystem_affine(z-(z^3+zeta*z)/(3*z^2+zeta))
+            sage: F=f.homogenize(1)
+            sage: F.is_Newton()
+            True
+    
         """
         if self.degree() == 1:
-            raise NotImplementedError("Degree one Newton maps are trivial.")
+            raise NotImplementedError("degree one Newton maps are trivial")
         if not self.base_ring() in NumberFields():
             raise NotImplementedError()
         # check if Newton map
@@ -5694,11 +5703,8 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         d = ZZ(self.degree())
         Newton_sigma = [d/(d-1)] + [0]*d # almost newton
         if sigma_1 != Newton_sigma:
-            return False # else is Newton
-        try:
-            Fbar = self.change_ring(QQbar)
-        except ValueError:
-            Fbar = self.change_ring(self.base_ring().embeddings(QQbar)[0])
+            return False # else is Newton        
+        Fbar = self.change_ring(QQbar)
         Pbar = Fbar.domain()
         fixed = Fbar.periodic_points(1)
         for Q in fixed:
@@ -5723,7 +5729,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         z = N_aff.domain().gen(0)
         Npoly = (z - N_aff[0]).numerator()
         if return_conjugation:
-            return tuple([Npoly.derivative(z) == (z - N_aff[0]).denominator(), M])
+            return Npoly.derivative(z) == (z - N_aff[0]).denominator(), M
         else:
             return Npoly.derivative(z) == (z - N_aff[0]).denominator()
 

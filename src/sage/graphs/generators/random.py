@@ -1549,14 +1549,14 @@ def _auxiliary_random_forest_word(n, k):
     A binary sequence `w` of length `4n+2k-4` with `n` ones, such that any
     proper prefix `u` of `w` satisfies `3|u|_1 - |u|_0 \geq -2k+4` (where
     `|u|_1` and `|u|_0` are respectively the number of 1s and 0s in `u`). Those
-    words are the expected input of :func:`_contour_and_graph_from_word`.
+    words are the expected input of :func:`_contour_and_graph_from_words`.
 
     ALGORITHM:
 
     A random word with these numbers of `0` and `1` plus one additional `0` is
     chosen. This word is then rotated such the prefix property is fulfilled for
     each proper prefix and only violated by the final `0` (which is deleted
-    afterwards). There is exactly one such rotation (compare Proposition 5.4,
+    afterwards). There is exactly one such rotation (compare Section 4.3 in
     [PS2006]_).
 
     Let us consider a word `w` satisfying the expected conditions. By
@@ -1601,19 +1601,19 @@ def _auxiliary_random_forest_word(n, k):
     w = [0] * (3*n + 2*k - 3) + [1] * n
     shuffle(w)
 
-    # Finding the admissible shift.
+    # Finding the admissible shift
     partial_sum = 0
-    minimum = 0
-    minimum_pos = 0
+    min_value = 0
+    min_pos = 0
     for i, x in enumerate(w):
-        if x == 1:
+        if x:
             partial_sum += 3
         else:
             partial_sum -= 1
-        if partial_sum < minimum:
-            minimum = partial_sum
-            minimum_pos = i
-    return w[minimum_pos+1:] + w[:minimum_pos]
+        if partial_sum < min_value:
+            min_value = partial_sum
+            min_pos = i
+    return w[min_pos+1:] + w[:min_pos]
 
 
 def _contour_and_graph_from_words(pendant_word, forest_word):
@@ -1630,7 +1630,7 @@ def _contour_and_graph_from_words(pendant_word, forest_word):
       of zeros in ``pendant_word`` plus `1`
 
     ``forest_word`` must satisfy the conditions hinted in Proposition 5.4 of
-    [PS2006]_ (see :func:`_auxiliary_random_word`).
+    [PS2006]_ (see :func:`_auxiliary_random_forest_word`).
 
     OUTPUT:
 
@@ -1643,8 +1643,11 @@ def _contour_and_graph_from_words(pendant_word, forest_word):
     - ``G`` is the `k`-gonal forest associated with the words ``pendant_word``
       and ``forest_word``.
 
-    The underlying bijection from words to trees is described in Section 5.2
-    of [PS2006]_.
+    The underlying bijection from words to `k`-gonal forests is described in
+    Section 5.1 of [PS2006]_. The ``pendant_word`` corresponds to the factor
+    `\binom{2k-4}{k-3}` in the counting formula of Proposition 5.4 and the
+    ``forest_word`` corresponds to the factor `\frac{2k-3}{3m+2k-3}
+    \binom{4m+2k-4}{m}`.
 
     In the ``forest_word``, the letter `1` means going away from the root ("up")
     from an inner vertex to another inner vertex. The letter `0` denotes all
@@ -1693,23 +1696,27 @@ def _contour_and_graph_from_words(pendant_word, forest_word):
     k = (len(pendant_word)+4) / 2
 
     index = 0 # numbering of inner vertices
-    word = [('in',0)]
+    word = [('in',0)] # the word representing the contour walk
+
+    # start with the outer face, a cycle of length k
     edges = [[i, (i+1) % k] for i in range(k)]
-    # record the planar embedding of the graph
     embedding = {i: [(i+1) % k, (i-1+k) % k] for i in range(k)}
+
     # add the pendant edges
     for x in pendant_word:
-        if x == 1:
+        if x:
             word.extend([('lf', index), ('in', index)])
         else:
             index += 1
             word.append(('in', index))
+
     # add trees
     curr_word_pos = 0
     curr_forest_word_pos = 0
     while curr_forest_word_pos < len(forest_word):
         x = forest_word[curr_forest_word_pos]
-        if x: # insert a tree at current position
+        # insert a tree at current position
+        if x:
             index += 1
             embedding[index] = [word[curr_word_pos][1]]
             embedding[word[curr_word_pos][1]].append(index)
@@ -1727,7 +1734,7 @@ def _contour_and_graph_from_words(pendant_word, forest_word):
                     index += 1
                     embedding[index] = inner_stack[-1:]
                     embedding[inner_stack[-1]].append(index)
-                    leaf_stack.extend([index,index])
+                    leaf_stack.extend([index, index])
                     inner_stack.append(index)
                     edges.append(inner_stack[-2:])
                     word.insert(curr_word_pos+1, ('in', index))
@@ -1744,11 +1751,13 @@ def _contour_and_graph_from_words(pendant_word, forest_word):
                         inner_stack.pop()
                         word.insert(curr_word_pos+1, ('in', inner_stack[-1]))
                         curr_word_pos += 1
-        else: # go to next insertion position
+        # go to next insertion position
+        else:
             curr_word_pos += 1
             if word[curr_word_pos][0] == 'lf':
                 curr_word_pos += 1
         curr_forest_word_pos += 1
+
     G = Graph(edges, format='list_of_edges')
     G.set_embedding(embedding)
     return word, G
@@ -1773,12 +1782,13 @@ def RandomTriangulation(n, set_position=False, k=3):
     OUTPUT:
 
     A random graph chosen uniformly among the inner triangulations of a *rooted*
-    `k`-gon with `n` vertices (including the `k` vertices from the outer face).
-    This is a planar graph and comes with a combinatorial embedding.
+    `k`-gon with `n` vertices (including the `k` vertices from the outer face)
+    and a *marked* inner face. This is a planar graph and comes with a
+    combinatorial embedding.
 
     Because some triangulations have nontrivial automorphism
     groups, this may not be equal to the uniform distribution among inner
-    triangulations of unrooted `k`-gons.
+    triangulations of unrooted `k`-gons and without a marked inner face.
 
     ALGORITHM:
 
@@ -1819,11 +1829,21 @@ def RandomTriangulation(n, set_position=False, k=3):
 
         sage: G.get_embedding() is not None
         True
+
+        sage: graphs.RandomTriangulation(3, k=4)
+        Traceback (most recent call last):
+        ...
+        ValueError: The number 'n' of vertices must be at least the size 'k' of the outer face.
+        sage: graphs.RandomTriangulation(3, k=2)
+        Traceback (most recent call last):
+        ...
+        ValueError: The size 'k' of the outer face must be at least 3.
+
         sage: for i in range(10):
-        ....:     g = graphs.RandomTriangulation(30)
+        ....:     g = graphs.RandomTriangulation(30) # random
         ....:     assert g.is_planar()
-        sage: for i in range(10):
-        ....:     g = graphs.RandomTriangulation(10)
+        sage: for k in range(3, 10):
+        ....:     g = graphs.RandomTriangulation(10, k=k) # random
         ....:     assert g.is_planar(on_embedding=g.get_embedding())
 
     REFERENCES:
@@ -1835,9 +1855,10 @@ def RandomTriangulation(n, set_position=False, k=3):
 
     """
     if k < 3:
-        raise ValueError('only defined for k >= 3')
+        raise ValueError("The size 'k' of the outer face must be at least 3.")
     if n < k:
-        raise ValueError('only defined for n >= k')
+        raise ValueError("The number 'n' of vertices must be at least the size "
+                         "'k' of the outer face.")
 
     from sage.misc.prandom import shuffle
     pendant_word = [0] * (k-1) + [1] * (k-3)

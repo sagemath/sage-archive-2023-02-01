@@ -753,7 +753,8 @@ def minimal_schnyder_wood(graph, root_edge=None, minimal=True, check=True):
 
     TESTS::
 
-        sage: minimal_schnyder_wood(graphs.RandomTriangulation(5))
+        sage: T = graphs.RandomTriangulation(5)
+        sage: minimal_schnyder_wood(T, T.edges()[0][:2])
         Digraph on 5 vertices
         sage: minimal_schnyder_wood(graphs.CompleteGraph(5))
         Traceback (most recent call last):

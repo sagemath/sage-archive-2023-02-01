@@ -3778,6 +3778,8 @@ class TamariIntervalPosets_size(TamariIntervalPosets):
         from sage.graphs.generators.random import RandomTriangulation
         n = self._size
         tri = RandomTriangulation(n + 3)
+        u, v, _ = tri.edges()[0]
+        tri.relabel({u: -1, v: -2})
         TIP = TamariIntervalPosets
         schnyder = minimal_schnyder_wood(tri, root_edge=(-1, -2),
                                          check=False)

@@ -4626,6 +4626,36 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
              (3/2 : -1/2 : 3/2 : 1),
              (3/2 : 3/2 : -1/2 : 1),
              (3/2 : 3/2 : 3/2 : 1)]
+             
+        ::
+             
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: f = DynamicalSystem_projective([x^2 - (3/4)*w^2, y^2 - 3/4*w^2, z^2 - 3/4*w^2, w^2])
+            sage: sorted(f.all_periodic_points(period_degree_bounds=[10,10]))
+            [(-1/2 : -1/2 : -1/2 : 1),
+             (-1/2 : -1/2 : 3/2 : 1),
+             (-1/2 : 3/2 : -1/2 : 1),
+             (-1/2 : 3/2 : 3/2 : 1),
+             (0 : 0 : 1 : 0),
+             (0 : 1 : 0 : 0),
+             (0 : 1 : 1 : 0),
+             (1 : 0 : 0 : 0),
+             (1 : 0 : 1 : 0),
+             (1 : 1 : 0 : 0),
+             (1 : 1 : 1 : 0),
+             (3/2 : -1/2 : -1/2 : 1),
+             (3/2 : -1/2 : 3/2 : 1),
+             (3/2 : 3/2 : -1/2 : 1),
+             (3/2 : 3/2 : 3/2 : 1)]
+             
+        TESTS::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem([x^2+ y^2, x*y])
+            sage: f.all_periodic_points(algorithm="dnyatomic")
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm must be 'dynatomic' or 'lifting'
         """
         ring = kwds.pop("R", None)
         if not ring is None:

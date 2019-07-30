@@ -5371,7 +5371,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem_projective([-3*y^2, 3*x^2])
             sage: g = DynamicalSystem_projective([-x^2 - 2*x*y, 2*x*y + y^2])
-            sage: f.is_conjugate(g), f.is_conjugate(g, QQbar)
+            sage: f.is_conjugate(g), f.is_conjugate(g, R=QQbar) # long time
             (False, True)
         """
         f = copy(self)

@@ -2771,14 +2771,9 @@ class Tableau(ClonableList):
 
         REFERENCES:
 
-        .. [Hai1992] Mark D. Haiman,
-           *Dual equivalence with applications, including a conjecture of Proctor*,
-           Discrete Mathematics 99 (1992), 79-113,
-           http://www.sciencedirect.com/science/article/pii/0012365X9290368P
+        - [Hai1992]_
 
-        .. [Sg2011] Bruce E. Sagan,
-           *The cyclic sieving phenomenon: a survey*,
-           :arxiv:`1008.0790v3`
+        - [Sag2011]_
 
         EXAMPLES::
 
@@ -3742,9 +3737,7 @@ class Tableau(ClonableList):
 
         REFERENCES:
 
-        .. [S14] \B. Salisbury.
-           The flush statistic on semistandard Young tableaux.
-           :arxiv:`1401.1185`
+        - [Sal2014]_
 
         EXAMPLES::
 

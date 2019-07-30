@@ -83,7 +83,7 @@ from sage.rings.padics.all import Qp
 from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-from sage.rings.qqbar import QQbar
+from sage.rings.qqbar import QQbar, number_field_elements_from_algebraics
 from sage.rings.quotient_ring import QuotientRing_generic
 from sage.rings.rational_field import QQ
 from sage.rings.real_double import RDF
@@ -5641,6 +5641,92 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 return gccc, m * mc * mc2, psi
         return gccc
 
+    def is_Newton(self, return_conjugation=False):
+        r"""
+        Returns whether ``self`` is conjugate to a map of the form `f(z) = z - \frac{p(z)}{p^\prime(z)}` after dehomogenization,
+        where `p(z)` is a squarefree polynomial.
+        
+        INPUT:
+        
+        - ``return_conjugation`` -- If the map is Newton, whether to return the conjugation that moves this map to
+        the above form. (default: False)
+        
+        OUTPUT:
+        
+        A Boolean. If ``return_conjugation`` is ``True``, then this also returns the conjugation as a matrix.
+        
+        EXAMPLES::
+        
+            sage: A.<z> = AffineSpace(QQ, 1)
+            sage: f = DynamicalSystem_affine([z - (z^2 + 1)/(2*z)])
+            sage: F = f.homogenize(1)
+            sage: F.is_Newton(return_conjugation=True)
+            (
+            [1 0]
+            True, [0 1]
+            )
+        
+        ::
+        
+            sage: A.<z> = AffineSpace(QQ, 1)
+            sage: f = DynamicalSystem_affine([z^2 + 1])
+            sage: F = f.homogenize(1)
+            sage: F.is_Newton()
+            False
+        
+        ::
+        
+            sage: PP.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: F = DynamicalSystem_projective([-4*x^3 - 3*x*y^2, -2*y^3])
+            sage: F.is_Newton(return_conjugation=True)
+            (
+            [   0    1]
+            True, [-4*a  2*a]
+            )
+            
+        """
+        if self.degree() == 1:
+            raise NotImplementedError("Degree one Newton maps are trivial.")
+        if not self.base_ring() in NumberFields():
+            raise NotImplementedError()
+        # check if Newton map
+        sigma_1 = self.sigma_invariants(1)
+        d = ZZ(self.degree())
+        Newton_sigma = [d/(d-1)] + [0]*d # almost newton
+        if sigma_1 != Newton_sigma:
+            return False # else is Newton
+        try:
+            Fbar = self.change_ring(QQbar)
+        except ValueError:
+            Fbar = self.change_ring(self.base_ring().embeddings(QQbar)[0])
+        Pbar = Fbar.domain()
+        fixed = Fbar.periodic_points(1)
+        for Q in fixed:
+            if Fbar.multiplier(Q,1) != 0:
+                inf = Q
+                break
+        if inf != Pbar([1,0]):
+            # need to move to inf to infinity
+            fixed.remove(inf)
+            source = [inf] + fixed[:2]
+            target = [Pbar([1,0]), Pbar([0,1]), Pbar([1,1])]
+            M = Pbar.point_transformation_matrix(source, target)
+            M = M.inverse()
+            Newton = Fbar.conjugate(M)
+            K, el, psi = number_field_elements_from_algebraics([t for r in M for t in r])
+            M = matrix(M.nrows(), M.ncols(), el)
+            Newton = Newton._number_field_from_algebraics()
+        else:
+            Newton = self
+            M = matrix(QQ,2,2,[1,0,0,1])
+        N_aff = Newton.dehomogenize(1)
+        z = N_aff.domain().gen(0)
+        Npoly = (z - N_aff[0]).numerator()
+        if return_conjugation:
+            return tuple([Npoly.derivative(z) == (z - N_aff[0]).denominator(), M])
+        else:
+            return Npoly.derivative(z) == (z - N_aff[0]).denominator()
+
 class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
                                               SchemeMorphism_polynomial_projective_space_finite_field):
     def orbit_structure(self, P):
@@ -5926,4 +6012,5 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
             F = f[0].numerator().polynomial(z)
         from .endPN_automorphism_group import automorphism_group_FF
         return(automorphism_group_FF(F, absolute, iso_type, return_functions))
+
 

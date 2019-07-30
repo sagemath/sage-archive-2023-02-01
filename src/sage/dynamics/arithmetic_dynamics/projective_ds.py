@@ -2234,6 +2234,15 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         return(l)
 
     def _nth_preimage_tree_helper(self, Q, n, m, **kwds):
+        r"""
+        A recusive method to fill in ``n``-th preimage tree.
+
+        This helper function is used by ``nth_preimage_tree`` below to actually compute the
+        points of the tree and populate the dictionary used to create a ``DiGraph``
+        object. Note the addition of an ``m`` parameter, which counts upwards as n counts
+        downwards to keep track of what level we are at in the tree for the purposes of
+        returning points and displaying the point's level in the tree.
+        """
         return_points = kwds.get("return_points", False)
         numerical = kwds.get("numerical", False)
         prec = kwds.get("prec", 100)
@@ -2243,14 +2252,17 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         embed = kwds.get("embed", None)
         D = {}
         if numerical:
+            # Solve for preimages numerically
             CR = self.domain().ambient_space().coordinate_ring()
             fn = self.dehomogenize(1)
             poly = (fn[0].numerator()*CR(Q[1]) - fn[0].denominator()*CR(Q[0])).univariate_polynomial()
             K = ComplexField(prec=prec)
             pre = [ProjectiveSpace(K,1)(r) for r in poly.roots(ring=K)]
         else:
+            # Solve for preimages algebraically
             pre = self.rational_preimages(Q,1)
         for pt in pre:
+            # Fill in dictionary entries of preimage points to Q
             if display_complex:
                 pt1 = "(" + str(embed(pt[0]).n(digits=digits)) + ": 1)"
                 Q1 = "(" + str(embed(Q[0]).n(digits=digits)) + ": 1)"
@@ -2260,31 +2272,34 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 key = str(pt) + ", " + str(m)
                 D[key] = [str(Q) + ", " + str(m-1)]
             if return_points:
+                # Fill in m-th level preimage points in points list
                 kwds["points"][m].append(pt)
 
         if return_points:
             points = kwds["points"]
             if n==1:
-                # base case of recursion
+                # Base case of recursion
                 return D, points
             else:
-                # recurse for each point in the tree
+                # For each preimage point of Q, use recursion to find that point's preimages
+                # and update the dictionary
                 for pt in pre:
                     D.update(self._nth_preimage_tree_helper(pt, n-1, m+1, **kwds)[0])
             return D, points
         else:
             if n==1:
-                # base case of recursion
+                # Base case of recursion
                 return D
             else:
-                # recurse for each point in the tree
+                # For each preimage point of Q, use recursion to find that point's preimages
+                # and update the dictionary
                 for pt in pre:
                     D.update(self._nth_preimage_tree_helper(pt, n-1, m+1, **kwds))
             return D
 
     def nth_preimage_tree(self, Q, n, **kwds):
         r"""
-        Return the ``n``-th pre-image tree rooted at ``Q``
+        Return the ``n``-th pre-image tree rooted at ``Q``.
 
         This map must be an endomorphism of the projective line defined
         over a number field, algebraic field, or finite field.
@@ -2300,10 +2315,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         - ``return_points`` -- (default: ``False``) boolean; if ``True``, return a list of lists
           where the index ``i`` is the level of the tree and the elements of the list at that
           index are the ``i``-th preimage points as an algebraic element of the splitting field
-          of the polynomial ``f^n - Q = 0``.
+          of the polynomial ``f^n - Q = 0``
 
         - ``numerical`` -- (default: ``False``) boolean; calculate pre-images numerically. Note if this
-          is set to ``True``, preimage points are displayed as complex numbers.
+          is set to ``True``, preimage points are displayed as complex numbers
 
         - ``prec`` -- (default: 100) postive integer; the precision of the ``ComplexField`` if
           we compute the preimage points numerically
@@ -2315,7 +2330,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         - ``display_complex`` -- (default: ``False``) boolean; display vertex labels as
           complex numbers. Note if this option is chosen that we must choose an embedding
           from the splitting field ``field_def`` of the nth-preimage equation into C. We make
-          the choice of the first embedding returned by ``field_def.embeddings(ComplexField())``.
+          the choice of the first embedding returned by ``field_def.embeddings(ComplexField())``
 
         - ``digits`` -- a positive integer, the number of decimal digits to display for complex
           numbers. This only applies if ``display_complex`` is set to ``True``
@@ -2324,7 +2339,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         If ``return_points`` is ``False``, a ``GraphPlot`` object representing the ``n``-th pre-image tree.
         If ``return_points`` is ``True``, a tuple ``(GP, points)``, where ``GP`` is a ``GraphPlot`` object,
-        and ``points`` is  a list of lists as described above under ``return_points``
+        and ``points`` is  a list of lists as described above under ``return_points``.
 
         EXAMPLES::
 

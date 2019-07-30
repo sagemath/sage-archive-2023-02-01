@@ -2236,6 +2236,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
     def _nth_preimage_tree_helper(self, Q, n, m, **kwds):
         return_points = kwds.get("return_points", False)
         numerical = kwds.get("numerical", False)
+        prec = kwds.get("prec", 100)
         display_labels = kwds.get("display_labels", True)
         display_complex = kwds.get("display_complex", False)
         digits = kwds.get("digits", 5)
@@ -2245,7 +2246,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             CR = self.domain().ambient_space().coordinate_ring()
             fn = self.dehomogenize(1)
             poly = (fn[0].numerator()*CR(Q[1]) - fn[0].denominator()*CR(Q[0])).univariate_polynomial()
-            pre = [ProjectiveSpace(QQbar,1)(r) for r in poly.roots(ring=QQbar)]
+            K = ComplexField(prec=prec)
+            pre = [ProjectiveSpace(K,1)(r) for r in poly.roots(ring=K)]
         else:
             pre = self.rational_preimages(Q,1)
         for pt in pre:
@@ -2300,9 +2302,15 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
           index are the ``i``-th preimage points as an algebraic element of the splitting field
           of the polynomial ``f^n - Q = 0``.
 
-        - ``numerical`` -- (default: ``False``) boolean; calculate pre-images numerically
+        - ``numerical`` -- (default: ``False``) boolean; calculate pre-images numerically. Note if this
+          is set to ``True``, preimage points are displayed as complex numbers.
 
-        - ``display_labels`` -- (default: ``True``) boolean; whether to display vertex labels
+        - ``prec`` -- (default: 100) postive integer; the precision of the ``ComplexField`` if
+          we compute the preimage points numerically
+
+        - ``display_labels`` -- (default: ``True``) boolean; whether to display vertex labels. Since labels
+          can be very cluttered, can set ``display_labels`` to ``False`` and use ``return_points`` to get a
+          hold of the points themselves, either as algebraic or complex numbers
 
         - ``display_complex`` -- (default: ``False``) boolean; display vertex labels as
           complex numbers. Note if this option is chosen that we must choose an embedding
@@ -2337,34 +2345,48 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         """
         return_points = kwds.get("return_points", False)
         numerical = kwds.get("numerical", False)
+        prec = kwds.get("prec", 100)
         display_labels = kwds.get("display_labels", True)
+        display_complex = kwds.get("display_complex", False)
         digits = kwds.get("digits", 5)
 
         if self.domain().dimension_relative() > 1:
             raise NotImplementedError("only implemented for dimension 1")
         base_ring = self.base_ring()
         if base_ring is QQbar:
+            if numerical:
+                raise ValueError("can't solve numerically over QQbar, no embedding into CC")
             fbar = self
             # No embedding from QQbar into C
             kwds["display_complex"] = False
+            display_complex = False
         elif base_ring in NumberFields():
-            field_def = self.field_of_definition_preimage(Q,n)
-            fbar = self.change_ring(field_def)
+            if numerical:
+                field_def = ComplexField(prec=prec)
+                embed = base_ring.embeddings(field_def)[0]
+                fbar = self.change_ring(embed)
+                embed = End(field_def).identity()
+                kwds["display_complex"] = True
+                display_complex = True
+                kwds["embed"] = embed
+            else:
+                field_def = self.field_of_definition_preimage(Q,n)
+                fbar = self.change_ring(field_def)
+                if display_complex:
+                    embed = field_def.embeddings(ComplexField())[0]
+                    kwds["embed"] = embed
         elif base_ring in FiniteFields():
+            if numerical:
+                raise ValueError("can't solve numerically over a finite field, no embedding into CC")
             field_def = self.field_of_definition_preimage(Q,n)
             fbar = self.change_ring(field_def)
             # No embedding from finite field into C
             kwds["display_complex"] = False
+            display_complex = False
         else:
-            raise NotImplementedError("Only implemented for number fields, algebraic fields, and finite fields")
+            raise NotImplementedError("only implemented for number fields, algebraic fields, and finite fields")
 
         Q = fbar.codomain()(Q)
-        display_complex = kwds.get("display_complex", False)
-        if display_complex:
-            embed = field_def.embeddings(ComplexField())[0]
-        else:
-            embed = None
-        kwds["embed"] = embed
         if return_points:
             # n+1 since we have n levels with root as 0th level
             points = [[] for i in range(n+1)]

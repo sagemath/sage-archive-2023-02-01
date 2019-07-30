@@ -2233,15 +2233,21 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             Q = R
         return(l)
 
-    def _nth_preimage_tree_helper(self, fbar, Q, n, m, numerical, display_complex, embed, digits):
+    def _nth_preimage_tree_helper(self, Q, n, m, **kwds):
+        return_points = kwds.get("return_points", False)
+        numerical = kwds.get("numerical", False)
+        display_labels = kwds.get("display_labels", True)
+        display_complex = kwds.get("display_complex", False)
+        digits = kwds.get("digits", 5)
+        embed = kwds.get("embed", None)
         D = {}
         if numerical:
-            CR = fbar.domain().ambient_space().coordinate_ring()
-            fn = fbar.dehomogenize(1)
+            CR = self.domain().ambient_space().coordinate_ring()
+            fn = self.dehomogenize(1)
             poly = (fn[0].numerator()*CR(Q[1]) - fn[0].denominator()*CR(Q[0])).univariate_polynomial()
             pre = [ProjectiveSpace(QQbar,1)(r) for r in poly.roots(ring=QQbar)]
         else:
-            pre = fbar.rational_preimages(Q,1)
+            pre = self.rational_preimages(Q,1)
         for pt in pre:
             if display_complex:
                 pt1 = "(" + str(embed(pt[0]).n(digits=digits)) + ": 1)"
@@ -2251,12 +2257,26 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             else:
                 key = str(pt) + ", " + str(m)
                 D[key] = [str(Q) + ", " + str(m-1)]
-        if n==1:
-            return D
+            if return_points:
+                kwds["points"][m].append(pt)
+
+        if return_points:
+            points = kwds["points"]
+            if n==1:
+                # base case of recursion
+                return D, points
+            else:
+                for pt in pre:
+                    D.update(self._nth_preimage_tree_helper(pt, n-1, m+1, **kwds)[0])
+            return D, points
         else:
-            for pt in pre:
-                D.update(self._nth_preimage_tree_helper(fbar, pt, n-1, m+1, numerical, display_complex, embed, digits))
-        return D
+            if n==1:
+                # base case of recursion
+                return D
+            else:
+                for pt in pre:
+                    D.update(self._nth_preimage_tree_helper(pt, n-1, m+1, **kwds))
+            return D
 
     def nth_preimage_tree(self, Q, n, **kwds):
         r"""
@@ -2273,6 +2293,11 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         kwds:
 
+        - ``return_points`` -- (default: ``False``) boolean; if ``True``, return a list of lists
+          where the index ``i`` is the level of the tree and the elements of the list at that
+          index are the ``i``-th preimage points. These points will be algebraic unless `numerical``
+          is set to ``True``
+
         - ``numerical`` -- (default: ``False``) boolean; calculate pre-images numerically
 
         - ``display_labels`` -- (default: ``True``) boolean; whether to display vertex labels
@@ -2287,34 +2312,50 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         OUTPUT:
 
-        A ``GraphPlot`` object representing the ``n``-th pre-image tree
+        If ``return_points`` is ``False``, a ``GraphPlot`` object representing the ``n``-th pre-image tree.
+        If ``return_points`` is ``True``, a tuple ``(GP, points)``, where ``GP`` is a ``GraphPlot`` object,
+        and ``points`` is  a list of lists as described above under ``return_points``
         """
-        numerical = kwds.pop("numerical", False)
-        display_labels = kwds.pop("display_labels", True)
-        display_complex = kwds.pop("display_complex", False)
-        digits = kwds.pop("digits", 5)
+        return_points = kwds.get("return_points", False)
+        numerical = kwds.get("numerical", False)
+        display_labels = kwds.get("display_labels", True)
+        digits = kwds.get("digits", 5)
+
         if self.domain().dimension_relative() > 1:
             raise NotImplementedError("only implemented for dimension 1")
-        if self.base_ring() is QQbar:
-            f = self._number_field_from_algebraics().as_dynamical_system()
+        base_ring = self.base_ring()
+        if base_ring is QQbar:
+            fbar = self
+            # No embedding from QQbar into C
+            kwds["display_complex"] = False
+        elif base_ring in NumberFields():
+            field_def = self.field_of_definition_preimage(Q,n)
+            fbar = self.change_ring(field_def)
+        elif base_ring in FiniteFields():
+            field_def = self.field_of_definition_preimage(Q,n)
+            fbar = self.change_ring(field_def)
+            # No embedding from finite field into C
+            kwds["display_complex"] = False
         else:
-            f = self
-        base_ring = f.base_ring()
-        if base_ring in NumberFields() or base_ring in FiniteFields():
-            field_def = f.field_of_definition_preimage(Q,n)
-        else:
-            raise NotImplementedError("Only implemented for number fields, algebraic fields, and finite fields") 
-        fbar = f.change_ring(field_def) 
-        Q = f.codomain()(Q)
-        # No embedding from finite field into C
-        if base_ring in FiniteFields():
-            display_complex = False
+            raise NotImplementedError("Only implemented for number fields, algebraic fields, and finite fields")
+        Q = fbar.codomain()(Q)
+
+        display_complex = kwds.get("display_complex", False)
         if display_complex:
             embed = field_def.embeddings(ComplexField())[0]
         else:
             embed = None
-        V = f._nth_preimage_tree_helper(fbar, Q, n, 1, numerical, display_complex, embed, digits)
+        kwds["embed"] = embed
+        if return_points:
+            # n+1 since we have n levels with root as 0th level
+            points = [[] for i in range(n+1)]
+            points[0].append(Q)
+            kwds["points"] = points
+            V, points = fbar._nth_preimage_tree_helper(Q, n, 1, **kwds)
+        else:
+            V = fbar._nth_preimage_tree_helper(Q, n, 1, **kwds)
         from sage.graphs.digraph import DiGraph
+        from sage.graphs.graph_plot import GraphPlot
         G = DiGraph(V)
         if display_complex:
             Q = "(" + str(embed(Q[0]).n(digits=digits)) + ": 1)"
@@ -2322,8 +2363,11 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         else:
             root = str(Q) + ", " + str(0)
         options = {'layout':'tree', 'tree_orientation':'up', 'tree_root':root, 'vertex_labels':display_labels}
-        from sage.graphs.graph_plot import GraphPlot
-        return GraphPlot(G, options)
+
+        if return_points:
+            return GraphPlot(G, options), points
+        else:
+            return GraphPlot(G, options)
 
     def possible_periods(self, **kwds):
         r"""

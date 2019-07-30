@@ -423,7 +423,8 @@ ext_modules = [
               sources = ['sage/graphs/spanning_tree.pyx']),
 
     Extension('sage.graphs.path_enumeration',
-              sources = ['sage/graphs/path_enumeration.pyx']),
+              sources = ['sage/graphs/path_enumeration.pyx'],
+              language = 'c++'),
 
     Extension('sage.graphs.connectivity',
           sources = ['sage/graphs/connectivity.pyx']),

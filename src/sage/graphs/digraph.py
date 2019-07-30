@@ -3402,3 +3402,6 @@ class DiGraph(GenericGraph):
     from sage.graphs.path_enumeration import _all_paths_iterator
     from sage.graphs.path_enumeration import all_paths_iterator
     from sage.graphs.path_enumeration import all_simple_paths
+    from sage.graphs.path_enumeration import _all_paths_iterator_cython
+    from sage.graphs.path_enumeration import all_paths_iterator_cython
+    from sage.graphs.path_enumeration import all_simple_paths_cython

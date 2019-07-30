@@ -4605,6 +4605,17 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: f = DynamicalSystem_projective([x^2 - y^2, y^2])
             sage: f.all_periodic_points(R=phi)
             [(0 : 1), (1/2*v + 1/2 : 1), (1 : 0), (-1 : 1), (-1/2*v + 1/2 : 1)]
+            
+        ::
+
+            sage: P.<x,y,z,w>=ProjectiveSpace(QQ,3)
+            sage: f=DynamicalSystem_projective([x^2-(3/4)*w^2,y^2-3/4*w^2,z^2-3/4*w^2,w^2])
+            sage: f.all_periodic_points(algorithm="dynatomic")
+            [(3/2 : 3/2 : 3/2 : 1), (-1/2 : -1/2 : -1/2 : 1), (1 : 0 : 0 : 0), (3/2 : -1/2 : 3/2 : 1),
+            (-1/2 : 3/2 : 3/2 : 1), (1 : 0 : 1 : 0), (3/2 : -1/2 : -1/2 : 1), (0 : 1 : 0 : 0),
+            (0 : 1 : 1 : 0), (0 : 0 : 1 : 0), (3/2 : 3/2 : -1/2 : 1), (1 : 1 : 0 : 0), (1 : 1 : 1 : 0),
+            (-1/2 : -1/2 : 3/2 : 1), (-1/2 : 3/2 : -1/2 : 1)]
+
         """
         ring = kwds.pop("R", None)
         if not ring is None:
@@ -4695,11 +4706,11 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 
                 alg_value = alg == "dynatomic" and not alg == "lifting"
                 
-                for i in periods:
+                for i in periods[:]:
                     if alg_value or (i <= pd_bounds[0] and DS.degree() <= pd_bounds[1]):
                         periodic.update(DS.periodic_points(i))
                         periods.remove(i)
-                if alg == "dynatomic":
+                if not periods:
                     return list(periodic)
                 while p in badprimes:
                     p = next_prime(p + 1)

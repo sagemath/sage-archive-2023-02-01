@@ -4533,6 +4533,13 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         - ``lifting_prime`` -- (default: 23) a prime integer; argument that
           specifies modulo which prime to try and perform the lifting
+          
+        - ``period_degree_bounds`` -- (default: ``[4,4]``) a pair of positive integers
+          (max period, max degree) for which the dynatomic polynomial should be solved for
+          
+        - ``algorithm`` -- (optional) specifies which algorithm to use;
+          current options are dynatomic and lifting; defaults to solving the
+          dynatomic for low periods and degrees and lifts for everything else
 
         - ``periods`` -- (optional) a list of positive integers that is
           the list of possible periods
@@ -4601,7 +4608,10 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         """
         ring = kwds.pop("R", None)
         if not ring is None:
+            #changes the ring to the new ring, sets it equal to new variable in case of embeddings
             DS = self.change_ring(ring)
+            
+            #ensures that the correct method is run, in case user switches to a finite field
             return DS.all_periodic_points(**kwds)
         else:
             DS = self
@@ -4658,6 +4668,8 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             else:
                 primebound = kwds.pop("prime_bound", [1, 20])
                 p = kwds.pop("lifting_prime", 23)
+                pd_bounds = kwds.pop("period_degree_bounds", [4,4])
+                alg = kwds.pop("algorithm", None)
                 periods = kwds.pop("periods", None)
                 badprimes = kwds.pop("bad_primes", None)
                 num_cpus = kwds.pop("ncpus", ncpus())
@@ -4680,9 +4692,14 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                     periods = DS.possible_periods(prime_bound=primebound, bad_primes=badprimes, ncpus=num_cpus)
                 PS = DS.domain()
                 periodic = set()
-                if DS.degree() <= 4 and max(periods) <= 4:
-                    for i in periods:
+                
+                alg_value = alg == "dynatomic" and not alg == "lifting"
+                
+                for i in periods:
+                    if alg_value or (i <= pd_bounds[0] and DS.degree() <= pd_bounds[1]):
                         periodic.update(DS.periodic_points(i))
+                        periods.remove(i)
+                if alg == "dynatomic":
                     return list(periodic)
                 while p in badprimes:
                     p = next_prime(p + 1)
@@ -6116,5 +6133,5 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
             DS = self
         else:
             DS = self.change_ring(R)
-            return DS.all_periodic_points(**kwds)
+            return DS.all_periodic_points(**kwds)  #ensures that the correct method is run, in case user switches to infinite fields
         return _all_periodic_points(DS)

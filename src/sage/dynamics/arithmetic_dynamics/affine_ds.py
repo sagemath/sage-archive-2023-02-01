@@ -867,32 +867,32 @@ class DynamicalSystem_affine_field(DynamicalSystem_affine,
 
         EXAMPLES::
 
-        sage: K.<t> = GF(5^2)
-        sage: A.<x,y> = AffineSpace(K, 2)
-        sage: f = DynamicalSystem_affine([x^2 + 3*y^2, 3*y^2])
-        sage: f.reduce_base_field()
-        Dynamical System of Affine Space of dimension 2 over Finite Field of size 5
-          Defn: Defined on coordinates by sending (x, y) to
-                (x^2 - 2*y^2, -2*y^2)
+            sage: K.<t> = GF(5^2)
+            sage: A.<x,y> = AffineSpace(K, 2)
+            sage: f = DynamicalSystem_affine([x^2 + 3*y^2, 3*y^2])
+            sage: f.reduce_base_field()
+            Dynamical System of Affine Space of dimension 2 over Finite Field of size 5
+              Defn: Defined on coordinates by sending (x, y) to
+                    (x^2 - 2*y^2, -2*y^2)
 
-    ::
+        ::
 
-        sage: A.<x,y> = AffineSpace(QQbar, 2)
-        sage: f = DynamicalSystem_affine([x^2 + QQbar(sqrt(3))*y^2, QQbar(sqrt(-1))*y^2])
-        sage: f.reduce_base_field()
-        Dynamical System of Affine Space of dimension 2 over Number Field in a with defining polynomial y^4 - y^2 + 1 with a = -0.866025403784439? + 0.50000000000000000?*I
-          Defn: Defined on coordinates by sending (x, y) to
-                (x^2 + (a^3 - 2*a)*y^2, (a^3)*y^2)
+            sage: A.<x,y> = AffineSpace(QQbar, 2)
+            sage: f = DynamicalSystem_affine([x^2 + QQbar(sqrt(3))*y^2, QQbar(sqrt(-1))*y^2])
+            sage: f.reduce_base_field()
+            Dynamical System of Affine Space of dimension 2 over Number Field in a with defining polynomial y^4 - y^2 + 1 with a = -0.866025403784439? + 0.50000000000000000?*I
+              Defn: Defined on coordinates by sending (x, y) to
+                    (x^2 + (a^3 - 2*a)*y^2, (a^3)*y^2)
 
-    ::
+        ::
 
-        sage: K.<v> = CyclotomicField(5)
-        sage: A.<x,y> = AffineSpace(K, 2)
-        sage: f = DynamicalSystem_affine([(3*x^2 + y) / (5*x), (y^2+1) / (x+y)])
-        sage: f.reduce_base_field()
-        Dynamical System of Affine Space of dimension 2 over Rational Field
-          Defn: Defined on coordinates by sending (x, y) to
-                ((3*x^2 + y)/(5*x), (5*y^2 + 5)/(5*x + 5*y))
+            sage: K.<v> = CyclotomicField(5)
+            sage: A.<x,y> = AffineSpace(K, 2)
+            sage: f = DynamicalSystem_affine([(3*x^2 + y) / (5*x), (y^2+1) / (x+y)])
+            sage: f.reduce_base_field()
+            Dynamical System of Affine Space of dimension 2 over Rational Field
+              Defn: Defined on coordinates by sending (x, y) to
+                    ((3*x^2 + y)/(5*x), (5*y^2 + 5)/(5*x + 5*y))
         """
         return self.as_scheme_morphism().reduce_base_field().as_dynamical_system()
 

@@ -3186,9 +3186,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         INPUT:
 
-        - ``n`` - a positive integer
+        - ``n`` - a positive integer, the period
 
-        - ``m`` - a non negative integer
+        - ``m`` - a non negative integer, the preperiod
 
         kwds:
 
@@ -3271,6 +3271,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([x^2-y^2,y^2])
             sage: f.preperiodic_points(1,1,R=phi)
             [(-1/2*v - 1/2 : 1), (1/2*v - 1/2 : 1)]
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: X = P.subscheme(2*x-y)
+            sage: f = DynamicalSystem_projective([x^2-y^2, 2*(x^2-y^2), y^2-z^2], domain=X)
+            sage: f.preperiodic_points(1,1)
+            [(-1/4 : -1/2 : 1), (1 : 2 : 1)]
         """
         if n <= 0:
             raise ValueError("a positive integer period must be specified")
@@ -3290,7 +3298,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         F_2 = f.nth_iterate_map(m)
         L = [F_1[i]*F_2[j] - F_1[j]*F_2[i] for i in range(0,N)
                 for j in range(i+1, N)]
-        L = [t for t in L if t != 0]
         X = PS.subscheme(L + list(dom.defining_polynomials()))
         minimal = kwds.pop('minimal',True)
         return_scheme = kwds.pop('return_scheme',False)

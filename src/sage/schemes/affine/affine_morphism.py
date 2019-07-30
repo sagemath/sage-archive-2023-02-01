@@ -805,9 +805,9 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
                     (u^2 + v^2 + w^2 + 1, u^2 + v^2 + 1)
         """
         if not mat.is_square():
-            raise ValueError("matrix must be square")
+            raise TypeError("matrix must be square")
         if mat.nrows() != self.domain().ngens() + 1:
-            raise ValueError("the size of the matrix must be n + 1, where n is the dimension of the domain")
+            raise TypeError("the size of the matrix must be n + 1, where n is the dimension of the domain")
         if self.is_endomorphism():
             d = self.domain().ngens()
         else:

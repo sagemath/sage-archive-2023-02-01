@@ -584,9 +584,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         from sage.modules.free_module_element import vector
         from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem
         if not mat.is_square():
-            raise ValueError("matrix must be square")
+            raise TypeError("matrix must be square")
         if mat.nrows() != self.domain().ngens():
-            raise ValueError("matrix size is incompatible")
+            raise TypeError("matrix size is incompatible")
         X = mat * vector(self[0].parent().gens())
         F = vector(self._polys)
         F = F(list(X))

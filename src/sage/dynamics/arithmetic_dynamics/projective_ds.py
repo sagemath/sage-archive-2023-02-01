@@ -5130,14 +5130,16 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         return points[0]
 
-    def conjugating_set(self, other):
+    def conjugating_set(self, other, R=None):
         r"""
-        Return the set of elements in PGL that conjugates one
-        dynamical system to the other.
+        Return the set of elements in PGL over the base ring
+        that conjugates one dynamical system to the other.
 
         Given two nonconstant rational functions of equal degree
-        determine to see if there is an element of PGL that
-        conjugates one rational function to another. It does this
+        determine to see if there is a rational element of PGL that
+        conjugates one rational function to another.
+        The option argument `R` specifies the field of definiton
+        of the PGL elements. The set is determined by
         by taking the fixed points of one map and mapping
         them to all unique permutations of the fixed points of
         the other map. If there are not enough fixed points the
@@ -5155,8 +5157,10 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         INPUT:
 
-        - ``other`` -- a nonconstant rational function of same degree
-          as ``self``
+        - ``other`` -- a rational function of same degree
+          as this map
+
+        - ``R`` -- a field or embedding
 
         OUTPUT:
 
@@ -5234,6 +5238,25 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             [0 1 0]
             [0 0 1]
             ]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: R = P.coordinate_ring()
+            sage: f = DynamicalSystem_projective([R(3), R(4)])
+            sage: g = DynamicalSystem_projective([R(5), R(2)])
+            sage: m = f.conjugating_set(g)[0]
+            sage: f.conjugate(m) == g
+            True
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQbar, 1)
+            sage: f = DynamicalSystem_projective([7*x + 12*y, 8*x])
+            sage: g = DynamicalSystem_projective([1645*x - 318*y, 8473*x - 1638*y])
+            sage: m = f.conjugating_set(g)[0]
+            sage: f.conjugate(m) == g
+            True
         """
         f = copy(self)
         g = copy(other)
@@ -5243,6 +5266,30 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         except (ValueError):
             pass
         if f.degree() != g.degree():# checks that maps are of equal degree
+            return []
+        if f.degree() == 0: # all constant maps are conjugate
+            return [matrix(2, 2, [f[0]/g[0],0,0,f[1]/g[1]])]
+        if f.degree() == 1: # for degree 1 maps, check if matrix representations are similar
+            # make matrix forms of f1 and f2
+            gens = f[0].parent().gens()
+            x = gens[0]
+            y = gens[1]
+            m1 = matrix(f.base_ring(),2,2,[f[0].coefficient(x), f[0].coefficient(y),\
+                f[1].coefficient(x), f[1].coefficient(y)])
+            m2 = matrix(f.base_ring(),2,2,[g[0].coefficient(x), g[0].coefficient(y),\
+                g[1].coefficient(x), g[1].coefficient(y)])
+            # Note: det_ratio will be nonzero for invertible f1, f2
+            det_ratio = m1.det()/m2.det()
+            # .is_square() Return True if self is a square in its parent number field and otherwise return False
+            if is_square(det_ratio):
+                sqrt_rat = is_square(det_ratio, root=True)[1]
+                # rescale so that determinants are equal
+                m1 = (1/sqrt_rat)*m1
+                return [m1.is_similar(m2, transformation=True)[1].inverse()]
+            else:
+                return []
+        # sigma invariants are invariant under conjugacy
+        if (R in NumberFields() or R in FiniteFields()) and (f.sigma_invariants(1) != g.sigma_invariants(1)):
             return []
         n = f.domain().dimension_relative()
         L = Set(f.periodic_points(1))
@@ -5292,7 +5339,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
     def is_conjugate(self, other, R=None):
         r"""
         Return whether two dynamical systems are conjugate over their
-        base ring (by default) or over the ring R entered as an
+        base ring (by default) or over the ring `R` entered as an
         optional parameter.
 
         ALGORITHM:
@@ -5303,8 +5350,10 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         INPUT:
 
-        - ``other`` -- a nonconstant rational function of same degree
-          as ``self``
+        - ``other`` -- a nonconstant rational function of the same
+          degree as this map
+
+        - ``R`` -- a field or embedding
 
         OUTPUT: boolean
 
@@ -5366,7 +5415,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: f.is_conjugate(g)
             True
 
-        TESTS::
+        conjugation is only checked over the base field by default::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem_projective([-3*y^2, 3*x^2])
@@ -5397,11 +5446,13 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             gens = f[0].parent().gens()
             x = gens[0]
             y = gens[1]
-            m1 = matrix(2,2,[f[0].coefficient(x), f[0].coefficient(y), f[1].coefficient(x), f[1].coefficient(y)])
-            m2 = matrix(2,2,[g[0].coefficient(x), g[0].coefficient(y), g[1].coefficient(x), g[1].coefficient(y)])
+            m1 = matrix(f.base_ring(),2,2,[f[0].coefficient(x), f[0].coefficient(y),\
+                f[1].coefficient(x), f[1].coefficient(y)])
+            m2 = matrix(f.base_ring(),2,2,[g[0].coefficient(x), g[0].coefficient(y),\
+                g[1].coefficient(x), g[1].coefficient(y)])
             # Note: det_ratio will be nonzero for invertible f1, f2
             det_ratio = m1.det()/m2.det()
-            # .is_square() Return True if self is a square in its parent number field and otherwise return False.
+            # .is_square() Return True if self is a square in its parent number field and otherwise return False
             if is_square(det_ratio):
                 sqrt_rat = is_square(det_ratio, root=True)[1]
                 # rescale so that determinants are equal
@@ -5409,7 +5460,8 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 return m1.is_similar(m2)
             else:
                 return False
-        if (R in NumberFields() or R in FiniteFields()) and f.sigma_invariants(1) != g.sigma_invariants(1): # sigma invariants are invariant under conjugacy
+        # sigma invariants are invariant under conjugacy
+        if (R in NumberFields() or R in FiniteFields()) and (f.sigma_invariants(1) != g.sigma_invariants(1)):
             return False
         n = f.domain().dimension_relative()
         L = Set(f.periodic_points(1))

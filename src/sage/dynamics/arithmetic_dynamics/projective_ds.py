@@ -2263,7 +2263,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         Return the ``n``-th pre-image tree rooted at ``Q``
 
         This map must be an endomorphism of the projective line defined
-        over a number field or finite field.
+        over a number field, algebraic field, or finite field.
 
         INPUT:
 
@@ -2293,19 +2293,27 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         display_labels = kwds.pop("display_labels", True)
         display_complex = kwds.pop("display_complex", False)
         digits = kwds.pop("digits", 5)
-
         if self.domain().dimension_relative() > 1:
             raise NotImplementedError("only implemented for dimension 1")
-        base_ring = self.base_ring()
-        if not base_ring in NumberFields() or base_ring in FiniteFields():
-            raise NotImplementedError("Only implemented for number fields and finite fields")
-        field_def = self.field_of_definition_preimage(Q,n)
+        if self.base_ring() is QQbar:
+            f = self._number_field_from_algebraics().as_dynamical_system()
+        else:
+            f = self
+        base_ring = f.base_ring()
+        if base_ring in NumberFields() or base_ring in FiniteFields():
+            field_def = f.field_of_definition_preimage(Q,n)
+        else:
+            raise NotImplementedError("Only implemented for number fields, algebraic fields, and finite fields") 
+        fbar = f.change_ring(field_def) 
+        Q = f.codomain()(Q)
+        # No embedding from finite field into C
+        if base_ring in FiniteFields():
+            display_complex = False
         if display_complex:
             embed = field_def.embeddings(ComplexField())[0]
         else:
             embed = None
-        fbar = self.change_ring(field_def)
-        V = self._nth_preimage_tree_helper(fbar, Q, n, 1, numerical, display_complex, embed, digits)
+        V = f._nth_preimage_tree_helper(fbar, Q, n, 1, numerical, display_complex, embed, digits)
         from sage.graphs.digraph import DiGraph
         G = DiGraph(V)
         if display_complex:

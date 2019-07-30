@@ -1937,6 +1937,28 @@ cdef class RealBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
+    def real(self):
+        r"""
+        Return the real part of this ball.
+
+        EXAMPLES::
+
+            sage: RBF(1/3).real()
+            [0.3333333333333333 +/- 7.04e-17]
+        """
+        return self
+
+    def imag(self):
+        r"""
+        Return the imaginary part of this ball.
+
+        EXAMPLES::
+
+            sage: RBF(1/3).imag()
+            0
+        """
+        return self._parent.zero()
+
     # Precision and accuracy
 
     def nbits(self):

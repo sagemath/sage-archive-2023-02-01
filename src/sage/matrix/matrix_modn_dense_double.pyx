@@ -24,8 +24,8 @@ from sage.libs.linbox.givaro cimport \
     Poly1Dom, Dense
 
 from sage.libs.linbox.linbox cimport \
-    DenseMatrix_Modular_double as BlasMatrix, \
-    EchelonForm_Modular_double as EchelonFormDomain
+    reducedRowEchelonize, \
+    DenseMatrix_Modular_double as DenseMatrix
 
 from sage.libs.linbox.fflas cimport \
     fgemm, fgemv, Det, Rank, ReducedRowEchelonForm, applyP, \

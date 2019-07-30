@@ -4538,7 +4538,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
           (max period, max degree) for which the dynatomic polynomial should be solved for
           
         - ``algorithm`` -- (optional) specifies which algorithm to use;
-          current options are dynatomic and lifting; defaults to solving the
+          current options are `dynatomic` and `lifting`; defaults to solving the
           dynatomic for low periods and degrees and lifts for everything else
 
         - ``periods`` -- (optional) a list of positive integers that is
@@ -4583,8 +4583,8 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: K.<w> = NumberField(x^2-x+1)
             sage: P.<u,v> = ProjectiveSpace(K,1)
             sage: f = DynamicalSystem_projective([u^2 + v^2,v^2])
-            sage: f.all_periodic_points()
-            [(w : 1), (1 : 0), (-w + 1 : 1)]
+            sage: sorted(f.all_periodic_points())
+            [(-w + 1 : 1), (w : 1), (1 : 0)]
 
         ::
 
@@ -4603,25 +4603,34 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: K.<v> = QuadraticField(5)
             sage: phi = QQ.embeddings(K)[0]
             sage: f = DynamicalSystem_projective([x^2 - y^2, y^2])
-            sage: f.all_periodic_points(R=phi)
-            [(0 : 1), (1/2*v + 1/2 : 1), (1 : 0), (-1 : 1), (-1/2*v + 1/2 : 1)]
-            
+            sage: sorted(f.all_periodic_points(R=phi))
+            [(-1 : 1), (-1/2*v + 1/2 : 1), (0 : 1), (1 : 0), (1/2*v + 1/2 : 1)]
+
         ::
 
-            sage: P.<x,y,z,w>=ProjectiveSpace(QQ,3)
-            sage: f=DynamicalSystem_projective([x^2-(3/4)*w^2,y^2-3/4*w^2,z^2-3/4*w^2,w^2])
-            sage: f.all_periodic_points(algorithm="dynatomic")
-            [(3/2 : 3/2 : 3/2 : 1), (-1/2 : -1/2 : -1/2 : 1), (1 : 0 : 0 : 0), (3/2 : -1/2 : 3/2 : 1),
-            (-1/2 : 3/2 : 3/2 : 1), (1 : 0 : 1 : 0), (3/2 : -1/2 : -1/2 : 1), (0 : 1 : 0 : 0),
-            (0 : 1 : 1 : 0), (0 : 0 : 1 : 0), (3/2 : 3/2 : -1/2 : 1), (1 : 1 : 0 : 0), (1 : 1 : 1 : 0),
-            (-1/2 : -1/2 : 3/2 : 1), (-1/2 : 3/2 : -1/2 : 1)]
-
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: f = DynamicalSystem_projective([x^2 - (3/4)*w^2, y^2 - 3/4*w^2, z^2 - 3/4*w^2, w^2])
+            sage: sorted(f.all_periodic_points(algorithm="dynatomic"))
+            [(-1/2 : -1/2 : -1/2 : 1),
+             (-1/2 : -1/2 : 3/2 : 1),
+             (-1/2 : 3/2 : -1/2 : 1),
+             (-1/2 : 3/2 : 3/2 : 1),
+             (0 : 0 : 1 : 0),
+             (0 : 1 : 0 : 0),
+             (0 : 1 : 1 : 0),
+             (1 : 0 : 0 : 0),
+             (1 : 0 : 1 : 0),
+             (1 : 1 : 0 : 0),
+             (1 : 1 : 1 : 0),
+             (3/2 : -1/2 : -1/2 : 1),
+             (3/2 : -1/2 : 3/2 : 1),
+             (3/2 : 3/2 : -1/2 : 1),
+             (3/2 : 3/2 : 3/2 : 1)]
         """
         ring = kwds.pop("R", None)
         if not ring is None:
-            #changes the ring to the new ring, sets it equal to new variable in case of embeddings
+            #changes to the new ring
             DS = self.change_ring(ring)
-            
             #ensures that the correct method is run, in case user switches to a finite field
             return DS.all_periodic_points(**kwds)
         else:
@@ -4684,6 +4693,8 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 periods = kwds.pop("periods", None)
                 badprimes = kwds.pop("bad_primes", None)
                 num_cpus = kwds.pop("ncpus", ncpus())
+                if not alg is None and alg not in ['dynatomic','lifting']:
+                    raise ValueError("algorithm must be 'dynatomic' or 'lifting'")
 
                 if not isinstance(primebound, (list, tuple)):
                     try:
@@ -4703,23 +4714,23 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                     periods = DS.possible_periods(prime_bound=primebound, bad_primes=badprimes, ncpus=num_cpus)
                 PS = DS.domain()
                 periodic = set()
-                
-                alg_value = alg == "dynatomic" and not alg == "lifting"
-                
-                for i in periods[:]:
-                    if alg_value or (i <= pd_bounds[0] and DS.degree() <= pd_bounds[1]):
-                        periodic.update(DS.periodic_points(i))
-                        periods.remove(i)
-                if not periods:
-                    return list(periodic)
+
+                if alg != 'lifting':
+                    for i in periods[:]:
+                        if (alg == 'dynatomic') or (i <= pd_bounds[0] and DS.degree() <= pd_bounds[1]):
+                            periodic.update(DS.periodic_points(i))
+                            periods.remove(i)
+                    if not periods:
+                        return list(periodic)
                 while p in badprimes:
                     p = next_prime(p + 1)
                 B = e ** DS.height_difference_bound()
                 f = DS.change_ring(GF(p))
                 all_points = f.possible_periods(True) #return the list of points and their periods.
                 pos_points = []
+                #check period, remove duplicates
                 for i in range(len(all_points)):
-                    if all_points[i][1] in periods and not (all_points[i] in pos_points):  #check period, remove duplicates
+                    if all_points[i][1] in periods and not (all_points[i] in pos_points): 
                         pos_points.append(all_points[i])
                 periodic_points = DS.lift_to_rational_periodic(pos_points,B)
                 for p,n in periodic_points:

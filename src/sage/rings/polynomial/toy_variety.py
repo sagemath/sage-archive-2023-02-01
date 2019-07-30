@@ -1,5 +1,5 @@
 r"""
-Educational Versions of Groebner Basis Algorithms: Triangular Factorization.
+Educational versions of Groebner basis algorithms: triangular factorization
 
 In this file is the implementation of two algorithms in [Laz1992]_.
 
@@ -167,7 +167,6 @@ def is_linearly_dependent(polys):
   """
   if len(polys) == 0:
     return False
-  R = polys[0].base_ring()
   M = coefficient_matrix(polys).echelon_form()
   return any(M.row(each).is_zero() for each in range(M.nrows()))
 
@@ -250,8 +249,6 @@ def triangular_factorization(B, n=-1):
        [x^2 - 4*x + 4, y, z - 1],
        [x^5 - 3*x^4 + 3*x^3 - x^2, y - 1, z - 1]]
   """
-  import sage.rings.polynomial.polynomial_ring_constructor as prc
-  import copy
   # type checking in a probably vain attempt to avoid stupid errors
   if isinstance(B, (tuple,list)):
     G = B

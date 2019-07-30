@@ -1513,11 +1513,10 @@ cdef class Expression(CommutativeRingElement):
         The hash of an object in Python or its coerced version into
         the symbolic ring is usually the same::
 
-            sage: hash(SR(3.1))
-            2093862195
-            sage: hash(SR(19.23))
-            -1458111714  # 32-bit
-            2836855582   # 64-bit
+            sage: hash(SR(3.1)) == hash(3.1)
+            True
+            sage: hash(SR(19.23)) == hash(19.23)
+            True
             sage: hash(SR(3/1))
             3
             sage: hash(SR(19/23)) == hash(19/23)
@@ -11572,7 +11571,8 @@ cdef class Expression(CommutativeRingElement):
 
         Solve Brahmagupta-Pell equations::
 
-            sage: sol = solve_diophantine(x^2 - 2*y^2 == 1); sol
+            sage: sol = sorted(solve_diophantine(x^2 - 2*y^2 == 1), key=str)
+            sage: sol
             [(-sqrt(2)*(2*sqrt(2) + 3)^t + sqrt(2)*(-2*sqrt(2) + 3)^t - 3/2*(2*sqrt(2) + 3)^t - 3/2*(-2*sqrt(2) + 3)^t,...
             sage: [(sol[1][0].subs(t=t).simplify_full(),sol[1][1].subs(t=t).simplify_full()) for t in range(-1,5)]
             [(1, 0), (3, -2), (17, -12), (99, -70), (577, -408), (3363, -2378)]
@@ -12621,7 +12621,7 @@ def solve_diophantine(f,  *args, **kwds):
         Multivariate Polynomial Ring in a, b over Integer Ring
         sage: solve_diophantine(a^2-3*b^2+1)
         []
-        sage: solve_diophantine(a^2-3*b^2+2)
+        sage: sorted(solve_diophantine(a^2-3*b^2+2), key=str)
         [(-1/2*sqrt(3)*(sqrt(3) + 2)^t + 1/2*sqrt(3)*(-sqrt(3) + 2)^t - 1/2*(sqrt(3) + 2)^t - 1/2*(-sqrt(3) + 2)^t,
           -1/6*sqrt(3)*(sqrt(3) + 2)^t + 1/6*sqrt(3)*(-sqrt(3) + 2)^t - 1/2*(sqrt(3) + 2)^t - 1/2*(-sqrt(3) + 2)^t),
         (1/2*sqrt(3)*(sqrt(3) + 2)^t - 1/2*sqrt(3)*(-sqrt(3) + 2)^t + 1/2*(sqrt(3) + 2)^t + 1/2*(-sqrt(3) + 2)^t,

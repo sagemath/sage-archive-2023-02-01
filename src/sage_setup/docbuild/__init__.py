@@ -586,9 +586,8 @@ class ReferenceBuilder(AllBuilder):
                         pass
                 # Now modify website's index.html page and write it
                 # to output_dir.
-                f = open(os.path.join(website_dir, 'index.html'))
-                html = f.read().replace('Documentation', 'Reference')
-                f.close()
+                with open(os.path.join(website_dir, 'index.html')) as f:
+                    html = f.read().replace('Documentation', 'Reference')
                 html_output_dir = os.path.dirname(website_dir)
                 html = html.replace('http://www.sagemath.org',
                                     os.path.join(html_output_dir, 'index.html'))
@@ -597,9 +596,8 @@ class ReferenceBuilder(AllBuilder):
                 html_bottom = html.rfind('</table>') + len('</table>')
                 # For the content, we modify doc/en/reference/index.rst,
                 # which has two parts: the body and the table of contents.
-                f = open(os.path.join(SAGE_DOC_SRC, lang, 'reference', 'index.rst'))
-                rst = f.read()
-                f.close()
+                with open(os.path.join(SAGE_DOC_SRC, lang, 'reference', 'index.rst')) as f:
+                    rst = f.read()
                 # Replace rst links with html links.  There are two forms:
                 #
                 #   `blah`__    followed by __ LINK
@@ -637,16 +635,15 @@ class ReferenceBuilder(AllBuilder):
                 rst_toc = re.sub('\n([A-Z][a-zA-Z, ]*)\n-*\n',
                              '</ul>\n\n\n<h2>\\1</h2>\n\n<ul>\n', rst_toc)
                 # Now write the file.
-                new_index = open(os.path.join(output_dir, 'index.html'), 'w')
-                new_index.write(html[:html_end_preamble])
-                new_index.write('<h1>' + rst[:rst.find('\n')] +
-                                ' (PDF version)'+ '</h1>')
-                new_index.write(rst_body)
-                new_index.write('<h2>Table of Contents</h2>\n\n<ul>')
-                new_index.write(rst_toc)
-                new_index.write('</ul>\n\n')
-                new_index.write(html[html_bottom:])
-                new_index.close()
+                with open(os.path.join(output_dir, 'index.html'), 'w') as new_index:
+                    new_index.write(html[:html_end_preamble])
+                    new_index.write('<h1>' + rst[:rst.find('\n')] +
+                                    ' (PDF version)'+ '</h1>')
+                    new_index.write(rst_body)
+                    new_index.write('<h2>Table of Contents</h2>\n\n<ul>')
+                    new_index.write(rst_toc)
+                    new_index.write('</ul>\n\n')
+                    new_index.write(html[html_bottom:])
                 logger.warning('''
 PDF documents have been created in subdirectories of
 
@@ -783,16 +780,14 @@ class ReferenceSubBuilder(DocBuilder):
         if not os.path.exists(filename):
             return {}
         from six.moves import cPickle
-        file = open(self.cache_filename(), 'rb')
-        try:
-            cache = cPickle.load(file)
-        except Exception:
-            logger.debug("Cache file '%s' is corrupted; ignoring it..."% filename)
-            cache = {}
-        else:
-            logger.debug("Loaded the reference cache: %s", filename)
-        finally:
-            file.close()
+        with open(self.cache_filename(), 'rb') as file:
+            try:
+                cache = cPickle.load(file)
+            except Exception:
+                logger.debug("Cache file '%s' is corrupted; ignoring it..." % filename)
+                cache = {}
+            else:
+                logger.debug("Loaded the reference cache: %s", filename)
         return cache
 
     def save_cache(self):
@@ -801,9 +796,8 @@ class ReferenceSubBuilder(DocBuilder):
         """
         cache = self.get_cache()
         from six.moves import cPickle
-        file = open(self.cache_filename(), 'wb')
-        cPickle.dump(cache, file)
-        file.close()
+        with open(self.cache_filename(), 'wb') as file:
+            cPickle.dump(cache, file)
         logger.debug("Saved the reference cache: %s", self.cache_filename())
 
     def get_sphinx_environment(self):
@@ -854,17 +848,14 @@ class ReferenceSubBuilder(DocBuilder):
             # remove unpicklable attributes
             env.set_warnfunc(None)
             del env.config.values
-            picklefile = open(env_pickle, 'wb')
-            # remove potentially pickling-problematic values from config
-            for key, val in vars(env.config).items():
-                if key.startswith('_') or isinstance(val, (types.ModuleType,
-                                                           types.FunctionType,
-                                                           type)):
-                    del env.config[key]
-            try:
+            with open(env_pickle, 'wb') as picklefile:
+                # remove potentially pickling-problematic values from config
+                for key, val in vars(env.config).items():
+                    if key.startswith('_') or isinstance(val, (types.ModuleType,
+                                                               types.FunctionType,
+                                                               type)):
+                        del env.config[key]
                 cPickle.dump(env, picklefile, cPickle.HIGHEST_PROTOCOL)
-            finally:
-                picklefile.close()
 
             logger.debug("Saved Sphinx environment: %s", env_pickle)
 
@@ -995,14 +986,12 @@ class ReferenceSubBuilder(DocBuilder):
         Given a filename for a reST file, return an iterator for
         all of the autogenerated reST files that it includes.
         """
-        #Create the regular expression used to detect an autogenerated file
+        # Create the regular expression used to detect an autogenerated file
         auto_re = re.compile(r'^\s*(..\/)*(sage(nb)?\/[\w\/]*)\s*$')
 
-        #Read the lines
-        f = open(filename)
-        lines = f.readlines()
-        f.close()
-
+        # Read the lines
+        with open(filename) as f:
+            lines = f.readlines()
         for line in lines:
             match = auto_re.match(line)
             if match:
@@ -1053,25 +1042,24 @@ class ReferenceSubBuilder(DocBuilder):
         filename = self.auto_rest_filename(module_name)
         sage_makedirs(os.path.dirname(filename))
 
-        outfile = open(filename, 'w')
-
         title = self.get_module_docstring_title(module_name)
 
         if title == '':
             logger.error("Warning: Missing title for %s", module_name)
             title = "MISSING TITLE"
 
-        # Don't doctest the autogenerated file.
-        outfile.write(".. nodoctest\n\n")
-        # Now write the actual content.
-        outfile.write(".. _%s:\n\n"%(module_name.replace(".__init__","")))
-        outfile.write(title + '\n')
-        outfile.write('='*len(title) + "\n\n")
-        outfile.write('.. This file has been autogenerated.\n\n')
+        with open(filename, 'w') as outfile:
+            # Don't doctest the autogenerated file.
+            outfile.write(".. nodoctest\n\n")
+            # Now write the actual content.
+            outfile.write(".. _%s:\n\n"%(module_name.replace(".__init__","")))
+            outfile.write(title + '\n')
+            outfile.write('='*len(title) + "\n\n")
+            outfile.write('.. This file has been autogenerated.\n\n')
 
-        inherited = ':inherited-members:' if self._options.inherited else ''
+            inherited = ':inherited-members:' if self._options.inherited else ''
 
-        automodule = '''
+            automodule = '''
 .. automodule:: %s
    :members:
    :undoc-members:
@@ -1079,9 +1067,7 @@ class ReferenceSubBuilder(DocBuilder):
    %s
 
 '''
-        outfile.write(automodule % (module_name, inherited))
-
-        outfile.close()
+            outfile.write(automodule % (module_name, inherited))
 
     def clean_auto(self):
         """
@@ -1188,9 +1174,8 @@ class SingleFileBuilder(DocBuilder):
 # This file is automatically generated by {}, do not edit!
 
 import sys, os
-sys.path.append(os.environ['SAGE_DOC_SRC'])
 sys.path.append({!r})
-from common.conf import *
+from sage.docs.conf import *
 project = u'Documentation for {}'
 release = 'unknown'
 name = {!r}

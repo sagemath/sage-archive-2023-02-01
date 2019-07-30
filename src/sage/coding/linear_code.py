@@ -209,6 +209,7 @@ import inspect
 from six.moves import range
 from six import iteritems
 
+from sage.cpython.string import bytes_to_str
 from sage.modules.module import Module
 from sage.categories.modules import Modules
 from copy import copy
@@ -216,9 +217,8 @@ from sage.interfaces.all import gap
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.matrix.matrix_space import MatrixSpace
-from sage.matrix.constructor import Matrix
 from sage.modules.free_module_element import vector
-from sage.arith.all import GCD, rising_factorial, binomial
+from sage.arith.all import GCD, binomial
 from sage.groups.all import SymmetricGroup
 from sage.misc.all import prod
 from sage.misc.functional import is_even
@@ -230,11 +230,10 @@ from sage.rings.integer import Integer
 from sage.modules.free_module import VectorSpace
 from sage.misc.cachefunc import cached_method
 from sage.misc.sageinspect import sage_getargspec
-from sage.misc.superseded import deprecation, deprecated_function_alias
 from sage.misc.randstate import current_randstate
 from sage.features.gap import GapPackage
 from .encoder import Encoder
-from .decoder import Decoder, DecodingError
+from .decoder import Decoder
 from sage.combinat.subset import Subsets
 from sage.categories.cartesian_product import cartesian_product
 # import compatible with py2 and py3
@@ -1739,7 +1738,7 @@ class AbstractLinearCode(Module):
         return LinearCode(G)
 
     def u_u_plus_v_code(self, other):
-        """
+        r"""
         The `(u|u+v)`-construction with ``self=u`` and ``other=v``
 
         Returns the code obtained through `(u|u+v)`-construction with ``self`` as `u`
@@ -1801,7 +1800,7 @@ class AbstractLinearCode(Module):
         return LinearCode(G)
 
     def construction_x(self, other, aux):
-        """
+        r"""
         Construction X applied to ``self=C_1``, ``other=C_2`` and ``aux=C_a``.
 
         ``other`` must be a subcode of ``self``.
@@ -3355,7 +3354,7 @@ class AbstractLinearCode(Module):
             # to use the already present output parser
             wts = [0] * (n + 1)
             s = 0
-            for L in StringIO(lines).readlines():
+            for L in StringIO(bytes_to_str(lines)).readlines():
                 L = L.strip()
                 if L:
                     o = ord(L[0])
@@ -3949,7 +3948,7 @@ class LinearCode(AbstractLinearCode):
             [1 2 1]
             [2 1 1]
         """
-        if encoder_name is None or encoder_name is 'GeneratorMatrix':
+        if encoder_name is None or encoder_name == 'GeneratorMatrix':
             g = self._generator_matrix
         else:
             g = super(LinearCode, self).generator_matrix(encoder_name, **kwargs)

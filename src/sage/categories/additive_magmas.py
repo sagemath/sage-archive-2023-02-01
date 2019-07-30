@@ -1,5 +1,5 @@
 r"""
-Additive Magmas
+Additive magmas
 """
 # ****************************************************************************
 #  Copyright (C) 2010-2014 Nicolas M. Thiery <nthiery at users.sf.net>

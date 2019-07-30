@@ -491,18 +491,8 @@ class MatchingGame(SageObject):
                 and all(s1.pref == s2.pref for s1, s2 in
                         zip(set(self._suitors), set(other._suitors))))
 
-    def __hash__(self):
-        """
-        Raise an error because this is mutable.
-
-        EXAMPLES::
-
-            sage: hash(MatchingGame(3))
-            Traceback (most recent call last):
-            ...
-            TypeError: unhashable because matching games are mutable
-        """
-        raise TypeError("unhashable because matching games are mutable")
+    __hash__ = None
+   # not hashable because this is mutable.
 
     def plot(self):
         r"""

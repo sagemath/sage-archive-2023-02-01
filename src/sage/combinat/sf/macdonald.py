@@ -27,7 +27,7 @@ REFERENCES:
 
 .. [LLM1998] \L. Lapointe, A. Lascoux, J. Morse, Determinantal Expressions for
    Macdonald Polynomials, IRMN no. 18 (1998).
-   :arXiv:`math/9808050`.
+   :arxiv:`math/9808050`.
 
 .. [BH2013] \F. Bergeron, M. Haiman, Tableaux Formulas for Macdonald Polynomials,
    Special edition in honor of Christophe Reutenauer 60 birthday, International

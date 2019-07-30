@@ -477,7 +477,7 @@ extlinks = {
     'python': ('https://docs.python.org/release/'+pythonversion+'/%s', ''),
     'trac': ('https://trac.sagemath.org/%s', 'trac ticket #'),
     'wikipedia': ('https://en.wikipedia.org/wiki/%s', 'Wikipedia article '),
-    'arxiv': ('https://arxiv.org/abs/%s', 'Arxiv '),
+    'arxiv': ('https://arxiv.org/abs/%s', 'arXiv '),
     'oeis': ('https://oeis.org/%s', 'OEIS sequence '),
     'doi': ('https://doi.org/%s', 'doi:'),
     'pari': ('https://pari.math.u-bordeaux.fr/dochtml/help/%s', 'pari:'),
@@ -491,7 +491,7 @@ def process_extlinks(s, embedded=False):
     Sphinx extlinks extension. For example, replace ``:trac:`NUM```
     with ``https://trac.sagemath.org/NUM``, and similarly with
     ``:python:TEXT`` and ``:wikipedia:TEXT``, looking up the url from
-    the dictionary ``extlinks`` in SAGE_DOC_SRC/common/conf.py.
+    the dictionary ``extlinks`` in ``sage.docs.conf``.
     If ``TEXT`` is of the form ``blah <LINK>``, then it uses ``LINK``
     rather than ``TEXT`` to construct the url.
 

@@ -57,6 +57,9 @@ SAGE_SCRIPTS
     var autoAspect = 2.5;
     if ( zRange > autoAspect * rRange && a[2] === 1 ) a[2] = autoAspect * rRange / zRange;
 
+    // Distance from (xMid,yMid,zMid) to any corner of the bounding box, after applying aspect_ratio.
+    var midToCorner = Math.sqrt( a[0]*a[0]*xRange*xRange + a[1]*a[1]*yRange*yRange + a[2]*a[2]*zRange*zRange ) / 2;
+
     var xMid = ( b[0].x + b[1].x ) / 2;
     var yMid = ( b[0].y + b[1].y ) / 2;
     var zMid = ( b[0].z + b[1].z ) / 2;
@@ -120,16 +123,57 @@ SAGE_SCRIPTS
 
         var sprite = new THREE.Sprite( new THREE.SpriteMaterial( { map: texture } ) );
         sprite.position.set( x, y, z );
-        sprite.scale.set( 1, .25 ); // ratio of width to height
+
+        // Set the initial scale based on plot size to accomodate orthographic projection.
+        // For other projections, the scale will get reset each frame based on camera distance.
+        var scale = midToCorner/2;
+        sprite.scale.set( scale, scale*.25 ); // ratio of canvas width to height
+
         scene.add( sprite );
 
     }
 
     if ( options.axes ) scene.add( new THREE.AxesHelper( Math.min( a[0]*b[1].x, a[1]*b[1].y, a[2]*b[1].z ) ) );
 
-    var camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 1000 );
+    var camera = createCamera();
     camera.up.set( 0, 0, 1 );
     camera.position.set( a[0]*(xMid+xRange), a[1]*(yMid+yRange), a[2]*(zMid+zRange) );
+
+    function createCamera() {
+
+        var aspect = window.innerWidth / window.innerHeight;
+
+        if ( options.projection === 'orthographic' ) {
+            var camera = new THREE.OrthographicCamera( -1, 1, 1, -1, -1000, 1000 );
+            updateCameraAspect( camera, aspect );
+            return camera;
+        }
+
+        return new THREE.PerspectiveCamera( 45, aspect, 0.1, 1000 );
+
+    }
+
+    function updateCameraAspect( camera, aspect ) {
+
+        if ( camera.isPerspectiveCamera ) {
+            camera.aspect = aspect;
+        } else if ( camera.isOrthographicCamera ) {
+            // Fit the camera frustum to the bounding box's diagonal so that the entire plot fits
+            // within at the default zoom level and camera position.
+            if ( aspect > 1 ) { // Wide window
+                camera.top = midToCorner;
+                camera.right = midToCorner * aspect;
+            } else { // Tall or square window
+                camera.top = midToCorner / aspect;
+                camera.right = midToCorner;
+            }
+            camera.bottom = -camera.top;
+            camera.left = -camera.right;
+        }
+
+        camera.updateProjectionMatrix();
+
+    }
 
     var lights = SAGE_LIGHTS;
     for ( var i=0 ; i < lights.length ; i++ ) {
@@ -153,8 +197,7 @@ SAGE_SCRIPTS
     window.addEventListener( 'resize', function() {
         
         renderer.setSize( window.innerWidth, window.innerHeight );
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
+        updateCameraAspect( camera, window.innerWidth / window.innerHeight );
         if ( !animate ) render();
         
     } );
@@ -194,7 +237,8 @@ SAGE_SCRIPTS
         texture.needsUpdate = true;
 
         var transparent = json.opacity < 1 ? true : false;
-        var material = new THREE.PointsMaterial( { size: json.size/100, map: texture,
+        var size = camera.isOrthographicCamera ? json.size : json.size/100;
+        var material = new THREE.PointsMaterial( { size: size, map: texture,
                                                    transparent: transparent, opacity: json.opacity,
                                                    alphaTest: .1 } );
 
@@ -286,12 +330,16 @@ SAGE_SCRIPTS
         if ( animate ) requestAnimationFrame( render );
         renderer.render( scene, camera );
 
-        for ( var i=0 ; i < scene.children.length ; i++ ) {
-            if ( scene.children[i].type === 'Sprite' ) {
-                var sprite = scene.children[i];
-                var adjust = scratch.addVectors( sprite.position, scene.position )
-                               .sub( camera.position ).length() / 5;
-                sprite.scale.set( adjust, .25*adjust ); // ratio of canvas width to height
+        // Resize text based on distance from camera.
+        // Not neccessary for orthographic due to the nature of the projection (preserves sizes).
+        if ( !camera.isOrthographicCamera ) {
+            for ( var i=0 ; i < scene.children.length ; i++ ) {
+                if ( scene.children[i].type === 'Sprite' ) {
+                    var sprite = scene.children[i];
+                    var adjust = scratch.addVectors( sprite.position, scene.position )
+                                    .sub( camera.position ).length() / 5;
+                    sprite.scale.set( adjust, .25*adjust ); // ratio of canvas width to height
+                }
             }
         }
     }

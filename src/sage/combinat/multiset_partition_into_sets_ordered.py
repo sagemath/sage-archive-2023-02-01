@@ -2790,9 +2790,9 @@ def _iterator_weight(weight):
         sage: OMP = OrderedMultisetPartitionsIntoSets(weight)
         sage: l = list(_iterator_weight(weight))
 
-        sage: sorted(map(OMP, l)) == sorted(map(OMP, \
+        sage: sorted(map(OMP, l), key=str) == sorted(map(OMP, \
         [[{1}, {1}, {'b'}], [{1}, {1,'b'}], [{1}, {'b'}, {1}], \
-         [{1,'b'}, {1}], [{'b'}, {1}, {1}]]))
+         [{1,'b'}, {1}], [{'b'}, {1}, {1}]]), key=str)
         True
         sage: OMP = OrderedMultisetPartitionsIntoSets({1:3, 3:1})
         sage: list(map(OMP, _iterator_weight([3,0,1])))

@@ -2615,7 +2615,7 @@ class Graph(GenericGraph):
             sage: g.is_split()
             True
 
-        Another caracterisation of split graph states that a graph is a split
+        Another characterisation of split graph states that a graph is a split
         graph if and only if does not contain the 4-cycle, 5-cycle or `2K_2` as
         an induced subgraph. Hence for the above graph we have::
 
@@ -3070,73 +3070,6 @@ class Graph(GenericGraph):
 
         return self_complement.is_odd_hole_free(certificate=certificate)
 
-    @doc_index("Graph properties")
-    def odd_girth(self):
-        r"""
-        Returns the odd girth of self.
-
-        The odd girth of a graph is defined as the smallest cycle of odd length.
-
-        OUTPUT:
-
-        The odd girth of ``self``.
-
-        EXAMPLES:
-
-        The McGee graph has girth 7 and therefore its odd girth is 7 as well::
-
-            sage: G = graphs.McGeeGraph()
-            sage: G.odd_girth()
-            7
-
-        Any complete graph on more than 2 vertices contains a triangle and has
-        thus odd girth 3::
-
-            sage: G = graphs.CompleteGraph(10)
-            sage: G.odd_girth()
-            3
-
-        Every bipartite graph has no odd cycles and consequently odd girth of
-        infinity::
-
-            sage: G = graphs.CompleteBipartiteGraph(100,100)
-            sage: G.odd_girth()
-            +Infinity
-
-        .. SEEALSO::
-
-            * :meth:`~sage.graphs.generic_graph.GenericGraph.girth` -- computes
-              the girth of a graph.
-
-        REFERENCES:
-
-        The property relating the odd girth to the coefficients of the
-        characteristic polynomial is an old result from algebraic graph theory
-        see
-
-        .. [Har62] Harary, F (1962). The determinant of the adjacency matrix of
-          a graph, SIAM Review 4, 202-210
-
-        .. [Biggs93] Biggs, N. L. Algebraic Graph Theory, 2nd ed. Cambridge,
-          England: Cambridge University Press, pp. 45, 1993.
-
-        TESTS::
-
-            sage: graphs.CycleGraph(5).odd_girth()
-            5
-            sage: graphs.CycleGraph(11).odd_girth()
-            11
-        """
-        ch = ((self.am()).charpoly()).coefficients(sparse=False)
-        n = self.order()
-
-        for i in range(n-1, -1, -2):
-            if ch[i]:
-                return n-i
-
-        from sage.rings.infinity import Infinity
-
-        return Infinity
 
     @doc_index("Graph properties")
     def is_edge_transitive(self):
@@ -8733,6 +8666,7 @@ class Graph(GenericGraph):
     from sage.graphs.partial_cube import is_partial_cube
     from sage.graphs.orientations import strong_orientations_iterator, random_orientation
     from sage.graphs.connectivity import bridges, cleave, spqr_tree
+    from sage.graphs.connectivity import is_triconnected
 
 
 _additional_categories = {
@@ -8758,7 +8692,8 @@ _additional_categories = {
     "random_orientation"        : "Connectivity, orientations, trees",
     "bridges"                   : "Connectivity, orientations, trees",
     "cleave"                    : "Connectivity, orientations, trees",
-    "spqr_tree"                 : "Connectivity, orientations, trees"
+    "spqr_tree"                 : "Connectivity, orientations, trees",
+    "is_triconnected"           : "Connectivity, orientations, trees"
     }
 
 __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))

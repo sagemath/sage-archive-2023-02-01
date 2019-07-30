@@ -526,7 +526,7 @@ class Order(IntegralDomain):
         r"""
         Return the free `\ZZ`-module contained in the vector space
         associated to the ambient number field, that corresponds
-        to this ideal.
+        to this order.
 
         EXAMPLES::
 
@@ -1643,7 +1643,6 @@ class RelativeOrder(Order):
             sage: O._repr_()
             'Relative Order in Number Field in a with defining polynomial x^2 + x + 1 over its base field'
         """
-        #", ".join([str(b) for b in self.basis()]),
         return "%sRelative Order in %r" % ("Maximal " if self._is_maximal else "", self._K)
 
     def absolute_order(self, names='z'):

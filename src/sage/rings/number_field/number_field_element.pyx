@@ -3051,14 +3051,20 @@ cdef class NumberFieldElement(FieldElement):
             sage: (b^2 + 1)._coefficients()
             [1, 0, 1]
         """
-        cdef list coeffs = []
-        cdef Integer den = (<IntegerRing_class>ZZ)._coerce_ZZ(&self.__denominator)
-        cdef Integer numCoeff
+        cdef Rational coeff
         cdef int i
-        for i from 0 <= i <= ZZX_deg(self.__numerator):
-            numCoeff = Integer.__new__(Integer)
-            ZZX_getitem_as_mpz(numCoeff.value, &self.__numerator, i)
-            coeffs.append( numCoeff / den )
+        cdef mpz_t den
+        mpz_init(den)
+        ZZ_to_mpz(den, &self.__denominator)
+        cdef int size = ZZX_deg(self.__numerator) + 1
+        cdef list coeffs = [None]*size
+        for i in range(size):
+            coeff = Rational.__new__(Rational)
+            ZZX_getitem_as_mpz(mpq_numref(coeff.value), &self.__numerator, i)
+            mpz_set(mpq_denref(coeff.value), den)
+            mpq_canonicalize(coeff.value)
+            coeffs[i] = coeff
+        mpz_clear(den)
         return coeffs
 
     cdef void _ntl_coeff_as_mpz(self, mpz_t z, long i):

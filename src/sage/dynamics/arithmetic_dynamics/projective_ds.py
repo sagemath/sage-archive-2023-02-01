@@ -53,7 +53,7 @@ AUTHORS:
 # ****************************************************************************
 from __future__ import print_function, absolute_import
 
-from sage.arith.misc import is_prime
+from sage.arith.misc import (is_prime, is_square)
 from sage.categories.fields import Fields
 from sage.categories.function_fields import FunctionFields
 from sage.categories.number_fields import NumberFields
@@ -3489,7 +3489,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                                     break
                         return points
                 else:
-                    raise NotImplementedError("ring must a number field or finite field")
+                    raise NotImplementedError("ring must be a number field or finite field")
             else: #a higher dimensional scheme
                 raise TypeError("use return_scheme=True")
         else:
@@ -5289,9 +5289,11 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 pass
         return Conj
 
-    def is_conjugate(self, other):
+    def is_conjugate(self, other, R=None):
         r"""
-        Return whether or not two dynamical systems are conjugate.
+        Return whether two dynamical systems are conjugate over their
+        base ring (by default) or over the ring R entered as an
+        optional parameter.
 
         ALGORITHM:
 
@@ -5355,15 +5357,59 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: g = DynamicalSystem_projective([x^2 - 2*y^2, y^2])
             sage: f.is_conjugate(g)
             False
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQbar, 1)
+            sage: f = DynamicalSystem_projective([7*x + 12*y, 8*x])
+            sage: g = DynamicalSystem_projective([1645*x - 318*y, 8473*x - 1638*y])
+            sage: f.is_conjugate(g)
+            True
+
+        TESTS::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem_projective([-3*y^2, 3*x^2])
+            sage: g = DynamicalSystem_projective([-x^2 - 2*x*y, 2*x*y + y^2])
+            sage: f.is_conjugate(g), f.is_conjugate(g, QQbar)
+            (False, True)
         """
         f = copy(self)
         g = copy(other)
+        if R == None:
+            R = f.base_ring()
+        else:
+            f = self.change_ring(R)
+            g = other.change_ring(R)
+        if not (R in NumberFields() or R is QQbar or R in FiniteFields()):
+            raise NotImplementedError("ring must be a number field or finite field")
         try:
             f.normalize_coordinates()
             g.normalize_coordinates()
         except (ValueError):
             pass
         if f.degree() != g.degree(): # checks that maps are of equal degree
+            return False
+        if f.degree() == 0: # all constant maps are conjugate
+            return True
+        if f.degree() == 1: # for degree 1 maps, check if matrix representations are similar
+            # make matrix forms of f1 and f2
+            gens = f[0].parent().gens()
+            x = gens[0]
+            y = gens[1]
+            m1 = matrix(2,2,[f[0].coefficient(x), f[0].coefficient(y), f[1].coefficient(x), f[1].coefficient(y)])
+            m2 = matrix(2,2,[g[0].coefficient(x), g[0].coefficient(y), g[1].coefficient(x), g[1].coefficient(y)])
+            # Note: det_ratio will be nonzero for invertible f1, f2
+            det_ratio = m1.det()/m2.det()
+            # .is_square() Return True if self is a square in its parent number field and otherwise return False.
+            if is_square(det_ratio):
+                sqrt_rat = is_square(det_ratio, root=True)[1]
+                # rescale so that determinants are equal
+                m1 = (1/sqrt_rat)*m1
+                return m1.is_similar(m2)
+            else:
+                return False
+        if (R in NumberFields() or R in FiniteFields()) and f.sigma_invariants(1) != g.sigma_invariants(1): # sigma invariants are invariant under conjugacy
             return False
         n = f.domain().dimension_relative()
         L = Set(f.periodic_points(1))

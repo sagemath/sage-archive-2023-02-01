@@ -5792,7 +5792,10 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         d = ZZ(self.degree())
         Newton_sigma = [d/(d-1)] + [0]*d # almost newton
         if sigma_1 != Newton_sigma:
-            return False # else is Newton        
+            if return_conjugation:
+                return False, None
+            else:
+                return False
         Fbar = self.change_ring(QQbar)
         Pbar = Fbar.domain()
         fixed = Fbar.periodic_points(1)
@@ -5818,7 +5821,10 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         z = N_aff.domain().gen(0)
         Npoly = (z - N_aff[0]).numerator()
         if return_conjugation:
-            return Npoly.derivative(z) == (z - N_aff[0]).denominator(), M
+            if Npoly.derivative(z) == (z - N_aff[0]).denominator():
+                return True, M
+            else:
+                return False, None
         else:
             return Npoly.derivative(z) == (z - N_aff[0]).denominator()
 

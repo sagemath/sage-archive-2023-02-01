@@ -2266,6 +2266,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 # base case of recursion
                 return D, points
             else:
+                # recurse for each point in the tree
                 for pt in pre:
                     D.update(self._nth_preimage_tree_helper(pt, n-1, m+1, **kwds)[0])
             return D, points
@@ -2274,6 +2275,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 # base case of recursion
                 return D
             else:
+                # recurse for each point in the tree
                 for pt in pre:
                     D.update(self._nth_preimage_tree_helper(pt, n-1, m+1, **kwds))
             return D
@@ -2295,8 +2297,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         - ``return_points`` -- (default: ``False``) boolean; if ``True``, return a list of lists
           where the index ``i`` is the level of the tree and the elements of the list at that
-          index are the ``i``-th preimage points. These points will be algebraic unless `numerical``
-          is set to ``True``
+          index are the ``i``-th preimage points as an algebraic element of the splitting field
+          of the polynomial ``f^n - Q = 0``.
 
         - ``numerical`` -- (default: ``False``) boolean; calculate pre-images numerically
 
@@ -2315,6 +2317,23 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         If ``return_points`` is ``False``, a ``GraphPlot`` object representing the ``n``-th pre-image tree.
         If ``return_points`` is ``True``, a tuple ``(GP, points)``, where ``GP`` is a ``GraphPlot`` object,
         and ``points`` is  a list of lists as described above under ``return_points``
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: f = DynamicalSystem_projective([x^2 + y^2, y^2])
+            sage: Q = P(0,1)
+            sage: f.nth_preimage_tree(Q, 2)
+            GraphPlot object for Digraph on 7 vertices
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(GF(3),1)
+            sage: f = DynamicalSystem_projective([x^2 + x*y + y^2, y^2])
+            sage: Q = P(0,1)
+            sage: f.nth_preimage_tree(Q, 2, return_points=True)
+            (GraphPlot object for Digraph on 4 vertices,
+             [[(0 : 1)], [(1 : 1)], [(0 : 1), (2 : 1)]])
         """
         return_points = kwds.get("return_points", False)
         numerical = kwds.get("numerical", False)
@@ -2338,8 +2357,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             kwds["display_complex"] = False
         else:
             raise NotImplementedError("Only implemented for number fields, algebraic fields, and finite fields")
-        Q = fbar.codomain()(Q)
 
+        Q = fbar.codomain()(Q)
         display_complex = kwds.get("display_complex", False)
         if display_complex:
             embed = field_def.embeddings(ComplexField())[0]
